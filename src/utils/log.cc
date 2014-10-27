@@ -1,20 +1,25 @@
 #include <string>
 #include <iostream>
+#include <iomanip>
 #include <fstream>
 #include <ctime>
 
 #include "log.hh"
 
 // init static members
-bool      Log::log_count   = true;
-bool      Log::log_date    = true;
-bool      Log::log_time    = true;
-bool      Log::log_runtime = true;
-bool      Log::log_file    = true;
-bool      Log::log_line    = true;
-bool      Log::log_level   = true;
+LogDetails Log::details = {
+    true, // count
+    true, // date
+    true, // time
+    true, // runtime
+    true, // rundiff
+    true, // file
+    true, // line
+    true  // level
+};
 LogLevel  Log::max_level_  = kDebug4;
 int       Log::count_      = 0;
+clock_t   Log::last_clock_ = 0;
 std::vector<std::ostream*> Log::ostreams_;
 
 /**
@@ -29,12 +34,11 @@ void Log::max_level (const LogLevel level)
                  << "max level is " << LOG_LEVEL_MAX << ", so that "
                  << "everything above that will not be logged.";
     }
-
     max_level_ = level;
 }
 
 /**
- * Return a string representation of a log level
+ * Return a string representation of a log level.
  */
 std::string Log::LevelToString(const LogLevel level)
 {
@@ -112,16 +116,6 @@ inline std::string CurrentTime()
     return out.str();
 }
 
-// util to get the currently elapsed time for the program in nice string form
-// TODO also add a function for the header with elapsed time since last log msg
-inline std::string CurrentRuntime()
-{
-    std::ostringstream out;
-    out.str("");
-    out << double(clock()) / CLOCKS_PER_SEC;
-    return out.str();
-}
-
 /**
  * Ctor, does nothing.
  */
@@ -135,43 +129,61 @@ Log::Log()
  */
 Log::~Log()
 {
-    // build the header for the log message
-    std::ostringstream header;
-    header.str("");
-    if (log_count) {
-        header.fill('0');
-        header.width(4);
-        header << count_ << " ";
+    // build the details for the log message into a buffer
+    clock_t now_clock = clock();
+    std::ostringstream det_buff;
+    det_buff.str("");
+    if (details.count) {
+        det_buff.fill('0');
+        det_buff.width(4);
+        det_buff << count_ << " ";
     }
-    if (log_date) {
-        header << CurrentDate() << " ";
+    if (details.date) {
+        det_buff << CurrentDate() << " ";
     }
-    if (log_time) {
-        header << CurrentTime() << " ";
+    if (details.time) {
+        det_buff << CurrentTime() << " ";
     }
-    if (log_runtime) {
-        header << CurrentRuntime() << " ";
+    if (details.runtime) {
+        det_buff << std::fixed
+                 << std::setprecision(6)
+                 << double(now_clock) / CLOCKS_PER_SEC
+                 << " ";
     }
-    if (log_file) {
-        header << file_ << (log_line ? "" : " ");
+    if (details.rundiff) {
+        if (last_clock_ == 0) {
+            det_buff << std::fixed
+                     << std::setprecision(6)
+                     << (double) 0.0
+                     << " ";
+        } else {
+            det_buff << std::fixed
+                     << std::setprecision(6)
+                     << (double) (now_clock - last_clock_) / CLOCKS_PER_SEC
+                     << " ";
+        }
+        last_clock_ = now_clock;
     }
-    if (log_line) {
-        header << ":" << line_ << " ";
+    if (details.file) {
+        det_buff << file_ << (details.line ? "" : " ");
     }
-    if (log_level) {
-        header << LevelToString(level_) << " ";
+    if (details.line) {
+        det_buff << ":" << line_ << " ";
+    }
+    if (details.level) {
+        det_buff << LevelToString(level_) << " ";
     }
 
     // add spaces for nested debug levels
     if (level_ > kDebug) {
         for (int i = 0; i < level_ - kDebug; i++) {
-            header << "  ";
+            det_buff << "  ";
         }
     }
 
     // output the message to every stream
     for (std::ostream* out : ostreams_) {
-        (*out) << header.str() << os_.str() << std::endl << std::flush;
+        (*out) << det_buff.str() << buff_.str() << std::endl << std::flush;
     }
 
     // inc log message counter
@@ -184,9 +196,9 @@ Log::~Log()
 std::ostringstream& Log::Get(const std::string file, const int line, const LogLevel level)
 {
     // save the information given when called from the macros
-    os_.str("");
+    buff_.str("");
     file_  = file;
     line_  = line;
     level_ = level;
-    return os_;
+    return buff_;
 }

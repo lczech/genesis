@@ -56,7 +56,7 @@ mpi: $(PROGRAM)
 
 # Link all objects to get the program
 $(PROGRAM): $(OBJFILES)
-	@echo "\n==========  Linking  =========="
+	@echo "\n========== Linking   =========="
 	@echo "Objects: $(OBJFILES)\n"
 	$(CC) $(OBJFILES) -o $@ $(LDFLAGS)
 
@@ -73,6 +73,7 @@ clean:
 
 # Extract todos
 todo:
+	@echo "\n========== Todos     =========="
 	-@$(RM) TODO
 	-@for file in $(ALLFILES:Makefile=); do fgrep -HnT -e TODO -e FIXME $$file \
 	| sed "s/[[:space:]]*[\/\*]*[[:space:]]*TODO[[:space:]]*/ /g" >> TODO; done; true

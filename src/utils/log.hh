@@ -35,7 +35,7 @@ enum LogLevel {
 #define LOG(level) \
     if (level > LOG_LEVEL_MAX) ; \
     else if (level > Log::max_level()) ; \
-    else Log().Get("__FILE__", __LINE__, level)
+    else Log().Get(__FILE__, __LINE__, level)
 
 // define shortcuts
 #define LOG_ERR  LOG(kError)
@@ -47,14 +47,34 @@ enum LogLevel {
 #define LOG_DBG3 LOG(kDebug3)
 #define LOG_DBG4 LOG(kDebug4)
 
-// TODO create macro(s) and functionatilty to easily adjust the log header for
-// a single call, so that something like LOG_TIME ... is possible, which outputs
-// timing information without the rest header. maybe even do something like
-// headers for every level (and add TIME as a log type), or even different streams
-// for different types.
+// settings for which information is included with each log message
+typedef struct {
+    bool count;
+    bool date;
+    bool time;
+    bool runtime;
+    bool rundiff;
+    bool file;
+    bool line;
+    bool level;
+} LogDetails;
 
-// TODO also create a macro for blank logging without header and use it for
-// the program header in main
+// TODO create macro(s) and functionatilty to easily adjust the log details for
+// a single call, so that something like LOG_TIME ... is possible, which outputs
+// timing information without the rest details. (and add TIME as a log type)
+// to do so, make the log_ bools into a struct that can be handed over to Get
+
+// TODO maybe even do something like detailss for every level, or even
+// different streams for different types.
+
+// TODO maybe close the files, so that everything is written on crash?
+
+// TODO also create a macro for blank logging without details and use it for
+// the program details in main
+
+// TODO define a function that logs the detail column headers
+// TODO offer csv as output format
+// TODO offer remote streams
 
 /**
  * Log class with easy and fast usage.
@@ -74,7 +94,7 @@ enum LogLevel {
  *     i++;
  * because the former will not work when the max log level is below info level.
  *
- * TODO document why it is fast using the macros, talk about the log headers,
+ * TODO document why it is fast using the macros, talk about the log details,
  * the output streams, say something about how the whole thing works with
  * the stream and output on dtor.
  */
@@ -92,13 +112,7 @@ class Log
         static void AddOutputFile   (const std::string fn);
 
         // settings for which information is included with each log message
-        static bool log_count;
-        static bool log_date;
-        static bool log_time;
-        static bool log_runtime;
-        static bool log_file;
-        static bool log_line;
-        static bool log_level;
+        static LogDetails details;
 
         // get/set the highest log level that is reported
         static LogLevel  max_level () {return max_level_;};
@@ -109,7 +123,7 @@ class Log
 
     protected:
         // storage for information needed during one invocation of a log
-        std::ostringstream os_;
+        std::ostringstream buff_;
         std::string        file_;
         int                line_;
         LogLevel           level_;
@@ -118,7 +132,8 @@ class Log
         static LogLevel max_level_;
 
         // how many log calls were made so far
-        static int count_;
+        static int     count_;
+        static clock_t last_clock_;
 
         // array of streams that are used for output
         static std::vector<std::ostream*> ostreams_;
