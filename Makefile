@@ -27,7 +27,10 @@ LDFLAGS = -lm
 # --------------------------------
 
 # Collect all files
-SRCS = $(wildcard src/*.cc) $(wildcard src/*/*.cc)
+#~ SRC_UTILS = $(wildcard src/utils/*.cc)
+#~ SRC_MAIN  = $(wildcard src/main/*.cc)
+#~ SRCS = $(SRC_MAIN) $(SRC_UTILS)
+SRCS = $(wildcard src/*/*.cc)
 OBJS = $(SRCS:.cc=.o)
 
 # Target for non-mpi version

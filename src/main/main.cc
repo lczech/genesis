@@ -1,6 +1,6 @@
 #include <iostream>
 
-//~ #include "../utils/log.hh"
+#include "../utils/log.hh"
 
 /**
  * Prints the header information on screen when starting the program.
@@ -19,9 +19,11 @@ int main (int argc, char* argv[])
 //~
     //~ logger << "text to log, and a variable " << i;
 
-    //~ LOG_DBG << "test";
-//~
-    //~ LOG_INFO << "hallo";
+    Log::AddOutputStream(std::cout);
+    Log::AddOutputFile("/home/lucas/test.log");
+
+    LOG_DBG1 << "test " << 42;
+    LOG_INFO << "hallo";
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {
