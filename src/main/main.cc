@@ -14,11 +14,6 @@ int main (int argc, char* argv[])
 {
     print_header();
 
-    //~ Log* l = new Log();
-    //~ Log logger();
-//~
-    //~ logger << "text to log, and a variable " << i;
-
     Log::AddOutputStream(std::cout);
     Log::AddOutputFile("/home/lucas/test.log");
 

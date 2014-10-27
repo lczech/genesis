@@ -25,6 +25,11 @@ enum LogLevel {
 #define LOG_LEVEL_MAX kDebug4
 #endif
 
+// override this setting when debugging is turned on (eg by makefile)
+#ifdef DEBUG
+#define LOG_LEVEL_MAX kDebug4
+#endif
+
 // define the actual log macro, so that the compiler can prune calls
 // to a log with levels above the static max log level
 #define LOG(level) \
@@ -47,6 +52,9 @@ enum LogLevel {
 // timing information without the rest header. maybe even do something like
 // headers for every level (and add TIME as a log type), or even different streams
 // for different types.
+
+// TODO also create a macro for blank logging without header and use it for
+// the program header in main
 
 /**
  * Log class with easy and fast usage.

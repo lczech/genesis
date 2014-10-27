@@ -2,15 +2,14 @@
 #   Program
 # --------------------------------
 
-PROG = genesis
+PROGRAM = genesis
 
 # --------------------------------
 #   Compiler Options
 # --------------------------------
 
 # Debug & Profiling (comment out if not needed)
-# TODO set log level
-DBG     = -g -pg
+DBG     = -g -pg -DDEBUG
 
 # Warning flags
 WARN    = -Wall -Wextra -pedantic-errors
@@ -23,41 +22,57 @@ LDFLAGS = -lm
 #-lpll-sse3 -lm
 
 # --------------------------------
+#   File lists
+# --------------------------------
+
+SRCFILES := $(shell find ./src -type f -name "*.cc")
+HDRFILES := $(shell find ./src -type f -name "*.hh")
+OBJFILES := $(patsubst %.cc,%.o,$(SRCFILES))
+DEPFILES := $(patsubst %.cc,%.d,$(SRCFILES))
+
+ALLFILES := $(SRCFILES) $(HDRFILES)
+
+# --------------------------------
 #   Make rules
 # --------------------------------
 
-# Collect all files
-#~ SRC_UTILS = $(wildcard src/utils/*.cc)
-#~ SRC_MAIN  = $(wildcard src/main/*.cc)
-#~ SRCS = $(SRC_MAIN) $(SRC_UTILS)
-SRCS = $(wildcard src/*/*.cc)
-OBJS = $(SRCS:.cc=.o)
+.PHONY: all clean dist check test todo
 
-# Target for non-mpi version
+# Include dependecies
+# (they are generated when compiling the sources and contain makefile-formatted
+# information on their dependecies, so that nothing should be missing in the end)
+-include $(DEPFILES)
+
+# Build the standard version of the program
 all: CC = ${STDCC}
-all: $(PROG)
+all: $(PROGRAM)
 	@echo "\n========== Done std  =========="
 
-# Target for mpi version
+# Build an MPI version of the program
 mpi: CC = ${MPICC}
 mpi: CCFLAGS += -DUSE_MPI
-mpi: $(PROG)
+mpi: $(PROGRAM)
 	@echo "\n========== Done mpi  =========="
 
-# Target for Linking
-$(PROG): $(OBJS)
+# Link all objects to get the program
+$(PROGRAM): $(OBJFILES)
 	@echo "\n==========  Linking  =========="
-	@echo "Objects: $(OBJS)\n"
-	$(CC) $(OBJS) -o $@ $(LDFLAGS)
+	@echo "Objects: $(OBJFILES)\n"
+	$(CC) $(OBJFILES) -o $@ $(LDFLAGS)
 
-# Target for Compiling
-.cc.o:
+# Compile all sources
+%.o: %.cc Makefile
 	@echo "\n========== Compiling =========="
 	@echo "File: $< > $@"
-#	@echo "Sources: $(SRCS)"
-	$(CC) $(CCFLAGS) -c $< -o $@
+	$(CC) $(CCFLAGS) -MMD -MP -c $< -o $@
 
-# Target for Cleaning
+# Remove all generated files
 clean:
 	@echo "\n========== Cleaning  =========="
-	rm -fv $(OBJS) $(PROG)
+	-@$(RM) $(PROGRAM) $(OBJFILES) $(DEPFILES)
+
+# Extract todos
+todo:
+	-@$(RM) TODO
+	-@for file in $(ALLFILES:Makefile=); do fgrep -HnT -e TODO -e FIXME $$file \
+	| sed "s/[[:space:]]*[\/\*]*[[:space:]]*TODO[[:space:]]*/ /g" >> TODO; done; true
