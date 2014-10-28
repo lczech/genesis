@@ -6,19 +6,6 @@
 #include <string>
 #include <vector>
 
-// define the log levels
-enum LogLevel {
-    kNone = 0,
-    kError,
-    kWarning,
-    kInfo,
-    kDebug,
-    kDebug1,
-    kDebug2,
-    kDebug3,
-    kDebug4
-};
-
 // static max log level, everything above this will be pruned by the compiler
 // (first check, if it is not yet set, for example by makefile)
 #ifndef LOG_LEVEL_MAX
@@ -53,11 +40,25 @@ enum LogLevel {
 #define LOG_DBG3 GNS_LOG(kDebug3)
 #define LOG_DBG4 GNS_LOG(kDebug4)
 
-// define special log shortcuts
+// define special log shortcuts. the list of bools represent
+// the members of struct LogDetails and indicate which parts shall be included
 #define LOG_MSG  GNS_LOG_DETAILS(kNone, \
     false, false, false, false, false, false, false, false)
 #define LOG_TIME GNS_LOG_DETAILS(kDebug, \
     false, false, false, false, true,  false, false, false)
+
+// define the log levels
+enum LogLevel {
+    kNone = 0,
+    kError,
+    kWarning,
+    kInfo,
+    kDebug,
+    kDebug1,
+    kDebug2,
+    kDebug3,
+    kDebug4
+};
 
 // settings for which information is included with each log message
 typedef struct {
