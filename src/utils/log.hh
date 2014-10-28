@@ -71,19 +71,6 @@ typedef struct {
     bool level;
 } LogDetails;
 
-// TODO create macro(s) and functionatilty to easily adjust the log details for
-// a single call, so that something like LOG_TIME ... is possible, which outputs
-// timing information without the rest details. (and add TIME as a log type)
-// to do so, make the log_ bools into a struct that can be handed over to Get
-
-// TODO maybe even do something like detailss for every level, or even
-// different streams for different types.
-
-// TODO maybe close the files, so that everything is written on crash?
-
-// TODO also create a macro for blank logging without details and use it for
-// the program details in main
-
 // TODO define a function that logs the detail column headers
 // TODO offer csv as output format
 // TODO offer remote streams
@@ -152,7 +139,7 @@ class Log
         static LogLevel max_level_;
 
         // how many log calls were made so far
-        static int     count_;
+        static long    count_;
         static clock_t last_clock_;
 
         // array of streams that are used for output

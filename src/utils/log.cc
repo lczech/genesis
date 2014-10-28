@@ -18,7 +18,7 @@ LogDetails Log::details = {
     true  // level
 };
 LogLevel  Log::max_level_  = kDebug4;
-int       Log::count_      = 0;
+long      Log::count_      = 0;
 clock_t   Log::last_clock_ = 0;
 std::vector<std::ostream*> Log::ostreams_;
 
@@ -73,47 +73,25 @@ void Log::AddOutputFile (const std::string fn)
 // util to get the current date in nice string form
 inline std::string CurrentDate()
 {
-    std::ostringstream out;
-    out.str("");
-
     time_t now = time(0);
     tm*    ltm = localtime(&now);
 
-    out << ltm->tm_year + 1900;
-    out << "-";
-    out.fill('0');
-    out.width(2);
-    out << ltm->tm_mon + 1;
-    out << "-";
-    out.fill('0');
-    out.width(2);
-    out << ltm->tm_mday;
-
-    return out.str();
+    char out[12];
+    sprintf (out, "%u-%02u-%02u",
+        ltm->tm_year + 1900, ltm->tm_mon + 1, ltm->tm_mday
+    );
+    return out;
 }
 
 // util to get the current time in nice string form
 inline std::string CurrentTime()
 {
-    std::ostringstream out;
-    out.str("");
-
     time_t now = time(0);
     tm*    ltm = localtime(&now);
 
-    out.fill('0');
-    out.width(2);
-    out << ltm->tm_hour;
-    out << ":";
-    out.fill('0');
-    out.width(2);
-    out << ltm->tm_min;
-    out << ":";
-    out.fill('0');
-    out.width(2);
-    out << ltm->tm_sec;
-
-    return out.str();
+    char out[10];
+    sprintf (out, "%02u:%02u:%02u", ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
+    return out;
 }
 
 /**
