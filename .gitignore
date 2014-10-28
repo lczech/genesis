@@ -26,3 +26,13 @@
 *.exe
 *.out
 *.app
+
+# Dependencies
+*.d
+
+# Swap files
+*~
+
+# Misc
+*.geany
+

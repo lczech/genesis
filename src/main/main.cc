@@ -1,33 +1,39 @@
+#include <string>
 #include <iostream>
 
-//~ #include "../utils/log.hh"
+#include "../utils/log.hh"
 
 /**
  * Prints the header information on screen when starting the program.
  */
-void print_header()
+std::string print_header()
 {
-    std::cout << "genesis started." << std::endl;
+    return std::string (
+        "   ___   ____ __  __  ____  __  __  __ \n") +
+        "  // \\\\ ||    ||\\ || ||    (( \\ || (( \\\n" +
+        " (( ___ ||==  ||\\\\|| ||==   \\\\  ||  \\\\ \n" +
+        "  \\\\_|| ||___ || \\|| ||___ \\_)) || \\_))\n";
 }
 
 int main (int argc, char* argv[])
 {
-    print_header();
+    Log::AddOutputStream(std::cout);
+    Log::AddOutputFile("/home/lucas/test.log");
 
-    //~ Log* l = new Log();
-    //~ Log logger();
-//~
-    //~ logger << "text to log, and a variable " << i;
+    LOG_MSG << print_header();
 
-    //~ LOG_DBG << "test";
-//~
-    //~ LOG_INFO << "hallo";
+    LOG_TIME << "am start";
+
+    LOG_DBG1 << "test " << 42;
+    LOG_INFO << "hallo";
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {
         std::cout << argv[i];
     }
     std::cout << std::endl;
+
+    LOG_TIME << "durch";
 
     return 0;
 }
