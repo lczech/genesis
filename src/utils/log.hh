@@ -32,20 +32,32 @@ enum LogLevel {
 
 // define the actual log macro, so that the compiler can prune calls
 // to a log with levels above the static max log level
-#define LOG(level) \
+#define GNS_LOG(level) \
     if (level > LOG_LEVEL_MAX) ; \
     else if (level > Log::max_level()) ; \
     else Log().Get(__FILE__, __LINE__, level)
 
-// define shortcuts
-#define LOG_ERR  LOG(kError)
-#define LOG_WARN LOG(kWarning)
-#define LOG_INFO LOG(kInfo)
-#define LOG_DBG  LOG(kDebug)
-#define LOG_DBG1 LOG(kDebug1)
-#define LOG_DBG2 LOG(kDebug2)
-#define LOG_DBG3 LOG(kDebug3)
-#define LOG_DBG4 LOG(kDebug4)
+// define a similar log macro, this time changing the details of the message
+#define GNS_LOG_DETAILS(level, ...) \
+    if (level > LOG_LEVEL_MAX) ; \
+    else if (level > Log::max_level()) ; \
+    else Log().Get(__FILE__, __LINE__, level, {__VA_ARGS__})
+
+// define standard log shortcuts
+#define LOG_ERR  GNS_LOG(kError)
+#define LOG_WARN GNS_LOG(kWarning)
+#define LOG_INFO GNS_LOG(kInfo)
+#define LOG_DBG  GNS_LOG(kDebug)
+#define LOG_DBG1 GNS_LOG(kDebug1)
+#define LOG_DBG2 GNS_LOG(kDebug2)
+#define LOG_DBG3 GNS_LOG(kDebug3)
+#define LOG_DBG4 GNS_LOG(kDebug4)
+
+// define special log shortcuts
+#define LOG_MSG  GNS_LOG_DETAILS(kNone, \
+    false, false, false, false, false, false, false, false)
+#define LOG_TIME GNS_LOG_DETAILS(kDebug, \
+    false, false, false, false, true,  false, false, false)
 
 // settings for which information is included with each log message
 typedef struct {
@@ -96,7 +108,7 @@ typedef struct {
  *
  * TODO document why it is fast using the macros, talk about the log details,
  * the output streams, say something about how the whole thing works with
- * the stream and output on dtor.
+ * the stream and output on dtor. also mention the special logs.
  */
 class Log
 {
@@ -105,7 +117,14 @@ class Log
         ~Log();
 
         // getter for the singleton instance of log, is called by the macros
-        std::ostringstream& Get (const std::string file, const int line, const LogLevel level);
+        std::ostringstream& Get (
+            const std::string file, const int line,
+            const LogLevel level
+        );
+        std::ostringstream& Get (
+            const std::string file, const int line,
+            const LogLevel level, const LogDetails dets
+        );
 
         // methods to add output streams to write the log messages to
         static void AddOutputStream (std::ostream& os);
@@ -127,6 +146,7 @@ class Log
         std::string        file_;
         int                line_;
         LogLevel           level_;
+        LogDetails         details_;
 
         // dynamic log level limit
         static LogLevel max_level_;

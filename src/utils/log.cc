@@ -133,24 +133,24 @@ Log::~Log()
     clock_t now_clock = clock();
     std::ostringstream det_buff;
     det_buff.str("");
-    if (details.count) {
+    if (details_.count) {
         det_buff.fill('0');
         det_buff.width(4);
         det_buff << count_ << " ";
     }
-    if (details.date) {
+    if (details_.date) {
         det_buff << CurrentDate() << " ";
     }
-    if (details.time) {
+    if (details_.time) {
         det_buff << CurrentTime() << " ";
     }
-    if (details.runtime) {
+    if (details_.runtime) {
         det_buff << std::fixed
                  << std::setprecision(6)
                  << double(now_clock) / CLOCKS_PER_SEC
                  << " ";
     }
-    if (details.rundiff) {
+    if (details_.rundiff) {
         if (last_clock_ == 0) {
             det_buff << std::fixed
                      << std::setprecision(6)
@@ -164,13 +164,13 @@ Log::~Log()
         }
         last_clock_ = now_clock;
     }
-    if (details.file) {
-        det_buff << file_ << (details.line ? "" : " ");
+    if (details_.file) {
+        det_buff << file_ << (details_.line ? "" : " ");
     }
-    if (details.line) {
+    if (details_.line) {
         det_buff << ":" << line_ << " ";
     }
-    if (details.level) {
+    if (details_.level) {
         det_buff << LevelToString(level_) << " ";
     }
 
@@ -191,14 +191,29 @@ Log::~Log()
 }
 
 /**
- * Getter for the singleton instance of log, is called by the macros.
+ * Getter for the singleton instance of log, is called by the standard macros.
  */
-std::ostringstream& Log::Get(const std::string file, const int line, const LogLevel level)
+std::ostringstream& Log::Get(
+    const std::string file, const int line, const LogLevel level
+)
+{
+    return Get(file, line, level, details);
+}
+
+/**
+ * Getter for the singleton instance of log, is called by special macros
+ * that change the details of the log message.
+ */
+std::ostringstream& Log::Get(
+    const std::string file, const int line,
+    const LogLevel level, const LogDetails dets
+)
 {
     // save the information given when called from the macros
+    file_    = file;
+    line_    = line;
+    level_   = level;
+    details_ = dets;
     buff_.str("");
-    file_  = file;
-    line_  = line;
-    level_ = level;
     return buff_;
 }
