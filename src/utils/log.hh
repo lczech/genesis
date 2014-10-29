@@ -13,14 +13,18 @@
 #include <string>
 #include <vector>
 
+namespace genesis {
+
 #ifndef LOG_LEVEL_MAX
 /**
  * Static maximal log level.
- *
  * Everything above this level will be pruned by the compiler.
  */
 #define LOG_LEVEL_MAX kDebug4
 #endif
+
+// TODO make DEBUG a special macro with proper usage makefile etc,
+// also add maybe stuff like PROD TEST etc, prepend ENV_ or so!
 
 // override this setting when debugging is turned on (eg by makefile)
 #ifdef DEBUG
@@ -41,21 +45,21 @@
     else Log().Get(__FILE__, __LINE__, level, {__VA_ARGS__})
 
 // define standard Logging of shortcuts
-/** Logging of an error. See ::LogLevel. */
+/** %Log an error. See ::LogLevel. */
 #define LOG_ERR  GNS_LOG(kError)
-/** Logging of a warning. See ::LogLevel. */
+/** %Log a warning. See ::LogLevel. */
 #define LOG_WARN GNS_LOG(kWarning)
-/** Logging of an info message. See ::LogLevel. */
+/** %Log an info message. See ::LogLevel. */
 #define LOG_INFO GNS_LOG(kInfo)
-/** Logging of a debug message. See ::LogLevel. */
+/** %Log a debug message. See ::LogLevel. */
 #define LOG_DBG  GNS_LOG(kDebug)
-/** Logging of a debug message. See ::LogLevel. */
+/** %Log a debug message. See ::LogLevel. */
 #define LOG_DBG1 GNS_LOG(kDebug1)
-/** Logging of a debug message. See ::LogLevel. */
+/** %Log a debug message. See ::LogLevel. */
 #define LOG_DBG2 GNS_LOG(kDebug2)
-/** Logging of a debug message. See ::LogLevel. */
+/** %Log a debug message. See ::LogLevel. */
 #define LOG_DBG3 GNS_LOG(kDebug3)
-/** Logging of a debug message. See ::LogLevel. */
+/** %Log a debug message. See ::LogLevel. */
 #define LOG_DBG4 GNS_LOG(kDebug4)
 
 // define special log shortcuts. the list of bools represent
@@ -65,7 +69,10 @@
     false, false, false, false, false, false, false, false)
 /** Logging of a message with timing information. See Log. */
 #define LOG_TIME GNS_LOG_DETAILS(kDebug, \
-    false, false, false, false, true,  false, false, false)
+    false, false, false, true , true,  false, false, false)
+
+// TODO add TIME1..4 (or TMR maybe) for indented timing logs
+// TODO change macros for timing to be out of usual log levels
 
 /**
  * @brief Levels of severity used for logging.
@@ -264,5 +271,7 @@ class Log
         Log (const Log&);
         Log& operator = (const Log&);
 };
+
+} // namespace genesis
 
 #endif // include guard

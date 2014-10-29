@@ -3,6 +3,8 @@
 
 #include "../utils/log.hh"
 
+using namespace genesis;
+
 /**
  * Prints the header information on screen when starting the program.
  */
@@ -20,7 +22,7 @@ int main (int argc, char* argv[])
     Log::AddOutputStream(std::cout);
     Log::AddOutputFile("/home/lucas/test.log");
 
-    LOG_MSG << print_header();
+    LOG_BOLD << print_header();
 
     LOG_TIME << "am start";
 

@@ -6,6 +6,9 @@
 
 #include "log.hh"
 
+namespace genesis {
+
+// TODO use different init for log details depending on DEBUG
 // init static members
 LogDetails Log::details = {
     true, // count
@@ -104,6 +107,7 @@ Log::Log()
 }
 
 // TODO the output of the log is not thread safe
+// TODO use auto indention for multi line log messages
 /**
  * Destructor that is invoked at the end of each log line and does the actual output.
  */
@@ -202,3 +206,5 @@ std::ostringstream& Log::Get(
     buff_.str("");
     return buff_;
 }
+
+} // namespace genesis
