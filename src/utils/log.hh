@@ -1,3 +1,10 @@
+/**
+ * Provides easy and fast logging functionality.
+ *
+ * @file
+ * @ingroup utils
+ */
+
 // include guard
 #ifndef GNS_UTILS_LOG_H_
 #define GNS_UTILS_LOG_H_
@@ -6,9 +13,12 @@
 #include <string>
 #include <vector>
 
-// static max log level, everything above this will be pruned by the compiler
-// (first check, if it is not yet set, for example by makefile)
 #ifndef LOG_LEVEL_MAX
+/**
+ * Static maximal log level.
+ *
+ * Everything above this level will be pruned by the compiler.
+ */
 #define LOG_LEVEL_MAX kDebug4
 #endif
 
@@ -30,45 +40,102 @@
     else if (level > Log::max_level()) ; \
     else Log().Get(__FILE__, __LINE__, level, {__VA_ARGS__})
 
-// define standard log shortcuts
+// define standard Logging of shortcuts
+/** Logging of an error. See ::LogLevel. */
 #define LOG_ERR  GNS_LOG(kError)
+/** Logging of a warning. See ::LogLevel. */
 #define LOG_WARN GNS_LOG(kWarning)
+/** Logging of an info message. See ::LogLevel. */
 #define LOG_INFO GNS_LOG(kInfo)
+/** Logging of a debug message. See ::LogLevel. */
 #define LOG_DBG  GNS_LOG(kDebug)
+/** Logging of a debug message. See ::LogLevel. */
 #define LOG_DBG1 GNS_LOG(kDebug1)
+/** Logging of a debug message. See ::LogLevel. */
 #define LOG_DBG2 GNS_LOG(kDebug2)
+/** Logging of a debug message. See ::LogLevel. */
 #define LOG_DBG3 GNS_LOG(kDebug3)
+/** Logging of a debug message. See ::LogLevel. */
 #define LOG_DBG4 GNS_LOG(kDebug4)
 
 // define special log shortcuts. the list of bools represent
 // the members of struct LogDetails and indicate which parts shall be included
-#define LOG_MSG  GNS_LOG_DETAILS(kNone, \
+/** Logging of a message that is always displayed. See Log. */
+#define LOG_BOLD GNS_LOG_DETAILS(kNone, \
     false, false, false, false, false, false, false, false)
+/** Logging of a message with timing information. See Log. */
 #define LOG_TIME GNS_LOG_DETAILS(kDebug, \
     false, false, false, false, true,  false, false, false)
 
-// define the log levels
+/**
+ * @brief Levels of severity used for logging.
+ *
+ * The levels are in ascending order and are used both to signal what kind
+ * of message is being logged and to provide a threshold for less important
+ * messages that can be filtered out, for example debug messages in the
+ * production build of the program. Because some of the filtering is already
+ * done at compile time, log messages with a level higher than #LOG_LEVEL_MAX
+ * do not produce any overhead. See also Log for more on this.
+ */
 enum LogLevel {
+    /** Special messages that are always logged, e.g. program header. */
     kNone = 0,
+    /** Errors, usually non-recoverable. */
     kError,
+    /** Warnings if somthing went wront, but program can continue. */
     kWarning,
+    /** Infos, for example when a file was written. */
     kInfo,
+    /** Basic debugging message. */
     kDebug,
+    /** Debugging message with indent level 1 (e.g. for loops). */
     kDebug1,
+    /** Debugging message with indent level 2. */
     kDebug2,
+    /** Debugging message with indent level 3. */
     kDebug3,
+    /** Debugging message with indent level 4. */
     kDebug4
 };
 
-// settings for which information is included with each log message
+/**
+ * @brief Settings for which information is included with each log message.
+ *
+ * The details are activated via accessing the static variable of the log class:
+ *
+ *     Log::details.level = true;
+ *
+ * All active details are prepended to the actual log message and separated by
+ * spaces (execpt file and line, they are separated by a colon). Their order is fixed.
+ *
+ * A message with all details activates looks like this
+ *
+ *     0003 2014-10-28 11:40:47 0.001859 0.000103 src/main/main.cc:28 INFO Hello
+ *
+ * It was the third message being logged in this run of the program, at a
+ * date and time, 0.001859 sec after the program started and 0.000103 sec after
+ * the last log message. It was called from main.cc line 28 and has level Info.
+ */
 typedef struct {
+    /** Include a counter of how many messages have been logged so far. */
     bool count;
+    /** Include the current date. */
     bool date;
+    /** Include the current time. */
     bool time;
+    /** Include the current run time of the program in sec. */
     bool runtime;
+    /**
+     * Include the run time difference to the last log message in sec.
+     * Useful for timing and profiling code sections. Is 0.0 at the first
+     * log message.
+     */
     bool rundiff;
+    /** Include the filename where the log message was generated. */
     bool file;
+    /** Include the line of the file where the log message was generated. */
     bool line;
+    /** Include the level (e.g. Info, Debug) of the message. */
     bool level;
 } LogDetails;
 
@@ -77,26 +144,68 @@ typedef struct {
 // TODO offer remote streams
 
 /**
- * Log class with easy and fast usage.
+ * @brief Logging class with easy and fast usage.
  *
- * The basic usage works via macros for the different types of log messages:
+ * The basic usage of this class is to invoke the macros for the different types
+ * of log messages and send a stream of messages to them:
+ *
  *     LOG_DBG << "you are here";
  *     LOG_ERR << "there was an error: " << 42;
- * The provided types of macros are:
- *     LOG_ERR, LOG_WARN, LOG_INFO, LOG_DBG, LOG_DBG1, LOG_DBG2, LOG_DBG3, LOG_DBG4
  *
- * Caveat: Because the macro already contains conditions depending on the log
- * level, do not use code in a log line that changes the program state.
- * Instead of
+ * The provided types of macros are: #LOG_ERR, #LOG_WARN, #LOG_INFO, #LOG_DBG,
+ * #LOG_DBG1, #LOG_DBG2, #LOG_DBG3, #LOG_DBG4 for all levels of logging
+ * explained in ::LogLevel.
+ *
+ * The details that are logged with each message can be changed via accessing
+ * Log::details -- see LogDetails for more on that.
+ *
+ * In order to use this class, at least one output stream has to be added first
+ * by invoking either AddOutputStream or AddOutputFile.
+ *
+ * The depths of logging can be changed in order to reduce the amount of written
+ * messages. First, at compiletime the macro constant LOG_LEVEL_MAX can be set
+ * (e.g. in the Makefile) to the highest level that shall be logged. All log
+ * invoakations with a higher level are never called, and moreover will be
+ * pruned from the code by most compilers completetly. This makes the log class
+ * fast -- instead of deleting all log invokations by hand, it is sufficient to
+ * set the constant to a low level.
+ * Second, the depths of logging can be changed dynamically at run time by
+ * setting Log::max_level to the desired value. Of course, this value
+ * cannot be higher than LOG_LEVEL_MAX, because those logs are already pruned
+ * by the compiler.
+ *
+ * There are also two more special log types that create a different output than
+ * the previously mentioned types:
+ *
+ * * #LOG_BOLD does not include any details with its message stream (thus, is
+ * independent of Log::details) and is always logged (independent of the max
+ * levels). This is used to log the program header and footer on startup and
+ * termination.
+ *
+ * * #LOG_TIME includes the run time difference to the last log message in sec as
+ * its only detail (independent of Log::details). This is particularly useful
+ * for timing and profiling code sections. Its level is ::kDebug, so
+ * that in can be easily turned of for production code.
+ *
+ * The inner working of this class is as follows: Upon invokation via one of the
+ * macros, an instance is created that stays alive only for the rest of the
+ * source code line. In this line, the log message is inserted to the buffer
+ * stream. After the line finishes, the object is automatically destroyed, so
+ * that its destructor is called. In the destructor, the message is composed and
+ * logged to all given output streams.
+ *
+ * Caveat: Because the macro contains conditions depending on the log level,
+ * do not use code in a log line that changes the program state.
+ * Therefore, instead of
+ *
  *     LOG_INFO << "this is iteration " i++;
+ *
  * use
+ *
  *     LOG_INFO << "this is iteration " i;
  *     i++;
- * because the former will not work when the max log level is below info level.
  *
- * TODO document why it is fast using the macros, talk about the log details,
- * the output streams, say something about how the whole thing works with
- * the stream and output on dtor. also mention the special logs.
+ * because the former will not work when the max log level is below info level.
  */
 class Log
 {
@@ -118,10 +227,13 @@ class Log
         static void AddOutputStream (std::ostream& os);
         static void AddOutputFile   (const std::string fn);
 
-        // settings for which information is included with each log message
+        /**
+         * Settings for which information is included with each log message.
+         * See LogDetails for usage.
+         */
         static LogDetails details;
 
-        // get/set the highest log level that is reported
+        /** Get the highest log level that is reported. */
         static LogLevel  max_level () {return max_level_;};
         static void      max_level (const LogLevel level);
 

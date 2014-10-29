@@ -26,6 +26,8 @@ std::vector<std::ostream*> Log::ostreams_;
  * Set the highest log level that is reported.
  *
  * Invocations of log with higher levels will create no output.
+ * It creates a warning if the set level is higher than the static compile time
+ * level set by #LOG_LEVEL_MAX.
  */
 void Log::max_level (const LogLevel level)
 {
@@ -95,7 +97,7 @@ inline std::string CurrentTime()
 }
 
 /**
- * Ctor, does nothing.
+ * Constructor, does nothing.
  */
 Log::Log()
 {
@@ -103,7 +105,7 @@ Log::Log()
 
 // TODO the output of the log is not thread safe
 /**
- * Dtor that is invoked at the end of each log line and does the actual output.
+ * Destructor that is invoked at the end of each log line and does the actual output.
  */
 Log::~Log()
 {
@@ -170,6 +172,8 @@ Log::~Log()
 
 /**
  * Getter for the singleton instance of log, is called by the standard macros.
+ *
+ * It returns the string stream buffer used to capture the log messages.
  */
 std::ostringstream& Log::Get(
     const std::string file, const int line, const LogLevel level
@@ -181,6 +185,9 @@ std::ostringstream& Log::Get(
 /**
  * Getter for the singleton instance of log, is called by special macros
  * that change the details of the log message.
+ *
+ * It stores some relevant information and returns the string stream buffer
+ * used to capture the log messages.
  */
 std::ostringstream& Log::Get(
     const std::string file, const int line,
