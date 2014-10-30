@@ -14,9 +14,6 @@
 #include <string>
 #include <vector>
 
-/**
- * Genesis namespace for all the fun!
- */
 namespace genesis {
 
 #ifndef LOG_LEVEL_MAX
@@ -52,18 +49,25 @@ namespace genesis {
 // define standard Logging of shortcuts
 /** %Log an error. See genesis::LogLevel. */
 #define LOG_ERR  GNS_LOG(kError)
+
 /** %Log a warning. See genesis::LogLevel. */
 #define LOG_WARN GNS_LOG(kWarning)
+
 /** %Log an info message. See genesis::LogLevel. */
 #define LOG_INFO GNS_LOG(kInfo)
+
 /** %Log a debug message. See genesis::LogLevel. */
 #define LOG_DBG  GNS_LOG(kDebug)
+
 /** %Log a debug message. See genesis::LogLevel. */
 #define LOG_DBG1 GNS_LOG(kDebug1)
+
 /** %Log a debug message. See genesis::LogLevel. */
 #define LOG_DBG2 GNS_LOG(kDebug2)
+
 /** %Log a debug message. See genesis::LogLevel. */
 #define LOG_DBG3 GNS_LOG(kDebug3)
+
 /** %Log a debug message. See genesis::LogLevel. */
 #define LOG_DBG4 GNS_LOG(kDebug4)
 
@@ -72,6 +76,7 @@ namespace genesis {
 /** Logging of a message that is always displayed. See Log. */
 #define LOG_BOLD GNS_LOG_DETAILS(kNone, \
     false, false, false, false, false, false, false, false)
+
 /** Logging of a message with timing information. See Log. */
 #define LOG_TIME GNS_LOG_DETAILS(kDebug, \
     false, false, false, true , true,  false, false, false)
@@ -92,20 +97,28 @@ namespace genesis {
 enum LogLevel {
     /** Special messages that are always logged, e.g. program header. */
     kNone = 0,
+
     /** Errors, usually non-recoverable. */
     kError,
+
     /** Warnings if somthing went wront, but program can continue. */
     kWarning,
+
     /** Infos, for example when a file was written. */
     kInfo,
+
     /** Basic debugging message. */
     kDebug,
+
     /** Debugging message with indent level 1 (e.g. for loops). */
     kDebug1,
+
     /** Debugging message with indent level 2. */
     kDebug2,
+
     /** Debugging message with indent level 3. */
     kDebug3,
+
     /** Debugging message with indent level 4. */
     kDebug4
 };
@@ -132,22 +145,29 @@ enum LogLevel {
 typedef struct {
     /** Include a counter of how many messages have been logged so far. */
     bool count;
+
     /** Include the current date. */
     bool date;
+
     /** Include the current time. */
     bool time;
+
     /** Include the current run time of the program in sec. */
     bool runtime;
+
     /**
      * Include the run time difference to the last log message in sec.
      * Useful for timing and profiling code sections. Is 0.0 at the first
      * log message.
      */
     bool rundiff;
+
     /** Include the filename where the log message was generated. */
     bool file;
+
     /** Include the line of the file where the log message was generated. */
     bool line;
+
     /** Include the level (e.g. Info, Debug) of the message. */
     bool level;
 } LogDetails;
@@ -212,12 +232,12 @@ typedef struct {
  * do not use code in a log line that changes the program state.
  * Therefore, instead of
  *
- *     LOG_INFO << "this is iteration " i++;
+ *     LOG_INFO << "this is iteration " ++i;
  *
  * use
  *
  *     LOG_INFO << "this is iteration " i;
- *     i++;
+ *     ++i;
  *
  * because the former will not work when the max log level is below info level.
  */
