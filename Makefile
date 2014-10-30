@@ -4,6 +4,12 @@
 
 PROGRAM = genesis
 
+# TODO
+# introduce a target distrib that copies all relevant files to an archive or so
+# introduce constants for DEBUG and RELEASE (latter bound to distrib)
+# build into build folder with subfolders per arch/extension,
+# put resulting binaries in bin folder
+
 # --------------------------------
 #   Compiler Options
 # --------------------------------
