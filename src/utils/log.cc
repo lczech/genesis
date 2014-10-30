@@ -2,9 +2,9 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include <ctime>
 
 #include "log.hh"
+#include "utils.hh"
 
 namespace genesis {
 
@@ -63,9 +63,13 @@ void Log::AddOutputStream (std::ostream& os)
 
 /**
  * Add an output file to which log messages are written.
+ *
+ * This creates a stream to the file.
  */
 void Log::AddOutputFile (const std::string fn)
 {
+    // TODO the log file stream is never deleted. this is not a big leak,
+    // as commonly only one file is used for logging, but still is a smell.
     std::ofstream* file = new std::ofstream();
     file->open (fn, std::ios::out | std::ios::app);
     if (file->is_open()) {
@@ -73,30 +77,6 @@ void Log::AddOutputFile (const std::string fn)
     } else {
         LOG_WARN << "Cannot open log file " << fn;
     }
-}
-
-// util to get the current date in nice string form
-inline std::string CurrentDate()
-{
-    time_t now = time(0);
-    tm*    ltm = localtime(&now);
-
-    char out[12];
-    sprintf (out, "%u-%02u-%02u",
-        ltm->tm_year + 1900, ltm->tm_mon + 1, ltm->tm_mday
-    );
-    return out;
-}
-
-// util to get the current time in nice string form
-inline std::string CurrentTime()
-{
-    time_t now = time(0);
-    tm*    ltm = localtime(&now);
-
-    char out[10];
-    sprintf (out, "%02u:%02u:%02u", ltm->tm_hour, ltm->tm_min, ltm->tm_sec);
-    return out;
 }
 
 /**
@@ -108,8 +88,10 @@ Log::Log()
 
 // TODO the output of the log is not thread safe
 // TODO use auto indention for multi line log messages
+// TODO strip more than one endl at the end
 /**
- * Destructor that is invoked at the end of each log line and does the actual output.
+ * Destructor that is invoked at the end of each log line and does the actual
+ * output.
  */
 Log::~Log()
 {
@@ -135,17 +117,14 @@ Log::~Log()
                  << " ";
     }
     if (details_.rundiff) {
-        if (last_clock_ == 0) {
-            det_buff << std::fixed
-                     << std::setprecision(6)
-                     << (double) 0.0
-                     << " ";
-        } else {
-            det_buff << std::fixed
-                     << std::setprecision(6)
-                     << (double) (now_clock - last_clock_) / CLOCKS_PER_SEC
-                     << " ";
+        double val = 0.0;
+        if (last_clock_ > 0) {
+            val = (double) (now_clock - last_clock_) / CLOCKS_PER_SEC;
         }
+        det_buff << std::fixed
+                 << std::setprecision(6)
+                 << val
+                 << " ";
         last_clock_ = now_clock;
     }
     if (details_.file) {
