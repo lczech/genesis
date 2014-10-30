@@ -1,26 +1,35 @@
+#ifndef GNS_UTILS_LOG_H_
+#define GNS_UTILS_LOG_H_
+
 /**
- * Provides easy and fast logging functionality.
+ * @brief Provides easy and fast logging functionality.
+ *
+ * For more information, see Log class.
  *
  * @file
  * @ingroup utils
  */
 
-// include guard
-#ifndef GNS_UTILS_LOG_H_
-#define GNS_UTILS_LOG_H_
-
 #include <sstream>
 #include <string>
 #include <vector>
 
+/**
+ * Genesis namespace for all the fun!
+ */
+namespace genesis {
+
 #ifndef LOG_LEVEL_MAX
 /**
  * Static maximal log level.
- *
  * Everything above this level will be pruned by the compiler.
  */
 #define LOG_LEVEL_MAX kDebug4
 #endif
+
+// TODO make DEBUG a special macro with proper usage makefile etc,
+// also add maybe stuff like RELEASE TEST etc, prepend ENV_ or so!
+// TODO do an undefine first
 
 // override this setting when debugging is turned on (eg by makefile)
 #ifdef DEBUG
@@ -41,21 +50,21 @@
     else Log().Get(__FILE__, __LINE__, level, {__VA_ARGS__})
 
 // define standard Logging of shortcuts
-/** Logging of an error. See ::LogLevel. */
+/** %Log an error. See genesis::LogLevel. */
 #define LOG_ERR  GNS_LOG(kError)
-/** Logging of a warning. See ::LogLevel. */
+/** %Log a warning. See genesis::LogLevel. */
 #define LOG_WARN GNS_LOG(kWarning)
-/** Logging of an info message. See ::LogLevel. */
+/** %Log an info message. See genesis::LogLevel. */
 #define LOG_INFO GNS_LOG(kInfo)
-/** Logging of a debug message. See ::LogLevel. */
+/** %Log a debug message. See genesis::LogLevel. */
 #define LOG_DBG  GNS_LOG(kDebug)
-/** Logging of a debug message. See ::LogLevel. */
+/** %Log a debug message. See genesis::LogLevel. */
 #define LOG_DBG1 GNS_LOG(kDebug1)
-/** Logging of a debug message. See ::LogLevel. */
+/** %Log a debug message. See genesis::LogLevel. */
 #define LOG_DBG2 GNS_LOG(kDebug2)
-/** Logging of a debug message. See ::LogLevel. */
+/** %Log a debug message. See genesis::LogLevel. */
 #define LOG_DBG3 GNS_LOG(kDebug3)
-/** Logging of a debug message. See ::LogLevel. */
+/** %Log a debug message. See genesis::LogLevel. */
 #define LOG_DBG4 GNS_LOG(kDebug4)
 
 // define special log shortcuts. the list of bools represent
@@ -65,7 +74,10 @@
     false, false, false, false, false, false, false, false)
 /** Logging of a message with timing information. See Log. */
 #define LOG_TIME GNS_LOG_DETAILS(kDebug, \
-    false, false, false, false, true,  false, false, false)
+    false, false, false, true , true,  false, false, false)
+
+// TODO add TIME1..4 (or TMR maybe) for indented timing logs
+// TODO change macros for timing to be out of usual log levels
 
 /**
  * @brief Levels of severity used for logging.
@@ -106,7 +118,8 @@ enum LogLevel {
  *     Log::details.level = true;
  *
  * All active details are prepended to the actual log message and separated by
- * spaces (execpt file and line, they are separated by a colon). Their order is fixed.
+ * spaces (execpt file and line, they are separated by a colon). Their order is
+ * fixed.
  *
  * A message with all details activates looks like this
  *
@@ -139,7 +152,8 @@ typedef struct {
     bool level;
 } LogDetails;
 
-// TODO define a function that logs the detail column headers
+// TODO define a function that logs the detail column headers (difficult because
+// of length difference for file name log detail)
 // TODO offer csv as output format
 // TODO offer remote streams
 
@@ -182,8 +196,8 @@ typedef struct {
  * levels). This is used to log the program header and footer on startup and
  * termination.
  *
- * * #LOG_TIME includes the run time difference to the last log message in sec as
- * its only detail (independent of Log::details). This is particularly useful
+ * * #LOG_TIME includes the run time difference to the last log message in sec
+ * as its only detail (independent of Log::details). This is particularly useful
  * for timing and profiling code sections. Its level is ::kDebug, so
  * that in can be easily turned of for production code.
  *
@@ -223,7 +237,7 @@ class Log
             const LogLevel level, const LogDetails dets
         );
 
-        // methods to add output streams to write the log messages to
+        // methods to handle the output streams to write the log messages to
         static void AddOutputStream (std::ostream& os);
         static void AddOutputFile   (const std::string fn);
 
@@ -259,10 +273,13 @@ class Log
         static std::vector<std::ostream*> ostreams_;
 
     private:
-        // Log is singleton, do not allow other instances by
-        // blocking copy and assignment ctors
+        // Log is kind of singleton, its instances are only provided via the
+        // Get functions. do not allow other instances by blocking copy and
+        // assignment constructors
         Log (const Log&);
         Log& operator = (const Log&);
 };
+
+} // namespace genesis
 
 #endif // include guard
