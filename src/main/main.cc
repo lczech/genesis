@@ -22,7 +22,6 @@ std::string print_header()
 int main (int argc, char* argv[])
 {
     Log::AddOutputStream(std::cout);
-    Log::AddOutputFile("/home/lucas/test.log");
 
     LOG_BOLD << print_header();
 
