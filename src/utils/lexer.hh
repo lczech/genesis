@@ -113,135 +113,114 @@ inline bool CharMatch(const char c1, const char c2)
  */
 struct LexerToken
 {
-    enum TokenType {
-        kNone       = 0,
-        kError      = 1,
-        kEOF        = 8,
-        kWhite      = 9,
-        kComment    = 10,
+    public:
+        enum TokenType {
+            kNone       = 0,
+            kError      = 1,
+            kEOF        = 8,
+            kWhite      = 9,
+            kComment    = 10,
 
-        kSymbol     = 20,
-        kNumber     = 21,
-        kString     = 22,
+            kSymbol     = 20,
+            kNumber     = 21,
+            kString     = 22,
+            kOperator   = 23,
+            kBracket    = 24
+        };
 
-        kOpPlus     = '+',
-        kOpMinus    = '-',
-        kOpMult     = '*',
-        kOpDiv      = '/',
-        kOpLT       = '<',
-        kOpGT       = '>',
-        kOpQMark    = '?',
-        kOpEMark    = '!',
-        kOpPower    = '^',
-        kOpEq       = '=',
-        kOpMod      = '%',
-        kOpAmp      = '&',
-        kOpBar      = '|',
-        kOpComma    = ',',
-        kOpColon    = ':',
-        kOpSemicolon= ';',
+        /**
+         * @brief Constructor that sets the values for this token.
+         */
+        inline LexerToken
+        (
+            const TokenType t, const size_t p, const std::string v
+        ) :
+            type_(t), position_(p), value_(v)
+        {};
 
-        kBracketPL  = '(', // parenthesis bracket left
-        kBracketPR  = ')', // parenthesis bracket right
-        kBracketSL  = '[', // square      bracket left
-        kBracketSR  = ']', // squrare     bracket right
-        kBracketCL  = '{', // curly       bracket left
-        kBracketCR  = '}', // curly       bracket right
-    };
+        /**
+         * @brief Return the TokenType of this token.
+         */
+        inline TokenType type() const {return type_;};
 
-    inline LexerToken(const TokenType t, const size_t p, const std::string v) :
-        type(t), position(p), value(v) {};
+        /** @brief Return the position where this token occured. */
+        inline size_t position() const {return position_;};
 
-    inline bool IsError()
-    {
-        return type == kError;
-    }
+        /** @brief Return the string value of this token. */
+        inline std::string value() const {return value_;};
 
-    inline bool IsOperator()
-    {
-        switch(type) {
-            case kOpPlus      :
-            case kOpMinus     :
-            case kOpMult      :
-            case kOpDiv       :
-            case kOpLT        :
-            case kOpGT        :
-            case kOpQMark     :
-            case kOpEMark     :
-            case kOpPower     :
-            case kOpEq        :
-            case kOpMod       :
-            case kOpAmp       :
-            case kOpBar       :
-            case kOpComma     :
-            case kOpColon     :
-            case kOpSemicolon : return true;
-            default           : return false;
+        /** Returns whether this token denotes an error in the process. */
+        inline bool IsError() const
+        {
+            return type_ == kError;
         }
-    }
 
-    inline bool IsBracket()
-    {
-        switch(type) {
-            case kBracketPL   :
-            case kBracketPR   :
-            case kBracketSL   :
-            case kBracketSR   :
-            case kBracketCL   :
-            case kBracketCR   : return true;
-            default           : return false;
+        /**
+         * @brief Returns whether this token is a given type of operator.
+         *
+         * Usage: `token.IsOperator('%')` will return if this token is
+         * an operator and if it is the modulo operator.
+         */
+        inline bool IsOperator(const char c) const
+        {
+            return type_ == kOperator && value_[0] == c;
         }
-    }
 
-    static inline std::string ToStr(const TokenType t)
-    {
-        switch(t) {
-            case kNone        : return "None";
-            case kError       : return "Error";
-            case kEOF         : return "EOF";
-            case kWhite       : return "Whitespace";
-
-            case kComment     : return "Comment";
-            case kSymbol      : return "Symbol";
-            case kNumber      : return "Number";
-            case kString      : return "String";
-
-            case kOpPlus      :
-            case kOpMinus     :
-            case kOpMult      :
-            case kOpDiv       :
-            case kOpLT        :
-            case kOpGT        :
-            case kOpQMark     :
-            case kOpEMark     :
-            case kOpPower     :
-            case kOpEq        :
-            case kOpMod       :
-            case kOpAmp       :
-            case kOpBar       :
-            case kOpComma     :
-            case kOpColon     :
-            case kOpSemicolon : return "Operator";
-
-            case kBracketPL   :
-            case kBracketPR   :
-            case kBracketSL   :
-            case kBracketSR   :
-            case kBracketCL   :
-            case kBracketCR   : return "Bracket";
-
-            default           : return "Unknown";
+        /** @brief Returns whether this token is any operator. */
+        inline bool IsOperator() const
+        {
+            return type_ == kOperator;
         }
-    }
 
-    inline std::string ToStr()
-    {
-        return ToStr(type);
-    }
+        /** @brief Returns whether this token is a given type if bracket.
+         *
+         * Usage: `token.IsBracket(')')` will return if this token is
+         * an bracket and if it is the closing parenthesis.
+         */
+        inline bool IsBracket(const char c) const
+        {
+            return type_ == kBracket && value_[0] == c;
+        }
 
-    TokenType   type;
-    size_t      position;
-    std::string value;
+        /** @brief Returns whether this token is any bracket. */
+        inline bool IsBracket() const
+        {
+            return type_ == kBracket;
+        }
+
+        /** @brief Converts a TokenType into its string representation. */
+        static inline std::string ToStr(const TokenType t)
+        {
+            switch(t) {
+                case kNone     : return "None";
+                case kError    : return "Error";
+                case kEOF      : return "EOF";
+                case kWhite    : return "Whitespace";
+
+                case kComment  : return "Comment";
+                case kSymbol   : return "Symbol";
+                case kNumber   : return "Number";
+                case kString   : return "String";
+                case kOperator : return "Operator";
+                case kBracket  : return "Bracket";
+
+                default        : return "Unknown";
+            }
+        }
+
+        /**
+         * @brief Returns the string representation for the TokenType of
+         * this token.
+         */
+        inline std::string ToStr() const
+        {
+            return ToStr(type_);
+        }
+
+    private:
+        const TokenType   type_;
+        const size_t      position_;
+        const std::string value_;
 };
 
 /**
@@ -264,7 +243,10 @@ struct LexerToken
 class Lexer
 {
     public:
+        /** @brief Constructor, does nothing. */
         Lexer() {};
+
+        /** @brief Destructor, does nothing. */
         ~Lexer() {};
 
         bool Analyze(const std::string& text);
@@ -306,24 +288,34 @@ class Lexer
         bool ScanBracket();
 
     private:
+        /** @brief Returns if the iterator is at the end of the text. */
         inline bool IsEnd()
         {
             return itr_ >= len_;
         }
 
+        /** @brief Returns if a given position is the end of the text. */
         inline bool IsEnd(size_t pos)
         {
             return pos >= len_;
         }
 
+        /** @brief Extracts a substring of the text betweeen two positions */
         inline std::string GetSubstr (size_t start, size_t end)
         {
             return std::string(text_ + start, end-start);
         }
 
+        /** @brief The temp stored text that is being analyzed. */
         const char* text_ = 0;
+
+        /** @brief The current position in the text while analyzing. */
         size_t      itr_  = 0;
+
+        /** @brief The length of the text being analyzed. */
         size_t      len_  = 0;
+
+        /** @brief The list of tokens resulting from the analysis. */
         std::vector<LexerToken> tokens_;
 };
 

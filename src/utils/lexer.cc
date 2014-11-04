@@ -324,10 +324,7 @@ inline bool Lexer::ScanOperator()
         return ScanNumber();
     }
 
-    LexerToken t(
-        static_cast<LexerToken::TokenType>(text_[itr_]),
-        itr_, GetSubstr(itr_, itr_+1)
-    );
+    LexerToken t(LexerToken::kOperator, itr_, GetSubstr(itr_, itr_+1));
     ++itr_;
     tokens_.push_back(t);
     return true;
@@ -340,10 +337,7 @@ inline bool Lexer::ScanOperator()
  */
 inline bool Lexer::ScanBracket()
 {
-    LexerToken t(
-        static_cast<LexerToken::TokenType>(text_[itr_]),
-        itr_, GetSubstr(itr_, itr_+1)
-    );
+    LexerToken t(LexerToken::kBracket, itr_, GetSubstr(itr_, itr_+1));
     ++itr_;
     tokens_.push_back(t);
     return true;
@@ -363,7 +357,7 @@ bool Lexer::CheckBrackets()
             continue;
         }
 
-        char c = t.value[0];
+        char c = t.value()[0];
         if (c == '(') stk.push(')');
         if (c == '[') stk.push(']');
         if (c == '{') stk.push('}');
@@ -390,10 +384,10 @@ std::string Lexer::Dump()
         char out[25];
         sprintf(out, "[%03d] @%03d %10s : ",
             static_cast<unsigned int>(i),
-            static_cast<unsigned int>(t.position),
+            static_cast<unsigned int>(t.position()),
             t.ToStr().c_str()
         );
-        res += out + t.value + '\n';
+        res += out + t.value() + '\n';
     }
     return res;
 }
