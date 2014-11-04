@@ -279,6 +279,22 @@ class Lexer
         /** @brief Determines whether comments are included as tokens. */
         bool include_comments   = false;
 
+        /** @brief Determines whether to glue a sign followed by a number.
+         *
+         * If disabled, a term like `1+2=3` will be parsed into single tokes
+         * for each character:
+         *
+         *     1 + 2 = 3
+         *
+         * If enabled, signs that preceed a number will be glued to that number,
+         * so that a term like `items [1.0, -3.14]` will result in
+         *
+         *     [ 1.0 , -3.14 ]
+         *
+         * This is useful when the input is a list or similar data.
+         */
+         bool glue_sign_to_number = true;
+
     protected:
         bool ScanToken();
         bool ScanWhitespace();

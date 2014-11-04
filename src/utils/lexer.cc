@@ -318,7 +318,9 @@ inline bool Lexer::ScanString()
 inline bool Lexer::ScanOperator()
 {
     // if the operator is a sign followed by a number, scan it as a number
-    if (IsSign(text_[itr_]) && !IsEnd(itr_+1) && IsDigit(text_[itr_+1])) {
+    if (IsSign(text_[itr_]) && glue_sign_to_number &&
+        !IsEnd(itr_+1) && IsDigit(text_[itr_+1])
+    ) {
         return ScanNumber();
     }
 
