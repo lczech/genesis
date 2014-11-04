@@ -16,7 +16,10 @@ namespace utils {
  */
 bool Lexer::Analyze(const std::string& text)
 {
-    Clear();
+    text_ = text.c_str();
+    itr_  = 0;
+    len_  = text.size();
+    tokens_.clear();
 
     while (!IsEnd()) {
         // scan arbitrary amount of interleaved whitespace and comments
@@ -400,9 +403,9 @@ std::string Lexer::Dump()
  */
 void Lexer::Clear()
 {
-    text_ = text.c_str();
+    text_ = "";
     itr_  = 0;
-    len_  = text.size();
+    len_  = 0;
     tokens_.clear();
 }
 
