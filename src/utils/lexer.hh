@@ -14,48 +14,48 @@
 namespace genesis {
 namespace utils {
 
-inline bool is_whitespace(const char c)
+inline bool IsWhitespace(const char c)
 {
     return (' '  == c) || ('\n' == c) || ('\r' == c) || ('\t' == c) ||
            ('\b' == c) || ('\v' == c) || ('\f' == c) ;
 }
 
-inline bool is_letter(const char c)
+inline bool IsLetter(const char c)
 {
     return (('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z'));
 }
 
-inline bool is_digit(const char c)
+inline bool IsDigit(const char c)
 {
     return ('0' <= c) && (c <= '9');
 }
 
-inline bool is_alphanum(const char c)
+inline bool IsAlphanum(const char c)
 {
-    return is_letter(c) || is_digit(c) || c == '_';
+    return IsLetter(c) || IsDigit(c) || c == '_';
 }
 
-inline bool is_left_bracket(const char c)
+inline bool IsLeftBracket(const char c)
 {
     return ('(' == c) || ('[' == c) || ('{' == c);
 }
 
-inline bool is_right_bracket(const char c)
+inline bool IsRightBracket(const char c)
 {
     return (')' == c) || (']' == c) || ('}' == c);
 }
 
-inline bool is_bracket(const char c)
+inline bool IsBracket(const char c)
 {
-    return is_left_bracket(c) || is_right_bracket(c);
+    return IsLeftBracket(c) || IsRightBracket(c);
 }
 
-inline bool is_sign(const char c)
+inline bool IsSign(const char c)
 {
     return ('+' == c) || ('-' == c);
 }
 
-inline bool is_operator(const char c)
+inline bool IsOperator(const char c)
 {
     return
     ('+' == c) || ('-' == c) ||
@@ -68,16 +68,49 @@ inline bool is_operator(const char c)
     (':' == c) || (';' == c);
 }
 
-inline bool is_quotemark(const char c)
+inline bool IsQuotemark(const char c)
 {
     return ('"' == c) || ('\'' == c);
 }
 
-inline bool char_match(const char c1, const char c2)
+/**
+ * @brief Returns whether two chars are the same, case insensitive.
+ */
+inline bool CharMatch(const char c1, const char c2)
 {
     return std::tolower(c1) == std::tolower(c2);
 }
 
+/**
+ * @brief Represents a token that is outputted by the Lexer.
+ *
+ * The main types of tokens are:
+ *
+ * 1. **Symbol**: A named symbol, that starts with a letter, followed by any
+ *    number of letters, digits or underscores.
+ *
+ * 2. **Number**: A number in the format
+ *
+ *        [+-]123[.456][eE[+-]789].
+ *
+ * 3. **String**: A literal string, enclosed in either 'abc' or "def". It can
+ *    contain escape charaters using a backslash, where \\n, \\t and \\r are
+ *    translated into their whitespace representation.
+ *
+ * 4. **Operator**: An operator out of the set
+ *
+ *        + - * / < > ? ! ^ = % & | , : ;
+ *
+ * 5. **Bracket**: Any of these brackets
+ *
+ *        ( ) [ ] { }
+ *
+ * Furthermore, there are token types marking whitespaces and comments, which
+ * are included when the corresponding options are set in the Lexer class.
+ *
+ * In case of an error while processing the input, an error token is produced
+ * which contains the location of the error.
+ */
 struct LexerToken
 {
     enum TokenType {
@@ -119,12 +152,12 @@ struct LexerToken
     inline LexerToken(const TokenType t, const size_t p, const std::string v) :
         type(t), position(p), value(v) {};
 
-    inline bool is_error()
+    inline bool IsError()
     {
         return type == kError;
     }
 
-    inline bool is_operator()
+    inline bool IsOperator()
     {
         switch(type) {
             case kOpPlus      :
@@ -147,7 +180,7 @@ struct LexerToken
         }
     }
 
-    inline bool is_bracket()
+    inline bool IsBracket()
     {
         switch(type) {
             case kBracketPL   :
@@ -160,7 +193,7 @@ struct LexerToken
         }
     }
 
-    static inline std::string to_str(const TokenType t)
+    static inline std::string ToStr(const TokenType t)
     {
         switch(t) {
             case kNone        : return "None";
@@ -201,9 +234,9 @@ struct LexerToken
         }
     }
 
-    inline std::string to_str()
+    inline std::string ToStr()
     {
-        return to_str(type);
+        return ToStr(type);
     }
 
     TokenType   type;
@@ -211,6 +244,23 @@ struct LexerToken
     std::string value;
 };
 
+/**
+ * @brief %Lexer class that provides an easy way of tokenizing a string.
+ *
+ * The usage of this class is as follows:
+ *
+ *     Lexer l;
+ *     l.Analyse("1+2=3");
+ *
+ * The tokens produced with the Analyse method are of type LexerToken and can
+ * be accessed using an iterator over the Lexer object:
+ *
+ * TODO
+ *
+ * Te options include_whitespace and include_comments are disabled by default,
+ * which helps separating the important content from whites and comments.
+ * If needed, they can be enabled to include those tokens also.
+ */
 class Lexer
 {
     public:
@@ -223,54 +273,41 @@ class Lexer
 
         std::string Dump();
 
+        /** @brief Determines whether whitespaces are included as tokens. */
         bool include_whitespace = false;
 
+        /** @brief Determines whether comments are included as tokens. */
         bool include_comments   = false;
 
-    private:
+    protected:
+        bool ScanToken();
+        bool ScanWhitespace();
+        bool ScanComment();
+        bool ScanSymbol();
+        bool ScanNumber();
+        bool ScanString();
+        bool ScanOperator();
+        bool ScanBracket();
 
-        inline bool is_end()
+    private:
+        inline bool IsEnd()
         {
             return itr_ >= len_;
         }
 
-        inline bool is_end(size_t pos)
+        inline bool IsEnd(size_t pos)
         {
             return pos >= len_;
         }
 
-        inline char char_()
-        {
-            return text_[itr_];
-        }
-
-        inline char char_(size_t pos)
-        {
-            return text_[pos];
-        }
-
-        inline std::string get_substr (size_t start, size_t end)
+        inline std::string GetSubstr (size_t start, size_t end)
         {
             return std::string(text_ + start, end-start);
         }
 
-        bool scan_token();
-        bool scan_whitespace();
-        bool scan_comment();
-        bool scan_symbol();
-        bool scan_number();
-        bool scan_string();
-        bool scan_operator();
-        bool scan_bracket();
-
-        /**
-         *
-         */
         const char* text_ = 0;
-
-        size_t itr_  = 0;
-        size_t len_  = 0;
-
+        size_t      itr_  = 0;
+        size_t      len_  = 0;
         std::vector<LexerToken> tokens_;
 };
 

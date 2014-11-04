@@ -9,24 +9,28 @@ namespace genesis {
 namespace utils {
 
 /**
+ * @brief Analyze a string and store the resulting tokens in this Lexer object.
  *
+ * This function empties the token list stored for this object and fills it
+ * with the results of analyzing the given string.
  */
 bool Lexer::Analyze(const std::string& text)
 {
+    // init
     text_ = text.c_str();
     itr_  = 0;
     len_  = text.size();
     tokens_.clear();
 
-    while (!is_end()) {
+    while (!IsEnd()) {
         // scan arbitrary amount of interleaved whitespace and comments
-        while (scan_whitespace() || scan_comment());
+        while (ScanWhitespace() || ScanComment());
 
-        scan_token();
+        ScanToken();
 
         if (tokens_.empty()) {
             return true;
-        } else if (tokens_.back().is_error()) {
+        } else if (tokens_.back().IsError()) {
             return false;
         }
     }
@@ -44,7 +48,7 @@ bool Lexer::CheckBrackets()
 {
     std::stack<char> stk;
     for (LexerToken t : tokens_) {
-        if (!t.is_bracket()) {
+        if (!t.IsBracket()) {
             continue;
         }
 
@@ -53,7 +57,7 @@ bool Lexer::CheckBrackets()
         if (c == '[') stk.push(']');
         if (c == '{') stk.push('}');
 
-        if (is_right_bracket(c)) {
+        if (IsRightBracket(c)) {
             if (stk.empty() || c != stk.top()) {
                 return false;
             } else {
@@ -65,24 +69,25 @@ bool Lexer::CheckBrackets()
 }
 
 /**
- *
+ * @brief General function to delegate to scanning of tokens to their
+ * special implementations.
  */
-inline bool Lexer::scan_token()
+inline bool Lexer::ScanToken()
 {
-    if (is_end()) {
+    if (IsEnd()) {
         return false;
-    } else if (is_letter(char_())) {
-        scan_symbol();
-    } else if (is_digit(char_()) || char_() == '.') {
-        scan_number();
-    } else if (is_quotemark(char_())) {
-        scan_string();
-    } else if (is_operator(char_())) {
-        scan_operator();
-    } else if (is_bracket(char_())) {
-        scan_bracket();
+    } else if (IsLetter(text_[itr_])) {
+        ScanSymbol();
+    } else if (IsDigit(text_[itr_]) || text_[itr_] == '.') {
+        ScanNumber();
+    } else if (IsQuotemark(text_[itr_])) {
+        ScanString();
+    } else if (IsOperator(text_[itr_])) {
+        ScanOperator();
+    } else if (IsBracket(text_[itr_])) {
+        ScanBracket();
     } else {
-        LexerToken t(LexerToken::kError, itr_, get_substr(itr_, itr_+1));
+        LexerToken t(LexerToken::kError, itr_, GetSubstr(itr_, itr_+1));
         ++itr_;
         return false;
     }
@@ -95,17 +100,17 @@ inline bool Lexer::scan_token()
  *
  * Returns true iff whitespace was found.
  */
-inline bool Lexer::scan_whitespace()
+inline bool Lexer::ScanWhitespace()
 {
     bool   found = false;
     size_t start = itr_;
 
-    while (!is_end() && is_whitespace(char_())) {
+    while (!IsEnd() && IsWhitespace(text_[itr_])) {
         ++itr_;
         found = true;
     }
     if (include_whitespace && found) {
-        LexerToken t(LexerToken::kWhite, start, get_substr(start, itr_));
+        LexerToken t(LexerToken::kWhite, start, GetSubstr(start, itr_));
         tokens_.push_back(t);
     }
     return found;
@@ -116,17 +121,17 @@ inline bool Lexer::scan_whitespace()
  *
  * Supported formats are:
  *
- * 1.     #  ... \n
- * 2.     // ... \n
+ * 1.     #  ... \\n
+ * 2.     // ... \\n
  * 3.     / * ... * /
  *
  * Returns true iff comment was found.
  */
-inline bool Lexer::scan_comment()
+inline bool Lexer::ScanComment()
 {
     // check if still within text boundaries.
     // slightly wrong: if # is the last char in text_, it will not be found.
-    if (is_end() || is_end(itr_+1)) {
+    if (IsEnd() || IsEnd(itr_+1)) {
         return false;
     }
 
@@ -151,8 +156,9 @@ inline bool Lexer::scan_comment()
     // if comment found, find its end.
     size_t start = itr_;
     while (
-        (!is_end()       && mode == 1 && char_() != '\n') ||
-        (!is_end(itr_+1) && mode == 2 && char_() != '*' && char_(itr_+1) != '/')
+        (!IsEnd()       && mode == 1 && text_[itr_] != '\n') ||
+        (!IsEnd(itr_+1) && mode == 2 && text_[itr_] != '*'
+        && text_[itr_+1] != '/')
     ) {
         ++itr_;
     }
@@ -160,7 +166,7 @@ inline bool Lexer::scan_comment()
     // here we are at either end of file or end of comment.
     // we treat both as valid.
     if (include_comments) {
-        LexerToken t(LexerToken::kComment, start, get_substr(start, itr_));
+        LexerToken t(LexerToken::kComment, start, GetSubstr(start, itr_));
         tokens_.push_back(t);
     }
 
@@ -175,13 +181,13 @@ inline bool Lexer::scan_comment()
  *
  * Returns true, as symbols cannot be malformatted.
  */
-inline bool Lexer::scan_symbol()
+inline bool Lexer::ScanSymbol()
 {
     size_t start = itr_;
-    while (!is_end() && is_alphanum(char_())) {
+    while (!IsEnd() && IsAlphanum(text_[itr_])) {
         ++itr_;
     }
-    LexerToken t(LexerToken::kSymbol, start, get_substr(start, itr_));
+    LexerToken t(LexerToken::kSymbol, start, GetSubstr(start, itr_));
     tokens_.push_back(t);
     return true;
 }
@@ -195,7 +201,7 @@ inline bool Lexer::scan_symbol()
  *
  * Returns true iff valid number was found.
  */
-inline bool Lexer::scan_number()
+inline bool Lexer::ScanNumber()
 {
     size_t start   = itr_;
     bool   found_d = false; // found a dot
@@ -203,35 +209,35 @@ inline bool Lexer::scan_number()
     bool   err     = false; // encountered an error while scanning
 
     // scan
-    while(!is_end()) {
-        if(is_digit(char_())) {
+    while(!IsEnd()) {
+        if(IsDigit(text_[itr_])) {
             // nothing to do
-        } else if (char_() == '.') {
+        } else if (text_[itr_] == '.') {
             // do not allow more than one dot
             if (found_d) {
                 err = true;
                 break;
             }
             found_d = true;
-        } else if (char_match(char_(), 'e')) {
+        } else if (CharMatch(text_[itr_], 'e')) {
             // do not allow more than one e, require a number after the e
             if (found_e
-                || is_end(itr_+1)
-                || (!is_digit(char_(itr_+1)) && !is_sign(char_(itr_+1)))
+                || IsEnd(itr_+1)
+                || (!IsDigit(text_[itr_+1]) && !IsSign(text_[itr_+1]))
             ) {
                 err = true;
                 break;
             }
             found_e = true;
-        } else if (is_sign(char_())) {
+        } else if (IsSign(text_[itr_])) {
             // conditions for which a sign is valid:
             //   - it is at the beginning of the token
             //   - it comes immediately after the e and is follow by digits
             // --> produce error when neither is fullfilled
             if (!(itr_ == start) &&
                 !(
-                    found_e && char_match(char_(itr_-1), 'e')
-                    && !is_end(itr_+1) && is_digit(char_(itr_+1))
+                    found_e && CharMatch(text_[itr_-1], 'e')
+                    && !IsEnd(itr_+1) && IsDigit(text_[itr_+1])
                 )
             ) {
                 err = true;
@@ -245,11 +251,11 @@ inline bool Lexer::scan_number()
 
     // create result
     if (err) {
-        LexerToken t(LexerToken::kError, itr_, get_substr(itr_, itr_+1));
+        LexerToken t(LexerToken::kError, itr_, GetSubstr(itr_, itr_+1));
         tokens_.push_back(t);
         return false;
     } else {
-        LexerToken t(LexerToken::kNumber, start, get_substr(start, itr_));
+        LexerToken t(LexerToken::kNumber, start, GetSubstr(start, itr_));
         tokens_.push_back(t);
         return true;
     }
@@ -265,12 +271,12 @@ inline bool Lexer::scan_number()
  *
  * Returns true iff the string is finished with the correct quotation mark.
  */
-inline bool Lexer::scan_string()
+inline bool Lexer::ScanString()
 {
     // skip the first quotation mark, save it for later comparision
-    char qmark = char_();
+    char qmark = text_[itr_];
     ++itr_;
-    if (is_end()) {
+    if (IsEnd()) {
         LexerToken t(LexerToken::kError, itr_-1, "");
         tokens_.push_back(t);
         return false;
@@ -281,14 +287,14 @@ inline bool Lexer::scan_string()
     bool found_e = false; // found an escape sequence
 
     // scan
-    while (!is_end()) {
-        if (char_() == '\\') {
+    while (!IsEnd()) {
+        if (text_[itr_] == '\\') {
             esc = true;
             found_e = true;
             itr_ += 2;
             continue;
         }
-        if(char_() == qmark) {
+        if(text_[itr_] == qmark) {
             ++itr_;
             break;
         }
@@ -297,7 +303,7 @@ inline bool Lexer::scan_string()
     }
 
     // reached end of text before ending quotation mark
-    if (esc || (is_end() && !(char_(itr_-1) == qmark))) {
+    if (esc || (IsEnd() && !(text_[itr_-1] == qmark))) {
         LexerToken t(LexerToken::kError, itr_-1, "");
         tokens_.push_back(t);
         return false;
@@ -305,7 +311,7 @@ inline bool Lexer::scan_string()
 
     // de-escape the string
     // TODO this is not fast. could be better by using char[] (save reallocs)
-    std::string res = get_substr(start, itr_-1);
+    std::string res = GetSubstr(start, itr_-1);
     if (found_e) {
         std::string tmp = "";
         for (size_t i = 0; i < res.size(); i++) {
@@ -340,16 +346,16 @@ inline bool Lexer::scan_string()
  * If the operator is a sign and the next char in the text is a digit,
  * we jump to scan_number and return its value. Otherwise return true.
  */
-inline bool Lexer::scan_operator()
+inline bool Lexer::ScanOperator()
 {
     // if the operator is a sign followed by a number, scan it as a number
-    if (is_sign(char_()) && !is_end(itr_+1) && is_digit(char_(itr_+1))) {
-        return scan_number();
+    if (IsSign(text_[itr_]) && !IsEnd(itr_+1) && IsDigit(text_[itr_+1])) {
+        return ScanNumber();
     }
 
     LexerToken t(
-        static_cast<LexerToken::TokenType>(char_()),
-        itr_, get_substr(itr_, itr_+1)
+        static_cast<LexerToken::TokenType>(text_[itr_]),
+        itr_, GetSubstr(itr_, itr_+1)
     );
     ++itr_;
     tokens_.push_back(t);
@@ -361,11 +367,11 @@ inline bool Lexer::scan_operator()
  *
  * Returns true.
  */
-inline bool Lexer::scan_bracket()
+inline bool Lexer::ScanBracket()
 {
     LexerToken t(
-        static_cast<LexerToken::TokenType>(char_()),
-        itr_, get_substr(itr_, itr_+1)
+        static_cast<LexerToken::TokenType>(text_[itr_]),
+        itr_, GetSubstr(itr_, itr_+1)
     );
     ++itr_;
     tokens_.push_back(t);
@@ -373,7 +379,7 @@ inline bool Lexer::scan_bracket()
 }
 
 /**
- * @ brief Returns a listing of the parse result.
+ * @brief Returns a listing of the parse result.
  */
 std::string Lexer::Dump()
 {
@@ -384,7 +390,7 @@ std::string Lexer::Dump()
         sprintf(out, "[%03d] @%03d %10s : ",
             static_cast<unsigned int>(i),
             static_cast<unsigned int>(t.position),
-            t.to_str().c_str()
+            t.ToStr().c_str()
         );
         res += out + t.value + '\n';
     }

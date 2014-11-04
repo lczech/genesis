@@ -7,6 +7,12 @@
 namespace genesis {
 namespace utils {
 
+/**
+ * @brief Returns the contents of a file as a string.
+ *
+ * If the file does not exist, a warning is triggered and an emtpty string
+ * returned.
+ */
 std::string ReadFile (const std::string fn)
 {
     std::ifstream t(fn);
