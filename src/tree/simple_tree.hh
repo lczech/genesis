@@ -1,26 +1,26 @@
-#ifndef GNS_TREE_TREE_H_
-#define GNS_TREE_TREE_H_
+#ifndef GNS_TREE_SIMPLETREE_H_
+#define GNS_TREE_SIMPLETREE_H_
 
 /**
- * @brief Provides the basic interface for phylogenetic trees.
- *
- * For more information, see Tree class.
+ * @brief
  *
  * @file
  * @ingroup tree
  */
 
-#include <string>
+ #include <string>
+ #include <vector>
 
-#include "node.hh"
+ #include "tree.hh"
+ #include "simple_node.hh"
 
 namespace genesis {
 
-class Tree
+class SimpleTree : public Tree
 {
     public:
-        Tree();
-        ~Tree();
+        SimpleTree();
+        ~SimpleTree();
 
         void ReadNewickFile  (std::string fn);
         void WriteNewickFile (std::string fn);
@@ -29,7 +29,7 @@ class Tree
         std::string WriteNewickString ();
 
     protected:
-        void AddNode (Node* node, Node* parent);
+        std::vector<SimpleNode> nodes_;
 };
 
 } // namespace genesis

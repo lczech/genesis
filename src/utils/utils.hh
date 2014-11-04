@@ -12,6 +12,7 @@
 #include <ctime>
 
 namespace genesis {
+namespace utils {
 
 /**
  * Returns the current date as a string in the format "2014-12-31".
@@ -41,6 +42,9 @@ inline std::string CurrentTime()
     return out;
 }
 
+std::string ReadFile (const std::string fn);
+
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

@@ -7,17 +7,18 @@
 #include "utils.hh"
 
 namespace genesis {
+namespace utils {
 
 // TODO use different init for log details depending on DEBUG
 // init static members
 LogDetails Log::details = {
-    true, // count
-    true, // date
-    true, // time
-    true, // runtime
-    true, // rundiff
-    true, // file
-    true, // line
+    false, // count
+    false, // date
+    false, // time
+    false, // runtime
+    false, // rundiff
+    false, // file
+    false, // line
     true  // level
 };
 LogLevel  Log::max_level_  = kDebug4;
@@ -186,4 +187,5 @@ std::ostringstream& Log::Get(
     return buff_;
 }
 
+} // namespace utils
 } // namespace genesis
