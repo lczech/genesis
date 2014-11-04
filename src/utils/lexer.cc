@@ -16,11 +16,7 @@ namespace utils {
  */
 bool Lexer::Analyze(const std::string& text)
 {
-    // init
-    text_ = text.c_str();
-    itr_  = 0;
-    len_  = text.size();
-    tokens_.clear();
+    Clear();
 
     while (!IsEnd()) {
         // scan arbitrary amount of interleaved whitespace and comments
@@ -35,36 +31,6 @@ bool Lexer::Analyze(const std::string& text)
         }
     }
 
-    return true;
-}
-
-/**
- * @brief Checkes whether the bracket tokes are valid.
- *
- * In order to be valid, every opening bracket must be matched with a
- * corresponding closing bracket, and their order has to be correct.
- */
-bool Lexer::CheckBrackets()
-{
-    std::stack<char> stk;
-    for (LexerToken t : tokens_) {
-        if (!t.IsBracket()) {
-            continue;
-        }
-
-        char c = t.value[0];
-        if (c == '(') stk.push(')');
-        if (c == '[') stk.push(']');
-        if (c == '{') stk.push('}');
-
-        if (IsRightBracket(c)) {
-            if (stk.empty() || c != stk.top()) {
-                return false;
-            } else {
-                stk.pop();
-            }
-        }
-    }
     return true;
 }
 
@@ -379,6 +345,36 @@ inline bool Lexer::ScanBracket()
 }
 
 /**
+ * @brief Checkes whether the bracket tokes are valid.
+ *
+ * In order to be valid, every opening bracket must be matched with a
+ * corresponding closing bracket, and their order has to be correct.
+ */
+bool Lexer::CheckBrackets()
+{
+    std::stack<char> stk;
+    for (LexerToken t : tokens_) {
+        if (!t.IsBracket()) {
+            continue;
+        }
+
+        char c = t.value[0];
+        if (c == '(') stk.push(')');
+        if (c == '[') stk.push(']');
+        if (c == '{') stk.push('}');
+
+        if (IsRightBracket(c)) {
+            if (stk.empty() || c != stk.top()) {
+                return false;
+            } else {
+                stk.pop();
+            }
+        }
+    }
+    return true;
+}
+
+/**
  * @brief Returns a listing of the parse result.
  */
 std::string Lexer::Dump()
@@ -395,6 +391,19 @@ std::string Lexer::Dump()
         res += out + t.value + '\n';
     }
     return res;
+}
+
+/**
+ * @brief Clears all private values, as if the object was newly created.
+ *
+ * The options for including whitespace and comments are however not changed.
+ */
+void Lexer::Clear()
+{
+    text_ = text.c_str();
+    itr_  = 0;
+    len_  = text.size();
+    tokens_.clear();
 }
 
 } // namespace utils

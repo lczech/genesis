@@ -268,10 +268,10 @@ class Lexer
         ~Lexer() {};
 
         bool Analyze(const std::string& text);
-
         bool CheckBrackets();
 
         std::string Dump();
+        void Clear();
 
         /** @brief Determines whether whitespaces are included as tokens. */
         bool include_whitespace = false;
