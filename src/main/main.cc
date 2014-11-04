@@ -2,8 +2,11 @@
 #include <iostream>
 
 #include "../utils/log.hh"
+#include "../utils/utils.hh"
+#include "../utils/lexer.hh"
 
 using namespace genesis;
+using namespace genesis::utils;
 
 /**
  * Prints the header information on screen when starting the program.
@@ -27,8 +30,11 @@ int main (int argc, char* argv[])
 
     LOG_TIME << "am start";
 
-    LOG_DBG1 << "test " << 42;
-    LOG_INFO << "hallo";
+    utils::Lexer l;
+    l.Analyze(utils::ReadFile("/home/lucas/Dropbox/HITS/genesis/data/placement.json"));
+    //~ l.Analyze("((A:0.2{0},B:0.09{1}):0.7{2},C:0.5{3}){4};");
+    LOG_BOLD << l.Dump();
+    LOG_INFO << "brackets " << l.CheckBrackets();
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {

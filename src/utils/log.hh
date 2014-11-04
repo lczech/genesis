@@ -15,6 +15,7 @@
 #include <vector>
 
 namespace genesis {
+namespace utils {
 
 #ifndef LOG_LEVEL_MAX
 /**
@@ -83,6 +84,7 @@ namespace genesis {
 
 // TODO add TIME1..4 (or TMR maybe) for indented timing logs
 // TODO change macros for timing to be out of usual log levels
+// TODO think about making loglevel enum a member of log class
 
 /**
  * @brief Levels of severity used for logging.
@@ -236,8 +238,8 @@ typedef struct {
  *
  * use
  *
- *     LOG_INFO << "this is iteration " i;
  *     ++i;
+ *     LOG_INFO << "this is iteration " i;
  *
  * because the former will not work when the max log level is below info level.
  */
@@ -294,12 +296,13 @@ class Log
 
     private:
         // Log is kind of singleton, its instances are only provided via the
-        // Get functions. do not allow other instances by blocking copy and
-        // assignment constructors
+        // Get functions. do not allow other instances by blocking the copy
+        // constructors and copy assignment
         Log (const Log&);
         Log& operator = (const Log&);
 };
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard
