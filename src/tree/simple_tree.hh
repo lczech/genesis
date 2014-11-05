@@ -19,8 +19,8 @@ namespace genesis {
 class SimpleTree : public Tree
 {
     public:
-        SimpleTree();
-        ~SimpleTree();
+        SimpleTree() {};
+        ~SimpleTree() {};
 
         void ReadNewickFile  (std::string fn);
         void WriteNewickFile (std::string fn);
