@@ -36,6 +36,20 @@ int main (int argc, char* argv[])
     LOG_BOLD << l.Dump();
     //~ LOG_INFO << "brackets " << l.ValidateBrackets();
 
+    //~ for (LexerToken t : l) {
+        //~ std::cout << t.value() << std::endl;
+    //~ }
+
+    //~ for (size_t i = 0; i < l.size(); i++) {
+        //~ LexerToken t = l[i];
+        //~ std::cout << t.value() << std::endl;
+    //~ }
+
+    for (Lexer::TokenIterator t = l.begin(); t != l.end(); ++t) {
+        std::cout << t->value() << std::endl;
+    }
+
+
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {
         std::cout << argv[i];

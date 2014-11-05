@@ -2,7 +2,7 @@
 #define GNS_UTILS_LEXER_H_
 
 /**
- * @brief
+ * @brief Provides a lexer to analyze a string and split it into tokens.
  *
  * @file
  * @ingroup utils
@@ -86,8 +86,8 @@ inline bool CharMatch(const char c1, const char c2)
  *
  * The main types of tokens are:
  *
- * 1. **Symbol**: A named symbol, that starts with a letter, followed by any
- *    number of letters, digits or underscores.
+ * 1. **Symbol**: A named symbol, that starts with a letter or underscore,
+ *    followed by any number of letters, digits or underscores.
  *
  * 2. **Number**: A number in the format
  *
@@ -95,8 +95,8 @@ inline bool CharMatch(const char c1, const char c2)
  *
  * 3. **String**: A literal string, enclosed in either 'abc' or "def". It can
  *    contain escape charaters using a backslash, where \\n, \\t and \\r are
- *    translated into their whitespace representation using StringDeescape
- *    when the option Lexer::deescape_strings is set.
+ *    translated into their whitespace representation using
+ *    StringDeescape() when the option Lexer::deescape_strings is set.
  *
  * 4. **Operator**: An operator out of the set
  *
@@ -153,7 +153,9 @@ struct LexerToken
         /** @brief Getter for the string value of this token. */
         inline std::string value() const {return value_;};
 
-        /** Returns whether this token denotes an error in the process. */
+        /**
+         * @brief Returns whether this token denotes an error in the process.
+         */
         inline bool IsError() const
         {
             return type_ == kError;
@@ -234,19 +236,22 @@ struct LexerToken
  * The usage of this class is as follows:
  *
  *     Lexer l;
- *     l.Analyse("1+2=3");
+ *     l.Analyze("1+2=3");
  *
- * The tokens produced with the Lexer::Analyse method are of type LexerToken and
- * can be accessed using an iterator over the Lexer object:
+ * The tokens produced with the Analyze() method are of type LexerToken (see
+ * there for a list of the types of tokens) and can be accessed in various ways:
  *
- * TODO
+ *   * Using an iterator, see Lexer::TokenIterator
+ *   * Using range based loops, see begin()
+ *   * Using index based array access, see operator[]()
  *
- * The options include_whitespace and include_comments are disabled by default,
- * which helps separating the important content from whites and comments.
- * If needed, they can be enabled to include those tokens also.
+ * The options Lexer::include_whitespace and Lexer::include_comments are
+ * disabled by default, which helps separating the important content from whites
+ * and comments. If needed, they can be enabled to include those tokens, too.
  *
- * The option glue_sign_to_number is enabled per default, because this case is
- * more common for analyzing genetic data as opposed to e.g. source code.
+ * The options Lexer::glue_sign_to_number, Lexer::trim_quotation_marks and
+ * Lexer::deescape_strings are enabled per default, because this is mostly
+ * useful for analyzing genetic data.
  */
 class Lexer
 {
@@ -257,22 +262,78 @@ class Lexer
         std::string Dump();
         void Clear();
 
-        inline bool empty() const
+        /**
+         * @brief Iterator type to access the tokens produces by the lexer.
+         *
+         * This iterator allows to use a loop like this:
+         *
+         *     Lexer l;
+         *     for (Lexer::TokenIterator t = l.begin(); t != l.end(); ++t) {
+         *         std::cout << t->value() << std::endl;
+         *     }
+         * %
+         */
+        typedef std::vector<LexerToken>::iterator TokenIterator;
+
+        /**
+         * @brief Returns an iterator to the beginning of the token list.
+         *
+         * This is used for the TokenIterator and also allows to use range based
+         * looping over the tokens:
+         *
+         *     Lexer l;
+         *     for (LexerToken t : l) {
+         *         std::cout << t.value() << std::endl;
+         *     }
+         * %
+         */
+        inline TokenIterator begin()
         {
-            return tokens_.empty();
+            return tokens_.begin();
         }
 
-        inline std::size_t size() const
+        /**
+         * @brief Returns an iterator to the end of the token list.
+         */
+        inline TokenIterator end()
         {
-            return tokens_.size();
+            return tokens_.end();
         }
 
+        /**
+         * @brief Provides index based array acces to the tokens.
+         *
+         * This also allows to iterate over them using:
+         *
+         *     Lexer l;
+         *     for (size_t i = 0; i < l.size(); ++i) {
+         *        LexerToken t = l[i];
+         *        std::cout << t.value() << std::endl;
+         *     }
+         * %
+         */
         inline LexerToken operator[](const std::size_t index) const
         {
             if (index < tokens_.size())
                 return tokens_[index];
             else
                 return LexerToken(LexerToken::kEOF, 0, 0, "");
+        }
+
+        /**
+         * @brief Returns whether the list of tokens is empty.
+         *
+         * This is usually the case before Analyze was run.
+         */
+        inline bool empty() const
+        {
+            return tokens_.empty();
+        }
+
+        /** @brief Returns the number of tokens produced during the analysis. */
+        inline std::size_t size() const
+        {
+            return tokens_.size();
         }
 
         /** @brief Determines whether whitespaces are included as tokens. */
@@ -291,7 +352,7 @@ class Lexer
          * If enabled, signs that preceed a number will be glued to that number,
          * so that a term like `items [1.0, -3.14]` will result in
          *
-         *     [ 1.0 , -3.14 ]
+         *     items [ 1.0 , -3.14 ]
          *
          * This is useful when the input is a list or similar data. As this case
          * is more common in bioinformatics, this is the default.
@@ -352,7 +413,8 @@ class Lexer
 
         /** @brief Create a token and push it to the list. */
         inline void PushToken (
-            const LexerToken::TokenType t, const size_t start, const std::string value
+            const LexerToken::TokenType t,
+            const size_t start, const std::string value
         ) {
             // find previous new line, we need it to tell the column
             size_t bitr = start;
