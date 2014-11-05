@@ -2,8 +2,7 @@
 #include <iostream>
 
 #include "../utils/log.hh"
-#include "../utils/utils.hh"
-#include "../utils/lexer.hh"
+#include "../tree/simple_tree.hh"
 
 using namespace genesis;
 using namespace genesis::utils;
@@ -25,30 +24,11 @@ std::string print_header()
 int main (int argc, char* argv[])
 {
     Log::AddOutputStream(std::cout);
-
     LOG_BOLD << print_header();
+    LOG_TIME << "start";
 
-    LOG_TIME << "am start";
-
-    utils::Lexer l;
-    l.Analyze(utils::ReadFile("/home/lucas/Dropbox/HITS/genesis/data/placement.json"));
-    //~ l.Analyze("((A:0.2{0},B:0.09{1}):0.7{2},C:0.5{3}){4};");
-    LOG_BOLD << l.Dump();
-    //~ LOG_INFO << "brackets " << l.ValidateBrackets();
-
-    //~ for (LexerToken t : l) {
-        //~ std::cout << t.value() << std::endl;
-    //~ }
-
-    //~ for (size_t i = 0; i < l.size(); i++) {
-        //~ LexerToken t = l[i];
-        //~ std::cout << t.value() << std::endl;
-    //~ }
-
-    for (Lexer::TokenIterator t = l.begin(); t != l.end(); ++t) {
-        std::cout << t->value() << std::endl;
-    }
-
+    SimpleTree tree;
+    tree.ParseNewickString("((A:0.2{0},B:0.09{1}):0.7{2},C:0.5{3}){4};");
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {
@@ -56,7 +36,7 @@ int main (int argc, char* argv[])
     }
     std::cout << std::endl;
 
-    LOG_TIME << "durch";
+    LOG_TIME << "ende";
 
     return 0;
 }

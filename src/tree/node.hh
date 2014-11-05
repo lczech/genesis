@@ -20,7 +20,6 @@ class Node
     public:
         Node();
         Node(std::string name);
-        ~Node();
 
         std::string GetName() {return name_;};
 

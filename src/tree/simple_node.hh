@@ -20,16 +20,14 @@ namespace genesis {
 class SimpleNode : public Node
 {
     public:
-        SimpleNode();
-        SimpleNode(std::string name);
-        ~SimpleNode();
+        SimpleNode(std::string name) : name_(name) {};
 
     protected:
         /**
          * Name of the node. In case its a leaf, this is usually the name of the
          * taxon represented by the node.
          */
-        std::string name;
+        std::string name_;
 
         /** Pointer to parent node. */
         Node*       parent;
