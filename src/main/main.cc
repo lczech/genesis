@@ -45,9 +45,13 @@ int main (int argc, char* argv[])
         //~ std::cout << t.value() << std::endl;
     //~ }
 
-    for (Lexer::TokenIterator t = l.begin(); t != l.end(); ++t) {
-        std::cout << t->value() << std::endl;
-    }
+    //~ for (Lexer::TokenIterator t = l.begin(); t != l.end(); ++t) {
+        //~ std::cout << t->value() << std::endl;
+    //~ }
+
+    LexerToken f = l.back();
+    std::cout << std::endl << "last " << f.TypeToStr() << " at " << f.line()
+    << ":" << f.column() << " with " << f.value() << std::endl;
 
 
     std::cout << argc << " ";

@@ -206,7 +206,7 @@ struct LexerToken
         }
 
         /** @brief Converts a TokenType into its string representation. */
-        static inline std::string ToStr(const TokenType t)
+        static inline std::string TypeToStr(const TokenType t)
         {
             switch(t) {
                 case kUnknown  : return "Unknown";
@@ -229,9 +229,9 @@ struct LexerToken
          * @brief Returns the string representation for the TokenType of
          * this token.
          */
-        inline std::string ToStr() const
+        inline std::string TypeToStr() const
         {
-            return ToStr(type_);
+            return TypeToStr(type_);
         }
 
     private:
@@ -268,10 +268,10 @@ class Lexer
 {
     public:
         bool Analyze(const std::string& text);
+
         bool ValidateBrackets();
 
         std::string Dump();
-        void Clear();
 
         /**
          * @brief Iterator type to access the tokens produces by the lexer.
@@ -321,14 +321,47 @@ class Lexer
          *        LexerToken t = l[i];
          *        std::cout << t.value() << std::endl;
          *     }
-         * %
+         *
+         * Caveat: this operator does no boundary check. If you need this check.
+         * use at() instead.
          */
         inline LexerToken operator[](const std::size_t index) const
+        {
+            return tokens_[index];
+        }
+
+        /**
+         * @brief Provides index based array acces to the tokens, doing a
+         * boundary check first.
+         *
+         * In out of bounds cases, a special EOF token is returned.
+         */
+        inline LexerToken at(const std::size_t index) const
         {
             if (index < tokens_.size())
                 return tokens_[index];
             else
                 return LexerToken(LexerToken::kEOF, 0, 0, "");
+        }
+
+        /**
+         * @brief Returns a reference to the first token.
+         *
+         * Calling this function on an empty() lexer causes undefined behavior.
+         */
+        inline LexerToken front() const
+        {
+            return tokens_.front();
+        }
+
+        /**
+         * @brief Returns a reference to the last token.
+         *
+         * Calling this function on an empty() lexer causes undefined behavior.
+         */
+        inline LexerToken back() const
+        {
+            return tokens_.back();
         }
 
         /**
@@ -345,6 +378,17 @@ class Lexer
         inline std::size_t size() const
         {
             return tokens_.size();
+        }
+
+        /**
+         * @brief Clears all tokens, as if the object was newly created.
+         *
+         * The options of the lexer are however not changed.
+         */
+        inline void clear()
+        {
+            // use swap to make sure vector is of size 0
+            std::vector<LexerToken>().swap(tokens_);
         }
 
         /** @brief Determines whether whitespaces are included as tokens. */

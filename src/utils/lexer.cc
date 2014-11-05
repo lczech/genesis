@@ -13,7 +13,25 @@ namespace utils {
  * @brief Analyze a string and store the resulting tokens in this Lexer object.
  *
  * This function empties the token list stored for this object and fills it
- * with the results of analyzing the given string.
+ * with the results of analyzing the given string. For the types of tokens being
+ * extracted, see LexerToken; for accessing the results, see Lexer.
+ *
+ * In case an error is encountered while analyzing the string, this functions
+ * returns false and the last token will be of type
+ * LexerToken::TokenType::kError, with the value being an error message
+ * describing the type of error.
+ *
+ * Common usage:
+ *
+ *     Lexer l;
+ *     if (!l.Analyze("tree(some:0.5,items:0.3);")) {
+ *         LexerToken b = l.back();
+ *         std::cout
+ *             << b.TypeToStr()
+ *             << " at " << b.line() << ":" << b.column()
+ *             << " with message " << b.value() << std::endl;
+ *     }
+ * %
  */
 bool Lexer::Analyze(const std::string& text)
 {
@@ -230,7 +248,7 @@ inline bool Lexer::ScanNumber()
 
     // create result
     if (err) {
-        PushToken(LexerToken::kError, itr_, itr_+1);
+        PushToken(LexerToken::kError, start, "Malformed number.");
         return false;
     } else {
         PushToken(LexerToken::kNumber, start, itr_);
@@ -255,7 +273,7 @@ inline bool Lexer::ScanString()
     char qmark = text_[itr_];
     ++itr_;
     if (IsEnd()) {
-        PushToken(LexerToken::kError, itr_-1, itr_-1);
+        PushToken(LexerToken::kError, itr_-1, "Malformed string.");
         return false;
     }
 
@@ -287,7 +305,7 @@ inline bool Lexer::ScanString()
 
     // reached end of text before ending quotation mark
     if (esc || (IsEnd() && !(text_[itr_-1] == qmark))) {
-        PushToken(LexerToken::kError, itr_-1, itr_-1);
+        PushToken(LexerToken::kError, start-1, "Malformed string.");
         return false;
     }
 
@@ -383,25 +401,11 @@ std::string Lexer::Dump()
             static_cast<unsigned int>(i),
             static_cast<unsigned int>(t.line()),
             static_cast<unsigned int>(t.column()),
-            t.ToStr().c_str()
+            t.TypeToStr().c_str()
         );
         res += out + t.value() + '\n';
     }
     return res;
-}
-
-/**
- * @brief Clears all private values, as if the object was newly created.
- *
- * The options for including whitespace and comments are however not changed.
- */
-void Lexer::Clear()
-{
-    text_ = "";
-    itr_  = 0;
-    len_  = 0;
-    line_ = 1;
-    tokens_.clear();
 }
 
 } // namespace utils
