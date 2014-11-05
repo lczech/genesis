@@ -14,8 +14,10 @@
 namespace genesis {
 namespace utils {
 
+// first: inline functions.
+
 /**
- * Returns the current date as a string in the format "2014-12-31".
+ * @brief Returns the current date as a string in the format "2014-12-31".
  */
 inline std::string CurrentDate()
 {
@@ -30,7 +32,7 @@ inline std::string CurrentDate()
 }
 
 /**
- * Returns the current time as a string in the format "13:37:42".
+ * @brief Returns the current time as a string in the format "13:37:42".
  */
 inline std::string CurrentTime()
 {
@@ -42,8 +44,46 @@ inline std::string CurrentTime()
     return out;
 }
 
+/**
+ * @brief Returns a copy of the input string, with left trimmed white spaces.
+ */
+inline std::string StringTrimRight (
+    const std::string& s,
+    const std::string& delimiters = " \f\n\r\t\v"
+) {
+    return s.substr(0, s.find_last_not_of(delimiters) + 1);
+}
+
+/**
+ * @brief Returns a copy of the input string, with right trimmed white spaces.
+ */
+inline std::string StringTrimLeft (
+    const std::string& s,
+    const std::string& delimiters = " \f\n\r\t\v"
+) {
+    return s.substr(s.find_first_not_of(delimiters));
+}
+
+/**
+ * @brief Returns a copy of the input string, with trimmed white spaces.
+ */
+inline std::string StringTrim (
+    const std::string& s,
+    const std::string& delimiters = " \f\n\r\t\v"
+) {
+    return StringTrimLeft(StringTrimRight(s, delimiters), delimiters);
+}
+
+// from here on: only declaractions.
+
 std::string ReadFile (const std::string fn);
+
 std::string StringDeescape (const std::string text);
+std::string StringReplaceAll (
+    const std::string &s,
+    const std::string &search,
+    const std::string &replace
+);
 
 } // namespace utils
 } // namespace genesis

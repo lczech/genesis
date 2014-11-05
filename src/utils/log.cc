@@ -88,8 +88,6 @@ Log::Log()
 }
 
 // TODO the output of the log is not thread safe
-// TODO use auto indention for multi line log messages
-// TODO strip more than one endl at the end
 /**
  * Destructor that is invoked at the end of each log line and does the actual
  * output.
@@ -145,9 +143,21 @@ Log::~Log()
         }
     }
 
+    // make multi line log messages align to the length of the detail header,
+    // and trim trailing whitespace, as we only want one newline at the end
+    std::string msg = det_buff.str();
+    if (msg.length() > 0) {
+        msg += StringReplaceAll(
+            buff_.str(), "\n", "\n" + std::string(msg.length(), ' ')
+        );
+    } else {
+        msg += buff_.str();
+    }
+    msg = StringTrimRight(msg);
+
     // output the message to every stream
     for (std::ostream* out : ostreams_) {
-        (*out) << det_buff.str() << buff_.str() << std::endl << std::flush;
+        (*out) << msg << std::endl << std::flush;
     }
 
     // inc log message counter

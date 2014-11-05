@@ -43,7 +43,7 @@ namespace utils {
 #define GNS_LOG(level) \
     if (level > LOG_LEVEL_MAX) ; \
     else if (level > genesis::utils::Log::max_level()) ; \
-    else Log().Get(__FILE__, __LINE__, level)
+    else genesis::utils::Log().Get(__FILE__, __LINE__, level)
 
 // define a similar log macro, this time changing the details of the message
 #define GNS_LOG_DETAILS(level, ...) \
@@ -88,7 +88,6 @@ namespace utils {
 
 // TODO add TIME1..4 (or TMR maybe) for indented timing logs
 // TODO change macros for timing to be out of usual log levels
-// TODO think about making loglevel enum a member of log class
 // TODO define a function that logs the detail column headers (difficult because
 // of length difference for file name log detail)
 // TODO offer csv as output format
