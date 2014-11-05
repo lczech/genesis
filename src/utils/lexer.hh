@@ -95,7 +95,8 @@ inline bool CharMatch(const char c1, const char c2)
  *
  * 3. **String**: A literal string, enclosed in either 'abc' or "def". It can
  *    contain escape charaters using a backslash, where \\n, \\t and \\r are
- *    translated into their whitespace representation.
+ *    translated into their whitespace representation using StringDeescape
+ *    when the option Lexer::deescape_strings is set.
  *
  * 4. **Operator**: An operator out of the set
  *
@@ -292,9 +293,29 @@ class Lexer
          *
          *     [ 1.0 , -3.14 ]
          *
-         * This is useful when the input is a list or similar data.
+         * This is useful when the input is a list or similar data. As this case
+         * is more common in bioinformatics, this is the default.
          */
-         bool glue_sign_to_number = true;
+        bool glue_sign_to_number = true;
+
+        /**
+         * @brief Determines whether the quotation marks shall be included
+         * when a literal string is found.
+         *
+         * Strings can be enclosed in 'abc' or "def", see ScanString for more
+         * details on that. The value of trim_quotation_marks determines
+         * whether those marks are included in the final token or not.
+         * Default is to not include them, which makes preprocessing of the
+         * string easier.
+         */
+        bool trim_quotation_marks = true;
+
+        /**
+         * @brief Determines whether to call StringDeescape for literal strings.
+         *
+         * This only affects literal strings enclosed in 'abc' or "def".
+         */
+        bool deescape_strings = true;
 
     protected:
         bool ScanToken();

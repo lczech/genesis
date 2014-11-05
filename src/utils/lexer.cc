@@ -4,6 +4,7 @@
 
  #include "lexer.hh"
  #include "log.hh"
+ #include "utils.hh"
 
 namespace genesis {
 namespace utils {
@@ -156,6 +157,8 @@ inline bool Lexer::ScanComment()
 /**
  * @brief Scan a symbol.
  *
+ * A symbol starts with a letter or underscore and goes on as long as only
+ * letters, underscores and digits are encountered.
  * Returns true, as symbols cannot be malformatted.
  */
 inline bool Lexer::ScanSymbol()
@@ -241,7 +244,7 @@ inline bool Lexer::ScanNumber()
  * A string can be enclosed either in 'abc' or in "def". Within a string, any
  * character is allowed; the respective quotation mark can be escaped using a
  * backslash. Other valid escape sequences are \n, \t and \r, which will be
- * resolved to their respective white space charater.
+ * resolved to their respective white space character.
  *
  * Returns true iff the string is finished with the correct quotation mark.
  */
@@ -288,29 +291,15 @@ inline bool Lexer::ScanString()
         return false;
     }
 
-    // de-escape the string
-    // TODO this is not fast. could be better by using char[] (save reallocs)
-    // TODO make into an extra function
+    // de-escape the string (transform backslash-escaped chars)
     std::string res = GetSubstr(start, itr_-1);
-    if (found_e) {
-        std::string tmp = "";
-        for (size_t i = 0; i < res.size(); i++) {
-            if (res[i] == '\\') {
-                if (i+1 >= res.size()){
-                    break;
-                }
-                switch (res[i+1]) {
-                    case 'n' : tmp += '\n'; break;
-                    case 't' : tmp += '\t'; break;
-                    case 'r' : tmp += '\r'; break;
-                    default  : tmp += res[i+1];
-                }
-                ++i;
-            } else {
-                tmp += res[i];
-            }
-        }
-        res = tmp;
+    if (found_e && deescape_strings) {
+        res = StringDeescape(res);
+    }
+
+    // if needed, add qmarks again
+    if (!trim_quotation_marks) {
+        res = qmark + res + qmark;
     }
 
     // create result

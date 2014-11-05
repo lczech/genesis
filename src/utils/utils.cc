@@ -32,5 +32,37 @@ std::string ReadFile (const std::string fn)
     return str;
 }
 
+/**
+ * @brief Returns a string where the escaped characters are transformed into
+ * their respective string form.
+ *
+ * For example, the escape sequence \\n (backshlash n) will be translated into
+ * a new line. The same applies for tabs and carrier returns. All other
+ * escaped sequences will simply translate into the second char, e.g., a double
+ * backslash will become one backslash.
+ */
+std::string StringDeescape (const std::string text)
+{
+    // TODO this is not fast. could be better by using char[] (save reallocs)
+    std::string tmp = "";
+    for (size_t i = 0; i < text.size(); i++) {
+        if (text[i] == '\\') {
+            if (i+1 >= text.size()){
+                break;
+            }
+            switch (text[i+1]) {
+                case 'n' : tmp += '\n'; break;
+                case 't' : tmp += '\t'; break;
+                case 'r' : tmp += '\r'; break;
+                default  : tmp += text[i+1];
+            }
+            ++i;
+        } else {
+            tmp += text[i];
+        }
+    }
+    return tmp;
+}
+
 } // namespace utils
 } // namespace genesis
