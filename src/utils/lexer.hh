@@ -22,7 +22,7 @@ inline bool IsWhitespace(const char c)
 
 inline bool IsLetter(const char c)
 {
-    return (('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z'));
+    return (('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z')) || c == '_';
 }
 
 inline bool IsDigit(const char c)
@@ -32,7 +32,7 @@ inline bool IsDigit(const char c)
 
 inline bool IsAlphanum(const char c)
 {
-    return IsLetter(c) || IsDigit(c) || c == '_';
+    return IsLetter(c) || IsDigit(c);
 }
 
 inline bool IsLeftBracket(const char c)
@@ -115,7 +115,7 @@ struct LexerToken
 {
     public:
         enum TokenType {
-            kNone       = 0,
+            kUnknown    = 0,
             kError      = 1,
             kEOF        = 8,
             kWhite      = 9,
@@ -133,20 +133,23 @@ struct LexerToken
          */
         inline LexerToken
         (
-            const TokenType t, const size_t p, const std::string v
+            const TokenType t, const int l, const int c, const std::string v
         ) :
-            type_(t), position_(p), value_(v)
+            type_(t), line_(l), column_(c), value_(v)
         {};
 
         /**
-         * @brief Return the TokenType of this token.
+         * @brief Getter for the TokenType of this token.
          */
         inline TokenType type() const {return type_;};
 
-        /** @brief Return the position where this token occured. */
-        inline size_t position() const {return position_;};
+        /** @brief Getter for the line where this token occured. */
+        inline size_t line() const {return line_;};
 
-        /** @brief Return the string value of this token. */
+        /** @brief Getter for the column where this token occured. */
+        inline size_t column() const {return column_;};
+
+        /** @brief Getter for the string value of this token. */
         inline std::string value() const {return value_;};
 
         /** Returns whether this token denotes an error in the process. */
@@ -158,7 +161,7 @@ struct LexerToken
         /**
          * @brief Returns whether this token is a given type of operator.
          *
-         * Usage: `token.IsOperator('%')` will return if this token is
+         * Usage: `token.IsOperator('%')` will return true if this token is
          * an operator and if it is the modulo operator.
          */
         inline bool IsOperator(const char c) const
@@ -174,7 +177,7 @@ struct LexerToken
 
         /** @brief Returns whether this token is a given type if bracket.
          *
-         * Usage: `token.IsBracket(')')` will return if this token is
+         * Usage: `token.IsBracket(')')` will return true if this token is
          * an bracket and if it is the closing parenthesis.
          */
         inline bool IsBracket(const char c) const
@@ -192,7 +195,7 @@ struct LexerToken
         static inline std::string ToStr(const TokenType t)
         {
             switch(t) {
-                case kNone     : return "None";
+                case kUnknown  : return "Unknown";
                 case kError    : return "Error";
                 case kEOF      : return "EOF";
                 case kWhite    : return "Whitespace";
@@ -219,7 +222,8 @@ struct LexerToken
 
     private:
         const TokenType   type_;
-        const size_t      position_;
+        const int         line_;
+        const int         column_;
         const std::string value_;
 };
 
@@ -231,29 +235,44 @@ struct LexerToken
  *     Lexer l;
  *     l.Analyse("1+2=3");
  *
- * The tokens produced with the Analyse method are of type LexerToken and can
- * be accessed using an iterator over the Lexer object:
+ * The tokens produced with the Lexer::Analyse method are of type LexerToken and
+ * can be accessed using an iterator over the Lexer object:
  *
  * TODO
  *
- * Te options include_whitespace and include_comments are disabled by default,
+ * The options include_whitespace and include_comments are disabled by default,
  * which helps separating the important content from whites and comments.
  * If needed, they can be enabled to include those tokens also.
+ *
+ * The option glue_sign_to_number is enabled per default, because this case is
+ * more common for analyzing genetic data as opposed to e.g. source code.
  */
 class Lexer
 {
     public:
-        /** @brief Constructor, does nothing. */
-        Lexer() {};
-
-        /** @brief Destructor, does nothing. */
-        ~Lexer() {};
-
         bool Analyze(const std::string& text);
-        bool CheckBrackets();
+        bool ValidateBrackets();
 
         std::string Dump();
         void Clear();
+
+        inline bool empty() const
+        {
+            return tokens_.empty();
+        }
+
+        inline std::size_t size() const
+        {
+            return tokens_.size();
+        }
+
+        inline LexerToken operator[](const std::size_t index) const
+        {
+            if (index < tokens_.size())
+                return tokens_[index];
+            else
+                return LexerToken(LexerToken::kEOF, 0, 0, "");
+        }
 
         /** @brief Determines whether whitespaces are included as tokens. */
         bool include_whitespace = false;
@@ -261,7 +280,7 @@ class Lexer
         /** @brief Determines whether comments are included as tokens. */
         bool include_comments   = false;
 
-        /** @brief Determines whether to glue a sign followed by a number.
+        /** @brief Determines whether to glue a sign to a number following it.
          *
          * If disabled, a term like `1+2=3` will be parsed into single tokes
          * for each character:
@@ -289,31 +308,64 @@ class Lexer
 
     private:
         /** @brief Returns if the iterator is at the end of the text. */
-        inline bool IsEnd()
+        inline bool IsEnd() const
         {
             return itr_ >= len_;
         }
 
         /** @brief Returns if a given position is the end of the text. */
-        inline bool IsEnd(size_t pos)
+        inline bool IsEnd(size_t pos) const
         {
             return pos >= len_;
         }
 
         /** @brief Extracts a substring of the text betweeen two positions */
-        inline std::string GetSubstr (size_t start, size_t end)
+        inline std::string GetSubstr (size_t start, size_t end) const
         {
-            return std::string(text_ + start, end-start);
+            if (start<end) {
+                return std::string(text_+start, end-start);
+            } else {
+                return std::string("");
+            }
         }
 
-        /** @brief The temp stored text that is being analyzed. */
-        const char* text_ = 0;
+        /** @brief Create a token and push it to the list. */
+        inline void PushToken (
+            const LexerToken::TokenType t, const size_t start, const std::string value
+        ) {
+            // find previous new line, we need it to tell the column
+            size_t bitr = start;
+            while (bitr > 0 && text_[bitr-1] != '\n') {
+                --bitr;
+            }
+
+            // make and push token
+            LexerToken tok(t, line_, start-bitr, value);
+            tokens_.push_back(tok);
+        }
+
+        /** @brief Create a token and push it to the list. */
+        inline void PushToken (
+            const LexerToken::TokenType t, const size_t start, const size_t end
+        ) {
+            PushToken(t, start, GetSubstr(start, end));
+        }
+
+        // Caveat: the following variables are heavily interweaved during a run
+        // of Analyze! They have to stay consistent, otherwise the resulting
+        // tokens will contain wrong information.
+
+        /** @brief The text that is being analyzed. */
+        const char* text_ = nullptr;
 
         /** @brief The current position in the text while analyzing. */
         size_t      itr_  = 0;
 
         /** @brief The length of the text being analyzed. */
         size_t      len_  = 0;
+
+        /** @brief The current line in the text while analyzing. */
+        int         line_ = 1;
 
         /** @brief The list of tokens resulting from the analysis. */
         std::vector<LexerToken> tokens_;
