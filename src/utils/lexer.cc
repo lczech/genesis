@@ -4,6 +4,7 @@
 
  #include "lexer.hh"
  #include "log.hh"
+ #include "utils.hh"
 
 namespace genesis {
 namespace utils {
@@ -19,6 +20,7 @@ bool Lexer::Analyze(const std::string& text)
     text_ = text.c_str();
     itr_  = 0;
     len_  = text.size();
+    line_ = 1;
     tokens_.clear();
 
     while (!IsEnd()) {
@@ -38,7 +40,7 @@ bool Lexer::Analyze(const std::string& text)
 }
 
 /**
- * @brief General function to delegate to scanning of tokens to their
+ * @brief General function to delegate the scanning of tokens to their
  * special implementations.
  */
 inline bool Lexer::ScanToken()
@@ -56,7 +58,9 @@ inline bool Lexer::ScanToken()
     } else if (IsBracket(text_[itr_])) {
         ScanBracket();
     } else {
-        LexerToken t(LexerToken::kError, itr_, GetSubstr(itr_, itr_+1));
+        // TODO this will make an extra token for each consecutive unknown
+        // element. maybe those should better go into one unknown token.
+        PushToken(LexerToken::kUnknown, itr_, itr_+1);
         ++itr_;
         return false;
     }
@@ -75,12 +79,14 @@ inline bool Lexer::ScanWhitespace()
     size_t start = itr_;
 
     while (!IsEnd() && IsWhitespace(text_[itr_])) {
+        if (text_[itr_] == '\n') {
+            ++line_;
+        }
         ++itr_;
         found = true;
     }
     if (include_whitespace && found) {
-        LexerToken t(LexerToken::kWhite, start, GetSubstr(start, itr_));
-        tokens_.push_back(t);
+        PushToken(LexerToken::kWhite, start, itr_);
     }
     return found;
 }
@@ -129,14 +135,17 @@ inline bool Lexer::ScanComment()
         (!IsEnd(itr_+1) && mode == 2 && text_[itr_] != '*'
         && text_[itr_+1] != '/')
     ) {
+        if (text_[itr_] == '\n') {
+            ++line_;
+        }
         ++itr_;
     }
 
+    // TODO trim comments
     // here we are at either end of file or end of comment.
     // we treat both as valid.
     if (include_comments) {
-        LexerToken t(LexerToken::kComment, start, GetSubstr(start, itr_));
-        tokens_.push_back(t);
+        PushToken(LexerToken::kComment, start, itr_);
     }
 
     // set iterator to next char (mode also serves as lookup for how many
@@ -148,6 +157,8 @@ inline bool Lexer::ScanComment()
 /**
  * @brief Scan a symbol.
  *
+ * A symbol starts with a letter or underscore and goes on as long as only
+ * letters, underscores and digits are encountered.
  * Returns true, as symbols cannot be malformatted.
  */
 inline bool Lexer::ScanSymbol()
@@ -156,8 +167,7 @@ inline bool Lexer::ScanSymbol()
     while (!IsEnd() && IsAlphanum(text_[itr_])) {
         ++itr_;
     }
-    LexerToken t(LexerToken::kSymbol, start, GetSubstr(start, itr_));
-    tokens_.push_back(t);
+    PushToken(LexerToken::kSymbol, start, itr_);
     return true;
 }
 
@@ -220,12 +230,10 @@ inline bool Lexer::ScanNumber()
 
     // create result
     if (err) {
-        LexerToken t(LexerToken::kError, itr_, GetSubstr(itr_, itr_+1));
-        tokens_.push_back(t);
+        PushToken(LexerToken::kError, itr_, itr_+1);
         return false;
     } else {
-        LexerToken t(LexerToken::kNumber, start, GetSubstr(start, itr_));
-        tokens_.push_back(t);
+        PushToken(LexerToken::kNumber, start, itr_);
         return true;
     }
 }
@@ -236,18 +244,18 @@ inline bool Lexer::ScanNumber()
  * A string can be enclosed either in 'abc' or in "def". Within a string, any
  * character is allowed; the respective quotation mark can be escaped using a
  * backslash. Other valid escape sequences are \n, \t and \r, which will be
- * resolved to their respective white space charater.
+ * resolved to their respective white space character.
  *
  * Returns true iff the string is finished with the correct quotation mark.
  */
 inline bool Lexer::ScanString()
 {
-    // skip the first quotation mark, save it for later comparision
+    // skip the first quotation mark, save its value for later comparision
+    // so that the string ends with the same type of mark
     char qmark = text_[itr_];
     ++itr_;
     if (IsEnd()) {
-        LexerToken t(LexerToken::kError, itr_-1, "");
-        tokens_.push_back(t);
+        PushToken(LexerToken::kError, itr_-1, itr_-1);
         return false;
     }
 
@@ -257,9 +265,15 @@ inline bool Lexer::ScanString()
 
     // scan
     while (!IsEnd()) {
+        if (text_[itr_] == '\n') {
+            ++line_;
+        }
         if (text_[itr_] == '\\') {
             esc = true;
             found_e = true;
+            if (text_[itr_+1] == '\n') {
+                ++line_;
+            }
             itr_ += 2;
             continue;
         }
@@ -273,38 +287,23 @@ inline bool Lexer::ScanString()
 
     // reached end of text before ending quotation mark
     if (esc || (IsEnd() && !(text_[itr_-1] == qmark))) {
-        LexerToken t(LexerToken::kError, itr_-1, "");
-        tokens_.push_back(t);
+        PushToken(LexerToken::kError, itr_-1, itr_-1);
         return false;
     }
 
-    // de-escape the string
-    // TODO this is not fast. could be better by using char[] (save reallocs)
+    // de-escape the string (transform backslash-escaped chars)
     std::string res = GetSubstr(start, itr_-1);
-    if (found_e) {
-        std::string tmp = "";
-        for (size_t i = 0; i < res.size(); i++) {
-            if (res[i] == '\\') {
-                if (i+1 >= res.size()){
-                    break;
-                }
-                switch (res[i+1]) {
-                    case 'n' : tmp += '\n'; break;
-                    case 't' : tmp += '\t'; break;
-                    case 'r' : tmp += '\r'; break;
-                    default  : tmp += res[i+1];
-                }
-                ++i;
-            } else {
-                tmp += res[i];
-            }
-        }
-        res = tmp;
+    if (found_e && deescape_strings) {
+        res = StringDeescape(res);
+    }
+
+    // if needed, add qmarks again
+    if (!trim_quotation_marks) {
+        res = qmark + res + qmark;
     }
 
     // create result
-    LexerToken t(LexerToken::kString, start-1, res);
-    tokens_.push_back(t);
+    PushToken(LexerToken::kString, start-1, res);
     return true;
 }
 
@@ -324,12 +323,8 @@ inline bool Lexer::ScanOperator()
         return ScanNumber();
     }
 
-    LexerToken t(
-        static_cast<LexerToken::TokenType>(text_[itr_]),
-        itr_, GetSubstr(itr_, itr_+1)
-    );
+    PushToken(LexerToken::kOperator, itr_, itr_+1);
     ++itr_;
-    tokens_.push_back(t);
     return true;
 }
 
@@ -340,12 +335,8 @@ inline bool Lexer::ScanOperator()
  */
 inline bool Lexer::ScanBracket()
 {
-    LexerToken t(
-        static_cast<LexerToken::TokenType>(text_[itr_]),
-        itr_, GetSubstr(itr_, itr_+1)
-    );
+    PushToken(LexerToken::kBracket, itr_, itr_+1);
     ++itr_;
-    tokens_.push_back(t);
     return true;
 }
 
@@ -355,7 +346,7 @@ inline bool Lexer::ScanBracket()
  * In order to be valid, every opening bracket must be matched with a
  * corresponding closing bracket, and their order has to be correct.
  */
-bool Lexer::CheckBrackets()
+bool Lexer::ValidateBrackets()
 {
     std::stack<char> stk;
     for (LexerToken t : tokens_) {
@@ -363,7 +354,7 @@ bool Lexer::CheckBrackets()
             continue;
         }
 
-        char c = t.value[0];
+        char c = t.value()[0];
         if (c == '(') stk.push(')');
         if (c == '[') stk.push(']');
         if (c == '{') stk.push('}');
@@ -380,20 +371,21 @@ bool Lexer::CheckBrackets()
 }
 
 /**
- * @brief Returns a listing of the parse result.
+ * @brief Returns a listing of the parse result in readable form.
  */
 std::string Lexer::Dump()
 {
     std::string res;
     for (size_t i = 0; i < tokens_.size(); i++) {
         LexerToken t = tokens_[i];
-        char out[25];
-        sprintf(out, "[%03d] @%03d %10s : ",
+        char out[30];
+        sprintf(out, "[%03d] @%03d:%03d %10s : ",
             static_cast<unsigned int>(i),
-            static_cast<unsigned int>(t.position),
+            static_cast<unsigned int>(t.line()),
+            static_cast<unsigned int>(t.column()),
             t.ToStr().c_str()
         );
-        res += out + t.value + '\n';
+        res += out + t.value() + '\n';
     }
     return res;
 }
@@ -408,6 +400,7 @@ void Lexer::Clear()
     text_ = "";
     itr_  = 0;
     len_  = 0;
+    line_ = 1;
     tokens_.clear();
 }
 

@@ -43,6 +43,7 @@ inline std::string CurrentTime()
 }
 
 std::string ReadFile (const std::string fn);
+std::string StringDeescape (const std::string text);
 
 } // namespace utils
 } // namespace genesis
