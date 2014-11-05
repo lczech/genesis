@@ -5,7 +5,6 @@
 #include "../tree/simple_tree.hh"
 
 using namespace genesis;
-using namespace genesis::utils;
 
 /**
  * Prints the header information on screen when starting the program.
@@ -23,7 +22,7 @@ std::string print_header()
 
 int main (int argc, char* argv[])
 {
-    Log::AddOutputStream(std::cout);
+    utils::Log::AddOutputStream(std::cout);
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 

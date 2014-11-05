@@ -21,9 +21,9 @@ LogDetails Log::details = {
     false, // line
     true  // level
 };
-LogLevel  Log::max_level_  = kDebug4;
-long      Log::count_      = 0;
-clock_t   Log::last_clock_ = 0;
+Log::LogLevel              Log::max_level_  = kDebug4;
+long                       Log::count_      = 0;
+clock_t                    Log::last_clock_ = 0;
 std::vector<std::ostream*> Log::ostreams_;
 
 /**
