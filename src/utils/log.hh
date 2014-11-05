@@ -4,7 +4,11 @@
 /**
  * @brief Provides easy and fast logging functionality.
  *
- * For more information, see Log class.
+ * All declarations in this file use fully qualified names in the
+ * genesis::utils namespace in order to make it easy to include this header
+ * in other files without the need for a `using namespace utils` there.
+ *
+ * For more information on the logging, see Log class.
  *
  * @file
  * @ingroup utils
@@ -22,7 +26,7 @@ namespace utils {
  * Static maximal log level.
  * Everything above this level will be pruned by the compiler.
  */
-#define LOG_LEVEL_MAX kDebug4
+#define LOG_LEVEL_MAX genesis::utils::Log::kDebug4
 #endif
 
 // TODO make DEBUG a special macro with proper usage makefile etc,
@@ -31,153 +35,123 @@ namespace utils {
 
 // override this setting when debugging is turned on (eg by makefile)
 #ifdef DEBUG
-#define LOG_LEVEL_MAX kDebug4
+#define LOG_LEVEL_MAX genesis::utils::Log::kDebug4
 #endif
 
 // define the actual log macro, so that the compiler can prune calls
 // to a log with levels above the static max log level
 #define GNS_LOG(level) \
     if (level > LOG_LEVEL_MAX) ; \
-    else if (level > Log::max_level()) ; \
-    else Log().Get(__FILE__, __LINE__, level)
+    else if (level > genesis::utils::Log::max_level()) ; \
+    else genesis::utils::Log().Get(__FILE__, __LINE__, level)
 
 // define a similar log macro, this time changing the details of the message
 #define GNS_LOG_DETAILS(level, ...) \
     if (level > LOG_LEVEL_MAX) ; \
-    else if (level > Log::max_level()) ; \
-    else Log().Get(__FILE__, __LINE__, level, {__VA_ARGS__})
+    else if (level > genesis::utils::Log::max_level()) ; \
+    else genesis::utils::Log().Get(__FILE__, __LINE__, level, {__VA_ARGS__})
 
-// define standard Logging of shortcuts
+// define standard logging types as macro shortcuts
 /** %Log an error. See genesis::LogLevel. */
-#define LOG_ERR  GNS_LOG(kError)
+#define LOG_ERR  GNS_LOG(genesis::utils::Log::kError)
 
 /** %Log a warning. See genesis::LogLevel. */
-#define LOG_WARN GNS_LOG(kWarning)
+#define LOG_WARN GNS_LOG(genesis::utils::Log::kWarning)
 
 /** %Log an info message. See genesis::LogLevel. */
-#define LOG_INFO GNS_LOG(kInfo)
+#define LOG_INFO GNS_LOG(genesis::utils::Log::kInfo)
 
 /** %Log a debug message. See genesis::LogLevel. */
-#define LOG_DBG  GNS_LOG(kDebug)
+#define LOG_DBG  GNS_LOG(genesis::utils::Log::kDebug)
 
 /** %Log a debug message. See genesis::LogLevel. */
-#define LOG_DBG1 GNS_LOG(kDebug1)
+#define LOG_DBG1 GNS_LOG(genesis::utils::Log::kDebug1)
 
 /** %Log a debug message. See genesis::LogLevel. */
-#define LOG_DBG2 GNS_LOG(kDebug2)
+#define LOG_DBG2 GNS_LOG(genesis::utils::Log::kDebug2)
 
 /** %Log a debug message. See genesis::LogLevel. */
-#define LOG_DBG3 GNS_LOG(kDebug3)
+#define LOG_DBG3 GNS_LOG(genesis::utils::Log::kDebug3)
 
 /** %Log a debug message. See genesis::LogLevel. */
-#define LOG_DBG4 GNS_LOG(kDebug4)
+#define LOG_DBG4 GNS_LOG(genesis::utils::Log::kDebug4)
 
 // define special log shortcuts. the list of bools represent
 // the members of struct LogDetails and indicate which parts shall be included
 /** Logging of a message that is always displayed. See Log. */
-#define LOG_BOLD GNS_LOG_DETAILS(kNone, \
+#define LOG_BOLD GNS_LOG_DETAILS(genesis::utils::Log::kNone, \
     false, false, false, false, false, false, false, false)
 
 /** Logging of a message with timing information. See Log. */
-#define LOG_TIME GNS_LOG_DETAILS(kDebug, \
+#define LOG_TIME GNS_LOG_DETAILS(genesis::utils::Log::kDebug, \
     false, false, false, true , true,  false, false, false)
 
 // TODO add TIME1..4 (or TMR maybe) for indented timing logs
 // TODO change macros for timing to be out of usual log levels
-// TODO think about making loglevel enum a member of log class
+// TODO define a function that logs the detail column headers (difficult because
+// of length difference for file name log detail)
+// TODO offer csv as output format
+// TODO offer remote streams
 
 /**
- * @brief Levels of severity used for logging.
+ * @brief Settings for which information is included with each log
+ * message.
  *
- * The levels are in ascending order and are used both to signal what kind
- * of message is being logged and to provide a threshold for less important
- * messages that can be filtered out, for example debug messages in the
- * production build of the program. Because some of the filtering is already
- * done at compile time, log messages with a level higher than #LOG_LEVEL_MAX
- * do not produce any overhead. See also Log for more on this.
- */
-enum LogLevel {
-    /** Special messages that are always logged, e.g. program header. */
-    kNone = 0,
-
-    /** Errors, usually non-recoverable. */
-    kError,
-
-    /** Warnings if somthing went wront, but program can continue. */
-    kWarning,
-
-    /** Infos, for example when a file was written. */
-    kInfo,
-
-    /** Basic debugging message. */
-    kDebug,
-
-    /** Debugging message with indent level 1 (e.g. for loops). */
-    kDebug1,
-
-    /** Debugging message with indent level 2. */
-    kDebug2,
-
-    /** Debugging message with indent level 3. */
-    kDebug3,
-
-    /** Debugging message with indent level 4. */
-    kDebug4
-};
-
-/**
- * @brief Settings for which information is included with each log message.
- *
- * The details are activated via accessing the static variable of the log class:
+ * The details are activated via accessing the static variable of the
+ * log class:
  *
  *     Log::details.level = true;
  *
- * All active details are prepended to the actual log message and separated by
- * spaces (execpt file and line, they are separated by a colon). Their order is
- * fixed.
+ * All active details are prepended to the actual log message and
+ * separated by spaces (execpt file and line, they are separated by a
+ * colon). Their order is fixed.
  *
  * A message with all details activates looks like this
  *
  *     0003 2014-10-28 11:40:47 0.001859 0.000103 src/main/main.cc:28 INFO Hello
  *
- * It was the third message being logged in this run of the program, at a
- * date and time, 0.001859 sec after the program started and 0.000103 sec after
- * the last log message. It was called from main.cc line 28 and has level Info.
+ * It was the third message being logged in this run of the program, at
+ * a date and time, 0.001859 sec after the program started and 0.000103
+ * sec after the last log message. It was called from main.cc line 28
+ * and has level Info.
  */
 typedef struct {
-    /** Include a counter of how many messages have been logged so far. */
+    /**
+     * @brief Include a counter of how many messages have been logged so
+     * far.
+     */
     bool count;
 
-    /** Include the current date. */
+    /** @brief Include the current date. */
     bool date;
 
-    /** Include the current time. */
+    /** @brief Include the current time. */
     bool time;
 
-    /** Include the current run time of the program in sec. */
+    /** @brief Include the current run time of the program in sec. */
     bool runtime;
 
     /**
-     * Include the run time difference to the last log message in sec.
+     * @brief Include the run time difference to the last log message
+     * in sec.
+     *
      * Useful for timing and profiling code sections. Is 0.0 at the first
      * log message.
      */
     bool rundiff;
 
-    /** Include the filename where the log message was generated. */
+    /** @brief Include the filename where the log message was generated. */
     bool file;
 
-    /** Include the line of the file where the log message was generated. */
+    /**
+     * @brief Include the line of the file where the log message was
+     * generated.
+     */
     bool line;
 
-    /** Include the level (e.g. Info, Debug) of the message. */
+    /** @brief Include the level (e.g. Info, Debug) of the message. */
     bool level;
 } LogDetails;
-
-// TODO define a function that logs the detail column headers (difficult because
-// of length difference for file name log detail)
-// TODO offer csv as output format
-// TODO offer remote streams
 
 /**
  * @brief Logging class with easy and fast usage.
@@ -246,6 +220,46 @@ typedef struct {
 class Log
 {
     public:
+        /**
+         * @brief Levels of severity used for logging.
+         *
+         * The levels are in ascending order and are used both to signal what
+         * kind of message is being logged and to provide a threshold for less
+         * important messages that can be filtered out, for example debug
+         * messages in the production build of the program. Because some of the
+         * filtering is already done at compile time, log messages with a level
+         * higher than #LOG_LEVEL_MAX do not produce any overhead. See also Log
+         * for more on this.
+         */
+        enum LogLevel {
+            /** Special messages that are always logged, e.g. program header. */
+            kNone = 0,
+
+            /** Errors, usually non-recoverable. */
+            kError,
+
+            /** Warnings if somthing went wront, but program can continue. */
+            kWarning,
+
+            /** Infos, for example when a file was written. */
+            kInfo,
+
+            /** Basic debugging message. */
+            kDebug,
+
+            /** Debugging message with indent level 1 (e.g. for loops). */
+            kDebug1,
+
+            /** Debugging message with indent level 2. */
+            kDebug2,
+
+            /** Debugging message with indent level 3. */
+            kDebug3,
+
+            /** Debugging message with indent level 4. */
+            kDebug4
+        };
+
         Log();
         ~Log();
 

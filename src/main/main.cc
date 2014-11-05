@@ -5,7 +5,6 @@
 #include "../tree/simple_tree.hh"
 
 using namespace genesis;
-using namespace genesis::utils;
 
 /**
  * Prints the header information on screen when starting the program.
@@ -23,9 +22,11 @@ std::string print_header()
 
 int main (int argc, char* argv[])
 {
-    Log::AddOutputStream(std::cout);
+    utils::Log::AddOutputStream(std::cout);
     LOG_BOLD << print_header();
     LOG_TIME << "start";
+
+    LOG_INFO << "ein test" << std::endl << "mit luecke";
 
     SimpleTree tree;
     tree.ParseNewickString("((A:0.2{0},B:0.09{1}):0.7{2},C:0.5{3}){4};");

@@ -64,5 +64,25 @@ std::string StringDeescape (const std::string text)
     return tmp;
 }
 
+/**
+ * @brief Returns a copy of a string, where all occurences of a search string
+ * are replaced by a replace string.
+ */
+std::string StringReplaceAll (
+    const std::string &s, const std::string &search, const std::string &replace
+) {
+    std::string tmp = s;
+    for (size_t pos = 0; ; pos += replace.length()) {
+        pos = tmp.find(search, pos);
+
+        if (pos == std::string::npos)
+            break;
+
+        tmp.erase(pos, search.length());
+        tmp.insert(pos, replace);
+    }
+    return tmp;
+}
+
 } // namespace utils
 } // namespace genesis

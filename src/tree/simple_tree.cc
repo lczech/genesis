@@ -4,8 +4,6 @@
 
 namespace genesis {
 
-using namespace utils;
-
 //~ void SimpleTree::ReadNewickFile (std::string fn)
 //~ {
     //~ return;
