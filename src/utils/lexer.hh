@@ -14,47 +14,59 @@
 namespace genesis {
 namespace utils {
 
+/** @brief Returns whether a char is whitespace. */
 inline bool IsWhitespace(const char c)
 {
     return (' '  == c) || ('\n' == c) || ('\r' == c) || ('\t' == c) ||
            ('\b' == c) || ('\v' == c) || ('\f' == c) ;
 }
 
+/** @brief Returns whether a char is a letter (or underscore). */
 inline bool IsLetter(const char c)
 {
     return (('a' <= c) && (c <= 'z')) || (('A' <= c) && (c <= 'Z')) || c == '_';
 }
 
+/** @brief Returns whether a char is a digit. */
 inline bool IsDigit(const char c)
 {
     return ('0' <= c) && (c <= '9');
 }
 
+/** @brief Returns whether a char is either a letter, underscore or digit. */
 inline bool IsAlphanum(const char c)
 {
     return IsLetter(c) || IsDigit(c);
 }
 
+/** @brief Returns whether a char is some type of left bracket. */
 inline bool IsLeftBracket(const char c)
 {
     return ('(' == c) || ('[' == c) || ('{' == c);
 }
 
+/** @brief Returns whether a char is some type of right bracket. */
 inline bool IsRightBracket(const char c)
 {
     return (')' == c) || (']' == c) || ('}' == c);
 }
 
+/** @brief Returns whether a char is some type of bracket. */
 inline bool IsBracket(const char c)
 {
     return IsLeftBracket(c) || IsRightBracket(c);
 }
 
+/** @brief Returns whether a char is a sign (+-) */
 inline bool IsSign(const char c)
 {
     return ('+' == c) || ('-' == c);
 }
 
+/**
+ * @brief Returns whether a char is some type of operator, as listed in
+ * LexerToken.
+ */
 inline bool IsOperator(const char c)
 {
     return
@@ -68,14 +80,13 @@ inline bool IsOperator(const char c)
     (':' == c) || (';' == c);
 }
 
+/** @brief Returns whether a char is a quotation mark ("') */
 inline bool IsQuotemark(const char c)
 {
     return ('"' == c) || ('\'' == c);
 }
 
-/**
- * @brief Returns whether two chars are the same, case insensitive.
- */
+/** @brief Returns whether two chars are the same, case insensitive. */
 inline bool CharMatch(const char c1, const char c2)
 {
     return std::tolower(c1) == std::tolower(c2);
