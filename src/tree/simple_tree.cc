@@ -9,12 +9,9 @@ namespace genesis {
     //~ return;
 //~ }
 
-void SimpleTree::ParseNewickString (std::string tree)
-{
-    utils::Lexer lex;
-    lex.Analyze(tree);
-
-    LOG_BOLD << lex.Dump();
-}
+//~ void SimpleTree::ParseNewickString (std::string tree)
+//~ {
+//~
+//~ }
 
 } // namespace genesis

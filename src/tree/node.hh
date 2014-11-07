@@ -21,7 +21,7 @@ class Node
         Node();
         Node(std::string name);
 
-        std::string GetName() {return name_;};
+        std::string name() const {return name_;};
 
         /** Rank of the node, i.e. how many children it has. */
         int Rank();

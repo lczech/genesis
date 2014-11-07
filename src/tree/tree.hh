@@ -27,9 +27,6 @@ class Tree
 
         void ParseNewickString (std::string tree);
         std::string WriteNewickString ();
-
-    protected:
-        void AddNode (Node* node, Node* parent);
 };
 
 } // namespace genesis

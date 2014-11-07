@@ -26,8 +26,6 @@ int main (int argc, char* argv[])
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
-    LOG_INFO << "ein test" << std::endl << "mit luecke";
-
     SimpleTree tree;
     tree.ParseNewickString("((A:0.2{0},B:0.09{1}):0.7{2},C:0.5{3}){4};");
 
