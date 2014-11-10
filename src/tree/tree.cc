@@ -1,4 +1,7 @@
 #include "tree.hh"
+#include "../utils/log.hh"
+#include "../utils/utils.hh"
+#include "../utils/lexer.hh"
 
 namespace genesis {
 

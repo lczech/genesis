@@ -84,5 +84,22 @@ std::string StringReplaceAll (
     return tmp;
 }
 
+// inline version
+/*
+void StringReplaceAll(
+    std::string &s, const std::string &search, const std::string &replace
+) {
+    for (size_t pos = 0; ; pos += replace.length() ) {
+        pos = s.find(search, pos);
+
+        if (pos == string::npos)
+            break;
+
+        s.erase(pos, search.length());
+        s.insert(pos, replace);
+    }
+}
+*/
+
 } // namespace utils
 } // namespace genesis

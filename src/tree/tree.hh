@@ -16,6 +16,13 @@
 
 namespace genesis {
 
+class LexerPolicyNewick
+{
+    LexerPolicyNewick() {
+        // set ascii table chars
+    }
+};
+
 class Tree
 {
     public:
