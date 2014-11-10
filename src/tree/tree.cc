@@ -12,7 +12,7 @@ void Tree::ReadNewickFile (std::string fn)
 
 void Tree::ParseNewickString (std::string tree)
 {
-    utils::Lexer lex;
+    utils::NewickLexer lex;
     lex.Analyze(tree);
 
     LOG_BOLD << lex.Dump();

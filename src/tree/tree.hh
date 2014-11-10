@@ -13,15 +13,9 @@
 #include <string>
 
 #include "node.hh"
+#include "newick_lexer.hh"
 
 namespace genesis {
-
-class LexerPolicyNewick
-{
-    LexerPolicyNewick() {
-        // set ascii table chars
-    }
-};
 
 class Tree
 {

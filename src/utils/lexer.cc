@@ -19,7 +19,7 @@ namespace utils {
  *
  * In case an error is encountered while analyzing the string, this functions
  * returns false and the last token will be of type
- * LexerToken::TokenType::kError, with the value being an error message
+ * LexerToken::LexerTokenType::kError, with the value being an error message
  * describing the type of error.
  *
  * Common usage:
@@ -42,13 +42,23 @@ namespace utils {
  */
 bool Lexer::Analyze(const std::string& text)
 {
+    //~ if (strip_comments) {
+        //~ bool inc_com = include_comments;
+        //~ include_comments =  true;
+//~
+        //~ Init(text);
+        //~ while(!IsEnd()) {
+            //~ ScanComment();
+        //~ }
+    //~ }
+
     Init(text);
 
     while (!IsEnd()) {
         // scan arbitrary amount of interleaved whitespace and comments
         while (ScanWhitespace() || ScanComment());
 
-        TokenType t = GetCharType();
+        LexerTokenType t = GetCharType();
         if (t == kError) {
             PushToken(kError, GetPosition(), "Invalid character.");
             return false;
@@ -81,7 +91,7 @@ bool Lexer::Analyze(const std::string& text)
 
         if (tokens_.empty()) {
             return true;
-        } else if (tokens_.back().IsError()) {
+        } else if (tokens_.back().type() == kError) {
             return false;
         }
     }
@@ -101,8 +111,9 @@ inline bool Lexer::ScanFromTo (const char* from, const char* to)
     }
 
     // if so, move as many chars forward. we have to split this from the
-    // checking, because we do not want to change itr_ in case it is not a match.
-    // also, calling NextChar here ensures integrity of the line counting.
+    // checking, because we do not want to change itr_ in case it is not a
+    // match. also, calling NextChar here ensures integrity of the line
+    // counting.
     for (size_t i = 0; i < strlen(from); ++i) {
         NextChar();
     }
@@ -302,6 +313,7 @@ inline bool Lexer::ScanString()
 
     size_t start = GetPosition();
     bool found_e = false; // found an escape sequence
+    bool found_q = false; // found an escape sequence
 
     // scan
     while (!IsEnd()) {
@@ -310,6 +322,15 @@ inline bool Lexer::ScanString()
         // the end of the string is reached.
         if (GetChar() == '\\' && use_string_escape) {
             found_e = true;
+            NextChar();
+            NextChar();
+            continue;
+        }
+        if (
+            GetChar() == qmark && GetChar(+1) == qmark
+            && use_string_doubled_quotes
+        ) {
+            found_q = true;
             NextChar();
             NextChar();
             continue;
@@ -332,6 +353,15 @@ inline bool Lexer::ScanString()
     std::string res = GetSubstr(start, GetPosition()-1);
     if (found_e && use_string_escape) {
         res = StringDeescape(res);
+    }
+
+    // transform doubled qmarks like "" into single ones like "
+    if (found_q && use_string_doubled_quotes) {
+        res = StringReplaceAll(
+            res,
+            std::string(2, qmark),
+            std::string(1, qmark)
+        );
     }
 
     // if needed, add qmarks again
@@ -417,7 +447,7 @@ bool Lexer::ValidateBrackets()
 {
     std::stack<char> stk;
     for (LexerToken t : tokens_) {
-        if (!t.IsBracket()) {
+        if (t.type() != kBracket) {
             continue;
         }
 

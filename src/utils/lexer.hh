@@ -2,7 +2,7 @@
 #define GNS_UTILS_LEXER_H_
 
 /**
- * @brief Provides a lexer to analyze a string and split it into tokens.
+ * @brief Provides a basic lexer to analyze a string and split it into tokens.
  *
  * @file
  * @ingroup utils
@@ -26,7 +26,8 @@ inline bool CharIsSign(const char c)
 return ('+' == c) || ('-' == c);
 }
 
-enum TokenType {
+/** @brief Enum for the different types of lexer tokens. */
+enum LexerTokenType {
     kError,
     kUnknown,
     kWhite,
@@ -45,25 +46,27 @@ enum TokenType {
  *
  * The main types of tokens are:
  *
- * 1. **Symbol**: A named symbol, that starts with a letter or underscore,
+ * 1. **Symbol**: A named symbol, usually starts with a letter or underscore,
  *    followed by any number of letters, digits or underscores.
  *
  * 2. **Number**: A number in the format
  *
  *        [+-]123[.456][eE[+-]789].
  *
- * 3. **String**: A literal string, enclosed in either 'abc' or "def". It can
- *    contain escape charaters using a backslash, where \\n, \\t and \\r are
- *    translated into their whitespace representation using
+ * 3. **String**: A literal string, usually enclosed in either 'abc' or "def".
+ *    It can contain escape charaters using a backslash, where \\n, \\t and \\r
+ *    are translated into their whitespace representation using
  *    StringDeescape() when the option Lexer::use_string_escape is set.
  *
- * 4. **Operator**: An operator out of the set
+ * 4. **Bracket**: Typically of these brackets
+ *
+ *        ( ) [ ] { } < >
+ *
+ * 5. **Operator**: An operator, typically out of the set
  *
  *        + - * / < > ? ! ^ = % & | , : ;
  *
- * 5. **Bracket**: Any of these brackets
- *
- *        ( ) [ ] { }
+ * 6. **Tag**: A character denoting a tag, e.g. `<>` for xml.
  *
  * Furthermore, there are token types marking whitespaces and comments, which
  * are included when the corresponding options are set in the Lexer class.
@@ -79,15 +82,16 @@ struct LexerToken
          */
         inline LexerToken
         (
-            const TokenType t, const int l, const int c, const std::string v
+            const LexerTokenType t, const int         l,
+            const int            c, const std::string v
         ) :
             type_(t), line_(l), column_(c), value_(v)
         {};
 
         /**
-         * @brief Getter for the TokenType of this token.
+         * @brief Getter for the LexerTokenType of this token.
          */
-        inline TokenType type() const {return type_;};
+        inline LexerTokenType type() const {return type_;};
 
         /** @brief Getter for the line where this token occured. */
         inline size_t line() const {return line_;};
@@ -97,14 +101,6 @@ struct LexerToken
 
         /** @brief Getter for the string value of this token. */
         inline std::string value() const {return value_;};
-
-        /**
-         * @brief Returns whether this token denotes an error in the process.
-         */
-        inline bool IsError() const
-        {
-            return type_ == kError;
-        }
 
         /**
          * @brief Returns whether this token is a given type of operator.
@@ -117,12 +113,6 @@ struct LexerToken
             return type_ == kOperator && value_[0] == c;
         }
 
-        /** @brief Returns whether this token is any operator. */
-        inline bool IsOperator() const
-        {
-            return type_ == kOperator;
-        }
-
         /** @brief Returns whether this token is a given type if bracket.
          *
          * Usage: `token.IsBracket(')')` will return true if this token is
@@ -133,34 +123,29 @@ struct LexerToken
             return type_ == kBracket && value_[0] == c;
         }
 
-        /** @brief Returns whether this token is any bracket. */
-        inline bool IsBracket() const
-        {
-            return type_ == kBracket;
-        }
-
-        /** @brief Converts a TokenType into its string representation. */
-        static inline std::string TypeToStr(const TokenType t)
+        /** @brief Converts a LexerTokenType into its string representation. */
+        static inline std::string TypeToStr(const LexerTokenType t)
         {
             switch(t) {
-                case kUnknown  : return "Unknown";
                 case kError    : return "Error";
-                case kEOF      : return "EOF";
+                case kUnknown  : return "Unknown";
 
                 case kWhite    : return "Whitespace";
                 case kComment  : return "Comment";
                 case kSymbol   : return "Symbol";
                 case kNumber   : return "Number";
                 case kString   : return "String";
-                case kOperator : return "Operator";
                 case kBracket  : return "Bracket";
+                case kOperator : return "Operator";
+                case kTag      : return "Tag";
 
+                case kEOF      : return "EOF";
                 default        : return "Unknown";
             }
         }
 
         /**
-         * @brief Returns the string representation for the TokenType of
+         * @brief Returns the string representation for the LexerTokenType of
          * this token.
          */
         inline std::string TypeToStr() const
@@ -169,10 +154,10 @@ struct LexerToken
         }
 
     private:
-        const TokenType   type_;
-        const int         line_;
-        const int         column_;
-        const std::string value_;
+        const LexerTokenType   type_;
+        const int              line_;
+        const int              column_;
+        const std::string      value_;
 };
 
 /**
@@ -273,7 +258,7 @@ class Lexer
             if (index < tokens_.size())
                 return tokens_[index];
             else
-                return LexerToken(TokenType::kEOF, 0, 0, "");
+                return LexerToken(LexerTokenType::kEOF, 0, 0, "");
         }
 
         /**
@@ -323,11 +308,27 @@ class Lexer
             std::vector<LexerToken>().swap(tokens_);
         }
 
+        inline bool HasError() const
+        {
+            return !tokens_.empty() && tokens_.back().type() == kError;
+        }
+
         /** @brief Determines whether whitespaces are included as tokens. */
         bool include_whitespace = false;
 
         /** @brief Determines whether comments are included as tokens. */
-        bool include_comments   = false;
+        bool include_comments = false;
+
+        /**
+         * @brief If set, comments are stripped from the text before starting
+         * the analysis.
+         *
+         * This is useful when the specification of the text allows comments to
+         * appear anywhere (e.g. Newick trees). If it is not set, comments are
+         * only found at the borders between tokens, but not within them
+         * (for example, within a number).
+         */
+        bool strip_comments = true;
 
         /**
          * @brief Determines whether to glue a sign to a number following it.
@@ -365,7 +366,23 @@ class Lexer
          * This only affects literal strings, typically enclosed in 'abc' or
          * "def".
          */
-        bool use_string_escape = true;
+        bool use_string_escape = false;
+
+        /**
+         * @brief If set, doubled quotation marks in a string are considered
+         * as normal quotation marks without ending the string.
+         *
+         * For example, the character sequecen (including all quotation marks)
+         *
+         *     "For learning C++, ""Hello World"" is a good start."
+         *
+         * will be interpreted as a string containing normal quotation marks
+         * around `"Hello World"`.
+         *
+         * The type of quotation marks used here depends on which chars are set
+         * to LexerTokenType kString using SetCharType.
+         */
+        bool use_string_doubled_quotes = true;
 
     protected:
         bool ScanFromTo (const char* from, const char* to);
@@ -423,7 +440,7 @@ class Lexer
             return text_[itr_];
         }
 
-        inline TokenType GetCharType(const char c) const
+        inline LexerTokenType GetCharType(const char c) const
         {
             // we use char [-128,127] here.
             if (c < 0) {
@@ -440,17 +457,15 @@ class Lexer
          * current char in inside the text. Thus, the function should only be
          * used in combination with IsEnd.
          */
-        inline TokenType GetCharType() const
+        inline LexerTokenType GetCharType() const
         {
             return GetCharType(GetChar());
         }
 
-        inline void SetCharType (char* chars, const TokenType type)
+        inline void SetCharType (std::string chars, const LexerTokenType type)
         {
-            char* p = chars;
-            while (*p != '\0') {
-                start_char_table_[static_cast<unsigned char>(*p)] = type;
-                ++p;
+            for (char c : chars) {
+                start_char_table_[static_cast<unsigned char>(c)] = type;
             }
         }
 
@@ -512,7 +527,7 @@ class Lexer
 
         /** @brief Create a token and push it to the list. */
         inline void PushToken (
-            const TokenType t,
+            const LexerTokenType t,
             const size_t start, const std::string value
         ) {
             // find previous new line, we need it to tell the column
@@ -531,13 +546,13 @@ class Lexer
 
         /** @brief Create a token and push it to the list. */
         inline void PushToken (
-            const TokenType t, const size_t start, const size_t end
+            const LexerTokenType t, const size_t start, const size_t end
         ) {
             PushToken(t, start, GetSubstr(start, end));
         }
 
     private:
-        TokenType start_char_table_[128] = {
+        LexerTokenType start_char_table_[128] = {
             /*      */  kError,     kError,     kError,     kError,
             /*      */  kError,     kError,     kError,     kError,
             /*      */  kError,     kWhite,     kWhite,     kWhite,
