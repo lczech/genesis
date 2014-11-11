@@ -1,11 +1,18 @@
- #include <string>
- #include <cstring>
- #include <vector>
- #include <stack>
+/**
+ * @brief Implementation of Lexer functions.
+ *
+ * @file
+ * @ingroup utils
+ */
 
- #include "lexer.hh"
- #include "log.hh"
- #include "utils.hh"
+#include <string>
+#include <cstring>
+#include <vector>
+#include <stack>
+
+#include "lexer.hh"
+#include "log.hh"
+#include "utils.hh"
 
 namespace genesis {
 namespace utils {
@@ -550,6 +557,26 @@ std::string Lexer::Dump()
         res += out + t.value() + '\n';
     }
     return res;
+}
+
+std::string LexerTokenTypeToStr (const LexerTokenType t)
+{
+    switch (t) {
+        case kError    : return "Error";
+        case kUnknown  : return "Unknown";
+
+        case kWhite    : return "Whitespace";
+        case kComment  : return "Comment";
+        case kSymbol   : return "Symbol";
+        case kNumber   : return "Number";
+        case kString   : return "String";
+        case kBracket  : return "Bracket";
+        case kOperator : return "Operator";
+        case kTag      : return "Tag";
+
+        case kEOF      : return "EOF";
+        default        : return "Unknown";
+    }
 }
 
 } // namespace utils

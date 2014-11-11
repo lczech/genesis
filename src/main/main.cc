@@ -1,3 +1,10 @@
+/**
+ * @brief Main function of genesis.
+ *
+ * @file
+ * @ingroup main
+ */
+
 #include <string>
 #include <iostream>
 

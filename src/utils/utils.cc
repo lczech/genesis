@@ -1,4 +1,11 @@
-#include <string>
+/**
+ * @brief Implementation of utility functions.
+ *
+ * @file
+ * @ingroup utils
+ */
+
+ #include <string>
 #include <fstream>
 #include <streambuf>
 

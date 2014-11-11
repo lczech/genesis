@@ -1,3 +1,10 @@
+/**
+ * @brief Implementation of Log functions.
+ *
+ * @file
+ * @ingroup utils
+ */
+
 #include <string>
 #include <iostream>
 #include <iomanip>

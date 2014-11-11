@@ -2,10 +2,14 @@
 #define GNS_UTILS_UTILS_H_
 
 /**
- * @brief Provides some commonly used functions.
+ * @brief Provides some commonly used utility functions.
  *
  * @file
  * @ingroup utils
+ *
+ * @namespace genesis::utils
+ * @brief This namespace contains utility functions commonly used by other
+ * functions and classes.
  */
 
 #include <string>

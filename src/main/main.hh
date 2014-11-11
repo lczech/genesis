@@ -1,3 +1,10 @@
+/**
+ * @brief Annotations for genesis.
+ *
+ * @file
+ * @ingroup main
+ */
+
 #ifndef GNS_MAIN_MAIN_H_
 #define GNS_MAIN_MAIN_H_
 

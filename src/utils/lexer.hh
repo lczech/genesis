@@ -8,8 +8,8 @@
  * @ingroup utils
  */
 
- #include <string>
- #include <vector>
+#include <string>
+#include <vector>
 
 namespace genesis {
 namespace utils {
@@ -42,25 +42,7 @@ enum LexerTokenType {
 };
 
 /** @brief Converts a LexerTokenType into its string representation. */
-std::string LexerTokenTypeToStr (const LexerTokenType t)
-{
-    switch (t) {
-        case kError    : return "Error";
-        case kUnknown  : return "Unknown";
-
-        case kWhite    : return "Whitespace";
-        case kComment  : return "Comment";
-        case kSymbol   : return "Symbol";
-        case kNumber   : return "Number";
-        case kString   : return "String";
-        case kBracket  : return "Bracket";
-        case kOperator : return "Operator";
-        case kTag      : return "Tag";
-
-        case kEOF      : return "EOF";
-        default        : return "Unknown";
-    }
-}
+std::string LexerTokenTypeToStr (const LexerTokenType t);
 
 /**
  * @brief Represents a token that is outputted by the Lexer.
