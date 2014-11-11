@@ -44,11 +44,6 @@ ALLFILES := $(SRCFILES) $(HDRFILES)
 
 .PHONY: all clean dist check test todo
 
-# Include dependecies
-# (they are generated when compiling the sources and contain makefile-formatted
-# information on their dependecies, so that nothing should be missing in the end)
--include $(DEPFILES)
-
 # Build the standard version of the program
 all: CC = ${STDCC}
 all: $(PROGRAM)
@@ -61,16 +56,22 @@ mpi: $(PROGRAM)
 	@echo "\n========== Done mpi  =========="
 
 # Link all objects to get the program
-$(PROGRAM): $(OBJFILES)
+$(PROGRAM): $(OBJFILES) $(HDRFILES)
 	@echo "\n========== Linking   =========="
 	@echo "Objects: $(OBJFILES)\n"
 	$(CC) $(OBJFILES) -o $@ $(LDFLAGS)
 
-# Compile all sources
-%.o: %.cc Makefile
+# Compile all sources and create dependency files (-MMD -MP)
+%.o: %.cc
 	@echo "\n========== Compiling =========="
 	@echo "File: $< > $@"
 	$(CC) $(CCFLAGS) -MMD -MP -c $< -o $@
+
+# Include dependecies.
+# They are generated when compiling the sources and contain makefile-formatted
+# information about which source needs which headers. This way, all dependant
+# objects are recompiled when a header changes. Awesome!
+-include $(DEPFILES)
 
 # Remove all generated files
 clean:
