@@ -287,26 +287,26 @@ inline bool Lexer::ScanNumber()
             // nothing to do
         } else if (GetChar() == '.') {
             // do not allow more than one dot, require a number after the dot
+            // (if not, treat it as the end of the number, stop scanning)
             if (
                 found_d
                 || IsEnd(+1) || !CharIsDigit(GetChar(+1))
             ) {
-                err = true;
+                // err = true;
                 break;
             }
             found_d = true;
         } else if (CharMatch(GetChar(), 'e')) {
-            // do not allow more than one e (treat it as the end of the number)
-            if (found_e) {
-                break;
-            }
-            // require a number or sign after the first e
+            // do not allow more than one e (treat the second one as the end of
+            // the number and stop scannning).
+            // also, require a number or sign after the first e. if not, treat
+            // it also as the end of the number and stop scanning
             if (
-                IsEnd(+1)
+                found_e
+                || IsEnd(+1)
                 || (!CharIsDigit(GetChar(+1)) && !CharIsSign(GetChar(+1)))
             ) {
-                NextChar();
-                err = true;
+                // err = true;
                 break;
             }
             found_e = true;
@@ -314,7 +314,8 @@ inline bool Lexer::ScanNumber()
             // conditions for when a sign is valid:
             //   - it is at the beginning of the token and followed by digits
             //   - it comes immediately after the e and is followed by digits
-            // --> produce error when neither is fullfilled
+            // --> when neither is fullfilled, treat it as the end of the
+            //     number, stop scanning
             if (
                 !(
                     GetPosition() == start
@@ -325,7 +326,7 @@ inline bool Lexer::ScanNumber()
                     && !IsEnd(+1) && CharIsDigit(GetChar(+1))
                 )
             ) {
-                err = true;
+                // err = true;
                 break;
             }
         } else {
@@ -336,6 +337,8 @@ inline bool Lexer::ScanNumber()
 
     // create result
     if (err) {
+        // in the current configuration, there are no errors, so this
+        // will never be executed
         PushToken(kError, GetPosition(), "Malformed number.");
         return false;
     } else {
