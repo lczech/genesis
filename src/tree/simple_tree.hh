@@ -18,14 +18,14 @@ namespace genesis {
 
 class SimpleTree : public Tree
 {
-    public:
-        SimpleTree() {};
-        ~SimpleTree() {};
+public:
+    SimpleTree() {};
+    ~SimpleTree() {};
 
-        void AddChild (Node child, double branch_length);
+    void AddChild (Node child, double branch_length);
 
-    protected:
-        std::vector<SimpleNode> nodes_;
+protected:
+    std::vector<SimpleNode> nodes_;
 };
 
 } // namespace genesis

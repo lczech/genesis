@@ -219,101 +219,101 @@ typedef struct {
  */
 class Log
 {
-    public:
-        /**
-         * @brief Levels of severity used for logging.
-         *
-         * The levels are in ascending order and are used both to signal what
-         * kind of message is being logged and to provide a threshold for less
-         * important messages that can be filtered out, for example debug
-         * messages in the production build of the program. Because some of the
-         * filtering is already done at compile time, log messages with a level
-         * higher than #LOG_LEVEL_MAX do not produce any overhead. See also Log
-         * for more on this.
-         */
-        enum LogLevel {
-            /** Special messages that are always logged, e.g. program header. */
-            kNone = 0,
+public:
+    /**
+     * @brief Levels of severity used for logging.
+     *
+     * The levels are in ascending order and are used both to signal what
+     * kind of message is being logged and to provide a threshold for less
+     * important messages that can be filtered out, for example debug
+     * messages in the production build of the program. Because some of the
+     * filtering is already done at compile time, log messages with a level
+     * higher than #LOG_LEVEL_MAX do not produce any overhead. See also Log
+     * for more on this.
+     */
+    enum LogLevel {
+        /** Special messages that are always logged, e.g. program header. */
+        kNone = 0,
 
-            /** Errors, usually non-recoverable. */
-            kError,
+        /** Errors, usually non-recoverable. */
+        kError,
 
-            /** Warnings if somthing went wront, but program can continue. */
-            kWarning,
+        /** Warnings if somthing went wront, but program can continue. */
+        kWarning,
 
-            /** Infos, for example when a file was written. */
-            kInfo,
+        /** Infos, for example when a file was written. */
+        kInfo,
 
-            /** Basic debugging message. */
-            kDebug,
+        /** Basic debugging message. */
+        kDebug,
 
-            /** Debugging message with indent level 1 (e.g. for loops). */
-            kDebug1,
+        /** Debugging message with indent level 1 (e.g. for loops). */
+        kDebug1,
 
-            /** Debugging message with indent level 2. */
-            kDebug2,
+        /** Debugging message with indent level 2. */
+        kDebug2,
 
-            /** Debugging message with indent level 3. */
-            kDebug3,
+        /** Debugging message with indent level 3. */
+        kDebug3,
 
-            /** Debugging message with indent level 4. */
-            kDebug4
-        };
+        /** Debugging message with indent level 4. */
+        kDebug4
+    };
 
-        Log();
-        ~Log();
+    Log();
+    ~Log();
 
-        // getter for the singleton instance of log, is called by the macros
-        std::ostringstream& Get (
-            const std::string file, const int line,
-            const LogLevel level
-        );
-        std::ostringstream& Get (
-            const std::string file, const int line,
-            const LogLevel level, const LogDetails dets
-        );
+    // getter for the singleton instance of log, is called by the macros
+    std::ostringstream& Get (
+        const std::string file, const int line,
+        const LogLevel level
+    );
+    std::ostringstream& Get (
+        const std::string file, const int line,
+        const LogLevel level, const LogDetails dets
+    );
 
-        // methods to handle the output streams to write the log messages to
-        static void AddOutputStream (std::ostream& os);
-        static void AddOutputFile   (const std::string fn);
+    // methods to handle the output streams to write the log messages to
+    static void AddOutputStream (std::ostream& os);
+    static void AddOutputFile   (const std::string fn);
 
-        /**
-         * Settings for which information is included with each log message.
-         * See LogDetails for usage.
-         */
-        static LogDetails details;
+    /**
+     * Settings for which information is included with each log message.
+     * See LogDetails for usage.
+     */
+    static LogDetails details;
 
-        /** Get the highest log level that is reported. */
-        static LogLevel  max_level () {return max_level_;};
-        static void      max_level (const LogLevel level);
+    /** Get the highest log level that is reported. */
+    static LogLevel  max_level () {return max_level_;};
+    static void      max_level (const LogLevel level);
 
-        // return a string representation for a log level
-        static std::string LevelToString (const LogLevel level);
+    // return a string representation for a log level
+    static std::string LevelToString (const LogLevel level);
 
-    protected:
-        // storage for information needed during one invocation of a log
-        std::ostringstream buff_;
-        std::string        file_;
-        int                line_;
-        LogLevel           level_;
-        LogDetails         details_;
+protected:
+    // storage for information needed during one invocation of a log
+    std::ostringstream buff_;
+    std::string        file_;
+    int                line_;
+    LogLevel           level_;
+    LogDetails         details_;
 
-        // dynamic log level limit
-        static LogLevel max_level_;
+    // dynamic log level limit
+    static LogLevel max_level_;
 
-        // how many log calls were made so far
-        static long    count_;
-        static clock_t last_clock_;
+    // how many log calls were made so far
+    static long    count_;
+    static clock_t last_clock_;
 
-        // array of streams that are used for output
-        static std::vector<std::ostream*> ostreams_;
+    // array of streams that are used for output
+    static std::vector<std::ostream*> ostreams_;
 
-    private:
-        // Log is kind of singleton, its instances are only provided via the
-        // Get functions. do not allow other instances by blocking the copy
-        // constructors and copy assignment
-        Log (const Log&);
-        Log& operator = (const Log&);
+private:
+    // Log is kind of singleton, its instances are only provided via the
+    // Get functions. do not allow other instances by blocking the copy
+    // constructors and copy assignment
+    Log (const Log&);
+    Log& operator = (const Log&);
 };
 
 } // namespace utils
