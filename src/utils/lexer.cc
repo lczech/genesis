@@ -1,4 +1,5 @@
  #include <string>
+ #include <cstring>
  #include <vector>
  #include <stack>
 
@@ -18,7 +19,7 @@ namespace utils {
  *
  * In case an error is encountered while analyzing the string, this functions
  * returns false and the last token will be of type
- * LexerToken::TokenType::kError, with the value being an error message
+ * LexerToken::LexerTokenType::kError, with the value being an error message
  * describing the type of error.
  *
  * Common usage:
@@ -32,24 +33,55 @@ namespace utils {
  *             << " with message " << b.value() << std::endl;
  *     }
  * %
+ *
+ *
+ *
+ * In case that the beginning of a non-comment token cannot be determined from
+ * its first character, this method will not work and thus has to be overridden.
+ * In the new Analyze function, first call Init to reset all internal variables.
  */
 bool Lexer::Analyze(const std::string& text)
 {
-    text_ = text.c_str();
-    itr_  = 0;
-    len_  = text.size();
-    line_ = 1;
-    tokens_.clear();
+    Init(text);
 
     while (!IsEnd()) {
         // scan arbitrary amount of interleaved whitespace and comments
-        while (ScanWhitespace() || ScanComment());
+        while (ScanWhitespace() || ScanComment()) continue;
 
-        ScanToken();
+        LexerTokenType t = GetCharType();
+        if (t == kError) {
+            PushToken(kError, GetPosition(), "Invalid character.");
+            return false;
+        }
+
+        switch (t) {
+            case kSymbol:
+                ScanSymbol();
+                break;
+            case kNumber:
+                ScanNumber();
+                break;
+            case kString:
+                ScanString();
+                break;
+            case kBracket:
+                ScanBracket();
+                break;
+            case kOperator:
+                ScanOperator();
+                break;
+            case kTag:
+                ScanTag();
+                break;
+
+            case kUnknown:
+            default:
+                ScanUnknown();
+        }
 
         if (tokens_.empty()) {
             return true;
-        } else if (tokens_.back().IsError()) {
+        } else if (tokens_.back().type() == kError) {
             return false;
         }
     }
@@ -57,34 +89,71 @@ bool Lexer::Analyze(const std::string& text)
     return true;
 }
 
+//~ void Lexer::StripComments ()
+//~ {
+//~
+//~ }
+
 /**
- * @brief General function to delegate the scanning of tokens to their
- * special implementations.
+ *
+ *
  */
-inline bool Lexer::ScanToken()
+bool Lexer::ScanFromTo (const char* from, const char* to)
 {
-    if (IsEnd()) {
-        return false;
-    } else if (IsLetter(text_[itr_])) {
-        ScanSymbol();
-    } else if (IsDigit(text_[itr_]) || text_[itr_] == '.') {
-        ScanNumber();
-    } else if (IsQuotemark(text_[itr_])) {
-        ScanString();
-    } else if (IsOperator(text_[itr_])) {
-        ScanOperator();
-    } else if (IsBracket(text_[itr_])) {
-        ScanBracket();
-    } else {
-        // TODO this will make an extra token for each consecutive unknown
-        // element. maybe those should better go into one unknown token.
-        PushToken(LexerToken::kUnknown, itr_, itr_+1);
-        ++itr_;
+    // first check if the current position actually contains the "from" string
+    if (IsEnd() || strncmp(from, text_+itr_, strlen(from)) != 0) {
         return false;
     }
 
+    // if so, move as many chars forward. we have to split this from the
+    // checking, because we do not want to change itr_ in case it is not a
+    // match. also, calling NextChar here ensures integrity of the line
+    // counting.
+    for (size_t i = 0; i < strlen(from); ++i) {
+        NextChar();
+    }
+
+    // now try to find the "to" string
+    while (!IsEnd() && strncmp(to, text_+itr_, strlen(to)) != 0) {
+        NextChar();
+    }
+
+    // if the "to" string was not found before he end of the text, we are done
+    if (IsEnd()) {
+        return false;
+    }
+
+    // "to" string was found. move as many chars forward.
+    for (size_t i = 0; i < strlen(to); ++i) {
+        NextChar();
+    }
     return true;
 }
+
+/**
+ *
+ *
+ */
+inline bool Lexer::ScanUnknown()
+{
+    size_t start = GetPosition();
+    while (!IsEnd() && GetCharType() == kUnknown) {
+        NextChar();
+    }
+    PushToken(kUnknown, start, GetPosition());
+    return true;
+}
+
+/*
+// version that only scans one char at a time. useful for allowing e.g.
+// complex comment markers, that would otherwise be turned into unknown tokens.
+inline bool Lexer::ScanUnknown()
+{
+    PushToken(LexerToken::kUnknown, GetPosition(), GetPosition() + 1);
+    NextChar();
+    return true;
+}
+*/
 
 /**
  * @brief Scan for whitespace.
@@ -94,17 +163,14 @@ inline bool Lexer::ScanToken()
 inline bool Lexer::ScanWhitespace()
 {
     bool   found = false;
-    size_t start = itr_;
+    size_t start = GetPosition();
 
-    while (!IsEnd() && IsWhitespace(text_[itr_])) {
-        if (text_[itr_] == '\n') {
-            ++line_;
-        }
-        ++itr_;
+    while (!IsEnd() && GetCharType() == kWhite) {
+        NextChar();
         found = true;
     }
     if (include_whitespace && found) {
-        PushToken(LexerToken::kWhite, start, itr_);
+        PushToken(kWhite, start, itr_);
     }
     return found;
 }
@@ -112,80 +178,42 @@ inline bool Lexer::ScanWhitespace()
 /**
  * @brief Scans for comments in different formats.
  *
- * Supported formats are:
+ * In the base class, this functions simply returns false. In order to scan for
+ * actual comments, it has to be overridden. A typical implementation might
+ * look like this:
  *
- * 1.     #  ... \\n
- * 2.     // ... \\n
- * 3.     / * ... * /
+ *     size_t start = GetPosition();
+ *     bool   found = ScanFromTo("[", "]") || ScanFromTo("#", "\n");
+ *     if (found && include_comments) {
+ *         PushToken(kComment, start, GetPosition());
+ *     }
+ *     return found;
  *
- * Returns true iff comment was found.
+ * This scans for comments in square brackets or those starting with a hash tag.
  */
 inline bool Lexer::ScanComment()
 {
-    // check if still within text boundaries.
-    // slightly wrong: if # is the last char in text_, it will not be found.
-    if (IsEnd() || IsEnd(itr_+1)) {
-        return false;
-    }
-
-    // check if comment begins.
-    // mode states which type of comment it is, particularly what the
-    // end of the comment looks like (1: \n, 2: */)
-    int mode = 0;
-    if (text_[itr_] == '#') {
-        mode = 1;
-        ++itr_;
-    } else if (text_[itr_] == '/' && text_[itr_+1] == '/') {
-        mode = 1;
-        itr_ += 2;
-    } else if (text_[itr_] == '/' && text_[itr_+1] == '*') {
-        mode = 2;
-        itr_ += 2;
-    }
-    if (mode == 0) {
-        return false;
-    }
-
-    // if comment found, find its end.
-    size_t start = itr_;
-    while (
-        (!IsEnd()       && mode == 1 && text_[itr_] != '\n') ||
-        (!IsEnd(itr_+1) && mode == 2 && text_[itr_] != '*'
-        && text_[itr_+1] != '/')
-    ) {
-        if (text_[itr_] == '\n') {
-            ++line_;
-        }
-        ++itr_;
-    }
-
-    // TODO trim comments
-    // here we are at either end of file or end of comment.
-    // we treat both as valid.
-    if (include_comments) {
-        PushToken(LexerToken::kComment, start, itr_);
-    }
-
-    // set iterator to next char (mode also serves as lookup for how many
-    // chars we have to skip according to the type of the comment)
-    itr_ += mode;
-    return true;
+    return false;
 }
 
 /**
  * @brief Scan a symbol.
  *
- * A symbol starts with a letter or underscore and goes on as long as only
- * letters, underscores and digits are encountered.
+ * In the base class, the functions scans as long as the LexerToken type of the
+ * current char is kSymbol. If it is necessary to continue scanning for other
+ * types of chars once a symbol has started, this function has to be overridden.
+ * This is particularly the case for digits: typically, symbols cannot start
+ * with a digit, but once a symbol has started, digits can occur.
+ *
  * Returns true, as symbols cannot be malformatted.
  */
 inline bool Lexer::ScanSymbol()
 {
-    size_t start = itr_;
-    while (!IsEnd() && IsAlphanum(text_[itr_])) {
-        ++itr_;
+    size_t start = GetPosition();
+    while (!IsEnd() && GetCharType() == kSymbol) {
+        NextChar();
     }
-    PushToken(LexerToken::kSymbol, start, itr_);
+    PushToken(kSymbol, start, GetPosition());
     return true;
 }
 
@@ -200,41 +228,53 @@ inline bool Lexer::ScanSymbol()
  */
 inline bool Lexer::ScanNumber()
 {
-    size_t start   = itr_;
+    size_t start   = GetPosition();
     bool   found_d = false; // found a dot
     bool   found_e = false; // found the letter e
     bool   err     = false; // encountered an error while scanning
 
     // scan
     while(!IsEnd()) {
-        if(IsDigit(text_[itr_])) {
+        if(CharIsDigit(GetChar())) {
             // nothing to do
-        } else if (text_[itr_] == '.') {
-            // do not allow more than one dot
-            if (found_d) {
-                err = true;
-                break;
-            }
-            found_d = true;
-        } else if (CharMatch(text_[itr_], 'e')) {
-            // do not allow more than one e, require a number after the e
-            if (found_e
-                || IsEnd(itr_+1)
-                || (!IsDigit(text_[itr_+1]) && !IsSign(text_[itr_+1]))
+        } else if (GetChar() == '.') {
+            // do not allow more than one dot, require a number after the dot
+            if (
+                found_d
+                || IsEnd(+1) || !CharIsDigit(GetChar(+1))
             ) {
                 err = true;
                 break;
             }
+            found_d = true;
+        } else if (CharMatch(GetChar(), 'e')) {
+            // do not allow more than one e (treat it as the end of the number)
+            if (found_e) {
+                break;
+            }
+            // require a number or sign after the first e
+            if (
+                IsEnd(+1)
+                || (!CharIsDigit(GetChar(+1)) && !CharIsSign(GetChar(+1)))
+            ) {
+                NextChar();
+                err = true;
+                break;
+            }
             found_e = true;
-        } else if (IsSign(text_[itr_])) {
-            // conditions for which a sign is valid:
-            //   - it is at the beginning of the token
-            //   - it comes immediately after the e and is follow by digits
+        } else if (CharIsSign(GetChar())) {
+            // conditions for when a sign is valid:
+            //   - it is at the beginning of the token and followed by digits
+            //   - it comes immediately after the e and is followed by digits
             // --> produce error when neither is fullfilled
-            if (!(itr_ == start) &&
+            if (
                 !(
-                    found_e && CharMatch(text_[itr_-1], 'e')
-                    && !IsEnd(itr_+1) && IsDigit(text_[itr_+1])
+                    GetPosition() == start
+                    && !IsEnd(+1) && CharIsDigit(GetChar(+1))
+                ) &&
+                !(
+                    found_e && CharMatch(GetChar(-1), 'e')
+                    && !IsEnd(+1) && CharIsDigit(GetChar(+1))
                 )
             ) {
                 err = true;
@@ -243,15 +283,15 @@ inline bool Lexer::ScanNumber()
         } else {
             break;
         }
-        ++itr_;
+        NextChar();
     }
 
     // create result
     if (err) {
-        PushToken(LexerToken::kError, start, "Malformed number.");
+        PushToken(kError, GetPosition(), "Malformed number.");
         return false;
     } else {
-        PushToken(LexerToken::kNumber, start, itr_);
+        PushToken(kNumber, start, GetPosition());
         return true;
     }
 }
@@ -270,49 +310,70 @@ inline bool Lexer::ScanString()
 {
     // skip the first quotation mark, save its value for later comparision
     // so that the string ends with the same type of mark
-    char qmark = text_[itr_];
-    ++itr_;
+    char qmark = GetChar();
+    NextChar();
     if (IsEnd()) {
-        PushToken(LexerToken::kError, itr_-1, "Malformed string.");
+        PushToken(kError, GetPosition()-1, "Malformed string.");
         return false;
     }
 
-    size_t start = itr_;
-    bool esc     = false; // are we in escape mode?
+    size_t start = GetPosition();
+    bool jump    = false; // marks when we jumped over an escape or quote mark
     bool found_e = false; // found an escape sequence
+    bool found_q = false; // found an escape sequence
 
     // scan
     while (!IsEnd()) {
-        if (text_[itr_] == '\n') {
-            ++line_;
-        }
-        if (text_[itr_] == '\\') {
-            esc = true;
+        // if we find a backslash and use escape characters, we skip the
+        // backslash and the following char. they will then be de-escaped after
+        // the end of the string is reached.
+        if (GetChar() == '\\' && use_string_escape) {
+            jump    = true;
             found_e = true;
-            if (text_[itr_+1] == '\n') {
-                ++line_;
-            }
-            itr_ += 2;
+            NextChar();
+            NextChar();
             continue;
         }
-        if(text_[itr_] == qmark) {
-            ++itr_;
+        if (
+            GetChar() == qmark && GetChar(+1) == qmark
+            && use_string_doubled_quotes
+        ) {
+            jump    = true;
+            found_q = true;
+            NextChar();
+            NextChar();
+            continue;
+        }
+        // check if we reached the end of the string
+        if (GetChar() == qmark) {
+            NextChar();
             break;
         }
-        esc = false;
-        ++itr_;
+        jump = false;
+        NextChar();
     }
 
-    // reached end of text before ending quotation mark
-    if (esc || (IsEnd() && !(text_[itr_-1] == qmark))) {
-        PushToken(LexerToken::kError, start-1, "Malformed string.");
+    // reached end of text before ending quotation mark.
+    // we need to check jump here, because an escape sequence or doubled
+    // quote mark can look like the string ending, but actually isn't.
+    if (jump || (IsEnd() && !(GetChar(-1) == qmark))) {
+        PushToken(kError, start-1, "Malformed string.");
         return false;
     }
 
     // de-escape the string (transform backslash-escaped chars)
-    std::string res = GetSubstr(start, itr_-1);
-    if (found_e && deescape_strings) {
+    std::string res = GetSubstr(start, GetPosition()-1);
+    if (found_e && use_string_escape) {
         res = StringDeescape(res);
+    }
+
+    // transform doubled qmarks like "" into single ones like "
+    if (found_q && use_string_doubled_quotes) {
+        res = StringReplaceAll(
+            res,
+            std::string(2, qmark),
+            std::string(1, qmark)
+        );
     }
 
     // if needed, add qmarks again
@@ -321,28 +382,41 @@ inline bool Lexer::ScanString()
     }
 
     // create result
-    PushToken(LexerToken::kString, start-1, res);
+    PushToken(kString, start-1, res);
     return true;
 }
 
-// TODO joining of operators like += or >> might be useful in the future.
 /**
  * @brief Scans an operator.
  *
  * If the operator is a sign and the next char in the text is a digit,
- * we jump to scan_number and return its value. Otherwise return true.
+ * and glue_sign_to_number is set, we scan it as a number.
  */
 inline bool Lexer::ScanOperator()
 {
-    // if the operator is a sign followed by a number, scan it as a number
-    if (IsSign(text_[itr_]) && glue_sign_to_number &&
-        !IsEnd(itr_+1) && IsDigit(text_[itr_+1])
-    ) {
-        return ScanNumber();
+    size_t start = GetPosition();
+    bool found_n = false; // we found the beginning of a number: (+-)[0-9]
+
+    while (!IsEnd() && GetCharType() == kOperator) {
+        // if the operator is a sign followed by a number, scan it as a number
+        if (
+            CharIsSign(GetChar()) && glue_sign_to_number &&
+            !IsEnd(+1) && CharIsDigit(GetChar(+1))
+        ) {
+            found_n = true;
+            break;
+        }
+        NextChar();
     }
 
-    PushToken(LexerToken::kOperator, itr_, itr_+1);
-    ++itr_;
+    // if we found operator chars, push them
+    if (start != GetPosition()) {
+        PushToken(kOperator, start, GetPosition());
+    }
+    // if we found the beginning of a number, scan it
+    if (found_n) {
+        return ScanNumber();
+    }
     return true;
 }
 
@@ -353,22 +427,39 @@ inline bool Lexer::ScanOperator()
  */
 inline bool Lexer::ScanBracket()
 {
-    PushToken(LexerToken::kBracket, itr_, itr_+1);
-    ++itr_;
+    PushToken(kBracket, GetPosition(), GetPosition()+1);
+    NextChar();
     return true;
 }
 
 /**
- * @brief Checkes whether the bracket tokes are valid.
+ * @brief Scans a tag.
+ *
+ * Returns true.
+ */
+inline bool Lexer::ScanTag()
+{
+    PushToken(kTag, GetPosition(), GetPosition()+1);
+    NextChar();
+    return true;
+}
+
+/**
+ * @brief Checkes whether the bracket tokes are validly nested.
  *
  * In order to be valid, every opening bracket must be matched with a
  * corresponding closing bracket, and their order has to be correct.
+ *
+ * This function checks the following types of brackets:
+ *
+ *     () [] {} <>
+ * %
  */
 bool Lexer::ValidateBrackets()
 {
     std::stack<char> stk;
     for (LexerToken t : tokens_) {
-        if (!t.IsBracket()) {
+        if (t.type() != kBracket) {
             continue;
         }
 
@@ -376,8 +467,9 @@ bool Lexer::ValidateBrackets()
         if (c == '(') stk.push(')');
         if (c == '[') stk.push(']');
         if (c == '{') stk.push('}');
+        if (c == '<') stk.push('>');
 
-        if (IsRightBracket(c)) {
+        if (c == ')' || c == ']' || c == '}' || c == '>') {
             if (stk.empty() || c != stk.top()) {
                 return false;
             } else {

@@ -13,23 +13,21 @@
 #include <string>
 
 #include "node.hh"
+#include "newick_lexer.hh"
 
 namespace genesis {
 
 class Tree
 {
-    public:
-        Tree() {};
-        ~Tree() {};
+public:
+    Tree() {};
+    ~Tree() {};
 
-        void ReadNewickFile  (std::string fn);
-        void WriteNewickFile (std::string fn);
+    void ReadNewickFile  (std::string fn);
+    void WriteNewickFile (std::string fn);
 
-        void ParseNewickString (std::string tree);
-        std::string WriteNewickString ();
-
-    protected:
-        void AddNode (Node* node, Node* parent);
+    void ParseNewickString (std::string tree);
+    std::string WriteNewickString ();
 };
 
 } // namespace genesis

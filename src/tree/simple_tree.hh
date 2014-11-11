@@ -22,11 +22,7 @@ class SimpleTree : public Tree
         SimpleTree() {};
         ~SimpleTree() {};
 
-        void ReadNewickFile  (std::string fn);
-        void WriteNewickFile (std::string fn);
-
-        void ParseNewickString (std::string tree);
-        std::string WriteNewickString ();
+        void AddChild (Node child, double branch_length);
 
     protected:
         std::vector<SimpleNode> nodes_;
