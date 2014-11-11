@@ -8,25 +8,25 @@
  * @ingroup utils
  */
 
- #include <string>
- #include <vector>
+#include <string>
+#include <vector>
 
 namespace genesis {
 namespace utils {
 
-/** @brief Returns whether a char is a digit. */
-inline bool CharIsDigit(const char c)
+/** @brief Returns whether a char is a digit (0-9). */
+inline bool CharIsDigit (const char c)
 {
-return ('0' <= c) && (c <= '9');
+    return ('0' <= c) && (c <= '9');
 }
 
-/** @brief Returns whether a char is a sign (+-) */
-inline bool CharIsSign(const char c)
+/** @brief Returns whether a char is a sign (+-). */
+inline bool CharIsSign (const char c)
 {
-return ('+' == c) || ('-' == c);
+    return ('+' == c) || ('-' == c);
 }
 
-/** @brief Enum for the different types of lexer tokens. */
+/** @brief Enum for the different types of LexerToken. */
 enum LexerTokenType {
     kError,
     kUnknown,
@@ -42,25 +42,7 @@ enum LexerTokenType {
 };
 
 /** @brief Converts a LexerTokenType into its string representation. */
-inline std::string LexerTokenTypeToStr(const LexerTokenType t)
-{
-    switch(t) {
-        case kError    : return "Error";
-        case kUnknown  : return "Unknown";
-
-        case kWhite    : return "Whitespace";
-        case kComment  : return "Comment";
-        case kSymbol   : return "Symbol";
-        case kNumber   : return "Number";
-        case kString   : return "String";
-        case kBracket  : return "Bracket";
-        case kOperator : return "Operator";
-        case kTag      : return "Tag";
-
-        case kEOF      : return "EOF";
-        default        : return "Unknown";
-    }
-}
+std::string LexerTokenTypeToStr (const LexerTokenType t);
 
 /**
  * @brief Represents a token that is outputted by the Lexer.
@@ -75,22 +57,33 @@ inline std::string LexerTokenTypeToStr(const LexerTokenType t)
  *        [+-]123[.456][eE[+-]789].
  *
  * 3. **String**: A literal string, usually enclosed in either 'abc' or "def".
+ *
  *    It can contain escape charaters using a backslash, where \\n, \\t and \\r
  *    are translated into their whitespace representation using
  *    StringDeescape() when the option Lexer::use_string_escape is set.
  *
- * 4. **Bracket**: Typically of these brackets
+ *    Also, see Lexer::trim_quotation_marks and Lexer::use_string_doubled_quotes
+ *
+ * 4. **Bracket**: Typically one of these brackets
  *
  *        ( ) [ ] { } < >
  *
- * 5. **Operator**: An operator, typically out of the set
+ *    This is always a single bracket per token.
+ *
+ * 5. **Operator**: An operator or sequence of them, typically out of the set
  *
  *        + - * / < > ? ! ^ = % & | , : ;
  *
- * 6. **Tag**: A character denoting a tag, e.g. `<>` for xml.
+ * 6. **Tag**: A character denoting a tag, e.g. `<>` for xml. Always a single
+ *    tag character per token.
  *
  * Furthermore, there are token types marking whitespaces and comments, which
  * are included when the corresponding options are set in the Lexer class.
+ *
+ * The distinction between brackets, operators and tags is arbitrary (although
+ * operators can appear in sequences like `+=`, while brackets and tags are
+ * always contained in a separate token per character). The distinction is meant
+ * to help writing better parsers with higher semantic readability.
  *
  * In case of an error while processing the input, an error token is produced
  * which contains the location of the error.
@@ -124,6 +117,17 @@ public:
     inline std::string value() const {return value_;};
 
     /**
+     * @brief Returns whether this token is a given type of bracket.
+     *
+     * Usage: `token.IsBracket(')')` will return true if this token is
+     * of LexerTokenType kBracket and if it is the closing parenthesis.
+     */
+    inline bool IsBracket(const char c) const
+    {
+        return type_ == kBracket && value_[0] == c;
+    }
+
+    /**
      * @brief Returns whether this token is a given type of operator.
      *
      * Usage: `token.IsOperator('%')` will return true if this token is
@@ -134,14 +138,15 @@ public:
         return type_ == kOperator && value_[0] == c;
     }
 
-    /** @brief Returns whether this token is a given type of bracket.
+    /**
+     * @brief Returns whether this token is a given type of tag.
      *
-     * Usage: `token.IsBracket(')')` will return true if this token is
-     * of LexerTokenType kBracket and if it is the closing parenthesis.
+     * Usage: `token.IsTag('<')` will return true if this token is
+     * of LexerTokenType kTag and if it is the opening xml tag.
      */
-    inline bool IsBracket(const char c) const
+    inline bool IsTag(const char c) const
     {
-        return type_ == kBracket && value_[0] == c;
+        return type_ == kTag && value_[0] == c;
     }
 
     /**
@@ -161,12 +166,9 @@ private:
 };
 
 /**
- * @brief %Lexer class that provides an easy way of tokenizing a string.
+ * @brief Basic lexer class that provides an easy way of tokenizing a string.
  *
- * The usage of this class is as follows:
- *
- *     Lexer l;
- *     l.Analyze("1+2=3");
+ * For typical usage of this class, see Analyze function.
  *
  * The tokens produced with the Analyze() method are of type LexerToken (see
  * there for a list of the types of tokens) and can be accessed in various ways:
@@ -175,13 +177,11 @@ private:
  *   * Using range based loops, see begin()
  *   * Using index based array access, see operator[]()
  *
- * The options Lexer::include_whitespace and Lexer::include_comments are
- * disabled by default, which helps separating the important content from whites
- * and comments. If needed, they can be enabled to include those tokens, too.
- *
- * The options Lexer::glue_sign_to_number, Lexer::trim_quotation_marks and
- * Lexer::use_string_escape are enabled per default, because this is mostly
- * useful for analyzing genetic data.
+ * This class is intended to be a base class that concrete lexers can inherit
+ * from in order to get the basic functioning. An instance of this base class is
+ * possible, but will only be able to find numbers as well as symbols consisting
+ * of consecutive letters. In order to make use of other semantics like
+ * comments, strings, operators etc, it has to be derived.
  */
 class Lexer
 {
@@ -239,7 +239,7 @@ public:
      *        std::cout << t.value() << std::endl;
      *     }
      *
-     * Caveat: this operator does no boundary check. If you need this check.
+     * Caveat: this operator does no boundary check. If you need this check,
      * use at() instead.
      */
     inline LexerToken operator[](const std::size_t index) const
@@ -308,6 +308,7 @@ public:
         std::vector<LexerToken>().swap(tokens_);
     }
 
+    /** @brief Returns whether there appeared an error while lexing. */
     inline bool HasError() const
     {
         return !tokens_.empty() && tokens_.back().type() == kError;
@@ -353,7 +354,7 @@ public:
      * @brief Determines whether the quotation marks shall be included
      * when a literal string is found.
      *
-     * Strings can be enclosed in 'abc' or "def", see ScanString for more
+     * Strings are usually enclosed in 'abc' or "def", see ScanString for more
      * details on that. The value of trim_quotation_marks determines
      * whether those marks are included in the final token or not.
      * Default is to not include them, which makes preprocessing of the
@@ -362,10 +363,17 @@ public:
     bool trim_quotation_marks = true;
 
     /**
-     * @brief Determines whether to call StringDeescape for literal strings.
+     * @brief Determines whether to use escape sequences for literal strings.
+     *
+     * If set to true, and escape sequence starting with a backslash will be
+     * treated specially within a literal string: The character after the
+     * backslash will be de-escaped using StringDeescape, meaning that for
+     * example an escaped quotation mark will not end the string but be included
+     * literally in the result. Also, sequences like \\n will turn into a new
+     * line and so on.
      *
      * This only affects literal strings, typically enclosed in 'abc' or
-     * "def".
+     * "def". See ScanString for more.
      */
     bool use_string_escape = false;
 
@@ -373,7 +381,7 @@ public:
      * @brief If set, doubled quotation marks in a string are considered
      * as normal quotation marks without ending the string.
      *
-     * For example, the character sequecen (including all quotation marks)
+     * For example, the character sequence (including all quotation marks)
      *
      *     "For learning C++, ""Hello World"" is a good start."
      *
@@ -381,13 +389,11 @@ public:
      * around `"Hello World"`.
      *
      * The type of quotation marks used here depends on which chars are set
-     * to LexerTokenType kString using SetCharType.
+     * to LexerTokenType kString using SetCharType. See ScanString for more.
      */
     bool use_string_doubled_quotes = false;
 
 protected:
-    // TODO find out about virtual inline functions
-
     bool ScanFromTo (const char* from, const char* to);
     virtual bool ScanUnknown();
     virtual bool ScanWhitespace();
@@ -399,6 +405,7 @@ protected:
     virtual bool ScanBracket();
     virtual bool ScanTag();
 
+    /** @brief Init the lexer by resetting state and assigning the text. */
     inline void Init (const std::string& text)
     {
         text_ = text.c_str();
@@ -408,7 +415,7 @@ protected:
         tokens_.clear();
     }
 
-    /** @brief Returns the current iterator position. */
+    /** @brief Returns the current iterator position while lexing. */
     inline size_t GetPosition() const
     {
         return itr_;
@@ -443,6 +450,17 @@ protected:
         return text_[itr_];
     }
 
+    /**
+     * @brief Returns the LexerTokenType of a char.
+     *
+     * This does not mean that any char of a given type can only appear in
+     * tokens of that type. For example, typically a symbol can start with
+     * letters, but then contain numbers later, too. Thus, although a digit
+     * is of type kNumber, it can end up in a symbol token, depending on the
+     * context.
+     *
+     * For more information on how this char type is used, see Analyze.
+     */
     inline LexerTokenType GetCharType(const char c) const
     {
         // we use char [-128,127] here.
@@ -465,6 +483,13 @@ protected:
         return GetCharType(GetChar());
     }
 
+    /** @brief Sets the token type for a set of characters.
+     *
+     * This function takes a token type and a list of characters in form of a
+     * string and sets the char type for each of them to the given type.
+     * This type will be used by the standard implementation of Analyze to
+     * determine the correct scanner for a token (see Analyze for more on that).
+     */
     inline void SetCharType (const LexerTokenType type, std::string chars)
     {
         for (char c : chars) {
@@ -558,6 +583,12 @@ protected:
     }
 
 private:
+    /**
+     * @brief This array contains the token types for all chars, in order to
+     * determine the correct scanner for the char.
+     *
+     * See Analyze for more on this.
+     */
     LexerTokenType start_char_table_[128] = {
         /*      */  kError,     kError,     kError,     kError,
         /*      */  kError,     kError,     kError,     kError,

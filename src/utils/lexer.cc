@@ -1,11 +1,18 @@
- #include <string>
- #include <cstring>
- #include <vector>
- #include <stack>
+/**
+ * @brief Implementation of Lexer functions.
+ *
+ * @file
+ * @ingroup utils
+ */
 
- #include "lexer.hh"
- #include "log.hh"
- #include "utils.hh"
+#include <string>
+#include <cstring>
+#include <vector>
+#include <stack>
+
+#include "lexer.hh"
+#include "log.hh"
+#include "utils.hh"
 
 namespace genesis {
 namespace utils {
@@ -17,10 +24,10 @@ namespace utils {
  * with the results of analyzing the given string. For the types of tokens being
  * extracted, see LexerToken; for accessing the results, see Lexer.
  *
- * In case an error is encountered while analyzing the string, this functions
- * returns false and the last token will be of type
- * LexerToken::LexerTokenType::kError, with the value being an error message
- * describing the type of error.
+ * Returns true if successful. In case an error is encountered while analyzing
+ * the text, this functions returns false and the last token will be of type
+ * LexerTokenType::kError, with the value being an error message describing the
+ * type of error.
  *
  * Common usage:
  *
@@ -32,13 +39,40 @@ namespace utils {
  *             << " at " << b.line() << ":" << b.column()
  *             << " with message " << b.value() << std::endl;
  *     }
- * %
  *
+ * As stated in the description of this Lexer class, the class is meant to be
+ * derived for concrete types of lexers. Thus, here are some comments about the
+ * working of this function:
  *
+ * For most types of text files, the first character of each token determines
+ * the type of the token (for example, a digit almost always leads to a number
+ * token). This is why we use a list telling us which char leads to which token
+ * type. This list is a speedup, because using it, we do not need to try every
+ * scanner (for numbers, symbols, strings, etc) at the beginning of each new
+ * token, but simply do a lookup to find out "this char means we have to use
+ * this scanner now". (Also see GetCharType and SetCharType for this.)
  *
- * In case that the beginning of a non-comment token cannot be determined from
- * its first character, this method will not work and thus has to be overridden.
- * In the new Analyze function, first call Init to reset all internal variables.
+ * This does not mean that any char of a given type can only appear in
+ * tokens of that type. For example, typically a symbol can start with
+ * letters, but then contain numbers later, too. Thus, although a digit
+ * is of type kNumber, it can end up in a symbol token, depending on the
+ * context.
+ *
+ * Instead, the char type here is meant as a speedup for finding the right
+ * scanner when lexing the text: whenever one scanner finishes, the next
+ * char is inspected and depending on its type, a fitting scanner is
+ * activated (for digits the number scanner and so on).
+ *
+ * This technique will not work if finding the correct scanner depends on
+ * more than the first character of the token. For example, comments usually
+ * start with a more complex sequence ("//" or even "<!--"), which is why
+ * they are specially treaded in the Analyze function.
+ *
+ * So, in situations, where the type of the next token cannot be determined from
+ * its first character (except comments), Analyze has to be overridden in the
+ * derived class in order to do some other checking methods to determine the
+ * correct scanner. In the new Analyze function, first call Init to reset all
+ * internal variables. Also see ScanUnknown for some important information.
  */
 bool Lexer::Analyze(const std::string& text)
 {
@@ -95,8 +129,12 @@ bool Lexer::Analyze(const std::string& text)
 //~ }
 
 /**
+ * @brief Scans a range between two strings.
  *
- *
+ * If the current position in the text starts with the value of from, this
+ * scanner continues in the text until the value of to is found (or the end of
+ * the text). In case of success (both from and to were found), it returns true,
+ * false otherwise.
  */
 bool Lexer::ScanFromTo (const char* from, const char* to)
 {
@@ -131,8 +169,18 @@ bool Lexer::ScanFromTo (const char* from, const char* to)
 }
 
 /**
+ * @brief Scans the text as long as the current char is of type kUnknown.
  *
+ * It is possible that this function has to be overridden in case that Analyze
+ * is overridden as well. This is because of the following:
  *
+ * Overriding Analyze means that the approach of determining the correct scanner
+ * for a token from its first character does not work. Thus, all characters that
+ * do not indicate a scanner will usually be set to unknown in order to treat
+ * them specially in Analyze. This means that scanning unknown chars should stop
+ * after each char, return to Analyze, and check again if now it is time to
+ * activate a special scanner. Thus, in this case, ScanUnknown should only scan
+ * one character at a time.
  */
 inline bool Lexer::ScanUnknown()
 {
@@ -299,10 +347,11 @@ inline bool Lexer::ScanNumber()
 /**
  * @brief Scan a string.
  *
- * A string can be enclosed either in 'abc' or in "def". Within a string, any
- * character is allowed; the respective quotation mark can be escaped using a
- * backslash. Other valid escape sequences are \n, \t and \r, which will be
- * resolved to their respective white space character.
+ * A string is usually enclosed either in 'abc' or in "def" (this depends on
+ * which chars have been set to LexerTokenType kString in the derived class).
+ * Within a string, any character is allowed. See use_string_escape and
+ * use_string_doubled_quotes for options modifying the behaviour of this
+ * function.
  *
  * Returns true iff the string is finished with the correct quotation mark.
  */
@@ -387,10 +436,18 @@ inline bool Lexer::ScanString()
 }
 
 /**
- * @brief Scans an operator.
+ * @brief Scans a sequence of operators.
+ *
+ * This scanner continues as long as chars of type kOperator are found. If this
+ * is not helpful for a derived class, it should be overridden.
  *
  * If the operator is a sign and the next char in the text is a digit,
- * and glue_sign_to_number is set, we scan it as a number.
+ * and glue_sign_to_number is set, we scan it as a number. For example, the
+ * sequence
+ *
+ *     a+=-3;
+ *
+ * will result in three tokens: Symbol "a", Operator "+=" and Number "-3".
  */
 inline bool Lexer::ScanOperator()
 {
@@ -421,7 +478,7 @@ inline bool Lexer::ScanOperator()
 }
 
 /**
- * @brief Scans a bracket.
+ * @brief Scans a single bracket.
  *
  * Returns true.
  */
@@ -433,7 +490,7 @@ inline bool Lexer::ScanBracket()
 }
 
 /**
- * @brief Scans a tag.
+ * @brief Scans a single tag char.
  *
  * Returns true.
  */
@@ -453,7 +510,9 @@ inline bool Lexer::ScanTag()
  * This function checks the following types of brackets:
  *
  *     () [] {} <>
- * %
+ *
+ * It is not particularly useful for xml, as there it is also important to use
+ * closing tags like `<xml> ... </xml>`.
  */
 bool Lexer::ValidateBrackets()
 {
@@ -498,6 +557,26 @@ std::string Lexer::Dump()
         res += out + t.value() + '\n';
     }
     return res;
+}
+
+std::string LexerTokenTypeToStr (const LexerTokenType t)
+{
+    switch (t) {
+        case kError    : return "Error";
+        case kUnknown  : return "Unknown";
+
+        case kWhite    : return "Whitespace";
+        case kComment  : return "Comment";
+        case kSymbol   : return "Symbol";
+        case kNumber   : return "Number";
+        case kString   : return "String";
+        case kBracket  : return "Bracket";
+        case kOperator : return "Operator";
+        case kTag      : return "Tag";
+
+        case kEOF      : return "EOF";
+        default        : return "Unknown";
+    }
 }
 
 } // namespace utils

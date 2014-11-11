@@ -1,3 +1,10 @@
+/**
+ * @brief Implementation of basic tree functions.
+ *
+ * @file
+ * @ingroup tree
+ */
+
 #include "tree.hh"
 #include "../utils/log.hh"
 #include "../utils/utils.hh"

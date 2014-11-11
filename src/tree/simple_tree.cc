@@ -1,4 +1,11 @@
-#include "simple_tree.hh"
+/**
+ * @brief Implementation of SimpleTree functions.
+ *
+ * @file
+ * @ingroup tree
+ */
+
+ #include "simple_tree.hh"
 #include "../utils/log.hh"
 #include "../utils/lexer.hh"
 

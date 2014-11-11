@@ -36,11 +36,6 @@ public:
         use_string_doubled_quotes = true;
     }
 
-    //~ bool Analyze(const std::string& text)
-    //~ {
-        //~ return Lexer::Analyze(text);
-    //~ }
-
 protected:
     inline bool ScanComment()
     {
@@ -52,8 +47,6 @@ protected:
         return found;
     }
 };
-
-
 
 } // namespace utils
 } // namespace genesis
