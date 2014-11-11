@@ -42,21 +42,11 @@ namespace utils {
  */
 bool Lexer::Analyze(const std::string& text)
 {
-    //~ if (strip_comments) {
-        //~ bool inc_com = include_comments;
-        //~ include_comments =  true;
-//~
-        //~ Init(text);
-        //~ while(!IsEnd()) {
-            //~ ScanComment();
-        //~ }
-    //~ }
-
     Init(text);
 
     while (!IsEnd()) {
         // scan arbitrary amount of interleaved whitespace and comments
-        while (ScanWhitespace() || ScanComment());
+        while (ScanWhitespace() || ScanComment()) continue;
 
         LexerTokenType t = GetCharType();
         if (t == kError) {
@@ -99,14 +89,19 @@ bool Lexer::Analyze(const std::string& text)
     return true;
 }
 
+//~ void Lexer::StripComments ()
+//~ {
+//~
+//~ }
+
 /**
  *
  *
  */
-inline bool Lexer::ScanFromTo (const char* from, const char* to)
+bool Lexer::ScanFromTo (const char* from, const char* to)
 {
     // first check if the current position actually contains the "from" string
-    if (IsEnd() || strcmp(from, text_+itr_) != 0) {
+    if (IsEnd() || strncmp(from, text_+itr_, strlen(from)) != 0) {
         return false;
     }
 
@@ -119,7 +114,7 @@ inline bool Lexer::ScanFromTo (const char* from, const char* to)
     }
 
     // now try to find the "to" string
-    while (!IsEnd() && strcmp(to, text_+itr_) != 0) {
+    while (!IsEnd() && strncmp(to, text_+itr_, strlen(to)) != 0) {
         NextChar();
     }
 
@@ -142,7 +137,7 @@ inline bool Lexer::ScanFromTo (const char* from, const char* to)
 inline bool Lexer::ScanUnknown()
 {
     size_t start = GetPosition();
-    while(!IsEnd() && GetCharType() == kUnknown) {
+    while (!IsEnd() && GetCharType() == kUnknown) {
         NextChar();
     }
     PushToken(kUnknown, start, GetPosition());
@@ -190,7 +185,7 @@ inline bool Lexer::ScanWhitespace()
  *     size_t start = GetPosition();
  *     bool   found = ScanFromTo("[", "]") || ScanFromTo("#", "\n");
  *     if (found && include_comments) {
- *         PushToken(LexerToken::kComment, start, GetPosition());
+ *         PushToken(kComment, start, GetPosition());
  *     }
  *     return found;
  *
@@ -243,16 +238,23 @@ inline bool Lexer::ScanNumber()
         if(CharIsDigit(GetChar())) {
             // nothing to do
         } else if (GetChar() == '.') {
-            // do not allow more than one dot
-            if (found_d) {
+            // do not allow more than one dot, require a number after the dot
+            if (
+                found_d
+                || IsEnd(+1) || !CharIsDigit(GetChar(+1))
+            ) {
                 err = true;
                 break;
             }
             found_d = true;
         } else if (CharMatch(GetChar(), 'e')) {
-            // do not allow more than one e, require a number after the e
-            if (found_e
-                || IsEnd(+1)
+            // do not allow more than one e (treat it as the end of the number)
+            if (found_e) {
+                break;
+            }
+            // require a number or sign after the first e
+            if (
+                IsEnd(+1)
                 || (!CharIsDigit(GetChar(+1)) && !CharIsSign(GetChar(+1)))
             ) {
                 NextChar();
@@ -262,10 +264,14 @@ inline bool Lexer::ScanNumber()
             found_e = true;
         } else if (CharIsSign(GetChar())) {
             // conditions for when a sign is valid:
-            //   - it is at the beginning of the token
-            //   - it comes immediately after the e and is follow by digits
+            //   - it is at the beginning of the token and followed by digits
+            //   - it comes immediately after the e and is followed by digits
             // --> produce error when neither is fullfilled
-            if (!(GetPosition() == start) &&
+            if (
+                !(
+                    GetPosition() == start
+                    && !IsEnd(+1) && CharIsDigit(GetChar(+1))
+                ) &&
                 !(
                     found_e && CharMatch(GetChar(-1), 'e')
                     && !IsEnd(+1) && CharIsDigit(GetChar(+1))
@@ -312,6 +318,7 @@ inline bool Lexer::ScanString()
     }
 
     size_t start = GetPosition();
+    bool jump    = false; // marks when we jumped over an escape or quote mark
     bool found_e = false; // found an escape sequence
     bool found_q = false; // found an escape sequence
 
@@ -321,6 +328,7 @@ inline bool Lexer::ScanString()
         // backslash and the following char. they will then be de-escaped after
         // the end of the string is reached.
         if (GetChar() == '\\' && use_string_escape) {
+            jump    = true;
             found_e = true;
             NextChar();
             NextChar();
@@ -330,6 +338,7 @@ inline bool Lexer::ScanString()
             GetChar() == qmark && GetChar(+1) == qmark
             && use_string_doubled_quotes
         ) {
+            jump    = true;
             found_q = true;
             NextChar();
             NextChar();
@@ -340,11 +349,14 @@ inline bool Lexer::ScanString()
             NextChar();
             break;
         }
+        jump = false;
         NextChar();
     }
 
-    // reached end of text before ending quotation mark
-    if (IsEnd() && !(GetChar(-1) == qmark)) {
+    // reached end of text before ending quotation mark.
+    // we need to check jump here, because an escape sequence or doubled
+    // quote mark can look like the string ending, but actually isn't.
+    if (jump || (IsEnd() && !(GetChar(-1) == qmark))) {
         PushToken(kError, start-1, "Malformed string.");
         return false;
     }

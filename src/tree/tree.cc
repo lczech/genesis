@@ -16,8 +16,6 @@ void Tree::ParseNewickString (std::string tree)
     lex.Analyze(tree);
 
     LOG_BOLD << lex.Dump();
-
-
 }
 
 }

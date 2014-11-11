@@ -19,15 +19,15 @@ namespace genesis {
 
 class Tree
 {
-    public:
-        Tree() {};
-        ~Tree() {};
+public:
+    Tree() {};
+    ~Tree() {};
 
-        void ReadNewickFile  (std::string fn);
-        void WriteNewickFile (std::string fn);
+    void ReadNewickFile  (std::string fn);
+    void WriteNewickFile (std::string fn);
 
-        void ParseNewickString (std::string tree);
-        std::string WriteNewickString ();
+    void ParseNewickString (std::string tree);
+    std::string WriteNewickString ();
 };
 
 } // namespace genesis
