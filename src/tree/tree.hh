@@ -23,11 +23,11 @@ public:
     Tree() {};
     ~Tree() {};
 
-    void ReadNewickFile  (std::string fn);
-    void WriteNewickFile (std::string fn);
+    void FromNewickFile (std::string fn);
+    void ToNewickFile   (std::string fn);
 
-    void ParseNewickString (std::string tree);
-    std::string WriteNewickString ();
+    void FromNewickString (std::string tree);
+    std::string ToNewickString ();
 };
 
 } // namespace genesis

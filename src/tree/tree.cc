@@ -12,15 +12,15 @@
 
 namespace genesis {
 
-void Tree::ReadNewickFile (std::string fn)
+void Tree::FromNewickFile (std::string fn)
 {
-    ParseNewickString(ReadFile(fn));
+    FromNewickString(ReadFile(fn));
 }
 
-void Tree::ParseNewickString (std::string tree)
+void Tree::FromNewickString (std::string tree)
 {
     NewickLexer lex;
-    lex.Analyze(tree);
+    lex.Process(tree);
 
     LOG_BOLD << lex.Dump();
 }
