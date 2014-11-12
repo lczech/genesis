@@ -9,7 +9,7 @@
 #include <fstream>
 #include <streambuf>
 
-#include "log.hh"
+#include "logging.hh"
 
 namespace genesis {
 namespace utils {

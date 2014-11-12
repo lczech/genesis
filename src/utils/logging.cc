@@ -1,16 +1,9 @@
-/**
- * @brief Implementation of Log functions.
- *
- * @file
- * @ingroup utils
- */
-
 #include <string>
 #include <iostream>
 #include <iomanip>
 #include <fstream>
 
-#include "log.hh"
+#include "logging.hh"
 #include "utils.hh"
 
 namespace genesis {
@@ -18,7 +11,7 @@ namespace utils {
 
 // TODO use different init for log details depending on DEBUG
 // init static members
-LogDetails Log::details = {
+LoggingDetails Logging::details = {
     false, // count
     false, // date
     false, // time
@@ -28,10 +21,10 @@ LogDetails Log::details = {
     false, // line
     true  // level
 };
-Log::LogLevel              Log::max_level_  = kDebug4;
-long                       Log::count_      = 0;
-clock_t                    Log::last_clock_ = 0;
-std::vector<std::ostream*> Log::ostreams_;
+Logging::LoggingLevel      Logging::max_level_  = kDebug4;
+long                       Logging::count_      = 0;
+clock_t                    Logging::last_clock_ = 0;
+std::vector<std::ostream*> Logging::ostreams_;
 
 /**
  * Set the highest log level that is reported.
@@ -40,7 +33,7 @@ std::vector<std::ostream*> Log::ostreams_;
  * It creates a warning if the set level is higher than the static compile time
  * level set by #LOG_LEVEL_MAX.
  */
-void Log::max_level (const LogLevel level)
+void Logging::max_level (const LoggingLevel level)
 {
     if (level > LOG_LEVEL_MAX) {
         LOG_WARN << "Log max level set to " << level << ", but compile time "
@@ -53,7 +46,7 @@ void Log::max_level (const LogLevel level)
 /**
  * Return a string representation of a log level.
  */
-std::string Log::LevelToString(const LogLevel level)
+std::string Logging::LevelToString(const LoggingLevel level)
 {
     static const char* const buffer[] = {
         "NONE", "ERR ", "WARN", "INFO", "DBG ", "DBG1", "DBG2", "DBG3", "DBG4"
@@ -64,7 +57,7 @@ std::string Log::LevelToString(const LogLevel level)
 /**
  * Add an output stream to which log messages are written.
  */
-void Log::AddOutputStream (std::ostream& os)
+void Logging::AddOutputStream (std::ostream& os)
 {
     ostreams_.push_back (&os);
 }
@@ -74,7 +67,7 @@ void Log::AddOutputStream (std::ostream& os)
  *
  * This creates a stream to the file.
  */
-void Log::AddOutputFile (const std::string fn)
+void Logging::AddOutputFile (const std::string fn)
 {
     // TODO the log file stream is never deleted. this is not a big leak,
     // as commonly only one file is used for logging, but still is a smell.
@@ -90,7 +83,7 @@ void Log::AddOutputFile (const std::string fn)
 /**
  * Constructor, does nothing.
  */
-Log::Log()
+Logging::Logging()
 {
 }
 
@@ -99,7 +92,7 @@ Log::Log()
  * Destructor that is invoked at the end of each log line and does the actual
  * output.
  */
-Log::~Log()
+Logging::~Logging()
 {
     // build the details for the log message into a buffer
     clock_t now_clock = clock();
@@ -176,8 +169,8 @@ Log::~Log()
  *
  * It returns the string stream buffer used to capture the log messages.
  */
-std::ostringstream& Log::Get(
-    const std::string file, const int line, const LogLevel level
+std::ostringstream& Logging::Get(
+    const std::string file, const int line, const LoggingLevel level
 )
 {
     return Get(file, line, level, details);
@@ -190,9 +183,9 @@ std::ostringstream& Log::Get(
  * It stores some relevant information and returns the string stream buffer
  * used to capture the log messages.
  */
-std::ostringstream& Log::Get(
+std::ostringstream& Logging::Get(
     const std::string file, const int line,
-    const LogLevel level, const LogDetails dets
+    const LoggingLevel level, const LoggingDetails dets
 )
 {
     // save the information given when called from the macros

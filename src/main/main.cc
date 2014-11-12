@@ -8,7 +8,7 @@
 #include <string>
 #include <iostream>
 
-#include "../utils/log.hh"
+#include "../utils/logging.hh"
 #include "../tree/tree.hh"
 
 using namespace genesis;
@@ -29,7 +29,7 @@ std::string print_header()
 
 int main (int argc, char* argv[])
 {
-    utils::Log::AddOutputStream(std::cout);
+    utils::Logging::AddOutputStream(std::cout);
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 

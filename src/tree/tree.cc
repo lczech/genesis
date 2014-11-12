@@ -5,9 +5,9 @@
  * @ingroup tree
  */
 
-#include "tree.hh"
-#include "../utils/log.hh"
+#include "../utils/logging.hh"
 #include "../utils/utils.hh"
+#include "tree.hh"
 #include "newick_lexer.hh"
 
 namespace genesis {
