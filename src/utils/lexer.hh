@@ -123,6 +123,9 @@ public:
     /** @brief Getter for the string value of this token. */
     inline std::string value() const {return value_;};
 
+    /** @brief Shortcut that returns "line:column" (e.g., for logging). */
+    inline std::string at() const {return std::to_string(line_)+":"+std::to_string(column_);};
+
     /**
      * @brief Returns whether this token is a given type of bracket.
      *
@@ -184,7 +187,7 @@ private:
  * The tokens produced with the Process() method are of type LexerToken (see
  * there for a list of the types of tokens) and can be accessed in various ways:
  *
- *   * Using an iterator, see Lexer::TokenIterator
+ *   * Using an iterator, see Lexer::iterator
  *   * Using range based loops, see begin()
  *   * Using index based array access, see operator[]()
  *
@@ -197,7 +200,7 @@ private:
 class Lexer
 {
 public:
-    virtual bool Process(const std::string& text);
+    virtual bool Process (const std::string& text);
     bool ValidateBrackets();
     std::string Dump();
 
@@ -211,34 +214,47 @@ public:
      * This iterator allows to use a loop like this:
      *
      *     Lexer l;
-     *     for (Lexer::TokenIterator t = l.begin(); t != l.end(); ++t) {
+     *     for (Lexer::iterator t = l.begin(); t != l.end(); ++t) {
      *         std::cout << t->value() << std::endl;
      *     }
      * %
      */
-    typedef std::vector<LexerToken>::iterator TokenIterator;
+    typedef std::vector<LexerToken>::iterator       iterator;
+
+    /** @brief Const version of the iterator. */
+    typedef std::vector<LexerToken>::const_iterator const_iterator;
 
     /**
      * @brief Returns an iterator to the beginning of the token list.
      *
-     * This is used for the TokenIterator and also allows to use range based
+     * This is used for the iterator and also allows to use range based
      * looping over the tokens:
      *
      *     Lexer l;
-     *     for (LexerToken t : l) {
+     *     for (LexerToken& t : l) {
      *         std::cout << t.value() << std::endl;
      *     }
      * %
      */
-    inline TokenIterator begin()
+    inline iterator begin()
     {
         return tokens_.begin();
     }
 
-    /**
-     * @brief Returns an iterator to the end of the token list.
-     */
-    inline TokenIterator end()
+    /** @brief Const version of begin(). */
+    inline const_iterator begin() const
+    {
+        return tokens_.begin();
+    }
+
+    /** @brief Returns an iterator to the end of the token list. */
+    inline iterator end()
+    {
+        return tokens_.end();
+    }
+
+    /** @brief Const version of end(). */
+    inline const_iterator end() const
     {
         return tokens_.end();
     }
@@ -427,7 +443,7 @@ protected:
     virtual bool ScanTag();
 
     // =========================================================================
-    //     Internal (state-modifying) functions
+    //     Internal functions
     // =========================================================================
 
     /** @brief Init the lexer by resetting state and assigning the text. */
