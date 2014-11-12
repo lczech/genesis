@@ -7,7 +7,6 @@
 #include "utils.hh"
 
 namespace genesis {
-namespace utils {
 
 // TODO use different init for log details depending on DEBUG
 // init static members
@@ -36,8 +35,8 @@ std::vector<std::ostream*> Logging::ostreams_;
 void Logging::max_level (const LoggingLevel level)
 {
     if (level > LOG_LEVEL_MAX) {
-        LOG_WARN << "Log max level set to " << level << ", but compile time "
-                 << "max level is " << LOG_LEVEL_MAX << ", so that "
+        LOG_WARN << "Logging max level set to " << level << ", but compile "
+                 << "time max level is " << LOG_LEVEL_MAX << ", so that "
                  << "everything above that will not be logged.";
     }
     max_level_ = level;
@@ -76,7 +75,7 @@ void Logging::AddOutputFile (const std::string fn)
     if (file->is_open()) {
         ostreams_.push_back (file);
     } else {
-        LOG_WARN << "Cannot open log file " << fn;
+        LOG_WARN << "Cannot open logging file " << fn;
     }
 }
 
@@ -197,5 +196,4 @@ std::ostringstream& Logging::Get(
     return buff_;
 }
 
-} // namespace utils
 } // namespace genesis

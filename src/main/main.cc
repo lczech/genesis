@@ -29,11 +29,11 @@ std::string print_header()
 
 int main (int argc, char* argv[])
 {
-    utils::Logging::AddOutputStream(std::cout);
+    Logging::AddOutputStream(std::cout);
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
-    tree::Tree tree;
+    Tree tree;
     tree.ParseNewickString("( ( A:0.2{0}, [a comment] 'B':0.09{1} ):0.7{2}, C:0.5{3} ){4};");
 
     std::cout << argc << " ";

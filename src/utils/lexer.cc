@@ -15,7 +15,6 @@
 #include "utils.hh"
 
 namespace genesis {
-namespace utils {
 
 /**
  * @brief Analyze a string and store the resulting tokens in this Lexer object.
@@ -582,5 +581,4 @@ std::string LexerTokenTypeToStr (const LexerTokenType t)
     }
 }
 
-} // namespace utils
 } // namespace genesis

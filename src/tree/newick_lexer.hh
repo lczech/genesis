@@ -11,7 +11,6 @@
 #include "../utils/lexer.hh"
 
 namespace genesis {
-namespace utils {
 
 // TODO
 // Graphic characters: ! " # % & ' ( ) * + , - . / : ; < = > ? [ \ ] ^ _ { | } ~
@@ -47,7 +46,6 @@ protected:
     }
 };
 
-} // namespace utils
 } // namespace genesis
 
 #endif // include guard

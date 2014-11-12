@@ -16,14 +16,13 @@
 #include <vector>
 
 namespace genesis {
-namespace utils {
 
 #ifndef LOG_LEVEL_MAX
 /**
  * Static maximal logging level.
  * Everything above this level will be pruned by the compiler.
  */
-#define LOG_LEVEL_MAX genesis::utils::Logging::kDebug4
+#define LOG_LEVEL_MAX genesis::Logging::kDebug4
 #endif
 
 // TODO make DEBUG a special macro with proper usage makefile etc,
@@ -32,55 +31,55 @@ namespace utils {
 
 // override this setting when debugging is turned on (eg by makefile)
 #ifdef DEBUG
-#define LOG_LEVEL_MAX genesis::utils::Logging::kDebug4
+#define LOG_LEVEL_MAX genesis::Logging::kDebug4
 #endif
 
 // define the actual log macro, so that the compiler can prune calls
 // to a log with levels above the static max log level
 #define GNS_LOG(level) \
     if (level > LOG_LEVEL_MAX) ; \
-    else if (level > genesis::utils::Logging::max_level()) ; \
-    else genesis::utils::Logging().Get(__FILE__, __LINE__, level)
+    else if (level > genesis::Logging::max_level()) ; \
+    else genesis::Logging().Get(__FILE__, __LINE__, level)
 
 // define a similar log macro, this time changing the details of the message
 #define GNS_LOG_DETAILS(level, ...) \
     if (level > LOG_LEVEL_MAX) ; \
-    else if (level > genesis::utils::Logging::max_level()) ; \
-    else genesis::utils::Logging().Get(__FILE__, __LINE__, level, {__VA_ARGS__})
+    else if (level > genesis::Logging::max_level()) ; \
+    else genesis::Logging().Get(__FILE__, __LINE__, level, {__VA_ARGS__})
 
 // define standard logging types as macro shortcuts
 /** %Log an error. See genesis::LoggingLevel. */
-#define LOG_ERR  GNS_LOG(genesis::utils::Logging::kError)
+#define LOG_ERR  GNS_LOG(genesis::Logging::kError)
 
 /** %Log a warning. See genesis::LoggingLevel. */
-#define LOG_WARN GNS_LOG(genesis::utils::Logging::kWarning)
+#define LOG_WARN GNS_LOG(genesis::Logging::kWarning)
 
 /** %Log an info message. See genesis::LoggingLevel. */
-#define LOG_INFO GNS_LOG(genesis::utils::Logging::kInfo)
+#define LOG_INFO GNS_LOG(genesis::Logging::kInfo)
 
 /** %Log a debug message. See genesis::LoggingLevel. */
-#define LOG_DBG  GNS_LOG(genesis::utils::Logging::kDebug)
+#define LOG_DBG  GNS_LOG(genesis::Logging::kDebug)
 
 /** %Log a debug message. See genesis::LoggingLevel. */
-#define LOG_DBG1 GNS_LOG(genesis::utils::Logging::kDebug1)
+#define LOG_DBG1 GNS_LOG(genesis::Logging::kDebug1)
 
 /** %Log a debug message. See genesis::LoggingLevel. */
-#define LOG_DBG2 GNS_LOG(genesis::utils::Logging::kDebug2)
+#define LOG_DBG2 GNS_LOG(genesis::Logging::kDebug2)
 
 /** %Log a debug message. See genesis::LoggingLevel. */
-#define LOG_DBG3 GNS_LOG(genesis::utils::Logging::kDebug3)
+#define LOG_DBG3 GNS_LOG(genesis::Logging::kDebug3)
 
 /** %Log a debug message. See genesis::LoggingLevel. */
-#define LOG_DBG4 GNS_LOG(genesis::utils::Logging::kDebug4)
+#define LOG_DBG4 GNS_LOG(genesis::Logging::kDebug4)
 
 // define special log shortcuts. the list of bools represent
 // the members of struct LogDetails and indicate which parts shall be included
 /** Logging of a message that is always displayed. See Logging. */
-#define LOG_BOLD GNS_LOG_DETAILS(genesis::utils::Logging::kNone, \
+#define LOG_BOLD GNS_LOG_DETAILS(genesis::Logging::kNone, \
     false, false, false, false, false, false, false, false)
 
 /** Logging of a message with timing information. See Logging. */
-#define LOG_TIME GNS_LOG_DETAILS(genesis::utils::Logging::kDebug, \
+#define LOG_TIME GNS_LOG_DETAILS(genesis::Logging::kDebug, \
     false, false, false, true , true,  false, false, false)
 
 // TODO add TIME1..4 (or TMR maybe) for indented timing logs
@@ -313,7 +312,6 @@ class Logging
         Logging& operator = (const Logging&);
 };
 
-} // namespace utils
 } // namespace genesis
 
 #endif // include guard

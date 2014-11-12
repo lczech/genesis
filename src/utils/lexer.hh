@@ -12,7 +12,6 @@
 #include <vector>
 
 namespace genesis {
-namespace utils {
 
 /** @brief Returns whether a char is a digit (0-9). */
 inline bool CharIsDigit (const char c)
@@ -644,7 +643,6 @@ private:
     std::vector<LexerToken> tokens_;
 };
 
-} // namespace utils
 } // namespace genesis
 
 #endif // include guard

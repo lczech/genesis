@@ -16,9 +16,10 @@
 #include <ctime>
 
 namespace genesis {
-namespace utils {
 
-// first: function declaractions.
+// =============================================================================
+// First: function declaractions.
+// =============================================================================
 
 std::string ReadFile (const std::string fn);
 
@@ -29,7 +30,9 @@ std::string StringReplaceAll (
     const std::string &replace
 );
 
-// from here on: only inline functions.
+// =============================================================================
+// From here on: only inline functions.
+// =============================================================================
 
 /**
  * @brief Returns the current date as a string in the format "2014-12-31".
@@ -101,7 +104,6 @@ inline std::string StringTrim (
     return StringTrimLeft(StringTrimRight(s, delimiters), delimiters);
 }
 
-} // namespace utils
 } // namespace genesis
 
 #endif // include guard

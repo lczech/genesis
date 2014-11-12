@@ -11,20 +11,18 @@
 #include "newick_lexer.hh"
 
 namespace genesis {
-namespace tree {
 
 void Tree::ReadNewickFile (std::string fn)
 {
-    ParseNewickString(utils::ReadFile(fn));
+    ParseNewickString(ReadFile(fn));
 }
 
 void Tree::ParseNewickString (std::string tree)
 {
-    utils::NewickLexer lex;
+    NewickLexer lex;
     lex.Analyze(tree);
 
     LOG_BOLD << lex.Dump();
 }
 
-} // namespace tree
 } // namespace genesis

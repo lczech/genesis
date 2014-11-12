@@ -16,7 +16,6 @@
 #include "newick_lexer.hh"
 
 namespace genesis {
-namespace tree {
 
 class Tree
 {
@@ -31,7 +30,6 @@ public:
     std::string WriteNewickString ();
 };
 
-} // namespace tree
 } // namespace genesis
 
 #endif // include guard

@@ -12,7 +12,6 @@
 #include "logging.hh"
 
 namespace genesis {
-namespace utils {
 
 /**
  * @brief Returns the contents of a file as a string.
@@ -108,5 +107,4 @@ void StringReplaceAll(
 }
 */
 
-} // namespace utils
 } // namespace genesis
