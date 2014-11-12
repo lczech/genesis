@@ -11,7 +11,7 @@
 #include <stack>
 
 #include "lexer.hh"
-#include "log.hh"
+#include "logging.hh"
 #include "utils.hh"
 
 namespace genesis {
