@@ -8,7 +8,6 @@
  * @ingroup tree
  */
 
-#include "node.hh"
 #include "../utils/lexer.hh"
 
 namespace genesis {
@@ -21,12 +20,12 @@ class NewickLexer : public Lexer
 {
 public:
     NewickLexer() {
-        SetCharType(kComment,  "[]");
-        SetCharType(kNumber,   ".");
-        SetCharType(kString,   "'");
-        SetCharType(kOperator, ",:;");
-        SetCharType(kBracket,  "()");
-        SetCharType(kTag,      "{}");
+        SetCharType (kComment,  "[]");
+        SetCharType (kNumber,   ".");
+        SetCharType (kString,   "'");
+        SetCharType (kOperator, ",:;");
+        SetCharType (kBracket,  "()");
+        SetCharType (kTag,      "{}");
 
         include_whitespace        = false;
         include_comments          = false;
