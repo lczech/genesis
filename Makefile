@@ -78,9 +78,10 @@ clean:
 	@echo "\n========== Cleaning  =========="
 	-@$(RM) $(PROGRAM) $(OBJFILES) $(DEPFILES)
 
-# Extract todos
+# Extract todo's and fixme's
 todo:
 	@echo "\n========== Todos     =========="
 	-@$(RM) TODO
-	-@for file in $(ALLFILES:Makefile=); do fgrep -HnT -e TODO -e FIXME $$file \
-	| sed "s/[[:space:]]*[\/\*]*[[:space:]]*TODO[[:space:]]*/ /g" >> TODO; done; true
+	-@for file in $(ALLFILES:Makefile=); do fgrep -Hni -e TODO -e FIXME $$file \
+	| sed "s/[[:space:]]*\/[\/\*]*[[:space:]]*\(TODO\|FIXME\)[[:space:]]*"\
+	"/      /gI" >> TODO; done; true
