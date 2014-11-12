@@ -18,7 +18,7 @@
 namespace genesis {
 
 // =============================================================================
-// First: function declaractions.
+//     First: function declaractions.
 // =============================================================================
 
 std::string ReadFile (const std::string fn);
@@ -31,7 +31,7 @@ std::string StringReplaceAll (
 );
 
 // =============================================================================
-// From here on: only inline functions.
+//     From here on: only inline functions.
 // =============================================================================
 
 /**

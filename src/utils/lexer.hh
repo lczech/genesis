@@ -13,6 +13,10 @@
 
 namespace genesis {
 
+// =============================================================================
+//     General Definitions
+// =============================================================================
+
 /** @brief Returns whether a char is a digit (0-9). */
 inline bool CharIsDigit (const char c)
 {
@@ -42,6 +46,10 @@ enum LexerTokenType {
 
 /** @brief Converts a LexerTokenType into its string representation. */
 std::string LexerTokenTypeToStr (const LexerTokenType t);
+
+// =============================================================================
+//     LexerToken
+// =============================================================================
 
 /**
  * @brief Represents a token that is outputted by the Lexer.
@@ -164,6 +172,10 @@ private:
     const std::string      value_;
 };
 
+// =============================================================================
+//     Lexer
+// =============================================================================
+
 /**
  * @brief Basic lexer class that provides an easy way of tokenizing a string.
  *
@@ -188,6 +200,10 @@ public:
     virtual bool Analyze(const std::string& text);
     bool ValidateBrackets();
     std::string Dump();
+
+    // =========================================================================
+    //     Accessors
+    // =========================================================================
 
     /**
      * @brief Iterator type to access the tokens produces by the lexer.
@@ -313,6 +329,10 @@ public:
         return !tokens_.empty() && tokens_.back().type() == kError;
     }
 
+    // =========================================================================
+    //     Settings
+    // =========================================================================
+
     /** @brief Determines whether whitespaces are included as tokens. */
     bool include_whitespace = false;
 
@@ -403,6 +423,10 @@ protected:
     virtual bool ScanOperator();
     virtual bool ScanBracket();
     virtual bool ScanTag();
+
+    // =========================================================================
+    //     Internal (state-modifying) functions
+    // =========================================================================
 
     /** @brief Init the lexer by resetting state and assigning the text. */
     inline void Init (const std::string& text)
@@ -582,6 +606,10 @@ protected:
     }
 
 private:
+    // =========================================================================
+    //     Members (make up the state of the object)
+    // =========================================================================
+
     /**
      * @brief This array contains the token types for all chars, in order to
      * determine the correct scanner for the char.

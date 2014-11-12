@@ -8,6 +8,10 @@
 
 namespace genesis {
 
+// =============================================================================
+//     Settings
+// =============================================================================
+
 // TODO use different init for log details depending on DEBUG
 // init static members
 LoggingDetails Logging::details = {
@@ -79,12 +83,9 @@ void Logging::AddOutputFile (const std::string fn)
     }
 }
 
-/**
- * Constructor, does nothing.
- */
-Logging::Logging()
-{
-}
+// =============================================================================
+//     Destructor (does the actual work)
+// =============================================================================
 
 // TODO the output of the log is not thread safe
 /**
@@ -162,6 +163,10 @@ Logging::~Logging()
     // inc log message counter
     count_++;
 }
+
+// =============================================================================
+//     Singleton accessors
+// =============================================================================
 
 /**
  * Getter for the singleton instance of log, is called by the standard macros.

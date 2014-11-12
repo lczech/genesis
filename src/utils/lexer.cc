@@ -16,6 +16,10 @@
 
 namespace genesis {
 
+// =============================================================================
+//     Analyze
+// =============================================================================
+
 /**
  * @brief Analyze a string and store the resulting tokens in this Lexer object.
  *
@@ -126,6 +130,10 @@ bool Lexer::Analyze(const std::string& text)
 //~ {
 //~
 //~ }
+
+// =============================================================================
+//     Scanners
+// =============================================================================
 
 /**
  * @brief Scans a range between two strings.
@@ -502,6 +510,10 @@ inline bool Lexer::ScanTag()
     NextChar();
     return true;
 }
+
+// =============================================================================
+//     Helper functions
+// =============================================================================
 
 /**
  * @brief Checkes whether the bracket tokes are validly nested.

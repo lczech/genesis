@@ -17,6 +17,17 @@
 
 namespace genesis {
 
+// =============================================================================
+//     Macro definitions
+// =============================================================================
+
+// TODO add TIME1..4 (or TMR maybe) for indented timing logs
+// TODO change macros for timing to be out of usual log levels
+// TODO define a function that logs the detail column headers (difficult because
+// of length difference for file name log detail)
+// TODO offer csv as output format
+// TODO offer remote streams
+
 #ifndef LOG_LEVEL_MAX
 /**
  * Static maximal logging level.
@@ -82,12 +93,9 @@ namespace genesis {
 #define LOG_TIME GNS_LOG_DETAILS(genesis::Logging::kDebug, \
     false, false, false, true , true,  false, false, false)
 
-// TODO add TIME1..4 (or TMR maybe) for indented timing logs
-// TODO change macros for timing to be out of usual log levels
-// TODO define a function that logs the detail column headers (difficult because
-// of length difference for file name log detail)
-// TODO offer csv as output format
-// TODO offer remote streams
+// =============================================================================
+//     LoggingDetails
+// =============================================================================
 
 /**
  * @brief Settings for which information is included with each logging
@@ -148,6 +156,10 @@ typedef struct {
     /** @brief Include the level (e.g. Info, Debug) of the message. */
     bool level;
 } LoggingDetails;
+
+// =============================================================================
+//     Logging
+// =============================================================================
 
 /**
  * @brief Logging class with easy and fast usage.
@@ -256,7 +268,7 @@ class Logging
             kDebug4
         };
 
-        Logging();
+        Logging() {};
         ~Logging();
 
         // getter for the singleton instance of log, is called by the macros
