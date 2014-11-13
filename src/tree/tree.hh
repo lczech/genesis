@@ -12,8 +12,8 @@
 
 #include <string>
 
-#include "node.hh"
 #include "newick_lexer.hh"
+#include "node.hh"
 
 namespace genesis {
 

@@ -5,9 +5,9 @@
  * @ingroup utils
  */
 
- #include <string>
 #include <fstream>
 #include <streambuf>
+#include <string>
 
 #include "logging.hh"
 

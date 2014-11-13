@@ -5,10 +5,11 @@
  * @ingroup utils
  */
 
-#include <string>
+#include <assert.h>
 #include <cstring>
-#include <vector>
 #include <stack>
+#include <string>
+#include <vector>
 
 #include "lexer.hh"
 #include "logging.hh"
@@ -111,10 +112,15 @@ bool Lexer::Process(const std::string& text)
             case kTag:
                 ScanTag();
                 break;
-
             case kUnknown:
-            default:
                 ScanUnknown();
+                break;
+            case kError:
+                break;
+            default:
+                // this case only happens if someone added a new element to the enum.
+                // make sure that we do not forget to include it in this switch!
+                assert(false);
         }
 
         if (tokens_.empty()) {
@@ -516,6 +522,25 @@ inline bool Lexer::ScanTag()
 // =============================================================================
 //     Helper functions
 // =============================================================================
+
+/**
+ * @brief Create a token and push it to the list.
+ */
+void Lexer::PushToken (const LexerTokenType t, const size_t start, const std::string value)
+{
+    // find previous new line, we need it to tell the column
+    // (first check LF, to handle CR+LF correctly)
+    size_t bitr = start;
+    while (
+        bitr > 0 && (text_[bitr-1] != '\n' || text_[bitr-1] != '\r')
+    ) {
+        --bitr;
+    }
+
+    // make and push token
+    LexerToken tok(t, line_, start-bitr, value);
+    tokens_.push_back(tok);
+}
 
 /**
  * @brief Checkes whether the bracket tokes are validly nested.

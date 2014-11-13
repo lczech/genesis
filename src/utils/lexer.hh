@@ -598,29 +598,11 @@ protected:
         }
     }
 
-    /** @brief Create a token and push it to the list. */
-    inline void PushToken (
-        const LexerTokenType t,
-        const size_t start, const std::string value
-    ) {
-        // find previous new line, we need it to tell the column
-        // (first check LF, to handle CR+LF correctly)
-        size_t bitr = start;
-        while (
-            bitr > 0 && (text_[bitr-1] != '\n' || text_[bitr-1] != '\r')
-        ) {
-            --bitr;
-        }
-
-        // make and push token
-        LexerToken tok(t, line_, start-bitr, value);
-        tokens_.push_back(tok);
-    }
+    void PushToken (const LexerTokenType t, const size_t start, const std::string value);
 
     /** @brief Create a token and push it to the list. */
-    inline void PushToken (
-        const LexerTokenType t, const size_t start, const size_t end
-    ) {
+    inline void PushToken (const LexerTokenType t, const size_t start, const size_t end)
+    {
         PushToken(t, start, GetSubstr(start, end));
     }
 

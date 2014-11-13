@@ -37,7 +37,7 @@ bool NewickParser::Process (const NewickLexer& lexer)
 
     // are we currently investigating an item?
     // (this is independent of the value of item, as the root counts as an item, but item will
-    // be nullptr at the point we see the root)
+    // be nullptr at the point we see the root in the newick string)
     bool item_active = false;
 
     // how deep is the current token nested in the tree?
