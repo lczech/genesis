@@ -23,7 +23,7 @@ WARN    = -Wall -Wextra -pedantic-errors
 # Compiler flags
 STDCC   = g++
 MPICC   = mpic++
-CCFLAGS = -std=c++11 -O1 $(WARN) $(DBG)
+CCFLAGS = -std=c++11 -O1 -I./src $(WARN) $(DBG)
 LDFLAGS = -lm
 #-lpll-sse3 -lm
 

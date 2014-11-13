@@ -1,10 +1,11 @@
+#include "utils/logging.hh"
+
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <string>
 
-#include "logging.hh"
-#include "utils.hh"
+#include "utils/utils.hh"
 
 namespace genesis {
 

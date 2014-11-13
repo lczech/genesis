@@ -5,15 +5,13 @@
  * @ingroup tree
  */
 
-//~ #include <cstring>
-//~ #include <vector>
-//~ #include <stack>
+#include "tree/newick_parser.hh"
+
 #include <assert.h>
 #include <iomanip>
 #include <string>
 
-#include "newick_parser.hh"
-#include "../utils/logging.hh"
+#include "utils/logging.hh"
 
 namespace genesis {
 

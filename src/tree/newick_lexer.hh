@@ -8,7 +8,7 @@
  * @ingroup tree
  */
 
-#include "../utils/lexer.hh"
+#include "utils/lexer.hh"
 
 namespace genesis {
 

@@ -5,11 +5,13 @@
  * @ingroup main
  */
 
-#include <string>
-#include <iostream>
+#include "main/main.hh"
 
-#include "../utils/logging.hh"
-#include "../tree/tree.hh"
+#include <iostream>
+#include <string>
+
+#include "tree/tree.hh"
+#include "utils/logging.hh"
 
 using namespace genesis;
 

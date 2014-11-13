@@ -5,15 +5,16 @@
  * @ingroup utils
  */
 
+#include "utils/lexer.hh"
+
 #include <assert.h>
 #include <cstring>
 #include <stack>
 #include <string>
 #include <vector>
 
-#include "lexer.hh"
-#include "logging.hh"
-#include "utils.hh"
+#include "utils/logging.hh"
+#include "utils/utils.hh"
 
 namespace genesis {
 

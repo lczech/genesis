@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "newick_lexer.hh"
+#include "tree/newick_lexer.hh"
 
 namespace genesis {
 

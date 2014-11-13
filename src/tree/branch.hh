@@ -10,7 +10,9 @@
  * @ingroup tree
  */
 
-#include "node.hh"
+//~ #include "tree/node.hh"
+// forward declare node
+class Node;
 
 namespace genesis {
 

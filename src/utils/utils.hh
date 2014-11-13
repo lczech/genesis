@@ -12,8 +12,8 @@
  * functions and classes.
  */
 
-#include <string>
 #include <ctime>
+#include <string>
 
 namespace genesis {
 
