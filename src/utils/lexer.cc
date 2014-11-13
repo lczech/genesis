@@ -226,7 +226,7 @@ inline bool Lexer::ScanWhitespace()
         found = true;
     }
     if (include_whitespace && found) {
-        PushToken(kWhite, start, itr_);
+        PushToken(kWhite, start, GetPosition());
     }
     return found;
 }
@@ -414,8 +414,9 @@ inline bool Lexer::ScanString()
     }
 
     // reached end of text before ending quotation mark.
-    // we need to check jump here, because an escape sequence or doubled
-    // quote mark can look like the string ending, but actually isn't.
+    // we need to check jump here, because an escape sequence or doubled quote mark
+    // (those are the situations when jump=true) can look like the string ending,
+    // but actually isn't.
     if (jump || (IsEnd() && !(GetChar(-1) == qmark))) {
         PushToken(kError, start-1, "Malformed string.");
         return false;

@@ -52,7 +52,7 @@ std::string LexerTokenTypeToStr (const LexerTokenType t);
 // =============================================================================
 
 /**
- * @brief Represents a token that is outputted by the Lexer.
+ * @brief POD struct that represents a token that is outputted by the Lexer.
  *
  * The main types of tokens are:
  *
@@ -286,10 +286,11 @@ public:
      */
     inline LexerToken at(const std::size_t index) const
     {
-        if (index < tokens_.size())
+        if (index < tokens_.size()) {
             return tokens_[index];
-        else
+        } else {
             return LexerToken(LexerTokenType::kEOF, 0, 0, "");
+        }
     }
 
     /**
@@ -366,7 +367,7 @@ public:
      * only found at the borders between tokens, but not within them
      * (for example, within a number).
      */
-    // TODO make this option available
+    // TODO make the option strip_comments available
     //~ bool strip_comments = false;
 
     /**
