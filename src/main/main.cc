@@ -34,7 +34,7 @@ int main (int argc, char* argv[])
     LOG_TIME << "start";
 
     Tree tree;
-    tree.ParseNewickString("( ( A:0.2{0}, [a comment] 'B':0.09{1} ):0.7{2}, C:0.5{3} ){4};");
+    tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Innen:0.7{2}, Coyote:0.5{3} ){4};");
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {

@@ -9,20 +9,24 @@
 #include "../utils/utils.hh"
 #include "tree.hh"
 #include "newick_lexer.hh"
+#include "newick_parser.hh"
 
 namespace genesis {
 
-void Tree::ReadNewickFile (std::string fn)
+void Tree::FromNewickFile (std::string fn)
 {
-    ParseNewickString(ReadFile(fn));
+    FromNewickString(ReadFile(fn));
 }
 
-void Tree::ParseNewickString (std::string tree)
+void Tree::FromNewickString (std::string tree)
 {
-    NewickLexer lex;
-    lex.Analyze(tree);
+    NewickLexer lexer;
+    lexer.Process(tree);
+    LOG_INFO << lexer.Dump();
 
-    LOG_BOLD << lex.Dump();
+    NewickParser parser;
+    parser.Process(lexer);
+    LOG_INFO << parser.Dump();
 }
 
 } // namespace genesis

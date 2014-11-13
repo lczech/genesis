@@ -98,8 +98,8 @@ namespace genesis {
 // =============================================================================
 
 /**
- * @brief Settings for which information is included with each logging
- * message.
+ * @brief POD stuct containing the settings for which information is included
+ * with each logging message.
  *
  * The details are activated via accessing the static variable of the
  * Logging class:
@@ -281,6 +281,8 @@ class Logging
             const LoggingLevel level, const LoggingDetails dets
         );
 
+        // TODO make logging accept one file, and a setter for cout and for cerr
+        // TODO allow different levels to be logged to different streams?!
         // methods to handle the output streams to write the log messages to
         static void AddOutputStream (std::ostream& os);
         static void AddOutputFile   (const std::string fn);
@@ -311,6 +313,8 @@ class Logging
 
         // how many log calls were made so far
         static long    count_;
+
+        // when was the last call to logging (used for time measurements)
         static clock_t last_clock_;
 
         // array of streams that are used for output

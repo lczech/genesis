@@ -2,7 +2,7 @@
 #define GNS_UTILS_LEXER_H_
 
 /**
- * @brief Provides a basic lexer to analyze a string and split it into tokens.
+ * @brief Provides a basic lexer to process a string and split it into tokens.
  *
  * @file
  * @ingroup utils
@@ -52,7 +52,7 @@ std::string LexerTokenTypeToStr (const LexerTokenType t);
 // =============================================================================
 
 /**
- * @brief Represents a token that is outputted by the Lexer.
+ * @brief POD struct that represents a token that is outputted by the Lexer.
  *
  * The main types of tokens are:
  *
@@ -123,6 +123,9 @@ public:
     /** @brief Getter for the string value of this token. */
     inline std::string value() const {return value_;};
 
+    /** @brief Shortcut that returns "line:column" (e.g., for logging). */
+    inline std::string at() const {return std::to_string(line_)+":"+std::to_string(column_);};
+
     /**
      * @brief Returns whether this token is a given type of bracket.
      *
@@ -179,12 +182,12 @@ private:
 /**
  * @brief Basic lexer class that provides an easy way of tokenizing a string.
  *
- * For typical usage of this class, see Analyze function.
+ * For typical usage of this class, see Process() function.
  *
- * The tokens produced with the Analyze() method are of type LexerToken (see
+ * The tokens produced with the Process() method are of type LexerToken (see
  * there for a list of the types of tokens) and can be accessed in various ways:
  *
- *   * Using an iterator, see Lexer::TokenIterator
+ *   * Using an iterator, see Lexer::iterator
  *   * Using range based loops, see begin()
  *   * Using index based array access, see operator[]()
  *
@@ -197,7 +200,7 @@ private:
 class Lexer
 {
 public:
-    virtual bool Analyze(const std::string& text);
+    virtual bool Process (const std::string& text);
     bool ValidateBrackets();
     std::string Dump();
 
@@ -211,34 +214,47 @@ public:
      * This iterator allows to use a loop like this:
      *
      *     Lexer l;
-     *     for (Lexer::TokenIterator t = l.begin(); t != l.end(); ++t) {
+     *     for (Lexer::iterator t = l.begin(); t != l.end(); ++t) {
      *         std::cout << t->value() << std::endl;
      *     }
      * %
      */
-    typedef std::vector<LexerToken>::iterator TokenIterator;
+    typedef std::vector<LexerToken>::iterator       iterator;
+
+    /** @brief Const version of the iterator. */
+    typedef std::vector<LexerToken>::const_iterator const_iterator;
 
     /**
      * @brief Returns an iterator to the beginning of the token list.
      *
-     * This is used for the TokenIterator and also allows to use range based
+     * This is used for the iterator and also allows to use range based
      * looping over the tokens:
      *
      *     Lexer l;
-     *     for (LexerToken t : l) {
+     *     for (LexerToken& t : l) {
      *         std::cout << t.value() << std::endl;
      *     }
      * %
      */
-    inline TokenIterator begin()
+    inline iterator begin()
     {
         return tokens_.begin();
     }
 
-    /**
-     * @brief Returns an iterator to the end of the token list.
-     */
-    inline TokenIterator end()
+    /** @brief Const version of begin(). */
+    inline const_iterator begin() const
+    {
+        return tokens_.begin();
+    }
+
+    /** @brief Returns an iterator to the end of the token list. */
+    inline iterator end()
+    {
+        return tokens_.end();
+    }
+
+    /** @brief Const version of end(). */
+    inline const_iterator end() const
     {
         return tokens_.end();
     }
@@ -270,10 +286,11 @@ public:
      */
     inline LexerToken at(const std::size_t index) const
     {
-        if (index < tokens_.size())
+        if (index < tokens_.size()) {
             return tokens_[index];
-        else
+        } else {
             return LexerToken(LexerTokenType::kEOF, 0, 0, "");
+        }
     }
 
     /**
@@ -299,14 +316,16 @@ public:
     /**
      * @brief Returns whether the list of tokens is empty.
      *
-     * This is usually the case before Analyze was run.
+     * This is usually the case before Process() was run.
      */
     inline bool empty() const
     {
         return tokens_.empty();
     }
 
-    /** @brief Returns the number of tokens produced during the analysis. */
+    /**
+     * @brief Returns the number of tokens produced during the analysis process.
+     */
     inline std::size_t size() const
     {
         return tokens_.size();
@@ -341,14 +360,14 @@ public:
 
     /*
      * @brief If set, comments are stripped from the text before starting
-     * the analysis.
+     * the analysis process.
      *
      * This is useful when the specification of the text allows comments to
      * appear anywhere (e.g. Newick trees). If it is not set, comments are
      * only found at the borders between tokens, but not within them
      * (for example, within a number).
      */
-    // TODO make this option available
+    // TODO make the option strip_comments available
     //~ bool strip_comments = false;
 
     /**
@@ -425,7 +444,7 @@ protected:
     virtual bool ScanTag();
 
     // =========================================================================
-    //     Internal (state-modifying) functions
+    //     Internal functions
     // =========================================================================
 
     /** @brief Init the lexer by resetting state and assigning the text. */
@@ -482,7 +501,7 @@ protected:
      * is of type kNumber, it can end up in a symbol token, depending on the
      * context.
      *
-     * For more information on how this char type is used, see Analyze.
+     * For more information on how this char type is used, see Process().
      */
     inline LexerTokenType GetCharType(const char c) const
     {
@@ -510,8 +529,8 @@ protected:
      *
      * This function takes a token type and a list of characters in form of a
      * string and sets the char type for each of them to the given type.
-     * This type will be used by the standard implementation of Analyze to
-     * determine the correct scanner for a token (see Analyze for more on that).
+     * This type will be used by the standard implementation of Process() to
+     * determine the correct scanner for a token (see Process for more on that).
      */
     inline void SetCharType (const LexerTokenType type, std::string chars)
     {
@@ -579,29 +598,11 @@ protected:
         }
     }
 
-    /** @brief Create a token and push it to the list. */
-    inline void PushToken (
-        const LexerTokenType t,
-        const size_t start, const std::string value
-    ) {
-        // find previous new line, we need it to tell the column
-        // (first check LF, to handle CR+LF correctly)
-        size_t bitr = start;
-        while (
-            bitr > 0 && (text_[bitr-1] != '\n' || text_[bitr-1] != '\r')
-        ) {
-            --bitr;
-        }
-
-        // make and push token
-        LexerToken tok(t, line_, start-bitr, value);
-        tokens_.push_back(tok);
-    }
+    void PushToken (const LexerTokenType t, const size_t start, const std::string value);
 
     /** @brief Create a token and push it to the list. */
-    inline void PushToken (
-        const LexerTokenType t, const size_t start, const size_t end
-    ) {
+    inline void PushToken (const LexerTokenType t, const size_t start, const size_t end)
+    {
         PushToken(t, start, GetSubstr(start, end));
     }
 
@@ -614,7 +615,7 @@ private:
      * @brief This array contains the token types for all chars, in order to
      * determine the correct scanner for the char.
      *
-     * See Analyze for more on this.
+     * See Process() for more on this.
      */
     LexerTokenType start_char_table_[128] = {
         /*      */  kError,     kError,     kError,     kError,
@@ -652,22 +653,22 @@ private:
     };
 
     // Caveat: the following variables are heavily interweaved during a run
-    // of Analyze! They have to stay consistent, otherwise the resulting
+    // of Process()! They have to stay consistent, otherwise the resulting
     // tokens will contain wrong information.
 
-    /** @brief The text that is being analyzed. */
+    /** @brief The text that is being processed. */
     const char* text_ = "\0";
 
-    /** @brief The current position in the text while analyzing. */
+    /** @brief The current position in the text while processing. */
     size_t      itr_  = 0;
 
-    /** @brief The length of the text being analyzed. */
+    /** @brief The length of the text being processed. */
     size_t      len_  = 0;
 
-    /** @brief The current line in the text while analyzing. */
+    /** @brief The current line in the text while processing. */
     int         line_ = 1;
 
-    /** @brief The list of tokens resulting from the analysis. */
+    /** @brief The list of tokens resulting from the analysis process. */
     std::vector<LexerToken> tokens_;
 };
 

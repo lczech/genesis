@@ -5,10 +5,11 @@
  * @ingroup utils
  */
 
-#include <string>
+#include <assert.h>
 #include <cstring>
-#include <vector>
 #include <stack>
+#include <string>
+#include <vector>
 
 #include "lexer.hh"
 #include "logging.hh"
@@ -17,14 +18,15 @@
 namespace genesis {
 
 // =============================================================================
-//     Analyze
+//     Process
 // =============================================================================
 
 /**
- * @brief Analyze a string and store the resulting tokens in this Lexer object.
+ * @brief Process a string and store the resulting tokens in this Lexer object.
  *
  * This function empties the token list stored for this object and fills it
- * with the results of analyzing the given string. For the types of tokens being
+ * with the results of processing the given string. This process analyzes and
+ * splits the string into different tokens. For the types of tokens being
  * extracted, see LexerToken; for accessing the results, see Lexer.
  *
  * Returns true if successful. In case an error is encountered while analyzing
@@ -35,7 +37,7 @@ namespace genesis {
  * Common usage:
  *
  *     Lexer l;
- *     if (!l.Analyze("tree(some:0.5,items:0.3);")) {
+ *     if (!l.Process("tree(some:0.5,items:0.3);")) {
  *         LexerToken b = l.back();
  *         std::cout
  *             << b.TypeToStr()
@@ -69,15 +71,15 @@ namespace genesis {
  * This technique will not work if finding the correct scanner depends on
  * more than the first character of the token. For example, comments usually
  * start with a more complex sequence ("//" or even "<!--"), which is why
- * they are specially treaded in the Analyze function.
+ * they are specially treaded in the Process function.
  *
  * So, in situations, where the type of the next token cannot be determined from
- * its first character (except comments), Analyze has to be overridden in the
+ * its first character (except comments), Process has to be overridden in the
  * derived class in order to do some other checking methods to determine the
- * correct scanner. In the new Analyze function, first call Init to reset all
+ * correct scanner. In the new Process function, first call Init to reset all
  * internal variables. Also see ScanUnknown for some important information.
  */
-bool Lexer::Analyze(const std::string& text)
+bool Lexer::Process(const std::string& text)
 {
     Init(text);
 
@@ -110,10 +112,15 @@ bool Lexer::Analyze(const std::string& text)
             case kTag:
                 ScanTag();
                 break;
-
             case kUnknown:
-            default:
                 ScanUnknown();
+                break;
+            case kError:
+                break;
+            default:
+                // this case only happens if someone added a new element to the enum.
+                // make sure that we do not forget to include it in this switch!
+                assert(false);
         }
 
         if (tokens_.empty()) {
@@ -178,14 +185,14 @@ bool Lexer::ScanFromTo (const char* from, const char* to)
 /**
  * @brief Scans the text as long as the current char is of type kUnknown.
  *
- * It is possible that this function has to be overridden in case that Analyze
+ * It is possible that this function has to be overridden in case that Process()
  * is overridden as well. This is because of the following:
  *
- * Overriding Analyze means that the approach of determining the correct scanner
+ * Overriding Process means that the approach of determining the correct scanner
  * for a token from its first character does not work. Thus, all characters that
  * do not indicate a scanner will usually be set to unknown in order to treat
- * them specially in Analyze. This means that scanning unknown chars should stop
- * after each char, return to Analyze, and check again if now it is time to
+ * them specially in Process. This means that scanning unknown chars should stop
+ * after each char, return to Process(), and check again if now it is time to
  * activate a special scanner. Thus, in this case, ScanUnknown should only scan
  * one character at a time.
  */
@@ -225,7 +232,7 @@ inline bool Lexer::ScanWhitespace()
         found = true;
     }
     if (include_whitespace && found) {
-        PushToken(kWhite, start, itr_);
+        PushToken(kWhite, start, GetPosition());
     }
     return found;
 }
@@ -413,8 +420,9 @@ inline bool Lexer::ScanString()
     }
 
     // reached end of text before ending quotation mark.
-    // we need to check jump here, because an escape sequence or doubled
-    // quote mark can look like the string ending, but actually isn't.
+    // we need to check jump here, because an escape sequence or doubled quote mark
+    // (those are the situations when jump=true) can look like the string ending,
+    // but actually isn't.
     if (jump || (IsEnd() && !(GetChar(-1) == qmark))) {
         PushToken(kError, start-1, "Malformed string.");
         return false;
@@ -514,6 +522,25 @@ inline bool Lexer::ScanTag()
 // =============================================================================
 //     Helper functions
 // =============================================================================
+
+/**
+ * @brief Create a token and push it to the list.
+ */
+void Lexer::PushToken (const LexerTokenType t, const size_t start, const std::string value)
+{
+    // find previous new line, we need it to tell the column
+    // (first check LF, to handle CR+LF correctly)
+    size_t bitr = start;
+    while (
+        bitr > 0 && (text_[bitr-1] != '\n' || text_[bitr-1] != '\r')
+    ) {
+        --bitr;
+    }
+
+    // make and push token
+    LexerToken tok(t, line_, start-bitr, value);
+    tokens_.push_back(tok);
+}
 
 /**
  * @brief Checkes whether the bracket tokes are validly nested.
