@@ -8,7 +8,6 @@
 #include "tree/newick_parser.hh"
 
 #include <assert.h>
-#include <iomanip>
 #include <string>
 
 #include "utils/logging.hh"
@@ -58,14 +57,16 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
     // acts as pointer to current token
     Lexer::const_iterator ct;
 
+    // store error message. also serves as check whether an error occured
+    std::string error = "";
+
     // --------------------------------------------------------------
     //     Loop over lexer tokens and check if it...
     // --------------------------------------------------------------
     for (ct = lexer.begin(); ct != lexer.end(); pt=ct, ++ct) {
         if (ct->type() == kUnknown) {
-            LOG_INFO << "Invalid characters at " << ct->at()
-                     << ": '" << std::hex << ct->value() << "'.";
-            return false;
+            error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
+            break;
         }
 
         // ------------------------------------------------------
@@ -87,8 +88,8 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             if (ct->type() == kComment) {
                 continue;
             }
-            LOG_INFO << "Tree does not start with '(' at " << ct->at() << ".";
-            return false;
+            error = "Tree does not start with '(' at " + ct->at() + ".";
+            break;
         }
 
         // if we reached this point in code, this means that ct != begin, so it is not the first
@@ -128,16 +129,16 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
         // ------------------------------------------------------
         if (ct->IsBracket(")")) {
             if (depth == 0) {
-                LOG_INFO << "Too many ')' at " << ct->at() << ".";
-                return false;
+                error = "Too many ')' at " + ct->at() + ".";
+                break;
             }
             if (!(
                 pt->IsBracket(")")    || pt->type() == kTag    || pt->type() == kComment ||
                 pt->type() == kSymbol || pt->type() == kString || pt->type() == kNumber  ||
                 pt->IsOperator(",")
             )) {
-                LOG_INFO << "Invalid ')' at " << ct->at() << ": '" << ct->value() << "'.";
-                return false;
+                error = "Invalid ')' at " + ct->at() + ": '" + ct->value() + "'.";
+                break;
             }
 
             // populate the item
@@ -163,8 +164,8 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
                 pt->IsBracket("(")  || pt->IsBracket(")") ||
                 pt->IsOperator(",") || pt->type() == kComment
             )) {
-                LOG_INFO << "Invalid characters at " << ct->at() << ": '" << ct->value() << "'.";
-                return false;
+                error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
+                break;
             }
 
             // populate the item
@@ -185,8 +186,8 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
                 pt->IsBracket("(")    || pt->IsBracket(")")    || pt->IsOperator(",")    ||
                 pt->type() == kSymbol || pt->type() == kString || pt->type() == kComment
             )) {
-                LOG_INFO << "Invalid characters at " << ct->at() << ": '" << ct->value() << "'.";
-                return false;
+                error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
+                break;
             }
 
             // populate the item
@@ -202,8 +203,8 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
                 pt->IsBracket(")")    || pt->type() == kSymbol  || pt->type() == kString ||
                 pt->type() == kNumber || pt->type() == kComment || pt->type() == kTag
             )) {
-                LOG_INFO << "Invalid tag at " << ct->at() << ": '" << ct->value() << "'.";
-                return false;
+                error = "Invalid tag at " + ct->at() + ": '" + ct->value() + "'.";
+                break;
             }
 
             // a tag that comes after one of the tokens: ")", symbol, string, number, comment,
@@ -245,8 +246,8 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
                 pt->type() == kSymbol || pt->type() == kString || pt->type() == kNumber  ||
                 pt->type() == kTag    || pt->IsOperator(",")
             )) {
-                LOG_INFO << "Invalid ',' at " << ct->at() << ": '" << ct->value() << "'.";
-                return false;
+                error = "Invalid ',' at " + ct->at() + ": '" + ct->value() + "'.";
+                break;
             }
 
             // populate the item
@@ -270,8 +271,8 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
                 pt->IsBracket(")")     || pt->type() == kSymbol || pt->type() == kString ||
                 pt->type() == kComment || pt->type() == kNumber || pt->type() == kTag
             )) {
-                LOG_INFO << "Invalid ';' at " << ct->at() << ": '" << ct->value() << "'.";
-                return false;
+                error = "Invalid ';' at " + ct->at() + ": '" + ct->value() + "'.";
+                break;
             }
 
             // populate the item
@@ -287,6 +288,11 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
         // as we check for every type that NewickLexer yields, and we use a continue or break
         // in each of them, we should never reach this point, unless we forgot a type!
         assert(false);
+    }
+
+    if (!error.empty()) {
+        LOG_INFO << error;
+        return false;
     }
 
     if (depth != 0) {

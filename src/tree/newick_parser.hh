@@ -81,6 +81,9 @@ public:
     bool MakeParseTree (const NewickLexer& lexer);
     std::string Dump();
 
+    inline int nodes() {return nodes_;};
+    inline int leaves() {return leaves_;};
+
     inline void clear()
     {
         for (NewickParserItem* item : items_) {

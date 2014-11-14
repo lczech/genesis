@@ -31,6 +31,7 @@ void Tree::FromNewickString (std::string tree)
     NewickParser parser;
     parser.Process(lexer);
     LOG_INFO << parser.Dump();
+    LOG_INFO << "Nodes: " << parser.nodes() << ", Leaves: " << parser.leaves();
     LOG_INFO;
 }
 
