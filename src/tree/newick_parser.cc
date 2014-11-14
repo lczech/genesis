@@ -30,7 +30,20 @@ bool NewickParser::Process (const NewickLexer& lexer)
     }
 
     Init();
+    if (!MakeParseTree(lexer)) {
+        return false;
+    }
 
+    // TODO newick parsing now does not assign ranks to nodes (how many children they have).
+    // TODO this might become imporant in the future, eg to check if it is a binary tree.
+    // TODO add AssignRanks() (see PLL newick.c)
+    // TODO add Validate() (see PLL newick.c)
+
+    return true;
+}
+
+bool NewickParser::MakeParseTree (const NewickLexer& lexer)
+{
     // the item that is currently being populated with data
     NewickParserItem* item = nullptr;
 
@@ -105,9 +118,10 @@ bool NewickParser::Process (const NewickLexer& lexer)
             }
             if (!(
                 pt->IsBracket(")")    || pt->type() == kTag    || pt->type() == kComment ||
-                pt->type() == kSymbol || pt->type() == kString || pt->type() == kNumber
+                pt->type() == kSymbol || pt->type() == kString || pt->type() == kNumber  ||
+                pt->IsOperator(",")
             )) {
-                LOG_INFO << "Invalid characters at " << ct->at() << ": '" << ct->value() << "'.";
+                LOG_INFO << "Invalid ')' at " << ct->at() << ": '" << ct->value() << "'.";
                 return false;
             }
 
@@ -115,8 +129,13 @@ bool NewickParser::Process (const NewickLexer& lexer)
             if (!item) {
                 item = new NewickParserItem();
             }
+            item->is_leaf |= IsLeaf(pt);
             if (item->name.empty()) {
-                item->name = "Internal Node";
+                if (item->is_leaf) {
+                    item->name = "Leaf Node";
+                } else {
+                    item->name = "Internal Node";
+                }
             }
             item->depth = depth;
             items_.push_back(item);
@@ -163,8 +182,8 @@ bool NewickParser::Process (const NewickLexer& lexer)
         // ------------------------------------------------------
         if (ct->type() == kNumber) {
             if (!(
-                pt->IsBracket(")") || pt->type() == kSymbol || pt->type() == kString ||
-                pt->type() == kComment
+                pt->IsBracket("(")    || pt->IsBracket(")")    || pt->IsOperator(",")    ||
+                pt->type() == kSymbol || pt->type() == kString || pt->type() == kComment
             )) {
                 LOG_INFO << "Invalid characters at " << ct->at() << ": '" << ct->value() << "'.";
                 return false;
@@ -246,10 +265,11 @@ bool NewickParser::Process (const NewickLexer& lexer)
         // ------------------------------------------------------
         if (ct->IsOperator(",")) {
             if (!(
-                pt->IsBracket(")")    || pt->type() == kSymbol || pt->type() == kComment ||
-                pt->type() == kString || pt->type() == kNumber || pt->type() == kTag
+                pt->IsBracket("(")    || pt->IsBracket(")")    || pt->type() == kComment ||
+                pt->type() == kSymbol || pt->type() == kString || pt->type() == kNumber  ||
+                pt->type() == kTag    || pt->IsOperator(",")
             )) {
-                LOG_INFO << "Invalid characters at " << ct->at() << ": '" << ct->value() << "'.";
+                LOG_INFO << "Invalid ',' at " << ct->at() << ": '" << ct->value() << "'.";
                 return false;
             }
 
@@ -257,8 +277,13 @@ bool NewickParser::Process (const NewickLexer& lexer)
             if (!item) {
                 item = new NewickParserItem();
             }
+            item->is_leaf |= IsLeaf(pt);
             if (item->name.empty()) {
-                item->name = "Internal Node";
+                if (item->is_leaf) {
+                    item->name = "Leaf Node";
+                } else {
+                    item->name = "Internal Node";
+                }
             }
             item->depth = depth;
             items_.push_back(item);
@@ -277,7 +302,7 @@ bool NewickParser::Process (const NewickLexer& lexer)
                 pt->IsBracket(")")     || pt->type() == kSymbol || pt->type() == kString ||
                 pt->type() == kComment || pt->type() == kNumber || pt->type() == kTag
             )) {
-                LOG_INFO << "Invalid characters at " << ct->at() << ": '" << ct->value() << "'.";
+                LOG_INFO << "Invalid ';' at " << ct->at() << ": '" << ct->value() << "'.";
                 return false;
             }
 
@@ -299,6 +324,7 @@ bool NewickParser::Process (const NewickLexer& lexer)
         // if we reach this part of the code, all checkings for token types are done.
         // as we check for every type that NewickLexer yields, and we use a continue or break
         // in each of them, we should never reach this point, unless we forgot a type!
+        LOG_DBG << ct->TypeToStr() << " " << ct->value();
         assert(false);
     }
 
@@ -334,7 +360,7 @@ std::string NewickParser::Dump()
         }
         out += item->name + ":" + std::to_string(item->branch_length) + " [" + item->comment + "] {"
             +  item->tag + "}";
-        out += item->is_leaf ? " (L)\n" : " ( )\n";
+        out += item->is_leaf ? " (Leaf)\n" : "\n";
     }
     return out;
 }

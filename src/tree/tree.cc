@@ -26,11 +26,12 @@ void Tree::FromNewickString (std::string tree)
 {
     NewickLexer lexer;
     lexer.Process(tree);
-    LOG_INFO << lexer.Dump();
+    //~ LOG_INFO << lexer.Dump();
 
     NewickParser parser;
     parser.Process(lexer);
     LOG_INFO << parser.Dump();
+    LOG_INFO;
 }
 
 } // namespace genesis

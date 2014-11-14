@@ -63,7 +63,8 @@ public:
 
     ~NewickParser();
 
-    bool Process (const NewickLexer& lexer);
+    bool Process       (const NewickLexer& lexer);
+    bool MakeParseTree (const NewickLexer& lexer);
     std::string Dump();
 
     inline void clear()
