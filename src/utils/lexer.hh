@@ -135,34 +135,25 @@ public:
     /**
      * @brief Returns whether this token is a given type of bracket.
      *
-     * Usage: `token.IsBracket(')')` will return true if this token is
+     * Usage: `token.IsBracket(")")` will return true if this token is
      * of LexerTokenType kBracket and if it is the closing parenthesis.
+     * This is a shortcut for testing type and value at the same time.
      */
-    inline bool IsBracket(const char c) const
+    inline bool IsBracket(const std::string br) const
     {
-        return type_ == kBracket && value_[0] == c;
+        return (type_ == kBracket) && (value_.compare(br) == 0);
     }
 
     /**
      * @brief Returns whether this token is a given type of operator.
      *
-     * Usage: `token.IsOperator('%')` will return true if this token is
+     * Usage: `token.IsOperator("%")` will return true if this token is
      * of LexerTokenType kOperator and if it is the modulo operator.
+     * This is a shortcut for testing type and value at the same time.
      */
-    inline bool IsOperator(const char c) const
+    inline bool IsOperator(const std::string op) const
     {
-        return type_ == kOperator && value_[0] == c;
-    }
-
-    /**
-     * @brief Returns whether this token is a given type of tag.
-     *
-     * Usage: `token.IsTag('<')` will return true if this token is
-     * of LexerTokenType kTag and if it is the opening xml tag.
-     */
-    inline bool IsTag(const char c) const
-    {
-        return type_ == kTag && value_[0] == c;
+        return (type_ == kOperator) && (value_.compare(op) == 0);
     }
 
     /**
