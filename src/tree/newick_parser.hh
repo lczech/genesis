@@ -47,6 +47,9 @@ public:
 
     /** @brief An arbitrary string that can be attached to a node in Newick format via "{}". */
     std::string tag;
+
+    /** @brief An arbitrary string that can be attached to a node in Newick format via "[]". */
+    std::string comment;
 };
 
 // =============================================================================
