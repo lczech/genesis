@@ -21,8 +21,12 @@ namespace genesis {
 
 struct NewickParserItem
 {
+    // NewickParser needs to set the values on the fly
+    friend class NewickParser;
+
 public:
-    NewickParserItem() : branch_length(0.0), depth(0), rank(0), is_leaf(false) {};
+    /** @brief Constructor, initializes the item values. */
+    NewickParserItem() : branch_length_(0.0), depth_(0), rank_(0), is_leaf_(false) {};
 
     /**
      * @brief Name of the node.
@@ -31,25 +35,35 @@ public:
      * Internal nodes are names "Internal Node" in case no name is specified in the Newick format,
      * same applies to the (possibly virtual) root, which is named "Root Node" by default.
      */
-    std::string name;
+    inline std::string name() {return name_;};
 
     /** @brief Branch length associated with the node, i.e. the branch leading to its parent. */
-    double      branch_length;
+    inline double branch_length() {return branch_length_;};
 
     /** @brief Depth of the node in the tree, i.e. its distance from the root. */
-    int         depth;
+    inline int depth() {return depth_;};
 
     /** @brief Rank of the node, i.e. how many children it has. */
-    int         rank;
+    inline int rank() {return rank_;};
 
     /** @brief True if the node is a leaf/tip, false otherwise. */
-    bool        is_leaf;
+    inline bool is_leaf() {return is_leaf_;};
 
     /** @brief An arbitrary string that can be attached to a node in Newick format via "{}". */
-    std::string tag;
+    inline std::string tag() {return tag_;};
 
     /** @brief An arbitrary string that can be attached to a node in Newick format via "[]". */
-    std::string comment;
+    inline std::string comment() {return comment_;};
+
+protected:
+    // storage, can be modified from within NewickParser (friend)
+    std::string name_;
+    double      branch_length_;
+    int         depth_;
+    int         rank_;
+    bool        is_leaf_;
+    std::string tag_;
+    std::string comment_;
 };
 
 // =============================================================================
@@ -78,13 +92,13 @@ public:
 protected:
     inline void Init()
     {
-        nodes_ = tips_ = 0;
+        nodes_ = leaves_ = 0;
         clear();
     }
 
 private:
     int nodes_;
-    int tips_;
+    int leaves_;
     NewickParserItems items_;
 };
 

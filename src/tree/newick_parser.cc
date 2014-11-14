@@ -38,6 +38,8 @@ bool NewickParser::Process (const NewickLexer& lexer)
     // TODO this might become imporant in the future, eg to check if it is a binary tree.
     // TODO add AssignRanks() (see PLL newick.c)
     // TODO add Validate() (see PLL newick.c)
+    // TODO stops at the first semicolon. is that good? do we need to warn if there is more coming?
+    // TODO do we even need to parse the rest as a new tree?
 
     return true;
 }
@@ -47,11 +49,6 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
     // the item that is currently being populated with data
     NewickParserItem* item = nullptr;
 
-    // are we currently investigating an item?
-    // (this is independent of the value of item, as the root counts as an item, but item will
-    // be nullptr at the point we see the root in the newick string)
-    bool item_active = false;
-
     // how deep is the current token nested in the tree?
     int depth = 0;
 
@@ -60,19 +57,6 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
 
     // acts as pointer to current token
     Lexer::const_iterator ct;
-
-    // checks if the current item is a leaf.
-    // for this, we need to check whether the previous token was an opening brackt or a comma.
-    // however, as comments can appear everywhere, we need to check for the first non-comment-token.
-    // it is important to hand over the iterator t per value, in order to not mess with the
-    // loop-internal iterator!
-    auto IsLeaf = [lexer] (Lexer::const_iterator t)
-    {
-        while (t != lexer.begin() && t->type() == kComment) {
-            --t;
-        }
-        return t->IsBracket("(") || t->IsOperator(",");
-    };
 
     // --------------------------------------------------------------
     //     Loop over lexer tokens and check if it...
@@ -92,6 +76,10 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             continue;
         }
 
+        // ------------------------------------------------------
+        //     Prepare for all other tokens.
+        // ------------------------------------------------------
+
         // if we reach this, the previous condition is not fullfilled (otherwise, continue would
         // have been called). so we have a token other than '(', which means we should already
         // be somewhere in the tree (or a comment). check, if that is true.
@@ -107,6 +95,33 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
         // iteration in this loop. this means that pt was already set in the loop header (at least
         // once), which means it now points to a valid token.
         assert(pt != lexer.end());
+
+        // set up the item that will be filled with data now.
+        // if it already exists, this means we are adding more information to it, e.g.
+        // a branch length or a tag. so we do not need to create it.
+        // however, if this item does not exist, this means we saw a token before that finished an
+        // item and pushed it to the stack (either closing bracket or comma), so we need to create a
+        // new one here.
+        if (!item) {
+            item = new NewickParserItem();
+            item->depth_ = depth;
+
+            // checks if the new item is a leaf.
+            // for this, we need to check whether the previous token was an opening brackt or a
+            // comma. however, as comments can appear everywhere, we need to check for the first
+            // non-comment-token.
+            Lexer::const_iterator t = pt;
+            while (t != lexer.begin() && t->type() == kComment) {
+                --t;
+            }
+            item->is_leaf_ = t->IsBracket("(") || t->IsOperator(",");
+
+            // adjust the class-wide counters
+            if (item->is_leaf_) {
+                ++leaves_;
+            }
+            ++nodes_;
+        }
 
         // ------------------------------------------------------
         //     is bracket ')'  ==>  end of subtree
@@ -126,24 +141,17 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             }
 
             // populate the item
-            if (!item) {
-                item = new NewickParserItem();
-            }
-            item->is_leaf |= IsLeaf(pt);
-            if (item->name.empty()) {
-                if (item->is_leaf) {
-                    item->name = "Leaf Node";
+            if (item->name_.empty()) {
+                if (item->is_leaf_) {
+                    item->name_ = "Leaf Node";
                 } else {
-                    item->name = "Internal Node";
+                    item->name_ = "Internal Node";
                 }
             }
-            item->depth = depth;
             items_.push_back(item);
             item = nullptr;
 
-            // set state
             --depth;
-            item_active = true;
             continue;
         }
 
@@ -160,20 +168,12 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             }
 
             // populate the item
-            if (!item) {
-                item = new NewickParserItem();
-            }
             if (ct->type() == kSymbol) {
                 // unquoted labels need to turn underscores into space
-                item->name = StringReplaceAll(ct->value(), "_", " ");
+                item->name_ = StringReplaceAll(ct->value(), "_", " ");
             } else {
-                item->name = ct->value();
+                item->name_ = ct->value();
             }
-            item->depth    = depth;
-            item->is_leaf |= IsLeaf(pt);
-
-            // set state
-            item_active = true;
             continue;
         }
 
@@ -190,15 +190,7 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             }
 
             // populate the item
-            if (!item) {
-                item = new NewickParserItem();
-            }
-            item->branch_length  = std::stod(ct->value());
-            item->depth          = depth;
-            item->is_leaf       |= IsLeaf(pt);
-
-            // set state
-            item_active = true;
+            item->branch_length_  = std::stod(ct->value());
             continue;
         }
 
@@ -219,15 +211,7 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             // current node/branch, thus we need to store it
 
             // populate the item
-            if (!item) {
-                item = new NewickParserItem();
-            }
-            item->depth    = depth;
-            item->is_leaf |= IsLeaf(pt);
-            item->tag     += ct->value();
-
-            // set state
-            item_active = true;
+            item->tag_     += ct->value();
             continue;
         }
 
@@ -248,15 +232,7 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             // current node/branch, thus we need to store it
 
             // populate the item
-            if (!item) {
-                item = new NewickParserItem();
-            }
-            item->depth    = depth;
-            item->is_leaf |= IsLeaf(pt);
-            item->comment += ct->value();
-
-            // set state
-            item_active = true;
+            item->comment_ += ct->value();
             continue;
         }
 
@@ -274,23 +250,15 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             }
 
             // populate the item
-            if (!item) {
-                item = new NewickParserItem();
-            }
-            item->is_leaf |= IsLeaf(pt);
-            if (item->name.empty()) {
-                if (item->is_leaf) {
-                    item->name = "Leaf Node";
+            if (item->name_.empty()) {
+                if (item->is_leaf_) {
+                    item->name_ = "Leaf Node";
                 } else {
-                    item->name = "Internal Node";
+                    item->name_ = "Internal Node";
                 }
             }
-            item->depth = depth;
             items_.push_back(item);
             item = nullptr;
-
-            // set state
-            item_active = false;
             continue;
         }
 
@@ -307,40 +275,23 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             }
 
             // populate the item
-            if (!item) {
-                item = new NewickParserItem();
-            }
-            if (item->name.empty()) {
-                item->name = "Root Node";
+            if (item->name_.empty()) {
+                item->name_ = "Root Node";
             }
             items_.push_back(item);
             item = nullptr;
-
-            // set state
-            item_active = false;
             break;
         }
 
         // if we reach this part of the code, all checkings for token types are done.
         // as we check for every type that NewickLexer yields, and we use a continue or break
         // in each of them, we should never reach this point, unless we forgot a type!
-        LOG_DBG << ct->TypeToStr() << " " << ct->value();
         assert(false);
     }
 
     if (depth != 0) {
         LOG_INFO << "Not enough closing parenthesis.";
         return false;
-    }
-
-    if (item_active) {
-        if (!item) {
-            item = new NewickParserItem();
-        }
-        if (item->name.empty()) {
-            item->name = "Root Node";
-        }
-        items_.push_back(item);
     }
 
     return true;
@@ -355,12 +306,13 @@ std::string NewickParser::Dump()
 {
     std::string out;
     for (NewickParserItem* item : items_) {
-        for (int i = 0; i < item->depth; ++i) {
+        for (int i = 0; i < item->depth_; ++i) {
             out += "    ";
         }
-        out += item->name + ":" + std::to_string(item->branch_length) + " [" + item->comment + "] {"
-            +  item->tag + "}";
-        out += item->is_leaf ? " (Leaf)\n" : "\n";
+        out += item->name_ + ":" + std::to_string(item->branch_length_)
+            + " [" + item->comment_ + "]"
+            + " {" + item->tag_ + "}"
+            + (item->is_leaf_ ? " (Leaf)\n" : "\n");
     }
     return out;
 }
