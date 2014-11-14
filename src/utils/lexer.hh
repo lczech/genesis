@@ -196,6 +196,10 @@ private:
  * possible, but will only be able to find numbers as well as symbols consisting
  * of consecutive letters. In order to make use of other semantics like
  * comments, strings, operators etc, it has to be derived.
+ *
+ * When doing so, have a look at Process() to learn about how this class works.
+ * Also, see SetCharType() for more information on how to change which characters
+ * are interpreted as which type of token.
  */
 class Lexer
 {
@@ -368,6 +372,12 @@ public:
      * (for example, within a number).
      */
     // TODO make the option strip_comments available
+    // one way to do so is to scan including comments, and after the scanning,
+    // loop over the result, and merge each comment (and adjacent comments also)
+    // with its surrounding tokens (one to the left and one to the right) into
+    // one new token (probably mostly with the same type as the left token).
+    // e.g.:     some_token comment_a comment_b other_token
+    // become:   some_tokenother_token
     //~ bool strip_comments = false;
 
     /**
@@ -427,7 +437,7 @@ public:
      * around `"Hello World"`.
      *
      * The type of quotation marks used here depends on which chars are set
-     * to LexerTokenType kString using SetCharType. See ScanString for more.
+     * to LexerTokenType kString using SetCharType(). See ScanString() for more.
      */
     bool use_string_doubled_quotes = false;
 
@@ -530,7 +540,20 @@ protected:
      * This function takes a token type and a list of characters in form of a
      * string and sets the char type for each of them to the given type.
      * This type will be used by the standard implementation of Process() to
-     * determine the correct scanner for a token (see Process for more on that).
+     * determine the correct scanner for a token (see Process() for more on that).
+     *
+     * If this class is derived, the derived constructor will typically this
+     * function in order to set the particular chars needed for the concrete
+     * lexer to process its text. For example, it might set "[]" as comment
+     * chars and so on.
+     *
+     * Following chars are particularly interesting to consider:
+     *
+     *     ! " # $ % & ' ( ) * + , - . / : ; < = > ? @ [ \ ] ^ _ ` { | } ~
+     *
+     * This is a superset of the C graphical characters and contains all ASCII
+     * chars that are on a standard keyboard layout. See start_char_table_
+     * for their ASCII representation.
      */
     inline void SetCharType (const LexerTokenType type, std::string chars)
     {
