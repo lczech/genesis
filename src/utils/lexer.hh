@@ -81,16 +81,22 @@ std::string LexerTokenTypeToStr (const LexerTokenType t);
  *
  *        + - * / < > ? ! ^ = % & | , : ;
  *
- * 6. **Tag**: A character denoting a tag, e.g. `<>` for xml. Always a single
- *    tag character per token.
+ * 6. **Tag**: A token denoting a tag, e.g. `<>` for xml. In such cases, it
+ *    might be neccessary to to an extra lexing step for the inner part,
+ *    using a different lexer class specialized for that purpose.
  *
  * Furthermore, there are token types marking whitespaces and comments, which
  * are included when the corresponding options are set in the Lexer class.
  *
- * The distinction between brackets, operators and tags is arbitrary (although
- * operators can appear in sequences like `+=`, while brackets and tags are
- * always contained in a separate token per character). The distinction is meant
- * to help writing better parsers with higher semantic readability.
+ * The distinction between the types is arbitrary. It simply is the naming for
+ * for most typical situations encountered in lexing. The distinction is meant
+ * to help writing better parsers with higher semantic readability. Any deriving
+ * class can assign completely different meaning to the names by implementing
+ * a different behaviour (although that is not recommended).
+ *
+ * If there is need for more types in the future, the enum, the default
+ * implementation of Lexer::Process() and some other places have to be adapted
+ * accordingly.
  *
  * In case of an error while processing the input, an error token is produced
  * which contains the location of the error.
@@ -129,34 +135,25 @@ public:
     /**
      * @brief Returns whether this token is a given type of bracket.
      *
-     * Usage: `token.IsBracket(')')` will return true if this token is
+     * Usage: `token.IsBracket(")")` will return true if this token is
      * of LexerTokenType kBracket and if it is the closing parenthesis.
+     * This is a shortcut for testing type and value at the same time.
      */
-    inline bool IsBracket(const char c) const
+    inline bool IsBracket(const std::string br) const
     {
-        return type_ == kBracket && value_[0] == c;
+        return (type_ == kBracket) && (value_.compare(br) == 0);
     }
 
     /**
      * @brief Returns whether this token is a given type of operator.
      *
-     * Usage: `token.IsOperator('%')` will return true if this token is
+     * Usage: `token.IsOperator("%")` will return true if this token is
      * of LexerTokenType kOperator and if it is the modulo operator.
+     * This is a shortcut for testing type and value at the same time.
      */
-    inline bool IsOperator(const char c) const
+    inline bool IsOperator(const std::string op) const
     {
-        return type_ == kOperator && value_[0] == c;
-    }
-
-    /**
-     * @brief Returns whether this token is a given type of tag.
-     *
-     * Usage: `token.IsTag('<')` will return true if this token is
-     * of LexerTokenType kTag and if it is the opening xml tag.
-     */
-    inline bool IsTag(const char c) const
-    {
-        return type_ == kTag && value_[0] == c;
+        return (type_ == kOperator) && (value_.compare(op) == 0);
     }
 
     /**
@@ -196,6 +193,10 @@ private:
  * possible, but will only be able to find numbers as well as symbols consisting
  * of consecutive letters. In order to make use of other semantics like
  * comments, strings, operators etc, it has to be derived.
+ *
+ * When doing so, have a look at Process() to learn about how this class works.
+ * Also, see SetCharType() for more information on how to change which characters
+ * are interpreted as which type of token.
  */
 class Lexer
 {
@@ -368,6 +369,12 @@ public:
      * (for example, within a number).
      */
     // TODO make the option strip_comments available
+    // one way to do so is to scan including comments, and after the scanning,
+    // loop over the result, and merge each comment (and adjacent comments also)
+    // with its surrounding tokens (one to the left and one to the right) into
+    // one new token (probably mostly with the same type as the left token).
+    // e.g.:     some_token comment_a comment_b other_token
+    // become:   some_tokenother_token
     //~ bool strip_comments = false;
 
     /**
@@ -427,7 +434,7 @@ public:
      * around `"Hello World"`.
      *
      * The type of quotation marks used here depends on which chars are set
-     * to LexerTokenType kString using SetCharType. See ScanString for more.
+     * to LexerTokenType kString using SetCharType(). See ScanString() for more.
      */
     bool use_string_doubled_quotes = false;
 
@@ -530,7 +537,20 @@ protected:
      * This function takes a token type and a list of characters in form of a
      * string and sets the char type for each of them to the given type.
      * This type will be used by the standard implementation of Process() to
-     * determine the correct scanner for a token (see Process for more on that).
+     * determine the correct scanner for a token (see Process() for more on that).
+     *
+     * If this class is derived, the derived constructor will typically this
+     * function in order to set the particular chars needed for the concrete
+     * lexer to process its text. For example, it might set "[]" as comment
+     * chars and so on.
+     *
+     * Following chars are particularly interesting to consider:
+     *
+     *     ! " # $ % & ' ( ) * + , - . / : ; < = > ? @ [ \ ] ^ _ ` { | } ~
+     *
+     * This is a superset of the C graphical characters and contains all ASCII
+     * chars that are on a standard keyboard layout. See start_char_table_
+     * for their ASCII representation.
      */
     inline void SetCharType (const LexerTokenType type, std::string chars)
     {

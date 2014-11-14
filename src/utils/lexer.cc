@@ -88,12 +88,19 @@ bool Lexer::Process(const std::string& text)
         // scan arbitrary amount of interleaved whitespace and comments
         while (ScanWhitespace() || ScanComment()) continue;
 
+        // check if whitespace or comment scanner yielded an error
+        if (!tokens_.empty() && tokens_.back().type() == kError) {
+            return false;
+        }
+
+        // check if it is an error char
         LexerTokenType t = GetCharType();
         if (t == kError) {
             PushToken(kError, GetPosition(), "Invalid character.");
             return false;
         }
 
+        // start the actual scanners depending on the first char
         switch (t) {
             case kSymbol:
                 ScanSymbol();
@@ -116,6 +123,16 @@ bool Lexer::Process(const std::string& text)
             case kUnknown:
                 ScanUnknown();
                 break;
+
+            case kWhite:
+            case kComment:
+                // this case happens if ScanWhitespace or ScanComment are wrongly
+                // implemented in a derived class, so that they return false
+                // although they should scan something or create an error token.
+                // this is particularly the case when ScanComment does not create
+                // an error token when a close-comment-char appears without a
+                // open-comment-char first, e.g. "]".
+                assert(false);
             case kError:
                 break;
             default:
@@ -124,6 +141,7 @@ bool Lexer::Process(const std::string& text)
                 assert(false);
         }
 
+        // check if the scanners produced an error
         if (tokens_.empty()) {
             return true;
         } else if (tokens_.back().type() == kError) {
@@ -242,17 +260,8 @@ inline bool Lexer::ScanWhitespace()
  * @brief Scans for comments in different formats.
  *
  * In the base class, this functions simply returns false. In order to scan for
- * actual comments, it has to be overridden. A typical implementation might
- * look like this:
- *
- *     size_t start = GetPosition();
- *     bool   found = ScanFromTo("[", "]") || ScanFromTo("#", "\n");
- *     if (found && include_comments) {
- *         PushToken(kComment, start, GetPosition());
- *     }
- *     return found;
- *
- * This scans for comments in square brackets or those starting with a hash tag.
+ * actual comments, it has to be overridden. A typical implementation can be
+ * found in NewickLexer::ScanComment().
  */
 inline bool Lexer::ScanComment()
 {
@@ -294,7 +303,10 @@ inline bool Lexer::ScanNumber()
     size_t start   = GetPosition();
     bool   found_d = false; // found a dot
     bool   found_e = false; // found the letter e
-    bool   err     = false; // encountered an error while scanning
+
+    // encountered an error while scanning. this happens if we reach the end
+    // of the number before seeing any number content (digit, dot, etc)
+    bool   err     = false;
 
     // scan
     while(!IsEnd()) {
@@ -307,21 +319,21 @@ inline bool Lexer::ScanNumber()
                 found_d
                 || IsEnd(+1) || !CharIsDigit(GetChar(+1))
             ) {
-                // err = true;
                 break;
             }
             found_d = true;
         } else if (CharMatch(GetChar(), 'e')) {
             // do not allow more than one e (treat the second one as the end of
             // the number and stop scannning).
-            // also, require a number or sign after the first e. if not, treat
-            // it also as the end of the number and stop scanning
+            // also, require a number or sign before and after the first e. if not,
+            // treat it also as the end of the number and stop scanning
             if (
                 found_e
+                || GetPosition() > 0 || !CharIsDigit(GetChar(-1))
                 || IsEnd(+1)
                 || (!CharIsDigit(GetChar(+1)) && !CharIsSign(GetChar(+1)))
             ) {
-                // err = true;
+                err = (GetPosition() == start);
                 break;
             }
             found_e = true;
@@ -341,10 +353,11 @@ inline bool Lexer::ScanNumber()
                     && !IsEnd(+1) && CharIsDigit(GetChar(+1))
                 )
             ) {
-                // err = true;
+                err = (GetPosition() == start);
                 break;
             }
         } else {
+            err = (GetPosition() == start);
             break;
         }
         NextChar();
@@ -352,8 +365,6 @@ inline bool Lexer::ScanNumber()
 
     // create result
     if (err) {
-        // in the current configuration, there are no errors, so this
-        // will never be executed
         PushToken(kError, GetPosition(), "Malformed number.");
         return false;
     } else {
@@ -509,15 +520,27 @@ inline bool Lexer::ScanBracket()
 }
 
 /**
- * @brief Scans a single tag char.
+ * @brief Scans a tag.
  *
- * Returns true.
+ * Tags can be anything from a single char to a complete string that has to
+ * be processed further. It might be neccessary to run a second lexer step using
+ * another lexer class on the inner part of the tag, for example when scanning
+ * xml text:
+ *
+ *     <tag key1="x" key2-="y">
+ *
+ * may result as one tag (with or without the enclosing <>, depending on the
+ * specific implementation and needs). Then, a second lexer can decompose this into
+ *
+ *     tag key1 = x key2 = y
+ *
+ * In the base class, this functions simply returns false. In order to scan for
+ * actual comments, it has to be overridden. A typical implementation can be
+ * found in NewickLexer::ScanComment().
  */
 inline bool Lexer::ScanTag()
 {
-    PushToken(kTag, GetPosition(), GetPosition()+1);
-    NextChar();
-    return true;
+    return false;
 }
 
 // =============================================================================

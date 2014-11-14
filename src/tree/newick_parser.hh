@@ -47,6 +47,9 @@ public:
 
     /** @brief An arbitrary string that can be attached to a node in Newick format via "{}". */
     std::string tag;
+
+    /** @brief An arbitrary string that can be attached to a node in Newick format via "[]". */
+    std::string comment;
 };
 
 // =============================================================================
@@ -60,7 +63,8 @@ public:
 
     ~NewickParser();
 
-    bool Process (const NewickLexer& lexer);
+    bool Process       (const NewickLexer& lexer);
+    bool MakeParseTree (const NewickLexer& lexer);
     std::string Dump();
 
     inline void clear()
