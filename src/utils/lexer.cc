@@ -260,24 +260,8 @@ inline bool Lexer::ScanWhitespace()
  * @brief Scans for comments in different formats.
  *
  * In the base class, this functions simply returns false. In order to scan for
- * actual comments, it has to be overridden. A typical implementation might
- * look like this:
- *
- *     inline bool ScanComment()
- *     {
- *         if (GetChar() == ']') {
- *             PushToken(kError, GetPosition(), "Malformed comment.");
- *             return false;
- *         }
- *         size_t start = GetPosition();
- *         bool   found = ScanFromTo("[", "]") || ScanFromTo("#", "\n");
- *         if (found && include_comments) {
- *             PushToken(kComment, start, GetPosition());
- *         }
- *         return found;
- *     }
- *
- * This scans for comments in square brackets or those starting with a hash tag.
+ * actual comments, it has to be overridden. A typical implementation can be
+ * found in NewickLexer::ScanComment().
  */
 inline bool Lexer::ScanComment()
 {
@@ -536,15 +520,27 @@ inline bool Lexer::ScanBracket()
 }
 
 /**
- * @brief Scans a single tag char.
+ * @brief Scans a tag.
  *
- * Returns true.
+ * Tags can be anything from a single char to a complete string that has to
+ * be processed further. It might be neccessary to run a second lexer step using
+ * another lexer class on the inner part of the tag, for example when scanning
+ * xml text:
+ *
+ *     <tag key1="x" key2-="y">
+ *
+ * may result as one tag (with or without the enclosing <>, depending on the
+ * specific implementation and needs). Then, a second lexer can decompose this into
+ *
+ *     tag key1 = x key2 = y
+ *
+ * In the base class, this functions simply returns false. In order to scan for
+ * actual comments, it has to be overridden. A typical implementation can be
+ * found in NewickLexer::ScanComment().
  */
 inline bool Lexer::ScanTag()
 {
-    PushToken(kTag, GetPosition(), GetPosition()+1);
-    NextChar();
-    return true;
+    return false;
 }
 
 // =============================================================================

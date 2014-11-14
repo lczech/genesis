@@ -81,16 +81,22 @@ std::string LexerTokenTypeToStr (const LexerTokenType t);
  *
  *        + - * / < > ? ! ^ = % & | , : ;
  *
- * 6. **Tag**: A character denoting a tag, e.g. `<>` for xml. Always a single
- *    tag character per token.
+ * 6. **Tag**: A token denoting a tag, e.g. `<>` for xml. In such cases, it
+ *    might be neccessary to to an extra lexing step for the inner part,
+ *    using a different lexer class specialized for that purpose.
  *
  * Furthermore, there are token types marking whitespaces and comments, which
  * are included when the corresponding options are set in the Lexer class.
  *
- * The distinction between brackets, operators and tags is arbitrary (although
- * operators can appear in sequences like `+=`, while brackets and tags are
- * always contained in a separate token per character). The distinction is meant
- * to help writing better parsers with higher semantic readability.
+ * The distinction between the types is arbitrary. It simply is the naming for
+ * for most typical situations encountered in lexing. The distinction is meant
+ * to help writing better parsers with higher semantic readability. Any deriving
+ * class can assign completely different meaning to the names by implementing
+ * a different behaviour (although that is not recommended).
+ *
+ * If there is need for more types in the future, the enum, the default
+ * implementation of Lexer::Process() and some other places have to be adapted
+ * accordingly.
  *
  * In case of an error while processing the input, an error token is produced
  * which contains the location of the error.
