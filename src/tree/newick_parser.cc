@@ -193,7 +193,7 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             }
 
             // populate the item
-            item->branch_length_  = std::stod(ct->value());
+            item->branch_length_ = std::stod(ct->value());
             continue;
         }
 
@@ -214,7 +214,7 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             // current node/branch, thus we need to store it
 
             // populate the item
-            item->tag_     += ct->value();
+            item->tag_ += ct->value();
             continue;
         }
 
@@ -302,11 +302,12 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
         return false;
     }
 
-    if (!ct->IsOperator(";")) {
+    if (ct == lexer.end() || !ct->IsOperator(";")) {
         LOG_INFO << "Tree does not finish with a semicolon.";
         return false;
     }
 
+    // skip the semicolon, then see if there is anything other than a comment left
     ++ct;
     while (ct != lexer.end() && ct->type() == kComment) {
         ++ct;
@@ -331,9 +332,10 @@ std::string NewickParser::Dump()
         for (int i = 0; i < item->depth_; ++i) {
             out += "    ";
         }
-        out += item->name_ + ":" + std::to_string(item->branch_length_)
-            + " [" + item->comment_ + "]"
-            + " {" + item->tag_ + "}"
+        out += item->name_
+            + (item->branch_length_ != 0.0 ? ":" + std::to_string(item->branch_length_) : "")
+            + (!item->comment_.empty() ? " [" + item->comment_ + "]" : "")
+            + (!item->tag_.empty() ? " {" + item->tag_ + "}" : "")
             + (item->is_leaf_ ? " (Leaf)\n" : "\n");
     }
     return out;

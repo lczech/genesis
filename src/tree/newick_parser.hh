@@ -21,7 +21,7 @@ namespace genesis {
 
 struct NewickParserItem
 {
-    // NewickParser needs to set the values on the fly
+    // NewickParser needs to set the values on the fly while parsing the tokens
     friend class NewickParser;
 
 public:
