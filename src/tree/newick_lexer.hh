@@ -20,9 +20,9 @@ public:
     NewickLexer() {
         // set the special chars for newick trees
         SetCharType (kComment,  "[]");
-        SetCharType (kOperator, ",;");
-        SetCharType (kBracket,  "()");
         SetCharType (kTag,      "{}");
+        SetCharType (kBracket,  "()");
+        SetCharType (kOperator, ",;");
 
         // we use symbols and strings the same way here: both are labels for nodes, the first begin
         // called unquoted_label, the second quoted_label.
