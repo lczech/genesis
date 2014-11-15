@@ -556,7 +556,7 @@ void Lexer::PushToken (const LexerTokenType t, const size_t start, const std::st
     // (first check LF, to handle CR+LF correctly)
     size_t bitr = start;
     while (
-        bitr > 0 && (text_[bitr-1] != '\n' || text_[bitr-1] != '\r')
+        (bitr > 0)  &&  (text_[bitr-1] != '\n')  &&  (text_[bitr-1] != '\r')
     ) {
         --bitr;
     }
