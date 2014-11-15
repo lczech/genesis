@@ -26,12 +26,15 @@
 *.exe
 *.out
 *.app
+core
+genesis
 
 # Dependencies
 *.d
 
 # Swap files
 *~
+*.swp
 
 # Misc
 *.geany
