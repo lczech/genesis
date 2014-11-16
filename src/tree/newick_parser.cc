@@ -43,6 +43,16 @@ bool NewickParser::Process (const NewickLexer& lexer)
     return true;
 }
 
+
+
+
+
+// TODO make TreeStack class instead of NewickParserItem array, call this func FillTreeStack or so and make it protected
+
+
+
+
+
 bool NewickParser::MakeParseTree (const NewickLexer& lexer)
 {
     // the item that is currently being populated with data
