@@ -553,10 +553,9 @@ inline bool Lexer::ScanTag()
 void Lexer::PushToken (const LexerTokenType t, const size_t start, const std::string value)
 {
     // find previous new line, we need it to tell the column
-    // (first check LF, to handle CR+LF correctly)
     size_t bitr = start;
     while (
-        bitr > 0 && (text_[bitr-1] != '\n' || text_[bitr-1] != '\r')
+        (bitr > 0)  &&  (text_[bitr-1] != '\n')  &&  (text_[bitr-1] != '\r')
     ) {
         --bitr;
     }
@@ -607,7 +606,7 @@ bool Lexer::ValidateBrackets()
 /**
  * @brief Returns a listing of the parse result in readable form.
  */
-std::string Lexer::Dump()
+void Lexer::Dump()
 {
     std::string res;
     for (size_t i = 0; i < tokens_.size(); i++) {
@@ -621,7 +620,7 @@ std::string Lexer::Dump()
         );
         res += out + t.value() + '\n';
     }
-    return res;
+    LOG_INFO << res;
 }
 
 std::string LexerTokenTypeToStr (const LexerTokenType t)

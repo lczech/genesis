@@ -15,38 +15,33 @@
 
 namespace genesis {
 
-bool NewickParser::Process (const NewickLexer& lexer)
+bool NewickParser::Process (const std::string& tree, TreeAgent* agent)
 {
-    // check boundary conditions
+    NewickLexer lexer;
+    lexer.Process(tree);
+    return Process(lexer, agent);
+}
+
+bool NewickParser::Process (const NewickLexer& lexer, TreeAgent* agent)
+{
     if (lexer.empty()) {
-        LOG_INFO << "Tree is empty.";
+        LOG_INFO << "Tree is empty. Nothing done.";
         return false;
     }
     if (lexer.HasError()) {
-        LOG_INFO << "Lexing error at " << lexer.back().at()
+        LOG_WARN << "Lexing error at " << lexer.back().at()
                  << " with message: " << lexer.back().value();
         return false;
     }
 
-    Init();
-    if (!MakeParseTree(lexer)) {
-        return false;
-    }
-
-    // TODO newick parsing now does not assign ranks to nodes (how many children they have).
-    // TODO this might become imporant in the future, eg to check if it is a binary tree.
-    // TODO add AssignRanks() (see PLL newick.c)
-    // TODO add Validate() (see PLL newick.c)
-    // TODO stops at the first semicolon. is that good? do we need to warn if there is more coming?
-    // TODO do we even need to parse the rest as a new tree?
-
-    return true;
+    agent->clear();
+    return FillTreeAgent(lexer, agent);
 }
 
-bool NewickParser::MakeParseTree (const NewickLexer& lexer)
+bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
 {
-    // the item that is currently being populated with data
-    NewickParserItem* item = nullptr;
+    // the node that is currently being populated with data
+    TreeAgentNode* node = nullptr;
 
     // how deep is the current token nested in the tree?
     int depth = 0;
@@ -73,6 +68,13 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
         //     is bracket '('  ==>  begin of subtree
         // ------------------------------------------------------
         if (ct->IsBracket("(")) {
+            if (pt != lexer.end() && !(
+                pt->IsBracket("(")  || pt->IsOperator(",") || pt->type() == kComment
+            )) {
+                error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
+                break;
+            }
+
             ++depth;
             continue;
         }
@@ -85,8 +87,6 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
         // have been called). so we have a token other than '(', which means we should already
         // be somewhere in the tree (or a comment). check, if that is true.
         if (ct == lexer.begin()) {
-            // we only skip comment in the very beginning, because later it might be used
-            // as a field for additional information, that we need to pass on!
             if (ct->type() == kComment) {
                 continue;
             }
@@ -99,17 +99,17 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
         // once), which means it now points to a valid token.
         assert(pt != lexer.end());
 
-        // set up the item that will be filled with data now.
+        // set up the node that will be filled with data now.
         // if it already exists, this means we are adding more information to it, e.g.
         // a branch length or a tag. so we do not need to create it.
-        // however, if this item does not exist, this means we saw a token before that finished an
-        // item and pushed it to the stack (either closing bracket or comma), so we need to create a
+        // however, if this node does not exist, this means we saw a token before that finished an
+        // node and pushed it to the stack (either closing bracket or comma), so we need to create a
         // new one here.
-        if (!item) {
-            item = new NewickParserItem();
-            item->depth_ = depth;
+        if (!node) {
+            node = new TreeAgentNode();
+            node->depth = depth;
 
-            // checks if the new item is a leaf.
+            // checks if the new node is a leaf.
             // for this, we need to check whether the previous token was an opening brackt or a
             // comma. however, as comments can appear everywhere, we need to check for the first
             // non-comment-token.
@@ -117,13 +117,7 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             while (t != lexer.begin() && t->type() == kComment) {
                 --t;
             }
-            item->is_leaf_ = t->IsBracket("(") || t->IsOperator(",");
-
-            // adjust the class-wide counters
-            if (item->is_leaf_) {
-                ++leaves_;
-            }
-            ++nodes_;
+            node->is_leaf = t->IsBracket("(") || t->IsOperator(",");
         }
 
         // ------------------------------------------------------
@@ -143,16 +137,16 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
                 break;
             }
 
-            // populate the item
-            if (item->name_.empty()) {
-                if (item->is_leaf_) {
-                    item->name_ = "Leaf Node";
+            // populate the node
+            if (node->name.empty()) {
+                if (node->is_leaf) {
+                    node->name = "Leaf Node";
                 } else {
-                    item->name_ = "Internal Node";
+                    node->name = "Internal Node";
                 }
             }
-            items_.push_back(item);
-            item = nullptr;
+            agent->push_back(node);
+            node = nullptr;
 
             --depth;
             continue;
@@ -170,12 +164,12 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
                 break;
             }
 
-            // populate the item
+            // populate the node
             if (ct->type() == kSymbol) {
                 // unquoted labels need to turn underscores into space
-                item->name_ = StringReplaceAll(ct->value(), "_", " ");
+                node->name = StringReplaceAll(ct->value(), "_", " ");
             } else {
-                item->name_ = ct->value();
+                node->name = ct->value();
             }
             continue;
         }
@@ -192,8 +186,8 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
                 break;
             }
 
-            // populate the item
-            item->branch_length_ = std::stod(ct->value());
+            // populate the node
+            node->branch_length = std::stod(ct->value());
             continue;
         }
 
@@ -213,8 +207,8 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             // tag. in some newick extensions this has a semantic meaning that belongs to the
             // current node/branch, thus we need to store it
 
-            // populate the item
-            item->tag_ += ct->value();
+            // populate the node
+            node->tag += ct->value();
             continue;
         }
 
@@ -234,8 +228,8 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
             // tag. in some newick extensions this has a semantic meaning that belongs to the
             // current node/branch, thus we need to store it
 
-            // populate the item
-            item->comment_ += ct->value();
+            // populate the node
+            node->comment += ct->value();
             continue;
         }
 
@@ -252,16 +246,16 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
                 break;
             }
 
-            // populate the item
-            if (item->name_.empty()) {
-                if (item->is_leaf_) {
-                    item->name_ = "Leaf Node";
+            // populate the node
+            if (node->name.empty()) {
+                if (node->is_leaf) {
+                    node->name = "Leaf Node";
                 } else {
-                    item->name_ = "Internal Node";
+                    node->name = "Internal Node";
                 }
             }
-            items_.push_back(item);
-            item = nullptr;
+            agent->push_back(node);
+            node = nullptr;
             continue;
         }
 
@@ -277,12 +271,12 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
                 break;
             }
 
-            // populate the item
-            if (item->name_.empty()) {
-                item->name_ = "Root Node";
+            // populate the node
+            if (node->name.empty()) {
+                node->name = "Root Node";
             }
-            items_.push_back(item);
-            item = nullptr;
+            agent->push_back(node);
+            node = nullptr;
             break;
         }
 
@@ -293,19 +287,23 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
     }
 
     if (!error.empty()) {
-        LOG_INFO << error;
+        LOG_WARN << error;
         return false;
     }
 
     if (depth != 0) {
-        LOG_INFO << "Not enough closing parenthesis.";
+        LOG_WARN << "Not enough closing parenthesis.";
         return false;
     }
 
     if (ct == lexer.end() || !ct->IsOperator(";")) {
-        LOG_INFO << "Tree does not finish with a semicolon.";
+        LOG_WARN << "Tree does not finish with a semicolon.";
         return false;
     }
+
+
+    // TODO we now stop at the first semicolon. is that good?
+    // TODO do we even need to parse the rest as a new tree?
 
     // skip the semicolon, then see if there is anything other than a comment left
     ++ct;
@@ -313,32 +311,11 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
         ++ct;
     }
     if (ct != lexer.end()) {
-        LOG_INFO << "Tree contains more data after the semicolon.";
+        LOG_WARN << "Tree contains more data after the semicolon.";
         return false;
     }
 
     return true;
-}
-
-NewickParser::~NewickParser()
-{
-    clear();
-}
-
-std::string NewickParser::Dump()
-{
-    std::string out;
-    for (NewickParserItem* item : items_) {
-        for (int i = 0; i < item->depth_; ++i) {
-            out += "    ";
-        }
-        out += item->name_
-            + (item->branch_length_ != 0.0 ? ":" + std::to_string(item->branch_length_) : "")
-            + (!item->comment_.empty() ? " [" + item->comment_ + "]" : "")
-            + (!item->tag_.empty() ? " {" + item->tag_ + "}" : "")
-            + (item->is_leaf_ ? " (Leaf)\n" : "\n");
-    }
-    return out;
 }
 
 }
