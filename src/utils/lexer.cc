@@ -93,6 +93,11 @@ bool Lexer::Process(const std::string& text)
             return false;
         }
 
+        // check if still not at end after whitespaces and comments
+        if (IsEnd()) {
+            break;
+        }
+
         // check if it is an error char
         LexerTokenType t = GetCharType();
         if (t == kError) {
@@ -466,10 +471,7 @@ inline bool Lexer::ScanString()
 }
 
 /**
- * @brief Scans a sequence of operators.
- *
- * This scanner continues as long as chars of type kOperator are found. If this
- * is not helpful for a derived class, it should be overridden.
+ * @brief Scans a single operators.
  *
  * If the operator is a sign and the next char in the text is a digit,
  * and glue_sign_to_number is set, we scan it as a number. For example, the
@@ -477,33 +479,24 @@ inline bool Lexer::ScanString()
  *
  *     a+=-3;
  *
- * will result in three tokens: Symbol "a", Operator "+=" and Number "-3".
+ * will result in four tokens: Symbol "a", Operators "+" and "=" and Number "-3",
+ * instead of five tokens with three consequtive operators.
+ *
+ * This allows to use signs (+-) as operator chars in cases where they are not
+ * followed by a number.
  */
 inline bool Lexer::ScanOperator()
 {
-    size_t start = GetPosition();
-    bool found_n = false; // we found the beginning of a number: (+-)[0-9]
-
-    while (!IsEnd() && GetCharType() == kOperator) {
-        // if the operator is a sign followed by a number, scan it as a number
-        if (
-            CharIsSign(GetChar()) && glue_sign_to_number &&
-            !IsEnd(+1) && CharIsDigit(GetChar(+1))
-        ) {
-            found_n = true;
-            break;
-        }
-        NextChar();
-    }
-
-    // if we found operator chars, push them
-    if (start != GetPosition()) {
-        PushToken(kOperator, start, GetPosition());
-    }
-    // if we found the beginning of a number, scan it
-    if (found_n) {
+    // if the operator is a sign followed by a number, scan it as a number
+    if (
+        CharIsSign(GetChar()) && glue_sign_to_number &&
+        !IsEnd(+1) && CharIsDigit(GetChar(+1))
+    ) {
         return ScanNumber();
     }
+
+    PushToken(kOperator, GetPosition(), GetPosition()+1);
+    NextChar();
     return true;
 }
 

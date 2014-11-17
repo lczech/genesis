@@ -5,11 +5,13 @@
  * @ingroup utils
  */
 
-#include "utils/logging.hh"
+#include "utils/utils.hh"
 
 #include <fstream>
 #include <streambuf>
 #include <string>
+
+#include "utils/logging.hh"
 
 namespace genesis {
 
