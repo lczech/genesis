@@ -606,7 +606,7 @@ bool Lexer::ValidateBrackets()
 /**
  * @brief Returns a listing of the parse result in readable form.
  */
-std::string Lexer::Dump()
+void Lexer::Dump()
 {
     std::string res;
     for (size_t i = 0; i < tokens_.size(); i++) {
@@ -620,7 +620,7 @@ std::string Lexer::Dump()
         );
         res += out + t.value() + '\n';
     }
-    return res;
+    LOG_INFO << res;
 }
 
 std::string LexerTokenTypeToStr (const LexerTokenType t)

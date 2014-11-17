@@ -24,15 +24,16 @@ void Tree::FromNewickFile (std::string fn)
 
 void Tree::FromNewickString (std::string tree)
 {
-    NewickLexer lexer;
-    lexer.Process(tree);
-    //~ LOG_INFO << lexer.Dump();
+    //~ NewickLexer lexer;
+    //~ lexer.Process(tree);
+    //~ lexer.Dump();
 
+    TreeAgent agent;
     NewickParser parser;
-    parser.Process(lexer);
-    LOG_INFO << parser.Dump();
-    LOG_INFO << "Nodes: " << parser.nodes() << ", Leaves: " << parser.leaves();
-    LOG_INFO;
+    parser.Process(tree, &agent);
+    agent.Dump();
+    //~ LOG_INFO << "Nodes: " << parser.nodes() << ", Leaves: " << parser.leaves();
+    //~ LOG_INFO;
 }
 
 } // namespace genesis

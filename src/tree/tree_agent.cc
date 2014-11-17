@@ -8,14 +8,42 @@
 #include "tree/tree_agent.hh"
 
 //~ #include <assert.h>
-//~ #include <string>
+#include <string>
 
-//~ #include "utils/logging.hh"
+#include "utils/logging.hh"
 //~ #include "utils/utils.hh"
 
-void TreeAgent::push_back (TreeStackNode* node)
-{
+namespace genesis {
 
+TreeAgent::~TreeAgent()
+{
+    clear();
+}
+
+void TreeAgent::clear()
+{
+    for (TreeAgentNode* node : stack_) {
+        delete node;
+    }
+    stack_.clear();
+}
+
+void TreeAgent::Dump()
+{
+    std::string out;
+    out += "Tree contains " + std::to_string(NodeCount()) + " nodes (thereof "
+        + std::to_string(LeafCount()) + " leaves):" + "\n";
+    for (TreeAgentNode* node : stack_) {
+        for (int i = 0; i < node->depth; ++i) {
+            out += "    ";
+        }
+        out += node->name
+            + (node->branch_length != 0.0 ? ":" + std::to_string(node->branch_length) : "")
+            + (!node->comment.empty() ? " [" + node->comment + "]" : "")
+            + (!node->tag.empty() ? " {" + node->tag + "}" : "")
+            + (node->is_leaf ? " (Leaf)\n" : "\n");
+    }
+    LOG_INFO << out;
 }
 
 /**
@@ -27,7 +55,7 @@ void TreeAgent::push_back (TreeStackNode* node)
 int TreeAgent::LeafCount()
 {
     int sum = 0;
-    for (TreeStackNode* node : stack_) {
+    for (TreeAgentNode* node : stack_) {
         if (node->is_leaf) {
             ++sum;
         }
@@ -35,11 +63,4 @@ int TreeAgent::LeafCount()
     return sum;
 }
 
-void TreeAgent::clear()
-{
-    for (TreeAgentNode* item : items_) {
-        delete item;
-    }
-    items_.clear();
-    nodes_ = leaves_ = 0;
-}
+} // namespace genesis
