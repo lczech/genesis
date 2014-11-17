@@ -93,6 +93,11 @@ bool Lexer::Process(const std::string& text)
             return false;
         }
 
+        // check if still not at end after whitespaces and comments
+        if (IsEnd()) {
+            break;
+        }
+
         // check if it is an error char
         LexerTokenType t = GetCharType();
         if (t == kError) {
