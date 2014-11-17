@@ -83,6 +83,13 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
         //     is bracket '('  ==>  begin of subtree
         // ------------------------------------------------------
         if (ct->IsBracket("(")) {
+            if (pt != lexer.end() && !(
+                pt->IsBracket("(")  || pt->IsOperator(",") || pt->type() == kComment
+            )) {
+                error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
+                break;
+            }
+
             ++depth;
             continue;
         }
@@ -95,8 +102,6 @@ bool NewickParser::MakeParseTree (const NewickLexer& lexer)
         // have been called). so we have a token other than '(', which means we should already
         // be somewhere in the tree (or a comment). check, if that is true.
         if (ct == lexer.begin()) {
-            // we only skip comment in the very beginning, because later it might be used
-            // as a field for additional information, that we need to pass on!
             if (ct->type() == kComment) {
                 continue;
             }
