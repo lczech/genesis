@@ -10,8 +10,8 @@
 #include <iostream>
 #include <string>
 
-#include "placement/jplace_lexer.hh"
 #include "tree/tree.hh"
+#include "utils/json_lexer.hh"
 #include "utils/logging.hh"
 #include "utils/utils.hh"
 
@@ -66,7 +66,7 @@ int main (int argc, char* argv[])
     //~ LOG_INFO << "a tree rooted on a leaf node (rare): ((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;";
     //~ tree.FromNewickString("((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;");
 
-    JplaceLexer lex;
+    JsonLexer lex;
     lex.Process(ReadFile("data/placement.jplace"));
     lex.Dump();
 

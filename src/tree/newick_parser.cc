@@ -22,6 +22,10 @@ bool NewickParser::Process (const std::string& tree, TreeAgent* agent)
     return Process(lexer, agent);
 }
 
+// TODO do a validate brackets first?!
+// TODO what happens if a tree's nested brackets fully close to depth 0, then open again
+// TODO without semicolon like (...)(...); ? do we need to check for this?
+
 bool NewickParser::Process (const NewickLexer& lexer, TreeAgent* agent)
 {
     if (lexer.empty()) {
@@ -300,7 +304,6 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
         LOG_WARN << "Tree does not finish with a semicolon.";
         return false;
     }
-
 
     // TODO we now stop at the first semicolon. is that good?
     // TODO do we even need to parse the rest as a new tree?
