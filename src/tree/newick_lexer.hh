@@ -80,13 +80,6 @@ protected:
         return Lexer::ScanNumber();
     }
 
-    inline bool ScanOperator()
-    {
-        PushToken(kOperator, GetPosition(), GetPosition()+1);
-        NextChar();
-        return true;
-    }
-
     inline bool ScanTag()
     {
         if (GetChar() == '}') {
