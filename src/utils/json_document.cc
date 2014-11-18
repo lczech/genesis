@@ -25,11 +25,11 @@ std::string JsonValueArray::ToString()
     ss << "[ ";
 
     bool first = true;
-    for (JsonValue& v : value) {
+    for (JsonValue* v : value) {
         if (!first) {
             ss << ", ";
         }
-        ss << v.ToString();
+        ss << v->ToString();
         first = false;
     }
 

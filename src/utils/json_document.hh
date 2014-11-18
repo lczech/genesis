@@ -12,6 +12,7 @@
 #include <iomanip>
 #include <sstream>
 #include <string>
+#include <unordered_map>
 
 namespace genesis {
 
@@ -52,6 +53,14 @@ public:
     {
         return TypeToString(type_);
     }
+
+    //~ inline JsonValueNumber ToNumber()
+    //~ {
+        //~ if (type_ == kNumber) {
+            //~ return static_cast<JsonValueNumber> this;
+        //~ }
+        //~ return new JsonValueNumber;
+    //~ }
 
     virtual std::string ToString() = 0;
 
@@ -164,7 +173,7 @@ public:
 
     std::string ToString();
 
-    std::deque<JsonValue> value;
+    std::deque<JsonValue*> value;
 };
 
 // =============================================================================
@@ -180,10 +189,9 @@ public:
 
     void clear();
 
-    void AddValue (std::string name, JsonValue& value);
+    void AddValue (std::string name, JsonValue* value);
 
-private:
-
+    std::unordered_map<std::string, JsonValue*> value;
 };
 
 // =============================================================================
