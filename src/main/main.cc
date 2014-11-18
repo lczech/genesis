@@ -71,6 +71,8 @@ int main (int argc, char* argv[])
     lex.Process(ReadFile("data/placement.jplace"));
     lex.Dump();
 
+    JsonDocument doc;
+
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {
         std::cout << argv[i];

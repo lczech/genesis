@@ -41,7 +41,7 @@ namespace genesis {
  *     if (!l.Process("tree(some:0.5,items:0.3);")) {
  *         LexerToken b = l.back();
  *         std::cout
- *             << b.TypeToStr()
+ *             << b.TypeToString()
  *             << " at " << b.line() << ":" << b.column()
  *             << " with message " << b.value() << std::endl;
  *     }
@@ -612,7 +612,7 @@ void Lexer::Dump()
             static_cast<unsigned int>(i),
             static_cast<unsigned int>(t.line()),
             static_cast<unsigned int>(t.column()),
-            t.TypeToStr().c_str()
+            t.TypeToString().c_str()
         );
         res += out + t.value() + '\n';
     }

@@ -45,7 +45,7 @@ enum class LexerType {
 };
 
 /** @brief Converts a LexerType into its string representation. */
-inline std::string LexerTypeToStr (const LexerType t)
+inline std::string LexerTypeToString (const LexerType t)
 {
     switch (t) {
         case LexerType::kError    : return "Error";
@@ -184,9 +184,9 @@ public:
      * @brief Returns the string representation for the LexerType of
      * this token.
      */
-    inline std::string TypeToStr() const
+    inline std::string TypeToString() const
     {
-        return LexerTypeToStr(type_);
+        return LexerTypeToString(type_);
     }
 
 private:
