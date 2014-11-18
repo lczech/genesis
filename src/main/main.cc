@@ -11,6 +11,7 @@
 #include <string>
 
 #include "tree/tree.hh"
+#include "utils/json_document.hh"
 #include "utils/json_lexer.hh"
 #include "utils/logging.hh"
 #include "utils/utils.hh"
@@ -69,6 +70,8 @@ int main (int argc, char* argv[])
     JsonLexer lex;
     lex.Process(ReadFile("data/placement.jplace"));
     lex.Dump();
+
+    JsonDocument doc;
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {
