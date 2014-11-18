@@ -98,7 +98,7 @@ bool Lexer::Process(const std::string& text)
             break;
         }
 
-        // check if it is an error char
+        // check if current char is an error char
         LexerType t = GetCharType();
         if (t == LexerType::kError) {
             PushToken(LexerType::kError, GetPosition(), "Invalid character.");
@@ -139,7 +139,8 @@ bool Lexer::Process(const std::string& text)
                 // open-comment-char first, e.g. "]".
                 assert(false);
             case LexerType::kError:
-                break;
+                // this cannot happen, as we already covered the case before the switch
+                assert(false);
             default:
                 // this case only happens if someone added a new element to the enum.
                 // make sure that we do not forget to include it in this switch!
@@ -439,7 +440,9 @@ inline bool Lexer::ScanString()
     // reached end of text before ending quotation mark.
     // we need to check jump here, because an escape sequence or doubled quote mark
     // (those are the situations when jump=true) can look like the string ending,
-    // but actually isn't.
+    // but actually isn't. this means, if jump is true, we left the loop right after such a case
+    // (escape sequence or doubled qmark), and are now at the end of the text, without having
+    // seen the end qmark. e.g.: "hello world\"
     if (jump || (IsEnd() && !(GetChar(-1) == qmark))) {
         PushToken(LexerType::kError, start-1, "Malformed string.");
         return false;

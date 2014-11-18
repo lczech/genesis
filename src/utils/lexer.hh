@@ -113,6 +113,11 @@ inline std::string LexerTypeToStr (const LexerType t)
  * class can assign completely different meaning to the names by implementing
  * a different behaviour (although that is not recommended).
  *
+ * Most importantly, as the distinction between types is only on a semantic
+ * level, it does not affect the type of the stored data. All token values are
+ * stored as strings -- upstream analysis like parsers then have to convert it
+ * to a proper type for further use (e.g. in case of numbers).
+ *
  * If there is need for more types in the future, the enum, the default
  * implementation of Lexer::Process() and some other places have to be adapted
  * accordingly.

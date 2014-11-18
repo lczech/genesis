@@ -11,6 +11,7 @@
 #include <string>
 
 #include "tree/tree.hh"
+#include "utils/json_document.hh"
 #include "utils/json_lexer.hh"
 #include "utils/logging.hh"
 #include "utils/utils.hh"
