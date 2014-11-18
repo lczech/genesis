@@ -19,24 +19,24 @@ class NewickLexer : public Lexer
 public:
     NewickLexer() {
         // set the special chars for newick trees
-        SetCharType (kComment,  "[]");
-        SetCharType (kTag,      "{}");
-        SetCharType (kBracket,  "()");
-        SetCharType (kOperator, ",;");
+        SetCharType (LexerType::kComment,  "[]");
+        SetCharType (LexerType::kTag,      "{}");
+        SetCharType (LexerType::kBracket,  "()");
+        SetCharType (LexerType::kOperator, ",;");
 
         // we use symbols and strings the same way here: both are labels for nodes, the first begin
         // called unquoted_label, the second quoted_label.
-        SetCharType (kString,   "'");
+        SetCharType (LexerType::kString,   "'");
 
         // the only numbers in newick are branch lengths, which are always introduced by a leading
         // colon, so we need only this here as starter for a number.
-        SetCharType (kNumber,   ":");
+        SetCharType (LexerType::kNumber,   ":");
 
         // this also allows (in accordance to the newick standard) to start a label with a digit.
-        SetCharType (kSymbol,   "0123456789");
+        SetCharType (LexerType::kSymbol,   "0123456789");
 
         // furthermore, set all remaining graphic chars to symbol so that they can be in a label.
-        SetCharType (kSymbol,   "!\"#$%&*+-./<=>?@\\^_`|~");
+        SetCharType (LexerType::kSymbol,   "!\"#$%&*+-./<=>?@\\^_`|~");
 
         // set the flags as needed
         include_whitespace        = false;
@@ -54,17 +54,17 @@ protected:
     inline bool ScanComment()
     {
         if (GetChar() == ']') {
-            PushToken(kError, GetPosition(), "Closing comment without opening it.");
+            PushToken(LexerType::kError, GetPosition(), "Closing comment without opening it.");
             return false;
         }
         size_t start = GetPosition();
         bool   found = ScanFromTo("[", "]");
         if (!found && GetChar() == '[') {
-            PushToken(kError, GetPosition(), "Comment not closed.");
+            PushToken(LexerType::kError, GetPosition(), "Comment not closed.");
             return false;
         }
         if (found && include_comments) {
-            PushToken(kComment, start+1, GetPosition()-1);
+            PushToken(LexerType::kComment, start+1, GetPosition()-1);
         }
         return found;
     }
@@ -83,17 +83,17 @@ protected:
     inline bool ScanTag()
     {
         if (GetChar() == '}') {
-            PushToken(kError, GetPosition(), "Closing tag without opening tag.");
+            PushToken(LexerType::kError, GetPosition(), "Closing tag without opening tag.");
             return false;
         }
         size_t start = GetPosition();
         bool   found = ScanFromTo("{", "}");
         if (!found) {
-            PushToken(kError, start, "Opening tag without closing tag.");
+            PushToken(LexerType::kError, start, "Opening tag without closing tag.");
             return false;
         }
         if (include_tags) {
-            PushToken(kTag, start+1, GetPosition()-1);
+            PushToken(LexerType::kTag, start+1, GetPosition()-1);
         }
         return true;
     }

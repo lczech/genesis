@@ -30,7 +30,7 @@ inline bool CharIsSign (const char c)
 }
 
 /** @brief Enum for the different types of LexerToken. */
-enum LexerTokenType {
+enum class LexerType {
     kError,
     kUnknown,
     kWhite,
@@ -44,8 +44,27 @@ enum LexerTokenType {
     kEOF
 };
 
-/** @brief Converts a LexerTokenType into its string representation. */
-std::string LexerTokenTypeToStr (const LexerTokenType t);
+/** @brief Converts a LexerType into its string representation. */
+inline std::string LexerTypeToStr (const LexerType t)
+{
+    switch (t) {
+        case LexerType::kError    : return "Error";
+        case LexerType::kUnknown  : return "Unknown";
+
+        case LexerType::kWhite    : return "Whitespace";
+        case LexerType::kComment  : return "Comment";
+        case LexerType::kSymbol   : return "Symbol";
+        case LexerType::kNumber   : return "Number";
+        case LexerType::kString   : return "String";
+        case LexerType::kBracket  : return "Bracket";
+        case LexerType::kOperator : return "Operator";
+        case LexerType::kTag      : return "Tag";
+
+        case LexerType::kEOF      : return "EOF";
+        default                   : return "Unknown";
+    }
+}
+
 
 // =============================================================================
 //     LexerToken
@@ -109,16 +128,16 @@ public:
      */
     inline LexerToken
     (
-        const LexerTokenType t, const int         l,
+        const LexerType t, const int         l,
         const int            c, const std::string v
     ) :
         type_(t), line_(l), column_(c), value_(v)
     {};
 
     /**
-     * @brief Getter for the LexerTokenType of this token.
+     * @brief Getter for the LexerType of this token.
      */
-    inline LexerTokenType type() const {return type_;};
+    inline LexerType type() const {return type_;};
 
     /** @brief Getter for the line where this token occured. */
     inline size_t line() const {return line_;};
@@ -130,43 +149,43 @@ public:
     inline std::string value() const {return value_;};
 
     /** @brief Shortcut that returns "line:column" (e.g., for logging). */
-    inline std::string at() const {return std::to_string(line_)+":"+std::to_string(column_);};
+    inline std::string at() const {return std::to_string(line_) + ":" + std::to_string(column_);};
 
     /**
      * @brief Returns whether this token is a given type of bracket.
      *
      * Usage: `token.IsBracket(")")` will return true if this token is
-     * of LexerTokenType kBracket and if it is the closing parenthesis.
+     * of LexerType kBracket and if it is the closing parenthesis.
      * This is a shortcut for testing type and value at the same time.
      */
     inline bool IsBracket(const std::string br) const
     {
-        return (type_ == kBracket) && (value_.compare(br) == 0);
+        return (type_ == LexerType::kBracket) && (value_.compare(br) == 0);
     }
 
     /**
      * @brief Returns whether this token is a given type of operator.
      *
      * Usage: `token.IsOperator("%")` will return true if this token is
-     * of LexerTokenType kOperator and if it is the modulo operator.
+     * of LexerType kOperator and if it is the modulo operator.
      * This is a shortcut for testing type and value at the same time.
      */
     inline bool IsOperator(const std::string op) const
     {
-        return (type_ == kOperator) && (value_.compare(op) == 0);
+        return (type_ == LexerType::kOperator) && (value_.compare(op) == 0);
     }
 
     /**
-     * @brief Returns the string representation for the LexerTokenType of
+     * @brief Returns the string representation for the LexerType of
      * this token.
      */
     inline std::string TypeToStr() const
     {
-        return LexerTokenTypeToStr(type_);
+        return LexerTypeToStr(type_);
     }
 
 private:
-    const LexerTokenType   type_;
+    const LexerType   type_;
     const int              line_;
     const int              column_;
     const std::string      value_;
@@ -290,7 +309,7 @@ public:
         if (index < tokens_.size()) {
             return tokens_[index];
         } else {
-            return LexerToken(LexerTokenType::kEOF, 0, 0, "");
+            return LexerToken(LexerType::kEOF, 0, 0, "");
         }
     }
 
@@ -346,7 +365,7 @@ public:
     /** @brief Returns whether there appeared an error while lexing. */
     inline bool HasError() const
     {
-        return !tokens_.empty() && tokens_.back().type() == kError;
+        return !tokens_.empty() && tokens_.back().type() == LexerType::kError;
     }
 
     // =========================================================================
@@ -434,7 +453,7 @@ public:
      * around `"Hello World"`.
      *
      * The type of quotation marks used here depends on which chars are set
-     * to LexerTokenType kString using SetCharType(). See ScanString() for more.
+     * to LexerType kString using SetCharType(). See ScanString() for more.
      */
     bool use_string_doubled_quotes = false;
 
@@ -500,7 +519,7 @@ protected:
     }
 
     /**
-     * @brief Returns the LexerTokenType of a char.
+     * @brief Returns the LexerType of a char.
      *
      * This does not mean that any char of a given type can only appear in
      * tokens of that type. For example, typically a symbol can start with
@@ -510,11 +529,11 @@ protected:
      *
      * For more information on how this char type is used, see Process().
      */
-    inline LexerTokenType GetCharType(const char c) const
+    inline LexerType GetCharType(const char c) const
     {
         // we use char [-128,127] here.
         if (c < 0) {
-            return kError;
+            return LexerType::kError;
         } else {
             return start_char_table_[static_cast<unsigned char>(c)];
         }
@@ -527,7 +546,7 @@ protected:
      * current char in inside the text. Thus, the function should only be
      * used in combination with IsEnd.
      */
-    inline LexerTokenType GetCharType() const
+    inline LexerType GetCharType() const
     {
         return GetCharType(GetChar());
     }
@@ -552,7 +571,7 @@ protected:
      * chars that are on a standard keyboard layout. See start_char_table_
      * for their ASCII representation.
      */
-    inline void SetCharType (const LexerTokenType type, std::string chars)
+    inline void SetCharType (const LexerType type, std::string chars)
     {
         for (char c : chars) {
             start_char_table_[static_cast<unsigned char>(c)] = type;
@@ -618,10 +637,10 @@ protected:
         }
     }
 
-    void PushToken (const LexerTokenType t, const size_t start, const std::string value);
+    void PushToken (const LexerType t, const size_t start, const std::string value);
 
     /** @brief Create a token and push it to the list. */
-    inline void PushToken (const LexerTokenType t, const size_t start, const size_t end)
+    inline void PushToken (const LexerType t, const size_t start, const size_t end)
     {
         PushToken(t, start, GetSubstr(start, end));
     }
@@ -637,39 +656,39 @@ private:
      *
      * See Process() for more on this.
      */
-    LexerTokenType start_char_table_[128] = {
-        /*      */  kError,     kError,     kError,     kError,
-        /*      */  kError,     kError,     kError,     kError,
-        /*      */  kError,     kWhite,     kWhite,     kWhite,
-        /*      */  kWhite,     kWhite,     kError,     kError,
-        /*      */  kError,     kError,     kError,     kError,
-        /*      */  kError,     kError,     kError,     kError,
-        /*      */  kError,     kError,     kError,     kError,
-        /*      */  kError,     kError,     kError,     kError,
-        /*  !"# */  kWhite,     kUnknown,   kUnknown,   kUnknown,
-        /* $%&' */  kUnknown,   kUnknown,   kUnknown,   kUnknown,
-        /* ()*+ */  kUnknown,   kUnknown,   kUnknown,   kUnknown,
-        /* ,-./ */  kUnknown,   kUnknown,   kUnknown,   kUnknown,
-        /* 0123 */  kNumber,    kNumber,    kNumber,    kNumber,
-        /* 4567 */  kNumber,    kNumber,    kNumber,    kNumber,
-        /* 89:; */  kNumber,    kNumber,    kUnknown,   kUnknown,
-        /* <=>? */  kUnknown,   kUnknown,   kUnknown,   kUnknown,
-        /* @ABC */  kUnknown,   kSymbol,    kSymbol,    kSymbol,
-        /* DEFG */  kSymbol,    kSymbol,    kSymbol,    kSymbol,
-        /* HIJK */  kSymbol,    kSymbol,    kSymbol,    kSymbol,
-        /* LMNO */  kSymbol,    kSymbol,    kSymbol,    kSymbol,
-        /* PQRS */  kSymbol,    kSymbol,    kSymbol,    kSymbol,
-        /* TUVW */  kSymbol,    kSymbol,    kSymbol,    kSymbol,
-        /* XYZ[ */  kSymbol,    kSymbol,    kSymbol,    kUnknown,
-        /* \]^_ */  kUnknown,   kUnknown,   kUnknown,   kUnknown,
-        /* `abc */  kUnknown,   kSymbol,    kSymbol,    kSymbol,
-        /* defg */  kSymbol,    kSymbol,    kSymbol,    kSymbol,
-        /* hijk */  kSymbol,    kSymbol,    kSymbol,    kSymbol,
-        /* lmno */  kSymbol,    kSymbol,    kSymbol,    kSymbol,
-        /* pqrs */  kSymbol,    kSymbol,    kSymbol,    kSymbol,
-        /* tuvw */  kSymbol,    kSymbol,    kSymbol,    kSymbol,
-        /* xyz{ */  kSymbol,    kSymbol,    kSymbol,    kUnknown,
-        /* |}~  */  kUnknown,   kUnknown,   kUnknown,   kError
+    LexerType start_char_table_[128] = {
+        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
+        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
+        /*      */  LexerType::kError,     LexerType::kWhite,     LexerType::kWhite,     LexerType::kWhite,
+        /*      */  LexerType::kWhite,     LexerType::kWhite,     LexerType::kError,     LexerType::kError,
+        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
+        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
+        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
+        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
+        /*  !"# */  LexerType::kWhite,     LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
+        /* $%&' */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
+        /* ()*+ */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
+        /* ,-./ */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
+        /* 0123 */  LexerType::kNumber,    LexerType::kNumber,    LexerType::kNumber,    LexerType::kNumber,
+        /* 4567 */  LexerType::kNumber,    LexerType::kNumber,    LexerType::kNumber,    LexerType::kNumber,
+        /* 89:; */  LexerType::kNumber,    LexerType::kNumber,    LexerType::kUnknown,   LexerType::kUnknown,
+        /* <=>? */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
+        /* @ABC */  LexerType::kUnknown,   LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* DEFG */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* HIJK */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* LMNO */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* PQRS */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* TUVW */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* XYZ[ */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kUnknown,
+        /* \]^_ */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
+        /* `abc */  LexerType::kUnknown,   LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* defg */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* hijk */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* lmno */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* pqrs */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* tuvw */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
+        /* xyz{ */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kUnknown,
+        /* |}~  */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kError
     };
 
     // Caveat: the following variables are heavily interweaved during a run

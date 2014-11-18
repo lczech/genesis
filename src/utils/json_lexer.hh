@@ -19,10 +19,10 @@ class JsonLexer : public Lexer
 public:
     JsonLexer() {
         // set the special chars for json files
-        SetCharType (kBracket,  "[]{}");
-        SetCharType (kOperator, ",:");
-        SetCharType (kString,   "\"");
-        SetCharType (kNumber,   "+-");
+        SetCharType (LexerType::kBracket,  "[]{}");
+        SetCharType (LexerType::kOperator, ",:");
+        SetCharType (LexerType::kString,   "\"");
+        SetCharType (LexerType::kNumber,   "+-");
 
         // set the flags as needed
         include_whitespace        = false;
@@ -37,17 +37,17 @@ protected:
     inline bool ScanSymbol()
     {
         size_t start = GetPosition();
-        while (!IsEnd() && GetCharType() == kSymbol) {
+        while (!IsEnd() && GetCharType() == LexerType::kSymbol) {
             NextChar();
         }
         std::string res = GetSubstr(start, GetPosition());
 
         if (res.compare("null") && res.compare("true") && res.compare("false")) {
-            PushToken(kError, start, "Invalid symbols: \"" + res + "\"");
+            PushToken(LexerType::kError, start, "Invalid symbols: \"" + res + "\"");
             return false;
 
         }
-        PushToken(kSymbol, start, res);
+        PushToken(LexerType::kSymbol, start, res);
         return true;
     }
 };

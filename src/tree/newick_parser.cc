@@ -63,7 +63,7 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
     //     Loop over lexer tokens and check if it...
     // --------------------------------------------------------------
     for (ct = lexer.begin(); ct != lexer.end(); pt=ct, ++ct) {
-        if (ct->type() == kUnknown) {
+        if (ct->type() == LexerType::kUnknown) {
             error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
             break;
         }
@@ -73,7 +73,7 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
         // ------------------------------------------------------
         if (ct->IsBracket("(")) {
             if (pt != lexer.end() && !(
-                pt->IsBracket("(")  || pt->IsOperator(",") || pt->type() == kComment
+                pt->IsBracket("(")  || pt->IsOperator(",") || pt->type() == LexerType::kComment
             )) {
                 error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
                 break;
@@ -91,7 +91,7 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
         // have been called). so we have a token other than '(', which means we should already
         // be somewhere in the tree (or a comment). check, if that is true.
         if (ct == lexer.begin()) {
-            if (ct->type() == kComment) {
+            if (ct->type() == LexerType::kComment) {
                 continue;
             }
             error = "Tree does not start with '(' at " + ct->at() + ".";
@@ -118,7 +118,7 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
             // comma. however, as comments can appear everywhere, we need to check for the first
             // non-comment-token.
             Lexer::const_iterator t = pt;
-            while (t != lexer.begin() && t->type() == kComment) {
+            while (t != lexer.begin() && t->type() == LexerType::kComment) {
                 --t;
             }
             node->is_leaf = t->IsBracket("(") || t->IsOperator(",");
@@ -133,8 +133,9 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
                 break;
             }
             if (!(
-                pt->IsBracket(")")    || pt->type() == kTag    || pt->type() == kComment ||
-                pt->type() == kSymbol || pt->type() == kString || pt->type() == kNumber  ||
+                pt->IsBracket(")")                || pt->type() == LexerType::kTag    ||
+                pt->type() == LexerType::kComment || pt->type() == LexerType::kSymbol ||
+                pt->type() == LexerType::kString  || pt->type() == LexerType::kNumber ||
                 pt->IsOperator(",")
             )) {
                 error = "Invalid ')' at " + ct->at() + ": '" + ct->value() + "'.";
@@ -159,17 +160,17 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
         // ------------------------------------------------------
         //     is symbol or string  ==>  label
         // ------------------------------------------------------
-        if (ct->type() == kSymbol || ct->type() == kString) {
+        if (ct->type() == LexerType::kSymbol || ct->type() == LexerType::kString) {
             if (!(
                 pt->IsBracket("(")  || pt->IsBracket(")") ||
-                pt->IsOperator(",") || pt->type() == kComment
+                pt->IsOperator(",") || pt->type() == LexerType::kComment
             )) {
                 error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
                 break;
             }
 
             // populate the node
-            if (ct->type() == kSymbol) {
+            if (ct->type() == LexerType::kSymbol) {
                 // unquoted labels need to turn underscores into space
                 node->name = StringReplaceAll(ct->value(), "_", " ");
             } else {
@@ -181,10 +182,11 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
         // ------------------------------------------------------
         //     is number  ==>  branch length
         // ------------------------------------------------------
-        if (ct->type() == kNumber) {
+        if (ct->type() == LexerType::kNumber) {
             if (!(
-                pt->IsBracket("(")    || pt->IsBracket(")")    || pt->IsOperator(",")    ||
-                pt->type() == kSymbol || pt->type() == kString || pt->type() == kComment
+                pt->IsBracket("(")                || pt->IsBracket(")")               ||
+                pt->type() == LexerType::kSymbol  || pt->type() == LexerType::kString ||
+                pt->type() == LexerType::kComment || pt->IsOperator(",")
             )) {
                 error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
                 break;
@@ -198,10 +200,11 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
         // ------------------------------------------------------
         //     is tag {}  ==>  tag
         // ------------------------------------------------------
-        if (ct->type() == kTag) {
+        if (ct->type() == LexerType::kTag) {
             if (!(
-                pt->IsBracket(")")    || pt->type() == kSymbol  || pt->type() == kString ||
-                pt->type() == kNumber || pt->type() == kComment || pt->type() == kTag
+                pt->IsBracket(")")                || pt->type() == LexerType::kSymbol ||
+                pt->type() == LexerType::kString  || pt->type() == LexerType::kNumber ||
+                pt->type() == LexerType::kComment || pt->type() == LexerType::kTag
             )) {
                 error = "Invalid tag at " + ct->at() + ": '" + ct->value() + "'.";
                 break;
@@ -219,10 +222,11 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
         // ------------------------------------------------------
         //     is comment []  ==>  comment
         // ------------------------------------------------------
-        if (ct->type() == kComment) {
+        if (ct->type() == LexerType::kComment) {
             if (!(
-                pt->IsBracket(")")    || pt->type() == kSymbol  || pt->type() == kString ||
-                pt->type() == kNumber || pt->type() == kComment || pt->type() == kTag
+                pt->IsBracket(")")                || pt->type() == LexerType::kSymbol  ||
+                pt->type() == LexerType::kString  || pt->type() == LexerType::kNumber  ||
+                pt->type() == LexerType::kComment || pt->type() == LexerType::kTag
             )) {
                 // just a normal comment without semantics
                 continue;
@@ -242,9 +246,10 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
         // ------------------------------------------------------
         if (ct->IsOperator(",")) {
             if (!(
-                pt->IsBracket("(")    || pt->IsBracket(")")    || pt->type() == kComment ||
-                pt->type() == kSymbol || pt->type() == kString || pt->type() == kNumber  ||
-                pt->type() == kTag    || pt->IsOperator(",")
+                pt->IsBracket("(")                || pt->IsBracket(")")                ||
+                pt->type() == LexerType::kComment || pt->type() == LexerType::kSymbol  ||
+                pt->type() == LexerType::kString  || pt->type() == LexerType::kNumber  ||
+                pt->type() == LexerType::kTag     || pt->IsOperator(",")
             )) {
                 error = "Invalid ',' at " + ct->at() + ": '" + ct->value() + "'.";
                 break;
@@ -268,8 +273,9 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
         // ------------------------------------------------------
         if (ct->IsOperator(";")) {
             if (!(
-                pt->IsBracket(")")     || pt->type() == kSymbol || pt->type() == kString ||
-                pt->type() == kComment || pt->type() == kNumber || pt->type() == kTag
+                pt->IsBracket(")")               || pt->type() == LexerType::kSymbol  ||
+                pt->type() == LexerType::kString || pt->type() == LexerType::kComment ||
+                pt->type() == LexerType::kNumber || pt->type() == LexerType::kTag
             )) {
                 error = "Invalid ';' at " + ct->at() + ": '" + ct->value() + "'.";
                 break;
@@ -310,7 +316,7 @@ bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
 
     // skip the semicolon, then see if there is anything other than a comment left
     ++ct;
-    while (ct != lexer.end() && ct->type() == kComment) {
+    while (ct != lexer.end() && ct->type() == LexerType::kComment) {
         ++ct;
     }
     if (ct != lexer.end()) {

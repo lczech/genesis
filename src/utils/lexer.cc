@@ -32,7 +32,7 @@ namespace genesis {
  *
  * Returns true if successful. In case an error is encountered while analyzing
  * the text, this functions returns false and the last token will be of type
- * LexerTokenType::kError, with the value being an error message describing the
+ * LexerType::kError, with the value being an error message describing the
  * type of error.
  *
  * Common usage:
@@ -89,7 +89,7 @@ bool Lexer::Process(const std::string& text)
         while (ScanWhitespace() || ScanComment()) continue;
 
         // check if whitespace or comment scanner yielded an error
-        if (!tokens_.empty() && tokens_.back().type() == kError) {
+        if (!tokens_.empty() && tokens_.back().type() == LexerType::kError) {
             return false;
         }
 
@@ -99,38 +99,38 @@ bool Lexer::Process(const std::string& text)
         }
 
         // check if it is an error char
-        LexerTokenType t = GetCharType();
-        if (t == kError) {
-            PushToken(kError, GetPosition(), "Invalid character.");
+        LexerType t = GetCharType();
+        if (t == LexerType::kError) {
+            PushToken(LexerType::kError, GetPosition(), "Invalid character.");
             return false;
         }
 
         // start the actual scanners depending on the first char
         switch (t) {
-            case kSymbol:
+            case LexerType::kSymbol:
                 ScanSymbol();
                 break;
-            case kNumber:
+            case LexerType::kNumber:
                 ScanNumber();
                 break;
-            case kString:
+            case LexerType::kString:
                 ScanString();
                 break;
-            case kBracket:
+            case LexerType::kBracket:
                 ScanBracket();
                 break;
-            case kOperator:
+            case LexerType::kOperator:
                 ScanOperator();
                 break;
-            case kTag:
+            case LexerType::kTag:
                 ScanTag();
                 break;
-            case kUnknown:
+            case LexerType::kUnknown:
                 ScanUnknown();
                 break;
 
-            case kWhite:
-            case kComment:
+            case LexerType::kWhite:
+            case LexerType::kComment:
                 // this case happens if ScanWhitespace or ScanComment are wrongly
                 // implemented in a derived class, so that they return false
                 // although they should scan something or create an error token.
@@ -138,7 +138,7 @@ bool Lexer::Process(const std::string& text)
                 // an error token when a close-comment-char appears without a
                 // open-comment-char first, e.g. "]".
                 assert(false);
-            case kError:
+            case LexerType::kError:
                 break;
             default:
                 // this case only happens if someone added a new element to the enum.
@@ -149,7 +149,7 @@ bool Lexer::Process(const std::string& text)
         // check if the scanners produced an error
         if (tokens_.empty()) {
             return true;
-        } else if (tokens_.back().type() == kError) {
+        } else if (tokens_.back().type() == LexerType::kError) {
             return false;
         }
     }
@@ -223,10 +223,10 @@ bool Lexer::ScanFromTo (const char* from, const char* to)
 inline bool Lexer::ScanUnknown()
 {
     size_t start = GetPosition();
-    while (!IsEnd() && GetCharType() == kUnknown) {
+    while (!IsEnd() && GetCharType() == LexerType::kUnknown) {
         NextChar();
     }
-    PushToken(kUnknown, start, GetPosition());
+    PushToken(LexerType::kUnknown, start, GetPosition());
     return true;
 }
 
@@ -235,7 +235,7 @@ inline bool Lexer::ScanUnknown()
 // complex comment markers, that would otherwise be turned into unknown tokens.
 inline bool Lexer::ScanUnknown()
 {
-    PushToken(LexerToken::kUnknown, GetPosition(), GetPosition() + 1);
+    PushToken(LexerType::kUnknown, GetPosition(), GetPosition() + 1);
     NextChar();
     return true;
 }
@@ -251,12 +251,12 @@ inline bool Lexer::ScanWhitespace()
     bool   found = false;
     size_t start = GetPosition();
 
-    while (!IsEnd() && GetCharType() == kWhite) {
+    while (!IsEnd() && GetCharType() == LexerType::kWhite) {
         NextChar();
         found = true;
     }
     if (include_whitespace && found) {
-        PushToken(kWhite, start, GetPosition());
+        PushToken(LexerType::kWhite, start, GetPosition());
     }
     return found;
 }
@@ -287,10 +287,10 @@ inline bool Lexer::ScanComment()
 inline bool Lexer::ScanSymbol()
 {
     size_t start = GetPosition();
-    while (!IsEnd() && GetCharType() == kSymbol) {
+    while (!IsEnd() && GetCharType() == LexerType::kSymbol) {
         NextChar();
     }
-    PushToken(kSymbol, start, GetPosition());
+    PushToken(LexerType::kSymbol, start, GetPosition());
     return true;
 }
 
@@ -370,10 +370,10 @@ inline bool Lexer::ScanNumber()
 
     // create result
     if (err) {
-        PushToken(kError, GetPosition(), "Malformed number.");
+        PushToken(LexerType::kError, GetPosition(), "Malformed number.");
         return false;
     } else {
-        PushToken(kNumber, start, GetPosition());
+        PushToken(LexerType::kNumber, start, GetPosition());
         return true;
     }
 }
@@ -382,7 +382,7 @@ inline bool Lexer::ScanNumber()
  * @brief Scan a string.
  *
  * A string is usually enclosed either in 'abc' or in "def" (this depends on
- * which chars have been set to LexerTokenType kString in the derived class).
+ * which chars have been set to LexerType kString in the derived class).
  * Within a string, any character is allowed. See use_string_escape and
  * use_string_doubled_quotes for options modifying the behaviour of this
  * function.
@@ -396,7 +396,7 @@ inline bool Lexer::ScanString()
     char qmark = GetChar();
     NextChar();
     if (IsEnd()) {
-        PushToken(kError, GetPosition()-1, "Malformed string.");
+        PushToken(LexerType::kError, GetPosition()-1, "Malformed string.");
         return false;
     }
 
@@ -441,7 +441,7 @@ inline bool Lexer::ScanString()
     // (those are the situations when jump=true) can look like the string ending,
     // but actually isn't.
     if (jump || (IsEnd() && !(GetChar(-1) == qmark))) {
-        PushToken(kError, start-1, "Malformed string.");
+        PushToken(LexerType::kError, start-1, "Malformed string.");
         return false;
     }
 
@@ -466,7 +466,7 @@ inline bool Lexer::ScanString()
     }
 
     // create result
-    PushToken(kString, start-1, res);
+    PushToken(LexerType::kString, start-1, res);
     return true;
 }
 
@@ -495,7 +495,7 @@ inline bool Lexer::ScanOperator()
         return ScanNumber();
     }
 
-    PushToken(kOperator, GetPosition(), GetPosition()+1);
+    PushToken(LexerType::kOperator, GetPosition(), GetPosition()+1);
     NextChar();
     return true;
 }
@@ -507,7 +507,7 @@ inline bool Lexer::ScanOperator()
  */
 inline bool Lexer::ScanBracket()
 {
-    PushToken(kBracket, GetPosition(), GetPosition()+1);
+    PushToken(LexerType::kBracket, GetPosition(), GetPosition()+1);
     NextChar();
     return true;
 }
@@ -543,7 +543,7 @@ inline bool Lexer::ScanTag()
 /**
  * @brief Create a token and push it to the list.
  */
-void Lexer::PushToken (const LexerTokenType t, const size_t start, const std::string value)
+void Lexer::PushToken (const LexerType t, const size_t start, const std::string value)
 {
     // find previous new line, we need it to tell the column
     size_t bitr = start;
@@ -575,7 +575,7 @@ bool Lexer::ValidateBrackets()
 {
     std::stack<char> stk;
     for (LexerToken t : tokens_) {
-        if (t.type() != kBracket) {
+        if (t.type() != LexerType::kBracket) {
             continue;
         }
 
@@ -614,26 +614,6 @@ void Lexer::Dump()
         res += out + t.value() + '\n';
     }
     LOG_INFO << res;
-}
-
-std::string LexerTokenTypeToStr (const LexerTokenType t)
-{
-    switch (t) {
-        case kError    : return "Error";
-        case kUnknown  : return "Unknown";
-
-        case kWhite    : return "Whitespace";
-        case kComment  : return "Comment";
-        case kSymbol   : return "Symbol";
-        case kNumber   : return "Number";
-        case kString   : return "String";
-        case kBracket  : return "Bracket";
-        case kOperator : return "Operator";
-        case kTag      : return "Tag";
-
-        case kEOF      : return "EOF";
-        default        : return "Unknown";
-    }
 }
 
 } // namespace genesis
