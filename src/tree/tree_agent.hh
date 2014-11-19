@@ -78,8 +78,16 @@ class TreeAgent
 public:
     ~TreeAgent();
 
-    inline void pop_back() {stack_.pop_back();};
-    inline void push_back (TreeAgentNode* node) {stack_.push_back(node);};
+    inline void pop_back()
+    {
+        stack_.pop_back();
+    }
+
+    inline void push_back (TreeAgentNode* node)
+    {
+        stack_.push_back(node);
+    }
+
     void clear();
 
     // TODO validate checks if leaf nodes are really leaves, not more than one level at a time nested,
@@ -87,7 +95,11 @@ public:
     bool Validate();
     void Dump();
 
-    inline int NodeCount() {return stack_.size();};
+    inline int NodeCount()
+    {
+        return stack_.size();
+    }
+
     int LeafCount();
 
 protected:
