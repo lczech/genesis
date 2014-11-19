@@ -21,9 +21,9 @@ DBG     = -g -pg -DDEBUG
 WARN    = -Wall -Wextra -pedantic -pedantic-errors
 
 # Compiler flags
-STDCC   = g++
+STDCC   = clang++
 MPICC   = mpic++
-CCFLAGS = -std=c++11 -O1 -I./src $(WARN) $(DBG)
+CCFLAGS = -std=c++11 -I./src $(WARN) $(DBG)
 LDFLAGS = -lm
 #-lpll-sse3 -lm
 
