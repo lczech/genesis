@@ -20,9 +20,6 @@ class NewickParser
 public:
     static bool Process (const std::string& tree,  TreeAgent* agent);
     static bool Process (const NewickLexer& lexer, TreeAgent* agent);
-
-protected:
-    static bool FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent);
 };
 
 } // namespace genesis

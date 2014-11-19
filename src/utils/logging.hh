@@ -294,7 +294,11 @@ class Logging
         static LoggingDetails details;
 
         /** Get the highest log level that is reported. */
-        static LoggingLevel  max_level () {return max_level_;};
+        static LoggingLevel  max_level ()
+        {
+            return max_level_;
+        }
+
         static void      max_level (const LoggingLevel level);
 
         // return a string representation for a log level

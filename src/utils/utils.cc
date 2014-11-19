@@ -15,13 +15,17 @@
 
 namespace genesis {
 
+// ---------------------------------------------------------
+//     Files
+// ---------------------------------------------------------
+
 /**
  * @brief Returns the contents of a file as a string.
  *
  * If the file does not exist, a warning is triggered and an emtpty string
  * returned.
  */
-std::string ReadFile (const std::string fn)
+std::string FileRead (const std::string fn)
 {
     std::ifstream t(fn);
     std::string str;
@@ -38,6 +42,28 @@ std::string ReadFile (const std::string fn)
     str.assign((std::istreambuf_iterator<char>(t)),
                 std::istreambuf_iterator<char>());
     return str;
+}
+
+// ---------------------------------------------------------
+//     Strings and Chars
+// ---------------------------------------------------------
+
+/**
+ * @brief Returns a string where special chars are replaces by their escape sequence.
+ *
+ * All new lines are transformed into either \\r or \\n, tabs into \\t.
+ * Double quotation marks are preceeded by a backslash, also the backslash itself will be escaped,
+ * so that `"` becomes `\"` and `\` becomes `\\`.
+ */
+std::string StringEscape (const std::string text)
+{
+    std::string tmp;
+    tmp = StringReplaceAll(text, "\r", "\\r");
+    tmp = StringReplaceAll(tmp,  "\n", "\\n");
+    tmp = StringReplaceAll(tmp,  "\t", "\\t");
+    tmp = StringReplaceAll(tmp,  "\"", "\\\"");
+    tmp = StringReplaceAll(tmp,  "\\", "\\\\");
+    return tmp;
 }
 
 /**
@@ -59,9 +85,9 @@ std::string StringDeescape (const std::string text)
                 break;
             }
             switch (text[i+1]) {
+                case 'r' : tmp += '\r'; break;
                 case 'n' : tmp += '\n'; break;
                 case 't' : tmp += '\t'; break;
-                case 'r' : tmp += '\r'; break;
                 default  : tmp += text[i+1];
             }
             ++i;

@@ -142,19 +142,34 @@ public:
     /**
      * @brief Getter for the LexerType of this token.
      */
-    inline LexerType type() const {return type_;};
+    inline LexerType type() const
+    {
+        return type_;
+    }
 
     /** @brief Getter for the line where this token occured. */
-    inline size_t line() const {return line_;};
+    inline size_t line() const
+    {
+        return line_;
+    }
 
     /** @brief Getter for the column where this token occured. */
-    inline size_t column() const {return column_;};
+    inline size_t column() const
+    {
+        return column_;
+    }
 
     /** @brief Getter for the string value of this token. */
-    inline std::string value() const {return value_;};
+    inline std::string value() const
+    {
+        return value_;
+    }
 
     /** @brief Shortcut that returns "line:column" (e.g., for logging). */
-    inline std::string at() const {return std::to_string(line_) + ":" + std::to_string(column_);};
+    inline std::string at() const
+    {
+        return std::to_string(line_) + ":" + std::to_string(column_);
+    }
 
     /**
      * @brief Returns whether this token is a given type of bracket.

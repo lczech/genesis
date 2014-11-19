@@ -2,7 +2,7 @@
 #define GNS_UTILS_JSONLEXER_H_
 
 /**
- * @brief
+ * @brief JSON lexer class. See JsonLexer.
  *
  * @file
  * @ingroup utils

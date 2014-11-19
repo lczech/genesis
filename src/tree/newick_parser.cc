@@ -39,11 +39,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeAgent* agent)
     }
 
     agent->clear();
-    return FillTreeAgent(lexer, agent);
-}
 
-bool NewickParser::FillTreeAgent (const NewickLexer& lexer, TreeAgent* agent)
-{
     // the node that is currently being populated with data
     TreeAgentNode* node = nullptr;
 
