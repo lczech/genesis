@@ -244,22 +244,14 @@ public:
  *
  * See http://www.json.org/ for the complete specification.
  */
-//~ class JsonDocument : JsonValueObject
-//~ {
-//~ public:
-    //~ JsonDocument () : JsonValueObject() {}
-    //~ ~JsonDocument();
-//~
-    //~ bool Validate();
-//~ };
-//~ class JsonDocument : JsonValueObject
-//~ {
-//~ public:
-    //~ JsonDocument () : JsonValueObject() {}
-    //~ ~JsonDocument();
-//~
-    //~ bool Validate();
-//~ };
+class JsonDocument : public JsonValueObject
+{
+public:
+    JsonDocument () : JsonValueObject() {}
+    ~JsonDocument();
+
+    bool Validate();
+};
 
 // =============================================================================
 //     Converter Functions
