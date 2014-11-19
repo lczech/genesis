@@ -21,8 +21,9 @@ namespace genesis {
 //     First: function declaractions.
 // =============================================================================
 
-std::string ReadFile (const std::string fn);
+std::string FileRead (const std::string fn);
 
+std::string StringEscape   (const std::string text);
 std::string StringDeescape (const std::string text);
 std::string StringReplaceAll (
     const std::string &s,
@@ -33,6 +34,10 @@ std::string StringReplaceAll (
 // =============================================================================
 //     From here on: only inline functions.
 // =============================================================================
+
+// ---------------------------------------------------------
+//     Date and Time
+// ---------------------------------------------------------
 
 /**
  * @brief Returns the current date as a string in the format "2014-12-31".
@@ -62,11 +67,9 @@ inline std::string CurrentTime()
     return out;
 }
 
-inline std::string StringUnifyNewlines(const std::string& s)
-{
-    // TODO
-    return s;
-}
+// ---------------------------------------------------------
+//     Strings and Chars
+// ---------------------------------------------------------
 
 /** @brief Returns whether two chars are the same, case insensitive. */
 inline bool CharMatch(const char c1, const char c2)
@@ -102,6 +105,12 @@ inline std::string StringTrim (
     const std::string& delimiters = " \f\n\r\t\v"
 ) {
     return StringTrimLeft(StringTrimRight(s, delimiters), delimiters);
+}
+
+inline std::string StringUnifyNewlines(const std::string& s)
+{
+    // TODO
+    return s;
 }
 
 } // namespace genesis

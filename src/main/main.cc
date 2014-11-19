@@ -68,10 +68,10 @@ int main (int argc, char* argv[])
     //~ tree.FromNewickString("((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;");
 
     JsonLexer lex;
-    lex.Process(ReadFile("data/placement.jplace"));
+    lex.Process(FileRead("data/placement.jplace"));
     lex.Dump();
 
-    JsonDocument doc;
+    //~ JsonDocument doc;
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {

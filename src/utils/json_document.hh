@@ -2,7 +2,7 @@
 #define GNS_UTILS_JSONDOCUMENT_H_
 
 /**
- * @brief
+ * @brief A collection of classes for working with JSON documents. See JsonDocument for more.
  *
  * @file
  * @ingroup utils
@@ -14,6 +14,9 @@
 #include <string>
 #include <unordered_map>
 
+#include "utils/logging.hh"
+#include "utils/utils.hh"
+
 namespace genesis {
 
 // =============================================================================
@@ -22,7 +25,10 @@ namespace genesis {
 
 /** @brief Interface for JSON values.
  *
- * JSON provides different types of values, as listed in JsonValue::Type.
+ * JSON provides different types of values, as listed in JsonValue::Type. This class serves as a
+ * base class for all those types. Each derived class needs at least to implement ToString(), which
+ * returns the JSON string representation of its content. Also, derived classes need to make sure to
+ * call the base constructor in order to set their type correctly.
  */
 class JsonValue
 {
@@ -49,27 +55,26 @@ public:
         }
     }
 
-    inline std::string TypeToString ()
+    inline std::string TypeToString () const
     {
         return TypeToString(type_);
     }
 
-    //~ inline JsonValueNumber ToNumber()
-    //~ {
-        //~ if (type_ == kNumber) {
-            //~ return static_cast<JsonValueNumber> this;
-        //~ }
-        //~ return new JsonValueNumber;
-    //~ }
+    inline Type type() const
+    {
+        return type_;
+    }
 
-    virtual std::string ToString() = 0;
+    virtual std::string ToString() const = 0;
+
+    virtual ~JsonValue() {};
 
 protected:
     /**
      * @brief Protected constructor that allows derived classes to set their value type.
      *
-     * Storing the type of each object as a special member saves the issue of using
-     * run time type inference, making it easier to work with objects of different type.
+     * Storing the type of each object as a special member saves the issue of using run time type
+     * inference, making it faster and easier to work with objects of different types.
      */
     JsonValue (const Type type) : type_(type) {};
 
@@ -86,7 +91,14 @@ class JsonValueNull : public JsonValue
 public:
     JsonValueNull() : JsonValue(kNull) {};
 
-    inline std::string ToString()
+    JsonValueNull (const std::string v) : JsonValue(kNull)
+    {
+        if (v.compare("null") != 0) {
+            LOG_WARN << "Not a valid JSON null expression: '" << v << "'.";
+        }
+    }
+
+    inline std::string ToString() const override
     {
         return "null";
     }
@@ -103,7 +115,19 @@ public:
 
     JsonValueBool (const bool v) : JsonValue(kBool), value(v) {};
 
-    inline std::string ToString()
+    JsonValueBool (const std::string v) : JsonValue(kBool)
+    {
+        if (v.compare("true") == 0) {
+            value = true;
+        } else if (v.compare("false") == 0) {
+            value = false;
+        } else {
+            LOG_WARN << "Not a valid JSON bool expression: '" << v << "'.";
+            value = false;
+        }
+    }
+
+    inline std::string ToString() const override
     {
         return value ? "true" : "false";
     }
@@ -124,6 +148,7 @@ public:
 
     JsonValueNumber (const std::string v) : JsonValue(kNumber)
     {
+        // TODO check if the string actually contains a valid number
         value = std::stod(v);
     }
 
@@ -132,7 +157,7 @@ public:
         precision = p;
     }
 
-    inline std::string ToString()
+    inline std::string ToString() const override
     {
         std::stringstream ss;
         ss << std::setprecision(precision) << value;
@@ -154,9 +179,9 @@ public:
 
     JsonValueString (const std::string v) : JsonValue(kString), value(v) {};
 
-    inline std::string ToString()
+    inline std::string ToString() const override
     {
-        return value;
+        return "\"" + StringEscape(value) + "\"";
     }
 
     std::string value;
@@ -170,10 +195,13 @@ class JsonValueArray : public JsonValue
 {
 public:
     JsonValueArray () : JsonValue(kArray) {};
+    ~JsonValueArray();
+    void clear();
 
-    std::string ToString();
+    std::string ToString() const override;
 
-    std::deque<JsonValue*> value;
+    typedef std::deque<JsonValue*> ArrayData;
+    ArrayData data;
 };
 
 // =============================================================================
@@ -184,24 +212,65 @@ class JsonValueObject : public JsonValue
 {
 public:
     JsonValueObject () : JsonValue(kObject) {}
-
-    std::string ToString() {return "";};
-
+    ~JsonValueObject();
     void clear();
 
-    void AddValue (std::string name, JsonValue* value);
+    std::string ToString() const override;
 
-    std::unordered_map<std::string, JsonValue*> value;
+    void Set (std::string name, JsonValue* value);
+    JsonValue* Get (std::string name);
+
+    inline bool Has (std::string name) const
+    {
+        return data.count(name) > 0 ? true : false;
+    }
+
+    inline size_t size() const
+    {
+        return data.size();
+    }
+
+    typedef std::unordered_map<std::string, JsonValue*> ObjectData;
+    typedef ObjectData::value_type ObjectPair;
+    ObjectData data;
 };
 
 // =============================================================================
 //     JsonDocument
 // =============================================================================
 
-class JsonDocument : JsonValueObject
-{
+/**
+ *
+ *
+ * See http://www.json.org/ for the complete specification.
+ */
+//~ class JsonDocument : JsonValueObject
+//~ {
+//~ public:
+    //~ JsonDocument () : JsonValueObject() {}
+    //~ ~JsonDocument();
+//~
+    //~ bool Validate();
+//~ };
+//~ class JsonDocument : JsonValueObject
+//~ {
+//~ public:
+    //~ JsonDocument () : JsonValueObject() {}
+    //~ ~JsonDocument();
+//~
+    //~ bool Validate();
+//~ };
 
-};
+// =============================================================================
+//     Converter Functions
+// =============================================================================
+
+JsonValueNull*   JsonValueToNull   (JsonValue* v);
+JsonValueBool*   JsonValueToBool   (JsonValue* v);
+JsonValueNumber* JsonValueToNumber (JsonValue* v);
+JsonValueString* JsonValueToString (JsonValue* v);
+JsonValueArray*  JsonValueToArray  (JsonValue* v);
+JsonValueObject* JsonValueToObject (JsonValue* v);
 
 } // namespace genesis
 

@@ -19,7 +19,7 @@ void Tree::FromNewickFile (std::string fn)
     // TODO make sure file exists!
     // (readfile checks this, too, but simply returns "", which yields the wrong message when
     // running the parser...)
-    FromNewickString(ReadFile(fn));
+    FromNewickString(FileRead(fn));
 }
 
 void Tree::FromNewickString (std::string tree)
@@ -29,8 +29,7 @@ void Tree::FromNewickString (std::string tree)
     //~ lexer.Dump();
 
     TreeAgent agent;
-    NewickParser parser;
-    parser.Process(tree, &agent);
+    NewickParser::Process(tree, &agent);
     agent.Dump();
     //~ LOG_INFO << "Nodes: " << parser.nodes() << ", Leaves: " << parser.leaves();
     //~ LOG_INFO;
