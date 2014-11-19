@@ -18,7 +18,7 @@ PROGRAM = genesis
 DBG     = -g -pg -DDEBUG
 
 # Warning flags
-WARN    = -Wall -Wextra -pedantic-errors
+WARN    = -Wall -Wextra -pedantic -pedantic-errors
 
 # Compiler flags
 STDCC   = g++
