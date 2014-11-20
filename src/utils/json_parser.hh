@@ -22,22 +22,23 @@ public:
     static bool Process (const std::string& json,  JsonDocument* document);
     static bool Process (const JsonLexer&   lexer, JsonDocument* document);
 
+protected:
     static bool ProcessValue (
-        Lexer::const_iterator& begin,
+        Lexer::const_iterator& ct,
         Lexer::const_iterator& end,
         JsonValue*             value
     );
 
     static bool ProcessArray (
-        Lexer::const_iterator& begin,
+        Lexer::const_iterator& ct,
         Lexer::const_iterator& end,
-        JsonValueArray*        array
+        JsonValue*             value
     );
 
     static bool ProcessObject (
-        Lexer::const_iterator& begin,
+        Lexer::const_iterator& ct,
         Lexer::const_iterator& end,
-        JsonValueObject*       object
+        JsonValue*             value
     );
 };
 

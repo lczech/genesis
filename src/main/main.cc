@@ -13,6 +13,7 @@
 #include "tree/tree.hh"
 #include "utils/json_document.hh"
 #include "utils/json_lexer.hh"
+#include "utils/json_parser.hh"
 #include "utils/logging.hh"
 #include "utils/utils.hh"
 
@@ -70,6 +71,9 @@ int main (int argc, char* argv[])
     JsonLexer lex;
     lex.Process(FileRead("test/data/placement.jplace"));
     lex.Dump();
+
+    JsonDocument* doc = nullptr;
+    JsonParser::Process(lex, doc);
 
     //~ JsonDocument doc;
 

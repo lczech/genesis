@@ -107,6 +107,11 @@ JsonValue* JsonValueObject::Get (std::string name)
 //     JsonDocument
 // =============================================================================
 
+JsonDocument::~JsonDocument ()
+{
+    clear();
+}
+
 /*
 bool JsonDocument::Validate()
 {
