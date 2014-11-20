@@ -195,7 +195,7 @@ class JsonValueArray : public JsonValue
 {
 public:
     JsonValueArray () : JsonValue(kArray) {};
-    ~JsonValueArray();
+    virtual ~JsonValueArray() override;
     void clear();
 
     std::string ToString() const override;
@@ -211,8 +211,8 @@ public:
 class JsonValueObject : public JsonValue
 {
 public:
-    JsonValueObject () : JsonValue(kObject) {}
-    ~JsonValueObject();
+    JsonValueObject () : JsonValue(kObject) {};
+    virtual ~JsonValueObject() override;
     void clear();
 
     std::string ToString() const override;
@@ -247,8 +247,13 @@ public:
 class JsonDocument : public JsonValueObject
 {
 public:
-    JsonDocument () : JsonValueObject() {}
-    ~JsonDocument();
+    JsonDocument () : JsonValueObject() {};
+    virtual ~JsonDocument() override;
+
+    std::string ToString() const override
+    {
+        return "";
+    }
 
     bool Validate();
 };
