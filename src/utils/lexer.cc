@@ -89,7 +89,7 @@ bool Lexer::Process(const std::string& text)
         while (ScanWhitespace() || ScanComment()) continue;
 
         // check if whitespace or comment scanner yielded an error
-        if (!tokens_.empty() && tokens_.back().type() == LexerType::kError) {
+        if (!tokens_.empty() && tokens_.back().IsError()) {
             return false;
         }
 
@@ -150,7 +150,7 @@ bool Lexer::Process(const std::string& text)
         // check if the scanners produced an error
         if (tokens_.empty()) {
             return true;
-        } else if (tokens_.back().type() == LexerType::kError) {
+        } else if (tokens_.back().IsError()) {
             return false;
         }
     }
@@ -578,7 +578,7 @@ bool Lexer::ValidateBrackets()
 {
     std::stack<char> stk;
     for (LexerToken t : tokens_) {
-        if (t.type() != LexerType::kBracket) {
+        if (!t.IsBracket()) {
             continue;
         }
 

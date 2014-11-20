@@ -171,6 +171,59 @@ public:
         return std::to_string(line_) + ":" + std::to_string(column_);
     }
 
+    /** @brief Shortcut to check if this is an error token. */
+    inline bool IsError() const
+    {
+        return type_ == LexerType::kError;
+    }
+
+    /** @brief Shortcut to check if this is an unknown token. */
+    inline bool IsUnknown() const
+    {
+        return type_ == LexerType::kUnknown;
+    }
+
+    /** @brief Shortcut to check if this is a whitespace token. */
+    inline bool IsWhite() const
+    {
+        return type_ == LexerType::kWhite;
+    }
+
+    /** @brief Shortcut to check if this is a comment token. */
+    inline bool IsComment() const
+    {
+        return type_ == LexerType::kComment;
+    }
+
+    /** @brief Shortcut to check if this is a symbol token. */
+    inline bool IsSymbol() const
+    {
+        return type_ == LexerType::kSymbol;
+    }
+
+    /** @brief Shortcut to check if this is a number token. */
+    inline bool IsNumber() const
+    {
+        return type_ == LexerType::kNumber;
+    }
+
+    /** @brief Shortcut to check if this is a string token. */
+    inline bool IsString() const
+    {
+        return type_ == LexerType::kString;
+    }
+
+    /**
+     * @brief Shortcut to check if this is a bracket token.
+     *
+     * There is an overload of this function that also checks if the token is a specific type of
+     * bracket.
+     */
+    inline bool IsBracket() const
+    {
+        return type_ == LexerType::kBracket;
+    }
+
     /**
      * @brief Returns whether this token is a given type of bracket.
      *
@@ -184,6 +237,17 @@ public:
     }
 
     /**
+     * @brief Shortcut to check if this is an operator token.
+     *
+     * There is an overload of this function that also checks if the token is a specific type of
+     * operator.
+     */
+    inline bool IsOperator() const
+    {
+        return type_ == LexerType::kOperator;
+    }
+
+    /**
      * @brief Returns whether this token is a given type of operator.
      *
      * Usage: `token.IsOperator("%")` will return true if this token is
@@ -193,6 +257,12 @@ public:
     inline bool IsOperator(const std::string op) const
     {
         return (type_ == LexerType::kOperator) && (value_.compare(op) == 0);
+    }
+
+    /** @brief Shortcut to check if this is a tag token. */
+    inline bool IsTag() const
+    {
+        return type_ == LexerType::kTag;
     }
 
     /**
@@ -385,7 +455,7 @@ public:
     /** @brief Returns whether there appeared an error while lexing. */
     inline bool HasError() const
     {
-        return !tokens_.empty() && tokens_.back().type() == LexerType::kError;
+        return !tokens_.empty() && tokens_.back().IsError();
     }
 
     // =========================================================================
