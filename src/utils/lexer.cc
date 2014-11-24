@@ -546,7 +546,7 @@ inline bool Lexer::ScanTag()
 /**
  * @brief Create a token and push it to the list.
  */
-void Lexer::PushToken (const LexerType t, const size_t start, const std::string value)
+void Lexer::PushToken (const LexerType t, const size_t start, const std::string& value)
 {
     // find previous new line, we need it to tell the column
     size_t bitr = start;

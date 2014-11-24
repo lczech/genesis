@@ -18,7 +18,7 @@ class Node
 {
 public:
     Node();
-    Node(std::string name);
+    Node(const std::string& name);
 
     std::string name() const
     {

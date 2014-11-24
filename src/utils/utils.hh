@@ -21,14 +21,14 @@ namespace genesis {
 //     First: function declaractions.
 // =============================================================================
 
-std::string FileRead (const std::string fn);
+std::string FileRead (const std::string& fn);
 
-std::string StringEscape   (const std::string text);
-std::string StringDeescape (const std::string text);
+std::string StringEscape   (const std::string& text);
+std::string StringDeescape (const std::string& text);
 std::string StringReplaceAll (
-    const std::string &s,
-    const std::string &search,
-    const std::string &replace
+    const std::string& s,
+    const std::string& search,
+    const std::string& replace
 );
 
 // =============================================================================

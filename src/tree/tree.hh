@@ -23,10 +23,10 @@ public:
     Tree() {};
     ~Tree() {};
 
-    void FromNewickFile (std::string fn);
-    void ToNewickFile   (std::string fn);
+    void FromNewickFile (const std::string& fn);
+    void ToNewickFile   (const std::string& fn);
 
-    void FromNewickString (std::string tree);
+    void FromNewickString (const std::string& tree);
     std::string ToNewickString ();
 };
 

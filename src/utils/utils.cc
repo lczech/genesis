@@ -25,7 +25,7 @@ namespace genesis {
  * If the file does not exist, a warning is triggered and an emtpty string
  * returned.
  */
-std::string FileRead (const std::string fn)
+std::string FileRead (const std::string& fn)
 {
     std::ifstream t(fn);
     std::string str;
@@ -55,7 +55,7 @@ std::string FileRead (const std::string fn)
  * Double quotation marks are preceeded by a backslash, also the backslash itself will be escaped,
  * so that `"` becomes `\"` and `\` becomes `\\`.
  */
-std::string StringEscape (const std::string text)
+std::string StringEscape (const std::string& text)
 {
     std::string tmp;
     tmp = StringReplaceAll(text, "\r", "\\r");
@@ -75,7 +75,7 @@ std::string StringEscape (const std::string text)
  * escaped sequences will simply translate into the second char, e.g., a double
  * backslash will become one backslash.
  */
-std::string StringDeescape (const std::string text)
+std::string StringDeescape (const std::string& text)
 {
     // TODO this is not fast. could be better by using char[] (save reallocs)
     std::string tmp = "";
@@ -103,7 +103,7 @@ std::string StringDeescape (const std::string text)
  * are replaced by a replace string.
  */
 std::string StringReplaceAll (
-    const std::string &s, const std::string &search, const std::string &replace
+    const std::string& s, const std::string& search, const std::string& replace
 ) {
     std::string tmp = s;
     for (size_t pos = 0; ; pos += replace.length()) {

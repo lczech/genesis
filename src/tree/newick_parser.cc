@@ -15,7 +15,7 @@
 
 namespace genesis {
 
-bool NewickParser::Process (const std::string& tree, TreeAgent* agent)
+bool NewickParser::Process (const std::string& tree, TreeAgent& agent)
 {
     NewickLexer lexer;
     lexer.Process(tree);
@@ -26,7 +26,7 @@ bool NewickParser::Process (const std::string& tree, TreeAgent* agent)
 // TODO what happens if a tree's nested brackets fully close to depth 0, then open again
 // TODO without semicolon like (...)(...); ? do we need to check for this?
 
-bool NewickParser::Process (const NewickLexer& lexer, TreeAgent* agent)
+bool NewickParser::Process (const NewickLexer& lexer, TreeAgent& agent)
 {
     if (lexer.empty()) {
         LOG_INFO << "Tree is empty. Nothing done.";
@@ -38,7 +38,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeAgent* agent)
         return false;
     }
 
-    agent->clear();
+    agent.clear();
 
     // the node that is currently being populated with data
     TreeAgentNode* node = nullptr;
@@ -144,7 +144,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeAgent* agent)
                     node->name = "Internal Node";
                 }
             }
-            agent->push_back(node);
+            agent.push_back(node);
             node = nullptr;
 
             --depth;
@@ -252,7 +252,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeAgent* agent)
                     node->name = "Internal Node";
                 }
             }
-            agent->push_back(node);
+            agent.push_back(node);
             node = nullptr;
             continue;
         }
@@ -273,7 +273,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeAgent* agent)
             if (node->name.empty()) {
                 node->name = "Root Node";
             }
-            agent->push_back(node);
+            agent.push_back(node);
             node = nullptr;
             break;
         }

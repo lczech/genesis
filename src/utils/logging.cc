@@ -71,7 +71,7 @@ void Logging::AddOutputStream (std::ostream& os)
  *
  * This creates a stream to the file.
  */
-void Logging::AddOutputFile (const std::string fn)
+void Logging::AddOutputFile (const std::string& fn)
 {
     // TODO the log file stream is never deleted. this is not a big leak,
     // as commonly only one file is used for logging, but still is a smell.
@@ -175,7 +175,7 @@ Logging::~Logging()
  * It returns the string stream buffer used to capture the log messages.
  */
 std::ostringstream& Logging::Get(
-    const std::string file, const int line, const LoggingLevel level
+    const std::string& file, const int line, const LoggingLevel level
 )
 {
     return Get(file, line, level, details);
@@ -189,7 +189,7 @@ std::ostringstream& Logging::Get(
  * used to capture the log messages.
  */
 std::ostringstream& Logging::Get(
-    const std::string file, const int line,
+    const std::string& file, const int line,
     const LoggingLevel level, const LoggingDetails dets
 )
 {

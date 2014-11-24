@@ -273,11 +273,11 @@ class Logging
 
         // getter for the singleton instance of log, is called by the macros
         std::ostringstream& Get (
-            const std::string file, const int line,
+            const std::string& file, const int line,
             const LoggingLevel level
         );
         std::ostringstream& Get (
-            const std::string file, const int line,
+            const std::string& file, const int line,
             const LoggingLevel level, const LoggingDetails dets
         );
 
@@ -285,7 +285,7 @@ class Logging
         // TODO allow different levels to be logged to different streams?!
         // methods to handle the output streams to write the log messages to
         static void AddOutputStream (std::ostream& os);
-        static void AddOutputFile   (const std::string fn);
+        static void AddOutputFile   (const std::string& fn);
 
         /**
          * Settings for which information is included with each log message.

@@ -36,12 +36,11 @@ std::string print_header()
 int main (int argc, char* argv[])
 {
     Logging::AddOutputStream(std::cout);
-    Logging::details.level = false;
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
-    //~ Tree tree;
-    //~ tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};");
+    Tree tree;
+    tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};");
     //~ tree.FromNewickString("( (] Ant:0.2, [a comment] 'Bee':0.09 )Innen:0.7, Coyote:0.5 );");
 
     //~ LOG_INFO << "no nodes are named: (,,(,));";

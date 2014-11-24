@@ -14,7 +14,7 @@
 
 namespace genesis {
 
-void Tree::FromNewickFile (std::string fn)
+void Tree::FromNewickFile (const std::string& fn)
 {
     // TODO make sure file exists!
     // (readfile checks this, too, but simply returns "", which yields the wrong message when
@@ -22,14 +22,14 @@ void Tree::FromNewickFile (std::string fn)
     FromNewickString(FileRead(fn));
 }
 
-void Tree::FromNewickString (std::string tree)
+void Tree::FromNewickString (const std::string& tree)
 {
     //~ NewickLexer lexer;
     //~ lexer.Process(tree);
     //~ lexer.Dump();
 
     TreeAgent agent;
-    NewickParser::Process(tree, &agent);
+    NewickParser::Process(tree, agent);
     agent.Dump();
     //~ LOG_INFO << "Nodes: " << parser.nodes() << ", Leaves: " << parser.leaves();
     //~ LOG_INFO;

@@ -89,12 +89,12 @@ std::string JsonValueObject::ToString() const
     return ss.str();
 }
 
-void JsonValueObject::Set (std::string name, JsonValue* value)
+void JsonValueObject::Set (const std::string &name, JsonValue* value)
 {
     data[name] = value;
 }
 
-JsonValue* JsonValueObject::Get (std::string name)
+JsonValue* JsonValueObject::Get (const std::string &name)
 {
     if (Has(name)) {
         return data[name];

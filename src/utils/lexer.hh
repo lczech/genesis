@@ -134,7 +134,7 @@ public:
     inline LexerToken
     (
         const LexerType t, const int         l,
-        const int            c, const std::string v
+        const int            c, const std::string& v
     ) :
         type_(t), line_(l), column_(c), value_(v)
     {};
@@ -231,7 +231,7 @@ public:
      * of LexerType kBracket and if it is the closing parenthesis.
      * This is a shortcut for testing type and value at the same time.
      */
-    inline bool IsBracket(const std::string br) const
+    inline bool IsBracket(const std::string& br) const
     {
         return (type_ == LexerType::kBracket) && (value_.compare(br) == 0);
     }
@@ -254,7 +254,7 @@ public:
      * of LexerType kOperator and if it is the modulo operator.
      * This is a shortcut for testing type and value at the same time.
      */
-    inline bool IsOperator(const std::string op) const
+    inline bool IsOperator(const std::string& op) const
     {
         return (type_ == LexerType::kOperator) && (value_.compare(op) == 0);
     }
@@ -661,7 +661,7 @@ protected:
      * chars that are on a standard keyboard layout. See start_char_table_
      * for their ASCII representation.
      */
-    inline void SetCharType (const LexerType type, std::string chars)
+    inline void SetCharType (const LexerType type, const std::string& chars)
     {
         for (char c : chars) {
             start_char_table_[static_cast<unsigned char>(c)] = type;
@@ -727,7 +727,7 @@ protected:
         }
     }
 
-    void PushToken (const LexerType t, const size_t start, const std::string value);
+    void PushToken (const LexerType t, const size_t start, const std::string& value);
 
     /** @brief Create a token and push it to the list. */
     inline void PushToken (const LexerType t, const size_t start, const size_t end)

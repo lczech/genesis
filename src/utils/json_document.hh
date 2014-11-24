@@ -91,7 +91,7 @@ class JsonValueNull : public JsonValue
 public:
     JsonValueNull() : JsonValue(kNull) {};
 
-    JsonValueNull (const std::string v) : JsonValue(kNull)
+    JsonValueNull (const std::string& v) : JsonValue(kNull)
     {
         if (v.compare("null") != 0) {
             LOG_WARN << "Not a valid JSON null expression: '" << v << "'.";
@@ -115,7 +115,7 @@ public:
 
     JsonValueBool (const bool v) : JsonValue(kBool), value(v) {};
 
-    JsonValueBool (const std::string v) : JsonValue(kBool)
+    JsonValueBool (const std::string& v) : JsonValue(kBool)
     {
         if (v.compare("true") == 0) {
             value = true;
@@ -146,7 +146,7 @@ public:
 
     JsonValueNumber (const double v) : JsonValue(kNumber), value(v) {}
 
-    JsonValueNumber (const std::string v) : JsonValue(kNumber)
+    JsonValueNumber (const std::string& v) : JsonValue(kNumber)
     {
         // TODO check if the string actually contains a valid number
         value = std::stod(v);
@@ -177,7 +177,7 @@ class JsonValueString : public JsonValue
 public:
     JsonValueString () : JsonValue(kString) {};
 
-    JsonValueString (const std::string v) : JsonValue(kString), value(v) {};
+    JsonValueString (const std::string& v) : JsonValue(kString), value(v) {};
 
     inline std::string ToString() const override
     {
@@ -217,10 +217,10 @@ public:
 
     std::string ToString() const override;
 
-    void Set (std::string name, JsonValue* value);
-    JsonValue* Get (std::string name);
+    void Set (const std::string& name, JsonValue* value);
+    JsonValue* Get (const std::string& name);
 
-    inline bool Has (std::string name) const
+    inline bool Has (const std::string& name) const
     {
         return data.count(name) > 0 ? true : false;
     }
