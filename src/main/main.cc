@@ -36,7 +36,7 @@ std::string print_header()
 int main (int argc, char* argv[])
 {
     Logging::AddOutputStream(std::cout);
-    Logging::details.line = true;
+    Logging::details.level = false;
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 

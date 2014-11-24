@@ -63,17 +63,14 @@ bool JsonParser::ProcessValue (
         } else {
             value = new JsonValueBool(ct->value());
         }
-        ++ct;
         return true;
     }
     if (ct->IsNumber()) {
         value = new JsonValueNumber(ct->value());
-        ++ct;
         return true;
     }
     if (ct->IsString()) {
         value = new JsonValueString(ct->value());
-        ++ct;
         return true;
     }
     if (ct->IsBracket("[")) {
@@ -189,6 +186,7 @@ bool JsonParser::ProcessObject (
             return false;
         }
         object->Set(name, member);
+        ++ct;
 
         // check for end of object, leave if found
         if (ct == end || ct->IsBracket("}")) {
