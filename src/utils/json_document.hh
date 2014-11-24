@@ -198,7 +198,11 @@ public:
     virtual ~JsonValueArray() override;
     void clear();
 
-    std::string ToString() const override;
+    std::string ToString(const int indent_level) const;
+    inline std::string ToString() const override
+    {
+        return ToString(0);
+    }
 
     typedef std::deque<JsonValue*> ArrayData;
     ArrayData data;
@@ -215,7 +219,11 @@ public:
     virtual ~JsonValueObject() override;
     void clear();
 
-    std::string ToString() const override;
+    std::string ToString(const int indent_level) const;
+    inline std::string ToString() const override
+    {
+        return ToString(0);
+    }
 
     void Set (const std::string& name, JsonValue* value);
     JsonValue* Get (const std::string& name);
@@ -250,12 +258,9 @@ public:
     JsonDocument () : JsonValueObject() {};
     virtual ~JsonDocument() override;
 
-    std::string ToString() const override
-    {
-        return "";
-    }
-
     bool Validate();
+
+    static int indent;
 };
 
 // =============================================================================

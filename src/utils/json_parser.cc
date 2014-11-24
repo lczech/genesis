@@ -15,14 +15,14 @@ namespace genesis {
 //     Process
 // =============================================================================
 
-bool JsonParser::Process (const std::string& json, JsonDocument* document)
+bool JsonParser::Process (const std::string& json, JsonDocument& document)
 {
     JsonLexer lexer;
     lexer.Process(json);
     return Process(lexer, document);
 }
 
-bool JsonParser::Process (const JsonLexer& lexer, JsonDocument* document)
+bool JsonParser::Process (const JsonLexer& lexer, JsonDocument& document)
 {
     if (lexer.empty()) {
         LOG_INFO << "JSON file is empty. Nothing done.";
@@ -38,13 +38,17 @@ bool JsonParser::Process (const JsonLexer& lexer, JsonDocument* document)
         return false;
     }
 
-    if (!document) {
-        document = new JsonDocument();
-    }
-    document->clear();
+    document.clear();
     Lexer::const_iterator begin = lexer.begin();
     Lexer::const_iterator end   = lexer.end();
-    return ProcessObject(begin, end, document);
+    if (!ProcessObject(begin, end, &document)) {
+        return false;
+    }
+    if (begin != end) {
+        LOG_WARN << "JSON document contains more information after the closing bracket.";
+        return false;
+    }
+    return true;
 }
 
 // =============================================================================
@@ -54,7 +58,7 @@ bool JsonParser::Process (const JsonLexer& lexer, JsonDocument* document)
 bool JsonParser::ProcessValue (
     Lexer::const_iterator& ct,
     Lexer::const_iterator& end,
-    JsonValue*             value
+    JsonValue*&            value
 ) {
     if (ct->IsSymbol()) {
         // the lexer only returns null, true or false as symbols, so this is safe
@@ -77,10 +81,14 @@ bool JsonParser::ProcessValue (
         return true;
     }
     if (ct->IsBracket("[")) {
-        return ProcessArray (ct, end, value);
+        JsonValueArray* arr = new JsonValueArray();
+        value = arr;
+        return ProcessArray (ct, end, arr);
     }
     if (ct->IsBracket("{")) {
-        return ProcessObject (ct, end, value);
+        JsonValueObject* obj = new JsonValueObject();
+        value = obj;
+        return ProcessObject (ct, end, obj);
     }
 
     LOG_WARN << "JSON value contains invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
@@ -94,14 +102,11 @@ bool JsonParser::ProcessValue (
 bool JsonParser::ProcessArray (
     Lexer::const_iterator& ct,
     Lexer::const_iterator& end,
-    JsonValue*             value
+    JsonValueArray*        value
 ) {
-    if (value) {
-        LOG_ERR << "Non-empty return pointer.";
-        delete value;
+    if (!value) {
+        value = new JsonValueArray();
     }
-    JsonValueArray* array = new JsonValueArray();
-    value = array;
 
     if (ct == end || !ct->IsBracket("[")) {
         LOG_WARN << "JSON array does not start with '[' at " << ct->at() << ".";
@@ -115,7 +120,7 @@ bool JsonParser::ProcessArray (
         if (!ProcessValue(ct, end, element)) {
             return false;
         }
-        array->data.push_back(element);
+        value->data.push_back(element);
 
         // check for end of array, leave if found
         if (ct == end || ct->IsBracket("]")) {
@@ -145,14 +150,11 @@ bool JsonParser::ProcessArray (
 bool JsonParser::ProcessObject (
     Lexer::const_iterator& ct,
     Lexer::const_iterator& end,
-    JsonValue*             value
+    JsonValueObject*       value
 ) {
-    if (value) {
-        LOG_ERR << "Non-empty return pointer.";
-        delete value;
+    if (!value) {
+        value = new JsonValueObject();
     }
-    JsonValueObject* object = new JsonValueObject();
-    value = object;
 
     if (ct == end || !ct->IsBracket("{")) {
         LOG_WARN << "JSON object does not start with '{' at " << ct->at() << ".";
@@ -188,7 +190,7 @@ bool JsonParser::ProcessObject (
         if (!ProcessValue(ct, end, member)) {
             return false;
         }
-        object->Set(name, member);
+        value->Set(name, member);
 
         // check for end of object, leave if found
         if (ct == end || ct->IsBracket("}")) {

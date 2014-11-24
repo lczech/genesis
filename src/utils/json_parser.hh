@@ -19,26 +19,26 @@ namespace genesis {
 class JsonParser
 {
 public:
-    static bool Process (const std::string& json,  JsonDocument* document);
-    static bool Process (const JsonLexer&   lexer, JsonDocument* document);
+    static bool Process (const std::string& json,  JsonDocument& document);
+    static bool Process (const JsonLexer&   lexer, JsonDocument& document);
 
 protected:
     static bool ProcessValue (
         Lexer::const_iterator& ct,
         Lexer::const_iterator& end,
-        JsonValue*             value
+        JsonValue*&            value
     );
 
     static bool ProcessArray (
         Lexer::const_iterator& ct,
         Lexer::const_iterator& end,
-        JsonValue*             value
+        JsonValueArray*        value
     );
 
     static bool ProcessObject (
         Lexer::const_iterator& ct,
         Lexer::const_iterator& end,
-        JsonValue*             value
+        JsonValueObject*       value
     );
 };
 

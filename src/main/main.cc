@@ -36,6 +36,9 @@ std::string print_header()
 int main (int argc, char* argv[])
 {
     Logging::AddOutputStream(std::cout);
+    Logging::details.level = false;
+    //~ Logging::details.file = true;
+    //~ Logging::details.line = true;
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
@@ -71,8 +74,9 @@ int main (int argc, char* argv[])
     lex.Process(FileRead("test/data/placement.jplace"));
     lex.Dump();
 
-    JsonDocument* doc = nullptr;
+    JsonDocument doc;
     JsonParser::Process(lex, doc);
+    LOG_INFO << doc.ToString();
 
     //~ JsonDocument doc;
 

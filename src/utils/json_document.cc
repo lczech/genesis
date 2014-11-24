@@ -36,21 +36,29 @@ void JsonValueArray::clear()
     ArrayData().swap(data);
 }
 
-std::string JsonValueArray::ToString() const
+std::string JsonValueArray::ToString(const int indent_level) const
 {
+    std::string in (indent_level * JsonDocument::indent, ' ');
     std::stringstream ss;
-    ss << "[ ";
+    ss << in << "[";
 
     bool first = true;
     for (JsonValue* v : data) {
         if (!first) {
             ss << ", ";
         }
-        ss << v->ToString();
+        ss << "\n";
+        if (v->type() == JsonValue::kArray) {
+            ss << static_cast<JsonValueArray*>(v)->ToString(indent_level + 1);
+        } else if (v->type() == JsonValue::kObject) {
+            ss << static_cast<JsonValueObject*>(v)->ToString(indent_level + 1);
+        } else {
+            ss << in << std::string(JsonDocument::indent, ' ') << v->ToString();
+        }
         first = false;
     }
 
-    ss << " ]";
+    ss << "\n" << in << "]";
     return ss.str();
 }
 
@@ -71,21 +79,29 @@ void JsonValueObject::clear()
     ObjectData().swap(data);
 }
 
-std::string JsonValueObject::ToString() const
+std::string JsonValueObject::ToString(const int indent_level) const
 {
+    std::string in (indent_level * JsonDocument::indent, ' ');
     std::stringstream ss;
-    ss << "{ ";
+    ss << in << "{";
 
     bool first = true;
     for (ObjectPair v : data) {
         if (!first) {
-            ss << ", ";
+            ss << ",";
         }
-        ss << "\"" << v.first << "\": " << v.second->ToString();
+        ss << "\n" << in << std::string(JsonDocument::indent, ' ') << "\"" << v.first << "\":\n";
+        if (v.second->type() == JsonValue::kArray) {
+            ss << static_cast<JsonValueArray*>(v.second)->ToString(indent_level + 1);
+        } else if (v.second->type() == JsonValue::kObject) {
+            ss << static_cast<JsonValueObject*>(v.second)->ToString(indent_level + 1);
+        } else {
+            ss << in << std::string(2*JsonDocument::indent, ' ') << v.second->ToString();
+        }
         first = false;
     }
 
-    ss << " }";
+    ss << "\n" << in << "}";
     return ss.str();
 }
 
@@ -106,6 +122,8 @@ JsonValue* JsonValueObject::Get (const std::string &name)
 // =============================================================================
 //     JsonDocument
 // =============================================================================
+
+int JsonDocument::indent = 4;
 
 JsonDocument::~JsonDocument ()
 {
