@@ -335,7 +335,7 @@ inline bool Lexer::ScanNumber()
             // treat it also as the end of the number and stop scanning
             if (
                 found_e
-                || GetPosition() > 0 || !CharIsDigit(GetChar(-1))
+                || GetPosition() == 0 || !CharIsDigit(GetChar(-1))
                 || IsEnd(+1)
                 || (!CharIsDigit(GetChar(+1)) && !CharIsSign(GetChar(+1)))
             ) {
