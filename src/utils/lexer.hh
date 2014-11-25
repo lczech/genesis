@@ -276,9 +276,9 @@ public:
 
 private:
     const LexerType   type_;
-    const int              line_;
-    const int              column_;
-    const std::string      value_;
+    const int         line_;
+    const int         column_;
+    const std::string value_;
 };
 
 // =============================================================================
