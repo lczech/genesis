@@ -15,18 +15,18 @@
 
 namespace genesis {
 
-bool NewickParser::Process (const std::string& tree, TreeAgent& agent)
+bool NewickParser::Process (const std::string& tree, TreeBroker& broker)
 {
     NewickLexer lexer;
     lexer.Process(tree);
-    return Process(lexer, agent);
+    return Process(lexer, broker);
 }
 
 // TODO do a validate brackets first?!
 // TODO what happens if a tree's nested brackets fully close to depth 0, then open again
 // TODO without semicolon like (...)(...); ? do we need to check for this?
 
-bool NewickParser::Process (const NewickLexer& lexer, TreeAgent& agent)
+bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
 {
     if (lexer.empty()) {
         LOG_INFO << "Tree is empty. Nothing done.";
@@ -38,10 +38,10 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeAgent& agent)
         return false;
     }
 
-    agent.clear();
+    broker.clear();
 
     // the node that is currently being populated with data
-    TreeAgentNode* node = nullptr;
+    TreeBrokerNode* node = nullptr;
 
     // how deep is the current token nested in the tree?
     int depth = 0;
@@ -106,7 +106,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeAgent& agent)
         // node and pushed it to the stack (either closing bracket or comma), so we need to create a
         // new one here.
         if (!node) {
-            node = new TreeAgentNode();
+            node = new TreeBrokerNode();
             node->depth = depth;
 
             // checks if the new node is a leaf.
@@ -144,7 +144,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeAgent& agent)
                     node->name = "Internal Node";
                 }
             }
-            agent.push_back(node);
+            broker.push_back(node);
             node = nullptr;
 
             --depth;
@@ -252,7 +252,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeAgent& agent)
                     node->name = "Internal Node";
                 }
             }
-            agent.push_back(node);
+            broker.push_back(node);
             node = nullptr;
             continue;
         }
@@ -273,7 +273,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeAgent& agent)
             if (node->name.empty()) {
                 node->name = "Root Node";
             }
-            agent.push_back(node);
+            broker.push_back(node);
             node = nullptr;
             break;
         }

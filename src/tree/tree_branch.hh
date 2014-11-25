@@ -1,5 +1,5 @@
-#ifndef GNS_TREE_BRANCH_H_
-#define GNS_TREE_BRANCH_H_
+#ifndef GNS_TREE_TREEBRANCH_H_
+#define GNS_TREE_TREEBRANCH_H_
 
 /**
  * @brief This class represents a branch inside of a tree.
@@ -10,22 +10,24 @@
  * @ingroup tree
  */
 
-//~ #include "tree/node.hh"
+//~ #include "tree/tree_node.hh"
 // forward declare node
-class Node;
+class TreeNode;
 
 namespace genesis {
 
-class Branch
+class TreeBranch
 {
 public:
-    signed int tag;
+    typedef double BranchLength;
+
+    TreeBranch();
 
 protected:
-    double length_;
+    BranchLength length_;
 
-    Node* p_;
-    Node* q_;
+    TreeNode* node_p_;
+    TreeNode* node_q_;
 
 };
 

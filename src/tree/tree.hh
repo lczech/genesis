@@ -12,8 +12,8 @@
 
 #include <string>
 
-#include "tree/newick_lexer.hh"
-#include "tree/node.hh"
+//~ #include "tree/newick_lexer.hh"
+//~ #include "tree/tree_node.hh"
 
 namespace genesis {
 
@@ -21,7 +21,7 @@ class Tree
 {
 public:
     Tree() {};
-    ~Tree() {};
+    virtual ~Tree() {};
 
     void FromNewickFile (const std::string& fn);
     void ToNewickFile   (const std::string& fn);

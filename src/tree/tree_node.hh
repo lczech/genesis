@@ -1,5 +1,5 @@
-#ifndef GNS_TREE_NODE_H_
-#define GNS_TREE_NODE_H_
+#ifndef GNS_TREE_TREENODE_H_
+#define GNS_TREE_TREENODE_H_
 
 /**
  * @brief This class represents a node inside of a tree.
@@ -12,13 +12,15 @@
 
 #include <string>
 
+#include "tree/tree_link.hh"
+
 namespace genesis {
 
-class Node
+class TreeNode
 {
 public:
-    Node();
-    Node(const std::string& name);
+    TreeNode();
+    TreeNode(const std::string& name);
 
     std::string name() const
     {
@@ -43,6 +45,8 @@ protected:
      * the taxon represented by the node.
      */
     std::string name_;
+
+    TreeLink* tree_link_;
 };
 
 } // namespace genesis

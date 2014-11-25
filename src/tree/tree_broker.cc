@@ -5,7 +5,7 @@
  * @ingroup tree
  */
 
-#include "tree/tree_agent.hh"
+#include "tree/tree_broker.hh"
 
 //~ #include <assert.h>
 #include <string>
@@ -15,25 +15,25 @@
 
 namespace genesis {
 
-TreeAgent::~TreeAgent()
+TreeBroker::~TreeBroker()
 {
     clear();
 }
 
-void TreeAgent::clear()
+void TreeBroker::clear()
 {
-    for (TreeAgentNode* node : stack_) {
+    for (TreeBrokerNode* node : stack_) {
         delete node;
     }
     stack_.clear();
 }
 
-void TreeAgent::Dump()
+void TreeBroker::Dump()
 {
     std::string out;
     out += "Tree contains " + std::to_string(NodeCount()) + " nodes (thereof "
         + std::to_string(LeafCount()) + " leaves):" + "\n";
-    for (TreeAgentNode* node : stack_) {
+    for (TreeBrokerNode* node : stack_) {
         for (int i = 0; i < node->depth; ++i) {
             out += "    ";
         }
@@ -52,10 +52,10 @@ void TreeAgent::Dump()
  * We need to count them anew every time, because the node objects are publicly
  * mutable, thus we can not use an internal counter.
  */
-int TreeAgent::LeafCount()
+int TreeBroker::LeafCount()
 {
     int sum = 0;
-    for (TreeAgentNode* node : stack_) {
+    for (TreeBrokerNode* node : stack_) {
         if (node->is_leaf) {
             ++sum;
         }

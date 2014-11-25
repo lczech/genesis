@@ -28,9 +28,9 @@ void Tree::FromNewickString (const std::string& tree)
     //~ lexer.Process(tree);
     //~ lexer.Dump();
 
-    TreeAgent agent;
-    NewickParser::Process(tree, agent);
-    agent.Dump();
+    TreeBroker broker;
+    NewickParser::Process(tree, broker);
+    broker.Dump();
     //~ LOG_INFO << "Nodes: " << parser.nodes() << ", Leaves: " << parser.leaves();
     //~ LOG_INFO;
 }
