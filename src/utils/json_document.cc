@@ -7,7 +7,7 @@
 
 #include "utils/json_document.hh"
 
-#include <stack>
+//~ #include <stack>
 
 #include "utils/logging.hh"
 
@@ -105,20 +105,6 @@ std::string JsonValueObject::ToString(const int indent_level) const
     return ss.str();
 }
 
-void JsonValueObject::Set (const std::string &name, JsonValue* value)
-{
-    data[name] = value;
-}
-
-JsonValue* JsonValueObject::Get (const std::string &name)
-{
-    if (Has(name)) {
-        return data[name];
-    } else {
-        return nullptr;
-    }
-}
-
 // =============================================================================
 //     JsonDocument
 // =============================================================================
@@ -130,6 +116,9 @@ JsonDocument::~JsonDocument ()
     clear();
 }
 
+// TODO write a validate json doc function that checks if there are no recurrencies in the values,
+// TODO meaning that the pointers in an object or array need to point to unique values, and not for
+// TODO example to themselves or their parent objects.
 /*
 bool JsonDocument::Validate()
 {

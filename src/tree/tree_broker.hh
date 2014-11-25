@@ -14,7 +14,7 @@
 namespace genesis {
 
 // =============================================================================
-//     TreeAgentNode
+//     TreeBrokerNode
 // =============================================================================
 
 /** @brief POD struct that stores the information for one tree node.
@@ -24,13 +24,13 @@ namespace genesis {
  * However, this means paying attention when working with the data, as it can
  * be changed from anywhere.
  *
- * See TreeStack class for a description of this intermediate format.
+ * See TreeBroker class for a description of this intermediate format.
  */
-struct TreeAgentNode
+struct TreeBrokerNode
 {
 public:
     /** @brief Constructor, initializes the item values. */
-    TreeAgentNode() : branch_length(0.0), depth(0), rank(0), is_leaf(false) {};
+    TreeBrokerNode() : branch_length(0.0), depth(0), rank(0), is_leaf(false) {};
 
     /**
      * @brief Name of the node.
@@ -65,25 +65,26 @@ public:
 };
 
 // =============================================================================
-//     TreeAgent
+//     TreeBroker
 // =============================================================================
 
     // TODO parsing now does not assign ranks to nodes (how many children they have).
     // TODO this might become imporant in the future, eg to check if it is a binary tree.
     // TODO add AssignRanks() (see PLL newick.c)
-    // TODO add Validate() (see PLL newick.c)
+    // TODO add Validate() (see PLL newick.c), that also checks if the leaves are really leaves
+    // TODO write copy ctor and assign op
 
-class TreeAgent
+class TreeBroker
 {
 public:
-    ~TreeAgent();
+    ~TreeBroker();
 
     inline void pop_back()
     {
         stack_.pop_back();
     }
 
-    inline void push_back (TreeAgentNode* node)
+    inline void push_back (TreeBrokerNode* node)
     {
         stack_.push_back(node);
     }
@@ -103,7 +104,7 @@ public:
     int LeafCount();
 
 protected:
-    std::deque<TreeAgentNode*> stack_;
+    std::deque<TreeBrokerNode*> stack_;
 };
 
 } // namespace genesis

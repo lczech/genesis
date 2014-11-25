@@ -11,9 +11,11 @@
  */
 
 #include <string>
+#include <vector>
 
-#include "tree/newick_lexer.hh"
-#include "tree/node.hh"
+#include "tree/tree_branch.hh"
+#include "tree/tree_link.hh"
+#include "tree/tree_node.hh"
 
 namespace genesis {
 
@@ -21,13 +23,21 @@ class Tree
 {
 public:
     Tree() {};
-    ~Tree() {};
+    virtual ~Tree() {};
+    void clear();
 
     void FromNewickFile (const std::string& fn);
     void ToNewickFile   (const std::string& fn);
 
     void FromNewickString (const std::string& tree);
     std::string ToNewickString ();
+
+protected:
+    std::vector<TreeBranch*> branches_;
+    std::vector<TreeLink*>   links_;
+    std::vector<TreeNode*>   nodes_;
+
+    void Init(const int leaf_count);
 };
 
 } // namespace genesis

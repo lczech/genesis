@@ -15,7 +15,7 @@ PROGRAM = genesis
 # --------------------------------
 
 # Debug & Profiling (comment out if not needed)
-DBG     = -g -pg -DDEBUG
+DBG     = -ggdb3 -pg -DDEBUG
 
 # Warning flags
 WARN    = -Wall -Wextra -pedantic -pedantic-errors

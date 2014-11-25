@@ -36,7 +36,7 @@ std::string print_header()
 int main (int argc, char* argv[])
 {
     Logging::AddOutputStream(std::cout);
-    Logging::details.level = false;
+    //~ Logging::details.level = false;
     //~ Logging::details.file = true;
     //~ Logging::details.line = true;
     LOG_BOLD << print_header();
@@ -70,13 +70,13 @@ int main (int argc, char* argv[])
     //~ LOG_INFO << "a tree rooted on a leaf node (rare): ((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;";
     //~ tree.FromNewickString("((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;");
 
-    JsonLexer lex;
-    lex.Process(FileRead("test/data/placement.jplace"));
-    lex.Dump();
+    //~ JsonLexer lex;
+    //~ lex.Process(FileRead("test/data/placement.jplace"));
+    //~ lex.Dump();
 
-    JsonDocument doc;
-    JsonParser::Process(lex, doc);
-    LOG_INFO << doc.ToString();
+    //~ JsonDocument doc;
+    //~ JsonParser::Process(lex, doc);
+    //~ LOG_INFO << doc.ToString();
 
     //~ JsonDocument doc;
 

@@ -11,15 +11,15 @@
 #include <string>
 
 #include "tree/newick_lexer.hh"
-#include "tree/tree_agent.hh"
+#include "tree/tree_broker.hh"
 
 namespace genesis {
 
 class NewickParser
 {
 public:
-    static bool Process (const std::string& tree,  TreeAgent& agent);
-    static bool Process (const NewickLexer& lexer, TreeAgent& agent);
+    static bool Process (const std::string& tree,  TreeBroker& broker);
+    static bool Process (const NewickLexer& lexer, TreeBroker& broker);
 };
 
 } // namespace genesis

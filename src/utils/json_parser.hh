@@ -2,7 +2,7 @@
 #define GNS_UTILS_JSONPARSER_H_
 
 /**
- * @brief
+ * @brief Functions for parsing a JSON document.
  *
  * @file
  * @ingroup utils
@@ -16,6 +16,14 @@
 
 namespace genesis {
 
+/**
+ * @brief A JSON parser that filles a JsonDocument with data from a JsonLexer or a JSON string.
+ *
+ * This class provides two functions for parsing JSON data. On of the takes a JsonLexer and puts its
+ * contents into a JsonDocument, the other one takes a string containing JSON-formatted data and
+ * calls the lexer on this string first, before then calling the first parsing function again (it is
+ * a shortcut to avoid instanciating the lexer object first by hand).
+ */
 class JsonParser
 {
 public:
