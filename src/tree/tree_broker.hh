@@ -71,7 +71,7 @@ public:
     // TODO parsing now does not assign ranks to nodes (how many children they have).
     // TODO this might become imporant in the future, eg to check if it is a binary tree.
     // TODO add AssignRanks() (see PLL newick.c)
-    // TODO add Validate() (see PLL newick.c)
+    // TODO add Validate() (see PLL newick.c), that also checks if the leaves are really leaves
     // TODO write copy ctor and assign op
 
 class TreeBroker

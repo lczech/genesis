@@ -15,10 +15,14 @@
 
 namespace genesis {
 
+class Tree;
+
 class TreeLink
 {
+    friend class Tree;
+
 public:
-    TreeLink();
+    TreeLink() {}
 
 protected:
     TreeLink* outer_;

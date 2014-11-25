@@ -11,10 +11,11 @@
  */
 
 //~ #include "tree/tree_node.hh"
-// forward declare node
-class TreeNode;
 
 namespace genesis {
+
+// forward declare node
+class TreeNode;
 
 class TreeBranch
 {

@@ -12,9 +12,12 @@
 
 #include <string>
 
-#include "tree/tree_link.hh"
+//~ #include "tree/tree_link.hh"
 
 namespace genesis {
+
+// forward declaration
+class TreeLink;
 
 class TreeNode
 {
