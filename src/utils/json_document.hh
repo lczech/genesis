@@ -178,7 +178,6 @@ public:
 
     JsonValueNumber (const std::string& v) : JsonValue(kNumber)
     {
-        // TODO check if the string actually contains a valid number
         value = std::stod(v);
     }
 
@@ -234,6 +233,11 @@ public:
         return ToString(0);
     }
 
+    inline void Add (JsonValue* value)
+    {
+        data.push_back(value);
+    }
+
     typedef std::deque<JsonValue*> ArrayData;
     ArrayData data;
 };
@@ -255,12 +259,23 @@ public:
         return ToString(0);
     }
 
-    void Set (const std::string& name, JsonValue* value);
-    JsonValue* Get (const std::string& name);
-
     inline bool Has (const std::string& name) const
     {
         return data.count(name) > 0;
+    }
+
+    inline void Set (const std::string& name, JsonValue* value)
+    {
+        data[name] = value;
+    }
+
+    inline JsonValue* Get (const std::string& name)
+    {
+        if (Has(name)) {
+            return data[name];
+        } else {
+            return nullptr;
+        }
     }
 
     inline size_t size() const
@@ -277,7 +292,7 @@ public:
 //     JsonDocument
 // =============================================================================
 
-// TODO write better accessors, write copy and assign functions for all value types
+// TODO write better accessors, write copy ctor and assign op functions for all value types
 
 /**
  *

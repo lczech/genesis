@@ -39,10 +39,11 @@ bool JsonParser::Process (const std::string& json, JsonDocument& document)
  * value types. The parsing here is thus splitted in those three functions, being recursively called
  * for every level of nesting within objects and arrays.
  *
- * Those three functions take an interator to the current lexer token by reference and advance it
- * until it points to the next token after processing the current value. To check for the end of
- * the lexer, an intererator to its end is also provided, as well as a pointer to the resulting
- * JSON value.
+ * Those three functions (objects, arrays, simple values) take an interator to the current lexer
+ * token by reference and advance it until it points to the next token after processing the current
+ * object/array/value. To check for the end of the lexer, an intererator to its end is also
+ * provided, as well as a pointer to the resulting JSON value, which is filled with data during the
+ * execution of the functions.
  */
 bool JsonParser::Process (const JsonLexer& lexer, JsonDocument& document)
 {
@@ -91,6 +92,11 @@ bool JsonParser::ProcessValue (
     Lexer::const_iterator& end,
     JsonValue*&            value
 ) {
+    // proper usage of this function is to hand over a null pointer to a json value, which will be
+    // assigned to a newly created value instance depending on the token type, so check for this
+    // here.
+    assert (value == nullptr);
+
     // check all possible valid lexer token types and turn them into json values
     if (ct->IsSymbol()) {
         // the lexer only returns null, true or false as symbols, so this is safe
@@ -138,8 +144,7 @@ bool JsonParser::ProcessArray (
     Lexer::const_iterator& end,
     JsonValueArray*        value
 ) {
-    // this function is protected in this class, so it should only be called from within or its
-    // derivatives. the proper usage is to hand over a valid pointer to a json value, so check
+    // proper usage of this function is to hand over a valid pointer to a json array, so check
     // for this here.
     assert(value);
 
@@ -155,7 +160,7 @@ bool JsonParser::ProcessArray (
         if (!ProcessValue(ct, end, element)) {
             return false;
         }
-        value->data.push_back(element);
+        value->Add(element);
 
         // check for end of array, leave if found
         if (ct == end || ct->IsBracket("]")) {
@@ -193,8 +198,7 @@ bool JsonParser::ProcessObject (
     Lexer::const_iterator& end,
     JsonValueObject*       value
 ) {
-    // this function is protected in this class, so it should only be called from within or its
-    // derivatives. the proper usage is to hand over a valid pointer to a json value, so check
+    // proper usage of this function is to hand over a valid pointer to a json object, so check
     // for this here.
     assert(value);
 

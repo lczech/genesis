@@ -24,7 +24,7 @@ namespace genesis {
  * However, this means paying attention when working with the data, as it can
  * be changed from anywhere.
  *
- * See TreeStack class for a description of this intermediate format.
+ * See TreeBroker class for a description of this intermediate format.
  */
 struct TreeBrokerNode
 {
@@ -72,6 +72,7 @@ public:
     // TODO this might become imporant in the future, eg to check if it is a binary tree.
     // TODO add AssignRanks() (see PLL newick.c)
     // TODO add Validate() (see PLL newick.c)
+    // TODO write copy ctor and assign op
 
 class TreeBroker
 {

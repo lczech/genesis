@@ -86,6 +86,11 @@ protected:
             PushToken(LexerType::kError, GetPosition(), "Closing tag without opening tag.");
             return false;
         }
+
+        // curly brackets are the only chars that are used as tag in this lexer. we already checked
+        // that the current char is not a closing bracket, so it must be an opening one.
+        assert(GetChar() == '{');
+
         size_t start = GetPosition();
         bool   found = ScanFromTo("{", "}");
         if (!found) {
