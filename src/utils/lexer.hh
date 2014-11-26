@@ -312,7 +312,7 @@ class Lexer
 public:
     virtual bool Process (const std::string& text);
     bool ValidateBrackets();
-    void Dump();
+    std::string Dump();
 
     // =========================================================================
     //     Accessors

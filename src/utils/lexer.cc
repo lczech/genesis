@@ -13,7 +13,6 @@
 #include <string>
 #include <vector>
 
-#include "utils/logging.hh"
 #include "utils/utils.hh"
 
 namespace genesis {
@@ -602,7 +601,7 @@ bool Lexer::ValidateBrackets()
 /**
  * @brief Returns a listing of the parse result in readable form.
  */
-void Lexer::Dump()
+std::string Lexer::Dump()
 {
     std::string res;
     for (size_t i = 0; i < tokens_.size(); i++) {
@@ -616,7 +615,7 @@ void Lexer::Dump()
         );
         res += out + t.value() + '\n';
     }
-    LOG_INFO << res;
+    return res;
 }
 
 } // namespace genesis

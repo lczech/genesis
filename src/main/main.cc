@@ -72,7 +72,7 @@ int main (int argc, char* argv[])
 
     //~ JsonLexer lex;
     //~ lex.Process(FileRead("test/data/placement.jplace"));
-    //~ lex.Dump();
+    //~ LOG_INFO << lex.Dump();
 
     //~ JsonDocument doc;
     //~ JsonParser::Process(lex, doc);
