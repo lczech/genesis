@@ -71,11 +71,14 @@ public:
     // TODO parsing now does not assign ranks to nodes (how many children they have).
     // TODO this might become imporant in the future, eg to check if it is a binary tree.
     // TODO add AssignRanks() (see PLL newick.c)
+
+    // TODO introduce IsDirty() that returns true iff the stack was modified (pop/push/clear/...)
+    // TODO so that the internal state of the tree and its nodes is changed, e.g. AssignRanks()
+    // TODO has to be called again (and all other state-assigning functions)
+
     // TODO add Validate() (see PLL newick.c), that also checks if the leaves are really leaves
     // TODO write copy ctor and assign op
     // TODO write IsBifurcatingTree() function (maybe use Rank() for this)
-    // TODO write iterators
-    // TODO rename pop and push?!
 
 /**
  *
@@ -254,12 +257,19 @@ public:
     bool Validate();
     std::string Dump();
 
+    void AssignRanks();
+
+    int LeafCount() const;
+
+    inline int InnerCount() const
+    {
+        return stack_.size() - LeafCount();
+    }
+
     inline int NodeCount() const
     {
         return stack_.size();
     }
-
-    int LeafCount() const;
 
 protected:
     std::deque<TreeBrokerNode*> stack_;

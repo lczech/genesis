@@ -52,6 +52,8 @@ void Tree::FromNewickString (const std::string& tree)
 
     TreeBroker broker;
     NewickParser::Process(tree, broker);
+    broker.AssignRanks();
+
     LOG_INFO << broker.Dump();
     //~ LOG_INFO << "Nodes: " << parser.nodes() << ", Leaves: " << parser.leaves();
     //~ LOG_INFO;
