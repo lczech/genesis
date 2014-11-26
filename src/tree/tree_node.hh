@@ -16,13 +16,16 @@
 
 namespace genesis {
 
-// forward declaration
+// forward declarations
+class Tree;
 class TreeLink;
 
 class TreeNode
 {
+    friend Tree;
+
 public:
-    TreeNode();
+    TreeNode() {}
     TreeNode(const std::string& name);
 
     std::string name() const
@@ -49,7 +52,7 @@ protected:
      */
     std::string name_;
 
-    TreeLink* tree_link_;
+    TreeLink* link_;
 };
 
 } // namespace genesis

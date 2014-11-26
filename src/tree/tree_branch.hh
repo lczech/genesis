@@ -14,21 +14,24 @@
 
 namespace genesis {
 
-// forward declare node
-class TreeNode;
+// forward declarations
+class Tree;
+class TreeLink;
 
 class TreeBranch
 {
+    friend Tree;
+
 public:
     typedef double BranchLength;
 
-    TreeBranch();
+    TreeBranch() : length_(0.0), link_p_(nullptr), link_q_(nullptr) {}
 
 protected:
     BranchLength length_;
 
-    TreeNode* node_p_;
-    TreeNode* node_q_;
+    TreeLink* link_p_;
+    TreeLink* link_q_;
 
 };
 

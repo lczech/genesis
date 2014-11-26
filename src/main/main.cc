@@ -43,7 +43,9 @@ int main (int argc, char* argv[])
     LOG_TIME << "start";
 
     Tree tree;
-    tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};");
+    tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P)Q;");
+
+    //~ tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};");
     //~ tree.FromNewickString("( (] Ant:0.2, [a comment] 'Bee':0.09 )Innen:0.7, Coyote:0.5 );");
 
     //~ LOG_INFO << "no nodes are named: (,,(,));";
@@ -72,7 +74,7 @@ int main (int argc, char* argv[])
 
     //~ JsonLexer lex;
     //~ lex.Process(FileRead("test/data/placement.jplace"));
-    //~ lex.Dump();
+    //~ LOG_INFO << lex.Dump();
 
     //~ JsonDocument doc;
     //~ JsonParser::Process(lex, doc);

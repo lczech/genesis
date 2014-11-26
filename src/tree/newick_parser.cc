@@ -47,7 +47,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
     int depth = 0;
 
     // acts as pointer to previous token
-    Lexer::const_iterator pt = lexer.end();
+    Lexer::const_iterator pt = lexer.cend();
 
     // acts as pointer to current token
     Lexer::const_iterator ct;
@@ -58,7 +58,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
     // --------------------------------------------------------------
     //     Loop over lexer tokens and check if it...
     // --------------------------------------------------------------
-    for (ct = lexer.begin(); ct != lexer.end(); pt=ct, ++ct) {
+    for (ct = lexer.cbegin(); ct != lexer.cend(); pt=ct, ++ct) {
         if (ct->IsUnknown()) {
             error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
             break;
@@ -68,7 +68,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
         //     is bracket '('  ==>  begin of subtree
         // ------------------------------------------------------
         if (ct->IsBracket("(")) {
-            if (pt != lexer.end() && !(
+            if (pt != lexer.cend() && !(
                 pt->IsBracket("(")  || pt->IsOperator(",") || pt->IsComment()
             )) {
                 error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
@@ -86,7 +86,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
         // if we reach this, the previous condition is not fullfilled (otherwise, continue would
         // have been called). so we have a token other than '(', which means we should already
         // be somewhere in the tree (or a comment). check, if that is true.
-        if (ct == lexer.begin()) {
+        if (ct == lexer.cbegin()) {
             if (ct->IsComment()) {
                 continue;
             }
@@ -97,7 +97,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
         // if we reached this point in code, this means that ct != begin, so it is not the first
         // iteration in this loop. this means that pt was already set in the loop header (at least
         // once), which means it now points to a valid token.
-        assert(pt != lexer.end());
+        assert(pt != lexer.cend());
 
         // set up the node that will be filled with data now.
         // if it already exists, this means we are adding more information to it, e.g.
@@ -114,7 +114,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
             // comma. however, as comments can appear everywhere, we need to check for the first
             // non-comment-token.
             Lexer::const_iterator t = pt;
-            while (t != lexer.begin() && t->IsComment()) {
+            while (t != lexer.cbegin() && t->IsComment()) {
                 --t;
             }
             node->is_leaf = t->IsBracket("(") || t->IsOperator(",");
@@ -144,7 +144,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
                     node->name = "Internal Node";
                 }
             }
-            broker.push_back(node);
+            broker.PushTop(node);
             node = nullptr;
 
             --depth;
@@ -252,7 +252,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
                     node->name = "Internal Node";
                 }
             }
-            broker.push_back(node);
+            broker.PushTop(node);
             node = nullptr;
             continue;
         }
@@ -273,7 +273,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
             if (node->name.empty()) {
                 node->name = "Root Node";
             }
-            broker.push_back(node);
+            broker.PushTop(node);
             node = nullptr;
             break;
         }
@@ -294,7 +294,7 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
         return false;
     }
 
-    if (ct == lexer.end() || !ct->IsOperator(";")) {
+    if (ct == lexer.cend() || !ct->IsOperator(";")) {
         LOG_WARN << "Tree does not finish with a semicolon.";
         return false;
     }
@@ -304,10 +304,10 @@ bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
 
     // skip the semicolon, then see if there is anything other than a comment left
     ++ct;
-    while (ct != lexer.end() && ct->IsComment()) {
+    while (ct != lexer.cend() && ct->IsComment()) {
         ++ct;
     }
-    if (ct != lexer.end()) {
+    if (ct != lexer.cend()) {
         LOG_WARN << "Tree contains more data after the semicolon.";
         return false;
     }

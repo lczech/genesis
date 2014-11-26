@@ -14,6 +14,7 @@
 #include <vector>
 
 #include "tree/tree_branch.hh"
+#include "tree/tree_broker.hh"
 #include "tree/tree_link.hh"
 #include "tree/tree_node.hh"
 
@@ -23,7 +24,7 @@ class Tree
 {
 public:
     Tree() {};
-    virtual ~Tree() {};
+    virtual ~Tree();
     void clear();
 
     void FromNewickFile (const std::string& fn);
@@ -32,12 +33,14 @@ public:
     void FromNewickString (const std::string& tree);
     std::string ToNewickString ();
 
+    void FromTreeBroker (const TreeBroker& broker);
+
 protected:
-    std::vector<TreeBranch*> branches_;
+    void InitBifurcatingTree(const int leaf_count);
+
     std::vector<TreeLink*>   links_;
     std::vector<TreeNode*>   nodes_;
-
-    void Init(const int leaf_count);
+    std::vector<TreeBranch*> branches_;
 };
 
 } // namespace genesis

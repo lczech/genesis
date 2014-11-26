@@ -56,15 +56,15 @@ bool JsonParser::Process (const JsonLexer& lexer, JsonDocument& document)
                  << " with message: " << lexer.back().value();
         return false;
     }
-    if (!lexer.begin()->IsBracket("{")) {
+    if (!lexer.cbegin()->IsBracket("{")) {
         LOG_WARN << "JSON document does not start with JSON object opener '{'.";
         return false;
     }
 
     // a json document is also a json object, so we start parsing the doc as such.
     document.clear();
-    Lexer::const_iterator begin = lexer.begin();
-    Lexer::const_iterator end   = lexer.end();
+    Lexer::const_iterator begin = lexer.cbegin();
+    Lexer::const_iterator end   = lexer.cend();
     if (!ProcessObject(begin, end, &document)) {
         return false;
     }

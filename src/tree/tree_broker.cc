@@ -20,6 +20,10 @@ TreeBroker::~TreeBroker()
     clear();
 }
 
+// -------------------------------------------------------------------------
+//     Modifiers
+// -------------------------------------------------------------------------
+
 void TreeBroker::clear()
 {
     for (TreeBrokerNode* node : stack_) {
@@ -28,7 +32,11 @@ void TreeBroker::clear()
     stack_.clear();
 }
 
-void TreeBroker::Dump()
+// -------------------------------------------------------------------------
+//     Member Functions
+// -------------------------------------------------------------------------
+
+std::string TreeBroker::Dump()
 {
     std::string out;
     out += "Tree contains " + std::to_string(NodeCount()) + " nodes (thereof "
@@ -41,9 +49,35 @@ void TreeBroker::Dump()
             + (node->branch_length != 0.0 ? ":" + std::to_string(node->branch_length) : "")
             + (!node->comment.empty() ? " [" + node->comment + "]" : "")
             + (!node->tag.empty() ? " {" + node->tag + "}" : "")
+            + (node->rank > 0 ? " Rank(" + std::to_string(node->rank) + ")" : "")
             + (node->is_leaf ? " (Leaf)\n" : "\n");
     }
-    LOG_INFO << out;
+    return out;
+}
+
+void TreeBroker::AssignRanks()
+{
+    // iterate over all nodes, starting at the root, and assign ranks to them
+    for (TreeBroker::const_iterator n_itr = stack_.cbegin(); n_itr != stack_.cend(); ++n_itr) {
+        TreeBrokerNode* node = *n_itr;
+        int num_children = 0;
+
+        // go down the stack, starting at the current node, and end either when reaching the end
+        // of the stack or when back at the same depth as the current node.
+        // this means, we look at the subtree that starts at the current node. while doing so,
+        // increase the child counter whenever we see a node that is exactly one level deeper than
+        // the current node, because those are its immediate children.
+        for (
+            TreeBroker::const_iterator c_itr = n_itr + 1;
+            c_itr != stack_.end() && (*c_itr)->depth > node->depth;
+            ++c_itr
+        ) {
+            if ((*c_itr)->depth == node->depth + 1) {
+                ++num_children;
+            }
+        }
+        node->rank = num_children;
+    }
 }
 
 /**
@@ -52,7 +86,7 @@ void TreeBroker::Dump()
  * We need to count them anew every time, because the node objects are publicly
  * mutable, thus we can not use an internal counter.
  */
-int TreeBroker::LeafCount()
+int TreeBroker::LeafCount() const
 {
     int sum = 0;
     for (TreeBrokerNode* node : stack_) {
