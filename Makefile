@@ -25,7 +25,6 @@ STDCC   = clang++
 MPICC   = mpic++
 CCFLAGS = -std=c++11 -I./src $(WARN) $(DBG)
 LDFLAGS = -lm
-#-lpll-sse3 -lm
 
 # --------------------------------
 #   File lists
@@ -76,7 +75,7 @@ $(PROGRAM): $(OBJFILES) $(HDRFILES)
 # Remove all generated files
 clean:
 	@echo "\n========== Cleaning  =========="
-	-@$(RM) $(PROGRAM) $(OBJFILES) $(DEPFILES)
+	-@$(RM) $(PROGRAM) $(OBJFILES) $(DEPFILES) core
 
 # Extract todo's and fixme's
 todo:
