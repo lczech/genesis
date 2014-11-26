@@ -20,6 +20,10 @@ TreeBroker::~TreeBroker()
     clear();
 }
 
+// -------------------------------------------------------------------------
+//     Modifiers
+// -------------------------------------------------------------------------
+
 void TreeBroker::clear()
 {
     for (TreeBrokerNode* node : stack_) {
@@ -28,7 +32,11 @@ void TreeBroker::clear()
     stack_.clear();
 }
 
-void TreeBroker::Dump()
+// -------------------------------------------------------------------------
+//     Member Functions
+// -------------------------------------------------------------------------
+
+std::string TreeBroker::Dump()
 {
     std::string out;
     out += "Tree contains " + std::to_string(NodeCount()) + " nodes (thereof "
@@ -43,7 +51,7 @@ void TreeBroker::Dump()
             + (!node->tag.empty() ? " {" + node->tag + "}" : "")
             + (node->is_leaf ? " (Leaf)\n" : "\n");
     }
-    LOG_INFO << out;
+    return out;
 }
 
 /**
@@ -52,7 +60,7 @@ void TreeBroker::Dump()
  * We need to count them anew every time, because the node objects are publicly
  * mutable, thus we can not use an internal counter.
  */
-int TreeBroker::LeafCount()
+int TreeBroker::LeafCount() const
 {
     int sum = 0;
     for (TreeBrokerNode* node : stack_) {
