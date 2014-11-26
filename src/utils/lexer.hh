@@ -128,6 +128,10 @@ inline std::string LexerTypeToString (const LexerType t)
 struct LexerToken
 {
 public:
+    // -------------------------------------------------------------------------
+    //     Construction and Member Values
+    // -------------------------------------------------------------------------
+
     /**
      * @brief Constructor that sets the values for this token.
      */
@@ -170,6 +174,10 @@ public:
     {
         return std::to_string(line_) + ":" + std::to_string(column_);
     }
+
+    // -------------------------------------------------------------------------
+    //     Shortcut Functions
+    // -------------------------------------------------------------------------
 
     /** @brief Shortcut to check if this is an error token. */
     inline bool IsError() const
@@ -265,6 +273,10 @@ public:
         return type_ == LexerType::kTag;
     }
 
+    // -------------------------------------------------------------------------
+    //     Others
+    // -------------------------------------------------------------------------
+
     /**
      * @brief Returns the string representation for the LexerType of
      * this token.
@@ -314,9 +326,9 @@ public:
     bool ValidateBrackets();
     std::string Dump();
 
-    // =========================================================================
-    //     Accessors
-    // =========================================================================
+    // -------------------------------------------------------------------------
+    //     Accessors and Iterators
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Iterator type to access the tokens produces by the lexer.
@@ -352,9 +364,9 @@ public:
     }
 
     /** @brief Const version of begin(). */
-    inline const_iterator begin() const
+    inline const_iterator cbegin() const
     {
-        return tokens_.begin();
+        return tokens_.cbegin();
     }
 
     /** @brief Returns an iterator to the end of the token list. */
@@ -364,9 +376,9 @@ public:
     }
 
     /** @brief Const version of end(). */
-    inline const_iterator end() const
+    inline const_iterator cend() const
     {
-        return tokens_.end();
+        return tokens_.cend();
     }
 
     /**
@@ -436,7 +448,7 @@ public:
     /**
      * @brief Returns the number of tokens produced during the analysis process.
      */
-    inline std::size_t size() const
+    inline size_t size() const
     {
         return tokens_.size();
     }
@@ -458,9 +470,9 @@ public:
         return !tokens_.empty() && tokens_.back().IsError();
     }
 
-    // =========================================================================
+    // -------------------------------------------------------------------------
     //     Settings
-    // =========================================================================
+    // -------------------------------------------------------------------------
 
     /** @brief Determines whether whitespaces are included as tokens. */
     bool include_whitespace = false;
@@ -559,9 +571,9 @@ protected:
     virtual bool ScanBracket();
     virtual bool ScanTag();
 
-    // =========================================================================
+    // -------------------------------------------------------------------------
     //     Internal functions
-    // =========================================================================
+    // -------------------------------------------------------------------------
 
     /** @brief Init the lexer by resetting state and assigning the text. */
     inline void Init (const std::string& text)
@@ -736,9 +748,9 @@ protected:
     }
 
 private:
-    // =========================================================================
-    //     Members (make up the state of the object)
-    // =========================================================================
+    // -------------------------------------------------------------------------
+    //     Member Variables (make up the state of the object)
+    // -------------------------------------------------------------------------
 
     /**
      * @brief This array contains the token types for all chars, in order to
