@@ -17,9 +17,12 @@ namespace genesis {
 //     TreeBrokerNode
 // =============================================================================
 
+// forward declaration
+class TreeBroker;
+
 /** @brief POD struct that stores the information for one tree node.
  *
- * All its members are public, as it is intended to serve an an intermediate data
+ * Most of its members are public, as it is intended to serve an an intermediate data
  * exchange format, so different callers might need to modify its content.
  * However, this means paying attention when working with the data, as it can
  * be changed from anywhere.
@@ -28,9 +31,16 @@ namespace genesis {
  */
 struct TreeBrokerNode
 {
+    friend TreeBroker;
+
 public:
     /** @brief Constructor, initializes the item values. */
-    TreeBrokerNode() : branch_length(0.0), depth(0), rank(0), is_leaf(false) {};
+    TreeBrokerNode() : branch_length(0.0), depth(0), is_leaf(false), rank_(0) {};
+
+    inline int rank()
+    {
+        return rank_;
+    }
 
     /**
      * @brief Name of the node.
@@ -47,9 +57,6 @@ public:
     /** @brief Depth of the node in the tree, i.e. its distance from the root. */
     int         depth;
 
-    /** @brief Rank of the node, i.e. how many children it has. */
-    int         rank;
-
     /** @brief True if the node is a leaf/tip, false otherwise. */
     bool        is_leaf;
 
@@ -62,6 +69,10 @@ public:
      * @brief An arbitrary string that can be attached to a node, e.g. in Newick format via "[]".
      */
     std::string comment;
+
+protected:
+    /** @brief Rank of the node, i.e. how many children it has. */
+    int         rank_;
 };
 
 // =============================================================================
@@ -81,6 +92,43 @@ public:
     // TODO write IsBifurcatingTree() function (maybe use Rank() for this)
 
 /**
+ * @brief Stores a tree in an intermediate format that can be used as transfer between different
+ * representations.
+ *
+ * The TreeBroker offers a simple structure to represent a tree. It is used to transfer the
+ * information contained in a tree (topology and data of the nodes) between different
+ * representations of the tree. Those can for example be data structures or string formats as
+ * the Newick.
+ *
+ * It is organized as a stack, where the root of the tree is at the top/front.
+ *
+ * Postorder... TODO
+ *
+ *
+ * For example, the following tree in Newick format:
+ *
+ *     ((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;
+ *
+ * would be stored as the following stack:
+ *
+ *     R Rank(4)
+ *         Q (Leaf)
+ *         P (Leaf)
+ *         O Rank(3)
+ *             N (Leaf)
+ *             M (Leaf)
+ *             L Rank(3)
+ *                 K (Leaf)
+ *                 J (Leaf)
+ *                 I (Leaf)
+ *         H Rank(2)
+ *             G Rank(2)
+ *                 F (Leaf)
+ *                 E Rank(3)
+ *                     D (Leaf)
+ *                     C (Leaf)
+ *                     B (Leaf)
+ *             A (Leaf)
  *
  * Every function modifiying the content of the broker is required to leave it in a valid state,
  * meaning:
@@ -113,13 +161,13 @@ public:
 
     inline void PopTop()
     {
-        delete stack_.front();
+        //~ delete stack_.front();
         stack_.pop_front();
     }
 
     inline void PopBottom()
     {
-        delete stack_.back();
+        //~ delete stack_.back();
         stack_.pop_back();
     }
 
@@ -138,13 +186,13 @@ public:
      *     }
      * %
      */
-    typedef std::deque<TreeBrokerNode*>::iterator       iterator;
+    typedef std::deque<TreeBrokerNode*>::iterator               iterator;
 
     /** @brief Const version of the iterator. */
-    typedef std::deque<TreeBrokerNode*>::const_iterator const_iterator;
+    typedef std::deque<TreeBrokerNode*>::const_iterator         const_iterator;
 
     /** @brief Reverse version of the iterator. */
-    typedef std::deque<TreeBrokerNode*>::reverse_iterator reverse_iterator;
+    typedef std::deque<TreeBrokerNode*>::reverse_iterator       reverse_iterator;
 
     /** @brief Const reverse version of the iterator. */
     typedef std::deque<TreeBrokerNode*>::const_reverse_iterator const_reverse_iterator;
@@ -255,7 +303,6 @@ public:
     // TODO validate checks if leaf nodes are really leaves, not more than one level at a time nested,
     // also give funcs for is bifurcating/is binary.
     bool Validate();
-    std::string Dump();
 
     void AssignRanks();
 
@@ -270,6 +317,8 @@ public:
     {
         return stack_.size();
     }
+
+    std::string Dump();
 
 protected:
     std::deque<TreeBrokerNode*> stack_;

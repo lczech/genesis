@@ -18,8 +18,9 @@ namespace genesis {
 class NewickParser
 {
 public:
-    static bool Process (const std::string& tree,  TreeBroker& broker);
-    static bool Process (const NewickLexer& lexer, TreeBroker& broker);
+    static bool ProcessFile   (const std::string& fn,    TreeBroker& broker);
+    static bool ProcessString (const std::string& tree,  TreeBroker& broker);
+    static bool ProcessLexer  (const NewickLexer& lexer, TreeBroker& broker);
 };
 
 } // namespace genesis

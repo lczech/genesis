@@ -10,6 +10,7 @@
 #include <assert.h>
 
 #include "utils/logging.hh"
+#include "utils/utils.hh"
 
 namespace genesis {
 
@@ -18,22 +19,35 @@ namespace genesis {
 // =============================================================================
 
 /**
- * @brief Shortcut for parsing a JSON string and putting its information into a JSON document.
+ * @brief Takes a JSON document file path and parses its contents into a JsonDocument.
  *
- * This shortcut includes the lexing step and then calls the other Process() function for the actual
- * parsing.
+ * See ProcessLexer() for more information.
+ * Returns true iff successfull.
  */
-bool JsonParser::Process (const std::string& json, JsonDocument& document)
+bool JsonParser::ProcessFile (const std::string& fn, JsonDocument& document)
+{
+    if (!FileExists(fn)) {
+        LOG_WARN << "JSON file '" << fn << "' does not exist.";
+        return false;
+    }
+    return ProcessString(FileRead(fn), document);
+}
+
+/**
+ * @brief Takes a string containing a JSON document and parses its contents into a JsonDocument.
+ *
+ * See ProcessLexer() for more information.
+ * Returns true iff successfull.
+ */
+bool JsonParser::ProcessString (const std::string& json, JsonDocument& document)
 {
     JsonLexer lexer;
-    lexer.Process(json);
-    return Process(lexer, document);
+    lexer.ProcessString(json);
+    return ProcessLexer(lexer, document);
 }
 
 /**
  * @brief Takes a JsonLexer and parses its contents into a JsonDocument.
- *
- * In order to parse a JSON string directly into a JSON document, use the other Process() function.
  *
  * Each JSON document is also a JSON object, and can contain other objects, JSON arrays, or simple
  * value types. The parsing here is thus splitted in those three functions, being recursively called
@@ -44,11 +58,13 @@ bool JsonParser::Process (const std::string& json, JsonDocument& document)
  * object/array/value. To check for the end of the lexer, an intererator to its end is also
  * provided, as well as a pointer to the resulting JSON value, which is filled with data during the
  * execution of the functions.
+ *
+ * Returns true iff successfull.
  */
-bool JsonParser::Process (const JsonLexer& lexer, JsonDocument& document)
+bool JsonParser::ProcessLexer (const JsonLexer& lexer, JsonDocument& document)
 {
     if (lexer.empty()) {
-        LOG_INFO << "JSON file is empty. Nothing done.";
+        LOG_INFO << "JSON document is empty.";
         return false;
     }
     if (lexer.HasError()) {

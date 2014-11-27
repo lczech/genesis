@@ -17,18 +17,17 @@
 namespace genesis {
 
 /**
- * @brief A JSON parser that filles a JsonDocument with data from a JsonLexer or a JSON string.
+ * @brief A JSON parser that filles a JsonDocument with data from different JSON sources.
  *
- * This class provides two functions for parsing JSON data. On of the takes a JsonLexer and puts its
- * contents into a JsonDocument, the other one takes a string containing JSON-formatted data and
- * calls the lexer on this string first, before then calling the first parsing function again (it is
- * a shortcut to avoid instanciating the lexer object first by hand).
+ * This class provides three functions for parsing JSON data. Those take an input source containing
+ * JSON data and parse them into a JsonDocument.
  */
 class JsonParser
 {
 public:
-    static bool Process (const std::string& json,  JsonDocument& document);
-    static bool Process (const JsonLexer&   lexer, JsonDocument& document);
+    static bool ProcessFile   (const std::string& fn,    JsonDocument& document);
+    static bool ProcessString (const std::string& json,  JsonDocument& document);
+    static bool ProcessLexer  (const JsonLexer&   lexer, JsonDocument& document);
 
 protected:
     static bool ProcessValue (

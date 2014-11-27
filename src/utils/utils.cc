@@ -19,29 +19,50 @@ namespace genesis {
 //     Files
 // ---------------------------------------------------------
 
+/** @brief Returns true iff the file exists. */
+bool FileExists (const std::string& fn)
+{
+    std::ifstream infile(fn);
+    return infile.good();
+}
+
 /**
  * @brief Returns the contents of a file as a string.
  *
- * If the file does not exist, a warning is triggered and an emtpty string
- * returned.
+ * If the file does not exist, a warning is triggered and an emtpty string returned.
  */
 std::string FileRead (const std::string& fn)
 {
-    std::ifstream t(fn);
-    std::string str;
+    std::ifstream infile(fn);
+    std::string   str;
 
-    if (!t.good()) {
-        LOG_WARN << "File '" << fn << "' does not exist.";
+    if (!infile.good()) {
+        LOG_WARN << "Cannot read from file '" << fn << "'.";
         return "";
     }
 
-    t.seekg(0, std::ios::end);
-    str.reserve(t.tellg());
-    t.seekg(0, std::ios::beg);
+    infile.seekg(0, std::ios::end);
+    str.reserve(infile.tellg());
+    infile.seekg(0, std::ios::beg);
 
-    str.assign((std::istreambuf_iterator<char>(t)),
+    str.assign((std::istreambuf_iterator<char>(infile)),
                 std::istreambuf_iterator<char>());
     return str;
+}
+
+/** @brief Writes the content of a string to a file. */
+bool FileWrite (const std::string& fn, const std::string& content)
+{
+    // TODO check if path exists, create if not (make a function for that)
+    // TODO check if file exists, trigger warning?, check if writable
+
+    std::ofstream outfile(fn);
+    if (!outfile.good()) {
+        LOG_WARN << "Cannot write to file '" << fn << "'.";
+        return false;
+    }
+    outfile << content;
+    return true;
 }
 
 // ---------------------------------------------------------

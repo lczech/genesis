@@ -119,7 +119,7 @@ inline std::string LexerTypeToString (const LexerType t)
  * to a proper type for further use (e.g. in case of numbers).
  *
  * If there is need for more types in the future, the enum, the default
- * implementation of Lexer::Process() and some other places have to be adapted
+ * implementation of Lexer::ProcessString() and some other places have to be adapted
  * accordingly.
  *
  * In case of an error while processing the input, an error token is produced
@@ -300,9 +300,9 @@ private:
 /**
  * @brief Basic lexer class that provides an easy way of tokenizing a string.
  *
- * For typical usage of this class, see Process() function.
+ * For typical usage of this class, see ProcessString() function.
  *
- * The tokens produced with the Process() method are of type LexerToken (see
+ * The tokens produced with the ProcessString() method are of type LexerToken (see
  * there for a list of the types of tokens) and can be accessed in various ways:
  *
  *   * Using an iterator, see Lexer::iterator
@@ -315,14 +315,15 @@ private:
  * of consecutive letters. In order to make use of other semantics like
  * comments, strings, operators etc, it has to be derived.
  *
- * When doing so, have a look at Process() to learn about how this class works.
+ * When doing so, have a look at ProcessString() to learn about how this class works.
  * Also, see SetCharType() for more information on how to change which characters
  * are interpreted as which type of token.
  */
 class Lexer
 {
 public:
-    virtual bool Process (const std::string& text);
+    virtual bool ProcessFile   (const std::string& fn);
+    virtual bool ProcessString (const std::string& text);
     bool ValidateBrackets();
     std::string Dump();
 
@@ -438,7 +439,7 @@ public:
     /**
      * @brief Returns whether the list of tokens is empty.
      *
-     * This is usually the case before Process() was run.
+     * This is usually the case before ProcessString() was run.
      */
     inline bool empty() const
     {
@@ -629,7 +630,7 @@ protected:
      * is of type kNumber, it can end up in a symbol token, depending on the
      * context.
      *
-     * For more information on how this char type is used, see Process().
+     * For more information on how this char type is used, see ProcessString().
      */
     inline LexerType GetCharType(const char c) const
     {
@@ -657,8 +658,8 @@ protected:
      *
      * This function takes a token type and a list of characters in form of a
      * string and sets the char type for each of them to the given type.
-     * This type will be used by the standard implementation of Process() to
-     * determine the correct scanner for a token (see Process() for more on that).
+     * This type will be used by the standard implementation of ProcessString() to
+     * determine the correct scanner for a token (see ProcessString() for more on that).
      *
      * If this class is derived, the derived constructor will typically this
      * function in order to set the particular chars needed for the concrete
@@ -756,7 +757,7 @@ private:
      * @brief This array contains the token types for all chars, in order to
      * determine the correct scanner for the char.
      *
-     * See Process() for more on this.
+     * See ProcessString() for more on this.
      */
     LexerType start_char_table_[128] = {
         /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
@@ -794,7 +795,7 @@ private:
     };
 
     // Caveat: the following variables are heavily interweaved during a run
-    // of Process()! They have to stay consistent, otherwise the resulting
+    // of ProcessString()! They have to stay consistent, otherwise the resulting
     // tokens will contain wrong information.
 
     /** @brief The text that is being processed. */
