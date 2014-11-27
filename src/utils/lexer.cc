@@ -13,6 +13,7 @@
 #include <string>
 #include <vector>
 
+#include "utils/logging.hh"
 #include "utils/utils.hh"
 
 namespace genesis {
@@ -20,6 +21,16 @@ namespace genesis {
 // =============================================================================
 //     Process
 // =============================================================================
+
+/** @brief Shortcut function that reads the contents of a file and then calls ProcessString(). */
+bool Lexer::ProcessFile(const std::string& fn)
+{
+    if (!FileExists(fn)) {
+        LOG_WARN << "File '" << fn << "' does not exist.";
+        return false;
+    }
+    return ProcessString(FileRead(fn));
+}
 
 /**
  * @brief Process a string and store the resulting tokens in this Lexer object.
@@ -37,7 +48,7 @@ namespace genesis {
  * Common usage:
  *
  *     Lexer l;
- *     if (!l.Process("tree(some:0.5,items:0.3);")) {
+ *     if (!l.ProcessString("tree(some:0.5,items:0.3);")) {
  *         LexerToken b = l.back();
  *         std::cout
  *             << b.TypeToString()
@@ -71,15 +82,15 @@ namespace genesis {
  * This technique will not work if finding the correct scanner depends on
  * more than the first character of the token. For example, comments usually
  * start with a more complex sequence ("//" or even "<!--"), which is why
- * they are specially treaded in the Process function.
+ * they are specially treaded in the ProcessString function.
  *
  * So, in situations, where the type of the next token cannot be determined from
- * its first character (except comments), Process has to be overridden in the
+ * its first character (except comments), ProcessString has to be overridden in the
  * derived class in order to do some other checking methods to determine the
- * correct scanner. In the new Process function, first call Init to reset all
+ * correct scanner. In the new ProcessString function, first call Init to reset all
  * internal variables. Also see ScanUnknown for some important information.
  */
-bool Lexer::Process(const std::string& text)
+bool Lexer::ProcessString(const std::string& text)
 {
     Init(text);
 
@@ -209,14 +220,14 @@ bool Lexer::ScanFromTo (const char* from, const char* to)
 /**
  * @brief Scans the text as long as the current char is of type kUnknown.
  *
- * It is possible that this function has to be overridden in case that Process()
+ * It is possible that this function has to be overridden in case that ProcessString()
  * is overridden as well. This is because of the following:
  *
- * Overriding Process means that the approach of determining the correct scanner
+ * Overriding ProcessString means that the approach of determining the correct scanner
  * for a token from its first character does not work. Thus, all characters that
  * do not indicate a scanner will usually be set to unknown in order to treat
- * them specially in Process. This means that scanning unknown chars should stop
- * after each char, return to Process(), and check again if now it is time to
+ * them specially in ProcessString. This means that scanning unknown chars should stop
+ * after each char, return to ProcessString(), and check again if now it is time to
  * activate a special scanner. Thus, in this case, ScanUnknown should only scan
  * one character at a time.
  */

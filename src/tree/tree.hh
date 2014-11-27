@@ -27,10 +27,10 @@ public:
     virtual ~Tree();
     void clear();
 
-    void FromNewickFile (const std::string& fn);
+    bool FromNewickFile (const std::string& fn);
     void ToNewickFile   (const std::string& fn);
 
-    void FromNewickString (const std::string& tree);
+    bool FromNewickString (const std::string& tree);
     std::string ToNewickString ();
 
     void FromTreeBroker (const TreeBroker& broker);

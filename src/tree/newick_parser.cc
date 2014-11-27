@@ -15,18 +15,27 @@
 
 namespace genesis {
 
-bool NewickParser::Process (const std::string& tree, TreeBroker& broker)
+bool NewickParser::ProcessFile (const std::string& fn, TreeBroker& broker)
+{
+    if (!FileExists(fn)) {
+        LOG_WARN << "Newick file '" << fn << "' does not exist.";
+        return false;
+    }
+    return ProcessString(FileRead(fn), broker);
+}
+
+bool NewickParser::ProcessString (const std::string& tree, TreeBroker& broker)
 {
     NewickLexer lexer;
-    lexer.Process(tree);
-    return Process(lexer, broker);
+    lexer.ProcessString(tree);
+    return ProcessLexer(lexer, broker);
 }
 
 // TODO do a validate brackets first?!
 // TODO what happens if a tree's nested brackets fully close to depth 0, then open again
 // TODO without semicolon like (...)(...); ? do we need to check for this?
 
-bool NewickParser::Process (const NewickLexer& lexer, TreeBroker& broker)
+bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
 {
     if (lexer.empty()) {
         LOG_INFO << "Tree is empty. Nothing done.";

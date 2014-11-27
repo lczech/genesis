@@ -43,7 +43,7 @@ int main (int argc, char* argv[])
     LOG_TIME << "start";
 
     Tree tree;
-    tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P)Q;");
+    tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
 
     //~ tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};");
     //~ tree.FromNewickString("( (] Ant:0.2, [a comment] 'Bee':0.09 )Innen:0.7, Coyote:0.5 );");
@@ -73,11 +73,11 @@ int main (int argc, char* argv[])
     //~ tree.FromNewickString("((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;");
 
     //~ JsonLexer lex;
-    //~ lex.Process(FileRead("test/data/placement.jplace"));
+    //~ lex.ProcessString(FileRead("test/data/placement.jplace"));
     //~ LOG_INFO << lex.Dump();
 
     //~ JsonDocument doc;
-    //~ JsonParser::Process(lex, doc);
+    //~ JsonParser::ProcessLexer(lex, doc);
     //~ LOG_INFO << doc.ToString();
 
     //~ JsonDocument doc;

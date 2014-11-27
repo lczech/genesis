@@ -36,29 +36,26 @@ void Tree::clear()
     std::vector<TreeNode*>().swap(nodes_);
 }
 
-void Tree::FromNewickFile (const std::string& fn)
+bool Tree::FromNewickFile (const std::string& fn)
 {
-    // TODO make sure file exists!
-    // (readfile checks this, too, but simply returns "", which yields the wrong message when
-    // running the parser...)
-    FromNewickString(FileRead(fn));
+    if (!FileExists(fn)) {
+        LOG_WARN << "Newick file '" << fn << "' does not exist.";
+        return false;
+    }
+    return FromNewickString(FileRead(fn));
 }
 
-void Tree::FromNewickString (const std::string& tree)
+bool Tree::FromNewickString (const std::string& tree)
 {
-    //~ NewickLexer lexer;
-    //~ lexer.Process(tree);
-    //~ LOG_INFO << lexer.Dump();
-
     TreeBroker broker;
-    NewickParser::Process(tree, broker);
+    if (!NewickParser::ProcessString(tree, broker)) {
+        return false;
+    }
+
     broker.AssignRanks();
-
     LOG_INFO << broker.Dump();
-    //~ LOG_INFO << "Nodes: " << parser.nodes() << ", Leaves: " << parser.leaves();
-    //~ LOG_INFO;
-
     FromTreeBroker(broker);
+    return true;
 }
 
 void Tree::FromTreeBroker (const TreeBroker& broker)
