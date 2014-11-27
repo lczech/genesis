@@ -324,8 +324,8 @@ class Lexer
 public:
     virtual bool ProcessFile   (const std::string& fn);
     virtual bool ProcessString (const std::string& text);
-    bool ValidateBrackets();
-    std::string Dump();
+    bool ValidateBrackets() const;
+    std::string Dump() const;
 
     // -------------------------------------------------------------------------
     //     Accessors and Iterators
