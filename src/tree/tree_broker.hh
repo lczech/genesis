@@ -22,7 +22,7 @@ class TreeBroker;
 
 /** @brief POD struct that stores the information for one tree node.
  *
- * All its members are public, as it is intended to serve an an intermediate data
+ * Most of its members are public, as it is intended to serve an an intermediate data
  * exchange format, so different callers might need to modify its content.
  * However, this means paying attention when working with the data, as it can
  * be changed from anywhere.

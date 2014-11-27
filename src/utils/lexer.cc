@@ -22,7 +22,12 @@ namespace genesis {
 //     Process
 // =============================================================================
 
-/** @brief Shortcut function that reads the contents of a file and then calls ProcessString(). */
+/**
+ * @brief Shortcut function that reads the contents of a file and then calls ProcessString().
+ *
+ * If the file does not exist, a warning is triggered and false returned. Otherwise, the result
+ * of ProcessString() is returned.
+ */
 bool Lexer::ProcessFile(const std::string& fn)
 {
     if (!FileExists(fn)) {
@@ -40,7 +45,7 @@ bool Lexer::ProcessFile(const std::string& fn)
  * splits the string into different tokens. For the types of tokens being
  * extracted, see LexerToken; for accessing the results, see Lexer.
  *
- * Returns true if successful. In case an error is encountered while analyzing
+ * Returns true iff successful. In case an error is encountered while analyzing
  * the text, this functions returns false and the last token will be of type
  * LexerType::kError, with the value being an error message describing the
  * type of error.
@@ -48,13 +53,17 @@ bool Lexer::ProcessFile(const std::string& fn)
  * Common usage:
  *
  *     Lexer l;
- *     if (!l.ProcessString("tree(some:0.5,items:0.3);")) {
- *         LexerToken b = l.back();
- *         std::cout
- *             << b.TypeToString()
- *             << " at " << b.line() << ":" << b.column()
- *             << " with message " << b.value() << std::endl;
+ *     l.ProcessString("tree(some:0.5,items:0.3);")
+ *     if (l.empty()) {
+ *         LOG_WARN << "Lexer is empty.";
  *     }
+ *     if (l.HasError()) {
+ *         LexerToken b = l.back();
+ *         LOG_WARN << "Lexing error "
+ *             << " at " << b.line() << ":" << b.column()
+ *             << " with message " << b.value();
+ *     }
+ *     ... process the tokens ...
  *
  * As stated in the description of this Lexer class, the class is meant to be
  * derived for concrete types of lexers. Thus, here are some comments about the
@@ -205,7 +214,7 @@ bool Lexer::ScanFromTo (const char* from, const char* to)
         NextChar();
     }
 
-    // if the "to" string was not found before he end of the text, we are done
+    // if the "to" string was not found before the end of the text, we are done
     if (IsEnd()) {
         return false;
     }

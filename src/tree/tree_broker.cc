@@ -15,6 +15,7 @@
 
 namespace genesis {
 
+/** @brief Destructor. Calls clear() to delete all nodes. */
 TreeBroker::~TreeBroker()
 {
     clear();
@@ -24,6 +25,7 @@ TreeBroker::~TreeBroker()
 //     Modifiers
 // -------------------------------------------------------------------------
 
+/** @brief Deletes all nodes from the broker. */
 void TreeBroker::clear()
 {
     for (TreeBrokerNode* node : stack_) {
