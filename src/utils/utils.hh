@@ -21,7 +21,9 @@ namespace genesis {
 //     First: function declaractions.
 // =============================================================================
 
-std::string FileRead (const std::string& fn);
+bool        FileExists (const std::string& fn);
+std::string FileRead   (const std::string& fn);
+bool        FileWrite  (const std::string& fn, const std::string& content);
 
 std::string StringEscape   (const std::string& text);
 std::string StringDeescape (const std::string& text);
@@ -109,7 +111,7 @@ inline std::string StringTrim (
 
 inline std::string StringUnifyNewlines(const std::string& s)
 {
-    // TODO
+    // TODO StringUnifyNewlines
     return s;
 }
 
