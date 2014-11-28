@@ -35,7 +35,7 @@ struct TreeBrokerNode
 
 public:
     /** @brief Constructor, initializes the item values. */
-    TreeBrokerNode() : branch_length(0.0), depth(0), is_leaf(false), rank_(0) {};
+    TreeBrokerNode() : branch_length(0.0), depth(0), is_leaf(false), rank_(-1) {};
 
     inline int rank()
     {
@@ -161,13 +161,13 @@ public:
 
     inline void PopTop()
     {
-        //~ delete stack_.front();
+        delete stack_.front();
         stack_.pop_front();
     }
 
     inline void PopBottom()
     {
-        //~ delete stack_.back();
+        delete stack_.back();
         stack_.pop_back();
     }
 
@@ -297,7 +297,7 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Member Functions
+    //     State Functions
     // -------------------------------------------------------------------------
 
     // TODO validate checks if leaf nodes are really leaves, not more than one level at a time nested,
@@ -318,7 +318,7 @@ public:
         return stack_.size();
     }
 
-    std::string Dump();
+    std::string Dump() const;
 
 protected:
     std::deque<TreeBrokerNode*> stack_;
