@@ -10,31 +10,77 @@
 
 namespace genesis {
 
-// forward declarations
+// =============================================================================
+//     Forward declarations
+// =============================================================================
+
 class Tree;
 class TreeBranch;
 class TreeNode;
+
+// =============================================================================
+//     TreeLink
+// =============================================================================
 
 class TreeLink
 {
     friend class Tree;
 
 public:
-    TreeLink() {}
+    TreeLink() : next_(nullptr), outer_(nullptr), node_(nullptr), branch_(nullptr) {}
 
+    // ---------------------------------------------------------------------
+    //     Accessors
+    // ---------------------------------------------------------------------
+
+    /** @brief Returns a pointer to the next link within the node. */
+    inline TreeLink* next()
+    {
+        return next_;
+    }
+
+    /** @brief Returns a pointer to the link of the adjacent node. */
+    inline TreeLink* outer()
+    {
+        return outer_;
+    }
+
+    /** @brief Returns a pointer to the TreeBranch containing the data of this link's branch. */
     inline TreeBranch* branch()
     {
         return branch_;
     }
 
+    /** @brief Returns a pointer to the TreeNode containing the data of this link's node. */
     inline TreeNode* node()
     {
         return node_;
     }
 
+    // ---------------------------------------------------------------------
+    //     Member Functions
+    // ---------------------------------------------------------------------
+
+    /** @brief Returns true iff the node of this link is a leaf node. */
+    inline bool IsLeaf()
+    {
+        return next_ == this;
+    }
+
+    /** @brief Returns true iff the node of this link is an inner node. */
+    inline bool IsInner()
+    {
+        return next_ != this;
+    }
+
 protected:
-    TreeLink* outer_;
+
+    // ---------------------------------------------------------------------
+    //     Member Variables
+    // ---------------------------------------------------------------------
+
     TreeLink* next_;
+    TreeLink* outer_;
 
     TreeNode* node_;
     TreeBranch* branch_;
