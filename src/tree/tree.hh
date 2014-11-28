@@ -34,7 +34,7 @@ public:
     std::string ToNewickString ();
 
     void FromTreeBroker (const TreeBroker& broker);
-    void xFromTreeBroker (const TreeBroker& broker);
+    void ToTreeBroker   (TreeBroker& broker);
 
     std::string DumpBranches() const;
     std::string DumpLinks() const;
@@ -42,8 +42,6 @@ public:
     std::string DumpRound() const;
 
 protected:
-    void InitBifurcatingTree(const int leaf_count);
-
     int BranchPointerToIndex (TreeBranch* branch) const;
     int LinkPointerToIndex   (TreeLink*   link)   const;
     int NodePointerToIndex   (TreeNode*   node)   const;
