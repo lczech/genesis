@@ -15,11 +15,17 @@
 
 namespace genesis {
 
+/**
+ * @brief Destructor. Calls clear() to free all memory used by the tree and its substructurs.
+ */
 Tree::~Tree ()
 {
     clear();
 }
 
+/**
+ * @brief Deletes all data of the tree, including all links, nodes and branches.
+ */
 void Tree::clear()
 {
     for (TreeBranch* branch : branches_) {
@@ -37,6 +43,9 @@ void Tree::clear()
     std::vector<TreeNode*>().swap(nodes_);
 }
 
+/**
+ * @brief Create a tree from a file containing a Newick tree.
+ */
 bool Tree::FromNewickFile (const std::string& fn)
 {
     if (!FileExists(fn)) {
@@ -46,6 +55,9 @@ bool Tree::FromNewickFile (const std::string& fn)
     return FromNewickString(FileRead(fn));
 }
 
+/**
+ * @brief Create a tree from a string containing a Newick tree.
+ */
 bool Tree::FromNewickString (const std::string& tree)
 {
     TreeBroker broker;
@@ -53,23 +65,25 @@ bool Tree::FromNewickString (const std::string& tree)
         return false;
     }
 
-    broker.AssignRanks();
-    LOG_INFO << broker.Dump();
     FromTreeBroker(broker);
     return true;
 }
 
-void Tree::FromTreeBroker (const TreeBroker& broker)
+/**
+ * @brief Create a tree from a TreeBroker.
+ */
+void Tree::FromTreeBroker (TreeBroker& broker)
 {
+    broker.AssignRanks();
     clear();
     std::vector<TreeLink*> link_stack;
 
     for (TreeBroker::const_iterator b_itr = broker.cbegin(); b_itr != broker.cend(); ++b_itr) {
-        TreeBrokerNode* bnode = *b_itr;
+        TreeBrokerNode* broker_node = *b_itr;
 
         // create the tree node for this broker node
         TreeNode* cur_node = new TreeNode();
-        cur_node->name_ = bnode->name;
+        cur_node->name_ = broker_node->name;
         nodes_.push_back(cur_node);
 
         // create the link that points towards the root
@@ -79,21 +93,38 @@ void Tree::FromTreeBroker (const TreeBroker& broker)
         links_.push_back(up_link);
 
         // establish the link towards the root
-        // (link_stack is only empty in the very beginning - for the root itself)
-
         if (link_stack.empty()) {
+            // if the link stack is empty, we are currently at the very beginning of this loop,
+            // which means we are at the root itself. in this case, make the "link towards the root"
+            // point to itself. this makes traversing the tree lots easier!
             up_link->outer_ = up_link;
         } else {
+            // if we are however in some other node (leaf or inner, but not the root), we establish
+            // the link "upwards" to the root, and back from there.
             up_link->outer_ = link_stack.back();
             link_stack.back()->outer_ = up_link;
+
+            // also, create a branch that connects both nodes
+            TreeBranch* up_branch = new TreeBranch();
+            up_branch->link_p_ = link_stack.back();
+            up_branch->link_q_ = up_link;
+            branches_.push_back(up_branch);
+
+            // we can now delete the head of the stack, because we just estiablished its "downlink"
+            // and thus are done with it
             link_stack.pop_back();
         }
 
-        if (bnode->rank() == 0) {
+        if (broker_node->rank() == 0) {
+            // make the next pointer of leaf nodes point to themselves
             up_link->next_ = up_link;
         } else {
+            // for inner nodes, we create as many "down" links as they have children. each of them
+            // is pushed to the stack, so that for the next broker nodes they are available as
+            // reciever for the "up" links.
+            // also, make all next pointers of one node point in a circle.
             TreeLink* next_link = up_link;
-            for (int i = 0; i < bnode->rank(); ++i) {
+            for (int i = 0; i < broker_node->rank(); ++i) {
                 TreeLink* down_link = new TreeLink();
                 down_link->next_ = next_link;
                 next_link = down_link;
@@ -107,6 +138,9 @@ void Tree::FromTreeBroker (const TreeBroker& broker)
     }
 }
 
+/**
+ * @brief Returns a list of all branches including their link numbers.
+ */
 std::string Tree::DumpBranches() const
 {
     std::ostringstream out;
@@ -119,6 +153,10 @@ std::string Tree::DumpBranches() const
     return out.str();
 }
 
+/**
+ * @brief Returns a list of all links including their next and outer link numbers as well as their
+ * node and branch numbers.
+ */
 std::string Tree::DumpLinks() const
 {
     std::ostringstream out;
@@ -133,6 +171,9 @@ std::string Tree::DumpLinks() const
     return out.str();
 }
 
+/**
+ * @brief Returns a list of all nodes including their name and the number of one of their links.
+ */
 std::string Tree::DumpNodes() const
 {
     std::ostringstream out;
@@ -145,6 +186,14 @@ std::string Tree::DumpNodes() const
     return out.str();
 }
 
+/**
+ * @brief Do a full tree traversal and return a list of all visited node names.
+ *
+ * Leaf nodes appear once in this list, while inner nodes appear every time the traversal visits
+ * them. Thus, a node of rank 3 (meaning, it has three immediate children), is visited four times:
+ * One time when coming from its parent, and then once each time the traversal returns from its
+ * children.
+ */
 std::string Tree::DumpRound() const
 {
     std::string out;

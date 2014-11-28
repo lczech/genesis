@@ -33,7 +33,7 @@ public:
     bool FromNewickString (const std::string& tree);
     std::string ToNewickString ();
 
-    void FromTreeBroker (const TreeBroker& broker);
+    void FromTreeBroker (TreeBroker& broker);
     void ToTreeBroker   (TreeBroker& broker);
 
     std::string DumpBranches() const;
