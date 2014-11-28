@@ -10,6 +10,8 @@
  * @ingroup tree
  */
 
+#include <string>
+
 namespace genesis {
 
 // =============================================================================
@@ -32,11 +34,21 @@ class TreeBranch
 public:
     typedef double BranchLength;
 
-    TreeBranch() : length_(0.0), link_p_(nullptr), link_q_(nullptr) {}
+    TreeBranch() : length_(0.0), label_(""), link_p_(nullptr), link_q_(nullptr) {}
 
     // ---------------------------------------------------------------------
     //     Accessors
     // ---------------------------------------------------------------------
+
+    inline BranchLength length()
+    {
+        return length_;
+    }
+
+    inline std::string label()
+    {
+        return label_;
+    }
 
     inline TreeLink* link_p()
     {
@@ -52,10 +64,12 @@ public:
     TreeNode* node_q();
 
     // ---------------------------------------------------------------------
-    //     Mutators
+    //     Member Functions
     // ---------------------------------------------------------------------
 
     void FromTreeBrokerNode (TreeBrokerNode* node);
+
+    std::string Dump();
 
 protected:
 
@@ -64,6 +78,7 @@ protected:
     // ---------------------------------------------------------------------
 
     BranchLength length_;
+    std::string  label_;
 
     TreeLink* link_p_;
     TreeLink* link_q_;
