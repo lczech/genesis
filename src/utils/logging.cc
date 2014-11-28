@@ -14,6 +14,7 @@ namespace genesis {
 // =============================================================================
 
 // TODO use different init for log details depending on DEBUG
+
 // init static members
 LoggingDetails Logging::details = {
     false, // count
@@ -23,7 +24,8 @@ LoggingDetails Logging::details = {
     false, // rundiff
     false, // file
     false, // line
-    true  // level
+    false, // function
+    true   // level
 };
 Logging::LoggingLevel      Logging::max_level_  = kDebug4;
 long                       Logging::count_      = 0;
@@ -31,7 +33,7 @@ clock_t                    Logging::last_clock_ = 0;
 std::vector<std::ostream*> Logging::ostreams_;
 
 /**
- * Set the highest log level that is reported.
+ * @brief Set the highest log level that is reported.
  *
  * Invocations of log with higher levels will create no output.
  * It creates a warning if the set level is higher than the static compile time
@@ -48,7 +50,7 @@ void Logging::max_level (const LoggingLevel level)
 }
 
 /**
- * Return a string representation of a log level.
+ * @brief Return a string representation of a log level.
  */
 std::string Logging::LevelToString(const LoggingLevel level)
 {
@@ -59,7 +61,7 @@ std::string Logging::LevelToString(const LoggingLevel level)
 }
 
 /**
- * Add an output stream to which log messages are written.
+ * @brief Add an output stream to which log messages are written.
  */
 void Logging::AddOutputStream (std::ostream& os)
 {
@@ -67,7 +69,7 @@ void Logging::AddOutputStream (std::ostream& os)
 }
 
 /**
- * Add an output file to which log messages are written.
+ * @brief Add an output file to which log messages are written.
  *
  * This creates a stream to the file.
  */
@@ -90,7 +92,7 @@ void Logging::AddOutputFile (const std::string& fn)
 
 // TODO the output of the log is not thread safe
 /**
- * Destructor that is invoked at the end of each log line and does the actual
+ * @brief Destructor that is invoked at the end of each log line and does the actual
  * output.
  */
 Logging::~Logging()
@@ -133,6 +135,9 @@ Logging::~Logging()
     if (details_.line) {
         det_buff << ":" << line_ << " ";
     }
+    if (details_.function) {
+        det_buff << "(" << function_ << ") ";
+    }
     if (details_.level) {
         det_buff << LevelToString(level_) << " ";
     }
@@ -170,34 +175,36 @@ Logging::~Logging()
 // =============================================================================
 
 /**
- * Getter for the singleton instance of log, is called by the standard macros.
+ * @brief Getter for the singleton instance of log, is called by the standard macros.
  *
  * It returns the string stream buffer used to capture the log messages.
  */
 std::ostringstream& Logging::Get(
-    const std::string& file, const int line, const LoggingLevel level
+    const std::string& file, const int line, const std::string& function,
+    const LoggingLevel level
 )
 {
-    return Get(file, line, level, details);
+    return Get(file, line, function, level, details);
 }
 
 /**
- * Getter for the singleton instance of log, is called by special macros
+ * @brief Getter for the singleton instance of log, is called by special macros
  * that change the details of the log message.
  *
  * It stores some relevant information and returns the string stream buffer
  * used to capture the log messages.
  */
 std::ostringstream& Logging::Get(
-    const std::string& file, const int line,
+    const std::string& file, const int line, const std::string& function,
     const LoggingLevel level, const LoggingDetails dets
 )
 {
     // save the information given when called from the macros
-    file_    = file;
-    line_    = line;
-    level_   = level;
-    details_ = dets;
+    file_     = file;
+    line_     = line;
+    function_ = function;
+    level_    = level;
+    details_  = dets;
     buff_.str("");
     return buff_;
 }
