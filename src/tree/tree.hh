@@ -31,9 +31,9 @@ public:
     bool FromNewickString (const std::string& tree);
     void FromTreeBroker (TreeBroker& broker);
 
-    void ToNewickFile   (const std::string& fn);
+    void        ToNewickFile   (const std::string& fn);
     std::string ToNewickString ();
-    void ToTreeBroker   (TreeBroker& broker);
+    void        ToTreeBroker   (TreeBroker& broker);
 
     std::string DumpBranches() const;
     std::string DumpLinks() const;

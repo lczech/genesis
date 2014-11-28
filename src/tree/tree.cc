@@ -90,7 +90,7 @@ void Tree::FromTreeBroker (TreeBroker& broker)
 
         // create the tree node for this broker node
         TreeNode* cur_node = new TreeNode();
-        cur_node->name_ = broker_node->name;
+        cur_node->FromTreeBrokerNode(broker_node);
         nodes_.push_back(cur_node);
 
         // create the link that points towards the root.
@@ -116,6 +116,9 @@ void Tree::FromTreeBroker (TreeBroker& broker)
             TreeBranch* up_branch = new TreeBranch();
             up_branch->link_p_ = link_stack.back();
             up_branch->link_q_ = up_link;
+            up_link->branch_           = up_branch;
+            link_stack.back()->branch_ = up_branch;
+            up_branch->FromTreeBrokerNode(broker_node);
             branches_.push_back(up_branch);
 
             // we can now delete the head of the stack, because we just estiablished its "downlink"
@@ -151,15 +154,16 @@ void Tree::FromTreeBroker (TreeBroker& broker)
 // -------------------------------------------------------------------------
 
 /**
- * @brief Returns a list of all branches including their link numbers.
+ * @brief Returns a list of all branches including their link numbers and branch lengths.
  */
 std::string Tree::DumpBranches() const
 {
     std::ostringstream out;
     for (size_t i = 0; i < branches_.size(); ++i) {
         out << "Branch " << i
-            << " \t link p "  << LinkPointerToIndex(branches_[i]->link_p_)
+            << " \t link p " << LinkPointerToIndex(branches_[i]->link_p_)
             << " \t link q " << LinkPointerToIndex(branches_[i]->link_q_)
+            << " \t length " << branches_[i]->length_
             << "\n";
     }
     return out.str();
@@ -174,9 +178,9 @@ std::string Tree::DumpLinks() const
     std::ostringstream out;
     for (size_t i = 0; i < links_.size(); ++i) {
         out << "Link " << i
-            << " \t next "  << LinkPointerToIndex(links_[i]->next_)
-            << " \t outer " << LinkPointerToIndex(links_[i]->outer_)
-            << " \t node " << NodePointerToIndex(links_[i]->node_)
+            << " \t next "   << LinkPointerToIndex(links_[i]->next_)
+            << " \t outer "  << LinkPointerToIndex(links_[i]->outer_)
+            << " \t node "   << NodePointerToIndex(links_[i]->node_)
             << " \t branch " << BranchPointerToIndex(links_[i]->branch_)
             << "\n";
     }
@@ -192,7 +196,8 @@ std::string Tree::DumpNodes() const
     for (size_t i = 0; i < nodes_.size(); ++i) {
         out << "Node " << i
             << " \t name " << nodes_[i]->name_
-            << " \t link "  << LinkPointerToIndex(nodes_[i]->link_)
+            << " \t rank " << nodes_[i]->Rank()
+            << " \t link " << LinkPointerToIndex(nodes_[i]->link_)
             << "\n";
     }
     return out.str();
