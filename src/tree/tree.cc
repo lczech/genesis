@@ -16,7 +16,7 @@
 namespace genesis {
 
 /**
- * @brief Destructor. Calls clear() to free all memory used by the tree and its substructurs.
+ * @brief Destructor. Calls clear() to free all memory used by the tree and its substructures.
  */
 Tree::~Tree ()
 {
@@ -43,8 +43,12 @@ void Tree::clear()
     std::vector<TreeNode*>().swap(nodes_);
 }
 
+// -------------------------------------------------------------------------
+//     Create Tree from different sources
+// -------------------------------------------------------------------------
+
 /**
- * @brief Create a tree from a file containing a Newick tree.
+ * @brief Create a Tree from a file containing a Newick tree.
  */
 bool Tree::FromNewickFile (const std::string& fn)
 {
@@ -56,7 +60,7 @@ bool Tree::FromNewickFile (const std::string& fn)
 }
 
 /**
- * @brief Create a tree from a string containing a Newick tree.
+ * @brief Create a Tree from a string containing a Newick tree.
  */
 bool Tree::FromNewickString (const std::string& tree)
 {
@@ -70,14 +74,17 @@ bool Tree::FromNewickString (const std::string& tree)
 }
 
 /**
- * @brief Create a tree from a TreeBroker.
+ * @brief Create a Tree from a TreeBroker.
  */
 void Tree::FromTreeBroker (TreeBroker& broker)
 {
-    broker.AssignRanks();
     clear();
     std::vector<TreeLink*> link_stack;
 
+    // we need the ranks (number of immediate children) of all nodes
+    broker.AssignRanks();
+
+    // iterate over all nodes of the tree broker
     for (TreeBroker::const_iterator b_itr = broker.cbegin(); b_itr != broker.cend(); ++b_itr) {
         TreeBrokerNode* broker_node = *b_itr;
 
@@ -86,7 +93,8 @@ void Tree::FromTreeBroker (TreeBroker& broker)
         cur_node->name_ = broker_node->name;
         nodes_.push_back(cur_node);
 
-        // create the link that points towards the root
+        // create the link that points towards the root.
+        // this link is created for every node, root, inner and leaves.
         TreeLink* up_link = new TreeLink();
         up_link->node_ = cur_node;
         cur_node->link_ = up_link;
@@ -122,7 +130,7 @@ void Tree::FromTreeBroker (TreeBroker& broker)
             // for inner nodes, we create as many "down" links as they have children. each of them
             // is pushed to the stack, so that for the next broker nodes they are available as
             // reciever for the "up" links.
-            // also, make all next pointers of one node point in a circle.
+            // also, make all next pointers of one node point to each other in a circle.
             TreeLink* next_link = up_link;
             for (int i = 0; i < broker_node->rank(); ++i) {
                 TreeLink* down_link = new TreeLink();
@@ -137,6 +145,10 @@ void Tree::FromTreeBroker (TreeBroker& broker)
         }
     }
 }
+
+// -------------------------------------------------------------------------
+//     Dump and Debug Functions
+// -------------------------------------------------------------------------
 
 /**
  * @brief Returns a list of all branches including their link numbers.

@@ -8,14 +8,12 @@
  * @ingroup tree
  */
 
-#include <string>
-
-#include "tree/tree_branch.hh"
-#include "tree/tree_node.hh"
-
 namespace genesis {
 
+// forward declarations
 class Tree;
+class TreeBranch;
+class TreeNode;
 
 class TreeLink
 {
@@ -23,6 +21,16 @@ class TreeLink
 
 public:
     TreeLink() {}
+
+    inline TreeBranch* branch()
+    {
+        return branch_;
+    }
+
+    inline TreeNode* node()
+    {
+        return node_;
+    }
 
 protected:
     TreeLink* outer_;
