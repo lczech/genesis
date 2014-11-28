@@ -8,6 +8,8 @@
  * @ingroup tree
  */
 
+#include <string>
+
 namespace genesis {
 
 // =============================================================================
@@ -71,6 +73,17 @@ public:
     inline bool IsInner()
     {
         return next_ != this;
+    }
+
+    /**
+     * @brief Returns a string containing dump information about this link.
+     *
+     * At the moment, a link does not contain any information, so an empty string is returned.
+     * This might change in the future, in case links also contain data.
+     */
+    inline std::string Dump()
+    {
+        return "";
     }
 
 protected:

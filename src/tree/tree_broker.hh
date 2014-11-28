@@ -34,9 +34,17 @@ struct TreeBrokerNode
     friend TreeBroker;
 
 public:
-    /** @brief Constructor, initializes the item values. */
+    /**
+     * @brief Constructor, initializes the item values.
+     */
     TreeBrokerNode() : branch_length(0.0), depth(0), is_leaf(false), rank_(-1) {};
 
+    /**
+     * @brief Returns the rank (number of immediate children) of this node.
+     *
+     * TreeBroker::AssignRanks() has to be called before using this function. Otherwise,
+     * it will return -1.
+     */
     inline int rank()
     {
         return rank_;
@@ -51,13 +59,27 @@ public:
      */
     std::string name;
 
-    /** @brief Branch length associated with the node, i.e. the branch leading to its parent. */
+    /**
+     * @brief Branch length associated with the node, i.e. the branch leading to its parent.
+     */
     double      branch_length;
 
-    /** @brief Depth of the node in the tree, i.e. its distance from the root. */
+    /**
+     * @brief Depth of the node in the tree, i.e. its distance from the root.
+     */
     int         depth;
 
-    /** @brief True if the node is a leaf/tip, false otherwise. */
+    /**
+     * @brief True if the node is a leaf/tip, false otherwise.
+     *
+     * This value can be set for example while parsing a Newick tree, and is used by
+     * TreeBroker::Validate() as a check for correctness. However, it is (so far) not used further,
+     * because it is not reliable (it can be changed arbitrarily without checking whether this is
+     * conform with the tree topology).
+     *
+     * Therefore, use rank() to check whether a node is a leaf (in order to use rank, first
+     * TreeBroker::AssignRanks() has to be called).
+     */
     bool        is_leaf;
 
     /**
@@ -71,7 +93,9 @@ public:
     std::string comment;
 
 protected:
-    /** @brief Rank of the node, i.e. how many children it has. */
+    /**
+     * @brief Rank of the node, i.e. how many children it has.
+     */
     int         rank_;
 };
 
@@ -79,31 +103,29 @@ protected:
 //     TreeBroker
 // =============================================================================
 
-    // TODO parsing now does not assign ranks to nodes (how many children they have).
-    // TODO this might become imporant in the future, eg to check if it is a binary tree.
-    // TODO add AssignRanks() (see PLL newick.c)
-
     // TODO introduce IsDirty() that returns true iff the stack was modified (pop/push/clear/...)
     // TODO so that the internal state of the tree and its nodes is changed, e.g. AssignRanks()
     // TODO has to be called again (and all other state-assigning functions)
 
-    // TODO add Validate() (see PLL newick.c), that also checks if the leaves are really leaves
     // TODO write copy ctor and assign op
-    // TODO write IsBifurcatingTree() function (maybe use Rank() for this)
 
 /**
  * @brief Stores a tree in an intermediate format that can be used as transfer between different
  * representations.
  *
  * The TreeBroker offers a simple structure to represent a tree. It is used to transfer the
- * information contained in a tree (topology and data of the nodes) between different
+ * information contained in a tree (topology and data of the nodes and branches) between different
  * representations of the tree. Those can for example be data structures or string formats as
- * the Newick.
+ * the Newick file format.
  *
- * It is organized as a stack, where the root of the tree is at the top/front.
+ * It is organized as a stack, where the root of the tree is at the top/front. Then follow the nodes
+ * in a postorder manner, where each node is of type TreeBrokerNode.
  *
- * Postorder... TODO
- *
+ * The topology of the tree is represented via a depth attribute of each node: Two subsequent nodes
+ * are siblings (belong to the same parent node), if they have the same depth. If the second node
+ * has a depth that is one higher than the first ones, it is it's child (depth thus cannot increase
+ * more than one between two nodes). Lastly, if the depth of the second node is smaller than the
+ * first ones, it belongs to a different subtree.
  *
  * For example, the following tree in Newick format:
  *
@@ -130,6 +152,9 @@ protected:
  *                     B (Leaf)
  *             A (Leaf)
  *
+ * Here, the rank represents the number of immediate children of this node. Leaf nodes have no
+ * children and thus rank zero.
+ *
  * Every function modifiying the content of the broker is required to leave it in a valid state,
  * meaning:
  *
@@ -137,6 +162,11 @@ protected:
  *     is also true for trees rooted on a leaf.
  *  *  The nesting of the nodes has to be correct, so the depth cannot increase more than one per
  *     node when going down the tree.
+ *  *  The attribute TreeBrokerNode::is_leaf of the TreeBrokerNodes can be set (for exmaple when
+ *     parsing a Newick tree) and then be used to validate the integrity of the tree using
+ *     Validate(). However, the attribute is not further used -- see its description for more on
+ *     this.
+ * %
  */
 class TreeBroker
 {
@@ -300,10 +330,6 @@ public:
     //     State Functions
     // -------------------------------------------------------------------------
 
-    // TODO validate checks if leaf nodes are really leaves, not more than one level at a time nested,
-    // also give funcs for is bifurcating/is binary.
-    bool Validate();
-
     void AssignRanks();
 
     int LeafCount() const;
@@ -317,6 +343,15 @@ public:
     {
         return stack_.size();
     }
+
+    int MaxRank();
+
+    inline bool IsBifurcating()
+    {
+        return MaxRank() == 2;
+    }
+
+    bool Validate();
 
     // -------------------------------------------------------------------------
     //     Dump and Debug

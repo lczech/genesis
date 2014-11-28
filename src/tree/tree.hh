@@ -38,7 +38,14 @@ public:
     std::string DumpBranches() const;
     std::string DumpLinks() const;
     std::string DumpNodes() const;
-    std::string DumpRound() const;
+    std::string DumpRoundtrip() const;
+
+    int MaxRank();
+
+    inline bool IsBifurcating()
+    {
+        return MaxRank() == 2;
+    }
 
 protected:
     int BranchPointerToIndex (TreeBranch* branch) const;

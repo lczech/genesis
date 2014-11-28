@@ -7,11 +7,10 @@
 
 #include "tree/tree_broker.hh"
 
-//~ #include <assert.h>
+#include <algorithm>
 #include <string>
 
 #include "utils/logging.hh"
-//~ #include "utils/utils.hh"
 
 namespace genesis {
 
@@ -95,6 +94,68 @@ int TreeBroker::LeafCount() const
         }
     }
     return sum;
+}
+
+/**
+ * @brief Returns the highest rank of the nodes in the tree. AssignRanks() has to be called first.
+ */
+int TreeBroker::MaxRank()
+{
+    int max = -1;
+    for (TreeBrokerNode* node : stack_) {
+        if (node->rank_ == -1) {
+            LOG_WARN << "TreeBroker::AssignRanks() was not called before.";
+            return -1;
+        }
+        if (node->rank_ == 1) {
+            LOG_WARN << "Node with rank 1 found. This is a node without furcation.";
+        }
+        max = std::max(node->rank_, max);
+    }
+    return max;
+}
+
+// TODO see PLL newick.c for more stuff than can be validated in a tree!
+/**
+ * @brief Returns true iff the tree is valid. AssignRanks() has to be called first.
+ *
+ * A valid tree in a TreeBroker has to fullfill those criteria:
+ *
+ *  *  It's rank has to match the property is_leaf: Leaves have rank 0; a node with a higher rank
+ *     cannot be a leaf.
+ *  *  Furthermore, rank 1 is not valid, as this represents a node that is not furcating in any way.
+ *  *  The depth (nesting level) of the nodes cannot increase more than one level between nodes,
+ *     as this would imply a non-existing node with a depth in between. However, it can arbitrarily
+ *     decrease, as this simply means the end of a subtree.
+ * %
+ */
+bool TreeBroker::Validate()
+{
+    int cur_depth = 0;
+    for (TreeBrokerNode* node : stack_) {
+        if (node->rank_ == -1) {
+            LOG_WARN << "TreeBroker::AssignRanks() was not called before.";
+            return false;
+        }
+        if (node->rank_ == 0 && !(node->is_leaf)) {
+            LOG_WARN << "Leaf node found with rank == 0, but is_leaf == false.";
+            return false;
+        }
+        if (node->rank_ == 1) {
+            LOG_WARN << "Node with rank 1 found. This is a node without furcation.";
+            return false;
+        }
+        if (node->rank_ > 1 && node->is_leaf) {
+            LOG_WARN << "Inner node found with rank > 1, but is_leaf == true.";
+            return false;
+        }
+        if (node->depth > cur_depth + 1) {
+            LOG_WARN << "Node found that increases depth more than 1 compared to parent.";
+            return false;
+        }
+        cur_depth = node->depth;
+    }
+    return true;
 }
 
 // -----------------------------------------------------------------------------

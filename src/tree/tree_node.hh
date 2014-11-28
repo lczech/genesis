@@ -51,6 +51,8 @@ public:
 
     void FromTreeBrokerNode (TreeBrokerNode* node);
 
+    std::string Dump();
+
 protected:
 
     // ---------------------------------------------------------------------

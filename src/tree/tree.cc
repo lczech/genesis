@@ -7,6 +7,7 @@
 
 #include "tree/tree.hh"
 
+#include <algorithm>
 #include <sstream>
 
 #include "tree/newick_parser.hh"
@@ -150,6 +151,23 @@ void Tree::FromTreeBroker (TreeBroker& broker)
 }
 
 // -------------------------------------------------------------------------
+//     Member Functions
+// -------------------------------------------------------------------------
+
+int Tree::MaxRank()
+{
+    int max = -1;
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        int rank = nodes_[i]->Rank();
+        if (rank == 1) {
+            LOG_WARN << "Node with rank 1 found. This is a node without furcation.";
+        }
+        max = std::max(rank, max);
+    }
+    return max;
+}
+
+// -------------------------------------------------------------------------
 //     Dump and Debug Functions
 // -------------------------------------------------------------------------
 
@@ -161,10 +179,9 @@ std::string Tree::DumpBranches() const
     std::ostringstream out;
     for (size_t i = 0; i < branches_.size(); ++i) {
         out << "Branch " << i
-            << " \t link p " << LinkPointerToIndex(branches_[i]->link_p_)
-            << " \t link q " << LinkPointerToIndex(branches_[i]->link_q_)
-            << " \t length " << branches_[i]->length_
-            << "\n";
+            << " \t Link P: " << LinkPointerToIndex(branches_[i]->link_p_)
+            << " \t Link Q: " << LinkPointerToIndex(branches_[i]->link_q_)
+            << " \t " << branches_[i]->Dump() << "\n";
     }
     return out.str();
 }
@@ -178,10 +195,11 @@ std::string Tree::DumpLinks() const
     std::ostringstream out;
     for (size_t i = 0; i < links_.size(); ++i) {
         out << "Link " << i
-            << " \t next "   << LinkPointerToIndex(links_[i]->next_)
-            << " \t outer "  << LinkPointerToIndex(links_[i]->outer_)
-            << " \t node "   << NodePointerToIndex(links_[i]->node_)
-            << " \t branch " << BranchPointerToIndex(links_[i]->branch_)
+            << " \t Next: "   << LinkPointerToIndex(links_[i]->next_)
+            << " \t Outer: "  << LinkPointerToIndex(links_[i]->outer_)
+            << " \t Node: "   << NodePointerToIndex(links_[i]->node_)
+            << " \t Branch: " << BranchPointerToIndex(links_[i]->branch_)
+            << " \t " << links_[i]->Dump()
             << "\n";
     }
     return out.str();
@@ -195,10 +213,8 @@ std::string Tree::DumpNodes() const
     std::ostringstream out;
     for (size_t i = 0; i < nodes_.size(); ++i) {
         out << "Node " << i
-            << " \t name " << nodes_[i]->name_
-            << " \t rank " << nodes_[i]->Rank()
-            << " \t link " << LinkPointerToIndex(nodes_[i]->link_)
-            << "\n";
+            << " \t Link: " << LinkPointerToIndex(nodes_[i]->link_)
+            << " \t " << nodes_[i]->Dump() << "\n";
     }
     return out.str();
 }
@@ -211,15 +227,18 @@ std::string Tree::DumpNodes() const
  * One time when coming from its parent, and then once each time the traversal returns from its
  * children.
  */
-std::string Tree::DumpRound() const
+std::string Tree::DumpRoundtrip() const
 {
+    if (links_.empty()) {
+        return "";
+    }
+
     std::string out;
     TreeLink* link = links_.front();
 
     do {
         out += link->node_->name_ + "\n";
-        link = link->next_;
-        link = link->outer_;
+        link = link->next_->outer_;
     } while (link != links_.front());
 
     return out;

@@ -36,4 +36,12 @@ void TreeNode::FromTreeBrokerNode (TreeBrokerNode* node)
     name_ = node->name;
 }
 
+/**
+ * @brief Returns a one-line dump summary of the data of this node.
+ */
+std::string TreeNode::Dump()
+{
+    return "Name: '" + name_ + "' \t Rank: " + std::to_string(Rank());
+}
+
 } // namespace genesis
