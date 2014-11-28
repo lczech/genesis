@@ -28,12 +28,11 @@ public:
     void clear();
 
     bool FromNewickFile (const std::string& fn);
-    void ToNewickFile   (const std::string& fn);
-
     bool FromNewickString (const std::string& tree);
-    std::string ToNewickString ();
-
     void FromTreeBroker (TreeBroker& broker);
+
+    void ToNewickFile   (const std::string& fn);
+    std::string ToNewickString ();
     void ToTreeBroker   (TreeBroker& broker);
 
     std::string DumpBranches() const;

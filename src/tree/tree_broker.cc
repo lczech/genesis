@@ -38,10 +38,12 @@ void TreeBroker::clear()
 //     State Functions
 // -------------------------------------------------------------------------
 
-/** @brief Iterate over the tree and assign ranks (= number of immediate children) to all nodes.
+/**
+ * @brief Iterate over the tree and assign ranks (= number of immediate children) to all nodes.
  *
  * This function is for example needed to check whether it is a bifurcating/binary tree, or to check
- * how many leaves and inner nodes the tree has.
+ * how many leaves and inner nodes the tree has. Thus, it is usually called after the broker is
+ * filled with data.
  */
 void TreeBroker::AssignRanks()
 {
@@ -78,8 +80,7 @@ void TreeBroker::AssignRanks()
 }
 
 /**
- * @brief Returns the number of leaf nodes in the tree. Before calling it, AssignRanks() has to be
- * called first.
+ * @brief Returns the number of leaf nodes in the tree. AssignRanks() has to be called first.
  */
 int TreeBroker::LeafCount() const
 {
