@@ -29,11 +29,12 @@ namespace genesis {
 // TODO offer remote streams
 
 #ifndef LOG_LEVEL_MAX
-/**
- * Static maximal logging level.
- * Everything above this level will be pruned by the compiler.
- */
-#define LOG_LEVEL_MAX genesis::Logging::kDebug4
+    /**
+     * @brief Static maximal logging level.
+     *
+     * Everything above this level will be pruned by the compiler.
+     */
+    #define LOG_LEVEL_MAX genesis::Logging::kDebug4
 #endif
 
 // TODO make DEBUG a special macro with proper usage makefile etc,
@@ -42,7 +43,21 @@ namespace genesis {
 
 // override this setting when debugging is turned on (eg by makefile)
 #ifdef DEBUG
-#define LOG_LEVEL_MAX genesis::Logging::kDebug4
+    #define LOG_LEVEL_MAX genesis::Logging::kDebug4
+#endif
+
+// try to find a macro that expands to the current function name
+// (yes, preprocressor directives should not be nested. but who could read this?!)
+#ifndef __FUNCTION__
+    #ifdef  __func__
+        #define __FUNCTION__ __func__
+    #else
+        #ifdef __PRETTY_FUNCTION__
+            #define __FUNCTION__ __PRETTY_FUNCTION__
+        #else
+            #define __FUNCTION__ ""
+        #endif
+    #endif
 #endif
 
 // define the actual log macro, so that the compiler can prune calls
@@ -50,48 +65,50 @@ namespace genesis {
 #define GNS_LOG(level) \
     if (level > LOG_LEVEL_MAX) ; \
     else if (level > genesis::Logging::max_level()) ; \
-    else genesis::Logging().Get(__FILE__, __LINE__, level)
+    else genesis::Logging().Get(__FILE__, __LINE__, __FUNCTION__, level)
 
 // define a similar log macro, this time changing the details of the message
 #define GNS_LOG_DETAILS(level, ...) \
     if (level > LOG_LEVEL_MAX) ; \
     else if (level > genesis::Logging::max_level()) ; \
-    else genesis::Logging().Get(__FILE__, __LINE__, level, {__VA_ARGS__})
+    else genesis::Logging().Get(__FILE__, __LINE__, __FUNCTION__, level, {__VA_ARGS__})
 
-// define standard logging types as macro shortcuts
-/** %Log an error. See genesis::LoggingLevel. */
+// define standard logging types as macro shortcuts:
+
+/** @brief Log an error. See genesis::LoggingLevel. */
 #define LOG_ERR  GNS_LOG(genesis::Logging::kError)
 
-/** %Log a warning. See genesis::LoggingLevel. */
+/** @brief Log a warning. See genesis::LoggingLevel. */
 #define LOG_WARN GNS_LOG(genesis::Logging::kWarning)
 
-/** %Log an info message. See genesis::LoggingLevel. */
+/** @brief Log an info message. See genesis::LoggingLevel. */
 #define LOG_INFO GNS_LOG(genesis::Logging::kInfo)
 
-/** %Log a debug message. See genesis::LoggingLevel. */
+/** @brief Log a debug message. See genesis::LoggingLevel. */
 #define LOG_DBG  GNS_LOG(genesis::Logging::kDebug)
 
-/** %Log a debug message. See genesis::LoggingLevel. */
+/** @brief Log a debug message. See genesis::LoggingLevel. */
 #define LOG_DBG1 GNS_LOG(genesis::Logging::kDebug1)
 
-/** %Log a debug message. See genesis::LoggingLevel. */
+/** @brief Log a debug message. See genesis::LoggingLevel. */
 #define LOG_DBG2 GNS_LOG(genesis::Logging::kDebug2)
 
-/** %Log a debug message. See genesis::LoggingLevel. */
+/** @brief Log a debug message. See genesis::LoggingLevel. */
 #define LOG_DBG3 GNS_LOG(genesis::Logging::kDebug3)
 
-/** %Log a debug message. See genesis::LoggingLevel. */
+/** @brief Log a debug message. See genesis::LoggingLevel. */
 #define LOG_DBG4 GNS_LOG(genesis::Logging::kDebug4)
 
-// define special log shortcuts. the list of bools represent
-// the members of struct LogDetails and indicate which parts shall be included
-/** Logging of a message that is always displayed. See Logging. */
-#define LOG_BOLD GNS_LOG_DETAILS(genesis::Logging::kNone, \
-    false, false, false, false, false, false, false, false)
+// define special log shortcuts: the list of bools represent
+// the members of struct LogDetails and indicate which parts shall be included.
 
-/** Logging of a message with timing information. See Logging. */
+/** @brief %Logging of a message that is always displayed. See Logging. */
+#define LOG_BOLD GNS_LOG_DETAILS(genesis::Logging::kNone, \
+    false, false, false, false, false, false, false, false, false)
+
+/** @brief %Logging of a message with timing information. See Logging. */
 #define LOG_TIME GNS_LOG_DETAILS(genesis::Logging::kDebug, \
-    false, false, false, true , true,  false, false, false)
+    false, false, false, true , true,  false, false, false, false)
 
 // =============================================================================
 //     LoggingDetails
@@ -152,6 +169,13 @@ typedef struct {
      * generated.
      */
     bool line;
+
+    /**
+     * @brief Include the function name where the log message was generated.
+     *
+     * This might not be available on certain compilers. In this case, it is empty.
+     */
+    bool function;
 
     /** @brief Include the level (e.g. Info, Debug) of the message. */
     bool level;
@@ -240,31 +264,31 @@ class Logging
          * Logging class for more on this.
          */
         enum LoggingLevel {
-            /** Special messages that are always logged, e.g. program header. */
+            /** @brief Special messages that are always logged, e.g. program header. */
             kNone = 0,
 
-            /** Errors, usually non-recoverable. */
+            /** @brief Errors, usually non-recoverable. */
             kError,
 
-            /** Warnings if somthing went wront, but program can continue. */
+            /** @brief Warnings if somthing went wront, but program can continue. */
             kWarning,
 
-            /** Infos, for example when a file was written. */
+            /** @brief Infos, for example when a file was written. */
             kInfo,
 
-            /** Basic debugging message. */
+            /** @brief Basic debugging message. */
             kDebug,
 
-            /** Debugging message with indent level 1 (e.g. for loops). */
+            /** @brief Debugging message with indent level 1 (e.g. for loops). */
             kDebug1,
 
-            /** Debugging message with indent level 2. */
+            /** @brief Debugging message with indent level 2. */
             kDebug2,
 
-            /** Debugging message with indent level 3. */
+            /** @brief Debugging message with indent level 3. */
             kDebug3,
 
-            /** Debugging message with indent level 4. */
+            /** @brief Debugging message with indent level 4. */
             kDebug4
         };
 
@@ -273,11 +297,11 @@ class Logging
 
         // getter for the singleton instance of log, is called by the macros
         std::ostringstream& Get (
-            const std::string& file, const int line,
+            const std::string& file, const int line, const std::string& function,
             const LoggingLevel level
         );
         std::ostringstream& Get (
-            const std::string& file, const int line,
+            const std::string& file, const int line, const std::string& function,
             const LoggingLevel level, const LoggingDetails dets
         );
 
@@ -288,18 +312,18 @@ class Logging
         static void AddOutputFile   (const std::string& fn);
 
         /**
-         * Settings for which information is included with each log message.
+         * @brief Settings for which information is included with each log message.
          * See LoggingDetails for usage.
          */
         static LoggingDetails details;
 
-        /** Get the highest log level that is reported. */
-        static LoggingLevel  max_level ()
+        /** @brief Get the highest log level that is reported. */
+        static LoggingLevel max_level ()
         {
             return max_level_;
         }
 
-        static void      max_level (const LoggingLevel level);
+        static void max_level (const LoggingLevel level);
 
         // return a string representation for a log level
         static std::string LevelToString (const LoggingLevel level);
@@ -309,6 +333,7 @@ class Logging
         std::ostringstream buff_;
         std::string        file_;
         int                line_;
+        std::string        function_;
         LoggingLevel       level_;
         LoggingDetails     details_;
 
