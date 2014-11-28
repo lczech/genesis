@@ -39,7 +39,7 @@ void JsonValueArray::clear()
 std::string JsonValueArray::ToString(const int indent_level) const
 {
     std::string in (indent_level * JsonDocument::indent, ' ');
-    std::stringstream ss;
+    std::ostringstream ss;
     ss << in << "[";
 
     bool first = true;

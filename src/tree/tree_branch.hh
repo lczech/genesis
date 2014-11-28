@@ -27,6 +27,16 @@ public:
 
     TreeBranch() : length_(0.0), link_p_(nullptr), link_q_(nullptr) {}
 
+    inline TreeLink* link_p()
+    {
+        return link_p_;
+    }
+
+    inline TreeLink* link_q()
+    {
+        return link_q_;
+    }
+
 protected:
     BranchLength length_;
 

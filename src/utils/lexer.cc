@@ -593,7 +593,7 @@ void Lexer::PushToken (const LexerType t, const size_t start, const std::string&
  * It is not particularly useful for xml, as there it is also important to use
  * closing tags like `<xml> ... </xml>`.
  */
-bool Lexer::ValidateBrackets()
+bool Lexer::ValidateBrackets() const
 {
     std::stack<char> stk;
     for (LexerToken t : tokens_) {
@@ -621,7 +621,7 @@ bool Lexer::ValidateBrackets()
 /**
  * @brief Returns a listing of the parse result in readable form.
  */
-std::string Lexer::Dump()
+std::string Lexer::Dump() const
 {
     std::string res;
     for (size_t i = 0; i < tokens_.size(); i++) {

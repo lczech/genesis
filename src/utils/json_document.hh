@@ -188,7 +188,7 @@ public:
 
     inline std::string ToString() const override
     {
-        std::stringstream ss;
+        std::ostringstream ss;
         ss << std::setprecision(precision) << value;
         return ss.str();
     }

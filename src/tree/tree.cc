@@ -7,18 +7,25 @@
 
 #include "tree/tree.hh"
 
-#include "tree/newick_lexer.hh"
+#include <sstream>
+
 #include "tree/newick_parser.hh"
 #include "utils/logging.hh"
 #include "utils/utils.hh"
 
 namespace genesis {
 
+/**
+ * @brief Destructor. Calls clear() to free all memory used by the tree and its substructurs.
+ */
 Tree::~Tree ()
 {
     clear();
 }
 
+/**
+ * @brief Deletes all data of the tree, including all links, nodes and branches.
+ */
 void Tree::clear()
 {
     for (TreeBranch* branch : branches_) {
@@ -36,6 +43,9 @@ void Tree::clear()
     std::vector<TreeNode*>().swap(nodes_);
 }
 
+/**
+ * @brief Create a tree from a file containing a Newick tree.
+ */
 bool Tree::FromNewickFile (const std::string& fn)
 {
     if (!FileExists(fn)) {
@@ -45,6 +55,9 @@ bool Tree::FromNewickFile (const std::string& fn)
     return FromNewickString(FileRead(fn));
 }
 
+/**
+ * @brief Create a tree from a string containing a Newick tree.
+ */
 bool Tree::FromNewickString (const std::string& tree)
 {
     TreeBroker broker;
@@ -52,68 +65,195 @@ bool Tree::FromNewickString (const std::string& tree)
         return false;
     }
 
-    broker.AssignRanks();
-    LOG_INFO << broker.Dump();
     FromTreeBroker(broker);
     return true;
 }
 
-void Tree::FromTreeBroker (const TreeBroker& broker)
+/**
+ * @brief Create a tree from a TreeBroker.
+ */
+void Tree::FromTreeBroker (TreeBroker& broker)
 {
-    InitBifurcatingTree(broker.LeafCount());
+    broker.AssignRanks();
+    clear();
+    std::vector<TreeLink*> link_stack;
+
+    for (TreeBroker::const_iterator b_itr = broker.cbegin(); b_itr != broker.cend(); ++b_itr) {
+        TreeBrokerNode* broker_node = *b_itr;
+
+        // create the tree node for this broker node
+        TreeNode* cur_node = new TreeNode();
+        cur_node->name_ = broker_node->name;
+        nodes_.push_back(cur_node);
+
+        // create the link that points towards the root
+        TreeLink* up_link = new TreeLink();
+        up_link->node_ = cur_node;
+        cur_node->link_ = up_link;
+        links_.push_back(up_link);
+
+        // establish the link towards the root
+        if (link_stack.empty()) {
+            // if the link stack is empty, we are currently at the very beginning of this loop,
+            // which means we are at the root itself. in this case, make the "link towards the root"
+            // point to itself. this makes traversing the tree lots easier!
+            up_link->outer_ = up_link;
+        } else {
+            // if we are however in some other node (leaf or inner, but not the root), we establish
+            // the link "upwards" to the root, and back from there.
+            up_link->outer_ = link_stack.back();
+            link_stack.back()->outer_ = up_link;
+
+            // also, create a branch that connects both nodes
+            TreeBranch* up_branch = new TreeBranch();
+            up_branch->link_p_ = link_stack.back();
+            up_branch->link_q_ = up_link;
+            branches_.push_back(up_branch);
+
+            // we can now delete the head of the stack, because we just estiablished its "downlink"
+            // and thus are done with it
+            link_stack.pop_back();
+        }
+
+        if (broker_node->rank() == 0) {
+            // make the next pointer of leaf nodes point to themselves
+            up_link->next_ = up_link;
+        } else {
+            // for inner nodes, we create as many "down" links as they have children. each of them
+            // is pushed to the stack, so that for the next broker nodes they are available as
+            // reciever for the "up" links.
+            // also, make all next pointers of one node point in a circle.
+            TreeLink* next_link = up_link;
+            for (int i = 0; i < broker_node->rank(); ++i) {
+                TreeLink* down_link = new TreeLink();
+                down_link->next_ = next_link;
+                next_link = down_link;
+
+                down_link->node_ = cur_node;
+                links_.push_back(down_link);
+                link_stack.push_back(down_link);
+            }
+            up_link->next_ = next_link;
+        }
+    }
 }
 
-void Tree::InitBifurcatingTree (const int leaf_count)
+/**
+ * @brief Returns a list of all branches including their link numbers.
+ */
+std::string Tree::DumpBranches() const
 {
-    int inner_count = leaf_count - 1;
-
-    clear();
-    branches_.resize(leaf_count +     inner_count - 1);
-    links_.resize   (leaf_count + 3 * inner_count    );
-    nodes_.resize   (leaf_count +     inner_count    );
-
-    // TODO we allocate on instance at a time here, which might be slow. if so, it could help doing this:
-    // TreeLink* arr = new TreeLink() [count];
-    // for i = 0 .. count
-    //     links_[i] = arr++;
-    // and then just forget about arr, because all its content is pointed to by links_, so its not lost.
-
-    // alloc and init leaf links and nodes
-    for (int i = 0; i < leaf_count; ++i) {
-        links_[i] = new TreeLink();
-        links_[i]->next_  = links_[i];
-        links_[i]->outer_ = nullptr;
-
-        nodes_[i] = new TreeNode();
+    std::ostringstream out;
+    for (size_t i = 0; i < branches_.size(); ++i) {
+        out << "Branch " << i
+            << " \t link p "  << LinkPointerToIndex(branches_[i]->link_p_)
+            << " \t link q " << LinkPointerToIndex(branches_[i]->link_q_)
+            << "\n";
     }
+    return out.str();
+}
 
-    // alloc and init inner links and nodes
-    for (int i = 0; i < inner_count; ++i) {
-        int cn = leaf_count + i; // current node index
-        nodes_[cn] = new TreeNode();
+/**
+ * @brief Returns a list of all links including their next and outer link numbers as well as their
+ * node and branch numbers.
+ */
+std::string Tree::DumpLinks() const
+{
+    std::ostringstream out;
+    for (size_t i = 0; i < links_.size(); ++i) {
+        out << "Link " << i
+            << " \t next "  << LinkPointerToIndex(links_[i]->next_)
+            << " \t outer " << LinkPointerToIndex(links_[i]->outer_)
+            << " \t node " << NodePointerToIndex(links_[i]->node_)
+            << " \t branch " << BranchPointerToIndex(links_[i]->branch_)
+            << "\n";
+    }
+    return out.str();
+}
 
-        // create three links per inner node and link their next_ pointers to build a circle
-        TreeLink* round_link = nullptr;
-        for (int j = 0; j < 3; ++j) {
-            int cl = leaf_count + i * 3 + j; // current link index
+/**
+ * @brief Returns a list of all nodes including their name and the number of one of their links.
+ */
+std::string Tree::DumpNodes() const
+{
+    std::ostringstream out;
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        out << "Node " << i
+            << " \t name " << nodes_[i]->name_
+            << " \t link "  << LinkPointerToIndex(nodes_[i]->link_)
+            << "\n";
+    }
+    return out.str();
+}
 
-            links_[cl] = new TreeLink();
-            links_[cl]->next_  = round_link;
-            links_[cl]->outer_ = nullptr;
-            round_link = links_[cl];
+/**
+ * @brief Do a full tree traversal and return a list of all visited node names.
+ *
+ * Leaf nodes appear once in this list, while inner nodes appear every time the traversal visits
+ * them. Thus, a node of rank 3 (meaning, it has three immediate children), is visited four times:
+ * One time when coming from its parent, and then once each time the traversal returns from its
+ * children.
+ */
+std::string Tree::DumpRound() const
+{
+    std::string out;
+    TreeLink* link = links_.front();
 
-            links_[cl]->node_ = nodes_[cn];
+    do {
+        out += link->node_->name_ + "\n";
+        link = link->next_;
+        link = link->outer_;
+    } while (link != links_.front());
+
+    return out;
+}
+
+/**
+ * @brief Returns the index of a given branch pointer within the branch pointer array branches_.
+ *
+ * This is useful for debugging purposes, particularly for the Dump functions.
+ * Returns `-1` if the pointer was not found.
+ */
+int Tree::BranchPointerToIndex (TreeBranch* branch) const
+{
+    for (size_t i = 0; i < branches_.size(); ++i) {
+        if (branches_[i] == branch) {
+            return i;
         }
-        links_[leaf_count + i * 3]->next_ = round_link;
-
-        // the node points to the first of the corresponding links
-        nodes_[cn]->link_ = links_[leaf_count + i * 3];
     }
+    return -1;
+}
 
-    // alloc and init all branches
-    for (int i = 0; i < leaf_count + inner_count - 1; ++i) {
-        branches_[i] = new TreeBranch();
+/**
+ * @brief Returns the index of a given link pointer within the link pointer array links_.
+ *
+ * This is useful for debugging purposes, particularly for the Dump functions.
+ * Returns `-1` if the pointer was not found.
+ */
+int Tree::LinkPointerToIndex (TreeLink* link) const
+{
+    for (size_t i = 0; i < links_.size(); ++i) {
+        if (links_[i] == link) {
+            return i;
+        }
     }
+    return -1;
+}
+
+/**
+ * @brief Returns the index of a given node pointer within the node pointer array nodes_.
+ *
+ * This is useful for debugging purposes, particularly for the Dump functions.
+ * Returns `-1` if the pointer was not found.
+ */
+int Tree::NodePointerToIndex (TreeNode* node) const
+{
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        if (nodes_[i] == node) {
+            return i;
+        }
+    }
+    return -1;
 }
 
 } // namespace genesis
