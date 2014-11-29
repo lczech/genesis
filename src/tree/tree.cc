@@ -16,13 +16,9 @@
 
 namespace genesis {
 
-/**
- * @brief Destructor. Calls clear() to free all memory used by the tree and its substructures.
- */
-Tree::~Tree ()
-{
-    clear();
-}
+// -------------------------------------------------------------------------
+//     Construction and Destruction
+// -------------------------------------------------------------------------
 
 /**
  * @brief Deletes all data of the tree, including all links, nodes and branches.
@@ -42,6 +38,14 @@ void Tree::clear()
     std::vector<TreeBranch*>().swap(branches_);
     std::vector<TreeLink*>().swap(links_);
     std::vector<TreeNode*>().swap(nodes_);
+}
+
+/**
+ * @brief Destructor. Calls clear() to free all memory used by the tree and its substructures.
+ */
+Tree::~Tree ()
+{
+    clear();
 }
 
 // -------------------------------------------------------------------------
@@ -115,8 +119,8 @@ void Tree::FromTreeBroker (TreeBroker& broker)
 
             // also, create a branch that connects both nodes
             TreeBranch* up_branch = new TreeBranch();
-            up_branch->link_p_ = link_stack.back();
-            up_branch->link_q_ = up_link;
+            up_branch->link_p_         = link_stack.back();
+            up_branch->link_q_         = up_link;
             up_link->branch_           = up_branch;
             link_stack.back()->branch_ = up_branch;
             up_branch->FromTreeBrokerNode(broker_node);

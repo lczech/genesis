@@ -23,9 +23,9 @@ namespace genesis {
 class Tree
 {
 public:
-    Tree() {};
-    virtual ~Tree();
+    Tree () {}
     void clear();
+    virtual ~Tree();
 
     bool FromNewickFile (const std::string& fn);
     bool FromNewickString (const std::string& tree);

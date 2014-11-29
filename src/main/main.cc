@@ -48,6 +48,7 @@ int main (int argc, char* argv[])
     LOG_DBG << tree.DumpLinks();
     LOG_DBG << tree.DumpNodes();
     LOG_DBG << tree.DumpBranches();
+
     //~ tree.FromNewickString("((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;");
 
     //~ tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};");
