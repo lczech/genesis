@@ -24,8 +24,8 @@ using namespace genesis;
  */
 std::string print_header()
 {
-    return
-"                                     ,    \n\
+    return "\
+                                     ,     \n\
         __    __    __    __   __     __   \n\
       /   ) /___) /   ) /___) (_ ` / (_ `  \n\
      (___/ (___  /   / (___  (__) / (__)   \n\

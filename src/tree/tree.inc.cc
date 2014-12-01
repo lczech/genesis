@@ -137,26 +137,24 @@ void Tree<NDT, BDT>::FromTreeBroker (TreeBroker& broker)
             link_stack.pop_back();
         }
 
-        if (broker_node->rank() == 0) {
-            // make the next pointer of leaf nodes point to themselves
-            up_link->next_ = up_link;
-        } else {
-            // for inner nodes, we create as many "down" links as they have children. each of them
-            // is pushed to the stack, so that for the next broker nodes they are available as
-            // reciever for the "up" links.
-            // also, make all next pointers of one node point to each other in a circle.
-            TreeLink<NDT, BDT>* next_link = up_link;
-            for (int i = 0; i < broker_node->rank(); ++i) {
-                TreeLink<NDT, BDT>* down_link = new TreeLink<NDT, BDT>();
-                down_link->next_ = next_link;
-                next_link = down_link;
+        // in the following, we create the links that will connect to the nodes' children.
+        // for leaf nodes, this makes the next pointer point to the node itself (the loop
+        // is never executed in this case, as leaves have rank 0).
+        // for inner nodes, we create as many "down" links as they have children. each of them
+        // is pushed to the stack, so that for the next broker nodes they are available as
+        // reciever for the "up" links.
+        // in summary, make all next pointers of a node point to each other in a circle.
+        TreeLink<NDT, BDT>* next_link = up_link;
+        for (int i = 0; i < broker_node->rank(); ++i) {
+            TreeLink<NDT, BDT>* down_link = new TreeLink<NDT, BDT>();
+            down_link->next_ = next_link;
+            next_link = down_link;
 
-                down_link->node_ = cur_node;
-                links_.push_back(down_link);
-                link_stack.push_back(down_link);
-            }
-            up_link->next_ = next_link;
+            down_link->node_ = cur_node;
+            links_.push_back(down_link);
+            link_stack.push_back(down_link);
         }
+        up_link->next_ = next_link;
     }
 }
 
