@@ -126,7 +126,7 @@ void Tree<NDT, BDT>::FromTreeBroker (TreeBroker& broker)
             // also, create a branch that connects both nodes
             TreeBranch<NDT, BDT>* up_branch = new TreeBranch<NDT, BDT>();
             up_branch->link_p_         = link_stack.back();
-            up_branch->link_q_         = up_link;
+            up_branch->link_s_         = up_link;
             up_link->branch_           = up_branch;
             link_stack.back()->branch_ = up_branch;
             up_branch->FromTreeBrokerNode(broker_node);
@@ -165,17 +165,24 @@ void Tree<NDT, BDT>::FromTreeBroker (TreeBroker& broker)
 // -------------------------------------------------------------------------
 
 template <class NDT, class BDT>
-int Tree<NDT, BDT>::MaxRank()
+int Tree<NDT, BDT>::MaxRank() const
 {
     int max = -1;
     for (size_t i = 0; i < nodes_.size(); ++i) {
         int rank = nodes_[i]->Rank();
         if (rank == 1) {
-            LOG_WARN << "Node with rank 1 found. This is a node without furcation.";
+            LOG_WARN << "Node with rank 1 found. This is a node without furcation, and usually "
+                     << "indicates an error.";
         }
         max = std::max(rank, max);
     }
     return max;
+}
+
+template <class NDT, class BDT>
+bool Tree<NDT, BDT>::IsBifurcating() const
+{
+    return MaxRank() == 2;
 }
 
 // -------------------------------------------------------------------------
@@ -192,7 +199,7 @@ std::string Tree<NDT, BDT>::DumpBranches() const
     for (size_t i = 0; i < branches_.size(); ++i) {
         out << "Branch " << i
             << " \t Link P: " << LinkPointerToIndex(branches_[i]->link_p_)
-            << " \t Link Q: " << LinkPointerToIndex(branches_[i]->link_q_)
+            << " \t Link Q: " << LinkPointerToIndex(branches_[i]->link_s_)
             << " \t " << branches_[i]->Dump() << "\n";
     }
     return out.str();

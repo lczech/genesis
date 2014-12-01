@@ -36,7 +36,7 @@ int TreeNode<NDT, BDT>::Rank()
 template <class NDT, class BDT>
 void TreeNode<NDT, BDT>::FromTreeBrokerNode (TreeBrokerNode* node)
 {
-    name_ = node->name;
+    data.FromTreeBrokerNode(node);
 }
 
 /**
@@ -45,7 +45,7 @@ void TreeNode<NDT, BDT>::FromTreeBrokerNode (TreeBrokerNode* node)
 template <class NDT, class BDT>
 std::string TreeNode<NDT, BDT>::Dump()
 {
-    return "Name: '" + name_ + "' \t Rank: " + std::to_string(Rank());
+    return data.Dump() + " \t Rank: " + std::to_string(Rank());
 }
 
 } // namespace genesis

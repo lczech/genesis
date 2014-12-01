@@ -12,19 +12,43 @@
 
 #include <string>
 
+#include "tree/tree_broker.hh"
+
 namespace genesis {
 
 // =============================================================================
 //     Forward declarations
 // =============================================================================
 
-struct TreeBrokerNode;
-
 template <class NodeDataType, class BranchDataType>
 class  Tree;
 
 template <class NodeDataType, class BranchDataType>
 class  TreeLink;
+
+// =============================================================================
+//     DefaultNodeData
+// =============================================================================
+
+class DefaultNodeData
+{
+public:
+    /**
+     * Name of the node. In case it is a leaf, this is usually the name of
+     * the taxon represented by the node.
+     */
+    std::string name;
+
+    inline void FromTreeBrokerNode (TreeBrokerNode* node)
+    {
+        name = node->name;
+    }
+
+    inline std::string Dump()
+    {
+        return "Name: '" + name + "'";
+    }
+};
 
 // =============================================================================
 //     TreeNode
@@ -36,13 +60,7 @@ class TreeNode
     friend Tree<NodeDataType, BranchDataType>;
 
 public:
-    TreeNode() : name_(""), link_(nullptr) {}
-    TreeNode(const std::string& name) : name_(name), link_(nullptr) {};
-
-    inline std::string name() const
-    {
-        return name_;
-    }
+    TreeNode() : link_(nullptr) {}
 
     int  Rank();
     bool IsLeaf();
@@ -65,13 +83,6 @@ public:
     NodeDataType data;
 
 protected:
-
-    /**
-     * Name of the node. In case it is a leaf, this is usually the name of
-     * the taxon represented by the node.
-     */
-    std::string name_;
-
     TreeLink<NodeDataType, BranchDataType>* link_;
 };
 
@@ -110,7 +121,11 @@ namespace genesis {
 
 } // namespace genesis
 
-// include the template class implementation
+// =============================================================================
+//     Inclusion of the implementation
+// =============================================================================
+
+// This is a class template, so do the inclusion here.
 #include "tree/tree_node.inc.cc"
 
 #endif // include guard

@@ -18,8 +18,7 @@ namespace genesis {
 template <class NDT, class BDT>
 void TreeBranch<NDT, BDT>::FromTreeBrokerNode (TreeBrokerNode* node)
 {
-    length_ = node->branch_length;
-    label_  = node->comment;
+    data.FromTreeBrokerNode(node);
 }
 
 /**
@@ -28,7 +27,7 @@ void TreeBranch<NDT, BDT>::FromTreeBrokerNode (TreeBrokerNode* node)
 template <class NDT, class BDT>
 std::string TreeBranch<NDT, BDT>::Dump()
 {
-    return "Length: " + std::to_string(length_) + " \t Label: '" + label_ + "'";
+    return data.Dump();
 }
 
 } // namespace genesis

@@ -20,7 +20,11 @@
 
 namespace genesis {
 
-template <class NodeDataType, class BranchDataType>
+// =============================================================================
+//     Tree
+// =============================================================================
+
+template <class NodeDataType = DefaultNodeData, class BranchDataType = DefaultBranchData>
 class Tree
 {
 public:
@@ -41,12 +45,8 @@ public:
     std::string DumpNodes() const;
     std::string DumpRoundtrip() const;
 
-    int MaxRank();
-
-    inline bool IsBifurcating()
-    {
-        return MaxRank() == 2;
-    }
+    int  MaxRank() const;
+    bool IsBifurcating() const;
 
 protected:
     int BranchPointerToIndex (TreeBranch<NodeDataType, BranchDataType>* branch) const;
@@ -60,7 +60,11 @@ protected:
 
 } // namespace genesis
 
-// include the template class implementation
+// =============================================================================
+//     Inclusion of the implementation
+// =============================================================================
+
+// This is a class template, so do the inclusion here.
 #include "tree/tree.inc.cc"
 
 #endif // include guard
