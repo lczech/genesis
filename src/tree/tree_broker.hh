@@ -83,14 +83,14 @@ public:
     bool        is_leaf;
 
     /**
-     * @brief An arbitrary string that can be attached to a node, e.g. in Newick format via "{}".
+     * @brief Arbitrary strings that can be attached to a node, e.g. in Newick format via "{}".
      */
-    std::string tag;
+    std::deque<std::string> tags;
 
     /**
-     * @brief An arbitrary string that can be attached to a node, e.g. in Newick format via "[]".
+     * @brief Arbitrary strings that can be attached to a node, e.g. in Newick format via "[]".
      */
-    std::string comment;
+    std::deque<std::string> comments;
 
 protected:
     /**
@@ -344,14 +344,14 @@ public:
         return stack_.size();
     }
 
-    int MaxRank();
+    int MaxRank() const;
 
-    inline bool IsBifurcating()
+    inline bool IsBifurcating() const
     {
         return MaxRank() == 2;
     }
 
-    bool Validate();
+    bool Validate() const;
 
     // -------------------------------------------------------------------------
     //     Dump and Debug

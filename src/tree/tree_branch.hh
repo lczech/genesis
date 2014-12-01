@@ -12,13 +12,13 @@
 
 #include <string>
 
+#include "tree/tree_broker.hh"
+
 namespace genesis {
 
 // =============================================================================
 //     Forward declarations
 // =============================================================================
-
-struct TreeBrokerNode;
 
 template <class NodeDataType, class BranchDataType>
 class  Tree;
@@ -30,6 +30,28 @@ template <class NodeDataType, class BranchDataType>
 class  TreeNode;
 
 // =============================================================================
+//     DefaultBranchData
+// =============================================================================
+
+class DefaultBranchData
+{
+public:
+    typedef double BranchLength;
+
+    BranchLength branch_length;
+
+    inline void FromTreeBrokerNode (TreeBrokerNode* node)
+    {
+        branch_length = node->branch_length;
+    }
+
+    inline std::string Dump()
+    {
+        return "Length: " + std::to_string(branch_length);
+    }
+};
+
+// =============================================================================
 //     TreeBranch
 // =============================================================================
 
@@ -39,36 +61,24 @@ class TreeBranch
     friend class Tree<NodeDataType, BranchDataType>;
 
 public:
-    typedef double BranchLength;
-
-    TreeBranch() : length_(0.0), label_(""), link_p_(nullptr), link_q_(nullptr) {}
+    TreeBranch() : link_p_(nullptr), link_s_(nullptr) {}
 
     // ---------------------------------------------------------------------
     //     Accessors
     // ---------------------------------------------------------------------
 
-    inline BranchLength length()
-    {
-        return length_;
-    }
-
-    inline std::string label()
-    {
-        return label_;
-    }
-
-    inline TreeLink<NodeDataType, BranchDataType>* link_p()
+    inline TreeLink<NodeDataType, BranchDataType>* PrimaryLink()
     {
         return link_p_;
     }
 
-    inline TreeLink<NodeDataType, BranchDataType>* link_q()
+    inline TreeLink<NodeDataType, BranchDataType>* SecondaryLink()
     {
-        return link_q_;
+        return link_s_;
     }
 
-    TreeNode<NodeDataType, BranchDataType>* node_p();
-    TreeNode<NodeDataType, BranchDataType>* node_q();
+    TreeNode<NodeDataType, BranchDataType>* PrimaryNode();
+    TreeNode<NodeDataType, BranchDataType>* SecondaryNode();
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -86,11 +96,8 @@ public:
 
 protected:
 
-    BranchLength length_;
-    std::string  label_;
-
     TreeLink<NodeDataType, BranchDataType>* link_p_;
-    TreeLink<NodeDataType, BranchDataType>* link_q_;
+    TreeLink<NodeDataType, BranchDataType>* link_s_;
 
 };
 
@@ -105,25 +112,31 @@ protected:
 // source files can be included without circles.
 // See http://www.cplusplus.com/forum/articles/10627/ for more information on this.
 
+// We abbriviate the template types here, in the same way it is done in the implementation file.
+
 #include "tree/tree_link.hh"
 
 namespace genesis {
 
-    template <class NodeDataType, class BranchDataType>
-    inline TreeNode<NodeDataType, BranchDataType>* TreeBranch<NodeDataType, BranchDataType>::node_p()
+    template <class NDT, class BDT>
+    inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::PrimaryNode()
     {
         return link_p_->node();
     }
 
-    template <class NodeDataType, class BranchDataType>
-    inline TreeNode<NodeDataType, BranchDataType>* TreeBranch<NodeDataType, BranchDataType>::node_q()
+    template <class NDT, class BDT>
+    inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::SecondaryNode()
     {
-        return link_q_->node();
+        return link_s_->node();
     }
 
 } // namespace genesis
 
-// include the template class implementation
+// =============================================================================
+//     Inclusion of the implementation
+// =============================================================================
+
+// This is a class template, so do the inclusion here.
 #include "tree/tree_branch.inc.cc"
 
 #endif // include guard

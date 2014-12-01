@@ -126,7 +126,7 @@ void Tree<NDT, BDT>::FromTreeBroker (TreeBroker& broker)
             // also, create a branch that connects both nodes
             TreeBranch<NDT, BDT>* up_branch = new TreeBranch<NDT, BDT>();
             up_branch->link_p_         = link_stack.back();
-            up_branch->link_q_         = up_link;
+            up_branch->link_s_         = up_link;
             up_link->branch_           = up_branch;
             link_stack.back()->branch_ = up_branch;
             up_branch->FromTreeBrokerNode(broker_node);
@@ -137,26 +137,24 @@ void Tree<NDT, BDT>::FromTreeBroker (TreeBroker& broker)
             link_stack.pop_back();
         }
 
-        if (broker_node->rank() == 0) {
-            // make the next pointer of leaf nodes point to themselves
-            up_link->next_ = up_link;
-        } else {
-            // for inner nodes, we create as many "down" links as they have children. each of them
-            // is pushed to the stack, so that for the next broker nodes they are available as
-            // reciever for the "up" links.
-            // also, make all next pointers of one node point to each other in a circle.
-            TreeLink<NDT, BDT>* next_link = up_link;
-            for (int i = 0; i < broker_node->rank(); ++i) {
-                TreeLink<NDT, BDT>* down_link = new TreeLink<NDT, BDT>();
-                down_link->next_ = next_link;
-                next_link = down_link;
+        // in the following, we create the links that will connect to the nodes' children.
+        // for leaf nodes, this makes the next pointer point to the node itself (the loop
+        // is never executed in this case, as leaves have rank 0).
+        // for inner nodes, we create as many "down" links as they have children. each of them
+        // is pushed to the stack, so that for the next broker nodes they are available as
+        // reciever for the "up" links.
+        // in summary, make all next pointers of a node point to each other in a circle.
+        TreeLink<NDT, BDT>* next_link = up_link;
+        for (int i = 0; i < broker_node->rank(); ++i) {
+            TreeLink<NDT, BDT>* down_link = new TreeLink<NDT, BDT>();
+            down_link->next_ = next_link;
+            next_link = down_link;
 
-                down_link->node_ = cur_node;
-                links_.push_back(down_link);
-                link_stack.push_back(down_link);
-            }
-            up_link->next_ = next_link;
+            down_link->node_ = cur_node;
+            links_.push_back(down_link);
+            link_stack.push_back(down_link);
         }
+        up_link->next_ = next_link;
     }
 }
 
@@ -165,17 +163,24 @@ void Tree<NDT, BDT>::FromTreeBroker (TreeBroker& broker)
 // -------------------------------------------------------------------------
 
 template <class NDT, class BDT>
-int Tree<NDT, BDT>::MaxRank()
+int Tree<NDT, BDT>::MaxRank() const
 {
     int max = -1;
     for (size_t i = 0; i < nodes_.size(); ++i) {
         int rank = nodes_[i]->Rank();
         if (rank == 1) {
-            LOG_WARN << "Node with rank 1 found. This is a node without furcation.";
+            LOG_WARN << "Node with rank 1 found. This is a node without furcation, and usually "
+                     << "indicates an error.";
         }
         max = std::max(rank, max);
     }
     return max;
+}
+
+template <class NDT, class BDT>
+bool Tree<NDT, BDT>::IsBifurcating() const
+{
+    return MaxRank() == 2;
 }
 
 // -------------------------------------------------------------------------
@@ -192,7 +197,7 @@ std::string Tree<NDT, BDT>::DumpBranches() const
     for (size_t i = 0; i < branches_.size(); ++i) {
         out << "Branch " << i
             << " \t Link P: " << LinkPointerToIndex(branches_[i]->link_p_)
-            << " \t Link Q: " << LinkPointerToIndex(branches_[i]->link_q_)
+            << " \t Link Q: " << LinkPointerToIndex(branches_[i]->link_s_)
             << " \t " << branches_[i]->Dump() << "\n";
     }
     return out.str();

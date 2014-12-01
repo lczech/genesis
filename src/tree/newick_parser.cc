@@ -32,8 +32,8 @@ bool NewickParser::ProcessString (const std::string& tree, TreeBroker& broker)
 }
 
 // TODO do a validate brackets first?!
-// TODO what happens if a tree's nested brackets fully close to depth 0, then open again
-// TODO without semicolon like (...)(...); ? do we need to check for this?
+// TODO what happens if a tree's nested brackets fully close to depth 0, then open again without
+// TODO semicolon like (...)(...); ? do we need to check for this?
 
 bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
 {
@@ -130,37 +130,6 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
         }
 
         // ------------------------------------------------------
-        //     is bracket ')'  ==>  end of subtree
-        // ------------------------------------------------------
-        if (ct->IsBracket(")")) {
-            if (depth == 0) {
-                error = "Too many ')' at " + ct->at() + ".";
-                break;
-            }
-            if (!(
-                pt->IsBracket(")") || pt->IsTag()    || pt->IsComment()     || pt->IsSymbol() ||
-                pt->IsString()     || pt->IsNumber() || pt->IsOperator(",")
-            )) {
-                error = "Invalid ')' at " + ct->at() + ": '" + ct->value() + "'.";
-                break;
-            }
-
-            // populate the node
-            if (node->name.empty()) {
-                if (node->is_leaf) {
-                    node->name = "Leaf Node";
-                } else {
-                    node->name = "Internal Node";
-                }
-            }
-            broker.PushTop(node);
-            node = nullptr;
-
-            --depth;
-            continue;
-        }
-
-        // ------------------------------------------------------
         //     is symbol or string  ==>  label
         // ------------------------------------------------------
         if (ct->IsSymbol() || ct->IsString()) {
@@ -203,20 +172,11 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
         //     is tag {}  ==>  tag
         // ------------------------------------------------------
         if (ct->IsTag()) {
-            if (!(
-                pt->IsBracket(")") || pt->IsSymbol() || pt->IsString() || pt->IsNumber() ||
-                pt->IsComment()    || pt->IsTag()
-            )) {
-                error = "Invalid tag at " + ct->at() + ": '" + ct->value() + "'.";
-                break;
-            }
-
-            // a tag that comes after one of the tokens: ")", symbol, string, number, comment,
-            // tag. in some newick extensions this has a semantic meaning that belongs to the
+            // in some newick extensions, a tag has a semantic meaning that belongs to the
             // current node/branch, thus we need to store it
 
             // populate the node
-            node->tag += ct->value();
+            node->tags.push_back(ct->value());
             continue;
         }
 
@@ -224,20 +184,11 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
         //     is comment []  ==>  comment
         // ------------------------------------------------------
         if (ct->IsComment()) {
-            if (!(
-                pt->IsBracket(")") || pt->IsSymbol() || pt->IsString() || pt->IsNumber() ||
-                pt->IsComment()    || pt->IsTag()
-            )) {
-                // just a normal comment without semantics
-                continue;
-            }
-
-            // a comment that comes after one of the tokens: ")", symbol, string, number, comment,
-            // tag. in some newick extensions this has a semantic meaning that belongs to the
+            // in some newick extensions, a comment has a semantic meaning that belongs to the
             // current node/branch, thus we need to store it
 
             // populate the node
-            node->comment += ct->value();
+            node->comments.push_back(ct->value());
             continue;
         }
 
@@ -263,6 +214,37 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
             }
             broker.PushTop(node);
             node = nullptr;
+            continue;
+        }
+
+        // ------------------------------------------------------
+        //     is bracket ')'  ==>  end of subtree
+        // ------------------------------------------------------
+        if (ct->IsBracket(")")) {
+            if (depth == 0) {
+                error = "Too many ')' at " + ct->at() + ".";
+                break;
+            }
+            if (!(
+                pt->IsBracket(")") || pt->IsTag()    || pt->IsComment()     || pt->IsSymbol() ||
+                pt->IsString()     || pt->IsNumber() || pt->IsOperator(",")
+            )) {
+                error = "Invalid ')' at " + ct->at() + ": '" + ct->value() + "'.";
+                break;
+            }
+
+            // populate the node
+            if (node->name.empty()) {
+                if (node->is_leaf) {
+                    node->name = "Leaf Node";
+                } else {
+                    node->name = "Internal Node";
+                }
+            }
+            broker.PushTop(node);
+            node = nullptr;
+
+            --depth;
             continue;
         }
 
