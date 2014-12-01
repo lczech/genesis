@@ -42,12 +42,13 @@ int main (int argc, char* argv[])
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
-    Tree tree;
+    Tree<int, int> tree;
     tree.FromNewickString("((A,((B,C,D)E[a branch],F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
 
     LOG_DBG << tree.DumpLinks();
     LOG_DBG << tree.DumpNodes();
     LOG_DBG << tree.DumpBranches();
+
     //~ tree.FromNewickString("((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;");
 
     //~ tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};");

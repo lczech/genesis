@@ -18,17 +18,22 @@ namespace genesis {
 //     Forward declarations
 // =============================================================================
 
-class  Tree;
 struct TreeBrokerNode;
+
+template <class NodeDataType, class BranchDataType>
+class  Tree;
+
+template <class NodeDataType, class BranchDataType>
 class  TreeLink;
 
 // =============================================================================
 //     TreeNode
 // =============================================================================
 
+template <class NodeDataType, class BranchDataType>
 class TreeNode
 {
-    friend Tree;
+    friend Tree<NodeDataType, BranchDataType>;
 
 public:
     TreeNode() : name_(""), link_(nullptr) {}
@@ -53,11 +58,13 @@ public:
 
     std::string Dump();
 
-protected:
-
     // ---------------------------------------------------------------------
     //     Member Variables
     // ---------------------------------------------------------------------
+
+    NodeDataType data;
+
+protected:
 
     /**
      * Name of the node. In case it is a leaf, this is usually the name of
@@ -65,7 +72,7 @@ protected:
      */
     std::string name_;
 
-    TreeLink* link_;
+    TreeLink<NodeDataType, BranchDataType>* link_;
 };
 
 } // namespace genesis
@@ -86,7 +93,8 @@ namespace genesis {
     /**
      * @brief True iff the node is a leaf/tip.
      */
-    inline bool TreeNode::IsLeaf()
+    template <class NodeDataType, class BranchDataType>
+    inline bool TreeNode<NodeDataType, BranchDataType>::IsLeaf()
     {
         return link_->IsLeaf();
     }
@@ -94,11 +102,15 @@ namespace genesis {
     /**
      * @brief True iff the node is an inner node.
      */
-    inline bool TreeNode::IsInner()
+    template <class NodeDataType, class BranchDataType>
+    inline bool TreeNode<NodeDataType, BranchDataType>::IsInner()
     {
         return link_->IsInner();
     }
 
 } // namespace genesis
+
+// include the template class implementation
+#include "tree/tree_node.inc.cc"
 
 #endif // include guard
