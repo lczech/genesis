@@ -99,7 +99,7 @@ int TreeBroker::LeafCount() const
 /**
  * @brief Returns the highest rank of the nodes in the tree. AssignRanks() has to be called first.
  */
-int TreeBroker::MaxRank()
+int TreeBroker::MaxRank() const
 {
     int max = -1;
     for (TreeBrokerNode* node : stack_) {
@@ -108,7 +108,8 @@ int TreeBroker::MaxRank()
             return -1;
         }
         if (node->rank_ == 1) {
-            LOG_WARN << "Node with rank 1 found. This is a node without furcation.";
+            LOG_WARN << "Node with rank 1 found. This is a node without furcation, and usually "
+                     << "indicates an error.";
         }
         max = std::max(node->rank_, max);
     }
@@ -129,7 +130,7 @@ int TreeBroker::MaxRank()
  *     decrease, as this simply means the end of a subtree.
  * %
  */
-bool TreeBroker::Validate()
+bool TreeBroker::Validate() const
 {
     int cur_depth = 0;
     for (TreeBrokerNode* node : stack_) {
@@ -142,7 +143,8 @@ bool TreeBroker::Validate()
             return false;
         }
         if (node->rank_ == 1) {
-            LOG_WARN << "Node with rank 1 found. This is a node without furcation.";
+            LOG_WARN << "Node with rank 1 found. This is a node without furcation, and usually "
+                     << "indicates an error.";
             return false;
         }
         if (node->rank_ > 1 && node->is_leaf) {
@@ -171,15 +173,28 @@ std::string TreeBroker::Dump() const
     out += "Tree contains " + std::to_string(NodeCount()) + " nodes (thereof "
         + std::to_string(LeafCount()) + " leaves)" + (stack_.empty() ? "." : ":") + "\n";
     for (TreeBrokerNode* node : stack_) {
+        // indent
         for (int i = 0; i < node->depth; ++i) {
             out += "    ";
         }
-        out += node->name
-            + (node->branch_length != 0.0 ? ":" + std::to_string(node->branch_length) : "")
-            + (!node->comment.empty() ? " [" + node->comment + "]" : "")
-            + (!node->tag.empty() ? " {" + node->tag + "}" : "")
-            + (node->rank_ > 0 ? " Rank(" + std::to_string(node->rank_) + ")" : "")
-            + (node->is_leaf ? " (Leaf)\n" : "\n");
+
+        // basic information
+        out +=  node->name
+            +  (node->branch_length != 0.0 ? ":" + std::to_string(node->branch_length) : "");
+
+        // comments
+        for (std::string c : node->comments) {
+            out += " [" + c + "]";
+        }
+
+        // tags
+        for (std::string t : node->tags) {
+            out += " {" + t + "}";
+        }
+
+        // additional information
+        out += (node->rank_ > 0 ? " Rank(" + std::to_string(node->rank_) + ")" : "")
+            +  (node->is_leaf ? " (Leaf)\n" : "\n");
     }
     return out;
 }
