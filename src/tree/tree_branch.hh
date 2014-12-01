@@ -18,18 +18,25 @@ namespace genesis {
 //     Forward declarations
 // =============================================================================
 
-class  Tree;
 struct TreeBrokerNode;
+
+template <class NodeDataType, class BranchDataType>
+class  Tree;
+
+template <class NodeDataType, class BranchDataType>
 class  TreeLink;
+
+template <class NodeDataType, class BranchDataType>
 class  TreeNode;
 
 // =============================================================================
 //     TreeBranch
 // =============================================================================
 
+template <class NodeDataType, class BranchDataType>
 class TreeBranch
 {
-    friend Tree;
+    friend class Tree<NodeDataType, BranchDataType>;
 
 public:
     typedef double BranchLength;
@@ -50,18 +57,18 @@ public:
         return label_;
     }
 
-    inline TreeLink* link_p()
+    inline TreeLink<NodeDataType, BranchDataType>* link_p()
     {
         return link_p_;
     }
 
-    inline TreeLink* link_q()
+    inline TreeLink<NodeDataType, BranchDataType>* link_q()
     {
         return link_q_;
     }
 
-    TreeNode* node_p();
-    TreeNode* node_q();
+    TreeNode<NodeDataType, BranchDataType>* node_p();
+    TreeNode<NodeDataType, BranchDataType>* node_q();
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -71,17 +78,19 @@ public:
 
     std::string Dump();
 
-protected:
-
     // ---------------------------------------------------------------------
     //     Member Variables
     // ---------------------------------------------------------------------
 
+    BranchDataType data;
+
+protected:
+
     BranchLength length_;
     std::string  label_;
 
-    TreeLink* link_p_;
-    TreeLink* link_q_;
+    TreeLink<NodeDataType, BranchDataType>* link_p_;
+    TreeLink<NodeDataType, BranchDataType>* link_q_;
 
 };
 
@@ -100,16 +109,21 @@ protected:
 
 namespace genesis {
 
-    inline TreeNode* TreeBranch::node_p()
+    template <class NodeDataType, class BranchDataType>
+    inline TreeNode<NodeDataType, BranchDataType>* TreeBranch<NodeDataType, BranchDataType>::node_p()
     {
         return link_p_->node();
     }
 
-    inline TreeNode* TreeBranch::node_q()
+    template <class NodeDataType, class BranchDataType>
+    inline TreeNode<NodeDataType, BranchDataType>* TreeBranch<NodeDataType, BranchDataType>::node_q()
     {
         return link_q_->node();
     }
 
 } // namespace genesis
+
+// include the template class implementation
+#include "tree/tree_branch.inc.cc"
 
 #endif // include guard

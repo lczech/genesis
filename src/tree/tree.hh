@@ -20,6 +20,7 @@
 
 namespace genesis {
 
+template <class NodeDataType, class BranchDataType>
 class Tree
 {
 public:
@@ -48,15 +49,18 @@ public:
     }
 
 protected:
-    int BranchPointerToIndex (TreeBranch* branch) const;
-    int LinkPointerToIndex   (TreeLink*   link)   const;
-    int NodePointerToIndex   (TreeNode*   node)   const;
+    int BranchPointerToIndex (TreeBranch<NodeDataType, BranchDataType>* branch) const;
+    int LinkPointerToIndex   (TreeLink<NodeDataType,   BranchDataType>* link)   const;
+    int NodePointerToIndex   (TreeNode<NodeDataType,   BranchDataType>* node)   const;
 
-    std::vector<TreeLink*>   links_;
-    std::vector<TreeNode*>   nodes_;
-    std::vector<TreeBranch*> branches_;
+    std::vector<TreeLink<NodeDataType,   BranchDataType>*> links_;
+    std::vector<TreeNode<NodeDataType,   BranchDataType>*> nodes_;
+    std::vector<TreeBranch<NodeDataType, BranchDataType>*> branches_;
 };
 
 } // namespace genesis
+
+// include the template class implementation
+#include "tree/tree.inc.cc"
 
 #endif // include guard

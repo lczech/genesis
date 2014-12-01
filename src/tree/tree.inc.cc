@@ -1,11 +1,12 @@
 /**
  * @brief Implementation of basic tree functions.
  *
+ * For reasons of readability, in this implementation file the template data types
+ * NodeDataType and BranchDataType are abbreviated NDT and BDT, respectively.
+ *
  * @file
  * @ingroup tree
  */
-
-#include "tree/tree.hh"
 
 #include <algorithm>
 #include <sstream>
@@ -23,27 +24,29 @@ namespace genesis {
 /**
  * @brief Deletes all data of the tree, including all links, nodes and branches.
  */
-void Tree::clear()
+template <class NDT, class BDT>
+void Tree<NDT, BDT>::clear()
 {
-    for (TreeBranch* branch : branches_) {
+    for (TreeBranch<NDT, BDT>* branch : branches_) {
         delete branch;
     }
-    for (TreeLink* link : links_) {
+    for (TreeLink<NDT, BDT>* link : links_) {
         delete link;
     }
-    for (TreeNode* node : nodes_) {
+    for (TreeNode<NDT, BDT>* node : nodes_) {
         delete node;
     }
 
-    std::vector<TreeBranch*>().swap(branches_);
-    std::vector<TreeLink*>().swap(links_);
-    std::vector<TreeNode*>().swap(nodes_);
+    std::vector<TreeBranch<NDT, BDT>*>().swap(branches_);
+    std::vector<TreeLink<NDT, BDT>*>().swap(links_);
+    std::vector<TreeNode<NDT, BDT>*>().swap(nodes_);
 }
 
 /**
  * @brief Destructor. Calls clear() to free all memory used by the tree and its substructures.
  */
-Tree::~Tree ()
+template <class NDT, class BDT>
+Tree<NDT, BDT>::~Tree ()
 {
     clear();
 }
@@ -55,7 +58,8 @@ Tree::~Tree ()
 /**
  * @brief Create a Tree from a file containing a Newick tree.
  */
-bool Tree::FromNewickFile (const std::string& fn)
+template <class NDT, class BDT>
+bool Tree<NDT, BDT>::FromNewickFile (const std::string& fn)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' does not exist.";
@@ -67,7 +71,8 @@ bool Tree::FromNewickFile (const std::string& fn)
 /**
  * @brief Create a Tree from a string containing a Newick tree.
  */
-bool Tree::FromNewickString (const std::string& tree)
+template <class NDT, class BDT>
+bool Tree<NDT, BDT>::FromNewickString (const std::string& tree)
 {
     TreeBroker broker;
     if (!NewickParser::ProcessString(tree, broker)) {
@@ -81,10 +86,11 @@ bool Tree::FromNewickString (const std::string& tree)
 /**
  * @brief Create a Tree from a TreeBroker.
  */
-void Tree::FromTreeBroker (TreeBroker& broker)
+template <class NDT, class BDT>
+void Tree<NDT, BDT>::FromTreeBroker (TreeBroker& broker)
 {
     clear();
-    std::vector<TreeLink*> link_stack;
+    std::vector<TreeLink<NDT, BDT>*> link_stack;
 
     // we need the ranks (number of immediate children) of all nodes
     broker.AssignRanks();
@@ -94,13 +100,13 @@ void Tree::FromTreeBroker (TreeBroker& broker)
         TreeBrokerNode* broker_node = *b_itr;
 
         // create the tree node for this broker node
-        TreeNode* cur_node = new TreeNode();
+        TreeNode<NDT, BDT>* cur_node = new TreeNode<NDT, BDT>();
         cur_node->FromTreeBrokerNode(broker_node);
         nodes_.push_back(cur_node);
 
         // create the link that points towards the root.
         // this link is created for every node, root, inner and leaves.
-        TreeLink* up_link = new TreeLink();
+        TreeLink<NDT, BDT>* up_link = new TreeLink<NDT, BDT>();
         up_link->node_ = cur_node;
         cur_node->link_ = up_link;
         links_.push_back(up_link);
@@ -118,7 +124,7 @@ void Tree::FromTreeBroker (TreeBroker& broker)
             link_stack.back()->outer_ = up_link;
 
             // also, create a branch that connects both nodes
-            TreeBranch* up_branch = new TreeBranch();
+            TreeBranch<NDT, BDT>* up_branch = new TreeBranch<NDT, BDT>();
             up_branch->link_p_         = link_stack.back();
             up_branch->link_q_         = up_link;
             up_link->branch_           = up_branch;
@@ -139,9 +145,9 @@ void Tree::FromTreeBroker (TreeBroker& broker)
             // is pushed to the stack, so that for the next broker nodes they are available as
             // reciever for the "up" links.
             // also, make all next pointers of one node point to each other in a circle.
-            TreeLink* next_link = up_link;
+            TreeLink<NDT, BDT>* next_link = up_link;
             for (int i = 0; i < broker_node->rank(); ++i) {
-                TreeLink* down_link = new TreeLink();
+                TreeLink<NDT, BDT>* down_link = new TreeLink<NDT, BDT>();
                 down_link->next_ = next_link;
                 next_link = down_link;
 
@@ -158,7 +164,8 @@ void Tree::FromTreeBroker (TreeBroker& broker)
 //     Member Functions
 // -------------------------------------------------------------------------
 
-int Tree::MaxRank()
+template <class NDT, class BDT>
+int Tree<NDT, BDT>::MaxRank()
 {
     int max = -1;
     for (size_t i = 0; i < nodes_.size(); ++i) {
@@ -178,7 +185,8 @@ int Tree::MaxRank()
 /**
  * @brief Returns a list of all branches including their link numbers and branch lengths.
  */
-std::string Tree::DumpBranches() const
+template <class NDT, class BDT>
+std::string Tree<NDT, BDT>::DumpBranches() const
 {
     std::ostringstream out;
     for (size_t i = 0; i < branches_.size(); ++i) {
@@ -194,7 +202,8 @@ std::string Tree::DumpBranches() const
  * @brief Returns a list of all links including their next and outer link numbers as well as their
  * node and branch numbers.
  */
-std::string Tree::DumpLinks() const
+template <class NDT, class BDT>
+std::string Tree<NDT, BDT>::DumpLinks() const
 {
     std::ostringstream out;
     for (size_t i = 0; i < links_.size(); ++i) {
@@ -212,7 +221,8 @@ std::string Tree::DumpLinks() const
 /**
  * @brief Returns a list of all nodes including their name and the number of one of their links.
  */
-std::string Tree::DumpNodes() const
+template <class NDT, class BDT>
+std::string Tree<NDT, BDT>::DumpNodes() const
 {
     std::ostringstream out;
     for (size_t i = 0; i < nodes_.size(); ++i) {
@@ -231,14 +241,15 @@ std::string Tree::DumpNodes() const
  * One time when coming from its parent, and then once each time the traversal returns from its
  * children.
  */
-std::string Tree::DumpRoundtrip() const
+template <class NDT, class BDT>
+std::string Tree<NDT, BDT>::DumpRoundtrip() const
 {
     if (links_.empty()) {
         return "";
     }
 
     std::string out;
-    TreeLink* link = links_.front();
+    TreeLink<NDT, BDT>* link = links_.front();
 
     do {
         out += link->node_->name_ + "\n";
@@ -254,7 +265,8 @@ std::string Tree::DumpRoundtrip() const
  * This is useful for debugging purposes, particularly for the Dump functions.
  * Returns `-1` if the pointer was not found.
  */
-int Tree::BranchPointerToIndex (TreeBranch* branch) const
+template <class NDT, class BDT>
+int Tree<NDT, BDT>::BranchPointerToIndex (TreeBranch<NDT, BDT>* branch) const
 {
     for (size_t i = 0; i < branches_.size(); ++i) {
         if (branches_[i] == branch) {
@@ -270,7 +282,8 @@ int Tree::BranchPointerToIndex (TreeBranch* branch) const
  * This is useful for debugging purposes, particularly for the Dump functions.
  * Returns `-1` if the pointer was not found.
  */
-int Tree::LinkPointerToIndex (TreeLink* link) const
+template <class NDT, class BDT>
+int Tree<NDT, BDT>::LinkPointerToIndex (TreeLink<NDT, BDT>* link) const
 {
     for (size_t i = 0; i < links_.size(); ++i) {
         if (links_[i] == link) {
@@ -286,7 +299,8 @@ int Tree::LinkPointerToIndex (TreeLink* link) const
  * This is useful for debugging purposes, particularly for the Dump functions.
  * Returns `-1` if the pointer was not found.
  */
-int Tree::NodePointerToIndex (TreeNode* node) const
+template <class NDT, class BDT>
+int Tree<NDT, BDT>::NodePointerToIndex (TreeNode<NDT, BDT>* node) const
 {
     for (size_t i = 0; i < nodes_.size(); ++i) {
         if (nodes_[i] == node) {

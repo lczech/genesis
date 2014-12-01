@@ -16,17 +16,23 @@ namespace genesis {
 //     Forward declarations
 // =============================================================================
 
+template <class NodeDataType, class BranchDataType>
 class Tree;
+
+template <class NodeDataType, class BranchDataType>
 class TreeBranch;
+
+template <class NodeDataType, class BranchDataType>
 class TreeNode;
 
 // =============================================================================
 //     TreeLink
 // =============================================================================
 
+template <class NodeDataType, class BranchDataType>
 class TreeLink
 {
-    friend class Tree;
+    friend class Tree<NodeDataType, BranchDataType>;
 
 public:
     TreeLink() : next_(nullptr), outer_(nullptr), node_(nullptr), branch_(nullptr) {}
@@ -36,25 +42,25 @@ public:
     // ---------------------------------------------------------------------
 
     /** @brief Returns a pointer to the next link within the node. */
-    inline TreeLink* next()
+    inline TreeLink<NodeDataType, BranchDataType>* next()
     {
         return next_;
     }
 
     /** @brief Returns a pointer to the link of the adjacent node. */
-    inline TreeLink* outer()
+    inline TreeLink<NodeDataType, BranchDataType>* outer()
     {
         return outer_;
     }
 
     /** @brief Returns a pointer to the TreeBranch containing the data of this link's branch. */
-    inline TreeBranch* branch()
+    inline TreeBranch<NodeDataType, BranchDataType>* branch()
     {
         return branch_;
     }
 
     /** @brief Returns a pointer to the TreeNode containing the data of this link's node. */
-    inline TreeNode* node()
+    inline TreeNode<NodeDataType, BranchDataType>* node()
     {
         return node_;
     }
@@ -92,11 +98,11 @@ protected:
     //     Member Variables
     // ---------------------------------------------------------------------
 
-    TreeLink* next_;
-    TreeLink* outer_;
+    TreeLink<NodeDataType, BranchDataType>* next_;
+    TreeLink<NodeDataType, BranchDataType>* outer_;
 
-    TreeNode* node_;
-    TreeBranch* branch_;
+    TreeNode<NodeDataType, BranchDataType>*   node_;
+    TreeBranch<NodeDataType, BranchDataType>* branch_;
 };
 
 } // namespace genesis

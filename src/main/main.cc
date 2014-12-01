@@ -42,7 +42,7 @@ int main (int argc, char* argv[])
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
-    Tree tree;
+    Tree<int, int> tree;
     tree.FromNewickString("((A,((B,C,D)E[a branch],F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
 
     LOG_DBG << tree.DumpLinks();
