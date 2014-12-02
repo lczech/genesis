@@ -38,27 +38,42 @@ void JsonValueArray::clear()
 
 std::string JsonValueArray::ToString(const int indent_level) const
 {
-    std::string in (indent_level * JsonDocument::indent, ' ');
+    int il = indent_level + 1;
+    std::string in (il * JsonDocument::indent, ' ');
     std::ostringstream ss;
-    ss << in << "[";
 
+    // check if array contains non-simple values. if so, we use better bracket
+    // placement to make document look nicer
+    bool has_large = false;
+    for (JsonValue* v : data) {
+        has_large |= (v->type() == JsonValue::kArray || v->type() == JsonValue::kObject);
+    }
+
+    ss << "[ ";
     bool first = true;
     for (JsonValue* v : data) {
         if (!first) {
             ss << ", ";
         }
-        ss << "\n";
+        if (has_large) {
+            ss << "\n" << in;
+        }
         if (v->type() == JsonValue::kArray) {
-            ss << static_cast<JsonValueArray*>(v)->ToString(indent_level + 1);
+            ss << static_cast<JsonValueArray*>(v)->ToString(il);
         } else if (v->type() == JsonValue::kObject) {
-            ss << static_cast<JsonValueObject*>(v)->ToString(indent_level + 1);
+            ss << static_cast<JsonValueObject*>(v)->ToString(il);
         } else {
-            ss << in << std::string(JsonDocument::indent, ' ') << v->ToString();
+            ss << v->ToString();
         }
         first = false;
     }
 
-    ss << "\n" << in << "]";
+    if (has_large) {
+        ss << "\n" << std::string(indent_level * JsonDocument::indent, ' ');
+    } else {
+        ss << " ";
+    }
+    ss << "]";
     return ss.str();
 }
 
@@ -81,27 +96,28 @@ void JsonValueObject::clear()
 
 std::string JsonValueObject::ToString(const int indent_level) const
 {
-    std::string in (indent_level * JsonDocument::indent, ' ');
+    int il = indent_level + 1;
+    std::string in (il * JsonDocument::indent, ' ');
     std::stringstream ss;
-    ss << in << "{";
+    ss << "{";
 
     bool first = true;
     for (ObjectPair v : data) {
         if (!first) {
             ss << ",";
         }
-        ss << "\n" << in << std::string(JsonDocument::indent, ' ') << "\"" << v.first << "\":\n";
+        ss << "\n" << in << "\"" << v.first << "\": ";
         if (v.second->type() == JsonValue::kArray) {
-            ss << static_cast<JsonValueArray*>(v.second)->ToString(indent_level + 1);
+            ss << static_cast<JsonValueArray*>(v.second)->ToString(il);
         } else if (v.second->type() == JsonValue::kObject) {
-            ss << static_cast<JsonValueObject*>(v.second)->ToString(indent_level + 1);
+            ss << static_cast<JsonValueObject*>(v.second)->ToString(il);
         } else {
-            ss << in << std::string(2*JsonDocument::indent, ' ') << v.second->ToString();
+            ss << v.second->ToString();
         }
         first = false;
     }
 
-    ss << "\n" << in << "}";
+    ss << "\n" << std::string(indent_level * JsonDocument::indent, ' ') << "}";
     return ss.str();
 }
 
