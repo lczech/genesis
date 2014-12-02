@@ -44,12 +44,12 @@ public:
         branch_length = node->branch_length;
     }
 
-    inline void ToTreeBrokerNode (TreeBrokerNode* node)
+    inline void ToTreeBrokerNode (TreeBrokerNode* node) const
     {
         node->branch_length = branch_length;
     }
 
-    inline std::string Dump()
+    inline std::string Dump() const
     {
         return "Length: " + std::to_string(branch_length);
     }
@@ -74,7 +74,7 @@ public:
     /**
      * @brief Returns the link of this branch that points towards the root.
      */
-    inline TreeLink<NodeDataType, BranchDataType>* PrimaryLink()
+    inline TreeLink<NodeDataType, BranchDataType>* PrimaryLink() const
     {
         return link_p_;
     }
@@ -82,13 +82,13 @@ public:
     /**
      * @brief Returns the link of this branch that points away from the root.
      */
-    inline TreeLink<NodeDataType, BranchDataType>* SecondaryLink()
+    inline TreeLink<NodeDataType, BranchDataType>* SecondaryLink() const
     {
         return link_s_;
     }
 
-    TreeNode<NodeDataType, BranchDataType>* PrimaryNode();
-    TreeNode<NodeDataType, BranchDataType>* SecondaryNode();
+    TreeNode<NodeDataType, BranchDataType>* PrimaryNode() const;
+    TreeNode<NodeDataType, BranchDataType>* SecondaryNode() const;
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -96,7 +96,7 @@ public:
 
     void FromTreeBrokerNode (TreeBrokerNode* node);
 
-    std::string Dump();
+    std::string Dump() const;
 
     // ---------------------------------------------------------------------
     //     Member Variables

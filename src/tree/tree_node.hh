@@ -44,12 +44,12 @@ public:
         name = node->name;
     }
 
-    inline void ToTreeBrokerNode (TreeBrokerNode* node)
+    inline void ToTreeBrokerNode (TreeBrokerNode* node) const
     {
         node->name = name;
     }
 
-    inline std::string Dump()
+    inline std::string Dump() const
     {
         return "Name: '" + name + "'";
     }
@@ -74,7 +74,7 @@ public:
     /**
      * @brief Returns the link of this node that points towards the root.
      */
-    inline TreeLink<NodeDataType, BranchDataType>* PrimaryLink()
+    inline TreeLink<NodeDataType, BranchDataType>* PrimaryLink() const
     {
         return link_;
     }
@@ -85,7 +85,7 @@ public:
      * This is just an alias for PrimaryLink(), that is shorter to use when needed
      * frequently in an algorithm.
      */
-    inline TreeLink<NodeDataType, BranchDataType>* Link()
+    inline TreeLink<NodeDataType, BranchDataType>* Link() const
     {
         return link_;
     }
@@ -94,9 +94,9 @@ public:
     //     Member Functions
     // ---------------------------------------------------------------------
 
-    int  Rank();
-    bool IsLeaf();
-    bool IsInner();
+    int  Rank() const;
+    bool IsLeaf() const;
+    bool IsInner() const;
 
     //~ /** True if the node is the root, false otherwise. */
     //~ bool IsRoot();
@@ -106,7 +106,7 @@ public:
 
     void FromTreeBrokerNode (TreeBrokerNode* node);
 
-    std::string Dump();
+    std::string Dump() const;
 
     // ---------------------------------------------------------------------
     //     Member Variables

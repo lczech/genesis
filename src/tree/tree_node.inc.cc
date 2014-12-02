@@ -29,7 +29,7 @@ namespace genesis {
  * @brief True iff the node is a leaf/tip.
  */
 template <class NDT, class BDT>
-inline bool TreeNode<NDT, BDT>::IsLeaf()
+inline bool TreeNode<NDT, BDT>::IsLeaf() const
 {
     return link_->IsLeaf();
 }
@@ -38,7 +38,7 @@ inline bool TreeNode<NDT, BDT>::IsLeaf()
  * @brief True iff the node is an inner node.
  */
 template <class NDT, class BDT>
-inline bool TreeNode<NDT, BDT>::IsInner()
+inline bool TreeNode<NDT, BDT>::IsInner() const
 {
     return link_->IsInner();
 }
@@ -58,7 +58,7 @@ namespace genesis {
  * @brief Rank of the node, i.e. how many immediate children it has.
  */
 template <class NDT, class BDT>
-int TreeNode<NDT, BDT>::Rank()
+int TreeNode<NDT, BDT>::Rank() const
 {
     int rank = -1;
     TreeLink<NDT, BDT>* link = link_;
@@ -84,7 +84,7 @@ void TreeNode<NDT, BDT>::FromTreeBrokerNode (TreeBrokerNode* node)
  * @brief Returns a one-line dump summary of the data of this node.
  */
 template <class NDT, class BDT>
-std::string TreeNode<NDT, BDT>::Dump()
+std::string TreeNode<NDT, BDT>::Dump() const
 {
     return data.Dump() + " \t Rank: " + std::to_string(Rank());
 }

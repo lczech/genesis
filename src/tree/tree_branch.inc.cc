@@ -26,13 +26,13 @@
 namespace genesis {
 
 template <class NDT, class BDT>
-inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::PrimaryNode()
+inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::PrimaryNode() const
 {
     return link_p_->node();
 }
 
 template <class NDT, class BDT>
-inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::SecondaryNode()
+inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::SecondaryNode() const
 {
     return link_s_->node();
 }
@@ -60,7 +60,7 @@ void TreeBranch<NDT, BDT>::FromTreeBrokerNode (TreeBrokerNode* node)
  * @brief Returns a one-line dump summary of the data of this branch.
  */
 template <class NDT, class BDT>
-std::string TreeBranch<NDT, BDT>::Dump()
+std::string TreeBranch<NDT, BDT>::Dump() const
 {
     return data.Dump();
 }
