@@ -48,6 +48,13 @@ public:
     int  MaxRank() const;
     bool IsBifurcating() const;
 
+    // TODO introduce a validate function that checks the integrity of the tree:
+    // TODO are all links, branches and nodes connected corretly to each other,
+    // TODO is every one of them coverd exactly once when doing a full traversal?
+    // TODO also, if we introduce indices to them for faster access, are those correct?
+    // TODO this function will be curtial to ensure correctness of invariants once
+    // TODO we start implementing stuff that modifies a tree (add nodes, move branches...)!
+
 protected:
     int BranchPointerToIndex (TreeBranch<NodeDataType, BranchDataType>* branch) const;
     int LinkPointerToIndex   (TreeLink<NodeDataType,   BranchDataType>* link)   const;

@@ -109,6 +109,8 @@ protected:
 
     // TODO write copy ctor and assign op
 
+    // TODO introduce other parsers and generators, e.g. http://en.wikipedia.org/wiki/DOT_%28graph_description_language%29
+
 /**
  * @brief Stores a tree in an intermediate format that can be used as transfer between different
  * representations.

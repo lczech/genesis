@@ -37,12 +37,16 @@ class DefaultBranchData
 {
 public:
     typedef double BranchLength;
-
     BranchLength branch_length;
 
     inline void FromTreeBrokerNode (TreeBrokerNode* node)
     {
         branch_length = node->branch_length;
+    }
+
+    inline void ToTreeBrokerNode (TreeBrokerNode* node)
+    {
+        node->branch_length = branch_length;
     }
 
     inline std::string Dump()
@@ -67,11 +71,17 @@ public:
     //     Accessors
     // ---------------------------------------------------------------------
 
+    /**
+     * @brief Returns the link of this branch that points towards the root.
+     */
     inline TreeLink<NodeDataType, BranchDataType>* PrimaryLink()
     {
         return link_p_;
     }
 
+    /**
+     * @brief Returns the link of this branch that points away from the root.
+     */
     inline TreeLink<NodeDataType, BranchDataType>* SecondaryLink()
     {
         return link_s_;
@@ -98,37 +108,7 @@ protected:
 
     TreeLink<NodeDataType, BranchDataType>* link_p_;
     TreeLink<NodeDataType, BranchDataType>* link_s_;
-
 };
-
-} // namespace genesis
-
-// =============================================================================
-//     Inline definitions with dependecies
-// =============================================================================
-
-// The following are inline definitions that would create circular dependecies when included in the
-// class definition. Thus, they need to be here, after the definition, so that their dependend
-// source files can be included without circles.
-// See http://www.cplusplus.com/forum/articles/10627/ for more information on this.
-
-// We abbriviate the template types here, in the same way it is done in the implementation file.
-
-#include "tree/tree_link.hh"
-
-namespace genesis {
-
-    template <class NDT, class BDT>
-    inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::PrimaryNode()
-    {
-        return link_p_->node();
-    }
-
-    template <class NDT, class BDT>
-    inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::SecondaryNode()
-    {
-        return link_s_->node();
-    }
 
 } // namespace genesis
 

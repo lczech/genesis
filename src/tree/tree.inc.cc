@@ -1,7 +1,7 @@
 /**
  * @brief Implementation of basic tree functions.
  *
- * For reasons of readability, in this implementation file the template data types
+ * For reasons of readability, in this implementation file, the template data types
  * NodeDataType and BranchDataType are abbreviated NDT and BDT, respectively.
  *
  * @file

@@ -42,25 +42,25 @@ public:
     // ---------------------------------------------------------------------
 
     /** @brief Returns a pointer to the next link within the node. */
-    inline TreeLink<NodeDataType, BranchDataType>* next()
+    inline TreeLink<NodeDataType, BranchDataType>* Next()
     {
         return next_;
     }
 
     /** @brief Returns a pointer to the link of the adjacent node. */
-    inline TreeLink<NodeDataType, BranchDataType>* outer()
+    inline TreeLink<NodeDataType, BranchDataType>* Outer()
     {
         return outer_;
     }
 
     /** @brief Returns a pointer to the TreeBranch containing the data of this link's branch. */
-    inline TreeBranch<NodeDataType, BranchDataType>* branch()
+    inline TreeBranch<NodeDataType, BranchDataType>* Branch()
     {
         return branch_;
     }
 
     /** @brief Returns a pointer to the TreeNode containing the data of this link's node. */
-    inline TreeNode<NodeDataType, BranchDataType>* node()
+    inline TreeNode<NodeDataType, BranchDataType>* Node()
     {
         return node_;
     }

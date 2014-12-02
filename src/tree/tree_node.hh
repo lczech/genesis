@@ -44,6 +44,11 @@ public:
         name = node->name;
     }
 
+    inline void ToTreeBrokerNode (TreeBrokerNode* node)
+    {
+        node->name = name;
+    }
+
     inline std::string Dump()
     {
         return "Name: '" + name + "'";
@@ -61,6 +66,33 @@ class TreeNode
 
 public:
     TreeNode() : link_(nullptr) {}
+
+    // ---------------------------------------------------------------------
+    //     Accessors
+    // ---------------------------------------------------------------------
+
+    /**
+     * @brief Returns the link of this node that points towards the root.
+     */
+    inline TreeLink<NodeDataType, BranchDataType>* PrimaryLink()
+    {
+        return link_;
+    }
+
+    /**
+     * @brief Returns the link of this node that points towards the root.
+     *
+     * This is just an alias for PrimaryLink(), that is shorter to use when needed
+     * frequently in an algorithm.
+     */
+    inline TreeLink<NodeDataType, BranchDataType>* Link()
+    {
+        return link_;
+    }
+
+    // ---------------------------------------------------------------------
+    //     Member Functions
+    // ---------------------------------------------------------------------
 
     int  Rank();
     bool IsLeaf();
@@ -85,39 +117,6 @@ public:
 protected:
     TreeLink<NodeDataType, BranchDataType>* link_;
 };
-
-} // namespace genesis
-
-// =============================================================================
-//     Inline definitions with dependecies
-// =============================================================================
-
-// The following are inline definitions that would create circular dependecies when included in the
-// class definition. Thus, they need to be here, after the definition, so that their dependend
-// source files can be included without circles.
-// See http://www.cplusplus.com/forum/articles/10627/ for more information on this.
-
-#include "tree/tree_link.hh"
-
-namespace genesis {
-
-    /**
-     * @brief True iff the node is a leaf/tip.
-     */
-    template <class NodeDataType, class BranchDataType>
-    inline bool TreeNode<NodeDataType, BranchDataType>::IsLeaf()
-    {
-        return link_->IsLeaf();
-    }
-
-    /**
-     * @brief True iff the node is an inner node.
-     */
-    template <class NodeDataType, class BranchDataType>
-    inline bool TreeNode<NodeDataType, BranchDataType>::IsInner()
-    {
-        return link_->IsInner();
-    }
 
 } // namespace genesis
 
