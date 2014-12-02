@@ -10,6 +10,9 @@
 #include <assert.h>
 #include <string>
 
+#include "tree/newick_lexer.hh"
+#include "tree/tree_broker.hh"
+
 #include "utils/logging.hh"
 #include "utils/utils.hh"
 
@@ -306,4 +309,4 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
     return true;
 }
 
-}
+} // namespace genesis

@@ -78,12 +78,17 @@ bool JsonParser::ProcessLexer (const JsonLexer& lexer, JsonDocument& document)
     }
 
     // a json document is also a json object, so we start parsing the doc as such.
+    // the begin iterator will be incremented with every token being processed.
     document.clear();
     Lexer::const_iterator begin = lexer.cbegin();
     Lexer::const_iterator end   = lexer.cend();
     if (!ProcessObject(begin, end, &document)) {
         return false;
     }
+
+    // after processing, the begin iterator will point to the lexer token that comes after
+    // the one being processed last. if the document is well-formatted, this token is also
+    // the end pointer of the iterator.
     if (begin != end) {
         LOG_WARN << "JSON document contains more information after the closing bracket.";
         return false;
@@ -110,7 +115,7 @@ bool JsonParser::ProcessValue (
 ) {
     // proper usage of this function is to hand over a null pointer to a json value, which will be
     // assigned to a newly created value instance depending on the token type, so check for this
-    // here.
+    // here. we don't want to overwrite existing values!
     assert (value == nullptr);
 
     // check all possible valid lexer token types and turn them into json values

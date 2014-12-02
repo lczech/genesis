@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 
+#include "placement/jplace_parser.hh"
 #include "tree/tree.hh"
 #include "utils/json_document.hh"
 #include "utils/json_lexer.hh"
@@ -42,12 +43,11 @@ int main (int argc, char* argv[])
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
-    Tree<> tree;
-    tree.FromNewickString("((A,((B,C,D)E[a branch],F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
-
-    LOG_DBG << tree.DumpLinks();
-    LOG_DBG << tree.DumpNodes();
-    LOG_DBG << tree.DumpBranches();
+    //~ Tree<> tree;
+    //~ tree.FromNewickString("((A,((B,C,D)E[a branch],F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
+    //~ LOG_DBG << tree.DumpLinks();
+    //~ LOG_DBG << tree.DumpNodes();
+    //~ LOG_DBG << tree.DumpBranches();
 
     //~ tree.FromNewickString("((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;");
 
@@ -87,6 +87,10 @@ int main (int argc, char* argv[])
     //~ LOG_INFO << doc.ToString();
 
     //~ JsonDocument doc;
+
+    PlacementTree pt;
+    JplaceParser::ProcessFile("test/data/placement.jplace", pt);
+    pt.DumpNodes();
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {

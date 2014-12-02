@@ -307,6 +307,11 @@ public:
 
     bool Validate();
 
+    inline std::string Dump() const
+    {
+        return ToString();
+    }
+
     static int indent;
 };
 
