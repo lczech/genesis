@@ -46,7 +46,7 @@ std::string JsonValueArray::ToString(const int indent_level) const
     // placement to make document look nicer
     bool has_large = false;
     for (JsonValue* v : data) {
-        has_large |= (v->type() == JsonValue::kArray || v->type() == JsonValue::kObject);
+        has_large |= (v->IsArray() || v->IsObject());
     }
 
     ss << "[ ";
@@ -58,9 +58,9 @@ std::string JsonValueArray::ToString(const int indent_level) const
         if (has_large) {
             ss << "\n" << in;
         }
-        if (v->type() == JsonValue::kArray) {
+        if (v->IsArray()) {
             ss << static_cast<JsonValueArray*>(v)->ToString(il);
-        } else if (v->type() == JsonValue::kObject) {
+        } else if (v->IsObject()) {
             ss << static_cast<JsonValueObject*>(v)->ToString(il);
         } else {
             ss << v->ToString();
@@ -107,9 +107,9 @@ std::string JsonValueObject::ToString(const int indent_level) const
             ss << ",";
         }
         ss << "\n" << in << "\"" << v.first << "\": ";
-        if (v.second->type() == JsonValue::kArray) {
+        if (v.second->IsArray()) {
             ss << static_cast<JsonValueArray*>(v.second)->ToString(il);
-        } else if (v.second->type() == JsonValue::kObject) {
+        } else if (v.second->IsObject()) {
             ss << static_cast<JsonValueObject*>(v.second)->ToString(il);
         } else {
             ss << v.second->ToString();
