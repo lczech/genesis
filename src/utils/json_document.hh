@@ -95,7 +95,8 @@ public:
         return type_ == kObject;
     }
 
-    virtual std::string ToString() const = 0;
+    virtual std::string ToJsonString() const = 0;
+    virtual std::string ToString()     const = 0;
 
     virtual ~JsonValue() {};
 
@@ -128,9 +129,14 @@ public:
         }
     }
 
-    inline std::string ToString() const override
+    inline std::string ToJsonString() const override
     {
         return "null";
+    }
+
+    inline std::string ToString() const override
+    {
+        return ToJsonString();
     }
 };
 
@@ -157,9 +163,14 @@ public:
         }
     }
 
-    inline std::string ToString() const override
+    inline std::string ToJsonString() const override
     {
         return value ? "true" : "false";
+    }
+
+    inline std::string ToString() const override
+    {
+        return ToJsonString();
     }
 
     bool value;
@@ -186,11 +197,16 @@ public:
         precision = p;
     }
 
-    inline std::string ToString() const override
+    inline std::string ToJsonString() const override
     {
         std::ostringstream ss;
         ss << std::setprecision(precision) << value;
         return ss.str();
+    }
+
+    inline std::string ToString() const override
+    {
+        return ToJsonString();
     }
 
     double     value = 0.0;
@@ -208,9 +224,14 @@ public:
 
     JsonValueString (const std::string& v) : JsonValue(kString), value(v) {};
 
-    inline std::string ToString() const override
+    inline std::string ToJsonString() const override
     {
         return "\"" + StringEscape(value) + "\"";
+    }
+
+    inline std::string ToString() const override
+    {
+        return value;
     }
 
     std::string value;
@@ -225,21 +246,174 @@ class JsonValueArray : public JsonValue
 public:
     JsonValueArray () : JsonValue(kArray) {};
     virtual ~JsonValueArray() override;
-    void clear();
 
-    std::string ToString(const int indent_level) const;
-    inline std::string ToString() const override
-    {
-        return ToString(0);
-    }
-
-    inline void Add (JsonValue* value)
-    {
-        data.push_back(value);
-    }
+    // ---------------------------------------------------------------------
+    //     Accessors and Iterators
+    // ---------------------------------------------------------------------
 
     typedef std::deque<JsonValue*> ArrayData;
-    ArrayData data;
+
+    /**
+     * @brief Iterator type to access the array values.
+     *
+     * This iterator allows to use a loop like this:
+     *
+     *     JsonValueArray a;
+     *     for (JsonValueArray::iterator t = a.begin(); t != a.end(); ++t) {
+     *         std::cout << t->ToString() << std::endl;
+     *     }
+     * %
+     */
+    typedef ArrayData::iterator       iterator;
+
+    /** @brief Const version of the iterator. */
+    typedef ArrayData::const_iterator const_iterator;
+
+    /**
+     * @brief Returns an iterator to the beginning of the array.
+     *
+     * This is used for the iterator and also allows to use range based
+     * looping over the array values:
+     *
+     *     JsonValueArray a;
+     *     for (JsonValue* v : a) {
+     *         std::cout << v->ToString() << std::endl;
+     *     }
+     * %
+     */
+    inline iterator begin()
+    {
+        return data_.begin();
+    }
+
+    /** @brief Const version of begin(). */
+    inline const_iterator cbegin() const
+    {
+        return data_.cbegin();
+    }
+
+    /** @brief Returns an iterator to the end of the array. */
+    inline iterator end()
+    {
+        return data_.end();
+    }
+
+    /** @brief Const version of end(). */
+    inline const_iterator cend() const
+    {
+        return data_.cend();
+    }
+
+    /**
+     * @brief Provides index based array access to the array.
+     *
+     * This also allows to iterate over them using:
+     *
+     *     JsonValueArray a;
+     *     for (size_t i = 0; i < a.size(); ++i) {
+     *        JsonValue* v = a[i];
+     *        std::cout << v->ToString() << std::endl;
+     *     }
+     *
+     * Caveat: this operator does no boundary check. If you need this check,
+     * use at() instead.
+     */
+    inline JsonValue* operator[](const std::size_t index) const
+    {
+        return data_[index];
+    }
+
+    /**
+     * @brief Provides index based array access to the array, doing a
+     * boundary check first.
+     *
+     * In out of bounds cases, a `nullptr` is returned.
+     */
+    inline JsonValue* at(const std::size_t index) const
+    {
+        if (index < data_.size()) {
+            return data_[index];
+        } else {
+            return nullptr;
+        }
+    }
+
+    /**
+     * @brief Returns whether the array is empty.
+     */
+    inline bool empty() const
+    {
+        return data_.empty();
+    }
+
+    /**
+     * @brief Returns the number of values in the array.
+     */
+    inline size_t size() const
+    {
+        return data_.size();
+    }
+
+    // ---------------------------------------------------------------------
+    //     Mutators
+    // ---------------------------------------------------------------------
+
+    inline void push_back(JsonValue* value)
+    {
+        data_.push_back(value);
+    }
+
+    inline void push_front(JsonValue* value)
+    {
+        data_.push_front(value);
+    }
+
+    /**
+     * @brief Alias of push_back().
+     */
+    inline void Add (JsonValue* value)
+    {
+        data_.push_back(value);
+    }
+
+    inline void pop_back()
+    {
+        data_.pop_back();
+    }
+
+    inline void pop_front()
+    {
+        data_.pop_front();
+    }
+
+    /**
+     * @brief Clears all values, as if the array was newly created.
+     */
+    inline void clear()
+    {
+        for (JsonValue* v : data_) {
+            delete v;
+        }
+        ArrayData().swap(data_);
+    }
+
+    // ---------------------------------------------------------------------
+    //     Other Members
+    // ---------------------------------------------------------------------
+
+    std::string ToJsonString(const int indent_level) const;
+    inline std::string ToJsonString() const override
+    {
+        return ToJsonString(0);
+    }
+
+    inline std::string ToString() const override
+    {
+        return ToJsonString();
+    }
+
+protected:
+    ArrayData data_;
 };
 
 // =============================================================================
@@ -251,48 +425,168 @@ class JsonValueObject : public JsonValue
 public:
     JsonValueObject () : JsonValue(kObject) {};
     virtual ~JsonValueObject() override;
-    void clear();
 
-    std::string ToString(const int indent_level) const;
-    inline std::string ToString() const override
+    // ---------------------------------------------------------------------
+    //     Accessors and Iterators
+    // ---------------------------------------------------------------------
+
+    typedef std::unordered_map<std::string, JsonValue*> ObjectData;
+    typedef ObjectData::value_type ObjectPair;
+
+    /**
+     * @brief Iterator type to access the object values.
+     *
+     * This iterator allows to use a loop like this:
+     *
+     *     JsonValueObject o;
+     *     for (JsonValueObject::iterator t = o.begin(); t != o.end(); ++t) {
+     *         std::cout << t->ToString() << std::endl;
+     *     }
+     * %
+     */
+    typedef ObjectData::iterator       iterator;
+
+    /** @brief Const version of the iterator. */
+    typedef ObjectData::const_iterator const_iterator;
+
+    /**
+     * @brief Returns an iterator to the beginning of the object.
+     *
+     * This is used for the iterator and also allows to use range based
+     * looping over the object values:
+     *
+     *     JsonValueObject o;
+     *     for (JsonValue* v : o) {
+     *         std::cout << v->first << " : " << v->second->ToString() << std::endl;
+     *     }
+     * %
+     */
+    inline iterator begin()
     {
-        return ToString(0);
+        return data_.begin();
     }
 
+    /** @brief Const version of begin(). */
+    inline const_iterator cbegin() const
+    {
+        return data_.cbegin();
+    }
+
+    /** @brief Returns an iterator to the end of the object. */
+    inline iterator end()
+    {
+        return data_.end();
+    }
+
+    /** @brief Const version of end(). */
+    inline const_iterator cend() const
+    {
+        return data_.cend();
+    }
+
+    /**
+     * @brief Provides index based array access to the object, doing a
+     * boundary check first. This is an alias for Get().
+     *
+     * In out of bounds cases, a `nullptr` is returned.
+     */
+    inline JsonValue* at(const std::string& name) const
+    {
+        return Get(name);
+    }
+
+    /**
+     * @brief Returns whether the object is empty.
+     */
+    inline bool empty() const
+    {
+        return data_.empty();
+    }
+
+    /**
+     * @brief Returns the number of values in the object.
+     */
+    inline size_t size() const
+    {
+        return data_.size();
+    }
+
+    /**
+     * @brief Returns true iff the object contains a certain key.
+     */
     inline bool Has (const std::string& name) const
     {
-        return data.count(name) > 0;
+        return data_.count(name) > 0;
     }
 
-    inline void Set (const std::string& name, JsonValue* value)
-    {
-        data[name] = value;
-    }
-
-    inline JsonValue* Get (const std::string& name)
+    /**
+     * @brief Returns the value of a certain key if present in the object, `nullptr` otherwise.
+     */
+    inline JsonValue* Get (const std::string& name) const
     {
         if (Has(name)) {
-            return data[name];
+            return data_.at(name);
         } else {
             return nullptr;
         }
     }
 
-    inline size_t size() const
+    // ---------------------------------------------------------------------
+    //     Mutators
+    // ---------------------------------------------------------------------
+
+    /**
+     * @brief Clears all values, as if the object was newly created.
+     */
+    inline void clear()
     {
-        return data.size();
+        for (ObjectPair v : data_) {
+            delete v.second;
+        }
+        ObjectData().swap(data_);
     }
 
-    typedef std::unordered_map<std::string, JsonValue*> ObjectData;
-    typedef ObjectData::value_type ObjectPair;
-    ObjectData data;
+    /**
+     * @brief Clears the value of a specific key; returns true iff this key existed.
+     */
+    inline bool erase(const std::string name)
+    {
+        return data_.erase(name) > 0;
+    }
+
+    /**
+     * @brief Sets the value for a certain key.
+     */
+    inline void Set (const std::string& name, JsonValue* value)
+    {
+        data_[name] = value;
+    }
+
+    // ---------------------------------------------------------------------
+    //     Other Members
+    // ---------------------------------------------------------------------
+
+    std::string ToJsonString(const int indent_level) const;
+    inline std::string ToJsonString() const override
+    {
+        return ToJsonString(0);
+    }
+
+    inline std::string ToString() const override
+    {
+        return ToJsonString(0);
+    }
+
+protected:
+    ObjectData data_;
 };
 
 // =============================================================================
 //     JsonDocument
 // =============================================================================
 
-// TODO write better accessors, write copy ctor and assign op functions for all value types
+// TODO write copy ctor and assign op functions for all value types
+// TODO add insert to object and array that takes a whole other object/array and makes a deep copy
 
 /**
  *
@@ -309,7 +603,7 @@ public:
 
     inline std::string Dump() const
     {
-        return ToString();
+        return ToJsonString();
     }
 
     static int indent;
