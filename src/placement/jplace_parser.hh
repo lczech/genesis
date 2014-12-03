@@ -10,8 +10,6 @@
 
 #include <string>
 
-#include "placement/placement_data.hh"
-
 namespace genesis {
 
 // =============================================================================
@@ -20,9 +18,7 @@ namespace genesis {
 
 class JsonDocument;
 class JsonLexer;
-
-template <class NodeDataType, class BranchDataType>
-class Tree;
+class Placements;
 
 // =============================================================================
 //     JplaceParser
@@ -31,10 +27,15 @@ class Tree;
 class JplaceParser
 {
 public:
-    static bool ProcessFile     (const std::string&  fn,     PlacementTree& tree);
-    static bool ProcessString   (const std::string&  jplace, PlacementTree& tree);
-    static bool ProcessLexer    (const JsonLexer&    lexer,  PlacementTree& tree);
-    static bool ProcessDocument (const JsonDocument& doc,    PlacementTree& tree);
+    static bool ProcessFile     (const std::string&  fn,     Placements& place);
+    static bool ProcessString   (const std::string&  jplace, Placements& place);
+    static bool ProcessLexer    (const JsonLexer&    lexer,  Placements& place);
+    static bool ProcessDocument (const JsonDocument& doc,    Placements& place);
+
+    /**
+     * @brief The version of jplace format that this parser is built for.
+     */
+    static const int version = 3;
 };
 
 } // namespace genesis

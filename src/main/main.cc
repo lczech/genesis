@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 
+#include "placement/placements.hh"
 #include "placement/jplace_parser.hh"
 #include "tree/tree.hh"
 #include "utils/json_document.hh"
@@ -88,9 +89,9 @@ int main (int argc, char* argv[])
 
     //~ JsonDocument doc;
 
-    PlacementTree pt;
-    JplaceParser::ProcessFile("test/data/placement.jplace", pt);
-    pt.DumpNodes();
+    Placements place;
+    JplaceParser::ProcessFile("test/data/placement.jplace", place);
+    place.tree.DumpNodes();
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {

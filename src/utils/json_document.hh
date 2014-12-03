@@ -456,8 +456,8 @@ public:
      * looping over the object values:
      *
      *     JsonValueObject o;
-     *     for (JsonValue* v : o) {
-     *         std::cout << v->first << " : " << v->second->ToString() << std::endl;
+     *     for (JsonValueObject::ObjectPair p : o) {
+     *         std::cout << p.first << " : " << p.second->ToString() << std::endl;
      *     }
      * %
      */
