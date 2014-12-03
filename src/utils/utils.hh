@@ -6,10 +6,6 @@
  *
  * @file
  * @ingroup utils
- *
- * @namespace genesis::utils
- * @brief This namespace contains utility functions commonly used by other
- * functions and classes.
  */
 
 #include <ctime>
