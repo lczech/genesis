@@ -1,3 +1,10 @@
+/**
+ * @brief Implementation of Logging functions.
+ *
+ * @file
+ * @ingroup utils
+ */
+
 #include "utils/logging.hh"
 
 #include <fstream>

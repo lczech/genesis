@@ -40,6 +40,7 @@ public:
     std::string ToNewickString ();
     void        ToTreeBroker   (TreeBroker& broker);
 
+    std::string DumpAll() const;
     std::string DumpBranches() const;
     std::string DumpLinks() const;
     std::string DumpNodes() const;
@@ -51,6 +52,7 @@ public:
     // TODO introduce a validate function that checks the integrity of the tree:
     // TODO are all links, branches and nodes connected corretly to each other,
     // TODO is every one of them coverd exactly once when doing a full traversal?
+    // TODO do all node->link_ links point to the root? same for all branch->primary?
     // TODO also, if we introduce indices to them for faster access, are those correct?
     // TODO this function will be curtial to ensure correctness of invariants once
     // TODO we start implementing stuff that modifies a tree (add nodes, move branches...)!

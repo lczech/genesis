@@ -240,12 +240,12 @@ typedef struct {
  * do not use code in a log line that changes the program state.
  * Therefore, instead of
  *
- *     LOG_INFO << "this is iteration " ++i;
+ *     LOG_INFO << "this is iteration " << ++i;
  *
  * use
  *
  *     ++i;
- *     LOG_INFO << "this is iteration " i;
+ *     LOG_INFO << "this is iteration " << i;
  *
  * because the former will not work when the max log level is below info level.
  */

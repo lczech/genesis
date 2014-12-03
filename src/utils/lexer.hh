@@ -383,7 +383,7 @@ public:
     }
 
     /**
-     * @brief Provides index based array acces to the tokens.
+     * @brief Provides index based array access to the tokens.
      *
      * This also allows to iterate over them using:
      *
@@ -402,7 +402,7 @@ public:
     }
 
     /**
-     * @brief Provides index based array acces to the tokens, doing a
+     * @brief Provides index based array access to the tokens, doing a
      * boundary check first.
      *
      * In out of bounds cases, a special EOF token is returned.
@@ -561,6 +561,10 @@ public:
     bool use_string_doubled_quotes = false;
 
 protected:
+    // -------------------------------------------------------------------------
+    //     Internal functions
+    // -------------------------------------------------------------------------
+
     bool ScanFromTo (const char* from, const char* to);
     virtual bool ScanUnknown();
     virtual bool ScanWhitespace();
@@ -571,10 +575,6 @@ protected:
     virtual bool ScanOperator();
     virtual bool ScanBracket();
     virtual bool ScanTag();
-
-    // -------------------------------------------------------------------------
-    //     Internal functions
-    // -------------------------------------------------------------------------
 
     /** @brief Init the lexer by resetting state and assigning the text. */
     inline void Init (const std::string& text)

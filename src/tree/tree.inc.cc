@@ -188,6 +188,15 @@ bool Tree<NDT, BDT>::IsBifurcating() const
 // -------------------------------------------------------------------------
 
 /**
+ * @brief Returns the combined dump of DumpLinks(), DumpNodes() and DumpBranches().
+ */
+template <class NDT, class BDT>
+std::string Tree<NDT, BDT>::DumpAll() const
+{
+    return DumpLinks() + "\n" + DumpNodes() + "\n" + DumpBranches();
+}
+
+/**
  * @brief Returns a list of all branches including their link numbers and branch lengths.
  */
 template <class NDT, class BDT>
