@@ -24,8 +24,14 @@ namespace genesis {
 class Pquery
 {
 public:
+    struct Placement;
 
-protected:
+//~ protected:
+    std::deque<Placement> placements;
+};
+
+struct Pquery::Placement
+{
     int    edge_num;
     double likelihood;
     double like_weight_ratio;

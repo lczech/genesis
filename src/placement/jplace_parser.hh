@@ -27,10 +27,10 @@ class Placements;
 class JplaceParser
 {
 public:
-    static bool ProcessFile     (const std::string&  fn,     Placements& place);
-    static bool ProcessString   (const std::string&  jplace, Placements& place);
-    static bool ProcessLexer    (const JsonLexer&    lexer,  Placements& place);
-    static bool ProcessDocument (const JsonDocument& doc,    Placements& place);
+    static bool ProcessFile     (const std::string&  fn,     Placements& placements);
+    static bool ProcessString   (const std::string&  jplace, Placements& placements);
+    static bool ProcessLexer    (const JsonLexer&    lexer,  Placements& placements);
+    static bool ProcessDocument (const JsonDocument& doc,    Placements& placements);
 
     /**
      * @brief The version of jplace format that this parser is built for.
