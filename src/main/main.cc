@@ -91,7 +91,7 @@ int main (int argc, char* argv[])
 
     Placements place;
     JplaceParser::ProcessFile("test/data/placement.jplace", place);
-    place.tree.DumpNodes();
+    LOG_DBG << place.DumpAll();
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {
