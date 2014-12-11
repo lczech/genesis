@@ -21,17 +21,32 @@ namespace genesis {
 //     Pquery
 // =============================================================================
 
-class Pquery
+struct Pquery
 {
-public:
+    struct Placement
+    {
+        Placement() : edge_num(0), likelihood(0.0), like_weight_ratio(0.0),
+                      distal_length(0.0), pendant_length(0.0), parsimony(0)
+        {}
 
-protected:
-    int    edge_num;
-    double likelihood;
-    double like_weight_ratio;
-    double distal_length;
-    double pendant_length;
-    int    parsimony;
+        int    edge_num;
+        double likelihood;
+        double like_weight_ratio;
+        double distal_length;
+        double pendant_length;
+        int    parsimony;
+    };
+
+    struct Name
+    {
+        Name() : name(""), multiplicity(0.0) {}
+
+        std::string name;
+        double      multiplicity;
+    };
+
+    std::deque<Placement> placements;
+    std::deque<Name>      names;
 };
 
 // =============================================================================
@@ -43,12 +58,18 @@ class Placements
 public:
     Placements () {}
     Placements (PlacementTree& ptree) : tree(ptree) {}
+    void clear();
+    ~Placements();
 
-    std::deque<Pquery> pqueries;
+    std::deque<Pquery*> pqueries;
     PlacementTree tree;
 
     typedef std::unordered_map<std::string, std::string> Metadata;
     Metadata metadata;
+
+    std::string DumpAll();
+    std::string DumpPqueries();
+    std::string DumpTree();
 };
 
 } // namespace genesis

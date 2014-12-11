@@ -29,6 +29,8 @@ public:
     static bool ProcessString (const std::string& json,  JsonDocument& document);
     static bool ProcessLexer  (const JsonLexer&   lexer, JsonDocument& document);
 
+    // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
+
 protected:
     static bool ProcessValue (
         Lexer::const_iterator& ct,
