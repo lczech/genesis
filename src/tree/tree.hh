@@ -49,6 +49,8 @@ public:
     int  MaxRank() const;
     bool IsBifurcating() const;
 
+    bool Validate() const;
+
     // TODO introduce a validate function that checks the integrity of the tree:
     // TODO are all links, branches and nodes connected corretly to each other,
     // TODO is every one of them coverd exactly once when doing a full traversal?

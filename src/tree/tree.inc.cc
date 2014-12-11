@@ -183,6 +183,32 @@ bool Tree<NDT, BDT>::IsBifurcating() const
     return MaxRank() == 2;
 }
 
+template <class NDT, class BDT>
+bool Tree<NDT, BDT>::Validate() const
+{
+    // check that the member arrays are valid: if at least one of them is empty, the tree is not
+    // fully initialized, so either it is a new tree without any data (all arrays empty, valid),
+    // or some are empty, but others not (not valid).
+    if (links_.empty() || nodes_.empty() || branches_.empty()) {
+        bool emp = links_.empty() && nodes_.empty() && branches_.empty();
+        if (emp) {
+            LOG_INFO << "Tree is empty.";
+        } else {
+            LOG_INFO << "Tree is not empty, but one of its data members is.";
+        }
+        return emp;
+    }
+
+    // if we are here, all three arrays contain data, so we can start a full traversal along all
+    // links.
+    TreeLink<NDT, BDT>* link = links_.front();
+    do {
+        link = link->next_->outer_;
+    } while (link != links_.front());
+
+    return true;
+}
+
 // -------------------------------------------------------------------------
 //     Dump and Debug Functions
 // -------------------------------------------------------------------------
