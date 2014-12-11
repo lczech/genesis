@@ -1,10 +1,10 @@
-#ifndef GNS_TREE_TREENODE_H_
-#define GNS_TREE_TREENODE_H_
+#ifndef GNS_TREE_TREEBRANCH_H_
+#define GNS_TREE_TREEBRANCH_H_
 
 /**
- * @brief This class represents a node inside of a tree.
+ * @brief This class represents a branch inside of a tree.
  *
- * For more information, see TreeNode class.
+ * For more information, see TreeBranch class.
  *
  * @file
  * @ingroup tree
@@ -12,7 +12,7 @@
 
 #include <string>
 
-#include "tree/tree_broker.hh"
+#include "tree/tree_broker.hpp"
 
 namespace genesis {
 
@@ -26,83 +26,73 @@ class  Tree;
 template <class NodeDataType, class BranchDataType>
 class  TreeLink;
 
+template <class NodeDataType, class BranchDataType>
+class  TreeNode;
+
 // =============================================================================
-//     DefaultNodeData
+//     DefaultBranchData
 // =============================================================================
 
-class DefaultNodeData
+class DefaultBranchData
 {
 public:
-    /**
-     * Name of the node. In case it is a leaf, this is usually the name of
-     * the taxon represented by the node.
-     */
-    std::string name;
+    typedef double BranchLength;
+    BranchLength branch_length;
 
     inline void FromTreeBrokerNode (TreeBrokerNode* node)
     {
-        name = node->name;
+        branch_length = node->branch_length;
     }
 
     inline void ToTreeBrokerNode (TreeBrokerNode* node) const
     {
-        node->name = name;
+        node->branch_length = branch_length;
     }
 
     inline std::string Dump() const
     {
-        return "Name: '" + name + "'";
+        return "Length: " + std::to_string(branch_length);
     }
 };
 
 // =============================================================================
-//     TreeNode
+//     TreeBranch
 // =============================================================================
 
 template <class NodeDataType, class BranchDataType>
-class TreeNode
+class TreeBranch
 {
-    friend Tree<NodeDataType, BranchDataType>;
+    friend class Tree<NodeDataType, BranchDataType>;
 
 public:
-    TreeNode() : link_(nullptr) {}
+    TreeBranch() : link_p_(nullptr), link_s_(nullptr) {}
 
     // ---------------------------------------------------------------------
     //     Accessors
     // ---------------------------------------------------------------------
 
     /**
-     * @brief Returns the link of this node that points towards the root.
+     * @brief Returns the link of this branch that points towards the root.
      */
     inline TreeLink<NodeDataType, BranchDataType>* PrimaryLink() const
     {
-        return link_;
+        return link_p_;
     }
 
     /**
-     * @brief Returns the link of this node that points towards the root.
-     *
-     * This is just an alias for PrimaryLink(), that is shorter to use when needed
-     * frequently in an algorithm.
+     * @brief Returns the link of this branch that points away from the root.
      */
-    inline TreeLink<NodeDataType, BranchDataType>* Link() const
+    inline TreeLink<NodeDataType, BranchDataType>* SecondaryLink() const
     {
-        return link_;
+        return link_s_;
     }
+
+    TreeNode<NodeDataType, BranchDataType>* PrimaryNode() const;
+    TreeNode<NodeDataType, BranchDataType>* SecondaryNode() const;
 
     // ---------------------------------------------------------------------
     //     Member Functions
     // ---------------------------------------------------------------------
-
-    int  Rank() const;
-    bool IsLeaf() const;
-    bool IsInner() const;
-
-    //~ /** True if the node is the root, false otherwise. */
-    //~ bool IsRoot();
-
-    //~ /** Depth of the node in the tree, i.e. its distance from root. */
-    //~ int Depth();
 
     void FromTreeBrokerNode (TreeBrokerNode* node);
 
@@ -112,10 +102,12 @@ public:
     //     Member Variables
     // ---------------------------------------------------------------------
 
-    NodeDataType data;
+    BranchDataType data;
 
 protected:
-    TreeLink<NodeDataType, BranchDataType>* link_;
+
+    TreeLink<NodeDataType, BranchDataType>* link_p_;
+    TreeLink<NodeDataType, BranchDataType>* link_s_;
 };
 
 } // namespace genesis
@@ -125,6 +117,6 @@ protected:
 // =============================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/tree_node.inc.cc"
+#include "tree/tree_branch.tpp"
 
 #endif // include guard

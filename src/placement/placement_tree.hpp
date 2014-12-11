@@ -10,8 +10,8 @@
 
 #include <string>
 
-#include "tree/tree_broker.hh"
-#include "utils/logging.hh"
+#include "tree/tree_broker.hpp"
+#include "utils/logging.hpp"
 
 namespace genesis {
 

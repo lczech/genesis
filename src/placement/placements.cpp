@@ -5,7 +5,7 @@
  * @ingroup placement
  */
 
-#include "placement/placements.hh"
+#include "placement/placements.hpp"
 
 #include <sstream>
 

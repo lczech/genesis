@@ -30,18 +30,27 @@ LDFLAGS = -lm
 #   File lists
 # --------------------------------
 
-# Source files are named .cc, headers .hh. If a source file
-# ends in .inc.cc, it is not directly compiled, because we
-# assume it is included somewhere and compilation is done there.
-# For example, all implementation code of template files is
-# outsourced to .inc.cc files.
+# Source files are named *.cpp, headers *.hpp. Template implementation files
+# end in *.tpp and are not directly compiled, because we assume it is included
+# in its header and compilation is done when the header is included.
 
-SRCFILES := $(shell find ./src -type f -name "*.cc")
-HDRFILES := $(shell find ./src -type f -name "*.hh")
-OBJFILES  = $(patsubst %.cc,%.o,$(SRCFILES))
-OBJFILES := $(OBJFILES:%.inc.o=)
-DEPFILES := $(patsubst %.cc,%.d,$(SRCFILES))
-ALLFILES := $(SRCFILES) $(HDRFILES)
+# all header files
+HDRFILES := $(shell find ./src -type f -name "*.hpp")
+
+# all implementation files
+SRCFILES := $(shell find ./src -type f -name "*.cpp")
+
+# all template implementation files
+TPLFILES := $(shell find ./src -type f -name "*.tpp")
+
+# all object files, generated from *.cpp files, that need compilation
+OBJFILES  = $(patsubst %.cpp,%.o,$(SRCFILES))
+
+# dependency files for proper file change management
+DEPFILES := $(patsubst %.cpp,%.d,$(SRCFILES))
+
+# all files containing code
+ALLFILES := $(HDRFILES) $(SRCFILES) $(TPLFILES)
 
 # --------------------------------
 #   Make rules
@@ -61,13 +70,13 @@ mpi: $(PROGRAM)
 	@echo "\n========== Done mpi  =========="
 
 # Link all objects to get the program.
-$(PROGRAM): $(OBJFILES) $(HDRFILES)
+$(PROGRAM): $(OBJFILES)
 	@echo "\n========== Linking   =========="
 	@echo "Objects: $(OBJFILES)\n"
 	$(CC) $(OBJFILES) -o $@ $(LDFLAGS)
 
 # Compile all sources and create dependency files (-MMD -MP).
-%.o: %.cc
+%.o: %.cpp
 	@echo "\n========== Compiling =========="
 	@echo "File: $< > $@"
 	$(CC) $(CCFLAGS) -MMD -MP -c $< -o $@

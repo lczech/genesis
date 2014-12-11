@@ -5,7 +5,7 @@
  * @ingroup utils
  */
 
-#include "utils/lexer.hh"
+#include "utils/lexer.hpp"
 
 #include <assert.h>
 #include <cstring>
@@ -13,8 +13,8 @@
 #include <string>
 #include <vector>
 
-#include "utils/logging.hh"
-#include "utils/utils.hh"
+#include "utils/logging.hpp"
+#include "utils/utils.hpp"
 
 namespace genesis {
 

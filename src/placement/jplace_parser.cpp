@@ -5,17 +5,17 @@
  * @ingroup placement
  */
 
-#include "placement/jplace_parser.hh"
+#include "placement/jplace_parser.hpp"
 
 #include <string>
 #include <vector>
 
-#include "placement/placements.hh"
-#include "utils/json_document.hh"
-#include "utils/json_lexer.hh"
-#include "utils/json_parser.hh"
-#include "utils/logging.hh"
-#include "utils/utils.hh"
+#include "placement/placements.hpp"
+#include "utils/json_document.hpp"
+#include "utils/json_lexer.hpp"
+#include "utils/json_parser.hpp"
+#include "utils/logging.hpp"
+#include "utils/utils.hpp"
 
 namespace genesis {
 

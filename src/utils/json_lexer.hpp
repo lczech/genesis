@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "utils/lexer.hh"
+#include "utils/lexer.hpp"
 
 namespace genesis {
 

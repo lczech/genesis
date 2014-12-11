@@ -12,8 +12,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "placement/placement_tree.hh"
-#include "tree/tree.hh"
+#include "placement/placement_tree.hpp"
+#include "tree/tree.hpp"
 
 namespace genesis {
 

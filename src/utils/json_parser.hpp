@@ -10,9 +10,9 @@
 
 #include <string>
 
-#include "utils/lexer.hh"
-#include "utils/json_lexer.hh"
-#include "utils/json_document.hh"
+#include "utils/lexer.hpp"
+#include "utils/json_lexer.hpp"
+#include "utils/json_document.hpp"
 
 namespace genesis {
 

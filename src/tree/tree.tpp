@@ -11,9 +11,9 @@
 #include <algorithm>
 #include <sstream>
 
-#include "tree/newick_parser.hh"
-#include "utils/logging.hh"
-#include "utils/utils.hh"
+#include "tree/newick_parser.hpp"
+#include "utils/logging.hpp"
+#include "utils/utils.hpp"
 
 namespace genesis {
 

@@ -21,7 +21,7 @@
 // where the implementation (this file) is included from within the header anyway, we can as well
 // outsource the inline functions to here.
 
-#include "tree/tree_link.hh"
+#include "tree/tree_link.hpp"
 
 namespace genesis {
 
@@ -43,7 +43,7 @@ inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::SecondaryNode() const
 //     Member Functions
 // =============================================================================
 
-#include "tree/tree_broker.hh"
+#include "tree/tree_broker.hpp"
 
 namespace genesis {
 

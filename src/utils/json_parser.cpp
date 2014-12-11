@@ -5,12 +5,12 @@
  * @ingroup utils
  */
 
-#include "utils/json_parser.hh"
+#include "utils/json_parser.hpp"
 
 #include <assert.h>
 
-#include "utils/logging.hh"
-#include "utils/utils.hh"
+#include "utils/logging.hpp"
+#include "utils/utils.hpp"
 
 namespace genesis {
 

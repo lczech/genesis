@@ -5,12 +5,12 @@
  * @ingroup tree
  */
 
-#include "tree/tree_broker.hh"
+#include "tree/tree_broker.hpp"
 
 #include <algorithm>
 #include <string>
 
-#include "utils/logging.hh"
+#include "utils/logging.hpp"
 
 namespace genesis {
 

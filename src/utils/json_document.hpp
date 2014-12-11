@@ -14,8 +14,8 @@
 #include <string>
 #include <unordered_map>
 
-#include "utils/logging.hh"
-#include "utils/utils.hh"
+#include "utils/logging.hpp"
+#include "utils/utils.hpp"
 
 namespace genesis {
 

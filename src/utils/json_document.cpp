@@ -5,11 +5,11 @@
  * @ingroup utils
  */
 
-#include "utils/json_document.hh"
+#include "utils/json_document.hpp"
 
 //~ #include <stack>
 
-#include "utils/logging.hh"
+#include "utils/logging.hpp"
 
 namespace genesis {
 

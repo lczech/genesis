@@ -13,10 +13,10 @@
 #include <string>
 #include <vector>
 
-#include "tree/tree_branch.hh"
-#include "tree/tree_broker.hh"
-#include "tree/tree_link.hh"
-#include "tree/tree_node.hh"
+#include "tree/tree_branch.hpp"
+#include "tree/tree_broker.hpp"
+#include "tree/tree_link.hpp"
+#include "tree/tree_node.hpp"
 
 namespace genesis {
 
@@ -76,6 +76,6 @@ protected:
 // =============================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/tree.inc.cc"
+#include "tree/tree.tpp"
 
 #endif // include guard

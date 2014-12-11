@@ -5,19 +5,19 @@
  * @ingroup main
  */
 
-#include "main/main.hh"
+#include "main/main.hpp"
 
 #include <iostream>
 #include <string>
 
-#include "placement/placements.hh"
-#include "placement/jplace_parser.hh"
-#include "tree/tree.hh"
-#include "utils/json_document.hh"
-#include "utils/json_lexer.hh"
-#include "utils/json_parser.hh"
-#include "utils/logging.hh"
-#include "utils/utils.hh"
+#include "placement/placements.hpp"
+#include "placement/jplace_parser.hpp"
+#include "tree/tree.hpp"
+#include "utils/json_document.hpp"
+#include "utils/json_lexer.hpp"
+#include "utils/json_parser.hpp"
+#include "utils/logging.hpp"
+#include "utils/utils.hpp"
 
 using namespace genesis;
 
