@@ -179,25 +179,25 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
 
         // check name/named multiplicity validity
         if (pqry_obj->Has("n") && pqry_obj->Has("nm")) {
-            LOG_WARN << "Jplace document contains a placement with both an 'n' and an 'nm' key.";
+            LOG_WARN << "Jplace document contains a pquery with both an 'n' and an 'nm' key.";
             return false;
         }
         if (!pqry_obj->Has("n") && !pqry_obj->Has("nm")) {
-            LOG_WARN << "Jplace document contains a placement with neither an 'n' nor an 'nm' key.";
+            LOG_WARN << "Jplace document contains a pquery with neither an 'n' nor an 'nm' key.";
             return false;
         }
 
         // process names
         if (pqry_obj->Has("n")) {
             if (!pqry_obj->Get("n")->IsArray()) {
-                LOG_WARN << "Jplace document contains a placement with key 'n' that is not array.";
+                LOG_WARN << "Jplace document contains a pquery with key 'n' that is not array.";
                 return false;
             }
 
             JsonValueArray* pqry_n_arr = JsonValueToArray(pqry_obj->Get("n"));
             for (JsonValue* pqry_n_val : *pqry_n_arr) {
                 if (!pqry_n_val->IsString()) {
-                    LOG_WARN << "Jplace document contains a placement where key 'n' has a "
+                    LOG_WARN << "Jplace document contains a pquery where key 'n' has a "
                              << "non-string field.";
                     return false;
                 }
@@ -212,31 +212,31 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
         // process named multiplicities
         if (pqry_obj->Has("nm")) {
             if (!pqry_obj->Get("nm")->IsArray()) {
-                LOG_WARN << "Jplace document contains a placement with key 'nm' that is not array.";
+                LOG_WARN << "Jplace document contains a pquery with key 'nm' that is not array.";
                 return false;
             }
 
             JsonValueArray* pqry_nm_arr = JsonValueToArray(pqry_obj->Get("nm"));
             for (JsonValue* pqry_nm_val : *pqry_nm_arr) {
                 if (!pqry_nm_val->IsArray()) {
-                    LOG_WARN << "Jplace document contains a placement where key 'nm' has a "
+                    LOG_WARN << "Jplace document contains a pquery where key 'nm' has a "
                              << "non-array field.";
                     return false;
                 }
 
                 JsonValueArray * pqry_nm_val_arr = JsonValueToArray(pqry_nm_val);
                 if (pqry_nm_val_arr->size() != 2) {
-                    LOG_WARN << "Jplace document contains a placement where key 'nm' has an array "
+                    LOG_WARN << "Jplace document contains a pquery where key 'nm' has an array "
                              << "field with size != 2 (one for the name, one for the multiplicity).";
                     return false;
                 }
                 if (!pqry_nm_val_arr->at(0)->IsString()) {
-                    LOG_WARN << "Jplace document contains a placement where key 'nm' has an array "
+                    LOG_WARN << "Jplace document contains a pquery where key 'nm' has an array "
                              << "whose first value is not a string for the name.";
                     return false;
                 }
                 if (!pqry_nm_val_arr->at(1)->IsNumber()) {
-                    LOG_WARN << "Jplace document contains a placement where key 'nm' has an array "
+                    LOG_WARN << "Jplace document contains a pquery where key 'nm' has an array "
                              << "whose second value is not a number for the multiplicity.";
                     return false;
                 }

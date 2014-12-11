@@ -11,6 +11,7 @@
 #include <string>
 
 #include "tree/tree_broker.hh"
+#include "utils/logging.hh"
 
 namespace genesis {
 
@@ -29,10 +30,19 @@ class PlacementBranchData
 {
 public:
     double branch_length;
+    int    edge_num;
 
     inline void FromTreeBrokerNode (TreeBrokerNode* node)
     {
         branch_length = node->branch_length;
+        edge_num      = -1;
+
+        if (node->tags.size() != 1) {
+            LOG_WARN << "Branch for node '" << node->name << "' does not contain the single "
+                     << "tag value denoting the edge_num for placements.";
+            return;
+        }
+        edge_num = std::stoi(node->tags[0]);
     }
 
     inline void ToTreeBrokerNode (TreeBrokerNode* node) const
@@ -42,7 +52,7 @@ public:
 
     inline std::string Dump() const
     {
-        return "Length: " + std::to_string(branch_length);
+        return "Length: " + std::to_string(branch_length) + "\tEdge Num: " + std::to_string(edge_num);
     }
 };
 
