@@ -20,10 +20,10 @@ namespace genesis {
 //     Forward declarations
 // =============================================================================
 
-template <class NodeDataType, class BranchDataType>
+template <class NodeDataType, class EdgeDataType>
 class  Tree;
 
-template <class NodeDataType, class BranchDataType>
+template <class NodeDataType, class EdgeDataType>
 class  TreeLink;
 
 // =============================================================================
@@ -59,10 +59,10 @@ public:
 //     TreeNode
 // =============================================================================
 
-template <class NodeDataType, class BranchDataType>
+template <class NodeDataType, class EdgeDataType>
 class TreeNode
 {
-    friend Tree<NodeDataType, BranchDataType>;
+    friend Tree<NodeDataType, EdgeDataType>;
 
 public:
     TreeNode() : link_(nullptr) {}
@@ -74,7 +74,7 @@ public:
     /**
      * @brief Returns the link of this node that points towards the root.
      */
-    inline TreeLink<NodeDataType, BranchDataType>* PrimaryLink() const
+    inline TreeLink<NodeDataType, EdgeDataType>* PrimaryLink() const
     {
         return link_;
     }
@@ -85,7 +85,7 @@ public:
      * This is just an alias for PrimaryLink(), that is shorter to use when needed
      * frequently in an algorithm.
      */
-    inline TreeLink<NodeDataType, BranchDataType>* Link() const
+    inline TreeLink<NodeDataType, EdgeDataType>* Link() const
     {
         return link_;
     }
@@ -115,7 +115,7 @@ public:
     NodeDataType data;
 
 protected:
-    TreeLink<NodeDataType, BranchDataType>* link_;
+    TreeLink<NodeDataType, EdgeDataType>* link_;
 };
 
 } // namespace genesis

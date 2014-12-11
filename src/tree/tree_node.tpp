@@ -2,7 +2,7 @@
  * @brief Implementation of TreeNode functions.
  *
  * For reasons of readability, in this implementation file, the template data types
- * NodeDataType and BranchDataType are abbreviated NDT and BDT, respectively.
+ * NodeDataType and EdgeDataType are abbreviated NDT and EDT, respectively.
  *
  * @file
  * @ingroup tree
@@ -28,8 +28,8 @@ namespace genesis {
 /**
  * @brief True iff the node is a leaf/tip.
  */
-template <class NDT, class BDT>
-inline bool TreeNode<NDT, BDT>::IsLeaf() const
+template <class NDT, class EDT>
+inline bool TreeNode<NDT, EDT>::IsLeaf() const
 {
     return link_->IsLeaf();
 }
@@ -37,8 +37,8 @@ inline bool TreeNode<NDT, BDT>::IsLeaf() const
 /**
  * @brief True iff the node is an inner node.
  */
-template <class NDT, class BDT>
-inline bool TreeNode<NDT, BDT>::IsInner() const
+template <class NDT, class EDT>
+inline bool TreeNode<NDT, EDT>::IsInner() const
 {
     return link_->IsInner();
 }
@@ -57,11 +57,11 @@ namespace genesis {
 /**
  * @brief Rank of the node, i.e. how many immediate children it has.
  */
-template <class NDT, class BDT>
-int TreeNode<NDT, BDT>::Rank() const
+template <class NDT, class EDT>
+int TreeNode<NDT, EDT>::Rank() const
 {
     int rank = -1;
-    TreeLink<NDT, BDT>* link = link_;
+    TreeLink<NDT, EDT>* link = link_;
 
     do {
         ++rank;
@@ -74,8 +74,8 @@ int TreeNode<NDT, BDT>::Rank() const
 /**
  * @brief Fills the node with data from a TreeBrokerNode.
  */
-template <class NDT, class BDT>
-void TreeNode<NDT, BDT>::FromTreeBrokerNode (TreeBrokerNode* node)
+template <class NDT, class EDT>
+void TreeNode<NDT, EDT>::FromTreeBrokerNode (TreeBrokerNode* node)
 {
     data.FromTreeBrokerNode(node);
 }
@@ -83,8 +83,8 @@ void TreeNode<NDT, BDT>::FromTreeBrokerNode (TreeBrokerNode* node)
 /**
  * @brief Returns a one-line dump summary of the data of this node.
  */
-template <class NDT, class BDT>
-std::string TreeNode<NDT, BDT>::Dump() const
+template <class NDT, class EDT>
+std::string TreeNode<NDT, EDT>::Dump() const
 {
     return "Rank: " + std::to_string(Rank()) + " \t " + data.Dump();
 }

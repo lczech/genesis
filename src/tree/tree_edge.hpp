@@ -1,10 +1,10 @@
-#ifndef GNS_TREE_TREEBRANCH_H_
-#define GNS_TREE_TREEBRANCH_H_
+#ifndef GNS_TREE_TREEEDGE_H_
+#define GNS_TREE_TREEEDGE_H_
 
 /**
- * @brief This class represents a branch inside of a tree.
+ * @brief This class represents an edge inside of a tree.
  *
- * For more information, see TreeBranch class.
+ * For more information, see TreeEdge class.
  *
  * @file
  * @ingroup tree
@@ -20,20 +20,20 @@ namespace genesis {
 //     Forward declarations
 // =============================================================================
 
-template <class NodeDataType, class BranchDataType>
+template <class NodeDataType, class EdgeDataType>
 class  Tree;
 
-template <class NodeDataType, class BranchDataType>
+template <class NodeDataType, class EdgeDataType>
 class  TreeLink;
 
-template <class NodeDataType, class BranchDataType>
+template <class NodeDataType, class EdgeDataType>
 class  TreeNode;
 
 // =============================================================================
-//     DefaultBranchData
+//     DefaultEdgeData
 // =============================================================================
 
-class DefaultBranchData
+class DefaultEdgeData
 {
 public:
     typedef double BranchLength;
@@ -56,39 +56,39 @@ public:
 };
 
 // =============================================================================
-//     TreeBranch
+//     TreeEdge
 // =============================================================================
 
-template <class NodeDataType, class BranchDataType>
-class TreeBranch
+template <class NodeDataType, class EdgeDataType>
+class TreeEdge
 {
-    friend class Tree<NodeDataType, BranchDataType>;
+    friend class Tree<NodeDataType, EdgeDataType>;
 
 public:
-    TreeBranch() : link_p_(nullptr), link_s_(nullptr) {}
+    TreeEdge() : link_p_(nullptr), link_s_(nullptr) {}
 
     // ---------------------------------------------------------------------
     //     Accessors
     // ---------------------------------------------------------------------
 
     /**
-     * @brief Returns the link of this branch that points towards the root.
+     * @brief Returns the link of this edge that points towards the root.
      */
-    inline TreeLink<NodeDataType, BranchDataType>* PrimaryLink() const
+    inline TreeLink<NodeDataType, EdgeDataType>* PrimaryLink() const
     {
         return link_p_;
     }
 
     /**
-     * @brief Returns the link of this branch that points away from the root.
+     * @brief Returns the link of this edge that points away from the root.
      */
-    inline TreeLink<NodeDataType, BranchDataType>* SecondaryLink() const
+    inline TreeLink<NodeDataType, EdgeDataType>* SecondaryLink() const
     {
         return link_s_;
     }
 
-    TreeNode<NodeDataType, BranchDataType>* PrimaryNode() const;
-    TreeNode<NodeDataType, BranchDataType>* SecondaryNode() const;
+    TreeNode<NodeDataType, EdgeDataType>* PrimaryNode() const;
+    TreeNode<NodeDataType, EdgeDataType>* SecondaryNode() const;
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -102,12 +102,12 @@ public:
     //     Member Variables
     // ---------------------------------------------------------------------
 
-    BranchDataType data;
+    EdgeDataType data;
 
 protected:
 
-    TreeLink<NodeDataType, BranchDataType>* link_p_;
-    TreeLink<NodeDataType, BranchDataType>* link_s_;
+    TreeLink<NodeDataType, EdgeDataType>* link_p_;
+    TreeLink<NodeDataType, EdgeDataType>* link_s_;
 };
 
 } // namespace genesis
@@ -117,6 +117,6 @@ protected:
 // =============================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/tree_branch.tpp"
+#include "tree/tree_edge.tpp"
 
 #endif // include guard
