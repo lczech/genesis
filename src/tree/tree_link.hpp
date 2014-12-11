@@ -16,51 +16,51 @@ namespace genesis {
 //     Forward declarations
 // =============================================================================
 
-template <class NodeDataType, class BranchDataType>
+template <class NodeDataType, class EdgeDataType>
 class Tree;
 
-template <class NodeDataType, class BranchDataType>
-class TreeBranch;
+template <class NodeDataType, class EdgeDataType>
+class TreeEdge;
 
-template <class NodeDataType, class BranchDataType>
+template <class NodeDataType, class EdgeDataType>
 class TreeNode;
 
 // =============================================================================
 //     TreeLink
 // =============================================================================
 
-template <class NodeDataType, class BranchDataType>
+template <class NodeDataType, class EdgeDataType>
 class TreeLink
 {
-    friend class Tree<NodeDataType, BranchDataType>;
+    friend class Tree<NodeDataType, EdgeDataType>;
 
 public:
-    TreeLink() : next_(nullptr), outer_(nullptr), node_(nullptr), branch_(nullptr) {}
+    TreeLink() : next_(nullptr), outer_(nullptr), node_(nullptr), edge_(nullptr) {}
 
     // ---------------------------------------------------------------------
     //     Accessors
     // ---------------------------------------------------------------------
 
     /** @brief Returns a pointer to the next link within the node. */
-    inline TreeLink<NodeDataType, BranchDataType>* Next()
+    inline TreeLink<NodeDataType, EdgeDataType>* Next()
     {
         return next_;
     }
 
     /** @brief Returns a pointer to the link of the adjacent node. */
-    inline TreeLink<NodeDataType, BranchDataType>* Outer()
+    inline TreeLink<NodeDataType, EdgeDataType>* Outer()
     {
         return outer_;
     }
 
-    /** @brief Returns a pointer to the TreeBranch containing the data of this link's branch. */
-    inline TreeBranch<NodeDataType, BranchDataType>* Branch()
+    /** @brief Returns a pointer to the TreeEdge containing the data of this link's edge. */
+    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
     {
-        return branch_;
+        return edge_;
     }
 
     /** @brief Returns a pointer to the TreeNode containing the data of this link's node. */
-    inline TreeNode<NodeDataType, BranchDataType>* Node()
+    inline TreeNode<NodeDataType, EdgeDataType>* Node()
     {
         return node_;
     }
@@ -98,11 +98,11 @@ protected:
     //     Member Variables
     // ---------------------------------------------------------------------
 
-    TreeLink<NodeDataType, BranchDataType>* next_;
-    TreeLink<NodeDataType, BranchDataType>* outer_;
+    TreeLink<NodeDataType, EdgeDataType>* next_;
+    TreeLink<NodeDataType, EdgeDataType>* outer_;
 
-    TreeNode<NodeDataType, BranchDataType>*   node_;
-    TreeBranch<NodeDataType, BranchDataType>* branch_;
+    TreeNode<NodeDataType, EdgeDataType>*   node_;
+    TreeEdge<NodeDataType, EdgeDataType>* edge_;
 };
 
 } // namespace genesis

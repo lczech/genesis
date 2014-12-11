@@ -176,7 +176,7 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
         // ------------------------------------------------------
         if (ct->IsTag()) {
             // in some newick extensions, a tag has a semantic meaning that belongs to the
-            // current node/branch, thus we need to store it
+            // current node/edge, thus we need to store it
 
             // populate the node
             node->tags.push_back(ct->value());
@@ -188,7 +188,7 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
         // ------------------------------------------------------
         if (ct->IsComment()) {
             // in some newick extensions, a comment has a semantic meaning that belongs to the
-            // current node/branch, thus we need to store it
+            // current node/edge, thus we need to store it
 
             // populate the node
             node->comments.push_back(ct->value());

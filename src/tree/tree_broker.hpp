@@ -60,7 +60,7 @@ public:
     std::string name;
 
     /**
-     * @brief Branch length associated with the node, i.e. the branch leading to its parent.
+     * @brief Branch length associated with the node, i.e. the edge leading to its parent.
      */
     double      branch_length;
 
@@ -116,7 +116,7 @@ protected:
  * representations.
  *
  * The TreeBroker offers a simple structure to represent a tree. It is used to transfer the
- * information contained in a tree (topology and data of the nodes and branches) between different
+ * information contained in a tree (topology and data of the nodes and edges) between different
  * representations of the tree. Those can for example be data structures or string formats as
  * the Newick file format.
  *

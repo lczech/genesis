@@ -1,8 +1,8 @@
 /**
- * @brief Implementation of TreeBranch functions.
+ * @brief Implementation of TreeEdge functions.
  *
  * For reasons of readability, in this implementation file, the template data types
- * NodeDataType and BranchDataType are abbreviated NDT and BDT, respectively.
+ * NodeDataType and EdgeDataType are abbreviated NDT and EDT, respectively.
  *
  * @file
  * @ingroup tree
@@ -25,14 +25,14 @@
 
 namespace genesis {
 
-template <class NDT, class BDT>
-inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::PrimaryNode() const
+template <class NDT, class EDT>
+inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::PrimaryNode() const
 {
     return link_p_->node();
 }
 
-template <class NDT, class BDT>
-inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::SecondaryNode() const
+template <class NDT, class EDT>
+inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::SecondaryNode() const
 {
     return link_s_->node();
 }
@@ -48,19 +48,19 @@ inline TreeNode<NDT, BDT>* TreeBranch<NDT, BDT>::SecondaryNode() const
 namespace genesis {
 
 /**
- * @brief Fills the branch with data from a TreeBrokerNode.
+ * @brief Fills the edge with data from a TreeBrokerNode.
  */
-template <class NDT, class BDT>
-void TreeBranch<NDT, BDT>::FromTreeBrokerNode (TreeBrokerNode* node)
+template <class NDT, class EDT>
+void TreeEdge<NDT, EDT>::FromTreeBrokerNode (TreeBrokerNode* node)
 {
     data.FromTreeBrokerNode(node);
 }
 
 /**
- * @brief Returns a one-line dump summary of the data of this branch.
+ * @brief Returns a one-line dump summary of the data of this edge.
  */
-template <class NDT, class BDT>
-std::string TreeBranch<NDT, BDT>::Dump() const
+template <class NDT, class EDT>
+std::string TreeEdge<NDT, EDT>::Dump() const
 {
     return data.Dump();
 }

@@ -48,7 +48,7 @@ int main (int argc, char* argv[])
     //~ tree.FromNewickString("((A,((B,C,D)E[a branch],F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
     //~ LOG_DBG << tree.DumpLinks();
     //~ LOG_DBG << tree.DumpNodes();
-    //~ LOG_DBG << tree.DumpBranches();
+    //~ LOG_DBG << tree.DumpEdges();
 
     //~ tree.FromNewickString("((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;");
 

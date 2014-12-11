@@ -13,8 +13,8 @@
 #include <string>
 #include <vector>
 
-#include "tree/tree_branch.hpp"
 #include "tree/tree_broker.hpp"
+#include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
 
@@ -24,7 +24,7 @@ namespace genesis {
 //     Tree
 // =============================================================================
 
-template <class NodeDataType = DefaultNodeData, class BranchDataType = DefaultBranchData>
+template <class NodeDataType = DefaultNodeData, class EdgeDataType = DefaultEdgeData>
 class Tree
 {
 public:
@@ -41,7 +41,7 @@ public:
     void        ToTreeBroker   (TreeBroker& broker);
 
     std::string DumpAll() const;
-    std::string DumpBranches() const;
+    std::string DumpEdges() const;
     std::string DumpLinks() const;
     std::string DumpNodes() const;
     std::string DumpRoundtrip() const;
@@ -52,21 +52,21 @@ public:
     bool Validate() const;
 
     // TODO introduce a validate function that checks the integrity of the tree:
-    // TODO are all links, branches and nodes connected corretly to each other,
+    // TODO are all links, edges and nodes connected corretly to each other,
     // TODO is every one of them coverd exactly once when doing a full traversal?
-    // TODO do all node->link_ links point to the root? same for all branch->primary?
+    // TODO do all node->link_ links point to the root? same for all edge->primary?
     // TODO also, if we introduce indices to them for faster access, are those correct?
     // TODO this function will be curtial to ensure correctness of invariants once
     // TODO we start implementing stuff that modifies a tree (add nodes, move branches...)!
 
 protected:
-    int BranchPointerToIndex (TreeBranch<NodeDataType, BranchDataType>* branch) const;
-    int LinkPointerToIndex   (TreeLink<NodeDataType,   BranchDataType>* link)   const;
-    int NodePointerToIndex   (TreeNode<NodeDataType,   BranchDataType>* node)   const;
+    int EdgePointerToIndex (TreeEdge<NodeDataType, EdgeDataType>* edge) const;
+    int LinkPointerToIndex (TreeLink<NodeDataType, EdgeDataType>* link) const;
+    int NodePointerToIndex (TreeNode<NodeDataType, EdgeDataType>* node) const;
 
-    std::vector<TreeLink<NodeDataType,   BranchDataType>*> links_;
-    std::vector<TreeNode<NodeDataType,   BranchDataType>*> nodes_;
-    std::vector<TreeBranch<NodeDataType, BranchDataType>*> branches_;
+    std::vector<TreeLink<NodeDataType, EdgeDataType>*> links_;
+    std::vector<TreeNode<NodeDataType, EdgeDataType>*> nodes_;
+    std::vector<TreeEdge<NodeDataType, EdgeDataType>*> edges_;
 };
 
 } // namespace genesis

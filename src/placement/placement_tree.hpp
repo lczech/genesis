@@ -19,14 +19,14 @@ namespace genesis {
 //     Forward Declarations
 // =============================================================================
 
-template <class NodeDataType, class BranchDataType>
+template <class NodeDataType, class EdgeDataType>
 class Tree;
 
 // =============================================================================
-//     PlacementBranchData
+//     PlacementEdgeData
 // =============================================================================
 
-class PlacementBranchData
+class PlacementEdgeData
 {
 public:
     double branch_length;
@@ -38,7 +38,7 @@ public:
         edge_num      = -1;
 
         if (node->tags.size() != 1) {
-            LOG_WARN << "Branch for node '" << node->name << "' does not contain the single "
+            LOG_WARN << "Edge for node '" << node->name << "' does not contain the single "
                      << "tag value denoting the edge_num for placements.";
             return;
         }
@@ -90,7 +90,7 @@ public:
 // =============================================================================
 
 // let's avoid tedious names!
-typedef Tree<PlacementNodeData, PlacementBranchData> PlacementTree;
+typedef Tree<PlacementNodeData, PlacementEdgeData> PlacementTree;
 
 } // namespace genesis
 
