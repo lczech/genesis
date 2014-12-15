@@ -27,19 +27,19 @@ namespace genesis {
 template <class NDT, class EDT>
 void Tree<NDT, EDT>::clear()
 {
-    for (TreeEdge<NDT, EDT>* edge : edges_) {
-        delete edge;
-    }
-    for (TreeLink<NDT, EDT>* link : links_) {
+    for (LinkType* link : links_) {
         delete link;
     }
-    for (TreeNode<NDT, EDT>* node : nodes_) {
+    for (NodeType* node : nodes_) {
         delete node;
     }
+    for (EdgeType* edge : edges_) {
+        delete edge;
+    }
 
-    std::vector<TreeEdge<NDT, EDT>*>().swap(edges_);
-    std::vector<TreeLink<NDT, EDT>*>().swap(links_);
-    std::vector<TreeNode<NDT, EDT>*>().swap(nodes_);
+    std::vector<LinkType*>().swap(links_);
+    std::vector<NodeType*>().swap(nodes_);
+    std::vector<EdgeType*>().swap(edges_);
 }
 
 /**
@@ -90,7 +90,7 @@ template <class NDT, class EDT>
 void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
 {
     clear();
-    std::vector<TreeLink<NDT, EDT>*> link_stack;
+    std::vector<LinkType*> link_stack;
 
     // we need the ranks (number of immediate children) of all nodes
     broker.AssignRanks();
@@ -100,13 +100,13 @@ void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
         TreeBrokerNode* broker_node = *b_itr;
 
         // create the tree node for this broker node
-        TreeNode<NDT, EDT>* cur_node = new TreeNode<NDT, EDT>();
+        NodeType* cur_node = new NodeType();
         cur_node->FromTreeBrokerNode(broker_node);
         nodes_.push_back(cur_node);
 
         // create the link that points towards the root.
         // this link is created for every node, root, inner and leaves.
-        TreeLink<NDT, EDT>* up_link = new TreeLink<NDT, EDT>();
+        LinkType* up_link = new LinkType();
         up_link->node_ = cur_node;
         cur_node->link_ = up_link;
         links_.push_back(up_link);
@@ -124,7 +124,7 @@ void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
             link_stack.back()->outer_ = up_link;
 
             // also, create an edge that connects both nodes
-            TreeEdge<NDT, EDT>* up_edge = new TreeEdge<NDT, EDT>();
+            EdgeType* up_edge = new EdgeType();
             up_edge->link_p_         = link_stack.back();
             up_edge->link_s_         = up_link;
             up_link->edge_           = up_edge;
@@ -144,9 +144,9 @@ void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
         // is pushed to the stack, so that for the next broker nodes they are available as
         // reciever for the "up" links.
         // in summary, make all next pointers of a node point to each other in a circle.
-        TreeLink<NDT, EDT>* next_link = up_link;
+        LinkType* next_link = up_link;
         for (int i = 0; i < broker_node->rank(); ++i) {
-            TreeLink<NDT, EDT>* down_link = new TreeLink<NDT, EDT>();
+            LinkType* down_link = new LinkType();
             down_link->next_ = next_link;
             next_link = down_link;
 
@@ -183,6 +183,20 @@ bool Tree<NDT, EDT>::IsBifurcating() const
     return MaxRank() == 2;
 }
 
+// -------------------------------------------------------------------------
+//     Dump and Debug Functions
+// -------------------------------------------------------------------------
+
+
+    // TODO introduce a validate function that checks the integrity of the tree:
+    // TODO are all links, edges and nodes connected corretly to each other,
+    // TODO is every one of them coverd exactly once when doing a full traversal?
+    // TODO do all node->link_ links point to the root? same for all edge->primary?
+    // TODO also, if we introduce indices to them for faster access, are those correct?
+    // TODO this function will be curtial to ensure correctness of invariants once
+    // TODO we start implementing stuff that modifies a tree (add nodes, move branches...)!
+
+
 template <class NDT, class EDT>
 bool Tree<NDT, EDT>::Validate() const
 {
@@ -199,19 +213,15 @@ bool Tree<NDT, EDT>::Validate() const
         return emp;
     }
 
-    // if we are here, all three arrays contain data, so we can start a full traversal along all
-    // links.
-    TreeLink<NDT, EDT>* link = links_.front();
+    // if we are here, all three arrays (links, nodes, edges) contain data, so we can start a full
+    // traversal along all links.
+    LinkType* link = links_.front();
     do {
         link = link->next_->outer_;
     } while (link != links_.front());
 
     return true;
 }
-
-// -------------------------------------------------------------------------
-//     Dump and Debug Functions
-// -------------------------------------------------------------------------
 
 /**
  * @brief Returns the combined dump of DumpLinks(), DumpNodes() and DumpEdges().
@@ -220,22 +230,6 @@ template <class NDT, class EDT>
 std::string Tree<NDT, EDT>::DumpAll() const
 {
     return DumpLinks() + "\n" + DumpNodes() + "\n" + DumpEdges();
-}
-
-/**
- * @brief Returns a list of all edges including their link numbers and branch lengths.
- */
-template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::DumpEdges() const
-{
-    std::ostringstream out;
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        out << "Edge " << i
-            << " \t Link P: " << LinkPointerToIndex(edges_[i]->link_p_)
-            << " \t Link S: " << LinkPointerToIndex(edges_[i]->link_s_)
-            << " \t " << edges_[i]->Dump() << "\n";
-    }
-    return out.str();
 }
 
 /**
@@ -274,6 +268,22 @@ std::string Tree<NDT, EDT>::DumpNodes() const
 }
 
 /**
+ * @brief Returns a list of all edges including their link numbers and branch lengths.
+ */
+template <class NDT, class EDT>
+std::string Tree<NDT, EDT>::DumpEdges() const
+{
+    std::ostringstream out;
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        out << "Edge " << i
+            << " \t Link P: " << LinkPointerToIndex(edges_[i]->link_p_)
+            << " \t Link S: " << LinkPointerToIndex(edges_[i]->link_s_)
+            << " \t " << edges_[i]->Dump() << "\n";
+    }
+    return out.str();
+}
+
+/**
  * @brief Do a full tree traversal and return a list of all visited node names.
  *
  * Leaf nodes appear once in this list, while inner nodes appear every time the traversal visits
@@ -289,7 +299,7 @@ std::string Tree<NDT, EDT>::DumpRoundtrip() const
     }
 
     std::string out;
-    TreeLink<NDT, EDT>* link = links_.front();
+    LinkType* link = links_.front();
 
     do {
         out += link->node_->name_ + "\n";
@@ -300,30 +310,13 @@ std::string Tree<NDT, EDT>::DumpRoundtrip() const
 }
 
 /**
- * @brief Returns the index of a given edge pointer within the edge pointer array edges_.
- *
- * This is useful for debugging purposes, particularly for the Dump functions.
- * Returns `-1` if the pointer was not found.
- */
-template <class NDT, class EDT>
-int Tree<NDT, EDT>::EdgePointerToIndex (TreeEdge<NDT, EDT>* edge) const
-{
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        if (edges_[i] == edge) {
-            return i;
-        }
-    }
-    return -1;
-}
-
-/**
  * @brief Returns the index of a given link pointer within the link pointer array links_.
  *
  * This is useful for debugging purposes, particularly for the Dump functions.
  * Returns `-1` if the pointer was not found.
  */
 template <class NDT, class EDT>
-int Tree<NDT, EDT>::LinkPointerToIndex (TreeLink<NDT, EDT>* link) const
+int Tree<NDT, EDT>::LinkPointerToIndex (LinkType* link) const
 {
     for (size_t i = 0; i < links_.size(); ++i) {
         if (links_[i] == link) {
@@ -340,10 +333,27 @@ int Tree<NDT, EDT>::LinkPointerToIndex (TreeLink<NDT, EDT>* link) const
  * Returns `-1` if the pointer was not found.
  */
 template <class NDT, class EDT>
-int Tree<NDT, EDT>::NodePointerToIndex (TreeNode<NDT, EDT>* node) const
+int Tree<NDT, EDT>::NodePointerToIndex (NodeType* node) const
 {
     for (size_t i = 0; i < nodes_.size(); ++i) {
         if (nodes_[i] == node) {
+            return i;
+        }
+    }
+    return -1;
+}
+
+/**
+ * @brief Returns the index of a given edge pointer within the edge pointer array edges_.
+ *
+ * This is useful for debugging purposes, particularly for the Dump functions.
+ * Returns `-1` if the pointer was not found.
+ */
+template <class NDT, class EDT>
+int Tree<NDT, EDT>::EdgePointerToIndex (EdgeType* edge) const
+{
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        if (edges_[i] == edge) {
             return i;
         }
     }

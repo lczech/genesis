@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "placement/placements.hpp"
+#include "tree/tree_iterator.hpp"
 #include "utils/json_document.hpp"
 #include "utils/json_lexer.hpp"
 #include "utils/json_parser.hpp"
@@ -68,6 +69,13 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
+
+
+    PlacementTree::IteratorRoundtrip it = placements.tree.BeginRoundtrip();
+
+
+
+
 
     // get the field names and store them in array fields
     val = doc.Get("fields");
