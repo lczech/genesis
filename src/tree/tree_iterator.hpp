@@ -10,6 +10,8 @@
 
 namespace genesis {
 
+// TODO all iterators: http://en.wikipedia.org/wiki/Tree_traversal
+
 // =============================================================================
 //     Forward Declarations
 // =============================================================================
@@ -41,8 +43,6 @@ public:
     typedef TreeIteratorRoundtrip<NodeDataType, EdgeDataType> self_type;
     typedef std::forward_iterator_tag                         iterator_category;
     //~ typedef int                                               difference_type;
-
-    typedef Tree<NodeDataType, EdgeDataType>                  tree_type;
     typedef TreeLink<NodeDataType, EdgeDataType>              value_type;
     typedef TreeLink<NodeDataType, EdgeDataType>&             reference;
     typedef TreeLink<NodeDataType, EdgeDataType>*             pointer;
@@ -51,52 +51,69 @@ public:
     //     Constructors
     // -----------------------------------------------------
 
-    TreeIteratorRoundtrip (tree_type* tree) : tree_(tree)
-    {
-        link_ = tree_->links_.front();
-    }
-
-    TreeIteratorRoundtrip (tree_type*  tree, value_type* link) : tree_(tree), link_(link) {}
+    TreeIteratorRoundtrip (value_type* link) : link_(link), start_(link)
+    {}
 
     // -----------------------------------------------------
     //     Operators
     // -----------------------------------------------------
 
-    self_type operator++ ()
+    inline self_type operator ++ ()
     {
-        link_ = link_->next_->outer_;
+        link_ = link_->Next()->Outer();
+        if (link_ == start_) {
+            link_ = nullptr;
+        }
+        return *this;
+    }
+
+    inline self_type operator ++ (int)
+    {
+        self_type tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    inline bool operator == (const self_type &other) const
+    {
+        return other.link_ == link_;
+    }
+
+    inline bool operator != (const self_type &other) const
+    {
+        return !(other == *this);
+    }
+
+    inline reference operator * ()
+    {
+        return *link_;
+    }
+
+    inline pointer operator -> ()
+    {
         return link_;
     }
 
-    self_type operator++ (int)
-    {
-        link_ = link_->next_->outer_;
-        return link_;
-    }
+    // -----------------------------------------------------
+    //     Member Variables
+    // -----------------------------------------------------
 
 protected:
-    tree_type*  tree_;
     value_type* link_;
+    value_type* start_;
 };
 
 /*
  * http://accu.org/index.php/journals/389
  * https://gist.github.com/jeetsukumaran/307264
  *
+ * http://www.cplusplus.com/reference/iterator/iterator/
  *
-class iterator
-{
-public:
-self_type operator++() { self_type i = *this; ptr_++; return i; }
-self_type operator++(int junk) { ptr_++; return *this; }
-reference operator*() { return *ptr_; }
-pointer operator->() { return ptr_; }
-bool operator==(const self_type& rhs) { return ptr_ == rhs.ptr_; }
-bool operator!=(const self_type& rhs) { return ptr_ != rhs.ptr_; }
-private:
-pointer ptr_;
-};
-* */
+ * http://www.cs.northwestern.edu/~riesbeck/programming/c++/stl-iterators.html
+ * http://www.cs.northwestern.edu/~riesbeck/programming/c++/stl-iterator-define.html
+ *
+ * http://www.cs.northwestern.edu/~riesbeck/programming/c++/stl-algorithms.html
+ */
 
 } // namespace genesis
 

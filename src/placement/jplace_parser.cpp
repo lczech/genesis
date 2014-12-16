@@ -69,10 +69,13 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
+    for (
+        PlacementTree::IteratorRoundtrip it = placements.tree.BeginRoundtrip();
+        it != placements.tree.EndRoundtrip();
+        ++it
+    ) {
 
-
-    PlacementTree::IteratorRoundtrip it = placements.tree.BeginRoundtrip();
-
+    }
 
 
 
@@ -85,7 +88,6 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
     }
     JsonValueArray* fields_arr = JsonValueToArray(val);
     std::vector<std::string> fields;
-    fields.reserve(fields_arr->size());
     bool has_edge_num = false;
     for (JsonValue* fields_val : *fields_arr) {
         if (!fields_val->IsString()) {

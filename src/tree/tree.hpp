@@ -46,8 +46,6 @@ public:
     typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
 
-    typedef TreeIteratorRoundtrip<NodeDataType, EdgeDataType> IteratorRoundtrip;
-
     // -----------------------------------------------------
     //     Construction and Destruction
     // -----------------------------------------------------
@@ -69,17 +67,84 @@ public:
     void        ToTreeBroker   (TreeBroker& broker);
 
     // -----------------------------------------------------
+    //     Accessors
+    // -----------------------------------------------------
+
+    inline LinkType* RootLink()
+    {
+        return links_.front();
+    }
+
+    inline NodeType* RootNode()
+    {
+        return links_.front()->Node();
+    }
+
+    // -----------------------------------------------------
     //     Iterators
     // -----------------------------------------------------
 
+    typedef TreeIteratorRoundtrip<NodeDataType, EdgeDataType> IteratorRoundtrip;
+
+    typedef typename std::vector<LinkType*>::iterator         IteratorLinks;
+    typedef typename std::vector<NodeType*>::iterator         IteratorNodes;
+    typedef typename std::vector<EdgeType*>::iterator         IteratorEdges;
+
     inline IteratorRoundtrip BeginRoundtrip()
     {
-        return IteratorRoundtrip(this);
+        return IteratorRoundtrip(links_.front());
+    }
+
+    inline IteratorRoundtrip BeginRoundtrip(LinkType* link)
+    {
+        return IteratorRoundtrip(link);
+    }
+
+    inline IteratorRoundtrip BeginRoundtrip(NodeType* node)
+    {
+        return IteratorRoundtrip(node->PrimaryLink());
+    }
+
+    inline IteratorRoundtrip EndRoundtrip()
+    {
+        return IteratorRoundtrip(nullptr);
+    }
+
+    inline IteratorLinks BeginLinks()
+    {
+        return links_.begin();
+    }
+
+    inline IteratorLinks EndLinks()
+    {
+        return links_.end();
+    }
+
+    inline IteratorNodes BeginNodes()
+    {
+        return nodes_.begin();
+    }
+
+    inline IteratorNodes EndNodes()
+    {
+        return nodes_.end();
+    }
+
+    inline IteratorEdges BeginEdges()
+    {
+        return edges_.begin();
+    }
+
+    inline IteratorEdges EndEdges()
+    {
+        return edges_.end();
     }
 
     // -----------------------------------------------------
     //     Member Functions
     // -----------------------------------------------------
+
+    // TODO add other interesting member functions: http://en.wikipedia.org/wiki/Tree_%28data_structure%29
 
     int  MaxRank() const;
     bool IsBifurcating() const;

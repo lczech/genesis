@@ -192,9 +192,11 @@ bool Tree<NDT, EDT>::IsBifurcating() const
     // TODO are all links, edges and nodes connected corretly to each other,
     // TODO is every one of them coverd exactly once when doing a full traversal?
     // TODO do all node->link_ links point to the root? same for all edge->primary?
+    // TODO all objects coupled correctly?
     // TODO also, if we introduce indices to them for faster access, are those correct?
     // TODO this function will be curtial to ensure correctness of invariants once
     // TODO we start implementing stuff that modifies a tree (add nodes, move branches...)!
+    // TODO do all iterators and check consistency! eg is a round trip covering every object (links onces, branches twice, nodes rank many times)?
 
 
 template <class NDT, class EDT>
@@ -211,6 +213,16 @@ bool Tree<NDT, EDT>::Validate() const
             LOG_INFO << "Tree is not empty, but one of its data members is.";
         }
         return emp;
+    }
+
+    if (links_.front()->outer_ != links_.front()) {
+        LOG_INFO << "";
+        return false;
+    }
+
+    if (links_.front()->node_ != nodes_.front()) {
+        LOG_INFO << "";
+        return false;
     }
 
     // if we are here, all three arrays (links, nodes, edges) contain data, so we can start a full
