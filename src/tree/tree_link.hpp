@@ -101,7 +101,7 @@ protected:
     TreeLink<NodeDataType, EdgeDataType>* next_;
     TreeLink<NodeDataType, EdgeDataType>* outer_;
 
-    TreeNode<NodeDataType, EdgeDataType>*   node_;
+    TreeNode<NodeDataType, EdgeDataType>* node_;
     TreeEdge<NodeDataType, EdgeDataType>* edge_;
 };
 

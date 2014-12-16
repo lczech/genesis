@@ -341,6 +341,7 @@ public:
         return stack_.size() - LeafCount();
     }
 
+    // same as size()
     inline int NodeCount() const
     {
         return stack_.size();

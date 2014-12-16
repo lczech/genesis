@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "placement/placements.hpp"
+#include "tree/tree_iterator.hpp"
 #include "utils/json_document.hpp"
 #include "utils/json_lexer.hpp"
 #include "utils/json_parser.hpp"
@@ -68,6 +69,16 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
+    for (
+        PlacementTree::IteratorRoundtrip it = placements.tree.BeginRoundtrip();
+        it != placements.tree.EndRoundtrip();
+        ++it
+    ) {
+
+    }
+
+
+
 
     // get the field names and store them in array fields
     val = doc.Get("fields");
@@ -77,7 +88,6 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
     }
     JsonValueArray* fields_arr = JsonValueToArray(val);
     std::vector<std::string> fields;
-    fields.reserve(fields_arr->size());
     bool has_edge_num = false;
     for (JsonValue* fields_val : *fields_arr) {
         if (!fields_val->IsString()) {
