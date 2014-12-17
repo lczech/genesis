@@ -8,6 +8,8 @@
  * @ingroup tree
  */
 
+#include <deque>
+
 namespace genesis {
 
 // TODO all iterators: http://en.wikipedia.org/wiki/Tree_traversal
@@ -42,13 +44,12 @@ public:
 
     typedef TreeIteratorRoundtrip<NodeDataType, EdgeDataType> self_type;
     typedef std::forward_iterator_tag                         iterator_category;
-    //~ typedef int                                               difference_type;
     typedef TreeLink<NodeDataType, EdgeDataType>              value_type;
     typedef TreeLink<NodeDataType, EdgeDataType>&             reference;
     typedef TreeLink<NodeDataType, EdgeDataType>*             pointer;
 
     // -----------------------------------------------------
-    //     Constructors
+    //     Constructor
     // -----------------------------------------------------
 
     TreeIteratorRoundtrip (value_type* link) : link_(link), start_(link)
@@ -58,7 +59,9 @@ public:
     //     Operators
     // -----------------------------------------------------
 
-    inline self_type operator ++ ()
+    // FIXME if we start this iterator on a non-root node, this node is not included again
+    // at the end of the trip (which is done for the root). maybe also use a stack?!
+    inline self_type& operator ++ ()
     {
         link_ = link_->Next()->Outer();
         if (link_ == start_) {
@@ -95,25 +98,275 @@ public:
     }
 
     // -----------------------------------------------------
-    //     Member Variables
+    //     Members
     // -----------------------------------------------------
+
+    inline TreeLink<NodeDataType, EdgeDataType>& Link()
+    {
+        return *link_;
+    }
+
+    inline TreeNode<NodeDataType, EdgeDataType>& Node()
+    {
+        return *(link_->Node());
+    }
+
+    inline TreeEdge<NodeDataType, EdgeDataType>& Edge()
+    {
+        return *(link_->Edge());
+    }
 
 protected:
     value_type* link_;
     value_type* start_;
 };
 
-/*
- * http://accu.org/index.php/journals/389
- * https://gist.github.com/jeetsukumaran/307264
- *
- * http://www.cplusplus.com/reference/iterator/iterator/
- *
- * http://www.cs.northwestern.edu/~riesbeck/programming/c++/stl-iterators.html
- * http://www.cs.northwestern.edu/~riesbeck/programming/c++/stl-iterator-define.html
- *
- * http://www.cs.northwestern.edu/~riesbeck/programming/c++/stl-algorithms.html
- */
+// =============================================================================
+//     Preorder Iterator
+// =============================================================================
+
+template <class NodeDataType, class EdgeDataType>
+class TreeIteratorPreorder
+{
+public:
+    // -----------------------------------------------------
+    //     Typedefs
+    // -----------------------------------------------------
+
+    typedef TreeIteratorPreorder<NodeDataType, EdgeDataType> self_type;
+    typedef std::forward_iterator_tag                       iterator_category;
+    typedef TreeNode<NodeDataType, EdgeDataType>            value_type;
+    typedef TreeNode<NodeDataType, EdgeDataType>&           reference;
+    typedef TreeNode<NodeDataType, EdgeDataType>*           pointer;
+
+    typedef TreeLink<NodeDataType, EdgeDataType>*           link_pointer;
+
+    // -----------------------------------------------------
+    //     Constructor
+    // -----------------------------------------------------
+
+    TreeIteratorPreorder (link_pointer link) : link_(link)
+    {
+        if (link) {
+            PushFrontChildren(link);
+            // TODO if root does not contain the surplus "uplink", this condition is not needed any more
+            if (link->Outer() != link) {
+                stack_.push_front(link->Outer());
+            }
+        }
+    }
+
+    // -----------------------------------------------------
+    //     Operators
+    // -----------------------------------------------------
+
+    inline self_type operator ++ ()
+    {
+        if (stack_.empty()) {
+            link_ = nullptr;
+        } else {
+            link_ = stack_.front();
+            stack_.pop_front();
+            PushFrontChildren(link_);
+        }
+
+        return *this;
+    }
+
+    inline self_type operator ++ (int)
+    {
+        self_type tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    inline bool operator == (const self_type &other) const
+    {
+        return other.link_ == link_;
+    }
+
+    inline bool operator != (const self_type &other) const
+    {
+        return !(other == *this);
+    }
+
+    inline reference operator * ()
+    {
+        return *(link_->Node());
+    }
+
+    inline pointer operator -> ()
+    {
+        return link_->Node();
+    }
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+    inline TreeLink<NodeDataType, EdgeDataType>& Link()
+    {
+        return *link_;
+    }
+
+    inline TreeNode<NodeDataType, EdgeDataType>& Node()
+    {
+        return *(link_->Node());
+    }
+
+protected:
+    inline void PushFrontChildren(link_pointer link)
+    {
+        // we need to push to a tmp queue first, in order to get the order right.
+        // otherwise, we would still do a preorder traversal, but starting with
+        // the last child of each node instead of the first one.
+        std::deque<link_pointer> tmp;
+        link_pointer c = link->Next();
+        while (c != link) {
+            // TODO if root does not contain the surplus "uplink", this condition is not needed any more
+            if (c->Outer() != c) {
+                tmp.push_front(c->Outer());
+            }
+            c = c->Next();
+        }
+        for (link_pointer l : tmp) {
+            stack_.push_front(l);
+        }
+    }
+
+    link_pointer             link_;
+    std::deque<link_pointer> stack_;
+};
+
+// =============================================================================
+//     Postorder Iterator
+// =============================================================================
+
+template <class NodeDataType, class EdgeDataType>
+class TreeIteratorPostorder
+{
+public:
+    // -----------------------------------------------------
+    //     Typedefs
+    // -----------------------------------------------------
+
+    typedef TreeIteratorPostorder<NodeDataType, EdgeDataType> self_type;
+    typedef std::forward_iterator_tag                         iterator_category;
+    typedef TreeNode<NodeDataType, EdgeDataType>              value_type;
+    typedef TreeNode<NodeDataType, EdgeDataType>&             reference;
+    typedef TreeNode<NodeDataType, EdgeDataType>*             pointer;
+
+    typedef TreeLink<NodeDataType, EdgeDataType>*             link_pointer;
+
+    // -----------------------------------------------------
+    //     Constructor
+    // -----------------------------------------------------
+
+    TreeIteratorPostorder (link_pointer link)
+    {
+        if (link) {
+            stack_.push_back(link);
+            if (link->Outer() != link) {
+                stack_.push_front(link->Outer());
+                link = link->Outer();
+            }
+            while (link->IsInner()) {
+                PushFrontChildren(link);
+                link = link->Next()->Outer();
+            }
+            stack_.pop_front();
+        }
+        link_ = link;
+    }
+
+    // -----------------------------------------------------
+    //     Operators
+    // -----------------------------------------------------
+
+    inline self_type operator ++ ()
+    {
+        if (stack_.empty()) {
+            link_ = nullptr;
+        } else if (link_->Outer()->Next() == stack_.front()) {
+            link_ = stack_.front();
+            stack_.pop_front();
+        } else {
+            link_ = stack_.front();
+            while (link_->IsInner()) {
+                PushFrontChildren(link_);
+                link_ = link_->Next()->Outer();
+            }
+            link_ = stack_.front();
+            stack_.pop_front();
+        }
+
+        return *this;
+    }
+
+    inline self_type operator ++ (int)
+    {
+        self_type tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    inline bool operator == (const self_type &other) const
+    {
+        return other.link_ == link_;
+    }
+
+    inline bool operator != (const self_type &other) const
+    {
+        return !(other == *this);
+    }
+
+    inline reference operator * ()
+    {
+        return *(link_->Node());
+    }
+
+    inline pointer operator -> ()
+    {
+        return link_->Node();
+    }
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+    inline TreeLink<NodeDataType, EdgeDataType>& Link()
+    {
+        return *link_;
+    }
+
+    inline TreeNode<NodeDataType, EdgeDataType>& Node()
+    {
+        return *(link_->Node());
+    }
+
+protected:
+    inline void PushFrontChildren(link_pointer link)
+    {
+        // we need to push to a tmp queue first, in order to get the order right.
+        // otherwise, we would still do a preorder traversal, but starting with
+        // the last child of each node instead of the first one.
+        std::deque<link_pointer> tmp;
+        link_pointer c = link->Next();
+        while (c != link) {
+            // TODO if root does not contain the surplus "uplink", this condition is not needed any more
+            if (c->Outer() != c) {
+                tmp.push_front(c->Outer());
+            }
+            c = c->Next();
+        }
+        for (link_pointer l : tmp) {
+            stack_.push_front(l);
+        }
+    }
+
+    link_pointer             link_;
+    std::deque<link_pointer> stack_;
+};
 
 } // namespace genesis
 

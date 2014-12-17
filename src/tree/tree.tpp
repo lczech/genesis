@@ -85,6 +85,9 @@ bool Tree<NDT, EDT>::FromNewickString (const std::string& tree)
 
 /**
  * @brief Create a Tree from a TreeBroker.
+ *
+ * It does not take the TreeBroker by const, because AssignRanks() has to be called in order to get
+ * the nesting right.
  */
 template <class NDT, class EDT>
 void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)

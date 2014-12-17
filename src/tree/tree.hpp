@@ -27,6 +27,12 @@ namespace genesis {
 template <class NodeDataType, class EdgeDataType>
 class TreeIteratorRoundtrip;
 
+template <class NodeDataType, class EdgeDataType>
+class TreeIteratorPreorder;
+
+template <class NodeDataType, class EdgeDataType>
+class TreeIteratorPostorder;
+
 // =============================================================================
 //     Tree
 // =============================================================================
@@ -35,6 +41,8 @@ template <class NodeDataType = DefaultNodeData, class EdgeDataType = DefaultEdge
 class Tree
 {
     friend class TreeIteratorRoundtrip<NodeDataType, EdgeDataType>;
+    friend class TreeIteratorPreorder<NodeDataType, EdgeDataType>;
+    friend class TreeIteratorPostorder<NodeDataType, EdgeDataType>;
 
 public:
 
@@ -85,10 +93,16 @@ public:
     // -----------------------------------------------------
 
     typedef TreeIteratorRoundtrip<NodeDataType, EdgeDataType> IteratorRoundtrip;
+    typedef TreeIteratorPreorder<NodeDataType, EdgeDataType>  IteratorPreorder;
+    typedef TreeIteratorPostorder<NodeDataType, EdgeDataType> IteratorPostorder;
 
     typedef typename std::vector<LinkType*>::iterator         IteratorLinks;
     typedef typename std::vector<NodeType*>::iterator         IteratorNodes;
     typedef typename std::vector<EdgeType*>::iterator         IteratorEdges;
+
+    // -----------------------
+    //     Roundtrip
+    // -----------------------
 
     inline IteratorRoundtrip BeginRoundtrip()
     {
@@ -110,6 +124,58 @@ public:
         return IteratorRoundtrip(nullptr);
     }
 
+    // -----------------------
+    //     Preorder
+    // -----------------------
+
+    inline IteratorPreorder BeginPreorder()
+    {
+        return IteratorPreorder(links_.front());
+    }
+
+    inline IteratorPreorder BeginPreorder(LinkType* link)
+    {
+        return IteratorPreorder(link);
+    }
+
+    inline IteratorPreorder BeginPreorder(NodeType* node)
+    {
+        return IteratorPreorder(node->PrimaryLink());
+    }
+
+    inline IteratorPreorder EndPreorder()
+    {
+        return IteratorPreorder(nullptr);
+    }
+
+    // -----------------------
+    //     Postorder
+    // -----------------------
+
+    inline IteratorPostorder BeginPostorder()
+    {
+        return IteratorPostorder(links_.front());
+    }
+
+    inline IteratorPostorder BeginPostorder(LinkType* link)
+    {
+        return IteratorPostorder(link);
+    }
+
+    inline IteratorPostorder BeginPostorder(NodeType* node)
+    {
+        return IteratorPostorder(node->PrimaryLink());
+    }
+
+    inline IteratorPostorder EndPostorder()
+    {
+        return IteratorPostorder(nullptr);
+    }
+
+    // -----------------------
+    //     Links
+    // -----------------------
+
     inline IteratorLinks BeginLinks()
     {
         return links_.begin();
@@ -120,6 +186,10 @@ public:
         return links_.end();
     }
 
+    // -----------------------
+    //     Nodes
+    // -----------------------
+
     inline IteratorNodes BeginNodes()
     {
         return nodes_.begin();
@@ -129,6 +199,10 @@ public:
     {
         return nodes_.end();
     }
+
+    // -----------------------
+    //     Edges
+    // -----------------------
 
     inline IteratorEdges BeginEdges()
     {
