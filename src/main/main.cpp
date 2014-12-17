@@ -32,7 +32,7 @@ std::string print_header()
       /   ) /___) /   ) /___) (_ ` / (_ `  \n\
      (___/ (___  /   / (___  (__) / (__)   \n\
         /                                  \n\
-    (_ /            2014 by Lucas Czech    \n";
+    (__/            2014 by Lucas Czech    \n";
 }
 
 int main (int argc, char* argv[])
@@ -44,11 +44,37 @@ int main (int argc, char* argv[])
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
-    //~ Tree<> tree;
-    //~ tree.FromNewickString("((A,((B,C,D)E[a branch],F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
-    //~ LOG_DBG << tree.DumpLinks();
-    //~ LOG_DBG << tree.DumpNodes();
-    //~ LOG_DBG << tree.DumpEdges();
+    Tree<> tree;
+    TreeNode<DefaultNodeData, DefaultEdgeData>* n;
+    tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
+    //~ LOG_DBG << tree.DumpAll();
+
+    // test roundtrip
+    LOG_DBG << "Test Roundtrip at root";
+    for (Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip(); it != tree.EndRoundtrip(); ++it) {
+        LOG_DBG1 << it->Node()->Dump();
+        if (it->Node()->data.name == "L") {
+            n = it->Node();
+        }
+    }
+    LOG_DBG << "Test Roundtrip at " + n->data.name;
+    for (Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip(n); it != tree.EndRoundtrip(); ++it) {
+        LOG_DBG1 << it->Node()->Dump();
+    }
+
+    // test preorder
+    LOG_DBG << "Test Preorder at root";
+    for (Tree<>::IteratorPreorder it = tree.BeginPreorder(); it != tree.EndPreorder(); ++it) {
+        LOG_DBG1 << it->Dump();
+        if (it->data.name == "L") {
+            n = &*it;
+        }
+    }
+    LOG_DBG << "Test Preorder at " + n->data.name;
+    for (Tree<>::IteratorPreorder it = tree.BeginPreorder(n); it != tree.EndPreorder(); ++it) {
+        LOG_DBG1 << it->Dump();
+    }
+
 
     //~ tree.FromNewickString("((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;");
 
@@ -89,9 +115,9 @@ int main (int argc, char* argv[])
 
     //~ JsonDocument doc;
 
-    Placements place;
-    JplaceParser::ProcessFile("test/data/placement.jplace", place);
-    LOG_DBG << place.DumpAll();
+    //~ Placements place;
+    //~ JplaceParser::ProcessFile("test/data/placement.jplace", place);
+    //~ LOG_DBG << place.DumpAll();
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {

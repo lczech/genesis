@@ -27,6 +27,9 @@ namespace genesis {
 template <class NodeDataType, class EdgeDataType>
 class TreeIteratorRoundtrip;
 
+template <class NodeDataType, class EdgeDataType>
+class TreeIteratorPreoder;
+
 // =============================================================================
 //     Tree
 // =============================================================================
@@ -35,6 +38,7 @@ template <class NodeDataType = DefaultNodeData, class EdgeDataType = DefaultEdge
 class Tree
 {
     friend class TreeIteratorRoundtrip<NodeDataType, EdgeDataType>;
+    friend class TreeIteratorPreoder<NodeDataType, EdgeDataType>;
 
 public:
 
@@ -85,6 +89,7 @@ public:
     // -----------------------------------------------------
 
     typedef TreeIteratorRoundtrip<NodeDataType, EdgeDataType> IteratorRoundtrip;
+    typedef TreeIteratorPreoder<NodeDataType, EdgeDataType>   IteratorPreorder;
 
     typedef typename std::vector<LinkType*>::iterator         IteratorLinks;
     typedef typename std::vector<NodeType*>::iterator         IteratorNodes;
@@ -108,6 +113,26 @@ public:
     inline IteratorRoundtrip EndRoundtrip()
     {
         return IteratorRoundtrip(nullptr);
+    }
+
+    inline IteratorPreorder BeginPreorder()
+    {
+        return IteratorPreorder(links_.front());
+    }
+
+    inline IteratorPreorder BeginPreorder(LinkType* link)
+    {
+        return IteratorPreorder(link);
+    }
+
+    inline IteratorPreorder BeginPreorder(NodeType* node)
+    {
+        return IteratorPreorder(node->PrimaryLink());
+    }
+
+    inline IteratorPreorder EndPreorder()
+    {
+        return IteratorPreorder(nullptr);
     }
 
     inline IteratorLinks BeginLinks()

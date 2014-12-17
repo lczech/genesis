@@ -70,8 +70,8 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
         return false;
     }
     for (
-        PlacementTree::IteratorRoundtrip it = placements.tree.BeginRoundtrip();
-        it != placements.tree.EndRoundtrip();
+        PlacementTree::IteratorEdges it = placements.tree.BeginEdges();
+        it != placements.tree.EndEdges();
         ++it
     ) {
 
