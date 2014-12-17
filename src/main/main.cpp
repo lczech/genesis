@@ -49,6 +49,7 @@ int main (int argc, char* argv[])
     tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
     //~ LOG_DBG << tree.DumpAll();
 
+    /*
     // test roundtrip
     LOG_DBG << "Test Roundtrip at root";
     for (Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip(); it != tree.EndRoundtrip(); ++it) {
@@ -74,7 +75,20 @@ int main (int argc, char* argv[])
     for (Tree<>::IteratorPreorder it = tree.BeginPreorder(n); it != tree.EndPreorder(); ++it) {
         LOG_DBG1 << it->Dump();
     }
+    */
 
+    // test postorder
+    LOG_DBG << "Test Postorder at root";
+    for (Tree<>::IteratorPostorder it = tree.BeginPostorder(); it != tree.EndPostorder(); ++it) {
+        LOG_DBG1 << it->Dump();
+        if (it->data.name == "M") {
+            n = &*it;
+        }
+    }
+    LOG_DBG << "Test Postorder at " + n->data.name;
+    for (Tree<>::IteratorPostorder it = tree.BeginPostorder(n); it != tree.EndPostorder(); ++it) {
+        LOG_DBG1 << it->Dump();
+    }
 
     //~ tree.FromNewickString("((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;");
 
