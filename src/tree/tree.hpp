@@ -33,6 +33,9 @@ class TreeIteratorPreorder;
 template <class NodeDataType, class EdgeDataType>
 class TreeIteratorPostorder;
 
+template <class NodeDataType, class EdgeDataType>
+class TreeIteratorLevelorder;
+
 // =============================================================================
 //     Tree
 // =============================================================================
@@ -40,10 +43,6 @@ class TreeIteratorPostorder;
 template <class NodeDataType = DefaultNodeData, class EdgeDataType = DefaultEdgeData>
 class Tree
 {
-    friend class TreeIteratorRoundtrip<NodeDataType, EdgeDataType>;
-    friend class TreeIteratorPreorder<NodeDataType, EdgeDataType>;
-    friend class TreeIteratorPostorder<NodeDataType, EdgeDataType>;
-
 public:
 
     // -----------------------------------------------------
@@ -92,13 +91,14 @@ public:
     //     Iterators
     // -----------------------------------------------------
 
-    typedef TreeIteratorRoundtrip<NodeDataType, EdgeDataType> IteratorRoundtrip;
-    typedef TreeIteratorPreorder<NodeDataType, EdgeDataType>  IteratorPreorder;
-    typedef TreeIteratorPostorder<NodeDataType, EdgeDataType> IteratorPostorder;
+    typedef TreeIteratorRoundtrip <NodeDataType, EdgeDataType> IteratorRoundtrip;
+    typedef TreeIteratorPreorder  <NodeDataType, EdgeDataType> IteratorPreorder;
+    typedef TreeIteratorPostorder <NodeDataType, EdgeDataType> IteratorPostorder;
+    typedef TreeIteratorLevelorder<NodeDataType, EdgeDataType> IteratorLevelorder;
 
-    typedef typename std::vector<LinkType*>::iterator         IteratorLinks;
-    typedef typename std::vector<NodeType*>::iterator         IteratorNodes;
-    typedef typename std::vector<EdgeType*>::iterator         IteratorEdges;
+    typedef typename std::vector<LinkType*>::iterator          IteratorLinks;
+    typedef typename std::vector<NodeType*>::iterator          IteratorNodes;
+    typedef typename std::vector<EdgeType*>::iterator          IteratorEdges;
 
     // -----------------------
     //     Roundtrip
@@ -170,6 +170,30 @@ public:
     inline IteratorPostorder EndPostorder()
     {
         return IteratorPostorder(nullptr);
+    }
+
+    // -----------------------
+    //     Levelorder
+    // -----------------------
+
+    inline IteratorLevelorder BeginLevelorder()
+    {
+        return IteratorLevelorder(links_.front());
+    }
+
+    inline IteratorLevelorder BeginLevelorder(LinkType* link)
+    {
+        return IteratorLevelorder(link);
+    }
+
+    inline IteratorLevelorder BeginLevelorder(NodeType* node)
+    {
+        return IteratorLevelorder(node->PrimaryLink());
+    }
+
+    inline IteratorLevelorder EndLevelorder()
+    {
+        return IteratorLevelorder(nullptr);
     }
 
     // -----------------------
