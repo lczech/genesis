@@ -44,12 +44,12 @@ int main (int argc, char* argv[])
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
+    /*
     Tree<> tree;
     TreeNode<DefaultNodeData, DefaultEdgeData>* n;
     tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
     //~ LOG_DBG << tree.DumpAll();
 
-    /*
     // test roundtrip
     LOG_DBG << "Test Roundtrip at root";
     for (Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip(); it != tree.EndRoundtrip(); ++it) {
@@ -80,7 +80,7 @@ int main (int argc, char* argv[])
     LOG_DBG << "Test Postorder at root";
     for (Tree<>::IteratorPostorder it = tree.BeginPostorder(); it != tree.EndPostorder(); ++it) {
         LOG_DBG1 << it->Dump();
-        if (it->data.name == "M") {
+        if (it->data.name == "L") {
             n = &*it;
         }
     }
@@ -88,7 +88,6 @@ int main (int argc, char* argv[])
     for (Tree<>::IteratorPostorder it = tree.BeginPostorder(n); it != tree.EndPostorder(); ++it) {
         LOG_DBG1 << it->Dump();
     }
-    */
 
     // test levelorder
     LOG_DBG << "Test Levelorder at root";
@@ -102,6 +101,7 @@ int main (int argc, char* argv[])
     for (Tree<>::IteratorLevelorder it = tree.BeginLevelorder(n); it != tree.EndLevelorder(); ++it) {
         LOG_DBG1 << it->Dump();
     }
+    */
 
     //~ tree.FromNewickString("((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;");
 
@@ -142,9 +142,9 @@ int main (int argc, char* argv[])
 
     //~ JsonDocument doc;
 
-    //~ Placements place;
-    //~ JplaceParser::ProcessFile("test/data/placement.jplace", place);
-    //~ LOG_DBG << place.DumpAll();
+    Placements place;
+    JplaceParser::ProcessFile("test/data/placement.jplace", place);
+    LOG_DBG << place.DumpAll() << "\nvalid: " << place.Validate();
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {

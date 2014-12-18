@@ -18,6 +18,13 @@
 namespace genesis {
 
 // =============================================================================
+//     Forward Declarations
+// =============================================================================
+
+template <class NodeDataType, class EdgeDataType>
+class TreeEdge;
+
+// =============================================================================
 //     Pquery
 // =============================================================================
 
@@ -25,8 +32,8 @@ struct Pquery
 {
     struct Placement
     {
-        Placement() : edge_num(0), likelihood(0.0), like_weight_ratio(0.0),
-                      distal_length(0.0), pendant_length(0.0), parsimony(0)
+        Placement() : edge_num(0), likelihood(0.0), like_weight_ratio(0.0), distal_length(0.0),
+                      pendant_length(0.0), parsimony(0), edge(nullptr)
         {}
 
         int    edge_num;
@@ -35,6 +42,8 @@ struct Pquery
         double distal_length;
         double pendant_length;
         int    parsimony;
+
+        PlacementTree::EdgeType* edge;
     };
 
     struct Name
@@ -56,20 +65,34 @@ struct Pquery
 class Placements
 {
 public:
+    // -----------------------------------------------------
+    //     Constructor & Destructor
+    // -----------------------------------------------------
+
     Placements () {}
     Placements (PlacementTree& ptree) : tree(ptree) {}
     void clear();
     ~Placements();
 
-    std::deque<Pquery*> pqueries;
-    PlacementTree tree;
-
-    typedef std::unordered_map<std::string, std::string> Metadata;
-    Metadata metadata;
+    // -----------------------------------------------------
+    //     Dump and Debug
+    // -----------------------------------------------------
 
     std::string DumpAll();
     std::string DumpPqueries();
     std::string DumpTree();
+
+    bool Validate();
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+    std::deque<Pquery*> pqueries;
+    PlacementTree       tree;
+
+    typedef std::unordered_map<std::string, std::string> Metadata;
+    Metadata metadata;
 };
 
 } // namespace genesis
