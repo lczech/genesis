@@ -75,7 +75,6 @@ int main (int argc, char* argv[])
     for (Tree<>::IteratorPreorder it = tree.BeginPreorder(n); it != tree.EndPreorder(); ++it) {
         LOG_DBG1 << it->Dump();
     }
-    */
 
     // test postorder
     LOG_DBG << "Test Postorder at root";
@@ -87,6 +86,20 @@ int main (int argc, char* argv[])
     }
     LOG_DBG << "Test Postorder at " + n->data.name;
     for (Tree<>::IteratorPostorder it = tree.BeginPostorder(n); it != tree.EndPostorder(); ++it) {
+        LOG_DBG1 << it->Dump();
+    }
+    */
+
+    // test levelorder
+    LOG_DBG << "Test Levelorder at root";
+    for (Tree<>::IteratorLevelorder it = tree.BeginLevelorder(); it != tree.EndLevelorder(); ++it) {
+        LOG_DBG1 << it->Dump();
+        if (it->data.name == "L") {
+            n = &*it;
+        }
+    }
+    LOG_DBG << "Test Levelorder at " + n->data.name;
+    for (Tree<>::IteratorLevelorder it = tree.BeginLevelorder(n); it != tree.EndLevelorder(); ++it) {
         LOG_DBG1 << it->Dump();
     }
 

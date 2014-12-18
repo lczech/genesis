@@ -10,9 +10,11 @@
 
 #include <deque>
 
-namespace genesis {
+#include "tree/tree_link.hpp"
+#include "tree/tree_node.hpp"
+#include "tree/tree_edge.hpp"
 
-// TODO all iterators: http://en.wikipedia.org/wiki/Tree_traversal
+namespace genesis {
 
 // =============================================================================
 //     Forward Declarations
@@ -149,7 +151,6 @@ public:
     {
         if (link) {
             PushFrontChildren(link);
-            // TODO if root does not contain the surplus "uplink", this condition is not needed any more
             if (link->Outer() != link) {
                 stack_.push_front(link->Outer());
             }
@@ -223,7 +224,6 @@ protected:
         std::deque<link_pointer> tmp;
         link_pointer c = link->Next();
         while (c != link) {
-            // TODO if root does not contain the surplus "uplink", this condition is not needed any more
             if (c->Outer() != c) {
                 tmp.push_front(c->Outer());
             }
@@ -353,7 +353,6 @@ protected:
         std::deque<link_pointer> tmp;
         link_pointer c = link->Next();
         while (c != link) {
-            // TODO if root does not contain the surplus "uplink", this condition is not needed any more
             if (c->Outer() != c) {
                 tmp.push_front(c->Outer());
             }
@@ -361,6 +360,115 @@ protected:
         }
         for (link_pointer l : tmp) {
             stack_.push_front(l);
+        }
+    }
+
+    link_pointer             link_;
+    std::deque<link_pointer> stack_;
+};
+
+// =============================================================================
+//     Levelorder Iterator
+// =============================================================================
+
+template <class NodeDataType, class EdgeDataType>
+class TreeIteratorLevelorder
+{
+public:
+    // -----------------------------------------------------
+    //     Typedefs
+    // -----------------------------------------------------
+
+    typedef TreeIteratorLevelorder<NodeDataType, EdgeDataType> self_type;
+    typedef std::forward_iterator_tag                          iterator_category;
+    typedef TreeNode<NodeDataType, EdgeDataType>               value_type;
+    typedef TreeNode<NodeDataType, EdgeDataType>&              reference;
+    typedef TreeNode<NodeDataType, EdgeDataType>*              pointer;
+
+    typedef TreeLink<NodeDataType, EdgeDataType>*              link_pointer;
+
+    // -----------------------------------------------------
+    //     Constructor
+    // -----------------------------------------------------
+
+    TreeIteratorLevelorder (link_pointer link)
+    {
+        if (link) {
+            PushBackChildren(link);
+            if (link->Outer() != link) {
+                stack_.push_front(link->Outer());
+            }
+        }
+        link_ = link;
+    }
+
+    // -----------------------------------------------------
+    //     Operators
+    // -----------------------------------------------------
+
+    inline self_type operator ++ ()
+    {
+        if (stack_.empty()) {
+            link_ = nullptr;
+        } else {
+            link_ = stack_.front();
+            stack_.pop_front();
+            PushBackChildren(link_);
+        }
+
+        return *this;
+    }
+
+    inline self_type operator ++ (int)
+    {
+        self_type tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    inline bool operator == (const self_type &other) const
+    {
+        return other.link_ == link_;
+    }
+
+    inline bool operator != (const self_type &other) const
+    {
+        return !(other == *this);
+    }
+
+    inline reference operator * ()
+    {
+        return *(link_->Node());
+    }
+
+    inline pointer operator -> ()
+    {
+        return link_->Node();
+    }
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+    inline TreeLink<NodeDataType, EdgeDataType>& Link()
+    {
+        return *link_;
+    }
+
+    inline TreeNode<NodeDataType, EdgeDataType>& Node()
+    {
+        return *(link_->Node());
+    }
+
+protected:
+    inline void PushBackChildren(link_pointer link)
+    {
+        link_pointer c = link->Next();
+        while (c != link) {
+            if (c->Outer() != c) {
+                stack_.push_back(c->Outer());
+            }
+            c = c->Next();
         }
     }
 
