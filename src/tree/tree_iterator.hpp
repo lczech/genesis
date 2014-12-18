@@ -104,19 +104,19 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline TreeLink<NodeDataType, EdgeDataType>& Link()
+    inline TreeLink<NodeDataType, EdgeDataType>* Link()
     {
-        return *link_;
+        return link_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>& Node()
+    inline TreeNode<NodeDataType, EdgeDataType>* Node()
     {
-        return *(link_->Node());
+        return link_->Node();
     }
 
-    inline TreeEdge<NodeDataType, EdgeDataType>& Edge()
+    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
     {
-        return *(link_->Edge());
+        return link_->Edge();
     }
 
 protected:
@@ -137,18 +137,18 @@ public:
     // -----------------------------------------------------
 
     typedef TreeIteratorPreorder<NodeDataType, EdgeDataType> self_type;
-    typedef std::forward_iterator_tag                       iterator_category;
-    typedef TreeNode<NodeDataType, EdgeDataType>            value_type;
-    typedef TreeNode<NodeDataType, EdgeDataType>&           reference;
-    typedef TreeNode<NodeDataType, EdgeDataType>*           pointer;
+    typedef std::forward_iterator_tag                        iterator_category;
+    typedef TreeNode<NodeDataType, EdgeDataType>             value_type;
+    typedef TreeNode<NodeDataType, EdgeDataType>&            reference;
+    typedef TreeNode<NodeDataType, EdgeDataType>*            pointer;
 
-    typedef TreeLink<NodeDataType, EdgeDataType>*           link_pointer;
+    typedef TreeLink<NodeDataType, EdgeDataType>*            link_pointer;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorPreorder (link_pointer link) : link_(link)
+    TreeIteratorPreorder (link_pointer link) : link_(link), start_(link)
     {
         if (link) {
             PushFrontChildren(link);
@@ -206,14 +206,22 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline TreeLink<NodeDataType, EdgeDataType>& Link()
+    inline TreeLink<NodeDataType, EdgeDataType>* Link()
     {
-        return *link_;
+        return link_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>& Node()
+    inline TreeNode<NodeDataType, EdgeDataType>* Node()
     {
-        return *(link_->Node());
+        return link_->Node();
+    }
+
+    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    {
+        if (link_ == start_) {
+            return nullptr;
+        }
+        return link_->Edge();
     }
 
 protected:
@@ -236,6 +244,7 @@ protected:
     }
 
     link_pointer             link_;
+    link_pointer             start_;
     std::deque<link_pointer> stack_;
 };
 
@@ -263,7 +272,7 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorPostorder (link_pointer link)
+    TreeIteratorPostorder (link_pointer link) : start_(link)
     {
         if (link) {
             stack_.push_back(link);
@@ -336,14 +345,22 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline TreeLink<NodeDataType, EdgeDataType>& Link()
+    inline TreeLink<NodeDataType, EdgeDataType>* Link()
     {
-        return *link_;
+        return link_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>& Node()
+    inline TreeNode<NodeDataType, EdgeDataType>* Node()
     {
-        return *(link_->Node());
+        return link_->Node();
+    }
+
+    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    {
+        if (link_ == start_) {
+            return nullptr;
+        }
+        return link_->Edge();
     }
 
 protected:
@@ -366,6 +383,7 @@ protected:
     }
 
     link_pointer             link_;
+    link_pointer             start_;
     std::deque<link_pointer> stack_;
 };
 
@@ -393,7 +411,7 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorLevelorder (link_pointer link)
+    TreeIteratorLevelorder (link_pointer link) : start_(link)
     {
         if (link) {
             PushBackChildren(link);
@@ -452,14 +470,22 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline TreeLink<NodeDataType, EdgeDataType>& Link()
+    inline TreeLink<NodeDataType, EdgeDataType>* Link()
     {
-        return *link_;
+        return link_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>& Node()
+    inline TreeNode<NodeDataType, EdgeDataType>* Node()
     {
-        return *(link_->Node());
+        return link_->Node();
+    }
+
+    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    {
+        if (link_ == start_) {
+            return nullptr;
+        }
+        return link_->Edge();
     }
 
 protected:
@@ -475,6 +501,7 @@ protected:
     }
 
     link_pointer             link_;
+    link_pointer             start_;
     std::deque<link_pointer> stack_;
 };
 
