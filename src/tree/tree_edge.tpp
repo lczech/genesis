@@ -28,13 +28,13 @@ namespace genesis {
 template <class NDT, class EDT>
 inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::PrimaryNode() const
 {
-    return link_p_->node();
+    return link_p_->Node();
 }
 
 template <class NDT, class EDT>
 inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::SecondaryNode() const
 {
-    return link_s_->node();
+    return link_s_->Node();
 }
 
 } // namespace genesis

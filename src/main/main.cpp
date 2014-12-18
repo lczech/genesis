@@ -44,11 +44,11 @@ int main (int argc, char* argv[])
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
-    /*
+    //*
     Tree<> tree;
     TreeNode<DefaultNodeData, DefaultEdgeData>* n;
     tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
-    //~ LOG_DBG << tree.DumpAll();
+    LOG_DBG << tree.DumpAll();
 
     // test roundtrip
     LOG_DBG << "Test Roundtrip at root";
@@ -66,42 +66,42 @@ int main (int argc, char* argv[])
     // test preorder
     LOG_DBG << "Test Preorder at root";
     for (Tree<>::IteratorPreorder it = tree.BeginPreorder(); it != tree.EndPreorder(); ++it) {
-        LOG_DBG1 << it->Dump();
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
         if (it->data.name == "L") {
             n = &*it;
         }
     }
     LOG_DBG << "Test Preorder at " + n->data.name;
     for (Tree<>::IteratorPreorder it = tree.BeginPreorder(n); it != tree.EndPreorder(); ++it) {
-        LOG_DBG1 << it->Dump();
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
     }
 
     // test postorder
     LOG_DBG << "Test Postorder at root";
     for (Tree<>::IteratorPostorder it = tree.BeginPostorder(); it != tree.EndPostorder(); ++it) {
-        LOG_DBG1 << it->Dump();
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
         if (it->data.name == "L") {
             n = &*it;
         }
     }
     LOG_DBG << "Test Postorder at " + n->data.name;
     for (Tree<>::IteratorPostorder it = tree.BeginPostorder(n); it != tree.EndPostorder(); ++it) {
-        LOG_DBG1 << it->Dump();
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
     }
 
     // test levelorder
     LOG_DBG << "Test Levelorder at root";
     for (Tree<>::IteratorLevelorder it = tree.BeginLevelorder(); it != tree.EndLevelorder(); ++it) {
-        LOG_DBG1 << it->Dump();
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
         if (it->data.name == "L") {
             n = &*it;
         }
     }
     LOG_DBG << "Test Levelorder at " + n->data.name;
     for (Tree<>::IteratorLevelorder it = tree.BeginLevelorder(n); it != tree.EndLevelorder(); ++it) {
-        LOG_DBG1 << it->Dump();
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
     }
-    */
+    //*/
 
     //~ tree.FromNewickString("((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;");
 
