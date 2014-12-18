@@ -8,6 +8,7 @@
  * @ingroup tree
  */
 
+#include <assert.h>
 #include <deque>
 
 #include "tree/tree_link.hpp"
@@ -274,6 +275,7 @@ public:
                 PushFrontChildren(link);
                 link = link->Next()->Outer();
             }
+            assert(link == stack_.front());
             stack_.pop_front();
         }
         link_ = link;
@@ -296,7 +298,7 @@ public:
                 PushFrontChildren(link_);
                 link_ = link_->Next()->Outer();
             }
-            link_ = stack_.front();
+            assert(link_ == stack_.front());
             stack_.pop_front();
         }
 
@@ -348,7 +350,7 @@ protected:
     inline void PushFrontChildren(link_pointer link)
     {
         // we need to push to a tmp queue first, in order to get the order right.
-        // otherwise, we would still do a preorder traversal, but starting with
+        // otherwise, we would still do a postorder traversal, but starting with
         // the last child of each node instead of the first one.
         std::deque<link_pointer> tmp;
         link_pointer c = link->Next();

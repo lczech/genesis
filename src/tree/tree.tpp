@@ -200,6 +200,7 @@ bool Tree<NDT, EDT>::IsBifurcating() const
     // TODO this function will be curtial to ensure correctness of invariants once
     // TODO we start implementing stuff that modifies a tree (add nodes, move branches...)!
     // TODO do all iterators and check consistency! eg is a round trip covering every object (links onces, branches twice, nodes rank many times)?
+    // TODO iterator over all links and count if edges are encountered exactly twice each.
 
 
 template <class NDT, class EDT>

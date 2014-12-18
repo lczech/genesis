@@ -66,4 +66,16 @@ std::string Placements::DumpTree()
     return tree.DumpAll();
 }
 
+bool Placements::Validate()
+{
+    for (Pquery* pqry : pqueries) {
+        for (Pquery::Placement& p : pqry->placements) {
+            if (p.edge_num != p.edge->data.edge_num) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
 } // namespace genesis
