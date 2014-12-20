@@ -31,6 +31,9 @@ template <class NodeDataType, class EdgeDataType>
 class TreeIteratorPreorder;
 
 template <class NodeDataType, class EdgeDataType>
+class TreeIteratorInorder;
+
+template <class NodeDataType, class EdgeDataType>
 class TreeIteratorPostorder;
 
 template <class NodeDataType, class EdgeDataType>
@@ -93,12 +96,17 @@ public:
 
     typedef TreeIteratorRoundtrip <NodeDataType, EdgeDataType> IteratorRoundtrip;
     typedef TreeIteratorPreorder  <NodeDataType, EdgeDataType> IteratorPreorder;
+    typedef TreeIteratorInorder   <NodeDataType, EdgeDataType> IteratorInorder;
     typedef TreeIteratorPostorder <NodeDataType, EdgeDataType> IteratorPostorder;
     typedef TreeIteratorLevelorder<NodeDataType, EdgeDataType> IteratorLevelorder;
 
     typedef typename std::vector<LinkType*>::iterator          IteratorLinks;
     typedef typename std::vector<NodeType*>::iterator          IteratorNodes;
     typedef typename std::vector<EdgeType*>::iterator          IteratorEdges;
+
+    // TODO so far, the End... iterators are called anew for every comparison in a loop like
+    // TODO it != tree.EndInorder(), which will slow it down compared to having e.g. a fixed
+    // TODO end iterator object or so... not sure, if worth the effort.
 
     // -----------------------
     //     Roundtrip
@@ -146,6 +154,30 @@ public:
     inline IteratorPreorder EndPreorder()
     {
         return IteratorPreorder(nullptr);
+    }
+
+    // -----------------------
+    //     Inorder
+    // -----------------------
+
+    inline IteratorInorder BeginInorder()
+    {
+        return IteratorInorder(links_.front());
+    }
+
+    inline IteratorInorder BeginInorder(LinkType* link)
+    {
+        return IteratorInorder(link);
+    }
+
+    inline IteratorInorder BeginInorder(NodeType* node)
+    {
+        return IteratorInorder(node->PrimaryLink());
+    }
+
+    inline IteratorInorder EndInorder()
+    {
+        return IteratorInorder(nullptr);
     }
 
     // -----------------------
