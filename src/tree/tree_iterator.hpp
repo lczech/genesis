@@ -249,6 +249,147 @@ protected:
 };
 
 // =============================================================================
+//     Inorder Iterator
+// =============================================================================
+
+template <class NodeDataType, class EdgeDataType>
+class TreeIteratorInorder
+{
+public:
+    // -----------------------------------------------------
+    //     Typedefs
+    // -----------------------------------------------------
+
+    typedef TreeIteratorInorder<NodeDataType, EdgeDataType> self_type;
+    typedef std::forward_iterator_tag                       iterator_category;
+    typedef TreeNode<NodeDataType, EdgeDataType>            value_type;
+    typedef TreeNode<NodeDataType, EdgeDataType>&           reference;
+    typedef TreeNode<NodeDataType, EdgeDataType>*           pointer;
+
+    typedef TreeLink<NodeDataType, EdgeDataType>*           link_pointer;
+
+    // -----------------------------------------------------
+    //     Constructor
+    // -----------------------------------------------------
+
+    TreeIteratorInorder (link_pointer link) : start_(link)
+    {
+        if (link) {
+            link_ = link;
+            if (link->Outer() != link) {
+                while (link->Next() != link_) {
+                    link = link->Next();
+                }
+                stack_.push_front(link->Outer());
+            }
+            while (link->IsInner()) {
+                PushFrontChildren(link);
+                link = link->Next()->Outer();
+            }
+        }
+        link_ = link;
+    }
+
+    // -----------------------------------------------------
+    //     Operators
+    // -----------------------------------------------------
+
+    inline self_type operator ++ ()
+    {
+        if (link_ == stack_.front()) {
+            while (!stack_.empty() && link_ == stack_.front()) {
+                link_ = link_->Outer()->Next();
+                stack_.pop_front();
+            }
+            while (link_->Outer() == link_) {
+                link_ = link_->Next();
+            }
+            if (stack_.empty()) {
+                link_ = nullptr;
+            }
+        } else {
+            assert(link_->Outer() == stack_.front());
+            link_ = link_->Outer();
+            while (link_->IsInner()) {
+                PushFrontChildren(link_);
+                link_ = link_->Next()->Outer();
+            }
+        }
+
+        return *this;
+    }
+
+    inline self_type operator ++ (int)
+    {
+        self_type tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    inline bool operator == (const self_type &other) const
+    {
+        return other.link_ == link_;
+    }
+
+    inline bool operator != (const self_type &other) const
+    {
+        return !(other == *this);
+    }
+
+    inline reference operator * ()
+    {
+        return *(link_->Node());
+    }
+
+    inline pointer operator -> ()
+    {
+        return link_->Node();
+    }
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+    inline TreeLink<NodeDataType, EdgeDataType>* Link()
+    {
+        return link_;
+    }
+
+    inline TreeNode<NodeDataType, EdgeDataType>* Node()
+    {
+        return link_->Node();
+    }
+
+    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    {
+        return link_->Edge();
+    }
+
+protected:
+    inline void PushFrontChildren(link_pointer link)
+    {
+        // we need to push to a tmp queue first, in order to get the order right.
+        // otherwise, we would still do a preorder traversal, but starting with
+        // the last child of each node instead of the first one.
+        std::deque<link_pointer> tmp;
+        link_pointer c = link->Next();
+        while (c != link) {
+            if (c->Outer() != c) {
+                tmp.push_front(c->Outer());
+            }
+            c = c->Next();
+        }
+        for (link_pointer l : tmp) {
+            stack_.push_front(l);
+        }
+    }
+
+    link_pointer             link_;
+    link_pointer             start_;
+    std::deque<link_pointer> stack_;
+};
+
+// =============================================================================
 //     Postorder Iterator
 // =============================================================================
 
