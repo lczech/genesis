@@ -46,7 +46,8 @@ int main (int argc, char* argv[])
 
     Tree<> tree;
     TreeNode<DefaultNodeData, DefaultEdgeData>* n;
-    tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
+    //~ tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
+    tree.FromNewickString("((A,((B,C)D,E)F)G,((H,((I,J)K,L)M)N,O)P,Q)R;");
     LOG_DBG << tree.DumpAll();
 
     /*
@@ -81,7 +82,7 @@ int main (int argc, char* argv[])
     LOG_DBG << "Test Inorder at root";
     for (Tree<>::IteratorInorder it = tree.BeginInorder(); it != tree.EndInorder(); ++it) {
         LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
-        if (it->data.name == "L") {
+        if (it->data.name == "N") {
             n = &*it;
         }
     }

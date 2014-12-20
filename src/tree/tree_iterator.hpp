@@ -275,15 +275,17 @@ public:
     TreeIteratorInorder (link_pointer link) : start_(link)
     {
         if (link) {
-            //~ if (link->Outer() != link) {
-                //~ stack_.push_front(link->Outer());
-                //~ link = link->Outer();
-            //~ }
+            link_ = link;
+            if (link->Outer() != link) {
+                while (link->Next() != link_) {
+                    link = link->Next();
+                }
+                stack_.push_front(link->Outer());
+            }
             while (link->IsInner()) {
                 PushFrontChildren(link);
                 link = link->Next()->Outer();
             }
-
         }
         link_ = link;
     }
@@ -299,6 +301,9 @@ public:
                 link_ = link_->Outer()->Next();
                 stack_.pop_front();
             }
+            while (link_->Outer() == link_) {
+                link_ = link_->Next();
+            }
             if (stack_.empty()) {
                 link_ = nullptr;
             }
@@ -310,12 +315,6 @@ public:
                 link_ = link_->Next()->Outer();
             }
         }
-
-        std::string m = "     ";
-        for (link_pointer p : stack_) {
-            m += p->Node()->data.name + " ";
-        }
-        LOG_DBG2 << m;
 
         return *this;
     }
@@ -363,9 +362,6 @@ public:
 
     inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
     {
-        if (link_ == start_) {
-            return nullptr;
-        }
         return link_->Edge();
     }
 
