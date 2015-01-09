@@ -30,8 +30,8 @@ class TreeIteratorRoundtrip;
 template <class NodeDataType, class EdgeDataType>
 class TreeIteratorPreorder;
 
-template <class NodeDataType, class EdgeDataType>
-class TreeIteratorInorder;
+//~ template <class NodeDataType, class EdgeDataType>
+//~ class TreeIteratorInorder;
 
 template <class NodeDataType, class EdgeDataType>
 class TreeIteratorPostorder;
@@ -96,7 +96,7 @@ public:
 
     typedef TreeIteratorRoundtrip <NodeDataType, EdgeDataType> IteratorRoundtrip;
     typedef TreeIteratorPreorder  <NodeDataType, EdgeDataType> IteratorPreorder;
-    typedef TreeIteratorInorder   <NodeDataType, EdgeDataType> IteratorInorder;
+    //~ typedef TreeIteratorInorder   <NodeDataType, EdgeDataType> IteratorInorder;
     typedef TreeIteratorPostorder <NodeDataType, EdgeDataType> IteratorPostorder;
     typedef TreeIteratorLevelorder<NodeDataType, EdgeDataType> IteratorLevelorder;
 
@@ -107,6 +107,9 @@ public:
     // TODO so far, the End... iterators are called anew for every comparison in a loop like
     // TODO it != tree.EndInorder(), which will slow it down compared to having e.g. a fixed
     // TODO end iterator object or so... not sure, if worth the effort.
+    // TODO make sure that links_.front is always the root! or better: introduce a new tree
+    // TODO function Root()  or RootNode ..Link etc that checks whether front is root and if not
+    // TODO finds the root, then returns it. then, use this instead of front in the following iterators!
 
     // -----------------------
     //     Roundtrip
@@ -160,25 +163,25 @@ public:
     //     Inorder
     // -----------------------
 
-    inline IteratorInorder BeginInorder()
-    {
-        return IteratorInorder(links_.front());
-    }
-
-    inline IteratorInorder BeginInorder(LinkType* link)
-    {
-        return IteratorInorder(link);
-    }
-
-    inline IteratorInorder BeginInorder(NodeType* node)
-    {
-        return IteratorInorder(node->PrimaryLink());
-    }
-
-    inline IteratorInorder EndInorder()
-    {
-        return IteratorInorder(nullptr);
-    }
+    //~ inline IteratorInorder BeginInorder()
+    //~ {
+        //~ return IteratorInorder(links_.front());
+    //~ }
+//~
+    //~ inline IteratorInorder BeginInorder(LinkType* link)
+    //~ {
+        //~ return IteratorInorder(link);
+    //~ }
+//~
+    //~ inline IteratorInorder BeginInorder(NodeType* node)
+    //~ {
+        //~ return IteratorInorder(node->PrimaryLink());
+    //~ }
+//~
+    //~ inline IteratorInorder EndInorder()
+    //~ {
+        //~ return IteratorInorder(nullptr);
+    //~ }
 
     // -----------------------
     //     Postorder
