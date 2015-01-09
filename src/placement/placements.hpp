@@ -65,6 +65,8 @@ struct Pquery
 class Placements
 {
 public:
+    typedef std::unordered_map<std::string, std::string> Metadata;
+
     // -----------------------------------------------------
     //     Constructor & Destructor
     // -----------------------------------------------------
@@ -73,6 +75,13 @@ public:
     Placements (PlacementTree& ptree) : tree(ptree) {}
     void clear();
     ~Placements();
+
+    // -----------------------------------------------------
+    //     Placement Weight
+    // -----------------------------------------------------
+
+    double PlacementWeightSum();
+    double EMD(Placements& other);
 
     // -----------------------------------------------------
     //     Dump and Debug
@@ -90,9 +99,7 @@ public:
 
     std::deque<Pquery*> pqueries;
     PlacementTree       tree;
-
-    typedef std::unordered_map<std::string, std::string> Metadata;
-    Metadata metadata;
+    Metadata            metadata;
 };
 
 } // namespace genesis
