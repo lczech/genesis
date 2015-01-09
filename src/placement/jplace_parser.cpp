@@ -190,6 +190,7 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
                         return false;
                     }
                     pqry_place.edge = edge_num_map.at(pqry_place_val);
+                    pqry_place.edge->data.pqueries.push_back(pqry);
                 } else if (fields[i] == "likelihood") {
                     pqry_place.likelihood        = pqry_place_val;
                 } else if (fields[i] == "like_weight_ratio") {

@@ -32,7 +32,7 @@ std::string print_header()
       /   ) /___) /   ) /___) (_ ` / (_ `  \n\
      (___/ (___  /   / (___  (__) / (__)   \n\
         /                                  \n\
-    (__/            2014 by Lucas Czech    \n";
+    (__/       2014-2015 by Lucas Czech    \n";
 }
 
 int main (int argc, char* argv[])
@@ -44,13 +44,13 @@ int main (int argc, char* argv[])
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
+    /*
     Tree<> tree;
     TreeNode<DefaultNodeData, DefaultEdgeData>* n;
-    //~ tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
-    tree.FromNewickString("((A,((B,C)D,E)F)G,((H,((I,J)K,L)M)N,O)P,Q)R;");
+    tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
+    //~ tree.FromNewickString("((A,((B,C)D,E)F)G,((H,((I,J)K,L)M)N,O)P,Q)R;");
     LOG_DBG << tree.DumpAll();
 
-    /*
     // test roundtrip
     LOG_DBG << "Test Roundtrip at root";
     for (Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip(); it != tree.EndRoundtrip(); ++it) {
@@ -77,12 +77,12 @@ int main (int argc, char* argv[])
         LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
     }
 
-    */
+    // * /
     // test inorder
     LOG_DBG << "Test Inorder at root";
     for (Tree<>::IteratorInorder it = tree.BeginInorder(); it != tree.EndInorder(); ++it) {
         LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
-        if (it->data.name == "N") {
+        if (it->data.name == "G") {
             n = &*it;
         }
     }
@@ -90,7 +90,7 @@ int main (int argc, char* argv[])
     for (Tree<>::IteratorInorder it = tree.BeginInorder(n); it != tree.EndInorder(); ++it) {
         LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
     }
-    /*
+    / *
 
     // test postorder
     LOG_DBG << "Test Postorder at root";
@@ -158,9 +158,12 @@ int main (int argc, char* argv[])
 
     //~ JsonDocument doc;
 
-    Placements place;
-    JplaceParser::ProcessFile("test/data/placement.jplace", place);
-    LOG_DBG << place.DumpAll() << "\nvalid: " << place.Validate();
+    Placements place_a, place_b;
+    JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
+    JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
+    LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
+
+    place_a.EMD(place_b);
 
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {
