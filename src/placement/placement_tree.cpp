@@ -15,19 +15,20 @@ namespace genesis {
 //     PlacementEdgeData
 // =============================================================================
 
-double PlacementEdgeData::PlacementWeight()
+double PlacementEdgeData::PlacementMass()
 {
-    double weight = 0.0;
+    double mass = 0.0;
     for (Pquery* pqry : pqueries) {
         for (Pquery::Placement pl : pqry->placements) {
             if (pl.edge_num != edge_num) {
                 continue;
             }
 
-            weight += (pl.distal_length + pl.pendant_length) * pl.like_weight_ratio;
+            //~ mass += pl.like_mass_ratio;
+            mass += 1.0;
         }
     }
-    return weight;
+    return mass;
 }
 
 } // namespace genesis

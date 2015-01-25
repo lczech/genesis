@@ -90,7 +90,7 @@ int main (int argc, char* argv[])
     for (Tree<>::IteratorInorder it = tree.BeginInorder(n); it != tree.EndInorder(); ++it) {
         LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
     }
-    / *
+    * /
 
     // test postorder
     LOG_DBG << "Test Postorder at root";
@@ -105,6 +105,7 @@ int main (int argc, char* argv[])
         LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
     }
 
+    / *
     // test levelorder
     LOG_DBG << "Test Levelorder at root";
     for (Tree<>::IteratorLevelorder it = tree.BeginLevelorder(); it != tree.EndLevelorder(); ++it) {
@@ -161,8 +162,7 @@ int main (int argc, char* argv[])
     Placements place_a, place_b;
     JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
     JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
-    LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
-
+    //~ LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
     place_a.EMD(place_b);
 
     std::cout << argc << " ";
