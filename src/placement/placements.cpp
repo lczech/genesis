@@ -14,6 +14,7 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "placement/jplace_parser.hpp"
 #include "utils/logging.hpp"
 
 namespace genesis {
@@ -35,6 +36,26 @@ void Placements::clear()
 Placements::~Placements()
 {
     clear();
+}
+
+bool Placements::FromJplaceFile (const std::string&  fn)
+{
+    return JplaceParser::ProcessFile(fn, *this);
+}
+
+bool Placements::FromJplaceString (const std::string&  jplace)
+{
+    return JplaceParser::ProcessString(jplace, *this);
+}
+
+bool Placements::FromJsonLexer (const JsonLexer&    lexer)
+{
+    return JplaceParser::ProcessLexer(lexer, *this);
+}
+
+bool Placements::FromJsonDocument (const JsonDocument& doc)
+{
+    return JplaceParser::ProcessDocument(doc, *this);
 }
 
 bool Placements::Merge(Placements& other)

@@ -209,6 +209,7 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
                                  << "in the given tree as an edge num.";
                         return false;
                     }
+                    // TODO add back if neccessary
                     //~ pqry_place.edge = edge_num_map.at(pqry_place_val);
                     //~ pqry_place.edge->data.pqueries.push_back(pqry);
                     edge_num_map.at(pqry_place_val)->data.pqueries.push_back(pqry);

@@ -18,6 +18,13 @@
 namespace genesis {
 
 // =============================================================================
+//     Forward Declarations
+// =============================================================================
+
+class JsonDocument;
+class JsonLexer;
+
+// =============================================================================
 //     Pquery
 // =============================================================================
 
@@ -81,6 +88,11 @@ public:
     Placements (PlacementTree& ptree) : tree(ptree) {}
     void clear();
     ~Placements();
+
+    bool FromJplaceFile   (const std::string&  fn);
+    bool FromJplaceString (const std::string&  jplace);
+    bool FromJsonLexer    (const JsonLexer&    lexer);
+    bool FromJsonDocument (const JsonDocument& doc);
 
     bool Merge(Placements& other);
 

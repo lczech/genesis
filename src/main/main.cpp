@@ -11,11 +11,7 @@
 #include <string>
 
 #include "placement/placements.hpp"
-#include "placement/jplace_parser.hpp"
 #include "tree/tree.hpp"
-#include "utils/json_document.hpp"
-#include "utils/json_lexer.hpp"
-#include "utils/json_parser.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -175,17 +171,13 @@ int main (int argc, char* argv[])
     //     Test for placements, earth movers distance, center of gravity
     // -----------------------------------------------------
     Placements place_a, place_b;
-    JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
-    JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
+    place_a.FromJplaceFile("test/data/test_a.jplace");
+    place_b.FromJplaceFile("test/data/test_b.jplace");
+    //~ JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
+    //~ JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
     //~ LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
-    //~ place_a.EMD(place_b);
+    place_a.EMD(place_b);
     //~ place_a.COG();
-    LOG_DBG << place_a.DumpPqueries();
-    LOG_DBG << place_b.DumpPqueries();
-    place_a.Merge(place_b);
-    place_b.pqueries[1]->names[0].name = "huhu";
-    LOG_DBG << place_a.DumpPqueries();
-    LOG_DBG << place_b.DumpPqueries();
 
     // -----------------------------------------------------
     //     Program exit routines
