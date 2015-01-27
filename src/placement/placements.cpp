@@ -14,6 +14,7 @@
 #include <sstream>
 #include <unordered_map>
 
+#include "placement/jplace_parser.hpp"
 #include "utils/logging.hpp"
 
 namespace genesis {
@@ -35,6 +36,43 @@ void Placements::clear()
 Placements::~Placements()
 {
     clear();
+}
+
+bool Placements::FromJplaceFile (const std::string&  fn)
+{
+    return JplaceParser::ProcessFile(fn, *this);
+}
+
+bool Placements::FromJplaceString (const std::string&  jplace)
+{
+    return JplaceParser::ProcessString(jplace, *this);
+}
+
+bool Placements::FromJsonLexer (const JsonLexer&    lexer)
+{
+    return JplaceParser::ProcessLexer(lexer, *this);
+}
+
+bool Placements::FromJsonDocument (const JsonDocument& doc)
+{
+    return JplaceParser::ProcessDocument(doc, *this);
+}
+
+bool Placements::Merge(Placements& other)
+{
+    // TODO identical data so far checks for branch length and edge num, but not placements on the edge.
+    // TODO if it did, this function would never return true for two different placements...
+    if (!tree.HasIdenticalTopology(other.tree) || !tree.HasIdenticalData(other.tree)) {
+        LOG_WARN << "Cannot merge Placements with different reference trees.";
+        return false;
+    }
+
+    for (Pquery* pqry : other.pqueries) {
+        Pquery* npqry = new Pquery;
+        *npqry = *pqry;
+        this->pqueries.push_back(npqry);
+    }
+    return true;
 }
 
 // =============================================================================
@@ -91,12 +129,15 @@ double Placements::EMD(Placements& right)
         }
         // both nodes do not have a corresponding edge (eg the root)
         if (!it_l.Edge() && !it_r.Edge()) {
-            double root_mass = balance[it_l.Link()->Outer()->Node()];
-            PlacementTree::LinkType* link = it_l.Link()->Next();
-            while (link != it_l.Link()) {
-                LOG_DBG1 << "at root with node " << link->Outer()->Node()->data.name << " and mass " << root_mass;
-                root_mass += balance[link->Outer()->Node()];
-                link = link->Next();
+            LOG_DBG << "Root mass";
+            double root_mass = 0.0;
+            for (
+                PlacementTree::NodeType::IteratorLinks n_it = it_l->BeginLinks();
+                n_it != it_l->EndLinks();
+                ++n_it
+            ) {
+                LOG_DBG1 << "at root with node " << n_it->Outer()->Node()->data.name << " with mass " << balance[n_it->Outer()->Node()];
+                root_mass += balance[n_it->Outer()->Node()];
             }
             LOG_DBG << "Mass at root " << root_mass;
 
@@ -204,11 +245,12 @@ double Placements::EMD(Placements& right)
         return -1.0;
     }
 
+    LOG_DBG << "Balances:";
     for (auto pair : balance) {
         LOG_DBG1 << pair.first->data.name << ": " << pair.second << "\n";
         //~ distance += std::abs(pair.second);
     }
-    LOG_DBG1 << "  distance: " << distance;
+    LOG_DBG << "Total distance: " << distance;
     return distance;
 }
 
@@ -333,14 +375,14 @@ std::string Placements::DumpTree()
 
 bool Placements::Validate()
 {
-    for (Pquery* pqry : pqueries) {
-        for (Pquery::Placement& p : pqry->placements) {
-            if (p.edge_num != p.edge->data.edge_num) {
-                return false;
-            }
+    //~ for (Pquery* pqry : pqueries) {
+        //~ for (Pquery::Placement& p : pqry->placements) {
+            //~ if (p.edge_num != p.edge->data.edge_num) {
+                //~ return false;
+            //~ }
             // TODO add check for other way round: reference from edge to pqry
-        }
-    }
+        //~ }
+    //~ }
     return true;
 }
 

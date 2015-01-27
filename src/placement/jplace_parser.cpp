@@ -209,8 +209,10 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
                                  << "in the given tree as an edge num.";
                         return false;
                     }
-                    pqry_place.edge = edge_num_map.at(pqry_place_val);
-                    pqry_place.edge->data.pqueries.push_back(pqry);
+                    // TODO add back if neccessary
+                    //~ pqry_place.edge = edge_num_map.at(pqry_place_val);
+                    //~ pqry_place.edge->data.pqueries.push_back(pqry);
+                    edge_num_map.at(pqry_place_val)->data.pqueries.push_back(pqry);
                 } else if (fields[i] == "likelihood") {
                     pqry_place.likelihood        = pqry_place_val;
                 } else if (fields[i] == "like_weight_ratio") {

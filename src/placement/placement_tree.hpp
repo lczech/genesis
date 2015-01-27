@@ -36,6 +36,22 @@ struct Pquery;
 class PlacementEdgeData
 {
 public:
+
+    // -----------------------------------------------------
+    //     Class Functions
+    // -----------------------------------------------------
+
+    inline bool operator == (const PlacementEdgeData &other) const
+    {
+        // TODO add a comparison of pqueries as well ?! is that good?!
+        return other.branch_length == branch_length && other.edge_num == edge_num;
+    }
+
+    inline bool operator != (const PlacementEdgeData &other) const
+    {
+        return !(other == *this);
+    }
+
     // -----------------------------------------------------
     //     Default Functions
     // -----------------------------------------------------
@@ -64,7 +80,7 @@ public:
     }
 
     // -----------------------------------------------------
-    //     Members
+    //     Data Members
     // -----------------------------------------------------
 
     double PlacementMass();
@@ -82,11 +98,24 @@ public:
 class PlacementNodeData
 {
 public:
-    /**
-     * Name of the node. In case it is a leaf, this is usually the name of
-     * the taxon represented by the node.
-     */
-    std::string name;
+
+    // -----------------------------------------------------
+    //     Class Functions
+    // -----------------------------------------------------
+
+    inline bool operator == (const PlacementNodeData &other) const
+    {
+        return other.name == name;
+    }
+
+    inline bool operator != (const PlacementNodeData &other) const
+    {
+        return !(other == *this);
+    }
+
+    // -----------------------------------------------------
+    //     Default Functions
+    // -----------------------------------------------------
 
     inline void FromTreeBrokerNode (TreeBrokerNode* node)
     {
@@ -102,6 +131,16 @@ public:
     {
         return "Name: '" + name + "'";
     }
+
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+
+    /**
+     * Name of the node. In case it is a leaf, this is usually the name of
+     * the taxon represented by the node.
+     */
+    std::string name;
 };
 
 // =============================================================================
