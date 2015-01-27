@@ -129,12 +129,15 @@ double Placements::EMD(Placements& right)
         }
         // both nodes do not have a corresponding edge (eg the root)
         if (!it_l.Edge() && !it_r.Edge()) {
-            double root_mass = balance[it_l.Link()->Outer()->Node()];
-            PlacementTree::LinkType* link = it_l.Link()->Next();
-            while (link != it_l.Link()) {
-                LOG_DBG1 << "at root with node " << link->Outer()->Node()->data.name << " and mass " << root_mass;
-                root_mass += balance[link->Outer()->Node()];
-                link = link->Next();
+            LOG_DBG << "Root mass";
+            double root_mass = 0.0;
+            for (
+                PlacementTree::NodeType::IteratorLinks n_it = it_l->BeginLinks();
+                n_it != it_l->EndLinks();
+                ++n_it
+            ) {
+                LOG_DBG1 << "at root with node " << n_it->Outer()->Node()->data.name << " with mass " << balance[n_it->Outer()->Node()];
+                root_mass += balance[n_it->Outer()->Node()];
             }
             LOG_DBG << "Mass at root " << root_mass;
 
@@ -242,11 +245,12 @@ double Placements::EMD(Placements& right)
         return -1.0;
     }
 
+    LOG_DBG << "Balances:";
     for (auto pair : balance) {
         LOG_DBG1 << pair.first->data.name << ": " << pair.second << "\n";
         //~ distance += std::abs(pair.second);
     }
-    LOG_DBG1 << "  distance: " << distance;
+    LOG_DBG << "Total distance: " << distance;
     return distance;
 }
 
