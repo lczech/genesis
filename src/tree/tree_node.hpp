@@ -26,6 +26,9 @@ class  Tree;
 template <class NodeDataType, class EdgeDataType>
 class  TreeLink;
 
+template <class NodeDataType, class EdgeDataType>
+class TreeNodeIteratorLinks;
+
 // =============================================================================
 //     DefaultNodeData
 // =============================================================================
@@ -67,9 +70,9 @@ class TreeNode
 public:
     TreeNode() : link_(nullptr) {}
 
-    // ---------------------------------------------------------------------
+    // -----------------------------------------------------
     //     Accessors
-    // ---------------------------------------------------------------------
+    // -----------------------------------------------------
 
     /**
      * @brief Returns the link of this node that points towards the root.
@@ -90,9 +93,25 @@ public:
         return link_;
     }
 
-    // ---------------------------------------------------------------------
+    // -----------------------------------------------------
+    //     Iterators
+    // -----------------------------------------------------
+
+    typedef TreeNodeIteratorLinks<NodeDataType, EdgeDataType> IteratorLinks;
+
+    inline IteratorLinks BeginLinks()
+    {
+        return IteratorLinks(link_);
+    }
+
+    inline IteratorLinks EndLinks()
+    {
+        return IteratorLinks(nullptr);
+    }
+
+    // -----------------------------------------------------
     //     Member Functions
-    // ---------------------------------------------------------------------
+    // -----------------------------------------------------
 
     int  Rank() const;
     bool IsLeaf() const;
@@ -108,14 +127,109 @@ public:
 
     std::string Dump() const;
 
-    // ---------------------------------------------------------------------
+    // -----------------------------------------------------
     //     Member Variables
-    // ---------------------------------------------------------------------
+    // -----------------------------------------------------
 
     NodeDataType data;
 
 protected:
     TreeLink<NodeDataType, EdgeDataType>* link_;
+};
+
+// =============================================================================
+//     Iterator Links
+// =============================================================================
+
+template <class NodeDataType, class EdgeDataType>
+class TreeNodeIteratorLinks
+{
+public:
+    // -----------------------------------------------------
+    //     Typedefs
+    // -----------------------------------------------------
+
+    typedef TreeNodeIteratorLinks<NodeDataType, EdgeDataType> self_type;
+    typedef std::forward_iterator_tag                         iterator_category;
+    typedef TreeLink<NodeDataType, EdgeDataType>              value_type;
+    typedef TreeLink<NodeDataType, EdgeDataType>&             reference;
+    typedef TreeLink<NodeDataType, EdgeDataType>*             pointer;
+
+    // -----------------------------------------------------
+    //     Constructor
+    // -----------------------------------------------------
+
+    TreeNodeIteratorLinks (pointer link) :
+    link_(link), start_(link)
+    {}
+
+    // -----------------------------------------------------
+    //     Operators
+    // -----------------------------------------------------
+
+    inline self_type operator ++ ()
+    {
+        link_ = link_->Next();
+        if (link_ == start_) {
+            link_ = nullptr;
+        }
+        return *this;
+    }
+
+    inline self_type operator ++ (int)
+    {
+        self_type tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    inline bool operator == (const self_type &other) const
+    {
+        return other.link_ == link_;
+    }
+
+    inline bool operator != (const self_type &other) const
+    {
+        return !(other == *this);
+    }
+
+    inline reference operator * ()
+    {
+        return *link_;
+    }
+
+    inline pointer operator -> ()
+    {
+        return link_;
+    }
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+    inline TreeLink<NodeDataType, EdgeDataType>* Link()
+    {
+        return link_;
+    }
+
+    inline TreeNode<NodeDataType, EdgeDataType>* Node()
+    {
+        return link_->Node();
+    }
+
+    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    {
+        return link_->Edge();
+    }
+
+    inline TreeLink<NodeDataType, EdgeDataType>* StartLink()
+    {
+        return start_;
+    }
+
+protected:
+    pointer link_;
+    pointer start_;
 };
 
 } // namespace genesis

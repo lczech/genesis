@@ -30,6 +30,10 @@ class TreeEdge;
 
 struct Pquery
 {
+    // -----------------------------------------------------
+    //     Placement
+    // -----------------------------------------------------
+
     struct Placement
     {
         Placement() : edge_num(0), likelihood(0.0), like_weight_ratio(0.0), distal_length(0.0),
@@ -46,6 +50,10 @@ struct Pquery
         PlacementTree::EdgeType* edge;
     };
 
+    // -----------------------------------------------------
+    //     Name
+    // -----------------------------------------------------
+
     struct Name
     {
         Name() : name(""), multiplicity(0.0) {}
@@ -53,6 +61,10 @@ struct Pquery
         std::string name;
         double      multiplicity;
     };
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
 
     std::deque<Placement> placements;
     std::deque<Name>      names;
@@ -82,6 +94,7 @@ public:
 
     double PlacementWeightSum();
     double EMD(Placements& other);
+    void Placements::COG();
 
     // -----------------------------------------------------
     //     Dump and Debug
