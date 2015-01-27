@@ -52,6 +52,7 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
+    typedef Tree    <NodeDataType, EdgeDataType> TreeType;
     typedef TreeLink<NodeDataType, EdgeDataType> LinkType;
     typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
@@ -282,6 +283,9 @@ public:
     int  MaxRank() const;
     bool IsBifurcating() const;
 
+    bool HasIdenticalTopology(TreeType& other) const;
+    bool HasIdenticalData(TreeType& other) const;
+
     // -----------------------------------------------------
     //     Debug and Dump
     // -----------------------------------------------------
@@ -307,6 +311,17 @@ protected:
     std::vector<NodeType*> nodes_;
     std::vector<EdgeType*> edges_;
 };
+
+// =============================================================================
+//     Definitions and Typedefs
+// =============================================================================
+
+/**
+ * @brief Short name for a Tree using the default data types DefaultNodeData and DefaultEdgeData.
+ *
+ * The same type can also be produced by using `Tree<>`.
+ */
+typedef Tree<DefaultNodeData, DefaultEdgeData> DefaultTree;
 
 } // namespace genesis
 

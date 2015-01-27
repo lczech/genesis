@@ -21,6 +21,11 @@
 
 namespace genesis {
 
+/**
+ * @brief Reads a file and parses it as a Jplace document into a Placements object.
+ *
+ * Returns true iff successful.
+ */
 bool JplaceParser::ProcessFile (const std::string& fn, Placements& placements)
 {
     if (!FileExists(fn)) {
@@ -30,6 +35,11 @@ bool JplaceParser::ProcessFile (const std::string& fn, Placements& placements)
     return ProcessString(FileRead(fn), placements);
 }
 
+/**
+ * @brief Parses a string as a Jplace document into a Placements object.
+ *
+ * Returns true iff successful.
+ */
 bool JplaceParser::ProcessString (const std::string& jplace, Placements& placements)
 {
     JsonLexer lexer;
@@ -39,6 +49,11 @@ bool JplaceParser::ProcessString (const std::string& jplace, Placements& placeme
     return ProcessLexer(lexer, placements);
 }
 
+/**
+ * @brief Takes a JsonLexer object and parses it as a Jplace document into a Placements object.
+ *
+ * Returns true iff successful.
+ */
 bool JplaceParser::ProcessLexer (const JsonLexer& lexer, Placements& placements)
 {
     JsonDocument doc;
@@ -48,6 +63,11 @@ bool JplaceParser::ProcessLexer (const JsonLexer& lexer, Placements& placements)
     return ProcessDocument(doc, placements);
 }
 
+/**
+ * @brief Takes a JsonDocument object and parses it as a Jplace document into a Placements object.
+ *
+ * Returns true iff successful.
+ */
 bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placements)
 {
     placements.clear();
@@ -168,10 +188,10 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
             // process all fields of the placement
             Pquery::Placement pqry_place;
             for (size_t i = 0; i < pqry_fields->size(); ++i) {
-                // so far, the p-fields only contain numbers, so we can do this check here for all
-                // fields, instead of repetition for every field.
-                // if in the future there are fields with non-number type, this check has to go
-                // into the single field assignments.
+                // up to version 3 of the jplace specification, the p-fields in a jplace document
+                // only contain numbers (float or int),so we can do this check here once for all
+                // fields, instead of repetition for everyfield. if in the future there are fields
+                // with non-number type, this check has to go into the single field assignments.
                 if (!pqry_fields->at(i)->IsNumber()) {
                     LOG_WARN << "Jplace document contains pquery where field " << fields[i]
                              << " is of type '" << pqry_fields->at(i)->TypeToString()
