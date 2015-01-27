@@ -186,6 +186,86 @@ bool Tree<NDT, EDT>::IsBifurcating() const
     return MaxRank() == 2;
 }
 
+/**
+ * @brief Returns true iff both trees have an identical topology.
+ *
+ * The topology is considered identical only if the order of edges is also the same in both trees.
+ * This means, although two trees might have the same number of tips and branches, they might still
+ * be not identical (with respect to this function) when the branches appear in a different order
+ * or when the root sits at a different node.
+ *
+ * Thus, this function is mainly intended to check whether two trees have been produced from the
+ * same input, for example from the same Newick file.
+ */
+template <class NDT, class EDT>
+bool Tree<NDT, EDT>::HasIdenticalTopology(TreeType& right) const
+{
+    // check array sizes
+    if (this->links_.size() != right.links_.size() ||
+        this->nodes_.size() != right.nodes_.size() ||
+        this->edges_.size() != right.edges_.size()
+    ) {
+        return false;
+    }
+
+    // do a preorder traversal on both trees in parallel
+    TreeType::IteratorPreorder it_l = this->tree.BeginPostorder();
+    TreeType::IteratorPreorder it_r = right.tree.BeginPostorder();
+    for (
+        ;
+        it_l != this->tree.EndPostorder() && it_r != right.tree.EndPostorder();
+        ++it_l, ++it_r
+    ) {
+        // if the rank differs, we have a different topology
+        if (it_l->Rank() != it_r->Rank()) {
+            return false;
+        }
+    }
+
+    // check whether we are done with both trees
+    if (it_l != this->tree.EndPostorder() || it_r != right.tree.EndPostorder()) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Returns true iff both trees contain identical data on all their nodes and edges.
+ *
+ * It is first checked whether both trees have the same number of nodes and edges. It is however
+ * not checked whether they have an identical topology. See HasIdenticalTopology() for this.
+ * As this functions relies on the order of nodes and edges in memory, it is however quite
+ * improbable to have two trees with identical data but not identical topology.
+ *
+ * Thus, this function is mainly intended to check whether two trees have been produced from the
+ * same input, for example from the same Newick file.
+ */
+template <class NDT, class EDT>
+bool Tree<NDT, EDT>::HasIdenticalData(TreeType& right) const
+{
+    // check array sizes
+    if (this->nodes_.size() != right.nodes_.size() || this->edges_.size() != right.edges_.size()) {
+        return false;
+    }
+
+    // check node data
+    for (int i = 0; i < this->nodes_.size(); ++i) {
+        if (this->nodes_[i].data != right.nodes_[i].data) {
+            return false;
+        }
+    }
+
+    // check edge data
+    for (int i = 0; i < this->edges_.size(); ++i) {
+        if (this->edges_[i].data != right.edges_[i].data) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 // -------------------------------------------------------------------------
 //     Dump and Debug Functions
 // -------------------------------------------------------------------------
