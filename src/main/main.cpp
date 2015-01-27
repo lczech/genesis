@@ -37,6 +37,9 @@ std::string print_header()
 
 int main (int argc, char* argv[])
 {
+    // -----------------------------------------------------
+    //     Program startup routines
+    // -----------------------------------------------------
     Logging::AddOutputStream(std::cout);
     //~ Logging::details.level = false;
     //~ Logging::details.file = true;
@@ -44,6 +47,9 @@ int main (int argc, char* argv[])
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
+    // -----------------------------------------------------
+    //     Test cases for tree iterators
+    // -----------------------------------------------------
     /*
     Tree<> tree;
     TreeNode<DefaultNodeData, DefaultEdgeData>* n;
@@ -120,6 +126,9 @@ int main (int argc, char* argv[])
     }
     //*/
 
+    // -----------------------------------------------------
+    //     Test cases for newick parser
+    // -----------------------------------------------------
     //~ tree.FromNewickString("((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;");
 
     //~ tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};");
@@ -149,6 +158,9 @@ int main (int argc, char* argv[])
     //~ LOG_INFO << "a tree rooted on a leaf node (rare): ((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;";
     //~ tree.FromNewickString("((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;");
 
+    // -----------------------------------------------------
+    //     Test for json parser
+    // -----------------------------------------------------
     //~ JsonLexer lex;
     //~ lex.ProcessString(FileRead("test/data/placement.jplace"));
     //~ LOG_INFO << lex.Dump();
@@ -159,12 +171,19 @@ int main (int argc, char* argv[])
 
     //~ JsonDocument doc;
 
+    // -----------------------------------------------------
+    //     Test for placements, earth movers distance, center of gravity
+    // -----------------------------------------------------
     Placements place_a, place_b;
     JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
     JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
     //~ LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
-    place_a.EMD(place_b);
+    //~ place_a.EMD(place_b);
+    place_a.COG();
 
+    // -----------------------------------------------------
+    //     Program exit routines
+    // -----------------------------------------------------
     std::cout << argc << " ";
     for (int i = 0; i < argc; i++) {
         std::cout << argv[i];
