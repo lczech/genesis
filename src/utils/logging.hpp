@@ -186,7 +186,7 @@ typedef struct {
 // =============================================================================
 
 /**
- * @brief Logging class with easy and fast usage.
+ * @brief %Logging class with easy and fast usage.
  *
  * The basic usage of this class is to invoke the macros for the different types
  * of log messages and send a stream of messages to them:
