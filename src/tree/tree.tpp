@@ -186,6 +186,7 @@ bool Tree<NDT, EDT>::IsBifurcating() const
     return MaxRank() == 2;
 }
 
+// TODO make const! (need to add const versions of the tree iterators first...)
 /**
  * @brief Returns true iff both trees have an identical topology.
  *
@@ -198,7 +199,7 @@ bool Tree<NDT, EDT>::IsBifurcating() const
  * same input, for example from the same Newick file.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalTopology(TreeType& right) const
+bool Tree<NDT, EDT>::HasIdenticalTopology(TreeType& right)
 {
     // check array sizes
     if (this->links_.size() != right.links_.size() ||
@@ -209,11 +210,11 @@ bool Tree<NDT, EDT>::HasIdenticalTopology(TreeType& right) const
     }
 
     // do a preorder traversal on both trees in parallel
-    TreeType::IteratorPreorder it_l = this->tree.BeginPostorder();
-    TreeType::IteratorPreorder it_r = right.tree.BeginPostorder();
+    TreeType::IteratorPreorder it_l = this->BeginPreorder();
+    TreeType::IteratorPreorder it_r = right.BeginPreorder();
     for (
         ;
-        it_l != this->tree.EndPostorder() && it_r != right.tree.EndPostorder();
+        it_l != this->EndPreorder() && it_r != right.EndPreorder();
         ++it_l, ++it_r
     ) {
         // if the rank differs, we have a different topology
@@ -223,8 +224,54 @@ bool Tree<NDT, EDT>::HasIdenticalTopology(TreeType& right) const
     }
 
     // check whether we are done with both trees
-    if (it_l != this->tree.EndPostorder() || it_r != right.tree.EndPostorder()) {
+    if (it_l != this->EndPreorder() || it_r != right.EndPreorder()) {
         return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Returns true iff both trees contain identical data on all their edges.
+ *
+ * See HasIdenticalData() for more information.
+ */
+template <class NDT, class EDT>
+bool Tree<NDT, EDT>::HasIdenticalEdgeData(TreeType& right) const
+{
+    // check array size
+    if (this->edges_.size() != right.edges_.size()) {
+        return false;
+    }
+
+    // check edge data
+    for (size_t i = 0; i < this->edges_.size(); ++i) {
+        if (this->edges_[i]->data != right.edges_[i]->data) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Returns true iff both trees contain identical data on all their nodes.
+ *
+ * See HasIdenticalData() for more information.
+ */
+template <class NDT, class EDT>
+bool Tree<NDT, EDT>::HasIdenticalNodeData(TreeType& right) const
+{
+    // check array sizes
+    if (this->nodes_.size() != right.nodes_.size()) {
+        return false;
+    }
+
+    // check node data
+    for (size_t i = 0; i < this->nodes_.size(); ++i) {
+        if (this->nodes_[i]->data != right.nodes_[i]->data) {
+            return false;
+        }
     }
 
     return true;
@@ -235,7 +282,7 @@ bool Tree<NDT, EDT>::HasIdenticalTopology(TreeType& right) const
  *
  * It is first checked whether both trees have the same number of nodes and edges. It is however
  * not checked whether they have an identical topology. See HasIdenticalTopology() for this.
- * As this functions relies on the order of nodes and edges in memory, it is however quite
+ * As this function relies on the order of nodes and edges in memory, it is however quite
  * improbable to have two trees with identical data but not identical topology.
  *
  * Thus, this function is mainly intended to check whether two trees have been produced from the
@@ -244,26 +291,7 @@ bool Tree<NDT, EDT>::HasIdenticalTopology(TreeType& right) const
 template <class NDT, class EDT>
 bool Tree<NDT, EDT>::HasIdenticalData(TreeType& right) const
 {
-    // check array sizes
-    if (this->nodes_.size() != right.nodes_.size() || this->edges_.size() != right.edges_.size()) {
-        return false;
-    }
-
-    // check node data
-    for (int i = 0; i < this->nodes_.size(); ++i) {
-        if (this->nodes_[i].data != right.nodes_[i].data) {
-            return false;
-        }
-    }
-
-    // check edge data
-    for (int i = 0; i < this->edges_.size(); ++i) {
-        if (this->edges_[i].data != right.edges_[i].data) {
-            return false;
-        }
-    }
-
-    return true;
+    return HasIdenticalEdgeData(right) && HasIdenticalNodeData(right);
 }
 
 // -------------------------------------------------------------------------

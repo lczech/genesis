@@ -37,6 +37,23 @@ Placements::~Placements()
     clear();
 }
 
+bool Placements::Merge(Placements& other)
+{
+    // TODO identical data so far checks for branch length and edge num, but not placements on the edge.
+    // TODO if it did, this function would never return true for two different placements...
+    if (!tree.HasIdenticalTopology(other.tree) || !tree.HasIdenticalData(other.tree)) {
+        LOG_WARN << "Cannot merge Placements with different reference trees.";
+        return false;
+    }
+
+    for (Pquery* pqry : other.pqueries) {
+        Pquery* npqry = new Pquery;
+        *npqry = *pqry;
+        this->pqueries.push_back(npqry);
+    }
+    return true;
+}
+
 // =============================================================================
 //     Placement Mass
 // =============================================================================
@@ -333,14 +350,14 @@ std::string Placements::DumpTree()
 
 bool Placements::Validate()
 {
-    for (Pquery* pqry : pqueries) {
-        for (Pquery::Placement& p : pqry->placements) {
-            if (p.edge_num != p.edge->data.edge_num) {
-                return false;
-            }
+    //~ for (Pquery* pqry : pqueries) {
+        //~ for (Pquery::Placement& p : pqry->placements) {
+            //~ if (p.edge_num != p.edge->data.edge_num) {
+                //~ return false;
+            //~ }
             // TODO add check for other way round: reference from edge to pqry
-        }
-    }
+        //~ }
+    //~ }
     return true;
 }
 

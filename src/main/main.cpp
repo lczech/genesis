@@ -179,7 +179,13 @@ int main (int argc, char* argv[])
     JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
     //~ LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
     //~ place_a.EMD(place_b);
-    place_a.COG();
+    //~ place_a.COG();
+    LOG_DBG << place_a.DumpPqueries();
+    LOG_DBG << place_b.DumpPqueries();
+    place_a.Merge(place_b);
+    place_b.pqueries[1]->names[0].name = "huhu";
+    LOG_DBG << place_a.DumpPqueries();
+    LOG_DBG << place_b.DumpPqueries();
 
     // -----------------------------------------------------
     //     Program exit routines

@@ -283,7 +283,9 @@ public:
     int  MaxRank() const;
     bool IsBifurcating() const;
 
-    bool HasIdenticalTopology(TreeType& other) const;
+    bool HasIdenticalTopology(TreeType& other);
+    bool HasIdenticalEdgeData(TreeType& other) const;
+    bool HasIdenticalNodeData(TreeType& other) const;
     bool HasIdenticalData(TreeType& other) const;
 
     // -----------------------------------------------------

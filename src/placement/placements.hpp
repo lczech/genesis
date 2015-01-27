@@ -30,7 +30,7 @@ struct Pquery
     struct Placement
     {
         Placement() : edge_num(0), likelihood(0.0), like_weight_ratio(0.0), distal_length(0.0),
-                      pendant_length(0.0), parsimony(0), edge(nullptr)
+                      pendant_length(0.0), parsimony(0)//, edge(nullptr)
         {}
 
         int    edge_num;
@@ -40,7 +40,8 @@ struct Pquery
         double pendant_length;
         int    parsimony;
 
-        PlacementTree::EdgeType* edge;
+        // TODO the default copy ctor and assignment op do not treat this pointer correctly, as it still refers to the tree of the other placements object! (they are used by the Merge() function!)
+        //~ PlacementTree::EdgeType* edge;
     };
 
     // -----------------------------------------------------
@@ -80,6 +81,8 @@ public:
     Placements (PlacementTree& ptree) : tree(ptree) {}
     void clear();
     ~Placements();
+
+    bool Merge(Placements& other);
 
     // -----------------------------------------------------
     //     Placement Weight
