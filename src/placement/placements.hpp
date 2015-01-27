@@ -18,13 +18,6 @@
 namespace genesis {
 
 // =============================================================================
-//     Forward Declarations
-// =============================================================================
-
-template <class NodeDataType, class EdgeDataType>
-class TreeEdge;
-
-// =============================================================================
 //     Pquery
 // =============================================================================
 
@@ -92,9 +85,10 @@ public:
     //     Placement Weight
     // -----------------------------------------------------
 
-    double PlacementWeightSum();
+    double PlacementMassSum();
     double EMD(Placements& other);
-    void Placements::COG();
+    void   COG();
+    double Variance();
 
     // -----------------------------------------------------
     //     Dump and Debug

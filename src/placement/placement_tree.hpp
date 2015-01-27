@@ -67,7 +67,7 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    double PlacementWeight();
+    double PlacementMass();
 
     double branch_length;
     int    edge_num;

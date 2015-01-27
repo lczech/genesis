@@ -212,6 +212,85 @@ double Placements::EMD(Placements& right)
     return distance;
 }
 
+/**
+ * @brief Calculate the Center of Gravity of the placements on a tree.
+ */
+void Placements::COG()
+{
+    // store a balance of mass per link, so that each element contains the mass that lies
+    // in the direction of this link
+    std::unordered_map<PlacementTree::LinkType*, double> balance;
+
+    // do a postorder traversal
+    for (
+        PlacementTree::IteratorPostorder it = this->tree.BeginPostorder();
+        it != this->tree.EndPostorder();
+        ++it
+    ) {
+        // node does not have a corresponding edge (eg the root)
+        if (!it.Edge()) {
+            continue;
+        }
+
+        double mass = 0.0;
+
+        // add up the masses from children
+        PlacementTree::LinkType* link = it.Link()->Next();
+        while (link != it.Link()) {
+            // we do postorder traversal, so we have seen the child links of the current node,
+            // which means, they should be in the balance list already.
+            assert(balance.count(link));
+
+            mass += balance[link] * it.Edge()->data.branch_length;
+            link  = link->Next();
+        }
+
+        // add up the masses of placements on the current branch
+        for (Pquery* pqry : it.Edge()->data.pqueries) {
+            for (Pquery::Placement pl : pqry->placements) {
+                if (pl.edge_num != it.Edge()->data.edge_num) {
+                    continue;
+                }
+                // TODO do the following two checks in validate instead of here (also in other
+                // functions in this file!)
+                if (pl.pendant_length < 0.0 || pl.distal_length < 0.0) {
+                    LOG_INFO << "Tree contains placement with pendant_length or distal_length < 0.0 "
+                             << "at node '" << it.Node()->data.name << "'.";
+                }
+                if (pl.distal_length > it.Edge()->data.branch_length) {
+                    LOG_INFO << "Tree contains placement with distal_length > branch_length "
+                             << "at node '" << it.Node()->data.name << "'.";
+                }
+
+                mass += pl.pendant_length + pl.distal_length;
+            }
+        }
+
+        assert(balance.count(it->Link()->Outer()) == 0);
+        balance[it->Link()->Outer()] = mass;
+    }
+
+    //~ PlacementTree::LinkType* link = tree.RootLink();
+    //~ while (link != it.Link()) {
+        //~ // we do postorder traversal, so we have seen the child links of the current node,
+        //~ // which means, they should be in the balance list already.
+        //~ assert(balance.count(link));
+//~
+        //~ mass += balance[link] * it.Edge()->data.branch_length;
+        //~ link = link->Next();
+    //~ }
+
+    for (auto pair : balance) {
+        LOG_DBG1 << pair.first->Node()->data.name << ": " << pair.second << "\n";
+        //~ distance += std::abs(pair.second);
+    }
+}
+
+double Placements::Variance()
+{
+    return 0.0;
+}
+
 // =============================================================================
 //     Dump and Debug
 // =============================================================================
