@@ -1,5 +1,5 @@
 /**
- * @brief Implementation of Placements class
+ * @brief Implementation of Placements class.
  *
  * @file
  * @ingroup placement
@@ -169,47 +169,45 @@ double Placements::EMD(Placements& right)
         }
 
         // we now start a "normal" EMD caluclation on the current edge. for this, we store the
-        // masses of all placements according to their position on the branch.
+        // masses of all placements sorted by their position on the branch.
         std::multimap<double, double> edge_balance;
 
         // add all placements of the left branch...
-        for (Pquery* pqry : it_l.Edge()->data.pqueries) {
-            for (Pquery::Placement pl : pqry->placements) {
-                if (pl.edge_num != it_l.Edge()->data.edge_num) {
-                    continue;
-                }
-                if (pl.pendant_length < 0.0 || pl.distal_length < 0.0) {
-                    LOG_INFO << "Tree contains placement with pendant_length or distal_length < 0.0 "
-                             << "at node '" << it_l.Node()->data.name << "'.";
-                }
-                if (pl.distal_length > it_l.Edge()->data.branch_length) {
-                    LOG_INFO << "Tree contains placement with distal_length > branch_length "
-                             << "at node '" << it_l.Node()->data.name << "'.";
-                }
-
-                distance += pl.pendant_length / totalmass_l;
-                edge_balance.emplace(pl.distal_length, +1.0 / totalmass_l);
+        for (
+            PlacementEdgeData::IteratorPlacements it_p = it_l.Edge()->data.BeginPlacements();
+            it_p != it_l.Edge()->data.EndPlacements();
+            ++it_p
+        ) {
+            if (it_p->pendant_length < 0.0 || it_p->distal_length < 0.0) {
+                LOG_INFO << "Tree contains placement with pendant_length or distal_length < 0.0 "
+                         << "at node '" << it_l.Node()->data.name << "'.";
             }
+            if (it_p->distal_length > it_l.Edge()->data.branch_length) {
+                LOG_INFO << "Tree contains placement with distal_length > branch_length "
+                         << "at node '" << it_l.Node()->data.name << "'.";
+            }
+
+            distance += it_p->pendant_length / totalmass_l;
+            edge_balance.emplace(it_p->distal_length, +1.0 / totalmass_l);
         }
 
         // ... and the right branch
-        for (Pquery* pqry : it_r.Edge()->data.pqueries) {
-            for (Pquery::Placement pl : pqry->placements) {
-                if (pl.edge_num != it_r.Edge()->data.edge_num) {
-                    continue;
-                }
-                if (pl.pendant_length < 0.0 || pl.distal_length < 0.0) {
-                    LOG_INFO << "Tree contains placement with pendant_length or distal_length < 0.0 "
-                             << "at node '" << it_l.Node()->data.name << "'.";
-                }
-                if (pl.distal_length > it_r.Edge()->data.branch_length) {
-                    LOG_INFO << "Tree contains placement with distal_length > branch_length "
-                             << "at node '" << it_l.Node()->data.name << "'.";
-                }
-
-                distance += pl.pendant_length / totalmass_r;
-                edge_balance.emplace(pl.distal_length, -1.0 / totalmass_r);
+        for (
+            PlacementEdgeData::IteratorPlacements it_p = it_r.Edge()->data.BeginPlacements();
+            it_p != it_r.Edge()->data.EndPlacements();
+            ++it_p
+        ) {
+            if (it_p->pendant_length < 0.0 || it_p->distal_length < 0.0) {
+                LOG_INFO << "Tree contains placement with pendant_length or distal_length < 0.0 "
+                         << "at node '" << it_r.Node()->data.name << "'.";
             }
+            if (it_p->distal_length > it_r.Edge()->data.branch_length) {
+                LOG_INFO << "Tree contains placement with distal_length > branch_length "
+                         << "at node '" << it_r.Node()->data.name << "'.";
+            }
+
+            distance += it_p->pendant_length / totalmass_r;
+            edge_balance.emplace(it_p->distal_length, -1.0 / totalmass_r);
         }
 
         LOG_DBG << "Node " << it_l.Node()->data.name << "   #qrys " << it_l.Edge()->data.pqueries.size() << "|" << it_r.Edge()->data.pqueries.size() << std::setprecision(5) << std::fixed << "   distance " << distance ;
@@ -221,7 +219,7 @@ double Placements::EMD(Placements& right)
         // ... and move it along the branch, balancing it with the placements found on the branch.
         // this is basically a standard EMD calculation along the branch
         std::multimap<double, double>::reverse_iterator rit;
-        for (rit = edge_balance.rbegin(); rit!=edge_balance.rend(); ++rit) {
+        for (rit = edge_balance.rbegin(); rit != edge_balance.rend(); ++rit) {
             LOG_DBG1 << "cur    pos " << cur_pos    << " with mass " << cur_mass;
             LOG_DBG1 << "now at pos " << rit->first << " with mass " << rit->second;
 
@@ -288,24 +286,12 @@ void Placements::COG()
         }
 
         // add up the masses of placements on the current branch
-        for (Pquery* pqry : it.Edge()->data.pqueries) {
-            for (Pquery::Placement pl : pqry->placements) {
-                if (pl.edge_num != it.Edge()->data.edge_num) {
-                    continue;
-                }
-                // TODO do the following two checks in validate instead of here (also in other
-                // functions in this file!)
-                if (pl.pendant_length < 0.0 || pl.distal_length < 0.0) {
-                    LOG_INFO << "Tree contains placement with pendant_length or distal_length < 0.0 "
-                             << "at node '" << it.Node()->data.name << "'.";
-                }
-                if (pl.distal_length > it.Edge()->data.branch_length) {
-                    LOG_INFO << "Tree contains placement with distal_length > branch_length "
-                             << "at node '" << it.Node()->data.name << "'.";
-                }
-
-                mass += pl.pendant_length + pl.distal_length;
-            }
+        for (
+            PlacementEdgeData::IteratorPlacements it_p = it.Edge()->data.BeginPlacements();
+            it_p != it.Edge()->data.EndPlacements();
+            ++it_p
+        ) {
+            mass += it_p->pendant_length + it_p->distal_length;
         }
 
         assert(balance.count(it->Link()->Outer()) == 0);
@@ -381,6 +367,15 @@ bool Placements::Validate()
                 //~ return false;
             //~ }
             // TODO add check for other way round: reference from edge to pqry
+
+            //~ if (p.pendant_length < 0.0 || p.distal_length < 0.0) {
+                //~ LOG_INFO << "Tree contains placement with pendant_length or distal_length < 0.0 "
+                         //~ << "at node '" << it.Node()->data.name << "'.";
+            //~ }
+            //~ if (p.distal_length > it.Edge()->data.branch_length) {
+                //~ LOG_INFO << "Tree contains placement with distal_length > branch_length "
+                         //~ << "at node '" << it.Node()->data.name << "'.";
+            //~ }
         //~ }
     //~ }
     return true;

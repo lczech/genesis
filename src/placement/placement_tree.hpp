@@ -25,6 +25,8 @@ class Tree;
 
 struct Pquery;
 
+class PlacementEdgeDataIteratorPlacements;
+
 // =============================================================================
 //     PlacementEdgeData
 // =============================================================================
@@ -78,6 +80,16 @@ public:
     {
         return "Length: " + std::to_string(branch_length) + "\tEdge Num: " + std::to_string(edge_num);
     }
+
+    // -----------------------------------------------------
+    //     Iterator
+    // -----------------------------------------------------
+
+    typedef PlacementEdgeDataIteratorPlacements IteratorPlacements;
+
+    // the definitions are outsourced into the implementation file to avoid circular dependencies
+    IteratorPlacements BeginPlacements(int sort = 0);
+    IteratorPlacements EndPlacements();
 
     // -----------------------------------------------------
     //     Data Members
@@ -149,6 +161,102 @@ public:
 
 // let's avoid tedious names!
 typedef Tree<PlacementNodeData, PlacementEdgeData> PlacementTree;
+
+} // namespace genesis
+
+// =============================================================================
+//     Edge Data Iterator Placements
+// =============================================================================
+
+#include "placement/placements.hpp"
+#include "tree/tree.hpp"
+
+namespace genesis {
+
+class PlacementEdgeDataIteratorPlacements
+{
+public:
+    // -----------------------------------------------------
+    //     Typedefs
+    // -----------------------------------------------------
+
+    typedef PlacementEdgeDataIteratorPlacements self_type;
+    typedef std::forward_iterator_tag           iterator_category;
+    typedef Pquery::Placement                   value_type;
+    typedef Pquery::Placement&                  reference;
+    typedef Pquery::Placement*                  pointer;
+
+    // -----------------------------------------------------
+    //     Constructor
+    // -----------------------------------------------------
+
+    PlacementEdgeDataIteratorPlacements (PlacementEdgeData& edge_data, int sort = 0);
+
+    PlacementEdgeDataIteratorPlacements (PlacementTree::EdgeType* edge, int sort = 0)
+    {
+        PlacementEdgeDataIteratorPlacements(edge->data, sort);
+    }
+
+    PlacementEdgeDataIteratorPlacements () {}
+
+    // -----------------------------------------------------
+    //     Operators
+    // -----------------------------------------------------
+
+    inline self_type operator ++ ()
+    {
+        placements_.pop_front();
+        return *this;
+    }
+
+    inline self_type operator ++ (int)
+    {
+        self_type tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    /**
+     * @brief Equality operator for the iterator.
+     *
+     * It checks whether both iterators have the same number of remaining Placements and whether the
+     * current Placement is the same. For speed reasons, it does not check for the rest of the
+     * elements, because it would be a strange case to compare different types of iterators anyway.
+     */
+    inline bool operator == (const self_type &other) const
+    {
+        if (placements_.size() != other.placements_.size()) {
+            return false;
+        }
+        if (placements_.size() > 0) {
+            return placements_.front() == other.placements_.front();
+        } else {
+            return true;
+        }
+    }
+
+    inline bool operator != (const self_type &other) const
+    {
+        return !(other == *this);
+    }
+
+    inline reference operator * ()
+    {
+        return *placements_.front();
+    }
+
+    inline pointer operator -> ()
+    {
+        return placements_.front();
+    }
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+protected:
+    std::deque<Pquery::Placement*> placements_;
+};
 
 } // namespace genesis
 
