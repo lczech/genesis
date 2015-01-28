@@ -200,6 +200,11 @@ public:
     //     Members
     // -----------------------------------------------------
 
+    inline bool IsFirstIteration()
+    {
+        return link_ == start_;
+    }
+
     inline TreeLink<NodeDataType, EdgeDataType>* Link()
     {
         return link_;
@@ -212,9 +217,6 @@ public:
 
     inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
     {
-        if (link_ == start_) {
-            return nullptr;
-        }
         return link_->Edge();
     }
 
@@ -516,11 +518,15 @@ public:
     inline self_type operator ++ ()
     {
         if (stack_.empty()) {
+            // this condition marks the end of the traversal
             link_ = nullptr;
         } else if (link_->Outer()->Next() == stack_.front()) {
+            // this condition is active when seeing an inner node the last time,
+            // meaning that it is its turn to be traversed
             link_ = stack_.front();
             stack_.pop_front();
         } else {
+            // this condition is active in all other cases: going down the tree towards the tips
             link_ = stack_.front();
             while (link_->IsInner()) {
                 PushFrontChildren(link_);
@@ -529,7 +535,6 @@ public:
             assert(link_ == stack_.front());
             stack_.pop_front();
         }
-
         return *this;
     }
 
@@ -564,6 +569,11 @@ public:
     //     Members
     // -----------------------------------------------------
 
+    inline bool IsLastIteration()
+    {
+        return link_ == start_;
+    }
+
     inline TreeLink<NodeDataType, EdgeDataType>* Link()
     {
         return link_;
@@ -576,9 +586,6 @@ public:
 
     inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
     {
-        if (link_ == start_) {
-            return nullptr;
-        }
         return link_->Edge();
     }
 
@@ -699,6 +706,11 @@ public:
     //     Members
     // -----------------------------------------------------
 
+    inline bool IsFirstIteration()
+    {
+        return link_ == start_;
+    }
+
     inline TreeLink<NodeDataType, EdgeDataType>* Link()
     {
         return link_;
@@ -711,9 +723,6 @@ public:
 
     inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
     {
-        if (link_ == start_) {
-            return nullptr;
-        }
         return link_->Edge();
     }
 

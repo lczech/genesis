@@ -176,8 +176,25 @@ int main (int argc, char* argv[])
     //~ JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
     //~ JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
     //~ LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
+
     place_a.EMD(place_b);
     //~ place_a.COG();
+
+    /*
+    // test postorder
+    PlacementTree::NodeType* n;
+    LOG_DBG << "Test Postorder at root";
+    for (PlacementTree::IteratorPostorder it = place_a.tree.BeginPostorder(); it != place_a.tree.EndPostorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
+        if (it->data.name == "G") {
+            n = &*it;
+        }
+    }
+    LOG_DBG << "Test Postorder at " + n->data.name;
+    for (PlacementTree::IteratorPostorder it = place_a.tree.BeginPostorder(n); it != place_a.tree.EndPostorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
+    }
+    */
 
     // -----------------------------------------------------
     //     Program exit routines
