@@ -111,33 +111,10 @@ double Placements::EMD(Placements& right)
     double totalmass_l = this->PlacementMassSum();
     double totalmass_r = right.PlacementMassSum();
 
-    LOG_DBG << tree.DumpAll();
-
-    LOG_DBG << "total mass l " << totalmass_l << ", total mass r " << totalmass_r;
-
-    // ------------------------------------------------------
-    PlacementTree::IteratorPreorder it_lp = this->tree.BeginPreorder();
-    PlacementTree::IteratorPreorder it_rp = right.tree.BeginPreorder();
-    int c = 0;
-    for (
-        ;
-        it_lp != this->tree.EndPreorder() && it_rp != right.tree.EndPreorder();
-        ++it_lp, ++it_rp, ++c
-    ) {
-        if (c == 5) {
-            break;
-        }
-    }
-    LOG_DBG << "Start Nodes: " << it_lp.Node()->data.name << " and " << it_rp.Node()->data.name;
-
-    PlacementTree::IteratorPostorder it_l = this->tree.BeginPostorder(it_lp.Node());
-    PlacementTree::IteratorPostorder it_r = right.tree.BeginPostorder(it_rp.Node());
-    // ------------------------------------------------------
-
     // do a postorder traversal on both trees in parallel. while doing so, move placements
-    // from the tips towards the root and store their movment (mass * distance) in balance.
-    //~ PlacementTree::IteratorPostorder it_l = this->tree.BeginPostorder();
-    //~ PlacementTree::IteratorPostorder it_r = right.tree.BeginPostorder();
+    // from the tips towards the root and store their movement (mass * distance) in balance.
+    PlacementTree::IteratorPostorder it_l = this->tree.BeginPostorder();
+    PlacementTree::IteratorPostorder it_r = right.tree.BeginPostorder();
     for (
         ;
         it_l != this->tree.EndPostorder() && it_r != right.tree.EndPostorder();
@@ -149,38 +126,19 @@ double Placements::EMD(Placements& right)
             return -1.0;
         }
 
-        if (it_l.Edge()) {
-            LOG_DBG << "Node name " << it_l.Node()->data.name << " with edge " << it_l.Edge()->PrimaryNode()->data.name << " to " << it_l.Edge()->SecondaryNode()->data.name;
-        } else {
-            LOG_DBG << "Node name " << it_l.Node()->data.name << " with no edge";
-        }
-
-        // both nodes do not have a corresponding edge (eg the root)
+        // if we are at the last iteration, we reached the root, thus we have moved all masses now
+        // and don't need to proceed. if we did, we would count an edge of the root again.
         if (it_l.IsLastIteration()) {
-            LOG_DBG << "Root mass";
-            double root_mass = 0.0;
-            for (
-                PlacementTree::NodeType::IteratorLinks n_it = it_l->BeginLinks();
-                n_it != it_l->EndLinks();
-                ++n_it
-            ) {
-                LOG_DBG1 << "at root with node " << n_it->Outer()->Node()->data.name << " with mass " << balance[n_it->Outer()->Node()];
-                root_mass += balance[n_it->Outer()->Node()];
-            }
-            LOG_DBG << "Mass at root " << root_mass;
-
             continue;
         }
+
         // if only one of them has an edge but the other not, that's an error.
-        if (!it_l.Edge() || !it_r.Edge() ||
-            it_l.Edge()->data.branch_length != it_r.Edge()->data.branch_length ||
+        if (it_l.Edge()->data.branch_length != it_r.Edge()->data.branch_length ||
             it_l.Edge()->data.edge_num      != it_r.Edge()->data.edge_num
         ) {
             LOG_WARN << "Inconsistent reference trees in EMD calculation.";
             return -1.0;
         }
-        // at this point we are sure that both nodes have an edge
-        assert(it_l.Edge() && it_r.Edge());
 
         // move placements around between children, collect remaining mass in mass_s.
         // mass_s then contains the rest mass of the subtree that could not be distributed among
@@ -238,8 +196,6 @@ double Placements::EMD(Placements& right)
             edge_balance.emplace(it_p->distal_length, -1.0 / totalmass_r);
         }
 
-        LOG_DBG << "Node " << it_l.Node()->data.name << "   #qrys " << it_l.Edge()->data.pqueries.size() << "|" << it_r.Edge()->data.pqueries.size() << std::setprecision(5) << std::fixed << "   distance " << distance ;
-
         // start with the mass that is left over from the subtrees...
         double cur_pos  = it_l.Edge()->data.branch_length;
         double cur_mass = mass_s;
@@ -248,21 +204,14 @@ double Placements::EMD(Placements& right)
         // this is basically a standard EMD calculation along the branch
         std::multimap<double, double>::reverse_iterator rit;
         for (rit = edge_balance.rbegin(); rit != edge_balance.rend(); ++rit) {
-            LOG_DBG1 << "cur    pos " << cur_pos    << " with mass " << cur_mass;
-            LOG_DBG1 << "now at pos " << rit->first << " with mass " << rit->second;
-
             distance += std::abs(cur_mass) * (cur_pos - rit->first);
             cur_mass += rit->second;
             cur_pos   = rit->first;
-
-            LOG_DBG1 << "dist " << distance;
         }
 
         // finally, move the rest to the end of the branch and store its mass in balance[]
         distance += std::abs(cur_mass) * cur_pos;
         balance[it_l.Node()] = cur_mass;
-
-        LOG_DBG << " --> dist " << distance << "  balance " << balance[it_l.Node()];
     }
 
     // check whether we are done with both trees
@@ -271,12 +220,6 @@ double Placements::EMD(Placements& right)
         return -1.0;
     }
 
-    LOG_DBG << "Balances:";
-    for (auto pair : balance) {
-        LOG_DBG1 << pair.first->data.name << ": " << pair.second << "\n";
-        //~ distance += std::abs(pair.second);
-    }
-    LOG_DBG << "Total distance: " << distance;
     return distance;
 }
 

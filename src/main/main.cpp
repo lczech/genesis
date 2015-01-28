@@ -177,7 +177,7 @@ int main (int argc, char* argv[])
     //~ JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
     //~ LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
 
-    place_a.EMD(place_b);
+    LOG_DBG << "EMD: " << place_a.EMD(place_b);
     //~ place_a.COG();
 
     /*
