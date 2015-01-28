@@ -9,6 +9,7 @@
  */
 
 #include <algorithm>
+#include <assert.h>
 #include <sstream>
 
 #include "tree/newick_parser.hpp"
@@ -88,6 +89,7 @@ bool Tree<NDT, EDT>::FromNewickString (const std::string& tree)
  *
  * It does not take the TreeBroker by const, because AssignRanks() has to be called in order to get
  * the nesting right.
+ * TODO: this could be changed by not assigning ranks to the broker but a tmp struct.
  */
 template <class NDT, class EDT>
 void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
@@ -159,6 +161,18 @@ void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
         }
         up_link->next_ = next_link;
     }
+
+    // now delete the uplink of the root, in order to make the tree fully unrooted.
+    // (we do that after the tree creation, as it is way easier this way)
+    assert(links_.front()->outer_ == links_.front());
+    LinkType* next = links_.front()->next_;
+    while (next->next_ != links_.front()) {
+        next = next->next_;
+    }
+    next->next_ = next->next_->next_;
+    assert(next->next_ == links_.front()->next_);
+    links_.erase(links_.begin());
+    next->node_->link_ = next->next_;
 }
 
 // -------------------------------------------------------------------------

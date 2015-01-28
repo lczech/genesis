@@ -12,9 +12,6 @@
 #include <string>
 #include <unordered_map>
 
-#include "placement/placement_tree.hpp"
-#include "tree/tree.hpp"
-
 namespace genesis {
 
 // =============================================================================
@@ -74,6 +71,13 @@ struct Pquery
 // =============================================================================
 //     Placements
 // =============================================================================
+
+} // namespace genesis
+
+#include "placement/placement_tree.hpp"
+#include "tree/tree.hpp"
+
+namespace genesis {
 
 class Placements
 {
