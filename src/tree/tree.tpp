@@ -224,14 +224,15 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
     Matrix<double>* dist = new Matrix<double>(NodesSize(), NodesSize());
     for (NodeType* r_node : nodes_) {
         (*dist)(r_node->Index(), r_node->Index()) = 0.0;
+        LOG_DBG << "At node " << r_node->data.name;
         for (
             IteratorLevelorder it = BeginLevelorder(r_node->Link());
             it != EndLevelorder();
             ++it
         ) {
-            LOG_DBG1 << it->data.name << " to " << it->Link()->Outer()->Node()->data.name;
-            double d = (*dist)(r_node->Index(), it->Link()->Outer()->Node()->Index());
-            (*dist)(r_node->Index(), it->Link()->Outer()->Node()->Index()) = it->Link()->Edge()->data.branch_length;
+            LOG_DBG1 << it.Node()->data.name << " to " << it.Link()->Outer()->Node()->data.name;
+            double d = (*dist)(r_node->Index(), it.Link()->Outer()->Node()->Index());
+            (*dist)(r_node->Index(), it.Link()->Outer()->Node()->Index()) = it.Link()->Edge()->data.branch_length;
         }
         LOG_DBG1 << "---------";
         //~ std::deque<NodeType*> cols;
@@ -310,7 +311,7 @@ bool Tree<NDT, EDT>::HasIdenticalTopology(TreeType& right)
         ++it_l, ++it_r
     ) {
         // if the rank differs, we have a different topology
-        if (it_l->Rank() != it_r->Rank()) {
+        if (it_l.Node()->Rank() != it_r.Node()->Rank()) {
             return false;
         }
     }
