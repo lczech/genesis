@@ -337,6 +337,8 @@ void Placements::COG()
 double Placements::Variance()
 {
     Matrix<double>* distances = tree.NodeDistanceMatrix();
+
+    LOG_DBG << distances->Dump();
     delete distances;
     return 0.0;
 }

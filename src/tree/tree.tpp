@@ -222,33 +222,32 @@ template <class NDT, class EDT>
 Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
 {
     Matrix<double>* dist = new Matrix<double>(NodesSize(), NodesSize());
-    for (NodeType* r_node : nodes_) {
-        (*dist)(r_node->Index(), r_node->Index()) = 0.0;
-        LOG_DBG << "At node " << r_node->data.name;
+
+    // fill every row of the matrix
+    for (NodeType* row_node : nodes_) {
+        // set the diagonal element of the matrix.
+        (*dist)(row_node->Index(), row_node->Index()) = 0.0;
+
+        // the columns are filled using a levelorder traversal. this makes sure that for every node
+        // we know how to calculate the distance to the current row node.
         for (
-            IteratorLevelorder it = BeginLevelorder(r_node->Link());
+            IteratorLevelorder it = BeginLevelorder(row_node->Link());
             it != EndLevelorder();
             ++it
         ) {
-            LOG_DBG1 << it.Node()->data.name << " to " << it.Link()->Outer()->Node()->data.name;
-            double d = (*dist)(r_node->Index(), it.Link()->Outer()->Node()->Index());
-            (*dist)(r_node->Index(), it.Link()->Outer()->Node()->Index()) = it.Link()->Edge()->data.branch_length;
-        }
-        LOG_DBG1 << "---------";
-        //~ std::deque<NodeType*> cols;
-        //~ for (
-            //~ typename NodeType::IteratorLinks it_l = r_node->BeginLinks();
-            //~ it_l != r_node->EndLinks();
-            //~ ++it_l
-        //~ ) {
-            //~ (*dist)(r_node->Index(), it_l->Outer()->Node()->Index()) = it_l->Edge()->data.branch_length;
-            //~ cols.push_back(it_l->Outer()->Node());
-        //~ }
+            // skip the diagonal of the matrix.
+            if (it.Node()->Index() == row_node->Index()) {
+                continue;
+            }
 
-        //~ while (!cols.empty()) {
-            //~
-        //~ }
+            // the distance to the current row node is: the length of the current branch plus
+            // the distance from the other end of that branch to the row node.
+            (*dist)(row_node->Index(), it.Node()->Index())
+                = it.Edge()->data.branch_length
+                + (*dist)(row_node->Index(), it.Link()->Outer()->Node()->Index());
+        }
     }
+
     return dist;
 }
 
