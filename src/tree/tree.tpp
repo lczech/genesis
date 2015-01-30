@@ -255,7 +255,7 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
  * @brief Returns the number of Links of the Tree.
  */
 template <class NDT, class EDT>
-size_t Tree<NDT, EDT>::LinksSize()
+size_t Tree<NDT, EDT>::LinksSize() const
 {
     return links_.size();
 }
@@ -264,7 +264,7 @@ size_t Tree<NDT, EDT>::LinksSize()
  * @brief Returns the number of Nodes of the Tree.
  */
 template <class NDT, class EDT>
-size_t Tree<NDT, EDT>::NodesSize()
+size_t Tree<NDT, EDT>::NodesSize() const
 {
     return nodes_.size();
 }
@@ -273,7 +273,7 @@ size_t Tree<NDT, EDT>::NodesSize()
  * @brief Returns the number of Edges of the Tree.
  */
 template <class NDT, class EDT>
-size_t Tree<NDT, EDT>::EdgesSize()
+size_t Tree<NDT, EDT>::EdgesSize() const
 {
     return edges_.size();
 }
@@ -419,13 +419,8 @@ bool Tree<NDT, EDT>::Validate() const
         return emp;
     }
 
-    if (links_.front()->outer_ != links_.front()) {
-        LOG_INFO << "";
-        return false;
-    }
-
     if (links_.front()->node_ != nodes_.front()) {
-        LOG_INFO << "";
+        LOG_INFO << "The first link does not correspond to the first node.";
         return false;
     }
 
@@ -557,6 +552,7 @@ int Tree<NDT, EDT>::LinkPointerToIndex (LinkType* link) const
 {
     for (size_t i = 0; i < links_.size(); ++i) {
         if (links_[i] == link) {
+            assert(link->index_ == i);
             return i;
         }
     }
@@ -574,6 +570,7 @@ int Tree<NDT, EDT>::NodePointerToIndex (NodeType* node) const
 {
     for (size_t i = 0; i < nodes_.size(); ++i) {
         if (nodes_[i] == node) {
+            assert(node->index_ == i);
             return i;
         }
     }
@@ -591,6 +588,7 @@ int Tree<NDT, EDT>::EdgePointerToIndex (EdgeType* edge) const
 {
     for (size_t i = 0; i < edges_.size(); ++i) {
         if (edges_[i] == edge) {
+            assert(edge->index_ == i);
             return i;
         }
     }

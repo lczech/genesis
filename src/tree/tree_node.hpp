@@ -71,13 +71,22 @@ public:
     TreeNode() : link_(nullptr) {}
 
     // -----------------------------------------------------
+    //     Typedefs
+    // -----------------------------------------------------
+
+    typedef Tree    <NodeDataType, EdgeDataType> TreeType;
+    typedef TreeLink<NodeDataType, EdgeDataType> LinkType;
+    typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
+    typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
+
+    // -----------------------------------------------------
     //     Accessors
     // -----------------------------------------------------
 
     /**
      * @brief Returns the link of this node that points towards the root.
      */
-    inline TreeLink<NodeDataType, EdgeDataType>* PrimaryLink() const
+    inline LinkType* PrimaryLink() const
     {
         return link_;
     }
@@ -88,7 +97,7 @@ public:
      * This is just an alias for PrimaryLink(), that is shorter to use when needed
      * frequently in an algorithm.
      */
-    inline TreeLink<NodeDataType, EdgeDataType>* Link() const
+    inline LinkType* Link() const
     {
         return link_;
     }
@@ -116,7 +125,7 @@ public:
     /**
      * @brief Returns the index of this Link.
      */
-    inline int Index()
+    inline size_t Index()
     {
         return index_;
     }
@@ -143,9 +152,9 @@ public:
 
 protected:
 
-    int index_;
+    size_t index_;
 
-    TreeLink<NodeDataType, EdgeDataType>* link_;
+    LinkType* link_;
 };
 
 // =============================================================================

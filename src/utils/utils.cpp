@@ -124,9 +124,9 @@ std::string StringDeescape (const std::string& text)
  * are replaced by a replace string.
  */
 std::string StringReplaceAll (
-    const std::string& s, const std::string& search, const std::string& replace
+    const std::string& text, const std::string& search, const std::string& replace
 ) {
-    std::string tmp = s;
+    std::string tmp = text;
     for (size_t pos = 0; ; pos += replace.length()) {
         pos = tmp.find(search, pos);
 
