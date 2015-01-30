@@ -17,6 +17,7 @@
 #include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
+#include "utils/math.hpp"
 
 namespace genesis {
 
@@ -282,6 +283,12 @@ public:
 
     int  MaxRank() const;
     bool IsBifurcating() const;
+
+    Matrix<double>* NodeDistanceMatrix();
+
+    size_t LinksSize();
+    size_t NodesSize();
+    size_t EdgesSize();
 
     bool HasIdenticalTopology(TreeType& other);
     bool HasIdenticalEdgeData(TreeType& other) const;

@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <assert.h>
+//~ #include <deque>
 #include <sstream>
 
 #include "tree/newick_parser.hpp"
@@ -107,6 +108,7 @@ void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
         // create the tree node for this broker node
         NodeType* cur_node = new NodeType();
         cur_node->FromTreeBrokerNode(broker_node);
+        cur_node->index_ = nodes_.size();
         nodes_.push_back(cur_node);
 
         // create the link that points towards the root.
@@ -114,6 +116,7 @@ void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
         LinkType* up_link = new LinkType();
         up_link->node_ = cur_node;
         cur_node->link_ = up_link;
+        up_link->index_ = links_.size();
         links_.push_back(up_link);
 
         // establish the link towards the root
@@ -135,6 +138,7 @@ void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
             up_link->edge_           = up_edge;
             link_stack.back()->edge_ = up_edge;
             up_edge->FromTreeBrokerNode(broker_node);
+            up_edge->index_ = edges_.size();
             edges_.push_back(up_edge);
 
             // we can now delete the head of the stack, because we just estiablished its "downlink"
@@ -156,6 +160,7 @@ void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
             next_link = down_link;
 
             down_link->node_ = cur_node;
+            down_link->index_ = links_.size();
             links_.push_back(down_link);
             link_stack.push_back(down_link);
         }
@@ -172,6 +177,9 @@ void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
     next->next_ = next->next_->next_;
     assert(next->next_ == links_.front()->next_);
     links_.erase(links_.begin());
+    for (size_t i = 0; i < links_.size(); ++i) {
+        links_[i]->index_ = i;
+    }
     next->node_->link_ = next->next_;
 }
 
@@ -179,6 +187,9 @@ void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
 //     Member Functions
 // -------------------------------------------------------------------------
 
+/**
+ * @brief Returns the highest rank of the nodes of the Tree.
+ */
 template <class NDT, class EDT>
 int Tree<NDT, EDT>::MaxRank() const
 {
@@ -194,10 +205,77 @@ int Tree<NDT, EDT>::MaxRank() const
     return max;
 }
 
+/**
+ * @brief Returns whether the Tree is bifurcating.
+ */
 template <class NDT, class EDT>
 bool Tree<NDT, EDT>::IsBifurcating() const
 {
     return MaxRank() == 2;
+}
+
+/**
+ * @brief Returns a distance matrix containing pariwise distances between all Nodes, using the
+ * branch_length of the Edges as distance measurement.
+ */
+template <class NDT, class EDT>
+Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
+{
+    Matrix<double>* dist = new Matrix<double>(NodesSize(), NodesSize());
+    for (NodeType* r_node : nodes_) {
+        (*dist)(r_node->Index(), r_node->Index()) = 0.0;
+        for (
+            IteratorLevelorder it = BeginLevelorder(r_node->Link());
+            it != EndLevelorder();
+            ++it
+        ) {
+            LOG_DBG1 << it->data.name << " to " << it->Link()->Outer()->Node()->data.name;
+            double d = (*dist)(r_node->Index(), it->Link()->Outer()->Node()->Index());
+            (*dist)(r_node->Index(), it->Link()->Outer()->Node()->Index()) = it->Link()->Edge()->data.branch_length;
+        }
+        LOG_DBG1 << "---------";
+        //~ std::deque<NodeType*> cols;
+        //~ for (
+            //~ typename NodeType::IteratorLinks it_l = r_node->BeginLinks();
+            //~ it_l != r_node->EndLinks();
+            //~ ++it_l
+        //~ ) {
+            //~ (*dist)(r_node->Index(), it_l->Outer()->Node()->Index()) = it_l->Edge()->data.branch_length;
+            //~ cols.push_back(it_l->Outer()->Node());
+        //~ }
+
+        //~ while (!cols.empty()) {
+            //~
+        //~ }
+    }
+    return dist;
+}
+
+/**
+ * @brief Returns the number of Links of the Tree.
+ */
+template <class NDT, class EDT>
+size_t Tree<NDT, EDT>::LinksSize()
+{
+    return links_.size();
+}
+
+/**
+ * @brief Returns the number of Nodes of the Tree.
+ */
+template <class NDT, class EDT>
+size_t Tree<NDT, EDT>::NodesSize()
+{
+    return nodes_.size();
+}
+
+/**
+ * @brief Returns the number of Edges of the Tree.
+ */
+template <class NDT, class EDT>
+size_t Tree<NDT, EDT>::EdgesSize()
+{
+    return edges_.size();
 }
 
 // TODO make const! (need to add const versions of the tree iterators first...)
@@ -349,6 +427,27 @@ bool Tree<NDT, EDT>::Validate() const
     if (links_.front()->node_ != nodes_.front()) {
         LOG_INFO << "";
         return false;
+    }
+
+    for (size_t i = 0; i < links_.size(); ++i) {
+        if (i != links_[i]->index_) {
+            LOG_INFO << "Link at index " << i << " has wrong index (" << links_[i]->index_ << ").";
+            return false;
+        }
+    }
+
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        if (i != nodes_[i]->index_) {
+            LOG_INFO << "Node at index " << i << " has wrong index (" << nodes_[i]->index_ << ").";
+            return false;
+        }
+    }
+
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        if (i != edges_[i]->index_) {
+            LOG_INFO << "Edge at index " << i << " has wrong index (" << edges_[i]->index_ << ").";
+            return false;
+        }
     }
 
     // if we are here, all three arrays (links, nodes, edges) contain data, so we can start a full

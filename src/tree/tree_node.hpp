@@ -113,6 +113,14 @@ public:
     //     Member Functions
     // -----------------------------------------------------
 
+    /**
+     * @brief Returns the index of this Link.
+     */
+    inline int Index()
+    {
+        return index_;
+    }
+
     int  Rank() const;
     bool IsLeaf() const;
     bool IsInner() const;
@@ -134,6 +142,9 @@ public:
     NodeDataType data;
 
 protected:
+
+    int index_;
+
     TreeLink<NodeDataType, EdgeDataType>* link_;
 };
 

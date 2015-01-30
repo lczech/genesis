@@ -94,6 +94,14 @@ public:
     //     Member Functions
     // ---------------------------------------------------------------------
 
+    /**
+     * @brief Returns the index of this Link.
+     */
+    inline int Index()
+    {
+        return index_;
+    }
+
     void FromTreeBrokerNode (TreeBrokerNode* node);
 
     std::string Dump() const;
@@ -105,6 +113,8 @@ public:
     EdgeDataType data;
 
 protected:
+
+    int index_;
 
     TreeLink<NodeDataType, EdgeDataType>* link_p_;
     TreeLink<NodeDataType, EdgeDataType>* link_s_;

@@ -69,13 +69,25 @@ public:
     //     Member Functions
     // ---------------------------------------------------------------------
 
-    /** @brief Returns true iff the node of this link is a leaf node. */
+    /**
+     * @brief Returns the index of this Link.
+     */
+    inline int Index()
+    {
+        return index_;
+    }
+
+    /**
+     * @brief Returns true iff the node of this link is a leaf node.
+     */
     inline bool IsLeaf()
     {
         return next_ == this;
     }
 
-    /** @brief Returns true iff the node of this link is an inner node. */
+    /**
+     * @brief Returns true iff the node of this link is an inner node.
+     */
     inline bool IsInner()
     {
         return next_ != this;
@@ -97,6 +109,8 @@ protected:
     // ---------------------------------------------------------------------
     //     Member Variables
     // ---------------------------------------------------------------------
+
+    int index_;
 
     TreeLink<NodeDataType, EdgeDataType>* next_;
     TreeLink<NodeDataType, EdgeDataType>* outer_;
