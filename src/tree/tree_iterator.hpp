@@ -74,16 +74,6 @@ public:
         return !(other == *this);
     }
 
-    inline reference operator * ()
-    {
-        return *link_;
-    }
-
-    inline pointer operator -> ()
-    {
-        return link_;
-    }
-
     // -----------------------------------------------------
     //     Members
     // -----------------------------------------------------
@@ -146,9 +136,7 @@ public:
     {
         if (link) {
             PushFrontChildren(link);
-            if (link->Outer() != link) {
-                stack_.push_front(link->Outer());
-            }
+            stack_.push_front(link->Outer());
         }
     }
 
@@ -184,16 +172,6 @@ public:
     inline bool operator != (const self_type &other) const
     {
         return !(other == *this);
-    }
-
-    inline reference operator * ()
-    {
-        return *(link_->Node());
-    }
-
-    inline pointer operator -> ()
-    {
-        return link_->Node();
     }
 
     // -----------------------------------------------------
@@ -239,9 +217,7 @@ protected:
         std::deque<link_pointer> tmp;
         link_pointer c = link->Next();
         while (c != link) {
-            if (c->Outer() != c) {
-                tmp.push_front(c->Outer());
-            }
+            tmp.push_front(c->Outer());
             c = c->Next();
         }
         for (link_pointer l : tmp) {
@@ -404,16 +380,6 @@ public:
         return !(other == *this);
     }
 
-    inline reference operator * ()
-    {
-        return *(link_->Node());
-    }
-
-    inline pointer operator -> ()
-    {
-        return link_->Node();
-    }
-
     // -----------------------------------------------------
     //     Members
     // -----------------------------------------------------
@@ -452,9 +418,7 @@ protected:
         std::deque<link_pointer> tmp;
         link_pointer c = link->Next();
         while (c != link) {
-            if (c->Outer() != c) {
-                tmp.push_front(c->Outer());
-            }
+            tmp.push_front(c->Outer());
             c = c->Next();
         }
         for (link_pointer l : tmp) {
@@ -497,10 +461,8 @@ public:
     {
         if (link) {
             stack_.push_back(link);
-            if (link->Outer() != link) {
-                stack_.push_front(link->Outer());
-                link = link->Outer();
-            }
+            stack_.push_front(link->Outer());
+            link = link->Outer();
             while (link->IsInner()) {
                 PushFrontChildren(link);
                 link = link->Next()->Outer();
@@ -555,16 +517,6 @@ public:
         return !(other == *this);
     }
 
-    inline reference operator * ()
-    {
-        return *(link_->Node());
-    }
-
-    inline pointer operator -> ()
-    {
-        return link_->Node();
-    }
-
     // -----------------------------------------------------
     //     Members
     // -----------------------------------------------------
@@ -608,9 +560,7 @@ protected:
         std::deque<link_pointer> tmp;
         link_pointer c = link->Next();
         while (c != link) {
-            if (c->Outer() != c) {
-                tmp.push_front(c->Outer());
-            }
+            tmp.push_front(c->Outer());
             c = c->Next();
         }
         for (link_pointer l : tmp) {
@@ -647,15 +597,12 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorLevelorder (link_pointer link) : start_(link)
+    TreeIteratorLevelorder (link_pointer link) : link_(link), start_(link)
     {
         if (link) {
             PushBackChildren(link);
-            if (link->Outer() != link) {
-                stack_.push_front(link->Outer());
-            }
+            stack_.push_front(link->Outer());
         }
-        link_ = link;
     }
 
     // -----------------------------------------------------
@@ -690,16 +637,6 @@ public:
     inline bool operator != (const self_type &other) const
     {
         return !(other == *this);
-    }
-
-    inline reference operator * ()
-    {
-        return *(link_->Node());
-    }
-
-    inline pointer operator -> ()
-    {
-        return link_->Node();
     }
 
     // -----------------------------------------------------
@@ -741,9 +678,7 @@ protected:
     {
         link_pointer c = link->Next();
         while (c != link) {
-            if (c->Outer() != c) {
-                stack_.push_back(c->Outer());
-            }
+            stack_.push_back(c->Outer());
             c = c->Next();
         }
     }
@@ -836,16 +771,6 @@ public:
     inline bool operator != (const self_type &other) const
     {
         return !(other == *this);
-    }
-
-    inline reference operator * ()
-    {
-        return *(link_->Node());
-    }
-
-    inline pointer operator -> ()
-    {
-        return link_->Node();
     }
 
     // -----------------------------------------------------

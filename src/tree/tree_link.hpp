@@ -38,29 +38,38 @@ public:
     TreeLink() : next_(nullptr), outer_(nullptr), node_(nullptr), edge_(nullptr) {}
 
     // ---------------------------------------------------------------------
+    //     Typedefs
+    // ---------------------------------------------------------------------
+
+    typedef Tree    <NodeDataType, EdgeDataType> TreeType;
+    typedef TreeLink<NodeDataType, EdgeDataType> LinkType;
+    typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
+    typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
+
+    // ---------------------------------------------------------------------
     //     Accessors
     // ---------------------------------------------------------------------
 
     /** @brief Returns a pointer to the next link within the node. */
-    inline TreeLink<NodeDataType, EdgeDataType>* Next()
+    inline LinkType* Next()
     {
         return next_;
     }
 
     /** @brief Returns a pointer to the link of the adjacent node. */
-    inline TreeLink<NodeDataType, EdgeDataType>* Outer()
+    inline LinkType* Outer()
     {
         return outer_;
     }
 
     /** @brief Returns a pointer to the TreeEdge containing the data of this link's edge. */
-    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    inline EdgeType* Edge()
     {
         return edge_;
     }
 
     /** @brief Returns a pointer to the TreeNode containing the data of this link's node. */
-    inline TreeNode<NodeDataType, EdgeDataType>* Node()
+    inline NodeType* Node()
     {
         return node_;
     }
@@ -69,13 +78,25 @@ public:
     //     Member Functions
     // ---------------------------------------------------------------------
 
-    /** @brief Returns true iff the node of this link is a leaf node. */
+    /**
+     * @brief Returns the index of this Link.
+     */
+    inline size_t Index()
+    {
+        return index_;
+    }
+
+    /**
+     * @brief Returns true iff the node of this link is a leaf node.
+     */
     inline bool IsLeaf()
     {
         return next_ == this;
     }
 
-    /** @brief Returns true iff the node of this link is an inner node. */
+    /**
+     * @brief Returns true iff the node of this link is an inner node.
+     */
     inline bool IsInner()
     {
         return next_ != this;
@@ -98,11 +119,13 @@ protected:
     //     Member Variables
     // ---------------------------------------------------------------------
 
-    TreeLink<NodeDataType, EdgeDataType>* next_;
-    TreeLink<NodeDataType, EdgeDataType>* outer_;
+    size_t index_;
 
-    TreeNode<NodeDataType, EdgeDataType>* node_;
-    TreeEdge<NodeDataType, EdgeDataType>* edge_;
+    LinkType* next_;
+    LinkType* outer_;
+
+    NodeType* node_;
+    EdgeType* edge_;
 };
 
 } // namespace genesis

@@ -24,7 +24,7 @@ bool        FileWrite  (const std::string& fn, const std::string& content);
 std::string StringEscape   (const std::string& text);
 std::string StringDeescape (const std::string& text);
 std::string StringReplaceAll (
-    const std::string& s,
+    const std::string& text,
     const std::string& search,
     const std::string& replace
 );

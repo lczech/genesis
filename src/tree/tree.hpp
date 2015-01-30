@@ -17,6 +17,7 @@
 #include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
+#include "utils/math.hpp"
 
 namespace genesis {
 
@@ -43,6 +44,21 @@ class TreeIteratorLevelorder;
 //     Tree
 // =============================================================================
 
+/**
+ * @brief Basic class for representing phylogenetic tree topologies.
+ *
+ * This class has several redundant ways of representing the same information. On the one hand, this
+ * makes using a Tree easy, as one can chose the representaion of data that best fits a given task.
+ * On the other hand, maintaining all those invariants when changing the tree topology is tedious.
+ * Here is a (comprehensive?) list of invariants of this class:
+ *
+ *  *  The (virtual) root node and one of its links are stored as first element in the arrays:
+ *     `nodes_[0]` and `links_[0]`.
+ *  *  The indices in all three arrays (`nodes_`, `links_` and `edges_`) have to match the index
+ *     integers stored in those elements: `nodes_[i] == nodes_[i]->index_`.
+ *  *  The link that is stored in a node has to be the one pointing towards the root.
+ *  *  The primary link of an edge has to point towards the root, the secondary away from it.
+ */
 template <class NodeDataType = DefaultNodeData, class EdgeDataType = DefaultEdgeData>
 class Tree
 {
@@ -81,14 +97,29 @@ public:
     //     Accessors
     // -----------------------------------------------------
 
-    inline LinkType* RootLink()
+    inline LinkType* RootLink() const
     {
         return links_.front();
     }
 
-    inline NodeType* RootNode()
+    inline NodeType* RootNode() const
     {
         return links_.front()->Node();
+    }
+
+    inline LinkType* LinkAt(size_t index) const
+    {
+        return links_[index];
+    }
+
+    inline NodeType* NodeAt(size_t index) const
+    {
+        return nodes_[index];
+    }
+
+    inline EdgeType* EdgeAt(size_t index) const
+    {
+        return edges_[index];
     }
 
     // -----------------------------------------------------
@@ -108,9 +139,6 @@ public:
     // TODO so far, the End... iterators are called anew for every comparison in a loop like
     // TODO it != tree.EndInorder(), which will slow it down compared to having e.g. a fixed
     // TODO end iterator object or so... not sure, if worth the effort.
-    // TODO make sure that links_.front is always the root! or better: introduce a new tree
-    // TODO function Root()  or RootNode ..Link etc that checks whether front is root and if not
-    // TODO finds the root, then returns it. then, use this instead of front in the following iterators!
 
     // -----------------------
     //     Roundtrip
@@ -118,7 +146,7 @@ public:
 
     inline IteratorRoundtrip BeginRoundtrip()
     {
-        return IteratorRoundtrip(links_.front());
+        return IteratorRoundtrip(RootLink());
     }
 
     inline IteratorRoundtrip BeginRoundtrip(LinkType* link)
@@ -142,7 +170,7 @@ public:
 
     inline IteratorPreorder BeginPreorder()
     {
-        return IteratorPreorder(links_.front());
+        return IteratorPreorder(RootLink());
     }
 
     inline IteratorPreorder BeginPreorder(LinkType* link)
@@ -166,7 +194,7 @@ public:
 
     //~ inline IteratorInorder BeginInorder()
     //~ {
-        //~ return IteratorInorder(links_.front());
+        //~ return IteratorInorder(RootLink());
     //~ }
 //~
     //~ inline IteratorInorder BeginInorder(LinkType* link)
@@ -190,7 +218,7 @@ public:
 
     inline IteratorPostorder BeginPostorder()
     {
-        return IteratorPostorder(links_.front());
+        return IteratorPostorder(RootLink());
     }
 
     inline IteratorPostorder BeginPostorder(LinkType* link)
@@ -214,7 +242,7 @@ public:
 
     inline IteratorLevelorder BeginLevelorder()
     {
-        return IteratorLevelorder(links_.front());
+        return IteratorLevelorder(RootLink());
     }
 
     inline IteratorLevelorder BeginLevelorder(LinkType* link)
@@ -282,6 +310,12 @@ public:
 
     int  MaxRank() const;
     bool IsBifurcating() const;
+
+    Matrix<double>* NodeDistanceMatrix();
+
+    size_t LinksSize() const;
+    size_t NodesSize() const;
+    size_t EdgesSize() const;
 
     bool HasIdenticalTopology(TreeType& other);
     bool HasIdenticalEdgeData(TreeType& other) const;

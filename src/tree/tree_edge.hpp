@@ -68,13 +68,22 @@ public:
     TreeEdge() : link_p_(nullptr), link_s_(nullptr) {}
 
     // ---------------------------------------------------------------------
+    //     Typedefs
+    // ---------------------------------------------------------------------
+
+    typedef Tree    <NodeDataType, EdgeDataType> TreeType;
+    typedef TreeLink<NodeDataType, EdgeDataType> LinkType;
+    typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
+    typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
+
+    // ---------------------------------------------------------------------
     //     Accessors
     // ---------------------------------------------------------------------
 
     /**
      * @brief Returns the link of this edge that points towards the root.
      */
-    inline TreeLink<NodeDataType, EdgeDataType>* PrimaryLink() const
+    inline LinkType* PrimaryLink() const
     {
         return link_p_;
     }
@@ -82,17 +91,25 @@ public:
     /**
      * @brief Returns the link of this edge that points away from the root.
      */
-    inline TreeLink<NodeDataType, EdgeDataType>* SecondaryLink() const
+    inline LinkType* SecondaryLink() const
     {
         return link_s_;
     }
 
-    TreeNode<NodeDataType, EdgeDataType>* PrimaryNode() const;
-    TreeNode<NodeDataType, EdgeDataType>* SecondaryNode() const;
+    NodeType* PrimaryNode() const;
+    NodeType* SecondaryNode() const;
 
     // ---------------------------------------------------------------------
     //     Member Functions
     // ---------------------------------------------------------------------
+
+    /**
+     * @brief Returns the index of this Link.
+     */
+    inline size_t Index()
+    {
+        return index_;
+    }
 
     void FromTreeBrokerNode (TreeBrokerNode* node);
 
@@ -106,8 +123,10 @@ public:
 
 protected:
 
-    TreeLink<NodeDataType, EdgeDataType>* link_p_;
-    TreeLink<NodeDataType, EdgeDataType>* link_s_;
+    size_t index_;
+
+    LinkType* link_p_;
+    LinkType* link_s_;
 };
 
 } // namespace genesis

@@ -16,6 +16,7 @@
 
 #include "placement/jplace_parser.hpp"
 #include "utils/logging.hpp"
+#include "utils/math.hpp"
 
 namespace genesis {
 
@@ -101,18 +102,25 @@ double Placements::PlacementMassSum()
  */
 double Placements::EMD(Placements& right)
 {
-    // keep track of the total resulting distance
+    // keep track of the total resulting distance.
     double distance = 0.0;
 
-    // store a per-node balance of mass
+    // store a per-node balance of mass. each element in this map contains information about how
+    // much placement mass is pushing from the direction of this node towards the root.
+    // caveat: the masses that are stored here are already fully pushed towards the root, but are
+    // stored here using the node at the lower end of the branch as key.
     std::unordered_map<PlacementTree::NodeType*, double> balance;
 
-    // use sum of masses as normalization factor for the masss
+    // use the sum of masses as normalization factor for the masses.
     double totalmass_l = this->PlacementMassSum();
     double totalmass_r = right.PlacementMassSum();
 
     // do a postorder traversal on both trees in parallel. while doing so, move placements
-    // from the tips towards the root and store their movement (mass * distance) in balance.
+    // from the tips towards the root and store their movement (mass * distance) in balance[].
+    // in theory, it does not matter where we start the traversal - however, the positions of the
+    // placements are given as "distal_length" on their branch, which always points away from the
+    // root. thus, if we decided to traverse from a different node than the root, we would have to
+    // take this into account.
     PlacementTree::IteratorPostorder it_l = this->tree.BeginPostorder();
     PlacementTree::IteratorPostorder it_r = right.tree.BeginPostorder();
     for (
@@ -120,8 +128,9 @@ double Placements::EMD(Placements& right)
         it_l != this->tree.EndPostorder() && it_r != right.tree.EndPostorder();
         ++it_l, ++it_r
     ) {
-        // check whether both trees have identical topology.
-        if (it_l->Rank() != it_r->Rank()) {
+        // check whether both trees have identical topology. if they have, the ranks of all nodes
+        // are the same. however, if not, at some point their ranks will differ.
+        if (it_l.Node()->Rank() != it_r.Node()->Rank()) {
             LOG_WARN << "Calculating EMD on different reference trees not possible.";
             return -1.0;
         }
@@ -129,10 +138,23 @@ double Placements::EMD(Placements& right)
         // if we are at the last iteration, we reached the root, thus we have moved all masses now
         // and don't need to proceed. if we did, we would count an edge of the root again.
         if (it_l.IsLastIteration()) {
+            // we do a check for the mass at the root here for debug purposes.
+            double root_mass = 0.0;
+            for (
+                PlacementTree::NodeType::IteratorLinks n_it = it_l.Node()->BeginLinks();
+                n_it != it_l.Node()->EndLinks();
+                ++n_it
+            ) {
+                assert(balance.count(n_it->Outer()->Node()));
+                root_mass += balance[n_it->Outer()->Node()];
+            }
+            LOG_DBG << "Mass at root: " << root_mass;
+
             continue;
         }
 
-        // if only one of them has an edge but the other not, that's an error.
+        // check whether the data on both reference trees is the same. this has to be done after the
+        // check for last iteration / root node, because we don't want to check this for the root.
         if (it_l.Edge()->data.branch_length != it_r.Edge()->data.branch_length ||
             it_l.Edge()->data.edge_num      != it_r.Edge()->data.edge_num
         ) {
@@ -140,9 +162,9 @@ double Placements::EMD(Placements& right)
             return -1.0;
         }
 
-        // move placements around between children, collect remaining mass in mass_s.
+        // move placements around between children, and collect the remaining mass in mass_s.
         // mass_s then contains the rest mass of the subtree that could not be distributed among
-        // the children.
+        // the children and thus has to be moved upwards.
         double mass_s = 0.0;
         PlacementTree::LinkType* link = it_l.Link()->Next();
         while (link != it_l.Link()) {
@@ -158,7 +180,7 @@ double Placements::EMD(Placements& right)
         // masses of all placements sorted by their position on the branch.
         std::multimap<double, double> edge_balance;
 
-        // add all placements of the left branch...
+        // add all placements of the branch from the left tree (using positive mass)...
         for (
             PlacementEdgeData::IteratorPlacements it_p = it_l.Edge()->data.BeginPlacements();
             it_p != it_l.Edge()->data.EndPlacements();
@@ -177,7 +199,7 @@ double Placements::EMD(Placements& right)
             edge_balance.emplace(it_p->distal_length, +1.0 / totalmass_l);
         }
 
-        // ... and the right branch
+        // ... and the branch from the right tree (using negative mass)
         for (
             PlacementEdgeData::IteratorPlacements it_p = it_r.Edge()->data.BeginPlacements();
             it_p != it_r.Edge()->data.EndPlacements();
@@ -196,12 +218,12 @@ double Placements::EMD(Placements& right)
             edge_balance.emplace(it_p->distal_length, -1.0 / totalmass_r);
         }
 
-        // start with the mass that is left over from the subtrees...
+        // start the EMD with the mass that is left over from the subtrees...
         double cur_pos  = it_l.Edge()->data.branch_length;
         double cur_mass = mass_s;
 
-        // ... and move it along the branch, balancing it with the placements found on the branch.
-        // this is basically a standard EMD calculation along the branch
+        // ... and move it along the branch, balancing it with the placements found on the branches.
+        // this is basically a standard EMD calculation along the branch.
         std::multimap<double, double>::reverse_iterator rit;
         for (rit = edge_balance.rbegin(); rit != edge_balance.rend(); ++rit) {
             distance += std::abs(cur_mass) * (cur_pos - rit->first);
@@ -209,12 +231,13 @@ double Placements::EMD(Placements& right)
             cur_pos   = rit->first;
         }
 
-        // finally, move the rest to the end of the branch and store its mass in balance[]
+        // finally, move the rest to the end of the branch and store its mass in balance[],
+        // so that it can be used for the nodes further up in the tree.
         distance += std::abs(cur_mass) * cur_pos;
         balance[it_l.Node()] = cur_mass;
     }
 
-    // check whether we are done with both trees
+    // check whether we are done with both trees.
     if (it_l != this->tree.EndPostorder() || it_r != right.tree.EndPostorder()) {
         LOG_WARN << "Inconsistent reference trees in EMD calculation.";
         return -1.0;
@@ -265,8 +288,34 @@ void Placements::COG()
             mass += it_p->pendant_length + it_p->distal_length;
         }
 
-        assert(balance.count(it->Link()->Outer()) == 0);
-        balance[it->Link()->Outer()] = mass;
+        assert(balance.count(it.Link()->Outer()) == 0);
+        balance[it.Link()->Outer()] = mass;
+    }
+
+    PlacementTree::LinkType* p_prev = tree.RootLink();
+    PlacementTree::LinkType* p_link = tree.RootLink();
+    double                   p_mass = -1.0;
+    bool                     found  = false;
+    while (!found) {
+        LOG_DBG1 << "a " << p_link->Node()->data.name;
+        p_mass = -1.0;
+        for (
+            PlacementTree::NodeType::IteratorLinks it_l = p_link->Node()->BeginLinks();
+            it_l != p_link->Node()->EndLinks();
+            ++it_l
+        ) {
+            LOG_DBG2 << it_l->Node()->data.name << " " << balance[&*it_l];
+            if (balance[&*it_l] > p_mass) {
+                p_link = &*it_l;
+            }
+        }
+        LOG_DBG1 << "b " << p_link->Node()->data.name;
+        p_link = p_link->Outer();
+        if (p_link == p_prev) {
+            found = true;
+            break;
+        }
+        p_prev = p_link;
     }
 
     //~ PlacementTree::LinkType* link = tree.RootLink();
@@ -287,6 +336,10 @@ void Placements::COG()
 
 double Placements::Variance()
 {
+    Matrix<double>* distances = tree.NodeDistanceMatrix();
+
+    LOG_DBG << distances->Dump();
+    delete distances;
     return 0.0;
 }
 
@@ -332,6 +385,11 @@ std::string Placements::DumpTree()
 
 bool Placements::Validate()
 {
+    if (!tree.Validate()) {
+        LOG_INFO << "Invalid placement tree.";
+        return false;
+    }
+
     //~ for (Pquery* pqry : pqueries) {
         //~ for (Pquery::Placement& p : pqry->placements) {
             //~ if (p.edge_num != p.edge->data.edge_num) {
