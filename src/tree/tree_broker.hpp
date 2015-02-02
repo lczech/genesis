@@ -305,6 +305,39 @@ public:
     }
 
     /**
+     * @brief Provides index based array access to the nodes.
+     *
+     * This also allows to iterate over them using:
+     *
+     *     TreeBroker tb;
+     *     for (size_t i = 0; i < tb.size(); ++i) {
+     *        TreeBrokerNode* tn = tb[i];
+     *        std::cout << tn.name << std::endl;
+     *     }
+     *
+     * Caveat: this operator does no boundary check. If you need this check,
+     * use at() instead.
+     */
+    inline TreeBrokerNode* operator [] (const std::size_t index) const
+    {
+        return stack_[index];
+    }
+
+    /**
+     * @brief Provides index based array access to the nodes, doing a boundary check first.
+     *
+     * In out of bounds cases, a `nullptr` is returned.
+     */
+    inline TreeBrokerNode* at(const std::size_t index) const
+    {
+        if (index < stack_.size()) {
+            return stack_[index];
+        } else {
+            return nullptr;
+        }
+    }
+
+    /**
      * @brief Returns a reference to the top node of the tree stack.
      *
      * Usually, the top element is the root of the tree (i.e., it has depth zero). Only when called

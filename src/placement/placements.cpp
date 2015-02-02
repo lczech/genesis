@@ -156,8 +156,8 @@ double Placements::EMD(Placements& lhs, Placements& rhs)
                 n_it != it_l.Node()->EndLinks();
                 ++n_it
             ) {
-                assert(balance.count(n_it->Outer()->Node()));
-                root_mass += balance[n_it->Outer()->Node()];
+                assert(balance.count(n_it.Link()->Outer()->Node()));
+                root_mass += balance[n_it.Link()->Outer()->Node()];
             }
             LOG_DBG << "Mass at root: " << root_mass;
 
@@ -315,9 +315,9 @@ void Placements::COG()
             it_l != p_link->Node()->EndLinks();
             ++it_l
         ) {
-            LOG_DBG2 << it_l->Node()->data.name << " " << balance[&*it_l];
-            if (balance[&*it_l] > p_mass) {
-                p_link = &*it_l;
+            LOG_DBG2 << it_l.Node()->data.name << " " << balance[it_l.Link()];
+            if (balance[it_l.Link()] > p_mass) {
+                p_link = it_l.Link();
             }
         }
         LOG_DBG1 << "b " << p_link->Node()->data.name;
@@ -357,7 +357,7 @@ double Placements::Variance()
             for (Pquery* pqry_b : pqueries) {
                 for (Pquery::Placement& place_b : pqry_b->placements) {
                     //~ p.distal_length;
-
+                    LOG_DBG << place_a.distal_length << " " << place_b.distal_length;
                 }
             }
 
@@ -365,6 +365,7 @@ double Placements::Variance()
     }
 
     LOG_DBG << distances->Dump();
+    LOG_DBG << "Variance: " << variance;
     delete distances;
     return 0.0;
 }

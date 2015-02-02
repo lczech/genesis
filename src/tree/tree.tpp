@@ -10,10 +10,9 @@
 
 #include <algorithm>
 #include <assert.h>
-//~ #include <deque>
 #include <sstream>
 
-#include "tree/newick_parser.hpp"
+#include "tree/newick_format.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -54,7 +53,7 @@ Tree<NDT, EDT>::~Tree ()
 }
 
 // -------------------------------------------------------------------------
-//     Create Tree from different sources
+//     Read and Write
 // -------------------------------------------------------------------------
 
 /**
@@ -181,6 +180,68 @@ void Tree<NDT, EDT>::FromTreeBroker (TreeBroker& broker)
         links_[i]->index_ = i;
     }
     next->node_->link_ = next->next_;
+}
+
+template <class NDT, class EDT>
+void Tree<NDT, EDT>::ToNewickFile(const std::string& fn)
+{
+    if (FileExists(fn)) {
+        LOG_WARN << "Newick file '" << fn << "' already exist. Will not overwrite it.";
+        return;
+    }
+}
+
+template <class NDT, class EDT>
+std::string Tree<NDT, EDT>::ToNewickString ()
+{
+    TreeBroker broker;
+    ToTreeBroker(broker);
+    return NewickPrinter::ToString(broker);
+}
+
+template <class NDT, class EDT>
+void Tree<NDT, EDT>::ToTreeBroker (TreeBroker& broker)
+{
+    // store the distance from each node to the root. this is needed to assign levels of depth
+    // to the nodes for the broker.
+    std::vector<int> dist;
+    dist.resize(NodesSize(), -1);
+    dist[0] = 0;
+
+    // calculate the distance vector via levelorder iteration.
+    for (
+        IteratorLevelorder it = BeginLevelorder();
+        it != EndLevelorder();
+        ++it
+    ) {
+        // skip the root (it is already set to 0).
+        if (it.IsFirstIteration()) {
+            continue;
+        }
+
+        // the distance is the distance from the "parent" node (the next one in direction towards
+        // the root) plus 1.
+        dist[it.Node()->Index()] = 1 + dist[it.Link()->Outer()->Node()->Index()];
+    }
+
+    broker.clear();
+    for (
+        IteratorPostorder it = BeginPostorder();
+        it != EndPostorder();
+        ++it
+    ) {
+        TreeBrokerNode* bn = new TreeBrokerNode();
+
+        assert(dist[it.Node()->Index()] > -1);
+        bn->depth = dist[it.Node()->Index()];
+
+        it.Node()->data.ToTreeBrokerNode(bn);
+        it.Edge()->data.ToTreeBrokerNode(bn);
+
+        broker.PushTop(bn);
+    }
+    broker.AssignRanks();
+    LOG_DBG << "Out: " << broker.Dump();
 }
 
 // -------------------------------------------------------------------------

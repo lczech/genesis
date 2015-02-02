@@ -34,7 +34,7 @@ namespace genesis {
      *
      * Everything above this level will be pruned by the compiler.
      */
-    #define LOG_LEVEL_MAX genesis::Logging::kDebug4
+#    define LOG_LEVEL_MAX genesis::Logging::kDebug4
 #endif
 
 // TODO make DEBUG a special macro with proper usage makefile etc,
@@ -43,21 +43,18 @@ namespace genesis {
 
 // override this setting when debugging is turned on (eg by makefile)
 #ifdef DEBUG
-    #define LOG_LEVEL_MAX genesis::Logging::kDebug4
+#    define LOG_LEVEL_MAX genesis::Logging::kDebug4
 #endif
 
 // try to find a macro that expands to the current function name
-// (yes, preprocressor directives should not be nested. but who could read this?!)
-#ifndef __FUNCTION__
-    #ifdef  __func__
-        #define __FUNCTION__ __func__
-    #else
-        #ifdef __PRETTY_FUNCTION__
-            #define __FUNCTION__ __PRETTY_FUNCTION__
-        #else
-            #define __FUNCTION__ ""
-        #endif
-    #endif
+#ifdef __cplusplus
+#    define GNS_FUNC __PRETTY_FUNCTION__
+#else
+#    if defined __STDC_VERSION__
+#        define GNS_FUNC __func__
+#    else
+#        define GNS_FUNC ((const char *) 0)
+#    endif
 #endif
 
 // define the actual log macro, so that the compiler can prune calls
@@ -65,13 +62,13 @@ namespace genesis {
 #define GNS_LOG(level) \
     if (level > LOG_LEVEL_MAX) ; \
     else if (level > genesis::Logging::max_level()) ; \
-    else genesis::Logging().Get(__FILE__, __LINE__, __FUNCTION__, level)
+    else genesis::Logging().Get(__FILE__, __LINE__, GNS_FUNC, level)
 
 // define a similar log macro, this time changing the details of the message
 #define GNS_LOG_DETAILS(level, ...) \
     if (level > LOG_LEVEL_MAX) ; \
     else if (level > genesis::Logging::max_level()) ; \
-    else genesis::Logging().Get(__FILE__, __LINE__, __FUNCTION__, level, {__VA_ARGS__})
+    else genesis::Logging().Get(__FILE__, __LINE__, GNS_FUNC, level, {__VA_ARGS__})
 
 // define standard logging types as macro shortcuts:
 

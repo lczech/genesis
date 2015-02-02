@@ -1,22 +1,25 @@
 /**
- * @brief Implementation of Newick Parser functions.
+ * @brief Implementation of Newick functions.
  *
  * @file
  * @ingroup tree
  */
 
-#include "tree/newick_parser.hpp"
+#include "tree/newick_format.hpp"
 
 #include <assert.h>
 #include <string>
+#include <sstream>
 
-#include "tree/newick_lexer.hpp"
 #include "tree/tree_broker.hpp"
-
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {
+
+// =============================================================================
+//     NewickParser
+// =============================================================================
 
 bool NewickParser::ProcessFile (const std::string& fn, TreeBroker& broker)
 {
@@ -307,6 +310,78 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
     }
 
     return true;
+}
+
+// =============================================================================
+//     NewickPrinter
+// =============================================================================
+
+bool NewickPrinter::print_names          = true;
+bool NewickPrinter::print_branch_lengths = false;
+bool NewickPrinter::print_comments       = false;
+bool NewickPrinter::print_tags           = false;
+
+bool NewickPrinter::ToFile(const std::string& fn, TreeBroker& broker)
+{
+    return FileWrite(fn, ToString(broker));
+}
+
+std::string NewickPrinter::ToString(TreeBroker& broker)
+{
+    broker.AssignRanks();
+    return ToStringRec(broker, 0) + ";";
+}
+
+std::string NewickPrinter::ToStringRec(TreeBroker& broker, size_t pos)
+{
+    // check if it is a leaf, stop recursion if so.
+    if (broker[pos]->rank() == 0) {
+        return NodeToString(broker[pos]);
+    }
+
+    // recurse over all children of the current node
+    std::ostringstream out;
+    out << "(";
+    for (size_t i = pos + 1; i < broker.size() && broker[i]->depth > broker[pos]->depth; ++i) {
+        // skip if not immediate children (those will be called in later recursion steps)
+        if (broker[i]->depth > broker[pos]->depth + 1) {
+            continue;
+        }
+
+        // add a comma if not the first child node
+        if (i > pos + 1) {
+            out << ",";
+        }
+
+        // do the recursion step using this child
+        out << ToStringRec(broker, i);
+    }
+
+    // finally, add the information of the current node itself
+    out << ")" << NodeToString(broker[pos]);
+    return out.str();
+}
+
+std::string NewickPrinter::NodeToString(TreeBrokerNode* bn)
+{
+    std::string res = "";
+    if (print_names) {
+        res += bn->name;
+    }
+    if (print_branch_lengths) {
+        res += ":" + std::to_string(bn->branch_length);
+    }
+    if (print_comments) {
+        for (std::string c : bn->comments) {
+            res += "[" + c + "]";
+        }
+    }
+    if (print_tags) {
+        for (std::string t : bn->tags) {
+            res += "{" + t + "}";
+        }
+    }
+    return res;
 }
 
 } // namespace genesis

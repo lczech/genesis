@@ -1,5 +1,5 @@
-#ifndef GNS_TREE_NEWICKLEXER_H_
-#define GNS_TREE_NEWICKLEXER_H_
+#ifndef GNS_TREE_NEWICK_H_
+#define GNS_TREE_NEWICK_H_
 
 /**
  * @brief
@@ -9,10 +9,22 @@
  */
 
 #include <assert.h>
+#include <string>
 
 #include "utils/lexer.hpp"
 
 namespace genesis {
+
+// =============================================================================
+//     Forward Declarations
+// =============================================================================
+
+class  TreeBroker;
+struct TreeBrokerNode;
+
+// =============================================================================
+//     NewickLexer
+// =============================================================================
 
 class NewickLexer : public Lexer
 {
@@ -102,6 +114,38 @@ protected:
         }
         return true;
     }
+};
+
+// =============================================================================
+//     NewickParser
+// =============================================================================
+
+class NewickParser
+{
+public:
+    static bool ProcessFile   (const std::string& fn,    TreeBroker& broker);
+    static bool ProcessString (const std::string& tree,  TreeBroker& broker);
+    static bool ProcessLexer  (const NewickLexer& lexer, TreeBroker& broker);
+};
+
+// =============================================================================
+//     NewickPrinter
+// =============================================================================
+
+class NewickPrinter
+{
+public:
+    static bool        ToFile   (const std::string& fn, TreeBroker& broker);
+    static std::string ToString (                       TreeBroker& broker);
+
+    static bool print_names;
+    static bool print_branch_lengths;
+    static bool print_comments;
+    static bool print_tags;
+
+protected:
+    static std::string ToStringRec(TreeBroker& broker, size_t position);
+    static std::string NodeToString(TreeBrokerNode* bn);
 };
 
 } // namespace genesis

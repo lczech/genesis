@@ -47,6 +47,20 @@ class TreeIteratorLevelorder;
 /**
  * @brief Basic class for representing phylogenetic tree topologies.
  *
+ * Data in the Tree is not directly stored in the elements (Links, Nodes, Edges) of the Tree.
+ * Instead, data belonging to nodes and edges can be stored there by using appropriate template
+ * parameters when creating a tree, with classes that are able to hold the needed data.
+ * This ensures a maximum of flexibility for using Trees, because any type of data can be plugged
+ * in this way.
+ *
+ * Additional information concerning the whole tree, as well as special algorithms working on the
+ * tree and its data are also not direct members of the tree - for the same reason of flexibility
+ * and extensibility: Instead of adding more and more data and algorithms to the tree, we create
+ * new classes that encapsulate a tree and all the other needed code to work with it.
+ * See Placements for an example.
+ *
+ * Thus, the tree itself only contains the needed information to store and work with a topology.
+ *
  * This class has several redundant ways of representing the same information. On the one hand, this
  * makes using a Tree easy, as one can chose the representaion of data that best fits a given task.
  * On the other hand, maintaining all those invariants when changing the tree topology is tedious.

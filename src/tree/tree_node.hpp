@@ -213,16 +213,6 @@ public:
         return !(other == *this);
     }
 
-    inline reference operator * ()
-    {
-        return *link_;
-    }
-
-    inline pointer operator -> ()
-    {
-        return link_;
-    }
-
     // -----------------------------------------------------
     //     Members
     // -----------------------------------------------------
