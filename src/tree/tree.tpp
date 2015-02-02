@@ -215,7 +215,7 @@ bool Tree<NDT, EDT>::IsBifurcating() const
 }
 
 /**
- * @brief Returns a distance matrix containing pariwise distances between all Nodes, using the
+ * @brief Returns a distance matrix containing pairwise distances between all Nodes, using the
  * branch_length of the Edges as distance measurement.
  */
 template <class NDT, class EDT>
@@ -236,7 +236,7 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
             ++it
         ) {
             // skip the diagonal of the matrix.
-            if (it.Node()->Index() == row_node->Index()) {
+            if (it.IsFirstIteration()) {
                 continue;
             }
 

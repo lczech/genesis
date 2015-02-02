@@ -171,13 +171,16 @@ int main (int argc, char* argv[])
     //     Test for placements, earth movers distance, center of gravity
     // -----------------------------------------------------
     Placements place_a, place_b;
+    //~ place_a.FromJplaceFile("test/data/RAxML_portableTree.split_0.jplace");
     place_a.FromJplaceFile("test/data/test_a.jplace");
+    //~ place_b.FromJplaceFile("test/data/RAxML_portableTree.split_1.jplace");
     place_b.FromJplaceFile("test/data/test_b.jplace");
+
     //~ JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
     //~ JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
     //~ LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
 
-    //~ LOG_DBG << "EMD: " << place_a.EMD(place_b);
+    //~ LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
     //~ place_a.COG();
     LOG_DBG << "Variance: " << place_a.Variance();
 

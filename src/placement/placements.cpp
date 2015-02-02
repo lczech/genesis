@@ -32,6 +32,8 @@ void Placements::clear()
 
     std::deque<Pquery*>().swap(pqueries);
     tree.clear();
+    edge_num_map.clear();
+    metadata.clear();
 }
 
 Placements::~Placements()
@@ -97,10 +99,19 @@ double Placements::PlacementMassSum()
 }
 
 /**
- * @brief Calculates the Earth Movers Distance between two sets of placements on a fixed reference
+ * @brief Calculates the Earth Movers Distance to another sets of placements on a fixed reference
  * tree.
  */
 double Placements::EMD(Placements& right)
+{
+    return Placements::EMD(*this, right);
+}
+
+/**
+ * @brief Calculates the Earth Movers Distance between two sets of placements on a fixed reference
+ * tree.
+ */
+double Placements::EMD(Placements& lhs, Placements& rhs)
 {
     // keep track of the total resulting distance.
     double distance = 0.0;
@@ -112,8 +123,8 @@ double Placements::EMD(Placements& right)
     std::unordered_map<PlacementTree::NodeType*, double> balance;
 
     // use the sum of masses as normalization factor for the masses.
-    double totalmass_l = this->PlacementMassSum();
-    double totalmass_r = right.PlacementMassSum();
+    double totalmass_l = lhs.PlacementMassSum();
+    double totalmass_r = rhs.PlacementMassSum();
 
     // do a postorder traversal on both trees in parallel. while doing so, move placements
     // from the tips towards the root and store their movement (mass * distance) in balance[].
@@ -121,11 +132,11 @@ double Placements::EMD(Placements& right)
     // placements are given as "distal_length" on their branch, which always points away from the
     // root. thus, if we decided to traverse from a different node than the root, we would have to
     // take this into account.
-    PlacementTree::IteratorPostorder it_l = this->tree.BeginPostorder();
-    PlacementTree::IteratorPostorder it_r = right.tree.BeginPostorder();
+    PlacementTree::IteratorPostorder it_l = lhs.tree.BeginPostorder();
+    PlacementTree::IteratorPostorder it_r = rhs.tree.BeginPostorder();
     for (
         ;
-        it_l != this->tree.EndPostorder() && it_r != right.tree.EndPostorder();
+        it_l != lhs.tree.EndPostorder() && it_r != rhs.tree.EndPostorder();
         ++it_l, ++it_r
     ) {
         // check whether both trees have identical topology. if they have, the ranks of all nodes
@@ -238,7 +249,7 @@ double Placements::EMD(Placements& right)
     }
 
     // check whether we are done with both trees.
-    if (it_l != this->tree.EndPostorder() || it_r != right.tree.EndPostorder()) {
+    if (it_l != lhs.tree.EndPostorder() || it_r != rhs.tree.EndPostorder()) {
         LOG_WARN << "Inconsistent reference trees in EMD calculation.";
         return -1.0;
     }
@@ -337,6 +348,21 @@ void Placements::COG()
 double Placements::Variance()
 {
     Matrix<double>* distances = tree.NodeDistanceMatrix();
+    double variance = 0.0;
+
+    for (Pquery* pqry_a : pqueries) {
+        for (Pquery::Placement& place_a : pqry_a->placements) {
+            //~ p.distal_length;
+
+            for (Pquery* pqry_b : pqueries) {
+                for (Pquery::Placement& place_b : pqry_b->placements) {
+                    //~ p.distal_length;
+
+                }
+            }
+
+        }
+    }
 
     LOG_DBG << distances->Dump();
     delete distances;
