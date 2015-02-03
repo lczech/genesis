@@ -8,6 +8,7 @@
 #include "tree/newick_format.hpp"
 
 #include <assert.h>
+#include <deque>
 #include <string>
 #include <sstream>
 
@@ -326,6 +327,7 @@ bool NewickPrinter::ToFile(const std::string& fn, TreeBroker& broker)
     return FileWrite(fn, ToString(broker));
 }
 
+// TODO this is a quick and dirty (=slow) solution...
 std::string NewickPrinter::ToString(TreeBroker& broker)
 {
     broker.AssignRanks();
@@ -339,25 +341,29 @@ std::string NewickPrinter::ToStringRec(TreeBroker& broker, size_t pos)
         return NodeToString(broker[pos]);
     }
 
-    // recurse over all children of the current node
-    std::ostringstream out;
-    out << "(";
+    // recurse over all children of the current node. while doing so, build a stack of the resulting
+    // substrings in reverse order. this is because newick stores the nodes kind of "backwards",
+    // by starting at a leaf node instead of the root.
+    std::deque<std::string> children;
     for (size_t i = pos + 1; i < broker.size() && broker[i]->depth > broker[pos]->depth; ++i) {
         // skip if not immediate children (those will be called in later recursion steps)
         if (broker[i]->depth > broker[pos]->depth + 1) {
             continue;
         }
 
-        // add a comma if not the first child node
-        if (i > pos + 1) {
-            out << ",";
-        }
-
-        // do the recursion step using this child
-        out << ToStringRec(broker, i);
+        // do the recursion step for this child, add the result to a stack
+        children.push_front(ToStringRec(broker, i));
     }
 
-    // finally, add the information of the current node itself
+    // build the string by iterating the stack
+    std::ostringstream out;
+    out << "(";
+    for (size_t i = 0; i < children.size(); ++i) {
+        if (i>0) {
+            out << ",";
+        }
+        out << children[i];
+    }
     out << ")" << NodeToString(broker[pos]);
     return out.str();
 }

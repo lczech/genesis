@@ -126,19 +126,28 @@ int main (int argc, char* argv[])
     // -----------------------------------------------------
     //     Test cases for newick parser and printer
     // -----------------------------------------------------
-    //~ Tree<> tree;
-    //~ tree.FromNewickString("((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;");
-    //~ LOG_DBG << "tree: " << tree.ToNewickString();
+    std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    LOG_DBG << "In tree:  " << ts;
+    Tree<> tree;
+    tree.FromNewickString(ts);
+    //~ for (
+        //~ Tree<>::IteratorPostorder it = tree.BeginPostorder();
+        //~ it != tree.EndPostorder();
+        //~ ++it
+    //~ ) {
+        //~ LOG_DBG1 << "Post " << it.Node()->data.name;
+    //~ }
+    LOG_DBG << "Out tree: " << tree.ToNewickString();
+
     //~ tree.FromNewickString("(((F,(G,H)I)J,K)L,(A,(B,C)D)E)R;");
     //~ LOG_DBG << "tree: " << tree.ToNewickString();
 
-    std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
-    LOG_DBG << "In tree:  " << ts;
-    TreeBroker broker;
-    NewickParser::ProcessString(ts, broker);
-    LOG_DBG << "Broker:   " << broker.Dump();
-    LOG_DBG << "Out tree: " << NewickPrinter::ToString(broker);
-
+    //~ std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    //~ LOG_DBG << "In tree:  " << ts;
+    //~ TreeBroker broker;
+    //~ NewickParser::ProcessString(ts, broker);
+    //~ LOG_DBG << "Broker:   " << broker.Dump();
+    //~ LOG_DBG << "Out tree: " << NewickPrinter::ToString(broker);
 
     //~ tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};");
     //~ tree.FromNewickString("( (] Ant:0.2, [a comment] 'Bee':0.09 )Innen:0.7, Coyote:0.5 );");
