@@ -19,8 +19,8 @@ namespace genesis {
 //     Forward Declarations
 // =============================================================================
 
-class  TreeBroker;
-struct TreeBrokerNode;
+class  NewickBroker;
+struct NewickBrokerNode;
 
 // =============================================================================
 //     NewickLexer
@@ -123,9 +123,9 @@ protected:
 class NewickParser
 {
 public:
-    static bool ProcessFile   (const std::string& fn,    TreeBroker& broker);
-    static bool ProcessString (const std::string& tree,  TreeBroker& broker);
-    static bool ProcessLexer  (const NewickLexer& lexer, TreeBroker& broker);
+    static bool ProcessFile   (const std::string& fn,    NewickBroker& broker);
+    static bool ProcessString (const std::string& tree,  NewickBroker& broker);
+    static bool ProcessLexer  (const NewickLexer& lexer, NewickBroker& broker);
 };
 
 // =============================================================================
@@ -135,8 +135,8 @@ public:
 class NewickPrinter
 {
 public:
-    static bool        ToFile   (const std::string& fn, TreeBroker& broker);
-    static std::string ToString (                       TreeBroker& broker);
+    static bool        ToFile   (const std::string& fn, NewickBroker& broker);
+    static std::string ToString (                       NewickBroker& broker);
 
     static bool print_names;
     static bool print_branch_lengths;
@@ -144,8 +144,8 @@ public:
     static bool print_tags;
 
 protected:
-    static std::string ToStringRec(TreeBroker& broker, size_t position);
-    static std::string NodeToString(TreeBrokerNode* bn);
+    static std::string ToStringRec(NewickBroker& broker, size_t position);
+    static std::string NodeToString(NewickBrokerNode* bn);
 };
 
 } // namespace genesis

@@ -12,7 +12,7 @@
 #include <string>
 #include <sstream>
 
-#include "tree/tree_broker.hpp"
+#include "tree/newick_broker.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -22,7 +22,7 @@ namespace genesis {
 //     NewickParser
 // =============================================================================
 
-bool NewickParser::ProcessFile (const std::string& fn, TreeBroker& broker)
+bool NewickParser::ProcessFile (const std::string& fn, NewickBroker& broker)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' does not exist.";
@@ -31,7 +31,7 @@ bool NewickParser::ProcessFile (const std::string& fn, TreeBroker& broker)
     return ProcessString(FileRead(fn), broker);
 }
 
-bool NewickParser::ProcessString (const std::string& tree, TreeBroker& broker)
+bool NewickParser::ProcessString (const std::string& tree, NewickBroker& broker)
 {
     NewickLexer lexer;
     lexer.ProcessString(tree);
@@ -42,7 +42,7 @@ bool NewickParser::ProcessString (const std::string& tree, TreeBroker& broker)
 // TODO what happens if a tree's nested brackets fully close to depth 0, then open again without
 // TODO semicolon like (...)(...); ? do we need to check for this?
 
-bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
+bool NewickParser::ProcessLexer (const NewickLexer& lexer, NewickBroker& broker)
 {
     if (lexer.empty()) {
         LOG_INFO << "Tree is empty. Nothing done.";
@@ -57,7 +57,7 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
     broker.clear();
 
     // the node that is currently being populated with data
-    TreeBrokerNode* node = nullptr;
+    NewickBrokerNode* node = nullptr;
 
     // how deep is the current token nested in the tree?
     int depth = 0;
@@ -122,7 +122,7 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
         // node and pushed it to the stack (either closing bracket or comma), so we need to create a
         // new one here.
         if (!node) {
-            node = new TreeBrokerNode();
+            node = new NewickBrokerNode();
             node->depth = depth;
 
             // checks if the new node is a leaf.
@@ -322,19 +322,19 @@ bool NewickPrinter::print_branch_lengths = false;
 bool NewickPrinter::print_comments       = false;
 bool NewickPrinter::print_tags           = false;
 
-bool NewickPrinter::ToFile(const std::string& fn, TreeBroker& broker)
+bool NewickPrinter::ToFile(const std::string& fn, NewickBroker& broker)
 {
     return FileWrite(fn, ToString(broker));
 }
 
 // TODO this is a quick and dirty (=slow) solution...
-std::string NewickPrinter::ToString(TreeBroker& broker)
+std::string NewickPrinter::ToString(NewickBroker& broker)
 {
     broker.AssignRanks();
     return ToStringRec(broker, 0) + ";";
 }
 
-std::string NewickPrinter::ToStringRec(TreeBroker& broker, size_t pos)
+std::string NewickPrinter::ToStringRec(NewickBroker& broker, size_t pos)
 {
     // check if it is a leaf, stop recursion if so.
     if (broker[pos]->rank() == 0) {
@@ -368,7 +368,7 @@ std::string NewickPrinter::ToStringRec(TreeBroker& broker, size_t pos)
     return out.str();
 }
 
-std::string NewickPrinter::NodeToString(TreeBrokerNode* bn)
+std::string NewickPrinter::NodeToString(NewickBrokerNode* bn)
 {
     std::string res = "";
     if (print_names) {

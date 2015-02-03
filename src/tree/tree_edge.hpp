@@ -12,7 +12,7 @@
 
 #include <string>
 
-#include "tree/tree_broker.hpp"
+#include "tree/newick_broker.hpp"
 
 namespace genesis {
 
@@ -39,12 +39,12 @@ public:
     typedef double BranchLength;
     BranchLength branch_length;
 
-    inline void FromTreeBrokerNode (TreeBrokerNode* node)
+    inline void FromNewickBrokerNode (NewickBrokerNode* node)
     {
         branch_length = node->branch_length;
     }
 
-    inline void ToTreeBrokerNode (TreeBrokerNode* node) const
+    inline void ToNewickBrokerNode (NewickBrokerNode* node) const
     {
         node->branch_length = branch_length;
     }
@@ -111,7 +111,7 @@ public:
         return index_;
     }
 
-    void FromTreeBrokerNode (TreeBrokerNode* node);
+    void FromNewickBrokerNode (NewickBrokerNode* node);
 
     std::string Dump() const;
 

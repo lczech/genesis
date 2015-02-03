@@ -12,7 +12,7 @@
 
 #include <string>
 
-#include "tree/tree_broker.hpp"
+#include "tree/newick_broker.hpp"
 
 namespace genesis {
 
@@ -42,12 +42,12 @@ public:
      */
     std::string name;
 
-    inline void FromTreeBrokerNode (TreeBrokerNode* node)
+    inline void FromNewickBrokerNode (NewickBrokerNode* node)
     {
         name = node->name;
     }
 
-    inline void ToTreeBrokerNode (TreeBrokerNode* node) const
+    inline void ToNewickBrokerNode (NewickBrokerNode* node) const
     {
         node->name = name;
     }
@@ -140,7 +140,7 @@ public:
     //~ /** Depth of the node in the tree, i.e. its distance from root. */
     //~ int Depth();
 
-    void FromTreeBrokerNode (TreeBrokerNode* node);
+    void FromNewickBrokerNode (NewickBrokerNode* node);
 
     std::string Dump() const;
 

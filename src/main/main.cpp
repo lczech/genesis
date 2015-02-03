@@ -130,13 +130,13 @@ int main (int argc, char* argv[])
     LOG_DBG << "In tree:  " << ts;
     Tree<> tree;
     tree.FromNewickString(ts);
-    //~ for (
-        //~ Tree<>::IteratorPostorder it = tree.BeginPostorder();
-        //~ it != tree.EndPostorder();
-        //~ ++it
-    //~ ) {
-        //~ LOG_DBG1 << "Post " << it.Node()->data.name;
-    //~ }
+    for (
+        Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip();
+        it != tree.EndRoundtrip();
+        ++it
+    ) {
+        LOG_DBG1 << "Post " << it.Node()->data.name;
+    }
     LOG_DBG << "Out tree: " << tree.ToNewickString();
 
     //~ tree.FromNewickString("(((F,(G,H)I)J,K)L,(A,(B,C)D)E)R;");

@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "tree/tree_broker.hpp"
+#include "tree/newick_broker.hpp"
 #include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
@@ -101,11 +101,11 @@ public:
 
     bool FromNewickFile (const std::string& fn);
     bool FromNewickString (const std::string& tree);
-    void FromTreeBroker (TreeBroker& broker);
+    void FromNewickBroker (NewickBroker& broker);
 
     void        ToNewickFile   (const std::string& fn);
     std::string ToNewickString ();
-    void        ToTreeBroker   (TreeBroker& broker);
+    void        ToNewickBroker (NewickBroker& broker);
 
     // -----------------------------------------------------
     //     Accessors

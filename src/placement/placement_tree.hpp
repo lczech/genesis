@@ -11,7 +11,7 @@
 #include <deque>
 #include <string>
 
-#include "tree/tree_broker.hpp"
+#include "tree/newick_broker.hpp"
 #include "utils/logging.hpp"
 
 namespace genesis {
@@ -58,7 +58,7 @@ public:
     //     Default Functions
     // -----------------------------------------------------
 
-    inline void FromTreeBrokerNode (TreeBrokerNode* node)
+    inline void FromNewickBrokerNode (NewickBrokerNode* node)
     {
         branch_length = node->branch_length;
         edge_num      = -1;
@@ -71,7 +71,7 @@ public:
         edge_num = std::stoi(node->tags[0]);
     }
 
-    inline void ToTreeBrokerNode (TreeBrokerNode* node) const
+    inline void ToNewickBrokerNode (NewickBrokerNode* node) const
     {
         node->branch_length = branch_length;
     }
@@ -129,12 +129,12 @@ public:
     //     Default Functions
     // -----------------------------------------------------
 
-    inline void FromTreeBrokerNode (TreeBrokerNode* node)
+    inline void FromNewickBrokerNode (NewickBrokerNode* node)
     {
         name = node->name;
     }
 
-    inline void ToTreeBrokerNode (TreeBrokerNode* node) const
+    inline void ToNewickBrokerNode (NewickBrokerNode* node) const
     {
         node->name = name;
     }
