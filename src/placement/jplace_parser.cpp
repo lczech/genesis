@@ -8,7 +8,6 @@
 #include "placement/jplace_parser.hpp"
 
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 #include "placement/placements.hpp"
@@ -93,19 +92,18 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
 
     // create a map from edge nums to the actual edge pointers,
     // for later use when processing the pqueries
-    std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
     for (
         PlacementTree::IteratorEdges it = placements.tree.BeginEdges();
         it != placements.tree.EndEdges();
         ++it
     ) {
         PlacementTree::EdgeType* edge = *it;
-        if (edge_num_map.count(edge->data.edge_num) > 0) {
+        if (placements.edge_num_map.count(edge->data.edge_num) > 0) {
             LOG_WARN << "Jplace document contains a tree where the edge num tag '"
                      << edge->data.edge_num << "' is used more than once.";
             return false;
         }
-        edge_num_map.emplace(edge->data.edge_num, edge);
+        placements.edge_num_map.emplace(edge->data.edge_num, edge);
     }
 
     // get the field names and store them in array fields
@@ -203,16 +201,13 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
                 double pqry_place_val = JsonValueToNumber(pqry_fields->at(i))->value;
                 if        (fields[i] == "edge_num") {
                     pqry_place.edge_num          = pqry_place_val;
-                    if (edge_num_map.count(pqry_place_val) == 0) {
+                    if (placements.edge_num_map.count(pqry_place_val) == 0) {
                         LOG_WARN << "Jplace document contains a pquery where field 'edge_num' "
                                  << "has value '" << pqry_place_val << "', which is not marked "
                                  << "in the given tree as an edge num.";
                         return false;
                     }
-                    // TODO add back if neccessary
-                    //~ pqry_place.edge = edge_num_map.at(pqry_place_val);
-                    //~ pqry_place.edge->data.pqueries.push_back(pqry);
-                    edge_num_map.at(pqry_place_val)->data.pqueries.push_back(pqry);
+                    placements.edge_num_map.at(pqry_place_val)->data.pqueries.push_back(pqry);
                 } else if (fields[i] == "likelihood") {
                     pqry_place.likelihood        = pqry_place_val;
                 } else if (fields[i] == "like_weight_ratio") {

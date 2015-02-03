@@ -46,11 +46,9 @@ public:
     //     Operators
     // -----------------------------------------------------
 
-    // FIXME if we start this iterator on a non-root node, this node is not included again
-    // at the end of the trip (which is done for the root). maybe also use a stack?!
     inline self_type& operator ++ ()
     {
-        link_ = link_->Next()->Outer();
+        link_ = link_->Outer()->Next();
         if (link_ == start_) {
             link_ = nullptr;
         }

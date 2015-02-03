@@ -40,6 +40,7 @@ int main (int argc, char* argv[])
     //~ Logging::details.level = false;
     //~ Logging::details.file = true;
     //~ Logging::details.line = true;
+    //~ Logging::details.function = true;
     LOG_BOLD << print_header();
     LOG_TIME << "start";
 
@@ -123,9 +124,30 @@ int main (int argc, char* argv[])
     //*/
 
     // -----------------------------------------------------
-    //     Test cases for newick parser
+    //     Test cases for newick parser and printer
     // -----------------------------------------------------
-    //~ tree.FromNewickString("((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;");
+    std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    LOG_DBG << "In tree:  " << ts;
+    Tree<> tree;
+    tree.FromNewickString(ts);
+    //~ for (
+        //~ Tree<>::IteratorPostorder it = tree.BeginPostorder();
+        //~ it != tree.EndPostorder();
+        //~ ++it
+    //~ ) {
+        //~ LOG_DBG1 << "Post " << it.Node()->data.name;
+    //~ }
+    LOG_DBG << "Out tree: " << tree.ToNewickString();
+
+    //~ tree.FromNewickString("(((F,(G,H)I)J,K)L,(A,(B,C)D)E)R;");
+    //~ LOG_DBG << "tree: " << tree.ToNewickString();
+
+    //~ std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    //~ LOG_DBG << "In tree:  " << ts;
+    //~ TreeBroker broker;
+    //~ NewickParser::ProcessString(ts, broker);
+    //~ LOG_DBG << "Broker:   " << broker.Dump();
+    //~ LOG_DBG << "Out tree: " << NewickPrinter::ToString(broker);
 
     //~ tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};");
     //~ tree.FromNewickString("( (] Ant:0.2, [a comment] 'Bee':0.09 )Innen:0.7, Coyote:0.5 );");
@@ -170,16 +192,19 @@ int main (int argc, char* argv[])
     // -----------------------------------------------------
     //     Test for placements, earth movers distance, center of gravity
     // -----------------------------------------------------
-    Placements place_a, place_b;
-    place_a.FromJplaceFile("test/data/test_a.jplace");
-    place_b.FromJplaceFile("test/data/test_b.jplace");
+    //~ Placements place_a, place_b;
+    //~ place_a.FromJplaceFile("test/data/RAxML_portableTree.split_0.jplace");
+    //~ place_a.FromJplaceFile("test/data/test_a.jplace");
+    //~ place_b.FromJplaceFile("test/data/RAxML_portableTree.split_1.jplace");
+    //~ place_b.FromJplaceFile("test/data/test_b.jplace");
+
     //~ JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
     //~ JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
     //~ LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
 
-    //~ LOG_DBG << "EMD: " << place_a.EMD(place_b);
+    //~ LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
     //~ place_a.COG();
-    LOG_DBG << "Variance: " << place_a.Variance();
+    //~ LOG_DBG << "Variance: " << place_a.Variance();
 
     /*
     // test postorder
