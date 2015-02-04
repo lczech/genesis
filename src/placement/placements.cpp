@@ -61,6 +61,9 @@ bool Placements::FromJsonDocument (const JsonDocument& doc)
     return JplaceParser::ProcessDocument(doc, *this);
 }
 
+/**
+ * @brief Adds the pqueries from another Placements objects to this one.
+ */
 bool Placements::Merge(Placements& other)
 {
     // TODO identical data so far checks for branch length and edge num, but not placements on the edge.
@@ -76,6 +79,58 @@ bool Placements::Merge(Placements& other)
         this->pqueries.push_back(npqry);
     }
     return true;
+}
+
+/**
+ * @brief Removes all placements but the most likely one from all pqueries.
+ */
+void Placements::RestrainToMaxWeightPlacements()
+{
+    for (Pquery* pqry : pqueries) {
+        // init
+        double max_w = -1.0;
+        int    max_i;
+
+        for (size_t i = 0; i < pqry->placements.size(); ++i) {
+            // find the maximum of the weight ratios in the placements of this pquery
+            Pquery::Placement& place = pqry->placements[i];
+            if (place.like_weight_ratio > max_w) {
+                max_w = place.like_weight_ratio;
+                max_i = i;
+            }
+
+            // delete the reference from the edge to this pquery. we will later add the one that
+            // points to the remaining placement.
+            PlacementTree::EdgeType* edge = PlacementToEdge(place);
+            std::deque<Pquery*>::iterator it = edge->data.pqueries.begin();
+            for (; it != edge->data.pqueries.end(); ++it) {
+                if (*it == pqry) {
+                    break;
+                }
+            }
+            // assert that the edge actually contains a reference to this pquery. if not,
+            // this means that we messed up somewhere else while adding/removing placements...
+            assert(it != edge->data.pqueries.end());
+            edge->data.pqueries.erase(it);
+        }
+
+        // we do not allow empty placement objects (should we?)
+        assert(max_w > -1.0);
+
+        // remove all but the max element from placements by creating a new deque and swapping it.
+        // this is faster and simpler than removing all but one element.
+        std::deque<Pquery::Placement> np;
+        np.push_back(pqry->placements[max_i]);
+        pqry->placements.swap(np);
+
+        // now add back the reference from the edge to the pquery.
+        // assert that we now have a single placement in the pquery (the most likely one).
+        assert(pqry->placements.size() == 1);
+        PlacementToEdge(pqry->placements[0])->data.pqueries.push_back(pqry);
+
+        // also, set the like_weight_ratio to 1.0, because we do not have any other placements left.
+        pqry->placements[0].like_weight_ratio = 1.0;
+    }
 }
 
 // =============================================================================
@@ -374,12 +429,10 @@ double Placements::Variance()
 //     Dump and Debug
 // =============================================================================
 
-std::string Placements::DumpAll()
-{
-    return DumpPqueries() + DumpTree();
-}
-
-std::string Placements::DumpPqueries()
+/**
+ * @brief Returns a list of all Pqueries with their %Placements and Names.
+ */
+std::string Placements::Dump()
 {
     std::ostringstream out;
     for (Pquery* pqry : pqueries) {
@@ -405,35 +458,88 @@ std::string Placements::DumpPqueries()
     return out.str();
 }
 
-std::string Placements::DumpTree()
-{
-    return tree.DumpAll();
-}
-
+/**
+ * @brief Validates the integrity of the data in this Placement object.
+ */
 bool Placements::Validate()
 {
+    // check tree
     if (!tree.Validate()) {
         LOG_INFO << "Invalid placement tree.";
         return false;
     }
 
-    //~ for (Pquery* pqry : pqueries) {
-        //~ for (Pquery::Placement& p : pqry->placements) {
-            //~ if (p.edge_num != p.edge->data.edge_num) {
-                //~ return false;
-            //~ }
-            // TODO add check for other way round: reference from edge to pqry
+    // check pqueries
+    for (Pquery* pqry : pqueries) {
+        double ratio_sum = 0.0;
+        for (Pquery::Placement& p : pqry->placements) {
+            // check edge references
+            if (edge_num_map.count(p.edge_num) != 1) {
+                LOG_INFO << "Invalid edge number '" << p.edge_num << "' in placement.";
+                return false;
+            }
+            bool found_pqry_on_edge = false;
+            PlacementTree::EdgeType* edge = edge_num_map[p.edge_num];
+            for (Pquery* edge_pqry : edge->data.pqueries) {
+                if (edge_pqry == pqry) {
+                    found_pqry_on_edge = true;
+                }
+            }
+            if (!found_pqry_on_edge) {
+                LOG_INFO << "Invalid placement that refers to edge_num " << p.edge_num << ", but "
+                         << "this edge does not have a reference to the pquery.";
+                return false;
+            }
 
-            //~ if (p.pendant_length < 0.0 || p.distal_length < 0.0) {
-                //~ LOG_INFO << "Tree contains placement with pendant_length or distal_length < 0.0 "
-                         //~ << "at node '" << it.Node()->data.name << "'.";
-            //~ }
-            //~ if (p.distal_length > it.Edge()->data.branch_length) {
-                //~ LOG_INFO << "Tree contains placement with distal_length > branch_length "
-                         //~ << "at node '" << it.Node()->data.name << "'.";
-            //~ }
-        //~ }
-    //~ }
+            // check numerical values
+            if (p.like_weight_ratio < 0.0 || p.like_weight_ratio > 1.0) {
+                LOG_INFO << "Invalid placement with like_weight_ratio not in [0.0, 1.0].";
+                return false;
+            }
+            if (p.pendant_length < 0.0 || p.distal_length < 0.0) {
+                LOG_INFO << "Invalid placement with pendant_length or distal_length < 0.0.";
+                return false;
+            }
+            if (p.distal_length > edge_num_map[p.edge_num]->data.branch_length) {
+                LOG_INFO << "Invalid placement with distal_length > branch_length.";
+                return false;
+            }
+            ratio_sum += p.like_weight_ratio;
+        }
+        if (ratio_sum > 1.0) {
+            LOG_INFO << "Invalid pquery with sum of like_weight_ratio > 1.0.";
+            return false;
+        }
+    }
+
+    // check references from the edges to the pqueries
+    for (
+        PlacementTree::IteratorEdges it_e = tree.BeginEdges();
+        it_e != tree.EndEdges();
+        ++it_e
+    ) {
+        int found_edge_num = 0;
+        for (
+            PlacementEdgeData::IteratorPlacements it_p = (*it_e)->data.BeginPlacements();
+            it_p != (*it_e)->data.EndPlacements();
+            ++it_p
+        ) {
+            if (it_p->edge_num == (*it_e)->data.edge_num) {
+                ++found_edge_num;
+            }
+        }
+        if ((*it_e)->data.pqueries.size() > 0 && found_edge_num == 0) {
+            LOG_INFO << "The edge with number " << (*it_e)->data.edge_num << " refers to no pquery "
+                     << "with a placement that has this edge number.";
+            return false;
+        }
+        if (found_edge_num > 1) {
+            LOG_INFO << "The edge with number " << (*it_e)->data.edge_num << " refers to a pquery "
+                     << "more than once.";
+            return false;
+        }
+    }
+
     return true;
 }
 

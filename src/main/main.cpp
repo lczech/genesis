@@ -54,7 +54,7 @@ int main (int argc, char* argv[])
     TreeNode<DefaultNodeData, DefaultEdgeData>* n;
     tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
     //~ tree.FromNewickString("((A,((B,C)D,E)F)G,((H,((I,J)K,L)M)N,O)P,Q)R;");
-    LOG_DBG << tree.DumpAll();
+    LOG_DBG << tree.Dump();
 
     // test roundtrip
     LOG_DBG << "Test Roundtrip at root";
@@ -128,20 +128,20 @@ int main (int argc, char* argv[])
     // -----------------------------------------------------
     //     Test cases for newick parser and printer
     // -----------------------------------------------------
-    std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
-    LOG_DBG << "In tree:  " << ts;
-    Tree<> tree;
+    //~ std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    //~ LOG_DBG << "In tree:  " << ts;
+    //~ Tree<> tree;
     //~ tree.FromNewickString(ts);
-    NewickProcessor::FromString(ts, tree);
-
-    for (
-        Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip();
-        it != tree.EndRoundtrip();
-        ++it
-    ) {
-        LOG_DBG1 << "Round " << it.Node()->data.name;
-    }
-    LOG_DBG << "Out tree: " << NewickProcessor::ToString(tree);
+    //~ NewickProcessor::FromString(ts, tree);
+//~
+    //~ for (
+        //~ Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip();
+        //~ it != tree.EndRoundtrip();
+        //~ ++it
+    //~ ) {
+        //~ LOG_DBG1 << "Round " << it.Node()->data.name;
+    //~ }
+    //~ LOG_DBG << "Out tree: " << NewickProcessor::ToString(tree);
 
     //~ tree.Export();
     //~ NewickProcessor::ToFile("/home/file.nw", tree);
@@ -200,19 +200,30 @@ int main (int argc, char* argv[])
     // -----------------------------------------------------
     //     Test for placements, earth movers distance, center of gravity
     // -----------------------------------------------------
-    Placements place_a, place_b;
+    //~ Placements place_a, place_b;
     //~ place_a.FromJplaceFile("test/data/RAxML_portableTree.split_0.jplace");
-    place_a.FromJplaceFile("test/data/test_a.jplace");
+    //~ place_a.FromJplaceFile("test/data/test_a.jplace");
     //~ place_b.FromJplaceFile("test/data/RAxML_portableTree.split_1.jplace");
-    place_b.FromJplaceFile("test/data/test_b.jplace");
+    //~ place_b.FromJplaceFile("test/data/test_b.jplace");
 
     //~ JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
     //~ JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
-    //~ LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
+    //~ LOG_DBG << place_a.Dump();
+    //~ LOG_DBG << "valid: " << place_a.Validate();
 
-    LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
+    //~ LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
     //~ place_a.COG();
     //~ LOG_DBG << "Variance: " << place_a.Variance();
+
+    Placements place;
+    place.FromJplaceFile("test/data/placement.jplace");
+    LOG_DBG << place.Dump();
+    LOG_DBG << "valid: " << place.Validate();
+
+    LOG_DBG << "applying RestrainToMaxWeightPlacements...";
+    place.RestrainToMaxWeightPlacements();
+    LOG_DBG << place.Dump();
+    LOG_DBG << "valid: " << place.Validate();
 
     /*
     // test postorder

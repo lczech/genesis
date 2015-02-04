@@ -97,6 +97,7 @@ public:
     bool FromJsonDocument (const JsonDocument& doc);
 
     bool Merge(Placements& other);
+    void RestrainToMaxWeightPlacements();
 
     // -----------------------------------------------------
     //     Pqueries
@@ -122,10 +123,7 @@ public:
     //     Dump and Debug
     // -----------------------------------------------------
 
-    std::string DumpAll();
-    std::string DumpPqueries();
-    std::string DumpTree();
-
+    std::string Dump();
     bool Validate();
 
     // -----------------------------------------------------

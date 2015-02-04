@@ -254,6 +254,11 @@ public:
     //     Members
     // -----------------------------------------------------
 
+    inline size_t size()
+    {
+        return placements_.size();
+    }
+
 protected:
     std::deque<Pquery::Placement*> placements_;
 };

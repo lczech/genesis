@@ -26,7 +26,7 @@ double PlacementEdgeData::PlacementMass()
                 continue;
             }
 
-            //~ mass += pl.like_mass_ratio;
+            //~ mass += pl.like_weight_ratio;
             mass += 1.0;
         }
     }
@@ -54,30 +54,30 @@ PlacementEdgeData::IteratorPlacements PlacementEdgeData::EndPlacements()
 PlacementEdgeDataIteratorPlacements::PlacementEdgeDataIteratorPlacements (
     PlacementEdgeData& edge_data, int sort
 ) {
-    std::deque<Pquery*>::iterator             pquery_it_;
-    std::deque<Pquery::Placement>::iterator   placement_it_;
+    std::deque<Pquery*>::iterator             pquery_it;
+    std::deque<Pquery::Placement>::iterator   placement_it;
     std::multimap<double, Pquery::Placement*> sorted;
 
     // iterate over all placements of all pqueries of the edge data
     for (
-        pquery_it_  = edge_data.pqueries.begin();
-        pquery_it_ != edge_data.pqueries.end();
-        ++pquery_it_
+        pquery_it  = edge_data.pqueries.begin();
+        pquery_it != edge_data.pqueries.end();
+        ++pquery_it
     ) {
         for (
-            placement_it_  = (*pquery_it_)->placements.begin();
-            placement_it_ != (*pquery_it_)->placements.end();
-            ++placement_it_
+            placement_it  = (*pquery_it)->placements.begin();
+            placement_it != (*pquery_it)->placements.end();
+            ++placement_it
         ) {
             // if it is a placement on the edge...
-            if (placement_it_->edge_num != edge_data.edge_num) {
+            if (placement_it->edge_num != edge_data.edge_num) {
                 continue;
             }
             // ... add it to one of the list (sorted or not)
             if (sort == 0) {
-                placements_.push_back(&*placement_it_);
+                placements_.push_back(&*placement_it);
             } else {
-                sorted.emplace(placement_it_->distal_length, &*placement_it_);
+                sorted.emplace(placement_it->distal_length, &*placement_it);
             }
         }
     }

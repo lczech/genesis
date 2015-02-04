@@ -360,7 +360,7 @@ public:
 
     bool Validate() const;
 
-    std::string DumpAll() const;
+    std::string Dump() const;
     std::string DumpLinks() const;
     std::string DumpNodes() const;
     std::string DumpEdges() const;

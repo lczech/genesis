@@ -338,7 +338,7 @@ bool Tree<NDT, EDT>::Validate() const
  * @brief Returns the combined dump of DumpLinks(), DumpNodes() and DumpEdges().
  */
 template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::DumpAll() const
+std::string Tree<NDT, EDT>::Dump() const
 {
     return DumpLinks() + "\n" + DumpNodes() + "\n" + DumpEdges();
 }
