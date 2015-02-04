@@ -139,6 +139,10 @@ int main (int argc, char* argv[])
     }
     LOG_DBG << "Out tree: " << tree.ToNewickString();
 
+    //~ tree.Export();
+    //~ NewickProcessor::ToFile("/home/file.nw", tree);
+
+
     //~ tree.FromNewickString("(((F,(G,H)I)J,K)L,(A,(B,C)D)E)R;");
     //~ LOG_DBG << "tree: " << tree.ToNewickString();
 

@@ -52,6 +52,43 @@ Tree<NDT, EDT>::~Tree ()
     clear();
 }
 
+/**
+ * @brief Imports all elements of a tree.
+ *
+ * This function overwrites the topology and data of this tree with a given set of links, nodes
+ * and edges. Use with care! No checks are done concerning the validity of the passed input.
+ *
+ * Caveat: Only the pointers to the tree elements are copied, not the elements themselves. Thus,
+ * this function is not intended for creating a deep copy. It merely is a fast way to pass pointers
+ * to tree elements.
+ *
+ * Therefore, the main usage of this function is to get a tree from different TreeProcessor objects
+ * for reading trees from files.
+ */
+template <class NDT, class EDT>
+void Tree<NDT, EDT>::Import(LinkArray& links, NodeArray& nodes, EdgeArray& edges)
+{
+    clear();
+    links_ = links;
+    nodes_ = nodes;
+    edges_ = edges;
+}
+
+/**
+ * @brief Exports all elements of a tree.
+ *
+ * Caveat: Only the pointers to the tree elements are copied, not the elements themselves. Thus,
+ * this function is not intended for creating a deep copy. It merely is a fast way to pass pointers
+ * to tree elements.
+ */
+template <class NDT, class EDT>
+void Tree<NDT, EDT>::Export(LinkArray& links, NodeArray& nodes, EdgeArray& edges)
+{
+    links = links_;
+    nodes = nodes_;
+    edges = edges_;
+}
+
 // -------------------------------------------------------------------------
 //     Read and Write
 // -------------------------------------------------------------------------
