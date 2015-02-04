@@ -27,7 +27,7 @@ NewickBroker::~NewickBroker()
 /** @brief Deletes all nodes from the broker. */
 void NewickBroker::clear()
 {
-    for (NewickBrokerNode* node : stack_) {
+    for (NewickBrokerElement* node : stack_) {
         delete node;
     }
     stack_.clear();
@@ -49,12 +49,12 @@ void NewickBroker::AssignRanks()
     // we use a stack containing the parents of each subtree. whenever we enter a new subtree,
     // we push its parent to the stack and increase its rank count while encountering its immediate
     // children.
-    std::deque<NewickBrokerNode*> parent_stack;
+    std::deque<NewickBrokerElement*> parent_stack;
 
     // iterate over all nodes, starting at the root, and assign ranks to them
     for (NewickBroker::const_iterator n_itr = stack_.cbegin(); n_itr != stack_.cend(); ++n_itr) {
         // prepare the current node
-        NewickBrokerNode* node = *n_itr;
+        NewickBrokerElement* node = *n_itr;
         node->rank_ = 0;
 
         // check if the current node is in a different subtree than the current stack elements. this
@@ -84,7 +84,7 @@ void NewickBroker::AssignRanks()
 int NewickBroker::LeafCount() const
 {
     int sum = 0;
-    for (NewickBrokerNode* node : stack_) {
+    for (NewickBrokerElement* node : stack_) {
         if (node->rank_ == -1) {
             LOG_WARN << "NewickBroker::AssignRanks() was not called before.";
             return -1;
@@ -102,7 +102,7 @@ int NewickBroker::LeafCount() const
 int NewickBroker::MaxRank() const
 {
     int max = -1;
-    for (NewickBrokerNode* node : stack_) {
+    for (NewickBrokerElement* node : stack_) {
         if (node->rank_ == -1) {
             LOG_WARN << "NewickBroker::AssignRanks() was not called before.";
             return -1;
@@ -133,7 +133,7 @@ int NewickBroker::MaxRank() const
 bool NewickBroker::Validate() const
 {
     int cur_depth = 0;
-    for (NewickBrokerNode* node : stack_) {
+    for (NewickBrokerElement* node : stack_) {
         if (node->rank_ == -1) {
             LOG_WARN << "NewickBroker::AssignRanks() was not called before.";
             return false;
@@ -172,7 +172,7 @@ std::string NewickBroker::Dump() const
     std::string out;
     out += "Tree contains " + std::to_string(NodeCount()) + " nodes (thereof "
         + std::to_string(LeafCount()) + " leaves)" + (stack_.empty() ? "." : ":") + "\n";
-    for (NewickBrokerNode* node : stack_) {
+    for (NewickBrokerElement* node : stack_) {
         // indent
         for (int i = 0; i < node->depth; ++i) {
             out += "    ";

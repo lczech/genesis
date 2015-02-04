@@ -113,7 +113,8 @@ public:
         return "";
     }
 
-protected:
+// TODO !!! make protected again, and use some other mechanism for setting the members !!!
+//~ protected:
 
     // ---------------------------------------------------------------------
     //     Member Variables

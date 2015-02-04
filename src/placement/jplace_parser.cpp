@@ -85,7 +85,7 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
 
     // find and process the reference tree
     val = doc.Get("tree");
-    if (!val || !val->IsString() || !placements.tree.FromNewickString(val->ToString())) {
+    if (!val || !val->IsString() || !NewickProcessor::FromString(val->ToString(), placements.tree)) {
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }

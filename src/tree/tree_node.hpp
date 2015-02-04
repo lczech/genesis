@@ -12,7 +12,7 @@
 
 #include <string>
 
-#include "tree/newick_broker.hpp"
+#include "tree/newick_processor.hpp"
 
 namespace genesis {
 
@@ -42,12 +42,12 @@ public:
      */
     std::string name;
 
-    inline void FromNewickBrokerNode (NewickBrokerNode* node)
+    inline void FromNewickBrokerElement (NewickBrokerElement* node)
     {
         name = node->name;
     }
 
-    inline void ToNewickBrokerNode (NewickBrokerNode* node) const
+    inline void ToNewickBrokerElement (NewickBrokerElement* node) const
     {
         node->name = name;
     }
@@ -140,7 +140,7 @@ public:
     //~ /** Depth of the node in the tree, i.e. its distance from root. */
     //~ int Depth();
 
-    void FromNewickBrokerNode (NewickBrokerNode* node);
+    void FromNewickBrokerElement (NewickBrokerElement* node);
 
     std::string Dump() const;
 
@@ -150,7 +150,8 @@ public:
 
     NodeDataType data;
 
-protected:
+// TODO !!! make protected again, and use some other mechanism for setting the members !!!
+//~ protected:
 
     size_t index_;
 

@@ -49,7 +49,6 @@ inline bool TreeNode<NDT, EDT>::IsInner() const
 //     Member Functions
 // =============================================================================
 
-#include "tree/newick_broker.hpp"
 #include "tree/tree_link.hpp"
 
 namespace genesis {
@@ -72,12 +71,12 @@ int TreeNode<NDT, EDT>::Rank() const
 }
 
 /**
- * @brief Fills the node with data from a NewickBrokerNode.
+ * @brief Fills the node with data from a NewickBrokerElement.
  */
 template <class NDT, class EDT>
-void TreeNode<NDT, EDT>::FromNewickBrokerNode (NewickBrokerNode* node)
+void TreeNode<NDT, EDT>::FromNewickBrokerElement (NewickBrokerElement* node)
 {
-    data.FromNewickBrokerNode(node);
+    data.FromNewickBrokerElement(node);
 }
 
 /**

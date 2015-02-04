@@ -14,7 +14,7 @@
 namespace genesis {
 
 // =============================================================================
-//     NewickBrokerNode
+//     NewickBrokerElement
 // =============================================================================
 
 // forward declaration
@@ -29,7 +29,7 @@ class NewickBroker;
  *
  * See NewickBroker class for a description of this intermediate format.
  */
-struct NewickBrokerNode
+struct NewickBrokerElement
 {
     friend NewickBroker;
 
@@ -37,7 +37,7 @@ public:
     /**
      * @brief Constructor, initializes the item values.
      */
-    NewickBrokerNode() : branch_length(0.0), depth(0), is_leaf(false), rank_(-1) {};
+    NewickBrokerElement() : branch_length(0.0), depth(0), is_leaf(false), rank_(-1) {};
 
     /**
      * @brief Returns the rank (number of immediate children) of this node.
@@ -103,13 +103,11 @@ protected:
 //     NewickBroker
 // =============================================================================
 
-    // TODO introduce IsDirty() that returns true iff the stack was modified (pop/push/clear/...)
-    // TODO so that the internal state of the tree and its nodes is changed, e.g. AssignRanks()
-    // TODO has to be called again (and all other state-assigning functions)
-
     // TODO write copy ctor and assign op
 
     // TODO introduce other parsers and generators, e.g. http://en.wikipedia.org/wiki/DOT_%28graph_description_language%29
+
+    // TODO update doc blocks to new use of Newick Broker instead of old Tree Broker!
 
 /**
  * @brief Stores a tree in an intermediate format that can be used as transfer between different
@@ -121,7 +119,7 @@ protected:
  * the Newick file format.
  *
  * It is organized as a stack, where the root of the tree is at the top/front. Then follow the nodes
- * in a postorder manner, where each node is of type NewickBrokerNode.
+ * in a postorder manner, where each node is of type NewickBrokerElement.
  *
  * The topology of the tree is represented via a depth attribute of each node: Two subsequent nodes
  * are siblings (belong to the same parent node), if they have the same depth. If the second node
@@ -164,7 +162,7 @@ protected:
  *     is also true for trees rooted on a leaf.
  *  *  The nesting of the nodes has to be correct, so the depth cannot increase more than one per
  *     node when going down the tree.
- *  *  The attribute NewickBrokerNode::is_leaf of the NewickBrokerNodes can be set (for exmaple when
+ *  *  The attribute NewickBrokerElement::is_leaf of the NewickBrokerElements can be set (for exmaple when
  *     parsing a Newick tree) and then be used to validate the integrity of the tree using
  *     Validate(). However, the attribute is not further used -- see its description for more on
  *     this.
@@ -181,12 +179,12 @@ public:
 
     void clear();
 
-    inline void PushTop (NewickBrokerNode* node)
+    inline void PushTop (NewickBrokerElement* node)
     {
         stack_.push_front(node);
     }
 
-    inline void PushBottom (NewickBrokerNode* node)
+    inline void PushBottom (NewickBrokerElement* node)
     {
         stack_.push_back(node);
     }
@@ -218,16 +216,16 @@ public:
      *     }
      * %
      */
-    typedef std::deque<NewickBrokerNode*>::iterator               iterator;
+    typedef std::deque<NewickBrokerElement*>::iterator               iterator;
 
     /** @brief Const version of the iterator. */
-    typedef std::deque<NewickBrokerNode*>::const_iterator         const_iterator;
+    typedef std::deque<NewickBrokerElement*>::const_iterator         const_iterator;
 
     /** @brief Reverse version of the iterator. */
-    typedef std::deque<NewickBrokerNode*>::reverse_iterator       reverse_iterator;
+    typedef std::deque<NewickBrokerElement*>::reverse_iterator       reverse_iterator;
 
     /** @brief Const reverse version of the iterator. */
-    typedef std::deque<NewickBrokerNode*>::const_reverse_iterator const_reverse_iterator;
+    typedef std::deque<NewickBrokerElement*>::const_reverse_iterator const_reverse_iterator;
 
     /**
      * @brief Returns an iterator to the top of the stack.
@@ -236,7 +234,7 @@ public:
      * looping over the nodes:
      *
      *     NewickBroker b;
-     *     for (NewickBrokerNode& n : b) {
+     *     for (NewickBrokerElement& n : b) {
      *         std::cout << n.name << std::endl;
      *     }
      * %
@@ -311,14 +309,14 @@ public:
      *
      *     NewickBroker tb;
      *     for (size_t i = 0; i < tb.size(); ++i) {
-     *        NewickBrokerNode* tn = tb[i];
+     *        NewickBrokerElement* tn = tb[i];
      *        std::cout << tn.name << std::endl;
      *     }
      *
      * Caveat: this operator does no boundary check. If you need this check,
      * use at() instead.
      */
-    inline NewickBrokerNode* operator [] (const std::size_t index) const
+    inline NewickBrokerElement* operator [] (const std::size_t index) const
     {
         return stack_[index];
     }
@@ -328,7 +326,7 @@ public:
      *
      * In out of bounds cases, a `nullptr` is returned.
      */
-    inline NewickBrokerNode* at(const std::size_t index) const
+    inline NewickBrokerElement* at(const std::size_t index) const
     {
         if (index < stack_.size()) {
             return stack_[index];
@@ -346,7 +344,7 @@ public:
      *
      * Calling this function on an empty() broker causes undefined behavior.
      */
-    inline NewickBrokerNode* Top()
+    inline NewickBrokerElement* Top()
     {
         return stack_.front();
     }
@@ -356,7 +354,7 @@ public:
      *
      * Calling this function on an empty() broker causes undefined behavior.
      */
-    inline NewickBrokerNode* Bottom()
+    inline NewickBrokerElement* Bottom()
     {
         return stack_.back();
     }
@@ -396,7 +394,7 @@ public:
     std::string Dump() const;
 
 protected:
-    std::deque<NewickBrokerNode*> stack_;
+    std::deque<NewickBrokerElement*> stack_;
 };
 
 } // namespace genesis

@@ -43,17 +43,15 @@ inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::SecondaryNode() const
 //     Member Functions
 // =============================================================================
 
-#include "tree/newick_broker.hpp"
-
 namespace genesis {
 
 /**
- * @brief Fills the edge with data from a NewickBrokerNode.
+ * @brief Fills the edge with data from a NewickBrokerElement.
  */
 template <class NDT, class EDT>
-void TreeEdge<NDT, EDT>::FromNewickBrokerNode (NewickBrokerNode* node)
+void TreeEdge<NDT, EDT>::FromNewickBrokerElement (NewickBrokerElement* node)
 {
-    data.FromNewickBrokerNode(node);
+    data.FromNewickBrokerElement(node);
 }
 
 /**

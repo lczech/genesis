@@ -13,7 +13,6 @@
 #include <string>
 #include <vector>
 
-#include "tree/newick_broker.hpp"
 #include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
@@ -107,18 +106,6 @@ public:
     void Export(LinkArray& links, NodeArray& nodes, EdgeArray& edges);
 
     // -----------------------------------------------------
-    //     Read and Write
-    // -----------------------------------------------------
-
-    bool FromNewickFile (const std::string& fn);
-    bool FromNewickString (const std::string& tree);
-    void FromNewickBroker (NewickBroker& broker);
-
-    void        ToNewickFile   (const std::string& fn);
-    std::string ToNewickString ();
-    void        ToNewickBroker (NewickBroker& broker);
-
-    // -----------------------------------------------------
     //     Accessors
     // -----------------------------------------------------
 
@@ -145,6 +132,30 @@ public:
     inline EdgeType* EdgeAt(size_t index) const
     {
         return edges_[index];
+    }
+
+    /**
+     * @brief Returns the number of Links of the Tree.
+     */
+    inline size_t LinksSize() const
+    {
+        return links_.size();
+    }
+
+    /**
+     * @brief Returns the number of Nodes of the Tree.
+     */
+    inline size_t NodesSize() const
+    {
+        return nodes_.size();
+    }
+
+    /**
+     * @brief Returns the number of Edges of the Tree.
+     */
+    inline size_t EdgesSize() const
+    {
+        return edges_.size();
     }
 
     // -----------------------------------------------------
@@ -337,10 +348,6 @@ public:
     bool IsBifurcating() const;
 
     Matrix<double>* NodeDistanceMatrix();
-
-    size_t LinksSize() const;
-    size_t NodesSize() const;
-    size_t EdgesSize() const;
 
     bool HasIdenticalTopology(TreeType& other);
     bool HasIdenticalEdgeData(TreeType& other) const;

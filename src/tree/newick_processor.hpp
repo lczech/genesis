@@ -1,5 +1,5 @@
-#ifndef GNS_TREE_NEWICK_H_
-#define GNS_TREE_NEWICK_H_
+#ifndef GNS_TREE_NEWICKPROCESSOR_H_
+#define GNS_TREE_NEWICKPROCESSOR_H_
 
 /**
  * @brief
@@ -16,14 +16,17 @@
 namespace genesis {
 
 // =============================================================================
-//     Forward Declarations
+//     Forward declarations
 // =============================================================================
+
+template <class NodeDataType, class EdgeDataType>
+class  Tree;
 
 class  NewickBroker;
-struct NewickBrokerNode;
+struct NewickBrokerElement;
 
 // =============================================================================
-//     NewickLexer
+//     Newick Lexer
 // =============================================================================
 
 class NewickLexer : public Lexer
@@ -117,37 +120,62 @@ protected:
 };
 
 // =============================================================================
-//     NewickParser
+//     Newick Processor
 // =============================================================================
 
-class NewickParser
+class NewickProcessor
 {
 public:
-    static bool ProcessFile   (const std::string& fn,    NewickBroker& broker);
-    static bool ProcessString (const std::string& tree,  NewickBroker& broker);
-    static bool ProcessLexer  (const NewickLexer& lexer, NewickBroker& broker);
-};
 
-// =============================================================================
-//     NewickPrinter
-// =============================================================================
+    // ---------------------------------------------------------------------
+    //     Parsing
+    // ---------------------------------------------------------------------
 
-class NewickPrinter
-{
-public:
-    static bool        ToFile   (const std::string& fn, NewickBroker& broker);
-    static std::string ToString (                       NewickBroker& broker);
+    template <class NodeDataType, class EdgeDataType>
+    static bool FromFile   (const std::string fn,     Tree<NodeDataType, EdgeDataType>& tree);
+
+    template <class NodeDataType, class EdgeDataType>
+    static bool FromString (const std::string ts,     Tree<NodeDataType, EdgeDataType>& tree);
+
+    template <class NodeDataType, class EdgeDataType>
+    static bool FromLexer  (const NewickLexer& lexer, Tree<NodeDataType, EdgeDataType>& tree);
+
+    template <class NodeDataType, class EdgeDataType>
+    static void FromBroker (NewickBroker& broker,     Tree<NodeDataType, EdgeDataType>& tree);
+
+    // ---------------------------------------------------------------------
+    //     Printing
+    // ---------------------------------------------------------------------
 
     static bool print_names;
     static bool print_branch_lengths;
     static bool print_comments;
     static bool print_tags;
 
+    template <class NodeDataType, class EdgeDataType>
+    static bool ToFile   (const std::string fn, Tree<NodeDataType, EdgeDataType>& tree);
+
+    template <class NodeDataType, class EdgeDataType>
+    static void ToString (std::string& ts,      Tree<NodeDataType, EdgeDataType>& tree);
+
+    template <class NodeDataType, class EdgeDataType>
+    static std::string ToString (Tree<NodeDataType, EdgeDataType>& tree);
+
+    template <class NodeDataType, class EdgeDataType>
+    static void ToBroker (NewickBroker& broker, Tree<NodeDataType, EdgeDataType>& tree);
+
 protected:
     static std::string ToStringRec(NewickBroker& broker, size_t position);
-    static std::string NodeToString(NewickBrokerNode* bn);
+    static std::string ElementToString(NewickBrokerElement* bn);
 };
 
 } // namespace genesis
+
+// =============================================================================
+//     Inclusion of the implementation
+// =============================================================================
+
+// This class contains function templates, so do the inclusion here.
+#include "tree/newick_processor.tpp"
 
 #endif // include guard

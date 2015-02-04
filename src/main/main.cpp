@@ -12,6 +12,8 @@
 
 #include "placement/placements.hpp"
 #include "tree/tree.hpp"
+#include "tree/newick_processor.hpp"
+
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -129,15 +131,17 @@ int main (int argc, char* argv[])
     std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
     LOG_DBG << "In tree:  " << ts;
     Tree<> tree;
-    tree.FromNewickString(ts);
+    //~ tree.FromNewickString(ts);
+    NewickProcessor::FromString(ts, tree);
+
     for (
         Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip();
         it != tree.EndRoundtrip();
         ++it
     ) {
-        LOG_DBG1 << "Post " << it.Node()->data.name;
+        LOG_DBG1 << "Round " << it.Node()->data.name;
     }
-    LOG_DBG << "Out tree: " << tree.ToNewickString();
+    LOG_DBG << "Out tree: " << NewickProcessor::ToString(tree);
 
     //~ tree.Export();
     //~ NewickProcessor::ToFile("/home/file.nw", tree);
@@ -196,17 +200,17 @@ int main (int argc, char* argv[])
     // -----------------------------------------------------
     //     Test for placements, earth movers distance, center of gravity
     // -----------------------------------------------------
-    //~ Placements place_a, place_b;
+    Placements place_a, place_b;
     //~ place_a.FromJplaceFile("test/data/RAxML_portableTree.split_0.jplace");
-    //~ place_a.FromJplaceFile("test/data/test_a.jplace");
+    place_a.FromJplaceFile("test/data/test_a.jplace");
     //~ place_b.FromJplaceFile("test/data/RAxML_portableTree.split_1.jplace");
-    //~ place_b.FromJplaceFile("test/data/test_b.jplace");
+    place_b.FromJplaceFile("test/data/test_b.jplace");
 
     //~ JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
     //~ JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
     //~ LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
 
-    //~ LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
+    LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
     //~ place_a.COG();
     //~ LOG_DBG << "Variance: " << place_a.Variance();
 

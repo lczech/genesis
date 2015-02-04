@@ -2,7 +2,7 @@
  * @brief Implementation of basic tree functions.
  *
  * For reasons of readability, in this implementation file, the template data types
- * NodeDataType and EdgeDataType are abbreviated NDT and EDT, respectively.
+ * NodeDataType and EdgeDataType are abbreviated using NDT and EDT, respectively.
  *
  * @file
  * @ingroup tree
@@ -12,7 +12,7 @@
 #include <assert.h>
 #include <sstream>
 
-#include "tree/newick_format.hpp"
+#include "tree/newick_processor.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -90,218 +90,6 @@ void Tree<NDT, EDT>::Export(LinkArray& links, NodeArray& nodes, EdgeArray& edges
 }
 
 // -------------------------------------------------------------------------
-//     Read and Write
-// -------------------------------------------------------------------------
-
-/**
- * @brief Create a Tree from a file containing a Newick tree.
- */
-template <class NDT, class EDT>
-bool Tree<NDT, EDT>::FromNewickFile (const std::string& fn)
-{
-    if (!FileExists(fn)) {
-        LOG_WARN << "Newick file '" << fn << "' does not exist.";
-        return false;
-    }
-    return FromNewickString(FileRead(fn));
-}
-
-/**
- * @brief Create a Tree from a string containing a Newick tree.
- */
-template <class NDT, class EDT>
-bool Tree<NDT, EDT>::FromNewickString (const std::string& tree)
-{
-    NewickBroker broker;
-    if (!NewickParser::ProcessString(tree, broker)) {
-        return false;
-    }
-
-    FromNewickBroker(broker);
-    return true;
-}
-
-/**
- * @brief Create a Tree from a NewickBroker.
- *
- * It does not take the NewickBroker by const, because AssignRanks() has to be called in order to get
- * the nesting right.
- * TODO: this could be changed by not assigning ranks to the broker but a tmp struct.
- */
-template <class NDT, class EDT>
-void Tree<NDT, EDT>::FromNewickBroker (NewickBroker& broker)
-{
-    clear();
-    std::vector<LinkType*> link_stack;
-
-    // we need the ranks (number of immediate children) of all nodes
-    broker.AssignRanks();
-
-    // iterate over all nodes of the tree broker
-    for (NewickBroker::const_iterator b_itr = broker.cbegin(); b_itr != broker.cend(); ++b_itr) {
-        NewickBrokerNode* broker_node = *b_itr;
-
-        // create the tree node for this broker node
-        NodeType* cur_node = new NodeType();
-        cur_node->FromNewickBrokerNode(broker_node);
-        cur_node->index_ = nodes_.size();
-        nodes_.push_back(cur_node);
-
-        // create the link that points towards the root.
-        // this link is created for every node, root, inner and leaves.
-        LinkType* up_link = new LinkType();
-        up_link->node_ = cur_node;
-        cur_node->link_ = up_link;
-        up_link->index_ = links_.size();
-        links_.push_back(up_link);
-
-        // establish the link towards the root
-        if (link_stack.empty()) {
-            // if the link stack is empty, we are currently at the very beginning of this loop,
-            // which means we are at the root itself. in this case, make the "link towards the root"
-            // point to itself.
-            up_link->outer_ = up_link;
-        } else {
-            // if we are however in some other node (leaf or inner, but not the root), we establish
-            // the link "upwards" to the root, and back from there.
-            up_link->outer_ = link_stack.back();
-            link_stack.back()->outer_ = up_link;
-
-            // also, create an edge that connects both nodes
-            EdgeType* up_edge = new EdgeType();
-            up_edge->link_p_         = link_stack.back();
-            up_edge->link_s_         = up_link;
-            up_link->edge_           = up_edge;
-            link_stack.back()->edge_ = up_edge;
-            up_edge->FromNewickBrokerNode(broker_node);
-            up_edge->index_ = edges_.size();
-            edges_.push_back(up_edge);
-
-            // we can now delete the head of the stack, because we just estiablished its "downlink"
-            // and thus are done with it
-            link_stack.pop_back();
-        }
-
-        // in the following, we create the links that will connect to the nodes' children.
-        // for leaf nodes, this makes the next pointer point to the node itself (the loop
-        // is never executed in this case, as leaves have rank 0).
-        // for inner nodes, we create as many "down" links as they have children. each of them
-        // is pushed to the stack, so that for the next broker nodes they are available as
-        // reciever for the "up" links.
-        // in summary, make all next pointers of a node point to each other in a circle.
-        LinkType* prev_link = up_link;
-        for (int i = 0; i < broker_node->rank(); ++i) {
-            LinkType* down_link = new LinkType();
-            prev_link->next_ = down_link;
-            prev_link = down_link;
-
-            down_link->node_ = cur_node;
-            down_link->index_ = links_.size();
-            links_.push_back(down_link);
-            link_stack.push_back(down_link);
-        }
-        prev_link->next_ = up_link;
-    }
-
-    // we pushed elements to the link_stack for all children of the nodes and popped them when we
-    // were done processing those children, so there should be no elements left. this assumes that
-    // NewickBroker.AssignRanks() does its job properly!
-    assert(link_stack.empty());
-
-    // now delete the uplink of the root, in order to make the tree fully unrooted.
-    // (we do that after the tree creation, as it is way easier this way)
-    assert(links_.front()->outer_ == links_.front());
-    LinkType* next = links_.front()->next_;
-    while (next->next_ != links_.front()) {
-        next = next->next_;
-    }
-    next->next_ = next->next_->next_;
-    assert(next->next_ == links_.front()->next_);
-    links_.erase(links_.begin());
-    for (size_t i = 0; i < links_.size(); ++i) {
-        links_[i]->index_ = i;
-    }
-    next->node_->link_ = next->next_;
-}
-
-/**
- * @brief Writes the tree to a file in Newick format.
- *
- * If the file already exists, the function does not overwrite it.
- */
-template <class NDT, class EDT>
-void Tree<NDT, EDT>::ToNewickFile(const std::string& fn)
-{
-    if (FileExists(fn)) {
-        LOG_WARN << "Newick file '" << fn << "' already exist. Will not overwrite it.";
-        return;
-    }
-    FileWrite(fn, ToNewickString());
-}
-
-/**
- * @brief Returns a Newick string representation of the tree.
- *
- * In case the tree was read from a Newick file, this function should produce the same
- * representation.
- */
-template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::ToNewickString()
-{
-    NewickBroker broker;
-    ToNewickBroker(broker);
-    return NewickPrinter::ToString(broker);
-}
-
-/**
- * @brief Stores the information of the tree into a NewickBroker object.
- */
-template <class NDT, class EDT>
-void Tree<NDT, EDT>::ToNewickBroker (NewickBroker& broker)
-{
-    // store the distance from each node to the root. this is needed to assign levels of depth
-    // to the nodes for the broker.
-    std::vector<int> dist;
-    dist.resize(NodesSize(), -1);
-    dist[0] = 0;
-
-    // calculate the distance vector via levelorder iteration.
-    for (
-        IteratorLevelorder it = BeginLevelorder();
-        it != EndLevelorder();
-        ++it
-    ) {
-        // skip the root (it is already set to 0).
-        if (it.IsFirstIteration()) {
-            continue;
-        }
-
-        // the distance is the distance from the "parent" node (the next one in direction towards
-        // the root) plus 1.
-        assert(dist[it.Node()->Index()] == -1);
-        dist[it.Node()->Index()] = 1 + dist[it.Link()->Outer()->Node()->Index()];
-    }
-
-    // now fill the broker with nodes via postorder traversal, so that the root is put on top last.
-    broker.clear();
-    for (
-        IteratorPostorder it = BeginPostorder();
-        it != EndPostorder();
-        ++it
-    ) {
-        NewickBrokerNode* bn = new NewickBrokerNode();
-
-        assert(dist[it.Node()->Index()] > -1);
-        bn->depth = dist[it.Node()->Index()];
-
-        it.Node()->data.ToNewickBrokerNode(bn);
-        it.Edge()->data.ToNewickBrokerNode(bn);
-
-        broker.PushTop(bn);
-    }
-}
-
-// -------------------------------------------------------------------------
 //     Member Functions
 // -------------------------------------------------------------------------
 
@@ -367,33 +155,6 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
     }
 
     return dist;
-}
-
-/**
- * @brief Returns the number of Links of the Tree.
- */
-template <class NDT, class EDT>
-size_t Tree<NDT, EDT>::LinksSize() const
-{
-    return links_.size();
-}
-
-/**
- * @brief Returns the number of Nodes of the Tree.
- */
-template <class NDT, class EDT>
-size_t Tree<NDT, EDT>::NodesSize() const
-{
-    return nodes_.size();
-}
-
-/**
- * @brief Returns the number of Edges of the Tree.
- */
-template <class NDT, class EDT>
-size_t Tree<NDT, EDT>::EdgesSize() const
-{
-    return edges_.size();
 }
 
 // TODO make const! (need to add const versions of the tree iterators first...)
