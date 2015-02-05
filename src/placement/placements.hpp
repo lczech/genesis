@@ -12,14 +12,68 @@
 #include <string>
 #include <unordered_map>
 
+#include "placement/placement_tree.hpp"
+
 namespace genesis {
 
 // =============================================================================
 //     Forward Declarations
 // =============================================================================
 
-class JsonDocument;
-class JsonLexer;
+class  JsonDocument;
+class  JsonLexer;
+struct Pquery;
+
+// =============================================================================
+//     Pquery Placement
+// =============================================================================
+
+struct PqueryPlacement
+{
+    PqueryPlacement() : edge_num(0), likelihood(0.0), like_weight_ratio(0.0), distal_length(0.0),
+                        pendant_length(0.0), parsimony(0), pquery(nullptr), edge(nullptr)
+    {}
+
+    PqueryPlacement(const PqueryPlacement* other) :
+        edge_num(other->edge_num),
+        likelihood(other->likelihood),
+        like_weight_ratio(other->like_weight_ratio),
+        distal_length(other->distal_length),
+        pendant_length(other->pendant_length),
+        parsimony(other->parsimony),
+        pquery(nullptr),
+        edge(nullptr)
+    {}
+
+    int     edge_num;
+    double  likelihood;
+    double  like_weight_ratio;
+    double  distal_length;
+    double  pendant_length;
+    int     parsimony;
+
+    Pquery* pquery;
+    PlacementTree::EdgeType* edge;
+};
+
+// =============================================================================
+//     Pquery Name
+// =============================================================================
+
+struct PqueryName
+{
+    PqueryName() : name(""), multiplicity(0.0), pquery(nullptr)
+    {}
+
+    PqueryName(const PqueryName* other) :
+        name(other->name), multiplicity(other->multiplicity), pquery(nullptr)
+    {}
+
+    std::string name;
+    double      multiplicity;
+
+    Pquery* pquery;
+};
 
 // =============================================================================
 //     Pquery
@@ -27,61 +81,29 @@ class JsonLexer;
 
 struct Pquery
 {
-    // -----------------------------------------------------
-    //     Placement
-    // -----------------------------------------------------
-
-    struct Placement
+    ~Pquery()
     {
-        Placement() : edge_num(0), likelihood(0.0), like_weight_ratio(0.0), distal_length(0.0),
-                      pendant_length(0.0), parsimony(0)
-        {}
+        for (PqueryPlacement* p : placements) {
+            delete p;
+        }
+        for (PqueryName* n : names) {
+            delete n;
+        }
+        placements.clear();
+        names.clear();
+    }
 
-        int    edge_num;
-        double likelihood;
-        double like_weight_ratio;
-        double distal_length;
-        double pendant_length;
-        int    parsimony;
-    };
-
-    // -----------------------------------------------------
-    //     Name
-    // -----------------------------------------------------
-
-    struct Name
-    {
-        Name() : name(""), multiplicity(0.0) {}
-
-        std::string name;
-        double      multiplicity;
-    };
-
-    // -----------------------------------------------------
-    //     Members
-    // -----------------------------------------------------
-
-    std::deque<Placement> placements;
-    std::deque<Name>      names;
+    std::deque<PqueryPlacement*> placements;
+    std::deque<PqueryName*>      names;
 };
 
 // =============================================================================
 //     Placements
 // =============================================================================
 
-} // namespace genesis
-
-#include "placement/placement_tree.hpp"
-#include "tree/tree.hpp"
-
-namespace genesis {
-
 class Placements
 {
 public:
-    typedef std::unordered_map<std::string, std::string>      MetadataType;
-    typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeMapType;
-
     // -----------------------------------------------------
     //     Constructor & Destructor
     // -----------------------------------------------------
@@ -96,24 +118,18 @@ public:
     bool FromJsonLexer    (const JsonLexer&    lexer);
     bool FromJsonDocument (const JsonDocument& doc);
 
+    typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
+    EdgeNumMapType* EdgeNumMap();
+
     bool Merge(Placements& other);
     void RestrainToMaxWeightPlacements();
-
-    // -----------------------------------------------------
-    //     Pqueries
-    // -----------------------------------------------------
-
-    inline PlacementTree::EdgeType* PlacementToEdge (Pquery::Placement& place)
-    {
-        return edge_num_map[place.edge_num];
-    }
 
     // -----------------------------------------------------
     //     Placement Weight
     // -----------------------------------------------------
 
-    static double EMD(Placements& left, Placements& right);
-    double EMD(Placements& other);
+    static double EMD (Placements& left, Placements& right);
+    double EMD (Placements& other);
 
     double PlacementMassSum();
     void   COG();
@@ -124,16 +140,15 @@ public:
     // -----------------------------------------------------
 
     std::string Dump();
-    bool Validate();
+    bool Validate (bool strict = true);
 
     // -----------------------------------------------------
     //     Members
     // -----------------------------------------------------
 
-    std::deque<Pquery*> pqueries;
-    PlacementTree       tree;
-    EdgeMapType         edge_num_map;
-    MetadataType        metadata;
+    std::deque<Pquery*>                          pqueries;
+    PlacementTree                                tree;
+    std::unordered_map<std::string, std::string> metadata;
 };
 
 } // namespace genesis

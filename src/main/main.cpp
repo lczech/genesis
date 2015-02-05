@@ -200,30 +200,42 @@ int main (int argc, char* argv[])
     // -----------------------------------------------------
     //     Test for placements, earth movers distance, center of gravity
     // -----------------------------------------------------
-    //~ Placements place_a, place_b;
+    LOG_DBG << "Test 1";
+    Placements place_a, place_b;
     //~ place_a.FromJplaceFile("test/data/RAxML_portableTree.split_0.jplace");
-    //~ place_a.FromJplaceFile("test/data/test_a.jplace");
+    place_a.FromJplaceFile("test/data/test_a.jplace");
     //~ place_b.FromJplaceFile("test/data/RAxML_portableTree.split_1.jplace");
-    //~ place_b.FromJplaceFile("test/data/test_b.jplace");
+    place_b.FromJplaceFile("test/data/test_b.jplace");
 
     //~ JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
     //~ JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
-    //~ LOG_DBG << place_a.Dump();
-    //~ LOG_DBG << "valid: " << place_a.Validate();
+    LOG_DBG << "Valid A: " << place_a.Validate();
+    LOG_DBG << "Valid B: " << place_b.Validate();
+    LOG_DBG << "Dump A:\n" << place_a.Dump();
+    LOG_DBG << "Dump B:\n" << place_b.Dump();
 
-    //~ LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
+    LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
+
+    LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
+    place_a.RestrainToMaxWeightPlacements();
+    place_b.RestrainToMaxWeightPlacements();
+    LOG_DBG << "Valid A: " << place_a.Validate();
+    LOG_DBG << "Valid B: " << place_b.Validate();
+    LOG_DBG << "Dump A:\n" << place_a.Dump();
+    LOG_DBG << "Dump B:\n" << place_b.Dump();
+
     //~ place_a.COG();
     //~ LOG_DBG << "Variance: " << place_a.Variance();
 
+    LOG_DBG << "Test 2";
     Placements place;
     place.FromJplaceFile("test/data/placement.jplace");
-    LOG_DBG << place.Dump();
     LOG_DBG << "valid: " << place.Validate();
-
-    LOG_DBG << "applying RestrainToMaxWeightPlacements...";
+    LOG_DBG << place.Dump();
+    LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
     place.RestrainToMaxWeightPlacements();
-    LOG_DBG << place.Dump();
     LOG_DBG << "valid: " << place.Validate();
+    LOG_DBG << place.Dump();
 
     /*
     // test postorder
