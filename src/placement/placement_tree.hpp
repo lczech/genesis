@@ -12,6 +12,7 @@
 #include <string>
 
 #include "tree/newick_processor.hpp"
+#include "tree/tree.hpp"
 #include "utils/logging.hpp"
 
 namespace genesis {
@@ -19,9 +20,6 @@ namespace genesis {
 // =============================================================================
 //     Forward Declarations
 // =============================================================================
-
-template <class NodeDataType, class EdgeDataType>
-class Tree;
 
 struct PqueryPlacement;
 
@@ -56,22 +54,23 @@ public:
     //     Default Functions
     // -----------------------------------------------------
 
-    inline void FromNewickBrokerElement (NewickBrokerElement* node)
+    inline void FromNewickBrokerElement (NewickBrokerElement* nbe)
     {
-        branch_length = node->branch_length;
+        branch_length = nbe->branch_length;
         edge_num      = -1;
 
-        if (node->tags.size() != 1) {
-            LOG_WARN << "Edge for node '" << node->name << "' does not contain the single "
+        if (nbe->tags.size() != 1) {
+            LOG_WARN << "Edge for nbe '" << nbe->name << "' does not contain the single "
                      << "tag value denoting the edge_num for placements.";
             return;
         }
-        edge_num = std::stoi(node->tags[0]);
+        edge_num = std::stoi(nbe->tags[0]);
     }
 
-    inline void ToNewickBrokerElement (NewickBrokerElement* node) const
+    inline void ToNewickBrokerElement (NewickBrokerElement* nbe) const
     {
-        node->branch_length = branch_length;
+        nbe->branch_length = branch_length;
+        nbe->comments.push_back(std::to_string(PlacementCount()));
     }
 
     inline std::string Dump() const
@@ -83,8 +82,8 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    size_t PlacementCount();
-    double PlacementMass();
+    size_t PlacementCount() const;
+    double PlacementMass() const;
 
     void Sort();
 

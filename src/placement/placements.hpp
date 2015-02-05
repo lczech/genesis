@@ -66,7 +66,9 @@ struct PqueryName
     {}
 
     PqueryName(const PqueryName* other) :
-        name(other->name), multiplicity(other->multiplicity), pquery(nullptr)
+        name(other->name),
+        multiplicity(other->multiplicity),
+        pquery(nullptr)
     {}
 
     std::string name;
@@ -140,7 +142,7 @@ public:
     // -----------------------------------------------------
 
     std::string Dump();
-    bool Validate (bool strict = true);
+    bool Validate (bool check_values = true, bool break_on_values = false);
 
     // -----------------------------------------------------
     //     Members

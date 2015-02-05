@@ -17,7 +17,7 @@ namespace genesis {
 //     PlacementEdgeData
 // =============================================================================
 
-size_t PlacementEdgeData::PlacementCount()
+size_t PlacementEdgeData::PlacementCount() const
 {
     // TODO this is legacy. in fact, simply returning placements.size() should do the job!
     size_t count = 0;
@@ -29,7 +29,7 @@ size_t PlacementEdgeData::PlacementCount()
     return count;
 }
 
-double PlacementEdgeData::PlacementMass()
+double PlacementEdgeData::PlacementMass() const
 {
     double mass = 0.0;
     for (PqueryPlacement pl : placements) {

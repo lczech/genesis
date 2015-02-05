@@ -87,7 +87,8 @@ bool Placements::Merge(Placements& other)
 {
     // TODO identical data so far checks for branch length and edge num, but not placements on the edge.
     // TODO if it did, this function would never return true for two different placements...
-    if (!tree.HasIdenticalTopology(other.tree) || !tree.HasIdenticalData(other.tree)) {
+    //~ if (!tree.HasIdenticalTopology(other.tree) || !tree.HasIdenticalData(other.tree)) {
+    if (!tree.HasIdenticalTopology(other.tree)) {
         LOG_WARN << "Cannot merge Placements with different reference trees.";
         return false;
     }
@@ -467,10 +468,15 @@ std::string Placements::Dump()
 /**
  * @brief Validates the integrity of the pointers, references and data in this Placement object.
  *
- * If `strict` is set to true, also a check on the validity of numerical values is done, for example
- * that the distal_length is smaller than the corresponding branch_length.
+ * Returns true iff everything is set up correctly. In case of inconsistencies, the function stops
+ * and returns false on the first encountered error.
+ *
+ * If `check_values` is set to true, also a check on the validity of numerical values is done, for
+ * example that the distal_length is smaller than the corresponding branch_length.
+ * If additionally `break_on_values` is set, Validate() will stop on the first encountered invalid
+ * value. Otherwise it will report all invalid values.
  */
-bool Placements::Validate (bool strict)
+bool Placements::Validate (bool check_values, bool break_on_values)
 {
     // check tree
     if (!tree.Validate()) {
@@ -510,12 +516,26 @@ bool Placements::Validate (bool strict)
 
     // check pqueries
     for (Pquery* pqry : pqueries) {
+        // use this name for reporting invalid placements.
+        std::string name;
+        if (pqry->names.size() > 0) {
+            name = "'" + pqry->names[0]->name + "'";
+        } else {
+            name = "(unnamed pquery)";
+        }
+
         // check placements
+        if (check_values && pqry->placements.size() == 0) {
+            LOG_INFO << "Pquery without any placements at '" << name << "'.";
+            if (break_on_values) {
+                return false;
+            }
+        }
         double ratio_sum = 0.0;
         for (PqueryPlacement* p : pqry->placements) {
             // make sure the pointers and references are set correctly
             if (p->pquery != pqry) {
-                LOG_INFO << "Inconsistent pointer from placement to pquery.";
+                LOG_INFO << "Inconsistent pointer from placement to pquery at '" << name << "'.";
                 return false;
             }
             int found_placement_on_edge = 0;
@@ -527,17 +547,18 @@ bool Placements::Validate (bool strict)
             if (p->edge->data.placements.size() > 0 && found_placement_on_edge == 0) {
                 LOG_INFO << "Inconsistency between placement and edge: edge num '"
                          << p->edge->data.edge_num << "' does not contain pointer to a placement "
-                         << "that is referring to that edge.";
+                         << "that is referring to that edge at " << name << ".";
                 return false;
             }
             if (found_placement_on_edge > 1) {
                 LOG_INFO << "Edge num '" << p->edge->data.edge_num << "' contains a pointer to one "
-                         << "of its placements more than once.";
+                         << "of its placements more than once at " << name << ".";
                 return false;
             }
             if (p->edge_num != p->edge->data.edge_num) {
                 LOG_INFO << "Inconsistent edge_num between edge and placement: '"
-                         << p->edge->data.edge_num << " != " << p->edge_num << "'.";
+                         << p->edge->data.edge_num << " != " << p->edge_num
+                         << "' at " << name << ".";
                 return false;
             }
             // now we know that all referene between placement and edge are correct, so this
@@ -545,36 +566,57 @@ bool Placements::Validate (bool strict)
             assert(edge_num_map.count(p->edge_num) > 0);
 
             // check numerical values
-            if (!strict) {
+            if (!check_values) {
                 continue;
             }
             if (p->like_weight_ratio < 0.0 || p->like_weight_ratio > 1.0) {
-                LOG_INFO << "Invalid placement with like_weight_ratio not in [0.0, 1.0].";
-                return false;
+                LOG_INFO << "Invalid placement with like_weight_ratio '" << p->like_weight_ratio
+                        << "' not in [0.0, 1.0] at " << name << ".";
+                if (break_on_values) {
+                    return false;
+                }
             }
             if (p->pendant_length < 0.0 || p->distal_length < 0.0) {
-                LOG_INFO << "Invalid placement with pendant_length or distal_length < 0.0.";
-                return false;
+                LOG_INFO << "Invalid placement with pendant_length '" << p->pendant_length
+                         << "' or distal_length '" << p->distal_length << "' < 0.0 at "
+                         << name << ".";
+                if (break_on_values) {
+                    return false;
+                }
             }
-            if (p->distal_length > edge_num_map[p->edge_num]->data.branch_length) {
-                LOG_INFO << "Invalid placement with distal_length > branch_length.";
-                return false;
+            if (p->distal_length > p->edge->data.branch_length) {
+                LOG_INFO << "Invalid placement with distal_length '" << p->distal_length
+                         << "' > branch_length '" << p->edge->data.branch_length << "' at "
+                         << name << ".";
+                if (break_on_values) {
+                    return false;
+                }
             }
             ratio_sum += p->like_weight_ratio;
         }
-        if (strict && ratio_sum > 1.0) {
-            LOG_INFO << "Invalid pquery with sum of like_weight_ratio > 1.0.";
-            return false;
+        if (check_values && ratio_sum > 1.0) {
+            LOG_INFO << "Invalid pquery with sum of like_weight_ratio '" << ratio_sum
+                     << "' > 1.0 at " << name << ".";
+            if (break_on_values) {
+                    return false;
+                }
         }
 
         // check names
-        for (PqueryName* n : pqry->names) {
-            // make sure the pointers and references are set correctly
-            if (n->pquery != pqry) {
-                LOG_INFO << "Inconsistent pointer from name to pquery.";
+        if (check_values && pqry->names.size() == 0) {
+            LOG_INFO << "Pquery without any names at '" << name << "'.";
+            if (break_on_values) {
                 return false;
             }
         }
+        for (PqueryName* n : pqry->names) {
+            // make sure the pointers and references are set correctly
+            if (n->pquery != pqry) {
+                LOG_INFO << "Inconsistent pointer from name '" << n->name << "' to pquery.";
+                return false;
+            }
+        }
+
     }
 
     return true;

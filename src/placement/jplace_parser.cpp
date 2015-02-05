@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "placement/placements.hpp"
-#include "tree/tree_iterator.hpp"
+#include "tree/newick_processor.hpp"
 #include "utils/json_document.hpp"
 #include "utils/json_lexer.hpp"
 #include "utils/json_parser.hpp"
