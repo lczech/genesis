@@ -253,7 +253,20 @@ int main (int argc, char* argv[])
     //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_0.newick", place_a.tree);
     //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_1.newick", place_b.tree);
 
+    LOG_DBG << "tree a edge count " << place_a.tree.EdgesSize();
+
+    LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
+    LOG_DBG << "Merging A and B...";
     place_a.Merge(place_b);
+    LOG_DBG << "Valid A: " << place_a.Validate();
+    LOG_DBG << "Valid B: " << place_b.Validate();
+    LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
+
+    LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
+    place_a.RestrainToMaxWeightPlacements();
+    place_b.RestrainToMaxWeightPlacements();
+    LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
+
     NewickProcessor::ToFile("test/data/RAxML_portableTree.split_both.newick", place_a.tree);
 
     /*

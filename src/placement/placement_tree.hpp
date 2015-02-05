@@ -12,7 +12,6 @@
 #include <string>
 
 #include "tree/newick_processor.hpp"
-#include "tree/tree.hpp"
 #include "utils/logging.hpp"
 
 namespace genesis {

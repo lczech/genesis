@@ -29,10 +29,7 @@ void Placements::clear()
     for (Pquery* pqry : pqueries) {
         delete pqry;
     }
-
     std::deque<Pquery*>().swap(pqueries);
-    // TODO clear edge pointers as well!
-    // TODO in fact, make tree.clear call data.clear for nodes and edges!
     tree.clear();
     metadata.clear();
 }
@@ -96,12 +93,19 @@ bool Placements::Merge(Placements& other)
     // we need to assign edge pointers to the correct edge objects, so we need a mapping
     EdgeNumMapType* edge_num_map = EdgeNumMap();
 
+    // copy all pqueries
     for (Pquery* opqry : other.pqueries) {
         Pquery* npqry = new Pquery;
         for (PqueryPlacement* op : opqry->placements) {
             PqueryPlacement* np = new PqueryPlacement(op);
+
+            // assuming that the trees have identical topology (checked at the beginning of this
+            // function), there will be an edge for every placement. if this assertion fails,
+            // something broke the integrity of our in memory representation of the data.
+            assert(edge_num_map->count(np->edge_num) > 0);
+            np->edge = (*edge_num_map)[np->edge_num];
+            np->edge->data.placements.push_back(np);
             np->pquery = npqry;
-            np->edge   = (*edge_num_map)[np->edge_num];
             npqry->placements.push_back(np);
         }
         for (PqueryName* on : opqry->names) {
@@ -170,17 +174,27 @@ void Placements::RestrainToMaxWeightPlacements()
 // =============================================================================
 
 /**
- * @brief Get the summed mass of all placements on the tree.
+ * @brief Get the total number of placements in all pqueries.
  */
-double Placements::PlacementMassSum()
+size_t Placements::PlacementCount()
+{
+    size_t count = 0;
+    for (Pquery* pqry : pqueries) {
+        count += pqry->placements.size();
+    }
+    return count;
+}
+
+/**
+ * @brief Get the summed mass of all placements on the tree, given by their `like_weight_ratio`.
+ */
+double Placements::PlacementMass()
 {
     double sum = 0.0;
-    for (
-        PlacementTree::IteratorEdges it = tree.BeginEdges();
-        it != tree.EndEdges();
-        ++it
-    ) {
-        sum += (*it)->data.PlacementMass();
+    for (Pquery* pqry : pqueries) {
+        for (PqueryPlacement* place : pqry->placements) {
+            sum += place->like_weight_ratio;
+        }
     }
     return sum;
 }
@@ -210,8 +224,8 @@ double Placements::EMD(Placements& lhs, Placements& rhs)
     std::unordered_map<PlacementTree::NodeType*, double> balance;
 
     // use the sum of masses as normalization factor for the masses.
-    double totalmass_l = lhs.PlacementMassSum();
-    double totalmass_r = rhs.PlacementMassSum();
+    double totalmass_l = lhs.PlacementMass();
+    double totalmass_r = rhs.PlacementMass();
 
     // do a postorder traversal on both trees in parallel. while doing so, move placements
     // from the tips towards the root and store their movement (mass * distance) in balance[].
@@ -486,6 +500,7 @@ bool Placements::Validate (bool check_values, bool break_on_values)
 
     // check edges
     EdgeNumMapType edge_num_map;
+    size_t edge_place_count = 0;
     for (
         PlacementTree::IteratorEdges it_e = tree.BeginEdges();
         it_e != tree.EndEdges();
@@ -511,10 +526,12 @@ bool Placements::Validate (bool check_values, bool break_on_values)
                          << edge->data.edge_num << " != " << p->edge_num << "'.";
                 return false;
             }
+            ++edge_place_count;
         }
     }
 
     // check pqueries
+    size_t pqry_place_count = 0;
     for (Pquery* pqry : pqueries) {
         // use this name for reporting invalid placements.
         std::string name;
@@ -561,9 +578,10 @@ bool Placements::Validate (bool check_values, bool break_on_values)
                          << "' at " << name << ".";
                 return false;
             }
-            // now we know that all referene between placement and edge are correct, so this
+            // now we know that all references between placements and edges are correct, so this
             // assertion breaks only if we forgot to check some sort of weird inconsistency.
             assert(edge_num_map.count(p->edge_num) > 0);
+            ++pqry_place_count;
 
             // check numerical values
             if (!check_values) {
@@ -616,7 +634,12 @@ bool Placements::Validate (bool check_values, bool break_on_values)
                 return false;
             }
         }
+    }
 
+    if (edge_place_count != pqry_place_count) {
+        LOG_INFO << "Inconsistent number of placements on edges (" << edge_place_count
+                 << ") and pqueries (" << pqry_place_count << ").";
+        return false;
     }
 
     return true;
