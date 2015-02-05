@@ -10,6 +10,7 @@
 #include <iostream>
 #include <string>
 
+#include "placement/jplace_processor.hpp"
 #include "placement/placements.hpp"
 #include "tree/newick_processor.hpp"
 
@@ -245,8 +246,8 @@ int main (int argc, char* argv[])
 
     LOG_DBG << "Test 3";
     Placements place_a, place_b;
-    place_a.FromJplaceFile("test/data/RAxML_portableTree.split_0.jplace");
-    place_b.FromJplaceFile("test/data/RAxML_portableTree.split_1.jplace");
+    JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_0.jplace", place_a);
+    JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_1.jplace", place_b);
     //~ LOG_DBG << "Valid A: " << place_a.Validate();
     //~ LOG_DBG << "Valid B: " << place_b.Validate();
 

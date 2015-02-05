@@ -1,11 +1,11 @@
 /**
- * @brief Implementation of Jplace Parser functions.
+ * @brief Implementation of Jplace Processor functions.
  *
  * @file
  * @ingroup placement
  */
 
-#include "placement/jplace_parser.hpp"
+#include "placement/jplace_processor.hpp"
 
 #include <string>
 #include <vector>
@@ -20,18 +20,22 @@
 
 namespace genesis {
 
+// =============================================================================
+//     Parsing
+// =============================================================================
+
 /**
  * @brief Reads a file and parses it as a Jplace document into a Placements object.
  *
  * Returns true iff successful.
  */
-bool JplaceParser::ProcessFile (const std::string& fn, Placements& placements)
+bool JplaceProcessor::FromFile (const std::string& fn, Placements& placements)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "Jplace file '" << fn << "' does not exist.";
         return false;
     }
-    return ProcessString(FileRead(fn), placements);
+    return FromString(FileRead(fn), placements);
 }
 
 /**
@@ -39,13 +43,13 @@ bool JplaceParser::ProcessFile (const std::string& fn, Placements& placements)
  *
  * Returns true iff successful.
  */
-bool JplaceParser::ProcessString (const std::string& jplace, Placements& placements)
+bool JplaceProcessor::FromString (const std::string& jplace, Placements& placements)
 {
     JsonLexer lexer;
     if (!lexer.ProcessString(jplace)) {
         return false;
     }
-    return ProcessLexer(lexer, placements);
+    return FromLexer(lexer, placements);
 }
 
 /**
@@ -53,13 +57,13 @@ bool JplaceParser::ProcessString (const std::string& jplace, Placements& placeme
  *
  * Returns true iff successful.
  */
-bool JplaceParser::ProcessLexer (const JsonLexer& lexer, Placements& placements)
+bool JplaceProcessor::FromLexer (const JsonLexer& lexer, Placements& placements)
 {
     JsonDocument doc;
     if (!JsonParser::ProcessLexer(lexer, doc)) {
         return false;
     }
-    return ProcessDocument(doc, placements);
+    return FromDocument(doc, placements);
 }
 
 /**
@@ -67,7 +71,7 @@ bool JplaceParser::ProcessLexer (const JsonLexer& lexer, Placements& placements)
  *
  * Returns true iff successful.
  */
-bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placements)
+bool JplaceProcessor::FromDocument (const JsonDocument& doc, Placements& placements)
 {
     placements.clear();
 
