@@ -13,7 +13,6 @@
 #include <string>
 #include <vector>
 
-#include "tree/tree_broker.hpp"
 #include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
@@ -46,6 +45,10 @@ class TreeIteratorLevelorder;
 
 /**
  * @brief Basic class for representing phylogenetic tree topologies.
+ *
+ * A tree in this implementation consists of three types of elements: Links, Nodes and Edges.
+ * The topoloty of the tree is completely described by the links, while nodes and edges add the
+ * capability to store data on the tree.
  *
  * Data in the Tree is not directly stored in the elements (Links, Nodes, Edges) of the Tree.
  * Instead, data belonging to nodes and edges can be stored there by using appropriate template
@@ -87,6 +90,10 @@ public:
     typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
 
+    typedef std::vector<LinkType*> LinkArray;
+    typedef std::vector<NodeType*> NodeArray;
+    typedef std::vector<EdgeType*> EdgeArray;
+
     // -----------------------------------------------------
     //     Construction and Destruction
     // -----------------------------------------------------
@@ -95,17 +102,8 @@ public:
     void clear();
     virtual ~Tree();
 
-    // -----------------------------------------------------
-    //     Read and Write
-    // -----------------------------------------------------
-
-    bool FromNewickFile (const std::string& fn);
-    bool FromNewickString (const std::string& tree);
-    void FromTreeBroker (TreeBroker& broker);
-
-    void        ToNewickFile   (const std::string& fn);
-    std::string ToNewickString ();
-    void        ToTreeBroker   (TreeBroker& broker);
+    void Import(LinkArray& links, NodeArray& nodes, EdgeArray& edges);
+    void Export(LinkArray& links, NodeArray& nodes, EdgeArray& edges);
 
     // -----------------------------------------------------
     //     Accessors
@@ -134,6 +132,30 @@ public:
     inline EdgeType* EdgeAt(size_t index) const
     {
         return edges_[index];
+    }
+
+    /**
+     * @brief Returns the number of Links of the Tree.
+     */
+    inline size_t LinksSize() const
+    {
+        return links_.size();
+    }
+
+    /**
+     * @brief Returns the number of Nodes of the Tree.
+     */
+    inline size_t NodesSize() const
+    {
+        return nodes_.size();
+    }
+
+    /**
+     * @brief Returns the number of Edges of the Tree.
+     */
+    inline size_t EdgesSize() const
+    {
+        return edges_.size();
     }
 
     // -----------------------------------------------------
@@ -327,10 +349,6 @@ public:
 
     Matrix<double>* NodeDistanceMatrix();
 
-    size_t LinksSize() const;
-    size_t NodesSize() const;
-    size_t EdgesSize() const;
-
     bool HasIdenticalTopology(TreeType& other);
     bool HasIdenticalEdgeData(TreeType& other) const;
     bool HasIdenticalNodeData(TreeType& other) const;
@@ -342,7 +360,7 @@ public:
 
     bool Validate() const;
 
-    std::string DumpAll() const;
+    std::string Dump() const;
     std::string DumpLinks() const;
     std::string DumpNodes() const;
     std::string DumpEdges() const;

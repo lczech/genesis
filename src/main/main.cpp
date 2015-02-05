@@ -11,7 +11,8 @@
 #include <string>
 
 #include "placement/placements.hpp"
-#include "tree/tree.hpp"
+#include "tree/newick_processor.hpp"
+
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -52,7 +53,7 @@ int main (int argc, char* argv[])
     TreeNode<DefaultNodeData, DefaultEdgeData>* n;
     tree.FromNewickString("((A,((B,C,D)E,F)G)H,((I,J,K)L,M,N)O,P,Q)R;");
     //~ tree.FromNewickString("((A,((B,C)D,E)F)G,((H,((I,J)K,L)M)N,O)P,Q)R;");
-    LOG_DBG << tree.DumpAll();
+    LOG_DBG << tree.Dump();
 
     // test roundtrip
     LOG_DBG << "Test Roundtrip at root";
@@ -126,18 +127,24 @@ int main (int argc, char* argv[])
     // -----------------------------------------------------
     //     Test cases for newick parser and printer
     // -----------------------------------------------------
-    std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
-    LOG_DBG << "In tree:  " << ts;
-    Tree<> tree;
-    tree.FromNewickString(ts);
+    //~ std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    //~ LOG_DBG << "In tree:  " << ts;
+    //~ Tree<> tree;
+    //~ tree.FromNewickString(ts);
+    //~ NewickProcessor::FromString(ts, tree);
+//~
     //~ for (
-        //~ Tree<>::IteratorPostorder it = tree.BeginPostorder();
-        //~ it != tree.EndPostorder();
+        //~ Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip();
+        //~ it != tree.EndRoundtrip();
         //~ ++it
     //~ ) {
-        //~ LOG_DBG1 << "Post " << it.Node()->data.name;
+        //~ LOG_DBG1 << "Round " << it.Node()->data.name;
     //~ }
-    LOG_DBG << "Out tree: " << tree.ToNewickString();
+    //~ LOG_DBG << "Out tree: " << NewickProcessor::ToString(tree);
+
+    //~ tree.Export();
+    //~ NewickProcessor::ToFile("/home/file.nw", tree);
+
 
     //~ tree.FromNewickString("(((F,(G,H)I)J,K)L,(A,(B,C)D)E)R;");
     //~ LOG_DBG << "tree: " << tree.ToNewickString();
@@ -192,19 +199,62 @@ int main (int argc, char* argv[])
     // -----------------------------------------------------
     //     Test for placements, earth movers distance, center of gravity
     // -----------------------------------------------------
+    NewickProcessor::print_names          = true;
+    NewickProcessor::print_branch_lengths = true;
+    NewickProcessor::print_comments       = true;
+    NewickProcessor::print_tags           = false;
+
+    //~ LOG_DBG << "Test 1";
     //~ Placements place_a, place_b;
-    //~ place_a.FromJplaceFile("test/data/RAxML_portableTree.split_0.jplace");
     //~ place_a.FromJplaceFile("test/data/test_a.jplace");
-    //~ place_b.FromJplaceFile("test/data/RAxML_portableTree.split_1.jplace");
     //~ place_b.FromJplaceFile("test/data/test_b.jplace");
 
     //~ JplaceParser::ProcessFile("test/data/test_a.jplace", place_a);
     //~ JplaceParser::ProcessFile("test/data/test_b.jplace", place_b);
-    //~ LOG_DBG << place_a.DumpAll() << "\nvalid: " << place_a.Validate();
-
+    //~ LOG_DBG << "Valid A: " << place_a.Validate();
+    //~ LOG_DBG << "Valid B: " << place_b.Validate();
+    //~ LOG_DBG << "Dump A:\n" << place_a.Dump();
+    //~ LOG_DBG << "Dump B:\n" << place_b.Dump();
+//~
     //~ LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
+//~
+    //~ LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
+    //~ place_a.RestrainToMaxWeightPlacements();
+    //~ place_b.RestrainToMaxWeightPlacements();
+    //~ LOG_DBG << "Valid A: " << place_a.Validate();
+    //~ LOG_DBG << "Valid B: " << place_b.Validate();
+    //~ LOG_DBG << "Dump A:\n" << place_a.Dump();
+    //~ LOG_DBG << "Dump B:\n" << place_b.Dump();
+//~
+    //~ LOG_DBG << "Tree A: " << NewickProcessor::ToString(place_a.tree);
+    //~ LOG_DBG << "Tree B: " << NewickProcessor::ToString(place_b.tree);
+
     //~ place_a.COG();
     //~ LOG_DBG << "Variance: " << place_a.Variance();
+
+    //~ LOG_DBG << "================================\nTest 2";
+    //~ Placements place;
+    //~ place.FromJplaceFile("test/data/placement.jplace");
+    //~ LOG_DBG << "valid: " << place.Validate();
+    //~ LOG_DBG << place.Dump();
+    //~ LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
+    //~ place.RestrainToMaxWeightPlacements();
+    //~ LOG_DBG << "valid: " << place.Validate();
+    //~ LOG_DBG << place.Dump();
+    //~ LOG_DBG << "Tree: " << NewickProcessor::ToString(place.tree);
+
+    LOG_DBG << "Test 3";
+    Placements place_a, place_b;
+    place_a.FromJplaceFile("test/data/RAxML_portableTree.split_0.jplace");
+    place_b.FromJplaceFile("test/data/RAxML_portableTree.split_1.jplace");
+    //~ LOG_DBG << "Valid A: " << place_a.Validate();
+    //~ LOG_DBG << "Valid B: " << place_b.Validate();
+
+    //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_0.newick", place_a.tree);
+    //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_1.newick", place_b.tree);
+
+    place_a.Merge(place_b);
+    NewickProcessor::ToFile("test/data/RAxML_portableTree.split_both.newick", place_a.tree);
 
     /*
     // test postorder

@@ -12,7 +12,7 @@
 
 #include <string>
 
-#include "tree/tree_broker.hpp"
+#include "tree/newick_processor.hpp"
 
 namespace genesis {
 
@@ -39,12 +39,12 @@ public:
     typedef double BranchLength;
     BranchLength branch_length;
 
-    inline void FromTreeBrokerNode (TreeBrokerNode* node)
+    inline void FromNewickBrokerElement (NewickBrokerElement* node)
     {
         branch_length = node->branch_length;
     }
 
-    inline void ToTreeBrokerNode (TreeBrokerNode* node) const
+    inline void ToNewickBrokerElement (NewickBrokerElement* node) const
     {
         node->branch_length = branch_length;
     }
@@ -111,7 +111,7 @@ public:
         return index_;
     }
 
-    void FromTreeBrokerNode (TreeBrokerNode* node);
+    void FromNewickBrokerElement (NewickBrokerElement* node);
 
     std::string Dump() const;
 
@@ -121,7 +121,8 @@ public:
 
     EdgeDataType data;
 
-protected:
+// TODO !!! make protected again, and use some other mechanism for setting the members !!!
+//~ protected:
 
     size_t index_;
 

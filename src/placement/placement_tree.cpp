@@ -17,83 +17,42 @@ namespace genesis {
 //     PlacementEdgeData
 // =============================================================================
 
-double PlacementEdgeData::PlacementMass()
+size_t PlacementEdgeData::PlacementCount() const
+{
+    // TODO this is legacy. in fact, simply returning placements.size() should do the job!
+    size_t count = 0;
+    for (PqueryPlacement pl : placements) {
+        assert(pl.edge_num == edge_num);
+        ++count;
+    }
+    assert(count == placements.size());
+    return count;
+}
+
+double PlacementEdgeData::PlacementMass() const
 {
     double mass = 0.0;
-    for (Pquery* pqry : pqueries) {
-        for (Pquery::Placement pl : pqry->placements) {
-            if (pl.edge_num != edge_num) {
-                continue;
-            }
-
-            //~ mass += pl.like_mass_ratio;
-            mass += 1.0;
-        }
+    for (PqueryPlacement pl : placements) {
+        assert(pl.edge_num == edge_num);
+        mass += pl.like_weight_ratio;
     }
     return mass;
 }
 
-// -----------------------------------------------------
-//     Iterator
-// -----------------------------------------------------
-
-PlacementEdgeData::IteratorPlacements PlacementEdgeData::BeginPlacements(int sort)
+void PlacementEdgeData::Sort()
 {
-    return IteratorPlacements(*this, sort);
-}
+    std::multimap<double, PqueryPlacement*> sorted;
+    std::deque<PqueryPlacement*> new_placements;
 
-PlacementEdgeData::IteratorPlacements PlacementEdgeData::EndPlacements()
-{
-    return IteratorPlacements();
-}
-
-// =============================================================================
-//     Edge Data Iterator Placements
-// =============================================================================
-
-PlacementEdgeDataIteratorPlacements::PlacementEdgeDataIteratorPlacements (
-    PlacementEdgeData& edge_data, int sort
-) {
-    std::deque<Pquery*>::iterator             pquery_it_;
-    std::deque<Pquery::Placement>::iterator   placement_it_;
-    std::multimap<double, Pquery::Placement*> sorted;
-
-    // iterate over all placements of all pqueries of the edge data
-    for (
-        pquery_it_  = edge_data.pqueries.begin();
-        pquery_it_ != edge_data.pqueries.end();
-        ++pquery_it_
-    ) {
-        for (
-            placement_it_  = (*pquery_it_)->placements.begin();
-            placement_it_ != (*pquery_it_)->placements.end();
-            ++placement_it_
-        ) {
-            // if it is a placement on the edge...
-            if (placement_it_->edge_num != edge_data.edge_num) {
-                continue;
-            }
-            // ... add it to one of the list (sorted or not)
-            if (sort == 0) {
-                placements_.push_back(&*placement_it_);
-            } else {
-                sorted.emplace(placement_it_->distal_length, &*placement_it_);
-            }
-        }
+    for (PqueryPlacement* place : placements) {
+        sorted.emplace(place->distal_length, place);
+    }
+    std::multimap<double, PqueryPlacement*>::iterator it;
+    for (it = sorted.begin(); it != sorted.end(); ++it) {
+        new_placements.push_back(it->second);
     }
 
-    // if we need sorted placements, fill the placement list with sorted placements
-    if (sort > 0) {
-        std::multimap<double, Pquery::Placement*>::iterator fit;
-        for (fit = sorted.begin(); fit != sorted.end(); ++fit) {
-            placements_.push_back(fit->second);
-        }
-    } else if (sort < 0) {
-        std::multimap<double, Pquery::Placement*>::reverse_iterator rit;
-        for (rit = sorted.rbegin(); rit != sorted.rend(); ++rit) {
-            placements_.push_back(rit->second);
-        }
-    }
+    placements.swap(new_placements);
 }
 
 } // namespace genesis

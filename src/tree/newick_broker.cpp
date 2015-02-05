@@ -5,7 +5,7 @@
  * @ingroup tree
  */
 
-#include "tree/tree_broker.hpp"
+#include "tree/newick_broker.hpp"
 
 #include <algorithm>
 #include <string>
@@ -15,7 +15,7 @@
 namespace genesis {
 
 /** @brief Destructor. Calls clear() to delete all nodes. */
-TreeBroker::~TreeBroker()
+NewickBroker::~NewickBroker()
 {
     clear();
 }
@@ -25,9 +25,9 @@ TreeBroker::~TreeBroker()
 // -----------------------------------------------------------------------------
 
 /** @brief Deletes all nodes from the broker. */
-void TreeBroker::clear()
+void NewickBroker::clear()
 {
-    for (TreeBrokerNode* node : stack_) {
+    for (NewickBrokerElement* node : stack_) {
         delete node;
     }
     stack_.clear();
@@ -44,17 +44,17 @@ void TreeBroker::clear()
  * how many leaves and inner nodes the tree has. Thus, it is usually called after the broker is
  * filled with data.
  */
-void TreeBroker::AssignRanks()
+void NewickBroker::AssignRanks()
 {
     // we use a stack containing the parents of each subtree. whenever we enter a new subtree,
     // we push its parent to the stack and increase its rank count while encountering its immediate
     // children.
-    std::deque<TreeBrokerNode*> parent_stack;
+    std::deque<NewickBrokerElement*> parent_stack;
 
     // iterate over all nodes, starting at the root, and assign ranks to them
-    for (TreeBroker::const_iterator n_itr = stack_.cbegin(); n_itr != stack_.cend(); ++n_itr) {
+    for (NewickBroker::const_iterator n_itr = stack_.cbegin(); n_itr != stack_.cend(); ++n_itr) {
         // prepare the current node
-        TreeBrokerNode* node = *n_itr;
+        NewickBrokerElement* node = *n_itr;
         node->rank_ = 0;
 
         // check if the current node is in a different subtree than the current stack elements. this
@@ -81,12 +81,12 @@ void TreeBroker::AssignRanks()
 /**
  * @brief Returns the number of leaf nodes in the tree. AssignRanks() has to be called first.
  */
-int TreeBroker::LeafCount() const
+int NewickBroker::LeafCount() const
 {
     int sum = 0;
-    for (TreeBrokerNode* node : stack_) {
+    for (NewickBrokerElement* node : stack_) {
         if (node->rank_ == -1) {
-            LOG_WARN << "TreeBroker::AssignRanks() was not called before.";
+            LOG_WARN << "NewickBroker::AssignRanks() was not called before.";
             return -1;
         }
         if (node->rank_ == 0) {
@@ -99,12 +99,12 @@ int TreeBroker::LeafCount() const
 /**
  * @brief Returns the highest rank of the nodes in the tree. AssignRanks() has to be called first.
  */
-int TreeBroker::MaxRank() const
+int NewickBroker::MaxRank() const
 {
     int max = -1;
-    for (TreeBrokerNode* node : stack_) {
+    for (NewickBrokerElement* node : stack_) {
         if (node->rank_ == -1) {
-            LOG_WARN << "TreeBroker::AssignRanks() was not called before.";
+            LOG_WARN << "NewickBroker::AssignRanks() was not called before.";
             return -1;
         }
         if (node->rank_ == 1) {
@@ -120,7 +120,7 @@ int TreeBroker::MaxRank() const
 /**
  * @brief Returns true iff the tree is valid. AssignRanks() has to be called first.
  *
- * A valid tree in a TreeBroker has to fullfill those criteria:
+ * A valid tree in a NewickBroker has to fullfill those criteria:
  *
  *  *  It's rank has to match the property is_leaf: Leaves have rank 0; a node with a higher rank
  *     cannot be a leaf.
@@ -130,12 +130,12 @@ int TreeBroker::MaxRank() const
  *     decrease, as this simply means the end of a subtree.
  * %
  */
-bool TreeBroker::Validate() const
+bool NewickBroker::Validate() const
 {
     int cur_depth = 0;
-    for (TreeBrokerNode* node : stack_) {
+    for (NewickBrokerElement* node : stack_) {
         if (node->rank_ == -1) {
-            LOG_WARN << "TreeBroker::AssignRanks() was not called before.";
+            LOG_WARN << "NewickBroker::AssignRanks() was not called before.";
             return false;
         }
         if (node->rank_ == 0 && !(node->is_leaf)) {
@@ -165,14 +165,14 @@ bool TreeBroker::Validate() const
 // -----------------------------------------------------------------------------
 
 /**
- * @brief Return a readable string representation of the elements of the TreeBroker.
+ * @brief Return a readable string representation of the elements of the NewickBroker.
  */
-std::string TreeBroker::Dump() const
+std::string NewickBroker::Dump() const
 {
     std::string out;
     out += "Tree contains " + std::to_string(NodeCount()) + " nodes (thereof "
         + std::to_string(LeafCount()) + " leaves)" + (stack_.empty() ? "." : ":") + "\n";
-    for (TreeBrokerNode* node : stack_) {
+    for (NewickBrokerElement* node : stack_) {
         // indent
         for (int i = 0; i < node->depth; ++i) {
             out += "    ";

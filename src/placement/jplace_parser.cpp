@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "placement/placements.hpp"
-#include "tree/tree_iterator.hpp"
+#include "tree/newick_processor.hpp"
 #include "utils/json_document.hpp"
 #include "utils/json_lexer.hpp"
 #include "utils/json_parser.hpp"
@@ -85,25 +85,27 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
 
     // find and process the reference tree
     val = doc.Get("tree");
-    if (!val || !val->IsString() || !placements.tree.FromNewickString(val->ToString())) {
+    if (!val || !val->IsString() || !NewickProcessor::FromString(val->ToString(), placements.tree)) {
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
 
-    // create a map from edge nums to the actual edge pointers,
-    // for later use when processing the pqueries
+    // create a map from edge nums to the actual edge pointers, for later use when processing
+    // the pqueries. we do not use Placements::EdgeNumMap() here, because we need to do extra
+    // checking for validity first!
+    std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
     for (
         PlacementTree::IteratorEdges it = placements.tree.BeginEdges();
         it != placements.tree.EndEdges();
         ++it
     ) {
         PlacementTree::EdgeType* edge = *it;
-        if (placements.edge_num_map.count(edge->data.edge_num) > 0) {
+        if (edge_num_map.count(edge->data.edge_num) > 0) {
             LOG_WARN << "Jplace document contains a tree where the edge num tag '"
                      << edge->data.edge_num << "' is used more than once.";
             return false;
         }
-        placements.edge_num_map.emplace(edge->data.edge_num, edge);
+        edge_num_map.emplace(edge->data.edge_num, edge);
     }
 
     // get the field names and store them in array fields
@@ -184,7 +186,7 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
             }
 
             // process all fields of the placement
-            Pquery::Placement pqry_place;
+            PqueryPlacement* pqry_place = new PqueryPlacement();
             for (size_t i = 0; i < pqry_fields->size(); ++i) {
                 // up to version 3 of the jplace specification, the p-fields in a jplace document
                 // only contain numbers (float or int),so we can do this check here once for all
@@ -200,26 +202,28 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
                 // switch on the field name to set the correct value
                 double pqry_place_val = JsonValueToNumber(pqry_fields->at(i))->value;
                 if        (fields[i] == "edge_num") {
-                    pqry_place.edge_num          = pqry_place_val;
-                    if (placements.edge_num_map.count(pqry_place_val) == 0) {
+                    pqry_place->edge_num          = pqry_place_val;
+                    if (edge_num_map.count(pqry_place_val) == 0) {
                         LOG_WARN << "Jplace document contains a pquery where field 'edge_num' "
                                  << "has value '" << pqry_place_val << "', which is not marked "
                                  << "in the given tree as an edge num.";
                         return false;
                     }
-                    placements.edge_num_map.at(pqry_place_val)->data.pqueries.push_back(pqry);
+                    pqry_place->edge = edge_num_map.at(pqry_place_val);
+                    pqry_place->edge->data.placements.push_back(pqry_place);
                 } else if (fields[i] == "likelihood") {
-                    pqry_place.likelihood        = pqry_place_val;
+                    pqry_place->likelihood        = pqry_place_val;
                 } else if (fields[i] == "like_weight_ratio") {
-                    pqry_place.like_weight_ratio = pqry_place_val;
+                    pqry_place->like_weight_ratio = pqry_place_val;
                 } else if (fields[i] == "distal_length") {
-                    pqry_place.distal_length     = pqry_place_val;
+                    pqry_place->distal_length     = pqry_place_val;
                 } else if (fields[i] == "pendant_length") {
-                    pqry_place.pendant_length    = pqry_place_val;
+                    pqry_place->pendant_length    = pqry_place_val;
                 } else if (fields[i] == "parsimony") {
-                    pqry_place.parsimony         = pqry_place_val;
+                    pqry_place->parsimony         = pqry_place_val;
                 }
             }
+            pqry_place->pquery = pqry;
             pqry->placements.push_back(pqry_place);
         }
 
@@ -248,9 +252,10 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
                     return false;
                 }
 
-                Pquery::Name pqry_name;
-                pqry_name.name         = pqry_n_val->ToString();
-                pqry_name.multiplicity = 0.0;
+                PqueryName* pqry_name   = new PqueryName();
+                pqry_name->name         = pqry_n_val->ToString();
+                pqry_name->multiplicity = 0.0;
+                pqry_name->pquery = pqry;
                 pqry->names.push_back(pqry_name);
             }
         }
@@ -287,13 +292,14 @@ bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placeme
                     return false;
                 }
 
-                Pquery::Name pqry_name;
-                pqry_name.name         = pqry_nm_val_arr->at(0)->ToString();
-                pqry_name.multiplicity = JsonValueToNumber(pqry_nm_val_arr->at(1))->value;
-                if (pqry_name.multiplicity < 0.0) {
+                PqueryName* pqry_name   = new PqueryName();
+                pqry_name->name         = pqry_nm_val_arr->at(0)->ToString();
+                pqry_name->multiplicity = JsonValueToNumber(pqry_nm_val_arr->at(1))->value;
+                if (pqry_name->multiplicity < 0.0) {
                     LOG_WARN << "Jplace document contains pquery with negative multiplicity at "
-                             << "name '" << pqry_name.name << "'.";
+                             << "name '" << pqry_name->name << "'.";
                 }
+                pqry_name->pquery = pqry;
                 pqry->names.push_back(pqry_name);
             }
         }

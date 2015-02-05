@@ -11,7 +11,8 @@
 #include <deque>
 #include <string>
 
-#include "tree/tree_broker.hpp"
+#include "tree/newick_processor.hpp"
+#include "tree/tree.hpp"
 #include "utils/logging.hpp"
 
 namespace genesis {
@@ -20,12 +21,7 @@ namespace genesis {
 //     Forward Declarations
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
-class Tree;
-
-struct Pquery;
-
-class PlacementEdgeDataIteratorPlacements;
+struct PqueryPlacement;
 
 // =============================================================================
 //     PlacementEdgeData
@@ -58,22 +54,23 @@ public:
     //     Default Functions
     // -----------------------------------------------------
 
-    inline void FromTreeBrokerNode (TreeBrokerNode* node)
+    inline void FromNewickBrokerElement (NewickBrokerElement* nbe)
     {
-        branch_length = node->branch_length;
+        branch_length = nbe->branch_length;
         edge_num      = -1;
 
-        if (node->tags.size() != 1) {
-            LOG_WARN << "Edge for node '" << node->name << "' does not contain the single "
+        if (nbe->tags.size() != 1) {
+            LOG_WARN << "Edge for nbe '" << nbe->name << "' does not contain the single "
                      << "tag value denoting the edge_num for placements.";
             return;
         }
-        edge_num = std::stoi(node->tags[0]);
+        edge_num = std::stoi(nbe->tags[0]);
     }
 
-    inline void ToTreeBrokerNode (TreeBrokerNode* node) const
+    inline void ToNewickBrokerElement (NewickBrokerElement* nbe) const
     {
-        node->branch_length = branch_length;
+        nbe->branch_length = branch_length;
+        nbe->comments.push_back(std::to_string(PlacementCount()));
     }
 
     inline std::string Dump() const
@@ -82,25 +79,22 @@ public:
     }
 
     // -----------------------------------------------------
-    //     Iterator
+    //     Members
     // -----------------------------------------------------
 
-    typedef PlacementEdgeDataIteratorPlacements IteratorPlacements;
+    size_t PlacementCount() const;
+    double PlacementMass() const;
 
-    // the definitions are outsourced into the implementation file to avoid circular dependencies
-    IteratorPlacements BeginPlacements(int sort = 0);
-    IteratorPlacements EndPlacements();
+    void Sort();
 
     // -----------------------------------------------------
     //     Data Members
     // -----------------------------------------------------
 
-    double PlacementMass();
-
     double branch_length;
     int    edge_num;
 
-    std::deque<Pquery*> pqueries;
+    std::deque<PqueryPlacement*> placements;
 };
 
 // =============================================================================
@@ -129,12 +123,12 @@ public:
     //     Default Functions
     // -----------------------------------------------------
 
-    inline void FromTreeBrokerNode (TreeBrokerNode* node)
+    inline void FromNewickBrokerElement (NewickBrokerElement* node)
     {
         name = node->name;
     }
 
-    inline void ToTreeBrokerNode (TreeBrokerNode* node) const
+    inline void ToNewickBrokerElement (NewickBrokerElement* node) const
     {
         node->name = name;
     }
@@ -161,102 +155,6 @@ public:
 
 // let's avoid tedious names!
 typedef Tree<PlacementNodeData, PlacementEdgeData> PlacementTree;
-
-} // namespace genesis
-
-// =============================================================================
-//     Edge Data Iterator Placements
-// =============================================================================
-
-#include "placement/placements.hpp"
-#include "tree/tree.hpp"
-
-namespace genesis {
-
-class PlacementEdgeDataIteratorPlacements
-{
-public:
-    // -----------------------------------------------------
-    //     Typedefs
-    // -----------------------------------------------------
-
-    typedef PlacementEdgeDataIteratorPlacements self_type;
-    typedef std::forward_iterator_tag           iterator_category;
-    typedef Pquery::Placement                   value_type;
-    typedef Pquery::Placement&                  reference;
-    typedef Pquery::Placement*                  pointer;
-
-    // -----------------------------------------------------
-    //     Constructor
-    // -----------------------------------------------------
-
-    PlacementEdgeDataIteratorPlacements (PlacementEdgeData& edge_data, int sort = 0);
-
-    PlacementEdgeDataIteratorPlacements (PlacementTree::EdgeType* edge, int sort = 0)
-    {
-        PlacementEdgeDataIteratorPlacements(edge->data, sort);
-    }
-
-    PlacementEdgeDataIteratorPlacements () {}
-
-    // -----------------------------------------------------
-    //     Operators
-    // -----------------------------------------------------
-
-    inline self_type operator ++ ()
-    {
-        placements_.pop_front();
-        return *this;
-    }
-
-    inline self_type operator ++ (int)
-    {
-        self_type tmp = *this;
-        ++(*this);
-        return tmp;
-    }
-
-    /**
-     * @brief Equality operator for the iterator.
-     *
-     * It checks whether both iterators have the same number of remaining Placements and whether the
-     * current Placement is the same. For speed reasons, it does not check for the rest of the
-     * elements, because it would be a strange case to compare different types of iterators anyway.
-     */
-    inline bool operator == (const self_type &other) const
-    {
-        if (placements_.size() != other.placements_.size()) {
-            return false;
-        }
-        if (placements_.size() > 0) {
-            return placements_.front() == other.placements_.front();
-        } else {
-            return true;
-        }
-    }
-
-    inline bool operator != (const self_type &other) const
-    {
-        return !(other == *this);
-    }
-
-    inline reference operator * ()
-    {
-        return *placements_.front();
-    }
-
-    inline pointer operator -> ()
-    {
-        return placements_.front();
-    }
-
-    // -----------------------------------------------------
-    //     Members
-    // -----------------------------------------------------
-
-protected:
-    std::deque<Pquery::Placement*> placements_;
-};
 
 } // namespace genesis
 

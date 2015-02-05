@@ -1,48 +1,56 @@
 /**
- * @brief Implementation of Newick functions.
+ * @brief Implementation of functions for reading and writing Newick files.
+ *
+ * For reasons of readability, in this implementation file, the template data types
+ * NodeDataType and EdgeDataType are abbreviated using NDT and EDT, respectively.
  *
  * @file
  * @ingroup tree
  */
 
-#include "tree/newick_format.hpp"
-
-#include <assert.h>
 #include <deque>
-#include <string>
 #include <sstream>
 
-#include "tree/tree_broker.hpp"
+#include "tree/newick_broker.hpp"
+#include "tree/tree.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {
 
 // =============================================================================
-//     NewickParser
+//     Parsing
 // =============================================================================
 
-bool NewickParser::ProcessFile (const std::string& fn, TreeBroker& broker)
+/**
+ * @brief Create a Tree from a file containing a Newick tree.
+ */
+template <class NDT, class EDT>
+bool NewickProcessor::FromFile (const std::string fn, Tree<NDT, EDT>& tree)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' does not exist.";
         return false;
     }
-    return ProcessString(FileRead(fn), broker);
+    return FromString(FileRead(fn), tree);
 }
 
-bool NewickParser::ProcessString (const std::string& tree, TreeBroker& broker)
+/**
+ * @brief Create a Tree from a string containing a Newick tree.
+ */
+template <class NDT, class EDT>
+bool NewickProcessor::FromString (const std::string ts, Tree<NDT, EDT>& tree)
 {
     NewickLexer lexer;
-    lexer.ProcessString(tree);
-    return ProcessLexer(lexer, broker);
+    lexer.ProcessString(ts);
+    return FromLexer(lexer, tree);
 }
 
 // TODO do a validate brackets first?!
 // TODO what happens if a tree's nested brackets fully close to depth 0, then open again without
 // TODO semicolon like (...)(...); ? do we need to check for this?
-
-bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
+template <class NDT, class EDT>
+bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
 {
     if (lexer.empty()) {
         LOG_INFO << "Tree is empty. Nothing done.";
@@ -54,10 +62,11 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
         return false;
     }
 
-    broker.clear();
+    // we will fill this broker with tree elements
+    NewickBroker broker;
 
     // the node that is currently being populated with data
-    TreeBrokerNode* node = nullptr;
+    NewickBrokerElement* node = nullptr;
 
     // how deep is the current token nested in the tree?
     int depth = 0;
@@ -122,7 +131,7 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
         // node and pushed it to the stack (either closing bracket or comma), so we need to create a
         // new one here.
         if (!node) {
-            node = new TreeBrokerNode();
+            node = new NewickBrokerElement();
             node->depth = depth;
 
             // checks if the new node is a leaf.
@@ -310,84 +319,215 @@ bool NewickParser::ProcessLexer (const NewickLexer& lexer, TreeBroker& broker)
         return false;
     }
 
+    FromBroker(broker, tree);
     return true;
 }
 
-// =============================================================================
-//     NewickPrinter
-// =============================================================================
-
-bool NewickPrinter::print_names          = true;
-bool NewickPrinter::print_branch_lengths = false;
-bool NewickPrinter::print_comments       = false;
-bool NewickPrinter::print_tags           = false;
-
-bool NewickPrinter::ToFile(const std::string& fn, TreeBroker& broker)
+/**
+ * @brief Create a Tree from a NewickBroker.
+ *
+ * It does not take the NewickBroker by const, because AssignRanks() has to be called in order to get
+ * the nesting right.
+ * TODO: this could be changed by not assigning ranks to the broker but a tmp struct.
+ */
+template <class NDT, class EDT>
+void NewickProcessor::FromBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
 {
-    return FileWrite(fn, ToString(broker));
-}
+    typename Tree<NDT, EDT>::LinkArray links;
+    typename Tree<NDT, EDT>::NodeArray nodes;
+    typename Tree<NDT, EDT>::EdgeArray edges;
 
-// TODO this is a quick and dirty (=slow) solution...
-std::string NewickPrinter::ToString(TreeBroker& broker)
-{
+    std::vector<typename Tree<NDT, EDT>::LinkType*> link_stack;
+
+    // we need the ranks (number of immediate children) of all nodes
     broker.AssignRanks();
-    return ToStringRec(broker, 0) + ";";
-}
 
-std::string NewickPrinter::ToStringRec(TreeBroker& broker, size_t pos)
-{
-    // check if it is a leaf, stop recursion if so.
-    if (broker[pos]->rank() == 0) {
-        return NodeToString(broker[pos]);
+    // iterate over all nodes of the tree broker
+    for (NewickBroker::const_iterator b_itr = broker.cbegin(); b_itr != broker.cend(); ++b_itr) {
+        NewickBrokerElement* broker_node = *b_itr;
+
+        // create the tree node for this broker node
+        typename Tree<NDT, EDT>::NodeType* cur_node = new typename Tree<NDT, EDT>::NodeType();
+        cur_node->FromNewickBrokerElement(broker_node);
+        cur_node->index_ = nodes.size();
+        nodes.push_back(cur_node);
+
+        // create the link that points towards the root.
+        // this link is created for every node, root, inner and leaves.
+        typename Tree<NDT, EDT>::LinkType* up_link = new typename Tree<NDT, EDT>::LinkType();
+        up_link->node_ = cur_node;
+        cur_node->link_ = up_link;
+        up_link->index_ = links.size();
+        links.push_back(up_link);
+
+        // establish the link towards the root
+        if (link_stack.empty()) {
+            // if the link stack is empty, we are currently at the very beginning of this loop,
+            // which means we are at the root itself. in this case, make the "link towards the root"
+            // point to itself.
+            up_link->outer_ = up_link;
+        } else {
+            // if we are however in some other node (leaf or inner, but not the root), we establish
+            // the link "upwards" to the root, and back from there.
+            up_link->outer_ = link_stack.back();
+            link_stack.back()->outer_ = up_link;
+
+            // also, create an edge that connects both nodes
+            typename Tree<NDT, EDT>::EdgeType* up_edge = new typename Tree<NDT, EDT>::EdgeType();
+            up_edge->link_p_         = link_stack.back();
+            up_edge->link_s_         = up_link;
+            up_link->edge_           = up_edge;
+            link_stack.back()->edge_ = up_edge;
+            up_edge->FromNewickBrokerElement(broker_node);
+            up_edge->index_ = edges.size();
+            edges.push_back(up_edge);
+
+            // we can now delete the head of the stack, because we just estiablished its "downlink"
+            // and thus are done with it
+            link_stack.pop_back();
+        }
+
+        // in the following, we create the links that will connect to the nodes' children.
+        // for leaf nodes, this makes the next pointer point to the node itself (the loop
+        // is never executed in this case, as leaves have rank 0).
+        // for inner nodes, we create as many "down" links as they have children. each of them
+        // is pushed to the stack, so that for the next broker nodes they are available as
+        // reciever for the "up" links.
+        // in summary, make all next pointers of a node point to each other in a circle.
+        typename Tree<NDT, EDT>::LinkType* prev_link = up_link;
+        for (int i = 0; i < broker_node->rank(); ++i) {
+            typename Tree<NDT, EDT>::LinkType* down_link = new typename Tree<NDT, EDT>::LinkType();
+            prev_link->next_ = down_link;
+            prev_link = down_link;
+
+            down_link->node_ = cur_node;
+            down_link->index_ = links.size();
+            links.push_back(down_link);
+            link_stack.push_back(down_link);
+        }
+        prev_link->next_ = up_link;
     }
 
-    // recurse over all children of the current node. while doing so, build a stack of the resulting
-    // substrings in reverse order. this is because newick stores the nodes kind of "backwards",
-    // by starting at a leaf node instead of the root.
-    std::deque<std::string> children;
-    for (size_t i = pos + 1; i < broker.size() && broker[i]->depth > broker[pos]->depth; ++i) {
-        // skip if not immediate children (those will be called in later recursion steps)
-        if (broker[i]->depth > broker[pos]->depth + 1) {
+    // we pushed elements to the link_stack for all children of the nodes and popped them when we
+    // were done processing those children, so there should be no elements left. this assumes that
+    // NewickBroker.AssignRanks() does its job properly!
+    assert(link_stack.empty());
+
+    // now delete the uplink of the root, in order to make the tree fully unrooted.
+    // (we do that after the tree creation, as it is way easier this way)
+    assert(links.front()->outer_ == links.front());
+    typename Tree<NDT, EDT>::LinkType* next = links.front()->next_;
+    while (next->next_ != links.front()) {
+        next = next->next_;
+    }
+    next->next_ = next->next_->next_;
+    assert(next->next_ == links.front()->next_);
+    links.erase(links.begin());
+    for (size_t i = 0; i < links.size(); ++i) {
+        links[i]->index_ = i;
+    }
+    next->node_->link_ = next->next_;
+
+    // hand over the elements to the tree
+    tree.Import(links, nodes, edges);
+}
+
+// =============================================================================
+//     Printing
+// =============================================================================
+
+/**
+ * @brief Writes the tree to a file in Newick format.
+ *
+ * If the file already exists, the function does not overwrite it.
+ */
+template <class NDT, class EDT>
+bool NewickProcessor::ToFile   (const std::string fn, Tree<NDT, EDT>& tree)
+{
+    if (FileExists(fn)) {
+        LOG_WARN << "Newick file '" << fn << "' already exist. Will not overwrite it.";
+        return false;
+    }
+    std::string ts;
+    ToString(ts, tree);
+    return FileWrite(fn, ts);
+}
+
+/**
+ * @brief Gives a Newick string representation of the tree.
+ *
+ * In case the tree was read from a Newick file, this function should produce the same
+ * representation.
+ */
+template <class NDT, class EDT>
+void NewickProcessor::ToString (std::string& ts, Tree<NDT, EDT>& tree)
+{
+    NewickBroker broker;
+    ToBroker(broker, tree);
+    broker.AssignRanks();
+    ts = ToStringRec(broker, 0) + ";";
+}
+
+/**
+ * @brief Returns a Newick string representation of the tree.
+ *
+ * In case the tree was read from a Newick file, this function should produce the same
+ * representation.
+ */
+template <class NDT, class EDT>
+std::string NewickProcessor::ToString (Tree<NDT, EDT>& tree)
+{
+    std::string ts;
+    ToString(ts, tree);
+    return ts;
+}
+
+/**
+ * @brief Stores the information of the tree into a NewickBroker object.
+ */
+template <class NDT, class EDT>
+void NewickProcessor::ToBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
+{
+    // store the distance from each node to the root. this is needed to assign levels of depth
+    // to the nodes for the broker.
+    std::vector<int> dist;
+    dist.resize(tree.NodesSize(), -1);
+    dist[0] = 0;
+
+    // calculate the distance vector via levelorder iteration.
+    for (
+        typename Tree<NDT, EDT>::IteratorLevelorder it = tree.BeginLevelorder();
+        it != tree.EndLevelorder();
+        ++it
+    ) {
+        // skip the root (it is already set to 0).
+        if (it.IsFirstIteration()) {
             continue;
         }
 
-        // do the recursion step for this child, add the result to a stack
-        children.push_front(ToStringRec(broker, i));
+        // the distance is the distance from the "parent" node (the next one in direction towards
+        // the root) plus 1.
+        assert(dist[it.Node()->Index()] == -1);
+        dist[it.Node()->Index()] = 1 + dist[it.Link()->Outer()->Node()->Index()];
     }
 
-    // build the string by iterating the stack
-    std::ostringstream out;
-    out << "(";
-    for (size_t i = 0; i < children.size(); ++i) {
-        if (i>0) {
-            out << ",";
-        }
-        out << children[i];
-    }
-    out << ")" << NodeToString(broker[pos]);
-    return out.str();
-}
+    // now fill the broker with nodes via postorder traversal, so that the root is put on top last.
+    broker.clear();
+    for (
+        typename Tree<NDT, EDT>::IteratorPostorder it = tree.BeginPostorder();
+        it != tree.EndPostorder();
+        ++it
+    ) {
+        NewickBrokerElement* bn = new NewickBrokerElement();
 
-std::string NewickPrinter::NodeToString(TreeBrokerNode* bn)
-{
-    std::string res = "";
-    if (print_names) {
-        res += bn->name;
+        assert(dist[it.Node()->Index()] > -1);
+        bn->depth = dist[it.Node()->Index()];
+
+        it.Node()->data.ToNewickBrokerElement(bn);
+        it.Edge()->data.ToNewickBrokerElement(bn);
+
+        broker.PushTop(bn);
     }
-    if (print_branch_lengths) {
-        res += ":" + std::to_string(bn->branch_length);
-    }
-    if (print_comments) {
-        for (std::string c : bn->comments) {
-            res += "[" + c + "]";
-        }
-    }
-    if (print_tags) {
-        for (std::string t : bn->tags) {
-            res += "{" + t + "}";
-        }
-    }
-    return res;
 }
 
 } // namespace genesis
