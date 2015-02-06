@@ -10,6 +10,7 @@
 
 #include <ctime>
 #include <string>
+#include <vector>
 
 namespace genesis {
 
@@ -20,6 +21,8 @@ namespace genesis {
 bool        FileExists (const std::string& fn);
 std::string FileRead   (const std::string& fn);
 bool        FileWrite  (const std::string& fn, const std::string& content);
+
+bool        DirListFiles (const std::string& dir, std::vector<std::string>& list);
 
 std::string StringEscape   (const std::string& text);
 std::string StringDeescape (const std::string& text);

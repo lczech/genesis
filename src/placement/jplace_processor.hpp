@@ -37,6 +37,9 @@ class JplaceProcessor
 {
 public:
 
+    static std::string GetVersion   ();
+    static bool        CheckVersion (const std::string version);
+
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
@@ -45,11 +48,6 @@ public:
     static bool FromString   (const std::string&  jplace, Placements& placements);
     static bool FromLexer    (const JsonLexer&    lexer,  Placements& placements);
     static bool FromDocument (const JsonDocument& doc,    Placements& placements);
-
-    /**
-     * @brief The version of jplace format that this parser is built for.
-     */
-    static const int version = 3;
 };
 
 } // namespace genesis

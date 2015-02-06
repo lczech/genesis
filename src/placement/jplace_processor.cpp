@@ -19,6 +19,22 @@
 
 namespace genesis {
 
+/**
+ * @brief Returns the version number that this class is written for.
+ */
+std::string JplaceProcessor::GetVersion ()
+{
+    return "3";
+}
+
+/**
+ * @brief Check whether the version of the jplace format works with this parser.
+ */
+bool JplaceProcessor::CheckVersion (const std::string version)
+{
+    return version == "2" || version == "3";
+}
+
 // =============================================================================
 //     Parsing
 // =============================================================================
@@ -76,13 +92,13 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, Placements& placeme
 
     // check if the version is correct
     JsonValue* val = doc.Get("version");
-    if (!val || !val->IsNumber()) {
-        LOG_WARN << "Jplace document does not contain a valid version number at key 'version'.";
-        return false;
+    if (!val) {
+        LOG_WARN << "Jplace document does not contain a valid version number at key 'version'."
+                 << "Now continuing to parse in the hope that it still works.";
     }
-    if (JsonValueToNumber(val)->value != version) {
-        LOG_WARN << "Jplace document has version number '" << val->ToString()
-                 << "', however this parser is written for version " << version << " of Jplace. "
+    if (!CheckVersion(val->ToString())) {
+        LOG_WARN << "Jplace document has version '" << val->ToString() << "', however this parser "
+                 << "is written for version " << GetVersion() << " of the Jplace format. "
                  << "Now continuing to parse in the hope that it still works.";
     }
 

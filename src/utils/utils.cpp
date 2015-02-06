@@ -7,6 +7,8 @@
 
 #include "utils/utils.hpp"
 
+#include <algorithm>
+#include <dirent.h>
 #include <fstream>
 #include <streambuf>
 #include <string>
@@ -19,7 +21,9 @@ namespace genesis {
 //     Files
 // ---------------------------------------------------------
 
-/** @brief Returns true iff the file exists. */
+/**
+ * @brief Returns true iff the file exists.
+ */
 bool FileExists (const std::string& fn)
 {
     std::ifstream infile(fn);
@@ -50,7 +54,9 @@ std::string FileRead (const std::string& fn)
     return str;
 }
 
-/** @brief Writes the content of a string to a file. */
+/**
+ * @brief Writes the content of a string to a file.
+ */
 bool FileWrite (const std::string& fn, const std::string& content)
 {
     // TODO check if path exists, create if not (make a function for that)
@@ -62,6 +68,30 @@ bool FileWrite (const std::string& fn, const std::string& content)
         return false;
     }
     outfile << content;
+    return true;
+}
+
+/**
+ * @brief Get a list of files in a directory.
+ */
+bool DirListFiles (const std::string& dir, std::vector<std::string>& list)
+{
+    DIR*           dp;
+    struct dirent* dirp;
+
+    if((dp  = opendir(dir.c_str())) == nullptr) {
+        LOG_WARN << "Cannot open directory '" << dir << "' (Error " << errno << ").";
+        return false;
+    }
+    while ((dirp = readdir(dp)) != nullptr) {
+        std::string fn = std::string(dirp->d_name);
+        if (fn == "." || fn == "..") {
+            continue;
+        }
+        list.push_back(fn);
+    }
+    closedir(dp);
+    //~ std::sort(list.begin(), list.end());
     return true;
 }
 
