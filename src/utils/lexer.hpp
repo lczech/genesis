@@ -583,6 +583,7 @@ protected:
         itr_  = 0;
         len_  = text.size();
         line_ = 1;
+        col_  = 0;
         tokens_.clear();
     }
 
@@ -698,15 +699,14 @@ protected:
     inline void NextChar()
     {
         ++itr_;
+        ++col_;
 
         // we use the save version of GetChar here, which is equivalant to
         // check for IsEnd. first, CR, then LF. the second condition ensures
         // not to count a CR+LF as two line increases.
-        if (GetChar(0) == '\r') {
+        if ((GetChar(0) == '\n' && GetChar(-1) != '\r') || (GetChar(0) == '\r')) {
             ++line_;
-        }
-        if (GetChar(0) == '\n' && GetChar(-1) != '\r') {
-            ++line_;
+            col_ = 0;
         }
     }
 
@@ -809,6 +809,9 @@ private:
 
     /** @brief The current line in the text while processing. */
     int         line_ = 1;
+
+    /** @brief The current column in the text while processing. */
+    int         col_  = 0;
 
     /** @brief The list of tokens resulting from the analysis process. */
     std::vector<LexerToken> tokens_;

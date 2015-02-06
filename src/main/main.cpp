@@ -308,7 +308,7 @@ int main (int argc, char* argv[])
 
     // CAVEAT: paths are hardcoded - this is for testing only!
 
-    /*
+    //*
     NewickProcessor::print_names          = true;
     NewickProcessor::print_branch_lengths = true;
     NewickProcessor::print_comments       = true;
