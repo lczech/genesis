@@ -221,11 +221,11 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
             }
 
             // populate the node
-            if (node->name.empty()) {
+            if (node->name.empty() && use_default_names) {
                 if (node->is_leaf) {
-                    node->name = "Leaf Node";
+                    node->name = default_leaf_name;
                 } else {
-                    node->name = "Internal Node";
+                    node->name = default_internal_name;
                 }
             }
             broker.PushTop(node);
@@ -250,11 +250,11 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
             }
 
             // populate the node
-            if (node->name.empty()) {
+            if (node->name.empty() && use_default_names) {
                 if (node->is_leaf) {
-                    node->name = "Leaf Node";
+                    node->name = default_leaf_name;
                 } else {
-                    node->name = "Internal Node";
+                    node->name = default_internal_name;
                 }
             }
             broker.PushTop(node);
@@ -277,8 +277,8 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
             }
 
             // populate the node
-            if (node->name.empty()) {
-                node->name = "Root Node";
+            if (node->name.empty() && use_default_names) {
+                node->name = default_root_name;
             }
             broker.PushTop(node);
             node = nullptr;
@@ -524,11 +524,20 @@ void NewickProcessor::ToBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
         bn->depth = dist[it.Node()->Index()];
 
         it.Node()->data.ToNewickBrokerElement(bn);
-        // do only write edge data to the broker element if it is not the last iteration.
+        // only write edge data to the broker element if it is not the last iteration.
         // the last iteration is the root, which usually does not have edge information in newick.
         // caveat: for the root node, the edge will point to an arbitrary edge away from the root.
         if (!it.IsLastIteration()) {
             it.Edge()->data.ToNewickBrokerElement(bn);
+        }
+
+        // filter out default names if needed
+        if (!use_default_names && bn->name != "" && (
+            bn->name == default_leaf_name ||
+            bn->name == default_internal_name ||
+            bn->name == default_root_name
+        )) {
+            bn->name = "";
         }
 
         broker.PushTop(bn);

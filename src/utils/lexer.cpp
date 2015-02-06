@@ -567,16 +567,11 @@ inline bool Lexer::ScanTag()
  */
 void Lexer::PushToken (const LexerType t, const size_t start, const std::string& value)
 {
-    // find previous new line, we need it to tell the column
-    size_t bitr = start;
-    while (
-        (bitr > 0)  &&  (text_[bitr-1] != '\n')  &&  (text_[bitr-1] != '\r')
-    ) {
-        --bitr;
-    }
-
-    // make and push token
-    LexerToken tok(t, line_, start-bitr, value);
+    // make and push token.
+    // the column is the one where the token started. start gives this position as absolute position
+    // in the string, so sutract it from itr_ to get how many chars we need to go back as compared
+    // to the current col_.
+    LexerToken tok(t, line_, col_ - (itr_ - start), value);
     tokens_.push_back(tok);
 }
 
