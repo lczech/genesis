@@ -12,6 +12,18 @@
 
 namespace genesis {
 
+std::string NewickProcessor::default_leaf_name     = "Leaf Node";
+std::string NewickProcessor::default_internal_name = "Internal Node";
+std::string NewickProcessor::default_root_name     = "Root Node";
+
+/**
+ * @brief If set to true, unnamed nodes are named using one of the default names.
+ *
+ * The default names can be set using `default_leaf_name`, `default_internal_name` and
+ * `default_root_name`. They are used both when parsing and printing a Newick file.
+ */
+bool        NewickProcessor::use_default_names     = false;
+
 // =============================================================================
 //     Printing
 // =============================================================================
@@ -60,7 +72,7 @@ std::string NewickProcessor::ElementToString(NewickBrokerElement* bn)
 {
     std::string res = "";
     if (print_names) {
-        res += bn->name;
+        res += StringReplaceAll(bn->name, " ", "_");
     }
     if (print_branch_lengths) {
         res += ":" + std::to_string(bn->branch_length);
