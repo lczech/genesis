@@ -13,8 +13,7 @@
 #include "placement/placements.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/json_document.hpp"
-#include "utils/json_lexer.hpp"
-#include "utils/json_parser.hpp"
+#include "utils/json_processor.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -60,7 +59,7 @@ bool JplaceProcessor::FromString (const std::string& jplace, Placements& placeme
 bool JplaceProcessor::FromLexer (const JsonLexer& lexer, Placements& placements)
 {
     JsonDocument doc;
-    if (!JsonParser::ProcessLexer(lexer, doc)) {
+    if (!JsonProcessor::FromLexer(lexer, doc)) {
         return false;
     }
     return FromDocument(doc, placements);

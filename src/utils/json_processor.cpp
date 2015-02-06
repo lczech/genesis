@@ -1,49 +1,50 @@
 /**
- * @brief Implementation of functions for parsing JSON documents.
+ * @brief Implementation of functions for parsing and printing JSON documents.
  *
  * @file
  * @ingroup utils
  */
 
-#include "utils/json_parser.hpp"
+#include "utils/json_processor.hpp"
 
 #include <assert.h>
 
+#include "utils/json_document.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {
 
 // =============================================================================
-//     Process
+//     Parsing
 // =============================================================================
 
 /**
  * @brief Takes a JSON document file path and parses its contents into a JsonDocument.
  *
- * See ProcessLexer() for more information.
+ * See ParseLexer() for more information.
  * Returns true iff successfull.
  */
-bool JsonParser::ProcessFile (const std::string& fn, JsonDocument& document)
+bool JsonProcessor::FromFile (const std::string& fn, JsonDocument& document)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "JSON file '" << fn << "' does not exist.";
         return false;
     }
-    return ProcessString(FileRead(fn), document);
+    return FromString(FileRead(fn), document);
 }
 
 /**
  * @brief Takes a string containing a JSON document and parses its contents into a JsonDocument.
  *
- * See ProcessLexer() for more information.
+ * See ParseLexer() for more information.
  * Returns true iff successfull.
  */
-bool JsonParser::ProcessString (const std::string& json, JsonDocument& document)
+bool JsonProcessor::FromString (const std::string& json, JsonDocument& document)
 {
     JsonLexer lexer;
     lexer.ProcessString(json);
-    return ProcessLexer(lexer, document);
+    return FromLexer(lexer, document);
 }
 
 /**
@@ -61,7 +62,7 @@ bool JsonParser::ProcessString (const std::string& json, JsonDocument& document)
  *
  * Returns true iff successfull.
  */
-bool JsonParser::ProcessLexer (const JsonLexer& lexer, JsonDocument& document)
+bool JsonProcessor::FromLexer (const JsonLexer& lexer, JsonDocument& document)
 {
     if (lexer.empty()) {
         LOG_INFO << "JSON document is empty.";
@@ -82,7 +83,7 @@ bool JsonParser::ProcessLexer (const JsonLexer& lexer, JsonDocument& document)
     document.clear();
     Lexer::const_iterator begin = lexer.cbegin();
     Lexer::const_iterator end   = lexer.cend();
-    if (!ProcessObject(begin, end, &document)) {
+    if (!ParseObject(begin, end, &document)) {
         return false;
     }
 
@@ -96,19 +97,19 @@ bool JsonParser::ProcessLexer (const JsonLexer& lexer, JsonDocument& document)
     return true;
 }
 
-// =============================================================================
-//     ProcessValue
-// =============================================================================
+// ---------------------------------------------------------------------
+//     Parse Value
+// ---------------------------------------------------------------------
 
 /**
- * @brief Processes a JSON value and fills it with data from the lexer.
+ * @brief Parse a JSON value and fills it with data from the lexer.
  *
- * This function is a bit different from the other two process functions ProcessArray() and
- * ProcessObject(), because it takes its value parameter by reference. This is because when
+ * This function is a bit different from the other two process functions ParseArray() and
+ * ParseObject(), because it takes its value parameter by reference. This is because when
  * entering the function it is not clear yet which type of value the current lexer token is, so a
  * new instance has to be created and stored in the pointer.
  */
-bool JsonParser::ProcessValue (
+bool JsonProcessor::ParseValue (
     Lexer::const_iterator& ct,
     Lexer::const_iterator& end,
     JsonValue*&            value
@@ -141,11 +142,11 @@ bool JsonParser::ProcessValue (
     }
     if (ct->IsBracket("[")) {
         value = new JsonValueArray();
-        return ProcessArray (ct, end, static_cast<JsonValueArray*>(value));
+        return ParseArray (ct, end, static_cast<JsonValueArray*>(value));
     }
     if (ct->IsBracket("{")) {
         value = new JsonValueObject();
-        return ProcessObject (ct, end, static_cast<JsonValueObject*>(value));
+        return ParseObject (ct, end, static_cast<JsonValueObject*>(value));
     }
 
     // if the lexer token is not a fitting json value, we have an error
@@ -153,14 +154,14 @@ bool JsonParser::ProcessValue (
     return false;
 }
 
-// =============================================================================
-//     ProcessArray
-// =============================================================================
+// ---------------------------------------------------------------------
+//     Parse Array
+// ---------------------------------------------------------------------
 
 /**
- * @brief Process a JSON array and fill it with data elements from the lexer.
+ * @brief Parse a JSON array and fill it with data elements from the lexer.
  */
-bool JsonParser::ProcessArray (
+bool JsonProcessor::ParseArray (
     Lexer::const_iterator& ct,
     Lexer::const_iterator& end,
     JsonValueArray*        value
@@ -178,7 +179,7 @@ bool JsonParser::ProcessArray (
     while (ct != end) {
         // proccess the array element
         JsonValue* element = nullptr;
-        if (!ProcessValue(ct, end, element)) {
+        if (!ParseValue(ct, end, element)) {
             return false;
         }
         value->Add(element);
@@ -207,14 +208,14 @@ bool JsonParser::ProcessArray (
     return true;
 }
 
-// =============================================================================
-//     ProcessObject
-// =============================================================================
+// ---------------------------------------------------------------------
+//     Parse Object
+// ---------------------------------------------------------------------
 
 /**
- * @brief Process a JSON object and fill it with data members from the lexer.
+ * @brief Parse a JSON object and fill it with data members from the lexer.
  */
-bool JsonParser::ProcessObject (
+bool JsonProcessor::ParseObject (
     Lexer::const_iterator& ct,
     Lexer::const_iterator& end,
     JsonValueObject*       value
@@ -254,7 +255,7 @@ bool JsonParser::ProcessObject (
             break;
         }
         JsonValue* member = nullptr;
-        if (!ProcessValue(ct, end, member)) {
+        if (!ParseValue(ct, end, member)) {
             return false;
         }
         value->Set(name, member);
@@ -283,4 +284,4 @@ bool JsonParser::ProcessObject (
     return true;
 }
 
-}
+} // namespace genesis
