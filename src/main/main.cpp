@@ -245,6 +245,11 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << "Tree: " << NewickProcessor::ToString(place.tree);
 
     //*
+    NewickProcessor::print_names          = true;
+    NewickProcessor::print_branch_lengths = true;
+    NewickProcessor::print_comments       = true;
+    NewickProcessor::print_tags           = false;
+
     std::string path = "/home/lucas/Projects/tropical-soils/04_EPA/papara_splits/";
     LOG_DBG << "Running on data in " << path;
     std::vector<std::string> list;
@@ -274,14 +279,14 @@ int main (int argc, char* argv[])
     }
 
     LOG_DBG << "Total of " << place.PlacementCount() << " placements.";
-    LOG_DBG << "Validating...";
-    LOG_DBG << "Validity: " << place.Validate();
+    //~ LOG_DBG << "Validating...";
+    //~ LOG_DBG << "Validity: " << place.Validate();
 
     LOG_DBG << "Applying RestrainToMaxWeightPlacements...";
     place.RestrainToMaxWeightPlacements();
     LOG_DBG << "Total of " << place.PlacementCount() << " placements.";
-    LOG_DBG << "Validating...";
-    LOG_DBG << "Validity: " << place.Validate();
+    //~ LOG_DBG << "Validating...";
+    //~ LOG_DBG << "Validity: " << place.Validate();
 
     NewickProcessor::ToFile(path + "total_tree.newick", place.tree);
 

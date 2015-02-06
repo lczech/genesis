@@ -60,7 +60,7 @@ std::string NewickProcessor::ElementToString(NewickBrokerElement* bn)
 {
     std::string res = "";
     if (print_names) {
-        res += bn->name;
+        res += StringReplaceAll(bn->name, " ", "_");
     }
     if (print_branch_lengths) {
         res += ":" + std::to_string(bn->branch_length);
