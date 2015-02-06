@@ -17,28 +17,29 @@ namespace genesis {
 //     PlacementEdgeData
 // =============================================================================
 
+/**
+ * @brief Returns the number of placements on this edge.
+ */
 size_t PlacementEdgeData::PlacementCount() const
 {
-    // TODO this is legacy. in fact, simply returning placements.size() should do the job!
-    size_t count = 0;
-    for (PqueryPlacement pl : placements) {
-        assert(pl.edge_num == edge_num);
-        ++count;
-    }
-    assert(count == placements.size());
-    return count;
+    return placements.size();
 }
 
+/**
+ * @brief Returns the mass of the placements on this edge, as given by their `like_weight_ratio`.
+ */
 double PlacementEdgeData::PlacementMass() const
 {
     double mass = 0.0;
     for (PqueryPlacement pl : placements) {
-        assert(pl.edge_num == edge_num);
         mass += pl.like_weight_ratio;
     }
     return mass;
 }
 
+/**
+ * @brief Sorts the placements on this edge by their `distal_length`.
+ */
 void PlacementEdgeData::Sort()
 {
     std::multimap<double, PqueryPlacement*> sorted;

@@ -1,11 +1,11 @@
 /**
- * @brief Implementation of Jplace Parser functions.
+ * @brief Implementation of Jplace Processor functions.
  *
  * @file
  * @ingroup placement
  */
 
-#include "placement/jplace_parser.hpp"
+#include "placement/jplace_processor.hpp"
 
 #include <string>
 #include <vector>
@@ -13,25 +13,44 @@
 #include "placement/placements.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/json_document.hpp"
-#include "utils/json_lexer.hpp"
-#include "utils/json_parser.hpp"
+#include "utils/json_processor.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {
 
 /**
+ * @brief Returns the version number that this class is written for.
+ */
+std::string JplaceProcessor::GetVersion ()
+{
+    return "3";
+}
+
+/**
+ * @brief Check whether the version of the jplace format works with this parser.
+ */
+bool JplaceProcessor::CheckVersion (const std::string version)
+{
+    return version == "2" || version == "3";
+}
+
+// =============================================================================
+//     Parsing
+// =============================================================================
+
+/**
  * @brief Reads a file and parses it as a Jplace document into a Placements object.
  *
  * Returns true iff successful.
  */
-bool JplaceParser::ProcessFile (const std::string& fn, Placements& placements)
+bool JplaceProcessor::FromFile (const std::string& fn, Placements& placements)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "Jplace file '" << fn << "' does not exist.";
         return false;
     }
-    return ProcessString(FileRead(fn), placements);
+    return FromString(FileRead(fn), placements);
 }
 
 /**
@@ -39,13 +58,13 @@ bool JplaceParser::ProcessFile (const std::string& fn, Placements& placements)
  *
  * Returns true iff successful.
  */
-bool JplaceParser::ProcessString (const std::string& jplace, Placements& placements)
+bool JplaceProcessor::FromString (const std::string& jplace, Placements& placements)
 {
     JsonLexer lexer;
     if (!lexer.ProcessString(jplace)) {
         return false;
     }
-    return ProcessLexer(lexer, placements);
+    return FromLexer(lexer, placements);
 }
 
 /**
@@ -53,13 +72,13 @@ bool JplaceParser::ProcessString (const std::string& jplace, Placements& placeme
  *
  * Returns true iff successful.
  */
-bool JplaceParser::ProcessLexer (const JsonLexer& lexer, Placements& placements)
+bool JplaceProcessor::FromLexer (const JsonLexer& lexer, Placements& placements)
 {
     JsonDocument doc;
-    if (!JsonParser::ProcessLexer(lexer, doc)) {
+    if (!JsonProcessor::FromLexer(lexer, doc)) {
         return false;
     }
-    return ProcessDocument(doc, placements);
+    return FromDocument(doc, placements);
 }
 
 /**
@@ -67,19 +86,19 @@ bool JplaceParser::ProcessLexer (const JsonLexer& lexer, Placements& placements)
  *
  * Returns true iff successful.
  */
-bool JplaceParser::ProcessDocument (const JsonDocument& doc, Placements& placements)
+bool JplaceProcessor::FromDocument (const JsonDocument& doc, Placements& placements)
 {
     placements.clear();
 
     // check if the version is correct
     JsonValue* val = doc.Get("version");
-    if (!val || !val->IsNumber()) {
-        LOG_WARN << "Jplace document does not contain a valid version number at key 'version'.";
-        return false;
+    if (!val) {
+        LOG_WARN << "Jplace document does not contain a valid version number at key 'version'."
+                 << "Now continuing to parse in the hope that it still works.";
     }
-    if (JsonValueToNumber(val)->value != version) {
-        LOG_WARN << "Jplace document has version number '" << val->ToString()
-                 << "', however this parser is written for version " << version << " of Jplace. "
+    if (!CheckVersion(val->ToString())) {
+        LOG_WARN << "Jplace document has version '" << val->ToString() << "', however this parser "
+                 << "is written for version " << GetVersion() << " of the Jplace format. "
                  << "Now continuing to parse in the hope that it still works.";
     }
 

@@ -523,8 +523,13 @@ void NewickProcessor::ToBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
         assert(dist[it.Node()->Index()] > -1);
         bn->depth = dist[it.Node()->Index()];
 
-        it.Node()->data.ToNewickBrokerElement(bn);
-        it.Edge()->data.ToNewickBrokerElement(bn);
+        // write information to the broker node, unless it is the last iteration.
+        // the last iteration is the root, which usually does not have information in newick.
+        // caveat: for the root node, the edge will point to an arbitrary edge away from the root.
+        if (!it.IsLastIteration()) {
+            it.Node()->data.ToNewickBrokerElement(bn);
+            it.Edge()->data.ToNewickBrokerElement(bn);
+        }
 
         broker.PushTop(bn);
     }

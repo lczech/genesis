@@ -115,11 +115,6 @@ public:
     void clear();
     ~Placements();
 
-    bool FromJplaceFile   (const std::string&  fn);
-    bool FromJplaceString (const std::string&  jplace);
-    bool FromJsonLexer    (const JsonLexer&    lexer);
-    bool FromJsonDocument (const JsonDocument& doc);
-
     typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
     EdgeNumMapType* EdgeNumMap();
 
@@ -133,7 +128,8 @@ public:
     static double EMD (Placements& left, Placements& right);
     double EMD (Placements& other);
 
-    double PlacementMassSum();
+    size_t PlacementCount();
+    double PlacementMass();
     void   COG();
     double Variance();
 
@@ -142,7 +138,7 @@ public:
     // -----------------------------------------------------
 
     std::string Dump();
-    bool Validate (bool check_values = true, bool break_on_values = false);
+    bool Validate (bool check_values = false, bool break_on_values = false);
 
     // -----------------------------------------------------
     //     Members
