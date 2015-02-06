@@ -127,6 +127,12 @@ class NewickProcessor
 {
 public:
 
+    static std::string default_leaf_name;
+    static std::string default_internal_name;
+    static std::string default_root_name;
+
+    static bool        use_default_names;
+
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
