@@ -95,7 +95,6 @@ public:
         return type_ == kObject;
     }
 
-    virtual std::string ToJsonString() const = 0;
     virtual std::string ToString()     const = 0;
 
     virtual ~JsonValue() {};
@@ -129,14 +128,9 @@ public:
         }
     }
 
-    inline std::string ToJsonString() const override
-    {
-        return "null";
-    }
-
     inline std::string ToString() const override
     {
-        return ToJsonString();
+        return "null";
     }
 };
 
@@ -163,14 +157,9 @@ public:
         }
     }
 
-    inline std::string ToJsonString() const override
-    {
-        return value ? "true" : "false";
-    }
-
     inline std::string ToString() const override
     {
-        return ToJsonString();
+        return value ? "true" : "false";
     }
 
     bool value;
@@ -192,25 +181,12 @@ public:
         value = std::stod(v);
     }
 
-    static void SetPrecision (const int p)
-    {
-        precision = p;
-    }
-
-    inline std::string ToJsonString() const override
-    {
-        std::ostringstream ss;
-        ss << std::setprecision(precision) << value;
-        return ss.str();
-    }
-
     inline std::string ToString() const override
     {
-        return ToJsonString();
+        return std::to_string(value);
     }
 
-    double     value = 0.0;
-    static int precision;
+    double value = 0.0;
 };
 
 // =============================================================================
@@ -223,11 +199,6 @@ public:
     JsonValueString () : JsonValue(kString) {};
 
     JsonValueString (const std::string& v) : JsonValue(kString), value(v) {};
-
-    inline std::string ToJsonString() const override
-    {
-        return "\"" + StringEscape(value) + "\"";
-    }
 
     inline std::string ToString() const override
     {
@@ -245,7 +216,10 @@ class JsonValueArray : public JsonValue
 {
 public:
     JsonValueArray () : JsonValue(kArray) {};
-    virtual ~JsonValueArray() override;
+    virtual ~JsonValueArray() override
+    {
+        clear();
+    }
 
     // ---------------------------------------------------------------------
     //     Accessors and Iterators
@@ -401,15 +375,9 @@ public:
     //     Other Members
     // ---------------------------------------------------------------------
 
-    std::string ToJsonString(const int indent_level) const;
-    inline std::string ToJsonString() const override
-    {
-        return ToJsonString(0);
-    }
-
     inline std::string ToString() const override
     {
-        return ToJsonString();
+        return "(Json Array)";
     }
 
 protected:
@@ -424,7 +392,10 @@ class JsonValueObject : public JsonValue
 {
 public:
     JsonValueObject () : JsonValue(kObject) {};
-    virtual ~JsonValueObject() override;
+    virtual ~JsonValueObject() override
+    {
+        clear();
+    }
 
     // ---------------------------------------------------------------------
     //     Accessors and Iterators
@@ -566,15 +537,9 @@ public:
     //     Other Members
     // ---------------------------------------------------------------------
 
-    std::string ToJsonString(const int indent_level) const;
-    inline std::string ToJsonString() const override
-    {
-        return ToJsonString(0);
-    }
-
     inline std::string ToString() const override
     {
-        return ToJsonString(0);
+        return "(Json Object)";
     }
 
 protected:
@@ -597,16 +562,22 @@ class JsonDocument : public JsonValueObject
 {
 public:
     JsonDocument () : JsonValueObject() {};
-    virtual ~JsonDocument() override;
+    virtual ~JsonDocument() override
+    {
+        clear();
+    }
+
+    inline std::string ToString() const override
+    {
+        return "(Json Document)";
+    }
 
     bool Validate();
 
     inline std::string Dump() const
     {
-        return ToJsonString();
+        return "(Json Document)";
     }
-
-    static int indent;
 };
 
 // =============================================================================

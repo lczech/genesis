@@ -7,114 +7,13 @@
 
 #include "utils/json_document.hpp"
 
-//~ #include <stack>
-
 #include "utils/logging.hpp"
 
 namespace genesis {
 
 // =============================================================================
-//     JsonValueNumber
-// =============================================================================
-
-int JsonValueNumber::precision = 6;
-
-// =============================================================================
-//     JsonValueArray
-// =============================================================================
-
-JsonValueArray::~JsonValueArray ()
-{
-    clear();
-}
-
-std::string JsonValueArray::ToJsonString(const int indent_level) const
-{
-    int il = indent_level + 1;
-    std::string in (il * JsonDocument::indent, ' ');
-    std::ostringstream ss;
-
-    // check if array contains non-simple values. if so, we use better bracket
-    // placement to make document look nicer
-    bool has_large = false;
-    for (JsonValue* v : data_) {
-        has_large |= (v->IsArray() || v->IsObject());
-    }
-
-    ss << "[ ";
-    bool first = true;
-    for (JsonValue* v : data_) {
-        if (!first) {
-            ss << ", ";
-        }
-        if (has_large) {
-            ss << "\n" << in;
-        }
-        if (v->IsArray()) {
-            ss << static_cast<JsonValueArray*>(v)->ToJsonString(il);
-        } else if (v->IsObject()) {
-            ss << static_cast<JsonValueObject*>(v)->ToJsonString(il);
-        } else {
-            ss << v->ToJsonString();
-        }
-        first = false;
-    }
-
-    if (has_large) {
-        ss << "\n" << std::string(indent_level * JsonDocument::indent, ' ');
-    } else {
-        ss << " ";
-    }
-    ss << "]";
-    return ss.str();
-}
-
-// =============================================================================
-//     JsonValueObject
-// =============================================================================
-
-JsonValueObject::~JsonValueObject()
-{
-    clear();
-}
-
-std::string JsonValueObject::ToJsonString(const int indent_level) const
-{
-    int il = indent_level + 1;
-    std::string in (il * JsonDocument::indent, ' ');
-    std::stringstream ss;
-    ss << "{";
-
-    bool first = true;
-    for (ObjectPair v : data_) {
-        if (!first) {
-            ss << ",";
-        }
-        ss << "\n" << in << "\"" << v.first << "\": ";
-        if (v.second->IsArray()) {
-            ss << static_cast<JsonValueArray*>(v.second)->ToJsonString(il);
-        } else if (v.second->IsObject()) {
-            ss << static_cast<JsonValueObject*>(v.second)->ToJsonString(il);
-        } else {
-            ss << v.second->ToJsonString();
-        }
-        first = false;
-    }
-
-    ss << "\n" << std::string(indent_level * JsonDocument::indent, ' ') << "}";
-    return ss.str();
-}
-
-// =============================================================================
 //     JsonDocument
 // =============================================================================
-
-int JsonDocument::indent = 4;
-
-JsonDocument::~JsonDocument ()
-{
-    clear();
-}
 
 // TODO write a validate json doc function that checks if there are no recurrencies in the values,
 // TODO meaning that the pointers in an object or array need to point to unique values, and not for

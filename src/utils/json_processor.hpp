@@ -91,12 +91,11 @@ protected:
  */
 class JsonProcessor
 {
-public:
-
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
 
+public:
     static bool FromFile   (const std::string& fn,    JsonDocument& document);
     static bool FromString (const std::string& json,  JsonDocument& document);
     static bool FromLexer  (const JsonLexer&   lexer, JsonDocument& document);
@@ -121,6 +120,23 @@ protected:
         Lexer::const_iterator& end,
         JsonValueObject*       value
     );
+
+    // ---------------------------------------------------------------------
+    //     Printing
+    // ---------------------------------------------------------------------
+
+public:
+    static int precision;
+    static int indent;
+
+    static bool        ToFile   (const std::string& fn,   const JsonDocument& document);
+    static void        ToString (      std::string& json, const JsonDocument& document);
+    static std::string ToString (                         const JsonDocument& document);
+
+protected:
+    static std::string PrintValue  (const JsonValue*       value);
+    static std::string PrintArray  (const JsonValueArray*  value, const int indent_level);
+    static std::string PrintObject (const JsonValueObject* value, const int indent_level);
 };
 
 } // namespace genesis

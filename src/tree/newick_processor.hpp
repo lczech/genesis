@@ -158,6 +158,8 @@ public:
     static bool print_comments;
     static bool print_tags;
 
+    static int  precision;
+
     template <class NodeDataType, class EdgeDataType>
     static bool ToFile   (const std::string fn, Tree<NodeDataType, EdgeDataType>& tree);
 
