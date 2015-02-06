@@ -40,7 +40,7 @@ double PlacementEdgeData::PlacementMass() const
 /**
  * @brief Sorts the placements on this edge by their `distal_length`.
  */
-void PlacementEdgeData::Sort()
+void PlacementEdgeData::SortPlacements()
 {
     std::multimap<double, PqueryPlacement*> sorted;
     std::deque<PqueryPlacement*> new_placements;
