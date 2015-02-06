@@ -28,7 +28,7 @@ std::string JplaceProcessor::GetVersion ()
 }
 
 /**
- * @brief Check whether the version of the jplace format works with this parser.
+ * @brief Checks whether the version of the jplace format works with this parser.
  */
 bool JplaceProcessor::CheckVersion (const std::string version)
 {

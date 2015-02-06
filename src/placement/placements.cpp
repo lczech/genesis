@@ -99,6 +99,15 @@ bool Placements::Merge(Placements& other)
 
 /**
  * @brief Removes all placements but the most likely one from all pqueries.
+ *
+ * Pqueries can contain multiple placements on different branches. For example, the EPA algorithm
+ * of RAxML outputs up to the 7 most likely positions for placements to the output Jplace file by
+ * default. The property `like_weight_ratio` weights those placement positions so that it's sum over
+ * all positions per pquery is 1.0.
+ *
+ * This function removes all but the most likely placement (the one which has the maximal
+ * `like_weight_ratio`) from each Pquery. It additionally sets the `like_weight_ratio` of the
+ * remaining placement to 1.0, as this one now is the only one left, thus it's "sum" has to be 1.0.
  */
 void Placements::RestrainToMaxWeightPlacements()
 {
