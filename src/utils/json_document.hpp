@@ -584,12 +584,12 @@ public:
 //     Converter Functions
 // =============================================================================
 
-JsonValueNull*   JsonValueToNull   (JsonValue* v);
-JsonValueBool*   JsonValueToBool   (JsonValue* v);
-JsonValueNumber* JsonValueToNumber (JsonValue* v);
-JsonValueString* JsonValueToString (JsonValue* v);
-JsonValueArray*  JsonValueToArray  (JsonValue* v);
-JsonValueObject* JsonValueToObject (JsonValue* v);
+JsonValueNull*   JsonValueToNull   (const JsonValue* v);
+JsonValueBool*   JsonValueToBool   (const JsonValue* v);
+JsonValueNumber* JsonValueToNumber (const JsonValue* v);
+JsonValueString* JsonValueToString (const JsonValue* v);
+JsonValueArray*  JsonValueToArray  (const JsonValue* v);
+JsonValueObject* JsonValueToObject (const JsonValue* v);
 
 } // namespace genesis
 

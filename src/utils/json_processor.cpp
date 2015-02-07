@@ -142,11 +142,11 @@ bool JsonProcessor::ParseValue (
     }
     if (ct->IsBracket("[")) {
         value = new JsonValueArray();
-        return ParseArray (ct, end, static_cast<JsonValueArray*>(value));
+        return ParseArray (ct, end, JsonValueToArray(value));
     }
     if (ct->IsBracket("{")) {
         value = new JsonValueObject();
-        return ParseObject (ct, end, static_cast<JsonValueObject*>(value));
+        return ParseObject (ct, end, JsonValueToObject(value));
     }
 
     // if the lexer token is not a fitting json value, we have an error
@@ -317,7 +317,7 @@ bool JsonProcessor::ToFile (const std::string& fn, const JsonDocument& document)
  */
 void JsonProcessor::ToString (std::string& json, const JsonDocument& document)
 {
-    json = PrintObject(&document, 0);
+    json = ToString(document);
 }
 
 /**
@@ -325,9 +325,7 @@ void JsonProcessor::ToString (std::string& json, const JsonDocument& document)
  */
 std::string JsonProcessor::ToString (const JsonDocument& document)
 {
-    std::string jd;
-    ToString(jd, document);
-    return jd;
+    return PrintObject(&document, 0);
 }
 
 /**
@@ -342,11 +340,11 @@ std::string JsonProcessor::PrintValue (const JsonValue* value)
             break;
 
         case JsonValue::kNumber:
-            return ToStringPrecise(JsonValueToNumber(const_cast<JsonValue*>(value))->value, precision);
+            return ToStringPrecise(JsonValueToNumber(value)->value, precision);
             break;
 
         case JsonValue::kString:
-            return "\"" + StringEscape(JsonValueToString(const_cast<JsonValue*>(value))->value) + "\"";
+            return "\"" + StringEscape(JsonValueToString(value)->value) + "\"";
             break;
 
         // this function is only called from within PrintArray() and PrintObject(), and both of them
@@ -387,9 +385,9 @@ std::string JsonProcessor::PrintArray (const JsonValueArray* value, const int in
             ss << "\n" << in;
         }
         if (v->IsArray()) {
-            ss << PrintArray(static_cast<JsonValueArray*>(v), il);
+            ss << PrintArray(JsonValueToArray(v), il);
         } else if (v->IsObject()) {
-            ss << PrintObject(static_cast<JsonValueObject*>(v), il);
+            ss << PrintObject(JsonValueToObject(v), il);
         } else {
             ss << PrintValue(v);
         }
@@ -423,9 +421,9 @@ std::string JsonProcessor::PrintObject (const JsonValueObject* value, const int 
         }
         ss << "\n" << in << "\"" << v.first << "\": ";
         if (v.second->IsArray()) {
-            ss << PrintArray(static_cast<JsonValueArray*>(v.second), il);
+            ss << PrintArray(JsonValueToArray(v.second), il);
         } else if (v.second->IsObject()) {
-            ss << PrintObject(static_cast<JsonValueObject*>(v.second), il);
+            ss << PrintObject(JsonValueToObject(v.second), il);
         } else {
             ss << PrintValue(v.second);
         }

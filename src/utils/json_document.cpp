@@ -45,14 +45,14 @@ bool JsonDocument::Validate()
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueNull object.
  */
-JsonValueNull* JsonValueToNull (JsonValue* v)
+JsonValueNull* JsonValueToNull (const JsonValue* v)
 {
     if (v->type() != JsonValue::kNull) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kNull.";
+                 << " to JsonValue::Null.";
         return nullptr;
     }
-    return static_cast<JsonValueNull*> (v);
+    return static_cast<JsonValueNull*> (const_cast<JsonValue*> (v));
 }
 
 /**
@@ -61,14 +61,14 @@ JsonValueNull* JsonValueToNull (JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueBool object.
  */
-JsonValueBool* JsonValueToBool (JsonValue* v)
+JsonValueBool* JsonValueToBool (const JsonValue* v)
 {
     if (v->type() != JsonValue::kBool) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kBool.";
+                 << " to JsonValue::Bool.";
         return nullptr;
     }
-    return static_cast<JsonValueBool*> (v);
+    return static_cast<JsonValueBool*> (const_cast<JsonValue*> (v));
 }
 
 /**
@@ -77,14 +77,14 @@ JsonValueBool* JsonValueToBool (JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueNumber object.
  */
-JsonValueNumber* JsonValueToNumber (JsonValue* v)
+JsonValueNumber* JsonValueToNumber (const JsonValue* v)
 {
     if (v->type() != JsonValue::kNumber) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kNumber.";
+                 << " to JsonValue::Number.";
         return nullptr;
     }
-    return static_cast<JsonValueNumber*> (v);
+    return static_cast<JsonValueNumber*> (const_cast<JsonValue*> (v));
 }
 
 /**
@@ -93,14 +93,14 @@ JsonValueNumber* JsonValueToNumber (JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueString object.
  */
-JsonValueString* JsonValueToString (JsonValue* v)
+JsonValueString* JsonValueToString (const JsonValue* v)
 {
     if (v->type() != JsonValue::kString) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kString.";
+                 << " to JsonValue::String.";
         return nullptr;
     }
-    return static_cast<JsonValueString*> (v);
+    return static_cast<JsonValueString*> (const_cast<JsonValue*> (v));
 }
 
 /**
@@ -109,14 +109,14 @@ JsonValueString* JsonValueToString (JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueArray object.
  */
-JsonValueArray* JsonValueToArray (JsonValue* v)
+JsonValueArray* JsonValueToArray (const JsonValue* v)
 {
     if (v->type() != JsonValue::kArray) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kArray.";
+                 << " to JsonValue::Array.";
         return nullptr;
     }
-    return static_cast<JsonValueArray*> (v);
+    return static_cast<JsonValueArray*> (const_cast<JsonValue*> (v));
 }
 
 /**
@@ -125,14 +125,14 @@ JsonValueArray* JsonValueToArray (JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueObject object.
  */
-JsonValueObject* JsonValueToObject (JsonValue* v)
+JsonValueObject* JsonValueToObject (const JsonValue* v)
 {
     if (v->type() != JsonValue::kObject) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kObject.";
+                 << " to JsonValue::Object.";
         return nullptr;
     }
-    return static_cast<JsonValueObject*> (v);
+    return static_cast<JsonValueObject*> (const_cast<JsonValue*> (v));
 }
 
 } // namespace genesis
