@@ -157,6 +157,69 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
     return dist;
 }
 
+/**
+ * @brief Compares two trees for equality given a binary comparator functional.
+ *
+ * This function does a preorder traversal of both trees in parallel and calls a comparator
+ * functional for each position of the iterator. It returns true iff the comparator is true for
+ * every position.
+ *
+ * The comparator functional can be either a function pointer, function object, or lambda
+ * expression.
+ *
+ * Furthermore, the trees are checked for equal topology: their elements (links, nodes, edges)
+ * have to be equal in size and the rank of each node during the traversal has to be identical in
+ * both trees. Those assumptions are made because two trees that do not have identical topology
+ * are never considered equal for the purposes of this framework.
+ */
+template <class NDT, class EDT>
+bool Tree<NDT, EDT>::Equal(
+    TreeType& lhs,
+    TreeType& rhs,
+    std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+) {
+    // check array sizes
+    if (lhs.links_.size() != rhs.links_.size() ||
+        lhs.nodes_.size() != rhs.nodes_.size() ||
+        lhs.edges_.size() != rhs.edges_.size()
+    ) {
+        return false;
+    }
+
+    // do a preorder traversal on both trees in parallel
+    TreeType::IteratorPreorder it_l = lhs.BeginPreorder();
+    TreeType::IteratorPreorder it_r = rhs.BeginPreorder();
+    for (
+        ;
+        it_l != lhs.EndPreorder() && it_r != rhs.EndPreorder();
+        ++it_l, ++it_r
+    ) {
+        if (it_l.Node()->Rank() != it_r.Node()->Rank() || !comparator(it_l, it_r)) {
+            return false;
+        }
+    }
+
+    // check whether we are done with both trees
+    if (it_l != lhs.EndPreorder() || it_r != rhs.EndPreorder()) {
+        return false;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Compares the tree to another one given a binary comparator functional.
+ *
+ * See other Equal() function for more information.
+ */
+template <class NDT, class EDT>
+bool Tree<NDT, EDT>::Equal(
+    TreeType& other,
+    std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+) {
+    return Equal(*this, other, comparator);
+}
+
 // TODO make const! (need to add const versions of the tree iterators first...)
 /**
  * @brief Returns true iff both trees have an identical topology.
@@ -172,34 +235,12 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
 template <class NDT, class EDT>
 bool Tree<NDT, EDT>::HasIdenticalTopology(TreeType& right)
 {
-    // check array sizes
-    if (this->links_.size() != right.links_.size() ||
-        this->nodes_.size() != right.nodes_.size() ||
-        this->edges_.size() != right.edges_.size()
-    ) {
-        return false;
-    }
+    auto comparator = [] (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)
+    {
+        return true;
+    };
 
-    // do a preorder traversal on both trees in parallel
-    TreeType::IteratorPreorder it_l = this->BeginPreorder();
-    TreeType::IteratorPreorder it_r = right.BeginPreorder();
-    for (
-        ;
-        it_l != this->EndPreorder() && it_r != right.EndPreorder();
-        ++it_l, ++it_r
-    ) {
-        // if the rank differs, we have a different topology
-        if (it_l.Node()->Rank() != it_r.Node()->Rank()) {
-            return false;
-        }
-    }
-
-    // check whether we are done with both trees
-    if (it_l != this->EndPreorder() || it_r != right.EndPreorder()) {
-        return false;
-    }
-
-    return true;
+    return Equal(right, comparator);
 }
 
 /**

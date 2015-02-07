@@ -61,10 +61,14 @@ Placements::EdgeNumMapType* Placements::EdgeNumMap()
  */
 bool Placements::Merge(Placements& other)
 {
-    // TODO identical data so far checks for branch length and edge num, but not placements on the edge.
-    // TODO if it did, this function would never return true for two different placements...
-    //~ if (!tree.HasIdenticalTopology(other.tree) || !tree.HasIdenticalData(other.tree)) {
-    if (!tree.HasIdenticalTopology(other.tree)) {
+    // check for identical topology, taxa names and edge_nums.
+    // we do not check here for branch_length, because usuallym those differ slightly.
+    auto comparator = [] (PlacementTree::IteratorPreorder& it_l, PlacementTree::IteratorPreorder& it_r)
+    {
+        return it_l.Node()->data.name     == it_r.Node()->data.name     &&
+               it_l.Edge()->data.edge_num == it_r.Edge()->data.edge_num;
+    };
+    if (!tree.Equal(other.tree, comparator)) {
         LOG_WARN << "Cannot merge Placements with different reference trees.";
         return false;
     }
@@ -255,6 +259,7 @@ double Placements::EMD(Placements& lhs, Placements& rhs)
 
         // check whether the data on both reference trees is the same. this has to be done after the
         // check for last iteration / root node, because we don't want to check this for the root.
+        // TODO do not check branch length, but names here (similar to what merge does)
         if (it_l.Edge()->data.branch_length != it_r.Edge()->data.branch_length ||
             it_l.Edge()->data.edge_num      != it_r.Edge()->data.edge_num
         ) {

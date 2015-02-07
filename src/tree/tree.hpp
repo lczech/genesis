@@ -10,6 +10,7 @@
  * @ingroup tree
  */
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -348,6 +349,16 @@ public:
     bool IsBifurcating() const;
 
     Matrix<double>* NodeDistanceMatrix();
+
+    static bool Equal(
+        TreeType& lhs,
+        TreeType& rhs,
+        std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+    );
+    bool Equal(
+        TreeType& other,
+        std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+    );
 
     bool HasIdenticalTopology(TreeType& other);
     bool HasIdenticalEdgeData(TreeType& other) const;
