@@ -14,6 +14,9 @@
 #include "placement/placements.hpp"
 #include "tree/newick_processor.hpp"
 
+#include "utils/json_document.hpp"
+#include "utils/json_processor.hpp"
+
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -203,9 +206,11 @@ int main (int argc, char* argv[])
     //~ lex.ProcessString(FileRead("test/data/placement.jplace"));
     //~ LOG_INFO << lex.Dump();
 
-    //~ JsonDocument doc;
+    JsonDocument doc;
+    JsonProcessor::FromFile("test/data/placement.jplace", doc);
     //~ JsonParser::ProcessLexer(lex, doc);
-    //~ LOG_INFO << doc.ToString();
+    LOG_INFO << doc.ToString();
+    LOG_INFO << JsonProcessor::ToString(doc);
 
     //~ JsonDocument doc;
 
@@ -308,7 +313,7 @@ int main (int argc, char* argv[])
 
     // CAVEAT: paths are hardcoded - this is for testing only!
 
-    //*
+    /*
     NewickProcessor::print_names          = true;
     NewickProcessor::print_branch_lengths = true;
     NewickProcessor::print_comments       = true;

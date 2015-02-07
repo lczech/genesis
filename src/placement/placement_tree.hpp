@@ -85,7 +85,7 @@ public:
     size_t PlacementCount() const;
     double PlacementMass() const;
 
-    void Sort();
+    void SortPlacements();
 
     // -----------------------------------------------------
     //     Data Members

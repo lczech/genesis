@@ -142,11 +142,11 @@ bool JsonProcessor::ParseValue (
     }
     if (ct->IsBracket("[")) {
         value = new JsonValueArray();
-        return ParseArray (ct, end, static_cast<JsonValueArray*>(value));
+        return ParseArray (ct, end, JsonValueToArray(value));
     }
     if (ct->IsBracket("{")) {
         value = new JsonValueObject();
-        return ParseObject (ct, end, static_cast<JsonValueObject*>(value));
+        return ParseObject (ct, end, JsonValueToObject(value));
     }
 
     // if the lexer token is not a fitting json value, we have an error
@@ -282,6 +282,156 @@ bool JsonProcessor::ParseObject (
     }
     ++ct;
     return true;
+}
+
+// =============================================================================
+//     Printing
+// =============================================================================
+
+/**
+ * @brief The precision used for printing floating point numbers, particularly Json Value Numbers.
+ */
+int JsonProcessor::precision = 6;
+
+/**
+ * @brief The indent used for printing the elements of Json Arrays and Objects.
+ */
+int JsonProcessor::indent = 4;
+
+/**
+ * @brief Writes a Json file from a JsonDocument. Returns true iff successful.
+ */
+bool JsonProcessor::ToFile (const std::string& fn, const JsonDocument& document)
+{
+    if (FileExists(fn)) {
+        LOG_WARN << "Json file '" << fn << "' already exist. Will not overwrite it.";
+        return false;
+    }
+    std::string jd;
+    ToString(jd, document);
+    return FileWrite(fn, jd);
+}
+
+/**
+ * @brief Gives the Json string representation of a JsonDocument.
+ */
+void JsonProcessor::ToString (std::string& json, const JsonDocument& document)
+{
+    json = ToString(document);
+}
+
+/**
+ * @brief Returns the Json representation of a JsonDocument.
+ */
+std::string JsonProcessor::ToString (const JsonDocument& document)
+{
+    return PrintObject(&document, 0);
+}
+
+/**
+ * @brief Returns the Json representation of a Json Value.
+ */
+std::string JsonProcessor::PrintValue (const JsonValue* value)
+{
+    switch(value->type()) {
+        case JsonValue::kNull:
+        case JsonValue::kBool:
+            return value->ToString();
+            break;
+
+        case JsonValue::kNumber:
+            return ToStringPrecise(JsonValueToNumber(value)->value, precision);
+            break;
+
+        case JsonValue::kString:
+            return "\"" + StringEscape(JsonValueToString(value)->value) + "\"";
+            break;
+
+        // this function is only called from within PrintArray() and PrintObject(), and both of them
+        // handle those two cases separately. so the assertion holds as long as this function
+        // is not called illegaly from a different context.
+        case JsonValue::kArray:
+        case JsonValue::kObject:
+        default:
+            assert(false);
+    }
+}
+
+/**
+ * @brief Returns the Json representation of a Json Array.
+ */
+std::string JsonProcessor::PrintArray (const JsonValueArray* value, const int indent_level)
+{
+    int il = indent_level + 1;
+    std::string in (il * indent, ' ');
+    std::ostringstream ss;
+
+    // check if array contains non-simple values. if so, we use better bracket
+    // placement to make document look nicer
+    bool has_large = false;
+    for (JsonValueArray::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
+        JsonValue* v = *it;
+        has_large |= (v->IsArray() || v->IsObject());
+    }
+
+    ss << "[ ";
+    bool first = true;
+    for (JsonValueArray::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
+        JsonValue* v = *it;
+        if (!first) {
+            ss << ", ";
+        }
+        if (has_large) {
+            ss << "\n" << in;
+        }
+        if (v->IsArray()) {
+            ss << PrintArray(JsonValueToArray(v), il);
+        } else if (v->IsObject()) {
+            ss << PrintObject(JsonValueToObject(v), il);
+        } else {
+            ss << PrintValue(v);
+        }
+        first = false;
+    }
+
+    if (has_large) {
+        ss << "\n" << std::string(indent_level * indent, ' ');
+    } else {
+        ss << " ";
+    }
+    ss << "]";
+    return ss.str();
+}
+
+/**
+ * @brief Returns the Json representation of a Json Object.
+ */
+std::string JsonProcessor::PrintObject (const JsonValueObject* value, const int indent_level)
+{
+    int il = indent_level + 1;
+    std::string in (il * indent, ' ');
+    std::stringstream ss;
+    ss << "{";
+
+    bool first = true;
+    for (JsonValueObject::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
+        JsonValueObject::ObjectPair v = *it;
+        if (!first) {
+            ss << ",";
+        }
+        ss << "\n" << in << "\"" << v.first << "\": ";
+        if (v.second->IsArray()) {
+            ss << PrintArray(JsonValueToArray(v.second), il);
+        } else if (v.second->IsObject()) {
+            ss << PrintObject(JsonValueToObject(v.second), il);
+        } else {
+            ss << PrintValue(v.second);
+        }
+        first = false;
+    }
+
+    ss << "\n" << std::string(indent_level * indent, ' ') << "}";
+    return ss.str();
 }
 
 } // namespace genesis

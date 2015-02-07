@@ -9,6 +9,8 @@
  */
 
 #include <ctime>
+#include <iomanip>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -72,7 +74,20 @@ inline std::string CurrentTime()
 //     Strings and Chars
 // ---------------------------------------------------------
 
-/** @brief Returns whether two chars are the same, case insensitive. */
+/**
+ * @brief Returns a precise(er than to_string) string representation of the input value.
+ */
+template <typename T>
+inline std::string ToStringPrecise (const T value, const int precision = 6)
+{
+    std::ostringstream out;
+    out << std::setprecision(precision) << value;
+    return out.str();
+}
+
+/**
+ * @brief Returns whether two chars are the same, case insensitive.
+ */
 inline bool CharMatch(const char c1, const char c2)
 {
     return std::tolower(c1) == std::tolower(c2);

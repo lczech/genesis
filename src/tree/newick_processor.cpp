@@ -10,6 +10,8 @@
 
 #include "tree/newick_processor.hpp"
 
+#include "utils/utils.hpp"
+
 namespace genesis {
 
 std::string NewickProcessor::default_leaf_name     = "Leaf Node";
@@ -32,6 +34,11 @@ bool NewickProcessor::print_names          = true;
 bool NewickProcessor::print_branch_lengths = false;
 bool NewickProcessor::print_comments       = false;
 bool NewickProcessor::print_tags           = false;
+
+/**
+ * @brief The precision used for printing floating point numbers, particularly the branch_length.
+ */
+int  NewickProcessor::precision            = 6;
 
 // TODO this is a quick and dirty (=slow) solution...
 std::string NewickProcessor::ToStringRec(NewickBroker& broker, size_t pos)
@@ -75,7 +82,7 @@ std::string NewickProcessor::ElementToString(NewickBrokerElement* bn)
         res += StringReplaceAll(bn->name, " ", "_");
     }
     if (print_branch_lengths) {
-        res += ":" + std::to_string(bn->branch_length);
+        res += ":" + ToStringPrecise(bn->branch_length, precision);
     }
     if (print_comments) {
         for (std::string c : bn->comments) {

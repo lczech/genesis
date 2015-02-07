@@ -7,114 +7,13 @@
 
 #include "utils/json_document.hpp"
 
-//~ #include <stack>
-
 #include "utils/logging.hpp"
 
 namespace genesis {
 
 // =============================================================================
-//     JsonValueNumber
-// =============================================================================
-
-int JsonValueNumber::precision = 6;
-
-// =============================================================================
-//     JsonValueArray
-// =============================================================================
-
-JsonValueArray::~JsonValueArray ()
-{
-    clear();
-}
-
-std::string JsonValueArray::ToJsonString(const int indent_level) const
-{
-    int il = indent_level + 1;
-    std::string in (il * JsonDocument::indent, ' ');
-    std::ostringstream ss;
-
-    // check if array contains non-simple values. if so, we use better bracket
-    // placement to make document look nicer
-    bool has_large = false;
-    for (JsonValue* v : data_) {
-        has_large |= (v->IsArray() || v->IsObject());
-    }
-
-    ss << "[ ";
-    bool first = true;
-    for (JsonValue* v : data_) {
-        if (!first) {
-            ss << ", ";
-        }
-        if (has_large) {
-            ss << "\n" << in;
-        }
-        if (v->IsArray()) {
-            ss << static_cast<JsonValueArray*>(v)->ToJsonString(il);
-        } else if (v->IsObject()) {
-            ss << static_cast<JsonValueObject*>(v)->ToJsonString(il);
-        } else {
-            ss << v->ToJsonString();
-        }
-        first = false;
-    }
-
-    if (has_large) {
-        ss << "\n" << std::string(indent_level * JsonDocument::indent, ' ');
-    } else {
-        ss << " ";
-    }
-    ss << "]";
-    return ss.str();
-}
-
-// =============================================================================
-//     JsonValueObject
-// =============================================================================
-
-JsonValueObject::~JsonValueObject()
-{
-    clear();
-}
-
-std::string JsonValueObject::ToJsonString(const int indent_level) const
-{
-    int il = indent_level + 1;
-    std::string in (il * JsonDocument::indent, ' ');
-    std::stringstream ss;
-    ss << "{";
-
-    bool first = true;
-    for (ObjectPair v : data_) {
-        if (!first) {
-            ss << ",";
-        }
-        ss << "\n" << in << "\"" << v.first << "\": ";
-        if (v.second->IsArray()) {
-            ss << static_cast<JsonValueArray*>(v.second)->ToJsonString(il);
-        } else if (v.second->IsObject()) {
-            ss << static_cast<JsonValueObject*>(v.second)->ToJsonString(il);
-        } else {
-            ss << v.second->ToJsonString();
-        }
-        first = false;
-    }
-
-    ss << "\n" << std::string(indent_level * JsonDocument::indent, ' ') << "}";
-    return ss.str();
-}
-
-// =============================================================================
 //     JsonDocument
 // =============================================================================
-
-int JsonDocument::indent = 4;
-
-JsonDocument::~JsonDocument ()
-{
-    clear();
-}
 
 // TODO write a validate json doc function that checks if there are no recurrencies in the values,
 // TODO meaning that the pointers in an object or array need to point to unique values, and not for
@@ -146,14 +45,14 @@ bool JsonDocument::Validate()
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueNull object.
  */
-JsonValueNull* JsonValueToNull (JsonValue* v)
+JsonValueNull* JsonValueToNull (const JsonValue* v)
 {
     if (v->type() != JsonValue::kNull) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kNull.";
+                 << " to JsonValue::Null.";
         return nullptr;
     }
-    return static_cast<JsonValueNull*> (v);
+    return static_cast<JsonValueNull*> (const_cast<JsonValue*> (v));
 }
 
 /**
@@ -162,14 +61,14 @@ JsonValueNull* JsonValueToNull (JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueBool object.
  */
-JsonValueBool* JsonValueToBool (JsonValue* v)
+JsonValueBool* JsonValueToBool (const JsonValue* v)
 {
     if (v->type() != JsonValue::kBool) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kBool.";
+                 << " to JsonValue::Bool.";
         return nullptr;
     }
-    return static_cast<JsonValueBool*> (v);
+    return static_cast<JsonValueBool*> (const_cast<JsonValue*> (v));
 }
 
 /**
@@ -178,14 +77,14 @@ JsonValueBool* JsonValueToBool (JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueNumber object.
  */
-JsonValueNumber* JsonValueToNumber (JsonValue* v)
+JsonValueNumber* JsonValueToNumber (const JsonValue* v)
 {
     if (v->type() != JsonValue::kNumber) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kNumber.";
+                 << " to JsonValue::Number.";
         return nullptr;
     }
-    return static_cast<JsonValueNumber*> (v);
+    return static_cast<JsonValueNumber*> (const_cast<JsonValue*> (v));
 }
 
 /**
@@ -194,14 +93,14 @@ JsonValueNumber* JsonValueToNumber (JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueString object.
  */
-JsonValueString* JsonValueToString (JsonValue* v)
+JsonValueString* JsonValueToString (const JsonValue* v)
 {
     if (v->type() != JsonValue::kString) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kString.";
+                 << " to JsonValue::String.";
         return nullptr;
     }
-    return static_cast<JsonValueString*> (v);
+    return static_cast<JsonValueString*> (const_cast<JsonValue*> (v));
 }
 
 /**
@@ -210,14 +109,14 @@ JsonValueString* JsonValueToString (JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueArray object.
  */
-JsonValueArray* JsonValueToArray (JsonValue* v)
+JsonValueArray* JsonValueToArray (const JsonValue* v)
 {
     if (v->type() != JsonValue::kArray) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kArray.";
+                 << " to JsonValue::Array.";
         return nullptr;
     }
-    return static_cast<JsonValueArray*> (v);
+    return static_cast<JsonValueArray*> (const_cast<JsonValue*> (v));
 }
 
 /**
@@ -226,14 +125,14 @@ JsonValueArray* JsonValueToArray (JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueObject object.
  */
-JsonValueObject* JsonValueToObject (JsonValue* v)
+JsonValueObject* JsonValueToObject (const JsonValue* v)
 {
     if (v->type() != JsonValue::kObject) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
-                 << " to JsonValue::kObject.";
+                 << " to JsonValue::Object.";
         return nullptr;
     }
-    return static_cast<JsonValueObject*> (v);
+    return static_cast<JsonValueObject*> (const_cast<JsonValue*> (v));
 }
 
 } // namespace genesis
