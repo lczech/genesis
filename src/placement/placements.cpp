@@ -259,9 +259,8 @@ double Placements::EMD(Placements& lhs, Placements& rhs)
 
         // check whether the data on both reference trees is the same. this has to be done after the
         // check for last iteration / root node, because we don't want to check this for the root.
-        // TODO do not check branch length, but names here (similar to what merge does)
-        if (it_l.Edge()->data.branch_length != it_r.Edge()->data.branch_length ||
-            it_l.Edge()->data.edge_num      != it_r.Edge()->data.edge_num
+        if (it_l.Node()->data.name     != it_r.Node()->data.name ||
+            it_l.Edge()->data.edge_num != it_r.Edge()->data.edge_num
         ) {
             LOG_WARN << "Inconsistent reference trees in EMD calculation.";
             return -1.0;

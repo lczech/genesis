@@ -84,7 +84,7 @@ protected:
 // =============================================================================
 
 /**
- * @brief A JSON parser that filles a JsonDocument with data from different JSON sources.
+ * @brief A JSON parser that fills a JsonDocument with data from different JSON sources.
  *
  * This class provides three functions for parsing JSON data. Those take an input source containing
  * JSON data and parse them into a JsonDocument.

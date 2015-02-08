@@ -462,10 +462,7 @@ bool NewickProcessor::ToFile   (const std::string fn, Tree<NDT, EDT>& tree)
 template <class NDT, class EDT>
 void NewickProcessor::ToString (std::string& ts, Tree<NDT, EDT>& tree)
 {
-    NewickBroker broker;
-    ToBroker(broker, tree);
-    broker.AssignRanks();
-    ts = ToStringRec(broker, 0) + ";";
+    ts = ToString(tree);
 }
 
 /**
@@ -477,9 +474,10 @@ void NewickProcessor::ToString (std::string& ts, Tree<NDT, EDT>& tree)
 template <class NDT, class EDT>
 std::string NewickProcessor::ToString (Tree<NDT, EDT>& tree)
 {
-    std::string ts;
-    ToString(ts, tree);
-    return ts;
+    NewickBroker broker;
+    ToBroker(broker, tree);
+    broker.AssignRanks();
+    return ToStringRec(broker, 0) + ";";
 }
 
 /**

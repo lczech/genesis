@@ -27,10 +27,6 @@ struct PqueryPlacement;
 //     PlacementEdgeData
 // =============================================================================
 
-// TODO maybe add a Validate function here, that checks whether at least one placement of each
-// TODO pquerie actually points to this edge. this function could be called from tree validate.
-// TODO see Placements::Validate()
-
 class PlacementEdgeData
 {
 public:
