@@ -2,7 +2,7 @@
 #define GNS_UTILS_JSONPROCESSOR_H_
 
 /**
- * @brief Functions for parsing and printing a JSON document.
+ * @brief Functions for parsing and printing a JSON document. See JsonProcessor for more.
  *
  * @file
  * @ingroup utils

@@ -121,18 +121,66 @@ bool Tree<NDT, EDT>::IsBifurcating() const
 }
 
 /**
+ * @brief
+ */
+template <class NDT, class EDT>
+Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix()
+{
+    Matrix<int>* mat = new Matrix<int>(NodesSize(), NodesSize());
+    // TODO
+    return mat;
+}
+
+/**
+ * @brief
+ *
+ * If no Node pointer is provided, the root is taken as node.
+ */
+template <class NDT, class EDT>
+std::vector<int> Tree<NDT, EDT>::NodeDepthVector(NodeType* node)
+{
+    if (!node) {
+        node = RootNode();
+    }
+
+    // store the distance from each node to the given node.
+    std::vector<int> vec;
+    vec.resize(NodesSize(), -1);
+    vec[0] = 0;
+
+    // calculate the distance vector via levelorder iteration.
+    for (
+        IteratorLevelorder it = BeginLevelorder(node);
+        it != EndLevelorder();
+        ++it
+    ) {
+        // skip the root (it is already set to 0).
+        if (it.IsFirstIteration()) {
+            continue;
+        }
+
+        // the distance is the distance from the "parent" node (the next one in direction towards
+        // the given node) plus 1.
+        assert(vec[it.Node()->Index()] == -1);
+        vec[it.Node()->Index()] = 1 + vec[it.Link()->Outer()->Node()->Index()];
+    }
+
+    return vec;
+}
+
+/**
  * @brief Returns a distance matrix containing pairwise distances between all Nodes, using the
  * branch_length of the Edges as distance measurement.
  */
 template <class NDT, class EDT>
 Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
 {
-    Matrix<double>* dist = new Matrix<double>(NodesSize(), NodesSize());
+    Matrix<double>* mat = new Matrix<double>(NodesSize(), NodesSize());
 
     // fill every row of the matrix
     for (NodeType* row_node : nodes_) {
         // set the diagonal element of the matrix.
-        (*dist)(row_node->Index(), row_node->Index()) = 0.0;
+        (*mat)(row_node->Index(), row_node->Index()) = 0.0;
 
         // the columns are filled using a levelorder traversal. this makes sure that for every node
         // we know how to calculate the distance to the current row node.
@@ -148,13 +196,31 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
 
             // the distance to the current row node is: the length of the current branch plus
             // the distance from the other end of that branch to the row node.
-            (*dist)(row_node->Index(), it.Node()->Index())
+            (*mat)(row_node->Index(), it.Node()->Index())
                 = it.Edge()->data.branch_length
-                + (*dist)(row_node->Index(), it.Link()->Outer()->Node()->Index());
+                + (*mat)(row_node->Index(), it.Link()->Outer()->Node()->Index());
         }
     }
 
-    return dist;
+    return mat;
+}
+
+/**
+ * @brief
+ *
+ * If no Node pointer is provided, the root is taken as node.
+ */
+template <class NDT, class EDT>
+std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(NodeType* node)
+{
+    if (!node) {
+        node = RootNode();
+    }
+
+    std::vector<double> vec;
+    vec.resize(NodesSize(), 0.0);
+    // TODO
+    return vec;
 }
 
 /**

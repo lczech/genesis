@@ -488,26 +488,7 @@ void NewickProcessor::ToBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
 {
     // store the distance from each node to the root. this is needed to assign levels of depth
     // to the nodes for the broker.
-    std::vector<int> dist;
-    dist.resize(tree.NodesSize(), -1);
-    dist[0] = 0;
-
-    // calculate the distance vector via levelorder iteration.
-    for (
-        typename Tree<NDT, EDT>::IteratorLevelorder it = tree.BeginLevelorder();
-        it != tree.EndLevelorder();
-        ++it
-    ) {
-        // skip the root (it is already set to 0).
-        if (it.IsFirstIteration()) {
-            continue;
-        }
-
-        // the distance is the distance from the "parent" node (the next one in direction towards
-        // the root) plus 1.
-        assert(dist[it.Node()->Index()] == -1);
-        dist[it.Node()->Index()] = 1 + dist[it.Link()->Outer()->Node()->Index()];
-    }
+    std::vector<int> depth = tree.NodeDepthVector();
 
     // now fill the broker with nodes via postorder traversal, so that the root is put on top last.
     broker.clear();
@@ -518,8 +499,8 @@ void NewickProcessor::ToBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
     ) {
         NewickBrokerElement* bn = new NewickBrokerElement();
 
-        assert(dist[it.Node()->Index()] > -1);
-        bn->depth = dist[it.Node()->Index()];
+        assert(depth[it.Node()->Index()] > -1);
+        bn->depth = depth[it.Node()->Index()];
 
         it.Node()->data.ToNewickBrokerElement(bn);
         // only write edge data to the broker element if it is not the last iteration.
