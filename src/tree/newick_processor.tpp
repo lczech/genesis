@@ -498,8 +498,6 @@ void NewickProcessor::ToBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
         ++it
     ) {
         NewickBrokerElement* bn = new NewickBrokerElement();
-
-        assert(depth[it.Node()->Index()] > -1);
         bn->depth = depth[it.Node()->Index()];
 
         it.Node()->data.ToNewickBrokerElement(bn);

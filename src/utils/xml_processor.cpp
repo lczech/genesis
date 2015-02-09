@@ -70,8 +70,9 @@ std::string XmlProcessor::ToString (const XmlDocument& document)
 {
     std::string res = "";
     if (!document.xml_tag.empty() || !document.declarations.empty()) {
-        res = "<?" + document.xml_tag + PrintAttributesList(document.declarations) + "?>";
+        res = "<?" + document.xml_tag + PrintAttributesList(document.declarations) + "?>\n";
     }
+    PrintElement(res, &document, 0);
     return res;
 }
 
@@ -102,7 +103,7 @@ void XmlProcessor::PrintElement (std::string& xml, const XmlElement* value, cons
 
     // if it's an empty element, close it, and we are done
     if (value->content.size() == 0) {
-        xml += " />\n";
+        xml += " />";
         return;
     }
 

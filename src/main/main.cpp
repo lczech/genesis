@@ -13,6 +13,7 @@
 #include "placement/jplace_processor.hpp"
 #include "placement/placements.hpp"
 #include "tree/newick_processor.hpp"
+#include "tree/phyloxml_processor.hpp"
 
 #include "utils/json_document.hpp"
 #include "utils/json_processor.hpp"
@@ -199,20 +200,29 @@ int main (int argc, char* argv[])
     //~ tree.FromNewickString("((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;");
 
     // =============================================================================
+    //     Test cases for phyloxml parser and printer
+    // =============================================================================
+
+    std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    LOG_DBG << "In tree:  " << ts;
+    Tree<> tree;
+    NewickProcessor::FromString(ts, tree);
+    LOG_DBG << "Out tree: " << PhyloXmlProcessor::ToString(tree);
+
+    // =============================================================================
     //     Test for json parser
     // =============================================================================
 
+    //~ JsonDocument doc;
     //~ JsonLexer lex;
     //~ lex.ProcessString(FileRead("test/data/placement.jplace"));
+    //~ JsonParser::ProcessLexer(lex, doc);
     //~ LOG_INFO << lex.Dump();
 
-    JsonDocument doc;
-    JsonProcessor::FromFile("test/data/placement.jplace", doc);
-    //~ JsonParser::ProcessLexer(lex, doc);
-    LOG_INFO << doc.ToString();
-    LOG_INFO << JsonProcessor::ToString(doc);
-
     //~ JsonDocument doc;
+    //~ JsonProcessor::FromFile("test/data/placement.jplace", doc);
+    //~ LOG_INFO << doc.ToString();
+    //~ LOG_INFO << JsonProcessor::ToString(doc);
 
     // =============================================================================
     //     Test for placements, earth movers distance, center of gravity
