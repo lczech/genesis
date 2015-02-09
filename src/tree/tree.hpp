@@ -348,7 +348,10 @@ public:
     int  MaxRank() const;
     bool IsBifurcating() const;
 
-    Matrix<double>* NodeDistanceMatrix();
+    Matrix<int>*        NodeDepthMatrix();
+    std::vector<int>    NodeDepthVector(NodeType* node = nullptr);
+    Matrix<double>*     NodeDistanceMatrix();
+    std::vector<double> NodeDistanceVector(NodeType* node = nullptr);
 
     static bool Equal(
         TreeType& lhs,

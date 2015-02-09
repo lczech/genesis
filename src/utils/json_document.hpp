@@ -584,6 +584,7 @@ public:
 //     Converter Functions
 // =============================================================================
 
+// TODO const correctness is heavily violated here!
 JsonValueNull*   JsonValueToNull   (const JsonValue* v);
 JsonValueBool*   JsonValueToBool   (const JsonValue* v);
 JsonValueNumber* JsonValueToNumber (const JsonValue* v);
