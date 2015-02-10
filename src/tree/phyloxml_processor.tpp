@@ -107,22 +107,33 @@ void PhyloXmlProcessor::ToDocument (XmlDocument& xml, Tree<NDT, EDT>& tree)
         it != tree.EndPreorder();
         ++it
     ) {
-        LOG_DBG1 << "Node " << it.Node()->data.name << " with d " << depths[it.Node()->Index()] << " at cur d " << cur_d;
-
         // depth can never increase more than one between two nodes when doing a preoder traversal.
         assert(depths[it.Node()->Index()] <= cur_d + 1);
 
-        // delete end of stack when moving up the tree.
-        while (depths[it.Node()->Index()] < cur_d) {
+        // delete end of stack when moving up the tree, unless we are already at the root.
+        while (cur_d >= depths[it.Node()->Index()] && depths[it.Node()->Index()] > 0) {
+            assert(stack.size() > 0);
             stack.pop_back();
             --cur_d;
         }
-        assert(cur_d <= depths[it.Node()->Index()]);
+        // set current depth (needed in case we are moving further into the tree, so that the loop
+        // is not executed).
         cur_d = depths[it.Node()->Index()];
 
-        XmlElement* node = new XmlElement();
-        stack.back()->content.push_back(node);
+        // create clade element
+        XmlElement* clade = new XmlElement();
+        stack.back()->content.push_back(clade);
+        stack.push_back(clade);
+        clade->tag = "clade";
 
+        // create name for clade.
+        // TODO move to node.tophyloxmlelement
+        XmlElement* name_e = new XmlElement();
+        clade->content.push_back(name_e);
+        name_e->tag = "name";
+        XmlMarkup* name_m = new XmlMarkup();
+        name_e->content.push_back(name_m);
+        name_m->content = it.Node()->data.name;
 
         //~ it.Node()->data.ToNewickBrokerElement(bn);
         // only write edge data to the broker element if it is not the last iteration.
@@ -140,8 +151,6 @@ void PhyloXmlProcessor::ToDocument (XmlDocument& xml, Tree<NDT, EDT>& tree)
         //~ )) {
             //~ bn->name = "";
         //~ }
-
-        //~ broker.PushTop(bn);
     }
 }
 

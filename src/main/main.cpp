@@ -203,7 +203,8 @@ int main (int argc, char* argv[])
     //     Test cases for phyloxml parser and printer
     // =============================================================================
 
-    std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    //~ std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    std::string ts = "((B,(D,E)C)A,F,(H,I)G)R;";
     LOG_DBG << "In tree:  " << ts;
     Tree<> tree;
     NewickProcessor::FromString(ts, tree);
