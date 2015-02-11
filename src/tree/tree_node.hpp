@@ -42,6 +42,9 @@ public:
      */
     std::string name;
 
+    /**
+     * @brief Fills the node with data from a NewickBrokerElement.
+     */
     inline void FromNewickBrokerElement (NewickBrokerElement* node)
     {
         name = node->name;
@@ -63,7 +66,7 @@ public:
 // =============================================================================
 
 template <class NodeDataType, class EdgeDataType>
-class TreeNode
+class TreeNode : public NodeDataType
 {
     friend Tree<NodeDataType, EdgeDataType>;
 
@@ -140,15 +143,13 @@ public:
     //~ /** Depth of the node in the tree, i.e. its distance from root. */
     //~ int Depth();
 
-    void FromNewickBrokerElement (NewickBrokerElement* node);
-
     std::string Dump() const;
 
     // -----------------------------------------------------
     //     Member Variables
     // -----------------------------------------------------
 
-    NodeDataType data;
+    //~ NodeDataType data;
 
 // TODO !!! make protected again, and use some other mechanism for setting the members !!!
 //~ protected:

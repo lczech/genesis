@@ -66,11 +66,11 @@ int main (int argc, char* argv[])
     LOG_DBG << "Test Roundtrip at root";
     for (Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip(); it != tree.EndRoundtrip(); ++it) {
         LOG_DBG1 << it->Node()->Dump();
-        if (it->Node()->data.name == "L") {
+        if (it->Node()->name == "L") {
             n = it->Node();
         }
     }
-    LOG_DBG << "Test Roundtrip at " + n->data.name;
+    LOG_DBG << "Test Roundtrip at " + n->name;
     for (Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip(n); it != tree.EndRoundtrip(); ++it) {
         LOG_DBG1 << it->Node()->Dump();
     }
@@ -78,64 +78,64 @@ int main (int argc, char* argv[])
     // test preorder
     LOG_DBG << "Test Preorder at root";
     for (Tree<>::IteratorPreorder it = tree.BeginPreorder(); it != tree.EndPreorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name
-                 + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
-        if (it->data.name == "L") {
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
+                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+        if (it->name == "L") {
             n = &*it;
         }
     }
-    LOG_DBG << "Test Preorder at " + n->data.name;
+    LOG_DBG << "Test Preorder at " + n->name;
     for (Tree<>::IteratorPreorder it = tree.BeginPreorder(n); it != tree.EndPreorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name
-                 + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
+                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
     }
 
     // * /
     // test inorder
     LOG_DBG << "Test Inorder at root";
     for (Tree<>::IteratorInorder it = tree.BeginInorder(); it != tree.EndInorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name
-                 + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
-        if (it->data.name == "G") {
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
+                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+        if (it->name == "G") {
             n = &*it;
         }
     }
-    LOG_DBG << "Test Inorder at " + n->data.name;
+    LOG_DBG << "Test Inorder at " + n->name;
     for (Tree<>::IteratorInorder it = tree.BeginInorder(n); it != tree.EndInorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name
-                 + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
+                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
     }
     * /
 
     // test postorder
     LOG_DBG << "Test Postorder at root";
     for (Tree<>::IteratorPostorder it = tree.BeginPostorder(); it != tree.EndPostorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name
-                 + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
-        if (it->data.name == "L") {
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
+                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+        if (it->name == "L") {
             n = &*it;
         }
     }
-    LOG_DBG << "Test Postorder at " + n->data.name;
+    LOG_DBG << "Test Postorder at " + n->name;
     for (Tree<>::IteratorPostorder it = tree.BeginPostorder(n); it != tree.EndPostorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name
-                 + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
+                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
     }
 
     / *
     // test levelorder
     LOG_DBG << "Test Levelorder at root";
     for (Tree<>::IteratorLevelorder it = tree.BeginLevelorder(); it != tree.EndLevelorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name
-                 + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
-        if (it->data.name == "L") {
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
+                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+        if (it->name == "L") {
             n = &*it;
         }
     }
-    LOG_DBG << "Test Levelorder at " + n->data.name;
+    LOG_DBG << "Test Levelorder at " + n->name;
     for (Tree<>::IteratorLevelorder it = tree.BeginLevelorder(n); it != tree.EndLevelorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name
-                 + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
+                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
     }
     //*/
 
@@ -154,7 +154,7 @@ int main (int argc, char* argv[])
         //~ it != tree.EndRoundtrip();
         //~ ++it
     //~ ) {
-        //~ LOG_DBG1 << "Round " << it.Node()->data.name;
+        //~ LOG_DBG1 << "Round " << it.Node()->name;
     //~ }
     //~ LOG_DBG << "Out tree: " << NewickProcessor::ToString(tree);
 
@@ -307,14 +307,14 @@ int main (int argc, char* argv[])
     PlacementTree::NodeType* n;
     LOG_DBG << "Test Postorder at root";
     for (PlacementTree::IteratorPostorder it = place_a.tree.BeginPostorder(); it != place_a.tree.EndPostorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
-        if (it->data.name == "G") {
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+        if (it->name == "G") {
             n = &*it;
         }
     }
-    LOG_DBG << "Test Postorder at " + n->data.name;
+    LOG_DBG << "Test Postorder at " + n->name;
     for (PlacementTree::IteratorPostorder it = place_a.tree.BeginPostorder(n); it != place_a.tree.EndPostorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->data.name + "' to '" + it.Edge()->SecondaryNode()->data.name + "'" : "");
+        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
     }
     //*/
 

@@ -46,21 +46,12 @@ inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::SecondaryNode() const
 namespace genesis {
 
 /**
- * @brief Fills the edge with data from a NewickBrokerElement.
- */
-template <class NDT, class EDT>
-void TreeEdge<NDT, EDT>::FromNewickBrokerElement (NewickBrokerElement* node)
-{
-    data.FromNewickBrokerElement(node);
-}
-
-/**
  * @brief Returns a one-line dump summary of the data of this edge.
  */
 template <class NDT, class EDT>
 std::string TreeEdge<NDT, EDT>::Dump() const
 {
-    return data.Dump();
+    return "Dump()";
 }
 
 } // namespace genesis

@@ -50,8 +50,8 @@ Placements::EdgeNumMapType* Placements::EdgeNumMap()
         ++it
     ) {
         PlacementTree::EdgeType* edge = *it;
-        assert(edge_num_map->count(edge->data.edge_num) == 0);
-        edge_num_map->emplace(edge->data.edge_num, edge);
+        assert(edge_num_map->count(edge->edge_num) == 0);
+        edge_num_map->emplace(edge->edge_num, edge);
     }
     return edge_num_map;
 }
@@ -65,8 +65,8 @@ bool Placements::Merge(Placements& other)
     // we do not check here for branch_length, because usuallym those differ slightly.
     auto comparator = [] (PlacementTree::IteratorPreorder& it_l, PlacementTree::IteratorPreorder& it_r)
     {
-        return it_l.Node()->data.name     == it_r.Node()->data.name     &&
-               it_l.Edge()->data.edge_num == it_r.Edge()->data.edge_num;
+        return it_l.Node()->name     == it_r.Node()->name     &&
+               it_l.Edge()->edge_num == it_r.Edge()->edge_num;
     };
     if (!tree.Equal(other.tree, comparator)) {
         LOG_WARN << "Cannot merge Placements with different reference trees.";
@@ -87,7 +87,7 @@ bool Placements::Merge(Placements& other)
             // something broke the integrity of our in memory representation of the data.
             assert(edge_num_map->count(np->edge_num) > 0);
             np->edge = (*edge_num_map)[np->edge_num];
-            np->edge->data.placements.push_back(np);
+            np->edge->placements.push_back(np);
             np->pquery = npqry;
             npqry->placements.push_back(np);
         }
@@ -130,16 +130,16 @@ void Placements::RestrainToMaxWeightPlacements()
             // delete the reference from the edge to the current placement. we will later add the
             // one that points to the remaining (max weight) placement.
             PlacementTree::EdgeType* edge = place->edge;
-            std::deque<PqueryPlacement*>::iterator it = edge->data.placements.begin();
-            for (; it != edge->data.placements.end(); ++it) {
+            std::deque<PqueryPlacement*>::iterator it = edge->placements.begin();
+            for (; it != edge->placements.end(); ++it) {
                 if (*it == place) {
                     break;
                 }
             }
             // assert that the edge actually contains a reference to this pquery. if not,
             // this means that we messed up somewhere else while adding/removing placements...
-            assert(it != edge->data.placements.end());
-            edge->data.placements.erase(it);
+            assert(it != edge->placements.end());
+            edge->placements.erase(it);
         }
 
         // we do not allow empty placement objects (should we?)
@@ -154,7 +154,7 @@ void Placements::RestrainToMaxWeightPlacements()
         // now add back the reference from the edge to the pquery.
         // assert that we now have a single placement in the pquery (the most likely one).
         assert(pqry->placements.size() == 1 && pqry->placements[0] == max_p);
-        max_p->edge->data.placements.push_back(max_p);
+        max_p->edge->placements.push_back(max_p);
 
         // also, set the like_weight_ratio to 1.0, because we do not have any other placements left.
         max_p->like_weight_ratio = 1.0;
@@ -259,8 +259,8 @@ double Placements::EMD(Placements& lhs, Placements& rhs)
 
         // check whether the data on both reference trees is the same. this has to be done after the
         // check for last iteration / root node, because we don't want to check this for the root.
-        if (it_l.Node()->data.name     != it_r.Node()->data.name ||
-            it_l.Edge()->data.edge_num != it_r.Edge()->data.edge_num
+        if (it_l.Node()->name     != it_r.Node()->name ||
+            it_l.Edge()->edge_num != it_r.Edge()->edge_num
         ) {
             LOG_WARN << "Inconsistent reference trees in EMD calculation.";
             return -1.0;
@@ -285,21 +285,21 @@ double Placements::EMD(Placements& lhs, Placements& rhs)
         std::multimap<double, double> edge_balance;
 
         // add all placements of the branch from the left tree (using positive mass)...
-        for (PqueryPlacement* place : it_l.Edge()->data.placements) {
+        for (PqueryPlacement* place : it_l.Edge()->placements) {
             // TODO consider like_weight_ratio here!
             distance += place->pendant_length / totalmass_l;
             edge_balance.emplace(place->distal_length, +1.0 / totalmass_l);
         }
 
         // ... and the branch from the right tree (using negative mass)
-        for (PqueryPlacement* place : it_r.Edge()->data.placements) {
+        for (PqueryPlacement* place : it_r.Edge()->placements) {
             // TODO consider like_weight_ratio here!
             distance += place->pendant_length / totalmass_r;
             edge_balance.emplace(place->distal_length, -1.0 / totalmass_r);
         }
 
         // start the EMD with the mass that is left over from the subtrees...
-        double cur_pos  = it_l.Edge()->data.branch_length;
+        double cur_pos  = it_l.Edge()->branch_length;
         double cur_mass = mass_s;
 
         // ... and move it along the branch, balancing it with the placements found on the branches.
@@ -355,12 +355,12 @@ void Placements::COG()
             // which means, they should be in the balance list already.
             assert(balance.count(link));
 
-            mass += balance[link] * it.Edge()->data.branch_length;
+            mass += balance[link] * it.Edge()->branch_length;
             link  = link->Next();
         }
 
         // add up the masses of placements on the current branch
-        for (PqueryPlacement* place : it.Edge()->data.placements) {
+        for (PqueryPlacement* place : it.Edge()->placements) {
             mass += place->pendant_length + place->distal_length;
         }
 
@@ -373,19 +373,19 @@ void Placements::COG()
     double                   p_mass = -1.0;
     bool                     found  = false;
     while (!found) {
-        LOG_DBG1 << "a " << p_link->Node()->data.name;
+        LOG_DBG1 << "a " << p_link->Node()->name;
         p_mass = -1.0;
         for (
             PlacementTree::NodeType::IteratorLinks it_l = p_link->Node()->BeginLinks();
             it_l != p_link->Node()->EndLinks();
             ++it_l
         ) {
-            LOG_DBG2 << it_l.Node()->data.name << " " << balance[it_l.Link()];
+            LOG_DBG2 << it_l.Node()->name << " " << balance[it_l.Link()];
             if (balance[it_l.Link()] > p_mass) {
                 p_link = it_l.Link();
             }
         }
-        LOG_DBG1 << "b " << p_link->Node()->data.name;
+        LOG_DBG1 << "b " << p_link->Node()->name;
         p_link = p_link->Outer();
         if (p_link == p_prev) {
             found = true;
@@ -400,12 +400,12 @@ void Placements::COG()
         //~ // which means, they should be in the balance list already.
         //~ assert(balance.count(link));
 //~
-        //~ mass += balance[link] * it.Edge()->data.branch_length;
+        //~ mass += balance[link] * it.Edge()->branch_length;
         //~ link = link->Next();
     //~ }
 
     for (auto pair : balance) {
-        LOG_DBG1 << pair.first->Node()->data.name << ": " << pair.second << "\n";
+        LOG_DBG1 << pair.first->Node()->name << ": " << pair.second << "\n";
         //~ distance += std::abs(pair.second);
     }
 }
@@ -500,22 +500,22 @@ bool Placements::Validate (bool check_values, bool break_on_values)
     ) {
         // make sure every edge num is used once only
         PlacementTree::EdgeType* edge = *it_e;
-        if (edge_num_map.count(edge->data.edge_num) > 0) {
-            LOG_INFO << "More than one edge has edge_num '" << edge->data.edge_num << "'.";
+        if (edge_num_map.count(edge->edge_num) > 0) {
+            LOG_INFO << "More than one edge has edge_num '" << edge->edge_num << "'.";
             return false;
         }
-        edge_num_map.emplace(edge->data.edge_num, edge);
+        edge_num_map.emplace(edge->edge_num, edge);
 
         // make sure the pointers and references are set correctly
-        for (PqueryPlacement* p : edge->data.placements) {
+        for (PqueryPlacement* p : edge->placements) {
             if (p->edge != edge) {
                 LOG_INFO << "Inconsistent pointer from placement to edge at edge num '"
-                         << edge->data.edge_num << "'.";
+                         << edge->edge_num << "'.";
                 return false;
             }
-            if (p->edge_num != edge->data.edge_num) {
+            if (p->edge_num != edge->edge_num) {
                 LOG_INFO << "Inconsistent edge_num between edge and placement: '"
-                         << edge->data.edge_num << " != " << p->edge_num << "'.";
+                         << edge->edge_num << " != " << p->edge_num << "'.";
                 return false;
             }
             ++edge_place_count;
@@ -548,25 +548,25 @@ bool Placements::Validate (bool check_values, bool break_on_values)
                 return false;
             }
             int found_placement_on_edge = 0;
-            for (PqueryPlacement* pe : p->edge->data.placements) {
+            for (PqueryPlacement* pe : p->edge->placements) {
                 if (pe == p) {
                     ++found_placement_on_edge;
                 }
             }
-            if (p->edge->data.placements.size() > 0 && found_placement_on_edge == 0) {
+            if (p->edge->placements.size() > 0 && found_placement_on_edge == 0) {
                 LOG_INFO << "Inconsistency between placement and edge: edge num '"
-                         << p->edge->data.edge_num << "' does not contain pointer to a placement "
+                         << p->edge->edge_num << "' does not contain pointer to a placement "
                          << "that is referring to that edge at " << name << ".";
                 return false;
             }
             if (found_placement_on_edge > 1) {
-                LOG_INFO << "Edge num '" << p->edge->data.edge_num << "' contains a pointer to one "
+                LOG_INFO << "Edge num '" << p->edge->edge_num << "' contains a pointer to one "
                          << "of its placements more than once at " << name << ".";
                 return false;
             }
-            if (p->edge_num != p->edge->data.edge_num) {
+            if (p->edge_num != p->edge->edge_num) {
                 LOG_INFO << "Inconsistent edge_num between edge and placement: '"
-                         << p->edge->data.edge_num << " != " << p->edge_num
+                         << p->edge->edge_num << " != " << p->edge_num
                          << "' at " << name << ".";
                 return false;
             }
@@ -594,9 +594,9 @@ bool Placements::Validate (bool check_values, bool break_on_values)
                     return false;
                 }
             }
-            if (p->distal_length > p->edge->data.branch_length) {
+            if (p->distal_length > p->edge->branch_length) {
                 LOG_INFO << "Invalid placement with distal_length '" << p->distal_length
-                         << "' > branch_length '" << p->edge->data.branch_length << "' at "
+                         << "' > branch_length '" << p->edge->branch_length << "' at "
                          << name << ".";
                 if (break_on_values) {
                     return false;
