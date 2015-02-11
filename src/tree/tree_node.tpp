@@ -71,21 +71,12 @@ int TreeNode<NDT, EDT>::Rank() const
 }
 
 /**
- * @brief Fills the node with data from a NewickBrokerElement.
- */
-template <class NDT, class EDT>
-void TreeNode<NDT, EDT>::FromNewickBrokerElement (NewickBrokerElement* node)
-{
-    data.FromNewickBrokerElement(node);
-}
-
-/**
  * @brief Returns a one-line dump summary of the data of this node.
  */
 template <class NDT, class EDT>
 std::string TreeNode<NDT, EDT>::Dump() const
 {
-    return "Rank: " + std::to_string(Rank()) + " \t " + data.Dump();
+    return "Rank: " + std::to_string(Rank()) + " \t " + "name";
 }
 
 } // namespace genesis

@@ -133,14 +133,14 @@ void PhyloXmlProcessor::ToDocument (XmlDocument& xml, Tree<NDT, EDT>& tree)
         name_e->tag = "name";
         XmlMarkup* name_m = new XmlMarkup();
         name_e->content.push_back(name_m);
-        name_m->content = it.Node()->data.name;
+        name_m->content = it.Node()->name;
 
-        //~ it.Node()->data.ToNewickBrokerElement(bn);
+        //~ it.Node()->ToNewickBrokerElement(bn);
         // only write edge data to the broker element if it is not the last iteration.
         // the last iteration is the root, which usually does not have edge information in newick.
         // caveat: for the root node, the edge will point to an arbitrary edge away from the root.
         //~ if (!it.IsLastIteration()) {
-            //~ it.Edge()->data.ToNewickBrokerElement(bn);
+            //~ it.Edge()->ToNewickBrokerElement(bn);
         //~ }
 
         // filter out default names if needed

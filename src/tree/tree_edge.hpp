@@ -39,6 +39,9 @@ public:
     typedef double BranchLength;
     BranchLength branch_length;
 
+    /**
+     * @brief Fills the edge with data from a NewickBrokerElement.
+     */
     inline void FromNewickBrokerElement (NewickBrokerElement* node)
     {
         branch_length = node->branch_length;
@@ -60,7 +63,7 @@ public:
 // =============================================================================
 
 template <class NodeDataType, class EdgeDataType>
-class TreeEdge
+class TreeEdge : public EdgeDataType
 {
     friend class Tree<NodeDataType, EdgeDataType>;
 
@@ -111,15 +114,13 @@ public:
         return index_;
     }
 
-    void FromNewickBrokerElement (NewickBrokerElement* node);
-
     std::string Dump() const;
 
     // ---------------------------------------------------------------------
     //     Member Variables
     // ---------------------------------------------------------------------
 
-    EdgeDataType data;
+    //~ EdgeDataType data;
 
 // TODO !!! make protected again, and use some other mechanism for setting the members !!!
 //~ protected:

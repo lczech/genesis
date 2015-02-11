@@ -319,10 +319,10 @@ public:
     {
         std::string m = "  ";
         if (link_) {
-           m += "@" + link_->Node()->data.name + "   ";
+           m += "@" + link_->Node()->name + "   ";
         }
         for (link_pointer p : stack_) {
-            m += p->Node()->data.name + " ";
+            m += p->Node()->name + " ";
         }
         LOG_DBG2 << m;
 
@@ -351,10 +351,10 @@ public:
 
         m = "  ";
         if (link_) {
-           m += "@" + link_->Node()->data.name + "   ";
+           m += "@" + link_->Node()->name + "   ";
         }
         for (link_pointer p : stack_) {
-            m += p->Node()->data.name + " ";
+            m += p->Node()->name + " ";
         }
         LOG_DBG2 << m;
 

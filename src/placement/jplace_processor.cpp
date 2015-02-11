@@ -119,12 +119,12 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, Placements& placeme
         ++it
     ) {
         PlacementTree::EdgeType* edge = *it;
-        if (edge_num_map.count(edge->data.edge_num) > 0) {
+        if (edge_num_map.count(edge->edge_num) > 0) {
             LOG_WARN << "Jplace document contains a tree where the edge num tag '"
-                     << edge->data.edge_num << "' is used more than once.";
+                     << edge->edge_num << "' is used more than once.";
             return false;
         }
-        edge_num_map.emplace(edge->data.edge_num, edge);
+        edge_num_map.emplace(edge->edge_num, edge);
     }
 
     // get the field names and store them in array fields
@@ -229,7 +229,7 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, Placements& placeme
                         return false;
                     }
                     pqry_place->edge = edge_num_map.at(pqry_place_val);
-                    pqry_place->edge->data.placements.push_back(pqry_place);
+                    pqry_place->edge->placements.push_back(pqry_place);
                 } else if (fields[i] == "likelihood") {
                     pqry_place->likelihood        = pqry_place_val;
                 } else if (fields[i] == "like_weight_ratio") {

@@ -197,7 +197,7 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
             // the distance to the current row node is: the length of the current branch plus
             // the distance from the other end of that branch to the row node.
             (*mat)(row_node->Index(), it.Node()->Index())
-                = it.Edge()->data.branch_length
+                = it.Edge()->branch_length
                 + (*mat)(row_node->Index(), it.Link()->Outer()->Node()->Index());
         }
     }
