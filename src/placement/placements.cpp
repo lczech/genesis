@@ -479,59 +479,75 @@ double Placements::Variance()
 {
     Matrix<double>* distances = tree.NodeDistanceMatrix();
     double variance = 0.0;
-    double count    = 0;
+    double count    = 0.0;
+    int progress    = 0;
     int node_a, node_b;
 
     // do a pairwise comparision of all (!) placements.
     for (Pquery* pqry_a : pqueries) {
-    for (PqueryPlacement* place_a : pqry_a->placements) {
-        // the count is used to normalize the resulting variance.
-        count += place_a->like_weight_ratio;
+        // we use a temp sum for the counts here to avoid loss of precision when dealing with huge
+        // numbers of placements.
+        // TODO maybe, http://en.wikipedia.org/wiki/Kahan_summation_algorithm is better for the counts?
+        double cnt_tmp = 0.0;
 
-        for (Pquery* pqry_b : pqueries) {
-        for (PqueryPlacement* place_b : pqry_b->placements) {
-            // same placement
-            if (place_a == place_b) {
-                continue;
-            }
-
-            // same branch case
-            if (place_a->edge == place_b->edge) {
-                variance += place_a->pendant_length
-                         +  std::abs(place_a->distal_length - place_b->distal_length)
-                         +  place_b->pendant_length;
-                continue;
-            }
-
-            // distal-distal case
-            node_a = place_a->edge->PrimaryNode()->Index();
-            node_b = place_b->edge->PrimaryNode()->Index();
-            double dd = place_a->pendant_length + place_a->distal_length
-                      + (*distances)(node_a, node_b)
-                      + place_b->distal_length + place_b->pendant_length;
-
-            // proximal-distal case
-            node_a = place_a->edge->SecondaryNode()->Index();
-            node_b = place_b->edge->PrimaryNode()->Index();
-            double pd = place_a->pendant_length + place_a->edge->branch_length - place_a->distal_length
-                      + (*distances)(node_a, node_b)
-                      + place_b->distal_length + place_b->pendant_length;
-
-            // distal-proximal case
-            node_a = place_a->edge->PrimaryNode()->Index();
-            node_b = place_b->edge->SecondaryNode()->Index();
-            double dp = place_a->pendant_length + place_a->distal_length
-                      + (*distances)(node_a, node_b)
-                      + place_b->edge->branch_length - place_b->distal_length + place_b->pendant_length;
-
-            // find min of the three cases, normalize it to the weight ratios (we do this here to
-            // minimize the number of operations executed) and add it to the variance.
-            double min = std::min(dd, std::min(pd, dp));
-            min *= place_a->like_weight_ratio * place_b->like_weight_ratio;
-            variance += min * min;
+        // report progress every 5%
+        ++progress;
+        if (progress % (pqueries.size() / 20) == 0) {
+            LOG_PROG << "Variance " << 100.0 * (double) progress / pqueries.size() << "% finished.";
         }
+
+        for (PqueryPlacement* place_a : pqry_a->placements) {
+            cnt_tmp += place_a->like_weight_ratio;
+
+            // bad indention to save horizontal space...
+            for (Pquery* pqry_b : pqueries) {
+            for (PqueryPlacement* place_b : pqry_b->placements) {
+                // same placement
+                if (place_a == place_b) {
+                    continue;
+                }
+
+                // same branch case
+                if (place_a->edge == place_b->edge) {
+                    variance += place_a->pendant_length
+                             +  std::abs(place_a->distal_length - place_b->distal_length)
+                             +  place_b->pendant_length;
+                    continue;
+                }
+
+                // distal-distal case
+                node_a = place_a->edge->PrimaryNode()->Index();
+                node_b = place_b->edge->PrimaryNode()->Index();
+                double dd = place_a->pendant_length + place_a->distal_length
+                          + (*distances)(node_a, node_b)
+                          + place_b->distal_length + place_b->pendant_length;
+
+                // proximal-distal case
+                node_a = place_a->edge->SecondaryNode()->Index();
+                node_b = place_b->edge->PrimaryNode()->Index();
+                double pd = place_a->pendant_length
+                          + place_a->edge->branch_length - place_a->distal_length
+                          + (*distances)(node_a, node_b)
+                          + place_b->distal_length + place_b->pendant_length;
+
+                // distal-proximal case
+                node_a = place_a->edge->PrimaryNode()->Index();
+                node_b = place_b->edge->SecondaryNode()->Index();
+                double dp = place_a->pendant_length + place_a->distal_length
+                          + (*distances)(node_a, node_b)
+                          + place_b->edge->branch_length - place_b->distal_length
+                          + place_b->pendant_length;
+
+                // find min of the three cases, normalize it to the weight ratios (we do this
+                // here to minimize the number of operations executed) and add it to the variance.
+                double min = std::min(dd, std::min(pd, dp));
+                min *= place_a->like_weight_ratio * place_b->like_weight_ratio;
+                variance += min * min;
+            }
+            }
         }
-    }
+
+      count += cnt_tmp;
     }
 
     delete distances;

@@ -228,7 +228,7 @@ int main (int argc, char* argv[])
     // =============================================================================
     //     Test for placements, earth movers distance, center of gravity
     // =============================================================================
-    //*
+    /*
     NewickProcessor::print_names          = true;
     NewickProcessor::print_branch_lengths = true;
     NewickProcessor::print_comments       = true;
@@ -244,7 +244,7 @@ int main (int argc, char* argv[])
     LOG_DBG << "Dump B:\n" << place_b.Dump();
 //~
     //~ LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
-    //*/
+    // * /
 //~
     LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
     place_a.RestrainToMaxWeightPlacements();
@@ -271,36 +271,40 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << "valid: " << place.Validate();
     //~ LOG_DBG << place.Dump();
     //~ LOG_DBG << "Tree: " << NewickProcessor::ToString(place.tree);
+    //*/
 
     // =============================================================================
     //     Further tests for placements and validation
     // =============================================================================
 
-    /*
+    //*
     Placements place_a, place_b;
+    LOG_DBG << "Reading file...";
     JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_0.jplace", place_a);
-    JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_1.jplace", place_b);
+    //~ JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_1.jplace", place_b);
     //~ LOG_DBG << "Valid A: " << place_a.Validate();
     //~ LOG_DBG << "Valid B: " << place_b.Validate();
 
     //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_0.newick", place_a.tree);
     //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_1.newick", place_b.tree);
 
-    LOG_DBG << "tree a edge count " << place_a.tree.EdgesSize();
+    //~ LOG_DBG << "tree a edge count " << place_a.tree.EdgesSize();
 
-    LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
-    LOG_DBG << "Merging A and B...";
-    place_a.Merge(place_b);
-    LOG_DBG << "Valid A: " << place_a.Validate();
-    LOG_DBG << "Valid B: " << place_b.Validate();
-    LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
+    //~ LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
+    //~ LOG_DBG << "Merging A and B...";
+    //~ place_a.Merge(place_b);
+    //~ LOG_DBG << "Valid A: " << place_a.Validate();
+    //~ LOG_DBG << "Valid B: " << place_b.Validate();
+    //~ LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
 
     LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
     place_a.RestrainToMaxWeightPlacements();
-    place_b.RestrainToMaxWeightPlacements();
-    LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
+    //~ place_b.RestrainToMaxWeightPlacements();
+    //~ LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
+    LOG_DBG << "Calculating variance...";
+    LOG_DBG << "Variance " << place_a.Variance();
 
-    NewickProcessor::ToFile("test/data/RAxML_portableTree.split_both.newick", place_a.tree);
+    //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_both.newick", place_a.tree);
     //*/
     /*
     // test postorder
