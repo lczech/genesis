@@ -463,26 +463,38 @@ void Placements::COG()
  * three cases (distal-distal, proximal-distal and distal-proximal) cheaply. The wanted distance is
  * then simply the minimum of those three distances. This is correct, because the two wrong cases
  * will always produce an overestimation of the distance.
+ *
+ * This distance is normalized using the `like_weight_ratio` of both placements, before
+ * summing it up to calculate the variance.
+ *
+ * Furthermore, the normalizing factor \f$ \frac{1}{n^2} \f$ of the variance usually contains the
+ * number of elements being processed. However, as the placements are weighted by their
+ * `like_weight_ratio`, we instead calculate `n` as the sum of the `like_weight_ratio` of all
+ * placements. In case that for each pquery the ratios of all its placements sum up to 1.0, this
+ * number will be equal to the number of pqueries (and thus be equal to the usual case of using the
+ * number of elements). However, as this is not required (placements with small ratio can be dropped,
+ * so that their sum per pquery is less than 1.0), we need to calculate this number manually here.
  */
 double Placements::Variance()
 {
     Matrix<double>* distances = tree.NodeDistanceMatrix();
     double variance = 0.0;
-    int    count    = 0;
+    double count    = 0;
     int node_a, node_b;
 
     // do a pairwise comparision of all (!) placements.
     for (Pquery* pqry_a : pqueries) {
     for (PqueryPlacement* place_a : pqry_a->placements) {
-        // the count is used to normalize the result. we calculate it here (and not in the inner
-        // loop), because real datasets may contain millions of placements, so that this number
-        // squared might overflow an int. thus, we divide by count twice in the end to get the
-        // same result. also, this is slightly faster (less additions), and easier to understand,
-        // given the formula for variance.
-        ++count;
+        // the count is used to normalize the resulting variance.
+        count += place_a->like_weight_ratio;
 
         for (Pquery* pqry_b : pqueries) {
         for (PqueryPlacement* place_b : pqry_b->placements) {
+            // same placement
+            if (place_a == place_b) {
+                continue;
+            }
+
             // same branch case
             if (place_a->edge == place_b->edge) {
                 variance += place_a->pendant_length
@@ -512,8 +524,10 @@ double Placements::Variance()
                       + (*distances)(node_a, node_b)
                       + place_b->edge->branch_length - place_b->distal_length + place_b->pendant_length;
 
-            // find min of the three cases and add it to the variance
+            // find min of the three cases, normalize it to the weight ratios (we do this here to
+            // minimize the number of operations executed) and add it to the variance.
             double min = std::min(dd, std::min(pd, dp));
+            min *= place_a->like_weight_ratio * place_b->like_weight_ratio;
             variance += min * min;
         }
         }
@@ -521,7 +535,7 @@ double Placements::Variance()
     }
 
     delete distances;
-    return ((variance / 2) / count) / count;
+    return ((variance / count) / count) / 2;
 }
 
 // =============================================================================
