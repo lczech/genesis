@@ -62,7 +62,7 @@ void Logging::max_level (const LoggingLevel level)
 std::string Logging::LevelToString(const LoggingLevel level)
 {
     static const char* const buffer[] = {
-        "NONE", "ERR ", "WARN", "INFO", "DBG ", "DBG1", "DBG2", "DBG3", "DBG4"
+        "NONE", "ERR ", "WARN", "INFO", "PROG", "DBG ", "DBG1", "DBG2", "DBG3", "DBG4"
     };
     return buffer[level];
 }

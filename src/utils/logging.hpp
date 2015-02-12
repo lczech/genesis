@@ -81,6 +81,9 @@ namespace genesis {
 /** @brief Log an info message. See genesis::LoggingLevel. */
 #define LOG_INFO GNS_LOG(genesis::Logging::kInfo)
 
+/** @brief Log a progress message. See genesis::LoggingLevel. */
+#define LOG_PROG GNS_LOG(genesis::Logging::kProgress)
+
 /** @brief Log a debug message. See genesis::LoggingLevel. */
 #define LOG_DBG  GNS_LOG(genesis::Logging::kDebug)
 
@@ -191,9 +194,9 @@ typedef struct {
  *     LOG_DBG << "you are here";
  *     LOG_ERR << "there was an error: " << 42;
  *
- * The provided types of macros are: #LOG_ERR, #LOG_WARN, #LOG_INFO, #LOG_DBG,
- * #LOG_DBG1, #LOG_DBG2, #LOG_DBG3, #LOG_DBG4 for all levels of logging
- * explained in ::LoggingLevel.
+ * The provided types of macros are: #LOG_ERR, #LOG_WARN, #LOG_INFO, $LOG_PROG,
+ * #LOG_DBG, #LOG_DBG1, #LOG_DBG2, #LOG_DBG3, #LOG_DBG4 for all levels of
+ * logging explained in ::LoggingLevel.
  *
  * The details that are logged with each message can be changed via accessing
  * Logging::details -- see LoggingDetails for more on that.
@@ -272,6 +275,9 @@ class Logging
 
             /** @brief Infos, for example when a file was written. */
             kInfo,
+
+            /** @brief Progess, used in long executing functions. */
+            kProgress,
 
             /** @brief Basic debugging message. */
             kDebug,

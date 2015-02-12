@@ -183,7 +183,11 @@ public:
 
     inline std::string ToString() const override
     {
-        return std::to_string(value);
+        // use string stream instead of std::to_string() to have better conversion of the number
+        // (e.g., avoid trailing zeros when not needed).
+        std::ostringstream out;
+        out << value;
+        return out.str();
     }
 
     double value = 0.0;

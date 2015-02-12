@@ -7,6 +7,7 @@
 
 #include "placement/placements.hpp"
 
+#include <algorithm>
 #include <assert.h>
 #include <cmath>
 #include <iomanip>
@@ -76,7 +77,7 @@ bool Placements::Merge(Placements& other)
     // we need to assign edge pointers to the correct edge objects, so we need a mapping
     EdgeNumMapType* edge_num_map = EdgeNumMap();
 
-    // copy all pqueries
+    // copy all (o)ld pqueries to (n)ew pqueries
     for (Pquery* opqry : other.pqueries) {
         Pquery* npqry = new Pquery;
         for (PqueryPlacement* op : opqry->placements) {
@@ -136,20 +137,25 @@ void Placements::RestrainToMaxWeightPlacements()
                     break;
                 }
             }
+
             // assert that the edge actually contains a reference to this pquery. if not,
             // this means that we messed up somewhere else while adding/removing placements...
             assert(it != edge->placements.end());
             edge->placements.erase(it);
         }
 
-        // we do not allow empty placement objects (should we?)
-        assert(max_w > -1.0);
-
         // remove all but the max element from placements by creating a new deque and swapping it.
         // this is faster and simpler than removing all but one element.
         std::deque<PqueryPlacement*> np;
         np.push_back(max_p);
         pqry->placements.swap(np);
+
+        // np now contains the old placements. delete them (except the one we still need).
+        for (PqueryPlacement* op : np) {
+            if (op != max_p) {
+                delete op;
+            }
+        }
 
         // now add back the reference from the edge to the pquery.
         // assert that we now have a single placement in the pquery (the most likely one).
@@ -412,30 +418,140 @@ void Placements::COG()
 
 /**
  * @brief Calculate the Variance of the placements on a tree.
+ *
+ * The variance is a measure of how far a set of items is spread out
+ * (http://en.wikipedia.org/wiki/Variance). In many cases, it can be measured using the mean of the
+ * items. However, when considering placements on a tree, this does not truly measure how fare they
+ * are from each other. Thus, this algorithm applies a different method of calculation the variance
+ * in terms of squared deviations of all items from each other:
+ * \f$ \operatorname{Var}(X) = \frac{1}{n^2} \sum_{i=1}^n \sum_{j=1}^n \frac{1}{2}(x_i - x_j)^2 \f$,
+ * where \f$ (x_i - x_j) \f$ denotes the distance between two placements.
+ *
+ * This distance is calculated as the shortest path between the two placements. This includes the
+ * pendant_length of both, as well as their position on the branches. There are three cases that
+ * might occur:
+ *
+ *   1. Both placements are on the same branch.
+ *      In this case, their distance is caluclated as the sum of their pendant_lengths and their
+ *      difference in distal_lengths.
+ *
+ *   2. The path between the placements includes the root.
+ *      The distance of a placement from its neighbouring nodes is mostly given in form of the
+ *      distal_length, which is the distance of the placement to the node (at the end of its branch)
+ *      that lies in direction of the root. Thus, there is an implicit notion of a root, that we
+ *      need to consider. If the path between two placements contains the root, we can directly
+ *      calculate their distance as the distance between the two distal nodes plus distal_lengths
+ *      and pendant_lengths of both placements. We call this the distal-distal case.
+ *
+ *   3. The root is not part of the path between the placements.
+ *      This case means that one of the two placements lies on the path between the other placement
+ *      and the root - thus, the path between the placements does not contain the root.
+ *      The distance between the placements cannot be calculated using the distal_lengths directly,
+ *      but we need to get the proximal_length (away from the root) of the inner placement first.
+ *      This is simply the difference between branch_length and distal_length of that placement.
+ *      Of course, this case comes in two flavours, because both placements can be the inner or
+ *      outer one. They are called proximal-distal case and distal-proximal case, respectively.
+ *
+ * The first case is easy to detect by comparing the edges. However, distinguishing between the
+ * latter two cases is expensive, as it involves finding the path to the root for both placements.
+ * To speed this up, we instead use a distance matrix that is calculated in the beginning of the
+ * algorithm and contains the pairwise distances between all nodes of the tree. Using this, we do
+ * not need to find paths between placements, but simply go to the nodes at the end of the branches
+ * of the placements and do a lookup for those nodes.
+ *
+ * With this technique, we can calculate the distances between the placements for all
+ * three cases (distal-distal, proximal-distal and distal-proximal) cheaply. The wanted distance is
+ * then simply the minimum of those three distances. This is correct, because the two wrong cases
+ * will always produce an overestimation of the distance.
+ *
+ * This distance is normalized using the `like_weight_ratio` of both placements, before
+ * summing it up to calculate the variance.
+ *
+ * Furthermore, the normalizing factor \f$ \frac{1}{n^2} \f$ of the variance usually contains the
+ * number of elements being processed. However, as the placements are weighted by their
+ * `like_weight_ratio`, we instead calculate `n` as the sum of the `like_weight_ratio` of all
+ * placements. In case that for each pquery the ratios of all its placements sum up to 1.0, this
+ * number will be equal to the number of pqueries (and thus be equal to the usual case of using the
+ * number of elements). However, as this is not required (placements with small ratio can be dropped,
+ * so that their sum per pquery is less than 1.0), we need to calculate this number manually here.
  */
 double Placements::Variance()
 {
     Matrix<double>* distances = tree.NodeDistanceMatrix();
     double variance = 0.0;
+    double count    = 0.0;
+    int progress    = 0;
+    int node_a, node_b;
 
+    // do a pairwise comparision of all (!) placements.
     for (Pquery* pqry_a : pqueries) {
-        for (PqueryPlacement* place_a : pqry_a->placements) {
-            //~ p.distal_length;
+        // we use a temp sum for the counts here to avoid loss of precision when dealing with huge
+        // numbers of placements.
+        // TODO maybe, http://en.wikipedia.org/wiki/Kahan_summation_algorithm is better for the counts?
+        double cnt_tmp = 0.0;
 
-            for (Pquery* pqry_b : pqueries) {
-                for (PqueryPlacement* place_b : pqry_b->placements) {
-                    //~ p.distal_length;
-                    LOG_DBG << place_a->distal_length << " " << place_b->distal_length;
-                }
-            }
-
+        // report progress every 5%
+        ++progress;
+        if (progress % (pqueries.size() / 20) == 0) {
+            LOG_PROG << "Variance " << 100.0 * (double) progress / pqueries.size() << "% finished.";
         }
+
+        for (PqueryPlacement* place_a : pqry_a->placements) {
+            cnt_tmp += place_a->like_weight_ratio;
+
+            // bad indention to save horizontal space...
+            for (Pquery* pqry_b : pqueries) {
+            for (PqueryPlacement* place_b : pqry_b->placements) {
+                // same placement
+                if (place_a == place_b) {
+                    continue;
+                }
+
+                // same branch case
+                if (place_a->edge == place_b->edge) {
+                    variance += place_a->pendant_length
+                             +  std::abs(place_a->distal_length - place_b->distal_length)
+                             +  place_b->pendant_length;
+                    continue;
+                }
+
+                // distal-distal case
+                node_a = place_a->edge->PrimaryNode()->Index();
+                node_b = place_b->edge->PrimaryNode()->Index();
+                double dd = place_a->pendant_length + place_a->distal_length
+                          + (*distances)(node_a, node_b)
+                          + place_b->distal_length + place_b->pendant_length;
+
+                // proximal-distal case
+                node_a = place_a->edge->SecondaryNode()->Index();
+                node_b = place_b->edge->PrimaryNode()->Index();
+                double pd = place_a->pendant_length
+                          + place_a->edge->branch_length - place_a->distal_length
+                          + (*distances)(node_a, node_b)
+                          + place_b->distal_length + place_b->pendant_length;
+
+                // distal-proximal case
+                node_a = place_a->edge->PrimaryNode()->Index();
+                node_b = place_b->edge->SecondaryNode()->Index();
+                double dp = place_a->pendant_length + place_a->distal_length
+                          + (*distances)(node_a, node_b)
+                          + place_b->edge->branch_length - place_b->distal_length
+                          + place_b->pendant_length;
+
+                // find min of the three cases, normalize it to the weight ratios (we do this
+                // here to minimize the number of operations executed) and add it to the variance.
+                double min = std::min(dd, std::min(pd, dp));
+                min *= place_a->like_weight_ratio * place_b->like_weight_ratio;
+                variance += min * min;
+            }
+            }
+        }
+
+      count += cnt_tmp;
     }
 
-    LOG_DBG << distances->Dump();
-    LOG_DBG << "Variance: " << variance;
     delete distances;
-    return 0.0;
+    return ((variance / count) / count) / 2;
 }
 
 // =============================================================================

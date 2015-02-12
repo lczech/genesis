@@ -25,12 +25,18 @@
 
 namespace genesis {
 
+/**
+ * @brief Returns the node of this edge that points towards the root.
+ */
 template <class NDT, class EDT>
 inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::PrimaryNode() const
 {
     return link_p_->Node();
 }
 
+/**
+ * @brief Returns the node of this edge that points away from the root.
+ */
 template <class NDT, class EDT>
 inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::SecondaryNode() const
 {
