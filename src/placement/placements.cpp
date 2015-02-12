@@ -76,7 +76,7 @@ bool Placements::Merge(Placements& other)
     // we need to assign edge pointers to the correct edge objects, so we need a mapping
     EdgeNumMapType* edge_num_map = EdgeNumMap();
 
-    // copy all pqueries
+    // copy all (o)ld pqueries to (n)ew pqueries
     for (Pquery* opqry : other.pqueries) {
         Pquery* npqry = new Pquery;
         for (PqueryPlacement* op : opqry->placements) {
@@ -136,20 +136,25 @@ void Placements::RestrainToMaxWeightPlacements()
                     break;
                 }
             }
+
             // assert that the edge actually contains a reference to this pquery. if not,
             // this means that we messed up somewhere else while adding/removing placements...
             assert(it != edge->placements.end());
             edge->placements.erase(it);
         }
 
-        // we do not allow empty placement objects (should we?)
-        assert(max_w > -1.0);
-
         // remove all but the max element from placements by creating a new deque and swapping it.
         // this is faster and simpler than removing all but one element.
         std::deque<PqueryPlacement*> np;
         np.push_back(max_p);
         pqry->placements.swap(np);
+
+        // np now contains the old placements. delete them (except the one we still need).
+        for (PqueryPlacement* op : np) {
+            if (op != max_p) {
+                delete op;
+            }
+        }
 
         // now add back the reference from the edge to the pquery.
         // assert that we now have a single placement in the pquery (the most likely one).

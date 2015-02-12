@@ -73,7 +73,7 @@ std::string XmlProcessor::ToString (const XmlDocument& document)
         res = "<?" + document.xml_tag + PrintAttributesList(document.declarations) + "?>\n";
     }
     PrintElement(res, &document, 0);
-    return res;
+    return res + "\n";
 }
 
 /**

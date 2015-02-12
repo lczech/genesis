@@ -204,11 +204,11 @@ int main (int argc, char* argv[])
     // =============================================================================
 
     //~ std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
-    std::string ts = "((B,(D,E)C)A,F,(H,I)G)R;";
-    LOG_DBG << "In tree:  " << ts;
-    Tree<> tree;
-    NewickProcessor::FromString(ts, tree);
-    LOG_DBG << "Out tree: " << PhyloXmlProcessor::ToString(tree);
+    //~ std::string ts = "((B,(D,E)C)A,F,(H,I)G)R;";
+    //~ LOG_DBG << "In tree:  " << ts;
+    //~ Tree<> tree;
+    //~ NewickProcessor::FromString(ts, tree);
+    //~ LOG_DBG << "Out tree: " << PhyloXmlProcessor::ToString(tree);
 
     // =============================================================================
     //     Test for json parser
@@ -228,7 +228,7 @@ int main (int argc, char* argv[])
     // =============================================================================
     //     Test for placements, earth movers distance, center of gravity
     // =============================================================================
-    /*
+    //*
     NewickProcessor::print_names          = true;
     NewickProcessor::print_branch_lengths = true;
     NewickProcessor::print_comments       = true;
@@ -243,22 +243,22 @@ int main (int argc, char* argv[])
     LOG_DBG << "Dump A:\n" << place_a.Dump();
     LOG_DBG << "Dump B:\n" << place_b.Dump();
 //~
-    LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
+    //~ LOG_DBG << "EMD: " << Placements::EMD(place_a, place_b);
     //*/
 //~
-    //~ LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
-    //~ place_a.RestrainToMaxWeightPlacements();
-    //~ place_b.RestrainToMaxWeightPlacements();
-    //~ LOG_DBG << "Valid A: " << place_a.Validate();
-    //~ LOG_DBG << "Valid B: " << place_b.Validate();
-    //~ LOG_DBG << "Dump A:\n" << place_a.Dump();
-    //~ LOG_DBG << "Dump B:\n" << place_b.Dump();
+    LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
+    place_a.RestrainToMaxWeightPlacements();
+    place_b.RestrainToMaxWeightPlacements();
+    LOG_DBG << "Valid A: " << place_a.Validate();
+    LOG_DBG << "Valid B: " << place_b.Validate();
+    LOG_DBG << "Dump A:\n" << place_a.Dump();
+    LOG_DBG << "Dump B:\n" << place_b.Dump();
 //~
     //~ LOG_DBG << "Tree A: " << NewickProcessor::ToString(place_a.tree);
     //~ LOG_DBG << "Tree B: " << NewickProcessor::ToString(place_b.tree);
 
     //~ place_a.COG();
-    //~ LOG_DBG << "Variance: " << place_a.Variance();
+    LOG_DBG << "Variance: " << place_a.Variance();
 
     //~ LOG_DBG << "================================";
     //~ LOG_DBG << "Test 2";
