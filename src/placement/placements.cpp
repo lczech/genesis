@@ -7,6 +7,7 @@
 
 #include "placement/placements.hpp"
 
+#include <algorithm>
 #include <assert.h>
 #include <cmath>
 #include <iomanip>
@@ -417,30 +418,110 @@ void Placements::COG()
 
 /**
  * @brief Calculate the Variance of the placements on a tree.
+ *
+ * The variance is a measure of how far a set of items is spread out
+ * (http://en.wikipedia.org/wiki/Variance). In many cases, it can be measured using the mean of the
+ * items. However, when considering placements on a tree, this does not truly measure how fare they
+ * are from each other. Thus, this algorithm applies a different method of calculation the variance
+ * in terms of squared deviations of all items from each other:
+ * \f$ \operatorname{Var}(X) = \frac{1}{n^2} \sum_{i=1}^n \sum_{j=1}^n \frac{1}{2}(x_i - x_j)^2 \f$,
+ * where \f$ (x_i - x_j) \f$ denotes the distance between two placements.
+ *
+ * This distance is calculated as the shortest path between the two placements. This includes the
+ * pendant_length of both, as well as their position on the branches. There are three cases that
+ * might occur:
+ *
+ *   1. Both placements are on the same branch.
+ *      In this case, their distance is caluclated as the sum of their pendant_lengths and their
+ *      difference in distal_lengths.
+ *
+ *   2. The path between the placements includes the root.
+ *      The distance of a placement from its neighbouring nodes is mostly given in form of the
+ *      distal_length, which is the distance of the placement to the node (at the end of its branch)
+ *      that lies in direction of the root. Thus, there is an implicit notion of a root, that we
+ *      need to consider. If the path between two placements contains the root, we can directly
+ *      calculate their distance as the distance between the two distal nodes plus distal_lengths
+ *      and pendant_lengths of both placements. We call this the distal-distal case.
+ *
+ *   3. The root is not part of the path between the placements.
+ *      This case means that one of the two placements lies on the path between the other placement
+ *      and the root - thus, the path between the placements does not contain the root.
+ *      The distance between the placements cannot be calculated using the distal_lengths directly,
+ *      but we need to get the proximal_length (away from the root) of the inner placement first.
+ *      This is simply the difference between branch_length and distal_length of that placement.
+ *      Of course, this case comes in two flavours, because both placements can be the inner or
+ *      outer one. They are called proximal-distal case and distal-proximal case, respectively.
+ *
+ * The first case is easy to detect by comparing the edges. However, distinguishing between the
+ * latter two cases is expensive, as it involves finding the path to the root for both placements.
+ * To speed this up, we instead use a distance matrix that is calculated in the beginning of the
+ * algorithm and contains the pairwise distances between all nodes of the tree. Using this, we do
+ * not need to find paths between placements, but simply go to the nodes at the end of the branches
+ * of the placements and do a lookup for those nodes.
+ *
+ * With this technique, we can calculate the distances between the placements for all
+ * three cases (distal-distal, proximal-distal and distal-proximal) cheaply. The wanted distance is
+ * then simply the minimum of those three distances. This is correct, because the two wrong cases
+ * will always produce an overestimation of the distance.
  */
 double Placements::Variance()
 {
     Matrix<double>* distances = tree.NodeDistanceMatrix();
     double variance = 0.0;
+    int    count    = 0;
+    int node_a, node_b;
 
+    // do a pairwise comparision of all (!) placements.
     for (Pquery* pqry_a : pqueries) {
-        for (PqueryPlacement* place_a : pqry_a->placements) {
-            //~ p.distal_length;
+    for (PqueryPlacement* place_a : pqry_a->placements) {
+        // the count is used to normalize the result. we calculate it here (and not in the inner
+        // loop), because real datasets may contain millions of placements, so that this number
+        // squared might overflow an int. thus, we divide by count twice in the end to get the
+        // same result. also, this is slightly faster (less additions), and easier to understand,
+        // given the formula for variance.
+        ++count;
 
-            for (Pquery* pqry_b : pqueries) {
-                for (PqueryPlacement* place_b : pqry_b->placements) {
-                    //~ p.distal_length;
-                    LOG_DBG << place_a->distal_length << " " << place_b->distal_length;
-                }
+        for (Pquery* pqry_b : pqueries) {
+        for (PqueryPlacement* place_b : pqry_b->placements) {
+            // same branch case
+            if (place_a->edge == place_b->edge) {
+                variance += place_a->pendant_length
+                         +  std::abs(place_a->distal_length - place_b->distal_length)
+                         +  place_b->pendant_length;
+                continue;
             }
 
+            // distal-distal case
+            node_a = place_a->edge->PrimaryNode()->Index();
+            node_b = place_b->edge->PrimaryNode()->Index();
+            double dd = place_a->pendant_length + place_a->distal_length
+                      + (*distances)(node_a, node_b)
+                      + place_b->distal_length + place_b->pendant_length;
+
+            // proximal-distal case
+            node_a = place_a->edge->SecondaryNode()->Index();
+            node_b = place_b->edge->PrimaryNode()->Index();
+            double pd = place_a->pendant_length + place_a->edge->branch_length - place_a->distal_length
+                      + (*distances)(node_a, node_b)
+                      + place_b->distal_length + place_b->pendant_length;
+
+            // distal-proximal case
+            node_a = place_a->edge->PrimaryNode()->Index();
+            node_b = place_b->edge->SecondaryNode()->Index();
+            double dp = place_a->pendant_length + place_a->distal_length
+                      + (*distances)(node_a, node_b)
+                      + place_b->edge->branch_length - place_b->distal_length + place_b->pendant_length;
+
+            // find min of the three cases and add it to the variance
+            double min = std::min(dd, std::min(pd, dp));
+            variance += min * min;
+        }
         }
     }
+    }
 
-    LOG_DBG << distances->Dump();
-    LOG_DBG << "Variance: " << variance;
     delete distances;
-    return 0.0;
+    return ((variance / 2) / count) / count;
 }
 
 // =============================================================================

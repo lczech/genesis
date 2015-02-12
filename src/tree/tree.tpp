@@ -171,6 +171,8 @@ std::vector<int> Tree<NDT, EDT>::NodeDepthVector(NodeType* node)
 /**
  * @brief Returns a distance matrix containing pairwise distances between all Nodes, using the
  * branch_length of the Edges as distance measurement.
+ *
+ * The elements of the matrix are indexed using Node()->Index().
  */
 template <class NDT, class EDT>
 Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
