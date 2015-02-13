@@ -194,7 +194,7 @@ typedef struct {
  *     LOG_DBG << "you are here";
  *     LOG_ERR << "there was an error: " << 42;
  *
- * The provided types of macros are: #LOG_ERR, #LOG_WARN, #LOG_INFO, $LOG_PROG,
+ * The provided types of macros are: #LOG_ERR, #LOG_WARN, #LOG_INFO, #LOG_PROG,
  * #LOG_DBG, #LOG_DBG1, #LOG_DBG2, #LOG_DBG3, #LOG_DBG4 for all levels of
  * logging explained in ::LoggingLevel.
  *

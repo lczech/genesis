@@ -119,6 +119,7 @@ public:
     EdgeNumMapType* EdgeNumMap();
 
     bool Merge(Placements& other);
+    void NormalizeWeightRatios();
     void RestrainToMaxWeightPlacements();
 
     // -----------------------------------------------------
@@ -131,12 +132,17 @@ public:
     size_t PlacementCount();
     double PlacementMass();
     void   COG();
+
+public:
     double Variance();
+protected:
+    double VariancePartial(PqueryPlacement* place_a, Matrix<double>* distances);
 
     // -----------------------------------------------------
     //     Dump and Debug
     // -----------------------------------------------------
 
+public:
     std::string Dump();
     bool Validate (bool check_values = false, bool break_on_values = false);
 
