@@ -38,6 +38,7 @@ Logging::LoggingLevel      Logging::max_level_  = kDebug4;
 long                       Logging::count_      = 0;
 clock_t                    Logging::last_clock_ = 0;
 std::vector<std::ostream*> Logging::ostreams_;
+int                        Logging::report_percentage_ = 5;
 
 /**
  * @brief Set the highest log level that is reported.
@@ -54,6 +55,24 @@ void Logging::max_level (const LoggingLevel level)
                  << "everything above that will not be logged.";
     }
     max_level_ = level;
+}
+
+/**
+ * @brief set the percentage for reporting #LOG_PROG messages.
+ */
+void Logging::report_percentage (const int percentage)
+{
+    if (percentage <= 0) {
+        LOG_WARN << "Logging report percentage less than 1% not possible.";
+        report_percentage_ = 1;
+        return;
+    }
+    if (percentage > 100) {
+        LOG_WARN << "Logging report percentage greater than 100% not meaningful.";
+        report_percentage_ = 100;
+        return;
+    }
+    report_percentage_ = percentage;
 }
 
 /**

@@ -499,15 +499,9 @@ double Placements::Variance()
     double count    = 0.0;
     int progress    = 0;
 
-    LOG_DBG << "Starting...";
-
     // do a pairwise comparision of all (!) placements.
     for (Pquery* pqry_a : pqueries) {
-        // report progress every 5%
-        ++progress;
-        if (progress % (pqueries.size() / 20) == 0) {
-            LOG_PROG << "Variance " << 100.0 * (double) progress / pqueries.size() << "% finished.";
-        }
+        LOG_PROG(++progress, pqueries.size()) << "of Variance() finished.";
 
         for (PqueryPlacement* place_a : pqry_a->placements) {
             count    += place_a->like_weight_ratio;
@@ -522,6 +516,9 @@ double Placements::Variance()
 /**
  * @brief Calculates the sum of distances contributed by one placement for the variance.
  * See Variance() for more information.
+ *
+ * This function is intended to make the implementation of a threaded version of the calculation
+ * feasible.
  */
 double Placements::VariancePartial(PqueryPlacement* place_a, Matrix<double>* distances)
 {
