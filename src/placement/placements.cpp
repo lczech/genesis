@@ -103,11 +103,28 @@ bool Placements::Merge(Placements& other)
 }
 
 /**
+ * @brief Recalculates the `like_weight_ratio` of the placements of each Pquerie so that their sum
+ * is 1.0, while maintaining their ratio to each other.
+ */
+void Placements::NormalizeWeightRatios()
+{
+    for (Pquery* pqry : pqueries) {
+        double sum = 0.0;
+        for (PqueryPlacement* place : pqry->placements) {
+            sum += place->like_weight_ratio;
+        }
+        for (PqueryPlacement* place : pqry->placements) {
+            place->like_weight_ratio /= sum;
+        }
+    }
+}
+
+/**
  * @brief Removes all placements but the most likely one from all pqueries.
  *
  * Pqueries can contain multiple placements on different branches. For example, the EPA algorithm
  * of RAxML outputs up to the 7 most likely positions for placements to the output Jplace file by
- * default. The property `like_weight_ratio` weights those placement positions so that it's sum over
+ * default. The property `like_weight_ratio` weights those placement positions so that the sum over
  * all positions per pquery is 1.0.
  *
  * This function removes all but the most likely placement (the one which has the maximal
@@ -421,8 +438,8 @@ void Placements::COG()
  *
  * The variance is a measure of how far a set of items is spread out
  * (http://en.wikipedia.org/wiki/Variance). In many cases, it can be measured using the mean of the
- * items. However, when considering placements on a tree, this does not truly measure how fare they
- * are from each other. Thus, this algorithm applies a different method of calculation the variance
+ * items. However, when considering placements on a tree, this does not truly measure how far they
+ * are from each other. Thus, this algorithm applies a different method of calculating the variance
  * in terms of squared deviations of all items from each other:
  * \f$ \operatorname{Var}(X) = \frac{1}{n^2} \sum_{i=1}^n \sum_{j=1}^n \frac{1}{2}(x_i - x_j)^2 \f$,
  * where \f$ (x_i - x_j) \f$ denotes the distance between two placements.
@@ -445,7 +462,7 @@ void Placements::COG()
  *
  *   3. The root is not part of the path between the placements.
  *      This case means that one of the two placements lies on the path between the other placement
- *      and the root - thus, the path between the placements does not contain the root.
+ *      and the root -- thus, the path between the placements does not contain the root.
  *      The distance between the placements cannot be calculated using the distal_lengths directly,
  *      but we need to get the proximal_length (away from the root) of the inner placement first.
  *      This is simply the difference between branch_length and distal_length of that placement.
@@ -481,77 +498,80 @@ double Placements::Variance()
     double variance = 0.0;
     double count    = 0.0;
     int progress    = 0;
-    int node_a, node_b;
 
     // do a pairwise comparision of all (!) placements.
     for (Pquery* pqry_a : pqueries) {
-        // we use a temp sum for the counts here to avoid loss of precision when dealing with huge
-        // numbers of placements.
-        // TODO maybe, http://en.wikipedia.org/wiki/Kahan_summation_algorithm is better for the counts?
-        double cnt_tmp = 0.0;
-
-        // report progress every 5%
-        ++progress;
-        if (progress % (pqueries.size() / 20) == 0) {
-            LOG_PROG << "Variance " << 100.0 * (double) progress / pqueries.size() << "% finished.";
-        }
+        LOG_PROG(++progress, pqueries.size()) << "of Variance() finished.";
 
         for (PqueryPlacement* place_a : pqry_a->placements) {
-            cnt_tmp += place_a->like_weight_ratio;
-
-            // bad indention to save horizontal space...
-            for (Pquery* pqry_b : pqueries) {
-            for (PqueryPlacement* place_b : pqry_b->placements) {
-                // same placement
-                if (place_a == place_b) {
-                    continue;
-                }
-
-                // same branch case
-                if (place_a->edge == place_b->edge) {
-                    variance += place_a->pendant_length
-                             +  std::abs(place_a->distal_length - place_b->distal_length)
-                             +  place_b->pendant_length;
-                    continue;
-                }
-
-                // distal-distal case
-                node_a = place_a->edge->PrimaryNode()->Index();
-                node_b = place_b->edge->PrimaryNode()->Index();
-                double dd = place_a->pendant_length + place_a->distal_length
-                          + (*distances)(node_a, node_b)
-                          + place_b->distal_length + place_b->pendant_length;
-
-                // proximal-distal case
-                node_a = place_a->edge->SecondaryNode()->Index();
-                node_b = place_b->edge->PrimaryNode()->Index();
-                double pd = place_a->pendant_length
-                          + place_a->edge->branch_length - place_a->distal_length
-                          + (*distances)(node_a, node_b)
-                          + place_b->distal_length + place_b->pendant_length;
-
-                // distal-proximal case
-                node_a = place_a->edge->PrimaryNode()->Index();
-                node_b = place_b->edge->SecondaryNode()->Index();
-                double dp = place_a->pendant_length + place_a->distal_length
-                          + (*distances)(node_a, node_b)
-                          + place_b->edge->branch_length - place_b->distal_length
-                          + place_b->pendant_length;
-
-                // find min of the three cases, normalize it to the weight ratios (we do this
-                // here to minimize the number of operations executed) and add it to the variance.
-                double min = std::min(dd, std::min(pd, dp));
-                min *= place_a->like_weight_ratio * place_b->like_weight_ratio;
-                variance += min * min;
-            }
-            }
+            count    += place_a->like_weight_ratio;
+            variance += VariancePartial(place_a, distances);
         }
-
-      count += cnt_tmp;
     }
 
     delete distances;
     return ((variance / count) / count) / 2;
+}
+
+/**
+ * @brief Calculates the sum of distances contributed by one placement for the variance.
+ * See Variance() for more information.
+ *
+ * This function is intended to make the implementation of a threaded version of the calculation
+ * feasible.
+ */
+double Placements::VariancePartial(PqueryPlacement* place_a, Matrix<double>* distances)
+{
+    double variance = 0.0;
+    int node_a, node_b;
+
+    for (Pquery* pqry_b : pqueries) {
+        for (PqueryPlacement* place_b : pqry_b->placements) {
+            // same placement
+            if (place_a == place_b) {
+                continue;
+            }
+
+            // same branch case
+            if (place_a->edge == place_b->edge) {
+                variance += place_a->pendant_length
+                         +  std::abs(place_a->distal_length - place_b->distal_length)
+                         +  place_b->pendant_length;
+                continue;
+            }
+
+            // distal-distal case
+            node_a = place_a->edge->PrimaryNode()->Index();
+            node_b = place_b->edge->PrimaryNode()->Index();
+            double dd = place_a->pendant_length + place_a->distal_length
+                      + (*distances)(node_a, node_b)
+                      + place_b->distal_length + place_b->pendant_length;
+
+            // proximal-distal case
+            node_a = place_a->edge->SecondaryNode()->Index();
+            node_b = place_b->edge->PrimaryNode()->Index();
+            double pd = place_a->pendant_length
+                      + place_a->edge->branch_length - place_a->distal_length
+                      + (*distances)(node_a, node_b)
+                      + place_b->distal_length + place_b->pendant_length;
+
+            // distal-proximal case
+            node_a = place_a->edge->PrimaryNode()->Index();
+            node_b = place_b->edge->SecondaryNode()->Index();
+            double dp = place_a->pendant_length + place_a->distal_length
+                      + (*distances)(node_a, node_b)
+                      + place_b->edge->branch_length - place_b->distal_length
+                      + place_b->pendant_length;
+
+            // find min of the three cases, normalize it to the weight ratios (we do this
+            // here to minimize the number of operations executed) and add it to the variance.
+            double min = std::min(dd, std::min(pd, dp));
+            min *= place_a->like_weight_ratio * place_b->like_weight_ratio;
+            variance += min * min;
+        }
+    }
+
+    return variance;
 }
 
 // =============================================================================

@@ -11,6 +11,7 @@
  * @ingroup utils
  */
 
+#include <cmath>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -81,9 +82,6 @@ namespace genesis {
 /** @brief Log an info message. See genesis::LoggingLevel. */
 #define LOG_INFO GNS_LOG(genesis::Logging::kInfo)
 
-/** @brief Log a progress message. See genesis::LoggingLevel. */
-#define LOG_PROG GNS_LOG(genesis::Logging::kProgress)
-
 /** @brief Log a debug message. See genesis::LoggingLevel. */
 #define LOG_DBG  GNS_LOG(genesis::Logging::kDebug)
 
@@ -102,13 +100,70 @@ namespace genesis {
 // define special log shortcuts: the list of bools represent
 // the members of struct LogDetails and indicate which parts shall be included.
 
-/** @brief %Logging of a message that is always displayed. See Logging. */
+/** @brief %Logging of a message that is always displayed.
+ *
+ * It does not include any details with its message stream (thus, is
+ * independent of Logging::details) and is always logged (independent of the max
+ * levels). This is for example used to log the program header and footer on startup and
+ * termination.
+ */
 #define LOG_BOLD GNS_LOG_DETAILS(genesis::Logging::kNone, \
     false, false, false, false, false, false, false, false, false)
 
-/** @brief %Logging of a message with timing information. See Logging. */
+/** @brief %Logging of a message with timing information.
+ *
+ * It includes the run time difference to the last log message in seconds
+ * as its only detail (independent of Logging::details). This is particularly
+ * useful for timing and profiling code sections. Its level is ::kDebug, so
+ * that in can be easily turned of for production code.
+ */
 #define LOG_TIME GNS_LOG_DETAILS(genesis::Logging::kDebug, \
-    false, false, false, true , true,  false, false, false, false)
+    false, false, false, false , true,  false, false, false, false)
+
+/**
+ * @brief %Logging of a progress message.
+ *
+ * This special logging mechanism provides an easy way to report progress while running long
+ * operations. It uses LoggingLevel::kProgress for its messages.
+ *
+ * It takes two arguments, the first one being the number of the current iteration of the loop,
+ * the second the total number of iterations.
+ *
+ * The integer value of Logging::report_percentage can be used to control how often progress is
+ * reported in terms of a percentage counter. Default is 5, meaning every 5% progress is reported.
+ *
+ * The trailing message is optional -- when left out, simply the percentage number will be logged.
+ * However, the statement must always be ended by a semicolon.
+ *
+ * The default use case looks like this:
+ *
+ *     Logging::report_percentage(2);
+ *     for (int i = 0; i < n; ++i) {
+ *         // long loop from 0 to n
+ *         LOG_PROG(i, n) << "of the loop finished.";
+ *         // do stuff...
+ *     }
+ *
+ * This will report the progress of the loop every 2 percent with a message like this:
+ *
+ *     0% of the loop finished.
+ *     2% of the loop finished.
+ *     4% of the loop finished.
+ *     ...
+ *
+ * It automatically checks when it is time to report, so that the user does not have to take care
+ * of this. However, for small number of iterations (<100) it is not entirely accurate. Because
+ * of the involved integer modulo calculations, it will trigger too many messages. However, as this
+ * type of logging is usually used for loops with many iterations, this should rarely be an issue.
+ * There is a slight overhead of ~40ms per 1mio invocations because of the needed calculations.
+ */
+#define LOG_PROG(value, quantity) \
+    if (genesis::Logging::kProgress > LOG_LEVEL_MAX) ; \
+    else if (genesis::Logging::kProgress > genesis::Logging::max_level()) ; \
+    else if ((int) (value) % ((int) ((quantity) * genesis::Logging::report_percentage() / 100) > 0 ? \
+    (int) ((quantity) * genesis::Logging::report_percentage() / 100) : 1) != 0) ; \
+    else genesis::Logging().Get(__FILE__, __LINE__, GNS_FUNC, genesis::Logging::kProgress) \
+    << (int) round(100.0 * (double) (value) / ((quantity) > 0 ? (quantity) : 1)) << "% "
 
 // =============================================================================
 //     LoggingDetails
@@ -129,18 +184,15 @@ namespace genesis {
  *
  * A message with all details activates looks like this
  *
- *     0003 2014-10-28 11:40:47 0.001859 0.000103 src/main/main.cc:28 INFO Hello
+ *     0003 2014-10-28 11:40:47 0.001859 0.000103 src/main/main.cc:28 (int main (int argc, char* argv[])) INFO Hello World.
  *
  * It was the third message being logged in this run of the program, at
  * a date and time, 0.001859 sec after the program started and 0.000103
- * sec after the last log message. It was called from main.cc line 28
- * and has level Info.
+ * sec after the last log message. It was called from main.cc line 28 in function main
+ * and has LoggingLevel Info.
  */
 typedef struct {
-    /**
-     * @brief Include a counter of how many messages have been logged so
-     * far.
-     */
+    /** @brief Include a counter of how many messages have been logged so far. */
     bool count;
 
     /** @brief Include the current date. */
@@ -194,7 +246,7 @@ typedef struct {
  *     LOG_DBG << "you are here";
  *     LOG_ERR << "there was an error: " << 42;
  *
- * The provided types of macros are: #LOG_ERR, #LOG_WARN, #LOG_INFO, $LOG_PROG,
+ * The provided types of macros are: #LOG_ERR, #LOG_WARN, #LOG_INFO,
  * #LOG_DBG, #LOG_DBG1, #LOG_DBG2, #LOG_DBG3, #LOG_DBG4 for all levels of
  * logging explained in ::LoggingLevel.
  *
@@ -216,18 +268,9 @@ typedef struct {
  * cannot be higher than LOG_LEVEL_MAX, because those logs are already pruned
  * by the compiler.
  *
- * There are also two more special log types that create a different output than
- * the previously mentioned types:
- *
- * * #LOG_BOLD does not include any details with its message stream (thus, is
- * independent of Logging::details) and is always logged (independent of the max
- * levels). This is used to log the program header and footer on startup and
- * termination.
- *
- * * #LOG_TIME includes the run time difference to the last log message in sec
- * as its only detail (independent of Logging::details). This is particularly
- * useful for timing and profiling code sections. Its level is ::kDebug, so
- * that in can be easily turned of for production code.
+ * There are also three more special log types that create a different output than
+ * the previously mentioned types: #LOG_BOLD, #LOG_TIME and #LOG_PROG. See their
+ * respective documentation for more information.
  *
  * The inner working of this class is as follows: Upon invokation via one of the
  * macros, an instance is created that stays alive only for the rest of the
@@ -267,31 +310,31 @@ class Logging
             /** @brief Special messages that are always logged, e.g. program header. */
             kNone = 0,
 
-            /** @brief Errors, usually non-recoverable. */
+            /** @brief Errors, usually non-recoverable. See #LOG_ERR. */
             kError,
 
-            /** @brief Warnings if somthing went wront, but program can continue. */
+            /** @brief Warnings if somthing went wront, but program can continue. See #LOG_WARN. */
             kWarning,
 
-            /** @brief Infos, for example when a file was written. */
+            /** @brief Infos, for example when a file was written. See #LOG_INFO. */
             kInfo,
 
-            /** @brief Progess, used in long executing functions. */
+            /** @brief Progess, used in long executing functions. See #LOG_PROG. */
             kProgress,
 
-            /** @brief Basic debugging message. */
+            /** @brief Basic debugging message. See #LOG_DBG. */
             kDebug,
 
-            /** @brief Debugging message with indent level 1 (e.g. for loops). */
+            /** @brief Debugging message with indent level 1 (e.g. for loops). See #LOG_DBG1. */
             kDebug1,
 
-            /** @brief Debugging message with indent level 2. */
+            /** @brief Debugging message with indent level 2. See #LOG_DBG2. */
             kDebug2,
 
-            /** @brief Debugging message with indent level 3. */
+            /** @brief Debugging message with indent level 3. See #LOG_DBG3. */
             kDebug3,
 
-            /** @brief Debugging message with indent level 4. */
+            /** @brief Debugging message with indent level 4. See #LOG_DBG4. */
             kDebug4
         };
 
@@ -321,12 +364,18 @@ class Logging
         static LoggingDetails details;
 
         /** @brief Get the highest log level that is reported. */
-        static LoggingLevel max_level ()
+        static inline LoggingLevel max_level ()
         {
             return max_level_;
         }
-
         static void max_level (const LoggingLevel level);
+
+        /** @brief Get the current percentage for reporting #LOG_PROG messages. */
+        static inline int report_percentage ()
+        {
+            return report_percentage_;
+        }
+        static void report_percentage (const int percentage);
 
         // return a string representation for a log level
         static std::string LevelToString (const LoggingLevel level);
@@ -342,6 +391,9 @@ class Logging
 
         // dynamic log level limit
         static LoggingLevel max_level_;
+
+        // how often to report progress messages
+        static int report_percentage_;
 
         // how many log calls were made so far
         static long    count_;
