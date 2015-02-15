@@ -136,7 +136,8 @@ public:
 public:
     double Variance();
 protected:
-    double VariancePartial(PqueryPlacement* place_a, Matrix<double>* distances);
+    void   VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count);
+    double VariancePartial(const PqueryPlacement* place_a, const Matrix<double>* distances) const;
 
     // -----------------------------------------------------
     //     Dump and Debug

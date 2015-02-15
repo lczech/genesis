@@ -48,6 +48,9 @@ int main (int argc, char* argv[])
     //~ Logging::details.file = true;
     //~ Logging::details.line = true;
     //~ Logging::details.function = true;
+    //~ Logging::details.time = true;
+    Logging::details.runtime = true;
+    //~ Logging::details.rundiff = true;
     LOG_BOLD << print_header();
     LOG_TIME << "started";
 
@@ -280,6 +283,7 @@ int main (int argc, char* argv[])
     //*
     Placements place_a, place_b;
     LOG_DBG << "Reading file...";
+    //~ JplaceProcessor::FromFile("test/data/test_a.jplace", place_a);
     JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_0.jplace", place_a);
     //~ JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_1.jplace", place_b);
     //~ LOG_DBG << "Valid A: " << place_a.Validate();

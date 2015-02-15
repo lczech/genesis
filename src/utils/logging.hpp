@@ -173,7 +173,7 @@ namespace genesis {
     << (int) round(100.0 * (double) LoggingProgressValue() / ((quantity) > 0 ? (quantity) : 1)) << "% "
 
 /**
- * @brief Hack function to make sure that the value arugment in #LOG_PROG is onlye evaluated once.
+ * @brief Hack function to make sure that the value arugment in #LOG_PROG is only evaluated once.
  *
  * Without this function, #LOG_PROG would include two appearances of its variable `value`, which
  * means that a statement like

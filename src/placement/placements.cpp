@@ -13,6 +13,7 @@
 #include <iomanip>
 #include <map>
 #include <sstream>
+#include <thread>
 #include <unordered_map>
 
 #include "utils/logging.hpp"
@@ -497,20 +498,89 @@ double Placements::Variance()
     Matrix<double>* distances = tree.NodeDistanceMatrix();
     double variance = 0.0;
     double count    = 0.0;
-    int progress    = 0;
 
+    /*
+    int progress    = 0;
+    LOG_DBG << "starting...";
     // do a pairwise comparision of all (!) placements.
     for (Pquery* pqry_a : pqueries) {
+        //~ LOG_DBG1 << "a progress " << progress << " of " << pqueries.size();
         LOG_PROG(++progress, pqueries.size()) << "of Variance() finished.";
+        //~ LOG_DBG1 << "b progress " << progress << " of " << pqueries.size();
 
         for (PqueryPlacement* place_a : pqry_a->placements) {
             count    += place_a->like_weight_ratio;
             variance += VariancePartial(place_a, distances);
         }
     }
+    LOG_DBG << "finished.";
+    //*/
+
+    //*
+    LOG_DBG << "starting threads...";
+
+#   define NT 4
+
+    std::thread* threads[NT];
+    double       partials[NT];
+    double       counts[NT];
+
+    for (int i = 0; i < NT; ++i) {
+        LOG_DBG1 << "starting thread " << i;
+        partials[i] = 0.0;
+        counts[i] = 0;
+        threads[i] = new std::thread(std::bind(&Placements::VarianceThread, this, i, NT, distances, &partials[i], &counts[i]));
+        //~ std::thread t1 (std::bind(&Placements::VarianceThread, this, i, 4, distances, partials[i]));
+    }
+
+    LOG_DBG << "waiting for threads...";
+
+    for (int i = 0; i < NT; ++i) {
+        LOG_DBG1 << "waiting for thread " << i << ", v " << variance;
+        threads[i]->join();
+        variance += partials[i];
+        count    += counts[i];
+        LOG_DBG1 << "done with thread " << i << ", v " << variance;
+    }
+
+    LOG_DBG << "done, v " << variance << ", count " << count;
+    //*/
 
     delete distances;
-    return ((variance / count) / count) / 2;
+
+    double tmp = ((variance / count) / count) / 2;
+    LOG_DBG << "variance " << variance << ", tmp " << tmp;
+    return tmp;
+}
+
+/*
+
+test zeiten (sec)
+
+ohne threads, 1 run  250
+ohne threads, 2 runs 274
+ohne threads, 4 runs 376
+
+1 thread  310
+2 threads 657
+4 threads 1348
+
+1 thread, viertel der pqueries 76
+1 thread, haelfte der pqueries 155
+
+*/
+
+void Placements::VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count)
+{
+    LOG_DBG2 << "thread: offset(" << offset << "), incr(" << incr << ") started with partial " << *partial;
+    for (size_t i = offset; i < pqueries.size(); i += incr) {
+        Pquery* pqry_a = pqueries[i];
+        for (PqueryPlacement* place_a : pqry_a->placements) {
+            *count   += place_a->like_weight_ratio;
+            *partial += VariancePartial(place_a, distances);
+        }
+    }
+    LOG_DBG2 << "thread: offset(" << offset << "), incr(" << incr << ") finished with partial " << *partial;
 }
 
 /**
@@ -520,7 +590,7 @@ double Placements::Variance()
  * This function is intended to make the implementation of a threaded version of the calculation
  * feasible.
  */
-double Placements::VariancePartial(PqueryPlacement* place_a, Matrix<double>* distances)
+double Placements::VariancePartial(const PqueryPlacement* place_a, const Matrix<double>* distances) const
 {
     double variance = 0.0;
     int node_a, node_b;

@@ -56,7 +56,7 @@ public:
         edge_num      = -1;
 
         if (nbe->tags.size() != 1) {
-            LOG_WARN << "Edge for nbe '" << nbe->name << "' does not contain the single "
+            LOG_WARN << "Edge for element '" << nbe->name << "' does not contain the single "
                      << "tag value denoting the edge_num for placements.";
             return;
         }
