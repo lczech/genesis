@@ -10,12 +10,18 @@ PROGRAM = genesis
 # build into build folder with subfolders per arch/extension,
 # put resulting binaries in bin folder
 
+# TODO
+# make options like threads, mpi etc easier to configure.
+
 # --------------------------------
 #   Compiler Options
 # --------------------------------
 
 # Debug & Profiling (comment out if not needed).
-DBG     = -g -ggdb3 -pg -DDEBUG
+DEBUG   = -g -ggdb3 -pg -DDEBUG
+
+# Thread support.
+THREADS = -pthread -DPTHREADS
 
 # Warning flags.
 WARN    = -Wall -Wextra -pedantic -pedantic-errors
@@ -23,8 +29,8 @@ WARN    = -Wall -Wextra -pedantic -pedantic-errors
 # Compiler flags.
 STDCC   = clang++
 MPICC   = mpic++
-CCFLAGS = -std=c++11 -I./src $(WARN) $(DBG)
-LDFLAGS = -lm
+CCFLAGS = -std=c++11 -I./src $(WARN) $(DEBUG) $(THREADS)
+LDFLAGS = -lm $(THREADS)
 
 # --------------------------------
 #   File lists
@@ -44,7 +50,7 @@ SRCFILES := $(shell find ./src -type f -name "*.cpp")
 TPLFILES := $(shell find ./src -type f -name "*.tpp")
 
 # all object files, generated from *.cpp files, that need compilation
-OBJFILES  = $(patsubst %.cpp,%.o,$(SRCFILES))
+OBJFILES := $(patsubst %.cpp,%.o,$(SRCFILES))
 
 # dependency files for proper file change management
 DEPFILES := $(patsubst %.cpp,%.d,$(SRCFILES))

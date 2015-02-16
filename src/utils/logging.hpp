@@ -127,7 +127,7 @@ namespace genesis {
  * operations. It uses LoggingLevel::kProgress for its messages.
  *
  * It takes two arguments, the first one being the number of the current iteration of the loop,
- * the second the total number of iterations.
+ * the second the total number of iterations, both are casted to long.
  *
  * The integer value of Logging::report_percentage can be used to control how often progress is
  * reported in terms of a percentage counter. Default is 5, meaning every 5% progress is reported.
@@ -140,8 +140,8 @@ namespace genesis {
  *     Logging::report_percentage(2);
  *     for (int i = 0; i < n; ++i) {
  *         // long loop from 0 to n
- *         LOG_PROG(i, n) << "of the loop finished.";
  *         // do stuff...
+ *         LOG_PROG(i, n) << "of the loop finished.";
  *     }
  *
  * This will report the progress of the loop every 2 percent with a message like this:
@@ -151,19 +151,46 @@ namespace genesis {
  *     4% of the loop finished.
  *     ...
  *
- * It automatically checks when it is time to report, so that the user does not have to take care
- * of this. However, for small number of iterations (<100) it is not entirely accurate. Because
+ * It is also possible to increment the iteration counter inline:
+ *
+ *     LOG_PROG(++i, n) << "of stuff finished.";
+ *
+ * It automatically checks whether it is time to report, so that the user does not have to take care
+ * of this.
+ *
+ * Caveat: For small number of iterations (<100) it is not entirely accurate. Because
  * of the involved integer modulo calculations, it will trigger too many messages. However, as this
  * type of logging is usually used for loops with many iterations, this should rarely be an issue.
- * There is a slight overhead of ~40ms per 1mio invocations because of the needed calculations.
+ *
+ * There is a slight overhead of ~60ms per 1mio invocations because of the needed calculations.
  */
 #define LOG_PROG(value, quantity) \
     if (genesis::Logging::kProgress > LOG_LEVEL_MAX) ; \
     else if (genesis::Logging::kProgress > genesis::Logging::max_level()) ; \
-    else if ((int) (value) % ((int) ((quantity) * genesis::Logging::report_percentage() / 100) > 0 ? \
-    (int) ((quantity) * genesis::Logging::report_percentage() / 100) : 1) != 0) ; \
+    else if ((long) LoggingProgressValue(value) % (((long) (quantity) * genesis::Logging::report_percentage() / 100) > 0 ? \
+    ((long) (quantity) * genesis::Logging::report_percentage() / 100) : 1) != 0) ; \
     else genesis::Logging().Get(__FILE__, __LINE__, GNS_FUNC, genesis::Logging::kProgress) \
-    << (int) round(100.0 * (double) (value) / ((quantity) > 0 ? (quantity) : 1)) << "% "
+    << (int) round(100.0 * (double) LoggingProgressValue() / ((quantity) > 0 ? (quantity) : 1)) << "% "
+
+/**
+ * @brief Hack function to make sure that the value arugment in #LOG_PROG is only evaluated once.
+ *
+ * Without this function, #LOG_PROG would include two appearances of its variable `value`, which
+ * means that a statement like
+ *
+ *     LOG_PROG(++i, n) << "of progress.";
+ *
+ * would lead to a double evaluation of the increment statement `++i`. That is not intended, thus
+ * we need this hack function.
+ */
+inline long LoggingProgressValue (long value = -1)
+{
+    static long v = -1;
+    if (value > -1) {
+        v = value;
+    }
+    return v;
+}
 
 // =============================================================================
 //     LoggingDetails
@@ -411,6 +438,35 @@ class Logging
         Logging (const Logging&);
         Logging& operator = (const Logging&);
 };
+
+/*
+ * This was a test to make LOG_PROG work with incrementing counters like
+ *
+ *     LOG_PROG(++progress, total) << "of something";
+ *
+ * but it is slow and dirty. If used, Logging().Get(...) has to be expanded by a
+ * std::string init parameters, that is used to initialize buff_.str(init).
+ *
+ * Also, the definition of LOG_PROG that was used for this is:
+ *
+ *     #define LOG_PROG(value, quantity) \
+ *         if (genesis::Logging::kProgress > LOG_LEVEL_MAX) ; \
+ *         else if (genesis::Logging::kProgress > genesis::Logging::max_level()) ; \
+ *         else LOG_PROG_FUNC(value, quantity, __FILE__, __LINE__, GNS_FUNC)
+ * %
+inline std::ostringstream& LOG_PROG_FUNC (const int value, const int quantity, const std::string& file, const int line, const std::string& function)
+{
+    static std::ostringstream trash;
+    int base = quantity * Logging::report_percentage() / 100;
+    if (value % (base > 0 ? base : 1) != 0) {
+        trash.str("");
+        return trash;
+    } else {
+        std::string init = std::to_string((int) round(100.0 * (double) value / quantity)) + "% ";
+        return Logging().Get(file, line, function, Logging::kProgress, Logging::details, init);
+    }
+}
+*/
 
 } // namespace genesis
 

@@ -70,6 +70,11 @@ class TreeEdge : public EdgeDataType
 public:
     TreeEdge() : link_p_(nullptr), link_s_(nullptr) {}
 
+    // avoid copy constructor and assignment operator.
+    // creating copies is maintained by Tree only.
+    TreeEdge (const TreeEdge&) = delete;
+    TreeEdge& operator = (const TreeEdge&) = delete;
+
     // ---------------------------------------------------------------------
     //     Typedefs
     // ---------------------------------------------------------------------

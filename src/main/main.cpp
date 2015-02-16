@@ -48,6 +48,9 @@ int main (int argc, char* argv[])
     //~ Logging::details.file = true;
     //~ Logging::details.line = true;
     //~ Logging::details.function = true;
+    //~ Logging::details.time = true;
+    Logging::details.runtime = true;
+    //~ Logging::details.rundiff = true;
     LOG_BOLD << print_header();
     LOG_TIME << "started";
 
@@ -280,6 +283,7 @@ int main (int argc, char* argv[])
     //*
     Placements place_a, place_b;
     LOG_DBG << "Reading file...";
+    //~ JplaceProcessor::FromFile("test/data/test_a.jplace", place_a);
     JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_0.jplace", place_a);
     //~ JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_1.jplace", place_b);
     //~ LOG_DBG << "Valid A: " << place_a.Validate();
@@ -296,6 +300,13 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << "Valid A: " << place_a.Validate();
     //~ LOG_DBG << "Valid B: " << place_b.Validate();
     //~ LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
+
+    //~ LOG_DBG << "Copying a to b...";
+    //~ place_b = place_a;
+    //~ LOG_DBG << "Validating a...";
+    //~ LOG_DBG << "Valid a: " << place_a.Validate();
+    //~ LOG_DBG << "Validating b...";
+    //~ LOG_DBG << "Valid b: " << place_b.Validate();
 
     LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
     place_a.RestrainToMaxWeightPlacements();

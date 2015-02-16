@@ -112,11 +112,13 @@ public:
 
     Placements () {}
     Placements (PlacementTree& ptree) : tree(ptree) {}
-    void clear();
+    Placements (const Placements& other);
+    Placements& operator = (Placements other);
     ~Placements();
+    void clear();
 
     typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
-    EdgeNumMapType* EdgeNumMap();
+    EdgeNumMapType* EdgeNumMap() const;
 
     bool Merge(Placements& other);
     void NormalizeWeightRatios();
@@ -134,17 +136,18 @@ public:
     void   COG();
 
 public:
-    double Variance();
+    double Variance() const;
 protected:
-    double VariancePartial(PqueryPlacement* place_a, Matrix<double>* distances);
+    void   VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count) const;
+    double VariancePartial(const PqueryPlacement* place_a, const Matrix<double>* distances) const;
 
     // -----------------------------------------------------
     //     Dump and Debug
     // -----------------------------------------------------
 
 public:
-    std::string Dump();
-    bool Validate (bool check_values = false, bool break_on_values = false);
+    std::string Dump() const;
+    bool Validate (bool check_values = false, bool break_on_values = false) const;
 
     // -----------------------------------------------------
     //     Members

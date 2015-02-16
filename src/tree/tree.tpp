@@ -23,6 +23,97 @@ namespace genesis {
 // -------------------------------------------------------------------------
 
 /**
+ * @brief Copy constructor. Copies the topology, but not the data of a tree.
+ *
+ * This function creates all links, nodes and edges new, and shapes them so that the final
+ * Tree has the same topology as the input Tree.
+ *
+ * The data of the nodes and edges might contain pointers and other structures that need a deep
+ * copy, and we cannot know how to copy it here. It is thus the responsibility of the class that
+ * uses the tree to make sure its own data is copied after calling this copy constructor.
+ * See Placements for an example.
+ *
+ * Idea for a nice feature (not yet implemented):
+ * The advantage of copying the topology only is that we are able to make this function completely
+ * independend of the data, hence the `other` Tree does not need to share the same data types.
+ * Some potential function declarations can be found in the header file tree.hpp.
+ */
+template <class NDT,  class EDT>
+Tree<NDT, EDT>::Tree (const Tree<NDT, EDT>& other)
+{
+    // preparation.
+    clear();
+    links_.resize(other.links_.size());
+    nodes_.resize(other.nodes_.size());
+    edges_.resize(other.edges_.size());
+
+    // create all objects. we need two loops per array, because the pointers have to exist
+    // in order to be used with each other.
+    for (size_t i = 0; i < links_.size(); ++i) {
+        links_[i] = new LinkType();
+    }
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        nodes_[i] = new NodeType();
+    }
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        edges_[i] = new EdgeType();
+    }
+
+    // set all pointers for the topology in a second round of loops.
+    for (size_t i = 0; i < links_.size(); ++i) {
+        LinkType* olink = other.links_[i];
+        assert(olink->index_ == i);
+
+        links_[i]->index_  = i;
+        links_[i]->next_   = links_[olink->next_->index_];
+        links_[i]->outer_  = links_[olink->outer_->index_];
+        links_[i]->node_   = nodes_[olink->node_->index_];
+        links_[i]->edge_   = edges_[olink->edge_->index_];
+    }
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        NodeType* onode = other.nodes_[i];
+        assert(onode->index_ == i);
+
+        nodes_[i]->index_  = i;
+        nodes_[i]->link_   = links_[onode->link_->index_];
+    }
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        EdgeType* oedge = other.edges_[i];
+        assert(oedge->index_ == i);
+
+        edges_[i]->index_  = i;
+        edges_[i]->link_p_ = links_[oedge->link_p_->index_];
+        edges_[i]->link_s_ = links_[oedge->link_s_->index_];
+    }
+}
+
+/**
+ * @brief Assignment operator. Copies the topology, but not the data of a tree.
+ *
+ * See Tree copy constructor for more information.
+ */
+template <class NDT, class EDT>
+Tree<NDT, EDT>& Tree<NDT, EDT>::operator = (Tree<NDT, EDT> tmp)
+{
+    // the Tree tmp is a copy of the right hand side object (automatically created using the
+    // copy constructor). we can thus simply swap the arrays, and upon leaving the function,
+    // tmp is automatically destroyed, so that its arrays are cleared and the data freed.
+    std::swap(links_, tmp.links_);
+    std::swap(nodes_, tmp.nodes_);
+    std::swap(edges_, tmp.edges_);
+    return *this;
+}
+
+/**
+ * @brief Destructor. Calls clear() to free all memory used by the tree and its substructures.
+ */
+template <class NDT, class EDT>
+Tree<NDT, EDT>::~Tree ()
+{
+    clear();
+}
+
+/**
  * @brief Deletes all data of the tree, including all links, nodes and edges.
  */
 template <class NDT, class EDT>
@@ -44,12 +135,14 @@ void Tree<NDT, EDT>::clear()
 }
 
 /**
- * @brief Destructor. Calls clear() to free all memory used by the tree and its substructures.
+ * @brief Swap.
  */
 template <class NDT, class EDT>
-Tree<NDT, EDT>::~Tree ()
+void Tree<NDT, EDT>::swap (Tree<NDT, EDT>& other)
 {
-    clear();
+    std::swap(links_, other.links_);
+    std::swap(nodes_, other.nodes_);
+    std::swap(edges_, other.edges_);
 }
 
 /**
@@ -124,7 +217,7 @@ bool Tree<NDT, EDT>::IsBifurcating() const
  * @brief
  */
 template <class NDT, class EDT>
-Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix()
+Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix() const
 {
     Matrix<int>* mat = new Matrix<int>(NodesSize(), NodesSize());
     // TODO
@@ -137,7 +230,7 @@ Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix()
  * If no Node pointer is provided, the root is taken as node.
  */
 template <class NDT, class EDT>
-std::vector<int> Tree<NDT, EDT>::NodeDepthVector(NodeType* node)
+std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
 {
     if (!node) {
         node = RootNode();
@@ -175,7 +268,7 @@ std::vector<int> Tree<NDT, EDT>::NodeDepthVector(NodeType* node)
  * The elements of the matrix are indexed using Node()->Index().
  */
 template <class NDT, class EDT>
-Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
+Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix() const
 {
     Matrix<double>* mat = new Matrix<double>(NodesSize(), NodesSize());
 
@@ -213,7 +306,7 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix()
  * If no Node pointer is provided, the root is taken as node.
  */
 template <class NDT, class EDT>
-std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(NodeType* node)
+std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(const NodeType* node) const
 {
     if (!node) {
         node = RootNode();
@@ -242,9 +335,9 @@ std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(NodeType* node)
  */
 template <class NDT, class EDT>
 bool Tree<NDT, EDT>::Equal(
-    TreeType& lhs,
-    TreeType& rhs,
-    std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+    const TreeType& lhs,
+    const TreeType& rhs,
+    const std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
 ) {
     // check array sizes
     if (lhs.links_.size() != rhs.links_.size() ||
@@ -282,9 +375,9 @@ bool Tree<NDT, EDT>::Equal(
  */
 template <class NDT, class EDT>
 bool Tree<NDT, EDT>::Equal(
-    TreeType& other,
-    std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
-) {
+    const TreeType& other,
+    const std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+) const {
     return Equal(*this, other, comparator);
 }
 
@@ -301,7 +394,7 @@ bool Tree<NDT, EDT>::Equal(
  * same input, for example from the same Newick file.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalTopology(TreeType& right)
+bool Tree<NDT, EDT>::HasIdenticalTopology(const TreeType& right) const
 {
     auto comparator = [] (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)
     {
@@ -317,7 +410,7 @@ bool Tree<NDT, EDT>::HasIdenticalTopology(TreeType& right)
  * See HasIdenticalData() for more information.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalEdgeData(TreeType& right) const
+bool Tree<NDT, EDT>::HasIdenticalEdgeData(const TreeType& right) const
 {
     // check array size
     if (this->edges_.size() != right.edges_.size()) {
@@ -340,7 +433,7 @@ bool Tree<NDT, EDT>::HasIdenticalEdgeData(TreeType& right) const
  * See HasIdenticalData() for more information.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalNodeData(TreeType& right) const
+bool Tree<NDT, EDT>::HasIdenticalNodeData(const TreeType& right) const
 {
     // check array sizes
     if (this->nodes_.size() != right.nodes_.size()) {
@@ -369,7 +462,7 @@ bool Tree<NDT, EDT>::HasIdenticalNodeData(TreeType& right) const
  * same input, for example from the same Newick file.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalData(TreeType& right) const
+bool Tree<NDT, EDT>::HasIdenticalData(const TreeType& right) const
 {
     return HasIdenticalEdgeData(right) && HasIdenticalNodeData(right);
 }

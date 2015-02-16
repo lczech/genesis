@@ -73,6 +73,11 @@ class TreeNode : public NodeDataType
 public:
     TreeNode() : link_(nullptr) {}
 
+    // avoid copy constructor and assignment operator.
+    // creating copies is maintained by Tree only.
+    TreeNode (const TreeNode&) = delete;
+    TreeNode& operator = (const TreeNode&) = delete;
+
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
