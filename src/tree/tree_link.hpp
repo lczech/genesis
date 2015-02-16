@@ -37,6 +37,11 @@ class TreeLink
 public:
     TreeLink() : next_(nullptr), outer_(nullptr), node_(nullptr), edge_(nullptr) {}
 
+    // avoid copy constructor and assignment operator.
+    // creating copies is maintained by Tree only.
+    TreeLink (const TreeLink&) = delete;
+    TreeLink& operator = (const TreeLink&) = delete;
+
     // ---------------------------------------------------------------------
     //     Typedefs
     // ---------------------------------------------------------------------

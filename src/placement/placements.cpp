@@ -25,6 +25,88 @@ namespace genesis {
 //     Constructor & Destructor
 // =============================================================================
 
+/**
+ * @brief Copy constructor.
+ */
+Placements::Placements (const Placements& other)
+{
+    clear();
+
+    // use assignment operator to create copy of the tree and metadata.
+    tree     = other.tree;
+    metadata = other.metadata;
+
+    // copy all data of the tree: do a preorder traversal on both trees in parallel
+    PlacementTree::IteratorPreorder it_n = tree.BeginPreorder();
+    PlacementTree::IteratorPreorder it_o = other.tree.BeginPreorder();
+    for (
+        ;
+        it_n != tree.EndPreorder() && it_o != other.tree.EndPreorder();
+        ++it_n, ++it_o
+    ) {
+        // the trees are copies of each other, they need to have the same rank. otherwise,
+        // the copy constructor is not working!
+        assert(it_n.Node()->Rank() == it_o.Node()->Rank());
+
+        it_n.Edge()->placements.clear();
+        it_n.Edge()->branch_length = it_o.Edge()->branch_length;
+        it_n.Edge()->edge_num = it_o.Edge()->edge_num;
+
+        it_n.Node()->name = it_o.Node()->name;
+    }
+
+    // the trees are copies. they should take equal iterations to finish a traversal.
+    assert(it_n == tree.EndPreorder() && it_o == other.tree.EndPreorder());
+
+    // copy all (o)ther pqueries to (n)ew pqueries
+    EdgeNumMapType* edge_num_map = EdgeNumMap();
+    for (Pquery* opqry : other.pqueries) {
+        Pquery* npqry = new Pquery();
+        pqueries.push_back(npqry);
+
+        for (PqueryPlacement* op : opqry->placements) {
+            PqueryPlacement* np = new PqueryPlacement(op);
+
+            np->edge   = (*edge_num_map)[np->edge_num];
+            np->edge->placements.push_back(np);
+            np->pquery = npqry;
+            npqry->placements.push_back(np);
+        }
+        for (PqueryName* on : opqry->names) {
+            PqueryName* nn = new PqueryName(on);
+            nn->pquery = npqry;
+            npqry->names.push_back(nn);
+        }
+    }
+}
+
+/**
+ * @brief Assignment operator. See Copy constructor for details.
+ */
+Placements& Placements::operator = (Placements other)
+{
+    // the Placements tmp is a copy of the right hand side object (automatically created using the
+    // copy constructor). we can thus simply swap the arrays, and upon leaving the function,
+    // tmp is automatically destroyed, so that its arrays are cleared and the data freed.
+    std::swap(pqueries, other.pqueries);
+    tree.swap(other.tree);
+    std::swap(metadata, other.metadata);
+    return *this;
+}
+
+/**
+ * @brief Destructor. Calls clear() to delete all data.
+ */
+Placements::~Placements()
+{
+    clear();
+}
+
+/**
+ * @brief Clears all data of this object.
+ *
+ * The pqueries, the tree and the metadata are deleted.
+ */
 void Placements::clear()
 {
     for (Pquery* pqry : pqueries) {
@@ -35,19 +117,16 @@ void Placements::clear()
     metadata.clear();
 }
 
-Placements::~Placements()
-{
-    clear();
-}
-
 /**
  * @brief Returns a mapping of edge_num integers to the corresponding Edge object.
+ *
+ * This function depends on the tree only and does not involve any pqueries.
  */
-Placements::EdgeNumMapType* Placements::EdgeNumMap()
+Placements::EdgeNumMapType* Placements::EdgeNumMap() const
 {
     EdgeNumMapType* edge_num_map = new EdgeNumMapType();
     for (
-        PlacementTree::IteratorEdges it = tree.BeginEdges();
+        PlacementTree::ConstIteratorEdges it = tree.BeginEdges();
         it != tree.EndEdges();
         ++it
     ) {
@@ -493,7 +572,7 @@ void Placements::COG()
  * number of elements). However, as this is not required (placements with small ratio can be dropped,
  * so that their sum per pquery is less than 1.0), we need to calculate this number manually here.
  */
-double Placements::Variance()
+double Placements::Variance() const
 {
     Matrix<double>* distances = tree.NodeDistanceMatrix();
     double variance = 0.0;
@@ -519,7 +598,7 @@ double Placements::Variance()
     //*
     LOG_DBG << "starting threads...";
 
-#   define NT 4
+#   define NT 2
 
     std::thread* threads[NT];
     double       partials[NT];
@@ -553,7 +632,10 @@ double Placements::Variance()
     return tmp;
 }
 
+// TODO remove!
 /*
+
+HOME
 
 test zeiten (sec)
 
@@ -568,12 +650,72 @@ ohne threads, 4 runs 376
 1 thread, viertel der pqueries 76
 1 thread, haelfte der pqueries 155
 
+=============================================
+
+WORK
+
+ohne threads:
+
+    Command being timed: "./genesis"
+    User time (seconds): 389.49
+    System time (seconds): 0.25
+    Percent of CPU this job got: 99%
+    Elapsed (wall clock) time (h:mm:ss or m:ss): 6:30.55
+    Average shared text size (kbytes): 0
+    Average unshared data size (kbytes): 0
+    Average stack size (kbytes): 0
+    Average total size (kbytes): 0
+    Maximum resident set size (kbytes): 246916
+    Average resident set size (kbytes): 0
+    Major (requiring I/O) page faults: 0
+    Minor (reclaiming a frame) page faults: 76595
+    Voluntary context switches: 1
+    Involuntary context switches: 50128
+    Swaps: 0
+    File system inputs: 0
+    File system outputs: 0
+    Socket messages sent: 0
+    Socket messages received: 0
+    Signals delivered: 0
+    Page size (bytes): 4096
+    Exit status: 0
+
+1 thread
+
+    Command being timed: "./genesis"
+    User time (seconds): 435.78
+    System time (seconds): 0.19
+    Percent of CPU this job got: 99%
+    Elapsed (wall clock) time (h:mm:ss or m:ss): 7:16.84
+    Average shared text size (kbytes): 0
+    Average unshared data size (kbytes): 0
+    Average stack size (kbytes): 0
+    Average total size (kbytes): 0
+    Maximum resident set size (kbytes): 247324
+    Average resident set size (kbytes): 0
+    Major (requiring I/O) page faults: 0
+    Minor (reclaiming a frame) page faults: 55314
+    Voluntary context switches: 4
+    Involuntary context switches: 55003
+    Swaps: 0
+    File system inputs: 0
+    File system outputs: 0
+    Socket messages sent: 0
+    Socket messages received: 0
+    Signals delivered: 0
+    Page size (bytes): 4096
+    Exit status: 0
+
 */
 
-void Placements::VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count)
+void Placements::VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count) const
 {
+    int progress = 0;
+
     LOG_DBG2 << "thread: offset(" << offset << "), incr(" << incr << ") started with partial " << *partial;
     for (size_t i = offset; i < pqueries.size(); i += incr) {
+        LOG_PROG(++progress, pqueries.size()) << "of Variance() finished (offset " << offset << ", incr " << incr << ").";
+
         Pquery* pqry_a = pqueries[i];
         for (PqueryPlacement* place_a : pqry_a->placements) {
             *count   += place_a->like_weight_ratio;
@@ -651,7 +793,7 @@ double Placements::VariancePartial(const PqueryPlacement* place_a, const Matrix<
 /**
  * @brief Returns a list of all Pqueries with their %Placements and Names.
  */
-std::string Placements::Dump()
+std::string Placements::Dump() const
 {
     std::ostringstream out;
     for (Pquery* pqry : pqueries) {
@@ -688,7 +830,7 @@ std::string Placements::Dump()
  * If additionally `break_on_values` is set, Validate() will stop on the first encountered invalid
  * value. Otherwise it will report all invalid values.
  */
-bool Placements::Validate (bool check_values, bool break_on_values)
+bool Placements::Validate (bool check_values, bool break_on_values) const
 {
     // check tree
     if (!tree.Validate()) {
@@ -700,7 +842,7 @@ bool Placements::Validate (bool check_values, bool break_on_values)
     EdgeNumMapType edge_num_map;
     size_t edge_place_count = 0;
     for (
-        PlacementTree::IteratorEdges it_e = tree.BeginEdges();
+        PlacementTree::ConstIteratorEdges it_e = tree.BeginEdges();
         it_e != tree.EndEdges();
         ++it_e
     ) {

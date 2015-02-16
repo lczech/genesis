@@ -301,6 +301,13 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << "Valid B: " << place_b.Validate();
     //~ LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
 
+    //~ LOG_DBG << "Copying a to b...";
+    //~ place_b = place_a;
+    //~ LOG_DBG << "Validating a...";
+    //~ LOG_DBG << "Valid a: " << place_a.Validate();
+    //~ LOG_DBG << "Validating b...";
+    //~ LOG_DBG << "Valid b: " << place_b.Validate();
+
     LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
     place_a.RestrainToMaxWeightPlacements();
     //~ place_b.RestrainToMaxWeightPlacements();

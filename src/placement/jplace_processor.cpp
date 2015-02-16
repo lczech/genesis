@@ -114,7 +114,7 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, Placements& placeme
     // checking for validity first!
     std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
     for (
-        PlacementTree::IteratorEdges it = placements.tree.BeginEdges();
+        PlacementTree::ConstIteratorEdges it = placements.tree.BeginEdges();
         it != placements.tree.EndEdges();
         ++it
     ) {

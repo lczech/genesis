@@ -99,9 +99,39 @@ public:
     //     Construction and Destruction
     // -----------------------------------------------------
 
-    Tree () {}
-    void clear();
+    Tree () {};
+
+    Tree (const TreeType& other);
+    TreeType& operator = (TreeType other);
+
+    // TODO make copy constructor and assignment operator work with other tree types.
+    // the following declarations compile, but do not work. maybe they still help for implementing.
+    /*
+    template <class OtherNodeDataType, class OtherEdgeDataType>
+    Tree (const Tree<OtherNodeDataType, OtherEdgeDataType>& other);
+    template <class OtherNodeDataType, class OtherEdgeDataType>
+    TreeType& operator = (Tree<OtherNodeDataType, OtherEdgeDataType> other);
+
+    template <class OtherNodeDataType, class OtherEdgeDataType, template <typename, typename> class OtherTreeType>
+    Tree (const OtherTreeType<OtherNodeDataType, OtherEdgeDataType>& other);
+    template <class OtherNodeDataType, class OtherEdgeDataType, template <typename, typename> class OtherTreeType>
+    TreeType& operator = (OtherTreeType<OtherNodeDataType, OtherEdgeDataType> other);
+    */
+
     virtual ~Tree();
+    void clear();
+
+    void swap (TreeType& other);
+
+    // TODO make swap work with other tree types.
+    // the following declarations compile, but do not work. maybe they still help for implementing.
+    /*
+    template <class OtherNodeDataType, class OtherEdgeDataType>
+    void swap (Tree<OtherNodeDataType, OtherEdgeDataType>& other);
+
+    template <class OtherNodeDataType, class OtherEdgeDataType, template <typename, typename> class OtherTreeType>
+    void swap (OtherTreeType<OtherNodeDataType, OtherEdgeDataType>& other);
+    */
 
     void Import(LinkArray& links, NodeArray& nodes, EdgeArray& edges);
     void Export(LinkArray& links, NodeArray& nodes, EdgeArray& edges);
@@ -173,6 +203,10 @@ public:
     typedef typename std::vector<NodeType*>::iterator          IteratorNodes;
     typedef typename std::vector<EdgeType*>::iterator          IteratorEdges;
 
+    typedef typename std::vector<LinkType*>::const_iterator    ConstIteratorLinks;
+    typedef typename std::vector<NodeType*>::const_iterator    ConstIteratorNodes;
+    typedef typename std::vector<EdgeType*>::const_iterator    ConstIteratorEdges;
+
     // TODO so far, the End... iterators are called anew for every comparison in a loop like
     // TODO it != tree.EndInorder(), which will slow it down compared to having e.g. a fixed
     // TODO end iterator object or so... not sure, if worth the effort.
@@ -181,22 +215,22 @@ public:
     //     Roundtrip
     // -----------------------
 
-    inline IteratorRoundtrip BeginRoundtrip()
+    inline IteratorRoundtrip BeginRoundtrip() const
     {
         return IteratorRoundtrip(RootLink());
     }
 
-    inline IteratorRoundtrip BeginRoundtrip(LinkType* link)
+    inline IteratorRoundtrip BeginRoundtrip(LinkType* link) const
     {
         return IteratorRoundtrip(link);
     }
 
-    inline IteratorRoundtrip BeginRoundtrip(NodeType* node)
+    inline IteratorRoundtrip BeginRoundtrip(NodeType* node) const
     {
         return IteratorRoundtrip(node->PrimaryLink());
     }
 
-    inline IteratorRoundtrip EndRoundtrip()
+    inline IteratorRoundtrip EndRoundtrip() const
     {
         return IteratorRoundtrip(nullptr);
     }
@@ -205,22 +239,22 @@ public:
     //     Preorder
     // -----------------------
 
-    inline IteratorPreorder BeginPreorder()
+    inline IteratorPreorder BeginPreorder() const
     {
         return IteratorPreorder(RootLink());
     }
 
-    inline IteratorPreorder BeginPreorder(LinkType* link)
+    inline IteratorPreorder BeginPreorder(LinkType* link) const
     {
         return IteratorPreorder(link);
     }
 
-    inline IteratorPreorder BeginPreorder(NodeType* node)
+    inline IteratorPreorder BeginPreorder(NodeType* node) const
     {
         return IteratorPreorder(node->PrimaryLink());
     }
 
-    inline IteratorPreorder EndPreorder()
+    inline IteratorPreorder EndPreorder() const
     {
         return IteratorPreorder(nullptr);
     }
@@ -229,22 +263,22 @@ public:
     //     Inorder
     // -----------------------
 
-    //~ inline IteratorInorder BeginInorder()
+    //~ inline IteratorInorder BeginInorder() const
     //~ {
         //~ return IteratorInorder(RootLink());
     //~ }
 //~
-    //~ inline IteratorInorder BeginInorder(LinkType* link)
+    //~ inline IteratorInorder BeginInorder(LinkType* link) const
     //~ {
         //~ return IteratorInorder(link);
     //~ }
 //~
-    //~ inline IteratorInorder BeginInorder(NodeType* node)
+    //~ inline IteratorInorder BeginInorder(NodeType* node) const
     //~ {
         //~ return IteratorInorder(node->PrimaryLink());
     //~ }
 //~
-    //~ inline IteratorInorder EndInorder()
+    //~ inline IteratorInorder EndInorder() const
     //~ {
         //~ return IteratorInorder(nullptr);
     //~ }
@@ -253,22 +287,22 @@ public:
     //     Postorder
     // -----------------------
 
-    inline IteratorPostorder BeginPostorder()
+    inline IteratorPostorder BeginPostorder() const
     {
         return IteratorPostorder(RootLink());
     }
 
-    inline IteratorPostorder BeginPostorder(LinkType* link)
+    inline IteratorPostorder BeginPostorder(LinkType* link) const
     {
         return IteratorPostorder(link);
     }
 
-    inline IteratorPostorder BeginPostorder(NodeType* node)
+    inline IteratorPostorder BeginPostorder(NodeType* node) const
     {
         return IteratorPostorder(node->PrimaryLink());
     }
 
-    inline IteratorPostorder EndPostorder()
+    inline IteratorPostorder EndPostorder() const
     {
         return IteratorPostorder(nullptr);
     }
@@ -277,22 +311,22 @@ public:
     //     Levelorder
     // -----------------------
 
-    inline IteratorLevelorder BeginLevelorder()
+    inline IteratorLevelorder BeginLevelorder() const
     {
         return IteratorLevelorder(RootLink());
     }
 
-    inline IteratorLevelorder BeginLevelorder(LinkType* link)
+    inline IteratorLevelorder BeginLevelorder(LinkType* link) const
     {
         return IteratorLevelorder(link);
     }
 
-    inline IteratorLevelorder BeginLevelorder(NodeType* node)
+    inline IteratorLevelorder BeginLevelorder(NodeType* node) const
     {
         return IteratorLevelorder(node->PrimaryLink());
     }
 
-    inline IteratorLevelorder EndLevelorder()
+    inline IteratorLevelorder EndLevelorder() const
     {
         return IteratorLevelorder(nullptr);
     }
@@ -311,6 +345,16 @@ public:
         return links_.end();
     }
 
+    inline ConstIteratorLinks BeginLinks() const
+    {
+        return links_.cbegin();
+    }
+
+    inline ConstIteratorLinks EndLinks() const
+    {
+        return links_.cend();
+    }
+
     // -----------------------
     //     Nodes
     // -----------------------
@@ -323,6 +367,16 @@ public:
     inline IteratorNodes EndNodes()
     {
         return nodes_.end();
+    }
+
+    inline ConstIteratorNodes BeginNodes() const
+    {
+        return nodes_.cbegin();
+    }
+
+    inline ConstIteratorNodes EndNodes() const
+    {
+        return nodes_.cend();
     }
 
     // -----------------------
@@ -339,6 +393,16 @@ public:
         return edges_.end();
     }
 
+    inline ConstIteratorEdges BeginEdges() const
+    {
+        return edges_.cbegin();
+    }
+
+    inline ConstIteratorEdges EndEdges() const
+    {
+        return edges_.cend();
+    }
+
     // -----------------------------------------------------
     //     Member Functions
     // -----------------------------------------------------
@@ -348,25 +412,25 @@ public:
     int  MaxRank() const;
     bool IsBifurcating() const;
 
-    Matrix<int>*        NodeDepthMatrix();
-    std::vector<int>    NodeDepthVector(NodeType* node = nullptr);
-    Matrix<double>*     NodeDistanceMatrix();
-    std::vector<double> NodeDistanceVector(NodeType* node = nullptr);
+    Matrix<int>*        NodeDepthMatrix    ()                               const;
+    std::vector<int>    NodeDepthVector    (const NodeType* node = nullptr) const;
+    Matrix<double>*     NodeDistanceMatrix ()                               const;
+    std::vector<double> NodeDistanceVector (const NodeType* node = nullptr) const;
 
     static bool Equal(
-        TreeType& lhs,
-        TreeType& rhs,
-        std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+        const TreeType& lhs,
+        const TreeType& rhs,
+        const std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
     );
     bool Equal(
-        TreeType& other,
-        std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
-    );
+        const TreeType& other,
+        const std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+    ) const;
 
-    bool HasIdenticalTopology(TreeType& other);
-    bool HasIdenticalEdgeData(TreeType& other) const;
-    bool HasIdenticalNodeData(TreeType& other) const;
-    bool HasIdenticalData(TreeType& other) const;
+    bool HasIdenticalTopology(const TreeType& other) const;
+    bool HasIdenticalEdgeData(const TreeType& other) const;
+    bool HasIdenticalNodeData(const TreeType& other) const;
+    bool HasIdenticalData    (const TreeType& other) const;
 
     // -----------------------------------------------------
     //     Debug and Dump
