@@ -220,12 +220,12 @@ public:
         return IteratorRoundtrip(RootLink());
     }
 
-    inline IteratorRoundtrip BeginRoundtrip(LinkType* link) const
+    inline IteratorRoundtrip BeginRoundtrip(const LinkType* link) const
     {
         return IteratorRoundtrip(link);
     }
 
-    inline IteratorRoundtrip BeginRoundtrip(NodeType* node) const
+    inline IteratorRoundtrip BeginRoundtrip(const NodeType* node) const
     {
         return IteratorRoundtrip(node->PrimaryLink());
     }
@@ -244,12 +244,12 @@ public:
         return IteratorPreorder(RootLink());
     }
 
-    inline IteratorPreorder BeginPreorder(LinkType* link) const
+    inline IteratorPreorder BeginPreorder(const LinkType* link) const
     {
         return IteratorPreorder(link);
     }
 
-    inline IteratorPreorder BeginPreorder(NodeType* node) const
+    inline IteratorPreorder BeginPreorder(const NodeType* node) const
     {
         return IteratorPreorder(node->PrimaryLink());
     }
@@ -268,12 +268,12 @@ public:
         //~ return IteratorInorder(RootLink());
     //~ }
 //~
-    //~ inline IteratorInorder BeginInorder(LinkType* link) const
+    //~ inline IteratorInorder BeginInorder(const LinkType* link) const
     //~ {
         //~ return IteratorInorder(link);
     //~ }
 //~
-    //~ inline IteratorInorder BeginInorder(NodeType* node) const
+    //~ inline IteratorInorder BeginInorder(const NodeType* node) const
     //~ {
         //~ return IteratorInorder(node->PrimaryLink());
     //~ }
@@ -292,12 +292,12 @@ public:
         return IteratorPostorder(RootLink());
     }
 
-    inline IteratorPostorder BeginPostorder(LinkType* link) const
+    inline IteratorPostorder BeginPostorder(const LinkType* link) const
     {
         return IteratorPostorder(link);
     }
 
-    inline IteratorPostorder BeginPostorder(NodeType* node) const
+    inline IteratorPostorder BeginPostorder(const NodeType* node) const
     {
         return IteratorPostorder(node->PrimaryLink());
     }
@@ -316,12 +316,12 @@ public:
         return IteratorLevelorder(RootLink());
     }
 
-    inline IteratorLevelorder BeginLevelorder(LinkType* link) const
+    inline IteratorLevelorder BeginLevelorder(const LinkType* link) const
     {
         return IteratorLevelorder(link);
     }
 
-    inline IteratorLevelorder BeginLevelorder(NodeType* node) const
+    inline IteratorLevelorder BeginLevelorder(const NodeType* node) const
     {
         return IteratorLevelorder(node->PrimaryLink());
     }

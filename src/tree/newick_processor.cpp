@@ -41,7 +41,7 @@ bool NewickProcessor::print_tags           = false;
 int  NewickProcessor::precision            = 6;
 
 // TODO this is a quick and dirty (=slow) solution...
-std::string NewickProcessor::ToStringRec(NewickBroker& broker, size_t pos)
+std::string NewickProcessor::ToStringRec(const NewickBroker& broker, size_t pos)
 {
     // check if it is a leaf, stop recursion if so.
     if (broker[pos]->rank() == 0) {
@@ -75,7 +75,7 @@ std::string NewickProcessor::ToStringRec(NewickBroker& broker, size_t pos)
     return out.str();
 }
 
-std::string NewickProcessor::ElementToString(NewickBrokerElement* bn)
+std::string NewickProcessor::ElementToString(const NewickBrokerElement* bn)
 {
     std::string res = "";
     if (print_names) {

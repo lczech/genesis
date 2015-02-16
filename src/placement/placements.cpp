@@ -277,7 +277,7 @@ void Placements::RestrainToMaxWeightPlacements()
 /**
  * @brief Get the total number of placements in all pqueries.
  */
-size_t Placements::PlacementCount()
+size_t Placements::PlacementCount() const
 {
     size_t count = 0;
     for (Pquery* pqry : pqueries) {
@@ -289,7 +289,7 @@ size_t Placements::PlacementCount()
 /**
  * @brief Get the summed mass of all placements on the tree, given by their `like_weight_ratio`.
  */
-double Placements::PlacementMass()
+double Placements::PlacementMass() const
 {
     double sum = 0.0;
     for (Pquery* pqry : pqueries) {
@@ -304,7 +304,7 @@ double Placements::PlacementMass()
  * @brief Calculates the Earth Movers Distance to another sets of placements on a fixed reference
  * tree.
  */
-double Placements::EMD(Placements& right)
+double Placements::EMD(const Placements& right) const
 {
     return Placements::EMD(*this, right);
 }
@@ -313,7 +313,7 @@ double Placements::EMD(Placements& right)
  * @brief Calculates the Earth Movers Distance between two sets of placements on a fixed reference
  * tree.
  */
-double Placements::EMD(Placements& lhs, Placements& rhs)
+double Placements::EMD(const Placements& lhs, const Placements& rhs)
 {
     // keep track of the total resulting distance.
     double distance = 0.0;
@@ -438,7 +438,7 @@ double Placements::EMD(Placements& lhs, Placements& rhs)
 /**
  * @brief Calculate the Center of Gravity of the placements on a tree.
  */
-void Placements::COG()
+void Placements::COG() const
 {
     // store a balance of mass per link, so that each element contains the mass that lies
     // in the direction of this link

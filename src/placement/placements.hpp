@@ -128,12 +128,12 @@ public:
     //     Placement Weight
     // -----------------------------------------------------
 
-    static double EMD (Placements& left, Placements& right);
-    double EMD (Placements& other);
+    static double EMD (const Placements& left, const Placements& right);
+    double EMD (const Placements& other) const;
 
-    size_t PlacementCount();
-    double PlacementMass();
-    void   COG();
+    size_t PlacementCount() const;
+    double PlacementMass() const;
+    void   COG() const;
 
 public:
     double Variance() const;
