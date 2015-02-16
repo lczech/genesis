@@ -113,7 +113,7 @@ public:
     Placements () {}
     Placements (PlacementTree& ptree) : tree(ptree) {}
     Placements (const Placements& other);
-    Placements& operator = (Placements other);
+    Placements& operator = (const Placements& other);
     ~Placements();
     void clear();
 
@@ -139,7 +139,7 @@ public:
     double Variance() const;
 protected:
     void   VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count) const;
-    double VariancePartial(const PqueryPlacement* place_a, const Matrix<double>* distances) const;
+    double VariancePartial(const PqueryPlacement* place_a, const Matrix<double>* distances, const std::deque<Pquery*>& mypqueries) const;
 
     // -----------------------------------------------------
     //     Dump and Debug

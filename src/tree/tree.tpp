@@ -93,11 +93,18 @@ Tree<NDT, EDT>::Tree (const Tree<NDT, EDT>& other)
  * See Tree copy constructor for more information.
  */
 template <class NDT, class EDT>
-Tree<NDT, EDT>& Tree<NDT, EDT>::operator = (Tree<NDT, EDT> tmp)
+Tree<NDT, EDT>& Tree<NDT, EDT>::operator = (const Tree<NDT, EDT>& other)
 {
+    // check for self-assignment. we want this explicitly, in order to avoid unnecessary copies of
+    // the tree, which would mean loosing the data in process.
+    if (&other == this) {
+        return *this;
+    }
+
     // the Tree tmp is a copy of the right hand side object (automatically created using the
     // copy constructor). we can thus simply swap the arrays, and upon leaving the function,
     // tmp is automatically destroyed, so that its arrays are cleared and the data freed.
+    Tree<NDT, EDT> tmp(other);
     std::swap(links_, tmp.links_);
     std::swap(nodes_, tmp.nodes_);
     std::swap(edges_, tmp.edges_);

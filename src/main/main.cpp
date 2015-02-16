@@ -283,8 +283,8 @@ int main (int argc, char* argv[])
     //*
     Placements place_a, place_b;
     LOG_DBG << "Reading file...";
-    //~ JplaceProcessor::FromFile("test/data/test_a.jplace", place_a);
-    JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_0.jplace", place_a);
+    JplaceProcessor::FromFile("test/data/test_a.jplace", place_a);
+    //~ JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_0.jplace", place_a);
     //~ JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_1.jplace", place_b);
     //~ LOG_DBG << "Valid A: " << place_a.Validate();
     //~ LOG_DBG << "Valid B: " << place_b.Validate();

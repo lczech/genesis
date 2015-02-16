@@ -102,7 +102,7 @@ public:
     Tree () {};
 
     Tree (const TreeType& other);
-    TreeType& operator = (TreeType other);
+    TreeType& operator = (const TreeType& other);
 
     // TODO make copy constructor and assignment operator work with other tree types.
     // the following declarations compile, but do not work. maybe they still help for implementing.
