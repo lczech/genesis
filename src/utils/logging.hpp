@@ -167,10 +167,11 @@ namespace genesis {
 #define LOG_PROG(value, quantity) \
     if (genesis::Logging::kProgress > LOG_LEVEL_MAX) ; \
     else if (genesis::Logging::kProgress > genesis::Logging::max_level()) ; \
-    else if ((long) LoggingProgressValue(value) % (((long) (quantity) * genesis::Logging::report_percentage() / 100) > 0 ? \
-    ((long) (quantity) * genesis::Logging::report_percentage() / 100) : 1) != 0) ; \
-    else genesis::Logging().Get(__FILE__, __LINE__, GNS_FUNC, genesis::Logging::kProgress) \
-    << (int) round(100.0 * (double) LoggingProgressValue() / ((quantity) > 0 ? (quantity) : 1)) << "% "
+    else if ((long) LoggingProgressValue(value) % \
+        (((long) (quantity) * genesis::Logging::report_percentage() / 100) > 0 ? \
+        ((long) (quantity) * genesis::Logging::report_percentage() / 100) : 1) != 0) ; \
+    else genesis::Logging().Get(__FILE__, __LINE__, GNS_FUNC, genesis::Logging::kProgress) << \
+    (int) round(100.0 * (double) LoggingProgressValue() / ((quantity) > 0 ? (quantity) : 1)) << "% "
 
 /**
  * @brief Hack function to make sure that the value arugment in #LOG_PROG is only evaluated once.
@@ -368,6 +369,12 @@ class Logging
         Logging() {};
         ~Logging();
 
+        // Logging is kind of singleton, its instances are only provided via the
+        // Get functions. do not allow other instances by blocking the copy
+        // constructors and copy assignment
+        Logging (const Logging&) = delete;
+        Logging& operator = (const Logging&) = delete;
+
         // getter for the singleton instance of log, is called by the macros
         std::ostringstream& Get (
             const std::string& file, const int line, const std::string& function,
@@ -430,13 +437,6 @@ class Logging
 
         // array of streams that are used for output
         static std::vector<std::ostream*> ostreams_;
-
-    private:
-        // Logging is kind of singleton, its instances are only provided via the
-        // Get functions. do not allow other instances by blocking the copy
-        // constructors and copy assignment
-        Logging (const Logging&);
-        Logging& operator = (const Logging&);
 };
 
 /*
