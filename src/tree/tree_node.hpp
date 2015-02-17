@@ -26,7 +26,7 @@ class  Tree;
 template <class NodeDataType, class EdgeDataType>
 class  TreeLink;
 
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeNodeIteratorLinks;
 
 // =============================================================================
@@ -114,7 +114,8 @@ public:
     //     Iterators
     // -----------------------------------------------------
 
-    typedef TreeNodeIteratorLinks<NodeDataType, EdgeDataType> IteratorLinks;
+    typedef TreeNodeIteratorLinks<      LinkType*,       NodeType*,       EdgeType*>      IteratorLinks;
+    typedef TreeNodeIteratorLinks<const LinkType*, const NodeType*, const EdgeType*> ConstIteratorLinks;
 
     inline IteratorLinks BeginLinks()
     {
@@ -126,6 +127,16 @@ public:
         return IteratorLinks(nullptr);
     }
 
+    inline ConstIteratorLinks BeginLinks() const
+    {
+        return ConstIteratorLinks(link_);
+    }
+
+    inline ConstIteratorLinks EndLinks() const
+    {
+        return ConstIteratorLinks(nullptr);
+    }
+
     // -----------------------------------------------------
     //     Member Functions
     // -----------------------------------------------------
@@ -133,7 +144,7 @@ public:
     /**
      * @brief Returns the index of this Link.
      */
-    inline size_t Index()
+    inline size_t Index() const
     {
         return index_;
     }
@@ -168,7 +179,7 @@ public:
 //     Iterator Links
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeNodeIteratorLinks
 {
 public:
@@ -176,17 +187,14 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeNodeIteratorLinks<NodeDataType, EdgeDataType> self_type;
-    typedef std::forward_iterator_tag                         iterator_category;
-    typedef TreeLink<NodeDataType, EdgeDataType>              value_type;
-    typedef TreeLink<NodeDataType, EdgeDataType>&             reference;
-    typedef TreeLink<NodeDataType, EdgeDataType>*             pointer;
+    typedef TreeNodeIteratorLinks<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeNodeIteratorLinks (pointer link) :
+    TreeNodeIteratorLinks (LinkPointerType link) :
     link_(link), start_(link)
     {}
 
@@ -224,29 +232,29 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline TreeLink<NodeDataType, EdgeDataType>* Link()
+    inline LinkPointerType Link()
     {
         return link_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* Node()
+    inline NodePointerType Node()
     {
         return link_->Node();
     }
 
-    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    inline EdgePointerType Edge()
     {
         return link_->Edge();
     }
 
-    inline TreeLink<NodeDataType, EdgeDataType>* StartLink()
+    inline LinkPointerType StartLink()
     {
         return start_;
     }
 
 protected:
-    pointer link_;
-    pointer start_;
+    LinkPointerType link_;
+    LinkPointerType start_;
 };
 
 } // namespace genesis

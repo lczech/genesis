@@ -326,8 +326,8 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
 /**
  * @brief Create a Tree from a NewickBroker.
  *
- * It does not take the NewickBroker by const, because AssignRanks() has to be called in order to get
- * the nesting right.
+ * It does not take the NewickBroker by const, because AssignRanks() has to be called in order to
+ * get the nesting right.
  * TODO: this could be changed by not assigning ranks to the broker but a tmp struct.
  */
 template <class NDT, class EDT>
@@ -442,7 +442,7 @@ void NewickProcessor::FromBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
  * If the file already exists, the function does not overwrite it.
  */
 template <class NDT, class EDT>
-bool NewickProcessor::ToFile   (const std::string fn, Tree<NDT, EDT>& tree)
+bool NewickProcessor::ToFile   (const std::string fn, const Tree<NDT, EDT>& tree)
 {
     if (FileExists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' already exist. Will not overwrite it.";
@@ -460,7 +460,7 @@ bool NewickProcessor::ToFile   (const std::string fn, Tree<NDT, EDT>& tree)
  * representation.
  */
 template <class NDT, class EDT>
-void NewickProcessor::ToString (std::string& ts, Tree<NDT, EDT>& tree)
+void NewickProcessor::ToString (std::string& ts, const Tree<NDT, EDT>& tree)
 {
     ts = ToString(tree);
 }
@@ -472,7 +472,7 @@ void NewickProcessor::ToString (std::string& ts, Tree<NDT, EDT>& tree)
  * representation.
  */
 template <class NDT, class EDT>
-std::string NewickProcessor::ToString (Tree<NDT, EDT>& tree)
+std::string NewickProcessor::ToString (const Tree<NDT, EDT>& tree)
 {
     NewickBroker broker;
     ToBroker(broker, tree);
@@ -484,7 +484,7 @@ std::string NewickProcessor::ToString (Tree<NDT, EDT>& tree)
  * @brief Stores the information of the tree into a NewickBroker object.
  */
 template <class NDT, class EDT>
-void NewickProcessor::ToBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
+void NewickProcessor::ToBroker (NewickBroker& broker, const Tree<NDT, EDT>& tree)
 {
     // store the distance from each node to the root. this is needed to assign levels of depth
     // to the nodes for the broker.
@@ -493,7 +493,7 @@ void NewickProcessor::ToBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
     // now fill the broker with nodes via postorder traversal, so that the root is put on top last.
     broker.clear();
     for (
-        typename Tree<NDT, EDT>::IteratorPostorder it = tree.BeginPostorder();
+        typename Tree<NDT, EDT>::ConstIteratorPostorder it = tree.BeginPostorder();
         it != tree.EndPostorder();
         ++it
     ) {

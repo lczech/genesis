@@ -32,7 +32,7 @@ namespace genesis {
  * If the file already exists, the function does not overwrite it.
  */
 template <class NDT, class EDT>
-bool PhyloXmlProcessor::ToFile (const std::string fn, Tree<NDT, EDT>& tree)
+bool PhyloXmlProcessor::ToFile (const std::string fn, const Tree<NDT, EDT>& tree)
 {
     if (FileExists(fn)) {
         LOG_WARN << "PhyloXML file '" << fn << "' already exist. Will not overwrite it.";
@@ -50,7 +50,7 @@ bool PhyloXmlProcessor::ToFile (const std::string fn, Tree<NDT, EDT>& tree)
  * representation.
  */
 template <class NDT, class EDT>
-void PhyloXmlProcessor::ToString (std::string& ts, Tree<NDT, EDT>& tree)
+void PhyloXmlProcessor::ToString (std::string& ts, const Tree<NDT, EDT>& tree)
 {
     ts = ToString(tree);
 }
@@ -62,7 +62,7 @@ void PhyloXmlProcessor::ToString (std::string& ts, Tree<NDT, EDT>& tree)
  * representation.
  */
 template <class NDT, class EDT>
-std::string PhyloXmlProcessor::ToString (Tree<NDT, EDT>& tree)
+std::string PhyloXmlProcessor::ToString (const Tree<NDT, EDT>& tree)
 {
     XmlDocument xml;
     ToDocument(xml, tree);
@@ -73,7 +73,7 @@ std::string PhyloXmlProcessor::ToString (Tree<NDT, EDT>& tree)
  * @brief Stores the information of the tree into an PhyloXML-formatted XmlDocument.
  */
 template <class NDT, class EDT>
-void PhyloXmlProcessor::ToDocument (XmlDocument& xml, Tree<NDT, EDT>& tree)
+void PhyloXmlProcessor::ToDocument (XmlDocument& xml, const Tree<NDT, EDT>& tree)
 {
     xml.clear();
 
@@ -103,7 +103,7 @@ void PhyloXmlProcessor::ToDocument (XmlDocument& xml, Tree<NDT, EDT>& tree)
     int cur_d = 0;
 
     for (
-        typename Tree<NDT, EDT>::IteratorPreorder it = tree.BeginPreorder();
+        typename Tree<NDT, EDT>::ConstIteratorPreorder it = tree.BeginPreorder();
         it != tree.EndPreorder();
         ++it
     ) {

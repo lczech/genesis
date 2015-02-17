@@ -93,11 +93,18 @@ Tree<NDT, EDT>::Tree (const Tree<NDT, EDT>& other)
  * See Tree copy constructor for more information.
  */
 template <class NDT, class EDT>
-Tree<NDT, EDT>& Tree<NDT, EDT>::operator = (Tree<NDT, EDT> tmp)
+Tree<NDT, EDT>& Tree<NDT, EDT>::operator = (const Tree<NDT, EDT>& other)
 {
+    // check for self-assignment. we want this explicitly, in order to avoid unnecessary copies of
+    // the tree, which would mean loosing the data in process.
+    if (&other == this) {
+        return *this;
+    }
+
     // the Tree tmp is a copy of the right hand side object (automatically created using the
     // copy constructor). we can thus simply swap the arrays, and upon leaving the function,
     // tmp is automatically destroyed, so that its arrays are cleared and the data freed.
+    Tree<NDT, EDT> tmp(other);
     std::swap(links_, tmp.links_);
     std::swap(nodes_, tmp.nodes_);
     std::swap(edges_, tmp.edges_);
@@ -243,7 +250,7 @@ std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
 
     // calculate the distance vector via levelorder iteration.
     for (
-        IteratorLevelorder it = BeginLevelorder(node);
+        ConstIteratorLevelorder it = BeginLevelorder(node);
         it != EndLevelorder();
         ++it
     ) {
@@ -280,7 +287,7 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix() const
         // the columns are filled using a levelorder traversal. this makes sure that for every node
         // we know how to calculate the distance to the current row node.
         for (
-            IteratorLevelorder it = BeginLevelorder(row_node->Link());
+            ConstIteratorLevelorder it = BeginLevelorder(row_node->Link());
             it != EndLevelorder();
             ++it
         ) {
@@ -337,7 +344,8 @@ template <class NDT, class EDT>
 bool Tree<NDT, EDT>::Equal(
     const TreeType& lhs,
     const TreeType& rhs,
-    const std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+    const std::function<bool (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)>
+        comparator
 ) {
     // check array sizes
     if (lhs.links_.size() != rhs.links_.size() ||
@@ -348,8 +356,8 @@ bool Tree<NDT, EDT>::Equal(
     }
 
     // do a preorder traversal on both trees in parallel
-    TreeType::IteratorPreorder it_l = lhs.BeginPreorder();
-    TreeType::IteratorPreorder it_r = rhs.BeginPreorder();
+    TreeType::ConstIteratorPreorder it_l = lhs.BeginPreorder();
+    TreeType::ConstIteratorPreorder it_r = rhs.BeginPreorder();
     for (
         ;
         it_l != lhs.EndPreorder() && it_r != rhs.EndPreorder();
@@ -376,7 +384,8 @@ bool Tree<NDT, EDT>::Equal(
 template <class NDT, class EDT>
 bool Tree<NDT, EDT>::Equal(
     const TreeType& other,
-    const std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+    const std::function<bool (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)>
+        comparator
 ) const {
     return Equal(*this, other, comparator);
 }
@@ -396,7 +405,7 @@ bool Tree<NDT, EDT>::Equal(
 template <class NDT, class EDT>
 bool Tree<NDT, EDT>::HasIdenticalTopology(const TreeType& right) const
 {
-    auto comparator = [] (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)
+    auto comparator = [] (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)
     {
         return true;
     };
@@ -480,7 +489,8 @@ bool Tree<NDT, EDT>::HasIdenticalData(const TreeType& right) const
     // TODO also, if we introduce indices to them for faster access, are those correct?
     // TODO this function will be curtial to ensure correctness of invariants once
     // TODO we start implementing stuff that modifies a tree (add nodes, move branches...)!
-    // TODO do all iterators and check consistency! eg is a round trip covering every object (links onces, branches twice, nodes rank many times)?
+    // TODO do all iterators and check consistency! eg is a round trip covering every object
+    // TODO (links onces, branches twice, nodes rank many times)?
     // TODO iterator over all links and count if edges are encountered exactly twice each.
 
 

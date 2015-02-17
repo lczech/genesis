@@ -21,7 +21,7 @@ namespace genesis {
 //     Round Trip Iterator
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorRoundtrip
 {
 public:
@@ -29,17 +29,14 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorRoundtrip<NodeDataType, EdgeDataType> self_type;
-    typedef std::forward_iterator_tag                         iterator_category;
-    typedef TreeLink<NodeDataType, EdgeDataType>              value_type;
-    typedef TreeLink<NodeDataType, EdgeDataType>&             reference;
-    typedef TreeLink<NodeDataType, EdgeDataType>*             pointer;
+    typedef TreeIteratorRoundtrip<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorRoundtrip (value_type* link) : link_(link), start_(link)
+    TreeIteratorRoundtrip (LinkPointerType link) : link_(link), start_(link)
     {}
 
     // -----------------------------------------------------
@@ -76,41 +73,41 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline TreeLink<NodeDataType, EdgeDataType>* Link()
+    inline LinkPointerType Link() const
     {
         return link_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* Node()
+    inline NodePointerType Node() const
     {
         return link_->Node();
     }
 
-    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    inline EdgePointerType Edge() const
     {
         return link_->Edge();
     }
 
-    inline TreeLink<NodeDataType, EdgeDataType>* StartLink()
+    inline LinkPointerType StartLink() const
     {
         return start_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* StartNode()
+    inline NodePointerType StartNode() const
     {
         return start_->Node();
     }
 
 protected:
-    value_type* link_;
-    value_type* start_;
+    LinkPointerType link_;
+    LinkPointerType start_;
 };
 
 // =============================================================================
 //     Preorder Iterator
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorPreorder
 {
 public:
@@ -118,19 +115,14 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorPreorder<NodeDataType, EdgeDataType> self_type;
-    typedef std::forward_iterator_tag                        iterator_category;
-    typedef TreeNode<NodeDataType, EdgeDataType>             value_type;
-    typedef TreeNode<NodeDataType, EdgeDataType>&            reference;
-    typedef TreeNode<NodeDataType, EdgeDataType>*            pointer;
-
-    typedef TreeLink<NodeDataType, EdgeDataType>*            link_pointer;
+    typedef TreeIteratorPreorder<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorPreorder (link_pointer link) : link_(link), start_(link)
+    TreeIteratorPreorder (LinkPointerType link) : link_(link), start_(link)
     {
         if (link) {
             PushFrontChildren(link);
@@ -176,56 +168,56 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline bool IsFirstIteration()
+    inline bool IsFirstIteration() const
     {
         return link_ == start_;
     }
 
-    inline TreeLink<NodeDataType, EdgeDataType>* Link()
+    inline LinkPointerType Link() const
     {
         return link_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* Node()
+    inline NodePointerType Node() const
     {
         return link_->Node();
     }
 
-    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    inline EdgePointerType Edge() const
     {
         return link_->Edge();
     }
 
-    inline TreeLink<NodeDataType, EdgeDataType>* StartLink()
+    inline LinkPointerType StartLink() const
     {
         return start_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* StartNode()
+    inline NodePointerType StartNode() const
     {
         return start_->Node();
     }
 
 protected:
-    inline void PushFrontChildren(link_pointer link)
+    inline void PushFrontChildren(const LinkPointerType link)
     {
         // we need to push to a tmp queue first, in order to get the order right.
         // otherwise, we would still do a preorder traversal, but starting with
         // the last child of each node instead of the first one.
-        std::deque<link_pointer> tmp;
-        link_pointer c = link->Next();
+        std::deque<LinkPointerType> tmp;
+        LinkPointerType c = link->Next();
         while (c != link) {
             tmp.push_front(c->Outer());
             c = c->Next();
         }
-        for (link_pointer l : tmp) {
+        for (LinkPointerType l : tmp) {
             stack_.push_front(l);
         }
     }
 
-    link_pointer             link_;
-    link_pointer             start_;
-    std::deque<link_pointer> stack_;
+    LinkPointerType             link_;
+    LinkPointerType             start_;
+    std::deque<LinkPointerType> stack_;
 };
 
 // =============================================================================
@@ -254,7 +246,7 @@ protected:
  *     but can be done), this node is visited as the very first one.
  * %
  * /
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorInorder
 {
 public:
@@ -262,19 +254,14 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorInorder<NodeDataType, EdgeDataType> self_type;
-    typedef std::forward_iterator_tag                       iterator_category;
-    typedef TreeNode<NodeDataType, EdgeDataType>            value_type;
-    typedef TreeNode<NodeDataType, EdgeDataType>&           reference;
-    typedef TreeNode<NodeDataType, EdgeDataType>*           pointer;
-
-    typedef TreeLink<NodeDataType, EdgeDataType>*           link_pointer;
+    typedef TreeIteratorInorder<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorInorder (link_pointer link) : start_(link)
+    TreeIteratorInorder (LinkPointerType link) : start_(link)
     {
         // the end iterator is created by handing over a nullptr to this constructor, so we first
         // need to check for this:
@@ -321,7 +308,7 @@ public:
         if (link_) {
            m += "@" + link_->Node()->name + "   ";
         }
-        for (link_pointer p : stack_) {
+        for (LinkPointerType p : stack_) {
             m += p->Node()->name + " ";
         }
         LOG_DBG2 << m;
@@ -353,7 +340,7 @@ public:
         if (link_) {
            m += "@" + link_->Node()->name + "   ";
         }
-        for (link_pointer p : stack_) {
+        for (LinkPointerType p : stack_) {
             m += p->Node()->name + " ";
         }
         LOG_DBG2 << m;
@@ -382,51 +369,51 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline TreeLink<NodeDataType, EdgeDataType>* Link()
+    inline LinkPointerType Link() const
     {
         return link_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* Node()
+    inline NodePointerType Node() const
     {
         return link_->Node();
     }
 
-    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    inline EdgePointerType Edge() const
     {
         return link_->Edge();
     }
 
-    inline TreeLink<NodeDataType, EdgeDataType>* StartLink()
+    inline LinkPointerType StartLink() const
     {
         return start_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* StartNode()
+    inline NodePointerType StartNode() const
     {
         return start_->Node();
     }
 
 protected:
-    inline void PushFrontChildren(link_pointer link)
+    inline void PushFrontChildren(LinkPointerType link)
     {
         // we need to push to a tmp queue first, in order to get the order right.
         // otherwise, we would still do a preorder traversal, but starting with
         // the last child of each node instead of the first one.
-        std::deque<link_pointer> tmp;
-        link_pointer c = link->Next();
+        std::deque<LinkPointerType> tmp;
+        LinkPointerType c = link->Next();
         while (c != link) {
             tmp.push_front(c->Outer());
             c = c->Next();
         }
-        for (link_pointer l : tmp) {
+        for (LinkPointerType l : tmp) {
             stack_.push_front(l);
         }
     }
 
-    link_pointer             link_;
-    link_pointer             start_;
-    std::deque<link_pointer> stack_;
+    LinkPointerType             link_;
+    LinkPointerType             start_;
+    std::deque<LinkPointerType> stack_;
 };
 
 */
@@ -435,7 +422,7 @@ protected:
 //     Postorder Iterator
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorPostorder
 {
 public:
@@ -443,19 +430,14 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorPostorder<NodeDataType, EdgeDataType> self_type;
-    typedef std::forward_iterator_tag                         iterator_category;
-    typedef TreeNode<NodeDataType, EdgeDataType>              value_type;
-    typedef TreeNode<NodeDataType, EdgeDataType>&             reference;
-    typedef TreeNode<NodeDataType, EdgeDataType>*             pointer;
-
-    typedef TreeLink<NodeDataType, EdgeDataType>*             link_pointer;
+    typedef TreeIteratorPostorder<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorPostorder (link_pointer link) : start_(link)
+    TreeIteratorPostorder (LinkPointerType link) : start_(link)
     {
         if (link) {
             stack_.push_back(link);
@@ -519,63 +501,63 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline bool IsLastIteration()
+    inline bool IsLastIteration() const
     {
         return link_ == start_;
     }
 
-    inline TreeLink<NodeDataType, EdgeDataType>* Link()
+    inline LinkPointerType Link() const
     {
         return link_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* Node()
+    inline NodePointerType Node() const
     {
         return link_->Node();
     }
 
-    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    inline EdgePointerType Edge() const
     {
         return link_->Edge();
     }
 
-    inline TreeLink<NodeDataType, EdgeDataType>* StartLink()
+    inline LinkPointerType StartLink() const
     {
         return start_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* StartNode()
+    inline NodePointerType StartNode() const
     {
         return start_->Node();
     }
 
 protected:
-    inline void PushFrontChildren(link_pointer link)
+    inline void PushFrontChildren(LinkPointerType link)
     {
         // we need to push to a tmp queue first, in order to get the order right.
         // otherwise, we would still do a postorder traversal, but starting with
         // the last child of each node instead of the first one.
-        std::deque<link_pointer> tmp;
-        link_pointer c = link->Next();
+        std::deque<LinkPointerType> tmp;
+        LinkPointerType c = link->Next();
         while (c != link) {
             tmp.push_front(c->Outer());
             c = c->Next();
         }
-        for (link_pointer l : tmp) {
+        for (LinkPointerType l : tmp) {
             stack_.push_front(l);
         }
     }
 
-    link_pointer             link_;
-    link_pointer             start_;
-    std::deque<link_pointer> stack_;
+    LinkPointerType             link_;
+    LinkPointerType             start_;
+    std::deque<LinkPointerType> stack_;
 };
 
 // =============================================================================
 //     Levelorder Iterator
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorLevelorder
 {
 public:
@@ -583,19 +565,14 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorLevelorder<NodeDataType, EdgeDataType> self_type;
-    typedef std::forward_iterator_tag                          iterator_category;
-    typedef TreeNode<NodeDataType, EdgeDataType>               value_type;
-    typedef TreeNode<NodeDataType, EdgeDataType>&              reference;
-    typedef TreeNode<NodeDataType, EdgeDataType>*              pointer;
-
-    typedef TreeLink<NodeDataType, EdgeDataType>*              link_pointer;
+    typedef TreeIteratorLevelorder<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorLevelorder (link_pointer link) : link_(link), start_(link)
+    TreeIteratorLevelorder (LinkPointerType link) : link_(link), start_(link)
     {
         if (link) {
             PushBackChildren(link);
@@ -641,49 +618,49 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline bool IsFirstIteration()
+    inline bool IsFirstIteration() const
     {
         return link_ == start_;
     }
 
-    inline TreeLink<NodeDataType, EdgeDataType>* Link()
+    inline LinkPointerType Link() const
     {
         return link_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* Node()
+    inline NodePointerType Node() const
     {
         return link_->Node();
     }
 
-    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    inline EdgePointerType Edge() const
     {
         return link_->Edge();
     }
 
-    inline TreeLink<NodeDataType, EdgeDataType>* StartLink()
+    inline LinkPointerType StartLink() const
     {
         return start_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* StartNode()
+    inline NodePointerType StartNode() const
     {
         return start_->Node();
     }
 
 protected:
-    inline void PushBackChildren(link_pointer link)
+    inline void PushBackChildren(LinkPointerType link)
     {
-        link_pointer c = link->Next();
+        LinkPointerType c = link->Next();
         while (c != link) {
             stack_.push_back(c->Outer());
             c = c->Next();
         }
     }
 
-    link_pointer             link_;
-    link_pointer             start_;
-    std::deque<link_pointer> stack_;
+    LinkPointerType             link_;
+    LinkPointerType             start_;
+    std::deque<LinkPointerType> stack_;
 };
 
 // =============================================================================
@@ -692,7 +669,7 @@ protected:
 
 /*
 
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorPath
 {
 public:
@@ -700,19 +677,14 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorPath<NodeDataType, EdgeDataType> self_type;
-    typedef std::forward_iterator_tag                    iterator_category;
-    typedef TreeNode<NodeDataType, EdgeDataType>         value_type;
-    typedef TreeNode<NodeDataType, EdgeDataType>&        reference;
-    typedef TreeNode<NodeDataType, EdgeDataType>*        pointer;
-
-    typedef TreeLink<NodeDataType, EdgeDataType>*        link_pointer;
+    typedef TreeIteratorPath<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorPath (link_pointer from, link_pointer to) : start_(from), to_(to);
+    TreeIteratorPath (LinkPointerType from, LinkPointerType to) : start_(from), to_(to);
     {
         if (link) {
             stack_.push_back(link);
@@ -775,46 +747,46 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline TreeLink<NodeDataType, EdgeDataType>* Link()
+    inline LinkPointerType Link() const
     {
         return link_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* Node()
+    inline NodePointerType Node() const
     {
         return link_->Node();
     }
 
-    inline TreeEdge<NodeDataType, EdgeDataType>* Edge()
+    inline EdgePointerType Edge() const
     {
         return link_->Edge();
     }
 
-    inline TreeLink<NodeDataType, EdgeDataType>* FromLink()
+    inline LinkPointerType FromLink() const
     {
         return from_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* FromNode()
+    inline NodePointerType FromNode() const
     {
         return from_->Node();
     }
 
-    inline TreeLink<NodeDataType, EdgeDataType>* ToLink()
+    inline LinkPointerType ToLink() const
     {
         return to_;
     }
 
-    inline TreeNode<NodeDataType, EdgeDataType>* ToNode()
+    inline NodePointerType ToNode() const
     {
         return to_->Node();
     }
 
 protected:
-    link_pointer             link_;
-    link_pointer             from_;
-    link_pointer             to_;
-    std::deque<link_pointer> stack_;
+    LinkPointerType             link_;
+    LinkPointerType             from_;
+    LinkPointerType             to_;
+    std::deque<LinkPointerType> stack_;
 };
 
 */

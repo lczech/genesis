@@ -161,20 +161,20 @@ public:
     static int  precision;
 
     template <class NodeDataType, class EdgeDataType>
-    static bool ToFile   (const std::string fn, Tree<NodeDataType, EdgeDataType>& tree);
+    static bool ToFile   (const std::string fn, const Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static void ToString (std::string& ts,      Tree<NodeDataType, EdgeDataType>& tree);
+    static void ToString (std::string& ts,      const Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static std::string ToString (Tree<NodeDataType, EdgeDataType>& tree);
+    static std::string ToString (               const Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static void ToBroker (NewickBroker& broker, Tree<NodeDataType, EdgeDataType>& tree);
+    static void ToBroker (NewickBroker& broker, const Tree<NodeDataType, EdgeDataType>& tree);
 
 protected:
-    static std::string ToStringRec(NewickBroker& broker, size_t position);
-    static std::string ElementToString(NewickBrokerElement* bn);
+    static std::string ToStringRec(const NewickBroker& broker, size_t position);
+    static std::string ElementToString(const NewickBrokerElement* bn);
 };
 
 } // namespace genesis

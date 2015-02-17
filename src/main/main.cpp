@@ -48,7 +48,7 @@ int main (int argc, char* argv[])
     //~ Logging::details.file = true;
     //~ Logging::details.line = true;
     //~ Logging::details.function = true;
-    //~ Logging::details.time = true;
+    Logging::details.time = true;
     Logging::details.runtime = true;
     //~ Logging::details.rundiff = true;
     LOG_BOLD << print_header();
@@ -315,6 +315,8 @@ int main (int argc, char* argv[])
     LOG_DBG << "Calculating variance...";
     LOG_DBG << "Variance " << place_a.Variance();
 
+    //~ LOG_DBG << "EMD " << place_a.EMD(place_a);
+
     //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_both.newick", place_a.tree);
     //*/
     /*
@@ -345,7 +347,7 @@ int main (int argc, char* argv[])
     NewickProcessor::print_comments       = true;
     NewickProcessor::print_tags           = false;
 
-    std::string path = "/home/lucas/Projects/tropical-soils/04_EPA/papara_splits/";
+    std::string path = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/papara_splits/";
     LOG_DBG << "Running on data in " << path;
     std::vector<std::string> list;
     DirListFiles(path, list);

@@ -38,7 +38,7 @@ Placements::Placements (const Placements& other)
 
     // copy all data of the tree: do a preorder traversal on both trees in parallel
     PlacementTree::IteratorPreorder it_n = tree.BeginPreorder();
-    PlacementTree::IteratorPreorder it_o = other.tree.BeginPreorder();
+    PlacementTree::ConstIteratorPreorder it_o = other.tree.BeginPreorder();
     for (
         ;
         it_n != tree.EndPreorder() && it_o != other.tree.EndPreorder();
@@ -83,14 +83,20 @@ Placements::Placements (const Placements& other)
 /**
  * @brief Assignment operator. See Copy constructor for details.
  */
-Placements& Placements::operator = (Placements other)
+Placements& Placements::operator = (const Placements& other)
 {
+    // check for self-assignment.
+    if (&other == this) {
+        return *this;
+    }
+
     // the Placements tmp is a copy of the right hand side object (automatically created using the
     // copy constructor). we can thus simply swap the arrays, and upon leaving the function,
     // tmp is automatically destroyed, so that its arrays are cleared and the data freed.
-    std::swap(pqueries, other.pqueries);
-    tree.swap(other.tree);
-    std::swap(metadata, other.metadata);
+    Placements tmp(other);
+    std::swap(pqueries, tmp.pqueries);
+    tree.swap(tmp.tree);
+    std::swap(metadata, tmp.metadata);
     return *this;
 }
 
@@ -144,11 +150,14 @@ bool Placements::Merge(Placements& other)
 {
     // check for identical topology, taxa names and edge_nums.
     // we do not check here for branch_length, because usuallym those differ slightly.
-    auto comparator = [] (PlacementTree::IteratorPreorder& it_l, PlacementTree::IteratorPreorder& it_r)
-    {
+    auto comparator = [] (
+        PlacementTree::ConstIteratorPreorder& it_l,
+        PlacementTree::ConstIteratorPreorder& it_r
+    ) {
         return it_l.Node()->name     == it_r.Node()->name     &&
                it_l.Edge()->edge_num == it_r.Edge()->edge_num;
     };
+
     if (!tree.Equal(other.tree, comparator)) {
         LOG_WARN << "Cannot merge Placements with different reference trees.";
         return false;
@@ -271,7 +280,7 @@ void Placements::RestrainToMaxWeightPlacements()
 /**
  * @brief Get the total number of placements in all pqueries.
  */
-size_t Placements::PlacementCount()
+size_t Placements::PlacementCount() const
 {
     size_t count = 0;
     for (Pquery* pqry : pqueries) {
@@ -283,7 +292,7 @@ size_t Placements::PlacementCount()
 /**
  * @brief Get the summed mass of all placements on the tree, given by their `like_weight_ratio`.
  */
-double Placements::PlacementMass()
+double Placements::PlacementMass() const
 {
     double sum = 0.0;
     for (Pquery* pqry : pqueries) {
@@ -298,7 +307,7 @@ double Placements::PlacementMass()
  * @brief Calculates the Earth Movers Distance to another sets of placements on a fixed reference
  * tree.
  */
-double Placements::EMD(Placements& right)
+double Placements::EMD(const Placements& right) const
 {
     return Placements::EMD(*this, right);
 }
@@ -307,7 +316,7 @@ double Placements::EMD(Placements& right)
  * @brief Calculates the Earth Movers Distance between two sets of placements on a fixed reference
  * tree.
  */
-double Placements::EMD(Placements& lhs, Placements& rhs)
+double Placements::EMD(const Placements& lhs, const Placements& rhs)
 {
     // keep track of the total resulting distance.
     double distance = 0.0;
@@ -316,7 +325,7 @@ double Placements::EMD(Placements& lhs, Placements& rhs)
     // much placement mass is pushing from the direction of this node towards the root.
     // caveat: the masses that are stored here are already fully pushed towards the root, but are
     // stored here using the node at the lower end of the branch as key.
-    std::unordered_map<PlacementTree::NodeType*, double> balance;
+    std::unordered_map<const PlacementTree::NodeType*, double> balance;
 
     // use the sum of masses as normalization factor for the masses.
     double totalmass_l = lhs.PlacementMass();
@@ -328,8 +337,8 @@ double Placements::EMD(Placements& lhs, Placements& rhs)
     // placements are given as "distal_length" on their branch, which always points away from the
     // root. thus, if we decided to traverse from a different node than the root, we would have to
     // take this into account.
-    PlacementTree::IteratorPostorder it_l = lhs.tree.BeginPostorder();
-    PlacementTree::IteratorPostorder it_r = rhs.tree.BeginPostorder();
+    PlacementTree::ConstIteratorPostorder it_l = lhs.tree.BeginPostorder();
+    PlacementTree::ConstIteratorPostorder it_r = rhs.tree.BeginPostorder();
     for (
         ;
         it_l != lhs.tree.EndPostorder() && it_r != rhs.tree.EndPostorder();
@@ -348,7 +357,7 @@ double Placements::EMD(Placements& lhs, Placements& rhs)
             // we do a check for the mass at the root here for debug purposes.
             double root_mass = 0.0;
             for (
-                PlacementTree::NodeType::IteratorLinks n_it = it_l.Node()->BeginLinks();
+                PlacementTree::NodeType::ConstIteratorLinks n_it = it_l.Node()->BeginLinks();
                 n_it != it_l.Node()->EndLinks();
                 ++n_it
             ) {
@@ -432,7 +441,7 @@ double Placements::EMD(Placements& lhs, Placements& rhs)
 /**
  * @brief Calculate the Center of Gravity of the placements on a tree.
  */
-void Placements::COG()
+void Placements::COG() const
 {
     // store a balance of mass per link, so that each element contains the mass that lies
     // in the direction of this link
@@ -440,7 +449,7 @@ void Placements::COG()
 
     // do a postorder traversal
     for (
-        PlacementTree::IteratorPostorder it = this->tree.BeginPostorder();
+        PlacementTree::ConstIteratorPostorder it = this->tree.BeginPostorder();
         it != this->tree.EndPostorder();
         ++it
     ) {
@@ -578,6 +587,16 @@ double Placements::Variance() const
     double variance = 0.0;
     double count    = 0.0;
 
+    //~ std::unordered_map<const PqueryPlacement*, int> pi, si;
+    for (Pquery* pqry : pqueries) {
+        for (PqueryPlacement* place : pqry->placements) {
+            //~ pi.emplace(place, place->edge->PrimaryNode()->Index());
+            //~ si.emplace(place, place->edge->SecondaryNode()->Index());
+            place->primary_node_index   = place->edge->PrimaryNode()->Index();
+            place->secondary_node_index = place->edge->SecondaryNode()->Index();
+        }
+    }
+
     /*
     int progress    = 0;
     LOG_DBG << "starting...";
@@ -589,16 +608,17 @@ double Placements::Variance() const
 
         for (PqueryPlacement* place_a : pqry_a->placements) {
             count    += place_a->like_weight_ratio;
-            variance += VariancePartial(place_a, distances);
+            variance += VariancePartial(place_a, distances, pqueries);
         }
     }
     LOG_DBG << "finished.";
     //*/
 
     //*
+    LOG_DBG << "supported num of threads: " << std::thread::hardware_concurrency();
     LOG_DBG << "starting threads...";
 
-#   define NT 2
+#   define NT 4
 
     std::thread* threads[NT];
     double       partials[NT];
@@ -609,7 +629,6 @@ double Placements::Variance() const
         partials[i] = 0.0;
         counts[i] = 0;
         threads[i] = new std::thread(std::bind(&Placements::VarianceThread, this, i, NT, distances, &partials[i], &counts[i]));
-        //~ std::thread t1 (std::bind(&Placements::VarianceThread, this, i, 4, distances, partials[i]));
     }
 
     LOG_DBG << "waiting for threads...";
@@ -632,97 +651,35 @@ double Placements::Variance() const
     return tmp;
 }
 
-// TODO remove!
-/*
-
-HOME
-
-test zeiten (sec)
-
-ohne threads, 1 run  250
-ohne threads, 2 runs 274
-ohne threads, 4 runs 376
-
-1 thread  310
-2 threads 657
-4 threads 1348
-
-1 thread, viertel der pqueries 76
-1 thread, haelfte der pqueries 155
-
-=============================================
-
-WORK
-
-ohne threads:
-
-    Command being timed: "./genesis"
-    User time (seconds): 389.49
-    System time (seconds): 0.25
-    Percent of CPU this job got: 99%
-    Elapsed (wall clock) time (h:mm:ss or m:ss): 6:30.55
-    Average shared text size (kbytes): 0
-    Average unshared data size (kbytes): 0
-    Average stack size (kbytes): 0
-    Average total size (kbytes): 0
-    Maximum resident set size (kbytes): 246916
-    Average resident set size (kbytes): 0
-    Major (requiring I/O) page faults: 0
-    Minor (reclaiming a frame) page faults: 76595
-    Voluntary context switches: 1
-    Involuntary context switches: 50128
-    Swaps: 0
-    File system inputs: 0
-    File system outputs: 0
-    Socket messages sent: 0
-    Socket messages received: 0
-    Signals delivered: 0
-    Page size (bytes): 4096
-    Exit status: 0
-
-1 thread
-
-    Command being timed: "./genesis"
-    User time (seconds): 435.78
-    System time (seconds): 0.19
-    Percent of CPU this job got: 99%
-    Elapsed (wall clock) time (h:mm:ss or m:ss): 7:16.84
-    Average shared text size (kbytes): 0
-    Average unshared data size (kbytes): 0
-    Average stack size (kbytes): 0
-    Average total size (kbytes): 0
-    Maximum resident set size (kbytes): 247324
-    Average resident set size (kbytes): 0
-    Major (requiring I/O) page faults: 0
-    Minor (reclaiming a frame) page faults: 55314
-    Voluntary context switches: 4
-    Involuntary context switches: 55003
-    Swaps: 0
-    File system inputs: 0
-    File system outputs: 0
-    Socket messages sent: 0
-    Socket messages received: 0
-    Signals delivered: 0
-    Page size (bytes): 4096
-    Exit status: 0
-
-*/
-
+/**
+ * @brief
+ */
+//~ void Placements::VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count, std::unordered_map<const PqueryPlacement*, int> pi, std::unordered_map<const PqueryPlacement*, int> si) const
 void Placements::VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count) const
 {
     int progress = 0;
+    double mcount = 0.0;
+    double mparti = 0.0;
+    assert(*partial == 0.0 && *count == 0.0);
+
+    LOG_DBG2 << "thread: offset(" << offset << "), incr(" << incr << ") copying placements...";
+    Placements cpy(*this);
 
     LOG_DBG2 << "thread: offset(" << offset << "), incr(" << incr << ") started with partial " << *partial;
-    for (size_t i = offset; i < pqueries.size(); i += incr) {
-        LOG_PROG(++progress, pqueries.size()) << "of Variance() finished (offset " << offset << ", incr " << incr << ").";
+    for (size_t i = offset; i < cpy.pqueries.size(); i += incr) {
+    //~ for (size_t i = offset; i < offset + incr; ++i) {
+        LOG_PROG(++progress, cpy.pqueries.size()) << "of Variance() finished (offset " << offset << ", incr " << incr << ").";
 
-        Pquery* pqry_a = pqueries[i];
+
+        Pquery* pqry_a = cpy.pqueries[i];
         for (PqueryPlacement* place_a : pqry_a->placements) {
-            *count   += place_a->like_weight_ratio;
-            *partial += VariancePartial(place_a, distances);
+            mcount += place_a->like_weight_ratio;
+            mparti += VariancePartial(place_a, distances, cpy.pqueries);
         }
     }
     LOG_DBG2 << "thread: offset(" << offset << "), incr(" << incr << ") finished with partial " << *partial;
+    *partial = mparti;
+    *count   = mcount;
 }
 
 /**
@@ -732,12 +689,15 @@ void Placements::VarianceThread (const int offset, const int incr, const Matrix<
  * This function is intended to make the implementation of a threaded version of the calculation
  * feasible.
  */
-double Placements::VariancePartial(const PqueryPlacement* place_a, const Matrix<double>* distances) const
-{
+double Placements::VariancePartial(
+    const PqueryPlacement*     place_a,
+    const Matrix<double>*      distances,
+    const std::deque<Pquery*>& pqueries_b
+) const {
     double variance = 0.0;
     int node_a, node_b;
 
-    for (Pquery* pqry_b : pqueries) {
+    for (Pquery* pqry_b : pqueries_b) {
         for (PqueryPlacement* place_b : pqry_b->placements) {
             // same placement
             if (place_a == place_b) {
@@ -757,6 +717,7 @@ double Placements::VariancePartial(const PqueryPlacement* place_a, const Matrix<
             node_b = place_b->edge->PrimaryNode()->Index();
             double dd = place_a->pendant_length + place_a->distal_length
                       + (*distances)(node_a, node_b)
+                      //~ + (*distances)(place_a->primary_node_index, place_b->primary_node_index)
                       + place_b->distal_length + place_b->pendant_length;
 
             // proximal-distal case
@@ -765,6 +726,7 @@ double Placements::VariancePartial(const PqueryPlacement* place_a, const Matrix<
             double pd = place_a->pendant_length
                       + place_a->edge->branch_length - place_a->distal_length
                       + (*distances)(node_a, node_b)
+                      //~ + (*distances)(place_a->secondary_node_index, place_b->primary_node_index)
                       + place_b->distal_length + place_b->pendant_length;
 
             // distal-proximal case
@@ -772,6 +734,7 @@ double Placements::VariancePartial(const PqueryPlacement* place_a, const Matrix<
             node_b = place_b->edge->SecondaryNode()->Index();
             double dp = place_a->pendant_length + place_a->distal_length
                       + (*distances)(node_a, node_b)
+                      //~ + (*distances)(place_a->primary_node_index, place_b->secondary_node_index)
                       + place_b->edge->branch_length - place_b->distal_length
                       + place_b->pendant_length;
 

@@ -12,6 +12,10 @@
 #include <iostream>
 #include <string>
 
+#ifdef PTHREADS
+#    include <mutex>
+#endif
+
 #include "utils/utils.hpp"
 
 namespace genesis {
@@ -19,6 +23,10 @@ namespace genesis {
 // =============================================================================
 //     Settings
 // =============================================================================
+
+#ifdef PTHREADS
+    static std::mutex log_mutex;
+#endif
 
 // TODO use different init for log details depending on DEBUG
 
@@ -187,10 +195,16 @@ Logging::~Logging()
     }
     msg = StringTrimRight(msg);
 
-    // output the message to every stream
+    // output the message to every stream, thread safe!
+#   ifdef PTHREADS
+    log_mutex.lock();
+#   endif
     for (std::ostream* out : ostreams_) {
         (*out) << msg << std::endl << std::flush;
     }
+#   ifdef PTHREADS
+    log_mutex.unlock();
+#   endif
 
     // inc log message counter
     count_++;
