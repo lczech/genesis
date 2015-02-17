@@ -587,6 +587,16 @@ double Placements::Variance() const
     double variance = 0.0;
     double count    = 0.0;
 
+    //~ std::unordered_map<const PqueryPlacement*, int> pi, si;
+    for (Pquery* pqry : pqueries) {
+        for (PqueryPlacement* place : pqry->placements) {
+            //~ pi.emplace(place, place->edge->PrimaryNode()->Index());
+            //~ si.emplace(place, place->edge->SecondaryNode()->Index());
+            place->primary_node_index   = place->edge->PrimaryNode()->Index();
+            place->secondary_node_index = place->edge->SecondaryNode()->Index();
+        }
+    }
+
     /*
     int progress    = 0;
     LOG_DBG << "starting...";
@@ -598,7 +608,7 @@ double Placements::Variance() const
 
         for (PqueryPlacement* place_a : pqry_a->placements) {
             count    += place_a->like_weight_ratio;
-            variance += VariancePartial(place_a, distances);
+            variance += VariancePartial(place_a, distances, pqueries);
         }
     }
     LOG_DBG << "finished.";
@@ -614,14 +624,10 @@ double Placements::Variance() const
     double       partials[NT];
     double       counts[NT];
 
-    int block_size = pqueries.size() / NT;
-    LOG_DBG << "block size " << block_size;
-
     for (int i = 0; i < NT; ++i) {
         LOG_DBG1 << "starting thread " << i;
         partials[i] = 0.0;
         counts[i] = 0;
-        //~ threads[i] = new std::thread(std::bind(&Placements::VarianceThread, this, i * block_size, block_size, distances, &partials[i], &counts[i]));
         threads[i] = new std::thread(std::bind(&Placements::VarianceThread, this, i, NT, distances, &partials[i], &counts[i]));
     }
 
@@ -648,9 +654,13 @@ double Placements::Variance() const
 /**
  * @brief
  */
+//~ void Placements::VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count, std::unordered_map<const PqueryPlacement*, int> pi, std::unordered_map<const PqueryPlacement*, int> si) const
 void Placements::VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count) const
 {
     int progress = 0;
+    double mcount = 0.0;
+    double mparti = 0.0;
+    assert(*partial == 0.0 && *count == 0.0);
 
     LOG_DBG2 << "thread: offset(" << offset << "), incr(" << incr << ") copying placements...";
     Placements cpy(*this);
@@ -660,13 +670,16 @@ void Placements::VarianceThread (const int offset, const int incr, const Matrix<
     //~ for (size_t i = offset; i < offset + incr; ++i) {
         LOG_PROG(++progress, cpy.pqueries.size()) << "of Variance() finished (offset " << offset << ", incr " << incr << ").";
 
+
         Pquery* pqry_a = cpy.pqueries[i];
         for (PqueryPlacement* place_a : pqry_a->placements) {
-            *count   += place_a->like_weight_ratio;
-            *partial += VariancePartial(place_a, distances, cpy.pqueries);
+            mcount += place_a->like_weight_ratio;
+            mparti += VariancePartial(place_a, distances, cpy.pqueries);
         }
     }
     LOG_DBG2 << "thread: offset(" << offset << "), incr(" << incr << ") finished with partial " << *partial;
+    *partial = mparti;
+    *count   = mcount;
 }
 
 /**
@@ -676,12 +689,15 @@ void Placements::VarianceThread (const int offset, const int incr, const Matrix<
  * This function is intended to make the implementation of a threaded version of the calculation
  * feasible.
  */
-double Placements::VariancePartial(const PqueryPlacement* place_a, const Matrix<double>* distances, const std::deque<Pquery*>& mypqueries) const
-{
+double Placements::VariancePartial(
+    const PqueryPlacement*     place_a,
+    const Matrix<double>*      distances,
+    const std::deque<Pquery*>& pqueries_b
+) const {
     double variance = 0.0;
     int node_a, node_b;
 
-    for (Pquery* pqry_b : mypqueries) {
+    for (Pquery* pqry_b : pqueries_b) {
         for (PqueryPlacement* place_b : pqry_b->placements) {
             // same placement
             if (place_a == place_b) {
@@ -701,6 +717,7 @@ double Placements::VariancePartial(const PqueryPlacement* place_a, const Matrix<
             node_b = place_b->edge->PrimaryNode()->Index();
             double dd = place_a->pendant_length + place_a->distal_length
                       + (*distances)(node_a, node_b)
+                      //~ + (*distances)(place_a->primary_node_index, place_b->primary_node_index)
                       + place_b->distal_length + place_b->pendant_length;
 
             // proximal-distal case
@@ -709,6 +726,7 @@ double Placements::VariancePartial(const PqueryPlacement* place_a, const Matrix<
             double pd = place_a->pendant_length
                       + place_a->edge->branch_length - place_a->distal_length
                       + (*distances)(node_a, node_b)
+                      //~ + (*distances)(place_a->secondary_node_index, place_b->primary_node_index)
                       + place_b->distal_length + place_b->pendant_length;
 
             // distal-proximal case
@@ -716,6 +734,7 @@ double Placements::VariancePartial(const PqueryPlacement* place_a, const Matrix<
             node_b = place_b->edge->SecondaryNode()->Index();
             double dp = place_a->pendant_length + place_a->distal_length
                       + (*distances)(node_a, node_b)
+                      //~ + (*distances)(place_a->primary_node_index, place_b->secondary_node_index)
                       + place_b->edge->branch_length - place_b->distal_length
                       + place_b->pendant_length;
 

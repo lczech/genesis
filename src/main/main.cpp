@@ -48,7 +48,7 @@ int main (int argc, char* argv[])
     //~ Logging::details.file = true;
     //~ Logging::details.line = true;
     //~ Logging::details.function = true;
-    //~ Logging::details.time = true;
+    Logging::details.time = true;
     Logging::details.runtime = true;
     //~ Logging::details.rundiff = true;
     LOG_BOLD << print_header();
@@ -283,8 +283,8 @@ int main (int argc, char* argv[])
     //*
     Placements place_a, place_b;
     LOG_DBG << "Reading file...";
-    JplaceProcessor::FromFile("test/data/test_a.jplace", place_a);
-    //~ JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_0.jplace", place_a);
+    //~ JplaceProcessor::FromFile("test/data/test_a.jplace", place_a);
+    JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_0.jplace", place_a);
     //~ JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_1.jplace", place_b);
     //~ LOG_DBG << "Valid A: " << place_a.Validate();
     //~ LOG_DBG << "Valid B: " << place_b.Validate();
@@ -315,7 +315,7 @@ int main (int argc, char* argv[])
     LOG_DBG << "Calculating variance...";
     LOG_DBG << "Variance " << place_a.Variance();
 
-    LOG_DBG << "EMD " << place_a.EMD(place_a);
+    //~ LOG_DBG << "EMD " << place_a.EMD(place_a);
 
     //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_both.newick", place_a.tree);
     //*/

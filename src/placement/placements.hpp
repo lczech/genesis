@@ -32,6 +32,7 @@ struct PqueryPlacement
 {
     PqueryPlacement() : edge_num(0), likelihood(0.0), like_weight_ratio(0.0), distal_length(0.0),
                         pendant_length(0.0), parsimony(0), pquery(nullptr), edge(nullptr)
+                        //~ primary_node_index(0), secondary_node_index(0)
     {}
 
     PqueryPlacement(const PqueryPlacement* other) :
@@ -43,6 +44,8 @@ struct PqueryPlacement
         parsimony(other->parsimony),
         pquery(nullptr),
         edge(nullptr)
+        //~ primary_node_index(other->primary_node_index),
+        //~ secondary_node_index(other->secondary_node_index)
     {}
 
     int     edge_num;
@@ -54,6 +57,9 @@ struct PqueryPlacement
 
     Pquery* pquery;
     PlacementTree::EdgeType* edge;
+
+    //~ size_t primary_node_index;
+    //~ size_t secondary_node_index;
 };
 
 // =============================================================================
@@ -140,6 +146,10 @@ public:
 protected:
     void   VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count) const;
     double VariancePartial(const PqueryPlacement* place_a, const Matrix<double>* distances, const std::deque<Pquery*>& mypqueries) const;
+    //~ void   VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count, std::unordered_map<const PqueryPlacement*, int> pi, std::unordered_map<const PqueryPlacement*, int> siy) const;
+    //~ double VariancePartial(const PqueryPlacement* place_a, const Matrix<double>* distances, const std::deque<Pquery*>& mypqueries, std::unordered_map<const PqueryPlacement*, int> pi, std::unordered_map<const PqueryPlacement*, int> si) const;
+
+
 
     // -----------------------------------------------------
     //     Dump and Debug
