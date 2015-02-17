@@ -6,7 +6,7 @@ PROGRAM = genesis
 
 # TODO
 # introduce a target distrib that copies all relevant files to an archive or so
-# introduce constants for DEBUG and RELEASE (latter bound to distrib)
+# introduce constants for DISTRIB = DEBUG and RELEASE (latter bound to distrib), or TEST
 # build into build folder with subfolders per arch/extension,
 # put resulting binaries in bin folder
 
@@ -18,7 +18,8 @@ PROGRAM = genesis
 # --------------------------------
 
 # Debug & Profiling (comment out if not needed).
-DEBUG   = -g -ggdb3 -pg -DDEBUG
+#~ DEBUG   = -g -ggdb3 -pg -DDEBUG
+DEBUG   = -g -ggdb3 -DDEBUG
 
 # Thread support.
 THREADS = -pthread -DPTHREADS
@@ -29,7 +30,7 @@ WARN    = -Wall -Wextra -pedantic -pedantic-errors
 # Compiler flags.
 STDCC   = clang++
 MPICC   = mpic++
-CCFLAGS = -std=c++11 -I./src $(WARN) $(DEBUG) $(THREADS)
+CCFLAGS = -std=c++11 -O3 -I./src $(WARN) $(DEBUG) $(THREADS)
 LDFLAGS = -lm $(THREADS)
 
 # --------------------------------
