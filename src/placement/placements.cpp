@@ -38,7 +38,7 @@ Placements::Placements (const Placements& other)
 
     // copy all data of the tree: do a preorder traversal on both trees in parallel
     PlacementTree::IteratorPreorder it_n = tree.BeginPreorder();
-    PlacementTree::IteratorPreorder it_o = other.tree.BeginPreorder();
+    PlacementTree::ConstIteratorPreorder it_o = other.tree.BeginPreorder();
     for (
         ;
         it_n != tree.EndPreorder() && it_o != other.tree.EndPreorder();
@@ -150,11 +150,14 @@ bool Placements::Merge(Placements& other)
 {
     // check for identical topology, taxa names and edge_nums.
     // we do not check here for branch_length, because usuallym those differ slightly.
-    auto comparator = [] (PlacementTree::IteratorPreorder& it_l, PlacementTree::IteratorPreorder& it_r)
-    {
+    auto comparator = [] (
+        PlacementTree::ConstIteratorPreorder& it_l,
+        PlacementTree::ConstIteratorPreorder& it_r
+    ) {
         return it_l.Node()->name     == it_r.Node()->name     &&
                it_l.Edge()->edge_num == it_r.Edge()->edge_num;
     };
+
     if (!tree.Equal(other.tree, comparator)) {
         LOG_WARN << "Cannot merge Placements with different reference trees.";
         return false;
@@ -322,7 +325,7 @@ double Placements::EMD(const Placements& lhs, const Placements& rhs)
     // much placement mass is pushing from the direction of this node towards the root.
     // caveat: the masses that are stored here are already fully pushed towards the root, but are
     // stored here using the node at the lower end of the branch as key.
-    std::unordered_map<PlacementTree::NodeType*, double> balance;
+    std::unordered_map<const PlacementTree::NodeType*, double> balance;
 
     // use the sum of masses as normalization factor for the masses.
     double totalmass_l = lhs.PlacementMass();
@@ -334,8 +337,8 @@ double Placements::EMD(const Placements& lhs, const Placements& rhs)
     // placements are given as "distal_length" on their branch, which always points away from the
     // root. thus, if we decided to traverse from a different node than the root, we would have to
     // take this into account.
-    PlacementTree::IteratorPostorder it_l = lhs.tree.BeginPostorder();
-    PlacementTree::IteratorPostorder it_r = rhs.tree.BeginPostorder();
+    PlacementTree::ConstIteratorPostorder it_l = lhs.tree.BeginPostorder();
+    PlacementTree::ConstIteratorPostorder it_r = rhs.tree.BeginPostorder();
     for (
         ;
         it_l != lhs.tree.EndPostorder() && it_r != rhs.tree.EndPostorder();
@@ -354,7 +357,7 @@ double Placements::EMD(const Placements& lhs, const Placements& rhs)
             // we do a check for the mass at the root here for debug purposes.
             double root_mass = 0.0;
             for (
-                PlacementTree::NodeType::IteratorLinks n_it = it_l.Node()->BeginLinks();
+                PlacementTree::NodeType::ConstIteratorLinks n_it = it_l.Node()->BeginLinks();
                 n_it != it_l.Node()->EndLinks();
                 ++n_it
             ) {
@@ -446,7 +449,7 @@ void Placements::COG() const
 
     // do a postorder traversal
     for (
-        PlacementTree::IteratorPostorder it = this->tree.BeginPostorder();
+        PlacementTree::ConstIteratorPostorder it = this->tree.BeginPostorder();
         it != this->tree.EndPostorder();
         ++it
     ) {

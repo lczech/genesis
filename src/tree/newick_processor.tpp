@@ -326,8 +326,8 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
 /**
  * @brief Create a Tree from a NewickBroker.
  *
- * It does not take the NewickBroker by const, because AssignRanks() has to be called in order to get
- * the nesting right.
+ * It does not take the NewickBroker by const, because AssignRanks() has to be called in order to
+ * get the nesting right.
  * TODO: this could be changed by not assigning ranks to the broker but a tmp struct.
  */
 template <class NDT, class EDT>
@@ -493,7 +493,7 @@ void NewickProcessor::ToBroker (NewickBroker& broker, const Tree<NDT, EDT>& tree
     // now fill the broker with nodes via postorder traversal, so that the root is put on top last.
     broker.clear();
     for (
-        typename Tree<NDT, EDT>::IteratorPostorder it = tree.BeginPostorder();
+        typename Tree<NDT, EDT>::ConstIteratorPostorder it = tree.BeginPostorder();
         it != tree.EndPostorder();
         ++it
     ) {

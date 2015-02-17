@@ -114,7 +114,7 @@ public:
     /**
      * @brief Returns the index of this Link.
      */
-    inline size_t Index()
+    inline size_t Index() const
     {
         return index_;
     }

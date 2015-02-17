@@ -25,19 +25,19 @@ namespace genesis {
 //     Forward Declarations
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorRoundtrip;
 
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorPreorder;
 
-//~ template <class NodeDataType, class EdgeDataType>
+//~ template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 //~ class TreeIteratorInorder;
 
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorPostorder;
 
-template <class NodeDataType, class EdgeDataType>
+template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorLevelorder;
 
 // =============================================================================
@@ -193,18 +193,28 @@ public:
     //     Iterators
     // -----------------------------------------------------
 
-    typedef TreeIteratorRoundtrip <NodeDataType, EdgeDataType> IteratorRoundtrip;
-    typedef TreeIteratorPreorder  <NodeDataType, EdgeDataType> IteratorPreorder;
-    //~ typedef TreeIteratorInorder   <NodeDataType, EdgeDataType> IteratorInorder;
-    typedef TreeIteratorPostorder <NodeDataType, EdgeDataType> IteratorPostorder;
-    typedef TreeIteratorLevelorder<NodeDataType, EdgeDataType> IteratorLevelorder;
+    typedef TreeIteratorRoundtrip <      LinkType*,       NodeType*,       EdgeType*>      IteratorRoundtrip;
+    typedef TreeIteratorRoundtrip <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorRoundtrip;
 
-    typedef typename std::vector<LinkType*>::iterator          IteratorLinks;
-    typedef typename std::vector<NodeType*>::iterator          IteratorNodes;
-    typedef typename std::vector<EdgeType*>::iterator          IteratorEdges;
+    typedef TreeIteratorPreorder  <      LinkType*,       NodeType*,       EdgeType*>      IteratorPreorder;
+    typedef TreeIteratorPreorder  <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorPreorder;
 
+    //~ typedef TreeIteratorInorder   <      LinkType*,       NodeType*,       EdgeType*>      IteratorInorder;
+    //~ typedef TreeIteratorInorder   <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorInorder;
+
+    typedef TreeIteratorPostorder <      LinkType*,       NodeType*,       EdgeType*>      IteratorPostorder;
+    typedef TreeIteratorPostorder <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorPostorder;
+
+    typedef TreeIteratorLevelorder<      LinkType*,       NodeType*,       EdgeType*>      IteratorLevelorder;
+    typedef TreeIteratorLevelorder<const LinkType*, const NodeType*, const EdgeType*> ConstIteratorLevelorder;
+
+    typedef typename std::vector<LinkType*>::iterator               IteratorLinks;
     typedef typename std::vector<LinkType*>::const_iterator    ConstIteratorLinks;
+
+    typedef typename std::vector<NodeType*>::iterator               IteratorNodes;
     typedef typename std::vector<NodeType*>::const_iterator    ConstIteratorNodes;
+
+    typedef typename std::vector<EdgeType*>::iterator               IteratorEdges;
     typedef typename std::vector<EdgeType*>::const_iterator    ConstIteratorEdges;
 
     // TODO so far, the End... iterators are called anew for every comparison in a loop like
@@ -215,120 +225,220 @@ public:
     //     Roundtrip
     // -----------------------
 
-    inline IteratorRoundtrip BeginRoundtrip() const
+    inline IteratorRoundtrip BeginRoundtrip()
     {
         return IteratorRoundtrip(RootLink());
     }
 
-    inline IteratorRoundtrip BeginRoundtrip(const LinkType* link) const
+    inline IteratorRoundtrip BeginRoundtrip(const LinkType* link)
     {
         return IteratorRoundtrip(link);
     }
 
-    inline IteratorRoundtrip BeginRoundtrip(const NodeType* node) const
+    inline IteratorRoundtrip BeginRoundtrip(const NodeType* node)
     {
         return IteratorRoundtrip(node->PrimaryLink());
     }
 
-    inline IteratorRoundtrip EndRoundtrip() const
+    inline IteratorRoundtrip EndRoundtrip()
     {
         return IteratorRoundtrip(nullptr);
+    }
+
+    inline ConstIteratorRoundtrip BeginRoundtrip() const
+    {
+        return ConstIteratorRoundtrip(RootLink());
+    }
+
+    inline ConstIteratorRoundtrip BeginRoundtrip(const LinkType* link) const
+    {
+        return ConstIteratorRoundtrip(link);
+    }
+
+    inline ConstIteratorRoundtrip BeginRoundtrip(const NodeType* node) const
+    {
+        return ConstIteratorRoundtrip(node->PrimaryLink());
+    }
+
+    inline ConstIteratorRoundtrip EndRoundtrip() const
+    {
+        return ConstIteratorRoundtrip(nullptr);
     }
 
     // -----------------------
     //     Preorder
     // -----------------------
 
-    inline IteratorPreorder BeginPreorder() const
+    inline IteratorPreorder BeginPreorder()
     {
         return IteratorPreorder(RootLink());
     }
 
-    inline IteratorPreorder BeginPreorder(const LinkType* link) const
+    inline IteratorPreorder BeginPreorder(const LinkType* link)
     {
         return IteratorPreorder(link);
     }
 
-    inline IteratorPreorder BeginPreorder(const NodeType* node) const
+    inline IteratorPreorder BeginPreorder(const NodeType* node)
     {
         return IteratorPreorder(node->PrimaryLink());
     }
 
-    inline IteratorPreorder EndPreorder() const
+    inline IteratorPreorder EndPreorder()
     {
         return IteratorPreorder(nullptr);
+    }
+
+    inline ConstIteratorPreorder BeginPreorder() const
+    {
+        return ConstIteratorPreorder(RootLink());
+    }
+
+    inline ConstIteratorPreorder BeginPreorder(const LinkType* link) const
+    {
+        return ConstIteratorPreorder(link);
+    }
+
+    inline ConstIteratorPreorder BeginPreorder(const NodeType* node) const
+    {
+        return ConstIteratorPreorder(node->PrimaryLink());
+    }
+
+    inline ConstIteratorPreorder EndPreorder() const
+    {
+        return ConstIteratorPreorder(nullptr);
     }
 
     // -----------------------
     //     Inorder
     // -----------------------
 
-    //~ inline IteratorInorder BeginInorder() const
+    //~ inline IteratorInorder BeginInorder()
     //~ {
         //~ return IteratorInorder(RootLink());
     //~ }
 //~
-    //~ inline IteratorInorder BeginInorder(const LinkType* link) const
+    //~ inline IteratorInorder BeginInorder(const LinkType* link)
     //~ {
         //~ return IteratorInorder(link);
     //~ }
 //~
-    //~ inline IteratorInorder BeginInorder(const NodeType* node) const
+    //~ inline IteratorInorder BeginInorder(const NodeType* node)
     //~ {
         //~ return IteratorInorder(node->PrimaryLink());
     //~ }
 //~
-    //~ inline IteratorInorder EndInorder() const
+    //~ inline IteratorInorder EndInorder()
     //~ {
         //~ return IteratorInorder(nullptr);
+    //~ }
+
+    //~ inline ConstIteratorInorder BeginInorder() const
+    //~ {
+        //~ return ConstIteratorInorder(RootLink());
+    //~ }
+//~
+    //~ inline ConstIteratorInorder BeginInorder(const LinkType* link) const
+    //~ {
+        //~ return ConstIteratorInorder(link);
+    //~ }
+//~
+    //~ inline ConstIteratorInorder BeginInorder(const NodeType* node) const
+    //~ {
+        //~ return ConstIteratorInorder(node->PrimaryLink());
+    //~ }
+//~
+    //~ inline ConstIteratorInorder EndInorder() const
+    //~ {
+        //~ return ConstIteratorInorder(nullptr);
     //~ }
 
     // -----------------------
     //     Postorder
     // -----------------------
 
-    inline IteratorPostorder BeginPostorder() const
+    inline IteratorPostorder BeginPostorder()
     {
         return IteratorPostorder(RootLink());
     }
 
-    inline IteratorPostorder BeginPostorder(const LinkType* link) const
+    inline IteratorPostorder BeginPostorder(const LinkType* link)
     {
         return IteratorPostorder(link);
     }
 
-    inline IteratorPostorder BeginPostorder(const NodeType* node) const
+    inline IteratorPostorder BeginPostorder(const NodeType* node)
     {
         return IteratorPostorder(node->PrimaryLink());
     }
 
-    inline IteratorPostorder EndPostorder() const
+    inline IteratorPostorder EndPostorder()
     {
         return IteratorPostorder(nullptr);
+    }
+
+    inline ConstIteratorPostorder BeginPostorder() const
+    {
+        return ConstIteratorPostorder(RootLink());
+    }
+
+    inline ConstIteratorPostorder BeginPostorder(const LinkType* link) const
+    {
+        return ConstIteratorPostorder(link);
+    }
+
+    inline ConstIteratorPostorder BeginPostorder(const NodeType* node) const
+    {
+        return ConstIteratorPostorder(node->PrimaryLink());
+    }
+
+    inline ConstIteratorPostorder EndPostorder() const
+    {
+        return ConstIteratorPostorder(nullptr);
     }
 
     // -----------------------
     //     Levelorder
     // -----------------------
 
-    inline IteratorLevelorder BeginLevelorder() const
+    inline IteratorLevelorder BeginLevelorder()
     {
         return IteratorLevelorder(RootLink());
     }
 
-    inline IteratorLevelorder BeginLevelorder(const LinkType* link) const
+    inline IteratorLevelorder BeginLevelorder(const LinkType* link)
     {
         return IteratorLevelorder(link);
     }
 
-    inline IteratorLevelorder BeginLevelorder(const NodeType* node) const
+    inline IteratorLevelorder BeginLevelorder(const NodeType* node)
     {
         return IteratorLevelorder(node->PrimaryLink());
     }
 
-    inline IteratorLevelorder EndLevelorder() const
+    inline IteratorLevelorder EndLevelorder()
     {
         return IteratorLevelorder(nullptr);
+    }
+
+    inline ConstIteratorLevelorder BeginLevelorder() const
+    {
+        return ConstIteratorLevelorder(RootLink());
+    }
+
+    inline ConstIteratorLevelorder BeginLevelorder(const LinkType* link) const
+    {
+        return ConstIteratorLevelorder(link);
+    }
+
+    inline ConstIteratorLevelorder BeginLevelorder(const NodeType* node) const
+    {
+        return ConstIteratorLevelorder(node->PrimaryLink());
+    }
+
+    inline ConstIteratorLevelorder EndLevelorder() const
+    {
+        return ConstIteratorLevelorder(nullptr);
     }
 
     // -----------------------
@@ -420,11 +530,13 @@ public:
     static bool Equal(
         const TreeType& lhs,
         const TreeType& rhs,
-        const std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+        const std::function<bool
+            (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)> comparator
     );
     bool Equal(
         const TreeType& other,
-        const std::function<bool (TreeType::IteratorPreorder&, TreeType::IteratorPreorder&)> comparator
+        const std::function<bool
+            (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)> comparator
     ) const;
 
     bool HasIdenticalTopology(const TreeType& other) const;

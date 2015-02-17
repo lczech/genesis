@@ -40,16 +40,16 @@ public:
     // ---------------------------------------------------------------------
 
     template <class NodeDataType, class EdgeDataType>
-    static bool ToFile   (const std::string fn, Tree<NodeDataType, EdgeDataType>& tree);
+    static bool ToFile   (const std::string fn, const Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static void ToString (std::string& ts,      Tree<NodeDataType, EdgeDataType>& tree);
+    static void ToString (std::string& ts,      const Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static std::string ToString (Tree<NodeDataType, EdgeDataType>& tree);
+    static std::string ToString (const Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static void ToDocument (XmlDocument& xml, Tree<NodeDataType, EdgeDataType>& tree);
+    static void ToDocument (XmlDocument& xml, const Tree<NodeDataType, EdgeDataType>& tree);
 };
 
 } // namespace genesis
