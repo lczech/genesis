@@ -16,6 +16,11 @@
 #include <thread>
 #include <unordered_map>
 
+#ifdef PTHREADS
+#    include <thread>
+#endif
+
+#include "main/settings.hpp"
 #include "utils/logging.hpp"
 #include "utils/math.hpp"
 
@@ -522,6 +527,10 @@ void Placements::COG() const
     }
 }
 
+// =============================================================================
+//     Variance
+// =============================================================================
+
 /**
  * @brief Calculate the Variance of the placements on a tree.
  *
@@ -573,6 +582,11 @@ void Placements::COG() const
  * This distance is normalized using the `like_weight_ratio` of both placements, before
  * summing it up to calculate the variance.
  *
+ * According to the formula above, each pair of placements is evaluated twice, and subsequently
+ * their distance need to be halfed when being added to the sum of distanaces. Instead of that,
+ * we calculate the distance for each pair only once, thus are able skip half the calculations, and
+ * of course skip the division by two.
+ *
  * Furthermore, the normalizing factor \f$ \frac{1}{n^2} \f$ of the variance usually contains the
  * number of elements being processed. However, as the placements are weighted by their
  * `like_weight_ratio`, we instead calculate `n` as the sum of the `like_weight_ratio` of all
@@ -583,170 +597,162 @@ void Placements::COG() const
  */
 double Placements::Variance() const
 {
-    Matrix<double>* distances = tree.NodeDistanceMatrix();
+    // init
     double variance = 0.0;
     double count    = 0.0;
 
-    //~ std::unordered_map<const PqueryPlacement*, int> pi, si;
-    for (Pquery* pqry : pqueries) {
+    // create a VarianceData object for every placement and copy all interesting data into it.
+    // this way, we won't have to do all the pointer dereferencing during the actual calculations,
+    // and furthermore, the data is close in memory. this gives a tremendous speedup!
+    size_t index = 0;
+    std::vector<VarianceData> vd_placements;
+    vd_placements.reserve(PlacementCount());
+    for (Pquery* pqry : this->pqueries) {
         for (PqueryPlacement* place : pqry->placements) {
-            //~ pi.emplace(place, place->edge->PrimaryNode()->Index());
-            //~ si.emplace(place, place->edge->SecondaryNode()->Index());
-            place->primary_node_index   = place->edge->PrimaryNode()->Index();
-            place->secondary_node_index = place->edge->SecondaryNode()->Index();
+            VarianceData vdp;
+            vdp.index                = index++;
+            vdp.edge_index           = place->edge->Index();
+            vdp.primary_node_index   = place->edge->PrimaryNode()->Index();
+            vdp.secondary_node_index = place->edge->SecondaryNode()->Index();
+            vdp.pendant_length       = place->pendant_length;
+            vdp.distal_length        = place->distal_length;
+            vdp.branch_length        = place->edge->branch_length;
+            vdp.like_weight_ratio    = place->like_weight_ratio;
+            vd_placements.push_back(vdp);
         }
     }
 
-    /*
-    int progress    = 0;
-    LOG_DBG << "starting...";
-    // do a pairwise comparision of all (!) placements.
-    for (Pquery* pqry_a : pqueries) {
-        //~ LOG_DBG1 << "a progress " << progress << " of " << pqueries.size();
-        LOG_PROG(++progress, pqueries.size()) << "of Variance() finished.";
-        //~ LOG_DBG1 << "b progress " << progress << " of " << pqueries.size();
+    // also, calculate a matrix containing the pairwise distance between all nodes. this way, we
+    // do not need to search a path between placements every time.
+    Matrix<double>* distances = tree.NodeDistanceMatrix();
 
-        for (PqueryPlacement* place_a : pqry_a->placements) {
-            count    += place_a->like_weight_ratio;
-            variance += VariancePartial(place_a, distances, pqueries);
-        }
-    }
-    LOG_DBG << "finished.";
-    //*/
+#ifdef PTHREADS
 
-    //*
-    LOG_DBG << "supported num of threads: " << std::thread::hardware_concurrency();
-    LOG_DBG << "starting threads...";
+    // prepare storage for thread data.
+    int num_threads = Settings::Get().number_of_threads;
+    std::vector<double>       partials(num_threads, 0.0);
+    std::vector<double>       counts  (num_threads, 0.0);
+    std::vector<std::thread*> threads (num_threads, nullptr);
 
-#   define NT 4
-
-    std::thread* threads[NT];
-    double       partials[NT];
-    double       counts[NT];
-
-    for (int i = 0; i < NT; ++i) {
-        LOG_DBG1 << "starting thread " << i;
-        partials[i] = 0.0;
-        counts[i] = 0;
-        threads[i] = new std::thread(std::bind(&Placements::VarianceThread, this, i, NT, distances, &partials[i], &counts[i]));
+    // start all threads.
+    for (int i = 0; i < num_threads; ++i) {
+        threads[i] = new std::thread (std::bind (
+            &Placements::VarianceThread, this,
+            i, num_threads, &vd_placements, distances, &partials[i], &counts[i]
+        ));
     }
 
-    LOG_DBG << "waiting for threads...";
-
-    for (int i = 0; i < NT; ++i) {
-        LOG_DBG1 << "waiting for thread " << i << ", v " << variance;
+    // wait for all threads to finish.
+    for (int i = 0; i < num_threads; ++i) {
         threads[i]->join();
         variance += partials[i];
         count    += counts[i];
-        LOG_DBG1 << "done with thread " << i << ", v " << variance;
     }
 
-    LOG_DBG << "done, v " << variance << ", count " << count;
-    //*/
+#else
 
+    // do a pairwise calculation on all placements.
+    int progress    = 0;
+    for (const VarianceData& place_a : vd_placements) {
+        LOG_PROG(++progress, vd_placements.size()) << "of Variance() finished.";
+        variance += VariancePartial(place_a, vd_placements, *distances);
+        count    += place_a.like_weight_ratio;
+    }
+
+#endif
+
+    // cleanup and return the normalized value.
     delete distances;
-
-    double tmp = ((variance / count) / count) / 2;
-    LOG_DBG << "variance " << variance << ", tmp " << tmp;
-    return tmp;
+    return ((variance / count) / count);
 }
 
 /**
- * @brief
- */
-//~ void Placements::VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count, std::unordered_map<const PqueryPlacement*, int> pi, std::unordered_map<const PqueryPlacement*, int> si) const
-void Placements::VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count) const
-{
-    int progress = 0;
-    double mcount = 0.0;
-    double mparti = 0.0;
-    assert(*partial == 0.0 && *count == 0.0);
-
-    LOG_DBG2 << "thread: offset(" << offset << "), incr(" << incr << ") copying placements...";
-    Placements cpy(*this);
-
-    LOG_DBG2 << "thread: offset(" << offset << "), incr(" << incr << ") started with partial " << *partial;
-    for (size_t i = offset; i < cpy.pqueries.size(); i += incr) {
-    //~ for (size_t i = offset; i < offset + incr; ++i) {
-        LOG_PROG(++progress, cpy.pqueries.size()) << "of Variance() finished (offset " << offset << ", incr " << incr << ").";
-
-
-        Pquery* pqry_a = cpy.pqueries[i];
-        for (PqueryPlacement* place_a : pqry_a->placements) {
-            mcount += place_a->like_weight_ratio;
-            mparti += VariancePartial(place_a, distances, cpy.pqueries);
-        }
-    }
-    LOG_DBG2 << "thread: offset(" << offset << "), incr(" << incr << ") finished with partial " << *partial;
-    *partial = mparti;
-    *count   = mcount;
-}
-
-/**
- * @brief Calculates the sum of distances contributed by one placement for the variance.
- * See Variance() for more information.
+ * @brief Internal function that calculates the sum of distances for the variance that is
+ * contributed by a subset of the placements. See Variance() for more information.
  *
- * This function is intended to make the implementation of a threaded version of the calculation
- * feasible.
+ * This function is intended to be called by Variance() -- it is not a stand-alone function.
+ * It takes an offset and an incrementation value and does an interleaved loop over the placements,
+ * similar to the sequential version for calculating the variance.
  */
-double Placements::VariancePartial(
-    const PqueryPlacement*     place_a,
-    const Matrix<double>*      distances,
-    const std::deque<Pquery*>& pqueries_b
+void Placements::VarianceThread (
+    const int                        offset,
+    const int                        incr,
+    const std::vector<VarianceData>* pqrys,
+    const Matrix<double>*            distances,
+    double*                          partial,
+    double*                          count
 ) const {
-    double variance = 0.0;
-    int node_a, node_b;
+    // use internal variables to avoid false sharing.
+    assert(*partial == 0.0 && *count == 0.0);
+    double tmp_partial = 0.0;
+    double tmp_count   = 0.0;
 
-    for (Pquery* pqry_b : pqueries_b) {
-        for (PqueryPlacement* place_b : pqry_b->placements) {
-            // same placement
-            if (place_a == place_b) {
-                continue;
-            }
+    // iterate over the pqueries, starting at offset and interleaved with incr for each thread.
+    for (size_t i = offset; i < pqrys->size(); i += incr) {
+        LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
 
-            // same branch case
-            if (place_a->edge == place_b->edge) {
-                variance += place_a->pendant_length
-                         +  std::abs(place_a->distal_length - place_b->distal_length)
-                         +  place_b->pendant_length;
-                continue;
-            }
-
-            // distal-distal case
-            node_a = place_a->edge->PrimaryNode()->Index();
-            node_b = place_b->edge->PrimaryNode()->Index();
-            double dd = place_a->pendant_length + place_a->distal_length
-                      + (*distances)(node_a, node_b)
-                      //~ + (*distances)(place_a->primary_node_index, place_b->primary_node_index)
-                      + place_b->distal_length + place_b->pendant_length;
-
-            // proximal-distal case
-            node_a = place_a->edge->SecondaryNode()->Index();
-            node_b = place_b->edge->PrimaryNode()->Index();
-            double pd = place_a->pendant_length
-                      + place_a->edge->branch_length - place_a->distal_length
-                      + (*distances)(node_a, node_b)
-                      //~ + (*distances)(place_a->secondary_node_index, place_b->primary_node_index)
-                      + place_b->distal_length + place_b->pendant_length;
-
-            // distal-proximal case
-            node_a = place_a->edge->PrimaryNode()->Index();
-            node_b = place_b->edge->SecondaryNode()->Index();
-            double dp = place_a->pendant_length + place_a->distal_length
-                      + (*distances)(node_a, node_b)
-                      //~ + (*distances)(place_a->primary_node_index, place_b->secondary_node_index)
-                      + place_b->edge->branch_length - place_b->distal_length
-                      + place_b->pendant_length;
-
-            // find min of the three cases, normalize it to the weight ratios (we do this
-            // here to minimize the number of operations executed) and add it to the variance.
-            double min = std::min(dd, std::min(pd, dp));
-            min *= place_a->like_weight_ratio * place_b->like_weight_ratio;
-            variance += min * min;
-        }
+        const VarianceData& place_a = (*pqrys)[i];
+        tmp_partial += VariancePartial(place_a, *pqrys, *distances);
+        tmp_count   += place_a.like_weight_ratio;
     }
 
-    return variance;
+    // return the results.
+    *partial = tmp_partial;
+    *count   = tmp_count;
+}
+
+/**
+ * @brief Internal function that calculates the sum of distances contributed by one placement for
+ * the variance. See Variance() for more information.
+ *
+ * This function is intended to be called by Variance() or VarianceThread() -- it is not a
+ * stand-alone function.
+ */
+double Placements::VariancePartial (
+    const VarianceData&              place_a,
+    const std::vector<VarianceData>& pqrys_b,
+    const Matrix<double>&            distances
+) const {
+    double sum = 0.0;
+    double dd, pd, dp, min;
+
+    for (const VarianceData& place_b : pqrys_b) {
+        // check whether it is same placement (a=b, nothing to do, as their distance is zero),
+        // or a pair of placements that was already calculated (skip it also).
+        if (place_a.index >= place_b.index) {
+            continue;
+        }
+
+        // same branch case
+        if (place_a.edge_index == place_b.edge_index) {
+            sum += place_a.pendant_length
+                +  std::abs(place_a.distal_length - place_b.distal_length)
+                +  place_b.pendant_length;
+            continue;
+        }
+
+        // distal-distal case
+        dd = place_a.pendant_length + place_a.distal_length
+           + distances(place_a.primary_node_index, place_b.primary_node_index)
+           + place_b.distal_length + place_b.pendant_length;
+
+        // proximal-distal case
+        pd = place_a.pendant_length + place_a.branch_length - place_a.distal_length
+           + distances(place_a.secondary_node_index, place_b.primary_node_index)
+           + place_b.distal_length + place_b.pendant_length;
+
+        // distal-proximal case
+        dp = place_a.pendant_length + place_a.distal_length
+           + distances(place_a.primary_node_index, place_b.secondary_node_index)
+           + place_b.branch_length - place_b.distal_length + place_b.pendant_length;
+
+        // find min of the three cases and normalize it to the weight ratios.
+        min  = std::min(dd, std::min(pd, dp));
+        min *= place_a.like_weight_ratio * place_b.like_weight_ratio;
+        sum += min * min;
+    }
+
+    return sum;
 }
 
 // =============================================================================
