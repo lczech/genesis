@@ -11,6 +11,7 @@
 #include <deque>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "placement/placement_tree.hpp"
 
@@ -32,7 +33,6 @@ struct PqueryPlacement
 {
     PqueryPlacement() : edge_num(0), likelihood(0.0), like_weight_ratio(0.0), distal_length(0.0),
                         pendant_length(0.0), parsimony(0), pquery(nullptr), edge(nullptr)
-                        //~ primary_node_index(0), secondary_node_index(0)
     {}
 
     PqueryPlacement(const PqueryPlacement* other) :
@@ -44,8 +44,6 @@ struct PqueryPlacement
         parsimony(other->parsimony),
         pquery(nullptr),
         edge(nullptr)
-        //~ primary_node_index(other->primary_node_index),
-        //~ secondary_node_index(other->secondary_node_index)
     {}
 
     int     edge_num;
@@ -57,9 +55,6 @@ struct PqueryPlacement
 
     Pquery* pquery;
     PlacementTree::EdgeType* edge;
-
-    //~ size_t primary_node_index;
-    //~ size_t secondary_node_index;
 };
 
 // =============================================================================
@@ -141,15 +136,41 @@ public:
     double PlacementMass() const;
     void   COG() const;
 
+    // -----------------------------------------------------
+    //     Variance
+    // -----------------------------------------------------
+
 public:
     double Variance() const;
+
 protected:
-    void   VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count) const;
-    double VariancePartial(const PqueryPlacement* place_a, const Matrix<double>* distances, const std::deque<Pquery*>& mypqueries) const;
-    //~ void   VarianceThread (const int offset, const int incr, const Matrix<double>* distances, double* partial, double* count, std::unordered_map<const PqueryPlacement*, int> pi, std::unordered_map<const PqueryPlacement*, int> siy) const;
-    //~ double VariancePartial(const PqueryPlacement* place_a, const Matrix<double>* distances, const std::deque<Pquery*>& mypqueries, std::unordered_map<const PqueryPlacement*, int> pi, std::unordered_map<const PqueryPlacement*, int> si) const;
+    /** @brief Intermediate POD struct used for speeding up the variance calculations. */
+    typedef struct {
+        size_t index;
+        size_t edge_index;
+        size_t primary_node_index;
+        size_t secondary_node_index;
 
+        double pendant_length;
+        double distal_length;
+        double branch_length;
+        double like_weight_ratio;
+    } VarianceData;
 
+    void VarianceThread (
+        const int                        offset,
+        const int                        incr,
+        const std::vector<VarianceData>* pqrys,
+        const Matrix<double>*            distances,
+        double*                          partial,
+        double*                          count
+    ) const;
+
+    double VariancePartial (
+        const VarianceData&              place_a,
+        const std::vector<VarianceData>& pqrys_b,
+        const Matrix<double>&            distances
+    ) const;
 
     // -----------------------------------------------------
     //     Dump and Debug
