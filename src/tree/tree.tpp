@@ -18,9 +18,9 @@
 
 namespace genesis {
 
-// -------------------------------------------------------------------------
+// =============================================================================
 //     Construction and Destruction
-// -------------------------------------------------------------------------
+// =============================================================================
 
 /**
  * @brief Copy constructor. Copies the topology, but not the data of a tree.
@@ -189,9 +189,9 @@ void Tree<NDT, EDT>::Export(LinkArray& links, NodeArray& nodes, EdgeArray& edges
     edges = edges_;
 }
 
-// -------------------------------------------------------------------------
+// =============================================================================
 //     Member Functions
-// -------------------------------------------------------------------------
+// =============================================================================
 
 /**
  * @brief Returns the highest rank of the nodes of the Tree.
@@ -220,6 +220,10 @@ bool Tree<NDT, EDT>::IsBifurcating() const
     return MaxRank() == 2;
 }
 
+// =============================================================================
+//     Distances
+// =============================================================================
+
 /**
  * @brief
  */
@@ -232,7 +236,10 @@ Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix() const
 }
 
 /**
- * @brief
+ * @brief Returns a vector containing the depth of all nodes as compared to the given start node.
+ *
+ * The depth is the number of nodes visited on the path between two nodes (0 for itself, 1 for
+ * immediate neighbours, etc).
  *
  * If no Node pointer is provided, the root is taken as node.
  */
@@ -246,7 +253,7 @@ std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
     // store the distance from each node to the given node.
     std::vector<int> vec;
     vec.resize(NodesSize(), -1);
-    vec[0] = 0;
+    vec[node->Index()] = 0;
 
     // calculate the distance vector via levelorder iteration.
     for (
@@ -254,14 +261,17 @@ std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
         it != EndLevelorder();
         ++it
     ) {
-        // skip the root (it is already set to 0).
+        // skip the starting node (it is already set to 0).
         if (it.IsFirstIteration()) {
             continue;
         }
 
+        // we do not have the distance of the current node, but the one of its "parent"!
+        assert(vec[it.Node()->Index()] == -1);
+        assert(vec[it.Link()->Outer()->Node()->Index()] > -1);
+
         // the distance is the distance from the "parent" node (the next one in direction towards
         // the given node) plus 1.
-        assert(vec[it.Node()->Index()] == -1);
         vec[it.Node()->Index()] = 1 + vec[it.Link()->Outer()->Node()->Index()];
     }
 
@@ -277,7 +287,7 @@ std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
 template <class NDT, class EDT>
 Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix() const
 {
-    Matrix<double>* mat = new Matrix<double>(NodesSize(), NodesSize());
+    Matrix<double>* mat = new Matrix<double>(NodesSize(), NodesSize(), -1.0);
 
     // fill every row of the matrix
     for (NodeType* row_node : nodes_) {
@@ -286,6 +296,9 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix() const
 
         // the columns are filled using a levelorder traversal. this makes sure that for every node
         // we know how to calculate the distance to the current row node.
+        // unfortunately, this prevents us from simply calculating the upper triangle of the matrix
+        // and copying it (distance is symmetric), because we do not really know which nodes are in
+        // which half during a levelorder traversal...
         for (
             ConstIteratorLevelorder it = BeginLevelorder(row_node->Link());
             it != EndLevelorder();
@@ -295,6 +308,11 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix() const
             if (it.IsFirstIteration()) {
                 continue;
             }
+
+            // make sure we don't have touched the current position, but have calculated
+            // the needed dependency already.
+            assert((*mat)(row_node->Index(), it.Node()->Index()) < 0.0);
+            assert((*mat)(row_node->Index(), it.Link()->Outer()->Node()->Index()) > -1.0);
 
             // the distance to the current row node is: the length of the current branch plus
             // the distance from the other end of that branch to the row node.
@@ -324,6 +342,10 @@ std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(const NodeType* node) con
     // TODO
     return vec;
 }
+
+// =============================================================================
+//     Comparison
+// =============================================================================
 
 /**
  * @brief Compares two trees for equality given a binary comparator functional.
@@ -476,9 +498,9 @@ bool Tree<NDT, EDT>::HasIdenticalData(const TreeType& right) const
     return HasIdenticalEdgeData(right) && HasIdenticalNodeData(right);
 }
 
-// -------------------------------------------------------------------------
+// =============================================================================
 //     Dump and Debug Functions
-// -------------------------------------------------------------------------
+// =============================================================================
 
 
     // TODO introduce a validate function that checks the integrity of the tree:
