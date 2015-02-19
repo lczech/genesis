@@ -572,11 +572,11 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorLevelorder (LinkPointerType link) : link_(link), start_(link)
+    TreeIteratorLevelorder (LinkPointerType link) : link_(link), depth_(0), start_(link)
     {
         if (link) {
-            PushBackChildren(link);
-            stack_.push_front(link->Outer());
+            PushBackChildren(link, 0);
+            stack_.push_front({link->Outer(), 1});
         }
     }
 
@@ -587,11 +587,14 @@ public:
     inline self_type operator ++ ()
     {
         if (stack_.empty()) {
-            link_ = nullptr;
+            link_  = nullptr;
+            depth_ = -1;
         } else {
-            link_ = stack_.front();
+            StackElement se = stack_.front();
+            link_  = se.link;
+            depth_ = se.depth;
             stack_.pop_front();
-            PushBackChildren(link_);
+            PushBackChildren(link_, depth_);
         }
 
         return *this;
@@ -623,6 +626,11 @@ public:
         return link_ == start_;
     }
 
+    inline int Depth() const
+    {
+        return depth_;
+    }
+
     inline LinkPointerType Link() const
     {
         return link_;
@@ -649,18 +657,25 @@ public:
     }
 
 protected:
-    inline void PushBackChildren(LinkPointerType link)
+    inline void PushBackChildren(LinkPointerType link, int link_depth)
     {
         LinkPointerType c = link->Next();
         while (c != link) {
-            stack_.push_back(c->Outer());
+            stack_.push_back({c->Outer(), link_depth + 1});
             c = c->Next();
         }
     }
 
-    LinkPointerType             link_;
-    LinkPointerType             start_;
-    std::deque<LinkPointerType> stack_;
+    // TODO add depth information to other iterators, as well.
+    typedef struct {
+        LinkPointerType link;
+        int             depth;
+    } StackElement;
+
+    LinkPointerType          link_;
+    int                      depth_;
+    LinkPointerType          start_;
+    std::deque<StackElement> stack_;
 };
 
 // =============================================================================
