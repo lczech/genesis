@@ -607,8 +607,8 @@ double Placements::Variance() const
     size_t index = 0;
     std::vector<VarianceData> vd_placements;
     vd_placements.reserve(PlacementCount());
-    for (Pquery* pqry : this->pqueries) {
-        for (PqueryPlacement* place : pqry->placements) {
+    for (const Pquery* pqry : this->pqueries) {
+        for (const PqueryPlacement* place : pqry->placements) {
             VarianceData vdp;
             vdp.index                = index++;
             vdp.edge_index           = place->edge->Index();
@@ -624,7 +624,7 @@ double Placements::Variance() const
 
     // also, calculate a matrix containing the pairwise distance between all nodes. this way, we
     // do not need to search a path between placements every time.
-    Matrix<double>* distances = tree.NodeDistanceMatrix();
+    Matrix<double>* node_distances = tree.NodeDistanceMatrix();
 
 #ifdef PTHREADS
 
@@ -638,7 +638,7 @@ double Placements::Variance() const
     for (int i = 0; i < num_threads; ++i) {
         threads[i] = new std::thread (std::bind (
             &Placements::VarianceThread, this,
-            i, num_threads, &vd_placements, distances, &partials[i], &counts[i]
+            i, num_threads, &vd_placements, node_distances, &partials[i], &counts[i]
         ));
     }
 
@@ -655,14 +655,14 @@ double Placements::Variance() const
     int progress    = 0;
     for (const VarianceData& place_a : vd_placements) {
         LOG_PROG(++progress, vd_placements.size()) << "of Variance() finished.";
-        variance += VariancePartial(place_a, vd_placements, *distances);
+        variance += VariancePartial(place_a, vd_placements, *node_distances);
         count    += place_a.like_weight_ratio;
     }
 
 #endif
 
     // cleanup and return the normalized value.
-    delete distances;
+    delete node_distances;
     return ((variance / count) / count);
 }
 
@@ -678,7 +678,7 @@ void Placements::VarianceThread (
     const int                        offset,
     const int                        incr,
     const std::vector<VarianceData>* pqrys,
-    const Matrix<double>*            distances,
+    const Matrix<double>*            node_distances,
     double*                          partial,
     double*                          count
 ) const {
@@ -692,7 +692,7 @@ void Placements::VarianceThread (
         LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
 
         const VarianceData& place_a = (*pqrys)[i];
-        tmp_partial += VariancePartial(place_a, *pqrys, *distances);
+        tmp_partial += VariancePartial(place_a, *pqrys, *node_distances);
         tmp_count   += place_a.like_weight_ratio;
     }
 
@@ -711,7 +711,7 @@ void Placements::VarianceThread (
 double Placements::VariancePartial (
     const VarianceData&              place_a,
     const std::vector<VarianceData>& pqrys_b,
-    const Matrix<double>&            distances
+    const Matrix<double>&            node_distances
 ) const {
     double sum = 0.0;
     double dd, pd, dp, min;
@@ -733,17 +733,17 @@ double Placements::VariancePartial (
 
         // distal-distal case
         dd = place_a.pendant_length + place_a.distal_length
-           + distances(place_a.primary_node_index, place_b.primary_node_index)
+           + node_distances(place_a.primary_node_index, place_b.primary_node_index)
            + place_b.distal_length + place_b.pendant_length;
 
         // proximal-distal case
         pd = place_a.pendant_length + place_a.branch_length - place_a.distal_length
-           + distances(place_a.secondary_node_index, place_b.primary_node_index)
+           + node_distances(place_a.secondary_node_index, place_b.primary_node_index)
            + place_b.distal_length + place_b.pendant_length;
 
         // distal-proximal case
         dp = place_a.pendant_length + place_a.distal_length
-           + distances(place_a.primary_node_index, place_b.secondary_node_index)
+           + node_distances(place_a.primary_node_index, place_b.secondary_node_index)
            + place_b.branch_length - place_b.distal_length + place_b.pendant_length;
 
         // find min of the three cases and normalize it to the weight ratios.
@@ -765,15 +765,15 @@ double Placements::VariancePartial (
 std::string Placements::Dump() const
 {
     std::ostringstream out;
-    for (Pquery* pqry : pqueries) {
-        for (PqueryName* n : pqry->names) {
+    for (const Pquery* pqry : pqueries) {
+        for (const PqueryName* n : pqry->names) {
             out << n->name;
             if (n->multiplicity != 0.0) {
                 out << " (" << n->multiplicity << ")";
             }
             out << "\n";
         }
-        for (PqueryPlacement* p : pqry->placements) {
+        for (const PqueryPlacement* p : pqry->placements) {
             out << p->edge_num << ": ";
             if (p->likelihood != 0.0 || p->like_weight_ratio != 0.0) {
                 out << p->likelihood << "|" << p->like_weight_ratio << " ";
@@ -824,7 +824,7 @@ bool Placements::Validate (bool check_values, bool break_on_values) const
         edge_num_map.emplace(edge->edge_num, edge);
 
         // make sure the pointers and references are set correctly
-        for (PqueryPlacement* p : edge->placements) {
+        for (const PqueryPlacement* p : edge->placements) {
             if (p->edge != edge) {
                 LOG_INFO << "Inconsistent pointer from placement to edge at edge num '"
                          << edge->edge_num << "'.";
@@ -841,7 +841,7 @@ bool Placements::Validate (bool check_values, bool break_on_values) const
 
     // check pqueries
     size_t pqry_place_count = 0;
-    for (Pquery* pqry : pqueries) {
+    for (const Pquery* pqry : pqueries) {
         // use this name for reporting invalid placements.
         std::string name;
         if (pqry->names.size() > 0) {
@@ -858,14 +858,14 @@ bool Placements::Validate (bool check_values, bool break_on_values) const
             }
         }
         double ratio_sum = 0.0;
-        for (PqueryPlacement* p : pqry->placements) {
+        for (const PqueryPlacement* p : pqry->placements) {
             // make sure the pointers and references are set correctly
             if (p->pquery != pqry) {
                 LOG_INFO << "Inconsistent pointer from placement to pquery at '" << name << "'.";
                 return false;
             }
             int found_placement_on_edge = 0;
-            for (PqueryPlacement* pe : p->edge->placements) {
+            for (const PqueryPlacement* pe : p->edge->placements) {
                 if (pe == p) {
                     ++found_placement_on_edge;
                 }
@@ -936,7 +936,7 @@ bool Placements::Validate (bool check_values, bool break_on_values) const
                 return false;
             }
         }
-        for (PqueryName* n : pqry->names) {
+        for (const PqueryName* n : pqry->names) {
             // make sure the pointers and references are set correctly
             if (n->pquery != pqry) {
                 LOG_INFO << "Inconsistent pointer from name '" << n->name << "' to pquery.";
