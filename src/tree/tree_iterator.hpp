@@ -468,7 +468,7 @@ public:
             link_ = stack_.front();
             stack_.pop_front();
         } else {
-            // this condition is active in all other cases: going down the tree towards the tips
+            // this condition is active in all other cases: going down the tree towards the leaves
             link_ = stack_.front();
             while (link_->IsInner()) {
                 PushFrontChildren(link_);

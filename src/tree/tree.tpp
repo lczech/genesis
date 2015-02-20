@@ -226,6 +226,8 @@ bool Tree<NDT, EDT>::IsBifurcating() const
 
 /**
  * @brief
+ *
+ * The vector is indexed using the Node()->Index() for every node.
  */
 template <class NDT, class EDT>
 Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix() const
@@ -236,12 +238,13 @@ Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix() const
 }
 
 /**
- * @brief Returns a vector containing the depth of all nodes as compared to the given start node.
+ * @brief Returns a vector containing the depth of all nodes with respect to the given start node.
  *
- * The depth is the number of nodes visited on the path between two nodes (0 for itself, 1 for
- * immediate neighbours, etc).
+ * The vector is indexed using the Node()->Index() for every node. Its elements give the depth of
+ * each node with respect to the given start node. The depth is the number of edges visited on the
+ * path between two nodes (0 for itself, 1 for immediate neighbours, etc).
  *
- * If no Node pointer is provided, the root is taken as node.
+ * If no start node pointer is provided, the root is taken as node.
  */
 template <class NDT, class EDT>
 std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
@@ -311,7 +314,7 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix() const
 
             // make sure we don't have touched the current position, but have calculated
             // the needed dependency already.
-            assert((*mat)(row_node->Index(), it.Node()->Index()) < 0.0);
+            assert((*mat)(row_node->Index(), it.Node()->Index()) == -1.0);
             assert((*mat)(row_node->Index(), it.Link()->Outer()->Node()->Index()) > -1.0);
 
             // the distance to the current row node is: the length of the current branch plus
@@ -340,6 +343,97 @@ std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(const NodeType* node) con
     std::vector<double> vec;
     vec.resize(NodesSize(), 0.0);
     // TODO
+    return vec;
+}
+
+/**
+ * @brief Returns a vector containing for each node its closest leaf node measured in number of
+ * edges between them and its depth (number of edges between them).
+ *
+ * The vector is indexed using the Node()->Index() for every node. Its value contains an std::pair,
+ * where the first element is a NodeType* to the closest leaf node (with respect to its depth) and
+ * the second element its depth with respect to the node at the given index of the vector. The depth
+ * is the number of edges visited on the path between two nodes (0 for itself, 1 for immediate
+ * neighbours, etc).
+ *
+ * Thus, leaf nodes will have a pointer to themselves and a depth value of 0, and for all other
+ * nodes the depth will be the number of edges between it and the closest leaf node.
+ *
+ * There might be more than one leaf with the same depth to a given node. In this case, an
+ * arbitrary one is used.
+ */
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::NodeIntVectorType Tree<NDT, EDT>::ClosestLeafDepthVector() const
+{
+    // prepare a result vector with the size of number of nodes.
+    NodeIntVectorType vec;
+    vec.resize(NodesSize(), {nullptr, 0});
+
+    // fill the vector for every node.
+    // this could be speed up by doing a postorder traversal followed by some sort of inside-out
+    // traversal (preorder might do the job). but for now, this simple O(n^2) version works, too.
+    for (NodeType* node : nodes_) {
+        // we have not visited this node. assertion holds as long as the indices are correct.
+        assert(vec[node->Index()].first == nullptr);
+
+        // look for closest leaf node by doing a levelorder traversal.
+        for (
+            ConstIteratorLevelorder it = BeginLevelorder(node);
+            it != EndLevelorder();
+            ++it
+        ) {
+            // if we find a leaf, leave the loop.
+            if (it.Node()->IsLeaf()) {
+                vec[node->Index()].first  = it.Node();
+                vec[node->Index()].second = it.Depth();
+                break;
+            }
+        }
+    }
+
+    return vec;
+}
+
+/**
+ * @brief
+ */
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::NodeDoubleVectorType Tree<NDT, EDT>::ClosestLeafDistanceVector() const
+{
+    // prepare a result vector with the size of number of nodes.
+    NodeDoubleVectorType vec;
+    vec.resize(NodesSize(), {nullptr, 0.0});
+
+    // we need the pairwise distances between all nodes, so we can do quick loopups.
+    Matrix<double>* node_distances = NodeDistanceMatrix();
+
+    // fill the vector for every node.
+    // there is probably a faster way of doing this: preorder traversal with pruning. but for now,
+    // this simple O(n^2) version works.
+    for (NodeType* node : nodes_) {
+        // we have not visited this node. assertion holds as long as the indices are correct.
+        assert(vec[node->Index()].first == nullptr);
+
+        NodeType* min_node = nullptr;
+        double    min_dist = 0.0;
+
+        // try out all other nodes, and find the closest leaf.
+        for (NodeType* other : nodes_) {
+            if (!other->IsLeaf()) {
+                continue;
+            }
+
+            double dist = (*node_distances)(node->Index(), other->Index());
+            if (min_node == nullptr || dist < min_dist) {
+                min_node = other;
+                min_dist = dist;
+            }
+        }
+
+        vec[node->Index()].first  = min_node;
+        vec[node->Index()].second = min_dist;
+    }
+
     return vec;
 }
 
@@ -417,9 +511,9 @@ bool Tree<NDT, EDT>::Equal(
  * @brief Returns true iff both trees have an identical topology.
  *
  * The topology is considered identical only if the order of edges is also the same in both trees.
- * This means, although two trees might have the same number of tips and branches, they might still
- * be not identical (with respect to this function) when the branches appear in a different order
- * or when the root sits at a different node.
+ * This means, although two trees might have the same number of leaves and branches, they might
+ * still be not identical (with respect to this function) when the branches appear in a different
+ * order or when the root sits at a different node.
  *
  * Thus, this function is mainly intended to check whether two trees have been produced from the
  * same input, for example from the same Newick file.
