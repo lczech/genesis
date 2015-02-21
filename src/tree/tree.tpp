@@ -347,7 +347,7 @@ std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(const NodeType* node) con
 }
 
 /**
- * @brief Returns a vector containing for each node its closest leaf node measured in number of
+ * @brief Returns a vector containing the closest leaf node for each node, measured in number of
  * edges between them and its depth (number of edges between them).
  *
  * The vector is indexed using the Node()->Index() for every node. Its value contains an std::pair,
@@ -395,7 +395,13 @@ typename Tree<NDT, EDT>::NodeIntVectorType Tree<NDT, EDT>::ClosestLeafDepthVecto
 }
 
 /**
- * @brief
+ * @brief Returns a vector containing the closest leaf node for each node, using the branch_length
+ * as distance measure.
+ *
+ * The vector is indexed using the Node()->Index() for every node. Its value contains an std::pair,
+ * where the first element is a NodeType* to the closest leaf node of the node at the index,
+ * measured using the branch_length; the second element of the pair is the distance value itself.
+ * Thus, leaf nodes will have a pointer to themselves and a distance value of 0.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::NodeDoubleVectorType Tree<NDT, EDT>::ClosestLeafDistanceVector() const
