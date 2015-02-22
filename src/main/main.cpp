@@ -48,8 +48,8 @@ int main (int argc, char* argv[])
     //~ Logging::details.file = true;
     //~ Logging::details.line = true;
     //~ Logging::details.function = true;
-    Logging::details.time = true;
-    Logging::details.runtime = true;
+    //~ Logging::details.time = true;
+    //~ Logging::details.runtime = true;
     //~ Logging::details.rundiff = true;
     LOG_BOLD << print_header();
     LOG_TIME << "started";
@@ -283,7 +283,7 @@ int main (int argc, char* argv[])
     //*
     Placements place_a, place_b;
     LOG_DBG << "Reading file...";
-    JplaceProcessor::FromFile("test/data/test_big.jplace", place_a);
+    JplaceProcessor::FromFile("test/data/test_40K.jplace", place_a);
     //~ JplaceProcessor::FromFile("test/data/test_a.jplace", place_a);
     //~ JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_0.jplace", place_a);
     //~ JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_1.jplace", place_b);
@@ -292,6 +292,10 @@ int main (int argc, char* argv[])
 
     //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_0.newick", place_a.tree);
     //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_1.newick", place_b.tree);
+
+    // ----------------------------
+    //     Debug
+    // ----------------------------
 
     //~ LOG_DBG << "tree a edge count " << place_a.tree.EdgesSize();
 
@@ -309,14 +313,51 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << "Validating b...";
     //~ LOG_DBG << "Valid b: " << place_b.Validate();
 
+    // ----------------------------
+    //     Restrain To Max Weight Placements
+    // ----------------------------
+
     LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
     place_a.RestrainToMaxWeightPlacements();
     //~ place_b.RestrainToMaxWeightPlacements();
     //~ LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
-    LOG_DBG << "Calculating variance...";
-    LOG_DBG << "Variance " << place_a.Variance();
+
+    // ----------------------------
+    //     Variance, EMD
+    // ----------------------------
+
+    LOG_DBG << "Calculating LeafDepthHistogram...";
+    std::vector<int> depth_hist = place_a.ClosestLeafDepthHistogram();
+    for (unsigned int d = 0; d < depth_hist.size(); ++d) {
+        LOG_DBG1 << "Depth " << d << " with " << depth_hist[d] << " placements.";
+    }
+
+    LOG_DBG << "Calculating LeafDistanceHistogram...";
+    double min = 0, max = 3;
+    std::vector<int> dist_hist = place_a.ClosestLeafDistanceHistogram(min, max, 50);
+    LOG_DBG << "min(" << min << "), max(" << max << ")";
+    for (unsigned int d = 0; d < dist_hist.size(); ++d) {
+        LOG_DBG1 << "Distance bin " << d << " with " << dist_hist[d] << " placements.";
+    }
+
+    LOG_DBG << "Calculating LeafDistanceHistogramAuto...";
+    double mina, maxa;
+    int binsa = 10;
+    std::vector<int> dist_hista = place_a.ClosestLeafDistanceHistogramAuto(mina, maxa, binsa);
+    double bin_size = (maxa - mina) / binsa;
+    LOG_DBG << "min(" << mina << "), max(" << maxa << ")";
+    for (unsigned int d = 0; d < dist_hista.size(); ++d) {
+        LOG_DBG1 << "Distance bin " << d << " [" << d*bin_size << "; " << (d+1)*bin_size << ") has " << dist_hista[d] << " placements.";
+    }
+
+    //~ LOG_DBG << "Calculating variance...";
+    //~ LOG_DBG << "Variance " << place_a.Variance();
 
     //~ LOG_DBG << "EMD " << place_a.EMD(place_a);
+
+    // ----------------------------
+    //     Debug
+    // ----------------------------
 
     //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_both.newick", place_a.tree);
     //*/
@@ -334,6 +375,25 @@ int main (int argc, char* argv[])
     for (PlacementTree::IteratorPostorder it = place_a.tree.BeginPostorder(n); it != place_a.tree.EndPostorder(); ++it) {
         LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
     }
+
+    //*/
+
+    // =============================================================================
+    //     Testing leaf depth and distance
+    // =============================================================================
+
+    /*
+    std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    LOG_DBG << "In tree:  " << ts;
+    Tree<> tree;
+    NewickProcessor::FromString(ts, tree);
+
+    NewickBroker broker;
+    NewickProcessor::ToBroker(broker, tree);
+    broker.AssignRanks();
+    LOG_DBG << "Broker dump:\n" << broker.Dump();
+
+    tree.LeafDepthVector();
     //*/
 
     // =============================================================================

@@ -132,6 +132,14 @@ public:
     size_t PlacementCount() const;
     double PlacementMass() const;
 
+    std::vector<int> ClosestLeafDepthHistogram() const;
+    std::vector<int> ClosestLeafDistanceHistogram (
+        const double min, const double max, const int bins = 10
+    ) const;
+    std::vector<int> ClosestLeafDistanceHistogramAuto (
+        double& min, double& max, const int bins = 10
+    ) const;
+
     static double EMD (const Placements& left, const Placements& right);
     double EMD (const Placements& other) const;
 

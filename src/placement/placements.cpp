@@ -288,7 +288,7 @@ void Placements::RestrainToMaxWeightPlacements()
 size_t Placements::PlacementCount() const
 {
     size_t count = 0;
-    for (Pquery* pqry : pqueries) {
+    for (const Pquery* pqry : pqueries) {
         count += pqry->placements.size();
     }
     return count;
@@ -300,12 +300,191 @@ size_t Placements::PlacementCount() const
 double Placements::PlacementMass() const
 {
     double sum = 0.0;
-    for (Pquery* pqry : pqueries) {
+    for (const Pquery* pqry : pqueries) {
         for (PqueryPlacement* place : pqry->placements) {
             sum += place->like_weight_ratio;
         }
     }
     return sum;
+}
+
+/**
+ * @brief Returns a histogram representing how many placements have which depth with respect to
+ * their closest leaf node.
+ *
+ * The depth between two nodes on a tree is the number of edges between them. Thus, the depth of a
+ * placement (which sits on an edge of the tree) to a specific node is the number of edges between
+ * this node and the closer one of the two nodes at the end of the edge where the placement sits.
+ *
+ * The closest leaf to a placement is thus the leaf node which has the smallest depth to that
+ * placement. This function then returns a histogram of how many placements (values of the vector)
+ * are there that have a specific depth (indices of the vector) to their closest leaf.
+ *
+ * Example: A return vector of
+ *
+ *     histogram[0] = 2334
+ *     histogram[1] = 349
+ *     histogram[2] = 65
+ *     histogram[3] = 17
+ *
+ * means that there are 2334 placements that sit on an edge which leads to a leaf node (thus, the
+ * depth of one of the nodes of the edge is 0). It has 349 placements that sit on an edge where
+ * one of its nodes has one neighbour that is a leaf; and so on.
+ *
+ * The vector is automatically resized to the needed number of elements.
+ */
+std::vector<int> Placements::ClosestLeafDepthHistogram() const
+{
+    std::vector<int> hist;
+
+    // get a vector telling us the depth from each node to its closest leaf node.
+    PlacementTree::NodeIntVectorType depths = tree.ClosestLeafDepthVector();
+
+    for (const Pquery* pqry : pqueries) {
+        for (const PqueryPlacement* place : pqry->placements) {
+            // try both nodes at the end of the placement's edge and see which one is closer
+            // to a leaf.
+            int dp = depths[place->edge->PrimaryNode()->Index()].second;
+            int ds = depths[place->edge->SecondaryNode()->Index()].second;
+            unsigned int ld = std::min(dp, ds);
+
+            // put the closer one into the histogram, resize if necessary.
+            if (ld + 1 > hist.size()) {
+                hist.resize(ld + 1, 0);
+            }
+            ++hist[ld];
+        }
+    }
+
+    return hist;
+}
+
+/**
+ * @brief Returns a histogram counting the number of placements that have a certain distance to
+ * their closest leaf node, divided into equally large intervals between a min and a max distance.
+ *
+ * The distance range between min and max is divided into `bins` many intervals of equal size.
+ * Then, the distance from each placement to its closest leaf node is calculated and the counter for
+ * this particular distance inverval in the histogram is incremented.
+ *
+ * The distance is measured along the `branch_length` values of the edges, taking the
+ * `pendant_length` and `distal_length` of the placements into account. If the distances is outside
+ * of the interval [min,max], the counter of the first/last bin is incremented respectively.
+ *
+ * Example:
+ *
+ *     double min      =  0.0;
+ *     double max      = 20.0;
+ *     int    bins     = 25;
+ *     double bin_size = (max - min) / bins;
+ *     std::vector<int> hist = ClosestLeafDistanceHistogram (min, max, bins);
+ *     for (unsigned int bin = 0; bin < hist.size(); ++bin) {
+ *         LOG_INFO << "Bin " << bin << " [" << bin * bin_size << "; " << (bin+1) * bin_size << ") has " << hist[bin] << " placements.";
+ *     }
+ * %
+ */
+std::vector<int> Placements::ClosestLeafDistanceHistogram (
+    const double min, const double max, const int bins
+) const {
+    std::vector<int> hist(bins, 0);
+    double bin_size = (max - min) / bins;
+
+    // get a vector telling us the distance from each node to its closest leaf node.
+    PlacementTree::NodeDoubleVectorType dists = tree.ClosestLeafDistanceVector();
+
+    for (const Pquery* pqry : pqueries) {
+        for (const PqueryPlacement* place : pqry->placements) {
+            // try both nodes at the end of the placement's edge and see which one is closer
+            // to a leaf.
+            double dp = place->pendant_length + place->distal_length
+                      + dists[place->edge->PrimaryNode()->Index()].second;
+            double ds = place->pendant_length + place->edge->branch_length - place->distal_length
+                      + dists[place->edge->SecondaryNode()->Index()].second;
+            double ld = std::min(dp, ds);
+
+            // find the right bin. if the distance value is outside the boundaries of [min;max],
+            // place it in the first or last bin, respectively.
+            int bin = static_cast <int> (std::floor( (ld - min) / bin_size ));
+            if (bin < 0) {
+                bin = 0;
+            }
+            if (bin >= bins) {
+                bin = bins - 1;
+            }
+            ++hist[bin];
+        }
+    }
+
+    return hist;
+}
+
+/**
+ * @brief Returns the same type of histogram as ClosestLeafDistanceHistogram(), but automatically
+ * determines the needed boundaries.
+ *
+ * See ClosestLeafDistanceHistogram() for general information about what this function does. The
+ * difference between both functions is that this one first procresses all distances from
+ * placements to their closest leaf nodes to find out what the shortest and longest are, then sets
+ * the boundaries of the histogram accordingly. The number of bins is then used to divide this
+ * range into intervals of equal size.
+ *
+ * The boundaries are returned by passing two doubles `min` and `max` to the function by reference.
+ * The value of `max` will actually contain the result of std::nextafter() called on the longest
+ * distance; this makes sure that the value itself will be placed in the interval.
+ *
+ * It has a slightly higher time and memory consumption than the non-automatic version
+ * ClosestLeafDistanceHistogram(), as it needs to process the values twice in order to find their
+ * min and max.
+ */
+std::vector<int> Placements::ClosestLeafDistanceHistogramAuto (
+    double& min, double& max, const int bins
+) const {
+    std::vector<int> hist(bins, 0);
+
+    // we do not know yet where the boundaries of the histogram lie, so we need to store all values
+    // first and find their min and max.
+    std::vector<double> distrib;
+    double min_d = 0.0;
+    double max_d = 0.0;
+
+    // get a vector telling us the distance from each node to its closest leaf node.
+    PlacementTree::NodeDoubleVectorType dists = tree.ClosestLeafDistanceVector();
+
+    // calculate all distances from placements to their closest leaf and store them.
+    for (const Pquery* pqry : pqueries) {
+        for (const PqueryPlacement* place : pqry->placements) {
+            // try both nodes at the end of the placement's edge and see which one is closer
+            // to a leaf.
+            double dp = place->pendant_length + place->distal_length
+                      + dists[place->edge->PrimaryNode()->Index()].second;
+            double ds = place->pendant_length + place->edge->branch_length - place->distal_length
+                      + dists[place->edge->SecondaryNode()->Index()].second;
+            double ld = std::min(dp, ds);
+            distrib.push_back(ld);
+
+            // update min and max as needed (and in first iteration). we use std::nextafter() for
+            // the max in order to make sure that the max value is actually placed in the last bin.
+            if (distrib.size() == 1 || ld < min_d) {
+                min_d = ld;
+            }
+            if (distrib.size() == 1 || ld > max_d) {
+                max_d = std::nextafter(ld, ld + 1);
+            }
+        }
+    }
+
+    // now we know min and max of the distances, so we can calculate the histogram.
+    double bin_size = (max_d - min_d) / bins;
+    for (double ld : distrib) {
+        int bin = static_cast <int> (std::floor( (ld - min_d) / bin_size ));
+        assert(bin >=0 && bin < bins);
+        ++hist[bin];
+    }
+
+    // report the min and max values to the calling function and return the histogram.
+    min = min_d;
+    max = max_d;
+    return hist;
 }
 
 /**
@@ -337,7 +516,7 @@ double Placements::EMD(const Placements& lhs, const Placements& rhs)
     double totalmass_r = rhs.PlacementMass();
 
     // do a postorder traversal on both trees in parallel. while doing so, move placements
-    // from the tips towards the root and store their movement (mass * distance) in balance[].
+    // from the leaves towards the root and store their movement (mass * distance) in balance[].
     // in theory, it does not matter where we start the traversal - however, the positions of the
     // placements are given as "distal_length" on their branch, which always points away from the
     // root. thus, if we decided to traverse from a different node than the root, we would have to
