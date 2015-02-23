@@ -20,7 +20,7 @@
 #    include <thread>
 #endif
 
-#include "main/settings.hpp"
+#include "main/options.hpp"
 #include "utils/logging.hpp"
 #include "utils/math.hpp"
 
@@ -808,7 +808,7 @@ double Placements::Variance() const
 #ifdef PTHREADS
 
     // prepare storage for thread data.
-    int num_threads = Settings::Get().number_of_threads;
+    int num_threads = Options::Get().number_of_threads;
     std::vector<double>       partials(num_threads, 0.0);
     std::vector<double>       counts  (num_threads, 0.0);
     std::vector<std::thread*> threads (num_threads, nullptr);

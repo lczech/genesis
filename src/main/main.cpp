@@ -10,6 +10,8 @@
 #include <iostream>
 #include <string>
 
+#include "main/options.hpp"
+
 #include "placement/jplace_processor.hpp"
 #include "placement/placements.hpp"
 #include "tree/newick_processor.hpp"
@@ -52,7 +54,9 @@ int main (int argc, char* argv[])
     //~ Logging::details.runtime = true;
     //~ Logging::details.rundiff = true;
     LOG_BOLD << print_header();
+    Options::Get().SetCommandLine(argc, argv);
     LOG_TIME << "started";
+
 
     // =============================================================================
     //     Test cases for tree iterators
@@ -452,14 +456,6 @@ int main (int argc, char* argv[])
     // =============================================================================
     //     Program exit routines
     // =============================================================================
-
-    // anti compiler complaints
-    std::cout << argc << " ";
-    for (int i = 0; i < argc; i++) {
-        std::cout << argv[i];
-    }
-    std::cout << std::endl;
-
     LOG_TIME << "finished";
 
     return 0;
