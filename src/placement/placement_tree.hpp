@@ -67,6 +67,7 @@ public:
     {
         nbe->branch_length = branch_length;
         nbe->comments.push_back(std::to_string(PlacementCount()));
+        nbe->tags.push_back(std::to_string(edge_num));
     }
 
     inline std::string Dump() const

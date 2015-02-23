@@ -48,6 +48,15 @@ public:
     static bool FromString   (const std::string&  jplace, Placements& placements);
     static bool FromLexer    (const JsonLexer&    lexer,  Placements& placements);
     static bool FromDocument (const JsonDocument& doc,    Placements& placements);
+
+    // ---------------------------------------------------------------------
+    //     Printing
+    // ---------------------------------------------------------------------
+
+    static bool        ToFile     (const std::string   fn,     const Placements& placements);
+    static void        ToString   (      std::string&  jplace, const Placements& placements);
+    static std::string ToString   (                            const Placements& placements);
+    static void        ToDocument (      JsonDocument& doc,    const Placements& placements);
 };
 
 } // namespace genesis
