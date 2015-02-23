@@ -10,6 +10,7 @@
 #include <string>
 #include <vector>
 
+#include "main/options.hpp"
 #include "placement/placements.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/json_document.hpp"
@@ -337,6 +338,107 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, Placements& placeme
     }
 
     return true;
+}
+
+// =============================================================================
+//     Printing
+// =============================================================================
+
+bool JplaceProcessor::ToFile (const std::string fn, const Placements& placements)
+{
+    if (FileExists(fn)) {
+        LOG_WARN << "Jplace file '" << fn << "' already exist. Will not overwrite it.";
+        return false;
+    }
+    std::string ts;
+    ToString(ts, placements);
+    return FileWrite(fn, ts);
+}
+
+void JplaceProcessor::ToString (std::string&  jplace, const Placements& placements)
+{
+    jplace = ToString(placements);
+}
+
+std::string JplaceProcessor::ToString (const Placements& placements)
+{
+    JsonDocument json;
+    ToDocument(json, placements);
+    return JsonProcessor::ToString(json);
+}
+
+void JplaceProcessor::ToDocument (JsonDocument& doc, const Placements& placements)
+{
+    doc.clear();
+
+    // set tree
+    NewickProcessor::print_names          = true;
+    NewickProcessor::print_branch_lengths = true;
+    NewickProcessor::print_comments       = false;
+    NewickProcessor::print_tags           = true;
+    doc.Set("tree", new JsonValueString(NewickProcessor::ToString(placements.tree)));
+
+    // set placements
+    JsonValueArray* placements_arr = new JsonValueArray();
+    for (Pquery* pqry : placements.pqueries) {
+        JsonValueObject* jpqry      = new JsonValueObject();
+        placements_arr->push_back(jpqry);
+
+        // set placements
+        JsonValueArray* pqry_p_arr  = new JsonValueArray();
+        for (PqueryPlacement* pqry_place : pqry->placements) {
+            JsonValueArray* pqry_fields = new JsonValueArray();
+            pqry_fields->push_back(new JsonValueNumber(pqry_place->edge_num));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place->likelihood));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place->like_weight_ratio));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place->distal_length));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place->pendant_length));
+            pqry_p_arr->push_back(pqry_fields);
+        }
+        jpqry->Set("p", pqry_p_arr);
+
+        // find out whether names have multiplicity
+        bool has_nm = false;
+        for (PqueryName* pqry_name : pqry->names) {
+            has_nm |= pqry_name->multiplicity != 0.0;
+        }
+
+        // set named multiplicity / name
+        if (has_nm) {
+            JsonValueArray* pqry_nm_arr = new JsonValueArray();
+            for (PqueryName* pqry_name : pqry->names) {
+                JsonValueArray* pqry_nm_val = new JsonValueArray();
+                pqry_nm_val->push_back(new JsonValueString(pqry_name->name));
+                pqry_nm_val->push_back(new JsonValueNumber(pqry_name->multiplicity));
+                pqry_nm_arr->push_back(pqry_nm_val);
+            }
+            jpqry->Set("nm", pqry_nm_arr);
+        } else {
+            JsonValueArray* pqry_n_arr  = new JsonValueArray();
+            for (PqueryName* pqry_name : pqry->names) {
+                pqry_n_arr->push_back(new JsonValueString(pqry_name->name));
+            }
+            jpqry->Set("n", pqry_n_arr);
+        }
+    }
+    doc.Set("placements", placements_arr);
+
+    // set fields
+    JsonValueArray* jfields = new JsonValueArray();
+    jfields->push_back(new JsonValueString("edge_num"));
+    jfields->push_back(new JsonValueString("likelihood"));
+    jfields->push_back(new JsonValueString("like_weight_ratio"));
+    jfields->push_back(new JsonValueString("distal_length"));
+    jfields->push_back(new JsonValueString("pendant_length"));
+    doc.Set("fields", jfields);
+
+    // set version
+    doc.Set("version", new JsonValueNumber(3));
+
+    // set metadata
+    JsonValueObject* jinvocation = new JsonValueObject();
+    jinvocation->Set("invocation", new JsonValueString(Options::Get().GetCommandLineString()));
+    doc.Set("metadata", jinvocation);
 }
 
 } // namespace genesis

@@ -267,12 +267,16 @@ int main (int argc, char* argv[])
     //~ place_a.COG();
     LOG_DBG << "Variance: " << place_a.Variance();
 
+    */
+    //*
+
     //~ LOG_DBG << "================================";
     //~ LOG_DBG << "Test 2";
-    //~ Placements place;
-    //~ place.FromJplaceFile("test/data/placement.jplace");
-    //~ LOG_DBG << "valid: " << place.Validate();
-    //~ LOG_DBG << place.Dump();
+    Placements place;
+    JplaceProcessor::FromFile("test/data/placement.jplace", place);
+    LOG_DBG << "valid: " << place.Validate();
+    LOG_DBG << place.Dump();
+    LOG_DBG << "json " << JplaceProcessor::ToString(place);
     //~ LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
     //~ place.RestrainToMaxWeightPlacements();
     //~ LOG_DBG << "valid: " << place.Validate();
@@ -284,7 +288,7 @@ int main (int argc, char* argv[])
     //     Further tests for placements and validation
     // =============================================================================
 
-    //*
+    /*
     Placements place_a, place_b;
     LOG_DBG << "Reading file...";
     JplaceProcessor::FromFile("test/data/test_40K.jplace", place_a);
