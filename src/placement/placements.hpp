@@ -129,11 +129,20 @@ public:
     //     Placement Weight
     // -----------------------------------------------------
 
+    size_t PlacementCount() const;
+    double PlacementMass() const;
+
+    std::vector<int> ClosestLeafDepthHistogram() const;
+    std::vector<int> ClosestLeafDistanceHistogram (
+        const double min, const double max, const int bins = 10
+    ) const;
+    std::vector<int> ClosestLeafDistanceHistogramAuto (
+        double& min, double& max, const int bins = 10
+    ) const;
+
     static double EMD (const Placements& left, const Placements& right);
     double EMD (const Placements& other) const;
 
-    size_t PlacementCount() const;
-    double PlacementMass() const;
     void   COG() const;
 
     // -----------------------------------------------------
@@ -161,7 +170,7 @@ protected:
         const int                        offset,
         const int                        incr,
         const std::vector<VarianceData>* pqrys,
-        const Matrix<double>*            distances,
+        const Matrix<double>*            node_distances,
         double*                          partial,
         double*                          count
     ) const;
@@ -169,7 +178,7 @@ protected:
     double VariancePartial (
         const VarianceData&              place_a,
         const std::vector<VarianceData>& pqrys_b,
-        const Matrix<double>&            distances
+        const Matrix<double>&            node_distances
     ) const;
 
     // -----------------------------------------------------

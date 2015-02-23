@@ -12,6 +12,7 @@
 
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "tree/tree_edge.hpp"
@@ -530,6 +531,12 @@ public:
     std::vector<int>    NodeDepthVector    (const NodeType* node = nullptr) const;
     Matrix<double>*     NodeDistanceMatrix ()                               const;
     std::vector<double> NodeDistanceVector (const NodeType* node = nullptr) const;
+
+    typedef std::vector< std::pair<const NodeType*, int> >    NodeIntVectorType;
+    typedef std::vector< std::pair<const NodeType*, double> > NodeDoubleVectorType;
+
+    NodeIntVectorType    ClosestLeafDepthVector()    const;
+    NodeDoubleVectorType ClosestLeafDistanceVector() const;
 
     // -----------------------
     //     Comparisons
