@@ -148,13 +148,15 @@ Placements::EdgeNumMapType* Placements::EdgeNumMap() const
     return edge_num_map;
 }
 
+// TODO add option for averaging branch_length
+// TODO write another merge function (static) that takes multiple placements and outputs a new placements object.
 /**
  * @brief Adds the pqueries from another Placements objects to this one.
  */
-bool Placements::Merge(Placements& other)
+bool Placements::Merge(const Placements& other)
 {
     // check for identical topology, taxa names and edge_nums.
-    // we do not check here for branch_length, because usuallym those differ slightly.
+    // we do not check here for branch_length, because usually those differ slightly.
     auto comparator = [] (
         PlacementTree::ConstIteratorPreorder& it_l,
         PlacementTree::ConstIteratorPreorder& it_r
@@ -171,10 +173,10 @@ bool Placements::Merge(Placements& other)
     // we need to assign edge pointers to the correct edge objects, so we need a mapping
     EdgeNumMapType* edge_num_map = EdgeNumMap();
 
-    // copy all (o)ld pqueries to (n)ew pqueries
-    for (Pquery* opqry : other.pqueries) {
+    // copy all (o)ther pqueries to (n)ew pqueries
+    for (const Pquery* opqry : other.pqueries) {
         Pquery* npqry = new Pquery;
-        for (PqueryPlacement* op : opqry->placements) {
+        for (const PqueryPlacement* op : opqry->placements) {
             PqueryPlacement* np = new PqueryPlacement(op);
 
             // assuming that the trees have identical topology (checked at the beginning of this
@@ -186,7 +188,7 @@ bool Placements::Merge(Placements& other)
             np->pquery = npqry;
             npqry->placements.push_back(np);
         }
-        for (PqueryName* on : opqry->names) {
+        for (const PqueryName* on : opqry->names) {
             PqueryName* nn = new PqueryName(on);
             nn->pquery = npqry;
             npqry->names.push_back(nn);
@@ -197,7 +199,7 @@ bool Placements::Merge(Placements& other)
 }
 
 /**
- * @brief Recalculates the `like_weight_ratio` of the placements of each Pquerie so that their sum
+ * @brief Recalculates the `like_weight_ratio` of the placements of each Pquery so that their sum
  * is 1.0, while maintaining their ratio to each other.
  */
 void Placements::NormalizeWeightRatios()
@@ -301,7 +303,7 @@ double Placements::PlacementMass() const
 {
     double sum = 0.0;
     for (const Pquery* pqry : pqueries) {
-        for (PqueryPlacement* place : pqry->placements) {
+        for (const PqueryPlacement* place : pqry->placements) {
             sum += place->like_weight_ratio;
         }
     }
@@ -431,6 +433,17 @@ std::vector<int> Placements::ClosestLeafDistanceHistogram (
  * The boundaries are returned by passing two doubles `min` and `max` to the function by reference.
  * The value of `max` will actually contain the result of std::nextafter() called on the longest
  * distance; this makes sure that the value itself will be placed in the interval.
+ *
+ * Example:
+ *
+ *     double min, max;
+ *     int    bins = 25;
+ *     std::vector<int> hist = ClosestLeafDistanceHistogram (min, max, bins);
+ *     double bin_size = (max - min) / bins;
+ *     LOG_INFO << "Histogram boundaries: [" << min << "," << max << ").";
+ *     for (unsigned int bin = 0; bin < hist.size(); ++bin) {
+ *         LOG_INFO << "Bin " << bin << " [" << bin * bin_size << "; " << (bin+1) * bin_size << ") has " << hist[bin] << " placements.";
+ *     }
  *
  * It has a slightly higher time and memory consumption than the non-automatic version
  * ClosestLeafDistanceHistogram(), as it needs to process the values twice in order to find their
@@ -821,7 +834,7 @@ double Placements::Variance() const
         ));
     }
 
-    // wait for all threads to finish.
+    // wait for all threads to finish, collect their results.
     for (int i = 0; i < num_threads; ++i) {
         threads[i]->join();
         variance += partials[i];
@@ -840,7 +853,7 @@ double Placements::Variance() const
 
 #endif
 
-    // cleanup and return the normalized value.
+    // cleanup, then return the normalized value.
     delete node_distances;
     return ((variance / count) / count);
 }
