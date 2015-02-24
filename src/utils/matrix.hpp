@@ -1,5 +1,5 @@
-#ifndef GNS_UTILS_MATH_H_
-#define GNS_UTILS_MATH_H_
+#ifndef GNS_UTILS_MATRIX_H_
+#define GNS_UTILS_MATRIX_H_
 
 /**
  * @brief
@@ -17,7 +17,7 @@ namespace genesis {
 // =============================================================================
 
 template <typename value_type>
-struct Matrix
+class Matrix
 {
 public:
     Matrix (size_t rows, size_t cols) : rows_(rows), cols_(cols)

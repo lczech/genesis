@@ -22,7 +22,7 @@
 
 #include "main/options.hpp"
 #include "utils/logging.hpp"
-#include "utils/math.hpp"
+#include "utils/matrix.hpp"
 
 namespace genesis {
 
