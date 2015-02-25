@@ -14,6 +14,7 @@
 
 #include "placement/jplace_processor.hpp"
 #include "placement/placements.hpp"
+#include "tree/bipartitions.hpp"
 #include "tree/newick_processor.hpp"
 #include "tree/phyloxml_processor.hpp"
 
@@ -306,7 +307,7 @@ int main (int argc, char* argv[])
     //     Debug
     // ----------------------------
 
-    //~ LOG_DBG << "tree a edge count " << place_a.tree.EdgesSize();
+    //~ LOG_DBG << "tree a edge count " << place_a.tree.EdgeCount();
 
     //~ LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
     //~ LOG_DBG << "Merging A and B...";
@@ -388,35 +389,60 @@ int main (int argc, char* argv[])
     //*/
 
     // =============================================================================
-    //     Testing leaf depth and distance
+    //     Testing leaf depth, distance, bipartitions
     // =============================================================================
 
-    /*
-    std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
-    LOG_DBG << "In tree:  " << ts;
+    //*
+    //~ std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    //~ LOG_DBG << "In tree:  " << ts;
     Tree<> tree;
-    NewickProcessor::FromString(ts, tree);
+    //~ NewickProcessor::FromString(ts, tree);
+    NewickProcessor::FromFile("test/data/best_tree.newick", tree);
 
     NewickBroker broker;
     NewickProcessor::ToBroker(broker, tree);
     broker.AssignRanks();
-    LOG_DBG << "Broker dump:\n" << broker.Dump();
+    //~ LOG_DBG << "Broker dump:\n" << broker.Dump();
+    //~ LOG_DBG << "tree dump:\n" << tree.Dump();
 
-    tree.LeafDepthVector();
+    //~ Tree<>::NodeIntVectorType vec = tree.ClosestLeafDepthVector();
+    //~ int i = 0;
+    //~ for (std::pair<const Tree<>::NodeType*, int> p : vec) {
+        //~ LOG_DBG << "node " << i << " name(" << tree.NodeAt(i)->name << ") has closest " << p.first->Index() << " name(" << tree.NodeAt(p.first->Index())->name << ") width depth " << p.second;
+        //~ ++i;
+    //~ }
+
+    Bipartitions<DefaultNodeData, DefaultEdgeData> bi = Bipartitions<DefaultNodeData, DefaultEdgeData>(&tree);
+    Tree<>::NodeType* n1 = tree.FindNode("AY919771_clone_LG25_05_Alveolata");
+    Tree<>::NodeType* n2 = tree.FindNode("AB000912_Tridacna_parasite_Apicomplexa");
+    if (n1 == nullptr) {
+        LOG_DBG << "coundnt find n1";
+    }
+    if (n2 == nullptr) {
+        LOG_DBG << "coundnt find n2";
+    }
+    LOG_DBG << "found nodes: " << n1->name << " and " << n2->name;
+    std::vector<Tree<>::NodeType*> l;
+    l.push_back(n1);
+    l.push_back(n2);
+    bi.GetSubtreeEdges(l);
+    //~ bi.Make();
+    //~ LOG_DBG << bi.Dump();
+
     //*/
 
     // =============================================================================
     //     Bitvector tests
     // =============================================================================
 
-    Bitvector bv1(86, true);
-    Bitvector bv2(12);
-    bv1.Flip(3);
-    bv1 = ~bv1;
-    bv2.Set(5);
-    bv2 |= bv1;
-    LOG_DBG << "1 " << bv1.Dump() << "\ncount " << bv1.Count();
-    LOG_DBG << "2 " << bv2.Dump() << "\ncount " << bv2.Count();
+    //~ Bitvector bv1(86, true);
+    //~ Bitvector bv2(12);
+    //~ bv1.Flip(3);
+    //~ bv1 = ~bv1;
+    //~ bv2.Set(5);
+    //~ bv2 |= bv1;
+    //~ LOG_DBG << "1 " << bv1.Dump() << "\ncount " << bv1.Count();
+    //~ LOG_DBG << "2 " << bv2.Dump() << "\ncount " << bv2.Count();
 
     // =============================================================================
     //     Using placements on real data for tropcial soils project

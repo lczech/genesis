@@ -76,7 +76,7 @@ int TreeNode<NDT, EDT>::Rank() const
 template <class NDT, class EDT>
 std::string TreeNode<NDT, EDT>::Dump() const
 {
-    return "Rank: " + std::to_string(Rank()) + " \t " + "name";
+    return "Rank: " + std::to_string(Rank()) + " \t " + "name: " + this->name;
 }
 
 } // namespace genesis

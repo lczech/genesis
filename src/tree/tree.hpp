@@ -169,7 +169,7 @@ public:
     /**
      * @brief Returns the number of Links of the Tree.
      */
-    inline size_t LinksSize() const
+    inline size_t LinkCount() const
     {
         return links_.size();
     }
@@ -177,7 +177,7 @@ public:
     /**
      * @brief Returns the number of Nodes of the Tree.
      */
-    inline size_t NodesSize() const
+    inline size_t NodeCount() const
     {
         return nodes_.size();
     }
@@ -185,7 +185,7 @@ public:
     /**
      * @brief Returns the number of Edges of the Tree.
      */
-    inline size_t EdgesSize() const
+    inline size_t EdgeCount() const
     {
         return edges_.size();
     }
@@ -520,8 +520,13 @@ public:
 
     // TODO add other interesting member functions: http://en.wikipedia.org/wiki/Tree_%28data_structure%29
 
-    int  MaxRank() const;
-    bool IsBifurcating() const;
+    NodeType* FindNode(std::string name) const;
+
+    int    MaxRank() const;
+    bool   IsBifurcating() const;
+
+    size_t LeafCount() const;
+    size_t InnerCount() const;
 
     // -----------------------
     //     Distances
@@ -555,9 +560,6 @@ public:
     ) const;
 
     bool HasIdenticalTopology(const TreeType& other) const;
-    bool HasIdenticalEdgeData(const TreeType& other) const;
-    bool HasIdenticalNodeData(const TreeType& other) const;
-    bool HasIdenticalData    (const TreeType& other) const;
 
     // -----------------------------------------------------
     //     Debug and Dump
@@ -571,14 +573,11 @@ public:
     std::string DumpEdges() const;
     std::string DumpRoundtrip() const;
 
-protected:
-    int LinkPointerToIndex (LinkType* link) const;
-    int NodePointerToIndex (NodeType* node) const;
-    int EdgePointerToIndex (EdgeType* edge) const;
-
     // -----------------------------------------------------
     //     Data Members
     // -----------------------------------------------------
+
+protected:
 
     std::vector<LinkType*> links_;
     std::vector<NodeType*> nodes_;

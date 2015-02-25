@@ -194,6 +194,21 @@ void Tree<NDT, EDT>::Export(LinkArray& links, NodeArray& nodes, EdgeArray& edges
 // =============================================================================
 
 /**
+ * @brief Find a Node, given its name.
+ */
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::FindNode(std::string name) const
+{
+    name = StringReplaceAll(name, "_", " ");
+    for (NodeType* n : nodes_) {
+        if (n->name == name) {
+            return n;
+        }
+    }
+    return nullptr;
+}
+
+/**
  * @brief Returns the highest rank of the nodes of the Tree.
  */
 template <class NDT, class EDT>
@@ -220,6 +235,30 @@ bool Tree<NDT, EDT>::IsBifurcating() const
     return MaxRank() == 2;
 }
 
+/**
+ * @brief Count the number of leaf nodes.
+ */
+template <class NDT, class EDT>
+size_t Tree<NDT, EDT>::LeafCount() const
+{
+    size_t sum = 0;
+    for (NodeType* n : nodes_) {
+        if (n->IsLeaf()) {
+            ++sum;
+        }
+    }
+    return sum;
+}
+
+/**
+ * @brief Count the number of inner nodes.
+ */
+template <class NDT, class EDT>
+size_t Tree<NDT, EDT>::InnerCount() const
+{
+    return nodes_.size() - LeafCount();
+}
+
 // =============================================================================
 //     Distances
 // =============================================================================
@@ -232,7 +271,7 @@ bool Tree<NDT, EDT>::IsBifurcating() const
 template <class NDT, class EDT>
 Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix() const
 {
-    Matrix<int>* mat = new Matrix<int>(NodesSize(), NodesSize());
+    Matrix<int>* mat = new Matrix<int>(NodeCount(), NodeCount());
     // TODO
     return mat;
 }
@@ -255,7 +294,7 @@ std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
 
     // store the distance from each node to the given node.
     std::vector<int> vec;
-    vec.resize(NodesSize(), -1);
+    vec.resize(NodeCount(), -1);
     vec[node->Index()] = 0;
 
     // calculate the distance vector via levelorder iteration.
@@ -290,7 +329,7 @@ std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
 template <class NDT, class EDT>
 Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix() const
 {
-    Matrix<double>* mat = new Matrix<double>(NodesSize(), NodesSize(), -1.0);
+    Matrix<double>* mat = new Matrix<double>(NodeCount(), NodeCount(), -1.0);
 
     // fill every row of the matrix
     for (NodeType* row_node : nodes_) {
@@ -341,7 +380,7 @@ std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(const NodeType* node) con
     }
 
     std::vector<double> vec;
-    vec.resize(NodesSize(), 0.0);
+    vec.resize(NodeCount(), 0.0);
     // TODO
     return vec;
 }
@@ -367,7 +406,7 @@ typename Tree<NDT, EDT>::NodeIntVectorType Tree<NDT, EDT>::ClosestLeafDepthVecto
 {
     // prepare a result vector with the size of number of nodes.
     NodeIntVectorType vec;
-    vec.resize(NodesSize(), {nullptr, 0});
+    vec.resize(NodeCount(), {nullptr, 0});
 
     // fill the vector for every node.
     // this could be speed up by doing a postorder traversal followed by some sort of inside-out
@@ -408,7 +447,7 @@ typename Tree<NDT, EDT>::NodeDoubleVectorType Tree<NDT, EDT>::ClosestLeafDistanc
 {
     // prepare a result vector with the size of number of nodes.
     NodeDoubleVectorType vec;
-    vec.resize(NodesSize(), {nullptr, 0.0});
+    vec.resize(NodeCount(), {nullptr, 0.0});
 
     // we need the pairwise distances between all nodes, so we can do quick loopups.
     Matrix<double>* node_distances = NodeDistanceMatrix();
@@ -535,69 +574,6 @@ bool Tree<NDT, EDT>::HasIdenticalTopology(const TreeType& right) const
     return Equal(right, comparator);
 }
 
-/**
- * @brief Returns true iff both trees contain identical data on all their edges.
- *
- * See HasIdenticalData() for more information.
- */
-template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalEdgeData(const TreeType& right) const
-{
-    // check array size
-    if (this->edges_.size() != right.edges_.size()) {
-        return false;
-    }
-
-    // check edge data
-    for (size_t i = 0; i < this->edges_.size(); ++i) {
-        if (this->edges_[i]->data != right.edges_[i]->data) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/**
- * @brief Returns true iff both trees contain identical data on all their nodes.
- *
- * See HasIdenticalData() for more information.
- */
-template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalNodeData(const TreeType& right) const
-{
-    // check array sizes
-    if (this->nodes_.size() != right.nodes_.size()) {
-        return false;
-    }
-
-    // check node data
-    for (size_t i = 0; i < this->nodes_.size(); ++i) {
-        if (this->nodes_[i]->data != right.nodes_[i]->data) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/**
- * @brief Returns true iff both trees contain identical data on all their nodes and edges.
- *
- * It is first checked whether both trees have the same number of nodes and edges. It is however
- * not checked whether they have an identical topology. See HasIdenticalTopology() for this.
- * As this function relies on the order of nodes and edges in memory, it is however quite
- * improbable to have two trees with identical data but not identical topology.
- *
- * Thus, this function is mainly intended to check whether two trees have been produced from the
- * same input, for example from the same Newick file.
- */
-template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalData(const TreeType& right) const
-{
-    return HasIdenticalEdgeData(right) && HasIdenticalNodeData(right);
-}
-
 // =============================================================================
 //     Dump and Debug Functions
 // =============================================================================
@@ -687,10 +663,10 @@ std::string Tree<NDT, EDT>::DumpLinks() const
     std::ostringstream out;
     for (size_t i = 0; i < links_.size(); ++i) {
         out << "Link " << i
-            << " \t Next: "  << LinkPointerToIndex(links_[i]->next_)
-            << " \t Outer: " << LinkPointerToIndex(links_[i]->outer_)
-            << " \t Node: "  << NodePointerToIndex(links_[i]->node_)
-            << " \t Edge: "  << EdgePointerToIndex(links_[i]->edge_)
+            << " \t Next: "  << links_[i]->next_->index_
+            << " \t Outer: " << links_[i]->outer_->index_
+            << " \t Node: "  << links_[i]->node_->index_
+            << " \t Edge: "  << links_[i]->edge_->index_
             << " \t " << links_[i]->Dump()
             << "\n";
     }
@@ -706,7 +682,7 @@ std::string Tree<NDT, EDT>::DumpNodes() const
     std::ostringstream out;
     for (size_t i = 0; i < nodes_.size(); ++i) {
         out << "Node " << i
-            << " \t Link: " << LinkPointerToIndex(nodes_[i]->link_)
+            << " \t Link: " << nodes_[i]->link_->index_
             << " \t " << nodes_[i]->Dump() << "\n";
     }
     return out.str();
@@ -721,8 +697,8 @@ std::string Tree<NDT, EDT>::DumpEdges() const
     std::ostringstream out;
     for (size_t i = 0; i < edges_.size(); ++i) {
         out << "Edge " << i
-            << " \t Link P: " << LinkPointerToIndex(edges_[i]->link_p_)
-            << " \t Link S: " << LinkPointerToIndex(edges_[i]->link_s_)
+            << " \t Link P: " << edges_[i]->link_p_->index_
+            << " \t Link S: " << edges_[i]->link_s_->index_
             << " \t " << edges_[i]->Dump() << "\n";
     }
     return out.str();
@@ -752,60 +728,6 @@ std::string Tree<NDT, EDT>::DumpRoundtrip() const
     } while (link != links_.front());
 
     return out;
-}
-
-/**
- * @brief Returns the index of a given link pointer within the link pointer array links_.
- *
- * This is useful for debugging purposes, particularly for the Dump functions.
- * Returns `-1` if the pointer was not found.
- */
-template <class NDT, class EDT>
-int Tree<NDT, EDT>::LinkPointerToIndex (LinkType* link) const
-{
-    for (size_t i = 0; i < links_.size(); ++i) {
-        if (links_[i] == link) {
-            assert(link->index_ == i);
-            return i;
-        }
-    }
-    return -1;
-}
-
-/**
- * @brief Returns the index of a given node pointer within the node pointer array nodes_.
- *
- * This is useful for debugging purposes, particularly for the Dump functions.
- * Returns `-1` if the pointer was not found.
- */
-template <class NDT, class EDT>
-int Tree<NDT, EDT>::NodePointerToIndex (NodeType* node) const
-{
-    for (size_t i = 0; i < nodes_.size(); ++i) {
-        if (nodes_[i] == node) {
-            assert(node->index_ == i);
-            return i;
-        }
-    }
-    return -1;
-}
-
-/**
- * @brief Returns the index of a given edge pointer within the edge pointer array edges_.
- *
- * This is useful for debugging purposes, particularly for the Dump functions.
- * Returns `-1` if the pointer was not found.
- */
-template <class NDT, class EDT>
-int Tree<NDT, EDT>::EdgePointerToIndex (EdgeType* edge) const
-{
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        if (edges_[i] == edge) {
-            assert(edge->index_ == i);
-            return i;
-        }
-    }
-    return -1;
 }
 
 } // namespace genesis
