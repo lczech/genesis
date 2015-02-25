@@ -344,6 +344,9 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, Placements& placeme
 //     Printing
 // =============================================================================
 
+/**
+ * @brief
+ */
 bool JplaceProcessor::ToFile (const std::string fn, const Placements& placements)
 {
     if (FileExists(fn)) {
@@ -355,11 +358,17 @@ bool JplaceProcessor::ToFile (const std::string fn, const Placements& placements
     return FileWrite(fn, ts);
 }
 
+/**
+ * @brief
+ */
 void JplaceProcessor::ToString (std::string&  jplace, const Placements& placements)
 {
     jplace = ToString(placements);
 }
 
+/**
+ * @brief
+ */
 std::string JplaceProcessor::ToString (const Placements& placements)
 {
     JsonDocument json;
@@ -367,6 +376,9 @@ std::string JplaceProcessor::ToString (const Placements& placements)
     return JsonProcessor::ToString(json);
 }
 
+/**
+ * @brief
+ */
 void JplaceProcessor::ToDocument (JsonDocument& doc, const Placements& placements)
 {
     doc.clear();

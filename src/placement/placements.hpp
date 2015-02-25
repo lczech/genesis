@@ -121,7 +121,7 @@ public:
     typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
     EdgeNumMapType* EdgeNumMap() const;
 
-    bool Merge(Placements& other);
+    bool Merge(const Placements& other);
     void NormalizeWeightRatios();
     void RestrainToMaxWeightPlacements();
 
