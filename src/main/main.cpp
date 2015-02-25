@@ -20,6 +20,7 @@
 #include "utils/json_document.hpp"
 #include "utils/json_processor.hpp"
 
+#include "utils/bitvector.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -268,7 +269,7 @@ int main (int argc, char* argv[])
     LOG_DBG << "Variance: " << place_a.Variance();
 
     */
-    //*
+    /*
 
     //~ LOG_DBG << "================================";
     //~ LOG_DBG << "Test 2";
@@ -403,6 +404,20 @@ int main (int argc, char* argv[])
 
     tree.LeafDepthVector();
     //*/
+
+    // =============================================================================
+    //     Bitvector tests
+    // =============================================================================
+
+    Bitvector bv1(12, true);
+    Bitvector bv2(12);
+    bv1.Flip(3);
+    //~ bv1 = ~bv1;
+    bv2.Set(5);
+    bv2 ^= bv1;
+    //~ LOG_DBG << "bla";
+    LOG_DBG << bv1.Dump() << " c" << bv1.Count();
+    LOG_DBG << bv2.Dump() << " c" << bv2.Count();
 
     // =============================================================================
     //     Using placements on real data for tropcial soils project
