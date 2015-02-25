@@ -393,10 +393,11 @@ int main (int argc, char* argv[])
     // =============================================================================
 
     //*
-    std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
-    LOG_DBG << "In tree:  " << ts;
+    //~ std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+    //~ LOG_DBG << "In tree:  " << ts;
     Tree<> tree;
-    NewickProcessor::FromString(ts, tree);
+    //~ NewickProcessor::FromString(ts, tree);
+    NewickProcessor::FromFile("test/data/best_tree.newick", tree);
 
     NewickBroker broker;
     NewickProcessor::ToBroker(broker, tree);
@@ -412,8 +413,21 @@ int main (int argc, char* argv[])
     //~ }
 
     Bipartitions<DefaultNodeData, DefaultEdgeData> bi = Bipartitions<DefaultNodeData, DefaultEdgeData>(&tree);
-    bi.Make();
-    LOG_DBG << bi.Dump();
+    Tree<>::NodeType* n1 = tree.FindNode("AY919771_clone_LG25_05_Alveolata");
+    Tree<>::NodeType* n2 = tree.FindNode("AB000912_Tridacna_parasite_Apicomplexa");
+    if (n1 == nullptr) {
+        LOG_DBG << "coundnt find n1";
+    }
+    if (n2 == nullptr) {
+        LOG_DBG << "coundnt find n2";
+    }
+    LOG_DBG << "found nodes: " << n1->name << " and " << n2->name;
+    std::vector<Tree<>::NodeType*> l;
+    l.push_back(n1);
+    l.push_back(n2);
+    bi.GetSubtreeEdges(l);
+    //~ bi.Make();
+    //~ LOG_DBG << bi.Dump();
 
     //*/
 

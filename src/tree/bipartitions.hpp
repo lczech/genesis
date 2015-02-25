@@ -15,6 +15,7 @@
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
 #include "utils/bitvector.hpp"
+#include "utils/logging.hpp"
 
 namespace genesis {
 
@@ -39,9 +40,12 @@ public:
     // -------------------------------------------------------------
 
     typedef Bipartitions<NodeDataType, EdgeDataType> BipartitionsType;
-    typedef TreeLink    <NodeDataType, EdgeDataType> LinkType;
-
     friend BipartitionsType;
+
+    typedef Tree        <NodeDataType, EdgeDataType> TreeType;
+    typedef TreeLink    <NodeDataType, EdgeDataType> LinkType;
+    typedef TreeNode    <NodeDataType, EdgeDataType> NodeType;
+    typedef TreeEdge    <NodeDataType, EdgeDataType> EdgeType;
 
     Bipartition (size_t num_leaves) : leaf_nodes_(Bitvector(num_leaves)), link_(nullptr) {};
 
@@ -79,8 +83,12 @@ public:
     //     Declarations and Constructor
     // -------------------------------------------------------------
 
-    typedef Bipartition<NodeDataType, EdgeDataType> BipartitionType;
-    typedef Tree<NodeDataType, EdgeDataType>        TreeType;
+    typedef Bipartition <NodeDataType, EdgeDataType> BipartitionType;
+
+    typedef Tree        <NodeDataType, EdgeDataType> TreeType;
+    typedef TreeLink    <NodeDataType, EdgeDataType> LinkType;
+    typedef TreeNode    <NodeDataType, EdgeDataType> NodeType;
+    typedef TreeEdge    <NodeDataType, EdgeDataType> EdgeType;
 
     Bipartitions (const TreeType* tree) : tree_(tree) {};
 
@@ -90,6 +98,8 @@ public:
 
     void Make();
     void MakeIndex();
+
+    void GetSubtreeEdges(std::vector<NodeType*> nodes);
 
     bool        Validate();
     std::string Dump();

@@ -520,6 +520,8 @@ public:
 
     // TODO add other interesting member functions: http://en.wikipedia.org/wiki/Tree_%28data_structure%29
 
+    NodeType* FindNode(std::string name) const;
+
     int    MaxRank() const;
     bool   IsBifurcating() const;
 

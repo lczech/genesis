@@ -194,6 +194,21 @@ void Tree<NDT, EDT>::Export(LinkArray& links, NodeArray& nodes, EdgeArray& edges
 // =============================================================================
 
 /**
+ * @brief Find a Node, given its name.
+ */
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::FindNode(std::string name) const
+{
+    name = StringReplaceAll(name, "_", " ");
+    for (NodeType* n : nodes_) {
+        if (n->name == name) {
+            return n;
+        }
+    }
+    return nullptr;
+}
+
+/**
  * @brief Returns the highest rank of the nodes of the Tree.
  */
 template <class NDT, class EDT>
