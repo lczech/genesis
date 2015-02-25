@@ -571,14 +571,11 @@ public:
     std::string DumpEdges() const;
     std::string DumpRoundtrip() const;
 
-protected:
-    int LinkPointerToIndex (LinkType* link) const;
-    int NodePointerToIndex (NodeType* node) const;
-    int EdgePointerToIndex (EdgeType* edge) const;
-
     // -----------------------------------------------------
     //     Data Members
     // -----------------------------------------------------
+
+protected:
 
     std::vector<LinkType*> links_;
     std::vector<NodeType*> nodes_;

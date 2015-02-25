@@ -648,10 +648,10 @@ std::string Tree<NDT, EDT>::DumpLinks() const
     std::ostringstream out;
     for (size_t i = 0; i < links_.size(); ++i) {
         out << "Link " << i
-            << " \t Next: "  << LinkPointerToIndex(links_[i]->next_)
-            << " \t Outer: " << LinkPointerToIndex(links_[i]->outer_)
-            << " \t Node: "  << NodePointerToIndex(links_[i]->node_)
-            << " \t Edge: "  << EdgePointerToIndex(links_[i]->edge_)
+            << " \t Next: "  << links_[i]->next_->index_
+            << " \t Outer: " << links_[i]->outer_->index_
+            << " \t Node: "  << links_[i]->node_->index_
+            << " \t Edge: "  << links_[i]->edge_->index_
             << " \t " << links_[i]->Dump()
             << "\n";
     }
@@ -667,7 +667,7 @@ std::string Tree<NDT, EDT>::DumpNodes() const
     std::ostringstream out;
     for (size_t i = 0; i < nodes_.size(); ++i) {
         out << "Node " << i
-            << " \t Link: " << LinkPointerToIndex(nodes_[i]->link_)
+            << " \t Link: " << nodes_[i]->link_->index_
             << " \t " << nodes_[i]->Dump() << "\n";
     }
     return out.str();
@@ -682,8 +682,8 @@ std::string Tree<NDT, EDT>::DumpEdges() const
     std::ostringstream out;
     for (size_t i = 0; i < edges_.size(); ++i) {
         out << "Edge " << i
-            << " \t Link P: " << LinkPointerToIndex(edges_[i]->link_p_)
-            << " \t Link S: " << LinkPointerToIndex(edges_[i]->link_s_)
+            << " \t Link P: " << edges_[i]->link_p_->index_
+            << " \t Link S: " << edges_[i]->link_s_->index_
             << " \t " << edges_[i]->Dump() << "\n";
     }
     return out.str();
@@ -713,60 +713,6 @@ std::string Tree<NDT, EDT>::DumpRoundtrip() const
     } while (link != links_.front());
 
     return out;
-}
-
-/**
- * @brief Returns the index of a given link pointer within the link pointer array links_.
- *
- * This is useful for debugging purposes, particularly for the Dump functions.
- * Returns `-1` if the pointer was not found.
- */
-template <class NDT, class EDT>
-int Tree<NDT, EDT>::LinkPointerToIndex (LinkType* link) const
-{
-    for (size_t i = 0; i < links_.size(); ++i) {
-        if (links_[i] == link) {
-            assert(link->index_ == i);
-            return i;
-        }
-    }
-    return -1;
-}
-
-/**
- * @brief Returns the index of a given node pointer within the node pointer array nodes_.
- *
- * This is useful for debugging purposes, particularly for the Dump functions.
- * Returns `-1` if the pointer was not found.
- */
-template <class NDT, class EDT>
-int Tree<NDT, EDT>::NodePointerToIndex (NodeType* node) const
-{
-    for (size_t i = 0; i < nodes_.size(); ++i) {
-        if (nodes_[i] == node) {
-            assert(node->index_ == i);
-            return i;
-        }
-    }
-    return -1;
-}
-
-/**
- * @brief Returns the index of a given edge pointer within the edge pointer array edges_.
- *
- * This is useful for debugging purposes, particularly for the Dump functions.
- * Returns `-1` if the pointer was not found.
- */
-template <class NDT, class EDT>
-int Tree<NDT, EDT>::EdgePointerToIndex (EdgeType* edge) const
-{
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        if (edges_[i] == edge) {
-            assert(edge->index_ == i);
-            return i;
-        }
-    }
-    return -1;
 }
 
 } // namespace genesis
