@@ -220,6 +220,30 @@ bool Tree<NDT, EDT>::IsBifurcating() const
     return MaxRank() == 2;
 }
 
+/**
+ * @brief Count the number of leaf nodes.
+ */
+template <class NDT, class EDT>
+size_t Tree<NDT, EDT>::LeafCount() const
+{
+    size_t sum = 0;
+    for (NodeType* n : nodes_) {
+        if (n->IsLeaf()) {
+            ++sum;
+        }
+    }
+    return sum;
+}
+
+/**
+ * @brief Count the number of inner nodes.
+ */
+template <class NDT, class EDT>
+size_t Tree<NDT, EDT>::InnerCount() const
+{
+    return nodes_.size() - LeafCount();
+}
+
 // =============================================================================
 //     Distances
 // =============================================================================
@@ -533,69 +557,6 @@ bool Tree<NDT, EDT>::HasIdenticalTopology(const TreeType& right) const
     };
 
     return Equal(right, comparator);
-}
-
-/**
- * @brief Returns true iff both trees contain identical data on all their edges.
- *
- * See HasIdenticalData() for more information.
- */
-template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalEdgeData(const TreeType& right) const
-{
-    // check array size
-    if (this->edges_.size() != right.edges_.size()) {
-        return false;
-    }
-
-    // check edge data
-    for (size_t i = 0; i < this->edges_.size(); ++i) {
-        if (this->edges_[i]->data != right.edges_[i]->data) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/**
- * @brief Returns true iff both trees contain identical data on all their nodes.
- *
- * See HasIdenticalData() for more information.
- */
-template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalNodeData(const TreeType& right) const
-{
-    // check array sizes
-    if (this->nodes_.size() != right.nodes_.size()) {
-        return false;
-    }
-
-    // check node data
-    for (size_t i = 0; i < this->nodes_.size(); ++i) {
-        if (this->nodes_[i]->data != right.nodes_[i]->data) {
-            return false;
-        }
-    }
-
-    return true;
-}
-
-/**
- * @brief Returns true iff both trees contain identical data on all their nodes and edges.
- *
- * It is first checked whether both trees have the same number of nodes and edges. It is however
- * not checked whether they have an identical topology. See HasIdenticalTopology() for this.
- * As this function relies on the order of nodes and edges in memory, it is however quite
- * improbable to have two trees with identical data but not identical topology.
- *
- * Thus, this function is mainly intended to check whether two trees have been produced from the
- * same input, for example from the same Newick file.
- */
-template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalData(const TreeType& right) const
-{
-    return HasIdenticalEdgeData(right) && HasIdenticalNodeData(right);
 }
 
 // =============================================================================

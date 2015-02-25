@@ -520,8 +520,11 @@ public:
 
     // TODO add other interesting member functions: http://en.wikipedia.org/wiki/Tree_%28data_structure%29
 
-    int  MaxRank() const;
-    bool IsBifurcating() const;
+    int    MaxRank() const;
+    bool   IsBifurcating() const;
+
+    size_t LeafCount() const;
+    size_t InnerCount() const;
 
     // -----------------------
     //     Distances
@@ -555,9 +558,6 @@ public:
     ) const;
 
     bool HasIdenticalTopology(const TreeType& other) const;
-    bool HasIdenticalEdgeData(const TreeType& other) const;
-    bool HasIdenticalNodeData(const TreeType& other) const;
-    bool HasIdenticalData    (const TreeType& other) const;
 
     // -----------------------------------------------------
     //     Debug and Dump
