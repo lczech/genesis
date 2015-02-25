@@ -409,15 +409,14 @@ int main (int argc, char* argv[])
     //     Bitvector tests
     // =============================================================================
 
-    Bitvector bv1(12, true);
+    Bitvector bv1(86, true);
     Bitvector bv2(12);
     bv1.Flip(3);
-    //~ bv1 = ~bv1;
+    bv1 = ~bv1;
     bv2.Set(5);
-    bv2 ^= bv1;
-    //~ LOG_DBG << "bla";
-    LOG_DBG << bv1.Dump() << " c" << bv1.Count();
-    LOG_DBG << bv2.Dump() << " c" << bv2.Count();
+    bv2 |= bv1;
+    LOG_DBG << "1 " << bv1.Dump() << "\ncount " << bv1.Count();
+    LOG_DBG << "2 " << bv2.Dump() << "\ncount " << bv2.Count();
 
     // =============================================================================
     //     Using placements on real data for tropcial soils project

@@ -8,6 +8,7 @@
 #include "utils/bitvector.hpp"
 
 #include <algorithm>
+#include <assert.h>
 #include <functional>
 
 namespace genesis {
@@ -20,7 +21,7 @@ const Bitvector::IntType Bitvector::all_0_ = 0ul;
 const Bitvector::IntType Bitvector::all_1_ = (((1ul << 32) - 1) << 32)  +  ((1ul << 32) - 1);
 
 /**
- * @brief
+ * @brief Contains a single bit at each of the 64 positions.
  */
 const Bitvector::IntType Bitvector::bit_mask_[Bitvector::IntSize] =
 {
@@ -32,6 +33,45 @@ const Bitvector::IntType Bitvector::bit_mask_[Bitvector::IntSize] =
     1ul << 40,  1ul << 41,  1ul << 42,  1ul << 43,  1ul << 44,  1ul << 45,  1ul << 46,  1ul << 47,
     1ul << 48,  1ul << 49,  1ul << 50,  1ul << 51,  1ul << 52,  1ul << 53,  1ul << 54,  1ul << 55,
     1ul << 56,  1ul << 57,  1ul << 58,  1ul << 59,  1ul << 60,  1ul << 61,  1ul << 62,  1ul << 63
+};
+
+/**
+ * @brief Contains as many ones as the position in the array tells.
+ *
+ *     ones_mask_[0] --> 0 ones: 0000...0000
+ *     ones_mask_[1] --> 1 one:  0000...0001
+ *     ones_mask_[2] --> 2 ones: 0000...0011
+ *     ...
+ */
+const Bitvector::IntType Bitvector::ones_mask_[Bitvector::IntSize] =
+{
+    Bitvector::all_0_,       Bitvector::all_1_ >> 63, Bitvector::all_1_ >> 62, Bitvector::all_1_ >> 61,
+    Bitvector::all_1_ >> 60, Bitvector::all_1_ >> 59, Bitvector::all_1_ >> 58, Bitvector::all_1_ >> 57,
+    Bitvector::all_1_ >> 56, Bitvector::all_1_ >> 55, Bitvector::all_1_ >> 54, Bitvector::all_1_ >> 53,
+    Bitvector::all_1_ >> 52, Bitvector::all_1_ >> 51, Bitvector::all_1_ >> 50, Bitvector::all_1_ >> 49,
+    Bitvector::all_1_ >> 48, Bitvector::all_1_ >> 47, Bitvector::all_1_ >> 46, Bitvector::all_1_ >> 45,
+    Bitvector::all_1_ >> 44, Bitvector::all_1_ >> 43, Bitvector::all_1_ >> 42, Bitvector::all_1_ >> 41,
+    Bitvector::all_1_ >> 40, Bitvector::all_1_ >> 39, Bitvector::all_1_ >> 38, Bitvector::all_1_ >> 37,
+    Bitvector::all_1_ >> 36, Bitvector::all_1_ >> 35, Bitvector::all_1_ >> 34, Bitvector::all_1_ >> 33,
+    Bitvector::all_1_ >> 32, Bitvector::all_1_ >> 31, Bitvector::all_1_ >> 30, Bitvector::all_1_ >> 29,
+    Bitvector::all_1_ >> 28, Bitvector::all_1_ >> 27, Bitvector::all_1_ >> 26, Bitvector::all_1_ >> 25,
+    Bitvector::all_1_ >> 24, Bitvector::all_1_ >> 23, Bitvector::all_1_ >> 22, Bitvector::all_1_ >> 21,
+    Bitvector::all_1_ >> 20, Bitvector::all_1_ >> 19, Bitvector::all_1_ >> 18, Bitvector::all_1_ >> 17,
+    Bitvector::all_1_ >> 16, Bitvector::all_1_ >> 15, Bitvector::all_1_ >> 14, Bitvector::all_1_ >> 13,
+    Bitvector::all_1_ >> 12, Bitvector::all_1_ >> 11, Bitvector::all_1_ >> 10, Bitvector::all_1_ >> 9,
+    Bitvector::all_1_ >> 8,  Bitvector::all_1_ >> 7,  Bitvector::all_1_ >> 6,  Bitvector::all_1_ >> 5,
+    Bitvector::all_1_ >> 4,  Bitvector::all_1_ >> 3,  Bitvector::all_1_ >> 2,  Bitvector::all_1_ >> 1
+};
+
+/**
+ * @brief Mask used for quickly counting the number of set bits, see Count().
+ */
+const Bitvector::IntType Bitvector::count_mask_[4] =
+{
+    0x5555555555555555,  //binary: 0101...
+    0x3333333333333333,  //binary: 00110011...
+    0x0f0f0f0f0f0f0f0f,  //binary: 4 zeros, 4 ones...
+    0x0101010101010101   //the sum of 256 to the power of 0,1,2,3...
 };
 
 Bitvector operator & (Bitvector const& lhs, Bitvector const& rhs)
@@ -77,6 +117,14 @@ Bitvector operator ^ (Bitvector const& lhs, Bitvector const& rhs)
     return result;
 }
 
+/**
+ * @brief Set-minus of two Bitvectors.
+ */
+Bitvector operator - (Bitvector const& lhs, Bitvector const& rhs)
+{
+    return lhs & (~rhs);
+}
+
 // =============================================================================
 //     Operators
 // =============================================================================
@@ -96,6 +144,7 @@ Bitvector& Bitvector::operator |= (Bitvector const& rhs)
     for (size_t i = 0; i < min_s; ++i) {
         data_[i] |= rhs.data_[i];
     }
+    UnsetBuffer();
     return *this;
 }
 
@@ -105,6 +154,7 @@ Bitvector& Bitvector::operator ^= (Bitvector const& rhs)
     for (size_t i = 0; i < min_s; ++i) {
         data_[i] ^= rhs.data_[i];
     }
+    UnsetBuffer();
     return *this;
 }
 
@@ -142,18 +192,41 @@ Bitvector Bitvector::SymmetricDifference (Bitvector const& lhs, Bitvector const&
     return (lhs | rhs) & ~(lhs & rhs);
 }
 
+/**
+ * @brief Counts the number of ones in the Bitvector.
+ */
 size_t Bitvector::Count() const
 {
-    // TODO implement a faster way to count bits!
     size_t res = 0;
-    for (size_t i = 0; i < size_; ++i) {
-        if (Get(i)) {
-            ++res;
-        }
+    for (IntType x : data_) {
+        // put count of each 2 bits into those 2 bits
+        x -= (x >> 1) & count_mask_[0];
+
+        // put count of each 4 bits into those 4 bits
+        x = (x & count_mask_[1]) + ((x >> 2) & count_mask_[1]);
+
+        // put count of each 8 bits into those 8 bits
+        x = (x + (x >> 4)) & count_mask_[2];
+
+        // take left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
+        res += (x * count_mask_[3])>>56;
     }
+
+    // safe, but slow version...
+    //~ size_t tmp = 0;
+    //~ for (size_t i = 0; i < size_; ++i) {
+        //~ if (Get(i)) {
+            //~ ++tmp;
+        //~ }
+    //~ }
+    //~ assert(tmp == res);
+
     return res;
 }
 
+/**
+ * @brief Returns a std::hash value for the Bitvector.
+ */
 size_t Bitvector::Hash() const
 {
     size_t res = 0;
@@ -165,6 +238,10 @@ size_t Bitvector::Hash() const
     return res;
 }
 
+/**
+ * @brief Returns a hash value of type IntType, that is quicker to calculate than Hash(), and thus
+ * can be used where the std::hash is not needed.
+ */
 Bitvector::IntType Bitvector::XHash() const
 {
     IntType res = 0;
@@ -174,6 +251,9 @@ Bitvector::IntType Bitvector::XHash() const
     return res;
 }
 
+/**
+ * @brief Flip all bits.
+ */
 void Bitvector::Invert()
 {
     // flip all bits.
@@ -182,16 +262,42 @@ void Bitvector::Invert()
     }
 
     // reset the surplus bits at the end of the vector.
-    for (size_t i = size_ % IntSize; i < IntSize; ++i) {
-        data_.back() ^= bit_mask_[i];
+    UnsetBuffer();
+}
+
+/**
+ * @brief Brings the Bitvector in a normalized form, where the first bit is always zero.
+ *
+ * If the first bit is initially one, the whole Bitvector is flipped usingn Invert().
+ */
+void Bitvector::Normalize()
+{
+    if (size_ > 0 && Get(0)) {
+        Invert();
     }
 }
 
-void Bitvector::Normalize()
+/**
+ * @brief Internal function that sets all bits to zero that are not actively used.
+ *
+ * The data_ buffer always contains a multiple of IntSize many bits, thus there might be surplus
+ * bits at its end. In case we do operations with Bitvectors of different size, these might be
+ * affected, so we need to reset them to zero sometimes.
+ */
+void Bitvector::UnsetBuffer()
 {
-    if (Get(0)) {
-        Invert();
+    if (size_ % IntSize == 0) {
+        return;
     }
+    data_.back() &= ones_mask_[size_ % IntSize];
+
+    // other versions that might be helpful if i messed up with this little/big endian stuff...
+    // first one is slow but definitely works, second one is fast, but might have the same
+    // issue as the used version above (which currently works perfectly).
+    //~ for (size_t i = size_ % IntSize; i < IntSize; ++i) {
+        //~ data_.back() &= ~bit_mask_[i];
+    //~ }
+    //~ data_.back() &= bit_mask_[size_ % IntSize] - 1;
 }
 
 // =============================================================================
@@ -201,20 +307,30 @@ void Bitvector::Normalize()
 std::ostream& operator << (std::ostream& s, Bitvector const& rhs)
 {
     for(size_t i = 0; i < rhs.size() ; ++i) {
-        if(rhs.Get(i)) {
-            s << "1" ;
-        } else {
-            s << "0";
-        }
+        s << (rhs.Get(i) ? "1" : "0");
     }
     return s;
 }
 
 std::string Bitvector::Dump() const
 {
-    std::string res = "[" + std::to_string(size_) + "] ";
+    std::string res = "[" + std::to_string(size_) + "]\n";
     for (size_t i = 0; i < size_; ++i) {
         res += (*this)[i] ? "1" : "0";
+        if ((i+1) % 64 == 0) {
+            res += "\n";
+        } else if ((i+1) % 8 == 0) {
+            res += " ";
+        }
+    }
+    return res;
+}
+
+std::string Bitvector::DumpInt(IntType x) const
+{
+    std::string res = "";
+    for (size_t i = 0; i < IntSize; ++i) {
+        res += (x & bit_mask_[i] ? "1" : "0");
         if ((i+1) % 8 == 0) {
             res += " ";
         }

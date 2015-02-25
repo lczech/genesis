@@ -28,15 +28,19 @@ public:
     // ---------------------------------------------------------
 
     typedef uint64_t    IntType;
-    static const size_t IntSize = 64;
+    static const size_t IntSize = sizeof(IntType) * 8;
 
     friend Bitvector operator & (Bitvector const& lhs, Bitvector const& rhs);
     friend Bitvector operator | (Bitvector const& lhs, Bitvector const& rhs);
     friend Bitvector operator ^ (Bitvector const& lhs, Bitvector const& rhs);
-    //~ friend Bitvector operator - (Bitvector const& lhs, Bitvector const& rhs);
+    friend Bitvector operator - (Bitvector const& lhs, Bitvector const& rhs);
 
     friend std::ostream& operator << (std::ostream& out, Bitvector const& rhs);
 
+    /**
+     * @brief Constructor that takes a size and an optional bool value to initialize the Bitvector,
+     * false by default.
+     */
     Bitvector (const size_t size, const bool init = false) : size_(size)
     {
         // reserve enough bits/
@@ -49,15 +53,13 @@ public:
 
         // if we initialized with true, we need to unset the surplus bits at the end!
         if (init) {
-            // we need to the (slow) loop instead of the (fast) approach below it, because the
-            // latter does only work for little endian processors... i think.
-            for (size_t i = size % IntSize; i < IntSize; ++i) {
-                data_.back() ^= bit_mask_[i];
-            }
-            //~ data_.back() &= bit_mask_[size % IntSize] - 1;
+            UnsetBuffer();
         }
     }
 
+    /**
+     * @brief Constructor that takes a size and a list of values (positions) to be set to true.
+     */
     Bitvector (const size_t size, const std::initializer_list<int> list) : Bitvector(size, false)
     {
         for (int e : list) {
@@ -65,6 +67,9 @@ public:
         }
     }
 
+    /**
+     * @brief Returns the size (number of bits) of this Bitvector.
+     */
     inline size_t size() const
     {
         return size_;
@@ -74,6 +79,9 @@ public:
     //     Single Bit Functions
     // ---------------------------------------------------------
 
+    /**
+     * @brief Return the value of a single bit, without boundary check.
+     */
     inline bool operator [] (size_t index) const {
         return static_cast<bool> (data_[index / IntSize] & bit_mask_[index % IntSize]);
     }
@@ -88,11 +96,17 @@ public:
 
     inline void Set (size_t index)
     {
+        if (index >= size_) {
+            return;
+        }
         data_[index / IntSize] |= bit_mask_[index % IntSize];
     }
 
     inline void Unset (size_t index)
     {
+        if (index >= size_) {
+            return;
+        }
         data_[index / IntSize] &= ~(bit_mask_[index % IntSize]);
     }
 
@@ -107,6 +121,9 @@ public:
 
     inline void Flip (size_t index)
     {
+        if (index >= size_) {
+            return;
+        }
         data_[index / IntSize] ^= bit_mask_[index % IntSize];
     }
 
@@ -125,21 +142,33 @@ public:
         return !(*this == other);
     }
 
+    /**
+     * @brief Strict subset.
+     */
     inline bool operator <  (Bitvector const& rhs) const
     {
-        return ((*this & rhs) == *this)  && (Count() < rhs.Count());
+        return ((*this & rhs) == *this) && (Count() < rhs.Count());
     }
 
+    /**
+     * @brief Strict superset.
+     */
     inline bool operator >  (Bitvector const& rhs) const
     {
         return rhs < *this;
     }
 
+    /**
+     * @brief Subset or equal.
+     */
     inline bool operator <= (Bitvector const& rhs) const
     {
         return (*this == rhs) || (*this < rhs);
     }
 
+    /**
+     * @brief Superset or equal.
+     */
     inline bool operator >= (Bitvector const& rhs) const
     {
         return (*this == rhs) || (*this > rhs);
@@ -160,19 +189,26 @@ public:
     void    Normalize();
 
     std::string Dump() const;
+    std::string DumpInt(IntType x) const;
 
     // ---------------------------------------------------------
-    //     Data Members
+    //     Internal Members
     // ---------------------------------------------------------
 
 protected:
 
-    size_t               size_;
-    std::vector<IntType> data_;
+    void UnsetBuffer();
 
     static const IntType all_0_;
     static const IntType all_1_;
+
     static const IntType bit_mask_[IntSize];
+    static const IntType ones_mask_[IntSize];
+
+    static const IntType count_mask_[4];
+
+    size_t               size_;
+    std::vector<IntType> data_;
 };
 
 } // namespace genesis
