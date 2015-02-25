@@ -169,7 +169,7 @@ public:
     /**
      * @brief Returns the number of Links of the Tree.
      */
-    inline size_t LinksSize() const
+    inline size_t LinkCount() const
     {
         return links_.size();
     }
@@ -177,7 +177,7 @@ public:
     /**
      * @brief Returns the number of Nodes of the Tree.
      */
-    inline size_t NodesSize() const
+    inline size_t NodeCount() const
     {
         return nodes_.size();
     }
@@ -185,7 +185,7 @@ public:
     /**
      * @brief Returns the number of Edges of the Tree.
      */
-    inline size_t EdgesSize() const
+    inline size_t EdgeCount() const
     {
         return edges_.size();
     }

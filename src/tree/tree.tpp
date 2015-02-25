@@ -256,7 +256,7 @@ size_t Tree<NDT, EDT>::InnerCount() const
 template <class NDT, class EDT>
 Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix() const
 {
-    Matrix<int>* mat = new Matrix<int>(NodesSize(), NodesSize());
+    Matrix<int>* mat = new Matrix<int>(NodeCount(), NodeCount());
     // TODO
     return mat;
 }
@@ -279,7 +279,7 @@ std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
 
     // store the distance from each node to the given node.
     std::vector<int> vec;
-    vec.resize(NodesSize(), -1);
+    vec.resize(NodeCount(), -1);
     vec[node->Index()] = 0;
 
     // calculate the distance vector via levelorder iteration.
@@ -314,7 +314,7 @@ std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
 template <class NDT, class EDT>
 Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix() const
 {
-    Matrix<double>* mat = new Matrix<double>(NodesSize(), NodesSize(), -1.0);
+    Matrix<double>* mat = new Matrix<double>(NodeCount(), NodeCount(), -1.0);
 
     // fill every row of the matrix
     for (NodeType* row_node : nodes_) {
@@ -365,7 +365,7 @@ std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(const NodeType* node) con
     }
 
     std::vector<double> vec;
-    vec.resize(NodesSize(), 0.0);
+    vec.resize(NodeCount(), 0.0);
     // TODO
     return vec;
 }
@@ -391,7 +391,7 @@ typename Tree<NDT, EDT>::NodeIntVectorType Tree<NDT, EDT>::ClosestLeafDepthVecto
 {
     // prepare a result vector with the size of number of nodes.
     NodeIntVectorType vec;
-    vec.resize(NodesSize(), {nullptr, 0});
+    vec.resize(NodeCount(), {nullptr, 0});
 
     // fill the vector for every node.
     // this could be speed up by doing a postorder traversal followed by some sort of inside-out
@@ -432,7 +432,7 @@ typename Tree<NDT, EDT>::NodeDoubleVectorType Tree<NDT, EDT>::ClosestLeafDistanc
 {
     // prepare a result vector with the size of number of nodes.
     NodeDoubleVectorType vec;
-    vec.resize(NodesSize(), {nullptr, 0.0});
+    vec.resize(NodeCount(), {nullptr, 0.0});
 
     // we need the pairwise distances between all nodes, so we can do quick loopups.
     Matrix<double>* node_distances = NodeDistanceMatrix();
