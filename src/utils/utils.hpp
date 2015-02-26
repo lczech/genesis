@@ -74,6 +74,26 @@ inline std::string CurrentTime()
 //     Strings and Chars
 // ---------------------------------------------------------
 
+/** @brief Returns whether a char is a digit (0-9). */
+inline bool CharIsDigit (const char c)
+{
+    return ('0' <= c) && (c <= '9');
+}
+
+/** @brief Returns whether a char is a sign (+-). */
+inline bool CharIsSign (const char c)
+{
+    return ('+' == c) || ('-' == c);
+}
+
+/**
+ * @brief Returns whether two chars are the same, case insensitive.
+ */
+inline bool CharMatch(const char c1, const char c2)
+{
+    return std::tolower(c1) == std::tolower(c2);
+}
+
 /**
  * @brief Returns a precise(er than to_string) string representation of the input value.
  */
@@ -83,14 +103,6 @@ inline std::string ToStringPrecise (const T value, const int precision = 6)
     std::ostringstream out;
     out << std::setprecision(precision) << value;
     return out.str();
-}
-
-/**
- * @brief Returns whether two chars are the same, case insensitive.
- */
-inline bool CharMatch(const char c1, const char c2)
-{
-    return std::tolower(c1) == std::tolower(c2);
 }
 
 /**

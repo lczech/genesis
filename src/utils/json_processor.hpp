@@ -98,14 +98,28 @@ class JsonProcessor
 public:
     static bool FromFile   (const std::string& fn,    JsonDocument& document);
     static bool FromString (const std::string& json,  JsonDocument& document);
-    static bool FromLexer  (      JsonLexer&   lexer, JsonDocument& document);
+    static bool FromLexer  (const JsonLexer&   lexer, JsonDocument& document);
 
     // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
 
 protected:
-    static bool ParseValue  (JsonLexer& lexer, JsonValue*&      value);
-    static bool ParseArray  (JsonLexer& lexer, JsonValueArray*  value);
-    static bool ParseObject (JsonLexer& lexer, JsonValueObject* value);
+    static bool ParseValue (
+        Lexer::const_iterator& ct,
+        Lexer::const_iterator& end,
+        JsonValue*&            value
+    );
+
+    static bool ParseArray (
+        Lexer::const_iterator& ct,
+        Lexer::const_iterator& end,
+        JsonValueArray*        value
+    );
+
+    static bool ParseObject (
+        Lexer::const_iterator& ct,
+        Lexer::const_iterator& end,
+        JsonValueObject*       value
+    );
 
     // ---------------------------------------------------------------------
     //     Printing

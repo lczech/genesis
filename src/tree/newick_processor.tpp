@@ -50,7 +50,7 @@ bool NewickProcessor::FromString (const std::string ts, Tree<NDT, EDT>& tree)
 // TODO what happens if a tree's nested brackets fully close to depth 0, then open again without
 // TODO semicolon like (...)(...); ? do we need to check for this?
 template <class NDT, class EDT>
-bool NewickProcessor::FromLexer (NewickLexer& lexer, Tree<NDT, EDT>& tree)
+bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
 {
     if (lexer.empty()) {
         LOG_INFO << "Tree is empty. Nothing done.";
@@ -71,47 +71,19 @@ bool NewickProcessor::FromLexer (NewickLexer& lexer, Tree<NDT, EDT>& tree)
     // how deep is the current token nested in the tree?
     int depth = 0;
 
-    // we need the previous token (for error checking). in order for it to survive the loop body,
-    // it has to be declared beforehand (with a dummy value). also, we use a pointer to it.
-    LexerToken  p_token(LexerTokenType::kError, 0, 0, "");
-    LexerToken* pt = nullptr;
+    // acts as pointer to previous token
+    Lexer::const_iterator pt = lexer.cend();
 
-    // same goes for the current token
-    LexerToken  c_token(LexerTokenType::kError, 0, 0, "");
-    LexerToken* ct = nullptr;
+    // acts as pointer to current token
+    Lexer::const_iterator ct;
 
     // store error message. also serves as check whether an error occured
     std::string error = "";
 
-    // when creating a new node, we want to assign a property to it telling whether it is a leaf;
-    // for this, we need to check whether the previous token was an opening brackt or a
-    // comma. however, as comments can appear everywhere, we need some elaboration. this flag
-    // is used to mark those conditions.
-    bool make_leaf;
-
     // --------------------------------------------------------------
     //     Loop over lexer tokens and check if it...
     // --------------------------------------------------------------
-    while (!lexer.Finished()) {
-        // turn the current token of the previous iterattion into the previous token.
-        std::swap(c_token, p_token);
-
-        // we only want to use pt after the first iteration, so see if ct is already set
-        // (which it is not in the first it, but after).
-        if (ct) {
-            pt = &p_token;
-
-            // unless it is a comment, the previous token determines whether we will produce
-            // a leaf node.
-            if (!pt->IsComment()) {
-                make_leaf = pt->IsBracket("(") || pt->IsOperator(",");
-            }
-        }
-
-        // now we are ready to get a token.
-        c_token = lexer.ConsumeToken();
-        ct = &c_token;
-
+    for (ct = lexer.cbegin(); ct != lexer.cend(); pt=ct, ++ct) {
         if (ct->IsUnknown()) {
             error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
             break;
@@ -121,7 +93,7 @@ bool NewickProcessor::FromLexer (NewickLexer& lexer, Tree<NDT, EDT>& tree)
         //     is bracket '('  ==>  begin of subtree
         // ------------------------------------------------------
         if (ct->IsBracket("(")) {
-            if (pt && !(
+            if (pt != lexer.cend() && !(
                 pt->IsBracket("(")  || pt->IsOperator(",") || pt->IsComment()
             )) {
                 error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
@@ -139,7 +111,7 @@ bool NewickProcessor::FromLexer (NewickLexer& lexer, Tree<NDT, EDT>& tree)
         // if we reach this, the previous condition is not fullfilled (otherwise, continue would
         // have been called). so we have a token other than '(', which means we should already
         // be somewhere in the tree (or a comment). check, if that is true.
-        if (!ct) {
+        if (ct == lexer.cbegin()) {
             if (ct->IsComment()) {
                 continue;
             }
@@ -147,10 +119,10 @@ bool NewickProcessor::FromLexer (NewickLexer& lexer, Tree<NDT, EDT>& tree)
             break;
         }
 
-        // if we reached this point in code, this means that ct != nullptr, so it is not the first
+        // if we reached this point in code, this means that ct != begin, so it is not the first
         // iteration in this loop. this means that pt was already set in the loop header (at least
         // once), which means it now points to a valid token.
-        assert(pt);
+        assert(pt != lexer.cend());
 
         // set up the node that will be filled with data now.
         // if it already exists, this means we are adding more information to it, e.g.
@@ -161,7 +133,16 @@ bool NewickProcessor::FromLexer (NewickLexer& lexer, Tree<NDT, EDT>& tree)
         if (!node) {
             node = new NewickBrokerElement();
             node->depth = depth;
-            node->is_leaf = make_leaf;
+
+            // checks if the new node is a leaf.
+            // for this, we need to check whether the previous token was an opening brackt or a
+            // comma. however, as comments can appear everywhere, we need to check for the first
+            // non-comment-token.
+            Lexer::const_iterator t = pt;
+            while (t != lexer.cbegin() && t->IsComment()) {
+                --t;
+            }
+            node->is_leaf = t->IsBracket("(") || t->IsOperator(",");
         }
 
         // ------------------------------------------------------
@@ -320,7 +301,7 @@ bool NewickProcessor::FromLexer (NewickLexer& lexer, Tree<NDT, EDT>& tree)
         return false;
     }
 
-    if (lexer.Finished() && !ct->IsOperator(";")) {
+    if (ct == lexer.cend() || !ct->IsOperator(";")) {
         LOG_WARN << "Tree does not finish with a semicolon.";
         return false;
     }
@@ -329,9 +310,11 @@ bool NewickProcessor::FromLexer (NewickLexer& lexer, Tree<NDT, EDT>& tree)
     // TODO do we even need to parse the rest as a new tree?
 
     // skip the semicolon, then see if there is anything other than a comment left
-    lexer.ConsumeToken();
-    while (!lexer.Finished() && lexer.ConsumeToken().IsComment());
-    if (!lexer.Finished()) {
+    ++ct;
+    while (ct != lexer.cend() && ct->IsComment()) {
+        ++ct;
+    }
+    if (ct != lexer.cend()) {
         LOG_WARN << "Tree contains more data after the semicolon.";
         return false;
     }

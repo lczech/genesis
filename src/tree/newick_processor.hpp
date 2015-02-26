@@ -138,16 +138,16 @@ public:
     // ---------------------------------------------------------------------
 
     template <class NodeDataType, class EdgeDataType>
-    static bool FromFile   (const std::string fn, Tree<NodeDataType, EdgeDataType>& tree);
+    static bool FromFile   (const std::string fn,     Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static bool FromString (const std::string ts, Tree<NodeDataType, EdgeDataType>& tree);
+    static bool FromString (const std::string ts,     Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static bool FromLexer  (NewickLexer& lexer,   Tree<NodeDataType, EdgeDataType>& tree);
+    static bool FromLexer  (const NewickLexer& lexer, Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static void FromBroker (NewickBroker& broker, Tree<NodeDataType, EdgeDataType>& tree);
+    static void FromBroker (NewickBroker& broker,     Tree<NodeDataType, EdgeDataType>& tree);
 
     // ---------------------------------------------------------------------
     //     Printing

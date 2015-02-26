@@ -11,23 +11,13 @@
 #include <deque>
 #include <string>
 
+#include "utils/utils.hpp"
+
 namespace genesis {
 
 // =============================================================================
 //     General Definitions
 // =============================================================================
-
-/** @brief Returns whether a char is a digit (0-9). */
-inline bool CharIsDigit (const char c)
-{
-    return ('0' <= c) && (c <= '9');
-}
-
-/** @brief Returns whether a char is a sign (+-). */
-inline bool CharIsSign (const char c)
-{
-    return ('+' == c) || ('-' == c);
-}
 
 /** @brief Enum for the different types of LexerToken. */
 enum class LexerTokenType {
@@ -64,7 +54,6 @@ inline std::string LexerTokenTypeToString (const LexerTokenType t)
         default                        : return "Unknown";
     }
 }
-
 
 // =============================================================================
 //     LexerToken
@@ -287,10 +276,10 @@ public:
     }
 
 private:
-    LexerTokenType   type_;
-    int         line_;
-    int         column_;
-    std::string value_;
+    const LexerTokenType   type_;
+    const int         line_;
+    const int         column_;
+    const std::string value_;
 };
 
 // =============================================================================
@@ -303,8 +292,11 @@ private:
  * For typical usage of this class, see ProcessString() function.
  *
  * The tokens produced with the ProcessString() method are of type LexerToken (see
- * there for a list of the types of tokens) and are accessed via the ConsumeToken()
- * method.
+ * there for a list of the types of tokens) and can be accessed in various ways:
+ *
+ *   * Using an iterator, see Lexer::iterator
+ *   * Using range based loops, see begin()
+ *   * Using index based array access, see operator[]()
  *
  * This class is intended to be a base class that concrete lexers can inherit
  * from in order to get the basic functioning. An instance of this base class is
@@ -325,53 +317,112 @@ public:
     std::string Dump() const;
 
     // -------------------------------------------------------------------------
-    //     Accessors
+    //     Accessors and Iterators
     // -------------------------------------------------------------------------
 
     /**
-    * @brief Returns the first token.
-    *
-    * Calling this function on an empty() lexer causes undefined behavior.
-    */
+     * @brief Iterator type to access the tokens produces by the lexer.
+     *
+     * This iterator allows to use a loop like this:
+     *
+     *     Lexer l;
+     *     for (Lexer::iterator t = l.begin(); t != l.end(); ++t) {
+     *         std::cout << t->value() << std::endl;
+     *     }
+     * %
+     */
+    typedef std::deque<LexerToken>::iterator       iterator;
+
+    /** @brief Const version of the iterator. */
+    typedef std::deque<LexerToken>::const_iterator const_iterator;
+
+    /**
+     * @brief Returns an iterator to the beginning of the token list.
+     *
+     * This is used for the iterator and also allows to use range based
+     * looping over the tokens:
+     *
+     *     Lexer l;
+     *     for (LexerToken& t : l) {
+     *         std::cout << t.value() << std::endl;
+     *     }
+     * %
+     */
+    inline iterator begin()
+    {
+        return tokens_.begin();
+    }
+
+    /** @brief Const version of begin(). */
+    inline const_iterator cbegin() const
+    {
+        return tokens_.cbegin();
+    }
+
+    /** @brief Returns an iterator to the end of the token list. */
+    inline iterator end()
+    {
+        return tokens_.end();
+    }
+
+    /** @brief Const version of end(). */
+    inline const_iterator cend() const
+    {
+        return tokens_.cend();
+    }
+
+    /**
+     * @brief Provides index based array access to the tokens.
+     *
+     * This also allows to iterate over them using:
+     *
+     *     Lexer l;
+     *     for (size_t i = 0; i < l.size(); ++i) {
+     *        LexerToken t = l[i];
+     *        std::cout << t.value() << std::endl;
+     *     }
+     *
+     * Caveat: this operator does no boundary check. If you need this check,
+     * use at() instead.
+     */
+    inline LexerToken operator[](const std::size_t index) const
+    {
+        return tokens_[index];
+    }
+
+    /**
+     * @brief Provides index based array access to the tokens, doing a
+     * boundary check first.
+     *
+     * In out of bounds cases, a special EOF token is returned.
+     */
+    inline LexerToken at(const std::size_t index) const
+    {
+        if (index < tokens_.size()) {
+            return tokens_[index];
+        } else {
+            return LexerToken(LexerTokenType::kEOF, 0, 0, "");
+        }
+    }
+
+    /**
+     * @brief Returns a reference to the first token.
+     *
+     * Calling this function on an empty() lexer causes undefined behavior.
+     */
     inline LexerToken front() const
     {
         return tokens_.front();
     }
 
     /**
-    * @brief Returns the last token.
-    *
-    * Calling this function on an empty() lexer causes undefined behavior.
-    */
+     * @brief Returns a reference to the last token.
+     *
+     * Calling this function on an empty() lexer causes undefined behavior.
+     */
     inline LexerToken back() const
     {
         return tokens_.back();
-    }
-
-    /**
-     * @brief Returns the next token without consuming it. Same as front().
-     */
-    inline LexerToken Peek()
-    {
-        return tokens_.front();
-    }
-
-    /**
-     * @brief Gives the next token that the Lexer produced.
-     */
-    inline LexerToken ConsumeToken()
-    {
-        LexerToken ret = tokens_.front();
-        tokens_.pop_front();
-        return ret;
-    }
-
-    /**
-     * @brief Returns whether the Lexer has finished its work.
-     */
-    inline bool Finished()
-    {
-        return IsEnd() && empty();
     }
 
     /**

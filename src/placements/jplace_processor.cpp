@@ -73,7 +73,7 @@ bool JplaceProcessor::FromString (const std::string& jplace, Placements& placeme
  *
  * Returns true iff successful.
  */
-bool JplaceProcessor::FromLexer (JsonLexer& lexer, Placements& placements)
+bool JplaceProcessor::FromLexer (const JsonLexer& lexer, Placements& placements)
 {
     JsonDocument doc;
     if (!JsonProcessor::FromLexer(lexer, doc)) {
