@@ -43,18 +43,9 @@ public:
      */
     Bitvector (const size_t size, const bool init = false) : size_(size)
     {
-        // reserve enough bits/
+        // reserve enough bits, and init them.
         data_.resize( (size / IntSize) + (size % IntSize == 0 ? 0 : 1) );
-
-        // init according to flag.
-        for (size_t i = 0; i < data_.size(); ++i) {
-            data_[i] = init ? all_1_ : all_0_;
-        }
-
-        // if we initialized with true, we need to unset the surplus bits at the end!
-        if (init) {
-            UnsetBuffer();
-        }
+        Reset(init);
     }
 
     /**
@@ -68,7 +59,7 @@ public:
     }
 
     /**
-     * @brief Returns the size (number of bits) of this Bitvector.
+     * @brief Returns the size (number of total bits) of this Bitvector.
      */
     inline size_t size() const
     {
@@ -80,12 +71,15 @@ public:
     // ---------------------------------------------------------
 
     /**
-     * @brief Return the value of a single bit, without boundary check.
+     * @brief Returns the value of a single bit, without boundary check.
      */
     inline bool operator [] (size_t index) const {
         return static_cast<bool> (data_[index / IntSize] & bit_mask_[index % IntSize]);
     }
 
+    /**
+     * @brief Returns the value of a single bit, with boundary check.
+     */
     inline bool Get (size_t index) const
     {
         if (index >= size_) {
@@ -94,6 +88,9 @@ public:
         return static_cast<bool> (data_[index / IntSize] & bit_mask_[index % IntSize]);
     }
 
+    /**
+     * @brief Sets the value of a single bit to true, with boundary check.
+     */
     inline void Set (size_t index)
     {
         if (index >= size_) {
@@ -102,6 +99,9 @@ public:
         data_[index / IntSize] |= bit_mask_[index % IntSize];
     }
 
+    /**
+     * @brief Sets the value of a single bit to false, with boundary check.
+     */
     inline void Unset (size_t index)
     {
         if (index >= size_) {
@@ -110,6 +110,9 @@ public:
         data_[index / IntSize] &= ~(bit_mask_[index % IntSize]);
     }
 
+    /**
+     * @brief Sets the value of a single bit to a given bool value, with boundary check.
+     */
     inline void Set (size_t index, bool value)
     {
         if (value) {
@@ -119,6 +122,9 @@ public:
         }
     }
 
+    /**
+     * @brief Flips (inverts) the value of a single bit, with boundary check.
+     */
     inline void Flip (size_t index)
     {
         if (index >= size_) {
@@ -187,6 +193,7 @@ public:
 
     void    Invert();
     void    Normalize();
+    void    Reset(bool value = false);
 
     std::string Dump() const;
     std::string DumpInt(IntType x) const;

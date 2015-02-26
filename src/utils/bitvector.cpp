@@ -209,7 +209,7 @@ size_t Bitvector::Count() const
         x = (x + (x >> 4)) & count_mask_[2];
 
         // take left 8 bits of x + (x<<8) + (x<<16) + (x<<24) + ...
-        res += (x * count_mask_[3])>>56;
+        res += (x * count_mask_[3]) >> 56;
     }
 
     // safe, but slow version...
@@ -275,6 +275,22 @@ void Bitvector::Normalize()
 {
     if (size_ > 0 && Get(0)) {
         Invert();
+    }
+}
+
+/**
+ * @brief Reset all the bits to false. If provided with parapemter `true`, sets all bits to true.
+ */
+void Bitvector::Reset(bool value)
+{
+    // set according to flag.
+    for (size_t i = 0; i < data_.size(); ++i) {
+        data_[i] = value ? all_1_ : all_0_;
+    }
+
+    // if we initialized with true, we need to unset the surplus bits at the end!
+    if (value) {
+        UnsetBuffer();
     }
 }
 
