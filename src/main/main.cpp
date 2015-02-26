@@ -290,7 +290,7 @@ int main (int argc, char* argv[])
     //     Further tests for placements and validation
     // =============================================================================
 
-    /*
+    //*
     Placements place_a, place_b;
     LOG_DBG << "Reading file...";
     JplaceProcessor::FromFile("test/data/test_40K.jplace", place_a);
@@ -392,7 +392,7 @@ int main (int argc, char* argv[])
     //     Testing leaf depth, distance, bipartitions
     // =============================================================================
 
-    //*
+    /*
     //~ std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
     //~ LOG_DBG << "In tree:  " << ts;
     Tree<> tree;
@@ -450,16 +450,18 @@ int main (int argc, char* argv[])
 
     // CAVEAT: paths are hardcoded - this is for testing only!
 
-    /*
-    NewickProcessor::print_names          = true;
-    NewickProcessor::print_branch_lengths = true;
-    NewickProcessor::print_comments       = true;
-    NewickProcessor::print_tags           = false;
+    // --------------------------------------------------------
+    //     Read and merge splitted placements
+    // --------------------------------------------------------
 
-    std::string path = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/papara_splits/";
-    LOG_DBG << "Running on data in " << path;
+    /*
+
+    std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/papara_splits/";
+    std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/";
+
+    LOG_DBG << "Running on data in " << inpath;
     std::vector<std::string> list;
-    DirListFiles(path, list);
+    DirListFiles(inpath, list);
     if (list.size() == 0) {
         LOG_WARN << "No files found.";
         return 0;
@@ -470,18 +472,21 @@ int main (int argc, char* argv[])
     //~ }
 
     Placements place, place_tmp;
+    LOG_DBG;
     LOG_DBG << "Reading file " << list[0] << "...";
-    JplaceProcessor::FromFile(path + list[0], place);
+    JplaceProcessor::FromFile(inpath + list[0], place);
     //~ LOG_DBG << "Valid: " << place.Validate();
     LOG_DBG << "with " << place.PlacementCount() << " placements.";
+    LOG_DBG;
 
     for (size_t i = 1; i < list.size(); ++i) {
-        LOG_DBG << "Reading file " << list[i] << "...";
-        JplaceProcessor::FromFile(path + list[i], place_tmp);
-        LOG_DBG << "with " << place_tmp.PlacementCount() << " placements.";
+        LOG_DBG1 << "Reading file " << list[i] << "...";
+        JplaceProcessor::FromFile(inpath + list[i], place_tmp);
+        LOG_DBG1 << "...with " << place_tmp.PlacementCount() << " placements...";
 
-        LOG_DBG << "... and merging it.";
+        LOG_DBG1 << "... and merging it.";
         place.Merge(place_tmp);
+        LOG_DBG1;
     }
 
     LOG_DBG << "Total of " << place.PlacementCount() << " placements.";
@@ -494,7 +499,40 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << "Validating...";
     //~ LOG_DBG << "Validity: " << place.Validate();
 
-    NewickProcessor::ToFile(path + "total_tree.newick", place.tree);
+    LOG_DBG << "Writing jplace file to " << outpath;
+    JplaceProcessor::ToFile(outpath + "all_placements.jplace", place);
+
+    LOG_DBG << "Writing count tree...";
+    NewickProcessor::print_names          = true;
+    NewickProcessor::print_branch_lengths = true;
+    NewickProcessor::print_comments       = true;
+    NewickProcessor::print_tags           = false;
+    NewickProcessor::ToFile(outpath + "total_tree.newick", place.tree);
+
+    //*/
+
+    // --------------------------------------------------------
+    //     Process big placement
+    // --------------------------------------------------------
+
+    /*
+
+    std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/";
+    std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/";
+
+    Placements place;
+    LOG_DBG << "Reading file " << "all_placements.jplace" << "...";
+    JplaceProcessor::FromFile(inpath + "all_placements.jplace", place);
+    LOG_DBG << "with " << place.PlacementCount() << " placements.";
+    LOG_DBG;
+
+    LOG_DBG << "Writing count tree...";
+    NewickProcessor::print_names          = true;
+    NewickProcessor::print_branch_lengths = true;
+    NewickProcessor::print_comments       = true;
+    NewickProcessor::print_tags           = false;
+    NewickProcessor::ToFile(outpath + "total_tree_x.newick", place.tree);
+
     //*/
 
     // =============================================================================

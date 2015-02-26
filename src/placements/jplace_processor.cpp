@@ -448,9 +448,9 @@ void JplaceProcessor::ToDocument (JsonDocument& doc, const Placements& placement
     doc.Set("version", new JsonValueNumber(3));
 
     // set metadata
-    JsonValueObject* jinvocation = new JsonValueObject();
-    jinvocation->Set("invocation", new JsonValueString(Options::Get().GetCommandLineString()));
-    doc.Set("metadata", jinvocation);
+    JsonValueObject* jmetadata = new JsonValueObject();
+    jmetadata->Set("invocation", new JsonValueString(Options::Get().GetCommandLineString()));
+    doc.Set("metadata", jmetadata);
 }
 
 } // namespace genesis
