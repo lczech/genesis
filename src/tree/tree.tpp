@@ -199,6 +199,7 @@ void Tree<NDT, EDT>::Export(LinkArray& links, NodeArray& nodes, EdgeArray& edges
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::FindNode(std::string name) const
 {
+    // TODO check first whether replacing underscores is necessary!
     name = StringReplaceAll(name, "_", " ");
     for (NodeType* n : nodes_) {
         if (n->name == name) {

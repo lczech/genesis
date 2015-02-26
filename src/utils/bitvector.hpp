@@ -207,6 +207,10 @@ protected:
 
     static const IntType count_mask_[4];
 
+    // ---------------------------------------------------------
+    //     Data Members
+    // ---------------------------------------------------------
+
     size_t               size_;
     std::vector<IntType> data_;
 };

@@ -107,28 +107,28 @@ void Bipartitions<NDT, EDT>::GetSubtreeEdges(std::vector<Bipartitions<NDT, EDT>:
         if (!bi.link_) {
             continue;
         }
-        LOG_DBG1 << "at node " << bi.link_->Node()->name;
+        //~ LOG_DBG1 << "at node " << bi.link_->Node()->name;
 
         if (comp_bp.leaf_nodes_ <= bi.leaf_nodes_) {
-            LOG_DBG1 << "found  " << bi.leaf_nodes_.Dump();
+            //~ LOG_DBG1 << "found  " << bi.leaf_nodes_.Dump();
             if (min_count == 0 || bi.leaf_nodes_.Count() < min_count) {
-                LOG_DBG1 << "min";
+                //~ LOG_DBG1 << "min";
                 res = &bi;
                 min_count = bi.leaf_nodes_.Count();
             }
         }
         if (comp_bp.leaf_nodes_ <= ~(bi.leaf_nodes_)) {
-            LOG_DBG1 << "foundx " << (~bi.leaf_nodes_).Dump();
-            LOG_DBG1 << "min_count " << min_count << ", (~bi.leaf_nodes_).Count " << (~bi.leaf_nodes_).Count();
+            //~ LOG_DBG1 << "foundx " << (~bi.leaf_nodes_).Dump();
+            //~ LOG_DBG1 << "min_count " << min_count << ", (~bi.leaf_nodes_).Count " << (~bi.leaf_nodes_).Count();
             if (min_count == 0 || (~bi.leaf_nodes_).Count() < min_count) {
-                LOG_DBG1 << "min";
+                //~ LOG_DBG1 << "min";
                 bi.Invert();
                 res = &bi;
                 min_count = bi.leaf_nodes_.Count();
             } else {
-                LOG_DBG1 << "no";
+                //~ LOG_DBG1 << "no";
             }
-            LOG_DBG;
+            //~ LOG_DBG;
         }
     }
 

@@ -193,7 +193,7 @@ Bitvector Bitvector::SymmetricDifference (Bitvector const& lhs, Bitvector const&
 }
 
 /**
- * @brief Counts the number of ones in the Bitvector.
+ * @brief Counts the number of set bits in the Bitvector.
  */
 size_t Bitvector::Count() const
 {
@@ -225,7 +225,7 @@ size_t Bitvector::Count() const
 }
 
 /**
- * @brief Returns a std::hash value for the Bitvector.
+ * @brief Returns an std::hash value for the Bitvector.
  */
 size_t Bitvector::Hash() const
 {
@@ -268,7 +268,8 @@ void Bitvector::Invert()
 /**
  * @brief Brings the Bitvector in a normalized form, where the first bit is always zero.
  *
- * If the first bit is initially one, the whole Bitvector is flipped usingn Invert().
+ * If the first bit is zero, nothing happens. However, if is is one, the whole Bitvector is flipped
+ * using Invert().
  */
 void Bitvector::Normalize()
 {
