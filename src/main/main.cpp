@@ -336,6 +336,7 @@ int main (int argc, char* argv[])
     //     Variance, EMD
     // ----------------------------
 
+    /*
     LOG_DBG << "Calculating LeafDepthHistogram...";
     std::vector<int> depth_hist = place_a.ClosestLeafDepthHistogram();
     for (unsigned int d = 0; d < depth_hist.size(); ++d) {
@@ -359,6 +360,7 @@ int main (int argc, char* argv[])
     for (unsigned int d = 0; d < dist_hista.size(); ++d) {
         LOG_DBG1 << "Distance bin " << d << " [" << d*bin_size << "; " << (d+1)*bin_size << ") has " << dist_hista[d] << " placements.";
     }
+    //*/
 
     //~ LOG_DBG << "Calculating variance...";
     //~ LOG_DBG << "Variance " << place_a.Variance();

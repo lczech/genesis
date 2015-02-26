@@ -34,24 +34,24 @@ class NewickLexer : public Lexer
 public:
     NewickLexer() {
         // set the special chars for newick trees
-        SetCharType (LexerType::kComment,  "[]");
-        SetCharType (LexerType::kTag,      "{}");
-        SetCharType (LexerType::kBracket,  "()");
-        SetCharType (LexerType::kOperator, ",;");
+        SetCharType (LexerTokenType::kComment,  "[]");
+        SetCharType (LexerTokenType::kTag,      "{}");
+        SetCharType (LexerTokenType::kBracket,  "()");
+        SetCharType (LexerTokenType::kOperator, ",;");
 
         // we use symbols and strings the same way here: both are labels for nodes, the first begin
         // called unquoted_label, the second quoted_label.
-        SetCharType (LexerType::kString,   "'");
+        SetCharType (LexerTokenType::kString,   "'");
 
         // the only numbers in newick are branch lengths, which are always introduced by a leading
         // colon, so we need only this here as starter for a number.
-        SetCharType (LexerType::kNumber,   ":");
+        SetCharType (LexerTokenType::kNumber,   ":");
 
         // this also allows (in accordance to the newick standard) to start a label with a digit.
-        SetCharType (LexerType::kSymbol,   "0123456789");
+        SetCharType (LexerTokenType::kSymbol,   "0123456789");
 
         // furthermore, set all remaining graphic chars to symbol so that they can be in a label.
-        SetCharType (LexerType::kSymbol,   "!\"#$%&*+-./<=>?@\\^_`|~");
+        SetCharType (LexerTokenType::kSymbol,   "!\"#$%&*+-./<=>?@\\^_`|~");
 
         // set the flags as needed
         include_whitespace        = false;
@@ -69,17 +69,17 @@ protected:
     inline bool ScanComment()
     {
         if (GetChar() == ']') {
-            PushToken(LexerType::kError, GetPosition(), "Closing comment without opening it.");
+            PushToken(LexerTokenType::kError, GetPosition(), "Closing comment without opening it.");
             return false;
         }
         size_t start = GetPosition();
         bool   found = ScanFromTo("[", "]");
         if (!found && GetChar() == '[') {
-            PushToken(LexerType::kError, GetPosition(), "Comment not closed.");
+            PushToken(LexerTokenType::kError, GetPosition(), "Comment not closed.");
             return false;
         }
         if (found && include_comments) {
-            PushToken(LexerType::kComment, start+1, GetPosition()-1);
+            PushToken(LexerTokenType::kComment, start+1, GetPosition()-1);
         }
         return found;
     }
@@ -98,7 +98,7 @@ protected:
     inline bool ScanTag()
     {
         if (GetChar() == '}') {
-            PushToken(LexerType::kError, GetPosition(), "Closing tag without opening tag.");
+            PushToken(LexerTokenType::kError, GetPosition(), "Closing tag without opening tag.");
             return false;
         }
 
@@ -109,11 +109,11 @@ protected:
         size_t start = GetPosition();
         bool   found = ScanFromTo("{", "}");
         if (!found) {
-            PushToken(LexerType::kError, start, "Opening tag without closing tag.");
+            PushToken(LexerTokenType::kError, start, "Opening tag without closing tag.");
             return false;
         }
         if (include_tags) {
-            PushToken(LexerType::kTag, start+1, GetPosition()-1);
+            PushToken(LexerTokenType::kTag, start+1, GetPosition()-1);
         }
         return true;
     }
@@ -138,16 +138,16 @@ public:
     // ---------------------------------------------------------------------
 
     template <class NodeDataType, class EdgeDataType>
-    static bool FromFile   (const std::string fn,     Tree<NodeDataType, EdgeDataType>& tree);
+    static bool FromFile   (const std::string fn, Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static bool FromString (const std::string ts,     Tree<NodeDataType, EdgeDataType>& tree);
+    static bool FromString (const std::string ts, Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static bool FromLexer  (const NewickLexer& lexer, Tree<NodeDataType, EdgeDataType>& tree);
+    static bool FromLexer  (NewickLexer& lexer,   Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static void FromBroker (NewickBroker& broker,     Tree<NodeDataType, EdgeDataType>& tree);
+    static void FromBroker (NewickBroker& broker, Tree<NodeDataType, EdgeDataType>& tree);
 
     // ---------------------------------------------------------------------
     //     Printing

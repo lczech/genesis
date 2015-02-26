@@ -62,7 +62,7 @@ bool JsonProcessor::FromString (const std::string& json, JsonDocument& document)
  *
  * Returns true iff successfull.
  */
-bool JsonProcessor::FromLexer (const JsonLexer& lexer, JsonDocument& document)
+bool JsonProcessor::FromLexer (JsonLexer& lexer, JsonDocument& document)
 {
     if (lexer.empty()) {
         LOG_INFO << "JSON document is empty.";
@@ -73,24 +73,21 @@ bool JsonProcessor::FromLexer (const JsonLexer& lexer, JsonDocument& document)
                  << " with message: " << lexer.back().value();
         return false;
     }
-    if (!lexer.cbegin()->IsBracket("{")) {
+    if (!lexer.Peek().IsBracket("{")) {
         LOG_WARN << "JSON document does not start with JSON object opener '{'.";
         return false;
     }
 
     // a json document is also a json object, so we start parsing the doc as such.
-    // the begin iterator will be incremented with every token being processed.
+    // the lexer tokens will be consumed with every token being processed.
     document.clear();
-    Lexer::const_iterator begin = lexer.cbegin();
-    Lexer::const_iterator end   = lexer.cend();
-    if (!ParseObject(begin, end, &document)) {
+    if (!ParseObject(lexer, &document)) {
         return false;
     }
 
-    // after processing, the begin iterator will point to the lexer token that comes after
-    // the one being processed last. if the document is well-formatted, this token is also
-    // the end pointer of the iterator.
-    if (begin != end) {
+    // reaching this poing means that we saw the closing curly bracket of the document.
+    // if we are however not yet done with everything, we have an error.
+    if (!lexer.Finished()) {
         LOG_WARN << "JSON document contains more information after the closing bracket.";
         return false;
     }
@@ -109,48 +106,48 @@ bool JsonProcessor::FromLexer (const JsonLexer& lexer, JsonDocument& document)
  * entering the function it is not clear yet which type of value the current lexer token is, so a
  * new instance has to be created and stored in the pointer.
  */
-bool JsonProcessor::ParseValue (
-    Lexer::const_iterator& ct,
-    Lexer::const_iterator& end,
-    JsonValue*&            value
-) {
+bool JsonProcessor::ParseValue (JsonLexer& lexer, JsonValue*& value)
+{
+    // we cannot consume the token yet, because we might need it for one of the other functions.
+    LexerToken ct = lexer.Peek();
+
     // proper usage of this function is to hand over a null pointer to a json value, which will be
     // assigned to a newly created value instance depending on the token type, so check for this
     // here. we don't want to overwrite existing values!
     assert (value == nullptr);
 
     // check all possible valid lexer token types and turn them into json values
-    if (ct->IsSymbol()) {
+    if (ct.IsSymbol()) {
         // the lexer only returns null, true or false as symbols, so this is safe
-        if (ct->value().compare("null") == 0) {
+        if (ct.value().compare("null") == 0) {
             value = new JsonValueNull();
         } else {
-            value = new JsonValueBool(ct->value());
+            value = new JsonValueBool(ct.value());
         }
-        ++ct;
+        lexer.ConsumeToken();
         return true;
     }
-    if (ct->IsNumber()) {
-        value = new JsonValueNumber(ct->value());
-        ++ct;
+    if (ct.IsNumber()) {
+        value = new JsonValueNumber(ct.value());
+        lexer.ConsumeToken();
         return true;
     }
-    if (ct->IsString()) {
-        value = new JsonValueString(ct->value());
-        ++ct;
+    if (ct.IsString()) {
+        value = new JsonValueString(ct.value());
+        lexer.ConsumeToken();
         return true;
     }
-    if (ct->IsBracket("[")) {
+    if (ct.IsBracket("[")) {
         value = new JsonValueArray();
-        return ParseArray (ct, end, JsonValueToArray(value));
+        return ParseArray (lexer, JsonValueToArray(value));
     }
-    if (ct->IsBracket("{")) {
+    if (ct.IsBracket("{")) {
         value = new JsonValueObject();
-        return ParseObject (ct, end, JsonValueToObject(value));
+        return ParseObject (lexer, JsonValueToObject(value));
     }
 
     // if the lexer token is not a fitting json value, we have an error
-    LOG_WARN << "JSON value contains invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
+    LOG_WARN << "JSON value contains invalid characters at " + ct.at() + ": '" + ct.value() + "'.";
     return false;
 }
 
@@ -161,50 +158,49 @@ bool JsonProcessor::ParseValue (
 /**
  * @brief Parse a JSON array and fill it with data elements from the lexer.
  */
-bool JsonProcessor::ParseArray (
-    Lexer::const_iterator& ct,
-    Lexer::const_iterator& end,
-    JsonValueArray*        value
-) {
+bool JsonProcessor::ParseArray (JsonLexer& lexer, JsonValueArray* value)
+{
     // proper usage of this function is to hand over a valid pointer to a json array, so check
     // for this here.
     assert(value);
 
-    if (ct == end || !ct->IsBracket("[")) {
-        LOG_WARN << "JSON array does not start with '[' at " << ct->at() << ".";
+    // we are expecting an opening square bracket here.
+    if (lexer.Finished() || !lexer.Peek().IsBracket("[")) {
+        LOG_WARN << "JSON array does not start with '[' at " << lexer.Peek().at() << ".";
         return false;
     }
 
-    ++ct;
-    while (ct != end) {
+    // now we are sure that we found the bracket. consume it, then go into the array.
+    lexer.ConsumeToken();
+    while (!lexer.Finished()) {
         // proccess the array element
         JsonValue* element = nullptr;
-        if (!ParseValue(ct, end, element)) {
+        if (!ParseValue(lexer, element)) {
             return false;
         }
         value->Add(element);
 
         // check for end of array, leave if found
-        if (ct == end || ct->IsBracket("]")) {
+        if (lexer.Finished() || lexer.Peek().IsBracket("]")) {
             break;
         }
 
         // check for delimiter comma (indicates that there are more elements following)
-        if (!ct->IsOperator(",")) {
-            LOG_WARN << "JSON array does not contain comma between elements at " << ct->at() << ".";
+        if (!lexer.Peek().IsOperator(",")) {
+            LOG_WARN << "JSON array does not contain comma between elements at " << lexer.Peek().at() << ".";
             return false;
         }
-        ++ct;
+        lexer.ConsumeToken();
     }
 
-    // the while loop above only stops when ct points to the end or to a closing bracket. in the
+    // the while loop above only stops at the end or at a closing bracket. in the
     // first case, we have an error; in the second, we are done with this object and can skip the
     // bracket.
-    if (ct == end) {
+    if (lexer.Finished()) {
         LOG_WARN << "JSON array ended unexpectedly.";
         return false;
     }
-    ++ct;
+    lexer.ConsumeToken();
     return true;
 }
 
@@ -215,72 +211,76 @@ bool JsonProcessor::ParseArray (
 /**
  * @brief Parse a JSON object and fill it with data members from the lexer.
  */
-bool JsonProcessor::ParseObject (
-    Lexer::const_iterator& ct,
-    Lexer::const_iterator& end,
-    JsonValueObject*       value
-) {
+bool JsonProcessor::ParseObject (JsonLexer& lexer, JsonValueObject* value)
+{
     // proper usage of this function is to hand over a valid pointer to a json object, so check
     // for this here.
     assert(value);
 
-    if (ct == end || !ct->IsBracket("{")) {
-        LOG_WARN << "JSON object does not start with '{' at " << ct->at() << ".";
+    if (lexer.Finished() || !lexer.Peek().IsBracket("{")) {
+        LOG_WARN << "JSON object does not start with '{' at " << lexer.Peek().at() << ".";
         return false;
     }
 
-    ++ct;
-    while (ct != end) {
+    lexer.ConsumeToken();
+    LexerToken ct = lexer.ConsumeToken();
+    while (!lexer.Finished()) {
         // check for name string and store it
-        if (!ct->IsString()) {
-            LOG_WARN << "JSON object member does not start with name string at " << ct->at() << ".";
+        if (!ct.IsString()) {
+            LOG_WARN << "JSON object member does not start with name string at " << ct.at() << ".";
             return false;
         }
-        std::string name = ct->value();
-        ++ct;
+        std::string name = ct.value();
 
         // check for delimiter colon
-        if (ct == end) {
-            break;
-        }
-        if (!ct->IsOperator(":")) {
+        ct = lexer.ConsumeToken();
+        if (!ct.IsOperator(":")) {
             LOG_WARN << "JSON object member does not contain colon between name and value at "
-                     << ct->at() << ".";
+                     << ct.at() << ".";
             return false;
         }
-        ++ct;
 
-        // check for value and store it
-        if (ct == end) {
+        if (lexer.Finished()) {
             break;
         }
+
+        // check for value and store it
         JsonValue* member = nullptr;
-        if (!ParseValue(ct, end, member)) {
+        if (!ParseValue(lexer, member)) {
             return false;
         }
         value->Set(name, member);
 
-        // check for end of object, leave if found (either way)
-        if (ct == end || ct->IsBracket("}")) {
+        if (lexer.Finished()) {
+            break;
+        }
+
+        // leave if end of object detected
+        ct = lexer.ConsumeToken();
+        if (ct.IsBracket("}")) {
             break;
         }
 
         // check for delimiter comma (indicates that there are more members following)
-        if (!ct->IsOperator(",")) {
-            LOG_WARN << "JSON object does not contain comma between members at " << ct->at() << ".";
+        if (!ct.IsOperator(",")) {
+            LOG_WARN << "JSON object does not contain comma between members at " << ct.at() << ".";
             return false;
         }
-        ++ct;
+
+        if (lexer.Finished()) {
+            break;
+        }
+        ct = lexer.ConsumeToken();
     }
 
     // the while loop above only stops when ct points to the end or to a closing bracket. in the
     // first case, we have an error; in the second, we are done with this object and can skip the
     // bracket.
-    if (ct == end) {
+    if (lexer.Finished()) {
         LOG_WARN << "JSON object ended unexpectedly.";
         return false;
     }
-    ++ct;
+    lexer.ConsumeToken();
     return true;
 }
 

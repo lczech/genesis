@@ -38,10 +38,10 @@ public:
     /** @brief Constructor that sets the basic JSON character types. */
     JsonLexer() {
         // set the special chars for json files
-        SetCharType (LexerType::kBracket,  "[]{}");
-        SetCharType (LexerType::kOperator, ",:");
-        SetCharType (LexerType::kString,   "\"");
-        SetCharType (LexerType::kNumber,   "+-");
+        SetCharType (LexerTokenType::kBracket,  "[]{}");
+        SetCharType (LexerTokenType::kOperator, ",:");
+        SetCharType (LexerTokenType::kString,   "\"");
+        SetCharType (LexerTokenType::kNumber,   "+-");
 
         // set the flags as needed
         include_whitespace        = false;
@@ -65,16 +65,16 @@ protected:
     inline bool ScanSymbol()
     {
         size_t start = GetPosition();
-        while (!IsEnd() && GetCharType() == LexerType::kSymbol) {
+        while (!IsEnd() && GetCharType() == LexerTokenType::kSymbol) {
             NextChar();
         }
 
         std::string res = GetSubstr(start, GetPosition());
         if (res.compare("null") && res.compare("true") && res.compare("false")) {
-            PushToken(LexerType::kError, start, "Invalid symbols: \"" + res + "\"");
+            PushToken(LexerTokenType::kError, start, "Invalid symbols: \"" + res + "\"");
             return false;
         }
-        PushToken(LexerType::kSymbol, start, res);
+        PushToken(LexerTokenType::kSymbol, start, res);
         return true;
     }
 };
@@ -98,28 +98,14 @@ class JsonProcessor
 public:
     static bool FromFile   (const std::string& fn,    JsonDocument& document);
     static bool FromString (const std::string& json,  JsonDocument& document);
-    static bool FromLexer  (const JsonLexer&   lexer, JsonDocument& document);
+    static bool FromLexer  (      JsonLexer&   lexer, JsonDocument& document);
 
     // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
 
 protected:
-    static bool ParseValue (
-        Lexer::const_iterator& ct,
-        Lexer::const_iterator& end,
-        JsonValue*&            value
-    );
-
-    static bool ParseArray (
-        Lexer::const_iterator& ct,
-        Lexer::const_iterator& end,
-        JsonValueArray*        value
-    );
-
-    static bool ParseObject (
-        Lexer::const_iterator& ct,
-        Lexer::const_iterator& end,
-        JsonValueObject*       value
-    );
+    static bool ParseValue  (JsonLexer& lexer, JsonValue*&      value);
+    static bool ParseArray  (JsonLexer& lexer, JsonValueArray*  value);
+    static bool ParseObject (JsonLexer& lexer, JsonValueObject* value);
 
     // ---------------------------------------------------------------------
     //     Printing

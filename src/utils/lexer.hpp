@@ -8,8 +8,8 @@
  * @ingroup utils
  */
 
+#include <deque>
 #include <string>
-#include <vector>
 
 namespace genesis {
 
@@ -30,7 +30,7 @@ inline bool CharIsSign (const char c)
 }
 
 /** @brief Enum for the different types of LexerToken. */
-enum class LexerType {
+enum class LexerTokenType {
     kError,
     kUnknown,
     kWhite,
@@ -44,24 +44,24 @@ enum class LexerType {
     kEOF
 };
 
-/** @brief Converts a LexerType into its string representation. */
-inline std::string LexerTypeToString (const LexerType t)
+/** @brief Converts a LexerTokenType into its string representation. */
+inline std::string LexerTokenTypeToString (const LexerTokenType t)
 {
     switch (t) {
-        case LexerType::kError    : return "Error";
-        case LexerType::kUnknown  : return "Unknown";
+        case LexerTokenType::kError    : return "Error";
+        case LexerTokenType::kUnknown  : return "Unknown";
 
-        case LexerType::kWhite    : return "Whitespace";
-        case LexerType::kComment  : return "Comment";
-        case LexerType::kSymbol   : return "Symbol";
-        case LexerType::kNumber   : return "Number";
-        case LexerType::kString   : return "String";
-        case LexerType::kBracket  : return "Bracket";
-        case LexerType::kOperator : return "Operator";
-        case LexerType::kTag      : return "Tag";
+        case LexerTokenType::kWhite    : return "Whitespace";
+        case LexerTokenType::kComment  : return "Comment";
+        case LexerTokenType::kSymbol   : return "Symbol";
+        case LexerTokenType::kNumber   : return "Number";
+        case LexerTokenType::kString   : return "String";
+        case LexerTokenType::kBracket  : return "Bracket";
+        case LexerTokenType::kOperator : return "Operator";
+        case LexerTokenType::kTag      : return "Tag";
 
-        case LexerType::kEOF      : return "EOF";
-        default                   : return "Unknown";
+        case LexerTokenType::kEOF      : return "EOF";
+        default                        : return "Unknown";
     }
 }
 
@@ -137,16 +137,16 @@ public:
      */
     inline LexerToken
     (
-        const LexerType t, const int         l,
+        const LexerTokenType t, const int         l,
         const int            c, const std::string& v
     ) :
         type_(t), line_(l), column_(c), value_(v)
     {};
 
     /**
-     * @brief Getter for the LexerType of this token.
+     * @brief Getter for the LexerTokenType of this token.
      */
-    inline LexerType type() const
+    inline LexerTokenType type() const
     {
         return type_;
     }
@@ -182,43 +182,43 @@ public:
     /** @brief Shortcut to check if this is an error token. */
     inline bool IsError() const
     {
-        return type_ == LexerType::kError;
+        return type_ == LexerTokenType::kError;
     }
 
     /** @brief Shortcut to check if this is an unknown token. */
     inline bool IsUnknown() const
     {
-        return type_ == LexerType::kUnknown;
+        return type_ == LexerTokenType::kUnknown;
     }
 
     /** @brief Shortcut to check if this is a whitespace token. */
     inline bool IsWhite() const
     {
-        return type_ == LexerType::kWhite;
+        return type_ == LexerTokenType::kWhite;
     }
 
     /** @brief Shortcut to check if this is a comment token. */
     inline bool IsComment() const
     {
-        return type_ == LexerType::kComment;
+        return type_ == LexerTokenType::kComment;
     }
 
     /** @brief Shortcut to check if this is a symbol token. */
     inline bool IsSymbol() const
     {
-        return type_ == LexerType::kSymbol;
+        return type_ == LexerTokenType::kSymbol;
     }
 
     /** @brief Shortcut to check if this is a number token. */
     inline bool IsNumber() const
     {
-        return type_ == LexerType::kNumber;
+        return type_ == LexerTokenType::kNumber;
     }
 
     /** @brief Shortcut to check if this is a string token. */
     inline bool IsString() const
     {
-        return type_ == LexerType::kString;
+        return type_ == LexerTokenType::kString;
     }
 
     /**
@@ -229,19 +229,19 @@ public:
      */
     inline bool IsBracket() const
     {
-        return type_ == LexerType::kBracket;
+        return type_ == LexerTokenType::kBracket;
     }
 
     /**
      * @brief Returns whether this token is a given type of bracket.
      *
      * Usage: `token.IsBracket(")")` will return true if this token is
-     * of LexerType kBracket and if it is the closing parenthesis.
+     * of LexerTokenType kBracket and if it is the closing parenthesis.
      * This is a shortcut for testing type and value at the same time.
      */
     inline bool IsBracket(const std::string& br) const
     {
-        return (type_ == LexerType::kBracket) && (value_.compare(br) == 0);
+        return (type_ == LexerTokenType::kBracket) && (value_.compare(br) == 0);
     }
 
     /**
@@ -252,25 +252,25 @@ public:
      */
     inline bool IsOperator() const
     {
-        return type_ == LexerType::kOperator;
+        return type_ == LexerTokenType::kOperator;
     }
 
     /**
      * @brief Returns whether this token is a given type of operator.
      *
      * Usage: `token.IsOperator("%")` will return true if this token is
-     * of LexerType kOperator and if it is the modulo operator.
+     * of LexerTokenType kOperator and if it is the modulo operator.
      * This is a shortcut for testing type and value at the same time.
      */
     inline bool IsOperator(const std::string& op) const
     {
-        return (type_ == LexerType::kOperator) && (value_.compare(op) == 0);
+        return (type_ == LexerTokenType::kOperator) && (value_.compare(op) == 0);
     }
 
     /** @brief Shortcut to check if this is a tag token. */
     inline bool IsTag() const
     {
-        return type_ == LexerType::kTag;
+        return type_ == LexerTokenType::kTag;
     }
 
     // -------------------------------------------------------------------------
@@ -278,19 +278,19 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Returns the string representation for the LexerType of
+     * @brief Returns the string representation for the LexerTokenType of
      * this token.
      */
     inline std::string TypeToString() const
     {
-        return LexerTypeToString(type_);
+        return LexerTokenTypeToString(type_);
     }
 
 private:
-    const LexerType   type_;
-    const int         line_;
-    const int         column_;
-    const std::string value_;
+    LexerTokenType   type_;
+    int         line_;
+    int         column_;
+    std::string value_;
 };
 
 // =============================================================================
@@ -303,11 +303,8 @@ private:
  * For typical usage of this class, see ProcessString() function.
  *
  * The tokens produced with the ProcessString() method are of type LexerToken (see
- * there for a list of the types of tokens) and can be accessed in various ways:
- *
- *   * Using an iterator, see Lexer::iterator
- *   * Using range based loops, see begin()
- *   * Using index based array access, see operator[]()
+ * there for a list of the types of tokens) and are accessed via the ConsumeToken()
+ * method.
  *
  * This class is intended to be a base class that concrete lexers can inherit
  * from in order to get the basic functioning. An instance of this base class is
@@ -328,112 +325,53 @@ public:
     std::string Dump() const;
 
     // -------------------------------------------------------------------------
-    //     Accessors and Iterators
+    //     Accessors
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Iterator type to access the tokens produces by the lexer.
-     *
-     * This iterator allows to use a loop like this:
-     *
-     *     Lexer l;
-     *     for (Lexer::iterator t = l.begin(); t != l.end(); ++t) {
-     *         std::cout << t->value() << std::endl;
-     *     }
-     * %
-     */
-    typedef std::vector<LexerToken>::iterator       iterator;
-
-    /** @brief Const version of the iterator. */
-    typedef std::vector<LexerToken>::const_iterator const_iterator;
-
-    /**
-     * @brief Returns an iterator to the beginning of the token list.
-     *
-     * This is used for the iterator and also allows to use range based
-     * looping over the tokens:
-     *
-     *     Lexer l;
-     *     for (LexerToken& t : l) {
-     *         std::cout << t.value() << std::endl;
-     *     }
-     * %
-     */
-    inline iterator begin()
-    {
-        return tokens_.begin();
-    }
-
-    /** @brief Const version of begin(). */
-    inline const_iterator cbegin() const
-    {
-        return tokens_.cbegin();
-    }
-
-    /** @brief Returns an iterator to the end of the token list. */
-    inline iterator end()
-    {
-        return tokens_.end();
-    }
-
-    /** @brief Const version of end(). */
-    inline const_iterator cend() const
-    {
-        return tokens_.cend();
-    }
-
-    /**
-     * @brief Provides index based array access to the tokens.
-     *
-     * This also allows to iterate over them using:
-     *
-     *     Lexer l;
-     *     for (size_t i = 0; i < l.size(); ++i) {
-     *        LexerToken t = l[i];
-     *        std::cout << t.value() << std::endl;
-     *     }
-     *
-     * Caveat: this operator does no boundary check. If you need this check,
-     * use at() instead.
-     */
-    inline LexerToken operator[](const std::size_t index) const
-    {
-        return tokens_[index];
-    }
-
-    /**
-     * @brief Provides index based array access to the tokens, doing a
-     * boundary check first.
-     *
-     * In out of bounds cases, a special EOF token is returned.
-     */
-    inline LexerToken at(const std::size_t index) const
-    {
-        if (index < tokens_.size()) {
-            return tokens_[index];
-        } else {
-            return LexerToken(LexerType::kEOF, 0, 0, "");
-        }
-    }
-
-    /**
-     * @brief Returns a reference to the first token.
-     *
-     * Calling this function on an empty() lexer causes undefined behavior.
-     */
+    * @brief Returns the first token.
+    *
+    * Calling this function on an empty() lexer causes undefined behavior.
+    */
     inline LexerToken front() const
     {
         return tokens_.front();
     }
 
     /**
-     * @brief Returns a reference to the last token.
-     *
-     * Calling this function on an empty() lexer causes undefined behavior.
-     */
+    * @brief Returns the last token.
+    *
+    * Calling this function on an empty() lexer causes undefined behavior.
+    */
     inline LexerToken back() const
     {
         return tokens_.back();
+    }
+
+    /**
+     * @brief Returns the next token without consuming it. Same as front().
+     */
+    inline LexerToken Peek()
+    {
+        return tokens_.front();
+    }
+
+    /**
+     * @brief Gives the next token that the Lexer produced.
+     */
+    inline LexerToken ConsumeToken()
+    {
+        LexerToken ret = tokens_.front();
+        tokens_.pop_front();
+        return ret;
+    }
+
+    /**
+     * @brief Returns whether the Lexer has finished its work.
+     */
+    inline bool Finished()
+    {
+        return IsEnd() && empty();
     }
 
     /**
@@ -461,8 +399,8 @@ public:
      */
     inline void clear()
     {
-        // use swap to make sure vector is of size 0
-        std::vector<LexerToken>().swap(tokens_);
+        // use swap to make sure deque is of size 0
+        std::deque<LexerToken>().swap(tokens_);
     }
 
     /** @brief Returns whether there appeared an error while lexing. */
@@ -556,7 +494,7 @@ public:
      * around `"Hello World"`.
      *
      * The type of quotation marks used here depends on which chars are set
-     * to LexerType kString using SetCharType(). See ScanString() for more.
+     * to LexerTokenType kString using SetCharType(). See ScanString() for more.
      */
     bool use_string_doubled_quotes = false;
 
@@ -623,7 +561,7 @@ protected:
     }
 
     /**
-     * @brief Returns the LexerType of a char.
+     * @brief Returns the LexerTokenType of a char.
      *
      * This does not mean that any char of a given type can only appear in
      * tokens of that type. For example, typically a symbol can start with
@@ -633,11 +571,11 @@ protected:
      *
      * For more information on how this char type is used, see ProcessString().
      */
-    inline LexerType GetCharType(const char c) const
+    inline LexerTokenType GetCharType(const char c) const
     {
         // we use char [-128,127] here.
         if (c < 0) {
-            return LexerType::kError;
+            return LexerTokenType::kError;
         } else {
             return start_char_table_[static_cast<unsigned char>(c)];
         }
@@ -650,7 +588,7 @@ protected:
      * current char in inside the text. Thus, the function should only be
      * used in combination with IsEnd.
      */
-    inline LexerType GetCharType() const
+    inline LexerTokenType GetCharType() const
     {
         return GetCharType(GetChar());
     }
@@ -675,7 +613,7 @@ protected:
      * chars that are on a standard keyboard layout. See start_char_table_
      * for their ASCII representation.
      */
-    inline void SetCharType (const LexerType type, const std::string& chars)
+    inline void SetCharType (const LexerTokenType type, const std::string& chars)
     {
         for (char c : chars) {
             start_char_table_[static_cast<unsigned char>(c)] = type;
@@ -740,10 +678,10 @@ protected:
         }
     }
 
-    void PushToken (const LexerType t, const size_t start, const std::string& value);
+    void PushToken (const LexerTokenType t, const size_t start, const std::string& value);
 
     /** @brief Create a token and push it to the list. */
-    inline void PushToken (const LexerType t, const size_t start, const size_t end)
+    inline void PushToken (const LexerTokenType t, const size_t start, const size_t end)
     {
         PushToken(t, start, GetSubstr(start, end));
     }
@@ -759,39 +697,39 @@ private:
      *
      * See ProcessString() for more on this.
      */
-    LexerType start_char_table_[128] = {
-        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
-        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
-        /*      */  LexerType::kError,     LexerType::kWhite,     LexerType::kWhite,     LexerType::kWhite,
-        /*      */  LexerType::kWhite,     LexerType::kWhite,     LexerType::kError,     LexerType::kError,
-        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
-        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
-        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
-        /*      */  LexerType::kError,     LexerType::kError,     LexerType::kError,     LexerType::kError,
-        /*  !"# */  LexerType::kWhite,     LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
-        /* $%&' */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
-        /* ()*+ */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
-        /* ,-./ */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
-        /* 0123 */  LexerType::kNumber,    LexerType::kNumber,    LexerType::kNumber,    LexerType::kNumber,
-        /* 4567 */  LexerType::kNumber,    LexerType::kNumber,    LexerType::kNumber,    LexerType::kNumber,
-        /* 89:; */  LexerType::kNumber,    LexerType::kNumber,    LexerType::kUnknown,   LexerType::kUnknown,
-        /* <=>? */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
-        /* @ABC */  LexerType::kUnknown,   LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* DEFG */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* HIJK */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* LMNO */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* PQRS */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* TUVW */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* XYZ[ */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kUnknown,
-        /* \]^_ */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,
-        /* `abc */  LexerType::kUnknown,   LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* defg */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* hijk */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* lmno */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* pqrs */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* tuvw */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,
-        /* xyz{ */  LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kSymbol,    LexerType::kUnknown,
-        /* |}~  */  LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kUnknown,   LexerType::kError
+    LexerTokenType start_char_table_[128] = {
+        /*      */  LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,
+        /*      */  LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,
+        /*      */  LexerTokenType::kError,     LexerTokenType::kWhite,     LexerTokenType::kWhite,     LexerTokenType::kWhite,
+        /*      */  LexerTokenType::kWhite,     LexerTokenType::kWhite,     LexerTokenType::kError,     LexerTokenType::kError,
+        /*      */  LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,
+        /*      */  LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,
+        /*      */  LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,
+        /*      */  LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,
+        /*  !"# */  LexerTokenType::kWhite,     LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,
+        /* $%&' */  LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,
+        /* ()*+ */  LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,
+        /* ,-./ */  LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,
+        /* 0123 */  LexerTokenType::kNumber,    LexerTokenType::kNumber,    LexerTokenType::kNumber,    LexerTokenType::kNumber,
+        /* 4567 */  LexerTokenType::kNumber,    LexerTokenType::kNumber,    LexerTokenType::kNumber,    LexerTokenType::kNumber,
+        /* 89:; */  LexerTokenType::kNumber,    LexerTokenType::kNumber,    LexerTokenType::kUnknown,   LexerTokenType::kUnknown,
+        /* <=>? */  LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,
+        /* @ABC */  LexerTokenType::kUnknown,   LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* DEFG */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* HIJK */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* LMNO */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* PQRS */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* TUVW */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* XYZ[ */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kUnknown,
+        /* \]^_ */  LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,
+        /* `abc */  LexerTokenType::kUnknown,   LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* defg */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* hijk */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* lmno */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* pqrs */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* tuvw */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,
+        /* xyz{ */  LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kSymbol,    LexerTokenType::kUnknown,
+        /* |}~  */  LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kUnknown,   LexerTokenType::kError
     };
 
     // Caveat: the following variables are heavily interweaved during a run
@@ -814,7 +752,7 @@ private:
     int         col_  = 0;
 
     /** @brief The list of tokens resulting from the analysis process. */
-    std::vector<LexerToken> tokens_;
+    std::deque<LexerToken> tokens_;
 };
 
 } // namespace genesis

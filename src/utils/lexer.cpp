@@ -11,7 +11,6 @@
 #include <cstring>
 #include <stack>
 #include <string>
-#include <vector>
 
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
@@ -47,7 +46,7 @@ bool Lexer::ProcessFile(const std::string& fn)
  *
  * Returns true iff successful. In case an error is encountered while analyzing
  * the text, this functions returns false and the last token will be of type
- * LexerType::kError, with the value being an error message describing the
+ * LexerTokenType::kError, with the value being an error message describing the
  * type of error.
  *
  * Common usage:
@@ -118,38 +117,38 @@ bool Lexer::ProcessString(const std::string& text)
         }
 
         // check if current char is an error char
-        LexerType t = GetCharType();
-        if (t == LexerType::kError) {
-            PushToken(LexerType::kError, GetPosition(), "Invalid character.");
+        LexerTokenType t = GetCharType();
+        if (t == LexerTokenType::kError) {
+            PushToken(LexerTokenType::kError, GetPosition(), "Invalid character.");
             return false;
         }
 
         // start the actual scanners depending on the first char
         switch (t) {
-            case LexerType::kSymbol:
+            case LexerTokenType::kSymbol:
                 ScanSymbol();
                 break;
-            case LexerType::kNumber:
+            case LexerTokenType::kNumber:
                 ScanNumber();
                 break;
-            case LexerType::kString:
+            case LexerTokenType::kString:
                 ScanString();
                 break;
-            case LexerType::kBracket:
+            case LexerTokenType::kBracket:
                 ScanBracket();
                 break;
-            case LexerType::kOperator:
+            case LexerTokenType::kOperator:
                 ScanOperator();
                 break;
-            case LexerType::kTag:
+            case LexerTokenType::kTag:
                 ScanTag();
                 break;
-            case LexerType::kUnknown:
+            case LexerTokenType::kUnknown:
                 ScanUnknown();
                 break;
 
-            case LexerType::kWhite:
-            case LexerType::kComment:
+            case LexerTokenType::kWhite:
+            case LexerTokenType::kComment:
                 // this case happens if ScanWhitespace or ScanComment are wrongly
                 // implemented in a derived class, so that they return false
                 // although they should scan something or create an error token.
@@ -157,7 +156,7 @@ bool Lexer::ProcessString(const std::string& text)
                 // an error token when a close-comment-char appears without a
                 // open-comment-char first, e.g. "]".
                 assert(false);
-            case LexerType::kError:
+            case LexerTokenType::kError:
                 // this cannot happen, as we already covered the case before the switch
                 assert(false);
             default:
@@ -243,10 +242,10 @@ bool Lexer::ScanFromTo (const char* from, const char* to)
 inline bool Lexer::ScanUnknown()
 {
     size_t start = GetPosition();
-    while (!IsEnd() && GetCharType() == LexerType::kUnknown) {
+    while (!IsEnd() && GetCharType() == LexerTokenType::kUnknown) {
         NextChar();
     }
-    PushToken(LexerType::kUnknown, start, GetPosition());
+    PushToken(LexerTokenType::kUnknown, start, GetPosition());
     return true;
 }
 
@@ -255,7 +254,7 @@ inline bool Lexer::ScanUnknown()
 // complex comment markers, that would otherwise be turned into unknown tokens.
 inline bool Lexer::ScanUnknown()
 {
-    PushToken(LexerType::kUnknown, GetPosition(), GetPosition() + 1);
+    PushToken(LexerTokenType::kUnknown, GetPosition(), GetPosition() + 1);
     NextChar();
     return true;
 }
@@ -271,12 +270,12 @@ inline bool Lexer::ScanWhitespace()
     bool   found = false;
     size_t start = GetPosition();
 
-    while (!IsEnd() && GetCharType() == LexerType::kWhite) {
+    while (!IsEnd() && GetCharType() == LexerTokenType::kWhite) {
         NextChar();
         found = true;
     }
     if (include_whitespace && found) {
-        PushToken(LexerType::kWhite, start, GetPosition());
+        PushToken(LexerTokenType::kWhite, start, GetPosition());
     }
     return found;
 }
@@ -307,10 +306,10 @@ inline bool Lexer::ScanComment()
 inline bool Lexer::ScanSymbol()
 {
     size_t start = GetPosition();
-    while (!IsEnd() && GetCharType() == LexerType::kSymbol) {
+    while (!IsEnd() && GetCharType() == LexerTokenType::kSymbol) {
         NextChar();
     }
-    PushToken(LexerType::kSymbol, start, GetPosition());
+    PushToken(LexerTokenType::kSymbol, start, GetPosition());
     return true;
 }
 
@@ -390,10 +389,10 @@ inline bool Lexer::ScanNumber()
 
     // create result
     if (err) {
-        PushToken(LexerType::kError, GetPosition(), "Malformed number.");
+        PushToken(LexerTokenType::kError, GetPosition(), "Malformed number.");
         return false;
     } else {
-        PushToken(LexerType::kNumber, start, GetPosition());
+        PushToken(LexerTokenType::kNumber, start, GetPosition());
         return true;
     }
 }
@@ -402,7 +401,7 @@ inline bool Lexer::ScanNumber()
  * @brief Scan a string.
  *
  * A string is usually enclosed either in 'abc' or in "def" (this depends on
- * which chars have been set to LexerType kString in the derived class).
+ * which chars have been set to LexerTokenType kString in the derived class).
  * Within a string, any character is allowed. See use_string_escape and
  * use_string_doubled_quotes for options modifying the behaviour of this
  * function.
@@ -416,7 +415,7 @@ inline bool Lexer::ScanString()
     char qmark = GetChar();
     NextChar();
     if (IsEnd()) {
-        PushToken(LexerType::kError, GetPosition()-1, "Malformed string.");
+        PushToken(LexerTokenType::kError, GetPosition()-1, "Malformed string.");
         return false;
     }
 
@@ -463,7 +462,7 @@ inline bool Lexer::ScanString()
     // (escape sequence or doubled qmark), and are now at the end of the text, without having
     // seen the end qmark. e.g.: "hello world\"
     if (jump || (IsEnd() && !(GetChar(-1) == qmark))) {
-        PushToken(LexerType::kError, start-1, "Malformed string.");
+        PushToken(LexerTokenType::kError, start-1, "Malformed string.");
         return false;
     }
 
@@ -488,7 +487,7 @@ inline bool Lexer::ScanString()
     }
 
     // create result
-    PushToken(LexerType::kString, start-1, res);
+    PushToken(LexerTokenType::kString, start-1, res);
     return true;
 }
 
@@ -517,7 +516,7 @@ inline bool Lexer::ScanOperator()
         return ScanNumber();
     }
 
-    PushToken(LexerType::kOperator, GetPosition(), GetPosition()+1);
+    PushToken(LexerTokenType::kOperator, GetPosition(), GetPosition()+1);
     NextChar();
     return true;
 }
@@ -529,7 +528,7 @@ inline bool Lexer::ScanOperator()
  */
 inline bool Lexer::ScanBracket()
 {
-    PushToken(LexerType::kBracket, GetPosition(), GetPosition()+1);
+    PushToken(LexerTokenType::kBracket, GetPosition(), GetPosition()+1);
     NextChar();
     return true;
 }
@@ -565,7 +564,7 @@ inline bool Lexer::ScanTag()
 /**
  * @brief Create a token and push it to the list.
  */
-void Lexer::PushToken (const LexerType t, const size_t start, const std::string& value)
+void Lexer::PushToken (const LexerTokenType t, const size_t start, const std::string& value)
 {
     // make and push token.
     // the column is the one where the token started. start gives this position as absolute position
