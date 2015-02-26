@@ -5,13 +5,13 @@
  * @ingroup placement
  */
 
-#include "placement/jplace_processor.hpp"
+#include "placements/jplace_processor.hpp"
 
 #include <string>
 #include <vector>
 
 #include "main/options.hpp"
-#include "placement/placements.hpp"
+#include "placements/placements.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/json_document.hpp"
 #include "utils/json_processor.hpp"

@@ -13,7 +13,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "placement/placement_tree.hpp"
+#include "placements/placement_tree.hpp"
 
 namespace genesis {
 

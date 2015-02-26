@@ -12,8 +12,8 @@
 
 #include "main/options.hpp"
 
-#include "placement/jplace_processor.hpp"
-#include "placement/placements.hpp"
+#include "placements/jplace_processor.hpp"
+#include "placements/placements.hpp"
 #include "tree/bipartitions.hpp"
 #include "tree/newick_processor.hpp"
 #include "tree/phyloxml_processor.hpp"

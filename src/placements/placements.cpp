@@ -5,7 +5,7 @@
  * @ingroup placement
  */
 
-#include "placement/placements.hpp"
+#include "placements/placements.hpp"
 
 #include <algorithm>
 #include <assert.h>

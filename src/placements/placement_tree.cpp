@@ -5,11 +5,11 @@
  * @ingroup placement
  */
 
-#include "placement/placement_tree.hpp"
+#include "placements/placement_tree.hpp"
 
 #include <map>
 
-#include "placement/placements.hpp"
+#include "placements/placements.hpp"
 
 namespace genesis {
 
