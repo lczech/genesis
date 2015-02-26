@@ -290,7 +290,7 @@ int main (int argc, char* argv[])
     //     Further tests for placements and validation
     // =============================================================================
 
-    //*
+    /*
     Placements place_a, place_b;
     LOG_DBG << "Reading file...";
     JplaceProcessor::FromFile("test/data/test_40K.jplace", place_a);
@@ -331,6 +331,8 @@ int main (int argc, char* argv[])
     place_a.RestrainToMaxWeightPlacements();
     //~ place_b.RestrainToMaxWeightPlacements();
     //~ LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
+    LOG_DBG << "count a " << place_a.PlacementCount();
+    */
 
     // ----------------------------
     //     Variance, EMD
@@ -517,7 +519,7 @@ int main (int argc, char* argv[])
     //     Process big placement
     // --------------------------------------------------------
 
-    /*
+    //*
 
     std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/";
     std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/";

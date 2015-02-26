@@ -86,8 +86,20 @@ protected:
 /**
  * @brief A JSON parser that fills a JsonDocument with data from different JSON sources.
  *
- * This class provides three functions for parsing JSON data. Those take an input source containing
+ * This class provides functions for parsing JSON data. Those take an input source containing
  * JSON data and parse them into a JsonDocument.
+ *
+ * The parsing works this way:
+ *
+ * Each JSON document is also a JSON object, and can contain other objects, JSON arrays, or simple
+ * value types. The parsing here is thus splitted in those three functions, being recursively called
+ * for every level of nesting within objects and arrays.
+ *
+ * Those three functions (objects, arrays, simple values) take an interator to the current lexer
+ * token by reference and advance it until it points to the next token after processing the current
+ * object/array/value. To check for the end of the lexer, an intererator to its end is also
+ * provided, as well as a pointer to the resulting JSON value, which is filled with data during the
+ * execution of the functions.
  */
 class JsonProcessor
 {
@@ -98,26 +110,27 @@ class JsonProcessor
 public:
     static bool FromFile   (const std::string& fn,    JsonDocument& document);
     static bool FromString (const std::string& json,  JsonDocument& document);
-    static bool FromLexer  (const JsonLexer&   lexer, JsonDocument& document);
+    static bool FromLexer  (        JsonLexer& lexer, JsonDocument& document);
 
     // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
 
 protected:
+
     static bool ParseValue (
-        Lexer::const_iterator& ct,
-        Lexer::const_iterator& end,
+        Lexer::iterator& ct,
+        Lexer::iterator& end,
         JsonValue*&            value
     );
 
     static bool ParseArray (
-        Lexer::const_iterator& ct,
-        Lexer::const_iterator& end,
+        Lexer::iterator& ct,
+        Lexer::iterator& end,
         JsonValueArray*        value
     );
 
     static bool ParseObject (
-        Lexer::const_iterator& ct,
-        Lexer::const_iterator& end,
+        Lexer::iterator& ct,
+        Lexer::iterator& end,
         JsonValueObject*       value
     );
 

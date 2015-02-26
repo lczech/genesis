@@ -558,6 +558,35 @@ inline bool Lexer::ScanTag()
 }
 
 // =============================================================================
+//     Iterator
+// =============================================================================
+
+/**
+ * @brief Returns an iterator to the beginning of the token list.
+ *
+ * This is used for the iterator and also allows to use range based
+ * looping over the tokens:
+ *
+ *     Lexer l;
+ *     for (LexerToken& t : l) {
+ *         std::cout << t.value() << std::endl;
+ *     }
+ * %
+ */
+inline Lexer::iterator Lexer::begin()
+{
+    return iterator(*this, 0);
+}
+
+/**
+ * @brief Returns an iterator to the end of the token list.
+ */
+inline Lexer::iterator Lexer::end()
+{
+    return iterator(*this, -1);
+}
+
+// =============================================================================
 //     Helper functions
 // =============================================================================
 

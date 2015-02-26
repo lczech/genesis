@@ -8,12 +8,19 @@
  * @ingroup utils
  */
 
+#include <assert.h>
 #include <deque>
 #include <string>
 
 #include "utils/utils.hpp"
 
 namespace genesis {
+
+// =============================================================================
+//     Forward Declaration
+// =============================================================================
+
+class LexerIterator;
 
 // =============================================================================
 //     General Definitions
@@ -56,7 +63,7 @@ inline std::string LexerTokenTypeToString (const LexerTokenType t)
 }
 
 // =============================================================================
-//     LexerToken
+//     Lexer Token
 // =============================================================================
 
 /**
@@ -276,10 +283,10 @@ public:
     }
 
 private:
-    const LexerTokenType   type_;
-    const int         line_;
-    const int         column_;
-    const std::string value_;
+    const LexerTokenType type_;
+    const int            line_;
+    const int            column_;
+    const std::string    value_;
 };
 
 // =============================================================================
@@ -320,6 +327,8 @@ public:
     //     Accessors and Iterators
     // -------------------------------------------------------------------------
 
+    friend LexerIterator;
+
     /**
      * @brief Iterator type to access the tokens produces by the lexer.
      *
@@ -331,38 +340,18 @@ public:
      *     }
      * %
      */
-    typedef std::deque<LexerToken>::iterator       iterator;
+    typedef LexerIterator iterator;
+
+    virtual iterator begin();
+    virtual iterator end();
 
     /** @brief Const version of the iterator. */
     typedef std::deque<LexerToken>::const_iterator const_iterator;
-
-    /**
-     * @brief Returns an iterator to the beginning of the token list.
-     *
-     * This is used for the iterator and also allows to use range based
-     * looping over the tokens:
-     *
-     *     Lexer l;
-     *     for (LexerToken& t : l) {
-     *         std::cout << t.value() << std::endl;
-     *     }
-     * %
-     */
-    inline iterator begin()
-    {
-        return tokens_.begin();
-    }
 
     /** @brief Const version of begin(). */
     inline const_iterator cbegin() const
     {
         return tokens_.cbegin();
-    }
-
-    /** @brief Returns an iterator to the end of the token list. */
-    inline iterator end()
-    {
-        return tokens_.end();
     }
 
     /** @brief Const version of end(). */
@@ -804,6 +793,108 @@ private:
 
     /** @brief The list of tokens resulting from the analysis process. */
     std::deque<LexerToken> tokens_;
+};
+
+// =============================================================================
+//     Lexer Iterator
+// =============================================================================
+
+class LexerIterator
+{
+public:
+    // -----------------------------------------------------
+    //     Typedefs
+    // -----------------------------------------------------
+
+    typedef std::forward_iterator_tag iterator_category;
+
+    // -----------------------------------------------------
+    //     Constructor
+    // -----------------------------------------------------
+
+    LexerIterator (Lexer& lexer, int position) : lexer_(lexer), position_(position)
+    {}
+
+    // -----------------------------------------------------
+    //     Operators
+    // -----------------------------------------------------
+
+    inline LexerIterator& operator ++ ()
+    {
+        // if we are already at the end, do not do anything
+        if (position_ < 0) {
+            return *this;
+        }
+
+        // increase until we reach end
+        ++position_;
+        if (static_cast<size_t> (position_) >= lexer_.tokens_.size()) {
+            position_ = -1;
+        }
+
+        Comsume();
+
+        return *this;
+    }
+
+    inline LexerIterator operator ++ (int)
+    {
+        LexerIterator tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    inline bool operator == (const LexerIterator &other) const
+    {
+        return &other.lexer_ == &lexer_ && other.position_ == position_;
+    }
+
+    inline bool operator != (const LexerIterator &other) const
+    {
+        return !(other == *this);
+    }
+
+    inline LexerToken* operator -> () const
+    {
+        return &lexer_.tokens_[position_];
+    }
+
+    // -----------------------------------------------------
+    //     Settings
+    // -----------------------------------------------------
+
+    inline void ConsumeWithTail (const int tail_size)
+    {
+        tail_size_ = tail_size < -1 ? -1 : tail_size;
+    }
+
+protected:
+
+    inline void Comsume()
+    {
+        // only consume if activated.
+        if (tail_size_ < 0) {
+            return;
+        }
+
+        while (position_ > tail_size_) {
+            // position is either -1 (so we never entered this loop), or points to a valid element
+            // of the token list. so we can assume that this list is not empty.
+            assert(!lexer_.tokens_.empty());
+
+            lexer_.tokens_.pop_front();
+            --position_;
+        }
+    }
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+    Lexer& lexer_;
+    int    position_;
+
+    int tail_size_ = -1;
 };
 
 } // namespace genesis

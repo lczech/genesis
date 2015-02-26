@@ -48,21 +48,10 @@ bool JsonProcessor::FromString (const std::string& json, JsonDocument& document)
 }
 
 /**
- * @brief Takes a JsonLexer and parses its contents into a JsonDocument.
- *
- * Each JSON document is also a JSON object, and can contain other objects, JSON arrays, or simple
- * value types. The parsing here is thus splitted in those three functions, being recursively called
- * for every level of nesting within objects and arrays.
- *
- * Those three functions (objects, arrays, simple values) take an interator to the current lexer
- * token by reference and advance it until it points to the next token after processing the current
- * object/array/value. To check for the end of the lexer, an intererator to its end is also
- * provided, as well as a pointer to the resulting JSON value, which is filled with data during the
- * execution of the functions.
- *
- * Returns true iff successfull.
+ * @brief Takes a JsonLexer and parses its contents into a JsonDocument. The lexer is consumed
+ * in the process.
  */
-bool JsonProcessor::FromLexer (const JsonLexer& lexer, JsonDocument& document)
+bool JsonProcessor::FromLexer (JsonLexer& lexer, JsonDocument& document)
 {
     if (lexer.empty()) {
         LOG_INFO << "JSON document is empty.";
@@ -81,8 +70,10 @@ bool JsonProcessor::FromLexer (const JsonLexer& lexer, JsonDocument& document)
     // a json document is also a json object, so we start parsing the doc as such.
     // the begin iterator will be incremented with every token being processed.
     document.clear();
-    Lexer::const_iterator begin = lexer.cbegin();
-    Lexer::const_iterator end   = lexer.cend();
+    Lexer::iterator begin = lexer.begin();
+    Lexer::iterator end   = lexer.end();
+
+    begin.ConsumeWithTail(0);
     if (!ParseObject(begin, end, &document)) {
         return false;
     }
@@ -110,8 +101,8 @@ bool JsonProcessor::FromLexer (const JsonLexer& lexer, JsonDocument& document)
  * new instance has to be created and stored in the pointer.
  */
 bool JsonProcessor::ParseValue (
-    Lexer::const_iterator& ct,
-    Lexer::const_iterator& end,
+    Lexer::iterator& ct,
+    Lexer::iterator& end,
     JsonValue*&            value
 ) {
     // proper usage of this function is to hand over a null pointer to a json value, which will be
@@ -162,8 +153,8 @@ bool JsonProcessor::ParseValue (
  * @brief Parse a JSON array and fill it with data elements from the lexer.
  */
 bool JsonProcessor::ParseArray (
-    Lexer::const_iterator& ct,
-    Lexer::const_iterator& end,
+    Lexer::iterator& ct,
+    Lexer::iterator& end,
     JsonValueArray*        value
 ) {
     // proper usage of this function is to hand over a valid pointer to a json array, so check
@@ -216,8 +207,8 @@ bool JsonProcessor::ParseArray (
  * @brief Parse a JSON object and fill it with data members from the lexer.
  */
 bool JsonProcessor::ParseObject (
-    Lexer::const_iterator& ct,
-    Lexer::const_iterator& end,
+    Lexer::iterator& ct,
+    Lexer::iterator& end,
     JsonValueObject*       value
 ) {
     // proper usage of this function is to hand over a valid pointer to a json object, so check
