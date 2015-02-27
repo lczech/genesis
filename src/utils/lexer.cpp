@@ -591,19 +591,6 @@ inline Lexer::iterator Lexer::end()
 // =============================================================================
 
 /**
- * @brief Create a token and push it to the list.
- */
-void Lexer::PushToken (const LexerTokenType t, const size_t start, const std::string& value)
-{
-    // make and push token.
-    // the column is the one where the token started. start gives this position as absolute position
-    // in the string, so sutract it from itr_ to get how many chars we need to go back as compared
-    // to the current col_.
-    LexerToken tok(t, line_, col_ - (itr_ - start), value);
-    tokens_.push_back(tok);
-}
-
-/**
  * @brief Checkes whether the bracket tokes are validly nested.
  *
  * In order to be valid, every opening bracket must be matched with a

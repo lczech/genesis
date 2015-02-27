@@ -9,6 +9,7 @@
  */
 
 #include <assert.h>
+#include <cstring>
 #include <deque>
 #include <string>
 
@@ -136,8 +137,21 @@ public:
         const LexerTokenType t, const int         l,
         const int            c, const std::string& v
     ) :
-        type_(t), line_(l), column_(c), value_(v)
-    {};
+        type_(t), line_(l), column_(c)
+    {
+        value_ = strdup(v.c_str());
+    };
+
+    LexerToken(const LexerToken& other) :
+        type_(other.type_), line_(other.line_), column_(other.column_)
+    {
+        value_ = strdup(other.value_);
+    }
+
+    ~LexerToken()
+    {
+        delete [] value_;
+    }
 
     /**
      * @brief Getter for the LexerTokenType of this token.
@@ -162,7 +176,7 @@ public:
     /** @brief Getter for the string value of this token. */
     inline std::string value() const
     {
-        return value_;
+        return std::string(value_);
     }
 
     /** @brief Shortcut that returns "line:column" (e.g., for logging). */
@@ -237,7 +251,7 @@ public:
      */
     inline bool IsBracket(const std::string& br) const
     {
-        return (type_ == LexerTokenType::kBracket) && (value_.compare(br) == 0);
+        return (type_ == LexerTokenType::kBracket) && (strcmp(value_, br.c_str()) == 0);
     }
 
     /**
@@ -260,7 +274,7 @@ public:
      */
     inline bool IsOperator(const std::string& op) const
     {
-        return (type_ == LexerTokenType::kOperator) && (value_.compare(op) == 0);
+        return (type_ == LexerTokenType::kOperator) && (strcmp(value_, op.c_str()) == 0);
     }
 
     /** @brief Shortcut to check if this is a tag token. */
@@ -283,10 +297,13 @@ public:
     }
 
 private:
-    const LexerTokenType type_;
-    const int            line_;
-    const int            column_;
-    const std::string    value_;
+    // private assignment, we don't want that.
+    LexerToken& operator = (const LexerToken& other);
+
+    LexerTokenType type_;
+    int            line_;
+    int            column_;
+    char*          value_;
 };
 
 // =============================================================================
@@ -718,7 +735,17 @@ protected:
         }
     }
 
-    void PushToken (const LexerTokenType t, const size_t start, const std::string& value);
+    /**
+     * @brief Create a token and push it to the list.
+     */
+    inline void PushToken (const LexerTokenType t, const size_t start, const std::string& value)
+    {
+        // make and push token.
+        // the column is the one where the token started. start gives this position as absolute position
+        // in the string, so sutract it from itr_ to get how many chars we need to go back as compared
+        // to the current col_.
+        tokens_.emplace_back(t, line_, col_ - (itr_ - start), value);
+    }
 
     /** @brief Create a token and push it to the list. */
     inline void PushToken (const LexerTokenType t, const size_t start, const size_t end)
