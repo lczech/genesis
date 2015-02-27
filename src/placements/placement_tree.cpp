@@ -43,7 +43,7 @@ double PlacementEdgeData::PlacementMass() const
 void PlacementEdgeData::SortPlacements()
 {
     std::multimap<double, PqueryPlacement*> sorted;
-    std::deque<PqueryPlacement*> new_placements;
+    std::vector<PqueryPlacement*> new_placements;
 
     for (PqueryPlacement* place : placements) {
         sorted.emplace(place->distal_length, place);

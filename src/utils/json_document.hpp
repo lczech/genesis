@@ -8,11 +8,11 @@
  * @ingroup utils
  */
 
-#include <deque>
 #include <iomanip>
 #include <sstream>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
@@ -229,7 +229,7 @@ public:
     //     Accessors and Iterators
     // ---------------------------------------------------------------------
 
-    typedef std::deque<JsonValue*> ArrayData;
+    typedef std::vector<JsonValue*> ArrayData;
 
     /**
      * @brief Iterator type to access the array values.
@@ -341,11 +341,6 @@ public:
         data_.push_back(value);
     }
 
-    inline void push_front(JsonValue* value)
-    {
-        data_.push_front(value);
-    }
-
     /**
      * @brief Alias of push_back().
      */
@@ -357,11 +352,6 @@ public:
     inline void pop_back()
     {
         data_.pop_back();
-    }
-
-    inline void pop_front()
-    {
-        data_.pop_front();
     }
 
     /**

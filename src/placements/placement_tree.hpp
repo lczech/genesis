@@ -8,8 +8,8 @@
  * @ingroup placement
  */
 
-#include <deque>
 #include <string>
+#include <vector>
 
 #include "tree/newick_processor.hpp"
 #include "tree/tree.hpp"
@@ -91,7 +91,7 @@ public:
     double branch_length;
     int    edge_num;
 
-    std::deque<PqueryPlacement*> placements;
+    std::vector<PqueryPlacement*> placements;
 };
 
 // =============================================================================

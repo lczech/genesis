@@ -123,7 +123,7 @@ void Placements::clear()
     for (Pquery* pqry : pqueries) {
         delete pqry;
     }
-    std::deque<Pquery*>().swap(pqueries);
+    std::vector<Pquery*>().swap(pqueries);
     tree.clear();
     metadata.clear();
 }
@@ -244,7 +244,7 @@ void Placements::RestrainToMaxWeightPlacements()
             // delete the reference from the edge to the current placement. we will later add the
             // one that points to the remaining (max weight) placement.
             PlacementTree::EdgeType* edge = place->edge;
-            std::deque<PqueryPlacement*>::iterator it = edge->placements.begin();
+            std::vector<PqueryPlacement*>::iterator it = edge->placements.begin();
             for (; it != edge->placements.end(); ++it) {
                 if (*it == place) {
                     break;
@@ -257,9 +257,9 @@ void Placements::RestrainToMaxWeightPlacements()
             edge->placements.erase(it);
         }
 
-        // remove all but the max element from placements by creating a new deque and swapping it.
+        // remove all but the max element from placements by creating a new vector and swapping it.
         // this is faster and simpler than removing all but one element.
-        std::deque<PqueryPlacement*> np;
+        std::vector<PqueryPlacement*> np;
         np.push_back(max_p);
         pqry->placements.swap(np);
 

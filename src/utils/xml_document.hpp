@@ -8,9 +8,9 @@
  * @ingroup utils
  */
 
-#include <deque>
 #include <string>
 #include <unordered_map>
+#include <vector>
 
 //~ #include "utils/logging.hpp"
 //~ #include "utils/utils.hpp"
@@ -148,7 +148,7 @@ public:
 
     std::string           tag;
     StringMapType         attributes;
-    std::deque<XmlValue*> content;
+    std::vector<XmlValue*> content;
 };
 
 // =============================================================================

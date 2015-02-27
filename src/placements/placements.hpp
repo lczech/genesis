@@ -8,7 +8,6 @@
  * @ingroup placement
  */
 
-#include <deque>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -96,8 +95,8 @@ struct Pquery
         names.clear();
     }
 
-    std::deque<PqueryPlacement*> placements;
-    std::deque<PqueryName*>      names;
+    std::vector<PqueryPlacement*> placements;
+    std::vector<PqueryName*>      names;
 };
 
 // =============================================================================
@@ -193,7 +192,7 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    std::deque<Pquery*>                          pqueries;
+    std::vector<Pquery*>                         pqueries;
     PlacementTree                                tree;
     std::unordered_map<std::string, std::string> metadata;
 };

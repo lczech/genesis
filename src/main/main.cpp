@@ -332,7 +332,7 @@ int main (int argc, char* argv[])
     //~ place_b.RestrainToMaxWeightPlacements();
     //~ LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
     LOG_DBG << "count a " << place_a.PlacementCount();
-    */
+    //*/
 
     // ----------------------------
     //     Variance, EMD
