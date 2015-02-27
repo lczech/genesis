@@ -9,7 +9,6 @@
  */
 
 #include <assert.h>
-#include <cstring>
 #include <deque>
 #include <string>
 
@@ -137,21 +136,8 @@ public:
         const LexerTokenType t, const int         l,
         const int            c, const std::string& v
     ) :
-        type_(t), line_(l), column_(c)
-    {
-        value_ = strdup(v.c_str());
-    };
-
-    LexerToken(const LexerToken& other) :
-        type_(other.type_), line_(other.line_), column_(other.column_)
-    {
-        value_ = strdup(other.value_);
-    }
-
-    ~LexerToken()
-    {
-        delete [] value_;
-    }
+        type_(t), line_(l), column_(c), value_(v)
+    {};
 
     /**
      * @brief Getter for the LexerTokenType of this token.
@@ -176,7 +162,7 @@ public:
     /** @brief Getter for the string value of this token. */
     inline std::string value() const
     {
-        return std::string(value_);
+        return value_;
     }
 
     /** @brief Shortcut that returns "line:column" (e.g., for logging). */
@@ -251,7 +237,7 @@ public:
      */
     inline bool IsBracket(const std::string& br) const
     {
-        return (type_ == LexerTokenType::kBracket) && (strcmp(value_, br.c_str()) == 0);
+        return (type_ == LexerTokenType::kBracket) && (value_.compare(br) == 0);
     }
 
     /**
@@ -274,7 +260,7 @@ public:
      */
     inline bool IsOperator(const std::string& op) const
     {
-        return (type_ == LexerTokenType::kOperator) && (strcmp(value_, op.c_str()) == 0);
+        return (type_ == LexerTokenType::kOperator) && (value_.compare(op) == 0);
     }
 
     /** @brief Shortcut to check if this is a tag token. */
@@ -297,13 +283,10 @@ public:
     }
 
 private:
-    // private assignment, we don't want that.
-    LexerToken& operator = (const LexerToken& other);
-
-    LexerTokenType type_;
-    int            line_;
-    int            column_;
-    char*          value_;
+    const LexerTokenType type_;
+    const int line_;
+    const int column_;
+    const std::string value_;
 };
 
 // =============================================================================
@@ -823,6 +806,15 @@ private:
     std::deque<LexerToken> tokens_;
 };
 
+/**
+ * @brief Iterator for the tokens of a Lexer, with the capability of in-time production and
+ * consumption of tokens to save memory.
+ *
+ * This is a drop-in replacement for the default iterator of the token container used by Lexer,
+ * but with two extra features: It can consume tokens after they have been processed (see
+ * ConsumeWithTail() for more information), and it can produce tokens just before they are beeing
+ * accessed (see ProduceWithHead() for more).
+ */
 // =============================================================================
 //     Lexer Iterator
 // =============================================================================
@@ -831,14 +823,10 @@ class LexerIterator
 {
 public:
     // -----------------------------------------------------
-    //     Typedefs
+    //     Constructor and Typedefs
     // -----------------------------------------------------
 
     typedef std::forward_iterator_tag iterator_category;
-
-    // -----------------------------------------------------
-    //     Constructor
-    // -----------------------------------------------------
 
     LexerIterator (Lexer& lexer, int position) : lexer_(lexer), position_(position)
     {}
@@ -889,14 +877,41 @@ public:
     }
 
     // -----------------------------------------------------
-    //     Settings
+    //     Consumption and Production
     // -----------------------------------------------------
 
+    /**
+     * @brief Determines the consumption policy of the iterator when traversion the Lexer.
+     *
+     * A value of `-1` indicates that no tokens shall be consumed, leaving the Lexer as it is.
+     *
+     * If ConsumeWithTail() is used with a value greater than -1, the iterator will consume tokens
+     * whenever it moves to the next one (so, when either `++iterator` or `iterator++` are called).
+     * This means, it destroys tokens after they have been processed, in order to free their memory.
+     *
+     * The value given to the function determines how long the tail of not yet consumed tokens is.
+     * A value of `0` means, all tokens are immediatley destroyed, while e.g. `3` indicates to leave
+     * the last three tokens before destroying them. This might be helpful in cases where the parser
+     * has to move back a certain number of tokens sometimes.
+     */
     inline void ConsumeWithTail (const int tail_size)
     {
         tail_size_ = tail_size < -1 ? -1 : tail_size;
     }
 
+    /**
+     * @brief Determines the production policy of the iterator when traversion the Lexer.
+     *
+     * When set to `-1`, no tokens are produced. However, a value greater than that tells the
+     * iterator to produce as many tokens ahead of the current one. So, a value of 0 will just
+     * produce the token needed for the current position, while a value of 5 produces the next 5
+     * tokens ahead of the current one.
+     *
+     * If the end of the string being lexed is reached, of course no more tokens will be produced.
+     * This feature is helpful only if Lexer::ProcessString() was called with the `stepwise`
+     * parameter set to true, because otherwise all tokens are already produced, so
+     * there will be nothing left to procude.
+     */
     inline void ProduceWithHead (const int head_size)
     {
         head_size_ = head_size < -1 ? -1 : head_size;
@@ -941,11 +956,11 @@ protected:
     //     Members
     // -----------------------------------------------------
 
-    Lexer& lexer_;
-    int    position_;
-
     int tail_size_ = -1;
     int head_size_ = -1;
+
+    Lexer& lexer_;
+    int    position_;
 };
 
 } // namespace genesis

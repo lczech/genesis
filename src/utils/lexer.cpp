@@ -39,7 +39,7 @@ bool Lexer::ProcessFile(const std::string& fn)
 /**
  * @brief Process a string and store the resulting tokens in this Lexer object.
  *
- * This function empties the token list stored for this object and fills it
+ * This function clears the token list stored for this object and fills it
  * with the results of processing the given string. This process analyzes and
  * splits the string into different tokens. For the types of tokens being
  * extracted, see LexerToken; for accessing the results, see Lexer.
@@ -63,6 +63,36 @@ bool Lexer::ProcessFile(const std::string& fn)
  *             << " with message " << b.value();
  *     }
  *     ... process the tokens ...
+ *
+ * The additional option `stepwise` will not scan the entire string, but only the
+ * first element of it. In order to get more tokens manually, ProcessStep() has to be called until
+ * it returns false. However, this option is usually used in combination with a producing
+ * LexerIterator, that will automatically call ProcessStep() whenever tokens are needed.
+ * See JsonProcessor::FromString() for an example.
+ */
+bool Lexer::ProcessString(const std::string& text, bool stepwise)
+{
+    Init(text);
+
+    // if we want stepwise lexing, just do the first step.
+    if (stepwise) {
+        return ProcessStep();
+    }
+
+    // if not, do steps till the end.
+    while (!IsEnd()) {
+        if (!ProcessStep()) {
+            return tokens_.empty();
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Processes one step of the lexing.
+ *
+ * This might produce more than one token, as comments and whitespaces are treaded specially.
  *
  * As stated in the description of this Lexer class, the class is meant to be
  * derived for concrete types of lexers. Thus, here are some comments about the
@@ -98,25 +128,6 @@ bool Lexer::ProcessFile(const std::string& fn)
  * correct scanner. In the new ProcessString function, first call Init to reset all
  * internal variables. Also see ScanUnknown for some important information.
  */
-bool Lexer::ProcessString(const std::string& text, bool stepwise)
-{
-    Init(text);
-
-    // if we want stepwise lexing, just do the first step.
-    if (stepwise) {
-        return ProcessStep();
-    }
-
-    // if not, do steps till the end.
-    while (!IsEnd()) {
-        if (!ProcessStep()) {
-            return tokens_.empty();
-        }
-    }
-
-    return true;
-}
-
 bool Lexer::ProcessStep()
 {
     if (IsEnd()) {
@@ -204,10 +215,24 @@ bool Lexer::ProcessStep()
 /**
  * @brief Scans a range between two strings.
  *
- * If the current position in the text starts with the value of from, this
- * scanner continues in the text until the value of to is found (or the end of
- * the text). In case of success (both from and to were found), it returns true,
+ * If the current position in the text starts with the value of `from`, this
+ * scanner continues in the text until the value of `to` is found (or the end of
+ * the text). In case of success (both `from` and `to` were found), it returns true,
  * false otherwise.
+ *
+ * If successfull, the internal position of the Lexer is moved to the char after
+ * the `to` string. Thus, the start position has to be stored before calling this function.
+ *
+ * Example:
+ *
+ *     size_t start = GetPosition();
+ *     bool   found = ScanFromTo("{", "}");
+ *     if (found) {
+ *         PushToken(LexerTokenType::kTag, start+1, GetPosition()-1);
+ *     }
+ *
+ * This scans between two curly brackets and if found, produces a token (that does not contain
+ * the brackets themselves).
  */
 bool Lexer::ScanFromTo (const char* from, const char* to)
 {
