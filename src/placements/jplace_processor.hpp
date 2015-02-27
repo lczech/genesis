@@ -46,7 +46,6 @@ public:
 
     static bool FromFile     (const std::string&  fn,     Placements& placements);
     static bool FromString   (const std::string&  jplace, Placements& placements);
-    static bool FromLexer    (      JsonLexer&    lexer,  Placements& placements);
     static bool FromDocument (const JsonDocument& doc,    Placements& placements);
 
     // ---------------------------------------------------------------------

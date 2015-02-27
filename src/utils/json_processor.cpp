@@ -43,16 +43,8 @@ bool JsonProcessor::FromFile (const std::string& fn, JsonDocument& document)
 bool JsonProcessor::FromString (const std::string& json, JsonDocument& document)
 {
     JsonLexer lexer;
-    lexer.ProcessString(json);
-    return FromLexer(lexer, document);
-}
+    lexer.ProcessString(json, true);
 
-/**
- * @brief Takes a JsonLexer and parses its contents into a JsonDocument. The lexer is consumed
- * in the process.
- */
-bool JsonProcessor::FromLexer (JsonLexer& lexer, JsonDocument& document)
-{
     if (lexer.empty()) {
         LOG_INFO << "JSON document is empty.";
         return false;
@@ -73,7 +65,10 @@ bool JsonProcessor::FromLexer (JsonLexer& lexer, JsonDocument& document)
     Lexer::iterator begin = lexer.begin();
     Lexer::iterator end   = lexer.end();
 
+    // delete tailing tokens immediately, produce tokens intime.
     begin.ConsumeWithTail(0);
+    begin.ProduceWithHead(0);
+
     if (!ParseObject(begin, end, &document)) {
         return false;
     }

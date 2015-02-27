@@ -336,7 +336,8 @@ class Lexer
 {
 public:
     virtual bool ProcessFile   (const std::string& fn);
-    virtual bool ProcessString (const std::string& text);
+    virtual bool ProcessString (const std::string& text, bool stepwise =  false);
+    virtual bool ProcessStep   ();
     bool ValidateBrackets() const;
     std::string Dump() const;
 
@@ -853,8 +854,9 @@ public:
             return *this;
         }
 
-        // increase until we reach end
+        // increase until we reach end, make sure we produce enough.
         ++position_;
+        Produce();
         if (static_cast<size_t> (position_) >= lexer_.tokens_.size()) {
             position_ = -1;
         }
@@ -895,6 +897,11 @@ public:
         tail_size_ = tail_size < -1 ? -1 : tail_size;
     }
 
+    inline void ProduceWithHead (const int head_size)
+    {
+        head_size_ = head_size < -1 ? -1 : head_size;
+    }
+
 protected:
 
     inline void Comsume()
@@ -914,6 +921,22 @@ protected:
         }
     }
 
+    inline void Produce()
+    {
+        // only produce if activated
+        if (head_size_ < 0) {
+            return;
+        }
+
+        // produce tokens until there is a buffer of head size many.
+        assert(position_ >= 0 && head_size_ >= 0);
+        while (lexer_.tokens_.size() <= static_cast<size_t> (position_ + head_size_)) {
+            if (!lexer_.ProcessStep()) {
+                break;
+            }
+        }
+    }
+
     // -----------------------------------------------------
     //     Members
     // -----------------------------------------------------
@@ -922,6 +945,7 @@ protected:
     int    position_;
 
     int tail_size_ = -1;
+    int head_size_ = -1;
 };
 
 } // namespace genesis

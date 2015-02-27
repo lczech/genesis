@@ -98,81 +98,97 @@ bool Lexer::ProcessFile(const std::string& fn)
  * correct scanner. In the new ProcessString function, first call Init to reset all
  * internal variables. Also see ScanUnknown for some important information.
  */
-bool Lexer::ProcessString(const std::string& text)
+bool Lexer::ProcessString(const std::string& text, bool stepwise)
 {
     Init(text);
 
+    // if we want stepwise lexing, just do the first step.
+    if (stepwise) {
+        return ProcessStep();
+    }
+
+    // if not, do steps till the end.
     while (!IsEnd()) {
-        // scan arbitrary amount of interleaved whitespace and comments
-        while (ScanWhitespace() || ScanComment()) continue;
-
-        // check if whitespace or comment scanner yielded an error
-        if (!tokens_.empty() && tokens_.back().IsError()) {
-            return false;
-        }
-
-        // check if still not at end after whitespaces and comments
-        if (IsEnd()) {
-            break;
-        }
-
-        // check if current char is an error char
-        LexerTokenType t = GetCharType();
-        if (t == LexerTokenType::kError) {
-            PushToken(LexerTokenType::kError, GetPosition(), "Invalid character.");
-            return false;
-        }
-
-        // start the actual scanners depending on the first char
-        switch (t) {
-            case LexerTokenType::kSymbol:
-                ScanSymbol();
-                break;
-            case LexerTokenType::kNumber:
-                ScanNumber();
-                break;
-            case LexerTokenType::kString:
-                ScanString();
-                break;
-            case LexerTokenType::kBracket:
-                ScanBracket();
-                break;
-            case LexerTokenType::kOperator:
-                ScanOperator();
-                break;
-            case LexerTokenType::kTag:
-                ScanTag();
-                break;
-            case LexerTokenType::kUnknown:
-                ScanUnknown();
-                break;
-
-            case LexerTokenType::kWhite:
-            case LexerTokenType::kComment:
-                // this case happens if ScanWhitespace or ScanComment are wrongly
-                // implemented in a derived class, so that they return false
-                // although they should scan something or create an error token.
-                // this is particularly the case when ScanComment does not create
-                // an error token when a close-comment-char appears without a
-                // open-comment-char first, e.g. "]".
-                assert(false);
-            case LexerTokenType::kError:
-                // this cannot happen, as we already covered the case before the switch
-                assert(false);
-            default:
-                // this case only happens if someone added a new element to the enum.
-                // make sure that we do not forget to include it in this switch!
-                assert(false);
-        }
-
-        // check if the scanners produced an error
-        if (tokens_.empty()) {
-            return true;
-        } else if (tokens_.back().IsError()) {
-            return false;
+        if (!ProcessStep()) {
+            return tokens_.empty();
         }
     }
 
+    return true;
+}
+
+bool Lexer::ProcessStep()
+{
+    if (IsEnd()) {
+        return false;
+    }
+
+    // scan arbitrary amount of interleaved whitespace and comments
+    while (ScanWhitespace() || ScanComment()) continue;
+
+    // check if whitespace or comment scanner yielded an error
+    if (!tokens_.empty() && tokens_.back().IsError()) {
+        return false;
+    }
+
+    // check if still not at end after whitespaces and comments
+    if (IsEnd()) {
+        return false;
+    }
+
+    // check if current char is an error char
+    LexerTokenType t = GetCharType();
+    if (t == LexerTokenType::kError) {
+        PushToken(LexerTokenType::kError, GetPosition(), "Invalid character.");
+        return false;
+    }
+
+    // start the actual scanners depending on the first char
+    switch (t) {
+        case LexerTokenType::kSymbol:
+            ScanSymbol();
+            break;
+        case LexerTokenType::kNumber:
+            ScanNumber();
+            break;
+        case LexerTokenType::kString:
+            ScanString();
+            break;
+        case LexerTokenType::kBracket:
+            ScanBracket();
+            break;
+        case LexerTokenType::kOperator:
+            ScanOperator();
+            break;
+        case LexerTokenType::kTag:
+            ScanTag();
+            break;
+        case LexerTokenType::kUnknown:
+            ScanUnknown();
+            break;
+
+        case LexerTokenType::kWhite:
+        case LexerTokenType::kComment:
+            // this case happens if ScanWhitespace or ScanComment are wrongly
+            // implemented in a derived class, so that they return false
+            // although they should scan something or create an error token.
+            // this is particularly the case when ScanComment does not create
+            // an error token when a close-comment-char appears without a
+            // open-comment-char first, e.g. "]".
+            assert(false);
+        case LexerTokenType::kError:
+            // this cannot happen, as we already covered the case before the switch
+            assert(false);
+        default:
+            // this case only happens if someone added a new element to the enum.
+            // make sure that we do not forget to include it in this switch!
+            assert(false);
+    }
+
+    // check if the scanners produced an error
+    if (tokens_.empty() || tokens_.back().IsError()) {
+        return false;
+    }
     return true;
 }
 

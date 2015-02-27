@@ -61,22 +61,8 @@ bool JplaceProcessor::FromFile (const std::string& fn, Placements& placements)
  */
 bool JplaceProcessor::FromString (const std::string& jplace, Placements& placements)
 {
-    JsonLexer lexer;
-    if (!lexer.ProcessString(jplace)) {
-        return false;
-    }
-    return FromLexer(lexer, placements);
-}
-
-/**
- * @brief Takes a JsonLexer object and parses it as a Jplace document into a Placements object.
- *
- * Returns true iff successful.
- */
-bool JplaceProcessor::FromLexer (JsonLexer& lexer, Placements& placements)
-{
     JsonDocument doc;
-    if (!JsonProcessor::FromLexer(lexer, doc)) {
+    if (!JsonProcessor::FromString(jplace, doc)) {
         return false;
     }
     return FromDocument(doc, placements);

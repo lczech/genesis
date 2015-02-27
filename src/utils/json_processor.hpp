@@ -110,7 +110,6 @@ class JsonProcessor
 public:
     static bool FromFile   (const std::string& fn,    JsonDocument& document);
     static bool FromString (const std::string& json,  JsonDocument& document);
-    static bool FromLexer  (        JsonLexer& lexer, JsonDocument& document);
 
     // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
 
