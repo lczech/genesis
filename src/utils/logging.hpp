@@ -414,6 +414,9 @@ class Logging
         // return a string representation for a log level
         static std::string LevelToString (const LoggingLevel level);
 
+        /** @brief Indention string for Debug Levels 1-4. */
+        static std::string debug_indent;
+
     protected:
         // storage for information needed during one invocation of a log
         std::ostringstream buff_;

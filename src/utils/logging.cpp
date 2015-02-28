@@ -47,6 +47,7 @@ long                       Logging::count_      = 0;
 clock_t                    Logging::last_clock_ = 0;
 std::vector<std::ostream*> Logging::ostreams_;
 int                        Logging::report_percentage_ = 5;
+std::string                Logging::debug_indent       = "    ";
 
 /**
  * @brief Set the highest log level that is reported.
@@ -179,7 +180,7 @@ Logging::~Logging()
     // add spaces for nested debug levels
     if (level_ > kDebug) {
         for (int i = 0; i < level_ - kDebug; i++) {
-            det_buff << "  ";
+            det_buff << debug_indent;
         }
     }
 
