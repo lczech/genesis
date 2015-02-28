@@ -53,6 +53,11 @@ public:
     //     Member Functions
     // -------------------------------------------------------------
 
+    inline const LinkType* Link()
+    {
+        return link_;
+    }
+
     inline void Invert()
     {
         leaf_nodes_.Invert();
@@ -99,7 +104,8 @@ public:
     void Make();
     void MakeIndex();
 
-    void GetSubtreeEdges(std::vector<NodeType*> nodes);
+    BipartitionType*             FindSmallestSubtree (std::vector<NodeType*> nodes);
+    std::vector<const EdgeType*> GetSubtreeEdges     (const LinkType*        subtree);
 
     bool        Validate();
     std::string Dump();
@@ -110,10 +116,10 @@ public:
 
 protected:
 
-    const TreeType* tree_;
+    const TreeType*              tree_;
 
-    std::vector<int>    node_to_leaf_map_;
-    std::vector<size_t> leaf_to_node_map_;
+    std::vector<int>             node_to_leaf_map_;
+    std::vector<size_t>          leaf_to_node_map_;
 
     std::vector<BipartitionType> bipartitions_;
 

@@ -82,68 +82,81 @@ void Bipartitions<NDT, EDT>::MakeIndex()
     }
 }
 
+/**
+ * @brief Finds the smallest subtree (measured in number of nodes) that contains all given nodes.
+ *
+ * A subtree is defined by one of the two parts of a tree that are splitted by one edge. Thus, this
+ * function tries all subtrees by leaving out each edge once.
+ *
+ * If no fitting subtree exists, the function returns a `nullptr`.
+ */
 template <class NDT, class EDT>
-void Bipartitions<NDT, EDT>::GetSubtreeEdges(std::vector<Bipartitions<NDT, EDT>::NodeType*> nodes)
-{
+typename Bipartitions<NDT, EDT>::BipartitionType* Bipartitions<NDT, EDT>::FindSmallestSubtree (
+    std::vector<Bipartitions<NDT, EDT>::NodeType*> nodes
+) {
     Make();
-    size_t num_leaves = tree_->LeafCount();
-    BipartitionType comp_bp = BipartitionType(num_leaves);
+    Bitvector comp(tree_->LeafCount());
 
-    LOG_DBG << "entering init loop";
+    // make bitvector containing all wanted nodes.
     for (NodeType* n : nodes) {
         int leaf_idx = node_to_leaf_map_[n->Index()];
         if (leaf_idx == -1) {
-            LOG_WARN << "Node not leaf.";
-        }
-        LOG_DBG1 << "leaf index " << leaf_idx;
-        comp_bp.leaf_nodes_.Set(leaf_idx);
-    }
-    LOG_DBG1 << "comp " << comp_bp.leaf_nodes_.Dump();
-    LOG_DBG;
-
-    BipartitionType* res;
-    size_t min_count = 0;
-    for (BipartitionType& bi : bipartitions_) {
-        if (!bi.link_) {
+            LOG_WARN << "Node at index " << n->Index() << " is not leaf.";
             continue;
         }
-        //~ LOG_DBG1 << "at node " << bi.link_->Node()->name;
+        comp.Set(leaf_idx);
+    }
 
-        if (comp_bp.leaf_nodes_ <= bi.leaf_nodes_) {
-            //~ LOG_DBG1 << "found  " << bi.leaf_nodes_.Dump();
-            if (min_count == 0 || bi.leaf_nodes_.Count() < min_count) {
-                //~ LOG_DBG1 << "min";
-                res = &bi;
-                min_count = bi.leaf_nodes_.Count();
+    BipartitionType* best_bp   = nullptr;
+    size_t           min_count = 0;
+
+    // loop over all bipartitions and compare their bitvectors to the given one, to find one that
+    // is a superset. try both ways (normal and inverted) for each bipartition.
+    for (BipartitionType& bp : bipartitions_) {
+        if (!bp.link_) {
+            continue;
+        }
+
+        if (comp <= bp.leaf_nodes_) {
+            if (min_count == 0 || bp.leaf_nodes_.Count() < min_count) {
+                best_bp   = &bp;
+                min_count = bp.leaf_nodes_.Count();
             }
         }
-        if (comp_bp.leaf_nodes_ <= ~(bi.leaf_nodes_)) {
-            //~ LOG_DBG1 << "foundx " << (~bi.leaf_nodes_).Dump();
-            //~ LOG_DBG1 << "min_count " << min_count << ", (~bi.leaf_nodes_).Count " << (~bi.leaf_nodes_).Count();
-            if (min_count == 0 || (~bi.leaf_nodes_).Count() < min_count) {
-                //~ LOG_DBG1 << "min";
-                bi.Invert();
-                res = &bi;
-                min_count = bi.leaf_nodes_.Count();
-            } else {
-                //~ LOG_DBG1 << "no";
+        if (comp <= ~(bp.leaf_nodes_)) {
+            if (min_count == 0 || (~bp.leaf_nodes_).Count() < min_count)  {
+                // TODO the invert messes with the data consistency of the bipartition. better make a copy!
+                // TODO also, if there is a class subtree at some better, better return this instead of a bipartition.
+                bp.Invert();
+                best_bp   = &bp;
+                min_count = bp.leaf_nodes_.Count();
             }
-            //~ LOG_DBG;
         }
     }
 
-    std::vector<std::string> leaf_names;
+    return best_bp;
+}
 
-    LOG_DBG << "iterate nodes, starting at " << res->link_->Node()->name;
+template <class NDT, class EDT>
+std::vector<typename Bipartitions<NDT, EDT>::EdgeType const *>
+Bipartitions<NDT, EDT>::GetSubtreeEdges (
+    const Bipartitions<NDT, EDT>::LinkType* subtree
+) {
+    std::vector<std::string> leaf_names;
+    std::vector<const EdgeType*> ret;
+
     for (
-        typename TreeType::ConstIteratorPreorder it = tree_->BeginPreorder(res->link_->Next());
-        it != tree_->EndPreorder() && it.Link() != res->link_->Outer();
+        typename TreeType::ConstIteratorPreorder it = tree_->BeginPreorder(subtree->Next());
+        it != tree_->EndPreorder() && it.Link() != subtree->Outer();
         ++it
     ) {
-        LOG_DBG1 << it.Node()->name << " with edge " << it.Edge()->Dump();
         if (it.Node()->IsLeaf()) {
             leaf_names.push_back(it.Node()->name);
         }
+        if (it.IsFirstIteration()) {
+            continue;
+        }
+        ret.push_back(it.Edge());
     }
 
     LOG_DBG << "leaf nodes of subtree:";
@@ -151,7 +164,7 @@ void Bipartitions<NDT, EDT>::GetSubtreeEdges(std::vector<Bipartitions<NDT, EDT>:
         LOG_DBG1 << s;
     }
 
-    LOG_DBG << "end.";
+    return ret;
 }
 
 // -------------------------------------------------------------

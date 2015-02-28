@@ -461,7 +461,7 @@ int main (int argc, char* argv[])
     /*
 
     std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/papara_splits/";
-    std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/";
+    std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/05_genesis/";
 
     LOG_DBG << "Running on data in " << inpath;
     std::vector<std::string> list;
@@ -521,21 +521,85 @@ int main (int argc, char* argv[])
 
     //*
 
-    std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/";
-    std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/04_EPA/";
+    std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/05_genesis/";
+    std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/05_genesis/";
 
-    Placements place;
     LOG_DBG << "Reading file " << "all_placements.jplace" << "...";
+    Placements place;
     JplaceProcessor::FromFile(inpath + "all_placements.jplace", place);
     LOG_DBG << "with " << place.PlacementCount() << " placements.";
     LOG_DBG;
 
-    LOG_DBG << "Writing count tree...";
-    NewickProcessor::print_names          = true;
-    NewickProcessor::print_branch_lengths = true;
-    NewickProcessor::print_comments       = true;
-    NewickProcessor::print_tags           = false;
-    NewickProcessor::ToFile(outpath + "total_tree_x.newick", place.tree);
+    //~ LOG_DBG << "Writing count tree...";
+    //~ NewickProcessor::print_names          = true;
+    //~ NewickProcessor::print_branch_lengths = true;
+    //~ NewickProcessor::print_comments       = true;
+    //~ NewickProcessor::print_tags           = false;
+    //~ NewickProcessor::ToFile(outpath + "total_tree_x.newick", place.tree);
+
+    /*
+    LOG_DBG << "Calculating LeafDepthHistogram...";
+    std::vector<int> depth_hist = place.ClosestLeafDepthHistogram();
+    for (unsigned int d = 0; d < depth_hist.size(); ++d) {
+        LOG_DBG1 << "Depth \t" << d << "\t with \t" << depth_hist[d] << "\t placements.";
+    }
+
+    LOG_DBG << "Calculating LeafDistanceHistogramAuto...";
+    double mina, maxa;
+    int binsa = 25;
+    std::vector<int> dist_hista = place.ClosestLeafDistanceHistogramAuto(mina, maxa, binsa);
+    double bin_sizea = (maxa - mina) / binsa;
+    LOG_DBG << "min(" << mina << "), max(" << maxa << ")";
+    for (unsigned int d = 0; d < dist_hista.size(); ++d) {
+        //~ LOG_DBG1 << "Distance bin \t" << d << "\t [\t" << d*bin_sizea << "\t; \t" << (d+1)*bin_sizea << "\t) has \t" << dist_hista[d] << "\t placements.";
+        LOG_DBG1 << "\t"  << d << "\t" << d*bin_sizea << "\t" << (d+1)*bin_sizea << "\t" << dist_hista[d];
+    }
+
+    LOG_DBG << "Calculating LeafDistanceHistogram...";
+    double min = 0, max = 2;
+    int bins = 25;
+    double bin_size = (max - min) / bins;
+    std::vector<int> dist_hist = place.ClosestLeafDistanceHistogram(min, max, bins);
+    LOG_DBG << "min(" << min << "), max(" << max << ")";
+    for (unsigned int d = 0; d < dist_hist.size(); ++d) {
+        //~ LOG_DBG1 << "Distance bin " << d << " with " << dist_hist[d] << " placements.";
+        LOG_DBG1 << "\t" << d << "\t" << d*bin_size << "\t" << (d+1)*bin_size << "\t" << dist_hist[d];
+    }
+    */
+
+    LOG_DBG << "Using bipartitions for subtree anaysis.";
+    Bipartitions<PlacementNodeData, PlacementEdgeData> bi = Bipartitions<PlacementNodeData, PlacementEdgeData>(&place.tree);
+    PlacementTree::NodeType* n1 = place.tree.FindNode("AY919771_clone_LG25_05_Alveolata");
+    PlacementTree::NodeType* n2 = place.tree.FindNode("AB000912_Tridacna_parasite_Apicomplexa");
+    if (n1 == nullptr) {
+        LOG_DBG << "coundnt find n1";
+        return 0;
+    }
+    if (n2 == nullptr) {
+        LOG_DBG << "coundnt find n2";
+        return 0;
+    }
+    LOG_DBG << "Found nodes: " << n1->name << " and " << n2->name;
+
+    LOG_DBG << "Extracting reads on subtree...";
+    std::vector<PlacementTree::NodeType*> l;
+    l.push_back(n1);
+    l.push_back(n2);
+    Bipartition<PlacementNodeData, PlacementEdgeData>* subtree = bi.FindSmallestSubtree(l);
+    std::vector<const PlacementTree::EdgeType*> subedges = bi.GetSubtreeEdges(subtree->Link());
+    std::string readnames = "";
+    for (const PlacementTree::EdgeType* e : subedges) {
+        for (PqueryPlacement* p : e->placements) {
+            if (p->pquery->names.size() != 1) {
+                LOG_DBG << "placement with names " << p->pquery->names.size();
+                continue;
+            }
+            readnames += p->pquery->names[0]->name + "\n";
+        }
+    }
+    FileWrite(outpath + "reads", readnames);
+    //~ bi.Make();
+    //~ LOG_DBG << bi.Dump();
 
     //*/
 
