@@ -29,29 +29,23 @@ class FastaLexer : public Lexer
 {
 public:
     FastaLexer() {
-        // set all whitespaces except new lines (CR and LF) to some other token type.
-        // TODO make space possible to appear in sequences, eg for GenBank format.
-        SetCharType (LexerTokenType::kUnknown,  " ");
+        // whitespaces except new lines (CR and LF) are not part of the fasta format.
         SetCharType (LexerTokenType::kUnknown,  "\x09\x0B\x0C");
+        SetCharType (LexerTokenType::kUnknown,  " ");
 
-        // we use a tag for marking the label of a sequence
+        // we use a tag for marking the label of a sequence.
         SetCharType (LexerTokenType::kTag,      ">");
 
-        // set the two special fasta symbols for gap and sequence end
+        // set the two special fasta symbols for gap and sequence end.
         SetCharType (LexerTokenType::kSymbol,   "-*");
 
-        // comments start with ; and continue until the end of the line
+        // comments start with ; and continue until the end of the line.
         SetCharType (LexerTokenType::kComment,  ";");
 
-        // so far, we do not support digits in sequences.
-        // TODO add this, in order to support eg GenBank format!
+        // digits are not part of fasta sequences.
         SetCharType (LexerTokenType::kUnknown,   "0123456789");
 
-        // furthermore, set all remaining graphic chars to unknown. thus, they cannot appear in
-        // sequences (but tags, the are scanned differently).
-        SetCharType (LexerTokenType::kUnknown,  "!\"#$%&'()+,./:<=?@[\\]^_`{|}~");
-
-        // set the flags as needed
+        // set the flags as needed.
         include_whitespace        = false;
         include_comments          = false;
         glue_sign_to_number       = false;
@@ -61,6 +55,7 @@ public:
     }
 
 protected:
+
     inline bool ScanComment()
     {
         // semicolon is the only char starting a comment. if found, skip it.
@@ -79,7 +74,6 @@ protected:
         }
         return true;
     }
-
 
     inline bool ScanTag()
     {
@@ -125,6 +119,8 @@ public:
     // ---------------------------------------------------------------------
     //     Printing
     // ---------------------------------------------------------------------
+
+    static size_t line_length;
 
     static bool ToFile   (const std::string fn, const Alignment& aln);
     static void ToString (std::string& fs,      const Alignment& aln);

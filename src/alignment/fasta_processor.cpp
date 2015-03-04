@@ -41,6 +41,7 @@ bool FastaProcessor::FromString (const std::string& fs, Alignment& aln)
     FastaLexer lexer;
     lexer.ProcessString(fs, true);
 
+    // basic checks
     if (lexer.empty()) {
         LOG_INFO << "FASTA document is empty.";
         return false;
@@ -50,7 +51,6 @@ bool FastaProcessor::FromString (const std::string& fs, Alignment& aln)
                  << " with message: " << lexer.back().value();
         return false;
     }
-
     aln.clear();
 
     // delete tailing tokens immediately, produce tokens intime.
@@ -58,38 +58,33 @@ bool FastaProcessor::FromString (const std::string& fs, Alignment& aln)
     it.ConsumeWithTail(0);
     it.ProduceWithHead(0);
 
-    std::string        label = "";
-    std::ostringstream seq("");
+    std::string        label;
+    std::ostringstream seq;
 
-    // TODO this is neither nice nor fast...
-    // TODO make it possible to transform sequence on the fly!
-
-    // fill the alignment object
-    for ( ; it != lexer.end(); ++it) {
-        if (it->IsTag()) {
-            // store sequence, if we already have one
-            if (label != "" || seq.str() != "") {
-                Sequence::SymbolType* sites = strdup(seq.str().c_str());
-                aln.sequences.emplace_back(label, sites, seq.str().size());
-            }
-
-            // start new sequence
-            label = it->value();
-            seq.str("");
-            seq.clear();
-            continue;
+    // process all sequences
+    while (it != lexer.end()) {
+        // parse label
+        if (!it->IsTag()) {
+            LOG_WARN << "FASTA sequence does not start with '>' at " << it->at();
+            return false;
         }
-        if (it->IsSymbol()) {
+        label = it->value();
+        ++it;
+
+        // parse sequence
+        seq.str("");
+        seq.clear();
+        while (it != lexer.end() && it->IsSymbol()) {
             seq << it->value();
-            continue;
+            ++it;
         }
-        LOG_WARN << "Invalid FASTA document.";
-    }
 
-    // write last seq
-    if (label != "" || seq.str() != "") {
-        Sequence::SymbolType* sites = strdup(seq.str().c_str());
-        aln.sequences.emplace_back(label, sites, seq.str().size());
+        // add to alignment
+        Sequence* nseq = new Sequence(label, seq.str());
+        aln.sequences.push_back(nseq);
+
+        // there are no other lexer tokens than tag and symbol for fasta files!
+        assert(it == lexer.end() || it->IsTag());
     }
 
     return true;
@@ -98,6 +93,13 @@ bool FastaProcessor::FromString (const std::string& fs, Alignment& aln)
 // =============================================================================
 //     Printing
 // =============================================================================
+
+/**
+ * @brief Determines after how many chars to do a line break when printing a FASTA file.
+ *
+ * Default is `80`. If set to `0`, no breaks are inserted.
+ */
+size_t FastaProcessor::line_length = 80;
 
 /**
  * @brief
@@ -127,10 +129,20 @@ void FastaProcessor::ToString (std::string& fs, const Alignment& aln)
 std::string FastaProcessor::ToString (const Alignment& aln)
 {
     std::ostringstream seq("");
-    for (Sequence s : aln.sequences) {
-        seq << ">" << s.Label() << "\n";
-        // TODO add \n every 80 (configurable) chars
-        seq << s.Sites() << "\n";
+    for (Sequence* s : aln.sequences) {
+        // print label
+        seq << ">" << s->Label() << "\n";
+
+        // print sequence. if needed, add new line at every line_length position.
+        if (line_length > 0) {
+            for (size_t i = 0; i < s->Length(); i += line_length) {
+                // write line_length many characters.
+                // (if the string is shorter, as many characters as possible are used)
+                seq << s->Sites().substr(i, line_length) << "\n";
+            }
+        } else {
+            seq << s->Sites() << "\n";
+        }
     }
     return seq.str();
 }
