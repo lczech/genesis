@@ -36,7 +36,7 @@ public:
     //     Modifiers
     // -----------------------------------------------------
 
-    void RemoveAll (std::vector<std::string> labels, bool invert = false);
+    void RemoveList (std::vector<std::string> labels, bool invert = false);
 
     // -----------------------------------------------------
     //     Dump and Debug

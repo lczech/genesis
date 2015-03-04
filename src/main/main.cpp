@@ -617,8 +617,8 @@ int main (int argc, char* argv[])
 
     //*
 
-    std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/subtree/";
-    std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/subtree/";
+    std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_04/";
+    std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_04/";
 
     //~ Alignment aln;
     //~ FastaProcessor::FromFile(inpath + "512_EukaryotesDB.fasta", aln);
@@ -655,7 +655,7 @@ int main (int argc, char* argv[])
         //~ reduced_aln.sequences.push_back(aln.FindSequence(line));
         subtree_reads.push_back(line);
     }
-    aln.RemoveAll(subtree_reads, true);
+    aln.RemoveList(subtree_reads, true);
 
     LOG_DBG << "write new fas";
     FastaProcessor::line_length = 0;
