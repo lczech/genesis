@@ -8,9 +8,13 @@
 #include "main/main.hpp"
 
 #include <iostream>
+#include <fstream>
 #include <string>
 
 #include "main/options.hpp"
+
+#include "alignment/alignment.hpp"
+#include "alignment/fasta_processor.hpp"
 
 #include "placements/jplace_processor.hpp"
 #include "placements/placements.hpp"
@@ -58,7 +62,6 @@ int main (int argc, char* argv[])
     LOG_BOLD << print_header();
     Options::Get().SetCommandLine(argc, argv);
     LOG_TIME << "started";
-
 
     // =============================================================================
     //     Test cases for tree iterators
@@ -519,7 +522,7 @@ int main (int argc, char* argv[])
     //     Process big placement
     // --------------------------------------------------------
 
-    //*
+    /*
 
     std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/05_genesis/";
     std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/05_genesis/";
@@ -536,6 +539,8 @@ int main (int argc, char* argv[])
     //~ NewickProcessor::print_comments       = true;
     //~ NewickProcessor::print_tags           = false;
     //~ NewickProcessor::ToFile(outpath + "total_tree_x.newick", place.tree);
+
+    //*/
 
     /*
     LOG_DBG << "Calculating LeafDepthHistogram...";
@@ -567,8 +572,9 @@ int main (int argc, char* argv[])
     }
     */
 
+    /*
+
     LOG_DBG << "Using bipartitions for subtree anaysis.";
-    Bipartitions<PlacementNodeData, PlacementEdgeData> bi = Bipartitions<PlacementNodeData, PlacementEdgeData>(&place.tree);
     PlacementTree::NodeType* n1 = place.tree.FindNode("AY919771_clone_LG25_05_Alveolata");
     PlacementTree::NodeType* n2 = place.tree.FindNode("AB000912_Tridacna_parasite_Apicomplexa");
     if (n1 == nullptr) {
@@ -585,6 +591,8 @@ int main (int argc, char* argv[])
     std::vector<PlacementTree::NodeType*> l;
     l.push_back(n1);
     l.push_back(n2);
+
+    Bipartitions<PlacementNodeData, PlacementEdgeData> bi = Bipartitions<PlacementNodeData, PlacementEdgeData>(&place.tree);
     Bipartition<PlacementNodeData, PlacementEdgeData>* subtree = bi.FindSmallestSubtree(l);
     std::vector<const PlacementTree::EdgeType*> subedges = bi.GetSubtreeEdges(subtree->Link());
     std::string readnames = "";
@@ -600,6 +608,58 @@ int main (int argc, char* argv[])
     FileWrite(outpath + "reads", readnames);
     //~ bi.Make();
     //~ LOG_DBG << bi.Dump();
+
+    //*/
+
+    // --------------------------------------------------------
+    //     Alignments and Sequences
+    // --------------------------------------------------------
+
+    //*
+
+    std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/subtree/";
+    std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/subtree/";
+
+    //~ Alignment aln;
+    //~ FastaProcessor::FromFile(inpath + "512_EukaryotesDB.fasta", aln);
+//~
+    //~ Alignment reduced_aln;
+    //~ std::ifstream infile(inpath + "subtree_taxa");
+    //~ std::string line;
+    //~ while (std::getline(infile, line))
+    //~ {
+        //~ reduced_aln.sequences.push_back(aln.FindSequence(line));
+    //~ }
+//~
+    //~ FastaProcessor::line_length = 0;
+    //~ FastaProcessor::ToFile(inpath + "512.fasta", aln);
+    //~ FastaProcessor::ToFile(inpath + "512_subtree.fasta", reduced_aln);
+//~
+    //~ for (Sequence* s : reduced_aln.sequences) {
+        //~ s->RemoveGaps();
+    //~ }
+    //~ FastaProcessor::ToFile(inpath + "512_subtree_unaligned.fasta", reduced_aln);
+
+
+    Alignment aln;
+    LOG_DBG << "reading fas";
+    FastaProcessor::FromFile(inpath + "third_20_samples_LaSelva_protists.fas", aln);
+
+    LOG_DBG << "remove all but subtree_reads";
+    //~ Alignment reduced_aln;
+    std::vector<std::string> subtree_reads;
+    std::ifstream infile(inpath + "subtree_reads");
+    std::string line;
+    while (std::getline(infile, line))
+    {
+        //~ reduced_aln.sequences.push_back(aln.FindSequence(line));
+        subtree_reads.push_back(line);
+    }
+    aln.RemoveAll(subtree_reads, true);
+
+    LOG_DBG << "write new fas";
+    FastaProcessor::line_length = 0;
+    FastaProcessor::ToFile(inpath + "subtree_reads2.fasta", aln);
 
     //*/
 
