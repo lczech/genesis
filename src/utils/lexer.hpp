@@ -747,6 +747,12 @@ private:
      * determine the correct scanner for the char.
      *
      * See ProcessString() for more on this.
+     *
+     * These are the printable special characters in this list:
+     *
+     *     !"#$%&'()*+,-./:;<=>?@[\]^_`{|}~
+     *
+     * They should be taken care of when deriving a concrete lexer.
      */
     LexerTokenType start_char_table_[128] = {
         /*      */  LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,     LexerTokenType::kError,

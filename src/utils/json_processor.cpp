@@ -22,7 +22,6 @@ namespace genesis {
 /**
  * @brief Takes a JSON document file path and parses its contents into a JsonDocument.
  *
- * See ParseLexer() for more information.
  * Returns true iff successfull.
  */
 bool JsonProcessor::FromFile (const std::string& fn, JsonDocument& document)
@@ -37,11 +36,11 @@ bool JsonProcessor::FromFile (const std::string& fn, JsonDocument& document)
 /**
  * @brief Takes a string containing a JSON document and parses its contents into a JsonDocument.
  *
- * See ParseLexer() for more information.
  * Returns true iff successfull.
  */
 bool JsonProcessor::FromString (const std::string& json, JsonDocument& document)
 {
+    // do stepwise lexing
     JsonLexer lexer;
     lexer.ProcessString(json, true);
 
@@ -65,7 +64,7 @@ bool JsonProcessor::FromString (const std::string& json, JsonDocument& document)
     Lexer::iterator begin = lexer.begin();
     Lexer::iterator end   = lexer.end();
 
-    // delete tailing tokens immediately, produce tokens intime.
+    // delete tailing tokens immediately, produce tokens in time (needed for stepwise lexing).
     begin.ConsumeWithTail(0);
     begin.ProduceWithHead(0);
 
