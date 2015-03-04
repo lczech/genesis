@@ -33,6 +33,12 @@ public:
     Sequence* FindSequence (std::string label) const;
 
     // -----------------------------------------------------
+    //     Modifiers
+    // -----------------------------------------------------
+
+    void RemoveAll (std::vector<std::string> labels, bool invert = false);
+
+    // -----------------------------------------------------
     //     Dump and Debug
     // -----------------------------------------------------
 

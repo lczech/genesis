@@ -620,27 +620,46 @@ int main (int argc, char* argv[])
     std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/subtree/";
     std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/subtree/";
 
+    //~ Alignment aln;
+    //~ FastaProcessor::FromFile(inpath + "512_EukaryotesDB.fasta", aln);
+//~
+    //~ Alignment reduced_aln;
+    //~ std::ifstream infile(inpath + "subtree_taxa");
+    //~ std::string line;
+    //~ while (std::getline(infile, line))
+    //~ {
+        //~ reduced_aln.sequences.push_back(aln.FindSequence(line));
+    //~ }
+//~
+    //~ FastaProcessor::line_length = 0;
+    //~ FastaProcessor::ToFile(inpath + "512.fasta", aln);
+    //~ FastaProcessor::ToFile(inpath + "512_subtree.fasta", reduced_aln);
+//~
+    //~ for (Sequence* s : reduced_aln.sequences) {
+        //~ s->RemoveGaps();
+    //~ }
+    //~ FastaProcessor::ToFile(inpath + "512_subtree_unaligned.fasta", reduced_aln);
+
+
     Alignment aln;
-    FastaProcessor::FromFile(inpath + "512_EukaryotesDB.fasta", aln);
-    //~ LOG_DBG << aln.Dump();
+    LOG_DBG << "reading fas";
+    FastaProcessor::FromFile(inpath + "third_20_samples_LaSelva_protists.fas", aln);
 
-
-     Alignment reduced_aln;
-    std::ifstream infile(inpath + "subtree_taxa");
+    LOG_DBG << "remove all but subtree_reads";
+    //~ Alignment reduced_aln;
+    std::vector<std::string> subtree_reads;
+    std::ifstream infile(inpath + "subtree_reads");
     std::string line;
     while (std::getline(infile, line))
     {
-        reduced_aln.sequences.push_back(aln.FindSequence(line));
+        //~ reduced_aln.sequences.push_back(aln.FindSequence(line));
+        subtree_reads.push_back(line);
     }
+    aln.RemoveAll(subtree_reads, true);
 
+    LOG_DBG << "write new fas";
     FastaProcessor::line_length = 0;
-    FastaProcessor::ToFile(inpath + "512.fasta", aln);
-    FastaProcessor::ToFile(inpath + "512_subtree.fasta", reduced_aln);
-
-    for (Sequence* s : reduced_aln.sequences) {
-        s->RemoveGaps();
-    }
-    FastaProcessor::ToFile(inpath + "512_subtree_unaligned.fasta", reduced_aln);
+    FastaProcessor::ToFile(inpath + "subtree_reads2.fasta", aln);
 
     //*/
 
