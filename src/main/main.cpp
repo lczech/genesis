@@ -625,15 +625,22 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << aln.Dump();
 
 
-    std::vector<std::string> subtree_taxa;
+     Alignment reduced_aln;
     std::ifstream infile(inpath + "subtree_taxa");
     std::string line;
     while (std::getline(infile, line))
     {
-        subtree_taxa.push_back(line);
+        reduced_aln.sequences.push_back(aln.FindSequence(line));
     }
 
+    FastaProcessor::line_length = 0;
     FastaProcessor::ToFile(inpath + "512.fasta", aln);
+    FastaProcessor::ToFile(inpath + "512_subtree.fasta", reduced_aln);
+
+    for (Sequence* s : reduced_aln.sequences) {
+        s->RemoveGaps();
+    }
+    FastaProcessor::ToFile(inpath + "512_subtree_unaligned.fasta", reduced_aln);
 
     //*/
 

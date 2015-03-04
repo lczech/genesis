@@ -16,31 +16,60 @@ class Sequence
 {
 public:
 
+    // -----------------------------------------------------
+    //     Constructor and Typedefs
+    // -----------------------------------------------------
+
     typedef char SymbolType;
 
-    Sequence () {}
-    Sequence (std::string l) : label_(l) {}
-    Sequence (std::string l, SymbolType* s, size_t n) : label_(l), sites_(s), length_(n) {}
+    Sequence (std::string l, std::string s) : label_(l), sites_(s) {}
+    ~Sequence();
 
-    inline std::string Label()
+    // -----------------------------------------------------
+    //     Accessors
+    // -----------------------------------------------------
+
+    inline std::string Label() const
     {
         return label_;
     }
 
-    inline size_t Length()
+    inline size_t Length() const
     {
-        return length_;
+        return sites_.size();
     }
 
-    inline std::string Sites()
+    inline SymbolType Site(size_t index) const
     {
-        return std::string(sites_, length_);
+        return sites_[index];
     }
+
+    inline const std::string& Sites() const
+    {
+        return sites_;
+    }
+
+    // -----------------------------------------------------
+    //     Mutators
+    // -----------------------------------------------------
+
+    void RemoveGaps();
+
+    // -----------------------------------------------------
+    //     Dump and Debug
+    // -----------------------------------------------------
+
+    std::string Dump() const;
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+    SymbolType  gap_char = '-';
 
 protected:
     std::string label_;
-    SymbolType* sites_;
-    size_t      length_;
+    std::string sites_;
 };
 
 } // namespace genesis

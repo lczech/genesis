@@ -18,10 +18,31 @@ namespace genesis {
 class Alignment
 {
 public:
-    void clear();
-    std::string Dump();
 
-    std::vector<Sequence> sequences;
+    // -----------------------------------------------------
+    //     Constructor and Typedefs
+    // -----------------------------------------------------
+
+    ~Alignment();
+    void clear();
+
+    // -----------------------------------------------------
+    //     Accessors
+    // -----------------------------------------------------
+
+    Sequence* FindSequence (std::string label) const;
+
+    // -----------------------------------------------------
+    //     Dump and Debug
+    // -----------------------------------------------------
+
+    std::string Dump() const;
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+    std::vector<Sequence*> sequences;
 };
 
 } // namespace genesis
