@@ -265,6 +265,19 @@ size_t Tree<NDT, EDT>::InnerCount() const
 // =============================================================================
 
 /**
+ * @brief Returns the length of the tree (sum of all branch lengths).
+ */
+template <class NDT, class EDT>
+double Tree<NDT, EDT>::Length() const
+{
+    double len = 0.0;
+    for (EdgeType* e : edges_) {
+        len += e->branch_length;
+    }
+    return len;
+}
+
+/**
  * @brief
  *
  * The vector is indexed using the Node()->Index() for every node.
@@ -274,6 +287,7 @@ Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix() const
 {
     Matrix<int>* mat = new Matrix<int>(NodeCount(), NodeCount());
     // TODO
+    LOG_WARN << "Not yet implemented.";
     return mat;
 }
 
@@ -383,6 +397,7 @@ std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(const NodeType* node) con
     std::vector<double> vec;
     vec.resize(NodeCount(), 0.0);
     // TODO
+    LOG_WARN << "Not yet implemented.";
     return vec;
 }
 
@@ -481,6 +496,28 @@ typename Tree<NDT, EDT>::NodeDoubleVectorType Tree<NDT, EDT>::ClosestLeafDistanc
     }
 
     return vec;
+}
+
+/**
+ * @brief Returns the longest distance from any point in the tree (on the edges) to any leaf.
+ */
+template <class NDT, class EDT>
+double Tree<NDT, EDT>::DeepestDistance() const
+{
+    double max = 0.0;
+
+    NodeDoubleVectorType leaf_dist = ClosestLeafDistanceVector();
+
+    for (EdgeType* e : edges_) {
+        int idx_p = e->PrimaryNode()->Index();
+        int idx_s = e->SecondaryNode()->Index();
+        double d = (leaf_dist[idx_p].second + e->branch_length + leaf_dist[idx_s].second) / 2;
+
+        if (d > max) {
+            max = d;
+        }
+    }
+    return max;
 }
 
 // =============================================================================

@@ -522,7 +522,7 @@ int main (int argc, char* argv[])
     //     Process big placement
     // --------------------------------------------------------
 
-    /*
+    //*
 
     std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/05_genesis/";
     std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/05_genesis/";
@@ -542,7 +542,7 @@ int main (int argc, char* argv[])
 
     //*/
 
-    /*
+    //*
     LOG_DBG << "Calculating LeafDepthHistogram...";
     std::vector<int> depth_hist = place.ClosestLeafDepthHistogram();
     for (unsigned int d = 0; d < depth_hist.size(); ++d) {
@@ -570,8 +570,10 @@ int main (int argc, char* argv[])
         //~ LOG_DBG1 << "Distance bin " << d << " with " << dist_hist[d] << " placements.";
         LOG_DBG1 << "\t" << d << "\t" << d*bin_size << "\t" << (d+1)*bin_size << "\t" << dist_hist[d];
     }
-    */
 
+    LOG_DBG << "deepest dist: " << place.tree.DeepestDistance();
+
+    //*/
     /*
 
     LOG_DBG << "Using bipartitions for subtree anaysis.";
@@ -615,7 +617,7 @@ int main (int argc, char* argv[])
     //     Alignments and Sequences
     // --------------------------------------------------------
 
-    //*
+    /*
 
     std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_04/";
     std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_04/";
