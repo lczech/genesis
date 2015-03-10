@@ -15,6 +15,7 @@
 
 #include "alignment/alignment.hpp"
 #include "alignment/fasta_processor.hpp"
+#include "alignment/phylip_processor.hpp"
 
 #include "placements/jplace_processor.hpp"
 #include "placements/placements.hpp"
@@ -522,7 +523,7 @@ int main (int argc, char* argv[])
     //     Process big placement
     // --------------------------------------------------------
 
-    //*
+    /*
 
     std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/05_genesis/";
     std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/05_genesis/";
@@ -542,7 +543,7 @@ int main (int argc, char* argv[])
 
     //*/
 
-    //*
+    /*
     LOG_DBG << "Calculating LeafDepthHistogram...";
     std::vector<int> depth_hist = place.ClosestLeafDepthHistogram();
     for (unsigned int d = 0; d < depth_hist.size(); ++d) {
@@ -617,13 +618,18 @@ int main (int argc, char* argv[])
     //     Alignments and Sequences
     // --------------------------------------------------------
 
-    /*
+    //*
 
-    std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_04/";
-    std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_04/";
+    //~ std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_04/";
+    //~ std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_04/";
 
-    //~ Alignment aln;
-    //~ FastaProcessor::FromFile(inpath + "512_EukaryotesDB.fasta", aln);
+    std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/data_raw/";
+
+    Alignment aln;
+    FastaProcessor::FromFile(inpath + "Apis_all_4_mafft_clean.fasta", aln);
+    PhylipProcessor::ToFile(inpath + "Apis_all_4_mafft_clean.phylip", aln);
+
+    return 0;
 //~
     //~ Alignment reduced_aln;
     //~ std::ifstream infile(inpath + "subtree_taxa");
@@ -642,7 +648,7 @@ int main (int argc, char* argv[])
     //~ }
     //~ FastaProcessor::ToFile(inpath + "512_subtree_unaligned.fasta", reduced_aln);
 
-
+    /*
     Alignment aln;
     LOG_DBG << "reading fas";
     FastaProcessor::FromFile(inpath + "third_20_samples_LaSelva_protists.fas", aln);
