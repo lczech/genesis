@@ -54,6 +54,7 @@ public:
     // -----------------------------------------------------
 
     void RemoveGaps();
+    void Replace(char search, char replace);
 
     // -----------------------------------------------------
     //     Dump and Debug

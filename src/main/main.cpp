@@ -627,7 +627,8 @@ int main (int argc, char* argv[])
 
     Alignment aln;
     FastaProcessor::FromFile(inpath + "Apis_all_4_mafft_clean.fasta", aln);
-    PhylipProcessor::ToFile(inpath + "Apis_all_4_mafft_clean.phylip", aln);
+    aln.Replace('N', '-');
+    PhylipProcessor::ToFile(inpath + "Apis_all_4_mafft_clean.phy", aln);
 
     return 0;
 //~

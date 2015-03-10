@@ -95,6 +95,30 @@ void Alignment::RemoveList(std::vector<std::string> labels, bool invert)
 }
 
 // =============================================================================
+//     Sequence Modifiers
+// =============================================================================
+
+/**
+ * @brief Calls RemoveGaps() for every Sequence.
+ */
+void Alignment::RemoveGaps()
+{
+    for (Sequence* s : sequences) {
+        s->RemoveGaps();
+    }
+}
+
+/**
+ * @brief Calls Replace() for every Sequence.
+ */
+void Alignment::Replace(char search, char replace)
+{
+    for (Sequence* s : sequences) {
+        s->Replace(search, replace);
+    }
+}
+
+// =============================================================================
 //     Dump and Debug
 // =============================================================================
 
