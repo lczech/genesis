@@ -9,6 +9,9 @@
 
 #include <algorithm>
 
+#include "utils/logging.hpp"
+#include "utils/utils.hpp"
+
 namespace genesis {
 
 // =============================================================================
@@ -33,6 +36,14 @@ Sequence::~Sequence()
 void Sequence::RemoveGaps()
 {
     sites_.erase(std::remove(sites_.begin(), sites_.end(), gap_char), sites_.end());
+}
+
+/**
+ * @brief Replaces all occurences of `search` by `replace`.
+ */
+void Sequence::Replace(char search, char replace)
+{
+    sites_ = StringReplaceAll (sites_, std::string(1, search), std::string(1, replace));
 }
 
 // =============================================================================

@@ -532,6 +532,8 @@ public:
     //     Distances
     // -----------------------
 
+    double Length() const;
+
     Matrix<int>*        NodeDepthMatrix    ()                               const;
     std::vector<int>    NodeDepthVector    (const NodeType* node = nullptr) const;
     Matrix<double>*     NodeDistanceMatrix ()                               const;
@@ -542,6 +544,8 @@ public:
 
     NodeIntVectorType    ClosestLeafDepthVector()    const;
     NodeDoubleVectorType ClosestLeafDistanceVector() const;
+
+    double DeepestDistance() const;
 
     // -----------------------
     //     Comparisons

@@ -36,7 +36,14 @@ public:
     //     Modifiers
     // -----------------------------------------------------
 
-    void RemoveAll (std::vector<std::string> labels, bool invert = false);
+    void RemoveList (std::vector<std::string> labels, bool invert = false);
+
+    // -----------------------------------------------------
+    //     Sequence Modifiers
+    // -----------------------------------------------------
+
+    void RemoveGaps();
+    void Replace(char search, char replace);
 
     // -----------------------------------------------------
     //     Dump and Debug

@@ -15,6 +15,7 @@
 
 #include "alignment/alignment.hpp"
 #include "alignment/fasta_processor.hpp"
+#include "alignment/phylip_processor.hpp"
 
 #include "placements/jplace_processor.hpp"
 #include "placements/placements.hpp"
@@ -570,8 +571,10 @@ int main (int argc, char* argv[])
         //~ LOG_DBG1 << "Distance bin " << d << " with " << dist_hist[d] << " placements.";
         LOG_DBG1 << "\t" << d << "\t" << d*bin_size << "\t" << (d+1)*bin_size << "\t" << dist_hist[d];
     }
-    */
 
+    LOG_DBG << "deepest dist: " << place.tree.DeepestDistance();
+
+    //*/
     /*
 
     LOG_DBG << "Using bipartitions for subtree anaysis.";
@@ -617,11 +620,17 @@ int main (int argc, char* argv[])
 
     //*
 
-    std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/subtree/";
-    std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/subtree/";
+    //~ std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_04/";
+    //~ std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_04/";
 
-    //~ Alignment aln;
-    //~ FastaProcessor::FromFile(inpath + "512_EukaryotesDB.fasta", aln);
+    std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/data_raw/";
+
+    Alignment aln;
+    FastaProcessor::FromFile(inpath + "Apis_all_4_mafft_clean.fasta", aln);
+    aln.Replace('N', '-');
+    PhylipProcessor::ToFile(inpath + "Apis_all_4_mafft_clean.phy", aln);
+
+    return 0;
 //~
     //~ Alignment reduced_aln;
     //~ std::ifstream infile(inpath + "subtree_taxa");
@@ -640,7 +649,7 @@ int main (int argc, char* argv[])
     //~ }
     //~ FastaProcessor::ToFile(inpath + "512_subtree_unaligned.fasta", reduced_aln);
 
-
+    /*
     Alignment aln;
     LOG_DBG << "reading fas";
     FastaProcessor::FromFile(inpath + "third_20_samples_LaSelva_protists.fas", aln);
@@ -655,7 +664,7 @@ int main (int argc, char* argv[])
         //~ reduced_aln.sequences.push_back(aln.FindSequence(line));
         subtree_reads.push_back(line);
     }
-    aln.RemoveAll(subtree_reads, true);
+    aln.RemoveList(subtree_reads, true);
 
     LOG_DBG << "write new fas";
     FastaProcessor::line_length = 0;

@@ -22,7 +22,7 @@ public:
 
     typedef char SymbolType;
 
-    Sequence (std::string l, std::string s) : label_(l), sites_(s) {}
+    Sequence (std::string label, std::string sites) : label_(label), sites_(sites) {}
     ~Sequence();
 
     // -----------------------------------------------------
@@ -54,6 +54,7 @@ public:
     // -----------------------------------------------------
 
     void RemoveGaps();
+    void Replace(char search, char replace);
 
     // -----------------------------------------------------
     //     Dump and Debug
@@ -65,7 +66,7 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    SymbolType  gap_char = '-';
+    SymbolType gap_char = '-';
 
 protected:
     std::string label_;
