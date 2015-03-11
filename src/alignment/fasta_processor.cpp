@@ -54,7 +54,7 @@ bool FastaProcessor::FromString (const std::string& fs, Alignment& aln)
     aln.clear();
 
     // delete tailing tokens immediately, produce tokens intime.
-    Lexer::iterator it = lexer.begin();
+    FastaLexer::iterator it = lexer.begin();
     it.ConsumeWithTail(0);
     it.ProduceWithHead(0);
 
@@ -84,6 +84,7 @@ bool FastaProcessor::FromString (const std::string& fs, Alignment& aln)
         aln.sequences.push_back(nseq);
 
         // there are no other lexer tokens than tag and symbol for fasta files!
+        // not even an error token can be produced by the lexer in its current implementation.
         assert(it == lexer.end() || it->IsTag());
     }
 

@@ -463,7 +463,7 @@ inline bool Lexer::ScanString()
     size_t start = GetPosition();
     bool jump    = false; // marks when we jumped over an escape or quote mark
     bool found_e = false; // found an escape sequence
-    bool found_q = false; // found an escape sequence
+    bool found_q = false; // found a doubled qutation mark ""
 
     // scan
     while (!IsEnd()) {

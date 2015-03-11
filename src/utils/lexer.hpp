@@ -193,6 +193,25 @@ public:
         return type_ == LexerTokenType::kWhite;
     }
 
+    /** @brief Returns the number of new line characters, if this token is a whitespace. */
+    inline size_t HasNewLines() const
+    {
+        // check if this is actually a whitespace token.
+        if (type_ != LexerTokenType::kWhite) {
+            return 0;
+        }
+
+        // count occurences of CR or LF, while not counting a CR+LF twice.
+        size_t cnt = 0;
+        for (size_t i = 0; i < value_.size(); ++i) {
+            char c = value_[i];
+            if ((c == '\r') || (c == '\n' && i == 0) || (c == '\n' && value_[i-1] != '\r')) {
+                ++cnt;
+            }
+        }
+        return cnt;
+    }
+
     /** @brief Shortcut to check if this is a comment token. */
     inline bool IsComment() const
     {
