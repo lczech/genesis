@@ -1,11 +1,11 @@
 /**
- * @brief Implementation of Placements class.
+ * @brief Implementation of PlacementSet class.
  *
  * @file
- * @ingroup placement
+ * @ingroup placements
  */
 
-#include "placements/placements.hpp"
+#include "placements/placement_set.hpp"
 
 #include <algorithm>
 #include <assert.h>
@@ -33,7 +33,7 @@ namespace genesis {
 /**
  * @brief Copy constructor.
  */
-Placements::Placements (const Placements& other)
+PlacementSet::PlacementSet (const PlacementSet& other)
 {
     clear();
 
@@ -88,17 +88,17 @@ Placements::Placements (const Placements& other)
 /**
  * @brief Assignment operator. See Copy constructor for details.
  */
-Placements& Placements::operator = (const Placements& other)
+PlacementSet& PlacementSet::operator = (const PlacementSet& other)
 {
     // check for self-assignment.
     if (&other == this) {
         return *this;
     }
 
-    // the Placements tmp is a copy of the right hand side object (automatically created using the
+    // the PlacementSet tmp is a copy of the right hand side object (automatically created using the
     // copy constructor). we can thus simply swap the arrays, and upon leaving the function,
     // tmp is automatically destroyed, so that its arrays are cleared and the data freed.
-    Placements tmp(other);
+    PlacementSet tmp(other);
     std::swap(pqueries, tmp.pqueries);
     tree.swap(tmp.tree);
     std::swap(metadata, tmp.metadata);
@@ -108,7 +108,7 @@ Placements& Placements::operator = (const Placements& other)
 /**
  * @brief Destructor. Calls clear() to delete all data.
  */
-Placements::~Placements()
+PlacementSet::~PlacementSet()
 {
     clear();
 }
@@ -118,7 +118,7 @@ Placements::~Placements()
  *
  * The pqueries, the tree and the metadata are deleted.
  */
-void Placements::clear()
+void PlacementSet::clear()
 {
     for (Pquery* pqry : pqueries) {
         delete pqry;
@@ -133,7 +133,7 @@ void Placements::clear()
  *
  * This function depends on the tree only and does not involve any pqueries.
  */
-Placements::EdgeNumMapType* Placements::EdgeNumMap() const
+PlacementSet::EdgeNumMapType* PlacementSet::EdgeNumMap() const
 {
     EdgeNumMapType* edge_num_map = new EdgeNumMapType();
     for (
@@ -151,9 +151,9 @@ Placements::EdgeNumMapType* Placements::EdgeNumMap() const
 // TODO add option for averaging branch_length
 // TODO write another merge function (static) that takes multiple placements and outputs a new placements object.
 /**
- * @brief Adds the pqueries from another Placements objects to this one.
+ * @brief Adds the pqueries from another PlacementSet objects to this one.
  */
-bool Placements::Merge(const Placements& other)
+bool PlacementSet::Merge(const PlacementSet& other)
 {
     // check for identical topology, taxa names and edge_nums.
     // we do not check here for branch_length, because usually those differ slightly.
@@ -166,7 +166,7 @@ bool Placements::Merge(const Placements& other)
     };
 
     if (!tree.Equal(other.tree, comparator)) {
-        LOG_WARN << "Cannot merge Placements with different reference trees.";
+        LOG_WARN << "Cannot merge PlacementSet with different reference trees.";
         return false;
     }
 
@@ -202,7 +202,7 @@ bool Placements::Merge(const Placements& other)
  * @brief Recalculates the `like_weight_ratio` of the placements of each Pquery so that their sum
  * is 1.0, while maintaining their ratio to each other.
  */
-void Placements::NormalizeWeightRatios()
+void PlacementSet::NormalizeWeightRatios()
 {
     for (Pquery* pqry : pqueries) {
         double sum = 0.0;
@@ -227,7 +227,7 @@ void Placements::NormalizeWeightRatios()
  * `like_weight_ratio`) from each Pquery. It additionally sets the `like_weight_ratio` of the
  * remaining placement to 1.0, as this one now is the only one left, thus it's "sum" has to be 1.0.
  */
-void Placements::RestrainToMaxWeightPlacements()
+void PlacementSet::RestrainToMaxWeightPlacements()
 {
     for (Pquery* pqry : pqueries) {
         // init
@@ -287,7 +287,7 @@ void Placements::RestrainToMaxWeightPlacements()
 /**
  * @brief Get the total number of placements in all pqueries.
  */
-size_t Placements::PlacementCount() const
+size_t PlacementSet::PlacementCount() const
 {
     size_t count = 0;
     for (const Pquery* pqry : pqueries) {
@@ -299,7 +299,7 @@ size_t Placements::PlacementCount() const
 /**
  * @brief Get the summed mass of all placements on the tree, given by their `like_weight_ratio`.
  */
-double Placements::PlacementMass() const
+double PlacementSet::PlacementMass() const
 {
     double sum = 0.0;
     for (const Pquery* pqry : pqueries) {
@@ -335,7 +335,7 @@ double Placements::PlacementMass() const
  *
  * The vector is automatically resized to the needed number of elements.
  */
-std::vector<int> Placements::ClosestLeafDepthHistogram() const
+std::vector<int> PlacementSet::ClosestLeafDepthHistogram() const
 {
     std::vector<int> hist;
 
@@ -385,7 +385,7 @@ std::vector<int> Placements::ClosestLeafDepthHistogram() const
  *     }
  * %
  */
-std::vector<int> Placements::ClosestLeafDistanceHistogram (
+std::vector<int> PlacementSet::ClosestLeafDistanceHistogram (
     const double min, const double max, const int bins
 ) const {
     std::vector<int> hist(bins, 0);
@@ -449,7 +449,7 @@ std::vector<int> Placements::ClosestLeafDistanceHistogram (
  * ClosestLeafDistanceHistogram(), as it needs to process the values twice in order to find their
  * min and max.
  */
-std::vector<int> Placements::ClosestLeafDistanceHistogramAuto (
+std::vector<int> PlacementSet::ClosestLeafDistanceHistogramAuto (
     double& min, double& max, const int bins
 ) const {
     std::vector<int> hist(bins, 0);
@@ -504,16 +504,16 @@ std::vector<int> Placements::ClosestLeafDistanceHistogramAuto (
  * @brief Calculates the Earth Movers Distance to another sets of placements on a fixed reference
  * tree.
  */
-double Placements::EMD(const Placements& right) const
+double PlacementSet::EMD(const PlacementSet& right) const
 {
-    return Placements::EMD(*this, right);
+    return PlacementSet::EMD(*this, right);
 }
 
 /**
  * @brief Calculates the Earth Movers Distance between two sets of placements on a fixed reference
  * tree.
  */
-double Placements::EMD(const Placements& lhs, const Placements& rhs)
+double PlacementSet::EMD(const PlacementSet& lhs, const PlacementSet& rhs)
 {
     // keep track of the total resulting distance.
     double distance = 0.0;
@@ -638,7 +638,7 @@ double Placements::EMD(const Placements& lhs, const Placements& rhs)
 /**
  * @brief Calculate the Center of Gravity of the placements on a tree.
  */
-void Placements::COG() const
+void PlacementSet::COG() const
 {
     // store a balance of mass per link, so that each element contains the mass that lies
     // in the direction of this link
@@ -787,7 +787,7 @@ void Placements::COG() const
  * number of elements). However, as this is not required (placements with small ratio can be dropped,
  * so that their sum per pquery is less than 1.0), we need to calculate this number manually here.
  */
-double Placements::Variance() const
+double PlacementSet::Variance() const
 {
     // init
     double variance = 0.0;
@@ -829,7 +829,7 @@ double Placements::Variance() const
     // start all threads.
     for (int i = 0; i < num_threads; ++i) {
         threads[i] = new std::thread (std::bind (
-            &Placements::VarianceThread, this,
+            &PlacementSet::VarianceThread, this,
             i, num_threads, &vd_placements, node_distances, &partials[i], &counts[i]
         ));
     }
@@ -866,7 +866,7 @@ double Placements::Variance() const
  * It takes an offset and an incrementation value and does an interleaved loop over the placements,
  * similar to the sequential version for calculating the variance.
  */
-void Placements::VarianceThread (
+void PlacementSet::VarianceThread (
     const int                        offset,
     const int                        incr,
     const std::vector<VarianceData>* pqrys,
@@ -900,7 +900,7 @@ void Placements::VarianceThread (
  * This function is intended to be called by Variance() or VarianceThread() -- it is not a
  * stand-alone function.
  */
-double Placements::VariancePartial (
+double PlacementSet::VariancePartial (
     const VarianceData&              place_a,
     const std::vector<VarianceData>& pqrys_b,
     const Matrix<double>&            node_distances
@@ -952,9 +952,9 @@ double Placements::VariancePartial (
 // =============================================================================
 
 /**
- * @brief Returns a list of all Pqueries with their %Placements and Names.
+ * @brief Returns a list of all Pqueries with their Placements and Names.
  */
-std::string Placements::Dump() const
+std::string PlacementSet::Dump() const
 {
     std::ostringstream out;
     for (const Pquery* pqry : pqueries) {
@@ -991,7 +991,7 @@ std::string Placements::Dump() const
  * If additionally `break_on_values` is set, Validate() will stop on the first encountered invalid
  * value. Otherwise it will report all invalid values.
  */
-bool Placements::Validate (bool check_values, bool break_on_values) const
+bool PlacementSet::Validate (bool check_values, bool break_on_values) const
 {
     // check tree
     if (!tree.Validate()) {
