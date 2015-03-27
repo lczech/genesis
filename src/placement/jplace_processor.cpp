@@ -2,16 +2,16 @@
  * @brief Implementation of Jplace Processor functions.
  *
  * @file
- * @ingroup placements
+ * @ingroup placement
  */
 
-#include "placements/jplace_processor.hpp"
+#include "placement/jplace_processor.hpp"
 
 #include <string>
 #include <vector>
 
 #include "main/options.hpp"
-#include "placements/placement_set.hpp"
+#include "placement/placement_set.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/json_document.hpp"
 #include "utils/json_processor.hpp"

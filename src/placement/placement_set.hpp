@@ -5,14 +5,14 @@
  * @brief
  *
  * @file
- * @ingroup placements
+ * @ingroup placement
  */
 
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-#include "placements/placement_tree.hpp"
+#include "placement/placement_tree.hpp"
 
 namespace genesis {
 

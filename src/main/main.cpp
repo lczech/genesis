@@ -17,8 +17,8 @@
 #include "alignment/fasta_processor.hpp"
 #include "alignment/phylip_processor.hpp"
 
-#include "placements/jplace_processor.hpp"
-#include "placements/placement_set.hpp"
+#include "placement/jplace_processor.hpp"
+#include "placement/placement_set.hpp"
 #include "tree/bipartitions.hpp"
 #include "tree/newick_processor.hpp"
 #include "tree/phyloxml_processor.hpp"

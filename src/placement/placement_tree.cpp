@@ -2,14 +2,14 @@
  * @brief Implementation of PlacementTree class.
  *
  * @file
- * @ingroup placements
+ * @ingroup placement
  */
 
-#include "placements/placement_tree.hpp"
+#include "placement/placement_tree.hpp"
 
 #include <map>
 
-#include "placements/placement_set.hpp"
+#include "placement/placement_set.hpp"
 
 namespace genesis {
 

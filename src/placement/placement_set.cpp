@@ -2,10 +2,10 @@
  * @brief Implementation of PlacementSet class.
  *
  * @file
- * @ingroup placements
+ * @ingroup placement
  */
 
-#include "placements/placement_set.hpp"
+#include "placement/placement_set.hpp"
 
 #include <algorithm>
 #include <assert.h>

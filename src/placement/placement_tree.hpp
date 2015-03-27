@@ -5,7 +5,7 @@
  * @brief
  *
  * @file
- * @ingroup placements
+ * @ingroup placement
  */
 
 #include <string>
