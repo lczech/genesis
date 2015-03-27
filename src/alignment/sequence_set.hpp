@@ -1,5 +1,5 @@
-#ifndef GNS_ALIGNMENT_ALIGNMENT_H_
-#define GNS_ALIGNMENT_ALIGNMENT_H_
+#ifndef GNS_ALIGNMENT_SEQUENCESET_H_
+#define GNS_ALIGNMENT_SEQUENCESET_H_
 
 /**
  * @brief
@@ -15,7 +15,7 @@
 
 namespace genesis {
 
-class Alignment
+class SequenceSet
 {
 public:
 
@@ -23,7 +23,7 @@ public:
     //     Constructor and Typedefs
     // -----------------------------------------------------
 
-    ~Alignment();
+    ~SequenceSet();
     void clear();
 
     // -----------------------------------------------------

@@ -19,7 +19,7 @@ namespace genesis {
 //     Forward declarations
 // =============================================================================
 
-class Alignment;
+class SequenceSet;
 
 // =============================================================================
 //     Fasta Lexer
@@ -113,8 +113,8 @@ public:
     //     Parsing
     // ---------------------------------------------------------------------
 
-    static bool FromFile   (const std::string  fn, Alignment& aln);
-    static bool FromString (const std::string& fs, Alignment& aln);
+    static bool FromFile   (const std::string  fn, SequenceSet& aln);
+    static bool FromString (const std::string& fs, SequenceSet& aln);
 
     // ---------------------------------------------------------------------
     //     Printing
@@ -122,9 +122,9 @@ public:
 
     static size_t line_length;
 
-    static bool ToFile   (const std::string fn, const Alignment& aln);
-    static void ToString (std::string& fs,      const Alignment& aln);
-    static std::string ToString (               const Alignment& aln);
+    static bool ToFile   (const std::string fn, const SequenceSet& aln);
+    static void ToString (std::string& fs,      const SequenceSet& aln);
+    static std::string ToString (               const SequenceSet& aln);
 };
 
 } // namespace genesis

@@ -13,7 +13,7 @@
 
 #include "main/options.hpp"
 
-#include "alignment/alignment.hpp"
+#include "alignment/sequence_set.hpp"
 #include "alignment/fasta_processor.hpp"
 #include "alignment/phylip_processor.hpp"
 
@@ -625,14 +625,14 @@ int main (int argc, char* argv[])
 
     std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/data_raw/";
 
-    Alignment aln;
+    SequenceSet aln;
     FastaProcessor::FromFile(inpath + "Apis_all_4_mafft_clean.fasta", aln);
     aln.Replace('N', '-');
     PhylipProcessor::ToFile(inpath + "Apis_all_4_mafft_clean.phy", aln);
 
     return 0;
 //~
-    //~ Alignment reduced_aln;
+    //~ SequenceSet reduced_aln;
     //~ std::ifstream infile(inpath + "subtree_taxa");
     //~ std::string line;
     //~ while (std::getline(infile, line))
@@ -650,12 +650,12 @@ int main (int argc, char* argv[])
     //~ FastaProcessor::ToFile(inpath + "512_subtree_unaligned.fasta", reduced_aln);
 
     /*
-    Alignment aln;
+    SequenceSet aln;
     LOG_DBG << "reading fas";
     FastaProcessor::FromFile(inpath + "third_20_samples_LaSelva_protists.fas", aln);
 
     LOG_DBG << "remove all but subtree_reads";
-    //~ Alignment reduced_aln;
+    //~ SequenceSet reduced_aln;
     std::vector<std::string> subtree_reads;
     std::ifstream infile(inpath + "subtree_reads");
     std::string line;

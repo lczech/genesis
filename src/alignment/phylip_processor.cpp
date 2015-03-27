@@ -9,7 +9,7 @@
 
 #include <sstream>
 
-#include "alignment/alignment.hpp"
+#include "alignment/sequence_set.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -35,7 +35,7 @@ size_t PhylipProcessor::label_length = 0;
 /**
  * @brief
  */
-bool PhylipProcessor::FromFile (const std::string  fn, Alignment& aln)
+bool PhylipProcessor::FromFile (const std::string  fn, SequenceSet& aln)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "Phylip file '" << fn << "' does not exist.";
@@ -47,7 +47,7 @@ bool PhylipProcessor::FromFile (const std::string  fn, Alignment& aln)
 /**
  * @brief
  */
-bool PhylipProcessor::FromString (const std::string& fs, Alignment& aln)
+bool PhylipProcessor::FromString (const std::string& fs, SequenceSet& aln)
 {
     // do stepwise lexing
     PhylipLexer lexer;
@@ -145,7 +145,7 @@ bool PhylipProcessor::FromString (const std::string& fs, Alignment& aln)
 /**
  * @brief
  */
-bool PhylipProcessor::ToFile (const std::string fn, const Alignment& aln)
+bool PhylipProcessor::ToFile (const std::string fn, const SequenceSet& aln)
 {
     if (FileExists(fn)) {
         LOG_WARN << "Phylip file '" << fn << "' already exist. Will not overwrite it.";
@@ -159,7 +159,7 @@ bool PhylipProcessor::ToFile (const std::string fn, const Alignment& aln)
 /**
  * @brief
  */
-void PhylipProcessor::ToString (std::string& fs, const Alignment& aln)
+void PhylipProcessor::ToString (std::string& fs, const SequenceSet& aln)
 {
     fs = ToString(aln);
 }
@@ -167,7 +167,7 @@ void PhylipProcessor::ToString (std::string& fs, const Alignment& aln)
 /**
  * @brief
  */
-std::string PhylipProcessor::ToString (const Alignment& aln)
+std::string PhylipProcessor::ToString (const SequenceSet& aln)
 {
     size_t length = 0;
     for (Sequence* s : aln.sequences) {
