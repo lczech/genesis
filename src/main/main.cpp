@@ -18,7 +18,7 @@
 #include "alignment/phylip_processor.hpp"
 
 #include "placement/jplace_processor.hpp"
-#include "placement/placement_set.hpp"
+#include "placement/placement_map.hpp"
 #include "tree/bipartitions.hpp"
 #include "tree/newick_processor.hpp"
 #include "tree/phyloxml_processor.hpp"
@@ -278,7 +278,7 @@ int main (int argc, char* argv[])
 
     //~ LOG_DBG << "================================";
     //~ LOG_DBG << "Test 2";
-    PlacementSet place;
+    PlacementMap place;
     JplaceProcessor::FromFile("test/data/placement.jplace", place);
     LOG_DBG << "valid: " << place.Validate();
     LOG_DBG << place.Dump();
@@ -295,7 +295,7 @@ int main (int argc, char* argv[])
     // =============================================================================
 
     /*
-    PlacementSet place_a, place_b;
+    PlacementMap place_a, place_b;
     LOG_DBG << "Reading file...";
     JplaceProcessor::FromFile("test/data/test_40K.jplace", place_a);
     //~ JplaceProcessor::FromFile("test/data/test_a.jplace", place_a);
@@ -479,7 +479,7 @@ int main (int argc, char* argv[])
         //~ LOG_DBG1 << s;
     //~ }
 
-    PlacementSet place, place_tmp;
+    PlacementMap place, place_tmp;
     LOG_DBG;
     LOG_DBG << "Reading file " << list[0] << "...";
     JplaceProcessor::FromFile(inpath + list[0], place);
@@ -529,7 +529,7 @@ int main (int argc, char* argv[])
     std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/05_genesis/";
 
     LOG_DBG << "Reading file " << "all_placements.jplace" << "...";
-    PlacementSet place;
+    PlacementMap place;
     JplaceProcessor::FromFile(inpath + "all_placements.jplace", place);
     LOG_DBG << "with " << place.PlacementCount() << " placements.";
     LOG_DBG;

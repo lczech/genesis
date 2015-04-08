@@ -100,27 +100,29 @@ struct Pquery
 };
 
 // =============================================================================
-//     PlacementSet
+//     PlacementMap
 // =============================================================================
 
-class PlacementSet
+class PlacementMap
 {
 public:
     // -----------------------------------------------------
     //     Constructor & Destructor
     // -----------------------------------------------------
 
-    PlacementSet () {}
-    PlacementSet (PlacementTree& ptree) : tree(ptree) {}
-    PlacementSet (const PlacementSet& other);
-    PlacementSet& operator = (const PlacementSet& other);
-    ~PlacementSet();
+    PlacementMap () {}
+    PlacementMap (PlacementTree& ptree) : tree(ptree) {}
+
+    PlacementMap (const PlacementMap& other);
+    PlacementMap& operator = (const PlacementMap& other);
+
+    ~PlacementMap();
     void clear();
 
     typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
     EdgeNumMapType* EdgeNumMap() const;
 
-    bool Merge(const PlacementSet& other);
+    bool Merge(const PlacementMap& other);
     void NormalizeWeightRatios();
     void RestrainToMaxWeightPlacements();
 
@@ -139,8 +141,8 @@ public:
         double& min, double& max, const int bins = 10
     ) const;
 
-    static double EMD (const PlacementSet& left, const PlacementSet& right);
-    double EMD (const PlacementSet& other) const;
+    static double EMD (const PlacementMap& left, const PlacementMap& right);
+    double EMD (const PlacementMap& other) const;
 
     void   COG() const;
 

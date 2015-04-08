@@ -9,7 +9,7 @@
 
 #include <map>
 
-#include "placement/placement_set.hpp"
+#include "placement/placement_map.hpp"
 
 namespace genesis {
 

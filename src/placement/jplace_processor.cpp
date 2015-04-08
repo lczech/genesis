@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "main/options.hpp"
-#include "placement/placement_set.hpp"
+#include "placement/placement_map.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/json_document.hpp"
 #include "utils/json_processor.hpp"
@@ -41,11 +41,11 @@ bool JplaceProcessor::CheckVersion (const std::string version)
 // =============================================================================
 
 /**
- * @brief Reads a file and parses it as a Jplace document into a PlacementSet object.
+ * @brief Reads a file and parses it as a Jplace document into a PlacementMap object.
  *
  * Returns true iff successful.
  */
-bool JplaceProcessor::FromFile (const std::string& fn, PlacementSet& placements)
+bool JplaceProcessor::FromFile (const std::string& fn, PlacementMap& placements)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "Jplace file '" << fn << "' does not exist.";
@@ -55,11 +55,11 @@ bool JplaceProcessor::FromFile (const std::string& fn, PlacementSet& placements)
 }
 
 /**
- * @brief Parses a string as a Jplace document into a PlacementSet object.
+ * @brief Parses a string as a Jplace document into a PlacementMap object.
  *
  * Returns true iff successful.
  */
-bool JplaceProcessor::FromString (const std::string& jplace, PlacementSet& placements)
+bool JplaceProcessor::FromString (const std::string& jplace, PlacementMap& placements)
 {
     JsonDocument doc;
     if (!JsonProcessor::FromString(jplace, doc)) {
@@ -69,11 +69,11 @@ bool JplaceProcessor::FromString (const std::string& jplace, PlacementSet& place
 }
 
 /**
- * @brief Takes a JsonDocument object and parses it as a Jplace document into a PlacementSet object.
+ * @brief Takes a JsonDocument object and parses it as a Jplace document into a PlacementMap object.
  *
  * Returns true iff successful.
  */
-bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementSet& placements)
+bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementMap& placements)
 {
     placements.clear();
 
@@ -97,7 +97,7 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementSet& place
     }
 
     // create a map from edge nums to the actual edge pointers, for later use when processing
-    // the pqueries. we do not use PlacementSet::EdgeNumMap() here, because we need to do extra
+    // the pqueries. we do not use PlacementMap::EdgeNumMap() here, because we need to do extra
     // checking for validity first!
     std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
     for (
@@ -333,7 +333,7 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementSet& place
 /**
  * @brief
  */
-bool JplaceProcessor::ToFile (const std::string fn, const PlacementSet& placements)
+bool JplaceProcessor::ToFile (const std::string fn, const PlacementMap& placements)
 {
     if (FileExists(fn)) {
         LOG_WARN << "Jplace file '" << fn << "' already exist. Will not overwrite it.";
@@ -347,7 +347,7 @@ bool JplaceProcessor::ToFile (const std::string fn, const PlacementSet& placemen
 /**
  * @brief
  */
-void JplaceProcessor::ToString (std::string&  jplace, const PlacementSet& placements)
+void JplaceProcessor::ToString (std::string&  jplace, const PlacementMap& placements)
 {
     jplace = ToString(placements);
 }
@@ -355,7 +355,7 @@ void JplaceProcessor::ToString (std::string&  jplace, const PlacementSet& placem
 /**
  * @brief
  */
-std::string JplaceProcessor::ToString (const PlacementSet& placements)
+std::string JplaceProcessor::ToString (const PlacementMap& placements)
 {
     JsonDocument json;
     ToDocument(json, placements);
@@ -365,7 +365,7 @@ std::string JplaceProcessor::ToString (const PlacementSet& placements)
 /**
  * @brief
  */
-void JplaceProcessor::ToDocument (JsonDocument& doc, const PlacementSet& placements)
+void JplaceProcessor::ToDocument (JsonDocument& doc, const PlacementMap& placements)
 {
     doc.clear();
 
