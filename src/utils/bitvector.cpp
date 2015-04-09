@@ -279,7 +279,7 @@ void Bitvector::Normalize()
 }
 
 /**
- * @brief Reset all the bits to false. If provided with parapemter `true`, sets all bits to true.
+ * @brief Reset all the bits to false. If provided with parameter `true`, sets all bits to true.
  */
 void Bitvector::Reset(bool value)
 {

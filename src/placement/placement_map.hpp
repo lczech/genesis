@@ -1,5 +1,5 @@
-#ifndef GNS_PLACEMENT_PLACEMENTS_H_
-#define GNS_PLACEMENT_PLACEMENTS_H_
+#ifndef GNS_PLACEMENT_PLACEMENTSET_H_
+#define GNS_PLACEMENT_PLACEMENTSET_H_
 
 /**
  * @brief
@@ -12,7 +12,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "placements/placement_tree.hpp"
+#include "placement/placement_tree.hpp"
 
 namespace genesis {
 
@@ -100,27 +100,29 @@ struct Pquery
 };
 
 // =============================================================================
-//     Placements
+//     PlacementMap
 // =============================================================================
 
-class Placements
+class PlacementMap
 {
 public:
     // -----------------------------------------------------
     //     Constructor & Destructor
     // -----------------------------------------------------
 
-    Placements () {}
-    Placements (PlacementTree& ptree) : tree(ptree) {}
-    Placements (const Placements& other);
-    Placements& operator = (const Placements& other);
-    ~Placements();
+    PlacementMap () {}
+    PlacementMap (PlacementTree& ptree) : tree(ptree) {}
+
+    PlacementMap (const PlacementMap& other);
+    PlacementMap& operator = (const PlacementMap& other);
+
+    ~PlacementMap();
     void clear();
 
     typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
     EdgeNumMapType* EdgeNumMap() const;
 
-    bool Merge(const Placements& other);
+    bool Merge(const PlacementMap& other);
     void NormalizeWeightRatios();
     void RestrainToMaxWeightPlacements();
 
@@ -139,8 +141,8 @@ public:
         double& min, double& max, const int bins = 10
     ) const;
 
-    static double EMD (const Placements& left, const Placements& right);
-    double EMD (const Placements& other) const;
+    static double EMD (const PlacementMap& left, const PlacementMap& right);
+    double EMD (const PlacementMap& other) const;
 
     void   COG() const;
 

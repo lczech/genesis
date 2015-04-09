@@ -13,12 +13,12 @@
 
 #include "main/options.hpp"
 
-#include "alignment/alignment.hpp"
+#include "alignment/sequence_set.hpp"
 #include "alignment/fasta_processor.hpp"
 #include "alignment/phylip_processor.hpp"
 
-#include "placements/jplace_processor.hpp"
-#include "placements/placements.hpp"
+#include "placement/jplace_processor.hpp"
+#include "placement/placement_map.hpp"
 #include "tree/bipartitions.hpp"
 #include "tree/newick_processor.hpp"
 #include "tree/phyloxml_processor.hpp"
@@ -278,7 +278,7 @@ int main (int argc, char* argv[])
 
     //~ LOG_DBG << "================================";
     //~ LOG_DBG << "Test 2";
-    Placements place;
+    PlacementMap place;
     JplaceProcessor::FromFile("test/data/placement.jplace", place);
     LOG_DBG << "valid: " << place.Validate();
     LOG_DBG << place.Dump();
@@ -295,7 +295,7 @@ int main (int argc, char* argv[])
     // =============================================================================
 
     /*
-    Placements place_a, place_b;
+    PlacementMap place_a, place_b;
     LOG_DBG << "Reading file...";
     JplaceProcessor::FromFile("test/data/test_40K.jplace", place_a);
     //~ JplaceProcessor::FromFile("test/data/test_a.jplace", place_a);
@@ -479,7 +479,7 @@ int main (int argc, char* argv[])
         //~ LOG_DBG1 << s;
     //~ }
 
-    Placements place, place_tmp;
+    PlacementMap place, place_tmp;
     LOG_DBG;
     LOG_DBG << "Reading file " << list[0] << "...";
     JplaceProcessor::FromFile(inpath + list[0], place);
@@ -529,7 +529,7 @@ int main (int argc, char* argv[])
     std::string outpath = "/home/lucas/Dropbox/HITS/tropical-soils/pipe_03/05_genesis/";
 
     LOG_DBG << "Reading file " << "all_placements.jplace" << "...";
-    Placements place;
+    PlacementMap place;
     JplaceProcessor::FromFile(inpath + "all_placements.jplace", place);
     LOG_DBG << "with " << place.PlacementCount() << " placements.";
     LOG_DBG;
@@ -625,14 +625,14 @@ int main (int argc, char* argv[])
 
     std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/data_raw/";
 
-    Alignment aln;
+    SequenceSet aln;
     FastaProcessor::FromFile(inpath + "Apis_all_4_mafft_clean.fasta", aln);
     aln.Replace('N', '-');
     PhylipProcessor::ToFile(inpath + "Apis_all_4_mafft_clean.phy", aln);
 
     return 0;
 //~
-    //~ Alignment reduced_aln;
+    //~ SequenceSet reduced_aln;
     //~ std::ifstream infile(inpath + "subtree_taxa");
     //~ std::string line;
     //~ while (std::getline(infile, line))
@@ -650,12 +650,12 @@ int main (int argc, char* argv[])
     //~ FastaProcessor::ToFile(inpath + "512_subtree_unaligned.fasta", reduced_aln);
 
     /*
-    Alignment aln;
+    SequenceSet aln;
     LOG_DBG << "reading fas";
     FastaProcessor::FromFile(inpath + "third_20_samples_LaSelva_protists.fas", aln);
 
     LOG_DBG << "remove all but subtree_reads";
-    //~ Alignment reduced_aln;
+    //~ SequenceSet reduced_aln;
     std::vector<std::string> subtree_reads;
     std::ifstream infile(inpath + "subtree_reads");
     std::string line;

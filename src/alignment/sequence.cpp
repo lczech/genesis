@@ -51,11 +51,11 @@ void Sequence::Replace(char search, char replace)
 // =============================================================================
 
 /**
- * @brief Prints the whole sequence (possibly very long!).
+ * @brief Prints the label and the whole sequence (possibly very long!).
  */
 std::string Sequence::Dump() const
 {
-    return Sites();
+    return Label() + ": " + Sites();
 }
 
 } // namespace genesis

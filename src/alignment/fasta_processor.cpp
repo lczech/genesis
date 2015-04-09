@@ -10,7 +10,7 @@
 #include <sstream>
 #include <string.h>
 
-#include "alignment/alignment.hpp"
+#include "alignment/sequence_set.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -23,7 +23,7 @@ namespace genesis {
 /**
  * @brief
  */
-bool FastaProcessor::FromFile (const std::string fn, Alignment& aln)
+bool FastaProcessor::FromFile (const std::string fn, SequenceSet& aln)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "FASTA file '" << fn << "' does not exist.";
@@ -35,7 +35,7 @@ bool FastaProcessor::FromFile (const std::string fn, Alignment& aln)
 /**
  * @brief
  */
-bool FastaProcessor::FromString (const std::string& fs, Alignment& aln)
+bool FastaProcessor::FromString (const std::string& fs, SequenceSet& aln)
 {
     // do stepwise lexing
     FastaLexer lexer;
@@ -105,7 +105,7 @@ size_t FastaProcessor::line_length = 80;
 /**
  * @brief
  */
-bool FastaProcessor::ToFile (const std::string fn, const Alignment& aln)
+bool FastaProcessor::ToFile (const std::string fn, const SequenceSet& aln)
 {
     if (FileExists(fn)) {
         LOG_WARN << "FASTA file '" << fn << "' already exist. Will not overwrite it.";
@@ -119,7 +119,7 @@ bool FastaProcessor::ToFile (const std::string fn, const Alignment& aln)
 /**
  * @brief
  */
-void FastaProcessor::ToString (std::string& fs, const Alignment& aln)
+void FastaProcessor::ToString (std::string& fs, const SequenceSet& aln)
 {
     fs = ToString(aln);
 }
@@ -127,7 +127,7 @@ void FastaProcessor::ToString (std::string& fs, const Alignment& aln)
 /**
  * @brief
  */
-std::string FastaProcessor::ToString (const Alignment& aln)
+std::string FastaProcessor::ToString (const SequenceSet& aln)
 {
     std::ostringstream seq("");
     for (Sequence* s : aln.sequences) {

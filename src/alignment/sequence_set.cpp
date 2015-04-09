@@ -1,11 +1,11 @@
 /**
- * @brief Implementation of Alignment class.
+ * @brief Implementation of SequenceSet class.
  *
  * @file
  * @ingroup alignment
  */
 
-#include "alignment/alignment.hpp"
+#include "alignment/sequence_set.hpp"
 
 #include <sstream>
 #include <unordered_map>
@@ -22,7 +22,7 @@ namespace genesis {
 /**
  * @brief Destructor. Calls clear().
  */
-Alignment::~Alignment()
+SequenceSet::~SequenceSet()
 {
     clear();
 }
@@ -30,7 +30,7 @@ Alignment::~Alignment()
 /**
  * @brief Deletes all sequences from the alignment.
  */
-void Alignment::clear()
+void SequenceSet::clear()
 {
     for (Sequence* s : sequences) {
         delete s;
@@ -45,7 +45,7 @@ void Alignment::clear()
 /**
  * @brief Returns a pointer to a sequence with a specific label (or `nullptr`, if not found).
  */
-Sequence* Alignment::FindSequence(std::string label) const
+Sequence* SequenceSet::FindSequence(std::string label) const
 {
     for (Sequence* s : sequences) {
         if (s->Label() == label) {
@@ -67,7 +67,7 @@ Sequence* Alignment::FindSequence(std::string label) const
  * We cannot use standard algorithms like std::remove here, as those do not delete the elements
  * (call their destructor).
  */
-void Alignment::RemoveList(std::vector<std::string> labels, bool invert)
+void SequenceSet::RemoveList(std::vector<std::string> labels, bool invert)
 {
     // create a set of all labels for fast lookup.
     std::unordered_set<std::string> lmap(labels.begin(), labels.end());
@@ -101,7 +101,7 @@ void Alignment::RemoveList(std::vector<std::string> labels, bool invert)
 /**
  * @brief Calls RemoveGaps() for every Sequence.
  */
-void Alignment::RemoveGaps()
+void SequenceSet::RemoveGaps()
 {
     for (Sequence* s : sequences) {
         s->RemoveGaps();
@@ -111,7 +111,7 @@ void Alignment::RemoveGaps()
 /**
  * @brief Calls Replace() for every Sequence.
  */
-void Alignment::Replace(char search, char replace)
+void SequenceSet::Replace(char search, char replace)
 {
     for (Sequence* s : sequences) {
         s->Replace(search, replace);
@@ -125,7 +125,7 @@ void Alignment::Replace(char search, char replace)
 /**
  * @brief Gives a summary of the sequences names and their lengths for this alignment.
  */
-std::string Alignment::Dump() const
+std::string SequenceSet::Dump() const
 {
     std::ostringstream out;
     for (Sequence* s : sequences) {

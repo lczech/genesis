@@ -22,12 +22,12 @@ class Matrix
 public:
     Matrix (size_t rows, size_t cols) : rows_(rows), cols_(cols)
     {
-        data_ = new double [rows_ * cols_];
+        data_ = new value_type [rows_ * cols_];
     }
 
     Matrix (size_t rows, size_t cols, value_type init) : rows_(rows), cols_(cols)
     {
-        data_ = new double [rows_ * cols_];
+        data_ = new value_type [rows_ * cols_];
         for (size_t i = 0; i < rows_ * cols_; ++i) {
             data_[i] = init;
         }
