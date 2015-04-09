@@ -435,7 +435,7 @@ void JplaceProcessor::ToDocument (JsonDocument& doc, const PlacementMap& placeme
 
     // set metadata
     JsonValueObject* jmetadata = new JsonValueObject();
-    jmetadata->Set("invocation", new JsonValueString(Options::Get().GetCommandLineString()));
+    jmetadata->Set("invocation", new JsonValueString(Options::GetCommandLineString()));
     doc.Set("metadata", jmetadata);
 }
 

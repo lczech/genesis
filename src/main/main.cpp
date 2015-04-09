@@ -61,7 +61,7 @@ int main (int argc, char* argv[])
     //~ Logging::details.runtime = true;
     //~ Logging::details.rundiff = true;
     LOG_BOLD << print_header();
-    Options::Get().SetCommandLine(argc, argv);
+    Options::Init(argc, argv);
     LOG_TIME << "started";
 
     // =============================================================================

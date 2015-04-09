@@ -13,36 +13,49 @@
 
 namespace genesis {
 
+// =============================================================================
+//     Options
+// =============================================================================
+
 /**
  * @brief Simple Options class for application-wide configuration and settings.
  */
 class Options
 {
 public:
-    /**
-     * @brief Singleton Getter.
-     */
-    static Options& Get()
-    {
-        static Options instance_;
-        return instance_;
-    }
 
-    bool                     SetCommandLine (int argc, char* argv[]);
-    std::vector<std::string> GetCommandLine ();
-    std::string              GetCommandLineString ();
+    // -----------------------------------------------------
+    //     Initialization
+    // -----------------------------------------------------
 
-#   ifdef PTHREADS
-        unsigned int number_of_threads;
-#   endif
+    static void Init (int argc, char* argv[]);
+
+    // -----------------------------------------------------
+    //     Getter for Properties
+    // -----------------------------------------------------
+
+    static std::vector<std::string> GetCommandLine ();
+    static std::string              GetCommandLineString ();
+
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+
+    static unsigned int             number_of_threads;
 
 private:
-    // everything private due to singleton.
+    static std::vector<std::string> arguments;
+
+    // -----------------------------------------------------
+    //     Hidden Class Members
+    // -----------------------------------------------------
+
+private:
+    // everything private as this class is intended to be used fully static.
     Options();
     Options(const Options&);
     Options& operator=(const Options&);
 
-    std::vector<std::string> arguments;
 };
 
 } // namespace genesis

@@ -15,38 +15,47 @@
 
 namespace genesis {
 
-/**
- * @brief
- */
-Options::Options()
-{
-    // initialize threads with actual number of cores
-#   ifdef PTHREADS
-        number_of_threads = std::thread::hardware_concurrency();
-#   endif
-}
+// =============================================================================
+//     Static Data Members
+// =============================================================================
+
+unsigned int              Options::number_of_threads = 1;
+std::vector<std::string>  Options::arguments;
+
+// =============================================================================
+//     Initialization
+// =============================================================================
 
 /**
- * @brief
+ * @brief Init method that takes the program's command line arguments.
  */
-bool Options::SetCommandLine (int argc, char* argv[])
+void Options::Init (int argc, char* argv[])
 {
+    // store all arguments in the array.
     for (int i = 0; i < argc; i++) {
         arguments.push_back(argv[i]);
     }
-    return true;
+
+    // initialize threads with actual number of cores.
+#   ifdef PTHREADS
+        Options::number_of_threads = std::thread::hardware_concurrency();
+#   endif
 }
 
+// =============================================================================
+//     Getter for Properties
+// =============================================================================
+
 /**
- * @brief
+ * @brief Returns an array of strings containing the program's command line arguments.
  */
 std::vector<std::string> Options::GetCommandLine ()
 {
-    return arguments;
+    return Options::arguments;
 }
 
 /**
- * @brief
+ * @brief Returns a string containing the program's command line arguments.
  */
 std::string Options::GetCommandLineString ()
 {
