@@ -1,5 +1,5 @@
-#ifndef GNS_TREE_TREENODE_H_
-#define GNS_TREE_TREENODE_H_
+#ifndef GENESIS_TREE_TREENODE_H_
+#define GENESIS_TREE_TREENODE_H_
 
 /**
  * @brief This class represents a node inside of a tree.

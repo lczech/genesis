@@ -1,5 +1,5 @@
-#ifndef GNS_UTILS_MATRIX_H_
-#define GNS_UTILS_MATRIX_H_
+#ifndef GENESIS_UTILS_MATRIX_H_
+#define GENESIS_UTILS_MATRIX_H_
 
 /**
  * @brief

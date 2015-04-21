@@ -1,5 +1,5 @@
-#ifndef GNS_MAIN_OPTIONS_H_
-#define GNS_MAIN_OPTIONS_H_
+#ifndef GENESIS_MAIN_OPTIONS_H_
+#define GENESIS_MAIN_OPTIONS_H_
 
 /**
  * @brief

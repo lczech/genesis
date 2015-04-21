@@ -1,5 +1,5 @@
-#ifndef GNS_TREE_TREESTACK_H_
-#define GNS_TREE_TREESTACK_H_
+#ifndef GENESIS_TREE_TREESTACK_H_
+#define GENESIS_TREE_TREESTACK_H_
 
 /**
  * @brief

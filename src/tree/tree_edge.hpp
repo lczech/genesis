@@ -1,5 +1,5 @@
-#ifndef GNS_TREE_TREEEDGE_H_
-#define GNS_TREE_TREEEDGE_H_
+#ifndef GENESIS_TREE_TREEEDGE_H_
+#define GENESIS_TREE_TREEEDGE_H_
 
 /**
  * @brief This class represents an edge inside of a tree.

@@ -1,5 +1,5 @@
-#ifndef GNS_UTILS_JSONPROCESSOR_H_
-#define GNS_UTILS_JSONPROCESSOR_H_
+#ifndef GENESIS_UTILS_JSONPROCESSOR_H_
+#define GENESIS_UTILS_JSONPROCESSOR_H_
 
 /**
  * @brief Functions for parsing and printing a JSON document. See JsonProcessor for more.

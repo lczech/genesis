@@ -1,5 +1,5 @@
-#ifndef GNS_UTILS_BITVECTOR_H_
-#define GNS_UTILS_BITVECTOR_H_
+#ifndef GENESIS_UTILS_BITVECTOR_H_
+#define GENESIS_UTILS_BITVECTOR_H_
 
 /**
  * @brief

@@ -1,5 +1,5 @@
-#ifndef GNS_MAIN_MAIN_H_
-#define GNS_MAIN_MAIN_H_
+#ifndef GENESIS_MAIN_MAIN_H_
+#define GENESIS_MAIN_MAIN_H_
 /**
  * @brief Annotations for genesis.
  *

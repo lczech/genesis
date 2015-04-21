@@ -1,5 +1,5 @@
-#ifndef GNS_UTILS_UTILS_H_
-#define GNS_UTILS_UTILS_H_
+#ifndef GENESIS_UTILS_UTILS_H_
+#define GENESIS_UTILS_UTILS_H_
 
 /**
  * @brief Provides some commonly used utility functions.

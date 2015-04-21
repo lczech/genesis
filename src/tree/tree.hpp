@@ -1,5 +1,5 @@
-#ifndef GNS_TREE_TREE_H_
-#define GNS_TREE_TREE_H_
+#ifndef GENESIS_TREE_TREE_H_
+#define GENESIS_TREE_TREE_H_
 
 /**
  * @brief Provides the basic interface for phylogenetic trees.

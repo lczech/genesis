@@ -1,5 +1,5 @@
-#ifndef GNS_UTILS_XMLDOCUMENT_H_
-#define GNS_UTILS_XMLDOCUMENT_H_
+#ifndef GENESIS_UTILS_XMLDOCUMENT_H_
+#define GENESIS_UTILS_XMLDOCUMENT_H_
 
 /**
  * @brief A collection of classes for working with XML documents. See XmlDocument for more.

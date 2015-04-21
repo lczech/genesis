@@ -1,5 +1,5 @@
-#ifndef GNS_UTILS_LEXER_H_
-#define GNS_UTILS_LEXER_H_
+#ifndef GENESIS_UTILS_LEXER_H_
+#define GENESIS_UTILS_LEXER_H_
 
 /**
  * @brief Provides a basic lexer to process a string and split it into tokens.

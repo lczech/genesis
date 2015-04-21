@@ -1,5 +1,5 @@
-#ifndef GNS_UTILS_LOGGING_H_
-#define GNS_UTILS_LOGGING_H_
+#ifndef GENESIS_UTILS_LOGGING_H_
+#define GENESIS_UTILS_LOGGING_H_
 
 /**
  * @brief Provides easy and fast logging functionality.
@@ -49,53 +49,53 @@ namespace genesis {
 
 // try to find a macro that expands to the current function name
 #ifdef __cplusplus
-#    define GNS_FUNC __PRETTY_FUNCTION__
+#    define GENESIS_FUNC __PRETTY_FUNCTION__
 #else
 #    if defined __STDC_VERSION__
-#        define GNS_FUNC __func__
+#        define GENESIS_FUNC __func__
 #    else
-#        define GNS_FUNC ((const char *) 0)
+#        define GENESIS_FUNC ((const char *) 0)
 #    endif
 #endif
 
 // define the actual log macro, so that the compiler can prune calls
 // to a log with levels above the static max log level
-#define GNS_LOG(level) \
+#define GENESIS_LOG(level) \
     if (level > LOG_LEVEL_MAX) ; \
     else if (level > genesis::Logging::max_level()) ; \
-    else genesis::Logging().Get(__FILE__, __LINE__, GNS_FUNC, level)
+    else genesis::Logging().Get(__FILE__, __LINE__, GENESIS_FUNC, level)
 
 // define a similar log macro, this time changing the details of the message
-#define GNS_LOG_DETAILS(level, ...) \
+#define GENESIS_LOG_DETAILS(level, ...) \
     if (level > LOG_LEVEL_MAX) ; \
     else if (level > genesis::Logging::max_level()) ; \
-    else genesis::Logging().Get(__FILE__, __LINE__, GNS_FUNC, level, {__VA_ARGS__})
+    else genesis::Logging().Get(__FILE__, __LINE__, GENESIS_FUNC, level, {__VA_ARGS__})
 
 // define standard logging types as macro shortcuts:
 
 /** @brief Log an error. See genesis::LoggingLevel. */
-#define LOG_ERR  GNS_LOG(genesis::Logging::kError)
+#define LOG_ERR  GENESIS_LOG(genesis::Logging::kError)
 
 /** @brief Log a warning. See genesis::LoggingLevel. */
-#define LOG_WARN GNS_LOG(genesis::Logging::kWarning)
+#define LOG_WARN GENESIS_LOG(genesis::Logging::kWarning)
 
 /** @brief Log an info message. See genesis::LoggingLevel. */
-#define LOG_INFO GNS_LOG(genesis::Logging::kInfo)
+#define LOG_INFO GENESIS_LOG(genesis::Logging::kInfo)
 
 /** @brief Log a debug message. See genesis::LoggingLevel. */
-#define LOG_DBG  GNS_LOG(genesis::Logging::kDebug)
+#define LOG_DBG  GENESIS_LOG(genesis::Logging::kDebug)
 
 /** @brief Log a debug message. See genesis::LoggingLevel. */
-#define LOG_DBG1 GNS_LOG(genesis::Logging::kDebug1)
+#define LOG_DBG1 GENESIS_LOG(genesis::Logging::kDebug1)
 
 /** @brief Log a debug message. See genesis::LoggingLevel. */
-#define LOG_DBG2 GNS_LOG(genesis::Logging::kDebug2)
+#define LOG_DBG2 GENESIS_LOG(genesis::Logging::kDebug2)
 
 /** @brief Log a debug message. See genesis::LoggingLevel. */
-#define LOG_DBG3 GNS_LOG(genesis::Logging::kDebug3)
+#define LOG_DBG3 GENESIS_LOG(genesis::Logging::kDebug3)
 
 /** @brief Log a debug message. See genesis::LoggingLevel. */
-#define LOG_DBG4 GNS_LOG(genesis::Logging::kDebug4)
+#define LOG_DBG4 GENESIS_LOG(genesis::Logging::kDebug4)
 
 // define special log shortcuts: the list of bools represent
 // the members of struct LogDetails and indicate which parts shall be included.
@@ -107,7 +107,7 @@ namespace genesis {
  * levels). This is for example used to log the program header and footer on startup and
  * termination.
  */
-#define LOG_BOLD GNS_LOG_DETAILS(genesis::Logging::kNone, \
+#define LOG_BOLD GENESIS_LOG_DETAILS(genesis::Logging::kNone, \
     false, false, false, false, false, false, false, false, false)
 
 /** @brief %Logging of a message with timing information.
@@ -117,7 +117,7 @@ namespace genesis {
  * useful for timing and profiling code sections. Its level is ::kDebug, so
  * that in can be easily turned of for production code.
  */
-#define LOG_TIME GNS_LOG_DETAILS(genesis::Logging::kDebug, \
+#define LOG_TIME GENESIS_LOG_DETAILS(genesis::Logging::kDebug, \
     false, false, false, false , true,  false, false, false, false)
 
 /**
@@ -170,7 +170,7 @@ namespace genesis {
     else if ((long) LoggingProgressValue(value) % \
         (((long) (quantity) * genesis::Logging::report_percentage() / 100) > 0 ? \
         ((long) (quantity) * genesis::Logging::report_percentage() / 100) : 1) != 0) ; \
-    else genesis::Logging().Get(__FILE__, __LINE__, GNS_FUNC, genesis::Logging::kProgress) << \
+    else genesis::Logging().Get(__FILE__, __LINE__, GENESIS_FUNC, genesis::Logging::kProgress) << \
     (int) round(100.0 * (double) LoggingProgressValue() / ((quantity) > 0 ? (quantity) : 1)) << "% "
 
 /**
@@ -455,7 +455,7 @@ class Logging
  *     #define LOG_PROG(value, quantity) \
  *         if (genesis::Logging::kProgress > LOG_LEVEL_MAX) ; \
  *         else if (genesis::Logging::kProgress > genesis::Logging::max_level()) ; \
- *         else LOG_PROG_FUNC(value, quantity, __FILE__, __LINE__, GNS_FUNC)
+ *         else LOG_PROG_FUNC(value, quantity, __FILE__, __LINE__, GENESIS_FUNC)
  * %
 inline std::ostringstream& LOG_PROG_FUNC (const int value, const int quantity, const std::string& file, const int line, const std::string& function)
 {

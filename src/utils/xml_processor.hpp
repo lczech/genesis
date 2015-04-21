@@ -1,5 +1,5 @@
-#ifndef GNS_UTILS_XMLPROCESSOR_H_
-#define GNS_UTILS_XMLPROCESSOR_H_
+#ifndef GENESIS_UTILS_XMLPROCESSOR_H_
+#define GENESIS_UTILS_XMLPROCESSOR_H_
 
 /**
  * @brief Functions for parsing and printing an XML document. See XmlProcessor for more.
