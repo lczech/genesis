@@ -12,7 +12,6 @@ all: build/CMakeCache.txt make
 # Run cmake if not yet done or if CMakeLists.txt has changed.
 build/CMakeCache.txt: CMakeLists.txt
 	@echo "Running cmake..."
-	@mkdir -p bin
 	@mkdir -p build
 	@cd build && cmake ..
 
@@ -27,4 +26,5 @@ clean:
 	@echo "Running clean..."
 	@rm -rf bin
 	@rm -rf build
+	@rm -rf module
 .PHONY: clean
