@@ -10,12 +10,12 @@
 #include <string>
 #include <vector>
 
-#include "main/options.hpp"
 #include "placement/placement_map.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/json_document.hpp"
 #include "utils/json_processor.hpp"
 #include "utils/logging.hpp"
+#include "utils/options.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {

@@ -121,7 +121,7 @@ bool PhylipProcessor::FromString (const std::string& fs, SequenceSet& aln)
 
     // prepare alignment and sequences
     aln.clear();
-    for (size_t i = 0; i < num_seq; ++i) {
+    for (long i = 0; i < num_seq; ++i) {
         Sequence* nseq = new Sequence(label, seq.str());
         aln.sequences.push_back(nseq);
     }

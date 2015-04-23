@@ -20,9 +20,9 @@
 #    include <thread>
 #endif
 
-#include "main/options.hpp"
 #include "utils/logging.hpp"
 #include "utils/matrix.hpp"
+#include "utils/options.hpp"
 
 namespace genesis {
 

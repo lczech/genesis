@@ -5,7 +5,7 @@
  * @ingroup main
  */
 
-#include "main/options.hpp"
+#include "utils/options.hpp"
 
 #include "utils/logging.hpp"
 

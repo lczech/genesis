@@ -1,11 +1,11 @@
-#ifndef GENESIS_MAIN_OPTIONS_H_
-#define GENESIS_MAIN_OPTIONS_H_
+#ifndef GENESIS_UTILS_OPTIONS_H_
+#define GENESIS_UTILS_OPTIONS_H_
 
 /**
  * @brief
  *
  * @file
- * @ingroup main
+ * @ingroup utils
  */
 
 #include <string>

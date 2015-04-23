@@ -14,9 +14,6 @@
 #include "alignment/sequence.hpp"
 #include "alignment/sequence_set.hpp"
 
-#include "main/main.hpp"
-#include "main/options.hpp"
-
 #include "placement/jplace_processor.hpp"
 #include "placement/placement_map.hpp"
 #include "placement/placement_tree.hpp"
@@ -38,6 +35,7 @@
 #include "utils/lexer.hpp"
 #include "utils/logging.hpp"
 #include "utils/matrix.hpp"
+#include "utils/options.hpp"
 #include "utils/utils.hpp"
 #include "utils/xml_document.hpp"
 #include "utils/xml_processor.hpp"
