@@ -68,6 +68,9 @@ if (BUILD_SHARED_LIB)
     set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
 endif()
 
+add_executable        (genesis_bin_test ${genesis_lib_sources} ${PROJECT_SOURCE_DIR}/src/main/main.cpp)
+set_target_properties (genesis_bin_test PROPERTIES OUTPUT_NAME genesis)
+
 # --------------------------------------------------------------------
 #   Build Python Module
 # --------------------------------------------------------------------
@@ -90,7 +93,9 @@ if (BUILD_PYTHON_MODULE OR BUILD_EXECUTABLE)
         include_directories   (${PYTHON_INCLUDE_DIRS})
         link_directories      (${PYTHON_LIBRARIES})
 
-        add_library           (genesis_python_module MODULE src/python/python.cpp ${genesis_lib_sources} python_init)
+        file (GLOB genesis_python_sources ${PROJECT_SOURCE_DIR}/src/python/bindings.cpp ${PROJECT_SOURCE_DIR}/src/python/*/*.cpp)
+
+        add_library           (genesis_python_module MODULE ${genesis_python_sources} ${genesis_lib_sources} python_init)
         target_link_libraries (genesis_python_module ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
 
         set_target_properties (genesis_python_module PROPERTIES OUTPUT_NAME genesis)
