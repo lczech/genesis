@@ -22,6 +22,10 @@ class PlacementMap;
 //     Placement Simulator
 // =============================================================================
 
+
+/**
+ * @brief Simulates Placements on a Tree.
+ */
 class PlacementSimulator
 {
 public:
