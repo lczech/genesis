@@ -15,7 +15,7 @@
 *.pch
 
 # --------------------------------------------------------------------
-#   C++ Compiled Dynamic libraries
+#   C++ Compiled Dynamic Libraries
 # --------------------------------------------------------------------
 
 *.so
@@ -23,7 +23,7 @@
 *.dll
 
 # --------------------------------------------------------------------
-#   C++ Compiled Static libraries
+#   C++ Compiled Static Libraries
 # --------------------------------------------------------------------
 
 *.lai
@@ -32,7 +32,7 @@
 *.lib
 
 # --------------------------------------------------------------------
-#   Python Byte-compiled files
+#   Python Byte-Compiled Files
 # --------------------------------------------------------------------
 
 __pycache__/
@@ -49,31 +49,31 @@ __pycache__/
 *.app
 
 # --------------------------------------------------------------------
-#   Documentation Latex files
+#   Latex Generated Files
 # --------------------------------------------------------------------
 
-doc/*/*.aux
-doc/*/*.glo
-doc/*/*.idx
-doc/*/*.log
-doc/*/*.toc
-doc/*/*.ist
-doc/*/*.acn
-doc/*/*.acr
-doc/*/*.alg
-doc/*/*.bbl
-doc/*/*.blg
-doc/*/*.dvi
-doc/*/*.glg
-doc/*/*.gls
-doc/*/*.ilg
-doc/*/*.ind
-doc/*/*.lof
-doc/*/*.lot
-doc/*/*.maf
-doc/*/*.mtc
-doc/*/*.mtc1
-doc/*/*.out
+*.aux
+*.glo
+*.idx
+*.log
+*.toc
+*.ist
+*.acn
+*.acr
+*.alg
+*.bbl
+*.blg
+*.dvi
+*.glg
+*.gls
+*.ilg
+*.ind
+*.lof
+*.lot
+*.maf
+*.mtc
+*.mtc1
+*.out
 
 # --------------------------------------------------------------------
 #   Misc
