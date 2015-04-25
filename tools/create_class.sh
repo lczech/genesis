@@ -121,7 +121,15 @@ cap_module=`echo $module  | sed -r 's/([a-z])/\U\1/g'`
 cap_file=`echo $file_name | sed -r 's/([a-z])/\U\1/g;s/_//g'`
 
 mkdir -p ${module}
-cat ../tools/class_template.hpp | sed "s/###CLASSNAME###/${class_name}/g;s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g;s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" > ${module}/${file_name}.hpp
-cat ../tools/class_template.cpp | sed "s/###CLASSNAME###/${class_name}/g;s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g;s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" > ${module}/${file_name}.cpp
+
+cat ../tools/class_template.hpp | sed "s/###CLASSNAME###/${class_name}/g" | \
+    sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
+    sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" > \
+    ${module}/${file_name}.hpp
+
+cat ../tools/class_template.cpp | sed "s/###CLASSNAME###/${class_name}/g" | \
+    sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
+    sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" > \
+    ${module}/${file_name}.cpp
 
 echo "Done."
