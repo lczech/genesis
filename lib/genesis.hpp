@@ -6,6 +6,9 @@
  * This makes it easy to integrate the code as a library, as all
  * symbols of genesis are available after including this header.
  *
+ * You do not need to edit this file manually. Simply run the script
+ * make_genesis_header.sh in ./tools/ to update this file.
+ *
  * @file
  */
 
@@ -28,6 +31,7 @@
 #include "tree/tree_iterator.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
+#include "tree/tree_set.hpp"
 
 #include "utils/bitvector.hpp"
 #include "utils/json_document.hpp"

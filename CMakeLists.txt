@@ -29,6 +29,13 @@ set (CMAKE_CXX_FLAGS         "-std=c++11 ${WARN_FLAGS} -I../src")
 set (CMAKE_CXX_FLAGS_DEBUG   "-g -ggdb3 -DDEBUG")
 set (CMAKE_CXX_FLAGS_RELEASE "-O3       -DNDEBUG")
 
+# Misc options
+#~ THREADS = -pthread -DPTHREADS
+#~ STDCC   = clang++
+#~ MPICC   = mpic++
+#~ mpi: CCFLAGS += -DUSE_MPI
+#~ LDFLAGS = -lm $(THREADS)
+
 # --------------------------------------------------------------------
 #   Build Options
 # --------------------------------------------------------------------

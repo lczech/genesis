@@ -286,7 +286,7 @@ template <class NDT, class EDT>
 Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix() const
 {
     Matrix<int>* mat = new Matrix<int>(NodeCount(), NodeCount());
-    // TODO
+    // TODO implement!
     LOG_WARN << "Not yet implemented.";
     return mat;
 }
@@ -396,7 +396,7 @@ std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(const NodeType* node) con
 
     std::vector<double> vec;
     vec.resize(NodeCount(), 0.0);
-    // TODO
+    // TODO implement!
     LOG_WARN << "Not yet implemented.";
     return vec;
 }
