@@ -10,7 +10,7 @@ echo "(this is simply the containing folder for the code files)"
 echo ""
 
 cd ../lib/
-select module in "Create new module" `ls -d */` "Cancel"; do
+select module in "Create new module" `ls -d */ | sed 's/\///g'` "Cancel"; do
     if [ "$module" == "Cancel" ]; then
         echo "Aborted. Nothing done."
         exit
