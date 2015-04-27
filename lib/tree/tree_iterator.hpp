@@ -22,21 +22,21 @@ namespace genesis {
 // =============================================================================
 
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeIteratorRoundtrip
+class TreeIteratorEulertour
 {
 public:
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorRoundtrip<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef TreeIteratorEulertour<LinkPointerType, NodePointerType, EdgePointerType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorRoundtrip (LinkPointerType link) : link_(link), start_(link)
+    TreeIteratorEulertour (LinkPointerType link) : link_(link), start_(link)
     {}
 
     // -----------------------------------------------------

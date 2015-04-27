@@ -751,7 +751,7 @@ std::string Tree<NDT, EDT>::DumpEdges() const
  * children.
  */
 template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::DumpRoundtrip() const
+std::string Tree<NDT, EDT>::DumpEulertour() const
 {
     if (links_.empty()) {
         return "";

@@ -27,7 +27,7 @@ namespace genesis {
 // =============================================================================
 
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeIteratorRoundtrip;
+class TreeIteratorEulertour;
 
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorPreorder;
@@ -194,8 +194,8 @@ public:
     //     Iterators
     // -----------------------------------------------------
 
-    typedef TreeIteratorRoundtrip <      LinkType*,       NodeType*,       EdgeType*>      IteratorRoundtrip;
-    typedef TreeIteratorRoundtrip <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorRoundtrip;
+    typedef TreeIteratorEulertour <      LinkType*,       NodeType*,       EdgeType*>      IteratorEulertour;
+    typedef TreeIteratorEulertour <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorEulertour;
 
     typedef TreeIteratorPreorder  <      LinkType*,       NodeType*,       EdgeType*>      IteratorPreorder;
     typedef TreeIteratorPreorder  <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorPreorder;
@@ -223,47 +223,47 @@ public:
     // TODO end iterator object or so... not sure, if worth the effort.
 
     // -----------------------
-    //     Roundtrip
+    //     Eulertour
     // -----------------------
 
-    inline IteratorRoundtrip BeginRoundtrip()
+    inline IteratorEulertour BeginEulertour()
     {
-        return IteratorRoundtrip(RootLink());
+        return IteratorEulertour(RootLink());
     }
 
-    inline IteratorRoundtrip BeginRoundtrip(const LinkType* link)
+    inline IteratorEulertour BeginEulertour(const LinkType* link)
     {
-        return IteratorRoundtrip(link);
+        return IteratorEulertour(link);
     }
 
-    inline IteratorRoundtrip BeginRoundtrip(const NodeType* node)
+    inline IteratorEulertour BeginEulertour(const NodeType* node)
     {
-        return IteratorRoundtrip(node->PrimaryLink());
+        return IteratorEulertour(node->PrimaryLink());
     }
 
-    inline IteratorRoundtrip EndRoundtrip()
+    inline IteratorEulertour EndEulertour()
     {
-        return IteratorRoundtrip(nullptr);
+        return IteratorEulertour(nullptr);
     }
 
-    inline ConstIteratorRoundtrip BeginRoundtrip() const
+    inline ConstIteratorEulertour BeginEulertour() const
     {
-        return ConstIteratorRoundtrip(RootLink());
+        return ConstIteratorEulertour(RootLink());
     }
 
-    inline ConstIteratorRoundtrip BeginRoundtrip(const LinkType* link) const
+    inline ConstIteratorEulertour BeginEulertour(const LinkType* link) const
     {
-        return ConstIteratorRoundtrip(link);
+        return ConstIteratorEulertour(link);
     }
 
-    inline ConstIteratorRoundtrip BeginRoundtrip(const NodeType* node) const
+    inline ConstIteratorEulertour BeginEulertour(const NodeType* node) const
     {
-        return ConstIteratorRoundtrip(node->PrimaryLink());
+        return ConstIteratorEulertour(node->PrimaryLink());
     }
 
-    inline ConstIteratorRoundtrip EndRoundtrip() const
+    inline ConstIteratorEulertour EndEulertour() const
     {
-        return ConstIteratorRoundtrip(nullptr);
+        return ConstIteratorEulertour(nullptr);
     }
 
     // -----------------------
@@ -575,7 +575,7 @@ public:
     std::string DumpLinks() const;
     std::string DumpNodes() const;
     std::string DumpEdges() const;
-    std::string DumpRoundtrip() const;
+    std::string DumpEulertour() const;
 
     // -----------------------------------------------------
     //     Data Members

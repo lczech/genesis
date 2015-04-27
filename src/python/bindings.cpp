@@ -7,26 +7,22 @@
 
 #include <boost/python.hpp>
 
-#include "genesis.hpp"
+//~ #include "genesis.hpp"
 
-// forward declarations of all exported classes
+// =============================================================================
+//     Forward declarations of all exported classes
+// =============================================================================
+
 void BoostPythonExport_Bitvector();
+
+// =============================================================================
+//     Boost Python Module
+// =============================================================================
 
 BOOST_PYTHON_MODULE(genesis)
 {
-    using namespace boost::python;
-    using namespace genesis;
+    //~ using namespace boost::python;
+    //~ using namespace genesis;
 
     BoostPythonExport_Bitvector();
-
-    //~ class_<Bitvector>("Bitvector", init<size_t>())
-        //~ .def("Get",  &Bitvector::Get)
-        //~ .def("Set",  (void(Bitvector::*)(size_t))       &Bitvector::Set)
-        //~ .def("Set",  (void(Bitvector::*)(size_t, bool)) &Bitvector::Set)
-        //~ .def("Dump", &Bitvector::Dump)
-    //~ ;
-
-    //~ class_<SequenceSet>("SequenceSet")
-        //~ .def("Dump",  &SequenceSet::Dump)
-    //~ ;
 }
