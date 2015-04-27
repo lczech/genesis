@@ -731,7 +731,7 @@ void PlacementMap::COG() const
  * items. However, when considering placements on a tree, this does not truly measure how far they
  * are from each other. Thus, this algorithm applies a different method of calculating the variance
  * in terms of squared deviations of all items from each other:
- * \f$ \operatorname{Var}(X) = \frac{1}{n^2} \sum_{i=1}^n \sum_{j=1}^n \frac{1}{2}(x_i - x_j)^2 \f$,
+ * \f$ Var(X) = \frac{1}{n^2} \sum_{i=1}^n \sum_{j=1}^n \frac{1}{2}(x_i - x_j)^2 \f$,
  * where \f$ (x_i - x_j) \f$ denotes the distance between two placements.
  *
  * This distance is calculated as the shortest path between the two placements. This includes the

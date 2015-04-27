@@ -1,0 +1,97 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+
+\title{Documentation for Developing Genesis}
+\author{Lucas Czech}
+
+\begin{document}
+\maketitle
+
+\section{Introduction}
+\label{sec:Introduction}
+
+This document contains information for developers who want to contribute to Genesis: Coding conventions, useful sources and resources, explanations of design decisions, etc.
+
+\section{GIT Repository}
+\label{sec:GitRepository}
+
+master only for merging in from branches that are compiling and working properly
+
+for every feature, create a branch named "feat/name", where name stands for a
+short name of the feature, e.g., do something like "git checkout -b feat/tree"
+
+bug fixes and similar short-term changes are done on brachnches named
+"fix/description"
+
+commit messages: use "new: " and "chg: " in front of the first line to mark
+those messages that are interesting for the changelog.
+more precicesly: add marks new features that were not there before and are now
+available in the api, chg marks changes that affect the api without adding
+functionality.
+
+first line is short desc, then empty line and more details if necessary.
+
+\section{Coding Conventions}
+\label{sec:CodingConventions}
+
+See \href{http://google-styleguide.googlecode.com/svn/trunk/cppguide.html}{http://google-styleguide.googlecode.com/svn/trunk/cppguide.html}
+
+logging:
+info: stuff that helps understanding, what the program does (dumps of data, read or write a file, ...)
+warn: something went wrong, we need to abort the step (read a file, parsing error in a file)
+err:  something went wrong, we cannot continue. should be rare.
+
+naming
+
+"from" and "to" for string based data and file access (also from string instead of parse string! parse is just the name of the class for the actual parser, not for the function called to populate an object or to process strings/tokens)
+load save for binary file access
+
+"process" for doing some stuff on input like strings or tokens. not tokenize, parse or so. keep it simple (and consistent)!
+
+write a validate function for checking integrity of data structures
+
+write a dump function to output a human-readable form
+
+important
+34. Prefer composition to inheritance.
+37. Public inheritance is substitutability. Inherit, not to reuse, but to be reused.
+
+44. Prefer writing nonmember nonfriend functions.
+
+use assert frequently!
+however, assert is only used to control if program invariants are actually invariant. this means, only check something that MUST ALWAYS be true -- this way it only fails if there is a bug in your code, which is then easier to track down. NOT for "very rare situations that should not actually appear"!
+example: put an assert(false) in a place that can only be reached when you forgot to handle a special case. this way, you will immediately know that you forgot this case once it appears.
+also, make an elaborate comment for each assert explaining why it actually has to be an invariant. this helps other people understanding your code.
+
+error messages: keep them short and to the scope -- leave the explanation of the scope to a higher level function.
+for example, when lexing some string fails, simply give the error "missing parenthesis at ..." and leave the part "lexing failed. message: ..." to the function that called the lexer.
+
+macros
+usually introduced by abbreviation GNS\_ to avoid name conflicts
+exception: LOG\_, because everything else would just look cumbersome
+
+\subsection{Comments}
+\label{sec:CodingConventions:sub:Comments}
+
+make many inline comments via //
+
+use docblock for classes, funcs, enums, ...
+
+TODO and FIXME: extract with make todo into TODO file
+
+use // === blocks for sectioning within a file
+
+\section{Architecture}
+\label{sec:Architecture}
+
+describes the general and bread arch of genesis, as a starting point for new
+developers
+
+for details of classes and functions, see api doc
+
+all file input and output is done via processors. the data structures themselves do not do any file
+stuff. this makes sure that they stay independent of the file format and concentrate on their functioning.
+the file processors then are able to parse files into the data structures and print them from there.
+
+\end{document}
