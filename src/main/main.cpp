@@ -68,7 +68,7 @@ int main (int argc, char* argv[])
     LOG_TIME << "started";
 
     Plausibility p;
-    p.do_it("largetree.txt", "reference-two-big.txt");
+    p.SpiderpigFunction("largetree.txt", "reference-two-big.txt");
 
     // =============================================================================
     //     Test cases for tree iterators

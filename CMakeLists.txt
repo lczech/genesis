@@ -45,7 +45,7 @@ option (BUILD_SHARED_LIB    "Build shared library" OFF)
 
 option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" OFF)
 option (BUILD_PYTHON_MODULE "Build Python module"  ON)
-option (BUILD_EXECUTABLE    "Build executable"     OFF)
+option (BUILD_EXECUTABLE    "Build executable"     ON)
 
 option (BUILD_TESTS         "Build test suites"    ON)
 
@@ -75,8 +75,10 @@ if (BUILD_SHARED_LIB)
     set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
 endif()
 
-add_executable        (genesis_bin_test ${genesis_lib_sources} ${PROJECT_SOURCE_DIR}/src/main/main.cpp)
-set_target_properties (genesis_bin_test PROPERTIES OUTPUT_NAME genesis)
+if (BUILD_EXECUTABLE)
+    add_executable        (genesis_bin_main ${genesis_lib_sources} ${PROJECT_SOURCE_DIR}/src/main/main.cpp)
+    set_target_properties (genesis_bin_main PROPERTIES OUTPUT_NAME genesis)
+endif()
 
 # --------------------------------------------------------------------
 #   Build Python Module
@@ -118,10 +120,10 @@ if (BUILD_PYTHON_MODULE OR BUILD_EXECUTABLE)
             set_target_properties (genesis_python_module PROPERTIES INSTALL_RPATH "$$ORIGIN")
         endif()
 
-        if (BUILD_EXECUTABLE)
-            add_executable        (genesis_bin ${genesis_lib_sources} ../src/main/main.cpp)
-            set_target_properties (genesis_bin PROPERTIES OUTPUT_NAME genesis)
-        endif()
+        #~ if (BUILD_EXECUTABLE)
+            #~ add_executable        (genesis_bin ${genesis_lib_sources} ../src/main/main.cpp)
+            #~ set_target_properties (genesis_bin PROPERTIES OUTPUT_NAME genesis)
+        #~ endif()
     else()
         message (STATUS "Python Lib or Boost Python not found, cannot build Python module")
     endif()
