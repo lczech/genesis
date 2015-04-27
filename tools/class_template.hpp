@@ -15,10 +15,10 @@ class ###CLASSNAME###
 public:
 
     // -----------------------------------------------------
-    //     Constructor and Typedefs
+    //     Constructor and Destructor
     // -----------------------------------------------------
 
-    ###CLASSNAME### ();
+    ###CLASSNAME###();
 
 };
 
