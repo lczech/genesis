@@ -37,6 +37,6 @@ man:
 # Remove all generated files
 clean:
 	@echo "\n========== Cleaning      =========="
-	-@$(RM) -r api/html api/latex
+	-@$(RM) -r api/html api/latex api/xml
 	-@$(RM) $(DEVTMP) dev/*.pdf
 	-@$(RM) doc-api.html doc-api.pdf doc-dev.pdf doc-man.pdf

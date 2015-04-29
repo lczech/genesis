@@ -17,8 +17,7 @@ void BoostPythonExport_Bitvector()
     boost::python::class_< Bitvector >( "Bitvector", boost::python::init< long unsigned int, boost::python::optional< bool > >(( boost::python::arg("size"), boost::python::arg("init")=(bool const)(false) )) )
         .def(
             "Count"
-            , (::size_t ( ::genesis::Bitvector::* )(  ) const)( &::genesis::Bitvector::Count )
-            , "Do some funny counting of bits and stuff.")
+            , (::size_t ( ::genesis::Bitvector::* )(  ) const)( &::genesis::Bitvector::Count ) )
         .def(
             "Dump"
             , (::std::string ( ::genesis::Bitvector::* )(  ) const)( &::genesis::Bitvector::Dump ) )
