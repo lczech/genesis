@@ -1,11 +1,14 @@
 #!/usr/bin/python
 
+import os
 import xml.etree.ElementTree
 
-#~ cpp over doxygen boost python binding generator
+#~ cpp over doxygen to boost python binding generator
 #~ codygen
 #~ copygen
 #~ codbpbg
+
+# TODO resolve typdefs
 
 # ==============================================================================
 #     Class: C++ Parameter
@@ -46,7 +49,7 @@ class CppFunction:
         return val
 
 # ==============================================================================
-#     Class: C++ class
+#     Class: C++ Class
 # ==============================================================================
 
 class CppClass:
@@ -73,6 +76,41 @@ class CppClass:
             self.operators.append(func)
         else:
             self.methods.append(func)
+
+# ==============================================================================
+#     Class: C++ Namespace
+# ==============================================================================
+
+class CppNamespace:
+    def __init__ (self, name):
+        self.name = name
+
+        self.namespaces = {}
+        self.classes    = {}
+        self.functions  = {}
+
+        self.briefdescription    = ""
+        self.detaileddescription = ""
+
+    def create_namespace (self, ns):
+        if ns is None:
+            return
+        if self.namespaces.has_key (ns):
+            return
+        self.namespaces[ns] = CppNamespace(ns)
+
+    def add_class (self, cls):
+        if cls is None:
+            return
+        if self.classes.has_key (cls.name):
+            print "Namespace", self.name, "already contains a class named", cls.name
+            return
+        self.classes[cls.name] = cls
+
+    def add_function (self, func):
+        if func is None:
+            return
+        self.functions[func.name] = func
 
 # ==============================================================================
 #     Class: Doxygen Reader
@@ -105,7 +143,8 @@ class DoxygenReader:
         for p in xml_elem.findall("param"):
             param = CppParameter()
             param.type = ''.join(p.find("type").itertext()).strip()
-            param.name = p.find("declname").text
+            if p.find("declname") is not None:
+                param.name = p.find("declname").text
             if p.find("defval") is not None:
                 param.value = p.find("defval").text
             func.params.append(param)
@@ -152,6 +191,33 @@ class DoxygenReader:
         classes = sorted(classes, key=lambda cls: cls.name)
         return classes
 
+    # ----------------------------------------------------------------
+    #     Parse Doxygen Index XML File
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def parse_index_xml (directory):
+        tree = xml.etree.ElementTree.parse(os.path.join(directory, "index.xml"))
+        root = tree.getroot()
+
+        ns_global = CppNamespace("")
+        for compound in root:
+            if compound.attrib["kind"] == "class":
+                cls_full_name = compound.find("name").text
+                cls_ns_list   = cls_full_name.split("::")
+                cls_name      = cls_ns_list.pop()
+
+                ns_local = ns_global
+                for ns in cls_ns_list:
+                    ns_local.create_namespace(ns)
+                    ns_local = ns_local.namespaces[ns]
+
+                xml_file = os.path.join(directory, compound.attrib["refid"] + ".xml")
+                for cls in DoxygenReader.parse_class_file (xml_file):
+                    ns_local.add_class (cls)
+
+        return ns_global
+
 # ==============================================================================
 #     Class: Boost Python Writer
 # ==============================================================================
@@ -159,13 +225,32 @@ class DoxygenReader:
 class BoostPythonWriter:
 
     # ----------------------------------------------------------------
-    #     Generate Header
+    #     Section Headers
     # ----------------------------------------------------------------
 
     @staticmethod
-    def generate_header (ctors):
-        if len(ctors) > 0:
-            ctor = ctors[0]
+    def make_section_header (symbol, title, indent = 0, length = 80):
+        val  = "\n" + " " * indent + "// " + symbol * (length-3) + "\n"
+        val += " " * indent + "//     " + title + "\n"
+        val += " " * indent + "// " + symbol * (length-3) + "\n\n"
+        return val
+
+    @staticmethod
+    def make_section_header_major (title, indent = 0, length = 80):
+        return BoostPythonWriter.make_section_header ("=", title, indent, length)
+
+    @staticmethod
+    def make_section_header_minor(title, indent = 4, length = 70):
+        return BoostPythonWriter.make_section_header ("-", title, indent, length)
+
+    # ----------------------------------------------------------------
+    #     Generate Class Header
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def generate_class_header (cls):
+        if len(cls.ctors) > 0:
+            ctor = cls.ctors[0]
             ctor_val  = ", boost::python::init< "
             ctor_val += ', '.join (
                 (param.type if param.value == "" else "boost::python::optional< " + param.type + " >")
@@ -186,16 +271,16 @@ class BoostPythonWriter:
         return "    boost::python::class_< " + cls.name + " > ( \"" + cls.name + "\"" + ctor_val + " )\n"
 
     # ----------------------------------------------------------------
-    #     Generate Methods
+    #     Generate Class Methods
     # ----------------------------------------------------------------
 
     @staticmethod
-    def generate_methods (methods):
-        if len(methods) == 0:
+    def generate_class_methods (cls):
+        if len(cls.methods) == 0:
             return ""
 
         val = "\n        // Public Member Functions\n\n"
-        for func in methods:
+        for func in cls.methods:
             val += "        .def(\n"
             val += "            \"" + func.name + "\",\n"
             val += "            ( " + func.type + " ( " + cls.name + "::*" + " )( "
@@ -222,7 +307,7 @@ class BoostPythonWriter:
         return val
 
     # ----------------------------------------------------------------
-    #     Generate Operators
+    #     Generate Class Operators
     # ----------------------------------------------------------------
 
    # TODO need to add friend (non-member) operators: http://www.boost.org/doc/libs/1_35_0/libs/python/doc/v2/operators.html
@@ -245,13 +330,13 @@ class BoostPythonWriter:
         return None
 
     @staticmethod
-    def generate_operators (operators):
-        if len(operators) == 0:
+    def generate_class_operators (cls):
+        if len(cls.operators) == 0:
             return ""
 
         # TODO missing doc strings here!
         val = "\n        // Operators\n\n"
-        for operator in operators:
+        for operator in cls.operators:
             op_class = BoostPythonWriter.classify_operator(operator)
             if op_class is None:
                 print "Unknown operator:", operator.name
@@ -290,24 +375,54 @@ class BoostPythonWriter:
         return val
 
     # ----------------------------------------------------------------
+    #     Generate Class
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def generate_class (cls):
+        val = BoostPythonWriter.make_section_header_minor ("Class " + cls.name)
+        val += BoostPythonWriter.generate_class_header (cls)
+        val += BoostPythonWriter.generate_class_methods (cls)
+        val += BoostPythonWriter.generate_class_operators (cls)
+        val += "    ;"
+        return val
+
+    # ----------------------------------------------------------------
+    #     Generate Namespace
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def generate_namespace (namespace):
+        val = ""
+
+        if len(namespace.classes) > 0:
+            val += BoostPythonWriter.make_section_header_major ("Classes")
+        for name in sorted(namespace.classes):
+            val += BoostPythonWriter.generate_class (namespace.classes[name]) + "\n"
+
+        for name in sorted(namespace.namespaces):
+            val += BoostPythonWriter.make_section_header_major ("Namespace " + name)
+            val += BoostPythonWriter.generate_namespace (namespace.namespaces[name]) + "\n"
+        return val
+
+    # ----------------------------------------------------------------
     #     Generate
     # ----------------------------------------------------------------
 
     @staticmethod
-    def generate (cls):
-        val  = BoostPythonWriter.generate_header (cls.ctors)
-        val += BoostPythonWriter.generate_methods (cls.methods)
-        val += BoostPythonWriter.generate_operators (cls.operators)
-        val += "    ;"
-        return val
+    def generate (namespace):
+        return BoostPythonWriter.generate_namespace (namespace)
 
 # ==============================================================================
 #     Main
 # ==============================================================================
 
 if __name__ == "__main__":
-    classes = DoxygenReader.parse_class_file ("classgenesis_1_1Bitvector.xml")
+    hierarchy = DoxygenReader.parse_index_xml ("../doc/api/xml")
+    print BoostPythonWriter.generate (hierarchy)
+    exit()
 
+    classes = DoxygenReader.parse_class_file ("../doc/api/xml/classgenesis_1_1Bitvector.xml")
     for cls in classes:
         cls.methods = sorted(cls.methods, key=lambda member: str.lower(member.name))
         print BoostPythonWriter.generate(cls)
