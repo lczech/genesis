@@ -1,6 +1,7 @@
 #!/usr/bin/python
 
 import os
+import re
 import xml.etree.ElementTree
 
 #~ cpp over doxygen to boost python binding generator
@@ -9,6 +10,14 @@ import xml.etree.ElementTree
 #~ codbpbg
 
 # TODO resolve typdefs
+
+# ==============================================================================
+#     Helper Functions
+# ==============================================================================
+
+def CamelCaseToUnderscore(name):
+    s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
+    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
 # ==============================================================================
 #     Class: C++ Parameter
@@ -54,6 +63,19 @@ class CppFunction:
         return val
 
 # ==============================================================================
+#     Class: C++ Iterator
+# ==============================================================================
+
+class CppIterator:
+    # TODO add iterators with parameters
+    def __init__ (self):
+        self.parent = None
+        self.name   = ""
+
+        self.begin  = ""
+        self.end    = ""
+
+# ==============================================================================
 #     Class: C++ Class
 # ==============================================================================
 
@@ -67,6 +89,7 @@ class CppClass:
 
         self.methods   = []
         self.operators = []
+        self.iterators = []
 
         self.briefdescription    = ""
         self.detaileddescription = ""
@@ -85,6 +108,56 @@ class CppClass:
             self.operators.append(func)
         else:
             self.methods.append(func)
+
+    def add_named_iterator (self, py_name, begin, end):
+        it = CppIterator()
+        it.parent = self
+        it.name   = py_name
+        it.begin  = begin
+        it.end    = end
+        self.iterators.append(it)
+
+    def add_iterator (self, begin="begin", end="end"):
+        self.add_named_iterator("__iter__", begin, end)
+
+    def extract_iterators (self, named = False):
+        """Extracts iterators from the class methods list. Typically, these are functions
+        named 'begin' and 'end'. If named==True, all methods starting with '[Bb]egin...'
+        and '[Ee]nd...' are extracted as iterators."""
+
+        method_names = [func.name for func in self.methods]
+
+        # process default iterators
+        if "begin" in method_names and "end" in method_names:
+            self.add_iterator()
+            self.methods[:] = [f for f in self.methods if not f.name in [ "begin", "end" ]]
+
+        # continue only if we want to extract all named iterators
+        if not named:
+            return
+
+        # process all iterators starting with "begin..."
+        extracted_iters = []
+        for mn in method_names:
+            if not mn.lower().startswith("begin"):
+                continue
+            it_name = mn[5:]
+
+            # do not extract if no appropriate end function present
+            if "end" + it_name not in method_names and "End" + it_name not in method_names:
+                continue
+
+            # extract each iterator only once
+            if it_name in extracted_iters:
+                continue
+            else:
+                extracted_iters.append(it_name)
+
+            begin_name = mn
+            end_name   = re.sub('^begin', 'end', re.sub('^Begin', 'End', mn))
+
+            self.add_named_iterator(it_name, begin_name, end_name)
+            self.methods[:] = [f for f in self.methods if not f.name in [ begin_name, end_name ]]
 
 # ==============================================================================
 #     Class: C++ Namespace
@@ -127,6 +200,12 @@ class CppNamespace:
         if func is None:
             return
         self.functions[func.name] = func
+
+    def extract_iterators (self, named = False):
+        for cls in self.classes:
+            self.classes[cls].extract_iterators(named)
+        for ns in self.namespaces:
+            self.namespaces[ns].extract_iterators(named)
 
 # ==============================================================================
 #     Class: Doxygen Reader
@@ -231,7 +310,9 @@ class DoxygenReader:
                 ns_local = ns_global
                 for ns in cls_ns_list:
                     ns_local.create_namespace(ns)
+                    ns_tmp   = ns_local
                     ns_local = ns_local.namespaces[ns]
+                    ns_local.parent = ns_tmp
 
                 xml_file = os.path.join(directory, compound.attrib["refid"] + ".xml")
                 for cls in DoxygenReader.parse_class_file (xml_file):
@@ -298,7 +379,7 @@ class BoostPythonWriter:
             ctor_val  = ", " + BoostPythonWriter.generate_class_constructor(cls.ctors[0])
         else:
             ctor_val  = ""
-        val  = "    boost::python::class_< " + cls.name + " > "
+        val  = "    boost::python::class_< " + cls.cpp_full_name() + " > "
         val += "( \"" + cls.name + "\"" + ctor_val + " )\n"
         if len(cls.ctors) > 1:
             for i in range(1, len(cls.ctors)):
@@ -402,6 +483,30 @@ class BoostPythonWriter:
         return val
 
     # ----------------------------------------------------------------
+    #     Generate Class Iterators
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def generate_class_iterators (cls):
+        if len(cls.iterators) == 0:
+            return ""
+
+        # TODO missing doc strings here!
+        # TODO add iterators with parameters
+        val = "\n        // Iterators\n\n"
+        for it in cls.iterators:
+            if it.name == "__iter__":
+                val += "        .def"
+            else:
+                val += "        .add_property"
+            val += "(\n            \"" + it.name + "\",\n            boost::python::range ( &"
+            val += it.parent.cpp_full_name() + "::" + it.begin + ", &"
+            val += it.parent.cpp_full_name() + "::" + it.end
+            val += " )\n        )\n"
+
+        return val
+
+    # ----------------------------------------------------------------
     #     Generate Class
     # ----------------------------------------------------------------
 
@@ -411,6 +516,7 @@ class BoostPythonWriter:
         val += BoostPythonWriter.generate_class_header (cls)
         val += BoostPythonWriter.generate_class_methods (cls)
         val += BoostPythonWriter.generate_class_operators (cls)
+        val += BoostPythonWriter.generate_class_iterators (cls)
         val += "    ;"
         return val
 
@@ -446,6 +552,7 @@ class BoostPythonWriter:
 
 if __name__ == "__main__":
     hierarchy = DoxygenReader.parse_index_xml ("../doc/api/xml")
+    hierarchy.extract_iterators(True)
     print BoostPythonWriter.generate (hierarchy)
     exit()
 
