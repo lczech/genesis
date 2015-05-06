@@ -10,6 +10,7 @@ import xml.etree.ElementTree
 #~ codbpbg
 
 # TODO resolve typdefs
+# TODO return policies
 
 # ==============================================================================
 #     Helper Functions
@@ -94,6 +95,8 @@ class CppClass:
         self.briefdescription    = ""
         self.detaileddescription = ""
 
+        self.location = ""
+
     def cpp_full_name (self):
         return self.parent.cpp_full_name() + "::" + self.name
 
@@ -158,6 +161,41 @@ class CppClass:
             self.add_named_iterator(it_name, begin_name, end_name)
             self.methods[:] = [f for f in self.methods if f.name not in [ begin_name, end_name ]]
 
+    def dump (self, indent=0):
+        in_str0 = " " * 4 * indent
+        in_str1 = " " * 4 * (indent + 1)
+        in_str2 = " " * 4 * (indent + 2)
+
+        print in_str0 + "Class " + self.name
+        print in_str1 + "@ " + self.location
+        if self.briefdescription != "":
+            print in_str1 + self.briefdescription.strip()
+
+        if len(self.ctors) > 0:
+            print in_str1 + "Constructors:"
+            for ctor in self.ctors:
+                print in_str2 + ctor.cpp_string()
+
+        if len(self.dtors) > 0:
+            print in_str1 + "Destructors:"
+            for dtor in self.dtors:
+                print in_str2 + dtor.cpp_string()
+
+        if len(self.methods) > 0:
+            print in_str1 + "Methods:"
+            for m in self.methods:
+                print in_str2 + m.cpp_string()
+
+        if len(self.operators) > 0:
+            print in_str1 + "Operators:"
+            for o in self.operators:
+                print in_str2 + o.cpp_string()
+
+        if len(self.iterators) > 0:
+            print in_str1 + "Iterators:"
+            for it in self.iterators:
+                print in_str2 + it.name
+
 # ==============================================================================
 #     Class: C++ Namespace
 # ==============================================================================
@@ -205,6 +243,38 @@ class CppNamespace:
             self.classes[cls].extract_iterators(named)
         for ns in self.namespaces:
             self.namespaces[ns].extract_iterators(named)
+
+    def get_file_locations (self):
+        locations = []
+        for cls in self.classes:
+            locations.append(self.classes[cls].location)
+        for ns in self.namespaces:
+            for loc in self.namespaces[ns].get_file_locations():
+                locations.append(loc)
+        return locations
+
+    def get_location_prefix (self):
+        return os.path.commonprefix(self.get_file_locations())
+
+    def shorten_location_prefix (self, prefix = ""):
+        if prefix == "":
+            prefix = self.get_location_prefix()
+
+        for cls in self.classes:
+            if not self.classes[cls].location.startswith(prefix):
+                print "Location of class", cls, "does not start with prefix", prefix
+                continue
+            self.classes[cls].location = self.classes[cls].location[len(prefix):]
+
+        for ns in self.namespaces:
+            self.namespaces[ns].shorten_location_prefix()
+
+    def dump (self, indent=0):
+        print " " * 4 * indent + "Namespace " + self.name
+        for ns in self.namespaces:
+            self.namespaces[ns].dump(indent+1)
+        for cls in self.classes:
+            self.classes[cls].dump(indent+1)
 
 # ==============================================================================
 #     Class: Doxygen Reader
@@ -285,17 +355,18 @@ class DoxygenReader:
                     func.parent = cls
                     cls.add_function (func)
 
+            cls.location = compound.find("location").attrib["file"]
             classes.append(cls)
 
         classes = sorted(classes, key=lambda cls: cls.name)
         return classes
 
     # ----------------------------------------------------------------
-    #     Parse Doxygen Index XML File
+    #     Parse Doxygen Index
     # ----------------------------------------------------------------
 
     @staticmethod
-    def parse_index_xml (directory):
+    def parse (directory):
         tree = xml.etree.ElementTree.parse(os.path.join(directory, "index.xml"))
         root = tree.getroot()
 
@@ -542,6 +613,10 @@ class BoostPythonWriter:
     # ----------------------------------------------------------------
 
     @staticmethod
+    def generate_files (namespace, directory):
+        pass
+
+    @staticmethod
     def generate (namespace):
         return BoostPythonWriter.generate_namespace (namespace)
 
@@ -550,8 +625,9 @@ class BoostPythonWriter:
 # ==============================================================================
 
 if __name__ == "__main__":
-    hierarchy = DoxygenReader.parse_index_xml ("../doc/api/xml")
+    hierarchy = DoxygenReader.parse ("../doc/api/xml")
     hierarchy.extract_iterators(True)
+    hierarchy.shorten_location_prefix()
     print BoostPythonWriter.generate (hierarchy)
     exit()
 
