@@ -120,31 +120,33 @@ class CppClass:
     def add_iterator (self, begin="begin", end="end"):
         self.add_named_iterator("__iter__", begin, end)
 
-    def extract_iterators (self, named = False):
+    def extract_iterators (self, all_named = False):
         """Extracts iterators from the class methods list. Typically, these are functions
-        named 'begin' and 'end'. If named==True, all methods starting with '[Bb]egin...'
+        named 'begin' and 'end'. If all_named==True, all methods starting with '[Bb]egin...'
         and '[Ee]nd...' are extracted as iterators."""
 
-        method_names = [func.name for func in self.methods]
-
         # process default iterators
+        method_names = [func.name for func in self.methods]
         if "begin" in method_names and "end" in method_names:
             self.add_iterator()
-            self.methods[:] = [f for f in self.methods if not f.name in [ "begin", "end" ]]
+            self.methods[:] = [f for f in self.methods if f.name not in [ "begin", "end" ]]
 
         # continue only if we want to extract all named iterators
-        if not named:
+        if not all_named:
             return
 
-        # process all iterators starting with "begin..."
+        # process all iterators starting with "[Bb]egin..." and "[Ee]nd..."
         extracted_iters = []
         for mn in method_names:
-            if not mn.lower().startswith("begin"):
+            if not mn.lower().startswith("begin") or mn == "begin":
                 continue
-            it_name = mn[5:]
+
+            it_name    = mn[5:].strip('_')
+            begin_name = mn
+            end_name   = re.sub('^begin', 'end', re.sub('^Begin', 'End', mn))
 
             # do not extract if no appropriate end function present
-            if "end" + it_name not in method_names and "End" + it_name not in method_names:
+            if end_name not in method_names:
                 continue
 
             # extract each iterator only once
@@ -153,11 +155,8 @@ class CppClass:
             else:
                 extracted_iters.append(it_name)
 
-            begin_name = mn
-            end_name   = re.sub('^begin', 'end', re.sub('^Begin', 'End', mn))
-
             self.add_named_iterator(it_name, begin_name, end_name)
-            self.methods[:] = [f for f in self.methods if not f.name in [ begin_name, end_name ]]
+            self.methods[:] = [f for f in self.methods if f.name not in [ begin_name, end_name ]]
 
 # ==============================================================================
 #     Class: C++ Namespace
