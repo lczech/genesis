@@ -233,6 +233,15 @@ class CppNamespace:
             return
         self.classes[cls.name] = cls
 
+    def get_all_classes (self):
+        classlist = []
+        for cls in self.classes:
+            classlist.append(self.classes[cls])
+        for ns in self.namespaces:
+            for cls in self.namespaces[ns].get_all_classes():
+                classlist.append(cls)
+        return classlist
+
     def add_function (self, func):
         if func is None:
             return
@@ -613,8 +622,55 @@ class BoostPythonWriter:
     # ----------------------------------------------------------------
 
     @staticmethod
-    def generate_files (namespace, directory):
-        pass
+    def generate_files (namespace, directory, module_name):
+        class ExportFile:
+            def __init__ (self):
+                self.includes      = []
+                self.class_strings = {}
+
+        export_files = {}
+        for cls in namespace.get_all_classes():
+            cls_str  = BoostPythonWriter.generate_class(cls)
+            cls_file = os.path.splitext(cls.location)[0] + ".cpp"
+
+            if not export_files.has_key(cls_file):
+                export_files[cls_file] = ExportFile()
+
+            export_files[cls_file].includes.append(cls.location)
+            export_files[cls_file].class_strings[cls.name] = cls_str
+
+        for fn, exp in export_files.iteritems():
+            fn = os.path.join(directory, fn)
+            if not os.path.exists(os.path.dirname(fn)):
+                os.makedirs(os.path.dirname(fn))
+
+            f = open(fn, 'w')
+            f.write ("#include <boost/python.hpp>\n")
+            for inc in set(exp.includes):
+                f.write ("#include \"" + inc + "\"\n")
+            f.write ("\n")
+
+            for cls_name, cls_str in exp.class_strings.iteritems():
+                f.write ("void BoostPythonExport_" + cls_name + "()\n{")
+                f.write (cls_str)
+                f.write ("\n}\n\n")
+            f.close()
+
+        fn = os.path.join(directory, "bindings.cpp")
+        f = open(fn, 'w')
+        f.write ("#include <boost/python.hpp>\n")
+        f.write (BoostPythonWriter.make_section_header_major("Forward declarations of all exported classes"))
+        for fn, exp in export_files.iteritems():
+             for cls_name, cls_str in exp.class_strings.iteritems():
+                 f.write ("void BoostPythonExport_" + cls_name + "();\n")
+
+        f.write (BoostPythonWriter.make_section_header_major("Boost Python Module"))
+        f.write ("BOOST_PYTHON_MODULE(" + module_name + ")\n{\n")
+        for fn, exp in export_files.iteritems():
+             for cls_name, cls_str in exp.class_strings.iteritems():
+                 f.write ("    BoostPythonExport_" + cls_name + "();\n")
+        f.write ("}\n")
+        f.close()
 
     @staticmethod
     def generate (namespace):
@@ -628,21 +684,5 @@ if __name__ == "__main__":
     hierarchy = DoxygenReader.parse ("../doc/api/xml")
     hierarchy.extract_iterators(True)
     hierarchy.shorten_location_prefix()
-    print BoostPythonWriter.generate (hierarchy)
-    exit()
-
-    classes = DoxygenReader.parse_class_file ("../doc/api/xml/classgenesis_1_1Bitvector.xml")
-    for cls in classes:
-        cls.methods = sorted(cls.methods, key=lambda member: str.lower(member.name))
-        print BoostPythonWriter.generate(cls)
-    exit()
-
-    for cls in classes:
-        for ctor in cls.ctors:
-            print ctor.cpp_string()
-        for dtor in cls.dtors:
-            print dtor.cpp_string()
-        for func in cls.methods:
-            print func.cpp_string()
-        for op in cls.operators:
-            print op.cpp_string()
+    #~ print BoostPythonWriter.generate (hierarchy)
+    BoostPythonWriter.generate_files (hierarchy, "test", "genesis")
