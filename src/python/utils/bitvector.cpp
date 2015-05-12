@@ -11,10 +11,8 @@
 
 void BoostPythonExport_Bitvector()
 {
-    using namespace boost::python;
-    using namespace genesis;
 
-    boost::python::class_< Bitvector >( "Bitvector", boost::python::init< long unsigned int, boost::python::optional< bool > >(( boost::python::arg("size"), boost::python::arg("init")=(bool const)(false) )) )
+    boost::python::class_< ::genesis::Bitvector >( "Bitvector", boost::python::init< long unsigned int, boost::python::optional< bool > >(( boost::python::arg("size"), boost::python::arg("init")=(bool const)(false) )) )
         .def(
             "Count"
             , (::size_t ( ::genesis::Bitvector::* )(  ) const)( &::genesis::Bitvector::Count ) )
@@ -96,4 +94,5 @@ void BoostPythonExport_Bitvector()
         .def( boost::python::self ^ boost::python::self )
         .def( boost::python::self | boost::python::self )
     ;
+
 }

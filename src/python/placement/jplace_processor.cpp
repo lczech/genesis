@@ -85,10 +85,8 @@ void BoostPythonExport_JplaceProcessor()
 
 void BoostPythonExport_JplaceProcessor()
 {
-    using namespace boost::python;
-    using namespace genesis;
 
-    boost::python::class_< JplaceProcessor > ( "JplaceProcessor" )
+    boost::python::class_< ::genesis::JplaceProcessor > ( "JplaceProcessor" )
 
         // Public Member Functions
 

@@ -322,124 +322,183 @@ typedef struct {
  */
 class Logging
 {
-    public:
-        /**
-         * @brief Levels of severity used for logging.
-         *
-         * The levels are in ascending order and are used both to signal what
-         * kind of message is being logged and to provide a threshold for less
-         * important messages that can be filtered out, for example debug
-         * messages in the production build of the program. Because some of the
-         * filtering is already done at compile time, log messages with a level
-         * higher than #LOG_LEVEL_MAX do not produce any overhead. See also
-         * Logging class for more on this.
-         */
-        enum LoggingLevel {
-            /** @brief Special messages that are always logged, e.g. program header. */
-            kNone = 0,
+public:
 
-            /** @brief Errors, usually non-recoverable. See #LOG_ERR. */
-            kError,
+    // -------------------------------------------------------------------
+    //     Class Functions
+    // -------------------------------------------------------------------
 
-            /** @brief Warnings if somthing went wront, but program can continue. See #LOG_WARN. */
-            kWarning,
+    /**
+     * @brief Levels of severity used for logging.
+     *
+     * The levels are in ascending order and are used both to signal what
+     * kind of message is being logged and to provide a threshold for less
+     * important messages that can be filtered out, for example debug
+     * messages in the production build of the program. Because some of the
+     * filtering is already done at compile time, log messages with a level
+     * higher than #LOG_LEVEL_MAX do not produce any overhead. See also
+     * Logging class for more on this.
+     */
+    enum LoggingLevel {
+        /** @brief Special messages that are always logged, e.g. program header. */
+        kNone = 0,
 
-            /** @brief Infos, for example when a file was written. See #LOG_INFO. */
-            kInfo,
+        /** @brief Errors, usually non-recoverable. See #LOG_ERR. */
+        kError,
 
-            /** @brief Progess, used in long executing functions. See #LOG_PROG. */
-            kProgress,
+        /** @brief Warnings if somthing went wront, but program can continue. See #LOG_WARN. */
+        kWarning,
 
-            /** @brief Basic debugging message. See #LOG_DBG. */
-            kDebug,
+        /** @brief Infos, for example when a file was written. See #LOG_INFO. */
+        kInfo,
 
-            /** @brief Debugging message with indent level 1 (e.g. for loops). See #LOG_DBG1. */
-            kDebug1,
+        /** @brief Progess, used in long executing functions. See #LOG_PROG. */
+        kProgress,
 
-            /** @brief Debugging message with indent level 2. See #LOG_DBG2. */
-            kDebug2,
+        /** @brief Basic debugging message. See #LOG_DBG. */
+        kDebug,
 
-            /** @brief Debugging message with indent level 3. See #LOG_DBG3. */
-            kDebug3,
+        /** @brief Debugging message with indent level 1 (e.g. for loops). See #LOG_DBG1. */
+        kDebug1,
 
-            /** @brief Debugging message with indent level 4. See #LOG_DBG4. */
-            kDebug4
-        };
+        /** @brief Debugging message with indent level 2. See #LOG_DBG2. */
+        kDebug2,
 
-        Logging() {};
-        ~Logging();
+        /** @brief Debugging message with indent level 3. See #LOG_DBG3. */
+        kDebug3,
 
-        // Logging is kind of singleton, its instances are only provided via the
-        // Get functions. do not allow other instances by blocking the copy
-        // constructors and copy assignment
-        Logging (const Logging&) = delete;
-        Logging& operator = (const Logging&) = delete;
+        /** @brief Debugging message with indent level 4. See #LOG_DBG4. */
+        kDebug4
+    };
 
-        // getter for the singleton instance of log, is called by the macros
-        std::ostringstream& Get (
-            const std::string& file, const int line, const std::string& function,
-            const LoggingLevel level
-        );
-        std::ostringstream& Get (
-            const std::string& file, const int line, const std::string& function,
-            const LoggingLevel level, const LoggingDetails dets
-        );
+    Logging() {};
+    ~Logging();
 
-        // TODO make logging accept one file, and a setter for cout and for cerr
-        // TODO allow different levels to be logged to different streams?!
-        // methods to handle the output streams to write the log messages to
-        static void AddOutputStream (std::ostream& os);
-        static void AddOutputFile   (const std::string& fn);
+    // Logging is kind of singleton, its instances are only provided via the
+    // Get functions. do not allow other instances by blocking the copy
+    // constructors and copy assignment
+    Logging (const Logging&) {};
+    Logging& operator = (const Logging&) = delete;
 
-        /**
-         * @brief Settings for which information is included with each log message.
-         * See LoggingDetails for usage.
-         */
-        static LoggingDetails details;
+    // getter for the singleton instance of log, is called by the macros
+    std::ostringstream& Get (
+        const std::string& file, const int line, const std::string& function,
+        const LoggingLevel level
+    );
+    std::ostringstream& Get (
+        const std::string& file, const int line, const std::string& function,
+        const LoggingLevel level, const LoggingDetails dets
+    );
 
-        /** @brief Get the highest log level that is reported. */
-        static inline LoggingLevel max_level ()
-        {
-            return max_level_;
-        }
-        static void max_level (const LoggingLevel level);
+    // -------------------------------------------------------------------
+    //     Logging Settings
+    // -------------------------------------------------------------------
 
-        /** @brief Get the current percentage for reporting #LOG_PROG messages. */
-        static inline int report_percentage ()
-        {
-            return report_percentage_;
-        }
-        static void report_percentage (const int percentage);
+    // TODO make logging accept one file, and a setter for cout and for cerr
+    // TODO allow different levels to be logged to different streams?!
 
-        // return a string representation for a log level
-        static std::string LevelToString (const LoggingLevel level);
+    // methods to handle the output streams to write the log messages to
+    static void LogToStdout ();
+    static void LogToStream (std::ostream& os);
+    static void LogToFile   (const std::string& fn);
 
-        /** @brief Indention string for Debug Levels 1-4. */
-        static std::string debug_indent;
+    /**
+     * @brief Settings for which information is included with each log message.
+     * See LoggingDetails for usage.
+     */
+    static LoggingDetails details;
 
-    protected:
-        // storage for information needed during one invocation of a log
-        std::ostringstream buff_;
-        std::string        file_;
-        int                line_;
-        std::string        function_;
-        LoggingLevel       level_;
-        LoggingDetails     details_;
+    /** @brief Get the highest log level that is reported. */
+    static inline LoggingLevel max_level ()
+    {
+        return max_level_;
+    }
+    static void max_level (const LoggingLevel level);
 
-        // dynamic log level limit
-        static LoggingLevel max_level_;
+    /** @brief Get the current percentage for reporting #LOG_PROG messages. */
+    static inline int report_percentage ()
+    {
+        return report_percentage_;
+    }
+    static void report_percentage (const int percentage);
 
-        // how often to report progress messages
-        static int report_percentage_;
+    // return a string representation for a log level
+    static std::string LevelToString (const LoggingLevel level);
 
-        // how many log calls were made so far
-        static long    count_;
+    /** @brief Indention string for Debug Levels 1-4. */
+    static std::string debug_indent;
 
-        // when was the last call to logging (used for time measurements)
-        static clock_t last_clock_;
+    // -------------------------------------------------------------------
+    //     Static Wrappers
+    // -------------------------------------------------------------------
 
-        // array of streams that are used for output
-        static std::vector<std::ostream*> ostreams_;
+    static inline void LogError (const std::string& msg)
+    {
+        LOG_ERR << msg;
+    }
+
+    static inline void LogWarning (const std::string& msg)
+    {
+        LOG_WARN << msg;
+    }
+
+    static inline void LogInfo (const std::string& msg)
+    {
+        LOG_INFO << msg;
+    }
+
+    static inline void LogDebug (const std::string& msg)
+    {
+        LOG_DBG << msg;
+    }
+
+    static inline void LogDebug1 (const std::string& msg)
+    {
+        LOG_DBG1 << msg;
+    }
+
+    static inline void LogDebug2 (const std::string& msg)
+    {
+        LOG_DBG2 << msg;
+    }
+
+    static inline void LogDebug3 (const std::string& msg)
+    {
+        LOG_DBG3 << msg;
+    }
+
+    static inline void LogDebug4 (const std::string& msg)
+    {
+        LOG_DBG4 << msg;
+    }
+
+    // -------------------------------------------------------------------
+    //     Internal Data Members
+    // -------------------------------------------------------------------
+
+protected:
+    // storage for information needed during one invocation of a log
+    std::ostringstream buff_;
+    std::string        file_;
+    int                line_;
+    std::string        function_;
+    LoggingLevel       level_;
+    LoggingDetails     details_;
+
+    // dynamic log level limit
+    static LoggingLevel max_level_;
+
+    // how often to report progress messages
+    static int report_percentage_;
+
+    // how many log calls were made so far
+    static long    count_;
+
+    // when was the last call to logging (used for time measurements)
+    static clock_t last_clock_;
+
+    // array of streams that are used for output
+    static std::vector<std::ostream*> ostreams_;
 };
 
 /*

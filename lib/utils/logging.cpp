@@ -96,9 +96,25 @@ std::string Logging::LevelToString(const LoggingLevel level)
 }
 
 /**
+ * @brief Add stdout as output stream to which log messages are written.
+ */
+void Logging::LogToStdout ()
+{
+    // check whether stdout was already added.
+    for (std::ostream* os : ostreams_) {
+        if (os == &std::cout) {
+            return;
+        }
+    }
+
+    // if not, add it as output stream.
+    ostreams_.push_back (&std::cout);
+}
+
+/**
  * @brief Add an output stream to which log messages are written.
  */
-void Logging::AddOutputStream (std::ostream& os)
+void Logging::LogToStream (std::ostream& os)
 {
     ostreams_.push_back (&os);
 }
@@ -108,7 +124,7 @@ void Logging::AddOutputStream (std::ostream& os)
  *
  * This creates a stream to the file.
  */
-void Logging::AddOutputFile (const std::string& fn)
+void Logging::LogToFile (const std::string& fn)
 {
     // TODO the log file stream is never deleted. this is not a big leak,
     // as commonly only one file is used for logging, but still is a smell.
