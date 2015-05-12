@@ -103,6 +103,10 @@ void BoostPythonExport_PlacementMap()
             //~ "Calculates the Earth Movers Distance between two sets of placements on a fixed reference tree."
         //~ )
         //~ .staticmethod("EMD")
+
+        // Public Member Variables
+
+        .def_readonly("tree", &::genesis::PlacementMap::tree)
     ;
 
 }

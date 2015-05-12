@@ -8,12 +8,12 @@
 #include <boost/python.hpp>
 
 #include "placement/placement_tree.hpp"
+#include "tree/newick_processor.hpp"
 
 void BoostPythonExport_PlacementTree()
 {
     using namespace boost::python;
     using namespace genesis;
-
 
     boost::python::class_< PlacementTree > ( "PlacementTree" )
 
@@ -366,4 +366,50 @@ void BoostPythonExport_PlacementTree()
 
     ;
 
+}
+
+void BoostPythonExport_PlacementTree_NewickProcessor()
+{
+    // -------------------------------------------------------------------
+    //     Class NewickProcessor
+    // -------------------------------------------------------------------
+
+    boost::python::class_< ::genesis::NewickProcessor > ( "PlacementTreeNewickProcessor" )
+
+        // Public Member Functions
+
+        .def(
+            "FromFile",
+            ( bool ( * )( const std::string, ::genesis::PlacementTree& ))( &::genesis::NewickProcessor::FromFile ),
+            ( boost::python::arg("fn"), boost::python::arg("tree") )
+        )
+        .staticmethod("FromFile")
+        .def(
+            "FromString",
+            ( bool ( * )( const std::string, ::genesis::PlacementTree& ))( &::genesis::NewickProcessor::FromString ),
+            ( boost::python::arg("ts"), boost::python::arg("tree") )
+        )
+        .staticmethod("FromString")
+
+        .def(
+            "ToFile",
+            ( bool ( * )( const std::string, const ::genesis::PlacementTree& ))( &::genesis::NewickProcessor::ToFile ),
+            ( boost::python::arg("fn"), boost::python::arg("tree") )
+        )
+        .staticmethod("ToFile")
+        .def(
+            "ToString",
+            ( std::string ( * )( const ::genesis::PlacementTree& ))( &::genesis::NewickProcessor::ToString ),
+            ( boost::python::arg("tree") )
+        )
+        .staticmethod("ToString")
+
+        // Public Member Variables
+
+        .def_readwrite("print_names",          &::genesis::NewickProcessor::print_names)
+        .def_readwrite("print_branch_lengths", &::genesis::NewickProcessor::print_branch_lengths)
+        .def_readwrite("print_comments",       &::genesis::NewickProcessor::print_comments)
+        .def_readwrite("print_tags",           &::genesis::NewickProcessor::print_tags)
+
+    ;
 }

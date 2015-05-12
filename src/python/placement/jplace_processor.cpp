@@ -117,37 +117,19 @@ void BoostPythonExport_JplaceProcessor()
             "Parses a string as a Jplace document into a PlacementMap object."
         )
         .staticmethod("FromString")
-        //~ .def(
-            //~ "FromDocument",
-            //~ &JplaceProcessor::FromDocument,
-            //~ ( boost::python::arg("doc"), boost::python::arg("placements") ),
-            //~ "Takes a JsonDocument object and parses it as a Jplace document into a PlacementMap object."
-        //~ )
-        //~ .staticmethod("FromDocument")
-        //~ .def(
-            //~ "ToFile",
-            //~ &JplaceProcessor::ToFile,
-            //~ ( boost::python::arg("fn"), boost::python::arg("placements") )
-        //~ )
-        //~ .staticmethod("ToFile")
-        //~ .def(
-            //~ "ToString",
-            //~ &JplaceProcessor::ToString,
-            //~ ( boost::python::arg("jplace"), boost::python::arg("placements") )
-        //~ )
-        //~ .staticmethod("ToString")
-        //~ .def(
-            //~ "ToString",
-            //~ &JplaceProcessor::ToString,
-            //~ ( boost::python::arg("placements") )
-        //~ )
-        //~ .staticmethod("ToString")
-        //~ .def(
-            //~ "ToDocument",
-            //~ &JplaceProcessor::ToDocument,
-            //~ ( boost::python::arg("doc"), boost::python::arg("placements") )
-        //~ )
-        //~ .staticmethod("ToDocument")
+
+        .def(
+            "ToFile",
+            ( bool ( * )( const std::string, const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::ToFile ),
+            ( boost::python::arg("fn"), boost::python::arg("placements") )
+        )
+        .staticmethod("ToFile")
+        .def(
+            "ToString",
+            ( std::string ( * )( const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::ToString ),
+            ( boost::python::arg("placements") )
+        )
+        .staticmethod("ToString")
     ;
 
 }
