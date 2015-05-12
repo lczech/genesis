@@ -77,198 +77,6 @@ void BoostPythonExport_PlacementTree()
             "Returns the number of Edges of the Tree."
         )
         //~ .def(
-            //~ "BeginEulertour",
-            //~ ( IteratorEulertour ( PlacementTree::* )(  ))( &PlacementTree::BeginEulertour )
-        //~ )
-        //~ .def(
-            //~ "BeginEulertour",
-            //~ ( IteratorEulertour ( PlacementTree::* )( const PlacementTree::LinkType * ))( &PlacementTree::BeginEulertour ),
-            //~ ( boost::python::arg("link") )
-        //~ )
-        //~ .def(
-            //~ "BeginEulertour",
-            //~ ( IteratorEulertour ( PlacementTree::* )( const PlacementTree::NodeType * ))( &PlacementTree::BeginEulertour ),
-            //~ ( boost::python::arg("node") )
-        //~ )
-        //~ .def(
-            //~ "EndEulertour",
-            //~ ( IteratorEulertour ( PlacementTree::* )(  ))( &PlacementTree::EndEulertour )
-        //~ )
-        //~ .def(
-            //~ "BeginEulertour",
-            //~ ( ConstIteratorEulertour ( PlacementTree::* )(  ) const )( &PlacementTree::BeginEulertour )
-        //~ )
-        //~ .def(
-            //~ "BeginEulertour",
-            //~ ( ConstIteratorEulertour ( PlacementTree::* )( const PlacementTree::LinkType * ) const )( &PlacementTree::BeginEulertour ),
-            //~ ( boost::python::arg("link") )
-        //~ )
-        //~ .def(
-            //~ "BeginEulertour",
-            //~ ( ConstIteratorEulertour ( PlacementTree::* )( const PlacementTree::NodeType * ) const )( &PlacementTree::BeginEulertour ),
-            //~ ( boost::python::arg("node") )
-        //~ )
-        //~ .def(
-            //~ "EndEulertour",
-            //~ ( ConstIteratorEulertour ( PlacementTree::* )(  ) const )( &PlacementTree::EndEulertour )
-        //~ )
-        //~ .def(
-            //~ "BeginPreorder",
-            //~ ( IteratorPreorder ( PlacementTree::* )(  ))( &PlacementTree::BeginPreorder )
-        //~ )
-        //~ .def(
-            //~ "BeginPreorder",
-            //~ ( IteratorPreorder ( PlacementTree::* )( const PlacementTree::LinkType * ))( &PlacementTree::BeginPreorder ),
-            //~ ( boost::python::arg("link") )
-        //~ )
-        //~ .def(
-            //~ "BeginPreorder",
-            //~ ( IteratorPreorder ( PlacementTree::* )( const PlacementTree::NodeType * ))( &PlacementTree::BeginPreorder ),
-            //~ ( boost::python::arg("node") )
-        //~ )
-        //~ .def(
-            //~ "EndPreorder",
-            //~ ( IteratorPreorder ( PlacementTree::* )(  ))( &PlacementTree::EndPreorder )
-        //~ )
-        //~ .def(
-            //~ "BeginPreorder",
-            //~ ( ConstIteratorPreorder ( PlacementTree::* )(  ) const )( &PlacementTree::BeginPreorder )
-        //~ )
-        //~ .def(
-            //~ "BeginPreorder",
-            //~ ( ConstIteratorPreorder ( PlacementTree::* )( const PlacementTree::LinkType * ) const )( &PlacementTree::BeginPreorder ),
-            //~ ( boost::python::arg("link") )
-        //~ )
-        //~ .def(
-            //~ "BeginPreorder",
-            //~ ( ConstIteratorPreorder ( PlacementTree::* )( const PlacementTree::NodeType * ) const )( &PlacementTree::BeginPreorder ),
-            //~ ( boost::python::arg("node") )
-        //~ )
-        //~ .def(
-            //~ "EndPreorder",
-            //~ ( ConstIteratorPreorder ( PlacementTree::* )(  ) const )( &PlacementTree::EndPreorder )
-        //~ )
-        //~ .def(
-            //~ "BeginPostorder",
-            //~ ( IteratorPostorder ( PlacementTree::* )(  ))( &PlacementTree::BeginPostorder )
-        //~ )
-        //~ .def(
-            //~ "BeginPostorder",
-            //~ ( IteratorPostorder ( PlacementTree::* )( const PlacementTree::LinkType * ))( &PlacementTree::BeginPostorder ),
-            //~ ( boost::python::arg("link") )
-        //~ )
-        //~ .def(
-            //~ "BeginPostorder",
-            //~ ( IteratorPostorder ( PlacementTree::* )( const PlacementTree::NodeType * ))( &PlacementTree::BeginPostorder ),
-            //~ ( boost::python::arg("node") )
-        //~ )
-        //~ .def(
-            //~ "EndPostorder",
-            //~ ( IteratorPostorder ( PlacementTree::* )(  ))( &PlacementTree::EndPostorder )
-        //~ )
-        //~ .def(
-            //~ "BeginPostorder",
-            //~ ( ConstIteratorPostorder ( PlacementTree::* )(  ) const )( &PlacementTree::BeginPostorder )
-        //~ )
-        //~ .def(
-            //~ "BeginPostorder",
-            //~ ( ConstIteratorPostorder ( PlacementTree::* )( const PlacementTree::LinkType * ) const )( &PlacementTree::BeginPostorder ),
-            //~ ( boost::python::arg("link") )
-        //~ )
-        //~ .def(
-            //~ "BeginPostorder",
-            //~ ( ConstIteratorPostorder ( PlacementTree::* )( const PlacementTree::NodeType * ) const )( &PlacementTree::BeginPostorder ),
-            //~ ( boost::python::arg("node") )
-        //~ )
-        //~ .def(
-            //~ "EndPostorder",
-            //~ ( ConstIteratorPostorder ( PlacementTree::* )(  ) const )( &PlacementTree::EndPostorder )
-        //~ )
-        //~ .def(
-            //~ "BeginLevelorder",
-            //~ ( IteratorLevelorder ( PlacementTree::* )(  ))( &PlacementTree::BeginLevelorder )
-        //~ )
-        //~ .def(
-            //~ "BeginLevelorder",
-            //~ ( IteratorLevelorder ( PlacementTree::* )( const PlacementTree::LinkType * ))( &PlacementTree::BeginLevelorder ),
-            //~ ( boost::python::arg("link") )
-        //~ )
-        //~ .def(
-            //~ "BeginLevelorder",
-            //~ ( IteratorLevelorder ( PlacementTree::* )( const PlacementTree::NodeType * ))( &PlacementTree::BeginLevelorder ),
-            //~ ( boost::python::arg("node") )
-        //~ )
-        //~ .def(
-            //~ "EndLevelorder",
-            //~ ( IteratorLevelorder ( PlacementTree::* )(  ))( &PlacementTree::EndLevelorder )
-        //~ )
-        //~ .def(
-            //~ "BeginLevelorder",
-            //~ ( ConstIteratorLevelorder ( PlacementTree::* )(  ) const )( &PlacementTree::BeginLevelorder )
-        //~ )
-        //~ .def(
-            //~ "BeginLevelorder",
-            //~ ( ConstIteratorLevelorder ( PlacementTree::* )( const PlacementTree::LinkType * ) const )( &PlacementTree::BeginLevelorder ),
-            //~ ( boost::python::arg("link") )
-        //~ )
-        //~ .def(
-            //~ "BeginLevelorder",
-            //~ ( ConstIteratorLevelorder ( PlacementTree::* )( const PlacementTree::NodeType * ) const )( &PlacementTree::BeginLevelorder ),
-            //~ ( boost::python::arg("node") )
-        //~ )
-        //~ .def(
-            //~ "EndLevelorder",
-            //~ ( ConstIteratorLevelorder ( PlacementTree::* )(  ) const )( &PlacementTree::EndLevelorder )
-        //~ )
-        //~ .def(
-            //~ "BeginLinks",
-            //~ ( IteratorLinks ( PlacementTree::* )(  ))( &PlacementTree::BeginLinks )
-        //~ )
-        //~ .def(
-            //~ "EndLinks",
-            //~ ( IteratorLinks ( PlacementTree::* )(  ))( &PlacementTree::EndLinks )
-        //~ )
-        //~ .def(
-            //~ "BeginLinks",
-            //~ ( ConstIteratorLinks ( PlacementTree::* )(  ) const )( &PlacementTree::BeginLinks )
-        //~ )
-        //~ .def(
-            //~ "EndLinks",
-            //~ ( ConstIteratorLinks ( PlacementTree::* )(  ) const )( &PlacementTree::EndLinks )
-        //~ )
-        //~ .def(
-            //~ "BeginNodes",
-            //~ ( IteratorNodes ( PlacementTree::* )(  ))( &PlacementTree::BeginNodes )
-        //~ )
-        //~ .def(
-            //~ "EndNodes",
-            //~ ( IteratorNodes ( PlacementTree::* )(  ))( &PlacementTree::EndNodes )
-        //~ )
-        //~ .def(
-            //~ "BeginNodes",
-            //~ ( ConstIteratorNodes ( PlacementTree::* )(  ) const )( &PlacementTree::BeginNodes )
-        //~ )
-        //~ .def(
-            //~ "EndNodes",
-            //~ ( ConstIteratorNodes ( PlacementTree::* )(  ) const )( &PlacementTree::EndNodes )
-        //~ )
-        //~ .def(
-            //~ "BeginEdges",
-            //~ ( IteratorEdges ( PlacementTree::* )(  ))( &PlacementTree::BeginEdges )
-        //~ )
-        //~ .def(
-            //~ "EndEdges",
-            //~ ( IteratorEdges ( PlacementTree::* )(  ))( &PlacementTree::EndEdges )
-        //~ )
-        //~ .def(
-            //~ "BeginEdges",
-            //~ ( ConstIteratorEdges ( PlacementTree::* )(  ) const )( &PlacementTree::BeginEdges )
-        //~ )
-        //~ .def(
-            //~ "EndEdges",
-            //~ ( ConstIteratorEdges ( PlacementTree::* )(  ) const )( &PlacementTree::EndEdges )
-        //~ )
-        //~ .def(
             //~ "FindNode",
             //~ ( PlacementTree::NodeType * ( PlacementTree::* )( std::string ) const )( &PlacementTree::FindNode ),
             //~ ( boost::python::arg("name") )
@@ -364,6 +172,48 @@ void BoostPythonExport_PlacementTree()
         //~ )
         //~ .staticmethod("Equal")
 
+        // Iterators
+
+
+        //~ ( ::genesis::PlacementTree::IteratorEulertour ( PlacementTree::* )(  ) )( &PlacementTree::BeginEulertour )
+        //~ ( ::genesis::PlacementTree::IteratorEulertour ( PlacementTree::* )(  ) )( &PlacementTree::EndEulertour )
+        //~ .add_property(
+            //~ "Eulertour",
+            //~ boost::python::range (
+                //~ ( ::genesis::PlacementTree::ConstIteratorEulertour ( PlacementTree::* )(  ) const )( &PlacementTree::BeginEulertour ),
+                //~ ( ::genesis::PlacementTree::ConstIteratorEulertour ( PlacementTree::* )(  ) const )( &PlacementTree::EndEulertour )
+            //~ )
+        //~ )
+
+
+        //~ .add_property(
+            //~ "Eulertour",
+            //~ boost::python::range ( &::genesis::PlacementTree::BeginEulertour, &::genesis::PlacementTree::EndEulertour )
+        //~ )
+        //~ .add_property(
+            //~ "Preorder",
+            //~ boost::python::range ( &::genesis::PlacementTree::BeginPreorder, &::genesis::PlacementTree::EndPreorder )
+        //~ )
+        //~ .add_property(
+            //~ "Postorder",
+            //~ boost::python::range ( &::genesis::PlacementTree::BeginPostorder, &::genesis::PlacementTree::EndPostorder )
+        //~ )
+        //~ .add_property(
+            //~ "Levelorder",
+            //~ boost::python::range ( &::genesis::PlacementTree::BeginLevelorder, &::genesis::PlacementTree::EndLevelorder )
+        //~ )
+        //~ .add_property(
+            //~ "Links",
+            //~ boost::python::range ( &::genesis::PlacementTree::BeginLinks, &::genesis::PlacementTree::EndLinks )
+        //~ )
+        //~ .add_property(
+            //~ "Nodes",
+            //~ boost::python::range ( &::genesis::PlacementTree::BeginNodes, &::genesis::PlacementTree::EndNodes )
+        //~ )
+        //~ .add_property(
+            //~ "Edges",
+            //~ boost::python::range ( &::genesis::PlacementTree::BeginEdges, &::genesis::PlacementTree::EndEdges )
+        //~ )
     ;
 
 }

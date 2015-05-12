@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include <deque>
+#include <iterator>
 
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
@@ -31,6 +32,21 @@ public:
 
     typedef TreeIteratorEulertour<LinkPointerType, NodePointerType, EdgePointerType> self_type;
     typedef std::forward_iterator_tag iterator_category;
+
+    //~ typedef NodePointerType  value_type;
+    //~ typedef size_t           difference_type;
+    //~ typedef NodePointerType* pointer;
+    //~ typedef NodePointerType& reference;
+//~
+    //~ inline pointer operator * ()
+    //~ {
+        //~ return link_->Node();
+    //~ }
+//~
+    //~ inline pointer operator -> ()
+    //~ {
+        //~ return link_->Node();
+    //~ }
 
     // -----------------------------------------------------
     //     Constructor
