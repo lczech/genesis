@@ -10,6 +10,7 @@ import xml.etree.ElementTree
 #~ codbpbg
 
 # TODO resolve typdefs
+# TODO return policies
 
 # ==============================================================================
 #     Helper Functions
@@ -94,6 +95,8 @@ class CppClass:
         self.briefdescription    = ""
         self.detaileddescription = ""
 
+        self.location = ""
+
     def cpp_full_name (self):
         return self.parent.cpp_full_name() + "::" + self.name
 
@@ -120,31 +123,33 @@ class CppClass:
     def add_iterator (self, begin="begin", end="end"):
         self.add_named_iterator("__iter__", begin, end)
 
-    def extract_iterators (self, named = False):
+    def extract_iterators (self, all_named = False):
         """Extracts iterators from the class methods list. Typically, these are functions
-        named 'begin' and 'end'. If named==True, all methods starting with '[Bb]egin...'
+        named 'begin' and 'end'. If all_named==True, all methods starting with '[Bb]egin...'
         and '[Ee]nd...' are extracted as iterators."""
 
-        method_names = [func.name for func in self.methods]
-
         # process default iterators
+        method_names = [func.name for func in self.methods]
         if "begin" in method_names and "end" in method_names:
             self.add_iterator()
-            self.methods[:] = [f for f in self.methods if not f.name in [ "begin", "end" ]]
+            self.methods[:] = [f for f in self.methods if f.name not in [ "begin", "end" ]]
 
         # continue only if we want to extract all named iterators
-        if not named:
+        if not all_named:
             return
 
-        # process all iterators starting with "begin..."
+        # process all iterators starting with "[Bb]egin..." and "[Ee]nd..."
         extracted_iters = []
         for mn in method_names:
-            if not mn.lower().startswith("begin"):
+            if not mn.lower().startswith("begin") or mn == "begin":
                 continue
-            it_name = mn[5:]
+
+            it_name    = mn[5:].strip('_')
+            begin_name = mn
+            end_name   = re.sub('^begin', 'end', re.sub('^Begin', 'End', mn))
 
             # do not extract if no appropriate end function present
-            if "end" + it_name not in method_names and "End" + it_name not in method_names:
+            if end_name not in method_names:
                 continue
 
             # extract each iterator only once
@@ -153,11 +158,43 @@ class CppClass:
             else:
                 extracted_iters.append(it_name)
 
-            begin_name = mn
-            end_name   = re.sub('^begin', 'end', re.sub('^Begin', 'End', mn))
-
             self.add_named_iterator(it_name, begin_name, end_name)
-            self.methods[:] = [f for f in self.methods if not f.name in [ begin_name, end_name ]]
+            self.methods[:] = [f for f in self.methods if f.name not in [ begin_name, end_name ]]
+
+    def dump (self, indent=0):
+        in_str0 = " " * 4 * indent
+        in_str1 = " " * 4 * (indent + 1)
+        in_str2 = " " * 4 * (indent + 2)
+
+        print in_str0 + "Class " + self.name
+        print in_str1 + "@ " + self.location
+        if self.briefdescription != "":
+            print in_str1 + self.briefdescription.strip()
+
+        if len(self.ctors) > 0:
+            print in_str1 + "Constructors:"
+            for ctor in self.ctors:
+                print in_str2 + ctor.cpp_string()
+
+        if len(self.dtors) > 0:
+            print in_str1 + "Destructors:"
+            for dtor in self.dtors:
+                print in_str2 + dtor.cpp_string()
+
+        if len(self.methods) > 0:
+            print in_str1 + "Methods:"
+            for m in self.methods:
+                print in_str2 + m.cpp_string()
+
+        if len(self.operators) > 0:
+            print in_str1 + "Operators:"
+            for o in self.operators:
+                print in_str2 + o.cpp_string()
+
+        if len(self.iterators) > 0:
+            print in_str1 + "Iterators:"
+            for it in self.iterators:
+                print in_str2 + it.name
 
 # ==============================================================================
 #     Class: C++ Namespace
@@ -196,6 +233,15 @@ class CppNamespace:
             return
         self.classes[cls.name] = cls
 
+    def get_all_classes (self):
+        classlist = []
+        for cls in self.classes:
+            classlist.append(self.classes[cls])
+        for ns in self.namespaces:
+            for cls in self.namespaces[ns].get_all_classes():
+                classlist.append(cls)
+        return classlist
+
     def add_function (self, func):
         if func is None:
             return
@@ -206,6 +252,38 @@ class CppNamespace:
             self.classes[cls].extract_iterators(named)
         for ns in self.namespaces:
             self.namespaces[ns].extract_iterators(named)
+
+    def get_file_locations (self):
+        locations = []
+        for cls in self.classes:
+            locations.append(self.classes[cls].location)
+        for ns in self.namespaces:
+            for loc in self.namespaces[ns].get_file_locations():
+                locations.append(loc)
+        return locations
+
+    def get_location_prefix (self):
+        return os.path.commonprefix(self.get_file_locations())
+
+    def shorten_location_prefix (self, prefix = ""):
+        if prefix == "":
+            prefix = self.get_location_prefix()
+
+        for cls in self.classes:
+            if not self.classes[cls].location.startswith(prefix):
+                print "Location of class", cls, "does not start with prefix", prefix
+                continue
+            self.classes[cls].location = self.classes[cls].location[len(prefix):]
+
+        for ns in self.namespaces:
+            self.namespaces[ns].shorten_location_prefix()
+
+    def dump (self, indent=0):
+        print " " * 4 * indent + "Namespace " + self.name
+        for ns in self.namespaces:
+            self.namespaces[ns].dump(indent+1)
+        for cls in self.classes:
+            self.classes[cls].dump(indent+1)
 
 # ==============================================================================
 #     Class: Doxygen Reader
@@ -286,17 +364,18 @@ class DoxygenReader:
                     func.parent = cls
                     cls.add_function (func)
 
+            cls.location = compound.find("location").attrib["file"]
             classes.append(cls)
 
         classes = sorted(classes, key=lambda cls: cls.name)
         return classes
 
     # ----------------------------------------------------------------
-    #     Parse Doxygen Index XML File
+    #     Parse Doxygen Index
     # ----------------------------------------------------------------
 
     @staticmethod
-    def parse_index_xml (directory):
+    def parse (directory):
         tree = xml.etree.ElementTree.parse(os.path.join(directory, "index.xml"))
         root = tree.getroot()
 
@@ -543,6 +622,57 @@ class BoostPythonWriter:
     # ----------------------------------------------------------------
 
     @staticmethod
+    def generate_files (namespace, directory, module_name):
+        class ExportFile:
+            def __init__ (self):
+                self.includes      = []
+                self.class_strings = {}
+
+        export_files = {}
+        for cls in namespace.get_all_classes():
+            cls_str  = BoostPythonWriter.generate_class(cls)
+            cls_file = os.path.splitext(cls.location)[0] + ".cpp"
+
+            if not export_files.has_key(cls_file):
+                export_files[cls_file] = ExportFile()
+
+            export_files[cls_file].includes.append(cls.location)
+            export_files[cls_file].class_strings[cls.name] = cls_str
+
+        for fn, exp in export_files.iteritems():
+            fn = os.path.join(directory, fn)
+            if not os.path.exists(os.path.dirname(fn)):
+                os.makedirs(os.path.dirname(fn))
+
+            f = open(fn, 'w')
+            f.write ("#include <boost/python.hpp>\n")
+            for inc in set(exp.includes):
+                f.write ("#include \"" + inc + "\"\n")
+            f.write ("\n")
+
+            for cls_name, cls_str in exp.class_strings.iteritems():
+                f.write ("void BoostPythonExport_" + cls_name + "()\n{")
+                f.write (cls_str)
+                f.write ("\n}\n\n")
+            f.close()
+
+        fn = os.path.join(directory, "bindings.cpp")
+        f = open(fn, 'w')
+        f.write ("#include <boost/python.hpp>\n")
+        f.write (BoostPythonWriter.make_section_header_major("Forward declarations of all exported classes"))
+        for fn, exp in export_files.iteritems():
+             for cls_name, cls_str in exp.class_strings.iteritems():
+                 f.write ("void BoostPythonExport_" + cls_name + "();\n")
+
+        f.write (BoostPythonWriter.make_section_header_major("Boost Python Module"))
+        f.write ("BOOST_PYTHON_MODULE(" + module_name + ")\n{\n")
+        for fn, exp in export_files.iteritems():
+             for cls_name, cls_str in exp.class_strings.iteritems():
+                 f.write ("    BoostPythonExport_" + cls_name + "();\n")
+        f.write ("}\n")
+        f.close()
+
+    @staticmethod
     def generate (namespace):
         return BoostPythonWriter.generate_namespace (namespace)
 
@@ -551,23 +681,8 @@ class BoostPythonWriter:
 # ==============================================================================
 
 if __name__ == "__main__":
-    hierarchy = DoxygenReader.parse_index_xml ("../doc/api/xml")
+    hierarchy = DoxygenReader.parse ("../doc/api/xml")
     hierarchy.extract_iterators(True)
-    print BoostPythonWriter.generate (hierarchy)
-    exit()
-
-    classes = DoxygenReader.parse_class_file ("../doc/api/xml/classgenesis_1_1Bitvector.xml")
-    for cls in classes:
-        cls.methods = sorted(cls.methods, key=lambda member: str.lower(member.name))
-        print BoostPythonWriter.generate(cls)
-    exit()
-
-    for cls in classes:
-        for ctor in cls.ctors:
-            print ctor.cpp_string()
-        for dtor in cls.dtors:
-            print dtor.cpp_string()
-        for func in cls.methods:
-            print func.cpp_string()
-        for op in cls.operators:
-            print op.cpp_string()
+    hierarchy.shorten_location_prefix()
+    #~ print BoostPythonWriter.generate (hierarchy)
+    BoostPythonWriter.generate_files (hierarchy, "test", "genesis")

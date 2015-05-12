@@ -7,16 +7,25 @@
 
 #include <boost/python.hpp>
 
-//~ #include "genesis.hpp"
-
 // =============================================================================
 //     Forward declarations of all exported classes
 // =============================================================================
 
+    // -------------------------------------------
+    //     Placement
+    // -------------------------------------------
+
 void BoostPythonExport_JplaceProcessor();
 void BoostPythonExport_PlacementMap();
 void BoostPythonExport_PlacementTree();
+void BoostPythonExport_PlacementTree_NewickProcessor();
+
+    // -------------------------------------------
+    //     Utils
+    // -------------------------------------------
+
 void BoostPythonExport_Bitvector();
+void BoostPythonExport_Logging();
 
 // =============================================================================
 //     Boost Python Module
@@ -24,12 +33,21 @@ void BoostPythonExport_Bitvector();
 
 BOOST_PYTHON_MODULE(genesis)
 {
-    //~ using namespace boost::python;
-    //~ using namespace genesis;
+
+    // -------------------------------------------
+    //     Placement
+    // -------------------------------------------
 
     BoostPythonExport_JplaceProcessor();
     BoostPythonExport_PlacementMap();
     BoostPythonExport_PlacementTree();
+    BoostPythonExport_PlacementTree_NewickProcessor();
+
+    // -------------------------------------------
+    //     Utils
+    // -------------------------------------------
+
     BoostPythonExport_Bitvector();
+    BoostPythonExport_Logging();
 
 }
