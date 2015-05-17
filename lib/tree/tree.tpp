@@ -693,7 +693,18 @@ std::string Tree<NDT, EDT>::Dump() const
     std::vector<int> done;
     std::ostringstream out;
 
+    // prepare link so that we point to the root link. this will ensure that the order of nodes
+    // displayed by this funtion is the one expected by the user. usually, we would go into
+    // the first branch immediately, but then there would be no way of first nicely displaying
+    // the information about the root node. so we need to do it a bit more complex than the
+    // usual iteration...
     LinkType* l = RootLink();
+    while (l->Next() != RootLink()) {
+        l = l->Next();
+    }
+
+    // do an euler tour traversal over all links. (we cannot use the iterator here, as
+    // we need each link on its own, and not each node as the iterator gives)
     do {
         NodeType* n = l->Node();
         std::string indent = std::string(4 * depth[n->Index()], ' ');
@@ -702,17 +713,29 @@ std::string Tree<NDT, EDT>::Dump() const
         }
         done.push_back(n->Index());
 
+        // dont display the next link when we are at the first iteration.
+        if (l->Next() == RootLink()) {
+            l = l->Next();
+        } else {
+            out << indent;
+            out << "    \033[34mLink " << l->Index() << "\033[0m";
+            l = l->Next();
+            out << " \033[32m>\033[0m \033[34mLink " << l->Index() << "\033[0m\n";
+        }
+
         out << indent;
         out << " -- \033[34mLink " << l->Index() << "\033[0m";
         out << " -- \033[36mEdge " << l->Edge()->Index() << "\033[0m";
         l = l->Outer();
         out << " --> \033[34mLink " << l->Index() << "\033[0m\n";
+    } while (l->Next() != RootLink());
 
-        out << indent;
-        out << "    \033[34mLink " << l->Index() << "\033[0m";
-        l = l->Next();
-        out << " \033[32m>\033[0m \033[34mLink " << l->Index() << "\033[0m\n";
-    } while (l != RootLink());
+    // output the last next link back to the root, because we skipped this in the loop
+    // (the one that was skipped in the beginning).
+    out << "    \033[34mLink " << l->Index() << "\033[0m";
+    l = l->Next();
+    out << " \033[32m>\033[0m \033[34mLink " << l->Index() << "\033[0m\n";
+
     return out.str();
 }
 
