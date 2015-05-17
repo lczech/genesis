@@ -683,22 +683,49 @@ bool Tree<NDT, EDT>::Validate() const
 }
 
 /**
- * @brief Returns the combined dump of DumpLinks(), DumpNodes() and DumpEdges().
+ * @brief Returns a simple text representation of the Tree, showing all nodes, edges and links
+ * with their indices.
  */
 template <class NDT, class EDT>
 std::string Tree<NDT, EDT>::Dump() const
 {
-    return DumpLinks() + "\n" + DumpNodes() + "\n" + DumpEdges();
+    std::vector<int> depth = this->NodeDepthVector();
+    std::vector<int> done;
+    std::ostringstream out;
+
+    LinkType* l = RootLink();
+    do {
+        NodeType* n = l->Node();
+        std::string indent = std::string(4 * depth[n->Index()], ' ');
+        if (!Contains(done, n->Index())) {
+            out << indent << "\033[1;31mNode " << n->Index() << ": \"" << n->name << "\"\033[0m\n";
+        }
+        done.push_back(n->Index());
+
+        out << indent;
+        out << " -- \033[34mLink " << l->Index() << "\033[0m";
+        out << " -- \033[36mEdge " << l->Edge()->Index() << "\033[0m";
+        l = l->Outer();
+        out << " --> \033[34mLink " << l->Index() << "\033[0m\n";
+
+        out << indent;
+        out << "    \033[34mLink " << l->Index() << "\033[0m";
+        l = l->Next();
+        out << " \033[32m>\033[0m \033[34mLink " << l->Index() << "\033[0m\n";
+    } while (l != RootLink());
+    return out.str();
 }
 
 /**
- * @brief Returns a list of all links including their next and outer link numbers as well as their
- * node and edge numbers.
+ * @brief Returns lists of all links, nodes and edges including their indices and connections
+ * with each other.
  */
 template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::DumpLinks() const
+std::string Tree<NDT, EDT>::DumpLists() const
 {
     std::ostringstream out;
+
+    // links
     for (size_t i = 0; i < links_.size(); ++i) {
         out << "Link " << i
             << " \t Next: "  << links_[i]->next_->index_
@@ -708,64 +735,25 @@ std::string Tree<NDT, EDT>::DumpLinks() const
             << " \t " << links_[i]->Dump()
             << "\n";
     }
-    return out.str();
-}
+    out << "\n";
 
-/**
- * @brief Returns a list of all nodes including their name and the number of one of their links.
- */
-template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::DumpNodes() const
-{
-    std::ostringstream out;
+    // nodes
     for (size_t i = 0; i < nodes_.size(); ++i) {
         out << "Node " << i
-            << " \t Link: " << nodes_[i]->link_->index_
+            << " \t Main Link: " << nodes_[i]->link_->index_
             << " \t " << nodes_[i]->Dump() << "\n";
     }
-    return out.str();
-}
+    out << "\n";
 
-/**
- * @brief Returns a list of all edges including their link numbers and branch lengths.
- */
-template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::DumpEdges() const
-{
-    std::ostringstream out;
+    // edges
     for (size_t i = 0; i < edges_.size(); ++i) {
         out << "Edge " << i
             << " \t Link P: " << edges_[i]->link_p_->index_
             << " \t Link S: " << edges_[i]->link_s_->index_
             << " \t " << edges_[i]->Dump() << "\n";
     }
+
     return out.str();
-}
-
-/**
- * @brief Do a full tree traversal and return a list of all visited node names.
- *
- * Leaf nodes appear once in this list, while inner nodes appear every time the traversal visits
- * them. Thus, a node of rank 3 (meaning, it has three immediate children), is visited four times:
- * One time when coming from its parent, and then once each time the traversal returns from its
- * children.
- */
-template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::DumpEulertour() const
-{
-    if (links_.empty()) {
-        return "";
-    }
-
-    std::string out;
-    LinkType* link = links_.front();
-
-    do {
-        out += link->node_->name_ + "\n";
-        link = link->next_->outer_;
-    } while (link != links_.front());
-
-    return out;
 }
 
 } // namespace genesis

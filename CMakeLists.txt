@@ -45,7 +45,7 @@ option (BUILD_SHARED_LIB    "Build shared library" OFF)
 
 option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" OFF)
 option (BUILD_PYTHON_MODULE "Build Python module"  ON)
-option (BUILD_EXECUTABLE    "Build executable"     ON)
+option (BUILD_EXECUTABLE    "Build executable"     OFF)
 
 option (BUILD_TESTS         "Build test suites"    ON)
 

@@ -150,16 +150,8 @@ void BoostPythonExport_PlacementTree()
             ( std::string ( PlacementTree::* )(  ) const )( &PlacementTree::Dump )
         )
         .def(
-            "DumpLinks",
-            ( std::string ( PlacementTree::* )(  ) const )( &PlacementTree::DumpLinks )
-        )
-        .def(
-            "DumpNodes",
-            ( std::string ( PlacementTree::* )(  ) const )( &PlacementTree::DumpNodes )
-        )
-        .def(
-            "DumpEdges",
-            ( std::string ( PlacementTree::* )(  ) const )( &PlacementTree::DumpEdges )
+            "DumpLists",
+            ( std::string ( PlacementTree::* )(  ) const )( &PlacementTree::DumpLists )
         )
         //~ .def(
             //~ "DumpEulertour",

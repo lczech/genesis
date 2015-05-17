@@ -5,8 +5,6 @@
  * @ingroup main
  */
 
-//~ #include "main/main.hpp"
-
 #include <iostream>
 #include <fstream>
 #include <string>
