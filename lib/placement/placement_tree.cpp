@@ -38,7 +38,7 @@ double PlacementEdgeData::PlacementMass() const
 }
 
 /**
- * @brief Sorts the placements on this edge by their `distal_length`.
+ * @brief Sorts the placements on this edge by their distance from the root, ascending.
  */
 void PlacementEdgeData::SortPlacements()
 {
@@ -46,10 +46,9 @@ void PlacementEdgeData::SortPlacements()
     std::vector<PqueryPlacement*> new_placements;
 
     for (PqueryPlacement* place : placements) {
-        sorted.emplace(place->distal_length, place);
+        sorted.emplace(place->proximal_length, place);
     }
-    std::multimap<double, PqueryPlacement*>::iterator it;
-    for (it = sorted.begin(); it != sorted.end(); ++it) {
+    for (auto it = sorted.begin(); it != sorted.end(); ++it) {
         new_placements.push_back(it->second);
     }
 

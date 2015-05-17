@@ -370,7 +370,7 @@ std::vector<int> PlacementMap::ClosestLeafDepthHistogram() const
  * this particular distance inverval in the histogram is incremented.
  *
  * The distance is measured along the `branch_length` values of the edges, taking the
- * `pendant_length` and `distal_length` of the placements into account. If the distances is outside
+ * `pendant_length` and `proximal_length` of the placements into account. If the distances is outside
  * of the interval [min,max], the counter of the first/last bin is incremented respectively.
  *
  * Example:
@@ -398,9 +398,9 @@ std::vector<int> PlacementMap::ClosestLeafDistanceHistogram (
         for (const PqueryPlacement* place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            double dp = place->pendant_length + place->distal_length
+            double dp = place->pendant_length + place->proximal_length
                       + dists[place->edge->PrimaryNode()->Index()].second;
-            double ds = place->pendant_length + place->edge->branch_length - place->distal_length
+            double ds = place->pendant_length + place->edge->branch_length - place->proximal_length
                       + dists[place->edge->SecondaryNode()->Index()].second;
             double ld = std::min(dp, ds);
 
@@ -468,9 +468,9 @@ std::vector<int> PlacementMap::ClosestLeafDistanceHistogramAuto (
         for (const PqueryPlacement* place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            double dp = place->pendant_length + place->distal_length
+            double dp = place->pendant_length + place->proximal_length
                       + dists[place->edge->PrimaryNode()->Index()].second;
-            double ds = place->pendant_length + place->edge->branch_length - place->distal_length
+            double ds = place->pendant_length + place->edge->branch_length - place->proximal_length
                       + dists[place->edge->SecondaryNode()->Index()].second;
             double ld = std::min(dp, ds);
             distrib.push_back(ld);
@@ -531,9 +531,9 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
     // do a postorder traversal on both trees in parallel. while doing so, move placements
     // from the leaves towards the root and store their movement (mass * distance) in balance[].
     // in theory, it does not matter where we start the traversal - however, the positions of the
-    // placements are given as "distal_length" on their branch, which always points away from the
+    // placements are given as "proximal_length" on their branch, which always points away from the
     // root. thus, if we decided to traverse from a different node than the root, we would have to
-    // take this into account.
+    // take this into account. so we do start at the root, to keep it simple.
     PlacementTree::ConstIteratorPostorder it_l = lhs.tree.BeginPostorder();
     PlacementTree::ConstIteratorPostorder it_r = rhs.tree.BeginPostorder();
     for (
@@ -597,14 +597,14 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
         for (PqueryPlacement* place : it_l.Edge()->placements) {
             // TODO consider like_weight_ratio here!
             distance += place->pendant_length / totalmass_l;
-            edge_balance.emplace(place->distal_length, +1.0 / totalmass_l);
+            edge_balance.emplace(place->proximal_length, +1.0 / totalmass_l);
         }
 
         // ... and the branch from the right tree (using negative mass)
         for (PqueryPlacement* place : it_r.Edge()->placements) {
             // TODO consider like_weight_ratio here!
             distance += place->pendant_length / totalmass_r;
-            edge_balance.emplace(place->distal_length, -1.0 / totalmass_r);
+            edge_balance.emplace(place->proximal_length, -1.0 / totalmass_r);
         }
 
         // start the EMD with the mass that is left over from the subtrees...
@@ -670,7 +670,7 @@ void PlacementMap::COG() const
 
         // add up the masses of placements on the current branch
         for (PqueryPlacement* place : it.Edge()->placements) {
-            mass += place->pendant_length + place->distal_length;
+            mass += place->pendant_length + place->proximal_length;
         }
 
         assert(balance.count(it.Link()->Outer()) == 0);
@@ -740,22 +740,22 @@ void PlacementMap::COG() const
  *
  *   1. Both placements are on the same branch.
  *      In this case, their distance is caluclated as the sum of their pendant_lengths and their
- *      difference in distal_lengths.
+ *      difference in proximal_lengths.
  *
  *   2. The path between the placements includes the root.
  *      The distance of a placement from its neighbouring nodes is mostly given in form of the
- *      distal_length, which is the distance of the placement to the node (at the end of its branch)
+ *      proximal_length, which is the distance of the placement to the node (at the end of its branch)
  *      that lies in direction of the root. Thus, there is an implicit notion of a root, that we
  *      need to consider. If the path between two placements contains the root, we can directly
- *      calculate their distance as the distance between the two distal nodes plus distal_lengths
- *      and pendant_lengths of both placements. We call this the distal-distal case.
+ *      calculate their distance as the distance between the two promixal nodes plus proximal_lengths
+ *      and pendant_lengths of both placements. We call this the promixal-promixal case.
  *
  *   3. The root is not part of the path between the placements.
  *      This case means that one of the two placements lies on the path between the other placement
  *      and the root -- thus, the path between the placements does not contain the root.
- *      The distance between the placements cannot be calculated using the distal_lengths directly,
- *      but we need to get the proximal_length (away from the root) of the inner placement first.
- *      This is simply the difference between branch_length and distal_length of that placement.
+ *      The distance between the placements cannot be calculated using the proximal_lengths directly,
+ *      but we need to get the distal_length (away from the root) of the inner placement first.
+ *      This is simply the difference between branch_length and proximal_length of that placement.
  *      Of course, this case comes in two flavours, because both placements can be the inner or
  *      outer one. They are called proximal-distal case and distal-proximal case, respectively.
  *
@@ -767,7 +767,7 @@ void PlacementMap::COG() const
  * of the placements and do a lookup for those nodes.
  *
  * With this technique, we can calculate the distances between the placements for all
- * three cases (distal-distal, proximal-distal and distal-proximal) cheaply. The wanted distance is
+ * three cases (promixal-promixal, proximal-distal and distal-proximal) cheaply. The wanted distance is
  * then simply the minimum of those three distances. This is correct, because the two wrong cases
  * will always produce an overestimation of the distance.
  *
@@ -807,7 +807,7 @@ double PlacementMap::Variance() const
             vdp.primary_node_index   = place->edge->PrimaryNode()->Index();
             vdp.secondary_node_index = place->edge->SecondaryNode()->Index();
             vdp.pendant_length       = place->pendant_length;
-            vdp.distal_length        = place->distal_length;
+            vdp.proximal_length      = place->proximal_length;
             vdp.branch_length        = place->edge->branch_length;
             vdp.like_weight_ratio    = place->like_weight_ratio;
             vd_placements.push_back(vdp);
@@ -918,25 +918,25 @@ double PlacementMap::VariancePartial (
         // same branch case
         if (place_a.edge_index == place_b.edge_index) {
             sum += place_a.pendant_length
-                +  std::abs(place_a.distal_length - place_b.distal_length)
+                +  std::abs(place_a.proximal_length - place_b.proximal_length)
                 +  place_b.pendant_length;
             continue;
         }
 
-        // distal-distal case
-        dd = place_a.pendant_length + place_a.distal_length
+        // proximal-proximal case
+        dd = place_a.pendant_length + place_a.proximal_length
            + node_distances(place_a.primary_node_index, place_b.primary_node_index)
-           + place_b.distal_length + place_b.pendant_length;
+           + place_b.proximal_length + place_b.pendant_length;
 
         // proximal-distal case
-        pd = place_a.pendant_length + place_a.branch_length - place_a.distal_length
+        pd = place_a.pendant_length + place_a.branch_length - place_a.proximal_length
            + node_distances(place_a.secondary_node_index, place_b.primary_node_index)
-           + place_b.distal_length + place_b.pendant_length;
+           + place_b.proximal_length + place_b.pendant_length;
 
         // distal-proximal case
-        dp = place_a.pendant_length + place_a.distal_length
+        dp = place_a.pendant_length + place_a.proximal_length
            + node_distances(place_a.primary_node_index, place_b.secondary_node_index)
-           + place_b.branch_length - place_b.distal_length + place_b.pendant_length;
+           + place_b.branch_length - place_b.proximal_length + place_b.pendant_length;
 
         // find min of the three cases and normalize it to the weight ratios.
         min  = std::min(dd, std::min(pd, dp));
@@ -959,21 +959,21 @@ std::string PlacementMap::Dump() const
     std::ostringstream out;
     for (const Pquery* pqry : pqueries) {
         for (const PqueryName* n : pqry->names) {
-            out << n->name;
+            out << "Placement: \"" << n->name << "\"";
             if (n->multiplicity != 0.0) {
                 out << " (" << n->multiplicity << ")";
             }
             out << "\n";
         }
         for (const PqueryPlacement* p : pqry->placements) {
-            out << p->edge_num << ": ";
+            out << "at Edge: " << p->edge_num << ". ";
             if (p->likelihood != 0.0 || p->like_weight_ratio != 0.0) {
-                out << p->likelihood << "|" << p->like_weight_ratio << " ";
+                out << "\tLikelihood: " << p->likelihood << ", Ratio: " << p->like_weight_ratio << " ";
             }
             if (p->parsimony != 0.0) {
-                out << p->parsimony << " ";
+                out << "\tParsimony: " << p->parsimony << " ";
             }
-            out << p->distal_length << "|" << p->pendant_length << "\n";
+            out << "\tDistal Length: " << p->proximal_length << ", Pendant Length: " << p->pendant_length << "\n";
         }
         out << "\n";
     }
@@ -987,7 +987,7 @@ std::string PlacementMap::Dump() const
  * and returns false on the first encountered error.
  *
  * If `check_values` is set to true, also a check on the validity of numerical values is done, for
- * example that the distal_length is smaller than the corresponding branch_length.
+ * example that the proximal_length is smaller than the corresponding branch_length.
  * If additionally `break_on_values` is set, Validate() will stop on the first encountered invalid
  * value. Otherwise it will report all invalid values.
  */
@@ -1095,16 +1095,16 @@ bool PlacementMap::Validate (bool check_values, bool break_on_values) const
                     return false;
                 }
             }
-            if (p->pendant_length < 0.0 || p->distal_length < 0.0) {
+            if (p->pendant_length < 0.0 || p->proximal_length < 0.0) {
                 LOG_INFO << "Invalid placement with pendant_length '" << p->pendant_length
-                         << "' or distal_length '" << p->distal_length << "' < 0.0 at "
+                         << "' or proximal_length '" << p->proximal_length << "' < 0.0 at "
                          << name << ".";
                 if (break_on_values) {
                     return false;
                 }
             }
-            if (p->distal_length > p->edge->branch_length) {
-                LOG_INFO << "Invalid placement with distal_length '" << p->distal_length
+            if (p->proximal_length > p->edge->branch_length) {
+                LOG_INFO << "Invalid placement with proximal_length '" << p->proximal_length
                          << "' > branch_length '" << p->edge->branch_length << "' at "
                          << name << ".";
                 if (break_on_values) {

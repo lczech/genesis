@@ -222,7 +222,9 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementMap& place
                 } else if (fields[i] == "like_weight_ratio") {
                     pqry_place->like_weight_ratio = pqry_place_val;
                 } else if (fields[i] == "distal_length") {
-                    pqry_place->distal_length     = pqry_place_val;
+                    // the jplace format uses distal length, but we use proximal,
+                    // so we need to convert here.
+                    pqry_place->proximal_length   = pqry_place->edge->branch_length - pqry_place_val;
                 } else if (fields[i] == "pendant_length") {
                     pqry_place->pendant_length    = pqry_place_val;
                 } else if (fields[i] == "parsimony") {
@@ -389,7 +391,9 @@ void JplaceProcessor::ToDocument (JsonDocument& doc, const PlacementMap& placeme
             pqry_fields->push_back(new JsonValueNumber(pqry_place->edge_num));
             pqry_fields->push_back(new JsonValueNumber(pqry_place->likelihood));
             pqry_fields->push_back(new JsonValueNumber(pqry_place->like_weight_ratio));
-            pqry_fields->push_back(new JsonValueNumber(pqry_place->distal_length));
+
+            // convert from proximal to distal length.
+            pqry_fields->push_back(new JsonValueNumber(pqry_place->edge->branch_length - pqry_place->proximal_length));
             pqry_fields->push_back(new JsonValueNumber(pqry_place->pendant_length));
             pqry_p_arr->push_back(pqry_fields);
         }
