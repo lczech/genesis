@@ -528,7 +528,10 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
     double totalmass_l = lhs.PlacementMass();
     double totalmass_r = rhs.PlacementMass();
 
+    // disable all debug messages for this function...
+    Logging::LoggingLevel ll = Logging::max_level();
     Logging::max_level(Logging::kInfo);
+
     LOG_DBG << "totalmass_l " << totalmass_l;
     LOG_DBG << "totalmass_r " << totalmass_r;
 
@@ -570,12 +573,7 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
                 root_mass += balance[n_it.Link()->Outer()->Node()];
             }
 
-            // when we are at this point, all placement masses have been fully pushed towards the
-            // root, and as they are normalized, there should be no mass left here. however,
-            // there is numerical divergence, so it won't be exactly zero...
-            // TODO replace this hardcoded tolerance value!
-            assert(root_mass < 1e-15);
-            LOG_DBG1 << "Mass at root: " << root_mass;
+            LOG_DBG << "Mass at root: " << root_mass;
 
             continue;
         }
@@ -681,6 +679,8 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
     }
 
     LOG_DBG << "final distance: " << distance;
+    Logging::max_level(ll);
+
     return distance;
 }
 
