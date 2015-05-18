@@ -19,7 +19,7 @@
 namespace genesis {
 
 // =============================================================================
-//     Round Trip Iterator
+//     Euler Tour Iterator
 // =============================================================================
 
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>

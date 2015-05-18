@@ -30,7 +30,7 @@ struct Pquery;
 
 struct PqueryPlacement
 {
-    PqueryPlacement() : edge_num(0), likelihood(0.0), like_weight_ratio(0.0), distal_length(0.0),
+    PqueryPlacement() : edge_num(0), likelihood(0.0), like_weight_ratio(0.0), proximal_length(0.0),
                         pendant_length(0.0), parsimony(0), pquery(nullptr), edge(nullptr)
     {}
 
@@ -38,7 +38,7 @@ struct PqueryPlacement
         edge_num(other->edge_num),
         likelihood(other->likelihood),
         like_weight_ratio(other->like_weight_ratio),
-        distal_length(other->distal_length),
+        proximal_length(other->proximal_length),
         pendant_length(other->pendant_length),
         parsimony(other->parsimony),
         pquery(nullptr),
@@ -48,7 +48,7 @@ struct PqueryPlacement
     int     edge_num;
     double  likelihood;
     double  like_weight_ratio;
-    double  distal_length;
+    double  proximal_length;
     double  pendant_length;
     int     parsimony;
 
@@ -162,7 +162,7 @@ protected:
         size_t secondary_node_index;
 
         double pendant_length;
-        double distal_length;
+        double proximal_length;
         double branch_length;
         double like_weight_ratio;
     } VarianceData;

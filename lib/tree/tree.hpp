@@ -572,10 +572,7 @@ public:
     bool Validate() const;
 
     std::string Dump() const;
-    std::string DumpLinks() const;
-    std::string DumpNodes() const;
-    std::string DumpEdges() const;
-    std::string DumpEulertour() const;
+    std::string DumpLists() const;
 
     // -----------------------------------------------------
     //     Data Members
