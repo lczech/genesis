@@ -740,25 +740,13 @@ std::string Tree<NDT, EDT>::Dump() const
 }
 
 /**
- * @brief Returns lists of all links, nodes and edges including their indices and connections
+ * @brief Returns lists of all nodes, edges and links including their indices and connections
  * with each other.
  */
 template <class NDT, class EDT>
 std::string Tree<NDT, EDT>::DumpLists() const
 {
     std::ostringstream out;
-
-    // links
-    for (size_t i = 0; i < links_.size(); ++i) {
-        out << "Link " << i
-            << " \t Next: "  << links_[i]->next_->index_
-            << " \t Outer: " << links_[i]->outer_->index_
-            << " \t Node: "  << links_[i]->node_->index_
-            << " \t Edge: "  << links_[i]->edge_->index_
-            << " \t " << links_[i]->Dump()
-            << "\n";
-    }
-    out << "\n";
 
     // nodes
     for (size_t i = 0; i < nodes_.size(); ++i) {
@@ -774,6 +762,18 @@ std::string Tree<NDT, EDT>::DumpLists() const
             << " \t Link P: " << edges_[i]->link_p_->index_
             << " \t Link S: " << edges_[i]->link_s_->index_
             << " \t " << edges_[i]->Dump() << "\n";
+    }
+    out << "\n";
+
+    // links
+    for (size_t i = 0; i < links_.size(); ++i) {
+        out << "Link " << i
+            << "  \t Next: "  << links_[i]->next_->index_
+            << " \t Outer: " << links_[i]->outer_->index_
+            << " \t Node: "  << links_[i]->node_->index_
+            << " \t Edge: "  << links_[i]->edge_->index_
+            << " \t " << links_[i]->Dump()
+            << "\n";
     }
 
     return out.str();

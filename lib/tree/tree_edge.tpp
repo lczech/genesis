@@ -57,7 +57,7 @@ namespace genesis {
 template <class NDT, class EDT>
 std::string TreeEdge<NDT, EDT>::Dump() const
 {
-    return "Node P: " + PrimaryNode()->name + ", Node S: " + SecondaryNode()->name;
+    return "Node P: " + PrimaryNode()->name + ", Node S: " + SecondaryNode()->name + "\t" + EDT::Dump();
 }
 
 } // namespace genesis

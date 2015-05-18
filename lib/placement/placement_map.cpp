@@ -973,7 +973,7 @@ std::string PlacementMap::Dump() const
             if (p->parsimony != 0.0) {
                 out << "\tParsimony: " << p->parsimony << " ";
             }
-            out << "\tDistal Length: " << p->proximal_length << ", Pendant Length: " << p->pendant_length << "\n";
+            out << "\tProximal Length: " << p->proximal_length << ", Pendant Length: " << p->pendant_length << "\n";
         }
         out << "\n";
     }
