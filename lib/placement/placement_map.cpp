@@ -528,6 +528,13 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
     double totalmass_l = lhs.PlacementMass();
     double totalmass_r = rhs.PlacementMass();
 
+    // disable all debug messages for this function...
+    Logging::LoggingLevel ll = Logging::max_level();
+    Logging::max_level(Logging::kInfo);
+
+    LOG_DBG << "totalmass_l " << totalmass_l;
+    LOG_DBG << "totalmass_r " << totalmass_r;
+
     // do a postorder traversal on both trees in parallel. while doing so, move placements
     // from the leaves towards the root and store their movement (mass * distance) in balance[].
     // in theory, it does not matter where we start the traversal - however, the positions of the
@@ -541,6 +548,9 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
         it_l != lhs.tree.EndPostorder() && it_r != rhs.tree.EndPostorder();
         ++it_l, ++it_r
     ) {
+        LOG_DBG << "\033[1;31miteration at node " << it_l.Node()->index_ << ": " << it_l.Node()->name << "\033[0m";
+        LOG_DBG << "current distance " << distance;
+
         // check whether both trees have identical topology. if they have, the ranks of all nodes
         // are the same. however, if not, at some point their ranks will differ.
         if (it_l.Node()->Rank() != it_r.Node()->Rank()) {
@@ -551,6 +561,7 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
         // if we are at the last iteration, we reached the root, thus we have moved all masses now
         // and don't need to proceed. if we did, we would count an edge of the root again.
         if (it_l.IsLastIteration()) {
+            LOG_DBG1 << "last iteration";
             // we do a check for the mass at the root here for debug purposes.
             double root_mass = 0.0;
             for (
@@ -561,6 +572,7 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
                 assert(balance.count(n_it.Link()->Outer()->Node()));
                 root_mass += balance[n_it.Link()->Outer()->Node()];
             }
+
             LOG_DBG << "Mass at root: " << root_mass;
 
             continue;
@@ -575,9 +587,42 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
             return -1.0;
         }
 
-        // move placements around between children, and collect the remaining mass in mass_s.
-        // mass_s then contains the rest mass of the subtree that could not be distributed among
-        // the children and thus has to be moved upwards.
+        // we now start a "normal" EMD caluclation on the current edge. for this, we store the
+        // masses of all placements sorted by their position on the branch.
+        std::multimap<double, double> edge_balance;
+        LOG_DBG1 << "placing on branch...";
+
+        // add all placements of the branch from the left tree (using positive mass)...
+        for (PqueryPlacement* place : it_l.Edge()->placements) {
+            distance += place->like_weight_ratio * place->pendant_length / totalmass_l;
+            edge_balance.emplace(place->proximal_length, +place->like_weight_ratio / totalmass_l);
+
+            LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
+            LOG_DBG2 << "it_l edge   " << it_l.Edge()->index_;
+            LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_l;
+            LOG_DBG2 << "new dist    " << distance;
+            LOG_DBG2 << "emplaced at " << place->proximal_length << ": " << +place->like_weight_ratio / totalmass_l;
+            LOG_DBG2;
+        }
+
+        // ... and the branch from the right tree (using negative mass)
+        for (PqueryPlacement* place : it_r.Edge()->placements) {
+            distance += place->like_weight_ratio * place->pendant_length / totalmass_r;
+            edge_balance.emplace(place->proximal_length, -place->like_weight_ratio / totalmass_r);
+
+            LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
+            LOG_DBG2 << "it_r edge   " << it_r.Edge()->index_;
+            LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_r;
+            LOG_DBG2 << "new dist    " << distance;
+            LOG_DBG2 << "emplaced at " << place->proximal_length << ": " << -place->like_weight_ratio / totalmass_r;
+            LOG_DBG2;
+        }
+
+        LOG_DBG1 << "placed all.";
+
+        // distribute placement mass between children of this node, and collect the remaining mass
+        // in mass_s. mass_s then contains the rest mass of the subtree that could not be
+        // distributed among the children and thus has to be moved upwards.
         double mass_s = 0.0;
         PlacementTree::LinkType* link = it_l.Link()->Next();
         while (link != it_l.Link()) {
@@ -588,42 +633,43 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
             mass_s += balance[link->Outer()->Node()];
             link = link->Next();
         }
-
-        // we now start a "normal" EMD caluclation on the current edge. for this, we store the
-        // masses of all placements sorted by their position on the branch.
-        std::multimap<double, double> edge_balance;
-
-        // add all placements of the branch from the left tree (using positive mass)...
-        for (PqueryPlacement* place : it_l.Edge()->placements) {
-            // TODO consider like_weight_ratio here!
-            distance += place->pendant_length / totalmass_l;
-            edge_balance.emplace(place->proximal_length, +1.0 / totalmass_l);
-        }
-
-        // ... and the branch from the right tree (using negative mass)
-        for (PqueryPlacement* place : it_r.Edge()->placements) {
-            // TODO consider like_weight_ratio here!
-            distance += place->pendant_length / totalmass_r;
-            edge_balance.emplace(place->proximal_length, -1.0 / totalmass_r);
-        }
+        LOG_DBG1 << "subtrees mass_s " << mass_s;
+        LOG_DBG1 << "entering standard emd part...";
 
         // start the EMD with the mass that is left over from the subtrees...
         double cur_pos  = it_l.Edge()->branch_length;
         double cur_mass = mass_s;
 
+        LOG_DBG1 << "cur_pos  " << cur_pos;
+        LOG_DBG1 << "cur_mass " << cur_mass;
+
         // ... and move it along the branch, balancing it with the placements found on the branches.
         // this is basically a standard EMD calculation along the branch.
         std::multimap<double, double>::reverse_iterator rit;
         for (rit = edge_balance.rbegin(); rit != edge_balance.rend(); ++rit) {
+            LOG_DBG2 << "at " << rit->first << " with " << rit->second;
             distance += std::abs(cur_mass) * (cur_pos - rit->first);
-            cur_mass += rit->second;
+            LOG_DBG2 << "added dist " << std::abs(cur_mass) * (cur_pos - rit->first);
+            LOG_DBG2 << "new dist   " << distance;
+
             cur_pos   = rit->first;
+            cur_mass += rit->second;
+
+            LOG_DBG2 << "cur_pos  " << cur_pos;
+            LOG_DBG2 << "cur_mass " << cur_mass;
+            LOG_DBG2;
         }
 
         // finally, move the rest to the end of the branch and store its mass in balance[],
         // so that it can be used for the nodes further up in the tree.
         distance += std::abs(cur_mass) * cur_pos;
         balance[it_l.Node()] = cur_mass;
+
+        LOG_DBG1 << "added dist " << std::abs(cur_mass) * cur_pos;
+        LOG_DBG1 << "new dist   " << distance;
+        LOG_DBG1 << "balance at node " << it_l.Node()->index_ << ": " << it_l.Node()->name << " = " << cur_mass;
+        LOG_DBG1 << "finished standard emd part";
+        LOG_DBG1;
     }
 
     // check whether we are done with both trees.
@@ -631,6 +677,9 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
         LOG_WARN << "Inconsistent reference trees in EMD calculation.";
         return -1.0;
     }
+
+    LOG_DBG << "final distance: " << distance;
+    Logging::max_level(ll);
 
     return distance;
 }
@@ -744,20 +793,22 @@ void PlacementMap::COG() const
  *
  *   2. The path between the placements includes the root.
  *      The distance of a placement from its neighbouring nodes is mostly given in form of the
- *      proximal_length, which is the distance of the placement to the node (at the end of its branch)
- *      that lies in direction of the root. Thus, there is an implicit notion of a root, that we
- *      need to consider. If the path between two placements contains the root, we can directly
- *      calculate their distance as the distance between the two promixal nodes plus proximal_lengths
- *      and pendant_lengths of both placements. We call this the promixal-promixal case.
+ *      proximal_length, which is the distance of the placement to the node (at the end of its
+ *      branch) that lies in direction of the root. Thus, there is an implicit notion of a root,
+ *      that we need to consider. If the path between two placements contains the root, we can
+ *      directly calculate their distance as the distance between the two promixal nodes plus
+ *      proximal_lengths and pendant_lengths of both placements. We call this the promixal-promixal
+ *      case.
  *
  *   3. The root is not part of the path between the placements.
  *      This case means that one of the two placements lies on the path between the other placement
  *      and the root -- thus, the path between the placements does not contain the root.
- *      The distance between the placements cannot be calculated using the proximal_lengths directly,
- *      but we need to get the distal_length (away from the root) of the inner placement first.
- *      This is simply the difference between branch_length and proximal_length of that placement.
- *      Of course, this case comes in two flavours, because both placements can be the inner or
- *      outer one. They are called proximal-distal case and distal-proximal case, respectively.
+ *      The distance between the placements cannot be calculated using the proximal_lengths
+ *      directly, but we need to get the distal_length (away from the root) of the inner placement
+ *      first. This is simply the difference between branch_length and proximal_length of that
+ *      placement. Of course, this case comes in two flavours, because both placements can be the
+ *      inner or outer one. They are called proximal-distal case and distal-proximal case,
+ *      respectively.
  *
  * The first case is easy to detect by comparing the edges. However, distinguishing between the
  * latter two cases is expensive, as it involves finding the path to the root for both placements.
@@ -767,8 +818,8 @@ void PlacementMap::COG() const
  * of the placements and do a lookup for those nodes.
  *
  * With this technique, we can calculate the distances between the placements for all
- * three cases (promixal-promixal, proximal-distal and distal-proximal) cheaply. The wanted distance is
- * then simply the minimum of those three distances. This is correct, because the two wrong cases
+ * three cases (promixal-promixal, proximal-distal and distal-proximal) cheaply. The wanted distance
+ * is then simply the minimum of those three distances. This is correct, because the two wrong cases
  * will always produce an overestimation of the distance.
  *
  * This distance is normalized using the `like_weight_ratio` of both placements, before
@@ -784,8 +835,9 @@ void PlacementMap::COG() const
  * `like_weight_ratio`, we instead calculate `n` as the sum of the `like_weight_ratio` of all
  * placements. In case that for each pquery the ratios of all its placements sum up to 1.0, this
  * number will be equal to the number of pqueries (and thus be equal to the usual case of using the
- * number of elements). However, as this is not required (placements with small ratio can be dropped,
- * so that their sum per pquery is less than 1.0), we need to calculate this number manually here.
+ * number of elements). However, as this is not required (placements with small ratio can be
+ * dropped, so that their sum per pquery is less than 1.0), we need to calculate this number
+ * manually here.
  */
 double PlacementMap::Variance() const
 {
@@ -966,14 +1018,16 @@ std::string PlacementMap::Dump() const
             out << "\n";
         }
         for (const PqueryPlacement* p : pqry->placements) {
-            out << "at Edge: " << p->edge_num << ". ";
+            out << "at Edge num: " << p->edge_num << " (edge index " << p->edge->index_ << "). ";
             if (p->likelihood != 0.0 || p->like_weight_ratio != 0.0) {
-                out << "\tLikelihood: " << p->likelihood << ", Ratio: " << p->like_weight_ratio << " ";
+                out << "\tLikelihood: " << p->likelihood;
+                out << ", Ratio: " << p->like_weight_ratio << " ";
             }
             if (p->parsimony != 0.0) {
                 out << "\tParsimony: " << p->parsimony << " ";
             }
-            out << "\tDistal Length: " << p->proximal_length << ", Pendant Length: " << p->pendant_length << "\n";
+            out << "\tProximal Length: " << p->proximal_length;
+            out << ", Pendant Length: " << p->pendant_length << "\n";
         }
         out << "\n";
     }
