@@ -44,6 +44,9 @@ public:
     //     Parsing
     // ---------------------------------------------------------------------
 
+    static bool report_invalid_numbers;
+    static bool correct_invalid_numbers;
+
     static bool FromFile     (const std::string&  fn,     PlacementMap& placements);
     static bool FromString   (const std::string&  jplace, PlacementMap& placements);
     static bool FromDocument (const JsonDocument& doc,    PlacementMap& placements);

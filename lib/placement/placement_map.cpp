@@ -652,7 +652,13 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs, const
         std::multimap<double, double>::reverse_iterator rit;
         for (rit = edge_balance.rbegin(); rit != edge_balance.rend(); ++rit) {
             LOG_DBG2 << "at " << rit->first << " with " << rit->second;
-            assert(cur_pos >= rit->first);
+            //~ LOG_INFO << "at " << rit->first << " with " << rit->second;
+            //~ assert(cur_pos >= rit->first);
+            LOG_DBG2 << "is " << cur_pos << " >= " << rit->first << "? with " << rit->second;
+            //~ if (cur_pos < rit->first) {
+                //~ LOG_INFO << "is " << cur_pos << " >= " << rit->first << "? with " << rit->second;
+                //~ return -1.0;
+            //~ }
             distance += std::abs(cur_mass) * (cur_pos - rit->first);
             LOG_DBG2 << "added dist " << std::abs(cur_mass) * (cur_pos - rit->first);
             LOG_DBG2 << "new dist   " << distance;
