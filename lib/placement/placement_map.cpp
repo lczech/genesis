@@ -504,16 +504,16 @@ std::vector<int> PlacementMap::ClosestLeafDistanceHistogramAuto (
  * @brief Calculates the Earth Movers Distance to another sets of placements on a fixed reference
  * tree.
  */
-double PlacementMap::EMD(const PlacementMap& right) const
+double PlacementMap::EMD(const PlacementMap& right, const bool with_pendant_length) const
 {
-    return PlacementMap::EMD(*this, right);
+    return PlacementMap::EMD(*this, right, with_pendant_length);
 }
 
 /**
  * @brief Calculates the Earth Movers Distance between two sets of placements on a fixed reference
  * tree.
  */
-double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
+double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs, const bool with_pendant_length)
 {
     // keep track of the total resulting distance.
     double distance = 0.0;
@@ -594,7 +594,9 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
 
         // add all placements of the branch from the left tree (using positive mass)...
         for (PqueryPlacement* place : it_l.Edge()->placements) {
-            distance += place->like_weight_ratio * place->pendant_length / totalmass_l;
+            if (with_pendant_length) {
+                distance += place->like_weight_ratio * place->pendant_length / totalmass_l;
+            }
             edge_balance.emplace(place->proximal_length, +place->like_weight_ratio / totalmass_l);
 
             LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
@@ -607,7 +609,9 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
 
         // ... and the branch from the right tree (using negative mass)
         for (PqueryPlacement* place : it_r.Edge()->placements) {
-            distance += place->like_weight_ratio * place->pendant_length / totalmass_r;
+            if (with_pendant_length) {
+                distance += place->like_weight_ratio * place->pendant_length / totalmass_r;
+            }
             edge_balance.emplace(place->proximal_length, -place->like_weight_ratio / totalmass_r);
 
             LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
@@ -648,6 +652,7 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs)
         std::multimap<double, double>::reverse_iterator rit;
         for (rit = edge_balance.rbegin(); rit != edge_balance.rend(); ++rit) {
             LOG_DBG2 << "at " << rit->first << " with " << rit->second;
+            assert(cur_pos >= rit->first);
             distance += std::abs(cur_mass) * (cur_pos - rit->first);
             LOG_DBG2 << "added dist " << std::abs(cur_mass) * (cur_pos - rit->first);
             LOG_DBG2 << "new dist   " << distance;

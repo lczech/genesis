@@ -71,8 +71,8 @@ void BoostPythonExport_PlacementMap()
         )
         .def(
             "EMD",
-            ( double ( ::genesis::PlacementMap::* )( const ::genesis::PlacementMap & ) const )( &::genesis::PlacementMap::EMD ),
-            ( boost::python::arg("other") ),
+            ( double ( ::genesis::PlacementMap::* )( const ::genesis::PlacementMap &, const bool ) const )( &::genesis::PlacementMap::EMD ),
+            ( boost::python::arg("other"), boost::python::arg("with_pendant_length")=(const bool)(true) ),
             "Calculates the Earth Movers Distance to another sets of placements on a fixed reference tree."
         )
         .def(

@@ -33,6 +33,8 @@ void BoostPythonExport_Logging();
 
 BOOST_PYTHON_MODULE(genesis)
 {
+    // show genesis docstrings, python signature, but not c++ signature
+    boost::python::docstring_options doc_options(true, true, false);
 
     // -------------------------------------------
     //     Placement
