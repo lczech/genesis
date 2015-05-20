@@ -7,7 +7,7 @@
 
 #include "plausibility/plausibility.hpp"
 
-#include "tree/bipartitions.hpp"
+#include "tree/bipartition_set.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/logging.hpp"
 

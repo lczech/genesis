@@ -1,5 +1,5 @@
 /**
- * @brief Implementation of Bipartitions class.
+ * @brief Implementation of BipartitionSet class.
  *
  * For reasons of readability, in this implementation file, the template data types
  * NodeDataType and EdgeDataType are abbreviated using NDT and EDT, respectively.
@@ -8,24 +8,17 @@
  * @ingroup tree
  */
 
-#include <sstream>
+#include "tree/bipartition_set.hpp"
+#include "utils/logging.hpp"
 
 namespace genesis {
 
-// =============================================================================
-//     Bipartition
-// =============================================================================
-
-/**
- * @brief
- */
-
-// =============================================================================
-//     Bipartitions
-// =============================================================================
+// -------------------------------------------------------------
+//     Dump and Debug
+// -------------------------------------------------------------
 
 template <class NDT, class EDT>
-void Bipartitions<NDT, EDT>::Make()
+void BipartitionSet<NDT, EDT>::Make()
 {
     size_t num_leaves = tree_->LeafCount();
     MakeIndex();
@@ -60,7 +53,7 @@ void Bipartitions<NDT, EDT>::Make()
 }
 
 template <class NDT, class EDT>
-void Bipartitions<NDT, EDT>::MakeIndex()
+void BipartitionSet<NDT, EDT>::MakeIndex()
 {
     leaf_to_node_map_.clear();
     node_to_leaf_map_.clear();
@@ -91,8 +84,8 @@ void Bipartitions<NDT, EDT>::MakeIndex()
  * If no fitting subtree exists, the function returns a `nullptr`.
  */
 template <class NDT, class EDT>
-typename Bipartitions<NDT, EDT>::BipartitionType* Bipartitions<NDT, EDT>::FindSmallestSubtree (
-    std::vector<Bipartitions<NDT, EDT>::NodeType*> nodes
+typename BipartitionSet<NDT, EDT>::BipartitionType* BipartitionSet<NDT, EDT>::FindSmallestSubtree (
+    std::vector<BipartitionSet<NDT, EDT>::NodeType*> nodes
 ) {
     Make();
     Bitvector comp(tree_->LeafCount());
@@ -138,9 +131,9 @@ typename Bipartitions<NDT, EDT>::BipartitionType* Bipartitions<NDT, EDT>::FindSm
 }
 
 template <class NDT, class EDT>
-std::vector<typename Bipartitions<NDT, EDT>::EdgeType const *>
-Bipartitions<NDT, EDT>::GetSubtreeEdges (
-    const Bipartitions<NDT, EDT>::LinkType* subtree
+std::vector<typename BipartitionSet<NDT, EDT>::EdgeType const *>
+BipartitionSet<NDT, EDT>::GetSubtreeEdges (
+    const BipartitionSet<NDT, EDT>::LinkType* subtree
 ) {
     std::vector<std::string> leaf_names;
     std::vector<const EdgeType*> ret;
@@ -172,13 +165,13 @@ Bipartitions<NDT, EDT>::GetSubtreeEdges (
 // -------------------------------------------------------------
 
 template <class NDT, class EDT>
-bool Bipartitions<NDT, EDT>::Validate()
+bool BipartitionSet<NDT, EDT>::Validate()
 {
     return true;
 }
 
 template <class NDT, class EDT>
-std::string Bipartitions<NDT, EDT>::Dump()
+std::string BipartitionSet<NDT, EDT>::Dump()
 {
     std::ostringstream out;
 
