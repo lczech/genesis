@@ -22,6 +22,9 @@ namespace genesis {
 template <class NodeDataType, class EdgeDataType>
 class  Tree;
 
+template <class NodeDataType, class EdgeDataType>
+class  TreeSet;
+
 class  NewickBroker;
 struct NewickBrokerElement;
 
@@ -37,7 +40,7 @@ public:
         SetCharType (LexerTokenType::kComment,  "[]");
         SetCharType (LexerTokenType::kTag,      "{}");
         SetCharType (LexerTokenType::kBracket,  "()");
-        SetCharType (LexerTokenType::kOperator, ",;");
+        SetCharType (LexerTokenType::kOperator, ",;=");
 
         // we use symbols and strings the same way here: both are labels for nodes, the first begin
         // called unquoted_label, the second quoted_label.
@@ -51,7 +54,7 @@ public:
         SetCharType (LexerTokenType::kSymbol,   "0123456789");
 
         // furthermore, set all remaining graphic chars to symbol so that they can be in a label.
-        SetCharType (LexerTokenType::kSymbol,   "!\"#$%&*+-./<=>?@\\^_`|~");
+        SetCharType (LexerTokenType::kSymbol,   "!\"#$%&*+-./<>?@\\^_`|~");
 
         // set the flags as needed
         include_whitespace        = false;
@@ -138,21 +141,32 @@ public:
     // ---------------------------------------------------------------------
 
     template <class NodeDataType, class EdgeDataType>
-    static bool FromFile   (const std::string fn,     Tree<NodeDataType, EdgeDataType>& tree);
+    static bool FromFile   (const std::string& fn,     Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static bool FromString (const std::string ts,     Tree<NodeDataType, EdgeDataType>& tree);
+    static bool FromString (const std::string& ts,     Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
-    static bool FromLexer  (const NewickLexer& lexer, Tree<NodeDataType, EdgeDataType>& tree);
+    static bool FromFile   (const std::string& fn,     TreeSet<NodeDataType, EdgeDataType>& tset);
 
     template <class NodeDataType, class EdgeDataType>
-    static void FromBroker (NewickBroker& broker,     Tree<NodeDataType, EdgeDataType>& tree);
+    static bool FromString (const std::string& ts,     TreeSet<NodeDataType, EdgeDataType>& tset);
+
+protected:
+    static bool ParseTree  (
+              NewickLexer::iterator& ct,
+        const NewickLexer::iterator& end,
+              NewickBroker&          broker
+    );
+
+    template <class NodeDataType, class EdgeDataType>
+    static void BuildTree (NewickBroker& broker, Tree<NodeDataType, EdgeDataType>& tree);
 
     // ---------------------------------------------------------------------
     //     Printing
     // ---------------------------------------------------------------------
 
+public:
     static bool print_names;
     static bool print_branch_lengths;
     static bool print_comments;
@@ -161,7 +175,7 @@ public:
     static int  precision;
 
     template <class NodeDataType, class EdgeDataType>
-    static bool ToFile   (const std::string fn, const Tree<NodeDataType, EdgeDataType>& tree);
+    static bool ToFile   (const std::string& fn, const Tree<NodeDataType, EdgeDataType>& tree);
 
     template <class NodeDataType, class EdgeDataType>
     static void ToString (std::string& ts,      const Tree<NodeDataType, EdgeDataType>& tree);
@@ -169,10 +183,10 @@ public:
     template <class NodeDataType, class EdgeDataType>
     static std::string ToString (               const Tree<NodeDataType, EdgeDataType>& tree);
 
+protected:
     template <class NodeDataType, class EdgeDataType>
     static void ToBroker (NewickBroker& broker, const Tree<NodeDataType, EdgeDataType>& tree);
 
-protected:
     static std::string ToStringRec(const NewickBroker& broker, size_t position);
     static std::string ElementToString(const NewickBrokerElement* bn);
 };

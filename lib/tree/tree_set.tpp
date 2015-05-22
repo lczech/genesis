@@ -8,26 +8,45 @@
  * @ingroup tree
  */
 
+#include <algorithm>
+
 #include "tree/tree_set.hpp"
 #include "utils/logging.hpp"
+#include "utils/utils.hpp"
 
 namespace genesis {
 
 // =============================================================================
-//     Tree Set Methods
+//     Modifiers
 // =============================================================================
 
 /**
  * @brief
  */
 template <class NDT, class EDT>
-void TreeSet<NDT, EDT>::AddTree(const std::string& name, TreeType& tree)
+void TreeSet<NDT, EDT>::Add (const std::string& name, TreeType* tree)
 {
-    if (map_.count(name) > 0) {
-        LOG_WARN << "TreeSet already contains a tree with name '" << name << "'.";
-        return;
+    trees_.push_back(std::make_pair(name, std::unique_ptr<TreeType>(tree)));
+}
+
+// =============================================================================
+//     Accessors
+// =============================================================================
+
+/**
+ * @brief
+ */
+template <class NDT, class EDT>
+typename TreeSet<NDT, EDT>::TreeType* TreeSet<NDT, EDT>::GetFirst(const std::string& name)
+{
+    auto ct = trees_.begin();
+    while (ct != trees_.end()) {
+        if (ct->first == name) {
+            return ct->second->get();
+        }
+        ++ct;
     }
-    map_[name] = tree;
+    return nullptr;
 }
 
 } // namespace genesis
