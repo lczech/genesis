@@ -51,7 +51,7 @@ bool PhylipProcessor::FromString (const std::string& fs, SequenceSet& aln)
 {
     // do stepwise lexing
     PhylipLexer lexer;
-    lexer.ProcessString(fs, true);
+    lexer.FromString(fs);
 
     // basic checks
     if (lexer.empty()) {
@@ -66,8 +66,6 @@ bool PhylipProcessor::FromString (const std::string& fs, SequenceSet& aln)
 
     // delete tailing tokens immediately, produce tokens intime.
     PhylipLexer::iterator it = lexer.begin();
-    it.ConsumeWithTail(0);
-    it.ProduceWithHead(0);
 
     std::string        label;
     std::ostringstream seq;

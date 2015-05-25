@@ -81,6 +81,10 @@ protected:
         assert(GetChar() == '>');
         NextChar();
 
+        if (IsEnd()) {
+            // TODO error
+        }
+
         // scan until we reach a new line (this is the only type of whitespace used in this lexer)
         size_t start = GetPosition();
         while (!IsEnd() && GetCharType() != LexerTokenType::kWhite) {

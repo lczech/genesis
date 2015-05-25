@@ -229,6 +229,7 @@ size_t Bitvector::Count() const
  */
 size_t Bitvector::Hash() const
 {
+    // TODO this might be a poor hash function. check what kind of value a hash fct needs to return and decide whether xhash is a good choice instead!
     size_t res = 0;
     for (size_t i = 0; i < size_; ++i) {
         if (Get(i)) {
@@ -285,6 +286,8 @@ void Bitvector::Reset(bool value)
 {
     // set according to flag.
     for (size_t i = 0; i < data_.size(); ++i) {
+        // TODO for speed reasons, the conditon might be put outside the loop, by storing a reference to the correct mask,
+        // TODO or by just duplicating the loop code inside the condition branches.
         data_[i] = value ? all_1_ : all_0_;
     }
 

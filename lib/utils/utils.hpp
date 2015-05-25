@@ -10,6 +10,7 @@
 
 #include <ctime>
 #include <iomanip>
+#include <memory>
 #include <sstream>
 #include <stdint.h>
 #include <string>

@@ -39,7 +39,7 @@ bool FastaProcessor::FromString (const std::string& fs, SequenceSet& aln)
 {
     // do stepwise lexing
     FastaLexer lexer;
-    lexer.ProcessString(fs, true);
+    lexer.FromString(fs);
 
     // basic checks
     if (lexer.empty()) {
@@ -55,8 +55,6 @@ bool FastaProcessor::FromString (const std::string& fs, SequenceSet& aln)
 
     // delete tailing tokens immediately, produce tokens intime.
     FastaLexer::iterator it = lexer.begin();
-    it.ConsumeWithTail(0);
-    it.ProduceWithHead(0);
 
     std::string        label;
     std::ostringstream seq;

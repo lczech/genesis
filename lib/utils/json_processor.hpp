@@ -118,19 +118,19 @@ protected:
     static bool ParseValue (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
-        JsonValue*&            value
+        JsonValue*&          value
     );
 
     static bool ParseArray (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
-        JsonValueArray*        value
+        JsonValueArray*      value
     );
 
     static bool ParseObject (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
-        JsonValueObject*       value
+        JsonValueObject*     value
     );
 
     // ---------------------------------------------------------------------

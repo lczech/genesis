@@ -222,20 +222,20 @@ void BoostPythonExport_PlacementTree_NewickProcessor()
 
         .def(
             "FromFile",
-            ( bool ( * )( const std::string, ::genesis::PlacementTree& ))( &::genesis::NewickProcessor::FromFile ),
+            ( bool ( * )( const std::string&, ::genesis::PlacementTree& ))( &::genesis::NewickProcessor::FromFile ),
             ( boost::python::arg("fn"), boost::python::arg("tree") )
         )
         .staticmethod("FromFile")
         .def(
             "FromString",
-            ( bool ( * )( const std::string, ::genesis::PlacementTree& ))( &::genesis::NewickProcessor::FromString ),
+            ( bool ( * )( const std::string&, ::genesis::PlacementTree& ))( &::genesis::NewickProcessor::FromString ),
             ( boost::python::arg("ts"), boost::python::arg("tree") )
         )
         .staticmethod("FromString")
 
         .def(
             "ToFile",
-            ( bool ( * )( const std::string, const ::genesis::PlacementTree& ))( &::genesis::NewickProcessor::ToFile ),
+            ( bool ( * )( const std::string&, const ::genesis::PlacementTree& ))( &::genesis::NewickProcessor::ToFile ),
             ( boost::python::arg("fn"), boost::python::arg("tree") )
         )
         .staticmethod("ToFile")

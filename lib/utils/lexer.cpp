@@ -1,5 +1,5 @@
 /**
- * @brief Implementation of Lexer functions.
+ * @brief Implementation of Lexer class.
  *
  * @file
  * @ingroup utils
@@ -22,83 +22,51 @@ namespace genesis {
 // =============================================================================
 
 /**
- * @brief Shortcut function that reads the contents of a file and then calls ProcessString().
+ * @brief Shortcut function that reads the contents of a file and then calls FromString().
  *
  * If the file does not exist, a warning is triggered and false returned. Otherwise, the result
- * of ProcessString() is returned.
+ * of FromString() is returned.
  */
-bool Lexer::ProcessFile(const std::string& fn)
+bool Lexer::FromFile   (const std::string& fn)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "File '" << fn << "' does not exist.";
         return false;
     }
-    return ProcessString(FileRead(fn));
+    return FromString(FileRead(fn));
 }
 
 /**
  * @brief Process a string and store the resulting tokens in this Lexer object.
  *
- * This function clears the token list stored for this object and fills it
- * with the results of processing the given string. This process analyzes and
- * splits the string into different tokens. For the types of tokens being
+ * This process analyzes and splits the string into different tokens. For the types of tokens being
  * extracted, see LexerToken; for accessing the results, see Lexer.
  *
  * Returns true iff successful. In case an error is encountered while analyzing
  * the text, this functions returns false and the last token will be of type
  * LexerTokenType::kError, with the value being an error message describing the
  * type of error.
- *
- * Common usage:
- *
- *     Lexer l;
- *     l.ProcessString("tree(some:0.5,items:0.3);")
- *     if (l.empty()) {
- *         LOG_WARN << "Lexer is empty.";
- *     }
- *     if (l.HasError()) {
- *         LexerToken b = l.back();
- *         LOG_WARN << "Lexing error "
- *             << " at " << b.line() << ":" << b.column()
- *             << " with message " << b.value();
- *     }
- *     ... process the tokens ...
- *
- * The additional option `stepwise` will not scan the entire string, but only the
- * first element of it. In order to get more tokens manually, ProcessStep() has to be called until
- * it returns false. However, this option is usually used in combination with a producing
- * LexerIterator, that will automatically call ProcessStep() whenever tokens are needed.
- * See JsonProcessor::FromString() for an example.
  */
-bool Lexer::ProcessString(const std::string& text, bool stepwise)
+bool Lexer::FromString (const std::string& in)
 {
-    Init(text);
+    text_ = in.c_str();
+    itr_  = 0;
+    len_  = in.size();
+    line_ = 1;
+    col_  = 0;
+    tokens_.clear();
 
-    // if we want stepwise lexing, just do the first step.
-    if (stepwise) {
-        return ProcessStep();
-    }
-
-    // if not, do steps till the end.
-    while (!IsEnd()) {
-        if (!ProcessStep()) {
-            return tokens_.empty();
-        }
-    }
-
-    return true;
+    return ProcessStep();
 }
 
 /**
  * @brief Processes one step of the lexing.
  *
- * This might produce more than one token, as comments and whitespaces are treaded specially.
- *
  * As stated in the description of this Lexer class, the class is meant to be
  * derived for concrete types of lexers. Thus, here are some comments about the
  * working of this function:
  *
- * For most types of text files, the first character of each token determines
+ * For most types of structured text, the first character of each token determines
  * the type of the token (for example, a digit almost always leads to a number
  * token). This is why we use a list telling us which char leads to which token
  * type. This list is a speedup, because using it, we do not need to try every
@@ -120,13 +88,12 @@ bool Lexer::ProcessString(const std::string& text, bool stepwise)
  * This technique will not work if finding the correct scanner depends on
  * more than the first character of the token. For example, comments usually
  * start with a more complex sequence ("//" or even "<!--"), which is why
- * they are specially treaded in the ProcessString function.
+ * they are specially treaded in this function.
  *
  * So, in situations, where the type of the next token cannot be determined from
- * its first character (except comments), ProcessString has to be overridden in the
+ * its first character (except comments), this function has to be overridden in the
  * derived class in order to do some other checking methods to determine the
- * correct scanner. In the new ProcessString function, first call Init to reset all
- * internal variables. Also see ScanUnknown for some important information.
+ * correct scanner.
  */
 bool Lexer::ProcessStep()
 {
@@ -203,20 +170,29 @@ bool Lexer::ProcessStep()
     return true;
 }
 
-//~ void Lexer::StripComments ()
-//~ {
-//~
-//~ }
+/**
+ * @brief
+ */
+bool Lexer::ProcessAll()
+{
+    while (!IsEnd()) {
+        if (!ProcessStep()) {
+            return tokens_.empty() || !tokens_.back().IsError();
+        }
+    }
+
+    return true;
+}
 
 // =============================================================================
 //     Scanners
 // =============================================================================
 
 /**
- * @brief Scans a range between two strings.
+ * @brief Evaluates (scans) a range between two strings.
  *
  * If the current position in the text starts with the value of `from`, this
- * scanner continues in the text until the value of `to` is found (or the end of
+ * function continues in the text until the value of `to` is found (or the end of
  * the text). In case of success (both `from` and `to` were found), it returns true,
  * false otherwise.
  *
@@ -226,7 +202,7 @@ bool Lexer::ProcessStep()
  * Example:
  *
  *     size_t start = GetPosition();
- *     bool   found = ScanFromTo("{", "}");
+ *     bool   found = EvaluateFromTo("{", "}");
  *     if (found) {
  *         PushToken(LexerTokenType::kTag, start+1, GetPosition()-1);
  *     }
@@ -234,7 +210,7 @@ bool Lexer::ProcessStep()
  * This scans between two curly brackets and if found, produces a token (that does not contain
  * the brackets themselves).
  */
-bool Lexer::ScanFromTo (const char* from, const char* to)
+bool Lexer::EvaluateFromTo (const char* from, const char* to)
 {
     // first check if the current position actually contains the "from" string
     if (IsEnd() || strncmp(from, text_+itr_, strlen(from)) != 0) {
@@ -315,7 +291,7 @@ inline bool Lexer::ScanWhitespace()
         NextChar();
         found = true;
     }
-    if (include_whitespace && found) {
+    if (found && include_whitespace) {
         PushToken(LexerTokenType::kWhite, start, GetPosition());
     }
     return found;
@@ -589,7 +565,7 @@ inline bool Lexer::ScanBracket()
  *
  *     tag key1 = x key2 = y
  *
- * In the base class, this functions simply returns false. In order to scan for
+ * In the base class, this functions simply returns an unknown token. In order to scan for
  * actual comments, it has to be overridden. A typical implementation can be
  * found in NewickLexer::ScanComment().
  */
@@ -616,7 +592,7 @@ inline bool Lexer::ScanTag()
  */
 inline Lexer::iterator Lexer::begin()
 {
-    return iterator(*this, 0);
+    return iterator(this, 0);
 }
 
 /**
@@ -624,7 +600,7 @@ inline Lexer::iterator Lexer::begin()
  */
 inline Lexer::iterator Lexer::end()
 {
-    return iterator(*this, -1);
+    return iterator(this, -1);
 }
 
 // =============================================================================

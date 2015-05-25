@@ -42,7 +42,7 @@ bool JsonProcessor::FromString (const std::string& json, JsonDocument& document)
 {
     // do stepwise lexing
     JsonLexer lexer;
-    lexer.ProcessString(json, true);
+    lexer.FromString(json);
 
     if (lexer.empty()) {
         LOG_INFO << "JSON document is empty.";
@@ -53,7 +53,7 @@ bool JsonProcessor::FromString (const std::string& json, JsonDocument& document)
                  << " with message: " << lexer.back().value();
         return false;
     }
-    if (!lexer.cbegin()->IsBracket("{")) {
+    if (!lexer.begin()->IsBracket("{")) {
         LOG_WARN << "JSON document does not start with JSON object opener '{'.";
         return false;
     }
@@ -63,10 +63,6 @@ bool JsonProcessor::FromString (const std::string& json, JsonDocument& document)
     document.clear();
     JsonLexer::iterator begin = lexer.begin();
     JsonLexer::iterator end   = lexer.end();
-
-    // delete tailing tokens immediately, produce tokens in time (needed for stepwise lexing).
-    begin.ConsumeWithTail(0);
-    begin.ProduceWithHead(0);
 
     if (!ParseObject(begin, end, &document)) {
         return false;
