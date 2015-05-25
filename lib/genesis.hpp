@@ -12,6 +12,7 @@
  * @file
  */
 
+#include "alignment/fasta_lexer.hpp"
 #include "alignment/fasta_processor.hpp"
 #include "alignment/phylip_processor.hpp"
 #include "alignment/sequence.hpp"
@@ -20,10 +21,16 @@
 #include "placement/jplace_processor.hpp"
 #include "placement/placement_map.hpp"
 #include "placement/placement_tree.hpp"
+#include "placement/pquery.hpp"
 #include "placement/simulator.hpp"
 
-#include "tree/bipartitions.hpp"
+#include "plausibility/plausibility.hpp"
+#include "plausibility/plausibility_tree.hpp"
+
+#include "tree/bipartition.hpp"
+#include "tree/bipartition_set.hpp"
 #include "tree/newick_broker.hpp"
+#include "tree/newick_lexer.hpp"
 #include "tree/newick_processor.hpp"
 #include "tree/phyloxml_processor.hpp"
 #include "tree/tree.hpp"
@@ -35,8 +42,11 @@
 
 #include "utils/bitvector.hpp"
 #include "utils/json_document.hpp"
+#include "utils/json_lexer.hpp"
 #include "utils/json_processor.hpp"
 #include "utils/lexer.hpp"
+#include "utils/lexer_iterator.hpp"
+#include "utils/lexer_token.hpp"
 #include "utils/logging.hpp"
 #include "utils/matrix.hpp"
 #include "utils/options.hpp"

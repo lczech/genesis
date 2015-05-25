@@ -10,6 +10,7 @@
 #include <sstream>
 #include <string.h>
 
+#include "alignment/fasta_lexer.hpp"
 #include "alignment/sequence_set.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
