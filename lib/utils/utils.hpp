@@ -62,6 +62,18 @@ bool Contains(const C& v, const T& x)
     return std::end(v) != std::find(std::begin(v), std::end(v), x);
 }
 
+/**
+ * @brief Returns a std::unique_ptr for a given type.
+ *
+ * Since this is not available in C++11, we need our own implementation.
+ * It is following http://herbsutter.com/gotw/_102/
+ */
+template<typename T, typename... Args>
+std::unique_ptr<T> make_unique(Args&&... args)
+{
+    return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
+}
+
 // ---------------------------------------------------------
 //     Date and Time
 // ---------------------------------------------------------

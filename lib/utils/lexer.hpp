@@ -874,7 +874,7 @@ public:
             position_ = -1;
         }
 
-        Comsume();
+        Consume();
 
         return *this;
     }
@@ -942,9 +942,24 @@ public:
         head_size_ = head_size < -1 ? -1 : head_size;
     }
 
+    /**
+     * @brief Consumes all tokens up to the current one.
+     */
+    inline void ConsumeAll()
+    {
+        while (position_ > 0) {
+            // position is either -1 (so we never entered this loop), or points to a valid element
+            // of the token list. so we can assume that this list is not empty.
+            assert(!lexer_.tokens_.empty());
+
+            lexer_.tokens_.pop_front();
+            --position_;
+        }
+    }
+
 protected:
 
-    inline void Comsume()
+    inline void Consume()
     {
         // only consume if activated.
         if (tail_size_ < 0) {
@@ -968,7 +983,7 @@ protected:
             return;
         }
 
-        // produce tokens until there is a buffer of head size many.
+        // produce tokens until there is a buffer of 'head size' many.
         assert(position_ >= 0 && head_size_ >= 0);
         while (lexer_.tokens_.size() <= static_cast<size_t> (position_ + head_size_)) {
             if (!lexer_.ProcessStep()) {

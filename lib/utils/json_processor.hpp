@@ -116,20 +116,20 @@ public:
 protected:
 
     static bool ParseValue (
-        Lexer::iterator& ct,
-        Lexer::iterator& end,
+        JsonLexer::iterator& ct,
+        JsonLexer::iterator& end,
         JsonValue*&            value
     );
 
     static bool ParseArray (
-        Lexer::iterator& ct,
-        Lexer::iterator& end,
+        JsonLexer::iterator& ct,
+        JsonLexer::iterator& end,
         JsonValueArray*        value
     );
 
     static bool ParseObject (
-        Lexer::iterator& ct,
-        Lexer::iterator& end,
+        JsonLexer::iterator& ct,
+        JsonLexer::iterator& end,
         JsonValueObject*       value
     );
 

@@ -38,7 +38,7 @@ namespace genesis {
  * independend of the data, hence the `other` Tree does not need to share the same data types.
  * Some potential function declarations can be found in the header file tree.hpp.
  */
-template <class NDT,  class EDT>
+template <class NDT, class EDT>
 Tree<NDT, EDT>::Tree (const Tree<NDT, EDT>& other)
 {
     // preparation.

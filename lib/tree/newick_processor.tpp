@@ -13,6 +13,7 @@
 
 #include "tree/newick_broker.hpp"
 #include "tree/tree.hpp"
+#include "tree/tree_set.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
@@ -22,11 +23,15 @@ namespace genesis {
 //     Parsing
 // =============================================================================
 
+// -------------------------------------------------------------------------
+//     Public Methods
+// -------------------------------------------------------------------------
+
 /**
  * @brief Create a Tree from a file containing a Newick tree.
  */
 template <class NDT, class EDT>
-bool NewickProcessor::FromFile (const std::string fn, Tree<NDT, EDT>& tree)
+bool NewickProcessor::FromFile (const std::string& fn, Tree<NDT, EDT>& tree)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' does not exist.";
@@ -39,19 +44,15 @@ bool NewickProcessor::FromFile (const std::string fn, Tree<NDT, EDT>& tree)
  * @brief Create a Tree from a string containing a Newick tree.
  */
 template <class NDT, class EDT>
-bool NewickProcessor::FromString (const std::string ts, Tree<NDT, EDT>& tree)
+bool NewickProcessor::FromString (const std::string& ts, Tree<NDT, EDT>& tree)
 {
+    // run the lexer
     NewickLexer lexer;
-    lexer.ProcessString(ts);
-    return FromLexer(lexer, tree);
-}
+    if (!lexer.ProcessString(ts)) {
+        return false;
+    }
 
-// TODO do a validate brackets first?!
-// TODO what happens if a tree's nested brackets fully close to depth 0, then open again without
-// TODO semicolon like (...)(...); ? do we need to check for this?
-template <class NDT, class EDT>
-bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
-{
+    // check for lexing errors
     if (lexer.empty()) {
         LOG_INFO << "Tree is empty. Nothing done.";
         return false;
@@ -62,8 +63,149 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
         return false;
     }
 
-    // we will fill this broker with tree elements
+    // parse the tree from lexer into a tree broker
+    auto ct  = lexer.begin();
     NewickBroker broker;
+    if (!ParseTree(ct, lexer.end(), broker)) {
+        return false;
+    }
+
+    // see if there is anything other than a comment left
+    while (ct != lexer.end()) {
+        if (!ct->IsComment()) {
+            LOG_WARN << "Tree contains more data after the semicolon.";
+            return false;
+        }
+        ++ct;
+    }
+
+    // build the tree from the broker
+    BuildTree(broker, tree);
+    return true;
+}
+
+/**
+ * @brief Create a TreeSet from a file containing a list of Newick trees.
+ *
+ * See FromString() for information on the syntax of this file.
+ */
+template <class NDT, class EDT>
+bool NewickProcessor::FromFile (const std::string& fn, TreeSet<NDT, EDT>& tset)
+{
+    if (!FileExists(fn)) {
+        LOG_WARN << "Tree file '" << fn << "' does not exist.";
+        return false;
+    }
+    return FromString(FileRead(fn), tset);
+}
+
+/**
+ * @brief Create a TreeSet from a string containing a list of Newick trees.
+ *
+ * These trees can either be named or unnamed, using this syntax:
+ *
+ *     Tree_A = (...);
+ *     'Tree B'=(...);
+ *     (...);
+ *
+ * where the first two lines are named trees and the third line is an unnamed tree.
+ * The trees do not have to be on distinct lines of the input, as whitespaces are completely
+ * stripped during the lexing phase. However, they are required to end with a semicolon `;`.
+ */
+template <class NDT, class EDT>
+bool NewickProcessor::FromString (const std::string& ts, TreeSet<NDT, EDT>& tset)
+{
+    // Run the Lexer.
+    NewickLexer lexer;
+    if (!lexer.ProcessString(ts, true)) {
+        return false;
+    }
+
+    // check for lexing errors
+    if (lexer.empty()) {
+        LOG_INFO << "Tree is empty. Nothing done.";
+        return false;
+    }
+    if (lexer.HasError()) {
+        LOG_WARN << "Lexing error at " << lexer.back().at()
+                 << " with message: " << lexer.back().value();
+        return false;
+    }
+
+    // Store error message. Also serves as flag whether an error occured.
+    std::string error = "";
+
+    auto ct = lexer.begin();
+    while (ct != lexer.end()) {
+        if (ct->IsUnknown()) {
+            error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
+            break;
+        }
+
+        if (ct->IsComment()) {
+            continue;
+        }
+
+        // Store the name of the current tree; if there is none, use empty string.
+        std::string name = "";
+        if (ct->IsSymbol() || ct->IsString()) {
+            name = ct->value();
+            ++ct;
+
+            if (ct == lexer.end()) {
+                error = "Unexpected end at " + ct->at() + ".";
+                break;
+            }
+
+            if (!ct->IsOperator("=")) {
+                error = "Invalid character '" + ct->value() + "' at " + ct->at() + ".";
+                break;
+            }
+            ++ct;
+
+            if (ct == lexer.end()) {
+                error = "Unexpected end of tree at " + ct->at() + ".";
+                break;
+            }
+        }
+
+        if (!ct->IsBracket("(")) {
+            error = "Invalid character at " + ct->at() + ".";
+            break;
+        }
+
+        // Parse the tree from Lexer into a TreeBroker.
+        NewickBroker broker;
+        if (!ParseTree(ct, lexer.end(), broker)) {
+            return false;
+        }
+
+        auto tree = new typename TreeSet<NDT, EDT>::TreeType();
+        BuildTree(broker, &tree);
+        tset.Add(name, tree);
+
+        // Let's clean up all tokens used so far. We don't need them anymore.
+        ct.ConsumeAll();
+    }
+
+    if (!error.empty()) {
+        LOG_WARN << error;
+        return false;
+    }
+
+    return true;
+}
+
+// -------------------------------------------------------------------------
+//     Internal Helper Methods
+// -------------------------------------------------------------------------
+
+bool NewickProcessor::ParseTree (
+          NewickLexer::iterator& ct,
+    const NewickLexer::iterator& end,
+          NewickBroker&          broker
+) {
+    broker.clear();
 
     // the node that is currently being populated with data
     NewickBrokerElement* node = nullptr;
@@ -71,11 +213,11 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
     // how deep is the current token nested in the tree?
     int depth = 0;
 
-    // acts as pointer to previous token
-    Lexer::const_iterator pt = lexer.cend();
+    // was it closed at some point? we want to avoid a tree like "()();" to be parsed!
+    bool closed = false;
 
-    // acts as pointer to current token
-    Lexer::const_iterator ct;
+    // acts as pointer to previous token
+    Lexer::iterator pt = end;
 
     // store error message. also serves as check whether an error occured
     std::string error = "";
@@ -83,7 +225,7 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
     // --------------------------------------------------------------
     //     Loop over lexer tokens and check if it...
     // --------------------------------------------------------------
-    for (ct = lexer.cbegin(); ct != lexer.cend(); pt=ct, ++ct) {
+    for (; ct != end; pt=ct, ++ct) {
         if (ct->IsUnknown()) {
             error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
             break;
@@ -93,10 +235,15 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
         //     is bracket '('  ==>  begin of subtree
         // ------------------------------------------------------
         if (ct->IsBracket("(")) {
-            if (pt != lexer.cend() && !(
+            if (pt != end && !(
                 pt->IsBracket("(")  || pt->IsOperator(",") || pt->IsComment()
             )) {
                 error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
+                break;
+            }
+
+            if (closed) {
+                error = "Tree was already closed. Cannot reopen it with '(' at " + ct->at() + ".";
                 break;
             }
 
@@ -111,7 +258,7 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
         // if we reach this, the previous condition is not fullfilled (otherwise, continue would
         // have been called). so we have a token other than '(', which means we should already
         // be somewhere in the tree (or a comment). check, if that is true.
-        if (ct == lexer.cbegin()) {
+        if (ct == lexer.begin()) {
             if (ct->IsComment()) {
                 continue;
             }
@@ -122,7 +269,7 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
         // if we reached this point in code, this means that ct != begin, so it is not the first
         // iteration in this loop. this means that pt was already set in the loop header (at least
         // once), which means it now points to a valid token.
-        assert(pt != lexer.cend());
+        assert(pt != end);
 
         // set up the node that will be filled with data now.
         // if it already exists, this means we are adding more information to it, e.g.
@@ -138,8 +285,8 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
             // for this, we need to check whether the previous token was an opening brackt or a
             // comma. however, as comments can appear everywhere, we need to check for the first
             // non-comment-token.
-            Lexer::const_iterator t = pt;
-            while (t != lexer.cbegin() && t->IsComment()) {
+            auto t = pt;
+            while (t != lexer.begin() && t->IsComment()) {
                 --t;
             }
             node->is_leaf = t->IsBracket("(") || t->IsOperator(",");
@@ -216,7 +363,7 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
                 pt->IsBracket("(") || pt->IsBracket(")") || pt->IsComment() || pt->IsSymbol() ||
                 pt->IsString()     || pt->IsNumber()     || pt->IsTag()     || pt->IsOperator(",")
             )) {
-                error = "Invalid ',' at " + ct->at() + ": '" + ct->value() + "'.";
+                error = "Invalid ',' at " + ct->at() + ".";
                 break;
             }
 
@@ -260,7 +407,11 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
             broker.PushTop(node);
             node = nullptr;
 
+            // decrease depth and check if this was the parenthesis that closed the tree
             --depth;
+            if (depth == 0) {
+                closed = true;
+            }
             continue;
         }
 
@@ -268,6 +419,10 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
         //     is semicolon ';'  ==>  end of tree
         // ------------------------------------------------------
         if (ct->IsOperator(";")) {
+            if (depth != 0) {
+                error = "Not enough ')' in tree before closing it with ';' at " + ct->at() + ".";
+                break;
+            }
             if (!(
                 pt->IsBracket(")") || pt->IsSymbol() || pt->IsString() || pt->IsComment() ||
                 pt->IsNumber()     || pt->IsTag()
@@ -285,7 +440,7 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
             break;
         }
 
-        // if we reach this part of the code, all checkings for token types are done.
+        // If we reach this part of the code, all checkings for token types are done.
         // as we check for every type that NewickLexer yields, and we use a continue or break
         // in each of them, we should never reach this point, unless we forgot a type!
         assert(false);
@@ -296,42 +451,25 @@ bool NewickProcessor::FromLexer (const NewickLexer& lexer, Tree<NDT, EDT>& tree)
         return false;
     }
 
-    if (depth != 0) {
-        LOG_WARN << "Not enough closing parenthesis.";
-        return false;
-    }
-
-    if (ct == lexer.cend() || !ct->IsOperator(";")) {
+    if (ct == end || !ct->IsOperator(";")) {
         LOG_WARN << "Tree does not finish with a semicolon.";
         return false;
     }
 
-    // TODO we now stop at the first semicolon. is that good?
-    // TODO do we even need to parse the rest as a new tree?
-
-    // skip the semicolon, then see if there is anything other than a comment left
+    // Move to the token after the closing semicolon. This is needed for the TreeSet parser.
     ++ct;
-    while (ct != lexer.cend() && ct->IsComment()) {
-        ++ct;
-    }
-    if (ct != lexer.cend()) {
-        LOG_WARN << "Tree contains more data after the semicolon.";
-        return false;
-    }
-
-    FromBroker(broker, tree);
     return true;
 }
 
 /**
- * @brief Create a Tree from a NewickBroker.
+ * @brief Builds a Tree from a NewickBroker.
  *
  * It does not take the NewickBroker by const, because AssignRanks() has to be called in order to
  * get the nesting right.
  * TODO: this could be changed by not assigning ranks to the broker but a tmp struct.
  */
 template <class NDT, class EDT>
-void NewickProcessor::FromBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
+void NewickProcessor::BuildTree (NewickBroker& broker, Tree<NDT, EDT>& tree)
 {
     typename Tree<NDT, EDT>::LinkArray links;
     typename Tree<NDT, EDT>::NodeArray nodes;
@@ -442,7 +580,7 @@ void NewickProcessor::FromBroker (NewickBroker& broker, Tree<NDT, EDT>& tree)
  * If the file already exists, the function does not overwrite it.
  */
 template <class NDT, class EDT>
-bool NewickProcessor::ToFile   (const std::string fn, const Tree<NDT, EDT>& tree)
+bool NewickProcessor::ToFile   (const std::string& fn, const Tree<NDT, EDT>& tree)
 {
     if (FileExists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' already exist. Will not overwrite it.";
@@ -486,7 +624,7 @@ std::string NewickProcessor::ToString (const Tree<NDT, EDT>& tree)
 template <class NDT, class EDT>
 void NewickProcessor::ToBroker (NewickBroker& broker, const Tree<NDT, EDT>& tree)
 {
-    // store the distance from each node to the root. this is needed to assign levels of depth
+    // store the depth from each node to the root. this is needed to assign levels of depth
     // to the nodes for the broker.
     std::vector<int> depth = tree.NodeDepthVector();
 

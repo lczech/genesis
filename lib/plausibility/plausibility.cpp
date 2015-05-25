@@ -7,8 +7,9 @@
 
 #include "plausibility/plausibility.hpp"
 
-#include "tree/bipartitions.hpp"
+#include "tree/bipartition_set.hpp"
 #include "tree/newick_processor.hpp"
+#include "tree/tree_set.hpp"
 #include "utils/logging.hpp"
 
 namespace genesis {
