@@ -40,6 +40,9 @@ bool JplaceProcessor::CheckVersion (const std::string version)
 //     Parsing
 // =============================================================================
 
+bool JplaceProcessor::report_invalid_numbers  = false;
+bool JplaceProcessor::correct_invalid_numbers = true;
+
 /**
  * @brief Reads a file and parses it as a Jplace document into a PlacementMap object.
  *
@@ -80,7 +83,7 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementMap& place
     // check if the version is correct
     JsonValue* val = doc.Get("version");
     if (!val) {
-        LOG_WARN << "Jplace document does not contain a valid version number at key 'version'."
+        LOG_WARN << "Jplace document does not contain a valid version number at key 'version'. "
                  << "Now continuing to parse in the hope that it still works.";
     }
     if (!CheckVersion(val->ToString())) {
@@ -133,7 +136,8 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementMap& place
         // check field validity
         std::string field = fields_val->ToString();
         if (field == "edge_num"      || field == "likelihood"     || field == "like_weight_ratio" ||
-            field == "distal_length" || field == "pendant_length" || field == "parsimony"
+            field == "distal_length" || field == "pendant_length" || field == "proximal_length"   ||
+            field == "parsimony"
         ) {
             for (std::string fn : fields) {
                 if (fn == field) {
@@ -142,16 +146,24 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementMap& place
                     return false;
                 }
             }
-            fields.push_back(field);
         } else {
             LOG_WARN << "Jplace document contains a field name '" << field << "' "
                      << "at key 'fields', which is not used by this parser and thus skipped.";
         }
+        fields.push_back(field);
         has_edge_num |= (field == "edge_num");
     }
     if (!has_edge_num) {
         LOG_WARN << "Jplace document does not contain necessary field 'edge_num' at key 'fields'.";
         return false;
+    }
+    if (
+        std::end(fields) != std::find(std::begin(fields), std::end(fields), "distal_length") &&
+        std::end(fields) != std::find(std::begin(fields), std::end(fields), "proximal_length")
+    ) {
+        LOG_WARN << "Jplace document contains both fields 'distal_length', and 'proximal_length'. "
+                 << "Currently, only one value is used internally to represent both, which might "
+                 << "lead to inconsistency if the sum of both is not equal to the branch length.";
     }
 
     // find and process the pqueries
@@ -196,7 +208,7 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementMap& place
             for (size_t i = 0; i < pqry_fields->size(); ++i) {
                 // up to version 3 of the jplace specification, the p-fields in a jplace document
                 // only contain numbers (float or int),so we can do this check here once for all
-                // fields, instead of repetition for everyfield. if in the future there are fields
+                // fields, instead of repetition for every field. if in the future there are fields
                 // with non-number type, this check has to go into the single field assignments.
                 if (!pqry_fields->at(i)->IsNumber()) {
                     LOG_WARN << "Jplace document contains pquery where field " << fields[i]
@@ -207,32 +219,84 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementMap& place
 
                 // switch on the field name to set the correct value
                 double pqry_place_val = JsonValueToNumber(pqry_fields->at(i))->value;
-                if        (fields[i] == "edge_num") {
-                    pqry_place->edge_num          = pqry_place_val;
+                if (fields[i] == "edge_num") {
                     if (edge_num_map.count(pqry_place_val) == 0) {
                         LOG_WARN << "Jplace document contains a pquery where field 'edge_num' "
                                  << "has value '" << pqry_place_val << "', which is not marked "
                                  << "in the given tree as an edge num.";
                         return false;
                     }
+                    pqry_place->edge_num = pqry_place_val;
                     pqry_place->edge = edge_num_map.at(pqry_place_val);
                     pqry_place->edge->placements.push_back(pqry_place);
+
                 } else if (fields[i] == "likelihood") {
-                    pqry_place->likelihood        = pqry_place_val;
+                    pqry_place->likelihood = pqry_place_val;
+
                 } else if (fields[i] == "like_weight_ratio") {
                     pqry_place->like_weight_ratio = pqry_place_val;
+
                 } else if (fields[i] == "distal_length") {
                     // the jplace format uses distal length, but we use proximal,
                     // so we need to convert here.
-                    pqry_place->proximal_length   = pqry_place->edge->branch_length - pqry_place_val;
+                    pqry_place->proximal_length = pqry_place->edge->branch_length - pqry_place_val;
+
+                } else if (fields[i] == "proximal_length") {
+                    pqry_place->proximal_length = pqry_place_val;
+
                 } else if (fields[i] == "pendant_length") {
-                    pqry_place->pendant_length    = pqry_place_val;
+                    pqry_place->pendant_length = pqry_place_val;
+
                 } else if (fields[i] == "parsimony") {
-                    pqry_place->parsimony         = pqry_place_val;
+                    pqry_place->parsimony = pqry_place_val;
                 }
             }
             pqry_place->pquery = pqry;
             pqry->placements.push_back(pqry_place);
+
+            // check validity of placement values
+            if (report_invalid_numbers || correct_invalid_numbers) {
+                if (pqry_place->like_weight_ratio < 0.0) {
+                    if (report_invalid_numbers) {
+                        LOG_INFO << "Invalid placement with like_weight_ratio < 0.0.";
+                    }
+                    if (correct_invalid_numbers) {
+                        pqry_place->like_weight_ratio = 0.0;
+                    }
+                }
+                if (pqry_place->like_weight_ratio > 1.0) {
+                    if (report_invalid_numbers) {
+                        LOG_INFO << "Invalid placement with like_weight_ratio > 1.0.";
+                    }
+                    if (correct_invalid_numbers) {
+                        pqry_place->like_weight_ratio = 1.0;
+                    }
+                }
+                if (pqry_place->pendant_length < 0.0) {
+                    if (report_invalid_numbers) {
+                        LOG_INFO << "Invalid placement with pendant_length < 0.0.";
+                    }
+                    if (correct_invalid_numbers) {
+                        pqry_place->pendant_length = 0.0;
+                    }
+                }
+                if (pqry_place->proximal_length < 0.0) {
+                    if (report_invalid_numbers) {
+                        LOG_INFO << "Invalid placement with proximal_length < 0.0.";
+                    }
+                    if (correct_invalid_numbers) {
+                        pqry_place->proximal_length = 0.0;
+                    }
+                }
+                if (pqry_place->proximal_length > pqry_place->edge->branch_length) {
+                    if (report_invalid_numbers) {
+                        LOG_INFO << "Invalid placement with proximal_length > branch_length.";
+                    }
+                    if (correct_invalid_numbers) {
+                        pqry_place->proximal_length = pqry_place->edge->branch_length;
+                    }
+                }
+            }
         }
 
         // check name/named multiplicity validity
@@ -393,7 +457,9 @@ void JplaceProcessor::ToDocument (JsonDocument& doc, const PlacementMap& placeme
             pqry_fields->push_back(new JsonValueNumber(pqry_place->like_weight_ratio));
 
             // convert from proximal to distal length.
-            pqry_fields->push_back(new JsonValueNumber(pqry_place->edge->branch_length - pqry_place->proximal_length));
+            pqry_fields->push_back(new JsonValueNumber(
+                pqry_place->edge->branch_length - pqry_place->proximal_length
+            ));
             pqry_fields->push_back(new JsonValueNumber(pqry_place->pendant_length));
             pqry_p_arr->push_back(pqry_fields);
         }
