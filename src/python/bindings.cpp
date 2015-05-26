@@ -18,12 +18,12 @@
 void BoostPythonExport_JplaceProcessor();
 void BoostPythonExport_PlacementMap();
 void BoostPythonExport_PlacementTree();
-void BoostPythonExport_PlacementTree_NewickProcessor();
 
     // -------------------------------------------
     //     Tree
     // -------------------------------------------
 
+void BoostPythonExport_NewickProcessor();
 //~ void BoostPythonExport_TreeSet();
 
     // -------------------------------------------
@@ -49,12 +49,12 @@ BOOST_PYTHON_MODULE(genesis)
     BoostPythonExport_JplaceProcessor();
     BoostPythonExport_PlacementMap();
     BoostPythonExport_PlacementTree();
-    BoostPythonExport_PlacementTree_NewickProcessor();
 
     // -------------------------------------------
     //     Tree
     // -------------------------------------------
 
+    BoostPythonExport_NewickProcessor();
     //~ BoostPythonExport_TreeSet();
 
     // -------------------------------------------
