@@ -40,36 +40,6 @@ public:
         position_ {position}
     {}
 
-    //~ LexerIterator (const LexerIterator& other) :
-        //~ lexer_    {other.lexer_},
-        //~ position_ {other.position_}
-    //~ {}
-//~
-    //~ inline LexerIterator& operator = (const LexerIterator& other)
-    //~ {
-        //~ if (&other == this) {
-            //~ return *this;
-        //~ }
-//~
-        //~ LexerIterator tmp(other);
-        //~ std::s
-    //~ }
-
-
-
-    // check for self-assignment. we want this explicitly, in order to avoid unnecessary copies of
-    // the tree, which would mean loosing the data in process.
-
-
-    // the Tree tmp is a copy of the right hand side object (automatically created using the
-    // copy constructor). we can thus simply swap the arrays, and upon leaving the function,
-    // tmp is automatically destroyed, so that its arrays are cleared and the data freed.
-    //~ Tree<NDT, EDT> tmp(other);
-    //~ std::swap(links_, tmp.links_);
-    //~ std::swap(nodes_, tmp.nodes_);
-    //~ std::swap(edges_, tmp.edges_);
-    //~ return *this;
-
     // -----------------------------------------------------
     //     Member Functions
     // -----------------------------------------------------

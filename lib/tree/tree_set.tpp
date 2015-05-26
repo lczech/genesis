@@ -60,8 +60,7 @@ template <class NDT, class EDT>
 std::string TreeSet<NDT, EDT>::Dump(bool full)
 {
     std::string res = "";
-    auto ct = trees_.begin();
-    while (ct != trees_.end()) {
+    for (auto ct : trees_) {
         res += ct->first + "\n";
         if (full) {
             res += ct->second->Dump() + "\n";
