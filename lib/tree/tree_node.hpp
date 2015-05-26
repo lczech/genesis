@@ -30,38 +30,6 @@ template <typename LinkPointerType, typename NodePointerType, typename EdgePoint
 class TreeNodeIteratorLinks;
 
 // =============================================================================
-//     DefaultNodeData
-// =============================================================================
-
-class DefaultNodeData
-{
-public:
-    /**
-     * Name of the node. In case it is a leaf, this is usually the name of
-     * the taxon represented by the node.
-     */
-    std::string name;
-
-    /**
-     * @brief Fills the node with data from a NewickBrokerElement.
-     */
-    inline void FromNewickBrokerElement (NewickBrokerElement* node)
-    {
-        name = node->name;
-    }
-
-    inline void ToNewickBrokerElement (NewickBrokerElement* node) const
-    {
-        node->name = name;
-    }
-
-    inline std::string Dump() const
-    {
-        return "Name: '" + name + "'";
-    }
-};
-
-// =============================================================================
 //     TreeNode
 // =============================================================================
 
@@ -175,95 +143,18 @@ public:
     LinkType* link_;
 };
 
-// =============================================================================
-//     Iterator Links
-// =============================================================================
-
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeNodeIteratorLinks
-{
-public:
-    // -----------------------------------------------------
-    //     Typedefs
-    // -----------------------------------------------------
-
-    typedef TreeNodeIteratorLinks<LinkPointerType, NodePointerType, EdgePointerType> self_type;
-    typedef std::forward_iterator_tag iterator_category;
-
-    // -----------------------------------------------------
-    //     Constructor
-    // -----------------------------------------------------
-
-    TreeNodeIteratorLinks (LinkPointerType link) :
-    link_(link), start_(link)
-    {}
-
-    // -----------------------------------------------------
-    //     Operators
-    // -----------------------------------------------------
-
-    inline self_type operator ++ ()
-    {
-        link_ = link_->Next();
-        if (link_ == start_) {
-            link_ = nullptr;
-        }
-        return *this;
-    }
-
-    inline self_type operator ++ (int)
-    {
-        self_type tmp = *this;
-        ++(*this);
-        return tmp;
-    }
-
-    inline bool operator == (const self_type &other) const
-    {
-        return other.link_ == link_;
-    }
-
-    inline bool operator != (const self_type &other) const
-    {
-        return !(other == *this);
-    }
-
-    // -----------------------------------------------------
-    //     Members
-    // -----------------------------------------------------
-
-    inline LinkPointerType Link()
-    {
-        return link_;
-    }
-
-    inline NodePointerType Node()
-    {
-        return link_->Node();
-    }
-
-    inline EdgePointerType Edge()
-    {
-        return link_->Edge();
-    }
-
-    inline LinkPointerType StartLink()
-    {
-        return start_;
-    }
-
-protected:
-    LinkPointerType link_;
-    LinkPointerType start_;
-};
-
 } // namespace genesis
+
+// =============================================================================
+//     Inclusion of the iterator
+// =============================================================================
+
+#include "tree/tree_node_iterator.hpp"
 
 // =============================================================================
 //     Inclusion of the implementation
 // =============================================================================
 
-// This is a class template, so do the inclusion here.
 #include "tree/tree_node.tpp"
 
 #endif // include guard

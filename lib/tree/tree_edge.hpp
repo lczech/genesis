@@ -30,35 +30,6 @@ template <class NodeDataType, class EdgeDataType>
 class  TreeNode;
 
 // =============================================================================
-//     DefaultEdgeData
-// =============================================================================
-
-class DefaultEdgeData
-{
-public:
-    typedef double BranchLength;
-    BranchLength branch_length;
-
-    /**
-     * @brief Fills the edge with data from a NewickBrokerElement.
-     */
-    inline void FromNewickBrokerElement (NewickBrokerElement* node)
-    {
-        branch_length = node->branch_length;
-    }
-
-    inline void ToNewickBrokerElement (NewickBrokerElement* node) const
-    {
-        node->branch_length = branch_length;
-    }
-
-    inline std::string Dump() const
-    {
-        return "Length: " + std::to_string(branch_length);
-    }
-};
-
-// =============================================================================
 //     TreeEdge
 // =============================================================================
 

@@ -24,10 +24,10 @@ namespace genesis {
 struct PqueryPlacement;
 
 // =============================================================================
-//     PlacementEdgeData
+//     Placement Tree Node Data
 // =============================================================================
 
-class PlacementEdgeData
+class PlacementTreeNodeData : public DefaultTreeNodeData
 {
 public:
 
@@ -35,13 +35,65 @@ public:
     //     Class Functions
     // -----------------------------------------------------
 
-    inline bool operator == (const PlacementEdgeData &other) const
+    inline bool operator == (const PlacementTreeNodeData &other) const
+    {
+        return other.name == name;
+    }
+
+    inline bool operator != (const PlacementTreeNodeData &other) const
+    {
+        return !(other == *this);
+    }
+
+    // -----------------------------------------------------
+    //     Default Functions
+    // -----------------------------------------------------
+
+    inline void FromNewickBrokerElement (NewickBrokerElement* node)
+    {
+        name = node->name;
+    }
+
+    inline void ToNewickBrokerElement (NewickBrokerElement* node) const
+    {
+        node->name = name;
+    }
+
+    inline std::string Dump() const
+    {
+        return "Name: '" + name + "'";
+    }
+
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+
+    /**
+     * Name of the node. In case it is a leaf, this is usually the name of
+     * the taxon represented by the node.
+     */
+    std::string name;
+};
+
+// =============================================================================
+//     Placement Tree Edge Data
+// =============================================================================
+
+class PlacementTreeEdgeData : public DefaultTreeEdgeData
+{
+public:
+
+    // -----------------------------------------------------
+    //     Class Functions
+    // -----------------------------------------------------
+
+    inline bool operator == (const PlacementTreeEdgeData &other) const
     {
         // TODO add a comparison of pqueries as well ?! is that good?!
         return other.branch_length == branch_length && other.edge_num == edge_num;
     }
 
-    inline bool operator != (const PlacementEdgeData &other) const
+    inline bool operator != (const PlacementTreeEdgeData &other) const
     {
         return !(other == *this);
     }
@@ -88,62 +140,9 @@ public:
     //     Data Members
     // -----------------------------------------------------
 
-    double branch_length;
     int    edge_num;
 
     std::vector<PqueryPlacement*> placements;
-};
-
-// =============================================================================
-//     PlacementNodeData
-// =============================================================================
-
-class PlacementNodeData
-{
-public:
-
-    // -----------------------------------------------------
-    //     Class Functions
-    // -----------------------------------------------------
-
-    inline bool operator == (const PlacementNodeData &other) const
-    {
-        return other.name == name;
-    }
-
-    inline bool operator != (const PlacementNodeData &other) const
-    {
-        return !(other == *this);
-    }
-
-    // -----------------------------------------------------
-    //     Default Functions
-    // -----------------------------------------------------
-
-    inline void FromNewickBrokerElement (NewickBrokerElement* node)
-    {
-        name = node->name;
-    }
-
-    inline void ToNewickBrokerElement (NewickBrokerElement* node) const
-    {
-        node->name = name;
-    }
-
-    inline std::string Dump() const
-    {
-        return "Name: '" + name + "'";
-    }
-
-    // -----------------------------------------------------
-    //     Data Members
-    // -----------------------------------------------------
-
-    /**
-     * Name of the node. In case it is a leaf, this is usually the name of
-     * the taxon represented by the node.
-     */
-    std::string name;
 };
 
 // =============================================================================
@@ -151,7 +150,7 @@ public:
 // =============================================================================
 
 // let's avoid tedious names!
-typedef Tree<PlacementNodeData, PlacementEdgeData> PlacementTree;
+typedef Tree<PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTree;
 
 } // namespace genesis
 
