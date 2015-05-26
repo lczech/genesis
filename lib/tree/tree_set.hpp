@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_TREESET_H_
-#define GENESIS_TREE_TREESET_H_
+#ifndef GENESIS_TREE_TREE_SET_H_
+#define GENESIS_TREE_TREE_SET_H_
 
 /**
  * @brief
