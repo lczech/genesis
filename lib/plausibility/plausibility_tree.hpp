@@ -11,6 +11,7 @@
 #include <string>
 
 #include "tree/tree.hpp"
+#include "tree/tree_set.hpp"
 
 namespace genesis {
 
@@ -91,7 +92,8 @@ public:
 // =============================================================================
 
 // let's avoid tedious names!
-typedef Tree<PlausibilityNodeData, PlausibilityEdgeData> PlausibilityTree;
+typedef Tree   <PlausibilityNodeData, PlausibilityEdgeData> PlausibilityTree;
+typedef TreeSet<PlausibilityNodeData, PlausibilityEdgeData> PlausibilityTreeSet;
 
 } // namespace genesis
 

@@ -21,6 +21,12 @@ void BoostPythonExport_PlacementTree();
 void BoostPythonExport_PlacementTree_NewickProcessor();
 
     // -------------------------------------------
+    //     Tree
+    // -------------------------------------------
+
+//~ void BoostPythonExport_TreeSet();
+
+    // -------------------------------------------
     //     Utils
     // -------------------------------------------
 
@@ -44,6 +50,12 @@ BOOST_PYTHON_MODULE(genesis)
     BoostPythonExport_PlacementMap();
     BoostPythonExport_PlacementTree();
     BoostPythonExport_PlacementTree_NewickProcessor();
+
+    // -------------------------------------------
+    //     Tree
+    // -------------------------------------------
+
+    //~ BoostPythonExport_TreeSet();
 
     // -------------------------------------------
     //     Utils

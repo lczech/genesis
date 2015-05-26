@@ -107,6 +107,7 @@ public:
     {
         // if we are already at the end, do not do anything
         if (position_ < 0) {
+            LOG_WARN << "Already reached end of Lexer Tokens.";
             return *this;
         }
 

@@ -49,4 +49,25 @@ typename TreeSet<NDT, EDT>::TreeType* TreeSet<NDT, EDT>::GetFirst(const std::str
     return nullptr;
 }
 
+// =============================================================================
+//     Dump & Debug
+// =============================================================================
+
+/**
+ * @brief
+ */
+template <class NDT, class EDT>
+std::string TreeSet<NDT, EDT>::Dump(bool full)
+{
+    std::string res = "";
+    auto ct = trees_.begin();
+    while (ct != trees_.end()) {
+        res += ct->first + "\n";
+        if (full) {
+            res += ct->second->Dump() + "\n";
+        }
+    }
+    return res;
+}
+
 } // namespace genesis

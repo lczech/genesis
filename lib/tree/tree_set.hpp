@@ -42,22 +42,20 @@ public:
     typedef std::pair<std::string, std::unique_ptr<TreeType>> PairType;
 
     // -----------------------------------------------------
-    //     Modifiers
+    //     Modifiers & Accessors
     // -----------------------------------------------------
 
     void Add (const std::string& name, TreeType* tree);
+    TreeType* GetFirst (const std::string& name);
 
-    // -----------------------------------------------------
-    //     Accessors
-    // -----------------------------------------------------
-
-    TreeType* GetFirst(const std::string& name);
+    std::string Dump (bool full = false);
 
     // -----------------------------------------------------
     //     Data Members
     // -----------------------------------------------------
 
 private:
+
     // We use a vector of <string, tree> pairs here, because we want to preserve the order in which
     // elements were inserted into the TreeMap. This is not the case with simple maps.
     std::vector<PairType> trees_;
