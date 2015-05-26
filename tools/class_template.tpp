@@ -5,8 +5,6 @@
  * @ingroup ###MODULNAME###
  */
 
-#include "###MODULNAME###/###FILENAME###.hpp"
-
 namespace genesis {
 
 // =============================================================================
@@ -16,6 +14,7 @@ namespace genesis {
 /**
  * @brief Constructor.
  */
+template <###TEMPLATE_PARAM###>
 ###CLASSNAME###::###CLASSNAME###()
 {
     //
@@ -24,6 +23,7 @@ namespace genesis {
 /**
  * @brief Destructor.
  */
+template <###TEMPLATE_PARAM###>
 ###CLASSNAME###::~###CLASSNAME###()
 {
     //

@@ -10,6 +10,11 @@
 
 namespace genesis {
 
+// =============================================================================
+//     ###CLASSNAME###
+// =============================================================================
+
+###TEMPLATE_LINE###template <###TEMPLATE_PARAM###>
 class ###CLASSNAME###
 {
 public:
@@ -19,9 +24,17 @@ public:
     // -----------------------------------------------------
 
     ###CLASSNAME###();
+    ~###CLASSNAME###();
 
 };
 
 } // namespace genesis
+###TEMPLATE_START###
+// =============================================================================
+//     Inclusion of the implementation
+// =============================================================================
+
+// This is a class template, so do the inclusion here.
+#include "###MODULNAME###/###FILENAME###.tpp"###TEMPLATE_END###
 
 #endif // include guard

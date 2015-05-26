@@ -84,7 +84,6 @@ if [ "${module}" == "`echo ${name,,} | awk '{print $1;}'`" ]; then
     echo ""
     echo "--------------------------------------------------------------------"
     echo ""
-
 fi
 
 # make class name CamelCased and file name with underscores
@@ -101,12 +100,20 @@ if [ -f ${module}/${file_name}.hpp ] || [ -f ${module}/${file_name}.cpp ]; then
     exit
 fi
 
-echo "Continue?"
-
-select yn in "Yes" "No"; do
-    if [ "${yn}" == "No" ]; then
+echo "Continue? Do something else?"
+mode=0
+select yn in "Continue" "Cancel" "Header only" "Templated"; do
+    if [ "${yn}" == "Cancel" ]; then
         echo "Aborted. Nothing done."
         exit
+    fi
+    if [ "${yn}" == "Header only" ]; then
+        mode=1
+        break
+    fi
+    if [ "${yn}" == "Templated" ]; then
+        mode=2
+        break
     fi
     if [ "${yn}" != "" ]; then
         break
@@ -118,18 +125,65 @@ echo "--------------------------------------------------------------------"
 echo ""
 
 cap_module=`echo $module  | sed -r 's/([a-z])/\U\1/g'`
-cap_file=`echo $file_name | sed -r 's/([a-z])/\U\1/g;s/_//g'`
+cap_file=`echo $file_name | sed -r 's/([a-z])/\U\1/g'`
 
 mkdir -p ${module}
 
-cat ../tools/class_template.hpp | sed "s/###CLASSNAME###/${class_name}/g" | \
-    sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
-    sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" > \
-    ${module}/${file_name}.hpp
+# header and implementation
+if [ ${mode} == 0 ]; then
+    cat ../tools/class_template.hpp | sed "s/###CLASSNAME###/${class_name}/g" | \
+        sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
+        sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" | \
+        sed "/###TEMPLATE_LINE###/d" | \
+        sed "/###TEMPLATE_START###/,/###TEMPLATE_END###/d" > \
+        ${module}/${file_name}.hpp
 
-cat ../tools/class_template.cpp | sed "s/###CLASSNAME###/${class_name}/g" | \
-    sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
-    sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" > \
-    ${module}/${file_name}.cpp
+    cat ../tools/class_template.cpp | sed "s/###CLASSNAME###/${class_name}/g" | \
+        sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
+        sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" > \
+        ${module}/${file_name}.cpp
+
+    echo "Created header and implementation."
+fi
+
+# header only
+if [ ${mode} == 1 ]; then
+    cat ../tools/class_template.hpp | sed "s/###CLASSNAME###/${class_name}/g" | \
+        sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
+        sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" | \
+        sed "/###TEMPLATE_LINE###/d" | \
+        sed "/###TEMPLATE_START###/,/###TEMPLATE_END###/d" > \
+        ${module}/${file_name}.hpp
+
+    echo "Created header only."
+fi
+
+# header and template implementation
+if [ ${mode} == 2 ]; then
+
+    echo "Please enter the template parameters as they appear between <...>"
+    echo "Example: 'class T' will create template<class T>."
+    echo ""
+    read param
+
+    cat ../tools/class_template.hpp | sed "s/###CLASSNAME###/${class_name}/g" | \
+        sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
+        sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" | \
+        sed "s/###TEMPLATE_LINE###//g" | \
+        sed "s/###TEMPLATE_START###//g;s/###TEMPLATE_END###//g" | \
+        sed "s/###TEMPLATE_PARAM###/${param}/g" > \
+        ${module}/${file_name}.hpp
+
+    cat ../tools/class_template.tpp | sed "s/###CLASSNAME###/${class_name}/g" | \
+        sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
+        sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" | \
+        sed "s/###TEMPLATE_PARAM###/${param}/g" > \
+        ${module}/${file_name}.tpp
+
+    echo ""
+    echo "--------------------------------------------------------------------"
+    echo ""
+    echo "Created header and template implementation."
+fi
 
 echo "Done."
