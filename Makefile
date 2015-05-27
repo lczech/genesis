@@ -18,7 +18,7 @@ build/CMakeCache.txt: CMakeLists.txt
 # Run make, but not before CMakeCache.txt is created.
 make: build/CMakeCache.txt
 	@echo "Running make..."
-	@make -s -C build
+	$(MAKE) -s -C build
 .PHONY: make
 
 # Clean up all build targets.
