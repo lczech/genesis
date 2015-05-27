@@ -28,11 +28,24 @@ class  Tree;
 class DefaultTreeNodeData
 {
 public:
-    /**
-     * Name of the node. In case it is a leaf, this is usually the name of
-     * the taxon represented by the node.
-     */
-    std::string name;
+
+    // -----------------------------------------------------
+    //     Class Functions
+    // -----------------------------------------------------
+
+    inline bool operator == (const DefaultTreeNodeData &other) const
+    {
+        return other.name == name;
+    }
+
+    inline bool operator != (const DefaultTreeNodeData &other) const
+    {
+        return !(other == *this);
+    }
+
+    // -----------------------------------------------------
+    //     Input & Output
+    // -----------------------------------------------------
 
     /**
      * @brief Fills the node with data from a NewickBrokerElement.
@@ -51,6 +64,17 @@ public:
     {
         return "Name: '" + name + "'";
     }
+
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+
+    /**
+     * Name of the node. In case it is a leaf, this is usually the name of
+     * the taxon represented by the node.
+     */
+    std::string name;
+
 };
 
 // =============================================================================
@@ -60,7 +84,24 @@ public:
 class DefaultTreeEdgeData
 {
 public:
-    double branch_length;
+
+    // -----------------------------------------------------
+    //     Class Functions
+    // -----------------------------------------------------
+
+    inline bool operator == (const DefaultTreeEdgeData &other) const
+    {
+        return other.branch_length == branch_length;
+    }
+
+    inline bool operator != (const DefaultTreeEdgeData &other) const
+    {
+        return !(other == *this);
+    }
+
+    // -----------------------------------------------------
+    //     Input & Output
+    // -----------------------------------------------------
 
     /**
      * @brief Fills the edge with data from a NewickBrokerElement.
@@ -79,6 +120,13 @@ public:
     {
         return "Length: " + std::to_string(branch_length);
     }
+
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+
+    double branch_length;
+
 };
 
 // =============================================================================

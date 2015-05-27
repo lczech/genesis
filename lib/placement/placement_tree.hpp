@@ -31,48 +31,6 @@ class PlacementTreeNodeData : public DefaultTreeNodeData
 {
 public:
 
-    // -----------------------------------------------------
-    //     Class Functions
-    // -----------------------------------------------------
-
-    inline bool operator == (const PlacementTreeNodeData &other) const
-    {
-        return other.name == name;
-    }
-
-    inline bool operator != (const PlacementTreeNodeData &other) const
-    {
-        return !(other == *this);
-    }
-
-    // -----------------------------------------------------
-    //     Default Functions
-    // -----------------------------------------------------
-
-    inline void FromNewickBrokerElement (NewickBrokerElement* node)
-    {
-        name = node->name;
-    }
-
-    inline void ToNewickBrokerElement (NewickBrokerElement* node) const
-    {
-        node->name = name;
-    }
-
-    inline std::string Dump() const
-    {
-        return "Name: '" + name + "'";
-    }
-
-    // -----------------------------------------------------
-    //     Data Members
-    // -----------------------------------------------------
-
-    /**
-     * Name of the node. In case it is a leaf, this is usually the name of
-     * the taxon represented by the node.
-     */
-    std::string name;
 };
 
 // =============================================================================
@@ -140,8 +98,7 @@ public:
     //     Data Members
     // -----------------------------------------------------
 
-    int    edge_num;
-
+    int                           edge_num;
     std::vector<PqueryPlacement*> placements;
 };
 
