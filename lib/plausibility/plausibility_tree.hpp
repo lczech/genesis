@@ -19,7 +19,7 @@ namespace genesis {
 //     Plausibility Node Data
 // =============================================================================
 
-class PlausibilityNodeData : public DefaultTreeNodeData
+class PlausibilityTreeNodeData : public DefaultTreeNodeData
 {
 public:
 
@@ -34,7 +34,7 @@ public:
 //     Plausibility Edge Data
 // =============================================================================
 
-class PlausibilityEdgeData : public DefaultTreeEdgeData
+class PlausibilityTreeEdgeData : public DefaultTreeEdgeData
 {
 public:
 
@@ -49,8 +49,8 @@ public:
 // =============================================================================
 
 // let's avoid tedious names!
-typedef Tree   <PlausibilityNodeData, PlausibilityEdgeData> PlausibilityTree;
-typedef TreeSet<PlausibilityNodeData, PlausibilityEdgeData> PlausibilityTreeSet;
+typedef Tree   <PlausibilityTreeNodeData, PlausibilityTreeEdgeData> PlausibilityTree;
+typedef TreeSet<PlausibilityTreeNodeData, PlausibilityTreeEdgeData> PlausibilityTreeSet;
 
 } // namespace genesis
 
