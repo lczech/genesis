@@ -399,21 +399,21 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementMap& place
 /**
  * @brief
  */
-bool JplaceProcessor::ToFile (const std::string fn, const PlacementMap& placements)
+bool JplaceProcessor::ToFile (const PlacementMap& placements, const std::string fn)
 {
     if (FileExists(fn)) {
         LOG_WARN << "Jplace file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
-    ToString(ts, placements);
+    ToString(placements, ts);
     return FileWrite(fn, ts);
 }
 
 /**
  * @brief
  */
-void JplaceProcessor::ToString (std::string&  jplace, const PlacementMap& placements)
+void JplaceProcessor::ToString (const PlacementMap& placements, std::string&  jplace)
 {
     jplace = ToString(placements);
 }
@@ -424,14 +424,14 @@ void JplaceProcessor::ToString (std::string&  jplace, const PlacementMap& placem
 std::string JplaceProcessor::ToString (const PlacementMap& placements)
 {
     JsonDocument json;
-    ToDocument(json, placements);
+    ToDocument(placements, json);
     return JsonProcessor::ToString(json);
 }
 
 /**
  * @brief
  */
-void JplaceProcessor::ToDocument (JsonDocument& doc, const PlacementMap& placements)
+void JplaceProcessor::ToDocument (const PlacementMap& placements, JsonDocument& doc)
 {
     doc.clear();
 

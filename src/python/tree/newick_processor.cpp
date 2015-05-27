@@ -31,7 +31,7 @@
     )                                                                                                                  \
     .def(                                                                                                              \
         "ToFile",                                                                                                      \
-        ( bool ( * )( const std::string&, const ::genesis::classname& ))( &::genesis::NewickProcessor::ToFile ),       \
+        ( bool ( * )( const ::genesis::classname&, const std::string ))( &::genesis::NewickProcessor::ToFile ),        \
         ( boost::python::arg("fn"), boost::python::arg("tree") )                                                       \
     )                                                                                                                  \
     .def(                                                                                                              \

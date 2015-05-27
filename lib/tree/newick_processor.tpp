@@ -319,14 +319,14 @@ void NewickProcessor::BuildTree (NewickBroker& broker, Tree<NDT, EDT>& tree)
  * If the file already exists, the function does not overwrite it.
  */
 template <class NDT, class EDT>
-bool NewickProcessor::ToFile   (const std::string& fn, const Tree<NDT, EDT>& tree)
+bool NewickProcessor::ToFile   (const Tree<NDT, EDT>& tree, const std::string fn)
 {
     if (FileExists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
-    ToString(ts, tree);
+    ToString(tree, ts);
     return FileWrite(fn, ts);
 }
 
@@ -337,7 +337,7 @@ bool NewickProcessor::ToFile   (const std::string& fn, const Tree<NDT, EDT>& tre
  * representation.
  */
 template <class NDT, class EDT>
-void NewickProcessor::ToString (std::string& ts, const Tree<NDT, EDT>& tree)
+void NewickProcessor::ToString (const Tree<NDT, EDT>& tree, std::string& ts)
 {
     ts = ToString(tree);
 }
@@ -352,7 +352,7 @@ template <class NDT, class EDT>
 std::string NewickProcessor::ToString (const Tree<NDT, EDT>& tree)
 {
     NewickBroker broker;
-    ToBroker(broker, tree);
+    ToBroker(tree, broker);
     broker.AssignRanks();
     return ToStringRec(broker, 0) + ";";
 }
@@ -361,7 +361,7 @@ std::string NewickProcessor::ToString (const Tree<NDT, EDT>& tree)
  * @brief Stores the information of the tree into a NewickBroker object.
  */
 template <class NDT, class EDT>
-void NewickProcessor::ToBroker (NewickBroker& broker, const Tree<NDT, EDT>& tree)
+void NewickProcessor::ToBroker (const Tree<NDT, EDT>& tree, NewickBroker& broker)
 {
     // store the depth from each node to the root. this is needed to assign levels of depth
     // to the nodes for the broker.

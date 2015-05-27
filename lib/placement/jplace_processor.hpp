@@ -54,10 +54,10 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    static bool        ToFile     (const std::string   fn,     const PlacementMap& placements);
-    static void        ToString   (      std::string&  jplace, const PlacementMap& placements);
-    static std::string ToString   (                            const PlacementMap& placements);
-    static void        ToDocument (      JsonDocument& doc,    const PlacementMap& placements);
+    static bool        ToFile     (const PlacementMap& placements, const std::string   fn);
+    static void        ToString   (const PlacementMap& placements,       std::string&  jplace);
+    static std::string ToString   (const PlacementMap& placements);
+    static void        ToDocument (const PlacementMap& placements,       JsonDocument& doc);
 };
 
 } // namespace genesis

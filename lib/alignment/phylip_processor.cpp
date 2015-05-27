@@ -143,32 +143,32 @@ bool PhylipProcessor::FromString (const std::string& fs, SequenceSet& aln)
 /**
  * @brief
  */
-bool PhylipProcessor::ToFile (const std::string fn, const SequenceSet& aln)
+bool PhylipProcessor::ToFile (const SequenceSet& sset, const std::string fn)
 {
     if (FileExists(fn)) {
         LOG_WARN << "Phylip file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string fs;
-    ToString(fs, aln);
+    ToString(sset, fs);
     return FileWrite(fn, fs);
 }
 
 /**
  * @brief
  */
-void PhylipProcessor::ToString (std::string& fs, const SequenceSet& aln)
+void PhylipProcessor::ToString (const SequenceSet& sset, std::string& fs)
 {
-    fs = ToString(aln);
+    fs = ToString(sset);
 }
 
 /**
  * @brief
  */
-std::string PhylipProcessor::ToString (const SequenceSet& aln)
+std::string PhylipProcessor::ToString (const SequenceSet& sset)
 {
     size_t length = 0;
-    for (Sequence* s : aln.sequences) {
+    for (Sequence* s : sset.sequences) {
         if (length == 0) {
             length = s->Length();
             continue;
@@ -184,8 +184,8 @@ std::string PhylipProcessor::ToString (const SequenceSet& aln)
     }
 
     std::ostringstream seq("");
-    seq << aln.sequences.size() << " " << length << "\n";
-    for (Sequence* s : aln.sequences) {
+    seq << sset.sequences.size() << " " << length << "\n";
+    for (Sequence* s : sset.sequences) {
         // print label and sequence
         seq << s->Label() << " " << s->Sites() << "\n";
     }

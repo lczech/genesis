@@ -60,16 +60,16 @@ public:
 
     static size_t label_length;
 
-    static bool FromFile   (const std::string  fn, SequenceSet& aln);
-    static bool FromString (const std::string& fs, SequenceSet& aln);
+    static bool FromFile   (const std::string  fn, SequenceSet& sset);
+    static bool FromString (const std::string& fs, SequenceSet& sset);
 
     // ---------------------------------------------------------------------
     //     Printing
     // ---------------------------------------------------------------------
 
-    static bool ToFile   (const std::string fn, const SequenceSet& aln);
-    static void ToString (std::string& fs,      const SequenceSet& aln);
-    static std::string ToString (               const SequenceSet& aln);
+    static bool        ToFile   (const SequenceSet& sset, const std::string  fn);
+    static void        ToString (const SequenceSet& sset,       std::string& fs);
+    static std::string ToString (const SequenceSet& sset);
 };
 
 } // namespace genesis

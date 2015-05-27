@@ -81,17 +81,17 @@ public:
     static int  precision;
 
     template <class NodeDataType, class EdgeDataType>
-    static bool ToFile   (const std::string& fn, const Tree<NodeDataType, EdgeDataType>& tree);
+    static bool ToFile   (const Tree<NodeDataType, EdgeDataType>& tree, const std::string fn);
 
     template <class NodeDataType, class EdgeDataType>
-    static void ToString (std::string& ts,      const Tree<NodeDataType, EdgeDataType>& tree);
+    static void ToString (const Tree<NodeDataType, EdgeDataType>& tree, std::string& ts);
 
     template <class NodeDataType, class EdgeDataType>
-    static std::string ToString (               const Tree<NodeDataType, EdgeDataType>& tree);
+    static std::string ToString (const Tree<NodeDataType, EdgeDataType>& tree);
 
 protected:
     template <class NodeDataType, class EdgeDataType>
-    static void ToBroker (NewickBroker& broker, const Tree<NodeDataType, EdgeDataType>& tree);
+    static void ToBroker (const Tree<NodeDataType, EdgeDataType>& tree, NewickBroker& broker);
 
     static std::string ToStringRec(const NewickBroker& broker, size_t position);
     static std::string ElementToString(const NewickBrokerElement* bn);

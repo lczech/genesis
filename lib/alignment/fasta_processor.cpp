@@ -104,32 +104,32 @@ size_t FastaProcessor::line_length = 80;
 /**
  * @brief
  */
-bool FastaProcessor::ToFile (const std::string fn, const SequenceSet& aln)
+bool FastaProcessor::ToFile (const SequenceSet& sset, const std::string fn)
 {
     if (FileExists(fn)) {
         LOG_WARN << "FASTA file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string fs;
-    ToString(fs, aln);
+    ToString(sset, fs);
     return FileWrite(fn, fs);
 }
 
 /**
  * @brief
  */
-void FastaProcessor::ToString (std::string& fs, const SequenceSet& aln)
+void FastaProcessor::ToString (const SequenceSet& sset, std::string& fs)
 {
-    fs = ToString(aln);
+    fs = ToString(sset);
 }
 
 /**
  * @brief
  */
-std::string FastaProcessor::ToString (const SequenceSet& aln)
+std::string FastaProcessor::ToString (const SequenceSet& sset)
 {
     std::ostringstream seq("");
-    for (Sequence* s : aln.sequences) {
+    for (Sequence* s : sset.sequences) {
         // print label
         seq << ">" << s->Label() << "\n";
 
