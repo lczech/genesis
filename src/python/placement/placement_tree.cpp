@@ -15,5 +15,5 @@ void BoostPythonExport_PlacementTree()
 {
     using namespace genesis;
 
-    BoostPythonExport_Tree<PlacementNodeData, PlacementEdgeData>("PlacementTree");
+    BoostPythonExport_Tree<PlacementTreeNodeData, PlacementTreeEdgeData>("PlacementTree");
 }

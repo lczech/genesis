@@ -15,6 +15,7 @@
 #include <utility>
 #include <vector>
 
+#include "tree/default_tree.hpp"
 #include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
@@ -78,7 +79,7 @@ class TreeIteratorLevelorder;
  *  *  The link that is stored in a node has to be the one pointing towards the root.
  *  *  The primary link of an edge has to point towards the root, the secondary away from it.
  */
-template <class NodeDataType = DefaultNodeData, class EdgeDataType = DefaultEdgeData>
+template <class NodeDataType = DefaultTreeNodeData, class EdgeDataType = DefaultTreeEdgeData>
 class Tree
 {
 public:
@@ -584,17 +585,6 @@ protected:
     std::vector<NodeType*> nodes_;
     std::vector<EdgeType*> edges_;
 };
-
-// =============================================================================
-//     Definitions and Typedefs
-// =============================================================================
-
-/**
- * @brief Short name for a Tree using the default data types DefaultNodeData and DefaultEdgeData.
- *
- * The same type can also be produced by using `Tree<>`.
- */
-typedef Tree<DefaultNodeData, DefaultEdgeData> DefaultTree;
 
 } // namespace genesis
 
