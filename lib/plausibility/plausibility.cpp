@@ -18,7 +18,7 @@ namespace genesis {
 //     Plausibility
 // =============================================================================
 
-void Plausibility::SpiderpigFunction (
+void Plausibility::spiderpig_function (
     const std::string& reference_tree_file,
     const std::string& small_tree_file
 ) {
