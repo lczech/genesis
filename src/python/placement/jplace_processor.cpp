@@ -35,19 +35,19 @@ void BoostPythonExport_JplaceProcessor()
         )
         .staticmethod("CheckVersion")
         .def(
-            "FromFile",
-            ( bool ( * )( const std::string &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::FromFile ),
+            "from_file",
+            ( bool ( * )( const std::string &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::from_file ),
             ( boost::python::arg("fn"), boost::python::arg("placements") ),
             "Reads a file and parses it as a Jplace document into a PlacementMap object."
         )
-        .staticmethod("FromFile")
+        .staticmethod("from_file")
         .def(
-            "FromString",
-            ( bool ( * )( const std::string &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::FromString ),
+            "from_string",
+            ( bool ( * )( const std::string &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::from_string ),
             ( boost::python::arg("jplace"), boost::python::arg("placements") ),
             "Parses a string as a Jplace document into a PlacementMap object."
         )
-        .staticmethod("FromString")
+        .staticmethod("from_string")
         .def(
             "FromDocument",
             ( bool ( * )( const ::genesis::JsonDocument &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::FromDocument ),
@@ -56,23 +56,23 @@ void BoostPythonExport_JplaceProcessor()
         )
         .staticmethod("FromDocument")
         .def(
-            "ToFile",
-            ( bool ( * )( const std::string, const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::ToFile ),
+            "to_file",
+            ( bool ( * )( const std::string, const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::to_file ),
             ( boost::python::arg("fn"), boost::python::arg("placements") )
         )
-        .staticmethod("ToFile")
+        .staticmethod("to_file")
         .def(
-            "ToString",
-            ( void ( * )( std::string &, const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::ToString ),
+            "to_string",
+            ( void ( * )( std::string &, const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::to_string ),
             ( boost::python::arg("jplace"), boost::python::arg("placements") )
         )
-        .staticmethod("ToString")
+        .staticmethod("to_string")
         .def(
-            "ToString",
-            ( std::string ( * )( const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::ToString ),
+            "to_string",
+            ( std::string ( * )( const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::to_string ),
             ( boost::python::arg("placements") )
         )
-        .staticmethod("ToString")
+        .staticmethod("to_string")
         .def(
             "ToDocument",
             ( void ( * )( ::genesis::JsonDocument &, const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::ToDocument ),
@@ -92,27 +92,27 @@ void BoostPythonExport_JplaceProcessor()
 
         .def(
             "GetVersion",
-            ( std::string ( * )(  ))( &::genesis::JplaceProcessor::GetVersion ),
+            ( std::string ( * )(  ))( &::genesis::JplaceProcessor::get_version ),
             "Returns the version number that this class is written for."
         )
         .staticmethod("GetVersion")
         .def(
             "CheckVersion",
-            ( bool ( * )( const std::string ))( &::genesis::JplaceProcessor::CheckVersion ),
+            ( bool ( * )( const std::string ))( &::genesis::JplaceProcessor::check_version ),
             ( boost::python::arg("version") ),
             "Checks whether the version of the jplace format works with this parser."
         )
         .staticmethod("CheckVersion")
         .def(
             "FromFile",
-            ( bool ( * )( const std::string &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::FromFile ),
+            ( bool ( * )( const std::string &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::from_file ),
             ( boost::python::arg("fn"), boost::python::arg("placements") ),
             "Reads a file and parses it as a Jplace document into a PlacementMap object."
         )
         .staticmethod("FromFile")
         .def(
             "FromString",
-            ( bool ( * )( const std::string &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::FromString ),
+            ( bool ( * )( const std::string &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::from_string ),
             ( boost::python::arg("jplace"), boost::python::arg("placements") ),
             "Parses a string as a Jplace document into a PlacementMap object."
         )
@@ -120,13 +120,13 @@ void BoostPythonExport_JplaceProcessor()
 
         .def(
             "ToFile",
-            ( bool ( * )( const std::string, const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::ToFile ),
+            ( bool ( * )( const std::string, const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::to_file ),
             ( boost::python::arg("fn"), boost::python::arg("placements") )
         )
         .staticmethod("ToFile")
         .def(
             "ToString",
-            ( std::string ( * )( const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::ToString ),
+            ( std::string ( * )( const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::to_string ),
             ( boost::python::arg("placements") )
         )
         .staticmethod("ToString")

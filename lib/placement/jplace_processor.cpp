@@ -23,7 +23,7 @@ namespace genesis {
 /**
  * @brief Returns the version number that this class is written for.
  */
-std::string JplaceProcessor::GetVersion ()
+std::string JplaceProcessor::get_version ()
 {
     return "3";
 }
@@ -31,7 +31,7 @@ std::string JplaceProcessor::GetVersion ()
 /**
  * @brief Checks whether the version of the jplace format works with this parser.
  */
-bool JplaceProcessor::CheckVersion (const std::string version)
+bool JplaceProcessor::check_version (const std::string version)
 {
     return version == "2" || version == "3";
 }
@@ -48,13 +48,13 @@ bool JplaceProcessor::correct_invalid_numbers = true;
  *
  * Returns true iff successful.
  */
-bool JplaceProcessor::FromFile (const std::string& fn, PlacementMap& placements)
+bool JplaceProcessor::from_file (const std::string& fn, PlacementMap& placements)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "Jplace file '" << fn << "' does not exist.";
         return false;
     }
-    return FromString(FileRead(fn), placements);
+    return from_string(FileRead(fn), placements);
 }
 
 /**
@@ -62,13 +62,13 @@ bool JplaceProcessor::FromFile (const std::string& fn, PlacementMap& placements)
  *
  * Returns true iff successful.
  */
-bool JplaceProcessor::FromString (const std::string& jplace, PlacementMap& placements)
+bool JplaceProcessor::from_string (const std::string& jplace, PlacementMap& placements)
 {
     JsonDocument doc;
     if (!JsonProcessor::FromString(jplace, doc)) {
         return false;
     }
-    return FromDocument(doc, placements);
+    return from_document(doc, placements);
 }
 
 /**
@@ -76,7 +76,7 @@ bool JplaceProcessor::FromString (const std::string& jplace, PlacementMap& place
  *
  * Returns true iff successful.
  */
-bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementMap& placements)
+bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& placements)
 {
     placements.clear();
 
@@ -86,9 +86,9 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementMap& place
         LOG_WARN << "Jplace document does not contain a valid version number at key 'version'. "
                  << "Now continuing to parse in the hope that it still works.";
     }
-    if (!CheckVersion(val->ToString())) {
+    if (!check_version(val->ToString())) {
         LOG_WARN << "Jplace document has version '" << val->ToString() << "', however this parser "
-                 << "is written for version " << GetVersion() << " of the Jplace format. "
+                 << "is written for version " << get_version() << " of the Jplace format. "
                  << "Now continuing to parse in the hope that it still works.";
     }
 
@@ -399,39 +399,39 @@ bool JplaceProcessor::FromDocument (const JsonDocument& doc, PlacementMap& place
 /**
  * @brief
  */
-bool JplaceProcessor::ToFile (const PlacementMap& placements, const std::string fn)
+bool JplaceProcessor::to_file (const PlacementMap& placements, const std::string fn)
 {
     if (FileExists(fn)) {
         LOG_WARN << "Jplace file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
-    ToString(placements, ts);
+    to_string(placements, ts);
     return FileWrite(fn, ts);
 }
 
 /**
  * @brief
  */
-void JplaceProcessor::ToString (const PlacementMap& placements, std::string&  jplace)
+void JplaceProcessor::to_string (const PlacementMap& placements, std::string&  jplace)
 {
-    jplace = ToString(placements);
+    jplace = to_string(placements);
 }
 
 /**
  * @brief
  */
-std::string JplaceProcessor::ToString (const PlacementMap& placements)
+std::string JplaceProcessor::to_string (const PlacementMap& placements)
 {
     JsonDocument json;
-    ToDocument(placements, json);
+    to_document(placements, json);
     return JsonProcessor::ToString(json);
 }
 
 /**
  * @brief
  */
-void JplaceProcessor::ToDocument (const PlacementMap& placements, JsonDocument& doc)
+void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument& doc)
 {
     doc.clear();
 

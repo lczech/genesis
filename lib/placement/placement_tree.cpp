@@ -20,7 +20,7 @@ namespace genesis {
 /**
  * @brief Returns the number of placements on this edge.
  */
-size_t PlacementTreeEdgeData::PlacementCount() const
+size_t PlacementTreeEdgeData::placement_count() const
 {
     return placements.size();
 }
@@ -28,7 +28,7 @@ size_t PlacementTreeEdgeData::PlacementCount() const
 /**
  * @brief Returns the mass of the placements on this edge, as given by their `like_weight_ratio`.
  */
-double PlacementTreeEdgeData::PlacementMass() const
+double PlacementTreeEdgeData::placement_mass() const
 {
     double mass = 0.0;
     for (PqueryPlacement pl : placements) {
@@ -40,7 +40,7 @@ double PlacementTreeEdgeData::PlacementMass() const
 /**
  * @brief Sorts the placements on this edge by their distance from the root, ascending.
  */
-void PlacementTreeEdgeData::SortPlacements()
+void PlacementTreeEdgeData::sort_placements()
 {
     std::multimap<double, PqueryPlacement*> sorted;
     std::vector<PqueryPlacement*> new_placements;

@@ -64,7 +64,7 @@ PlacementMap::PlacementMap (const PlacementMap& other)
     assert(it_n == tree.EndPreorder() && it_o == other.tree.EndPreorder());
 
     // copy all (o)ther pqueries to (n)ew pqueries
-    EdgeNumMapType* edge_num_map = EdgeNumMap();
+    EdgeNumMapType* en_map = edge_num_map();
     for (Pquery* opqry : other.pqueries) {
         Pquery* npqry = new Pquery();
         pqueries.push_back(npqry);
@@ -72,7 +72,7 @@ PlacementMap::PlacementMap (const PlacementMap& other)
         for (PqueryPlacement* op : opqry->placements) {
             PqueryPlacement* np = new PqueryPlacement(op);
 
-            np->edge   = (*edge_num_map)[np->edge_num];
+            np->edge   = (*en_map)[np->edge_num];
             np->edge->placements.push_back(np);
             np->pquery = npqry;
             npqry->placements.push_back(np);
@@ -133,19 +133,19 @@ void PlacementMap::clear()
  *
  * This function depends on the tree only and does not involve any pqueries.
  */
-PlacementMap::EdgeNumMapType* PlacementMap::EdgeNumMap() const
+PlacementMap::EdgeNumMapType* PlacementMap::edge_num_map() const
 {
-    EdgeNumMapType* edge_num_map = new EdgeNumMapType();
+    EdgeNumMapType* en_map = new EdgeNumMapType();
     for (
         PlacementTree::ConstIteratorEdges it = tree.BeginEdges();
         it != tree.EndEdges();
         ++it
     ) {
         PlacementTree::EdgeType* edge = *it;
-        assert(edge_num_map->count(edge->edge_num) == 0);
-        edge_num_map->emplace(edge->edge_num, edge);
+        assert(en_map->count(edge->edge_num) == 0);
+        en_map->emplace(edge->edge_num, edge);
     }
-    return edge_num_map;
+    return en_map;
 }
 
 // TODO add option for averaging branch_length
@@ -153,7 +153,7 @@ PlacementMap::EdgeNumMapType* PlacementMap::EdgeNumMap() const
 /**
  * @brief Adds the pqueries from another PlacementMap objects to this one.
  */
-bool PlacementMap::Merge(const PlacementMap& other)
+bool PlacementMap::merge(const PlacementMap& other)
 {
     // check for identical topology, taxa names and edge_nums.
     // we do not check here for branch_length, because usually those differ slightly.
@@ -171,7 +171,7 @@ bool PlacementMap::Merge(const PlacementMap& other)
     }
 
     // we need to assign edge pointers to the correct edge objects, so we need a mapping
-    EdgeNumMapType* edge_num_map = EdgeNumMap();
+    EdgeNumMapType* en_map = edge_num_map();
 
     // copy all (o)ther pqueries to (n)ew pqueries
     for (const Pquery* opqry : other.pqueries) {
@@ -182,8 +182,8 @@ bool PlacementMap::Merge(const PlacementMap& other)
             // assuming that the trees have identical topology (checked at the beginning of this
             // function), there will be an edge for every placement. if this assertion fails,
             // something broke the integrity of our in memory representation of the data.
-            assert(edge_num_map->count(np->edge_num) > 0);
-            np->edge = (*edge_num_map)[np->edge_num];
+            assert(en_map->count(np->edge_num) > 0);
+            np->edge = (*en_map)[np->edge_num];
             np->edge->placements.push_back(np);
             np->pquery = npqry;
             npqry->placements.push_back(np);
@@ -202,7 +202,7 @@ bool PlacementMap::Merge(const PlacementMap& other)
  * @brief Recalculates the `like_weight_ratio` of the placements of each Pquery so that their sum
  * is 1.0, while maintaining their ratio to each other.
  */
-void PlacementMap::NormalizeWeightRatios()
+void PlacementMap::normalize_weight_ratios()
 {
     for (Pquery* pqry : pqueries) {
         double sum = 0.0;
@@ -227,7 +227,7 @@ void PlacementMap::NormalizeWeightRatios()
  * `like_weight_ratio`) from each Pquery. It additionally sets the `like_weight_ratio` of the
  * remaining placement to 1.0, as this one now is the only one left, thus it's "sum" has to be 1.0.
  */
-void PlacementMap::RestrainToMaxWeightPlacements()
+void PlacementMap::restrain_to_max_weight_placements()
 {
     for (Pquery* pqry : pqueries) {
         // init
@@ -287,7 +287,7 @@ void PlacementMap::RestrainToMaxWeightPlacements()
 /**
  * @brief Get the total number of placements in all pqueries.
  */
-size_t PlacementMap::PlacementCount() const
+size_t PlacementMap::placement_count() const
 {
     size_t count = 0;
     for (const Pquery* pqry : pqueries) {
@@ -299,7 +299,7 @@ size_t PlacementMap::PlacementCount() const
 /**
  * @brief Get the summed mass of all placements on the tree, given by their `like_weight_ratio`.
  */
-double PlacementMap::PlacementMass() const
+double PlacementMap::placement_mass() const
 {
     double sum = 0.0;
     for (const Pquery* pqry : pqueries) {
@@ -335,7 +335,7 @@ double PlacementMap::PlacementMass() const
  *
  * The vector is automatically resized to the needed number of elements.
  */
-std::vector<int> PlacementMap::ClosestLeafDepthHistogram() const
+std::vector<int> PlacementMap::closest_leaf_depth_histogram() const
 {
     std::vector<int> hist;
 
@@ -379,13 +379,13 @@ std::vector<int> PlacementMap::ClosestLeafDepthHistogram() const
  *     double max      = 20.0;
  *     int    bins     = 25;
  *     double bin_size = (max - min) / bins;
- *     std::vector<int> hist = ClosestLeafDistanceHistogram (min, max, bins);
+ *     std::vector<int> hist = closest_leaf_distance_histogram (min, max, bins);
  *     for (unsigned int bin = 0; bin < hist.size(); ++bin) {
  *         LOG_INFO << "Bin " << bin << " [" << bin * bin_size << "; " << (bin+1) * bin_size << ") has " << hist[bin] << " placements.";
  *     }
  * %
  */
-std::vector<int> PlacementMap::ClosestLeafDistanceHistogram (
+std::vector<int> PlacementMap::closest_leaf_distance_histogram (
     const double min, const double max, const int bins
 ) const {
     std::vector<int> hist(bins, 0);
@@ -421,10 +421,10 @@ std::vector<int> PlacementMap::ClosestLeafDistanceHistogram (
 }
 
 /**
- * @brief Returns the same type of histogram as ClosestLeafDistanceHistogram(), but automatically
+ * @brief Returns the same type of histogram as closest_leaf_distance_histogram(), but automatically
  * determines the needed boundaries.
  *
- * See ClosestLeafDistanceHistogram() for general information about what this function does. The
+ * See closest_leaf_distance_histogram() for general information about what this function does. The
  * difference between both functions is that this one first procresses all distances from
  * placements to their closest leaf nodes to find out what the shortest and longest are, then sets
  * the boundaries of the histogram accordingly. The number of bins is then used to divide this
@@ -438,7 +438,7 @@ std::vector<int> PlacementMap::ClosestLeafDistanceHistogram (
  *
  *     double min, max;
  *     int    bins = 25;
- *     std::vector<int> hist = ClosestLeafDistanceHistogram (min, max, bins);
+ *     std::vector<int> hist = closest_leaf_distance_histogram (min, max, bins);
  *     double bin_size = (max - min) / bins;
  *     LOG_INFO << "Histogram boundaries: [" << min << "," << max << ").";
  *     for (unsigned int bin = 0; bin < hist.size(); ++bin) {
@@ -446,10 +446,10 @@ std::vector<int> PlacementMap::ClosestLeafDistanceHistogram (
  *     }
  *
  * It has a slightly higher time and memory consumption than the non-automatic version
- * ClosestLeafDistanceHistogram(), as it needs to process the values twice in order to find their
+ * closest_leaf_distance_histogram(), as it needs to process the values twice in order to find their
  * min and max.
  */
-std::vector<int> PlacementMap::ClosestLeafDistanceHistogramAuto (
+std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
     double& min, double& max, const int bins
 ) const {
     std::vector<int> hist(bins, 0);
@@ -504,16 +504,16 @@ std::vector<int> PlacementMap::ClosestLeafDistanceHistogramAuto (
  * @brief Calculates the Earth Movers Distance to another sets of placements on a fixed reference
  * tree.
  */
-double PlacementMap::EMD(const PlacementMap& right, const bool with_pendant_length) const
+double PlacementMap::earth_movers_distance(const PlacementMap& right, const bool with_pendant_length) const
 {
-    return PlacementMap::EMD(*this, right, with_pendant_length);
+    return PlacementMap::earth_movers_distance(*this, right, with_pendant_length);
 }
 
 /**
  * @brief Calculates the Earth Movers Distance between two sets of placements on a fixed reference
  * tree.
  */
-double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs, const bool with_pendant_length)
+double PlacementMap::earth_movers_distance(const PlacementMap& lhs, const PlacementMap& rhs, const bool with_pendant_length)
 {
     // keep track of the total resulting distance.
     double distance = 0.0;
@@ -525,8 +525,8 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs, const
     std::unordered_map<const PlacementTree::NodeType*, double> balance;
 
     // use the sum of masses as normalization factor for the masses.
-    double totalmass_l = lhs.PlacementMass();
-    double totalmass_r = rhs.PlacementMass();
+    double totalmass_l = lhs.placement_mass();
+    double totalmass_r = rhs.placement_mass();
 
     // disable all debug messages for this function...
     Logging::LoggingLevel ll = Logging::max_level();
@@ -587,7 +587,7 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs, const
             return -1.0;
         }
 
-        // we now start a "normal" EMD caluclation on the current edge. for this, we store the
+        // we now start a "normal" earth_movers_distance caluclation on the current edge. for this, we store the
         // masses of all placements sorted by their position on the branch.
         std::multimap<double, double> edge_balance;
         LOG_DBG1 << "placing on branch...";
@@ -640,7 +640,7 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs, const
         LOG_DBG1 << "subtrees mass_s " << mass_s;
         LOG_DBG1 << "entering standard emd part...";
 
-        // start the EMD with the mass that is left over from the subtrees...
+        // start the earth_movers_distance with the mass that is left over from the subtrees...
         double cur_pos  = it_l.Edge()->branch_length;
         double cur_mass = mass_s;
 
@@ -648,7 +648,7 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs, const
         LOG_DBG1 << "cur_mass " << cur_mass;
 
         // ... and move it along the branch, balancing it with the placements found on the branches.
-        // this is basically a standard EMD calculation along the branch.
+        // this is basically a standard earth_movers_distance calculation along the branch.
         std::multimap<double, double>::reverse_iterator rit;
         for (rit = edge_balance.rbegin(); rit != edge_balance.rend(); ++rit) {
             LOG_DBG2 << "at " << rit->first << " with " << rit->second;
@@ -698,7 +698,7 @@ double PlacementMap::EMD(const PlacementMap& lhs, const PlacementMap& rhs, const
 /**
  * @brief Calculate the Center of Gravity of the placements on a tree.
  */
-void PlacementMap::COG() const
+void PlacementMap::center_of_gravity() const
 {
     // store a balance of mass per link, so that each element contains the mass that lies
     // in the direction of this link
@@ -780,14 +780,14 @@ void PlacementMap::COG() const
 }
 
 // =============================================================================
-//     Variance
+//     variance
 // =============================================================================
 
 /**
- * @brief Calculate the Variance of the placements on a tree.
+ * @brief Calculate the variance of the placements on a tree.
  *
  * The variance is a measure of how far a set of items is spread out
- * (http://en.wikipedia.org/wiki/Variance). In many cases, it can be measured using the mean of the
+ * (http://en.wikipedia.org/wiki/variance). In many cases, it can be measured using the mean of the
  * items. However, when considering placements on a tree, this does not truly measure how far they
  * are from each other. Thus, this algorithm applies a different method of calculating the variance
  * in terms of squared deviations of all items from each other:
@@ -850,7 +850,7 @@ void PlacementMap::COG() const
  * dropped, so that their sum per pquery is less than 1.0), we need to calculate this number
  * manually here.
  */
-double PlacementMap::Variance() const
+double PlacementMap::variance() const
 {
     // init
     double variance = 0.0;
@@ -861,7 +861,7 @@ double PlacementMap::Variance() const
     // and furthermore, the data is close in memory. this gives a tremendous speedup!
     size_t index = 0;
     std::vector<VarianceData> vd_placements;
-    vd_placements.reserve(PlacementCount());
+    vd_placements.reserve(placement_count());
     for (const Pquery* pqry : this->pqueries) {
         for (const PqueryPlacement* place : pqry->placements) {
             VarianceData vdp;
@@ -910,7 +910,7 @@ double PlacementMap::Variance() const
     int progress    = 0;
     for (const VarianceData& place_a : vd_placements) {
         LOG_PROG(++progress, vd_placements.size()) << "of Variance() finished.";
-        variance += VariancePartial(place_a, vd_placements, *node_distances);
+        variance += variance_partial(place_a, vd_placements, *node_distances);
         count    += place_a.like_weight_ratio;
     }
 
@@ -923,13 +923,13 @@ double PlacementMap::Variance() const
 
 /**
  * @brief Internal function that calculates the sum of distances for the variance that is
- * contributed by a subset of the placements. See Variance() for more information.
+ * contributed by a subset of the placements. See variance() for more information.
  *
- * This function is intended to be called by Variance() -- it is not a stand-alone function.
+ * This function is intended to be called by variance() -- it is not a stand-alone function.
  * It takes an offset and an incrementation value and does an interleaved loop over the placements,
  * similar to the sequential version for calculating the variance.
  */
-void PlacementMap::VarianceThread (
+void PlacementMap::variance_thread (
     const int                        offset,
     const int                        incr,
     const std::vector<VarianceData>* pqrys,
@@ -947,7 +947,7 @@ void PlacementMap::VarianceThread (
         LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
 
         const VarianceData& place_a = (*pqrys)[i];
-        tmp_partial += VariancePartial(place_a, *pqrys, *node_distances);
+        tmp_partial += variance_partial(place_a, *pqrys, *node_distances);
         tmp_count   += place_a.like_weight_ratio;
     }
 
@@ -958,12 +958,12 @@ void PlacementMap::VarianceThread (
 
 /**
  * @brief Internal function that calculates the sum of distances contributed by one placement for
- * the variance. See Variance() for more information.
+ * the variance. See variance() for more information.
  *
- * This function is intended to be called by Variance() or VarianceThread() -- it is not a
+ * This function is intended to be called by variance() or VarianceThread() -- it is not a
  * stand-alone function.
  */
-double PlacementMap::VariancePartial (
+double PlacementMap::variance_partial (
     const VarianceData&              place_a,
     const std::vector<VarianceData>& pqrys_b,
     const Matrix<double>&            node_distances
@@ -1017,7 +1017,7 @@ double PlacementMap::VariancePartial (
 /**
  * @brief Returns a list of all Pqueries with their Placements and Names.
  */
-std::string PlacementMap::Dump() const
+std::string PlacementMap::dump() const
 {
     std::ostringstream out;
     for (const Pquery* pqry : pqueries) {
@@ -1053,10 +1053,10 @@ std::string PlacementMap::Dump() const
  *
  * If `check_values` is set to true, also a check on the validity of numerical values is done, for
  * example that the proximal_length is smaller than the corresponding branch_length.
- * If additionally `break_on_values` is set, Validate() will stop on the first encountered invalid
+ * If additionally `break_on_values` is set, validate() will stop on the first encountered invalid
  * value. Otherwise it will report all invalid values.
  */
-bool PlacementMap::Validate (bool check_values, bool break_on_values) const
+bool PlacementMap::validate (bool check_values, bool break_on_values) const
 {
     // check tree
     if (!tree.Validate()) {

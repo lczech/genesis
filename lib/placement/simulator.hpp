@@ -30,8 +30,8 @@ class PlacementSimulator
 {
 public:
 
-    static void Generate          (PlacementMap placements, size_t n);
-    static void GenerateInSubtree (PlacementMap placements, size_t n);
+    static void generate            (PlacementMap placements, size_t n);
+    static void generate_in_subtree (PlacementMap placements, size_t n);
 
 };
 

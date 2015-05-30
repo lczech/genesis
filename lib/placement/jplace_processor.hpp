@@ -36,8 +36,8 @@ class JplaceProcessor
 {
 public:
 
-    static std::string GetVersion   ();
-    static bool        CheckVersion (const std::string version);
+    static std::string get_version   ();
+    static bool        check_version (const std::string version);
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -46,18 +46,18 @@ public:
     static bool report_invalid_numbers;
     static bool correct_invalid_numbers;
 
-    static bool FromFile     (const std::string&  fn,     PlacementMap& placements);
-    static bool FromString   (const std::string&  jplace, PlacementMap& placements);
-    static bool FromDocument (const JsonDocument& doc,    PlacementMap& placements);
+    static bool from_file     (const std::string&  fn,     PlacementMap& placements);
+    static bool from_string   (const std::string&  jplace, PlacementMap& placements);
+    static bool from_document (const JsonDocument& doc,    PlacementMap& placements);
 
     // ---------------------------------------------------------------------
     //     Printing
     // ---------------------------------------------------------------------
 
-    static bool        ToFile     (const PlacementMap& placements, const std::string   fn);
-    static void        ToString   (const PlacementMap& placements,       std::string&  jplace);
-    static std::string ToString   (const PlacementMap& placements);
-    static void        ToDocument (const PlacementMap& placements,       JsonDocument& doc);
+    static bool        to_file     (const PlacementMap& placements, const std::string   fn);
+    static void        to_string   (const PlacementMap& placements,       std::string&  jplace);
+    static std::string to_string   (const PlacementMap& placements);
+    static void        to_document (const PlacementMap& placements,       JsonDocument& doc);
 };
 
 } // namespace genesis

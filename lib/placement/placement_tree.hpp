@@ -60,7 +60,7 @@ public:
     //     Default Functions
     // -----------------------------------------------------
 
-    inline void FromNewickBrokerElement (NewickBrokerElement* nbe)
+    inline void from_newick_broker_element (NewickBrokerElement* nbe)
     {
         branch_length = nbe->branch_length;
         edge_num      = -1;
@@ -73,14 +73,14 @@ public:
         edge_num = std::stoi(nbe->tags[0]);
     }
 
-    inline void ToNewickBrokerElement (NewickBrokerElement* nbe) const
+    inline void to_newick_broker_element (NewickBrokerElement* nbe) const
     {
         nbe->branch_length = branch_length;
-        nbe->comments.push_back(std::to_string(PlacementCount()));
+        nbe->comments.push_back(std::to_string(placement_count()));
         nbe->tags.push_back(std::to_string(edge_num));
     }
 
-    inline std::string Dump() const
+    inline std::string dump() const
     {
         return "Length: " + std::to_string(branch_length) + "\tEdge Num: " + std::to_string(edge_num);
     }
@@ -89,10 +89,10 @@ public:
     //     Member Functions
     // -----------------------------------------------------
 
-    size_t PlacementCount() const;
-    double PlacementMass() const;
+    size_t placement_count() const;
+    double placement_mass() const;
 
-    void SortPlacements();
+    void sort_placements();
 
     // -----------------------------------------------------
     //     Data Members
