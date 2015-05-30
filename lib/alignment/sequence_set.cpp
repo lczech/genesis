@@ -45,10 +45,10 @@ void SequenceSet::clear()
 /**
  * @brief Returns a pointer to a sequence with a specific label (or `nullptr`, if not found).
  */
-Sequence* SequenceSet::FindSequence(std::string label) const
+Sequence* SequenceSet::find_sequence(std::string label) const
 {
     for (Sequence* s : sequences) {
-        if (s->Label() == label) {
+        if (s->label() == label) {
             return s;
         }
     }
@@ -67,7 +67,7 @@ Sequence* SequenceSet::FindSequence(std::string label) const
  * We cannot use standard algorithms like std::remove here, as those do not delete the elements
  * (call their destructor).
  */
-void SequenceSet::RemoveList(std::vector<std::string> labels, bool invert)
+void SequenceSet::remove_list(std::vector<std::string> labels, bool invert)
 {
     // create a set of all labels for fast lookup.
     std::unordered_set<std::string> lmap(labels.begin(), labels.end());
@@ -79,8 +79,8 @@ void SequenceSet::RemoveList(std::vector<std::string> labels, bool invert)
     // this works similar to std::remove (http://www.cplusplus.com/reference/algorithm/remove/)
     while (it != sequences.end()) {
         // if the label is (not) in the map, move it to the re position, otherwise delete it.
-        if ( (!invert && lmap.count((*it)->Label())  > 0) ||
-             ( invert && lmap.count((*it)->Label()) == 0)
+        if ( (!invert && lmap.count((*it)->label())  > 0) ||
+             ( invert && lmap.count((*it)->label()) == 0)
         ) {
             delete *it;
         } else {
@@ -99,22 +99,22 @@ void SequenceSet::RemoveList(std::vector<std::string> labels, bool invert)
 // =============================================================================
 
 /**
- * @brief Calls RemoveGaps() for every Sequence.
+ * @brief Calls remove_gaps() for every Sequence.
  */
-void SequenceSet::RemoveGaps()
+void SequenceSet::remove_gaps()
 {
     for (Sequence* s : sequences) {
-        s->RemoveGaps();
+        s->remove_gaps();
     }
 }
 
 /**
- * @brief Calls Replace() for every Sequence.
+ * @brief Calls replace() for every Sequence.
  */
-void SequenceSet::Replace(char search, char replace)
+void SequenceSet::replace(char search, char replace)
 {
     for (Sequence* s : sequences) {
-        s->Replace(search, replace);
+        s->replace(search, replace);
     }
 }
 
@@ -125,11 +125,11 @@ void SequenceSet::Replace(char search, char replace)
 /**
  * @brief Gives a summary of the sequences names and their lengths for this alignment.
  */
-std::string SequenceSet::Dump() const
+std::string SequenceSet::dump() const
 {
     std::ostringstream out;
     for (Sequence* s : sequences) {
-        out << s->Label() << " [" << s->Length() << "]\n";
+        out << s->label() << " [" << s->length() << "]\n";
     }
     return out.str();
 }

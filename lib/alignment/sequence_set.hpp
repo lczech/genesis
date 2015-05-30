@@ -30,26 +30,26 @@ public:
     //     Accessors
     // -----------------------------------------------------
 
-    Sequence* FindSequence (std::string label) const;
+    Sequence* find_sequence (std::string label) const;
 
     // -----------------------------------------------------
     //     Modifiers
     // -----------------------------------------------------
 
-    void RemoveList (std::vector<std::string> labels, bool invert = false);
+    void remove_list (std::vector<std::string> labels, bool invert = false);
 
     // -----------------------------------------------------
     //     Sequence Modifiers
     // -----------------------------------------------------
 
-    void RemoveGaps();
-    void Replace(char search, char replace);
+    void remove_gaps();
+    void replace(char search, char replace);
 
     // -----------------------------------------------------
     //     Dump and Debug
     // -----------------------------------------------------
 
-    std::string Dump() const;
+    std::string dump() const;
 
     // -----------------------------------------------------
     //     Members

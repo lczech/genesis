@@ -8,7 +8,7 @@
 #include "alignment/fasta_processor.hpp"
 
 #include <sstream>
-#include <string.h>
+#include <string>
 
 #include "alignment/fasta_lexer.hpp"
 #include "alignment/sequence_set.hpp"
@@ -24,19 +24,19 @@ namespace genesis {
 /**
  * @brief
  */
-bool FastaProcessor::FromFile (const std::string fn, SequenceSet& aln)
+bool FastaProcessor::from_file (const std::string fn, SequenceSet& aln)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "FASTA file '" << fn << "' does not exist.";
         return false;
     }
-    return FromString(FileRead(fn), aln);
+    return from_string(FileRead(fn), aln);
 }
 
 /**
  * @brief
  */
-bool FastaProcessor::FromString (const std::string& fs, SequenceSet& aln)
+bool FastaProcessor::from_string (const std::string& fs, SequenceSet& aln)
 {
     // do stepwise lexing
     FastaLexer lexer;
@@ -104,44 +104,44 @@ size_t FastaProcessor::line_length = 80;
 /**
  * @brief
  */
-bool FastaProcessor::ToFile (const SequenceSet& sset, const std::string fn)
+bool FastaProcessor::to_file (const SequenceSet& sset, const std::string fn)
 {
     if (FileExists(fn)) {
         LOG_WARN << "FASTA file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string fs;
-    ToString(sset, fs);
+    to_string(sset, fs);
     return FileWrite(fn, fs);
 }
 
 /**
  * @brief
  */
-void FastaProcessor::ToString (const SequenceSet& sset, std::string& fs)
+void FastaProcessor::to_string (const SequenceSet& sset, std::string& fs)
 {
-    fs = ToString(sset);
+    fs = to_string(sset);
 }
 
 /**
  * @brief
  */
-std::string FastaProcessor::ToString (const SequenceSet& sset)
+std::string FastaProcessor::to_string (const SequenceSet& sset)
 {
     std::ostringstream seq("");
     for (Sequence* s : sset.sequences) {
         // print label
-        seq << ">" << s->Label() << "\n";
+        seq << ">" << s->label() << "\n";
 
         // print sequence. if needed, add new line at every line_length position.
         if (line_length > 0) {
-            for (size_t i = 0; i < s->Length(); i += line_length) {
+            for (size_t i = 0; i < s->length(); i += line_length) {
                 // write line_length many characters.
                 // (if the string is shorter, as many characters as possible are used)
-                seq << s->Sites().substr(i, line_length) << "\n";
+                seq << s->sites().substr(i, line_length) << "\n";
             }
         } else {
-            seq << s->Sites() << "\n";
+            seq << s->sites() << "\n";
         }
     }
     return seq.str();

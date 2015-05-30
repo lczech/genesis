@@ -33,7 +33,7 @@ Sequence::~Sequence()
 /**
  * @brief Removes all occurences of `gap_char` from the sequence.
  */
-void Sequence::RemoveGaps()
+void Sequence::remove_gaps()
 {
     sites_.erase(std::remove(sites_.begin(), sites_.end(), gap_char), sites_.end());
 }
@@ -41,7 +41,7 @@ void Sequence::RemoveGaps()
 /**
  * @brief Replaces all occurences of `search` by `replace`.
  */
-void Sequence::Replace(char search, char replace)
+void Sequence::replace(char search, char replace)
 {
     sites_ = StringReplaceAll (sites_, std::string(1, search), std::string(1, replace));
 }
@@ -53,9 +53,9 @@ void Sequence::Replace(char search, char replace)
 /**
  * @brief Prints the label and the whole sequence (possibly very long!).
  */
-std::string Sequence::Dump() const
+std::string Sequence::dump() const
 {
-    return Label() + ": " + Sites();
+    return label() + ": " + sites();
 }
 
 } // namespace genesis

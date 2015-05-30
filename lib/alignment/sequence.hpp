@@ -29,22 +29,22 @@ public:
     //     Accessors
     // -----------------------------------------------------
 
-    inline std::string Label() const
+    inline std::string label() const
     {
         return label_;
     }
 
-    inline size_t Length() const
+    inline size_t length() const
     {
         return sites_.size();
     }
 
-    inline SymbolType Site(size_t index) const
+    inline SymbolType site(size_t index) const
     {
         return sites_[index];
     }
 
-    inline const std::string& Sites() const
+    inline const std::string& sites() const
     {
         return sites_;
     }
@@ -53,14 +53,14 @@ public:
     //     Mutators
     // -----------------------------------------------------
 
-    void RemoveGaps();
-    void Replace(char search, char replace);
+    void remove_gaps();
+    void replace(char search, char replace);
 
     // -----------------------------------------------------
     //     Dump and Debug
     // -----------------------------------------------------
 
-    std::string Dump() const;
+    std::string dump() const;
 
     // -----------------------------------------------------
     //     Members

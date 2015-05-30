@@ -35,19 +35,19 @@ size_t PhylipProcessor::label_length = 0;
 /**
  * @brief
  */
-bool PhylipProcessor::FromFile (const std::string  fn, SequenceSet& aln)
+bool PhylipProcessor::from_file (const std::string  fn, SequenceSet& aln)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "Phylip file '" << fn << "' does not exist.";
         return false;
     }
-    return FromString(FileRead(fn), aln);
+    return from_string(FileRead(fn), aln);
 }
 
 /**
  * @brief
  */
-bool PhylipProcessor::FromString (const std::string& fs, SequenceSet& aln)
+bool PhylipProcessor::from_string (const std::string& fs, SequenceSet& aln)
 {
     // do stepwise lexing
     PhylipLexer lexer;
@@ -143,37 +143,37 @@ bool PhylipProcessor::FromString (const std::string& fs, SequenceSet& aln)
 /**
  * @brief
  */
-bool PhylipProcessor::ToFile (const SequenceSet& sset, const std::string fn)
+bool PhylipProcessor::to_file (const SequenceSet& sset, const std::string fn)
 {
     if (FileExists(fn)) {
         LOG_WARN << "Phylip file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string fs;
-    ToString(sset, fs);
+    to_string(sset, fs);
     return FileWrite(fn, fs);
 }
 
 /**
  * @brief
  */
-void PhylipProcessor::ToString (const SequenceSet& sset, std::string& fs)
+void PhylipProcessor::to_string (const SequenceSet& sset, std::string& fs)
 {
-    fs = ToString(sset);
+    fs = to_string(sset);
 }
 
 /**
  * @brief
  */
-std::string PhylipProcessor::ToString (const SequenceSet& sset)
+std::string PhylipProcessor::to_string (const SequenceSet& sset)
 {
     size_t length = 0;
     for (Sequence* s : sset.sequences) {
         if (length == 0) {
-            length = s->Length();
+            length = s->length();
             continue;
         }
-        if (s->Length() != length) {
+        if (s->length() != length) {
             LOG_WARN << "Sequences in alignment have different lengths.";
             return "";
         }
@@ -187,7 +187,7 @@ std::string PhylipProcessor::ToString (const SequenceSet& sset)
     seq << sset.sequences.size() << " " << length << "\n";
     for (Sequence* s : sset.sequences) {
         // print label and sequence
-        seq << s->Label() << " " << s->Sites() << "\n";
+        seq << s->label() << " " << s->sites() << "\n";
     }
     return seq.str();
 }
