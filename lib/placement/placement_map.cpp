@@ -1182,8 +1182,8 @@ bool PlacementMap::Validate (bool check_values, bool break_on_values) const
             LOG_INFO << "Invalid pquery with sum of like_weight_ratio '" << ratio_sum
                      << "' > 1.0 at " << name << ".";
             if (break_on_values) {
-                    return false;
-                }
+                return false;
+            }
         }
 
         // check names
