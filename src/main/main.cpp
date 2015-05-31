@@ -82,77 +82,77 @@ int main (int argc, char* argv[])
     // test roundtrip
     LOG_DBG << "Test Roundtrip at root";
     for (Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip(); it != tree.EndRoundtrip(); ++it) {
-        LOG_DBG1 << it->Node()->Dump();
-        if (it->Node()->name == "L") {
-            n = it->Node();
+        LOG_DBG1 << it->node()->Dump();
+        if (it->node()->name == "L") {
+            n = it->node();
         }
     }
     LOG_DBG << "Test Roundtrip at " + n->name;
     for (Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip(n); it != tree.EndRoundtrip(); ++it) {
-        LOG_DBG1 << it->Node()->Dump();
+        LOG_DBG1 << it->node()->Dump();
     }
 
     // test preorder
     LOG_DBG << "Test Preorder at root";
-    for (Tree<>::IteratorPreorder it = tree.BeginPreorder(); it != tree.EndPreorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
-                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+    for (Tree<>::IteratorPreorder it = tree.begin_preorder(); it != tree.end_preorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.edge() ? "   From '" + it.edge()->primary_node()->name
+                 + "' to '" + it.edge()->secondary_node()->name + "'" : "");
         if (it->name == "L") {
             n = &*it;
         }
     }
     LOG_DBG << "Test Preorder at " + n->name;
-    for (Tree<>::IteratorPreorder it = tree.BeginPreorder(n); it != tree.EndPreorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
-                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+    for (Tree<>::IteratorPreorder it = tree.begin_preorder(n); it != tree.end_preorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.edge() ? "   From '" + it.edge()->primary_node()->name
+                 + "' to '" + it.edge()->secondary_node()->name + "'" : "");
     }
 
     // * /
     // test inorder
     LOG_DBG << "Test Inorder at root";
-    for (Tree<>::IteratorInorder it = tree.BeginInorder(); it != tree.EndInorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
-                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+    for (Tree<>::IteratorInorder it = tree.begin_inorder(); it != tree.end_inorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.edge() ? "   From '" + it.edge()->primary_node()->name
+                 + "' to '" + it.edge()->secondary_node()->name + "'" : "");
         if (it->name == "G") {
             n = &*it;
         }
     }
     LOG_DBG << "Test Inorder at " + n->name;
-    for (Tree<>::IteratorInorder it = tree.BeginInorder(n); it != tree.EndInorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
-                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+    for (Tree<>::IteratorInorder it = tree.begin_inorder(n); it != tree.end_inorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.edge() ? "   From '" + it.edge()->primary_node()->name
+                 + "' to '" + it.edge()->secondary_node()->name + "'" : "");
     }
     * /
 
     // test postorder
     LOG_DBG << "Test Postorder at root";
-    for (Tree<>::IteratorPostorder it = tree.BeginPostorder(); it != tree.EndPostorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
-                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+    for (Tree<>::IteratorPostorder it = tree.begin_postorder(); it != tree.end_postorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.edge() ? "   From '" + it.edge()->primary_node()->name
+                 + "' to '" + it.edge()->secondary_node()->name + "'" : "");
         if (it->name == "L") {
             n = &*it;
         }
     }
     LOG_DBG << "Test Postorder at " + n->name;
-    for (Tree<>::IteratorPostorder it = tree.BeginPostorder(n); it != tree.EndPostorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
-                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+    for (Tree<>::IteratorPostorder it = tree.begin_postorder(n); it != tree.end_postorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.edge() ? "   From '" + it.edge()->primary_node()->name
+                 + "' to '" + it.edge()->secondary_node()->name + "'" : "");
     }
 
     / *
     // test levelorder
     LOG_DBG << "Test Levelorder at root";
-    for (Tree<>::IteratorLevelorder it = tree.BeginLevelorder(); it != tree.EndLevelorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
-                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+    for (Tree<>::IteratorLevelorder it = tree.begin_levelorder(); it != tree.end_levelorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.edge() ? "   From '" + it.edge()->primary_node()->name
+                 + "' to '" + it.edge()->secondary_node()->name + "'" : "");
         if (it->name == "L") {
             n = &*it;
         }
     }
     LOG_DBG << "Test Levelorder at " + n->name;
-    for (Tree<>::IteratorLevelorder it = tree.BeginLevelorder(n); it != tree.EndLevelorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name
-                 + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+    for (Tree<>::IteratorLevelorder it = tree.begin_levelorder(n); it != tree.end_levelorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.edge() ? "   From '" + it.edge()->primary_node()->name
+                 + "' to '" + it.edge()->secondary_node()->name + "'" : "");
     }
     //*/
 
@@ -164,19 +164,19 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << "In tree:  " << ts;
     //~ Tree<> tree;
     //~ tree.FromNewickString(ts);
-    //~ NewickProcessor::FromString(ts, tree);
+    //~ NewickProcessor::from_string(ts, tree);
 //~
     //~ for (
         //~ Tree<>::IteratorRoundtrip it = tree.BeginRoundtrip();
         //~ it != tree.EndRoundtrip();
         //~ ++it
     //~ ) {
-        //~ LOG_DBG1 << "Round " << it.Node()->name;
+        //~ LOG_DBG1 << "Round " << it.node()->name;
     //~ }
-    //~ LOG_DBG << "Out tree: " << NewickProcessor::ToString(tree);
+    //~ LOG_DBG << "Out tree: " << NewickProcessor::to_string(tree);
 
     //~ tree.Export();
-    //~ NewickProcessor::ToFile("/home/file.nw", tree);
+    //~ NewickProcessor::to_file("/home/file.nw", tree);
 
 
     //~ tree.FromNewickString("(((F,(G,H)I)J,K)L,(A,(B,C)D)E)R;");
@@ -187,7 +187,7 @@ int main (int argc, char* argv[])
     //~ TreeBroker broker;
     //~ NewickParser::ProcessString(ts, broker);
     //~ LOG_DBG << "Broker:   " << broker.Dump();
-    //~ LOG_DBG << "Out tree: " << NewickPrinter::ToString(broker);
+    //~ LOG_DBG << "Out tree: " << NewickPrinter::to_string(broker);
 
     //~ tree.FromNewickString("( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};");
     //~ tree.FromNewickString("( (] Ant:0.2, [a comment] 'Bee':0.09 )Innen:0.7, Coyote:0.5 );");
@@ -224,8 +224,8 @@ int main (int argc, char* argv[])
     //~ std::string ts = "((B,(D,E)C)A,F,(H,I)G)R;";
     //~ LOG_DBG << "In tree:  " << ts;
     //~ Tree<> tree;
-    //~ NewickProcessor::FromString(ts, tree);
-    //~ LOG_DBG << "Out tree: " << PhyloXmlProcessor::ToString(tree);
+    //~ NewickProcessor::from_string(ts, tree);
+    //~ LOG_DBG << "Out tree: " << PhyloXmlProcessor::to_string(tree);
 
     // =============================================================================
     //     Test for json parser
@@ -238,9 +238,9 @@ int main (int argc, char* argv[])
     //~ LOG_INFO << lex.Dump();
 
     //~ JsonDocument doc;
-    //~ JsonProcessor::FromFile("test/data/placement.jplace", doc);
-    //~ LOG_INFO << doc.ToString();
-    //~ LOG_INFO << JsonProcessor::ToString(doc);
+    //~ JsonProcessor::from_file("test/data/placement.jplace", doc);
+    //~ LOG_INFO << doc.to_string();
+    //~ LOG_INFO << JsonProcessor::to_string(doc);
 
     // =============================================================================
     //     Test for placements, earth movers distance, center of gravity
@@ -253,8 +253,8 @@ int main (int argc, char* argv[])
 
     LOG_DBG << "Test 1";
     Placements place_a, place_b;
-    JplaceProcessor::FromFile("test/data/test_a.jplace", place_a);
-    JplaceProcessor::FromFile("test/data/test_b.jplace", place_b);
+    JplaceProcessor::from_file("test/data/test_a.jplace", place_a);
+    JplaceProcessor::from_file("test/data/test_b.jplace", place_b);
     LOG_DBG << "Valid A: " << place_a.Validate();
     LOG_DBG << "Valid B: " << place_b.Validate();
     LOG_DBG << "Dump A:\n" << place_a.Dump();
@@ -271,8 +271,8 @@ int main (int argc, char* argv[])
     LOG_DBG << "Dump A:\n" << place_a.Dump();
     LOG_DBG << "Dump B:\n" << place_b.Dump();
 //~
-    //~ LOG_DBG << "Tree A: " << NewickProcessor::ToString(place_a.tree);
-    //~ LOG_DBG << "Tree B: " << NewickProcessor::ToString(place_b.tree);
+    //~ LOG_DBG << "Tree A: " << NewickProcessor::to_string(place_a.tree);
+    //~ LOG_DBG << "Tree B: " << NewickProcessor::to_string(place_b.tree);
 
     //~ place_a.COG();
     LOG_DBG << "Variance: " << place_a.Variance();
@@ -283,15 +283,15 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << "================================";
     //~ LOG_DBG << "Test 2";
     PlacementMap place;
-    JplaceProcessor::FromFile("test/data/placement.jplace", place);
+    JplaceProcessor::from_file("test/data/placement.jplace", place);
     LOG_DBG << "valid: " << place.Validate();
     LOG_DBG << place.Dump();
-    LOG_DBG << "json " << JplaceProcessor::ToString(place);
+    LOG_DBG << "json " << JplaceProcessor::to_string(place);
     //~ LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
     //~ place.RestrainToMaxWeightPlacements();
     //~ LOG_DBG << "valid: " << place.Validate();
     //~ LOG_DBG << place.Dump();
-    //~ LOG_DBG << "Tree: " << NewickProcessor::ToString(place.tree);
+    //~ LOG_DBG << "Tree: " << NewickProcessor::to_string(place.tree);
     //*/
 
     // =============================================================================
@@ -301,15 +301,15 @@ int main (int argc, char* argv[])
     /*
     PlacementMap place_a, place_b;
     LOG_DBG << "Reading file...";
-    JplaceProcessor::FromFile("test/data/test_40K.jplace", place_a);
-    //~ JplaceProcessor::FromFile("test/data/test_a.jplace", place_a);
-    //~ JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_0.jplace", place_a);
-    //~ JplaceProcessor::FromFile("test/data/RAxML_portableTree.split_1.jplace", place_b);
+    JplaceProcessor::from_file("test/data/test_40K.jplace", place_a);
+    //~ JplaceProcessor::from_file("test/data/test_a.jplace", place_a);
+    //~ JplaceProcessor::from_file("test/data/RAxML_portableTree.split_0.jplace", place_a);
+    //~ JplaceProcessor::from_file("test/data/RAxML_portableTree.split_1.jplace", place_b);
     //~ LOG_DBG << "Valid A: " << place_a.Validate();
     //~ LOG_DBG << "Valid B: " << place_b.Validate();
 
-    //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_0.newick", place_a.tree);
-    //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_1.newick", place_b.tree);
+    //~ NewickProcessor::to_file("test/data/RAxML_portableTree.split_0.newick", place_a.tree);
+    //~ NewickProcessor::to_file("test/data/RAxML_portableTree.split_1.newick", place_b.tree);
 
     // ----------------------------
     //     Debug
@@ -381,21 +381,21 @@ int main (int argc, char* argv[])
     //     Debug
     // ----------------------------
 
-    //~ NewickProcessor::ToFile("test/data/RAxML_portableTree.split_both.newick", place_a.tree);
+    //~ NewickProcessor::to_file("test/data/RAxML_portableTree.split_both.newick", place_a.tree);
     //*/
     /*
     // test postorder
     PlacementTree::NodeType* n;
     LOG_DBG << "Test Postorder at root";
-    for (PlacementTree::IteratorPostorder it = place_a.tree.BeginPostorder(); it != place_a.tree.EndPostorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+    for (PlacementTree::IteratorPostorder it = place_a.tree.begin_postorder(); it != place_a.tree.end_postorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.edge() ? "   From '" + it.edge()->primary_node()->name + "' to '" + it.edge()->secondary_node()->name + "'" : "");
         if (it->name == "G") {
             n = &*it;
         }
     }
     LOG_DBG << "Test Postorder at " + n->name;
-    for (PlacementTree::IteratorPostorder it = place_a.tree.BeginPostorder(n); it != place_a.tree.EndPostorder(); ++it) {
-        LOG_DBG1 << it->Dump() << (it.Edge() ? "   From '" + it.Edge()->PrimaryNode()->name + "' to '" + it.Edge()->SecondaryNode()->name + "'" : "");
+    for (PlacementTree::IteratorPostorder it = place_a.tree.begin_postorder(n); it != place_a.tree.end_postorder(); ++it) {
+        LOG_DBG1 << it->Dump() << (it.edge() ? "   From '" + it.edge()->primary_node()->name + "' to '" + it.edge()->secondary_node()->name + "'" : "");
     }
 
     //*/
@@ -408,11 +408,11 @@ int main (int argc, char* argv[])
     //~ std::string ts = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
     //~ LOG_DBG << "In tree:  " << ts;
     Tree<> tree;
-    //~ NewickProcessor::FromString(ts, tree);
-    NewickProcessor::FromFile("test/data/best_tree.newick", tree);
+    //~ NewickProcessor::from_string(ts, tree);
+    NewickProcessor::from_file("test/data/best_tree.newick", tree);
 
     NewickBroker broker;
-    NewickProcessor::ToBroker(broker, tree);
+    NewickProcessor::to_broker(broker, tree);
     broker.AssignRanks();
     //~ LOG_DBG << "Broker dump:\n" << broker.Dump();
     //~ LOG_DBG << "tree dump:\n" << tree.Dump();
@@ -420,7 +420,7 @@ int main (int argc, char* argv[])
     //~ Tree<>::NodeIntVectorType vec = tree.ClosestLeafDepthVector();
     //~ int i = 0;
     //~ for (std::pair<const Tree<>::NodeType*, int> p : vec) {
-        //~ LOG_DBG << "node " << i << " name(" << tree.NodeAt(i)->name << ") has closest " << p.first->Index() << " name(" << tree.NodeAt(p.first->Index())->name << ") width depth " << p.second;
+        //~ LOG_DBG << "node " << i << " name(" << tree.NodeAt(i)->name << ") has closest " << p.first->index() << " name(" << tree.NodeAt(p.first->index())->name << ") width depth " << p.second;
         //~ ++i;
     //~ }
 
@@ -437,7 +437,7 @@ int main (int argc, char* argv[])
     std::vector<Tree<>::NodeType*> l;
     l.push_back(n1);
     l.push_back(n2);
-    bi.GetSubtreeEdges(l);
+    bi.get_subtree_edges(l);
     //~ bi.Make();
     //~ LOG_DBG << bi.Dump();
 
@@ -486,14 +486,14 @@ int main (int argc, char* argv[])
     PlacementMap place, place_tmp;
     LOG_DBG;
     LOG_DBG << "Reading file " << list[0] << "...";
-    JplaceProcessor::FromFile(inpath + list[0], place);
+    JplaceProcessor::from_file(inpath + list[0], place);
     //~ LOG_DBG << "Valid: " << place.Validate();
     LOG_DBG << "with " << place.PlacementCount() << " placements.";
     LOG_DBG;
 
     for (size_t i = 1; i < list.size(); ++i) {
         LOG_DBG1 << "Reading file " << list[i] << "...";
-        JplaceProcessor::FromFile(inpath + list[i], place_tmp);
+        JplaceProcessor::from_file(inpath + list[i], place_tmp);
         LOG_DBG1 << "...with " << place_tmp.PlacementCount() << " placements...";
 
         LOG_DBG1 << "... and merging it.";
@@ -512,14 +512,14 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << "Validity: " << place.Validate();
 
     LOG_DBG << "Writing jplace file to " << outpath;
-    JplaceProcessor::ToFile(outpath + "all_placements.jplace", place);
+    JplaceProcessor::to_file(outpath + "all_placements.jplace", place);
 
     LOG_DBG << "Writing count tree...";
     NewickProcessor::print_names          = true;
     NewickProcessor::print_branch_lengths = true;
     NewickProcessor::print_comments       = true;
     NewickProcessor::print_tags           = false;
-    NewickProcessor::ToFile(outpath + "total_tree.newick", place.tree);
+    NewickProcessor::to_file(outpath + "total_tree.newick", place.tree);
 
     //*/
 
@@ -534,7 +534,7 @@ int main (int argc, char* argv[])
 
     LOG_DBG << "Reading file " << "all_placements.jplace" << "...";
     PlacementMap place;
-    JplaceProcessor::FromFile(inpath + "all_placements.jplace", place);
+    JplaceProcessor::from_file(inpath + "all_placements.jplace", place);
     LOG_DBG << "with " << place.PlacementCount() << " placements.";
     LOG_DBG;
 
@@ -543,7 +543,7 @@ int main (int argc, char* argv[])
     //~ NewickProcessor::print_branch_lengths = true;
     //~ NewickProcessor::print_comments       = true;
     //~ NewickProcessor::print_tags           = false;
-    //~ NewickProcessor::ToFile(outpath + "total_tree_x.newick", place.tree);
+    //~ NewickProcessor::to_file(outpath + "total_tree_x.newick", place.tree);
 
     //*/
 
@@ -600,8 +600,8 @@ int main (int argc, char* argv[])
     l.push_back(n2);
 
     Bipartitions<PlacementNodeData, PlacementEdgeData> bi = Bipartitions<PlacementNodeData, PlacementEdgeData>(&place.tree);
-    Bipartition<PlacementNodeData, PlacementEdgeData>* subtree = bi.FindSmallestSubtree(l);
-    std::vector<const PlacementTree::EdgeType*> subedges = bi.GetSubtreeEdges(subtree->Link());
+    Bipartition<PlacementNodeData, PlacementEdgeData>* subtree = bi.find_smallest_subtree(l);
+    std::vector<const PlacementTree::EdgeType*> subedges = bi.get_subtree_edges(subtree->link());
     std::string readnames = "";
     for (const PlacementTree::EdgeType* e : subedges) {
         for (PqueryPlacement* p : e->placements) {
@@ -630,9 +630,9 @@ int main (int argc, char* argv[])
     //~ std::string  inpath = "/home/lucas/Dropbox/HITS/tropical-soils/data_raw/";
 //~
     //~ SequenceSet aln;
-    //~ FastaProcessor::FromFile(inpath + "Apis_all_4_mafft_clean.fasta", aln);
+    //~ FastaProcessor::from_file(inpath + "Apis_all_4_mafft_clean.fasta", aln);
     //~ aln.Replace('N', '-');
-    //~ PhylipProcessor::ToFile(inpath + "Apis_all_4_mafft_clean.phy", aln);
+    //~ PhylipProcessor::to_file(inpath + "Apis_all_4_mafft_clean.phy", aln);
 //~
     //~ return 0;
 //~
@@ -645,18 +645,18 @@ int main (int argc, char* argv[])
     //~ }
 //~
     //~ FastaProcessor::line_length = 0;
-    //~ FastaProcessor::ToFile(inpath + "512.fasta", aln);
-    //~ FastaProcessor::ToFile(inpath + "512_subtree.fasta", reduced_aln);
+    //~ FastaProcessor::to_file(inpath + "512.fasta", aln);
+    //~ FastaProcessor::to_file(inpath + "512_subtree.fasta", reduced_aln);
 //~
     //~ for (Sequence* s : reduced_aln.sequences) {
         //~ s->RemoveGaps();
     //~ }
-    //~ FastaProcessor::ToFile(inpath + "512_subtree_unaligned.fasta", reduced_aln);
+    //~ FastaProcessor::to_file(inpath + "512_subtree_unaligned.fasta", reduced_aln);
 
     /*
     SequenceSet aln;
     LOG_DBG << "reading fas";
-    FastaProcessor::FromFile(inpath + "third_20_samples_LaSelva_protists.fas", aln);
+    FastaProcessor::from_file(inpath + "third_20_samples_LaSelva_protists.fas", aln);
 
     LOG_DBG << "remove all but subtree_reads";
     //~ SequenceSet reduced_aln;
@@ -672,7 +672,7 @@ int main (int argc, char* argv[])
 
     LOG_DBG << "write new fas";
     FastaProcessor::line_length = 0;
-    FastaProcessor::ToFile(inpath + "subtree_reads2.fasta", aln);
+    FastaProcessor::to_file(inpath + "subtree_reads2.fasta", aln);
 
     //*/
 

@@ -87,7 +87,7 @@ void Logging::report_percentage (const int percentage)
 /**
  * @brief Return a string representation of a log level.
  */
-std::string Logging::LevelToString(const LoggingLevel level)
+std::string Logging::Levelto_string(const LoggingLevel level)
 {
     static const char* const buffer[] = {
         "NONE", "ERR ", "WARN", "INFO", "PROG", "DBG ", "DBG1", "DBG2", "DBG3", "DBG4"
@@ -124,7 +124,7 @@ void Logging::LogToStream (std::ostream& os)
  *
  * This creates a stream to the file.
  */
-void Logging::LogToFile (const std::string& fn)
+void Logging::log_to_file (const std::string& fn)
 {
     // TODO the log file stream is never deleted. this is not a big leak,
     // as commonly only one file is used for logging, but still is a smell.
@@ -190,7 +190,7 @@ Logging::~Logging()
         det_buff << "(" << function_ << ") ";
     }
     if (details_.level) {
-        det_buff << LevelToString(level_) << " ";
+        det_buff << Levelto_string(level_) << " ";
     }
 
     // add spaces for nested debug levels

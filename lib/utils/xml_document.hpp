@@ -33,7 +33,7 @@ public:
         kElement
     };
 
-    static std::string TypeToString (const Type t)
+    static std::string type_to_string (const Type t)
     {
         switch (t) {
             case kComment : return "Comment";
@@ -43,9 +43,9 @@ public:
         }
     }
 
-    inline std::string TypeToString () const
+    inline std::string type_to_string () const
     {
-        return TypeToString(type_);
+        return type_to_string(type_);
     }
 
     inline Type type() const

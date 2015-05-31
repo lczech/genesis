@@ -45,10 +45,10 @@ public:
     //     Modifiers & Accessors
     // -----------------------------------------------------
 
-    void Add (const std::string& name, TreeType* tree);
-    TreeType* GetFirst (const std::string& name);
+    void add (const std::string& name, TreeType* tree);
+    TreeType* get_first (const std::string& name);
 
-    std::string Dump (bool full = false);
+    std::string dump (bool full = false);
 
     // -----------------------------------------------------
     //     Data Members

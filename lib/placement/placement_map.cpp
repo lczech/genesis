@@ -42,26 +42,26 @@ PlacementMap::PlacementMap (const PlacementMap& other)
     metadata = other.metadata;
 
     // copy all data of the tree: do a preorder traversal on both trees in parallel
-    PlacementTree::IteratorPreorder it_n = tree.BeginPreorder();
-    PlacementTree::ConstIteratorPreorder it_o = other.tree.BeginPreorder();
+    PlacementTree::IteratorPreorder it_n = tree.begin_preorder();
+    PlacementTree::ConstIteratorPreorder it_o = other.tree.begin_preorder();
     for (
         ;
-        it_n != tree.EndPreorder() && it_o != other.tree.EndPreorder();
+        it_n != tree.end_preorder() && it_o != other.tree.end_preorder();
         ++it_n, ++it_o
     ) {
         // the trees are copies of each other, they need to have the same rank. otherwise,
         // the copy constructor is not working!
-        assert(it_n.Node()->Rank() == it_o.Node()->Rank());
+        assert(it_n.node()->rank() == it_o.node()->rank());
 
-        it_n.Edge()->placements.clear();
-        it_n.Edge()->branch_length = it_o.Edge()->branch_length;
-        it_n.Edge()->edge_num = it_o.Edge()->edge_num;
+        it_n.edge()->placements.clear();
+        it_n.edge()->branch_length = it_o.edge()->branch_length;
+        it_n.edge()->edge_num = it_o.edge()->edge_num;
 
-        it_n.Node()->name = it_o.Node()->name;
+        it_n.node()->name = it_o.node()->name;
     }
 
     // the trees are copies. they should take equal iterations to finish a traversal.
-    assert(it_n == tree.EndPreorder() && it_o == other.tree.EndPreorder());
+    assert(it_n == tree.end_preorder() && it_o == other.tree.end_preorder());
 
     // copy all (o)ther pqueries to (n)ew pqueries
     EdgeNumMapType* en_map = edge_num_map();
@@ -137,8 +137,8 @@ PlacementMap::EdgeNumMapType* PlacementMap::edge_num_map() const
 {
     EdgeNumMapType* en_map = new EdgeNumMapType();
     for (
-        PlacementTree::ConstIteratorEdges it = tree.BeginEdges();
-        it != tree.EndEdges();
+        PlacementTree::ConstIteratorEdges it = tree.begin_edges();
+        it != tree.end_edges();
         ++it
     ) {
         PlacementTree::EdgeType* edge = *it;
@@ -161,8 +161,8 @@ bool PlacementMap::merge(const PlacementMap& other)
         PlacementTree::ConstIteratorPreorder& it_l,
         PlacementTree::ConstIteratorPreorder& it_r
     ) {
-        return it_l.Node()->name     == it_r.Node()->name     &&
-               it_l.Edge()->edge_num == it_r.Edge()->edge_num;
+        return it_l.node()->name     == it_r.node()->name     &&
+               it_l.edge()->edge_num == it_r.edge()->edge_num;
     };
 
     if (!tree.Equal(other.tree, comparator)) {
@@ -340,14 +340,14 @@ std::vector<int> PlacementMap::closest_leaf_depth_histogram() const
     std::vector<int> hist;
 
     // get a vector telling us the depth from each node to its closest leaf node.
-    PlacementTree::NodeIntVectorType depths = tree.ClosestLeafDepthVector();
+    PlacementTree::NodeIntVectorType depths = tree.closest_leaf_depth_vector();
 
     for (const Pquery* pqry : pqueries) {
         for (const PqueryPlacement* place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            int dp = depths[place->edge->PrimaryNode()->Index()].second;
-            int ds = depths[place->edge->SecondaryNode()->Index()].second;
+            int dp = depths[place->edge->primary_node()->index()].second;
+            int ds = depths[place->edge->secondary_node()->index()].second;
             unsigned int ld = std::min(dp, ds);
 
             // put the closer one into the histogram, resize if necessary.
@@ -392,16 +392,16 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram (
     double bin_size = (max - min) / bins;
 
     // get a vector telling us the distance from each node to its closest leaf node.
-    PlacementTree::NodeDoubleVectorType dists = tree.ClosestLeafDistanceVector();
+    PlacementTree::NodeDoubleVectorType dists = tree.closest_leaf_distance_vector();
 
     for (const Pquery* pqry : pqueries) {
         for (const PqueryPlacement* place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
             double dp = place->pendant_length + place->proximal_length
-                      + dists[place->edge->PrimaryNode()->Index()].second;
+                      + dists[place->edge->primary_node()->index()].second;
             double ds = place->pendant_length + place->edge->branch_length - place->proximal_length
-                      + dists[place->edge->SecondaryNode()->Index()].second;
+                      + dists[place->edge->secondary_node()->index()].second;
             double ld = std::min(dp, ds);
 
             // find the right bin. if the distance value is outside the boundaries of [min;max],
@@ -461,7 +461,7 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
     double max_d = 0.0;
 
     // get a vector telling us the distance from each node to its closest leaf node.
-    PlacementTree::NodeDoubleVectorType dists = tree.ClosestLeafDistanceVector();
+    PlacementTree::NodeDoubleVectorType dists = tree.closest_leaf_distance_vector();
 
     // calculate all distances from placements to their closest leaf and store them.
     for (const Pquery* pqry : pqueries) {
@@ -469,9 +469,9 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
             double dp = place->pendant_length + place->proximal_length
-                      + dists[place->edge->PrimaryNode()->Index()].second;
+                      + dists[place->edge->primary_node()->index()].second;
             double ds = place->pendant_length + place->edge->branch_length - place->proximal_length
-                      + dists[place->edge->SecondaryNode()->Index()].second;
+                      + dists[place->edge->secondary_node()->index()].second;
             double ld = std::min(dp, ds);
             distrib.push_back(ld);
 
@@ -490,7 +490,7 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
     double bin_size = (max_d - min_d) / bins;
     for (double ld : distrib) {
         int bin = static_cast <int> (std::floor( (ld - min_d) / bin_size ));
-        assert(bin >=0 && bin < bins);
+        assert(bin >= 0 && bin < bins);
         ++hist[bin];
     }
 
@@ -541,36 +541,36 @@ double PlacementMap::earth_movers_distance(const PlacementMap& lhs, const Placem
     // placements are given as "proximal_length" on their branch, which always points away from the
     // root. thus, if we decided to traverse from a different node than the root, we would have to
     // take this into account. so we do start at the root, to keep it simple.
-    PlacementTree::ConstIteratorPostorder it_l = lhs.tree.BeginPostorder();
-    PlacementTree::ConstIteratorPostorder it_r = rhs.tree.BeginPostorder();
+    PlacementTree::ConstIteratorPostorder it_l = lhs.tree.begin_postorder();
+    PlacementTree::ConstIteratorPostorder it_r = rhs.tree.begin_postorder();
     for (
         ;
-        it_l != lhs.tree.EndPostorder() && it_r != rhs.tree.EndPostorder();
+        it_l != lhs.tree.end_postorder() && it_r != rhs.tree.end_postorder();
         ++it_l, ++it_r
     ) {
-        LOG_DBG << "\033[1;31miteration at node " << it_l.Node()->index_ << ": " << it_l.Node()->name << "\033[0m";
+        LOG_DBG << "\033[1;31miteration at node " << it_l.node()->index_ << ": " << it_l.node()->name << "\033[0m";
         LOG_DBG << "current distance " << distance;
 
         // check whether both trees have identical topology. if they have, the ranks of all nodes
         // are the same. however, if not, at some point their ranks will differ.
-        if (it_l.Node()->Rank() != it_r.Node()->Rank()) {
+        if (it_l.node()->rank() != it_r.node()->rank()) {
             LOG_WARN << "Calculating EMD on different reference trees not possible.";
             return -1.0;
         }
 
         // if we are at the last iteration, we reached the root, thus we have moved all masses now
         // and don't need to proceed. if we did, we would count an edge of the root again.
-        if (it_l.IsLastIteration()) {
+        if (it_l.is_last_iteration()) {
             LOG_DBG1 << "last iteration";
             // we do a check for the mass at the root here for debug purposes.
             double root_mass = 0.0;
             for (
-                PlacementTree::NodeType::ConstIteratorLinks n_it = it_l.Node()->BeginLinks();
-                n_it != it_l.Node()->EndLinks();
+                PlacementTree::NodeType::ConstIteratorLinks n_it = it_l.node()->begin_links();
+                n_it != it_l.node()->end_links();
                 ++n_it
             ) {
-                assert(balance.count(n_it.Link()->Outer()->Node()));
-                root_mass += balance[n_it.Link()->Outer()->Node()];
+                assert(balance.count(n_it.link()->outer()->node()));
+                root_mass += balance[n_it.link()->outer()->node()];
             }
 
             LOG_DBG << "Mass at root: " << root_mass;
@@ -580,8 +580,8 @@ double PlacementMap::earth_movers_distance(const PlacementMap& lhs, const Placem
 
         // check whether the data on both reference trees is the same. this has to be done after the
         // check for last iteration / root node, because we don't want to check this for the root.
-        if (it_l.Node()->name     != it_r.Node()->name ||
-            it_l.Edge()->edge_num != it_r.Edge()->edge_num
+        if (it_l.node()->name     != it_r.node()->name ||
+            it_l.edge()->edge_num != it_r.edge()->edge_num
         ) {
             LOG_WARN << "Inconsistent reference trees in EMD calculation.";
             return -1.0;
@@ -593,14 +593,14 @@ double PlacementMap::earth_movers_distance(const PlacementMap& lhs, const Placem
         LOG_DBG1 << "placing on branch...";
 
         // add all placements of the branch from the left tree (using positive mass)...
-        for (PqueryPlacement* place : it_l.Edge()->placements) {
+        for (PqueryPlacement* place : it_l.edge()->placements) {
             if (with_pendant_length) {
                 distance += place->like_weight_ratio * place->pendant_length / totalmass_l;
             }
             edge_balance.emplace(place->proximal_length, +place->like_weight_ratio / totalmass_l);
 
             LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
-            LOG_DBG2 << "it_l edge   " << it_l.Edge()->index_;
+            LOG_DBG2 << "it_l edge   " << it_l.edge()->index_;
             LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_l;
             LOG_DBG2 << "new dist    " << distance;
             LOG_DBG2 << "emplaced at " << place->proximal_length << ": " << +place->like_weight_ratio / totalmass_l;
@@ -608,14 +608,14 @@ double PlacementMap::earth_movers_distance(const PlacementMap& lhs, const Placem
         }
 
         // ... and the branch from the right tree (using negative mass)
-        for (PqueryPlacement* place : it_r.Edge()->placements) {
+        for (PqueryPlacement* place : it_r.edge()->placements) {
             if (with_pendant_length) {
                 distance += place->like_weight_ratio * place->pendant_length / totalmass_r;
             }
             edge_balance.emplace(place->proximal_length, -place->like_weight_ratio / totalmass_r);
 
             LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
-            LOG_DBG2 << "it_r edge   " << it_r.Edge()->index_;
+            LOG_DBG2 << "it_r edge   " << it_r.edge()->index_;
             LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_r;
             LOG_DBG2 << "new dist    " << distance;
             LOG_DBG2 << "emplaced at " << place->proximal_length << ": " << -place->like_weight_ratio / totalmass_r;
@@ -628,20 +628,20 @@ double PlacementMap::earth_movers_distance(const PlacementMap& lhs, const Placem
         // in mass_s. mass_s then contains the rest mass of the subtree that could not be
         // distributed among the children and thus has to be moved upwards.
         double mass_s = 0.0;
-        PlacementTree::LinkType* link = it_l.Link()->Next();
-        while (link != it_l.Link()) {
+        PlacementTree::LinkType* link = it_l.link()->next();
+        while (link != it_l.link()) {
             // we do postorder traversal, so we have seen the child nodes of the current node,
             // which means, they should be in the balance list already.
-            assert(balance.count(link->Outer()->Node()));
+            assert(balance.count(link->outer()->node()));
 
-            mass_s += balance[link->Outer()->Node()];
-            link = link->Next();
+            mass_s += balance[link->outer()->node()];
+            link = link->next();
         }
         LOG_DBG1 << "subtrees mass_s " << mass_s;
         LOG_DBG1 << "entering standard emd part...";
 
         // start the earth_movers_distance with the mass that is left over from the subtrees...
-        double cur_pos  = it_l.Edge()->branch_length;
+        double cur_pos  = it_l.edge()->branch_length;
         double cur_mass = mass_s;
 
         LOG_DBG1 << "cur_pos  " << cur_pos;
@@ -674,17 +674,17 @@ double PlacementMap::earth_movers_distance(const PlacementMap& lhs, const Placem
         // finally, move the rest to the end of the branch and store its mass in balance[],
         // so that it can be used for the nodes further up in the tree.
         distance += std::abs(cur_mass) * cur_pos;
-        balance[it_l.Node()] = cur_mass;
+        balance[it_l.node()] = cur_mass;
 
         LOG_DBG1 << "added dist " << std::abs(cur_mass) * cur_pos;
         LOG_DBG1 << "new dist   " << distance;
-        LOG_DBG1 << "balance at node " << it_l.Node()->index_ << ": " << it_l.Node()->name << " = " << cur_mass;
+        LOG_DBG1 << "balance at node " << it_l.node()->index_ << ": " << it_l.node()->name << " = " << cur_mass;
         LOG_DBG1 << "finished standard emd part";
         LOG_DBG1;
     }
 
     // check whether we are done with both trees.
-    if (it_l != lhs.tree.EndPostorder() || it_r != rhs.tree.EndPostorder()) {
+    if (it_l != lhs.tree.end_postorder() || it_r != rhs.tree.end_postorder()) {
         LOG_WARN << "Inconsistent reference trees in EMD calculation.";
         return -1.0;
     }
@@ -706,56 +706,56 @@ void PlacementMap::center_of_gravity() const
 
     // do a postorder traversal
     for (
-        PlacementTree::ConstIteratorPostorder it = this->tree.BeginPostorder();
-        it != this->tree.EndPostorder();
+        PlacementTree::ConstIteratorPostorder it = this->tree.begin_postorder();
+        it != this->tree.end_postorder();
         ++it
     ) {
         // node does not have a corresponding edge (eg the root)
-        if (!it.Edge()) {
+        if (!it.edge()) {
             continue;
         }
 
         double mass = 0.0;
 
         // add up the masses from children
-        PlacementTree::LinkType* link = it.Link()->Next();
-        while (link != it.Link()) {
+        PlacementTree::LinkType* link = it.link()->next();
+        while (link != it.link()) {
             // we do postorder traversal, so we have seen the child links of the current node,
             // which means, they should be in the balance list already.
             assert(balance.count(link));
 
-            mass += balance[link] * it.Edge()->branch_length;
-            link  = link->Next();
+            mass += balance[link] * it.edge()->branch_length;
+            link  = link->next();
         }
 
         // add up the masses of placements on the current branch
-        for (PqueryPlacement* place : it.Edge()->placements) {
+        for (PqueryPlacement* place : it.edge()->placements) {
             mass += place->pendant_length + place->proximal_length;
         }
 
-        assert(balance.count(it.Link()->Outer()) == 0);
-        balance[it.Link()->Outer()] = mass;
+        assert(balance.count(it.link()->outer()) == 0);
+        balance[it.link()->outer()] = mass;
     }
 
-    PlacementTree::LinkType* p_prev = tree.RootLink();
-    PlacementTree::LinkType* p_link = tree.RootLink();
+    PlacementTree::LinkType* p_prev = tree.root_link();
+    PlacementTree::LinkType* p_link = tree.root_link();
     double                   p_mass = -1.0;
     bool                     found  = false;
     while (!found) {
-        LOG_DBG1 << "a " << p_link->Node()->name;
+        LOG_DBG1 << "a " << p_link->node()->name;
         p_mass = -1.0;
         for (
-            PlacementTree::NodeType::IteratorLinks it_l = p_link->Node()->BeginLinks();
-            it_l != p_link->Node()->EndLinks();
+            PlacementTree::NodeType::IteratorLinks it_l = p_link->node()->begin_links();
+            it_l != p_link->node()->end_links();
             ++it_l
         ) {
-            LOG_DBG2 << it_l.Node()->name << " " << balance[it_l.Link()];
-            if (balance[it_l.Link()] > p_mass) {
-                p_link = it_l.Link();
+            LOG_DBG2 << it_l.node()->name << " " << balance[it_l.link()];
+            if (balance[it_l.link()] > p_mass) {
+                p_link = it_l.link();
             }
         }
-        LOG_DBG1 << "b " << p_link->Node()->name;
-        p_link = p_link->Outer();
+        LOG_DBG1 << "b " << p_link->node()->name;
+        p_link = p_link->outer();
         if (p_link == p_prev) {
             found = true;
             break;
@@ -763,18 +763,18 @@ void PlacementMap::center_of_gravity() const
         p_prev = p_link;
     }
 
-    //~ PlacementTree::LinkType* link = tree.RootLink();
-    //~ while (link != it.Link()) {
+    //~ PlacementTree::LinkType* link = tree.root_link();
+    //~ while (link != it.link()) {
         //~ // we do postorder traversal, so we have seen the child links of the current node,
         //~ // which means, they should be in the balance list already.
         //~ assert(balance.count(link));
 //~
-        //~ mass += balance[link] * it.Edge()->branch_length;
-        //~ link = link->Next();
+        //~ mass += balance[link] * it.edge()->branch_length;
+        //~ link = link->next();
     //~ }
 
     for (auto pair : balance) {
-        LOG_DBG1 << pair.first->Node()->name << ": " << pair.second << "\n";
+        LOG_DBG1 << pair.first->node()->name << ": " << pair.second << "\n";
         //~ distance += std::abs(pair.second);
     }
 }
@@ -866,9 +866,9 @@ double PlacementMap::variance() const
         for (const PqueryPlacement* place : pqry->placements) {
             VarianceData vdp;
             vdp.index                = index++;
-            vdp.edge_index           = place->edge->Index();
-            vdp.primary_node_index   = place->edge->PrimaryNode()->Index();
-            vdp.secondary_node_index = place->edge->SecondaryNode()->Index();
+            vdp.edge_index           = place->edge->index();
+            vdp.primary_node_index   = place->edge->primary_node()->index();
+            vdp.secondary_node_index = place->edge->secondary_node()->index();
             vdp.pendant_length       = place->pendant_length;
             vdp.proximal_length      = place->proximal_length;
             vdp.branch_length        = place->edge->branch_length;
@@ -879,7 +879,7 @@ double PlacementMap::variance() const
 
     // also, calculate a matrix containing the pairwise distance between all nodes. this way, we
     // do not need to search a path between placements every time.
-    Matrix<double>* node_distances = tree.NodeDistanceMatrix();
+    Matrix<double>* node_distances = tree.node_distance_matrix();
 
 #ifdef PTHREADS
 
@@ -1068,8 +1068,8 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
     EdgeNumMapType edge_num_map;
     size_t edge_place_count = 0;
     for (
-        PlacementTree::ConstIteratorEdges it_e = tree.BeginEdges();
-        it_e != tree.EndEdges();
+        PlacementTree::ConstIteratorEdges it_e = tree.begin_edges();
+        it_e != tree.end_edges();
         ++it_e
     ) {
         // make sure every edge num is used once only

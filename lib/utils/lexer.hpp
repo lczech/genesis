@@ -45,8 +45,8 @@ public:
     //     Main Functions
     // -------------------------------------------------------------------------
 
-    bool FromFile   (const std::string& fn);
-    bool FromString (const std::string& in);
+    bool from_file   (const std::string& fn);
+    bool from_string (const std::string& in);
 
     bool ProcessStep();
     bool ProcessAll();

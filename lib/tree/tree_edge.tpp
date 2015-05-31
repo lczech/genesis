@@ -29,18 +29,18 @@ namespace genesis {
  * @brief Returns the node of this edge that points towards the root.
  */
 template <class NDT, class EDT>
-inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::PrimaryNode() const
+inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::primary_node() const
 {
-    return link_p_->Node();
+    return link_p_->node();
 }
 
 /**
  * @brief Returns the node of this edge that points away from the root.
  */
 template <class NDT, class EDT>
-inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::SecondaryNode() const
+inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::secondary_node() const
 {
-    return link_s_->Node();
+    return link_s_->node();
 }
 
 } // namespace genesis
@@ -55,9 +55,9 @@ namespace genesis {
  * @brief Returns a one-line dump summary of the data of this edge.
  */
 template <class NDT, class EDT>
-std::string TreeEdge<NDT, EDT>::Dump() const
+std::string TreeEdge<NDT, EDT>::dump() const
 {
-    return "Node P: " + PrimaryNode()->name + ", Node S: " + SecondaryNode()->name + "\t" + EDT::Dump();
+    return "Node P: " + primary_node()->name + ", Node S: " + secondary_node()->name + "\t" + EDT::dump();
 }
 
 } // namespace genesis

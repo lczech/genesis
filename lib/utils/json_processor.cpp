@@ -24,13 +24,13 @@ namespace genesis {
  *
  * Returns true iff successfull.
  */
-bool JsonProcessor::FromFile (const std::string& fn, JsonDocument& document)
+bool JsonProcessor::from_file (const std::string& fn, JsonDocument& document)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "JSON file '" << fn << "' does not exist.";
         return false;
     }
-    return FromString(FileRead(fn), document);
+    return from_string(FileRead(fn), document);
 }
 
 /**
@@ -38,11 +38,11 @@ bool JsonProcessor::FromFile (const std::string& fn, JsonDocument& document)
  *
  * Returns true iff successfull.
  */
-bool JsonProcessor::FromString (const std::string& json, JsonDocument& document)
+bool JsonProcessor::from_string (const std::string& json, JsonDocument& document)
 {
     // do stepwise lexing
     JsonLexer lexer;
-    lexer.FromString(json);
+    lexer.from_string(json);
 
     if (lexer.empty()) {
         LOG_INFO << "JSON document is empty.";
@@ -282,29 +282,29 @@ int JsonProcessor::indent = 4;
 /**
  * @brief Writes a Json file from a JsonDocument. Returns true iff successful.
  */
-bool JsonProcessor::ToFile (const std::string& fn, const JsonDocument& document)
+bool JsonProcessor::to_file (const std::string& fn, const JsonDocument& document)
 {
     if (FileExists(fn)) {
         LOG_WARN << "Json file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string jd;
-    ToString(jd, document);
+    to_string(jd, document);
     return FileWrite(fn, jd);
 }
 
 /**
  * @brief Gives the Json string representation of a JsonDocument.
  */
-void JsonProcessor::ToString (std::string& json, const JsonDocument& document)
+void JsonProcessor::to_string (std::string& json, const JsonDocument& document)
 {
-    json = ToString(document);
+    json = to_string(document);
 }
 
 /**
  * @brief Returns the Json representation of a JsonDocument.
  */
-std::string JsonProcessor::ToString (const JsonDocument& document)
+std::string JsonProcessor::to_string (const JsonDocument& document)
 {
     return PrintObject(&document, 0);
 }
@@ -317,11 +317,11 @@ std::string JsonProcessor::PrintValue (const JsonValue* value)
     switch(value->type()) {
         case JsonValue::kNull:
         case JsonValue::kBool:
-            return value->ToString();
+            return value->to_string();
             break;
 
         case JsonValue::kNumber:
-            return ToStringPrecise(JsonValueToNumber(value)->value, precision);
+            return to_stringPrecise(JsonValueToNumber(value)->value, precision);
             break;
 
         case JsonValue::kString:

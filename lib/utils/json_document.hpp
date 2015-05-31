@@ -26,7 +26,7 @@ namespace genesis {
 /** @brief Interface for JSON values.
  *
  * JSON provides different types of values, as listed in JsonValue::Type. This class serves as a
- * base class for all those types. Each derived class needs at least to implement ToString(), which
+ * base class for all those types. Each derived class needs at least to implement to_string(), which
  * returns the JSON string representation of its content. Also, derived classes need to make sure to
  * call the base constructor in order to set their type correctly.
  */
@@ -42,7 +42,7 @@ public:
         kObject
     };
 
-    static std::string TypeToString (const Type t)
+    static std::string type_to_string (const Type t)
     {
         switch (t) {
             case kNull   : return "Null";
@@ -55,9 +55,9 @@ public:
         }
     }
 
-    inline std::string TypeToString () const
+    inline std::string type_to_string () const
     {
-        return TypeToString(type_);
+        return type_to_string(type_);
     }
 
     inline Type type() const
@@ -95,7 +95,7 @@ public:
         return type_ == kObject;
     }
 
-    virtual std::string ToString()     const = 0;
+    virtual std::string to_string()     const = 0;
 
     virtual ~JsonValue() {};
 
@@ -128,7 +128,7 @@ public:
         }
     }
 
-    inline std::string ToString() const override
+    inline std::string to_string() const override
     {
         return "null";
     }
@@ -157,7 +157,7 @@ public:
         }
     }
 
-    inline std::string ToString() const override
+    inline std::string to_string() const override
     {
         return value ? "true" : "false";
     }
@@ -181,7 +181,7 @@ public:
         value = std::stod(v);
     }
 
-    inline std::string ToString() const override
+    inline std::string to_string() const override
     {
         // use string stream instead of std::to_string() to have better conversion of the number
         // (e.g., avoid trailing zeros when not needed).
@@ -204,7 +204,7 @@ public:
 
     JsonValueString (const std::string& v) : JsonValue(kString), value(v) {};
 
-    inline std::string ToString() const override
+    inline std::string to_string() const override
     {
         return value;
     }
@@ -238,7 +238,7 @@ public:
      *
      *     JsonValueArray a;
      *     for (JsonValueArray::iterator t = a.begin(); t != a.end(); ++t) {
-     *         std::cout << t->ToString() << std::endl;
+     *         std::cout << t->to_string() << std::endl;
      *     }
      * %
      */
@@ -255,7 +255,7 @@ public:
      *
      *     JsonValueArray a;
      *     for (JsonValue* v : a) {
-     *         std::cout << v->ToString() << std::endl;
+     *         std::cout << v->to_string() << std::endl;
      *     }
      * %
      */
@@ -290,7 +290,7 @@ public:
      *     JsonValueArray a;
      *     for (size_t i = 0; i < a.size(); ++i) {
      *        JsonValue* v = a[i];
-     *        std::cout << v->ToString() << std::endl;
+     *        std::cout << v->to_string() << std::endl;
      *     }
      *
      * Caveat: this operator does no boundary check. If you need this check,
@@ -369,7 +369,7 @@ public:
     //     Other Members
     // ---------------------------------------------------------------------
 
-    inline std::string ToString() const override
+    inline std::string to_string() const override
     {
         return "(Json Array)";
     }
@@ -405,7 +405,7 @@ public:
      *
      *     JsonValueObject o;
      *     for (JsonValueObject::iterator t = o.begin(); t != o.end(); ++t) {
-     *         std::cout << t->ToString() << std::endl;
+     *         std::cout << t->to_string() << std::endl;
      *     }
      * %
      */
@@ -422,7 +422,7 @@ public:
      *
      *     JsonValueObject o;
      *     for (JsonValueObject::ObjectPair p : o) {
-     *         std::cout << p.first << " : " << p.second->ToString() << std::endl;
+     *         std::cout << p.first << " : " << p.second->to_string() << std::endl;
      *     }
      * %
      */
@@ -531,7 +531,7 @@ public:
     //     Other Members
     // ---------------------------------------------------------------------
 
-    inline std::string ToString() const override
+    inline std::string to_string() const override
     {
         return "(Json Object)";
     }
@@ -561,7 +561,7 @@ public:
         clear();
     }
 
-    inline std::string ToString() const override
+    inline std::string to_string() const override
     {
         return "(Json Document)";
     }

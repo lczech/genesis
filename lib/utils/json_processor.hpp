@@ -52,8 +52,8 @@ class JsonProcessor
     // ---------------------------------------------------------------------
 
 public:
-    static bool FromFile   (const std::string& fn,    JsonDocument& document);
-    static bool FromString (const std::string& json,  JsonDocument& document);
+    static bool from_file   (const std::string& fn,    JsonDocument& document);
+    static bool from_string (const std::string& json,  JsonDocument& document);
 
     // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
 
@@ -85,9 +85,9 @@ public:
     static int precision;
     static int indent;
 
-    static bool        ToFile   (const std::string& fn,   const JsonDocument& document);
-    static void        ToString (      std::string& json, const JsonDocument& document);
-    static std::string ToString (                         const JsonDocument& document);
+    static bool        to_file   (const std::string& fn,   const JsonDocument& document);
+    static void        to_string (      std::string& json, const JsonDocument& document);
+    static std::string to_string (                         const JsonDocument& document);
 
 protected:
     static std::string PrintValue  (const JsonValue*       value);

@@ -50,9 +50,9 @@ class XmlProcessor
 public:
     static int indent;
 
-    static bool        ToFile   (const std::string& fn,  const XmlDocument& document);
-    static void        ToString (      std::string& xml, const XmlDocument& document);
-    static std::string ToString (                        const XmlDocument& document);
+    static bool        to_file   (const std::string& fn,  const XmlDocument& document);
+    static void        to_string (      std::string& xml, const XmlDocument& document);
+    static std::string to_string (                        const XmlDocument& document);
 
 protected:
     static void PrintComment (std::string& xml, const XmlComment* value);

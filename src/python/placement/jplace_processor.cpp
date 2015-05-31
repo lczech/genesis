@@ -74,11 +74,11 @@ void BoostPythonExport_JplaceProcessor()
         )
         .staticmethod("to_string")
         .def(
-            "ToDocument",
-            ( void ( * )( ::genesis::JsonDocument &, const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::ToDocument ),
+            "to_document",
+            ( void ( * )( ::genesis::JsonDocument &, const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::to_document ),
             ( boost::python::arg("doc"), boost::python::arg("placements") )
         )
-        .staticmethod("ToDocument")
+        .staticmethod("to_document")
     ;
 }
 */
@@ -104,32 +104,32 @@ void BoostPythonExport_JplaceProcessor()
         )
         .staticmethod("CheckVersion")
         .def(
-            "FromFile",
+            "from_file",
             ( bool ( * )( const std::string &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::from_file ),
             ( boost::python::arg("fn"), boost::python::arg("placements") ),
             "Reads a file and parses it as a Jplace document into a PlacementMap object."
         )
-        .staticmethod("FromFile")
+        .staticmethod("from_file")
         .def(
-            "FromString",
+            "from_string",
             ( bool ( * )( const std::string &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::from_string ),
             ( boost::python::arg("jplace"), boost::python::arg("placements") ),
             "Parses a string as a Jplace document into a PlacementMap object."
         )
-        .staticmethod("FromString")
+        .staticmethod("from_string")
 
         .def(
-            "ToFile",
+            "to_file",
             ( bool ( * )( const std::string, const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::to_file ),
             ( boost::python::arg("fn"), boost::python::arg("placements") )
         )
-        .staticmethod("ToFile")
+        .staticmethod("to_file")
         .def(
-            "ToString",
+            "to_string",
             ( std::string ( * )( const ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::to_string ),
             ( boost::python::arg("placements") )
         )
-        .staticmethod("ToString")
+        .staticmethod("to_string")
     ;
 
 }

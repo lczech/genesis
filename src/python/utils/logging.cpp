@@ -68,11 +68,11 @@ void BoostPythonExport_Logging()
         )
         .staticmethod("LogToStdout")
         .def(
-            "LogToFile",
-            (void ( * )( ::std::string const & ))( &::genesis::Logging::LogToFile ),
+            "Logto_file",
+            (void ( * )( ::std::string const & ))( &::genesis::Logging::log_to_file ),
             ( boost::python::arg("msg") )
         )
-        .staticmethod("LogToFile")
+        .staticmethod("Logto_file")
     ;
 
 }

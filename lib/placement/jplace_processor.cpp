@@ -65,7 +65,7 @@ bool JplaceProcessor::from_file (const std::string& fn, PlacementMap& placements
 bool JplaceProcessor::from_string (const std::string& jplace, PlacementMap& placements)
 {
     JsonDocument doc;
-    if (!JsonProcessor::FromString(jplace, doc)) {
+    if (!JsonProcessor::from_string(jplace, doc)) {
         return false;
     }
     return from_document(doc, placements);
@@ -86,15 +86,15 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         LOG_WARN << "Jplace document does not contain a valid version number at key 'version'. "
                  << "Now continuing to parse in the hope that it still works.";
     }
-    if (!check_version(val->ToString())) {
-        LOG_WARN << "Jplace document has version '" << val->ToString() << "', however this parser "
+    if (!check_version(val->to_string())) {
+        LOG_WARN << "Jplace document has version '" << val->to_string() << "', however this parser "
                  << "is written for version " << get_version() << " of the Jplace format. "
                  << "Now continuing to parse in the hope that it still works.";
     }
 
     // find and process the reference tree
     val = doc.Get("tree");
-    if (!val || !val->IsString() || !NewickProcessor::FromString(val->ToString(), placements.tree)) {
+    if (!val || !val->IsString() || !NewickProcessor::from_string(val->to_string(), placements.tree)) {
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
@@ -104,8 +104,8 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     // checking for validity first!
     std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
     for (
-        PlacementTree::ConstIteratorEdges it = placements.tree.BeginEdges();
-        it != placements.tree.EndEdges();
+        PlacementTree::ConstIteratorEdges it = placements.tree.begin_edges();
+        it != placements.tree.end_edges();
         ++it
     ) {
         PlacementTree::EdgeType* edge = *it;
@@ -128,13 +128,13 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     bool has_edge_num = false;
     for (JsonValue* fields_val : *fields_arr) {
         if (!fields_val->IsString()) {
-            LOG_WARN << "Jplace document contains a value of type '" << fields_val->TypeToString()
+            LOG_WARN << "Jplace document contains a value of type '" << fields_val->type_to_string()
                      << "' instead of a string with a field name at key 'fields'.";
             return false;
         }
 
         // check field validity
-        std::string field = fields_val->ToString();
+        std::string field = fields_val->to_string();
         if (field == "edge_num"      || field == "likelihood"     || field == "like_weight_ratio" ||
             field == "distal_length" || field == "pendant_length" || field == "proximal_length"   ||
             field == "parsimony"
@@ -175,7 +175,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     JsonValueArray* placements_arr = JsonValueToArray(val);
     for (JsonValue* pqry_val : *placements_arr) {
         if (!pqry_val->IsObject()) {
-            LOG_WARN << "Jplace document contains a value of type '" << pqry_val->TypeToString()
+            LOG_WARN << "Jplace document contains a value of type '" << pqry_val->type_to_string()
                      << "' instead of an object with a pquery at key 'placements'.";
             return false;
         }
@@ -212,7 +212,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                 // with non-number type, this check has to go into the single field assignments.
                 if (!pqry_fields->at(i)->IsNumber()) {
                     LOG_WARN << "Jplace document contains pquery where field " << fields[i]
-                             << " is of type '" << pqry_fields->at(i)->TypeToString()
+                             << " is of type '" << pqry_fields->at(i)->type_to_string()
                              << "' instead of a number.";
                     return false;
                 }
@@ -325,7 +325,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                 }
 
                 PqueryName* pqry_name   = new PqueryName();
-                pqry_name->name         = pqry_n_val->ToString();
+                pqry_name->name         = pqry_n_val->to_string();
                 pqry_name->multiplicity = 0.0;
                 pqry_name->pquery = pqry;
                 pqry->names.push_back(pqry_name);
@@ -365,7 +365,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                 }
 
                 PqueryName* pqry_name   = new PqueryName();
-                pqry_name->name         = pqry_nm_val_arr->at(0)->ToString();
+                pqry_name->name         = pqry_nm_val_arr->at(0)->to_string();
                 pqry_name->multiplicity = JsonValueToNumber(pqry_nm_val_arr->at(1))->value;
                 if (pqry_name->multiplicity < 0.0) {
                     LOG_WARN << "Jplace document contains pquery with negative multiplicity at "
@@ -385,7 +385,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     if (val && val->IsObject()) {
         JsonValueObject* meta_obj = JsonValueToObject(val);
         for (JsonValueObject::ObjectPair meta_pair : *meta_obj) {
-            placements.metadata[meta_pair.first] = meta_pair.second->ToString();
+            placements.metadata[meta_pair.first] = meta_pair.second->to_string();
         }
     }
 
@@ -425,7 +425,7 @@ std::string JplaceProcessor::to_string (const PlacementMap& placements)
 {
     JsonDocument json;
     to_document(placements, json);
-    return JsonProcessor::ToString(json);
+    return JsonProcessor::to_string(json);
 }
 
 /**
@@ -440,7 +440,7 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
     NewickProcessor::print_branch_lengths = true;
     NewickProcessor::print_comments       = false;
     NewickProcessor::print_tags           = true;
-    doc.Set("tree", new JsonValueString(NewickProcessor::ToString(placements.tree)));
+    doc.Set("tree", new JsonValueString(NewickProcessor::to_string(placements.tree)));
 
     // set placements
     JsonValueArray* placements_arr = new JsonValueArray();

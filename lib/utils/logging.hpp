@@ -400,7 +400,7 @@ public:
     // methods to handle the output streams to write the log messages to
     static void LogToStdout ();
     static void LogToStream (std::ostream& os);
-    static void LogToFile   (const std::string& fn);
+    static void log_to_file   (const std::string& fn);
 
     /**
      * @brief Settings for which information is included with each log message.
@@ -423,7 +423,7 @@ public:
     static void report_percentage (const int percentage);
 
     // return a string representation for a log level
-    static std::string LevelToString (const LoggingLevel level);
+    static std::string Levelto_string (const LoggingLevel level);
 
     /** @brief Indention string for Debug Levels 1-4. */
     static std::string debug_indent;

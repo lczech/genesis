@@ -62,7 +62,7 @@ public:
     /**
      * @brief Returns the link of this edge that points towards the root.
      */
-    inline LinkType* PrimaryLink() const
+    inline LinkType* primary_link() const
     {
         return link_p_;
     }
@@ -70,13 +70,13 @@ public:
     /**
      * @brief Returns the link of this edge that points away from the root.
      */
-    inline LinkType* SecondaryLink() const
+    inline LinkType* secondary_link() const
     {
         return link_s_;
     }
 
-    NodeType* PrimaryNode() const;
-    NodeType* SecondaryNode() const;
+    NodeType* primary_node() const;
+    NodeType* secondary_node() const;
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -85,12 +85,12 @@ public:
     /**
      * @brief Returns the index of this Link.
      */
-    inline size_t Index() const
+    inline size_t index() const
     {
         return index_;
     }
 
-    std::string Dump() const;
+    std::string dump() const;
 
     // ---------------------------------------------------------------------
     //     Member Variables

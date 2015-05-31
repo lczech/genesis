@@ -56,25 +56,25 @@ public:
     // ---------------------------------------------------------------------
 
     /** @brief Returns a pointer to the next link within the node. */
-    inline LinkType* Next() const
+    inline LinkType* next() const
     {
         return next_;
     }
 
     /** @brief Returns a pointer to the link of the adjacent node. */
-    inline LinkType* Outer() const
+    inline LinkType* outer() const
     {
         return outer_;
     }
 
     /** @brief Returns a pointer to the TreeEdge containing the data of this link's edge. */
-    inline EdgeType* Edge() const
+    inline EdgeType* edge() const
     {
         return edge_;
     }
 
     /** @brief Returns a pointer to the TreeNode containing the data of this link's node. */
-    inline NodeType* Node() const
+    inline NodeType* node() const
     {
         return node_;
     }
@@ -86,7 +86,7 @@ public:
     /**
      * @brief Returns the index of this Link.
      */
-    inline size_t Index() const
+    inline size_t index() const
     {
         return index_;
     }
@@ -94,7 +94,7 @@ public:
     /**
      * @brief Returns true iff the node of this link is a leaf node.
      */
-    inline bool IsLeaf() const
+    inline bool is_leaf() const
     {
         return next_ == this;
     }
@@ -102,7 +102,7 @@ public:
     /**
      * @brief Returns true iff the node of this link is an inner node.
      */
-    inline bool IsInner() const
+    inline bool is_inner() const
     {
         return next_ != this;
     }
@@ -113,7 +113,7 @@ public:
      * At the moment, a link does not contain any information, so an empty string is returned.
      * This might change in the future, in case links also contain data.
      */
-    inline std::string Dump() const
+    inline std::string dump() const
     {
         return "";
     }

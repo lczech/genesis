@@ -44,29 +44,29 @@ int XmlProcessor::indent = 4;
 /**
  * @brief Writes an XML file from an XmlDocument. Returns true iff successful.
  */
-bool XmlProcessor::ToFile (const std::string& fn, const XmlDocument& document)
+bool XmlProcessor::to_file (const std::string& fn, const XmlDocument& document)
 {
     if (FileExists(fn)) {
         LOG_WARN << "XML file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string xml;
-    ToString(xml, document);
+    to_string(xml, document);
     return FileWrite(fn, xml);
 }
 
 /**
  * @brief Gives the XML string representation of a XmlDocument.
  */
-void XmlProcessor::ToString (std::string& xml, const XmlDocument& document)
+void XmlProcessor::to_string (std::string& xml, const XmlDocument& document)
 {
-    xml = ToString(document);
+    xml = to_string(document);
 }
 
 /**
  * @brief Returns the XML representation of a XmlDocument.
  */
-std::string XmlProcessor::ToString (const XmlDocument& document)
+std::string XmlProcessor::to_string (const XmlDocument& document)
 {
     std::string res = "";
     if (!document.xml_tag.empty() || !document.declarations.empty()) {

@@ -32,14 +32,14 @@ namespace genesis {
  * If the file already exists, the function does not overwrite it.
  */
 template <class NDT, class EDT>
-bool PhyloXmlProcessor::ToFile (const std::string fn, const Tree<NDT, EDT>& tree)
+bool PhyloXmlProcessor::to_file (const std::string fn, const Tree<NDT, EDT>& tree)
 {
     if (FileExists(fn)) {
         LOG_WARN << "PhyloXML file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
-    ToString(ts, tree);
+    to_string(ts, tree);
     return FileWrite(fn, ts);
 }
 
@@ -50,9 +50,9 @@ bool PhyloXmlProcessor::ToFile (const std::string fn, const Tree<NDT, EDT>& tree
  * representation.
  */
 template <class NDT, class EDT>
-void PhyloXmlProcessor::ToString (std::string& ts, const Tree<NDT, EDT>& tree)
+void PhyloXmlProcessor::to_string (std::string& ts, const Tree<NDT, EDT>& tree)
 {
-    ts = ToString(tree);
+    ts = to_string(tree);
 }
 
 /**
@@ -62,18 +62,18 @@ void PhyloXmlProcessor::ToString (std::string& ts, const Tree<NDT, EDT>& tree)
  * representation.
  */
 template <class NDT, class EDT>
-std::string PhyloXmlProcessor::ToString (const Tree<NDT, EDT>& tree)
+std::string PhyloXmlProcessor::to_string (const Tree<NDT, EDT>& tree)
 {
     XmlDocument xml;
-    ToDocument(xml, tree);
-    return XmlProcessor::ToString(xml);
+    to_document(xml, tree);
+    return XmlProcessor::to_string(xml);
 }
 
 /**
  * @brief Stores the information of the tree into an PhyloXML-formatted XmlDocument.
  */
 template <class NDT, class EDT>
-void PhyloXmlProcessor::ToDocument (XmlDocument& xml, const Tree<NDT, EDT>& tree)
+void PhyloXmlProcessor::to_document (XmlDocument& xml, const Tree<NDT, EDT>& tree)
 {
     xml.clear();
 
@@ -103,22 +103,22 @@ void PhyloXmlProcessor::ToDocument (XmlDocument& xml, const Tree<NDT, EDT>& tree
     int cur_d = 0;
 
     for (
-        typename Tree<NDT, EDT>::ConstIteratorPreorder it = tree.BeginPreorder();
-        it != tree.EndPreorder();
+        typename Tree<NDT, EDT>::ConstIteratorPreorder it = tree.begin_preorder();
+        it != tree.end_preorder();
         ++it
     ) {
         // depth can never increase more than one between two nodes when doing a preoder traversal.
-        assert(depths[it.Node()->Index()] <= cur_d + 1);
+        assert(depths[it.node()->index()] <= cur_d + 1);
 
         // delete end of stack when moving up the tree, unless we are already at the root.
-        while (cur_d >= depths[it.Node()->Index()] && depths[it.Node()->Index()] > 0) {
+        while (cur_d >= depths[it.node()->index()] && depths[it.node()->index()] > 0) {
             assert(stack.size() > 0);
             stack.pop_back();
             --cur_d;
         }
         // set current depth (needed in case we are moving further into the tree, so that the loop
         // is not executed).
-        cur_d = depths[it.Node()->Index()];
+        cur_d = depths[it.node()->index()];
 
         // create clade element
         XmlElement* clade = new XmlElement();
@@ -133,14 +133,14 @@ void PhyloXmlProcessor::ToDocument (XmlDocument& xml, const Tree<NDT, EDT>& tree
         name_e->tag = "name";
         XmlMarkup* name_m = new XmlMarkup();
         name_e->content.push_back(name_m);
-        name_m->content = it.Node()->name;
+        name_m->content = it.node()->name;
 
-        //~ it.Node()->ToNewickBrokerElement(bn);
+        //~ it.node()->ToNewickBrokerElement(bn);
         // only write edge data to the broker element if it is not the last iteration.
         // the last iteration is the root, which usually does not have edge information in newick.
         // caveat: for the root node, the edge will point to an arbitrary edge away from the root.
-        //~ if (!it.IsLastIteration()) {
-            //~ it.Edge()->ToNewickBrokerElement(bn);
+        //~ if (!it.is_last_iteration()) {
+            //~ it.edge()->ToNewickBrokerElement(bn);
         //~ }
 
         // filter out default names if needed

@@ -74,17 +74,17 @@ public:
     /**
      * @brief Fills the node with data from a NewickBrokerElement.
      */
-    inline void FromNewickBrokerElement (NewickBrokerElement* node)
+    inline void from_newick_broker_element (NewickBrokerElement* node)
     {
         name = node->name;
     }
 
-    inline void ToNewickBrokerElement (NewickBrokerElement* node) const
+    inline void to_newick_broker_element (NewickBrokerElement* node) const
     {
         node->name = name;
     }
 
-    inline std::string Dump() const
+    inline std::string dump() const
     {
         return "Name: '" + name + "'";
     }
@@ -139,17 +139,17 @@ public:
     /**
      * @brief Fills the edge with data from a NewickBrokerElement.
      */
-    inline void FromNewickBrokerElement (NewickBrokerElement* node)
+    inline void from_newick_broker_element (NewickBrokerElement* node)
     {
         branch_length = node->branch_length;
     }
 
-    inline void ToNewickBrokerElement (NewickBrokerElement* node) const
+    inline void to_newick_broker_element (NewickBrokerElement* node) const
     {
         node->branch_length = branch_length;
     }
 
-    inline std::string Dump() const
+    inline std::string dump() const
     {
         return "Length: " + std::to_string(branch_length);
     }

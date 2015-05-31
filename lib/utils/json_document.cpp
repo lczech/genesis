@@ -48,7 +48,7 @@ bool JsonDocument::Validate()
 JsonValueNull* JsonValueToNull (const JsonValue* v)
 {
     if (v->type() != JsonValue::kNull) {
-        LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
+        LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()
                  << " to JsonValue::Null.";
         return nullptr;
     }
@@ -64,7 +64,7 @@ JsonValueNull* JsonValueToNull (const JsonValue* v)
 JsonValueBool* JsonValueToBool (const JsonValue* v)
 {
     if (v->type() != JsonValue::kBool) {
-        LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
+        LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()
                  << " to JsonValue::Bool.";
         return nullptr;
     }
@@ -80,7 +80,7 @@ JsonValueBool* JsonValueToBool (const JsonValue* v)
 JsonValueNumber* JsonValueToNumber (const JsonValue* v)
 {
     if (v->type() != JsonValue::kNumber) {
-        LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
+        LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()
                  << " to JsonValue::Number.";
         return nullptr;
     }
@@ -96,7 +96,7 @@ JsonValueNumber* JsonValueToNumber (const JsonValue* v)
 JsonValueString* JsonValueToString (const JsonValue* v)
 {
     if (v->type() != JsonValue::kString) {
-        LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
+        LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()
                  << " to JsonValue::String.";
         return nullptr;
     }
@@ -112,7 +112,7 @@ JsonValueString* JsonValueToString (const JsonValue* v)
 JsonValueArray* JsonValueToArray (const JsonValue* v)
 {
     if (v->type() != JsonValue::kArray) {
-        LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
+        LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()
                  << " to JsonValue::Array.";
         return nullptr;
     }
@@ -128,7 +128,7 @@ JsonValueArray* JsonValueToArray (const JsonValue* v)
 JsonValueObject* JsonValueToObject (const JsonValue* v)
 {
     if (v->type() != JsonValue::kObject) {
-        LOG_WARN << "Invalid conversion from JsonValue::" << v->TypeToString()
+        LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()
                  << " to JsonValue::Object.";
         return nullptr;
     }

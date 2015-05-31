@@ -40,7 +40,7 @@ bool FastaProcessor::from_string (const std::string& fs, SequenceSet& aln)
 {
     // do stepwise lexing
     FastaLexer lexer;
-    lexer.FromString(fs);
+    lexer.from_string(fs);
 
     // basic checks
     if (lexer.empty()) {

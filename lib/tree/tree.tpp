@@ -166,7 +166,7 @@ void Tree<NDT, EDT>::swap (Tree<NDT, EDT>& other)
  * for reading trees from files.
  */
 template <class NDT, class EDT>
-void Tree<NDT, EDT>::Import(LinkArray& links, NodeArray& nodes, EdgeArray& edges)
+void Tree<NDT, EDT>::import_content (LinkArray& links, NodeArray& nodes, EdgeArray& edges)
 {
     clear();
     links_ = links;
@@ -182,7 +182,7 @@ void Tree<NDT, EDT>::Import(LinkArray& links, NodeArray& nodes, EdgeArray& edges
  * to tree elements.
  */
 template <class NDT, class EDT>
-void Tree<NDT, EDT>::Export(LinkArray& links, NodeArray& nodes, EdgeArray& edges)
+void Tree<NDT, EDT>::export_content (LinkArray& links, NodeArray& nodes, EdgeArray& edges)
 {
     links = links_;
     nodes = nodes_;
@@ -197,7 +197,7 @@ void Tree<NDT, EDT>::Export(LinkArray& links, NodeArray& nodes, EdgeArray& edges
  * @brief Find a Node, given its name.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::FindNode(std::string name) const
+typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::find_node(std::string name) const
 {
     // TODO check first whether replacing underscores is necessary!
     name = StringReplaceAll(name, "_", " ");
@@ -213,11 +213,11 @@ typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::FindNode(std::string name) co
  * @brief Returns the highest rank of the nodes of the Tree.
  */
 template <class NDT, class EDT>
-int Tree<NDT, EDT>::MaxRank() const
+int Tree<NDT, EDT>::max_rank() const
 {
     int max = -1;
     for (size_t i = 0; i < nodes_.size(); ++i) {
-        int rank = nodes_[i]->Rank();
+        int rank = nodes_[i]->rank();
         if (rank == 1) {
             LOG_WARN << "Node with rank 1 found. This is a node without furcation, and usually "
                      << "indicates an error.";
@@ -231,20 +231,20 @@ int Tree<NDT, EDT>::MaxRank() const
  * @brief Returns whether the Tree is bifurcating.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::IsBifurcating() const
+bool Tree<NDT, EDT>::is_bifurcating() const
 {
-    return MaxRank() == 2;
+    return max_rank() == 2;
 }
 
 /**
  * @brief Count the number of leaf nodes.
  */
 template <class NDT, class EDT>
-size_t Tree<NDT, EDT>::LeafCount() const
+size_t Tree<NDT, EDT>::leaf_count() const
 {
     size_t sum = 0;
     for (NodeType* n : nodes_) {
-        if (n->IsLeaf()) {
+        if (n->is_leaf()) {
             ++sum;
         }
     }
@@ -255,9 +255,9 @@ size_t Tree<NDT, EDT>::LeafCount() const
  * @brief Count the number of inner nodes.
  */
 template <class NDT, class EDT>
-size_t Tree<NDT, EDT>::InnerCount() const
+size_t Tree<NDT, EDT>::inner_count() const
 {
-    return nodes_.size() - LeafCount();
+    return nodes_.size() - leaf_count();
 }
 
 // =============================================================================
@@ -268,7 +268,7 @@ size_t Tree<NDT, EDT>::InnerCount() const
  * @brief Returns the length of the tree (sum of all branch lengths).
  */
 template <class NDT, class EDT>
-double Tree<NDT, EDT>::Length() const
+double Tree<NDT, EDT>::length() const
 {
     double len = 0.0;
     for (EdgeType* e : edges_) {
@@ -280,12 +280,12 @@ double Tree<NDT, EDT>::Length() const
 /**
  * @brief
  *
- * The vector is indexed using the Node()->Index() for every node.
+ * The vector is indexed using the node()->index() for every node.
  */
 template <class NDT, class EDT>
-Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix() const
+Matrix<int>* Tree<NDT, EDT>::node_depth_matrix() const
 {
-    Matrix<int>* mat = new Matrix<int>(NodeCount(), NodeCount());
+    Matrix<int>* mat = new Matrix<int>(node_count(), node_count());
     // TODO implement!
     LOG_WARN << "Not yet implemented.";
     return mat;
@@ -294,42 +294,42 @@ Matrix<int>* Tree<NDT, EDT>::NodeDepthMatrix() const
 /**
  * @brief Returns a vector containing the depth of all nodes with respect to the given start node.
  *
- * The vector is indexed using the Node()->Index() for every node. Its elements give the depth of
+ * The vector is indexed using the node()->index() for every node. Its elements give the depth of
  * each node with respect to the given start node. The depth is the number of edges visited on the
  * path between two nodes (0 for itself, 1 for immediate neighbours, etc).
  *
  * If no start node pointer is provided, the root is taken as node.
  */
 template <class NDT, class EDT>
-std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
+std::vector<int> Tree<NDT, EDT>::node_depth_vector(const NodeType* node) const
 {
     if (!node) {
-        node = RootNode();
+        node = root_node();
     }
 
     // store the distance from each node to the given node.
     std::vector<int> vec;
-    vec.resize(NodeCount(), -1);
-    vec[node->Index()] = 0;
+    vec.resize(node_count(), -1);
+    vec[node->index()] = 0;
 
     // calculate the distance vector via levelorder iteration.
     for (
-        ConstIteratorLevelorder it = BeginLevelorder(node);
-        it != EndLevelorder();
+        ConstIteratorLevelorder it = begin_levelorder(node);
+        it != end_levelorder();
         ++it
     ) {
         // skip the starting node (it is already set to 0).
-        if (it.IsFirstIteration()) {
+        if (it.is_first_iteration()) {
             continue;
         }
 
         // we do not have the distance of the current node, but the one of its "parent"!
-        assert(vec[it.Node()->Index()] == -1);
-        assert(vec[it.Link()->Outer()->Node()->Index()] > -1);
+        assert(vec[it.node()->index()] == -1);
+        assert(vec[it.link()->outer()->node()->index()] > -1);
 
         // the distance is the distance from the "parent" node (the next one in direction towards
         // the given node) plus 1.
-        vec[it.Node()->Index()] = 1 + vec[it.Link()->Outer()->Node()->Index()];
+        vec[it.node()->index()] = 1 + vec[it.link()->outer()->node()->index()];
     }
 
     return vec;
@@ -339,17 +339,17 @@ std::vector<int> Tree<NDT, EDT>::NodeDepthVector(const NodeType* node) const
  * @brief Returns a distance matrix containing pairwise distances between all Nodes, using the
  * branch_length of the Edges as distance measurement.
  *
- * The elements of the matrix are indexed using Node()->Index().
+ * The elements of the matrix are indexed using node()->index().
  */
 template <class NDT, class EDT>
-Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix() const
+Matrix<double>* Tree<NDT, EDT>::node_distance_matrix() const
 {
-    Matrix<double>* mat = new Matrix<double>(NodeCount(), NodeCount(), -1.0);
+    Matrix<double>* mat = new Matrix<double>(node_count(), node_count(), -1.0);
 
     // fill every row of the matrix
     for (NodeType* row_node : nodes_) {
         // set the diagonal element of the matrix.
-        (*mat)(row_node->Index(), row_node->Index()) = 0.0;
+        (*mat)(row_node->index(), row_node->index()) = 0.0;
 
         // the columns are filled using a levelorder traversal. this makes sure that for every node
         // we know how to calculate the distance to the current row node.
@@ -357,25 +357,25 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix() const
         // and copying it (distance is symmetric), because we do not really know which nodes are in
         // which half during a levelorder traversal...
         for (
-            ConstIteratorLevelorder it = BeginLevelorder(row_node->Link());
-            it != EndLevelorder();
+            ConstIteratorLevelorder it = begin_levelorder(row_node->link());
+            it != end_levelorder();
             ++it
         ) {
             // skip the diagonal of the matrix.
-            if (it.IsFirstIteration()) {
+            if (it.is_first_iteration()) {
                 continue;
             }
 
             // make sure we don't have touched the current position, but have calculated
             // the needed dependency already.
-            assert((*mat)(row_node->Index(), it.Node()->Index()) == -1.0);
-            assert((*mat)(row_node->Index(), it.Link()->Outer()->Node()->Index()) > -1.0);
+            assert((*mat)(row_node->index(), it.node()->index()) == -1.0);
+            assert((*mat)(row_node->index(), it.link()->outer()->node()->index()) > -1.0);
 
             // the distance to the current row node is: the length of the current branch plus
             // the distance from the other end of that branch to the row node.
-            (*mat)(row_node->Index(), it.Node()->Index())
-                = it.Edge()->branch_length
-                + (*mat)(row_node->Index(), it.Link()->Outer()->Node()->Index());
+            (*mat)(row_node->index(), it.node()->index())
+                = it.edge()->branch_length
+                + (*mat)(row_node->index(), it.link()->outer()->node()->index());
         }
     }
 
@@ -388,14 +388,14 @@ Matrix<double>* Tree<NDT, EDT>::NodeDistanceMatrix() const
  * If no Node pointer is provided, the root is taken as node.
  */
 template <class NDT, class EDT>
-std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(const NodeType* node) const
+std::vector<double> Tree<NDT, EDT>::node_distance_vector(const NodeType* node) const
 {
     if (!node) {
-        node = RootNode();
+        node = root_node();
     }
 
     std::vector<double> vec;
-    vec.resize(NodeCount(), 0.0);
+    vec.resize(node_count(), 0.0);
     // TODO implement!
     LOG_WARN << "Not yet implemented.";
     return vec;
@@ -405,7 +405,7 @@ std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(const NodeType* node) con
  * @brief Returns a vector containing the closest leaf node for each node, measured in number of
  * edges between them and its depth (number of edges between them).
  *
- * The vector is indexed using the Node()->Index() for every node. Its value contains an std::pair,
+ * The vector is indexed using the node()->index() for every node. Its value contains an std::pair,
  * where the first element is a NodeType* to the closest leaf node (with respect to its depth) and
  * the second element its depth with respect to the node at the given index of the vector. The depth
  * is the number of edges visited on the path between two nodes (0 for itself, 1 for immediate
@@ -418,29 +418,29 @@ std::vector<double> Tree<NDT, EDT>::NodeDistanceVector(const NodeType* node) con
  * arbitrary one is used.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::NodeIntVectorType Tree<NDT, EDT>::ClosestLeafDepthVector() const
+typename Tree<NDT, EDT>::NodeIntVectorType Tree<NDT, EDT>::closest_leaf_depth_vector() const
 {
     // prepare a result vector with the size of number of nodes.
     NodeIntVectorType vec;
-    vec.resize(NodeCount(), {nullptr, 0});
+    vec.resize(node_count(), {nullptr, 0});
 
     // fill the vector for every node.
     // this could be speed up by doing a postorder traversal followed by some sort of inside-out
     // traversal (preorder might do the job). but for now, this simple O(n^2) version works, too.
     for (NodeType* node : nodes_) {
         // we have not visited this node. assertion holds as long as the indices are correct.
-        assert(vec[node->Index()].first == nullptr);
+        assert(vec[node->index()].first == nullptr);
 
         // look for closest leaf node by doing a levelorder traversal.
         for (
-            ConstIteratorLevelorder it = BeginLevelorder(node);
-            it != EndLevelorder();
+            ConstIteratorLevelorder it = begin_levelorder(node);
+            it != end_levelorder();
             ++it
         ) {
             // if we find a leaf, leave the loop.
-            if (it.Node()->IsLeaf()) {
-                vec[node->Index()].first  = it.Node();
-                vec[node->Index()].second = it.Depth();
+            if (it.node()->is_leaf()) {
+                vec[node->index()].first  = it.node();
+                vec[node->index()].second = it.depth();
                 break;
             }
         }
@@ -453,46 +453,46 @@ typename Tree<NDT, EDT>::NodeIntVectorType Tree<NDT, EDT>::ClosestLeafDepthVecto
  * @brief Returns a vector containing the closest leaf node for each node, using the branch_length
  * as distance measure.
  *
- * The vector is indexed using the Node()->Index() for every node. Its value contains an std::pair,
+ * The vector is indexed using the node()->index() for every node. Its value contains an std::pair,
  * where the first element is a NodeType* to the closest leaf node of the node at the index,
  * measured using the branch_length; the second element of the pair is the distance value itself.
  * Thus, leaf nodes will have a pointer to themselves and a distance value of 0.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::NodeDoubleVectorType Tree<NDT, EDT>::ClosestLeafDistanceVector() const
+typename Tree<NDT, EDT>::NodeDoubleVectorType Tree<NDT, EDT>::closest_leaf_distance_vector() const
 {
     // prepare a result vector with the size of number of nodes.
     NodeDoubleVectorType vec;
-    vec.resize(NodeCount(), {nullptr, 0.0});
+    vec.resize(node_count(), {nullptr, 0.0});
 
     // we need the pairwise distances between all nodes, so we can do quick loopups.
-    Matrix<double>* node_distances = NodeDistanceMatrix();
+    Matrix<double>* node_distances = node_distance_matrix();
 
     // fill the vector for every node.
     // there is probably a faster way of doing this: preorder traversal with pruning. but for now,
     // this simple O(n^2) version works.
     for (NodeType* node : nodes_) {
         // we have not visited this node. assertion holds as long as the indices are correct.
-        assert(vec[node->Index()].first == nullptr);
+        assert(vec[node->index()].first == nullptr);
 
         NodeType* min_node = nullptr;
         double    min_dist = 0.0;
 
         // try out all other nodes, and find the closest leaf.
         for (NodeType* other : nodes_) {
-            if (!other->IsLeaf()) {
+            if (!other->is_leaf()) {
                 continue;
             }
 
-            double dist = (*node_distances)(node->Index(), other->Index());
+            double dist = (*node_distances)(node->index(), other->index());
             if (min_node == nullptr || dist < min_dist) {
                 min_node = other;
                 min_dist = dist;
             }
         }
 
-        vec[node->Index()].first  = min_node;
-        vec[node->Index()].second = min_dist;
+        vec[node->index()].first  = min_node;
+        vec[node->index()].second = min_dist;
     }
 
     return vec;
@@ -502,15 +502,15 @@ typename Tree<NDT, EDT>::NodeDoubleVectorType Tree<NDT, EDT>::ClosestLeafDistanc
  * @brief Returns the longest distance from any point in the tree (on the edges) to any leaf.
  */
 template <class NDT, class EDT>
-double Tree<NDT, EDT>::DeepestDistance() const
+double Tree<NDT, EDT>::deepest_distance() const
 {
     double max = 0.0;
 
-    NodeDoubleVectorType leaf_dist = ClosestLeafDistanceVector();
+    NodeDoubleVectorType leaf_dist = closest_leaf_distance_vector();
 
     for (EdgeType* e : edges_) {
-        int idx_p = e->PrimaryNode()->Index();
-        int idx_s = e->SecondaryNode()->Index();
+        int idx_p = e->primary_node()->index();
+        int idx_s = e->secondary_node()->index();
         double d = (leaf_dist[idx_p].second + e->branch_length + leaf_dist[idx_s].second) / 2;
 
         if (d > max) {
@@ -555,20 +555,20 @@ bool Tree<NDT, EDT>::Equal(
     }
 
     // do a preorder traversal on both trees in parallel
-    TreeType::ConstIteratorPreorder it_l = lhs.BeginPreorder();
-    TreeType::ConstIteratorPreorder it_r = rhs.BeginPreorder();
+    TreeType::ConstIteratorPreorder it_l = lhs.begin_preorder();
+    TreeType::ConstIteratorPreorder it_r = rhs.begin_preorder();
     for (
         ;
-        it_l != lhs.EndPreorder() && it_r != rhs.EndPreorder();
+        it_l != lhs.end_preorder() && it_r != rhs.end_preorder();
         ++it_l, ++it_r
     ) {
-        if (it_l.Node()->Rank() != it_r.Node()->Rank() || !comparator(it_l, it_r)) {
+        if (it_l.node()->rank() != it_r.node()->rank() || !comparator(it_l, it_r)) {
             return false;
         }
     }
 
     // check whether we are done with both trees
-    if (it_l != lhs.EndPreorder() || it_r != rhs.EndPreorder()) {
+    if (it_l != lhs.end_preorder() || it_r != rhs.end_preorder()) {
         return false;
     }
 
@@ -689,7 +689,7 @@ bool Tree<NDT, EDT>::Validate() const
 template <class NDT, class EDT>
 std::string Tree<NDT, EDT>::Dump() const
 {
-    std::vector<int> depth = this->NodeDepthVector();
+    std::vector<int> depth = this->node_depth_vector();
     std::vector<int> done;
     std::ostringstream out;
 
@@ -698,43 +698,43 @@ std::string Tree<NDT, EDT>::Dump() const
     // the first branch immediately, but then there would be no way of first nicely displaying
     // the information about the root node. so we need to do it a bit more complex than the
     // usual iteration...
-    LinkType* l = RootLink();
-    while (l->Next() != RootLink()) {
-        l = l->Next();
+    LinkType* l = root_link();
+    while (l->next() != root_link()) {
+        l = l->next();
     }
 
     // do an euler tour traversal over all links. (we cannot use the iterator here, as
     // we need each link on its own, and not each node as the iterator gives)
     do {
-        NodeType* n = l->Node();
-        std::string indent = std::string(4 * depth[n->Index()], ' ');
-        if (!Contains(done, n->Index())) {
-            out << indent << "\033[1;31mNode " << n->Index() << ": \"" << n->name << "\"\033[0m\n";
+        NodeType* n = l->node();
+        std::string indent = std::string(4 * depth[n->index()], ' ');
+        if (!Contains(done, n->index())) {
+            out << indent << "\033[1;31mNode " << n->index() << ": \"" << n->name << "\"\033[0m\n";
         }
-        done.push_back(n->Index());
+        done.push_back(n->index());
 
         // dont display the next link when we are at the first iteration.
-        if (l->Next() == RootLink()) {
-            l = l->Next();
+        if (l->next() == root_link()) {
+            l = l->next();
         } else {
             out << indent;
-            out << "    \033[34mLink " << l->Index() << "\033[0m";
-            l = l->Next();
-            out << " \033[32m>\033[0m \033[34mLink " << l->Index() << "\033[0m\n";
+            out << "    \033[34mLink " << l->index() << "\033[0m";
+            l = l->next();
+            out << " \033[32m>\033[0m \033[34mLink " << l->index() << "\033[0m\n";
         }
 
         out << indent;
-        out << " -- \033[34mLink " << l->Index() << "\033[0m";
-        out << " -- \033[36mEdge " << l->Edge()->Index() << "\033[0m";
-        l = l->Outer();
-        out << " --> \033[34mLink " << l->Index() << "\033[0m\n";
-    } while (l->Next() != RootLink());
+        out << " -- \033[34mLink " << l->index() << "\033[0m";
+        out << " -- \033[36mEdge " << l->edge()->index() << "\033[0m";
+        l = l->outer();
+        out << " --> \033[34mLink " << l->index() << "\033[0m\n";
+    } while (l->next() != root_link());
 
     // output the last next link back to the root, because we skipped this in the loop
     // (the one that was skipped in the beginning).
-    out << "    \033[34mLink " << l->Index() << "\033[0m";
-    l = l->Next();
-    out << " \033[32m>\033[0m \033[34mLink " << l->Index() << "\033[0m\n";
+    out << "    \033[34mLink " << l->index() << "\033[0m";
+    l = l->next();
+    out << " \033[32m>\033[0m \033[34mLink " << l->index() << "\033[0m\n";
 
     return out.str();
 }
@@ -752,7 +752,7 @@ std::string Tree<NDT, EDT>::DumpLists() const
     for (size_t i = 0; i < nodes_.size(); ++i) {
         out << "Node " << i
             << " \t Main Link: " << nodes_[i]->link_->index_
-            << " \t " << nodes_[i]->Dump() << "\n";
+            << " \t " << nodes_[i]->dump() << "\n";
     }
     out << "\n";
 
@@ -761,7 +761,7 @@ std::string Tree<NDT, EDT>::DumpLists() const
         out << "Edge " << i
             << " \t Link P: " << edges_[i]->link_p_->index_
             << " \t Link S: " << edges_[i]->link_s_->index_
-            << " \t " << edges_[i]->Dump() << "\n";
+            << " \t " << edges_[i]->dump() << "\n";
     }
     out << "\n";
 
@@ -772,7 +772,7 @@ std::string Tree<NDT, EDT>::DumpLists() const
             << " \t Outer: " << links_[i]->outer_->index_
             << " \t Node: "  << links_[i]->node_->index_
             << " \t Edge: "  << links_[i]->edge_->index_
-            << " \t " << links_[i]->Dump()
+            << " \t " << links_[i]->dump()
             << "\n";
     }
 

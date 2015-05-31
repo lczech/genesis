@@ -42,7 +42,7 @@ public:
     /**
      * @brief Returns the rank (number of immediate children) of this node.
      *
-     * NewickBroker::AssignRanks() has to be called before using this function. Otherwise,
+     * NewickBroker::assign_ranks() has to be called before using this function. Otherwise,
      * it will return -1.
      */
     inline int rank()
@@ -73,12 +73,12 @@ public:
      * @brief True if the node is a leaf/tip, false otherwise.
      *
      * This value can be set for example while parsing a Newick tree, and is used by
-     * NewickBroker::Validate() as a check for correctness. However, it is (so far) not used further,
+     * NewickBroker::validate() as a check for correctness. However, it is (so far) not used further,
      * because it is not reliable (it can be changed arbitrarily without checking whether this is
      * conform with the tree topology).
      *
      * Therefore, use rank() to check whether a node is a leaf (in order to use rank, first
-     * NewickBroker::AssignRanks() has to be called).
+     * NewickBroker::assign_ranks() has to be called).
      */
     bool        is_leaf;
 
@@ -164,7 +164,7 @@ protected:
  *     node when going down the tree.
  *  *  The attribute NewickBrokerElement::is_leaf of the NewickBrokerElements can be set (for exmaple when
  *     parsing a Newick tree) and then be used to validate the integrity of the tree using
- *     Validate(). However, the attribute is not further used -- see its description for more on
+ *     validate(). However, the attribute is not further used -- see its description for more on
  *     this.
  * %
  */
@@ -179,23 +179,23 @@ public:
 
     void clear();
 
-    inline void PushTop (NewickBrokerElement* node)
+    inline void push_top (NewickBrokerElement* node)
     {
         stack_.push_front(node);
     }
 
-    inline void PushBottom (NewickBrokerElement* node)
+    inline void push_bottom (NewickBrokerElement* node)
     {
         stack_.push_back(node);
     }
 
-    inline void PopTop()
+    inline void pop_top()
     {
         delete stack_.front();
         stack_.pop_front();
     }
 
-    inline void PopBottom()
+    inline void pop_bottom()
     {
         delete stack_.back();
         stack_.pop_back();
@@ -344,7 +344,7 @@ public:
      *
      * Calling this function on an empty() broker causes undefined behavior.
      */
-    inline NewickBrokerElement* Top()
+    inline NewickBrokerElement* top()
     {
         return stack_.front();
     }
@@ -354,7 +354,7 @@ public:
      *
      * Calling this function on an empty() broker causes undefined behavior.
      */
-    inline NewickBrokerElement* Bottom()
+    inline NewickBrokerElement* bottom()
     {
         return stack_.back();
     }
@@ -363,35 +363,35 @@ public:
     //     State Functions
     // -------------------------------------------------------------------------
 
-    void AssignRanks();
+    void assign_ranks();
 
-    int LeafCount() const;
+    int leaf_count() const;
 
-    inline int InnerCount() const
+    inline int inner_count() const
     {
-        return stack_.size() - LeafCount();
+        return stack_.size() - leaf_count();
     }
 
     // same as size()
-    inline int NodeCount() const
+    inline int node_count() const
     {
         return stack_.size();
     }
 
-    int MaxRank() const;
+    int max_rank() const;
 
-    inline bool IsBifurcating() const
+    inline bool is_bifurcating() const
     {
-        return MaxRank() == 2;
+        return max_rank() == 2;
     }
 
-    bool Validate() const;
+    bool validate() const;
 
     // -------------------------------------------------------------------------
-    //     Dump and Debug
+    //     dump and Debug
     // -------------------------------------------------------------------------
 
-    std::string Dump() const;
+    std::string dump() const;
 
 protected:
     std::deque<NewickBrokerElement*> stack_;

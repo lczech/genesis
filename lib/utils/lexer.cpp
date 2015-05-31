@@ -22,18 +22,18 @@ namespace genesis {
 // =============================================================================
 
 /**
- * @brief Shortcut function that reads the contents of a file and then calls FromString().
+ * @brief Shortcut function that reads the contents of a file and then calls from_string().
  *
  * If the file does not exist, a warning is triggered and false returned. Otherwise, the result
- * of FromString() is returned.
+ * of from_string() is returned.
  */
-bool Lexer::FromFile   (const std::string& fn)
+bool Lexer::from_file   (const std::string& fn)
 {
     if (!FileExists(fn)) {
         LOG_WARN << "File '" << fn << "' does not exist.";
         return false;
     }
-    return FromString(FileRead(fn));
+    return from_string(FileRead(fn));
 }
 
 /**
@@ -47,7 +47,7 @@ bool Lexer::FromFile   (const std::string& fn)
  * LexerTokenType::kError, with the value being an error message describing the
  * type of error.
  */
-bool Lexer::FromString (const std::string& in)
+bool Lexer::from_string (const std::string& in)
 {
     text_ = in.c_str();
     itr_  = 0;
@@ -658,7 +658,7 @@ std::string Lexer::Dump() const
             static_cast<unsigned int>(i),
             static_cast<unsigned int>(t.line()),
             static_cast<unsigned int>(t.column()),
-            t.TypeToString().c_str()
+            t.type_to_string().c_str()
         );
         res += out + t.value() + '\n';
     }

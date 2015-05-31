@@ -24,36 +24,36 @@ void Plausibility::spiderpig_function (
 ) {
     // read trees from files
     PlausibilityTree small_tree;
-    NewickProcessor::FromFile(reference_tree_file, reference_tree);
-    NewickProcessor::FromFile(small_tree_file,     small_tree);
+    NewickProcessor::from_file(reference_tree_file, reference_tree);
+    NewickProcessor::from_file(small_tree_file,     small_tree);
 
     // create preorder ids for every node, and a reference map for leaves
     std::map<std::string, size_t> reference_map;
     size_t c = 0;
     for (
-        auto it = reference_tree.BeginPreorder();
-        it != reference_tree.EndPreorder();
+        auto it = reference_tree.begin_preorder();
+        it != reference_tree.end_preorder();
         ++it
     ) {
-        it.Node()->preorder_id = c;
-        if (it.Node()->IsLeaf()) {
-            reference_map[it.Node()->name] = c;
+        it.node()->preorder_id = c;
+        if (it.node()->is_leaf()) {
+            reference_map[it.node()->name] = c;
         }
         ++c;
     }
 
     // do euler traversal and collect ids on the fly
     std::vector<size_t> euler_ids;
-    euler_ids.reserve(4 * reference_tree.NodeCount());
+    euler_ids.reserve(4 * reference_tree.node_count());
     std::string ausgabe;
     for (
-        auto it = reference_tree.BeginEulertour();
-        it != reference_tree.EndEulertour();
+        auto it = reference_tree.begin_eulertour();
+        it != reference_tree.end_eulertour();
         ++it
     ) {
-        euler_ids.push_back(it.Node()->preorder_id);
+        euler_ids.push_back(it.node()->preorder_id);
 
-        ausgabe += std::to_string(it.Node()->preorder_id) + " ";
+        ausgabe += std::to_string(it.node()->preorder_id) + " ";
     }
     LOG_DBG << ausgabe;
 

@@ -51,7 +51,7 @@ bool PhylipProcessor::from_string (const std::string& fs, SequenceSet& aln)
 {
     // do stepwise lexing
     PhylipLexer lexer;
-    lexer.FromString(fs);
+    lexer.from_string(fs);
 
     // basic checks
     if (lexer.empty()) {

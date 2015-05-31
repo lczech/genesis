@@ -29,18 +29,18 @@ namespace genesis {
  * @brief True iff the node is a leaf/tip.
  */
 template <class NDT, class EDT>
-inline bool TreeNode<NDT, EDT>::IsLeaf() const
+inline bool TreeNode<NDT, EDT>::is_leaf() const
 {
-    return link_->IsLeaf();
+    return link_->is_leaf();
 }
 
 /**
  * @brief True iff the node is an inner node.
  */
 template <class NDT, class EDT>
-inline bool TreeNode<NDT, EDT>::IsInner() const
+inline bool TreeNode<NDT, EDT>::is_inner() const
 {
-    return link_->IsInner();
+    return link_->is_inner();
 }
 
 } // namespace genesis
@@ -57,14 +57,14 @@ namespace genesis {
  * @brief Rank of the node, i.e. how many immediate children it has.
  */
 template <class NDT, class EDT>
-int TreeNode<NDT, EDT>::Rank() const
+int TreeNode<NDT, EDT>::rank() const
 {
     int rank = -1;
     TreeLink<NDT, EDT>* link = link_;
 
     do {
         ++rank;
-        link = link->Next();
+        link = link->next();
     } while (link != link_);
 
     return rank;
@@ -74,9 +74,9 @@ int TreeNode<NDT, EDT>::Rank() const
  * @brief Returns a one-line dump summary of the data of this node.
  */
 template <class NDT, class EDT>
-std::string TreeNode<NDT, EDT>::Dump() const
+std::string TreeNode<NDT, EDT>::dump() const
 {
-    return "Rank: " + std::to_string(Rank()) + " \t " + "name: " + this->name;
+    return "Rank: " + std::to_string(rank()) + " \t " + "name: " + this->name;
 }
 
 } // namespace genesis

@@ -20,23 +20,23 @@
 
 #define GENERATE_NEWICK_PROCESSOR_METHODS(classname) \
     .def(                                                                                                              \
-        "FromFile",                                                                                                    \
-        ( bool ( * )( const std::string&, ::genesis::classname& ))( &::genesis::NewickProcessor::FromFile ),           \
+        "from_file",                                                                                                    \
+        ( bool ( * )( const std::string&, ::genesis::classname& ))( &::genesis::NewickProcessor::from_file ),           \
         ( boost::python::arg("fn"), boost::python::arg("tree") )                                                       \
     )                                                                                                                  \
     .def(                                                                                                              \
-        "FromString",                                                                                                  \
-        ( bool ( * )( const std::string&, ::genesis::classname& ))( &::genesis::NewickProcessor::FromString ),         \
+        "from_string",                                                                                                  \
+        ( bool ( * )( const std::string&, ::genesis::classname& ))( &::genesis::NewickProcessor::from_string ),         \
         ( boost::python::arg("ts"), boost::python::arg("tree") )                                                       \
     )                                                                                                                  \
     .def(                                                                                                              \
-        "ToFile",                                                                                                      \
-        ( bool ( * )( const ::genesis::classname&, const std::string ))( &::genesis::NewickProcessor::ToFile ),        \
+        "to_file",                                                                                                      \
+        ( bool ( * )( const ::genesis::classname&, const std::string ))( &::genesis::NewickProcessor::to_file ),        \
         ( boost::python::arg("fn"), boost::python::arg("tree") )                                                       \
     )                                                                                                                  \
     .def(                                                                                                              \
-        "ToString",                                                                                                    \
-        ( std::string ( * )( const ::genesis::classname& ))( &::genesis::NewickProcessor::ToString ),                  \
+        "to_string",                                                                                                    \
+        ( std::string ( * )( const ::genesis::classname& ))( &::genesis::NewickProcessor::to_string ),                  \
         ( boost::python::arg("tree") )                                                                                 \
     )
 
@@ -54,10 +54,10 @@ void BoostPythonExport_NewickProcessor()
         GENERATE_NEWICK_PROCESSOR_METHODS(PlacementTree)
         GENERATE_NEWICK_PROCESSOR_METHODS(PlausibilityTree)
 
-        .staticmethod("FromFile")
-        .staticmethod("FromString")
-        .staticmethod("ToFile")
-        .staticmethod("ToString")
+        .staticmethod("from_file")
+        .staticmethod("from_string")
+        .staticmethod("to_file")
+        .staticmethod("to_string")
 
         // Public Member Variables
 

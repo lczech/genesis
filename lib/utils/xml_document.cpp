@@ -24,7 +24,7 @@ namespace genesis {
 const XmlComment* XmlValueToComment (const XmlValue* v)
 {
     if (v->type() != XmlValue::kComment) {
-        LOG_WARN << "Invalid conversion from XmlValue::" << v->TypeToString()
+        LOG_WARN << "Invalid conversion from XmlValue::" << v->type_to_string()
                  << " to XmlValue::Comment.";
         return nullptr;
     }
@@ -40,7 +40,7 @@ const XmlComment* XmlValueToComment (const XmlValue* v)
 const XmlMarkup* XmlValueToMarkup (const XmlValue* v)
 {
     if (v->type() != XmlValue::kMarkup) {
-        LOG_WARN << "Invalid conversion from XmlValue::" << v->TypeToString()
+        LOG_WARN << "Invalid conversion from XmlValue::" << v->type_to_string()
                  << " to XmlValue::Markup.";
         return nullptr;
     }
@@ -56,7 +56,7 @@ const XmlMarkup* XmlValueToMarkup (const XmlValue* v)
 const XmlElement* XmlValueToElement (const XmlValue* v)
 {
     if (v->type() != XmlValue::kElement) {
-        LOG_WARN << "Invalid conversion from XmlValue::" << v->TypeToString()
+        LOG_WARN << "Invalid conversion from XmlValue::" << v->type_to_string()
                  << " to XmlValue::Element.";
         return nullptr;
     }

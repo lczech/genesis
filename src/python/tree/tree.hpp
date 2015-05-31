@@ -44,12 +44,12 @@ void BoostPythonExport_Tree (std::string name)
             //~ ( boost::python::arg("links"), boost::python::arg("nodes"), boost::python::arg("edges") )
         //~ )
         //~ .def(
-            //~ "RootLink",
-            //~ ( TreeType::LinkType * ( TreeType::* )(  ) const )( &TreeType::RootLink )
+            //~ "root_link",
+            //~ ( TreeType::LinkType * ( TreeType::* )(  ) const )( &TreeType::root_link )
         //~ )
         //~ .def(
-            //~ "RootNode",
-            //~ ( TreeType::NodeType * ( TreeType::* )(  ) const )( &TreeType::RootNode )
+            //~ "root_node",
+            //~ ( TreeType::NodeType * ( TreeType::* )(  ) const )( &TreeType::root_node )
         //~ )
         //~ .def(
             //~ "LinkAt",
@@ -67,18 +67,18 @@ void BoostPythonExport_Tree (std::string name)
             //~ ( boost::python::arg("index") )
         //~ )
         .def(
-            "LinkCount",
-            ( size_t ( TreeType::* )(  ) const )( &TreeType::LinkCount ),
+            "link_count",
+            ( size_t ( TreeType::* )(  ) const )( &TreeType::link_count ),
             "Returns the number of Links of the Tree."
         )
         .def(
-            "NodeCount",
-            ( size_t ( TreeType::* )(  ) const )( &TreeType::NodeCount ),
+            "node_count",
+            ( size_t ( TreeType::* )(  ) const )( &TreeType::node_count ),
             "Returns the number of Nodes of the Tree."
         )
         .def(
-            "EdgeCount",
-            ( size_t ( TreeType::* )(  ) const )( &TreeType::EdgeCount ),
+            "edge_count",
+            ( size_t ( TreeType::* )(  ) const )( &TreeType::edge_count ),
             "Returns the number of Edges of the Tree."
         )
         //~ .def(
@@ -87,24 +87,24 @@ void BoostPythonExport_Tree (std::string name)
             //~ ( boost::python::arg("name") )
         //~ )
         .def(
-            "MaxRank",
-            ( int ( TreeType::* )(  ) const )( &TreeType::MaxRank )
+            "max_rank",
+            ( int ( TreeType::* )(  ) const )( &TreeType::max_rank )
         )
         .def(
-            "IsBifurcating",
-            ( bool ( TreeType::* )(  ) const )( &TreeType::IsBifurcating )
+            "is_bifurcating",
+            ( bool ( TreeType::* )(  ) const )( &TreeType::is_bifurcating )
         )
         .def(
-            "LeafCount",
-            ( size_t ( TreeType::* )(  ) const )( &TreeType::LeafCount )
+            "leaf_count",
+            ( size_t ( TreeType::* )(  ) const )( &TreeType::leaf_count )
         )
         .def(
-            "InnerCount",
-            ( size_t ( TreeType::* )(  ) const )( &TreeType::InnerCount )
+            "inner_count",
+            ( size_t ( TreeType::* )(  ) const )( &TreeType::inner_count )
         )
         .def(
-            "Length",
-            ( double ( TreeType::* )(  ) const )( &TreeType::Length )
+            "length",
+            ( double ( TreeType::* )(  ) const )( &TreeType::length )
         )
         //~ .def(
             //~ "NodeDepthMatrix",
@@ -133,8 +133,8 @@ void BoostPythonExport_Tree (std::string name)
             //~ ( NodeDoubleVectorType ( TreeType::* )(  ) const )( &TreeType::ClosestLeafDistanceVector )
         //~ )
         .def(
-            "DeepestDistance",
-            ( double ( TreeType::* )(  ) const )( &TreeType::DeepestDistance )
+            "deepest_distance",
+            ( double ( TreeType::* )(  ) const )( &TreeType::deepest_distance )
         )
         //~ .def(
             //~ "Equal",
@@ -172,44 +172,44 @@ void BoostPythonExport_Tree (std::string name)
         // Iterators
 
 
-        //~ ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::BeginEulertour )
-        //~ ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::EndEulertour )
+        //~ ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::begin_eulertour )
+        //~ ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::end_eulertour )
         //~ .add_property(
             //~ "Eulertour",
             //~ boost::python::range (
-                //~ ( ::genesis::TreeType::ConstIteratorEulertour ( TreeType::* )(  ) const )( &TreeType::BeginEulertour ),
-                //~ ( ::genesis::TreeType::ConstIteratorEulertour ( TreeType::* )(  ) const )( &TreeType::EndEulertour )
+                //~ ( ::genesis::TreeType::ConstIteratorEulertour ( TreeType::* )(  ) const )( &TreeType::begin_eulertour ),
+                //~ ( ::genesis::TreeType::ConstIteratorEulertour ( TreeType::* )(  ) const )( &TreeType::end_eulertour )
             //~ )
         //~ )
 
 
         //~ .add_property(
             //~ "Eulertour",
-            //~ boost::python::range ( &::genesis::TreeType::BeginEulertour, &::genesis::TreeType::EndEulertour )
+            //~ boost::python::range ( &::genesis::TreeType::begin_eulertour, &::genesis::TreeType::end_eulertour )
         //~ )
         //~ .add_property(
             //~ "Preorder",
-            //~ boost::python::range ( &::genesis::TreeType::BeginPreorder, &::genesis::TreeType::EndPreorder )
+            //~ boost::python::range ( &::genesis::TreeType::begin_preorder, &::genesis::TreeType::end_preorder )
         //~ )
         //~ .add_property(
             //~ "Postorder",
-            //~ boost::python::range ( &::genesis::TreeType::BeginPostorder, &::genesis::TreeType::EndPostorder )
+            //~ boost::python::range ( &::genesis::TreeType::begin_postorder, &::genesis::TreeType::end_postorder )
         //~ )
         //~ .add_property(
             //~ "Levelorder",
-            //~ boost::python::range ( &::genesis::TreeType::BeginLevelorder, &::genesis::TreeType::EndLevelorder )
+            //~ boost::python::range ( &::genesis::TreeType::begin_levelorder, &::genesis::TreeType::end_levelorder )
         //~ )
         //~ .add_property(
             //~ "Links",
-            //~ boost::python::range ( &::genesis::TreeType::BeginLinks, &::genesis::TreeType::EndLinks )
+            //~ boost::python::range ( &::genesis::TreeType::begin_links, &::genesis::TreeType::end_links )
         //~ )
         //~ .add_property(
             //~ "Nodes",
-            //~ boost::python::range ( &::genesis::TreeType::BeginNodes, &::genesis::TreeType::EndNodes )
+            //~ boost::python::range ( &::genesis::TreeType::begin_nodes, &::genesis::TreeType::end_nodes )
         //~ )
         //~ .add_property(
             //~ "Edges",
-            //~ boost::python::range ( &::genesis::TreeType::BeginEdges, &::genesis::TreeType::EndEdges )
+            //~ boost::python::range ( &::genesis::TreeType::begin_edges, &::genesis::TreeType::end_edges )
         //~ )
     ;
 

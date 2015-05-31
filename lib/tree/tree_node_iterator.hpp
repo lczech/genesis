@@ -39,7 +39,7 @@ public:
 
     inline self_type operator ++ ()
     {
-        link_ = link_->Next();
+        link_ = link_->next();
         if (link_ == start_) {
             link_ = nullptr;
         }
@@ -67,22 +67,22 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline LinkPointerType Link()
+    inline LinkPointerType link()
     {
         return link_;
     }
 
-    inline NodePointerType Node()
+    inline NodePointerType node()
     {
-        return link_->Node();
+        return link_->node();
     }
 
-    inline EdgePointerType Edge()
+    inline EdgePointerType edge()
     {
-        return link_->Edge();
+        return link_->edge();
     }
 
-    inline LinkPointerType StartLink()
+    inline LinkPointerType start_link()
     {
         return start_;
     }

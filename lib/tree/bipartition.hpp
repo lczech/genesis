@@ -49,15 +49,15 @@ public:
     //     Member Functions
     // -------------------------------------------------------------
 
-    inline const LinkType* Link()
+    inline const LinkType* link()
     {
         return link_;
     }
 
-    inline void Invert()
+    inline void invert()
     {
         leaf_nodes_.Invert();
-        link_ = link_->Outer();
+        link_ = link_->outer();
     }
 
     // -------------------------------------------------------------

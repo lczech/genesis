@@ -141,7 +141,7 @@ inline bool CharMatch(const char c1, const char c2)
  * @brief Returns a precise(er than to_string) string representation of the input value.
  */
 template <typename T>
-inline std::string ToStringPrecise (const T value, const int precision = 6)
+inline std::string to_stringPrecise (const T value, const int precision = 6)
 {
     std::ostringstream out;
     out << std::setprecision(precision) << value;

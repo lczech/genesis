@@ -40,12 +40,12 @@ public:
 //~
     //~ inline pointer operator * ()
     //~ {
-        //~ return link_->Node();
+        //~ return link_->node();
     //~ }
 //~
     //~ inline pointer operator -> ()
     //~ {
-        //~ return link_->Node();
+        //~ return link_->node();
     //~ }
 
     // -----------------------------------------------------
@@ -61,7 +61,7 @@ public:
 
     inline self_type& operator ++ ()
     {
-        link_ = link_->Outer()->Next();
+        link_ = link_->outer()->next();
         if (link_ == start_) {
             link_ = nullptr;
         }
@@ -89,29 +89,29 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline LinkPointerType Link() const
+    inline LinkPointerType link() const
     {
         return link_;
     }
 
-    inline NodePointerType Node() const
+    inline NodePointerType node() const
     {
-        return link_->Node();
+        return link_->node();
     }
 
-    inline EdgePointerType Edge() const
+    inline EdgePointerType edge() const
     {
-        return link_->Edge();
+        return link_->edge();
     }
 
-    inline LinkPointerType StartLink() const
+    inline LinkPointerType start_link() const
     {
         return start_;
     }
 
-    inline NodePointerType StartNode() const
+    inline NodePointerType start_node() const
     {
-        return start_->Node();
+        return start_->node();
     }
 
 protected:
@@ -141,8 +141,8 @@ public:
     TreeIteratorPreorder (LinkPointerType link) : link_(link), start_(link)
     {
         if (link) {
-            PushFrontChildren(link);
-            stack_.push_front(link->Outer());
+            push_front_children(link);
+            stack_.push_front(link->outer());
         }
     }
 
@@ -157,7 +157,7 @@ public:
         } else {
             link_ = stack_.front();
             stack_.pop_front();
-            PushFrontChildren(link_);
+            push_front_children(link_);
         }
 
         return *this;
@@ -184,47 +184,47 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline bool IsFirstIteration() const
+    inline bool is_first_iteration() const
     {
         return link_ == start_;
     }
 
-    inline LinkPointerType Link() const
+    inline LinkPointerType link() const
     {
         return link_;
     }
 
-    inline NodePointerType Node() const
+    inline NodePointerType node() const
     {
-        return link_->Node();
+        return link_->node();
     }
 
-    inline EdgePointerType Edge() const
+    inline EdgePointerType edge() const
     {
-        return link_->Edge();
+        return link_->edge();
     }
 
-    inline LinkPointerType StartLink() const
+    inline LinkPointerType start_link() const
     {
         return start_;
     }
 
-    inline NodePointerType StartNode() const
+    inline NodePointerType start_node() const
     {
-        return start_->Node();
+        return start_->node();
     }
 
 protected:
-    inline void PushFrontChildren(const LinkPointerType link)
+    inline void push_front_children(const LinkPointerType link)
     {
         // we need to push to a tmp queue first, in order to get the order right.
         // otherwise, we would still do a preorder traversal, but starting with
         // the last child of each node instead of the first one.
         std::deque<LinkPointerType> tmp;
-        LinkPointerType c = link->Next();
+        LinkPointerType c = link->next();
         while (c != link) {
-            tmp.push_front(c->Outer());
-            c = c->Next();
+            tmp.push_front(c->outer());
+            c = c->next();
         }
         for (LinkPointerType l : tmp) {
             stack_.push_front(l);
@@ -286,27 +286,27 @@ public:
 
             // if we start the iterator on an inner node, we actually need to add ALL children
             // (which means all its neighbor nodes) of this node to the stack, not only the ones
-            // that point away from the given link of the node (which is what PushFrontChildren
+            // that point away from the given link of the node (which is what push_front_children
             // does). this means, we also need to add the one link that is given as argument here.
-            if (link->Outer() != link) {
+            if (link->outer() != link) {
                 // this loop just takes care to add the given node first, and then the other
                 // children. this is more or less beaty only, as it just makes sure that this link's
                 // path is taken first, instead of last.
-                while (link->Next() != link_) {
-                    link = link->Next();
+                while (link->next() != link_) {
+                    link = link->next();
                 }
 
                 // now add the needed extra child
-                stack_.push_front(link->Outer());
+                stack_.push_front(link->outer());
             }
 
             // in any case (no matter whether we start at the root or some other node), we run this
             // loop. it goes down the tree until a leaf is encountered. this leaf will be the first
             // node that the iterator points to. while going there, we add yet-to-be-visited nodes
             // to the stack.
-            while (link->IsInner()) {
-                PushFrontChildren(link);
-                link = link->Next()->Outer();
+            while (link->is_inner()) {
+                push_front_children(link);
+                link = link->next()->outer();
             }
         }
         link_ = link;
@@ -322,42 +322,42 @@ public:
     {
         std::string m = "  ";
         if (link_) {
-           m += "@" + link_->Node()->name + "   ";
+           m += "@" + link_->node()->name + "   ";
         }
         for (LinkPointerType p : stack_) {
-            m += p->Node()->name + " ";
+            m += p->node()->name + " ";
         }
         LOG_DBG2 << m;
 
         if (link_ == stack_.front()) {
             while (!stack_.empty() && link_ == stack_.front()) {
-                link_ = link_->Outer()->Next();
+                link_ = link_->outer()->next();
                 stack_.pop_front();
             }
-            while (link_->Outer() == link_) {
-                link_ = link_->Next();
+            while (link_->outer() == link_) {
+                link_ = link_->next();
             }
             if (stack_.empty()) {
                 link_ = nullptr;
             }
         } else {
-            assert(link_->Outer() == stack_.front());
-            link_ = link_->Outer();
-            while (link_->IsInner()) {
-                PushFrontChildren(link_);
-                link_ = link_->Next()->Outer();
+            assert(link_->outer() == stack_.front());
+            link_ = link_->outer();
+            while (link_->is_inner()) {
+                push_front_children(link_);
+                link_ = link_->next()->outer();
             }
-            while (link_->Outer() == link_) {
-                link_ = link_->Next();
+            while (link_->outer() == link_) {
+                link_ = link_->next();
             }
         }
 
         m = "  ";
         if (link_) {
-           m += "@" + link_->Node()->name + "   ";
+           m += "@" + link_->node()->name + "   ";
         }
         for (LinkPointerType p : stack_) {
-            m += p->Node()->name + " ";
+            m += p->node()->name + " ";
         }
         LOG_DBG2 << m;
 
@@ -385,42 +385,42 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline LinkPointerType Link() const
+    inline LinkPointerType link() const
     {
         return link_;
     }
 
-    inline NodePointerType Node() const
+    inline NodePointerType node() const
     {
-        return link_->Node();
+        return link_->node();
     }
 
-    inline EdgePointerType Edge() const
+    inline EdgePointerType edge() const
     {
-        return link_->Edge();
+        return link_->edge();
     }
 
-    inline LinkPointerType StartLink() const
+    inline LinkPointerType start_link() const
     {
         return start_;
     }
 
-    inline NodePointerType StartNode() const
+    inline NodePointerType start_node() const
     {
-        return start_->Node();
+        return start_->node();
     }
 
 protected:
-    inline void PushFrontChildren(LinkPointerType link)
+    inline void push_front_children(LinkPointerType link)
     {
         // we need to push to a tmp queue first, in order to get the order right.
         // otherwise, we would still do a preorder traversal, but starting with
         // the last child of each node instead of the first one.
         std::deque<LinkPointerType> tmp;
-        LinkPointerType c = link->Next();
+        LinkPointerType c = link->next();
         while (c != link) {
-            tmp.push_front(c->Outer());
-            c = c->Next();
+            tmp.push_front(c->outer());
+            c = c->next();
         }
         for (LinkPointerType l : tmp) {
             stack_.push_front(l);
@@ -457,11 +457,11 @@ public:
     {
         if (link) {
             stack_.push_back(link);
-            stack_.push_front(link->Outer());
-            link = link->Outer();
-            while (link->IsInner()) {
-                PushFrontChildren(link);
-                link = link->Next()->Outer();
+            stack_.push_front(link->outer());
+            link = link->outer();
+            while (link->is_inner()) {
+                push_front_children(link);
+                link = link->next()->outer();
             }
             assert(link == stack_.front());
             stack_.pop_front();
@@ -478,7 +478,7 @@ public:
         if (stack_.empty()) {
             // this condition marks the end of the traversal
             link_ = nullptr;
-        } else if (link_->Outer()->Next() == stack_.front()) {
+        } else if (link_->outer()->next() == stack_.front()) {
             // this condition is active when seeing an inner node the last time,
             // meaning that it is its turn to be traversed
             link_ = stack_.front();
@@ -486,9 +486,9 @@ public:
         } else {
             // this condition is active in all other cases: going down the tree towards the leaves
             link_ = stack_.front();
-            while (link_->IsInner()) {
-                PushFrontChildren(link_);
-                link_ = link_->Next()->Outer();
+            while (link_->is_inner()) {
+                push_front_children(link_);
+                link_ = link_->next()->outer();
             }
             assert(link_ == stack_.front());
             stack_.pop_front();
@@ -517,47 +517,47 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline bool IsLastIteration() const
+    inline bool is_last_iteration() const
     {
         return link_ == start_;
     }
 
-    inline LinkPointerType Link() const
+    inline LinkPointerType link() const
     {
         return link_;
     }
 
-    inline NodePointerType Node() const
+    inline NodePointerType node() const
     {
-        return link_->Node();
+        return link_->node();
     }
 
-    inline EdgePointerType Edge() const
+    inline EdgePointerType edge() const
     {
-        return link_->Edge();
+        return link_->edge();
     }
 
-    inline LinkPointerType StartLink() const
+    inline LinkPointerType start_link() const
     {
         return start_;
     }
 
-    inline NodePointerType StartNode() const
+    inline NodePointerType start_node() const
     {
-        return start_->Node();
+        return start_->node();
     }
 
 protected:
-    inline void PushFrontChildren(LinkPointerType link)
+    inline void push_front_children(LinkPointerType link)
     {
         // we need to push to a tmp queue first, in order to get the order right.
         // otherwise, we would still do a postorder traversal, but starting with
         // the last child of each node instead of the first one.
         std::deque<LinkPointerType> tmp;
-        LinkPointerType c = link->Next();
+        LinkPointerType c = link->next();
         while (c != link) {
-            tmp.push_front(c->Outer());
-            c = c->Next();
+            tmp.push_front(c->outer());
+            c = c->next();
         }
         for (LinkPointerType l : tmp) {
             stack_.push_front(l);
@@ -591,8 +591,8 @@ public:
     TreeIteratorLevelorder (LinkPointerType link) : link_(link), depth_(0), start_(link)
     {
         if (link) {
-            PushBackChildren(link, 0);
-            stack_.push_front({link->Outer(), 1});
+            push_back_children(link, 0);
+            stack_.push_front({link->outer(), 1});
         }
     }
 
@@ -610,7 +610,7 @@ public:
             link_  = se.link;
             depth_ = se.depth;
             stack_.pop_front();
-            PushBackChildren(link_, depth_);
+            push_back_children(link_, depth_);
         }
 
         return *this;
@@ -637,48 +637,48 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline bool IsFirstIteration() const
+    inline bool is_first_iteration() const
     {
         return link_ == start_;
     }
 
-    inline int Depth() const
+    inline int depth() const
     {
         return depth_;
     }
 
-    inline LinkPointerType Link() const
+    inline LinkPointerType link() const
     {
         return link_;
     }
 
-    inline NodePointerType Node() const
+    inline NodePointerType node() const
     {
-        return link_->Node();
+        return link_->node();
     }
 
-    inline EdgePointerType Edge() const
+    inline EdgePointerType edge() const
     {
-        return link_->Edge();
+        return link_->edge();
     }
 
-    inline LinkPointerType StartLink() const
+    inline LinkPointerType start_link() const
     {
         return start_;
     }
 
-    inline NodePointerType StartNode() const
+    inline NodePointerType start_node() const
     {
-        return start_->Node();
+        return start_->node();
     }
 
 protected:
-    inline void PushBackChildren(LinkPointerType link, int link_depth)
+    inline void push_back_children(LinkPointerType link, int link_depth)
     {
-        LinkPointerType c = link->Next();
+        LinkPointerType c = link->next();
         while (c != link) {
-            stack_.push_back({c->Outer(), link_depth + 1});
-            c = c->Next();
+            stack_.push_back({c->outer(), link_depth + 1});
+            c = c->next();
         }
     }
 
@@ -719,13 +719,13 @@ public:
     {
         if (link) {
             stack_.push_back(link);
-            if (link->Outer() != link) {
-                stack_.push_front(link->Outer());
-                link = link->Outer();
+            if (link->outer() != link) {
+                stack_.push_front(link->outer());
+                link = link->outer();
             }
-            while (link->IsInner()) {
-                PushFrontChildren(link);
-                link = link->Next()->Outer();
+            while (link->is_inner()) {
+                push_front_children(link);
+                link = link->next()->outer();
             }
             assert(link == stack_.front());
             stack_.pop_front();
@@ -741,14 +741,14 @@ public:
     {
         if (stack_.empty()) {
             link_ = nullptr;
-        } else if (link_->Outer()->Next() == stack_.front()) {
+        } else if (link_->outer()->next() == stack_.front()) {
             link_ = stack_.front();
             stack_.pop_front();
         } else {
             link_ = stack_.front();
-            while (link_->IsInner()) {
-                PushFrontChildren(link_);
-                link_ = link_->Next()->Outer();
+            while (link_->is_inner()) {
+                push_front_children(link_);
+                link_ = link_->next()->outer();
             }
             assert(link_ == stack_.front());
             stack_.pop_front();
@@ -778,39 +778,39 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline LinkPointerType Link() const
+    inline LinkPointerType link() const
     {
         return link_;
     }
 
-    inline NodePointerType Node() const
+    inline NodePointerType node() const
     {
-        return link_->Node();
+        return link_->node();
     }
 
-    inline EdgePointerType Edge() const
+    inline EdgePointerType edge() const
     {
-        return link_->Edge();
+        return link_->edge();
     }
 
-    inline LinkPointerType FromLink() const
+    inline LinkPointerType from_link() const
     {
         return from_;
     }
 
-    inline NodePointerType FromNode() const
+    inline NodePointerType from_node() const
     {
-        return from_->Node();
+        return from_->node();
     }
 
-    inline LinkPointerType ToLink() const
+    inline LinkPointerType to_link() const
     {
         return to_;
     }
 
-    inline NodePointerType ToNode() const
+    inline NodePointerType to_node() const
     {
-        return to_->Node();
+        return to_->node();
     }
 
 protected:

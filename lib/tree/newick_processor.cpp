@@ -30,7 +30,7 @@ bool        NewickProcessor::use_default_names     = false;
 //     Parsing
 // =============================================================================
 
-bool NewickProcessor::ParseTree (
+bool NewickProcessor::parse_tree (
           NewickLexer::iterator& ct,
     const NewickLexer::iterator& end,
           NewickBroker&          broker
@@ -205,7 +205,7 @@ bool NewickProcessor::ParseTree (
                     node->name = default_internal_name;
                 }
             }
-            broker.PushTop(node);
+            broker.push_top(node);
             node = nullptr;
             continue;
         }
@@ -234,7 +234,7 @@ bool NewickProcessor::ParseTree (
                     node->name = default_internal_name;
                 }
             }
-            broker.PushTop(node);
+            broker.push_top(node);
             node = nullptr;
 
             // decrease depth and check if this was the parenthesis that closed the tree
@@ -265,7 +265,7 @@ bool NewickProcessor::ParseTree (
             if (node->name.empty() && use_default_names) {
                 node->name = default_root_name;
             }
-            broker.PushTop(node);
+            broker.push_top(node);
             node = nullptr;
             break;
         }
@@ -306,11 +306,11 @@ bool NewickProcessor::print_tags           = false;
 int  NewickProcessor::precision            = 6;
 
 // TODO this is a quick and dirty (=slow) solution...
-std::string NewickProcessor::ToStringRec(const NewickBroker& broker, size_t pos)
+std::string NewickProcessor::to_string_rec(const NewickBroker& broker, size_t pos)
 {
     // check if it is a leaf, stop recursion if so.
     if (broker[pos]->rank() == 0) {
-        return ElementToString(broker[pos]);
+        return element_to_string(broker[pos]);
     }
 
     // recurse over all children of the current node. while doing so, build a stack of the resulting
@@ -324,7 +324,7 @@ std::string NewickProcessor::ToStringRec(const NewickBroker& broker, size_t pos)
         }
 
         // do the recursion step for this child, add the result to a stack
-        children.push_front(ToStringRec(broker, i));
+        children.push_front(to_string_rec(broker, i));
     }
 
     // build the string by iterating the stack
@@ -336,18 +336,18 @@ std::string NewickProcessor::ToStringRec(const NewickBroker& broker, size_t pos)
         }
         out << children[i];
     }
-    out << ")" << ElementToString(broker[pos]);
+    out << ")" << element_to_string(broker[pos]);
     return out.str();
 }
 
-std::string NewickProcessor::ElementToString(const NewickBrokerElement* bn)
+std::string NewickProcessor::element_to_string(const NewickBrokerElement* bn)
 {
     std::string res = "";
     if (print_names) {
         res += StringReplaceAll(bn->name, " ", "_");
     }
     if (print_branch_lengths) {
-        res += ":" + ToStringPrecise(bn->branch_length, precision);
+        res += ":" + to_stringPrecise(bn->branch_length, precision);
     }
     if (print_comments) {
         for (std::string c : bn->comments) {

@@ -37,14 +37,14 @@ public:
     //     Member Functions
     // -------------------------------------------------------------
 
-    void Make();
-    void MakeIndex();
+    void make();
+    void make_index();
 
-    BipartitionType*             FindSmallestSubtree (std::vector<NodeType*> nodes);
-    std::vector<const EdgeType*> GetSubtreeEdges     (const LinkType*        subtree);
+    BipartitionType*             find_smallest_subtree (std::vector<NodeType*> nodes);
+    std::vector<const EdgeType*> get_subtree_edges     (const LinkType*        subtree);
 
-    bool        Validate();
-    std::string Dump();
+    bool        validate();
+    std::string dump();
 
     // -------------------------------------------------------------
     //     Member Variables

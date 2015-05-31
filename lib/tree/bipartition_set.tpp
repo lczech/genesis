@@ -18,59 +18,59 @@ namespace genesis {
 // -------------------------------------------------------------
 
 template <class NDT, class EDT>
-void BipartitionSet<NDT, EDT>::Make()
+void BipartitionSet<NDT, EDT>::make()
 {
     size_t num_leaves = tree_->LeafCount();
-    MakeIndex();
+    make_index();
 
     bipartitions_.clear();
-    bipartitions_.resize(tree_->NodeCount(), BipartitionType(num_leaves));
+    bipartitions_.resize(tree_->node_count(), BipartitionType(num_leaves));
 
     for (
-        typename TreeType::ConstIteratorPostorder it = tree_->BeginPostorder();
-        it != tree_->EndPostorder();
+        typename TreeType::ConstIteratorPostorder it = tree_->begin_postorder();
+        it != tree_->end_postorder();
         ++it
     ) {
-        if (it.IsLastIteration()) {
+        if (it.is_last_iteration()) {
             continue;
         }
 
         BipartitionType bp(num_leaves);
-        bp.link_ = it.Link();
-        if (it.Node()->IsLeaf()) {
-            int leaf_idx = node_to_leaf_map_[it.Node()->Index()];
+        bp.link_ = it.link();
+        if (it.node()->is_leaf()) {
+            int leaf_idx = node_to_leaf_map_[it.node()->index()];
             assert(leaf_idx > -1);
             bp.leaf_nodes_.Set(leaf_idx);
         } else {
-            LinkType* l = it.Link()->Next();
-            while (l != it.Link()) {
-                bp.leaf_nodes_ |= bipartitions_[l->Outer()->Node()->Index()].leaf_nodes_;
-                l = l->Next();
+            LinkType* l = it.link()->next();
+            while (l != it.link()) {
+                bp.leaf_nodes_ |= bipartitions_[l->outer()->node()->index()].leaf_nodes_;
+                l = l->next();
             }
         }
-        bipartitions_[it.Node()->Index()] = bp;
+        bipartitions_[it.node()->index()] = bp;
     }
 }
 
 template <class NDT, class EDT>
-void BipartitionSet<NDT, EDT>::MakeIndex()
+void BipartitionSet<NDT, EDT>::make_index()
 {
     leaf_to_node_map_.clear();
     node_to_leaf_map_.clear();
-    node_to_leaf_map_.resize(tree_->NodeCount());
+    node_to_leaf_map_.resize(tree_->node_count());
 
     size_t leaf_idx = 0;
     for (
-        typename TreeType::ConstIteratorNodes it = tree_->BeginNodes();
-        it != tree_->EndNodes();
+        typename TreeType::ConstIteratorNodes it = tree_->begin_nodes();
+        it != tree_->end_nodes();
         ++it
     ) {
-        if ((*it)->IsLeaf()) {
-            node_to_leaf_map_[(*it)->Index()] = leaf_idx;
-            leaf_to_node_map_.push_back((*it)->Index());
+        if ((*it)->is_leaf()) {
+            node_to_leaf_map_[(*it)->index()] = leaf_idx;
+            leaf_to_node_map_.push_back((*it)->index());
             ++leaf_idx;
         } else {
-            node_to_leaf_map_[(*it)->Index()] = -1;
+            node_to_leaf_map_[(*it)->index()] = -1;
         }
     }
 }
@@ -84,17 +84,17 @@ void BipartitionSet<NDT, EDT>::MakeIndex()
  * If no fitting subtree exists, the function returns a `nullptr`.
  */
 template <class NDT, class EDT>
-typename BipartitionSet<NDT, EDT>::BipartitionType* BipartitionSet<NDT, EDT>::FindSmallestSubtree (
+typename BipartitionSet<NDT, EDT>::BipartitionType* BipartitionSet<NDT, EDT>::find_smallest_subtree (
     std::vector<BipartitionSet<NDT, EDT>::NodeType*> nodes
 ) {
-    Make();
+    make();
     Bitvector comp(tree_->LeafCount());
 
     // make bitvector containing all wanted nodes.
     for (NodeType* n : nodes) {
-        int leaf_idx = node_to_leaf_map_[n->Index()];
+        int leaf_idx = node_to_leaf_map_[n->index()];
         if (leaf_idx == -1) {
-            LOG_WARN << "Node at index " << n->Index() << " is not leaf.";
+            LOG_WARN << "Node at index " << n->index() << " is not leaf.";
             continue;
         }
         comp.Set(leaf_idx);
@@ -132,24 +132,24 @@ typename BipartitionSet<NDT, EDT>::BipartitionType* BipartitionSet<NDT, EDT>::Fi
 
 template <class NDT, class EDT>
 std::vector<typename BipartitionSet<NDT, EDT>::EdgeType const *>
-BipartitionSet<NDT, EDT>::GetSubtreeEdges (
+BipartitionSet<NDT, EDT>::get_subtree_edges (
     const BipartitionSet<NDT, EDT>::LinkType* subtree
 ) {
     std::vector<std::string> leaf_names;
     std::vector<const EdgeType*> ret;
 
     for (
-        typename TreeType::ConstIteratorPreorder it = tree_->BeginPreorder(subtree->Next());
-        it != tree_->EndPreorder() && it.Link() != subtree->Outer();
+        typename TreeType::ConstIteratorPreorder it = tree_->begin_preorder(subtree->next());
+        it != tree_->end_preorder() && it.link() != subtree->outer();
         ++it
     ) {
-        if (it.Node()->IsLeaf()) {
-            leaf_names.push_back(it.Node()->name);
+        if (it.node()->is_leaf()) {
+            leaf_names.push_back(it.node()->name);
         }
         if (it.IsFirstIteration()) {
             continue;
         }
-        ret.push_back(it.Edge());
+        ret.push_back(it.edge());
     }
 
     LOG_DBG << "leaf nodes of subtree:";
@@ -165,13 +165,13 @@ BipartitionSet<NDT, EDT>::GetSubtreeEdges (
 // -------------------------------------------------------------
 
 template <class NDT, class EDT>
-bool BipartitionSet<NDT, EDT>::Validate()
+bool BipartitionSet<NDT, EDT>::validate()
 {
     return true;
 }
 
 template <class NDT, class EDT>
-std::string BipartitionSet<NDT, EDT>::Dump()
+std::string BipartitionSet<NDT, EDT>::dump()
 {
     std::ostringstream out;
 
@@ -189,8 +189,8 @@ std::string BipartitionSet<NDT, EDT>::Dump()
         if (!bi.link_) {
             continue;
         }
-        out << "\nNode " << bi.link_->Node()->Index()
-            << ", Leaf " << node_to_leaf_map_[bi.link_->Node()->Index()]
+        out << "\nNode " << bi.link_->node()->index()
+            << ", Leaf " << node_to_leaf_map_[bi.link_->node()->index()]
             << "\n" << bi.leaf_nodes_.Dump() << "\n";
     }
     return out.str();

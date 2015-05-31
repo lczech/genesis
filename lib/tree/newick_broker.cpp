@@ -44,7 +44,7 @@ void NewickBroker::clear()
  * how many leaves and inner nodes the tree has. Thus, it is usually called after the broker is
  * filled with data.
  */
-void NewickBroker::AssignRanks()
+void NewickBroker::assign_ranks()
 {
     // we use a stack containing the parents of each subtree. whenever we enter a new subtree,
     // we push its parent to the stack and increase its rank count while encountering its immediate
@@ -79,9 +79,9 @@ void NewickBroker::AssignRanks()
 }
 
 /**
- * @brief Returns the number of leaf nodes in the tree. AssignRanks() has to be called first.
+ * @brief Returns the number of leaf nodes in the tree. assign_ranks() has to be called first.
  */
-int NewickBroker::LeafCount() const
+int NewickBroker::leaf_count() const
 {
     int sum = 0;
     for (NewickBrokerElement* node : stack_) {
@@ -97,9 +97,9 @@ int NewickBroker::LeafCount() const
 }
 
 /**
- * @brief Returns the highest rank of the nodes in the tree. AssignRanks() has to be called first.
+ * @brief Returns the highest rank of the nodes in the tree. assign_ranks() has to be called first.
  */
-int NewickBroker::MaxRank() const
+int NewickBroker::max_rank() const
 {
     int max = -1;
     for (NewickBrokerElement* node : stack_) {
@@ -118,7 +118,7 @@ int NewickBroker::MaxRank() const
 
 // TODO see PLL newick.c for more stuff than can be validated in a tree!
 /**
- * @brief Returns true iff the tree is valid. AssignRanks() has to be called first.
+ * @brief Returns true iff the tree is valid. assign_ranks() has to be called first.
  *
  * A valid tree in a NewickBroker has to fullfill those criteria:
  *
@@ -130,7 +130,7 @@ int NewickBroker::MaxRank() const
  *     decrease, as this simply means the end of a subtree.
  * %
  */
-bool NewickBroker::Validate() const
+bool NewickBroker::validate() const
 {
     int cur_depth = 0;
     for (NewickBrokerElement* node : stack_) {
@@ -161,17 +161,17 @@ bool NewickBroker::Validate() const
 }
 
 // -----------------------------------------------------------------------------
-//     Dump and Debug
+//     dump and Debug
 // -----------------------------------------------------------------------------
 
 /**
  * @brief Return a readable string representation of the elements of the NewickBroker.
  */
-std::string NewickBroker::Dump() const
+std::string NewickBroker::dump() const
 {
     std::string out;
-    out += "Tree contains " + std::to_string(NodeCount()) + " nodes (thereof "
-        + std::to_string(LeafCount()) + " leaves)" + (stack_.empty() ? "." : ":") + "\n";
+    out += "Tree contains " + std::to_string(node_count()) + " nodes (thereof "
+        + std::to_string(leaf_count()) + " leaves)" + (stack_.empty() ? "." : ":") + "\n";
     for (NewickBrokerElement* node : stack_) {
         // indent
         for (int i = 0; i < node->depth; ++i) {
