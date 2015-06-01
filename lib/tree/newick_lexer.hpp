@@ -23,24 +23,24 @@ class NewickLexer : public Lexer
 public:
     NewickLexer() {
         // set the special chars for newick trees
-        SetCharType (LexerTokenType::kComment,  "[]");
-        SetCharType (LexerTokenType::kTag,      "{}");
-        SetCharType (LexerTokenType::kBracket,  "()");
-        SetCharType (LexerTokenType::kOperator, ",;=");
+        set_char_type (LexerTokenType::kComment,  "[]");
+        set_char_type (LexerTokenType::kTag,      "{}");
+        set_char_type (LexerTokenType::kBracket,  "()");
+        set_char_type (LexerTokenType::kOperator, ",;=");
 
         // we use symbols and strings the same way here: both are labels for nodes, the first begin
         // called unquoted_label, the second quoted_label.
-        SetCharType (LexerTokenType::kString,   "'");
+        set_char_type (LexerTokenType::kString,   "'");
 
         // the only numbers in newick are branch lengths, which are always introduced by a leading
         // colon, so we need only this here as starter for a number.
-        SetCharType (LexerTokenType::kNumber,   ":");
+        set_char_type (LexerTokenType::kNumber,   ":");
 
         // this also allows (in accordance to the newick standard) to start a label with a digit.
-        SetCharType (LexerTokenType::kSymbol,   "0123456789");
+        set_char_type (LexerTokenType::kSymbol,   "0123456789");
 
         // furthermore, set all remaining graphic chars to symbol so that they can be in a label.
-        SetCharType (LexerTokenType::kSymbol,   "!\"#$%&*+-./<>?@\\^_`|~");
+        set_char_type (LexerTokenType::kSymbol,   "!\"#$%&*+-./<>?@\\^_`|~");
 
         // set the flags as needed
         include_whitespace        = false;
@@ -52,53 +52,53 @@ public:
     }
 
 protected:
-    inline bool ScanComment()
+    inline bool scan_comment()
     {
-        if (GetChar() == ']') {
-            PushToken(LexerTokenType::kError, GetPosition(), "Closing comment without opening it.");
+        if (get_char() == ']') {
+            push_token(LexerTokenType::kError, get_position(), "Closing comment without opening it.");
             return false;
         }
-        size_t start = GetPosition();
-        bool   found = EvaluateFromTo("[", "]");
-        if (!found && GetChar() == '[') {
-            PushToken(LexerTokenType::kError, GetPosition(), "Comment not closed.");
+        size_t start = get_position();
+        bool   found = evaluate_from_to("[", "]");
+        if (!found && get_char() == '[') {
+            push_token(LexerTokenType::kError, get_position(), "Comment not closed.");
             return false;
         }
         if (found && include_comments) {
-            PushToken(LexerTokenType::kComment, start+1, GetPosition()-1);
+            push_token(LexerTokenType::kComment, start+1, get_position()-1);
         }
         return found;
     }
 
-    inline bool ScanNumber()
+    inline bool scan_number()
     {
         // colon is the only char that is set as the beginning char for a number, so when we enter
         // this function, it must be the current char in the text
-        assert(GetChar() == ':');
+        assert(get_char() == ':');
 
         // skip it and continue to scan as a normal number
-        NextChar();
-        return Lexer::ScanNumber();
+        next_char();
+        return Lexer::scan_number();
     }
 
-    inline bool ScanTag()
+    inline bool scan_tag()
     {
-        if (GetChar() == '}') {
-            PushToken(LexerTokenType::kError, GetPosition(), "Closing tag without opening tag.");
+        if (get_char() == '}') {
+            push_token(LexerTokenType::kError, get_position(), "Closing tag without opening tag.");
             return false;
         }
 
         // curly brackets are the only chars that are used as tag in this lexer. we already checked
         // that the current char is not a closing bracket, so it must be an opening one.
-        assert(GetChar() == '{');
+        assert(get_char() == '{');
 
-        size_t start = GetPosition();
-        bool   found = EvaluateFromTo("{", "}");
+        size_t start = get_position();
+        bool   found = evaluate_from_to("{", "}");
         if (!found) {
-            PushToken(LexerTokenType::kError, start, "Opening tag without closing tag.");
+            push_token(LexerTokenType::kError, start, "Opening tag without closing tag.");
             return false;
         }
-        PushToken(LexerTokenType::kTag, start+1, GetPosition()-1);
+        push_token(LexerTokenType::kTag, start+1, get_position()-1);
         return true;
     }
 };

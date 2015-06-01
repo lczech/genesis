@@ -45,7 +45,7 @@ public:
     {
         // reserve enough bits, and init them.
         data_.resize( (size / IntSize) + (size % IntSize == 0 ? 0 : 1) );
-        Reset(init);
+        reset(init);
     }
 
     /**
@@ -54,7 +54,7 @@ public:
     Bitvector (const size_t size, const std::initializer_list<int> list) : Bitvector(size, false)
     {
         for (int e : list) {
-            Set(e);
+            set(e);
         }
     }
 
@@ -80,7 +80,7 @@ public:
     /**
      * @brief Returns the value of a single bit, with boundary check.
      */
-    inline bool Get (size_t index) const
+    inline bool get (size_t index) const
     {
         if (index >= size_) {
             return false;
@@ -91,7 +91,7 @@ public:
     /**
      * @brief Sets the value of a single bit to true, with boundary check.
      */
-    inline void Set (size_t index)
+    inline void set (size_t index)
     {
         if (index >= size_) {
             return;
@@ -102,7 +102,7 @@ public:
     /**
      * @brief Sets the value of a single bit to false, with boundary check.
      */
-    inline void Unset (size_t index)
+    inline void unset (size_t index)
     {
         if (index >= size_) {
             return;
@@ -113,19 +113,19 @@ public:
     /**
      * @brief Sets the value of a single bit to a given bool value, with boundary check.
      */
-    inline void Set (size_t index, bool value)
+    inline void set (size_t index, bool value)
     {
         if (value) {
-            Set(index);
+            set(index);
         } else {
-            Unset(index);
+            unset(index);
         }
     }
 
     /**
      * @brief Flips (inverts) the value of a single bit, with boundary check.
      */
-    inline void Flip (size_t index)
+    inline void flip (size_t index)
     {
         if (index >= size_) {
             return;
@@ -153,7 +153,7 @@ public:
      */
     inline bool operator <  (Bitvector const& rhs) const
     {
-        return ((*this & rhs) == *this) && (Count() < rhs.Count());
+        return ((*this & rhs) == *this) && (count() < rhs.count());
     }
 
     /**
@@ -184,19 +184,19 @@ public:
     //     Other Functions
     // ---------------------------------------------------------
 
-           Bitvector SymmetricDifference (                      Bitvector const& rhs) const;
-    static Bitvector SymmetricDifference (Bitvector const& lhs, Bitvector const& rhs);
+           Bitvector symmetric_difference (                      Bitvector const& rhs) const;
+    static Bitvector symmetric_difference (Bitvector const& lhs, Bitvector const& rhs);
 
-    size_t  Count() const;
-    size_t  Hash()  const;
-    IntType XHash() const;
+    size_t  count() const;
+    size_t  hash()  const;
+    IntType x_hash() const;
 
-    void    Invert();
-    void    Normalize();
-    void    Reset(bool value = false);
+    void    invert();
+    void    normalize();
+    void    reset(bool value = false);
 
-    std::string Dump() const;
-    std::string DumpInt(IntType x) const;
+    std::string dump() const;
+    std::string dump_int(IntType x) const;
 
     // ---------------------------------------------------------
     //     Internal Members
@@ -204,7 +204,7 @@ public:
 
 protected:
 
-    void UnsetBuffer();
+    void unset_buffer();
 
     static const IntType all_0_;
     static const IntType all_1_;
@@ -235,7 +235,7 @@ struct hash<genesis::Bitvector>
 {
     size_t operator() (genesis::Bitvector const &rhs) const
     {
-      return rhs.Hash();
+      return rhs.hash();
     }
 };
 

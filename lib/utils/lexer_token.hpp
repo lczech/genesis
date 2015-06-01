@@ -38,7 +38,7 @@ enum class LexerTokenType {
 /**
  * @brief Converts a LexerTokenType into its string representation.
  */
-inline std::string LexerTokentype_to_string (const LexerTokenType t)
+inline std::string lexer_token_type_to_string (const LexerTokenType t)
 {
     switch (t) {
         case LexerTokenType::kError    : return "Error";
@@ -182,7 +182,7 @@ public:
     /**
      * @brief Shortcut to check if this is an error token.
      */
-    inline bool IsError() const
+    inline bool is_error() const
     {
         return type_ == LexerTokenType::kError;
     }
@@ -190,7 +190,7 @@ public:
     /**
      * @brief Shortcut to check if this is an unknown token.
      */
-    inline bool IsUnknown() const
+    inline bool is_unknown() const
     {
         return type_ == LexerTokenType::kUnknown;
     }
@@ -198,7 +198,7 @@ public:
     /**
      * @brief Shortcut to check if this is a whitespace token.
      */
-    inline bool IsWhite() const
+    inline bool is_white() const
     {
         return type_ == LexerTokenType::kWhite;
     }
@@ -206,7 +206,7 @@ public:
     /**
      * @brief Returns the number of new line characters, if this token is a whitespace.
      */
-    inline size_t HasNewLines() const
+    inline size_t has_new_lines() const
     {
         // check if this is actually a whitespace token.
         if (type_ != LexerTokenType::kWhite) {
@@ -227,7 +227,7 @@ public:
     /**
      * @brief Shortcut to check if this is a comment token.
      */
-    inline bool IsComment() const
+    inline bool is_comment() const
     {
         return type_ == LexerTokenType::kComment;
     }
@@ -235,7 +235,7 @@ public:
     /**
      * @brief Shortcut to check if this is a symbol token.
      */
-    inline bool IsSymbol() const
+    inline bool is_symbol() const
     {
         return type_ == LexerTokenType::kSymbol;
     }
@@ -243,7 +243,7 @@ public:
     /**
      * @brief Shortcut to check if this is a number token.
      */
-    inline bool IsNumber() const
+    inline bool is_number() const
     {
         return type_ == LexerTokenType::kNumber;
     }
@@ -251,7 +251,7 @@ public:
     /**
      * @brief Shortcut to check if this is a string token.
      */
-    inline bool IsString() const
+    inline bool is_string() const
     {
         return type_ == LexerTokenType::kString;
     }
@@ -262,7 +262,7 @@ public:
      * There is an overload of this function that also checks if the token is a specific type of
      * bracket.
      */
-    inline bool IsBracket() const
+    inline bool is_bracket() const
     {
         return type_ == LexerTokenType::kBracket;
     }
@@ -270,11 +270,11 @@ public:
     /**
      * @brief Returns whether this token is a given type of bracket.
      *
-     * Usage: `token.IsBracket(")")` will return true if this token is
+     * Usage: `token.is_bracket(")")` will return true if this token is
      * of LexerTokenType kBracket and if it is the closing parenthesis.
      * This is a shortcut for testing type and value at the same time.
      */
-    inline bool IsBracket(const std::string& br) const
+    inline bool is_bracket(const std::string& br) const
     {
         return (type_ == LexerTokenType::kBracket) && (value_.compare(br) == 0);
     }
@@ -285,7 +285,7 @@ public:
      * There is an overload of this function that also checks if the token is a specific type of
      * operator.
      */
-    inline bool IsOperator() const
+    inline bool is_operator() const
     {
         return type_ == LexerTokenType::kOperator;
     }
@@ -293,11 +293,11 @@ public:
     /**
      * @brief Returns whether this token is a given type of operator.
      *
-     * Usage: `token.IsOperator("%")` will return true if this token is
+     * Usage: `token.is_operator("%")` will return true if this token is
      * of LexerTokenType kOperator and if it is the modulo operator.
      * This is a shortcut for testing type and value at the same time.
      */
-    inline bool IsOperator(const std::string& op) const
+    inline bool is_operator(const std::string& op) const
     {
         return (type_ == LexerTokenType::kOperator) && (value_.compare(op) == 0);
     }
@@ -305,7 +305,7 @@ public:
     /**
      * @brief Shortcut to check if this is a tag token.
      */
-    inline bool IsTag() const
+    inline bool is_tag() const
     {
         return type_ == LexerTokenType::kTag;
     }
@@ -319,7 +319,7 @@ public:
      */
     inline std::string type_to_string() const
     {
-        return LexerTokentype_to_string(type_);
+        return lexer_token_type_to_string(type_);
     }
 
 private:

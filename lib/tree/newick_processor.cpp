@@ -56,7 +56,7 @@ bool NewickProcessor::parse_tree (
     //     Loop over lexer tokens and check if it...
     // --------------------------------------------------------------
     for (; ct != end; pt=ct, ++ct) {
-        if (ct->IsUnknown()) {
+        if (ct->is_unknown()) {
             error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
             break;
         }
@@ -64,9 +64,9 @@ bool NewickProcessor::parse_tree (
         // ------------------------------------------------------
         //     is bracket '('  ==>  begin of subtree
         // ------------------------------------------------------
-        if (ct->IsBracket("(")) {
+        if (ct->is_bracket("(")) {
             if (pt != end && !(
-                pt->IsBracket("(")  || pt->IsOperator(",") || pt->IsComment()
+                pt->is_bracket("(")  || pt->is_operator(",") || pt->is_comment()
             )) {
                 error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
                 break;
@@ -88,8 +88,8 @@ bool NewickProcessor::parse_tree (
         // if we reach this, the previous condition is not fullfilled (otherwise, continue would
         // have been called). so we have a token other than '(', which means we should already
         // be somewhere in the tree (or a comment). check, if that is true.
-        if (ct == ct.GetLexer().begin()) {
-            if (ct->IsComment()) {
+        if (ct == ct.get_lexer().begin()) {
+            if (ct->is_comment()) {
                 continue;
             }
             error = "Tree does not start with '(' at " + ct->at() + ".";
@@ -116,28 +116,28 @@ bool NewickProcessor::parse_tree (
             // comma. however, as comments can appear everywhere, we need to check for the first
             // non-comment-token.
             auto t = pt;
-            while (t != pt.GetLexer().begin() && t->IsComment()) {
+            while (t != pt.get_lexer().begin() && t->is_comment()) {
                 --t;
             }
-            node->is_leaf = t->IsBracket("(") || t->IsOperator(",");
+            node->is_leaf = t->is_bracket("(") || t->is_operator(",");
         }
 
         // ------------------------------------------------------
         //     is symbol or string  ==>  label
         // ------------------------------------------------------
-        if (ct->IsSymbol() || ct->IsString()) {
+        if (ct->is_symbol() || ct->is_string()) {
             if (!(
-                pt->IsBracket("(")  || pt->IsBracket(")") ||
-                pt->IsOperator(",") || pt->IsComment()
+                pt->is_bracket("(")  || pt->is_bracket(")") ||
+                pt->is_operator(",") || pt->is_comment()
             )) {
                 error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
                 break;
             }
 
             // populate the node
-            if (ct->IsSymbol()) {
+            if (ct->is_symbol()) {
                 // unquoted labels need to turn underscores into space
-                node->name = StringReplaceAll(ct->value(), "_", " ");
+                node->name = string_replace_all(ct->value(), "_", " ");
             } else {
                 node->name = ct->value();
             }
@@ -147,10 +147,10 @@ bool NewickProcessor::parse_tree (
         // ------------------------------------------------------
         //     is number  ==>  branch length
         // ------------------------------------------------------
-        if (ct->IsNumber()) {
+        if (ct->is_number()) {
             if (!(
-                pt->IsBracket("(") || pt->IsBracket(")")  || pt->IsSymbol() || pt->IsString() ||
-                pt->IsComment()    || pt->IsOperator(",")
+                pt->is_bracket("(") || pt->is_bracket(")")  || pt->is_symbol() || pt->is_string() ||
+                pt->is_comment()    || pt->is_operator(",")
             )) {
                 error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
                 break;
@@ -164,7 +164,7 @@ bool NewickProcessor::parse_tree (
         // ------------------------------------------------------
         //     is tag {}  ==>  tag
         // ------------------------------------------------------
-        if (ct->IsTag()) {
+        if (ct->is_tag()) {
             // in some newick extensions, a tag has a semantic meaning that belongs to the
             // current node/edge, thus we need to store it
 
@@ -176,7 +176,7 @@ bool NewickProcessor::parse_tree (
         // ------------------------------------------------------
         //     is comment []  ==>  comment
         // ------------------------------------------------------
-        if (ct->IsComment()) {
+        if (ct->is_comment()) {
             // in some newick extensions, a comment has a semantic meaning that belongs to the
             // current node/edge, thus we need to store it
 
@@ -188,10 +188,10 @@ bool NewickProcessor::parse_tree (
         // ------------------------------------------------------
         //     is comma ','  ==>  next subtree
         // ------------------------------------------------------
-        if (ct->IsOperator(",")) {
+        if (ct->is_operator(",")) {
             if (!(
-                pt->IsBracket("(") || pt->IsBracket(")") || pt->IsComment() || pt->IsSymbol() ||
-                pt->IsString()     || pt->IsNumber()     || pt->IsTag()     || pt->IsOperator(",")
+                pt->is_bracket("(") || pt->is_bracket(")") || pt->is_comment() || pt->is_symbol() ||
+                pt->is_string()     || pt->is_number()     || pt->is_tag()     || pt->is_operator(",")
             )) {
                 error = "Invalid ',' at " + ct->at() + ".";
                 break;
@@ -213,14 +213,14 @@ bool NewickProcessor::parse_tree (
         // ------------------------------------------------------
         //     is bracket ')'  ==>  end of subtree
         // ------------------------------------------------------
-        if (ct->IsBracket(")")) {
+        if (ct->is_bracket(")")) {
             if (depth == 0) {
                 error = "Too many ')' at " + ct->at() + ".";
                 break;
             }
             if (!(
-                pt->IsBracket(")") || pt->IsTag()    || pt->IsComment()     || pt->IsSymbol() ||
-                pt->IsString()     || pt->IsNumber() || pt->IsOperator(",")
+                pt->is_bracket(")") || pt->is_tag()    || pt->is_comment()     || pt->is_symbol() ||
+                pt->is_string()     || pt->is_number() || pt->is_operator(",")
             )) {
                 error = "Invalid ')' at " + ct->at() + ": '" + ct->value() + "'.";
                 break;
@@ -248,14 +248,14 @@ bool NewickProcessor::parse_tree (
         // ------------------------------------------------------
         //     is semicolon ';'  ==>  end of tree
         // ------------------------------------------------------
-        if (ct->IsOperator(";")) {
+        if (ct->is_operator(";")) {
             if (depth != 0) {
                 error = "Not enough ')' in tree before closing it with ';' at " + ct->at() + ".";
                 break;
             }
             if (!(
-                pt->IsBracket(")") || pt->IsSymbol() || pt->IsString() || pt->IsComment() ||
-                pt->IsNumber()     || pt->IsTag()
+                pt->is_bracket(")") || pt->is_symbol() || pt->is_string() || pt->is_comment() ||
+                pt->is_number()     || pt->is_tag()
             )) {
                 error = "Invalid ';' at " + ct->at() + ": '" + ct->value() + "'.";
                 break;
@@ -281,7 +281,7 @@ bool NewickProcessor::parse_tree (
         return false;
     }
 
-    if (ct == end || !ct->IsOperator(";")) {
+    if (ct == end || !ct->is_operator(";")) {
         LOG_WARN << "Tree does not finish with a semicolon.";
         return false;
     }
@@ -344,10 +344,10 @@ std::string NewickProcessor::element_to_string(const NewickBrokerElement* bn)
 {
     std::string res = "";
     if (print_names) {
-        res += StringReplaceAll(bn->name, " ", "_");
+        res += string_replace_all(bn->name, " ", "_");
     }
     if (print_branch_lengths) {
-        res += ":" + to_stringPrecise(bn->branch_length, precision);
+        res += ":" + to_string_precise(bn->branch_length, precision);
     }
     if (print_comments) {
         for (std::string c : bn->comments) {

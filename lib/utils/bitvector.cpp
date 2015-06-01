@@ -64,7 +64,7 @@ const Bitvector::IntType Bitvector::ones_mask_[Bitvector::IntSize] =
 };
 
 /**
- * @brief Mask used for quickly counting the number of set bits, see Count().
+ * @brief Mask used for quickly counting the number of set bits, see count().
  */
 const Bitvector::IntType Bitvector::count_mask_[4] =
 {
@@ -144,7 +144,7 @@ Bitvector& Bitvector::operator |= (Bitvector const& rhs)
     for (size_t i = 0; i < min_s; ++i) {
         data_[i] |= rhs.data_[i];
     }
-    UnsetBuffer();
+    unset_buffer();
     return *this;
 }
 
@@ -154,14 +154,14 @@ Bitvector& Bitvector::operator ^= (Bitvector const& rhs)
     for (size_t i = 0; i < min_s; ++i) {
         data_[i] ^= rhs.data_[i];
     }
-    UnsetBuffer();
+    unset_buffer();
     return *this;
 }
 
 Bitvector Bitvector::operator ~ () const
 {
     Bitvector cpy = Bitvector(*this);
-    cpy.Invert();
+    cpy.invert();
     return cpy;
 }
 
@@ -182,12 +182,12 @@ bool Bitvector::operator == (const Bitvector &other) const
 //     Other Functions
 // =============================================================================
 
-Bitvector Bitvector::SymmetricDifference (Bitvector const& rhs) const
+Bitvector Bitvector::symmetric_difference (Bitvector const& rhs) const
 {
-    return SymmetricDifference(*this, rhs);
+    return symmetric_difference(*this, rhs);
 }
 
-Bitvector Bitvector::SymmetricDifference (Bitvector const& lhs, Bitvector const& rhs)
+Bitvector Bitvector::symmetric_difference (Bitvector const& lhs, Bitvector const& rhs)
 {
     return (lhs | rhs) & ~(lhs & rhs);
 }
@@ -195,7 +195,7 @@ Bitvector Bitvector::SymmetricDifference (Bitvector const& lhs, Bitvector const&
 /**
  * @brief Counts the number of set bits in the Bitvector.
  */
-size_t Bitvector::Count() const
+size_t Bitvector::count() const
 {
     size_t res = 0;
     for (IntType x : data_) {
@@ -215,7 +215,7 @@ size_t Bitvector::Count() const
     // safe, but slow version...
     //~ size_t tmp = 0;
     //~ for (size_t i = 0; i < size_; ++i) {
-        //~ if (Get(i)) {
+        //~ if (get(i)) {
             //~ ++tmp;
         //~ }
     //~ }
@@ -227,12 +227,12 @@ size_t Bitvector::Count() const
 /**
  * @brief Returns an std::hash value for the Bitvector.
  */
-size_t Bitvector::Hash() const
+size_t Bitvector::hash() const
 {
     // TODO this might be a poor hash function. check what kind of value a hash fct needs to return and decide whether xhash is a good choice instead!
     size_t res = 0;
     for (size_t i = 0; i < size_; ++i) {
-        if (Get(i)) {
+        if (get(i)) {
             res ^= std::hash<size_t>()(i);
         }
     }
@@ -240,10 +240,10 @@ size_t Bitvector::Hash() const
 }
 
 /**
- * @brief Returns a hash value of type IntType, that is quicker to calculate than Hash(), and thus
+ * @brief Returns a hash value of type IntType, that is quicker to calculate than hash(), and thus
  * can be used where the std::hash is not needed.
  */
-Bitvector::IntType Bitvector::XHash() const
+Bitvector::IntType Bitvector::x_hash() const
 {
     IntType res = 0;
     for (IntType e : data_) {
@@ -255,7 +255,7 @@ Bitvector::IntType Bitvector::XHash() const
 /**
  * @brief Flip all bits.
  */
-void Bitvector::Invert()
+void Bitvector::invert()
 {
     // flip all bits.
     for (size_t i = 0; i < data_.size(); ++i) {
@@ -263,26 +263,26 @@ void Bitvector::Invert()
     }
 
     // reset the surplus bits at the end of the vector.
-    UnsetBuffer();
+    unset_buffer();
 }
 
 /**
  * @brief Brings the Bitvector in a normalized form, where the first bit is always zero.
  *
  * If the first bit is zero, nothing happens. However, if is is one, the whole Bitvector is flipped
- * using Invert().
+ * using invert().
  */
-void Bitvector::Normalize()
+void Bitvector::normalize()
 {
-    if (size_ > 0 && Get(0)) {
-        Invert();
+    if (size_ > 0 && get(0)) {
+        invert();
     }
 }
 
 /**
  * @brief Reset all the bits to false. If provided with parameter `true`, sets all bits to true.
  */
-void Bitvector::Reset(bool value)
+void Bitvector::reset(bool value)
 {
     // set according to flag.
     for (size_t i = 0; i < data_.size(); ++i) {
@@ -293,7 +293,7 @@ void Bitvector::Reset(bool value)
 
     // if we initialized with true, we need to unset the surplus bits at the end!
     if (value) {
-        UnsetBuffer();
+        unset_buffer();
     }
 }
 
@@ -304,7 +304,7 @@ void Bitvector::Reset(bool value)
  * bits at its end. In case we do operations with Bitvectors of different size, these might be
  * affected, so we need to reset them to zero sometimes.
  */
-void Bitvector::UnsetBuffer()
+void Bitvector::unset_buffer()
 {
     if (size_ % IntSize == 0) {
         return;
@@ -327,12 +327,12 @@ void Bitvector::UnsetBuffer()
 std::ostream& operator << (std::ostream& s, Bitvector const& rhs)
 {
     for(size_t i = 0; i < rhs.size() ; ++i) {
-        s << (rhs.Get(i) ? "1" : "0");
+        s << (rhs.get(i) ? "1" : "0");
     }
     return s;
 }
 
-std::string Bitvector::Dump() const
+std::string Bitvector::dump() const
 {
     std::string res = "[" + std::to_string(size_) + "]\n";
     for (size_t i = 0; i < size_; ++i) {
@@ -346,7 +346,7 @@ std::string Bitvector::Dump() const
     return res;
 }
 
-std::string Bitvector::DumpInt(IntType x) const
+std::string Bitvector::dump_int(IntType x) const
 {
     std::string res = "";
     for (size_t i = 0; i < IntSize; ++i) {

@@ -21,7 +21,7 @@ namespace genesis {
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * an XmlComment object.
  */
-const XmlComment* XmlValueToComment (const XmlValue* v)
+const XmlComment* xml_value_to_comment (const XmlValue* v)
 {
     if (v->type() != XmlValue::kComment) {
         LOG_WARN << "Invalid conversion from XmlValue::" << v->type_to_string()
@@ -37,7 +37,7 @@ const XmlComment* XmlValueToComment (const XmlValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * an XmlMarkup object.
  */
-const XmlMarkup* XmlValueToMarkup (const XmlValue* v)
+const XmlMarkup* xml_value_to_markup (const XmlValue* v)
 {
     if (v->type() != XmlValue::kMarkup) {
         LOG_WARN << "Invalid conversion from XmlValue::" << v->type_to_string()
@@ -53,7 +53,7 @@ const XmlMarkup* XmlValueToMarkup (const XmlValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * an XmlElement object.
  */
-const XmlElement* XmlValueToElement (const XmlValue* v)
+const XmlElement* xml_value_to_element (const XmlValue* v)
 {
     if (v->type() != XmlValue::kElement) {
         LOG_WARN << "Invalid conversion from XmlValue::" << v->type_to_string()

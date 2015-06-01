@@ -87,7 +87,7 @@ void Logging::report_percentage (const int percentage)
 /**
  * @brief Return a string representation of a log level.
  */
-std::string Logging::Levelto_string(const LoggingLevel level)
+std::string Logging::level_to_string(const LoggingLevel level)
 {
     static const char* const buffer[] = {
         "NONE", "ERR ", "WARN", "INFO", "PROG", "DBG ", "DBG1", "DBG2", "DBG3", "DBG4"
@@ -98,7 +98,7 @@ std::string Logging::Levelto_string(const LoggingLevel level)
 /**
  * @brief Add stdout as output stream to which log messages are written.
  */
-void Logging::LogToStdout ()
+void Logging::log_to_stdout ()
 {
     // check whether stdout was already added.
     for (std::ostream* os : ostreams_) {
@@ -114,7 +114,7 @@ void Logging::LogToStdout ()
 /**
  * @brief Add an output stream to which log messages are written.
  */
-void Logging::LogToStream (std::ostream& os)
+void Logging::log_to_stream (std::ostream& os)
 {
     ostreams_.push_back (&os);
 }
@@ -158,10 +158,10 @@ Logging::~Logging()
         det_buff << count_ << " ";
     }
     if (details_.date) {
-        det_buff << CurrentDate() << " ";
+        det_buff << current_date() << " ";
     }
     if (details_.time) {
-        det_buff << CurrentTime() << " ";
+        det_buff << current_time() << " ";
     }
     if (details_.runtime) {
         det_buff << std::fixed
@@ -190,7 +190,7 @@ Logging::~Logging()
         det_buff << "(" << function_ << ") ";
     }
     if (details_.level) {
-        det_buff << Levelto_string(level_) << " ";
+        det_buff << level_to_string(level_) << " ";
     }
 
     // add spaces for nested debug levels
@@ -204,13 +204,13 @@ Logging::~Logging()
     // and trim trailing whitespace, as we only want one newline at the end
     std::string msg = det_buff.str();
     if (msg.length() > 0) {
-        msg += StringReplaceAll(
+        msg += string_replace_all(
             buff_.str(), "\n", "\n" + std::string(msg.length(), ' ')
         );
     } else {
         msg += buff_.str();
     }
-    msg = StringTrimRight(msg);
+    msg = string_trim_right(msg);
 
     // output the message to every stream, thread safe!
 #   ifdef PTHREADS
@@ -236,12 +236,12 @@ Logging::~Logging()
  *
  * It returns the string stream buffer used to capture the log messages.
  */
-std::ostringstream& Logging::Get(
+std::ostringstream& Logging::get(
     const std::string& file, const int line, const std::string& function,
     const LoggingLevel level
 )
 {
-    return Get(file, line, function, level, details);
+    return get(file, line, function, level, details);
 }
 
 /**
@@ -251,7 +251,7 @@ std::ostringstream& Logging::Get(
  * It stores some relevant information and returns the string stream buffer
  * used to capture the log messages.
  */
-std::ostringstream& Logging::Get(
+std::ostringstream& Logging::get(
     const std::string& file, const int line, const std::string& function,
     const LoggingLevel level, const LoggingDetails dets
 )

@@ -24,7 +24,7 @@ namespace genesis {
 /**
  * @brief Returns true iff the file exists.
  */
-bool FileExists (const std::string& fn)
+bool file_exists (const std::string& fn)
 {
     std::ifstream infile(fn);
     return infile.good();
@@ -35,7 +35,7 @@ bool FileExists (const std::string& fn)
  *
  * If the file does not exist, a warning is triggered and an emtpty string returned.
  */
-std::string FileRead (const std::string& fn)
+std::string file_read (const std::string& fn)
 {
     std::ifstream infile(fn);
     std::string   str;
@@ -57,7 +57,7 @@ std::string FileRead (const std::string& fn)
 /**
  * @brief Writes the content of a string to a file.
  */
-bool FileWrite (const std::string& fn, const std::string& content)
+bool file_write (const std::string& fn, const std::string& content)
 {
     // TODO check if path exists, create if not (make a function for that)
     // TODO check if file exists, trigger warning?, check if writable
@@ -74,7 +74,7 @@ bool FileWrite (const std::string& fn, const std::string& content)
 /**
  * @brief Get a list of files in a directory.
  */
-bool DirListFiles (const std::string& dir, std::vector<std::string>& list)
+bool dir_list_files (const std::string& dir, std::vector<std::string>& list)
 {
     DIR*           dp;
     struct dirent* dirp;
@@ -106,14 +106,14 @@ bool DirListFiles (const std::string& dir, std::vector<std::string>& list)
  * Double quotation marks are preceeded by a backslash, also the backslash itself will be escaped,
  * so that `"` becomes `\"` and `\` becomes `\\`.
  */
-std::string StringEscape (const std::string& text)
+std::string string_escape (const std::string& text)
 {
     std::string tmp;
-    tmp = StringReplaceAll(text, "\r", "\\r");
-    tmp = StringReplaceAll(tmp,  "\n", "\\n");
-    tmp = StringReplaceAll(tmp,  "\t", "\\t");
-    tmp = StringReplaceAll(tmp,  "\"", "\\\"");
-    tmp = StringReplaceAll(tmp,  "\\", "\\\\");
+    tmp = string_replace_all(text, "\r", "\\r");
+    tmp = string_replace_all(tmp,  "\n", "\\n");
+    tmp = string_replace_all(tmp,  "\t", "\\t");
+    tmp = string_replace_all(tmp,  "\"", "\\\"");
+    tmp = string_replace_all(tmp,  "\\", "\\\\");
     return tmp;
 }
 
@@ -126,7 +126,7 @@ std::string StringEscape (const std::string& text)
  * escaped sequences will simply translate into the second char, e.g., a double
  * backslash will become one backslash.
  */
-std::string StringDeescape (const std::string& text)
+std::string string_deescape (const std::string& text)
 {
     // TODO this is not fast. could be better by using char[] (save reallocs)
     std::string tmp = "";
@@ -153,7 +153,7 @@ std::string StringDeescape (const std::string& text)
  * @brief Returns a copy of a string, where all occurences of a search string
  * are replaced by a replace string.
  */
-std::string StringReplaceAll (
+std::string string_replace_all (
     const std::string& text, const std::string& search, const std::string& replace
 ) {
     std::string tmp = text;
@@ -171,7 +171,7 @@ std::string StringReplaceAll (
 
 // inline version
 /*
-void StringReplaceAll(
+void string_replace_all(
     std::string &s, const std::string &search, const std::string &replace
 ) {
     for (size_t pos = 0; ; pos += replace.length() ) {

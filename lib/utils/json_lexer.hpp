@@ -27,10 +27,10 @@ public:
     /** @brief Constructor that sets the basic JSON character types. */
     JsonLexer() {
         // set the special chars for json files
-        SetCharType (LexerTokenType::kBracket,  "[]{}");
-        SetCharType (LexerTokenType::kOperator, ",:");
-        SetCharType (LexerTokenType::kString,   "\"");
-        SetCharType (LexerTokenType::kNumber,   "+-");
+        set_char_type (LexerTokenType::kBracket,  "[]{}");
+        set_char_type (LexerTokenType::kOperator, ",:");
+        set_char_type (LexerTokenType::kString,   "\"");
+        set_char_type (LexerTokenType::kNumber,   "+-");
 
         // set the flags as needed
         include_whitespace        = false;
@@ -51,19 +51,19 @@ protected:
      * if it is one of the three. If so, it is returned as a symbol, oterhwise an error token is
      * produced.
      */
-    inline bool ScanSymbol()
+    inline bool scan_symbol()
     {
-        size_t start = GetPosition();
-        while (!IsEnd() && GetCharType() == LexerTokenType::kSymbol) {
-            NextChar();
+        size_t start = get_position();
+        while (!is_end() && get_char_type() == LexerTokenType::kSymbol) {
+            next_char();
         }
 
-        std::string res = GetSubstr(start, GetPosition());
+        std::string res = get_substr(start, get_position());
         if (res.compare("null") && res.compare("true") && res.compare("false")) {
-            PushToken(LexerTokenType::kError, start, "Invalid symbols: \"" + res + "\"");
+            push_token(LexerTokenType::kError, start, "Invalid symbols: \"" + res + "\"");
             return false;
         }
-        PushToken(LexerTokenType::kSymbol, start, res);
+        push_token(LexerTokenType::kSymbol, start, res);
         return true;
     }
 };

@@ -26,11 +26,11 @@ namespace genesis {
  */
 bool FastaProcessor::from_file (const std::string fn, SequenceSet& aln)
 {
-    if (!FileExists(fn)) {
+    if (!file_exists(fn)) {
         LOG_WARN << "FASTA file '" << fn << "' does not exist.";
         return false;
     }
-    return from_string(FileRead(fn), aln);
+    return from_string(file_read(fn), aln);
 }
 
 /**
@@ -47,7 +47,7 @@ bool FastaProcessor::from_string (const std::string& fs, SequenceSet& aln)
         LOG_INFO << "FASTA document is empty.";
         return false;
     }
-    if (lexer.HasError()) {
+    if (lexer.has_error()) {
         LOG_WARN << "Lexing error at " << lexer.back().at()
                  << " with message: " << lexer.back().value();
         return false;
@@ -63,7 +63,7 @@ bool FastaProcessor::from_string (const std::string& fs, SequenceSet& aln)
     // process all sequences
     while (it != lexer.end()) {
         // parse label
-        if (!it->IsTag()) {
+        if (!it->is_tag()) {
             LOG_WARN << "FASTA sequence does not start with '>' at " << it->at();
             return false;
         }
@@ -73,7 +73,7 @@ bool FastaProcessor::from_string (const std::string& fs, SequenceSet& aln)
         // parse sequence
         seq.str("");
         seq.clear();
-        while (it != lexer.end() && it->IsSymbol()) {
+        while (it != lexer.end() && it->is_symbol()) {
             seq << it->value();
             ++it;
         }
@@ -84,7 +84,7 @@ bool FastaProcessor::from_string (const std::string& fs, SequenceSet& aln)
 
         // there are no other lexer tokens than tag and symbol for fasta files!
         // not even an error token can be produced by the lexer in its current implementation.
-        assert(it == lexer.end() || it->IsTag());
+        assert(it == lexer.end() || it->is_tag());
     }
 
     return true;
@@ -106,13 +106,13 @@ size_t FastaProcessor::line_length = 80;
  */
 bool FastaProcessor::to_file (const SequenceSet& sset, const std::string fn)
 {
-    if (FileExists(fn)) {
+    if (file_exists(fn)) {
         LOG_WARN << "FASTA file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string fs;
     to_string(sset, fs);
-    return FileWrite(fn, fs);
+    return file_write(fn, fs);
 }
 
 /**

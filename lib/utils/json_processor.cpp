@@ -26,11 +26,11 @@ namespace genesis {
  */
 bool JsonProcessor::from_file (const std::string& fn, JsonDocument& document)
 {
-    if (!FileExists(fn)) {
+    if (!file_exists(fn)) {
         LOG_WARN << "JSON file '" << fn << "' does not exist.";
         return false;
     }
-    return from_string(FileRead(fn), document);
+    return from_string(file_read(fn), document);
 }
 
 /**
@@ -48,12 +48,12 @@ bool JsonProcessor::from_string (const std::string& json, JsonDocument& document
         LOG_INFO << "JSON document is empty.";
         return false;
     }
-    if (lexer.HasError()) {
+    if (lexer.has_error()) {
         LOG_WARN << "Lexing error at " << lexer.back().at()
                  << " with message: " << lexer.back().value();
         return false;
     }
-    if (!lexer.begin()->IsBracket("{")) {
+    if (!lexer.begin()->is_bracket("{")) {
         LOG_WARN << "JSON document does not start with JSON object opener '{'.";
         return false;
     }
@@ -64,7 +64,7 @@ bool JsonProcessor::from_string (const std::string& json, JsonDocument& document
     JsonLexer::iterator begin = lexer.begin();
     JsonLexer::iterator end   = lexer.end();
 
-    if (!ParseObject(begin, end, &document)) {
+    if (!parse_object(begin, end, &document)) {
         return false;
     }
 
@@ -85,12 +85,12 @@ bool JsonProcessor::from_string (const std::string& json, JsonDocument& document
 /**
  * @brief Parse a JSON value and fills it with data from the lexer.
  *
- * This function is a bit different from the other two process functions ParseArray() and
- * ParseObject(), because it takes its value parameter by reference. This is because when
+ * This function is a bit different from the other two process functions parse_array() and
+ * parse_object(), because it takes its value parameter by reference. This is because when
  * entering the function it is not clear yet which type of value the current lexer token is, so a
  * new instance has to be created and stored in the pointer.
  */
-bool JsonProcessor::ParseValue (
+bool JsonProcessor::parse_value (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
     JsonValue*&            value
@@ -101,7 +101,7 @@ bool JsonProcessor::ParseValue (
     assert (value == nullptr);
 
     // check all possible valid lexer token types and turn them into json values
-    if (ct->IsSymbol()) {
+    if (ct->is_symbol()) {
         // the lexer only returns null, true or false as symbols, so this is safe
         if (ct->value().compare("null") == 0) {
             value = new JsonValueNull();
@@ -111,23 +111,23 @@ bool JsonProcessor::ParseValue (
         ++ct;
         return true;
     }
-    if (ct->IsNumber()) {
+    if (ct->is_number()) {
         value = new JsonValueNumber(ct->value());
         ++ct;
         return true;
     }
-    if (ct->IsString()) {
+    if (ct->is_string()) {
         value = new JsonValueString(ct->value());
         ++ct;
         return true;
     }
-    if (ct->IsBracket("[")) {
+    if (ct->is_bracket("[")) {
         value = new JsonValueArray();
-        return ParseArray (ct, end, JsonValueToArray(value));
+        return parse_array (ct, end, json_value_to_array(value));
     }
-    if (ct->IsBracket("{")) {
+    if (ct->is_bracket("{")) {
         value = new JsonValueObject();
-        return ParseObject (ct, end, JsonValueToObject(value));
+        return parse_object (ct, end, json_value_to_object(value));
     }
 
     // if the lexer token is not a fitting json value, we have an error
@@ -142,7 +142,7 @@ bool JsonProcessor::ParseValue (
 /**
  * @brief Parse a JSON array and fill it with data elements from the lexer.
  */
-bool JsonProcessor::ParseArray (
+bool JsonProcessor::parse_array (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
     JsonValueArray*        value
@@ -151,7 +151,7 @@ bool JsonProcessor::ParseArray (
     // for this here.
     assert(value);
 
-    if (ct == end || !ct->IsBracket("[")) {
+    if (ct == end || !ct->is_bracket("[")) {
         LOG_WARN << "JSON array does not start with '[' at " << ct->at() << ".";
         return false;
     }
@@ -160,18 +160,18 @@ bool JsonProcessor::ParseArray (
     while (ct != end) {
         // proccess the array element
         JsonValue* element = nullptr;
-        if (!ParseValue(ct, end, element)) {
+        if (!parse_value(ct, end, element)) {
             return false;
         }
-        value->Add(element);
+        value->add(element);
 
         // check for end of array, leave if found
-        if (ct == end || ct->IsBracket("]")) {
+        if (ct == end || ct->is_bracket("]")) {
             break;
         }
 
         // check for delimiter comma (indicates that there are more elements following)
-        if (!ct->IsOperator(",")) {
+        if (!ct->is_operator(",")) {
             LOG_WARN << "JSON array does not contain comma between elements at " << ct->at() << ".";
             return false;
         }
@@ -196,7 +196,7 @@ bool JsonProcessor::ParseArray (
 /**
  * @brief Parse a JSON object and fill it with data members from the lexer.
  */
-bool JsonProcessor::ParseObject (
+bool JsonProcessor::parse_object (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
     JsonValueObject*       value
@@ -205,7 +205,7 @@ bool JsonProcessor::ParseObject (
     // for this here.
     assert(value);
 
-    if (ct == end || !ct->IsBracket("{")) {
+    if (ct == end || !ct->is_bracket("{")) {
         LOG_WARN << "JSON object does not start with '{' at " << ct->at() << ".";
         return false;
     }
@@ -213,7 +213,7 @@ bool JsonProcessor::ParseObject (
     ++ct;
     while (ct != end) {
         // check for name string and store it
-        if (!ct->IsString()) {
+        if (!ct->is_string()) {
             LOG_WARN << "JSON object member does not start with name string at " << ct->at() << ".";
             return false;
         }
@@ -224,7 +224,7 @@ bool JsonProcessor::ParseObject (
         if (ct == end) {
             break;
         }
-        if (!ct->IsOperator(":")) {
+        if (!ct->is_operator(":")) {
             LOG_WARN << "JSON object member does not contain colon between name and value at "
                      << ct->at() << ".";
             return false;
@@ -236,18 +236,18 @@ bool JsonProcessor::ParseObject (
             break;
         }
         JsonValue* member = nullptr;
-        if (!ParseValue(ct, end, member)) {
+        if (!parse_value(ct, end, member)) {
             return false;
         }
-        value->Set(name, member);
+        value->set(name, member);
 
         // check for end of object, leave if found (either way)
-        if (ct == end || ct->IsBracket("}")) {
+        if (ct == end || ct->is_bracket("}")) {
             break;
         }
 
         // check for delimiter comma (indicates that there are more members following)
-        if (!ct->IsOperator(",")) {
+        if (!ct->is_operator(",")) {
             LOG_WARN << "JSON object does not contain comma between members at " << ct->at() << ".";
             return false;
         }
@@ -284,13 +284,13 @@ int JsonProcessor::indent = 4;
  */
 bool JsonProcessor::to_file (const std::string& fn, const JsonDocument& document)
 {
-    if (FileExists(fn)) {
+    if (file_exists(fn)) {
         LOG_WARN << "Json file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string jd;
     to_string(jd, document);
-    return FileWrite(fn, jd);
+    return file_write(fn, jd);
 }
 
 /**
@@ -306,13 +306,13 @@ void JsonProcessor::to_string (std::string& json, const JsonDocument& document)
  */
 std::string JsonProcessor::to_string (const JsonDocument& document)
 {
-    return PrintObject(&document, 0);
+    return print_object(&document, 0);
 }
 
 /**
  * @brief Returns the Json representation of a Json Value.
  */
-std::string JsonProcessor::PrintValue (const JsonValue* value)
+std::string JsonProcessor::print_value (const JsonValue* value)
 {
     switch(value->type()) {
         case JsonValue::kNull:
@@ -321,14 +321,14 @@ std::string JsonProcessor::PrintValue (const JsonValue* value)
             break;
 
         case JsonValue::kNumber:
-            return to_stringPrecise(JsonValueToNumber(value)->value, precision);
+            return to_string_precise(json_value_to_number(value)->value, precision);
             break;
 
         case JsonValue::kString:
-            return "\"" + StringEscape(JsonValueToString(value)->value) + "\"";
+            return "\"" + string_escape(json_value_to_string(value)->value) + "\"";
             break;
 
-        // this function is only called from within PrintArray() and PrintObject(), and both of them
+        // this function is only called from within print_array() and print_object(), and both of them
         // handle those two cases separately. so the assertion holds as long as this function
         // is not called illegaly from a different context.
         case JsonValue::kArray:
@@ -341,7 +341,7 @@ std::string JsonProcessor::PrintValue (const JsonValue* value)
 /**
  * @brief Returns the Json representation of a Json Array.
  */
-std::string JsonProcessor::PrintArray (const JsonValueArray* value, const int indent_level)
+std::string JsonProcessor::print_array (const JsonValueArray* value, const int indent_level)
 {
     int il = indent_level + 1;
     std::string in (il * indent, ' ');
@@ -352,7 +352,7 @@ std::string JsonProcessor::PrintArray (const JsonValueArray* value, const int in
     bool has_large = false;
     for (JsonValueArray::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
         JsonValue* v = *it;
-        has_large |= (v->IsArray() || v->IsObject());
+        has_large |= (v->is_array() || v->is_object());
     }
 
     ss << "[ ";
@@ -365,12 +365,12 @@ std::string JsonProcessor::PrintArray (const JsonValueArray* value, const int in
         if (has_large) {
             ss << "\n" << in;
         }
-        if (v->IsArray()) {
-            ss << PrintArray(JsonValueToArray(v), il);
-        } else if (v->IsObject()) {
-            ss << PrintObject(JsonValueToObject(v), il);
+        if (v->is_array()) {
+            ss << print_array(json_value_to_array(v), il);
+        } else if (v->is_object()) {
+            ss << print_object(json_value_to_object(v), il);
         } else {
-            ss << PrintValue(v);
+            ss << print_value(v);
         }
         first = false;
     }
@@ -387,7 +387,7 @@ std::string JsonProcessor::PrintArray (const JsonValueArray* value, const int in
 /**
  * @brief Returns the Json representation of a Json Object.
  */
-std::string JsonProcessor::PrintObject (const JsonValueObject* value, const int indent_level)
+std::string JsonProcessor::print_object (const JsonValueObject* value, const int indent_level)
 {
     int il = indent_level + 1;
     std::string in (il * indent, ' ');
@@ -401,12 +401,12 @@ std::string JsonProcessor::PrintObject (const JsonValueObject* value, const int 
             ss << ",";
         }
         ss << "\n" << in << "\"" << v.first << "\": ";
-        if (v.second->IsArray()) {
-            ss << PrintArray(JsonValueToArray(v.second), il);
-        } else if (v.second->IsObject()) {
-            ss << PrintObject(JsonValueToObject(v.second), il);
+        if (v.second->is_array()) {
+            ss << print_array(json_value_to_array(v.second), il);
+        } else if (v.second->is_object()) {
+            ss << print_object(json_value_to_object(v.second), il);
         } else {
-            ss << PrintValue(v.second);
+            ss << print_value(v.second);
         }
         first = false;
     }

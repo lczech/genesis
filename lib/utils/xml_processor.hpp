@@ -55,12 +55,12 @@ public:
     static std::string to_string (                        const XmlDocument& document);
 
 protected:
-    static void PrintComment (std::string& xml, const XmlComment* value);
-    static void PrintMarkup  (std::string& xml, const XmlMarkup*  value);
-    static void PrintElement (std::string& xml, const XmlElement* value, const int indent_level);
+    static void print_comment (std::string& xml, const XmlComment* value);
+    static void print_markup  (std::string& xml, const XmlMarkup*  value);
+    static void print_element (std::string& xml, const XmlElement* value, const int indent_level);
 
-    static std::string PrintAttributesList (StringMapType attr);
-    static std::string XmlEscape (const std::string& txt);
+    static std::string print_attributes_list (StringMapType attr);
+    static std::string xml_escape (const std::string& txt);
 };
 
 } // namespace genesis

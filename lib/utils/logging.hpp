@@ -63,13 +63,13 @@ namespace genesis {
 #define GENESIS_LOG(level) \
     if (level > LOG_LEVEL_MAX) ; \
     else if (level > genesis::Logging::max_level()) ; \
-    else genesis::Logging().Get(__FILE__, __LINE__, GENESIS_FUNC, level)
+    else genesis::Logging().get(__FILE__, __LINE__, GENESIS_FUNC, level)
 
 // define a similar log macro, this time changing the details of the message
 #define GENESIS_LOG_DETAILS(level, ...) \
     if (level > LOG_LEVEL_MAX) ; \
     else if (level > genesis::Logging::max_level()) ; \
-    else genesis::Logging().Get(__FILE__, __LINE__, GENESIS_FUNC, level, {__VA_ARGS__})
+    else genesis::Logging().get(__FILE__, __LINE__, GENESIS_FUNC, level, {__VA_ARGS__})
 
 // define standard logging types as macro shortcuts:
 
@@ -170,7 +170,7 @@ namespace genesis {
     else if ((long) LoggingProgressValue(value) % \
         (((long) (quantity) * genesis::Logging::report_percentage() / 100) > 0 ? \
         ((long) (quantity) * genesis::Logging::report_percentage() / 100) : 1) != 0) ; \
-    else genesis::Logging().Get(__FILE__, __LINE__, GENESIS_FUNC, genesis::Logging::kProgress) << \
+    else genesis::Logging().get(__FILE__, __LINE__, GENESIS_FUNC, genesis::Logging::kProgress) << \
     (int) round(100.0 * (double) LoggingProgressValue() / ((quantity) > 0 ? (quantity) : 1)) << "% "
 
 /**
@@ -375,17 +375,17 @@ public:
     ~Logging();
 
     // Logging is kind of singleton, its instances are only provided via the
-    // Get functions. do not allow other instances by blocking the copy
+    // get functions. do not allow other instances by blocking the copy
     // constructors and copy assignment
     Logging (const Logging&) {};
     Logging& operator = (const Logging&) = delete;
 
     // getter for the singleton instance of log, is called by the macros
-    std::ostringstream& Get (
+    std::ostringstream& get (
         const std::string& file, const int line, const std::string& function,
         const LoggingLevel level
     );
-    std::ostringstream& Get (
+    std::ostringstream& get (
         const std::string& file, const int line, const std::string& function,
         const LoggingLevel level, const LoggingDetails dets
     );
@@ -398,8 +398,8 @@ public:
     // TODO allow different levels to be logged to different streams?!
 
     // methods to handle the output streams to write the log messages to
-    static void LogToStdout ();
-    static void LogToStream (std::ostream& os);
+    static void log_to_stdout ();
+    static void log_to_stream (std::ostream& os);
     static void log_to_file   (const std::string& fn);
 
     /**
@@ -423,7 +423,7 @@ public:
     static void report_percentage (const int percentage);
 
     // return a string representation for a log level
-    static std::string Levelto_string (const LoggingLevel level);
+    static std::string level_to_string (const LoggingLevel level);
 
     /** @brief Indention string for Debug Levels 1-4. */
     static std::string debug_indent;
@@ -432,42 +432,42 @@ public:
     //     Static Wrappers
     // -------------------------------------------------------------------
 
-    static inline void LogError (const std::string& msg)
+    static inline void log_error (const std::string& msg)
     {
         LOG_ERR << msg;
     }
 
-    static inline void LogWarning (const std::string& msg)
+    static inline void log_warning (const std::string& msg)
     {
         LOG_WARN << msg;
     }
 
-    static inline void LogInfo (const std::string& msg)
+    static inline void log_info (const std::string& msg)
     {
         LOG_INFO << msg;
     }
 
-    static inline void LogDebug (const std::string& msg)
+    static inline void log_debug (const std::string& msg)
     {
         LOG_DBG << msg;
     }
 
-    static inline void LogDebug1 (const std::string& msg)
+    static inline void log_debug_1 (const std::string& msg)
     {
         LOG_DBG1 << msg;
     }
 
-    static inline void LogDebug2 (const std::string& msg)
+    static inline void log_debug_2 (const std::string& msg)
     {
         LOG_DBG2 << msg;
     }
 
-    static inline void LogDebug3 (const std::string& msg)
+    static inline void log_debug_3 (const std::string& msg)
     {
         LOG_DBG3 << msg;
     }
 
-    static inline void LogDebug4 (const std::string& msg)
+    static inline void log_debug_4 (const std::string& msg)
     {
         LOG_DBG4 << msg;
     }
@@ -506,7 +506,7 @@ protected:
  *
  *     LOG_PROG(++progress, total) << "of something";
  *
- * but it is slow and dirty. If used, Logging().Get(...) has to be expanded by a
+ * but it is slow and dirty. If used, Logging().get(...) has to be expanded by a
  * std::string init parameters, that is used to initialize buff_.str(init).
  *
  * Also, the definition of LOG_PROG that was used for this is:
@@ -525,7 +525,7 @@ inline std::ostringstream& LOG_PROG_FUNC (const int value, const int quantity, c
         return trash;
     } else {
         std::string init = std::to_string((int) round(100.0 * (double) value / quantity)) + "% ";
-        return Logging().Get(file, line, function, Logging::kProgress, Logging::details, init);
+        return Logging().get(file, line, function, Logging::kProgress, Logging::details, init);
     }
 }
 */

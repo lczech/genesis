@@ -37,11 +37,11 @@ size_t PhylipProcessor::label_length = 0;
  */
 bool PhylipProcessor::from_file (const std::string  fn, SequenceSet& aln)
 {
-    if (!FileExists(fn)) {
+    if (!file_exists(fn)) {
         LOG_WARN << "Phylip file '" << fn << "' does not exist.";
         return false;
     }
-    return from_string(FileRead(fn), aln);
+    return from_string(file_read(fn), aln);
 }
 
 /**
@@ -58,7 +58,7 @@ bool PhylipProcessor::from_string (const std::string& fs, SequenceSet& aln)
         LOG_INFO << "Phylip document is empty.";
         return false;
     }
-    if (lexer.HasError()) {
+    if (lexer.has_error()) {
         LOG_WARN << "Lexing error at " << lexer.back().at()
                  << " with message: " << lexer.back().value();
         return false;
@@ -71,14 +71,14 @@ bool PhylipProcessor::from_string (const std::string& fs, SequenceSet& aln)
     std::ostringstream seq;
 
     // read number of sequences
-    if (it == lexer.end() || it->HasNewLines() > 0) {
+    if (it == lexer.end() || it->has_new_lines() > 0) {
         LOG_WARN << "Phylip document begins with invalid new line(s).";
         return false;
     }
-    if (it->IsWhite()) {
+    if (it->is_white()) {
         ++it;
     }
-    if (it == lexer.end() || !it->IsNumber()) {
+    if (it == lexer.end() || !it->is_number()) {
         LOG_WARN << "Phylip document does not state a number of sequences at " << it->at() << ".";
         return false;
     }
@@ -86,14 +86,14 @@ bool PhylipProcessor::from_string (const std::string& fs, SequenceSet& aln)
     ++it;
 
     // read length of sequences
-    if (it == lexer.end() || it->HasNewLines() > 0) {
+    if (it == lexer.end() || it->has_new_lines() > 0) {
         LOG_WARN << "Phylip document begins with invalid new line(s).";
         return false;
     }
-    if (it->IsWhite()) {
+    if (it->is_white()) {
         ++it;
     }
-    if (it == lexer.end() || !it->IsNumber()) {
+    if (it == lexer.end() || !it->is_number()) {
         LOG_WARN << "Phylip document does not state a length of the sequences.";
         return false;
     }
@@ -108,7 +108,7 @@ bool PhylipProcessor::from_string (const std::string& fs, SequenceSet& aln)
     }
 
     // go to first sequence
-    if (it == lexer.end() || it->HasNewLines() != 1) {
+    if (it == lexer.end() || it->has_new_lines() != 1) {
         LOG_WARN << "Phylip document invalid at " << it->at() << ".";
         return false;
     }
@@ -125,7 +125,7 @@ bool PhylipProcessor::from_string (const std::string& fs, SequenceSet& aln)
     }
 
     // process the first batch of lines, which contain the labels.
-    while (it != lexer.end() && it->HasNewLines() != 2) {
+    while (it != lexer.end() && it->has_new_lines() != 2) {
         //
     }
 
@@ -145,13 +145,13 @@ bool PhylipProcessor::from_string (const std::string& fs, SequenceSet& aln)
  */
 bool PhylipProcessor::to_file (const SequenceSet& sset, const std::string fn)
 {
-    if (FileExists(fn)) {
+    if (file_exists(fn)) {
         LOG_WARN << "Phylip file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string fs;
     to_string(sset, fs);
-    return FileWrite(fn, fs);
+    return file_write(fn, fs);
 }
 
 /**

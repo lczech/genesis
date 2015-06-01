@@ -33,11 +33,11 @@ namespace genesis {
 template <class NDT, class EDT>
 bool NewickProcessor::from_file (const std::string& fn, Tree<NDT, EDT>& tree)
 {
-    if (!FileExists(fn)) {
+    if (!file_exists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' does not exist.";
         return false;
     }
-    return from_string(FileRead(fn), tree);
+    return from_string(file_read(fn), tree);
 }
 
 /**
@@ -57,7 +57,7 @@ bool NewickProcessor::from_string (const std::string& ts, Tree<NDT, EDT>& tree)
         LOG_INFO << "Tree is empty. Nothing done.";
         return false;
     }
-    if (lexer.HasError()) {
+    if (lexer.has_error()) {
         LOG_WARN << "Lexing error at " << lexer.back().at()
                  << " with message: " << lexer.back().value();
         return false;
@@ -72,7 +72,7 @@ bool NewickProcessor::from_string (const std::string& ts, Tree<NDT, EDT>& tree)
 
     // see if there is anything other than a comment left
     while (ct != lexer.end()) {
-        if (!ct->IsComment()) {
+        if (!ct->is_comment()) {
             LOG_WARN << "Tree contains more data after the semicolon.";
             return false;
         }
@@ -92,11 +92,11 @@ bool NewickProcessor::from_string (const std::string& ts, Tree<NDT, EDT>& tree)
 template <class NDT, class EDT>
 bool NewickProcessor::from_file (const std::string& fn, TreeSet<NDT, EDT>& tset)
 {
-    if (!FileExists(fn)) {
+    if (!file_exists(fn)) {
         LOG_WARN << "Tree file '" << fn << "' does not exist.";
         return false;
     }
-    return from_string(FileRead(fn), tset);
+    return from_string(file_read(fn), tset);
 }
 
 /**
@@ -126,7 +126,7 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<NDT, EDT>& tse
         LOG_INFO << "Tree is empty. Nothing done.";
         return false;
     }
-    if (lexer.HasError()) {
+    if (lexer.has_error()) {
         LOG_WARN << "Lexing error at " << lexer.back().at()
                  << " with message: " << lexer.back().value();
         return false;
@@ -137,18 +137,18 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<NDT, EDT>& tse
 
     auto ct = lexer.begin();
     while (ct != lexer.end()) {
-        if (ct->IsUnknown()) {
+        if (ct->is_unknown()) {
             error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
             break;
         }
 
-        if (ct->IsComment()) {
+        if (ct->is_comment()) {
             continue;
         }
 
         // Store the name of the current tree; if there is none, use empty string.
         std::string name = "";
-        if (ct->IsSymbol() || ct->IsString()) {
+        if (ct->is_symbol() || ct->is_string()) {
             name = ct->value();
             ++ct;
 
@@ -157,7 +157,7 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<NDT, EDT>& tse
                 break;
             }
 
-            if (!ct->IsOperator("=")) {
+            if (!ct->is_operator("=")) {
                 error = "Invalid character '" + ct->value() + "' at " + ct->at() + ".";
                 break;
             }
@@ -169,7 +169,7 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<NDT, EDT>& tse
             }
         }
 
-        if (!ct->IsBracket("(")) {
+        if (!ct->is_bracket("(")) {
             error = "Invalid character at " + ct->at() + ".";
             break;
         }
@@ -185,7 +185,7 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<NDT, EDT>& tse
         tset.Add(name, tree);
 
         // Let's clean up all tokens used so far. We don't need them anymore.
-        ct.ConsumeHead();
+        ct.consume_head();
     }
 
     if (!error.empty()) {
@@ -321,13 +321,13 @@ void NewickProcessor::build_tree (NewickBroker& broker, Tree<NDT, EDT>& tree)
 template <class NDT, class EDT>
 bool NewickProcessor::to_file   (const Tree<NDT, EDT>& tree, const std::string fn)
 {
-    if (FileExists(fn)) {
+    if (file_exists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
     to_string(tree, ts);
-    return FileWrite(fn, ts);
+    return file_write(fn, ts);
 }
 
 /**

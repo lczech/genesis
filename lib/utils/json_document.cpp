@@ -45,7 +45,7 @@ bool JsonDocument::validate()
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueNull object.
  */
-JsonValueNull* JsonValueToNull (const JsonValue* v)
+JsonValueNull* json_value_to_null (const JsonValue* v)
 {
     if (v->type() != JsonValue::kNull) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()
@@ -61,7 +61,7 @@ JsonValueNull* JsonValueToNull (const JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueBool object.
  */
-JsonValueBool* JsonValueToBool (const JsonValue* v)
+JsonValueBool* json_value_to_bool (const JsonValue* v)
 {
     if (v->type() != JsonValue::kBool) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()
@@ -77,7 +77,7 @@ JsonValueBool* JsonValueToBool (const JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueNumber object.
  */
-JsonValueNumber* JsonValueToNumber (const JsonValue* v)
+JsonValueNumber* json_value_to_number (const JsonValue* v)
 {
     if (v->type() != JsonValue::kNumber) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()
@@ -93,7 +93,7 @@ JsonValueNumber* JsonValueToNumber (const JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueString object.
  */
-JsonValueString* JsonValueToString (const JsonValue* v)
+JsonValueString* json_value_to_string (const JsonValue* v)
 {
     if (v->type() != JsonValue::kString) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()
@@ -109,7 +109,7 @@ JsonValueString* JsonValueToString (const JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueArray object.
  */
-JsonValueArray* JsonValueToArray (const JsonValue* v)
+JsonValueArray* json_value_to_array (const JsonValue* v)
 {
     if (v->type() != JsonValue::kArray) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()
@@ -125,7 +125,7 @@ JsonValueArray* JsonValueToArray (const JsonValue* v)
  * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
  * a JsonValueObject object.
  */
-JsonValueObject* JsonValueToObject (const JsonValue* v)
+JsonValueObject* json_value_to_object (const JsonValue* v)
 {
     if (v->type() != JsonValue::kObject) {
         LOG_WARN << "Invalid conversion from JsonValue::" << v->type_to_string()

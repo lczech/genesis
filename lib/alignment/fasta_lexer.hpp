@@ -23,20 +23,20 @@ class FastaLexer : public Lexer
 public:
     FastaLexer() {
         // whitespaces except new lines (CR and LF) are not part of the fasta format.
-        SetCharType (LexerTokenType::kUnknown,  "\x09\x0B\x0C");
-        SetCharType (LexerTokenType::kUnknown,  " ");
+        set_char_type (LexerTokenType::kUnknown,  "\x09\x0B\x0C");
+        set_char_type (LexerTokenType::kUnknown,  " ");
 
         // we use a tag for marking the label of a sequence.
-        SetCharType (LexerTokenType::kTag,      ">");
+        set_char_type (LexerTokenType::kTag,      ">");
 
         // set the two special fasta symbols for gap and sequence end.
-        SetCharType (LexerTokenType::kSymbol,   "-*");
+        set_char_type (LexerTokenType::kSymbol,   "-*");
 
         // comments start with ; and continue until the end of the line.
-        SetCharType (LexerTokenType::kComment,  ";");
+        set_char_type (LexerTokenType::kComment,  ";");
 
         // digits are not part of fasta sequences.
-        SetCharType (LexerTokenType::kUnknown,   "0123456789");
+        set_char_type (LexerTokenType::kUnknown,   "0123456789");
 
         // set the flags as needed.
         include_whitespace        = false;
@@ -49,41 +49,41 @@ public:
 
 protected:
 
-    inline bool ScanComment()
+    inline bool scan_comment()
     {
         // semicolon is the only char starting a comment. if found, skip it.
-        if (GetChar() != ';') {
+        if (get_char() != ';') {
             return false;
         }
-        NextChar();
+        next_char();
 
         // comments end with a new line. new lines are the only white space, scan until one found.
-        size_t start = GetPosition();
-        while (!IsEnd() && GetCharType() != LexerTokenType::kWhite) {
-            NextChar();
+        size_t start = get_position();
+        while (!is_end() && get_char_type() != LexerTokenType::kWhite) {
+            next_char();
         }
         if (include_comments) {
-            PushToken(LexerTokenType::kComment, start, GetPosition());
+            push_token(LexerTokenType::kComment, start, get_position());
         }
         return true;
     }
 
-    inline bool ScanTag()
+    inline bool scan_tag()
     {
         // the greater sign is the only one used to start a tag. skip it.
-        assert(GetChar() == '>');
-        NextChar();
+        assert(get_char() == '>');
+        next_char();
 
-        if (IsEnd()) {
+        if (is_end()) {
             // TODO error
         }
 
         // scan until we reach a new line (this is the only type of whitespace used in this lexer)
-        size_t start = GetPosition();
-        while (!IsEnd() && GetCharType() != LexerTokenType::kWhite) {
-            NextChar();
+        size_t start = get_position();
+        while (!is_end() && get_char_type() != LexerTokenType::kWhite) {
+            next_char();
         }
-        PushToken(LexerTokenType::kTag, start, GetPosition());
+        push_token(LexerTokenType::kTag, start, get_position());
         return true;
     }
 };

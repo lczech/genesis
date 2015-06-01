@@ -50,11 +50,11 @@ bool JplaceProcessor::correct_invalid_numbers = true;
  */
 bool JplaceProcessor::from_file (const std::string& fn, PlacementMap& placements)
 {
-    if (!FileExists(fn)) {
+    if (!file_exists(fn)) {
         LOG_WARN << "Jplace file '" << fn << "' does not exist.";
         return false;
     }
-    return from_string(FileRead(fn), placements);
+    return from_string(file_read(fn), placements);
 }
 
 /**
@@ -81,7 +81,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     placements.clear();
 
     // check if the version is correct
-    JsonValue* val = doc.Get("version");
+    JsonValue* val = doc.get("version");
     if (!val) {
         LOG_WARN << "Jplace document does not contain a valid version number at key 'version'. "
                  << "Now continuing to parse in the hope that it still works.";
@@ -93,8 +93,8 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     }
 
     // find and process the reference tree
-    val = doc.Get("tree");
-    if (!val || !val->IsString() || !NewickProcessor::from_string(val->to_string(), placements.tree)) {
+    val = doc.get("tree");
+    if (!val || !val->is_string() || !NewickProcessor::from_string(val->to_string(), placements.tree)) {
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
@@ -118,16 +118,16 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     }
 
     // get the field names and store them in array fields
-    val = doc.Get("fields");
-    if (!val || !val->IsArray()) {
+    val = doc.get("fields");
+    if (!val || !val->is_array()) {
         LOG_WARN << "Jplace document does not contain field names at key 'fields'.";
         return false;
     }
-    JsonValueArray* fields_arr = JsonValueToArray(val);
+    JsonValueArray* fields_arr = json_value_to_array(val);
     std::vector<std::string> fields;
     bool has_edge_num = false;
     for (JsonValue* fields_val : *fields_arr) {
-        if (!fields_val->IsString()) {
+        if (!fields_val->is_string()) {
             LOG_WARN << "Jplace document contains a value of type '" << fields_val->type_to_string()
                      << "' instead of a string with a field name at key 'fields'.";
             return false;
@@ -167,20 +167,20 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     }
 
     // find and process the pqueries
-    val = doc.Get("placements");
-    if (!val || !val->IsArray()) {
+    val = doc.get("placements");
+    if (!val || !val->is_array()) {
         LOG_WARN << "Jplace document does not contain pqueries at key 'placements'.";
         return false;
     }
-    JsonValueArray* placements_arr = JsonValueToArray(val);
+    JsonValueArray* placements_arr = json_value_to_array(val);
     for (JsonValue* pqry_val : *placements_arr) {
-        if (!pqry_val->IsObject()) {
+        if (!pqry_val->is_object()) {
             LOG_WARN << "Jplace document contains a value of type '" << pqry_val->type_to_string()
                      << "' instead of an object with a pquery at key 'placements'.";
             return false;
         }
-        JsonValueObject* pqry_obj = JsonValueToObject(pqry_val);
-        if (!pqry_obj->Has("p") || !pqry_obj->Get("p")->IsArray()) {
+        JsonValueObject* pqry_obj = json_value_to_object(pqry_val);
+        if (!pqry_obj->has("p") || !pqry_obj->get("p")->is_array()) {
             LOG_WARN << "Jplace document contains a pquery at key 'placements' that does not "
                      << "contain an array of placements at sub-key 'p'.";
             return false;
@@ -190,13 +190,13 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         Pquery* pqry = new Pquery();
 
         // process the placements and store them in the pquery
-        JsonValueArray* pqry_p_arr = JsonValueToArray(pqry_obj->Get("p"));
+        JsonValueArray* pqry_p_arr = json_value_to_array(pqry_obj->get("p"));
         for (JsonValue* pqry_p_val : *pqry_p_arr) {
-            if (!pqry_p_val->IsArray()) {
+            if (!pqry_p_val->is_array()) {
                 LOG_WARN << "Jplace document contains a pquery with invalid placement at key 'p'.";
                 return false;
             }
-            JsonValueArray* pqry_fields = JsonValueToArray(pqry_p_val);
+            JsonValueArray* pqry_fields = json_value_to_array(pqry_p_val);
             if (pqry_fields->size() != fields.size()) {
                 LOG_WARN << "Jplace document contains a placement fields array with different size "
                          << "than the fields name array.";
@@ -210,7 +210,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                 // only contain numbers (float or int),so we can do this check here once for all
                 // fields, instead of repetition for every field. if in the future there are fields
                 // with non-number type, this check has to go into the single field assignments.
-                if (!pqry_fields->at(i)->IsNumber()) {
+                if (!pqry_fields->at(i)->is_number()) {
                     LOG_WARN << "Jplace document contains pquery where field " << fields[i]
                              << " is of type '" << pqry_fields->at(i)->type_to_string()
                              << "' instead of a number.";
@@ -218,7 +218,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                 }
 
                 // switch on the field name to set the correct value
-                double pqry_place_val = JsonValueToNumber(pqry_fields->at(i))->value;
+                double pqry_place_val = json_value_to_number(pqry_fields->at(i))->value;
                 if (fields[i] == "edge_num") {
                     if (edge_num_map.count(pqry_place_val) == 0) {
                         LOG_WARN << "Jplace document contains a pquery where field 'edge_num' "
@@ -300,25 +300,25 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         }
 
         // check name/named multiplicity validity
-        if (pqry_obj->Has("n") && pqry_obj->Has("nm")) {
+        if (pqry_obj->has("n") && pqry_obj->has("nm")) {
             LOG_WARN << "Jplace document contains a pquery with both an 'n' and an 'nm' key.";
             return false;
         }
-        if (!pqry_obj->Has("n") && !pqry_obj->Has("nm")) {
+        if (!pqry_obj->has("n") && !pqry_obj->has("nm")) {
             LOG_WARN << "Jplace document contains a pquery with neither an 'n' nor an 'nm' key.";
             return false;
         }
 
         // process names
-        if (pqry_obj->Has("n")) {
-            if (!pqry_obj->Get("n")->IsArray()) {
+        if (pqry_obj->has("n")) {
+            if (!pqry_obj->get("n")->is_array()) {
                 LOG_WARN << "Jplace document contains a pquery with key 'n' that is not array.";
                 return false;
             }
 
-            JsonValueArray* pqry_n_arr = JsonValueToArray(pqry_obj->Get("n"));
+            JsonValueArray* pqry_n_arr = json_value_to_array(pqry_obj->get("n"));
             for (JsonValue* pqry_n_val : *pqry_n_arr) {
-                if (!pqry_n_val->IsString()) {
+                if (!pqry_n_val->is_string()) {
                     LOG_WARN << "Jplace document contains a pquery where key 'n' has a "
                              << "non-string field.";
                     return false;
@@ -333,32 +333,32 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         }
 
         // process named multiplicities
-        if (pqry_obj->Has("nm")) {
-            if (!pqry_obj->Get("nm")->IsArray()) {
+        if (pqry_obj->has("nm")) {
+            if (!pqry_obj->get("nm")->is_array()) {
                 LOG_WARN << "Jplace document contains a pquery with key 'nm' that is not array.";
                 return false;
             }
 
-            JsonValueArray* pqry_nm_arr = JsonValueToArray(pqry_obj->Get("nm"));
+            JsonValueArray* pqry_nm_arr = json_value_to_array(pqry_obj->get("nm"));
             for (JsonValue* pqry_nm_val : *pqry_nm_arr) {
-                if (!pqry_nm_val->IsArray()) {
+                if (!pqry_nm_val->is_array()) {
                     LOG_WARN << "Jplace document contains a pquery where key 'nm' has a "
                              << "non-array field.";
                     return false;
                 }
 
-                JsonValueArray * pqry_nm_val_arr = JsonValueToArray(pqry_nm_val);
+                JsonValueArray * pqry_nm_val_arr = json_value_to_array(pqry_nm_val);
                 if (pqry_nm_val_arr->size() != 2) {
                     LOG_WARN << "Jplace document contains a pquery where key 'nm' has an array "
                              << "field with size != 2 (one for the name, one for the multiplicity).";
                     return false;
                 }
-                if (!pqry_nm_val_arr->at(0)->IsString()) {
+                if (!pqry_nm_val_arr->at(0)->is_string()) {
                     LOG_WARN << "Jplace document contains a pquery where key 'nm' has an array "
                              << "whose first value is not a string for the name.";
                     return false;
                 }
-                if (!pqry_nm_val_arr->at(1)->IsNumber()) {
+                if (!pqry_nm_val_arr->at(1)->is_number()) {
                     LOG_WARN << "Jplace document contains a pquery where key 'nm' has an array "
                              << "whose second value is not a number for the multiplicity.";
                     return false;
@@ -366,7 +366,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
 
                 PqueryName* pqry_name   = new PqueryName();
                 pqry_name->name         = pqry_nm_val_arr->at(0)->to_string();
-                pqry_name->multiplicity = JsonValueToNumber(pqry_nm_val_arr->at(1))->value;
+                pqry_name->multiplicity = json_value_to_number(pqry_nm_val_arr->at(1))->value;
                 if (pqry_name->multiplicity < 0.0) {
                     LOG_WARN << "Jplace document contains pquery with negative multiplicity at "
                              << "name '" << pqry_name->name << "'.";
@@ -381,9 +381,9 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     }
 
     // check if there is metadata
-    val = doc.Get("metadata");
-    if (val && val->IsObject()) {
-        JsonValueObject* meta_obj = JsonValueToObject(val);
+    val = doc.get("metadata");
+    if (val && val->is_object()) {
+        JsonValueObject* meta_obj = json_value_to_object(val);
         for (JsonValueObject::ObjectPair meta_pair : *meta_obj) {
             placements.metadata[meta_pair.first] = meta_pair.second->to_string();
         }
@@ -401,13 +401,13 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
  */
 bool JplaceProcessor::to_file (const PlacementMap& placements, const std::string fn)
 {
-    if (FileExists(fn)) {
+    if (file_exists(fn)) {
         LOG_WARN << "Jplace file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
     to_string(placements, ts);
-    return FileWrite(fn, ts);
+    return file_write(fn, ts);
 }
 
 /**
@@ -440,7 +440,7 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
     NewickProcessor::print_branch_lengths = true;
     NewickProcessor::print_comments       = false;
     NewickProcessor::print_tags           = true;
-    doc.Set("tree", new JsonValueString(NewickProcessor::to_string(placements.tree)));
+    doc.set("tree", new JsonValueString(NewickProcessor::to_string(placements.tree)));
 
     // set placements
     JsonValueArray* placements_arr = new JsonValueArray();
@@ -463,7 +463,7 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
             pqry_fields->push_back(new JsonValueNumber(pqry_place->pendant_length));
             pqry_p_arr->push_back(pqry_fields);
         }
-        jpqry->Set("p", pqry_p_arr);
+        jpqry->set("p", pqry_p_arr);
 
         // find out whether names have multiplicity
         bool has_nm = false;
@@ -480,16 +480,16 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
                 pqry_nm_val->push_back(new JsonValueNumber(pqry_name->multiplicity));
                 pqry_nm_arr->push_back(pqry_nm_val);
             }
-            jpqry->Set("nm", pqry_nm_arr);
+            jpqry->set("nm", pqry_nm_arr);
         } else {
             JsonValueArray* pqry_n_arr  = new JsonValueArray();
             for (PqueryName* pqry_name : pqry->names) {
                 pqry_n_arr->push_back(new JsonValueString(pqry_name->name));
             }
-            jpqry->Set("n", pqry_n_arr);
+            jpqry->set("n", pqry_n_arr);
         }
     }
-    doc.Set("placements", placements_arr);
+    doc.set("placements", placements_arr);
 
     // set fields
     JsonValueArray* jfields = new JsonValueArray();
@@ -498,15 +498,15 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
     jfields->push_back(new JsonValueString("like_weight_ratio"));
     jfields->push_back(new JsonValueString("distal_length"));
     jfields->push_back(new JsonValueString("pendant_length"));
-    doc.Set("fields", jfields);
+    doc.set("fields", jfields);
 
     // set version
-    doc.Set("version", new JsonValueNumber(3));
+    doc.set("version", new JsonValueNumber(3));
 
     // set metadata
     JsonValueObject* jmetadata = new JsonValueObject();
-    jmetadata->Set("invocation", new JsonValueString(Options::GetCommandLineString()));
-    doc.Set("metadata", jmetadata);
+    jmetadata->set("invocation", new JsonValueString(Options::get_command_line_string()));
+    doc.set("metadata", jmetadata);
 }
 
 } // namespace genesis

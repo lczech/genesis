@@ -28,14 +28,14 @@ public:
     //     Initialization
     // -----------------------------------------------------
 
-    static void Init (int argc, char* argv[]);
+    static void init (int argc, char* argv[]);
 
     // -----------------------------------------------------
     //     Getter for Properties
     // -----------------------------------------------------
 
-    static std::vector<std::string> GetCommandLine ();
-    static std::string              GetCommandLineString ();
+    static std::vector<std::string> get_command_line ();
+    static std::string              get_command_line_string ();
 
     // -----------------------------------------------------
     //     Data Members

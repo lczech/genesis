@@ -65,32 +65,32 @@ public:
         return type_;
     }
 
-    inline bool IsNull()
+    inline bool is_null()
     {
         return type_ == kNull;
     }
 
-    inline bool IsBool()
+    inline bool is_bool()
     {
         return type_ == kBool;
     }
 
-    inline bool IsNumber()
+    inline bool is_number()
     {
         return type_ == kNumber;
     }
 
-    inline bool IsString()
+    inline bool is_string()
     {
         return type_ == kString;
     }
 
-    inline bool IsArray()
+    inline bool is_array()
     {
         return type_ == kArray;
     }
 
-    inline bool IsObject()
+    inline bool is_object()
     {
         return type_ == kObject;
     }
@@ -344,7 +344,7 @@ public:
     /**
      * @brief Alias of push_back().
      */
-    inline void Add (JsonValue* value)
+    inline void add (JsonValue* value)
     {
         data_.push_back(value);
     }
@@ -451,13 +451,13 @@ public:
 
     /**
      * @brief Provides index based array access to the object, doing a
-     * boundary check first. This is an alias for Get().
+     * boundary check first. This is an alias for get().
      *
      * In out of bounds cases, a `nullptr` is returned.
      */
     inline JsonValue* at(const std::string& name) const
     {
-        return Get(name);
+        return get(name);
     }
 
     /**
@@ -479,7 +479,7 @@ public:
     /**
      * @brief Returns true iff the object contains a certain key.
      */
-    inline bool Has (const std::string& name) const
+    inline bool has (const std::string& name) const
     {
         return data_.count(name) > 0;
     }
@@ -487,9 +487,9 @@ public:
     /**
      * @brief Returns the value of a certain key if present in the object, `nullptr` otherwise.
      */
-    inline JsonValue* Get (const std::string& name) const
+    inline JsonValue* get (const std::string& name) const
     {
-        if (Has(name)) {
+        if (has(name)) {
             return data_.at(name);
         } else {
             return nullptr;
@@ -522,7 +522,7 @@ public:
     /**
      * @brief Sets the value for a certain key.
      */
-    inline void Set (const std::string& name, JsonValue* value)
+    inline void set (const std::string& name, JsonValue* value)
     {
         data_[name] = value;
     }
@@ -568,7 +568,7 @@ public:
 
     bool validate();
 
-    inline std::string Dump() const
+    inline std::string dump() const
     {
         return "(Json Document)";
     }
@@ -579,12 +579,12 @@ public:
 // =============================================================================
 
 // TODO const correctness is heavily violated here!
-JsonValueNull*   JsonValueToNull   (const JsonValue* v);
-JsonValueBool*   JsonValueToBool   (const JsonValue* v);
-JsonValueNumber* JsonValueToNumber (const JsonValue* v);
-JsonValueString* JsonValueToString (const JsonValue* v);
-JsonValueArray*  JsonValueToArray  (const JsonValue* v);
-JsonValueObject* JsonValueToObject (const JsonValue* v);
+JsonValueNull*   json_value_to_null   (const JsonValue* v);
+JsonValueBool*   json_value_to_bool   (const JsonValue* v);
+JsonValueNumber* json_value_to_number (const JsonValue* v);
+JsonValueString* json_value_to_string (const JsonValue* v);
+JsonValueArray*  json_value_to_array  (const JsonValue* v);
+JsonValueObject* json_value_to_object (const JsonValue* v);
 
 } // namespace genesis
 

@@ -53,17 +53,17 @@ public:
         return type_;
     }
 
-    inline bool IsComment()
+    inline bool is_comment()
     {
         return type_ == kComment;
     }
 
-    inline bool IsMarkup()
+    inline bool is_markup()
     {
         return type_ == kMarkup;
     }
 
-    inline bool IsElement()
+    inline bool is_element()
     {
         return type_ == kElement;
     }
@@ -181,9 +181,9 @@ public:
 //     Converter Functions
 // =============================================================================
 
-const XmlComment* XmlValueToComment (const XmlValue* v);
-const XmlMarkup*  XmlValueToMarkup  (const XmlValue* v);
-const XmlElement* XmlValueToElement (const XmlValue* v);
+const XmlComment* xml_value_to_comment (const XmlValue* v);
+const XmlMarkup*  xml_value_to_markup  (const XmlValue* v);
+const XmlElement* xml_value_to_element (const XmlValue* v);
 
 } // namespace genesis
 

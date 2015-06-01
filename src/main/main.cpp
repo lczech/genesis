@@ -52,7 +52,7 @@ int main (int argc, char* argv[])
     //     Program startup routines
     // =============================================================================
 
-    Logging::LogToStdout();
+    Logging::log_to_stdout();
     //~ Logging::details.level = true;
     //~ Logging::details.file = true;
     //~ Logging::details.line = true;
@@ -62,7 +62,7 @@ int main (int argc, char* argv[])
     //~ Logging::details.runtime = true;
     //~ Logging::details.rundiff = true;
     LOG_BOLD << print_header();
-    Options::Init(argc, argv);
+    Options::init(argc, argv);
     LOG_TIME << "started";
 
     //~ Plausibility p;

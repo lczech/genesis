@@ -56,7 +56,7 @@ public:
 
     inline void invert()
     {
-        leaf_nodes_.Invert();
+        leaf_nodes_.invert();
         link_ = link_->outer();
     }
 

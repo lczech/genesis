@@ -200,7 +200,7 @@ template <class NDT, class EDT>
 typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::find_node(std::string name) const
 {
     // TODO check first whether replacing underscores is necessary!
-    name = StringReplaceAll(name, "_", " ");
+    name = string_replace_all(name, "_", " ");
     for (NodeType* n : nodes_) {
         if (n->name == name) {
             return n;
@@ -708,7 +708,7 @@ std::string Tree<NDT, EDT>::dump() const
     do {
         NodeType* n = l->node();
         std::string indent = std::string(4 * depth[n->index()], ' ');
-        if (!Contains(done, n->index())) {
+        if (!contains(done, n->index())) {
             out << indent << "\033[1;31mNode " << n->index() << ": \"" << n->name << "\"\033[0m\n";
         }
         done.push_back(n->index());

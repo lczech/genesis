@@ -59,19 +59,19 @@ public:
 
 protected:
 
-    static bool ParseValue (
+    static bool parse_value (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
         JsonValue*&          value
     );
 
-    static bool ParseArray (
+    static bool parse_array (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
         JsonValueArray*      value
     );
 
-    static bool ParseObject (
+    static bool parse_object (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
         JsonValueObject*     value
@@ -90,9 +90,9 @@ public:
     static std::string to_string (                         const JsonDocument& document);
 
 protected:
-    static std::string PrintValue  (const JsonValue*       value);
-    static std::string PrintArray  (const JsonValueArray*  value, const int indent_level);
-    static std::string PrintObject (const JsonValueObject* value, const int indent_level);
+    static std::string print_value  (const JsonValue*       value);
+    static std::string print_array  (const JsonValueArray*  value, const int indent_level);
+    static std::string print_object (const JsonValueObject* value, const int indent_level);
 };
 
 } // namespace genesis

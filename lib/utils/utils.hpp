@@ -28,15 +28,15 @@ namespace genesis {
 //     First: function declaractions.
 // =============================================================================
 
-bool        FileExists (const std::string& fn);
-std::string FileRead   (const std::string& fn);
-bool        FileWrite  (const std::string& fn, const std::string& content);
+bool        file_exists (const std::string& fn);
+std::string file_read   (const std::string& fn);
+bool        file_write  (const std::string& fn, const std::string& content);
 
-bool        DirListFiles (const std::string& dir, std::vector<std::string>& list);
+bool        dir_list_files (const std::string& dir, std::vector<std::string>& list);
 
-std::string StringEscape   (const std::string& text);
-std::string StringDeescape (const std::string& text);
-std::string StringReplaceAll (
+std::string string_escape   (const std::string& text);
+std::string string_deescape (const std::string& text);
+std::string string_replace_all (
     const std::string& text,
     const std::string& search,
     const std::string& replace
@@ -58,7 +58,7 @@ std::string StringReplaceAll (
  * present in the container.
  */
 template<class C, class T>
-bool Contains(const C& v, const T& x)
+bool contains(const C& v, const T& x)
 {
     return std::end(v) != std::find(std::begin(v), std::end(v), x);
 }
@@ -82,7 +82,7 @@ std::unique_ptr<T> make_unique(Args&&... args)
 /**
  * @brief Returns the current date as a string in the format "2014-12-31".
  */
-inline std::string CurrentDate()
+inline std::string current_date()
 {
     time_t now = time(0);
     tm*    ltm = localtime(&now);
@@ -97,7 +97,7 @@ inline std::string CurrentDate()
 /**
  * @brief Returns the current time as a string in the format "13:37:42".
  */
-inline std::string CurrentTime()
+inline std::string current_time()
 {
     time_t now = time(0);
     tm*    ltm = localtime(&now);
@@ -118,13 +118,13 @@ inline std::string ee(int r)
 // ---------------------------------------------------------
 
 /** @brief Returns whether a char is a digit (0-9). */
-inline bool CharIsDigit (const char c)
+inline bool char_is_digit (const char c)
 {
     return ('0' <= c) && (c <= '9');
 }
 
 /** @brief Returns whether a char is a sign (+-). */
-inline bool CharIsSign (const char c)
+inline bool char_is_sign (const char c)
 {
     return ('+' == c) || ('-' == c);
 }
@@ -132,7 +132,7 @@ inline bool CharIsSign (const char c)
 /**
  * @brief Returns whether two chars are the same, case insensitive.
  */
-inline bool CharMatch(const char c1, const char c2)
+inline bool char_match(const char c1, const char c2)
 {
     return std::tolower(c1) == std::tolower(c2);
 }
@@ -141,7 +141,7 @@ inline bool CharMatch(const char c1, const char c2)
  * @brief Returns a precise(er than to_string) string representation of the input value.
  */
 template <typename T>
-inline std::string to_stringPrecise (const T value, const int precision = 6)
+inline std::string to_string_precise (const T value, const int precision = 6)
 {
     std::ostringstream out;
     out << std::setprecision(precision) << value;
@@ -151,7 +151,7 @@ inline std::string to_stringPrecise (const T value, const int precision = 6)
 /**
  * @brief Returns a copy of the input string, with left trimmed white spaces.
  */
-inline std::string StringTrimRight (
+inline std::string string_trim_right (
     const std::string& s,
     const std::string& delimiters = " \f\n\r\t\v"
 ) {
@@ -161,7 +161,7 @@ inline std::string StringTrimRight (
 /**
  * @brief Returns a copy of the input string, with right trimmed white spaces.
  */
-inline std::string StringTrimLeft (
+inline std::string string_trim_left (
     const std::string& s,
     const std::string& delimiters = " \f\n\r\t\v"
 ) {
@@ -171,16 +171,16 @@ inline std::string StringTrimLeft (
 /**
  * @brief Returns a copy of the input string, with trimmed white spaces.
  */
-inline std::string StringTrim (
+inline std::string string_trim (
     const std::string& s,
     const std::string& delimiters = " \f\n\r\t\v"
 ) {
-    return StringTrimLeft(StringTrimRight(s, delimiters), delimiters);
+    return string_trim_left(string_trim_right(s, delimiters), delimiters);
 }
 
-inline std::string StringUnifyNewlines(const std::string& s)
+inline std::string string_unify_newlines(const std::string& s)
 {
-    // TODO StringUnifyNewlines
+    // TODO string_unify_newlines
     return s;
 }
 

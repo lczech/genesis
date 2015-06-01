@@ -23,11 +23,11 @@ namespace genesis {
 std::string XmlProcessor::XmlDescape (std::string& xml)
 {
     std::string res;
-    res = StringReplaceAll(xml, "&lt;",   "<");
-    res = StringReplaceAll(res, "&gt;",   ">");
-    res = StringReplaceAll(res, "&amp;",  "&");
-    res = StringReplaceAll(res, "&apos;", "'");
-    res = StringReplaceAll(res, "&quot;", "\"");
+    res = string_replace_all(xml, "&lt;",   "<");
+    res = string_replace_all(res, "&gt;",   ">");
+    res = string_replace_all(res, "&amp;",  "&");
+    res = string_replace_all(res, "&apos;", "'");
+    res = string_replace_all(res, "&quot;", "\"");
     return res;
 }
 */
@@ -46,13 +46,13 @@ int XmlProcessor::indent = 4;
  */
 bool XmlProcessor::to_file (const std::string& fn, const XmlDocument& document)
 {
-    if (FileExists(fn)) {
+    if (file_exists(fn)) {
         LOG_WARN << "XML file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string xml;
     to_string(xml, document);
-    return FileWrite(fn, xml);
+    return file_write(fn, xml);
 }
 
 /**
@@ -70,16 +70,16 @@ std::string XmlProcessor::to_string (const XmlDocument& document)
 {
     std::string res = "";
     if (!document.xml_tag.empty() || !document.declarations.empty()) {
-        res = "<?" + document.xml_tag + PrintAttributesList(document.declarations) + "?>\n";
+        res = "<?" + document.xml_tag + print_attributes_list(document.declarations) + "?>\n";
     }
-    PrintElement(res, &document, 0);
+    print_element(res, &document, 0);
     return res + "\n";
 }
 
 /**
  * @brief Prints an XML comment.
  */
-void XmlProcessor::PrintComment (std::string& xml, const XmlComment* value)
+void XmlProcessor::print_comment (std::string& xml, const XmlComment* value)
 {
     xml += "<!--" + value->content + "-->";
 }
@@ -87,19 +87,19 @@ void XmlProcessor::PrintComment (std::string& xml, const XmlComment* value)
 /**
  * @brief Prints an XML markup (simple text).
  */
-void XmlProcessor::PrintMarkup  (std::string& xml, const XmlMarkup*  value)
+void XmlProcessor::print_markup  (std::string& xml, const XmlMarkup*  value)
 {
-    xml += XmlEscape(value->content);
+    xml += xml_escape(value->content);
 }
 
 /**
  * @brief Prints an XML element.
  */
-void XmlProcessor::PrintElement (std::string& xml, const XmlElement* value, const int indent_level)
+void XmlProcessor::print_element (std::string& xml, const XmlElement* value, const int indent_level)
 {
     // prepare indention and open tag
     std::string in0 (indent_level * indent, ' ');
-    xml += in0 + "<" + value->tag + PrintAttributesList(value->attributes);
+    xml += in0 + "<" + value->tag + print_attributes_list(value->attributes);
 
     // if it's an empty element, close it, and we are done
     if (value->content.size() == 0) {
@@ -110,21 +110,21 @@ void XmlProcessor::PrintElement (std::string& xml, const XmlElement* value, cons
     // if the element only contains a single markup, don't add new lines. however, if it contains
     // more data, put each of them in a new line
     xml += ">";
-    if (value->content.size() == 1 && value->content[0]->IsMarkup()) {
-        PrintMarkup(xml, XmlValueToMarkup(value->content[0]));
+    if (value->content.size() == 1 && value->content[0]->is_markup()) {
+        print_markup(xml, xml_value_to_markup(value->content[0]));
     } else {
         std::string in1 ((indent_level + 1) * indent, ' ');
         xml += "\n";
 
         for (XmlValue* v : value->content) {
-            if (v->IsComment()) {
+            if (v->is_comment()) {
                 xml += in1;
-                PrintComment(xml, XmlValueToComment(v));
-            } else if (v->IsMarkup()) {
+                print_comment(xml, xml_value_to_comment(v));
+            } else if (v->is_markup()) {
                 xml += in1;
-                PrintMarkup(xml, XmlValueToMarkup(v));
-            } else if (v->IsElement()) {
-                PrintElement(xml, XmlValueToElement(v), indent_level + 1);
+                print_markup(xml, xml_value_to_markup(v));
+            } else if (v->is_element()) {
+                print_element(xml, xml_value_to_element(v), indent_level + 1);
             } else {
                 // there are no other cases
                 assert(0);
@@ -140,7 +140,7 @@ void XmlProcessor::PrintElement (std::string& xml, const XmlElement* value, cons
 /**
  * @brief Prints a list of XML attributes.
  */
-std::string XmlProcessor::PrintAttributesList (StringMapType attr)
+std::string XmlProcessor::print_attributes_list (StringMapType attr)
 {
     std::string xml;
     for (auto pair : attr) {
@@ -152,14 +152,14 @@ std::string XmlProcessor::PrintAttributesList (StringMapType attr)
 /**
  * @brief Escape special XML characters.
  */
-std::string XmlProcessor::XmlEscape (const std::string& txt)
+std::string XmlProcessor::xml_escape (const std::string& txt)
 {
     std::string res;
-    res = StringReplaceAll(txt, "<",  "&lt;");
-    res = StringReplaceAll(res, ">",  "&gt;");
-    res = StringReplaceAll(res, "&",  "&amp;");
-    res = StringReplaceAll(res, "'",  "&apos;");
-    res = StringReplaceAll(res, "\"", "&quot;");
+    res = string_replace_all(txt, "<",  "&lt;");
+    res = string_replace_all(res, ">",  "&gt;");
+    res = string_replace_all(res, "&",  "&amp;");
+    res = string_replace_all(res, "'",  "&apos;");
+    res = string_replace_all(res, "\"", "&quot;");
     return res;
 }
 

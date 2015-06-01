@@ -44,7 +44,7 @@ public:
     //     Member Functions
     // -----------------------------------------------------
 
-    inline Lexer& GetLexer() const
+    inline Lexer& get_lexer() const
     {
         return *lexer_;
     }
@@ -52,9 +52,9 @@ public:
     /**
      * @brief Returns whether there appeared an error while lexing.
      */
-    inline bool HasError() const
+    inline bool has_error() const
     {
-        return !lexer_->tokens_.empty() && lexer_->tokens_.back().IsError();
+        return !lexer_->tokens_.empty() && lexer_->tokens_.back().is_error();
     }
 
     /**
@@ -63,7 +63,7 @@ public:
      * This is a slow operation, thus should not be called in the inner parsing loop. It is meant
      * to save memory when reading and parsing large files.
      */
-    inline void ConsumeHead()
+    inline void consume_head()
     {
         lexer_->tokens_.erase(lexer_->tokens_.begin(), lexer_->tokens_.begin() + position_);
         position_ = 0;
@@ -84,7 +84,7 @@ public:
         // go to next position, produce token if needed, and set position to end marker when done.
         ++position_;
         while (lexer_->tokens_.size() <= static_cast<size_t> (position_)) {
-            if (!lexer_->ProcessStep()) {
+            if (!lexer_->process_step()) {
                 position_ = -1;
                 break;
             }

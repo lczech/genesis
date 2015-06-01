@@ -97,7 +97,7 @@ typename BipartitionSet<NDT, EDT>::BipartitionType* BipartitionSet<NDT, EDT>::fi
             LOG_WARN << "Node at index " << n->index() << " is not leaf.";
             continue;
         }
-        comp.Set(leaf_idx);
+        comp.set(leaf_idx);
     }
 
     BipartitionType* best_bp   = nullptr;

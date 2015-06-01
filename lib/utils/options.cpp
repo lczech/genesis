@@ -29,7 +29,7 @@ std::vector<std::string>  Options::arguments;
 /**
  * @brief Init method that takes the program's command line arguments.
  */
-void Options::Init (int argc, char* argv[])
+void Options::init (int argc, char* argv[])
 {
     // store all arguments in the array.
     for (int i = 0; i < argc; i++) {
@@ -49,7 +49,7 @@ void Options::Init (int argc, char* argv[])
 /**
  * @brief Returns an array of strings containing the program's command line arguments.
  */
-std::vector<std::string> Options::GetCommandLine ()
+std::vector<std::string> Options::get_command_line ()
 {
     return Options::arguments;
 }
@@ -57,7 +57,7 @@ std::vector<std::string> Options::GetCommandLine ()
 /**
  * @brief Returns a string containing the program's command line arguments.
  */
-std::string Options::GetCommandLineString ()
+std::string Options::get_command_line_string ()
 {
     std::string ret = "";
     for (size_t i = 0; i < arguments.size(); ++i) {

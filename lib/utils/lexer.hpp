@@ -35,7 +35,7 @@ class LexerIterator;
  * comments, strings, operators etc, it has to be derived.
  *
  * When doing so, have a look at GetToken() to learn about how this class works.
- * Also, see SetCharType() for more information on how to change which characters
+ * Also, see set_char_type() for more information on how to change which characters
  * are interpreted as which type of token.
  */
 class Lexer
@@ -48,11 +48,11 @@ public:
     bool from_file   (const std::string& fn);
     bool from_string (const std::string& in);
 
-    bool ProcessStep();
-    bool ProcessAll();
+    bool process_step();
+    bool process_all();
 
-    bool validateBrackets() const;
-    std::string Dump() const;
+    bool validate_brackets() const;
+    std::string dump() const;
 
     // -------------------------------------------------------------------------
     //     Settings
@@ -108,7 +108,7 @@ public:
      * @brief Determines whether the quotation marks shall be included
      * when a literal string is found.
      *
-     * Strings are usually enclosed in 'abc' or "def", see ScanString() for more
+     * Strings are usually enclosed in 'abc' or "def", see scan_string() for more
      * details on that. The value of trim_quotation_marks determines
      * whether those marks are included in the final token or not.
      * Default is to not include them, which makes preprocessing of the
@@ -127,7 +127,7 @@ public:
      * line and so on.
      *
      * This only affects literal strings, typically enclosed in 'abc' or
-     * "def". See ScanString() for more.
+     * "def". See scan_string() for more.
      */
     bool use_string_escape = false;
 
@@ -143,7 +143,7 @@ public:
      * around `"Hello World"`.
      *
      * The type of quotation marks used here depends on which chars are set
-     * to LexerTokenType kString using SetCharType(). See ScanString() for more.
+     * to LexerTokenType kString using set_char_type(). See scan_string() for more.
      */
     bool use_string_doubled_quotes = false;
 
@@ -197,9 +197,9 @@ public:
     }
 
     /** @brief Returns whether there appeared an error while lexing. */
-    inline bool HasError() const
+    inline bool has_error() const
     {
-        return !tokens_.empty() && tokens_.back().IsError();
+        return !tokens_.empty() && tokens_.back().is_error();
     }
 
 protected:
@@ -207,20 +207,20 @@ protected:
     //     Internal functions
     // -------------------------------------------------------------------------
 
-    bool EvaluateFromTo (const char* from, const char* to);
+    bool evaluate_from_to (const char* from, const char* to);
 
-    virtual bool ScanUnknown();
-    virtual bool ScanWhitespace();
-    virtual bool ScanComment();
-    virtual bool ScanSymbol();
-    virtual bool ScanNumber();
-    virtual bool ScanString();
-    virtual bool ScanOperator();
-    virtual bool ScanBracket();
-    virtual bool ScanTag();
+    virtual bool scan_unknown();
+    virtual bool scan_whitespace();
+    virtual bool scan_comment();
+    virtual bool scan_symbol();
+    virtual bool scan_number();
+    virtual bool scan_string();
+    virtual bool scan_operator();
+    virtual bool scan_bracket();
+    virtual bool scan_tag();
 
     /** @brief Returns the current iterator position while lexing. */
-    inline size_t GetPosition() const
+    inline size_t get_position() const
     {
         return itr_;
     }
@@ -231,9 +231,9 @@ protected:
      * If the position is not inside the text, a null char is returned.
      *
      * It can be used for a save version to get the current char by using
-     * `GetChar(0);` instead of `GetChar();`.
+     * `get_char(0);` instead of `get_char();`.
      */
-    inline char GetChar(const int offset) const
+    inline char get_char(const int offset) const
     {
         int pos = itr_ + offset;
         if (pos < 0 || static_cast<size_t>(pos) >= len_) {
@@ -247,9 +247,9 @@ protected:
      * @brief Returns the char at the current iterator position.
      *
      * Caveat: The function does no boundary check for speed reasons. Thus,
-     * it should be used in combination with IsEnd only.
+     * it should be used in combination with is_end only.
      */
-    inline char GetChar() const
+    inline char get_char() const
     {
         return text_[itr_];
     }
@@ -265,7 +265,7 @@ protected:
      *
      * For more information on how this char type is used, see GetToken().
      */
-    inline LexerTokenType GetCharType(const char c) const
+    inline LexerTokenType get_char_type(const char c) const
     {
         // we use char [-128,127] here.
         if (c < 0) {
@@ -280,11 +280,11 @@ protected:
      *
      * Caveat: The function does not do a boundary check to see if the
      * current char in inside the text. Thus, the function should only be
-     * used in combination with IsEnd.
+     * used in combination with is_end.
      */
-    inline LexerTokenType GetCharType() const
+    inline LexerTokenType get_char_type() const
     {
-        return GetCharType(GetChar());
+        return get_char_type(get_char());
     }
 
     /** @brief Sets the token type for a set of characters.
@@ -307,7 +307,7 @@ protected:
      * chars that are on a standard keyboard layout. See start_char_table_
      * for their ASCII representation.
      */
-    inline void SetCharType (const LexerTokenType type, const std::string& chars)
+    inline void set_char_type (const LexerTokenType type, const std::string& chars)
     {
         for (char c : chars) {
             start_char_table_[static_cast<unsigned char>(c)] = type;
@@ -328,15 +328,15 @@ protected:
      *     making it more reliable
      * %
      */
-    inline void NextChar()
+    inline void next_char()
     {
         ++itr_;
         ++col_;
 
-        // we use the save version of GetChar here, which is equivalant to
-        // check for IsEnd. first, CR, then LF. the second condition ensures
+        // we use the save version of get_char here, which is equivalant to
+        // check for is_end. first, CR, then LF. the second condition ensures
         // not to count a CR+LF as two line increases.
-        if ((GetChar(0) == '\n' && GetChar(-1) != '\r') || (GetChar(0) == '\r')) {
+        if ((get_char(0) == '\n' && get_char(-1) != '\r') || (get_char(0) == '\r')) {
             ++line_;
             col_ = 0;
         }
@@ -345,7 +345,7 @@ protected:
     /**
      * @brief True if the internal iterator is at the end of the text.
      */
-    inline bool IsEnd() const
+    inline bool is_end() const
     {
         return itr_ >= len_;
     }
@@ -354,7 +354,7 @@ protected:
      * @brief True if the internal iterator plus some offset is at the
      * end of the text.
      */
-    inline bool IsEnd(int offset) const
+    inline bool is_end(int offset) const
     {
         return itr_ + offset >= len_;
     }
@@ -363,7 +363,7 @@ protected:
      * @brief Extracts a substring of the text betweeen two positions, end
      * excluded.
      */
-    inline std::string GetSubstr (size_t start, size_t end) const
+    inline std::string get_substr (size_t start, size_t end) const
     {
         if (start<end) {
             return std::string(text_+start, end-start);
@@ -375,7 +375,7 @@ protected:
     /**
      * @brief Create a token and push it to the list.
      */
-    inline void PushToken (const LexerTokenType t, const size_t start, const std::string& value)
+    inline void push_token (const LexerTokenType t, const size_t start, const std::string& value)
     {
         // the column is the one where the token started. start gives this position as absolute position
         // in the string, so sutract it from itr_ to get how many chars we need to go back as compared
@@ -386,17 +386,17 @@ protected:
     /**
      * @brief Create a token and push it to the list.
      */
-    inline void PushToken (const LexerTokenType t, const size_t start, const size_t end)
+    inline void push_token (const LexerTokenType t, const size_t start, const size_t end)
     {
-        PushToken(t, start, GetSubstr(start, end));
+        push_token(t, start, get_substr(start, end));
     }
 
     /**
      * @brief Create a token and push it to the list.
      */
-    inline void PushToken (const LexerTokenType t)
+    inline void push_token (const LexerTokenType t)
     {
-        PushToken(t, itr_, "");
+        push_token(t, itr_, "");
     }
 
 private:
@@ -408,7 +408,7 @@ private:
      * @brief This array contains the token types for all chars, in order to
      * determine the correct scanner for the char.
      *
-     * See ProcessStep() for more on this.
+     * See process_step() for more on this.
      *
      * These are the printable special characters in this list:
      *

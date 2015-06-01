@@ -38,12 +38,12 @@ public:
         delete [] data_;
     }
 
-    inline size_t Rows() const
+    inline size_t rows() const
     {
         return rows_;
     }
 
-    inline size_t Cols() const
+    inline size_t cols() const
     {
         return cols_;
     }
@@ -63,7 +63,7 @@ public:
         return data_[row * cols_ + col];
     }
 
-    inline std::string Dump()
+    inline std::string dump()
     {
         std::ostringstream out;
         for (size_t i = 0; i < rows_; ++i) {
