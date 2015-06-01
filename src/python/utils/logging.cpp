@@ -14,65 +14,65 @@ void BoostPythonExport_Logging()
 
     boost::python::class_< ::genesis::Logging >( "Logging", boost::python::no_init )
         .def(
-            "LogError",
+            "log_error",
             (void ( * )( ::std::string const & ))( &::genesis::Logging::log_error ),
             ( boost::python::arg("msg") )
         )
-        .staticmethod("LogError")
+        .staticmethod("log_error")
         .def(
-            "LogWarning",
+            "log_warning",
             (void ( * )( ::std::string const & ))( &::genesis::Logging::log_warning ),
             ( boost::python::arg("msg") )
         )
-        .staticmethod("LogWarning")
+        .staticmethod("log_warning")
         .def(
-            "LogInfo",
+            "log_info",
             (void ( * )( ::std::string const & ))( &::genesis::Logging::log_info ),
             ( boost::python::arg("msg") )
         )
-        .staticmethod("LogInfo")
+        .staticmethod("log_info")
         .def(
-            "LogDebug",
+            "log_debug",
             (void ( * )( ::std::string const & ))( &::genesis::Logging::log_debug ),
             ( boost::python::arg("msg") )
         )
-        .staticmethod("LogDebug")
+        .staticmethod("log_debug")
         .def(
-            "LogDebug1",
+            "log_debug_1",
             (void ( * )( ::std::string const & ))( &::genesis::Logging::log_debug_1 ),
             ( boost::python::arg("msg") )
         )
-        .staticmethod("LogDebug1")
+        .staticmethod("log_debug_1")
         .def(
-            "LogDebug2",
+            "log_debug_2",
             (void ( * )( ::std::string const & ))( &::genesis::Logging::log_debug_2 ),
             ( boost::python::arg("msg") )
         )
-        .staticmethod("LogDebug2")
+        .staticmethod("log_debug_2")
         .def(
-            "LogDebug3",
+            "log_debug_3",
             (void ( * )( ::std::string const & ))( &::genesis::Logging::log_debug_3 ),
             ( boost::python::arg("msg") )
         )
-        .staticmethod("LogDebug3")
+        .staticmethod("log_debug_3")
         .def(
-            "LogDebug4",
+            "log_debug_4",
             (void ( * )( ::std::string const & ))( &::genesis::Logging::log_debug_4 ),
             ( boost::python::arg("msg") )
         )
-        .staticmethod("LogDebug4")
+        .staticmethod("log_debug_4")
 
         .def(
-            "LogToStdout",
+            "log_to_stdout",
             (void ( * )(  ))( &::genesis::Logging::log_to_stdout )
         )
-        .staticmethod("LogToStdout")
+        .staticmethod("log_to_stdout")
         .def(
-            "Logto_file",
+            "log_to_file",
             (void ( * )( ::std::string const & ))( &::genesis::Logging::log_to_file ),
             ( boost::python::arg("msg") )
         )
-        .staticmethod("Logto_file")
+        .staticmethod("log_to_file")
     ;
 
 }

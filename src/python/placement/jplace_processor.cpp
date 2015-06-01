@@ -91,18 +91,18 @@ void BoostPythonExport_JplaceProcessor()
         // Public Member Functions
 
         .def(
-            "GetVersion",
+            "get_version",
             ( std::string ( * )(  ))( &::genesis::JplaceProcessor::get_version ),
             "Returns the version number that this class is written for."
         )
-        .staticmethod("GetVersion")
+        .staticmethod("get_version")
         .def(
-            "CheckVersion",
+            "check_version",
             ( bool ( * )( const std::string ))( &::genesis::JplaceProcessor::check_version ),
             ( boost::python::arg("version") ),
             "Checks whether the version of the jplace format works with this parser."
         )
-        .staticmethod("CheckVersion")
+        .staticmethod("check_version")
         .def(
             "from_file",
             ( bool ( * )( const std::string &, ::genesis::PlacementMap & ))( &::genesis::JplaceProcessor::from_file ),

@@ -20,7 +20,7 @@ namespace genesis {
 template <class NDT, class EDT>
 void BipartitionSet<NDT, EDT>::make()
 {
-    size_t num_leaves = tree_->LeafCount();
+    size_t num_leaves = tree_->leaf_count();
     make_index();
 
     bipartitions_.clear();
@@ -40,7 +40,7 @@ void BipartitionSet<NDT, EDT>::make()
         if (it.node()->is_leaf()) {
             int leaf_idx = node_to_leaf_map_[it.node()->index()];
             assert(leaf_idx > -1);
-            bp.leaf_nodes_.Set(leaf_idx);
+            bp.leaf_nodes_.set(leaf_idx);
         } else {
             LinkType* l = it.link()->next();
             while (l != it.link()) {
@@ -88,7 +88,7 @@ typename BipartitionSet<NDT, EDT>::BipartitionType* BipartitionSet<NDT, EDT>::fi
     std::vector<BipartitionSet<NDT, EDT>::NodeType*> nodes
 ) {
     make();
-    Bitvector comp(tree_->LeafCount());
+    Bitvector comp(tree_->leaf_count());
 
     // make bitvector containing all wanted nodes.
     for (NodeType* n : nodes) {
@@ -111,18 +111,18 @@ typename BipartitionSet<NDT, EDT>::BipartitionType* BipartitionSet<NDT, EDT>::fi
         }
 
         if (comp <= bp.leaf_nodes_) {
-            if (min_count == 0 || bp.leaf_nodes_.Count() < min_count) {
+            if (min_count == 0 || bp.leaf_nodes_.count() < min_count) {
                 best_bp   = &bp;
-                min_count = bp.leaf_nodes_.Count();
+                min_count = bp.leaf_nodes_.count();
             }
         }
         if (comp <= ~(bp.leaf_nodes_)) {
-            if (min_count == 0 || (~bp.leaf_nodes_).Count() < min_count)  {
+            if (min_count == 0 || (~bp.leaf_nodes_).count() < min_count)  {
                 // TODO the invert messes with the data consistency of the bipartition. better make a copy!
                 // TODO also, if there is a class subtree at some better, better return this instead of a bipartition.
                 bp.Invert();
                 best_bp   = &bp;
-                min_count = bp.leaf_nodes_.Count();
+                min_count = bp.leaf_nodes_.count();
             }
         }
     }
@@ -146,7 +146,7 @@ BipartitionSet<NDT, EDT>::get_subtree_edges (
         if (it.node()->is_leaf()) {
             leaf_names.push_back(it.node()->name);
         }
-        if (it.IsFirstIteration()) {
+        if (it.is_first_iteration()) {
             continue;
         }
         ret.push_back(it.edge());
@@ -191,7 +191,7 @@ std::string BipartitionSet<NDT, EDT>::dump()
         }
         out << "\nNode " << bi.link_->node()->index()
             << ", Leaf " << node_to_leaf_map_[bi.link_->node()->index()]
-            << "\n" << bi.leaf_nodes_.Dump() << "\n";
+            << "\n" << bi.leaf_nodes_.dump() << "\n";
     }
     return out.str();
 }

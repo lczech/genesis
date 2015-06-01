@@ -14,58 +14,59 @@ void BoostPythonExport_Bitvector()
 
     boost::python::class_< ::genesis::Bitvector >( "Bitvector", boost::python::init< long unsigned int, boost::python::optional< bool > >(( boost::python::arg("size"), boost::python::arg("init")=(bool const)(false) )) )
         .def(
-            "Count"
+            "count"
             , (::size_t ( ::genesis::Bitvector::* )(  ) const)( &::genesis::Bitvector::count ) )
         .def(
-            "Dump"
+            "dump"
             , (::std::string ( ::genesis::Bitvector::* )(  ) const)( &::genesis::Bitvector::dump ) )
         .def(
-            "DumpInt"
+            "dump_int"
             , (::std::string ( ::genesis::Bitvector::* )( ::uint64_t ) const)( &::genesis::Bitvector::dump_int )
             , ( boost::python::arg("x") ) )
         .def(
-            "Flip"
+            "flip"
             , (void ( ::genesis::Bitvector::* )( ::size_t ) )( &::genesis::Bitvector::flip )
             , ( boost::python::arg("index") ) )
         .def(
-            "Get"
+            "get"
             , (bool ( ::genesis::Bitvector::* )( ::size_t ) const)( &::genesis::Bitvector::get )
             , ( boost::python::arg("index") ) )
         .def(
-            "Hash"
+            "hash"
             , (::size_t ( ::genesis::Bitvector::* )(  ) const)( &::genesis::Bitvector::hash ) )
         .def(
-            "Invert"
+            "invert"
             , (void ( ::genesis::Bitvector::* )(  ) )( &::genesis::Bitvector::invert ) )
         .def(
-            "Normalize"
+            "normalize"
             , (void ( ::genesis::Bitvector::* )(  ) )( &::genesis::Bitvector::normalize ) )
         .def(
-            "Reset"
+            "reset"
             , (void ( ::genesis::Bitvector::* )( bool ) )( &::genesis::Bitvector::reset )
             , ( boost::python::arg("value")=(bool)(false) ) )
         .def(
-            "Set"
+            "set"
             , (void ( ::genesis::Bitvector::* )( ::size_t ) )( &::genesis::Bitvector::set )
             , ( boost::python::arg("index") ) )
         .def(
-            "Set"
+            "set"
             , (void ( ::genesis::Bitvector::* )( ::size_t,bool ) )( &::genesis::Bitvector::set )
             , ( boost::python::arg("index"), boost::python::arg("value") ) )
         .def(
-            "SymmetricDifference"
+            "symmetric_difference"
             , (::genesis::Bitvector ( ::genesis::Bitvector::* )( ::genesis::Bitvector const & ) const)( &::genesis::Bitvector::symmetric_difference )
             , ( boost::python::arg("rhs") ) )
         .def(
-            "SymmetricDifference"
+            "symmetric_difference"
             , (::genesis::Bitvector (*)( ::genesis::Bitvector const &,::genesis::Bitvector const & ))( &::genesis::Bitvector::symmetric_difference )
             , ( boost::python::arg("lhs"), boost::python::arg("rhs") ) )
+        .staticmethod( "symmetric_difference" )
         .def(
-            "Unset"
+            "unset"
             , (void ( ::genesis::Bitvector::* )( ::size_t ) )( &::genesis::Bitvector::unset )
             , ( boost::python::arg("index") ) )
         .def(
-            "XHash"
+            "x_hash"
             , (::uint64_t ( ::genesis::Bitvector::* )(  ) const)( &::genesis::Bitvector::x_hash ) )
         .def( boost::python::self != boost::python::self )
         .def( boost::python::self &= boost::python::self )
@@ -87,7 +88,6 @@ void BoostPythonExport_Bitvector()
         .def(
             "__len__"
             , (::size_t ( ::genesis::Bitvector::* )(  ) const)( &::genesis::Bitvector::size ) )
-        .staticmethod( "SymmetricDifference" )
         .def( boost::python::self & boost::python::self )
         .def( boost::python::self - boost::python::self )
         .def( boost::python::self_ns::str( boost::python::self ) )

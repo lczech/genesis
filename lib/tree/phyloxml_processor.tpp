@@ -34,13 +34,13 @@ namespace genesis {
 template <class NDT, class EDT>
 bool PhyloXmlProcessor::to_file (const std::string fn, const Tree<NDT, EDT>& tree)
 {
-    if (FileExists(fn)) {
+    if (file_exists(fn)) {
         LOG_WARN << "PhyloXML file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
     to_string(ts, tree);
-    return FileWrite(fn, ts);
+    return file_write(fn, ts);
 }
 
 /**
@@ -96,7 +96,7 @@ void PhyloXmlProcessor::to_document (XmlDocument& xml, const Tree<NDT, EDT>& tre
     //~ pg.attributes.emplace("rerootable", "true");
 
     // store the distance from each node to the root.
-    std::vector<int> depths = tree.NodeDepthVector();
+    std::vector<int> depths = tree.node_depth_vector();
 
     std::vector<XmlElement*> stack;
     stack.push_back(pg);
@@ -135,12 +135,12 @@ void PhyloXmlProcessor::to_document (XmlDocument& xml, const Tree<NDT, EDT>& tre
         name_e->content.push_back(name_m);
         name_m->content = it.node()->name;
 
-        //~ it.node()->ToNewickBrokerElement(bn);
+        //~ it.node()->to_newick_broker_element(bn);
         // only write edge data to the broker element if it is not the last iteration.
         // the last iteration is the root, which usually does not have edge information in newick.
         // caveat: for the root node, the edge will point to an arbitrary edge away from the root.
         //~ if (!it.is_last_iteration()) {
-            //~ it.edge()->ToNewickBrokerElement(bn);
+            //~ it.edge()->to_newick_broker_element(bn);
         //~ }
 
         // filter out default names if needed

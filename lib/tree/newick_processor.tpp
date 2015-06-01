@@ -182,7 +182,7 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<NDT, EDT>& tse
 
         auto tree = new typename TreeSet<NDT, EDT>::TreeType();
         build_tree(broker, &tree);
-        tset.Add(name, tree);
+        tset.add(name, tree);
 
         // Let's clean up all tokens used so far. We don't need them anymore.
         ct.consume_head();

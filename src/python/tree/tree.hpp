@@ -34,13 +34,13 @@ void BoostPythonExport_Tree (std::string name)
             ( boost::python::arg("other") )
         )
         //~ .def(
-            //~ "Import",
-            //~ ( void ( TreeType::* )( TreeType::LinkArray &, TreeType::NodeArray &, TreeType::EdgeArray & ))( &TreeType::Import ),
+            //~ "import_content",
+            //~ ( void ( TreeType::* )( TreeType::LinkArray &, TreeType::NodeArray &, TreeType::EdgeArray & ))( &TreeType::import_content ),
             //~ ( boost::python::arg("links"), boost::python::arg("nodes"), boost::python::arg("edges") )
         //~ )
         //~ .def(
-            //~ "Export",
-            //~ ( void ( TreeType::* )( TreeType::LinkArray &, TreeType::NodeArray &, TreeType::EdgeArray & ))( &TreeType::Export ),
+            //~ "export_content",
+            //~ ( void ( TreeType::* )( TreeType::LinkArray &, TreeType::NodeArray &, TreeType::EdgeArray & ))( &TreeType::export_content ),
             //~ ( boost::python::arg("links"), boost::python::arg("nodes"), boost::python::arg("edges") )
         //~ )
         //~ .def(
@@ -52,18 +52,18 @@ void BoostPythonExport_Tree (std::string name)
             //~ ( TreeType::NodeType * ( TreeType::* )(  ) const )( &TreeType::root_node )
         //~ )
         //~ .def(
-            //~ "LinkAt",
-            //~ ( TreeType::LinkType * ( TreeType::* )( size_t ) const )( &TreeType::LinkAt ),
+            //~ "link_at",
+            //~ ( TreeType::LinkType * ( TreeType::* )( size_t ) const )( &TreeType::link_at ),
             //~ ( boost::python::arg("index") )
         //~ )
         //~ .def(
-            //~ "NodeAt",
-            //~ ( TreeType::NodeType * ( TreeType::* )( size_t ) const )( &TreeType::NodeAt ),
+            //~ "node_at",
+            //~ ( TreeType::NodeType * ( TreeType::* )( size_t ) const )( &TreeType::node_at ),
             //~ ( boost::python::arg("index") )
         //~ )
         //~ .def(
-            //~ "EdgeAt",
-            //~ ( TreeType::EdgeType * ( TreeType::* )( size_t ) const )( &TreeType::EdgeAt ),
+            //~ "edge_at",
+            //~ ( TreeType::EdgeType * ( TreeType::* )( size_t ) const )( &TreeType::edge_at ),
             //~ ( boost::python::arg("index") )
         //~ )
         .def(
@@ -82,8 +82,8 @@ void BoostPythonExport_Tree (std::string name)
             "Returns the number of Edges of the Tree."
         )
         //~ .def(
-            //~ "FindNode",
-            //~ ( TreeType::NodeType * ( TreeType::* )( std::string ) const )( &TreeType::FindNode ),
+            //~ "find_node",
+            //~ ( TreeType::NodeType * ( TreeType::* )( std::string ) const )( &TreeType::find_node ),
             //~ ( boost::python::arg("name") )
         //~ )
         .def(
@@ -107,38 +107,38 @@ void BoostPythonExport_Tree (std::string name)
             ( double ( TreeType::* )(  ) const )( &TreeType::length )
         )
         //~ .def(
-            //~ "NodeDepthMatrix",
-            //~ ( Matrix< int > * ( TreeType::* )(  ) const )( &TreeType::NodeDepthMatrix )
+            //~ "node_depth_matrix",
+            //~ ( Matrix< int > * ( TreeType::* )(  ) const )( &TreeType::node_depth_matrix )
         //~ )
         //~ .def(
-            //~ "NodeDepthVector",
-            //~ ( std::vector< int > ( TreeType::* )( const TreeType::NodeType * ) const )( &TreeType::NodeDepthVector ),
+            //~ "node_depth_vector",
+            //~ ( std::vector< int > ( TreeType::* )( const TreeType::NodeType * ) const )( &TreeType::node_depth_vector ),
             //~ ( boost::python::arg("node")=(const TreeType::NodeType *)(nullptr) )
         //~ )
         //~ .def(
-            //~ "NodeDistanceMatrix",
-            //~ ( Matrix< double > * ( TreeType::* )(  ) const )( &TreeType::NodeDistanceMatrix )
+            //~ "node_distance_matrix",
+            //~ ( Matrix< double > * ( TreeType::* )(  ) const )( &TreeType::node_distance_matrix )
         //~ )
         //~ .def(
-            //~ "NodeDistanceVector",
-            //~ ( std::vector< double > ( TreeType::* )( const TreeType::NodeType * ) const )( &TreeType::NodeDistanceVector ),
+            //~ "node_distance_vector",
+            //~ ( std::vector< double > ( TreeType::* )( const TreeType::NodeType * ) const )( &TreeType::node_distance_vector ),
             //~ ( boost::python::arg("node")=(const TreeType::NodeType *)(nullptr) )
         //~ )
         //~ .def(
-            //~ "ClosestLeafDepthVector",
-            //~ ( NodeIntVectorType ( TreeType::* )(  ) const )( &TreeType::ClosestLeafDepthVector )
+            //~ "closest_leaf_depth_vector",
+            //~ ( NodeIntVectorType ( TreeType::* )(  ) const )( &TreeType::closest_leaf_depth_vector )
         //~ )
         //~ .def(
-            //~ "ClosestLeafDistanceVector",
-            //~ ( NodeDoubleVectorType ( TreeType::* )(  ) const )( &TreeType::ClosestLeafDistanceVector )
+            //~ "closest_leaf_distance_vector",
+            //~ ( NodeDoubleVectorType ( TreeType::* )(  ) const )( &TreeType::closest_leaf_distance_vector )
         //~ )
         .def(
             "deepest_distance",
             ( double ( TreeType::* )(  ) const )( &TreeType::deepest_distance )
         )
         //~ .def(
-            //~ "Equal",
-            //~ ( bool ( TreeType::* )( const TreeType &, const std::function< bool(TreeType::ConstIteratorPreorder &, TreeType::ConstIteratorPreorder &)> ) const )( &TreeType::Equal ),
+            //~ "equal",
+            //~ ( bool ( TreeType::* )( const TreeType &, const std::function< bool(TreeType::ConstIteratorPreorder &, TreeType::ConstIteratorPreorder &)> ) const )( &TreeType::equal ),
             //~ ( boost::python::arg("other"), boost::python::arg("comparator") )
         //~ )
         .def(
@@ -159,15 +159,11 @@ void BoostPythonExport_Tree (std::string name)
             ( std::string ( TreeType::* )(  ) const )( &TreeType::dump_lists )
         )
         //~ .def(
-            //~ "DumpEulertour",
-            //~ ( std::string ( TreeType::* )(  ) const )( &TreeType::DumpEulertour )
-        //~ )
-        //~ .def(
-            //~ "Equal",
-            //~ ( bool ( TreeType::* )( const TreeType &, const TreeType &, const std::function< bool(TreeType::ConstIteratorPreorder &, TreeType::ConstIteratorPreorder &)> ))( &TreeType::Equal ),
+            //~ "equal",
+            //~ ( bool ( TreeType::* )( const TreeType &, const TreeType &, const std::function< bool(TreeType::ConstIteratorPreorder &, TreeType::ConstIteratorPreorder &)> ))( &TreeType::equal ),
             //~ ( boost::python::arg("lhs"), boost::python::arg("rhs"), boost::python::arg("comparator") )
         //~ )
-        //~ .staticmethod("Equal")
+        //~ .staticmethod("equal")
 
         // Iterators
 
