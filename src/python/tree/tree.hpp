@@ -142,21 +142,21 @@ void BoostPythonExport_Tree (std::string name)
             //~ ( boost::python::arg("other"), boost::python::arg("comparator") )
         //~ )
         .def(
-            "HasIdenticalTopology",
-            ( bool ( TreeType::* )( const TreeType & ) const )( &TreeType::HasIdenticalTopology ),
+            "has_identical_topology",
+            ( bool ( TreeType::* )( const TreeType & ) const )( &TreeType::has_identical_topology ),
             ( boost::python::arg("other") )
         )
         .def(
-            "Validate",
-            ( bool ( TreeType::* )(  ) const )( &TreeType::Validate )
+            "validate",
+            ( bool ( TreeType::* )(  ) const )( &TreeType::validate )
         )
         .def(
-            "Dump",
-            ( std::string ( TreeType::* )(  ) const )( &TreeType::Dump )
+            "dump",
+            ( std::string ( TreeType::* )(  ) const )( &TreeType::dump )
         )
         .def(
-            "DumpLists",
-            ( std::string ( TreeType::* )(  ) const )( &TreeType::DumpLists )
+            "dump_lists",
+            ( std::string ( TreeType::* )(  ) const )( &TreeType::dump_lists )
         )
         //~ .def(
             //~ "DumpEulertour",

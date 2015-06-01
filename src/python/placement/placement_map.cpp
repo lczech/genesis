@@ -91,7 +91,7 @@ void BoostPythonExport_PlacementMap()
             "Returns a list of all Pqueries with their Placements and Names."
         )
         .def(
-            "Validate",
+            "validate",
             ( bool ( ::genesis::PlacementMap::* )( bool, bool ) const )( &::genesis::PlacementMap::validate ),
             ( boost::python::arg("check_values")=(bool)(false), boost::python::arg("break_on_values")=(bool)(false) ),
             "Validates the integrity of the pointers, references and data in this Placement object."

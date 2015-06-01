@@ -255,8 +255,8 @@ int main (int argc, char* argv[])
     Placements place_a, place_b;
     JplaceProcessor::from_file("test/data/test_a.jplace", place_a);
     JplaceProcessor::from_file("test/data/test_b.jplace", place_b);
-    LOG_DBG << "Valid A: " << place_a.Validate();
-    LOG_DBG << "Valid B: " << place_b.Validate();
+    LOG_DBG << "Valid A: " << place_a.validate();
+    LOG_DBG << "Valid B: " << place_b.validate();
     LOG_DBG << "Dump A:\n" << place_a.Dump();
     LOG_DBG << "Dump B:\n" << place_b.Dump();
 //~
@@ -266,8 +266,8 @@ int main (int argc, char* argv[])
     LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
     place_a.RestrainToMaxWeightPlacements();
     place_b.RestrainToMaxWeightPlacements();
-    LOG_DBG << "Valid A: " << place_a.Validate();
-    LOG_DBG << "Valid B: " << place_b.Validate();
+    LOG_DBG << "Valid A: " << place_a.validate();
+    LOG_DBG << "Valid B: " << place_b.validate();
     LOG_DBG << "Dump A:\n" << place_a.Dump();
     LOG_DBG << "Dump B:\n" << place_b.Dump();
 //~
@@ -284,12 +284,12 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << "Test 2";
     PlacementMap place;
     JplaceProcessor::from_file("test/data/placement.jplace", place);
-    LOG_DBG << "valid: " << place.Validate();
+    LOG_DBG << "valid: " << place.validate();
     LOG_DBG << place.Dump();
     LOG_DBG << "json " << JplaceProcessor::to_string(place);
     //~ LOG_DBG << "Apply RestrainToMaxWeightPlacements...";
     //~ place.RestrainToMaxWeightPlacements();
-    //~ LOG_DBG << "valid: " << place.Validate();
+    //~ LOG_DBG << "valid: " << place.validate();
     //~ LOG_DBG << place.Dump();
     //~ LOG_DBG << "Tree: " << NewickProcessor::to_string(place.tree);
     //*/
@@ -305,8 +305,8 @@ int main (int argc, char* argv[])
     //~ JplaceProcessor::from_file("test/data/test_a.jplace", place_a);
     //~ JplaceProcessor::from_file("test/data/RAxML_portableTree.split_0.jplace", place_a);
     //~ JplaceProcessor::from_file("test/data/RAxML_portableTree.split_1.jplace", place_b);
-    //~ LOG_DBG << "Valid A: " << place_a.Validate();
-    //~ LOG_DBG << "Valid B: " << place_b.Validate();
+    //~ LOG_DBG << "Valid A: " << place_a.validate();
+    //~ LOG_DBG << "Valid B: " << place_b.validate();
 
     //~ NewickProcessor::to_file("test/data/RAxML_portableTree.split_0.newick", place_a.tree);
     //~ NewickProcessor::to_file("test/data/RAxML_portableTree.split_1.newick", place_b.tree);
@@ -320,16 +320,16 @@ int main (int argc, char* argv[])
     //~ LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
     //~ LOG_DBG << "Merging A and B...";
     //~ place_a.Merge(place_b);
-    //~ LOG_DBG << "Valid A: " << place_a.Validate();
-    //~ LOG_DBG << "Valid B: " << place_b.Validate();
+    //~ LOG_DBG << "Valid A: " << place_a.validate();
+    //~ LOG_DBG << "Valid B: " << place_b.validate();
     //~ LOG_DBG << "count a " << place_a.PlacementCount() << ", count b " << place_b.PlacementCount();
 
     //~ LOG_DBG << "Copying a to b...";
     //~ place_b = place_a;
     //~ LOG_DBG << "Validating a...";
-    //~ LOG_DBG << "Valid a: " << place_a.Validate();
+    //~ LOG_DBG << "Valid a: " << place_a.validate();
     //~ LOG_DBG << "Validating b...";
-    //~ LOG_DBG << "Valid b: " << place_b.Validate();
+    //~ LOG_DBG << "Valid b: " << place_b.validate();
 
     // ----------------------------
     //     Restrain To Max Weight Placements
@@ -487,7 +487,7 @@ int main (int argc, char* argv[])
     LOG_DBG;
     LOG_DBG << "Reading file " << list[0] << "...";
     JplaceProcessor::from_file(inpath + list[0], place);
-    //~ LOG_DBG << "Valid: " << place.Validate();
+    //~ LOG_DBG << "Valid: " << place.validate();
     LOG_DBG << "with " << place.PlacementCount() << " placements.";
     LOG_DBG;
 
@@ -503,13 +503,13 @@ int main (int argc, char* argv[])
 
     LOG_DBG << "Total of " << place.PlacementCount() << " placements.";
     //~ LOG_DBG << "Validating...";
-    //~ LOG_DBG << "Validity: " << place.Validate();
+    //~ LOG_DBG << "Validity: " << place.validate();
 
     LOG_DBG << "Applying RestrainToMaxWeightPlacements...";
     place.RestrainToMaxWeightPlacements();
     LOG_DBG << "Total of " << place.PlacementCount() << " placements.";
     //~ LOG_DBG << "Validating...";
-    //~ LOG_DBG << "Validity: " << place.Validate();
+    //~ LOG_DBG << "Validity: " << place.validate();
 
     LOG_DBG << "Writing jplace file to " << outpath;
     JplaceProcessor::to_file(outpath + "all_placements.jplace", place);

@@ -165,7 +165,7 @@ bool PlacementMap::merge(const PlacementMap& other)
                it_l.edge()->edge_num == it_r.edge()->edge_num;
     };
 
-    if (!tree.Equal(other.tree, comparator)) {
+    if (!tree.equal(other.tree, comparator)) {
         LOG_WARN << "Cannot merge PlacementMap with different reference trees.";
         return false;
     }
@@ -1059,7 +1059,7 @@ std::string PlacementMap::dump() const
 bool PlacementMap::validate (bool check_values, bool break_on_values) const
 {
     // check tree
-    if (!tree.Validate()) {
+    if (!tree.validate()) {
         LOG_INFO << "Invalid placement tree.";
         return false;
     }

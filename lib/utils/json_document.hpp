@@ -566,7 +566,7 @@ public:
         return "(Json Document)";
     }
 
-    bool Validate();
+    bool validate();
 
     inline std::string Dump() const
     {

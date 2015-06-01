@@ -51,7 +51,7 @@ public:
     bool ProcessStep();
     bool ProcessAll();
 
-    bool ValidateBrackets() const;
+    bool validateBrackets() const;
     std::string Dump() const;
 
     // -------------------------------------------------------------------------

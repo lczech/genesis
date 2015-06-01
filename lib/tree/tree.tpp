@@ -540,7 +540,7 @@ double Tree<NDT, EDT>::deepest_distance() const
  * are never considered equal for the purposes of this framework.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::Equal(
+bool Tree<NDT, EDT>::equal(
     const TreeType& lhs,
     const TreeType& rhs,
     const std::function<bool (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)>
@@ -581,12 +581,12 @@ bool Tree<NDT, EDT>::Equal(
  * See other Equal() function for more information.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::Equal(
+bool Tree<NDT, EDT>::equal(
     const TreeType& other,
     const std::function<bool (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)>
         comparator
 ) const {
-    return Equal(*this, other, comparator);
+    return equal(*this, other, comparator);
 }
 
 // TODO make const! (need to add const versions of the tree iterators first...)
@@ -602,14 +602,14 @@ bool Tree<NDT, EDT>::Equal(
  * same input, for example from the same Newick file.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::HasIdenticalTopology(const TreeType& right) const
+bool Tree<NDT, EDT>::has_identical_topology(const TreeType& right) const
 {
     auto comparator = [] (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)
     {
         return true;
     };
 
-    return Equal(right, comparator);
+    return equal(right, comparator);
 }
 
 // =============================================================================
@@ -631,7 +631,7 @@ bool Tree<NDT, EDT>::HasIdenticalTopology(const TreeType& right) const
 
 
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::Validate() const
+bool Tree<NDT, EDT>::validate() const
 {
     // check that the member arrays are valid: if at least one of them is empty, the tree is not
     // fully initialized, so either it is a new tree without any data (all arrays empty, valid),
@@ -687,7 +687,7 @@ bool Tree<NDT, EDT>::Validate() const
  * with their indices.
  */
 template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::Dump() const
+std::string Tree<NDT, EDT>::dump() const
 {
     std::vector<int> depth = this->node_depth_vector();
     std::vector<int> done;
@@ -744,7 +744,7 @@ std::string Tree<NDT, EDT>::Dump() const
  * with each other.
  */
 template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::DumpLists() const
+std::string Tree<NDT, EDT>::dump_lists() const
 {
     std::ostringstream out;
 

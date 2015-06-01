@@ -19,7 +19,7 @@ namespace genesis {
 // TODO meaning that the pointers in an object or array need to point to unique values, and not for
 // TODO example to themselves or their parent objects.
 /*
-bool JsonDocument::Validate()
+bool JsonDocument::validate()
 {
     std::deque<JsonValue*> pointers;
     std::stack<JsonValue*> callstack;

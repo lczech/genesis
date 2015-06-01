@@ -552,28 +552,28 @@ public:
     //     Comparisons
     // -----------------------
 
-    static bool Equal(
+    static bool equal(
         const TreeType& lhs,
         const TreeType& rhs,
         const std::function<bool
             (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)> comparator
     );
-    bool Equal(
+    bool equal(
         const TreeType& other,
         const std::function<bool
             (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)> comparator
     ) const;
 
-    bool HasIdenticalTopology(const TreeType& other) const;
+    bool has_identical_topology(const TreeType& other) const;
 
     // -----------------------------------------------------
     //     Debug and Dump
     // -----------------------------------------------------
 
-    bool Validate() const;
+    bool validate() const;
 
-    std::string Dump() const;
-    std::string DumpLists() const;
+    std::string dump() const;
+    std::string dump_lists() const;
 
     // -----------------------------------------------------
     //     Data Members

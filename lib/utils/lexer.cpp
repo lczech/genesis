@@ -620,7 +620,7 @@ inline Lexer::iterator Lexer::end()
  * It is not particularly useful for xml, as there it is also important to use
  * closing tags like `<xml> ... </xml>`.
  */
-bool Lexer::ValidateBrackets() const
+bool Lexer::validateBrackets() const
 {
     std::stack<char> stk;
     for (LexerToken t : tokens_) {
