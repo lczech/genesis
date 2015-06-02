@@ -12,13 +12,23 @@
 
 #include "tree/tree.hpp"
 
+#include "../src/python/tree/tree_edge.hpp"
+#include "../src/python/tree/tree_link.hpp"
+#include "../src/python/tree/tree_node.hpp"
+
 template <class NodeDataType, class EdgeDataType>
 void BoostPythonExport_Tree (std::string name)
 {
-    using namespace boost::python;
-    using namespace genesis;
+    typedef ::genesis::Tree<NodeDataType, EdgeDataType> TreeType;
 
-    typedef Tree<NodeDataType, EdgeDataType> TreeType;
+    // Also export the Tree elements to Python.
+    BoostPythonExport_TreeEdge<NodeDataType, EdgeDataType>(name + "Edge");
+    BoostPythonExport_TreeLink<NodeDataType, EdgeDataType>(name + "Link");
+    BoostPythonExport_TreeNode<NodeDataType, EdgeDataType>(name + "Node");
+
+    // -------------------------------------------------------------------
+    //     Class Tree
+    // -------------------------------------------------------------------
 
     boost::python::class_< TreeType > ( name.c_str() )
 
@@ -43,29 +53,34 @@ void BoostPythonExport_Tree (std::string name)
             //~ ( void ( TreeType::* )( TreeType::LinkArray &, TreeType::NodeArray &, TreeType::EdgeArray & ))( &TreeType::export_content ),
             //~ ( boost::python::arg("links"), boost::python::arg("nodes"), boost::python::arg("edges") )
         //~ )
-        //~ .def(
-            //~ "root_link",
-            //~ ( TreeType::LinkType * ( TreeType::* )(  ) const )( &TreeType::root_link )
-        //~ )
-        //~ .def(
-            //~ "root_node",
-            //~ ( TreeType::NodeType * ( TreeType::* )(  ) const )( &TreeType::root_node )
-        //~ )
-        //~ .def(
-            //~ "link_at",
-            //~ ( TreeType::LinkType * ( TreeType::* )( size_t ) const )( &TreeType::link_at ),
-            //~ ( boost::python::arg("index") )
-        //~ )
-        //~ .def(
-            //~ "node_at",
-            //~ ( TreeType::NodeType * ( TreeType::* )( size_t ) const )( &TreeType::node_at ),
-            //~ ( boost::python::arg("index") )
-        //~ )
-        //~ .def(
-            //~ "edge_at",
-            //~ ( TreeType::EdgeType * ( TreeType::* )( size_t ) const )( &TreeType::edge_at ),
-            //~ ( boost::python::arg("index") )
-        //~ )
+        .def(
+            "root_link",
+            ( typename TreeType::LinkType * ( TreeType::* )(  ) const )( &TreeType::root_link ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>()
+        )
+        .def(
+            "root_node",
+            ( typename TreeType::NodeType * ( TreeType::* )(  ) const )( &TreeType::root_node ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>()
+        )
+        .def(
+            "link_at",
+            ( typename TreeType::LinkType * ( TreeType::* )( size_t ) const )( &TreeType::link_at ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>(),
+            ( boost::python::arg("index") )
+        )
+        .def(
+            "node_at",
+            ( typename TreeType::NodeType * ( TreeType::* )( size_t ) const )( &TreeType::node_at ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>(),
+            ( boost::python::arg("index") )
+        )
+        .def(
+            "edge_at",
+            ( typename TreeType::EdgeType * ( TreeType::* )( size_t ) const )( &TreeType::edge_at ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>(),
+            ( boost::python::arg("index") )
+        )
         .def(
             "link_count",
             ( size_t ( TreeType::* )(  ) const )( &TreeType::link_count ),
@@ -81,11 +96,12 @@ void BoostPythonExport_Tree (std::string name)
             ( size_t ( TreeType::* )(  ) const )( &TreeType::edge_count ),
             "Returns the number of Edges of the Tree."
         )
-        //~ .def(
-            //~ "find_node",
-            //~ ( TreeType::NodeType * ( TreeType::* )( std::string ) const )( &TreeType::find_node ),
-            //~ ( boost::python::arg("name") )
-        //~ )
+        .def(
+            "find_node",
+            ( typename TreeType::NodeType * ( TreeType::* )( std::string ) const )( &TreeType::find_node ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>(),
+            ( boost::python::arg("name") )
+        )
         .def(
             "max_rank",
             ( int ( TreeType::* )(  ) const )( &TreeType::max_rank )

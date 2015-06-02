@@ -21,6 +21,15 @@ namespace genesis {
 template <class NodeDataType, class EdgeDataType>
 class  Tree;
 
+template <class NodeDataType, class EdgeDataType>
+class  TreeEdge;
+
+template <class NodeDataType, class EdgeDataType>
+class  TreeLink;
+
+template <class NodeDataType, class EdgeDataType>
+class  TreeNode;
+
 // =============================================================================
 //     Default Tree Node Data
 // =============================================================================
@@ -172,7 +181,11 @@ public:
  *
  * The same type can also be produced by using `Tree<>`.
  */
-typedef Tree<DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTree;
+typedef Tree     <DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTree;
+
+typedef TreeEdge <DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTreeEdge;
+typedef TreeLink <DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTreeLink;
+typedef TreeNode <DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTreeNode;
 
 } // namespace genesis
 

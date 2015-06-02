@@ -67,7 +67,7 @@ public:
      * The previous link of a given link `L` is the one whose next-pointer is pointing to `L`.
      * As this link first has to be found, this function is not as cheap as next().
      */
-    inline LinkType* prev() const
+    inline LinkType* prev()
     {
         LinkType* res = this;
         while (res->next() != this) {

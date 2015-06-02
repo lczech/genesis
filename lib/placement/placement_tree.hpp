@@ -107,7 +107,11 @@ public:
 // =============================================================================
 
 // let's avoid tedious names!
-typedef Tree<PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTree;
+typedef TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
+typedef TreeLink <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeLink;
+typedef TreeNode <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeNode;
+
+typedef Tree     <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTree;
 
 } // namespace genesis
 
