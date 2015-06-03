@@ -9,23 +9,26 @@
 
 #include "placement/placement_tree.hpp"
 
+#include "../src/python/tree/newick_processor.hpp"
 #include "../src/python/tree/tree.hpp"
+
+// -------------------------------------------------------------------
+//     Class PlacementTreeNodeData
+// -------------------------------------------------------------------
 
 void BoostPythonExport_PlacementTreeNodeData()
 {
-    // -------------------------------------------------------------------
-    //     Class PlacementTreeNodeData
-    // -------------------------------------------------------------------
 
     boost::python::class_< ::genesis::PlacementTreeNodeData, boost::python::bases< ::genesis::DefaultTreeNodeData > > ( "PlacementTreeNodeData" )
     ;
 }
 
+// -------------------------------------------------------------------
+//     Class PlacementTreeEdgeData
+// -------------------------------------------------------------------
+
 void BoostPythonExport_PlacementTreeEdgeData()
 {
-    // -------------------------------------------------------------------
-    //     Class PlacementTreeEdgeData
-    // -------------------------------------------------------------------
 
     boost::python::class_< ::genesis::PlacementTreeEdgeData, boost::python::bases< ::genesis::DefaultTreeEdgeData > > ( "PlacementTreeEdgeData" )
 
@@ -68,6 +71,10 @@ void BoostPythonExport_PlacementTreeEdgeData()
     ;
 }
 
+// -------------------------------------------------------------------
+//     Class PlacementTree
+// -------------------------------------------------------------------
+
 void BoostPythonExport_PlacementTree()
 {
     using namespace genesis;
@@ -76,4 +83,5 @@ void BoostPythonExport_PlacementTree()
     BoostPythonExport_PlacementTreeEdgeData();
 
     BoostPythonExport_Tree<PlacementTreeNodeData, PlacementTreeEdgeData>("PlacementTree");
+    BoostPythonExport_Overload_NewickProcessor<PlacementTree>();
 }
