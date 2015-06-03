@@ -61,6 +61,21 @@ public:
         return next_;
     }
 
+    /**
+     * @brief Returns a pointer to the previous link within the node.
+     *
+     * The previous link of a given link `L` is the one whose next-pointer is pointing to `L`.
+     * As this link first has to be found, this function is not as cheap as next().
+     */
+    inline LinkType* prev()
+    {
+        LinkType* res = this;
+        while (res->next() != this) {
+            res = res->next();
+        }
+        return res;
+    }
+
     /** @brief Returns a pointer to the link of the adjacent node. */
     inline LinkType* outer() const
     {

@@ -235,9 +235,9 @@ class CppNamespace:
 
     def get_all_classes (self):
         classlist = []
-        for cls in self.classes:
+        for cls in sorted(self.classes):
             classlist.append(self.classes[cls])
-        for ns in self.namespaces:
+        for ns in sorted(self.namespaces):
             for cls in self.namespaces[ns].get_all_classes():
                 classlist.append(cls)
         return classlist
@@ -496,7 +496,8 @@ class BoostPythonWriter:
                 ) for param in func.params
             ) + " )"
         if func.briefdescription != "":
-            val += ",\n            \"" + func.briefdescription + "\"\n"
+            # val += ",\n            \"" + func.briefdescription + "\"\n"
+            val += ",\n            get_docstring(\"" + func.parent.name + "\", \"" + func.name + "\")\n"
         else:
             val += "\n"
         val += "        )\n"
@@ -628,6 +629,7 @@ class BoostPythonWriter:
                 self.includes      = []
                 self.class_strings = {}
 
+        # collect export functions for all classes
         export_files = {}
         for cls in namespace.get_all_classes():
             cls_str  = BoostPythonWriter.generate_class(cls)
@@ -639,6 +641,7 @@ class BoostPythonWriter:
             export_files[cls_file].includes.append(cls.location)
             export_files[cls_file].class_strings[cls.name] = cls_str
 
+        # write them to files
         for fn, exp in export_files.iteritems():
             fn = os.path.join(directory, fn)
             if not os.path.exists(os.path.dirname(fn)):
@@ -656,6 +659,7 @@ class BoostPythonWriter:
                 f.write ("\n}\n\n")
             f.close()
 
+        # write main bindings file
         fn = os.path.join(directory, "bindings.cpp")
         f = open(fn, 'w')
         f.write ("#include <boost/python.hpp>\n")
@@ -672,6 +676,17 @@ class BoostPythonWriter:
         f.write ("}\n")
         f.close()
 
+        # write doc string file
+        fn = os.path.join(directory, "docstrings.cpp")
+        f = open(fn, 'w')
+        f.write ("static std::map<std::pair<std::string, std::string>, std::string> doc_strings_ = {\n")
+        for cls in namespace.get_all_classes():
+            for func in sorted(cls.methods, key=lambda x: x.name):
+                if func.briefdescription != "":
+                    f.write("    {{\"" + cls.name + "\", \"" + func.name + "\"}, \"" + func.briefdescription + "\"},\n")
+        f.write ("};\n")
+        f.close()
+
     @staticmethod
     def generate (namespace):
         return BoostPythonWriter.generate_namespace (namespace)
@@ -685,4 +700,4 @@ if __name__ == "__main__":
     hierarchy.extract_iterators(True)
     hierarchy.shorten_location_prefix()
     #~ print BoostPythonWriter.generate (hierarchy)
-    BoostPythonWriter.generate_files (hierarchy, "test", "genesis")
+    BoostPythonWriter.generate_files (hierarchy, "python", "genesis")

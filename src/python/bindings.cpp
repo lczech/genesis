@@ -23,7 +23,10 @@ void BoostPythonExport_PlacementTree();
     //     Tree
     // -------------------------------------------
 
-void BoostPythonExport_NewickProcessor();
+void BoostPythonExport_DefaultTreeEdgeData();
+void BoostPythonExport_DefaultTreeNodeData();
+void BoostPythonExport_Finalize_NewickProcessor();
+// void BoostPythonExport_NewickProcessor();
 //~ void BoostPythonExport_TreeSet();
 
     // -------------------------------------------
@@ -43,6 +46,15 @@ BOOST_PYTHON_MODULE(genesis)
     boost::python::docstring_options doc_options(true, true, false);
 
     // -------------------------------------------
+    //     Tree
+    // -------------------------------------------
+
+    BoostPythonExport_DefaultTreeEdgeData();
+    BoostPythonExport_DefaultTreeNodeData();
+    // BoostPythonExport_NewickProcessor();
+    //~ BoostPythonExport_TreeSet();
+
+    // -------------------------------------------
     //     Placement
     // -------------------------------------------
 
@@ -51,17 +63,15 @@ BOOST_PYTHON_MODULE(genesis)
     BoostPythonExport_PlacementTree();
 
     // -------------------------------------------
-    //     Tree
-    // -------------------------------------------
-
-    BoostPythonExport_NewickProcessor();
-    //~ BoostPythonExport_TreeSet();
-
-    // -------------------------------------------
     //     Utils
     // -------------------------------------------
 
     BoostPythonExport_Bitvector();
     BoostPythonExport_Logging();
 
+    // -------------------------------------------
+    //     Finish Tree
+    // -------------------------------------------
+
+    BoostPythonExport_Finalize_NewickProcessor();
 }

@@ -9,6 +9,8 @@
 
 #include "placement/placement_map.hpp"
 
+const char* get_docstring (const std::string& classname, const std::string& functionname);
+
 void BoostPythonExport_PlacementMap()
 {
 
@@ -19,7 +21,8 @@ void BoostPythonExport_PlacementMap()
         .def(
             "clear",
             ( void ( ::genesis::PlacementMap::* )(  ))( &::genesis::PlacementMap::clear ),
-            "Clears all data of this object."
+            // "Clears all data of this object."
+            get_docstring("PlacementMap", "clear")
         )
         //~ .def(
             //~ "EdgeNumMap",
@@ -30,7 +33,8 @@ void BoostPythonExport_PlacementMap()
             "merge",
             ( bool ( ::genesis::PlacementMap::* )( const ::genesis::PlacementMap & ))( &::genesis::PlacementMap::merge ),
             ( boost::python::arg("other") ),
-            "Adds the pqueries from another ::genesis::PlacementMap objects to this one."
+            // "Adds the pqueries from another ::genesis::PlacementMap objects to this one."
+            get_docstring("PlacementMap", "merge")
         )
         .def(
             "normalize_weight_ratios",

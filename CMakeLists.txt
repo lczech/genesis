@@ -102,7 +102,7 @@ if (BUILD_PYTHON_MODULE OR BUILD_EXECUTABLE)
         include_directories   (${PYTHON_INCLUDE_DIRS})
         link_directories      (${PYTHON_LIBRARIES})
 
-        file (GLOB genesis_python_sources ${PROJECT_SOURCE_DIR}/src/python/bindings.cpp ${PROJECT_SOURCE_DIR}/src/python/*/*.cpp)
+        file (GLOB genesis_python_sources ${PROJECT_SOURCE_DIR}/src/python/bindings.cpp ${PROJECT_SOURCE_DIR}/src/python/docstrings.cpp ${PROJECT_SOURCE_DIR}/src/python/*/*.cpp)
 
         add_library           (genesis_python_module MODULE ${genesis_python_sources} ${genesis_lib_sources} python_init)
         target_link_libraries (genesis_python_module ${Boost_LIBRARIES} ${PYTHON_LIBRARIES})
