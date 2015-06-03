@@ -960,7 +960,7 @@ void PlacementMap::variance_thread (
  * @brief Internal function that calculates the sum of distances contributed by one placement for
  * the variance. See variance() for more information.
  *
- * This function is intended to be called by variance() or VarianceThread() -- it is not a
+ * This function is intended to be called by variance() or variance_thread() -- it is not a
  * stand-alone function.
  */
 double PlacementMap::variance_partial (
