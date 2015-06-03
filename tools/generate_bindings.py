@@ -352,6 +352,11 @@ class DoxygenReader:
             cls.briefdescription    = ''.join(compound.find("briefdescription").itertext()).strip()
             cls.detaileddescription = ''.join(compound.find("detaileddescription").itertext()).strip()
 
+            # doxygen sets the class-wide location to the file where the class is first used,
+            # which often is a forward declaration, but not the actual definition of the class.
+            # so we need to check the location attributes of the functions instead.
+            locations = set()
+
             for section in compound:
                 if section.tag != "sectiondef":
                     continue
@@ -362,7 +367,15 @@ class DoxygenReader:
                 for member in section:
                     func = DoxygenReader.parse_member_function(member)
                     func.parent = cls
+                    locations.add(member.find("location").attrib["file"])
                     cls.add_function (func)
+
+            if len(locations) > 1:
+                print "Weird. Multiple locations for class", cls_name, ":", locations
+            if len(locations) == 0:
+                cls.location = compound.find("location").attrib["file"]
+            else:
+                cls.location = locations.pop()
 
             cls.location = compound.find("location").attrib["file"]
             classes.append(cls)
@@ -513,8 +526,12 @@ class BoostPythonWriter:
             return ""
 
         val = "\n        // Public Member Functions\n\n"
+        m_list = []
         for func in cls.methods:
-            val += BoostPythonWriter.generate_class_function_body (func)
+            m_list.append(BoostPythonWriter.generate_class_function_body (func))
+
+        for d in sorted(set(m_list)):
+            val += d
 
         return val
 
