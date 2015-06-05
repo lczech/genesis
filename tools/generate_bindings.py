@@ -20,6 +20,9 @@ def CamelCaseToUnderscore(name):
     s1 = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
     return re.sub('([a-z0-9])([A-Z])', r'\1_\2', s1).lower()
 
+def CppEscapeString(txt):
+    return txt.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
+
 # ==============================================================================
 #     Class: C++ Parameter
 # ==============================================================================
@@ -30,7 +33,7 @@ class CppParameter:
         self.name  = ""
         self.value = ""
 
-    def cpp_string(self):
+    def cpp_signature(self):
         return self.type+" "+self.name+("="+self.value if self.value != "" else "")
 
 # ==============================================================================
@@ -56,10 +59,11 @@ class CppFunction:
     def cpp_full_name (self):
         return self.parent.cpp_full_name() + "::" + self.name
 
-    def cpp_string (self):
+    def cpp_signature (self, full=True):
         val  = ("static " if self.static else "")
-        val  = (self.type + " " if self.type != "" else "") + self.name
-        val += " (" + ', '.join(x.cpp_string() for x in self.params) + ")"
+        val += (self.type + " " if self.type != "" else "")
+        val += (self.parent.cpp_full_name() + "::" if full else "") + self.name
+        val += " (" + ', '.join(x.cpp_signature() for x in self.params) + ")"
         val += (" const" if self.const else "")
         return val
 
@@ -174,22 +178,22 @@ class CppClass:
         if len(self.ctors) > 0:
             print in_str1 + "Constructors:"
             for ctor in self.ctors:
-                print in_str2 + ctor.cpp_string()
+                print in_str2 + ctor.cpp_signature()
 
         if len(self.dtors) > 0:
             print in_str1 + "Destructors:"
             for dtor in self.dtors:
-                print in_str2 + dtor.cpp_string()
+                print in_str2 + dtor.cpp_signature()
 
         if len(self.methods) > 0:
             print in_str1 + "Methods:"
             for m in self.methods:
-                print in_str2 + m.cpp_string()
+                print in_str2 + m.cpp_signature()
 
         if len(self.operators) > 0:
             print in_str1 + "Operators:"
             for o in self.operators:
-                print in_str2 + o.cpp_string()
+                print in_str2 + o.cpp_signature()
 
         if len(self.iterators) > 0:
             print in_str1 + "Iterators:"
@@ -510,7 +514,7 @@ class BoostPythonWriter:
             ) + " )"
         if func.briefdescription != "":
             # val += ",\n            \"" + func.briefdescription + "\"\n"
-            val += ",\n            get_docstring(\"" + func.parent.name + "\", \"" + func.name + "\")\n"
+            val += ",\n            get_docstring(\"" + func.cpp_signature() + "\")\n"
         else:
             val += "\n"
         val += "        )\n"
@@ -696,12 +700,38 @@ class BoostPythonWriter:
         # write doc string file
         fn = os.path.join(directory, "docstrings.cpp")
         f = open(fn, 'w')
-        f.write ("static std::map<std::pair<std::string, std::string>, std::string> doc_strings_ = {\n")
+        f.write("/**\n")
+        f.write("* @brief Documentation strings for the genesis Python module.\n")
+        f.write(" *\n")
+        f.write(" * @file\n")
+        f.write(" * @ingroup python\n")
+        f.write(" */\n")
+        f.write("\n")
+        f.write("#include <map>\n")
+        f.write("#include <string>\n")
+        f.write("\n")
+        f.write ("static std::map<std::string, std::string> doc_strings_ = {\n")
         for cls in namespace.get_all_classes():
             for func in sorted(cls.methods, key=lambda x: x.name):
-                if func.briefdescription != "":
-                    f.write("    {{\"" + cls.name + "\", \"" + func.name + "\"}, \"" + func.briefdescription + "\"},\n")
+                if func.briefdescription != "" or func.detaileddescription != "":
+                    f.write("    {\"" + func.cpp_signature() + "\", \"")
+                    if func.briefdescription != "":
+                        f.write(CppEscapeString(func.briefdescription))
+                    if func.briefdescription != "" and func.detaileddescription != "":
+                        f.write("\\n\\n")
+                    if func.detaileddescription != "":
+                        f.write(CppEscapeString(func.detaileddescription))
+                    f.write("\"},\n")
         f.write ("};\n")
+        f.write ("\n")
+        f.write ("const char* get_docstring (const std::string& signature)\n")
+        f.write ("{\n")
+        f.write ("    if (doc_strings_.count(signature) > 0) {\n")
+        f.write ("        return doc_strings_[signature].c_str();\n")
+        f.write ("    } else {\n")
+        f.write ("        return "";\n")
+        f.write ("    }\n")
+        f.write ("}\n")
         f.close()
 
     @staticmethod

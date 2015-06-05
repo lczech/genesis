@@ -14,6 +14,8 @@
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
 
+const char* get_docstring (const std::string& signature);
+
 template <class NodeDataType, class EdgeDataType>
 void BoostPythonExport_TreeNode (std::string name)
 {
@@ -26,37 +28,41 @@ void BoostPythonExport_TreeNode (std::string name)
         // Public Member Functions
 
         .def(
-            "primary_link",
-            ( LinkType * ( NodeType::* )(  ) const )( &NodeType::primary_link ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            "Returns the link of this node that points towards the root."
+            "dump",
+            ( std::string ( NodeType::* )(  ) const )( &NodeType::dump ),
+            get_docstring("std::string ::genesis::TreeNode::dump () const")
+        )
+        .def(
+            "index",
+            ( size_t ( NodeType::* )(  ) const )( &NodeType::index ),
+            get_docstring("size_t ::genesis::TreeNode::index () const")
+        )
+        .def(
+            "is_inner",
+            ( bool ( NodeType::* )(  ) const )( &NodeType::is_inner ),
+            get_docstring("bool ::genesis::TreeNode::is_inner () const")
+        )
+        .def(
+            "is_leaf",
+            ( bool ( NodeType::* )(  ) const )( &NodeType::is_leaf ),
+            get_docstring("bool ::genesis::TreeNode::is_leaf () const")
         )
         .def(
             "link",
             ( LinkType * ( NodeType::* )(  ) const )( &NodeType::link ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            "Returns the link of this node that points towards the root."
+            get_docstring("LinkType * ::genesis::TreeNode::link () const")
         )
         .def(
-            "index",
-            ( size_t ( NodeType::* )(  ) const )( &NodeType::index ),
-            "Returns the index of this link."
+            "primary_link",
+            ( LinkType * ( NodeType::* )(  ) const )( &NodeType::primary_link ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>(),
+            get_docstring("LinkType * ::genesis::TreeNode::primary_link () const")
         )
         .def(
             "rank",
-            ( int ( NodeType::* )(  ) const )( &NodeType::rank )
-        )
-        .def(
-            "is_leaf",
-            ( bool ( NodeType::* )(  ) const )( &NodeType::is_leaf )
-        )
-        .def(
-            "is_inner",
-            ( bool ( NodeType::* )(  ) const )( &NodeType::is_inner )
-        )
-        .def(
-            "dump",
-            ( std::string ( NodeType::* )(  ) const )( &NodeType::dump )
+            ( int ( NodeType::* )(  ) const )( &NodeType::rank ),
+            get_docstring("int ::genesis::TreeNode::rank () const")
         )
 
         // Operators
