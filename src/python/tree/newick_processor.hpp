@@ -1,3 +1,6 @@
+#ifndef GENESIS_BOOST_PYTHON_EXPORT_TREE_NEWICK_PROCESSOR_H_
+#define GENESIS_BOOST_PYTHON_EXPORT_TREE_NEWICK_PROCESSOR_H_
+
 /**
  * @brief
  *
@@ -45,3 +48,5 @@ void BoostPythonExport_Overload_NewickProcessor()
         )
     ;
 }
+
+#endif // include guard

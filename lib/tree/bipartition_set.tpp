@@ -120,7 +120,7 @@ typename BipartitionSet<NDT, EDT>::BipartitionType* BipartitionSet<NDT, EDT>::fi
             if (min_count == 0 || (~bp.leaf_nodes_).count() < min_count)  {
                 // TODO the invert messes with the data consistency of the bipartition. better make a copy!
                 // TODO also, if there is a class subtree at some better, better return this instead of a bipartition.
-                bp.Invert();
+                bp.invert();
                 best_bp   = &bp;
                 min_count = bp.leaf_nodes_.count();
             }

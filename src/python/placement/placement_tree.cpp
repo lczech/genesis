@@ -9,8 +9,9 @@
 
 #include "placement/placement_tree.hpp"
 
-#include "../src/python/tree/newick_processor.hpp"
 #include "../src/python/tree/tree.hpp"
+
+const char* get_docstring (const std::string& signature);
 
 // -------------------------------------------------------------------
 //     Class PlacementTreeNodeData
@@ -29,40 +30,41 @@ void BoostPythonExport_PlacementTreeNodeData()
 
 void BoostPythonExport_PlacementTreeEdgeData()
 {
+    using namespace genesis;
 
     boost::python::class_< ::genesis::PlacementTreeEdgeData, boost::python::bases< ::genesis::DefaultTreeEdgeData > > ( "PlacementTreeEdgeData" )
 
         // Public Member Functions
 
+        .def(
+            "dump",
+            ( std::string ( ::genesis::PlacementTreeEdgeData::* )(  ) const )( &::genesis::PlacementTreeEdgeData::dump )
+        )
         // .def(
         //     "from_newick_broker_element",
         //     ( void ( ::genesis::PlacementTreeEdgeData::* )( NewickBrokerElement * ))( &::genesis::PlacementTreeEdgeData::from_newick_broker_element ),
         //     ( boost::python::arg("nbe") )
         // )
+        .def(
+            "placement_count",
+            ( size_t ( ::genesis::PlacementTreeEdgeData::* )(  ) const )( &::genesis::PlacementTreeEdgeData::placement_count ),
+            get_docstring("size_t ::genesis::PlacementTreeEdgeData::placement_count () const")
+        )
+        .def(
+            "placement_mass",
+            ( double ( ::genesis::PlacementTreeEdgeData::* )(  ) const )( &::genesis::PlacementTreeEdgeData::placement_mass ),
+            get_docstring("double ::genesis::PlacementTreeEdgeData::placement_mass () const")
+        )
+        .def(
+            "sort_placements",
+            ( void ( ::genesis::PlacementTreeEdgeData::* )(  ))( &::genesis::PlacementTreeEdgeData::sort_placements ),
+            get_docstring("void ::genesis::PlacementTreeEdgeData::sort_placements ()")
+        )
         // .def(
         //     "to_newick_broker_element",
         //     ( void ( ::genesis::PlacementTreeEdgeData::* )( NewickBrokerElement * ) const )( &::genesis::PlacementTreeEdgeData::to_newick_broker_element ),
         //     ( boost::python::arg("nbe") )
         // )
-        .def(
-            "dump",
-            ( std::string ( ::genesis::PlacementTreeEdgeData::* )(  ) const )( &::genesis::PlacementTreeEdgeData::dump )
-        )
-        .def(
-            "placement_count",
-            ( size_t ( ::genesis::PlacementTreeEdgeData::* )(  ) const )( &::genesis::PlacementTreeEdgeData::placement_count ),
-            "Returns the number of placements on this edge."
-        )
-        .def(
-            "placement_mass",
-            ( double ( ::genesis::PlacementTreeEdgeData::* )(  ) const )( &::genesis::PlacementTreeEdgeData::placement_mass ),
-            "Returns the mass of the placements on this edge, as given by their like_weight_ratio."
-        )
-        .def(
-            "sort_placements",
-            ( void ( ::genesis::PlacementTreeEdgeData::* )(  ))( &::genesis::PlacementTreeEdgeData::sort_placements ),
-            "Sorts the placements on this edge by their distance from the root, ascending."
-        )
 
         // Operators
 
@@ -83,5 +85,4 @@ void BoostPythonExport_PlacementTree()
     BoostPythonExport_PlacementTreeEdgeData();
 
     BoostPythonExport_Tree<PlacementTreeNodeData, PlacementTreeEdgeData>("PlacementTree");
-    BoostPythonExport_Overload_NewickProcessor<PlacementTree>();
 }

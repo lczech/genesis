@@ -14,6 +14,8 @@
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
 
+const char* get_docstring (const std::string& signature);
+
 template <class NodeDataType, class EdgeDataType>
 void BoostPythonExport_TreeEdge (std::string name)
 {
@@ -26,35 +28,38 @@ void BoostPythonExport_TreeEdge (std::string name)
         // Public Member Functions
 
         .def(
+            "dump",
+            ( std::string ( EdgeType::* )(  ) const )( &EdgeType::dump ),
+            get_docstring("std::string ::genesis::TreeEdge::dump () const")
+        )
+        .def(
+            "index",
+            ( size_t ( EdgeType::* )(  ) const )( &EdgeType::index ),
+            get_docstring("size_t ::genesis::TreeEdge::index () const")
+        )
+        .def(
             "primary_link",
             ( LinkType * ( EdgeType::* )(  ) const )( &EdgeType::primary_link ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            "Returns the link of this edge that points towards the root."
+            get_docstring("LinkType * ::genesis::TreeEdge::primary_link () const")
+        )
+        .def(
+            "primary_node",
+            ( NodeType * ( EdgeType::* )(  ) const )( &EdgeType::primary_node ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>(),
+            get_docstring("NodeType * ::genesis::TreeEdge::primary_node () const")
         )
         .def(
             "secondary_link",
             ( LinkType * ( EdgeType::* )(  ) const )( &EdgeType::secondary_link ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            "Returns the link of this edge that points away from the root."
-        )
-        .def(
-            "primary_node",
-            ( NodeType * ( EdgeType::* )(  ) const )( &EdgeType::primary_node ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>()
+            get_docstring("LinkType * ::genesis::TreeEdge::secondary_link () const")
         )
         .def(
             "secondary_node",
             ( NodeType * ( EdgeType::* )(  ) const )( &EdgeType::secondary_node ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>()
-        )
-        .def(
-            "index",
-            ( size_t ( EdgeType::* )(  ) const )( &EdgeType::index ),
-            "Returns the index of this Link."
-        )
-        .def(
-            "dump",
-            ( std::string ( EdgeType::* )(  ) const )( &EdgeType::dump )
+            boost::python::return_value_policy<boost::python::reference_existing_object>(),
+            get_docstring("NodeType * ::genesis::TreeEdge::secondary_node () const")
         )
 
         // Operators

@@ -14,6 +14,8 @@
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
 
+const char* get_docstring (const std::string& signature);
+
 template <class NodeDataType, class EdgeDataType>
 void BoostPythonExport_TreeLink (std::string name)
 {
@@ -26,54 +28,54 @@ void BoostPythonExport_TreeLink (std::string name)
         // Public Member Functions
 
         .def(
-            "next",
-            ( LinkType * ( LinkType::* )(  ) const )( &LinkType::next ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            "Returns a pointer to the next link within the node."
-        )
-        .def(
-            "prev",
-            ( LinkType * ( LinkType::* )(  ) const )( &LinkType::prev ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            "Returns a pointer to the previous link within the node."
-        )
-        .def(
-            "outer",
-            ( LinkType * ( LinkType::* )(  ) const )( &LinkType::outer ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            "Returns a pointer to the link of the adjacent node."
+            "dump",
+            ( std::string ( LinkType::* )(  ) const )( &LinkType::dump ),
+            get_docstring("std::string ::genesis::TreeLink::dump () const")
         )
         .def(
             "edge",
             ( EdgeType * ( LinkType::* )(  ) const )( &LinkType::edge ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            "Returns a pointer to the TreeEdge containing the data of this link's edge."
+            get_docstring("EdgeType * ::genesis::TreeLink::edge () const")
+        )
+        .def(
+            "index",
+            ( size_t ( LinkType::* )(  ) const )( &LinkType::index ),
+            get_docstring("size_t ::genesis::TreeLink::index () const")
+        )
+        .def(
+            "is_inner",
+            ( bool ( LinkType::* )(  ) const )( &LinkType::is_inner ),
+            get_docstring("bool ::genesis::TreeLink::is_inner () const")
+        )
+        .def(
+            "is_leaf",
+            ( bool ( LinkType::* )(  ) const )( &LinkType::is_leaf ),
+            get_docstring("bool ::genesis::TreeLink::is_leaf () const")
+        )
+        .def(
+            "next",
+            ( LinkType * ( LinkType::* )(  ) const )( &LinkType::next ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>(),
+            get_docstring("LinkType * ::genesis::TreeLink::next () const")
         )
         .def(
             "node",
             ( NodeType * ( LinkType::* )(  ) const )( &LinkType::node ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            "Returns a pointer to the TreeNode containing the data of this link's node."
+            get_docstring("NodeType * ::genesis::TreeLink::node () const")
         )
         .def(
-            "index",
-            ( size_t ( LinkType::* )(  ) const )( &LinkType::index ),
-            "Returns the index of this Link."
+            "outer",
+            ( LinkType * ( LinkType::* )(  ) const )( &LinkType::outer ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>(),
+            get_docstring("LinkType * ::genesis::TreeLink::outer () const")
         )
         .def(
-            "is_leaf",
-            ( bool ( LinkType::* )(  ) const )( &LinkType::is_leaf ),
-            "Returns true iff the node of this link is a leaf node."
-        )
-        .def(
-            "is_inner",
-            ( bool ( LinkType::* )(  ) const )( &LinkType::is_inner ),
-            "Returns true iff the node of this link is an inner node."
-        )
-        .def(
-            "dump",
-            ( std::string ( LinkType::* )(  ) const )( &LinkType::dump ),
-            "Returns a string containing dump information about this link."
+            "prev",
+            ( LinkType * ( LinkType::* )(  ))( &LinkType::prev ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>(),
+            get_docstring("LinkType * ::genesis::TreeLink::prev ()")
         )
 
         // Operators

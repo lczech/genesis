@@ -6,14 +6,18 @@
  */
 
 #include <boost/python.hpp>
+
 #include "tree/default_tree.hpp"
+
+#include "../src/python/tree/newick_processor.hpp"
+#include "../src/python/tree/tree.hpp"
+
+// -------------------------------------------------------------------
+//     Class DefaultTreeEdgeData
+// -------------------------------------------------------------------
 
 void BoostPythonExport_DefaultTreeEdgeData()
 {
-    // -------------------------------------------------------------------
-    //     Class DefaultTreeEdgeData
-    // -------------------------------------------------------------------
-
     boost::python::class_< ::genesis::DefaultTreeEdgeData > ( "DefaultTreeEdgeData" )
 
         // Public Member Functions
@@ -41,12 +45,12 @@ void BoostPythonExport_DefaultTreeEdgeData()
     ;
 }
 
+// -------------------------------------------------------------------
+//     Class DefaultTreeNodeData
+// -------------------------------------------------------------------
+
 void BoostPythonExport_DefaultTreeNodeData()
 {
-    // -------------------------------------------------------------------
-    //     Class DefaultTreeNodeData
-    // -------------------------------------------------------------------
-
     boost::python::class_< ::genesis::DefaultTreeNodeData > ( "DefaultTreeNodeData" )
 
         // Public Member Functions
@@ -72,4 +76,18 @@ void BoostPythonExport_DefaultTreeNodeData()
         .def( boost::python::self == boost::python::self )
         .def( boost::python::self != boost::python::self )
     ;
+}
+
+// -------------------------------------------------------------------
+//     Class DefaultTree
+// -------------------------------------------------------------------
+
+void BoostPythonExport_DefaultTree()
+{
+    using namespace genesis;
+
+    BoostPythonExport_DefaultTreeEdgeData();
+    BoostPythonExport_DefaultTreeNodeData();
+
+    BoostPythonExport_Tree<DefaultTreeNodeData, DefaultTreeEdgeData>("DefaultTree");
 }

@@ -9,6 +9,8 @@
 
 #include "utils/logging.hpp"
 
+const char* get_docstring (const std::string& signature);
+
 void BoostPythonExport_Logging()
 {
 
@@ -64,13 +66,15 @@ void BoostPythonExport_Logging()
 
         .def(
             "log_to_stdout",
-            (void ( * )(  ))( &::genesis::Logging::log_to_stdout )
+            (void ( * )(  ))( &::genesis::Logging::log_to_stdout ),
+            get_docstring("static void ::genesis::Logging::log_to_stdout ()")
         )
         .staticmethod("log_to_stdout")
         .def(
             "log_to_file",
             (void ( * )( ::std::string const & ))( &::genesis::Logging::log_to_file ),
-            ( boost::python::arg("msg") )
+            ( boost::python::arg("msg") ),
+            get_docstring("static void ::genesis::Logging::log_to_file (const std::string & fn)")
         )
         .staticmethod("log_to_file")
     ;
