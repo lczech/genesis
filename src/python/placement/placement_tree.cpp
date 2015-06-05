@@ -9,7 +9,6 @@
 
 #include "placement/placement_tree.hpp"
 
-#include "../src/python/tree/newick_processor.hpp"
 #include "../src/python/tree/tree.hpp"
 
 const char* get_docstring (const std::string& signature);
@@ -86,5 +85,4 @@ void BoostPythonExport_PlacementTree()
     BoostPythonExport_PlacementTreeEdgeData();
 
     BoostPythonExport_Tree<PlacementTreeNodeData, PlacementTreeEdgeData>("PlacementTree");
-    BoostPythonExport_Overload_NewickProcessor<PlacementTree>();
 }
