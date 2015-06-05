@@ -23,8 +23,7 @@ void BoostPythonExport_PlacementTree();
     //     Tree
     // -------------------------------------------
 
-void BoostPythonExport_DefaultTreeEdgeData();
-void BoostPythonExport_DefaultTreeNodeData();
+void BoostPythonExport_DefaultTree();
 void BoostPythonExport_Finalize_NewickProcessor();
 // void BoostPythonExport_NewickProcessor();
 //~ void BoostPythonExport_TreeSet();
@@ -49,8 +48,7 @@ BOOST_PYTHON_MODULE(genesis)
     //     Tree
     // -------------------------------------------
 
-    BoostPythonExport_DefaultTreeEdgeData();
-    BoostPythonExport_DefaultTreeNodeData();
+    BoostPythonExport_DefaultTree();
     // BoostPythonExport_NewickProcessor();
     //~ BoostPythonExport_TreeSet();
 

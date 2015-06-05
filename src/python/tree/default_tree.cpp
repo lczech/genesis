@@ -6,7 +6,11 @@
  */
 
 #include <boost/python.hpp>
+
 #include "tree/default_tree.hpp"
+
+#include "../src/python/tree/newick_processor.hpp"
+#include "../src/python/tree/tree.hpp"
 
 void BoostPythonExport_DefaultTreeEdgeData()
 {
@@ -72,4 +76,19 @@ void BoostPythonExport_DefaultTreeNodeData()
         .def( boost::python::self == boost::python::self )
         .def( boost::python::self != boost::python::self )
     ;
+}
+
+void BoostPythonExport_DefaultTree()
+{
+    // -------------------------------------------------------------------
+    //     Class DefaultTree
+    // -------------------------------------------------------------------
+
+    using namespace genesis;
+
+    BoostPythonExport_DefaultTreeEdgeData();
+    BoostPythonExport_DefaultTreeNodeData();
+
+    BoostPythonExport_Tree<DefaultTreeNodeData, DefaultTreeEdgeData>("DefaultTree");
+    BoostPythonExport_Overload_NewickProcessor<DefaultTree>();
 }
