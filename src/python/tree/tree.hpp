@@ -13,7 +13,6 @@
 #include "tree/tree.hpp"
 
 #include "../src/python/tree/bipartition_set.hpp"
-#include "../src/python/tree/newick_processor.hpp"
 #include "../src/python/tree/tree_edge.hpp"
 #include "../src/python/tree/tree_link.hpp"
 #include "../src/python/tree/tree_node.hpp"
@@ -35,8 +34,6 @@ void BoostPythonExport_Tree (std::string name)
     BoostPythonExport_TreeNode<NodeDataType, EdgeDataType>(name + "Node");
 
     BoostPythonExport_BipartitionSet<NodeDataType, EdgeDataType>("BipartitionSet" + name);
-
-    BoostPythonExport_Overload_NewickProcessor<TreeType>();
 
     // -------------------------------------------------------------------
     //     Class Tree

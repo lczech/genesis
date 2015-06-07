@@ -24,8 +24,7 @@ void BoostPythonExport_PlacementTree();
     // -------------------------------------------
 
 void BoostPythonExport_DefaultTree();
-void BoostPythonExport_Finalize_NewickProcessor();
-// void BoostPythonExport_NewickProcessor();
+void BoostPythonExport_NewickProcessor();
 //~ void BoostPythonExport_TreeSet();
 
     // -------------------------------------------
@@ -49,7 +48,7 @@ BOOST_PYTHON_MODULE(genesis)
     // -------------------------------------------
 
     BoostPythonExport_DefaultTree();
-    // BoostPythonExport_NewickProcessor();
+    BoostPythonExport_NewickProcessor();
     //~ BoostPythonExport_TreeSet();
 
     // -------------------------------------------
@@ -67,9 +66,4 @@ BOOST_PYTHON_MODULE(genesis)
     BoostPythonExport_Bitvector();
     BoostPythonExport_Logging();
 
-    // -------------------------------------------
-    //     Finish Tree
-    // -------------------------------------------
-
-    BoostPythonExport_Finalize_NewickProcessor();
 }
