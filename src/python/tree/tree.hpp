@@ -216,45 +216,47 @@ void BoostPythonExport_Tree (std::string name)
         // Iterators
 
 
-        //~ ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::begin_eulertour )
-        //~ ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::end_eulertour )
-        //~ .add_property(
-            //~ "Eulertour",
-            //~ boost::python::range (
-                //~ ( ::genesis::TreeType::ConstIteratorEulertour ( TreeType::* )(  ) const )( &TreeType::begin_eulertour ),
-                //~ ( ::genesis::TreeType::ConstIteratorEulertour ( TreeType::* )(  ) const )( &TreeType::end_eulertour )
-            //~ )
-        //~ )
+        // ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::begin_eulertour )
+        // ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::end_eulertour )
+        .add_property(
+            "eulertour",
+            boost::python::range (
+                &TreeType::begin_eulertour,
+                &TreeType::end_eulertour
+                // ( TreeType::ConstIteratorEulertour ( * )(  ) const )( &TreeType::begin_eulertour ),
+                // ( TreeType::ConstIteratorEulertour ( TreeType::* )(  ) const )( &TreeType::end_eulertour )
+            )
+        )
 
 
-        //~ .add_property(
-            //~ "Eulertour",
-            //~ boost::python::range ( &::genesis::TreeType::begin_eulertour, &::genesis::TreeType::end_eulertour )
-        //~ )
-        //~ .add_property(
-            //~ "Preorder",
-            //~ boost::python::range ( &::genesis::TreeType::begin_preorder, &::genesis::TreeType::end_preorder )
-        //~ )
-        //~ .add_property(
-            //~ "Postorder",
-            //~ boost::python::range ( &::genesis::TreeType::begin_postorder, &::genesis::TreeType::end_postorder )
-        //~ )
-        //~ .add_property(
-            //~ "Levelorder",
-            //~ boost::python::range ( &::genesis::TreeType::begin_levelorder, &::genesis::TreeType::end_levelorder )
-        //~ )
-        //~ .add_property(
-            //~ "Links",
-            //~ boost::python::range ( &::genesis::TreeType::begin_links, &::genesis::TreeType::end_links )
-        //~ )
-        //~ .add_property(
-            //~ "Nodes",
-            //~ boost::python::range ( &::genesis::TreeType::begin_nodes, &::genesis::TreeType::end_nodes )
-        //~ )
-        //~ .add_property(
-            //~ "Edges",
-            //~ boost::python::range ( &::genesis::TreeType::begin_edges, &::genesis::TreeType::end_edges )
-        //~ )
+        // .add_property(
+            // "Eulertour",
+            // boost::python::range ( &::genesis::TreeType::begin_eulertour, &::genesis::TreeType::end_eulertour )
+        // )
+        // .add_property(
+            // "Preorder",
+            // boost::python::range ( &::genesis::TreeType::begin_preorder, &::genesis::TreeType::end_preorder )
+        // )
+        // .add_property(
+            // "Postorder",
+            // boost::python::range ( &::genesis::TreeType::begin_postorder, &::genesis::TreeType::end_postorder )
+        // )
+        // .add_property(
+            // "Levelorder",
+            // boost::python::range ( &::genesis::TreeType::begin_levelorder, &::genesis::TreeType::end_levelorder )
+        // )
+        // .add_property(
+            // "Links",
+            // boost::python::range ( &::genesis::TreeType::begin_links, &::genesis::TreeType::end_links )
+        // )
+        // .add_property(
+            // "Nodes",
+            // boost::python::range ( &::genesis::TreeType::begin_nodes, &::genesis::TreeType::end_nodes )
+        // )
+        // .add_property(
+            // "Edges",
+            // boost::python::range ( &::genesis::TreeType::begin_edges, &::genesis::TreeType::end_edges )
+        // )
     ;
 
 }
