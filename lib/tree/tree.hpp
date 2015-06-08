@@ -195,8 +195,8 @@ public:
     //     Iterators
     // -----------------------------------------------------
 
-    typedef TreeIteratorEulertour <      LinkType*,       NodeType*,       EdgeType*>      IteratorEulertour;
-    typedef TreeIteratorEulertour <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorEulertour;
+    typedef TreeIteratorEulertour <      LinkType,       NodeType,       EdgeType>      IteratorEulertour;
+    typedef TreeIteratorEulertour <const LinkType, const NodeType, const EdgeType> ConstIteratorEulertour;
 
     typedef TreeIteratorPreorder  <      LinkType*,       NodeType*,       EdgeType*>      IteratorPreorder;
     typedef TreeIteratorPreorder  <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorPreorder;

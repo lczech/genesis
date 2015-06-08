@@ -9,7 +9,6 @@
 
 #include "tree/default_tree.hpp"
 
-#include "../src/python/tree/newick_processor.hpp"
 #include "../src/python/tree/tree.hpp"
 
 // -------------------------------------------------------------------
