@@ -57,7 +57,7 @@ BOOST_PYTHON_MODULE(genesis)
 
     BoostPythonExport_JplaceProcessor();
     BoostPythonExport_PlacementMap();
-    BoostPythonExport_PlacementTree();
+    // BoostPythonExport_PlacementTree();
 
     // -------------------------------------------
     //     Utils

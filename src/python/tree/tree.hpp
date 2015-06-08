@@ -17,6 +17,8 @@
 #include "../src/python/tree/tree_link.hpp"
 #include "../src/python/tree/tree_node.hpp"
 
+#include "../src/python/tree/tree_iterator.hpp"
+
 const char* get_docstring (const std::string& signature);
 
 template <class NodeDataType, class EdgeDataType>
@@ -34,6 +36,8 @@ void BoostPythonExport_Tree (std::string name)
     BoostPythonExport_TreeNode<NodeDataType, EdgeDataType>(name + "Node");
 
     BoostPythonExport_BipartitionSet<NodeDataType, EdgeDataType>("BipartitionSet" + name);
+
+    BoostPythonExport_TreeIterator<TreeType>(name);
 
     // -------------------------------------------------------------------
     //     Class Tree
