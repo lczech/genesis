@@ -22,7 +22,7 @@ namespace genesis {
 //     Euler Tour Iterator
 // =============================================================================
 
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
+template <typename LinkType, typename NodeType, typename EdgeType>
 class TreeIteratorEulertour
 {
 public:
@@ -30,17 +30,17 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorEulertour<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef TreeIteratorEulertour<LinkType, NodeType, EdgeType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
-    typedef NodePointerType value_type;
-    typedef size_t          difference_type;
-    typedef NodePointerType pointer;
-    typedef NodePointerType reference;
+    typedef NodeType  value_type;
+    typedef size_t    difference_type;
+    typedef NodeType* pointer;
+    typedef NodeType& reference;
 
-    inline pointer operator * ()
+    inline reference operator * ()
     {
-        return link_->node();
+        return *(link_->node());
     }
 
     inline pointer operator -> ()
@@ -52,7 +52,7 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorEulertour (LinkPointerType link) : link_(link), start_(link)
+    TreeIteratorEulertour (LinkType* link) : link_(link), start_(link)
     {}
 
     // -----------------------------------------------------
@@ -89,34 +89,34 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline LinkPointerType link() const
+    inline LinkType* link() const
     {
         return link_;
     }
 
-    inline NodePointerType node() const
+    inline NodeType* node() const
     {
         return link_->node();
     }
 
-    inline EdgePointerType edge() const
+    inline EdgeType* edge() const
     {
         return link_->edge();
     }
 
-    inline LinkPointerType start_link() const
+    inline LinkType* start_link() const
     {
         return start_;
     }
 
-    inline NodePointerType start_node() const
+    inline NodeType* start_node() const
     {
         return start_->node();
     }
 
 protected:
-    LinkPointerType link_;
-    LinkPointerType start_;
+    LinkType* link_;
+    LinkType* start_;
 };
 
 // =============================================================================

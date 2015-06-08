@@ -23,7 +23,8 @@ void BoostPythonExport_TreeNode (std::string name)
     typedef ::genesis::TreeLink<NodeDataType, EdgeDataType> LinkType;
     typedef ::genesis::TreeNode<NodeDataType, EdgeDataType> NodeType;
 
-    boost::python::class_< NodeType, boost::python::bases<NodeDataType>, boost::noncopyable > ( name.c_str() )
+    // boost::python::class_< NodeType, boost::python::bases<NodeDataType>, boost::noncopyable > ( name.c_str() )
+    boost::python::class_< NodeType, boost::python::bases<NodeDataType> > ( name.c_str() )
 
         // Public Member Functions
 
