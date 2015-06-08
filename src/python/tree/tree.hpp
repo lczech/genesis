@@ -219,18 +219,17 @@ void BoostPythonExport_Tree (std::string name)
 
         // Iterators
 
-
         // ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::begin_eulertour )
         // ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::end_eulertour )
-        .add_property(
-            "eulertour",
-            boost::python::range (
-                &TreeType::begin_eulertour,
-                &TreeType::end_eulertour
-                // ( TreeType::ConstIteratorEulertour ( * )(  ) const )( &TreeType::begin_eulertour ),
-                // ( TreeType::ConstIteratorEulertour ( TreeType::* )(  ) const )( &TreeType::end_eulertour )
-            )
-        )
+        // .add_property(
+        //     "eulertour",
+        //     boost::python::range (
+        //         &TreeType::begin_eulertour,
+        //         &TreeType::end_eulertour
+        //         // ( TreeType::ConstIteratorEulertour ( * )(  ) const )( &TreeType::begin_eulertour ),
+        //         // ( TreeType::ConstIteratorEulertour ( TreeType::* )(  ) const )( &TreeType::end_eulertour )
+        //     )
+        // )
 
 
         // .add_property(

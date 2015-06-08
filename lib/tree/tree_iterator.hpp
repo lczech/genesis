@@ -33,20 +33,20 @@ public:
     typedef TreeIteratorEulertour<LinkType, NodeType, EdgeType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
-    typedef NodeType  value_type;
-    typedef size_t    difference_type;
-    typedef NodeType* pointer;
-    typedef NodeType& reference;
-
-    inline reference operator * ()
-    {
-        return *(link_->node());
-    }
-
-    inline pointer operator -> ()
-    {
-        return link_->node();
-    }
+    // typedef NodeType  value_type;
+    // typedef size_t    difference_type;
+    // typedef NodeType* pointer;
+    // typedef NodeType& reference;
+    //
+    // inline reference operator * ()
+    // {
+    //     return *(link_->node());
+    // }
+    //
+    // inline pointer operator -> ()
+    // {
+    //     return link_->node();
+    // }
 
     // -----------------------------------------------------
     //     Constructor

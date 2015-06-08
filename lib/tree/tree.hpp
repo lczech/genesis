@@ -227,40 +227,40 @@ public:
     //     Eulertour
     // -----------------------
 
-    // inline IteratorEulertour begin_eulertour()
-    // {
-    //     return IteratorEulertour(root_link());
-    // }
+    inline IteratorEulertour begin_eulertour()
+    {
+        return IteratorEulertour(root_link());
+    }
 
-    // inline IteratorEulertour begin_eulertour(const LinkType* link)
-    // {
-    //     return IteratorEulertour(link);
-    // }
+    inline IteratorEulertour begin_eulertour(const LinkType* link)
+    {
+        return IteratorEulertour(link);
+    }
 
-    // inline IteratorEulertour begin_eulertour(const NodeType* node)
-    // {
-    //     return IteratorEulertour(node->primary_link());
-    // }
+    inline IteratorEulertour begin_eulertour(const NodeType* node)
+    {
+        return IteratorEulertour(node->primary_link());
+    }
 
-    // inline IteratorEulertour end_eulertour()
-    // {
-    //     return IteratorEulertour(nullptr);
-    // }
+    inline IteratorEulertour end_eulertour()
+    {
+        return IteratorEulertour(nullptr);
+    }
 
     inline ConstIteratorEulertour begin_eulertour() const
     {
         return ConstIteratorEulertour(root_link());
     }
 
-    // inline ConstIteratorEulertour begin_eulertour(const LinkType* link) const
-    // {
-    //     return ConstIteratorEulertour(link);
-    // }
+    inline ConstIteratorEulertour begin_eulertour(const LinkType* link) const
+    {
+        return ConstIteratorEulertour(link);
+    }
 
-    // inline ConstIteratorEulertour begin_eulertour(const NodeType* node) const
-    // {
-    //     return ConstIteratorEulertour(node->primary_link());
-    // }
+    inline ConstIteratorEulertour begin_eulertour(const NodeType* node) const
+    {
+        return ConstIteratorEulertour(node->primary_link());
+    }
 
     inline ConstIteratorEulertour end_eulertour() const
     {

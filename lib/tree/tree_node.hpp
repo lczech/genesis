@@ -43,10 +43,8 @@ public:
 
     // avoid copy constructor and assignment operator.
     // creating copies is maintained by Tree only.
-    //
-    // TODO make unavailabe again, and find a better solution to export the iterators to python
-    // TreeNode (const TreeNode&) = delete;
-    // TreeNode& operator = (const TreeNode&) = delete;
+    TreeNode (const TreeNode&) = delete;
+    TreeNode& operator = (const TreeNode&) = delete;
 
     // -----------------------------------------------------
     //     Typedefs
