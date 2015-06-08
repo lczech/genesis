@@ -16,72 +16,104 @@
 const char* get_docstring (const std::string& signature);
 inline boost::python::object pass_through (boost::python::object const& o) { return o; }
 
+// -------------------------------------------------------------------
+//     Class TreeIteratorEulertour
+// -------------------------------------------------------------------
+
+template <class TreeType>
+void BoostPythonExport_TreeIteratorEulertour()
+{
+    typedef typename TreeType::IteratorEulertour TreeIteratorEulertour;
+    typedef typename TreeType::EdgeType EdgeType;
+    typedef typename TreeType::LinkType LinkType;
+    typedef typename TreeType::NodeType NodeType;
+
+    boost::python::class_< TreeIteratorEulertour > ( "TreeIteratorEulertour", boost::python::init< LinkType* >(( boost::python::arg("link") )) )
+
+        // Public Member Functions
+
+        .def(
+            "edge",
+            ( EdgeType* ( TreeIteratorEulertour::* )(  ) const )( &TreeIteratorEulertour::edge ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>()
+        )
+        .def(
+            "link",
+            ( LinkType* ( TreeIteratorEulertour::* )(  ) const )( &TreeIteratorEulertour::link ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>()
+        )
+        .def(
+            "node",
+            ( NodeType* ( TreeIteratorEulertour::* )(  ) const )( &TreeIteratorEulertour::node ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>()
+        )
+        .def(
+            "start_link",
+            ( LinkType* ( TreeIteratorEulertour::* )(  ) const )( &TreeIteratorEulertour::start_link ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>()
+        )
+        .def(
+            "start_node",
+            ( NodeType* ( TreeIteratorEulertour::* )(  ) const )( &TreeIteratorEulertour::start_node ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>()
+        )
+
+        // Operators
+
+        .def( boost::python::self == boost::python::self )
+        .def( boost::python::self != boost::python::self )
+    ;
+}
+
+// -------------------------------------------------------------------
+//     Tree Iterator Wrapper
+// -------------------------------------------------------------------
+
 template<class TreeType, class TreeIterator>
 struct TreeIteratorWrapper
 {
-    // TreeIterator it_;
+    TreeIterator it_;
 
-    static TreeIterator init (TreeType& tree)
-    {
-        return TreeIterator(tree.root_link());
-    }
+    TreeIteratorWrapper(TreeType& tree) : it_( TreeIterator(tree.root_link()) )
+    {}
 
-    static TreeIterator next (TreeIterator& o)
+    // static TreeIterator init (TreeType& tree)
+    // {
+    //     return TreeIterator(tree.root_link());
+    // }
+
+    TreeIterator next ()
     {
-        TreeIterator result = o++;
-        if (result == TreeIterator(nullptr)) {
+        ++it_;
+        if (it_ == TreeIterator(nullptr)) {
             PyErr_SetString(PyExc_StopIteration, "No more data.");
             boost::python::throw_error_already_set();
         }
-        return result;
+        return it_;
     }
 
     static void wrap (const char* python_name)
     {
-        boost::python::class_< TreeIterator > ( python_name, boost::python::no_init )
+        boost::python::class_< TreeIteratorWrapper > ( python_name, boost::python::init< TreeType & >(( boost::python::arg("tree") )) )
             // .def("__init__", init, boost::python::return_value_policy< boost::python::return_by_value >() )
-            .def("__init__", init)
-            .def("next", next)
+            // .def("__init__", init)
+            .def("next", &TreeIteratorWrapper::next)
             .def("__iter__", pass_through)
         ;
     }
 };
 
+// -------------------------------------------------------------------
+//     Tree Iterator
+// -------------------------------------------------------------------
+
 template <class TreeType>
-void BoostPythonExport_TreeIterator (std::string name)
+void BoostPythonExport_TreeIterators (std::string name)
 {
     using namespace genesis;
 
-    TreeIteratorWrapper< const TreeType, typename TreeType::IteratorEulertour >().wrap("Eulertour");
-
-
-    // -------------------------------------------------------------------
-    //     Class Tree
-    // -------------------------------------------------------------------
-/*
-    boost::python::class_< TreeType > ( name.c_str(), boost::python::init<  >(  ) )
-        .def( boost::python::init< const TreeType & >(( boost::python::arg("other") )) )
-
-        // Public Member Functions
-
-
-        // Iterators
-
-
-        // ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::begin_eulertour )
-        // ( ::genesis::TreeType::IteratorEulertour ( TreeType::* )(  ) )( &TreeType::end_eulertour )
-        .add_property(
-            "eulertour",
-            boost::python::range (
-                &TreeType::begin_eulertour,
-                &TreeType::end_eulertour
-                // ( TreeType::ConstIteratorEulertour ( * )(  ) const )( &TreeType::begin_eulertour ),
-                // ( TreeType::ConstIteratorEulertour ( TreeType::* )(  ) const )( &TreeType::end_eulertour )
-            )
-        )
-
-    ;
-*/
+    BoostPythonExport_TreeIteratorEulertour<TreeType>();
+    TreeIteratorWrapper< const TreeType, typename TreeType::IteratorEulertour >::wrap("Eulertour");
 }
 
 #endif // include guard

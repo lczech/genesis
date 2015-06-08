@@ -37,7 +37,7 @@ void BoostPythonExport_Tree (std::string name)
 
     BoostPythonExport_BipartitionSet<NodeDataType, EdgeDataType>("BipartitionSet" + name);
 
-    BoostPythonExport_TreeIterator<TreeType>(name);
+    BoostPythonExport_TreeIterators<TreeType>(name);
 
     // -------------------------------------------------------------------
     //     Class Tree
