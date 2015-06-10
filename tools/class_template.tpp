@@ -17,7 +17,7 @@ namespace genesis {
 template <###TEMPLATE_PARAM###>
 ###CLASSNAME###::###CLASSNAME###()
 {
-    //
+    // implementation
 }
 
 /**
@@ -26,7 +26,7 @@ template <###TEMPLATE_PARAM###>
 template <###TEMPLATE_PARAM###>
 ###CLASSNAME###::~###CLASSNAME###()
 {
-    //
+    // implementation
 }
 
 } // namespace genesis

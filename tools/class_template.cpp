@@ -18,7 +18,7 @@ namespace genesis {
  */
 ###CLASSNAME###::###CLASSNAME###()
 {
-    //
+    // implementation
 }
 
 /**
@@ -26,7 +26,7 @@ namespace genesis {
  */
 ###CLASSNAME###::~###CLASSNAME###()
 {
-    //
+    // implementation
 }
 
 } // namespace genesis
