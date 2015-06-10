@@ -26,7 +26,7 @@ namespace genesis {
 template <class TreeType>
 void TreeSet<TreeType>::add (const std::string& name, TreeType* tree)
 {
-    trees_.push_back(std::make_pair(name, std::unique_ptr<TreeType>(tree)));
+    trees_.push_back( { name, std::unique_ptr<TreeType>(tree) } );
 }
 
 // =============================================================================
@@ -41,8 +41,8 @@ TreeType* TreeSet<TreeType>::get_first(const std::string& name)
 {
     auto ct = trees_.begin();
     while (ct != trees_.end()) {
-        if (ct->first == name) {
-            return ct->second->get();
+        if (ct->name == name) {
+            return ct->tree->get();
         }
         ++ct;
     }
@@ -61,9 +61,9 @@ std::string TreeSet<TreeType>::dump(bool full)
 {
     std::string res = "";
     for (auto ct : trees_) {
-        res += ct->first + "\n";
+        res += ct->name + "\n";
         if (full) {
-            res += ct->second->dump() + "\n";
+            res += ct->tree->dump() + "\n";
         }
     }
     return res;

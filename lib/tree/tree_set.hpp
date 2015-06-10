@@ -37,11 +37,14 @@ public:
     //     Constructor and Typedefs
     // -----------------------------------------------------
 
-    // avoid cumbersome names!
-    typedef std::pair<std::string, std::unique_ptr<TreeType>> PairType;
+    struct NamedTree
+    {
+        std::string               name;
+        std::unique_ptr<TreeType> tree;
+    };
 
-    typedef typename std::vector<PairType>::iterator                    iterator;
-    typedef typename std::vector<PairType>::const_iterator              const_iterator;
+    typedef typename std::vector<NamedTree>::iterator       iterator;
+    typedef typename std::vector<NamedTree>::const_iterator const_iterator;
 
     // -----------------------------------------------------
     //     Modifiersy
@@ -75,7 +78,7 @@ public:
         return trees_.cend();
     }
 
-    inline PairType& operator [] (const std::size_t index) const
+    inline NamedTree& operator [] (const std::size_t index) const
     {
         return trees_[index];
     }
@@ -110,7 +113,7 @@ private:
 
     // We use a vector of <string, tree> pairs here, because we want to preserve the order in which
     // elements were inserted into the TreeMap. This is not the case with simple maps.
-    std::vector<PairType> trees_;
+    std::vector<NamedTree> trees_;
 };
 
 } // namespace genesis
