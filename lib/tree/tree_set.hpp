@@ -10,7 +10,6 @@
 
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 //~ #include "tree/tree.hpp"
@@ -47,7 +46,7 @@ public:
     typedef typename std::vector<NamedTree>::const_iterator const_iterator;
 
     // -----------------------------------------------------
-    //     Modifiersy
+    //     Modifiers
     // -----------------------------------------------------
 
     void add (const std::string& name, TreeType* tree);
@@ -78,7 +77,7 @@ public:
         return trees_.cend();
     }
 
-    inline NamedTree& operator [] (const std::size_t index) const
+    inline const NamedTree& operator [] (const std::size_t index) const
     {
         return trees_[index];
     }
