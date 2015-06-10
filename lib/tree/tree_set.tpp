@@ -23,7 +23,7 @@ namespace genesis {
 template <class TreeType>
 void TreeSet<TreeType>::add (const std::string& name, TreeType* tree)
 {
-    trees_.push_back( { name, std::unique_ptr<TreeType>(tree) } );
+    trees_.push_back( { name, std::shared_ptr<TreeType>(tree) } );
 }
 
 // =============================================================================

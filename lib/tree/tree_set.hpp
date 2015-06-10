@@ -39,7 +39,7 @@ public:
     struct NamedTree
     {
         std::string               name;
-        std::unique_ptr<TreeType> tree;
+        std::shared_ptr<TreeType> tree;
     };
 
     typedef typename std::vector<NamedTree>::iterator       iterator;

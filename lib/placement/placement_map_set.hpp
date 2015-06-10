@@ -30,7 +30,7 @@ public:
     struct NamedMap
     {
         std::string                   name;
-        std::unique_ptr<PlacementMap> map;
+        std::shared_ptr<PlacementMap> map;
     };
 
     typedef typename std::vector<NamedMap>::iterator       iterator;

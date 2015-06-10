@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "placement/placement_map.hpp"
+#include "placement/placement_map_set.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/json_document.hpp"
 #include "utils/json_processor.hpp"
@@ -42,6 +43,42 @@ bool JplaceProcessor::check_version (const std::string version)
 
 bool JplaceProcessor::report_invalid_numbers  = false;
 bool JplaceProcessor::correct_invalid_numbers = true;
+
+/**
+ * @brief Reads a list of files and parses them as a Jplace document into a PlacementMapSet object.
+ *
+ * Returns true iff successful.
+ */
+bool JplaceProcessor::from_files (const std::vector<std::string>& fns, PlacementMapSet& set)
+{
+    for (auto fn : fns) {
+        PlacementMap* map = new PlacementMap();
+        if (!from_file (fn, *map)) {
+            return false;
+        }
+        std::string name = file_filename(file_basename(fn));
+        set.add(name, map);
+    }
+    return true;
+}
+
+/**
+ * @brief Parses a list of strings as a Jplace document into a PlacementMapSet object.
+ *
+ * Returns true iff successful.
+ */
+bool JplaceProcessor::from_strings (const std::vector<std::string>& jps, PlacementMapSet& set)
+{
+    size_t cnt = 0;
+    for (auto jplace : jps) {
+        PlacementMap* map = new PlacementMap();
+        if (!from_string (jplace, *map)) {
+            return false;
+        }
+        set.add(std::string("jplace_") + std::to_string(cnt++), map);
+    }
+    return true;
+}
 
 /**
  * @brief Reads a file and parses it as a Jplace document into a PlacementMap object.
