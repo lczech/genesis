@@ -144,7 +144,7 @@ Bitvector& Bitvector::operator |= (Bitvector const& rhs)
     for (size_t i = 0; i < min_s; ++i) {
         data_[i] |= rhs.data_[i];
     }
-    unset_buffer();
+    unset_padding();
     return *this;
 }
 
@@ -154,7 +154,7 @@ Bitvector& Bitvector::operator ^= (Bitvector const& rhs)
     for (size_t i = 0; i < min_s; ++i) {
         data_[i] ^= rhs.data_[i];
     }
-    unset_buffer();
+    unset_padding();
     return *this;
 }
 
@@ -263,7 +263,7 @@ void Bitvector::invert()
     }
 
     // reset the surplus bits at the end of the vector.
-    unset_buffer();
+    unset_padding();
 }
 
 /**
@@ -293,7 +293,7 @@ void Bitvector::reset(bool value)
 
     // if we initialized with true, we need to unset the surplus bits at the end!
     if (value) {
-        unset_buffer();
+        unset_padding();
     }
 }
 
@@ -301,10 +301,10 @@ void Bitvector::reset(bool value)
  * @brief Internal function that sets all bits to zero that are not actively used.
  *
  * The data_ buffer always contains a multiple of IntSize many bits, thus there might be surplus
- * bits at its end. In case we do operations with Bitvectors of different size, these might be
- * affected, so we need to reset them to zero sometimes.
+ * bits at its end for padding. In case we do operations with Bitvectors of different size, these
+ * might be affected, so we need to reset them to zero sometimes.
  */
-void Bitvector::unset_buffer()
+void Bitvector::unset_padding()
 {
     if (size_ % IntSize == 0) {
         return;

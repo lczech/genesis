@@ -204,7 +204,7 @@ public:
 
 protected:
 
-    void unset_buffer();
+    void unset_padding();
 
     static const IntType all_0_;
     static const IntType all_1_;
