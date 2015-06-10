@@ -26,6 +26,8 @@ namespace genesis {
 
 /**
  * @brief Create a Tree from a file containing a Newick tree.
+ *
+ * Returns true iff successful.
  */
 template <class TreeType>
 bool NewickProcessor::from_file (const std::string& fn, TreeType& tree)
@@ -39,6 +41,8 @@ bool NewickProcessor::from_file (const std::string& fn, TreeType& tree)
 
 /**
  * @brief Create a Tree from a string containing a Newick tree.
+ *
+ * Returns true iff successful.
  */
 template <class TreeType>
 bool NewickProcessor::from_string (const std::string& ts, TreeType& tree)
@@ -82,9 +86,10 @@ bool NewickProcessor::from_string (const std::string& ts, TreeType& tree)
 }
 
 /**
- * @brief Create a TreeSet from a file containing a list of Newick trees.
+ * @brief Fill a TreeSet from a file containing a list of Newick trees.
  *
  * See from_string() for information on the syntax of this file.
+ * Returns true iff successful.
  */
 template <class TreeType>
 bool NewickProcessor::from_file (const std::string& fn, TreeSet<TreeType>& tset)
@@ -97,7 +102,7 @@ bool NewickProcessor::from_file (const std::string& fn, TreeSet<TreeType>& tset)
 }
 
 /**
- * @brief Create a TreeSet from a string containing a list of Newick trees.
+ * @brief Fill a TreeSet from a string containing a list of Newick trees.
  *
  * These trees can either be named or unnamed, using this syntax:
  *
@@ -108,6 +113,8 @@ bool NewickProcessor::from_file (const std::string& fn, TreeSet<TreeType>& tset)
  * where the first two lines are named trees and the third line is an unnamed tree.
  * The trees do not have to be on distinct lines of the input, as whitespaces are completely
  * stripped during the lexing phase. However, they are required to end with a semicolon `;`.
+ *
+ * Returns true iff successful.
  */
 template <class TreeType>
 bool NewickProcessor::from_string (const std::string& ts, TreeSet<TreeType>& tset)
@@ -190,6 +197,44 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<TreeType>& tse
         return false;
     }
 
+    return true;
+}
+
+/**
+ * @brief Fill a TreeSet from a list of files containing Newick trees.
+ *
+ * Returns true iff successful.
+ */
+template <class TreeType>
+bool NewickProcessor::from_files (const std::vector<std::string>& fns, TreeSet<TreeType>& set)
+{
+    for (auto fn : fns) {
+        TreeType* tree = new TreeType();
+        if (!from_file (fn, *tree)) {
+            return false;
+        }
+        std::string name = file_filename(file_basename(fn));
+        set.add(name, tree);
+    }
+    return true;
+}
+
+/**
+ * @brief Fill a TreeSet from a list of strings containing Newick trees.
+ *
+ * Returns true iff successful.
+ */
+template <class TreeType>
+bool NewickProcessor::from_strings (const std::vector<std::string>& tss, TreeSet<TreeType>& set)
+{
+    size_t cnt = 0;
+    for (auto ts : tss) {
+        TreeType* tree = new TreeType();
+        if (!from_string (ts, *tree)) {
+            return false;
+        }
+        set.add(std::string("tree_") + std::to_string(cnt++), tree);
+    }
     return true;
 }
 

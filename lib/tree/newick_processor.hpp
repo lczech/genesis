@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include <string>
+#include <vector>
 
 #include "tree/newick_lexer.hpp"
 
@@ -47,16 +48,22 @@ public:
     // ---------------------------------------------------------------------
 
     template <class TreeType>
-    static bool from_file   (const std::string& fn,     TreeType& tree);
+    static bool from_file    (const std::string& filename,    TreeType& tree);
 
     template <class TreeType>
-    static bool from_string (const std::string& ts,     TreeType& tree);
+    static bool from_string  (const std::string& tree_string, TreeType& tree);
 
     template <class TreeType>
-    static bool from_file   (const std::string& fn,     TreeSet<TreeType>& tset);
+    static bool from_file    (const std::string& filename,    TreeSet<TreeType>& tree_set);
 
     template <class TreeType>
-    static bool from_string (const std::string& ts,     TreeSet<TreeType>& tset);
+    static bool from_string  (const std::string& tree_string, TreeSet<TreeType>& tree_set);
+
+    template <class TreeType>
+    static bool from_files   (const std::vector<std::string>& filenames,    TreeSet<TreeType>& tree_set);
+
+    template <class TreeType>
+    static bool from_strings (const std::vector<std::string>& tree_strings, TreeSet<TreeType>& tree_set);
 
 protected:
     static bool parse_tree  (
