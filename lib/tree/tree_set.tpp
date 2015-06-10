@@ -26,6 +26,15 @@ void TreeSet<TreeType>::add (const std::string& name, TreeType* tree)
     trees_.push_back( { name, std::shared_ptr<TreeType>(tree) } );
 }
 
+/**
+ * @brief
+ */
+ template <class TreeType>
+ void TreeSet<TreeType>::clear ()
+ {
+     trees_.clear();
+ }
+
 // =============================================================================
 //     Accessors
 // =============================================================================

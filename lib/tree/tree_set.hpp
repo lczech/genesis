@@ -50,6 +50,7 @@ public:
     // -----------------------------------------------------
 
     void add (const std::string& name, TreeType* tree);
+    void clear();
 
     // -----------------------------------------------------
     //     Accessors
