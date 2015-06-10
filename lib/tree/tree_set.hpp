@@ -41,12 +41,65 @@ public:
     typedef Tree<NodeDataType, EdgeDataType>                  TreeType;
     typedef std::pair<std::string, std::unique_ptr<TreeType>> PairType;
 
+    typedef typename std::vector<PairType>::iterator                    iterator;
+    typedef typename std::vector<PairType>::const_iterator              const_iterator;
+
     // -----------------------------------------------------
-    //     Modifiers & Accessors
+    //     Modifiers
     // -----------------------------------------------------
 
     void add (const std::string& name, TreeType* tree);
+
+    // -----------------------------------------------------
+    //     Accessors
+    // -----------------------------------------------------
+
     TreeType* get_first (const std::string& name);
+
+    inline iterator begin()
+    {
+        return trees_.begin();
+    }
+
+    inline iterator end()
+    {
+        return trees_.end();
+    }
+
+    inline const_iterator cbegin() const
+    {
+        return trees_.cbegin();
+    }
+
+    inline const_iterator cend() const
+    {
+        return trees_.cend();
+    }
+
+    inline PairType& operator [] (const std::size_t index) const
+    {
+        return trees_[index];
+    }
+
+    /**
+     * @brief Returns whether the tree set is empty.
+     */
+    inline bool empty() const
+    {
+        return trees_.empty();
+    }
+
+    /**
+     * @brief Returns the size of the tree set.
+     */
+    inline size_t size() const
+    {
+        return trees_.size();
+    }
+
+    // -----------------------------------------------------
+    //     Dump & Debug
+    // -----------------------------------------------------
 
     std::string dump (bool full = false);
 

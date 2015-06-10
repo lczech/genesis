@@ -93,6 +93,7 @@ public:
     std::deque<std::string> comments;
 
 protected:
+
     /**
      * @brief Rank of the node, i.e. how many children it has.
      */
@@ -218,13 +219,19 @@ public:
      */
     typedef std::deque<NewickBrokerElement*>::iterator               iterator;
 
-    /** @brief Const version of the iterator. */
+    /**
+     * @brief Const version of the iterator.
+     */
     typedef std::deque<NewickBrokerElement*>::const_iterator         const_iterator;
 
-    /** @brief Reverse version of the iterator. */
+    /**
+     * @brief Reverse version of the iterator.
+     */
     typedef std::deque<NewickBrokerElement*>::reverse_iterator       reverse_iterator;
 
-    /** @brief Const reverse version of the iterator. */
+    /**
+     * @brief Const reverse version of the iterator.
+     */
     typedef std::deque<NewickBrokerElement*>::const_reverse_iterator const_reverse_iterator;
 
     /**
@@ -244,19 +251,25 @@ public:
         return stack_.begin();
     }
 
-    /** @brief Returns an iterator to the end of the token list. */
+    /**
+     * @brief Returns an iterator to the end of the token list.
+     */
     inline iterator end()
     {
         return stack_.end();
     }
 
-    /** @brief Const version of begin(). */
+    /**
+     * @brief Const version of begin().
+     */
     inline const_iterator cbegin() const
     {
         return stack_.cbegin();
     }
 
-    /** @brief Const version of end(). */
+    /**
+     * @brief Const version of end().
+     */
     inline const_iterator cend() const
     {
         return stack_.cend();
@@ -272,31 +285,41 @@ public:
         return stack_.rbegin();
     }
 
-    /** @brief Reverse version of end(). */
+    /**
+     * @brief Reverse version of end().
+     */
     inline reverse_iterator rend()
     {
         return stack_.rend();
     }
 
-    /** @brief Const version of rbegin(). */
+    /**
+     * @brief Const version of rbegin().
+     */
     inline const_reverse_iterator crbegin()
     {
         return stack_.crbegin();
     }
 
-    /** @brief Const version of rend(). */
+    /**
+     * @brief Const version of rend().
+     */
     inline const_reverse_iterator crend()
     {
         return stack_.crend();
     }
 
-    /** @brief Returns whether the stack is empty. */
+    /**
+     * @brief Returns whether the stack is empty.
+     */
     inline bool empty() const
     {
         return stack_.empty();
     }
 
-    /** @brief Returns the size of the stack, i.e. the number of nodes stored in the broker. */
+    /**
+     * @brief Returns the size of the stack, i.e. the number of nodes stored in the broker.
+     */
     inline size_t size() const
     {
         return stack_.size();
