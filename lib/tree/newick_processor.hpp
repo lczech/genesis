@@ -54,16 +54,30 @@ public:
     static bool from_string  (const std::string& tree_string, TreeType& tree);
 
     template <class TreeType>
-    static bool from_file    (const std::string& filename,    TreeSet<TreeType>& tree_set);
+    static bool from_file    (
+        const std::string& filename,
+        TreeSet<TreeType>& tree_set
+    );
 
     template <class TreeType>
-    static bool from_string  (const std::string& tree_string, TreeSet<TreeType>& tree_set);
+    static bool from_string  (
+        const std::string& tree_string,
+        TreeSet<TreeType>& tree_set,
+        const std::string& default_name = ""
+    );
 
     template <class TreeType>
-    static bool from_files   (const std::vector<std::string>& filenames,    TreeSet<TreeType>& tree_set);
+    static bool from_files   (
+        const std::vector<std::string>& filenames,
+        TreeSet<TreeType>& tree_set
+    );
 
     template <class TreeType>
-    static bool from_strings (const std::vector<std::string>& tree_strings, TreeSet<TreeType>& tree_set);
+    static bool from_strings (
+        const std::vector<std::string>& tree_strings,
+        TreeSet<TreeType>& tree_set,
+        const std::string& default_name = ""
+    );
 
 protected:
     static bool parse_tree  (

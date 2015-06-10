@@ -89,6 +89,9 @@ bool NewickProcessor::from_string (const std::string& ts, TreeType& tree)
  * @brief Fill a TreeSet from a file containing a list of Newick trees.
  *
  * See from_string() for information on the syntax of this file.
+ * The tree names are taken from the content if availabe. Unnamed trees will be prefixed by the
+ * file name.
+ *
  * Returns true iff successful.
  */
 template <class TreeType>
@@ -98,7 +101,8 @@ bool NewickProcessor::from_file (const std::string& fn, TreeSet<TreeType>& tset)
         LOG_WARN << "Tree file '" << fn << "' does not exist.";
         return false;
     }
-    return from_string(file_read(fn), tset);
+
+    return from_string(file_read(fn), tset, file_filename(file_basename(fn)) + "_");
 }
 
 /**
@@ -114,11 +118,18 @@ bool NewickProcessor::from_file (const std::string& fn, TreeSet<TreeType>& tset)
  * The trees do not have to be on distinct lines of the input, as whitespaces are completely
  * stripped during the lexing phase. However, they are required to end with a semicolon `;`.
  *
+ * In case of unnamed trees, a `default_name` can be provided, which will be appended by a counter
+ * that counts up all unnamed trees. If no default name is given, the trees will simpye be named
+ * using the counter itself.
+ *
  * Returns true iff successful.
  */
 template <class TreeType>
-bool NewickProcessor::from_string (const std::string& ts, TreeSet<TreeType>& tset)
-{
+bool NewickProcessor::from_string (
+    const std::string& ts,
+    TreeSet<TreeType>& tset,
+    const std::string& default_name
+) {
     // Run the Lexer.
     NewickLexer lexer;
     if (!lexer.from_string(ts)) {
@@ -138,6 +149,9 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<TreeType>& tse
 
     // Store error message. Also serves as flag whether an error occured.
     std::string error = "";
+
+    // Count how many unnamed trees we have seen.
+    size_t unnamed_ctr = 0;
 
     auto ct = lexer.begin();
     while (ct != lexer.end()) {
@@ -186,6 +200,10 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<TreeType>& tse
 
         auto tree = new TreeType();
         build_tree(broker, &tree);
+
+        if (name.empty()) {
+            name = default_name + std::to_string(unnamed_ctr++);
+        }
         tset.add(name, tree);
 
         // Let's clean up all tokens used so far. We don't need them anymore.
@@ -209,12 +227,9 @@ template <class TreeType>
 bool NewickProcessor::from_files (const std::vector<std::string>& fns, TreeSet<TreeType>& set)
 {
     for (auto fn : fns) {
-        TreeType* tree = new TreeType();
-        if (!from_file (fn, *tree)) {
+        if (!from_file (fn, set)) {
             return false;
         }
-        std::string name = file_filename(file_basename(fn));
-        set.add(name, tree);
     }
     return true;
 }
@@ -225,15 +240,15 @@ bool NewickProcessor::from_files (const std::vector<std::string>& fns, TreeSet<T
  * Returns true iff successful.
  */
 template <class TreeType>
-bool NewickProcessor::from_strings (const std::vector<std::string>& tss, TreeSet<TreeType>& set)
-{
-    size_t cnt = 0;
+bool NewickProcessor::from_strings (
+    const std::vector<std::string>& tss,
+    TreeSet<TreeType>& set,
+    const std::string& default_name
+) {
     for (auto ts : tss) {
-        TreeType* tree = new TreeType();
-        if (!from_string (ts, *tree)) {
+        if (!from_string (ts, set, default_name)) {
             return false;
         }
-        set.add(std::string("tree_") + std::to_string(cnt++), tree);
     }
     return true;
 }
