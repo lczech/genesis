@@ -10,6 +10,7 @@
 
 #include <assert.h>
 #include <string>
+#include <vector>
 
 #include "tree/newick_lexer.hpp"
 
@@ -22,7 +23,7 @@ namespace genesis {
 template <class NodeDataType, class EdgeDataType>
 class  Tree;
 
-template <class NodeDataType, class EdgeDataType>
+template <class TreeType>
 class  TreeSet;
 
 class  NewickBroker;
@@ -46,17 +47,23 @@ public:
     //     Parsing
     // ---------------------------------------------------------------------
 
-    template <class NodeDataType, class EdgeDataType>
-    static bool from_file   (const std::string& fn,     Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    static bool from_file    (const std::string& filename,    TreeType& tree);
 
-    template <class NodeDataType, class EdgeDataType>
-    static bool from_string (const std::string& ts,     Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    static bool from_string  (const std::string& tree_string, TreeType& tree);
 
-    template <class NodeDataType, class EdgeDataType>
-    static bool from_file   (const std::string& fn,     TreeSet<NodeDataType, EdgeDataType>& tset);
+    template <class TreeType>
+    static bool from_file    (const std::string& filename,    TreeSet<TreeType>& tree_set);
 
-    template <class NodeDataType, class EdgeDataType>
-    static bool from_string (const std::string& ts,     TreeSet<NodeDataType, EdgeDataType>& tset);
+    template <class TreeType>
+    static bool from_string  (const std::string& tree_string, TreeSet<TreeType>& tree_set);
+
+    template <class TreeType>
+    static bool from_files   (const std::vector<std::string>& filenames,    TreeSet<TreeType>& tree_set);
+
+    template <class TreeType>
+    static bool from_strings (const std::vector<std::string>& tree_strings, TreeSet<TreeType>& tree_set);
 
 protected:
     static bool parse_tree  (
@@ -65,8 +72,8 @@ protected:
               NewickBroker&          broker
     );
 
-    template <class NodeDataType, class EdgeDataType>
-    static void build_tree (NewickBroker& broker, Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    static void build_tree (NewickBroker& broker, TreeType& tree);
 
     // ---------------------------------------------------------------------
     //     Printing
@@ -80,18 +87,18 @@ public:
 
     static int  precision;
 
-    template <class NodeDataType, class EdgeDataType>
-    static bool to_file   (const Tree<NodeDataType, EdgeDataType>& tree, const std::string fn);
+    template <class TreeType>
+    static bool to_file   (const TreeType& tree, const std::string fn);
 
-    template <class NodeDataType, class EdgeDataType>
-    static void to_string (const Tree<NodeDataType, EdgeDataType>& tree, std::string& ts);
+    template <class TreeType>
+    static void to_string (const TreeType& tree, std::string& ts);
 
-    template <class NodeDataType, class EdgeDataType>
-    static std::string to_string (const Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    static std::string to_string (const TreeType& tree);
 
 protected:
-    template <class NodeDataType, class EdgeDataType>
-    static void to_broker (const Tree<NodeDataType, EdgeDataType>& tree, NewickBroker& broker);
+    template <class TreeType>
+    static void to_broker (const TreeType& tree, NewickBroker& broker);
 
     static std::string to_string_rec(const NewickBroker& broker, size_t position);
     static std::string element_to_string(const NewickBrokerElement* bn);

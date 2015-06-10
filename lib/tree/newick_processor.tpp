@@ -1,9 +1,6 @@
 /**
  * @brief Implementation of functions for reading and writing Newick files.
  *
- * For reasons of readability, in this implementation file, the template data types
- * NodeDataType and EdgeDataType are abbreviated using NDT and EDT, respectively.
- *
  * @file
  * @ingroup tree
  */
@@ -29,9 +26,11 @@ namespace genesis {
 
 /**
  * @brief Create a Tree from a file containing a Newick tree.
+ *
+ * Returns true iff successful.
  */
-template <class NDT, class EDT>
-bool NewickProcessor::from_file (const std::string& fn, Tree<NDT, EDT>& tree)
+template <class TreeType>
+bool NewickProcessor::from_file (const std::string& fn, TreeType& tree)
 {
     if (!file_exists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' does not exist.";
@@ -42,9 +41,11 @@ bool NewickProcessor::from_file (const std::string& fn, Tree<NDT, EDT>& tree)
 
 /**
  * @brief Create a Tree from a string containing a Newick tree.
+ *
+ * Returns true iff successful.
  */
-template <class NDT, class EDT>
-bool NewickProcessor::from_string (const std::string& ts, Tree<NDT, EDT>& tree)
+template <class TreeType>
+bool NewickProcessor::from_string (const std::string& ts, TreeType& tree)
 {
     // run the lexer
     NewickLexer lexer;
@@ -85,12 +86,13 @@ bool NewickProcessor::from_string (const std::string& ts, Tree<NDT, EDT>& tree)
 }
 
 /**
- * @brief Create a TreeSet from a file containing a list of Newick trees.
+ * @brief Fill a TreeSet from a file containing a list of Newick trees.
  *
  * See from_string() for information on the syntax of this file.
+ * Returns true iff successful.
  */
-template <class NDT, class EDT>
-bool NewickProcessor::from_file (const std::string& fn, TreeSet<NDT, EDT>& tset)
+template <class TreeType>
+bool NewickProcessor::from_file (const std::string& fn, TreeSet<TreeType>& tset)
 {
     if (!file_exists(fn)) {
         LOG_WARN << "Tree file '" << fn << "' does not exist.";
@@ -100,7 +102,7 @@ bool NewickProcessor::from_file (const std::string& fn, TreeSet<NDT, EDT>& tset)
 }
 
 /**
- * @brief Create a TreeSet from a string containing a list of Newick trees.
+ * @brief Fill a TreeSet from a string containing a list of Newick trees.
  *
  * These trees can either be named or unnamed, using this syntax:
  *
@@ -111,9 +113,11 @@ bool NewickProcessor::from_file (const std::string& fn, TreeSet<NDT, EDT>& tset)
  * where the first two lines are named trees and the third line is an unnamed tree.
  * The trees do not have to be on distinct lines of the input, as whitespaces are completely
  * stripped during the lexing phase. However, they are required to end with a semicolon `;`.
+ *
+ * Returns true iff successful.
  */
-template <class NDT, class EDT>
-bool NewickProcessor::from_string (const std::string& ts, TreeSet<NDT, EDT>& tset)
+template <class TreeType>
+bool NewickProcessor::from_string (const std::string& ts, TreeSet<TreeType>& tset)
 {
     // Run the Lexer.
     NewickLexer lexer;
@@ -180,7 +184,7 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<NDT, EDT>& tse
             return false;
         }
 
-        auto tree = new typename TreeSet<NDT, EDT>::TreeType();
+        auto tree = new TreeType();
         build_tree(broker, &tree);
         tset.add(name, tree);
 
@@ -196,6 +200,44 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<NDT, EDT>& tse
     return true;
 }
 
+/**
+ * @brief Fill a TreeSet from a list of files containing Newick trees.
+ *
+ * Returns true iff successful.
+ */
+template <class TreeType>
+bool NewickProcessor::from_files (const std::vector<std::string>& fns, TreeSet<TreeType>& set)
+{
+    for (auto fn : fns) {
+        TreeType* tree = new TreeType();
+        if (!from_file (fn, *tree)) {
+            return false;
+        }
+        std::string name = file_filename(file_basename(fn));
+        set.add(name, tree);
+    }
+    return true;
+}
+
+/**
+ * @brief Fill a TreeSet from a list of strings containing Newick trees.
+ *
+ * Returns true iff successful.
+ */
+template <class TreeType>
+bool NewickProcessor::from_strings (const std::vector<std::string>& tss, TreeSet<TreeType>& set)
+{
+    size_t cnt = 0;
+    for (auto ts : tss) {
+        TreeType* tree = new TreeType();
+        if (!from_string (ts, *tree)) {
+            return false;
+        }
+        set.add(std::string("tree_") + std::to_string(cnt++), tree);
+    }
+    return true;
+}
+
 // -------------------------------------------------------------------------
 //     Internal Helper Methods
 // -------------------------------------------------------------------------
@@ -207,14 +249,14 @@ bool NewickProcessor::from_string (const std::string& ts, TreeSet<NDT, EDT>& tse
  * get the nesting right.
  * TODO: this could be changed by not assigning ranks to the broker but a tmp struct.
  */
-template <class NDT, class EDT>
-void NewickProcessor::build_tree (NewickBroker& broker, Tree<NDT, EDT>& tree)
+template <class TreeType>
+void NewickProcessor::build_tree (NewickBroker& broker, TreeType& tree)
 {
-    typename Tree<NDT, EDT>::LinkArray links;
-    typename Tree<NDT, EDT>::NodeArray nodes;
-    typename Tree<NDT, EDT>::EdgeArray edges;
+    typename TreeType::LinkArray links;
+    typename TreeType::NodeArray nodes;
+    typename TreeType::EdgeArray edges;
 
-    std::vector<typename Tree<NDT, EDT>::LinkType*> link_stack;
+    std::vector<typename TreeType::LinkType*> link_stack;
 
     // we need the ranks (number of immediate children) of all nodes
     broker.assign_ranks();
@@ -224,14 +266,14 @@ void NewickProcessor::build_tree (NewickBroker& broker, Tree<NDT, EDT>& tree)
         NewickBrokerElement* broker_node = *b_itr;
 
         // create the tree node for this broker node
-        typename Tree<NDT, EDT>::NodeType* cur_node = new typename Tree<NDT, EDT>::NodeType();
+        typename TreeType::NodeType* cur_node = new typename TreeType::NodeType();
         cur_node->from_newick_broker_element(broker_node);
         cur_node->index_ = nodes.size();
         nodes.push_back(cur_node);
 
         // create the link that points towards the root.
         // this link is created for every node, root, inner and leaves.
-        typename Tree<NDT, EDT>::LinkType* up_link = new typename Tree<NDT, EDT>::LinkType();
+        typename TreeType::LinkType* up_link = new typename TreeType::LinkType();
         up_link->node_ = cur_node;
         cur_node->link_ = up_link;
         up_link->index_ = links.size();
@@ -250,7 +292,7 @@ void NewickProcessor::build_tree (NewickBroker& broker, Tree<NDT, EDT>& tree)
             link_stack.back()->outer_ = up_link;
 
             // also, create an edge that connects both nodes
-            typename Tree<NDT, EDT>::EdgeType* up_edge = new typename Tree<NDT, EDT>::EdgeType();
+            typename TreeType::EdgeType* up_edge = new typename TreeType::EdgeType();
             up_edge->link_p_         = link_stack.back();
             up_edge->link_s_         = up_link;
             up_link->edge_           = up_edge;
@@ -271,9 +313,9 @@ void NewickProcessor::build_tree (NewickBroker& broker, Tree<NDT, EDT>& tree)
         // is pushed to the stack, so that for the next broker nodes they are available as
         // reciever for the "up" links.
         // in summary, make all next pointers of a node point to each other in a circle.
-        typename Tree<NDT, EDT>::LinkType* prev_link = up_link;
+        typename TreeType::LinkType* prev_link = up_link;
         for (int i = 0; i < broker_node->rank(); ++i) {
-            typename Tree<NDT, EDT>::LinkType* down_link = new typename Tree<NDT, EDT>::LinkType();
+            typename TreeType::LinkType* down_link = new typename TreeType::LinkType();
             prev_link->next_ = down_link;
             prev_link = down_link;
 
@@ -293,7 +335,7 @@ void NewickProcessor::build_tree (NewickBroker& broker, Tree<NDT, EDT>& tree)
     // now delete the uplink of the root, in order to make the tree fully unrooted.
     // (we do that after the tree creation, as it is way easier this way)
     assert(links.front()->outer_ == links.front());
-    typename Tree<NDT, EDT>::LinkType* next = links.front()->next_;
+    typename TreeType::LinkType* next = links.front()->next_;
     while (next->next_ != links.front()) {
         next = next->next_;
     }
@@ -318,8 +360,8 @@ void NewickProcessor::build_tree (NewickBroker& broker, Tree<NDT, EDT>& tree)
  *
  * If the file already exists, the function does not overwrite it.
  */
-template <class NDT, class EDT>
-bool NewickProcessor::to_file   (const Tree<NDT, EDT>& tree, const std::string fn)
+template <class TreeType>
+bool NewickProcessor::to_file   (const TreeType& tree, const std::string fn)
 {
     if (file_exists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' already exist. Will not overwrite it.";
@@ -336,8 +378,8 @@ bool NewickProcessor::to_file   (const Tree<NDT, EDT>& tree, const std::string f
  * In case the tree was read from a Newick file, this function should produce the same
  * representation.
  */
-template <class NDT, class EDT>
-void NewickProcessor::to_string (const Tree<NDT, EDT>& tree, std::string& ts)
+template <class TreeType>
+void NewickProcessor::to_string (const TreeType& tree, std::string& ts)
 {
     ts = to_string(tree);
 }
@@ -348,8 +390,8 @@ void NewickProcessor::to_string (const Tree<NDT, EDT>& tree, std::string& ts)
  * In case the tree was read from a Newick file, this function should produce the same
  * representation.
  */
-template <class NDT, class EDT>
-std::string NewickProcessor::to_string (const Tree<NDT, EDT>& tree)
+template <class TreeType>
+std::string NewickProcessor::to_string (const TreeType& tree)
 {
     NewickBroker broker;
     to_broker(tree, broker);
@@ -360,8 +402,8 @@ std::string NewickProcessor::to_string (const Tree<NDT, EDT>& tree)
 /**
  * @brief Stores the information of the tree into a NewickBroker object.
  */
-template <class NDT, class EDT>
-void NewickProcessor::to_broker (const Tree<NDT, EDT>& tree, NewickBroker& broker)
+template <class TreeType>
+void NewickProcessor::to_broker (const TreeType& tree, NewickBroker& broker)
 {
     // store the depth from each node to the root. this is needed to assign levels of depth
     // to the nodes for the broker.
@@ -370,7 +412,7 @@ void NewickProcessor::to_broker (const Tree<NDT, EDT>& tree, NewickBroker& broke
     // now fill the broker with nodes via postorder traversal, so that the root is put on top last.
     broker.clear();
     for (
-        typename Tree<NDT, EDT>::ConstIteratorPostorder it = tree.begin_postorder();
+        typename TreeType::ConstIteratorPostorder it = tree.begin_postorder();
         it != tree.end_postorder();
         ++it
     ) {

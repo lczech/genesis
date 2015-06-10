@@ -14,6 +14,7 @@
 #include <sstream>
 #include <stdint.h>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 /**
@@ -28,11 +29,19 @@ namespace genesis {
 //     First: function declaractions.
 // =============================================================================
 
-bool        file_exists (const std::string& fn);
-std::string file_read   (const std::string& fn);
-bool        file_write  (const std::string& fn, const std::string& content);
+bool        file_exists (const std::string& filename);
+std::string file_read   (const std::string& filename);
+bool        file_write  (const std::string& filename, const std::string& content);
 
 bool        dir_list_files (const std::string& dir, std::vector<std::string>& list);
+
+std::unordered_map<std::string, std::string> file_info (std::string filename);
+
+size_t      file_size      (std::string filename);
+std::string file_path      (std::string filename);
+std::string file_basename  (std::string filename);
+std::string file_filename  (std::string filename);
+std::string file_extension (std::string filename);
 
 std::string string_escape   (const std::string& text);
 std::string string_deescape (const std::string& text);

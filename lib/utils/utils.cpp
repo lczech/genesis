@@ -96,6 +96,94 @@ bool dir_list_files (const std::string& dir, std::vector<std::string>& list)
 }
 
 // =============================================================================
+//     File names
+// =============================================================================
+
+/**
+ * @brief Returns information about a file.
+ */
+std::unordered_map<std::string, std::string> file_info (std::string filename)
+{
+    std::string basename = file_basename(filename);
+    std::unordered_map<std::string, std::string> res;
+
+    res["path"]      = file_path(filename);
+    res["basename"]  = basename;
+    res["filename"]  = file_filename(basename);
+    res["extension"] = file_extension(basename);
+
+    return res;
+}
+
+/**
+ * @brief Return the size of a file.
+ */
+size_t file_size (std::string filename)
+{
+    std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+    return static_cast<size_t>(in.tellg());
+}
+
+/**
+ * @brief Returns the path leading to a file.
+ *
+ * Does not resolve the path. Simply splits at the last directory separator.
+ */
+std::string file_path (std::string filename)
+{
+    const size_t idx = filename.find_last_of("\\/");
+    if (idx != std::string::npos)
+    {
+        filename.erase(idx);
+    }
+    return filename;
+}
+
+/**
+ * @brief Remove directory name from file name if present.
+ */
+std::string file_basename (std::string filename)
+{
+    const size_t idx = filename.find_last_of("\\/");
+    if (idx != std::string::npos)
+    {
+        filename.erase(0, idx + 1);
+    }
+    return filename;
+}
+
+/**
+ * @brief Remove extension if present.
+ *
+ * Caveat: Does not remove the path. So, if the filename itself does not contain an extension
+ * separator ".", but the path does, this will yield an unwanted result. Call file_basename() first.
+ */
+std::string file_filename (std::string filename)
+{
+    const size_t idx = filename.rfind('.');
+    if (idx != 0 && idx != std::string::npos)
+    {
+        filename.erase(idx);
+    }
+    return filename;
+}
+
+/**
+ * @brief Returns the extension name of a file.
+ *
+ * Also see file_filename().
+ */
+std::string file_extension (std::string filename)
+{
+    const size_t idx = filename.rfind('.');
+    if (idx != 0 && idx != std::string::npos)
+    {
+        filename.erase(0, idx + 1);
+    }
+    return filename;
+}
+
+// =============================================================================
 //     Strings and Chars
 // =============================================================================
 

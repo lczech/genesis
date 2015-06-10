@@ -1,15 +1,11 @@
 /**
- * @brief Implementation of TreeSet class.
+ * @brief Implementation of PlacementMapSet class.
  *
  * @file
- * @ingroup tree
+ * @ingroup placement
  */
 
-#include <algorithm>
-
-#include "tree/tree_set.hpp"
-#include "utils/logging.hpp"
-#include "utils/utils.hpp"
+#include "placement/placement_map_set.hpp"
 
 namespace genesis {
 
@@ -20,10 +16,9 @@ namespace genesis {
 /**
  * @brief
  */
-template <class TreeType>
-void TreeSet<TreeType>::add (const std::string& name, TreeType* tree)
+void PlacementMapSet::add (const std::string& name, PlacementMap* map)
 {
-    trees_.push_back( { name, std::shared_ptr<TreeType>(tree) } );
+    maps_.push_back( { name, std::shared_ptr<PlacementMap>(map) } );
 }
 
 // =============================================================================
@@ -33,15 +28,14 @@ void TreeSet<TreeType>::add (const std::string& name, TreeType* tree)
 /**
  * @brief
  */
-template <class TreeType>
-TreeType* TreeSet<TreeType>::get_first(const std::string& name)
+ PlacementMap* PlacementMapSet::get_first(const std::string& name)
 {
-    auto ct = trees_.begin();
-    while (ct != trees_.end()) {
-        if (ct->name == name) {
-            return ct->tree.get();
+    auto cm = maps_.begin();
+    while (cm != maps_.end()) {
+        if (cm->name == name) {
+            return cm->map.get();
         }
-        ++ct;
+        ++cm;
     }
     return nullptr;
 }
@@ -53,14 +47,13 @@ TreeType* TreeSet<TreeType>::get_first(const std::string& name)
 /**
  * @brief
  */
-template <class TreeType>
-std::string TreeSet<TreeType>::dump(bool full)
+std::string PlacementMapSet::dump(bool full)
 {
     std::string res = "";
-    for (auto& ct : trees_) {
-        res += ct.name + "\n";
+    for (auto& cm : maps_) {
+        res += cm.name + "\n";
         if (full) {
-            res += ct.tree->dump() + "\n";
+            res += cm.map->dump() + "\n";
         }
     }
     return res;

@@ -10,7 +10,6 @@
 
 #include <memory>
 #include <string>
-#include <utility>
 #include <vector>
 
 //~ #include "tree/tree.hpp"
@@ -28,7 +27,7 @@ class  Tree;
 //     Tree Set
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
+template <class TreeType>
 class TreeSet
 {
 public:
@@ -37,16 +36,71 @@ public:
     //     Constructor and Typedefs
     // -----------------------------------------------------
 
-    // avoid cumbersome names!
-    typedef Tree<NodeDataType, EdgeDataType>                  TreeType;
-    typedef std::pair<std::string, std::unique_ptr<TreeType>> PairType;
+    struct NamedTree
+    {
+        std::string               name;
+        std::shared_ptr<TreeType> tree;
+    };
+
+    typedef typename std::vector<NamedTree>::iterator       iterator;
+    typedef typename std::vector<NamedTree>::const_iterator const_iterator;
 
     // -----------------------------------------------------
-    //     Modifiers & Accessors
+    //     Modifiers
     // -----------------------------------------------------
 
     void add (const std::string& name, TreeType* tree);
+
+    // -----------------------------------------------------
+    //     Accessors
+    // -----------------------------------------------------
+
     TreeType* get_first (const std::string& name);
+
+    inline iterator begin()
+    {
+        return trees_.begin();
+    }
+
+    inline iterator end()
+    {
+        return trees_.end();
+    }
+
+    inline const_iterator cbegin() const
+    {
+        return trees_.cbegin();
+    }
+
+    inline const_iterator cend() const
+    {
+        return trees_.cend();
+    }
+
+    inline const NamedTree& operator [] (const std::size_t index) const
+    {
+        return trees_[index];
+    }
+
+    /**
+     * @brief Returns whether the tree set is empty.
+     */
+    inline bool empty() const
+    {
+        return trees_.empty();
+    }
+
+    /**
+     * @brief Returns the size of the tree set.
+     */
+    inline size_t size() const
+    {
+        return trees_.size();
+    }
+
+    // -----------------------------------------------------
+    //     Dump & Debug
+    // -----------------------------------------------------
 
     std::string dump (bool full = false);
 
@@ -58,7 +112,7 @@ private:
 
     // We use a vector of <string, tree> pairs here, because we want to preserve the order in which
     // elements were inserted into the TreeMap. This is not the case with simple maps.
-    std::vector<PairType> trees_;
+    std::vector<NamedTree> trees_;
 };
 
 } // namespace genesis

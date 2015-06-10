@@ -9,6 +9,7 @@
  */
 
 #include <string>
+#include <vector>
 
 namespace genesis {
 
@@ -18,6 +19,7 @@ namespace genesis {
 
 class JsonDocument;
 class PlacementMap;
+class PlacementMapSet;
 
 // =============================================================================
 //     Jplace Processor
@@ -27,10 +29,12 @@ class PlacementMap;
  * @brief Parser and printer to process a Jplace document and create a PlacementMap object from it.
  *
  * The Jplace format is described in the following publication:
- * Matsen FA, Hoffman NG, Gallagher A, Stamatakis A. 2012.
- * A Format for Phylogenetic PlacementMap.
- * PLoS ONE 7(2): e31009. doi:10.1371/journal.pone.0031009
- * http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009
+ *
+ *     Matsen FA, Hoffman NG, Gallagher A, Stamatakis A. 2012.
+ *     A Format for Phylogenetic PlacementMap.
+ *     PLoS ONE 7(2): e31009. doi:10.1371/journal.pone.0031009
+ *     http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009
+ *
  */
 class JplaceProcessor
 {
@@ -45,6 +49,9 @@ public:
 
     static bool report_invalid_numbers;
     static bool correct_invalid_numbers;
+
+    static bool from_files    (const std::vector<std::string>& fns, PlacementMapSet& set);
+    static bool from_strings  (const std::vector<std::string>& jps, PlacementMapSet& set);
 
     static bool from_file     (const std::string&  fn,     PlacementMap& placements);
     static bool from_string   (const std::string&  jplace, PlacementMap& placements);
