@@ -28,7 +28,7 @@ class  Tree;
 //     Tree Set
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
+template <class TreeType>
 class TreeSet
 {
 public:
@@ -38,14 +38,13 @@ public:
     // -----------------------------------------------------
 
     // avoid cumbersome names!
-    typedef Tree<NodeDataType, EdgeDataType>                  TreeType;
     typedef std::pair<std::string, std::unique_ptr<TreeType>> PairType;
 
     typedef typename std::vector<PairType>::iterator                    iterator;
     typedef typename std::vector<PairType>::const_iterator              const_iterator;
 
     // -----------------------------------------------------
-    //     Modifiers
+    //     Modifiersy
     // -----------------------------------------------------
 
     void add (const std::string& name, TreeType* tree);

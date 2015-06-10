@@ -50,7 +50,7 @@ public:
 
 // let's avoid tedious names!
 typedef Tree   <PlausibilityTreeNodeData, PlausibilityTreeEdgeData> PlausibilityTree;
-typedef TreeSet<PlausibilityTreeNodeData, PlausibilityTreeEdgeData> PlausibilityTreeSet;
+typedef TreeSet<PlausibilityTree>                                   PlausibilityTreeSet;
 
 } // namespace genesis
 

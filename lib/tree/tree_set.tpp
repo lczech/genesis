@@ -23,8 +23,8 @@ namespace genesis {
 /**
  * @brief
  */
-template <class NDT, class EDT>
-void TreeSet<NDT, EDT>::add (const std::string& name, TreeType* tree)
+template <class TreeType>
+void TreeSet<TreeType>::add (const std::string& name, TreeType* tree)
 {
     trees_.push_back(std::make_pair(name, std::unique_ptr<TreeType>(tree)));
 }
@@ -36,8 +36,8 @@ void TreeSet<NDT, EDT>::add (const std::string& name, TreeType* tree)
 /**
  * @brief
  */
-template <class NDT, class EDT>
-typename TreeSet<NDT, EDT>::TreeType* TreeSet<NDT, EDT>::get_first(const std::string& name)
+template <class TreeType>
+TreeType* TreeSet<TreeType>::get_first(const std::string& name)
 {
     auto ct = trees_.begin();
     while (ct != trees_.end()) {
@@ -56,8 +56,8 @@ typename TreeSet<NDT, EDT>::TreeType* TreeSet<NDT, EDT>::get_first(const std::st
 /**
  * @brief
  */
-template <class NDT, class EDT>
-std::string TreeSet<NDT, EDT>::dump(bool full)
+template <class TreeType>
+std::string TreeSet<TreeType>::dump(bool full)
 {
     std::string res = "";
     for (auto ct : trees_) {
