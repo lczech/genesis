@@ -41,6 +41,7 @@ public:
     // -----------------------------------------------------
 
     void add (const std::string& name, PlacementMap* map);
+    void clear();
 
     // -----------------------------------------------------
     //     Accessors

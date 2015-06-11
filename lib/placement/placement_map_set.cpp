@@ -21,6 +21,14 @@ void PlacementMapSet::add (const std::string& name, PlacementMap* map)
     maps_.push_back( { name, std::shared_ptr<PlacementMap>(map) } );
 }
 
+/**
+ * @brief
+ */
+void PlacementMapSet::clear ()
+{
+    maps_.clear();
+}
+
 // =============================================================================
 //     Accessors
 // =============================================================================

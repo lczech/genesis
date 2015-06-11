@@ -29,11 +29,11 @@ void TreeSet<TreeType>::add (const std::string& name, TreeType* tree)
 /**
  * @brief
  */
- template <class TreeType>
- void TreeSet<TreeType>::clear ()
- {
-     trees_.clear();
- }
+template <class TreeType>
+void TreeSet<TreeType>::clear ()
+{
+ trees_.clear();
+}
 
 // =============================================================================
 //     Accessors
