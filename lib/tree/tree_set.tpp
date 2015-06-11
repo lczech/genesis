@@ -18,7 +18,7 @@ namespace genesis {
 // =============================================================================
 
 /**
- * @brief
+ * @brief Adds a Tree to the TreeSet.
  */
 template <class TreeType>
 void TreeSet<TreeType>::add (const std::string& name, TreeType* tree)
@@ -27,12 +27,45 @@ void TreeSet<TreeType>::add (const std::string& name, TreeType* tree)
 }
 
 /**
- * @brief
+ * @brief Clears the TreeSet and destroys all contained Trees.
  */
 template <class TreeType>
 void TreeSet<TreeType>::clear ()
 {
- trees_.clear();
+    trees_.clear();
+}
+
+// =============================================================================
+//     Comparators
+// =============================================================================
+
+/**
+ * @brief Compares whether all Trees in the set are equal using their default comparision operators
+ * for nodes and edges.
+ */
+template <class TreeType>
+bool TreeSet<TreeType>::all_equal()
+{
+    for (size_t i = 1; i < trees_.size(); i++) {
+        if (!TreeType::equal(trees_[i-1], trees_[i])) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Returns true iff all Trees in the set have an identical topology.
+ */
+template <class TreeType>
+bool TreeSet<TreeType>::all_identical_topology()
+{
+    for (size_t i = 1; i < trees_.size(); i++) {
+        if (!TreeType::identical_topology(trees_[i-1], trees_[i])) {
+            return false;
+        }
+    }
+    return true;
 }
 
 // =============================================================================
@@ -40,7 +73,7 @@ void TreeSet<TreeType>::clear ()
 // =============================================================================
 
 /**
- * @brief
+ * @brief Get the first Tree in the set that is stored with a given name.
  */
 template <class TreeType>
 TreeType* TreeSet<TreeType>::get_first(const std::string& name)
@@ -60,7 +93,8 @@ TreeType* TreeSet<TreeType>::get_first(const std::string& name)
 // =============================================================================
 
 /**
- * @brief
+ * @brief Dump a list of all names of the Trees in the set. If provided with the optional parameter
+ * `full`, also dump all Trees.
  */
 template <class TreeType>
 std::string TreeSet<TreeType>::dump(bool full)
