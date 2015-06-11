@@ -30,8 +30,8 @@ public:
 
     PlacementMap () {}
     PlacementMap (PlacementTree& ptree) : tree(ptree) {}
-
     PlacementMap (const PlacementMap& other);
+
     PlacementMap& operator = (const PlacementMap& other);
 
     ~PlacementMap();
@@ -60,7 +60,7 @@ public:
     ) const;
 
     static double earth_movers_distance (const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length = true);
-    	   double earth_movers_distance (const PlacementMap& other, const bool with_pendant_length = true) const;
+           double earth_movers_distance (const PlacementMap& other, const bool with_pendant_length = true) const;
 
     void   center_of_gravity() const;
 

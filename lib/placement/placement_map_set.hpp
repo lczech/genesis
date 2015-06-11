@@ -41,12 +41,15 @@ public:
     // -----------------------------------------------------
 
     void add (const std::string& name, PlacementMap* map);
+    void clear();
+
+    PlacementMap merge_all();
 
     // -----------------------------------------------------
     //     Accessors
     // -----------------------------------------------------
 
-    PlacementMap* get_first (const std::string& name);
+    std::shared_ptr<PlacementMap> get_first (const std::string& name);
 
     inline iterator begin()
     {

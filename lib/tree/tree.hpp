@@ -564,7 +564,11 @@ public:
             (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)> comparator
     ) const;
 
-    bool has_identical_topology(const TreeType& other) const;
+    static bool equal(const TreeType& lhs, const TreeType& rhs);
+           bool equal(const TreeType& other) const;
+
+    static bool identical_topology(const TreeType& lhs, const TreeType& rhs);
+           bool identical_topology(const TreeType& other) const;
 
     // -----------------------------------------------------
     //     Debug and Dump

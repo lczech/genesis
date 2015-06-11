@@ -108,8 +108,9 @@ void BoostPythonExport_Bitvector()
         // Operators
 
         .def(
-            "__len__"
-            , (::size_t ( ::genesis::Bitvector::* )(  ) const)( &::genesis::Bitvector::size ) )
+            "__len__",
+            (::size_t ( ::genesis::Bitvector::* )(  ) const)( &::genesis::Bitvector::size )
+        )
         .def(
             "__getitem__",
             ( bool ( ::genesis::Bitvector::* )( size_t ) const )( &::genesis::Bitvector::operator[] ),

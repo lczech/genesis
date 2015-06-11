@@ -49,14 +49,23 @@ public:
     //     Modifiers
     // -----------------------------------------------------
 
-    void add (const std::string& name, TreeType* tree);
+    void add (const std::string& name, std::shared_ptr<TreeType> tree);
     void clear();
+
+    TreeType average_branch_length_tree() const;
+
+    // -----------------------------------------------------
+    //     Comparators
+    // -----------------------------------------------------
+
+    bool all_equal() const;
+    bool all_identical_topology() const;
 
     // -----------------------------------------------------
     //     Accessors
     // -----------------------------------------------------
 
-    TreeType* get_first (const std::string& name);
+    TreeType* get_first (const std::string& name) const;
 
     inline iterator begin()
     {
@@ -103,7 +112,7 @@ public:
     //     Dump & Debug
     // -----------------------------------------------------
 
-    std::string dump (bool full = false);
+    std::string dump (bool full = false) const;
 
     // -----------------------------------------------------
     //     Data Members

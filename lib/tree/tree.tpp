@@ -578,10 +578,10 @@ bool Tree<NDT, EDT>::equal(
 /**
  * @brief Compares the tree to another one given a binary comparator functional.
  *
- * See other Equal() function for more information.
+ * See static equal() function for more information.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::equal(
+bool Tree<NDT, EDT>::equal (
     const TreeType& other,
     const std::function<bool (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)>
         comparator
@@ -589,7 +589,38 @@ bool Tree<NDT, EDT>::equal(
     return equal(*this, other, comparator);
 }
 
-// TODO make const! (need to add const versions of the tree iterators first...)
+/**
+ * @brief Compares two trees for equality using the respective comparision operators for their nodes
+ * and edges.
+ *
+ * This method is mainly a shortcut for the static equal function, where the comparator functional
+ * is instanciated using the default comparision operators of the tree's data.
+ */
+template <class NDT, class EDT>
+bool Tree<NDT, EDT>::equal (const TreeType& lhs, const TreeType& rhs)
+{
+    auto comparator = [] (
+        TreeType::ConstIteratorPreorder& it_l,
+        TreeType::ConstIteratorPreorder& it_r
+    ) {
+        return it_l.node() == it_r.node() && it_l.edge() == it_r.edge();
+    };
+
+    return equal(lhs, rhs, comparator);
+}
+
+/**
+ * @brief Compares the tree to another one using the respective comparision operators for their nodes
+ * and edges.
+ *
+ * See static equal() function for more information.
+ */
+template <class NDT, class EDT>
+bool Tree<NDT, EDT>::equal(const TreeType& other) const
+{
+    return equal(*this, other);
+}
+
 /**
  * @brief Returns true iff both trees have an identical topology.
  *
@@ -602,14 +633,25 @@ bool Tree<NDT, EDT>::equal(
  * same input, for example from the same Newick file.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::has_identical_topology(const TreeType& right) const
+bool Tree<NDT, EDT>::identical_topology(const TreeType& lhs, const TreeType& rhs)
 {
     auto comparator = [] (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)
     {
         return true;
     };
 
-    return equal(right, comparator);
+    return equal(lhs, rhs, comparator);
+}
+
+/**
+ * @brief Returns true iff both trees have an identical topology.
+ *
+ * See static identical_topology() method for more information.
+ */
+template <class NDT, class EDT>
+bool Tree<NDT, EDT>::identical_topology(const TreeType& other) const
+{
+    return identical_topology(*this, other);
 }
 
 // =============================================================================
