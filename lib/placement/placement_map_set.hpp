@@ -43,6 +43,8 @@ public:
     void add (const std::string& name, PlacementMap* map);
     void clear();
 
+    PlacementMap merge_all();
+
     // -----------------------------------------------------
     //     Accessors
     // -----------------------------------------------------

@@ -29,6 +29,14 @@ void PlacementMapSet::clear ()
     maps_.clear();
 }
 
+/**
+ * @brief Returns a PlacementMap where all maps of this set have been merged into.
+ */
+PlacementMap PlacementMapSet::merge_all()
+{
+    // implementation
+}
+
 // =============================================================================
 //     Accessors
 // =============================================================================
