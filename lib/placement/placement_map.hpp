@@ -42,6 +42,11 @@ public:
     //     Accessors
     // -----------------------------------------------------
 
+    inline std::shared_ptr<PlacementTree> tree_ptr()
+    {
+        return tree_;
+    }
+
     inline PlacementTree& tree()
     {
         return *tree_.get();

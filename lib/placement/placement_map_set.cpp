@@ -41,11 +41,15 @@ PlacementMap PlacementMapSet::merge_all()
         return PlacementMap();
     }
 
-    // TODO use TreeSet::average_branch_length_tree() for the trees!
+    // Create a new Placement Map and initialize it with the average branch length tree of all
+    // maps in this set, but without any placements.
+    auto res = PlacementMap(std::make_shared<PlacementTree>(
+        tree_set().average_branch_length_tree()
+    ));
 
-    auto res = PlacementMap(*maps_.front().map);
-    for (size_t i = 1; i < maps_.size(); ++i) {
-        res.merge(*maps_[i].map);
+    // Add the placements from all maps of this set.
+    for (auto& map : maps_) {
+        res.merge(*map.map);
     }
     return res;
 }
@@ -67,6 +71,18 @@ PlacementMap PlacementMapSet::merge_all()
         ++cm;
     }
     return nullptr;
+}
+
+/**
+ * @brief Returns a TreeSet containing all the trees of the Placement Maps.
+ */
+TreeSet<PlacementTree> PlacementMapSet::tree_set()
+{
+    TreeSet<PlacementTree> set;
+    for (auto& map : maps_) {
+        set.add(map.name, map.map->tree_ptr());
+    }
+    return set;
 }
 
 // =============================================================================
