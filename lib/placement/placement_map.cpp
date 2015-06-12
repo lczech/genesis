@@ -175,7 +175,7 @@ bool PlacementMap::merge(const PlacementMap& other)
 
     // copy all (o)ther pqueries to (n)ew pqueries
     for (const Pquery* opqry : other.pqueries) {
-        Pquery* npqry = new Pquery;
+        Pquery* npqry = new Pquery();
         for (const PqueryPlacement* op : opqry->placements) {
             PqueryPlacement* np = new PqueryPlacement(op);
 
