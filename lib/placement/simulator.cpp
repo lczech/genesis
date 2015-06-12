@@ -23,7 +23,7 @@ namespace genesis {
  */
 void PlacementSimulator::generate (PlacementMap& placements, size_t n)
 {
-    LOG_DBG << placements.pqueries.size() << " " << n;
+    LOG_DBG << placements.placement_count() << " " << n;
 }
 
 } // namespace genesis

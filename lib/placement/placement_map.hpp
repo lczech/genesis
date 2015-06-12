@@ -29,14 +29,42 @@ public:
     //     Constructor & Destructor
     // -----------------------------------------------------
 
-    PlacementMap () : tree(std::make_shared<PlacementTree>()) {}
-    PlacementMap (std::shared_ptr<PlacementTree> ptree) : tree(ptree) {}
+    PlacementMap () : tree_(std::make_shared<PlacementTree>()) {}
+    PlacementMap (std::shared_ptr<PlacementTree> ptree) : tree_(ptree) {}
     PlacementMap (const PlacementMap& other);
 
     PlacementMap& operator = (const PlacementMap& other);
 
     ~PlacementMap();
     void clear();
+
+    // -----------------------------------------------------
+    //     Accessors
+    // -----------------------------------------------------
+
+    inline PlacementTree& tree()
+    {
+        return *tree_.get();
+    }
+
+    inline const PlacementTree& tree() const
+    {
+        return *tree_.get();
+    }
+
+    inline std::vector<std::unique_ptr<Pquery>>& pqueries()
+    {
+        return pqueries_;
+    }
+
+    inline const std::vector<std::unique_ptr<Pquery>>& pqueries() const
+    {
+        return pqueries_;
+    }
+
+    // -----------------------------------------------------
+    //     Helper Methods
+    // -----------------------------------------------------
 
     typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
     EdgeNumMapType* edge_num_map() const;
@@ -63,10 +91,10 @@ public:
     static double earth_movers_distance (const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length = true);
            double earth_movers_distance (const PlacementMap& other, const bool with_pendant_length = true) const;
 
-    void   center_of_gravity() const;
+    void center_of_gravity() const;
 
     // -----------------------------------------------------
-    //     variance
+    //     Variance
     // -----------------------------------------------------
 
 public:
@@ -113,8 +141,12 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    std::vector<std::unique_ptr<Pquery>>         pqueries;
-    std::shared_ptr<PlacementTree>               tree;
+protected:
+    std::vector<std::unique_ptr<Pquery>>         pqueries_;
+    std::shared_ptr<PlacementTree>               tree_;
+
+public:
+    // There is not much to mess up here for a user, so we can simply make this public.
     std::unordered_map<std::string, std::string> metadata;
 };
 

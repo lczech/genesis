@@ -131,7 +131,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
 
     // find and process the reference tree
     val = doc.get("tree");
-    if (!val || !val->is_string() || !NewickProcessor::from_string(val->to_string(), *placements.tree)) {
+    if (!val || !val->is_string() || !NewickProcessor::from_string(val->to_string(), placements.tree())) {
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
@@ -141,8 +141,8 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     // checking for validity first!
     std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
     for (
-        PlacementTree::ConstIteratorEdges it = placements.tree->begin_edges();
-        it != placements.tree->end_edges();
+        PlacementTree::ConstIteratorEdges it = placements.tree().begin_edges();
+        it != placements.tree().end_edges();
         ++it
     ) {
         PlacementTree::EdgeType* edge = *it;
@@ -414,7 +414,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         }
 
         // finally, add the pquery to the placements object
-        placements.pqueries.push_back(std::move(pqry));
+        placements.pqueries().push_back(std::move(pqry));
     }
 
     // check if there is metadata
@@ -477,11 +477,11 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
     NewickProcessor::print_branch_lengths = true;
     NewickProcessor::print_comments       = false;
     NewickProcessor::print_tags           = true;
-    doc.set("tree", new JsonValueString(NewickProcessor::to_string(*placements.tree)));
+    doc.set("tree", new JsonValueString(NewickProcessor::to_string(placements.tree())));
 
     // set placements
     JsonValueArray* placements_arr = new JsonValueArray();
-    for (auto& pqry : placements.pqueries) {
+    for (auto& pqry : placements.pqueries()) {
         JsonValueObject* jpqry      = new JsonValueObject();
         placements_arr->push_back(jpqry);
 
