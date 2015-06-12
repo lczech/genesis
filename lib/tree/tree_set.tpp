@@ -37,13 +37,13 @@ void TreeSet<TreeType>::clear ()
 }
 
 /**
- * @brief Returns a Tree with the same topology of all trees of this set, but averaged branch
- * lenghts.
+ * @brief Returns a Tree where the branch lengths are the average of the trees in the set, given that
+ * they all have the same topology.
  *
  * The method works only under the following conditions:
  *
- *     * The TreeType must provide field `branch_length` for the edges.
  *     * All trees must have the same topology.
+ *     * The TreeType must provide field `branch_length` for the edges.
  *
  * Otherwise, the method will return an empty tree. It does not check for node names, but the
  * returned tree will contain the names of the first tree in the set.
@@ -62,19 +62,66 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
 
     // Check whether all trees have same topology. Furthermore, start adding the branch
     // lengths of all trees to `avgs`.
+    // Use the same technique as used in Tree::identical_topology(). However, we do not directly
+    // invoke this method, because this would mean we had to traverse the tree twice (for checking
+    // the topology and for storing the edges). Furhtermore, this way, we can make sure that the
+    // index `idx` actually always points to the correct edges, indepently of their order in
+    // different trees in the set.
     for (size_t i = 0; i < trees_.size(); i++) {
-        for (auto it = trees_[i].tree->begin_edges(); it != trees_[i].tree->end_edges(); ++it) {
-            assert((*it)->index() < avgs.size());
-            avgs[(*it)->index()] += (*it)->branch_length;
-        }
+        size_t idx = 0;
 
-        // TODO assert that all edges actually have the same indices!
+        // If it is the first tree in the set, simply collect its branch lengths. For all others,
+        // we need also to compare their topology to their respective previous tree.
+        if (i == 0) {
+            // Do a preorder traversal and collect branch lengths.
+            for (
+                auto it = trees_[i].tree->begin_preorder();
+                it != trees_[i].tree->end_preorder();
+                ++it
+            ) {
+                // The first iteration points to an edge which will be covered later again.
+                // Skip it to prevent double coverage (not bad here, because we simply would do the
+                // same assignment twice, but in the other loop it is imporant).
+                if (it.is_first_iteration()) {
+                    continue;
+                }
+                avgs[idx] = it.edge()->branch_length;
+                ++idx;
+            }
+        } else {
+            // Do a preorder traversal on both trees (current and previous) in parallel.
+            // If all pairs of two adjacent trees have same the topology, all have. Thus, we do not
+            // need a complete pairwise comparision.
+            auto it_c = trees_[i].tree->begin_preorder();
+            auto it_p = trees_[i-1].tree->begin_preorder();
+            for (
+                ;
+                it_c != trees_[i].tree->end_preorder() && it_p != trees_[i-1].tree->end_preorder();
+                ++it_c, ++it_p
+            ) {
+                // Compare the topologies of the current tree and the one before it.
+                if (it_c.node()->rank() != it_p.node()->rank()) {
+                    LOG_WARN << "Trees in set do not have same topology.";
+                    return TreeType();
+                }
 
-        // Check whether two adjacent trees have same topology. As all are supposed to be
-        // the same, we do not need a pairwise comparison.
-        if (i > 0 && !TreeType::identical_topology(*trees_[i-1].tree, *trees_[i].tree)) {
-            LOG_WARN << "Trees in set do not have same topology.";
-            return TreeType();
+                // We do not have any edges in the first iteration (otherwise, we'd cover them twice).
+                if (it_c.is_first_iteration() || it_p.is_first_iteration()) {
+                    // We do parallel traversal, so if this is the first iteration for one tree,
+                    // it also must be the first for the other.
+                    assert(it_c.is_first_iteration() && it_p.is_first_iteration());
+                    continue;
+                }
+
+                avgs[idx] = it_c.edge()->branch_length;
+                ++idx;
+            }
+
+            // Check whether we are done with both trees.
+            if (it_c != trees_[i].tree->end_preorder() || it_p != trees_[i-1].tree->end_preorder()) {
+                LOG_WARN << "Trees in set do not have same topology.";
+                return TreeType();
+            }
         }
     }
 
