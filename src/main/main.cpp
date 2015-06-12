@@ -9,26 +9,28 @@
 #include <fstream>
 #include <string>
 
-#include "utils/options.hpp"
+#include "genesis.hpp"
 
-#include "alignment/sequence_set.hpp"
-#include "alignment/fasta_processor.hpp"
-#include "alignment/phylip_processor.hpp"
-
-#include "placement/jplace_processor.hpp"
-#include "placement/placement_map.hpp"
-#include "tree/bipartitions.hpp"
-#include "tree/newick_processor.hpp"
-#include "tree/phyloxml_processor.hpp"
-
-#include "utils/json_document.hpp"
-#include "utils/json_processor.hpp"
-
-#include "utils/bitvector.hpp"
-#include "utils/logging.hpp"
-#include "utils/utils.hpp"
-
-#include "plausibility/plausibility.hpp"
+// #include "utils/options.hpp"
+//
+// #include "alignment/sequence_set.hpp"
+// #include "alignment/fasta_processor.hpp"
+// #include "alignment/phylip_processor.hpp"
+//
+// #include "placement/jplace_processor.hpp"
+// #include "placement/placement_map.hpp"
+// #include "tree/bipartitions.hpp"
+// #include "tree/newick_processor.hpp"
+// #include "tree/phyloxml_processor.hpp"
+//
+// #include "utils/json_document.hpp"
+// #include "utils/json_processor.hpp"
+//
+// #include "utils/bitvector.hpp"
+// #include "utils/logging.hpp"
+// #include "utils/utils.hpp"
+//
+// #include "plausibility/plausibility.hpp"
 
 using namespace genesis;
 
@@ -64,6 +66,9 @@ int main (int argc, char* argv[])
     LOG_BOLD << print_header();
     Options::init(argc, argv);
     LOG_TIME << "started";
+
+    PlacementMap place_a;
+    JplaceProcessor::from_file("../test/data/test_a.jplace", place_a);
 
     //~ Plausibility p;
     //~ p.SpiderpigFunction("largetree.txt", "reference-two-big.txt");

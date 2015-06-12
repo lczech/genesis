@@ -17,7 +17,7 @@ void BoostPythonExport_PlacementMap()
     using namespace genesis;
 
     boost::python::class_< ::genesis::PlacementMap > ( "PlacementMap", boost::python::init<  >(  ) )
-        .def( boost::python::init< PlacementTree & >(( boost::python::arg("ptree") )) )
+        .def( boost::python::init< std::shared_ptr<PlacementTree> >(( boost::python::arg("ptree") )) )
         .def( boost::python::init< const PlacementMap & >(( boost::python::arg("other") )) )
 
         // Public Member Functions

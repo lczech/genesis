@@ -29,8 +29,8 @@ public:
     //     Constructor & Destructor
     // -----------------------------------------------------
 
-    PlacementMap () {}
-    PlacementMap (PlacementTree& ptree) : tree(ptree) {}
+    PlacementMap () : tree(std::make_shared<PlacementTree>()) {}
+    PlacementMap (std::shared_ptr<PlacementTree> ptree) : tree(ptree) {}
     PlacementMap (const PlacementMap& other);
 
     PlacementMap& operator = (const PlacementMap& other);
@@ -114,8 +114,7 @@ public:
     // -----------------------------------------------------
 
     std::vector<std::unique_ptr<Pquery>>         pqueries;
-    // std::shared_ptr<PlacementTree>               tree;
-    PlacementTree               tree;
+    std::shared_ptr<PlacementTree>               tree;
     std::unordered_map<std::string, std::string> metadata;
 };
 
