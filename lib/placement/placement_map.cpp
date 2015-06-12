@@ -23,6 +23,7 @@
 #include "utils/logging.hpp"
 #include "utils/matrix.hpp"
 #include "utils/options.hpp"
+#include "utils/utils.hpp"
 
 namespace genesis {
 
@@ -65,21 +66,21 @@ PlacementMap::PlacementMap (const PlacementMap& other)
 
     // copy all (o)ther pqueries to (n)ew pqueries
     EdgeNumMapType* en_map = edge_num_map();
-    for (Pquery* opqry : other.pqueries) {
-        Pquery* npqry = new Pquery();
-        pqueries.push_back(npqry);
+    for (auto& opqry : other.pqueries) {
+        auto npqry = make_unique<Pquery>();
+        pqueries.push_back(std::move(npqry));
 
         for (PqueryPlacement* op : opqry->placements) {
             PqueryPlacement* np = new PqueryPlacement(op);
 
             np->edge   = (*en_map)[np->edge_num];
             np->edge->placements.push_back(np);
-            np->pquery = npqry;
+            np->pquery = npqry.get();
             npqry->placements.push_back(np);
         }
         for (PqueryName* on : opqry->names) {
             PqueryName* nn = new PqueryName(on);
-            nn->pquery = npqry;
+            nn->pquery = npqry.get();
             npqry->names.push_back(nn);
         }
     }
@@ -120,10 +121,7 @@ PlacementMap::~PlacementMap()
  */
 void PlacementMap::clear()
 {
-    for (Pquery* pqry : pqueries) {
-        delete pqry;
-    }
-    std::vector<Pquery*>().swap(pqueries);
+    pqueries.clear();
     tree.clear();
     metadata.clear();
 }
@@ -174,8 +172,8 @@ bool PlacementMap::merge(const PlacementMap& other)
     EdgeNumMapType* en_map = edge_num_map();
 
     // copy all (o)ther pqueries to (n)ew pqueries
-    for (const Pquery* opqry : other.pqueries) {
-        Pquery* npqry = new Pquery();
+    for (const auto& opqry : other.pqueries) {
+        auto npqry = make_unique<Pquery>();
         for (const PqueryPlacement* op : opqry->placements) {
             PqueryPlacement* np = new PqueryPlacement(op);
 
@@ -185,15 +183,15 @@ bool PlacementMap::merge(const PlacementMap& other)
             assert(en_map->count(np->edge_num) > 0);
             np->edge = (*en_map)[np->edge_num];
             np->edge->placements.push_back(np);
-            np->pquery = npqry;
+            np->pquery = npqry.get();
             npqry->placements.push_back(np);
         }
         for (const PqueryName* on : opqry->names) {
             PqueryName* nn = new PqueryName(on);
-            nn->pquery = npqry;
+            nn->pquery = npqry.get();
             npqry->names.push_back(nn);
         }
-        this->pqueries.push_back(npqry);
+        this->pqueries.push_back(std::move(npqry));
     }
     return true;
 }
@@ -204,7 +202,7 @@ bool PlacementMap::merge(const PlacementMap& other)
  */
 void PlacementMap::normalize_weight_ratios()
 {
-    for (Pquery* pqry : pqueries) {
+    for (auto& pqry : pqueries) {
         double sum = 0.0;
         for (PqueryPlacement* place : pqry->placements) {
             sum += place->like_weight_ratio;
@@ -229,7 +227,7 @@ void PlacementMap::normalize_weight_ratios()
  */
 void PlacementMap::restrain_to_max_weight_placements()
 {
-    for (Pquery* pqry : pqueries) {
+    for (auto& pqry : pqueries) {
         // init
         double           max_w = -1.0;
         PqueryPlacement* max_p;
@@ -290,7 +288,7 @@ void PlacementMap::restrain_to_max_weight_placements()
 size_t PlacementMap::placement_count() const
 {
     size_t count = 0;
-    for (const Pquery* pqry : pqueries) {
+    for (const auto& pqry : pqueries) {
         count += pqry->placements.size();
     }
     return count;
@@ -302,7 +300,7 @@ size_t PlacementMap::placement_count() const
 double PlacementMap::placement_mass() const
 {
     double sum = 0.0;
-    for (const Pquery* pqry : pqueries) {
+    for (const auto& pqry : pqueries) {
         for (const PqueryPlacement* place : pqry->placements) {
             sum += place->like_weight_ratio;
         }
@@ -342,7 +340,7 @@ std::vector<int> PlacementMap::closest_leaf_depth_histogram() const
     // get a vector telling us the depth from each node to its closest leaf node.
     PlacementTree::NodeIntVectorType depths = tree.closest_leaf_depth_vector();
 
-    for (const Pquery* pqry : pqueries) {
+    for (const auto& pqry : pqueries) {
         for (const PqueryPlacement* place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
@@ -394,7 +392,7 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram (
     // get a vector telling us the distance from each node to its closest leaf node.
     PlacementTree::NodeDoubleVectorType dists = tree.closest_leaf_distance_vector();
 
-    for (const Pquery* pqry : pqueries) {
+    for (const auto& pqry : pqueries) {
         for (const PqueryPlacement* place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
@@ -464,7 +462,7 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
     PlacementTree::NodeDoubleVectorType dists = tree.closest_leaf_distance_vector();
 
     // calculate all distances from placements to their closest leaf and store them.
-    for (const Pquery* pqry : pqueries) {
+    for (const auto& pqry : pqueries) {
         for (const PqueryPlacement* place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
@@ -862,7 +860,7 @@ double PlacementMap::variance() const
     size_t index = 0;
     std::vector<VarianceData> vd_placements;
     vd_placements.reserve(placement_count());
-    for (const Pquery* pqry : this->pqueries) {
+    for (const auto& pqry : this->pqueries) {
         for (const PqueryPlacement* place : pqry->placements) {
             VarianceData vdp;
             vdp.index                = index++;
@@ -1020,7 +1018,7 @@ double PlacementMap::variance_partial (
 std::string PlacementMap::dump() const
 {
     std::ostringstream out;
-    for (const Pquery* pqry : pqueries) {
+    for (const auto& pqry : pqueries) {
         for (const PqueryName* n : pqry->names) {
             out << "Placement: \"" << n->name << "\"";
             if (n->multiplicity != 0.0) {
@@ -1098,7 +1096,7 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
 
     // check pqueries
     size_t pqry_place_count = 0;
-    for (const Pquery* pqry : pqueries) {
+    for (const auto& pqry : pqueries) {
         // use this name for reporting invalid placements.
         std::string name;
         if (pqry->names.size() > 0) {
@@ -1117,7 +1115,7 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
         double ratio_sum = 0.0;
         for (const PqueryPlacement* p : pqry->placements) {
             // make sure the pointers and references are set correctly
-            if (p->pquery != pqry) {
+            if (p->pquery != pqry.get()) {
                 LOG_INFO << "Inconsistent pointer from placement to pquery at '" << name << "'.";
                 return false;
             }
@@ -1195,7 +1193,7 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
         }
         for (const PqueryName* n : pqry->names) {
             // make sure the pointers and references are set correctly
-            if (n->pquery != pqry) {
+            if (n->pquery != pqry.get()) {
                 LOG_INFO << "Inconsistent pointer from name '" << n->name << "' to pquery.";
                 return false;
             }

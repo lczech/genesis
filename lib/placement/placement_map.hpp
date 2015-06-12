@@ -8,6 +8,7 @@
  * @ingroup placement
  */
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -112,8 +113,9 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    std::vector<Pquery*>                         pqueries;
-    PlacementTree                                tree;
+    std::vector<std::unique_ptr<Pquery>>         pqueries;
+    // std::shared_ptr<PlacementTree>               tree;
+    PlacementTree               tree;
     std::unordered_map<std::string, std::string> metadata;
 };
 
