@@ -17,7 +17,7 @@ void BoostPythonExport_PlacementMap()
     using namespace genesis;
 
     boost::python::class_< ::genesis::PlacementMap > ( "PlacementMap", boost::python::init<  >(  ) )
-        .def( boost::python::init< PlacementTree & >(( boost::python::arg("ptree") )) )
+        .def( boost::python::init< std::shared_ptr<PlacementTree> >(( boost::python::arg("ptree") )) )
         .def( boost::python::init< const PlacementMap & >(( boost::python::arg("other") )) )
 
         // Public Member Functions
@@ -99,6 +99,11 @@ void BoostPythonExport_PlacementMap()
             get_docstring("void ::genesis::PlacementMap::restrain_to_max_weight_placements ()")
         )
         .def(
+            "tree",
+            ( PlacementTree & ( ::genesis::PlacementMap::* )(  ))( &::genesis::PlacementMap::tree ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>()
+        )
+        .def(
             "validate",
             ( bool ( ::genesis::PlacementMap::* )( bool, bool ) const )( &::genesis::PlacementMap::validate ),
             ( boost::python::arg("check_values")=(bool)(false), boost::python::arg("break_on_values")=(bool)(false) ),
@@ -112,7 +117,7 @@ void BoostPythonExport_PlacementMap()
 
         // Public Member Variables
 
-        .def_readonly("tree", &::genesis::PlacementMap::tree)
+        // .def_readonly("tree", &::genesis::PlacementMap::tree)
     ;
 
 }

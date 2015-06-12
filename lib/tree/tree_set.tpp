@@ -42,10 +42,11 @@ void TreeSet<TreeType>::clear ()
  *
  * The method works only under the following conditions:
  *
- *     * The TreeType must provide fields `name` for the nodes and `branch_length` for the edges.
- *     * All trees must have the same topology and names.
+ *     * The TreeType must provide field `branch_length` for the edges.
+ *     * All trees must have the same topology.
  *
- * Otherwise, the method will return an empty tree.
+ * Otherwise, the method will return an empty tree. It does not check for node names, but the
+ * returned tree will contain the names of the first tree in the set.
  */
 template <class TreeType>
 TreeType TreeSet<TreeType>::average_branch_length_tree () const
@@ -55,29 +56,24 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
         return TreeType();
     }
 
-    auto comparator = [] (
-        typename TreeType::ConstIteratorPreorder& it_l,
-        typename TreeType::ConstIteratorPreorder& it_r
-    ) {
-        return it_l.node()->name == it_r.node()->name;
-    };
-
     // Prepare storage for average branch lengths.
-    size_t num_edges = trees_.front().edge_count();
+    size_t num_edges = trees_.front().tree->edge_count();
     auto avgs = std::vector<double>(num_edges, 0.0);
 
-    // Check whether all trees have same topology and names. Furthermore, start adding the branch
+    // Check whether all trees have same topology. Furthermore, start adding the branch
     // lengths of all trees to `avgs`.
     for (size_t i = 0; i < trees_.size(); i++) {
-        for (auto it = trees_[i].begin_edges(); it != trees_[i].end_edges(); ++it) {
-            assert((*it)->index < avgs.size());
-            avgs[(*it)->index] += (*it)->branch_length;
+        for (auto it = trees_[i].tree->begin_edges(); it != trees_[i].tree->end_edges(); ++it) {
+            assert((*it)->index() < avgs.size());
+            avgs[(*it)->index()] += (*it)->branch_length;
         }
 
-        // Check whether two adjacent trees have same topology and names. As all are supposed to be
+        // TODO assert that all edges actually have the same indices!
+
+        // Check whether two adjacent trees have same topology. As all are supposed to be
         // the same, we do not need a pairwise comparison.
-        if (i > 0 && !TreeType::equal(trees_[i-1], trees_[i], comparator)) {
-            LOG_WARN << "Trees in set are not equal for creating an average branch length tree.";
+        if (i > 0 && !TreeType::identical_topology(*trees_[i-1].tree, *trees_[i].tree)) {
+            LOG_WARN << "Trees in set do not have same topology.";
             return TreeType();
         }
     }
@@ -88,10 +84,10 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
     }
 
     // Now we know that all trees are the same (for the purposes of this method). So we take a copy
-    // and modify its branch lengths.
-    TreeType tree = TreeType(trees_.front());
+    // of the first one (thus, also copying its node names) and modify its branch lengths.
+    TreeType tree = TreeType(*trees_.front().tree);
     for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it) {
-        (*it)->branch_length = avgs[(*it)->index];
+        (*it)->branch_length = avgs[(*it)->index()];
     }
 
     return tree;

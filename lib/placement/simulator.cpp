@@ -21,9 +21,9 @@ namespace genesis {
 /**
  * @brief Generates `n` many Pqueries and places them in the PlacementMap.
  */
-void PlacementSimulator::generate (PlacementMap placements, size_t n)
+void PlacementSimulator::generate (PlacementMap& placements, size_t n)
 {
-    LOG_DBG << placements.pqueries.size() << " " << n;
+    LOG_DBG << placements.placement_count() << " " << n;
 }
 
 } // namespace genesis

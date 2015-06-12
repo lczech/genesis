@@ -9,6 +9,8 @@
  */
 
 #include <stddef.h>
+// #include <string>
+#include <vector>
 
 namespace genesis {
 
@@ -18,10 +20,14 @@ namespace genesis {
 
 class PlacementMap;
 
+// class PlacementSimulatorPositionDistribution
+// {
+//
+// };
+
 // =============================================================================
 //     Placement Simulator
 // =============================================================================
-
 
 /**
  * @brief Simulates Placements on a Tree.
@@ -30,8 +36,13 @@ class PlacementSimulator
 {
 public:
 
-    static void generate            (PlacementMap placements, size_t n);
-    static void generate_in_subtree (PlacementMap placements, size_t n);
+    // std::vector<double> edge_distribution;
+
+    // double  proximal_length_;
+    // double  pendant_length;
+
+    void generate            (PlacementMap& placements, size_t n);
+    void generate_in_subtree (PlacementMap& placements, size_t n);
 
 };
 

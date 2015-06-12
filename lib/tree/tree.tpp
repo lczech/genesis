@@ -731,9 +731,9 @@ bool Tree<NDT, EDT>::validate() const
 template <class NDT, class EDT>
 std::string Tree<NDT, EDT>::dump() const
 {
-    std::vector<int> depth = this->node_depth_vector();
-    std::vector<int> done;
-    std::ostringstream out;
+    std::vector<int>    depth = this->node_depth_vector();
+    std::vector<size_t> done;
+    std::ostringstream  out;
 
     // prepare link so that we point to the root link. this will ensure that the order of nodes
     // displayed by this funtion is the one expected by the user. usually, we would go into

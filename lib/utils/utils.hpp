@@ -8,6 +8,7 @@
  * @ingroup utils
  */
 
+#include <algorithm>
 #include <ctime>
 #include <iomanip>
 #include <memory>

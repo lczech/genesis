@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "placement/placement_map.hpp"
+#include "tree/tree_set.hpp"
 
 namespace genesis {
 
@@ -91,6 +92,8 @@ public:
     {
         return maps_.size();
     }
+
+    TreeSet<PlacementTree> tree_set();
 
     // -----------------------------------------------------
     //     Dump & Debug

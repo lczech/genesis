@@ -131,7 +131,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
 
     // find and process the reference tree
     val = doc.get("tree");
-    if (!val || !val->is_string() || !NewickProcessor::from_string(val->to_string(), placements.tree)) {
+    if (!val || !val->is_string() || !NewickProcessor::from_string(val->to_string(), placements.tree())) {
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
@@ -141,8 +141,8 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     // checking for validity first!
     std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
     for (
-        PlacementTree::ConstIteratorEdges it = placements.tree.begin_edges();
-        it != placements.tree.end_edges();
+        PlacementTree::ConstIteratorEdges it = placements.tree().begin_edges();
+        it != placements.tree().end_edges();
         ++it
     ) {
         PlacementTree::EdgeType* edge = *it;
@@ -224,7 +224,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         }
 
         // create new pquery
-        Pquery* pqry = new Pquery();
+        auto pqry = make_unique<Pquery>();
 
         // process the placements and store them in the pquery
         JsonValueArray* pqry_p_arr = json_value_to_array(pqry_obj->get("p"));
@@ -288,7 +288,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                     pqry_place->parsimony = pqry_place_val;
                 }
             }
-            pqry_place->pquery = pqry;
+            pqry_place->pquery = pqry.get();
             pqry->placements.push_back(pqry_place);
 
             // check validity of placement values
@@ -364,7 +364,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                 PqueryName* pqry_name   = new PqueryName();
                 pqry_name->name         = pqry_n_val->to_string();
                 pqry_name->multiplicity = 0.0;
-                pqry_name->pquery = pqry;
+                pqry_name->pquery = pqry.get();
                 pqry->names.push_back(pqry_name);
             }
         }
@@ -408,13 +408,13 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                     LOG_WARN << "Jplace document contains pquery with negative multiplicity at "
                              << "name '" << pqry_name->name << "'.";
                 }
-                pqry_name->pquery = pqry;
+                pqry_name->pquery = pqry.get();
                 pqry->names.push_back(pqry_name);
             }
         }
 
         // finally, add the pquery to the placements object
-        placements.pqueries.push_back(pqry);
+        placements.pqueries().push_back(std::move(pqry));
     }
 
     // check if there is metadata
@@ -477,11 +477,11 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
     NewickProcessor::print_branch_lengths = true;
     NewickProcessor::print_comments       = false;
     NewickProcessor::print_tags           = true;
-    doc.set("tree", new JsonValueString(NewickProcessor::to_string(placements.tree)));
+    doc.set("tree", new JsonValueString(NewickProcessor::to_string(placements.tree())));
 
     // set placements
     JsonValueArray* placements_arr = new JsonValueArray();
-    for (Pquery* pqry : placements.pqueries) {
+    for (auto& pqry : placements.pqueries()) {
         JsonValueObject* jpqry      = new JsonValueObject();
         placements_arr->push_back(jpqry);
 
