@@ -2,7 +2,7 @@
 #define GENESIS_###CAPMODULNAME###_###CAPFILENAME###_H_
 
 /**
- * @brief
+ * @brief Header of ###CLASSNAME### class.
  *
  * @file
  * @ingroup ###MODULNAME###
@@ -14,6 +14,9 @@ namespace genesis {
 //     ###CLASSNAME###
 // =============================================================================
 
+/**
+ * @brief
+ */
 ###TEMPLATE_LINE###template <###TEMPLATE_PARAM###>
 class ###CLASSNAME###
 {
