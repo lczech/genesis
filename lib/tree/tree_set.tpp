@@ -111,6 +111,27 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
 // =============================================================================
 
 /**
+ * @brief Compares whether all Trees in the set are equal using a given comparator functional.
+ *
+ * See Tree::equal() for more information.
+ */
+template <class TreeType>
+bool TreeSet<TreeType>::all_equal(
+    const std::function<bool (
+        typename TreeType::ConstIteratorPreorder&, typename TreeType::ConstIteratorPreorder&
+    )> comparator
+) const {
+    // If all pairs of two adjacent trees are equal, all of them are.
+    // Thus, we do not need a complete pairwise comparision.
+    for (size_t i = 1; i < trees_.size(); i++) {
+        if (!TreeType::equal(*trees_[i-1].tree, *trees_[i].tree, comparator)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
  * @brief Compares whether all Trees in the set are equal using their default comparision operators
  * for nodes and edges.
  */

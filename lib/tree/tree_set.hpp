@@ -8,6 +8,7 @@
  * @ingroup tree
  */
 
+#include <functional>
 #include <memory>
 #include <string>
 #include <vector>
@@ -58,6 +59,11 @@ public:
     //     Comparators
     // -----------------------------------------------------
 
+    bool all_equal(
+        const std::function<bool (
+            typename TreeType::ConstIteratorPreorder&, typename TreeType::ConstIteratorPreorder&
+        )> comparator
+    ) const;
     bool all_equal() const;
     bool all_identical_topology() const;
 

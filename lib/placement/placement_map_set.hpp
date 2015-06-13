@@ -41,7 +41,7 @@ public:
     //     Modifiers
     // -----------------------------------------------------
 
-    void add (const std::string& name, PlacementMap* map);
+    void add (const std::string& name, std::shared_ptr<PlacementMap> map);
     void clear();
 
     PlacementMap merge_all();

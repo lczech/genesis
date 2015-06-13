@@ -150,16 +150,19 @@ PlacementMap::EdgeNumMapType* PlacementMap::edge_num_map() const
     return en_map;
 }
 
-// TODO add option for averaging branch_length
-// TODO write another merge function (static) that takes multiple placements and outputs a new
-// placements object.
 /**
  * @brief Adds the pqueries from another PlacementMap objects to this one.
+ *
+ * For this method to succeed, the PlacementMaps need to have the same topology, including identical
+ * edge_nums and node names.
+ *
+ * The resulting tree is the original one of the PlacementMap on which this method was called. If
+ * instead the average branch length tree is needed, see PlacementMapSet::merge_all().
  */
 bool PlacementMap::merge(const PlacementMap& other)
 {
-    // check for identical topology, taxa names and edge_nums.
-    // we do not check here for branch_length, because usually those differ slightly.
+    // Check for identical topology, taxa names and edge_nums.
+    // We do not check here for branch_length, because usually those differ slightly.
     auto comparator = [] (
         PlacementTree::ConstIteratorPreorder& it_l,
         PlacementTree::ConstIteratorPreorder& it_r
@@ -169,20 +172,20 @@ bool PlacementMap::merge(const PlacementMap& other)
     };
 
     if (!tree_->equal(*other.tree_, comparator)) {
-        LOG_WARN << "Cannot merge PlacementMap with different reference trees.";
+        LOG_WARN << "Cannot merge PlacementMaps with different reference trees.";
         return false;
     }
 
-    // we need to assign edge pointers to the correct edge objects, so we need a mapping
+    // We need to assign edge pointers to the correct edge objects, so we need a mapping.
     EdgeNumMapType* en_map = edge_num_map();
 
-    // copy all (o)ther pqueries to (n)ew pqueries
+    // Copy all (o)ther pqueries to (n)ew pqueries.
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
         for (const PqueryPlacement* op : opqry->placements) {
             PqueryPlacement* np = new PqueryPlacement(op);
 
-            // assuming that the trees have identical topology (checked at the beginning of this
+            // Assuming that the trees have identical topology (checked at the beginning of this
             // function), there will be an edge for every placement. if this assertion fails,
             // something broke the integrity of our in memory representation of the data.
             assert(en_map->count(np->edge_num) > 0);
