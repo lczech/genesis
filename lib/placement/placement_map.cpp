@@ -895,7 +895,7 @@ double PlacementMap::variance() const
 #ifdef PTHREADS
 
     // prepare storage for thread data.
-    int num_threads = Options::number_of_threads;
+    int num_threads = Options::get().number_of_threads();
     std::vector<double>       partials(num_threads, 0.0);
     std::vector<double>       counts  (num_threads, 0.0);
     std::vector<std::thread*> threads (num_threads, nullptr);
