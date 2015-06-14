@@ -126,6 +126,20 @@ void PlacementMap::clear()
     metadata.clear();
 }
 
+/**
+ * @brief Clears all placements of this PlacementMap.
+ *
+ * All pqueries are deleted. However, the Tree and metadata are left as they are, thus this is a
+ * useful method for simulating placements: Take a copy of a given map, clear its placements, then
+ * generate new ones using PlacementSimulator.
+ */
+void PlacementMap::clear_placements()
+{
+    pqueries_.clear();
+    tree_ = std::make_shared<PlacementTree>();
+    metadata.clear();
+}
+
 // =================================================================================================
 //     Helper Methods
 // =================================================================================================
@@ -345,18 +359,18 @@ std::vector<int> PlacementMap::closest_leaf_depth_histogram() const
 {
     std::vector<int> hist;
 
-    // get a vector telling us the depth from each node to its closest leaf node.
+    // Get a vector telling us the depth from each node to its closest leaf node.
     PlacementTree::NodeIntVectorType depths = tree_->closest_leaf_depth_vector();
 
     for (const auto& pqry : pqueries_) {
         for (const PqueryPlacement* place : pqry->placements) {
-            // try both nodes at the end of the placement's edge and see which one is closer
+            // Try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
             int dp = depths[place->edge->primary_node()->index()].second;
             int ds = depths[place->edge->secondary_node()->index()].second;
             unsigned int ld = std::min(dp, ds);
 
-            // put the closer one into the histogram, resize if necessary.
+            // Put the closer one into the histogram, resize if necessary.
             if (ld + 1 > hist.size()) {
                 hist.resize(ld + 1, 0);
             }

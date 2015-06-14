@@ -37,6 +37,7 @@ public:
 
     ~PlacementMap();
     void clear();
+    void clear_placements();
 
     // -----------------------------------------------------
     //     Accessors
