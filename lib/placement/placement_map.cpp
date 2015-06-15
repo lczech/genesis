@@ -1088,7 +1088,7 @@ std::string PlacementMap::dump_tree() const
         size_t cur_idx = it.node()->index();
         size_t par_idx = it.link()->outer()->node()->index();
 
-        // Set parent stack correctly (including curernt node), and store current rank.
+        // Set parent stack correctly (including current node), and store current rank.
         while (!parents.empty() && parents.back() != par_idx) {
             parents.pop_back();
         }
@@ -1103,23 +1103,37 @@ std::string PlacementMap::dump_tree() const
             continue;
         }
 
+        // This point in code is reached for all nodes but the root. Thus, we already have at least
+        // the root and the current node added to the parents stack. Also, the second but last
+        // element will be the parent of the current node (and the last one the node itself).
+        assert(parents.size() > 1 && parents[parents.size() - 2] == par_idx);
+
         // Draw indention lines for all non-immediate parents of the current node. If their rank
         // is zero, there will no other children follow, so do not draw a line then.
-        --ranks[par_idx];
-        for (size_t i = 1; i < parents.size() - 1; ++i) {
-            if (ranks[parents[i-1]] > 0) {
+        for (size_t i = 0; i < parents.size() - 2; ++i) {
+            if (ranks[parents[i]] > 0) {
                 res << "│   ";
             } else {
                 res << "    ";
             }
         }
 
+        // We are about to draw a child of the parent. Prior to drawing, we need to reduce the
+        // parents rank counter. If it then is zero, the current node is the last child of its
+        // parent (which is drawn differently).
+        // Also assert that it is not zero already, because this would mean that we are currently
+        // processing more children of the parent than its rank indicated.
+        assert(ranks[par_idx] > 0);
+        --ranks[par_idx];
+
         // Draw the lines down from the immediate parent of the current node.
         if (ranks[par_idx] > 0) {
-            res << "├── " ;
+            res << "├── ";
         } else {
-            res << "└── " ;
+            res << "└── ";
         }
+
+        // Print the actual information about the current node.
         res << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
     }
 
