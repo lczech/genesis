@@ -7,7 +7,7 @@
 
 #include "utils/options.hpp"
 
-#include "utils/logging.hpp"
+#include <chrono>
 
 #ifdef PTHREADS
 #    include <thread>
@@ -16,56 +16,95 @@
 namespace genesis {
 
 // =============================================================================
-//     Static Data Members
-// =============================================================================
-
-unsigned int              Options::number_of_threads = 1;
-std::vector<std::string>  Options::arguments;
-
-// =============================================================================
 //     Initialization
 // =============================================================================
 
 /**
- * @brief Init method that takes the program's command line arguments.
+ * @brief Constructor, which initializes the options with reasonable defaults.
  */
-void Options::init (int argc, char* argv[])
+Options::Options()
 {
-    // store all arguments in the array.
-    for (int i = 0; i < argc; i++) {
-        arguments.push_back(argv[i]);
-    }
-
-    // initialize threads with actual number of cores.
+    // Initialize threads with actual number of cores.
 #   ifdef PTHREADS
-        Options::number_of_threads = std::thread::hardware_concurrency();
+        number_of_threads_ = std::thread::hardware_concurrency();
+#   else
+        number_of_threads_ = 1;
 #   endif
+
+    // Initialize random seed with time.
+    random_seed_ = std::chrono::system_clock::now().time_since_epoch().count();
+    random_engine_.seed(random_seed_);
 }
 
 // =============================================================================
-//     Getter for Properties
+//     Setters for Properties
 // =============================================================================
 
 /**
- * @brief Returns an array of strings containing the program's command line arguments.
+ * @brief Set arguments to the program's command line options.
+ *
+ * If the program is run from the command line, this method has to be used to properly
+ * propagate the command line options to this options class.
  */
-std::vector<std::string> Options::get_command_line ()
+void Options::set_command_line (const int argc, const char* argv[])
 {
-    return Options::arguments;
+    // Store all arguments in the array.
+    command_line_.clear();
+    for (int i = 0; i < argc; i++) {
+        command_line_.push_back(argv[i]);
+    }
 }
+
+/**
+ * @brief Overwrite the system given number of threads.
+ *
+ * On startup, the value is initialized with the actual number of cores available in the system
+ * using std::thread::hardware_concurrency(). This method overwrites this value.
+ */
+void Options::set_number_of_threads (const unsigned int number)
+{
+    number_of_threads_ = number;
+}
+
+/**
+ * @brief Set a specific seed for the random engine.
+ *
+ * On startup, the random engine is initialized using the current system time. This value can
+ * be overwritten using this method.
+ */
+void Options::set_random_seed(const unsigned seed)
+{
+    random_seed_ = seed;
+    random_engine_.seed(seed);
+}
+
+// =============================================================================
+//     Getters for Properties
+// =============================================================================
 
 /**
  * @brief Returns a string containing the program's command line arguments.
  */
-std::string Options::get_command_line_string ()
+std::string Options::command_line_string () const
 {
     std::string ret = "";
-    for (size_t i = 0; i < arguments.size(); ++i) {
-        std::string a = arguments[i];
+    for (size_t i = 0; i < command_line_.size(); ++i) {
+        std::string a = command_line_[i];
         ret += (i==0 ? "" : " ") + a;
     }
     return ret;
 }
 
-} // namespace genesis
+/**
+ * @brief Return a list of all options with their values.
+ */
+std::string Options::dump () const
+{
+    std::string res = "";
+    res += "Command line:      " + command_line_string();
+    res += "Number of threads: " + std::to_string(number_of_threads());
+    res += "Random seed:       ";
+    return res;
+}
 
+} // namespace genesis

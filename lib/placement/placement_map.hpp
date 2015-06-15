@@ -37,6 +37,7 @@ public:
 
     ~PlacementMap();
     void clear();
+    void clear_placements();
 
     // -----------------------------------------------------
     //     Accessors
@@ -140,6 +141,7 @@ protected:
 
 public:
     std::string dump() const;
+    std::string dump_tree() const;
     bool validate (bool check_values = false, bool break_on_values = false) const;
 
     // -----------------------------------------------------

@@ -7,6 +7,7 @@
 
 #include "placement/jplace_processor.hpp"
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -52,7 +53,7 @@ bool JplaceProcessor::correct_invalid_numbers = true;
 bool JplaceProcessor::from_files (const std::vector<std::string>& fns, PlacementMapSet& set)
 {
     for (auto fn : fns) {
-        PlacementMap* map = new PlacementMap();
+        auto map = std::make_shared<PlacementMap>();
         if (!from_file (fn, *map)) {
             return false;
         }
@@ -71,7 +72,7 @@ bool JplaceProcessor::from_strings (const std::vector<std::string>& jps, Placeme
 {
     size_t cnt = 0;
     for (auto jplace : jps) {
-        PlacementMap* map = new PlacementMap();
+        auto map = std::make_shared<PlacementMap>();
         if (!from_string (jplace, *map)) {
             return false;
         }
@@ -542,7 +543,7 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
 
     // set metadata
     JsonValueObject* jmetadata = new JsonValueObject();
-    jmetadata->set("invocation", new JsonValueString(Options::get_command_line_string()));
+    jmetadata->set("invocation", new JsonValueString(Options::get().command_line_string()));
     doc.set("metadata", jmetadata);
 }
 

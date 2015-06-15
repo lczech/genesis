@@ -18,9 +18,9 @@ namespace genesis {
 /**
  * @brief
  */
-void PlacementMapSet::add (const std::string& name, PlacementMap* map)
+void PlacementMapSet::add (const std::string& name, std::shared_ptr<PlacementMap> map)
 {
-    maps_.push_back( { name, std::shared_ptr<PlacementMap>(map) } );
+    maps_.push_back( { name, map } );
 }
 
 /**
@@ -33,9 +33,19 @@ void PlacementMapSet::clear ()
 
 /**
  * @brief Returns a PlacementMap where all maps of this set have been merged into.
+ *
+ * For this method to succeed, all PlacementMaps need to have the same topology, including identical
+ * edge_nums and node names. The Tree of the returned PlacementMap has the average branch lenghts
+ * from the input trees, using TreeSet::average_branch_length_tree().
  */
 PlacementMap PlacementMapSet::merge_all()
 {
+    // The following operations do a lot of traversals on all trees: first some for the
+    // average_branch_length_tree, then for the merging again. This could be turned into
+    // less traversals by copying code and doing all in one run. However, at the current point, this
+    // method will be called once in the beginning of a program run, and thus it is not necessary to
+    // optimize for speed. Instead, we opt for clean, separated and easy code here.
+
     if (maps_.size() == 0) {
         LOG_WARN << "PlacementMapSet is empty.";
         return PlacementMap();
@@ -48,8 +58,13 @@ PlacementMap PlacementMapSet::merge_all()
     ));
 
     // Add the placements from all maps of this set.
+    // In the merge method, we also check for identical topology (again), but mainly for identical
+    // taxa names and edge_nums, which is important for correct merging.
     for (auto& map : maps_) {
-        res.merge(*map.map);
+        if (!res.merge(*map.map)) {
+            LOG_WARN << "Cannot merge PlacementMaps with different reference trees.";
+            return PlacementMap();
+        }
     }
     return res;
 }
@@ -59,9 +74,9 @@ PlacementMap PlacementMapSet::merge_all()
 // =============================================================================
 
 /**
- * @brief
+ * @brief Get the first PlacementMap in the set that is stored with a given name.
  */
- std::shared_ptr<PlacementMap> PlacementMapSet::get_first(const std::string& name)
+std::shared_ptr<PlacementMap> PlacementMapSet::get_first(const std::string& name)
 {
     auto cm = maps_.begin();
     while (cm != maps_.end()) {
@@ -83,6 +98,29 @@ TreeSet<PlacementTree> PlacementMapSet::tree_set()
         set.add(map.name, map.map->tree_ptr());
     }
     return set;
+}
+
+// =============================================================================
+//     Comparators
+// =============================================================================
+
+/**
+ * @brief Returns true iff all Trees of the PlacementMaps in the set are identical.
+ *
+ * This is the case if they have the same topology, node names and edge_nums. However, branch
+ * lengths are not checked, because usually those differ slightly.
+ */
+bool PlacementMapSet::all_identical_trees()
+{
+    auto comparator = [] (
+        PlacementTree::ConstIteratorPreorder& it_l,
+        PlacementTree::ConstIteratorPreorder& it_r
+    ) {
+        return it_l.node()->name     == it_r.node()->name     &&
+               it_l.edge()->edge_num == it_r.edge()->edge_num;
+    };
+
+    return tree_set().all_equal(comparator);
 }
 
 // =============================================================================

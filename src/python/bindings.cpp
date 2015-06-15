@@ -19,6 +19,7 @@ void BoostPythonExport_JplaceProcessor();
 void BoostPythonExport_PlacementMap();
 void BoostPythonExport_PlacementMapSet();
 void BoostPythonExport_PlacementTree();
+void BoostPythonExport_PlacementSimulator();
 
     // -------------------------------------------
     //     Tree
@@ -60,6 +61,7 @@ BOOST_PYTHON_MODULE(genesis)
     BoostPythonExport_PlacementMap();
     BoostPythonExport_PlacementMapSet();
     BoostPythonExport_PlacementTree();
+    BoostPythonExport_PlacementSimulator();
 
     // -------------------------------------------
     //     Utils

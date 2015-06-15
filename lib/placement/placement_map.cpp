@@ -126,6 +126,20 @@ void PlacementMap::clear()
     metadata.clear();
 }
 
+/**
+ * @brief Clears all placements of this PlacementMap.
+ *
+ * All pqueries are deleted. However, the Tree and metadata are left as they are, thus this is a
+ * useful method for simulating placements: Take a copy of a given map, clear its placements, then
+ * generate new ones using PlacementSimulator.
+ */
+void PlacementMap::clear_placements()
+{
+    pqueries_.clear();
+    tree_ = std::make_shared<PlacementTree>();
+    metadata.clear();
+}
+
 // =================================================================================================
 //     Helper Methods
 // =================================================================================================
@@ -150,16 +164,19 @@ PlacementMap::EdgeNumMapType* PlacementMap::edge_num_map() const
     return en_map;
 }
 
-// TODO add option for averaging branch_length
-// TODO write another merge function (static) that takes multiple placements and outputs a new
-// placements object.
 /**
  * @brief Adds the pqueries from another PlacementMap objects to this one.
+ *
+ * For this method to succeed, the PlacementMaps need to have the same topology, including identical
+ * edge_nums and node names.
+ *
+ * The resulting tree is the original one of the PlacementMap on which this method was called. If
+ * instead the average branch length tree is needed, see PlacementMapSet::merge_all().
  */
 bool PlacementMap::merge(const PlacementMap& other)
 {
-    // check for identical topology, taxa names and edge_nums.
-    // we do not check here for branch_length, because usually those differ slightly.
+    // Check for identical topology, taxa names and edge_nums.
+    // We do not check here for branch_length, because usually those differ slightly.
     auto comparator = [] (
         PlacementTree::ConstIteratorPreorder& it_l,
         PlacementTree::ConstIteratorPreorder& it_r
@@ -169,20 +186,20 @@ bool PlacementMap::merge(const PlacementMap& other)
     };
 
     if (!tree_->equal(*other.tree_, comparator)) {
-        LOG_WARN << "Cannot merge PlacementMap with different reference trees.";
+        LOG_WARN << "Cannot merge PlacementMaps with different reference trees.";
         return false;
     }
 
-    // we need to assign edge pointers to the correct edge objects, so we need a mapping
+    // We need to assign edge pointers to the correct edge objects, so we need a mapping.
     EdgeNumMapType* en_map = edge_num_map();
 
-    // copy all (o)ther pqueries to (n)ew pqueries
+    // Copy all (o)ther pqueries to (n)ew pqueries.
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
         for (const PqueryPlacement* op : opqry->placements) {
             PqueryPlacement* np = new PqueryPlacement(op);
 
-            // assuming that the trees have identical topology (checked at the beginning of this
+            // Assuming that the trees have identical topology (checked at the beginning of this
             // function), there will be an edge for every placement. if this assertion fails,
             // something broke the integrity of our in memory representation of the data.
             assert(en_map->count(np->edge_num) > 0);
@@ -342,18 +359,18 @@ std::vector<int> PlacementMap::closest_leaf_depth_histogram() const
 {
     std::vector<int> hist;
 
-    // get a vector telling us the depth from each node to its closest leaf node.
+    // Get a vector telling us the depth from each node to its closest leaf node.
     PlacementTree::NodeIntVectorType depths = tree_->closest_leaf_depth_vector();
 
     for (const auto& pqry : pqueries_) {
         for (const PqueryPlacement* place : pqry->placements) {
-            // try both nodes at the end of the placement's edge and see which one is closer
+            // Try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
             int dp = depths[place->edge->primary_node()->index()].second;
             int ds = depths[place->edge->secondary_node()->index()].second;
             unsigned int ld = std::min(dp, ds);
 
-            // put the closer one into the histogram, resize if necessary.
+            // Put the closer one into the histogram, resize if necessary.
             if (ld + 1 > hist.size()) {
                 hist.resize(ld + 1, 0);
             }
@@ -892,7 +909,7 @@ double PlacementMap::variance() const
 #ifdef PTHREADS
 
     // prepare storage for thread data.
-    int num_threads = Options::number_of_threads;
+    int num_threads = Options::get().number_of_threads();
     std::vector<double>       partials(num_threads, 0.0);
     std::vector<double>       counts  (num_threads, 0.0);
     std::vector<std::thread*> threads (num_threads, nullptr);
@@ -1050,6 +1067,40 @@ std::string PlacementMap::dump() const
         }
         out << "\n";
     }
+    return out.str();
+}
+
+/**
+ * @brief Returns a simple view of the Tree with information about the Pqueries on it.
+ */
+std::string PlacementMap::dump_tree() const
+{
+    std::vector<int>    depth = tree().node_depth_vector();
+    std::ostringstream  out;
+    // auto done = std::vector<size_t>(tree().node_count(), 0);
+
+    for (auto it = tree().begin_preorder(); it != tree().end_preorder(); ++it) {
+        std::string indent = std::string(2 * depth[it.node()->index()], ' ');
+        // done[it.node()->index()] = it.node()->rank();
+
+        if (it.is_first_iteration()) {
+            out << it.node()->name << "\n";
+            continue;
+        }
+        // out << indent << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
+
+        // --done[it.link()->outer()->node()->index()];
+        // if (done[it.link()->outer()->node()->index()] > 0) {
+            for (int i = 1; i < depth[it.node()->index()]; ++i) {
+                out << "│   ";
+            }
+            out << "├── " << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
+        // } else {
+        //     out << std::string(4 * depth[it.node()->index()], ' ');
+        //     out << "└── " << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
+        // }
+    }
+
     return out.str();
 }
 

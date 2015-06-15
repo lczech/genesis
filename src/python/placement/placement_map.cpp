@@ -33,6 +33,11 @@ void BoostPythonExport_PlacementMap()
             get_docstring("void ::genesis::PlacementMap::clear ()")
         )
         .def(
+            "clear_placements",
+            ( void ( ::genesis::PlacementMap::* )(  ))( &::genesis::PlacementMap::clear_placements ),
+            get_docstring("void ::genesis::PlacementMap::clear_placements ()")
+        )
+        .def(
             "closest_leaf_depth_histogram",
             ( std::vector< int > ( ::genesis::PlacementMap::* )(  ) const )( &::genesis::PlacementMap::closest_leaf_depth_histogram ),
             get_docstring("std::vector< int > ::genesis::PlacementMap::closest_leaf_depth_histogram () const")
@@ -53,6 +58,11 @@ void BoostPythonExport_PlacementMap()
             "dump",
             ( std::string ( ::genesis::PlacementMap::* )(  ) const )( &::genesis::PlacementMap::dump ),
             get_docstring("std::string ::genesis::PlacementMap::dump () const")
+        )
+        .def(
+            "dump_tree",
+            ( std::string ( ::genesis::PlacementMap::* )(  ) const )( &::genesis::PlacementMap::dump_tree ),
+            get_docstring("std::string ::genesis::PlacementMap::dump_tree () const")
         )
         // .def(
         //     "earth_movers_distance",
