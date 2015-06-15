@@ -1075,33 +1075,55 @@ std::string PlacementMap::dump() const
  */
 std::string PlacementMap::dump_tree() const
 {
-    std::vector<int>    depth = tree().node_depth_vector();
-    std::ostringstream  out;
-    // auto done = std::vector<size_t>(tree().node_count(), 0);
+    std::ostringstream res;
+
+    // Stores a count of how many child nodes each node has left for viewing.
+    auto ranks   = std::vector<size_t>(tree().node_count(), 0);
+
+    // Store the current stack of parents while traversing.
+    auto parents = std::vector<size_t>();
 
     for (auto it = tree().begin_preorder(); it != tree().end_preorder(); ++it) {
-        std::string indent = std::string(2 * depth[it.node()->index()], ' ');
-        // done[it.node()->index()] = it.node()->rank();
+        // Index of current and its parent node.
+        size_t cur_idx = it.node()->index();
+        size_t par_idx = it.link()->outer()->node()->index();
 
+        // Set parent stack correctly (including curernt node), and store current rank.
+        while (!parents.empty() && parents.back() != par_idx) {
+            parents.pop_back();
+        }
+        parents.push_back(cur_idx);
+        ranks[cur_idx] = it.node()->rank();
+
+        // The root node is special: We have to account for one more child, as it does not have a
+        // parent. Also, we do not draw any lines or indention for the root.
         if (it.is_first_iteration()) {
-            out << it.node()->name << "\n";
+            ++ranks[cur_idx];
+            res << it.node()->name << "\n";
             continue;
         }
-        // out << indent << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
 
-        // --done[it.link()->outer()->node()->index()];
-        // if (done[it.link()->outer()->node()->index()] > 0) {
-            for (int i = 1; i < depth[it.node()->index()]; ++i) {
-                out << "│   ";
+        // Draw indention lines for all non-immediate parents of the current node. If their rank
+        // is zero, there will no other children follow, so do not draw a line then.
+        --ranks[par_idx];
+        for (size_t i = 1; i < parents.size() - 1; ++i) {
+            if (ranks[parents[i-1]] > 0) {
+                res << "│   ";
+            } else {
+                res << "    ";
             }
-            out << "├── " << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
-        // } else {
-        //     out << std::string(4 * depth[it.node()->index()], ' ');
-        //     out << "└── " << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
-        // }
+        }
+
+        // Draw the lines down from the immediate parent of the current node.
+        if (ranks[par_idx] > 0) {
+            res << "├── " ;
+        } else {
+            res << "└── " ;
+        }
+        res << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
     }
 
-    return out.str();
+    return res.str();
 }
 
 /**
