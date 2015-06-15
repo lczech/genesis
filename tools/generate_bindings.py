@@ -729,7 +729,7 @@ class BoostPythonWriter:
         f.write ("    if (doc_strings_.count(signature) > 0) {\n")
         f.write ("        return doc_strings_[signature].c_str();\n")
         f.write ("    } else {\n")
-        f.write ("        return "";\n")
+        f.write ("        return \"\";\n")
         f.write ("    }\n")
         f.write ("}\n")
         f.close()

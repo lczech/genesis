@@ -65,7 +65,17 @@ protected:
 
 class PlacementSimulatorPositionDistribution
 {
+public:
 
+    // -----------------------------------------------------
+    //     Generate Random Positions
+    // -----------------------------------------------------
+
+    void prepare();
+    double generate(typename PlacementTree::EdgeType* edge);
+
+protected:
+    std::uniform_real_distribution<double> distrib_;
 };
 
 // =================================================================================================

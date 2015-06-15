@@ -138,15 +138,49 @@ size_t PlacementSimulatorEdgeDistribution::generate()
 }
 
 // =================================================================================================
+//     Placement Simulator Position Distribution
+// =================================================================================================
+
+/**
+ * @brief Prepares the distribution for usage.
+ */
+void PlacementSimulatorPositionDistribution::prepare()
+{
+    distrib_ = std::uniform_real_distribution<double>(0.0,1.0);
+}
+
+/**
+ * @brief Returns a randomly chosen position on an edge.
+ */
+double PlacementSimulatorPositionDistribution::generate(typename PlacementTree::EdgeType* edge)
+{
+    return distrib_(Options::get().random_engine()) * edge->branch_length;
+}
+
+// =================================================================================================
 //     Placement Simulator
 // =================================================================================================
 
 /**
  * @brief Generates `n` many Pqueries and places them in the PlacementMap.
  */
-void PlacementSimulator::generate_two_step (PlacementMap& placements, size_t n)
+void PlacementSimulator::generate_two_step (PlacementMap& map, size_t n)
 {
-    LOG_DBG << placements.placement_count() << " " << n;
+    auto edge_distrib = PlacementSimulatorEdgeDistribution();
+    auto pos_distrib  = PlacementSimulatorPositionDistribution();
+
+    edge_distrib.set_uniform_weights(map);
+    edge_distrib.prepare();
+    pos_distrib.prepare();
+
+    for (size_t i = 0; i < n; ++i) {
+        // map.add();
+
+        size_t edge_idx = edge_distrib.generate();
+        LOG_DBG1 << "#" << i << ", edge " << edge_idx
+                 << ", pos " << pos_distrib.generate(map.tree().edge_at(edge_idx));
+    }
+    LOG_DBG << map.placement_count() << " " << n;
 }
 
 } // namespace genesis
