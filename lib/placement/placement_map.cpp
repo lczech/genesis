@@ -114,55 +114,9 @@ PlacementMap::~PlacementMap()
     clear();
 }
 
-/**
- * @brief Clears all data of this object.
- *
- * The pqueries, the tree and the metadata are deleted.
- */
-void PlacementMap::clear()
-{
-    pqueries_.clear();
-    tree_ = std::make_shared<PlacementTree>();
-    metadata.clear();
-}
-
-/**
- * @brief Clears all placements of this PlacementMap.
- *
- * All pqueries are deleted. However, the Tree and metadata are left as they are, thus this is a
- * useful method for simulating placements: Take a copy of a given map, clear its placements, then
- * generate new ones using PlacementSimulator.
- */
-void PlacementMap::clear_placements()
-{
-    pqueries_.clear();
-    tree_ = std::make_shared<PlacementTree>();
-    metadata.clear();
-}
-
 // =================================================================================================
-//     Helper Methods
+//     Modifiers
 // =================================================================================================
-
-/**
- * @brief Returns a mapping of edge_num integers to the corresponding Edge object.
- *
- * This function depends on the tree only and does not involve any pqueries.
- */
-PlacementMap::EdgeNumMapType* PlacementMap::edge_num_map() const
-{
-    EdgeNumMapType* en_map = new EdgeNumMapType();
-    for (
-        PlacementTree::ConstIteratorEdges it = tree_->begin_edges();
-        it != tree_->end_edges();
-        ++it
-    ) {
-        PlacementTree::EdgeType* edge = *it;
-        assert(en_map->count(edge->edge_num) == 0);
-        en_map->emplace(edge->edge_num, edge);
-    }
-    return en_map;
-}
 
 /**
  * @brief Adds the pqueries from another PlacementMap objects to this one.
@@ -216,6 +170,57 @@ bool PlacementMap::merge(const PlacementMap& other)
         this->pqueries_.push_back(std::move(npqry));
     }
     return true;
+}
+
+/**
+ * @brief Clears all data of this object.
+ *
+ * The pqueries, the tree and the metadata are deleted.
+ */
+void PlacementMap::clear()
+{
+    pqueries_.clear();
+    tree_ = std::make_shared<PlacementTree>();
+    metadata.clear();
+}
+
+/**
+ * @brief Clears all placements of this PlacementMap.
+ *
+ * All pqueries are deleted. However, the Tree and metadata are left as they are, thus this is a
+ * useful method for simulating placements: Take a copy of a given map, clear its placements, then
+ * generate new ones using PlacementSimulator.
+ */
+void PlacementMap::clear_placements()
+{
+    for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it) {
+        (*it)->placements.clear();
+    }
+    pqueries_.clear();
+}
+
+// =================================================================================================
+//     Helper Methods
+// =================================================================================================
+
+/**
+ * @brief Returns a mapping of edge_num integers to the corresponding Edge object.
+ *
+ * This function depends on the tree only and does not involve any pqueries.
+ */
+PlacementMap::EdgeNumMapType* PlacementMap::edge_num_map() const
+{
+    EdgeNumMapType* en_map = new EdgeNumMapType();
+    for (
+        PlacementTree::ConstIteratorEdges it = tree_->begin_edges();
+        it != tree_->end_edges();
+        ++it
+    ) {
+        PlacementTree::EdgeType* edge = *it;
+        assert(en_map->count(edge->edge_num) == 0);
+        en_map->emplace(edge->edge_num, edge);
+    }
+    return en_map;
 }
 
 /**

@@ -36,6 +36,13 @@ public:
     PlacementMap& operator = (const PlacementMap& other);
 
     ~PlacementMap();
+
+    // -----------------------------------------------------
+    //     Modifiers
+    // -----------------------------------------------------
+
+    bool merge(const PlacementMap& other);
+
     void clear();
     void clear_placements();
 
@@ -75,12 +82,11 @@ public:
     typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
     EdgeNumMapType* edge_num_map() const;
 
-    bool merge(const PlacementMap& other);
     void normalize_weight_ratios();
     void restrain_to_max_weight_placements();
 
     // -----------------------------------------------------
-    //     Placement Weight
+    //     Placement Mass
     // -----------------------------------------------------
 
     size_t placement_count() const;
