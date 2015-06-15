@@ -43,7 +43,7 @@ bool JplaceProcessor::check_version (const std::string version)
 // =============================================================================
 
 bool JplaceProcessor::report_invalid_numbers  = false;
-bool JplaceProcessor::correct_invalid_numbers = true;
+bool JplaceProcessor::correct_invalid_numbers = false;
 
 /**
  * @brief Reads a list of files and parses them as a Jplace document into a PlacementMapSet object.
@@ -204,7 +204,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                  << "lead to inconsistency if the sum of both is not equal to the branch length.";
     }
 
-    // find and process the pqueries
+    // Find and process the pqueries.
     val = doc.get("placements");
     if (!val || !val->is_array()) {
         LOG_WARN << "Jplace document does not contain pqueries at key 'placements'.";
@@ -224,10 +224,10 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
             return false;
         }
 
-        // create new pquery
+        // Create new pquery.
         auto pqry = make_unique<Pquery>();
 
-        // process the placements and store them in the pquery
+        // Process the placements and store them in the pquery.
         JsonValueArray* pqry_p_arr = json_value_to_array(pqry_obj->get("p"));
         for (JsonValue* pqry_p_val : *pqry_p_arr) {
             if (!pqry_p_val->is_array()) {
@@ -241,12 +241,13 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                 return false;
             }
 
-            // process all fields of the placement
-            PqueryPlacement* pqry_place = new PqueryPlacement();
+            // Process all fields of the placement.
+            auto pqry_place = make_unique<PqueryPlacement>();
+            double distal_length = -1.0;
             for (size_t i = 0; i < pqry_fields->size(); ++i) {
-                // up to version 3 of the jplace specification, the p-fields in a jplace document
-                // only contain numbers (float or int),so we can do this check here once for all
-                // fields, instead of repetition for every field. if in the future there are fields
+                // Up to version 3 of the jplace specification, the p-fields in a jplace document
+                // only contain numbers (float or int), so we can do this check here once for all
+                // fields, instead of repetition for every field. If in the future there are fields
                 // with non-number type, this check has to go into the single field assignments.
                 if (!pqry_fields->at(i)->is_number()) {
                     LOG_WARN << "Jplace document contains pquery where field " << fields[i]
@@ -255,7 +256,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                     return false;
                 }
 
-                // switch on the field name to set the correct value
+                // Switch on the field name to set the correct value.
                 double pqry_place_val = json_value_to_number(pqry_fields->at(i))->value;
                 if (fields[i] == "edge_num") {
                     if (edge_num_map.count(pqry_place_val) == 0) {
@@ -266,7 +267,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                     }
                     pqry_place->edge_num = pqry_place_val;
                     pqry_place->edge = edge_num_map.at(pqry_place_val);
-                    pqry_place->edge->placements.push_back(pqry_place);
+                    pqry_place->edge->placements.push_back(pqry_place.get());
 
                 } else if (fields[i] == "likelihood") {
                     pqry_place->likelihood = pqry_place_val;
@@ -275,9 +276,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                     pqry_place->like_weight_ratio = pqry_place_val;
 
                 } else if (fields[i] == "distal_length") {
-                    // the jplace format uses distal length, but we use proximal,
-                    // so we need to convert here.
-                    pqry_place->proximal_length = pqry_place->edge->branch_length - pqry_place_val;
+                    distal_length = pqry_place_val;
 
                 } else if (fields[i] == "proximal_length") {
                     pqry_place->proximal_length = pqry_place_val;
@@ -289,10 +288,17 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                     pqry_place->parsimony = pqry_place_val;
                 }
             }
-            pqry_place->pquery = pqry.get();
-            pqry->placements.push_back(pqry_place);
 
-            // check validity of placement values
+            // The jplace format uses distal length, but we use proximal, so we need to convert here.
+            // We have to do this here (unlike all the other values, which are set in the loop
+            // above), because it may happen that the edge_num field was not yet set while
+            // processing. Also, we only set it if it was actually available in the fields and not
+            // overwritten by the (more appropriate) field for the proximal length.
+            if (distal_length >= 0.0 && pqry_place->proximal_length == 0.0) {
+                pqry_place->proximal_length = pqry_place->edge->branch_length - distal_length;
+            }
+
+            // Check validity of placement values.
             if (report_invalid_numbers || correct_invalid_numbers) {
                 if (pqry_place->like_weight_ratio < 0.0) {
                     if (report_invalid_numbers) {
@@ -335,9 +341,13 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                     }
                 }
             }
+
+            // Add the placement to the query and vice versa.
+            pqry_place->pquery = pqry.get();
+            pqry->placements.push_back(std::move(pqry_place));
         }
 
-        // check name/named multiplicity validity
+        // Check name/named multiplicity validity.
         if (pqry_obj->has("n") && pqry_obj->has("nm")) {
             LOG_WARN << "Jplace document contains a pquery with both an 'n' and an 'nm' key.";
             return false;
@@ -347,7 +357,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
             return false;
         }
 
-        // process names
+        // Process names.
         if (pqry_obj->has("n")) {
             if (!pqry_obj->get("n")->is_array()) {
                 LOG_WARN << "Jplace document contains a pquery with key 'n' that is not array.";
@@ -362,15 +372,15 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                     return false;
                 }
 
-                PqueryName* pqry_name   = new PqueryName();
+                auto pqry_name = make_unique<PqueryName>();
                 pqry_name->name         = pqry_n_val->to_string();
                 pqry_name->multiplicity = 0.0;
                 pqry_name->pquery = pqry.get();
-                pqry->names.push_back(pqry_name);
+                pqry->names.push_back(std::move(pqry_name));
             }
         }
 
-        // process named multiplicities
+        // Process named multiplicities.
         if (pqry_obj->has("nm")) {
             if (!pqry_obj->get("nm")->is_array()) {
                 LOG_WARN << "Jplace document contains a pquery with key 'nm' that is not array.";
@@ -402,7 +412,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                     return false;
                 }
 
-                PqueryName* pqry_name   = new PqueryName();
+                auto pqry_name = make_unique<PqueryName>();
                 pqry_name->name         = pqry_nm_val_arr->at(0)->to_string();
                 pqry_name->multiplicity = json_value_to_number(pqry_nm_val_arr->at(1))->value;
                 if (pqry_name->multiplicity < 0.0) {
@@ -410,15 +420,15 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                              << "name '" << pqry_name->name << "'.";
                 }
                 pqry_name->pquery = pqry.get();
-                pqry->names.push_back(pqry_name);
+                pqry->names.push_back(std::move(pqry_name));
             }
         }
 
-        // finally, add the pquery to the placements object
+        // Finally, add the pquery to the placements object.
         placements.pqueries().push_back(std::move(pqry));
     }
 
-    // check if there is metadata
+    // Check if there is metadata.
     val = doc.get("metadata");
     if (val && val->is_object()) {
         JsonValueObject* meta_obj = json_value_to_object(val);
@@ -488,7 +498,7 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
 
         // set placements
         JsonValueArray* pqry_p_arr  = new JsonValueArray();
-        for (PqueryPlacement* pqry_place : pqry->placements) {
+        for (auto& pqry_place : pqry->placements) {
             JsonValueArray* pqry_fields = new JsonValueArray();
             pqry_fields->push_back(new JsonValueNumber(pqry_place->edge_num));
             pqry_fields->push_back(new JsonValueNumber(pqry_place->likelihood));
@@ -505,14 +515,14 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
 
         // find out whether names have multiplicity
         bool has_nm = false;
-        for (PqueryName* pqry_name : pqry->names) {
+        for (auto& pqry_name : pqry->names) {
             has_nm |= pqry_name->multiplicity != 0.0;
         }
 
         // set named multiplicity / name
         if (has_nm) {
             JsonValueArray* pqry_nm_arr = new JsonValueArray();
-            for (PqueryName* pqry_name : pqry->names) {
+            for (auto& pqry_name : pqry->names) {
                 JsonValueArray* pqry_nm_val = new JsonValueArray();
                 pqry_nm_val->push_back(new JsonValueString(pqry_name->name));
                 pqry_nm_val->push_back(new JsonValueNumber(pqry_name->multiplicity));
@@ -521,7 +531,7 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
             jpqry->set("nm", pqry_nm_arr);
         } else {
             JsonValueArray* pqry_n_arr  = new JsonValueArray();
-            for (PqueryName* pqry_name : pqry->names) {
+            for (auto& pqry_name : pqry->names) {
                 pqry_n_arr->push_back(new JsonValueString(pqry_name->name));
             }
             jpqry->set("n", pqry_n_arr);

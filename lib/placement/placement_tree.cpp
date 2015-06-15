@@ -31,8 +31,8 @@ size_t PlacementTreeEdgeData::placement_count() const
 double PlacementTreeEdgeData::placement_mass() const
 {
     double mass = 0.0;
-    for (PqueryPlacement pl : placements) {
-        mass += pl.like_weight_ratio;
+    for (PqueryPlacement* pl : placements) {
+        mass += pl->like_weight_ratio;
     }
     return mass;
 }
