@@ -1071,6 +1071,40 @@ std::string PlacementMap::dump() const
 }
 
 /**
+ * @brief Returns a simple view of the Tree with information about the Pqueries on it.
+ */
+std::string PlacementMap::dump_tree() const
+{
+    std::vector<int>    depth = tree().node_depth_vector();
+    std::ostringstream  out;
+    // auto done = std::vector<size_t>(tree().node_count(), 0);
+
+    for (auto it = tree().begin_preorder(); it != tree().end_preorder(); ++it) {
+        std::string indent = std::string(2 * depth[it.node()->index()], ' ');
+        // done[it.node()->index()] = it.node()->rank();
+
+        if (it.is_first_iteration()) {
+            out << it.node()->name << "\n";
+            continue;
+        }
+        // out << indent << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
+
+        // --done[it.link()->outer()->node()->index()];
+        // if (done[it.link()->outer()->node()->index()] > 0) {
+            for (int i = 1; i < depth[it.node()->index()]; ++i) {
+                out << "│   ";
+            }
+            out << "├── " << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
+        // } else {
+        //     out << std::string(4 * depth[it.node()->index()], ' ');
+        //     out << "└── " << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
+        // }
+    }
+
+    return out.str();
+}
+
+/**
  * @brief Validates the integrity of the pointers, references and data in this Placement object.
  *
  * Returns true iff everything is set up correctly. In case of inconsistencies, the function stops
