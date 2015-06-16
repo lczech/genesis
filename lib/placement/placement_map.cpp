@@ -66,7 +66,7 @@ PlacementMap::PlacementMap (const PlacementMap& other)
     assert(it_n == tree_->end_preorder() && it_o == other.tree_->end_preorder());
 
     // copy all (o)ther pqueries to (n)ew pqueries
-    EdgeNumMapType* en_map = edge_num_map();
+    auto en_map = edge_num_map();
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
         pqueries_.push_back(std::move(npqry));
@@ -121,6 +121,17 @@ PlacementMap::~PlacementMap()
 // =================================================================================================
 
 /**
+ * @brief Creats an empty Pquery, adds it to the PlacementMap and returns a pointer to it.
+ *
+ * The returned pointer can then be used to add Placements and Names to the Pquery.
+ */
+Pquery* PlacementMap::add_pquery()
+{
+    pqueries_.push_back(make_unique<Pquery>());
+    return pqueries_.back().get();
+}
+
+/**
  * @brief Adds the pqueries from another PlacementMap objects to this one.
  *
  * For this method to succeed, the PlacementMaps need to have the same topology, including identical
@@ -147,7 +158,7 @@ bool PlacementMap::merge(const PlacementMap& other)
     }
 
     // We need to assign edge pointers to the correct edge objects, so we need a mapping.
-    EdgeNumMapType* en_map = edge_num_map();
+    auto en_map = edge_num_map();
 
     // Copy all (o)ther pqueries to (n)ew pqueries.
     for (const auto& opqry : other.pqueries_) {
@@ -210,9 +221,9 @@ void PlacementMap::clear_placements()
  *
  * This function depends on the tree only and does not involve any pqueries.
  */
-PlacementMap::EdgeNumMapType* PlacementMap::edge_num_map() const
+std::unique_ptr<PlacementMap::EdgeNumMapType> PlacementMap::edge_num_map() const
 {
-    EdgeNumMapType* en_map = new EdgeNumMapType();
+    auto en_map = make_unique<EdgeNumMapType>();
     for (
         PlacementTree::ConstIteratorEdges it = tree_->begin_edges();
         it != tree_->end_edges();
@@ -222,7 +233,7 @@ PlacementMap::EdgeNumMapType* PlacementMap::edge_num_map() const
         assert(en_map->count(edge->edge_num) == 0);
         en_map->emplace(edge->edge_num, edge);
     }
-    return en_map;
+    return std::move(en_map);
 }
 
 /**

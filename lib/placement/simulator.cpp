@@ -171,18 +171,23 @@ void PlacementSimulator::generate_two_step (PlacementMap& map, size_t n)
     auto edge_distrib = PlacementSimulatorEdgeDistribution();
     auto pos_distrib  = PlacementSimulatorPositionDistribution();
 
-    edge_distrib.set_uniform_weights(map);
+    auto depth_weights = std::vector<int>({10, 5, 1});
+    edge_distrib.set_depths_distributed_weights(map, depth_weights);
+
+    // edge_distrib.set_uniform_weights(map);
     edge_distrib.prepare();
     pos_distrib.prepare();
 
     for (size_t i = 0; i < n; ++i) {
-        // map.add();
+        Pquery* pqry = map.add_pquery();
+        pqry->add_name("pquery_" + std::to_string(i));
 
         size_t edge_idx = edge_distrib.generate();
-        LOG_DBG1 << "#" << i << ", edge " << edge_idx
-                 << ", pos " << pos_distrib.generate(map.tree().edge_at(edge_idx));
+        PlacementTree::EdgeType* edge = map.tree().edge_at(edge_idx);
+
+        PqueryPlacement* place = pqry->add_placement(edge);
+        place->proximal_length = pos_distrib.generate(edge);
     }
-    LOG_DBG << map.placement_count() << " " << n;
 }
 
 } // namespace genesis
