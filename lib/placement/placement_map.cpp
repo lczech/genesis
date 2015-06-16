@@ -66,22 +66,23 @@ PlacementMap::PlacementMap (const PlacementMap& other)
 
     // copy all (o)ther pqueries to (n)ew pqueries
     EdgeNumMapType* en_map = edge_num_map();
-    for (auto& opqry : other.pqueries_) {
+    for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
         pqueries_.push_back(std::move(npqry));
 
-        for (PqueryPlacement* op : opqry->placements) {
-            PqueryPlacement* np = new PqueryPlacement(op);
+        for (const auto& op : opqry->placements) {
+            auto np = make_unique<PqueryPlacement>(*op);
 
             np->edge   = (*en_map)[np->edge_num];
-            np->edge->placements.push_back(np);
+            np->edge->placements.push_back(np.get());
             np->pquery = npqry.get();
-            npqry->placements.push_back(np);
+            npqry->placements.push_back(std::move(np));
         }
-        for (PqueryName* on : opqry->names) {
-            PqueryName* nn = new PqueryName(on);
+        for (const auto& on : opqry->names) {
+            auto nn = make_unique<PqueryName>(*on);
+
             nn->pquery = npqry.get();
-            npqry->names.push_back(nn);
+            npqry->names.push_back(std::move(nn));
         }
     }
 }
@@ -114,55 +115,9 @@ PlacementMap::~PlacementMap()
     clear();
 }
 
-/**
- * @brief Clears all data of this object.
- *
- * The pqueries, the tree and the metadata are deleted.
- */
-void PlacementMap::clear()
-{
-    pqueries_.clear();
-    tree_ = std::make_shared<PlacementTree>();
-    metadata.clear();
-}
-
-/**
- * @brief Clears all placements of this PlacementMap.
- *
- * All pqueries are deleted. However, the Tree and metadata are left as they are, thus this is a
- * useful method for simulating placements: Take a copy of a given map, clear its placements, then
- * generate new ones using PlacementSimulator.
- */
-void PlacementMap::clear_placements()
-{
-    pqueries_.clear();
-    tree_ = std::make_shared<PlacementTree>();
-    metadata.clear();
-}
-
 // =================================================================================================
-//     Helper Methods
+//     Modifiers
 // =================================================================================================
-
-/**
- * @brief Returns a mapping of edge_num integers to the corresponding Edge object.
- *
- * This function depends on the tree only and does not involve any pqueries.
- */
-PlacementMap::EdgeNumMapType* PlacementMap::edge_num_map() const
-{
-    EdgeNumMapType* en_map = new EdgeNumMapType();
-    for (
-        PlacementTree::ConstIteratorEdges it = tree_->begin_edges();
-        it != tree_->end_edges();
-        ++it
-    ) {
-        PlacementTree::EdgeType* edge = *it;
-        assert(en_map->count(edge->edge_num) == 0);
-        en_map->emplace(edge->edge_num, edge);
-    }
-    return en_map;
-}
 
 /**
  * @brief Adds the pqueries from another PlacementMap objects to this one.
@@ -196,26 +151,77 @@ bool PlacementMap::merge(const PlacementMap& other)
     // Copy all (o)ther pqueries to (n)ew pqueries.
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
-        for (const PqueryPlacement* op : opqry->placements) {
-            PqueryPlacement* np = new PqueryPlacement(op);
+        for (const auto& op : opqry->placements) {
+            auto np = make_unique<PqueryPlacement>(*op);
 
             // Assuming that the trees have identical topology (checked at the beginning of this
             // function), there will be an edge for every placement. if this assertion fails,
             // something broke the integrity of our in memory representation of the data.
             assert(en_map->count(np->edge_num) > 0);
             np->edge = (*en_map)[np->edge_num];
-            np->edge->placements.push_back(np);
+            np->edge->placements.push_back(np.get());
             np->pquery = npqry.get();
-            npqry->placements.push_back(np);
+            npqry->placements.push_back(std::move(np));
         }
-        for (const PqueryName* on : opqry->names) {
-            PqueryName* nn = new PqueryName(on);
+        for (const auto& on : opqry->names) {
+            auto nn = make_unique<PqueryName>(*on);
             nn->pquery = npqry.get();
-            npqry->names.push_back(nn);
+            npqry->names.push_back(std::move(nn));
         }
         this->pqueries_.push_back(std::move(npqry));
     }
     return true;
+}
+
+/**
+ * @brief Clears all data of this object.
+ *
+ * The pqueries, the tree and the metadata are deleted.
+ */
+void PlacementMap::clear()
+{
+    pqueries_.clear();
+    tree_ = std::make_shared<PlacementTree>();
+    metadata.clear();
+}
+
+/**
+ * @brief Clears all placements of this PlacementMap.
+ *
+ * All pqueries are deleted. However, the Tree and metadata are left as they are, thus this is a
+ * useful method for simulating placements: Take a copy of a given map, clear its placements, then
+ * generate new ones using PlacementSimulator.
+ */
+void PlacementMap::clear_placements()
+{
+    for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it) {
+        (*it)->placements.clear();
+    }
+    pqueries_.clear();
+}
+
+// =================================================================================================
+//     Helper Methods
+// =================================================================================================
+
+/**
+ * @brief Returns a mapping of edge_num integers to the corresponding Edge object.
+ *
+ * This function depends on the tree only and does not involve any pqueries.
+ */
+PlacementMap::EdgeNumMapType* PlacementMap::edge_num_map() const
+{
+    EdgeNumMapType* en_map = new EdgeNumMapType();
+    for (
+        PlacementTree::ConstIteratorEdges it = tree_->begin_edges();
+        it != tree_->end_edges();
+        ++it
+    ) {
+        PlacementTree::EdgeType* edge = *it;
+        assert(en_map->count(edge->edge_num) == 0);
+        en_map->emplace(edge->edge_num, edge);
+    }
+    return en_map;
 }
 
 /**
@@ -226,10 +232,10 @@ void PlacementMap::normalize_weight_ratios()
 {
     for (auto& pqry : pqueries_) {
         double sum = 0.0;
-        for (PqueryPlacement* place : pqry->placements) {
+        for (auto& place : pqry->placements) {
             sum += place->like_weight_ratio;
         }
-        for (PqueryPlacement* place : pqry->placements) {
+        for (auto& place : pqry->placements) {
             place->like_weight_ratio /= sum;
         }
     }
@@ -250,52 +256,46 @@ void PlacementMap::normalize_weight_ratios()
 void PlacementMap::restrain_to_max_weight_placements()
 {
     for (auto& pqry : pqueries_) {
-        // init
+        // Initialization.
         double           max_w = -1.0;
         PqueryPlacement* max_p;
 
-        for (PqueryPlacement* place : pqry->placements) {
-            // find the maximum of the weight ratios in the placements of this pquery
+        for (auto& place : pqry->placements) {
+            // Find the maximum of the weight ratios in the placements of this pquery.
             if (place->like_weight_ratio > max_w) {
                 max_w = place->like_weight_ratio;
-                max_p = place;
+                max_p = place.get();
             }
 
-            // delete the reference from the edge to the current placement. we will later add the
-            // one that points to the remaining (max weight) placement.
-            PlacementTree::EdgeType* edge = place->edge;
-            std::vector<PqueryPlacement*>::iterator it = edge->placements.begin();
-            for (; it != edge->placements.end(); ++it) {
-                if (*it == place) {
+            // Delete the reference from the edge to the current placement. We will later add the
+            // one that points to the remaining (max weight) placement back to its edge.
+            std::vector<PqueryPlacement*>::iterator it = place->edge->placements.begin();
+            for (; it != place->edge->placements.end(); ++it) {
+                if (*it == place.get()) {
                     break;
                 }
             }
 
-            // assert that the edge actually contains a reference to this pquery. if not,
+            // Assert that the edge actually contains a reference to this pquery. If not,
             // this means that we messed up somewhere else while adding/removing placements...
-            assert(it != edge->placements.end());
-            edge->placements.erase(it);
+            assert(it != place->edge->placements.end());
+            place->edge->placements.erase(it);
         }
 
-        // remove all but the max element from placements by creating a new vector and swapping it.
-        // this is faster and simpler than removing all but one element.
-        std::vector<PqueryPlacement*> np;
-        np.push_back(max_p);
-        pqry->placements.swap(np);
+        // Remove all but the max element from placements vector.
+        auto neq = [max_p] (const std::unique_ptr<PqueryPlacement>& other)
+        {
+            return other.get() != max_p;
+        };
+        auto pend = std::remove_if (pqry->placements.begin(), pqry->placements.end(), neq);
+        pqry->placements.erase(pend, pqry->placements.end());
 
-        // np now contains the old placements. delete them (except the one we still need).
-        for (PqueryPlacement* op : np) {
-            if (op != max_p) {
-                delete op;
-            }
-        }
-
-        // now add back the reference from the edge to the pquery.
-        // assert that we now have a single placement in the pquery (the most likely one).
-        assert(pqry->placements.size() == 1 && pqry->placements[0] == max_p);
+        // Now add back the reference from the edge to the pquery.
+        // Assert that we now have a single placement in the pquery (the most likely one).
+        assert(pqry->placements.size() == 1 && pqry->placements[0].get() == max_p);
         max_p->edge->placements.push_back(max_p);
 
-        // also, set the like_weight_ratio to 1.0, because we do not have any other placements left.
+        // Also, set the like_weight_ratio to 1.0, because we do not have any other placements left.
         max_p->like_weight_ratio = 1.0;
     }
 }
@@ -323,7 +323,7 @@ double PlacementMap::placement_mass() const
 {
     double sum = 0.0;
     for (const auto& pqry : pqueries_) {
-        for (const PqueryPlacement* place : pqry->placements) {
+        for (const auto& place : pqry->placements) {
             sum += place->like_weight_ratio;
         }
     }
@@ -363,7 +363,7 @@ std::vector<int> PlacementMap::closest_leaf_depth_histogram() const
     PlacementTree::NodeIntVectorType depths = tree_->closest_leaf_depth_vector();
 
     for (const auto& pqry : pqueries_) {
-        for (const PqueryPlacement* place : pqry->placements) {
+        for (const auto& place : pqry->placements) {
             // Try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
             int dp = depths[place->edge->primary_node()->index()].second;
@@ -415,7 +415,7 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram (
     PlacementTree::NodeDoubleVectorType dists = tree_->closest_leaf_distance_vector();
 
     for (const auto& pqry : pqueries_) {
-        for (const PqueryPlacement* place : pqry->placements) {
+        for (const auto& place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
             double dp = place->pendant_length + place->proximal_length
@@ -485,7 +485,7 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
 
     // calculate all distances from placements to their closest leaf and store them.
     for (const auto& pqry : pqueries_) {
-        for (const PqueryPlacement* place : pqry->placements) {
+        for (const auto& place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
             double dp = place->pendant_length + place->proximal_length
@@ -888,7 +888,7 @@ double PlacementMap::variance() const
     std::vector<VarianceData> vd_placements;
     vd_placements.reserve(placement_count());
     for (const auto& pqry : this->pqueries_) {
-        for (const PqueryPlacement* place : pqry->placements) {
+        for (const auto& place : pqry->placements) {
             VarianceData vdp;
             vdp.index                = index++;
             vdp.edge_index           = place->edge->index();
@@ -1046,14 +1046,14 @@ std::string PlacementMap::dump() const
 {
     std::ostringstream out;
     for (const auto& pqry : pqueries_) {
-        for (const PqueryName* n : pqry->names) {
+        for (const auto& n : pqry->names) {
             out << "Placement: \"" << n->name << "\"";
             if (n->multiplicity != 0.0) {
                 out << " (" << n->multiplicity << ")";
             }
             out << "\n";
         }
-        for (const PqueryPlacement* p : pqry->placements) {
+        for (const auto& p : pqry->placements) {
             out << "at Edge num: " << p->edge_num << " (edge index " << p->edge->index_ << "). ";
             if (p->likelihood != 0.0 || p->like_weight_ratio != 0.0) {
                 out << "\tLikelihood: " << p->likelihood;
@@ -1075,33 +1075,69 @@ std::string PlacementMap::dump() const
  */
 std::string PlacementMap::dump_tree() const
 {
-    std::vector<int>    depth = tree().node_depth_vector();
-    std::ostringstream  out;
-    // auto done = std::vector<size_t>(tree().node_count(), 0);
+    std::ostringstream res;
+
+    // Stores a count of how many child nodes each node has left for viewing.
+    auto ranks   = std::vector<size_t>(tree().node_count(), 0);
+
+    // Store the current stack of parents while traversing.
+    auto parents = std::vector<size_t>();
 
     for (auto it = tree().begin_preorder(); it != tree().end_preorder(); ++it) {
-        std::string indent = std::string(2 * depth[it.node()->index()], ' ');
-        // done[it.node()->index()] = it.node()->rank();
+        // Index of current and its parent node.
+        size_t cur_idx = it.node()->index();
+        size_t par_idx = it.link()->outer()->node()->index();
 
+        // Set parent stack correctly (including current node), and store current rank.
+        while (!parents.empty() && parents.back() != par_idx) {
+            parents.pop_back();
+        }
+        parents.push_back(cur_idx);
+        ranks[cur_idx] = it.node()->rank();
+
+        // The root node is special: We have to account for one more child, as it does not have a
+        // parent. Also, we do not draw any lines or indention for the root.
         if (it.is_first_iteration()) {
-            out << it.node()->name << "\n";
+            ++ranks[cur_idx];
+            res << it.node()->name << "\n";
             continue;
         }
-        // out << indent << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
 
-        // --done[it.link()->outer()->node()->index()];
-        // if (done[it.link()->outer()->node()->index()] > 0) {
-            for (int i = 1; i < depth[it.node()->index()]; ++i) {
-                out << "│   ";
+        // This point in code is reached for all nodes but the root. Thus, we already have at least
+        // the root and the current node added to the parents stack. Also, the second but last
+        // element will be the parent of the current node (and the last one the node itself).
+        assert(parents.size() > 1 && parents[parents.size() - 2] == par_idx);
+
+        // Draw indention lines for all non-immediate parents of the current node. If their rank
+        // is zero, there will no other children follow, so do not draw a line then.
+        for (size_t i = 0; i < parents.size() - 2; ++i) {
+            if (ranks[parents[i]] > 0) {
+                res << "│   ";
+            } else {
+                res << "    ";
             }
-            out << "├── " << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
-        // } else {
-        //     out << std::string(4 * depth[it.node()->index()], ' ');
-        //     out << "└── " << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
-        // }
+        }
+
+        // We are about to draw a child of the parent. Prior to drawing, we need to reduce the
+        // parents rank counter. If it then is zero, the current node is the last child of its
+        // parent (which is drawn differently).
+        // Also assert that it is not zero already, because this would mean that we are currently
+        // processing more children of the parent than its rank indicated.
+        assert(ranks[par_idx] > 0);
+        --ranks[par_idx];
+
+        // Draw the lines down from the immediate parent of the current node.
+        if (ranks[par_idx] > 0) {
+            res << "├── ";
+        } else {
+            res << "└── ";
+        }
+
+        // Print the actual information about the current node.
+        res << it.node()->name << ": " << it.edge()->placement_count() << " placements\n";
     }
 
-    return out.str();
+    return res.str();
 }
 
 /**
@@ -1174,7 +1210,7 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
             }
         }
         double ratio_sum = 0.0;
-        for (const PqueryPlacement* p : pqry->placements) {
+        for (const auto& p : pqry->placements) {
             // make sure the pointers and references are set correctly
             if (p->pquery != pqry.get()) {
                 LOG_INFO << "Inconsistent pointer from placement to pquery at '" << name << "'.";
@@ -1182,7 +1218,7 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
             }
             int found_placement_on_edge = 0;
             for (const PqueryPlacement* pe : p->edge->placements) {
-                if (pe == p) {
+                if (pe == p.get()) {
                     ++found_placement_on_edge;
                 }
             }
@@ -1252,7 +1288,7 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
                 return false;
             }
         }
-        for (const PqueryName* n : pqry->names) {
+        for (const auto& n : pqry->names) {
             // make sure the pointers and references are set correctly
             if (n->pquery != pqry.get()) {
                 LOG_INFO << "Inconsistent pointer from name '" << n->name << "' to pquery.";

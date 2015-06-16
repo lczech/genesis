@@ -154,6 +154,8 @@ void PlacementSimulatorPositionDistribution::prepare()
  */
 double PlacementSimulatorPositionDistribution::generate(typename PlacementTree::EdgeType* edge)
 {
+    // We do a multiplication with the branch length here, because this allows for a single
+    // distribution instance instead of one per different length.
     return distrib_(Options::get().random_engine()) * edge->branch_length;
 }
 

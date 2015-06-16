@@ -12,7 +12,6 @@
 #include <assert.h>
 #include <sstream>
 
-#include "tree/newick_processor.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
 
