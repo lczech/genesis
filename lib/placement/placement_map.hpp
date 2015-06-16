@@ -41,6 +41,8 @@ public:
     //     Modifiers
     // -------------------------------------------------------------------------
 
+    Pquery* add_pquery();
+
     bool merge(const PlacementMap& other);
 
     void clear();
@@ -80,7 +82,7 @@ public:
     // -------------------------------------------------------------------------
 
     typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
-    EdgeNumMapType* edge_num_map() const;
+    std::unique_ptr<EdgeNumMapType> edge_num_map() const;
 
     void normalize_weight_ratios();
     void restrain_to_max_weight_placements();

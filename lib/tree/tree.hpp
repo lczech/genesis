@@ -23,9 +23,9 @@
 
 namespace genesis {
 
-// =============================================================================
+// =================================================================================================
 //     Forward Declarations
-// =============================================================================
+// =================================================================================================
 
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorEulertour;
@@ -42,9 +42,9 @@ class TreeIteratorPostorder;
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorLevelorder;
 
-// =============================================================================
+// =================================================================================================
 //     Tree
-// =============================================================================
+// =================================================================================================
 
 /**
  * @brief Basic class for representing phylogenetic tree topologies.
@@ -84,9 +84,9 @@ class Tree
 {
 public:
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Typedefs
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
     typedef Tree    <NodeDataType, EdgeDataType> TreeType;
     typedef TreeLink<NodeDataType, EdgeDataType> LinkType;
@@ -97,9 +97,9 @@ public:
     typedef std::vector<NodeType*> NodeArray;
     typedef std::vector<EdgeType*> EdgeArray;
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Construction and Destruction
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
     Tree () {};
 
@@ -138,9 +138,9 @@ public:
     void import_content (LinkArray& links, NodeArray& nodes, EdgeArray& edges);
     void export_content (LinkArray& links, NodeArray& nodes, EdgeArray& edges);
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Accessors
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
     inline LinkType* root_link() const
     {
@@ -191,9 +191,9 @@ public:
         return edges_.size();
     }
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Iterators
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
     typedef TreeIteratorEulertour <      LinkType,       NodeType,       EdgeType>      IteratorEulertour;
     typedef TreeIteratorEulertour <const LinkType, const NodeType, const EdgeType> ConstIteratorEulertour;
@@ -223,9 +223,9 @@ public:
     // TODO it != tree.end_inorder(), which will slow it down compared to having e.g. a fixed
     // TODO end iterator object or so... not sure, if worth the effort.
 
-    // -----------------------
+    // -----------------------------------------------------
     //     Eulertour
-    // -----------------------
+    // -----------------------------------------------------
 
     inline IteratorEulertour begin_eulertour()
     {
@@ -267,9 +267,9 @@ public:
         return ConstIteratorEulertour(nullptr);
     }
 
-    // -----------------------
+    // -----------------------------------------------------
     //     Preorder
-    // -----------------------
+    // -----------------------------------------------------
 
     inline IteratorPreorder begin_preorder()
     {
@@ -311,9 +311,9 @@ public:
         return ConstIteratorPreorder(nullptr);
     }
 
-    // -----------------------
+    // -----------------------------------------------------
     //     Inorder
-    // -----------------------
+    // -----------------------------------------------------
 
     //~ inline IteratorInorder begin_inorder()
     //~ {
@@ -355,9 +355,9 @@ public:
         //~ return ConstIteratorInorder(nullptr);
     //~ }
 
-    // -----------------------
+    // -----------------------------------------------------
     //     Postorder
-    // -----------------------
+    // -----------------------------------------------------
 
     inline IteratorPostorder begin_postorder()
     {
@@ -399,9 +399,9 @@ public:
         return ConstIteratorPostorder(nullptr);
     }
 
-    // -----------------------
+    // -----------------------------------------------------
     //     Levelorder
-    // -----------------------
+    // -----------------------------------------------------
 
     inline IteratorLevelorder begin_levelorder()
     {
@@ -443,9 +443,9 @@ public:
         return ConstIteratorLevelorder(nullptr);
     }
 
-    // -----------------------
+    // -----------------------------------------------------
     //     Links
-    // -----------------------
+    // -----------------------------------------------------
 
     inline IteratorLinks begin_links()
     {
@@ -467,9 +467,9 @@ public:
         return links_.cend();
     }
 
-    // -----------------------
+    // -----------------------------------------------------
     //     Nodes
-    // -----------------------
+    // -----------------------------------------------------
 
     inline IteratorNodes begin_nodes()
     {
@@ -491,9 +491,9 @@ public:
         return nodes_.cend();
     }
 
-    // -----------------------
+    // -----------------------------------------------------
     //     Edges
-    // -----------------------
+    // -----------------------------------------------------
 
     inline IteratorEdges begin_edges()
     {
@@ -515,9 +515,9 @@ public:
         return edges_.cend();
     }
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Member Functions
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
     // TODO add other interesting member functions: http://en.wikipedia.org/wiki/Tree_%28data_structure%29
 
@@ -529,9 +529,9 @@ public:
     size_t leaf_count() const;
     size_t inner_count() const;
 
-    // -----------------------
+    // -------------------------------------------------------------------------
     //     Distances
-    // -----------------------
+    // -------------------------------------------------------------------------
 
     double length() const;
 
@@ -548,20 +548,22 @@ public:
 
     double deepest_distance() const;
 
-    // -----------------------
+    // -------------------------------------------------------------------------
     //     Comparisons
-    // -----------------------
+    // -------------------------------------------------------------------------
 
     static bool equal(
         const TreeType& lhs,
         const TreeType& rhs,
         const std::function<bool
-            (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)> comparator
+            (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)
+        > comparator
     );
     bool equal(
         const TreeType& other,
         const std::function<bool
-            (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)> comparator
+            (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)
+        > comparator
     ) const;
 
     static bool equal(const TreeType& lhs, const TreeType& rhs);
@@ -570,18 +572,18 @@ public:
     static bool identical_topology(const TreeType& lhs, const TreeType& rhs);
            bool identical_topology(const TreeType& other) const;
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Debug and Dump
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
     bool validate() const;
 
     std::string dump() const;
     std::string dump_lists() const;
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Data Members
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
 protected:
 
@@ -592,9 +594,9 @@ protected:
 
 } // namespace genesis
 
-// =============================================================================
+// =================================================================================================
 //     Inclusion of the implementation
-// =============================================================================
+// =================================================================================================
 
 // This is a class template, so do the inclusion here.
 #include "tree/tree.tpp"

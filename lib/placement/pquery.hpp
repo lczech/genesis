@@ -63,7 +63,7 @@ struct PqueryPlacement
 
 struct PqueryName
 {
-    PqueryName() : name(""), multiplicity(0.0), pquery(nullptr)
+    PqueryName(std::string name = "") : name(name), multiplicity(0.0), pquery(nullptr)
     {}
 
     /**
@@ -87,8 +87,8 @@ struct PqueryName
 
 struct Pquery
 {
-    void add_placement();
-    void add_name();
+    PqueryPlacement* add_placement(PlacementTree::EdgeType* edge);
+    PqueryName*      add_name(std::string name = "");
 
     std::vector<std::unique_ptr<PqueryPlacement>> placements;
     std::vector<std::unique_ptr<PqueryName>>      names;
