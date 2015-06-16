@@ -56,6 +56,9 @@ bool NewickProcessor::parse_tree (
     //     Loop over lexer tokens and check if it...
     // --------------------------------------------------------------
     for (; ct != end; pt=ct, ++ct) {
+
+        // TODO add check for lexer end and error!
+
         if (ct->is_unknown()) {
             error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
             break;
