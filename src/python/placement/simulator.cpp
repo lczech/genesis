@@ -10,106 +10,57 @@
 
 const char* get_docstring (const std::string& signature);
 
-void BoostPythonExport_PlacementSimulatorEdgeDistribution()
+void BoostPythonExport_PlacementSimulatorTwostep()
 {
     using namespace genesis;
 
     // -------------------------------------------------------------------
-    //     Class PlacementSimulatorEdgeDistribution
+    //     Class PlacementSimulatorTwostep
     // -------------------------------------------------------------------
 
-    boost::python::class_< ::genesis::PlacementSimulatorEdgeDistribution > ( "PlacementSimulatorEdgeDistribution" )
+    boost::python::scope twostep = boost::python::class_< ::genesis::PlacementSimulatorTwostep > ( "PlacementSimulatorTwostep", boost::python::init< PlacementMap & >(( boost::python::arg("placements") )) )
 
         // Public Member Functions
 
         .def(
             "generate",
-            ( size_t ( ::genesis::PlacementSimulatorEdgeDistribution::* )(  ))( &::genesis::PlacementSimulatorEdgeDistribution::generate ),
-            get_docstring("size_t ::genesis::PlacementSimulatorEdgeDistribution::generate ()")
+            ( void ( ::genesis::PlacementSimulatorTwostep::* )( size_t ))( &::genesis::PlacementSimulatorTwostep::generate ),
+            ( boost::python::arg("n") ),
+            get_docstring("void ::genesis::PlacementSimulatorTwostep::generate (size_t n)")
         )
         .def(
-            "prepare",
-            ( size_t ( ::genesis::PlacementSimulatorEdgeDistribution::* )(  ))( &::genesis::PlacementSimulatorEdgeDistribution::prepare ),
-            get_docstring("size_t ::genesis::PlacementSimulatorEdgeDistribution::prepare ()")
-        )
-        .def(
-            "set_depths_distributed_weights",
-            ( void ( ::genesis::PlacementSimulatorEdgeDistribution::* )( const PlacementMap &, const std::vector< int > & ))( &::genesis::PlacementSimulatorEdgeDistribution::set_depths_distributed_weights ),
-            ( boost::python::arg("map"), boost::python::arg("depth_weights") ),
-            get_docstring("void ::genesis::PlacementSimulatorEdgeDistribution::set_depths_distributed_weights (const PlacementMap & map, const std::vector< int > & depth_weights)")
-        )
-        .def(
-            "set_transferred_weights",
-            ( void ( ::genesis::PlacementSimulatorEdgeDistribution::* )( const PlacementMap & ))( &::genesis::PlacementSimulatorEdgeDistribution::set_transferred_weights ),
-            ( boost::python::arg("from_map") ),
-            get_docstring("void ::genesis::PlacementSimulatorEdgeDistribution::set_transferred_weights (const PlacementMap & from_map)")
-        )
-        .def(
-            "set_uniform_weights",
-            ( void ( ::genesis::PlacementSimulatorEdgeDistribution::* )( const PlacementMap & ))( &::genesis::PlacementSimulatorEdgeDistribution::set_uniform_weights ),
-            ( boost::python::arg("map") ),
-            get_docstring("void ::genesis::PlacementSimulatorEdgeDistribution::set_uniform_weights (const PlacementMap & map)")
-        )
-        .def(
-            "set_uniform_weights",
-            ( void ( ::genesis::PlacementSimulatorEdgeDistribution::* )( const size_t ))( &::genesis::PlacementSimulatorEdgeDistribution::set_uniform_weights ),
-            ( boost::python::arg("num_edges") ),
-            get_docstring("void ::genesis::PlacementSimulatorEdgeDistribution::set_uniform_weights (const size_t num_edges)")
+            "edge_distribution",
+            ( ::genesis::PlacementSimulatorTwostep::EdgeDistribution & ( ::genesis::PlacementSimulatorTwostep::* )(  ) )( &::genesis::PlacementSimulatorTwostep::edge_distribution ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>()
         )
     ;
-}
 
-void BoostPythonExport_PlacementSimulatorPositionDistribution()
-{
-    using namespace genesis;
+    // TODO the set_depths_distributed_weights method takes a vector. this way, it is not possible to use a py list
+    //      as input. we need some wrapper for this, see http://stackoverflow.com/questions/3761391/boostpython-python-list-to-stdvector
+    //     or  http://stackoverflow.com/questions/6190609/add-a-constructor-to-a-boostpython-vector-indexing-suite-exposed-class
 
-    // -------------------------------------------------------------------
-    //     Class PlacementSimulatorPositionDistribution
-    // -------------------------------------------------------------------
-
-    boost::python::class_< ::genesis::PlacementSimulatorPositionDistribution > ( "PlacementSimulatorPositionDistribution" )
+    boost::python::class_< ::genesis::PlacementSimulatorTwostep::EdgeDistribution > ( "EdgeDistribution", boost::python::init< PlacementMap & >(( boost::python::arg("placements") )) )
 
         // Public Member Functions
 
         .def(
-            "generate",
-            ( double ( ::genesis::PlacementSimulatorPositionDistribution::* )( typename PlacementTree::EdgeType * ))( &::genesis::PlacementSimulatorPositionDistribution::generate ),
-            ( boost::python::arg("edge") ),
-            get_docstring("double ::genesis::PlacementSimulatorPositionDistribution::generate (typename PlacementTree::EdgeType * edge)")
+            "set_depths_distributed_weights",
+            ( void ( ::genesis::PlacementSimulatorTwostep::EdgeDistribution::* )( const std::vector< int > & ))( &::genesis::PlacementSimulatorTwostep::EdgeDistribution::set_depths_distributed_weights ),
+            ( boost::python::arg("depth_weights") )
         )
         .def(
-            "prepare",
-            ( void ( ::genesis::PlacementSimulatorPositionDistribution::* )(  ))( &::genesis::PlacementSimulatorPositionDistribution::prepare ),
-            get_docstring("void ::genesis::PlacementSimulatorPositionDistribution::prepare ()")
+            "set_uniform_weights",
+            ( void ( ::genesis::PlacementSimulatorTwostep::EdgeDistribution::* )(  ))( &::genesis::PlacementSimulatorTwostep::EdgeDistribution::set_uniform_weights )
+        )
+        .def(
+            "transfer_weights",
+            ( bool ( ::genesis::PlacementSimulatorTwostep::EdgeDistribution::* )( const PlacementMap & ))( &::genesis::PlacementSimulatorTwostep::EdgeDistribution::transfer_weights ),
+            ( boost::python::arg("from_map") )
         )
     ;
 }
 
 void BoostPythonExport_PlacementSimulator()
 {
-    BoostPythonExport_PlacementSimulatorEdgeDistribution();
-    BoostPythonExport_PlacementSimulatorPositionDistribution();
-
-    using namespace genesis;
-
-    // -------------------------------------------------------------------
-    //     Class PlacementSimulator
-    // -------------------------------------------------------------------
-
-    boost::python::class_< ::genesis::PlacementSimulator > ( "PlacementSimulator" )
-
-        // Public Member Functions
-
-        // .def(
-        //     "generate_in_subtree",
-        //     ( void ( ::genesis::PlacementSimulator::* )( PlacementMap &, size_t ))( &::genesis::PlacementSimulator::generate_in_subtree ),
-        //     ( boost::python::arg("placements"), boost::python::arg("n") )
-        // )
-        .def(
-            "generate_two_step",
-            ( void ( ::genesis::PlacementSimulator::* )( PlacementMap &, size_t ))( &::genesis::PlacementSimulator::generate_two_step ),
-            ( boost::python::arg("placements"), boost::python::arg("n") ),
-            get_docstring("void ::genesis::PlacementSimulator::generate_two_step (PlacementMap & placements, size_t n)")
-        )
-    ;
+    BoostPythonExport_PlacementSimulatorTwostep();
 }
