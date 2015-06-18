@@ -66,6 +66,7 @@ PlacementMap::PlacementMap (const PlacementMap& other)
     assert(it_n == tree_->end_preorder() && it_o == other.tree_->end_preorder());
 
     // copy all (o)ther pqueries to (n)ew pqueries
+    // TODO this is very similar to merge(). make this code shared somehow.
     auto en_map = edge_num_map();
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
@@ -74,7 +75,7 @@ PlacementMap::PlacementMap (const PlacementMap& other)
         for (const auto& op : opqry->placements) {
             auto np = make_unique<PqueryPlacement>(*op);
 
-            np->edge   = (*en_map)[np->edge_num];
+            np->edge   = en_map[np->edge_num];
             np->edge->placements.push_back(np.get());
             np->pquery = npqry.get();
             npqry->placements.push_back(std::move(np));
@@ -169,8 +170,8 @@ bool PlacementMap::merge(const PlacementMap& other)
             // Assuming that the trees have identical topology (checked at the beginning of this
             // function), there will be an edge for every placement. if this assertion fails,
             // something broke the integrity of our in memory representation of the data.
-            assert(en_map->count(np->edge_num) > 0);
-            np->edge = (*en_map)[np->edge_num];
+            assert(en_map.count(np->edge_num) > 0);
+            np->edge = en_map[np->edge_num];
             np->edge->placements.push_back(np.get());
             np->pquery = npqry.get();
             npqry->placements.push_back(std::move(np));
@@ -221,17 +222,17 @@ void PlacementMap::clear_placements()
  *
  * This function depends on the tree only and does not involve any pqueries.
  */
-std::unique_ptr<PlacementMap::EdgeNumMapType> PlacementMap::edge_num_map() const
+PlacementMap::EdgeNumMapType PlacementMap::edge_num_map() const
 {
-    auto en_map = make_unique<EdgeNumMapType>();
+    auto en_map = EdgeNumMapType();
     for (
         PlacementTree::ConstIteratorEdges it = tree_->begin_edges();
         it != tree_->end_edges();
         ++it
     ) {
         PlacementTree::EdgeType* edge = *it;
-        assert(en_map->count(edge->edge_num) == 0);
-        en_map->emplace(edge->edge_num, edge);
+        assert(en_map.count(edge->edge_num) == 0);
+        en_map.emplace(edge->edge_num, edge);
     }
     return std::move(en_map);
 }

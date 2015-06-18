@@ -16,69 +16,6 @@
 namespace genesis {
 
 // =================================================================================================
-//     Forward Declarations
-// =================================================================================================
-
-class PlacementMap;
-
-// =================================================================================================
-//     Placement Simulator Edge Distribution
-// =================================================================================================
-
-class PlacementSimulatorEdgeDistribution
-{
-public:
-
-    // -----------------------------------------------------
-    //     Set Weights
-    // -----------------------------------------------------
-
-    void set_uniform_weights (const size_t num_edges);
-    void set_uniform_weights (const PlacementMap& map);
-
-    void set_depths_distributed_weights (
-        const PlacementMap& map,
-        const std::vector<int>& depth_weights
-    );
-    void set_transferred_weights (const PlacementMap& from_map);
-
-    // -----------------------------------------------------
-    //     Generate Random Edges
-    // -----------------------------------------------------
-
-    size_t prepare();
-    size_t generate();
-
-    // -----------------------------------------------------
-    //     Data Members
-    // -----------------------------------------------------
-
-    std::vector<double> weights;
-
-protected:
-    std::discrete_distribution<size_t> distrib_;
-};
-
-// =================================================================================================
-//     Placement Simulator Position Distribution
-// =================================================================================================
-
-class PlacementSimulatorPositionDistribution
-{
-public:
-
-    // -----------------------------------------------------
-    //     Generate Random Positions
-    // -----------------------------------------------------
-
-    void prepare();
-    double generate(typename PlacementTree::EdgeType* edge);
-
-protected:
-    std::uniform_real_distribution<double> distrib_;
-};
-
-// =================================================================================================
 //     Placement Simulator
 // =================================================================================================
 
@@ -89,14 +26,159 @@ class PlacementSimulator
 {
 public:
 
-    // std::vector<double> edge_distribution;
+    // -----------------------------------------------------
+    //     Constructor
+    // -----------------------------------------------------
 
-    // double  proximal_length_;
-    // double  pendant_length;
+    PlacementSimulator(PlacementMap& placements) : placements_(placements) {}
 
-    void generate_two_step   (PlacementMap& placements, size_t n);
-    void generate_in_subtree (PlacementMap& placements, size_t n);
+    // -----------------------------------------------------
+    //     Member Functions
+    // -----------------------------------------------------
 
+    virtual void generate (size_t n) = 0;
+
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+protected:
+
+    PlacementMap& placements_;
+};
+
+// =================================================================================================
+//     Placement Simulator Two Step
+// =================================================================================================
+
+/**
+ * @brief
+ */
+class PlacementSimulatorTwostep : public PlacementSimulator
+{
+public:
+
+    // -----------------------------------------------------
+    //     From Base Class
+    // -----------------------------------------------------
+
+    PlacementSimulatorTwostep(PlacementMap& placements) :
+        PlacementSimulator(placements),
+        edge_distribution_(placements)
+    {};
+    void generate (size_t n) override;
+
+    // =========================================================================
+    //     Edge Distribution
+    // =========================================================================
+
+    class EdgeDistribution
+    {
+        // -------------------------------------------------
+        //     Constructor
+        // -------------------------------------------------
+
+        friend PlacementSimulatorTwostep;
+
+        // TODO this ctor is public because otherwise the py binding does not work. this is ugly.
+    public:
+        EdgeDistribution(PlacementMap& placements) : placements_(placements) {
+            set_uniform_weights();
+        }
+
+        // -------------------------------------------------
+        //     Set Weights
+        // -------------------------------------------------
+
+    public:
+        void set_uniform_weights ();
+        void set_depths_distributed_weights (const std::vector<int>& depth_weights);
+        bool transfer_weights (const PlacementMap& from_map);
+
+        // -------------------------------------------------
+        //     Generate Random Edges
+        // -------------------------------------------------
+
+    protected:
+        void   prepare();
+        size_t generate();
+
+        // -------------------------------------------------
+        //     Data Members
+        // -------------------------------------------------
+
+    public:
+        std::vector<double> weights;
+
+    protected:
+        std::discrete_distribution<size_t> distrib_;
+        PlacementMap& placements_;
+    };
+
+    // =========================================================================
+    //     Proximal Length Distribution
+    // =========================================================================
+
+    class ProximalLengthDistribution
+    {
+        // -------------------------------------------------
+        //     Constructor
+        // -------------------------------------------------
+
+        friend PlacementSimulatorTwostep;
+
+        // -----------------------------------------------------
+        //     Generate Random Positions
+        // -----------------------------------------------------
+
+    protected:
+        void   prepare();
+        double generate(typename PlacementTree::EdgeType* edge);
+
+    protected:
+        std::uniform_real_distribution<double> distrib_;
+    };
+
+    // =========================================================================
+    //     Main Class
+    // =========================================================================
+
+    // -----------------------------------------------------
+    //     Accessors
+    // -----------------------------------------------------
+
+    inline EdgeDistribution& edge_distribution()
+    {
+        return edge_distribution_;
+    }
+
+    inline ProximalLengthDistribution& proximal_length_distribution()
+    {
+        return proximal_length_distribution_;
+    }
+
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+
+protected:
+    EdgeDistribution           edge_distribution_;
+    ProximalLengthDistribution proximal_length_distribution_;
+};
+
+// =================================================================================================
+//     Placement Simulator Subtree
+// =================================================================================================
+
+/**
+ * @brief
+ */
+class PlacementSimulatorSubtree : public PlacementSimulator
+{
+public:
+
+    PlacementSimulatorSubtree(PlacementMap& placements) : PlacementSimulator(placements) {}
+
+    void generate (size_t n) override;
 };
 
 } // namespace genesis

@@ -82,7 +82,7 @@ public:
     // -------------------------------------------------------------------------
 
     typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
-    std::unique_ptr<EdgeNumMapType> edge_num_map() const;
+    EdgeNumMapType edge_num_map() const;
 
     void normalize_weight_ratios();
     void restrain_to_max_weight_placements();

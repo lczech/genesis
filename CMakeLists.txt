@@ -43,7 +43,7 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O3       -DNDEBUG")
 option (BUILD_STATIC_LIB    "Build static library" OFF)
 option (BUILD_SHARED_LIB    "Build shared library" OFF)
 
-option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" OFF)
+option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" ON)
 option (BUILD_PYTHON_MODULE "Build Python module"  ON)
 option (BUILD_EXECUTABLE    "Build executable"     OFF)
 
@@ -85,13 +85,18 @@ endif()
 # --------------------------------------------------------------------
 
 if (BUILD_PYTHON_MODULE OR BUILD_EXECUTABLE)
-    set (Boost_USE_STATIC_LIBS (NOT ${USE_SHARED_BOOST}))
+    IF(USE_SHARED_BOOST)
+        set (Boost_USE_STATIC_LIBS OFF)
+    ELSE()
+        set (Boost_USE_STATIC_LIBS ON)
+    ENDIF()
 
     find_package (PythonLibs 2.7)
     find_package (Boost      1.55.0 COMPONENTS python)
 
     if (PYTHONLIBS_FOUND AND Boost_PYTHON_FOUND)
         message (STATUS "Found Python Lib and Boost Python, building Python module")
+        message (STATUS "Using boost static libs: " ${Boost_USE_STATIC_LIBS})
 
         # the boost headers contain some warnings about unused variables, which does not look
         # nice in the build process. for some reason, everything works find without this line,

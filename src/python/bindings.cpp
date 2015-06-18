@@ -6,6 +6,7 @@
  */
 
 #include <boost/python.hpp>
+#include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // =============================================================================
 //     Forward declarations of all exported classes
@@ -44,6 +45,17 @@ BOOST_PYTHON_MODULE(genesis)
 {
     // show genesis docstrings, python signature, but not c++ signature
     boost::python::docstring_options doc_options(true, true, false);
+
+    using namespace boost::python;
+
+    // TODO oursource to some utils scope
+    boost::python::class_<std::vector<int> >("VectorInt")
+        .def(vector_indexing_suite<std::vector<int> >())
+    ;
+
+    // class_< std::vector<int> > ("VectorInt")
+    //     .def (indexing::container_suite< std::vector<int> >())
+    // ;
 
     // -------------------------------------------
     //     Tree
