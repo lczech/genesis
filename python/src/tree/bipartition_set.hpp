@@ -9,7 +9,7 @@
  */
 
 #include <boost/python.hpp>
-#include "tree/bipartition_set.hpp"
+#include "lib/tree/bipartition_set.hpp"
 
 const char* get_docstring (const std::string& signature);
 

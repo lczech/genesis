@@ -7,7 +7,7 @@
 
 #include <boost/python.hpp>
 
-#include "placement/placement_map_set.hpp"
+#include "lib/placement/placement_map_set.hpp"
 
 const char* get_docstring (const std::string& signature);
 

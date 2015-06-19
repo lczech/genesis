@@ -10,8 +10,8 @@
 
 #include <boost/python.hpp>
 
-#include "tree/tree.hpp"
-#include "tree/tree_iterator.hpp"
+#include "lib/tree/tree.hpp"
+#include "lib/tree/tree_iterator.hpp"
 
 const char* get_docstring (const std::string& signature);
 

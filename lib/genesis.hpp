@@ -7,7 +7,7 @@
  * symbols of genesis are available after including this header.
  *
  * You do not need to edit this file manually. Simply run the script
- * make_genesis_header.sh in ./tools/ to update this file.
+ * make_genesis_header.sh in tools/ to update this file.
  *
  * @file
  */

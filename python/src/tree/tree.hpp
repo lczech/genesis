@@ -10,14 +10,14 @@
 
 #include <boost/python.hpp>
 
-#include "tree/tree.hpp"
+#include "lib/tree/tree.hpp"
 
-#include "../src/python/tree/bipartition_set.hpp"
-#include "../src/python/tree/tree_edge.hpp"
-#include "../src/python/tree/tree_link.hpp"
-#include "../src/python/tree/tree_node.hpp"
+#include "python/src/tree/bipartition_set.hpp"
+#include "python/src/tree/tree_edge.hpp"
+#include "python/src/tree/tree_link.hpp"
+#include "python/src/tree/tree_node.hpp"
 
-#include "../src/python/tree/tree_iterator.hpp"
+#include "python/src/tree/tree_iterator.hpp"
 
 const char* get_docstring (const std::string& signature);
 

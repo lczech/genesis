@@ -1,4 +1,3 @@
-
 # ------------------------------------------------------------------------------
 # This makefile wraps around cmake in order to make the use straight forward.
 # A simple call to "make" suffices to build the whole of genesis.
@@ -26,5 +25,6 @@ clean:
 	@echo "Running clean..."
 	@rm -rf bin
 	@rm -rf build
-	@rm -rf module
+	@rm -rf python/module
+	@rm -rf test/bin
 .PHONY: clean

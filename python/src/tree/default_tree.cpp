@@ -7,9 +7,9 @@
 
 #include <boost/python.hpp>
 
-#include "tree/default_tree.hpp"
+#include "lib/tree/default_tree.hpp"
 
-#include "../src/python/tree/tree.hpp"
+#include "python/src/tree/tree.hpp"
 
 // -------------------------------------------------------------------
 //     Class DefaultTreeEdgeData

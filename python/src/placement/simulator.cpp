@@ -6,7 +6,7 @@
  */
 
 #include <boost/python.hpp>
-#include "placement/simulator.hpp"
+#include "lib/placement/simulator.hpp"
 
 const char* get_docstring (const std::string& signature);
 
