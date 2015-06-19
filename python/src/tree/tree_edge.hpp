@@ -10,9 +10,9 @@
 
 #include <boost/python.hpp>
 
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
-#include "tree/tree_node.hpp"
+#include "lib/tree/tree_edge.hpp"
+#include "lib/tree/tree_link.hpp"
+#include "lib/tree/tree_node.hpp"
 
 const char* get_docstring (const std::string& signature);
 

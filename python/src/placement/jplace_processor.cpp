@@ -7,8 +7,8 @@
 
 #include <boost/python.hpp>
 
-#include "placement/jplace_processor.hpp"
-#include "placement/placement_map.hpp"
+#include "lib/placement/jplace_processor.hpp"
+#include "lib/placement/placement_map.hpp"
 
 const char* get_docstring (const std::string& signature);
 

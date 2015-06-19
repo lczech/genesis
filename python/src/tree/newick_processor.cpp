@@ -7,10 +7,10 @@
 
 #include <boost/python.hpp>
 
-#include "tree/newick_processor.hpp"
+#include "lib/tree/newick_processor.hpp"
 
-#include "tree/default_tree.hpp"
-#include "placement/placement_tree.hpp"
+#include "lib/tree/default_tree.hpp"
+#include "lib/placement/placement_tree.hpp"
 
 // -------------------------------------------------------------------
 //     Class NewickProcessor

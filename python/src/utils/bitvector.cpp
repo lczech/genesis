@@ -7,7 +7,7 @@
 
 #include <boost/python.hpp>
 
-#include "utils/bitvector.hpp"
+#include "lib/utils/bitvector.hpp"
 
 const char* get_docstring (const std::string& signature);
 

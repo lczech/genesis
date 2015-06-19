@@ -7,9 +7,9 @@
 
 #include <boost/python.hpp>
 
-#include "placement/placement_tree.hpp"
+#include "lib/placement/placement_tree.hpp"
 
-#include "../src/python/tree/tree.hpp"
+#include "python/src/tree/tree.hpp"
 
 const char* get_docstring (const std::string& signature);
 

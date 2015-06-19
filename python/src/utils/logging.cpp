@@ -7,7 +7,7 @@
 
 #include <boost/python.hpp>
 
-#include "utils/logging.hpp"
+#include "lib/utils/logging.hpp"
 
 const char* get_docstring (const std::string& signature);
 
