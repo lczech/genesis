@@ -356,6 +356,7 @@ void NewickProcessor::build_tree (NewickBroker& broker, TreeType& tree)
     }
     next->next_ = next->next_->next_;
     assert(next->next_ == links.front()->next_);
+    delete links.front();
     links.erase(links.begin());
     for (size_t i = 0; i < links.size(); ++i) {
         links[i]->index_ = i;

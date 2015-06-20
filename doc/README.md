@@ -22,10 +22,9 @@ Genesis is documented in three different scopes:
 
    The manual is for people who simply want to use genesis for their purposes.
    It provides first steps and examples that work with the given functionality.
+   **This is not yet available.**
 
-A precompiled version of the documents is provided with each distribution.
-
-If you need a fresh compilation, all three documentations can be created by
-calling `make` in this directory. This will generate the necessary documents and
-create links to them for convenience. Requirements:
+The documentations can be created by calling `make` in this directory. This will
+generate the necessary documents and create links to them for convenience.
+Requirements:
 [doxygen](http://www.doxygen.org/) and [latex](http://www.latex-project.org).

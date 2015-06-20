@@ -85,5 +85,8 @@ endif()
 # ------------------------------------------------------------------------------
 
 if (BUILD_TESTS)
+    # Need to enable testing here, otherwise ./build/make test will not work.
+    enable_testing()
+
     add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 endif()
