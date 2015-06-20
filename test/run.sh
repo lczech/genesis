@@ -17,7 +17,7 @@ speed_runs=25
 out_dir="out"
 
 # Use *'s around each test filter:
-loose_filtering=1
+loose_filtering=0
 
 ####################################################################################################
 #    Initialization
