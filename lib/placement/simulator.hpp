@@ -139,6 +139,34 @@ public:
     };
 
     // =========================================================================
+    //     Pendant Length Distribution
+    // =========================================================================
+
+    class PendantLengthDistribution
+    {
+        // -------------------------------------------------
+        //     Constructor
+        // -------------------------------------------------
+
+        friend PlacementSimulatorTwostep;
+
+        // -----------------------------------------------------
+        //     Generate Random Length
+        // -----------------------------------------------------
+
+    public:
+        double min = 0.0;
+        double max = 1.0;
+
+    protected:
+        void   prepare();
+        double generate(typename PlacementTree::EdgeType* edge);
+
+    protected:
+        std::uniform_real_distribution<double> distrib_;
+    };
+
+    // =========================================================================
     //     Main Class
     // =========================================================================
 
@@ -156,6 +184,11 @@ public:
         return proximal_length_distribution_;
     }
 
+    inline PendantLengthDistribution& pendant_length_distribution()
+    {
+        return pendant_length_distribution_;
+    }
+
     // -----------------------------------------------------
     //     Data Members
     // -----------------------------------------------------
@@ -163,6 +196,7 @@ public:
 protected:
     EdgeDistribution           edge_distribution_;
     ProximalLengthDistribution proximal_length_distribution_;
+    PendantLengthDistribution  pendant_length_distribution_;
 };
 
 // =================================================================================================

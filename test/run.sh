@@ -4,7 +4,7 @@
 #    Settings
 ####################################################################################################
 
-# Name of the test executable
+# Name of the test executable:
 test_exe="./bin/test_suite"
 
 # Mode to use when no other provided:
@@ -139,6 +139,7 @@ function run_memory() {
     if [ -z "${deflost}" ]; then deflost=0; fi
     if [ -z "${indlost}" ]; then indlost=0; fi
     if [ -z "${reachable}" ]; then reachable=0; fi
+    if [ -z "${errors}" ]; then errors=0; else errors=1; fi
 
     # Return 0 only if nothing bad happend.
     return $((deflost+indlost+reachable+errors))
@@ -214,7 +215,7 @@ echo -en ".\n\n"
 function print_table_header() {
     printf "   Test   "
     printf "   \e[90m%-8s\e[0m"  "Start"
-    printf "   \e[34m%-40s\e[0m" "Test Case"
+    printf "   \e[34m%-60s\e[0m" "Test Case"
     if [[ ${mode} == "speed" ]] ; then
         printf "   \e[32m   Min      \e[0m"
         printf "   \e[32m   Max      \e[0m"
@@ -226,10 +227,10 @@ function print_table_header() {
 }
 function print_table_line() {
     if [[ ${mode} == "speed" ]] ; then
-        echo -en "----------- ---------- ------------------------------------------"
+        echo -en "----------- ---------- --------------------------------------------------------------"
         echo -en " -------------- -------------- -------------- ----------\n"
     else
-        echo -en "----------- ---------- ------------------------------------------"
+        echo -en "----------- ---------- --------------------------------------------------------------"
         echo -en " -------------- ----------\n"
     fi
 }
@@ -258,7 +259,7 @@ for line in `${test_exe} --gtest_list_tests --gtest_filter="${filter}"` ; do
     # Print general information about the current test.
     printf "   %3u/%-3u"         ${i_test} ${num_tests}
     printf "   \e[90m%s\e[0m"    $(date +"%H:%M:%S")
-    printf "   \e[34m%-40s\e[0m" ${test_id}
+    printf "   \e[34m%-60s\e[0m" ${test_id}
 
     # Run the appropriate mode.
     run_s_time=`date +%s%N`

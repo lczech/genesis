@@ -7,7 +7,7 @@
  * symbols of genesis are available after including this header.
  *
  * You do not need to edit this file manually. Simply run the script
- * make_genesis_header.sh in tools/ to update this file.
+ * make_genesis_header.sh in ./tools to update this file.
  *
  * @file
  */
@@ -20,6 +20,7 @@
 
 #include "placement/jplace_processor.hpp"
 #include "placement/placement_map.hpp"
+#include "placement/placement_map_set.hpp"
 #include "placement/placement_tree.hpp"
 #include "placement/pquery.hpp"
 #include "placement/simulator.hpp"
@@ -29,6 +30,7 @@
 
 #include "tree/bipartition.hpp"
 #include "tree/bipartition_set.hpp"
+#include "tree/default_tree.hpp"
 #include "tree/newick_broker.hpp"
 #include "tree/newick_lexer.hpp"
 #include "tree/newick_processor.hpp"
@@ -38,7 +40,9 @@
 #include "tree/tree_iterator.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
+#include "tree/tree_node_iterator.hpp"
 #include "tree/tree_set.hpp"
+#include "tree/tree_view.hpp"
 
 #include "utils/bitvector.hpp"
 #include "utils/json_document.hpp"

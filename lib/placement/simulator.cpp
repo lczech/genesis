@@ -26,6 +26,7 @@ void PlacementSimulatorTwostep::generate (size_t n)
     // Prepare distributions.
     edge_distribution_.prepare();
     proximal_length_distribution_.prepare();
+    pendant_length_distribution_.prepare();
 
     for (size_t i = 0; i < n; ++i) {
         // Generate one Pquery.
@@ -39,6 +40,7 @@ void PlacementSimulatorTwostep::generate (size_t n)
         // Add a placement at the edge.
         PqueryPlacement* place = pqry->add_placement(edge);
         place->proximal_length = proximal_length_distribution_.generate(edge);
+        place->pendant_length  = pendant_length_distribution_.generate(edge);
     }
 }
 
@@ -177,11 +179,36 @@ void PlacementSimulatorTwostep::ProximalLengthDistribution::prepare()
 /**
  * @brief Returns a randomly chosen position on an edge.
  */
-double PlacementSimulatorTwostep::ProximalLengthDistribution::generate(typename PlacementTree::EdgeType* edge)
-{
+double PlacementSimulatorTwostep::ProximalLengthDistribution::generate(
+    typename PlacementTree::EdgeType* edge
+) {
     // We do a multiplication with the branch length here, because this allows for a single
     // distribution instance instead of one per different length.
     return distrib_(Options::get().random_engine()) * edge->branch_length;
+}
+
+// =================================================================================================
+//     Placement Simulator Two Step :: Pendant Length Distribution
+// =================================================================================================
+
+/**
+ * @brief Prepares the distribution for usage.
+ */
+void PlacementSimulatorTwostep::PendantLengthDistribution::prepare()
+{
+    distrib_ = std::uniform_real_distribution<double>(min, max);
+}
+
+/**
+ * @brief Returns a randomly chosen position on an edge.
+ */
+double PlacementSimulatorTwostep::PendantLengthDistribution::generate(
+    typename PlacementTree::EdgeType* edge
+) {
+    // We don't use the edge in the default distribution.
+    (void) edge;
+
+    return distrib_(Options::get().random_engine());
 }
 
 } // namespace genesis
