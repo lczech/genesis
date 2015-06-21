@@ -1,5 +1,5 @@
 /**
- * @brief Testing Tree class.
+ * @brief Testing JplaceProcessor class.
  *
  * @file
  * @ingroup test
