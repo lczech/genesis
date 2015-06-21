@@ -34,6 +34,7 @@ bool        file_exists (const std::string& filename);
 std::string file_read   (const std::string& filename);
 bool        file_write  (const std::string& filename, const std::string& content);
 
+bool        dir_exists     (const std::string& dir);
 bool        dir_list_files (const std::string& dir, std::vector<std::string>& list);
 
 std::unordered_map<std::string, std::string> file_info (std::string filename);

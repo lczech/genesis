@@ -11,7 +11,7 @@ if(NOT GTEST_FOUND)
 endif()
 
 message (STATUS "Found Gtest")
-message (STATUS "${ColorBlue}Building tests.${ColorEnd}")
+message (STATUS "${ColorBlue}Building tests${ColorEnd}")
 
 # ------------------------------------------------------------------------------
 #   Build Options
@@ -30,6 +30,7 @@ file (GLOB genesis_test_sources
 
 include_directories (${PROJECT_SOURCE_DIR}/lib)
 include_directories (${PROJECT_SOURCE_DIR})
+include_directories (${PROJECT_SOURCE_DIR}/test/src)
 
 # ------------------------------------------------------------------------------
 #   Build Tests
