@@ -35,6 +35,7 @@ class PlacementMapSet;
  *     PLoS ONE 7(2): e31009. doi:10.1371/journal.pone.0031009
  *     http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009
  *
+ * See PlacementMap for the data structure used to store the Pqueries.
  */
 class JplaceProcessor
 {

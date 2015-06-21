@@ -12,6 +12,8 @@
 #include <fstream>
 #include <streambuf>
 #include <string>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "utils/logging.hpp"
 
@@ -69,6 +71,26 @@ bool file_write (const std::string& fn, const std::string& content)
     }
     outfile << content;
     return true;
+}
+
+/**
+ * @brief Return true iff the directory exists.
+ */
+bool dir_exists (const std::string& dir)
+{
+    struct stat info;
+    if (stat (dir.c_str(), &info) != 0) {
+        return false;
+    }
+    return info.st_mode & S_IFDIR;
+
+    // DIR* dp = opendir(dir);
+    // if (dp) {
+    //     closedir(dir);
+    //     return dp;
+    // } else {
+    //     return false;
+    // }
 }
 
 /**

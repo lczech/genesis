@@ -12,10 +12,10 @@
 #include "lib/tree/newick_processor.hpp"
 #include "lib/tree/tree.hpp"
 
-TEST(tree_test, newick_processor)
-{
-    using namespace genesis;
+using namespace genesis;
 
+TEST(TreeTest, Nope)
+{
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
     DefaultTree tree;

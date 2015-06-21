@@ -2,9 +2,10 @@
 #   File lists
 # --------------------------------
 
-DEVTMP := dev/*.aux dev/*.glo dev/*.idx dev/*.log dev/*.toc dev/*.ist dev/*.acn dev/*.acr \
-          dev/*.alg dev/*.bbl dev/*.blg dev/*.dvi dev/*.glg dev/*.gls dev/*.ilg dev/*.ind \
-          dev/*.lof dev/*.lot dev/*.maf dev/*.mtc dev/*.mtc1 dev/*.out
+DEVTMP := dev/*.aux dev/*.glo dev/*.idx dev/*.log dev/*.toc dev/*.ist \
+          dev/*.acn dev/*.acr dev/*.alg dev/*.bbl dev/*.blg dev/*.dvi \
+          dev/*.glg dev/*.gls dev/*.ilg dev/*.ind dev/*.lof dev/*.lot \
+          dev/*.maf dev/*.mtc dev/*.mtc1 dev/*.out
 
 # --------------------------------
 #   Make rules
