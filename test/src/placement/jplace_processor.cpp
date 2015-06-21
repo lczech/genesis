@@ -24,6 +24,7 @@ TEST(JplaceProcessorTest, FromFile)
     std::string infile = environment->data_dir + "test_a.jplace";
 
     PlacementMap map;
-    ASSERT_EQ (true, JplaceProcessor::from_file(infile, map));
-	EXPECT_EQ (5, map.placement_count());
+    EXPECT_TRUE (JplaceProcessor::from_file(infile, map));
+	EXPECT_EQ   (5, map.placement_count());
+    EXPECT_TRUE (map.validate());
 }

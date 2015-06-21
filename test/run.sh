@@ -4,7 +4,7 @@
 #    Settings
 ####################################################################################################
 
-# Name of the test executable
+# Name of the test executable:
 test_exe="./bin/test_suite"
 
 # Mode to use when no other provided:
@@ -139,6 +139,7 @@ function run_memory() {
     if [ -z "${deflost}" ]; then deflost=0; fi
     if [ -z "${indlost}" ]; then indlost=0; fi
     if [ -z "${reachable}" ]; then reachable=0; fi
+    if [ -z "${errors}" ]; then errors=0; else errors=1; fi
 
     # Return 0 only if nothing bad happend.
     return $((deflost+indlost+reachable+errors))
