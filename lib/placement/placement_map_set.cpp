@@ -132,12 +132,14 @@ bool PlacementMapSet::all_identical_trees()
  */
 std::string PlacementMapSet::dump(bool full)
 {
+    size_t i = 0;
     std::string res = "";
     for (auto& cm : maps_) {
-        res += cm.name + "\n";
+        res += std::to_string(i) + ": " + cm.name + "\n";
         if (full) {
             res += cm.map->dump() + "\n";
         }
+        ++i;
     }
     return res;
 }

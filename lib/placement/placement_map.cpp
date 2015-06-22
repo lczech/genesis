@@ -534,6 +534,10 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
     return hist;
 }
 
+// =================================================================================================
+//     Distances
+// =================================================================================================
+
 /**
  * @brief Calculates the Earth Movers Distance to another sets of placements on a fixed reference
  * tree.
@@ -735,9 +739,55 @@ double PlacementMap::earth_movers_distance(
 }
 
 /**
+ * @brief Calculate the pairwise distance between all placements of the two PlacementMaps.
+ *
+ * @param  other               The second PlacementMap to which the distances shall be calculated to.
+ * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
+ *
+ * @return                         Distance value.
+ */
+double PlacementMap::pairwise_distance (
+    const PlacementMap& other, const bool with_pendant_length
+) const {
+    return PlacementMap::pairwise_distance (*this, other, with_pendant_length);
+}
+
+/**
+ * @brief Calculate the pairwise distance between all placements of the two PlacementMaps.
+ *
+ * @param  left                The first PlacementMap to which the distances shall be calculated to.
+ * @param  right               The second PlacementMap to which the distances shall be calculated to.
+ * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
+ *
+ * @return                         Distance value.
+ */
+double PlacementMap::pairwise_distance (
+    const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length
+) {
+    // TODO outsource this comparator (and other occurences, in merge and in placement mapt set
+    // and maybe more) to the tree class!
+    auto comparator = [] (
+        PlacementTree::ConstIteratorPreorder& it_l,
+        PlacementTree::ConstIteratorPreorder& it_r
+    ) {
+        return it_l.node()->name                 == it_r.node()->name               &&
+               it_l.edge()->edge_num             == it_r.edge()->edge_num           &&
+               it_l.edge()->primary_node_index   == it_r.edge()->primary_node_index &&
+               it_l.edge()->secondary_node_index == it_r.edge()->secondary_node_index;
+    };
+
+    if (!PlacementTree::equal(left.tree(), right.tree(), comparator)) {
+        LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
+        return -1.0;
+    }
+
+    return 0.0;
+}
+
+/**
  * @brief Calculate the Center of Gravity of the placements on a tree.
  */
-void PlacementMap::center_of_gravity() const
+void PlacementMap::center_of_gravity (const bool with_pendant_length) const
 {
     // store a balance of mass per link, so that each element contains the mass that lies
     // in the direction of this link
