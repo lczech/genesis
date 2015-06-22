@@ -13,6 +13,7 @@
 #include <iomanip>
 #include <map>
 #include <sstream>
+#include <stdio.h>
 #include <thread>
 #include <unordered_map>
 
@@ -1057,30 +1058,73 @@ double PlacementMap::variance_partial (
  */
 std::string PlacementMap::dump() const
 {
+    auto print_cell = [] (const std::string& value, size_t width = 0, char justify = 'r') {
+        using namespace std;
+        stringstream ss;
+        ss << fixed << (justify == 'l' ? left : right);
+        ss.fill(' ');
+        ss.width(width);
+        // ss.precision(decDigits); // set # places after decimal
+        ss << value;
+        return ss.str() + " ";
+    };
+
     std::ostringstream out;
+    size_t num_len = static_cast<size_t>(ceil(log10(placement_count())));
+    out << print_cell("#", num_len);
+    out << print_cell("name", 60, 'l');
+    out << print_cell("edge_num", 8);
+    out << print_cell("likelihood", 10);
+    out << print_cell("like_weight_ratio", 17);
+    out << print_cell("proximal_length", 15);
+    out << print_cell("pendant_length", 14);
+    out << std::endl;
+
+    size_t i = 0;
     for (const auto& pqry : pqueries_) {
-        for (const auto& n : pqry->names) {
-            out << "Placement: \"" << n->name << "\"";
-            if (n->multiplicity != 0.0) {
-                out << " (" << n->multiplicity << ")";
-            }
-            out << "\n";
+        std::string name = pqry->names.size() > 0 ? pqry->names[0]->name : "";
+        if (pqry->names.size() > 1) {
+            name += " (+" + std::to_string(pqry->names.size() - 1) + ")";
         }
+
         for (const auto& p : pqry->placements) {
-            out << "at Edge num: " << p->edge_num << " (edge index " << p->edge->index_ << "). ";
-            if (p->likelihood != 0.0 || p->like_weight_ratio != 0.0) {
-                out << "\tLikelihood: " << p->likelihood;
-                out << ", Ratio: " << p->like_weight_ratio << " ";
-            }
-            if (p->parsimony != 0.0) {
-                out << "\tParsimony: " << p->parsimony << " ";
-            }
-            out << "\tProximal Length: " << p->proximal_length;
-            out << ", Pendant Length: " << p->pendant_length << "\n";
+            out << print_cell(std::to_string(i), num_len);
+            out << print_cell(name, 60, 'l');
+            out << print_cell(std::to_string(p->edge_num), 8);
+            out << print_cell(std::to_string(p->likelihood), 10);
+            out << print_cell(std::to_string(p->like_weight_ratio), 17);
+            out << print_cell(std::to_string(p->proximal_length), 15);
+            out << print_cell(std::to_string(p->pendant_length), 14);
         }
-        out << "\n";
+
+        out << std::endl;
+        ++i;
     }
     return out.str();
+
+    // for (const auto& pqry : pqueries_) {
+    //     for (const auto& n : pqry->names) {
+    //         out << "Placement: \"" << n->name << "\"";
+    //         if (n->multiplicity != 0.0) {
+    //             out << " (" << n->multiplicity << ")";
+    //         }
+    //         out << "\n";
+    //     }
+    //     for (const auto& p : pqry->placements) {
+    //         out << "at Edge num: " << p->edge_num << " (edge index " << p->edge->index_ << "). ";
+    //         if (p->likelihood != 0.0 || p->like_weight_ratio != 0.0) {
+    //             out << "\tLikelihood: " << p->likelihood;
+    //             out << ", Ratio: " << p->like_weight_ratio << " ";
+    //         }
+    //         if (p->parsimony != 0.0) {
+    //             out << "\tParsimony: " << p->parsimony << " ";
+    //         }
+    //         out << "\tProximal Length: " << p->proximal_length;
+    //         out << ", Pendant Length: " << p->pendant_length << "\n";
+    //     }
+    //     out << "\n";
+    // }
+    // return out.str();
 }
 
 /**
