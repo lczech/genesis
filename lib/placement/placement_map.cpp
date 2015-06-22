@@ -239,6 +239,45 @@ PlacementMap::EdgeNumMapType PlacementMap::edge_num_map() const
 }
 
 /**
+ * @brief Returns a plain representation of all pqueries of this map.
+ *
+ * This method produces a whole copy of all pqueries and their placements (though, not their names)
+ * in a plain POD format. This format is meant for speeding up computations that need access to
+ * the data a lot - which would require several pointer indirections in the normal representation
+ * of the data.
+ *
+ * This comes of course at the cost of reduced flexibility, as all indices are fixed in the
+ * plain data structre: changing a value here will not have any effect on the original data or
+ * even on the values of the pqueries. Thus, most probably this will lead to corruption. Therefore,
+ * this data structure is meant for reading only.
+ */
+std::vector<PqueryPlain> PlacementMap::plain_queries() const
+{
+    auto pqueries = std::vector<PqueryPlain>(pqueries_.size());
+    for (size_t i = 0; i < pqueries_.size(); ++i) {
+        pqueries[i].index = i;
+
+        const auto& opqry = pqueries_[i];
+        pqueries[i].placements = std::vector<PqueryPlacementPlain>(opqry->placements.size());
+
+        for (size_t j = 0; j < opqry->placements.size(); ++j) {
+            const auto& oplace = opqry->placements[j];
+            auto& place = pqueries[i].placements[j];
+
+            place.edge_index           = oplace->edge->index();
+            place.primary_node_index   = oplace->edge->primary_node()->index();
+            place.secondary_node_index = oplace->edge->secondary_node()->index();
+
+            place.branch_length        = oplace->edge->branch_length;
+            place.pendant_length       = oplace->pendant_length;
+            place.proximal_length      = oplace->proximal_length;
+            place.like_weight_ratio    = oplace->like_weight_ratio;
+        }
+    }
+    return pqueries;
+}
+
+/**
  * @brief Recalculates the `like_weight_ratio` of the placements of each Pquery so that their sum
  * is 1.0, while maintaining their ratio to each other.
  */
@@ -539,6 +578,103 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
 // =================================================================================================
 
 /**
+ * @brief Calculates the normalized distance between two plain pqueries. It is mainly a helper
+ * method for distance calculations (e.g., pairwise distance, variance).
+ *
+ * For each placement in the two pqueries, a distance is calculated, and their normalized sum is
+ * returned. Normalization is done using the number of total placements in both pqueries.
+ *
+ * The distance between two placements is calculated as the shortest path between them. This
+ * includes the their position on the branches, and - if specified - the pendant_length of both.
+ * There are three cases that might occur:
+ *
+ *   1. **Both placements are on the same branch.**
+ *      In this case, their distance is caluclated as their difference in proximal_lengths (plus
+ *      if specified the sum of their pendant_lengths).
+ *
+ *   2. **The path between the placements includes the root.**
+ *      The distance of a placement from its neighbouring nodes is usually given in form of the
+ *      proximal_length, which is the distance of the placement to the node (at the end of its
+ *      branch) that lies in direction of the root. Thus, there is an implicit notion of a root,
+ *      that we need to consider. If the path between two placements contains the root, we can
+ *      directly calculate their distance as the distance between the two promixal nodes plus
+ *      proximal_lengths (and possibly pendant_lengths) of both placements. We call this the
+ *      promixal-promixal case.
+ *
+ *   3. **The root is not part of the path between the placements.**
+ *      This case means that one of the two placements lies on the path between the other placement
+ *      and the root -- thus, the path between the placements does not contain the root.
+ *      The distance between the placements cannot be calculated using the proximal_lengths
+ *      directly, but we need to get the distal_length (away from the root) of the inner placement
+ *      first. This is simply the difference between branch_length and proximal_length of that
+ *      placement. Of course, this case comes in two flavours, because both placements can be the
+ *      inner or outer one. They are called proximal-distal case and distal-proximal case,
+ *      respectively.
+ *
+ * The first case is easy to detect by comparing the edge nums. However, distinguishing between the
+ * latter two cases is expensive, as it involves finding the path to the root for both placements.
+ * To speed this up, we instead use a distance matrix that is calculated in the beginning of any
+ * algorithm using this method and contains the pairwise distances between all nodes of the tree.
+ * Using this, we do not need to find paths between placements, but simply go to the nodes at the
+ * end of the branches of the placements and do a lookup for those nodes.
+ *
+ * With this technique, we can calculate the distances between the placements for all
+ * three cases (promixal-promixal, proximal-distal and distal-proximal) cheaply. The wanted distance
+ * is then simply the minimum of those three distances. This is correct, because the two wrong cases
+ * will always produce an overestimation of the distance.
+ *
+ * This distance is normalized using the `like_weight_ratio` of both placements, before
+ * summing it up to calculate the total distance between the pqueries.
+ */
+double PlacementMap::pquery_distance (
+    const PqueryPlain&     pqry_a,
+    const PqueryPlain&     pqry_b,
+    const Matrix<double>&  node_distances,
+    const bool             with_pendant_length
+) const {
+    double sum = 0.0;
+    double pp, pd, dp, min;
+
+    for (const PqueryPlacementPlain& place_a : pqry_a.placements) {
+        for (const PqueryPlacementPlain& place_b : pqry_b.placements) {
+            // same branch case
+            if (place_a.edge_index == place_b.edge_index) {
+                sum += std::abs(place_a.proximal_length - place_b.proximal_length);
+                if (with_pendant_length) {
+                    sum += place_a.pendant_length + place_b.pendant_length;
+                }
+                continue;
+            }
+
+            // proximal-proximal case
+            pp = place_a.proximal_length
+               + node_distances(place_a.primary_node_index, place_b.primary_node_index)
+               + place_b.proximal_length;
+
+            // proximal-distal case
+            pd = place_a.branch_length - place_a.proximal_length
+               + node_distances(place_a.secondary_node_index, place_b.primary_node_index)
+               + place_b.proximal_length;
+
+            // distal-proximal case
+            dp = place_a.proximal_length
+               + node_distances(place_a.primary_node_index, place_b.secondary_node_index)
+               + place_b.branch_length - place_b.proximal_length;
+
+            // find min of the three cases and normalize it to the weight ratios.
+            min  = std::min(pp, std::min(pd, dp));
+            if (with_pendant_length) {
+                min += place_a.pendant_length + place_b.pendant_length;
+            }
+            min *= place_a.like_weight_ratio * place_b.like_weight_ratio;
+            sum += min;
+        }
+    }
+
+    return (sum / pqry_a.placements.size()) / pqry_b.placements.size();
+}
+
+/**
  * @brief Calculates the Earth Movers Distance to another sets of placements on a fixed reference
  * tree.
  */
@@ -739,52 +875,6 @@ double PlacementMap::earth_movers_distance(
 }
 
 /**
- * @brief Calculate the pairwise distance between all placements of the two PlacementMaps.
- *
- * @param  other               The second PlacementMap to which the distances shall be calculated to.
- * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
- *
- * @return                         Distance value.
- */
-double PlacementMap::pairwise_distance (
-    const PlacementMap& other, const bool with_pendant_length
-) const {
-    return PlacementMap::pairwise_distance (*this, other, with_pendant_length);
-}
-
-/**
- * @brief Calculate the pairwise distance between all placements of the two PlacementMaps.
- *
- * @param  left                The first PlacementMap to which the distances shall be calculated to.
- * @param  right               The second PlacementMap to which the distances shall be calculated to.
- * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
- *
- * @return                         Distance value.
- */
-double PlacementMap::pairwise_distance (
-    const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length
-) {
-    // TODO outsource this comparator (and other occurences, in merge and in placement mapt set
-    // and maybe more) to the tree class!
-    auto comparator = [] (
-        PlacementTree::ConstIteratorPreorder& it_l,
-        PlacementTree::ConstIteratorPreorder& it_r
-    ) {
-        return it_l.node()->name                 == it_r.node()->name               &&
-               it_l.edge()->edge_num             == it_r.edge()->edge_num           &&
-               it_l.edge()->primary_node_index   == it_r.edge()->primary_node_index &&
-               it_l.edge()->secondary_node_index == it_r.edge()->secondary_node_index;
-    };
-
-    if (!PlacementTree::equal(left.tree(), right.tree(), comparator)) {
-        LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
-        return -1.0;
-    }
-
-    return 0.0;
-}
-
-/**
  * @brief Calculate the Center of Gravity of the placements on a tree.
  */
 void PlacementMap::center_of_gravity (const bool with_pendant_length) const
@@ -868,6 +958,52 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
     }
 }
 
+/**
+ * @brief Calculate the pairwise distance between all placements of the two PlacementMaps.
+ *
+ * @param  other               The second PlacementMap to which the distances shall be calculated to.
+ * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
+ *
+ * @return                         Distance value.
+ */
+double PlacementMap::pairwise_distance (
+    const PlacementMap& other, const bool with_pendant_length
+) const {
+    return PlacementMap::pairwise_distance (*this, other, with_pendant_length);
+}
+
+/**
+ * @brief Calculate the pairwise distance between all placements of the two PlacementMaps.
+ *
+ * @param  left                The first PlacementMap to which the distances shall be calculated to.
+ * @param  right               The second PlacementMap to which the distances shall be calculated to.
+ * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
+ *
+ * @return                         Distance value.
+ */
+double PlacementMap::pairwise_distance (
+    const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length
+) {
+    // TODO outsource this comparator (and other occurences, in merge and in placement mapt set
+    // and maybe more) to the tree class!
+    auto comparator = [] (
+        PlacementTree::ConstIteratorPreorder& it_l,
+        PlacementTree::ConstIteratorPreorder& it_r
+    ) {
+        return it_l.node()->name                      == it_r.node()->name                      &&
+               it_l.edge()->edge_num                  == it_r.edge()->edge_num                  &&
+               it_l.edge()->primary_node()->index()   == it_r.edge()->primary_node()->index()   &&
+               it_l.edge()->secondary_node()->index() == it_r.edge()->secondary_node()->index();
+    };
+
+    if (!PlacementTree::equal(left.tree(), right.tree(), comparator)) {
+        LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
+        return -1.0;
+    }
+
+    return 0.0;
+}
+
 // =================================================================================================
 //     Variance
 // =================================================================================================
@@ -875,55 +1011,13 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
 /**
  * @brief Calculate the variance of the placements on a tree.
  *
- * The variance is a measure of how far a set of items is spread out
+ * The variance is a measure of how far a set of items is spread out in its space
  * (http://en.wikipedia.org/wiki/variance). In many cases, it can be measured using the mean of the
  * items. However, when considering placements on a tree, this does not truly measure how far they
  * are from each other. Thus, this algorithm applies a different method of calculating the variance
  * in terms of squared deviations of all items from each other:
  * \f$ Var(X) = \frac{1}{n^2} \sum_{i=1}^n \sum_{j=1}^n \frac{1}{2}(x_i - x_j)^2 \f$,
  * where \f$ (x_i - x_j) \f$ denotes the distance between two placements.
- *
- * This distance is calculated as the shortest path between the two placements. This includes the
- * pendant_length of both, as well as their position on the branches. There are three cases that
- * might occur:
- *
- *   1. Both placements are on the same branch.
- *      In this case, their distance is caluclated as the sum of their pendant_lengths and their
- *      difference in proximal_lengths.
- *
- *   2. The path between the placements includes the root.
- *      The distance of a placement from its neighbouring nodes is mostly given in form of the
- *      proximal_length, which is the distance of the placement to the node (at the end of its
- *      branch) that lies in direction of the root. Thus, there is an implicit notion of a root,
- *      that we need to consider. If the path between two placements contains the root, we can
- *      directly calculate their distance as the distance between the two promixal nodes plus
- *      proximal_lengths and pendant_lengths of both placements. We call this the promixal-promixal
- *      case.
- *
- *   3. The root is not part of the path between the placements.
- *      This case means that one of the two placements lies on the path between the other placement
- *      and the root -- thus, the path between the placements does not contain the root.
- *      The distance between the placements cannot be calculated using the proximal_lengths
- *      directly, but we need to get the distal_length (away from the root) of the inner placement
- *      first. This is simply the difference between branch_length and proximal_length of that
- *      placement. Of course, this case comes in two flavours, because both placements can be the
- *      inner or outer one. They are called proximal-distal case and distal-proximal case,
- *      respectively.
- *
- * The first case is easy to detect by comparing the edges. However, distinguishing between the
- * latter two cases is expensive, as it involves finding the path to the root for both placements.
- * To speed this up, we instead use a distance matrix that is calculated in the beginning of the
- * algorithm and contains the pairwise distances between all nodes of the tree. Using this, we do
- * not need to find paths between placements, but simply go to the nodes at the end of the branches
- * of the placements and do a lookup for those nodes.
- *
- * With this technique, we can calculate the distances between the placements for all
- * three cases (promixal-promixal, proximal-distal and distal-proximal) cheaply. The wanted distance
- * is then simply the minimum of those three distances. This is correct, because the two wrong cases
- * will always produce an overestimation of the distance.
- *
- * This distance is normalized using the `like_weight_ratio` of both placements, before
- * summing it up to calculate the variance.
  *
  * According to the formula above, each pair of placements is evaluated twice, and subsequently
  * their distance need to be halfed when being added to the sum of distanaces. Instead of that,
@@ -936,35 +1030,17 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
  * placements. In case that for each pquery the ratios of all its placements sum up to 1.0, this
  * number will be equal to the number of pqueries (and thus be equal to the usual case of using the
  * number of elements). However, as this is not required (placements with small ratio can be
- * dropped, so that their sum per pquery is less than 1.0), we need to calculate this number
- * manually here.
+ * dropped, so that their sum per pquery is less than 1.0), we cannout simply use the count.
  */
-double PlacementMap::variance() const
+double PlacementMap::variance(const bool with_pendant_length) const
 {
-    // init
+    // Init.
     double variance = 0.0;
-    double count    = 0.0;
 
-    // create a VarianceData object for every placement and copy all interesting data into it.
+    // create PqueryPlain objects for every placement and copy all interesting data into it.
     // this way, we won't have to do all the pointer dereferencing during the actual calculations,
     // and furthermore, the data is close in memory. this gives a tremendous speedup!
-    size_t index = 0;
-    std::vector<VarianceData> vd_placements;
-    vd_placements.reserve(placement_count());
-    for (const auto& pqry : this->pqueries_) {
-        for (const auto& place : pqry->placements) {
-            VarianceData vdp;
-            vdp.index                = index++;
-            vdp.edge_index           = place->edge->index();
-            vdp.primary_node_index   = place->edge->primary_node()->index();
-            vdp.secondary_node_index = place->edge->secondary_node()->index();
-            vdp.pendant_length       = place->pendant_length;
-            vdp.proximal_length      = place->proximal_length;
-            vdp.branch_length        = place->edge->branch_length;
-            vdp.like_weight_ratio    = place->like_weight_ratio;
-            vd_placements.push_back(vdp);
-        }
-    }
+    std::vector<PqueryPlain> vd_pqueries = plain_queries();
 
     // also, calculate a matrix containing the pairwise distance between all nodes. this way, we
     // do not need to search a path between placements every time.
@@ -975,14 +1051,14 @@ double PlacementMap::variance() const
     // prepare storage for thread data.
     int num_threads = Options::get().number_of_threads();
     std::vector<double>       partials(num_threads, 0.0);
-    std::vector<double>       counts  (num_threads, 0.0);
     std::vector<std::thread*> threads (num_threads, nullptr);
 
     // start all threads.
     for (int i = 0; i < num_threads; ++i) {
         threads[i] = new std::thread (std::bind (
-            &PlacementMap::VarianceThread, this,
-            i, num_threads, &vd_placements, node_distances, &partials[i], &counts[i]
+            &PlacementMap::variance_thread, this,
+            i, num_threads, &vd_pqueries, node_distances, with_pendant_length,
+            &partials[i]
         ));
     }
 
@@ -990,113 +1066,92 @@ double PlacementMap::variance() const
     for (int i = 0; i < num_threads; ++i) {
         threads[i]->join();
         variance += partials[i];
-        count    += counts[i];
     }
 
 #else
 
     // do a pairwise calculation on all placements.
-    int progress    = 0;
-    for (const VarianceData& place_a : vd_placements) {
-        LOG_PROG(++progress, vd_placements.size()) << "of Variance() finished.";
-        variance += variance_partial(place_a, vd_placements, *node_distances);
-        count    += place_a.like_weight_ratio;
+    // int progress    = 0;
+    for (const PqueryPlain& pqry_a : vd_pqueries) {
+        // LOG_PROG(++progress, vd_pqueries.size()) << "of Variance() finished.";
+        variance += variance_partial(pqry_a, vd_pqueries, *node_distances, with_pendant_length);
     }
 
 #endif
 
+    // Calculate normalizing factor. Should be the same value as given by placement_mass(),
+    // however this calculation is probably faster.
+    double mass = 0.0;
+    for (const auto& pqry : vd_pqueries) {
+        for (const auto& place : pqry.placements) {
+            mass += place.like_weight_ratio;
+        }
+    }
+
     // cleanup, then return the normalized value.
     delete node_distances;
-    return ((variance / count) / count);
+    return ((variance / mass) / mass);
 }
 
 /**
  * @brief Internal function that calculates the sum of distances for the variance that is
- * contributed by a subset of the placements. See variance() for more information.
+ * contributed by a subset of the pqueries. See variance() for more information.
  *
  * This function is intended to be called by variance() -- it is not a stand-alone function.
- * It takes an offset and an incrementation value and does an interleaved loop over the placements,
+ * It takes an offset and an incrementation value and does an interleaved loop over the pqueries,
  * similar to the sequential version for calculating the variance.
  */
 void PlacementMap::variance_thread (
-    const int                        offset,
-    const int                        incr,
-    const std::vector<VarianceData>* pqrys,
-    const Matrix<double>*            node_distances,
-    double*                          partial,
-    double*                          count
+    const int                       offset,
+    const int                       incr,
+    const std::vector<PqueryPlain>* pqrys,
+    const Matrix<double>*           node_distances,
+    const bool                      with_pendant_length,
+    double*                         partial
 ) const {
-    // use internal variables to avoid false sharing.
-    assert(*partial == 0.0 && *count == 0.0);
+    // Use internal variables to avoid false sharing.
+    assert(*partial == 0.0);
     double tmp_partial = 0.0;
-    double tmp_count   = 0.0;
 
-    // iterate over the pqueries, starting at offset and interleaved with incr for each thread.
+    // Iterate over the pqueries, starting at offset and interleaved with incr for each thread.
     for (size_t i = offset; i < pqrys->size(); i += incr) {
-        LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
+        // LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
 
-        const VarianceData& place_a = (*pqrys)[i];
-        tmp_partial += variance_partial(place_a, *pqrys, *node_distances);
-        tmp_count   += place_a.like_weight_ratio;
+        const PqueryPlain& pqry_a = (*pqrys)[i];
+        tmp_partial += variance_partial(pqry_a, *pqrys, *node_distances, with_pendant_length);
     }
 
-    // return the results.
+    // Return the results.
     *partial = tmp_partial;
-    *count   = tmp_count;
 }
 
 /**
- * @brief Internal function that calculates the sum of distances contributed by one placement for
+ * @brief Internal function that calculates the sum of distances contributed by one pquery for
  * the variance. See variance() for more information.
  *
  * This function is intended to be called by variance() or variance_thread() -- it is not a
  * stand-alone function.
  */
 double PlacementMap::variance_partial (
-    const VarianceData&              place_a,
-    const std::vector<VarianceData>& pqrys_b,
-    const Matrix<double>&            node_distances
+    const PqueryPlain&              pqry_a,
+    const std::vector<PqueryPlain>& pqrys_b,
+    const Matrix<double>&           node_distances,
+    const bool                      with_pendant_length
 ) const {
-    double sum = 0.0;
-    double dd, pd, dp, min;
+    double partial = 0.0;
 
-    for (const VarianceData& place_b : pqrys_b) {
-        // check whether it is same placement (a=b, nothing to do, as their distance is zero),
-        // or a pair of placements that was already calculated (skip it also).
-        if (place_a.index >= place_b.index) {
+    for (const PqueryPlain& pqry_b : pqrys_b) {
+        // Check whether it is same pquery (a=b, nothing to do, as their distance is zero),
+        // or a pair of pqueries that was already calculated (skip it also).
+        if (pqry_a.index >= pqry_b.index) {
             continue;
         }
 
-        // same branch case
-        if (place_a.edge_index == place_b.edge_index) {
-            sum += place_a.pendant_length
-                +  std::abs(place_a.proximal_length - place_b.proximal_length)
-                +  place_b.pendant_length;
-            continue;
-        }
-
-        // proximal-proximal case
-        dd = place_a.pendant_length + place_a.proximal_length
-           + node_distances(place_a.primary_node_index, place_b.primary_node_index)
-           + place_b.proximal_length + place_b.pendant_length;
-
-        // proximal-distal case
-        pd = place_a.pendant_length + place_a.branch_length - place_a.proximal_length
-           + node_distances(place_a.secondary_node_index, place_b.primary_node_index)
-           + place_b.proximal_length + place_b.pendant_length;
-
-        // distal-proximal case
-        dp = place_a.pendant_length + place_a.proximal_length
-           + node_distances(place_a.primary_node_index, place_b.secondary_node_index)
-           + place_b.branch_length - place_b.proximal_length + place_b.pendant_length;
-
-        // find min of the three cases and normalize it to the weight ratios.
-        min  = std::min(dd, std::min(pd, dp));
-        min *= place_a.like_weight_ratio * place_b.like_weight_ratio;
-        sum += min * min;
+        double dist = pquery_distance(pqry_a, pqry_b, node_distances, with_pendant_length);
+        partial += dist * dist;
     }
 
-    return sum;
+    return partial;
 }
 
 // =================================================================================================

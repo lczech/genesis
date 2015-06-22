@@ -87,6 +87,8 @@ public:
     typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
     EdgeNumMapType edge_num_map() const;
 
+    std::vector<PqueryPlain> plain_queries() const;
+
     void normalize_weight_ratios();
     void restrain_to_max_weight_placements();
 
@@ -109,21 +111,22 @@ public:
     //     Distances
     // -------------------------------------------------------------------------
 
+protected:
+    double pquery_distance (
+        const PqueryPlain&     pqry_a,
+        const PqueryPlain&     pqry_b,
+        const Matrix<double>&  node_distances,
+        const bool             with_pendant_length = true
+    ) const;
+
+public:
+
     // Earth Movers Distance
 
     double earth_movers_distance (
         const PlacementMap& other, const bool with_pendant_length = true
     ) const;
     static double earth_movers_distance (
-        const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length = true
-    );
-
-    // Pairwise Distance
-
-    double pairwise_distance (
-        const PlacementMap& other, const bool with_pendant_length = true
-    ) const;
-    static double pairwise_distance (
         const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length = true
     );
 
@@ -140,40 +143,37 @@ public:
         const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length = true
     );
 
+    // Pairwise Distance
+
+    double pairwise_distance (
+        const PlacementMap& other, const bool with_pendant_length = true
+    ) const;
+    static double pairwise_distance (
+        const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length = true
+    );
+
     // -------------------------------------------------------------------------
     //     Variance
     // -------------------------------------------------------------------------
 
 public:
-    double variance() const;
+    double variance(const bool with_pendant_length = true) const;
 
 protected:
-    /** @brief Intermediate POD struct used for speeding up the variance calculations. */
-    typedef struct {
-        size_t index;
-        size_t edge_index;
-        size_t primary_node_index;
-        size_t secondary_node_index;
-
-        double pendant_length;
-        double proximal_length;
-        double branch_length;
-        double like_weight_ratio;
-    } VarianceData;
-
     void variance_thread (
-        const int                        offset,
-        const int                        incr,
-        const std::vector<VarianceData>* pqrys,
-        const Matrix<double>*            node_distances,
-        double*                          partial,
-        double*                          count
+        const int                       offset,
+        const int                       incr,
+        const std::vector<PqueryPlain>* pqrys,
+        const Matrix<double>*           node_distances,
+        const bool                      with_pendant_length,
+        double*                         partial
     ) const;
 
     double variance_partial (
-        const VarianceData&              place_a,
-        const std::vector<VarianceData>& pqrys_b,
-        const Matrix<double>&            node_distances
+        const PqueryPlain&              place_a,
+        const std::vector<PqueryPlain>& pqrys_b,
+        const Matrix<double>&           node_distances,
+        const bool                      with_pendant_length
     ) const;
 
     // -------------------------------------------------------------------------
