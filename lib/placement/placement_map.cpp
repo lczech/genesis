@@ -1050,21 +1050,22 @@ double PlacementMap::variance(const bool with_pendant_length) const
 
     // prepare storage for thread data.
     int num_threads = Options::get().number_of_threads();
-    std::vector<double>       partials(num_threads, 0.0);
-    std::vector<std::thread*> threads (num_threads, nullptr);
+    std::vector<double>      partials(num_threads, 0.0);
+    std::vector<std::thread> threads;
 
     // start all threads.
     for (int i = 0; i < num_threads; ++i) {
-        threads[i] = new std::thread (std::bind (
+        threads.emplace_back(std::bind (
             &PlacementMap::variance_thread, this,
             i, num_threads, &vd_pqueries, node_distances, with_pendant_length,
             &partials[i]
         ));
+        // threads[i] = new std::thread ();
     }
 
     // wait for all threads to finish, collect their results.
     for (int i = 0; i < num_threads; ++i) {
-        threads[i]->join();
+        threads[i].join();
         variance += partials[i];
     }
 
