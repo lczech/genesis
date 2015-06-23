@@ -582,7 +582,7 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
  * method for distance calculations (e.g., pairwise distance, variance).
  *
  * For each placement in the two pqueries, a distance is calculated, and their normalized sum is
- * returned. Normalization is done using the number of total placements in both pqueries.
+ * returned. Normalization is done using the mass of placements in both pqueries.
  *
  * The distance between two placements is calculated as the shortest path between them. This
  * includes the their position on the branches, and - if specified - the pendant_length of both.
@@ -671,7 +671,7 @@ double PlacementMap::pquery_distance (
         }
     }
 
-    return (sum / pqry_a.placements.size()) / pqry_b.placements.size();
+    return sum;
 }
 
 /**
@@ -1142,7 +1142,7 @@ double PlacementMap::variance_partial (
 
     for (const PqueryPlain& pqry_b : pqrys_b) {
         // Check whether it is same pquery (a=b, nothing to do, as their distance is zero),
-        // or a pair of pqueries that was already calculated (skip it also).
+        // or a pair of pqueries that was already calculated (a>b, skip it also).
         if (pqry_a.index >= pqry_b.index) {
             continue;
         }
@@ -1173,6 +1173,8 @@ std::string PlacementMap::dump() const
         ss << value;
         return ss.str() + " ";
     };
+
+    // TODO write a simple class for table output. or find a lib...
 
     std::ostringstream out;
     size_t num_len = static_cast<size_t>(ceil(log10(placement_count())));
@@ -1206,30 +1208,6 @@ std::string PlacementMap::dump() const
         ++i;
     }
     return out.str();
-
-    // for (const auto& pqry : pqueries_) {
-    //     for (const auto& n : pqry->names) {
-    //         out << "Placement: \"" << n->name << "\"";
-    //         if (n->multiplicity != 0.0) {
-    //             out << " (" << n->multiplicity << ")";
-    //         }
-    //         out << "\n";
-    //     }
-    //     for (const auto& p : pqry->placements) {
-    //         out << "at Edge num: " << p->edge_num << " (edge index " << p->edge->index_ << "). ";
-    //         if (p->likelihood != 0.0 || p->like_weight_ratio != 0.0) {
-    //             out << "\tLikelihood: " << p->likelihood;
-    //             out << ", Ratio: " << p->like_weight_ratio << " ";
-    //         }
-    //         if (p->parsimony != 0.0) {
-    //             out << "\tParsimony: " << p->parsimony << " ";
-    //         }
-    //         out << "\tProximal Length: " << p->proximal_length;
-    //         out << ", Pendant Length: " << p->pendant_length << "\n";
-    //     }
-    //     out << "\n";
-    // }
-    // return out.str();
 }
 
 /**

@@ -121,7 +121,8 @@ void BoostPythonExport_PlacementMap()
         )
         .def(
             "variance",
-            ( double ( ::genesis::PlacementMap::* )(  ) const )( &::genesis::PlacementMap::variance ),
+            ( double ( ::genesis::PlacementMap::* )( bool ) const )( &::genesis::PlacementMap::variance ),
+            ( boost::python::arg("with_pendant_length")=(bool)(true)),
             get_docstring("double ::genesis::PlacementMap::variance () const")
         )
 
