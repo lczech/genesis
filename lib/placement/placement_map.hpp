@@ -112,12 +112,12 @@ public:
     // -------------------------------------------------------------------------
 
 protected:
-    double pquery_distance (
+    static double pquery_distance (
         const PqueryPlain&     pqry_a,
         const PqueryPlain&     pqry_b,
         const Matrix<double>&  node_distances,
         const bool             with_pendant_length = true
-    ) const;
+    );
 
 public:
 

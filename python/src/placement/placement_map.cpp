@@ -94,6 +94,12 @@ void BoostPythonExport_PlacementMap()
             get_docstring("void ::genesis::PlacementMap::normalize_weight_ratios ()")
         )
         .def(
+            "pairwise_distance",
+            ( double ( ::genesis::PlacementMap::* )( const PlacementMap &, const bool ) const )( &::genesis::PlacementMap::pairwise_distance ),
+            ( boost::python::arg("other"), boost::python::arg("with_pendant_length")=(const bool)(true) ),
+            get_docstring("double ::genesis::PlacementMap::pairwise_distance (const PlacementMap & other, const bool with_pendant_length=true) const")
+        )
+        .def(
             "placement_count",
             ( size_t ( ::genesis::PlacementMap::* )(  ) const )( &::genesis::PlacementMap::placement_count ),
             get_docstring("size_t ::genesis::PlacementMap::placement_count () const")

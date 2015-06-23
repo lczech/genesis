@@ -631,43 +631,42 @@ double PlacementMap::pquery_distance (
     const PqueryPlain&     pqry_b,
     const Matrix<double>&  node_distances,
     const bool             with_pendant_length
-) const {
+) {
     double sum = 0.0;
-    double pp, pd, dp, min;
+    double pp, pd, dp, dist;
 
     for (const PqueryPlacementPlain& place_a : pqry_a.placements) {
         for (const PqueryPlacementPlain& place_b : pqry_b.placements) {
-            // same branch case
             if (place_a.edge_index == place_b.edge_index) {
-                sum += std::abs(place_a.proximal_length - place_b.proximal_length);
-                if (with_pendant_length) {
-                    sum += place_a.pendant_length + place_b.pendant_length;
-                }
-                continue;
+                // same branch case
+                dist = std::abs(place_a.proximal_length - place_b.proximal_length);
+
+            } else {
+                // proximal-proximal case
+                pp = place_a.proximal_length
+                   + node_distances(place_a.primary_node_index, place_b.primary_node_index)
+                   + place_b.proximal_length;
+
+                // proximal-distal case
+                pd = place_a.branch_length - place_a.proximal_length
+                   + node_distances(place_a.secondary_node_index, place_b.primary_node_index)
+                   + place_b.proximal_length;
+
+                // distal-proximal case
+                dp = place_a.proximal_length
+                   + node_distances(place_a.primary_node_index, place_b.secondary_node_index)
+                   + place_b.branch_length - place_b.proximal_length;
+
+                // find min of the three cases and
+                dist = std::min(pp, std::min(pd, dp));
             }
 
-            // proximal-proximal case
-            pp = place_a.proximal_length
-               + node_distances(place_a.primary_node_index, place_b.primary_node_index)
-               + place_b.proximal_length;
-
-            // proximal-distal case
-            pd = place_a.branch_length - place_a.proximal_length
-               + node_distances(place_a.secondary_node_index, place_b.primary_node_index)
-               + place_b.proximal_length;
-
-            // distal-proximal case
-            dp = place_a.proximal_length
-               + node_distances(place_a.primary_node_index, place_b.secondary_node_index)
-               + place_b.branch_length - place_b.proximal_length;
-
-            // find min of the three cases and normalize it to the weight ratios.
-            min  = std::min(pp, std::min(pd, dp));
+            //  If needed, use pendant length; normalize it to the weight ratios.
             if (with_pendant_length) {
-                min += place_a.pendant_length + place_b.pendant_length;
+                dist += place_a.pendant_length + place_b.pendant_length;
             }
-            min *= place_a.like_weight_ratio * place_b.like_weight_ratio;
-            sum += min;
+            dist *= place_a.like_weight_ratio * place_b.like_weight_ratio;
+            sum  += dist;
         }
     }
 
@@ -969,11 +968,15 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
 double PlacementMap::pairwise_distance (
     const PlacementMap& other, const bool with_pendant_length
 ) const {
-    return PlacementMap::pairwise_distance (*this, other, with_pendant_length);
+    return pairwise_distance (*this, other, with_pendant_length);
 }
 
 /**
- * @brief Calculate the pairwise distance between all placements of the two PlacementMaps.
+ * @brief Calculate the normalized pairwise distance between all placements of the two PlacementMaps.
+ *
+ * This method calculates the distance between two maps as the normalized sum of the distances
+ * between all pairs of pqueries in the map. It is similar to the variance() calculation, which
+ * calculates this sum for the squared distances between all pqueries of one map.
  *
  * @param  left                The first PlacementMap to which the distances shall be calculated to.
  * @param  right               The second PlacementMap to which the distances shall be calculated to.
@@ -982,10 +985,10 @@ double PlacementMap::pairwise_distance (
  * @return                         Distance value.
  */
 double PlacementMap::pairwise_distance (
-    const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length
+    const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length
 ) {
     // TODO outsource this comparator (and other occurences, in merge and in placement mapt set
-    // and maybe more) to the tree class!
+    // and maybe more) to the tree class! maybe call it compatible() or so
     auto comparator = [] (
         PlacementTree::ConstIteratorPreorder& it_l,
         PlacementTree::ConstIteratorPreorder& it_r
@@ -996,12 +999,34 @@ double PlacementMap::pairwise_distance (
                it_l.edge()->secondary_node()->index() == it_r.edge()->secondary_node()->index();
     };
 
-    if (!PlacementTree::equal(left.tree(), right.tree(), comparator)) {
+    if (!PlacementTree::equal(map_a.tree(), map_b.tree(), comparator)) {
         LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
         return -1.0;
     }
 
-    return 0.0;
+    // Init.
+    double sum = 0.0;
+
+    // Create PqueryPlain objects for every placement and copy all interesting data into it.
+    // This way, we won't have to do all the pointer dereferencing during the actual calculations,
+    // and furthermore, the data is close in memory. this gives a tremendous speedup!
+    std::vector<PqueryPlain> pqueries_a = map_a.plain_queries();
+    std::vector<PqueryPlain> pqueries_b = map_b.plain_queries();
+
+    // Calculate a matrix containing the pairwise distance between all nodes. This way, we
+    // do not need to search a path between placements every time. We use the tree of the first map
+    // here, ignoring branch lengths on tree b.
+    // FIXME this might be made better by using average or so in the future.
+    Matrix<double>* node_distances = map_a.tree().node_distance_matrix();
+
+    for (const PqueryPlain& pqry_a : pqueries_a) {
+        for (const PqueryPlain& pqry_b : pqueries_b) {
+            sum += pquery_distance(pqry_a, pqry_b, *node_distances, with_pendant_length);
+        }
+    }
+
+    // Return normalized value.
+    return sum / map_a.placement_mass() / map_b.placement_mass();
 }
 
 // =================================================================================================
@@ -1147,7 +1172,6 @@ double PlacementMap::variance_partial (
         if (pqry_a.index >= pqry_b.index) {
             continue;
         }
-
         double dist = pquery_distance(pqry_a, pqry_b, node_distances, with_pendant_length);
         partial += dist * dist;
     }
