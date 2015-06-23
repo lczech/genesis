@@ -269,11 +269,54 @@ size_t Tree<NDT, EDT>::inner_count() const
 template <class NDT, class EDT>
 double Tree<NDT, EDT>::length() const
 {
+    // TODO if we introduce some naming convention for with/withou branch length, the without
+    // branch lengths version of this function will basically return edges.size()... is that needed?
     double len = 0.0;
     for (EdgeType* e : edges_) {
         len += e->branch_length;
     }
     return len;
+}
+
+/**
+ * @brief Returns the height of the tree (longest distance from root to a leaf).
+ */
+template <class NDT, class EDT>
+double Tree<NDT, EDT>::height() const
+{
+    auto   dists = node_distance_vector();
+    double max   = *std::max_element(dists.begin(), dists.end());
+    delete dists;
+    return max;
+    // TODO once the matrix is returned by val (need to implement move semantics for matrix first),
+    // this method becomes a two liner, as max doesn't need to be stored then.
+}
+
+// TODO this should better be called diameter, return the double of this value. also, it can
+// be calculated in a different way: take the max of the node distance matrix. this should yield
+// the same value. this is also a good way of verifiying the result for testing!
+// TODO also, find a naming convention for weighted (with branch lengths) and unweighted diamter and
+// all other functions dealing with tree distances!
+/**
+ * @brief Returns the longest distance from any point in the tree (on the edges) to any leaf.
+ */
+template <class NDT, class EDT>
+double Tree<NDT, EDT>::deepest_distance() const
+{
+    double max = 0.0;
+
+    NodeDoubleVectorType leaf_dist = closest_leaf_distance_vector();
+
+    for (EdgeType* e : edges_) {
+        int idx_p = e->primary_node()->index();
+        int idx_s = e->secondary_node()->index();
+        double d = (leaf_dist[idx_p].second + e->branch_length + leaf_dist[idx_s].second) / 2;
+
+        if (d > max) {
+            max = d;
+        }
+    }
+    return max;
 }
 
 /**
@@ -322,7 +365,8 @@ std::vector<int> Tree<NDT, EDT>::node_depth_vector(const NodeType* node) const
             continue;
         }
 
-        // we do not have the distance of the current node, but the one of its "parent"!
+        // we do not have the distance of the current node, but the one of its "parent" (the one in
+        // direction of the starting node)!
         assert(vec[it.node()->index()] == -1);
         assert(vec[it.link()->outer()->node()->index()] > -1);
 
@@ -382,7 +426,11 @@ Matrix<double>* Tree<NDT, EDT>::node_distance_matrix() const
 }
 
 /**
- * @brief
+ * @brief Returns a vector containing the distance of all nodes with respect to the given start node.
+ *
+ * The vector is indexed using the node()->index() for every node. Its elements give the distance of
+ * each node with respect to the given start node. The distance is the sum of branch lengths of the
+ * edges visited on the path between the two nodes.
  *
  * If no Node pointer is provided, the root is taken as node.
  */
@@ -393,10 +441,33 @@ std::vector<double> Tree<NDT, EDT>::node_distance_vector(const NodeType* node) c
         node = root_node();
     }
 
-    std::vector<double> vec;
-    vec.resize(node_count(), 0.0);
-    // TODO implement!
-    LOG_WARN << "Not yet implemented.";
+    // Store the distance from each node to the given node.
+    auto vec = std::vector<double>(node_count(), -1.0);
+    vec[node->index()] = 0.0;
+
+    // Calculate the distance vector via levelorder iteration.
+    for (
+        ConstIteratorLevelorder it = begin_levelorder(node);
+        it != end_levelorder();
+        ++it
+    ) {
+        // Skip the starting node (it is already set to 0).
+        if (it.is_first_iteration()) {
+            continue;
+        }
+
+        // We do not have the distance of the current node, but the one of its "parent" (the one in
+        // direction of the starting node)!
+        assert(vec[it.node()->index()] == -1.0);
+        assert(vec[it.link()->outer()->node()->index()] > -1.0);
+
+        // The distance is the distance from the "parent" node (the next one in direction towards
+        // the starting node) plus the branch length.
+        vec[it.node()->index()]
+            = vec[it.link()->outer()->node()->index()]
+            + it.edge()->branch_length;
+    }
+
     return vec;
 }
 
@@ -495,28 +566,6 @@ typename Tree<NDT, EDT>::NodeDoubleVectorType Tree<NDT, EDT>::closest_leaf_dista
     }
 
     return vec;
-}
-
-/**
- * @brief Returns the longest distance from any point in the tree (on the edges) to any leaf.
- */
-template <class NDT, class EDT>
-double Tree<NDT, EDT>::deepest_distance() const
-{
-    double max = 0.0;
-
-    NodeDoubleVectorType leaf_dist = closest_leaf_distance_vector();
-
-    for (EdgeType* e : edges_) {
-        int idx_p = e->primary_node()->index();
-        int idx_s = e->secondary_node()->index();
-        double d = (leaf_dist[idx_p].second + e->branch_length + leaf_dist[idx_s].second) / 2;
-
-        if (d > max) {
-            max = d;
-        }
-    }
-    return max;
 }
 
 // =============================================================================
