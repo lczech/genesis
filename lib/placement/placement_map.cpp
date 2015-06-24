@@ -878,27 +878,32 @@ double PlacementMap::earth_movers_distance(
  */
 void PlacementMap::center_of_gravity (const bool with_pendant_length) const
 {
-    // store a balance of mass per link, so that each element contains the mass that lies
-    // in the direction of this link
+    // Store a balance of mass per link, so that each element contains the mass that lies downwards
+    // the tree in the direction of this link.
     std::unordered_map<PlacementTree::LinkType*, double> balance;
 
-    // do a postorder traversal
+    // Do a postorder traversal. Collect all placement masses and push them towards the root.
     for (
         PlacementTree::IteratorPostorder it = this->tree_->begin_postorder();
         it != this->tree_->end_postorder();
         ++it
     ) {
-        // node does not have a corresponding edge (eg the root)
-        if (!it.edge()) {
+        // Node does not have a corresponding edge (this was e.g. the case in the old tree
+        // implementation, where the root had a "virtual" up link; this is not the case any more,
+        // but maybe it will be re-introduced some day, and it does no harm to leave it here).
+        // Also skip the last iteration, as we would assign an unneeded value to the first child
+        // of the root.
+        if (!it.edge() || it.is_last_iteration()) {
             continue;
         }
 
+        // Collect the mass that lies further down in the tree.
         double mass = 0.0;
 
-        // add up the masses from children
+        // Add up the masses from the current node's children.
         PlacementTree::LinkType* link = it.link()->next();
         while (link != it.link()) {
-            // we do postorder traversal, so we have seen the child links of the current node,
+            // We do postorder traversal, so we have seen the child links of the current node,
             // which means, they should be in the balance list already.
             assert(balance.count(link));
 
@@ -906,54 +911,243 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
             link  = link->next();
         }
 
-        // add up the masses of placements on the current branch
+        // Add up the masses of placements on the current branch.
         for (PqueryPlacement* place : it.edge()->placements) {
-            mass += place->pendant_length + place->proximal_length;
+            double p_mass = place->proximal_length;
+            if (with_pendant_length) {
+                p_mass += place->pendant_length;
+            }
+            mass += p_mass * place->like_weight_ratio;
         }
 
         assert(balance.count(it.link()->outer()) == 0);
         balance[it.link()->outer()] = mass;
     }
 
-    PlacementTree::LinkType* p_prev = tree_->root_link();
-    PlacementTree::LinkType* p_link = tree_->root_link();
-    double                   p_mass = -1.0;
-    bool                     found  = false;
-    while (!found) {
-        LOG_DBG1 << "a " << p_link->node()->name;
-        p_mass = -1.0;
-        for (
-            PlacementTree::NodeType::IteratorLinks it_l = p_link->node()->begin_links();
-            it_l != p_link->node()->end_links();
-            ++it_l
-        ) {
-            LOG_DBG2 << it_l.node()->name << " " << balance[it_l.link()];
-            if (balance[it_l.link()] > p_mass) {
-                p_link = it_l.link();
-            }
-        }
-        LOG_DBG1 << "b " << p_link->node()->name;
-        p_link = p_link->outer();
-        if (p_link == p_prev) {
-            found = true;
-            break;
-        }
-        p_prev = p_link;
+    // Now we have calculated all massed that lie down the tree as seen from the root. We can now
+    // start finding the edge where the center of gravity lies. This is done by going down the tree
+    // in the direction where the most mass comes from and at the same time pulling with us all the
+    // masses that come from the other nodes. Once we are pulling more mass from behind us (speak:
+    // up in the tree) that lies ahead of us (speak: down the tree), we have found the center edge.
+
+    for (auto& v : balance) {
+        LOG_DBG << "node " << v.first->node()->name << ", value " << v.second;
     }
 
-    //~ PlacementTree::LinkType* link = tree->root_link();
-    //~ while (link != it.link()) {
-        //~ // we do postorder traversal, so we have seen the child links of the current node,
-        //~ // which means, they should be in the balance list already.
-        //~ assert(balance.count(link));
-//~
-        //~ mass += balance[link] * it.edge()->branch_length;
-        //~ link = link->next();
-    //~ }
+    // Keep track of the link whose edge we are currently examining, as well as the one that we
+    // examined previously (on iteration of the loop earlier). We start at the root.
+    PlacementTree::LinkType* curr_link = tree_->root_link();
+    PlacementTree::LinkType* prev_link = nullptr;
+
+    // For asserting purposes, we keep track of the number of loop iterations we do.
+    // This can never be more than the tree height (in number of nodes from root to deepest leaf)
+    // plus one last iteration for going back towards the root.
+    size_t num_iterations = 0;
+    auto   depth_vector = tree_->node_depth_vector();
+    size_t max_iterations = 1 + static_cast<size_t>(
+        *std::max_element(depth_vector.begin(), depth_vector.end())
+    );
+    // TODO turn this thing into a function similar to tree.height(), and name it aptly (find some
+    // better convention to distinguish between depth [number of nodes on a path] and distance [sum
+    // of branch lengths]. maybe distance and lengths instead?!).
+    // TODO once this method is established, this might be removed.
+
+    LOG_DBG << "max it " << max_iterations;
+
+    // Loop until the balancing edge is found.
+    while (true) {
+        assert (num_iterations <= max_iterations);
+        ++num_iterations;
+
+        LOG_DBG << "iteration " << num_iterations;
+        LOG_DBG1 << "find max at " << curr_link->node()->name;
+
+        // Find the direction away from the current node that has the highest mass.
+        // At the same time, collect the sum of masses at the node, in order to push them
+        // towards the node with highest mass later (so that the next iteration will have values
+        // to work on).
+        PlacementTree::LinkType* max_link = nullptr;
+        double                   max_mass = -1.0;
+        double                   mass_sum =  0.0;
+        for (
+            auto it_l = curr_link->node()->begin_links();
+            it_l != curr_link->node()->end_links();
+            ++it_l
+        ) {
+            // Make sure that we actually have a useable value.
+            assert(balance.count(it_l.link()) > 0);
+
+            LOG_DBG2 << it_l.link()->outer()->node()->name
+                     << " "  << balance[it_l.link()]
+                     << " " << balance[it_l.link()->outer()];
+            if (balance[it_l.link()] > max_mass) {
+                max_link = it_l.link();
+                max_mass = balance[it_l.link()];
+            }
+            mass_sum += balance[it_l.link()];
+        }
+
+        // Check if we found the edge where the center of gravity lies. This is the case when the
+        // the highest mass is coming from the direction where we came just from in the last
+        // iteration.
+        LOG_DBG1 << "moving to " << max_link->outer()->node()->name;
+        if (max_link->outer() == prev_link) {
+            LOG_DBG << "found at " << curr_link->node()->name;
+            break;
+        }
+
+        // If we are not done yet, move down the edge.
+        prev_link = max_link;
+        curr_link = max_link->outer();
+
+        LOG_DBG1 << "mass sum " << mass_sum;
+        // Now we are at a node where we have calculated only the masses coming from further down in
+        // the tree so far, but not the mass coming from the direction of the root (from where we
+        // just came). So we need to calculate this mass now:
+
+        // Subtract the mass of the direction where we found the most mass, so that all that is left
+        // in mass_sum is the mass of all the other (not maximum) nodes. Then push it towards to
+        // the end of the edge by multiplying it with the branch length.
+        mass_sum -= balance[max_link];
+        mass_sum *= max_link->edge()->branch_length;
+
+        // Add masses of the placements on this edge.
+        for (PqueryPlacement* place : max_link->edge()->placements) {
+            double p_mass = max_link->edge()->branch_length - place->proximal_length;
+            if (with_pendant_length) {
+                p_mass += place->pendant_length;
+            }
+            mass_sum += p_mass * place->like_weight_ratio;
+        }
+
+        // Store the mass at the corresponding link.
+        balance[curr_link] = mass_sum;
+        LOG_DBG1 << "stored " << mass_sum << " at " << max_link->outer()->node()->name;
+
+        LOG_DBG << "end of iteration " << num_iterations << "\n";
+    }
+
+    // Assert that the two links are actually the two ends of the same edge and that their nodes
+    // are the correct ones in terms of direction to the root.
+    assert(curr_link->edge() == prev_link->edge());
+    assert(prev_link->node() == prev_link->edge()->primary_node());
+    assert(curr_link->node() == curr_link->edge()->secondary_node());
 
     for (auto pair : balance) {
         LOG_DBG1 << pair.first->node()->name << ": " << pair.second << "\n";
         //~ distance += std::abs(pair.second);
+    }
+
+    LOG_DBG << "cur  " << curr_link->node()->name << " with " << balance[curr_link];
+    LOG_DBG << "prev " << prev_link->node()->name << " with " << balance[prev_link];
+
+    // At this point, we have found the central edge that balances the placement masses on the tree.
+    // curr_link is at the downwards (away from the root) end of this edge, while prev_link at its
+    // top (towards the root).
+    // All that is left now is to find the correct position on this edge. For this, we need to
+    // consider the masses that lie at both ends of the edge, as well as the placements on the edge
+    // itself.
+
+    assert(balance.count(prev_link) > 0);
+    assert(balance.count(curr_link) > 0);
+
+    // Define the two masses at the end of the edge: (p)roximal and (d)istal mass. Those are the
+    // sums of the masses from the subtree that lies behind this end of the edge.
+    double mass_dist = 0.0;
+    double mass_prox = 0.0;
+
+    PlacementTree::LinkType* link;
+    link = curr_link->next();
+    while (link != curr_link) {
+        assert(balance.count(link));
+        mass_dist += balance[link];
+        link = link->next();
+    }
+
+    link = prev_link->next();
+    while (link != prev_link) {
+        assert(balance.count(link));
+        mass_prox += balance[link];
+        link = link->next();
+    }
+
+    LOG_DBG << "mass_dist " << mass_dist;
+    LOG_DBG << "mass_prox " << mass_prox;
+
+    // A different method of calculation those masses is to subtract all masses on the edge from
+    // the balance that we already calculated. This yields the same values as the previous method,
+    // but needs to do calculations for each placement on the edge, which might be many.
+    /*
+    double mass_dist = balance[prev_link];
+    double mass_prox = balance[curr_link];
+    for (PqueryPlacement* place : curr_link->edge()->placements) {
+        double p_mass = place->proximal_length;
+        if (with_pendant_length) {
+            p_mass += place->pendant_length;
+        }
+        mass_dist -= p_mass * place->like_weight_ratio;
+
+        double d_mass = curr_link->edge()->branch_length - place->proximal_length;
+        if (with_pendant_length) {
+            d_mass += place->pendant_length;
+        }
+        mass_prox -= d_mass * place->like_weight_ratio;
+    }
+    mass_dist /= curr_link->edge()->branch_length;
+    mass_prox /= curr_link->edge()->branch_length;
+    */
+
+    // A simple approximation of the solution is to calculate the balancing point on the edge
+    // without considering the influence of the placements on the edge:
+    // Let x the solution, measured as length from the proximal node.
+    // Then we are looking for an x where the weights on both sided of it are in equilibrium:
+    //     mass_prox * x = mass_dist * (branch_length - x)
+    // <=> x = (mass_dist * branch_length) / (mass_prox + mass_dist)
+    double approx = (mass_dist * curr_link->edge()->branch_length) / (mass_prox + mass_dist);
+    LOG_DBG << "approx " << approx;
+
+    return;
+
+    // We will do an iteration that moves along the edge, balancing the weights on both sides until
+    // equilibrium is found. For this,, we need to keep track of the masses on the two sides.
+    double prox_sum = mass_prox;
+    double dist_sum = mass_dist * curr_link->edge()->branch_length;
+
+    // We store the masses of all placements on the edge, sorted by their position on it. Also, as
+    // first and last element, we store the masses that we just calculated. This makes it obsolete
+    // to check them as boundary cases. This map serves as basis for the iteration, and also as
+    // lookup for the iteration that finds the center point.
+    std::multimap<double, double> edge_balance;
+    edge_balance.emplace(0.0,                              mass_prox);
+    edge_balance.emplace(curr_link->edge()->branch_length, mass_dist);
+
+    // Now add all placements on the edge to the balance variables.
+    for (PqueryPlacement* place : prev_link->edge()->placements) {
+        double place_prox = place->proximal_length;
+
+        // Some sanity checks for wrong data. We do it here because otherwise the algorithm might
+        // produce weird results. Usually, this task is however up to the validate() method.
+        if (place_prox > curr_link->edge()->branch_length) {
+            LOG_WARN << "Placement found that has proximal_length > branch_length.";
+            place_prox = curr_link->edge()->branch_length;
+        }
+        if (place_prox < 0.0) {
+            LOG_WARN << "Placement found that has proximal_length < 0.0.";
+            place_prox = 0.0;
+        }
+
+        double place_mass = place->like_weight_ratio;
+        if (with_pendant_length) {
+            place_mass *= place->pendant_length;
+        }
+
+        // Add it to the map and to the distal mass.
+        edge_balance.emplace(place_prox, place_mass);
+        dist_sum += place_prox * place->like_weight_ratio + place_mass;
+    }
+
+    for (auto& e : edge_balance) {
+        LOG_DBG << "at " << e.first << " with mass " << e.second;
     }
 }
 
