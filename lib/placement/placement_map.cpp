@@ -14,8 +14,8 @@
 #include <map>
 #include <sstream>
 #include <stdio.h>
+#include <tuple>
 #include <unordered_map>
-#include <utility>
 
 #ifdef PTHREADS
 #    include <thread>
@@ -1144,14 +1144,14 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
 
     // We store the masses of all placements on the edge, sorted by their position on it. Also, as
     // first and last element, we store the masses that we just calculated. This makes it obsolete
-    // to check them as boundary cases. This map serves as basis for the iteration, and also as
+    // to check them as boundary cases. This list serves as basis for the iteration, and also as
     // lookup for the iteration that finds the center point.
-    // Its format is: < proximal_length , < like_weight_ratio , mass or pendant_length > >
-    std::multimap<double, std::pair<double, double>> edge_balance;
-    edge_balance.emplace(0.0,                              std::make_pair(1.0, mass_prox));
-    edge_balance.emplace(curr_link->edge()->branch_length, std::make_pair(1.0, mass_dist));
+    // Its format is: < proximal_length , like_weight_ratio , mass or pendant_length >
+    std::vector<std::tuple<double, double, double>> edge_balance;
+    edge_balance.push_back(std::make_tuple(0.0, 1.0, mass_prox));
 
-    // Now add all placements on the edge to the balance variables.
+    // Now add all placements on the edge to the balance variables, sorted by their proximal length.
+    prev_link->edge()->sort_placements();
     for (PqueryPlacement* place : prev_link->edge()->placements) {
         double place_prox = place->proximal_length;
 
@@ -1171,16 +1171,21 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
             place_mass += place->pendant_length;
         }
 
-        edge_balance.emplace(place_prox, std::make_pair(place->like_weight_ratio, place_mass));
+        edge_balance.push_back(std::make_tuple(place_prox, place->like_weight_ratio, place_mass));
     }
+
+    edge_balance.push_back(std::make_tuple(curr_link->edge()->branch_length, 1.0, mass_dist));
 
     LOG_DBG << "prox_sum " << prox_sum;
     LOG_DBG << "dist_sum " << dist_sum;
 
     // This is the loop where we find the center of the edge.
-    size_t edge_i = 0;
-    for (auto& edge : edge_balance) {
-        LOG_DBG1 << "at " << edge.first << " with ratio " << edge.second.first << " and mass " << edge.second.second;
+    for (size_t pos = 1; pos < edge_balance.size(); ++pos) {
+        auto& edge = edge_balance[pos];
+        LOG_DBG1 << "at " << std::get<0>(edge) << " with ratio " << std::get<1>(edge) << " and mass " << std::get<2>(edge);
+
+        double prox_diff = std::get<0>(edge) - std::get<0>(edge_balance[pos-1];
+        dist_sum -= (prox_diff + std::get<2>(edge)) * std::get<1>(edge);
 
         if (prox_sum > dist_sum) {
             /* code */
