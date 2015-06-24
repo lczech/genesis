@@ -14,8 +14,8 @@
 #include <map>
 #include <sstream>
 #include <stdio.h>
-#include <thread>
 #include <unordered_map>
+#include <utility>
 
 #ifdef PTHREADS
 #    include <thread>
@@ -875,9 +875,30 @@ double PlacementMap::earth_movers_distance(
 
 /**
  * @brief Calculate the Center of Gravity of the placements on a tree.
+ *
+ * The center of gravity is the point on the tree where all weights of the placements on the one
+ * side of it times their distance from the point are equal to this sum on the other side of the
+ * point. In the following example, the hat `^` marks this point on a line with two placements:
+ * One has weight 1 and distance 3 from the central point, and one as weight 3 and distance 1,
+ * so that their respective mass with respect to the point is the same:
+ *
+ *                   3
+ *                   |
+ *     1             |
+ *     |_____________|
+ *               ^
+ *
+ * This calculation is done for the whole tree, with the masses calculated from the
+ * `like_weight_ratio` and (if specificed in the method parameter) the `pendant_length` of the
+ * placements.
  */
 void PlacementMap::center_of_gravity (const bool with_pendant_length) const
 {
+    // --------------------------------------------------------------------------------------
+    // TODO What happens here with short branches and even worse with branches of length 0???
+    //      This will probably screw up everything!
+    // --------------------------------------------------------------------------------------
+
     // Store a balance of mass per link, so that each element contains the mass that lies downwards
     // the tree in the direction of this link.
     std::unordered_map<PlacementTree::LinkType*, double> balance;
@@ -1077,6 +1098,7 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
     // A different method of calculation those masses is to subtract all masses on the edge from
     // the balance that we already calculated. This yields the same values as the previous method,
     // but needs to do calculations for each placement on the edge, which might be many.
+    // Here is the code for it. Maybe it is helpful in the future, if bugs are found.
     /*
     double mass_dist = balance[prev_link];
     double mass_prox = balance[curr_link];
@@ -1100,26 +1122,34 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
     // A simple approximation of the solution is to calculate the balancing point on the edge
     // without considering the influence of the placements on the edge:
     // Let x the solution, measured as length from the proximal node.
-    // Then we are looking for an x where the weights on both sided of it are in equilibrium:
-    //     mass_prox * x = mass_dist * (branch_length - x)
-    // <=> x = (mass_dist * branch_length) / (mass_prox + mass_dist)
+    // Then we are looking for an x where the weights on both sides of it are in equilibrium:
+    //         mass_prox * x = mass_dist * (branch_length - x)
+    //     <=> x = (mass_dist * branch_length) / (mass_prox + mass_dist)
+    // In code:
     double approx = (mass_dist * curr_link->edge()->branch_length) / (mass_prox + mass_dist);
     LOG_DBG << "approx " << approx;
 
-    return;
-
     // We will do an iteration that moves along the edge, balancing the weights on both sides until
-    // equilibrium is found. For this,, we need to keep track of the masses on the two sides.
+    // equilibrium is found. For this, we need to keep track of the masses on the two sides:
+    // both variables hold the mass as seen from the point that we are trying to find. At first,
+    // the prox_sum contains just mass_prox, while dist_sum contains all weights on the other side.
+    // During the iteration later, this will change while moving along the edge, until equilibrium.
     double prox_sum = mass_prox;
-    double dist_sum = mass_dist * curr_link->edge()->branch_length;
+    double dist_sum = balance[prev_link];
+    // dist_sum can also be calcuated by initializing it with:
+    //     dist_sum = mass_dist * curr_link->edge()->branch_length;
+    // and then in the loop over all placements on the edge, add their weights to it:
+    //     dist_sum += (place_prox + place_mass) * place->like_weight_ratio;
+    // This value is however already stored in balance, so we don't need to recalculate it.
 
     // We store the masses of all placements on the edge, sorted by their position on it. Also, as
     // first and last element, we store the masses that we just calculated. This makes it obsolete
     // to check them as boundary cases. This map serves as basis for the iteration, and also as
     // lookup for the iteration that finds the center point.
-    std::multimap<double, double> edge_balance;
-    edge_balance.emplace(0.0,                              mass_prox);
-    edge_balance.emplace(curr_link->edge()->branch_length, mass_dist);
+    // Its format is: < proximal_length , < like_weight_ratio , mass or pendant_length > >
+    std::multimap<double, std::pair<double, double>> edge_balance;
+    edge_balance.emplace(0.0,                              std::make_pair(1.0, mass_prox));
+    edge_balance.emplace(curr_link->edge()->branch_length, std::make_pair(1.0, mass_dist));
 
     // Now add all placements on the edge to the balance variables.
     for (PqueryPlacement* place : prev_link->edge()->placements) {
@@ -1136,18 +1166,25 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
             place_prox = 0.0;
         }
 
-        double place_mass = place->like_weight_ratio;
+        double place_mass = 0.0;
         if (with_pendant_length) {
-            place_mass *= place->pendant_length;
+            place_mass += place->pendant_length;
         }
 
-        // Add it to the map and to the distal mass.
-        edge_balance.emplace(place_prox, place_mass);
-        dist_sum += place_prox * place->like_weight_ratio + place_mass;
+        edge_balance.emplace(place_prox, std::make_pair(place->like_weight_ratio, place_mass));
     }
 
-    for (auto& e : edge_balance) {
-        LOG_DBG << "at " << e.first << " with mass " << e.second;
+    LOG_DBG << "prox_sum " << prox_sum;
+    LOG_DBG << "dist_sum " << dist_sum;
+
+    // This is the loop where we find the center of the edge.
+    size_t edge_i = 0;
+    for (auto& edge : edge_balance) {
+        LOG_DBG1 << "at " << edge.first << " with ratio " << edge.second.first << " and mass " << edge.second.second;
+
+        if (prox_sum > dist_sum) {
+            /* code */
+        }
     }
 }
 
@@ -1188,6 +1225,7 @@ double PlacementMap::pairwise_distance (
         PlacementTree::ConstIteratorPreorder& it_r
     ) {
         return it_l.node()->name                      == it_r.node()->name                      &&
+               it_l.node()->index()                   == it_r.node()->index()                   &&
                it_l.edge()->edge_num                  == it_r.edge()->edge_num                  &&
                it_l.edge()->primary_node()->index()   == it_r.edge()->primary_node()->index()   &&
                it_l.edge()->secondary_node()->index() == it_r.edge()->secondary_node()->index();
