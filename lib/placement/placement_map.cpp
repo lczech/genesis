@@ -14,8 +14,8 @@
 #include <map>
 #include <sstream>
 #include <stdio.h>
-#include <tuple>
 #include <unordered_map>
+#include <utility>
 
 #ifdef PTHREADS
 #    include <thread>
@@ -706,9 +706,8 @@ double PlacementMap::earth_movers_distance(
     double totalmass_l = lhs.placement_mass();
     double totalmass_r = rhs.placement_mass();
 
-    // disable all debug messages for this function...
-    Logging::LoggingLevel ll = Logging::max_level();
-    Logging::max_level(Logging::kInfo);
+    // Disable all debug messages for this function...
+    LOG_SCOPE_LEVEL(Logging::kInfo)
 
     LOG_DBG << "totalmass_l " << totalmass_l;
     LOG_DBG << "totalmass_r " << totalmass_r;
@@ -868,19 +867,17 @@ double PlacementMap::earth_movers_distance(
     }
 
     LOG_DBG << "final distance: " << distance;
-    Logging::max_level(ll);
-
     return distance;
 }
 
 /**
  * @brief Calculate the Center of Gravity of the placements on a tree.
  *
- * The center of gravity is the point on the tree where all weights of the placements on the one
+ * The center of gravity is the point on the tree where all masses of the placements on the one
  * side of it times their distance from the point are equal to this sum on the other side of the
  * point. In the following example, the hat `^` marks this point on a line with two placements:
- * One has weight 1 and distance 3 from the central point, and one as weight 3 and distance 1,
- * so that their respective mass with respect to the point is the same:
+ * One has mass 1 and distance 3 from the central point, and one as mass 3 and distance 1,
+ * so that the product of their mass and distance to the point is the same:
  *
  *                   3
  *                   |
@@ -888,22 +885,38 @@ double PlacementMap::earth_movers_distance(
  *     |_____________|
  *               ^
  *
+ * It is thus like calculating masses and torques on a lever in order to find their physical
+ * center of mass/gravity.
+ *
  * This calculation is done for the whole tree, with the masses calculated from the
- * `like_weight_ratio` and (if specificed in the method parameter) the `pendant_length` of the
+ * `like_weight_ratio` and distances in terms of the `branch_length` of the edges and the
+ * `proximal_length` and (if specificed in the method parameter) the `pendant_length` of the
  * placements.
  */
 void PlacementMap::center_of_gravity (const bool with_pendant_length) const
 {
-    // --------------------------------------------------------------------------------------
-    // TODO What happens here with short branches and even worse with branches of length 0???
-    //      This will probably screw up everything!
-    // --------------------------------------------------------------------------------------
+    // This struct stores the torque that acts on a certain point (called the fulcrum) from a
+    // specific direction. It also stores the mass that created that torque, in order to be able to
+    // calculate the new torque when moving around the tree.
+    // In physics, torque is distance times force. However, we consider the force to be constant in
+    // the case of finding the center of gravity, so we neglect it and calculate torque as distance
+    // times mass.
+    struct Fulcrum {
+        Fulcrum() : mass(0.0), torque(0.0) {}
 
-    // Store a balance of mass per link, so that each element contains the mass that lies downwards
-    // the tree in the direction of this link.
-    std::unordered_map<PlacementTree::LinkType*, double> balance;
+        double mass;
+        double torque;
+    };
 
-    // Do a postorder traversal. Collect all placement masses and push them towards the root.
+    // Disable debug messages while code is not in review.
+    // LOG_SCOPE_LEVEL(Logging::kInfo)
+
+    // Store a balance value per link, so that each element contains the mass and its torque that
+    // lies downwards the tree in the direction of this link.
+    std::unordered_map<PlacementTree::LinkType*, Fulcrum> balance;
+
+    // Do a postorder traversal. Collect all placement masses and push them towards the root in
+    // order to calculate the torque that acts on each node.
     for (
         PlacementTree::IteratorPostorder it = this->tree_->begin_postorder();
         it != this->tree_->end_postorder();
@@ -918,8 +931,9 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
             continue;
         }
 
-        // Collect the mass that lies further down in the tree.
-        double mass = 0.0;
+        // Collect the torque and mass that lies further down in the tree and act on the current
+        // iterators link.
+        Fulcrum curr_fulcrum;
 
         // Add up the masses from the current node's children.
         PlacementTree::LinkType* link = it.link()->next();
@@ -928,32 +942,37 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
             // which means, they should be in the balance list already.
             assert(balance.count(link));
 
-            mass += balance[link] * it.edge()->branch_length;
-            link  = link->next();
+            curr_fulcrum.mass   += balance[link].mass;
+            curr_fulcrum.torque += balance[link].mass * it.edge()->branch_length;
+            curr_fulcrum.torque += balance[link].torque;
+            link    = link->next();
         }
 
-        // Add up the masses of placements on the current branch.
+        // Add up the masses of placements on the current edge.
         for (PqueryPlacement* place : it.edge()->placements) {
-            double p_mass = place->proximal_length;
+            double place_dist = place->proximal_length;
             if (with_pendant_length) {
-                p_mass += place->pendant_length;
+                place_dist += place->pendant_length;
             }
-            mass += p_mass * place->like_weight_ratio;
+            curr_fulcrum.mass   += place->like_weight_ratio;
+            curr_fulcrum.torque += place->like_weight_ratio * place_dist;
         }
 
         assert(balance.count(it.link()->outer()) == 0);
-        balance[it.link()->outer()] = mass;
+        balance[it.link()->outer()] = curr_fulcrum;
     }
 
-    // Now we have calculated all massed that lie down the tree as seen from the root. We can now
-    // start finding the edge where the center of gravity lies. This is done by going down the tree
-    // in the direction where the most mass comes from and at the same time pulling with us all the
-    // masses that come from the other nodes. Once we are pulling more mass from behind us (speak:
-    // up in the tree) that lies ahead of us (speak: down the tree), we have found the center edge.
-
+    LOG_DBG << "current balance:";
     for (auto& v : balance) {
-        LOG_DBG << "node " << v.first->node()->name << ", value " << v.second;
+        LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass << ", torque " << v.second.torque;
     }
+
+    // Now we have calculated all massed that lie down the tree as seen from the root and the torque
+    // they create. We can now start finding the edge where the center of gravity lies. This is done
+    // by going down the tree in the direction where the most torque comes from and at the same time
+    // pulling with us all the masses that come from the other nodes. Once we have more torque from
+    // behind us (speak: up in the tree) that lies ahead of us (speak: down the tree), we have found
+    // the center edge.
 
     // Keep track of the link whose edge we are currently examining, as well as the one that we
     // examined previously (on iteration of the loop earlier). We start at the root.
@@ -971,7 +990,7 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
     // TODO turn this thing into a function similar to tree.height(), and name it aptly (find some
     // better convention to distinguish between depth [number of nodes on a path] and distance [sum
     // of branch lengths]. maybe distance and lengths instead?!).
-    // TODO once this method is established, this might be removed.
+    // TODO once the center of gravity method is established, this assertion might be removed.
 
     LOG_DBG << "max it " << max_iterations;
 
@@ -983,13 +1002,14 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
         LOG_DBG << "iteration " << num_iterations;
         LOG_DBG1 << "find max at " << curr_link->node()->name;
 
-        // Find the direction away from the current node that has the highest mass.
-        // At the same time, collect the sum of masses at the node, in order to push them
-        // towards the node with highest mass later (so that the next iteration will have values
-        // to work on).
-        PlacementTree::LinkType* max_link = nullptr;
-        double                   max_mass = -1.0;
-        double                   mass_sum =  0.0;
+        // Find the direction away from the current node that has the highest torque.
+        // At the same time, collect the sum of masses and torques at the node, in order to push
+        // them towards the node with highest torque later (so that the next iteration will have
+        // values to work on).
+        PlacementTree::LinkType* max_link   = nullptr;
+        double                   max_torque = -1.0;
+        Fulcrum                  sum;
+
         for (
             auto it_l = curr_link->node()->begin_links();
             it_l != curr_link->node()->end_links();
@@ -998,18 +1018,20 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
             // Make sure that we actually have a useable value.
             assert(balance.count(it_l.link()) > 0);
 
-            LOG_DBG2 << it_l.link()->outer()->node()->name
-                     << " "  << balance[it_l.link()]
-                     << " " << balance[it_l.link()->outer()];
-            if (balance[it_l.link()] > max_mass) {
-                max_link = it_l.link();
-                max_mass = balance[it_l.link()];
+            LOG_DBG2 << "at " <<  it_l.link()->outer()->node()->name
+                     << " with mass "  << balance[it_l.link()].mass
+                     << " and torque "  << balance[it_l.link()].torque;
+            if (balance[it_l.link()].torque > max_torque) {
+                max_link   = it_l.link();
+                max_torque = balance[it_l.link()].torque;
             }
-            mass_sum += balance[it_l.link()];
+            sum.mass   += balance[it_l.link()].mass;
+            sum.torque += balance[it_l.link()].torque;
         }
+        assert(max_link);
 
         // Check if we found the edge where the center of gravity lies. This is the case when the
-        // the highest mass is coming from the direction where we came just from in the last
+        // the highest torque is coming from the direction where we came just from in the last
         // iteration.
         LOG_DBG1 << "moving to " << max_link->outer()->node()->name;
         if (max_link->outer() == prev_link) {
@@ -1021,29 +1043,32 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
         prev_link = max_link;
         curr_link = max_link->outer();
 
-        LOG_DBG1 << "mass sum " << mass_sum;
-        // Now we are at a node where we have calculated only the masses coming from further down in
-        // the tree so far, but not the mass coming from the direction of the root (from where we
-        // just came). So we need to calculate this mass now:
+        LOG_DBG1 << "mass sum " << sum.mass << ", torque sum " << sum.torque;
 
-        // Subtract the mass of the direction where we found the most mass, so that all that is left
-        // in mass_sum is the mass of all the other (not maximum) nodes. Then push it towards to
-        // the end of the edge by multiplying it with the branch length.
-        mass_sum -= balance[max_link];
-        mass_sum *= max_link->edge()->branch_length;
+        // Now we are at a node where we have calculated only the masses and torques coming from
+        // further down in the tree so far, but not the values coming from the direction of the root
+        // (from where we just came). So we need to calculate these now:
+
+        // Subtract the mass and torque of the direction where we found the most torque again,
+        // so that all that is left are the sums of all the other (not maximum) nodes. Then push it
+        // towards to the end of the edge.
+        sum.mass   -= balance[max_link].mass;
+        sum.torque -= balance[max_link].torque;
+        sum.torque += sum.mass * max_link->edge()->branch_length;
 
         // Add masses of the placements on this edge.
         for (PqueryPlacement* place : max_link->edge()->placements) {
-            double p_mass = max_link->edge()->branch_length - place->proximal_length;
+            double p_dist = max_link->edge()->branch_length - place->proximal_length;
             if (with_pendant_length) {
-                p_mass += place->pendant_length;
+                p_dist += place->pendant_length;
             }
-            mass_sum += p_mass * place->like_weight_ratio;
+            sum.mass   += place->like_weight_ratio;
+            sum.torque += place->like_weight_ratio * p_dist;
         }
 
-        // Store the mass at the corresponding link.
-        balance[curr_link] = mass_sum;
-        LOG_DBG1 << "stored " << mass_sum << " at " << max_link->outer()->node()->name;
+        // Store the values at the corresponding link.
+        balance[curr_link] = sum;
+        LOG_DBG1 << "stored mass " << sum.mass << " and torque " << sum.torque << " at " << max_link->outer()->node()->name;
 
         LOG_DBG << "end of iteration " << num_iterations << "\n";
     }
@@ -1054,143 +1079,183 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
     assert(prev_link->node() == prev_link->edge()->primary_node());
     assert(curr_link->node() == curr_link->edge()->secondary_node());
 
-    for (auto pair : balance) {
-        LOG_DBG1 << pair.first->node()->name << ": " << pair.second << "\n";
-        //~ distance += std::abs(pair.second);
+    LOG_DBG << "current balance:";
+    for (auto& v : balance) {
+        LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass << ", torque " << v.second.torque;
     }
 
-    LOG_DBG << "cur  " << curr_link->node()->name << " with " << balance[curr_link];
-    LOG_DBG << "prev " << prev_link->node()->name << " with " << balance[prev_link];
+    LOG_DBG << "cur  " << curr_link->node()->name << " with mass " << balance[curr_link].mass << " and torque " << balance[curr_link].torque;
+    LOG_DBG << "prev " << prev_link->node()->name << " with mass " << balance[prev_link].mass << " and torque " << balance[prev_link].torque;
 
     // At this point, we have found the central edge that balances the placement masses on the tree.
     // curr_link is at the downwards (away from the root) end of this edge, while prev_link at its
     // top (towards the root).
     // All that is left now is to find the correct position on this edge. For this, we need to
-    // consider the masses that lie at both ends of the edge, as well as the placements on the edge
-    // itself.
+    // consider the masses and torques that come from both ends of the edge, as well as the
+    // placements on the edge itself.
 
-    assert(balance.count(prev_link) > 0);
+    PlacementTree::EdgeType* central_edge = curr_link->edge();
+
+    // Define the masses and torques at both ends of the edge: proximal and distal mass/torque.
+    // Calculate them as the sums of the values from the subtree that lies behind the edge.
+    Fulcrum dist_fulcrum;
+    Fulcrum prox_fulcrum;
+
     assert(balance.count(curr_link) > 0);
-
-    // Define the two masses at the end of the edge: (p)roximal and (d)istal mass. Those are the
-    // sums of the masses from the subtree that lies behind this end of the edge.
-    double mass_dist = 0.0;
-    double mass_prox = 0.0;
+    assert(balance.count(prev_link) > 0);
 
     PlacementTree::LinkType* link;
     link = curr_link->next();
     while (link != curr_link) {
         assert(balance.count(link));
-        mass_dist += balance[link];
+        dist_fulcrum.mass   += balance[link].mass;
+        dist_fulcrum.torque += balance[link].torque;
         link = link->next();
     }
 
     link = prev_link->next();
     while (link != prev_link) {
         assert(balance.count(link));
-        mass_prox += balance[link];
+        prox_fulcrum.mass   += balance[link].mass;
+        prox_fulcrum.torque += balance[link].torque;
         link = link->next();
     }
 
-    LOG_DBG << "mass_dist " << mass_dist;
-    LOG_DBG << "mass_prox " << mass_prox;
-
-    // A different method of calculation those masses is to subtract all masses on the edge from
-    // the balance that we already calculated. This yields the same values as the previous method,
-    // but needs to do calculations for each placement on the edge, which might be many.
-    // Here is the code for it. Maybe it is helpful in the future, if bugs are found.
-    /*
-    double mass_dist = balance[prev_link];
-    double mass_prox = balance[curr_link];
-    for (PqueryPlacement* place : curr_link->edge()->placements) {
-        double p_mass = place->proximal_length;
-        if (with_pendant_length) {
-            p_mass += place->pendant_length;
-        }
-        mass_dist -= p_mass * place->like_weight_ratio;
-
-        double d_mass = curr_link->edge()->branch_length - place->proximal_length;
-        if (with_pendant_length) {
-            d_mass += place->pendant_length;
-        }
-        mass_prox -= d_mass * place->like_weight_ratio;
-    }
-    mass_dist /= curr_link->edge()->branch_length;
-    mass_prox /= curr_link->edge()->branch_length;
-    */
+    LOG_DBG << "dist_mass " << dist_fulcrum.mass << ", dist_torque " << dist_fulcrum.torque;
+    LOG_DBG << "prox_mass " << prox_fulcrum.mass << ", prox_torque " << prox_fulcrum.torque;
 
     // A simple approximation of the solution is to calculate the balancing point on the edge
     // without considering the influence of the placements on the edge:
     // Let x the solution, measured as length from the proximal node.
     // Then we are looking for an x where the weights on both sides of it are in equilibrium:
-    //         mass_prox * x = mass_dist * (branch_length - x)
-    //     <=> x = (mass_dist * branch_length) / (mass_prox + mass_dist)
+    //         prox_torque + (prox_mass * x) = dist_torque + (dist_mass * (branch_length - x))
+    //     <=> x = (dist_torque - prox_torque + (dist_mass * branch_length)) / (dist_mass + prox_mass)
     // In code:
-    double approx = (mass_dist * curr_link->edge()->branch_length) / (mass_prox + mass_dist);
+    double approx = (dist_fulcrum.torque - prox_fulcrum.torque
+                    + (dist_fulcrum.mass * central_edge->branch_length)
+                    ) / (dist_fulcrum.mass + prox_fulcrum.mass);
     LOG_DBG << "approx " << approx;
 
-    // We will do an iteration that moves along the edge, balancing the weights on both sides until
-    // equilibrium is found. For this, we need to keep track of the masses on the two sides:
-    // both variables hold the mass as seen from the point that we are trying to find. At first,
-    // the prox_sum contains just mass_prox, while dist_sum contains all weights on the other side.
-    // During the iteration later, this will change while moving along the edge, until equilibrium.
-    double prox_sum = mass_prox;
-    double dist_sum = balance[prev_link];
-    // dist_sum can also be calcuated by initializing it with:
-    //     dist_sum = mass_dist * curr_link->edge()->branch_length;
-    // and then in the loop over all placements on the edge, add their weights to it:
-    //     dist_sum += (place_prox + place_mass) * place->like_weight_ratio;
-    // This value is however already stored in balance, so we don't need to recalculate it.
+    // We will do an iteration that moves along the edge, balancing the torques on both sides until
+    // equilibrium is found. For this, we need to keep track of the masses and torques on the two
+    // sides: the variables hold those values as seen from the point that we are trying to find.
+    // At first, the prox_sum contains just prox_fulcrum, while dist_sum contains all values on the
+    // other side. During the iteration later, those two variables will change while moving along
+    // the edge, until equilibrium.
+    Fulcrum prox_sum = prox_fulcrum;
+    Fulcrum dist_sum = balance[prev_link];
 
-    // We store the masses of all placements on the edge, sorted by their position on it. Also, as
-    // first and last element, we store the masses that we just calculated. This makes it obsolete
-    // to check them as boundary cases. This list serves as basis for the iteration, and also as
-    // lookup for the iteration that finds the center point.
-    // Its format is: < proximal_length , like_weight_ratio , mass or pendant_length >
-    std::vector<std::tuple<double, double, double>> edge_balance;
-    edge_balance.push_back(std::make_tuple(0.0, 1.0, mass_prox));
+    // We store the torques and masses of all placements on the edge, sorted by their position on it.
+    // Also, as first and last element of the array, we store the fulcrums that we just calculated.
+    // This makes it obsolete to check them as boundary cases. This list serves as basis for the
+    // iteration, and also as lookup for the iteration that finds the center point.
+    // Its format is: < proximal_length , fulcrum ( = mass, torque ) >.
+    // We use a hand-sorted vector here (as opposed to a map, which does the ordering for us),
+    // because it provides element access "[]", which comes in handy later.
+    std::vector<std::pair<double, Fulcrum>> edge_balance;
+    edge_balance.push_back(std::make_pair(0.0, prox_fulcrum));
 
-    // Now add all placements on the edge to the balance variables, sorted by their proximal length.
-    prev_link->edge()->sort_placements();
-    for (PqueryPlacement* place : prev_link->edge()->placements) {
+    // Now add all placements on the edge to the balance variable, sorted by their proximal length.
+    central_edge->sort_placements();
+    for (PqueryPlacement* place : central_edge->placements) {
         double place_prox = place->proximal_length;
 
         // Some sanity checks for wrong data. We do it here because otherwise the algorithm might
-        // produce weird results. Usually, this task is however up to the validate() method.
-        if (place_prox > curr_link->edge()->branch_length) {
+        // produce weird results. However, usually this task is up to the validate() method.
+        if (place_prox > central_edge->branch_length) {
             LOG_WARN << "Placement found that has proximal_length > branch_length.";
-            place_prox = curr_link->edge()->branch_length;
+            place_prox = central_edge->branch_length;
         }
         if (place_prox < 0.0) {
             LOG_WARN << "Placement found that has proximal_length < 0.0.";
             place_prox = 0.0;
         }
 
-        double place_mass = 0.0;
+        double place_dist = place_prox;
         if (with_pendant_length) {
-            place_mass += place->pendant_length;
+            place_dist += place->pendant_length;
         }
 
-        edge_balance.push_back(std::make_tuple(place_prox, place->like_weight_ratio, place_mass));
+        Fulcrum place_fulcrum;
+        place_fulcrum.mass   = place->like_weight_ratio;
+        place_fulcrum.torque = place->like_weight_ratio * place_dist;
+
+        edge_balance.push_back(std::make_pair(place_prox, place_fulcrum));
     }
 
-    edge_balance.push_back(std::make_tuple(curr_link->edge()->branch_length, 1.0, mass_dist));
+    // Finally, add the torque coming from further down the tree.
+    edge_balance.push_back(std::make_pair(central_edge->branch_length, dist_fulcrum));
 
-    LOG_DBG << "prox_sum " << prox_sum;
-    LOG_DBG << "dist_sum " << dist_sum;
+    // TODO we might not need the fulcrums on the edge, just the positions and masses.
+    // change that to make code easiert to understand.
+
+    LOG_DBG << "edge_balance:";
+    for (auto& e : edge_balance) {
+        LOG_DBG1 << "at " << e.first << " with mass " << e.second.mass << " and torque " << e.second.torque;
+    }
+
+    LOG_DBG << "prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
+    LOG_DBG << "dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
 
     // This is the loop where we find the center of the edge.
-    for (size_t pos = 1; pos < edge_balance.size(); ++pos) {
-        auto& edge = edge_balance[pos];
-        LOG_DBG1 << "at " << std::get<0>(edge) << " with ratio " << std::get<1>(edge) << " and mass " << std::get<2>(edge);
+    size_t pos       = 1;
+    double dist_diff = 0.0;
+    for (; pos < edge_balance.size(); ++pos) {
+        auto& curr_point = edge_balance[pos];
 
-        double prox_diff = std::get<0>(edge) - std::get<0>(edge_balance[pos-1];
-        dist_sum -= (prox_diff + std::get<2>(edge)) * std::get<1>(edge);
+        // Get the distance that we travelled from the last point on the edge. This is important to
+        // know how much to change the torques.
+        dist_diff = curr_point.first - edge_balance[pos-1].first;
 
-        if (prox_sum > dist_sum) {
-            /* code */
+        LOG_DBG1 << "iteration " << pos;
+        LOG_DBG2 << "at " << curr_point.first << " with mass " << curr_point.second.mass << " and torque " << curr_point.second.torque;
+        LOG_DBG2 << "dist diff " << dist_diff;
+
+        LOG_DBG2 << "prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
+        LOG_DBG2 << "dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
+
+        if (
+            prox_sum.torque + prox_sum.mass * dist_diff >=
+            dist_sum.torque - dist_sum.mass * dist_diff
+        ) {
+            break;
         }
+
+        // Adjust the torques to the new point.
+        prox_sum.torque += prox_sum.mass * dist_diff;
+        dist_sum.torque -= dist_sum.mass * dist_diff;
+
+        // Also the masses: the mass of the current point moves from the distal fulcrum to the
+        // proximal one.
+        prox_sum.mass   += curr_point.second.mass;
+        dist_sum.mass   -= curr_point.second.mass;
+
+        LOG_DBG2 << "new prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
+        LOG_DBG2 << "new dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
     }
+
+    LOG_DBG2 << "final prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
+    LOG_DBG2 << "final dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
+
+    LOG_DBG << "pos " << pos << " size " << edge_balance.size();
+
+    // If the algorithm is correct, we will never finish the last iteration of the loop above,
+    // because that would imply that we still did not find our central part of the edge. We might
+    // leave the loop (via break) not until the last iteration (which means, that this is where the
+    // center lies), but we will never finish the loop via its default exit condition.
+    // So let's assert that we actually didn't.
+    // assert(pos < edge_balance.size());
+
+    // if (pos == edge_balance.size() - 1) {
+    //     /* code */
+    // }
+
+    double result = (dist_sum.torque - prox_sum.torque
+                    + (dist_sum.mass * dist_diff)
+                    ) / (dist_sum.mass + prox_sum.mass);
+    LOG_DBG << "result " << result;
+    result += edge_balance[pos-1].first;
+    LOG_DBG << "result " << result;
 }
 
 /**
