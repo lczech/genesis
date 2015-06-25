@@ -1604,10 +1604,24 @@ std::string PlacementMap::dump() const
 
     // TODO write a simple class for table output. or find a lib...
 
+    // Get the maximum length of any name of the pqueries. Set it to at least the length of the
+    // header (=4).
+    size_t max_name_len = 4;
+    for (const auto& pqry : pqueries_) {
+        std::string name = pqry->names.size() > 0 ? pqry->names[0]->name : "";
+        size_t name_len = name.length();
+        if (pqry->names.size() > 1) {
+            name_len += 4 + static_cast<size_t>(ceil(log10(pqry->names.size() - 1)));
+        }
+        if (name_len > max_name_len) {
+            max_name_len = name_len;
+        }
+    }
+
     std::ostringstream out;
     size_t num_len = static_cast<size_t>(ceil(log10(placement_count())));
     out << print_cell("#", num_len);
-    out << print_cell("name", 60, 'l');
+    out << print_cell("name", max_name_len, 'l');
     out << print_cell("edge_num", 8);
     out << print_cell("likelihood", 10);
     out << print_cell("like_weight_ratio", 17);
@@ -1624,7 +1638,7 @@ std::string PlacementMap::dump() const
 
         for (const auto& p : pqry->placements) {
             out << print_cell(std::to_string(i), num_len);
-            out << print_cell(name, 60, 'l');
+            out << print_cell(name, max_name_len, 'l');
             out << print_cell(std::to_string(p->edge_num), 8);
             out << print_cell(std::to_string(p->likelihood), 10);
             out << print_cell(std::to_string(p->like_weight_ratio), 17);
