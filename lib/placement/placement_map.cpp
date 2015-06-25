@@ -893,8 +893,9 @@ double PlacementMap::earth_movers_distance(
  * `proximal_length` and (if specificed in the method parameter) the `pendant_length` of the
  * placements.
  */
-void PlacementMap::center_of_gravity (const bool with_pendant_length) const
-{
+std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
+    const bool with_pendant_length
+) const {
     // This struct stores the torque that acts on a certain point (called the fulcrum) from a
     // specific direction. It also stores the mass that created that torque, in order to be able to
     // calculate the new torque when moving around the tree.
@@ -1135,6 +1136,7 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
                     + (dist_fulcrum.mass * central_edge->branch_length)
                     ) / (dist_fulcrum.mass + prox_fulcrum.mass);
     LOG_DBG << "approx " << approx;
+    return std::make_pair(central_edge, approx);
 
     // We will do an iteration that moves along the edge, balancing the torques on both sides until
     // equilibrium is found. For this, we need to keep track of the masses and torques on the two
@@ -1145,15 +1147,28 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
     Fulcrum prox_sum = prox_fulcrum;
     Fulcrum dist_sum = balance[prev_link];
 
-    // We store the torques and masses of all placements on the edge, sorted by their position on it.
-    // Also, as first and last element of the array, we store the fulcrums that we just calculated.
-    // This makes it obsolete to check them as boundary cases. This list serves as basis for the
-    // iteration, and also as lookup for the iteration that finds the center point.
-    // Its format is: < proximal_length , fulcrum ( = mass, torque ) >.
+    // At this point, the torque on the proximal end of the edge cannot exceed the one on the other
+    // side, as this would mean that we chose the wrong edge as central edge.
+    assert(dist_sum.torque >= prox_sum.torque);
+
+    // We store the influence that each placement on the edge has on the center of gravity.
+    struct BalancePoint
+    {
+        BalancePoint()                : proximal_length(0.0),      mass(0.0), pendant_torque(0.0) {};
+        BalancePoint(double prox_len) : proximal_length(prox_len), mass(0.0), pendant_torque(0.0) {};
+
+        double proximal_length;
+        double mass;
+        double pendant_torque;
+    };
+
+    // Make a list of all placements on the edge, sorted by their position on it.
+    // Also, as first and last element of the array, we store dummy elements for the proximal_length.
+    // This makes it obsolete to check them as boundary cases.
     // We use a hand-sorted vector here (as opposed to a map, which does the ordering for us),
     // because it provides element access "[]", which comes in handy later.
-    std::vector<std::pair<double, Fulcrum>> edge_balance;
-    edge_balance.push_back(std::make_pair(0.0, prox_fulcrum));
+    std::vector<BalancePoint> edge_balance;
+    edge_balance.push_back(BalancePoint(0.0));
 
     // Now add all placements on the edge to the balance variable, sorted by their proximal length.
     central_edge->sort_placements();
@@ -1171,27 +1186,25 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
             place_prox = 0.0;
         }
 
-        double place_dist = place_prox;
+        double place_pendant_torque = 0.0;
         if (with_pendant_length) {
-            place_dist += place->pendant_length;
+            place_pendant_torque = place->like_weight_ratio * place->pendant_length;
         }
 
-        Fulcrum place_fulcrum;
-        place_fulcrum.mass   = place->like_weight_ratio;
-        place_fulcrum.torque = place->like_weight_ratio * place_dist;
+        BalancePoint place_balance;
+        place_balance.proximal_length = place_prox;
+        place_balance.mass            = place->like_weight_ratio;
+        place_balance.pendant_torque  = place_pendant_torque;
 
-        edge_balance.push_back(std::make_pair(place_prox, place_fulcrum));
+        edge_balance.push_back(place_balance);
     }
 
-    // Finally, add the torque coming from further down the tree.
-    edge_balance.push_back(std::make_pair(central_edge->branch_length, dist_fulcrum));
-
-    // TODO we might not need the fulcrums on the edge, just the positions and masses.
-    // change that to make code easiert to understand.
+    // Finally, story the dummy for the end of the edge.
+    edge_balance.push_back(BalancePoint(central_edge->branch_length));
 
     LOG_DBG << "edge_balance:";
     for (auto& e : edge_balance) {
-        LOG_DBG1 << "at " << e.first << " with mass " << e.second.mass << " and torque " << e.second.torque;
+        LOG_DBG1 << "at " << e.proximal_length << " with mass " << e.mass << " and pen torque " << e.pendant_torque;
     }
 
     LOG_DBG << "prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
@@ -1205,10 +1218,12 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
 
         // Get the distance that we travelled from the last point on the edge. This is important to
         // know how much to change the torques.
-        dist_diff = curr_point.first - edge_balance[pos-1].first;
+        dist_diff = curr_point.proximal_length - edge_balance[pos-1].proximal_length;
 
         LOG_DBG1 << "iteration " << pos;
-        LOG_DBG2 << "at " << curr_point.first << " with mass " << curr_point.second.mass << " and torque " << curr_point.second.torque;
+
+        LOG_DBG1 << "at " << curr_point.proximal_length << " with mass " << curr_point.mass << " and pen torque " << curr_point.pendant_torque;
+
         LOG_DBG2 << "dist diff " << dist_diff;
 
         LOG_DBG2 << "prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
@@ -1227,8 +1242,8 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
 
         // Also the masses: the mass of the current point moves from the distal fulcrum to the
         // proximal one.
-        prox_sum.mass   += curr_point.second.mass;
-        dist_sum.mass   -= curr_point.second.mass;
+        prox_sum.mass   += curr_point.mass;
+        dist_sum.mass   -= curr_point.mass;
 
         LOG_DBG2 << "new prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
         LOG_DBG2 << "new dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
@@ -1254,8 +1269,44 @@ void PlacementMap::center_of_gravity (const bool with_pendant_length) const
                     + (dist_sum.mass * dist_diff)
                     ) / (dist_sum.mass + prox_sum.mass);
     LOG_DBG << "result " << result;
-    result += edge_balance[pos-1].first;
+    result += edge_balance[pos-1].proximal_length;
     LOG_DBG << "result " << result;
+}
+
+double PlacementMap::center_of_gravity_distance (
+    const PlacementMap& other, const bool with_pendant_length
+) const {
+    return center_of_gravity_distance (*this, other, with_pendant_length);
+}
+
+double PlacementMap::center_of_gravity_distance (
+    const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length
+) {
+    // TODO outsource this comparator (and other occurences, in merge and in placement mapt set
+    // and maybe more) to the tree class! maybe call it compatible() or so. also see pairwise_distance
+    auto comparator = [] (
+        PlacementTree::ConstIteratorPreorder& it_l,
+        PlacementTree::ConstIteratorPreorder& it_r
+    ) {
+        return it_l.node()->name                      == it_r.node()->name                      &&
+               it_l.node()->index()                   == it_r.node()->index()                   &&
+               it_l.edge()->edge_num                  == it_r.edge()->edge_num                  &&
+               it_l.edge()->primary_node()->index()   == it_r.edge()->primary_node()->index()   &&
+               it_l.edge()->secondary_node()->index() == it_r.edge()->secondary_node()->index();
+    };
+
+    if (!PlacementTree::equal(map_a.tree(), map_b.tree(), comparator)) {
+        LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
+        return -1.0;
+    }
+
+    auto cog_a = map_a.center_of_gravity(with_pendant_length);
+    auto cog_b = map_b.center_of_gravity(with_pendant_length);
+
+    LOG_DBG << "cog a edge " << cog_a.first->index() << " prox " << cog_a.second;
+    LOG_DBG << "cog b edge " << cog_b.first->index() << " prox " << cog_b.second;
+
+    return 0.0;
 }
 
 /**

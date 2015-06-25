@@ -127,20 +127,20 @@ public:
         const PlacementMap& other, const bool with_pendant_length = true
     ) const;
     static double earth_movers_distance (
-        const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length = true
+        const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length = true
     );
 
     // Center of Gravity
 
     // std::pair<PlacementTreeEdge, double> center_of_gravity (
-    void center_of_gravity (
+    std::pair<PlacementTreeEdge*, double> center_of_gravity (
         const bool with_pendant_length = true
     ) const;
     double center_of_gravity_distance (
         const PlacementMap& other, const bool with_pendant_length = true
     ) const;
     static double center_of_gravity_distance (
-        const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length = true
+        const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length = true
     );
 
     // Pairwise Distance
@@ -149,7 +149,7 @@ public:
         const PlacementMap& other, const bool with_pendant_length = true
     ) const;
     static double pairwise_distance (
-        const PlacementMap& left, const PlacementMap& right, const bool with_pendant_length = true
+        const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length = true
     );
 
     // -------------------------------------------------------------------------
