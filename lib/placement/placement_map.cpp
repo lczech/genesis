@@ -1036,7 +1036,7 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
         // iteration.
         LOG_DBG1 << "moving to " << max_link->outer()->node()->name;
         if (max_link->outer() == prev_link) {
-            LOG_DBG << "found at " << curr_link->node()->name;
+            LOG_DBG << "found between " << curr_link->node()->name << " and " << prev_link->node()->name;
             break;
         }
 
@@ -1131,10 +1131,21 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     // Then we are looking for an x where the weights on both sides of it are in equilibrium:
     //         prox_torque + (prox_mass * x) = dist_torque + (dist_mass * (branch_length - x))
     //     <=> x = (dist_torque - prox_torque + (dist_mass * branch_length)) / (dist_mass + prox_mass)
+    // This however does not work when the mass that produced the most torque lies on the edge
+    // itself. In this case, we cannot ignor it of course. The approximation breaks then and gives
+    // number outside of the edge as result. For example, this happens when all mass is on one edge.
+    // So, we need to prevent this from happening and use the center of the edge as an
+    // approximation instead in those cases.
     // In code:
-    double approx = (dist_fulcrum.torque - prox_fulcrum.torque
-                    + (dist_fulcrum.mass * central_edge->branch_length)
-                    ) / (dist_fulcrum.mass + prox_fulcrum.mass);
+    double approx;
+    if (dist_fulcrum.mass == 0.0 || prox_fulcrum.mass == 0.0) {
+        approx = central_edge->branch_length / 2.0;
+    } else {
+        approx = (dist_fulcrum.torque - prox_fulcrum.torque
+                 + (dist_fulcrum.mass * central_edge->branch_length)
+                 ) / (dist_fulcrum.mass + prox_fulcrum.mass);
+    }
+
     LOG_DBG << "approx " << approx;
     return std::make_pair(central_edge, approx);
 
@@ -1311,6 +1322,10 @@ double PlacementMap::center_of_gravity_distance (
 
     LOG_DBG << "cog a edge " << edge_a->index() << " prox " << prox_a;
     LOG_DBG << "cog b edge " << edge_b->index() << " prox " << prox_b;
+
+    // TODO turn the result of cog method into a class TreePoint or so, and write functions for this
+    // like distance to another point, which uses the code below. then replace the code by calling
+    // this function.
 
     double dist = -1.0;
     if (edge_a->index() == edge_b->index()) {
