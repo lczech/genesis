@@ -100,7 +100,8 @@ namespace genesis {
 // define special log shortcuts: the list of bools represent
 // the members of struct LogDetails and indicate which parts shall be included.
 
-/** @brief %Logging of a message that is always displayed.
+/**
+ * @brief %Logging of a message that is always displayed.
  *
  * It does not include any details with its message stream (thus, is
  * independent of Logging::details) and is always logged (independent of the max
@@ -110,7 +111,8 @@ namespace genesis {
 #define LOG_BOLD GENESIS_LOG_DETAILS(genesis::Logging::kNone, \
     false, false, false, false, false, false, false, false, false)
 
-/** @brief %Logging of a message with timing information.
+/**
+ * @brief %Logging of a message with timing information.
  *
  * It includes the run time difference to the last log message in seconds
  * as its only detail (independent of Logging::details). This is particularly
@@ -119,6 +121,17 @@ namespace genesis {
  */
 #define LOG_TIME GENESIS_LOG_DETAILS(genesis::Logging::kDebug, \
     false, false, false, false , true,  false, false, false, false)
+
+/**
+ * @brief This macro sets the logging level to a certain value for this scope and sets
+ * it back to the original value on exiting the scope.
+ *
+ * This is useful to disable debug messages in a function while still beging able to activate them
+ * when needed. The macro creates class instance of LoggingScopeLevel with a long and hopefully
+ * unique name.
+ */
+#define LOG_SCOPE_LEVEL(level) \
+    LoggingScopeLevel genesis_logging_scope_level_temp_object(level);
 
 /**
  * @brief %Logging of a progress message.
@@ -194,7 +207,7 @@ inline long LoggingProgressValue (long value = -1)
 }
 
 // =============================================================================
-//     LoggingDetails
+//     Logging Details
 // =============================================================================
 
 /**
@@ -500,6 +513,36 @@ protected:
     // array of streams that are used for output
     static std::vector<std::ostream*> ostreams_;
 };
+
+// =============================================================================
+//     Logging Scope Level
+// =============================================================================
+
+/**
+ * @brief Class that sets the Logging Level to a value von construction and set it back on
+ * destruction. This is used by the log scope level macro.
+ */
+class LoggingScopeLevel
+{
+public:
+    LoggingScopeLevel(Logging::LoggingLevel scope_level)
+    {
+        previous_level = Logging::max_level();
+        Logging::max_level(scope_level);
+    }
+
+    ~LoggingScopeLevel()
+    {
+        Logging::max_level(previous_level);
+    }
+    
+private:
+    Logging::LoggingLevel previous_level;
+};
+
+// =============================================================================
+//     Logging Progress
+// =============================================================================
 
 /*
  * This was a test to make LOG_PROG work with incrementing counters like
