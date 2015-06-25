@@ -1099,21 +1099,13 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
 
     // Define the masses and torques at both ends of the edge: proximal and distal mass/torque.
     // Calculate them as the sums of the values from the subtree that lies behind the edge.
-    Fulcrum dist_fulcrum;
     Fulcrum prox_fulcrum;
+    Fulcrum dist_fulcrum;
 
     assert(balance.count(curr_link) > 0);
     assert(balance.count(prev_link) > 0);
 
     PlacementTree::LinkType* link;
-    link = curr_link->next();
-    while (link != curr_link) {
-        assert(balance.count(link));
-        dist_fulcrum.mass   += balance[link].mass;
-        dist_fulcrum.torque += balance[link].torque;
-        link = link->next();
-    }
-
     link = prev_link->next();
     while (link != prev_link) {
         assert(balance.count(link));
@@ -1122,8 +1114,16 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
         link = link->next();
     }
 
-    LOG_DBG << "dist_mass " << dist_fulcrum.mass << ", dist_torque " << dist_fulcrum.torque;
+    link = curr_link->next();
+    while (link != curr_link) {
+        assert(balance.count(link));
+        dist_fulcrum.mass   += balance[link].mass;
+        dist_fulcrum.torque += balance[link].torque;
+        link = link->next();
+    }
+
     LOG_DBG << "prox_mass " << prox_fulcrum.mass << ", prox_torque " << prox_fulcrum.torque;
+    LOG_DBG << "dist_mass " << dist_fulcrum.mass << ", dist_torque " << dist_fulcrum.torque;
 
     // A simple approximation of the solution is to calculate the balancing point on the edge
     // without considering the influence of the placements on the edge:
@@ -1132,22 +1132,22 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     //         prox_torque + (prox_mass * x) = dist_torque + (dist_mass * (branch_length - x))
     //     <=> x = (dist_torque - prox_torque + (dist_mass * branch_length)) / (dist_mass + prox_mass)
     // This however does not work when the mass that produced the most torque lies on the edge
-    // itself. In this case, we cannot ignor it of course. The approximation breaks then and gives
-    // number outside of the edge as result. For example, this happens when all mass is on one edge.
-    // So, we need to prevent this from happening and use the center of the edge as an
-    // approximation instead in those cases.
+    // itself. The approximation breaks then and gives a length outside of the edge as result. Thus,
+    // we cannot ignore it in such a case. For example, this happens when all mass is on one edge.
+    // So, we need to check for those cases and if so, use the center of the edge as the
+    // approximation.
     // In code:
-    double approx;
-    if (dist_fulcrum.mass == 0.0 || prox_fulcrum.mass == 0.0) {
-        approx = central_edge->branch_length / 2.0;
+    double approx_proximal_length;
+    if (prox_fulcrum.mass == 0.0 || dist_fulcrum.mass == 0.0) {
+        approx_proximal_length = central_edge->branch_length / 2.0;
     } else {
-        approx = (dist_fulcrum.torque - prox_fulcrum.torque
-                 + (dist_fulcrum.mass * central_edge->branch_length)
-                 ) / (dist_fulcrum.mass + prox_fulcrum.mass);
+        approx_proximal_length = (dist_fulcrum.torque - prox_fulcrum.torque
+                               + (dist_fulcrum.mass * central_edge->branch_length))
+                               / (dist_fulcrum.mass + prox_fulcrum.mass);
     }
 
-    LOG_DBG << "approx " << approx;
-    return std::make_pair(central_edge, approx);
+    LOG_DBG << "approx_proximal_length " << approx_proximal_length;
+    // return std::make_pair(central_edge, approx_proximal_length);
 
     // We will do an iteration that moves along the edge, balancing the torques on both sides until
     // equilibrium is found. For this, we need to keep track of the masses and torques on the two
@@ -1159,10 +1159,10 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     Fulcrum dist_sum = balance[prev_link];
 
     // At this point, the torque on the proximal end of the edge cannot exceed the one on the other
-    // side, as this would mean that we chose the wrong edge as central edge.
+    // side, as this would mean that we have chosen the wrong edge as central edge.
     assert(dist_sum.torque >= prox_sum.torque);
 
-    // We store the influence that each placement on the edge has on the center of gravity.
+    // We store the influence that each placement on the edge has.
     struct BalancePoint
     {
         BalancePoint()                : proximal_length(0.0),      mass(0.0), pendant_torque(0.0) {};
@@ -1179,6 +1179,7 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     // We use a hand-sorted vector here (as opposed to a map, which does the ordering for us),
     // because it provides element access "[]", which comes in handy later.
     std::vector<BalancePoint> edge_balance;
+    edge_balance.reserve(central_edge->placements.size() + 2);
     edge_balance.push_back(BalancePoint(0.0));
 
     // Now add all placements on the edge to the balance variable, sorted by their proximal length.
@@ -1276,12 +1277,14 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     //     /* code */
     // }
 
-    double result = (dist_sum.torque - prox_sum.torque
-                    + (dist_sum.mass * dist_diff)
-                    ) / (dist_sum.mass + prox_sum.mass);
-    LOG_DBG << "result " << result;
-    result += edge_balance[pos-1].proximal_length;
-    LOG_DBG << "result " << result;
+    double result_proximal_length = (dist_sum.torque - prox_sum.torque
+                                  + (dist_sum.mass * dist_diff))
+                                  / (dist_sum.mass + prox_sum.mass);
+    LOG_DBG << "result_proximal_length " << result_proximal_length;
+    result_proximal_length += edge_balance[pos-1].proximal_length;
+    LOG_DBG << "result_proximal_length " << result_proximal_length;
+
+    return std::make_pair(central_edge, result_proximal_length);
 }
 
 double PlacementMap::center_of_gravity_distance (
@@ -1332,6 +1335,8 @@ double PlacementMap::center_of_gravity_distance (
         // same branch case
         dist = std::abs(prox_a - prox_b);
     } else {
+        // TODO instead of the whole vector, we need a distnace between nodes function in the future,
+        // which probably uses the path iterator.
         auto node_dist_a_pri = map_a.tree().node_distance_vector(edge_a->primary_node());
         auto node_dist_a_sec = map_a.tree().node_distance_vector(edge_a->secondary_node());
 
@@ -1659,7 +1664,8 @@ std::string PlacementMap::dump_tree() const
 {
     auto print_line = [] (typename PlacementTree::ConstIteratorPreorder& it)
     {
-        return it.node()->name + ": " + std::to_string(it.edge()->placement_count()) + " placements";
+        return it.node()->name + " [" + std::to_string(it.edge()->edge_num) + "]" ": "
+            + std::to_string(it.edge()->placement_count()) + " placements";
     };
     return TreeView().compact(tree(), print_line);
 }
