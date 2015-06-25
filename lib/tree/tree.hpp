@@ -229,6 +229,9 @@ public:
 
     inline IteratorEulertour begin_eulertour()
     {
+        if (link_count() == 0) {
+            return IteratorEulertour(nullptr);
+        }
         return IteratorEulertour(root_link());
     }
 
@@ -249,6 +252,9 @@ public:
 
     inline ConstIteratorEulertour begin_eulertour() const
     {
+        if (link_count() == 0) {
+            return ConstIteratorEulertour(nullptr);
+        }
         return ConstIteratorEulertour(root_link());
     }
 
@@ -273,6 +279,9 @@ public:
 
     inline IteratorPreorder begin_preorder()
     {
+        if (link_count() == 0) {
+            return IteratorPreorder(nullptr);
+        }
         return IteratorPreorder(root_link());
     }
 
@@ -293,6 +302,9 @@ public:
 
     inline ConstIteratorPreorder begin_preorder() const
     {
+        if (link_count() == 0) {
+            return ConstIteratorPreorder(nullptr);
+        }
         return ConstIteratorPreorder(root_link());
     }
 
@@ -317,6 +329,9 @@ public:
 
     //~ inline IteratorInorder begin_inorder()
     //~ {
+    //if (link_count() == 0) {
+    //     return IteratorInorder(nullptr);
+    // }
         //~ return IteratorInorder(root_link());
     //~ }
 //~
@@ -337,6 +352,9 @@ public:
 
     //~ inline ConstIteratorInorder begin_inorder() const
     //~ {
+    //if (link_count() == 0) {
+    //     return ConstIteratorInorder(nullptr);
+    // }
         //~ return ConstIteratorInorder(root_link());
     //~ }
 //~
@@ -361,6 +379,9 @@ public:
 
     inline IteratorPostorder begin_postorder()
     {
+        if (link_count() == 0) {
+            return IteratorPostorder(nullptr);
+        }
         return IteratorPostorder(root_link());
     }
 
@@ -381,6 +402,9 @@ public:
 
     inline ConstIteratorPostorder begin_postorder() const
     {
+        if (link_count() == 0) {
+            return ConstIteratorPostorder(nullptr);
+        }
         return ConstIteratorPostorder(root_link());
     }
 
@@ -405,6 +429,9 @@ public:
 
     inline IteratorLevelorder begin_levelorder()
     {
+        if (link_count() == 0) {
+            return IteratorLevelorder(nullptr);
+        }
         return IteratorLevelorder(root_link());
     }
 
@@ -425,6 +452,9 @@ public:
 
     inline ConstIteratorLevelorder begin_levelorder() const
     {
+        if (link_count() == 0) {
+            return ConstIteratorLevelorder(nullptr);
+        }
         return ConstIteratorLevelorder(root_link());
     }
 
