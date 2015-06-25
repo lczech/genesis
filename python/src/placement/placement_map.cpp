@@ -29,6 +29,11 @@ void BoostPythonExport_PlacementMap()
             get_docstring("void ::genesis::PlacementMap::center_of_gravity (const bool with_pendant_length=true) const")
         )
         .def(
+            "center_of_gravity_distance",
+            ( double ( ::genesis::PlacementMap::* )( const PlacementMap &, const bool ) const )( &::genesis::PlacementMap::center_of_gravity_distance ),
+            ( boost::python::arg("other"), boost::python::arg("with_pendant_length")=(const bool)(true) )
+        )
+        .def(
             "clear",
             ( void ( ::genesis::PlacementMap::* )(  ))( &::genesis::PlacementMap::clear ),
             get_docstring("void ::genesis::PlacementMap::clear ()")

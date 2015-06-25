@@ -1303,10 +1303,45 @@ double PlacementMap::center_of_gravity_distance (
     auto cog_a = map_a.center_of_gravity(with_pendant_length);
     auto cog_b = map_b.center_of_gravity(with_pendant_length);
 
-    LOG_DBG << "cog a edge " << cog_a.first->index() << " prox " << cog_a.second;
-    LOG_DBG << "cog b edge " << cog_b.first->index() << " prox " << cog_b.second;
+    auto edge_a = cog_a.first;
+    auto edge_b = cog_b.first;
 
-    return 0.0;
+    double prox_a = cog_a.second;
+    double prox_b = cog_b.second;
+
+    LOG_DBG << "cog a edge " << edge_a->index() << " prox " << prox_a;
+    LOG_DBG << "cog b edge " << edge_b->index() << " prox " << prox_b;
+
+    double dist = -1.0;
+    if (edge_a->index() == edge_b->index()) {
+        // same branch case
+        dist = std::abs(prox_a - prox_b);
+    } else {
+        auto node_dist_a_pri = map_a.tree().node_distance_vector(edge_a->primary_node());
+        auto node_dist_a_sec = map_a.tree().node_distance_vector(edge_a->secondary_node());
+
+        double pp, pd, dp;
+
+        // proximal-proximal case
+        pp = prox_a
+           + node_dist_a_pri[edge_b->primary_node()->index()]
+           + prox_b;
+
+        // proximal-distal case
+        pd = edge_a->branch_length - prox_a
+           + node_dist_a_sec[edge_b->primary_node()->index()]
+           + prox_b;
+
+        // distal-proximal case
+        dp = prox_a
+           + node_dist_a_pri[edge_b->secondary_node()->index()]
+           + edge_b->branch_length - prox_b;
+
+        // find min of the three cases and
+        dist = std::min(pp, std::min(pd, dp));
+    }
+
+    return dist;
 }
 
 /**
