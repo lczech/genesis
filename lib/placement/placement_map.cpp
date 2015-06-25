@@ -1241,16 +1241,27 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
         LOG_DBG2 << "prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
         LOG_DBG2 << "dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
 
+        double pendant_torque_sum = 0.0;
+        for (size_t i = 1; i < edge_balance.size(); ++i) {
+            if (edge_balance[i].proximal_length == edge_balance[pos].proximal_length) {
+                pendant_torque_sum += edge_balance[i].pendant_torque;
+            } else if (i > pos) {
+                break;
+            }
+        }
+
+        LOG_DBG2 << "pendant_torque_sum " << pendant_torque_sum;
+
         if (
             prox_sum.torque + prox_sum.mass * dist_diff >=
-            dist_sum.torque - dist_sum.mass * dist_diff
+            dist_sum.torque - dist_sum.mass * dist_diff - pendant_torque_sum
         ) {
             break;
         }
 
         // Adjust the torques to the new point.
-        prox_sum.torque += prox_sum.mass * dist_diff;
-        dist_sum.torque -= dist_sum.mass * dist_diff;
+        prox_sum.torque += prox_sum.mass * dist_diff + curr_point.pendant_torque;
+        dist_sum.torque -= dist_sum.mass * dist_diff + curr_point.pendant_torque;
 
         // Also the masses: the mass of the current point moves from the distal fulcrum to the
         // proximal one.
