@@ -141,7 +141,6 @@ void Logging::log_to_file (const std::string& fn)
 //     Destructor (does the actual work)
 // =============================================================================
 
-// TODO the output of the log is not thread safe
 /**
  * @brief Destructor that is invoked at the end of each log line and does the actual
  * output.

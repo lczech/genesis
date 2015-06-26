@@ -13,8 +13,9 @@
 #include <iomanip>
 #include <map>
 #include <sstream>
-#include <thread>
+#include <stdio.h>
 #include <unordered_map>
+#include <utility>
 
 #ifdef PTHREADS
 #    include <thread>
@@ -235,6 +236,45 @@ PlacementMap::EdgeNumMapType PlacementMap::edge_num_map() const
         en_map.emplace(edge->edge_num, edge);
     }
     return std::move(en_map);
+}
+
+/**
+ * @brief Returns a plain representation of all pqueries of this map.
+ *
+ * This method produces a whole copy of all pqueries and their placements (though, not their names)
+ * in a plain POD format. This format is meant for speeding up computations that need access to
+ * the data a lot - which would require several pointer indirections in the normal representation
+ * of the data.
+ *
+ * This comes of course at the cost of reduced flexibility, as all indices are fixed in the
+ * plain data structre: changing a value here will not have any effect on the original data or
+ * even on the values of the pqueries. Thus, most probably this will lead to corruption. Therefore,
+ * this data structure is meant for reading only.
+ */
+std::vector<PqueryPlain> PlacementMap::plain_queries() const
+{
+    auto pqueries = std::vector<PqueryPlain>(pqueries_.size());
+    for (size_t i = 0; i < pqueries_.size(); ++i) {
+        pqueries[i].index = i;
+
+        const auto& opqry = pqueries_[i];
+        pqueries[i].placements = std::vector<PqueryPlacementPlain>(opqry->placements.size());
+
+        for (size_t j = 0; j < opqry->placements.size(); ++j) {
+            const auto& oplace = opqry->placements[j];
+            auto& place = pqueries[i].placements[j];
+
+            place.edge_index           = oplace->edge->index();
+            place.primary_node_index   = oplace->edge->primary_node()->index();
+            place.secondary_node_index = oplace->edge->secondary_node()->index();
+
+            place.branch_length        = oplace->edge->branch_length;
+            place.pendant_length       = oplace->pendant_length;
+            place.proximal_length      = oplace->proximal_length;
+            place.like_weight_ratio    = oplace->like_weight_ratio;
+        }
+    }
+    return pqueries;
 }
 
 /**
@@ -533,6 +573,106 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
     return hist;
 }
 
+// =================================================================================================
+//     Distances
+// =================================================================================================
+
+/**
+ * @brief Calculates the normalized distance between two plain pqueries. It is mainly a helper
+ * method for distance calculations (e.g., pairwise distance, variance).
+ *
+ * For each placement in the two pqueries, a distance is calculated, and their normalized sum is
+ * returned. Normalization is done using the mass of placements in both pqueries.
+ *
+ * The distance between two placements is calculated as the shortest path between them. This
+ * includes the their position on the branches, and - if specified - the pendant_length of both.
+ * There are three cases that might occur:
+ *
+ *   1. **Both placements are on the same branch.**
+ *      In this case, their distance is caluclated as their difference in proximal_lengths (plus
+ *      if specified the sum of their pendant_lengths).
+ *
+ *   2. **The path between the placements includes the root.**
+ *      The distance of a placement from its neighbouring nodes is usually given in form of the
+ *      proximal_length, which is the distance of the placement to the node (at the end of its
+ *      branch) that lies in direction of the root. Thus, there is an implicit notion of a root,
+ *      that we need to consider. If the path between two placements contains the root, we can
+ *      directly calculate their distance as the distance between the two promixal nodes plus
+ *      proximal_lengths (and possibly pendant_lengths) of both placements. We call this the
+ *      promixal-promixal case.
+ *
+ *   3. **The root is not part of the path between the placements.**
+ *      This case means that one of the two placements lies on the path between the other placement
+ *      and the root -- thus, the path between the placements does not contain the root.
+ *      The distance between the placements cannot be calculated using the proximal_lengths
+ *      directly, but we need to get the distal_length (away from the root) of the inner placement
+ *      first. This is simply the difference between branch_length and proximal_length of that
+ *      placement. Of course, this case comes in two flavours, because both placements can be the
+ *      inner or outer one. They are called proximal-distal case and distal-proximal case,
+ *      respectively.
+ *
+ * The first case is easy to detect by comparing the edge nums. However, distinguishing between the
+ * latter two cases is expensive, as it involves finding the path to the root for both placements.
+ * To speed this up, we instead use a distance matrix that is calculated in the beginning of any
+ * algorithm using this method and contains the pairwise distances between all nodes of the tree.
+ * Using this, we do not need to find paths between placements, but simply go to the nodes at the
+ * end of the branches of the placements and do a lookup for those nodes.
+ *
+ * With this technique, we can calculate the distances between the placements for all
+ * three cases (promixal-promixal, proximal-distal and distal-proximal) cheaply. The wanted distance
+ * is then simply the minimum of those three distances. This is correct, because the two wrong cases
+ * will always produce an overestimation of the distance.
+ *
+ * This distance is normalized using the `like_weight_ratio` of both placements, before
+ * summing it up to calculate the total distance between the pqueries.
+ */
+double PlacementMap::pquery_distance (
+    const PqueryPlain&     pqry_a,
+    const PqueryPlain&     pqry_b,
+    const Matrix<double>&  node_distances,
+    const bool             with_pendant_length
+) {
+    double sum = 0.0;
+    double pp, pd, dp, dist;
+
+    for (const PqueryPlacementPlain& place_a : pqry_a.placements) {
+        for (const PqueryPlacementPlain& place_b : pqry_b.placements) {
+            if (place_a.edge_index == place_b.edge_index) {
+                // same branch case
+                dist = std::abs(place_a.proximal_length - place_b.proximal_length);
+
+            } else {
+                // proximal-proximal case
+                pp = place_a.proximal_length
+                   + node_distances(place_a.primary_node_index, place_b.primary_node_index)
+                   + place_b.proximal_length;
+
+                // proximal-distal case
+                pd = place_a.branch_length - place_a.proximal_length
+                   + node_distances(place_a.secondary_node_index, place_b.primary_node_index)
+                   + place_b.proximal_length;
+
+                // distal-proximal case
+                dp = place_a.proximal_length
+                   + node_distances(place_a.primary_node_index, place_b.secondary_node_index)
+                   + place_b.branch_length - place_b.proximal_length;
+
+                // find min of the three cases and
+                dist = std::min(pp, std::min(pd, dp));
+            }
+
+            //  If needed, use pendant length; normalize it to the weight ratios.
+            if (with_pendant_length) {
+                dist += place_a.pendant_length + place_b.pendant_length;
+            }
+            dist *= place_a.like_weight_ratio * place_b.like_weight_ratio;
+            sum  += dist;
+        }
+    }
+
+    return sum;
+}
+
 /**
  * @brief Calculates the Earth Movers Distance to another sets of placements on a fixed reference
  * tree.
@@ -566,9 +706,8 @@ double PlacementMap::earth_movers_distance(
     double totalmass_l = lhs.placement_mass();
     double totalmass_r = rhs.placement_mass();
 
-    // disable all debug messages for this function...
-    Logging::LoggingLevel ll = Logging::max_level();
-    Logging::max_level(Logging::kInfo);
+    // Disable all debug messages for this function...
+    LOG_SCOPE_LEVEL(Logging::kInfo)
 
     LOG_DBG << "totalmass_l " << totalmass_l;
     LOG_DBG << "totalmass_r " << totalmass_r;
@@ -728,93 +867,609 @@ double PlacementMap::earth_movers_distance(
     }
 
     LOG_DBG << "final distance: " << distance;
-    Logging::max_level(ll);
-
     return distance;
 }
 
 /**
  * @brief Calculate the Center of Gravity of the placements on a tree.
+ *
+ * The center of gravity is the point on the tree where all masses of the placements on the one
+ * side of it times their distance from the point are equal to this sum on the other side of the
+ * point. In the following example, the hat `^` marks this point on a line with two placements:
+ * One has mass 1 and distance 3 from the central point, and one as mass 3 and distance 1,
+ * so that the product of their mass and distance to the point is the same:
+ *
+ *                   3
+ *                   |
+ *     1             |
+ *     |_____________|
+ *               ^
+ *
+ * It is thus like calculating masses and torques on a lever in order to find their physical
+ * center of mass/gravity.
+ *
+ * This calculation is done for the whole tree, with the masses calculated from the
+ * `like_weight_ratio` and distances in terms of the `branch_length` of the edges and the
+ * `proximal_length` and (if specificed in the method parameter) the `pendant_length` of the
+ * placements.
  */
-void PlacementMap::center_of_gravity() const
-{
-    // store a balance of mass per link, so that each element contains the mass that lies
-    // in the direction of this link
-    std::unordered_map<PlacementTree::LinkType*, double> balance;
+std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
+    const bool with_pendant_length
+) const {
+    // This struct stores the torque that acts on a certain point (called the fulcrum) from a
+    // specific direction. It also stores the mass that created that torque, in order to be able to
+    // calculate the new torque when moving around the tree.
+    // In physics, torque is distance times force. However, we consider the force to be constant in
+    // the case of finding the center of gravity, so we neglect it and calculate torque as distance
+    // times mass.
+    struct Fulcrum {
+        Fulcrum() : mass(0.0), torque(0.0) {}
 
-    // do a postorder traversal
+        double mass;
+        double torque;
+    };
+
+    // Disable debug messages while code is not in review.
+    LOG_SCOPE_LEVEL(Logging::kInfo)
+
+    // Store a balance value per link, so that each element contains the mass and its torque that
+    // lies downwards the tree in the direction of this link.
+    std::unordered_map<PlacementTree::LinkType*, Fulcrum> balance;
+
+    // Do a postorder traversal. Collect all placement masses and push them towards the root in
+    // order to calculate the torque that acts on each node.
     for (
         PlacementTree::IteratorPostorder it = this->tree_->begin_postorder();
         it != this->tree_->end_postorder();
         ++it
     ) {
-        // node does not have a corresponding edge (eg the root)
-        if (!it.edge()) {
+        // Node does not have a corresponding edge (this was e.g. the case in the old tree
+        // implementation, where the root had a "virtual" up link; this is not the case any more,
+        // but maybe it will be re-introduced some day, and it does no harm to leave it here).
+        // Also skip the last iteration, as we would assign an unneeded value to the first child
+        // of the root.
+        if (!it.edge() || it.is_last_iteration()) {
             continue;
         }
 
-        double mass = 0.0;
+        // Collect the torque and mass that lies further down in the tree and act on the current
+        // iterators link.
+        Fulcrum curr_fulcrum;
 
-        // add up the masses from children
+        // Add up the masses from the current node's children.
         PlacementTree::LinkType* link = it.link()->next();
         while (link != it.link()) {
-            // we do postorder traversal, so we have seen the child links of the current node,
+            // We do postorder traversal, so we have seen the child links of the current node,
             // which means, they should be in the balance list already.
             assert(balance.count(link));
 
-            mass += balance[link] * it.edge()->branch_length;
-            link  = link->next();
+            curr_fulcrum.mass   += balance[link].mass;
+            curr_fulcrum.torque += balance[link].mass * it.edge()->branch_length;
+            curr_fulcrum.torque += balance[link].torque;
+            link    = link->next();
         }
 
-        // add up the masses of placements on the current branch
+        // Add up the masses of placements on the current edge.
         for (PqueryPlacement* place : it.edge()->placements) {
-            mass += place->pendant_length + place->proximal_length;
+            double place_dist = place->proximal_length;
+            if (with_pendant_length) {
+                place_dist += place->pendant_length;
+            }
+            curr_fulcrum.mass   += place->like_weight_ratio;
+            curr_fulcrum.torque += place->like_weight_ratio * place_dist;
         }
 
         assert(balance.count(it.link()->outer()) == 0);
-        balance[it.link()->outer()] = mass;
+        balance[it.link()->outer()] = curr_fulcrum;
     }
 
-    PlacementTree::LinkType* p_prev = tree_->root_link();
-    PlacementTree::LinkType* p_link = tree_->root_link();
-    double                   p_mass = -1.0;
-    bool                     found  = false;
-    while (!found) {
-        LOG_DBG1 << "a " << p_link->node()->name;
-        p_mass = -1.0;
+    LOG_DBG << "current balance:";
+    for (auto& v : balance) {
+        LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass << ", torque " << v.second.torque;
+    }
+
+    // Now we have calculated all massed that lie down the tree as seen from the root and the torque
+    // they create. We can now start finding the edge where the center of gravity lies. This is done
+    // by going down the tree in the direction where the most torque comes from and at the same time
+    // pulling with us all the masses that come from the other nodes. Once we have more torque from
+    // behind us (speak: up in the tree) that lies ahead of us (speak: down the tree), we have found
+    // the center edge.
+
+    // Keep track of the link whose edge we are currently examining, as well as the one that we
+    // examined previously (on iteration of the loop earlier). We start at the root.
+    PlacementTree::LinkType* curr_link = tree_->root_link();
+    PlacementTree::LinkType* prev_link = nullptr;
+
+    // For asserting purposes, we keep track of the number of loop iterations we do.
+    // This can never be more than the tree height (in number of nodes from root to deepest leaf)
+    // plus one last iteration for going back towards the root.
+    size_t num_iterations = 0;
+    auto   depth_vector = tree_->node_depth_vector();
+    size_t max_iterations = 1 + static_cast<size_t>(
+        *std::max_element(depth_vector.begin(), depth_vector.end())
+    );
+    // TODO turn this thing into a function similar to tree.height(), and name it aptly (find some
+    // better convention to distinguish between depth [number of nodes on a path] and distance [sum
+    // of branch lengths]. maybe distance and lengths instead?!).
+    // TODO once the center of gravity method is established, this assertion might be removed.
+
+    LOG_DBG << "max it " << max_iterations;
+
+    // Loop until the balancing edge is found.
+    while (true) {
+        assert (num_iterations <= max_iterations);
+        ++num_iterations;
+
+        LOG_DBG << "iteration " << num_iterations;
+        LOG_DBG1 << "find max at " << curr_link->node()->name;
+
+        // Find the direction away from the current node that has the highest torque.
+        // At the same time, collect the sum of masses and torques at the node, in order to push
+        // them towards the node with highest torque later (so that the next iteration will have
+        // values to work on).
+        PlacementTree::LinkType* max_link   = nullptr;
+        double                   max_torque = -1.0;
+        Fulcrum                  sum;
+
         for (
-            PlacementTree::NodeType::IteratorLinks it_l = p_link->node()->begin_links();
-            it_l != p_link->node()->end_links();
+            auto it_l = curr_link->node()->begin_links();
+            it_l != curr_link->node()->end_links();
             ++it_l
         ) {
-            LOG_DBG2 << it_l.node()->name << " " << balance[it_l.link()];
-            if (balance[it_l.link()] > p_mass) {
-                p_link = it_l.link();
+            // Make sure that we actually have a useable value.
+            assert(balance.count(it_l.link()) > 0);
+
+            LOG_DBG2 << "at " <<  it_l.link()->outer()->node()->name
+                     << " with mass "  << balance[it_l.link()].mass
+                     << " and torque "  << balance[it_l.link()].torque;
+            if (balance[it_l.link()].torque > max_torque) {
+                max_link   = it_l.link();
+                max_torque = balance[it_l.link()].torque;
             }
+            sum.mass   += balance[it_l.link()].mass;
+            sum.torque += balance[it_l.link()].torque;
         }
-        LOG_DBG1 << "b " << p_link->node()->name;
-        p_link = p_link->outer();
-        if (p_link == p_prev) {
-            found = true;
+        assert(max_link);
+
+        // Check if we found the edge where the center of gravity lies. This is the case when the
+        // the highest torque is coming from the direction where we came just from in the last
+        // iteration.
+        LOG_DBG1 << "moving to " << max_link->outer()->node()->name;
+        if (max_link->outer() == prev_link) {
+            LOG_DBG << "found between " << curr_link->node()->name << " and " << prev_link->node()->name;
             break;
         }
-        p_prev = p_link;
+
+        // If we are not done yet, move down the edge.
+        prev_link = max_link;
+        curr_link = max_link->outer();
+
+        LOG_DBG1 << "mass sum " << sum.mass << ", torque sum " << sum.torque;
+
+        // Now we are at a node where we have calculated only the masses and torques coming from
+        // further down in the tree so far, but not the values coming from the direction of the root
+        // (from where we just came). So we need to calculate these now:
+
+        // Subtract the mass and torque of the direction where we found the most torque again,
+        // so that all that is left are the sums of all the other (not maximum) nodes. Then push it
+        // towards to the end of the edge.
+        sum.mass   -= balance[max_link].mass;
+        sum.torque -= balance[max_link].torque;
+        sum.torque += sum.mass * max_link->edge()->branch_length;
+
+        // Add masses of the placements on this edge.
+        for (PqueryPlacement* place : max_link->edge()->placements) {
+            double p_dist = max_link->edge()->branch_length - place->proximal_length;
+            if (with_pendant_length) {
+                p_dist += place->pendant_length;
+            }
+            sum.mass   += place->like_weight_ratio;
+            sum.torque += place->like_weight_ratio * p_dist;
+        }
+
+        // Store the values at the corresponding link.
+        balance[curr_link] = sum;
+        LOG_DBG1 << "stored mass " << sum.mass << " and torque " << sum.torque << " at " << max_link->outer()->node()->name;
+
+        LOG_DBG << "end of iteration " << num_iterations << "\n";
     }
 
-    //~ PlacementTree::LinkType* link = tree->root_link();
-    //~ while (link != it.link()) {
-        //~ // we do postorder traversal, so we have seen the child links of the current node,
-        //~ // which means, they should be in the balance list already.
-        //~ assert(balance.count(link));
-//~
-        //~ mass += balance[link] * it.edge()->branch_length;
-        //~ link = link->next();
-    //~ }
+    // Assert that the two links are actually the two ends of the same edge and that their nodes
+    // are the correct ones in terms of direction to the root.
+    assert(curr_link->edge() == prev_link->edge());
+    assert(prev_link->node() == prev_link->edge()->primary_node());
+    assert(curr_link->node() == curr_link->edge()->secondary_node());
 
-    for (auto pair : balance) {
-        LOG_DBG1 << pair.first->node()->name << ": " << pair.second << "\n";
-        //~ distance += std::abs(pair.second);
+    LOG_DBG << "current balance:";
+    for (auto& v : balance) {
+        LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass << ", torque " << v.second.torque;
     }
+
+    LOG_DBG << "cur  " << curr_link->node()->name << " with mass " << balance[curr_link].mass << " and torque " << balance[curr_link].torque;
+    LOG_DBG << "prev " << prev_link->node()->name << " with mass " << balance[prev_link].mass << " and torque " << balance[prev_link].torque;
+
+    // At this point, we have found the central edge that balances the placement masses on the tree.
+    // curr_link is at the downwards (away from the root) end of this edge, while prev_link at its
+    // top (towards the root).
+    // All that is left now is to find the correct position on this edge. For this, we need to
+    // consider the masses and torques that come from both ends of the edge, as well as the
+    // placements on the edge itself.
+
+    PlacementTree::EdgeType* central_edge = curr_link->edge();
+
+    // Define the masses and torques at both ends of the edge: proximal and distal mass/torque.
+    // Calculate them as the sums of the values from the subtree that lies behind the edge.
+    Fulcrum prox_fulcrum;
+    Fulcrum dist_fulcrum;
+
+    assert(balance.count(curr_link) > 0);
+    assert(balance.count(prev_link) > 0);
+
+    PlacementTree::LinkType* link;
+    link = prev_link->next();
+    while (link != prev_link) {
+        assert(balance.count(link));
+        prox_fulcrum.mass   += balance[link].mass;
+        prox_fulcrum.torque += balance[link].torque;
+        link = link->next();
+    }
+
+    link = curr_link->next();
+    while (link != curr_link) {
+        assert(balance.count(link));
+        dist_fulcrum.mass   += balance[link].mass;
+        dist_fulcrum.torque += balance[link].torque;
+        link = link->next();
+    }
+
+    LOG_DBG << "prox_mass " << prox_fulcrum.mass << ", prox_torque " << prox_fulcrum.torque;
+    LOG_DBG << "dist_mass " << dist_fulcrum.mass << ", dist_torque " << dist_fulcrum.torque;
+
+    // A simple approximation of the solution is to calculate the balancing point on the edge
+    // without considering the influence of the placements on the edge:
+    // Let x the solution, measured as length from the proximal node.
+    // Then we are looking for an x where the weights on both sides of it are in equilibrium:
+    //         prox_torque + (prox_mass * x) = dist_torque + (dist_mass * (branch_length - x))
+    //     <=> x = (dist_torque - prox_torque + (dist_mass * branch_length)) / (dist_mass + prox_mass)
+    // This however does not work when the mass that produced the most torque lies on the edge
+    // itself. The approximation breaks then and gives a length outside of the edge as result. Thus,
+    // we cannot ignore it in such a case. For example, this happens when all mass is on one edge.
+    // So, we need to check for those cases and if so, use the center of the edge as the
+    // approximation.
+    // In code:
+    double approx_proximal_length;
+    if (prox_fulcrum.mass == 0.0 || dist_fulcrum.mass == 0.0) {
+        approx_proximal_length = central_edge->branch_length / 2.0;
+    } else {
+        approx_proximal_length = (dist_fulcrum.torque - prox_fulcrum.torque
+                               + (dist_fulcrum.mass * central_edge->branch_length))
+                               / (dist_fulcrum.mass + prox_fulcrum.mass);
+    }
+
+    LOG_DBG << "approx_proximal_length " << approx_proximal_length;
+    // return std::make_pair(central_edge, approx_proximal_length);
+
+    // We will do an iteration that moves along the edge, balancing the torques on both sides until
+    // equilibrium is found. For this, we need to keep track of the masses and torques on the two
+    // sides: the variables hold those values as seen from the point that we are trying to find.
+    // At first, the prox_sum contains just prox_fulcrum, while dist_sum contains all values on the
+    // other side. During the iteration later, those two variables will change while moving along
+    // the edge, until equilibrium.
+    Fulcrum prox_sum = prox_fulcrum;
+    Fulcrum dist_sum = balance[prev_link];
+
+    // At this point, the torque on the proximal end of the edge cannot exceed the one on the other
+    // side, as this would mean that we have chosen the wrong edge as central edge.
+    assert(dist_sum.torque >= prox_sum.torque);
+
+    // We store the influence that each placement on the edge has.
+    struct BalancePoint
+    {
+        BalancePoint()                : proximal_length(0.0),      mass(0.0), pendant_torque(0.0) {};
+        BalancePoint(double prox_len) : proximal_length(prox_len), mass(0.0), pendant_torque(0.0) {};
+
+        double proximal_length;
+        double mass;
+        double pendant_torque;
+    };
+
+    // Make a list of all placements on the edge, sorted by their position on it.
+    // Also, as first and last element of the array, we store dummy elements for the proximal_length.
+    // This makes it obsolete to check them as boundary cases.
+    // We use a hand-sorted vector here (as opposed to a map, which does the ordering for us),
+    // because it provides element access "[]", which comes in handy later.
+    std::vector<BalancePoint> edge_balance;
+    edge_balance.reserve(central_edge->placements.size() + 2);
+    edge_balance.push_back(BalancePoint(0.0));
+
+    double tqs = 0.0;
+    double mss = 0.0;
+
+    // Now add all placements on the edge to the balance variable, sorted by their proximal length.
+    central_edge->sort_placements();
+    for (PqueryPlacement* place : central_edge->placements) {
+        double place_prox = place->proximal_length;
+
+        // Some sanity checks for wrong data. We do it here because otherwise the algorithm might
+        // produce weird results. However, usually this task is up to the validate() method.
+        if (place_prox > central_edge->branch_length) {
+            LOG_WARN << "Placement found that has proximal_length > branch_length.";
+            place_prox = central_edge->branch_length;
+        }
+        if (place_prox < 0.0) {
+            LOG_WARN << "Placement found that has proximal_length < 0.0.";
+            place_prox = 0.0;
+        }
+
+        double place_pendant_torque = 0.0;
+        if (with_pendant_length) {
+            place_pendant_torque = place->like_weight_ratio * place->pendant_length;
+        }
+
+        tqs += place_prox * place->like_weight_ratio;
+        mss += place->like_weight_ratio;
+
+        BalancePoint place_balance;
+        place_balance.proximal_length = place_prox;
+        place_balance.mass            = place->like_weight_ratio;
+        place_balance.pendant_torque  = place_pendant_torque;
+
+        edge_balance.push_back(place_balance);
+    }
+
+    tqs += dist_fulcrum.torque - prox_fulcrum.torque + (dist_fulcrum.mass * central_edge->branch_length);
+    mss += dist_fulcrum.mass + prox_fulcrum.mass;
+    double solution_without_pendant_length = tqs / mss;
+    LOG_DBG << "tqs " << tqs << ", mss " << mss;
+    LOG_DBG << "solution_without_pendant_length " << solution_without_pendant_length;
+
+    return std::make_pair(central_edge, solution_without_pendant_length);
+
+    // The rest code in this function tries to find a solution when pendant length shall be
+    // considered. However, it might happen that there is no exact solution in this case,
+    // so we decided to ignore pendant lengths on the central branch and return the result
+    // above instead.
+
+    // ----------------------------------------------------
+
+    // Finally, story the dummy for the end of the edge.
+    edge_balance.push_back(BalancePoint(central_edge->branch_length));
+
+    LOG_DBG << "edge_balance:";
+    for (auto& e : edge_balance) {
+        LOG_DBG1 << "at " << e.proximal_length << " with mass " << e.mass << " and pen torque " << e.pendant_torque;
+    }
+
+    LOG_DBG << "prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
+    LOG_DBG << "dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
+
+    // This is the loop where we find the center of the edge.
+    size_t pos       = 1;
+    double dist_diff = 0.0;
+    for (; pos < edge_balance.size(); ++pos) {
+        auto& curr_point = edge_balance[pos];
+
+        // Get the distance that we travelled from the last point on the edge. This is important to
+        // know how much to change the torques.
+        dist_diff = curr_point.proximal_length - edge_balance[pos-1].proximal_length;
+
+        LOG_DBG1 << "iteration " << pos;
+
+        LOG_DBG1 << "at " << curr_point.proximal_length << " with mass " << curr_point.mass << " and pen torque " << curr_point.pendant_torque;
+
+        LOG_DBG2 << "dist diff " << dist_diff;
+
+        LOG_DBG2 << "prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
+        LOG_DBG2 << "dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
+
+        // double pendant_torque_sum = 0.0;
+        // for (size_t i = 1; i < edge_balance.size(); ++i) {
+        //     if (edge_balance[i].proximal_length == curr_point.proximal_length) {
+        //         pendant_torque_sum += edge_balance[i].pendant_torque;
+        //     } else if (i > pos) {
+        //         break;
+        //     }
+        // }
+        // LOG_DBG2 << "pendant_torque_sum " << pendant_torque_sum;
+
+        if (
+            prox_sum.torque + prox_sum.mass * dist_diff >=
+            dist_sum.torque - dist_sum.mass * dist_diff
+        ) {
+            break;
+        }
+
+        // Adjust the torques to the new point.
+        prox_sum.torque += prox_sum.mass * dist_diff + curr_point.pendant_torque;
+        dist_sum.torque -= dist_sum.mass * dist_diff + curr_point.pendant_torque;
+
+        // Also the masses: the mass of the current point moves from the distal fulcrum to the
+        // proximal one.
+        prox_sum.mass   += curr_point.mass;
+        dist_sum.mass   -= curr_point.mass;
+
+        LOG_DBG2 << "new prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
+        LOG_DBG2 << "new dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
+    }
+
+    LOG_DBG << "final prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
+    LOG_DBG << "final dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
+
+    LOG_DBG << "pos " << pos << " size " << edge_balance.size();
+
+    // If the algorithm is correct, we will never finish the last iteration of the loop above,
+    // because that would imply that we still did not find our central part of the edge. We might
+    // leave the loop (via break) not until the last iteration (which means, that this is where the
+    // center lies), but we will never finish the loop via its default exit condition.
+    // So let's assert that we actually didn't.
+    assert(pos < edge_balance.size());
+
+    // if (pos == edge_balance.size() - 1) {
+    //     /* code */
+    // }
+
+    dist_sum.torque -= dist_sum.mass * dist_diff;
+    double result_proximal_length = (dist_sum.torque - prox_sum.torque
+                                  + (dist_sum.mass * dist_diff))
+                                  / (dist_sum.mass + prox_sum.mass);
+    LOG_DBG << "result_proximal_length " << result_proximal_length;
+    result_proximal_length += edge_balance[pos-1].proximal_length;
+    LOG_DBG << "result_proximal_length " << result_proximal_length;
+
+    return std::make_pair(central_edge, result_proximal_length);
+}
+
+double PlacementMap::center_of_gravity_distance (
+    const PlacementMap& other, const bool with_pendant_length
+) const {
+    return center_of_gravity_distance (*this, other, with_pendant_length);
+}
+
+double PlacementMap::center_of_gravity_distance (
+    const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length
+) {
+    // TODO outsource this comparator (and other occurences, in merge and in placement mapt set
+    // and maybe more) to the tree class! maybe call it compatible() or so. also see pairwise_distance
+    auto comparator = [] (
+        PlacementTree::ConstIteratorPreorder& it_l,
+        PlacementTree::ConstIteratorPreorder& it_r
+    ) {
+        return it_l.node()->name                      == it_r.node()->name                      &&
+               it_l.node()->index()                   == it_r.node()->index()                   &&
+               it_l.edge()->edge_num                  == it_r.edge()->edge_num                  &&
+               it_l.edge()->primary_node()->index()   == it_r.edge()->primary_node()->index()   &&
+               it_l.edge()->secondary_node()->index() == it_r.edge()->secondary_node()->index();
+    };
+
+    if (!PlacementTree::equal(map_a.tree(), map_b.tree(), comparator)) {
+        LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
+        return -1.0;
+    }
+
+    // Disable debug messages while code is not in review.
+    LOG_SCOPE_LEVEL(Logging::kInfo)
+
+    auto cog_a = map_a.center_of_gravity(with_pendant_length);
+    auto cog_b = map_b.center_of_gravity(with_pendant_length);
+
+    auto edge_a = cog_a.first;
+    auto edge_b = cog_b.first;
+
+    double prox_a = cog_a.second;
+    double prox_b = cog_b.second;
+
+    LOG_DBG << "cog a edge " << edge_a->index() << " prox " << prox_a;
+    LOG_DBG << "cog b edge " << edge_b->index() << " prox " << prox_b;
+
+    // TODO turn the result of cog method into a class TreePoint or so, and write functions for this
+    // like distance to another point, which uses the code below. then replace the code by calling
+    // this function.
+
+    double dist = -1.0;
+    if (edge_a->index() == edge_b->index()) {
+        // same branch case
+        dist = std::abs(prox_a - prox_b);
+    } else {
+        // TODO instead of the whole vector, we need a distnace between nodes function in the future,
+        // which probably uses the path iterator.
+        auto node_dist_a_pri = map_a.tree().node_distance_vector(edge_a->primary_node());
+        auto node_dist_a_sec = map_a.tree().node_distance_vector(edge_a->secondary_node());
+
+        double pp, pd, dp;
+
+        // proximal-proximal case
+        pp = prox_a
+           + node_dist_a_pri[edge_b->primary_node()->index()]
+           + prox_b;
+
+        // proximal-distal case
+        pd = edge_a->branch_length - prox_a
+           + node_dist_a_sec[edge_b->primary_node()->index()]
+           + prox_b;
+
+        // distal-proximal case
+        dp = prox_a
+           + node_dist_a_pri[edge_b->secondary_node()->index()]
+           + edge_b->branch_length - prox_b;
+
+        // find min of the three cases and
+        dist = std::min(pp, std::min(pd, dp));
+    }
+
+    return dist;
+}
+
+/**
+ * @brief Calculate the pairwise distance between all placements of the two PlacementMaps.
+ *
+ * @param  other               The second PlacementMap to which the distances shall be calculated to.
+ * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
+ *
+ * @return                         Distance value.
+ */
+double PlacementMap::pairwise_distance (
+    const PlacementMap& other, const bool with_pendant_length
+) const {
+    return pairwise_distance (*this, other, with_pendant_length);
+}
+
+/**
+ * @brief Calculate the normalized pairwise distance between all placements of the two PlacementMaps.
+ *
+ * This method calculates the distance between two maps as the normalized sum of the distances
+ * between all pairs of pqueries in the map. It is similar to the variance() calculation, which
+ * calculates this sum for the squared distances between all pqueries of one map.
+ *
+ * @param  left                The first PlacementMap to which the distances shall be calculated to.
+ * @param  right               The second PlacementMap to which the distances shall be calculated to.
+ * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
+ *
+ * @return                         Distance value.
+ */
+double PlacementMap::pairwise_distance (
+    const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length
+) {
+    // TODO outsource this comparator (and other occurences, in merge and in placement mapt set
+    // and maybe more) to the tree class! maybe call it compatible() or so
+    auto comparator = [] (
+        PlacementTree::ConstIteratorPreorder& it_l,
+        PlacementTree::ConstIteratorPreorder& it_r
+    ) {
+        return it_l.node()->name                      == it_r.node()->name                      &&
+               it_l.node()->index()                   == it_r.node()->index()                   &&
+               it_l.edge()->edge_num                  == it_r.edge()->edge_num                  &&
+               it_l.edge()->primary_node()->index()   == it_r.edge()->primary_node()->index()   &&
+               it_l.edge()->secondary_node()->index() == it_r.edge()->secondary_node()->index();
+    };
+
+    if (!PlacementTree::equal(map_a.tree(), map_b.tree(), comparator)) {
+        LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
+        return -1.0;
+    }
+
+    // Init.
+    double sum = 0.0;
+
+    // Create PqueryPlain objects for every placement and copy all interesting data into it.
+    // This way, we won't have to do all the pointer dereferencing during the actual calculations,
+    // and furthermore, the data is close in memory. this gives a tremendous speedup!
+    std::vector<PqueryPlain> pqueries_a = map_a.plain_queries();
+    std::vector<PqueryPlain> pqueries_b = map_b.plain_queries();
+
+    // Calculate a matrix containing the pairwise distance between all nodes. This way, we
+    // do not need to search a path between placements every time. We use the tree of the first map
+    // here, ignoring branch lengths on tree b.
+    // FIXME this might be made better by using average or so in the future.
+    Matrix<double>* node_distances = map_a.tree().node_distance_matrix();
+
+    for (const PqueryPlain& pqry_a : pqueries_a) {
+        for (const PqueryPlain& pqry_b : pqueries_b) {
+            sum += pquery_distance(pqry_a, pqry_b, *node_distances, with_pendant_length);
+        }
+    }
+
+    // Return normalized value.
+    return sum / map_a.placement_mass() / map_b.placement_mass();
 }
 
 // =================================================================================================
@@ -824,55 +1479,13 @@ void PlacementMap::center_of_gravity() const
 /**
  * @brief Calculate the variance of the placements on a tree.
  *
- * The variance is a measure of how far a set of items is spread out
+ * The variance is a measure of how far a set of items is spread out in its space
  * (http://en.wikipedia.org/wiki/variance). In many cases, it can be measured using the mean of the
  * items. However, when considering placements on a tree, this does not truly measure how far they
  * are from each other. Thus, this algorithm applies a different method of calculating the variance
  * in terms of squared deviations of all items from each other:
  * \f$ Var(X) = \frac{1}{n^2} \sum_{i=1}^n \sum_{j=1}^n \frac{1}{2}(x_i - x_j)^2 \f$,
  * where \f$ (x_i - x_j) \f$ denotes the distance between two placements.
- *
- * This distance is calculated as the shortest path between the two placements. This includes the
- * pendant_length of both, as well as their position on the branches. There are three cases that
- * might occur:
- *
- *   1. Both placements are on the same branch.
- *      In this case, their distance is caluclated as the sum of their pendant_lengths and their
- *      difference in proximal_lengths.
- *
- *   2. The path between the placements includes the root.
- *      The distance of a placement from its neighbouring nodes is mostly given in form of the
- *      proximal_length, which is the distance of the placement to the node (at the end of its
- *      branch) that lies in direction of the root. Thus, there is an implicit notion of a root,
- *      that we need to consider. If the path between two placements contains the root, we can
- *      directly calculate their distance as the distance between the two promixal nodes plus
- *      proximal_lengths and pendant_lengths of both placements. We call this the promixal-promixal
- *      case.
- *
- *   3. The root is not part of the path between the placements.
- *      This case means that one of the two placements lies on the path between the other placement
- *      and the root -- thus, the path between the placements does not contain the root.
- *      The distance between the placements cannot be calculated using the proximal_lengths
- *      directly, but we need to get the distal_length (away from the root) of the inner placement
- *      first. This is simply the difference between branch_length and proximal_length of that
- *      placement. Of course, this case comes in two flavours, because both placements can be the
- *      inner or outer one. They are called proximal-distal case and distal-proximal case,
- *      respectively.
- *
- * The first case is easy to detect by comparing the edges. However, distinguishing between the
- * latter two cases is expensive, as it involves finding the path to the root for both placements.
- * To speed this up, we instead use a distance matrix that is calculated in the beginning of the
- * algorithm and contains the pairwise distances between all nodes of the tree. Using this, we do
- * not need to find paths between placements, but simply go to the nodes at the end of the branches
- * of the placements and do a lookup for those nodes.
- *
- * With this technique, we can calculate the distances between the placements for all
- * three cases (promixal-promixal, proximal-distal and distal-proximal) cheaply. The wanted distance
- * is then simply the minimum of those three distances. This is correct, because the two wrong cases
- * will always produce an overestimation of the distance.
- *
- * This distance is normalized using the `like_weight_ratio` of both placements, before
- * summing it up to calculate the variance.
  *
  * According to the formula above, each pair of placements is evaluated twice, and subsequently
  * their distance need to be halfed when being added to the sum of distanaces. Instead of that,
@@ -885,35 +1498,17 @@ void PlacementMap::center_of_gravity() const
  * placements. In case that for each pquery the ratios of all its placements sum up to 1.0, this
  * number will be equal to the number of pqueries (and thus be equal to the usual case of using the
  * number of elements). However, as this is not required (placements with small ratio can be
- * dropped, so that their sum per pquery is less than 1.0), we need to calculate this number
- * manually here.
+ * dropped, so that their sum per pquery is less than 1.0), we cannout simply use the count.
  */
-double PlacementMap::variance() const
+double PlacementMap::variance(const bool with_pendant_length) const
 {
-    // init
+    // Init.
     double variance = 0.0;
-    double count    = 0.0;
 
-    // create a VarianceData object for every placement and copy all interesting data into it.
+    // create PqueryPlain objects for every placement and copy all interesting data into it.
     // this way, we won't have to do all the pointer dereferencing during the actual calculations,
     // and furthermore, the data is close in memory. this gives a tremendous speedup!
-    size_t index = 0;
-    std::vector<VarianceData> vd_placements;
-    vd_placements.reserve(placement_count());
-    for (const auto& pqry : this->pqueries_) {
-        for (const auto& place : pqry->placements) {
-            VarianceData vdp;
-            vdp.index                = index++;
-            vdp.edge_index           = place->edge->index();
-            vdp.primary_node_index   = place->edge->primary_node()->index();
-            vdp.secondary_node_index = place->edge->secondary_node()->index();
-            vdp.pendant_length       = place->pendant_length;
-            vdp.proximal_length      = place->proximal_length;
-            vdp.branch_length        = place->edge->branch_length;
-            vdp.like_weight_ratio    = place->like_weight_ratio;
-            vd_placements.push_back(vdp);
-        }
-    }
+    std::vector<PqueryPlain> vd_pqueries = plain_queries();
 
     // also, calculate a matrix containing the pairwise distance between all nodes. this way, we
     // do not need to search a path between placements every time.
@@ -923,129 +1518,108 @@ double PlacementMap::variance() const
 
     // prepare storage for thread data.
     int num_threads = Options::get().number_of_threads();
-    std::vector<double>       partials(num_threads, 0.0);
-    std::vector<double>       counts  (num_threads, 0.0);
-    std::vector<std::thread*> threads (num_threads, nullptr);
+    std::vector<double>      partials(num_threads, 0.0);
+    std::vector<std::thread> threads;
 
     // start all threads.
     for (int i = 0; i < num_threads; ++i) {
-        threads[i] = new std::thread (std::bind (
-            &PlacementMap::VarianceThread, this,
-            i, num_threads, &vd_placements, node_distances, &partials[i], &counts[i]
+        threads.emplace_back(std::bind (
+            &PlacementMap::variance_thread, this,
+            i, num_threads, &vd_pqueries, node_distances, with_pendant_length,
+            &partials[i]
         ));
+        // threads[i] = new std::thread ();
     }
 
     // wait for all threads to finish, collect their results.
     for (int i = 0; i < num_threads; ++i) {
-        threads[i]->join();
+        threads[i].join();
         variance += partials[i];
-        count    += counts[i];
     }
 
 #else
 
     // do a pairwise calculation on all placements.
-    int progress    = 0;
-    for (const VarianceData& place_a : vd_placements) {
-        LOG_PROG(++progress, vd_placements.size()) << "of Variance() finished.";
-        variance += variance_partial(place_a, vd_placements, *node_distances);
-        count    += place_a.like_weight_ratio;
+    // int progress    = 0;
+    for (const PqueryPlain& pqry_a : vd_pqueries) {
+        // LOG_PROG(++progress, vd_pqueries.size()) << "of Variance() finished.";
+        variance += variance_partial(pqry_a, vd_pqueries, *node_distances, with_pendant_length);
     }
 
 #endif
 
+    // Calculate normalizing factor. Should be the same value as given by placement_mass(),
+    // however this calculation is probably faster.
+    double mass = 0.0;
+    for (const auto& pqry : vd_pqueries) {
+        for (const auto& place : pqry.placements) {
+            mass += place.like_weight_ratio;
+        }
+    }
+
     // cleanup, then return the normalized value.
     delete node_distances;
-    return ((variance / count) / count);
+    return ((variance / mass) / mass);
 }
 
 /**
  * @brief Internal function that calculates the sum of distances for the variance that is
- * contributed by a subset of the placements. See variance() for more information.
+ * contributed by a subset of the pqueries. See variance() for more information.
  *
  * This function is intended to be called by variance() -- it is not a stand-alone function.
- * It takes an offset and an incrementation value and does an interleaved loop over the placements,
+ * It takes an offset and an incrementation value and does an interleaved loop over the pqueries,
  * similar to the sequential version for calculating the variance.
  */
 void PlacementMap::variance_thread (
-    const int                        offset,
-    const int                        incr,
-    const std::vector<VarianceData>* pqrys,
-    const Matrix<double>*            node_distances,
-    double*                          partial,
-    double*                          count
+    const int                       offset,
+    const int                       incr,
+    const std::vector<PqueryPlain>* pqrys,
+    const Matrix<double>*           node_distances,
+    const bool                      with_pendant_length,
+    double*                         partial
 ) const {
-    // use internal variables to avoid false sharing.
-    assert(*partial == 0.0 && *count == 0.0);
+    // Use internal variables to avoid false sharing.
+    assert(*partial == 0.0);
     double tmp_partial = 0.0;
-    double tmp_count   = 0.0;
 
-    // iterate over the pqueries, starting at offset and interleaved with incr for each thread.
+    // Iterate over the pqueries, starting at offset and interleaved with incr for each thread.
     for (size_t i = offset; i < pqrys->size(); i += incr) {
-        LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
+        // LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
 
-        const VarianceData& place_a = (*pqrys)[i];
-        tmp_partial += variance_partial(place_a, *pqrys, *node_distances);
-        tmp_count   += place_a.like_weight_ratio;
+        const PqueryPlain& pqry_a = (*pqrys)[i];
+        tmp_partial += variance_partial(pqry_a, *pqrys, *node_distances, with_pendant_length);
     }
 
-    // return the results.
+    // Return the results.
     *partial = tmp_partial;
-    *count   = tmp_count;
 }
 
 /**
- * @brief Internal function that calculates the sum of distances contributed by one placement for
+ * @brief Internal function that calculates the sum of distances contributed by one pquery for
  * the variance. See variance() for more information.
  *
  * This function is intended to be called by variance() or variance_thread() -- it is not a
  * stand-alone function.
  */
 double PlacementMap::variance_partial (
-    const VarianceData&              place_a,
-    const std::vector<VarianceData>& pqrys_b,
-    const Matrix<double>&            node_distances
+    const PqueryPlain&              pqry_a,
+    const std::vector<PqueryPlain>& pqrys_b,
+    const Matrix<double>&           node_distances,
+    const bool                      with_pendant_length
 ) const {
-    double sum = 0.0;
-    double dd, pd, dp, min;
+    double partial = 0.0;
 
-    for (const VarianceData& place_b : pqrys_b) {
-        // check whether it is same placement (a=b, nothing to do, as their distance is zero),
-        // or a pair of placements that was already calculated (skip it also).
-        if (place_a.index >= place_b.index) {
+    for (const PqueryPlain& pqry_b : pqrys_b) {
+        // Check whether it is same pquery (a=b, nothing to do, as their distance is zero),
+        // or a pair of pqueries that was already calculated (a>b, skip it also).
+        if (pqry_a.index >= pqry_b.index) {
             continue;
         }
-
-        // same branch case
-        if (place_a.edge_index == place_b.edge_index) {
-            sum += place_a.pendant_length
-                +  std::abs(place_a.proximal_length - place_b.proximal_length)
-                +  place_b.pendant_length;
-            continue;
-        }
-
-        // proximal-proximal case
-        dd = place_a.pendant_length + place_a.proximal_length
-           + node_distances(place_a.primary_node_index, place_b.primary_node_index)
-           + place_b.proximal_length + place_b.pendant_length;
-
-        // proximal-distal case
-        pd = place_a.pendant_length + place_a.branch_length - place_a.proximal_length
-           + node_distances(place_a.secondary_node_index, place_b.primary_node_index)
-           + place_b.proximal_length + place_b.pendant_length;
-
-        // distal-proximal case
-        dp = place_a.pendant_length + place_a.proximal_length
-           + node_distances(place_a.primary_node_index, place_b.secondary_node_index)
-           + place_b.branch_length - place_b.proximal_length + place_b.pendant_length;
-
-        // find min of the three cases and normalize it to the weight ratios.
-        min  = std::min(dd, std::min(pd, dp));
-        min *= place_a.like_weight_ratio * place_b.like_weight_ratio;
-        sum += min * min;
+        double dist = pquery_distance(pqry_a, pqry_b, node_distances, with_pendant_length);
+        partial += dist * dist;
     }
 
-    return sum;
+    return partial;
 }
 
 // =================================================================================================
@@ -1057,28 +1631,63 @@ double PlacementMap::variance_partial (
  */
 std::string PlacementMap::dump() const
 {
-    std::ostringstream out;
+    auto print_cell = [] (const std::string& value, size_t width = 0, char justify = 'r') {
+        using namespace std;
+        stringstream ss;
+        ss << fixed << (justify == 'l' ? left : right);
+        ss.fill(' ');
+        ss.width(width);
+        // ss.precision(decDigits); // set # places after decimal
+        ss << value;
+        return ss.str() + " ";
+    };
+
+    // TODO write a simple class for tabular output. or find a lib...
+
+    // Get the maximum length of any name of the pqueries. Set it to at least the length of the
+    // header (=4).
+    size_t max_name_len = 4;
     for (const auto& pqry : pqueries_) {
-        for (const auto& n : pqry->names) {
-            out << "Placement: \"" << n->name << "\"";
-            if (n->multiplicity != 0.0) {
-                out << " (" << n->multiplicity << ")";
-            }
-            out << "\n";
+        std::string name = pqry->names.size() > 0 ? pqry->names[0]->name : "";
+        size_t name_len = name.length();
+        if (pqry->names.size() > 1) {
+            name_len += 4 + static_cast<size_t>(ceil(log10(pqry->names.size() - 1)));
         }
+        if (name_len > max_name_len) {
+            max_name_len = name_len;
+        }
+    }
+
+    std::ostringstream out;
+    size_t num_len = static_cast<size_t>(ceil(log10(placement_count())));
+    out << print_cell("#", num_len);
+    out << print_cell("name", max_name_len, 'l');
+    out << print_cell("edge_num", 8);
+    out << print_cell("likelihood", 10);
+    out << print_cell("like_weight_ratio", 17);
+    out << print_cell("proximal_length", 15);
+    out << print_cell("pendant_length", 14);
+    out << std::endl;
+
+    size_t i = 0;
+    for (const auto& pqry : pqueries_) {
+        std::string name = pqry->names.size() > 0 ? pqry->names[0]->name : "";
+        if (pqry->names.size() > 1) {
+            name += " (+" + std::to_string(pqry->names.size() - 1) + ")";
+        }
+
         for (const auto& p : pqry->placements) {
-            out << "at Edge num: " << p->edge_num << " (edge index " << p->edge->index_ << "). ";
-            if (p->likelihood != 0.0 || p->like_weight_ratio != 0.0) {
-                out << "\tLikelihood: " << p->likelihood;
-                out << ", Ratio: " << p->like_weight_ratio << " ";
-            }
-            if (p->parsimony != 0.0) {
-                out << "\tParsimony: " << p->parsimony << " ";
-            }
-            out << "\tProximal Length: " << p->proximal_length;
-            out << ", Pendant Length: " << p->pendant_length << "\n";
+            out << print_cell(std::to_string(i), num_len);
+            out << print_cell(name, max_name_len, 'l');
+            out << print_cell(std::to_string(p->edge_num), 8);
+            out << print_cell(std::to_string(p->likelihood), 10);
+            out << print_cell(std::to_string(p->like_weight_ratio), 17);
+            out << print_cell(std::to_string(p->proximal_length), 15);
+            out << print_cell(std::to_string(p->pendant_length), 14);
         }
-        out << "\n";
+
+        out << std::endl;
+        ++i;
     }
     return out.str();
 }
@@ -1090,7 +1699,8 @@ std::string PlacementMap::dump_tree() const
 {
     auto print_line = [] (typename PlacementTree::ConstIteratorPreorder& it)
     {
-        return it.node()->name + ": " + std::to_string(it.edge()->placement_count()) + " placements";
+        return it.node()->name + " [" + std::to_string(it.edge()->edge_num) + "]" ": "
+            + std::to_string(it.edge()->placement_count()) + " placements";
     };
     return TreeView().compact(tree(), print_line);
 }

@@ -11,7 +11,7 @@ set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 #   Project Definition
 # ------------------------------------------------------------------------------
 
-project (genesis CXX)
+project (genesis C CXX)
 
 # set (genesis_VERSION_MAJOR 0)
 # set (genesis_VERSION_MINOR 1)
@@ -31,7 +31,6 @@ set (CMAKE_CXX_FLAGS_DEBUG   "-g -ggdb3 -DDEBUG")
 set (CMAKE_CXX_FLAGS_RELEASE "-O3       -DNDEBUG")
 
 # Misc options
-# THREADS = -pthread -DPTHREADS
 # STDCC   = clang++
 # MPICC   = mpic++
 # mpi: CCFLAGS += -DUSE_MPI
@@ -49,6 +48,7 @@ option (BUILD_PYTHON_MODULE "Build Python module"  ON)
 option (BUILD_TESTS         "Build test suites"    ON)
 
 option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" ON)
+option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
 
 if (BUILD_PYTHON_MODULE OR BUILD_TESTS)
     # Both the Python module and the tests use the shared lib,
