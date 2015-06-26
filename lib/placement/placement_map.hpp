@@ -126,19 +126,23 @@ public:
     double earth_movers_distance (
         const PlacementMap& other, const bool with_pendant_length = true
     ) const;
+
     static double earth_movers_distance (
         const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length = true
     );
 
     // Center of Gravity
 
-    // std::pair<PlacementTreeEdge, double> center_of_gravity (
     std::pair<PlacementTreeEdge*, double> center_of_gravity (
         const bool with_pendant_length = true
     ) const;
+
+    double center_of_gravity_variance (const bool with_pendant_length = true) const;
+
     double center_of_gravity_distance (
         const PlacementMap& other, const bool with_pendant_length = true
     ) const;
+
     static double center_of_gravity_distance (
         const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length = true
     );
@@ -157,7 +161,7 @@ public:
     // -------------------------------------------------------------------------
 
 public:
-    double variance(const bool with_pendant_length = true) const;
+    double variance (const bool with_pendant_length = true) const;
 
 protected:
     void variance_thread (

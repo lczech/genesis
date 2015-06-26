@@ -648,14 +648,14 @@ double PlacementMap::pquery_distance (
                    + place_b.proximal_length;
 
                 // proximal-distal case
-                pd = place_a.branch_length - place_a.proximal_length
-                   + node_distances(place_a.secondary_node_index, place_b.primary_node_index)
-                   + place_b.proximal_length;
-
-                // distal-proximal case
-                dp = place_a.proximal_length
+                pd = place_a.proximal_length
                    + node_distances(place_a.primary_node_index, place_b.secondary_node_index)
                    + place_b.branch_length - place_b.proximal_length;
+
+                // distal-proximal case
+                dp = place_a.branch_length - place_a.proximal_length
+                   + node_distances(place_a.secondary_node_index, place_b.primary_node_index)
+                   + place_b.proximal_length;
 
                 // find min of the three cases and
                 dist = std::min(pp, std::min(pd, dp));
@@ -916,6 +916,10 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     // lies downwards the tree in the direction of this link.
     std::unordered_map<PlacementTree::LinkType*, Fulcrum> balance;
 
+    // -------------------------------------------------------------------------
+    //     Collect All Masses, Calculate the Torque
+    // -------------------------------------------------------------------------
+
     // Do a postorder traversal. Collect all placement masses and push them towards the root in
     // order to calculate the torque that acts on each node.
     for (
@@ -974,6 +978,10 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     // pulling with us all the masses that come from the other nodes. Once we have more torque from
     // behind us (speak: up in the tree) that lies ahead of us (speak: down the tree), we have found
     // the center edge.
+
+    // -------------------------------------------------------------------------
+    //     Find Central Edge
+    // -------------------------------------------------------------------------
 
     // Keep track of the link whose edge we are currently examining, as well as the one that we
     // examined previously (on iteration of the loop earlier). We start at the root.
@@ -1097,6 +1105,10 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
 
     PlacementTree::EdgeType* central_edge = curr_link->edge();
 
+    // -------------------------------------------------------------------------
+    //     Calculate Torques at Central Edge
+    // -------------------------------------------------------------------------
+
     // Define the masses and torques at both ends of the edge: proximal and distal mass/torque.
     // Calculate them as the sums of the values from the subtree that lies behind the edge.
     Fulcrum prox_fulcrum;
@@ -1161,6 +1173,10 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     // At this point, the torque on the proximal end of the edge cannot exceed the one on the other
     // side, as this would mean that we have chosen the wrong edge as central edge.
     assert(dist_sum.torque >= prox_sum.torque);
+
+    // -------------------------------------------------------------------------
+    //     Find Center of the Edge
+    // -------------------------------------------------------------------------
 
     // We store the influence that each placement on the edge has.
     struct BalancePoint
@@ -1230,7 +1246,9 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     // so we decided to ignore pendant lengths on the central branch and return the result
     // above instead.
 
-    // ----------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     Experimental Extension
+    // -------------------------------------------------------------------------
 
     // Finally, story the dummy for the end of the edge.
     edge_balance.push_back(BalancePoint(central_edge->branch_length));
@@ -1319,12 +1337,73 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     return std::make_pair(central_edge, result_proximal_length);
 }
 
+/**
+ * @brief
+ */
+double PlacementMap::center_of_gravity_variance (
+    const bool with_pendant_length
+) const {
+    double variance = 0.0;
+
+    auto   cog             = center_of_gravity(with_pendant_length);
+    auto   central_edge    = cog.first;
+    double proximal_length = cog.second;
+
+    auto   node_dist_prox  = tree().node_distance_vector(central_edge->primary_node());
+    auto   node_dist_dist  = tree().node_distance_vector(central_edge->secondary_node());
+
+    for (const auto& pqry : pqueries_) {
+        for (const auto& place : pqry->placements) {
+            double distance;
+
+            if (place->edge->index() == central_edge->index()) {
+                distance = std::abs(place->proximal_length - proximal_length);
+            } else{
+                double pp, pd, dp;
+
+                // proximal-proximal case
+                pp = proximal_length
+                   + node_dist_prox[place->edge->primary_node()->index()]
+                   + place->proximal_length;
+
+                // proximal-distal case
+                pd = proximal_length
+                   + node_dist_prox[place->edge->secondary_node()->index()]
+                   + place->edge->branch_length - place->proximal_length;
+
+                // distal-proximal case
+                dp = central_edge->branch_length - proximal_length
+                   + node_dist_dist[place->edge->primary_node()->index()]
+                   + place->proximal_length;
+
+                // find min of the three cases
+                distance = std::min(pp, std::min(pd, dp));
+            }
+
+            if (with_pendant_length) {
+                distance += place->pendant_length;
+            }
+            distance *= place->like_weight_ratio;
+            variance += distance * distance;
+        }
+    }
+
+    double mass = placement_mass();
+    return (variance / mass) / mass;
+}
+
+/**
+ * @brief
+ */
 double PlacementMap::center_of_gravity_distance (
     const PlacementMap& other, const bool with_pendant_length
 ) const {
     return center_of_gravity_distance (*this, other, with_pendant_length);
 }
 
+/**
+ * @brief
+ */
 double PlacementMap::center_of_gravity_distance (
     const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length
 ) {
@@ -1372,25 +1451,25 @@ double PlacementMap::center_of_gravity_distance (
     } else {
         // TODO instead of the whole vector, we need a distnace between nodes function in the future,
         // which probably uses the path iterator.
-        auto node_dist_a_pri = map_a.tree().node_distance_vector(edge_a->primary_node());
-        auto node_dist_a_sec = map_a.tree().node_distance_vector(edge_a->secondary_node());
+        auto node_dist_a_prox = map_a.tree().node_distance_vector(edge_a->primary_node());
+        auto node_dist_a_dist = map_a.tree().node_distance_vector(edge_a->secondary_node());
 
         double pp, pd, dp;
 
         // proximal-proximal case
         pp = prox_a
-           + node_dist_a_pri[edge_b->primary_node()->index()]
+           + node_dist_a_prox[edge_b->primary_node()->index()]
            + prox_b;
 
         // proximal-distal case
-        pd = edge_a->branch_length - prox_a
-           + node_dist_a_sec[edge_b->primary_node()->index()]
-           + prox_b;
+        pd = prox_a
+           + node_dist_a_prox[edge_b->secondary_node()->index()]
+           + edge_b->branch_length - prox_b;
 
         // distal-proximal case
-        dp = prox_a
-           + node_dist_a_pri[edge_b->secondary_node()->index()]
-           + edge_b->branch_length - prox_b;
+        dp = edge_a->branch_length - prox_a
+           + node_dist_a_dist[edge_b->primary_node()->index()]
+           + prox_b;
 
         // find min of the three cases and
         dist = std::min(pp, std::min(pd, dp));
@@ -1505,23 +1584,23 @@ double PlacementMap::variance(const bool with_pendant_length) const
     // Init.
     double variance = 0.0;
 
-    // create PqueryPlain objects for every placement and copy all interesting data into it.
-    // this way, we won't have to do all the pointer dereferencing during the actual calculations,
-    // and furthermore, the data is close in memory. this gives a tremendous speedup!
+    // Create PqueryPlain objects for every placement and copy all interesting data into it.
+    // This way, we won't have to do all the pointer dereferencing during the actual calculations,
+    // and furthermore, the data is close in memory. This gives a tremendous speedup!
     std::vector<PqueryPlain> vd_pqueries = plain_queries();
 
-    // also, calculate a matrix containing the pairwise distance between all nodes. this way, we
+    // Also, calculate a matrix containing the pairwise distance between all nodes. this way, we
     // do not need to search a path between placements every time.
     Matrix<double>* node_distances = tree_->node_distance_matrix();
 
 #ifdef PTHREADS
 
-    // prepare storage for thread data.
+    // Prepare storage for thread data.
     int num_threads = Options::get().number_of_threads();
     std::vector<double>      partials(num_threads, 0.0);
     std::vector<std::thread> threads;
 
-    // start all threads.
+    // Start all threads.
     for (int i = 0; i < num_threads; ++i) {
         threads.emplace_back(std::bind (
             &PlacementMap::variance_thread, this,
@@ -1531,7 +1610,7 @@ double PlacementMap::variance(const bool with_pendant_length) const
         // threads[i] = new std::thread ();
     }
 
-    // wait for all threads to finish, collect their results.
+    // Wait for all threads to finish, collect their results.
     for (int i = 0; i < num_threads; ++i) {
         threads[i].join();
         variance += partials[i];
@@ -1539,8 +1618,8 @@ double PlacementMap::variance(const bool with_pendant_length) const
 
 #else
 
-    // do a pairwise calculation on all placements.
-    // int progress    = 0;
+    // Do a pairwise calculation on all placements.
+    // int progress = 0;
     for (const PqueryPlain& pqry_a : vd_pqueries) {
         // LOG_PROG(++progress, vd_pqueries.size()) << "of Variance() finished.";
         variance += variance_partial(pqry_a, vd_pqueries, *node_distances, with_pendant_length);
@@ -1549,7 +1628,7 @@ double PlacementMap::variance(const bool with_pendant_length) const
 #endif
 
     // Calculate normalizing factor. Should be the same value as given by placement_mass(),
-    // however this calculation is probably faster.
+    // however this calculation is probably faster, as we already have the plain values at hand.
     double mass = 0.0;
     for (const auto& pqry : vd_pqueries) {
         for (const auto& place : pqry.placements) {
@@ -1557,7 +1636,7 @@ double PlacementMap::variance(const bool with_pendant_length) const
         }
     }
 
-    // cleanup, then return the normalized value.
+    // Cleanup, then return the normalized value.
     delete node_distances;
     return ((variance / mass) / mass);
 }
