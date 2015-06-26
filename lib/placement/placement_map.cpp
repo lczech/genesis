@@ -1716,7 +1716,7 @@ double PlacementMap::variance_partial (
  */
 std::string PlacementMap::dump() const
 {
-    auto print_cell = [] (const std::string& value, size_t width = 0, char justify = 'r') {
+    auto print_cell_justified = [] (const std::string& value, size_t width, char justify) {
         using namespace std;
         stringstream ss;
         ss << fixed << (justify == 'l' ? left : right);
@@ -1726,7 +1726,11 @@ std::string PlacementMap::dump() const
         ss << value;
         return ss.str() + " ";
     };
+    auto print_cell = [&] (const std::string& value, size_t width) {
+        return print_cell_justified(value, width, 'r');
+    };
 
+    // TODO this double lamda is stupid, but c++11 cannot take default args for lambdas. find something nicer...
     // TODO write a simple class for tabular output. or find a lib...
 
     // Get the maximum length of any name of the pqueries. Set it to at least the length of the
@@ -1746,7 +1750,7 @@ std::string PlacementMap::dump() const
     std::ostringstream out;
     size_t num_len = static_cast<size_t>(ceil(log10(placement_count())));
     out << print_cell("#", num_len);
-    out << print_cell("name", max_name_len, 'l');
+    out << print_cell_justified("name", max_name_len, 'l');
     out << print_cell("edge_num", 8);
     out << print_cell("likelihood", 10);
     out << print_cell("like_weight_ratio", 17);
@@ -1763,7 +1767,7 @@ std::string PlacementMap::dump() const
 
         for (const auto& p : pqry->placements) {
             out << print_cell(std::to_string(i), num_len);
-            out << print_cell(name, max_name_len, 'l');
+            out << print_cell_justified(name, max_name_len, 'l');
             out << print_cell(std::to_string(p->edge_num), 8);
             out << print_cell(std::to_string(p->likelihood), 10);
             out << print_cell(std::to_string(p->like_weight_ratio), 17);
