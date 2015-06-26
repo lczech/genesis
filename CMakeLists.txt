@@ -7,6 +7,14 @@ cmake_minimum_required (VERSION 2.6 FATAL_ERROR)
 set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 
+if (NOT WIN32)
+    # Fun with colors!
+    string(ASCII 27 Esc)
+    set(ColorRed  "${Esc}[31m")
+    set(ColorBlue "${Esc}[34m")
+    set(ColorEnd  "${Esc}[0m")
+endif()
+
 # ------------------------------------------------------------------------------
 #   Project Definition
 # ------------------------------------------------------------------------------
@@ -19,6 +27,8 @@ project (genesis C CXX)
 set (CMAKE_BUILD_TYPE DEBUG)
 # set (CMAKE_BUILD_TYPE RELEASE)
 # set (CMAKE_VERBOSE_MAKEFILE ON)
+
+message (STATUS "${ColorBlue}Building ${CMAKE_BUILD_TYPE}${ColorEnd}")
 
 # ------------------------------------------------------------------------------
 #   Compiler and Linker Options
@@ -54,14 +64,6 @@ if (BUILD_PYTHON_MODULE OR BUILD_TESTS)
     # Both the Python module and the tests use the shared lib,
     # so we need to build it if one of those is activated.
     set (BUILD_SHARED_LIB ON)
-endif()
-
-if (NOT WIN32)
-    # Fun with colors!
-    string(ASCII 27 Esc)
-    set(ColorRed  "${Esc}[31m")
-    set(ColorBlue "${Esc}[34m")
-    set(ColorEnd  "${Esc}[0m")
 endif()
 
 # ------------------------------------------------------------------------------
