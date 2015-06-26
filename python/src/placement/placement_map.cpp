@@ -34,6 +34,12 @@ void BoostPythonExport_PlacementMap()
             ( boost::python::arg("other"), boost::python::arg("with_pendant_length")=(const bool)(true) )
         )
         .def(
+            "center_of_gravity_variance",
+            ( double ( ::genesis::PlacementMap::* )( bool ) const )( &::genesis::PlacementMap::center_of_gravity_variance ),
+            ( boost::python::arg("with_pendant_length")=(bool)(true)),
+            get_docstring("double ::genesis::PlacementMap::center_of_gravity_variance (const bool with_pendant_length=true) const")
+        )
+        .def(
             "clear",
             ( void ( ::genesis::PlacementMap::* )(  ))( &::genesis::PlacementMap::clear ),
             get_docstring("void ::genesis::PlacementMap::clear ()")
@@ -135,7 +141,7 @@ void BoostPythonExport_PlacementMap()
             "variance",
             ( double ( ::genesis::PlacementMap::* )( bool ) const )( &::genesis::PlacementMap::variance ),
             ( boost::python::arg("with_pendant_length")=(bool)(true)),
-            get_docstring("double ::genesis::PlacementMap::variance () const")
+            get_docstring("double ::genesis::PlacementMap::variance (const bool with_pendant_length=true) const")
         )
 
         // Public Member Variables
