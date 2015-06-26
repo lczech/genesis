@@ -1339,15 +1339,22 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
 
 /**
  * @brief
+ *
+ * \f$ Var(X) = E[ (x - \mu)^2 ] = \frac{\sum (x - \mu)^2 \cdot \omega} {\sum \omega} \f$, where
+ * the weights \f$ \omega \f$ are the `like_weight_ratio`s of the placements.
  */
 double PlacementMap::center_of_gravity_variance (
     const bool with_pendant_length
 ) const {
     double variance = 0.0;
+    double mass     = 0.0;
 
     auto   cog             = center_of_gravity(with_pendant_length);
     auto   central_edge    = cog.first;
     double proximal_length = cog.second;
+
+    // LOG_DBG << "edge " << central_edge->primary_node()->name << " " << central_edge->secondary_node()->name;
+    // LOG_DBG << "prox " << proximal_length;
 
     auto   node_dist_prox  = tree().node_distance_vector(central_edge->primary_node());
     auto   node_dist_dist  = tree().node_distance_vector(central_edge->secondary_node());
@@ -1383,13 +1390,12 @@ double PlacementMap::center_of_gravity_variance (
             if (with_pendant_length) {
                 distance += place->pendant_length;
             }
-            distance *= place->like_weight_ratio;
-            variance += distance * distance;
+            variance += distance * distance * place->like_weight_ratio;
+            mass     += place->like_weight_ratio;
         }
     }
 
-    double mass = placement_mass();
-    return (variance / mass) / mass;
+    return variance / mass;
 }
 
 /**
