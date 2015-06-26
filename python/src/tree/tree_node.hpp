@@ -19,7 +19,7 @@ const char* get_docstring (const std::string& signature);
 template <class NodeDataType, class EdgeDataType>
 void BoostPythonExport_TreeNode (std::string name)
 {
-    typedef ::genesis::TreeEdge<NodeDataType, EdgeDataType> EdgeType;
+    // typedef ::genesis::TreeEdge<NodeDataType, EdgeDataType> EdgeType;
     typedef ::genesis::TreeLink<NodeDataType, EdgeDataType> LinkType;
     typedef ::genesis::TreeNode<NodeDataType, EdgeDataType> NodeType;
 

@@ -89,7 +89,7 @@ struct TreeIteratorWrapper
 
     static void wrap (const std::string& python_name)
     {
-        typedef typename TreeType::EdgeType EdgeType;
+        // typedef typename TreeType::EdgeType EdgeType;
         typedef typename TreeType::LinkType LinkType;
         typedef typename TreeType::NodeType NodeType;
 
