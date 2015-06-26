@@ -47,6 +47,7 @@ std::string TreeView::compact (
         // parent. Also, we do not draw any lines or indention for the root.
         if (it.is_first_iteration()) {
             ++ranks[cur_idx];
+            // TODO this should also use the print_line function. current users of this method then need to make sure that they check for the first iteration themselves in case they want to display is specially.
             res << it.node()->name << "\n";
             continue;
         }
