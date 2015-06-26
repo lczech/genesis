@@ -967,10 +967,10 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
         balance[it.link()->outer()] = curr_fulcrum;
     }
 
-    LOG_DBG << "current balance:";
-    for (auto& v : balance) {
-        LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass << ", torque " << v.second.torque;
-    }
+    // LOG_DBG << "current balance:";
+    // for (auto& v : balance) {
+    //     LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass << ", torque " << v.second.torque;
+    // }
 
     // Now we have calculated all massed that lie down the tree as seen from the root and the torque
     // they create. We can now start finding the edge where the center of gravity lies. This is done
@@ -1088,10 +1088,10 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     assert(prev_link->node() == prev_link->edge()->primary_node());
     assert(curr_link->node() == curr_link->edge()->secondary_node());
 
-    LOG_DBG << "current balance:";
-    for (auto& v : balance) {
-        LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass << ", torque " << v.second.torque;
-    }
+    // LOG_DBG << "current balance:";
+    // for (auto& v : balance) {
+    //     LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass << ", torque " << v.second.torque;
+    // }
 
     LOG_DBG << "cur  " << curr_link->node()->name << " with mass " << balance[curr_link].mass << " and torque " << balance[curr_link].torque;
     LOG_DBG << "prev " << prev_link->node()->name << " with mass " << balance[prev_link].mass << " and torque " << balance[prev_link].torque;
@@ -1170,9 +1170,23 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     Fulcrum prox_sum = prox_fulcrum;
     Fulcrum dist_sum = balance[prev_link];
 
+    LOG_DBG << "prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
+    LOG_DBG << "dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
+
     // At this point, the torque on the proximal end of the edge cannot exceed the one on the other
     // side, as this would mean that we have chosen the wrong edge as central edge.
-    assert(dist_sum.torque >= prox_sum.torque);
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+    // TODO the assertion is wrong. there are valid cases where it does not hold.
+    LOG_DBG1 << "assert " << dist_sum.torque <<  ">=" << prox_sum.torque;
+    // assert(dist_sum.torque >= prox_sum.torque);
+
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+    // +++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
     // -------------------------------------------------------------------------
     //     Find Center of the Edge
@@ -1442,6 +1456,11 @@ double PlacementMap::center_of_gravity_distance (
 
     double prox_a = cog_a.second;
     double prox_b = cog_b.second;
+
+    // TODO this is for testing purposes only
+    if (prox_a < 0.0) {
+        LOG_INFO << "map a COG proximal_length < 0: " << prox_a;
+    }
 
     LOG_DBG << "cog a edge " << edge_a->index() << " prox " << prox_a;
     LOG_DBG << "cog b edge " << edge_b->index() << " prox " << prox_b;

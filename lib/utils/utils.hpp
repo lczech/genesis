@@ -157,7 +157,7 @@ template <typename T>
 inline std::string to_string_precise (const T value, const int precision = 6)
 {
     std::ostringstream out;
-    out << std::setprecision(precision) << value;
+    out << std::fixed << std::setprecision(precision) << value;
     return out.str();
 }
 
