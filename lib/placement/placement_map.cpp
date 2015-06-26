@@ -910,7 +910,7 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     };
 
     // Disable debug messages while code is not in review.
-    // LOG_SCOPE_LEVEL(Logging::kInfo)
+    LOG_SCOPE_LEVEL(Logging::kInfo)
 
     // Store a balance value per link, so that each element contains the mass and its torque that
     // lies downwards the tree in the direction of this link.
@@ -1182,6 +1182,9 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     edge_balance.reserve(central_edge->placements.size() + 2);
     edge_balance.push_back(BalancePoint(0.0));
 
+    double tqs = 0.0;
+    double mss = 0.0;
+
     // Now add all placements on the edge to the balance variable, sorted by their proximal length.
     central_edge->sort_placements();
     for (PqueryPlacement* place : central_edge->placements) {
@@ -1203,6 +1206,9 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
             place_pendant_torque = place->like_weight_ratio * place->pendant_length;
         }
 
+        tqs += place_prox * place->like_weight_ratio;
+        mss += place->like_weight_ratio;
+
         BalancePoint place_balance;
         place_balance.proximal_length = place_prox;
         place_balance.mass            = place->like_weight_ratio;
@@ -1210,6 +1216,21 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
 
         edge_balance.push_back(place_balance);
     }
+
+    tqs += dist_fulcrum.torque - prox_fulcrum.torque + (dist_fulcrum.mass * central_edge->branch_length);
+    mss += dist_fulcrum.mass + prox_fulcrum.mass;
+    double solution_without_pendant_length = tqs / mss;
+    LOG_DBG << "tqs " << tqs << ", mss " << mss;
+    LOG_DBG << "solution_without_pendant_length " << solution_without_pendant_length;
+
+    return std::make_pair(central_edge, solution_without_pendant_length);
+
+    // The rest code in this function tries to find a solution when pendant length shall be
+    // considered. However, it might happen that there is no exact solution in this case,
+    // so we decided to ignore pendant lengths on the central branch and return the result
+    // above instead.
+
+    // ----------------------------------------------------
 
     // Finally, story the dummy for the end of the edge.
     edge_balance.push_back(BalancePoint(central_edge->branch_length));
@@ -1241,20 +1262,19 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
         LOG_DBG2 << "prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
         LOG_DBG2 << "dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
 
-        double pendant_torque_sum = 0.0;
-        for (size_t i = 1; i < edge_balance.size(); ++i) {
-            if (edge_balance[i].proximal_length == edge_balance[pos].proximal_length) {
-                pendant_torque_sum += edge_balance[i].pendant_torque;
-            } else if (i > pos) {
-                break;
-            }
-        }
-
-        LOG_DBG2 << "pendant_torque_sum " << pendant_torque_sum;
+        // double pendant_torque_sum = 0.0;
+        // for (size_t i = 1; i < edge_balance.size(); ++i) {
+        //     if (edge_balance[i].proximal_length == curr_point.proximal_length) {
+        //         pendant_torque_sum += edge_balance[i].pendant_torque;
+        //     } else if (i > pos) {
+        //         break;
+        //     }
+        // }
+        // LOG_DBG2 << "pendant_torque_sum " << pendant_torque_sum;
 
         if (
             prox_sum.torque + prox_sum.mass * dist_diff >=
-            dist_sum.torque - dist_sum.mass * dist_diff - pendant_torque_sum
+            dist_sum.torque - dist_sum.mass * dist_diff
         ) {
             break;
         }
@@ -1272,8 +1292,8 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
         LOG_DBG2 << "new dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
     }
 
-    LOG_DBG2 << "final prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
-    LOG_DBG2 << "final dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
+    LOG_DBG << "final prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
+    LOG_DBG << "final dist_sum mass " << dist_sum.mass << ", dist_sum torque " << dist_sum.torque;
 
     LOG_DBG << "pos " << pos << " size " << edge_balance.size();
 
@@ -1282,12 +1302,13 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::center_of_gravity (
     // leave the loop (via break) not until the last iteration (which means, that this is where the
     // center lies), but we will never finish the loop via its default exit condition.
     // So let's assert that we actually didn't.
-    // assert(pos < edge_balance.size());
+    assert(pos < edge_balance.size());
 
     // if (pos == edge_balance.size() - 1) {
     //     /* code */
     // }
 
+    dist_sum.torque -= dist_sum.mass * dist_diff;
     double result_proximal_length = (dist_sum.torque - prox_sum.torque
                                   + (dist_sum.mass * dist_diff))
                                   / (dist_sum.mass + prox_sum.mass);
@@ -1324,6 +1345,9 @@ double PlacementMap::center_of_gravity_distance (
         LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
         return -1.0;
     }
+
+    // Disable debug messages while code is not in review.
+    LOG_SCOPE_LEVEL(Logging::kInfo)
 
     auto cog_a = map_a.center_of_gravity(with_pendant_length);
     auto cog_b = map_b.center_of_gravity(with_pendant_length);
@@ -1618,7 +1642,7 @@ std::string PlacementMap::dump() const
         return ss.str() + " ";
     };
 
-    // TODO write a simple class for table output. or find a lib...
+    // TODO write a simple class for tabular output. or find a lib...
 
     // Get the maximum length of any name of the pqueries. Set it to at least the length of the
     // header (=4).
