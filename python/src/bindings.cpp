@@ -5,6 +5,8 @@
  * @ingroup python
  */
 
+#include <python/src/common.hpp>
+
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
@@ -29,6 +31,7 @@ void BoostPythonExport_PlacementSimulator();
 void BoostPythonExport_DefaultTree();
 void BoostPythonExport_NewickProcessor();
 //~ void BoostPythonExport_TreeSet();
+void BoostPythonExport_PhyloxmlAdapter();
 
     // -------------------------------------------
     //     Utils
@@ -64,6 +67,7 @@ BOOST_PYTHON_MODULE(genesis)
     BoostPythonExport_DefaultTree();
     BoostPythonExport_NewickProcessor();
     //~ BoostPythonExport_TreeSet();
+    BoostPythonExport_PhyloxmlAdapter();
 
     // -------------------------------------------
     //     Placement

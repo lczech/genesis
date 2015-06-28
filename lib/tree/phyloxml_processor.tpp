@@ -66,7 +66,7 @@ std::string PhyloxmlProcessor::to_string (const Tree<NDT, EDT>& tree)
 {
     XmlDocument xml;
     to_document(xml, tree);
-    return XmlProcessor::to_string(xml);
+    return XmlProcessor().to_string(xml);
 }
 
 /**

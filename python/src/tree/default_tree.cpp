@@ -5,7 +5,7 @@
  * @ingroup python
  */
 
-#include <boost/python.hpp>
+#include <python/src/common.hpp>
 
 #include "lib/tree/default_tree.hpp"
 

@@ -8,7 +8,7 @@
  * @ingroup python
  */
 
-#include <boost/python.hpp>
+#include <python/src/common.hpp>
 
 #include "lib/tree/tree.hpp"
 
@@ -18,8 +18,6 @@
 #include "python/src/tree/tree_node.hpp"
 
 #include "python/src/tree/tree_iterator.hpp"
-
-const char* get_docstring (const std::string& signature);
 
 template <class NodeDataType, class EdgeDataType>
 void BoostPythonExport_Tree (std::string name)

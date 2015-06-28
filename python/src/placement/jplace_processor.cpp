@@ -5,12 +5,10 @@
  * @ingroup python
  */
 
-#include <boost/python.hpp>
+#include <python/src/common.hpp>
 
 #include "lib/placement/jplace_processor.hpp"
 #include "lib/placement/placement_map.hpp"
-
-const char* get_docstring (const std::string& signature);
 
 void BoostPythonExport_JplaceProcessor()
 {

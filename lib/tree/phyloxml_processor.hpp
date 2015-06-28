@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_Phyloxml_PROCESSOR_H_
-#define GENESIS_TREE_Phyloxml_PROCESSOR_H_
+#ifndef GENESIS_TREE_PHYLOXML_PROCESSOR_H_
+#define GENESIS_TREE_PHYLOXML_PROCESSOR_H_
 
 /**
  * @brief
@@ -10,7 +10,7 @@
 
 #include <string>
 
-//~ #include "utils/lexer.hpp"
+#include "tree/phyloxml_adapter.hpp"
 
 namespace genesis {
 
@@ -31,6 +31,9 @@ class PhyloxmlProcessor
 {
 public:
 
+    PhyloxmlProcessor()                         : adapter_(PhyloxmlAdapter()) {}
+    PhyloxmlProcessor(PhyloxmlAdapter& adapter) : adapter_(adapter)           {}
+
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
@@ -50,6 +53,13 @@ public:
 
     template <class NodeDataType, class EdgeDataType>
     void to_document (XmlDocument& xml, const Tree<NodeDataType, EdgeDataType>& tree);
+
+    // ---------------------------------------------------------------------
+    //     Members
+    // ---------------------------------------------------------------------
+
+protected:
+    PhyloxmlAdapter adapter_;
 };
 
 } // namespace genesis
@@ -59,6 +69,6 @@ public:
 // =================================================================================================
 
 // This class contains function templates, so do the inclusion here.
-#include "tree/Phyloxml_processor.tpp"
+#include "tree/phyloxml_processor.tpp"
 
 #endif // include guard
