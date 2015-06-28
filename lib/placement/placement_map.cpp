@@ -1367,8 +1367,8 @@ double PlacementMap::center_of_gravity_variance (
     auto   central_edge    = cog.first;
     double proximal_length = cog.second;
 
-    // LOG_DBG << "edge " << central_edge->primary_node()->name << " " << central_edge->secondary_node()->name;
-    // LOG_DBG << "prox " << proximal_length;
+    LOG_DBG << "edge " << central_edge->primary_node()->name << " " << central_edge->secondary_node()->name;
+    LOG_DBG << "prox " << proximal_length;
 
     auto   node_dist_prox  = tree().node_distance_vector(central_edge->primary_node());
     auto   node_dist_dist  = tree().node_distance_vector(central_edge->secondary_node());
