@@ -13,17 +13,17 @@
 
 namespace genesis {
 
-// =============================================================================
+// =================================================================================================
 //     Forward Declarations
-// =============================================================================
+// =================================================================================================
 
 class JsonDocument;
 class PlacementMap;
 class PlacementMapSet;
 
-// =============================================================================
+// =================================================================================================
 //     Jplace Processor
-// =============================================================================
+// =================================================================================================
 
 /**
  * @brief Parser and printer to process a Jplace document and create a PlacementMap object from it.
@@ -48,24 +48,28 @@ public:
     //     Parsing
     // ---------------------------------------------------------------------
 
-    static bool report_invalid_numbers;
-    static bool correct_invalid_numbers;
+    bool from_files    (const std::vector<std::string>& fns, PlacementMapSet& set);
+    bool from_strings  (const std::vector<std::string>& jps, PlacementMapSet& set);
 
-    static bool from_files    (const std::vector<std::string>& fns, PlacementMapSet& set);
-    static bool from_strings  (const std::vector<std::string>& jps, PlacementMapSet& set);
+    bool from_file     (const std::string&  fn,     PlacementMap& placements);
+    bool from_string   (const std::string&  jplace, PlacementMap& placements);
+    bool from_document (const JsonDocument& doc,    PlacementMap& placements);
 
-    static bool from_file     (const std::string&  fn,     PlacementMap& placements);
-    static bool from_string   (const std::string&  jplace, PlacementMap& placements);
-    static bool from_document (const JsonDocument& doc,    PlacementMap& placements);
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+    bool report_invalid_numbers  = false;
+    bool correct_invalid_numbers = false;
 
     // ---------------------------------------------------------------------
     //     Printing
     // ---------------------------------------------------------------------
 
-    static bool        to_file     (const PlacementMap& placements, const std::string   fn);
-    static void        to_string   (const PlacementMap& placements,       std::string&  jplace);
-    static std::string to_string   (const PlacementMap& placements);
-    static void        to_document (const PlacementMap& placements,       JsonDocument& doc);
+    bool        to_file     (const PlacementMap& placements, const std::string   fn);
+    void        to_string   (const PlacementMap& placements,       std::string&  jplace);
+    std::string to_string   (const PlacementMap& placements);
+    void        to_document (const PlacementMap& placements,       JsonDocument& doc);
 };
 
 } // namespace genesis

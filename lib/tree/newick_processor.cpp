@@ -14,21 +14,9 @@
 
 namespace genesis {
 
-std::string NewickProcessor::default_leaf_name     = "Leaf Node";
-std::string NewickProcessor::default_internal_name = "Internal Node";
-std::string NewickProcessor::default_root_name     = "Root Node";
-
-/**
- * @brief If set to true, unnamed nodes are named using one of the default names.
- *
- * The default names can be set using `default_leaf_name`, `default_internal_name` and
- * `default_root_name`. They are used both when parsing and printing a Newick file.
- */
-bool        NewickProcessor::use_default_names     = false;
-
-// =============================================================================
+// =================================================================================================
 //     Parsing
-// =============================================================================
+// =================================================================================================
 
 bool NewickProcessor::parse_tree (
           NewickLexer::iterator& ct,
@@ -294,19 +282,9 @@ bool NewickProcessor::parse_tree (
     return true;
 }
 
-// =============================================================================
+// =================================================================================================
 //     Printing
-// =============================================================================
-
-bool NewickProcessor::print_names          = true;
-bool NewickProcessor::print_branch_lengths = false;
-bool NewickProcessor::print_comments       = false;
-bool NewickProcessor::print_tags           = false;
-
-/**
- * @brief The precision used for printing floating point numbers, particularly the branch_length.
- */
-int  NewickProcessor::precision            = 6;
+// =================================================================================================
 
 // TODO this is a quick and dirty (=slow) solution...
 std::string NewickProcessor::to_string_rec(const NewickBroker& broker, size_t pos)

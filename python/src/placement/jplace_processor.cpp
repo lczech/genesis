@@ -36,18 +36,16 @@ void BoostPythonExport_JplaceProcessor()
         // .staticmethod("from_document")
         .def(
             "from_file",
-            ( bool ( * )( const std::string &, PlacementMap & ))( &::genesis::JplaceProcessor::from_file ),
+            ( bool ( ::genesis::JplaceProcessor::* )( const std::string &, PlacementMap & ))( &::genesis::JplaceProcessor::from_file ),
             ( boost::python::arg("fn"), boost::python::arg("placements") ),
             get_docstring("static bool ::genesis::JplaceProcessor::from_file (const std::string & fn, PlacementMap & placements)")
         )
-        .staticmethod("from_file")
         .def(
             "from_string",
-            ( bool ( * )( const std::string &, PlacementMap & ))( &::genesis::JplaceProcessor::from_string ),
+            ( bool ( ::genesis::JplaceProcessor::* )( const std::string &, PlacementMap & ))( &::genesis::JplaceProcessor::from_string ),
             ( boost::python::arg("jplace"), boost::python::arg("placements") ),
             get_docstring("static bool ::genesis::JplaceProcessor::from_string (const std::string & jplace, PlacementMap & placements)")
         )
-        .staticmethod("from_string")
         .def(
             "get_version",
             ( std::string ( * )(  ))( &::genesis::JplaceProcessor::get_version ),
@@ -62,21 +60,24 @@ void BoostPythonExport_JplaceProcessor()
         // .staticmethod("to_document")
         .def(
             "to_file",
-            ( bool ( * )( const PlacementMap &, const std::string ))( &::genesis::JplaceProcessor::to_file ),
+            ( bool ( ::genesis::JplaceProcessor::* )( const PlacementMap &, const std::string ))( &::genesis::JplaceProcessor::to_file ),
             ( boost::python::arg("placements"), boost::python::arg("fn") )
         )
-        .staticmethod("to_file")
         .def(
             "to_string",
-            ( std::string ( * )( const PlacementMap & ))( &::genesis::JplaceProcessor::to_string ),
+            ( std::string ( ::genesis::JplaceProcessor::* )( const PlacementMap & ))( &::genesis::JplaceProcessor::to_string ),
             ( boost::python::arg("placements") )
         )
         .def(
             "to_string",
-            ( void ( * )( const PlacementMap &, std::string & ))( &::genesis::JplaceProcessor::to_string ),
+            ( void ( ::genesis::JplaceProcessor::* )( const PlacementMap &, std::string & ))( &::genesis::JplaceProcessor::to_string ),
             ( boost::python::arg("placements"), boost::python::arg("jplace") )
         )
-        .staticmethod("to_string")
+
+        // Public Member Variables
+
+        .def_readwrite("report_invalid_numbers",  &::genesis::JplaceProcessor::report_invalid_numbers)
+        .def_readwrite("correct_invalid_numbers", &::genesis::JplaceProcessor::correct_invalid_numbers)
     ;
 
 }

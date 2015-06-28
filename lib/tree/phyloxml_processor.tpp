@@ -1,5 +1,5 @@
 /**
- * @brief Implementation of functions for reading and writing PhyloXML files.
+ * @brief Implementation of functions for reading and writing Phyloxml files.
  *
  * For reasons of readability, in this implementation file, the template data types
  * NodeDataType and EdgeDataType are abbreviated using NDT and EDT, respectively.
@@ -18,24 +18,24 @@
 
 namespace genesis {
 
-// =============================================================================
+// =================================================================================================
 //     Parsing
-// =============================================================================
+// =================================================================================================
 
-// =============================================================================
+// =================================================================================================
 //     Printing
-// =============================================================================
+// =================================================================================================
 
 /**
- * @brief Writes the tree to a file in PhyloXML format.
+ * @brief Writes the tree to a file in Phyloxml format.
  *
  * If the file already exists, the function does not overwrite it.
  */
 template <class NDT, class EDT>
-bool PhyloXmlProcessor::to_file (const std::string fn, const Tree<NDT, EDT>& tree)
+bool PhyloxmlProcessor::to_file (const std::string fn, const Tree<NDT, EDT>& tree)
 {
     if (file_exists(fn)) {
-        LOG_WARN << "PhyloXML file '" << fn << "' already exist. Will not overwrite it.";
+        LOG_WARN << "Phyloxml file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
@@ -44,25 +44,25 @@ bool PhyloXmlProcessor::to_file (const std::string fn, const Tree<NDT, EDT>& tre
 }
 
 /**
- * @brief Gives a PhyloXML string representation of the tree.
+ * @brief Gives a Phyloxml string representation of the tree.
  *
- * In case the tree was read from a PhyloXML file, this function should produce the same
+ * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
 template <class NDT, class EDT>
-void PhyloXmlProcessor::to_string (std::string& ts, const Tree<NDT, EDT>& tree)
+void PhyloxmlProcessor::to_string (std::string& ts, const Tree<NDT, EDT>& tree)
 {
     ts = to_string(tree);
 }
 
 /**
- * @brief Returns a PhyloXML string representation of the tree.
+ * @brief Returns a Phyloxml string representation of the tree.
  *
- * In case the tree was read from a PhyloXML file, this function should produce the same
+ * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
 template <class NDT, class EDT>
-std::string PhyloXmlProcessor::to_string (const Tree<NDT, EDT>& tree)
+std::string PhyloxmlProcessor::to_string (const Tree<NDT, EDT>& tree)
 {
     XmlDocument xml;
     to_document(xml, tree);
@@ -70,10 +70,10 @@ std::string PhyloXmlProcessor::to_string (const Tree<NDT, EDT>& tree)
 }
 
 /**
- * @brief Stores the information of the tree into an PhyloXML-formatted XmlDocument.
+ * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
  */
 template <class NDT, class EDT>
-void PhyloXmlProcessor::to_document (XmlDocument& xml, const Tree<NDT, EDT>& tree)
+void PhyloxmlProcessor::to_document (XmlDocument& xml, const Tree<NDT, EDT>& tree)
 {
     xml.clear();
 
@@ -83,10 +83,10 @@ void PhyloXmlProcessor::to_document (XmlDocument& xml, const Tree<NDT, EDT>& tre
     xml.declarations.emplace("encoding", "UTF-8");
 
     // set xml root element
-    xml.tag = "phyloxml";
+    xml.tag = "Phyloxml";
     xml.attributes.emplace("xmlns:xsi",          "http://www.w3.org/2001/XMLSchema-instance");
-    xml.attributes.emplace("xsi:schemaLocation", "http://www.phyloxml.org http://www.phyloxml.org/1.10/phyloxml.xsd");
-    xml.attributes.emplace("xmlns",              "http://www.phyloxml.org");
+    xml.attributes.emplace("xsi:schemaLocation", "http://www.Phyloxml.org http://www.Phyloxml.org/1.10/Phyloxml.xsd");
+    xml.attributes.emplace("xmlns",              "http://www.Phyloxml.org");
 
     // add the tree element
     XmlElement* pg = new XmlElement();
@@ -127,7 +127,7 @@ void PhyloXmlProcessor::to_document (XmlDocument& xml, const Tree<NDT, EDT>& tre
         clade->tag = "clade";
 
         // create name for clade.
-        // TODO move to node.tophyloxmlelement
+        // TODO move to node.toPhyloxmlelement
         XmlElement* name_e = new XmlElement();
         clade->content.push_back(name_e);
         name_e->tag = "name";
