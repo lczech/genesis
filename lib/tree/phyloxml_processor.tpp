@@ -13,6 +13,7 @@
 
 #include "tree/tree.hpp"
 #include "utils/logging.hpp"
+#include "utils/utils.hpp"
 #include "utils/xml_document.hpp"
 #include "utils/xml_processor.hpp"
 
@@ -31,8 +32,8 @@ namespace genesis {
  *
  * If the file already exists, the function does not overwrite it.
  */
-template <class NDT, class EDT>
-bool PhyloxmlProcessor::to_file (const std::string fn, const Tree<NDT, EDT>& tree)
+template <class TreeType>
+bool PhyloxmlProcessor::to_file (const std::string fn, const TreeType& tree)
 {
     if (file_exists(fn)) {
         LOG_WARN << "Phyloxml file '" << fn << "' already exist. Will not overwrite it.";
@@ -49,8 +50,8 @@ bool PhyloxmlProcessor::to_file (const std::string fn, const Tree<NDT, EDT>& tre
  * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
-template <class NDT, class EDT>
-void PhyloxmlProcessor::to_string (std::string& ts, const Tree<NDT, EDT>& tree)
+template <class TreeType>
+void PhyloxmlProcessor::to_string (std::string& ts, const TreeType& tree)
 {
     ts = to_string(tree);
 }
@@ -61,8 +62,8 @@ void PhyloxmlProcessor::to_string (std::string& ts, const Tree<NDT, EDT>& tree)
  * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
-template <class NDT, class EDT>
-std::string PhyloxmlProcessor::to_string (const Tree<NDT, EDT>& tree)
+template <class TreeType>
+std::string PhyloxmlProcessor::to_string (const TreeType& tree)
 {
     XmlDocument xml;
     to_document(xml, tree);
@@ -72,68 +73,67 @@ std::string PhyloxmlProcessor::to_string (const Tree<NDT, EDT>& tree)
 /**
  * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
  */
-template <class NDT, class EDT>
-void PhyloxmlProcessor::to_document (XmlDocument& xml, const Tree<NDT, EDT>& tree)
+template <class TreeType>
+void PhyloxmlProcessor::to_document (XmlDocument& xml, const TreeType& tree)
 {
     xml.clear();
 
-    // set xml declaration
+    // Set XML declaration.
     xml.xml_tag = "xml";
     xml.declarations.emplace("version",  "1.0");
     xml.declarations.emplace("encoding", "UTF-8");
 
-    // set xml root element
+    // Set XML root element.
     xml.tag = "Phyloxml";
     xml.attributes.emplace("xmlns:xsi",          "http://www.w3.org/2001/XMLSchema-instance");
     xml.attributes.emplace("xsi:schemaLocation", "http://www.Phyloxml.org http://www.Phyloxml.org/1.10/Phyloxml.xsd");
     xml.attributes.emplace("xmlns",              "http://www.Phyloxml.org");
 
-    // add the tree element
-    XmlElement* pg = new XmlElement();
-    xml.content.push_back(pg);
-    pg->tag = "phylogeny";
-    pg->attributes.emplace("rooted",     "true");
-    //~ pg.attributes.emplace("rerootable", "true");
+    // Add the (phylogeny) element.
+    auto phylogeny = make_unique<XmlElement>();
+    phylogeny->tag = "phylogeny";
+    phylogeny->attributes.emplace("rooted",     "true");
+    //~ phylogeny.attributes.emplace("rerootable", "true");
 
-    // store the distance from each node to the root.
-    std::vector<int> depths = tree.node_depth_vector();
-
+    // Create a stack where we will push the tree elements to. Use the phylogeny element as root.
     std::vector<XmlElement*> stack;
-    stack.push_back(pg);
+    stack.push_back(phylogeny.get());
+    xml.content.push_back(std::move(phylogeny));
     int cur_d = 0;
 
+    // Store the distance from each node to the root. Will be used to determine the position on the
+    // stack that is used for adding clades to the phylogeny.
+    std::vector<int> depths = tree.node_depth_vector();
+
     for (
-        typename Tree<NDT, EDT>::ConstIteratorPreorder it = tree.begin_preorder();
+        typename TreeType::ConstIteratorPreorder it = tree.begin_preorder();
         it != tree.end_preorder();
         ++it
     ) {
-        // depth can never increase more than one between two nodes when doing a preoder traversal.
+        // Depth can never increase more than one between two nodes when doing a preoder traversal.
         assert(depths[it.node()->index()] <= cur_d + 1);
 
-        // delete end of stack when moving up the tree, unless we are already at the root.
+        // Delete end of stack when moving up the tree, unless we are already at the root.
         while (cur_d >= depths[it.node()->index()] && depths[it.node()->index()] > 0) {
             assert(stack.size() > 0);
             stack.pop_back();
             --cur_d;
         }
-        // set current depth (needed in case we are moving further into the tree, so that the loop
-        // is not executed).
+        // Set current depth (explicitly needed in case we are moving further into the tree, which
+        // means that the loop above is not executed).
         cur_d = depths[it.node()->index()];
 
-        // create clade element
-        XmlElement* clade = new XmlElement();
-        stack.back()->content.push_back(clade);
-        stack.push_back(clade);
+        // Create clade element, append it to the stack, so that all sub-elements will use it as
+        // parent.
+        auto clade = make_unique<XmlElement>();
         clade->tag = "clade";
 
         // create name for clade.
         // TODO move to node.toPhyloxmlelement
-        XmlElement* name_e = new XmlElement();
-        clade->content.push_back(name_e);
-        name_e->tag = "name";
-        XmlMarkup* name_m = new XmlMarkup();
-        name_e->content.push_back(name_m);
-        name_m->content = it.node()->name;
+        auto name_e = make_unique<XmlElement>("name");
+        auto name_m = make_unique<XmlMarkup>(it.node()->name);
+        name_e->content.push_back(std::move(name_m));
+        clade->content.push_back(std::move(name_e));
 
         //~ it.node()->to_newick_broker_element(bn);
         // only write edge data to the broker element if it is not the last iteration.
@@ -151,6 +151,12 @@ void PhyloxmlProcessor::to_document (XmlDocument& xml, const Tree<NDT, EDT>& tre
         //~ )) {
             //~ bn->name = "";
         //~ }
+
+        // Append the clade to the current parent (end of the stack), then use it as the new parent
+        // for the next iteration of the loop.
+        auto clade_ptr = clade.get();
+        stack.back()->content.push_back(std::move(clade));
+        stack.push_back(clade_ptr);
     }
 }
 

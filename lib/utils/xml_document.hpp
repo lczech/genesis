@@ -8,18 +8,18 @@
  * @ingroup utils
  */
 
+#include <memory>
 #include <string>
 #include <unordered_map>
 #include <vector>
 
-//~ #include "utils/logging.hpp"
-//~ #include "utils/utils.hpp"
+#include "utils/utils.hpp"
 
 namespace genesis {
 
-// =============================================================================
+// =================================================================================================
 //     Xml Value
-// =============================================================================
+// =================================================================================================
 
 /**
  *
@@ -33,7 +33,7 @@ public:
         kElement
     };
 
-    static std::string type_to_string (const Type t)
+    inline static std::string type_to_string (const Type t)
     {
         switch (t) {
             case kComment : return "Comment";
@@ -83,9 +83,9 @@ protected:
     const Type type_;
 };
 
-// =============================================================================
+// =================================================================================================
 //     Xml Comment
-// =============================================================================
+// =================================================================================================
 
 /**
  *
@@ -93,16 +93,15 @@ protected:
 class XmlComment : public XmlValue
 {
 public:
-    XmlComment() : XmlValue(kComment) {};
-
-    XmlComment(const std::string& v) : XmlValue(kComment), content(v) {};
+    XmlComment()                           : XmlValue(kComment)                   {};
+    XmlComment(const std::string& comment) : XmlValue(kComment), content(comment) {};
 
     std::string content;
 };
 
-// =============================================================================
+// =================================================================================================
 //     Xml Markup
-// =============================================================================
+// =================================================================================================
 
 /**
  *
@@ -110,16 +109,15 @@ public:
 class XmlMarkup : public XmlValue
 {
 public:
-    XmlMarkup() : XmlValue(kMarkup) {};
-
-    XmlMarkup(const std::string& v) : XmlValue(kMarkup), content(v) {};
+    XmlMarkup()                           : XmlValue(kMarkup)                   {};
+    XmlMarkup(const std::string& content) : XmlValue(kMarkup), content(content) {};
 
     std::string content;
 };
 
-// =============================================================================
+// =================================================================================================
 //     Xml Element
-// =============================================================================
+// =================================================================================================
 
 /**
  *
@@ -129,31 +127,53 @@ class XmlElement : public XmlValue
 public:
     typedef std::unordered_map<std::string, std::string> StringMapType;
 
-    XmlElement() : XmlValue(kElement) {};
+    XmlElement()                       : XmlValue(kElement)           {};
+    XmlElement(const std::string& tag) : XmlValue(kElement), tag(tag) {};
 
     virtual ~XmlElement() override
     {
         clear();
     }
 
-    void clear()
+    inline void clear()
     {
-        for (XmlValue* v : content) {
-            delete v;
-        }
         tag = "";
         attributes.clear();
         content.clear();
     }
 
-    std::string           tag;
-    StringMapType         attributes;
-    std::vector<XmlValue*> content;
+    inline XmlComment* append_comment (const std::string& comment)
+    {
+        auto elm = make_unique<XmlComment>(comment);
+        auto ptr = elm.get();
+        content.push_back(std::move(elm));
+        return ptr;
+    }
+
+    inline XmlMarkup* append_markup (const std::string& text)
+    {
+        auto elm = make_unique<XmlMarkup>(text);
+        auto ptr = elm.get();
+        content.push_back(std::move(elm));
+        return ptr;
+    }
+
+    inline XmlElement* append_element (const std::string& tag)
+    {
+        auto elm = make_unique<XmlElement>(tag);
+        auto ptr = elm.get();
+        content.push_back(std::move(elm));
+        return ptr;
+    }
+
+    std::string                            tag;
+    StringMapType                          attributes;
+    std::vector<std::unique_ptr<XmlValue>> content;
 };
 
-// =============================================================================
+// =================================================================================================
 //     Xml Document
-// =============================================================================
+// =================================================================================================
 
 /**
  *
@@ -166,7 +186,7 @@ public:
         clear();
     }
 
-    void clear()
+    inline void clear()
     {
         XmlElement::clear();
         xml_tag = "";
@@ -177,9 +197,9 @@ public:
     StringMapType declarations;
 };
 
-// =============================================================================
+// =================================================================================================
 //     Converter Functions
-// =============================================================================
+// =================================================================================================
 
 const XmlComment* xml_value_to_comment (const XmlValue* v);
 const XmlMarkup*  xml_value_to_markup  (const XmlValue* v);

@@ -92,34 +92,34 @@ void XmlProcessor::print_markup  (std::string& xml, const XmlMarkup*  value)
  */
 void XmlProcessor::print_element (std::string& xml, const XmlElement* value, const int indent_level)
 {
-    // prepare indention and open tag
+    // Prepare indention and opening tag.
     std::string in0 (indent_level * indent, ' ');
     xml += in0 + "<" + value->tag + print_attributes_list(value->attributes);
 
-    // if it's an empty element, close it, and we are done
+    // If it's an empty element, close it, and we are done.
     if (value->content.size() == 0) {
         xml += " />";
         return;
     }
 
-    // if the element only contains a single markup, don't add new lines. however, if it contains
-    // more data, put each of them in a new line
+    // If the element only contains a single markup, don't add new lines. However, if it contains
+    // more data, put each element in a new line.
     xml += ">";
     if (value->content.size() == 1 && value->content[0]->is_markup()) {
-        print_markup(xml, xml_value_to_markup(value->content[0]));
+        print_markup(xml, xml_value_to_markup(value->content[0].get()));
     } else {
         std::string in1 ((indent_level + 1) * indent, ' ');
         xml += "\n";
 
-        for (XmlValue* v : value->content) {
+        for (auto& v : value->content) {
             if (v->is_comment()) {
                 xml += in1;
-                print_comment(xml, xml_value_to_comment(v));
+                print_comment(xml, xml_value_to_comment(v.get()));
             } else if (v->is_markup()) {
                 xml += in1;
-                print_markup(xml, xml_value_to_markup(v));
+                print_markup(xml, xml_value_to_markup(v.get()));
             } else if (v->is_element()) {
-                print_element(xml, xml_value_to_element(v), indent_level + 1);
+                print_element(xml, xml_value_to_element(v.get()), indent_level + 1);
             } else {
                 // there are no other cases
                 assert(0);

@@ -42,17 +42,17 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    template <class NodeDataType, class EdgeDataType>
-    bool to_file   (const std::string fn, const Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    bool to_file   (const std::string fn, const TreeType& tree);
 
-    template <class NodeDataType, class EdgeDataType>
-    void to_string (std::string& ts,      const Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    void to_string (std::string& ts,      const TreeType& tree);
 
-    template <class NodeDataType, class EdgeDataType>
-    std::string to_string (const Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    std::string to_string (const TreeType& tree);
 
-    template <class NodeDataType, class EdgeDataType>
-    void to_document (XmlDocument& xml, const Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    void to_document (XmlDocument& xml, const TreeType& tree);
 
     // ---------------------------------------------------------------------
     //     Members
