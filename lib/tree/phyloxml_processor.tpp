@@ -127,30 +127,7 @@ void PhyloxmlProcessor::to_document (XmlDocument& xml, const TreeType& tree)
         // parent.
         auto clade = make_unique<XmlElement>();
         clade->tag = "clade";
-
-        // create name for clade.
-        // TODO move to node.toPhyloxmlelement
-        auto name_e = make_unique<XmlElement>("name");
-        auto name_m = make_unique<XmlMarkup>(it.node()->name);
-        name_e->content.push_back(std::move(name_m));
-        clade->content.push_back(std::move(name_e));
-
-        //~ it.node()->to_newick_broker_element(bn);
-        // only write edge data to the broker element if it is not the last iteration.
-        // the last iteration is the root, which usually does not have edge information in newick.
-        // caveat: for the root node, the edge will point to an arbitrary edge away from the root.
-        //~ if (!it.is_last_iteration()) {
-            //~ it.edge()->to_newick_broker_element(bn);
-        //~ }
-
-        // filter out default names if needed
-        //~ if (!use_default_names && bn->name != "" && (
-            //~ bn->name == default_leaf_name ||
-            //~ bn->name == default_internal_name ||
-            //~ bn->name == default_root_name
-        //~ )) {
-            //~ bn->name = "";
-        //~ }
+        adapter_.populate_clade(clade.get(), it);
 
         // Append the clade to the current parent (end of the stack), then use it as the new parent
         // for the next iteration of the loop.

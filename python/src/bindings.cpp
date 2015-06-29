@@ -22,6 +22,7 @@ void BoostPythonExport_JplaceProcessor();
 void BoostPythonExport_PlacementMap();
 void BoostPythonExport_PlacementMapSet();
 void BoostPythonExport_PlacementTree();
+void BoostPythonExport_PlacementTreePhyloxmlAdapter();
 void BoostPythonExport_PlacementSimulator();
 
     // -------------------------------------------
@@ -79,6 +80,7 @@ BOOST_PYTHON_MODULE(genesis)
     BoostPythonExport_PlacementMap();
     BoostPythonExport_PlacementMapSet();
     BoostPythonExport_PlacementTree();
+    BoostPythonExport_PlacementTreePhyloxmlAdapter();
     BoostPythonExport_PlacementSimulator();
 
     // -------------------------------------------

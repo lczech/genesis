@@ -8,6 +8,10 @@
  * @ingroup tree
  */
 
+#include "utils/xml_document.hpp"
+
+#include "utils/utils.hpp"
+
 namespace genesis {
 
 // =================================================================================================
@@ -25,8 +29,41 @@ public:
     //     Constructor and Destructor
     // -------------------------------------------------------------------------
 
-    PhyloxmlAdapter() {};
     virtual ~PhyloxmlAdapter() {};
+
+    template <class PreorderIteratorType>
+    inline void populate_clade (XmlElement* clade, PreorderIteratorType& it)
+    {
+        // Do nothing by default.
+        (void) clade;
+        (void) it;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Property Setters
+    // -------------------------------------------------------------------------
+
+protected:
+
+    inline void set_color (XmlElement* clade, unsigned char r, unsigned char g, unsigned char b)
+    {
+        auto re = make_unique<XmlElement>("red");
+        re->append_markup(std::to_string(r));
+
+        auto ge = make_unique<XmlElement>("green");
+        ge->append_markup(std::to_string(g));
+
+        auto be = make_unique<XmlElement>("blue");
+        be->append_markup(std::to_string(b));
+
+        auto color = make_unique<XmlElement>("color");
+        color->content.push_back(std::move(re));
+        color->content.push_back(std::move(ge));
+        color->content.push_back(std::move(be));
+
+        clade->content.push_back(std::move(color));
+    }
+
 };
 
 } // namespace genesis

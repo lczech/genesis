@@ -38,6 +38,7 @@ void Overload_PhyloxmlProcessor(boost::python::class_<genesis::PhyloxmlProcessor
 void BoostPythonExport_PhyloxmlProcessor()
 {
     auto phyloxml_processor_ = boost::python::class_< ::genesis::PhyloxmlProcessor > ( "PhyloxmlProcessor" )
+        .def( boost::python::init< ::genesis::PhyloxmlAdapter & >(( boost::python::arg("adapter") )) )
 
         // Public Member Variables
 
