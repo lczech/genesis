@@ -15,22 +15,22 @@
 
 namespace genesis {
 
-// =============================================================================
+// =================================================================================================
 //     Forward declarations
-// =============================================================================
+// =================================================================================================
 
 class XmlComment;
 class XmlMarkup;
 class XmlElement;
 class XmlDocument;
 
-// =============================================================================
+// =================================================================================================
 //     Xml Lexer
-// =============================================================================
+// =================================================================================================
 
-// =============================================================================
+// =================================================================================================
 //     Xml Processor
-// =============================================================================
+// =================================================================================================
 
 /**
  * @brief
@@ -48,19 +48,32 @@ class XmlProcessor
     // ---------------------------------------------------------------------
 
 public:
-    static int indent;
+    bool        to_file   (const std::string& fn,  const XmlDocument& document);
+    void        to_string (      std::string& xml, const XmlDocument& document);
+    std::string to_string (                        const XmlDocument& document);
 
-    static bool        to_file   (const std::string& fn,  const XmlDocument& document);
-    static void        to_string (      std::string& xml, const XmlDocument& document);
-    static std::string to_string (                        const XmlDocument& document);
+    // -----------------------------------------------------
+    //     Internal
+    // -----------------------------------------------------
 
 protected:
-    static void print_comment (std::string& xml, const XmlComment* value);
-    static void print_markup  (std::string& xml, const XmlMarkup*  value);
-    static void print_element (std::string& xml, const XmlElement* value, const int indent_level);
+    void print_comment (std::string& xml, const XmlComment* value);
+    void print_markup  (std::string& xml, const XmlMarkup*  value);
+    void print_element (std::string& xml, const XmlElement* value, const int indent_level);
 
-    static std::string print_attributes_list (StringMapType attr);
-    static std::string xml_escape (const std::string& txt);
+    std::string print_attributes_list (StringMapType attr);
+    std::string xml_escape (const std::string& txt);
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+public:
+
+    /**
+     * @brief The indent used for printing the XML elements.
+     */
+    int indent = 4;
 };
 
 } // namespace genesis

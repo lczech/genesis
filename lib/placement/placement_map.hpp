@@ -97,7 +97,10 @@ public:
     // -------------------------------------------------------------------------
 
     size_t placement_count() const;
-    double placement_mass() const;
+    double placement_mass()  const;
+
+    std::pair<PlacementTreeEdge*, size_t> placement_count_max_edge() const;
+    std::pair<PlacementTreeEdge*, double> placement_mass_max_edge()  const;
 
     std::vector<int> closest_leaf_depth_histogram() const;
     std::vector<int> closest_leaf_distance_histogram (
@@ -137,7 +140,9 @@ public:
         const bool with_pendant_length = true
     ) const;
 
-    double center_of_gravity_variance (const bool with_pendant_length = true) const;
+    double center_of_gravity_variance (
+        const bool with_pendant_length = true
+    ) const;
 
     double center_of_gravity_distance (
         const PlacementMap& other, const bool with_pendant_length = true
@@ -152,6 +157,7 @@ public:
     double pairwise_distance (
         const PlacementMap& other, const bool with_pendant_length = true
     ) const;
+
     static double pairwise_distance (
         const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length = true
     );

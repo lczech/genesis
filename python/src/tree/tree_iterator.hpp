@@ -8,12 +8,10 @@
  * @ingroup python
  */
 
-#include <boost/python.hpp>
+#include <python/src/common.hpp>
 
 #include "lib/tree/tree.hpp"
 #include "lib/tree/tree_iterator.hpp"
-
-const char* get_docstring (const std::string& signature);
 
 // =============================================================================
 //     Tree Iterator Eulertour

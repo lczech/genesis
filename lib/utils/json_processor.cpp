@@ -270,16 +270,6 @@ bool JsonProcessor::parse_object (
 // =================================================================================================
 
 /**
- * @brief The precision used for printing floating point numbers, particularly Json Value Numbers.
- */
-int JsonProcessor::precision = 6;
-
-/**
- * @brief The indent used for printing the elements of Json Arrays and Objects.
- */
-int JsonProcessor::indent = 4;
-
-/**
  * @brief Writes a Json file from a JsonDocument. Returns true iff successful.
  */
 bool JsonProcessor::to_file (const std::string& fn, const JsonDocument& document)

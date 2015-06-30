@@ -5,10 +5,9 @@
  * @ingroup python
  */
 
-#include <boost/python.hpp>
-#include "lib/placement/simulator.hpp"
+#include <python/src/common.hpp>
 
-const char* get_docstring (const std::string& signature);
+#include "lib/placement/simulator.hpp"
 
 void BoostPythonExport_PlacementSimulatorTwostep()
 {

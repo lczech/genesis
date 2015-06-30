@@ -24,8 +24,8 @@ void Plausibility::spiderpig_function (
 ) {
     // read trees from files
     PlausibilityTree small_tree;
-    NewickProcessor::from_file(reference_tree_file, reference_tree);
-    NewickProcessor::from_file(small_tree_file,     small_tree);
+    NewickProcessor().from_file(reference_tree_file, reference_tree);
+    NewickProcessor().from_file(small_tree_file,     small_tree);
 
     // create preorder ids for every node, and a reference map for leaves
     std::map<std::string, size_t> reference_map;

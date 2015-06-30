@@ -5,6 +5,8 @@
  * @ingroup python
  */
 
+#include <python/src/common.hpp>
+
 #include <boost/python.hpp>
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
@@ -20,6 +22,7 @@ void BoostPythonExport_JplaceProcessor();
 void BoostPythonExport_PlacementMap();
 void BoostPythonExport_PlacementMapSet();
 void BoostPythonExport_PlacementTree();
+void BoostPythonExport_PlacementTreePhyloxmlAdapter();
 void BoostPythonExport_PlacementSimulator();
 
     // -------------------------------------------
@@ -29,6 +32,8 @@ void BoostPythonExport_PlacementSimulator();
 void BoostPythonExport_DefaultTree();
 void BoostPythonExport_NewickProcessor();
 //~ void BoostPythonExport_TreeSet();
+void BoostPythonExport_PhyloxmlAdapter();
+void BoostPythonExport_PhyloxmlProcessor();
 
     // -------------------------------------------
     //     Utils
@@ -64,6 +69,8 @@ BOOST_PYTHON_MODULE(genesis)
     BoostPythonExport_DefaultTree();
     BoostPythonExport_NewickProcessor();
     //~ BoostPythonExport_TreeSet();
+    BoostPythonExport_PhyloxmlAdapter();
+    BoostPythonExport_PhyloxmlProcessor();
 
     // -------------------------------------------
     //     Placement
@@ -73,6 +80,7 @@ BOOST_PYTHON_MODULE(genesis)
     BoostPythonExport_PlacementMap();
     BoostPythonExport_PlacementMapSet();
     BoostPythonExport_PlacementTree();
+    BoostPythonExport_PlacementTreePhyloxmlAdapter();
     BoostPythonExport_PlacementSimulator();
 
     // -------------------------------------------

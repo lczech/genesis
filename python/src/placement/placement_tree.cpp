@@ -5,13 +5,10 @@
  * @ingroup python
  */
 
-#include <boost/python.hpp>
+#include <python/src/common.hpp>
 
 #include "lib/placement/placement_tree.hpp"
-
 #include "python/src/tree/tree.hpp"
-
-const char* get_docstring (const std::string& signature);
 
 // -------------------------------------------------------------------
 //     Class PlacementTreeNodeData

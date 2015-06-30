@@ -8,13 +8,11 @@
  * @ingroup python
  */
 
-#include <boost/python.hpp>
+#include <python/src/common.hpp>
 
 #include "lib/tree/tree_edge.hpp"
 #include "lib/tree/tree_link.hpp"
 #include "lib/tree/tree_node.hpp"
-
-const char* get_docstring (const std::string& signature);
 
 template <class NodeDataType, class EdgeDataType>
 void BoostPythonExport_TreeEdge (std::string name)

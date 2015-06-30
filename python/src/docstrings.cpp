@@ -5,6 +5,8 @@
  * @ingroup python
  */
 
+#include <python/src/common.hpp>
+
 #include <map>
 #include <string>
 

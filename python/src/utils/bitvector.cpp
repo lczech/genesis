@@ -5,11 +5,9 @@
  * @ingroup python
  */
 
-#include <boost/python.hpp>
+#include <python/src/common.hpp>
 
 #include "lib/utils/bitvector.hpp"
-
-const char* get_docstring (const std::string& signature);
 
 void BoostPythonExport_Bitvector()
 {

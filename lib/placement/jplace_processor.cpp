@@ -38,12 +38,9 @@ bool JplaceProcessor::check_version (const std::string version)
     return version == "2" || version == "3";
 }
 
-// =============================================================================
+// =================================================================================================
 //     Parsing
-// =============================================================================
-
-bool JplaceProcessor::report_invalid_numbers  = false;
-bool JplaceProcessor::correct_invalid_numbers = false;
+// =================================================================================================
 
 /**
  * @brief Reads a list of files and parses them as a Jplace document into a PlacementMapSet object.
@@ -103,7 +100,7 @@ bool JplaceProcessor::from_file (const std::string& fn, PlacementMap& placements
 bool JplaceProcessor::from_string (const std::string& jplace, PlacementMap& placements)
 {
     JsonDocument doc;
-    if (!JsonProcessor::from_string(jplace, doc)) {
+    if (!JsonProcessor().from_string(jplace, doc)) {
         return false;
     }
     return from_document(doc, placements);
@@ -132,7 +129,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
 
     // find and process the reference tree
     val = doc.get("tree");
-    if (!val || !val->is_string() || !NewickProcessor::from_string(val->to_string(), placements.tree())) {
+    if (!val || !val->is_string() || !NewickProcessor().from_string(val->to_string(), placements.tree())) {
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
@@ -440,9 +437,9 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     return true;
 }
 
-// =============================================================================
+// =================================================================================================
 //     Printing
-// =============================================================================
+// =================================================================================================
 
 /**
  * @brief
@@ -473,7 +470,7 @@ std::string JplaceProcessor::to_string (const PlacementMap& placements)
 {
     JsonDocument json;
     to_document(placements, json);
-    return JsonProcessor::to_string(json);
+    return JsonProcessor().to_string(json);
 }
 
 /**
@@ -484,11 +481,12 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
     doc.clear();
 
     // set tree
-    NewickProcessor::print_names          = true;
-    NewickProcessor::print_branch_lengths = true;
-    NewickProcessor::print_comments       = false;
-    NewickProcessor::print_tags           = true;
-    doc.set("tree", new JsonValueString(NewickProcessor::to_string(placements.tree())));
+    auto nwp = NewickProcessor();
+    nwp.print_names          = true;
+    nwp.print_branch_lengths = true;
+    nwp.print_comments       = false;
+    nwp.print_tags           = true;
+    doc.set("tree", new JsonValueString(nwp.to_string(placements.tree())));
 
     // set placements
     JsonValueArray* placements_arr = new JsonValueArray();

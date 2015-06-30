@@ -14,18 +14,18 @@
 
 namespace genesis {
 
-// =============================================================================
+// =================================================================================================
 //     Forward declarations
-// =============================================================================
+// =================================================================================================
 
 class JsonDocument;
 class JsonValue;
 class JsonValueArray;
 class JsonValueObject;
 
-// =============================================================================
+// =================================================================================================
 //     Json Processor
-// =============================================================================
+// =================================================================================================
 
 /**
  * @brief A JSON parser that fills a JsonDocument with data from different JSON sources.
@@ -52,26 +52,26 @@ class JsonProcessor
     // ---------------------------------------------------------------------
 
 public:
-    static bool from_file   (const std::string& fn,    JsonDocument& document);
-    static bool from_string (const std::string& json,  JsonDocument& document);
+    bool from_file   (const std::string& fn,    JsonDocument& document);
+    bool from_string (const std::string& json,  JsonDocument& document);
 
     // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
 
 protected:
 
-    static bool parse_value (
+    bool parse_value (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
         JsonValue*&          value
     );
 
-    static bool parse_array (
+    bool parse_array (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
         JsonValueArray*      value
     );
 
-    static bool parse_object (
+    bool parse_object (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
         JsonValueObject*     value
@@ -82,17 +82,36 @@ protected:
     // ---------------------------------------------------------------------
 
 public:
-    static int precision;
-    static int indent;
 
-    static bool        to_file   (const std::string& fn,   const JsonDocument& document);
-    static void        to_string (      std::string& json, const JsonDocument& document);
-    static std::string to_string (                         const JsonDocument& document);
+    bool        to_file   (const std::string& fn,   const JsonDocument& document);
+    void        to_string (      std::string& json, const JsonDocument& document);
+    std::string to_string (                         const JsonDocument& document);
+
+    // -----------------------------------------------------
+    //     Internal
+    // -----------------------------------------------------
 
 protected:
-    static std::string print_value  (const JsonValue*       value);
-    static std::string print_array  (const JsonValueArray*  value, const int indent_level);
-    static std::string print_object (const JsonValueObject* value, const int indent_level);
+    std::string print_value  (const JsonValue*       value);
+    std::string print_array  (const JsonValueArray*  value, const int indent_level);
+    std::string print_object (const JsonValueObject* value, const int indent_level);
+
+    // -----------------------------------------------------
+    //     Members
+    // -----------------------------------------------------
+
+public:
+
+    /**
+     * @brief The precision used for printing floating point numbers, particularly Json Value Numbers.
+     */
+    int precision = 6;
+
+    /**
+     * @brief The indent used for printing the elements of Json Arrays and Objects.
+     */
+    int indent = 4;
+
 };
 
 } // namespace genesis

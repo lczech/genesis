@@ -10,26 +10,33 @@
 
 #include <string>
 
-//~ #include "utils/lexer.hpp"
+#include "placement/placement_tree_phyloxml_adapter.hpp"
+// #include "tree/phyloxml_adapter.hpp"
 
 namespace genesis {
 
-// =============================================================================
+// =================================================================================================
 //     Forward declarations
-// =============================================================================
+// =================================================================================================
 
 template <class NodeDataType, class EdgeDataType>
 class  Tree;
 
 class XmlDocument;
 
-// =============================================================================
-//     PhyloXML Processor
-// =============================================================================
+// =================================================================================================
+//     Phyloxml Processor
+// =================================================================================================
 
-class PhyloXmlProcessor
+class PhyloxmlProcessor
 {
 public:
+
+    PhyloxmlProcessor()                         : adapter_(PlacementTreePhyloxmlAdapter()) {}
+    PhyloxmlProcessor(PlacementTreePhyloxmlAdapter& adapter) : adapter_(adapter)           {}
+
+    // TODO !!! this classes uses the placement adapter only. this is just a short term solution to
+    // make it work for now.
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -39,24 +46,31 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    template <class NodeDataType, class EdgeDataType>
-    static bool to_file   (const std::string fn, const Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    bool to_file   (const TreeType& tree, const std::string fn);
 
-    template <class NodeDataType, class EdgeDataType>
-    static void to_string (std::string& ts,      const Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    void to_string (const TreeType& tree, std::string& ts);
 
-    template <class NodeDataType, class EdgeDataType>
-    static std::string to_string (const Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    std::string to_string (const TreeType& tree);
 
-    template <class NodeDataType, class EdgeDataType>
-    static void to_document (XmlDocument& xml, const Tree<NodeDataType, EdgeDataType>& tree);
+    template <class TreeType>
+    void to_document (const TreeType& tree, XmlDocument& xml);
+
+    // ---------------------------------------------------------------------
+    //     Members
+    // ---------------------------------------------------------------------
+
+protected:
+    PlacementTreePhyloxmlAdapter adapter_;
 };
 
 } // namespace genesis
 
-// =============================================================================
+// =================================================================================================
 //     Inclusion of the implementation
-// =============================================================================
+// =================================================================================================
 
 // This class contains function templates, so do the inclusion here.
 #include "tree/phyloxml_processor.tpp"

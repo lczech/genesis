@@ -95,13 +95,6 @@ bool FastaProcessor::from_string (const std::string& fs, SequenceSet& aln)
 // =============================================================================
 
 /**
- * @brief Determines after how many chars to do a line break when printing a FASTA file.
- *
- * Default is `80`. If set to `0`, no breaks are inserted.
- */
-size_t FastaProcessor::line_length = 80;
-
-/**
  * @brief
  */
 bool FastaProcessor::to_file (const SequenceSet& sset, const std::string fn)
