@@ -10,7 +10,8 @@
 
 #include <string>
 
-#include "tree/phyloxml_adapter.hpp"
+#include "placement/placement_tree_phyloxml_adapter.hpp"
+// #include "tree/phyloxml_adapter.hpp"
 
 namespace genesis {
 
@@ -31,8 +32,11 @@ class PhyloxmlProcessor
 {
 public:
 
-    PhyloxmlProcessor()                         : adapter_(PhyloxmlAdapter()) {}
-    PhyloxmlProcessor(PhyloxmlAdapter& adapter) : adapter_(adapter)           {}
+    PhyloxmlProcessor()                         : adapter_(PlacementTreePhyloxmlAdapter()) {}
+    PhyloxmlProcessor(PlacementTreePhyloxmlAdapter& adapter) : adapter_(adapter)           {}
+
+    // TODO !!! this classes uses the placement adapter only. this is just a short term solution to
+    // make it work for now.
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -43,23 +47,23 @@ public:
     // ---------------------------------------------------------------------
 
     template <class TreeType>
-    bool to_file   (const std::string fn, const TreeType& tree);
+    bool to_file   (const TreeType& tree, const std::string fn);
 
     template <class TreeType>
-    void to_string (std::string& ts,      const TreeType& tree);
+    void to_string (const TreeType& tree, std::string& ts);
 
     template <class TreeType>
     std::string to_string (const TreeType& tree);
 
     template <class TreeType>
-    void to_document (XmlDocument& xml, const TreeType& tree);
+    void to_document (const TreeType& tree, XmlDocument& xml);
 
     // ---------------------------------------------------------------------
     //     Members
     // ---------------------------------------------------------------------
 
 protected:
-    PhyloxmlAdapter adapter_;
+    PlacementTreePhyloxmlAdapter adapter_;
 };
 
 } // namespace genesis

@@ -33,14 +33,14 @@ namespace genesis {
  * If the file already exists, the function does not overwrite it.
  */
 template <class TreeType>
-bool PhyloxmlProcessor::to_file (const std::string fn, const TreeType& tree)
+bool PhyloxmlProcessor::to_file (const TreeType& tree, const std::string fn)
 {
     if (file_exists(fn)) {
         LOG_WARN << "Phyloxml file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
-    to_string(ts, tree);
+    to_string(tree, ts);
     return file_write(fn, ts);
 }
 
@@ -51,7 +51,7 @@ bool PhyloxmlProcessor::to_file (const std::string fn, const TreeType& tree)
  * representation.
  */
 template <class TreeType>
-void PhyloxmlProcessor::to_string (std::string& ts, const TreeType& tree)
+void PhyloxmlProcessor::to_string (const TreeType& tree, std::string& ts)
 {
     ts = to_string(tree);
 }
@@ -66,7 +66,7 @@ template <class TreeType>
 std::string PhyloxmlProcessor::to_string (const TreeType& tree)
 {
     XmlDocument xml;
-    to_document(xml, tree);
+    to_document(tree, xml);
     return XmlProcessor().to_string(xml);
 }
 
@@ -74,17 +74,17 @@ std::string PhyloxmlProcessor::to_string (const TreeType& tree)
  * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
  */
 template <class TreeType>
-void PhyloxmlProcessor::to_document (XmlDocument& xml, const TreeType& tree)
+void PhyloxmlProcessor::to_document (const TreeType& tree, XmlDocument& xml)
 {
     xml.clear();
 
     // Set XML declaration.
-    xml.xml_tag = "xml";
-    xml.declarations.emplace("version",  "1.0");
-    xml.declarations.emplace("encoding", "UTF-8");
+    // xml.xml_tag = "xml";
+    // xml.declarations.emplace("version",  "1.0");
+    // xml.declarations.emplace("encoding", "UTF-8");
 
     // Set XML root element.
-    xml.tag = "Phyloxml";
+    xml.tag = "phyloxml";
     xml.attributes.emplace("xmlns:xsi",          "http://www.w3.org/2001/XMLSchema-instance");
     xml.attributes.emplace("xsi:schemaLocation", "http://www.Phyloxml.org http://www.Phyloxml.org/1.10/Phyloxml.xsd");
     xml.attributes.emplace("xmlns",              "http://www.Phyloxml.org");

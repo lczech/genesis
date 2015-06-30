@@ -29,15 +29,8 @@ public:
     template <class PreorderIteratorType>
     inline void populate_clade(XmlElement* clade, PreorderIteratorType& it)
     {
-        // Create name entry.
-        auto name_e = make_unique<XmlElement>("name");
-        name_e->append_markup(it.node()->name);
-        clade->content.push_back(std::move(name_e));
-
-        // Create branch length entry.
-        auto bl_e = make_unique<XmlElement>("branch_length");
-        bl_e->append_markup(std::to_string(it.edge()->branch_length));
-        clade->content.push_back(std::move(bl_e));
+        set_name(clade, it.node()->name);
+        set_branch_length(clade, it.edge()->branch_length);
 
         //~ it.node()->to_newick_broker_element(bn);
         // only write edge data to the broker element if it is not the last iteration.

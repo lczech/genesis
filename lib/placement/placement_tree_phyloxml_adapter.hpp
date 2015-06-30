@@ -20,16 +20,18 @@ namespace genesis {
 /**
  * @brief
  */
-class PlacementTreePhyloxmlAdapter : public DefaultTreePhyloxmlAdapter
+class PlacementTreePhyloxmlAdapter : public PhyloxmlAdapter //DefaultTreePhyloxmlAdapter
 {
 public:
 
     template <class PreorderIteratorType>
     inline void populate_clade(XmlElement* clade, PreorderIteratorType& it)
     {
-        DefaultTreePhyloxmlAdapter::populate_clade(clade, it);
+        set_name(clade, it.node()->name);
+        set_branch_length(clade, it.edge()->branch_length);
 
         set_color(clade, 0, 100, 120);
+        LOG_DBG << it.edge()->placements.size();
     }
 
 };

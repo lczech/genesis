@@ -31,19 +31,33 @@ public:
 
     virtual ~PhyloxmlAdapter() {};
 
-    template <class PreorderIteratorType>
-    inline void populate_clade (XmlElement* clade, PreorderIteratorType& it)
-    {
-        // Do nothing by default.
-        (void) clade;
-        (void) it;
-    }
+    // template <class PreorderIteratorType>
+    // inline void populate_clade (XmlElement* clade, PreorderIteratorType& it)
+    // {
+    //     // Do nothing by default.
+    //     (void) clade;
+    //     (void) it;
+    // }
 
     // -------------------------------------------------------------------------
     //     Property Setters
     // -------------------------------------------------------------------------
 
 protected:
+
+    inline void set_name (XmlElement* clade, const std::string& name)
+    {
+        auto name_e = make_unique<XmlElement>("name");
+        name_e->append_markup(name);
+        clade->content.push_back(std::move(name_e));
+    }
+
+    inline void set_branch_length (XmlElement* clade, const double length)
+    {
+        auto bl_e = make_unique<XmlElement>("branch_length");
+        bl_e->append_markup(std::to_string(length));
+        clade->content.push_back(std::move(bl_e));
+    }
 
     inline void set_color (XmlElement* clade, unsigned char r, unsigned char g, unsigned char b)
     {

@@ -22,9 +22,9 @@ void Overload_PhyloxmlProcessor(boost::python::class_<genesis::PhyloxmlProcessor
     phyloxml_processor
         .def(
             "to_file",
-            ( bool ( ::genesis::PhyloxmlProcessor::* )( const std::string, const TreeType & ))( &::genesis::PhyloxmlProcessor::to_file ),
-            ( boost::python::arg("fn"), boost::python::arg("tree") ),
-            get_docstring("bool ::genesis::PhyloxmlProcessor::to_file (const std::string fn, const Tree< NDT, EDT > & tree)")
+            ( bool ( ::genesis::PhyloxmlProcessor::* )( const TreeType &, const std::string ))( &::genesis::PhyloxmlProcessor::to_file ),
+            ( boost::python::arg("tree"), boost::python::arg("fn") ),
+            get_docstring("bool ::genesis::PhyloxmlProcessor::to_file (const Tree< NDT, EDT > & tree, const std::string fn)")
         )
         .def(
             "to_string",
@@ -38,7 +38,8 @@ void Overload_PhyloxmlProcessor(boost::python::class_<genesis::PhyloxmlProcessor
 void BoostPythonExport_PhyloxmlProcessor()
 {
     auto phyloxml_processor_ = boost::python::class_< ::genesis::PhyloxmlProcessor > ( "PhyloxmlProcessor" )
-        .def( boost::python::init< ::genesis::PhyloxmlAdapter & >(( boost::python::arg("adapter") )) )
+        .def( boost::python::init< ::genesis::PlacementTreePhyloxmlAdapter & >(( boost::python::arg("adapter") )) )
+        // TODO !!! the above is just a short term solution to make the placement adapter work.
 
         // Public Member Variables
 
@@ -52,5 +53,5 @@ void BoostPythonExport_PhyloxmlProcessor()
         template paramters.
     */
     Overload_PhyloxmlProcessor<genesis::PlacementTree>(phyloxml_processor_);
-    Overload_PhyloxmlProcessor<genesis::DefaultTree>  (phyloxml_processor_);
+    // Overload_PhyloxmlProcessor<genesis::DefaultTree>  (phyloxml_processor_);
 }
