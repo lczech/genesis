@@ -8,6 +8,7 @@ void BoostPythonExport_PlacementTreePhyloxmlAdapter()
     // -------------------------------------------------------------------
 
     boost::python::class_< ::genesis::PlacementTreePhyloxmlAdapter, boost::python::bases<::genesis::PhyloxmlAdapter> > ( "PlacementTreePhyloxmlAdapter" )
+        .def( boost::python::init< ::genesis::PlacementMap & >(( boost::python::arg("map") )) )
 
         // Public Member Functions
 

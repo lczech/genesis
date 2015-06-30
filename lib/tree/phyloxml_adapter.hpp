@@ -10,6 +10,7 @@
 
 #include "utils/xml_document.hpp"
 
+#include "utils/color.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {
@@ -76,6 +77,11 @@ protected:
         color->content.push_back(std::move(be));
 
         clade->content.push_back(std::move(color));
+    }
+
+    inline void set_color (XmlElement* clade, Color color)
+    {
+        set_color (clade, color.r, color.g, color.b);
     }
 
 };

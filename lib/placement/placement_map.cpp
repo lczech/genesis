@@ -384,6 +384,48 @@ double PlacementMap::placement_mass() const
 }
 
 /**
+ * @brief Get the number of placements on the edge with the most placements, and a pointer to this
+ * edge.
+ */
+std::pair<PlacementTreeEdge*, size_t> PlacementMap::placement_count_max_edge() const
+{
+    PlacementTreeEdge* edge = nullptr;
+    size_t             max  = 0;
+
+    for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it ) {
+        if ((*it)->placements.size() > max) {
+            edge = (*it);
+            max  = (*it)->placements.size();
+        }
+    }
+
+    return std::make_pair(edge, max);
+}
+
+/**
+ * @brief Get the summed mass of the placements on the heaviest edge, measured by their
+ * `like_weight_ratio`, and a pointer to this edge.
+ */
+std::pair<PlacementTreeEdge*, double> PlacementMap::placement_mass_max_edge() const
+{
+    PlacementTreeEdge* edge = nullptr;
+    double             max  = 0.0;
+
+    for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it ) {
+        double sum = 0.0;
+        for (const auto& place : (*it)->placements) {
+            sum += place->like_weight_ratio;
+        }
+        if (sum > max) {
+            edge = (*it);
+            max  = sum;
+        }
+    }
+
+    return std::make_pair(edge, max);
+}
+
+/**
  * @brief Returns a histogram representing how many placements have which depth with respect to
  * their closest leaf node.
  *

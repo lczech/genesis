@@ -86,8 +86,8 @@ void PhyloxmlProcessor::to_document (const TreeType& tree, XmlDocument& xml)
     // Set XML root element.
     xml.tag = "phyloxml";
     xml.attributes.emplace("xmlns:xsi",          "http://www.w3.org/2001/XMLSchema-instance");
-    xml.attributes.emplace("xsi:schemaLocation", "http://www.Phyloxml.org http://www.Phyloxml.org/1.10/Phyloxml.xsd");
-    xml.attributes.emplace("xmlns",              "http://www.Phyloxml.org");
+    xml.attributes.emplace("xsi:schemaLocation", "http://www.phyloxml.org http://www.phyloxml.org/1.10/phyloxml.xsd");
+    xml.attributes.emplace("xmlns",              "http://www.phyloxml.org");
 
     // Add the (phylogeny) element.
     auto phylogeny = make_unique<XmlElement>();
