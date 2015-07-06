@@ -62,6 +62,69 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_uniform_weights ()
 }
 
 /**
+ * @brief Set the weights randomly to 0.0 and 1.0.
+ */
+void PlacementSimulatorTwostep::EdgeDistribution::set_random_weights ()
+{
+    size_t num_edges = placements_.tree().edge_count();
+    weights = std::vector<double>(num_edges, 0.0);
+
+    std::bernoulli_distribution distrib;
+    for (size_t i = 0; i < num_edges; ++i) {
+        if (distrib (Options::get().random_engine())) {
+            weights[i] = 1.0;
+        }
+    }
+}
+
+/**
+ * @brief Sets the weights of a randomly chosen subtree to 1.0, all others to 0.0.
+ */
+void PlacementSimulatorTwostep::EdgeDistribution::set_random_subtree_weights ()
+{
+    size_t num_edges = placements_.tree().edge_count();
+    weights = std::vector<double>(num_edges, 0.0);
+
+    std::uniform_int_distribution<int> edge_distrib(0, num_edges);
+    size_t edge_idx = edge_distrib (Options::get().random_engine());
+
+    PlacementTree::LinkType* start_link;
+    // std::bernoulli_distribution dir_distrib;
+    // if (dir_distrib (Options::get().random_engine())) {
+    //     // Primary direction
+    //     start_link = placements_.tree().edge_at(edge_idx)->primary_link();
+    // } else {
+        // Secondary direction
+        start_link = placements_.tree().edge_at(edge_idx)->secondary_link();
+    // }
+
+    for (
+        auto cur_link = start_link->next();
+        cur_link != start_link;
+        cur_link = cur_link->outer()->next()
+    ) {
+        weights[cur_link->edge()->index()] = 1.0;
+    }
+
+    // size_t num_edges = placements_.tree().edge_count();
+    // weights = std::vector<double>(num_edges, 0.0);
+    //
+    // size_t num_nodes = placements_.tree().node_count();
+    // std::uniform_int_distribution<int> distrib(0, num_nodes);
+    //
+    // size_t node_idx = distrib (Options::get().random_engine());
+    // auto   node = placements_.tree().node_at(node_idx);
+    //
+    // for (
+    //     auto it = node->link()->next()->outer();
+    //     it != node->link()->next();
+    //     it = it->next()->outer()
+    // ) {
+    //     weights[it->edge()->index()] = 1.0;
+    // }
+}
+
+/**
  * @brief Set the weights so that they follow a given depth distribution of the edges in the
  * PlacementTree.
  *
