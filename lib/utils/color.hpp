@@ -40,6 +40,13 @@ public:
 
 public:
 
+    /**
+     * @brief Returns a Color that represents a heat gradient for a percentage value.
+     *
+     * Given a percentage value, the functions represents the heat of that value.
+     * For 0%, the heat gradient value is green, for 50% yellow and for 100% red. The values in
+     * between are interpolated accordingly.
+     */
     static Color heat_gradient (int percentage)
     {
         Color red    {255,0,0};
