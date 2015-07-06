@@ -40,7 +40,7 @@ public:
 
 public:
 
-    static Color blended_color (int percentage)
+    static Color heat_gradient (int percentage)
     {
         Color red    {255,0,0};
         Color yellow {255,255,0};

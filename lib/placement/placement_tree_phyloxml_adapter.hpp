@@ -39,16 +39,16 @@ public:
         set_name(clade, it.node()->name);
         set_branch_length(clade, it.edge()->branch_length);
 
-        Color blend (128,128,128);
+        Color edge_color (128,128,128);
         if (it.edge()->placements.size() > 0) {
-            blend = Color::blended_color(
+            edge_color = Color::heat_gradient(
                 100.0 * log(it.edge()->placements.size()) / log(max_placements_per_edge)
             );
         }
 
-        // LOG_DBG <<  it.edge()->placements.size() << " --> " << 100 * it.edge()->placements.size() / max_placements_per_edge << " = " << blend.dump();
+        // LOG_DBG <<  it.edge()->placements.size() << " --> " << 100 * it.edge()->placements.size() / max_placements_per_edge << " = " << edge_color.dump();
 
-        set_color(clade, blend);
+        set_color(clade, edge_color);
     }
 
     size_t max_placements_per_edge = 0;
