@@ -25,6 +25,7 @@
 #include "utils/logging.hpp"
 #include "utils/matrix.hpp"
 #include "utils/options.hpp"
+#include "utils/serializer.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {
@@ -212,6 +213,65 @@ void PlacementMap::clear_placements()
         (*it)->placements.clear();
     }
     pqueries_.clear();
+}
+
+/**
+ * @brief Saves the PlacementMap to a binary file that can later be read by using load().
+ */
+bool PlacementMap::save (const std::string& file_name)
+{
+    // Prepare.
+    Serializer ser (file_name);
+    if (!ser) {
+        LOG_ERR << "Serialization failed.";
+        return false;
+    }
+
+    // Write header.
+    char magic[] = "BPLACE\0\0";
+    ser.put_raw(magic, 8);
+    ser.put_plain<unsigned char>(1);
+
+    // Write tree.
+    // TODO if there is a tree serialization, this one could be used here, and in addition to
+    // edge numbers, the edge indices can be stored, so that deserialization is easier.
+    auto nw = NewickProcessor();
+    ser.put_string(nw.to_string(*tree_));
+
+    // Write pqueries.
+    ser.put_plain(pqueries_.size());
+    for (auto& pqry : pqueries_) {
+
+        // Write placements.
+        ser.put_plain(pqry->placements.size());
+        for (auto& place : pqry->placements) {
+            ser.put_plain(place->edge_num);
+            ser.put_plain(place->likelihood);
+            ser.put_plain(place->like_weight_ratio);
+            ser.put_plain(place->proximal_length);
+            ser.put_plain(place->pendant_length);
+            ser.put_plain(place->parsimony);
+        }
+
+        // Write names.
+        ser.put_plain(pqry->names.size());
+        for (auto& name : pqry->names) {
+            ser.put_string(name->name);
+            ser.put_plain(name->multiplicity);
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Loads a PlacementMap from a binary file that was written by using save().
+ */
+bool PlacementMap::load (const std::string& file_name)
+{
+    clear();
+    Deserializer des (file_name);
+    return true;
 }
 
 // =================================================================================================

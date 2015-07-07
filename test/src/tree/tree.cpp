@@ -14,7 +14,7 @@
 
 using namespace genesis;
 
-TEST(TreeTest, Nope)
+TEST(Tree, Nope)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 

@@ -19,7 +19,7 @@
 
 using namespace genesis;
 
-TEST(PlacementSimulatorTest, TwoStepSimple)
+TEST(PlacementSimulator, TwoStepSimple)
 {
     auto tree = std::make_shared<PlacementTree>();
     EXPECT_TRUE (NewickProcessor().from_string(
@@ -38,7 +38,7 @@ TEST(PlacementSimulatorTest, TwoStepSimple)
     EXPECT_TRUE (map.validate());
 }
 
-TEST(PlacementSimulatorTest, TwoStepLeavesOnly)
+TEST(PlacementSimulator, TwoStepLeavesOnly)
 {
     // Build a simple tree.
     auto tree = std::make_shared<PlacementTree>();
