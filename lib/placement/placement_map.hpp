@@ -162,6 +162,14 @@ public:
         const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length = true
     );
 
+    double closest_pair_distance (
+        const PlacementMap& other, const bool with_pendant_length = true
+    ) const;
+
+    static double closest_pair_distance (
+        const PlacementMap& map_a, const PlacementMap& map_b, const bool with_pendant_length = true
+    );
+
     // -------------------------------------------------------------------------
     //     Variance
     // -------------------------------------------------------------------------
