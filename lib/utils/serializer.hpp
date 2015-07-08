@@ -55,27 +55,27 @@ public:
     //     Stream Status
     // -------------------------------------------------------------------------
 
-    operator bool() const
+    inline operator bool() const
     {
         return outstream;
     }
 
-    bool good() const
+    inline bool good() const
     {
         return outstream.good();
     }
 
-    bool eof() const
+    inline bool eof() const
     {
         return outstream.eof();
     }
 
-    bool fail() const
+    inline bool fail() const
     {
         return outstream.fail();
     }
 
-    bool bad() const
+    inline bool bad() const
     {
         return outstream.bad();
     }
@@ -84,17 +84,17 @@ public:
     //     File Status
     // -------------------------------------------------------------------------
 
-    bool is_open() const
+    inline bool is_open() const
     {
         return outfile.is_open();
     }
 
-    void flush()
+    inline void flush()
     {
         outfile.flush();
     }
 
-    void close()
+    inline void close()
     {
         outfile.close();
     }
@@ -175,27 +175,27 @@ public:
     //     Stream Status
     // -------------------------------------------------------------------------
 
-    operator bool() const
+    inline operator bool() const
     {
         return instream;
     }
 
-    bool good() const
+    inline bool good() const
     {
         return instream.good();
     }
 
-    bool eof() const
+    inline bool eof() const
     {
         return instream.eof();
     }
 
-    bool fail() const
+    inline bool fail() const
     {
         return instream.fail();
     }
 
-    bool bad() const
+    inline bool bad() const
     {
         return instream.bad();
     }
@@ -204,12 +204,12 @@ public:
     //     File Status
     // -------------------------------------------------------------------------
 
-    bool is_open() const
+    inline bool is_open() const
     {
         return infile.is_open();
     }
 
-    void close()
+    inline void close()
     {
         infile.close();
     }
