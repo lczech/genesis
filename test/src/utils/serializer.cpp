@@ -16,12 +16,13 @@ using namespace genesis;
 
 struct SerializerTestData
 {
-    char          m[8];
+             char m[8];
              char a;
-    signed   int  b;
+      signed int  b;
     unsigned long c;
     double        d;
     std::string   t;
+             int  e;
 };
 
 void init_test_data(SerializerTestData& data)
@@ -33,6 +34,7 @@ void init_test_data(SerializerTestData& data)
     data.c = 42;
     data.d = 3.1415;
     data.t = "Hello World!";
+    data.e = 125;
 }
 
 void apply_serializer (Serializer& serial, SerializerTestData& data)
@@ -40,12 +42,13 @@ void apply_serializer (Serializer& serial, SerializerTestData& data)
     serial.put_raw(data.m, 8);
     serial.put_null(10);
 
-    serial.put_plain(data.a);
-    serial.put_plain(data.b);
-    serial.put_plain(data.c);
-    serial.put_plain(data.d);
+    serial.put_int(data.a);
+    serial.put_int(data.b);
+    serial.put_int(data.c);
+    serial.put_float(data.d);
 
     serial.put_string(data.t);
+    serial.put_int(data.e);
 }
 
 void apply_deserializer (Deserializer& deser, SerializerTestData& data)
@@ -53,12 +56,13 @@ void apply_deserializer (Deserializer& deser, SerializerTestData& data)
     deser.get_raw(data.m, 8);
     deser.get_null(10);
 
-    deser.get_plain(data.a);
-    deser.get_plain(data.b);
-    deser.get_plain(data.c);
-    deser.get_plain(data.d);
+    deser.get_int(data.a);
+    deser.get_int(data.b);
+    deser.get_int(data.c);
+    deser.get_float(data.d);
 
     data.t = deser.get_string();
+    deser.get_int(data.e);
 }
 
 void compare_data (const SerializerTestData& data_a, const SerializerTestData& data_b)
@@ -71,6 +75,7 @@ void compare_data (const SerializerTestData& data_a, const SerializerTestData& d
     EXPECT_EQ (data_a.c, data_b.c);
     EXPECT_DOUBLE_EQ (data_a.d, data_b.d);
     EXPECT_EQ (data_a.t, data_b.t);
+    EXPECT_EQ (data_a.e, data_b.e);
 }
 
 TEST(Serializer, ToAndFromStream)

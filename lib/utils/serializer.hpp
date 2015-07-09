@@ -119,7 +119,7 @@ public:
     void put_string (const std::string& v)
     {
         size_t len = v.length();
-        put_plain(len);
+        put_int(len);
         outstream.write (v.c_str(), len);
     }
 
@@ -127,6 +127,18 @@ public:
     void put_plain (const T v)
     {
         outstream.write((char*)(&v), sizeof(v));
+    }
+
+    template<typename T>
+    void put_int (const T v)
+    {
+        put_plain(v);
+    }
+
+    template<typename T>
+    void put_float (const T v)
+    {
+        put_plain(v);
     }
 
     // -------------------------------------------------------------------------
@@ -232,7 +244,7 @@ public:
 
     std::string get_string ()
     {
-        size_t len = get_plain<size_t>();
+        size_t len = get_int<size_t>();
         char* buffer = new char[len];
         instream.read(buffer, len);
 
@@ -253,6 +265,30 @@ public:
     void get_plain (T& res)
     {
         instream.read((char*)(&res), sizeof(T));
+    }
+
+    template<typename T>
+    T get_int ()
+    {
+        return get_plain<T>();
+    }
+
+    template<typename T>
+    void get_int (T& res)
+    {
+        res = get_plain<T>();
+    }
+
+    template<typename T>
+    T get_float ()
+    {
+        return get_plain<T>();
+    }
+
+    template<typename T>
+    void get_float (T& res)
+    {
+        res = get_plain<T>();
     }
 
     // -------------------------------------------------------------------------
