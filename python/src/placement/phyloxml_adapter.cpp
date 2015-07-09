@@ -1,5 +1,5 @@
 #include <boost/python.hpp>
-#include "placement/placement_tree_phyloxml_adapter.hpp"
+#include "placement/phyloxml_adapter.hpp"
 
 void BoostPythonExport_PlacementTreePhyloxmlAdapter()
 {

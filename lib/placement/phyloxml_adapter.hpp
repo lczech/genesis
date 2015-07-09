@@ -42,7 +42,7 @@ public:
         Color edge_color (128,128,128);
         if (it.edge()->placements.size() > 0) {
             edge_color = Color::heat_gradient(
-                100.0 * log(it.edge()->placements.size()) / log(max_placements_per_edge)
+                log(it.edge()->placements.size()) / log(max_placements_per_edge)
             );
         }
 

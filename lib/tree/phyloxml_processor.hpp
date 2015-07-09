@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "placement/placement_tree_phyloxml_adapter.hpp"
+#include "placement/phyloxml_adapter.hpp"
 // #include "tree/phyloxml_adapter.hpp"
 
 namespace genesis {

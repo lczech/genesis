@@ -1,5 +1,5 @@
 /**
- * @brief Testing PlacementMap class.
+ * @brief Testing Serializer class.
  *
  * @file
  * @ingroup test
@@ -61,7 +61,7 @@ void apply_deserializer (Deserializer& deser, SerializerTestData& data)
     data.t = deser.get_string();
 }
 
-void compare_data (SerializerTestData& data_a, SerializerTestData& data_b)
+void compare_data (const SerializerTestData& data_a, const SerializerTestData& data_b)
 {
     for (size_t i = 0; i < 8; i++) {
         EXPECT_EQ (data_a.m[i], data_b.m[i]);
