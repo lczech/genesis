@@ -6,12 +6,9 @@
  */
 
 #include <gtest/gtest.h>
-
-#include <cstdio>
-#include <memory>
-#include <string>
-
 #include "common.hpp"
+
+#include <memory>
 
 #include "lib/placement/jplace_processor.hpp"
 #include "lib/placement/placement_map.hpp"
@@ -29,26 +26,4 @@ TEST(PlacementMap, WithTree)
     PlacementMap map(tree);
 	EXPECT_EQ   (0, map.placement_count());
     EXPECT_TRUE (map.validate());
-}
-
-TEST(PlacementMap, SaveAndLoad)
-{
-    // Skip test if no data directory availabe.
-    NEEDS_TEST_DATA
-
-    // In and out files.
-    std::string infile  = environment->data_dir + "test_a.jplace";
-    std::string tmpfile = environment->data_dir + "test_a.bplace";
-
-    // Prepare a PlacementMap with data.
-    PlacementMap map;
-    EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
-    EXPECT_EQ   (5, map.placement_count());
-    EXPECT_TRUE (map.validate());
-
-    // Save it to a file.
-    EXPECT_TRUE (map.save(tmpfile));
-
-    // Make sure the file is deleted.
-    ASSERT_EQ (0, std::remove(tmpfile.c_str()));
 }

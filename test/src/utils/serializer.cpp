@@ -22,6 +22,7 @@ struct SerializerTestData
     unsigned long c;
     double        d;
     std::string   t;
+    std::string   r;
              int  e;
 };
 
@@ -34,6 +35,7 @@ void init_test_data(SerializerTestData& data)
     data.c = 42;
     data.d = 3.1415;
     data.t = "Hello World!";
+    data.r = "raw";
     data.e = 125;
 }
 
@@ -41,6 +43,7 @@ void apply_serializer (Serializer& serial, SerializerTestData& data)
 {
     serial.put_raw(data.m, 8);
     serial.put_null(10);
+    serial.put_raw_string(data.r);
 
     serial.put_int(data.a);
     serial.put_int(data.b);
@@ -54,7 +57,8 @@ void apply_serializer (Serializer& serial, SerializerTestData& data)
 void apply_deserializer (Deserializer& deser, SerializerTestData& data)
 {
     deser.get_raw(data.m, 8);
-    deser.get_null(10);
+    EXPECT_TRUE (deser.get_null(10));
+    data.r = deser.get_raw_string(3);
 
     deser.get_int(data.a);
     deser.get_int(data.b);
@@ -75,6 +79,7 @@ void compare_data (const SerializerTestData& data_a, const SerializerTestData& d
     EXPECT_EQ (data_a.c, data_b.c);
     EXPECT_DOUBLE_EQ (data_a.d, data_b.d);
     EXPECT_EQ (data_a.t, data_b.t);
+    EXPECT_EQ (data_a.r, data_b.r);
     EXPECT_EQ (data_a.e, data_b.e);
 }
 

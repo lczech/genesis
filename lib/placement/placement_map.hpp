@@ -49,9 +49,6 @@ public:
     void clear();
     void clear_placements();
 
-    bool save (const std::string& file_name);
-    bool load (const std::string& file_name);
-
     // -------------------------------------------------------------------------
     //     Accessors
     // -------------------------------------------------------------------------

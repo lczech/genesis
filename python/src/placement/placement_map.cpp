@@ -63,12 +63,6 @@ void BoostPythonExport_PlacementMap()
         //     get_docstring("EdgeNumMapType * ::genesis::PlacementMap::edge_num_map () const")
         // )
         .def(
-            "load",
-            ( bool ( ::genesis::PlacementMap::* )( const std::string & ))( &::genesis::PlacementMap::load ),
-            ( boost::python::arg("file_name") ),
-            get_docstring("bool ::genesis::PlacementMap::load (const std::string & file_name)")
-        )
-        .def(
             "merge",
             ( bool ( ::genesis::PlacementMap::* )( const PlacementMap & ))( &::genesis::PlacementMap::merge ),
             ( boost::python::arg("other") ),
@@ -93,12 +87,6 @@ void BoostPythonExport_PlacementMap()
             "restrain_to_max_weight_placements",
             ( void ( ::genesis::PlacementMap::* )(  ))( &::genesis::PlacementMap::restrain_to_max_weight_placements ),
             get_docstring("void ::genesis::PlacementMap::restrain_to_max_weight_placements ()")
-        )
-        .def(
-            "save",
-            ( bool ( ::genesis::PlacementMap::* )( const std::string & ))( &::genesis::PlacementMap::save ),
-            ( boost::python::arg("file_name") ),
-            get_docstring("bool ::genesis::PlacementMap::save (const std::string & file_name)")
         )
         .def(
             "tree",
