@@ -14,6 +14,8 @@
 
 #include "common.hpp"
 
+#include "utils/logging.hpp"
+
 GenesisTestEnvironment* environment;
 
 /**
@@ -63,6 +65,10 @@ int main(int argc, char **argv)
     if (!dir_exists(environment->data_dir)) {
         environment->data_dir = "";
     }
+
+    // We want to see Logging information while testing.
+    genesis::Logging::log_to_stdout();
+    genesis::Logging::max_level(genesis::Logging::kDebug4);
 
     ::testing::AddGlobalTestEnvironment(environment);
     return RUN_ALL_TESTS();

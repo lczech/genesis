@@ -22,15 +22,15 @@ namespace genesis {
 /**
  * @brief
  */
-class DefaultTreePhyloxmlAdapter : public PhyloxmlAdapter
+template <typename TreeType>
+class DefaultTreePhyloxmlAdapter : public PhyloxmlAdapter<TreeType>
 {
 public:
 
-    template <class PreorderIteratorType>
-    inline void populate_clade(XmlElement* clade, PreorderIteratorType& it)
+    inline void populate_clade(XmlElement* clade, typename TreeType::ConstIteratorPreorder& it)
     {
-        set_name(clade, it.node()->name);
-        set_branch_length(clade, it.edge()->branch_length);
+        PhyloxmlAdapter<TreeType>::set_name(clade, it.node()->name);
+        PhyloxmlAdapter<TreeType>::set_branch_length(clade, it.edge()->branch_length);
 
         //~ it.node()->to_newick_broker_element(bn);
         // only write edge data to the broker element if it is not the last iteration.
@@ -51,6 +51,8 @@ public:
     }
 
 };
+
+typedef PhyloxmlProcessor<DefaultTreePhyloxmlAdapter<DefaultTree>> DefaultPhyloxmlProcessor;
 
 } // namespace genesis
 

@@ -16,7 +16,7 @@
 
 using namespace genesis;
 
-TEST(JplaceProcessorTest, FromFile)
+TEST(JplaceProcessor, FromFile)
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA

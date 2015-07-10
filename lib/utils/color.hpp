@@ -40,16 +40,25 @@ public:
 
 public:
 
-    static Color blended_color (int percentage)
+    /**
+     * @brief Returns a Color that represents a heat gradient for a percentage value.
+     *
+     * Given a percentage value in the range of `[0.0, 1.0]`, the functions represents the heat of
+     * that value. For 0.0, the heat gradient value is green, for 0.5 yellow and for 1.0 red.
+     * The values in between are interpolated accordingly.
+     */
+    static Color heat_gradient (double percentage)
     {
-        Color red    {255,0,0};
-        Color yellow {255,255,0};
-        Color green  {0,255,0};
+        Color red    {255,   0, 0};
+        Color yellow {255, 255, 0};
+        Color green  {  0, 255, 0};
 
-        if (percentage < 50) {
-            return interpolate(green, yellow, percentage / 50.0);
+        percentage = std::min(std::max(0.0, percentage), 1.0);
+
+        if (percentage < 0.5) {
+            return interpolate(green, yellow, percentage / 0.5);
         }
-        return interpolate(yellow, red, (percentage - 50) / 50.0);
+        return interpolate(yellow, red, (percentage - 0.5) / 0.5);
     }
 
 protected:

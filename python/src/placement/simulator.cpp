@@ -62,6 +62,14 @@ void BoostPythonExport_PlacementSimulatorTwostep()
             ( boost::python::arg("depth_weights") )
         )
         .def(
+            "set_random_weights",
+            ( void ( ::genesis::PlacementSimulatorTwostep::EdgeDistribution::* )(  ))( &::genesis::PlacementSimulatorTwostep::EdgeDistribution::set_random_weights )
+        )
+        .def(
+            "set_random_subtree_weights",
+            ( void ( ::genesis::PlacementSimulatorTwostep::EdgeDistribution::* )(  ))( &::genesis::PlacementSimulatorTwostep::EdgeDistribution::set_random_subtree_weights )
+        )
+        .def(
             "set_uniform_weights",
             ( void ( ::genesis::PlacementSimulatorTwostep::EdgeDistribution::* )(  ))( &::genesis::PlacementSimulatorTwostep::EdgeDistribution::set_uniform_weights )
         )

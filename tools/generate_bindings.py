@@ -707,6 +707,8 @@ class BoostPythonWriter:
         f.write(" * @ingroup python\n")
         f.write(" */\n")
         f.write("\n")
+        f.write("#include <python/src/common.hpp>\n")
+        f.write("\n")
         f.write("#include <map>\n")
         f.write("#include <string>\n")
         f.write("\n")

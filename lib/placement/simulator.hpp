@@ -94,6 +94,9 @@ public:
         void set_depths_distributed_weights (const std::vector<int>& depth_weights);
         bool transfer_weights (const PlacementMap& from_map);
 
+        void set_random_weights();
+        void set_random_subtree_weights();
+
         // -------------------------------------------------
         //     Generate Random Edges
         // -------------------------------------------------

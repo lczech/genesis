@@ -15,7 +15,13 @@
  * If it was not found on program startup, the data files cannot be used, thus
  * tests using them need to be skipped.
  */
-#define NEEDS_TEST_DATA if(environment->data_dir == "") return;
+#define NEEDS_TEST_DATA                                    \
+    if(environment->data_dir == "") {                      \
+        if (environment->fail_on_missing_data_dir) {       \
+            FAIL() << "No test data directory found.";     \
+        }                                                  \
+        return;                                            \
+    };
 
 /**
  * @Brief Environment class for testing genesis.
@@ -41,6 +47,7 @@ public:
 
     std::string data_dir;
 
+    bool fail_on_missing_data_dir;
 };
 
 /**

@@ -21,6 +21,8 @@
 void BoostPythonExport_JplaceProcessor();
 void BoostPythonExport_PlacementMap();
 void BoostPythonExport_PlacementMapSet();
+void BoostPythonExport_PlacementMapSerializer();
+void BoostPythonExport_PlacementMeasures();
 void BoostPythonExport_PlacementTree();
 void BoostPythonExport_PlacementTreePhyloxmlAdapter();
 void BoostPythonExport_PlacementSimulator();
@@ -32,8 +34,8 @@ void BoostPythonExport_PlacementSimulator();
 void BoostPythonExport_DefaultTree();
 void BoostPythonExport_NewickProcessor();
 //~ void BoostPythonExport_TreeSet();
-void BoostPythonExport_PhyloxmlAdapter();
-void BoostPythonExport_PhyloxmlProcessor();
+// void BoostPythonExport_PhyloxmlAdapter();
+// void BoostPythonExport_PhyloxmlProcessor();
 
     // -------------------------------------------
     //     Utils
@@ -69,8 +71,8 @@ BOOST_PYTHON_MODULE(genesis)
     BoostPythonExport_DefaultTree();
     BoostPythonExport_NewickProcessor();
     //~ BoostPythonExport_TreeSet();
-    BoostPythonExport_PhyloxmlAdapter();
-    BoostPythonExport_PhyloxmlProcessor();
+    // BoostPythonExport_PhyloxmlAdapter();
+    // BoostPythonExport_PhyloxmlProcessor();
 
     // -------------------------------------------
     //     Placement
@@ -79,6 +81,8 @@ BOOST_PYTHON_MODULE(genesis)
     BoostPythonExport_JplaceProcessor();
     BoostPythonExport_PlacementMap();
     BoostPythonExport_PlacementMapSet();
+    BoostPythonExport_PlacementMapSerializer();
+    BoostPythonExport_PlacementMeasures();
     BoostPythonExport_PlacementTree();
     BoostPythonExport_PlacementTreePhyloxmlAdapter();
     BoostPythonExport_PlacementSimulator();

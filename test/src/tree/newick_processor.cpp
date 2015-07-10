@@ -14,7 +14,7 @@
 
 using namespace genesis;
 
-TEST(NewickProcessorTest, FromAndToString)
+TEST(NewickProcessor, FromAndToString)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 

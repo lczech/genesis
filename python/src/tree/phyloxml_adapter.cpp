@@ -15,6 +15,6 @@ void BoostPythonExport_PhyloxmlAdapter()
     //     Class PhyloxmlAdapter
     // -------------------------------------------------------------------
 
-    boost::python::class_< ::genesis::PhyloxmlAdapter > ( "PhyloxmlAdapter", boost::python::init<  >(  ) )
-    ;
+    // boost::python::class_< ::genesis::PhyloxmlAdapter > ( "PhyloxmlAdapter", boost::python::init<  >(  ) )
+    // ;
 }

@@ -32,8 +32,8 @@ namespace genesis {
  *
  * If the file already exists, the function does not overwrite it.
  */
-template <class TreeType>
-bool PhyloxmlProcessor::to_file (const TreeType& tree, const std::string fn)
+template <typename AdapterType>
+bool PhyloxmlProcessor<AdapterType>::to_file (const typename AdapterType::TreeType& tree, const std::string fn)
 {
     if (file_exists(fn)) {
         LOG_WARN << "Phyloxml file '" << fn << "' already exist. Will not overwrite it.";
@@ -50,8 +50,8 @@ bool PhyloxmlProcessor::to_file (const TreeType& tree, const std::string fn)
  * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
-template <class TreeType>
-void PhyloxmlProcessor::to_string (const TreeType& tree, std::string& ts)
+template <typename AdapterType>
+void PhyloxmlProcessor<AdapterType>::to_string (const typename AdapterType::TreeType& tree, std::string& ts)
 {
     ts = to_string(tree);
 }
@@ -62,8 +62,8 @@ void PhyloxmlProcessor::to_string (const TreeType& tree, std::string& ts)
  * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
-template <class TreeType>
-std::string PhyloxmlProcessor::to_string (const TreeType& tree)
+template <typename AdapterType>
+std::string PhyloxmlProcessor<AdapterType>::to_string (const typename AdapterType::TreeType& tree)
 {
     XmlDocument xml;
     to_document(tree, xml);
@@ -73,8 +73,8 @@ std::string PhyloxmlProcessor::to_string (const TreeType& tree)
 /**
  * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
  */
-template <class TreeType>
-void PhyloxmlProcessor::to_document (const TreeType& tree, XmlDocument& xml)
+template <typename AdapterType>
+void PhyloxmlProcessor<AdapterType>::to_document (const typename AdapterType::TreeType& tree, XmlDocument& xml)
 {
     xml.clear();
 
@@ -106,7 +106,7 @@ void PhyloxmlProcessor::to_document (const TreeType& tree, XmlDocument& xml)
     std::vector<int> depths = tree.node_depth_vector();
 
     for (
-        typename TreeType::ConstIteratorPreorder it = tree.begin_preorder();
+        typename AdapterType::TreeType::ConstIteratorPreorder it = tree.begin_preorder();
         it != tree.end_preorder();
         ++it
     ) {

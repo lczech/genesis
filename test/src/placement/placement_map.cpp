@@ -6,19 +6,17 @@
  */
 
 #include <gtest/gtest.h>
-
-#include <memory>
-#include <string>
-
 #include "common.hpp"
 
-// #include "lib/placement/jplace_processor.hpp"
+#include <memory>
+
+#include "lib/placement/jplace_processor.hpp"
 #include "lib/placement/placement_map.hpp"
 #include "lib/tree/newick_processor.hpp"
 
 using namespace genesis;
 
-TEST(PlacementMapTest, WithTree)
+TEST(PlacementMap, WithTree)
 {
     auto tree = std::make_shared<PlacementTree>();
     EXPECT_TRUE (NewickProcessor().from_string(

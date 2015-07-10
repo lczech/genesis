@@ -21,23 +21,6 @@ void BoostPythonExport_PlacementMap()
         // Public Member Functions
 
         .def(
-            "center_of_gravity",
-            ( void ( ::genesis::PlacementMap::* )( const bool ) const )( &::genesis::PlacementMap::center_of_gravity ),
-            ( boost::python::arg("with_pendant_length")=(const bool)(true) ),
-            get_docstring("void ::genesis::PlacementMap::center_of_gravity (const bool with_pendant_length=true) const")
-        )
-        .def(
-            "center_of_gravity_distance",
-            ( double ( ::genesis::PlacementMap::* )( const PlacementMap &, const bool ) const )( &::genesis::PlacementMap::center_of_gravity_distance ),
-            ( boost::python::arg("other"), boost::python::arg("with_pendant_length")=(const bool)(true) )
-        )
-        .def(
-            "center_of_gravity_variance",
-            ( double ( ::genesis::PlacementMap::* )( bool ) const )( &::genesis::PlacementMap::center_of_gravity_variance ),
-            ( boost::python::arg("with_pendant_length")=(bool)(true)),
-            get_docstring("double ::genesis::PlacementMap::center_of_gravity_variance (const bool with_pendant_length=true) const")
-        )
-        .def(
             "clear",
             ( void ( ::genesis::PlacementMap::* )(  ))( &::genesis::PlacementMap::clear ),
             get_docstring("void ::genesis::PlacementMap::clear ()")
@@ -75,19 +58,6 @@ void BoostPythonExport_PlacementMap()
             get_docstring("std::string ::genesis::PlacementMap::dump_tree () const")
         )
         // .def(
-        //     "earth_movers_distance",
-        //     ( double ( * )( const PlacementMap &, const PlacementMap &, const bool ))( &::genesis::PlacementMap::earth_movers_distance ),
-        //     ( boost::python::arg("left"), boost::python::arg("right"), boost::python::arg("with_pendant_length")=(const bool)(true) ),
-        //     get_docstring("static double ::genesis::PlacementMap::earth_movers_distance (const PlacementMap & left, const PlacementMap & right, const bool with_pendant_length=true)")
-        // )
-        // .staticmethod("earth_movers_distance")
-        .def(
-            "earth_movers_distance",
-            ( double ( ::genesis::PlacementMap::* )( const PlacementMap &, const bool ) const )( &::genesis::PlacementMap::earth_movers_distance ),
-            ( boost::python::arg("other"), boost::python::arg("with_pendant_length")=(const bool)(true) ),
-            get_docstring("double ::genesis::PlacementMap::earth_movers_distance (const PlacementMap & other, const bool with_pendant_length=true) const")
-        )
-        // .def(
         //     "edge_num_map",
         //     ( EdgeNumMapType * ( ::genesis::PlacementMap::* )(  ) const )( &::genesis::PlacementMap::edge_num_map ),
         //     get_docstring("EdgeNumMapType * ::genesis::PlacementMap::edge_num_map () const")
@@ -102,12 +72,6 @@ void BoostPythonExport_PlacementMap()
             "normalize_weight_ratios",
             ( void ( ::genesis::PlacementMap::* )(  ))( &::genesis::PlacementMap::normalize_weight_ratios ),
             get_docstring("void ::genesis::PlacementMap::normalize_weight_ratios ()")
-        )
-        .def(
-            "pairwise_distance",
-            ( double ( ::genesis::PlacementMap::* )( const PlacementMap &, const bool ) const )( &::genesis::PlacementMap::pairwise_distance ),
-            ( boost::python::arg("other"), boost::python::arg("with_pendant_length")=(const bool)(true) ),
-            get_docstring("double ::genesis::PlacementMap::pairwise_distance (const PlacementMap & other, const bool with_pendant_length=true) const")
         )
         .def(
             "placement_count",
@@ -134,12 +98,6 @@ void BoostPythonExport_PlacementMap()
             ( bool ( ::genesis::PlacementMap::* )( bool, bool ) const )( &::genesis::PlacementMap::validate ),
             ( boost::python::arg("check_values")=(bool)(false), boost::python::arg("break_on_values")=(bool)(false) ),
             get_docstring("bool ::genesis::PlacementMap::validate (bool check_values=false, bool break_on_values=false) const")
-        )
-        .def(
-            "variance",
-            ( double ( ::genesis::PlacementMap::* )( bool ) const )( &::genesis::PlacementMap::variance ),
-            ( boost::python::arg("with_pendant_length")=(bool)(true)),
-            get_docstring("double ::genesis::PlacementMap::variance (const bool with_pendant_length=true) const")
         )
 
         // Public Member Variables

@@ -22,7 +22,7 @@ namespace genesis {
 /**
  * @brief
  */
-class PlacementTreePhyloxmlAdapter : public PhyloxmlAdapter //DefaultTreePhyloxmlAdapter
+class PlacementTreePhyloxmlAdapter : public DefaultTreePhyloxmlAdapter<PlacementTree>
 {
 public:
 
@@ -33,27 +33,29 @@ public:
         max_placements_per_edge = map.placement_count_max_edge().second;
     }
 
-    template <class PreorderIteratorType>
-    inline void populate_clade(XmlElement* clade, PreorderIteratorType& it)
+    inline void populate_clade(XmlElement* clade, PlacementTree::ConstIteratorPreorder& it)
     {
-        set_name(clade, it.node()->name);
-        set_branch_length(clade, it.edge()->branch_length);
+        DefaultTreePhyloxmlAdapter<PlacementTree>::populate_clade(clade, it);
+        // set_name(clade, it.node()->name);
+        // set_branch_length(clade, it.edge()->branch_length);
 
-        Color blend (128,128,128);
+        Color edge_color (128,128,128);
         if (it.edge()->placements.size() > 0) {
-            blend = Color::blended_color(
-                100.0 * log(it.edge()->placements.size()) / log(max_placements_per_edge)
+            edge_color = Color::heat_gradient(
+                log(it.edge()->placements.size()) / log(max_placements_per_edge)
             );
         }
 
-        // LOG_DBG <<  it.edge()->placements.size() << " --> " << 100 * it.edge()->placements.size() / max_placements_per_edge << " = " << blend.dump();
+        // LOG_DBG <<  it.edge()->placements.size() << " --> " << 100 * it.edge()->placements.size() / max_placements_per_edge << " = " << edge_color.dump();
 
-        set_color(clade, blend);
+        set_color(clade, edge_color);
     }
 
     size_t max_placements_per_edge = 0;
 
 };
+
+typedef PhyloxmlProcessor<PlacementTreePhyloxmlAdapter> PlacementTreePhyloxmlProcessor;
 
 } // namespace genesis
 
