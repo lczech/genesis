@@ -19,6 +19,15 @@
 
 #include "python/src/tree/tree_iterator.hpp"
 
+
+    /*
+        TODO Phyloxml tree and other tree related classes are initilized using those hard coded lists
+        of classes. instead, a more flexible approach could be to use variadic templates to achieve this:
+        the tree export function takes the class types of all trees to be exported, defines the python
+        bindings for them, and then delegates to all the other tree related exporters using the same
+        template paramters.
+    */
+
 template <class NodeDataType, class EdgeDataType>
 void BoostPythonExport_Tree (std::string name)
 {

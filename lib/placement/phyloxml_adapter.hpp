@@ -22,7 +22,7 @@ namespace genesis {
 /**
  * @brief
  */
-class PlacementTreePhyloxmlAdapter : public PhyloxmlAdapter //DefaultTreePhyloxmlAdapter
+class PlacementTreePhyloxmlAdapter : public DefaultTreePhyloxmlAdapter<PlacementTree>
 {
 public:
 
@@ -33,11 +33,11 @@ public:
         max_placements_per_edge = map.placement_count_max_edge().second;
     }
 
-    template <class PreorderIteratorType>
-    inline void populate_clade(XmlElement* clade, PreorderIteratorType& it)
+    inline void populate_clade(XmlElement* clade, PlacementTree::ConstIteratorPreorder& it)
     {
-        set_name(clade, it.node()->name);
-        set_branch_length(clade, it.edge()->branch_length);
+        DefaultTreePhyloxmlAdapter<PlacementTree>::populate_clade(clade, it);
+        // set_name(clade, it.node()->name);
+        // set_branch_length(clade, it.edge()->branch_length);
 
         Color edge_color (128,128,128);
         if (it.edge()->placements.size() > 0) {
@@ -54,6 +54,8 @@ public:
     size_t max_placements_per_edge = 0;
 
 };
+
+typedef PhyloxmlProcessor<PlacementTreePhyloxmlAdapter> PlacementTreePhyloxmlProcessor;
 
 } // namespace genesis
 

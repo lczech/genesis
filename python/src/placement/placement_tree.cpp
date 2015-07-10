@@ -7,7 +7,10 @@
 
 #include <python/src/common.hpp>
 
+#include "lib/placement/phyloxml_adapter.hpp"
 #include "lib/placement/placement_tree.hpp"
+
+#include "python/src/tree/phyloxml_processor.hpp"
 #include "python/src/tree/tree.hpp"
 
 // -------------------------------------------------------------------
@@ -82,4 +85,6 @@ void BoostPythonExport_PlacementTree()
     BoostPythonExport_PlacementTreeEdgeData();
 
     BoostPythonExport_Tree<PlacementTreeNodeData, PlacementTreeEdgeData>("PlacementTree");
+    BoostPythonExport_PhyloxmlProcessor<DefaultTreePhyloxmlAdapter<PlacementTree>>("PlacementTreePhyloxmlProcessorBase");
+    BoostPythonExport_PhyloxmlProcessor<PlacementTreePhyloxmlAdapter>("PlacementTreePhyloxmlProcessor");
 }

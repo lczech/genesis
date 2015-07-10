@@ -8,10 +8,10 @@
  * @ingroup tree
  */
 
-#include "utils/xml_document.hpp"
-
+#include "tree/phyloxml_processor.hpp"
 #include "utils/color.hpp"
 #include "utils/utils.hpp"
+#include "utils/xml_document.hpp"
 
 namespace genesis {
 
@@ -22,6 +22,7 @@ namespace genesis {
 /**
  * @brief
  */
+template <typename Tree>
 class PhyloxmlAdapter
 {
 public:
@@ -29,6 +30,8 @@ public:
     // -------------------------------------------------------------------------
     //     Constructor and Destructor
     // -------------------------------------------------------------------------
+
+    typedef Tree TreeType;
 
     virtual ~PhyloxmlAdapter() {};
 

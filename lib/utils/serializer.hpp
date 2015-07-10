@@ -253,6 +253,7 @@ public:
         return str;
     }
 
+    // TODO maybe trailing return types is a solution to make this work without having to specify the template parameters? (also for the othter, similar methods in this class)
     template<typename T>
     T get_plain ()
     {

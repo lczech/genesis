@@ -10,17 +10,11 @@
 
 #include <string>
 
-#include "placement/phyloxml_adapter.hpp"
-// #include "tree/phyloxml_adapter.hpp"
-
 namespace genesis {
 
 // =================================================================================================
 //     Forward declarations
 // =================================================================================================
-
-template <class NodeDataType, class EdgeDataType>
-class  Tree;
 
 class XmlDocument;
 
@@ -28,15 +22,13 @@ class XmlDocument;
 //     Phyloxml Processor
 // =================================================================================================
 
+template <typename AdapterType>
 class PhyloxmlProcessor
 {
 public:
 
-    PhyloxmlProcessor()                         : adapter_(PlacementTreePhyloxmlAdapter()) {}
-    PhyloxmlProcessor(PlacementTreePhyloxmlAdapter& adapter) : adapter_(adapter)           {}
-
-    // TODO !!! this classes uses the placement adapter only. this is just a short term solution to
-    // make it work for now.
+    PhyloxmlProcessor()                     : adapter_(AdapterType()) {}
+    PhyloxmlProcessor(AdapterType& adapter) : adapter_(adapter)       {}
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -46,24 +38,17 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    template <class TreeType>
-    bool to_file   (const TreeType& tree, const std::string fn);
-
-    template <class TreeType>
-    void to_string (const TreeType& tree, std::string& ts);
-
-    template <class TreeType>
-    std::string to_string (const TreeType& tree);
-
-    template <class TreeType>
-    void to_document (const TreeType& tree, XmlDocument& xml);
+    bool        to_file     (const typename AdapterType::TreeType& tree, const std::string fn);
+    void        to_string   (const typename AdapterType::TreeType& tree, std::string& ts);
+    std::string to_string   (const typename AdapterType::TreeType& tree);
+    void        to_document (const typename AdapterType::TreeType& tree, XmlDocument& xml);
 
     // ---------------------------------------------------------------------
     //     Members
     // ---------------------------------------------------------------------
 
 protected:
-    PlacementTreePhyloxmlAdapter adapter_;
+    AdapterType adapter_;
 };
 
 } // namespace genesis
@@ -72,7 +57,7 @@ protected:
 //     Inclusion of the implementation
 // =================================================================================================
 
-// This class contains function templates, so do the inclusion here.
+// This is a class template, so do the inclusion here.
 #include "tree/phyloxml_processor.tpp"
 
 #endif // include guard
