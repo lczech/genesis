@@ -28,24 +28,27 @@ class PlacementTreeNewickAdapter : public DefaultTreeNewickAdapter<PlacementTree
 {
 public:
 
-    inline void to_tree_edge (
+    inline bool to_tree_edge (
         NewickBrokerElement* element, typename PlacementTree::EdgeType& edge
     ) {
-        DefaultTreeNewickAdapter<PlacementTree>::to_tree_edge(element, edge);
+        if (!DefaultTreeNewickAdapter<PlacementTree>::to_tree_edge(element, edge)) {
+            return false;
+        }
 
         edge.edge_num      = -1;
         if (element->tags.size() != 1) {
             LOG_WARN << "Edge for element '" << element->name << "' does not contain the single "
                      << "tag value denoting the edge_num for placements.";
-            return;
+            return false;
         }
         edge.edge_num = std::stoi(element->tags[0]);
+        return true;
     }
 
-    inline void to_tree_node (
+    inline bool to_tree_node (
         NewickBrokerElement* element, typename PlacementTree::NodeType& node
     ) {
-        DefaultTreeNewickAdapter<PlacementTree>::to_tree_node(element, node);
+        return DefaultTreeNewickAdapter<PlacementTree>::to_tree_node(element, node);
     }
 
     inline void from_tree_edge (

@@ -81,7 +81,7 @@ protected:
               NewickBroker&          broker
     );
 
-    void build_tree (NewickBroker& broker, typename AdapterType::TreeType& tree);
+    bool build_tree (NewickBroker& broker, typename AdapterType::TreeType& tree);
 
     // -----------------------------------------------------
     //     Members

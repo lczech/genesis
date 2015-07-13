@@ -83,8 +83,7 @@ bool NewickProcessor<AdapterType>::from_string (
     }
 
     // build the tree from the broker
-    build_tree(broker, tree);
-    return true;
+    return build_tree(broker, tree);
 }
 
 /**
@@ -202,7 +201,9 @@ bool NewickProcessor<AdapterType>::from_string (
         }
 
         auto tree = new typename AdapterType::TreeType();
-        build_tree(broker, &tree);
+        if (!build_tree(broker, &tree)) {
+            return false;
+        }
 
         if (name.empty()) {
             name = default_name + std::to_string(unnamed_ctr++);
@@ -542,12 +543,19 @@ bool NewickProcessor<AdapterType>::parse_tree (
  * TODO: this could be changed by not assigning ranks to the broker but a tmp struct.
  */
 template <typename AdapterType>
-void NewickProcessor<AdapterType>::build_tree (
+bool NewickProcessor<AdapterType>::build_tree (
     NewickBroker& broker, typename AdapterType::TreeType& tree
 ) {
     typename AdapterType::TreeType::LinkArray links;
     typename AdapterType::TreeType::NodeArray nodes;
     typename AdapterType::TreeType::EdgeArray edges;
+
+    // There may be errors while converting from broker nodes to tree elements, for example missing
+    // data for certain formats. This will be reported as result of this method. We however do not
+    // stop the method when an error occurs, as this might result in incomplete trees, which would
+    // currently be a memory leak.
+    // TODO once tree uses smart pointers, we can immediately return on errors in this method!
+    bool result = true;
 
     std::vector<typename AdapterType::TreeType::LinkType*> link_stack;
 
@@ -560,7 +568,7 @@ void NewickProcessor<AdapterType>::build_tree (
 
         // create the tree node for this broker node
         auto cur_node = new typename AdapterType::TreeType::NodeType();
-        adapter_.to_tree_node(broker_node, *cur_node);
+        result &= adapter_.to_tree_node(broker_node, *cur_node);
         cur_node->index_ = nodes.size();
         nodes.push_back(cur_node);
 
@@ -590,7 +598,7 @@ void NewickProcessor<AdapterType>::build_tree (
             up_edge->link_s_         = up_link;
             up_link->edge_           = up_edge;
             link_stack.back()->edge_ = up_edge;
-            adapter_.to_tree_edge(broker_node, *up_edge);
+            result &= adapter_.to_tree_edge(broker_node, *up_edge);
             up_edge->index_ = edges.size();
             edges.push_back(up_edge);
 
@@ -643,6 +651,7 @@ void NewickProcessor<AdapterType>::build_tree (
 
     // hand over the elements to the tree
     tree.import_content(links, nodes, edges);
+    return result;
 }
 
 // =================================================================================================

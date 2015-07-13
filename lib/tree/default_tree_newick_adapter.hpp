@@ -26,16 +26,18 @@ class DefaultTreeNewickAdapter : public NewickAdapter<TreeType>
 {
 public:
 
-    inline void to_tree_edge (
+    inline bool to_tree_edge (
         NewickBrokerElement* element, typename TreeType::EdgeType& edge
     ) {
         edge.branch_length = element->branch_length;
+        return true;
     }
 
-    inline void to_tree_node (
+    inline bool to_tree_node (
         NewickBrokerElement* element, typename TreeType::NodeType& node
     ) {
         node.name = element->name;
+        return true;
     }
 
     inline void from_tree_edge (

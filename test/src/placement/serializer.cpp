@@ -42,6 +42,10 @@ TEST(PlacementMapSerializer, SaveAndLoad)
     PlacementMap map_load;
     EXPECT_TRUE (PlacementMapSerializer::load(tmpfile, map_load));
 
+    // Check for correctly read data.
+    EXPECT_EQ   (5, map_load.placement_count());
+    EXPECT_TRUE (map_load.validate());
+
     // Make sure the file is deleted.
     ASSERT_EQ (0, std::remove(tmpfile.c_str()));
 }
