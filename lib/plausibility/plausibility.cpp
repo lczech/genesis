@@ -8,6 +8,8 @@
 #include "plausibility/plausibility.hpp"
 
 #include "tree/bipartition_set.hpp"
+#include "tree/default_tree_newick_adapter.hpp"
+#include "tree/newick_processor.hpp"
 #include "tree/newick_processor.hpp"
 #include "tree/tree_set.hpp"
 #include "utils/logging.hpp"
@@ -22,10 +24,12 @@ void Plausibility::spiderpig_function (
     const std::string& reference_tree_file,
     const std::string& small_tree_file
 ) {
+    typedef NewickProcessor<DefaultTreeNewickAdapter<PlausibilityTree>> PlausibilityTreeNewickProcessor;
+
     // read trees from files
     PlausibilityTree small_tree;
-    NewickProcessor().from_file(reference_tree_file, reference_tree);
-    NewickProcessor().from_file(small_tree_file,     small_tree);
+    PlausibilityTreeNewickProcessor().from_file(reference_tree_file, reference_tree);
+    PlausibilityTreeNewickProcessor().from_file(small_tree_file,     small_tree);
 
     // create preorder ids for every node, and a reference map for leaves
     std::map<std::string, size_t> reference_map;

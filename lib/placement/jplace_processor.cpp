@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "placement/newick_adapter.hpp"
 #include "placement/placement_map.hpp"
 #include "placement/placement_map_set.hpp"
 #include "tree/newick_processor.hpp"
@@ -129,7 +130,9 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
 
     // find and process the reference tree
     val = doc.get("tree");
-    if (!val || !val->is_string() || !NewickProcessor().from_string(val->to_string(), placements.tree())) {
+    if (!val || !val->is_string() ||
+        !PlacementTreeNewickProcessor().from_string(val->to_string(), placements.tree())
+    ) {
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
@@ -481,7 +484,7 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
     doc.clear();
 
     // set tree
-    auto nwp = NewickProcessor();
+    auto nwp = PlacementTreeNewickProcessor();
     nwp.print_names          = true;
     nwp.print_branch_lengths = true;
     nwp.print_comments       = false;

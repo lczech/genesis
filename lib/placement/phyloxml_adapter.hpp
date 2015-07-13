@@ -16,7 +16,7 @@
 namespace genesis {
 
 // =================================================================================================
-//     PlacementTreePhyloxmlAdapter
+//     Placement Tree Phyloxml Adapter
 // =================================================================================================
 
 /**
@@ -33,14 +33,14 @@ public:
         max_placements_per_edge = map.placement_count_max_edge().second;
     }
 
-    inline void populate_clade(XmlElement* clade, PlacementTree::ConstIteratorPreorder& it)
+    inline void from_tree(PlacementTree::ConstIteratorPreorder& it, XmlElement* clade)
     {
-        DefaultTreePhyloxmlAdapter<PlacementTree>::populate_clade(clade, it);
+        DefaultTreePhyloxmlAdapter<PlacementTree>::from_tree(it, clade);
         // set_name(clade, it.node()->name);
         // set_branch_length(clade, it.edge()->branch_length);
 
         Color edge_color (128,128,128);
-        if (it.edge()->placements.size() > 0) {
+        if (max_placements_per_edge > 0 && it.edge()->placements.size() > 0) {
             edge_color = Color::heat_gradient(
                 log(it.edge()->placements.size()) / log(max_placements_per_edge)
             );
@@ -48,7 +48,7 @@ public:
 
         // LOG_DBG <<  it.edge()->placements.size() << " --> " << 100 * it.edge()->placements.size() / max_placements_per_edge << " = " << edge_color.dump();
 
-        set_color(clade, edge_color);
+        set_color(edge_color, clade);
     }
 
     size_t max_placements_per_edge = 0;

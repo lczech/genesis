@@ -16,7 +16,7 @@
 namespace genesis {
 
 // =================================================================================================
-//     DefaultTreePhyloxmlAdapter
+//     Default Tree Phyloxml Adapter
 // =================================================================================================
 
 /**
@@ -27,10 +27,10 @@ class DefaultTreePhyloxmlAdapter : public PhyloxmlAdapter<TreeType>
 {
 public:
 
-    inline void populate_clade(XmlElement* clade, typename TreeType::ConstIteratorPreorder& it)
+    inline void from_tree(typename TreeType::ConstIteratorPreorder& it, XmlElement* clade)
     {
-        PhyloxmlAdapter<TreeType>::set_name(clade, it.node()->name);
-        PhyloxmlAdapter<TreeType>::set_branch_length(clade, it.edge()->branch_length);
+        PhyloxmlAdapter<TreeType>::set_name(it.node()->name, clade);
+        PhyloxmlAdapter<TreeType>::set_branch_length(it.edge()->branch_length, clade);
 
         //~ it.node()->to_newick_broker_element(bn);
         // only write edge data to the broker element if it is not the last iteration.
@@ -51,6 +51,10 @@ public:
     }
 
 };
+
+// =================================================================================================
+//     Typedef
+// =================================================================================================
 
 typedef PhyloxmlProcessor<DefaultTreePhyloxmlAdapter<DefaultTree>> DefaultPhyloxmlProcessor;
 

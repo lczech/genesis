@@ -9,6 +9,7 @@
 
 #include <string>
 
+#include "lib/tree/default_tree_newick_adapter.hpp"
 #include "lib/tree/newick_processor.hpp"
 #include "lib/tree/tree.hpp"
 
@@ -19,8 +20,8 @@ TEST(NewickProcessor, FromAndToString)
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
     DefaultTree tree;
-    NewickProcessor().from_string(input, tree);
-    std::string output = NewickProcessor().to_string(tree);
+    DefaultTreeNewickProcessor().from_string(input, tree);
+    std::string output = DefaultTreeNewickProcessor().to_string(tree);
 
 	EXPECT_EQ(input, output);
 }

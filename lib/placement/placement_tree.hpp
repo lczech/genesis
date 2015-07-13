@@ -57,35 +57,6 @@ public:
     }
 
     // -----------------------------------------------------
-    //     Default Functions
-    // -----------------------------------------------------
-
-    inline void from_newick_broker_element (NewickBrokerElement* nbe)
-    {
-        branch_length = nbe->branch_length;
-        edge_num      = -1;
-
-        if (nbe->tags.size() != 1) {
-            LOG_WARN << "Edge for element '" << nbe->name << "' does not contain the single "
-                     << "tag value denoting the edge_num for placements.";
-            return;
-        }
-        edge_num = std::stoi(nbe->tags[0]);
-    }
-
-    inline void to_newick_broker_element (NewickBrokerElement* nbe) const
-    {
-        nbe->branch_length = branch_length;
-        nbe->comments.push_back(std::to_string(placement_count()));
-        nbe->tags.push_back(std::to_string(edge_num));
-    }
-
-    inline std::string dump() const
-    {
-        return "Length: " + std::to_string(branch_length) + "\tEdge Num: " + std::to_string(edge_num);
-    }
-
-    // -----------------------------------------------------
     //     Member Functions
     // -----------------------------------------------------
 
@@ -97,6 +68,11 @@ public:
     // -----------------------------------------------------
     //     Data Members
     // -----------------------------------------------------
+
+    inline std::string dump() const
+    {
+        return "Length: " + std::to_string(branch_length) + "\tEdge Num: " + std::to_string(edge_num);
+    }
 
     int                           edge_num;
     std::vector<PqueryPlacement*> placements;

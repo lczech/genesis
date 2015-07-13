@@ -27,6 +27,10 @@ class PhyloxmlProcessor
 {
 public:
 
+    // -------------------------------------------------------------------------
+    //     Constructors
+    // -------------------------------------------------------------------------
+
     PhyloxmlProcessor()                     : adapter_(AdapterType()) {}
     PhyloxmlProcessor(AdapterType& adapter) : adapter_(adapter)       {}
 

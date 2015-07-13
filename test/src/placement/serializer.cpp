@@ -33,7 +33,7 @@ TEST(PlacementMapSerializer, SaveAndLoad)
     PlacementMap map_save;
     EXPECT_TRUE (JplaceProcessor().from_file(infile, map_save));
     EXPECT_EQ   (5, map_save.placement_count());
-    EXPECT_TRUE (map_save.validate());
+    EXPECT_TRUE (map_save.validate(true, false));
 
     // Save it to a file.
     EXPECT_TRUE (PlacementMapSerializer::save(map_save, tmpfile));
@@ -41,6 +41,10 @@ TEST(PlacementMapSerializer, SaveAndLoad)
     // Load again.
     PlacementMap map_load;
     EXPECT_TRUE (PlacementMapSerializer::load(tmpfile, map_load));
+
+    // Check for correctly read data.
+    EXPECT_EQ   (5, map_load.placement_count());
+    EXPECT_TRUE (map_load.validate(true, false));
 
     // Make sure the file is deleted.
     ASSERT_EQ (0, std::remove(tmpfile.c_str()));
