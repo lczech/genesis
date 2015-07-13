@@ -26,5 +26,5 @@ TEST(PlacementMap, WithTree)
 
     PlacementMap map(tree);
 	EXPECT_EQ   (0, map.placement_count());
-    EXPECT_TRUE (map.validate());
+    EXPECT_TRUE (map.validate(true, false));
 }

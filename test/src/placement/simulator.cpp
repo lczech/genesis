@@ -29,14 +29,14 @@ TEST(PlacementSimulator, TwoStepSimple)
 
     PlacementMap map(tree);
 	EXPECT_EQ   (0, map.placement_count());
-    EXPECT_TRUE (map.validate());
+    EXPECT_TRUE (map.validate(true, false));
 
     PlacementSimulatorTwostep sim(map);
 
     size_t n = 100;
     sim.generate(n);
     EXPECT_EQ   (n, map.placement_count());
-    EXPECT_TRUE (map.validate());
+    EXPECT_TRUE (map.validate(true, false));
 }
 
 TEST(PlacementSimulator, TwoStepLeavesOnly)
@@ -58,7 +58,7 @@ TEST(PlacementSimulator, TwoStepLeavesOnly)
     size_t n = 100;
     sim.generate(n);
     EXPECT_EQ   (n, map.placement_count());
-    EXPECT_TRUE (map.validate());
+    EXPECT_TRUE (map.validate(true, false));
 
     // Check whether all placements are next to leaf nodes.
     for (auto& pqry : map.pqueries()) {
