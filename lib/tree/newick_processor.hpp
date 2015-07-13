@@ -35,6 +35,8 @@ class NewickProcessor
 {
 public:
 
+    typedef typename AdapterType::TreeType TreeType;
+
     // -------------------------------------------------------------------------
     //     Constructors
     // -------------------------------------------------------------------------
@@ -46,27 +48,27 @@ public:
     //     Parsing
     // -------------------------------------------------------------------------
 
-    bool from_file    (const std::string& filename,    typename AdapterType::TreeType& tree);
-    bool from_string  (const std::string& tree_string, typename AdapterType::TreeType& tree);
+    bool from_file    (const std::string& filename,    TreeType& tree);
+    bool from_string  (const std::string& tree_string, TreeType& tree);
 
     bool from_file    (
         const std::string& filename,
-        TreeSet<typename AdapterType::TreeType>& tree_set
+        TreeSet<TreeType>& tree_set
     );
     bool from_string  (
         const std::string& tree_string,
-        TreeSet<typename AdapterType::TreeType>& tree_set,
+        TreeSet<TreeType>& tree_set,
         const std::string& default_name = ""
     );
 
     bool from_files   (
         const std::vector<std::string>& filenames,
-        TreeSet<typename AdapterType::TreeType>& tree_set
+        TreeSet<TreeType>& tree_set
     );
 
     bool from_strings (
         const std::vector<std::string>& tree_strings,
-        TreeSet<typename AdapterType::TreeType>& tree_set,
+        TreeSet<TreeType>& tree_set,
         const std::string& default_name = ""
     );
 
@@ -81,7 +83,7 @@ protected:
               NewickBroker&          broker
     );
 
-    bool build_tree (NewickBroker& broker, typename AdapterType::TreeType& tree);
+    bool build_tree (NewickBroker& broker, TreeType& tree);
 
     // -----------------------------------------------------
     //     Members
@@ -106,16 +108,16 @@ public:
 
 public:
 
-    bool        to_file   (const typename AdapterType::TreeType& tree, const std::string fn);
-    void        to_string (const typename AdapterType::TreeType& tree, std::string& ts);
-    std::string to_string (const typename AdapterType::TreeType& tree);
+    bool        to_file   (const TreeType& tree, const std::string fn);
+    void        to_string (const TreeType& tree, std::string& ts);
+    std::string to_string (const TreeType& tree);
 
     // -----------------------------------------------------
     //     Internal
     // -----------------------------------------------------
 
 protected:
-    void to_broker (const typename AdapterType::TreeType& tree, NewickBroker& broker);
+    void to_broker (const TreeType& tree, NewickBroker& broker);
 
     std::string to_string_rec(const NewickBroker& broker, size_t position);
     std::string element_to_string(const NewickBrokerElement* bn);
