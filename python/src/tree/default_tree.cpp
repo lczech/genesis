@@ -8,8 +8,10 @@
 #include <python/src/common.hpp>
 
 #include "lib/tree/default_tree.hpp"
+#include "lib/tree/default_tree_newick_adapter.hpp"
 #include "lib/tree/default_tree_phyloxml_adapter.hpp"
 
+#include "python/src/tree/newick_processor.hpp"
 #include "python/src/tree/phyloxml_processor.hpp"
 #include "python/src/tree/tree.hpp"
 
@@ -91,5 +93,6 @@ void BoostPythonExport_DefaultTree()
     BoostPythonExport_DefaultTreeNodeData();
 
     BoostPythonExport_Tree<DefaultTreeNodeData, DefaultTreeEdgeData>("DefaultTree");
+    BoostPythonExport_NewickProcessor<DefaultTreeNewickAdapter<DefaultTree>>("DefaultTreeNewickProcessor");
     BoostPythonExport_PhyloxmlProcessor<DefaultTreePhyloxmlAdapter<DefaultTree>>("DefaultTreePhyloxmlProcessor");
 }

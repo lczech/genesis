@@ -8,6 +8,8 @@
  * @ingroup tree
  */
 
+#include <string>
+
 #include "tree/phyloxml_processor.hpp"
 #include "utils/color.hpp"
 #include "utils/utils.hpp"
@@ -36,7 +38,7 @@ public:
     virtual ~PhyloxmlAdapter() {};
 
     // template <class PreorderIteratorType>
-    // inline void populate_clade (XmlElement* clade, PreorderIteratorType& it)
+    // inline void from_tree (PreorderIteratorType& it, XmlElement* clade)
     // {
     //     // Do nothing by default.
     //     (void) clade;
@@ -49,21 +51,21 @@ public:
 
 protected:
 
-    inline void set_name (XmlElement* clade, const std::string& name)
+    inline void set_name (const std::string& name, XmlElement* clade)
     {
         auto name_e = make_unique<XmlElement>("name");
         name_e->append_markup(name);
         clade->content.push_back(std::move(name_e));
     }
 
-    inline void set_branch_length (XmlElement* clade, const double length)
+    inline void set_branch_length (const double length, XmlElement* clade)
     {
         auto bl_e = make_unique<XmlElement>("branch_length");
         bl_e->append_markup(std::to_string(length));
         clade->content.push_back(std::move(bl_e));
     }
 
-    inline void set_color (XmlElement* clade, unsigned char r, unsigned char g, unsigned char b)
+    inline void set_color (unsigned char r, unsigned char g, unsigned char b, XmlElement* clade)
     {
         auto re = make_unique<XmlElement>("red");
         re->append_markup(std::to_string(r));
@@ -82,9 +84,9 @@ protected:
         clade->content.push_back(std::move(color));
     }
 
-    inline void set_color (XmlElement* clade, Color color)
+    inline void set_color (Color color, XmlElement* clade)
     {
-        set_color (clade, color.r, color.g, color.b);
+        set_color (color.r, color.g, color.b, clade);
     }
 
 };

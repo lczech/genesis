@@ -85,9 +85,12 @@ void PhyloxmlProcessor<AdapterType>::to_document (const typename AdapterType::Tr
 
     // Set XML root element.
     xml.tag = "phyloxml";
-    xml.attributes.emplace("xmlns:xsi",          "http://www.w3.org/2001/XMLSchema-instance");
-    xml.attributes.emplace("xsi:schemaLocation", "http://www.phyloxml.org http://www.phyloxml.org/1.10/phyloxml.xsd");
-    xml.attributes.emplace("xmlns",              "http://www.phyloxml.org");
+    xml.attributes.emplace("xmlns:xsi", "http://www.w3.org/2001/XMLSchema-instance");
+    xml.attributes.emplace(
+        "xsi:schemaLocation",
+        "http://www.phyloxml.org http://www.phyloxml.org/1.10/phyloxml.xsd"
+    );
+    xml.attributes.emplace("xmlns",     "http://www.phyloxml.org");
 
     // Add the (phylogeny) element.
     auto phylogeny = make_unique<XmlElement>();
@@ -127,7 +130,7 @@ void PhyloxmlProcessor<AdapterType>::to_document (const typename AdapterType::Tr
         // parent.
         auto clade = make_unique<XmlElement>();
         clade->tag = "clade";
-        adapter_.populate_clade(clade.get(), it);
+        adapter_.from_tree(it, clade.get());
 
         // Append the clade to the current parent (end of the stack), then use it as the new parent
         // for the next iteration of the loop.

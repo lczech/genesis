@@ -77,30 +77,13 @@ public:
     }
 
     // -----------------------------------------------------
-    //     Input & Output
+    //     Data Members
     // -----------------------------------------------------
-
-    /**
-     * @brief Fills the node with data from a NewickBrokerElement.
-     */
-    inline void from_newick_broker_element (NewickBrokerElement* node)
-    {
-        name = node->name;
-    }
-
-    inline void to_newick_broker_element (NewickBrokerElement* node) const
-    {
-        node->name = name;
-    }
 
     inline std::string dump() const
     {
         return "Name: '" + name + "'";
     }
-
-    // -----------------------------------------------------
-    //     Data Members
-    // -----------------------------------------------------
 
     /**
      * Name of the node. In case it is a leaf, this is usually the name of
@@ -142,30 +125,13 @@ public:
     }
 
     // -----------------------------------------------------
-    //     Input & Output
+    //     Data Members
     // -----------------------------------------------------
-
-    /**
-     * @brief Fills the edge with data from a NewickBrokerElement.
-     */
-    inline void from_newick_broker_element (NewickBrokerElement* node)
-    {
-        branch_length = node->branch_length;
-    }
-
-    inline void to_newick_broker_element (NewickBrokerElement* node) const
-    {
-        node->branch_length = branch_length;
-    }
 
     inline std::string dump() const
     {
         return "Length: " + std::to_string(branch_length);
     }
-
-    // -----------------------------------------------------
-    //     Data Members
-    // -----------------------------------------------------
 
     double branch_length;
 

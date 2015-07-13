@@ -32,7 +32,7 @@ void BoostPythonExport_PlacementSimulator();
     // -------------------------------------------
 
 void BoostPythonExport_DefaultTree();
-void BoostPythonExport_NewickProcessor();
+// void BoostPythonExport_NewickProcessor();
 //~ void BoostPythonExport_TreeSet();
 // void BoostPythonExport_PhyloxmlAdapter();
 // void BoostPythonExport_PhyloxmlProcessor();
@@ -69,7 +69,7 @@ BOOST_PYTHON_MODULE(genesis)
     // -------------------------------------------
 
     BoostPythonExport_DefaultTree();
-    BoostPythonExport_NewickProcessor();
+    // BoostPythonExport_NewickProcessor();
     //~ BoostPythonExport_TreeSet();
     // BoostPythonExport_PhyloxmlAdapter();
     // BoostPythonExport_PhyloxmlProcessor();

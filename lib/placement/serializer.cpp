@@ -8,6 +8,7 @@
 #include "placement/serializer.hpp"
 
 #include "placement/placement_map.hpp"
+#include "placement/newick_adapter.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/logging.hpp"
 #include "utils/serializer.hpp"
@@ -36,7 +37,7 @@ bool PlacementMapSerializer::save (const PlacementMap& map, const std::string& f
     // Write tree.
     // TODO if there is a tree serialization in the future, this one could be used here, and in
     // addition to edge numbers, the edge indices can be stored, so that deserialization is easier.
-    auto nw = NewickProcessor();
+    auto nw = PlacementTreeNewickProcessor();
     ser.put_string(nw.to_string(map.tree()));
 
     // Write pqueries.
@@ -93,7 +94,7 @@ bool PlacementMapSerializer::load (const std::string& file_name, PlacementMap& m
 
     // Read and check tree.
     auto tree_string = des.get_string();
-    if (!NewickProcessor().from_string(tree_string, map.tree())) {
+    if (!PlacementTreeNewickProcessor().from_string(tree_string, map.tree())) {
         LOG_WARN << "Invalid Tree.";
         return false;
     }
