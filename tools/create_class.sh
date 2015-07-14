@@ -89,101 +89,122 @@ fi
 # make class name CamelCased and file name with underscores
 class_name=`echo $name | sed -r 's/ ([a-z])/\U\1/g' | sed -r 's/^([a-z])/\U\1/g'`
 file_name=`echo ${file_base,,} | sed -r 's/ /_/g'`
+cap_module=`echo $module  | sed -r 's/([a-z])/\U\1/g'`
+cap_file=`echo $file_name | sed -r 's/([a-z])/\U\1/g'`
 
-echo "About to create class '$class_name' in these files:"
-echo "Header: ${module}/${file_name}.hpp"
-echo "Code  : ${module}/${file_name}.cpp"
+echo "About to create class '$class_name'."
 echo ""
 
-if [ -f ${module}/${file_name}.hpp ] || [ -f ${module}/${file_name}.cpp ]; then
-    echo "Files already exist. Aborting."
-    exit
-fi
+# Names of the different options.
+f_name[0]="header"
+f_name[1]="code"
+f_name[2]="template"
+f_name[3]="test"
+f_name[4]="python"
 
-echo "Continue? Do something else?"
-mode=0
-select yn in "Continue" "Cancel" "Header only" "Templated"; do
-    if [ "${yn}" == "Cancel" ]; then
-        echo "Aborted. Nothing done."
-        exit
-    fi
-    if [ "${yn}" == "Header only" ]; then
-        mode=1
+# Mark which files the user wants to create.
+f_create[0]="x"
+f_create[1]="x"
+f_create[2]=" "
+f_create[3]=" "
+f_create[4]=" "
+
+f_source[0]="../tools/templates/class.hpp"
+f_source[1]="../tools/templates/class.cpp"
+f_source[2]="../tools/templates/class.tpp"
+f_source[3]="../tools/templates/test.cpp"
+f_source[4]="../tools/templates/python.cpp"
+
+# List of target file names.
+f_target[0]="lib/${module}/${file_name}.hpp"
+f_target[1]="lib/${module}/${file_name}.cpp"
+f_target[2]="lib/${module}/${file_name}.tpp"
+f_target[3]="test/src/${module}/${file_name}.cpp"
+f_target[4]="python/src/${module}/${file_name}.cpp"
+
+echo -e "Press the number keys to select the files that"
+echo -e "you want to create (press again to unselect)."
+echo -e "Press enter when done.\n"
+
+# Choose which files to create.
+while true; do
+    echo "[${f_create[0]}] 1: Header   : ${f_target[0]}"
+    echo "[${f_create[1]}] 2: Code     : ${f_target[1]}"
+    echo "[${f_create[2]}] 3: Template : ${f_target[2]}"
+    echo "[${f_create[3]}] 4: Test     : ${f_target[3]}"
+    echo "[${f_create[4]}] 5: Python   : ${f_target[4]}"
+
+    read -s -n 1 key
+    if [[ ${key} = "" ]]; then
         break
     fi
-    if [ "${yn}" == "Templated" ]; then
-        mode=2
-        break
+
+    if [[ $key =~ ^-?[1-5]$ ]]; then
+        if [[ ${f_create[$(( ${key} - 1 ))]} == "x" ]]; then
+            f_create[$(( ${key} - 1 ))]=" "
+        else
+            f_create[$(( ${key} - 1 ))]="x"
+        fi
     fi
-    if [ "${yn}" != "" ]; then
-        break
-    fi
+
+    echo "$(tput cuu 6)"
 done
 
 echo ""
 echo "--------------------------------------------------------------------"
 echo ""
 
-cap_module=`echo $module  | sed -r 's/([a-z])/\U\1/g'`
-cap_file=`echo $file_name | sed -r 's/([a-z])/\U\1/g'`
-
-mkdir -p ${module}
-
-# header and implementation
-if [ ${mode} == 0 ]; then
-    cat ../tools/class_template.hpp | sed "s/###CLASSNAME###/${class_name}/g" | \
-        sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
-        sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" | \
-        sed "/###TEMPLATE_LINE###/d" | \
-        sed "/###TEMPLATE_START###/,/###TEMPLATE_END###/d" > \
-        ${module}/${file_name}.hpp
-
-    cat ../tools/class_template.cpp | sed "s/###CLASSNAME###/${class_name}/g" | \
-        sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
-        sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" > \
-        ${module}/${file_name}.cpp
-
-    echo "Created header and implementation."
-fi
-
-# header only
-if [ ${mode} == 1 ]; then
-    cat ../tools/class_template.hpp | sed "s/###CLASSNAME###/${class_name}/g" | \
-        sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
-        sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" | \
-        sed "/###TEMPLATE_LINE###/d" | \
-        sed "/###TEMPLATE_START###/,/###TEMPLATE_END###/d" > \
-        ${module}/${file_name}.hpp
-
-    echo "Created header only."
-fi
-
-# header and template implementation
-if [ ${mode} == 2 ]; then
-
+# If the user wants to create a template, we need its params.
+param=""
+if [[ ${f_create[2]} == "x" ]]; then
     echo "Please enter the template parameters as they appear between <...>"
     echo "Example: 'class T' will create template<class T>."
     echo ""
     read param
-
-    cat ../tools/class_template.hpp | sed "s/###CLASSNAME###/${class_name}/g" | \
-        sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
-        sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" | \
-        sed "s/###TEMPLATE_LINE###//g" | \
-        sed "s/###TEMPLATE_START###//g;s/###TEMPLATE_END###//g" | \
-        sed "s/###TEMPLATE_PARAM###/${param}/g" > \
-        ${module}/${file_name}.hpp
-
-    cat ../tools/class_template.tpp | sed "s/###CLASSNAME###/${class_name}/g" | \
-        sed "s/###MODULNAME###/${module}/g;s/###FILENAME###/${file_name}/g"   | \
-        sed "s/###CAPMODULNAME###/${cap_module}/g;s/###CAPFILENAME###/${cap_file}/g" | \
-        sed "s/###TEMPLATE_PARAM###/${param}/g" > \
-        ${module}/${file_name}.tpp
-
     echo ""
     echo "--------------------------------------------------------------------"
     echo ""
-    echo "Created header and template implementation."
 fi
 
-echo "Done."
+# Create all files by replacing placeholders in the template files.
+for i in $(seq 0 4); do
+    if [[ ${f_create[${i}]} == "x" ]]; then
+        if [ -f "../${f_target[${i}]}" ] ; then
+            echo "File '${f_target[${i}]}' already exist. Will not overwrite it."
+            echo "Did not create ${f_name[${i}]} file."
+            continue
+        fi
+
+        dir_name=$(dirname "../${f_target[${i}]}")
+        mkdir -p ${dir_name}
+
+        # Replacing differs between templated and non-templated code.
+        if [[ ${f_create[2]} == "x" ]]; then
+            cat ${f_source[${i}]}                                       | \
+                sed "s/###CLASSNAME###/${class_name}/g"                 | \
+                sed "s/###MODULNAME###/${module}/g"                     | \
+                sed "s/###FILENAME###/${file_name}/g"                   | \
+                sed "s/###CAPMODULNAME###/${cap_module}/g"              | \
+                sed "s/###CAPFILENAME###/${cap_file}/g"                 | \
+                sed "s/###TEMPLATE_LINE###//g"                          | \
+                sed "s/###TEMPLATE_START###//g"                         | \
+                sed "s/###TEMPLATE_END###//g"                           | \
+                sed "s/###TEMPLATE_PARAM###/${param}/g"                 > \
+                "../${f_target[${i}]}"
+        else
+            cat ${f_source[${i}]}                                       | \
+                sed "s/###CLASSNAME###/${class_name}/g"                 | \
+                sed "s/###MODULNAME###/${module}/g"                     | \
+                sed "s/###FILENAME###/${file_name}/g"                   | \
+                sed "s/###CAPMODULNAME###/${cap_module}/g"              | \
+                sed "s/###CAPFILENAME###/${cap_file}/g"                 | \
+                sed "/###TEMPLATE_LINE###/d"                            | \
+                sed "/###TEMPLATE_START###/,/###TEMPLATE_END###/d"      > \
+                "../${f_target[${i}]}"
+        fi
+
+        echo "Created ${f_name[${i}]} file."
+    fi
+done
+
+echo -e "\nDone."
