@@ -9,9 +9,8 @@
 
 #include "lib/utils/bitvector.hpp"
 
-void BoostPythonExport_Bitvector()
+PYTHON_EXPORT_CLASS (Bitvector)
 {
-
     boost::python::class_< ::genesis::Bitvector >( "Bitvector", boost::python::init< long unsigned int, boost::python::optional< bool > >(( boost::python::arg("size"), boost::python::arg("init")=(bool const)(false) )) )
 
         // Public Member Functions
@@ -131,5 +130,4 @@ void BoostPythonExport_Bitvector()
         .def( boost::python::self ^ boost::python::self )
         .def( boost::python::self | boost::python::self )
     ;
-
 }

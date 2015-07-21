@@ -9,9 +9,8 @@
 
 #include "lib/utils/logging.hpp"
 
-void BoostPythonExport_Logging()
+PYTHON_EXPORT_CLASS (Logging)
 {
-
     boost::python::class_< ::genesis::Logging >( "Logging", boost::python::no_init )
         .def(
             "log_error",
@@ -76,5 +75,4 @@ void BoostPythonExport_Logging()
         )
         .staticmethod("log_to_file")
     ;
-
 }

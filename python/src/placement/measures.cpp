@@ -10,10 +10,8 @@
 #include "lib/placement/measures.hpp"
 #include "lib/placement/placement_map.hpp"
 
-void BoostPythonExport_PlacementMeasures()
+PYTHON_EXPORT_CLASS (PlacementMeasures)
 {
-    using namespace genesis;
-
     boost::python::class_< ::genesis::PlacementMeasures > ( "PlacementMeasures", boost::python::init<  >(  ) )
 
         // Public Member Functions
@@ -64,5 +62,4 @@ void BoostPythonExport_PlacementMeasures()
 
         .def_readwrite("with_pendant_length", &::genesis::PlacementMeasures::with_pendant_length)
     ;
-
 }
