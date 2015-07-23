@@ -16,8 +16,15 @@
 
 BOOST_PYTHON_MODULE(genesis)
 {
-    // Show genesis docstrings, python signature, but not c++ signature.
-    boost::python::docstring_options doc_options(true, true, false);
+    namespace bp = boost::python;
 
+    // Show genesis docstrings, python signature, but not c++ signature.
+    bp::docstring_options doc_options(true, true, false);
+
+    // Specify that this module is actually a package.
+    bp::object package = bp::scope();
+    package.attr("__path__") = "genesis";
+
+    // Call all export functions.
     PythonExportHandler::instance().init_python();
 }

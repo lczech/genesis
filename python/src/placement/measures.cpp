@@ -10,7 +10,7 @@
 #include "lib/placement/measures.hpp"
 #include "lib/placement/placement_map.hpp"
 
-PYTHON_EXPORT_CLASS (PlacementMeasures)
+PYTHON_EXPORT_CLASS ("placement", PlacementMeasures)
 {
     boost::python::class_< ::genesis::PlacementMeasures > ( "PlacementMeasures", boost::python::init<  >(  ) )
 

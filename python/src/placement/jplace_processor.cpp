@@ -10,7 +10,7 @@
 #include "lib/placement/jplace_processor.hpp"
 #include "lib/placement/placement_map.hpp"
 
-PYTHON_EXPORT_CLASS (JplaceProcessor)
+PYTHON_EXPORT_CLASS ("placement", JplaceProcessor)
 {
     boost::python::class_< ::genesis::JplaceProcessor > ( "JplaceProcessor" )
 

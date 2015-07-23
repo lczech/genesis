@@ -10,6 +10,8 @@
 
 #include <boost/python.hpp>
 
+#include <string>
+#include <utility>
 #include <vector>
 
 // =================================================================================================
@@ -42,8 +44,10 @@ const char* get_docstring (const std::string& signature);
  * calls (with an intermediate step) the function PythonExportWrapper<T>(). The body of the
  * PYTHON_EXPORT_CLASS(classname) { .. } macro is the body of PythonExportWrapper<classname>.
  */
-#define PYTHON_EXPORT_CLASS(Classname) \
-    namespace { RegisterPythonExportClass<Classname> PythonExporterInstance##Classname; } \
+#define PYTHON_EXPORT_CLASS(Namespace, Classname) \
+    namespace { \
+        RegisterPythonExportClass<Classname> PythonExporterInstance##Classname(Namespace); \
+    } \
     template<> inline void PythonExportWrapper<Classname>()
 
 /**
@@ -91,8 +95,8 @@ public:
      *
      * This function is called by the PYTHON_EXPORT_CLASS macro expansion.
      */
-    void register_class_initializer(void (*func)()) {
-        initializers.push_back(func);
+    void register_class_initializer(const std::string& ns, void (*func)()) {
+        initializers.push_back(std::make_pair(ns, func));
     }
 
     /**
@@ -101,8 +105,24 @@ public:
      * Must only be called after all initializers have been registered.
      */
     void init_python() {
+        namespace bp = boost::python;
+
         for (auto it = initializers.begin(); it != initializers.end(); ++it) {
-            (*it)();
+            // Map the namespace to a sub-module.
+            std::string ns = (*it).first;
+
+            // Make "from genesis.ns import <whatever>" work.
+            std::string full_ns = "genesis." + ns;
+            bp::object py_mod (bp::handle<>(bp::borrowed(PyImport_AddModule(full_ns.c_str()))));
+
+            // Make "from genesis import ns" work
+            bp::scope().attr(ns.c_str()) = py_mod;
+
+            // Set the current scope to the new sub-module.
+            bp::scope scp = py_mod;
+
+            // Export into the namespace.
+            (*it).second();
         }
     }
 
@@ -114,8 +134,11 @@ private:
 
     /**
      * @brief List of initializer functions.
+     *
+     * We store the python namespace first, and then the initializer function that defines the
+     * class definition.
      */
-    std::vector<void(*)()> initializers;
+    std::vector<std::pair<std::string, void(*)()>> initializers;
 };
 
 /**
@@ -131,8 +154,9 @@ private:
 template<typename T>
 class RegisterPythonExportClass {
 public:
-    RegisterPythonExportClass() {
+    RegisterPythonExportClass(const std::string& ns) {
         PythonExportHandler::instance().register_class_initializer(
+            ns,
             &RegisterPythonExportClass<T>::PythonExportWrapperDelegator
         );
     }

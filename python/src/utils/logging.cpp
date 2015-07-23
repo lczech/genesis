@@ -9,7 +9,7 @@
 
 #include "lib/utils/logging.hpp"
 
-PYTHON_EXPORT_CLASS (Logging)
+PYTHON_EXPORT_CLASS ("utils", Logging)
 {
     boost::python::class_< ::genesis::Logging >( "Logging", boost::python::no_init )
         .def(
