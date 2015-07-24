@@ -10,7 +10,7 @@
 #include "placement/placement_map.hpp"
 #include "placement/serializer.hpp"
 
-PYTHON_EXPORT_CLASS ("placement", PlacementMapSerializer)
+PYTHON_EXPORT_CLASS (PlacementMapSerializer, "placement")
 {
     // -------------------------------------------------------------------
     //     Class PlacementMapSerializer
