@@ -9,7 +9,7 @@
 
 #include "placement/phyloxml_adapter.hpp"
 
-PYTHON_EXPORT_CLASS ("placement", PlacementTreePhyloxmlAdapter)
+PYTHON_EXPORT_CLASS (PlacementTreePhyloxmlAdapter, "placement")
 {
     // -------------------------------------------------------------------
     //     Class PlacementTreePhyloxmlAdapter

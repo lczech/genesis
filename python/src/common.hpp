@@ -47,11 +47,20 @@ const char* get_docstring (const std::string& signature);
  * calls (with an intermediate step) the function PythonExportWrapper<T>(). The body of the
  * PYTHON_EXPORT_CLASS(classname) { .. } macro is the body of PythonExportWrapper<classname>.
  */
-#define PYTHON_EXPORT_CLASS(Scope, Classname)                                          \
+#define PYTHON_EXPORT_SCOPED_CLASS(Classname, Scope, ...)                              \
     namespace {                                                                        \
         RegisterPythonExportClass<Classname> PythonExporterInstance##Classname(Scope); \
     }                                                                                  \
     template<> inline void PythonExportWrapper<Classname>()
+
+/**
+ * @brief Macro that takes a Classname and optionally a namespace to which this class shall be
+ * exported.
+ *
+ * If no namespace is provided, the default (global) namespace is used. The zero in the end is a
+ * dummy argument to give always at least this as a variadic parameter to the macro call.
+ */
+#define PYTHON_EXPORT_CLASS(...) PYTHON_EXPORT_SCOPED_CLASS(__VA_ARGS__, "", 0)
 
 /**
 * @brief Call this macro inside the initialization function to tell the system that
@@ -143,9 +152,10 @@ private:
     {
         namespace bp = boost::python;
 
-        // Return the global namespace. Unfortonately, we cannot store it in the scopes map, as
+        // End of recursion. The second condition also catches the case of an empty ns.
+        // Return the global namespace. Unfortunately, we cannot store it in the scopes map, as
         // this is a non-copyable object, so we have to check this extra condition here.
-        if (ns == MODULE_NAME) {
+        if (ns == MODULE_NAME || ns == MODULE_NAME + ".") {
             return bp::scope();
         }
 
