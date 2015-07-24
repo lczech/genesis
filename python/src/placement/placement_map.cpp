@@ -9,7 +9,7 @@
 
 #include "lib/placement/placement_map.hpp"
 
-void BoostPythonExport_PlacementMap()
+PYTHON_EXPORT_CLASS ("placement", PlacementMap)
 {
 
     using namespace genesis;

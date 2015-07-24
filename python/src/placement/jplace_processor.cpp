@@ -10,10 +10,8 @@
 #include "lib/placement/jplace_processor.hpp"
 #include "lib/placement/placement_map.hpp"
 
-void BoostPythonExport_JplaceProcessor()
+PYTHON_EXPORT_CLASS ("placement", JplaceProcessor)
 {
-    using namespace genesis;
-
     boost::python::class_< ::genesis::JplaceProcessor > ( "JplaceProcessor" )
 
         // Public Member Functions
@@ -77,5 +75,4 @@ void BoostPythonExport_JplaceProcessor()
         .def_readwrite("report_invalid_numbers",  &::genesis::JplaceProcessor::report_invalid_numbers)
         .def_readwrite("correct_invalid_numbers", &::genesis::JplaceProcessor::correct_invalid_numbers)
     ;
-
 }

@@ -1,7 +1,15 @@
-#include <boost/python.hpp>
+/**
+ * @brief
+ *
+ * @file
+ * @ingroup python
+ */
+
+#include <python/src/common.hpp>
+
 #include "placement/phyloxml_adapter.hpp"
 
-void BoostPythonExport_PlacementTreePhyloxmlAdapter()
+PYTHON_EXPORT_CLASS ("placement", PlacementTreePhyloxmlAdapter)
 {
     // -------------------------------------------------------------------
     //     Class PlacementTreePhyloxmlAdapter
