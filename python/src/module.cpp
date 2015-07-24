@@ -23,7 +23,7 @@ BOOST_PYTHON_MODULE(genesis)
 
     // Specify that this module is actually a package.
     bp::object package = bp::scope();
-    package.attr("__path__") = "genesis";
+    package.attr("__path__") = MODULE_NAME;
 
     // Call all export functions.
     PythonExportHandler::instance().init_python();

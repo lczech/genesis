@@ -77,6 +77,7 @@ void BoostPythonExport_PlacementTreeEdgeData()
 //     Class PlacementTree
 // -------------------------------------------------------------------
 
+// PYTHON_EXPORT_CLASS ("placement", PlacementTree)
 void BoostPythonExport_PlacementTree()
 {
     using namespace genesis;

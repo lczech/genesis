@@ -98,7 +98,7 @@ void BoostPythonExport_PlacementSimulatorTwostep()
     ;
 }
 
-void BoostPythonExport_PlacementSimulator()
+PYTHON_EXPORT_CLASS ("placement", PlacementSimulator)
 {
     BoostPythonExport_PlacementSimulatorTwostep();
 }
