@@ -193,7 +193,7 @@ public:
 
     void    invert();
     void    normalize();
-    void    reset(bool value = false);
+    void    reset(const bool value = false);
 
     std::string dump() const;
     std::string dump_int(IntType x) const;

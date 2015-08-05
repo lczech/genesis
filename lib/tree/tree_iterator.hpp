@@ -231,6 +231,8 @@ protected:
         }
     }
 
+    // TODO take a stack or vector instead of deque here!!!
+
     LinkPointerType             link_;
     LinkPointerType             start_;
     std::deque<LinkPointerType> stack_;

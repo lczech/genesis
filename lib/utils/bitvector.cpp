@@ -282,13 +282,12 @@ void Bitvector::normalize()
 /**
  * @brief Reset all the bits to false. If provided with parameter `true`, sets all bits to true.
  */
-void Bitvector::reset(bool value)
+void Bitvector::reset(const bool value)
 {
     // set according to flag.
+    const auto v = value ? all_1_ : all_0_;
     for (size_t i = 0; i < data_.size(); ++i) {
-        // TODO for speed reasons, the conditon might be put outside the loop, by storing a reference to the correct mask,
-        // TODO or by just duplicating the loop code inside the condition branches.
-        data_[i] = value ? all_1_ : all_0_;
+        data_[i] = v;
     }
 
     // if we initialized with true, we need to unset the surplus bits at the end!

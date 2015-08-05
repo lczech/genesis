@@ -116,6 +116,7 @@ Tree<NDT, EDT>& Tree<NDT, EDT>::operator = (const Tree<NDT, EDT>& other)
 template <class NDT, class EDT>
 Tree<NDT, EDT>::~Tree ()
 {
+    // TODO totally not necessary to have that here! remove, run mem test!
     clear();
 }
 

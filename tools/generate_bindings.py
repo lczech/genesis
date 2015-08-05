@@ -347,7 +347,7 @@ class DoxygenReader:
         classes = []
         #~ for compound in root.iter("compound"):
         for compound in root:
-            if compound.attrib["kind"] != "class":
+            if not compound.attrib["kind"] in [ "class", "struct" ]:
                 continue
 
             cls_name = compound.find("compoundname").text.rsplit('::', 1)[1]
@@ -398,7 +398,7 @@ class DoxygenReader:
 
         ns_global = CppNamespace("")
         for compound in root:
-            if compound.attrib["kind"] == "class":
+            if compound.attrib["kind"] in [ "class", "struct" ]:
                 cls_full_name = compound.find("name").text
                 cls_ns_list   = cls_full_name.split("::")
                 cls_name      = cls_ns_list.pop()
