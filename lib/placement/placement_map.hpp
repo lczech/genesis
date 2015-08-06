@@ -78,6 +78,16 @@ public:
         return pqueries_;
     }
 
+    inline size_t pquery_size() const
+    {
+        return pqueries_.size();
+    }
+
+    inline Pquery const & pquery (const size_t index)
+    {
+        return *pqueries_[index];
+    }
+
     // TODO add pquery iterator.
 
     // -------------------------------------------------------------------------

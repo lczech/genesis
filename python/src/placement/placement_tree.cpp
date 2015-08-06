@@ -40,11 +40,6 @@ void BoostPythonExport_PlacementTreeEdgeData()
             "dump",
             ( std::string ( ::genesis::PlacementTreeEdgeData::* )(  ) const )( &::genesis::PlacementTreeEdgeData::dump )
         )
-        // .def(
-        //     "from_newick_broker_element",
-        //     ( void ( ::genesis::PlacementTreeEdgeData::* )( NewickBrokerElement * ))( &::genesis::PlacementTreeEdgeData::from_newick_broker_element ),
-        //     ( boost::python::arg("nbe") )
-        // )
         .def(
             "placement_count",
             ( size_t ( ::genesis::PlacementTreeEdgeData::* )(  ) const )( &::genesis::PlacementTreeEdgeData::placement_count ),
@@ -60,16 +55,15 @@ void BoostPythonExport_PlacementTreeEdgeData()
             ( void ( ::genesis::PlacementTreeEdgeData::* )(  ))( &::genesis::PlacementTreeEdgeData::sort_placements ),
             get_docstring("void ::genesis::PlacementTreeEdgeData::sort_placements ()")
         )
-        // .def(
-        //     "to_newick_broker_element",
-        //     ( void ( ::genesis::PlacementTreeEdgeData::* )( NewickBrokerElement * ) const )( &::genesis::PlacementTreeEdgeData::to_newick_broker_element ),
-        //     ( boost::python::arg("nbe") )
-        // )
 
         // Operators
 
         .def( boost::python::self == boost::python::self )
         .def( boost::python::self != boost::python::self )
+
+        // Public Member Variables
+
+        .def_readonly("edge_num", &::genesis::PlacementTreeEdgeData::edge_num)
     ;
 }
 
@@ -77,10 +71,11 @@ void BoostPythonExport_PlacementTreeEdgeData()
 //     Class PlacementTree
 // -------------------------------------------------------------------
 
-// PYTHON_EXPORT_CLASS ("placement", PlacementTree)
-void BoostPythonExport_PlacementTree()
+PYTHON_EXPORT_CLASS (PlacementTree, "placement.tree")
 {
     using namespace genesis;
+
+    PYTHON_REQUIRES_CLASS(DefaultTree)
 
     BoostPythonExport_PlacementTreeNodeData();
     BoostPythonExport_PlacementTreeEdgeData();

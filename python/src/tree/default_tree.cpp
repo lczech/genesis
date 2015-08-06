@@ -85,7 +85,7 @@ void BoostPythonExport_DefaultTreeNodeData()
 //     Class DefaultTree
 // -------------------------------------------------------------------
 
-void BoostPythonExport_DefaultTree()
+PYTHON_EXPORT_CLASS (DefaultTree, "tree")
 {
     using namespace genesis;
 
