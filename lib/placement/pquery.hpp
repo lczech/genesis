@@ -20,7 +20,7 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-struct Pquery;
+class Pquery;
 
 // =================================================================================================
 //     Pquery Placement
@@ -108,8 +108,10 @@ public:
 /**
  *
  */
-struct PqueryName
+class PqueryName
 {
+public:
+
     PqueryName(std::string name = "") : name(name), multiplicity(0.0), pquery(nullptr)
     {}
 
@@ -135,8 +137,10 @@ struct PqueryName
 /**
  *
  */
-struct Pquery
+class Pquery
 {
+public:
+
     // -------------------------------------------------------------------
     //     Placements
     // -------------------------------------------------------------------
