@@ -11,6 +11,7 @@
  */
 
 #include <functional>
+#include <memory>
 #include <string>
 #include <utility>
 #include <vector>
@@ -93,9 +94,9 @@ public:
     typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
 
-    typedef std::vector<LinkType*> LinkArray;
-    typedef std::vector<NodeType*> NodeArray;
-    typedef std::vector<EdgeType*> EdgeArray;
+    typedef std::vector<std::unique_ptr<LinkType>> LinkArray;
+    typedef std::vector<std::unique_ptr<NodeType>> NodeArray;
+    typedef std::vector<std::unique_ptr<EdgeType>> EdgeArray;
 
     // -------------------------------------------------------------------------
     //     Construction and Destruction
@@ -144,7 +145,7 @@ public:
 
     inline LinkType* root_link() const
     {
-        return links_.front();
+        return links_.front().get();
     }
 
     inline NodeType* root_node() const
@@ -154,17 +155,17 @@ public:
 
     inline LinkType* link_at(size_t index) const
     {
-        return links_[index];
+        return links_[index].get();
     }
 
     inline NodeType* node_at(size_t index) const
     {
-        return nodes_[index];
+        return nodes_[index].get();
     }
 
     inline EdgeType* edge_at(size_t index) const
     {
-        return edges_[index];
+        return edges_[index].get();
     }
 
     /**
@@ -210,14 +211,14 @@ public:
     typedef TreeIteratorLevelorder<      LinkType*,       NodeType*,       EdgeType*>      IteratorLevelorder;
     typedef TreeIteratorLevelorder<const LinkType*, const NodeType*, const EdgeType*> ConstIteratorLevelorder;
 
-    typedef typename std::vector<LinkType*>::iterator               IteratorLinks;
-    typedef typename std::vector<LinkType*>::const_iterator    ConstIteratorLinks;
+    typedef typename std::vector<std::unique_ptr<LinkType>>::iterator               IteratorLinks;
+    typedef typename std::vector<std::unique_ptr<LinkType>>::const_iterator    ConstIteratorLinks;
 
-    typedef typename std::vector<NodeType*>::iterator               IteratorNodes;
-    typedef typename std::vector<NodeType*>::const_iterator    ConstIteratorNodes;
+    typedef typename std::vector<std::unique_ptr<NodeType>>::iterator               IteratorNodes;
+    typedef typename std::vector<std::unique_ptr<NodeType>>::const_iterator    ConstIteratorNodes;
 
-    typedef typename std::vector<EdgeType*>::iterator               IteratorEdges;
-    typedef typename std::vector<EdgeType*>::const_iterator    ConstIteratorEdges;
+    typedef typename std::vector<std::unique_ptr<EdgeType>>::iterator               IteratorEdges;
+    typedef typename std::vector<std::unique_ptr<EdgeType>>::const_iterator    ConstIteratorEdges;
 
     // TODO so far, the End... iterators are called anew for every comparison in a loop like
     // TODO it != tree.end_inorder(), which will slow it down compared to having e.g. a fixed
@@ -619,9 +620,9 @@ public:
 
 protected:
 
-    std::vector<LinkType*> links_;
-    std::vector<NodeType*> nodes_;
-    std::vector<EdgeType*> edges_;
+    std::vector<std::unique_ptr<LinkType>> links_;
+    std::vector<std::unique_ptr<NodeType>> nodes_;
+    std::vector<std::unique_ptr<EdgeType>> edges_;
 };
 
 } // namespace genesis
