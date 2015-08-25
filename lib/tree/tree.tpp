@@ -699,23 +699,14 @@ bool Tree<NDT, EDT>::identical_topology(const TreeType& other) const
 //     Dump and Debug Functions
 // =============================================================================
 
+// TODO do all node->link_ links point to the root? same for all edge->primary?
 
-    // TODO introduce a validate function that checks the integrity of the tree:
-    // TODO are all links, edges and nodes connected corretly to each other,
-    // TODO is every one of them coverd exactly once when doing a full traversal?
-    // TODO do all node->link_ links point to the root? same for all edge->primary?
-    // TODO all objects coupled correctly?
-    // TODO also, if we introduce indices to them for faster access, are those correct?
-    // TODO this function will be curtial to ensure correctness of invariants once
-    // TODO we start implementing stuff that modifies a tree (add nodes, move branches...)!
-    // TODO do all iterators and check consistency! eg is a round trip covering every object
-    // TODO (links onces, branches twice, nodes rank many times)?
-    // TODO iterator over all links and count if edges are encountered exactly twice each.
-    // TODO check if all elements that are reachable while iterating
-    // TODO are really parts of the tree (contained in the arrays). eulertour suffices,
-    // TODO because all other iterators rely on that internally anyway.
-
-
+/**
+ * @brief Validate that all pointers of the tree elements (links, nodes, edges) to each other
+ * are correct and that some other invariants are met.
+ *
+ * This check is a bit pedantic, but better safe than sorry.
+ */
 template <class NDT, class EDT>
 bool Tree<NDT, EDT>::validate() const
 {
@@ -737,33 +728,147 @@ bool Tree<NDT, EDT>::validate() const
         return false;
     }
 
+    if (links_.front()->index() != 0 || links_.front()->node()->index() != 0) {
+        LOG_INFO << "Root does not have index 0.";
+        return false;
+    }
+
+    // Check Links.
+    std::vector<size_t> links_to_edges(edges_.size(), 0);
+    std::vector<size_t> links_to_nodes(nodes_.size(), 0);
     for (size_t i = 0; i < links_.size(); ++i) {
+        // Check indices.
         if (i != links_[i]->index_) {
             LOG_INFO << "Link at index " << i << " has wrong index (" << links_[i]->index_ << ").";
             return false;
         }
+
+        // Check next cycle and node.
+        auto nl = links_[i].get();
+        do {
+            if (nl->node() != links_[i]->node()) {
+                LOG_INFO << "Link at index " << nl->index_ << " points to wrong node.";
+                return false;
+            }
+            nl = nl->next();
+        } while(nl != links_[i].get());
+        ++links_to_nodes[links_[i]->node()->index()];
+
+        // Check outer cycle.
+        if (links_[i]->outer()->outer() != links_[i].get()) {
+            LOG_INFO << "Link at index " << i << " has wrong outer link.";
+            return false;
+        }
+
+        // Check edge.
+        auto edge = links_[i]->edge();
+        if (edge->primary_link() != links_[i].get() && edge->secondary_link() != links_[i].get()) {
+            LOG_INFO << "Link at index " << i << " has wrong edge pointer.";
+            return false;
+        }
+        ++links_to_edges[links_[i]->edge()->index()];
     }
 
+    // Check if all edges have been hit twice.
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        if (links_to_edges[i] != 2) {
+            LOG_INFO << "Edge at index " << i << " is not visited twice but " << links_to_edges[i]
+                     << " times when traversing the links.";
+            return false;
+        }
+    }
+
+    // Check if all nodes have been hit as many times as their rank is.
     for (size_t i = 0; i < nodes_.size(); ++i) {
+        if (links_to_nodes[i] != nodes_[i]->rank() + 1) {
+            LOG_INFO << "Node at index " << i << " is not visited its rank + 1 ("
+                     << nodes_[i]->rank() << " + 1 = " << nodes_[i]->rank() + 1
+                     << ") times, but " << links_to_nodes[i] << " times when "
+                     << "traversing the links.";
+            return false;
+        }
+    }
+
+    // Check Nodes.
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        // Check indices.
         if (i != nodes_[i]->index_) {
             LOG_INFO << "Node at index " << i << " has wrong index (" << nodes_[i]->index_ << ").";
             return false;
         }
-    }
 
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        if (i != edges_[i]->index_) {
-            LOG_INFO << "Edge at index " << i << " has wrong index (" << edges_[i]->index_ << ").";
+        // Check link.
+        if (nodes_[i]->link()->node() != nodes_[i].get()) {
+            LOG_INFO << "Node at index " << i << " has wrong link.";
             return false;
         }
     }
 
-    // if we are here, all three arrays (links, nodes, edges) contain data, so we can start a full
+    // Check Edges.
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        // Check indices.
+        if (i != edges_[i]->index_) {
+            LOG_INFO << "Edge at index " << i << " has wrong index (" << edges_[i]->index_ << ").";
+            return false;
+        }
+
+        // Check links.
+        if (edges_[i]->primary_link()->edge() != edges_[i].get()) {
+            LOG_INFO << "Edge at index " << i << " has wrong primary link.";
+            return false;
+        }
+        if (edges_[i]->secondary_link()->edge() != edges_[i].get()) {
+            LOG_INFO << "Edge at index " << i << " has wrong secondary link.";
+            return false;
+        }
+    }
+
+    // If we are here, all three arrays (links, nodes, edges) contain data, so we can start a full
     // traversal along all links.
+
+    // Count, how many times the elements are hit while traversing.
+    std::vector<size_t> it_links(links_.size(), 0);
+    std::vector<size_t> it_edges(edges_.size(), 0);
+    std::vector<size_t> it_nodes(nodes_.size(), 0);
+
+    // Do the traversal. We do not use the iterator here, to keep it simple when testing.
+    // (We want to validate the tree here, not the iterator.)
     LinkType* link = links_.front().get();
     do {
+        ++it_links[link->index()];
+        ++it_edges[link->edge()->index()];
+        ++it_nodes[link->node()->index()];
         link = link->next_->outer_;
     } while (link != links_.front().get());
+
+    // Check if all links have been hit once.
+    for (size_t i = 0; i < links_.size(); i++) {
+        if (it_links[i] != 1) {
+            LOG_INFO << "Link at index " << i << " is not visited 1 but " << it_links[i]
+                     << " times when iterating the tree.";
+            return false;
+        }
+    }
+
+    // Check if all edges have been hit twice.
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        if (it_edges[i] != 2) {
+            LOG_INFO << "Edge at index " << i << " is not visited 2 but " << it_edges[i]
+                     << " times when iterating the tree.";
+            return false;
+        }
+    }
+
+    // Check if all nodes have been hit as many times as their rank is.
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        if (it_nodes[i] != nodes_[i]->rank() + 1) {
+            LOG_INFO << "Node at index " << i << " is not visited "
+                     << nodes_[i]->rank() << " + 1 = " << (nodes_[i]->rank() + 1)
+                     << " times, but " << it_nodes[i] << " times when iterating the "
+                     << "tree.";
+            return false;
+        }
+    }
 
     return true;
 }

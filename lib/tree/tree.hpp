@@ -76,7 +76,7 @@ class TreeIteratorLevelorder;
  *  *  The (virtual) root node and one of its links are stored as first element in the arrays:
  *     `nodes_[0]` and `links_[0]`.
  *  *  The indices in all three arrays (`nodes_`, `links_` and `edges_`) have to match the index
- *     integers stored in those elements: `nodes_[i] == nodes_[i]->index_`.
+ *     integers stored in those elements: `nodes_[i]->index_ == i`.
  *  *  The link that is stored in a node has to be the one pointing towards the root.
  *  *  The primary link of an edge has to point towards the root, the secondary away from it.
  */
