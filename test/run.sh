@@ -119,7 +119,7 @@ fail_count=0
 # Takes the test case as input, returns 0 if successfull.
 function run_validation() {
     outfile=${gtest_out_file}
-    ${test_exe} --gtest_filter=${1} > ${outfile}
+    ${test_exe} --gtest_filter=${1} >& ${outfile}
     success=$?
 
     return ${success}
@@ -159,7 +159,7 @@ function run_speed() {
 
         # Run test and measure time.
         s_time=`date +%s%N`
-        ${test_exe} --gtest_filter=${1} > ${outfile}
+        ${test_exe} --gtest_filter=${1} >& ${outfile}
         success=$?
         e_time=`date +%s%N`
 
@@ -264,15 +264,15 @@ for line in `${test_exe} --gtest_list_tests --gtest_filter="${filter}"` ; do
     # Run the appropriate mode.
     run_s_time=`date +%s%N`
     if [[ ${mode} == "validation" ]] ; then
-        run_validation $test_id
+        run_validation $test_id 2>> ${gtest_out_file}
         success=$?
     fi
     if [[ ${mode} == "memory" ]] ; then
-        run_memory $test_id
+        run_memory $test_id 2>> ${valgrind_out_file}
         success=$?
     fi
     if [[ ${mode} == "speed" ]] ; then
-        run_speed $test_id
+        run_speed $test_id 2>> ${gtest_out_file}
         success=$?
     fi
 
@@ -299,9 +299,15 @@ for line in `${test_exe} --gtest_list_tests --gtest_filter="${filter}"` ; do
             fail_count=255
         fi
 
-        # Move output file to a place where it can be read later.
+        # Move output files to a place where it can be read later.
         mkdir -p ${out_dir}
-        mv -f ${outfile} ${out_dir}/${outfile/tmp/}${test_id/./_}
+        mv -f ${outfile} ${out_dir}/${outfile/tmp/}${test_id/./_}.log
+        if [ -f core ]; then
+            mv -f core ${out_dir}/${outfile/tmp/}${test_id/./_}.core
+        fi
+        if [ -f valgrind_tmp.core.* ]; then
+            ls valgrind_tmp.core.* | xargs -I corefile mv -f corefile ${out_dir}/${outfile/tmp/}${test_id/./_}.core
+        fi
     fi
 
     ((i_test++))
