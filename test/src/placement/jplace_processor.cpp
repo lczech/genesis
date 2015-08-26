@@ -5,11 +5,9 @@
  * @ingroup test
  */
 
-#include <gtest/gtest.h>
+#include "common.hpp"
 
 #include <string>
-
-#include "common.hpp"
 
 #include "lib/placement/jplace_processor.hpp"
 #include "lib/placement/placement_map.hpp"

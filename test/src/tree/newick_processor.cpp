@@ -5,7 +5,7 @@
  * @ingroup test
  */
 
-#include <gtest/gtest.h>
+#include "common.hpp"
 
 #include <string>
 

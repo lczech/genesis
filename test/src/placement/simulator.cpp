@@ -5,13 +5,11 @@
  * @ingroup test
  */
 
-#include <gtest/gtest.h>
+#include "common.hpp"
 
 #include <memory>
 #include <string>
 #include <vector>
-
-#include "common.hpp"
 
 #include "lib/placement/newick_adapter.hpp"
 #include "lib/placement/placement_map.hpp"
