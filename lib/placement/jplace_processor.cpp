@@ -146,7 +146,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         it != placements.tree().end_edges();
         ++it
     ) {
-        PlacementTree::EdgeType* edge = *it;
+        PlacementTree::EdgeType* edge = it->get();
         if (edge_num_map.count(edge->edge_num) > 0) {
             LOG_WARN << "Jplace document contains a tree where the edge num tag '"
                      << edge->edge_num << "' is used more than once.";

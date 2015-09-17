@@ -5,7 +5,7 @@
  * @ingroup test
  */
 
-#include <gtest/gtest.h>
+#include "common.hpp"
 
 #include <string>
 
@@ -15,13 +15,18 @@
 
 using namespace genesis;
 
-TEST(Tree, Nope)
+TEST(Tree, Basics)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
     DefaultTree tree;
     DefaultTreeNewickProcessor().from_string(input, tree);
-    std::string output = DefaultTreeNewickProcessor().to_string(tree);
 
-	EXPECT_EQ(input, output);
+    EXPECT_EQ(7, tree.leaf_count());
+    EXPECT_EQ(6, tree.inner_count());
+    EXPECT_EQ(13, tree.node_count());
+    EXPECT_TRUE(tree.is_bifurcating());
+
+    EXPECT_EQ("R", tree.root_node()->name);
+    EXPECT_TRUE(tree.validate());
 }

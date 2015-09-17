@@ -49,40 +49,40 @@ Tree<NDT, EDT>::Tree (const Tree<NDT, EDT>& other)
     // create all objects. we need two loops per array, because the pointers have to exist
     // in order to be used with each other.
     for (size_t i = 0; i < links_.size(); ++i) {
-        links_[i] = new LinkType();
+        links_[i] = make_unique<LinkType>();
     }
     for (size_t i = 0; i < nodes_.size(); ++i) {
-        nodes_[i] = new NodeType();
+        nodes_[i] = make_unique<NodeType>();
     }
     for (size_t i = 0; i < edges_.size(); ++i) {
-        edges_[i] = new EdgeType();
+        edges_[i] = make_unique<EdgeType>();
     }
 
     // set all pointers for the topology in a second round of loops.
     for (size_t i = 0; i < links_.size(); ++i) {
-        LinkType* olink = other.links_[i];
+        const auto& olink = other.links_[i];
         assert(olink->index_ == i);
 
         links_[i]->index_  = i;
-        links_[i]->next_   = links_[olink->next_->index_];
-        links_[i]->outer_  = links_[olink->outer_->index_];
-        links_[i]->node_   = nodes_[olink->node_->index_];
-        links_[i]->edge_   = edges_[olink->edge_->index_];
+        links_[i]->next_   = links_[olink->next_->index_].get();
+        links_[i]->outer_  = links_[olink->outer_->index_].get();
+        links_[i]->node_   = nodes_[olink->node_->index_].get();
+        links_[i]->edge_   = edges_[olink->edge_->index_].get();
     }
     for (size_t i = 0; i < nodes_.size(); ++i) {
-        NodeType* onode = other.nodes_[i];
+        const auto& onode = other.nodes_[i];
         assert(onode->index_ == i);
 
         nodes_[i]->index_  = i;
-        nodes_[i]->link_   = links_[onode->link_->index_];
+        nodes_[i]->link_   = links_[onode->link_->index_].get();
     }
     for (size_t i = 0; i < edges_.size(); ++i) {
-        EdgeType* oedge = other.edges_[i];
+        const auto& oedge = other.edges_[i];
         assert(oedge->index_ == i);
 
         edges_[i]->index_  = i;
-        edges_[i]->link_p_ = links_[oedge->link_p_->index_];
-        edges_[i]->link_s_ = links_[oedge->link_s_->index_];
+        edges_[i]->link_p_ = links_[oedge->link_p_->index_].get();
+        edges_[i]->link_s_ = links_[oedge->link_s_->index_].get();
     }
 }
 
@@ -126,19 +126,9 @@ Tree<NDT, EDT>::~Tree ()
 template <class NDT, class EDT>
 void Tree<NDT, EDT>::clear()
 {
-    for (LinkType* link : links_) {
-        delete link;
-    }
-    for (NodeType* node : nodes_) {
-        delete node;
-    }
-    for (EdgeType* edge : edges_) {
-        delete edge;
-    }
-
-    std::vector<LinkType*>().swap(links_);
-    std::vector<NodeType*>().swap(nodes_);
-    std::vector<EdgeType*>().swap(edges_);
+    std::vector<std::unique_ptr<LinkType>>().swap(links_);
+    std::vector<std::unique_ptr<NodeType>>().swap(nodes_);
+    std::vector<std::unique_ptr<EdgeType>>().swap(edges_);
 }
 
 /**
@@ -168,10 +158,12 @@ void Tree<NDT, EDT>::swap (Tree<NDT, EDT>& other)
 template <class NDT, class EDT>
 void Tree<NDT, EDT>::import_content (LinkArray& links, NodeArray& nodes, EdgeArray& edges)
 {
+    using std::swap;
+
     clear();
-    links_ = links;
-    nodes_ = nodes;
-    edges_ = edges;
+    swap(links_, links);
+    swap(nodes_, nodes);
+    swap(edges_, edges);
 }
 
 /**
@@ -201,9 +193,9 @@ typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::find_node(std::string name) c
 {
     // TODO check first whether replacing underscores is necessary!
     name = string_replace_all(name, "_", " ");
-    for (NodeType* n : nodes_) {
+    for (const auto& n : nodes_) {
         if (n->name == name) {
-            return n;
+            return n.get();
         }
     }
     return nullptr;
@@ -243,7 +235,7 @@ template <class NDT, class EDT>
 size_t Tree<NDT, EDT>::leaf_count() const
 {
     size_t sum = 0;
-    for (NodeType* n : nodes_) {
+    for (const auto& n : nodes_) {
         if (n->is_leaf()) {
             ++sum;
         }
@@ -273,7 +265,7 @@ double Tree<NDT, EDT>::length() const
     // TODO if we introduce some naming convention for with/withou branch length, the without
     // branch lengths version of this function will basically return edges.size()... is that needed?
     double len = 0.0;
-    for (EdgeType* e : edges_) {
+    for (const auto& e : edges_) {
         len += e->branch_length;
     }
     return len;
@@ -308,7 +300,7 @@ double Tree<NDT, EDT>::deepest_distance() const
 
     NodeDoubleVectorType leaf_dist = closest_leaf_distance_vector();
 
-    for (EdgeType* e : edges_) {
+    for (const auto& e : edges_) {
         int idx_p = e->primary_node()->index();
         int idx_s = e->secondary_node()->index();
         double d = (leaf_dist[idx_p].second + e->branch_length + leaf_dist[idx_s].second) / 2;
@@ -391,7 +383,7 @@ Matrix<double>* Tree<NDT, EDT>::node_distance_matrix() const
     Matrix<double>* mat = new Matrix<double>(node_count(), node_count(), -1.0);
 
     // fill every row of the matrix
-    for (NodeType* row_node : nodes_) {
+    for (const auto& row_node : nodes_) {
         // set the diagonal element of the matrix.
         (*mat)(row_node->index(), row_node->index()) = 0.0;
 
@@ -498,13 +490,13 @@ typename Tree<NDT, EDT>::NodeIntVectorType Tree<NDT, EDT>::closest_leaf_depth_ve
     // fill the vector for every node.
     // this could be speed up by doing a postorder traversal followed by some sort of inside-out
     // traversal (preorder might do the job). but for now, this simple O(n^2) version works, too.
-    for (NodeType* node : nodes_) {
+    for (const auto& node : nodes_) {
         // we have not visited this node. assertion holds as long as the indices are correct.
         assert(vec[node->index()].first == nullptr);
 
         // look for closest leaf node by doing a levelorder traversal.
         for (
-            ConstIteratorLevelorder it = begin_levelorder(node);
+            ConstIteratorLevelorder it = begin_levelorder(node.get());
             it != end_levelorder();
             ++it
         ) {
@@ -542,7 +534,7 @@ typename Tree<NDT, EDT>::NodeDoubleVectorType Tree<NDT, EDT>::closest_leaf_dista
     // fill the vector for every node.
     // there is probably a faster way of doing this: preorder traversal with pruning. but for now,
     // this simple O(n^2) version works.
-    for (NodeType* node : nodes_) {
+    for (const auto& node : nodes_) {
         // we have not visited this node. assertion holds as long as the indices are correct.
         assert(vec[node->index()].first == nullptr);
 
@@ -550,14 +542,14 @@ typename Tree<NDT, EDT>::NodeDoubleVectorType Tree<NDT, EDT>::closest_leaf_dista
         double    min_dist = 0.0;
 
         // try out all other nodes, and find the closest leaf.
-        for (NodeType* other : nodes_) {
+        for (const auto& other : nodes_) {
             if (!other->is_leaf()) {
                 continue;
             }
 
             double dist = (*node_distances)(node->index(), other->index());
             if (min_node == nullptr || dist < min_dist) {
-                min_node = other;
+                min_node = other.get();
                 min_dist = dist;
             }
         }
@@ -707,20 +699,14 @@ bool Tree<NDT, EDT>::identical_topology(const TreeType& other) const
 //     Dump and Debug Functions
 // =============================================================================
 
+// TODO do all node->link_ links point to the root? same for all edge->primary?
 
-    // TODO introduce a validate function that checks the integrity of the tree:
-    // TODO are all links, edges and nodes connected corretly to each other,
-    // TODO is every one of them coverd exactly once when doing a full traversal?
-    // TODO do all node->link_ links point to the root? same for all edge->primary?
-    // TODO all objects coupled correctly?
-    // TODO also, if we introduce indices to them for faster access, are those correct?
-    // TODO this function will be curtial to ensure correctness of invariants once
-    // TODO we start implementing stuff that modifies a tree (add nodes, move branches...)!
-    // TODO do all iterators and check consistency! eg is a round trip covering every object
-    // TODO (links onces, branches twice, nodes rank many times)?
-    // TODO iterator over all links and count if edges are encountered exactly twice each.
-
-
+/**
+ * @brief Validate that all pointers of the tree elements (links, nodes, edges) to each other
+ * are correct and that some other invariants are met.
+ *
+ * This check is a bit pedantic, but better safe than sorry.
+ */
 template <class NDT, class EDT>
 bool Tree<NDT, EDT>::validate() const
 {
@@ -737,38 +723,152 @@ bool Tree<NDT, EDT>::validate() const
         return emp;
     }
 
-    if (links_.front()->node_ != nodes_.front()) {
+    if (links_.front()->node_ != nodes_.front().get()) {
         LOG_INFO << "The first link does not correspond to the first node.";
         return false;
     }
 
+    if (links_.front()->index() != 0 || links_.front()->node()->index() != 0) {
+        LOG_INFO << "Root does not have index 0.";
+        return false;
+    }
+
+    // Check Links.
+    std::vector<size_t> links_to_edges(edges_.size(), 0);
+    std::vector<size_t> links_to_nodes(nodes_.size(), 0);
     for (size_t i = 0; i < links_.size(); ++i) {
+        // Check indices.
         if (i != links_[i]->index_) {
             LOG_INFO << "Link at index " << i << " has wrong index (" << links_[i]->index_ << ").";
             return false;
         }
+
+        // Check next cycle and node.
+        auto nl = links_[i].get();
+        do {
+            if (nl->node() != links_[i]->node()) {
+                LOG_INFO << "Link at index " << nl->index_ << " points to wrong node.";
+                return false;
+            }
+            nl = nl->next();
+        } while(nl != links_[i].get());
+        ++links_to_nodes[links_[i]->node()->index()];
+
+        // Check outer cycle.
+        if (links_[i]->outer()->outer() != links_[i].get()) {
+            LOG_INFO << "Link at index " << i << " has wrong outer link.";
+            return false;
+        }
+
+        // Check edge.
+        auto edge = links_[i]->edge();
+        if (edge->primary_link() != links_[i].get() && edge->secondary_link() != links_[i].get()) {
+            LOG_INFO << "Link at index " << i << " has wrong edge pointer.";
+            return false;
+        }
+        ++links_to_edges[links_[i]->edge()->index()];
     }
 
+    // Check if all edges have been hit twice.
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        if (links_to_edges[i] != 2) {
+            LOG_INFO << "Edge at index " << i << " is not visited twice but " << links_to_edges[i]
+                     << " times when traversing the links.";
+            return false;
+        }
+    }
+
+    // Check if all nodes have been hit as many times as their rank is.
     for (size_t i = 0; i < nodes_.size(); ++i) {
+        if (links_to_nodes[i] != nodes_[i]->rank() + 1) {
+            LOG_INFO << "Node at index " << i << " is not visited its rank + 1 ("
+                     << nodes_[i]->rank() << " + 1 = " << nodes_[i]->rank() + 1
+                     << ") times, but " << links_to_nodes[i] << " times when "
+                     << "traversing the links.";
+            return false;
+        }
+    }
+
+    // Check Nodes.
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        // Check indices.
         if (i != nodes_[i]->index_) {
             LOG_INFO << "Node at index " << i << " has wrong index (" << nodes_[i]->index_ << ").";
             return false;
         }
-    }
 
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        if (i != edges_[i]->index_) {
-            LOG_INFO << "Edge at index " << i << " has wrong index (" << edges_[i]->index_ << ").";
+        // Check link.
+        if (nodes_[i]->link()->node() != nodes_[i].get()) {
+            LOG_INFO << "Node at index " << i << " has wrong link.";
             return false;
         }
     }
 
-    // if we are here, all three arrays (links, nodes, edges) contain data, so we can start a full
+    // Check Edges.
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        // Check indices.
+        if (i != edges_[i]->index_) {
+            LOG_INFO << "Edge at index " << i << " has wrong index (" << edges_[i]->index_ << ").";
+            return false;
+        }
+
+        // Check links.
+        if (edges_[i]->primary_link()->edge() != edges_[i].get()) {
+            LOG_INFO << "Edge at index " << i << " has wrong primary link.";
+            return false;
+        }
+        if (edges_[i]->secondary_link()->edge() != edges_[i].get()) {
+            LOG_INFO << "Edge at index " << i << " has wrong secondary link.";
+            return false;
+        }
+    }
+
+    // If we are here, all three arrays (links, nodes, edges) contain data, so we can start a full
     // traversal along all links.
-    LinkType* link = links_.front();
+
+    // Count, how many times the elements are hit while traversing.
+    std::vector<size_t> it_links(links_.size(), 0);
+    std::vector<size_t> it_edges(edges_.size(), 0);
+    std::vector<size_t> it_nodes(nodes_.size(), 0);
+
+    // Do the traversal. We do not use the iterator here, to keep it simple when testing.
+    // (We want to validate the tree here, not the iterator.)
+    LinkType* link = links_.front().get();
     do {
+        ++it_links[link->index()];
+        ++it_edges[link->edge()->index()];
+        ++it_nodes[link->node()->index()];
         link = link->next_->outer_;
-    } while (link != links_.front());
+    } while (link != links_.front().get());
+
+    // Check if all links have been hit once.
+    for (size_t i = 0; i < links_.size(); i++) {
+        if (it_links[i] != 1) {
+            LOG_INFO << "Link at index " << i << " is not visited 1 but " << it_links[i]
+                     << " times when iterating the tree.";
+            return false;
+        }
+    }
+
+    // Check if all edges have been hit twice.
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        if (it_edges[i] != 2) {
+            LOG_INFO << "Edge at index " << i << " is not visited 2 but " << it_edges[i]
+                     << " times when iterating the tree.";
+            return false;
+        }
+    }
+
+    // Check if all nodes have been hit as many times as their rank is.
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        if (it_nodes[i] != nodes_[i]->rank() + 1) {
+            LOG_INFO << "Node at index " << i << " is not visited "
+                     << nodes_[i]->rank() << " + 1 = " << (nodes_[i]->rank() + 1)
+                     << " times, but " << it_nodes[i] << " times when iterating the "
+                     << "tree.";
+            return false;
+        }
+    }
 
     return true;
 }

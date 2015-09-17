@@ -10,6 +10,8 @@
 
 #include <gtest/gtest.h>
 
+#include "utils/logging.hpp"
+
 /**
  * @brief Macro to be used in test bodies that depend on the data directory.
  * If it was not found on program startup, the data files cannot be used, thus

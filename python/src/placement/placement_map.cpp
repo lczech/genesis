@@ -84,6 +84,16 @@ PYTHON_EXPORT_CLASS (PlacementMap, "placement")
             get_docstring("double ::genesis::PlacementMap::placement_mass () const")
         )
         .def(
+            "pquery",
+            ( Pquery const & ( ::genesis::PlacementMap::* )( const size_t ))( &::genesis::PlacementMap::pquery ),
+            boost::python::return_value_policy<boost::python::reference_existing_object>(),
+            ( boost::python::arg("index") )
+        )
+        .def(
+            "pquery_size",
+            ( size_t ( ::genesis::PlacementMap::* )(  ) const )( &::genesis::PlacementMap::pquery_size )
+        )
+        .def(
             "restrain_to_max_weight_placements",
             ( void ( ::genesis::PlacementMap::* )(  ))( &::genesis::PlacementMap::restrain_to_max_weight_placements ),
             get_docstring("void ::genesis::PlacementMap::restrain_to_max_weight_placements ()")

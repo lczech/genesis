@@ -117,9 +117,9 @@ public:
         return index_;
     }
 
-    int  rank() const;
-    bool is_leaf() const;
-    bool is_inner() const;
+    size_t rank() const;
+    bool   is_leaf() const;
+    bool   is_inner() const;
 
     //~ /** True if the node is the root, false otherwise. */
     //~ bool IsRoot();

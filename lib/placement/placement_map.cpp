@@ -226,9 +226,9 @@ PlacementMap::EdgeNumMapType PlacementMap::edge_num_map() const
         it != tree_->end_edges();
         ++it
     ) {
-        PlacementTree::EdgeType* edge = *it;
+        const auto& edge = *it;
         assert(en_map.count(edge->edge_num) == 0);
-        en_map.emplace(edge->edge_num, edge);
+        en_map.emplace(edge->edge_num, edge.get());
     }
     return std::move(en_map);
 }
@@ -389,7 +389,7 @@ std::pair<PlacementTreeEdge*, size_t> PlacementMap::placement_count_max_edge() c
 
     for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it ) {
         if ((*it)->placements.size() > max) {
-            edge = (*it);
+            edge = (*it).get();
             max  = (*it)->placements.size();
         }
     }
@@ -412,7 +412,7 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::placement_mass_max_edge() co
             sum += place->like_weight_ratio;
         }
         if (sum > max) {
-            edge = (*it);
+            edge = (*it).get();
             max  = sum;
         }
     }
@@ -727,7 +727,7 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
         ++it_e
     ) {
         // make sure every edge num is used once only
-        PlacementTree::EdgeType* edge = *it_e;
+        PlacementTree::EdgeType* edge = (*it_e).get();
         if (edge_num_map.count(edge->edge_num) > 0) {
             LOG_INFO << "More than one edge has edge_num '" << edge->edge_num << "'.";
             return false;

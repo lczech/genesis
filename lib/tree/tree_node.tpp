@@ -57,7 +57,7 @@ namespace genesis {
  * @brief Rank of the node, i.e. how many immediate children it has.
  */
 template <class NDT, class EDT>
-int TreeNode<NDT, EDT>::rank() const
+size_t TreeNode<NDT, EDT>::rank() const
 {
     int rank = -1;
     TreeLink<NDT, EDT>* link = link_;
@@ -67,7 +67,8 @@ int TreeNode<NDT, EDT>::rank() const
         link = link->next();
     } while (link != link_);
 
-    return rank;
+    // We add at least 1 to the initial value of the rank, so this is valid.
+    return static_cast<size_t>(rank);
 }
 
 /**

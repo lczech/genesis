@@ -567,18 +567,20 @@ bool NewickProcessor<AdapterType>::build_tree (
         NewickBrokerElement* broker_node = *b_itr;
 
         // create the tree node for this broker node
-        auto cur_node = new typename AdapterType::TreeType::NodeType();
-        result &= adapter_.to_tree_node(broker_node, *cur_node);
+        auto cur_node_u  = make_unique<typename AdapterType::TreeType::NodeType>();
+        auto cur_node    = cur_node_u.get();
+        result          &= adapter_.to_tree_node(broker_node, *cur_node);
         cur_node->index_ = nodes.size();
-        nodes.push_back(cur_node);
+        nodes.push_back(std::move(cur_node_u));
 
         // create the link that points towards the root.
         // this link is created for every node, root, inner and leaves.
-        auto up_link = new typename AdapterType::TreeType::LinkType();
-        up_link->node_ = cur_node;
+        auto up_link_u  = make_unique<typename AdapterType::TreeType::LinkType>();
+        auto up_link    = up_link_u.get();
+        up_link->node_  = cur_node;
         cur_node->link_ = up_link;
         up_link->index_ = links.size();
-        links.push_back(up_link);
+        links.push_back(std::move(up_link_u));
 
         // establish the link towards the root
         if (link_stack.empty()) {
@@ -593,14 +595,14 @@ bool NewickProcessor<AdapterType>::build_tree (
             link_stack.back()->outer_ = up_link;
 
             // also, create an edge that connects both nodes
-            auto up_edge = new typename AdapterType::TreeType::EdgeType();
+            auto up_edge = make_unique<typename AdapterType::TreeType::EdgeType>();
             up_edge->link_p_         = link_stack.back();
             up_edge->link_s_         = up_link;
-            up_link->edge_           = up_edge;
-            link_stack.back()->edge_ = up_edge;
+            up_link->edge_           = up_edge.get();
+            link_stack.back()->edge_ = up_edge.get();
             result &= adapter_.to_tree_edge(broker_node, *up_edge);
             up_edge->index_ = edges.size();
-            edges.push_back(up_edge);
+            edges.push_back(std::move(up_edge));
 
             // we can now delete the head of the stack, because we just estiablished its "downlink"
             // and thus are done with it
@@ -616,14 +618,14 @@ bool NewickProcessor<AdapterType>::build_tree (
         // in summary, make all next pointers of a node point to each other in a circle.
         auto prev_link = up_link;
         for (int i = 0; i < broker_node->rank(); ++i) {
-            auto down_link = new typename AdapterType::TreeType::LinkType();
-            prev_link->next_ = down_link;
-            prev_link = down_link;
+            auto down_link = make_unique<typename AdapterType::TreeType::LinkType>();
+            prev_link->next_ = down_link.get();
+            prev_link = down_link.get();
 
             down_link->node_ = cur_node;
             down_link->index_ = links.size();
-            links.push_back(down_link);
-            link_stack.push_back(down_link);
+            link_stack.push_back(down_link.get());
+            links.push_back(std::move(down_link));
         }
         prev_link->next_ = up_link;
     }
@@ -635,14 +637,13 @@ bool NewickProcessor<AdapterType>::build_tree (
 
     // now delete the uplink of the root, in order to make the tree fully unrooted.
     // (we do that after the tree creation, as it is way easier this way)
-    assert(links.front()->outer_ == links.front());
+    assert(links.front()->outer_ == links.front().get());
     auto next = links.front()->next_;
-    while (next->next_ != links.front()) {
+    while (next->next_ != links.front().get()) {
         next = next->next_;
     }
     next->next_ = next->next_->next_;
     assert(next->next_ == links.front()->next_);
-    delete links.front();
     links.erase(links.begin());
     for (size_t i = 0; i < links.size(); ++i) {
         links[i]->index_ = i;

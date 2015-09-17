@@ -14,8 +14,6 @@
 
 #include "common.hpp"
 
-#include "utils/logging.hpp"
-
 GenesisTestEnvironment* environment;
 
 /**

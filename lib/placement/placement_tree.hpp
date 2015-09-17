@@ -21,7 +21,7 @@ namespace genesis {
 //     Forward Declarations
 // =============================================================================
 
-struct PqueryPlacement;
+class PqueryPlacement;
 
 // =============================================================================
 //     Placement Tree Node Data
