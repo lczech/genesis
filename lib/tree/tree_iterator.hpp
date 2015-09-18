@@ -55,6 +55,21 @@ public:
     TreeIteratorEulertour (LinkType* link) : link_(link), start_(link)
     {}
 
+    // TreeIteratorEulertour () :
+    //     link_(nullptr),
+    //     start_(nullptr)
+    // {}
+    //
+    // TreeIteratorEulertour (const LinkType* link) :
+    //     link_(link),
+    //     start_(link)
+    // {}
+    //
+    // TreeIteratorEulertour (const NodeType* node) :
+    //     link_(node->primary_link()->next()),
+    //     start_(node->primary_link()->next())
+    // {}
+
     // -----------------------------------------------------
     //     Operators
     // -----------------------------------------------------

@@ -85,3 +85,73 @@ TEST (TreeIterator, Eulertour)
     TestEulertour("H", "HGIGRABACDCECARFRG");
     TestEulertour("I", "IGRABACDCECARFRGHG");
 }
+
+// =================================================================================================
+//     Preorder
+// =================================================================================================
+
+void TestPreorder(std::string node_name, std::string out_nodes)
+{
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    std::string nodes = "";
+
+    DefaultTree tree;
+    DefaultTreeNewickProcessor().from_string(input, tree);
+
+    auto node = tree.find_node(node_name);
+    ASSERT_NE(nullptr, node);
+
+    for (auto it = tree.begin_preorder(node); it != tree.end_preorder(); ++it) {
+        nodes += it.node()->name;
+    }
+    EXPECT_EQ(out_nodes, nodes) << " with start node " << node_name;
+}
+
+TEST (TreeIterator, Preorder)
+{
+    TestPreorder("R", "RABCDEFGHI");
+    TestPreorder("A", "ARFGHIBCDE");
+    TestPreorder("B", "BACDERFGHI");
+    TestPreorder("C", "CARFGHIBDE");
+    TestPreorder("D", "DCEARFGHIB");
+    TestPreorder("E", "ECARFGHIBD");
+    TestPreorder("F", "FRGHIABCDE");
+    TestPreorder("G", "GRABCDEFHI");
+    TestPreorder("H", "HGIRABCDEF");
+    TestPreorder("I", "IGRABCDEFH");
+}
+
+// =================================================================================================
+//     Postorder
+// =================================================================================================
+
+void TestPostorder(std::string node_name, std::string out_nodes)
+{
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    std::string nodes = "";
+
+    DefaultTree tree;
+    DefaultTreeNewickProcessor().from_string(input, tree);
+
+    auto node = tree.find_node(node_name);
+    ASSERT_NE(nullptr, node);
+
+    for (auto it = tree.begin_postorder(node); it != tree.end_postorder(); ++it) {
+        nodes += it.node()->name;
+    }
+    EXPECT_EQ(out_nodes, nodes) << " with start node " << node_name;
+}
+
+TEST (TreeIterator, Postorder)
+{
+    TestPostorder("R", "BDECAFHIGR");
+    TestPostorder("A", "FHIGRBDECA");
+    TestPostorder("B", "DECFHIGRAB");
+    TestPostorder("C", "FHIGRBADEC");
+    // TestPostorder("D", "");
+    // TestPostorder("E", "");
+    // TestPostorder("F", "");
+    // TestPostorder("G", "");
+    // TestPostorder("H", "");
+    // TestPostorder("I", "");
+}

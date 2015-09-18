@@ -232,6 +232,7 @@ public:
     {
         if (link_count() == 0) {
             return IteratorEulertour(nullptr);
+            // return IteratorEulertour();
         }
         return IteratorEulertour(root_link());
     }
@@ -244,17 +245,20 @@ public:
     inline IteratorEulertour begin_eulertour(const NodeType* node)
     {
         return IteratorEulertour(node->primary_link());
+        // return IteratorEulertour(node);
     }
 
     inline IteratorEulertour end_eulertour()
     {
         return IteratorEulertour(nullptr);
+        // return IteratorEulertour();
     }
 
     inline ConstIteratorEulertour begin_eulertour() const
     {
         if (link_count() == 0) {
             return ConstIteratorEulertour(nullptr);
+            // return ConstIteratorEulertour();
         }
         return ConstIteratorEulertour(root_link());
     }
@@ -267,11 +271,13 @@ public:
     inline ConstIteratorEulertour begin_eulertour(const NodeType* node) const
     {
         return ConstIteratorEulertour(node->primary_link());
+        // return ConstIteratorEulertour(node);
     }
 
     inline ConstIteratorEulertour end_eulertour() const
     {
         return ConstIteratorEulertour(nullptr);
+        // return ConstIteratorEulertour();
     }
 
     // -----------------------------------------------------

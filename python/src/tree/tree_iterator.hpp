@@ -74,6 +74,7 @@ struct TreeIteratorWrapper
     TreeIterator next ()
     {
         if (it_ == TreeIterator(nullptr)) {
+        // if (it_ == TreeIterator()) {
             PyErr_SetString(PyExc_StopIteration, "No more data.");
             boost::python::throw_error_already_set();
         }
