@@ -66,7 +66,6 @@ PlacementMap::PlacementMap (const PlacementMap& other)
     auto en_map = edge_num_map();
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
-        pqueries_.push_back(std::move(npqry));
 
         for (const auto& op : opqry->placements) {
             auto np = make_unique<PqueryPlacement>(*op);
@@ -82,6 +81,8 @@ PlacementMap::PlacementMap (const PlacementMap& other)
             nn->pquery = npqry.get();
             npqry->names.push_back(std::move(nn));
         }
+
+        pqueries_.push_back(std::move(npqry));
     }
 }
 
