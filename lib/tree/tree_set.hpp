@@ -40,7 +40,8 @@ public:
     struct NamedTree
     {
         std::string               name;
-        std::shared_ptr<TreeType> tree;
+        TreeType& tree;
+        // std::shared_ptr<TreeType> tree;
     };
 
     typedef typename std::vector<NamedTree>::iterator       iterator;
@@ -50,7 +51,15 @@ public:
     //     Modifiers
     // -----------------------------------------------------
 
-    void add (const std::string& name, std::shared_ptr<TreeType> tree);
+    // TODO !!! this is a quick fix for problems with std::shared_ptr in boost python.
+    // TODO as soon as this is solved in boost, switch back to the original version.
+
+    void add (const std::string& name, TreeType& tree)
+    {
+        trees_.push_back( { name, tree } );
+    }
+
+    // void add (const std::string& name, std::shared_ptr<TreeType> tree);
     void clear();
 
     TreeType average_branch_length_tree() const;
@@ -71,7 +80,7 @@ public:
     //     Accessors
     // -----------------------------------------------------
 
-    TreeType* get_first (const std::string& name) const;
+    // TreeType* get_first (const std::string& name) const;
 
     inline iterator begin()
     {

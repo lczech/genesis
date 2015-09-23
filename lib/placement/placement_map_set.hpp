@@ -31,7 +31,8 @@ public:
     struct NamedMap
     {
         std::string                   name;
-        std::shared_ptr<PlacementMap> map;
+        PlacementMap&                 map;
+        // std::shared_ptr<PlacementMap> map;
     };
 
     typedef typename std::vector<NamedMap>::iterator       iterator;
@@ -41,7 +42,22 @@ public:
     //     Modifiers
     // -----------------------------------------------------
 
-    void add (const std::string& name, std::shared_ptr<PlacementMap> map);
+    // TODO !!! this is a quick fix for problems with std::shared_ptr in boost python.
+    // TODO as soon as this is solved in boost, switch back to the original version, and also
+    // TODO reactive get_first().
+
+    void add (const std::string& name, PlacementMap& map)
+    {
+        maps_.push_back( { name, map } );
+    }
+
+    void add (const std::string& name, std::shared_ptr<PlacementMap> map)
+    {
+        // TODO baaaaaad!
+        maps_.push_back( { name, *map.get() } );
+    }
+
+    // void add (const std::string& name, std::shared_ptr<PlacementMap> map);
     void clear();
 
     PlacementMap merge_all();
@@ -50,7 +66,7 @@ public:
     //     Accessors
     // -----------------------------------------------------
 
-    std::shared_ptr<PlacementMap> get_first (const std::string& name);
+    // std::shared_ptr<PlacementMap> get_first (const std::string& name);
 
     inline iterator begin()
     {
