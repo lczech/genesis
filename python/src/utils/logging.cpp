@@ -74,5 +74,17 @@ PYTHON_EXPORT_CLASS (Logging, "utils")
             get_docstring("static void ::genesis::Logging::log_to_file (const std::string & fn)")
         )
         .staticmethod("log_to_file")
+        .def(
+            "max_level",
+            ( ::genesis::Logging::LoggingLevel ( * )(  ))( &::genesis::Logging::max_level ),
+            get_docstring("static LoggingLevel ::genesis::Logging::max_level ()")
+        )
+        .def(
+            "max_level",
+            ( void ( * )( const ::genesis::Logging::LoggingLevel ))( &::genesis::Logging::max_level ),
+            ( boost::python::arg("level") ),
+            get_docstring("static void ::genesis::Logging::max_level (const LoggingLevel level)")
+        )
+        .staticmethod("max_level")
     ;
 }
