@@ -91,16 +91,26 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
         }
     }
 
-    // Calcuate avergage branch lengths.
-    for (auto& bl : avgs) {
-        bl /= trees_.size();
-    }
-
     // We know that all trees have the same topology. So we take a copy of the first one (thus, also
     // copying its node names) and modify its branch lengths.
     TreeType tree = TreeType(trees_.front().tree);
-    for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it) {
-        (*it)->branch_length = avgs[(*it)->index()];
+
+    // Do the same kind of traversal as before in order to keep the indexing order (preorder) and
+    // set the branch lengths.
+    size_t idx = 0;
+    for (
+        auto it = tree.begin_preorder();
+        it != tree.end_preorder();
+        ++it
+    ) {
+        // The first iteration points to an edge which will be covered later again.
+        // Skip it to prevent double coverage.
+        if (it.is_first_iteration()) {
+            continue;
+        }
+
+        it.edge()->branch_length = avgs[idx] / trees_.size();
+        ++idx;
     }
 
     return tree;
