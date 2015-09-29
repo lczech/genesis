@@ -17,6 +17,8 @@ namespace genesis {
 
 /**
  * @brief
+ *
+ * TODO this method assumes that the tree node has a name. not good.
  */
 template <typename TreeType>
 std::string TreeView::compact (
@@ -48,7 +50,7 @@ std::string TreeView::compact (
         if (it.is_first_iteration()) {
             ++ranks[cur_idx];
             // TODO this should also use the print_line function. current users of this method then need to make sure that they check for the first iteration themselves in case they want to display is specially.
-            res << it.node()->name << "\n";
+            res << it.node()->data.name << "\n";
             continue;
         }
 

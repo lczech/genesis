@@ -53,11 +53,13 @@ namespace genesis {
 
 /**
  * @brief Returns a one-line dump summary of the data of this edge.
+ *
+ * TODO this method assumes that the tree node has a name. not good.
  */
 template <class NDT, class EDT>
 std::string TreeEdge<NDT, EDT>::dump() const
 {
-    return "Node P: " + primary_node()->name + ", Node S: " + secondary_node()->name + "\t" + EDT::dump();
+    return "Node P: " + primary_node()->data.name + ", Node S: " + secondary_node()->data.name + "\t" + data.dump();
 }
 
 } // namespace genesis

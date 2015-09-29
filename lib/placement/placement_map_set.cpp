@@ -61,10 +61,10 @@ PlacementMap PlacementMapSet::merge_all()
     // This is necessary, because the tree copy constructor does not do this for us.
     // TODO fix this!
     for (size_t i = 0; i < res.tree().node_count(); ++i) {
-        res.tree().node_at(i)->name = maps_[0].map.tree().node_at(i)->name;
+        res.tree().node_at(i)->data.name = maps_[0].map.tree().node_at(i)->data.name;
     }
     for (size_t i = 0; i < res.tree().edge_count(); ++i) {
-        res.tree().edge_at(i)->edge_num = maps_[0].map.tree().edge_at(i)->edge_num;
+        res.tree().edge_at(i)->data.edge_num = maps_[0].map.tree().edge_at(i)->data.edge_num;
     }
 
     // Add the placements from all maps of this set.
@@ -129,8 +129,8 @@ bool PlacementMapSet::all_identical_trees()
         PlacementTree::ConstIteratorPreorder& it_l,
         PlacementTree::ConstIteratorPreorder& it_r
     ) {
-        return it_l.node()->name     == it_r.node()->name     &&
-               it_l.edge()->edge_num == it_r.edge()->edge_num;
+        return it_l.node()->data.name     == it_r.node()->data.name     &&
+               it_l.edge()->data.edge_num == it_r.edge()->data.edge_num;
     };
 
     return tree_set().all_equal(comparator);

@@ -73,11 +73,13 @@ size_t TreeNode<NDT, EDT>::rank() const
 
 /**
  * @brief Returns a one-line dump summary of the data of this node.
+ *
+ * TODO this method assumes that the tree node has a name. not good.
  */
 template <class NDT, class EDT>
 std::string TreeNode<NDT, EDT>::dump() const
 {
-    return "Rank: " + std::to_string(rank()) + " \t " + "name: " + this->name;
+    return "Rank: " + std::to_string(rank()) + " \t " + "name: " + this->data.name;
 }
 
 } // namespace genesis

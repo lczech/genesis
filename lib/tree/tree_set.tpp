@@ -47,6 +47,8 @@ void TreeSet<TreeType>::clear ()
  *
  * Otherwise, the method will return an empty tree. It does not check for node names, but the
  * returned tree will contain the names of the first tree in the set.
+ *
+ * TODO this method assumes that the tree edge has a branch_length. not good.
  */
 template <class TreeType>
 TreeType TreeSet<TreeType>::average_branch_length_tree () const
@@ -86,7 +88,7 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
                 continue;
             }
 
-            avgs[idx] += it.edge()->branch_length;
+            avgs[idx] += it.edge()->data.branch_length;
             ++idx;
         }
     }
@@ -109,7 +111,7 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
             continue;
         }
 
-        it.edge()->branch_length = avgs[idx] / trees_.size();
+        it.edge()->data.branch_length = avgs[idx] / trees_.size();
         ++idx;
     }
 

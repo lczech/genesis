@@ -39,9 +39,9 @@ void Plausibility::spiderpig_function (
         it != reference_tree.end_preorder();
         ++it
     ) {
-        it.node()->preorder_id = c;
+        it.node()->data.preorder_id = c;
         if (it.node()->is_leaf()) {
-            reference_map[it.node()->name] = c;
+            reference_map[it.node()->data.name] = c;
         }
         ++c;
     }
@@ -55,9 +55,9 @@ void Plausibility::spiderpig_function (
         it != reference_tree.end_eulertour();
         ++it
     ) {
-        euler_ids.push_back(it.node()->preorder_id);
+        euler_ids.push_back(it.node()->data.preorder_id);
 
-        ausgabe += std::to_string(it.node()->preorder_id) + " ";
+        ausgabe += std::to_string(it.node()->data.preorder_id) + " ";
     }
     LOG_DBG << ausgabe;
 

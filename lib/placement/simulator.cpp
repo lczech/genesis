@@ -201,7 +201,7 @@ bool PlacementSimulatorTwostep::EdgeDistribution::transfer_weights (const Placem
     weights = std::vector<double>(num_edges, 0.0);
 
     for (auto it = map.tree().begin_edges(); it != map.tree().end_edges(); ++it) {
-        weights[(*it)->index()] = (*it)->placement_count();
+        weights[(*it)->index()] = (*it)->data.placement_count();
     }
 
     return true;
@@ -247,7 +247,7 @@ double PlacementSimulatorTwostep::ProximalLengthDistribution::generate(
 ) {
     // We do a multiplication with the branch length here, because this allows for a single
     // distribution instance instead of one per different length.
-    return distrib_(Options::get().random_engine()) * edge->branch_length;
+    return distrib_(Options::get().random_engine()) * edge->data.branch_length;
 }
 
 // =================================================================================================

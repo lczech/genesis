@@ -144,7 +144,7 @@ BipartitionSet<NDT, EDT>::get_subtree_edges (
         ++it
     ) {
         if (it.node()->is_leaf()) {
-            leaf_names.push_back(it.node()->name);
+            leaf_names.push_back(it.node()->data.name);
         }
         if (it.is_first_iteration()) {
             continue;

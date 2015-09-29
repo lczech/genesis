@@ -29,8 +29,8 @@ public:
 
     inline void from_tree(typename TreeType::ConstIteratorPreorder& it, XmlElement* clade)
     {
-        PhyloxmlAdapter<TreeType>::set_name(it.node()->name, clade);
-        PhyloxmlAdapter<TreeType>::set_branch_length(it.edge()->branch_length, clade);
+        PhyloxmlAdapter<TreeType>::set_name(it.node()->data.name, clade);
+        PhyloxmlAdapter<TreeType>::set_branch_length(it.edge()->data.branch_length, clade);
 
         //~ it.node()->to_newick_broker_element(bn);
         // only write edge data to the broker element if it is not the last iteration.
