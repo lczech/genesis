@@ -22,17 +22,20 @@ namespace genesis {
 // =============================================================================
 
 /**
- * @brief Copy constructor. Copies the topology, but not the data of a tree.
+ * @brief Copy constructor.
  *
  * This function creates all links, nodes and edges new, and shapes them so that the final
  * Tree has the same topology as the input Tree.
  *
- * The data of the nodes and edges might contain pointers and other structures that need a deep
- * copy, and we cannot know how to copy it here. It is thus the responsibility of the class that
- * uses the tree to make sure its own data is copied after calling this copy constructor.
- * See Placements for an example.
+ * The data belonging to the edges and nodes is copied using the copy assignment of the respective
+ * template parameter classes EdgeDataType and NodeDataType. As this data might contain pointers and
+ * other structures that need a deep copy, it is the responsibility of those data classes to make
+ * sure its own data is copied correctly.
  *
- * Idea for a nice feature (not yet implemented):
+ * In case of pointers, the class that is using the tree might need to do further copying after
+ * calling this copy constructor. See Placements for an example.
+ *
+ * TODO Idea for a nice feature (not yet implemented):
  * The advantage of copying the topology only is that we are able to make this function completely
  * independend of the data, hence the `other` Tree does not need to share the same data types.
  * Some potential function declarations can be found in the header file tree.hpp.
@@ -54,11 +57,11 @@ Tree<NDT, EDT>::Tree (const Tree<NDT, EDT>& other)
     }
     for (size_t i = 0; i < nodes_.size(); ++i) {
         nodes_[i] = make_unique<NodeType>();
-        // nodes_[i]->data = other.nodes_[i]->data;
+        nodes_[i]->data = other.nodes_[i]->data;
     }
     for (size_t i = 0; i < edges_.size(); ++i) {
         edges_[i] = make_unique<EdgeType>();
-        // edges_[i]->data = other.edges_[i]->data;
+        edges_[i]->data = other.edges_[i]->data;
     }
 
     // set all pointers for the topology in a second round of loops.
