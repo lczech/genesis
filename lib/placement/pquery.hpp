@@ -8,6 +8,7 @@
  * @ingroup placement
  */
 
+#include <assert.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -71,6 +72,27 @@ public:
         pquery(nullptr),
         edge(nullptr)
     {}
+
+    /**
+     * @brief Destructor. Removes the Placement also from its Edge.
+     */
+    ~PqueryPlacement()
+    {
+        // Find the pointer on the edge that belongs to this placement.
+        auto it = edge->data.placements.begin();
+        for (; it != edge->data.placements.end(); ++it) {
+            if (*it == this) {
+                break;
+            }
+        }
+
+        // Assert that the edge actually contains a reference to this pquery. If not,
+        // this means that we messed up somewhere else while adding/removing placements...
+        assert(it != edge->data.placements.end());
+
+        // Delete the reference from the edge to the current placement.
+        edge->data.placements.erase(it);
+    }
 
     // const int edge_num;
     int       edge_num;
