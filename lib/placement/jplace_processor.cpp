@@ -147,12 +147,12 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         ++it
     ) {
         PlacementTree::EdgeType* edge = it->get();
-        if (edge_num_map.count(edge->edge_num) > 0) {
+        if (edge_num_map.count(edge->data.edge_num) > 0) {
             LOG_WARN << "Jplace document contains a tree where the edge num tag '"
-                     << edge->edge_num << "' is used more than once.";
+                     << edge->data.edge_num << "' is used more than once.";
             return false;
         }
-        edge_num_map.emplace(edge->edge_num, edge);
+        edge_num_map.emplace(edge->data.edge_num, edge);
     }
 
     // get the field names and store them in array fields
@@ -267,7 +267,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                     }
                     pqry_place->edge_num = pqry_place_val;
                     pqry_place->edge = edge_num_map.at(pqry_place_val);
-                    pqry_place->edge->placements.push_back(pqry_place.get());
+                    pqry_place->edge->data.placements.push_back(pqry_place.get());
 
                 } else if (fields[i] == "likelihood") {
                     pqry_place->likelihood = pqry_place_val;
@@ -295,7 +295,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
             // processing. Also, we only set it if it was actually available in the fields and not
             // overwritten by the (more appropriate) field for the proximal length.
             if (distal_length >= 0.0 && pqry_place->proximal_length == 0.0) {
-                pqry_place->proximal_length = pqry_place->edge->branch_length - distal_length;
+                pqry_place->proximal_length = pqry_place->edge->data.branch_length - distal_length;
             }
 
             // Check validity of placement values.
@@ -332,12 +332,12 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                         pqry_place->proximal_length = 0.0;
                     }
                 }
-                if (pqry_place->proximal_length > pqry_place->edge->branch_length) {
+                if (pqry_place->proximal_length > pqry_place->edge->data.branch_length) {
                     if (report_invalid_numbers) {
                         LOG_INFO << "Invalid placement with proximal_length > branch_length.";
                     }
                     if (correct_invalid_numbers) {
-                        pqry_place->proximal_length = pqry_place->edge->branch_length;
+                        pqry_place->proximal_length = pqry_place->edge->data.branch_length;
                     }
                 }
             }
@@ -507,7 +507,7 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
 
             // convert from proximal to distal length.
             pqry_fields->push_back(new JsonValueNumber(
-                pqry_place->edge->branch_length - pqry_place->proximal_length
+                pqry_place->edge->data.branch_length - pqry_place->proximal_length
             ));
             pqry_fields->push_back(new JsonValueNumber(pqry_place->pendant_length));
             pqry_p_arr->push_back(pqry_fields);

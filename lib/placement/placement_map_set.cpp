@@ -18,10 +18,10 @@ namespace genesis {
 /**
  * @brief
  */
-void PlacementMapSet::add (const std::string& name, std::shared_ptr<PlacementMap> map)
-{
-    maps_.push_back( { name, map } );
-}
+// void PlacementMapSet::add (const std::string& name, std::shared_ptr<PlacementMap> map)
+// {
+//     maps_.push_back( { name, map } );
+// }
 
 /**
  * @brief
@@ -57,15 +57,26 @@ PlacementMap PlacementMapSet::merge_all()
         tree_set().average_branch_length_tree()
     ));
 
+    // Copy the rest of the data from the first tree to the averaged tree.
+    // This is necessary, because the tree copy constructor does not do this for us.
+    // TODO fix this!
+    for (size_t i = 0; i < res.tree().node_count(); ++i) {
+        res.tree().node_at(i)->data.name = maps_[0].map.tree().node_at(i)->data.name;
+    }
+    for (size_t i = 0; i < res.tree().edge_count(); ++i) {
+        res.tree().edge_at(i)->data.edge_num = maps_[0].map.tree().edge_at(i)->data.edge_num;
+    }
+
     // Add the placements from all maps of this set.
     // In the merge method, we also check for identical topology (again), but mainly for identical
     // taxa names and edge_nums, which is important for correct merging.
     for (auto& map : maps_) {
-        if (!res.merge(*map.map)) {
+        if (!res.merge(map.map)) {
             LOG_WARN << "Cannot merge PlacementMaps with different reference trees.";
             return PlacementMap();
         }
     }
+
     return res;
 }
 
@@ -76,17 +87,17 @@ PlacementMap PlacementMapSet::merge_all()
 /**
  * @brief Get the first PlacementMap in the set that is stored with a given name.
  */
-std::shared_ptr<PlacementMap> PlacementMapSet::get_first(const std::string& name)
-{
-    auto cm = maps_.begin();
-    while (cm != maps_.end()) {
-        if (cm->name == name) {
-            return cm->map;
-        }
-        ++cm;
-    }
-    return nullptr;
-}
+// std::shared_ptr<PlacementMap> PlacementMapSet::get_first(const std::string& name)
+// {
+//     auto cm = maps_.begin();
+//     while (cm != maps_.end()) {
+//         if (cm->name == name) {
+//             return cm->map;
+//         }
+//         ++cm;
+//     }
+//     return nullptr;
+// }
 
 /**
  * @brief Returns a TreeSet containing all the trees of the Placement Maps.
@@ -95,7 +106,9 @@ TreeSet<PlacementTree> PlacementMapSet::tree_set()
 {
     TreeSet<PlacementTree> set;
     for (auto& map : maps_) {
-        set.add(map.name, map.map->tree_ptr());
+        // TODO this also needs to be fixed with the shared pointers problem
+        set.add(map.name, map.map.tree());
+        // set.add(map.name, map.map->tree_ptr());
     }
     return set;
 }
@@ -116,8 +129,8 @@ bool PlacementMapSet::all_identical_trees()
         PlacementTree::ConstIteratorPreorder& it_l,
         PlacementTree::ConstIteratorPreorder& it_r
     ) {
-        return it_l.node()->name     == it_r.node()->name     &&
-               it_l.edge()->edge_num == it_r.edge()->edge_num;
+        return it_l.node()->data.name     == it_r.node()->data.name     &&
+               it_l.edge()->data.edge_num == it_r.edge()->data.edge_num;
     };
 
     return tree_set().all_equal(comparator);
@@ -137,7 +150,7 @@ std::string PlacementMapSet::dump(bool full)
     for (auto& cm : maps_) {
         res += std::to_string(i) + ": " + cm.name + "\n";
         if (full) {
-            res += cm.map->dump() + "\n";
+            res += cm.map.dump() + "\n";
         }
         ++i;
     }

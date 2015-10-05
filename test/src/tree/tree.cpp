@@ -27,6 +27,6 @@ TEST(Tree, Basics)
     EXPECT_EQ(13, tree.node_count());
     EXPECT_TRUE(tree.is_bifurcating());
 
-    EXPECT_EQ("R", tree.root_node()->name);
+    EXPECT_EQ("R", tree.root_node()->data.name);
     EXPECT_TRUE(tree.validate());
 }

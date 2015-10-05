@@ -22,17 +22,20 @@ namespace genesis {
 // =============================================================================
 
 /**
- * @brief Copy constructor. Copies the topology, but not the data of a tree.
+ * @brief Copy constructor.
  *
  * This function creates all links, nodes and edges new, and shapes them so that the final
  * Tree has the same topology as the input Tree.
  *
- * The data of the nodes and edges might contain pointers and other structures that need a deep
- * copy, and we cannot know how to copy it here. It is thus the responsibility of the class that
- * uses the tree to make sure its own data is copied after calling this copy constructor.
- * See Placements for an example.
+ * The data belonging to the edges and nodes is copied using the copy assignment of the respective
+ * template parameter classes EdgeDataType and NodeDataType. As this data might contain pointers and
+ * other structures that need a deep copy, it is the responsibility of those data classes to make
+ * sure its own data is copied correctly.
  *
- * Idea for a nice feature (not yet implemented):
+ * In case of pointers, the class that is using the tree might need to do further copying after
+ * calling this copy constructor. See Placements for an example.
+ *
+ * TODO Idea for a nice feature (not yet implemented):
  * The advantage of copying the topology only is that we are able to make this function completely
  * independend of the data, hence the `other` Tree does not need to share the same data types.
  * Some potential function declarations can be found in the header file tree.hpp.
@@ -50,12 +53,15 @@ Tree<NDT, EDT>::Tree (const Tree<NDT, EDT>& other)
     // in order to be used with each other.
     for (size_t i = 0; i < links_.size(); ++i) {
         links_[i] = make_unique<LinkType>();
+        // links_[i]->data = other.links_[i]->data;
     }
     for (size_t i = 0; i < nodes_.size(); ++i) {
         nodes_[i] = make_unique<NodeType>();
+        nodes_[i]->data = other.nodes_[i]->data;
     }
     for (size_t i = 0; i < edges_.size(); ++i) {
         edges_[i] = make_unique<EdgeType>();
+        edges_[i]->data = other.edges_[i]->data;
     }
 
     // set all pointers for the topology in a second round of loops.
@@ -187,6 +193,8 @@ void Tree<NDT, EDT>::export_content (LinkArray& links, NodeArray& nodes, EdgeArr
 
 /**
  * @brief Find a Node, given its name.
+ *
+ * TODO assumes that tree node has a name. not good.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::find_node(std::string name) const
@@ -194,7 +202,7 @@ typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::find_node(std::string name) c
     // TODO check first whether replacing underscores is necessary!
     name = string_replace_all(name, "_", " ");
     for (const auto& n : nodes_) {
-        if (n->name == name) {
+        if (n->data.name == name) {
             return n.get();
         }
     }
@@ -258,6 +266,8 @@ size_t Tree<NDT, EDT>::inner_count() const
 
 /**
  * @brief Returns the length of the tree (sum of all branch lengths).
+ *
+ * TODO assumes tree edge has a branch_length. not good.
  */
 template <class NDT, class EDT>
 double Tree<NDT, EDT>::length() const
@@ -266,7 +276,7 @@ double Tree<NDT, EDT>::length() const
     // branch lengths version of this function will basically return edges.size()... is that needed?
     double len = 0.0;
     for (const auto& e : edges_) {
-        len += e->branch_length;
+        len += e->data.branch_length;
     }
     return len;
 }
@@ -290,6 +300,7 @@ double Tree<NDT, EDT>::height() const
 // the same value. this is also a good way of verifiying the result for testing!
 // TODO also, find a naming convention for weighted (with branch lengths) and unweighted diamter and
 // all other functions dealing with tree distances!
+// TODO this method assumes that the tree edge has a branch_length. not good.
 /**
  * @brief Returns the longest distance from any point in the tree (on the edges) to any leaf.
  */
@@ -303,7 +314,7 @@ double Tree<NDT, EDT>::deepest_distance() const
     for (const auto& e : edges_) {
         int idx_p = e->primary_node()->index();
         int idx_s = e->secondary_node()->index();
-        double d = (leaf_dist[idx_p].second + e->branch_length + leaf_dist[idx_s].second) / 2;
+        double d = (leaf_dist[idx_p].second + e->data.branch_length + leaf_dist[idx_s].second) / 2;
 
         if (d > max) {
             max = d;
@@ -375,6 +386,8 @@ std::vector<int> Tree<NDT, EDT>::node_depth_vector(const NodeType* node) const
  * @brief Returns a distance matrix containing pairwise distances between all Nodes, using the
  * branch_length of the Edges as distance measurement.
  *
+ * TODO this method assumes that the tree edge has a branch_length. not good.
+ *
  * The elements of the matrix are indexed using node()->index().
  */
 template <class NDT, class EDT>
@@ -410,7 +423,7 @@ Matrix<double>* Tree<NDT, EDT>::node_distance_matrix() const
             // the distance to the current row node is: the length of the current branch plus
             // the distance from the other end of that branch to the row node.
             (*mat)(row_node->index(), it.node()->index())
-                = it.edge()->branch_length
+                = it.edge()->data.branch_length
                 + (*mat)(row_node->index(), it.link()->outer()->node()->index());
         }
     }
@@ -424,6 +437,8 @@ Matrix<double>* Tree<NDT, EDT>::node_distance_matrix() const
  * The vector is indexed using the node()->index() for every node. Its elements give the distance of
  * each node with respect to the given start node. The distance is the sum of branch lengths of the
  * edges visited on the path between the two nodes.
+ *
+ * TODO this method assumes that the tree edge has a branch_length. not good.
  *
  * If no Node pointer is provided, the root is taken as node.
  */
@@ -458,7 +473,7 @@ std::vector<double> Tree<NDT, EDT>::node_distance_vector(const NodeType* node) c
         // the starting node) plus the branch length.
         vec[it.node()->index()]
             = vec[it.link()->outer()->node()->index()]
-            + it.edge()->branch_length;
+            + it.edge()->data.branch_length;
     }
 
     return vec;
@@ -900,7 +915,7 @@ std::string Tree<NDT, EDT>::dump() const
         NodeType* n = l->node();
         std::string indent = std::string(4 * depth[n->index()], ' ');
         if (!contains(done, n->index())) {
-            out << indent << "\033[1;31mNode " << n->index() << ": \"" << n->name << "\"\033[0m\n";
+            out << indent << "\033[1;31mNode " << n->index() << ": \"" << n->data.name << "\"\033[0m\n";
         }
         done.push_back(n->index());
 

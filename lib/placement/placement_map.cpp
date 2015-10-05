@@ -51,11 +51,12 @@ PlacementMap::PlacementMap (const PlacementMap& other)
         // the copy constructor is not working!
         assert(it_n.node()->rank() == it_o.node()->rank());
 
-        it_n.edge()->placements.clear();
-        it_n.edge()->branch_length = it_o.edge()->branch_length;
-        it_n.edge()->edge_num = it_o.edge()->edge_num;
+        // TODO once the edge and node data are copyable and tree supports full data copies, these are not needed any longer.
+        it_n.edge()->data.placements.clear();
+        it_n.edge()->data.branch_length = it_o.edge()->data.branch_length;
+        it_n.edge()->data.edge_num = it_o.edge()->data.edge_num;
 
-        it_n.node()->name = it_o.node()->name;
+        it_n.node()->data.name = it_o.node()->data.name;
     }
 
     // the trees are copies. they should take equal iterations to finish a traversal.
@@ -66,13 +67,12 @@ PlacementMap::PlacementMap (const PlacementMap& other)
     auto en_map = edge_num_map();
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
-        pqueries_.push_back(std::move(npqry));
 
         for (const auto& op : opqry->placements) {
             auto np = make_unique<PqueryPlacement>(*op);
 
             np->edge   = en_map[np->edge_num];
-            np->edge->placements.push_back(np.get());
+            np->edge->data.placements.push_back(np.get());
             np->pquery = npqry.get();
             npqry->placements.push_back(std::move(np));
         }
@@ -82,6 +82,8 @@ PlacementMap::PlacementMap (const PlacementMap& other)
             nn->pquery = npqry.get();
             npqry->names.push_back(std::move(nn));
         }
+
+        pqueries_.push_back(std::move(npqry));
     }
 }
 
@@ -145,8 +147,8 @@ bool PlacementMap::merge(const PlacementMap& other)
         PlacementTree::ConstIteratorPreorder& it_l,
         PlacementTree::ConstIteratorPreorder& it_r
     ) {
-        return it_l.node()->name     == it_r.node()->name     &&
-               it_l.edge()->edge_num == it_r.edge()->edge_num;
+        return it_l.node()->data.name     == it_r.node()->data.name     &&
+               it_l.edge()->data.edge_num == it_r.edge()->data.edge_num;
     };
 
     if (!tree_->equal(*other.tree_, comparator)) {
@@ -168,7 +170,7 @@ bool PlacementMap::merge(const PlacementMap& other)
             // something broke the integrity of our in memory representation of the data.
             assert(en_map.count(np->edge_num) > 0);
             np->edge = en_map[np->edge_num];
-            np->edge->placements.push_back(np.get());
+            np->edge->data.placements.push_back(np.get());
             np->pquery = npqry.get();
             npqry->placements.push_back(std::move(np));
         }
@@ -204,7 +206,7 @@ void PlacementMap::clear()
 void PlacementMap::clear_placements()
 {
     for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it) {
-        (*it)->placements.clear();
+        (*it)->data.placements.clear();
     }
     pqueries_.clear();
 }
@@ -227,8 +229,8 @@ PlacementMap::EdgeNumMapType PlacementMap::edge_num_map() const
         ++it
     ) {
         const auto& edge = *it;
-        assert(en_map.count(edge->edge_num) == 0);
-        en_map.emplace(edge->edge_num, edge.get());
+        assert(en_map.count(edge->data.edge_num) == 0);
+        en_map.emplace(edge->data.edge_num, edge.get());
     }
     return std::move(en_map);
 }
@@ -263,7 +265,7 @@ std::vector<PqueryPlain> PlacementMap::plain_queries() const
             place.primary_node_index   = oplace->edge->primary_node()->index();
             place.secondary_node_index = oplace->edge->secondary_node()->index();
 
-            place.branch_length        = oplace->edge->branch_length;
+            place.branch_length        = oplace->edge->data.branch_length;
             place.pendant_length       = oplace->pendant_length;
             place.proximal_length      = oplace->proximal_length;
             place.like_weight_ratio    = oplace->like_weight_ratio;
@@ -317,8 +319,8 @@ void PlacementMap::restrain_to_max_weight_placements()
 
             // Delete the reference from the edge to the current placement. We will later add the
             // one that points to the remaining (max weight) placement back to its edge.
-            std::vector<PqueryPlacement*>::iterator it = place->edge->placements.begin();
-            for (; it != place->edge->placements.end(); ++it) {
+            std::vector<PqueryPlacement*>::iterator it = place->edge->data.placements.begin();
+            for (; it != place->edge->data.placements.end(); ++it) {
                 if (*it == place.get()) {
                     break;
                 }
@@ -326,8 +328,8 @@ void PlacementMap::restrain_to_max_weight_placements()
 
             // Assert that the edge actually contains a reference to this pquery. If not,
             // this means that we messed up somewhere else while adding/removing placements...
-            assert(it != place->edge->placements.end());
-            place->edge->placements.erase(it);
+            assert(it != place->edge->data.placements.end());
+            place->edge->data.placements.erase(it);
         }
 
         // Remove all but the max element from placements vector.
@@ -341,7 +343,7 @@ void PlacementMap::restrain_to_max_weight_placements()
         // Now add back the reference from the edge to the pquery.
         // Assert that we now have a single placement in the pquery (the most likely one).
         assert(pqry->placements.size() == 1 && pqry->placements[0].get() == max_p);
-        max_p->edge->placements.push_back(max_p);
+        max_p->edge->data.placements.push_back(max_p);
 
         // Also, set the like_weight_ratio to 1.0, because we do not have any other placements left.
         max_p->like_weight_ratio = 1.0;
@@ -388,9 +390,9 @@ std::pair<PlacementTreeEdge*, size_t> PlacementMap::placement_count_max_edge() c
     size_t             max  = 0;
 
     for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it ) {
-        if ((*it)->placements.size() > max) {
+        if ((*it)->data.placements.size() > max) {
             edge = (*it).get();
-            max  = (*it)->placements.size();
+            max  = (*it)->data.placements.size();
         }
     }
 
@@ -408,7 +410,7 @@ std::pair<PlacementTreeEdge*, double> PlacementMap::placement_mass_max_edge() co
 
     for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it ) {
         double sum = 0.0;
-        for (const auto& place : (*it)->placements) {
+        for (const auto& place : (*it)->data.placements) {
             sum += place->like_weight_ratio;
         }
         if (sum > max) {
@@ -510,9 +512,12 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram (
         for (const auto& place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            double dp = place->pendant_length + place->proximal_length
+            double dp = place->pendant_length
+                      + place->proximal_length
                       + dists[place->edge->primary_node()->index()].second;
-            double ds = place->pendant_length + place->edge->branch_length - place->proximal_length
+            double ds = place->pendant_length
+                      + place->edge->data.branch_length
+                      - place->proximal_length
                       + dists[place->edge->secondary_node()->index()].second;
             double ld = std::min(dp, ds);
 
@@ -580,9 +585,12 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
         for (const auto& place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            double dp = place->pendant_length + place->proximal_length
+            double dp = place->pendant_length
+                      + place->proximal_length
                       + dists[place->edge->primary_node()->index()].second;
-            double ds = place->pendant_length + place->edge->branch_length - place->proximal_length
+            double ds = place->pendant_length
+                      + place->edge->data.branch_length
+                      - place->proximal_length
                       + dists[place->edge->secondary_node()->index()].second;
             double ld = std::min(dp, ds);
             distrib.push_back(ld);
@@ -693,8 +701,8 @@ std::string PlacementMap::dump_tree() const
 {
     auto print_line = [] (typename PlacementTree::ConstIteratorPreorder& it)
     {
-        return it.node()->name + " [" + std::to_string(it.edge()->edge_num) + "]" ": "
-            + std::to_string(it.edge()->placement_count()) + " placements";
+        return it.node()->data.name + " [" + std::to_string(it.edge()->data.edge_num) + "]" ": "
+            + std::to_string(it.edge()->data.placement_count()) + " placements";
     };
     return TreeView().compact(tree(), print_line);
 }
@@ -728,22 +736,22 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
     ) {
         // make sure every edge num is used once only
         PlacementTree::EdgeType* edge = (*it_e).get();
-        if (edge_num_map.count(edge->edge_num) > 0) {
-            LOG_INFO << "More than one edge has edge_num '" << edge->edge_num << "'.";
+        if (edge_num_map.count(edge->data.edge_num) > 0) {
+            LOG_INFO << "More than one edge has edge_num '" << edge->data.edge_num << "'.";
             return false;
         }
-        edge_num_map.emplace(edge->edge_num, edge);
+        edge_num_map.emplace(edge->data.edge_num, edge);
 
         // make sure the pointers and references are set correctly
-        for (const PqueryPlacement* p : edge->placements) {
+        for (const PqueryPlacement* p : edge->data.placements) {
             if (p->edge != edge) {
                 LOG_INFO << "Inconsistent pointer from placement to edge at edge num '"
-                         << edge->edge_num << "'.";
+                         << edge->data.edge_num << "'.";
                 return false;
             }
-            if (p->edge_num != edge->edge_num) {
+            if (p->edge_num != edge->data.edge_num) {
                 LOG_INFO << "Inconsistent edge_num between edge and placement: '"
-                         << edge->edge_num << " != " << p->edge_num << "'.";
+                         << edge->data.edge_num << " != " << p->edge_num << "'.";
                 return false;
             }
             ++edge_place_count;
@@ -776,25 +784,25 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
                 return false;
             }
             int found_placement_on_edge = 0;
-            for (const PqueryPlacement* pe : p->edge->placements) {
+            for (const PqueryPlacement* pe : p->edge->data.placements) {
                 if (pe == p.get()) {
                     ++found_placement_on_edge;
                 }
             }
-            if (p->edge->placements.size() > 0 && found_placement_on_edge == 0) {
+            if (p->edge->data.placements.size() > 0 && found_placement_on_edge == 0) {
                 LOG_INFO << "Inconsistency between placement and edge: edge num '"
-                         << p->edge->edge_num << "' does not contain pointer to a placement "
+                         << p->edge->data.edge_num << "' does not contain pointer to a placement "
                          << "that is referring to that edge at " << name << ".";
                 return false;
             }
             if (found_placement_on_edge > 1) {
-                LOG_INFO << "Edge num '" << p->edge->edge_num << "' contains a pointer to one "
+                LOG_INFO << "Edge num '" << p->edge->data.edge_num << "' contains a pointer to one "
                          << "of its placements more than once at " << name << ".";
                 return false;
             }
-            if (p->edge_num != p->edge->edge_num) {
+            if (p->edge_num != p->edge->data.edge_num) {
                 LOG_INFO << "Inconsistent edge_num between edge and placement: '"
-                         << p->edge->edge_num << " != " << p->edge_num
+                         << p->edge->data.edge_num << " != " << p->edge_num
                          << "' at " << name << ".";
                 return false;
             }
@@ -822,9 +830,9 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
                     return false;
                 }
             }
-            if (p->proximal_length > p->edge->branch_length) {
+            if (p->proximal_length > p->edge->data.branch_length) {
                 LOG_INFO << "Invalid placement with proximal_length '" << p->proximal_length
-                         << "' > branch_length '" << p->edge->branch_length << "' at "
+                         << "' > branch_length '" << p->edge->data.branch_length << "' at "
                          << name << ".";
                 if (break_on_values) {
                     return false;

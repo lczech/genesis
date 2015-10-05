@@ -21,11 +21,11 @@ namespace genesis {
 /**
  * @brief Adds a Tree to the TreeSet.
  */
-template <class TreeType>
-void TreeSet<TreeType>::add (const std::string& name, std::shared_ptr<TreeType> tree)
-{
-    trees_.push_back( { name, tree } );
-}
+// template <class TreeType>
+// void TreeSet<TreeType>::add (const std::string& name, std::shared_ptr<TreeType> tree)
+// {
+//     trees_.push_back( { name, tree } );
+// }
 
 /**
  * @brief Clears the TreeSet and destroys all contained Trees.
@@ -47,6 +47,8 @@ void TreeSet<TreeType>::clear ()
  *
  * Otherwise, the method will return an empty tree. It does not check for node names, but the
  * returned tree will contain the names of the first tree in the set.
+ *
+ * TODO this method assumes that the tree edge has a branch_length. not good.
  */
 template <class TreeType>
 TreeType TreeSet<TreeType>::average_branch_length_tree () const
@@ -62,7 +64,7 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
     }
 
     // Prepare storage for average branch lengths.
-    size_t num_edges = trees_.front().tree->edge_count();
+    size_t num_edges = trees_.front().tree.edge_count();
     auto avgs = std::vector<double>(num_edges, 0.0);
 
     // We traverse all trees (again, because all_identical_topology() already did this). This is
@@ -76,8 +78,8 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
 
         // Do a preorder traversal and collect branch lengths.
         for (
-            auto it = ct.tree->begin_preorder();
-            it != ct.tree->end_preorder();
+            auto it = ct.tree.begin_preorder();
+            it != ct.tree.end_preorder();
             ++it
         ) {
             // The first iteration points to an edge which will be covered later again.
@@ -86,21 +88,31 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
                 continue;
             }
 
-            avgs[idx] += it.edge()->branch_length;
+            avgs[idx] += it.edge()->data.branch_length;
             ++idx;
         }
     }
 
-    // Calcuate avergage branch lengths.
-    for (auto& bl : avgs) {
-        bl /= trees_.size();
-    }
-
     // We know that all trees have the same topology. So we take a copy of the first one (thus, also
     // copying its node names) and modify its branch lengths.
-    TreeType tree = TreeType(*trees_.front().tree);
-    for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it) {
-        (*it)->branch_length = avgs[(*it)->index()];
+    TreeType tree = TreeType(trees_.front().tree);
+
+    // Do the same kind of traversal as before in order to keep the indexing order (preorder) and
+    // set the branch lengths.
+    size_t idx = 0;
+    for (
+        auto it = tree.begin_preorder();
+        it != tree.end_preorder();
+        ++it
+    ) {
+        // The first iteration points to an edge which will be covered later again.
+        // Skip it to prevent double coverage.
+        if (it.is_first_iteration()) {
+            continue;
+        }
+
+        it.edge()->data.branch_length = avgs[idx] / trees_.size();
+        ++idx;
     }
 
     return tree;
@@ -124,7 +136,7 @@ bool TreeSet<TreeType>::all_equal(
     // If all pairs of two adjacent trees are equal, all of them are.
     // Thus, we do not need a complete pairwise comparision.
     for (size_t i = 1; i < trees_.size(); i++) {
-        if (!TreeType::equal(*trees_[i-1].tree, *trees_[i].tree, comparator)) {
+        if (!TreeType::equal(trees_[i-1].tree, trees_[i].tree, comparator)) {
             return false;
         }
     }
@@ -141,7 +153,7 @@ bool TreeSet<TreeType>::all_equal() const
     // If all pairs of two adjacent trees are equal, all of them are.
     // Thus, we do not need a complete pairwise comparision.
     for (size_t i = 1; i < trees_.size(); i++) {
-        if (!TreeType::equal(*trees_[i-1].tree, *trees_[i].tree)) {
+        if (!TreeType::equal(trees_[i-1].tree, trees_[i].tree)) {
             return false;
         }
     }
@@ -157,7 +169,7 @@ bool TreeSet<TreeType>::all_identical_topology() const
     // If all pairs of two adjacent trees have same the topology, all of them have.
     // Thus, we do not need a complete pairwise comparision.
     for (size_t i = 1; i < trees_.size(); i++) {
-        if (!TreeType::identical_topology(*trees_[i-1].tree, *trees_[i].tree)) {
+        if (!TreeType::identical_topology(trees_[i-1].tree, trees_[i].tree)) {
             return false;
         }
     }
@@ -171,18 +183,18 @@ bool TreeSet<TreeType>::all_identical_topology() const
 /**
  * @brief Get the first Tree in the set that is stored with a given name.
  */
-template <class TreeType>
-TreeType* TreeSet<TreeType>::get_first(const std::string& name) const
-{
-    auto ct = trees_.begin();
-    while (ct != trees_.end()) {
-        if (ct->name == name) {
-            return ct->tree.get();
-        }
-        ++ct;
-    }
-    return nullptr;
-}
+// template <class TreeType>
+// TreeType* TreeSet<TreeType>::get_first(const std::string& name) const
+// {
+//     auto ct = trees_.begin();
+//     while (ct != trees_.end()) {
+//         if (ct->name == name) {
+//             return ct->tree.get();
+//         }
+//         ++ct;
+//     }
+//     return nullptr;
+// }
 
 // =============================================================================
 //     Dump & Debug
@@ -199,7 +211,7 @@ std::string TreeSet<TreeType>::dump(bool full) const
     for (auto& ct : trees_) {
         res += ct.name + "\n";
         if (full) {
-            res += ct.tree->dump() + "\n";
+            res += ct.tree.dump() + "\n";
         }
     }
     return res;

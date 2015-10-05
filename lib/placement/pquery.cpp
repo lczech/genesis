@@ -24,9 +24,9 @@ PqueryPlacement* Pquery::add_placement(PlacementTree::EdgeType* edge)
     PqueryPlacement* place_ptr = place.get();
 
     // Add connection to the edge and vice versa.
-    place->edge_num = edge->edge_num;
+    place->edge_num = edge->data.edge_num;
     place->edge = edge;
-    place->edge->placements.push_back(place_ptr);
+    place->edge->data.placements.push_back(place_ptr);
 
     // Add the placement to the query and vice versa.
     place->pquery = this;

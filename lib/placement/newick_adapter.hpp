@@ -35,13 +35,13 @@ public:
             return false;
         }
 
-        edge.edge_num      = -1;
+        edge.data.edge_num      = -1;
         if (element->tags.size() != 1) {
             LOG_WARN << "Edge for element '" << element->name << "' does not contain the single "
                      << "tag value denoting the edge_num for placements.";
             return false;
         }
-        edge.edge_num = std::stoi(element->tags[0]);
+        edge.data.edge_num = std::stoi(element->tags[0]);
         return true;
     }
 
@@ -56,8 +56,8 @@ public:
     ) {
         DefaultTreeNewickAdapter<PlacementTree>::from_tree_edge(edge, element);
 
-        element->comments.push_back(std::to_string(edge.placement_count()));
-        element->tags.push_back(std::to_string(edge.edge_num));
+        element->comments.push_back(std::to_string(edge.data.placement_count()));
+        element->tags.push_back(std::to_string(edge.data.edge_num));
     }
 
     inline void from_tree_node (

@@ -50,7 +50,7 @@ void BoostPythonExport_Tree (std::string name)
     //     Class Tree
     // -------------------------------------------------------------------
 
-    boost::python::class_< TreeType > ( name.c_str(), boost::python::init<  >(  ) )
+    boost::python::class_< TreeType, std::shared_ptr<TreeType> > ( name.c_str(), boost::python::init<  >(  ) )
         .def( boost::python::init< const TreeType & >(( boost::python::arg("other") )) )
 
         // Public Member Functions

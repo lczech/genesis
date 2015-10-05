@@ -34,7 +34,7 @@ class  TreeNode;
 // =============================================================================
 
 template <class NodeDataType, class EdgeDataType>
-class TreeEdge : public EdgeDataType
+class TreeEdge
 {
     friend class Tree<NodeDataType, EdgeDataType>;
 
@@ -96,7 +96,7 @@ public:
     //     Member Variables
     // ---------------------------------------------------------------------
 
-    //~ EdgeDataType data;
+    EdgeDataType data;
 
 // TODO !!! make protected again, and use some other mechanism for setting the members !!!
 //~ protected:

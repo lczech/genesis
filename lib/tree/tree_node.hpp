@@ -34,7 +34,7 @@ class TreeNodeIteratorLinks;
 // =============================================================================
 
 template <class NodeDataType, class EdgeDataType>
-class TreeNode : public NodeDataType
+class TreeNode
 {
     friend Tree<NodeDataType, EdgeDataType>;
 
@@ -133,7 +133,7 @@ public:
     //     Member Variables
     // -----------------------------------------------------
 
-    //~ NodeDataType data;
+    NodeDataType data;
 
 // TODO !!! make protected again, and use some other mechanism for setting the members !!!
 //~ protected:

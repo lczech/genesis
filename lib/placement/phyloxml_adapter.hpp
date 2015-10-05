@@ -40,9 +40,9 @@ public:
         // set_branch_length(clade, it.edge()->branch_length);
 
         Color edge_color (128,128,128);
-        if (max_placements_per_edge > 0 && it.edge()->placements.size() > 0) {
+        if (max_placements_per_edge > 0 && it.edge()->data.placements.size() > 0) {
             edge_color = Color::heat_gradient(
-                log(it.edge()->placements.size()) / log(max_placements_per_edge)
+                log(it.edge()->data.placements.size()) / log(max_placements_per_edge)
             );
         }
 

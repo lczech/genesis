@@ -19,7 +19,7 @@ PYTHON_EXPORT_CLASS (PlacementMapSet, "placement")
 
         .def(
             "add",
-            ( void ( ::genesis::PlacementMapSet::* )( const std::string &, PlacementMap * ))( &::genesis::PlacementMapSet::add ),
+            ( void ( ::genesis::PlacementMapSet::* )( const std::string &, PlacementMap& ))( &::genesis::PlacementMapSet::add ),
             ( boost::python::arg("name"), boost::python::arg("map") )
         )
         // .def(
@@ -44,11 +44,11 @@ PYTHON_EXPORT_CLASS (PlacementMapSet, "placement")
             ( bool ( ::genesis::PlacementMapSet::* )(  ) const )( &::genesis::PlacementMapSet::empty ),
             get_docstring("bool ::genesis::PlacementMapSet::empty () const")
         )
-        .def(
-            "get_first",
-            ( std::shared_ptr< PlacementMap > ( ::genesis::PlacementMapSet::* )( const std::string & ))( &::genesis::PlacementMapSet::get_first ),
-            ( boost::python::arg("name") )
-        )
+        // .def(
+        //     "get_first",
+        //     ( std::shared_ptr< PlacementMap > ( ::genesis::PlacementMapSet::* )( const std::string & ))( &::genesis::PlacementMapSet::get_first ),
+        //     ( boost::python::arg("name") )
+        // )
         .def(
             "merge_all",
             ( PlacementMap ( ::genesis::PlacementMapSet::* )(  ))( &::genesis::PlacementMapSet::merge_all ),
