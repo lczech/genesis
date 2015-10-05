@@ -18,10 +18,27 @@ namespace genesis {
  *
  * The values of the placement can than be adjusted using the returned pointer.
  */
-PqueryPlacement* Pquery::add_placement(PlacementTree::EdgeType* edge)
+PqueryPlacement* Pquery::emplace_placement(PlacementTree::EdgeType* edge)
 {
-    auto place = make_unique<PqueryPlacement>();
+    // This is not totally efficient, as we create an empty Placement twice, but for now
+    // it is sufficient.
+    return insert_placement(PqueryPlacement(), edge);
+}
+
+/**
+ * @brief Creates a PqueryPlacement by copying from another one.
+ *
+ * If edge is given, the new Placement is attached to it. If not, the edge of the given Placement
+ * is used instead. For this it is important that the given Placement belongs to the same Tree!
+ */
+PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementTree::EdgeType* edge)
+{
+    auto place = make_unique<PqueryPlacement>(val);
     PqueryPlacement* place_ptr = place.get();
+
+    if (!edge) {
+        edge = val.edge;
+    }
 
     // Add connection to the edge and vice versa.
     place->edge_num = edge->data.edge_num;

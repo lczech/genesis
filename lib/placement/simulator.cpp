@@ -38,7 +38,7 @@ void PlacementSimulatorTwostep::generate (size_t n)
         auto   edge     = placements_.tree().edge_at(edge_idx);
 
         // Add a placement at the edge.
-        PqueryPlacement* place = pqry->add_placement(edge);
+        PqueryPlacement* place = pqry->emplace_placement(edge);
         place->proximal_length = proximal_length_distribution_.generate(edge);
         place->pendant_length  = pendant_length_distribution_.generate(edge);
     }

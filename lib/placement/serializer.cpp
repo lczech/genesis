@@ -133,7 +133,7 @@ bool PlacementMapSerializer::load (const std::string& file_name, PlacementMap& m
             // Get edge index, add the placement there.
             size_t edge_idx = des.get_int<size_t>();
             auto   edge     = map.tree().edge_at(edge_idx);
-            auto   place    = pqry->add_placement(edge);
+            auto   place    = pqry->emplace_placement(edge);
 
             place->likelihood        = des.get_float<double>();
             place->like_weight_ratio = des.get_float<double>();

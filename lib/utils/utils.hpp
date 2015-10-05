@@ -88,6 +88,30 @@ std::unique_ptr<T> make_unique(Args&&... args)
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
 
+
+/**
+ * @brief Erases all elements from the container that satisfy a given predicate.
+ * An element is erased, if the predicate evaluates to true for it.
+ * The predicate needs to have a signature similar to (T const&)->bool.
+ *
+ * @param c The container to modify.
+ * @param p The predicate to satisfy.
+*/
+template< class Container, class UnaryPredicate >
+inline void erase_if( Container &c, UnaryPredicate p )
+{
+	using std::begin;
+	using std::end;
+	using std::remove_if;
+
+	auto old_end = end( c );
+	auto new_end = remove_if( begin( c ), old_end, p );
+
+	if ( new_end != old_end ) {
+		c.erase( new_end, old_end );
+	}
+}
+
 // ---------------------------------------------------------
 //     Date and Time
 // ---------------------------------------------------------

@@ -78,6 +78,10 @@ public:
      */
     ~PqueryPlacement()
     {
+        if (!edge) {
+            return;
+        }
+
         // Find the pointer on the edge that belongs to this placement.
         auto it = edge->data.placements.begin();
         for (; it != edge->data.placements.end(); ++it) {
@@ -167,7 +171,12 @@ public:
     //     Placements
     // -------------------------------------------------------------------
 
-    PqueryPlacement* add_placement(PlacementTree::EdgeType* edge);
+    PqueryPlacement* emplace_placement(PlacementTree::EdgeType* edge);
+    
+    PqueryPlacement* insert_placement(
+        const PqueryPlacement& val,
+        PlacementTree::EdgeType* edge = nullptr
+    );
 
     inline size_t placement_size() const
     {
