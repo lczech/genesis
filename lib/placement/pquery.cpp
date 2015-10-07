@@ -20,8 +20,8 @@ namespace genesis {
  */
 PqueryPlacement* Pquery::emplace_placement(PlacementTree::EdgeType* edge)
 {
-    // This is not totally efficient, as we create an empty Placement twice, but for now
-    // it is sufficient.
+    // This is not totally efficient, as we create an empty Placement and then copy-construct it
+    // again, but for now this should be sufficient...
     return insert_placement(PqueryPlacement(), edge);
 }
 
