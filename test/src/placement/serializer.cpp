@@ -24,8 +24,8 @@ TEST(PlacementMapSerializer, SaveAndLoad)
     NEEDS_TEST_DATA
 
     // In and out files.
-    std::string infile  = environment->data_dir + "test_a.jplace";
-    std::string tmpfile = environment->data_dir + "test_a.bplace";
+    std::string infile  = environment->data_dir + "placement/test_a.jplace";
+    std::string tmpfile = environment->data_dir + "placement/test_a.bplace";
 
     // Prepare a PlacementMap with data.
     PlacementMap map_save;

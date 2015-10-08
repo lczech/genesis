@@ -144,6 +144,4 @@ public:
 
 } // namespace genesis
 
-#include "placement/functions.hpp"
-
 #endif // include guard

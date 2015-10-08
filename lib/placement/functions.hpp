@@ -19,8 +19,13 @@ namespace genesis {
 /**
  * @brief Looks for Pqueries with the same name and merges them.
  */
-// TODO this function might better be called something like merge_same_name_pqueries or so.
 void merge_duplicates (PlacementMap& map);
+
+void merge_duplicate_placements (Pquery& pquery);
+void merge_duplicate_placements (PlacementMap& map);
+
+void merge_duplicate_names (Pquery& pquery);
+void merge_duplicate_names (PlacementMap& map);
 
 } // namespace genesis
 

@@ -9,8 +9,9 @@
 
 #include <memory>
 
-#include "lib/placement/newick_adapter.hpp"
+#include "lib/placement/functions.hpp"
 #include "lib/placement/jplace_processor.hpp"
+#include "lib/placement/newick_adapter.hpp"
 #include "lib/placement/placement_map.hpp"
 #include "lib/tree/newick_processor.hpp"
 
@@ -28,24 +29,48 @@ TEST(PlacementMap, WithTree)
     EXPECT_TRUE (map.validate(true, false));
 }
 
-TEST(PlacementMap, MergeDuplicates)
+TEST(PlacementMap, MergeDuplicatesSimple)
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA
 
-    std::string infile = environment->data_dir + "duplicates.jplace";
-
+    // Read file.
+    std::string infile = environment->data_dir + "placement/duplicates_a.jplace";
     PlacementMap map;
     EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
+
+    // Check before.
 	EXPECT_EQ   (7, map.pquery_size());
 	EXPECT_EQ   (8, map.placement_count());
     EXPECT_TRUE (map.validate(true, false));
 
-    LOG_DBG << map.dump();
-
     merge_duplicates(map);
+
+    // Check after.
     EXPECT_EQ   (3, map.pquery_size());
 	EXPECT_EQ   (8, map.placement_count());
+    EXPECT_TRUE (map.validate(true, false));
+}
 
-    LOG_DBG << map.dump();
+TEST(PlacementMap, MergeDuplicatesTransitive)
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA
+
+    // Read file.
+    std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
+    PlacementMap map;
+    EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
+
+    // Check before.
+	EXPECT_EQ   (7, map.pquery_size());
+	EXPECT_EQ   (7, map.placement_count());
+    EXPECT_TRUE (map.validate(true, false));
+
+    merge_duplicates(map);
+
+    // Check after.
+    EXPECT_EQ   (1, map.pquery_size());
+	EXPECT_EQ   (7, map.placement_count());
+    EXPECT_TRUE (map.validate(true, false));
 }
