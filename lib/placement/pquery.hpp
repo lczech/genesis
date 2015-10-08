@@ -137,8 +137,17 @@ public:
 class PqueryName
 {
 public:
+// protected:
 
-    PqueryName(std::string name = "") : name(name), multiplicity(0.0), pquery(nullptr)
+    friend Pquery;
+
+    /**
+     * @brief Default constructor.
+     */
+    PqueryName(std::string name = "", double multiplicity = 0.0) :
+        name(name),
+        multiplicity(multiplicity),
+        pquery(nullptr)
     {}
 
     /**
@@ -149,6 +158,8 @@ public:
         multiplicity(other.multiplicity),
         pquery(nullptr)
     {}
+
+// public:
 
     std::string name;
     double      multiplicity;
@@ -172,7 +183,7 @@ public:
     // -------------------------------------------------------------------
 
     PqueryPlacement* emplace_placement(PlacementTree::EdgeType* edge);
-    
+
     PqueryPlacement* insert_placement(
         const PqueryPlacement& val,
         PlacementTree::EdgeType* edge = nullptr
@@ -183,7 +194,7 @@ public:
         return placements.size();
     }
 
-    inline PqueryPlacement const & get_placement (const size_t index) const
+    inline PqueryPlacement const & placement_at (const size_t index) const
     {
         return *placements[index];
     }
@@ -192,14 +203,16 @@ public:
     //     Names
     // -------------------------------------------------------------------
 
-    PqueryName*      add_name(std::string name = "");
+    PqueryName* emplace_name(std::string name = "", double multiplicity = 0.0);
+
+    PqueryName* insert_name(const PqueryName& other);
 
     inline size_t name_size() const
     {
         return names.size();
     }
 
-    inline PqueryName const & get_name (const size_t index) const
+    inline PqueryName const & name_at (const size_t index) const
     {
         return *names[index];
     }

@@ -145,7 +145,7 @@ bool PlacementMapSerializer::load (const std::string& file_name, PlacementMap& m
         // Read names.
         size_t num_names = des.get_int<size_t>();
         for (size_t n = 0; n < num_names; ++n) {
-            auto name = pqry->add_name(des.get_string());
+            auto name = pqry->emplace_name(des.get_string());
             name->multiplicity = des.get_float<double>();
         }
     }

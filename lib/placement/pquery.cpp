@@ -55,9 +55,18 @@ PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementT
 /**
  * @brief Creates a new PqueryName, adds it to the Pquery and returns a pointer to it.
  */
-PqueryName* Pquery::add_name(std::string name)
+PqueryName* Pquery::emplace_name(std::string name, double multiplicity)
 {
-    auto pname = make_unique<PqueryName>(name);
+    return insert_name(PqueryName(name, multiplicity));
+}
+
+/**
+ * @brief
+ */
+PqueryName* Pquery::insert_name(const PqueryName& other)
+{
+    // Create new name via copy constructor, get pointer to it.
+    auto pname = make_unique<PqueryName>(other);
     PqueryName* name_ptr = pname.get();
 
     // Add the name to the query and vice versa.

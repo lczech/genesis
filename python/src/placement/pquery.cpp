@@ -93,14 +93,14 @@ PYTHON_EXPORT_CLASS (Pquery, "placement")
         //     get_docstring("PqueryPlacement * ::genesis::Pquery::add_placement (PlacementTree::EdgeType * edge)")
         // )
         .def(
-            "get_name",
-            ( PqueryName const & ( ::genesis::Pquery::* )( const size_t ) const )( &::genesis::Pquery::get_name ),
+            "name_at",
+            ( PqueryName const & ( ::genesis::Pquery::* )( const size_t ) const )( &::genesis::Pquery::name_at ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             ( boost::python::arg("index") )
         )
         .def(
-            "get_placement",
-            ( PqueryPlacement const & ( ::genesis::Pquery::* )( const size_t ) const )( &::genesis::Pquery::get_placement ),
+            "placement_at",
+            ( PqueryPlacement const & ( ::genesis::Pquery::* )( const size_t ) const )( &::genesis::Pquery::placement_at ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             ( boost::python::arg("index") )
         )

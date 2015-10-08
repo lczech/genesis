@@ -67,10 +67,25 @@ TEST(PlacementMap, MergeDuplicatesTransitive)
 	EXPECT_EQ   (7, map.placement_count());
     EXPECT_TRUE (map.validate(true, false));
 
+    // Check number of names.
+    size_t name_count = 0;
+    for (auto& pqry : map.pqueries()) {
+        name_count += pqry->name_size();
+    }
+    EXPECT_EQ(11, name_count);
+
+    // Run the function of interest!
     merge_duplicates(map);
 
     // Check after.
     EXPECT_EQ   (1, map.pquery_size());
 	EXPECT_EQ   (7, map.placement_count());
     EXPECT_TRUE (map.validate(true, false));
+
+    // Check number of names.
+    name_count = 0;
+    for (auto& pqry : map.pqueries()) {
+        name_count += pqry->name_size();
+    }
+    EXPECT_EQ(4, name_count);
 }
