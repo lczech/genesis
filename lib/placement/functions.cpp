@@ -5,6 +5,8 @@
  * @ingroup placement
  */
 
+#include <algorithm>
+#include <assert.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -22,49 +24,81 @@ namespace genesis {
 
 void merge_duplicates (PlacementMap& map)
 {
-    // A hash map that contains the already processed names and links them to their pquery.
-    // Whenever the same name is found again, the associated placements will be copied to the stored
-    // Pquery and the then surplus Pquery will be deleted.
-    std::unordered_map<std::string, Pquery*> hash;
+    // Iterate as long as needed to merge all transitive connections between Pqueries that share
+    // names. We need as many iterations as the longest chain of connected Pqueries.
+    bool need_iteration = true;
+    while (need_iteration) {
+        need_iteration = false;
 
-    // This is a list of the Pqueries that we want to delete, because their placements have been
-    // moved to other Pqueries (those, which contain the same name). We need this list as deleting
-    // from a list while iterating it is not a good idea.
-    std::unordered_set<Pquery*>              del;
+        // A hash map that contains the already processed names and links them to their pquery.
+        // Whenever the same name is found again, the associated placements will be copied to the
+        // stored Pquery and the then surplus Pquery will be deleted.
+        std::unordered_map<std::string, Pquery*> hash;
 
-    // Check for all pqueries...
-    for (auto& it : map.pqueries()) {
-        // ... if one of their names...
-        for (size_t name_idx = 0; name_idx < it->name_size() ; ++name_idx) {
-            auto name = it->get_name(name_idx).name;
+        // This is a list of the Pqueries that we want to delete, because their placements have been
+        // moved to other Pqueries (those, which contain the same name). We need this list as deleting
+        // from a list while iterating it is not a good idea.
+        std::unordered_set<Pquery*> del;
 
-            // ... is also the name of another pquery.
-            if (hash.count(name) == 0) {
-                // If not (first time that we see a name), store it in the hash map for later.
-                hash[name] = &*it;
-            } else {
-                // If so, move the placements and mark the pquery for deletion.
-
-                // Skip if the element in the hash map is this pquery. This can only happen (as far
-                // as I am aware) if a pquery contains the same name more than once. Still, safty
-                // first!
-                if (hash[name] == &*it) {
-                    continue;
+        for (auto& it : map.pqueries()) {
+            // Collect the Pqueries that can be merged with the current one, because they share
+            // a common name.
+            std::unordered_set<Pquery*> merges;
+            for (size_t name_idx = 0; name_idx < it->name_size() ; ++name_idx) {
+                auto name = it->get_name(name_idx).name;
+                if (hash.count(name) > 0) {
+                    merges.insert(hash[name]);
                 }
+            }
+
+            if (merges.size() == 0) {
+                // All names are new, so store them in the hash map for later.
+                // We don't need to do any merging in this case.
+                for (size_t name_idx = 0; name_idx < it->name_size() ; ++name_idx) {
+                    auto name = it->get_name(name_idx).name;
+                    assert(hash.count(name) == 0);
+                    hash[name] = &*it;
+                }
+            } else {
+                // We need to merge with exaclty on Pquery. No transitive connections.
+                // Do the merging and mark the Pquery for deletion.
+
+                // Get the Pquery that we will merge into.
+                Pquery* merge_into = *merges.begin();
 
                 for (auto& place : it->placements) {
-                    hash[name]->insert_placement(*place);
+                    merge_into->insert_placement(*place);
+                }
+
+                for (auto& name : it->names) {
+                    auto name_it = std::find_if(
+                        merge_into->names.begin(),
+                        merge_into->names.end(),
+                        [&name] (std::unique_ptr<PqueryName>& merge_name) {
+                            return merge_name->name == name->name;
+                        }
+                    );
+
+                    if (name_it == merge_into->names.end()) {
+                        merge_into->add_name(name->name)->multiplicity = name->multiplicity;
+                    } else {
+                        (*name_it)->multiplicity += name->multiplicity;
+                    }
                 }
 
                 del.insert(&*it);
+
+                if (merges.size() > 1) {
+                    need_iteration = true;
+                }
             }
         }
-    }
 
-    // Delete all Pqueries that were merged to others.
-    erase_if(map.pqueries(), [del] (std::unique_ptr<Pquery>& pqry) {
-        return del.count(pqry.get()) > 0;
-    });
+        // Delete all Pqueries that were merged to others during this iteration.
+        erase_if(map.pqueries(), [del] (std::unique_ptr<Pquery>& pqry) {
+            return del.count(pqry.get()) > 0;
+        });
+    }
 }
 
 } // namespace genesis
