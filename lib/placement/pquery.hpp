@@ -34,7 +34,12 @@ class PqueryPlacement
 {
 public:
 
+    // -------------------------------------------------------------------
+    //     Construction and Destruction
+    // -------------------------------------------------------------------
+
     // TODO introduce rule of five, make awesome c++ 11 stuff!
+    // TODO make construction private and Pquery a friend who is the only one to construct a Placement.
 
     PqueryPlacement (
         // const Pquery* pquery, const PlacementTree::EdgeType* edge
@@ -98,13 +103,9 @@ public:
         edge->data.placements.erase(it);
     }
 
-    // const int edge_num;
-    int       edge_num;
-    double    likelihood;
-    double    like_weight_ratio;
-    double    proximal_length;
-    double    pendant_length;
-    int       parsimony;
+    // -------------------------------------------------------------------
+    //     Accessors
+    // -------------------------------------------------------------------
 
     // TODO fix the get_ part in here!!! make members protected, refactor all occurences
 
@@ -117,6 +118,18 @@ public:
     {
         return *edge;
     }
+
+    // -------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------
+
+    // const int edge_num;
+    int       edge_num;
+    double    likelihood;
+    double    like_weight_ratio;
+    double    proximal_length;
+    double    pendant_length;
+    int       parsimony;
 
 // protected:
 

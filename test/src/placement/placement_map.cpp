@@ -29,6 +29,28 @@ TEST(PlacementMap, WithTree)
     EXPECT_TRUE (map.validate(true, false));
 }
 
+// =================================================================================================
+//     Merging Duplicates
+// =================================================================================================
+
+void test_placement_map_stats (
+    const PlacementMap& map,
+    const size_t expected_pquery_size,
+    const size_t expected_placement_size,
+    const size_t expected_name_size
+) {
+    EXPECT_TRUE (map.validate(true, false));
+
+	EXPECT_EQ (expected_pquery_size,    map.pquery_size());
+	EXPECT_EQ (expected_placement_size, map.placement_count());
+
+    size_t name_count = 0;
+    for (auto& pqry : map.pqueries()) {
+        name_count += pqry->name_size();
+    }
+    EXPECT_EQ (expected_name_size, name_count);
+}
+
 TEST(PlacementMap, MergeDuplicatesSimple)
 {
     // Skip test if no data availabe.
@@ -39,17 +61,14 @@ TEST(PlacementMap, MergeDuplicatesSimple)
     PlacementMap map;
     EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
 
-    // Check before.
-	EXPECT_EQ   (7, map.pquery_size());
-	EXPECT_EQ   (8, map.placement_count());
-    EXPECT_TRUE (map.validate(true, false));
+    // Check before merging.
+    test_placement_map_stats(map, 7, 8, 7);
 
+    // Run the function of interest!
     merge_duplicates(map);
 
-    // Check after.
-    EXPECT_EQ   (3, map.pquery_size());
-	EXPECT_EQ   (8, map.placement_count());
-    EXPECT_TRUE (map.validate(true, false));
+    // Check after merging.
+    test_placement_map_stats(map, 3, 7, 3);
 }
 
 TEST(PlacementMap, MergeDuplicatesTransitive)
@@ -62,30 +81,12 @@ TEST(PlacementMap, MergeDuplicatesTransitive)
     PlacementMap map;
     EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
 
-    // Check before.
-	EXPECT_EQ   (7, map.pquery_size());
-	EXPECT_EQ   (7, map.placement_count());
-    EXPECT_TRUE (map.validate(true, false));
-
-    // Check number of names.
-    size_t name_count = 0;
-    for (auto& pqry : map.pqueries()) {
-        name_count += pqry->name_size();
-    }
-    EXPECT_EQ(11, name_count);
+    // Check before merging.
+    test_placement_map_stats(map, 7, 10, 11);
 
     // Run the function of interest!
     merge_duplicates(map);
 
-    // Check after.
-    EXPECT_EQ   (1, map.pquery_size());
-	EXPECT_EQ   (7, map.placement_count());
-    EXPECT_TRUE (map.validate(true, false));
-
-    // Check number of names.
-    name_count = 0;
-    for (auto& pqry : map.pqueries()) {
-        name_count += pqry->name_size();
-    }
-    EXPECT_EQ(4, name_count);
+    // Check after merging.
+    test_placement_map_stats(map, 1, 4, 4);
 }
