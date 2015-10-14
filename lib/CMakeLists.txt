@@ -24,8 +24,9 @@ set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #   Sources
 # ------------------------------------------------------------------------------
 
-file (GLOB genesis_lib_sources ${PROJECT_SOURCE_DIR}/lib/*/*.cpp)
-file (GLOB genesis_lib_headers ${PROJECT_SOURCE_DIR}/lib/*/*.hpp lib/*/*.tpp)
+file (GLOB_RECURSE genesis_lib_sources   ${PROJECT_SOURCE_DIR}/lib/*.cpp)
+# file (GLOB_RECURSE genesis_lib_headers   ${PROJECT_SOURCE_DIR}/lib/*.hpp)
+# file (GLOB_RECURSE genesis_lib_templates ${PROJECT_SOURCE_DIR}/lib/*.tpp)
 
 include_directories (${PROJECT_SOURCE_DIR}/lib)
 
