@@ -19,7 +19,7 @@ TEST(JplaceProcessor, FromFile)
     // Skip test if no data availabe.
     NEEDS_TEST_DATA
 
-    std::string infile = environment->data_dir + "test_a.jplace";
+    std::string infile = environment->data_dir + "placement/test_a.jplace";
 
     PlacementMap map;
     EXPECT_TRUE (JplaceProcessor().from_file(infile, map));

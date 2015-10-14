@@ -8,6 +8,7 @@
  * @ingroup placement
  */
 
+#include <assert.h>
 #include <memory>
 #include <string>
 #include <vector>
@@ -33,7 +34,12 @@ class PqueryPlacement
 {
 public:
 
+    // -------------------------------------------------------------------
+    //     Construction and Destruction
+    // -------------------------------------------------------------------
+
     // TODO introduce rule of five, make awesome c++ 11 stuff!
+    // TODO make construction private and Pquery a friend who is the only one to construct a Placement.
 
     PqueryPlacement (
         // const Pquery* pquery, const PlacementTree::EdgeType* edge
@@ -72,13 +78,34 @@ public:
         edge(nullptr)
     {}
 
-    // const int edge_num;
-    int       edge_num;
-    double    likelihood;
-    double    like_weight_ratio;
-    double    proximal_length;
-    double    pendant_length;
-    int       parsimony;
+    /**
+     * @brief Destructor. Removes the Placement also from its Edge.
+     */
+    ~PqueryPlacement()
+    {
+        if (!edge) {
+            return;
+        }
+
+        // Find the pointer on the edge that belongs to this placement.
+        auto it = edge->data.placements.begin();
+        for (; it != edge->data.placements.end(); ++it) {
+            if (*it == this) {
+                break;
+            }
+        }
+
+        // Assert that the edge actually contains a reference to this pquery. If not,
+        // this means that we messed up somewhere else while adding/removing placements...
+        assert(it != edge->data.placements.end());
+
+        // Delete the reference from the edge to the current placement.
+        edge->data.placements.erase(it);
+    }
+
+    // -------------------------------------------------------------------
+    //     Accessors
+    // -------------------------------------------------------------------
 
     // TODO fix the get_ part in here!!! make members protected, refactor all occurences
 
@@ -91,6 +118,18 @@ public:
     {
         return *edge;
     }
+
+    // -------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------
+
+    // const int edge_num;
+    int       edge_num;
+    double    likelihood;
+    double    like_weight_ratio;
+    double    proximal_length;
+    double    pendant_length;
+    int       parsimony;
 
 // protected:
 
@@ -111,8 +150,17 @@ public:
 class PqueryName
 {
 public:
+// protected:
 
-    PqueryName(std::string name = "") : name(name), multiplicity(0.0), pquery(nullptr)
+    friend Pquery;
+
+    /**
+     * @brief Default constructor.
+     */
+    PqueryName(std::string name = "", double multiplicity = 0.0) :
+        name(name),
+        multiplicity(multiplicity),
+        pquery(nullptr)
     {}
 
     /**
@@ -123,6 +171,8 @@ public:
         multiplicity(other.multiplicity),
         pquery(nullptr)
     {}
+
+// public:
 
     std::string name;
     double      multiplicity;
@@ -145,14 +195,19 @@ public:
     //     Placements
     // -------------------------------------------------------------------
 
-    PqueryPlacement* add_placement(PlacementTree::EdgeType* edge);
+    PqueryPlacement* emplace_placement(PlacementTree::EdgeType* edge);
+
+    PqueryPlacement* insert_placement(
+        const PqueryPlacement& val,
+        PlacementTree::EdgeType* edge = nullptr
+    );
 
     inline size_t placement_size() const
     {
         return placements.size();
     }
 
-    inline PqueryPlacement const & get_placement (const size_t index) const
+    inline PqueryPlacement const & placement_at (const size_t index) const
     {
         return *placements[index];
     }
@@ -161,14 +216,16 @@ public:
     //     Names
     // -------------------------------------------------------------------
 
-    PqueryName*      add_name(std::string name = "");
+    PqueryName* emplace_name(std::string name = "", double multiplicity = 0.0);
+
+    PqueryName* insert_name(const PqueryName& other);
 
     inline size_t name_size() const
     {
         return names.size();
     }
 
-    inline PqueryName const & get_name (const size_t index) const
+    inline PqueryName const & name_at (const size_t index) const
     {
         return *names[index];
     }

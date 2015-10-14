@@ -18,10 +18,27 @@ namespace genesis {
  *
  * The values of the placement can than be adjusted using the returned pointer.
  */
-PqueryPlacement* Pquery::add_placement(PlacementTree::EdgeType* edge)
+PqueryPlacement* Pquery::emplace_placement(PlacementTree::EdgeType* edge)
 {
-    auto place = make_unique<PqueryPlacement>();
+    // This is not totally efficient, as we create an empty Placement and then copy-construct it
+    // again, but for now this should be sufficient...
+    return insert_placement(PqueryPlacement(), edge);
+}
+
+/**
+ * @brief Creates a PqueryPlacement by copying from another one.
+ *
+ * If edge is given, the new Placement is attached to it. If not, the edge of the given Placement
+ * is used instead. For this it is important that the given Placement belongs to the same Tree!
+ */
+PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementTree::EdgeType* edge)
+{
+    auto place = make_unique<PqueryPlacement>(val);
     PqueryPlacement* place_ptr = place.get();
+
+    if (!edge) {
+        edge = val.edge;
+    }
 
     // Add connection to the edge and vice versa.
     place->edge_num = edge->data.edge_num;
@@ -38,9 +55,18 @@ PqueryPlacement* Pquery::add_placement(PlacementTree::EdgeType* edge)
 /**
  * @brief Creates a new PqueryName, adds it to the Pquery and returns a pointer to it.
  */
-PqueryName* Pquery::add_name(std::string name)
+PqueryName* Pquery::emplace_name(std::string name, double multiplicity)
 {
-    auto pname = make_unique<PqueryName>(name);
+    return insert_name(PqueryName(name, multiplicity));
+}
+
+/**
+ * @brief
+ */
+PqueryName* Pquery::insert_name(const PqueryName& other)
+{
+    // Create new name via copy constructor, get pointer to it.
+    auto pname = make_unique<PqueryName>(other);
     PqueryName* name_ptr = pname.get();
 
     // Add the name to the query and vice versa.

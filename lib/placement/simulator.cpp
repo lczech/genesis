@@ -31,14 +31,14 @@ void PlacementSimulatorTwostep::generate (size_t n)
     for (size_t i = 0; i < n; ++i) {
         // Generate one Pquery.
         Pquery* pqry = placements_.add_pquery();
-        pqry->add_name("pquery_" + std::to_string(i));
+        pqry->emplace_name("pquery_" + std::to_string(i));
 
         // Get a random edge.
         size_t edge_idx = edge_distribution_.generate();
         auto   edge     = placements_.tree().edge_at(edge_idx);
 
         // Add a placement at the edge.
-        PqueryPlacement* place = pqry->add_placement(edge);
+        PqueryPlacement* place = pqry->emplace_placement(edge);
         place->proximal_length = proximal_length_distribution_.generate(edge);
         place->pendant_length  = pendant_length_distribution_.generate(edge);
     }
