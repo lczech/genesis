@@ -13,6 +13,20 @@
 namespace genesis {
 
 // =================================================================================================
+//     Normalization and Sorting
+// =================================================================================================
+
+void normalize_weight_ratios(PlacementMap& map);
+
+void restrain_to_max_weight_placements(PlacementMap& map);
+
+void sort_placements_by_branch_position(PlacementTreeEdge& edge);
+void sort_placements_by_branch_position(PlacementMap& map);
+
+void sort_placements_by_weight_ratio(Pquery& pquery);
+void sort_placements_by_weight_ratio(PlacementMap& map);
+
+// =================================================================================================
 //     Merging Duplicates
 // =================================================================================================
 
