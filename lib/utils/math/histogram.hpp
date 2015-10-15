@@ -19,15 +19,24 @@ namespace genesis {
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Histogram class for accumulating and summarizing data.
  *
- * from https://www.gnu.org/software/gsl/manual/html_node/Histograms.html
+ * Many details of the implementation are taken from the GNU Scientific Library:
+ * https://www.gnu.org/software/gsl/manual/html_node/Histograms.html
+ * See there for some more information.
+ *
+ * The structure of the kept data is as follows:
  *
  *        [ bin[0] )[ bin[1] )[ bin[2] )[ bin[3] )[ bin[4] )
  *     ---|---------|---------|---------|---------|---------|---  x
  *      r[0]      r[1]      r[2]      r[3]      r[4]      r[5]
  *
- * TODO explain why std::nextafter(max, max + 1); might be important
+ * The number of bins needs to be determined at construction. The number of ranges is always one
+ * more than the number of bins.
+ *
+ * If one of the constructors with value vectors but without min/max values is used, the max value
+ * will be determined using `std::nextafter(max, max + 1)` on the max element of the value list.
+ * This is because we want this element to just fit into the range.
  */
 class Histogram
 {
@@ -62,11 +71,49 @@ public:
 
 public:
 
-    Histogram(const size_t num_bins);
+    // TODO Maybe a builder pattern would be neat here!
 
-    Histogram(const size_t num_bins, const double range_min, const double range_max);
+    Histogram(
+        const size_t num_bins
+    );
 
-    Histogram(const std::vector<double>& ranges);
+    Histogram(
+        const size_t num_bins,
+        const double range_min,
+        const double range_max
+    );
+
+    Histogram(
+        const size_t num_bins,
+        const std::vector<double>& values,
+        const double weight = 1.0
+    );
+
+    Histogram(
+        const size_t num_bins,
+        const std::vector<std::pair<double,double>>& weighted_values
+    );
+
+    Histogram(
+        const size_t num_bins,
+        const double range_min,
+        const double range_max,
+        const std::vector<double>& values,
+        const double weight = 1.0
+    );
+
+    Histogram(
+        const size_t num_bins,
+        const double range_min,
+        const double range_max,
+        const std::vector<std::pair<double,double>>& weighted_values
+    );
+
+    Histogram(
+        const std::vector<double>& ranges
+    );
+
+    void set_ranges(const std::vector<double>& ranges);
 
     void set_uniform_ranges(const double min, const double max);
 

@@ -18,25 +18,25 @@
 namespace genesis {
 
 // =================================================================================================
-//     Constructor and Destructor
+//     Constructors
 // =================================================================================================
 
-/**
- * @brief Constructor.
- */
-Histogram::Histogram(const size_t num_bins) :
+Histogram::Histogram(
+    const size_t num_bins
+) :
     Histogram(num_bins, 0.0, 1.0)
 {
     // Nothing to do here.
 }
 
-/**
- * @brief Constructor.
- */
-Histogram::Histogram(const size_t num_bins, const double range_min, const double range_max) :
+Histogram::Histogram(
+    const size_t num_bins,
+    const double range_min,
+    const double range_max
+) :
     bins_                  (num_bins),
     ranges_                (num_bins + 1),
-    out_of_range_behaviour (OutOfRangeBehaviour::kSqueeze)
+    out_of_range_behaviour (OutOfRangeBehaviour::kIgnore)
 {
     // TODO should be an exception.
     assert(num_bins > 0);
@@ -44,18 +44,113 @@ Histogram::Histogram(const size_t num_bins, const double range_min, const double
     set_uniform_ranges(range_min, range_max);
 }
 
-/**
- * @brief
- */
-Histogram::Histogram(const std::vector<double>& ranges) :
+Histogram::Histogram(
+    const size_t num_bins,
+    const std::vector<double>& values,
+    const double weight
+) :
+    bins_                  (num_bins),
+    ranges_                (num_bins + 1),
+    out_of_range_behaviour (OutOfRangeBehaviour::kIgnore)
+{
+    // TODO should be an exception.
+    assert(num_bins > 0);
+
+    double min = *std::min_element(values.begin(), values.end());
+    double max = *std::max_element(values.begin(), values.end());
+    set_uniform_ranges(min, std::nextafter(max, max + 1));
+
+    for (const auto v : values) {
+        accumulate(v, weight);
+    }
+}
+
+Histogram::Histogram(
+    const size_t num_bins,
+    const std::vector<std::pair<double,double>>& weighted_values
+) :
+    bins_                  (num_bins),
+    ranges_                (num_bins + 1),
+    out_of_range_behaviour (OutOfRangeBehaviour::kIgnore)
+{
+    // TODO should be an exception.
+    assert(num_bins > 0);
+
+    auto first_smaller = [] (std::pair<double,double> p1, std::pair<double,double> p2) {
+        return p1.first < p2.first;
+    };
+
+    auto min_p = *std::min_element(weighted_values.begin(), weighted_values.end(), first_smaller);
+    auto max_p = *std::max_element(weighted_values.begin(), weighted_values.end(), first_smaller);
+
+    double min = min_p.first;
+    double max = max_p.first;
+    set_uniform_ranges(min, std::nextafter(max, max + 1));
+
+    for (const auto pair : weighted_values) {
+        accumulate(pair.first, pair.second);
+    }
+}
+
+Histogram::Histogram(
+    const size_t num_bins,
+    const double range_min,
+    const double range_max,
+    const std::vector<double>& values,
+    const double weight
+) :
+    Histogram(
+        num_bins,
+        range_min,
+        range_max
+    )
+{
+    for (const auto v : values) {
+        accumulate(v, weight);
+    }
+}
+
+Histogram::Histogram(
+    const size_t num_bins,
+    const double range_min,
+    const double range_max,
+    const std::vector<std::pair<double,double>>& weighted_values
+) :
+    Histogram(
+        num_bins,
+        range_min,
+        range_max
+    )
+{
+    for (const auto pair : weighted_values) {
+        accumulate(pair.first, pair.second);
+    }
+}
+
+Histogram::Histogram(
+    const std::vector<double>& ranges
+) :
     bins_                  (ranges.size() - 1, 0.0),
     ranges_                (ranges),
-    out_of_range_behaviour (OutOfRangeBehaviour::kSqueeze)
+    out_of_range_behaviour (OutOfRangeBehaviour::kIgnore)
 {
     // TODO replace by exception. maybe not even neccessary, as constructor might just throw anyway.
     assert(ranges.size() >= 2);
 
     assert(std::is_sorted(ranges.begin(), ranges.end()));
+}
+
+// =================================================================================================
+//     Other main methods
+// =================================================================================================
+
+void Histogram::set_ranges(const std::vector<double>& ranges)
+{
+    // TODO replace by throw exception
+    assert(ranges.size() == ranges_.size());
+    assert(std::is_sorted(ranges.begin(), ranges.end()));
+    ranges_ = ranges;
+    clear();
 }
 
 /**
@@ -159,7 +254,8 @@ int Histogram::find_bin (double x)
     }
 
     // Get the bin for the uniform ranges case.
-    int bin = static_cast <int> (std::floor( (x - min()) / bin_width(0) ));
+    double bin_width = (max() - min()) / static_cast<double>(bins());
+    int bin = static_cast <int> (std::floor( (x - min()) / bin_width ));
 
     // If this worked, simply return the bin number.
     if (ranges_[bin] <= x && x < ranges_[bin + 1]) {
