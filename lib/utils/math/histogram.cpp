@@ -36,7 +36,6 @@ Histogram::Histogram(const size_t num_bins) :
 Histogram::Histogram(const size_t num_bins, const double range_min, const double range_max) :
     bins_                  (num_bins),
     ranges_                (num_bins + 1),
-    is_uniform_            (true),
     out_of_range_behaviour (OutOfRangeBehaviour::kSqueeze)
 {
     // TODO should be an exception.
@@ -48,21 +47,46 @@ Histogram::Histogram(const size_t num_bins, const double range_min, const double
 /**
  * @brief
  */
+Histogram::Histogram(const std::vector<double>& ranges) :
+    bins_                  (ranges.size() - 1, 0.0),
+    ranges_                (ranges),
+    out_of_range_behaviour (OutOfRangeBehaviour::kSqueeze)
+{
+    // TODO replace by exception. maybe not even neccessary, as constructor might just throw anyway.
+    assert(ranges.size() >= 2);
+
+    assert(std::is_sorted(ranges.begin(), ranges.end()));
+}
+
+/**
+ * @brief
+ */
 void Histogram::set_uniform_ranges(const double min, const double max)
 {
     if (min >= max) {
+        // TODO throw exception
         LOG_WARN << "Histogram range (" << min << ", " << max << ") not valid.";
         return;
     }
 
-    const size_t num_bins  = bins();
-    const double bin_width = (max - min) / num_bins;
+    // const size_t num_bins  = bins();
+    // const double bin_width = (max - min) / num_bins;
+    //
+    // for (size_t i = 0; i < num_bins + 1; ++i) {
+    //     ranges_[i] = min + static_cast<double>(i) * bin_width;
+    // }
 
-    for (size_t i = 0; i < num_bins + 1; ++i) {
-        ranges_[i] = min + static_cast<double>(i) * bin_width;
+    // More stable version from the GNU Scientific Library.
+    const double n = static_cast<double>(bins());
+    for (size_t i = 0; i <= bins() + 1; ++i) {
+        const double p = static_cast<double>(i);
+
+        const double f1 = (n - p) / n;
+        const double f2 = p / n;
+
+        ranges_[i] = f1 * min +  f2 * max;
     }
 
-    is_uniform_ =  true;
     clear();
 }
 
@@ -125,6 +149,33 @@ double Histogram::bin_width(size_t bin_num) const
     return ranges_[bin_num + 1] - ranges_[bin_num];
 }
 
+int Histogram::find_bin (double x)
+{
+    if (x < min()) {
+        return -1;
+    }
+    if (x >= max()) {
+        return bins();
+    }
+
+    // Get the bin for the uniform ranges case.
+    int bin = static_cast <int> (std::floor( (x - min()) / bin_width(0) ));
+
+    // If this worked, simply return the bin number.
+    if (ranges_[bin] <= x && x < ranges_[bin + 1]) {
+        return bin;
+    }
+
+    // If not, do a binary search.
+    auto it = std::upper_bound(ranges_.begin(), ranges_.end(), x);
+    return std::distance(ranges_.begin(), it) - 1;
+}
+
+bool Histogram::check_range(double x)
+{
+    return x >= min() && x < max();
+}
+
 // =================================================================================================
 //     Modifiers
 // =================================================================================================
@@ -136,40 +187,31 @@ int Histogram::increment (double x)
 
 int Histogram::accumulate (double x, double weight)
 {
-    if (is_uniform_) {
-        // Get the proper bin.
-        int bin = static_cast <int> (std::floor( (x - min()) / bin_width(0) ));
+    int bin = find_bin(x);
 
-        // Do boundary check on the bin.
-        if (bin < 0 || static_cast <size_t>(bin) >= bins()) {
-            switch (out_of_range_behaviour) {
-                case OutOfRangeBehaviour::kIgnore:
-                    return bin;
+    // Do boundary check on the bin.
+    if (bin < 0 || static_cast <size_t>(bin) >= bins()) {
+        switch (out_of_range_behaviour) {
+            case OutOfRangeBehaviour::kIgnore:
+                return bin;
 
-                case OutOfRangeBehaviour::kSqueeze:
-                    if (bin < 0) {
-                        bin = 0;
-                    } else {
-                        bin = bins() - 1;
-                    }
-                    break;
+            case OutOfRangeBehaviour::kSqueeze:
+                if (bin < 0) {
+                    bin = 0;
+                } else {
+                    bin = bins() - 1;
+                }
+                break;
 
-                case OutOfRangeBehaviour::kThrow:
-                    // TODO replace by exception
-                    assert(false);
-            }
+            case OutOfRangeBehaviour::kThrow:
+                // TODO replace by exception
+                assert(false);
         }
-
-        // Set the new bin value and return its index.
-        bins_[bin] += weight;
-        return bin;
-
-    } else {
-        // not yet implemented. do a binary search for the bin or something similar here.
-        // shoud not happen, as is_uniform_ is never set to false in the code so far.
-        assert(false);
-        return 0;
     }
+
+    // Set the new bin value and return its index.
+    bins_[bin] += weight;
+    return bin;
 }
 
 void Histogram::increment_bin (size_t bin)

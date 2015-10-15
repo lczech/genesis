@@ -52,8 +52,6 @@ protected:
     std::vector<double> bins_;
     std::vector<double> ranges_;
 
-    bool is_uniform_;
-
 public:
 
     OutOfRangeBehaviour out_of_range_behaviour;
@@ -67,6 +65,8 @@ public:
     Histogram(const size_t num_bins);
 
     Histogram(const size_t num_bins, const double range_min, const double range_max);
+
+    Histogram(const std::vector<double>& ranges);
 
     void set_uniform_ranges(const double min, const double max);
 
@@ -93,6 +93,10 @@ public:
     std::pair<double, double> bin_range(size_t bin_num) const;
 
     double bin_width(size_t bin_num) const;
+
+    int find_bin (double x);
+
+    bool check_range(double x);
 
     // -------------------------------------------------------------------------
     //     Modifiers
