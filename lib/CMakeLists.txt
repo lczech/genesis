@@ -24,6 +24,8 @@ set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #   Sources
 # ------------------------------------------------------------------------------
 
+# Find all source files. The CMake documentation does not recommend this,
+# but for our purposes, this is good enough for now.
 file (GLOB_RECURSE genesis_lib_sources   ${PROJECT_SOURCE_DIR}/lib/*.cpp)
 # file (GLOB_RECURSE genesis_lib_headers   ${PROJECT_SOURCE_DIR}/lib/*.hpp)
 # file (GLOB_RECURSE genesis_lib_templates ${PROJECT_SOURCE_DIR}/lib/*.tpp)
