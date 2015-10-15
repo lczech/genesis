@@ -83,6 +83,8 @@ double PlacementMeasures::pquery_distance (
     double sum = 0.0;
     double pp, pd, dp, dist;
 
+    // TODO once the proper dist measures (outside of this class) are in place, get rid of this function!
+
     for (const PqueryPlacementPlain& place_a : pqry_a.placements) {
         for (const PqueryPlacementPlain& place_b : pqry_b.placements) {
             if (place_a.edge_index == place_b.edge_index) {
