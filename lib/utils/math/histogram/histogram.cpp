@@ -173,7 +173,7 @@ void Histogram::set_uniform_ranges(const double min, const double max)
 
     // More stable version from the GNU Scientific Library.
     const double n = static_cast<double>(bins());
-    for (size_t i = 0; i <= bins() + 1; ++i) {
+    for (size_t i = 0; i < bins() + 1; ++i) {
         const double p = static_cast<double>(i);
 
         const double f1 = (n - p) / n;
