@@ -5,7 +5,7 @@
  * @ingroup utils
  */
 
-#include "utils/math/histogram.hpp"
+#include "utils/math/histogram/histogram.hpp"
 
 #include <algorithm>
 #include <assert.h>
@@ -239,12 +239,17 @@ std::pair<double, double> Histogram::bin_range(size_t bin_num) const
     return std::make_pair(ranges_[bin_num], ranges_[bin_num + 1]);
 }
 
+double Histogram::bin_midpoint(size_t bin_num) const
+{
+    return (ranges_[bin_num] + ranges_[bin_num + 1]) / 2;
+}
+
 double Histogram::bin_width(size_t bin_num) const
 {
     return ranges_[bin_num + 1] - ranges_[bin_num];
 }
 
-int Histogram::find_bin (double x)
+int Histogram::find_bin (double x) const
 {
     if (x < min()) {
         return -1;
@@ -267,7 +272,7 @@ int Histogram::find_bin (double x)
     return std::distance(ranges_.begin(), it) - 1;
 }
 
-bool Histogram::check_range(double x)
+bool Histogram::check_range(double x) const
 {
     return x >= min() && x < max();
 }
@@ -325,107 +330,6 @@ void Histogram::accumulate_bin (size_t bin, double weight)
     }
 
     bins_[bin] += weight;
-}
-
-// =================================================================================================
-//     Statistics
-// =================================================================================================
-
-double Histogram::min_value() const
-{
-    return *std::min_element(bins_.begin(), bins_.end());
-}
-
-double Histogram::max_value() const
-{
-    return *std::max_element(bins_.begin(), bins_.end());
-}
-
-size_t Histogram::min_bin() const
-{
-    return std::distance(bins_.begin(), std::min_element(bins_.begin(), bins_.end()));
-}
-
-size_t Histogram::max_bin() const
-{
-    return std::distance(bins_.begin(), std::max_element(bins_.begin(), bins_.end()));
-}
-
-double Histogram::median() const
-{
-    const double mid = sum() / 2;
-    double part = 0.0;
-
-    size_t i;
-    for (i = 0; i < bins(); ++i) {
-        if (part + bins_[i] < mid) {
-            part += bins_[i];
-        } else {
-            break;
-        }
-    }
-    assert(part < mid && i < bins());
-
-    // Find the relative position of mid within the interval [part, part + bin[i]).
-    // This determines where exactly our median is.
-    const double pos = (mid - part) / bins_[i];
-
-    // Now find this position within the range of the bin and return it.
-    return ranges_[i] + pos * bin_width(i);
-}
-
-double Histogram::mean() const
-{
-    // We are using the recurrence relation
-    //   M(n) = M(n-1) + (x[n] - M(n-1)) (w(n)/(W(n-1) + w(n)))
-    //   W(n) = W(n-1) + w(n)
-    // which is also used in the GNU Scientific Library.
-
-    double wmean  = 0.0;
-    double weight = 0.0;
-
-    for (size_t i = 0; i < bins(); ++i) {
-        const double xi = (ranges_[i + 1] + ranges_[i]) / 2;
-        const double wi = bins_[i];
-
-        if (wi > 0.0) {
-            weight += wi;
-            wmean += (xi - wmean) * (wi / weight);
-        }
-    }
-
-    return wmean;
-}
-
-double Histogram::sigma() const
-{
-    // We use the same method as in the GNU Scientific Library.
-    // It is a two-pass algorithm for stability.
-    // Could also use a single pass formula, as given in
-    // N. J. Higham: "Accuracy and Stability of Numerical Methods", p.12
-
-    const double wmean = mean();
-    double weight = 0.0;
-    double wvar   = 0.0;
-
-    for (size_t i = 0; i < bins(); ++i) {
-        const double xi = (ranges_[i + 1] + ranges_[i]) / 2;
-        const double wi = bins_[i];
-
-        if (wi > 0.0) {
-            const double delta = (xi - wmean);
-
-            weight += wi;
-            wvar   += (delta * delta - wvar) * (wi / weight);
-        }
-    }
-
-    return std::sqrt(wvar);
-}
-
-double Histogram::sum() const
-{
-    return std::accumulate (bins_.begin(), bins_.end(), 0.0);
 }
 
 // =================================================================================================

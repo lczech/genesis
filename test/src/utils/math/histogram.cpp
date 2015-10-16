@@ -7,7 +7,8 @@
 
 #include "common.hpp"
 
-#include "lib/utils/math/histogram.hpp"
+#include "lib/utils/math/histogram/histogram.hpp"
+#include "lib/utils/math/histogram/stat.hpp"
 
 using namespace genesis;
 
@@ -26,16 +27,16 @@ TEST(Histogram, UniformRange)
     h.increment(5.0);
     h.increment(8.0);
 
-    EXPECT_DOUBLE_EQ (0.0,  h.min_value());
-    EXPECT_DOUBLE_EQ (11.0, h.max_value());
+    EXPECT_DOUBLE_EQ (0.0,  min_value(h));
+    EXPECT_DOUBLE_EQ (11.0, max_value(h));
 
-    EXPECT_EQ (4, h.min_bin());
-    EXPECT_EQ (1, h.max_bin());
+    EXPECT_EQ (4, min_bin(h));
+    EXPECT_EQ (1, max_bin(h));
 
-    EXPECT_DOUBLE_EQ (1.0, h.median());
-    EXPECT_DOUBLE_EQ (1.4074074074074074, h.mean());
-    EXPECT_DOUBLE_EQ (1.7268952928703358, h.sigma());
-    EXPECT_DOUBLE_EQ (27.0, h.sum());
+    EXPECT_DOUBLE_EQ (1.0, median(h));
+    EXPECT_DOUBLE_EQ (1.4074074074074074, mean(h));
+    EXPECT_DOUBLE_EQ (1.7268952928703358, sigma(h));
+    EXPECT_DOUBLE_EQ (27.0, sum(h));
 }
 
 TEST(Histogram, VariableRanges)
@@ -51,14 +52,14 @@ TEST(Histogram, VariableRanges)
     h.accumulate(10.0, 12.0);
     h.accumulate(13.0, 6.0);
 
-    EXPECT_DOUBLE_EQ (4.0,  h.min_value());
-    EXPECT_DOUBLE_EQ (12.0, h.max_value());
+    EXPECT_DOUBLE_EQ (4.0,  min_value(h));
+    EXPECT_DOUBLE_EQ (12.0, max_value(h));
 
-    EXPECT_EQ (0, h.min_bin());
-    EXPECT_EQ (3, h.max_bin());
+    EXPECT_EQ (0, min_bin(h));
+    EXPECT_EQ (3, max_bin(h));
 
-    EXPECT_DOUBLE_EQ (9.125, h.median());
-    EXPECT_DOUBLE_EQ (8.3428571428571434, h.mean());
-    EXPECT_DOUBLE_EQ (3.5330509449471341, h.sigma());
-    EXPECT_DOUBLE_EQ (35.0, h.sum());
+    EXPECT_DOUBLE_EQ (9.125, median(h));
+    EXPECT_DOUBLE_EQ (8.3428571428571434, mean(h));
+    EXPECT_DOUBLE_EQ (3.5330509449471341, sigma(h));
+    EXPECT_DOUBLE_EQ (35.0, sum(h));
 }

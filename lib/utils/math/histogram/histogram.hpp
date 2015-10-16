@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_MATH_HISTOGRAM_H_
-#define GENESIS_UTILS_MATH_HISTOGRAM_H_
+#ifndef GENESIS_UTILS_MATH_HISTOGRAM_HISTOGRAM_H_
+#define GENESIS_UTILS_MATH_HISTOGRAM_HISTOGRAM_H_
 
 /**
  * @brief Header of Histogram class.
@@ -139,11 +139,13 @@ public:
 
     std::pair<double, double> bin_range(size_t bin_num) const;
 
+    double bin_midpoint(size_t bin_num) const;
+
     double bin_width(size_t bin_num) const;
 
-    int find_bin (double x);
+    int find_bin (double x) const;
 
-    bool check_range(double x);
+    bool check_range(double x) const;
 
     // -------------------------------------------------------------------------
     //     Modifiers
@@ -156,40 +158,6 @@ public:
     void increment_bin (size_t bin);
 
     void accumulate_bin (size_t bin, double weight);
-
-    // -------------------------------------------------------------------------
-    //     Statistics
-    // -------------------------------------------------------------------------
-
-    double min_value() const;
-
-    double max_value() const;
-
-    size_t min_bin() const;
-
-    size_t max_bin() const;
-
-    double median() const;
-
-    /**
-     * @brief Compute the bin-weighted arithmetic mean.
-     *
-     * The histogram is regarded as a probability distribution.
-     * Negative bin values are ignored for the purposes of this calculation.
-     * The accuracy of the result is limited by the bin width.
-     */
-    double mean() const;
-
-    /**
-     * @brief Compute the bin-weighted standard deviation.
-     *
-     * The histogram is regarded as a probability distribution.
-     * Negative bin values are ignored for the purposes of this calculation.
-     * The accuracy of the result is limited by the bin width.
-     */
-    double sigma() const;
-
-    double sum() const;
 
     // -------------------------------------------------------------------------
     //     Dump
