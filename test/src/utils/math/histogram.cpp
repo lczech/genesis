@@ -8,8 +8,8 @@
 #include "common.hpp"
 
 #include "lib/utils/math/histogram/histogram.hpp"
-#include "lib/utils/math/histogram/distance.hpp"
-#include "lib/utils/math/histogram/stat.hpp"
+#include "lib/utils/math/histogram/distances.hpp"
+#include "lib/utils/math/histogram/stats.hpp"
 
 using namespace genesis;
 
@@ -77,7 +77,7 @@ TEST(Histogram, EarthMoversDistance)
 
 	h2.accumulate(0.0, 1.0);
 	h2.accumulate(1.0, 2.0);
-	h2.accumulate(2.0, 4.0);
+	h2.accumulate(2.0, 3.0);
 	h2.accumulate(3.0, 1.0);
 
 	EXPECT_DOUBLE_EQ(5.0, earth_movers_distance(h1, h2));

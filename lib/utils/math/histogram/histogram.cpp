@@ -209,15 +209,29 @@ Histogram::const_iterator Histogram::end() const
     return bins_.end();
 }
 
+double Histogram::value(size_t bin_num) const
+{
+    return bins_.at(bin_num);
+}
+
+double& Histogram::value(size_t bin_num)
+{
+    return bins_.at(bin_num);
+}
+
 double Histogram::operator [] (size_t bin_num) const
 {
     return bins_[bin_num];
 }
 
-double Histogram::value(size_t bin_num) const
+double& Histogram::operator [] (size_t bin_num)
 {
     return bins_[bin_num];
 }
+
+// =================================================================================================
+//     Properties
+// =================================================================================================
 
 double Histogram::min() const
 {

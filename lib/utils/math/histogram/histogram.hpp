@@ -127,9 +127,17 @@ public:
 
     const_iterator end() const;
 
+    double value(size_t bin_num) const;
+
+    double& value(size_t bin_num);
+
     double operator [] (size_t bin_num) const;
 
-    double value(size_t bin_num) const;
+    double& operator [] (size_t bin_num);
+
+    // -------------------------------------------------------------------------
+    //     Properties
+    // -------------------------------------------------------------------------
 
     double min() const;
 

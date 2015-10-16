@@ -5,7 +5,7 @@
  * @ingroup utils
  */
 
-#include "utils/math/histogram/stat.hpp"
+#include "utils/math/histogram/stats.hpp"
 
 #include <algorithm>
 #include <assert.h>
