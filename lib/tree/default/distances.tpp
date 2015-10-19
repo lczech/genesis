@@ -6,6 +6,7 @@
  */
 
 #include <algorithm>
+#include <assert.h>
 
 namespace genesis {
 
@@ -159,9 +160,66 @@ template <class Tree>
 Matrix<double>      edge_distance_matrix (
     const Tree& tree
 ) {
+    // Result matrix that will be returned.
     Matrix<double> mat (tree.edge_count(), tree.edge_count());
-    // TODO implement!
-    LOG_WARN << "Not yet implemented.";
+
+    // For calculating the distance between edges, we use the distances between nodes and for every
+    // pair of edged find the nodes at the ends of the edges that are closest to each other. This
+    // is then the shortest distance between the two edged.
+    // There is probably a way to get this distance via some tree traversal, which would save us
+    // some lookups and calculation of the min, but be more complex and error prone.
+    // For now, this version should be fast enough.
+    auto node_dist_mat = node_distance_matrix(tree);
+
+    for (auto row_it = tree.begin_edges(); row_it != tree.end_edges(); ++row_it) {
+        const auto row_edge = row_it->get();
+
+        for (auto col_it = tree.begin_edges(); col_it != tree.end_edges(); ++col_it) {
+            const auto col_edge = col_it->get();
+
+            // Set the diagonal element of the matrix. We don't need to compare nodes in this case,
+            // and particularly want to skip the part where we add half the branch lengths to the
+            // distance. After all, the distance between and element and itself should always be 0!
+            if (row_edge->index() == col_edge->index()) {
+                mat(row_edge->index(), row_edge->index()) = 0.0;
+                continue;
+            }
+
+            // primary-primary case
+            double pp = node_dist_mat(
+                row_edge->primary_node()->index(),
+                col_edge->primary_node()->index()
+            );
+
+            // primary-secondary case
+            double ps = node_dist_mat(
+                row_edge->primary_node()->index(),
+                col_edge->secondary_node()->index()
+            );
+
+            // secondary-primary case
+            double sp = node_dist_mat(
+                row_edge->secondary_node()->index(),
+                col_edge->primary_node()->index()
+            );
+
+            // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
+            // (if this ever happens, the tree is broken).
+            double dist = std::min(pp, std::min(ps, sp));
+            assert(dist <= node_dist_mat(
+                row_edge->secondary_node()->index(),
+                col_edge->secondary_node()->index()
+            ));
+
+            // Store in matrix, with halves of the branch lengths.
+            mat(row_edge->index(), col_edge->index())
+                = (dist)
+                + (row_edge->data.branch_length / 2)
+                + (col_edge->data.branch_length / 2)
+            ;
+        }
+    }
+
     return mat;
 }
 
@@ -171,9 +229,43 @@ std::vector<double> edge_distance_vector (
     const typename Tree::EdgeType* edge
 ) {
     std::vector<double> vec (tree.edge_count());
-    (void) edge;
-    // TODO implement!
-    LOG_WARN << "Not yet implemented.";
+
+    // Works similar to edge_distance_matrix(). See there for a description of the implementation.
+
+    // We just need two rows of the distance matrix - let's take the vectors instead for speed.
+    auto p_node_dist = node_distance_vector(tree, edge->primary_node());
+    auto s_node_dist = node_distance_vector(tree, edge->secondary_node());
+
+    for (auto col_it = tree.begin_edges(); col_it != tree.end_edges(); ++col_it) {
+        const auto col_edge = col_it->get();
+
+        if (edge->index() == col_edge->index()) {
+            vec(edge->index()) = 0.0;
+            continue;
+        }
+
+        // primary-primary case
+        double pp = p_node_dist(col_edge->primary_node()->index());
+
+        // primary-secondary case
+        double ps = p_node_dist(col_edge->secondary_node()->index());
+
+        // secondary-primary case
+        double sp = s_node_dist(col_edge->primary_node()->index());
+
+        // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
+        // (if this ever happens, the tree is broken).
+        double dist = std::min(pp, std::min(ps, sp));
+        assert(dist <= s_node_dist(col_edge->secondary_node()->index()));
+
+        // Store in vector, with halves of the branch lengths.
+        vec(col_edge->index())
+            = (dist)
+            + (edge->data.branch_length / 2)
+            + (col_edge->data.branch_length / 2)
+        ;
+    }
+
     return vec;
 }
 
@@ -189,7 +281,7 @@ std::vector<std::pair<const typename Tree::NodeType*, double>> closest_leaf_dist
     std::vector<std::pair<const typename Tree::NodeType*, double>> vec;
     vec.resize(tree.node_count(), {nullptr, 0.0});
 
-    // we need the pairwise distances between all nodes, so we can do quick loopups.
+    // we need the pairwise distances between all nodes, so we can do quick lookups.
     auto node_distances = node_distance_matrix(tree);
 
     // fill the vector for every node.
