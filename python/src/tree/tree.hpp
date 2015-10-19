@@ -70,11 +70,11 @@ void BoostPythonExport_Tree (std::string name)
         //     ( NodeDoubleVectorType ( TreeType::* )(  ) const )( &TreeType::closest_leaf_distance_vector ),
         //     get_docstring("NodeDoubleVectorType TreeType::closest_leaf_distance_vector () const")
         // )
-        .def(
-            "deepest_distance",
-            ( double ( TreeType::* )(  ) const )( &TreeType::deepest_distance ),
-            get_docstring("double ::genesis::Tree::deepest_distance () const")
-        )
+        // .def(
+        //     "deepest_distance",
+        //     ( double ( TreeType::* )(  ) const )( &TreeType::deepest_distance ),
+        //     get_docstring("double ::genesis::Tree::deepest_distance () const")
+        // )
         .def(
             "dump",
             ( std::string ( TreeType::* )(  ) const )( &TreeType::dump ),
@@ -149,11 +149,11 @@ void BoostPythonExport_Tree (std::string name)
             ( size_t ( TreeType::* )(  ) const )( &TreeType::leaf_count ),
             get_docstring("size_t ::genesis::Tree::leaf_count () const")
         )
-        .def(
-            "length",
-            ( double ( TreeType::* )(  ) const )( &TreeType::length ),
-            get_docstring("double ::genesis::Tree::length () const")
-        )
+        // .def(
+        //     "length",
+        //     ( double ( TreeType::* )(  ) const )( &TreeType::length ),
+        //     get_docstring("double ::genesis::Tree::length () const")
+        // )
         .def(
             "link_at",
             ( typename TreeType::LinkType * ( TreeType::* )( size_t ) const )( &TreeType::link_at ),

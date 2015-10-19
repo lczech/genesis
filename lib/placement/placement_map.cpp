@@ -17,6 +17,8 @@
 #include <unordered_map>
 #include <utility>
 
+#include "tree/distances.hpp"
+#include "tree/default/distances.hpp"
 #include "tree/tree_view.hpp"
 #include "utils/logging.hpp"
 #include "utils/matrix.hpp"
@@ -454,7 +456,7 @@ std::vector<int> PlacementMap::closest_leaf_depth_histogram() const
     std::vector<int> hist;
 
     // Get a vector telling us the depth from each node to its closest leaf node.
-    PlacementTree::NodeIntVectorType depths = tree_->closest_leaf_depth_vector();
+    auto depths = closest_leaf_depth_vector(tree());
 
     for (const auto& pqry : pqueries_) {
         for (const auto& place : pqry->placements) {
@@ -506,7 +508,7 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram (
     double bin_size = (max - min) / bins;
 
     // get a vector telling us the distance from each node to its closest leaf node.
-    PlacementTree::NodeDoubleVectorType dists = tree_->closest_leaf_distance_vector();
+    auto dists = closest_leaf_distance_vector(tree());
 
     for (const auto& pqry : pqueries_) {
         for (const auto& place : pqry->placements) {
@@ -578,7 +580,7 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
     double max_d = 0.0;
 
     // get a vector telling us the distance from each node to its closest leaf node.
-    PlacementTree::NodeDoubleVectorType dists = tree_->closest_leaf_distance_vector();
+    auto dists = closest_leaf_distance_vector(tree());
 
     // calculate all distances from placements to their closest leaf and store them.
     for (const auto& pqry : pqueries_) {

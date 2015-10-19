@@ -12,6 +12,8 @@
 #    include <thread>
 #endif
 
+#include "tree/distances.hpp"
+#include "tree/default/distances.hpp"
 #include "utils/options.hpp"
 
 namespace genesis {
@@ -430,7 +432,7 @@ std::pair<PlacementTreeEdge*, double> PlacementMeasures::center_of_gravity (
     // This can never be more than the tree height (in number of nodes from root to deepest leaf)
     // plus one last iteration for going back towards the root.
     size_t num_iterations = 0;
-    auto   depth_vector = map.tree().node_depth_vector();
+    auto   depth_vector = node_depth_vector(map.tree());
     size_t max_iterations = 1 + static_cast<size_t>(
         *std::max_element(depth_vector.begin(), depth_vector.end())
     );
@@ -806,8 +808,8 @@ double PlacementMeasures::center_of_gravity_variance (const PlacementMap& map) {
     LOG_DBG << "edge " << central_edge->primary_node()->data.name << " " << central_edge->secondary_node()->data.name;
     LOG_DBG << "prox " << proximal_length;
 
-    auto   node_dist_prox  = map.tree().node_distance_vector(central_edge->primary_node());
-    auto   node_dist_dist  = map.tree().node_distance_vector(central_edge->secondary_node());
+    auto   node_dist_prox  = node_distance_vector(map.tree(), central_edge->primary_node());
+    auto   node_dist_dist  = node_distance_vector(map.tree(), central_edge->secondary_node());
 
     for (const auto& pqry : map.pqueries()) {
         for (const auto& place : pqry->placements) {
@@ -903,8 +905,8 @@ double PlacementMeasures::center_of_gravity_distance (
     } else {
         // TODO instead of the whole vector, we need a distnace between nodes function in the future,
         // which probably uses the path iterator.
-        auto node_dist_a_prox = map_a.tree().node_distance_vector(edge_a->primary_node());
-        auto node_dist_a_dist = map_a.tree().node_distance_vector(edge_a->secondary_node());
+        auto node_dist_a_prox = node_distance_vector(map_a.tree(), edge_a->primary_node());
+        auto node_dist_a_dist = node_distance_vector(map_a.tree(), edge_a->secondary_node());
 
         double pp, pd, dp;
 
@@ -977,11 +979,11 @@ double PlacementMeasures::pairwise_distance (
     // do not need to search a path between placements every time. We use the tree of the first map
     // here, ignoring branch lengths on tree b.
     // FIXME this might be made better by using average or so in the future.
-    Matrix<double>* node_distances = map_a.tree().node_distance_matrix();
+    auto node_distances = node_distance_matrix(map_a.tree());
 
     for (const PqueryPlain& pqry_a : pqueries_a) {
         for (const PqueryPlain& pqry_b : pqueries_b) {
-            sum += pquery_distance(pqry_a, pqry_b, *node_distances);
+            sum += pquery_distance(pqry_a, pqry_b, node_distances);
         }
     }
 
@@ -1029,7 +1031,7 @@ double PlacementMeasures::variance(const PlacementMap& map)
 
     // Also, calculate a matrix containing the pairwise distance between all nodes. this way, we
     // do not need to search a path between placements every time.
-    Matrix<double>* node_distances = map.tree().node_distance_matrix();
+    auto node_distances = node_distance_matrix(map.tree());
 
 #ifdef PTHREADS
 
@@ -1042,7 +1044,7 @@ double PlacementMeasures::variance(const PlacementMap& map)
     for (int i = 0; i < num_threads; ++i) {
         threads.emplace_back(
             &PlacementMeasures::variance_thread,
-            i, num_threads, &vd_pqueries, node_distances,
+            i, num_threads, &vd_pqueries, &node_distances,
             &partials[i]
         );
         // threads[i] = new std::thread ();
@@ -1060,7 +1062,7 @@ double PlacementMeasures::variance(const PlacementMap& map)
     // int progress = 0;
     for (const PqueryPlain& pqry_a : vd_pqueries) {
         // LOG_PROG(++progress, vd_pqueries.size()) << "of Variance() finished.";
-        variance += variance_partial(pqry_a, vd_pqueries, *node_distances);
+        variance += variance_partial(pqry_a, vd_pqueries, node_distances);
     }
 
 #endif
@@ -1074,8 +1076,7 @@ double PlacementMeasures::variance(const PlacementMap& map)
         }
     }
 
-    // Cleanup, then return the normalized value.
-    delete node_distances;
+    // Return the normalized value.
     return ((variance / mass) / mass);
 }
 

@@ -8,6 +8,7 @@
 #include <deque>
 #include <sstream>
 
+#include "tree/distances.hpp"
 #include "tree/newick_broker.hpp"
 #include "tree/tree.hpp"
 #include "tree/tree_set.hpp"
@@ -714,7 +715,7 @@ void NewickProcessor<AdapterType>::to_broker (
 ) {
     // store the depth from each node to the root. this is needed to assign levels of depth
     // to the nodes for the broker.
-    std::vector<int> depth = tree.node_depth_vector();
+    std::vector<int> depth = node_depth_vector(tree);
 
     // now fill the broker with nodes via postorder traversal, so that the root is put on top last.
     broker.clear();

@@ -567,27 +567,6 @@ public:
     size_t inner_count() const;
 
     // -------------------------------------------------------------------------
-    //     Distances
-    // -------------------------------------------------------------------------
-
-    double length() const;
-    double height() const;
-    double depth() const;
-
-    double deepest_distance() const;
-
-    Matrix<int>*        node_depth_matrix    ()                               const;
-    std::vector<int>    node_depth_vector    (const NodeType* node = nullptr) const;
-    Matrix<double>*     node_distance_matrix ()                               const;
-    std::vector<double> node_distance_vector (const NodeType* node = nullptr) const;
-
-    typedef std::vector< std::pair<const NodeType*, int> >    NodeIntVectorType;
-    typedef std::vector< std::pair<const NodeType*, double> > NodeDoubleVectorType;
-
-    NodeIntVectorType    closest_leaf_depth_vector()    const;
-    NodeDoubleVectorType closest_leaf_distance_vector() const;
-
-    // -------------------------------------------------------------------------
     //     Comparisons
     // -------------------------------------------------------------------------
 
