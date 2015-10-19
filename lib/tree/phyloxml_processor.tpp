@@ -11,6 +11,7 @@
 #include <assert.h>
 #include <vector>
 
+#include "tree/distances.hpp"
 #include "tree/tree.hpp"
 #include "utils/logging.hpp"
 #include "utils/utils.hpp"
@@ -106,7 +107,7 @@ void PhyloxmlProcessor<AdapterType>::to_document (const typename AdapterType::Tr
 
     // Store the distance from each node to the root. Will be used to determine the position on the
     // stack that is used for adding clades to the phylogeny.
-    std::vector<int> depths = tree.node_depth_vector();
+    std::vector<int> depths = node_depth_vector(tree);
 
     for (
         typename AdapterType::TreeType::ConstIteratorPreorder it = tree.begin_preorder();

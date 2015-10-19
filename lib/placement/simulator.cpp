@@ -6,6 +6,8 @@
  */
 
 #include "placement/simulator.hpp"
+#include "tree/default/distances.hpp"
+#include "tree/distances.hpp"
 
 #include <assert.h>
 
@@ -151,7 +153,7 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_depths_distributed_weights
     weights = std::vector<double>(num_edges, 0.0);
 
     // Get a vector telling us the depth from each node to its closest leaf node.
-    PlacementTree::NodeIntVectorType depths = placements_.tree().closest_leaf_depth_vector();
+    auto depths = closest_leaf_depth_vector(placements_.tree());
 
     // Set the weight of each edge according to its depth in the tree.
     for (auto it = placements_.tree().begin_edges(); it != placements_.tree().end_edges(); ++it) {
