@@ -11,7 +11,7 @@
 #include <vector>
 
 #include "tree/default_tree.hpp"
-#include "utils/matrix.hpp"
+#include "utils/math/matrix.hpp"
 
 namespace genesis {
 

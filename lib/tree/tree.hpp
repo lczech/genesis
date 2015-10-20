@@ -20,7 +20,6 @@
 #include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
-#include "utils/matrix.hpp"
 
 namespace genesis {
 

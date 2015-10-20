@@ -19,6 +19,7 @@
 #include "alignment/sequence.hpp"
 #include "alignment/sequence_set.hpp"
 
+#include "placement/functions.hpp"
 #include "placement/jplace_processor.hpp"
 #include "placement/measures.hpp"
 #include "placement/newick_adapter.hpp"
@@ -30,14 +31,12 @@
 #include "placement/serializer.hpp"
 #include "placement/simulator.hpp"
 
-#include "plausibility/plausibility.hpp"
-#include "plausibility/plausibility_tree.hpp"
-
 #include "tree/bipartition.hpp"
 #include "tree/bipartition_set.hpp"
 #include "tree/default_tree.hpp"
 #include "tree/default_tree_newick_adapter.hpp"
 #include "tree/default_tree_phyloxml_adapter.hpp"
+#include "tree/distances.hpp"
 #include "tree/newick_adapter.hpp"
 #include "tree/newick_broker.hpp"
 #include "tree/newick_lexer.hpp"
@@ -53,7 +52,6 @@
 #include "tree/tree_set.hpp"
 #include "tree/tree_view.hpp"
 
-#include "utils/bitvector.hpp"
 #include "utils/color.hpp"
 #include "utils/json_document.hpp"
 #include "utils/json_lexer.hpp"
@@ -62,9 +60,7 @@
 #include "utils/lexer_iterator.hpp"
 #include "utils/lexer_token.hpp"
 #include "utils/logging.hpp"
-#include "utils/matrix.hpp"
 #include "utils/options.hpp"
-#include "utils/random.hpp"
 #include "utils/serializer.hpp"
 #include "utils/utils.hpp"
 #include "utils/xml_document.hpp"

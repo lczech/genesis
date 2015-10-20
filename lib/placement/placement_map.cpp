@@ -21,7 +21,6 @@
 #include "tree/default/distances.hpp"
 #include "tree/tree_view.hpp"
 #include "utils/logging.hpp"
-#include "utils/matrix.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {

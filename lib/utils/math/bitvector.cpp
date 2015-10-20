@@ -5,7 +5,7 @@
  * @ingroup utils
  */
 
-#include "utils/bitvector.hpp"
+#include "utils/math/bitvector.hpp"
 
 #include <algorithm>
 #include <assert.h>

@@ -11,7 +11,7 @@
 #include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
-#include "utils/bitvector.hpp"
+#include "utils/math/bitvector.hpp"
 
 namespace genesis {
 

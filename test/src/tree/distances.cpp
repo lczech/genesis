@@ -14,7 +14,7 @@
 #include "lib/tree/distances.hpp"
 #include "lib/tree/newick_processor.hpp"
 #include "lib/tree/tree.hpp"
-#include "lib/utils/matrix.hpp"
+#include "lib/utils/math/matrix.hpp"
 
 using namespace genesis;
 

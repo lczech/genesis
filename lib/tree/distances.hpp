@@ -12,7 +12,7 @@
 
 #include "tree/tree.hpp"
 #include "tree/tree_edge.hpp"
-#include "utils/matrix.hpp"
+#include "utils/math/matrix.hpp"
 
 namespace genesis {
 

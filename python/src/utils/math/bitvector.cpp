@@ -7,9 +7,9 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/utils/bitvector.hpp"
+#include "lib/utils/math/bitvector.hpp"
 
-PYTHON_EXPORT_CLASS (Bitvector, "utils")
+PYTHON_EXPORT_CLASS (Bitvector, "utils.math")
 {
     boost::python::class_< ::genesis::Bitvector >( "Bitvector", boost::python::init< long unsigned int, boost::python::optional< bool > >(( boost::python::arg("size"), boost::python::arg("init")=(bool const)(false) )) )
 
