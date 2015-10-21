@@ -88,6 +88,24 @@ bool file_write (const std::string& fn, const std::string& content)
 }
 
 /**
+ * @brief Appends the content of a string to a file.
+ */
+bool file_append (const std::string& fn, const std::string& content)
+{
+    // TODO check if path exists, create if not (make a function for that)
+    // TODO check if file exists, trigger warning?, check if writable
+    // TODO maybe merge with file_write and use mode as optional parameter.
+
+    std::ofstream outfile(fn, std::ofstream::app);
+    if (!outfile.good()) {
+        LOG_WARN << "Cannot write to file '" << fn << "'.";
+        return false;
+    }
+    outfile << content;
+    return true;
+}
+
+/**
  * @brief Return true iff the directory exists.
  */
 bool dir_exists (const std::string& dir)
