@@ -100,6 +100,4 @@ doc/dev/*.pdf
 .*
 *~
 *.swp
-core
-genesis
 TODO
