@@ -11,6 +11,7 @@
 
 #include "utils/json_document.hpp"
 #include "utils/logging.hpp"
+#include "utils/string.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {

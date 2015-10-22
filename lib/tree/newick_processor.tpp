@@ -13,6 +13,7 @@
 #include "tree/tree.hpp"
 #include "tree/tree_set.hpp"
 #include "utils/logging.hpp"
+#include "utils/string.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {
