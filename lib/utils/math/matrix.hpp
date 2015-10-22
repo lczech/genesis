@@ -23,9 +23,17 @@ class Matrix
 {
 public:
 
+    // -------------------------------------------------------------
+    //     Typedefs
+    // -------------------------------------------------------------
+
     typedef T                                       value_type;
     typedef typename std::vector<T>::iterator       iterator;
     typedef typename std::vector<T>::const_iterator const_iterator;
+
+    // -------------------------------------------------------------
+    //     Constructors
+    // -------------------------------------------------------------
 
     Matrix (size_t rows, size_t cols) :
         rows_(rows),
@@ -55,6 +63,10 @@ public:
         }
     }
 
+    // -------------------------------------------------------------
+    //     Accessors
+    // -------------------------------------------------------------
+
     inline size_t rows() const
     {
         return rows_;
@@ -69,6 +81,20 @@ public:
     {
         return rows_ * cols_;
     }
+
+    inline T& operator () (const size_t row, const size_t col)
+    {
+        return data_[row * cols_ + col];
+    }
+
+    inline const T operator () (const size_t row, const size_t col) const
+    {
+        return data_[row * cols_ + col];
+    }
+
+    // -------------------------------------------------------------
+    //     Iterators
+    // -------------------------------------------------------------
 
     inline iterator begin()
     {
@@ -90,15 +116,9 @@ public:
         return data_.end();
     }
 
-    inline T& operator () (const size_t row, const size_t col)
-    {
-        return data_[row * cols_ + col];
-    }
-
-    inline const T operator () (const size_t row, const size_t col) const
-    {
-        return data_[row * cols_ + col];
-    }
+    // -------------------------------------------------------------
+    //     Dump and Debug
+    // -------------------------------------------------------------
 
     inline std::string dump()
     {
@@ -112,6 +132,10 @@ public:
         return out.str();
     }
 
+    // -------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------
+
 protected:
 
     size_t         rows_;
@@ -123,8 +147,8 @@ protected:
 //     Operators
 // =================================================================================================
 
-template <typename value_type>
-bool operator == (const Matrix<value_type>& lhs, const Matrix<value_type>& rhs)
+template <typename T>
+bool operator == (const Matrix<T>& lhs, const Matrix<T>& rhs)
 {
     if (lhs.rows() != rhs.rows() || lhs.cols() != rhs.cols()) {
         return false;
@@ -141,8 +165,8 @@ bool operator == (const Matrix<value_type>& lhs, const Matrix<value_type>& rhs)
     return true;
 }
 
-template <typename value_type>
-bool operator != (const Matrix<value_type>& lhs, const Matrix<value_type>& rhs)
+template <typename T>
+bool operator != (const Matrix<T>& lhs, const Matrix<T>& rhs)
 {
     return !(lhs == rhs);
 }
