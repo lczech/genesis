@@ -31,8 +31,6 @@
 #include "placement/serializer.hpp"
 #include "placement/simulator.hpp"
 
-#include "tree/bipartition.hpp"
-#include "tree/bipartition_set.hpp"
 #include "tree/default_tree.hpp"
 #include "tree/default_tree_newick_adapter.hpp"
 #include "tree/default_tree_phyloxml_adapter.hpp"
