@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_BIPARTITION_SET_H_
-#define GENESIS_TREE_BIPARTITION_SET_H_
+#ifndef GENESIS_TREE_BIPARTITION_BIPARTITION_SET_H_
+#define GENESIS_TREE_BIPARTITION_BIPARTITION_SET_H_
 
 /**
  * @brief
@@ -11,11 +11,11 @@
 #include <string>
 #include <vector>
 
-#include "tree/bipartition.hpp"
+#include "tree/bipartition/bipartition.hpp"
 
 namespace genesis {
 
-template <class NodeDataType, class EdgeDataType>
+template <typename Tree>
 class BipartitionSet
 {
 public:
@@ -24,14 +24,14 @@ public:
     //     Declarations and Constructor
     // -------------------------------------------------------------
 
-    typedef Bipartition <NodeDataType, EdgeDataType> BipartitionType;
+    typedef Bipartition <Tree> BipartitionType;
 
-    typedef Tree        <NodeDataType, EdgeDataType> TreeType;
-    typedef TreeLink    <NodeDataType, EdgeDataType> LinkType;
-    typedef TreeNode    <NodeDataType, EdgeDataType> NodeType;
-    typedef TreeEdge    <NodeDataType, EdgeDataType> EdgeType;
+    typedef Tree                    TreeType;
+    typedef typename Tree::NodeType NodeType;
+    typedef typename Tree::LinkType LinkType;
+    typedef typename Tree::EdgeType EdgeType;
 
-    BipartitionSet (const TreeType* tree) : tree_(tree) {};
+    BipartitionSet (const TreeType& tree) : tree_(tree) {};
 
     // -------------------------------------------------------------
     //     Member Functions
@@ -52,7 +52,7 @@ public:
 
 protected:
 
-    const TreeType*              tree_;
+    const TreeType&              tree_;
 
     std::vector<int>             node_to_leaf_map_;
     std::vector<size_t>          leaf_to_node_map_;
@@ -68,6 +68,6 @@ protected:
 // =============================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/bipartition_set.tpp"
+#include "tree/bipartition/bipartition_set.tpp"
 
 #endif // include guard

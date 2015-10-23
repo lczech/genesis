@@ -17,7 +17,7 @@
 #include "python/src/tree/tree_link.hpp"
 #include "python/src/tree/tree_node.hpp"
 
-#include "python/src/tree/tree_iterator.hpp"
+#include "python/src/tree/iterators.hpp"
 
 
     /*
@@ -42,7 +42,7 @@ void BoostPythonExport_Tree (std::string name)
     BoostPythonExport_TreeLink<NodeDataType, EdgeDataType>(name + "Link");
     BoostPythonExport_TreeNode<NodeDataType, EdgeDataType>(name + "Node");
 
-    BoostPythonExport_BipartitionSet<NodeDataType, EdgeDataType>("BipartitionSet" + name);
+    BoostPythonExport_BipartitionSet<TreeType>("BipartitionSet" + name);
 
     BoostPythonExport_TreeIterators<TreeType>(name);
 

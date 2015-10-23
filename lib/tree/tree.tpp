@@ -13,6 +13,7 @@
 
 #include "tree/distances.hpp"
 #include "utils/logging.hpp"
+#include "utils/string.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {

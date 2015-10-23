@@ -11,7 +11,7 @@
 #include <python/src/common.hpp>
 
 #include "lib/tree/tree.hpp"
-#include "lib/tree/tree_iterator.hpp"
+#include "lib/tree/iterators.hpp"
 
 // =============================================================================
 //     Tree Iterator Eulertour

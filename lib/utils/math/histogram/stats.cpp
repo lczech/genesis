@@ -13,6 +13,8 @@
 #include <iterator>
 #include <numeric>
 
+#include "utils/math/histogram.hpp"
+
 namespace genesis {
 
 // =================================================================================================

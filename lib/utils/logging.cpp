@@ -16,6 +16,7 @@
 #    include <mutex>
 #endif
 
+#include "utils/string.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {

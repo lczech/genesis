@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_BIPARTITION_H_
-#define GENESIS_TREE_BIPARTITION_H_
+#ifndef GENESIS_TREE_BIPARTITION_BIPARTITION_H_
+#define GENESIS_TREE_BIPARTITION_BIPARTITION_H_
 
 /**
  * @brief
@@ -19,14 +19,14 @@ namespace genesis {
 //     Forward Declarations
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
+template <typename Tree>
 class BipartitionSet;
 
 // =============================================================================
 //     Bipartition
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
+template <typename Tree>
 class Bipartition
 {
 public:
@@ -35,13 +35,13 @@ public:
     //     Declarations and Constructor
     // -------------------------------------------------------------
 
-    typedef BipartitionSet<NodeDataType, EdgeDataType> BipartitionSetType;
+    typedef BipartitionSet<Tree> BipartitionSetType;
     friend  BipartitionSetType;
 
-    typedef Tree     <NodeDataType, EdgeDataType> TreeType;
-    typedef TreeLink <NodeDataType, EdgeDataType> LinkType;
-    typedef TreeNode <NodeDataType, EdgeDataType> NodeType;
-    typedef TreeEdge <NodeDataType, EdgeDataType> EdgeType;
+    typedef Tree                    TreeType;
+    typedef typename Tree::NodeType NodeType;
+    typedef typename Tree::LinkType LinkType;
+    typedef typename Tree::EdgeType EdgeType;
 
     Bipartition (size_t num_leaves) : leaf_nodes_(Bitvector(num_leaves)), link_(nullptr) {};
 

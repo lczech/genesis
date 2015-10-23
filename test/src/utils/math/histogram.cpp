@@ -7,7 +7,7 @@
 
 #include "common.hpp"
 
-#include "lib/utils/math/histogram/histogram.hpp"
+#include "lib/utils/math/histogram.hpp"
 #include "lib/utils/math/histogram/distances.hpp"
 #include "lib/utils/math/histogram/stats.hpp"
 

@@ -11,6 +11,8 @@
 #include <cmath>
 #include <vector>
 
+#include "utils/math/histogram.hpp"
+
 namespace genesis {
 
 // =================================================================================================

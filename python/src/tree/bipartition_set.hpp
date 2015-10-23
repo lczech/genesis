@@ -9,24 +9,24 @@
  */
 
 #include <python/src/common.hpp>
-#include "lib/tree/bipartition_set.hpp"
+#include "lib/tree/bipartition/bipartition_set.hpp"
 
-template <class NodeDataType, class EdgeDataType>
+template <typename Tree>
 void BoostPythonExport_BipartitionSet(std::string name)
 {
-    typedef ::genesis::Tree          <NodeDataType, EdgeDataType> TreeType;
-    typedef ::genesis::TreeEdge      <NodeDataType, EdgeDataType> EdgeType;
-    typedef ::genesis::TreeLink      <NodeDataType, EdgeDataType> LinkType;
-    typedef ::genesis::TreeNode      <NodeDataType, EdgeDataType> NodeType;
+    typedef Tree                    TreeType;
+    typedef typename Tree::NodeType NodeType;
+    typedef typename Tree::LinkType LinkType;
+    typedef typename Tree::EdgeType EdgeType;
 
-    typedef ::genesis::Bipartition   <NodeDataType, EdgeDataType> BipartitionType;
-    typedef ::genesis::BipartitionSet<NodeDataType, EdgeDataType> BipartitionSetType;
+    typedef ::genesis::Bipartition   <TreeType> BipartitionType;
+    typedef ::genesis::BipartitionSet<TreeType> BipartitionSetType;
 
     // -------------------------------------------------------------------
     //     Class BipartitionSet
     // -------------------------------------------------------------------
 
-    boost::python::class_< BipartitionSetType > ( name.c_str() , boost::python::init< const TreeType * >(( boost::python::arg("tree") )) )
+    boost::python::class_< BipartitionSetType > ( name.c_str() , boost::python::init< const TreeType& >(( boost::python::arg("tree") )) )
 
         // Public Member Functions
         .def(
