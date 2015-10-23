@@ -6,6 +6,7 @@
  */
 
 #include "placement/pquery.hpp"
+#include "utils/core/std.hpp"
 
 namespace genesis {
 
