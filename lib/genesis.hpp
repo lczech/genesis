@@ -43,7 +43,7 @@
 #include "tree/phyloxml_processor.hpp"
 #include "tree/tree.hpp"
 #include "tree/tree_edge.hpp"
-#include "tree/tree_iterator.hpp"
+#include "tree/iterators.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
 #include "tree/tree_node_iterator.hpp"

@@ -17,7 +17,7 @@
 #include "python/src/tree/tree_link.hpp"
 #include "python/src/tree/tree_node.hpp"
 
-#include "python/src/tree/tree_iterator.hpp"
+#include "python/src/tree/iterators.hpp"
 
 
     /*

@@ -619,6 +619,6 @@ protected:
 #include "tree/tree.tpp"
 
 // Also include the iterator classes, they are good friends of ours.
-#include "tree/tree_iterator.hpp"
+#include "tree/iterators.hpp"
 
 #endif // include guard
