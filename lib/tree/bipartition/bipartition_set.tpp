@@ -19,15 +19,15 @@ namespace genesis {
 template <typename Tree>
 void BipartitionSet<Tree>::make()
 {
-    const size_t num_leaves = tree_->leaf_count();
+    const size_t num_leaves = tree_.leaf_count();
     make_index();
 
     bipartitions_.clear();
-    bipartitions_.resize(tree_->node_count(), BipartitionType(num_leaves));
+    bipartitions_.resize(tree_.node_count(), BipartitionType(num_leaves));
 
     for (
-        auto it = tree_->begin_postorder();
-        it != tree_->end_postorder();
+        auto it = tree_.begin_postorder();
+        it != tree_.end_postorder();
         ++it
     ) {
         if (it.is_last_iteration()) {
@@ -56,12 +56,12 @@ void BipartitionSet<Tree>::make_index()
 {
     leaf_to_node_map_.clear();
     node_to_leaf_map_.clear();
-    node_to_leaf_map_.resize(tree_->node_count());
+    node_to_leaf_map_.resize(tree_.node_count());
 
     size_t leaf_idx = 0;
     for (
-        auto it = tree_->begin_nodes();
-        it != tree_->end_nodes();
+        auto it = tree_.begin_nodes();
+        it != tree_.end_nodes();
         ++it
     ) {
         if ((*it)->is_leaf()) {
@@ -89,7 +89,7 @@ BipartitionSet<Tree>::find_smallest_subtree (
     std::vector<BipartitionSet<Tree>::NodeType*> nodes
 ) {
     make();
-    Bitvector comp(tree_->leaf_count());
+    Bitvector comp(tree_.leaf_count());
 
     // make bitvector containing all wanted nodes.
     for (NodeType* n : nodes) {
@@ -140,8 +140,8 @@ BipartitionSet<Tree>::get_subtree_edges (
     std::vector<const EdgeType*> ret;
 
     for (
-        typename TreeType::ConstIteratorPreorder it = tree_->begin_preorder(subtree->next());
-        it != tree_->end_preorder() && it.link() != subtree->outer();
+        auto it = tree_.begin_preorder(subtree->next());
+        it != tree_.end_preorder() && it.link() != subtree->outer();
         ++it
     ) {
         if (it.node()->is_leaf()) {
@@ -153,10 +153,10 @@ BipartitionSet<Tree>::get_subtree_edges (
         ret.push_back(it.edge());
     }
 
-    LOG_DBG << "leaf nodes of subtree:";
-    for (std::string s : leaf_names) {
-        LOG_DBG1 << s;
-    }
+    // LOG_DBG << "leaf nodes of subtree:";
+    // for (std::string s : leaf_names) {
+    //     LOG_DBG1 << s;
+    // }
 
     return ret;
 }

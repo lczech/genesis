@@ -31,7 +31,7 @@ public:
     typedef typename Tree::LinkType LinkType;
     typedef typename Tree::EdgeType EdgeType;
 
-    BipartitionSet (const TreeType* tree) : tree_(tree) {};
+    BipartitionSet (const TreeType& tree) : tree_(tree) {};
 
     // -------------------------------------------------------------
     //     Member Functions
@@ -52,7 +52,7 @@ public:
 
 protected:
 
-    const TreeType*              tree_;
+    const TreeType&              tree_;
 
     std::vector<int>             node_to_leaf_map_;
     std::vector<size_t>          leaf_to_node_map_;
