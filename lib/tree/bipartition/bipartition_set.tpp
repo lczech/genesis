@@ -8,7 +8,7 @@
 #include <assert.h>
 
 #include "tree/bipartition/bipartition_set.hpp"
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 
 namespace genesis {
 

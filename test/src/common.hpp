@@ -10,7 +10,7 @@
 
 #include <gtest/gtest.h>
 
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 
 /**
  * @brief Macro to be used in test bodies that depend on the data directory.

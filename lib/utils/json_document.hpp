@@ -14,7 +14,7 @@
 #include <unordered_map>
 #include <vector>
 
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {

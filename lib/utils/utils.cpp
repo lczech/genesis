@@ -15,7 +15,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 
 namespace genesis {
 

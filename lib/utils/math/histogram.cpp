@@ -13,7 +13,7 @@
 #include <iterator>
 #include <numeric>
 
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 
 namespace genesis {
 

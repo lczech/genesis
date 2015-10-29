@@ -7,7 +7,7 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/utils/logging.hpp"
+#include "lib/utils/core/logging.hpp"
 
 PYTHON_EXPORT_CLASS (Logging, "utils")
 {

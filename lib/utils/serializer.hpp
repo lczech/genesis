@@ -14,7 +14,7 @@
 #include <fstream>
 #include <string>
 
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 
 namespace genesis {
 

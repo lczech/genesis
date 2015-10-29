@@ -7,7 +7,7 @@
 
 #include "utils/xml_document.hpp"
 
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 
 namespace genesis {
 

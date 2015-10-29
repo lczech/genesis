@@ -14,7 +14,7 @@
 
 #include "tree/distances.hpp"
 #include "tree/default/distances.hpp"
-#include "utils/options.hpp"
+#include "utils/core/options.hpp"
 
 namespace genesis {
 

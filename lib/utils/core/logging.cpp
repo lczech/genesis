@@ -5,7 +5,7 @@
  * @ingroup utils
  */
 
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 
 #include <fstream>
 #include <iomanip>

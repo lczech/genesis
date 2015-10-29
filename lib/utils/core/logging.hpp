@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_LOGGING_H_
-#define GENESIS_UTILS_LOGGING_H_
+#ifndef GENESIS_UTILS_CORE_LOGGING_H_
+#define GENESIS_UTILS_CORE_LOGGING_H_
 
 /**
  * @brief Provides easy and fast logging functionality.
@@ -535,7 +535,7 @@ public:
     {
         Logging::max_level(previous_level);
     }
-    
+
 private:
     Logging::LoggingLevel previous_level;
 };

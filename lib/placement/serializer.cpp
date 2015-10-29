@@ -10,7 +10,7 @@
 #include "placement/placement_map.hpp"
 #include "placement/newick_adapter.hpp"
 #include "tree/newick_processor.hpp"
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 #include "utils/serializer.hpp"
 
 namespace genesis {

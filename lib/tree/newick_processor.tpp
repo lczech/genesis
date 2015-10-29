@@ -12,9 +12,9 @@
 #include "tree/newick_broker.hpp"
 #include "tree/tree.hpp"
 #include "tree/tree_set.hpp"
-#include "utils/logging.hpp"
-#include "utils/string.hpp"
+#include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
+#include "utils/string.hpp"
 
 namespace genesis {
 

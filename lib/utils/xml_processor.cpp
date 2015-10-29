@@ -9,10 +9,10 @@
 
 #include "assert.h"
 
-#include "utils/xml_document.hpp"
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 #include "utils/string.hpp"
 #include "utils/utils.hpp"
+#include "utils/xml_document.hpp"
 
 namespace genesis {
 
