@@ -20,7 +20,7 @@ echo "" >> genesis.hpp
 
 for d in `ls -v -d */`
 do
-    for f in `ls -v ${d}*.hpp`
+    for f in `find ${d} -name "*.hpp" | sort`
     do
         echo "#include \"${f}\"" >> genesis.hpp
     done
