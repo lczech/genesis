@@ -5,7 +5,7 @@
  * @ingroup utils
  */
 
-#include "utils/lexer.hpp"
+#include "utils/io/lexer.hpp"
 
 #include <assert.h>
 #include <cstring>

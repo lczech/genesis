@@ -8,7 +8,7 @@
  * @ingroup utils
  */
 
-#include "utils/lexer.hpp"
+#include "utils/io/lexer.hpp"
 
 namespace genesis {
 

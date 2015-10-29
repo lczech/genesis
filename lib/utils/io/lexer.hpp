@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "utils/lexer_token.hpp"
+#include "utils/io/lexer_token.hpp"
 
 namespace genesis {
 
@@ -482,6 +482,6 @@ private:
 //     Lexer Iterator
 // =============================================================================
 
-#include "utils/lexer_iterator.hpp"
+#include "utils/io/lexer_iterator.hpp"
 
 #endif // include guard

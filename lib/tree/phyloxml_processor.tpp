@@ -15,8 +15,8 @@
 #include "tree/tree.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
-#include "utils/xml_document.hpp"
-#include "utils/xml_processor.hpp"
+#include "utils/io/xml_document.hpp"
+#include "utils/io/xml_processor.hpp"
 
 namespace genesis {
 

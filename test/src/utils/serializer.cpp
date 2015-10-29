@@ -10,7 +10,7 @@
 #include <cstdio>
 #include <string>
 
-#include "lib/utils/serializer.hpp"
+#include "lib/utils/io/serializer.hpp"
 
 using namespace genesis;
 

@@ -18,8 +18,8 @@
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
 #include "utils/core/std.hpp"
-#include "utils/json_document.hpp"
-#include "utils/json_processor.hpp"
+#include "utils/io/json_document.hpp"
+#include "utils/io/json_processor.hpp"
 #include "utils/utils.hpp"
 
 namespace genesis {

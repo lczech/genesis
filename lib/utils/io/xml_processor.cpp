@@ -5,14 +5,14 @@
  * @ingroup utils
  */
 
-#include "utils/xml_processor.hpp"
+#include "utils/io/xml_processor.hpp"
 
 #include "assert.h"
 
 #include "utils/core/logging.hpp"
+#include "utils/io/xml_document.hpp"
 #include "utils/string.hpp"
 #include "utils/utils.hpp"
-#include "utils/xml_document.hpp"
 
 namespace genesis {
 

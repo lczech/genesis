@@ -5,12 +5,12 @@
  * @ingroup utils
  */
 
-#include "utils/json_processor.hpp"
+#include "utils/io/json_processor.hpp"
 
 #include <assert.h>
 
 #include "utils/core/logging.hpp"
-#include "utils/json_document.hpp"
+#include "utils/io/json_document.hpp"
 #include "utils/string.hpp"
 #include "utils/utils.hpp"
 

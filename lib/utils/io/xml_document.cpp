@@ -5,7 +5,7 @@
  * @ingroup utils
  */
 
-#include "utils/xml_document.hpp"
+#include "utils/io/xml_document.hpp"
 
 #include "utils/core/logging.hpp"
 

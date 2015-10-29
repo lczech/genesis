@@ -11,9 +11,9 @@
 #include <string>
 
 #include "tree/phyloxml_processor.hpp"
-#include "utils/tools/color.hpp"
 #include "utils/core/std.hpp"
-#include "utils/xml_document.hpp"
+#include "utils/io/xml_document.hpp"
+#include "utils/tools/color.hpp"
 
 namespace genesis {
 

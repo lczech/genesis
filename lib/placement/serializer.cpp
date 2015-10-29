@@ -11,7 +11,7 @@
 #include "placement/newick_adapter.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/core/logging.hpp"
-#include "utils/serializer.hpp"
+#include "utils/io/serializer.hpp"
 
 namespace genesis {
 

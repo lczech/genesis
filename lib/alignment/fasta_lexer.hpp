@@ -10,7 +10,7 @@
 
 #include <assert.h>
 
-#include "utils/lexer.hpp"
+#include "utils/io/lexer.hpp"
 
 namespace genesis {
 

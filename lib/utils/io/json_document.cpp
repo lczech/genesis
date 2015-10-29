@@ -5,7 +5,7 @@
  * @ingroup utils
  */
 
-#include "utils/json_document.hpp"
+#include "utils/io/json_document.hpp"
 
 #include "utils/core/logging.hpp"
 
