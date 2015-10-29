@@ -11,7 +11,8 @@
 #include "placement/placement_map.hpp"
 #include "placement/placement_tree.hpp"
 #include "tree/default_tree_phyloxml_adapter.hpp"
-#include "utils/color.hpp"
+#include "utils/tools/color.hpp"
+#include "utils/tools/color/gradient.hpp"
 
 namespace genesis {
 
@@ -41,7 +42,7 @@ public:
 
         Color edge_color (128,128,128);
         if (max_placements_per_edge > 0 && it.edge()->data.placements.size() > 0) {
-            edge_color = Color::heat_gradient(
+            edge_color = heat_gradient(
                 log(it.edge()->data.placements.size()) / log(max_placements_per_edge)
             );
         }

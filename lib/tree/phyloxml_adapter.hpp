@@ -11,7 +11,7 @@
 #include <string>
 
 #include "tree/phyloxml_processor.hpp"
-#include "utils/color.hpp"
+#include "utils/tools/color.hpp"
 #include "utils/core/std.hpp"
 #include "utils/xml_document.hpp"
 
@@ -86,7 +86,7 @@ protected:
 
     inline void set_color (Color color, XmlElement* clade)
     {
-        set_color (color.r, color.g, color.b, clade);
+        set_color (color.r(), color.g(), color.b(), clade);
     }
 
 };
