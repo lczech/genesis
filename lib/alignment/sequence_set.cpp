@@ -11,6 +11,7 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "alignment/sequence.hpp"
 #include "utils/core/logging.hpp"
 
 namespace genesis {

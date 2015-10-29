@@ -5,11 +5,12 @@
  * @ingroup alignment
  */
 
-#include "alignment/phylip_processor.hpp"
+#include "alignment/io/phylip_processor.hpp"
 
 #include <sstream>
 
-#include "alignment/phylip_lexer.hpp"
+#include "alignment/io/phylip_lexer.hpp"
+#include "alignment/sequence.hpp"
 #include "alignment/sequence_set.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/utils.hpp"

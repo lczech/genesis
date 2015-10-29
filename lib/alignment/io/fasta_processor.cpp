@@ -5,12 +5,13 @@
  * @ingroup alignment
  */
 
-#include "alignment/fasta_processor.hpp"
+#include "alignment/io/fasta_processor.hpp"
 
 #include <sstream>
 #include <string>
 
-#include "alignment/fasta_lexer.hpp"
+#include "alignment/io/fasta_lexer.hpp"
+#include "alignment/sequence.hpp"
 #include "alignment/sequence_set.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/utils.hpp"
