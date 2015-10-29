@@ -10,8 +10,8 @@
 #include <memory>
 
 #include "lib/placement/functions.hpp"
-#include "lib/placement/jplace_processor.hpp"
-#include "lib/placement/newick_adapter.hpp"
+#include "lib/placement/io/jplace_processor.hpp"
+#include "lib/placement/io/newick_adapter.hpp"
 #include "lib/placement/placement_map.hpp"
 #include "lib/tree/newick_processor.hpp"
 

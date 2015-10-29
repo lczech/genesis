@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "lib/placement/newick_adapter.hpp"
+#include "lib/placement/io/newick_adapter.hpp"
 #include "lib/placement/placement_map.hpp"
 #include "lib/placement/simulator.hpp"
 #include "lib/tree/newick_processor.hpp"

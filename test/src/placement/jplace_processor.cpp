@@ -9,7 +9,7 @@
 
 #include <string>
 
-#include "lib/placement/jplace_processor.hpp"
+#include "lib/placement/io/jplace_processor.hpp"
 #include "lib/placement/placement_map.hpp"
 
 using namespace genesis;

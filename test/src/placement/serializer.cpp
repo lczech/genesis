@@ -11,9 +11,9 @@
 #include <memory>
 #include <string>
 
-#include "lib/placement/jplace_processor.hpp"
+#include "lib/placement/io/jplace_processor.hpp"
 #include "lib/placement/placement_map.hpp"
-#include "lib/placement/serializer.hpp"
+#include "lib/placement/io/serializer.hpp"
 #include "lib/tree/newick_processor.hpp"
 
 using namespace genesis;

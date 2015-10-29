@@ -7,7 +7,7 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/placement/jplace_processor.hpp"
+#include "lib/placement/io/jplace_processor.hpp"
 #include "lib/placement/placement_map.hpp"
 
 PYTHON_EXPORT_CLASS (JplaceProcessor, "placement")

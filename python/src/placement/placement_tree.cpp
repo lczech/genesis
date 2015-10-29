@@ -7,8 +7,8 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/placement/newick_adapter.hpp"
-#include "lib/placement/phyloxml_adapter.hpp"
+#include "lib/placement/io/newick_adapter.hpp"
+#include "lib/placement/io/phyloxml_adapter.hpp"
 #include "lib/placement/placement_tree.hpp"
 
 #include "python/src/tree/newick_processor.hpp"

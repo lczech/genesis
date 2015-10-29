@@ -5,15 +5,15 @@
  * @ingroup placement
  */
 
-#include "placement/jplace_processor.hpp"
+#include "placement/io/jplace_processor.hpp"
 
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "placement/newick_adapter.hpp"
-#include "placement/placement_map.hpp"
+#include "placement/io/newick_adapter.hpp"
 #include "placement/placement_map_set.hpp"
+#include "placement/placement_map.hpp"
 #include "tree/newick_processor.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
