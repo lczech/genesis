@@ -236,12 +236,12 @@ public:
         return IteratorEulertour(root_link());
     }
 
-    inline IteratorEulertour begin_eulertour(const LinkType* link)
+    inline IteratorEulertour begin_eulertour(LinkType* link)
     {
         return IteratorEulertour(link);
     }
 
-    inline IteratorEulertour begin_eulertour(const NodeType* node)
+    inline IteratorEulertour begin_eulertour(NodeType* node)
     {
         return IteratorEulertour(node->primary_link());
         // return IteratorEulertour(node);
@@ -291,12 +291,12 @@ public:
         return IteratorPreorder(root_link());
     }
 
-    inline IteratorPreorder begin_preorder(const LinkType* link)
+    inline IteratorPreorder begin_preorder(LinkType* link)
     {
         return IteratorPreorder(link);
     }
 
-    inline IteratorPreorder begin_preorder(const NodeType* node)
+    inline IteratorPreorder begin_preorder(NodeType* node)
     {
         return IteratorPreorder(node->primary_link());
     }
@@ -341,12 +341,12 @@ public:
         //~ return IteratorInorder(root_link());
     //~ }
 //~
-    //~ inline IteratorInorder begin_inorder(const LinkType* link)
+    //~ inline IteratorInorder begin_inorder(LinkType* link)
     //~ {
         //~ return IteratorInorder(link);
     //~ }
 //~
-    //~ inline IteratorInorder begin_inorder(const NodeType* node)
+    //~ inline IteratorInorder begin_inorder(NodeType* node)
     //~ {
         //~ return IteratorInorder(node->primary_link());
     //~ }
@@ -391,12 +391,12 @@ public:
         return IteratorPostorder(root_link());
     }
 
-    inline IteratorPostorder begin_postorder(const LinkType* link)
+    inline IteratorPostorder begin_postorder(LinkType* link)
     {
         return IteratorPostorder(link);
     }
 
-    inline IteratorPostorder begin_postorder(const NodeType* node)
+    inline IteratorPostorder begin_postorder(NodeType* node)
     {
         return IteratorPostorder(node->primary_link());
     }
@@ -441,12 +441,12 @@ public:
         return IteratorLevelorder(root_link());
     }
 
-    inline IteratorLevelorder begin_levelorder(const LinkType* link)
+    inline IteratorLevelorder begin_levelorder(LinkType* link)
     {
         return IteratorLevelorder(link);
     }
 
-    inline IteratorLevelorder begin_levelorder(const NodeType* node)
+    inline IteratorLevelorder begin_levelorder(NodeType* node)
     {
         return IteratorLevelorder(node->primary_link());
     }

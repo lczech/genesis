@@ -26,7 +26,7 @@ void BoostPythonExport_BipartitionSet(std::string name)
     //     Class BipartitionSet
     // -------------------------------------------------------------------
 
-    boost::python::class_< BipartitionSetType > ( name.c_str() , boost::python::init< const TreeType& >(( boost::python::arg("tree") )) )
+    boost::python::class_< BipartitionSetType > ( name.c_str() , boost::python::init< TreeType& >(( boost::python::arg("tree") )) )
 
         // Public Member Functions
         .def(
@@ -42,7 +42,7 @@ void BoostPythonExport_BipartitionSet(std::string name)
         )
         .def(
             "get_subtree_edges",
-            ( std::vector< const EdgeType * > ( BipartitionSetType::* )( const LinkType * ))( &BipartitionSetType::get_subtree_edges ),
+            ( std::vector< EdgeType * > ( BipartitionSetType::* )( LinkType * ))( &BipartitionSetType::get_subtree_edges ),
             ( boost::python::arg("subtree") )
         )
         .def(

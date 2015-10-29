@@ -132,12 +132,12 @@ BipartitionSet<Tree>::find_smallest_subtree (
 }
 
 template <typename Tree>
-std::vector<typename BipartitionSet<Tree>::EdgeType const *>
+std::vector<typename BipartitionSet<Tree>::EdgeType *>
 BipartitionSet<Tree>::get_subtree_edges (
-    const BipartitionSet<Tree>::LinkType* subtree
+    BipartitionSet<Tree>::LinkType* subtree
 ) {
     std::vector<std::string> leaf_names;
-    std::vector<const EdgeType*> ret;
+    std::vector<EdgeType*> ret;
 
     for (
         auto it = tree_.begin_preorder(subtree->next());
