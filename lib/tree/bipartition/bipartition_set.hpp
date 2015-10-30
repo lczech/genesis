@@ -9,6 +9,7 @@
  */
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "tree/bipartition/bipartition.hpp"
@@ -40,8 +41,8 @@ public:
     void make();
     void make_index();
 
-    BipartitionType*       find_smallest_subtree (std::vector<NodeType*> nodes);
-    std::vector<EdgeType*> get_subtree_edges     (LinkType*              subtree);
+    BipartitionType*              find_smallest_subtree (std::vector<NodeType*> nodes);
+    std::unordered_set<EdgeType*> get_subtree_edges     (LinkType*              subtree);
 
     bool        validate();
     std::string dump();
