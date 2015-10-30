@@ -11,7 +11,6 @@
 #include <string>
 #include <vector>
 
-#include "tree/newick_processor.hpp"
 #include "tree/tree.hpp"
 
 namespace genesis {

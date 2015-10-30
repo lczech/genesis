@@ -9,7 +9,7 @@
 
 #include "placement/io/newick_adapter.hpp"
 #include "placement/placement_map.hpp"
-#include "tree/newick_processor.hpp"
+#include "tree/io/newick_processor.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/io/serializer.hpp"
 

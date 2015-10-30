@@ -10,7 +10,7 @@
 #include <string>
 
 #include "lib/tree/default_tree_newick_adapter.hpp"
-#include "lib/tree/newick_processor.hpp"
+#include "lib/tree/io/newick_processor.hpp"
 #include "lib/tree/tree.hpp"
 
 using namespace genesis;

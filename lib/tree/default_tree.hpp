@@ -10,8 +10,6 @@
 
 #include <string>
 
-#include "tree/newick_broker.hpp"
-
 namespace genesis {
 
 // =============================================================================

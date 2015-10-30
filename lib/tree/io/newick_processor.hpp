@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_NEWICK_PROCESSOR_H_
-#define GENESIS_TREE_NEWICK_PROCESSOR_H_
+#ifndef GENESIS_TREE_IO_NEWICK_PROCESSOR_H_
+#define GENESIS_TREE_IO_NEWICK_PROCESSOR_H_
 
 /**
  * @brief
@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include "tree/newick_lexer.hpp"
+#include "tree/io/newick_lexer.hpp"
 
 namespace genesis {
 
@@ -148,6 +148,6 @@ protected:
 // =================================================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/newick_processor.tpp"
+#include "tree/io/newick_processor.tpp"
 
 #endif // include guard

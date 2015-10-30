@@ -5,7 +5,7 @@
  * @ingroup tree
  */
 
-#include "tree/newick_broker.hpp"
+#include "tree/io/newick_broker.hpp"
 
 #include <algorithm>
 #include <string>

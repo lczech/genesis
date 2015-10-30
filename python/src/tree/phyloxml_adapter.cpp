@@ -7,7 +7,7 @@
 
 #include <python/src/common.hpp>
 
-#include "tree/phyloxml_adapter.hpp"
+#include "tree/io/phyloxml_adapter.hpp"
 
 void BoostPythonExport_PhyloxmlAdapter()
 {

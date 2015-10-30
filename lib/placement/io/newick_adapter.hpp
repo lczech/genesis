@@ -12,7 +12,7 @@
 
 #include "placement/placement_tree.hpp"
 #include "tree/default_tree_newick_adapter.hpp"
-#include "tree/newick_processor.hpp"
+#include "tree/io/newick_processor.hpp"
 
 namespace genesis {
 

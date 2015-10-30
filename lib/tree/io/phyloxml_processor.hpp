@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_PHYLOXML_PROCESSOR_H_
-#define GENESIS_TREE_PHYLOXML_PROCESSOR_H_
+#ifndef GENESIS_TREE_IO_PHYLOXML_PROCESSOR_H_
+#define GENESIS_TREE_IO_PHYLOXML_PROCESSOR_H_
 
 /**
  * @brief
@@ -62,6 +62,6 @@ protected:
 // =================================================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/phyloxml_processor.tpp"
+#include "tree/io/phyloxml_processor.tpp"
 
 #endif // include guard

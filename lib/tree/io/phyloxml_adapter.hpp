@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_PHYLOXML_ADAPTER_H_
-#define GENESIS_TREE_PHYLOXML_ADAPTER_H_
+#ifndef GENESIS_TREE_IO_PHYLOXML_ADAPTER_H_
+#define GENESIS_TREE_IO_PHYLOXML_ADAPTER_H_
 
 /**
  * @brief Header of PhyloxmlAdapter class.
@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "tree/phyloxml_processor.hpp"
+#include "tree/io/phyloxml_processor.hpp"
 #include "utils/core/std.hpp"
 #include "utils/io/xml_document.hpp"
 #include "utils/tools/color.hpp"

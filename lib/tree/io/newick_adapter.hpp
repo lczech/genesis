@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_NEWICK_ADAPTER_H_
-#define GENESIS_TREE_NEWICK_ADAPTER_H_
+#ifndef GENESIS_TREE_IO_NEWICK_ADAPTER_H_
+#define GENESIS_TREE_IO_NEWICK_ADAPTER_H_
 
 /**
  * @brief Header of NewickAdapter class.
@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "tree/newick_broker.hpp"
+#include "tree/io/newick_broker.hpp"
 
 namespace genesis {
 
