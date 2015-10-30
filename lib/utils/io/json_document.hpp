@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_JSON_DOCUMENT_H_
-#define GENESIS_UTILS_JSON_DOCUMENT_H_
+#ifndef GENESIS_UTILS_IO_JSON_DOCUMENT_H_
+#define GENESIS_UTILS_IO_JSON_DOCUMENT_H_
 
 /**
  * @brief A collection of classes for working with JSON documents. See JsonDocument for more.

@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_SERIALIZER_H_
-#define GENESIS_PLACEMENT_SERIALIZER_H_
+#ifndef GENESIS_PLACEMENT_IO_SERIALIZER_H_
+#define GENESIS_PLACEMENT_IO_SERIALIZER_H_
 
 /**
  * @brief Header of PlacementMapSerializer class.

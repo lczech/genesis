@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_JSON_PROCESSOR_H_
-#define GENESIS_UTILS_JSON_PROCESSOR_H_
+#ifndef GENESIS_UTILS_IO_JSON_PROCESSOR_H_
+#define GENESIS_UTILS_IO_JSON_PROCESSOR_H_
 
 /**
  * @brief Functions for parsing and printing a JSON document. See JsonProcessor for more.

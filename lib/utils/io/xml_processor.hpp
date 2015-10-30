@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_XML_PROCESSOR_H_
-#define GENESIS_UTILS_XML_PROCESSOR_H_
+#ifndef GENESIS_UTILS_IO_XML_PROCESSOR_H_
+#define GENESIS_UTILS_IO_XML_PROCESSOR_H_
 
 /**
  * @brief Functions for parsing and printing an XML document. See XmlProcessor for more.

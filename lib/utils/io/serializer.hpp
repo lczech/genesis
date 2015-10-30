@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_SERIALIZER_H_
-#define GENESIS_UTILS_SERIALIZER_H_
+#ifndef GENESIS_UTILS_IO_SERIALIZER_H_
+#define GENESIS_UTILS_IO_SERIALIZER_H_
 
 /**
  * @brief Header of Serializer and Deserializer class.
