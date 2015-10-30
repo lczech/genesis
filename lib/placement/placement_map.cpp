@@ -20,7 +20,7 @@
 #include "tree/distances.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/tree_view.hpp"
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
 
 namespace genesis {

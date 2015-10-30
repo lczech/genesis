@@ -11,8 +11,8 @@
 
 #include <assert.h>
 
-#include "utils/logging.hpp"
-#include "utils/options.hpp"
+#include "utils/core/logging.hpp"
+#include "utils/core/options.hpp"
 
 namespace genesis {
 

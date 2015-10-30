@@ -7,7 +7,7 @@
 
 #include "placement/placement_map_set.hpp"
 
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 
 namespace genesis {
 

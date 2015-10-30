@@ -9,8 +9,7 @@
 #include <assert.h>
 
 #include "tree/tree_set.hpp"
-#include "utils/logging.hpp"
-#include "utils/utils.hpp"
+#include "utils/core/logging.hpp"
 
 namespace genesis {
 

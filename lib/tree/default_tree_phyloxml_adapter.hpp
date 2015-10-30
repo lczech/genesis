@@ -9,9 +9,8 @@
  */
 
 #include "tree/default_tree.hpp"
-#include "tree/phyloxml_adapter.hpp"
-#include "utils/utils.hpp"
-#include "utils/xml_document.hpp"
+#include "tree/io/phyloxml_adapter.hpp"
+#include "utils/io/xml_document.hpp"
 
 namespace genesis {
 

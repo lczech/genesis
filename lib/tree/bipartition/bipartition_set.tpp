@@ -8,7 +8,7 @@
 #include <assert.h>
 
 #include "tree/bipartition/bipartition_set.hpp"
-#include "utils/logging.hpp"
+#include "utils/core/logging.hpp"
 
 namespace genesis {
 
@@ -132,12 +132,12 @@ BipartitionSet<Tree>::find_smallest_subtree (
 }
 
 template <typename Tree>
-std::vector<typename BipartitionSet<Tree>::EdgeType const *>
+std::unordered_set<typename BipartitionSet<Tree>::EdgeType *>
 BipartitionSet<Tree>::get_subtree_edges (
-    const BipartitionSet<Tree>::LinkType* subtree
+    BipartitionSet<Tree>::LinkType* subtree
 ) {
     std::vector<std::string> leaf_names;
-    std::vector<const EdgeType*> ret;
+    std::unordered_set<EdgeType*> ret;
 
     for (
         auto it = tree_.begin_preorder(subtree->next());
@@ -150,7 +150,7 @@ BipartitionSet<Tree>::get_subtree_edges (
         if (it.is_first_iteration()) {
             continue;
         }
-        ret.push_back(it.edge());
+        ret.insert(it.edge());
     }
 
     // LOG_DBG << "leaf nodes of subtree:";

@@ -9,10 +9,10 @@
 
 #include <string>
 
-#include "lib/tree/default/distances.hpp"
 #include "lib/tree/default_tree_newick_adapter.hpp"
+#include "lib/tree/default/distances.hpp"
 #include "lib/tree/distances.hpp"
-#include "lib/tree/newick_processor.hpp"
+#include "lib/tree/io/newick_processor.hpp"
 #include "lib/tree/tree.hpp"
 #include "lib/utils/math/matrix.hpp"
 

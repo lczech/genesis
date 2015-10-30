@@ -8,13 +8,7 @@
  * @ingroup tree
  */
 
-#include <assert.h>
-#include <deque>
 #include <iterator>
-
-#include "tree/tree_link.hpp"
-#include "tree/tree_node.hpp"
-#include "tree/tree_edge.hpp"
 
 namespace genesis {
 

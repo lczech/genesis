@@ -7,7 +7,7 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/tree/phyloxml_processor.hpp"
+#include "lib/tree/io/phyloxml_processor.hpp"
 
 #include "lib/tree/default_tree.hpp"
 #include "lib/placement/placement_tree.hpp"

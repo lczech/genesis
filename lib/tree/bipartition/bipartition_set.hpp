@@ -9,6 +9,7 @@
  */
 
 #include <string>
+#include <unordered_set>
 #include <vector>
 
 #include "tree/bipartition/bipartition.hpp"
@@ -31,7 +32,7 @@ public:
     typedef typename Tree::LinkType LinkType;
     typedef typename Tree::EdgeType EdgeType;
 
-    BipartitionSet (const TreeType& tree) : tree_(tree) {};
+    BipartitionSet (TreeType& tree) : tree_(tree) {};
 
     // -------------------------------------------------------------
     //     Member Functions
@@ -40,8 +41,8 @@ public:
     void make();
     void make_index();
 
-    BipartitionType*             find_smallest_subtree (std::vector<NodeType*> nodes);
-    std::vector<const EdgeType*> get_subtree_edges     (const LinkType*        subtree);
+    BipartitionType*              find_smallest_subtree (std::vector<NodeType*> nodes);
+    std::unordered_set<EdgeType*> get_subtree_edges     (LinkType*              subtree);
 
     bool        validate();
     std::string dump();
@@ -52,7 +53,7 @@ public:
 
 protected:
 
-    const TreeType&              tree_;
+    TreeType&              tree_;
 
     std::vector<int>             node_to_leaf_map_;
     std::vector<size_t>          leaf_to_node_map_;

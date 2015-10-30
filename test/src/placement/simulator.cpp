@@ -11,10 +11,10 @@
 #include <string>
 #include <vector>
 
-#include "lib/placement/newick_adapter.hpp"
+#include "lib/placement/io/newick_adapter.hpp"
 #include "lib/placement/placement_map.hpp"
 #include "lib/placement/simulator.hpp"
-#include "lib/tree/newick_processor.hpp"
+#include "lib/tree/io/newick_processor.hpp"
 
 using namespace genesis;
 

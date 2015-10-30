@@ -7,7 +7,7 @@
 
 #include <python/src/common.hpp>
 
-#include "placement/phyloxml_adapter.hpp"
+#include "lib/placement/io/phyloxml_adapter.hpp"
 
 PYTHON_EXPORT_CLASS (PlacementTreePhyloxmlAdapter, "placement.tree")
 {

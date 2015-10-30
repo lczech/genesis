@@ -12,9 +12,9 @@
 #include <sstream>
 
 #include "tree/distances.hpp"
-#include "utils/logging.hpp"
-#include "utils/string.hpp"
+#include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
+#include "utils/string/string.hpp"
 
 namespace genesis {
 

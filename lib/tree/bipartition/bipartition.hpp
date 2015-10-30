@@ -49,7 +49,7 @@ public:
     //     Member Functions
     // -------------------------------------------------------------
 
-    inline const LinkType* link()
+    inline LinkType* link()
     {
         return link_;
     }
@@ -67,7 +67,7 @@ public:
 protected:
 
     Bitvector       leaf_nodes_;
-    const LinkType* link_;
+    LinkType* link_;
 
 };
 
