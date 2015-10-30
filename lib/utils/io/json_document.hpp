@@ -15,7 +15,6 @@
 #include <vector>
 
 #include "utils/core/logging.hpp"
-#include "utils/utils.hpp"
 
 namespace genesis {
 

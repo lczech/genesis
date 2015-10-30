@@ -7,7 +7,7 @@
 
 #include "common.hpp"
 
-#include "lib/utils/string.hpp"
+#include "lib/utils/string/string.hpp"
 
 using namespace genesis;
 

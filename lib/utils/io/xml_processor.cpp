@@ -7,12 +7,12 @@
 
 #include "utils/io/xml_processor.hpp"
 
-#include "assert.h"
+#include <assert.h>
 
+#include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/io/xml_document.hpp"
-#include "utils/string.hpp"
-#include "utils/utils.hpp"
+#include "utils/string/string.hpp"
 
 namespace genesis {
 

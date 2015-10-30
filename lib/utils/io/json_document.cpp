@@ -7,6 +7,7 @@
 
 #include "utils/io/json_document.hpp"
 
+#include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 
 namespace genesis {

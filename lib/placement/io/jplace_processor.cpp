@@ -15,12 +15,12 @@
 #include "placement/placement_map_set.hpp"
 #include "placement/placement_map.hpp"
 #include "tree/newick_processor.hpp"
+#include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
 #include "utils/core/std.hpp"
 #include "utils/io/json_document.hpp"
 #include "utils/io/json_processor.hpp"
-#include "utils/utils.hpp"
 
 namespace genesis {
 

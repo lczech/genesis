@@ -10,11 +10,12 @@
 
 #include "tree/distances.hpp"
 #include "tree/newick_broker.hpp"
-#include "tree/tree.hpp"
 #include "tree/tree_set.hpp"
+#include "tree/tree.hpp"
+#include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
-#include "utils/string.hpp"
+#include "utils/string/string.hpp"
 
 namespace genesis {
 

@@ -11,8 +11,6 @@
 #include <string>
 #include <unordered_map>
 
-//~ #include "utils/lexer.hpp"
-
 namespace genesis {
 
 // =================================================================================================

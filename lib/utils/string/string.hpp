@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_STRING_H_
-#define GENESIS_UTILS_STRING_H_
+#ifndef GENESIS_UTILS_STRING_STRING_H_
+#define GENESIS_UTILS_STRING_STRING_H_
 
 /**
  * @brief Provides some commonly used string utility functions.

@@ -1,56 +1,32 @@
 /**
- * @brief Implementation of utility functions.
+ * @brief Implementation of file system functions.
  *
  * @file
  * @ingroup utils
  */
 
-#include "utils/utils.hpp"
+#include "utils/core/fs.hpp"
 
-#include <algorithm>
 #include <dirent.h>
 #include <fstream>
+#include <sstream>
 #include <streambuf>
-#include <string>
 #include <sys/stat.h>
-#include <sys/types.h>
 
 #include "utils/core/logging.hpp"
 
 namespace genesis {
 
-/**
- * @brief Returns the header for genesis.
- */
-std::string genesis_header()
-{
-    return "\
-                                     ,     \n\
-        __    __    __    __   __     __   \n\
-      /   ) /___) /   ) /___) (_ ` / (_ `  \n\
-     (___/ (___  /   / (___  (__) / (__)   \n\
-        /                                  \n\
-    (__/       2014-2015 by Lucas Czech    \n";
-}
+// =================================================================================================
+//     File Access
+// =================================================================================================
 
-// =============================================================================
-//     Files
-// =============================================================================
-
-/**
- * @brief Returns true iff the file exists.
- */
 bool file_exists (const std::string& fn)
 {
     std::ifstream infile(fn);
     return infile.good();
 }
 
-/**
- * @brief Returns the contents of a file as a string.
- *
- * If the file does not exist, a warning is triggered and an emtpty string returned.
- */
 std::string file_read (const std::string& fn)
 {
     std::ifstream infile(fn);
@@ -70,9 +46,6 @@ std::string file_read (const std::string& fn)
     return str;
 }
 
-/**
- * @brief Writes the content of a string to a file.
- */
 bool file_write (const std::string& fn, const std::string& content)
 {
     // TODO check if path exists, create if not (make a function for that)
@@ -87,9 +60,6 @@ bool file_write (const std::string& fn, const std::string& content)
     return true;
 }
 
-/**
- * @brief Appends the content of a string to a file.
- */
 bool file_append (const std::string& fn, const std::string& content)
 {
     // TODO check if path exists, create if not (make a function for that)
@@ -105,9 +75,6 @@ bool file_append (const std::string& fn, const std::string& content)
     return true;
 }
 
-/**
- * @brief Return true iff the directory exists.
- */
 bool dir_exists (const std::string& dir)
 {
     struct stat info;
@@ -125,9 +92,6 @@ bool dir_exists (const std::string& dir)
     // }
 }
 
-/**
- * @brief Get a list of files in a directory.
- */
 bool dir_list_files (const std::string& dir, std::vector<std::string>& list)
 {
     DIR*           dp;
@@ -149,13 +113,10 @@ bool dir_list_files (const std::string& dir, std::vector<std::string>& list)
     return true;
 }
 
-// =============================================================================
-//     File names
-// =============================================================================
+// =================================================================================================
+//     File Information
+// =================================================================================================
 
-/**
- * @brief Returns information about a file.
- */
 std::unordered_map<std::string, std::string> file_info (std::string filename)
 {
     std::string basename = file_basename(filename);
@@ -169,20 +130,12 @@ std::unordered_map<std::string, std::string> file_info (std::string filename)
     return res;
 }
 
-/**
- * @brief Return the size of a file.
- */
 size_t file_size (std::string filename)
 {
     std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
     return static_cast<size_t>(in.tellg());
 }
 
-/**
- * @brief Returns the path leading to a file.
- *
- * Does not resolve the path. Simply splits at the last directory separator.
- */
 std::string file_path (std::string filename)
 {
     const size_t idx = filename.find_last_of("\\/");
@@ -193,9 +146,6 @@ std::string file_path (std::string filename)
     return filename;
 }
 
-/**
- * @brief Remove directory name from file name if present.
- */
 std::string file_basename (std::string filename)
 {
     const size_t idx = filename.find_last_of("\\/");
@@ -206,12 +156,6 @@ std::string file_basename (std::string filename)
     return filename;
 }
 
-/**
- * @brief Remove extension if present.
- *
- * Caveat: Does not remove the path. So, if the filename itself does not contain an extension
- * separator ".", but the path does, this will yield an unwanted result. Call file_basename() first.
- */
 std::string file_filename (std::string filename)
 {
     const size_t idx = filename.rfind('.');
@@ -222,11 +166,6 @@ std::string file_filename (std::string filename)
     return filename;
 }
 
-/**
- * @brief Returns the extension name of a file.
- *
- * Also see file_filename().
- */
 std::string file_extension (std::string filename)
 {
     const size_t idx = filename.rfind('.');

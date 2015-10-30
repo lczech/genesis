@@ -14,7 +14,7 @@
 #include "alignment/sequence.hpp"
 #include "alignment/sequence_set.hpp"
 #include "utils/core/logging.hpp"
-#include "utils/utils.hpp"
+#include "utils/core/fs.hpp"
 
 namespace genesis {
 

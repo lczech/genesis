@@ -10,7 +10,7 @@
 #include <algorithm>
 
 #include "utils/core/logging.hpp"
-#include "utils/string.hpp"
+#include "utils/string/string.hpp"
 
 namespace genesis {
 

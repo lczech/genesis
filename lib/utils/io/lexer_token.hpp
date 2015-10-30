@@ -10,7 +10,7 @@
 
 #include <string>
 
-#include "utils/utils.hpp"
+#include "utils/string/string.hpp"
 
 namespace genesis {
 

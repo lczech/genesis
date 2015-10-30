@@ -5,7 +5,7 @@
  * @ingroup utils
  */
 
-#include "utils/string.hpp"
+#include "utils/string/string.hpp"
 
 #include <algorithm>
 
