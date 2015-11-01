@@ -44,6 +44,8 @@ class Histogram
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
+public:
+
     enum class OutOfRangeBehaviour {
         kIgnore,
         kSqueeze,
@@ -81,32 +83,6 @@ public:
         const size_t num_bins,
         const double range_min,
         const double range_max
-    );
-
-    Histogram(
-        const size_t num_bins,
-        const std::vector<double>& values,
-        const double weight = 1.0
-    );
-
-    Histogram(
-        const size_t num_bins,
-        const std::vector<std::pair<double,double>>& weighted_values
-    );
-
-    Histogram(
-        const size_t num_bins,
-        const double range_min,
-        const double range_max,
-        const std::vector<double>& values,
-        const double weight = 1.0
-    );
-
-    Histogram(
-        const size_t num_bins,
-        const double range_min,
-        const double range_max,
-        const std::vector<std::pair<double,double>>& weighted_values
     );
 
     Histogram(

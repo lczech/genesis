@@ -8,6 +8,7 @@
 #include "common.hpp"
 
 #include "lib/utils/math/histogram.hpp"
+#include "lib/utils/math/histogram/accumulator.hpp"
 #include "lib/utils/math/histogram/distances.hpp"
 #include "lib/utils/math/histogram/stats.hpp"
 
@@ -81,4 +82,27 @@ TEST(Histogram, EarthMoversDistance)
 	h2.accumulate(3.0, 1.0);
 
 	EXPECT_DOUBLE_EQ(5.0, earth_movers_distance(h1, h2));
+}
+
+TEST(Histogram, Accumulator)
+{
+	auto a = HistogramAccumulator({1.1, 1.2, 1.3});
+	a.increment(1.9);
+	a.accumulate(1.8, 2.0);
+
+	auto h1 = a.build_uniform_ranges_histogram(2);
+
+    EXPECT_DOUBLE_EQ (1.1, h1.min());
+    EXPECT_DOUBLE_EQ (1.9, h1.max());
+
+	EXPECT_DOUBLE_EQ (3.0, h1[0]);
+	EXPECT_DOUBLE_EQ (3.0, h1[1]);
+
+	auto h2 = a.build_rounded_uniform_ranges_histogram(2);
+
+	EXPECT_DOUBLE_EQ (1.0, h2.min());
+    EXPECT_DOUBLE_EQ (2.0, h2.max());
+
+	EXPECT_DOUBLE_EQ (3.0, h2[0]);
+	EXPECT_DOUBLE_EQ (3.0, h2[1]);
 }
