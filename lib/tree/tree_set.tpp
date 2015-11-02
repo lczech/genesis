@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <assert.h>
 
+#include "tree/operators.hpp"
 #include "tree/tree_set.hpp"
 #include "utils/core/logging.hpp"
 
@@ -135,7 +136,7 @@ bool TreeSet<TreeType>::all_equal(
     // If all pairs of two adjacent trees are equal, all of them are.
     // Thus, we do not need a complete pairwise comparision.
     for (size_t i = 1; i < trees_.size(); i++) {
-        if (!TreeType::equal(trees_[i-1].tree, trees_[i].tree, comparator)) {
+        if (!equal(trees_[i-1].tree, trees_[i].tree, comparator)) {
             return false;
         }
     }
@@ -152,7 +153,7 @@ bool TreeSet<TreeType>::all_equal() const
     // If all pairs of two adjacent trees are equal, all of them are.
     // Thus, we do not need a complete pairwise comparision.
     for (size_t i = 1; i < trees_.size(); i++) {
-        if (!TreeType::equal(trees_[i-1].tree, trees_[i].tree)) {
+        if (!equal(trees_[i-1].tree, trees_[i].tree)) {
             return false;
         }
     }
@@ -168,7 +169,7 @@ bool TreeSet<TreeType>::all_identical_topology() const
     // If all pairs of two adjacent trees have same the topology, all of them have.
     // Thus, we do not need a complete pairwise comparision.
     for (size_t i = 1; i < trees_.size(); i++) {
-        if (!TreeType::identical_topology(trees_[i-1].tree, trees_[i].tree)) {
+        if (!identical_topology(trees_[i-1].tree, trees_[i].tree)) {
             return false;
         }
     }

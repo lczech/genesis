@@ -17,8 +17,9 @@
 #include <unordered_map>
 #include <utility>
 
-#include "tree/distances.hpp"
 #include "tree/default/distances.hpp"
+#include "tree/distances.hpp"
+#include "tree/operators.hpp"
 #include "tree/tree_view.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
@@ -152,7 +153,7 @@ bool PlacementMap::merge(const PlacementMap& other)
                it_l.edge()->data.edge_num == it_r.edge()->data.edge_num;
     };
 
-    if (!tree_->equal(*other.tree_, comparator)) {
+    if (!equal(*tree_, *other.tree_, comparator)) {
         LOG_WARN << "Cannot merge PlacementMaps with different reference trees.";
         return false;
     }

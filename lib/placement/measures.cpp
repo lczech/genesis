@@ -12,8 +12,9 @@
 #    include <thread>
 #endif
 
-#include "tree/distances.hpp"
 #include "tree/default/distances.hpp"
+#include "tree/distances.hpp"
+#include "tree/operators.hpp"
 #include "utils/core/options.hpp"
 
 namespace genesis {
@@ -869,7 +870,7 @@ double PlacementMeasures::center_of_gravity_distance (
                it_l.edge()->secondary_node()->index() == it_r.edge()->secondary_node()->index();
     };
 
-    if (!PlacementTree::equal(map_a.tree(), map_b.tree(), comparator)) {
+    if (!equal(map_a.tree(), map_b.tree(), comparator)) {
         LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
         return -1.0;
     }
@@ -961,7 +962,7 @@ double PlacementMeasures::pairwise_distance (
                it_l.edge()->secondary_node()->index() == it_r.edge()->secondary_node()->index();
     };
 
-    if (!PlacementTree::equal(map_a.tree(), map_b.tree(), comparator)) {
+    if (!equal(map_a.tree(), map_b.tree(), comparator)) {
         LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
         return -1.0;
     }

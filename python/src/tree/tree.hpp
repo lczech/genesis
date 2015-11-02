@@ -122,12 +122,12 @@ void BoostPythonExport_Tree (std::string name)
             ( boost::python::arg("name") ),
             get_docstring("NodeType * ::genesis::Tree::find_node (std::string name) const")
         )
-        .def(
-            "identical_topology",
-            ( bool ( TreeType::* )( const TreeType & ) const )( &TreeType::identical_topology ),
-            ( boost::python::arg("other") ),
-            get_docstring("bool ::genesis::Tree::identical_topology (const TreeType & other) const")
-        )
+        // .def(
+        //     "identical_topology",
+        //     ( bool ( TreeType::* )( const TreeType & ) const )( &TreeType::identical_topology ),
+        //     ( boost::python::arg("other") ),
+        //     get_docstring("bool ::genesis::Tree::identical_topology (const TreeType & other) const")
+        // )
         // .def(
         //     "import_content",
         //     ( void ( TreeType::* )( LinkArray &, NodeArray &, EdgeArray & ))( &TreeType::import_content ),

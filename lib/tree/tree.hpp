@@ -10,7 +10,6 @@
  * @ingroup tree
  */
 
-#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
@@ -564,30 +563,6 @@ public:
 
     size_t leaf_count() const;
     size_t inner_count() const;
-
-    // -------------------------------------------------------------------------
-    //     Comparisons
-    // -------------------------------------------------------------------------
-
-    static bool equal(
-        const TreeType& lhs,
-        const TreeType& rhs,
-        const std::function<bool
-            (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)
-        > comparator
-    );
-    bool equal(
-        const TreeType& other,
-        const std::function<bool
-            (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)
-        > comparator
-    ) const;
-
-    static bool equal(const TreeType& lhs, const TreeType& rhs);
-           bool equal(const TreeType& other) const;
-
-    static bool identical_topology(const TreeType& lhs, const TreeType& rhs);
-           bool identical_topology(const TreeType& other) const;
 
     // -------------------------------------------------------------------------
     //     Debug and Dump
