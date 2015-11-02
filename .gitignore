@@ -4,7 +4,7 @@
 
 bin/
 build/
-module/
+python/module/
 
 # --------------------------------------------------------------------
 #   C++ Compiled Object files
@@ -101,4 +101,4 @@ doc/dev/*.pdf
 *~
 *.swp
 TODO
-stuff/
+extern/
