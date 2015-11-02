@@ -11,13 +11,16 @@ namespace genesis {
 //     Equality
 // =================================================================================================
 
-template <class TreeType>
+template <class TreeTypeL, class TreeTypeR>
 bool equal(
-    const TreeType& lhs,
-    const TreeType& rhs,
-    const std::function<bool
-        (typename TreeType::ConstIteratorPreorder&, typename TreeType::ConstIteratorPreorder&)
-    > comparator
+    const TreeTypeL& lhs,
+    const TreeTypeR& rhs,
+    std::function<bool
+        (const typename TreeTypeL::NodeType&, const typename TreeTypeR::NodeType&)
+    > node_comparator,
+    std::function<bool
+        (const typename TreeTypeL::EdgeType&, const typename TreeTypeR::EdgeType&)
+    > edge_comparator
 ) {
     // Check array sizes.
     if (lhs.link_count() != rhs.link_count() ||
@@ -35,7 +38,10 @@ bool equal(
         it_l != lhs.end_preorder() && it_r != rhs.end_preorder();
         ++it_l, ++it_r
     ) {
-        if (it_l.node()->rank() != it_r.node()->rank() || !comparator(it_l, it_r)) {
+        if (it_l.node()->rank() != it_r.node()->rank()   ||
+            !node_comparator(*it_l.node(), *it_r.node()) ||
+            !edge_comparator(*it_l.edge(), *it_r.edge())
+        ) {
             return false;
         }
     }
@@ -48,30 +54,48 @@ bool equal(
     return true;
 }
 
-template <class TreeType>
-bool equal(const TreeType& lhs, const TreeType& rhs)
+template <class TreeTypeL, class TreeTypeR>
+bool equal(const TreeTypeL& lhs, const TreeTypeR& rhs)
 {
-    auto comparator = [] (
-        typename TreeType::ConstIteratorPreorder& it_l,
-        typename TreeType::ConstIteratorPreorder& it_r
+    auto node_comparator = [] (
+        const typename TreeTypeL::NodeType& node_l,
+        const typename TreeTypeR::NodeType& node_r
     ) {
-        return it_l.node() == it_r.node() && it_l.edge() == it_r.edge();
+        return node_l == node_r;
     };
 
-    return equal(lhs, rhs, comparator);
+    auto edge_comparator = [] (
+        const typename TreeTypeL::EdgeType& edge_l,
+        const typename TreeTypeR::EdgeType& edge_r
+    ) {
+        return edge_l == edge_r;
+    };
+
+    return equal(lhs, rhs, node_comparator, edge_comparator);
 }
 
-template <class TreeTypeA, class TreeTypeB>
-bool identical_topology(const TreeTypeA& lhs, const TreeTypeB& rhs)
+template <class TreeTypeL, class TreeTypeR>
+bool identical_topology(const TreeTypeL& lhs, const TreeTypeR& rhs)
 {
-    auto comparator = [] (
-        typename TreeTypeA::ConstIteratorPreorder&,
-        typename TreeTypeB::ConstIteratorPreorder&
+    auto node_comparator = [] (
+        const typename TreeTypeL::NodeType& node_l,
+        const typename TreeTypeR::NodeType& node_r
     ) {
+        (void) node_l;
+        (void) node_r;
         return true;
     };
 
-    return equal(lhs, rhs, comparator);
+    auto edge_comparator = [] (
+        const typename TreeTypeL::EdgeType& edge_l,
+        const typename TreeTypeR::EdgeType& edge_r
+    ) {
+        (void) edge_l;
+        (void) edge_r;
+        return true;
+    };
+
+    return equal(lhs, rhs, node_comparator, edge_comparator);
 }
 
 } // namespace genesis

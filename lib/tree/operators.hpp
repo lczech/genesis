@@ -17,38 +17,42 @@ namespace genesis {
 // =================================================================================================
 
 /**
- * @brief Compares two trees for equality given a binary comparator functional.
+ * @brief Compares two trees for equality given binary comparator functionals for their nodes and
+ * edges.
  *
- * This function does a preorder traversal of both trees in parallel and calls a comparator
- * functional for each position of the iterator. It returns true iff the comparator is true for
+ * This function does a preorder traversal of both trees in parallel and calls the comparator
+ * functionals for each position of the iterator. It returns true iff the comparator is true for
  * every position.
  *
- * The comparator functional can be either a function pointer, function object, or lambda
- * expression.
+ * The comparator functionals can be either function pointers, function objects, or lambda
+ * expressions.
  *
- * Furthermore, the trees are checked for equal topology: their elements (links, nodes, edges)
- * have to be equal in size and the rank of each node during the traversal has to be identical in
- * both trees. Those assumptions are made because two trees that do not have identical topology
- * are never considered equal for the purposes of this framework.
+ * As the traversal is done in parallel, the trees are also checked for equal topology:
+ * their elements (links, nodes, edges) have to be equal in size and the rank of each node during
+ * the traversal has to be identical in both trees. Those assumptions are made because two trees
+ * that do not have identical topology are never considered equal.
  */
-template <class TreeType>
+template <class TreeTypeL, class TreeTypeR>
 bool equal(
-    const TreeType& lhs,
-    const TreeType& rhs,
-    const std::function<bool
-        (typename TreeType::ConstIteratorPreorder&, typename TreeType::ConstIteratorPreorder&)
-    > comparator
+    const TreeTypeL& lhs,
+    const TreeTypeR& rhs,
+    std::function<bool
+        (const typename TreeTypeL::NodeType&, const typename TreeTypeR::NodeType&)
+    > node_comparator,
+    std::function<bool
+        (const typename TreeTypeL::EdgeType&, const typename TreeTypeR::EdgeType&)
+    > edge_comparator
 );
 
 /**
  * @brief Compares two trees for equality using the respective comparision operators for their nodes
  * and edges.
  *
- * This method is mainly a shortcut for the other equal function, where the comparator functional
- * is instanciated using the default comparision operators of the tree's data.
+ * This method is mainly a shortcut for the other equal function, where the comparator functionals
+ * are instanciated using the default comparision operators of the tree's data.
  */
-template <class TreeType>
-bool equal(const TreeType& lhs, const TreeType& rhs);
+template <class TreeTypeL, class TreeTypeR>
+bool equal(const TreeTypeL& lhs, const TreeTypeR& rhs);
 
 /**
  * @brief Returns true iff both trees have an identical topology.
@@ -58,8 +62,8 @@ bool equal(const TreeType& lhs, const TreeType& rhs);
  * still be not identical (with respect to this function) when the branches appear in a different
  * order or when the root sits at a different node.
  */
-template <class TreeTypeA, class TreeTypeB>
-bool identical_topology(const TreeTypeA& lhs, const TreeTypeB& rhs);
+template <class TreeTypeL, class TreeTypeR>
+bool identical_topology(const TreeTypeL& lhs, const TreeTypeR& rhs);
 
 } // namespace genesis
 
