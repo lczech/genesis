@@ -92,9 +92,9 @@ public:
     typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
 
-    typedef std::vector<std::unique_ptr<LinkType>> LinkArray;
-    typedef std::vector<std::unique_ptr<NodeType>> NodeArray;
-    typedef std::vector<std::unique_ptr<EdgeType>> EdgeArray;
+    typedef std::vector<std::unique_ptr<LinkType>> LinkContainer;
+    typedef std::vector<std::unique_ptr<NodeType>> NodeContainer;
+    typedef std::vector<std::unique_ptr<EdgeType>> EdgeContainer;
 
     // -------------------------------------------------------------------------
     //     Construction and Destruction
@@ -134,8 +134,8 @@ public:
     void swap (OtherTreeType<OtherNodeDataType, OtherEdgeDataType>& other);
     */
 
-    void import_content (LinkArray& links, NodeArray& nodes, EdgeArray& edges);
-    void export_content (LinkArray& links, NodeArray& nodes, EdgeArray& edges);
+    void import_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
+    void export_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
 
     // -------------------------------------------------------------------------
     //     Accessors

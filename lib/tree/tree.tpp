@@ -163,8 +163,11 @@ void Tree<NDT, EDT>::swap (Tree<NDT, EDT>& other)
  * for reading trees from files.
  */
 template <class NDT, class EDT>
-void Tree<NDT, EDT>::import_content (LinkArray& links, NodeArray& nodes, EdgeArray& edges)
-{
+void Tree<NDT, EDT>::import_content (
+    LinkContainer& links,
+    NodeContainer& nodes,
+    EdgeContainer& edges
+) {
     using std::swap;
 
     clear();
@@ -181,8 +184,11 @@ void Tree<NDT, EDT>::import_content (LinkArray& links, NodeArray& nodes, EdgeArr
  * to tree elements.
  */
 template <class NDT, class EDT>
-void Tree<NDT, EDT>::export_content (LinkArray& links, NodeArray& nodes, EdgeArray& edges)
-{
+void Tree<NDT, EDT>::export_content (
+    LinkContainer& links,
+    NodeContainer& nodes,
+    EdgeContainer& edges
+) {
     links = links_;
     nodes = nodes_;
     edges = edges_;
