@@ -193,24 +193,6 @@ void Tree<NDT, EDT>::export_content (LinkArray& links, NodeArray& nodes, EdgeArr
 // =============================================================================
 
 /**
- * @brief Find a Node, given its name.
- *
- * TODO assumes that tree node has a name. not good.
- */
-template <class NDT, class EDT>
-typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::find_node(std::string name) const
-{
-    // TODO check first whether replacing underscores is necessary!
-    name = string_replace_all(name, "_", " ");
-    for (const auto& n : nodes_) {
-        if (n->data.name == name) {
-            return n.get();
-        }
-    }
-    return nullptr;
-}
-
-/**
  * @brief Returns the highest rank of the nodes of the Tree.
  */
 template <class NDT, class EDT>

@@ -556,8 +556,6 @@ public:
 
     // TODO add other interesting member functions: http://en.wikipedia.org/wiki/Tree_%28data_structure%29
 
-    NodeType* find_node(std::string name) const;
-
     int    max_rank() const;
     bool   is_bifurcating() const;
 
