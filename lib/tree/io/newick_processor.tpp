@@ -10,6 +10,7 @@
 
 #include "tree/distances.hpp"
 #include "tree/io/newick_broker.hpp"
+#include "tree/iterators/postorder.hpp"
 #include "tree/tree_set.hpp"
 #include "tree/tree.hpp"
 #include "utils/core/fs.hpp"

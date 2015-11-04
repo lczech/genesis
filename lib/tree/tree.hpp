@@ -575,7 +575,7 @@ public:
     //     Data Members
     // -------------------------------------------------------------------------
 
-protected:
+private:
 
     std::vector<std::unique_ptr<LinkType>> links_;
     std::vector<std::unique_ptr<NodeType>> nodes_;
@@ -590,8 +590,5 @@ protected:
 
 // This is a class template, so do the inclusion here.
 #include "tree/tree.tpp"
-
-// Also include the iterator classes, they are good friends of ours.
-#include "tree/iterators.hpp"
 
 #endif // include guard

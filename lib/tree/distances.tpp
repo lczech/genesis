@@ -5,6 +5,7 @@
  * @ingroup tree
  */
 
+#include "tree/iterators/levelorder.hpp"
 #include "utils/core/logging.hpp"
 
 namespace genesis {

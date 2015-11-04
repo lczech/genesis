@@ -15,6 +15,7 @@
 #include "placement/operators.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
+#include "tree/iterators/postorder.hpp"
 #include "utils/core/options.hpp"
 
 namespace genesis {
