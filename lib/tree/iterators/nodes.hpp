@@ -24,8 +24,6 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!! delete all copy and move stuff!!!
-
     typedef TreeIteratorNodes<TreeType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 

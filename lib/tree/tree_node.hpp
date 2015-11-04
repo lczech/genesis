@@ -39,6 +39,8 @@ class TreeNode
 public:
     TreeNode() : link_(nullptr) {}
 
+    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!! delete all copy and move stuff!!!
+
     // avoid copy constructor and assignment operator.
     // creating copies is maintained by Tree only.
     TreeNode (const TreeNode&) = delete;
