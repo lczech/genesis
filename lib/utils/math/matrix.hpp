@@ -8,8 +8,7 @@
  * @ingroup utils
  */
 
-#include <algorithm>
-#include <sstream>
+#include <stdexcept>
 #include <vector>
 
 namespace genesis {
@@ -32,7 +31,7 @@ public:
     typedef typename std::vector<T>::const_iterator const_iterator;
 
     // -------------------------------------------------------------
-    //     Constructors
+    //     Constructors, Rule of Five
     // -------------------------------------------------------------
 
     Matrix (size_t rows, size_t cols) :
@@ -47,47 +46,71 @@ public:
         data_(rows * cols, init)
     {}
 
-    Matrix (size_t rows, size_t cols, std::initializer_list<T> init_list) :
+    Matrix (size_t rows, size_t cols, std::initializer_list<T> const& init_list) :
         rows_(rows),
         cols_(cols),
         data_(rows * cols)
     {
-        size_t i = 0;
-        for (T v : init_list) {
-            if (i >= data_.size()) {
-                break;
-            }
+        if (init_list.size() != size()) {
+            throw std::out_of_range("__FUNCTION__");
+        }
 
+        size_t i = 0;
+        for (T const& v : init_list) {
             data_[i] = v;
             ++i;
         }
     }
 
+    ~Matrix() = default;
+
+    Matrix(Matrix const&) = default;
+    Matrix(Matrix&&)      = default;
+
+    Matrix& operator= (Matrix const&) = default;
+    Matrix& operator= (Matrix&&)      = default;
+
     // -------------------------------------------------------------
     //     Accessors
     // -------------------------------------------------------------
 
-    inline size_t rows() const
+    size_t rows() const
     {
         return rows_;
     }
 
-    inline size_t cols() const
+    size_t cols() const
     {
         return cols_;
     }
 
-    inline size_t size() const
+    size_t size() const
     {
         return rows_ * cols_;
     }
 
-    inline T& operator () (const size_t row, const size_t col)
+    T& at (const size_t row, const size_t col)
+    {
+        if (row >= rows_ || col >= cols_) {
+            throw std::out_of_range("__FUNCTION__");
+        }
+        return data_[row * cols_ + col];
+    }
+
+    const T at (const size_t row, const size_t col) const
+    {
+        if (row >= rows_ || col >= cols_) {
+            throw std::out_of_range("__FUNCTION__");
+        }
+        return data_[row * cols_ + col];
+    }
+
+    T& operator () (const size_t row, const size_t col)
     {
         return data_[row * cols_ + col];
     }
 
-    inline const T operator () (const size_t row, const size_t col) const
+    const T operator () (const size_t row, const size_t col) const
     {
         return data_[row * cols_ + col];
     }
@@ -96,80 +119,62 @@ public:
     //     Iterators
     // -------------------------------------------------------------
 
-    inline iterator begin()
+    iterator begin()
     {
         return data_.begin();
     }
 
-    inline iterator end()
+    iterator end()
     {
         return data_.end();
     }
 
-    inline const_iterator begin() const
+    const_iterator begin() const
     {
         return data_.begin();
     }
 
-    inline const_iterator end() const
+    const_iterator end() const
     {
         return data_.end();
     }
 
+    const_iterator cbegin() const
+    {
+        return data_.cbegin();
+    }
+
+    const_iterator cend() const
+    {
+        return data_.cend();
+    }
+
     // -------------------------------------------------------------
-    //     Dump and Debug
+    //     Operators
     // -------------------------------------------------------------
 
-    inline std::string dump()
+    bool operator == (const Matrix<T>& rhs) const
     {
-        std::ostringstream out;
-        for (size_t i = 0; i < rows_; ++i) {
-            for (size_t j = 0; j < cols_; ++j) {
-                out << data_[i * cols_ + j] << " ";
-            }
-            out << "\n";
-        }
-        return out.str();
+        return rows_ == rhs.rows_
+            && cols_ == rhs.cols_
+            && data_ == rhs.data_;
+    }
+
+    bool operator != (const Matrix<T>& rhs) const
+    {
+        return !(*this == rhs);
     }
 
     // -------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------
 
-protected:
+private:
 
     size_t         rows_;
     size_t         cols_;
     std::vector<T> data_;
 };
-
-// =================================================================================================
-//     Operators
-// =================================================================================================
-
-template <typename T>
-bool operator == (const Matrix<T>& lhs, const Matrix<T>& rhs)
-{
-    if (lhs.rows() != rhs.rows() || lhs.cols() != rhs.cols()) {
-        return false;
-    }
-
-    for (size_t i = 0; i < lhs.rows(); ++i) {
-        for (size_t j = 0; j < lhs.cols(); ++j) {
-            if (lhs(i,j) != rhs(i,j)) {
-                return false;
-            }
-        }
-    }
-
-    return true;
-}
-
-template <typename T>
-bool operator != (const Matrix<T>& lhs, const Matrix<T>& rhs)
-{
-    return !(lhs == rhs);
-}
 
 } // namespace genesis
 
