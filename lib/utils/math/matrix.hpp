@@ -31,7 +31,7 @@ public:
     typedef typename std::vector<T>::const_iterator const_iterator;
 
     // -------------------------------------------------------------
-    //     Constructors, Rule of Five
+    //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
     Matrix (size_t rows, size_t cols) :
@@ -52,7 +52,7 @@ public:
         data_(rows * cols)
     {
         if (init_list.size() != size()) {
-            throw std::out_of_range("__FUNCTION__: out_of_range");
+            throw std::length_error("__FUNCTION__: length_error");
         }
 
         size_t i = 0;

@@ -48,18 +48,18 @@ TEST(Matrix, Copy)
 
 TEST(Matrix, InitializerList)
 {
-	ASSERT_THROW(
+	EXPECT_THROW(
 		Matrix<int>(2, 2, {1, 2, 3}),
-		std::out_of_range
+		std::length_error
 	);
 
-	ASSERT_NO_THROW(
+	EXPECT_NO_THROW(
 		Matrix<int>(2, 2, {1, 2, 3, 4})
 	);
 
-	ASSERT_THROW(
+	EXPECT_THROW(
 		Matrix<int>(2, 2, {1, 2, 3, 4, 5}),
-		std::out_of_range
+		std::length_error
 	);
 }
 
