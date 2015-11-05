@@ -10,6 +10,7 @@
 
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "utils/math/histogram.hpp"
@@ -25,17 +26,13 @@ namespace genesis {
  *
  * This class can be used to collect data and automatically build a Histogram that fits to the data.
  * It provides factory methods for differnt ways of initializing the Histogram ranges.
+ *
+ * The max value used for the build Histogram will be determined using
+ * `std::nextafter(max, max + 1)` on the max element of the value list. This is because we want this
+ * element to just fit into the range.
  */
 class HistogramAccumulator
 {
-    // -------------------------------------------------------------------------
-    //     Data Members
-    // -------------------------------------------------------------------------
-
-protected:
-
-    std::map<double, double> values_;
-
     // -------------------------------------------------------------------------
     //     Constructors and Typedefs
     // -------------------------------------------------------------------------
@@ -94,6 +91,13 @@ public:
 
     std::string dump() const;
 
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    std::map<double, double> values_;
 };
 
 } // namespace genesis

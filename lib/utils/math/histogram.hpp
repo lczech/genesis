@@ -8,8 +8,7 @@
  * @ingroup utils
  */
 
-#include <string>
-#include <utility>
+#include <stddef.h>
 #include <vector>
 
 namespace genesis {
@@ -33,10 +32,6 @@ namespace genesis {
  *
  * The number of bins needs to be determined at construction. The number of ranges is always one
  * more than the number of bins.
- *
- * If one of the constructors with value vectors but without min/max values is used, the max value
- * will be determined using `std::nextafter(max, max + 1)` on the max element of the value list.
- * This is because we want this element to just fit into the range.
  */
 class Histogram
 {
@@ -52,42 +47,38 @@ public:
         kThrow
     };
 
+    typedef std::vector<double>::iterator       iterator;
     typedef std::vector<double>::const_iterator const_iterator;
 
     // -------------------------------------------------------------------------
-    //     Data Members
+    //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
-
-protected:
-
-    std::vector<double> bins_;
-    std::vector<double> ranges_;
-
-public:
-
-    OutOfRangeBehaviour out_of_range_behaviour;
-
-    // -------------------------------------------------------------------------
-    //     Constructor and Destructor
-    // -------------------------------------------------------------------------
-
-public:
-
-    // TODO Maybe a builder pattern would be neat here!
 
     Histogram(
-        const size_t num_bins
+        size_t num_bins
     );
 
     Histogram(
-        const size_t num_bins,
-        const double range_min,
-        const double range_max
+        size_t num_bins,
+        double range_min,
+        double range_max
     );
 
     Histogram(
         const std::vector<double>& ranges
     );
+
+    ~Histogram() = default;
+
+    Histogram(Histogram const&) = default;
+    Histogram(Histogram&&)      = default;
+
+    Histogram& operator= (Histogram const&) = default;
+    Histogram& operator= (Histogram&&)      = default;
+
+    // -------------------------------------------------------------------------
+    //     General Methods
+    // -------------------------------------------------------------------------
 
     void set_ranges(const std::vector<double>& ranges);
 
@@ -95,21 +86,37 @@ public:
 
     void clear();
 
+    OutOfRangeBehaviour out_of_range_behaviour() const;
+
+    void                out_of_range_behaviour(OutOfRangeBehaviour v);
+
     // -------------------------------------------------------------------------
-    //     Accessors
+    //     Bin Access
     // -------------------------------------------------------------------------
+
+    double& at(size_t bin_num);
+
+    double at(size_t bin_num) const;
+
+    double& operator [] (size_t bin_num);
+
+    double operator [] (size_t bin_num) const;
+
+    // -------------------------------------------------------------------------
+    //     Bin Iterators
+    // -------------------------------------------------------------------------
+
+    iterator begin();
+
+    iterator end();
 
     const_iterator begin() const;
 
     const_iterator end() const;
 
-    double value(size_t bin_num) const;
+    const_iterator cbegin() const;
 
-    double& value(size_t bin_num);
-
-    double operator [] (size_t bin_num) const;
-
-    double& operator [] (size_t bin_num);
+    const_iterator cend() const;
 
     // -------------------------------------------------------------------------
     //     Properties
@@ -144,11 +151,15 @@ public:
     void accumulate_bin (size_t bin, double weight);
 
     // -------------------------------------------------------------------------
-    //     Dump
+    //     Data Members
     // -------------------------------------------------------------------------
 
-    std::string dump() const;
+private:
 
+    std::vector<double> bins_;
+    std::vector<double> ranges_;
+
+    OutOfRangeBehaviour out_of_range_behaviour_;
 };
 
 } // namespace genesis
