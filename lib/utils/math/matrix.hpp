@@ -52,7 +52,7 @@ public:
         data_(rows * cols)
     {
         if (init_list.size() != size()) {
-            throw std::out_of_range("__FUNCTION__");
+            throw std::out_of_range("__FUNCTION__: out_of_range");
         }
 
         size_t i = 0;
@@ -71,7 +71,7 @@ public:
     Matrix& operator= (Matrix&&)      = default;
 
     // -------------------------------------------------------------
-    //     Accessors
+    //     Properties
     // -------------------------------------------------------------
 
     size_t rows() const
@@ -89,10 +89,14 @@ public:
         return rows_ * cols_;
     }
 
+    // -------------------------------------------------------------
+    //     Element Access
+    // -------------------------------------------------------------
+
     T& at (const size_t row, const size_t col)
     {
         if (row >= rows_ || col >= cols_) {
-            throw std::out_of_range("__FUNCTION__");
+            throw std::out_of_range("__FUNCTION__: out_of_range");
         }
         return data_[row * cols_ + col];
     }
@@ -100,7 +104,7 @@ public:
     const T at (const size_t row, const size_t col) const
     {
         if (row >= rows_ || col >= cols_) {
-            throw std::out_of_range("__FUNCTION__");
+            throw std::out_of_range("__FUNCTION__: out_of_range");
         }
         return data_[row * cols_ + col];
     }
