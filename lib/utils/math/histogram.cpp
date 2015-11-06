@@ -199,16 +199,6 @@ Histogram::const_iterator Histogram::cend() const
 //     Properties
 // =================================================================================================
 
-double Histogram::min() const
-{
-    return ranges_.front();
-}
-
-double Histogram::max() const
-{
-    return ranges_.back();
-}
-
 size_t Histogram::bins() const
 {
     return bins_.size();
@@ -231,16 +221,19 @@ double Histogram::bin_width( size_t bin_num ) const
 
 int Histogram::find_bin( double x ) const
 {
-    if (x < min()) {
+    const auto r_min = range_min();
+    const auto r_max = range_max();
+
+    if (x < r_min) {
         return -1;
     }
-    if (x >= max()) {
+    if (x >= r_max) {
         return bins();
     }
 
     // Get the bin for the uniform ranges case.
-    double bin_width = (max() - min()) / static_cast<double>(bins());
-    int bin = static_cast <int> (std::floor( (x - min()) / bin_width ));
+    double bin_width = (r_max - r_min) / static_cast<double>( bins() );
+    int bin = static_cast<int>( std::floor( (x - r_min) / bin_width ) );
 
     // If this worked, simply return the bin number.
     if (ranges_[bin] <= x && x < ranges_[bin + 1]) {
@@ -252,9 +245,19 @@ int Histogram::find_bin( double x ) const
     return std::distance(ranges_.begin(), it) - 1;
 }
 
+double Histogram::range_min() const
+{
+    return ranges_.front();
+}
+
+double Histogram::range_max() const
+{
+    return ranges_.back();
+}
+
 bool Histogram::check_range(double x) const
 {
-    return x >= min() && x < max();
+    return range_min() <= x && x < range_max();
 }
 
 // =================================================================================================

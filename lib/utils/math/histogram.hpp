@@ -124,10 +124,6 @@ public:
     //     Properties
     // -------------------------------------------------------------------------
 
-    double min() const;
-
-    double max() const;
-
     size_t bins() const;
 
     std::pair<double, double> bin_range( size_t bin_num ) const;
@@ -137,6 +133,10 @@ public:
     double bin_width( size_t bin_num ) const;
 
     int find_bin( double x ) const;
+
+    double range_min() const;
+
+    double range_max() const;
 
     bool check_range( double x ) const;
 
