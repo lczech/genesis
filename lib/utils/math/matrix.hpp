@@ -70,6 +70,14 @@ public:
     Matrix& operator= (Matrix const&) = default;
     Matrix& operator= (Matrix&&)      = default;
 
+    void swap (Matrix& other) noexcept
+    {
+        using std::swap;
+        swap(rows_, other.rows_);
+        swap(cols_, other.cols_);
+        swap(data_, other.data_);
+    }
+
     // -------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------
@@ -181,5 +189,15 @@ private:
 };
 
 } // namespace genesis
+
+namespace std {
+
+template<typename T>
+void swap (genesis::Matrix<T>& lhs, genesis::Matrix<T>& rhs)
+{
+    lhs.swap(rhs);
+}
+
+} // namespace std
 
 #endif // include guard
