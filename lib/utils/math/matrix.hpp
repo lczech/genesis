@@ -64,11 +64,11 @@ public:
 
     ~Matrix() = default;
 
-    Matrix(Matrix const&) = default;
-    Matrix(Matrix&&)      = default;
+    Matrix(Matrix const&)     = default;
+    Matrix(Matrix&&) noexcept = default;
 
-    Matrix& operator= (Matrix const&) = default;
-    Matrix& operator= (Matrix&&)      = default;
+    Matrix& operator= (Matrix const&)     = default;
+    Matrix& operator= (Matrix&&) noexcept = default;
 
     void swap (Matrix& other) noexcept
     {
@@ -197,7 +197,7 @@ private:
 namespace std {
 
 template<typename T>
-void swap (genesis::Matrix<T>& lhs, genesis::Matrix<T>& rhs)
+inline void swap (genesis::Matrix<T>& lhs, genesis::Matrix<T>& rhs) noexcept
 {
     lhs.swap(rhs);
 }
