@@ -12,8 +12,10 @@
 #    include <thread>
 #endif
 
-#include "tree/distances.hpp"
+#include "placement/operators.hpp"
 #include "tree/default/distances.hpp"
+#include "tree/distances.hpp"
+#include "tree/iterators/postorder.hpp"
 #include "utils/core/options.hpp"
 
 namespace genesis {
@@ -856,20 +858,7 @@ double PlacementMeasures::center_of_gravity_variance (const PlacementMap& map) {
 double PlacementMeasures::center_of_gravity_distance (
     const PlacementMap& map_a, const PlacementMap& map_b
 ) {
-    // TODO outsource this comparator (and other occurences, in merge and in placement mapt set
-    // and maybe more) to the tree class! maybe call it compatible() or so. also see pairwise_distance
-    auto comparator = [] (
-        PlacementTree::ConstIteratorPreorder& it_l,
-        PlacementTree::ConstIteratorPreorder& it_r
-    ) {
-        return it_l.node()->data.name                 == it_r.node()->data.name                 &&
-               it_l.node()->index()                   == it_r.node()->index()                   &&
-               it_l.edge()->data.edge_num             == it_r.edge()->data.edge_num             &&
-               it_l.edge()->primary_node()->index()   == it_r.edge()->primary_node()->index()   &&
-               it_l.edge()->secondary_node()->index() == it_r.edge()->secondary_node()->index();
-    };
-
-    if (!PlacementTree::equal(map_a.tree(), map_b.tree(), comparator)) {
+    if (!compatible_trees(map_a, map_b)) {
         LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
         return -1.0;
     }
@@ -948,20 +937,7 @@ double PlacementMeasures::center_of_gravity_distance (
 double PlacementMeasures::pairwise_distance (
     const PlacementMap& map_a, const PlacementMap& map_b
 ) {
-    // TODO outsource this comparator (and other occurences, in merge and in placement mapt set
-    // and maybe more) to the tree class! maybe call it compatible() or so
-    auto comparator = [] (
-        PlacementTree::ConstIteratorPreorder& it_l,
-        PlacementTree::ConstIteratorPreorder& it_r
-    ) {
-        return it_l.node()->data.name                 == it_r.node()->data.name                 &&
-               it_l.node()->index()                   == it_r.node()->index()                   &&
-               it_l.edge()->data.edge_num             == it_r.edge()->data.edge_num             &&
-               it_l.edge()->primary_node()->index()   == it_r.edge()->primary_node()->index()   &&
-               it_l.edge()->secondary_node()->index() == it_r.edge()->secondary_node()->index();
-    };
-
-    if (!PlacementTree::equal(map_a.tree(), map_b.tree(), comparator)) {
+    if (!compatible_trees(map_a, map_b)) {
         LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
         return -1.0;
     }

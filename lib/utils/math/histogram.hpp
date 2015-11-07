@@ -8,8 +8,7 @@
  * @ingroup utils
  */
 
-#include <string>
-#include <utility>
+#include <stddef.h>
 #include <vector>
 
 namespace genesis {
@@ -33,10 +32,6 @@ namespace genesis {
  *
  * The number of bins needs to be determined at construction. The number of ranges is always one
  * more than the number of bins.
- *
- * If one of the constructors with value vectors but without min/max values is used, the max value
- * will be determined using `std::nextafter(max, max + 1)` on the max element of the value list.
- * This is because we want this element to just fit into the range.
  */
 class Histogram
 {
@@ -44,137 +39,145 @@ class Histogram
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
+public:
+
     enum class OutOfRangeBehaviour {
         kIgnore,
         kSqueeze,
         kThrow
     };
 
+    typedef std::vector<double>::iterator       iterator;
     typedef std::vector<double>::const_iterator const_iterator;
 
     // -------------------------------------------------------------------------
-    //     Data Members
+    //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-protected:
-
-    std::vector<double> bins_;
-    std::vector<double> ranges_;
-
-public:
-
-    OutOfRangeBehaviour out_of_range_behaviour;
-
-    // -------------------------------------------------------------------------
-    //     Constructor and Destructor
-    // -------------------------------------------------------------------------
-
-public:
-
-    // TODO Maybe a builder pattern would be neat here!
-
     Histogram(
-        const size_t num_bins
+        size_t num_bins
     );
 
     Histogram(
-        const size_t num_bins,
-        const double range_min,
-        const double range_max
-    );
-
-    Histogram(
-        const size_t num_bins,
-        const std::vector<double>& values,
-        const double weight = 1.0
-    );
-
-    Histogram(
-        const size_t num_bins,
-        const std::vector<std::pair<double,double>>& weighted_values
-    );
-
-    Histogram(
-        const size_t num_bins,
-        const double range_min,
-        const double range_max,
-        const std::vector<double>& values,
-        const double weight = 1.0
-    );
-
-    Histogram(
-        const size_t num_bins,
-        const double range_min,
-        const double range_max,
-        const std::vector<std::pair<double,double>>& weighted_values
+        size_t num_bins,
+        double range_min,
+        double range_max
     );
 
     Histogram(
         const std::vector<double>& ranges
     );
 
-    void set_ranges(const std::vector<double>& ranges);
+    ~Histogram() = default;
 
-    void set_uniform_ranges(const double min, const double max);
+    Histogram(Histogram const&)     = default;
+    Histogram(Histogram&&) noexcept = default;
+
+    Histogram& operator= (Histogram const&)     = default;
+    Histogram& operator= (Histogram&&) noexcept = default;
+
+    void swap (Histogram& other) noexcept;
+
+    // -------------------------------------------------------------------------
+    //     General Methods
+    // -------------------------------------------------------------------------
+
+    void set_ranges( const std::vector<double>& ranges );
+
+    void set_uniform_ranges( const double min, const double max );
 
     void clear();
 
+    OutOfRangeBehaviour out_of_range_behaviour() const;
+
+    void                out_of_range_behaviour( OutOfRangeBehaviour v );
+
     // -------------------------------------------------------------------------
-    //     Accessors
+    //     Bin Access
     // -------------------------------------------------------------------------
+
+    double& at( size_t bin_num );
+
+    double at( size_t bin_num ) const;
+
+    double& operator [] ( size_t bin_num );
+
+    double operator [] ( size_t bin_num ) const;
+
+    // -------------------------------------------------------------------------
+    //     Bin Iterators
+    // -------------------------------------------------------------------------
+
+    iterator begin();
+
+    iterator end();
 
     const_iterator begin() const;
 
     const_iterator end() const;
 
-    double value(size_t bin_num) const;
+    const_iterator cbegin() const;
 
-    double& value(size_t bin_num);
-
-    double operator [] (size_t bin_num) const;
-
-    double& operator [] (size_t bin_num);
+    const_iterator cend() const;
 
     // -------------------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------------------
 
-    double min() const;
-
-    double max() const;
-
     size_t bins() const;
 
-    std::pair<double, double> bin_range(size_t bin_num) const;
+    std::pair<double, double> bin_range( size_t bin_num ) const;
 
-    double bin_midpoint(size_t bin_num) const;
+    double bin_midpoint( size_t bin_num ) const;
 
-    double bin_width(size_t bin_num) const;
+    double bin_width( size_t bin_num ) const;
 
-    int find_bin (double x) const;
+    int find_bin( double x ) const;
 
-    bool check_range(double x) const;
+    double range_min() const;
+
+    double range_max() const;
+
+    bool check_range( double x ) const;
 
     // -------------------------------------------------------------------------
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    int increment (double x);
+    int increment( double x );
 
-    int accumulate (double x, double weight);
+    int accumulate( double x, double weight );
 
-    void increment_bin (size_t bin);
+    void increment_bin( size_t bin );
 
-    void accumulate_bin (size_t bin, double weight);
+    void accumulate_bin( size_t bin, double weight );
 
     // -------------------------------------------------------------------------
-    //     Dump
+    //     Data Members
     // -------------------------------------------------------------------------
 
-    std::string dump() const;
+private:
 
+    std::vector<double> bins_;
+    std::vector<double> ranges_;
+
+    OutOfRangeBehaviour out_of_range_behaviour_;
 };
 
 } // namespace genesis
+
+// =================================================================================================
+//     Namespace std Extension
+// =================================================================================================
+
+namespace std {
+
+template<>
+inline void swap( genesis::Histogram& lhs, genesis::Histogram& rhs ) noexcept
+{
+    lhs.swap(rhs);
+}
+
+} // namespace std
 
 #endif // include guard

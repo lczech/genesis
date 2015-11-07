@@ -10,7 +10,6 @@
  * @ingroup tree
  */
 
-#include <functional>
 #include <memory>
 #include <string>
 #include <utility>
@@ -93,9 +92,9 @@ public:
     typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
 
-    typedef std::vector<std::unique_ptr<LinkType>> LinkArray;
-    typedef std::vector<std::unique_ptr<NodeType>> NodeArray;
-    typedef std::vector<std::unique_ptr<EdgeType>> EdgeArray;
+    typedef std::vector<std::unique_ptr<LinkType>> LinkContainer;
+    typedef std::vector<std::unique_ptr<NodeType>> NodeContainer;
+    typedef std::vector<std::unique_ptr<EdgeType>> EdgeContainer;
 
     // -------------------------------------------------------------------------
     //     Construction and Destruction
@@ -135,8 +134,8 @@ public:
     void swap (OtherTreeType<OtherNodeDataType, OtherEdgeDataType>& other);
     */
 
-    void import_content (LinkArray& links, NodeArray& nodes, EdgeArray& edges);
-    void export_content (LinkArray& links, NodeArray& nodes, EdgeArray& edges);
+    void import_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
+    void export_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
 
     // -------------------------------------------------------------------------
     //     Accessors
@@ -557,37 +556,11 @@ public:
 
     // TODO add other interesting member functions: http://en.wikipedia.org/wiki/Tree_%28data_structure%29
 
-    NodeType* find_node(std::string name) const;
-
     int    max_rank() const;
     bool   is_bifurcating() const;
 
     size_t leaf_count() const;
     size_t inner_count() const;
-
-    // -------------------------------------------------------------------------
-    //     Comparisons
-    // -------------------------------------------------------------------------
-
-    static bool equal(
-        const TreeType& lhs,
-        const TreeType& rhs,
-        const std::function<bool
-            (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)
-        > comparator
-    );
-    bool equal(
-        const TreeType& other,
-        const std::function<bool
-            (TreeType::ConstIteratorPreorder&, TreeType::ConstIteratorPreorder&)
-        > comparator
-    ) const;
-
-    static bool equal(const TreeType& lhs, const TreeType& rhs);
-           bool equal(const TreeType& other) const;
-
-    static bool identical_topology(const TreeType& lhs, const TreeType& rhs);
-           bool identical_topology(const TreeType& other) const;
 
     // -------------------------------------------------------------------------
     //     Debug and Dump
@@ -602,7 +575,7 @@ public:
     //     Data Members
     // -------------------------------------------------------------------------
 
-protected:
+private:
 
     std::vector<std::unique_ptr<LinkType>> links_;
     std::vector<std::unique_ptr<NodeType>> nodes_;
@@ -617,8 +590,5 @@ protected:
 
 // This is a class template, so do the inclusion here.
 #include "tree/tree.tpp"
-
-// Also include the iterator classes, they are good friends of ours.
-#include "tree/iterators.hpp"
 
 #endif // include guard

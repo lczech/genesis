@@ -8,6 +8,7 @@
 #include "placement/simulator.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
+#include "tree/operators.hpp"
 
 #include <assert.h>
 
@@ -195,7 +196,7 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_depths_distributed_weights
  */
 bool PlacementSimulatorTwostep::EdgeDistribution::transfer_weights (const PlacementMap& map)
 {
-    if (!map.tree().identical_topology(placements_.tree())) {
+    if (!identical_topology(map.tree(), placements_.tree())) {
         return false;
     }
 

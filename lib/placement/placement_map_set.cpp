@@ -125,15 +125,21 @@ TreeSet<PlacementTree> PlacementMapSet::tree_set()
  */
 bool PlacementMapSet::all_identical_trees()
 {
-    auto comparator = [] (
-        PlacementTree::ConstIteratorPreorder& it_l,
-        PlacementTree::ConstIteratorPreorder& it_r
+    auto node_comparator = [] (
+        const PlacementTree::NodeType& node_l,
+        const PlacementTree::NodeType& node_r
     ) {
-        return it_l.node()->data.name     == it_r.node()->data.name     &&
-               it_l.edge()->data.edge_num == it_r.edge()->data.edge_num;
+        return node_l.data.name == node_r.data.name;
     };
 
-    return tree_set().all_equal(comparator);
+    auto edge_comparator = [] (
+        const PlacementTree::EdgeType& edge_l,
+        const PlacementTree::EdgeType& edge_r
+    ) {
+        return edge_l.data.edge_num == edge_r.data.edge_num;
+    };
+
+    return tree_set().all_equal(node_comparator, edge_comparator);
 }
 
 // =============================================================================

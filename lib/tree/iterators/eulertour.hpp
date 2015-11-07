@@ -65,6 +65,20 @@ public:
     // {}
 
     // -----------------------------------------------------
+    //     Iteration
+    // -----------------------------------------------------
+
+    // inline self_type begin()
+    // {
+    //     return self_type(start_);
+    // }
+    //
+    // inline self_type end()
+    // {
+    //     return self_type(nullptr);
+    // }
+
+    // -----------------------------------------------------
     //     Operators
     // -----------------------------------------------------
 
@@ -127,6 +141,20 @@ protected:
     LinkType* link_;
     LinkType* start_;
 };
+
+// =================================================================================================
+//     Euler Tour Iterator Range
+// =================================================================================================
+
+// template<class TreeType>
+// TreeIteratorEulertour<
+//     typename TreeType::LinkType,
+//     typename TreeType::NodeType,
+//     typename TreeType::EdgeType
+// > eulertour(const TreeType& tree)
+// {
+//     return TreeIteratorEulertour(tree.root_link());
+// }
 
 } // namespace genesis
 

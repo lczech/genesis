@@ -12,19 +12,18 @@
 #include <cmath>
 #include <iterator>
 #include <numeric>
-
-#include "utils/core/logging.hpp"
+#include <stdexcept>
 
 namespace genesis {
 
 // =================================================================================================
-//     Constructors
+//     Constructors and Rule of Five
 // =================================================================================================
 
 Histogram::Histogram(
     const size_t num_bins
-) :
-    Histogram(num_bins, 0.0, 1.0)
+)
+    : Histogram(num_bins, 0.0, 1.0)
 {
     // Nothing to do here.
 }
@@ -33,122 +32,51 @@ Histogram::Histogram(
     const size_t num_bins,
     const double range_min,
     const double range_max
-) :
-    bins_                  (num_bins),
-    ranges_                (num_bins + 1),
-    out_of_range_behaviour (OutOfRangeBehaviour::kIgnore)
+)
+    : bins_                   (num_bins)
+    , ranges_                 (num_bins + 1)
+    , out_of_range_behaviour_ (OutOfRangeBehaviour::kIgnore)
 {
-    // TODO should be an exception.
-    assert(num_bins > 0);
+    if (num_bins == 0) {
+        throw std::domain_error("__FUNCTION__: domain_error");
+    }
 
     set_uniform_ranges(range_min, range_max);
 }
 
 Histogram::Histogram(
-    const size_t num_bins,
-    const std::vector<double>& values,
-    const double weight
-) :
-    bins_                  (num_bins),
-    ranges_                (num_bins + 1),
-    out_of_range_behaviour (OutOfRangeBehaviour::kIgnore)
-{
-    // TODO should be an exception.
-    assert(num_bins > 0);
-
-    double min = *std::min_element(values.begin(), values.end());
-    double max = *std::max_element(values.begin(), values.end());
-    set_uniform_ranges(min, std::nextafter(max, max + 1));
-
-    for (const auto v : values) {
-        accumulate(v, weight);
-    }
-}
-
-Histogram::Histogram(
-    const size_t num_bins,
-    const std::vector<std::pair<double,double>>& weighted_values
-) :
-    bins_                  (num_bins),
-    ranges_                (num_bins + 1),
-    out_of_range_behaviour (OutOfRangeBehaviour::kIgnore)
-{
-    // TODO should be an exception.
-    assert(num_bins > 0);
-
-    auto first_smaller = [] (std::pair<double,double> p1, std::pair<double,double> p2) {
-        return p1.first < p2.first;
-    };
-
-    auto min_p = *std::min_element(weighted_values.begin(), weighted_values.end(), first_smaller);
-    auto max_p = *std::max_element(weighted_values.begin(), weighted_values.end(), first_smaller);
-
-    double min = min_p.first;
-    double max = max_p.first;
-    set_uniform_ranges(min, std::nextafter(max, max + 1));
-
-    for (const auto pair : weighted_values) {
-        accumulate(pair.first, pair.second);
-    }
-}
-
-Histogram::Histogram(
-    const size_t num_bins,
-    const double range_min,
-    const double range_max,
-    const std::vector<double>& values,
-    const double weight
-) :
-    Histogram(
-        num_bins,
-        range_min,
-        range_max
-    )
-{
-    for (const auto v : values) {
-        accumulate(v, weight);
-    }
-}
-
-Histogram::Histogram(
-    const size_t num_bins,
-    const double range_min,
-    const double range_max,
-    const std::vector<std::pair<double,double>>& weighted_values
-) :
-    Histogram(
-        num_bins,
-        range_min,
-        range_max
-    )
-{
-    for (const auto pair : weighted_values) {
-        accumulate(pair.first, pair.second);
-    }
-}
-
-Histogram::Histogram(
     const std::vector<double>& ranges
-) :
-    bins_                  (ranges.size() - 1, 0.0),
-    ranges_                (ranges),
-    out_of_range_behaviour (OutOfRangeBehaviour::kIgnore)
+)
+    : bins_                   (ranges.size() - 1, 0.0)
+    , ranges_                 (ranges)
+    , out_of_range_behaviour_ (OutOfRangeBehaviour::kIgnore)
 {
-    // TODO replace by exception. maybe not even neccessary, as constructor might just throw anyway.
-    assert(ranges.size() >= 2);
+    if (ranges.size() < 2) {
+        throw std::domain_error("__FUNCTION__: domain_error");
+    }
+    if (!std::is_sorted(ranges.begin(), ranges.end())) {
+        throw std::invalid_argument("__FUNCTION__: invalid_argument");
+    }
+}
 
-    assert(std::is_sorted(ranges.begin(), ranges.end()));
+void Histogram::swap( Histogram& other ) noexcept
+{
+    using std::swap;
+    swap(bins_, other.bins_);
+    swap(ranges_, other.ranges_);
+    swap(out_of_range_behaviour_, other.out_of_range_behaviour_);
 }
 
 // =================================================================================================
-//     Other main methods
+//     General Methods
 // =================================================================================================
 
-void Histogram::set_ranges(const std::vector<double>& ranges)
+void Histogram::set_ranges( const std::vector<double>& ranges )
 {
-    // TODO replace by throw exception
-    assert(ranges.size() == ranges_.size());
-    assert(std::is_sorted(ranges.begin(), ranges.end()));
+    if (ranges.size() != ranges_.size() || !std::is_sorted(ranges.begin(), ranges.end())) {
+        throw std::invalid_argument("__FUNCTION__: invalid_argument");
+    }
+
     ranges_ = ranges;
     clear();
 }
@@ -156,12 +84,10 @@ void Histogram::set_ranges(const std::vector<double>& ranges)
 /**
  * @brief
  */
-void Histogram::set_uniform_ranges(const double min, const double max)
+void Histogram::set_uniform_ranges( const double min, const double max )
 {
     if (min >= max) {
-        // TODO throw exception
-        LOG_WARN << "Histogram range (" << min << ", " << max << ") not valid.";
-        return;
+        throw std::invalid_argument("__FUNCTION__: invalid_argument");
     }
 
     // const size_t num_bins  = bins();
@@ -195,118 +121,165 @@ void Histogram::clear()
     }
 }
 
+Histogram::OutOfRangeBehaviour Histogram::out_of_range_behaviour() const
+{
+    return out_of_range_behaviour_;
+}
+
+void Histogram::out_of_range_behaviour( OutOfRangeBehaviour v )
+{
+    out_of_range_behaviour_ = v;
+}
+
 // =================================================================================================
-//     Accessors
+//     Bin Access
 // =================================================================================================
 
-Histogram::const_iterator Histogram::begin() const
+double& Histogram::at ( size_t bin_num )
+{
+    if (bin_num >= bins_.size()) {
+        throw std::out_of_range("__FUNCTION__: out_of_range");
+    }
+    return bins_.at(bin_num);
+}
+
+double Histogram::at ( size_t bin_num ) const
+{
+    if (bin_num >= bins_.size()) {
+        throw std::out_of_range("__FUNCTION__: out_of_range");
+    }
+    return bins_.at(bin_num);
+}
+
+double& Histogram::operator [] ( size_t bin_num )
+{
+    return bins_[bin_num];
+}
+
+double Histogram::operator [] ( size_t bin_num ) const
+{
+    return bins_[bin_num];
+}
+
+// =================================================================================================
+//     Bin Iterators
+// =================================================================================================
+
+Histogram::iterator Histogram::begin()
 {
     return bins_.begin();
 }
 
-Histogram::const_iterator Histogram::end() const
+Histogram::iterator Histogram::end()
 {
     return bins_.end();
 }
 
-double Histogram::value(size_t bin_num) const
+Histogram::const_iterator Histogram::begin() const
 {
-    return bins_.at(bin_num);
+    return bins_.cbegin();
 }
 
-double& Histogram::value(size_t bin_num)
+Histogram::const_iterator Histogram::end() const
 {
-    return bins_.at(bin_num);
+    return bins_.cend();
 }
 
-double Histogram::operator [] (size_t bin_num) const
+Histogram::const_iterator Histogram::cbegin() const
 {
-    return bins_[bin_num];
+    return bins_.cbegin();
 }
 
-double& Histogram::operator [] (size_t bin_num)
+Histogram::const_iterator Histogram::cend() const
 {
-    return bins_[bin_num];
+    return bins_.cend();
 }
 
 // =================================================================================================
 //     Properties
 // =================================================================================================
 
-double Histogram::min() const
-{
-    return ranges_.front();
-}
-
-double Histogram::max() const
-{
-    return ranges_.back();
-}
-
 size_t Histogram::bins() const
 {
     return bins_.size();
 }
 
-std::pair<double, double> Histogram::bin_range(size_t bin_num) const
+std::pair<double, double> Histogram::bin_range( size_t bin_num ) const
 {
     return std::make_pair(ranges_[bin_num], ranges_[bin_num + 1]);
 }
 
-double Histogram::bin_midpoint(size_t bin_num) const
+double Histogram::bin_midpoint( size_t bin_num ) const
 {
     return (ranges_[bin_num] + ranges_[bin_num + 1]) / 2;
 }
 
-double Histogram::bin_width(size_t bin_num) const
+double Histogram::bin_width( size_t bin_num ) const
 {
     return ranges_[bin_num + 1] - ranges_[bin_num];
 }
 
-int Histogram::find_bin (double x) const
+int Histogram::find_bin( double x ) const
 {
-    if (x < min()) {
+    const auto r_min = range_min();
+    const auto r_max = range_max();
+
+    if (x < r_min) {
         return -1;
     }
-    if (x >= max()) {
+    if (x >= r_max) {
         return bins();
     }
 
     // Get the bin for the uniform ranges case.
-    double bin_width = (max() - min()) / static_cast<double>(bins());
-    int bin = static_cast <int> (std::floor( (x - min()) / bin_width ));
+    const double bin_width = (r_max - r_min) / static_cast<double>( bins() );
+    const int bin = static_cast<int>( std::floor( (x - r_min) / bin_width ) );
 
-    // If this worked, simply return the bin number.
+    // With the calculation above, we always end up within the boundaries.
+    assert(r_min <= x && x < r_max);
+
+    // Now check if we actually found the correct bin. If so, simply return the bin number.
     if (ranges_[bin] <= x && x < ranges_[bin + 1]) {
         return bin;
     }
 
     // If not, do a binary search.
-    auto it = std::upper_bound(ranges_.begin(), ranges_.end(), x);
+    const auto it = std::upper_bound(ranges_.begin(), ranges_.end(), x);
     return std::distance(ranges_.begin(), it) - 1;
+}
+
+double Histogram::range_min() const
+{
+    return ranges_.front();
+}
+
+double Histogram::range_max() const
+{
+    return ranges_.back();
 }
 
 bool Histogram::check_range(double x) const
 {
-    return x >= min() && x < max();
+    return range_min() <= x && x < range_max();
 }
 
 // =================================================================================================
 //     Modifiers
 // =================================================================================================
 
-int Histogram::increment (double x)
+int Histogram::increment( double x )
 {
     return accumulate(x, 1.0);
 }
 
-int Histogram::accumulate (double x, double weight)
+int Histogram::accumulate( double x, double weight )
 {
     int bin = find_bin(x);
 
     // Do boundary check on the bin.
+    // The cast is only done if we already know that bin >= 0, so it is always valid.
     if (bin < 0 || static_cast <size_t>(bin) >= bins()) {
-        switch (out_of_range_behaviour) {
+        switch (out_of_range_behaviour()) {
             case OutOfRangeBehaviour::kIgnore:
                 return bin;
 
@@ -319,8 +292,7 @@ int Histogram::accumulate (double x, double weight)
                 break;
 
             case OutOfRangeBehaviour::kThrow:
-                // TODO replace by exception
-                assert(false);
+                throw std::out_of_range("__FUNCTION__: out_of_range");
         }
     }
 
@@ -329,35 +301,18 @@ int Histogram::accumulate (double x, double weight)
     return bin;
 }
 
-void Histogram::increment_bin (size_t bin)
+void Histogram::increment_bin( size_t bin )
 {
     accumulate_bin(bin, 1.0);
 }
 
-void Histogram::accumulate_bin (size_t bin, double weight)
+void Histogram::accumulate_bin( size_t bin, double weight )
 {
     if (bin >= bins()) {
-        // TODO in case genesis switches to using exceptions, this part can simply be ommited.
-        // the vector will throw, and the exception will be passt on to the calling funtion anyway.
-        LOG_WARN << "Histogram bin " << bin << " not valid.";
-        return;
+        throw std::out_of_range("__FUNCTION__: out_of_range");
     }
 
     bins_[bin] += weight;
-}
-
-// =================================================================================================
-//     Dump
-// =================================================================================================
-
-std::string Histogram::dump() const
-{
-    std::string res;
-    for (size_t i = 0; i < bins(); ++i) {
-        res += "[" + std::to_string(ranges_[i]) + ", " + std::to_string(ranges_[i + 1]) + "): ";
-        res += std::to_string(bins_[i]) + "\n";
-    }
-    return res;
 }
 
 } // namespace genesis

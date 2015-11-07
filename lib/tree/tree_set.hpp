@@ -69,11 +69,16 @@ public:
     // -----------------------------------------------------
 
     bool all_equal(
-        const std::function<bool (
-            typename TreeType::ConstIteratorPreorder&, typename TreeType::ConstIteratorPreorder&
-        )> comparator
+        std::function<bool
+            (const typename TreeType::NodeType&, const typename TreeType::NodeType&)
+        > node_comparator,
+        std::function<bool
+            (const typename TreeType::EdgeType&, const typename TreeType::EdgeType&)
+        > edge_comparator
     ) const;
+
     bool all_equal() const;
+
     bool all_identical_topology() const;
 
     // -----------------------------------------------------

@@ -10,6 +10,7 @@
 
 #include "tree/distances.hpp"
 #include "tree/io/newick_broker.hpp"
+#include "tree/iterators/postorder.hpp"
 #include "tree/tree_set.hpp"
 #include "tree/tree.hpp"
 #include "utils/core/fs.hpp"
@@ -549,9 +550,9 @@ template <typename AdapterType>
 bool NewickProcessor<AdapterType>::build_tree (
     NewickBroker& broker, typename AdapterType::TreeType& tree
 ) {
-    typename AdapterType::TreeType::LinkArray links;
-    typename AdapterType::TreeType::NodeArray nodes;
-    typename AdapterType::TreeType::EdgeArray edges;
+    typename AdapterType::TreeType::LinkContainer links;
+    typename AdapterType::TreeType::NodeContainer nodes;
+    typename AdapterType::TreeType::EdgeContainer edges;
 
     // There may be errors while converting from broker nodes to tree elements, for example missing
     // data for certain formats. This will be reported as result of this method. We however do not

@@ -8,6 +8,7 @@
 #include <algorithm>
 #include <assert.h>
 
+#include "tree/operators.hpp"
 #include "tree/tree_set.hpp"
 #include "utils/core/logging.hpp"
 
@@ -128,14 +129,18 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
  */
 template <class TreeType>
 bool TreeSet<TreeType>::all_equal(
-    const std::function<bool (
-        typename TreeType::ConstIteratorPreorder&, typename TreeType::ConstIteratorPreorder&
-    )> comparator
+    std::function<bool
+        (const typename TreeType::NodeType&, const typename TreeType::NodeType&)
+    > node_comparator,
+    std::function<bool
+        (const typename TreeType::EdgeType&, const typename TreeType::EdgeType&)
+    > edge_comparator
 ) const {
     // If all pairs of two adjacent trees are equal, all of them are.
     // Thus, we do not need a complete pairwise comparision.
+    // TODO the namespace thing is weird, but currently neccesary because of an ambiguous call...
     for (size_t i = 1; i < trees_.size(); i++) {
-        if (!TreeType::equal(trees_[i-1].tree, trees_[i].tree, comparator)) {
+        if (!genesis::equal(trees_[i-1].tree, trees_[i].tree, node_comparator, edge_comparator)) {
             return false;
         }
     }
@@ -152,7 +157,7 @@ bool TreeSet<TreeType>::all_equal() const
     // If all pairs of two adjacent trees are equal, all of them are.
     // Thus, we do not need a complete pairwise comparision.
     for (size_t i = 1; i < trees_.size(); i++) {
-        if (!TreeType::equal(trees_[i-1].tree, trees_[i].tree)) {
+        if (!equal(trees_[i-1].tree, trees_[i].tree)) {
             return false;
         }
     }
@@ -168,7 +173,7 @@ bool TreeSet<TreeType>::all_identical_topology() const
     // If all pairs of two adjacent trees have same the topology, all of them have.
     // Thus, we do not need a complete pairwise comparision.
     for (size_t i = 1; i < trees_.size(); i++) {
-        if (!TreeType::identical_topology(trees_[i-1].tree, trees_[i].tree)) {
+        if (!identical_topology(trees_[i-1].tree, trees_[i].tree)) {
             return false;
         }
     }

@@ -11,8 +11,12 @@
 #include <utility>
 
 #include "lib/tree/default_tree_newick_adapter.hpp"
+#include "lib/tree/default/functions.hpp"
 #include "lib/tree/io/newick_processor.hpp"
 #include "lib/tree/tree.hpp"
+#include "tree/iterators/eulertour.hpp"
+#include "tree/iterators/postorder.hpp"
+#include "tree/iterators/preorder.hpp"
 
 using namespace genesis;
 
@@ -63,7 +67,7 @@ void TestEulertour(std::string node_name, std::string out_nodes)
     DefaultTree tree;
     DefaultTreeNewickProcessor().from_string(input, tree);
 
-    auto node = tree.find_node(node_name);
+    auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
 
     for (auto it = tree.begin_eulertour(node); it != tree.end_eulertour(); ++it) {
@@ -98,7 +102,7 @@ void TestPreorder(std::string node_name, std::string out_nodes)
     DefaultTree tree;
     DefaultTreeNewickProcessor().from_string(input, tree);
 
-    auto node = tree.find_node(node_name);
+    auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
 
     for (auto it = tree.begin_preorder(node); it != tree.end_preorder(); ++it) {
@@ -133,7 +137,7 @@ void TestPostorder(std::string node_name, std::string out_nodes)
     DefaultTree tree;
     DefaultTreeNewickProcessor().from_string(input, tree);
 
-    auto node = tree.find_node(node_name);
+    auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
 
     for (auto it = tree.begin_postorder(node); it != tree.end_postorder(); ++it) {
