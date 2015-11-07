@@ -235,7 +235,10 @@ int Histogram::find_bin( double x ) const
     const double bin_width = (r_max - r_min) / static_cast<double>( bins() );
     const int bin = static_cast<int>( std::floor( (x - r_min) / bin_width ) );
 
-    // If this worked, simply return the bin number.
+    // With the calculation above, we always end up within the boundaries.
+    assert(r_min <= x && x < r_max);
+
+    // Now check if we actually found the correct bin. If so, simply return the bin number.
     if (ranges_[bin] <= x && x < ranges_[bin + 1]) {
         return bin;
     }
