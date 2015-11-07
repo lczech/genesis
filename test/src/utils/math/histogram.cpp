@@ -98,7 +98,7 @@ TEST(Histogram, Accumulator)
 	EXPECT_DOUBLE_EQ (3.0, h1[0]);
 	EXPECT_DOUBLE_EQ (3.0, h1[1]);
 
-	auto h2 = a.build_rounded_uniform_ranges_histogram(2);
+	auto h2 = a.build_uniform_ranges_histogram(2, true);
 
 	EXPECT_DOUBLE_EQ (1.0, h2.range_min());
     EXPECT_DOUBLE_EQ (2.0, h2.range_max());

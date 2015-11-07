@@ -9,13 +9,16 @@
  */
 
 #include <map>
-#include <string>
 #include <utility>
 #include <vector>
 
-#include "utils/math/histogram.hpp"
-
 namespace genesis {
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Histogram;
 
 // =================================================================================================
 //     Histogram Accumulator
@@ -34,18 +37,32 @@ namespace genesis {
 class HistogramAccumulator
 {
     // -------------------------------------------------------------------------
-    //     Constructors and Typedefs
+    //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
 public:
 
+    typedef std::map<double, double>::const_iterator const_iterator;
+
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
     HistogramAccumulator () {}
 
-    HistogramAccumulator (const std::vector<double>& values, const double weight = 1.0);
+    HistogramAccumulator (const std::vector<double>& values, double weight = 1.0);
 
     HistogramAccumulator (const std::vector<std::pair<double,double>>& weighted_values);
 
-    typedef std::map<double, double>::const_iterator const_iterator;
+    ~HistogramAccumulator() = default;
+
+    HistogramAccumulator(HistogramAccumulator const&) = default;
+    HistogramAccumulator(HistogramAccumulator&&)      = default;
+
+    HistogramAccumulator& operator= (HistogramAccumulator const&) = default;
+    HistogramAccumulator& operator= (HistogramAccumulator&&)      = default;
+
+    void swap (HistogramAccumulator& other);
 
     // -------------------------------------------------------------------------
     //     Accessors
@@ -81,15 +98,16 @@ public:
     //     Factory Methods
     // -------------------------------------------------------------------------
 
-    Histogram build_uniform_ranges_histogram (const size_t num_bins);
+    Histogram build_uniform_ranges_histogram (
+        size_t num_bins,
+        bool   integer_ranges = false
+    ) const;
 
-    Histogram build_rounded_uniform_ranges_histogram (const size_t num_bins);
-
-    // -------------------------------------------------------------------------
-    //     Dump
-    // -------------------------------------------------------------------------
-
-    std::string dump() const;
+    Histogram build_uniform_ranges_histogram (
+        size_t num_bins,
+        double min,
+        double max
+    ) const;
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -101,5 +119,19 @@ private:
 };
 
 } // namespace genesis
+
+// =================================================================================================
+//     Namespace std Extension
+// =================================================================================================
+
+namespace std {
+
+template<>
+inline void swap( genesis::HistogramAccumulator& lhs, genesis::HistogramAccumulator& rhs )
+{
+    lhs.swap(rhs);
+}
+
+} // namespace std
 
 #endif // include guard
