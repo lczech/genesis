@@ -112,8 +112,10 @@ private:
 
     // Everything private, as it is a singleton.
     Options();
-    Options(const Options&);
-    Options& operator=(const Options&);
+    Options( const Options& ) = delete;
+    Options( Options&& )      = delete;
+    Options& operator= ( const Options& ) = delete;
+    Options& operator= ( Options&& )      = delete;
 };
 
 } // namespace genesis

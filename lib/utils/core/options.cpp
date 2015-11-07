@@ -103,7 +103,7 @@ std::string Options::dump () const
     std::string res = "";
     res += "Command line:      " + command_line_string();
     res += "Number of threads: " + std::to_string(number_of_threads());
-    res += "Random seed:       ";
+    res += "Random seed:       " + std::to_string(random_seed_);
     return res;
 }
 
