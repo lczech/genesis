@@ -232,8 +232,8 @@ int Histogram::find_bin( double x ) const
     }
 
     // Get the bin for the uniform ranges case.
-    double bin_width = (r_max - r_min) / static_cast<double>( bins() );
-    int bin = static_cast<int>( std::floor( (x - r_min) / bin_width ) );
+    const double bin_width = (r_max - r_min) / static_cast<double>( bins() );
+    const int bin = static_cast<int>( std::floor( (x - r_min) / bin_width ) );
 
     // If this worked, simply return the bin number.
     if (ranges_[bin] <= x && x < ranges_[bin + 1]) {
@@ -241,7 +241,7 @@ int Histogram::find_bin( double x ) const
     }
 
     // If not, do a binary search.
-    auto it = std::upper_bound(ranges_.begin(), ranges_.end(), x);
+    const auto it = std::upper_bound(ranges_.begin(), ranges_.end(), x);
     return std::distance(ranges_.begin(), it) - 1;
 }
 
