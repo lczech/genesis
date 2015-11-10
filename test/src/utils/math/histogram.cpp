@@ -20,7 +20,7 @@ TEST(Histogram, UniformRange)
 {
     // Using https://www.youtube.com/watch?v=iRiFtrYTH_E
 
-	auto h = Histogram(9, -0.5, 8.5);
+    auto h = Histogram(9, -0.5, 8.5);
 
     h.accumulate(0.0, 8.0);
     h.accumulate(1.0, 11.0);
@@ -68,41 +68,41 @@ TEST(Histogram, VariableRanges)
 
 TEST(Histogram, EarthMoversDistance)
 {
-	auto h1 = Histogram(4, 0.0, 4.0);
-	auto h2 = Histogram(4, 0.0, 4.0);
+    auto h1 = Histogram(4, 0.0, 4.0);
+    auto h2 = Histogram(4, 0.0, 4.0);
 
-	h1.accumulate(0.0, 2.0);
-	h1.accumulate(1.0, 4.0);
-	h1.accumulate(2.0, 1.0);
-	h1.accumulate(3.0, 0.0);
+    h1.accumulate(0.0, 2.0);
+    h1.accumulate(1.0, 4.0);
+    h1.accumulate(2.0, 1.0);
+    h1.accumulate(3.0, 0.0);
 
-	h2.accumulate(0.0, 1.0);
-	h2.accumulate(1.0, 2.0);
-	h2.accumulate(2.0, 3.0);
-	h2.accumulate(3.0, 1.0);
+    h2.accumulate(0.0, 1.0);
+    h2.accumulate(1.0, 2.0);
+    h2.accumulate(2.0, 3.0);
+    h2.accumulate(3.0, 1.0);
 
-	EXPECT_DOUBLE_EQ(5.0, earth_movers_distance(h1, h2));
+    EXPECT_DOUBLE_EQ(5.0, earth_movers_distance(h1, h2));
 }
 
 TEST(Histogram, Accumulator)
 {
-	auto a = HistogramAccumulator({1.1, 1.2, 1.3});
-	a.increment(1.9);
-	a.accumulate(1.8, 2.0);
+    auto a = HistogramAccumulator({1.1, 1.2, 1.3});
+    a.increment(1.9);
+    a.accumulate(1.8, 2.0);
 
-	auto h1 = a.build_uniform_ranges_histogram(2);
+    auto h1 = a.build_uniform_ranges_histogram(2);
 
     EXPECT_DOUBLE_EQ (1.1, h1.range_min());
     EXPECT_DOUBLE_EQ (1.9, h1.range_max());
 
-	EXPECT_DOUBLE_EQ (3.0, h1[0]);
-	EXPECT_DOUBLE_EQ (3.0, h1[1]);
+    EXPECT_DOUBLE_EQ (3.0, h1[0]);
+    EXPECT_DOUBLE_EQ (3.0, h1[1]);
 
-	auto h2 = a.build_uniform_ranges_histogram(2, true);
+    auto h2 = a.build_uniform_ranges_histogram(2, true);
 
-	EXPECT_DOUBLE_EQ (1.0, h2.range_min());
+    EXPECT_DOUBLE_EQ (1.0, h2.range_min());
     EXPECT_DOUBLE_EQ (2.0, h2.range_max());
 
-	EXPECT_DOUBLE_EQ (3.0, h2[0]);
-	EXPECT_DOUBLE_EQ (3.0, h2[1]);
+    EXPECT_DOUBLE_EQ (3.0, h2[0]);
+    EXPECT_DOUBLE_EQ (3.0, h2[1]);
 }

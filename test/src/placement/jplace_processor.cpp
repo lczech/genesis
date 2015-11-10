@@ -23,6 +23,6 @@ TEST(JplaceProcessor, FromFile)
 
     PlacementMap map;
     EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
-	EXPECT_EQ   (5, map.placement_count());
+    EXPECT_EQ   (5, map.placement_count());
     EXPECT_TRUE (map.validate(true, false));
 }

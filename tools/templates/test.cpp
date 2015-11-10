@@ -13,5 +13,5 @@ using namespace genesis;
 
 TEST(###CLASSNAME###, Test)
 {
-	// implementation
+    // implementation
 }

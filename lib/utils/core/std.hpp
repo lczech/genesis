@@ -54,16 +54,16 @@ std::unique_ptr<T> make_unique(Args&&... args)
 template< class Container, class UnaryPredicate >
 inline void erase_if( Container &c, UnaryPredicate p )
 {
-	using std::begin;
-	using std::end;
-	using std::remove_if;
+    using std::begin;
+    using std::end;
+    using std::remove_if;
 
-	auto old_end = end( c );
-	auto new_end = remove_if( begin( c ), old_end, p );
+    auto old_end = end( c );
+    auto new_end = remove_if( begin( c ), old_end, p );
 
-	if ( new_end != old_end ) {
-		c.erase( new_end, old_end );
-	}
+    if ( new_end != old_end ) {
+        c.erase( new_end, old_end );
+    }
 }
 
 } // namespace genesis

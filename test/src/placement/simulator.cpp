@@ -26,7 +26,7 @@ TEST(PlacementSimulator, TwoStepSimple)
     *tree));
 
     PlacementMap map(tree);
-	EXPECT_EQ   (0, map.placement_count());
+    EXPECT_EQ   (0, map.placement_count());
     EXPECT_TRUE (map.validate(true, false));
 
     PlacementSimulatorTwostep sim(map);
