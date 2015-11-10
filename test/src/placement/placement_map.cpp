@@ -25,7 +25,7 @@ TEST(PlacementMap, WithTree)
     *tree));
 
     PlacementMap map(tree);
-	EXPECT_EQ   (0, map.placement_count());
+    EXPECT_EQ   (0, map.placement_count());
     EXPECT_TRUE (map.validate(true, false));
 }
 
@@ -41,8 +41,8 @@ void test_placement_map_stats (
 ) {
     EXPECT_TRUE (map.validate(true, false));
 
-	EXPECT_EQ (expected_pquery_size,    map.pquery_size());
-	EXPECT_EQ (expected_placement_size, map.placement_count());
+    EXPECT_EQ (expected_pquery_size,    map.pquery_size());
+    EXPECT_EQ (expected_placement_size, map.placement_count());
 
     size_t name_count = 0;
     for (auto& pqry : map.pqueries()) {

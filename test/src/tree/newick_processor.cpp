@@ -23,7 +23,7 @@ TEST(NewickProcessor, FromAndToString)
     EXPECT_TRUE(DefaultTreeNewickProcessor().from_string(input, tree));
     std::string output = DefaultTreeNewickProcessor().to_string(tree);
 
-	EXPECT_EQ(input, output);
+    EXPECT_EQ(input, output);
 }
 
 TEST(NewickProcessor, NewickVariants)
