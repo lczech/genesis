@@ -15,8 +15,13 @@ build/CMakeCache.txt: CMakeLists.txt
 	@cd build && cmake ..
 
 # Run make, but not before CMakeCache.txt is created.
+# We first touch all inner cmake files so that their glob search for files is rerun.
+# This ensures that all new files are compiled, even when doing incremental builds.
 make: build/CMakeCache.txt
 	@echo "Running make..."
+	@touch lib/CMakeLists.txt
+	@touch python/src/CMakeLists.txt
+	@touch test/src/CMakeLists.txt
 	$(MAKE) -s -C build
 .PHONY: make
 
