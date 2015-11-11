@@ -9,6 +9,7 @@
 
 #include "lib/utils/tools/color.hpp"
 #include "lib/utils/tools/color/gradient.hpp"
+#include "lib/utils/tools/color/operators.hpp"
 
 using namespace genesis;
 
@@ -31,4 +32,16 @@ TEST(Color, HeatGradient)
     // Off-range values.
     compare_color(Color(   0, 255, 0 ), heat_gradient( -1.0 ));
     compare_color(Color( 255,   0, 0 ), heat_gradient(  2.0 ));
+}
+
+TEST(Color, FromDoubles)
+{
+    // Proper value tests.
+    compare_color(Color( 255,   0,   0 ), color_from_doubles( 1.0, 0.0, 0.0 ));
+    compare_color(Color(   0, 255,   0 ), color_from_doubles( 0.0, 1.0, 0.0 ));
+    compare_color(Color(   0,   0, 255 ), color_from_doubles( 0.0, 0.0, 1.0 ));
+    compare_color(Color( 128, 128, 128 ), color_from_doubles( 0.5, 0.5, 0.5 ));
+
+    // Off-range values.
+    compare_color(Color(   0,   0, 255 ), color_from_doubles( -1.0, 0.0, 10.0 ));
 }

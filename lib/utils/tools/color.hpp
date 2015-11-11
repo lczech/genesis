@@ -32,17 +32,26 @@ public:
      */
     Color () : r_(0), g_(0), b_(0) {}
 
-
     /**
      * @brief Constructor for setting the RGB value.
      */
     Color (unsigned char r, unsigned char g, unsigned char b) : r_(r), g_(g), b_(b) {}
 
-    // Color (double r, double g, double b) :
-    //     r ( static_cast<unsigned char>(round(std::min(std::max(0.0, r), 1.0) * 255.0 )) ),
-    //     g ( static_cast<unsigned char>(round(std::min(std::max(0.0, g), 1.0) * 255.0 )) ),
-    //     b ( static_cast<unsigned char>(round(std::min(std::max(0.0, b), 1.0) * 255.0 )) )
-    // {}
+    ~Color() = default;
+
+    Color(Color const&)     = default;
+    Color(Color&&) noexcept = default;
+
+    Color& operator= (Color const&)     = default;
+    Color& operator= (Color&&) noexcept = default;
+
+    void swap (Color& other) noexcept
+    {
+        using std::swap;
+        swap(r_, other.r_);
+        swap(g_, other.g_);
+        swap(b_, other.b_);
+    }
 
     // -------------------------------------------------------------------------
     //     Accessors and Modificators
@@ -79,23 +88,10 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Dump & Debug
-    // -------------------------------------------------------------------------
-
-public:
-
-    inline std::string dump()
-    {
-        return "(" + std::to_string(r_) + ", "
-                   + std::to_string(g_) + ", "
-                   + std::to_string(b_) + ")";
-    }
-
-    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
-protected:
+private:
 
     unsigned char r_;
     unsigned char g_;
@@ -104,5 +100,19 @@ protected:
 };
 
 } // namespace genesis
+
+// =================================================================================================
+//     Namespace std Extension
+// =================================================================================================
+
+namespace std {
+
+template<typename T>
+inline void swap (genesis::Color& lhs, genesis::Color& rhs) noexcept
+{
+    lhs.swap(rhs);
+}
+
+} // namespace std
 
 #endif // include guard
