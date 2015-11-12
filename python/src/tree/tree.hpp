@@ -17,7 +17,7 @@
 #include "python/src/tree/tree_link.hpp"
 #include "python/src/tree/tree_node.hpp"
 
-#include "python/src/tree/iterators.hpp"
+// #include "python/src/tree/iterators.hpp"
 
 
     /*
@@ -44,7 +44,7 @@ void BoostPythonExport_Tree (std::string name)
 
     BoostPythonExport_BipartitionSet<TreeType>("BipartitionSet" + name);
 
-    BoostPythonExport_TreeIterators<TreeType>(name);
+    // BoostPythonExport_TreeIterators<TreeType>(name);
 
     // -------------------------------------------------------------------
     //     Class Tree

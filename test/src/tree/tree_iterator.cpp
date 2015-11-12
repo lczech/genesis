@@ -59,21 +59,31 @@ INSTANTIATE_TEST_CASE_P (TreeIterator, Eulertour, ::testing::Values(
 ));
 */
 
-void TestEulertour(std::string node_name, std::string out_nodes)
+void TestEulertour(const std::string node_name, const std::string expected_nodes)
 {
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    std::string nodes = "";
+    std::string resulting_nodes = "";
 
+    // Prepare Tree.
     DefaultTree tree;
     DefaultTreeNewickProcessor().from_string(input, tree);
 
+    // Find the Node for this test run.
     auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
 
+    // Do a normal traversal.
     for (auto it = tree.begin_eulertour(node); it != tree.end_eulertour(); ++it) {
-        nodes += it.node()->data.name;
+        resulting_nodes += it.node()->data.name;
     }
-    EXPECT_EQ(out_nodes, nodes) << " with start node " << node_name;
+    EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
+
+    // Do range-based for loop traversal.
+    resulting_nodes = "";
+    for (auto& it : eulertour(node)) {
+        resulting_nodes += it.data.name;
+    }
+    EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
 }
 
 TEST (TreeIterator, Eulertour)
