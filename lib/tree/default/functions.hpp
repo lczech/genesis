@@ -18,7 +18,7 @@ namespace genesis {
  * @brief Find a Node, given its name.
  */
 template <class TreeType>
-typename TreeType::NodeType* find_node(const TreeType& tree, const std::string& name);
+typename TreeType::NodeType* find_node(TreeType& tree, const std::string& name);
 
 } // namespace genesis
 
