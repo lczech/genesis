@@ -105,34 +105,10 @@ public:
     Tree (const TreeType& other);
     TreeType& operator = (const TreeType& other);
 
-    // TODO make copy constructor and assignment operator work with other tree types.
-    // the following declarations compile, but do not work. maybe they still help for implementing.
-    /*
-    template <class OtherNodeDataType, class OtherEdgeDataType>
-    Tree (const Tree<OtherNodeDataType, OtherEdgeDataType>& other);
-    template <class OtherNodeDataType, class OtherEdgeDataType>
-    TreeType& operator = (Tree<OtherNodeDataType, OtherEdgeDataType> other);
-
-    template <class OtherNodeDataType, class OtherEdgeDataType, template <typename, typename> class OtherTreeType>
-    Tree (const OtherTreeType<OtherNodeDataType, OtherEdgeDataType>& other);
-    template <class OtherNodeDataType, class OtherEdgeDataType, template <typename, typename> class OtherTreeType>
-    TreeType& operator = (OtherTreeType<OtherNodeDataType, OtherEdgeDataType> other);
-    */
-
     virtual ~Tree();
     void clear();
 
     void swap (TreeType& other);
-
-    // TODO make swap work with other tree types.
-    // the following declarations compile, but do not work. maybe they still help for implementing.
-    /*
-    template <class OtherNodeDataType, class OtherEdgeDataType>
-    void swap (Tree<OtherNodeDataType, OtherEdgeDataType>& other);
-
-    template <class OtherNodeDataType, class OtherEdgeDataType, template <typename, typename> class OtherTreeType>
-    void swap (OtherTreeType<OtherNodeDataType, OtherEdgeDataType>& other);
-    */
 
     void import_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
     void export_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
