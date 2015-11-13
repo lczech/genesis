@@ -87,7 +87,7 @@ void BoostPythonExport_Tree (std::string name)
         )
         .def(
             "edge_at",
-            ( typename TreeType::EdgeType * ( TreeType::* )( size_t ) const )( &TreeType::edge_at ),
+            ( typename TreeType::EdgeType * ( TreeType::* )( size_t ) )( &TreeType::edge_at ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             ( boost::python::arg("index") )
         )
@@ -156,7 +156,7 @@ void BoostPythonExport_Tree (std::string name)
         // )
         .def(
             "link_at",
-            ( typename TreeType::LinkType * ( TreeType::* )( size_t ) const )( &TreeType::link_at ),
+            ( typename TreeType::LinkType * ( TreeType::* )( size_t ) )( &TreeType::link_at ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             ( boost::python::arg("index") )
         )
@@ -172,7 +172,7 @@ void BoostPythonExport_Tree (std::string name)
         )
         .def(
             "node_at",
-            ( typename TreeType::NodeType * ( TreeType::* )( size_t ) const )( &TreeType::node_at ),
+            ( typename TreeType::NodeType * ( TreeType::* )( size_t ) )( &TreeType::node_at ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             ( boost::python::arg("index") )
         )
@@ -205,12 +205,12 @@ void BoostPythonExport_Tree (std::string name)
         // )
         .def(
             "root_link",
-            ( typename TreeType::LinkType * ( TreeType::* )(  ) const )( &TreeType::root_link ),
+            ( typename TreeType::LinkType * ( TreeType::* )(  ) )( &TreeType::root_link ),
             boost::python::return_value_policy<boost::python::reference_existing_object>()
         )
         .def(
             "root_node",
-            ( typename TreeType::NodeType * ( TreeType::* )(  ) const )( &TreeType::root_node ),
+            ( typename TreeType::NodeType * ( TreeType::* )(  ) )( &TreeType::root_node ),
             boost::python::return_value_policy<boost::python::reference_existing_object>()
         )
         .def(

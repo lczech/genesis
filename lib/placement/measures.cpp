@@ -356,7 +356,7 @@ std::pair<PlacementTreeEdge*, double> PlacementMeasures::center_of_gravity (
 
     // Store a balance value per link, so that each element contains the mass and its torque that
     // lies downwards the tree in the direction of this link.
-    std::unordered_map<PlacementTree::LinkType*, Fulcrum> balance;
+    std::unordered_map<PlacementTree::LinkType const*, Fulcrum> balance;
 
     // -------------------------------------------------------------------------
     //     Collect All Masses, Calculate the Torque
@@ -427,8 +427,8 @@ std::pair<PlacementTreeEdge*, double> PlacementMeasures::center_of_gravity (
 
     // Keep track of the link whose edge we are currently examining, as well as the one that we
     // examined previously (on iteration of the loop earlier). We start at the root.
-    PlacementTree::LinkType* curr_link = map.tree().root_link();
-    PlacementTree::LinkType* prev_link = nullptr;
+    PlacementTree::LinkType const* curr_link = map.tree().root_link();
+    PlacementTree::LinkType const* prev_link = nullptr;
 
     // For asserting purposes, we keep track of the number of loop iterations we do.
     // This can never be more than the tree height (in number of nodes from root to deepest leaf)

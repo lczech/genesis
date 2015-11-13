@@ -443,7 +443,7 @@ std::string Tree<NDT, EDT>::dump() const
     // the first branch immediately, but then there would be no way of first nicely displaying
     // the information about the root node. so we need to do it a bit more complex than the
     // usual iteration...
-    LinkType* l = root_link();
+    LinkType const* l = root_link();
     while (l->next() != root_link()) {
         l = l->next();
     }

@@ -117,27 +117,52 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
-    inline LinkType* root_link() const
+    LinkType* root_link()
     {
         return links_.front().get();
     }
 
-    inline NodeType* root_node() const
+    const LinkType* root_link() const
+    {
+        return links_.front().get();
+    }
+
+    NodeType* root_node()
     {
         return links_.front()->node();
     }
 
-    inline LinkType* link_at(size_t index) const
+    const NodeType* root_node() const
+    {
+        return links_.front()->node();
+    }
+
+    LinkType* link_at(size_t index)
     {
         return links_[index].get();
     }
 
-    inline NodeType* node_at(size_t index) const
+    const LinkType* link_at(size_t index) const
+    {
+        return links_[index].get();
+    }
+
+    NodeType* node_at(size_t index)
     {
         return nodes_[index].get();
     }
 
-    inline EdgeType* edge_at(size_t index) const
+    const NodeType* node_at(size_t index) const
+    {
+        return nodes_[index].get();
+    }
+
+    EdgeType* edge_at(size_t index)
+    {
+        return edges_[index].get();
+    }
+
+    const EdgeType* edge_at(size_t index) const
     {
         return edges_[index].get();
     }
