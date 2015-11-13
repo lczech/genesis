@@ -59,15 +59,70 @@ INSTANTIATE_TEST_CASE_P (TreeIterator, Eulertour, ::testing::Values(
 ));
 */
 
+/*
+
+    TODO this is a test for const correctness.
+    currently, it is not const correct, for many reasons:
+      * the free function and iterator wrapper do not handle constness
+      * find_node takes a const tree, but returns a non const node
+      * this again is possible since the unique ptr used in tree to store the nodes
+        allows for this. thus, we need a wrapper iterator around the vec of uniq ptr
+        for the tree members that does not allow this kind of conversion.
+      * on the other hand, that might result in need for two versions for each
+        free function like find_node: a const and non const version. this is ugly.
+      * so far, i don't see a proper clean solution for that. need to consult someone
+        who knows more about this issue...
+
+    so for now, we leave it in this dirty state. be warned!
+
+ */
+void do_test(const std::string node_name, const std::string expected_nodes, DefaultTree const& tree)
+{
+    std::string resulting_nodes = "";
+
+    // Find the Node for this test run.
+    auto node = find_node(tree, node_name);
+    ASSERT_NE(nullptr, node);
+
+    // Do a normal traversal.
+    for (auto it = tree.begin_eulertour(node); it != tree.end_eulertour(); ++it) {
+        resulting_nodes += it.node()->data.name;
+        // it.node()->data.name = "bla";
+    }
+    EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
+
+    // Use free function iterator wrapper.
+    resulting_nodes = "";
+    for (auto it = eulertour(node).begin(); it != eulertour(node).end(); ++it) {
+        resulting_nodes += it.node()->data.name;
+        // it.node()->data.name = "bla";
+    }
+    EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
+
+    // Do range-based for loop traversal.
+    resulting_nodes = "";
+    // for (auto& node : eulertour(tree)) {
+    for (auto& node : eulertour(node)) {
+        resulting_nodes += node.data.name;
+        // node.data.name = "bla";
+    }
+    EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
+
+    // LOG_DBG << "did it\n=============";
+}
+
 void TestEulertour(const std::string node_name, const std::string expected_nodes)
 {
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    std::string resulting_nodes = "";
+    // std::string resulting_nodes = "";
 
     // Prepare Tree.
     DefaultTree tree;
     DefaultTreeNewickProcessor().from_string(input, tree);
 
+    do_test(node_name, expected_nodes, tree);
+
+    /*
     // Find the Node for this test run.
     auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
@@ -84,6 +139,7 @@ void TestEulertour(const std::string node_name, const std::string expected_nodes
         resulting_nodes += it.data.name;
     }
     EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
+    */
 }
 
 TEST (TreeIterator, Eulertour)
