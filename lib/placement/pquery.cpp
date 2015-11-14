@@ -6,6 +6,8 @@
  */
 
 #include "placement/pquery.hpp"
+
+#include "placement/placement_tree.hpp"
 #include "utils/core/std.hpp"
 
 namespace genesis {
@@ -19,7 +21,7 @@ namespace genesis {
  *
  * The values of the placement can than be adjusted using the returned pointer.
  */
-PqueryPlacement* Pquery::emplace_placement(PlacementTree::EdgeType* edge)
+PqueryPlacement* Pquery::emplace_placement(PlacementTreeEdge* edge)
 {
     // This is not totally efficient, as we create an empty Placement and then copy-construct it
     // again, but for now this should be sufficient...
@@ -32,7 +34,7 @@ PqueryPlacement* Pquery::emplace_placement(PlacementTree::EdgeType* edge)
  * If edge is given, the new Placement is attached to it. If not, the edge of the given Placement
  * is used instead. For this it is important that the given Placement belongs to the same Tree!
  */
-PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementTree::EdgeType* edge)
+PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementTreeEdge* edge)
 {
     auto place = make_unique<PqueryPlacement>(val);
     PqueryPlacement* place_ptr = place.get();
