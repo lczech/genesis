@@ -17,6 +17,9 @@
 #include "placement/placement_tree.hpp"
 #include "placement/pquery.hpp"
 
+// TODO remove once the helper methods are outsourced
+#include "placement/pquery/plain.hpp"
+
 namespace genesis {
 
 // =================================================================================================
