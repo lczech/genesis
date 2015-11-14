@@ -2,94 +2,98 @@
 #define GENESIS_PLACEMENT_MEASURES_H_
 
 /**
- * @brief Header of PlacementMeasures class.
+ * @brief Header for Placement Measures functions.
  *
  * @file
  * @ingroup placement
  */
 
-#include "placement/placement_map.hpp"
+#include <utility>
 
 namespace genesis {
 
 // =================================================================================================
-//     PlacementMeasures
+//     Forward Declarations
 // =================================================================================================
 
-/**
- * @brief
- */
-class PlacementMeasures
-{
-public:
+template<class NodeDataType, class EdgeDataType>
+class TreeEdge;
 
-    // -------------------------------------------------------------------------
-    //     Settings
-    // -------------------------------------------------------------------------
+template<typename T>
+class Matrix;
 
-    static bool with_pendant_length;
+class PlacementMap;
+class PlacementTreeEdgeData;
+class PlacementTreeNodeData;
+struct PqueryPlain;
 
-    // -------------------------------------------------------------------------
-    //     Distances
-    // -------------------------------------------------------------------------
+typedef TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
 
-protected:
-    static double pquery_distance (
-        const PqueryPlain&     pqry_a,
-        const PqueryPlain&     pqry_b,
-        const Matrix<double>&  node_distances
-    );
+// =================================================================================================
+//     Placement Measures
+// =================================================================================================
 
-public:
+double pquery_distance (
+    const PqueryPlain&     pqry_a,
+    const PqueryPlain&     pqry_b,
+    const Matrix<double>&  node_distances,
+    bool                   with_pendant_length = false
+);
 
-    // Earth Movers Distance
+// ----------------------------------------------------------------------------
+//     Earth Movers Distance
+// ----------------------------------------------------------------------------
 
-    static double earth_movers_distance (
-        const PlacementMap& map_a, const PlacementMap& map_b
-    );
+double earth_movers_distance (
+    const PlacementMap& map_a,
+    const PlacementMap& map_b,
+    bool                with_pendant_length = false
+);
 
-    // Center of Gravity
+// ----------------------------------------------------------------------------
+//     Center of Gravity
+// ----------------------------------------------------------------------------
 
-    static std::pair<PlacementTreeEdge*, double> center_of_gravity (const PlacementMap& map);
+std::pair<PlacementTreeEdge*, double> center_of_gravity (
+    const PlacementMap& map,
+    bool                with_pendant_length = false
+);
 
-    static double center_of_gravity_variance (const PlacementMap& map);
+double center_of_gravity_variance (
+    const PlacementMap& map,
+    bool                with_pendant_length = false
+);
 
-    static double center_of_gravity_distance (
-        const PlacementMap& map_a, const PlacementMap& map_b
-    );
+double center_of_gravity_distance (
+    const PlacementMap& map_a,
+    const PlacementMap& map_b,
+    bool                with_pendant_length = false
+);
 
-    // Pairwise Distance
+// ----------------------------------------------------------------------------
+//     Pairwise Distance
+// ----------------------------------------------------------------------------
 
-    static double pairwise_distance (
-        const PlacementMap& map_a, const PlacementMap& map_b
-    );
+double pairwise_distance (
+    const PlacementMap& map_a,
+    const PlacementMap& map_b,
+    bool                with_pendant_length = false
+);
 
-    // static double closest_pair_distance (
-    //     const PlacementMap& map_a, const PlacementMap& map_b
-    // );
+// double closest_pair_distance (
+//     const PlacementMap& map_a,
+//     const PlacementMap& map_b,
+//     bool                with_pendant_length = false
+// );
 
-    // -------------------------------------------------------------------------
-    //     Variance
-    // -------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+//     Variance
+// ----------------------------------------------------------------------------
 
-public:
-    static double variance (const PlacementMap& map);
-
-protected:
-    static void variance_thread (
-        const int                       offset,
-        const int                       incr,
-        const std::vector<PqueryPlain>* pqrys,
-        const Matrix<double>*           node_distances,
-        double*                         partial
-    );
-
-    static double variance_partial (
-        const PqueryPlain&              place_a,
-        const std::vector<PqueryPlain>& pqrys_b,
-        const Matrix<double>&           node_distances
-    );
-};
+double variance (
+    const PlacementMap& map,
+    bool                with_pendant_length = false
+);
 
 } // namespace genesis
 

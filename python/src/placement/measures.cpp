@@ -5,6 +5,8 @@
  * @ingroup python
  */
 
+/*
+
 #include <python/src/common.hpp>
 
 #include "lib/placement/measures.hpp"
@@ -63,3 +65,5 @@ PYTHON_EXPORT_CLASS (PlacementMeasures, "placement")
         .def_readwrite("with_pendant_length", &::genesis::PlacementMeasures::with_pendant_length)
     ;
 }
+
+*/
