@@ -20,7 +20,7 @@ class Histogram;
 //     Histogram Distances
 // =================================================================================================
 
-double earth_movers_distance (const Histogram& h1, const Histogram& h2);
+double earth_movers_distance (const Histogram& h1, const Histogram& h2, bool normalize = true);
 
 } // namespace genesis
 

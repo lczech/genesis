@@ -31,8 +31,9 @@ class Histogram;
  * It provides factory methods for differnt ways of initializing the Histogram ranges.
  *
  * The max value used for the build Histogram will be determined using
- * `std::nextafter(max, max + 1)` on the max element of the value list. This is because we want this
- * element to just fit into the range.
+ * `std::nextafter(max, max + 1)` on the max element of the value list. The Histogram uses
+ * half-closed ranges like [a, b), so using the next-bigger value ensures that the max element of
+ * the Accumulator just fits into the range.
  */
 class HistogramAccumulator
 {

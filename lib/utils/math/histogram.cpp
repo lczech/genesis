@@ -132,6 +132,20 @@ void Histogram::out_of_range_behaviour( OutOfRangeBehaviour v )
 }
 
 // =================================================================================================
+//     Comparison
+// =================================================================================================
+
+bool operator== (Histogram const& lhs, Histogram const& rhs)
+{
+    return lhs.bins_ == rhs.bins_ && lhs.ranges_ == rhs.ranges_;
+}
+
+bool equal_ranges (Histogram const& lhs, Histogram const& rhs)
+{
+    return lhs.ranges_ == rhs.ranges_;
+}
+
+// =================================================================================================
 //     Bin Access
 // =================================================================================================
 
