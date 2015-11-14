@@ -1,10 +1,13 @@
-# ------------------------------------------------------------------------------
-# This makefile wraps around cmake in order to make the use straight forward.
-# A simple call to "make" suffices to build the whole of genesis.
-# ------------------------------------------------------------------------------
+# --------------------------------------------------------------------------------------------------
+#     This makefile wraps around cmake in order to make the use straight forward.
+#     A simple call to "make" suffices to build the whole of genesis.
+#
+#     This script is mainly intended for fast development, as it 'misuses' cmake
+#     directly as a build system instead of a build system generator.
+# --------------------------------------------------------------------------------------------------
 
-# Run everything: first we need cmake, then make.
-all: build/CMakeCache.txt make
+# Run everything by specifying the cmake file and the build command as dependencies.
+all: build/CMakeCache.txt build
 	@echo "Done."
 .PHONY: all
 
@@ -14,16 +17,22 @@ build/CMakeCache.txt: CMakeLists.txt
 	@mkdir -p build
 	@cd build && cmake ..
 
-# Run make, but not before CMakeCache.txt is created.
+# Run make. State cmake as dependency, to ensure correct order.
+build: build/CMakeCache.txt
+	@echo "Running make..."
+	$(MAKE) -s -C build
+.PHONY: build
+
+# Special make that also includes new files.
 # We first touch all inner cmake files so that their glob search for files is rerun.
 # This ensures that all new files are compiled, even when doing incremental builds.
-make: build/CMakeCache.txt
-	@echo "Running make..."
+new_files:
+	@echo "Running make with new files..."
 	@touch lib/CMakeLists.txt
 	@touch python/src/CMakeLists.txt
 	@touch test/src/CMakeLists.txt
 	$(MAKE) -s -C build
-.PHONY: make
+.PHONY: new_files
 
 # Clean up all build targets.
 clean:
