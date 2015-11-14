@@ -8,6 +8,7 @@
 #include "placement/measures.hpp"
 
 #include <map>
+#include <stdexcept>
 #ifdef PTHREADS
 #    include <thread>
 #endif
@@ -175,8 +176,7 @@ double earth_movers_distance(
         // check whether both trees have identical topology. if they have, the ranks of all nodes
         // are the same. however, if not, at some point their ranks will differ.
         if (it_l.node()->rank() != it_r.node()->rank()) {
-            LOG_WARN << "Calculating EMD on different reference trees not possible.";
-            return -1.0;
+            throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
         }
 
         // if we are at the last iteration, we reached the root, thus we have moved all masses now
@@ -204,8 +204,7 @@ double earth_movers_distance(
         if (it_l.node()->data.name     != it_r.node()->data.name ||
             it_l.edge()->data.edge_num != it_r.edge()->data.edge_num
         ) {
-            LOG_WARN << "Inconsistent reference trees in EMD calculation.";
-            return -1.0;
+            throw std::invalid_argument("__FUNCTION__: Inconsistent trees.");
         }
 
         // we now start a "normal" earth_movers_distance caluclation on the current edge. for this,
@@ -306,8 +305,7 @@ double earth_movers_distance(
 
     // check whether we are done with both trees.
     if (it_l != lhs.tree().end_postorder() || it_r != rhs.tree().end_postorder()) {
-        LOG_WARN << "Inconsistent reference trees in EMD calculation.";
-        return -1.0;
+        throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
     }
 
     LOG_DBG << "final distance: " << distance;
@@ -871,8 +869,7 @@ double center_of_gravity_distance (
     bool                with_pendant_length
 ) {
     if (!compatible_trees(map_a, map_b)) {
-        LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
-        return -1.0;
+        throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
     }
 
     // Disable debug messages while code is not in review.
@@ -956,8 +953,7 @@ double pairwise_distance (
     bool                with_pendant_length
 ) {
     if (!compatible_trees(map_a, map_b)) {
-        LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
-        return -1.0;
+        throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
     }
 
     // Init.
