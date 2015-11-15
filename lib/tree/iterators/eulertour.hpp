@@ -29,14 +29,14 @@ public:
 
     // typedef NodeType  value_type;
     // typedef size_t    difference_type;
-    // typedef NodeType* pointer;
-    // typedef NodeType& reference;
-    //
-    // inline reference operator * ()
-    // {
-    //     return *(link_->node());
-    // }
-    //
+    typedef NodeType* pointer;
+    typedef NodeType& reference;
+
+    inline reference operator * ()
+    {
+        return *(link_->node());
+    }
+
     // inline pointer operator -> ()
     // {
     //     return link_->node();
@@ -46,7 +46,7 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorEulertour (LinkType* link) : link_(link), start_(link)
+    explicit TreeIteratorEulertour (LinkType* link) : link_(link), start_(link)
     {}
 
     // TreeIteratorEulertour () :
@@ -146,15 +146,96 @@ protected:
 //     Euler Tour Iterator Range
 // =================================================================================================
 
-// template<class TreeType>
-// TreeIteratorEulertour<
-//     typename TreeType::LinkType,
-//     typename TreeType::NodeType,
-//     typename TreeType::EdgeType
-// > eulertour(const TreeType& tree)
-// {
-//     return TreeIteratorEulertour(tree.root_link());
-// }
+template<typename TreeType>
+class TreeIteratorEulertourRange
+{
+public:
+
+    // -----------------------------------------------------
+    //     Typedefs
+    // -----------------------------------------------------
+
+    using LinkType = typename TreeType::LinkType;
+    using NodeType = typename TreeType::NodeType;
+    using EdgeType = typename TreeType::EdgeType;
+
+    using       iterator = TreeIteratorEulertour <      LinkType,       NodeType,       EdgeType>;
+    using const_iterator = TreeIteratorEulertour <const LinkType, const NodeType, const EdgeType>;
+
+    // -----------------------------------------------------
+    //     Constructors
+    // -----------------------------------------------------
+
+    explicit TreeIteratorEulertourRange(TreeType& tree)
+        : link_(tree.root_link())
+    {}
+
+    explicit TreeIteratorEulertourRange(LinkType* link)
+        : link_(link)
+    {}
+
+    explicit TreeIteratorEulertourRange(NodeType* node)
+        : link_(node->primary_link())
+    {}
+
+    // -----------------------------------------------------
+    //     Range-based loop functions
+    // -----------------------------------------------------
+
+    iterator begin()
+    {
+        return iterator(link_);
+    }
+
+    iterator end()
+    {
+        return iterator(nullptr);
+    }
+
+    const_iterator begin() const
+    {
+        return const_iterator(link_);
+    }
+
+    const_iterator end() const
+    {
+        return const_iterator(nullptr);
+    }
+
+    const_iterator cbegin()
+    {
+        return const_iterator(link_);
+    }
+
+    const_iterator cend()
+    {
+        return const_iterator(nullptr);
+    }
+
+    // -----------------------------------------------------
+    //     Data members
+    // -----------------------------------------------------
+
+private:
+
+    LinkType* link_;
+};
+
+// =================================================================================================
+//     Euler Tour Wrapper Functions
+// =================================================================================================
+
+template<typename TreeType>
+TreeIteratorEulertourRange<TreeType> eulertour(TreeType& tree)
+{
+    return TreeIteratorEulertourRange<TreeType>(tree);
+}
+
+template<typename PointerType>
+TreeIteratorEulertourRange<typename PointerType::TreeType> eulertour(PointerType* link_or_node)
+{
+    return TreeIteratorEulertourRange<typename PointerType::TreeType>(link_or_node);
+}
 
 } // namespace genesis
 

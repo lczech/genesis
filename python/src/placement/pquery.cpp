@@ -9,6 +9,8 @@
 
 #include "lib/placement/pquery.hpp"
 
+#include "lib/placement/placement_tree.hpp"
+
 // -------------------------------------------------------------------
 //     Class PqueryPlacement
 // -------------------------------------------------------------------

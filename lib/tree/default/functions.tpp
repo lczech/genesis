@@ -12,7 +12,7 @@ namespace genesis {
 // =================================================================================================
 
 template <class TreeType>
-typename TreeType::NodeType* find_node(const TreeType& tree, const std::string& name)
+typename TreeType::NodeType* find_node(TreeType& tree, const std::string& name)
 {
     auto clean_name = string_replace_all(name, "_", " ");
 

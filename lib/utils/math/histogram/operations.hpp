@@ -20,9 +20,7 @@ class Histogram;
 //     Histogram Operations
 // =================================================================================================
 
-void add (Histogram& h, double value);
-
-bool add (Histogram& h1, const Histogram& h2);
+void offset (Histogram& h, double value);
 
 void scale (Histogram& h, double factor);
 

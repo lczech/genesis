@@ -8,12 +8,12 @@
  * @ingroup placement
  */
 
-#include <assert.h>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "placement/placement_tree.hpp"
+#include "placement/pquery/name.hpp"
+#include "placement/pquery/placement.hpp"
 
 namespace genesis {
 
@@ -21,172 +21,18 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-class Pquery;
+template<class NodeDataType, class EdgeDataType>
+class TreeEdge;
 
-// =================================================================================================
-//     Pquery Placement
-// =================================================================================================
+class PlacementTreeEdgeData;
+class PlacementTreeNodeData;
 
-/**
- *
- */
-class PqueryPlacement
-{
-public:
-
-    // -------------------------------------------------------------------
-    //     Construction and Destruction
-    // -------------------------------------------------------------------
-
-    // TODO introduce rule of five, make awesome c++ 11 stuff!
-    // TODO make construction private and Pquery a friend who is the only one to construct a Placement.
-
-    PqueryPlacement (
-        // const Pquery* pquery, const PlacementTree::EdgeType* edge
-    ) :
-        // edge_num(edge->edge_num),
-        edge_num(0),
-        likelihood(0.0),
-        like_weight_ratio(0.0),
-        proximal_length(0.0),
-        pendant_length(0.0),
-        parsimony(0),
-        // pquery(pquery),
-        // edge(edge)
-        pquery(nullptr),
-        edge(nullptr)
-    {}
-
-    /**
-     * @brief Something lika copy constructor. Takes the pquery and edge for inserting this
-     * placement, plus another placement, from which the other values are copied.
-     */
-    PqueryPlacement (
-        // const Pquery* pquery, const PlacementTree::EdgeType* edge, const PqueryPlacement& other
-        const PqueryPlacement& other
-    ) :
-        // edge_num(edge.edge_num),
-        edge_num(other.edge_num),
-        likelihood(other.likelihood),
-        like_weight_ratio(other.like_weight_ratio),
-        proximal_length(other.proximal_length),
-        pendant_length(other.pendant_length),
-        parsimony(other.parsimony),
-        // pquery(pquery),
-        // edge(edge)
-        pquery(nullptr),
-        edge(nullptr)
-    {}
-
-    /**
-     * @brief Destructor. Removes the Placement also from its Edge.
-     */
-    ~PqueryPlacement()
-    {
-        if (!edge) {
-            return;
-        }
-
-        // Find the pointer on the edge that belongs to this placement.
-        auto it = edge->data.placements.begin();
-        for (; it != edge->data.placements.end(); ++it) {
-            if (*it == this) {
-                break;
-            }
-        }
-
-        // Assert that the edge actually contains a reference to this pquery. If not,
-        // this means that we messed up somewhere else while adding/removing placements...
-        assert(it != edge->data.placements.end());
-
-        // Delete the reference from the edge to the current placement.
-        edge->data.placements.erase(it);
-    }
-
-    // -------------------------------------------------------------------
-    //     Accessors
-    // -------------------------------------------------------------------
-
-    // TODO fix the get_ part in here!!! make members protected, refactor all occurences
-
-    inline const Pquery& get_pquery() const
-    {
-        return *pquery;
-    }
-
-    inline const PlacementTree::EdgeType& get_edge() const
-    {
-        return *edge;
-    }
-
-    // -------------------------------------------------------------------
-    //     Data Members
-    // -------------------------------------------------------------------
-
-    // const int edge_num;
-    int       edge_num;
-    double    likelihood;
-    double    like_weight_ratio;
-    double    proximal_length;
-    double    pendant_length;
-    int       parsimony;
-
-// protected:
-
-    // const Pquery*                  pquery_;
-    // const PlacementTree::EdgeType* edge_;
-
-    Pquery*                  pquery;
-    PlacementTree::EdgeType* edge;
-};
-
-// =================================================================================================
-//     Pquery Name
-// =================================================================================================
-
-/**
- *
- */
-class PqueryName
-{
-public:
-// protected:
-
-    friend Pquery;
-
-    /**
-     * @brief Default constructor.
-     */
-    PqueryName(std::string name = "", double multiplicity = 0.0) :
-        name(name),
-        multiplicity(multiplicity),
-        pquery(nullptr)
-    {}
-
-    /**
-     * @brief Copy constructor.
-     */
-    PqueryName(const PqueryName& other) :
-        name(other.name),
-        multiplicity(other.multiplicity),
-        pquery(nullptr)
-    {}
-
-// public:
-
-    std::string name;
-    double      multiplicity;
-
-    Pquery* pquery;
-};
+typedef TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
 
 // =================================================================================================
 //     Pquery
 // =================================================================================================
 
-/**
- *
- */
 class Pquery
 {
 public:
@@ -195,11 +41,11 @@ public:
     //     Placements
     // -------------------------------------------------------------------
 
-    PqueryPlacement* emplace_placement(PlacementTree::EdgeType* edge);
+    PqueryPlacement* emplace_placement(PlacementTreeEdge* edge);
 
     PqueryPlacement* insert_placement(
         const PqueryPlacement& val,
-        PlacementTree::EdgeType* edge = nullptr
+        PlacementTreeEdge* edge = nullptr
     );
 
     inline size_t placement_size() const
@@ -236,41 +82,6 @@ public:
 
     std::vector<std::unique_ptr<PqueryPlacement>> placements;
     std::vector<std::unique_ptr<PqueryName>>      names;
-};
-
-// =================================================================================================
-//     Pquery Placement Plain
-// =================================================================================================
-
-/**
- * @brief Simple POD struct for a Placement used for speeding up some calculations.
- *
- * It is not as flexible as the default representation, but its memory footprint is compact, because
- * of the lack of pointers.
- */
-struct PqueryPlacementPlain
-{
-    size_t edge_index;
-    size_t primary_node_index;
-    size_t secondary_node_index;
-
-    double branch_length;
-    double pendant_length;
-    double proximal_length;
-    double like_weight_ratio;
-};
-
-// =================================================================================================
-//     Pquery Plain
-// =================================================================================================
-
-/**
- *
- */
-struct PqueryPlain
-{
-    size_t                            index;
-    std::vector<PqueryPlacementPlain> placements;
 };
 
 } // namespace genesis

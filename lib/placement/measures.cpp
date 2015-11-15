@@ -8,11 +8,14 @@
 #include "placement/measures.hpp"
 
 #include <map>
+#include <stdexcept>
 #ifdef PTHREADS
 #    include <thread>
 #endif
 
 #include "placement/operators.hpp"
+#include "placement/placement_map.hpp"
+#include "placement/placement_tree.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
 #include "tree/iterators/postorder.hpp"
@@ -21,13 +24,7 @@
 namespace genesis {
 
 // =================================================================================================
-//     Settings
-// =================================================================================================
-
-bool PlacementMeasures::with_pendant_length = true;
-
-// =================================================================================================
-//     Distances
+//     Helper Method pquery_distance
 // =================================================================================================
 
 /**
@@ -79,10 +76,11 @@ bool PlacementMeasures::with_pendant_length = true;
  * This distance is normalized using the `like_weight_ratio` of both placements, before
  * summing it up to calculate the total distance between the pqueries.
  */
-double PlacementMeasures::pquery_distance (
+double pquery_distance (
     const PqueryPlain&     pqry_a,
     const PqueryPlain&     pqry_b,
-    const Matrix<double>&  node_distances
+    const Matrix<double>&  node_distances,
+    bool                   with_pendant_length
 ) {
     double sum = 0.0;
     double pp, pd, dp, dist;
@@ -127,13 +125,18 @@ double PlacementMeasures::pquery_distance (
     return sum;
 }
 
+// =================================================================================================
+//     Earth Movers Distance
+// =================================================================================================
+
 /**
  * @brief Calculates the Earth Movers Distance between two sets of placements on a fixed reference
  * tree.
  */
-double PlacementMeasures::earth_movers_distance(
+double earth_movers_distance(
     const PlacementMap& lhs,
-    const PlacementMap& rhs
+    const PlacementMap& rhs,
+    bool                with_pendant_length
 ) {
     // keep track of the total resulting distance.
     double distance = 0.0;
@@ -173,8 +176,7 @@ double PlacementMeasures::earth_movers_distance(
         // check whether both trees have identical topology. if they have, the ranks of all nodes
         // are the same. however, if not, at some point their ranks will differ.
         if (it_l.node()->rank() != it_r.node()->rank()) {
-            LOG_WARN << "Calculating EMD on different reference trees not possible.";
-            return -1.0;
+            throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
         }
 
         // if we are at the last iteration, we reached the root, thus we have moved all masses now
@@ -202,8 +204,7 @@ double PlacementMeasures::earth_movers_distance(
         if (it_l.node()->data.name     != it_r.node()->data.name ||
             it_l.edge()->data.edge_num != it_r.edge()->data.edge_num
         ) {
-            LOG_WARN << "Inconsistent reference trees in EMD calculation.";
-            return -1.0;
+            throw std::invalid_argument("__FUNCTION__: Inconsistent trees.");
         }
 
         // we now start a "normal" earth_movers_distance caluclation on the current edge. for this,
@@ -304,13 +305,16 @@ double PlacementMeasures::earth_movers_distance(
 
     // check whether we are done with both trees.
     if (it_l != lhs.tree().end_postorder() || it_r != rhs.tree().end_postorder()) {
-        LOG_WARN << "Inconsistent reference trees in EMD calculation.";
-        return -1.0;
+        throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
     }
 
     LOG_DBG << "final distance: " << distance;
     return distance;
 }
+
+// =================================================================================================
+//     Center of Gravity
+// =================================================================================================
 
 /**
  * @brief Calculate the Center of Gravity of the placements on a tree.
@@ -335,8 +339,9 @@ double PlacementMeasures::earth_movers_distance(
  * `proximal_length` and (if specificed in the method parameter) the `pendant_length` of the
  * placements.
  */
-std::pair<PlacementTreeEdge*, double> PlacementMeasures::center_of_gravity (
-    const PlacementMap& map
+std::pair<PlacementTreeEdge*, double> center_of_gravity (
+    const PlacementMap& map,
+    bool                with_pendant_length
 ) {
     // This struct stores the torque that acts on a certain point (called the fulcrum) from a
     // specific direction. It also stores the mass that created that torque, in order to be able to
@@ -356,7 +361,7 @@ std::pair<PlacementTreeEdge*, double> PlacementMeasures::center_of_gravity (
 
     // Store a balance value per link, so that each element contains the mass and its torque that
     // lies downwards the tree in the direction of this link.
-    std::unordered_map<PlacementTree::LinkType*, Fulcrum> balance;
+    std::unordered_map<PlacementTree::LinkType const*, Fulcrum> balance;
 
     // -------------------------------------------------------------------------
     //     Collect All Masses, Calculate the Torque
@@ -427,8 +432,8 @@ std::pair<PlacementTreeEdge*, double> PlacementMeasures::center_of_gravity (
 
     // Keep track of the link whose edge we are currently examining, as well as the one that we
     // examined previously (on iteration of the loop earlier). We start at the root.
-    PlacementTree::LinkType* curr_link = map.tree().root_link();
-    PlacementTree::LinkType* prev_link = nullptr;
+    PlacementTree::LinkType const* curr_link = map.tree().root_link();
+    PlacementTree::LinkType const* prev_link = nullptr;
 
     // For asserting purposes, we keep track of the number of loop iterations we do.
     // This can never be more than the tree height (in number of nodes from root to deepest leaf)
@@ -799,11 +804,14 @@ std::pair<PlacementTreeEdge*, double> PlacementMeasures::center_of_gravity (
  * \f$ Var(X) = E[ (x - \mu)^2 ] = \frac{\sum (x - \mu)^2 \cdot \omega} {\sum \omega} \f$, where
  * the weights \f$ \omega \f$ are the `like_weight_ratio`s of the placements.
  */
-double PlacementMeasures::center_of_gravity_variance (const PlacementMap& map) {
+double center_of_gravity_variance (
+    const PlacementMap& map,
+    bool                with_pendant_length
+) {
     double variance = 0.0;
     double mass     = 0.0;
 
-    auto   cog             = center_of_gravity(map);
+    auto   cog             = center_of_gravity(map, with_pendant_length);
     auto   central_edge    = cog.first;
     double proximal_length = cog.second;
 
@@ -855,19 +863,20 @@ double PlacementMeasures::center_of_gravity_variance (const PlacementMap& map) {
 /**
  * @brief
  */
-double PlacementMeasures::center_of_gravity_distance (
-    const PlacementMap& map_a, const PlacementMap& map_b
+double center_of_gravity_distance (
+    const PlacementMap& map_a,
+    const PlacementMap& map_b,
+    bool                with_pendant_length
 ) {
     if (!compatible_trees(map_a, map_b)) {
-        LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
-        return -1.0;
+        throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
     }
 
     // Disable debug messages while code is not in review.
     LOG_SCOPE_LEVEL(Logging::kInfo)
 
-    auto cog_a = center_of_gravity(map_a);
-    auto cog_b = center_of_gravity(map_b);
+    auto cog_a = center_of_gravity(map_a, with_pendant_length);
+    auto cog_b = center_of_gravity(map_b, with_pendant_length);
 
     auto edge_a = cog_a.first;
     auto edge_b = cog_b.first;
@@ -921,6 +930,10 @@ double PlacementMeasures::center_of_gravity_distance (
     return dist;
 }
 
+// =================================================================================================
+//     Pairwise Distance
+// =================================================================================================
+
 /**
  * @brief Calculate the normalized pairwise distance between all placements of the two PlacementMaps.
  *
@@ -934,12 +947,13 @@ double PlacementMeasures::center_of_gravity_distance (
  *
  * @return                         Distance value.
  */
-double PlacementMeasures::pairwise_distance (
-    const PlacementMap& map_a, const PlacementMap& map_b
+double pairwise_distance (
+    const PlacementMap& map_a,
+    const PlacementMap& map_b,
+    bool                with_pendant_length
 ) {
     if (!compatible_trees(map_a, map_b)) {
-        LOG_WARN << "Calculating pairwise distance on different reference trees not possible.";
-        return -1.0;
+        throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
     }
 
     // Init.
@@ -959,7 +973,7 @@ double PlacementMeasures::pairwise_distance (
 
     for (const PqueryPlain& pqry_a : pqueries_a) {
         for (const PqueryPlain& pqry_b : pqueries_b) {
-            sum += pquery_distance(pqry_a, pqry_b, node_distances);
+            sum += pquery_distance(pqry_a, pqry_b, node_distances, with_pendant_length);
         }
     }
 
@@ -968,8 +982,84 @@ double PlacementMeasures::pairwise_distance (
 }
 
 // =================================================================================================
+//     Node Histogram Distance
+// =================================================================================================
+
+double node_histogram_distance (
+    const PlacementMap& map_a,
+    const PlacementMap& map_b,
+    bool                with_pendant_length
+) {
+    if (!compatible_trees(map_a, map_b)) {
+        throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
+    }
+
+    return -1.0;
+}
+
+// =================================================================================================
 //     Variance
 // =================================================================================================
+
+/**
+ * @brief Internal function that calculates the sum of distances contributed by one pquery for
+ * the variance. See variance() for more information.
+ *
+ * This function is intended to be called by variance() or variance_thread() -- it is not a
+ * stand-alone function.
+ */
+double variance_partial (
+    const PqueryPlain&              pqry_a,
+    const std::vector<PqueryPlain>& pqrys_b,
+    const Matrix<double>&           node_distances,
+    bool                            with_pendant_length
+) {
+    double partial = 0.0;
+
+    for (const PqueryPlain& pqry_b : pqrys_b) {
+        // Check whether it is same pquery (a=b, nothing to do, as their distance is zero),
+        // or a pair of pqueries that was already calculated (a>b, skip it also).
+        if (pqry_a.index >= pqry_b.index) {
+            continue;
+        }
+        double dist = pquery_distance(pqry_a, pqry_b, node_distances, with_pendant_length);
+        partial += dist * dist;
+    }
+
+    return partial;
+}
+
+/**
+ * @brief Internal function that calculates the sum of distances for the variance that is
+ * contributed by a subset of the pqueries. See variance() for more information.
+ *
+ * This function is intended to be called by variance() -- it is not a stand-alone function.
+ * It takes an offset and an incrementation value and does an interleaved loop over the pqueries,
+ * similar to the sequential version for calculating the variance.
+ */
+void variance_thread (
+    const int                       offset,
+    const int                       incr,
+    const std::vector<PqueryPlain>* pqrys,
+    const Matrix<double>*           node_distances,
+    double*                         partial,
+    bool                            with_pendant_length
+) {
+    // Use internal variables to avoid false sharing.
+    assert(*partial == 0.0);
+    double tmp_partial = 0.0;
+
+    // Iterate over the pqueries, starting at offset and interleaved with incr for each thread.
+    for (size_t i = offset; i < pqrys->size(); i += incr) {
+        // LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
+
+        const PqueryPlain& pqry_a = (*pqrys)[i];
+        tmp_partial += variance_partial(pqry_a, *pqrys, *node_distances, with_pendant_length);
+    }
+
+    // Return the results.
+    *partial = tmp_partial;
+}
 
 /**
  * @brief Calculate the variance of the placements on a tree.
@@ -995,8 +1085,10 @@ double PlacementMeasures::pairwise_distance (
  * number of elements). However, as this is not required (placements with small ratio can be
  * dropped, so that their sum per pquery is less than 1.0), we cannout simply use the count.
  */
-double PlacementMeasures::variance(const PlacementMap& map)
-{
+double variance(
+    const PlacementMap& map,
+    bool                with_pendant_length
+) {
     // Init.
     double variance = 0.0;
 
@@ -1019,9 +1111,10 @@ double PlacementMeasures::variance(const PlacementMap& map)
     // Start all threads.
     for (int i = 0; i < num_threads; ++i) {
         threads.emplace_back(
-            &PlacementMeasures::variance_thread,
+            &variance_thread,
             i, num_threads, &vd_pqueries, &node_distances,
-            &partials[i]
+            &partials[i],
+            with_pendant_length
         );
         // threads[i] = new std::thread ();
     }
@@ -1038,7 +1131,7 @@ double PlacementMeasures::variance(const PlacementMap& map)
     // int progress = 0;
     for (const PqueryPlain& pqry_a : vd_pqueries) {
         // LOG_PROG(++progress, vd_pqueries.size()) << "of Variance() finished.";
-        variance += variance_partial(pqry_a, vd_pqueries, node_distances);
+        variance += variance_partial(pqry_a, vd_pqueries, node_distances, with_pendant_length);
     }
 
 #endif
@@ -1054,64 +1147,6 @@ double PlacementMeasures::variance(const PlacementMap& map)
 
     // Return the normalized value.
     return ((variance / mass) / mass);
-}
-
-/**
- * @brief Internal function that calculates the sum of distances for the variance that is
- * contributed by a subset of the pqueries. See variance() for more information.
- *
- * This function is intended to be called by variance() -- it is not a stand-alone function.
- * It takes an offset and an incrementation value and does an interleaved loop over the pqueries,
- * similar to the sequential version for calculating the variance.
- */
-void PlacementMeasures::variance_thread (
-    const int                       offset,
-    const int                       incr,
-    const std::vector<PqueryPlain>* pqrys,
-    const Matrix<double>*           node_distances,
-    double*                         partial
-) {
-    // Use internal variables to avoid false sharing.
-    assert(*partial == 0.0);
-    double tmp_partial = 0.0;
-
-    // Iterate over the pqueries, starting at offset and interleaved with incr for each thread.
-    for (size_t i = offset; i < pqrys->size(); i += incr) {
-        // LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
-
-        const PqueryPlain& pqry_a = (*pqrys)[i];
-        tmp_partial += variance_partial(pqry_a, *pqrys, *node_distances);
-    }
-
-    // Return the results.
-    *partial = tmp_partial;
-}
-
-/**
- * @brief Internal function that calculates the sum of distances contributed by one pquery for
- * the variance. See variance() for more information.
- *
- * This function is intended to be called by variance() or variance_thread() -- it is not a
- * stand-alone function.
- */
-double PlacementMeasures::variance_partial (
-    const PqueryPlain&              pqry_a,
-    const std::vector<PqueryPlain>& pqrys_b,
-    const Matrix<double>&           node_distances
-) {
-    double partial = 0.0;
-
-    for (const PqueryPlain& pqry_b : pqrys_b) {
-        // Check whether it is same pquery (a=b, nothing to do, as their distance is zero),
-        // or a pair of pqueries that was already calculated (a>b, skip it also).
-        if (pqry_a.index >= pqry_b.index) {
-            continue;
-        }
-        double dist = pquery_distance(pqry_a, pqry_b, node_distances);
-        partial += dist * dist;
-    }
-
-    return partial;
 }
 
 } // namespace genesis

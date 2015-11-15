@@ -1,12 +1,14 @@
-#ifndef GENESIS_UTILS_MATH_HISTOGRAM_DISTANCES_H_
-#define GENESIS_UTILS_MATH_HISTOGRAM_DISTANCES_H_
+#ifndef GENESIS_UTILS_TOOLS_COLOR_OPERATORS_H_
+#define GENESIS_UTILS_TOOLS_COLOR_OPERATORS_H_
 
 /**
- * @brief Header of Histogram distance functions.
+ * @brief Color operators.
  *
  * @file
  * @ingroup utils
  */
+
+#include <iosfwd>
 
 namespace genesis {
 
@@ -14,13 +16,22 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-class Histogram;
+class Color;
 
 // =================================================================================================
-//     Histogram Distances
+//     Color Operators
 // =================================================================================================
 
-double earth_movers_distance (const Histogram& h1, const Histogram& h2, bool normalize = true);
+/**
+ * @brief Create a Color given three doubles in the range [0.0, 1.0] for each of the components
+ * red, green and blue.
+ */
+Color color_from_doubles (double r, double g, double b);
+
+/**
+ * @brief Write a textual representation of the Color the a stream, in the format "(r, g, b)".
+ */
+std::ostream& operator<< (std::ostream& os, const Color& h);
 
 } // namespace genesis
 

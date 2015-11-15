@@ -93,6 +93,14 @@ public:
     void                out_of_range_behaviour( OutOfRangeBehaviour v );
 
     // -------------------------------------------------------------------------
+    //     Comparison
+    // -------------------------------------------------------------------------
+
+    friend bool operator== (Histogram const& lhs, Histogram const& rhs);
+
+    friend bool equal_ranges (Histogram const& lhs, Histogram const& rhs);
+
+    // -------------------------------------------------------------------------
     //     Bin Access
     // -------------------------------------------------------------------------
 

@@ -5,6 +5,8 @@
  * @ingroup tree
  */
 
+#include <stdexcept>
+
 #include "tree/iterators/levelorder.hpp"
 #include "utils/core/logging.hpp"
 
@@ -18,10 +20,10 @@ template <class Tree>
 Matrix<int>         node_depth_matrix    (
     const Tree& tree
 ) {
-    Matrix<int> mat (tree.node_count(), tree.node_count());
     // TODO implement!
-    LOG_WARN << "Not yet implemented.";
-    return mat;
+    (void) tree;
+    throw std::domain_error("Not yet implemented.");
+    return Matrix<int>(0,0);
 }
 
 template <class Tree>
@@ -66,10 +68,10 @@ template <class Tree>
 Matrix<int>         edge_depth_matrix    (
     const Tree& tree
 ) {
-    Matrix<int> mat (tree.edge_count(), tree.edge_count());
     // TODO implement!
-    LOG_WARN << "Not yet implemented.";
-    return mat;
+    (void) tree;
+    throw std::domain_error("Not yet implemented.");
+    return Matrix<int>(0,0);
 }
 
 template <class Tree>
@@ -77,11 +79,11 @@ std::vector<int>    edge_depth_vector    (
     const Tree& tree,
     const typename Tree::EdgeType* edge
 ) {
-    std::vector<int> vec (tree.edge_count());
-    (void) edge;
     // TODO implement!
-    LOG_WARN << "Not yet implemented.";
-    return vec;
+    (void) tree;
+    (void) edge;
+    throw std::domain_error("Not yet implemented.");
+    return std::vector<int>();
 }
 
 // =================================================================================================
