@@ -982,6 +982,22 @@ double pairwise_distance (
 }
 
 // =================================================================================================
+//     Node Histogram Distance
+// =================================================================================================
+
+double node_histogram_distance (
+    const PlacementMap& map_a,
+    const PlacementMap& map_b,
+    bool                with_pendant_length
+) {
+    if (!compatible_trees(map_a, map_b)) {
+        throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
+    }
+
+    return -1.0;
+}
+
+// =================================================================================================
 //     Variance
 // =================================================================================================
 
