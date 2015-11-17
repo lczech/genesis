@@ -7,6 +7,7 @@
 
 #include "placement/measures.hpp"
 
+#include <assert.h>
 #include <map>
 #include <stdexcept>
 #ifdef PTHREADS
@@ -20,6 +21,8 @@
 #include "tree/distances.hpp"
 #include "tree/iterators/postorder.hpp"
 #include "utils/core/options.hpp"
+#include "utils/math/histogram.hpp"
+#include "utils/math/histogram/distances.hpp"
 
 namespace genesis {
 
@@ -982,20 +985,82 @@ double pairwise_distance (
 }
 
 // =================================================================================================
-//     Node Histogram Distance
+//     Node-Based Distances
 // =================================================================================================
+
+Histogram node_distance_histogram (
+    // const PlacementMap& map,
+    const PlacementTreeNode& node,
+    bool                with_pendant_length
+) {
+    (void) node;
+    (void) with_pendant_length;
+    throw std::domain_error("Not yet implemented.");
+    return Histogram(1);
+}
+
+std::vector<Histogram> node_distance_histograms (
+    const PlacementMap& map,
+    bool                with_pendant_length
+) {
+    auto vec = std::vector<Histogram>();
+    vec.reserve(map.tree().node_count());
+
+    // TODO ensure that the node iterator gives the nodes in order of their index!
+
+    for (auto it = map.tree().begin_nodes(); it != map.tree().end_nodes(); ++it) {
+        vec.push_back(node_distance_histogram(**it, with_pendant_length));
+    }
+
+    return vec;
+}
 
 double node_histogram_distance (
     const PlacementMap& map_a,
     const PlacementMap& map_b,
     bool                with_pendant_length
 ) {
-    if (!compatible_trees(map_a, map_b)) {
-        throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
+    if( !compatible_trees( map_a, map_b ) ) {
+        throw std::invalid_argument( "Incompatible trees." );
     }
 
-    return -1.0;
+    // Get the histograms describing the distances from placements to all nodes.
+    auto vec_a = node_distance_histograms( map_a, with_pendant_length );
+    auto vec_b = node_distance_histograms( map_b, with_pendant_length );
+
+    // If the trees are compatible (as ensured in the beginning of this function), they need to have
+    // the same number of nodes. Thus, also there should be this number of histograms in the vectors.
+    assert( vec_a.size() == map_a.tree().node_count() );
+    assert( vec_b.size() == map_b.tree().node_count() );
+    assert( vec_a.size() == vec_b.size() );
+
+    double dist = 0.0;
+    for( size_t i = 0; i < vec_a.size(); ++i ) {
+        dist += earth_movers_distance( vec_a[i], vec_b[i], true );
+    }
+
+    assert( dist >= 0.0 );
+    return dist;
 }
+
+/*
+Matrix<double> node_histogram_distance_matrix (
+    const PlacementMapSet& maps,
+    bool                   with_pendant_length
+) {
+    auto const maps_count = maps.size();
+    auto mat = Matrix<double> (maps_count, maps_count);
+
+    // TODO do not write this function. instead, create a generic function that takes a placement
+    // map set and a functor to some distance function. also, put it into some map set file
+    // instead of the general map file.
+
+    (void) with_pendant_length;
+    throw std::domain_error("Not yet implemented.");
+
+    return mat;
+}
+*/
 
 // =================================================================================================
 //     Variance

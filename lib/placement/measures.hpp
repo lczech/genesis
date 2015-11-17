@@ -9,6 +9,7 @@
  */
 
 #include <utility>
+#include <vector>
 
 namespace genesis {
 
@@ -17,16 +18,22 @@ namespace genesis {
 // =================================================================================================
 
 template<class NodeDataType, class EdgeDataType>
+class TreeNode;
+
+template<class NodeDataType, class EdgeDataType>
 class TreeEdge;
 
 template<typename T>
 class Matrix;
 
+class Histogram;
 class PlacementMap;
+class PlacementMapSet;
 class PlacementTreeEdgeData;
 class PlacementTreeNodeData;
 struct PqueryPlain;
 
+typedef TreeNode <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeNode;
 typedef TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
 
 // =================================================================================================
@@ -87,13 +94,29 @@ double pairwise_distance (
 // );
 
 // ----------------------------------------------------------------------------
-//     Node Histogram Distance
+//     Node-Based Distances
 // ----------------------------------------------------------------------------
+
+Histogram node_distance_histogram (
+    // const PlacementMap& map,
+    const PlacementTreeNode& node,
+    bool                with_pendant_length = false
+);
+
+std::vector<Histogram> node_distance_histograms (
+    const PlacementMap& map,
+    bool                with_pendant_length = false
+);
 
 double node_histogram_distance (
     const PlacementMap& map_a,
     const PlacementMap& map_b,
     bool                with_pendant_length = false
+);
+
+Matrix<double> node_histogram_distance_matrix (
+    const PlacementMapSet& maps,
+    bool                   with_pendant_length = false
 );
 
 // ----------------------------------------------------------------------------

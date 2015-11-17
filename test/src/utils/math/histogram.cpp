@@ -107,6 +107,12 @@ TEST(Histogram, EarthMoversDistanceSimple)
     // Histograms is 7, the expected distance then is 5/7 = 0.714.
     EXPECT_DOUBLE_EQ(5.0,                 earth_movers_distance(h1, h2, false));
     EXPECT_DOUBLE_EQ(0.71428571428571419, earth_movers_distance(h1, h2, true));
+
+    // The EMD between a Histogram and itself needs to be zero.
+    EXPECT_DOUBLE_EQ(0.0, earth_movers_distance(h1, h1, false));
+    EXPECT_DOUBLE_EQ(0.0, earth_movers_distance(h1, h1, true));
+    EXPECT_DOUBLE_EQ(0.0, earth_movers_distance(h2, h2, false));
+    EXPECT_DOUBLE_EQ(0.0, earth_movers_distance(h2, h2, true));
 }
 
 TEST(Histogram, EarthMoversDistanceExtended)
