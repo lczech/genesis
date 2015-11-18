@@ -28,8 +28,14 @@ LC_NUMERIC="en_US.UTF-8"
 
 # Cannot test without test suite!
 if [ ! -f "${test_exe}" ] ; then
-    echo "Test executable ${test_exe} not found."
+    echo "Test executable '${test_exe}' not found."
     echo "Run the build process first!"
+    exit
+fi
+
+# This script needs bc.
+if [ -z "`which bc`" ] ; then
+    echo "Program 'bc' not found. Cannot run this script."
     exit
 fi
 
@@ -64,7 +70,7 @@ if [[ $1 == "memory" || $1 == "mem" ]] ; then
     mode="memory"
     shift
     if [ -z "`which valgrind`" ] ; then
-        echo "Valgrind not found. Cannot run memory tests."
+        echo "Program 'valgrind' not found. Cannot run memory tests."
         exit
     fi
 fi
