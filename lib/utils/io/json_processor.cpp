@@ -186,6 +186,7 @@ bool JsonProcessor::parse_array (
         LOG_WARN << "JSON array ended unexpectedly.";
         return false;
     }
+    assert(ct->is_bracket("]"));
     ++ct;
     return true;
 }
