@@ -45,6 +45,8 @@ public:
     //     Main Functions
     // -------------------------------------------------------------------------
 
+    virtual ~Lexer() = default;
+
     // bool from_file   (const std::string& fn);
     bool from_string (const std::string& in);
 
