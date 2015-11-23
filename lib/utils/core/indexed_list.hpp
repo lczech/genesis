@@ -51,7 +51,7 @@ public:
     using size_type       = size_t;
 
     // -------------------------------------------------------------------------
-    //     Constructor and Destructor
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
     /**
@@ -109,32 +109,32 @@ public:
 
     iterator begin() noexcept
     {
-        // x
+        return IndexedListIterator<value_type> (*this);
     }
 
     const_iterator begin() const noexcept
     {
-        // x
+        return IndexedListIterator<const value_type> (*this);
     }
 
     iterator end() noexcept
     {
-        // x
+        return IndexedListIterator<value_type> (*this, size());
     }
 
     const_iterator end() const noexcept
     {
-        // x
+        return IndexedListIterator<const value_type> (*this, size());
     }
 
     const_iterator cbegin() const noexcept
     {
-        // x
+        return IndexedListIterator<const value_type> (*this);
     }
 
     const_iterator cend() const noexcept
     {
-        // x
+        return IndexedListIterator<const value_type> (*this, size());
     }
 
     // -------------------------------------------------------------------------
@@ -220,7 +220,90 @@ private:
 template <typename T>
 class IndexedListIterator
 {
+public:
 
+    // -------------------------------------------------------------------------
+    //     Member Types
+    // -------------------------------------------------------------------------
+
+    using value_type      = T;
+    using self_type       = IndexedListIterator<value_type>;
+
+    using       reference =       value_type&;
+    using const_reference = const value_type&;
+    using       pointer   =       value_type*;
+    using const_pointer   = const value_type*;
+
+    using size_type       = size_t;
+
+    // -------------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------------
+
+    // IndexedListIterator()
+    //     : pos_(0)
+    //     , il_(il)
+    // {}
+
+    IndexedListIterator(IndexedList<value_type>& il)
+        : pos_(0)
+        , il_(il)
+    {}
+
+    IndexedListIterator(IndexedList<value_type>& il, size_type pos)
+        : pos_(pos)
+        , il_(il)
+    {}
+
+    // -------------------------------------------------------------
+    //     Accessors
+    // -------------------------------------------------------------
+
+    reference operator * ()
+    {
+        return il_[pos_];
+    }
+
+    pointer operator -> ()
+    {
+        return &(il_[pos_]);
+    }
+
+    // -------------------------------------------------------------
+    //     Iteration
+    // -------------------------------------------------------------
+
+    self_type& operator ++ ()
+    {
+        ++pos_;
+        return *this;
+    }
+
+    self_type operator ++ (int)
+    {
+        self_type tmp = *this;
+        ++(*this);
+        return tmp;
+    }
+
+    bool operator == (self_type const& other) const
+    {
+        return &il_ == &(other.il_) && pos_ == other.pos_;
+    }
+
+    bool operator != (self_type const& other) const
+    {
+        return !(*this == other);
+    }
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    size_type                pos_;
+    IndexedList<value_type>& il_;
 };
 
 } // namespace genesis
