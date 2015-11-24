@@ -76,8 +76,7 @@ int NewickBroker::leaf_count() const
     int sum = 0;
     for (auto const& node : stack_) {
         if (node.rank_ == -1) {
-            LOG_WARN << "NewickBroker::AssignRanks() was not called before.";
-            return -1;
+            throw std::logic_error("NewickBroker::assign_ranks() was not called before.");
         }
         if (node.rank_ == 0) {
             ++sum;
@@ -94,13 +93,11 @@ int NewickBroker::max_rank() const
     int max = -1;
     for (auto const& node : stack_) {
         if (node.rank_ == -1) {
-            LOG_WARN << "NewickBroker::AssignRanks() was not called before.";
-            return -1;
+            throw std::logic_error("NewickBroker::assign_ranks() was not called before.");
         }
-        if (node.rank_ == 1) {
-            LOG_WARN << "Node with rank 1 found. This is a node without furcation, and usually "
-                     << "indicates an error.";
-        }
+        // if (node.rank_ == 1) {
+        //     LOG_WARN << "Node with rank 1 found.";
+        // }
         max = std::max(node.rank_, max);
     }
     return max;
@@ -130,7 +127,7 @@ bool NewickBroker::validate() const
     int cur_depth = 0;
     for (auto const& node : stack_) {
         if (node.rank_ == -1) {
-            LOG_WARN << "NewickBroker::AssignRanks() was not called before.";
+            LOG_WARN << "NewickBroker::assign_ranks() was not called before.";
             return false;
         }
         if (node.rank_ == 0 && !(node.is_leaf)) {
@@ -138,8 +135,7 @@ bool NewickBroker::validate() const
             return false;
         }
         if (node.rank_ == 1) {
-            LOG_WARN << "Node with rank 1 found. This is a node without furcation, and usually "
-                     << "indicates an error.";
+            LOG_WARN << "Node with rank 1 found.";
             return false;
         }
         if (node.rank_ > 1 && node.is_leaf) {

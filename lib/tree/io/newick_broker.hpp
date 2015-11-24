@@ -115,10 +115,13 @@ public:
      * @brief Returns the rank (number of immediate children) of this node.
      *
      * NewickBroker::assign_ranks() has to be called before using this function. Otherwise,
-     * it will return -1.
+     * this function will throw an std::logic_error.
      */
     int rank() const
     {
+        if (rank_ < 0) {
+            throw std::logic_error("NewickBroker::assign_ranks() was not called before.");
+        }
         return rank_;
     }
 
@@ -490,7 +493,7 @@ public:
 
     int inner_count() const
     {
-        return stack_.size() - leaf_count();
+        return node_count() - leaf_count();
     }
 
     // same as size()
