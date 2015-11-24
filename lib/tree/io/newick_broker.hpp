@@ -143,14 +143,6 @@ public:
 
     /**
      * @brief Iterator type to access the stack elements.
-     *
-     * This iterator allows to use a loop like this:
-     *
-     *     NewickBroker b;
-     *     for (NewickBroker::iterator n = b.begin(); n != b.end(); ++n) {
-     *         std::cout << n->name << std::endl;
-     *     }
-     * %
      */
     typedef std::deque<NewickBrokerElement>::iterator               iterator;
 
@@ -171,15 +163,6 @@ public:
 
     /**
      * @brief Returns an iterator to the top of the stack.
-     *
-     * This is used for the iterator and also allows to use range based
-     * looping over the nodes:
-     *
-     *     NewickBroker b;
-     *     for (NewickBrokerElement& n : b) {
-     *         std::cout << n.name << std::endl;
-     *     }
-     * %
      */
     iterator begin()
     {
@@ -222,8 +205,6 @@ public:
 
     /**
      * @brief Returns a reverse iterator to the nodes on the stack.
-     *
-     * This is useful for iterating starting at the leaves and ending at the root.
      */
     reverse_iterator rbegin()
     {
@@ -375,30 +356,28 @@ public:
 
     int leaf_count() const;
 
-    int inner_count() const
-    {
-        return node_count() - leaf_count();
-    }
+    int inner_count() const;
 
-    // same as size()
-    int node_count() const
-    {
-        return stack_.size();
-    }
+    int node_count() const;
 
     int max_rank() const;
 
     bool is_bifurcating() const;
 
-    bool validate() const;
+    // -------------------------------------------------------------------------
+    //     Dump and Debug
+    // -------------------------------------------------------------------------
 
-    // -------------------------------------------------------------------------
-    //     dump and Debug
-    // -------------------------------------------------------------------------
+    bool validate() const;
 
     std::string dump() const;
 
-protected:
+private:
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
     std::deque<NewickBrokerElement> stack_;
 };
 

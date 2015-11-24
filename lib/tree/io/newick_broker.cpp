@@ -85,6 +85,19 @@ int NewickBroker::leaf_count() const
     return sum;
 }
 
+int NewickBroker::inner_count() const
+{
+    return node_count() - leaf_count();
+}
+
+/**
+ * @brief Alias for size().
+ */
+int NewickBroker::node_count() const
+{
+    return stack_.size();
+}
+
 /**
  * @brief Returns the highest rank of the nodes in the tree. assign_ranks() has to be called first.
  */
@@ -107,6 +120,10 @@ bool NewickBroker::is_bifurcating() const
 {
     return max_rank() == 2;
 }
+
+// =================================================================================================
+//     Dump and Debug
+// =================================================================================================
 
 // TODO see PLL newick.c for more stuff than can be validated in a tree!
 /**
@@ -150,10 +167,6 @@ bool NewickBroker::validate() const
     }
     return true;
 }
-
-// =================================================================================================
-//     Dump and Debug
-// =================================================================================================
 
 /**
  * @brief Return a readable string representation of the elements of the NewickBroker.
