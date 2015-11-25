@@ -82,6 +82,22 @@ void merge_duplicate_names (Pquery& pquery);
  */
 void merge_duplicate_names (PlacementMap& map);
 
+// =================================================================================================
+//     Placement Mass
+// =================================================================================================
+
+/**
+ * @brief Get the number of placements on the edge with the most placements, and a pointer to this
+ * edge.
+ */
+std::pair<PlacementTreeEdge*, size_t> placement_count_max_edge(PlacementTree const& tree);
+
+/**
+ * @brief Get the summed mass of the placements on the heaviest edge, measured by their
+ * `like_weight_ratio`, and a pointer to this edge.
+ */
+std::pair<PlacementTreeEdge*, double> placement_mass_max_edge(PlacementTree const& tree);
+
 } // namespace genesis
 
 #endif // include guard

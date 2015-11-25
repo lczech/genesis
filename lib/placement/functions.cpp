@@ -220,4 +220,42 @@ void merge_duplicate_names (PlacementMap& map)
     }
 }
 
+// =================================================================================================
+//     Placement Mass
+// =================================================================================================
+
+std::pair<PlacementTreeEdge*, size_t> placement_count_max_edge(PlacementTree const& tree)
+{
+    PlacementTreeEdge* edge = nullptr;
+    size_t             max  = 0;
+
+    for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
+        if ((*it)->data.placements.size() > max) {
+            edge = (*it).get();
+            max  = (*it)->data.placements.size();
+        }
+    }
+
+    return std::make_pair(edge, max);
+}
+
+std::pair<PlacementTreeEdge*, double> placement_mass_max_edge(PlacementTree const& tree)
+{
+    PlacementTreeEdge* edge = nullptr;
+    double             max  = 0.0;
+
+    for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
+        double sum = 0.0;
+        for (const auto& place : (*it)->data.placements) {
+            sum += place->like_weight_ratio;
+        }
+        if (sum > max) {
+            edge = (*it).get();
+            max  = sum;
+        }
+    }
+
+    return std::make_pair(edge, max);
+}
+
 } // namespace genesis

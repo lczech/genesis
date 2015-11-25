@@ -8,11 +8,11 @@
 #include <python/src/common.hpp>
 
 #include "lib/placement/io/newick_adapter.hpp"
-#include "lib/placement/io/phyloxml_adapter.hpp"
+// #include "lib/placement/io/phyloxml_adapter.hpp"
 #include "lib/placement/placement_tree.hpp"
 
 #include "python/src/tree/newick_processor.hpp"
-#include "python/src/tree/phyloxml_processor.hpp"
+// #include "python/src/tree/phyloxml_processor.hpp"
 #include "python/src/tree/tree.hpp"
 
 // -------------------------------------------------------------------
@@ -84,8 +84,8 @@ PYTHON_EXPORT_CLASS (PlacementTree, "placement.tree")
 
     BoostPythonExport_Tree<PlacementTreeNodeData, PlacementTreeEdgeData>("PlacementTree");
 
-    BoostPythonExport_PhyloxmlProcessor<DefaultTreePhyloxmlAdapter<PlacementTree>>("PlacementTreePhyloxmlProcessorBase");
-    BoostPythonExport_PhyloxmlProcessor<PlacementTreePhyloxmlAdapter>("PlacementTreePhyloxmlProcessor");
+    // BoostPythonExport_PhyloxmlProcessor<DefaultTreePhyloxmlAdapter<PlacementTree>>("PlacementTreePhyloxmlProcessorBase");
+    // BoostPythonExport_PhyloxmlProcessor<PlacementTreePhyloxmlAdapter>("PlacementTreePhyloxmlProcessor");
 
     BoostPythonExport_NewickProcessor<DefaultTreeNewickAdapter<PlacementTree>>("PlacementTreeNewickProcessorBase");
     BoostPythonExport_NewickProcessor<PlacementTreeNewickAdapter>("PlacementTreeNewickProcessor");
