@@ -39,6 +39,7 @@ protected:
 
     void set_color (XmlElement& element, unsigned char r, unsigned char g, unsigned char b)
     {
+        // TODO do not create new element if there is already one!
         auto re = make_unique<XmlElement>("red");
         re->append_markup(std::to_string(r));
 
