@@ -7,9 +7,9 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/placement/io/phyloxml_adapter.hpp"
+#include "lib/placement/io/phyloxml_processor.hpp"
 
-PYTHON_EXPORT_CLASS (PlacementTreePhyloxmlAdapter, "placement.tree")
+PYTHON_EXPORT_CLASS (PlacementTreePhyloxmlProcessor, "placement.tree")
 {
     // -------------------------------------------------------------------
     //     Class PlacementTreePhyloxmlAdapter
@@ -42,8 +42,7 @@ PYTHON_EXPORT_CLASS (PlacementTreePhyloxmlAdapter, "placement.tree")
 
     */
 
-    boost::python::class_< ::genesis::PlacementTreePhyloxmlAdapter > ( "PlacementTreePhyloxmlAdapter" )
-        .def( boost::python::init< ::genesis::PlacementMap & >(( boost::python::arg("map") )) )
+    boost::python::class_< ::genesis::PlacementTreePhyloxmlProcessor > ( "PhyloxmlProcessor" )
 
     ;
 

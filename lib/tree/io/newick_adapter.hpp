@@ -41,24 +41,24 @@ public:
 
 protected:
 
-    inline void set_name (const std::string& name, NewickBrokerElement* node)
+    inline void set_name (const std::string& name, NewickBrokerElement& node)
     {
-        node->name = name;
+        node.name = name;
     }
 
-    inline void set_branch_length (const double branch_length, NewickBrokerElement* node)
+    inline void set_branch_length (const double branch_length, NewickBrokerElement& node)
     {
-        node->branch_length = branch_length;
+        node.branch_length = branch_length;
     }
 
-    inline void add_tag (const std::string& tag, NewickBrokerElement* node)
+    inline void add_tag (const std::string& tag, NewickBrokerElement& node)
     {
-        node->tags.push_back(tag);
+        node.tags.push_back(tag);
     }
 
-    inline void add_comment (const std::string& comment, NewickBrokerElement* node)
+    inline void add_comment (const std::string& comment, NewickBrokerElement& node)
     {
-        node->comments.push_back(comment);
+        node.comments.push_back(comment);
     }
 };
 

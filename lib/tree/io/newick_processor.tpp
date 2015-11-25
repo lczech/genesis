@@ -6,6 +6,7 @@
  */
 
 #include <deque>
+#include <memory>
 #include <sstream>
 
 #include "tree/distances.hpp"
@@ -283,7 +284,7 @@ bool NewickProcessor<AdapterType>::parse_tree (
     broker.clear();
 
     // the node that is currently being populated with data
-    NewickBrokerElement* node = nullptr;
+    std::unique_ptr<NewickBrokerElement> node;
 
     // how deep is the current token nested in the tree?
     int depth = 0;
@@ -356,7 +357,7 @@ bool NewickProcessor<AdapterType>::parse_tree (
         // node and pushed it to the stack (either closing bracket or comma), so we need to create a
         // new one here.
         if (!node) {
-            node = new NewickBrokerElement();
+            node = make_unique<NewickBrokerElement>();
             node->depth = depth;
 
             // checks if the new node is a leaf.
@@ -453,7 +454,7 @@ bool NewickProcessor<AdapterType>::parse_tree (
                     node->name = default_internal_name;
                 }
             }
-            broker.push_top(node);
+            broker.push_top(*node);
             node = nullptr;
             continue;
         }
@@ -482,7 +483,7 @@ bool NewickProcessor<AdapterType>::parse_tree (
                     node->name = default_internal_name;
                 }
             }
-            broker.push_top(node);
+            broker.push_top(*node);
             node = nullptr;
 
             // decrease depth and check if this was the parenthesis that closed the tree
@@ -513,7 +514,7 @@ bool NewickProcessor<AdapterType>::parse_tree (
             if (node->name.empty() && use_default_names) {
                 node->name = default_root_name;
             }
-            broker.push_top(node);
+            broker.push_top(*node);
             node = nullptr;
             break;
         }
@@ -548,7 +549,7 @@ bool NewickProcessor<AdapterType>::parse_tree (
  */
 template <typename AdapterType>
 bool NewickProcessor<AdapterType>::build_tree (
-    NewickBroker& broker, typename AdapterType::TreeType& tree
+    NewickBroker const& broker, typename AdapterType::TreeType& tree
 ) {
     typename AdapterType::TreeType::LinkContainer links;
     typename AdapterType::TreeType::NodeContainer nodes;
@@ -567,8 +568,8 @@ bool NewickProcessor<AdapterType>::build_tree (
     broker.assign_ranks();
 
     // iterate over all nodes of the tree broker
-    for (NewickBroker::const_iterator b_itr = broker.cbegin(); b_itr != broker.cend(); ++b_itr) {
-        NewickBrokerElement* broker_node = *b_itr;
+    for (auto b_itr = broker.cbegin(); b_itr != broker.cend(); ++b_itr) {
+        NewickBrokerElement const& broker_node = *b_itr;
 
         // create the tree node for this broker node
         auto cur_node_u  = make_unique<typename AdapterType::TreeType::NodeType>();
@@ -621,7 +622,7 @@ bool NewickProcessor<AdapterType>::build_tree (
         // reciever for the "up" links.
         // in summary, make all next pointers of a node point to each other in a circle.
         auto prev_link = up_link;
-        for (int i = 0; i < broker_node->rank(); ++i) {
+        for (int i = 0; i < broker_node.rank(); ++i) {
             auto down_link = make_unique<typename AdapterType::TreeType::LinkType>();
             prev_link->next_ = down_link.get();
             prev_link = down_link.get();
@@ -727,8 +728,8 @@ void NewickProcessor<AdapterType>::to_broker (
         it != tree.end_postorder();
         ++it
     ) {
-        NewickBrokerElement* bn = new NewickBrokerElement();
-        bn->depth = depth[it.node()->index()];
+        NewickBrokerElement bn;
+        bn.depth = depth[it.node()->index()];
 
         adapter_.from_tree_node(*it.node(), bn);
         // only write edge data to the broker element if it is not the last iteration.
@@ -739,12 +740,12 @@ void NewickProcessor<AdapterType>::to_broker (
         }
 
         // filter out default names if needed
-        if (!use_default_names && bn->name != "" && (
-            bn->name == default_leaf_name ||
-            bn->name == default_internal_name ||
-            bn->name == default_root_name
+        if (!use_default_names && bn.name != "" && (
+            bn.name == default_leaf_name ||
+            bn.name == default_internal_name ||
+            bn.name == default_root_name
         )) {
-            bn->name = "";
+            bn.name = "";
         }
 
         broker.push_top(bn);
@@ -759,7 +760,7 @@ template <typename AdapterType>
 std::string NewickProcessor<AdapterType>::to_string_rec(const NewickBroker& broker, size_t pos)
 {
     // check if it is a leaf, stop recursion if so.
-    if (broker[pos]->rank() == 0) {
+    if (broker[pos].rank() == 0) {
         return element_to_string(broker[pos]);
     }
 
@@ -767,9 +768,9 @@ std::string NewickProcessor<AdapterType>::to_string_rec(const NewickBroker& brok
     // substrings in reverse order. this is because newick stores the nodes kind of "backwards",
     // by starting at a leaf node instead of the root.
     std::deque<std::string> children;
-    for (size_t i = pos + 1; i < broker.size() && broker[i]->depth > broker[pos]->depth; ++i) {
+    for (size_t i = pos + 1; i < broker.size() && broker[i].depth > broker[pos].depth; ++i) {
         // skip if not immediate children (those will be called in later recursion steps)
-        if (broker[i]->depth > broker[pos]->depth + 1) {
+        if (broker[i].depth > broker[pos].depth + 1) {
             continue;
         }
 
@@ -794,22 +795,22 @@ std::string NewickProcessor<AdapterType>::to_string_rec(const NewickBroker& brok
  * @brief
  */
 template <typename AdapterType>
-std::string NewickProcessor<AdapterType>::element_to_string(const NewickBrokerElement* bn)
+std::string NewickProcessor<AdapterType>::element_to_string(NewickBrokerElement const& bn)
 {
     std::string res = "";
     if (print_names) {
-        res += string_replace_all(bn->name, " ", "_");
+        res += string_replace_all(bn.name, " ", "_");
     }
     if (print_branch_lengths) {
-        res += ":" + to_string_precise(bn->branch_length, precision);
+        res += ":" + to_string_precise(bn.branch_length, precision);
     }
     if (print_comments) {
-        for (std::string c : bn->comments) {
+        for (std::string c : bn.comments) {
             res += "[" + c + "]";
         }
     }
     if (print_tags) {
-        for (std::string t : bn->tags) {
+        for (std::string t : bn.tags) {
             res += "{" + t + "}";
         }
     }

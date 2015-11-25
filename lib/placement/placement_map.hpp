@@ -112,9 +112,6 @@ public:
     size_t placement_count() const;
     double placement_mass()  const;
 
-    std::pair<PlacementTreeEdge*, size_t> placement_count_max_edge() const;
-    std::pair<PlacementTreeEdge*, double> placement_mass_max_edge()  const;
-
     std::vector<int> closest_leaf_depth_histogram() const;
     std::vector<int> closest_leaf_distance_histogram (
         const double min, const double max, const int bins = 10

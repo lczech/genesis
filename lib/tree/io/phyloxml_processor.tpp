@@ -26,6 +26,22 @@ namespace genesis {
 //     Parsing
 // =================================================================================================
 
+// template <typename TreeType>
+// void PhyloxmlProcessor<TreeType>::element_to_tree_node( XmlElement const& element, EdgeType& edge )
+// {
+//     // Silence unused parameter warnings.
+//     (void) element;
+//     (void) edge;
+// }
+//
+// template <typename TreeType>
+// void PhyloxmlProcessor<TreeType>::element_to_tree_edge( XmlElement const& element, NodeType& node )
+// {
+//     // Silence unused parameter warnings.
+//     (void) element;
+//     (void) node;
+// }
+
 // =================================================================================================
 //     Printing
 // =================================================================================================
@@ -35,8 +51,8 @@ namespace genesis {
  *
  * If the file already exists, the function does not overwrite it.
  */
-template <typename AdapterType>
-bool PhyloxmlProcessor<AdapterType>::to_file (const typename AdapterType::TreeType& tree, const std::string fn)
+template <typename TreeType>
+bool PhyloxmlProcessor<TreeType>::to_file (const TreeType& tree, const std::string fn)
 {
     if (file_exists(fn)) {
         LOG_WARN << "Phyloxml file '" << fn << "' already exist. Will not overwrite it.";
@@ -53,8 +69,8 @@ bool PhyloxmlProcessor<AdapterType>::to_file (const typename AdapterType::TreeTy
  * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
-template <typename AdapterType>
-void PhyloxmlProcessor<AdapterType>::to_string (const typename AdapterType::TreeType& tree, std::string& ts)
+template <typename TreeType>
+void PhyloxmlProcessor<TreeType>::to_string (const TreeType& tree, std::string& ts)
 {
     ts = to_string(tree);
 }
@@ -65,8 +81,8 @@ void PhyloxmlProcessor<AdapterType>::to_string (const typename AdapterType::Tree
  * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
-template <typename AdapterType>
-std::string PhyloxmlProcessor<AdapterType>::to_string (const typename AdapterType::TreeType& tree)
+template <typename TreeType>
+std::string PhyloxmlProcessor<TreeType>::to_string (const TreeType& tree)
 {
     XmlDocument xml;
     to_document(tree, xml);
@@ -76,10 +92,11 @@ std::string PhyloxmlProcessor<AdapterType>::to_string (const typename AdapterTyp
 /**
  * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
  */
-template <typename AdapterType>
-void PhyloxmlProcessor<AdapterType>::to_document (const typename AdapterType::TreeType& tree, XmlDocument& xml)
+template <typename TreeType>
+void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, XmlDocument& xml)
 {
     xml.clear();
+    prepare_writing(tree, xml);
 
     // Set XML declaration.
     // xml.xml_tag = "xml";
@@ -112,7 +129,7 @@ void PhyloxmlProcessor<AdapterType>::to_document (const typename AdapterType::Tr
     std::vector<int> depths = node_depth_vector(tree);
 
     for (
-        typename AdapterType::TreeType::ConstIteratorPreorder it = tree.begin_preorder();
+        auto it = tree.begin_preorder();
         it != tree.end_preorder();
         ++it
     ) {
@@ -133,7 +150,9 @@ void PhyloxmlProcessor<AdapterType>::to_document (const typename AdapterType::Tr
         // parent.
         auto clade = make_unique<XmlElement>();
         clade->tag = "clade";
-        adapter_.from_tree(it, clade.get());
+
+        tree_node_to_element(*it.node(), *clade.get());
+        tree_edge_to_element(*it.edge(), *clade.get());
 
         // Append the clade to the current parent (end of the stack), then use it as the new parent
         // for the next iteration of the loop.
@@ -141,6 +160,40 @@ void PhyloxmlProcessor<AdapterType>::to_document (const typename AdapterType::Tr
         stack.back()->content.push_back(std::move(clade));
         stack.push_back(clade_ptr);
     }
+
+    finish_writing(tree, xml);
+}
+
+template <typename TreeType>
+void PhyloxmlProcessor<TreeType>::prepare_writing( TreeType const& tree, XmlDocument& xml )
+{
+    // Silence unused parameter warnings.
+    (void) tree;
+    (void) xml;
+}
+
+template <typename TreeType>
+void PhyloxmlProcessor<TreeType>::tree_node_to_element( NodeType const& node, XmlElement& element )
+{
+    // Silence unused parameter warnings.
+    (void) element;
+    (void) node;
+}
+
+template <typename TreeType>
+void PhyloxmlProcessor<TreeType>::tree_edge_to_element( EdgeType const& edge, XmlElement& element )
+{
+    // Silence unused parameter warnings.
+    (void) element;
+    (void) edge;
+}
+
+template <typename TreeType>
+void PhyloxmlProcessor<TreeType>::finish_writing( TreeType const& tree, XmlDocument& xml )
+{
+    // Silence unused parameter warnings.
+    (void) tree;
+    (void) xml;
 }
 
 } // namespace genesis

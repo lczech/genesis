@@ -9,102 +9,17 @@
  */
 
 #include <deque>
+#include <stdexcept>
 #include <string>
+#include <vector>
+
+#include "tree/io/newick_element.hpp"
 
 namespace genesis {
 
-// =============================================================================
-//     NewickBrokerElement
-// =============================================================================
-
-// forward declaration
-class NewickBroker;
-
-/** @brief POD struct that stores the information for one tree node.
- *
- * Most of its members are public, as it is intended to serve an an intermediate data
- * exchange format, so different callers might need to modify its content.
- * However, this means paying attention when working with the data, as it can
- * be changed from anywhere.
- *
- * See NewickBroker class for a description of this intermediate format.
- */
-struct NewickBrokerElement
-{
-    friend NewickBroker;
-
-public:
-    /**
-     * @brief Constructor, initializes the item values.
-     */
-    NewickBrokerElement() : branch_length(0.0), depth(0), is_leaf(false), rank_(-1) {};
-
-    /**
-     * @brief Returns the rank (number of immediate children) of this node.
-     *
-     * NewickBroker::assign_ranks() has to be called before using this function. Otherwise,
-     * it will return -1.
-     */
-    inline int rank()
-    {
-        return rank_;
-    }
-
-    /**
-     * @brief Name of the node.
-     *
-     * In case it is a leaf, this is usually the name of the taxon represented by the node.
-     * Internal nodes are named "Internal Node" in case no name is specified in the Newick format,
-     * same applies to the (possibly virtual) root, which is named "Root Node" by default.
-     */
-    std::string name;
-
-    /**
-     * @brief Branch length associated with the node, i.e. the edge leading to its parent.
-     */
-    double      branch_length;
-
-    /**
-     * @brief Depth of the node in the tree, i.e. its distance from the root.
-     */
-    int         depth;
-
-    /**
-     * @brief True if the node is a leaf/tip, false otherwise.
-     *
-     * This value can be set for example while parsing a Newick tree, and is used by
-     * NewickBroker::validate() as a check for correctness. However, it is (so far) not used further,
-     * because it is not reliable (it can be changed arbitrarily without checking whether this is
-     * conform with the tree topology).
-     *
-     * Therefore, use rank() to check whether a node is a leaf (in order to use rank, first
-     * NewickBroker::assign_ranks() has to be called).
-     */
-    bool        is_leaf;
-
-    /**
-     * @brief Arbitrary strings that can be attached to a node, e.g. in Newick format via "{}".
-     */
-    std::deque<std::string> tags;
-
-    /**
-     * @brief Arbitrary strings that can be attached to a node, e.g. in Newick format via "[]".
-     */
-    std::deque<std::string> comments;
-
-protected:
-
-    /**
-     * @brief Rank of the node, i.e. how many children it has.
-     */
-    int         rank_;
-};
-
-// =============================================================================
+// =================================================================================================
 //     NewickBroker
-// =============================================================================
-
-    // TODO write copy ctor and assign op
+// =================================================================================================
 
     // TODO introduce other parsers and generators, e.g. http://en.wikipedia.org/wiki/DOT_%28graph_description_language%29
 
@@ -172,7 +87,19 @@ protected:
 class NewickBroker
 {
 public:
-    ~NewickBroker();
+
+    // -------------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------------
+
+    NewickBroker() = default;
+    ~NewickBroker() = default;
+
+    NewickBroker(NewickBroker const&) = default;
+    NewickBroker(NewickBroker&&)      = default;
+
+    NewickBroker& operator= (NewickBroker const&) = default;
+    NewickBroker& operator= (NewickBroker&&)      = default;
 
     // -------------------------------------------------------------------------
     //     Modifiers
@@ -180,73 +107,69 @@ public:
 
     void clear();
 
-    inline void push_top (NewickBrokerElement* node)
+    void push_top (NewickBrokerElement const& node)
     {
         stack_.push_front(node);
     }
 
-    inline void push_bottom (NewickBrokerElement* node)
+    void push_top (NewickBrokerElement&& node)
+    {
+        stack_.push_front(std::move(node));
+    }
+
+    void push_bottom (NewickBrokerElement const& node)
     {
         stack_.push_back(node);
     }
 
-    inline void pop_top()
+    void push_bottom (NewickBrokerElement&& node)
     {
-        delete stack_.front();
+        stack_.push_back(std::move(node));
+    }
+
+    void pop_top()
+    {
         stack_.pop_front();
     }
 
-    inline void pop_bottom()
+    void pop_bottom()
     {
-        delete stack_.back();
         stack_.pop_back();
     }
 
     // -------------------------------------------------------------------------
-    //     Accessors and Iterators
+    //     Iteration
     // -------------------------------------------------------------------------
 
     /**
      * @brief Iterator type to access the stack elements.
-     *
-     * This iterator allows to use a loop like this:
-     *
-     *     NewickBroker b;
-     *     for (NewickBroker::iterator n = b.begin(); n != b.end(); ++n) {
-     *         std::cout << n->name << std::endl;
-     *     }
-     * %
      */
-    typedef std::deque<NewickBrokerElement*>::iterator               iterator;
+    typedef std::deque<NewickBrokerElement>::iterator               iterator;
 
     /**
      * @brief Const version of the iterator.
      */
-    typedef std::deque<NewickBrokerElement*>::const_iterator         const_iterator;
+    typedef std::deque<NewickBrokerElement>::const_iterator         const_iterator;
 
     /**
      * @brief Reverse version of the iterator.
      */
-    typedef std::deque<NewickBrokerElement*>::reverse_iterator       reverse_iterator;
+    typedef std::deque<NewickBrokerElement>::reverse_iterator       reverse_iterator;
 
     /**
      * @brief Const reverse version of the iterator.
      */
-    typedef std::deque<NewickBrokerElement*>::const_reverse_iterator const_reverse_iterator;
+    typedef std::deque<NewickBrokerElement>::const_reverse_iterator const_reverse_iterator;
 
     /**
      * @brief Returns an iterator to the top of the stack.
-     *
-     * This is used for the iterator and also allows to use range based
-     * looping over the nodes:
-     *
-     *     NewickBroker b;
-     *     for (NewickBrokerElement& n : b) {
-     *         std::cout << n.name << std::endl;
-     *     }
-     * %
      */
-    inline iterator begin()
+    iterator begin()
+    {
+        return stack_.begin();
+    }
+
+    const_iterator begin() const
     {
         return stack_.begin();
     }
@@ -254,7 +177,12 @@ public:
     /**
      * @brief Returns an iterator to the end of the token list.
      */
-    inline iterator end()
+    iterator end()
+    {
+        return stack_.end();
+    }
+
+    const_iterator end() const
     {
         return stack_.end();
     }
@@ -262,7 +190,7 @@ public:
     /**
      * @brief Const version of begin().
      */
-    inline const_iterator cbegin() const
+    const_iterator cbegin() const
     {
         return stack_.cbegin();
     }
@@ -270,17 +198,20 @@ public:
     /**
      * @brief Const version of end().
      */
-    inline const_iterator cend() const
+    const_iterator cend() const
     {
         return stack_.cend();
     }
 
     /**
      * @brief Returns a reverse iterator to the nodes on the stack.
-     *
-     * This is useful for iterating starting at the leaves and ending at the root.
      */
-    inline reverse_iterator rbegin()
+    reverse_iterator rbegin()
+    {
+        return stack_.rbegin();
+    }
+
+    const_reverse_iterator rbegin() const
     {
         return stack_.rbegin();
     }
@@ -288,7 +219,12 @@ public:
     /**
      * @brief Reverse version of end().
      */
-    inline reverse_iterator rend()
+    reverse_iterator rend()
+    {
+        return stack_.rend();
+    }
+
+    const_reverse_iterator rend() const
     {
         return stack_.rend();
     }
@@ -296,7 +232,7 @@ public:
     /**
      * @brief Const version of rbegin().
      */
-    inline const_reverse_iterator crbegin()
+    const_reverse_iterator crbegin()
     {
         return stack_.crbegin();
     }
@@ -304,15 +240,19 @@ public:
     /**
      * @brief Const version of rend().
      */
-    inline const_reverse_iterator crend()
+    const_reverse_iterator crend()
     {
         return stack_.crend();
     }
 
+    // -------------------------------------------------------------------------
+    //     Properties
+    // -------------------------------------------------------------------------
+
     /**
      * @brief Returns whether the stack is empty.
      */
-    inline bool empty() const
+    bool empty() const
     {
         return stack_.empty();
     }
@@ -320,10 +260,14 @@ public:
     /**
      * @brief Returns the size of the stack, i.e. the number of nodes stored in the broker.
      */
-    inline size_t size() const
+    size_t size() const
     {
         return stack_.size();
     }
+
+    // -------------------------------------------------------------------------
+    //     Element Access
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Provides index based array access to the nodes.
@@ -339,7 +283,12 @@ public:
      * Caveat: this operator does no boundary check. If you need this check,
      * use at() instead.
      */
-    inline NewickBrokerElement* operator [] (const std::size_t index) const
+    NewickBrokerElement& operator [] (std::size_t index)
+    {
+        return stack_[index];
+    }
+
+    NewickBrokerElement const& operator [] (std::size_t index) const
     {
         return stack_[index];
     }
@@ -349,13 +298,20 @@ public:
      *
      * In out of bounds cases, a `nullptr` is returned.
      */
-    inline NewickBrokerElement* at(const std::size_t index) const
+    NewickBrokerElement& at(std::size_t index)
     {
-        if (index < stack_.size()) {
-            return stack_[index];
-        } else {
-            return nullptr;
+        if (index >= stack_.size()) {
+            throw std::out_of_range("__FUNCTION__: out_of_range");
         }
+        return stack_[index];
+    }
+
+    NewickBrokerElement const& at(std::size_t index) const
+    {
+        if (index >= stack_.size()) {
+            throw std::out_of_range("__FUNCTION__: out_of_range");
+        }
+        return stack_[index];
     }
 
     /**
@@ -367,7 +323,12 @@ public:
      *
      * Calling this function on an empty() broker causes undefined behavior.
      */
-    inline NewickBrokerElement* top()
+    NewickBrokerElement& top()
+    {
+        return stack_.front();
+    }
+
+    NewickBrokerElement const& top() const
     {
         return stack_.front();
     }
@@ -377,7 +338,12 @@ public:
      *
      * Calling this function on an empty() broker causes undefined behavior.
      */
-    inline NewickBrokerElement* bottom()
+    NewickBrokerElement& bottom()
+    {
+        return stack_.back();
+    }
+
+    NewickBrokerElement const& bottom() const
     {
         return stack_.back();
     }
@@ -386,38 +352,33 @@ public:
     //     State Functions
     // -------------------------------------------------------------------------
 
-    void assign_ranks();
+    void assign_ranks() const;
 
     int leaf_count() const;
 
-    inline int inner_count() const
-    {
-        return stack_.size() - leaf_count();
-    }
+    int inner_count() const;
 
-    // same as size()
-    inline int node_count() const
-    {
-        return stack_.size();
-    }
+    int node_count() const;
 
     int max_rank() const;
 
-    inline bool is_bifurcating() const
-    {
-        return max_rank() == 2;
-    }
+    bool is_bifurcating() const;
+
+    // -------------------------------------------------------------------------
+    //     Dump and Debug
+    // -------------------------------------------------------------------------
 
     bool validate() const;
 
-    // -------------------------------------------------------------------------
-    //     dump and Debug
-    // -------------------------------------------------------------------------
-
     std::string dump() const;
 
-protected:
-    std::deque<NewickBrokerElement*> stack_;
+private:
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+    std::deque<NewickBrokerElement> stack_;
 };
 
 } // namespace genesis

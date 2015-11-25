@@ -388,48 +388,6 @@ double PlacementMap::placement_mass() const
     return sum;
 }
 
-/**
- * @brief Get the number of placements on the edge with the most placements, and a pointer to this
- * edge.
- */
-std::pair<PlacementTreeEdge*, size_t> PlacementMap::placement_count_max_edge() const
-{
-    PlacementTreeEdge* edge = nullptr;
-    size_t             max  = 0;
-
-    for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it ) {
-        if ((*it)->data.placements.size() > max) {
-            edge = (*it).get();
-            max  = (*it)->data.placements.size();
-        }
-    }
-
-    return std::make_pair(edge, max);
-}
-
-/**
- * @brief Get the summed mass of the placements on the heaviest edge, measured by their
- * `like_weight_ratio`, and a pointer to this edge.
- */
-std::pair<PlacementTreeEdge*, double> PlacementMap::placement_mass_max_edge() const
-{
-    PlacementTreeEdge* edge = nullptr;
-    double             max  = 0.0;
-
-    for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it ) {
-        double sum = 0.0;
-        for (const auto& place : (*it)->data.placements) {
-            sum += place->like_weight_ratio;
-        }
-        if (sum > max) {
-            edge = (*it).get();
-            max  = sum;
-        }
-    }
-
-    return std::make_pair(edge, max);
-}
-
 // TODO outsource the histogram methods to measures, but introduce a histogram class to utils or math before!
 
 /**

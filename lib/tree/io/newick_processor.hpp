@@ -83,7 +83,7 @@ protected:
               NewickBroker&          broker
     );
 
-    bool build_tree (NewickBroker& broker, TreeType& tree);
+    bool build_tree (NewickBroker const& broker, TreeType& tree);
 
     // -----------------------------------------------------
     //     Members
@@ -120,7 +120,7 @@ protected:
     void to_broker (const TreeType& tree, NewickBroker& broker);
 
     std::string to_string_rec(const NewickBroker& broker, size_t position);
-    std::string element_to_string(const NewickBrokerElement* bn);
+    std::string element_to_string(NewickBrokerElement const& bn);
 
     // -----------------------------------------------------
     //     Members

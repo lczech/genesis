@@ -262,7 +262,7 @@ bool Lexer::evaluate_from_to (const char* from, const char* to)
  * activate a special scanner. Thus, in this case, scan_unknown should only scan
  * one character at a time.
  */
-inline bool Lexer::scan_unknown()
+bool Lexer::scan_unknown()
 {
     size_t start = get_position();
     while (!is_end() && get_char_type() == LexerTokenType::kUnknown) {
@@ -275,7 +275,7 @@ inline bool Lexer::scan_unknown()
 /*
 // version that only scans one char at a time. useful for allowing e.g.
 // complex comment markers, that would otherwise be turned into unknown tokens.
-inline bool Lexer::scan_unknown()
+bool Lexer::scan_unknown()
 {
     push_token(LexerTokenType::kUnknown, get_position(), get_position() + 1);
     next_char();
@@ -288,7 +288,7 @@ inline bool Lexer::scan_unknown()
  *
  * Returns true iff whitespace was found.
  */
-inline bool Lexer::scan_whitespace()
+bool Lexer::scan_whitespace()
 {
     bool   found = false;
     size_t start = get_position();
@@ -310,7 +310,7 @@ inline bool Lexer::scan_whitespace()
  * actual comments, it has to be overridden. A typical implementation can be
  * found in NewickLexer::scan_comment().
  */
-inline bool Lexer::scan_comment()
+bool Lexer::scan_comment()
 {
     return false;
 }
@@ -326,7 +326,7 @@ inline bool Lexer::scan_comment()
  *
  * Returns true, as symbols cannot be malformatted.
  */
-inline bool Lexer::scan_symbol()
+bool Lexer::scan_symbol()
 {
     size_t start = get_position();
     while (!is_end() && get_char_type() == LexerTokenType::kSymbol) {
@@ -345,7 +345,7 @@ inline bool Lexer::scan_symbol()
  *
  * Returns true iff valid number was found.
  */
-inline bool Lexer::scan_number()
+bool Lexer::scan_number()
 {
     size_t start   = get_position();
     bool   found_d = false; // found a dot
@@ -431,7 +431,7 @@ inline bool Lexer::scan_number()
  *
  * Returns true iff the string is finished with the correct quotation mark.
  */
-inline bool Lexer::scan_string()
+bool Lexer::scan_string()
 {
     // skip the first quotation mark, save its value for later comparision
     // so that the string ends with the same type of mark
@@ -529,7 +529,7 @@ inline bool Lexer::scan_string()
  * This allows to use signs (+-) as operator chars in cases where they are not
  * followed by a number.
  */
-inline bool Lexer::scan_operator()
+bool Lexer::scan_operator()
 {
     // if the operator is a sign followed by a number, scan it as a number
     if (
@@ -549,7 +549,7 @@ inline bool Lexer::scan_operator()
  *
  * Returns true.
  */
-inline bool Lexer::scan_bracket()
+bool Lexer::scan_bracket()
 {
     push_token(LexerTokenType::kBracket, get_position(), get_position()+1);
     next_char();
@@ -575,7 +575,7 @@ inline bool Lexer::scan_bracket()
  * actual comments, it has to be overridden. A typical implementation can be
  * found in NewickLexer::scan_comment().
  */
-inline bool Lexer::scan_tag()
+bool Lexer::scan_tag()
 {
     return false;
 }
@@ -596,7 +596,7 @@ inline bool Lexer::scan_tag()
  *     }
  * %
  */
-inline Lexer::iterator Lexer::begin()
+Lexer::iterator Lexer::begin()
 {
     return iterator(this, 0);
 }
@@ -604,7 +604,7 @@ inline Lexer::iterator Lexer::begin()
 /**
  * @brief Returns an iterator to the end of the token list.
  */
-inline Lexer::iterator Lexer::end()
+Lexer::iterator Lexer::end()
 {
     return iterator(this, -1);
 }
