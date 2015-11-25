@@ -81,6 +81,6 @@ protected:
 // =================================================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/io/phyloxml_processor.tpp"
+#include "tree/io/phyloxml/processor.tpp"
 
 #endif // include guard

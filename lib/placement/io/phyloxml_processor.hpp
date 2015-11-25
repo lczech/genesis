@@ -10,8 +10,8 @@
 
 #include "placement/placement_tree.hpp"
 #include "tree/default/phyloxml_mixin.hpp"
-#include "tree/io/phyloxml_color_mixin.hpp"
-#include "tree/io/phyloxml_processor.hpp"
+#include "tree/io/phyloxml/color_mixin.hpp"
+#include "tree/io/phyloxml/processor.hpp"
 
 namespace genesis {
 

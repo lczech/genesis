@@ -10,7 +10,7 @@
 
 #include "tree/default_tree.hpp"
 #include "tree/default/phyloxml_mixin.hpp"
-#include "tree/io/phyloxml_processor.hpp"
+#include "tree/io/phyloxml/processor.hpp"
 
 namespace genesis {
 
