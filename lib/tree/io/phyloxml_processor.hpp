@@ -27,8 +27,10 @@ class PhyloxmlProcessor
 {
 public:
 
+    typedef typename AdapterType::TreeType TreeType;
+
     // -------------------------------------------------------------------------
-    //     Constructors
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
     PhyloxmlProcessor()                     : adapter_(AdapterType()) {}
@@ -42,10 +44,10 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    bool        to_file     (const typename AdapterType::TreeType& tree, const std::string fn);
-    void        to_string   (const typename AdapterType::TreeType& tree, std::string& ts);
-    std::string to_string   (const typename AdapterType::TreeType& tree);
-    void        to_document (const typename AdapterType::TreeType& tree, XmlDocument& xml);
+    bool        to_file     (const TreeType& tree, const std::string fn);
+    void        to_string   (const TreeType& tree, std::string& ts);
+    std::string to_string   (const TreeType& tree);
+    void        to_document (const TreeType& tree, XmlDocument& xml);
 
     // ---------------------------------------------------------------------
     //     Members

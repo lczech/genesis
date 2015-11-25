@@ -36,7 +36,7 @@ namespace genesis {
  * If the file already exists, the function does not overwrite it.
  */
 template <typename AdapterType>
-bool PhyloxmlProcessor<AdapterType>::to_file (const typename AdapterType::TreeType& tree, const std::string fn)
+bool PhyloxmlProcessor<AdapterType>::to_file (const TreeType& tree, const std::string fn)
 {
     if (file_exists(fn)) {
         LOG_WARN << "Phyloxml file '" << fn << "' already exist. Will not overwrite it.";
@@ -54,7 +54,7 @@ bool PhyloxmlProcessor<AdapterType>::to_file (const typename AdapterType::TreeTy
  * representation.
  */
 template <typename AdapterType>
-void PhyloxmlProcessor<AdapterType>::to_string (const typename AdapterType::TreeType& tree, std::string& ts)
+void PhyloxmlProcessor<AdapterType>::to_string (const TreeType& tree, std::string& ts)
 {
     ts = to_string(tree);
 }
@@ -66,7 +66,7 @@ void PhyloxmlProcessor<AdapterType>::to_string (const typename AdapterType::Tree
  * representation.
  */
 template <typename AdapterType>
-std::string PhyloxmlProcessor<AdapterType>::to_string (const typename AdapterType::TreeType& tree)
+std::string PhyloxmlProcessor<AdapterType>::to_string (const TreeType& tree)
 {
     XmlDocument xml;
     to_document(tree, xml);
@@ -77,7 +77,7 @@ std::string PhyloxmlProcessor<AdapterType>::to_string (const typename AdapterTyp
  * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
  */
 template <typename AdapterType>
-void PhyloxmlProcessor<AdapterType>::to_document (const typename AdapterType::TreeType& tree, XmlDocument& xml)
+void PhyloxmlProcessor<AdapterType>::to_document (const TreeType& tree, XmlDocument& xml)
 {
     xml.clear();
 
@@ -112,7 +112,7 @@ void PhyloxmlProcessor<AdapterType>::to_document (const typename AdapterType::Tr
     std::vector<int> depths = node_depth_vector(tree);
 
     for (
-        typename AdapterType::TreeType::ConstIteratorPreorder it = tree.begin_preorder();
+        auto it = tree.begin_preorder();
         it != tree.end_preorder();
         ++it
     ) {
