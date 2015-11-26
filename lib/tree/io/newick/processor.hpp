@@ -12,8 +12,6 @@
 #include <string>
 #include <vector>
 
-#include "tree/io/newick/lexer.hpp"
-
 namespace genesis {
 
 // =================================================================================================
@@ -77,11 +75,6 @@ public:
     // -----------------------------------------------------
 
 protected:
-    bool parse_tree  (
-              NewickLexer::iterator& ct,
-        const NewickLexer::iterator& end,
-              NewickBroker&          broker
-    );
 
     bool build_tree (NewickBroker const& broker, TreeType& tree);
 
@@ -90,17 +83,6 @@ protected:
     // -----------------------------------------------------
 
 public:
-    std::string default_leaf_name     = "Leaf Node";
-    std::string default_internal_name = "Internal Node";
-    std::string default_root_name     = "Root Node";
-
-    /**
-     * @brief If set to true, unnamed nodes are named using one of the default names.
-     *
-     * The default names can be set using `default_leaf_name`, `default_internal_name` and
-     * `default_root_name`. They are used both when parsing and printing a Newick file.
-     */
-    bool        use_default_names = false;
 
     // -------------------------------------------------------------------------
     //     Printing

@@ -50,10 +50,10 @@ void BoostPythonExport_NewickProcessor(std::string name)
 
         // Public Member Variables
 
-        .def_readwrite("default_leaf_name",     &NewickProcessorType::default_leaf_name)
-        .def_readwrite("default_internal_name", &NewickProcessorType::default_internal_name)
-        .def_readwrite("default_root_name",     &NewickProcessorType::default_root_name)
-        .def_readwrite("use_default_names",     &NewickProcessorType::use_default_names)
+        // .def_readwrite("default_leaf_name",     &NewickProcessorType::default_leaf_name)
+        // .def_readwrite("default_internal_name", &NewickProcessorType::default_internal_name)
+        // .def_readwrite("default_root_name",     &NewickProcessorType::default_root_name)
+        // .def_readwrite("use_default_names",     &NewickProcessorType::use_default_names)
 
         .def_readwrite("print_names",           &NewickProcessorType::print_names)
         .def_readwrite("print_branch_lengths",  &NewickProcessorType::print_branch_lengths)
