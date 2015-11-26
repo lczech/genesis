@@ -8,8 +8,6 @@
  * @ingroup placement
  */
 
-#include "placement/placement_tree.hpp"
-
 #include <vector>
 
 namespace genesis {
@@ -19,6 +17,14 @@ namespace genesis {
 // =================================================================================================
 
 class Color;
+
+template<class NDT, class EDT>
+class Tree;
+
+class PlacementTreeNodeData;
+class PlacementTreeEdgeData;
+
+typedef Tree<PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTree;
 
 // =================================================================================================
 //     Placement Edge Color Functions
