@@ -21,21 +21,16 @@ namespace genesis {
 //     NewickBroker
 // =================================================================================================
 
-    // TODO introduce other parsers and generators, e.g. http://en.wikipedia.org/wiki/DOT_%28graph_description_language%29
-
-    // TODO update doc blocks to new use of Newick Broker instead of old Tree Broker!
-
 /**
- * @brief Stores a tree in an intermediate format that can be used as transfer between different
- * representations.
+ * @brief Stores a Newick tree in an intermediate format that can be further processed into a Tree.
  *
- * The NewickBroker offers a simple structure to represent a tree. It is used to transfer the
- * information contained in a tree (topology and data of the nodes and edges) between different
- * representations of the tree. Those can for example be data structures or string formats as
- * the Newick file format.
+ * The NewickBroker is a transitional format between the Newick formatted tree and a Tree object.
+ * It is neccessary to have this intermediate step, because the ordering of nodes in the Newick
+ * format differs from our requirements. Newick trees starts with leaf nodes, while our internal
+ * representation is build up from the root.
  *
- * It is organized as a stack, where the root of the tree is at the top/front. Then follow the nodes
- * in a postorder manner, where each node is of type NewickBrokerElement.
+ * The NewickBroker is organized as a stack, where the root of the tree is at the top/front. Then
+ * follow the nodes in a preorder manner, where each node is of type NewickBrokerElement.
  *
  * The topology of the tree is represented via a depth attribute of each node: Two subsequent nodes
  * are siblings (belong to the same parent node), if they have the same depth. If the second node
@@ -78,10 +73,10 @@ namespace genesis {
  *     is also true for trees rooted on a leaf.
  *  *  The nesting of the nodes has to be correct, so the depth cannot increase more than one per
  *     node when going down the tree.
- *  *  The attribute NewickBrokerElement::is_leaf of the NewickBrokerElements can be set (for exmaple when
- *     parsing a Newick tree) and then be used to validate the integrity of the tree using
- *     validate(). However, the attribute is not further used -- see its description for more on
- *     this.
+ *  *  The attribute NewickBrokerElement::is_leaf of the NewickBrokerElements can be set (for
+ *     exmaple when parsing a Newick tree) and then be used to validate the integrity of the tree
+ *     using validate(). However, the attribute is not further used -- see its description for more
+ *     on this.
  * %
  */
 class NewickBroker
