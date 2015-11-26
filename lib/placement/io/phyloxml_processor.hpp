@@ -19,54 +19,8 @@ namespace genesis {
 //     Placement Tree Phyloxml Processor
 // =================================================================================================
 
-/**
- * @brief
- */
-class PlacementTreePhyloxmlProcessor : public
-    PhyloxmlColorMixin <
-        DefaultTreePhyloxmlMixin <
-            PhyloxmlProcessor <
-                PlacementTree
-            >
-        >
-    >
-{
-private:
-
-    // -------------------------------------------------------------------------
-    //     Member Types
-    // -------------------------------------------------------------------------
-
-    typedef PhyloxmlColorMixin <
-        DefaultTreePhyloxmlMixin <
-            PhyloxmlProcessor <
-                PlacementTree
-            >
-        >
-    > Base;
-
-    typedef typename Base::TreeType TreeType;
-    typedef typename Base::NodeType NodeType;
-    typedef typename Base::EdgeType EdgeType;
-    typedef typename Base::LinkType LinkType;
-
-    // -------------------------------------------------------------------------
-    //     Overridden Virtual Functions
-    // -------------------------------------------------------------------------
-
-    virtual void prepare_writing( TreeType const& tree, XmlDocument& xml );
-
-    virtual void tree_edge_to_element( EdgeType const& edge, XmlElement& element );
-
-    // -------------------------------------------------------------------------
-    //     Member Data
-    // -------------------------------------------------------------------------
-
-private:
-
-    size_t max_placements_per_edge_ = 0;
-
-};
+typedef PhyloxmlColorMixin< DefaultTreePhyloxmlMixin< PhyloxmlProcessor< PlacementTree > > >
+    PlacementTreePhyloxmlProcessor;
 
 } // namespace genesis
 

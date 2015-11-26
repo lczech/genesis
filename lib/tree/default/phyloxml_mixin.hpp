@@ -22,11 +22,11 @@ namespace genesis {
 template <typename Base>
 class DefaultTreePhyloxmlMixin : public Base
 {
-protected:
-
     // -------------------------------------------------------------------------
     //     Member Types
     // -------------------------------------------------------------------------
+
+public:
 
     typedef typename Base::TreeType TreeType;
     typedef typename Base::NodeType NodeType;
@@ -37,13 +37,15 @@ protected:
     //     Overridden Member Functions
     // -------------------------------------------------------------------------
 
-    virtual void tree_node_to_element( NodeType const& node, XmlElement& element )
+protected:
+
+    virtual void tree_node_to_element( NodeType const& node, XmlElement& element ) override
     {
         Base::tree_node_to_element(node, element);
         set_name(element, node.data.name);
     }
 
-    virtual void tree_edge_to_element( EdgeType const& edge, XmlElement& element )
+    virtual void tree_edge_to_element( EdgeType const& edge, XmlElement& element ) override
     {
         Base::tree_edge_to_element(edge, element);
         set_branch_length(element, edge.data.branch_length);
@@ -52,6 +54,8 @@ protected:
     // -------------------------------------------------------------------------
     //     Mixin Functions
     // -------------------------------------------------------------------------
+
+protected:
 
     void set_name (XmlElement& element, const std::string& name)
     {
