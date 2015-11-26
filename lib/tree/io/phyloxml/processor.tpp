@@ -27,7 +27,7 @@ namespace genesis {
 // =================================================================================================
 
 // template <typename TreeType>
-// void PhyloxmlProcessor<TreeType>::element_to_tree_node( XmlElement const& element, EdgeType& edge )
+// void PhyloxmlProcessor<TreeType>::element_to_node( XmlElement const& element, EdgeType& edge )
 // {
 //     // Silence unused parameter warnings.
 //     (void) element;
@@ -35,7 +35,7 @@ namespace genesis {
 // }
 //
 // template <typename TreeType>
-// void PhyloxmlProcessor<TreeType>::element_to_tree_edge( XmlElement const& element, NodeType& node )
+// void PhyloxmlProcessor<TreeType>::element_to_edge( XmlElement const& element, NodeType& node )
 // {
 //     // Silence unused parameter warnings.
 //     (void) element;
@@ -151,8 +151,8 @@ void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, XmlDocument
         auto clade = make_unique<XmlElement>();
         clade->tag = "clade";
 
-        tree_node_to_element(*it.node(), *clade.get());
-        tree_edge_to_element(*it.edge(), *clade.get());
+        node_to_element(*it.node(), *clade.get());
+        edge_to_element(*it.edge(), *clade.get());
 
         // Append the clade to the current parent (end of the stack), then use it as the new parent
         // for the next iteration of the loop.
@@ -173,7 +173,7 @@ void PhyloxmlProcessor<TreeType>::prepare_writing( TreeType const& tree, XmlDocu
 }
 
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::tree_node_to_element( NodeType const& node, XmlElement& element )
+void PhyloxmlProcessor<TreeType>::node_to_element( NodeType const& node, XmlElement& element )
 {
     // Silence unused parameter warnings.
     (void) element;
@@ -181,7 +181,7 @@ void PhyloxmlProcessor<TreeType>::tree_node_to_element( NodeType const& node, Xm
 }
 
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::tree_edge_to_element( EdgeType const& edge, XmlElement& element )
+void PhyloxmlProcessor<TreeType>::edge_to_element( EdgeType const& edge, XmlElement& element )
 {
     // Silence unused parameter warnings.
     (void) element;

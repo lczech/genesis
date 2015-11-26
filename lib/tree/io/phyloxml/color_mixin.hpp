@@ -72,9 +72,9 @@ protected:
         }
     }
 
-    virtual void tree_edge_to_element( EdgeType const& edge, XmlElement& element ) override
+    virtual void edge_to_element( EdgeType const& edge, XmlElement& element ) override
     {
-        Base::tree_edge_to_element(edge, element);
+        Base::edge_to_element(edge, element);
 
         // If an edge color vector was set, use it.
         if (edge_colors_.size() > 0) {

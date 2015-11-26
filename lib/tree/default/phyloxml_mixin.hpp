@@ -39,15 +39,15 @@ public:
 
 protected:
 
-    virtual void tree_node_to_element( NodeType const& node, XmlElement& element ) override
+    virtual void node_to_element( NodeType const& node, XmlElement& element ) override
     {
-        Base::tree_node_to_element(node, element);
+        Base::node_to_element(node, element);
         set_name(element, node.data.name);
     }
 
-    virtual void tree_edge_to_element( EdgeType const& edge, XmlElement& element ) override
+    virtual void edge_to_element( EdgeType const& edge, XmlElement& element ) override
     {
-        Base::tree_edge_to_element(edge, element);
+        Base::edge_to_element(edge, element);
         set_branch_length(element, edge.data.branch_length);
     }
 
