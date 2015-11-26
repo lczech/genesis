@@ -48,7 +48,10 @@ protected:
 
     inline void set_branch_length (const double branch_length, NewickBrokerElement& node)
     {
-        node.branch_length = branch_length;
+        // TODO correct this
+        (void) branch_length;
+        (void) node;
+        // node.branch_length = branch_length;
     }
 
     inline void add_tag (const std::string& tag, NewickBrokerElement& node)

@@ -137,12 +137,7 @@ bool parse_newick_tree (
             }
 
             // populate the node
-            if (ct->is_symbol()) {
-                // unquoted labels need to turn underscores into space
-                node->name = string_replace_all(ct->value(), "_", " ");
-            } else {
-                node->name = ct->value();
-            }
+            node->name = ct->value();
             continue;
         }
 
@@ -159,7 +154,7 @@ bool parse_newick_tree (
             }
 
             // populate the node
-            node->branch_length = std::stod(ct->value());
+            node->values.push_back( ct->value() );
             continue;
         }
 
@@ -285,25 +280,16 @@ bool parse_newick_tree (
  */
 std::string element_to_string( NewickBrokerElement const& bn )
 {
-    std::string res = "";
-    // TODO reactive these options?!
-    // if (print_names) {
-        res += string_replace_all(bn.name, " ", "_");
-    // }
-    // if (print_branch_lengths) {
-        // res += ":" + to_string_precise(bn.branch_length, precision);
-        res += ":" + std::to_string(bn.branch_length);
-    // }
-    // if (print_comments) {
-        for (std::string c : bn.comments) {
-            res += "[" + c + "]";
-        }
-    // }
-    // if (print_tags) {
-        for (std::string t : bn.tags) {
-            res += "{" + t + "}";
-        }
-    // }
+    std::string res = bn.name;
+    for (std::string v : bn.values) {
+        res += ":" + v;
+    }
+    for (std::string c : bn.comments) {
+        res += "[" + c + "]";
+    }
+    for (std::string t : bn.tags) {
+        res += "{" + t + "}";
+    }
     return res;
 }
 

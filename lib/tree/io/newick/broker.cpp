@@ -418,16 +418,20 @@ std::string NewickBroker::dump() const
         }
 
         // basic information
-        out +=  node.name
-            +  (node.branch_length != 0.0 ? ":" + std::to_string(node.branch_length) : "");
+        out += node.name;
+
+        // values
+        for (std::string const& v : node.values) {
+            out += " :" + v;
+        }
 
         // comments
-        for (std::string c : node.comments) {
+        for (std::string const& c : node.comments) {
             out += " [" + c + "]";
         }
 
         // tags
-        for (std::string t : node.tags) {
+        for (std::string const& t : node.tags) {
             out += " {" + t + "}";
         }
 
