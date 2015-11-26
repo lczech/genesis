@@ -10,6 +10,8 @@
 
 #include "tree/io/newick/lexer.hpp"
 
+#include <string>
+
 namespace genesis {
 
 // =================================================================================================
@@ -19,13 +21,17 @@ namespace genesis {
 class  NewickBroker;
 
 // =================================================================================================
-//     Newick Parser
+//     Newick Parser and Generator
 // =================================================================================================
 
 bool parse_newick_tree (
-          NewickLexer::iterator& ct,
-    const NewickLexer::iterator& end,
-          NewickBroker&          broker
+    NewickLexer::iterator      & ct,
+    NewickLexer::iterator const& end,
+    NewickBroker&                broker
+);
+
+std::string generate_newick_tree (
+    NewickBroker const& broker
 );
 
 } // namespace genesis

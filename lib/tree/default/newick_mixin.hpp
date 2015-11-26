@@ -26,6 +26,16 @@ class DefaultTreeNewickAdapter : public NewickAdapter<TreeType>
 {
 public:
 
+    bool print_names          = true;
+    bool print_branch_lengths = false;
+    // bool print_comments       = false;
+    // bool print_tags           = false;
+
+    /**
+     * @brief The precision used for printing floating point numbers, particularly the branch_length.
+     */
+    int  precision = 6;
+
     std::string default_leaf_name     = "Leaf Node";
     std::string default_internal_name = "Internal Node";
     std::string default_root_name     = "Root Node";

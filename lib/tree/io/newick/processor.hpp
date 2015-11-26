@@ -101,23 +101,14 @@ public:
 protected:
     void to_broker (const TreeType& tree, NewickBroker& broker);
 
-    std::string to_string_rec(const NewickBroker& broker, size_t position);
-    std::string element_to_string(NewickBrokerElement const& bn);
+    // std::string to_string_rec(const NewickBroker& broker, size_t position);
+    // std::string element_to_string(NewickBrokerElement const& bn);
 
     // -----------------------------------------------------
     //     Members
     // -----------------------------------------------------
 
 public:
-    bool print_names          = true;
-    bool print_branch_lengths = false;
-    bool print_comments       = false;
-    bool print_tags           = false;
-
-    /**
-     * @brief The precision used for printing floating point numbers, particularly the branch_length.
-     */
-    int  precision = 6;
 
 protected:
     AdapterType adapter_;

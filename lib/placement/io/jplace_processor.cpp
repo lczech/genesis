@@ -486,10 +486,11 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
 
     // set tree
     auto nwp = PlacementTreeNewickProcessor();
-    nwp.print_names          = true;
-    nwp.print_branch_lengths = true;
-    nwp.print_comments       = false;
-    nwp.print_tags           = true;
+    // TODO !!! remove
+    // nwp.print_names          = true;
+    // nwp.print_branch_lengths = true;
+    // nwp.print_comments       = false;
+    // nwp.print_tags           = true;
     doc.set("tree", new JsonValueString(nwp.to_string(placements.tree())));
 
     // set placements

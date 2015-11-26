@@ -55,11 +55,11 @@ void BoostPythonExport_NewickProcessor(std::string name)
         // .def_readwrite("default_root_name",     &NewickProcessorType::default_root_name)
         // .def_readwrite("use_default_names",     &NewickProcessorType::use_default_names)
 
-        .def_readwrite("print_names",           &NewickProcessorType::print_names)
-        .def_readwrite("print_branch_lengths",  &NewickProcessorType::print_branch_lengths)
-        .def_readwrite("print_comments",        &NewickProcessorType::print_comments)
-        .def_readwrite("print_tags",            &NewickProcessorType::print_tags)
-        .def_readwrite("precision",             &NewickProcessorType::precision)
+        // .def_readwrite("print_names",           &NewickProcessorType::print_names)
+        // .def_readwrite("print_branch_lengths",  &NewickProcessorType::print_branch_lengths)
+        // .def_readwrite("print_comments",        &NewickProcessorType::print_comments)
+        // .def_readwrite("print_tags",            &NewickProcessorType::print_tags)
+        // .def_readwrite("precision",             &NewickProcessorType::precision)
     ;
 
 }

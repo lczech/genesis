@@ -50,10 +50,11 @@ bool PlacementMapSerializer::save (const PlacementMap& map, const std::string& f
     // TODO if there is a tree serialization in the future, this one could be used here, and in
     // addition to edge numbers, the edge indices can be stored, so that deserialization is easier.
     auto nw = PlacementTreeNewickProcessor();
-    nw.print_names          = true;
-    nw.print_branch_lengths = true;
-    nw.print_comments       = false;
-    nw.print_tags           = true;
+    // TODO !!! remove
+    // nw.print_names          = true;
+    // nw.print_branch_lengths = true;
+    // nw.print_comments       = false;
+    // nw.print_tags           = true;
     ser.put_string(nw.to_string(map.tree()));
 
     // Write pqueries.
