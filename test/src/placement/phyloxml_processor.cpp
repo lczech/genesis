@@ -13,6 +13,7 @@
 #include "lib/placement/io/jplace_processor.hpp"
 #include "lib/placement/io/phyloxml_processor.hpp"
 #include "lib/placement/placement_map.hpp"
+#include "lib/utils/core/std.hpp"
 
 using namespace genesis;
 
@@ -27,9 +28,10 @@ TEST(PlacementTreePhyloxmlProcessor, CountGradient)
     EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
 
     auto proc = PlacementTreePhyloxmlProcessor();
-    proc.set_edge_color_vector( placement_color_count_gradient( map.tree() ));
+    proc.edge_color_vector( placement_color_count_gradient( map.tree() ));
     std::string pxml = proc.to_string(map.tree());
 
     // At least one element in the output should have the color for the edge with most placements.
-    EXPECT_NE(std::string::npos, pxml.find("<red>255</red>")) << "Red edge not found.";
+    EXPECT_TRUE(contains(pxml, std::string("<red>255</red>")));
+    // EXPECT_NE(std::string::npos, pxml.find("<red>255</red>")) << "Red edge not found.";
 }
