@@ -26,20 +26,24 @@ namespace genesis {
 //     Parsing
 // =================================================================================================
 
+// -------------------------------------------------------------------------
+//     Virtual Methods
+// -------------------------------------------------------------------------
+
 // template <typename TreeType>
-// void PhyloxmlProcessor<TreeType>::element_to_node( XmlElement const& element, EdgeType& edge )
+// void PhyloxmlProcessor<TreeType>::element_to_node( XmlElement const& element, NodeType& node )
+// {
+//     // Silence unused parameter warnings.
+//     (void) element;
+//     (void) noe;
+// }
+//
+// template <typename TreeType>
+// void PhyloxmlProcessor<TreeType>::element_to_edge( XmlElement const& element, EdgeType& edge )
 // {
 //     // Silence unused parameter warnings.
 //     (void) element;
 //     (void) edge;
-// }
-//
-// template <typename TreeType>
-// void PhyloxmlProcessor<TreeType>::element_to_edge( XmlElement const& element, NodeType& node )
-// {
-//     // Silence unused parameter warnings.
-//     (void) element;
-//     (void) node;
 // }
 
 // =================================================================================================
@@ -163,6 +167,10 @@ void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, XmlDocument
 
     finish_writing(tree, xml);
 }
+
+// -------------------------------------------------------------------------
+//     Virtual Methods
+// -------------------------------------------------------------------------
 
 template <typename TreeType>
 void PhyloxmlProcessor<TreeType>::prepare_writing( TreeType const& tree, XmlDocument& xml )

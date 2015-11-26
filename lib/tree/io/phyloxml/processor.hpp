@@ -53,8 +53,8 @@ public:
 protected:
 
     // virtual void prepare_reading( XmlDocument const& xml, TreeType& tree );
-    // virtual void element_to_node( XmlElement const& element, EdgeType& edge );
-    // virtual void element_to_edge( XmlElement const& element, NodeType& node );
+    // virtual void element_to_node( XmlElement const& element, NodeType& edge );
+    // virtual void element_to_edge( XmlElement const& element, EdgeType& node );
     // virtual void finish_reading( XmlDocument const& xml, TreeType& tree );
 
     // ---------------------------------------------------------------------
