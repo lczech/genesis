@@ -9,16 +9,16 @@
  */
 
 #include "tree/default/tree.hpp"
-#include "tree/default/phyloxml_mixin.hpp"
+#include "tree/default/newick_mixin.hpp"
 #include "tree/io/phyloxml/processor.hpp"
 
 namespace genesis {
 
 // =================================================================================================
-//     Default Tree Phyloxml Processor
+//     Default Tree Newick Processor
 // =================================================================================================
 
-typedef DefaultTreePhyloxmlMixin<PhyloxmlProcessor<DefaultTree>> DefaultTreePhyloxmlProcessor;
+// typedef DefaultTreePhyloxmlMixin<PhyloxmlProcessor<DefaultTree>> DefaultTreePhyloxmlProcessor;
 
 } // namespace genesis
 

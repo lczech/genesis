@@ -10,9 +10,9 @@
 #include <string>
 #include <utility>
 
-#include "lib/tree/default_tree_newick_adapter.hpp"
 #include "lib/tree/default/functions.hpp"
-#include "lib/tree/io/newick_processor.hpp"
+#include "lib/tree/default/newick_processor.hpp"
+#include "lib/tree/io/newick/processor.hpp"
 #include "lib/tree/tree.hpp"
 #include "tree/iterators/eulertour.hpp"
 #include "tree/iterators/postorder.hpp"

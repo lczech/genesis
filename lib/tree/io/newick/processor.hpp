@@ -12,7 +12,7 @@
 #include <string>
 #include <vector>
 
-#include "tree/io/newick_lexer.hpp"
+#include "tree/io/newick/lexer.hpp"
 
 namespace genesis {
 
@@ -148,6 +148,6 @@ protected:
 // =================================================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/io/newick_processor.tpp"
+#include "tree/io/newick/processor.tpp"
 
 #endif // include guard

@@ -7,8 +7,8 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/tree/default_tree.hpp"
-#include "lib/tree/default_tree_newick_adapter.hpp"
+#include "lib/tree/default/tree.hpp"
+#include "lib/tree/default/newick_processor.hpp"
 // #include "lib/tree/default_tree_phyloxml_adapter.hpp"
 
 #include "python/src/tree/newick_processor.hpp"

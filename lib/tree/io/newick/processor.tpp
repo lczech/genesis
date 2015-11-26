@@ -10,7 +10,7 @@
 #include <sstream>
 
 #include "tree/distances.hpp"
-#include "tree/io/newick_broker.hpp"
+#include "tree/io/newick/broker.hpp"
 #include "tree/iterators/postorder.hpp"
 #include "tree/tree_set.hpp"
 #include "tree/tree.hpp"

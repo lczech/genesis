@@ -7,9 +7,9 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/tree/io/newick_processor.hpp"
+#include "lib/tree/io/newick/processor.hpp"
 
-#include "lib/tree/default_tree.hpp"
+#include "lib/tree/default/tree.hpp"
 #include "lib/placement/placement_tree.hpp"
 
 // -------------------------------------------------------------------

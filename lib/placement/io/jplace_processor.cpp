@@ -11,10 +11,10 @@
 #include <string>
 #include <vector>
 
-#include "placement/io/newick_adapter.hpp"
+#include "placement/io/newick_processor.hpp"
 #include "placement/placement_map_set.hpp"
 #include "placement/placement_map.hpp"
-#include "tree/io/newick_processor.hpp"
+#include "tree/io/newick/processor.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"

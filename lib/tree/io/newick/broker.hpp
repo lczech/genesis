@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "tree/io/newick_element.hpp"
+#include "tree/io/newick/element.hpp"
 
 namespace genesis {
 

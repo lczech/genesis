@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_IO_NEWICK_ADAPTER_H_
-#define GENESIS_PLACEMENT_IO_NEWICK_ADAPTER_H_
+#ifndef GENESIS_PLACEMENT_IO_NEWICK_MIXIN_H_
+#define GENESIS_PLACEMENT_IO_NEWICK_MIXIN_H_
 
 /**
  * @brief Header of NewickAdapter class.
@@ -11,8 +11,8 @@
 #include <string>
 
 #include "placement/placement_tree.hpp"
-#include "tree/default_tree_newick_adapter.hpp"
-#include "tree/io/newick_processor.hpp"
+#include "tree/default/newick_mixin.hpp"
+#include "tree/io/newick/processor.hpp"
 
 namespace genesis {
 

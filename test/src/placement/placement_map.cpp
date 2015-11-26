@@ -11,9 +11,9 @@
 
 #include "lib/placement/functions.hpp"
 #include "lib/placement/io/jplace_processor.hpp"
-#include "lib/placement/io/newick_adapter.hpp"
+#include "lib/placement/io/newick_processor.hpp"
 #include "lib/placement/placement_map.hpp"
-#include "lib/tree/io/newick_processor.hpp"
+#include "lib/tree/io/newick/processor.hpp"
 
 using namespace genesis;
 

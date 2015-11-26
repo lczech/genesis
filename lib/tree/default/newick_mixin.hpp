@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_DEFAULT_TREE_NEWICK_ADAPTER_H_
-#define GENESIS_TREE_DEFAULT_TREE_NEWICK_ADAPTER_H_
+#ifndef GENESIS_TREE_DEFAULT_NEWICK_MIXIN_H_
+#define GENESIS_TREE_DEFAULT_NEWICK_MIXIN_H_
 
 /**
  * @brief Header of DefaultTreeNewickAdapter class.
@@ -8,9 +8,9 @@
  * @ingroup tree
  */
 
-#include "tree/default_tree.hpp"
-#include "tree/io/newick_adapter.hpp"
-#include "tree/io/newick_processor.hpp"
+#include "tree/default/tree.hpp"
+#include "tree/io/newick/adapter.hpp"
+#include "tree/io/newick/processor.hpp"
 
 namespace genesis {
 
