@@ -107,246 +107,60 @@ public:
 
     void clear();
 
-    void push_top (NewickBrokerElement const& node)
-    {
-        stack_.push_front(node);
-    }
+    void push_top (NewickBrokerElement const& node);
+    void push_top (NewickBrokerElement&& node);
 
-    void push_top (NewickBrokerElement&& node)
-    {
-        stack_.push_front(std::move(node));
-    }
+    void push_bottom (NewickBrokerElement const& node);
+    void push_bottom (NewickBrokerElement&& node);
 
-    void push_bottom (NewickBrokerElement const& node)
-    {
-        stack_.push_back(node);
-    }
-
-    void push_bottom (NewickBrokerElement&& node)
-    {
-        stack_.push_back(std::move(node));
-    }
-
-    void pop_top()
-    {
-        stack_.pop_front();
-    }
-
-    void pop_bottom()
-    {
-        stack_.pop_back();
-    }
+    void pop_top();
+    void pop_bottom();
 
     // -------------------------------------------------------------------------
     //     Iteration
     // -------------------------------------------------------------------------
 
-    /**
-     * @brief Iterator type to access the stack elements.
-     */
     typedef std::deque<NewickBrokerElement>::iterator               iterator;
-
-    /**
-     * @brief Const version of the iterator.
-     */
     typedef std::deque<NewickBrokerElement>::const_iterator         const_iterator;
-
-    /**
-     * @brief Reverse version of the iterator.
-     */
     typedef std::deque<NewickBrokerElement>::reverse_iterator       reverse_iterator;
-
-    /**
-     * @brief Const reverse version of the iterator.
-     */
     typedef std::deque<NewickBrokerElement>::const_reverse_iterator const_reverse_iterator;
 
-    /**
-     * @brief Returns an iterator to the top of the stack.
-     */
-    iterator begin()
-    {
-        return stack_.begin();
-    }
+    iterator begin();
+    iterator end();
+    const_iterator begin() const;
+    const_iterator end() const;
+    const_iterator cbegin() const;
+    const_iterator cend() const;
 
-    const_iterator begin() const
-    {
-        return stack_.begin();
-    }
-
-    /**
-     * @brief Returns an iterator to the end of the token list.
-     */
-    iterator end()
-    {
-        return stack_.end();
-    }
-
-    const_iterator end() const
-    {
-        return stack_.end();
-    }
-
-    /**
-     * @brief Const version of begin().
-     */
-    const_iterator cbegin() const
-    {
-        return stack_.cbegin();
-    }
-
-    /**
-     * @brief Const version of end().
-     */
-    const_iterator cend() const
-    {
-        return stack_.cend();
-    }
-
-    /**
-     * @brief Returns a reverse iterator to the nodes on the stack.
-     */
-    reverse_iterator rbegin()
-    {
-        return stack_.rbegin();
-    }
-
-    const_reverse_iterator rbegin() const
-    {
-        return stack_.rbegin();
-    }
-
-    /**
-     * @brief Reverse version of end().
-     */
-    reverse_iterator rend()
-    {
-        return stack_.rend();
-    }
-
-    const_reverse_iterator rend() const
-    {
-        return stack_.rend();
-    }
-
-    /**
-     * @brief Const version of rbegin().
-     */
-    const_reverse_iterator crbegin()
-    {
-        return stack_.crbegin();
-    }
-
-    /**
-     * @brief Const version of rend().
-     */
-    const_reverse_iterator crend()
-    {
-        return stack_.crend();
-    }
+    reverse_iterator rbegin();
+    reverse_iterator rend();
+    const_reverse_iterator rbegin() const;
+    const_reverse_iterator rend() const;
+    const_reverse_iterator crbegin();
+    const_reverse_iterator crend();
 
     // -------------------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------------------
 
-    /**
-     * @brief Returns whether the stack is empty.
-     */
-    bool empty() const
-    {
-        return stack_.empty();
-    }
-
-    /**
-     * @brief Returns the size of the stack, i.e. the number of nodes stored in the broker.
-     */
-    size_t size() const
-    {
-        return stack_.size();
-    }
+    bool   empty() const;
+    size_t size()  const;
 
     // -------------------------------------------------------------------------
     //     Element Access
     // -------------------------------------------------------------------------
 
-    /**
-     * @brief Provides index based array access to the nodes.
-     *
-     * This also allows to iterate over them using:
-     *
-     *     NewickBroker tb;
-     *     for (size_t i = 0; i < tb.size(); ++i) {
-     *        NewickBrokerElement* tn = tb[i];
-     *        std::cout << tn.name << std::endl;
-     *     }
-     *
-     * Caveat: this operator does no boundary check. If you need this check,
-     * use at() instead.
-     */
-    NewickBrokerElement& operator [] (std::size_t index)
-    {
-        return stack_[index];
-    }
+    NewickBrokerElement      & operator [] (std::size_t index);
+    NewickBrokerElement const& operator [] (std::size_t index) const;
 
-    NewickBrokerElement const& operator [] (std::size_t index) const
-    {
-        return stack_[index];
-    }
+    NewickBrokerElement      & at(std::size_t index);
+    NewickBrokerElement const& at(std::size_t index) const;
 
-    /**
-     * @brief Provides index based array access to the nodes, doing a boundary check first.
-     *
-     * In out of bounds cases, a `nullptr` is returned.
-     */
-    NewickBrokerElement& at(std::size_t index)
-    {
-        if (index >= stack_.size()) {
-            throw std::out_of_range("__FUNCTION__: out_of_range");
-        }
-        return stack_[index];
-    }
+    NewickBrokerElement      & top();
+    NewickBrokerElement const& top() const;
 
-    NewickBrokerElement const& at(std::size_t index) const
-    {
-        if (index >= stack_.size()) {
-            throw std::out_of_range("__FUNCTION__: out_of_range");
-        }
-        return stack_[index];
-    }
-
-    /**
-     * @brief Returns a reference to the top node of the tree stack.
-     *
-     * Usually, the top element is the root of the tree (i.e., it has depth zero). Only when called
-     * during the broker is being filled with nodes (for example, while parsing a Newick tree),
-     * the top element is not the root.
-     *
-     * Calling this function on an empty() broker causes undefined behavior.
-     */
-    NewickBrokerElement& top()
-    {
-        return stack_.front();
-    }
-
-    NewickBrokerElement const& top() const
-    {
-        return stack_.front();
-    }
-
-    /**
-     * @brief Returns a reference to the bottom node of the tree stack.
-     *
-     * Calling this function on an empty() broker causes undefined behavior.
-     */
-    NewickBrokerElement& bottom()
-    {
-        return stack_.back();
-    }
-
-    NewickBrokerElement const& bottom() const
-    {
-        return stack_.back();
-    }
+    NewickBrokerElement      & bottom();
+    NewickBrokerElement const& bottom() const;
 
     // -------------------------------------------------------------------------
     //     State Functions
@@ -372,11 +186,11 @@ public:
 
     std::string dump() const;
 
-private:
-
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
+
+private:
 
     std::deque<NewickBrokerElement> stack_;
 };
