@@ -104,7 +104,7 @@ TEST(Serializer, ToAndFromStream)
 TEST(Serializer, ToAndFromFile)
 {
     // Skip test if no data directory availabe.
-    NEEDS_TEST_DATA
+    NEEDS_TEST_DATA;
 
     std::string file_name = environment->data_dir + "Serializer.ToAndFromFile.bin";
 

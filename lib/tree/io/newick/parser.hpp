@@ -1,40 +1,38 @@
-#ifndef GENESIS_PLACEMENT_IO_SERIALIZER_H_
-#define GENESIS_PLACEMENT_IO_SERIALIZER_H_
+#ifndef GENESIS_TREE_IO_NEWICK_PARSER_H_
+#define GENESIS_TREE_IO_NEWICK_PARSER_H_
 
 /**
- * @brief Header of PlacementMapSerializer class.
+ * @brief
  *
  * @file
- * @ingroup placement
+ * @ingroup tree
  */
+
+#include "tree/io/newick/lexer.hpp"
 
 #include <string>
 
 namespace genesis {
 
 // =================================================================================================
-//     Forward Declarations
+//     Forward declarations
 // =================================================================================================
 
-class PlacementMap;
+class  NewickBroker;
 
 // =================================================================================================
-//     PlacementMapSerializer
+//     Newick Parser and Generator
 // =================================================================================================
 
-/**
- * @brief
- */
-class PlacementMapSerializer
-{
-public:
+bool parse_newick_tree (
+    NewickLexer::iterator      & ct,
+    NewickLexer::iterator const& end,
+    NewickBroker&                broker
+);
 
-    static void save (const PlacementMap& map, const std::string& file_name);
-    static void load (const std::string& file_name, PlacementMap& map);
-
-    static unsigned char version;
-
-};
+std::string generate_newick_tree (
+    NewickBroker const& broker
+);
 
 } // namespace genesis
 

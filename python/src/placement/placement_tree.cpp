@@ -7,7 +7,7 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/placement/io/newick_adapter.hpp"
+#include "lib/placement/io/newick_processor.hpp"
 // #include "lib/placement/io/phyloxml_adapter.hpp"
 #include "lib/placement/placement_tree.hpp"
 
@@ -87,7 +87,7 @@ PYTHON_EXPORT_CLASS (PlacementTree, "placement.tree")
     // BoostPythonExport_PhyloxmlProcessor<DefaultTreePhyloxmlAdapter<PlacementTree>>("PlacementTreePhyloxmlProcessorBase");
     // BoostPythonExport_PhyloxmlProcessor<PlacementTreePhyloxmlAdapter>("PlacementTreePhyloxmlProcessor");
 
-    BoostPythonExport_NewickProcessor<DefaultTreeNewickAdapter<PlacementTree>>("PlacementTreeNewickProcessorBase");
-    BoostPythonExport_NewickProcessor<PlacementTreeNewickAdapter>("PlacementTreeNewickProcessor");
+    // BoostPythonExport_NewickProcessor<DefaultTreeNewickAdapter<PlacementTree>>("PlacementTreeNewickProcessorBase");
+    // BoostPythonExport_NewickProcessor<PlacementTreeNewickAdapter>("PlacementTreeNewickProcessor");
 
 }

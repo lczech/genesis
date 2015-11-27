@@ -11,10 +11,11 @@
 #include <string>
 #include <vector>
 
-#include "placement/io/newick_adapter.hpp"
+#include "placement/io/newick_processor.hpp"
+#include "placement/operators.hpp"
 #include "placement/placement_map_set.hpp"
 #include "placement/placement_map.hpp"
-#include "tree/io/newick_processor.hpp"
+#include "tree/io/newick/processor.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
@@ -137,6 +138,11 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
+    if (!correct_edge_nums(placements)) {
+        LOG_WARN << "Jplace document has a Newick tree where the edge_num tags are non standard. "
+                 << "They are expected to be assigned in ascending order via postorder traversal. "
+                 << "Now continuing to parse, as we can cope with this.";
+    }
 
     // create a map from edge nums to the actual edge pointers, for later use when processing
     // the pqueries. we do not use PlacementMap::EdgeNumMap() here, because we need to do extra
@@ -149,7 +155,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     ) {
         PlacementTree::EdgeType* edge = it->get();
         if (edge_num_map.count(edge->data.edge_num) > 0) {
-            LOG_WARN << "Jplace document contains a tree where the edge num tag '"
+            LOG_WARN << "Jplace document contains a tree where the edge_num tag '"
                      << edge->data.edge_num << "' is used more than once.";
             return false;
         }
@@ -263,7 +269,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                     if (edge_num_map.count(pqry_place_val) == 0) {
                         LOG_WARN << "Jplace document contains a pquery where field 'edge_num' "
                                  << "has value '" << pqry_place_val << "', which is not marked "
-                                 << "in the given tree as an edge num.";
+                                 << "in the given tree as an edge_num.";
                         return false;
                     }
                     pqry_place->edge_num = pqry_place_val;
@@ -488,8 +494,6 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
     auto nwp = PlacementTreeNewickProcessor();
     nwp.print_names          = true;
     nwp.print_branch_lengths = true;
-    nwp.print_comments       = false;
-    nwp.print_tags           = true;
     doc.set("tree", new JsonValueString(nwp.to_string(placements.tree())));
 
     // set placements

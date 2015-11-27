@@ -46,8 +46,7 @@ public:
      * @brief Constructor, initializes the item values.
      */
     NewickBrokerElement()
-        : branch_length(0.0)
-        , depth(0)
+        : depth(0)
         , is_leaf(false)
         , rank_(-1)
     {}
@@ -74,9 +73,22 @@ public:
     std::string name;
 
     /**
-     * @brief Branch length associated with the node, i.e. the edge leading to its parent.
+     * @brief Numerical values associated with the node, i.e. branch lengths.
+     *
+     * In cases wehre the values need to be interpreted as edge values, this is the edge leading to
+     * this node's parent.
      */
-    double      branch_length;
+    std::vector<std::string> values;
+
+    /**
+     * @brief Arbitrary strings that can be attached to a node, e.g. in Newick format via "{}".
+     */
+    std::vector<std::string> tags;
+
+    /**
+     * @brief Arbitrary strings that can be attached to a node, e.g. in Newick format via "[]".
+     */
+    std::vector<std::string> comments;
 
     /**
      * @brief Depth of the node in the tree, i.e. its distance from the root.
@@ -95,16 +107,6 @@ public:
      * NewickBroker::assign_ranks() has to be called).
      */
     bool        is_leaf;
-
-    /**
-     * @brief Arbitrary strings that can be attached to a node, e.g. in Newick format via "{}".
-     */
-    std::vector<std::string> tags;
-
-    /**
-     * @brief Arbitrary strings that can be attached to a node, e.g. in Newick format via "[]".
-     */
-    std::vector<std::string> comments;
 
     // -------------------------------------------------------------------------
     //     Additional Members

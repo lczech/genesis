@@ -11,9 +11,9 @@
 
 #include "lib/placement/functions.hpp"
 #include "lib/placement/io/jplace_processor.hpp"
-#include "lib/placement/io/newick_adapter.hpp"
+#include "lib/placement/io/newick_processor.hpp"
 #include "lib/placement/placement_map.hpp"
-#include "lib/tree/io/newick_processor.hpp"
+#include "lib/tree/io/newick/processor.hpp"
 
 using namespace genesis;
 
@@ -54,7 +54,7 @@ void test_placement_map_stats (
 TEST(PlacementMap, MergeDuplicatesSimple)
 {
     // Skip test if no data availabe.
-    NEEDS_TEST_DATA
+    NEEDS_TEST_DATA;
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_a.jplace";
@@ -74,7 +74,7 @@ TEST(PlacementMap, MergeDuplicatesSimple)
 TEST(PlacementMap, MergeDuplicatesTransitive)
 {
     // Skip test if no data availabe.
-    NEEDS_TEST_DATA
+    NEEDS_TEST_DATA;
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_b.jplace";

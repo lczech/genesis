@@ -22,11 +22,11 @@ namespace genesis {
 template <typename Base>
 class DefaultTreePhyloxmlMixin : public Base
 {
-protected:
-
     // -------------------------------------------------------------------------
     //     Member Types
     // -------------------------------------------------------------------------
+
+public:
 
     typedef typename Base::TreeType TreeType;
     typedef typename Base::NodeType NodeType;
@@ -37,15 +37,17 @@ protected:
     //     Overridden Member Functions
     // -------------------------------------------------------------------------
 
-    virtual void tree_node_to_element( NodeType const& node, XmlElement& element )
+protected:
+
+    virtual void node_to_element( NodeType const& node, XmlElement& element ) override
     {
-        Base::tree_node_to_element(node, element);
+        Base::node_to_element(node, element);
         set_name(element, node.data.name);
     }
 
-    virtual void tree_edge_to_element( EdgeType const& edge, XmlElement& element )
+    virtual void edge_to_element( EdgeType const& edge, XmlElement& element ) override
     {
-        Base::tree_edge_to_element(edge, element);
+        Base::edge_to_element(edge, element);
         set_branch_length(element, edge.data.branch_length);
     }
 
@@ -53,8 +55,11 @@ protected:
     //     Mixin Functions
     // -------------------------------------------------------------------------
 
+protected:
+
     void set_name (XmlElement& element, const std::string& name)
     {
+        // TODO do not create new element if there is already one!
         auto name_e = make_unique<XmlElement>("name");
         name_e->append_markup(name);
         element.content.push_back(std::move(name_e));
@@ -62,6 +67,7 @@ protected:
 
     void set_branch_length (XmlElement& element, double length)
     {
+        // TODO do not create new element if there is already one!
         auto bl_e = make_unique<XmlElement>("branch_length");
         bl_e->append_markup(std::to_string(length));
         element.content.push_back(std::move(bl_e));

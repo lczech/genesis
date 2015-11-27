@@ -10,7 +10,7 @@
 
 #include <vector>
 
-#include "tree/default_tree.hpp"
+#include "tree/default/tree.hpp"
 #include "utils/math/matrix.hpp"
 
 namespace genesis {

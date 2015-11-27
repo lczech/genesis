@@ -10,6 +10,7 @@
 
 #include <algorithm>
 #include <memory>
+#include <string>
 
 namespace genesis {
 
@@ -31,6 +32,15 @@ bool contains(const C& v, const T& x)
 }
 
 /**
+ * @brief Overwrite of `contains()` for std::string.
+ */
+template<>
+inline bool contains<std::string, std::string> (std::string const& v, std::string const& x)
+{
+    return std::string::npos != v.find(x);
+}
+
+/**
  * @brief Returns a std::unique_ptr for a given type.
  *
  * Since this is not available in C++11, we need our own implementation.
@@ -41,7 +51,6 @@ std::unique_ptr<T> make_unique(Args&&... args)
 {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
-
 
 /**
  * @brief Erases all elements from the container that satisfy a given predicate.

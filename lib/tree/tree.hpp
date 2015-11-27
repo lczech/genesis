@@ -15,7 +15,7 @@
 #include <utility>
 #include <vector>
 
-#include "tree/default_tree.hpp"
+#include "tree/default/tree.hpp"
 #include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"

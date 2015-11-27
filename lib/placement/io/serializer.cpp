@@ -7,11 +7,13 @@
 
 #include "placement/io/serializer.hpp"
 
-#include "placement/io/newick_adapter.hpp"
+#include "placement/io/newick_processor.hpp"
 #include "placement/placement_map.hpp"
-#include "tree/io/newick_processor.hpp"
+#include "tree/io/newick/processor.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/io/serializer.hpp"
+
+#include <stdexcept>
 
 namespace genesis {
 
@@ -32,13 +34,12 @@ unsigned char PlacementMapSerializer::version = 1;
 /**
  * @brief Saves the PlacementMap to a binary file that can later be read by using load().
  */
-bool PlacementMapSerializer::save (const PlacementMap& map, const std::string& file_name)
+void PlacementMapSerializer::save (const PlacementMap& map, const std::string& file_name)
 {
     // Prepare.
     Serializer ser (file_name);
     if (!ser) {
-        LOG_ERR << "Serialization failed.";
-        return false;
+        throw std::invalid_argument("Serialization failed.");
     }
 
     // Write header.
@@ -52,8 +53,6 @@ bool PlacementMapSerializer::save (const PlacementMap& map, const std::string& f
     auto nw = PlacementTreeNewickProcessor();
     nw.print_names          = true;
     nw.print_branch_lengths = true;
-    nw.print_comments       = false;
-    nw.print_tags           = true;
     ser.put_string(nw.to_string(map.tree()));
 
     // Write pqueries.
@@ -81,8 +80,6 @@ bool PlacementMapSerializer::save (const PlacementMap& map, const std::string& f
             ser.put_float  (name->multiplicity);
         }
     }
-
-    return true;
 }
 
 // =================================================================================================
@@ -92,13 +89,12 @@ bool PlacementMapSerializer::save (const PlacementMap& map, const std::string& f
 /**
  * @brief Loads a PlacementMap from a binary file that was written by using save().
  */
-bool PlacementMapSerializer::load (const std::string& file_name, PlacementMap& map)
+void PlacementMapSerializer::load (const std::string& file_name, PlacementMap& map)
 {
     // Prepare, check stream status.
     Deserializer des (file_name);
     if (!des) {
-        LOG_ERR << "Deserialization failed.";
-        return false;
+        throw std::invalid_argument("Deserialization failed.");
     }
 
     map.clear();
@@ -106,20 +102,17 @@ bool PlacementMapSerializer::load (const std::string& file_name, PlacementMap& m
     // Read and check header.
     std::string magic = des.get_raw_string(8);
     if (strncmp (magic.c_str(), "BPLACE\0\0", 8) != 0) {
-        LOG_ERR << "Wrong file format: \"" << magic << "\".";
-        return false;
+        throw std::invalid_argument("Wrong file format: \"" + magic + "\".");
     }
     auto ver = des.get_int<unsigned char>();
     if (ver != version) {
-        LOG_ERR << "Wrong serialization version: " << ver;
-        return false;
+        throw std::invalid_argument("Wrong serialization version: " + std::to_string(ver));
     }
 
     // Read and check tree.
     auto tree_string = des.get_string();
     if (!PlacementTreeNewickProcessor().from_string(tree_string, map.tree())) {
-        LOG_WARN << "Invalid Tree.";
-        return false;
+        throw std::invalid_argument("Invalid Tree.");
     }
 
     // Read pqueries.
@@ -150,7 +143,9 @@ bool PlacementMapSerializer::load (const std::string& file_name, PlacementMap& m
         }
     }
 
-    return des.succeeded();
+    if (!des.succeeded()) {
+        throw std::invalid_argument("Deserialization failed.");
+    }
 }
 
 } // namespace genesis

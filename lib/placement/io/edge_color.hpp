@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_OPERATORS_H_
-#define GENESIS_PLACEMENT_OPERATORS_H_
+#ifndef GENESIS_PLACEMENT_IO_EDGE_COLOR_H_
+#define GENESIS_PLACEMENT_IO_EDGE_COLOR_H_
 
 /**
  * @brief
@@ -8,7 +8,7 @@
  * @ingroup placement
  */
 
-#include <functional>
+#include <vector>
 
 namespace genesis {
 
@@ -16,19 +16,21 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-class PlacementMap;
+class Color;
+
+template<class NDT, class EDT>
+class Tree;
+
+class PlacementTreeNodeData;
+class PlacementTreeEdgeData;
+
+typedef Tree<PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTree;
 
 // =================================================================================================
-//     Comparision and Equality
+//     Placement Edge Color Functions
 // =================================================================================================
 
-bool compatible_trees (const PlacementMap& lhs, const PlacementMap& rhs);
-
-// =================================================================================================
-//     Verification
-// =================================================================================================
-
-bool correct_edge_nums( PlacementMap const& map );
+std::vector<Color> placement_color_count_gradient( PlacementTree const& tree, bool linear = false );
 
 } // namespace genesis
 

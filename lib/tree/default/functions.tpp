@@ -5,6 +5,8 @@
  * @ingroup tree
  */
 
+#include "utils/string/string.hpp"
+
 namespace genesis {
 
 // =================================================================================================

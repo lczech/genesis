@@ -5,7 +5,7 @@
  * @ingroup tree
  */
 
-#include "tree/io/newick_broker.hpp"
+#include "tree/io/newick/broker.hpp"
 
 #include <algorithm>
 #include <string>
@@ -18,10 +18,42 @@ namespace genesis {
 //     Modifiers
 // =================================================================================================
 
-/** @brief Deletes all nodes from the broker. */
+/**
+ * @brief Deletes all nodes from the broker.
+ */
 void NewickBroker::clear()
 {
     stack_.clear();
+}
+
+void NewickBroker::push_top (NewickBrokerElement const& node)
+{
+    stack_.push_front(node);
+}
+
+void NewickBroker::push_top (NewickBrokerElement&& node)
+{
+    stack_.push_front(std::move(node));
+}
+
+void NewickBroker::push_bottom (NewickBrokerElement const& node)
+{
+    stack_.push_back(node);
+}
+
+void NewickBroker::push_bottom (NewickBrokerElement&& node)
+{
+    stack_.push_back(std::move(node));
+}
+
+void NewickBroker::pop_top()
+{
+    stack_.pop_front();
+}
+
+void NewickBroker::pop_bottom()
+{
+    stack_.pop_back();
 }
 
 // =================================================================================================
@@ -122,6 +154,209 @@ bool NewickBroker::is_bifurcating() const
 }
 
 // =================================================================================================
+//     Iterators
+// =================================================================================================
+
+/**
+ * @brief Returns an iterator to the top of the stack.
+ */
+NewickBroker::iterator NewickBroker::begin()
+{
+    return stack_.begin();
+}
+
+/**
+ * @brief Returns an iterator to the top of the stack for const objects.
+ */
+NewickBroker::const_iterator NewickBroker::begin() const
+{
+    return stack_.begin();
+}
+
+/**
+ * @brief Returns an iterator to the end of the token list.
+ */
+NewickBroker::iterator NewickBroker::end()
+{
+    return stack_.end();
+}
+
+/**
+ * @brief Returns an iterator to the end of the token list for const objects.
+ */
+NewickBroker::const_iterator NewickBroker::end() const
+{
+    return stack_.end();
+}
+
+/**
+ * @brief Const version of begin().
+ */
+NewickBroker::const_iterator NewickBroker::cbegin() const
+{
+    return stack_.cbegin();
+}
+
+/**
+ * @brief Const version of end().
+ */
+NewickBroker::const_iterator NewickBroker::cend() const
+{
+    return stack_.cend();
+}
+
+/**
+ * @brief Returns a reverse iterator to the nodes on the stack.
+ */
+NewickBroker::reverse_iterator NewickBroker::rbegin()
+{
+    return stack_.rbegin();
+}
+
+/**
+ * @brief Returns a reverse iterator to the nodes on the stack for const objects.
+ */
+NewickBroker::const_reverse_iterator NewickBroker::rbegin() const
+{
+    return stack_.rbegin();
+}
+
+/**
+ * @brief Reverse version of end().
+ */
+NewickBroker::reverse_iterator NewickBroker::rend()
+{
+    return stack_.rend();
+}
+
+/**
+ * @brief Reverse version of end() for const objects.
+ */
+NewickBroker::const_reverse_iterator NewickBroker::rend() const
+{
+    return stack_.rend();
+}
+
+/**
+ * @brief Const version of rbegin().
+ */
+NewickBroker::const_reverse_iterator NewickBroker::crbegin()
+{
+    return stack_.crbegin();
+}
+
+/**
+ * @brief Const version of rend().
+ */
+NewickBroker::const_reverse_iterator NewickBroker::crend()
+{
+    return stack_.crend();
+}
+
+// =================================================================================================
+//     Properties
+// =================================================================================================
+
+/**
+ * @brief Returns whether the stack is empty.
+ */
+bool NewickBroker::empty() const
+{
+    return stack_.empty();
+}
+
+/**
+ * @brief Returns the size of the stack, i.e. the number of nodes stored in the broker.
+ */
+size_t NewickBroker::size() const
+{
+    return stack_.size();
+}
+
+// =================================================================================================
+//     Element Access
+// =================================================================================================
+
+/**
+ * @brief Provides index based array access to the nodes.
+ *
+ * This also allows to iterate over them using:
+ *
+ *     NewickBroker tb;
+ *     for (size_t i = 0; i < tb.size(); ++i) {
+ *        NewickBrokerElement* tn = tb[i];
+ *        std::cout << tn.name << std::endl;
+ *     }
+ *
+ * Caveat: this operator does no boundary check. If you need this check,
+ * use at() instead.
+ */
+NewickBrokerElement& NewickBroker::operator [] (std::size_t index)
+{
+    return stack_[index];
+}
+
+NewickBrokerElement const& NewickBroker::operator [] (std::size_t index) const
+{
+    return stack_[index];
+}
+
+/**
+ * @brief Provides index based array access to the nodes, doing a boundary check first.
+ *
+ * In out of bounds cases, a `nullptr` is returned.
+ */
+NewickBrokerElement& NewickBroker::at(std::size_t index)
+{
+    if (index >= stack_.size()) {
+        throw std::out_of_range("__FUNCTION__: out_of_range");
+    }
+    return stack_[index];
+}
+
+NewickBrokerElement const& NewickBroker::at(std::size_t index) const
+{
+    if (index >= stack_.size()) {
+        throw std::out_of_range("__FUNCTION__: out_of_range");
+    }
+    return stack_[index];
+}
+
+/**
+ * @brief Returns a reference to the top node of the tree stack.
+ *
+ * Usually, the top element is the root of the tree (i.e., it has depth zero). Only when called
+ * during the broker is being filled with nodes (for example, while parsing a Newick tree),
+ * the top element is not the root.
+ *
+ * Calling this function on an empty() broker causes undefined behavior.
+ */
+NewickBrokerElement& NewickBroker::top()
+{
+    return stack_.front();
+}
+
+NewickBrokerElement const& NewickBroker::top() const
+{
+    return stack_.front();
+}
+
+/**
+ * @brief Returns a reference to the bottom node of the tree stack.
+ *
+ * Calling this function on an empty() broker causes undefined behavior.
+ */
+NewickBrokerElement& NewickBroker::bottom()
+{
+    return stack_.back();
+}
+
+NewickBrokerElement const& NewickBroker::bottom() const
+{
+    return stack_.back();
+}
+
+// =================================================================================================
 //     Dump and Debug
 // =================================================================================================
 
@@ -183,16 +418,20 @@ std::string NewickBroker::dump() const
         }
 
         // basic information
-        out +=  node.name
-            +  (node.branch_length != 0.0 ? ":" + std::to_string(node.branch_length) : "");
+        out += node.name;
+
+        // values
+        for (std::string const& v : node.values) {
+            out += " :" + v;
+        }
 
         // comments
-        for (std::string c : node.comments) {
+        for (std::string const& c : node.comments) {
             out += " [" + c + "]";
         }
 
         // tags
-        for (std::string t : node.tags) {
+        for (std::string const& t : node.tags) {
             out += " {" + t + "}";
         }
 

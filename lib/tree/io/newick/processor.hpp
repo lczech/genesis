@@ -8,11 +8,8 @@
  * @ingroup tree
  */
 
-#include <assert.h>
 #include <string>
 #include <vector>
-
-#include "tree/io/newick_lexer.hpp"
 
 namespace genesis {
 
@@ -30,23 +27,34 @@ struct NewickBrokerElement;
 //     Newick Processor
 // =================================================================================================
 
-template <typename AdapterType>
+template <typename TreeType_>
 class NewickProcessor
 {
+
+    // -------------------------------------------------------------------------
+    //     Member Types
+    // -------------------------------------------------------------------------
+
 public:
 
-    typedef typename AdapterType::TreeType TreeType;
+    typedef TreeType_ TreeType;
+    typedef typename TreeType::NodeType NodeType;
+    typedef typename TreeType::EdgeType EdgeType;
+    typedef typename TreeType::LinkType LinkType;
 
     // -------------------------------------------------------------------------
-    //     Constructors
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    NewickProcessor()                     : adapter_(AdapterType()) {}
-    NewickProcessor(AdapterType& adapter) : adapter_(adapter)       {}
+public:
+
+    virtual ~NewickProcessor() {}
 
     // -------------------------------------------------------------------------
     //     Parsing
     // -------------------------------------------------------------------------
+
+public:
 
     bool from_file    (const std::string& filename,    TreeType& tree);
     bool from_string  (const std::string& tree_string, TreeType& tree);
@@ -72,35 +80,12 @@ public:
         const std::string& default_name = ""
     );
 
-    // -----------------------------------------------------
-    //     Internal
-    // -----------------------------------------------------
-
 protected:
-    bool parse_tree  (
-              NewickLexer::iterator& ct,
-        const NewickLexer::iterator& end,
-              NewickBroker&          broker
-    );
 
-    bool build_tree (NewickBroker const& broker, TreeType& tree);
-
-    // -----------------------------------------------------
-    //     Members
-    // -----------------------------------------------------
-
-public:
-    std::string default_leaf_name     = "Leaf Node";
-    std::string default_internal_name = "Internal Node";
-    std::string default_root_name     = "Root Node";
-
-    /**
-     * @brief If set to true, unnamed nodes are named using one of the default names.
-     *
-     * The default names can be set using `default_leaf_name`, `default_internal_name` and
-     * `default_root_name`. They are used both when parsing and printing a Newick file.
-     */
-    bool        use_default_names = false;
+    virtual void prepare_reading( NewickBroker const& broker, TreeType& tree );
+    virtual void element_to_node( NewickBrokerElement const& element, NodeType& node );
+    virtual void element_to_edge( NewickBrokerElement const& element, EdgeType& edge );
+    virtual void finish_reading( NewickBroker const& broker, TreeType& tree );
 
     // -------------------------------------------------------------------------
     //     Printing
@@ -112,33 +97,22 @@ public:
     void        to_string (const TreeType& tree, std::string& ts);
     std::string to_string (const TreeType& tree);
 
-    // -----------------------------------------------------
-    //     Internal
-    // -----------------------------------------------------
-
 protected:
-    void to_broker (const TreeType& tree, NewickBroker& broker);
 
-    std::string to_string_rec(const NewickBroker& broker, size_t position);
-    std::string element_to_string(NewickBrokerElement const& bn);
+    virtual void prepare_writing( TreeType const& tree, NewickBroker& broker );
+    virtual void node_to_element( NodeType const& node, NewickBrokerElement& element );
+    virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element );
+    virtual void finish_writing( TreeType const& tree, NewickBroker& broker );
 
-    // -----------------------------------------------------
-    //     Members
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     Internal Member Functions
+    // -------------------------------------------------------------------------
 
-public:
-    bool print_names          = true;
-    bool print_branch_lengths = false;
-    bool print_comments       = false;
-    bool print_tags           = false;
+private:
 
-    /**
-     * @brief The precision used for printing floating point numbers, particularly the branch_length.
-     */
-    int  precision = 6;
+    void broker_to_tree (NewickBroker const& broker, TreeType& tree);
+    void tree_to_broker (const TreeType& tree, NewickBroker& broker);
 
-protected:
-    AdapterType adapter_;
 };
 
 } // namespace genesis
@@ -148,6 +122,6 @@ protected:
 // =================================================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/io/newick_processor.tpp"
+#include "tree/io/newick/processor.tpp"
 
 #endif // include guard

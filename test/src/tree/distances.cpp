@@ -9,10 +9,10 @@
 
 #include <string>
 
-#include "lib/tree/default_tree_newick_adapter.hpp"
+#include "lib/tree/default/newick_processor.hpp"
 #include "lib/tree/default/distances.hpp"
 #include "lib/tree/distances.hpp"
-#include "lib/tree/io/newick_processor.hpp"
+#include "lib/tree/io/newick/processor.hpp"
 #include "lib/tree/tree.hpp"
 #include "lib/utils/math/matrix.hpp"
 
@@ -21,7 +21,7 @@ using namespace genesis;
 TEST(Tree, Distances)
 {
     // Skip test if no data availabe.
-    NEEDS_TEST_DATA
+    NEEDS_TEST_DATA;
 
     // Read and process tree.
     DefaultTree tree;
