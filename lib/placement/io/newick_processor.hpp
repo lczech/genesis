@@ -75,14 +75,14 @@ protected:
         edge.data.edge_num      = -1;
         if (element.tags.size() == 0) {
             throw std::invalid_argument(
-                "Edge for element '" + element.name + "' does not contain a tag value like '[42]'" +
+                "Edge at node '" + element.name + "' does not contain a tag value like '{42}'" +
                 " for the placement edge_num of this edge."
             );
         }
         if (element.tags.size() > 1) {
             throw std::invalid_argument(
-                "Edge for element '" + element.name + "' contains more than one tag value like " +
-                "'[xyz]'."
+                "Edge at node '" + element.name + "' contains more than one tag value like " +
+                "'{xyz}'. Expecting only one for the placement edge_num of this edge."
             );
         }
         assert(element.tags.size() == 1);
