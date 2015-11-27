@@ -24,6 +24,12 @@ class PlacementMap;
 
 bool compatible_trees (const PlacementMap& lhs, const PlacementMap& rhs);
 
+// =================================================================================================
+//     Verification
+// =================================================================================================
+
+bool correct_edge_nums( PlacementMap const& map );
+
 } // namespace genesis
 
 #endif // include guard

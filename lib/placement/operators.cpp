@@ -6,7 +6,10 @@
  */
 
 #include "placement/placement_map.hpp"
+#include "tree/iterators/postorder.hpp"
 #include "tree/operators.hpp"
+
+#include "utils/core/logging.hpp"
 
 namespace genesis {
 
@@ -34,6 +37,31 @@ bool compatible_trees (const PlacementMap& lhs, const PlacementMap& rhs)
     };
 
     return equal(lhs.tree(), rhs.tree(), node_comparator, edge_comparator);
+}
+
+// =================================================================================================
+//     Verification
+// =================================================================================================
+
+bool correct_edge_nums( PlacementMap const& map )
+{
+    auto const& tree = map.tree();
+    int current = 0;
+
+    // Edge numbers need to be in ascending order via postorder traversal. Check this.
+    for (auto it = tree.begin_postorder(); it != tree.end_postorder(); ++it) {
+        // The last iteration is skipped, as the root does not have an edge.
+        if (it.is_last_iteration()) {
+            continue;
+        }
+
+        if (it.edge()->data.edge_num != current) {
+            return false;
+        }
+        ++current;
+    }
+
+    return true;
 }
 
 } // namespace genesis
