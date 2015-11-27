@@ -9,6 +9,7 @@
  */
 
 #include <iosfwd>
+#include <string>
 
 namespace genesis {
 
@@ -19,18 +20,19 @@ namespace genesis {
 class Color;
 
 // =================================================================================================
+//     Color Conversion
+// =================================================================================================
+
+Color color_from_doubles (double r, double g, double b);
+
+Color color_from_hex( std::string h, std::string prefix = "#" );
+
+std::string color_to_hex( const Color& c, std::string prefix = "#", bool uppercase = false );
+
+// =================================================================================================
 //     Color Operators
 // =================================================================================================
 
-/**
- * @brief Create a Color given three doubles in the range [0.0, 1.0] for each of the components
- * red, green and blue.
- */
-Color color_from_doubles (double r, double g, double b);
-
-/**
- * @brief Write a textual representation of the Color the a stream, in the format "(r, g, b)".
- */
 std::ostream& operator<< (std::ostream& os, const Color& h);
 
 } // namespace genesis
