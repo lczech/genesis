@@ -21,7 +21,7 @@ using namespace genesis;
 TEST(PlacementMapSerializer, SaveAndLoad)
 {
     // Skip test if no data directory availabe.
-    NEEDS_TEST_DATA
+    NEEDS_TEST_DATA;
 
     // In and out files.
     std::string infile  = environment->data_dir + "placement/test_a.jplace";
@@ -34,11 +34,11 @@ TEST(PlacementMapSerializer, SaveAndLoad)
     EXPECT_TRUE (map_save.validate(true, false));
 
     // Save it to a file.
-    EXPECT_TRUE (PlacementMapSerializer::save(map_save, tmpfile));
+    EXPECT_NO_THROW( PlacementMapSerializer::save(map_save, tmpfile) );
 
     // Load again.
     PlacementMap map_load;
-    EXPECT_TRUE (PlacementMapSerializer::load(tmpfile, map_load));
+    EXPECT_NO_THROW( PlacementMapSerializer::load(tmpfile, map_load) );
 
     // Check for correctly read data.
     EXPECT_EQ   (5, map_load.placement_count());

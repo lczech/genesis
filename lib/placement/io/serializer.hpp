@@ -29,8 +29,8 @@ class PlacementMapSerializer
 {
 public:
 
-    static bool save (const PlacementMap& map, const std::string& file_name);
-    static bool load (const std::string& file_name, PlacementMap& map);
+    static void save (const PlacementMap& map, const std::string& file_name);
+    static void load (const std::string& file_name, PlacementMap& map);
 
     static unsigned char version;
 
