@@ -8,9 +8,8 @@
  * @ingroup tree
  */
 
-#include "tree/default/tree.hpp"
-#include "tree/io/newick/adapter.hpp"
-#include "tree/io/newick/processor.hpp"
+#include "tree/io/newick/element.hpp"
+#include "utils/core/std.hpp"
 #include "utils/string/string.hpp"
 
 namespace genesis {
@@ -22,10 +21,120 @@ namespace genesis {
 /**
  * @brief
  */
-template <typename TreeType>
-class DefaultTreeNewickAdapter : public NewickAdapter<TreeType>
+template <typename Base>
+class DefaultTreeNewickMixin : public Base
 {
+    // -------------------------------------------------------------------------
+    //     Member Types
+    // -------------------------------------------------------------------------
+
 public:
+
+    typedef typename Base::TreeType TreeType;
+    typedef typename Base::NodeType NodeType;
+    typedef typename Base::EdgeType EdgeType;
+    typedef typename Base::LinkType LinkType;
+
+    // -------------------------------------------------------------------------
+    //     Properties
+    // -------------------------------------------------------------------------
+
+public:
+
+
+
+    // -------------------------------------------------------------------------
+    //     Overridden Member Functions
+    // -------------------------------------------------------------------------
+
+protected:
+
+    virtual void element_to_node( NewickBrokerElement const& element, NodeType& node ) override
+    {
+        Base::element_to_node(element, node);
+
+        std::string name = element.name;
+
+        // Insert default names if needed.
+        if (name.empty() && use_default_names) {
+            if (element.is_leaf) {
+                name = default_leaf_name;
+            } else if(element.depth == 0) {
+                name = default_root_name;
+            } else {
+                name = default_internal_name;
+            }
+        }
+
+        // Handle underscores/spaces.
+        if (replace_name_underscores) {
+            name = string_replace_all(name, "_", " ");
+        }
+
+        node.data.name = name;
+    }
+
+    virtual void element_to_edge( NewickBrokerElement const& element, EdgeType& edge ) override
+    {
+        Base::element_to_edge(element, edge);
+
+        // We assume that the branch length is always the first (or only) value.
+        // If there is an interpretation where this is not the case, it is best to introduce
+        // an array index for this as a paramter of this class.
+        if (element.values.size() > 0) {
+            edge.data.branch_length = std::stod(element.values[0]);
+        }
+    }
+
+    virtual void node_to_element( NodeType const& node, NewickBrokerElement& element ) override
+    {
+        Base::node_to_element(node, element);
+        if (!print_names) {
+            return;
+        }
+
+        std::string name = node.data.name;
+
+        // Handle spaces/underscores.
+        if (replace_name_underscores) {
+            name = string_replace_all(name, " ", "_");
+        } else {
+            if (contains(name, std::string(" "))) {
+                name = "\"" + name + "\"";
+            }
+        }
+
+        // Filter out default names if needed.
+        if (use_default_names             && (
+            name == default_leaf_name     ||
+            name == default_internal_name ||
+            name == default_root_name
+        )) {
+            name = "";
+        }
+
+        element.name = name;
+    }
+
+    virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element ) override
+    {
+        Base::edge_to_element(edge, element);
+        if (!print_branch_lengths) {
+            return;
+        }
+
+        auto bl = to_string_precise(edge.data.branch_length, precision);
+        element.values.insert(element.values.begin(), bl);
+    }
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+public:
+
+    // TODO for now, this is all public. use getters and setters instead, and outsource those
+    // properties that belong to the (yet to create) superclass TreeProcessor or so.
 
     bool print_names          = true;
     bool print_branch_lengths = false;
@@ -37,9 +146,9 @@ public:
      */
     int  precision = 6;
 
-    std::string default_leaf_name     = "Leaf Node";
-    std::string default_internal_name = "Internal Node";
-    std::string default_root_name     = "Root Node";
+    std::string default_leaf_name     = "Leaf_Node";
+    std::string default_internal_name = "Internal_Node";
+    std::string default_root_name     = "Root_Node";
 
     /**
      * @brief If set to true, unnamed nodes are named using one of the default names.
@@ -49,92 +158,9 @@ public:
      */
     bool        use_default_names = false;
 
-    inline bool to_tree_edge (
-        NewickBrokerElement const& element, typename TreeType::EdgeType& edge
-    ) {
-        // TODO correct this!
-        (void) element;
-        (void) edge;
-        // std::stod(ct->value());
-        // edge.data.branch_length = element.branch_length;
-        return true;
-    }
-
-    inline bool to_tree_node (
-        NewickBrokerElement const& element, typename TreeType::NodeType& node
-    ) {
-        node.data.name = element.name;
-
-        // TODO activate:
-        //
-        // res += string_replace_all(bn.name, " ", "_");
-        //
-        // if (node->name.empty() && use_default_names) {
-        //     if (node->is_leaf) {
-        //         node->name = default_leaf_name;
-        //     } else {
-        //         node->name = default_internal_name;
-        //     }
-        // }
-        //
-        // if (node->name.empty() && use_default_names) {
-        //     if (node->is_leaf) {
-        //         node->name = default_leaf_name;
-        //     } else {
-        //         node->name = default_internal_name;
-        //     }
-        // }
-        //
-        // if (node->name.empty() && use_default_names) {
-        //     node->name = default_root_name;
-        // }
-
-        return true;
-    }
-
-    inline void from_tree_edge (
-        const typename TreeType::EdgeType& edge, NewickBrokerElement& element
-    ) {
-        if (print_branch_lengths) {
-            NewickAdapter<TreeType>::set_branch_length(edge.data.branch_length, element);
-            // set_branch_length(element, edge);
-        }
-    }
-
-    inline void from_tree_node (
-        const typename TreeType::NodeType& node, NewickBrokerElement& element
-    ) {
-        if (print_names) {
-            NewickAdapter<TreeType>::set_name(node.data.name, element);
-        }
-
-        // TODO activate!
-        //
-        // node->name = string_replace_all(ct->value(), "_", " ");
-        //
-        // // filter out default names if needed
-        // if (!use_default_names && bn.name != "" && (
-        //     bn.name == default_leaf_name ||
-        //     bn.name == default_internal_name ||
-        //     bn.name == default_root_name
-        // )) {
-        //     bn.name = "";
-        // }
-    }
-
-    // void set_branch_length(NewickBrokerElement& element, EdgeType const& edge)
-    // {
-    //     auto bl = to_string_precise(edge.data.branch_length, precision);
-    //     element.values.insert(element.values.begin(), bl);
-    // }
+    bool        replace_name_underscores = false;
 
 };
-
-// =================================================================================================
-//     Typedef
-// =================================================================================================
-
-typedef NewickProcessor<DefaultTreeNewickAdapter<DefaultTree>> DefaultTreeNewickProcessor;
 
 } // namespace genesis
 

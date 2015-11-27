@@ -5,6 +5,7 @@
  * @ingroup tree
  */
 
+#include <assert.h>
 #include <deque>
 #include <memory>
 #include <sstream>
@@ -35,9 +36,9 @@ namespace genesis {
  *
  * Returns true iff successful.
  */
-template <typename AdapterType>
-bool NewickProcessor<AdapterType>::from_file (
-    const std::string& fn, typename AdapterType::TreeType& tree
+template <typename TreeType>
+bool NewickProcessor<TreeType>::from_file (
+    const std::string& fn, TreeType& tree
 ) {
     if (!file_exists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' does not exist.";
@@ -51,9 +52,9 @@ bool NewickProcessor<AdapterType>::from_file (
  *
  * Returns true iff successful.
  */
-template <typename AdapterType>
-bool NewickProcessor<AdapterType>::from_string (
-    const std::string& ts, typename AdapterType::TreeType& tree
+template <typename TreeType>
+bool NewickProcessor<TreeType>::from_string (
+    const std::string& ts, TreeType& tree
 ) {
     // run the lexer
     NewickLexer lexer;
@@ -89,7 +90,8 @@ bool NewickProcessor<AdapterType>::from_string (
     }
 
     // build the tree from the broker
-    return build_tree(broker, tree);
+    broker_to_tree(broker, tree);
+    return true;
 }
 
 /**
@@ -101,9 +103,9 @@ bool NewickProcessor<AdapterType>::from_string (
  *
  * Returns true iff successful.
  */
-template <typename AdapterType>
-bool NewickProcessor<AdapterType>::from_file (
-    const std::string& fn, TreeSet<typename AdapterType::TreeType>& tset
+template <typename TreeType>
+bool NewickProcessor<TreeType>::from_file (
+    const std::string& fn, TreeSet<TreeType>& tset
 ) {
     if (!file_exists(fn)) {
         LOG_WARN << "Tree file '" << fn << "' does not exist.";
@@ -132,10 +134,10 @@ bool NewickProcessor<AdapterType>::from_file (
  *
  * Returns true iff successful.
  */
-template <typename AdapterType>
-bool NewickProcessor<AdapterType>::from_string (
+template <typename TreeType>
+bool NewickProcessor<TreeType>::from_string (
     const std::string& ts,
-    TreeSet<typename AdapterType::TreeType>& tset,
+    TreeSet<TreeType>& tset,
     const std::string& default_name
 ) {
     // Run the Lexer.
@@ -206,10 +208,8 @@ bool NewickProcessor<AdapterType>::from_string (
             return false;
         }
 
-        auto tree = new typename AdapterType::TreeType();
-        if (!build_tree(broker, &tree)) {
-            return false;
-        }
+        auto tree = new TreeType();
+        broker_to_tree(broker, &tree);
 
         if (name.empty()) {
             name = default_name + std::to_string(unnamed_ctr++);
@@ -233,9 +233,9 @@ bool NewickProcessor<AdapterType>::from_string (
  *
  * Returns true iff successful.
  */
-template <typename AdapterType>
-bool NewickProcessor<AdapterType>::from_files (
-    const std::vector<std::string>& fns, TreeSet<typename AdapterType::TreeType>& set
+template <typename TreeType>
+bool NewickProcessor<TreeType>::from_files (
+    const std::vector<std::string>& fns, TreeSet<TreeType>& set
 ) {
     for (auto fn : fns) {
         if (!from_file (fn, set)) {
@@ -250,10 +250,10 @@ bool NewickProcessor<AdapterType>::from_files (
  *
  * Returns true iff successful.
  */
-template <typename AdapterType>
-bool NewickProcessor<AdapterType>::from_strings (
+template <typename TreeType>
+bool NewickProcessor<TreeType>::from_strings (
     const std::vector<std::string>& tss,
-    TreeSet<typename AdapterType::TreeType>& set,
+    TreeSet<TreeType>& set,
     const std::string& default_name
 ) {
     for (auto ts : tss) {
@@ -262,6 +262,42 @@ bool NewickProcessor<AdapterType>::from_strings (
         }
     }
     return true;
+}
+
+// -------------------------------------------------------------------------
+//     Virtual Methods
+// -------------------------------------------------------------------------
+
+template <typename TreeType>
+void NewickProcessor<TreeType>::prepare_reading( NewickBroker const& broker, TreeType& tree )
+{
+    // Silence unused parameter warnings.
+    (void) broker;
+    (void) tree;
+}
+
+template <typename TreeType>
+void NewickProcessor<TreeType>::element_to_node( NewickBrokerElement const& element, NodeType& node )
+{
+    // Silence unused parameter warnings.
+    (void) element;
+    (void) node;
+}
+
+template <typename TreeType>
+void NewickProcessor<TreeType>::element_to_edge( NewickBrokerElement const& element, EdgeType& edge )
+{
+    // Silence unused parameter warnings.
+    (void) element;
+    (void) edge;
+}
+
+template <typename TreeType>
+void NewickProcessor<TreeType>::finish_reading( NewickBroker const& broker, TreeType& tree )
+{
+    // Silence unused parameter warnings.
+    (void) broker;
+    (void) tree;
 }
 
 // -------------------------------------------------------------------------
@@ -275,40 +311,34 @@ bool NewickProcessor<AdapterType>::from_strings (
  * get the nesting right.
  * TODO: this could be changed by not assigning ranks to the broker but a tmp struct.
  */
-template <typename AdapterType>
-bool NewickProcessor<AdapterType>::build_tree (
-    NewickBroker const& broker, typename AdapterType::TreeType& tree
+template <typename TreeType>
+void NewickProcessor<TreeType>::broker_to_tree (
+    NewickBroker const& broker, TreeType& tree
 ) {
-    typename AdapterType::TreeType::LinkContainer links;
-    typename AdapterType::TreeType::NodeContainer nodes;
-    typename AdapterType::TreeType::EdgeContainer edges;
+    typename TreeType::LinkContainer links;
+    typename TreeType::NodeContainer nodes;
+    typename TreeType::EdgeContainer edges;
 
-    // There may be errors while converting from broker nodes to tree elements, for example missing
-    // data for certain formats. This will be reported as result of this method. We however do not
-    // stop the method when an error occurs, as this might result in incomplete trees, which would
-    // currently be a memory leak.
-    // TODO once tree uses smart pointers, we can immediately return on errors in this method!
-    bool result = true;
-
-    std::vector<typename AdapterType::TreeType::LinkType*> link_stack;
+    std::vector<typename TreeType::LinkType*> link_stack;
 
     // we need the ranks (number of immediate children) of all nodes
     broker.assign_ranks();
+    prepare_reading(broker, tree);
 
     // iterate over all nodes of the tree broker
     for (auto b_itr = broker.cbegin(); b_itr != broker.cend(); ++b_itr) {
         NewickBrokerElement const& broker_node = *b_itr;
 
         // create the tree node for this broker node
-        auto cur_node_u  = make_unique<typename AdapterType::TreeType::NodeType>();
+        auto cur_node_u  = make_unique<typename TreeType::NodeType>();
         auto cur_node    = cur_node_u.get();
-        result          &= adapter_.to_tree_node(broker_node, *cur_node);
+        element_to_node( broker_node, *cur_node );
         cur_node->index_ = nodes.size();
         nodes.push_back(std::move(cur_node_u));
 
         // create the link that points towards the root.
         // this link is created for every node, root, inner and leaves.
-        auto up_link_u  = make_unique<typename AdapterType::TreeType::LinkType>();
+        auto up_link_u  = make_unique<typename TreeType::LinkType>();
         auto up_link    = up_link_u.get();
         up_link->node_  = cur_node;
         cur_node->link_ = up_link;
@@ -328,12 +358,12 @@ bool NewickProcessor<AdapterType>::build_tree (
             link_stack.back()->outer_ = up_link;
 
             // also, create an edge that connects both nodes
-            auto up_edge = make_unique<typename AdapterType::TreeType::EdgeType>();
+            auto up_edge = make_unique<typename TreeType::EdgeType>();
             up_edge->link_p_         = link_stack.back();
             up_edge->link_s_         = up_link;
             up_link->edge_           = up_edge.get();
             link_stack.back()->edge_ = up_edge.get();
-            result &= adapter_.to_tree_edge(broker_node, *up_edge);
+            element_to_edge( broker_node, *up_edge );
             up_edge->index_ = edges.size();
             edges.push_back(std::move(up_edge));
 
@@ -351,7 +381,7 @@ bool NewickProcessor<AdapterType>::build_tree (
         // in summary, make all next pointers of a node point to each other in a circle.
         auto prev_link = up_link;
         for (int i = 0; i < broker_node.rank(); ++i) {
-            auto down_link = make_unique<typename AdapterType::TreeType::LinkType>();
+            auto down_link = make_unique<typename TreeType::LinkType>();
             prev_link->next_ = down_link.get();
             prev_link = down_link.get();
 
@@ -383,9 +413,9 @@ bool NewickProcessor<AdapterType>::build_tree (
     }
     next->node_->link_ = next->next_;
 
-    // hand over the elements to the tree
+    // Finish and hand over the elements to the tree.
+    finish_reading(broker, tree);
     tree.import_content(links, nodes, edges);
-    return result;
 }
 
 // =================================================================================================
@@ -397,9 +427,9 @@ bool NewickProcessor<AdapterType>::build_tree (
  *
  * If the file already exists, the function does not overwrite it.
  */
-template <typename AdapterType>
-bool NewickProcessor<AdapterType>::to_file (
-    const typename AdapterType::TreeType& tree, const std::string fn
+template <typename TreeType>
+bool NewickProcessor<TreeType>::to_file (
+    const TreeType& tree, const std::string fn
 ) {
     if (file_exists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' already exist. Will not overwrite it.";
@@ -416,9 +446,9 @@ bool NewickProcessor<AdapterType>::to_file (
  * In case the tree was read from a Newick file, this function should produce the same
  * representation.
  */
-template <typename AdapterType>
-void NewickProcessor<AdapterType>::to_string (
-    const typename AdapterType::TreeType& tree, std::string& ts
+template <typename TreeType>
+void NewickProcessor<TreeType>::to_string (
+    const TreeType& tree, std::string& ts
 ) {
     ts = to_string(tree);
 }
@@ -429,11 +459,11 @@ void NewickProcessor<AdapterType>::to_string (
  * In case the tree was read from a Newick file, this function should produce the same
  * representation.
  */
-template <typename AdapterType>
-std::string NewickProcessor<AdapterType>::to_string (const typename AdapterType::TreeType& tree)
+template <typename TreeType>
+std::string NewickProcessor<TreeType>::to_string (const TreeType& tree)
 {
     NewickBroker broker;
-    to_broker(tree, broker);
+    tree_to_broker(tree, broker);
     broker.assign_ranks();
     return generate_newick_tree(broker);
 }
@@ -441,10 +471,12 @@ std::string NewickProcessor<AdapterType>::to_string (const typename AdapterType:
 /**
  * @brief Stores the information of the tree into a NewickBroker object.
  */
-template <typename AdapterType>
-void NewickProcessor<AdapterType>::to_broker (
-    const typename AdapterType::TreeType& tree, NewickBroker& broker
+template <typename TreeType>
+void NewickProcessor<TreeType>::tree_to_broker (
+    const TreeType& tree, NewickBroker& broker
 ) {
+    prepare_writing(tree, broker);
+
     // store the depth from each node to the root. this is needed to assign levels of depth
     // to the nodes for the broker.
     std::vector<int> depth = node_depth_vector(tree);
@@ -452,23 +484,61 @@ void NewickProcessor<AdapterType>::to_broker (
     // now fill the broker with nodes via postorder traversal, so that the root is put on top last.
     broker.clear();
     for (
-        typename AdapterType::TreeType::ConstIteratorPostorder it = tree.begin_postorder();
+        auto it = tree.begin_postorder();
         it != tree.end_postorder();
         ++it
     ) {
         NewickBrokerElement bn;
         bn.depth = depth[it.node()->index()];
 
-        adapter_.from_tree_node(*it.node(), bn);
+        node_to_element(*it.node(), bn);
         // only write edge data to the broker element if it is not the last iteration.
         // the last iteration is the root, which usually does not have edge information in newick.
         // caveat: for the root node, the edge will point to an arbitrary edge away from the root.
         if (!it.is_last_iteration()) {
-            adapter_.from_tree_edge(*it.edge(), bn);
+            edge_to_element(*it.edge(), bn);
         }
 
         broker.push_top(bn);
     }
+
+    finish_writing(tree, broker);
+}
+
+// -------------------------------------------------------------------------
+//     Virtual Methods
+// -------------------------------------------------------------------------
+
+template <typename TreeType>
+void NewickProcessor<TreeType>::prepare_writing( TreeType const& tree, NewickBroker& broker )
+{
+    // Silence unused parameter warnings.
+    (void) tree;
+    (void) broker;
+}
+
+template <typename TreeType>
+void NewickProcessor<TreeType>::node_to_element( NodeType const& node, NewickBrokerElement& element )
+{
+    // Silence unused parameter warnings.
+    (void) node;
+    (void) element;
+}
+
+template <typename TreeType>
+void NewickProcessor<TreeType>::edge_to_element( EdgeType const& edge, NewickBrokerElement& element )
+{
+    // Silence unused parameter warnings.
+    (void) edge;
+    (void) element;
+}
+
+template <typename TreeType>
+void NewickProcessor<TreeType>::finish_writing( TreeType const& tree, NewickBroker& broker )
+{
+    // Silence unused parameter warnings.
+    (void) tree;
+    (void) broker;
 }
 
 } // namespace genesis

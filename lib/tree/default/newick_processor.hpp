@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_DEFAULT_PHYLOXML_PROCESSOR_H_
-#define GENESIS_TREE_DEFAULT_PHYLOXML_PROCESSOR_H_
+#ifndef GENESIS_TREE_DEFAULT_NEWICK_PROCESSOR_H_
+#define GENESIS_TREE_DEFAULT_NEWICK_PROCESSOR_H_
 
 /**
  * @brief
@@ -10,7 +10,7 @@
 
 #include "tree/default/tree.hpp"
 #include "tree/default/newick_mixin.hpp"
-#include "tree/io/phyloxml/processor.hpp"
+#include "tree/io/newick/processor.hpp"
 
 namespace genesis {
 
@@ -18,7 +18,7 @@ namespace genesis {
 //     Default Tree Newick Processor
 // =================================================================================================
 
-// typedef DefaultTreePhyloxmlMixin<PhyloxmlProcessor<DefaultTree>> DefaultTreePhyloxmlProcessor;
+typedef DefaultTreeNewickMixin<NewickProcessor<DefaultTree>> DefaultTreeNewickProcessor;
 
 } // namespace genesis
 

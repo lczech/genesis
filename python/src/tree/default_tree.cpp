@@ -93,6 +93,6 @@ PYTHON_EXPORT_CLASS (DefaultTree, "tree")
     BoostPythonExport_DefaultTreeNodeData();
 
     BoostPythonExport_Tree<DefaultTreeNodeData, DefaultTreeEdgeData>("DefaultTree");
-    BoostPythonExport_NewickProcessor<DefaultTreeNewickAdapter<DefaultTree>>("DefaultTreeNewickProcessor");
+    // BoostPythonExport_NewickProcessor<DefaultTreeNewickAdapter<DefaultTree>>("DefaultTreeNewickProcessor");
     // BoostPythonExport_PhyloxmlProcessor<DefaultTreePhyloxmlAdapter<DefaultTree>>("DefaultTreePhyloxmlProcessor");
 }

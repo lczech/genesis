@@ -8,7 +8,6 @@
  * @ingroup tree
  */
 
-#include <assert.h>
 #include <string>
 #include <vector>
 
@@ -28,23 +27,34 @@ struct NewickBrokerElement;
 //     Newick Processor
 // =================================================================================================
 
-template <typename AdapterType>
+template <typename TreeType_>
 class NewickProcessor
 {
+
+    // -------------------------------------------------------------------------
+    //     Member Types
+    // -------------------------------------------------------------------------
+
 public:
 
-    typedef typename AdapterType::TreeType TreeType;
+    typedef TreeType_ TreeType;
+    typedef typename TreeType::NodeType NodeType;
+    typedef typename TreeType::EdgeType EdgeType;
+    typedef typename TreeType::LinkType LinkType;
 
     // -------------------------------------------------------------------------
-    //     Constructors
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    NewickProcessor()                     : adapter_(AdapterType()) {}
-    NewickProcessor(AdapterType& adapter) : adapter_(adapter)       {}
+public:
+
+    virtual ~NewickProcessor() {}
 
     // -------------------------------------------------------------------------
     //     Parsing
     // -------------------------------------------------------------------------
+
+public:
 
     bool from_file    (const std::string& filename,    TreeType& tree);
     bool from_string  (const std::string& tree_string, TreeType& tree);
@@ -70,19 +80,12 @@ public:
         const std::string& default_name = ""
     );
 
-    // -----------------------------------------------------
-    //     Internal
-    // -----------------------------------------------------
-
 protected:
 
-    bool build_tree (NewickBroker const& broker, TreeType& tree);
-
-    // -----------------------------------------------------
-    //     Members
-    // -----------------------------------------------------
-
-public:
+    virtual void prepare_reading( NewickBroker const& broker, TreeType& tree );
+    virtual void element_to_node( NewickBrokerElement const& element, NodeType& node );
+    virtual void element_to_edge( NewickBrokerElement const& element, EdgeType& edge );
+    virtual void finish_reading( NewickBroker const& broker, TreeType& tree );
 
     // -------------------------------------------------------------------------
     //     Printing
@@ -94,24 +97,22 @@ public:
     void        to_string (const TreeType& tree, std::string& ts);
     std::string to_string (const TreeType& tree);
 
-    // -----------------------------------------------------
-    //     Internal
-    // -----------------------------------------------------
-
 protected:
-    void to_broker (const TreeType& tree, NewickBroker& broker);
 
-    // std::string to_string_rec(const NewickBroker& broker, size_t position);
-    // std::string element_to_string(NewickBrokerElement const& bn);
+    virtual void prepare_writing( TreeType const& tree, NewickBroker& broker );
+    virtual void node_to_element( NodeType const& node, NewickBrokerElement& element );
+    virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element );
+    virtual void finish_writing( TreeType const& tree, NewickBroker& broker );
 
-    // -----------------------------------------------------
-    //     Members
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     Internal Member Functions
+    // -------------------------------------------------------------------------
 
-public:
+private:
 
-protected:
-    AdapterType adapter_;
+    void broker_to_tree (NewickBroker const& broker, TreeType& tree);
+    void tree_to_broker (const TreeType& tree, NewickBroker& broker);
+
 };
 
 } // namespace genesis
