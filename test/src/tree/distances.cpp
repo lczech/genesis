@@ -21,7 +21,7 @@ using namespace genesis;
 TEST(Tree, Distances)
 {
     // Skip test if no data availabe.
-    NEEDS_TEST_DATA
+    NEEDS_TEST_DATA;
 
     // Read and process tree.
     DefaultTree tree;

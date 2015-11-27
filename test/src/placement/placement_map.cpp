@@ -54,7 +54,7 @@ void test_placement_map_stats (
 TEST(PlacementMap, MergeDuplicatesSimple)
 {
     // Skip test if no data availabe.
-    NEEDS_TEST_DATA
+    NEEDS_TEST_DATA;
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_a.jplace";
@@ -74,7 +74,7 @@ TEST(PlacementMap, MergeDuplicatesSimple)
 TEST(PlacementMap, MergeDuplicatesTransitive)
 {
     // Skip test if no data availabe.
-    NEEDS_TEST_DATA
+    NEEDS_TEST_DATA;
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_b.jplace";

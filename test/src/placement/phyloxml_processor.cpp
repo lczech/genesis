@@ -20,7 +20,7 @@ using namespace genesis;
 TEST(PlacementTreePhyloxmlProcessor, CountGradient)
 {
     // Skip test if no data availabe.
-    NEEDS_TEST_DATA
+    NEEDS_TEST_DATA;
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
