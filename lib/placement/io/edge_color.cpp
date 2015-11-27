@@ -73,5 +73,4 @@ std::vector<Color> placement_color_count_gradient( PlacementTree const& tree, bo
     return ret;
 }
 
-
 } // namespace genesis
