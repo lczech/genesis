@@ -99,20 +99,25 @@ private:
 
 };
 
-} // namespace genesis
-
 // =================================================================================================
-//     Namespace std Extension
+//     Basic Operators
 // =================================================================================================
 
-namespace std {
-
-template<>
-inline void swap<genesis::Color> (genesis::Color& lhs, genesis::Color& rhs) noexcept
+inline void swap (Color& lhs, Color& rhs) noexcept
 {
     lhs.swap(rhs);
 }
 
-} // namespace std
+inline bool operator == (Color const& lhs, Color const& rhs)
+{
+    return lhs.r() == rhs.r() && lhs.g() == rhs.g() && lhs.b() == rhs.b();
+}
+
+inline bool operator != (Color const& lhs, Color const& rhs)
+{
+    return !(lhs == rhs);
+}
+
+} // namespace genesis
 
 #endif // include guard

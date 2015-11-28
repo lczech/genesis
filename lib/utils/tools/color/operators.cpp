@@ -16,6 +16,7 @@
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
+#include <string>
 
 #include "utils/tools/color.hpp"
 
@@ -111,7 +112,9 @@ std::string color_to_hex( const Color& c , std::string prefix, bool uppercase )
  */
 std::ostream& operator<< (std::ostream& os, const Color& color)
 {
-    os << "(" << color.r() << ", " << color.g() << ", " << color.b() << ")";
+    os << "("  << std::to_string(color.r())
+       << ", " << std::to_string(color.g())
+       << ", " << std::to_string(color.b()) << ")";
     return os;
 }
 
