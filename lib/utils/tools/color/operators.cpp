@@ -54,8 +54,8 @@ Color color_from_hex( std::string h, std::string prefix )
     }
     h = h.substr(prefix.size());
 
-    // Check for correct input size. We also need to check for incorrect chars, as std::stoul might
-    // just end parsing instead of throwing...
+    // Check for correct input size. We also need to check for incorrect chars, as std::stoul (used
+    // later for the actual conversion) might just end parsing instead of throwing...
     if (h.size() != 6 || h.find_first_not_of("0123456789abcdefABCDEF") != std::string::npos) {
         throw std::invalid_argument("Expects string with six hexadecimal digits.");
     }
