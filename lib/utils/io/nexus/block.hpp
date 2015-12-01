@@ -25,6 +25,14 @@ class Block
 {
 
     // -----------------------------------------------------
+    //     Constructor and Rule of Five
+    // -----------------------------------------------------
+
+public:
+
+    virtual ~Block() = default;
+
+    // -----------------------------------------------------
     //     Virtual Functions
     // -----------------------------------------------------
 
@@ -39,7 +47,12 @@ public:
 //     Operators
 // =================================================================================================
 
-std::ostream& operator<< (std::ostream& os, Block const& block);
+// std::ostream& operator<< ( std::ostream& os, Block const& block )
+inline std::ostream& operator<< ( std::ostream& os, Block const& block )
+{
+    block.to_stream( os );
+    return os;
+}
 
 } // namespace nexus
 } // namespace genesis

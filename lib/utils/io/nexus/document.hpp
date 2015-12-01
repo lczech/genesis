@@ -45,6 +45,9 @@ public:
 
     bool has_block( std::string block_name ) const;
 
+    Block const* get_block( std::string block_name ) const;
+    Block*       get_block( std::string block_name );
+
     // ---------------------------------------------------------------------
     //     Modifiers
     // ---------------------------------------------------------------------
@@ -54,8 +57,10 @@ public:
     //     data_.push_back(make_unique<Block>(block));
     // }
 
-    void set_block_trees( Trees const& trees );
-    void set_block_taxa( Taxa const& taxa );
+    // void set_block_trees( Trees const& trees );
+    // void set_block_taxa( Taxa const& taxa );
+
+    Block* set_block( std::unique_ptr<Block> block );
 
     // ---------------------------------------------------------------------
     //     Iterators
