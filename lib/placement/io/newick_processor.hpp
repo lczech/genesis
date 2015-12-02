@@ -19,13 +19,14 @@
 namespace genesis {
 
 // =================================================================================================
-//     Placement Tree Newick Processor
+//     Placement Tree Newick Mixin
 // =================================================================================================
 
 /**
  * @brief
  */
-class PlacementTreeNewickProcessor : public DefaultTreeNewickMixin< NewickProcessor< PlacementTree > >
+template <typename Base>
+class PlacementTreeNewickMixin : public Base
 {
     // -------------------------------------------------------------------------
     //     Member Types
@@ -33,7 +34,10 @@ class PlacementTreeNewickProcessor : public DefaultTreeNewickMixin< NewickProces
 
 public:
 
-    typedef DefaultTreeNewickMixin< NewickProcessor< PlacementTree > > Base;
+    typedef typename Base::TreeType TreeType;
+    typedef typename Base::NodeType NodeType;
+    typedef typename Base::EdgeType EdgeType;
+    typedef typename Base::LinkType LinkType;
 
     // -------------------------------------------------------------------------
     //     Properties
@@ -110,6 +114,13 @@ private:
     bool print_edge_nums_        = true;
     bool print_placement_counts_ = false;
 };
+
+// =================================================================================================
+//     Placement Tree Newick Processor
+// =================================================================================================
+
+typedef PlacementTreeNewickMixin< DefaultTreeNewickMixin< NewickProcessor< PlacementTree > > >
+    PlacementTreeNewickProcessor;
 
 } // namespace genesis
 
