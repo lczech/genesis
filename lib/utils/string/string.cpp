@@ -12,6 +12,28 @@
 namespace genesis {
 
 // =================================================================================================
+//     Count Occurrences
+// =================================================================================================
+
+size_t string_count_substring_occurrences( const std::string& str, const std::string& sub )
+{
+    if (sub.length() == 0) {
+        return 0;
+    }
+
+    size_t count = 0;
+    for(
+        size_t offset = str.find(sub);
+        offset != std::string::npos;
+        offset = str.find( sub, offset + sub.length() )
+    ) {
+        ++count;
+    }
+
+    return count;
+}
+
+// =================================================================================================
 //     Split
 // =================================================================================================
 
