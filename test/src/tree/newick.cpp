@@ -119,7 +119,7 @@ TEST(Newick, ColorMixin)
     // We set ignored color to fuchsia ("magic pink") in order to also print out the black colored
     // inner edges.
     auto proc = ColorTreeNewickProcessor();
-    proc.edge_color_vector(color_vector);
+    proc.edge_colors(color_vector);
     proc.ignored_color(Color(255, 0, 255));
     std::string output = proc.to_string(tree);
 

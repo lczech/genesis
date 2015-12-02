@@ -8,12 +8,11 @@
  * @ingroup tree
  */
 
+#include "tree/io/color_mixin.hpp"
 #include "utils/io/xml_document.hpp"
-#include "utils/tools/color.hpp"
 
 #include <assert.h>
 #include <stdexcept>
-#include <vector>
 
 namespace genesis {
 
@@ -36,19 +35,10 @@ namespace genesis {
  *         </color>
  *     </clade>
  *
- * There are two ways this mixin can be used:
- *
- *   1. Use `edge_color_vector()` to set a vector of colors for each edge before calling the
- *      actual writing function. This can be done by client code that needs a particular coloring
- *      of the edges, but can also be used by superclasses to set all edge colors at once.
- *   2. Use `set_color()` in the superclass to set the color of individual edges. This is helpful
- *      within the `edge_to_element()` function of the superclass.
- *
- * If neither of this is done, no color tags will be written. Color tags can also be deactivated
- * by client code using the `enable_color()` option.
+ * For more information, see ColorMixin class.
  */
 template <typename Base>
-class PhyloxmlColorMixin : public Base
+class PhyloxmlColorMixin : public Base, public ColorMixin
 {
     // -------------------------------------------------------------------------
     //     Member Types
@@ -62,51 +52,6 @@ public:
     typedef typename Base::LinkType LinkType;
 
     // -------------------------------------------------------------------------
-    //     Properties
-    // -------------------------------------------------------------------------
-
-public:
-
-    /**
-     * @brief Set the edge colors that shall be written to the PhyloXML output.
-     *
-     * If this function is called with a vector of size > 0, the edges in the output will be colored
-     * according to the values given as a parameter. The vector then needs to contain as many
-     * elements as the tree has edges. The elements need to be indexed using the edge.index() value.
-     *
-     * If this function is called with an empty vector, the color printing is reset to not
-     * print the edge colors that might have been set before.
-     */
-    void edge_color_vector( std::vector<Color> const& color_vector )
-    {
-        edge_colors_ = color_vector;
-    }
-
-    /**
-     * @brief Return the edge colors that are currently set.
-     */
-    std::vector<Color> edge_color_vector()
-    {
-        return edge_colors_;
-    }
-
-    /**
-     * @brief Set whether colors tags are written to the PhyloXML output.
-     */
-    void enable_color(bool value)
-    {
-        enable_color_ = value;
-    }
-
-    /**
-     * @brief Returns whether colors tags are written to the PhyloXML output.
-     */
-    bool enable_color() const
-    {
-        return enable_color_;
-    }
-
-    // -------------------------------------------------------------------------
     //     Overridden Virtual Functions
     // -------------------------------------------------------------------------
 
@@ -116,12 +61,15 @@ protected:
     {
         Base::prepare_writing(tree, xml);
 
-        if (!enable_color_) {
+        if (!ColorMixin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, it needs to match the tree's edge count.
-        if (edge_colors_.size() > 0 && edge_colors_.size() != tree.edge_count()) {
+        if (
+            ColorMixin::edge_colors().size() > 0 &&
+            ColorMixin::edge_colors().size() != tree.edge_count()
+        ) {
             throw std::length_error(
                 "Color vector does not have as many elements as the tree has edges."
             );
@@ -132,14 +80,14 @@ protected:
     {
         Base::edge_to_element(edge, element);
 
-        if (!enable_color_) {
+        if (!ColorMixin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, use it.
-        if (edge_colors_.size() > 0) {
-            assert( edge.index() <= edge_colors_.size() );
-            set_color(element, edge_colors_[edge.index()]);
+        if (ColorMixin::edge_colors().size() > 0) {
+            assert( edge.index() <= ColorMixin::edge_colors().size() );
+            set_color(element, ColorMixin::edge_colors()[edge.index()]);
         }
     }
 
@@ -151,6 +99,10 @@ protected:
 
     void set_color( XmlElement& element, unsigned char r, unsigned char g, unsigned char b )
     {
+        if( Color(r, g, b) == ColorMixin::ignored_color() ) {
+            return;
+        }
+
         // TODO do not create new element if there is already one!
         auto re = make_unique<XmlElement>("red");
         re->append_markup(std::to_string(r));
@@ -174,14 +126,6 @@ protected:
         set_color( element, color.r(), color.g(), color.b() );
     }
 
-    // -------------------------------------------------------------------------
-    //     Data Members
-    // -------------------------------------------------------------------------
-
-private:
-
-    std::vector<Color> edge_colors_;
-    bool enable_color_ = true;
 };
 
 } // namespace genesis

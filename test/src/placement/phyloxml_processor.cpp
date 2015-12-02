@@ -28,7 +28,7 @@ TEST(PlacementTreePhyloxmlProcessor, CountGradient)
     EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
 
     auto proc = PlacementTreePhyloxmlProcessor();
-    proc.edge_color_vector( placement_color_count_gradient( map.tree() ));
+    proc.edge_colors( placement_color_count_gradient( map.tree() ));
     std::string pxml = proc.to_string(map.tree());
 
     // At least one element in the output should have the color for the edge with most placements.
