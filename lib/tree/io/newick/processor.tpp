@@ -332,8 +332,8 @@ void NewickProcessor<TreeType>::broker_to_tree (
         // create the tree node for this broker node
         auto cur_node_u  = make_unique<typename TreeType::NodeType>();
         auto cur_node    = cur_node_u.get();
-        element_to_node( broker_node, *cur_node );
         cur_node->index_ = nodes.size();
+        element_to_node( broker_node, *cur_node );
         nodes.push_back(std::move(cur_node_u));
 
         // create the link that points towards the root.
@@ -363,8 +363,8 @@ void NewickProcessor<TreeType>::broker_to_tree (
             up_edge->link_s_         = up_link;
             up_link->edge_           = up_edge.get();
             link_stack.back()->edge_ = up_edge.get();
-            element_to_edge( broker_node, *up_edge );
             up_edge->index_ = edges.size();
+            element_to_edge( broker_node, *up_edge );
             edges.push_back(std::move(up_edge));
 
             // we can now delete the head of the stack, because we just estiablished its "downlink"
