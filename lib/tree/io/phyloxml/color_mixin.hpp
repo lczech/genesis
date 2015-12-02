@@ -8,6 +8,7 @@
  * @ingroup tree
  */
 
+#include "utils/io/xml_document.hpp"
 #include "utils/tools/color.hpp"
 
 #include <assert.h>
@@ -23,7 +24,7 @@ namespace genesis {
 /**
  * @brief Mixin class for PhyloXML output that allows coloring of edges.
  *
- * The effect of this class on the PhyloXML output is that (if activated) a color tag will be added
+ * The effect of this class on the PhyloXML output is that (if enabled) a color tag will be added
  * to each clade like this:
  *
  *     <clade>
@@ -38,13 +39,13 @@ namespace genesis {
  * There are two ways this mixin can be used:
  *
  *   1. Use `edge_color_vector()` to set a vector of colors for each edge before calling the
- *      actual printing function. This can be done by client code that needs a particular coloring
+ *      actual writing function. This can be done by client code that needs a particular coloring
  *      of the edges, but can also be used by superclasses to set all edge colors at once.
  *   2. Use `set_color()` in the superclass to set the color of individual edges. This is helpful
  *      within the `edge_to_element()` function of the superclass.
  *
  * If neither of this is done, no color tags will be written. Color tags can also be deactivated
- * by client code using the `write_color()` option.
+ * by client code using the `enable_color()` option.
  */
 template <typename Base>
 class PhyloxmlColorMixin : public Base
@@ -90,19 +91,19 @@ public:
     }
 
     /**
-     * @brief Returns whether colors tags are written to the PhyloXML output.
+     * @brief Set whether colors tags are written to the PhyloXML output.
      */
-    bool write_color() const
+    void enable_color(bool value)
     {
-        return write_color_;
+        enable_color_ = value;
     }
 
     /**
-     * @brief Set whether colors tags are written to the PhyloXML output.
+     * @brief Returns whether colors tags are written to the PhyloXML output.
      */
-    void write_color(bool value)
+    bool enable_color() const
     {
-        write_color_ = value;
+        return enable_color_;
     }
 
     // -------------------------------------------------------------------------
@@ -115,7 +116,7 @@ protected:
     {
         Base::prepare_writing(tree, xml);
 
-        if (!write_color_) {
+        if (!enable_color_) {
             return;
         }
 
@@ -131,7 +132,7 @@ protected:
     {
         Base::edge_to_element(edge, element);
 
-        if (!write_color_) {
+        if (!enable_color_) {
             return;
         }
 
@@ -180,7 +181,7 @@ protected:
 private:
 
     std::vector<Color> edge_colors_;
-    bool write_color_ = true;
+    bool enable_color_ = true;
 };
 
 } // namespace genesis
