@@ -41,7 +41,25 @@ public:
 
 public:
 
+    void enable_names( bool value )
+    {
+        enable_names_ = value;
+    }
 
+    bool enable_names ()
+    {
+        return enable_names_;
+    }
+
+    void enable_branch_lengths( bool value )
+    {
+        enable_branch_lengths_ = value;
+    }
+
+    bool enable_branch_lengths()
+    {
+        return enable_branch_lengths_;
+    }
 
     // -------------------------------------------------------------------------
     //     Overridden Member Functions
@@ -89,42 +107,40 @@ protected:
     virtual void node_to_element( NodeType const& node, NewickBrokerElement& element ) override
     {
         Base::node_to_element(node, element);
-        if (!print_names) {
-            return;
-        }
 
-        std::string name = node.data.name;
+        if (enable_names_) {
+            std::string name = node.data.name;
 
-        // Handle spaces/underscores.
-        if (replace_name_underscores) {
-            name = string_replace_all(name, " ", "_");
-        } else {
-            if (contains(name, std::string(" "))) {
-                name = "\"" + name + "\"";
+            // Handle spaces/underscores.
+            if (replace_name_underscores) {
+                name = string_replace_all(name, " ", "_");
+            } else {
+                if (contains(name, std::string(" "))) {
+                    name = "\"" + name + "\"";
+                }
             }
-        }
 
-        // Filter out default names if needed.
-        if (use_default_names             && (
-            name == default_leaf_name     ||
-            name == default_internal_name ||
-            name == default_root_name
-        )) {
-            name = "";
-        }
+            // Filter out default names if needed.
+            if (use_default_names             && (
+                name == default_leaf_name     ||
+                name == default_internal_name ||
+                name == default_root_name
+            )) {
+                name = "";
+            }
 
-        element.name = name;
+            element.name = name;
+        }
     }
 
     virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element ) override
     {
         Base::edge_to_element(edge, element);
-        if (!print_branch_lengths) {
-            return;
-        }
 
-        auto bl = to_string_precise(edge.data.branch_length, precision);
-        element.values.insert(element.values.begin(), bl);
+        if (enable_branch_lengths_) {
+            auto bl = to_string_precise(edge.data.branch_length, precision);
+            element.values.insert(element.values.begin(), bl);
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -136,10 +152,6 @@ public:
     // TODO for now, this is all public. use getters and setters instead, and outsource those
     // properties that belong to the (yet to create) superclass TreeProcessor or so.
 
-    bool print_names          = true;
-    bool print_branch_lengths = false;
-    // bool print_comments       = false;
-    // bool print_tags           = false;
 
     /**
      * @brief The precision used for printing floating point numbers, particularly the branch_length.
@@ -160,6 +172,12 @@ public:
 
     bool        replace_name_underscores = false;
 
+private:
+
+    bool enable_names_          = true;
+    bool enable_branch_lengths_ = false;
+    // bool print_comments       = false;
+    // bool print_tags           = false;
 };
 
 } // namespace genesis

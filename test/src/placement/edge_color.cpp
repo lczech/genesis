@@ -80,7 +80,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
 
     auto proc = ColoredPlacementTreeNewickProcessor();
     proc.edge_colors( placement_color_count_gradient( map.tree() ));
-    proc.print_edge_nums(false);
+    proc.enable_edge_nums(false);
     std::string tree_out = proc.to_string(map.tree());
 
     auto doc = nexus::Document();
