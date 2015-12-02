@@ -10,7 +10,6 @@
 
 #include "placement/placement_tree.hpp"
 #include "tree/default/phyloxml_mixin.hpp"
-#include "tree/io/phyloxml/color_mixin.hpp"
 #include "tree/io/phyloxml/processor.hpp"
 
 namespace genesis {
@@ -19,7 +18,7 @@ namespace genesis {
 //     Placement Tree Phyloxml Processor
 // =================================================================================================
 
-typedef PhyloxmlColorMixin< DefaultTreePhyloxmlMixin< PhyloxmlProcessor< PlacementTree > > >
+typedef DefaultTreePhyloxmlMixin< PhyloxmlProcessor< PlacementTree > >
     PlacementTreePhyloxmlProcessor;
 
 } // namespace genesis

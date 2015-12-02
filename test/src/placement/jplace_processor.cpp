@@ -26,5 +26,5 @@ TEST(JplaceProcessor, FromFile)
     EXPECT_TRUE( JplaceProcessor().from_file(infile, map) );
     EXPECT_EQ  ( 5, map.placement_count() );
     EXPECT_TRUE( map.validate(true, false) );
-    EXPECT_TRUE( correct_edge_nums(map) );
+    EXPECT_TRUE( has_correct_edge_nums(map) );
 }

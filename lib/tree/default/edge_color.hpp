@@ -1,15 +1,14 @@
-#ifndef GENESIS_UTILS_TOOLS_COLOR_OPERATORS_H_
-#define GENESIS_UTILS_TOOLS_COLOR_OPERATORS_H_
+#ifndef GENESIS_TREE_DEFAULT_EDGE_COLOR_H_
+#define GENESIS_TREE_DEFAULT_EDGE_COLOR_H_
 
 /**
- * @brief Color operators.
+ * @brief
  *
  * @file
- * @ingroup utils
+ * @ingroup tree
  */
 
-#include <iosfwd>
-#include <string>
+#include <vector>
 
 namespace genesis {
 
@@ -20,21 +19,18 @@ namespace genesis {
 class Color;
 
 // =================================================================================================
-//     Color Conversion
+//     Edge Color Functions
 // =================================================================================================
 
-Color color_from_doubles (double r, double g, double b);
-
-Color color_from_hex( std::string h, std::string prefix = "#" );
-
-std::string color_to_hex( const Color& c, std::string prefix = "#", bool uppercase = false );
-
-// =================================================================================================
-//     Color Operators
-// =================================================================================================
-
-std::ostream& operator<< (std::ostream& os, const Color& h);
+template<class TreeType>
+std::vector<Color> edge_color_branch_length_gradient(TreeType const& tree, bool zero_based = false);
 
 } // namespace genesis
+
+// =================================================================================================
+//     Inclusion of the implementation
+// =================================================================================================
+
+#include "tree/default/edge_color.tpp"
 
 #endif // include guard

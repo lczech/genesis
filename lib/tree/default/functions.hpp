@@ -8,17 +8,27 @@
  * @ingroup tree
  */
 
+#include<string>
+#include<vector>
+
 namespace genesis {
 
 // =================================================================================================
-//     Find
+//     Node Names
 // =================================================================================================
 
-/**
- * @brief Find a Node, given its name.
- */
 template <class TreeType>
-typename TreeType::NodeType* find_node(TreeType& tree, const std::string& name);
+std::vector<std::string> node_names(
+    TreeType& tree,
+    bool leaves_only = false
+);
+
+template <class TreeType>
+typename TreeType::NodeType* find_node(
+    TreeType& tree,
+    const std::string& name,
+    bool replace_underscores = false
+);
 
 } // namespace genesis
 

@@ -57,32 +57,32 @@ public:
     //     Accessors and Modificators
     // -------------------------------------------------------------------------
 
-    inline unsigned char r() const
+    unsigned char r() const
     {
         return r_;
     }
 
-    inline unsigned char g() const
+    unsigned char g() const
     {
         return g_;
     }
 
-    inline unsigned char b() const
+    unsigned char b() const
     {
         return b_;
     }
 
-    inline void r (unsigned char value)
+    void r (unsigned char value)
     {
         r_ = value;
     }
 
-    inline void g (unsigned char value)
+    void g (unsigned char value)
     {
         g_ = value;
     }
 
-    inline void b (unsigned char value)
+    void b (unsigned char value)
     {
         b_ = value;
     }
@@ -99,20 +99,25 @@ private:
 
 };
 
-} // namespace genesis
-
 // =================================================================================================
-//     Namespace std Extension
+//     Basic Operators
 // =================================================================================================
 
-namespace std {
-
-template<typename T>
-inline void swap (genesis::Color& lhs, genesis::Color& rhs) noexcept
+inline void swap (Color& lhs, Color& rhs) noexcept
 {
     lhs.swap(rhs);
 }
 
-} // namespace std
+inline bool operator == (Color const& lhs, Color const& rhs)
+{
+    return lhs.r() == rhs.r() && lhs.g() == rhs.g() && lhs.b() == rhs.b();
+}
+
+inline bool operator != (Color const& lhs, Color const& rhs)
+{
+    return !(lhs == rhs);
+}
+
+} // namespace genesis
 
 #endif // include guard

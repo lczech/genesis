@@ -97,9 +97,10 @@ std::string TreeView::compact (
 template <typename TreeType>
 std::string TreeView::compact (const TreeType& tree)
 {
+    // TODO this should move to default tree, as it uses the name data member
     auto print_line = [] (typename TreeType::ConstIteratorPreorder& it)
     {
-        return it.node()->name;
+        return it.node()->data.name;
     };
     return compact(tree, print_line);
 }

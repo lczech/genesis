@@ -19,13 +19,14 @@
 namespace genesis {
 
 // =================================================================================================
-//     Placement Tree Newick Processor
+//     Placement Tree Newick Mixin
 // =================================================================================================
 
 /**
  * @brief
  */
-class PlacementTreeNewickProcessor : public DefaultTreeNewickMixin< NewickProcessor< PlacementTree > >
+template <typename Base>
+class PlacementTreeNewickMixin : public Base
 {
     // -------------------------------------------------------------------------
     //     Member Types
@@ -33,7 +34,10 @@ class PlacementTreeNewickProcessor : public DefaultTreeNewickMixin< NewickProces
 
 public:
 
-    typedef DefaultTreeNewickMixin< NewickProcessor< PlacementTree > > Base;
+    typedef typename Base::TreeType TreeType;
+    typedef typename Base::NodeType NodeType;
+    typedef typename Base::EdgeType EdgeType;
+    typedef typename Base::LinkType LinkType;
 
     // -------------------------------------------------------------------------
     //     Properties
@@ -75,14 +79,14 @@ protected:
         edge.data.edge_num      = -1;
         if (element.tags.size() == 0) {
             throw std::invalid_argument(
-                "Edge for element '" + element.name + "' does not contain a tag value like '[42]'" +
+                "Edge at node '" + element.name + "' does not contain a tag value like '{42}'" +
                 " for the placement edge_num of this edge."
             );
         }
         if (element.tags.size() > 1) {
             throw std::invalid_argument(
-                "Edge for element '" + element.name + "' contains more than one tag value like " +
-                "'[xyz]'."
+                "Edge at node '" + element.name + "' contains more than one tag value like " +
+                "'{xyz}'. Expecting only one for the placement edge_num of this edge."
             );
         }
         assert(element.tags.size() == 1);
@@ -110,6 +114,13 @@ private:
     bool print_edge_nums_        = true;
     bool print_placement_counts_ = false;
 };
+
+// =================================================================================================
+//     Placement Tree Newick Processor
+// =================================================================================================
+
+typedef PlacementTreeNewickMixin< DefaultTreeNewickMixin< NewickProcessor< PlacementTree > > >
+    PlacementTreeNewickProcessor;
 
 } // namespace genesis
 

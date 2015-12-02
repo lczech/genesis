@@ -43,7 +43,7 @@ bool compatible_trees (const PlacementMap& lhs, const PlacementMap& rhs)
 //     Verification
 // =================================================================================================
 
-bool correct_edge_nums( PlacementMap const& map )
+bool has_correct_edge_nums( PlacementMap const& map )
 {
     auto const& tree = map.tree();
     int current = 0;

@@ -1,35 +1,43 @@
-#ifndef GENESIS_PLACEMENT_OPERATORS_H_
-#define GENESIS_PLACEMENT_OPERATORS_H_
+#ifndef GENESIS_UTILS_IO_NEXUS_WRITER_H_
+#define GENESIS_UTILS_IO_NEXUS_WRITER_H_
 
 /**
  * @brief
  *
  * @file
- * @ingroup placement
+ * @ingroup utils
  */
 
-#include <functional>
+#include <iosfwd>
 
 namespace genesis {
+namespace nexus {
 
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
 
-class PlacementMap;
+class Document;
 
 // =================================================================================================
-//     Comparision and Equality
+//     Nexus Writer
 // =================================================================================================
 
-bool compatible_trees (const PlacementMap& lhs, const PlacementMap& rhs);
+/**
+ * @brief
+ */
+class Writer
+{
+    // ---------------------------------------------------------------------
+    //     Write Functions
+    // ---------------------------------------------------------------------
 
-// =================================================================================================
-//     Verification
-// =================================================================================================
+public:
 
-bool has_correct_edge_nums( PlacementMap const& map );
+    void to_stream( Document const& doc, std::ostream& out );
+};
 
+} // namespace nexus
 } // namespace genesis
 
 #endif // include guard

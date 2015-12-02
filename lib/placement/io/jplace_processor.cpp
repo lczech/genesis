@@ -138,7 +138,7 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         LOG_WARN << "Jplace document does not contain a valid Newick tree at key 'tree'.";
         return false;
     }
-    if (!correct_edge_nums(placements)) {
+    if (!has_correct_edge_nums(placements)) {
         LOG_WARN << "Jplace document has a Newick tree where the edge_num tags are non standard. "
                  << "They are expected to be assigned in ascending order via postorder traversal. "
                  << "Now continuing to parse, as we can cope with this.";

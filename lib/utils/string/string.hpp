@@ -19,6 +19,8 @@ namespace genesis {
 //     First: function declaractions.
 // =================================================================================================
 
+size_t string_count_substring_occurrences( const std::string& str, const std::string& sub );
+
 std::vector<std::string> string_split (
     const std::string& str,
     const std::string& delimiters = " ",
