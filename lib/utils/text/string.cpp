@@ -8,15 +8,42 @@
 #include "utils/text/string.hpp"
 
 #include <algorithm>
+#include <cctype>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 
 namespace genesis {
 namespace text {
 
 // =================================================================================================
-//     Count Occurrences
+//     Compare
 // =================================================================================================
 
+/**
+ * @brief Compare two strings case insensitive.
+ */
+bool equals_ci( std::string const& lhs, std::string const& rhs)
+{
+    const size_t sz = lhs.size();
+    if( rhs.size() != sz ) {
+        return false;
+    }
+    for( size_t i = 0; i < sz; ++i ) {
+        if( tolower( lhs[i] ) != tolower( rhs[i] ) ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// =================================================================================================
+//     Find and Count
+// =================================================================================================
+
+/**
+ * @brief Returns the number of non-overlapping occurrences of a substring in a string.
+ */
 size_t count_substring_occurrences( const std::string& str, const std::string& sub )
 {
     if (sub.length() == 0) {
@@ -34,10 +61,6 @@ size_t count_substring_occurrences( const std::string& str, const std::string& s
 
     return count;
 }
-
-// =================================================================================================
-//     Split
-// =================================================================================================
 
 std::vector<std::string> split (
     const std::string& str,
@@ -73,7 +96,7 @@ std::vector<std::string> split (
 }
 
 // =================================================================================================
-//     Replace
+//     Manipulate
 // =================================================================================================
 
 /**
@@ -114,7 +137,7 @@ void replace_all(
 */
 
 // =================================================================================================
-//     Escape
+//     Normalize
 // =================================================================================================
 
 /**
@@ -170,6 +193,20 @@ std::string unify_newlines(const std::string& s)
 {
     throw std::domain_error("unify_newlines is not yet implemented.");
     return s;
+}
+
+// =================================================================================================
+//     Output
+// =================================================================================================
+
+/**
+ * @brief Returns a precise(er than to_string) string representation of the input value.
+ */
+std::string to_string_precise (double value, const int precision)
+{
+    std::ostringstream out;
+    out << std::fixed << std::setprecision(precision) << value;
+    return out.str();
 }
 
 } // namespace text
