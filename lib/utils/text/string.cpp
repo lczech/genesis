@@ -5,17 +5,19 @@
  * @ingroup utils
  */
 
-#include "utils/string/string.hpp"
+#include "utils/text/string.hpp"
 
 #include <algorithm>
+#include <stdexcept>
 
 namespace genesis {
+namespace text {
 
 // =================================================================================================
 //     Count Occurrences
 // =================================================================================================
 
-size_t string_count_substring_occurrences( const std::string& str, const std::string& sub )
+size_t count_substring_occurrences( const std::string& str, const std::string& sub )
 {
     if (sub.length() == 0) {
         return 0;
@@ -37,7 +39,7 @@ size_t string_count_substring_occurrences( const std::string& str, const std::st
 //     Split
 // =================================================================================================
 
-std::vector<std::string> string_split (
+std::vector<std::string> split (
     const std::string& str,
     const std::string& delimiters,
     const bool trim_empty
@@ -78,7 +80,7 @@ std::vector<std::string> string_split (
  * @brief Returns a copy of a string, where all occurences of a search string
  * are replaced by a replace string.
  */
-std::string string_replace_all (
+std::string replace_all (
     const std::string& text, const std::string& search, const std::string& replace
 ) {
     std::string tmp = text;
@@ -96,7 +98,7 @@ std::string string_replace_all (
 
 // inline version
 /*
-void string_replace_all(
+void replace_all(
     std::string &s, const std::string &search, const std::string &replace
 ) {
     for (size_t pos = 0; ; pos += replace.length() ) {
@@ -122,14 +124,14 @@ void string_replace_all(
  * Double quotation marks are preceeded by a backslash, also the backslash itself will be escaped,
  * so that `"` becomes `\"` and `\` becomes `\\`.
  */
-std::string string_escape (const std::string& text)
+std::string escape (const std::string& text)
 {
     std::string tmp;
-    tmp = string_replace_all(text, "\r", "\\r");
-    tmp = string_replace_all(tmp,  "\n", "\\n");
-    tmp = string_replace_all(tmp,  "\t", "\\t");
-    tmp = string_replace_all(tmp,  "\"", "\\\"");
-    tmp = string_replace_all(tmp,  "\\", "\\\\");
+    tmp = replace_all(text, "\r", "\\r");
+    tmp = replace_all(tmp,  "\n", "\\n");
+    tmp = replace_all(tmp,  "\t", "\\t");
+    tmp = replace_all(tmp,  "\"", "\\\"");
+    tmp = replace_all(tmp,  "\\", "\\\\");
     return tmp;
 }
 
@@ -142,9 +144,8 @@ std::string string_escape (const std::string& text)
  * escaped sequences will simply translate into the second char, e.g., a double
  * backslash will become one backslash.
  */
-std::string string_deescape (const std::string& text)
+std::string deescape (const std::string& text)
 {
-    // TODO this is not fast. could be better by using char[] (save reallocs)
     std::string tmp = "";
     for (size_t i = 0; i < text.size(); i++) {
         if (text[i] == '\\') {
@@ -165,10 +166,11 @@ std::string string_deescape (const std::string& text)
     return tmp;
 }
 
-std::string string_unify_newlines(const std::string& s)
+std::string unify_newlines(const std::string& s)
 {
-    // TODO string_unify_newlines
+    throw std::domain_error("unify_newlines is not yet implemented.");
     return s;
 }
 
+} // namespace text
 } // namespace genesis

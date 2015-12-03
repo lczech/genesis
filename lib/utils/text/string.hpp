@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_STRING_STRING_H_
-#define GENESIS_UTILS_STRING_STRING_H_
+#ifndef GENESIS_UTILS_TEXT_STRING_H_
+#define GENESIS_UTILS_TEXT_STRING_H_
 
 /**
  * @brief Provides some commonly used string utility functions.
@@ -14,58 +14,35 @@
 #include <vector>
 
 namespace genesis {
+namespace text {
 
 // =================================================================================================
 //     First: function declaractions.
 // =================================================================================================
 
-size_t string_count_substring_occurrences( const std::string& str, const std::string& sub );
+size_t count_substring_occurrences( const std::string& str, const std::string& sub );
 
-std::vector<std::string> string_split (
+std::vector<std::string> split (
     const std::string& str,
     const std::string& delimiters = " ",
     const bool trim_empty = true
 );
 
-std::string string_replace_all (
+std::string replace_all (
     const std::string& text,
     const std::string& search,
     const std::string& replace
 );
 
-std::string string_escape   (const std::string& text);
+std::string escape   (const std::string& text);
 
-std::string string_deescape (const std::string& text);
+std::string deescape (const std::string& text);
 
-std::string string_unify_newlines (const std::string& s);
+std::string unify_newlines (const std::string& s);
 
 // =================================================================================================
 //     From here on: only inline functions.
 // =================================================================================================
-
-// -----------------------------------------------------------------------------
-//     Chars
-// -----------------------------------------------------------------------------
-
-/** @brief Returns whether a char is a digit (0-9). */
-inline bool char_is_digit (const char c)
-{
-    return ('0' <= c) && (c <= '9');
-}
-
-/** @brief Returns whether a char is a sign (+-). */
-inline bool char_is_sign (const char c)
-{
-    return ('+' == c) || ('-' == c);
-}
-
-/**
- * @brief Returns whether two chars are the same, case insensitive.
- */
-inline bool char_match(const char c1, const char c2)
-{
-    return std::tolower(c1) == std::tolower(c2);
-}
 
 // -----------------------------------------------------------------------------
 //     String Output
@@ -89,7 +66,7 @@ inline std::string to_string_precise (const T value, const int precision = 6)
 /**
  * @brief Returns a copy of the input string, with left trimmed white spaces.
  */
-inline std::string string_trim_right (
+inline std::string trim_right (
     const std::string& s,
     const std::string& delimiters = " \f\n\r\t\v"
 ) {
@@ -99,7 +76,7 @@ inline std::string string_trim_right (
 /**
  * @brief Returns a copy of the input string, with right trimmed white spaces.
  */
-inline std::string string_trim_left (
+inline std::string trim_left (
     const std::string& s,
     const std::string& delimiters = " \f\n\r\t\v"
 ) {
@@ -109,13 +86,14 @@ inline std::string string_trim_left (
 /**
  * @brief Returns a copy of the input string, with trimmed white spaces.
  */
-inline std::string string_trim (
+inline std::string trim (
     const std::string& s,
     const std::string& delimiters = " \f\n\r\t\v"
 ) {
-    return string_trim_left(string_trim_right(s, delimiters), delimiters);
+    return trim_left(trim_right(s, delimiters), delimiters);
 }
 
+} // namespace text
 } // namespace genesis
 
 #endif // include guard

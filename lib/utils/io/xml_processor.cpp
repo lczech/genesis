@@ -12,7 +12,7 @@
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/io/xml_document.hpp"
-#include "utils/string/string.hpp"
+#include "utils/text/string.hpp"
 
 namespace genesis {
 
@@ -24,11 +24,11 @@ namespace genesis {
 std::string XmlProcessor::XmlDescape (std::string& xml)
 {
     std::string res;
-    res = string_replace_all(xml, "&lt;",   "<");
-    res = string_replace_all(res, "&gt;",   ">");
-    res = string_replace_all(res, "&amp;",  "&");
-    res = string_replace_all(res, "&apos;", "'");
-    res = string_replace_all(res, "&quot;", "\"");
+    res = text::replace_all(xml, "&lt;",   "<");
+    res = text::replace_all(res, "&gt;",   ">");
+    res = text::replace_all(res, "&amp;",  "&");
+    res = text::replace_all(res, "&apos;", "'");
+    res = text::replace_all(res, "&quot;", "\"");
     return res;
 }
 */
@@ -151,11 +151,11 @@ std::string XmlProcessor::print_attributes_list (StringMapType attr)
 std::string XmlProcessor::xml_escape (const std::string& txt)
 {
     std::string res;
-    res = string_replace_all(txt, "<",  "&lt;");
-    res = string_replace_all(res, ">",  "&gt;");
-    res = string_replace_all(res, "&",  "&amp;");
-    res = string_replace_all(res, "'",  "&apos;");
-    res = string_replace_all(res, "\"", "&quot;");
+    res = text::replace_all(txt, "<",  "&lt;");
+    res = text::replace_all(res, ">",  "&gt;");
+    res = text::replace_all(res, "&",  "&amp;");
+    res = text::replace_all(res, "'",  "&apos;");
+    res = text::replace_all(res, "\"", "&quot;");
     return res;
 }
 

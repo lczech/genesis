@@ -10,8 +10,6 @@
 
 #include <string>
 
-#include "utils/string/string.hpp"
-
 namespace genesis {
 
 // =============================================================================

@@ -5,7 +5,7 @@
  * @ingroup tree
  */
 
-#include "utils/string/string.hpp"
+#include "utils/text/string.hpp"
 
 namespace genesis {
 
@@ -48,7 +48,7 @@ typename TreeType::NodeType* find_node(
 ) {
     auto clean_name = name;
     if (replace_underscores) {
-        clean_name = string_replace_all(name, "_", " ");
+        clean_name = text::replace_all(name, "_", " ");
     }
 
     for (auto it = tree.begin_nodes(); it != tree.end_nodes(); ++it) {

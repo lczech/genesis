@@ -10,7 +10,7 @@
 
 #include "tree/io/newick/element.hpp"
 #include "utils/core/std.hpp"
-#include "utils/string/string.hpp"
+#include "utils/text/string.hpp"
 
 namespace genesis {
 
@@ -86,7 +86,7 @@ protected:
 
         // Handle underscores/spaces.
         if (replace_name_underscores) {
-            name = string_replace_all(name, "_", " ");
+            name = text::replace_all(name, "_", " ");
         }
 
         node.data.name = name;
@@ -113,9 +113,9 @@ protected:
 
             // Handle spaces/underscores.
             if (replace_name_underscores) {
-                name = string_replace_all(name, " ", "_");
+                name = text::replace_all(name, " ", "_");
             } else {
-                if (contains(name, std::string(" "))) {
+                if (std::string::npos != name.find(" ")) {
                     name = "\"" + name + "\"";
                 }
             }
@@ -138,7 +138,7 @@ protected:
         Base::edge_to_element(edge, element);
 
         if (enable_branch_lengths_) {
-            auto bl = to_string_precise(edge.data.branch_length, precision);
+            auto bl = text::to_string_precise(edge.data.branch_length, precision);
             element.values.insert(element.values.begin(), bl);
         }
     }
