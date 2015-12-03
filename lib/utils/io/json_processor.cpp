@@ -12,7 +12,7 @@
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/io/json_document.hpp"
-#include "utils/string/string.hpp"
+#include "utils/text/string.hpp"
 
 namespace genesis {
 
@@ -313,11 +313,11 @@ std::string JsonProcessor::print_value (const JsonValue* value)
             break;
 
         case JsonValue::kNumber:
-            return to_string_precise(json_value_to_number(value)->value, precision);
+            return text::to_string_precise(json_value_to_number(value)->value, precision);
             break;
 
         case JsonValue::kString:
-            return "\"" + string_escape(json_value_to_string(value)->value) + "\"";
+            return "\"" + text::escape(json_value_to_string(value)->value) + "\"";
             break;
 
         // This function is only called from within print_array() and print_object(), and both of

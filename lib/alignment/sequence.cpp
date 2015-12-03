@@ -10,7 +10,7 @@
 #include <algorithm>
 
 #include "utils/core/logging.hpp"
-#include "utils/string/string.hpp"
+#include "utils/text/string.hpp"
 
 namespace genesis {
 
@@ -43,7 +43,7 @@ void Sequence::remove_gaps()
  */
 void Sequence::replace(char search, char replace)
 {
-    sites_ = string_replace_all (sites_, std::string(1, search), std::string(1, replace));
+    sites_ = text::replace_all (sites_, std::string(1, search), std::string(1, replace));
 }
 
 // =============================================================================

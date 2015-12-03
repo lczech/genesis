@@ -17,7 +17,6 @@
 #include "lib/tree/default/functions.hpp"
 #include "lib/tree/io/newick/color_mixin.hpp"
 #include "lib/tree/io/phyloxml/color_mixin.hpp"
-#include "lib/utils/core/std.hpp"
 #include "lib/utils/io/nexus/document.hpp"
 #include "lib/utils/io/nexus/taxa.hpp"
 #include "lib/utils/io/nexus/trees.hpp"
@@ -42,7 +41,7 @@ TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
     std::string out = proc.to_string(map.tree());
 
     // At least one element in the output should have the color for the edge with most placements.
-    EXPECT_TRUE( contains(out, std::string("<red>255</red>")) );
+    EXPECT_TRUE( out.find("<red>255</red>")  != std::string::npos );
     // EXPECT_NE(std::string::npos, out.find("<red>255</red>")) << "Red edge not found.";
 }
 
@@ -63,7 +62,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNewick )
     std::string out = proc.to_string(map.tree());
 
     // At least one element in the output should have the color for the edge with most placements.
-    EXPECT_TRUE( contains(out, std::string("color=#ff0000")) );
+    EXPECT_TRUE( out.find("color=#ff0000") != std::string::npos );
 }
 
 TEST( PlacementTreeEdgeColor, CountGradientNexus )
@@ -80,7 +79,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
 
     auto proc = ColoredPlacementTreeNewickProcessor();
     proc.edge_colors( placement_color_count_gradient( map.tree() ));
-    proc.print_edge_nums(false);
+    proc.enable_edge_nums(false);
     std::string tree_out = proc.to_string(map.tree());
 
     auto doc = nexus::Document();
@@ -102,5 +101,5 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
     writer.to_stream( doc, buffer );
     auto nexus_out = buffer.str();
 
-    EXPECT_TRUE( contains(nexus_out, std::string("color=#ff0000")) );
+    EXPECT_TRUE( nexus_out.find("color=#ff0000") != std::string::npos );
 }

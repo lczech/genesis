@@ -45,24 +45,24 @@ public:
 
 public:
 
-    bool print_edge_nums() const
+    bool enable_edge_nums() const
     {
-        return print_edge_nums_;
+        return enable_edge_nums_;
     }
 
-    void print_edge_nums(bool value)
+    void enable_edge_nums(bool value)
     {
-        print_edge_nums_ = value;
+        enable_edge_nums_ = value;
     }
 
-    bool print_placement_counts() const
+    bool enable_placement_counts() const
     {
-        return print_placement_counts_;
+        return enable_placement_counts_;
     }
 
-    void print_placement_counts(bool value)
+    void enable_placement_counts(bool value)
     {
-        print_placement_counts_ = value;
+        enable_placement_counts_ = value;
     }
 
     // -------------------------------------------------------------------------
@@ -97,10 +97,10 @@ protected:
     {
         Base::edge_to_element(edge, element);
 
-        if (print_edge_nums_) {
+        if (enable_edge_nums_) {
             element.tags.push_back(std::to_string(edge.data.edge_num));
         }
-        if (print_placement_counts_) {
+        if (enable_placement_counts_) {
             element.comments.push_back(std::to_string(edge.data.placement_count()));
         }
     }
@@ -111,8 +111,8 @@ protected:
 
 private:
 
-    bool print_edge_nums_        = true;
-    bool print_placement_counts_ = false;
+    bool enable_edge_nums_        = true;
+    bool enable_placement_counts_ = false;
 };
 
 // =================================================================================================

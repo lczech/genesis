@@ -54,5 +54,5 @@ where the suffix `test_name` is replaced by the test name itself.
 For convenience, the `run.sh` script also contains some additional modes:
 
 * `./run.sh list` lists all available test cases.
-* `./run.sh gtest ...` calls Gtest directly, forwarding all parameters.
+* `./run.sh gtest ...` calls Gtest directly, using the filtering as described above.
 * `./run.sh clean` removes the `out` directory.

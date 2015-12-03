@@ -16,7 +16,7 @@
 #    include <mutex>
 #endif
 
-#include "utils/string/string.hpp"
+#include "utils/text/string.hpp"
 #include "utils/tools/date_time.hpp"
 
 namespace genesis {
@@ -204,13 +204,13 @@ Logging::~Logging()
     // and trim trailing whitespace, as we only want one newline at the end
     std::string msg = det_buff.str();
     if (msg.length() > 0) {
-        msg += string_replace_all(
+        msg += text::replace_all(
             buff_.str(), "\n", "\n" + std::string(msg.length(), ' ')
         );
     } else {
         msg += buff_.str();
     }
-    msg = string_trim_right(msg);
+    msg = text::trim_right(msg);
 
     // output the message to every stream, thread safe!
 #   ifdef PTHREADS

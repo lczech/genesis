@@ -7,21 +7,21 @@
 
 #include "common.hpp"
 
-#include "lib/utils/string/string.hpp"
+#include "lib/utils/text/string.hpp"
 
 using namespace genesis;
 
 TEST(String, Split)
 {
-    auto simple = string_split("one:two:three:four", ":");
+    auto simple = text::split("one:two:three:four", ":");
     EXPECT_EQ(4, simple.size());
 
-    auto mulit_delim = string_split("one:two three-four", ": -");
+    auto mulit_delim = text::split("one:two three-four", ": -");
     EXPECT_EQ(4, mulit_delim.size());
 
-    auto empty = string_split("::one:two:three::four:", ":");
+    auto empty = text::split("::one:two:three::four:", ":");
     EXPECT_EQ(4, empty.size());
 
-    auto non_empty = string_split("::one:two:three::four:", ":", false);
+    auto non_empty = text::split("::one:two:three::four:", ":", false);
     EXPECT_EQ(8, non_empty.size());
 }
