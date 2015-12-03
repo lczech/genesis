@@ -39,18 +39,10 @@ if [ -z "`which bc`" ] ; then
     exit
 fi
 
-# Check for some simple relay commands.
+# Check for some simple commands.
 if [[ $1 == "list" ]] ; then
     # Simply output all available tests and exit.
     ${test_exe} --gtest_list_tests
-    exit
-fi
-if [[ $1 == "gtest" ]] ; then
-    # Run gtest suite without modification.
-    # Remove first command line argument ("gtest"),
-    # and pass on the rest.
-    shift
-    ${test_exe} $@
     exit
 fi
 if [[ $1 == "clean" ]] ; then
@@ -87,6 +79,10 @@ if [[ $1 == "speed" ]] ; then
         speed_runs=999
     fi
 fi
+if [[ $1 == "gtest" ]] ; then
+    mode="gtest"
+    shift
+fi
 if [[ $mode == "none" ]] ; then
     # If the mode was not set by any previous lines,
     # use default.
@@ -107,6 +103,12 @@ elif [[ ${loose_filtering} == 1 ]]; then
 else
     filter=$(printf ":%s" "$@")
     filter=${filter:1}
+fi
+
+# Special relay mode gtest. Forward the filters, call gtest, then exit.
+if [[ $mode == "gtest" ]] ; then
+    ${test_exe} --gtest_filter="${filter}"
+    exit
 fi
 
 # Get number of tests to run.
