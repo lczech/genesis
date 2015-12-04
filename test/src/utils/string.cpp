@@ -42,15 +42,37 @@ TEST(String, Table)
     t << "something" << "" << "end.";
 
     // Disabled, because it spams the test output.
-    std::cout << t << "\n";
-    std::cout << text::minimal_frame()(t) << "\n";
-    std::cout << text::simple_frame(false)(t) << "\n";
-    std::cout << text::simple_frame(true)(t) << "\n";
-    std::cout << text::full_frame(false)(t) << "\n";
-    std::cout << text::full_frame(true)(t) << "\n";
-    
-    std::cout << text::extended_frame(false)(t) << "\n";
-    std::cout << text::extended_frame(true)(t) << "\n";
-    std::cout << text::double_frame(false)(t) << "\n";
-    std::cout << text::double_frame(true)(t) << "\n";
+    // std::cout << "no layout:\n";
+    // std::cout << t << "\n";
+    //
+    // std::cout << "minimal_layout:\n";
+    // std::cout << text::minimal_layout()(t) << "\n";
+    //
+    // std::cout << "simple_layout:\n";
+    // std::cout << text::simple_layout(false)(t) << "\n";
+    // std::cout << text::simple_layout(true)(t) << "\n";
+    //
+    // std::cout << "simple_grid:\n";
+    // std::cout << text::simple_grid(false)(t) << "\n";
+    // std::cout << text::simple_grid(true)(t) << "\n";
+    //
+    // std::cout << "simple_frame:\n";
+    // std::cout << text::simple_frame(false)(t) << "\n";
+    // std::cout << text::simple_frame(true)(t) << "\n";
+    //
+    // std::cout << "extended_grid:\n";
+    // std::cout << text::extended_grid(false)(t) << "\n";
+    // std::cout << text::extended_grid(true)(t) << "\n";
+    //
+    // std::cout << "extended_frame:\n";
+    // std::cout << text::extended_frame(false)(t) << "\n";
+    // std::cout << text::extended_frame(true)(t) << "\n";
+    //
+    // std::cout << "double_grid:\n";
+    // std::cout << text::double_grid(false)(t) << "\n";
+    // std::cout << text::double_grid(true)(t) << "\n";
+    //
+    // std::cout << "double_frame:\n";
+    // std::cout << text::double_frame(false)(t) << "\n";
+    // std::cout << text::double_frame(true)(t) << "\n";
 }

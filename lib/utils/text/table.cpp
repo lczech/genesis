@@ -362,7 +362,7 @@ std::ostream& operator << (std::ostream& out, Layout::Binder const& binder)
  *
  *     Table t;
  *     // Fill t.
- *     std::cout << simple_frame(true)(t);
+ *     std::cout << simple_layout(true)(t);
  *
  * This function is thus a handy shortcut to avoid using the Table write functions directly.
  */
@@ -375,13 +375,13 @@ Layout::Binder Layout::operator () ( Table const& table )
 //     Default Layouts
 // ---------------------------------------------------------------------
 
-Layout minimal_frame()
+Layout minimal_layout()
 {
     // Layout already has minimal settings (just a space as separator, nothing else).
     return Layout();
 }
 
-Layout simple_frame( bool wide )
+Layout simple_layout( bool wide )
 {
     auto f = Layout();
 
@@ -400,7 +400,26 @@ Layout simple_frame( bool wide )
     return f;
 }
 
-Layout full_frame( bool wide )
+Layout simple_grid( bool wide )
+{
+    auto f = Layout();
+
+    f.header.left_border  = (wide ? " " : "");
+    f.header.separator    = (wide ? " | " : "|");
+    f.header.right_border = (wide ? " " : "");
+
+    f.separator.enabled      = true;
+    f.separator.left_border  = (wide ? "-" : "");
+    f.separator.filler       = "-";
+    f.separator.separator    = (wide ? "-+-" : "+");
+    f.separator.right_border = (wide ? "-" : "");
+
+    f.row       = f.header;
+
+    return f;
+}
+
+Layout simple_frame( bool wide )
 {
     auto f = Layout();
 
@@ -417,6 +436,25 @@ Layout full_frame( bool wide )
     f.separator = f.top;
     f.row       = f.header;
     f.bottom    = f.top;
+
+    return f;
+}
+
+Layout extended_grid( bool wide )
+{
+    auto f = Layout();
+
+    f.header.left_border  = (wide ? " " : "");
+    f.header.separator    = (wide ? " │ " : "│");
+    f.header.right_border = (wide ? " " : "");
+
+    f.separator.enabled      = true;
+    f.separator.left_border  = (wide ? "─" : "");
+    f.separator.filler       = "─";
+    f.separator.separator    = (wide ? "─┼─" : "┼");
+    f.separator.right_border = (wide ? "─" : "");
+
+    f.row = f.header;
 
     return f;
 }
@@ -448,6 +486,25 @@ Layout extended_frame( bool wide )
     f.bottom.filler       = "─";
     f.bottom.separator    = (wide ? "─┴─" : "┴");
     f.bottom.right_border = (wide ? "─┘" : "┘");
+
+    return f;
+}
+
+Layout double_grid( bool wide )
+{
+    auto f = Layout();
+
+    f.header.left_border  = (wide ? " " : "");
+    f.header.separator    = (wide ? " ║ " : "║");
+    f.header.right_border = (wide ? " " : "");
+
+    f.separator.enabled      = true;
+    f.separator.left_border  = (wide ? "═" : "");
+    f.separator.filler       = "═";
+    f.separator.separator    = (wide ? "═╬═" : "╬");
+    f.separator.right_border = (wide ? "═" : "");
+
+    f.row = f.header;
 
     return f;
 }

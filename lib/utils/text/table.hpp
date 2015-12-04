@@ -279,11 +279,17 @@ struct Layout
 //     Default Table Layouts
 // ---------------------------------------------------------------------
 
-Layout minimal_frame();
-Layout simple_frame( bool wide = true );
-Layout full_frame( bool wide = true );
+Layout minimal_layout();
+
+Layout simple_layout(  bool wide = true );
+Layout simple_grid(    bool wide = true );
+Layout simple_frame(   bool wide = true );
+
+Layout extended_grid(  bool wide = true );
 Layout extended_frame( bool wide = true );
-Layout double_frame( bool wide = true );
+
+Layout double_grid(    bool wide = true );
+Layout double_frame(   bool wide = true );
 
 } // namespace text
 } // namespace genesis
