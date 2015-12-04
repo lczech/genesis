@@ -42,35 +42,20 @@ std::string replace_all (
     const std::string& replace
 );
 
-/**
- * @brief Returns a copy of the input string, with left trimmed white spaces.
- */
-inline std::string trim_right (
+std::string trim_right (
     const std::string& s,
     const std::string& delimiters = " \f\n\r\t\v"
-) {
-    return s.substr(0, s.find_last_not_of(delimiters) + 1);
-}
+);
 
-/**
- * @brief Returns a copy of the input string, with right trimmed white spaces.
- */
-inline std::string trim_left (
+std::string trim_left (
     const std::string& s,
     const std::string& delimiters = " \f\n\r\t\v"
-) {
-    return s.substr(s.find_first_not_of(delimiters));
-}
+);
 
-/**
- * @brief Returns a copy of the input string, with trimmed white spaces.
- */
-inline std::string trim (
+std::string trim (
     const std::string& s,
     const std::string& delimiters = " \f\n\r\t\v"
-) {
-    return trim_left(trim_right(s, delimiters), delimiters);
-}
+);
 
 // =================================================================================================
 //     Normalize
