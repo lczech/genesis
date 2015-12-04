@@ -129,10 +129,10 @@ void Table::write( std::ostream& out ) const
     }
 }
 
-void Table::write( std::ostream& out, Frame const& frame ) const
+void Table::write( std::ostream& out, Layout const& layout ) const
 {
-    // Take a Frame Line and print it according to the table data.
-    auto write_line = [&] (Frame::Line const& line) {
+    // Take a Layout Line and print it according to the table data.
+    auto write_line = [&] (Layout::Line const& line) {
         if( line.enabled ) {
             out << line.left_border;
             for( size_t ci = 0; ci < columns_.size(); ++ci ) {
@@ -149,35 +149,35 @@ void Table::write( std::ostream& out, Frame const& frame ) const
     };
 
     // Write line above header.
-    write_line(frame.top);
+    write_line(layout.top);
 
     // Write labels.
-    out << frame.header.left_border;
+    out << layout.header.left_border;
     for( size_t ci = 0; ci < columns_.size(); ++ci ) {
         columns_[ci].write_label(out);
         if( ci < columns_.size() - 1 ) {
-            out << frame.header.separator;
+            out << layout.header.separator;
         }
     }
-    out << frame.header.right_border << "\n";
+    out << layout.header.right_border << "\n";
 
     // Write line between header and content.
-    write_line(frame.separator);
+    write_line(layout.separator);
 
     // Write data.
     for( size_t i = 0; i < length(); ++i ) {
-        out << frame.row.left_border;
+        out << layout.row.left_border;
         for( size_t ci = 0; ci < columns_.size(); ++ci ) {
             columns_[ci].write_row(out, i);
             if( ci < columns_.size() - 1 ) {
-                out << frame.row.separator;
+                out << layout.row.separator;
             }
         }
-        out << frame.row.right_border << "\n";
+        out << layout.row.right_border << "\n";
     }
 
     // Write line below content.
-    write_line(frame.bottom);
+    write_line(layout.bottom);
 }
 
 std::string Table::to_string() const
@@ -187,10 +187,10 @@ std::string Table::to_string() const
     return ss.str();
 }
 
-std::string Table::to_string( Frame const& frame ) const
+std::string Table::to_string( Layout const& layout ) const
 {
     std::stringstream ss;
-    write(ss, frame);
+    write(ss, layout);
     return ss.str();
 }
 
@@ -334,31 +334,31 @@ void Table::Column::write( std::ostream& stream, std::string text ) const
 }
 
 // =================================================================================================
-//     Table Frame
+//     Table Layout
 // =================================================================================================
 
 // ---------------------------------------------------------------------
 //     Binding
 // ---------------------------------------------------------------------
 
-std::ostream& operator << (std::ostream& out, Frame::Binder const& binder)
+std::ostream& operator << (std::ostream& out, Layout::Binder const& binder)
 {
-    binder.table.write(out, binder.frame);
+    binder.table.write(out, binder.layout);
     return out;
 }
 
 /**
- * @brief Functional operator that allows to bind a Frame to a Table so that they can be used
+ * @brief Functional operator that allows to bind a Layout to a Table so that they can be used
  * in one ostream command.
  *
- * Using this function makes outputting a Table to some stream easier when using frames:
+ * Using this function makes outputting a Table to some stream easier when using layouts:
  *
  *     Table t;
- *     Frame f;
+ *     Layout f;
  *     // Fill t and set f.
  *     std::cout << f(t);
  *
- * or even simpler, create a Frame from one of the predefined settings on the fly:
+ * or even simpler, create a Layout from one of the predefined settings on the fly:
  *
  *     Table t;
  *     // Fill t.
@@ -366,24 +366,24 @@ std::ostream& operator << (std::ostream& out, Frame::Binder const& binder)
  *
  * This function is thus a handy shortcut to avoid using the Table write functions directly.
  */
-Frame::Binder Frame::operator () ( Table const& table )
+Layout::Binder Layout::operator () ( Table const& table )
 {
     return Binder(*this, table);
 }
 
 // ---------------------------------------------------------------------
-//     Default Frames
+//     Default Layouts
 // ---------------------------------------------------------------------
 
-Frame minimal_frame()
+Layout minimal_frame()
 {
-    // Frame already has minimal settings (just a space as separator, nothing else).
-    return Frame();
+    // Layout already has minimal settings (just a space as separator, nothing else).
+    return Layout();
 }
 
-Frame simple_frame( bool wide )
+Layout simple_frame( bool wide )
 {
-    auto f = Frame();
+    auto f = Layout();
 
     f.header.left_border  = (wide ? " " : "");
     f.header.separator    = (wide ? "   " : " ");
@@ -400,9 +400,9 @@ Frame simple_frame( bool wide )
     return f;
 }
 
-Frame full_frame( bool wide )
+Layout full_frame( bool wide )
 {
-    auto f = Frame();
+    auto f = Layout();
 
     f.top.enabled      = true;
     f.top.left_border  = (wide ? "+-" : "+");
@@ -421,9 +421,9 @@ Frame full_frame( bool wide )
     return f;
 }
 
-Frame extended_frame( bool wide )
+Layout extended_frame( bool wide )
 {
-    auto f = Frame();
+    auto f = Layout();
 
     f.top.enabled      = true;
     f.top.left_border  = (wide ? "┌─" : "┌");
@@ -452,9 +452,9 @@ Frame extended_frame( bool wide )
     return f;
 }
 
-Frame double_frame( bool wide )
+Layout double_frame( bool wide )
 {
-    auto f = Frame();
+    auto f = Layout();
 
     f.top.enabled      = true;
     f.top.left_border  = (wide ? "╔═" : "╔");

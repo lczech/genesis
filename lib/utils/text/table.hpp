@@ -19,7 +19,7 @@ namespace text {
 //     Forward Declarations
 // =================================================================================================
 
-struct Frame;
+struct Layout;
 
 // =================================================================================================
 //     Text Table
@@ -81,10 +81,10 @@ public:
     // ---------------------------------------------------------------------
 
     void write( std::ostream& out ) const;
-    void write( std::ostream& out, Frame const& frame ) const;
+    void write( std::ostream& out, Layout const& layout ) const;
 
     std::string to_string() const;
-    std::string to_string( Frame const& frame ) const;
+    std::string to_string( Layout const& layout ) const;
 
     friend std::ostream& operator << (std::ostream& out, Table const& table);
 
@@ -204,17 +204,17 @@ private:
 };
 
 // =================================================================================================
-//     Table Frame
+//     Table Layout
 // =================================================================================================
 
-struct Frame
+struct Layout
 {
     // ---------------------------------------------------------------------
     //     Member Types
     // ---------------------------------------------------------------------
 
     /**
-     * @brief One line of the Frame.
+     * @brief One line of the Layout.
      *
      * This struct has different roles depending on the kind of line:
      *
@@ -238,20 +238,20 @@ struct Frame
     };
 
     /**
-     * @brief Helper struct to bind a frame to a table.
+     * @brief Helper struct to bind a layout to a table.
      *
      * An std::stream can only take one argument at a time. This Binder servers as a single
-     * argument that internally provides both a frame and a table. The `operator<<` of Binder is
-     * overloaded so that the table is outputted to the stream with the frame.
+     * argument that internally provides both a layout and a table. The `operator<<` of Binder is
+     * overloaded so that the table is outputted to the stream with the layout.
      */
     struct Binder
     {
-        Binder(Frame const& f, Table const& t)
-            : frame(f)
+        Binder(Layout const& l, Table const& t)
+            : layout(l)
             , table(t)
         {}
 
-        Frame const& frame;
+        Layout const& layout;
         Table const& table;
 
         friend std::ostream& operator << (std::ostream& out, Binder const& binder);
@@ -276,14 +276,14 @@ struct Frame
 };
 
 // ---------------------------------------------------------------------
-//     Default Frames
+//     Default Table Layouts
 // ---------------------------------------------------------------------
 
-Frame minimal_frame();
-Frame simple_frame( bool wide = true );
-Frame full_frame( bool wide = true );
-Frame extended_frame( bool wide = true );
-Frame double_frame( bool wide = true );
+Layout minimal_frame();
+Layout simple_frame( bool wide = true );
+Layout full_frame( bool wide = true );
+Layout extended_frame( bool wide = true );
+Layout double_frame( bool wide = true );
 
 } // namespace text
 } // namespace genesis

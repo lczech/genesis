@@ -42,15 +42,15 @@ TEST(String, Table)
     t << "something" << "" << "end.";
 
     // Disabled, because it spams the test output.
-    // std::cout << t << "\n";
-    // std::cout << text::minimal_frame()(t) << "\n";
-    // std::cout << text::simple_frame(false)(t) << "\n";
-    // std::cout << text::simple_frame(true)(t) << "\n";
-    // std::cout << text::full_frame(false)(t) << "\n";
-    // std::cout << text::full_frame(true)(t) << "\n";
-    //
-    // std::cout << text::extended_frame(false)(t) << "\n";
-    // std::cout << text::extended_frame(true)(t) << "\n";
-    // std::cout << text::double_frame(false)(t) << "\n";
-    // std::cout << text::double_frame(true)(t) << "\n";
+    std::cout << t << "\n";
+    std::cout << text::minimal_frame()(t) << "\n";
+    std::cout << text::simple_frame(false)(t) << "\n";
+    std::cout << text::simple_frame(true)(t) << "\n";
+    std::cout << text::full_frame(false)(t) << "\n";
+    std::cout << text::full_frame(true)(t) << "\n";
+    
+    std::cout << text::extended_frame(false)(t) << "\n";
+    std::cout << text::extended_frame(true)(t) << "\n";
+    std::cout << text::double_frame(false)(t) << "\n";
+    std::cout << text::double_frame(true)(t) << "\n";
 }
