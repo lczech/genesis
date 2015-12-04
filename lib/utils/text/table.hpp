@@ -16,6 +16,12 @@ namespace genesis {
 namespace text {
 
 // =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+struct Frame;
+
+// =================================================================================================
 //     Text Table
 // =================================================================================================
 
@@ -74,7 +80,13 @@ public:
     //     Output
     // ---------------------------------------------------------------------
 
-    void write( std::ostream& stream ) const;
+    void write( std::ostream& out ) const;
+    void write( std::ostream& out, Frame const& frame ) const;
+
+    std::string to_string() const;
+    std::string to_string( Frame const& frame ) const;
+
+    friend std::ostream& operator << (std::ostream& out, Table const& table);
 
     // ---------------------------------------------------------------------
     //     Data members
@@ -82,14 +94,13 @@ public:
 
 private:
 
-    size_t current_col_;
-
+    size_t current_col_ = 0;
     std::vector<Column> columns_;
 
 };
 
 // =================================================================================================
-//     Text Column
+//     Table Column
 // =================================================================================================
 
 class Table::Column
@@ -118,6 +129,7 @@ public:
     explicit Column( std::string label, Justification justify = Justification::kLeft )
         : label_( label )
         , just_(  justify )
+        , width_( label.size() )
     {}
 
     ~Column() = default;
@@ -190,6 +202,88 @@ private:
     std::vector<std::string> data_;
 
 };
+
+// =================================================================================================
+//     Table Frame
+// =================================================================================================
+
+struct Frame
+{
+    // ---------------------------------------------------------------------
+    //     Member Types
+    // ---------------------------------------------------------------------
+
+    /**
+     * @brief One line of the Frame.
+     *
+     * This struct has different roles depending on the kind of line:
+     *
+     *   * For lines separating parts of the Table (above the header, between header and content,
+     *     and below the content), the attribute `enabled` is used when writing to determine
+     *     whether to write this line at all. Also, the `filler` is used to fill the width of the
+     *     columns.
+     *   * For the header line and all content lines, the `enabled` attribute is ignored (as those
+     *     lines always need to be written). The `filler` is also ignored, because instead of it
+     *     the actual text is written.
+     * %
+     */
+    struct Line
+    {
+        bool        enabled      = false;
+
+        std::string left_border  = "";
+        std::string filler       = "";
+        std::string separator    = " ";
+        std::string right_border = "";
+    };
+
+    /**
+     * @brief Helper struct to bind a frame to a table.
+     *
+     * An std::stream can only take one argument at a time. This Binder servers as a single
+     * argument that internally provides both a frame and a table. The `operator<<` of Binder is
+     * overloaded so that the table is outputted to the stream with the frame.
+     */
+    struct Binder
+    {
+        Binder(Frame const& f, Table const& t)
+            : frame(f)
+            , table(t)
+        {}
+
+        Frame const& frame;
+        Table const& table;
+
+        friend std::ostream& operator << (std::ostream& out, Binder const& binder);
+    };
+
+    // ---------------------------------------------------------------------
+    //     Operators
+    // ---------------------------------------------------------------------
+
+    Binder operator () ( Table const& table );
+
+    // ---------------------------------------------------------------------
+    //     Data Members
+    // ---------------------------------------------------------------------
+
+    Line top;
+    Line header;
+    Line separator;
+    Line row;
+    Line bottom;
+
+};
+
+// ---------------------------------------------------------------------
+//     Default Frames
+// ---------------------------------------------------------------------
+
+Frame minimal_frame();
+Frame simple_frame( bool wide = true );
+Frame full_frame( bool wide = true );
+Frame extended_frame( bool wide = true );
+Frame double_frame( bool wide = true );
 
 } // namespace text
 } // namespace genesis

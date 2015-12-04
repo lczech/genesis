@@ -29,6 +29,8 @@ TEST(String, Split)
 
 TEST(String, Table)
 {
+    // Not sure yet how to test all this automatically...
+
     auto t = text::Table();
     t.add_column("TEST").justify(genesis::text::Table::Column::Justification::kRight);
     t.add_column("ME").justify(genesis::text::Table::Column::Justification::kCentered);
@@ -39,5 +41,16 @@ TEST(String, Table)
     t << "time" << "again?" << "yes";
     t << "something" << "" << "end.";
 
-    t.write( std::cout );
+    // Disabled, because it spams the test output.
+    // std::cout << t << "\n";
+    // std::cout << text::minimal_frame()(t) << "\n";
+    // std::cout << text::simple_frame(false)(t) << "\n";
+    // std::cout << text::simple_frame(true)(t) << "\n";
+    // std::cout << text::full_frame(false)(t) << "\n";
+    // std::cout << text::full_frame(true)(t) << "\n";
+    //
+    // std::cout << text::extended_frame(false)(t) << "\n";
+    // std::cout << text::extended_frame(true)(t) << "\n";
+    // std::cout << text::double_frame(false)(t) << "\n";
+    // std::cout << text::double_frame(true)(t) << "\n";
 }

@@ -110,27 +110,98 @@ Table& Table::append ( std::string value )
 //     Output
 // ---------------------------------------------------------------------
 
-void Table::write( std::ostream& stream ) const
+void Table::write( std::ostream& out ) const
 {
     // Write labels.
     for( auto const& c : columns_ ) {
-        c.write_label(stream);
-        stream << " ";
+        c.write_label(out);
+        out << " ";
     }
-    stream << "\n";
+    out << "\n";
 
     // Write data.
     for( size_t i = 0; i < length(); ++i ) {
         for( auto const& c : columns_ ) {
-            c.write_row(stream, i);
-            stream << " ";
+            c.write_row(out, i);
+            out << " ";
         }
-        stream << "\n";
+        out << "\n";
     }
 }
 
+void Table::write( std::ostream& out, Frame const& frame ) const
+{
+    // Take a Frame Line and print it according to the table data.
+    auto write_line = [&] (Frame::Line const& line) {
+        if( line.enabled ) {
+            out << line.left_border;
+            for( size_t ci = 0; ci < columns_.size(); ++ci ) {
+                // out << std::string( columns_[ci].width(), line.filler );
+                for( size_t i = 0; i < columns_[ci].width(); ++i ) {
+                    out << line.filler;
+                }
+                if( ci < columns_.size() - 1 ) {
+                    out << line.separator;
+                }
+            }
+            out << line.right_border << "\n";
+        }
+    };
+
+    // Write line above header.
+    write_line(frame.top);
+
+    // Write labels.
+    out << frame.header.left_border;
+    for( size_t ci = 0; ci < columns_.size(); ++ci ) {
+        columns_[ci].write_label(out);
+        if( ci < columns_.size() - 1 ) {
+            out << frame.header.separator;
+        }
+    }
+    out << frame.header.right_border << "\n";
+
+    // Write line between header and content.
+    write_line(frame.separator);
+
+    // Write data.
+    for( size_t i = 0; i < length(); ++i ) {
+        out << frame.row.left_border;
+        for( size_t ci = 0; ci < columns_.size(); ++ci ) {
+            columns_[ci].write_row(out, i);
+            if( ci < columns_.size() - 1 ) {
+                out << frame.row.separator;
+            }
+        }
+        out << frame.row.right_border << "\n";
+    }
+
+    // Write line below content.
+    write_line(frame.bottom);
+}
+
+std::string Table::to_string() const
+{
+    std::stringstream ss;
+    write(ss);
+    return ss.str();
+}
+
+std::string Table::to_string( Frame const& frame ) const
+{
+    std::stringstream ss;
+    write(ss, frame);
+    return ss.str();
+}
+
+std::ostream& operator << (std::ostream& out, Table const& table)
+{
+    table.write(out);
+    return out;
+}
+
 // =================================================================================================
-//     Text Column
+//     Table Column
 // =================================================================================================
 
 // ---------------------------------------------------------------------
@@ -139,7 +210,6 @@ void Table::write( std::ostream& stream ) const
 
 void Table::Column::label( std::string value )
 {
-    value = trim(value);
     width_ = std::max( width_, value.size() );
     label_ = value;
 }
@@ -162,9 +232,9 @@ Table::Column::Justification Table::Column::justify() const
 /**
  * @brief Set the width of this column.
  *
- * If the new value is smaller than the current one, nothing happens. The width can only grow, or be
- * set to the minimal possible value using shrink_width(). This ensures that all text fits within
- * the column.
+ * If the new value is smaller than the current one, nothing happens. The width can only grow, or
+ * be set to the minimal possible value using shrink_width(). This ensures that all text fits
+ * within the column.
  */
 void Table::Column::width( size_t value )
 {
@@ -222,7 +292,6 @@ void Table::Column::clear_content()
 
 void Table::Column::append( std::string value )
 {
-    value = trim(value);
     width_ = std::max( width_, value.size() );
     data_.push_back(value);
 }
@@ -262,6 +331,156 @@ void Table::Column::write( std::ostream& stream, std::string text ) const
     ss << ( just_ == Justification::kRight ? std::right : std::left );
     ss << text;
     stream << ss.str();
+}
+
+// =================================================================================================
+//     Table Frame
+// =================================================================================================
+
+// ---------------------------------------------------------------------
+//     Binding
+// ---------------------------------------------------------------------
+
+std::ostream& operator << (std::ostream& out, Frame::Binder const& binder)
+{
+    binder.table.write(out, binder.frame);
+    return out;
+}
+
+/**
+ * @brief Functional operator that allows to bind a Frame to a Table so that they can be used
+ * in one ostream command.
+ *
+ * Using this function makes outputting a Table to some stream easier when using frames:
+ *
+ *     Table t;
+ *     Frame f;
+ *     // Fill t and set f.
+ *     std::cout << f(t);
+ *
+ * or even simpler, create a Frame from one of the predefined settings on the fly:
+ *
+ *     Table t;
+ *     // Fill t.
+ *     std::cout << simple_frame(true)(t);
+ *
+ * This function is thus a handy shortcut to avoid using the Table write functions directly.
+ */
+Frame::Binder Frame::operator () ( Table const& table )
+{
+    return Binder(*this, table);
+}
+
+// ---------------------------------------------------------------------
+//     Default Frames
+// ---------------------------------------------------------------------
+
+Frame minimal_frame()
+{
+    // Frame already has minimal settings (just a space as separator, nothing else).
+    return Frame();
+}
+
+Frame simple_frame( bool wide )
+{
+    auto f = Frame();
+
+    f.header.left_border  = (wide ? " " : "");
+    f.header.separator    = (wide ? "   " : " ");
+    f.header.right_border = (wide ? " " : "");
+
+    f.separator.enabled      = true;
+    f.separator.left_border  = (wide ? "-" : "");
+    f.separator.filler       = "-";
+    f.separator.separator    = (wide ? "- -" : " ");
+    f.separator.right_border = (wide ? "-" : "");
+
+    f.row = f.header;
+
+    return f;
+}
+
+Frame full_frame( bool wide )
+{
+    auto f = Frame();
+
+    f.top.enabled      = true;
+    f.top.left_border  = (wide ? "+-" : "+");
+    f.top.filler       = "-";
+    f.top.separator    = (wide ? "-+-" : "+");
+    f.top.right_border = (wide ? "-+" : "+");
+
+    f.header.left_border  = (wide ? "| " : "|");
+    f.header.separator    = (wide ? " | " : "|");
+    f.header.right_border = (wide ? " |" : "|");
+
+    f.separator = f.top;
+    f.row       = f.header;
+    f.bottom    = f.top;
+
+    return f;
+}
+
+Frame extended_frame( bool wide )
+{
+    auto f = Frame();
+
+    f.top.enabled      = true;
+    f.top.left_border  = (wide ? "┌─" : "┌");
+    f.top.filler       = "─";
+    f.top.separator    = (wide ? "─┬─" : "┬");
+    f.top.right_border = (wide ? "─┐" : "┐");
+
+    f.header.left_border  = (wide ? "│ " : "│");
+    f.header.separator    = (wide ? " │ " : "│");
+    f.header.right_border = (wide ? " │" : "│");
+
+    f.separator.enabled      = true;
+    f.separator.left_border  = (wide ? "├─" : "├");
+    f.separator.filler       = "─";
+    f.separator.separator    = (wide ? "─┼─" : "┼");
+    f.separator.right_border = (wide ? "─┤" : "┤");
+
+    f.row = f.header;
+
+    f.bottom.enabled      = true;
+    f.bottom.left_border  = (wide ? "└─" : "└");
+    f.bottom.filler       = "─";
+    f.bottom.separator    = (wide ? "─┴─" : "┴");
+    f.bottom.right_border = (wide ? "─┘" : "┘");
+
+    return f;
+}
+
+Frame double_frame( bool wide )
+{
+    auto f = Frame();
+
+    f.top.enabled      = true;
+    f.top.left_border  = (wide ? "╔═" : "╔");
+    f.top.filler       = "═";
+    f.top.separator    = (wide ? "═╦═" : "╦");
+    f.top.right_border = (wide ? "═╗" : "╗");
+
+    f.header.left_border  = (wide ? "║ " : "║");
+    f.header.separator    = (wide ? " ║ " : "║");
+    f.header.right_border = (wide ? " ║" : "║");
+
+    f.separator.enabled      = true;
+    f.separator.left_border  = (wide ? "╠═" : "╠");
+    f.separator.filler       = "═";
+    f.separator.separator    = (wide ? "═╬═" : "╬");
+    f.separator.right_border = (wide ? "═╣" : "╣");
+
+    f.row = f.header;
+
+    f.bottom.enabled      = true;
+    f.bottom.left_border  = (wide ? "╚═" : "╚");
+    f.bottom.filler       = "═";
+    f.bottom.separator    = (wide ? "═╩═" : "╩");
+    f.bottom.right_border = (wide ? "═╝" : "╝");
+
+    return f;
 }
 
 } // namespace text
