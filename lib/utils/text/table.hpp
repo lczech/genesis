@@ -281,15 +281,15 @@ struct Layout
 
 Layout minimal_layout();
 
-Layout simple_layout(  bool wide = true );
-Layout simple_grid(    bool wide = true );
-Layout simple_frame(   bool wide = true );
+Layout simple_layout(  bool condensed = false );
+Layout simple_grid(    bool condensed = false );
+Layout simple_frame(   bool condensed = false );
 
-Layout extended_grid(  bool wide = true );
-Layout extended_frame( bool wide = true );
+Layout extended_grid(  bool condensed = false );
+Layout extended_frame( bool condensed = false );
 
-Layout double_grid(    bool wide = true );
-Layout double_frame(   bool wide = true );
+Layout double_grid(    bool condensed = false );
+Layout double_frame(   bool condensed = false );
 
 } // namespace text
 } // namespace genesis

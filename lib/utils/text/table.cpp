@@ -381,57 +381,57 @@ Layout minimal_layout()
     return Layout();
 }
 
-Layout simple_layout( bool wide )
+Layout simple_layout( bool condensed )
 {
     auto f = Layout();
 
-    f.header.left_border  = (wide ? " " : "");
-    f.header.separator    = (wide ? "   " : " ");
-    f.header.right_border = (wide ? " " : "");
+    f.header.left_border  = (condensed ? "" : " ");
+    f.header.separator    = (condensed ? " " : "   ");
+    f.header.right_border = (condensed ? "" : " ");
 
     f.separator.enabled      = true;
-    f.separator.left_border  = (wide ? "-" : "");
+    f.separator.left_border  = (condensed ? "" : "-");
     f.separator.filler       = "-";
-    f.separator.separator    = (wide ? "- -" : " ");
-    f.separator.right_border = (wide ? "-" : "");
+    f.separator.separator    = (condensed ? " " : "- -");
+    f.separator.right_border = (condensed ? "" : "-");
 
     f.row = f.header;
 
     return f;
 }
 
-Layout simple_grid( bool wide )
+Layout simple_grid( bool condensed )
 {
     auto f = Layout();
 
-    f.header.left_border  = (wide ? " " : "");
-    f.header.separator    = (wide ? " | " : "|");
-    f.header.right_border = (wide ? " " : "");
+    f.header.left_border  = (condensed ? "" : " ");
+    f.header.separator    = (condensed ? "|" : " | ");
+    f.header.right_border = (condensed ? "" : " ");
 
     f.separator.enabled      = true;
-    f.separator.left_border  = (wide ? "-" : "");
+    f.separator.left_border  = (condensed ? "" : "-");
     f.separator.filler       = "-";
-    f.separator.separator    = (wide ? "-+-" : "+");
-    f.separator.right_border = (wide ? "-" : "");
+    f.separator.separator    = (condensed ? "+" : "-+-");
+    f.separator.right_border = (condensed ? "" : "-");
 
     f.row       = f.header;
 
     return f;
 }
 
-Layout simple_frame( bool wide )
+Layout simple_frame( bool condensed )
 {
     auto f = Layout();
 
     f.top.enabled      = true;
-    f.top.left_border  = (wide ? "+-" : "+");
+    f.top.left_border  = (condensed ? "+" : "+-");
     f.top.filler       = "-";
-    f.top.separator    = (wide ? "-+-" : "+");
-    f.top.right_border = (wide ? "-+" : "+");
+    f.top.separator    = (condensed ? "+" : "-+-");
+    f.top.right_border = (condensed ? "+" : "-+");
 
-    f.header.left_border  = (wide ? "| " : "|");
-    f.header.separator    = (wide ? " | " : "|");
-    f.header.right_border = (wide ? " |" : "|");
+    f.header.left_border  = (condensed ? "|" : "| ");
+    f.header.separator    = (condensed ? "|" : " | ");
+    f.header.right_border = (condensed ? "|" : " |");
 
     f.separator = f.top;
     f.row       = f.header;
@@ -440,102 +440,102 @@ Layout simple_frame( bool wide )
     return f;
 }
 
-Layout extended_grid( bool wide )
+Layout extended_grid( bool condensed )
 {
     auto f = Layout();
 
-    f.header.left_border  = (wide ? " " : "");
-    f.header.separator    = (wide ? " │ " : "│");
-    f.header.right_border = (wide ? " " : "");
+    f.header.left_border  = (condensed ? "" : " ");
+    f.header.separator    = (condensed ? "│" : " │ ");
+    f.header.right_border = (condensed ? "" : " ");
 
     f.separator.enabled      = true;
-    f.separator.left_border  = (wide ? "─" : "");
+    f.separator.left_border  = (condensed ? "" : "─");
     f.separator.filler       = "─";
-    f.separator.separator    = (wide ? "─┼─" : "┼");
-    f.separator.right_border = (wide ? "─" : "");
+    f.separator.separator    = (condensed ? "┼" : "─┼─");
+    f.separator.right_border = (condensed ? "" : "─");
 
     f.row = f.header;
 
     return f;
 }
 
-Layout extended_frame( bool wide )
+Layout extended_frame( bool condensed )
 {
     auto f = Layout();
 
     f.top.enabled      = true;
-    f.top.left_border  = (wide ? "┌─" : "┌");
+    f.top.left_border  = (condensed ? "┌" : "┌─");
     f.top.filler       = "─";
-    f.top.separator    = (wide ? "─┬─" : "┬");
-    f.top.right_border = (wide ? "─┐" : "┐");
+    f.top.separator    = (condensed ? "┬" : "─┬─");
+    f.top.right_border = (condensed ? "┐" : "─┐");
 
-    f.header.left_border  = (wide ? "│ " : "│");
-    f.header.separator    = (wide ? " │ " : "│");
-    f.header.right_border = (wide ? " │" : "│");
+    f.header.left_border  = (condensed ? "│" : "│ ");
+    f.header.separator    = (condensed ? "│" : " │ ");
+    f.header.right_border = (condensed ? "│" : " │");
 
     f.separator.enabled      = true;
-    f.separator.left_border  = (wide ? "├─" : "├");
+    f.separator.left_border  = (condensed ? "├" : "├─");
     f.separator.filler       = "─";
-    f.separator.separator    = (wide ? "─┼─" : "┼");
-    f.separator.right_border = (wide ? "─┤" : "┤");
+    f.separator.separator    = (condensed ? "┼" : "─┼─");
+    f.separator.right_border = (condensed ? "┤" : "─┤");
 
     f.row = f.header;
 
     f.bottom.enabled      = true;
-    f.bottom.left_border  = (wide ? "└─" : "└");
+    f.bottom.left_border  = (condensed ? "└" : "└─");
     f.bottom.filler       = "─";
-    f.bottom.separator    = (wide ? "─┴─" : "┴");
-    f.bottom.right_border = (wide ? "─┘" : "┘");
+    f.bottom.separator    = (condensed ? "┴" : "─┴─");
+    f.bottom.right_border = (condensed ? "┘" : "─┘");
 
     return f;
 }
 
-Layout double_grid( bool wide )
+Layout double_grid( bool condensed )
 {
     auto f = Layout();
 
-    f.header.left_border  = (wide ? " " : "");
-    f.header.separator    = (wide ? " ║ " : "║");
-    f.header.right_border = (wide ? " " : "");
+    f.header.left_border  = (condensed ? "" : " ");
+    f.header.separator    = (condensed ? "║" : " ║ ");
+    f.header.right_border = (condensed ? "" : " ");
 
     f.separator.enabled      = true;
-    f.separator.left_border  = (wide ? "═" : "");
+    f.separator.left_border  = (condensed ? "" : "═");
     f.separator.filler       = "═";
-    f.separator.separator    = (wide ? "═╬═" : "╬");
-    f.separator.right_border = (wide ? "═" : "");
+    f.separator.separator    = (condensed ? "╬" : "═╬═");
+    f.separator.right_border = (condensed ? "" : "═");
 
     f.row = f.header;
 
     return f;
 }
 
-Layout double_frame( bool wide )
+Layout double_frame( bool condensed )
 {
     auto f = Layout();
 
     f.top.enabled      = true;
-    f.top.left_border  = (wide ? "╔═" : "╔");
+    f.top.left_border  = (condensed ? "╔" : "╔═");
     f.top.filler       = "═";
-    f.top.separator    = (wide ? "═╦═" : "╦");
-    f.top.right_border = (wide ? "═╗" : "╗");
+    f.top.separator    = (condensed ? "╦" : "═╦═");
+    f.top.right_border = (condensed ? "╗" : "═╗");
 
-    f.header.left_border  = (wide ? "║ " : "║");
-    f.header.separator    = (wide ? " ║ " : "║");
-    f.header.right_border = (wide ? " ║" : "║");
+    f.header.left_border  = (condensed ? "║" : "║ ");
+    f.header.separator    = (condensed ? "║" : " ║ ");
+    f.header.right_border = (condensed ? "║" : " ║");
 
     f.separator.enabled      = true;
-    f.separator.left_border  = (wide ? "╠═" : "╠");
+    f.separator.left_border  = (condensed ? "╠" : "╠═");
     f.separator.filler       = "═";
-    f.separator.separator    = (wide ? "═╬═" : "╬");
-    f.separator.right_border = (wide ? "═╣" : "╣");
+    f.separator.separator    = (condensed ? "╬" : "═╬═");
+    f.separator.right_border = (condensed ? "╣" : "═╣");
 
     f.row = f.header;
 
     f.bottom.enabled      = true;
-    f.bottom.left_border  = (wide ? "╚═" : "╚");
+    f.bottom.left_border  = (condensed ? "╚" : "╚═");
     f.bottom.filler       = "═";
-    f.bottom.separator    = (wide ? "═╩═" : "╩");
-    f.bottom.right_border = (wide ? "═╝" : "╝");
+    f.bottom.separator    = (condensed ? "╩" : "═╩═");
+    f.bottom.right_border = (condensed ? "╝" : "═╝");
 
     return f;
 }
