@@ -136,6 +136,46 @@ void replace_all(
 }
 */
 
+/**
+ * @brief Returns a copy of the input string, with left trimmed white spaces.
+ */
+std::string trim_right (
+    const std::string& s,
+    const std::string& delimiters
+) {
+    auto const pos = s.find_last_not_of(delimiters);
+    if( std::string::npos == pos ) {
+        return "";
+    } else {
+        return s.substr( 0, pos + 1 );
+    }
+}
+
+/**
+ * @brief Returns a copy of the input string, with right trimmed white spaces.
+ */
+std::string trim_left (
+    const std::string& s,
+    const std::string& delimiters
+) {
+    auto const pos = s.find_first_not_of(delimiters);
+    if( std::string::npos == pos ) {
+        return "";
+    } else {
+        return s.substr(pos);
+    }
+}
+
+/**
+ * @brief Returns a copy of the input string, with trimmed white spaces.
+ */
+std::string trim (
+    const std::string& s,
+    const std::string& delimiters
+) {
+    return trim_left(trim_right(s, delimiters), delimiters);
+}
+
 // =================================================================================================
 //     Normalize
 // =================================================================================================
