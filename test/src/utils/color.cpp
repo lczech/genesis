@@ -9,6 +9,7 @@
 
 #include "lib/utils/tools/color.hpp"
 #include "lib/utils/tools/color/gradient.hpp"
+#include "lib/utils/tools/color/names.hpp"
 #include "lib/utils/tools/color/operators.hpp"
 
 #include <stdexcept>
@@ -67,4 +68,25 @@ TEST(Color, ToAndFromHex)
     EXPECT_THROW(color_from_hex("abc0123"),  std::invalid_argument);
     EXPECT_THROW(color_from_hex("#0000001"), std::invalid_argument);
     EXPECT_THROW(color_from_hex("#abcdez"),  std::invalid_argument);
+}
+
+TEST( Color, Names )
+{
+    // Find some valid color names.
+    EXPECT_TRUE( is_named_color("Dark Sea Green") );
+    EXPECT_TRUE( is_named_color("ForestGreen") );
+    EXPECT_TRUE( is_named_color("lawn_green") );
+    EXPECT_TRUE( is_named_color("lime green") );
+
+    // And invalid.
+    EXPECT_FALSE( is_named_color("heavy metal") );
+    EXPECT_FALSE( is_named_color("applepie") );
+
+    // Compare some color values.
+    compare_color( Color(199, 21, 133), get_named_color("MediumVioletRed") );
+    compare_color( Color(205, 92, 92), get_named_color("indian red") );
+
+    // Get invalid color.
+    EXPECT_THROW( get_named_color(""), std::out_of_range );
+    EXPECT_THROW( get_named_color("boot polish"), std::out_of_range );
 }

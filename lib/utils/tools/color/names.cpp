@@ -7,10 +7,52 @@
 
 #include "utils/tools/color/names.hpp"
 
+#include "utils/text/string.hpp"
+
+#include <algorithm>
+#include <stdexcept>
+
 namespace genesis {
 
 // =================================================================================================
-//     Color Names
+//     Color Name Functions
+// =================================================================================================
+
+bool is_named_color( std::string name )
+{
+    name = text::replace_all(name, " ", "");
+    name = text::replace_all(name, "_", "");
+
+    return std::find_if(
+        ColorNames::map.begin(),
+        ColorNames::map.end(),
+        [&name] ( std::pair<std::string, Color> const& elem ) {
+            return text::equals_ci( elem.first, name );
+        }
+    ) != ColorNames::map.end();
+}
+
+Color get_named_color( std::string name )
+{
+    name = text::replace_all(name, " ", "");
+    name = text::replace_all(name, "_", "");
+
+    auto it = std::find_if(
+        ColorNames::map.begin(),
+        ColorNames::map.end(),
+        [&name] ( std::pair<std::string, Color> const& elem ) {
+            return text::equals_ci( elem.first, name );
+        }
+    );
+
+    if( it == ColorNames::map.end() ) {
+        throw std::out_of_range("No color named " + name + ".");
+    }
+    return it->second;
+}
+
+// =================================================================================================
+//     Color Name List
 // =================================================================================================
 
 const std::array<std::pair<std::string, Color>, 140> ColorNames::map = {{

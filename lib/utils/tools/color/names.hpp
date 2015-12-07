@@ -25,6 +25,9 @@ struct ColorNames
     static const std::array<std::pair<std::string, Color>, 140> map;
 };
 
+bool is_named_color( std::string name );
+Color get_named_color( std::string name );
+
 } // namespace genesis
 
 #endif // include guard
