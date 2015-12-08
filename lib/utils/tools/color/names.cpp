@@ -18,8 +18,15 @@ namespace genesis {
 //     Color Name Functions
 // =================================================================================================
 
-bool is_named_color( std::string name )
-{
+/**
+ * @brief Internal helper function.
+ *
+ * Returns an iterator into the array if the given name is a named color or an iterator to the end
+ * of the color map if it is not a named color.
+ */
+std::array<std::pair<std::string, Color>, 140>::const_iterator get_named_color_iterator(
+    std::string name
+) {
     name = text::replace_all(name, " ", "");
     name = text::replace_all(name, "_", "");
 
@@ -29,21 +36,28 @@ bool is_named_color( std::string name )
         [&name] ( std::pair<std::string, Color> const& elem ) {
             return text::equals_ci( elem.first, name );
         }
-    ) != ColorNames::map.end();
+    );
 }
 
-Color get_named_color( std::string name )
+/**
+ * @brief Return true iff the given name is a named color.
+ *
+ * Names are filtered so that spaces, underscores and the letter case are ignored.
+ */
+bool is_named_color( std::string const& name )
 {
-    name = text::replace_all(name, " ", "");
-    name = text::replace_all(name, "_", "");
+    return get_named_color_iterator(name) != ColorNames::map.end();
+}
 
-    auto it = std::find_if(
-        ColorNames::map.begin(),
-        ColorNames::map.end(),
-        [&name] ( std::pair<std::string, Color> const& elem ) {
-            return text::equals_ci( elem.first, name );
-        }
-    );
+/**
+ * @brief Retrieve a named color by name.
+ *
+ * Names are filtered so that spaces, underscores and the letter case are ignored.
+ * If the color name does not exist, an `std::out_of_range` exception is thrown.
+ */
+Color get_named_color( std::string const& name )
+{
+    auto it = get_named_color_iterator(name);
 
     if( it == ColorNames::map.end() ) {
         throw std::out_of_range("No color named " + name + ".");
