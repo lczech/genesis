@@ -108,10 +108,10 @@ TEST(Newick, ColorMixin)
     EXPECT_TRUE( ColorTreeNewickProcessor().from_string(input, tree) );
 
     // Create a color vector for all edges that marks edges leading to a leaf node in red.
-    auto color_vector = std::vector<Color>( tree.edge_count() );
+    auto color_vector = std::vector<color::Color>( tree.edge_count() );
     for( auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
         if( (*it)->primary_node()->is_leaf() || (*it)->secondary_node()->is_leaf() ) {
-            color_vector[(*it)->index()] = Color(255, 0, 0);
+            color_vector[(*it)->index()] = color::Color(255, 0, 0);
         }
     }
 
@@ -120,7 +120,7 @@ TEST(Newick, ColorMixin)
     // inner edges.
     auto proc = ColorTreeNewickProcessor();
     proc.edge_colors(color_vector);
-    proc.ignored_color(Color(255, 0, 255));
+    proc.ignored_color(color::Color(255, 0, 255));
     std::string output = proc.to_string(tree);
 
     // Check if we actually got the right number of red color tag comments.

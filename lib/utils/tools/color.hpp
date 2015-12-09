@@ -11,6 +11,7 @@
 #include <string>
 
 namespace genesis {
+namespace color {
 
 // =================================================================================================
 //     Color
@@ -118,6 +119,7 @@ inline bool operator != (Color const& lhs, Color const& rhs)
     return !(lhs == rhs);
 }
 
+} // namespace color
 } // namespace genesis
 
 #endif // include guard

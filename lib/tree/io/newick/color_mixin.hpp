@@ -136,10 +136,10 @@ protected:
 
     void set_color( NewickBrokerElement& element, unsigned char r, unsigned char g, unsigned char b )
     {
-        set_color( element, Color(r, g, b) );
+        set_color( element, color::Color(r, g, b) );
     }
 
-    void set_color( NewickBrokerElement& element, Color color )
+    void set_color( NewickBrokerElement& element, color::Color color )
     {
         if( color != ColorMixin::ignored_color() ) {
             // TODO do not create new element if there is already one!

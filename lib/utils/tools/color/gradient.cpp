@@ -12,6 +12,7 @@
 #include "utils/tools/color/gradient.hpp"
 
 namespace genesis {
+namespace color {
 
 // =================================================================================================
 //     Color Gradients
@@ -45,4 +46,5 @@ unsigned char interpolate (unsigned char d1, unsigned char d2, double fraction)
     return static_cast<unsigned char>(round( fraction * (d2 - d1) + d1 ));
 }
 
+} // namespace color
 } // namespace genesis

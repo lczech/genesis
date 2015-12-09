@@ -12,6 +12,7 @@
 #include <string>
 
 namespace genesis {
+namespace color {
 
 // =================================================================================================
 //     Forward Declarations
@@ -35,6 +36,7 @@ std::string color_to_hex( const Color& c, std::string prefix = "#", bool upperca
 
 std::ostream& operator<< (std::ostream& os, const Color& h);
 
+} // namespace color
 } // namespace genesis
 
 #endif // include guard

@@ -16,14 +16,19 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-class Color;
+namespace color {
+    class Color;
+}
 
 // =================================================================================================
 //     Edge Color Functions
 // =================================================================================================
 
 template<class TreeType>
-std::vector<Color> edge_color_branch_length_gradient(TreeType const& tree, bool zero_based = false);
+std::vector<color::Color> edge_color_branch_length_gradient(
+    TreeType const& tree,
+    bool zero_based = false
+);
 
 } // namespace genesis
 

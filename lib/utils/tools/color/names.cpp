@@ -13,6 +13,7 @@
 #include <stdexcept>
 
 namespace genesis {
+namespace color {
 
 // =================================================================================================
 //     Color Name Functions
@@ -212,4 +213,5 @@ const std::array<std::pair<std::string, Color>, 140> ColorNames::map = {{
     { "YellowGreen", {154, 205, 50} }
 }};
 
+} // namespace color
 } // namespace genesis

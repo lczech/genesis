@@ -11,6 +11,7 @@
 #include "utils/tools/color.hpp"
 
 namespace genesis {
+namespace color {
 
 // =================================================================================================
 //     Color Gradients
@@ -29,6 +30,7 @@ Color interpolate (Color color1, Color color2, double fraction);
 
 unsigned char interpolate (unsigned char d1, unsigned char d2, double fraction);
 
+} // namespace color
 } // namespace genesis
 
 #endif // include guard
