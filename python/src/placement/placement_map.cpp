@@ -8,6 +8,7 @@
 #include <python/src/common.hpp>
 
 #include "lib/placement/placement_map.hpp"
+#include "lib/placement/functions.hpp"
 
 PYTHON_EXPORT_CLASS (PlacementMap, "placement")
 {
@@ -114,5 +115,14 @@ PYTHON_EXPORT_CLASS (PlacementMap, "placement")
 
         // .def_readonly("tree", &::genesis::PlacementMap::tree)
     ;
+
+    // def(
+    //     "merge_duplicates",
+    //     void ( ::genesis::PlacementMap & ) ( &::genesis::merge_duplicates )
+    // );
+    boost::python::def(
+        "merge_duplicates",
+        ::genesis::merge_duplicates
+    );
 
 }
