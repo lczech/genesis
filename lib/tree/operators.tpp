@@ -7,6 +7,8 @@
 
 #include "tree/iterators/preorder.hpp"
 
+// #include "utils/core/logging.hpp"
+
 namespace genesis {
 
 // =================================================================================================
@@ -29,6 +31,10 @@ bool equal(
         lhs.node_count() != rhs.node_count() ||
         lhs.edge_count() != rhs.edge_count()
     ) {
+        // LOG_DBG << "inequal sizes:";
+        // LOG_DBG << lhs.link_count() << " and " << rhs.link_count();
+        // LOG_DBG << lhs.node_count() << " and " << rhs.node_count();
+        // LOG_DBG << lhs.edge_count() << " and " << rhs.edge_count();
         return false;
     }
 
@@ -44,15 +50,18 @@ bool equal(
             !node_comparator(*it_l.node(), *it_r.node()) ||
             !edge_comparator(*it_l.edge(), *it_r.edge())
         ) {
+            // LOG_DBG << "nodes " << it_l.node()->data.name << " " << it_r.node()->data.name << " differ.";
             return false;
         }
     }
 
     // check whether we are done with both trees
     if (it_l != lhs.end_preorder() || it_r != rhs.end_preorder()) {
+        // LOG_DBG << "preorder problem.";
         return false;
     }
 
+    // LOG_DBG << "equal!";
     return true;
 }
 
