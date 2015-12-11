@@ -631,11 +631,11 @@ std::string PlacementMap::dump() const
     out << print_cell("#", num_len);
     out << print_cell_justified("name", max_name_len, 'l');
     out << print_cell("edge_num", 8);
-    out << print_cell("likelihood", 10);
-    out << print_cell("like_weight_ratio", 17);
+    out << print_cell("likelihood", 15);
+    out << print_cell("like_weight_ratio", 15);
     out << print_cell("proximal_length", 15);
-    out << print_cell("pendant_length", 14);
-    out << std::endl;
+    out << print_cell("pendant_length", 15);
+    out << "\n\n";
 
     size_t i = 0;
     for (const auto& pqry : pqueries_) {
@@ -648,13 +648,14 @@ std::string PlacementMap::dump() const
             out << print_cell(std::to_string(i), num_len);
             out << print_cell_justified(name, max_name_len, 'l');
             out << print_cell(std::to_string(p->edge_num), 8);
-            out << print_cell(std::to_string(p->likelihood), 10);
-            out << print_cell(std::to_string(p->like_weight_ratio), 17);
+            out << print_cell(std::to_string(p->likelihood), 15);
+            out << print_cell(std::to_string(p->like_weight_ratio), 15);
             out << print_cell(std::to_string(p->proximal_length), 15);
-            out << print_cell(std::to_string(p->pendant_length), 14);
+            out << print_cell(std::to_string(p->pendant_length), 15);
+            out << "\n";
         }
 
-        out << std::endl;
+        out << "\n";
         ++i;
     }
     return out.str();
