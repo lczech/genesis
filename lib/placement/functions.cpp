@@ -17,6 +17,36 @@
 namespace genesis {
 
 // =================================================================================================
+//     Pquery Names
+// =================================================================================================
+
+/**
+ * @brief Returns true iff the given Pquery contains a particular name.
+ */
+bool has_name( Pquery const& pquery, std::string const& name )
+{
+    for( size_t i = 0; i < pquery.name_size(); ++i ) {
+        if( pquery.name_at(i).name == name ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @brief Returns the first Pquery that has a particular name, or nullptr of none has.
+ */
+Pquery const* find_pquery( PlacementMap const& map, std::string const& name )
+{
+    for( auto const& pqry : map.pqueries() ) {
+        if( has_name(*pqry, name) ) {
+            return pqry.get();
+        }
+    }
+    return nullptr;
+}
+
+// =================================================================================================
 //     Merging Duplicates
 // =================================================================================================
 
