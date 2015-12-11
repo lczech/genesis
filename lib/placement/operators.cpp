@@ -69,6 +69,9 @@ bool has_correct_edge_nums( PlacementMap const& map )
 //     Output
 // =================================================================================================
 
+/**
+ * @brief Print a table of all Pqueries with their Placements and Names to the stream.
+ */
 std::ostream& operator << (std::ostream& out, PlacementMap const& map)
 {
     auto table = text::Table();
@@ -104,13 +107,6 @@ std::ostream& operator << (std::ostream& out, PlacementMap const& map)
 
     out << text::simple_layout()(table);
     return out;
-}
-
-std::string dump( PlacementMap const& map )
-{
-    std::stringstream ss;
-    ss << map;
-    return ss.str();
 }
 
 } // namespace genesis

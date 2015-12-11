@@ -38,8 +38,6 @@ bool has_correct_edge_nums( PlacementMap const& map );
 
 std::ostream& operator << ( std::ostream& out, PlacementMap const& map );
 
-std::string dump( PlacementMap const& map );
-
 } // namespace genesis
 
 #endif // include guard

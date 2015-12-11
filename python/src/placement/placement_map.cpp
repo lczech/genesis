@@ -8,6 +8,7 @@
 #include <python/src/common.hpp>
 
 #include "lib/placement/placement_map.hpp"
+#include "lib/placement/operators.hpp"
 #include "lib/placement/functions.hpp"
 
 PYTHON_EXPORT_CLASS (PlacementMap, "placement")
@@ -48,11 +49,11 @@ PYTHON_EXPORT_CLASS (PlacementMap, "placement")
             ( boost::python::arg("min"), boost::python::arg("max"), boost::python::arg("bins")=(const int)(10) ),
             get_docstring("std::vector< int > ::genesis::PlacementMap::closest_leaf_distance_histogram_auto (double & min, double & max, const int bins=10) const")
         )
-        .def(
-            "dump",
-            ( std::string ( ::genesis::PlacementMap::* )(  ) const )( &::genesis::PlacementMap::dump ),
-            get_docstring("std::string ::genesis::PlacementMap::dump () const")
-        )
+        // .def(
+        //     "dump",
+        //     ( std::string ( ::genesis::PlacementMap::* )(  ) const )( &::genesis::PlacementMap::dump ),
+        //     get_docstring("std::string ::genesis::PlacementMap::dump () const")
+        // )
         .def(
             "dump_tree",
             ( std::string ( ::genesis::PlacementMap::* )(  ) const )( &::genesis::PlacementMap::dump_tree ),
@@ -114,6 +115,10 @@ PYTHON_EXPORT_CLASS (PlacementMap, "placement")
         // Public Member Variables
 
         // .def_readonly("tree", &::genesis::PlacementMap::tree)
+
+        .def(
+            boost::python::self_ns::str( boost::python::self )
+        )
     ;
 
     // def(
