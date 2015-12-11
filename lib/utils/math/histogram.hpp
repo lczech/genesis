@@ -70,13 +70,13 @@ public:
 
     ~Histogram() = default;
 
-    Histogram(Histogram const&)     = default;
-    Histogram(Histogram&&) noexcept = default;
+    Histogram(Histogram const&) = default;
+    Histogram(Histogram&&)      = default;
 
-    Histogram& operator= (Histogram const&)     = default;
-    Histogram& operator= (Histogram&&) noexcept = default;
+    Histogram& operator= (Histogram const&) = default;
+    Histogram& operator= (Histogram&&)      = default;
 
-    void swap (Histogram& other) noexcept;
+    void swap (Histogram& other);
 
     // -------------------------------------------------------------------------
     //     General Methods
