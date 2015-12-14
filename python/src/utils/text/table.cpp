@@ -174,32 +174,39 @@ PYTHON_EXPORT_CLASS (Table, "utils.text")
 
     boost::python::def(
         "simple_layout",
-        simple_layout
+        simple_layout,
+        boost::python::arg("condensed")=(bool)(false)
     );
     boost::python::def(
         "simple_grid",
-        simple_grid
+        simple_grid,
+        boost::python::arg("condensed")=(bool)(false)
     );
     boost::python::def(
         "simple_frame",
-        simple_frame
+        simple_frame,
+        boost::python::arg("condensed")=(bool)(false)
     );
 
     boost::python::def(
         "extended_grid",
-        extended_grid
+        extended_grid,
+        boost::python::arg("condensed")=(bool)(false)
     );
     boost::python::def(
         "simple_frame",
-        simple_frame
+        simple_frame,
+        boost::python::arg("condensed")=(bool)(false)
     );
 
     boost::python::def(
         "double_grid",
-        double_grid
+        double_grid,
+        boost::python::arg("condensed")=(bool)(false)
     );
     boost::python::def(
         "double_frame",
-        double_frame
+        double_frame,
+        boost::python::arg("condensed")=(bool)(false)
     );
 }
