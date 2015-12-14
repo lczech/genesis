@@ -34,6 +34,19 @@ bool has_name( Pquery const& pquery, std::string const& name )
 }
 
 /**
+ * @brief Returns true iff the given PlacementMap contains a Pquery with a particular name.
+ */
+bool has_name( PlacementMap const& map, std::string const& name )
+{
+    for( auto const& pqry : map.pqueries() ) {
+        if( has_name( *pqry, name ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
  * @brief Returns the first Pquery that has a particular name, or nullptr of none has.
  */
 Pquery const* find_pquery( PlacementMap const& map, std::string const& name )
@@ -46,6 +59,46 @@ Pquery const* find_pquery( PlacementMap const& map, std::string const& name )
         }
     }
     return nullptr;
+}
+
+// =================================================================================================
+//     Normalization and Sorting
+// =================================================================================================
+
+// void normalize_weight_ratios( PlacementMap& map );
+
+// void restrain_to_max_weight_placements( PlacementMap& map );
+
+// void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
+// void sort_placements_by_proximal_length( PlacementMap& map );
+
+/**
+ * @brief Sort the Placements of a Pquery by their like_weight_ratio, in descending order (most
+ * likely first).
+ */
+void sort_placements_by_like_weight_ratio( Pquery& pquery )
+{
+    std::sort(
+        pquery.begin_placements(),
+        pquery.end_placements(),
+        [] (
+            std::unique_ptr<PqueryPlacement> const& lhs,
+            std::unique_ptr<PqueryPlacement> const& rhs
+        ) {
+            return lhs->like_weight_ratio > rhs->like_weight_ratio;
+        }
+    );
+}
+
+/**
+ * @brief Sort the Placements of all Pqueries by their like_weight_ratio, in descending order (most
+ * likely first).
+ */
+void sort_placements_by_like_weight_ratio( PlacementMap& map )
+{
+    for( auto& pquery_it : map.pqueries() ) {
+        sort_placements_by_like_weight_ratio( *pquery_it );
+    }
 }
 
 // =================================================================================================

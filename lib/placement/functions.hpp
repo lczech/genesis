@@ -11,6 +11,7 @@
 #include "placement/placement_map.hpp"
 
 #include <string>
+#include <utility>
 
 namespace genesis {
 
@@ -19,6 +20,7 @@ namespace genesis {
 // =================================================================================================
 
 bool has_name( Pquery const& pquery, std::string const& name );
+bool has_name( PlacementMap const& map, std::string const& name );
 
 Pquery const* find_pquery( PlacementMap const& map, std::string const& name );
 
@@ -33,8 +35,8 @@ void restrain_to_max_weight_placements( PlacementMap& map );
 void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
 void sort_placements_by_proximal_length( PlacementMap& map );
 
-void sort_placements_by_weight_ratio( Pquery& pquery );
-void sort_placements_by_weight_ratio( PlacementMap& map );
+void sort_placements_by_like_weight_ratio( Pquery& pquery );
+void sort_placements_by_like_weight_ratio( PlacementMap& map );
 
 // =================================================================================================
 //     Merging Duplicates
