@@ -8,8 +8,9 @@
 #include "placement/placement_map.hpp"
 #include "tree/iterators/postorder.hpp"
 #include "tree/operators.hpp"
+#include "utils/text/table.hpp"
 
-#include "utils/core/logging.hpp"
+#include <sstream>
 
 namespace genesis {
 
@@ -62,6 +63,50 @@ bool has_correct_edge_nums( PlacementMap const& map )
     }
 
     return true;
+}
+
+// =================================================================================================
+//     Output
+// =================================================================================================
+
+/**
+ * @brief Print a table of all Pqueries with their Placements and Names to the stream.
+ */
+std::ostream& operator << (std::ostream& out, PlacementMap const& map)
+{
+    auto table = text::Table();
+    auto const kRight = text::Table::Column::Justification::kRight;
+
+    table.add_column("#").justify(kRight);
+    table.add_column("name");
+    table.add_column("edge_num").justify(kRight);
+    table.add_column("likelihood").justify(kRight);
+    table.add_column("like_weight_ratio").justify(kRight);
+    table.add_column("proximal_length").justify(kRight);
+    table.add_column("pendant_length").justify(kRight);
+
+    size_t i = 0;
+    for( auto const& pqry : map.pqueries() ) {
+        std::string name = pqry->names.size() > 0 ? pqry->names[0]->name : "";
+        if( pqry->names.size() > 1 ) {
+            name += " (+" + std::to_string( pqry->names.size() - 1 ) + ")";
+        }
+
+        for( auto const& p : pqry->placements ) {
+            table << std::to_string(i);
+            table << name;
+            table << std::to_string(p->edge_num);
+            table << std::to_string(p->likelihood);
+            table << std::to_string(p->like_weight_ratio);
+            table << std::to_string(p->proximal_length);
+            table << std::to_string(p->pendant_length);
+        }
+
+        ++i;
+    }
+
+    out << text::simple_layout()(table);
+    return out;
 }
 
 } // namespace genesis

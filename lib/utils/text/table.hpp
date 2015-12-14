@@ -21,6 +21,8 @@ namespace text {
 
 struct Layout;
 
+class Style;
+
 // =================================================================================================
 //     Text Table
 // =================================================================================================
@@ -74,7 +76,10 @@ public:
     Column& add_column( std::string label = "" );
 
     Table& operator << ( std::string value );
+    Table& operator << ( Style const& value );
+
     Table& append ( std::string value );
+    Table& append ( Style const& value );
 
     // ---------------------------------------------------------------------
     //     Output
@@ -175,6 +180,7 @@ public:
     void clear_content();
 
     void append( std::string value );
+    void append( Style const& value );
 
     // ---------------------------------------------------------------------
     //     Output

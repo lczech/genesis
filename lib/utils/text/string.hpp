@@ -8,6 +8,8 @@
  * @ingroup utils
  */
 
+#include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -72,6 +74,18 @@ std::string unify_newlines (const std::string& s);
 // =================================================================================================
 
 std::string to_string_precise (double value, const int precision = 6);
+
+template <typename T>
+std::string join( T const& v, std::string const& delimiter ) {
+    std::ostringstream s;
+    for( auto const& i : v ) {
+        if( &i != &v[0] ) {
+            s << delimiter;
+        }
+        s << i;
+    }
+    return s.str();
+}
 
 } // namespace text
 } // namespace genesis

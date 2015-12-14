@@ -9,6 +9,8 @@
  */
 
 #include <functional>
+#include <iosfwd>
+#include <string>
 
 namespace genesis {
 
@@ -29,6 +31,12 @@ bool compatible_trees (const PlacementMap& lhs, const PlacementMap& rhs);
 // =================================================================================================
 
 bool has_correct_edge_nums( PlacementMap const& map );
+
+// =================================================================================================
+//     Output
+// =================================================================================================
+
+std::ostream& operator << ( std::ostream& out, PlacementMap const& map );
 
 } // namespace genesis
 

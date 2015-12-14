@@ -64,13 +64,13 @@ public:
 
     ~Matrix() = default;
 
-    Matrix(Matrix const&)     = default;
-    Matrix(Matrix&&) noexcept = default;
+    Matrix(Matrix const&) = default;
+    Matrix(Matrix&&)      = default;
 
-    Matrix& operator= (Matrix const&)     = default;
-    Matrix& operator= (Matrix&&) noexcept = default;
+    Matrix& operator= (Matrix const&) = default;
+    Matrix& operator= (Matrix&&)      = default;
 
-    void swap (Matrix& other) noexcept
+    void swap (Matrix& other)
     {
         using std::swap;
         swap(rows_, other.rows_);

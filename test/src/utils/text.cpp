@@ -8,11 +8,12 @@
 #include "common.hpp"
 
 #include "lib/utils/text/string.hpp"
+#include "lib/utils/text/style.hpp"
 #include "lib/utils/text/table.hpp"
 
 using namespace genesis;
 
-TEST(String, Split)
+TEST(Text, Split)
 {
     auto simple = text::split("one:two:three:four", ":");
     EXPECT_EQ(4, simple.size());
@@ -27,7 +28,7 @@ TEST(String, Split)
     EXPECT_EQ(8, non_empty.size());
 }
 
-TEST(String, Table)
+TEST(Text, Table)
 {
     // Not sure yet how to test all this automatically...
 
@@ -39,6 +40,7 @@ TEST(String, Table)
     t << "hello" << "world" << "madness";
     t << "my" << "goodness my" << "guinness!";
     t << "time" << "again?" << "yes";
+    // t << "time" << text::Style("again?") << text::Style("yes", "blue");
     t << "something" << "" << "end.";
 
     // Disabled, because it spams the test output.

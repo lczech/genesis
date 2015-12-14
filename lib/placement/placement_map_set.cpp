@@ -7,7 +7,10 @@
 
 #include "placement/placement_map_set.hpp"
 
+#include "placement/operators.hpp"
 #include "utils/core/logging.hpp"
+
+#include <sstream>
 
 namespace genesis {
 
@@ -151,12 +154,15 @@ bool PlacementMapSet::all_identical_trees()
  */
 std::string PlacementMapSet::dump(bool full)
 {
+    // TODO make free function using ostream instead of dump
     size_t i = 0;
     std::string res = "";
     for (auto& cm : maps_) {
         res += std::to_string(i) + ": " + cm.name + "\n";
         if (full) {
-            res += cm.map.dump() + "\n";
+            std::stringstream ss;
+            ss << cm.map;
+            res += ss.str() + "\n";
         }
         ++i;
     }

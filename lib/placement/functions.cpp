@@ -17,9 +17,105 @@
 namespace genesis {
 
 // =================================================================================================
+//     Pquery Names
+// =================================================================================================
+
+/**
+ * @brief Returns true iff the given Pquery contains a particular name.
+ */
+bool has_name( Pquery const& pquery, std::string const& name )
+{
+    for( size_t i = 0; i < pquery.name_size(); ++i ) {
+        if( pquery.name_at(i).name == name ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @brief Returns true iff the given PlacementMap contains a Pquery with a particular name.
+ */
+bool has_name( PlacementMap const& map, std::string const& name )
+{
+    for( auto const& pqry : map.pqueries() ) {
+        if( has_name( *pqry, name ) ) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * @brief Returns the first Pquery that has a particular name, or nullptr of none has.
+ */
+Pquery const* find_pquery( PlacementMap const& map, std::string const& name )
+{
+    // TODO instead of pointer, return an iterator!
+    // then use find if directly!
+    for( auto const& pqry : map.pqueries() ) {
+        if( has_name(*pqry, name) ) {
+            return pqry.get();
+        }
+    }
+    return nullptr;
+}
+
+// =================================================================================================
+//     Normalization and Sorting
+// =================================================================================================
+
+// void normalize_weight_ratios( PlacementMap& map );
+
+// void restrain_to_max_weight_placements( PlacementMap& map );
+
+// void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
+// void sort_placements_by_proximal_length( PlacementMap& map );
+
+/**
+ * @brief Sort the Placements of a Pquery by their like_weight_ratio, in descending order (most
+ * likely first).
+ */
+void sort_placements_by_like_weight_ratio( Pquery& pquery )
+{
+    std::sort(
+        pquery.begin_placements(),
+        pquery.end_placements(),
+        [] (
+            std::unique_ptr<PqueryPlacement> const& lhs,
+            std::unique_ptr<PqueryPlacement> const& rhs
+        ) {
+            return lhs->like_weight_ratio > rhs->like_weight_ratio;
+        }
+    );
+}
+
+/**
+ * @brief Sort the Placements of all Pqueries by their like_weight_ratio, in descending order (most
+ * likely first).
+ */
+void sort_placements_by_like_weight_ratio( PlacementMap& map )
+{
+    for( auto& pquery_it : map.pqueries() ) {
+        sort_placements_by_like_weight_ratio( *pquery_it );
+    }
+}
+
+// =================================================================================================
 //     Merging Duplicates
 // =================================================================================================
 
+/**
+ * @brief Looks for Pqueries with the same name and merges them.
+ *
+ * This function is a wrapper that simply calls three other functions on the provided PlacementMap:
+ *
+ *     * collect_duplicate_pqueries()
+ *     * merge_duplicate_names()
+ *     * merge_duplicate_placements()
+ *
+ * See there for more information on what they do.
+ */
 void merge_duplicates (PlacementMap& map)
 {
     collect_duplicate_pqueries (map);
@@ -27,6 +123,20 @@ void merge_duplicates (PlacementMap& map)
     merge_duplicate_placements (map);
 }
 
+/**
+ * @brief Finds all Pqueries that share a common name and combines them into a single Pquery
+ * containing all their collective Placements and Names.
+ *
+ * The function collects all Pqueries that share at least one name. This is transitive, so that for
+ * example three Pqueries with two names each like `(a,b) (b,c) (c,d)` will be combined into one
+ * Pquery. Thus, the transitive closure of shared names is collected.
+ *
+ * All those Pqueries with shared names are combined by simply moving all their Placements and
+ * Names into one Pquery and deleting the others. This means that at least the shared names will
+ * be doubled after this function. Also, Placements on the same edge can occur.
+ * Thus, usually `merge_duplicate_names()` and `merge_duplicate_placements()` are called after
+ * this function. The function merge_duplicates() does exaclty this, for convenience.
+ */
 void collect_duplicate_pqueries (PlacementMap& map)
 {
     // We are looking for the transitive closure of all Pqueries that pairwise share a common name.
@@ -125,6 +235,12 @@ void collect_duplicate_pqueries (PlacementMap& map)
     }
 }
 
+/**
+ * @brief Merges all Placements of a Pquery that are on the same Edge into one averaged Placement.
+ *
+ * The merging is done via averaging all values of the Placement: `likelihood`, `like_weight_ratio`,
+ * `proximal_length`, `pendant_length` and `parsimony`.
+ */
 void merge_duplicate_placements (Pquery& pquery)
 {
     // We want to merge all placements that are on the same edge. This object collects those sets,
@@ -181,6 +297,9 @@ void merge_duplicate_placements (Pquery& pquery)
     });
 }
 
+/**
+ * @brief Calls `merge_duplicate_placements()` for each Pquery of the PlacementMap.
+ */
 void merge_duplicate_placements (PlacementMap& map)
 {
     for (auto& pquery_it : map.pqueries()) {
@@ -188,6 +307,9 @@ void merge_duplicate_placements (PlacementMap& map)
     }
 }
 
+/**
+ * @brief Merges all Names that are the same into one, while adding up their `multiplicity`.
+ */
 void merge_duplicate_names (Pquery& pquery)
 {
     // We traverse all names of this Pquery and use a hash map to find duplictes. As deleting during
@@ -213,6 +335,9 @@ void merge_duplicate_names (Pquery& pquery)
     });
 }
 
+/**
+ * @brief Calls `merge_duplicate_names()` for each Pquery of the PlacementMap.
+ */
 void merge_duplicate_names (PlacementMap& map)
 {
     for (auto& pquery_it : map.pqueries()) {
@@ -224,6 +349,10 @@ void merge_duplicate_names (PlacementMap& map)
 //     Placement Mass
 // =================================================================================================
 
+/**
+ * @brief Get the number of placements on the edge with the most placements, and a pointer to this
+ * edge.
+ */
 std::pair<PlacementTreeEdge*, size_t> placement_count_max_edge(PlacementTree const& tree)
 {
     PlacementTreeEdge* edge = nullptr;
@@ -239,6 +368,10 @@ std::pair<PlacementTreeEdge*, size_t> placement_count_max_edge(PlacementTree con
     return std::make_pair(edge, max);
 }
 
+/**
+ * @brief Get the summed mass of the placements on the heaviest edge, measured by their
+ * `like_weight_ratio`, and a pointer to this edge.
+ */
 std::pair<PlacementTreeEdge*, double> placement_mass_max_edge(PlacementTree const& tree)
 {
     PlacementTreeEdge* edge = nullptr;

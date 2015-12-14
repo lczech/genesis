@@ -16,7 +16,9 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-class Color;
+namespace color {
+    class Color;
+}
 
 template<class NDT, class EDT>
 class Tree;
@@ -30,7 +32,7 @@ typedef Tree<PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTree;
 //     Placement Edge Color Functions
 // =================================================================================================
 
-std::vector<Color> placement_color_count_gradient( PlacementTree const& tree, bool linear = false );
+std::vector<color::Color> placement_color_count_gradient( PlacementTree const& tree, bool linear = false );
 
 } // namespace genesis
 
