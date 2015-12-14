@@ -116,10 +116,29 @@ PYTHON_EXPORT_CLASS (PlacementMap, "placement")
 
         // .def_readonly("tree", &::genesis::PlacementMap::tree)
 
+        // Operators
+
         .def(
             boost::python::self_ns::str( boost::python::self )
         )
     ;
+
+    // -------------------------------------------------------------------
+    //     operators.hpp
+    // -------------------------------------------------------------------
+
+    boost::python::def(
+        "compatible_trees",
+        ::genesis::compatible_trees
+    );
+    boost::python::def(
+        "has_correct_edge_nums",
+        ::genesis::has_correct_edge_nums
+    );
+
+    // -------------------------------------------------------------------
+    //     functions.hpp
+    // -------------------------------------------------------------------
 
     // def(
     //     "merge_duplicates",
@@ -128,6 +147,25 @@ PYTHON_EXPORT_CLASS (PlacementMap, "placement")
     boost::python::def(
         "merge_duplicates",
         ::genesis::merge_duplicates
+    );
+
+    boost::python::def(
+        "has_name",
+        ( bool ( * )( ::genesis::Pquery const& pquery, std::string const& name ))( &::genesis::has_name )
+    );
+    boost::python::def(
+        "has_name",
+        ( bool ( * )( ::genesis::PlacementMap const& map, std::string const& name ))( &::genesis::has_name )
+    );
+    boost::python::def(
+        "find_pquery",
+        ( Pquery const* ( * )( ::genesis::PlacementMap const& map, std::string const& name ))( &::genesis::find_pquery ),
+        boost::python::return_value_policy<boost::python::reference_existing_object>()
+    );
+
+    boost::python::def(
+        "sort_placements_by_like_weight_ratio",
+        ( void ( * )( ::genesis::PlacementMap& map ))( &::genesis::sort_placements_by_like_weight_ratio )
     );
 
 }
