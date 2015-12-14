@@ -8,6 +8,7 @@
 #include "utils/text/table.hpp"
 
 #include "utils/text/string.hpp"
+#include "utils/text/style.hpp"
 
 #include <algorithm>
 #include <assert.h>
@@ -94,7 +95,24 @@ Table& Table::operator << ( std::string value )
     return append( value );
 }
 
+Table& Table::operator << ( Style const& value )
+{
+    return append( value );
+}
+
 Table& Table::append ( std::string value )
+{
+    columns_[ current_col_ ].append( value );
+
+    ++current_col_;
+    if( current_col_ >= columns_.size() ) {
+        current_col_ = 0;
+    }
+
+    return *this;
+}
+
+Table& Table::append ( Style const& value )
 {
     columns_[ current_col_ ].append( value );
 
@@ -294,6 +312,12 @@ void Table::Column::append( std::string value )
 {
     width_ = std::max( width_, value.size() );
     data_.push_back(value);
+}
+
+void Table::Column::append( Style const& value )
+{
+    width_ = std::max( width_, value.size() );
+    data_.push_back(value.to_python_string());
 }
 
 // ---------------------------------------------------------------------
