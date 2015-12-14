@@ -194,8 +194,8 @@ PYTHON_EXPORT_CLASS (Table, "utils.text")
         boost::python::arg("condensed")=(bool)(false)
     );
     boost::python::def(
-        "simple_frame",
-        simple_frame,
+        "extended_frame",
+        extended_frame,
         boost::python::arg("condensed")=(bool)(false)
     );
 
