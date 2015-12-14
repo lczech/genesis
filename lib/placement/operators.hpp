@@ -8,7 +8,6 @@
  * @ingroup placement
  */
 
-#include <functional>
 #include <iosfwd>
 #include <string>
 
