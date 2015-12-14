@@ -460,7 +460,7 @@ class BoostPythonWriter:
         val += ", ".join (
             (
                 "boost::python::arg(\"" + param.name + "\")" + (
-                    "" if param.value == "" else
+                    "" if param.value == None or param.value == "" else
                     "=(" + param.type + ")(" + param.value + ")"
                 )
             ) for param in ctor.params
@@ -559,6 +559,8 @@ class BoostPythonWriter:
             return (symbol, "unary")
         if symbol == "[]":
             return (symbol, "array")
+        if symbol == "<<":
+            return (symbol, "ostream")
 
         return None
 
@@ -572,13 +574,16 @@ class BoostPythonWriter:
         for operator in cls.operators:
             op_class = BoostPythonWriter.classify_operator(operator)
             if op_class is None:
-                print "Unknown operator:", operator.name
+                # print "Unknown operator:", operator.name
+                pass
             elif op_class[1] in [ "inplace", "comparison" ]:
                 val += "        .def( boost::python::self " + op_class[0] + " boost::python::self )\n"
             elif op_class[1] == "unary":
                 val += "        .def( " + op_class[0] + "boost::python::self )\n"
             elif op_class[1] == "array":
                 val += BoostPythonWriter.generate_class_function_body (operator, "__getitem__")
+            elif op_class[1] == "ostream":
+                val += "        .def( boost::python::self_ns::str( boost::python::self ) )\n"
             else:
                 print "Operator type not handled:", op_class[1]
         return val
