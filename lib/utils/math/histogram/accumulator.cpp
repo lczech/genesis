@@ -35,7 +35,7 @@ HistogramAccumulator::HistogramAccumulator (
     }
 }
 
-void HistogramAccumulator::swap (HistogramAccumulator& other)
+void HistogramAccumulator::swap (HistogramAccumulator& other) noexcept
 {
     using std::swap;
     swap(values_, other.values_);

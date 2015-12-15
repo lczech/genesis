@@ -37,7 +37,9 @@ bool compatible_trees (const PlacementMap& lhs, const PlacementMap& rhs)
                edge_l.secondary_node()->index() == edge_r.secondary_node()->index();
     };
 
-    return equal(lhs.tree(), rhs.tree(), node_comparator, edge_comparator);
+    return equal<PlacementTree, PlacementTree>(
+        lhs.tree(), rhs.tree(), node_comparator, edge_comparator
+    );
 }
 
 // =================================================================================================
