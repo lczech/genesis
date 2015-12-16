@@ -39,6 +39,8 @@ class PlacementTreeEdgeData : public DefaultTreeEdgeData
 {
 public:
 
+    ~PlacementTreeEdgeData();
+
     // -----------------------------------------------------
     //     Class Functions
     // -----------------------------------------------------

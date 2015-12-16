@@ -19,6 +19,16 @@ namespace genesis {
 // =============================================================================
 
 /**
+ * @brief Destructor.
+ */
+PlacementTreeEdgeData::~PlacementTreeEdgeData()
+{
+    for( auto& place : placements ) {
+        place->edge = nullptr;
+    }
+}
+
+/**
  * @brief Returns the number of placements on this edge.
  */
 size_t PlacementTreeEdgeData::placement_count() const

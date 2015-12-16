@@ -48,6 +48,15 @@ PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementT
     place->edge = edge;
     place->edge->data.placements.push_back(place_ptr);
 
+    // if( edge ) {
+    //     place->edge_num = edge->data.edge_num;
+    //     place->edge = edge;
+    //     place->edge->data.placements.push_back(place_ptr);
+    // } else {
+    //     place->edge_num = val.edge_num;
+    //     place->edge = nullptr;
+    // }
+
     // Add the placement to the query and vice versa.
     place->pquery = this;
     placements.push_back(std::move(place));

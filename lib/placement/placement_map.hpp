@@ -30,16 +30,26 @@ class PlacementMap
 {
 public:
     // -------------------------------------------------------------------------
-    //     Constructor & Destructor
+    //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    PlacementMap () : tree_(std::make_shared<PlacementTree>()) {}
-    PlacementMap (std::shared_ptr<PlacementTree> ptree) : tree_(ptree) {}
-    PlacementMap (const PlacementMap& other);
+    PlacementMap ()
+        : tree_(std::make_shared<PlacementTree>())
+    {}
 
-    PlacementMap& operator = (const PlacementMap& other);
+    PlacementMap (std::shared_ptr<PlacementTree> ptree)
+        : tree_(ptree)
+    {}
+
+    PlacementMap( PlacementMap const& );
+    PlacementMap( PlacementMap&& ) noexcept;
+
+    PlacementMap& operator= (PlacementMap const&);
+    PlacementMap& operator= (PlacementMap&&) noexcept;
 
     ~PlacementMap();
+
+    void swap (PlacementMap& other) noexcept;
 
     // -------------------------------------------------------------------------
     //     Modifiers
@@ -104,6 +114,9 @@ public:
 
     void normalize_weight_ratios();
     void restrain_to_max_weight_placements();
+
+    void detach_pqueries_from_tree();
+    void reattach_pqueries_to_tree();
 
     // -------------------------------------------------------------------------
     //     Placement Mass
