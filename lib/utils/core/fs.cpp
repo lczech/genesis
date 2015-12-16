@@ -21,13 +21,21 @@ namespace genesis {
 //     File Access
 // =================================================================================================
 
-bool file_exists (const std::string& fn)
+/**
+ * @brief Returns true iff the file exists.
+ */
+bool file_exists( std::string const& fn )
 {
     std::ifstream infile(fn);
     return infile.good();
 }
 
-std::string file_read (const std::string& fn)
+/**
+ * @brief Returns the contents of a file as a string.
+ *
+ * If the file does not exist, a warning is triggered and an emtpty string returned.
+ */
+std::string file_read( std::string const& fn )
 {
     std::ifstream infile(fn);
     std::string   str;
@@ -46,7 +54,10 @@ std::string file_read (const std::string& fn)
     return str;
 }
 
-bool file_write (const std::string& fn, const std::string& content)
+/**
+ * @brief Writes the content of a string to a file.
+ */
+bool file_write( std::string const& fn, std::string const& content )
 {
     // TODO check if path exists, create if not (make a function for that)
     // TODO check if file exists, trigger warning?, check if writable
@@ -60,7 +71,10 @@ bool file_write (const std::string& fn, const std::string& content)
     return true;
 }
 
-bool file_append (const std::string& fn, const std::string& content)
+/**
+ * @brief Appends the content of a string to a file.
+ */
+bool file_append( std::string const& fn, std::string const& content )
 {
     // TODO check if path exists, create if not (make a function for that)
     // TODO check if file exists, trigger warning?, check if writable
@@ -75,7 +89,10 @@ bool file_append (const std::string& fn, const std::string& content)
     return true;
 }
 
-bool dir_exists (const std::string& dir)
+/**
+ * @brief Return true iff the directory exists.
+ */
+bool dir_exists( std::string const& dir )
 {
     struct stat info;
     if (stat (dir.c_str(), &info) != 0) {
@@ -92,7 +109,10 @@ bool dir_exists (const std::string& dir)
     // }
 }
 
-bool dir_list_files (const std::string& dir, std::vector<std::string>& list)
+/**
+ * @brief Get a list of files in a directory.
+ */
+bool dir_list_files( std::string const& dir, std::vector<std::string>& list )
 {
     DIR*           dp;
     struct dirent* dirp;
@@ -117,7 +137,10 @@ bool dir_list_files (const std::string& dir, std::vector<std::string>& list)
 //     File Information
 // =================================================================================================
 
-std::unordered_map<std::string, std::string> file_info (std::string filename)
+/**
+ * @brief Returns information about a file.
+ */
+std::unordered_map<std::string, std::string> file_info( std::string const& filename )
 {
     std::string basename = file_basename(filename);
     std::unordered_map<std::string, std::string> res;
@@ -130,13 +153,21 @@ std::unordered_map<std::string, std::string> file_info (std::string filename)
     return res;
 }
 
-size_t file_size (std::string filename)
+/**
+ * @brief Return the size of a file.
+ */
+size_t file_size( std::string filename )
 {
     std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
     return static_cast<size_t>(in.tellg());
 }
 
-std::string file_path (std::string filename)
+/**
+ * @brief Returns the path leading to a file.
+ *
+ * Does not resolve the path. Simply splits at the last directory separator.
+ */
+std::string file_path( std::string filename )
 {
     const size_t idx = filename.find_last_of("\\/");
     if (idx != std::string::npos)
@@ -146,7 +177,10 @@ std::string file_path (std::string filename)
     return filename;
 }
 
-std::string file_basename (std::string filename)
+/**
+ * @brief Remove directory name from file name if present.
+ */
+std::string file_basename( std::string filename )
 {
     const size_t idx = filename.find_last_of("\\/");
     if (idx != std::string::npos)
@@ -156,7 +190,13 @@ std::string file_basename (std::string filename)
     return filename;
 }
 
-std::string file_filename (std::string filename)
+/**
+ * @brief Remove extension if present.
+ *
+ * Caveat: Does not remove the path. So, if the filename itself does not contain an extension
+ * separator ".", but the path does, this will yield an unwanted result. Call file_basename() first.
+ */
+std::string file_filename( std::string filename )
 {
     const size_t idx = filename.rfind('.');
     if (idx != 0 && idx != std::string::npos)
@@ -166,7 +206,12 @@ std::string file_filename (std::string filename)
     return filename;
 }
 
-std::string file_extension (std::string filename)
+/**
+ * @brief Returns the extension name of a file.
+ *
+ * Also see file_filename().
+ */
+std::string file_extension( std::string filename )
 {
     const size_t idx = filename.rfind('.');
     if (idx != 0 && idx != std::string::npos)
