@@ -8,8 +8,10 @@
 #include "utils/core/fs.hpp"
 
 #include <dirent.h>
+#include <errno.h>
 #include <fstream>
 #include <sstream>
+#include <stdexcept>
 #include <streambuf>
 #include <sys/stat.h>
 
@@ -107,6 +109,27 @@ bool dir_exists( std::string const& dir )
     // } else {
     //     return false;
     // }
+}
+
+/**
+ * @brief Creates a directory.
+ *
+ * If the directory already exists, nothing happens.
+ * If the path exists, but is not a directory, a `std::runtime_error` is thrown.
+ * If the creation fails for some other reason, also a `std::runtime_error` is thrown.
+ */
+void dir_create( std::string const& path )
+{
+    mode_t mode = 0775;
+    struct stat info;
+
+    if( stat (path.c_str(), &info) != 0 ) {
+        if( mkdir( path.c_str(), mode ) != 0 && errno != EEXIST ) {
+            throw std::runtime_error("Could not create directory: " + path);
+        }
+    } else if( !S_ISDIR(info.st_mode) ) {
+        throw std::runtime_error("Path exists, but is not a directory: " + path);
+    }
 }
 
 /**

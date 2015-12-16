@@ -24,6 +24,7 @@ bool        file_write  ( std::string const& filename, std::string const& conten
 bool        file_append ( std::string const& filename, std::string const& content );
 
 bool        dir_exists     ( std::string const& dir );
+void        dir_create     ( std::string const& path );
 bool        dir_list_files ( std::string const& dir, std::vector<std::string>& list );
 
 // =================================================================================================
