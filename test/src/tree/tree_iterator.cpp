@@ -102,8 +102,8 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
     // Do range-based for loop traversal.
     resulting_nodes = "";
     // for (auto& node : eulertour(tree)) {
-    for (auto& node : eulertour(node)) {
-        resulting_nodes += node.data.name;
+    for (auto& node_it : eulertour(node)) {
+        resulting_nodes += node_it.data.name;
         // node.data.name = "bla";
     }
     EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;

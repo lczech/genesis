@@ -68,8 +68,9 @@ Color color_from_hex( std::string h, std::string prefix )
         auto s = h.substr(pos * 2, 2);
         auto v = std::stoul(s, nullptr, 16);
 
-        // We just fed two chars into the conversion, there cannot be a result out of char range.
-        assert(0 <= v && v < 256);
+        // We just fed two chars with a hex value into the conversion, there cannot be a result out
+        // of char range from this.
+        assert(v < 256);
         return static_cast<unsigned char>(v);
     };
 

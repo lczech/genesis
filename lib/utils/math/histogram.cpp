@@ -59,7 +59,7 @@ Histogram::Histogram(
     }
 }
 
-void Histogram::swap( Histogram& other )
+void Histogram::swap( Histogram& other ) noexcept
 {
     using std::swap;
     swap(bins_, other.bins_);

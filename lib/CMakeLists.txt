@@ -56,20 +56,21 @@ if (BUILD_STATIC_LIB)
     endif()
 endif()
 
-if (BUILD_EXECUTABLE)
-    message (WARNING
-        "${ColorRed}Currently, genesis does not support a single executable. "
-        "Use it as a library or via the Python module instead.${ColorEnd}"
-    )
+if (BUILD_EXECUTABLES)
+    # Find all main source files in /src and compile them into individual
+    # binaries, each linked to the shared lib.
+    file( GLOB exec_sources ${PROJECT_SOURCE_DIR}/src/*.cpp )
 
-    # message (STATUS "${ColorBlue}Building executable${ColorEnd}")
-    # add_executable        (
-    #     genesis_bin_main ${genesis_lib_sources}
-    #     ${PROJECT_SOURCE_DIR}/src/main.cpp
-    # )
-    # set_target_properties (genesis_bin_main PROPERTIES OUTPUT_NAME genesis)
+    if (exec_sources)
+        message (STATUS "${ColorBlue}Building executables:${ColorEnd}")
+        foreach( exec_src ${exec_sources} )
+            get_filename_component( exec_name ${exec_src} NAME_WE )
+            message (STATUS "  ${ColorBlue}${exec_name}${ColorEnd}")
 
-    # if(THREADS_FOUND)
-    #     target_link_libraries (genesis_bin_main ${CMAKE_THREAD_LIBS_INIT})
-    # endif()
+            add_executable( ${exec_name} ${exec_src} )
+            target_link_libraries( ${exec_name} genesis_lib_shared )
+        endforeach()
+    else()
+        message (STATUS "${ColorBlue}No executables found${ColorEnd}")
+    endif()
 endif()

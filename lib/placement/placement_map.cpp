@@ -33,7 +33,7 @@ namespace genesis {
 /**
  * @brief Copy constructor.
  */
-PlacementMap::PlacementMap (const PlacementMap& other)
+PlacementMap::PlacementMap( PlacementMap const& other )
 {
     clear();
 
@@ -90,6 +90,17 @@ PlacementMap::PlacementMap (const PlacementMap& other)
 }
 
 /**
+ * @brief Move constructor.
+ */
+PlacementMap::PlacementMap( PlacementMap&& other ) noexcept
+    : pqueries_( std::move(other.pqueries_))
+    , tree_(     std::move(other.tree_))
+    , metadata(  std::move(other.metadata))
+{
+    // Nothing to do here.
+}
+
+/**
  * @brief Assignment operator. See Copy constructor for details.
  */
 PlacementMap& PlacementMap::operator = (const PlacementMap& other)
@@ -109,12 +120,24 @@ PlacementMap& PlacementMap::operator = (const PlacementMap& other)
     return *this;
 }
 
-/**
- * @brief Destructor. Calls clear() to delete all data.
- */
+PlacementMap& PlacementMap::operator= (PlacementMap&& other) noexcept
+{
+    swap(other);
+    return *this;
+}
+
 PlacementMap::~PlacementMap()
 {
-    clear();
+    // We are going to destroy the PlacementMap. Let's speed it up!
+    detach_pqueries_from_tree();
+}
+
+void PlacementMap::swap (PlacementMap& other) noexcept
+{
+    using std::swap;
+    swap(pqueries_, other.pqueries_);
+    swap(tree_,     other.tree_);
+    swap(metadata,  other.metadata);
 }
 
 // =================================================================================================
@@ -159,7 +182,9 @@ bool PlacementMap::merge(const PlacementMap& other)
         return edge_l.data.edge_num == edge_r.data.edge_num;
     };
 
-    if (!equal(*tree_, *other.tree_, node_comparator, edge_comparator)) {
+    if (!equal<PlacementTree, PlacementTree>(
+        *tree_, *other.tree_, node_comparator, edge_comparator
+    )) {
         LOG_WARN << "Cannot merge PlacementMaps with different reference trees.";
         return false;
     }
@@ -189,6 +214,7 @@ bool PlacementMap::merge(const PlacementMap& other)
         }
         this->pqueries_.push_back(std::move(npqry));
     }
+
     return true;
 }
 
@@ -313,31 +339,37 @@ void PlacementMap::normalize_weight_ratios()
  */
 void PlacementMap::restrain_to_max_weight_placements()
 {
+    detach_pqueries_from_tree();
+
     for (auto& pqry : pqueries_) {
         // Initialization.
-        double           max_w = -1.0;
-        PqueryPlacement* max_p;
+        double             max_w = -1.0;
+        PqueryPlacement*   max_p = nullptr;
+        // PlacementTreeEdge* max_e = nullptr;
 
         for (auto& place : pqry->placements) {
             // Find the maximum of the weight ratios in the placements of this pquery.
             if (place->like_weight_ratio > max_w) {
                 max_w = place->like_weight_ratio;
                 max_p = place.get();
+                // max_e = place->edge;
             }
+
+            // place->edge = nullptr;
 
             // Delete the reference from the edge to the current placement. We will later add the
             // one that points to the remaining (max weight) placement back to its edge.
-            std::vector<PqueryPlacement*>::iterator it = place->edge->data.placements.begin();
-            for (; it != place->edge->data.placements.end(); ++it) {
-                if (*it == place.get()) {
-                    break;
-                }
-            }
+            // std::vector<PqueryPlacement*>::iterator it = place->edge->data.placements.begin();
+            // for (; it != place->edge->data.placements.end(); ++it) {
+            //     if (*it == place.get()) {
+            //         break;
+            //     }
+            // }
 
             // Assert that the edge actually contains a reference to this pquery. If not,
             // this means that we messed up somewhere else while adding/removing placements...
-            assert(it != place->edge->data.placements.end());
-            place->edge->data.placements.erase(it);
+            // assert(it != place->edge->data.placements.end());
+            // place->edge->data.placements.erase(it);
         }
 
         // Remove all but the max element from placements vector.
@@ -351,10 +383,62 @@ void PlacementMap::restrain_to_max_weight_placements()
         // Now add back the reference from the edge to the pquery.
         // Assert that we now have a single placement in the pquery (the most likely one).
         assert(pqry->placements.size() == 1 && pqry->placements[0].get() == max_p);
-        max_p->edge->data.placements.push_back(max_p);
+        // max_p->edge = max_e;
+        // max_p->edge->data.placements.push_back(max_p);
 
         // Also, set the like_weight_ratio to 1.0, because we do not have any other placements left.
         max_p->like_weight_ratio = 1.0;
+    }
+
+    reattach_pqueries_to_tree();
+}
+
+/**
+ * @brief Delete all connecting pointers between the Pquery Placements and their edges on the tree.
+ *
+ * Each Placement has a pointer to its edge, and each edge has a vector of pointers to all
+ * Placements that point to that edge.
+ *
+ * By default, each placement deletes these connections when being destroyed. This process includes
+ * a linear search through the vector of the edge. If many Placements need to be deleted at the
+ * same time, this is a bottleneck in speed, as it results in quadratic time complexity in the
+ * number of placements.
+ *
+ * Thus, for operations that do a lot of Placement deletions (see restrain_to_max_weight_placements
+ * or collect_duplicate_pqueries as examples), it is cheaper to first delete all pointers using
+ * this method, and later restore the remaining ones using reattach_pqueries_to_tree.
+ *
+ * Caveat: While the pqueries are detached, the edge pointers of the placements and the placement
+ * vector of the edges are empty and shall not be used.
+ */
+void PlacementMap::detach_pqueries_from_tree()
+{
+    for( auto it = tree().begin_edges(); it != tree().end_edges(); ++it ) {
+        (*it)->data.placements.clear();
+    }
+    for (auto const& pqry : pqueries_) {
+        for( auto const& place : pqry->placements ) {
+            assert( place->edge != nullptr );
+            place->edge = nullptr;
+        }
+    }
+}
+
+/**
+ * @brief Restore all connecting pointers between the Pquery Placements and their edges on the tree.
+ *
+ * See detach_pqueries_from_tree for more information.
+ */
+void PlacementMap::reattach_pqueries_to_tree()
+{
+    auto enm = edge_num_map();
+    for (auto const& pqry : pqueries_) {
+        for( auto const& place : pqry->placements ) {
+            assert( enm.count(place->edge_num) == 1 );
+            assert( place->edge == nullptr );
+            enm[place->edge_num]->data.placements.push_back(place.get());
+            place->edge = enm[place->edge_num];
+        }
     }
 }
 
@@ -600,7 +684,7 @@ std::string PlacementMap::dump_tree() const
         return it.node()->data.name + " [" + std::to_string(it.edge()->data.edge_num) + "]" ": "
             + std::to_string(it.edge()->data.placement_count()) + " placements";
     };
-    return TreeView().compact(tree(), print_line);
+    return TreeView().compact<PlacementTree>(tree(), print_line);
 }
 
 /**

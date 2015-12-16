@@ -63,7 +63,7 @@ public:
     HistogramAccumulator& operator= (HistogramAccumulator const&) = default;
     HistogramAccumulator& operator= (HistogramAccumulator&&)      = default;
 
-    void swap (HistogramAccumulator& other);
+    void swap (HistogramAccumulator& other) noexcept;
 
     // -------------------------------------------------------------------------
     //     Accessors
@@ -119,20 +119,15 @@ private:
     std::map<double, double> values_;
 };
 
-} // namespace genesis
-
 // =================================================================================================
-//     Namespace std Extension
+//     Basic Operators
 // =================================================================================================
 
-namespace std {
-
-template<>
-inline void swap( genesis::HistogramAccumulator& lhs, genesis::HistogramAccumulator& rhs )
+inline void swap( HistogramAccumulator& lhs, HistogramAccumulator& rhs ) noexcept
 {
     lhs.swap(rhs);
 }
 
-} // namespace std
+} // namespace genesis
 
 #endif // include guard

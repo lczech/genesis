@@ -82,7 +82,7 @@ bool equal(const TreeTypeL& lhs, const TreeTypeR& rhs)
         return edge_l == edge_r;
     };
 
-    return equal(lhs, rhs, node_comparator, edge_comparator);
+    return equal<TreeTypeL, TreeTypeR>(lhs, rhs, node_comparator, edge_comparator);
 }
 
 template <class TreeTypeL, class TreeTypeR>
@@ -106,7 +106,7 @@ bool identical_topology(const TreeTypeL& lhs, const TreeTypeR& rhs)
         return true;
     };
 
-    return equal(lhs, rhs, node_comparator, edge_comparator);
+    return equal<TreeTypeL, TreeTypeR>(lhs, rhs, node_comparator, edge_comparator);
 }
 
 } // namespace genesis

@@ -76,7 +76,7 @@ public:
     Histogram& operator= (Histogram const&) = default;
     Histogram& operator= (Histogram&&)      = default;
 
-    void swap (Histogram& other);
+    void swap (Histogram& other) noexcept;
 
     // -------------------------------------------------------------------------
     //     General Methods
@@ -172,20 +172,15 @@ private:
     OutOfRangeBehaviour out_of_range_behaviour_;
 };
 
-} // namespace genesis
-
 // =================================================================================================
-//     Namespace std Extension
+//     Basic Operators
 // =================================================================================================
 
-namespace std {
-
-template<>
-inline void swap( genesis::Histogram& lhs, genesis::Histogram& rhs ) noexcept
+inline void swap( Histogram& lhs, Histogram& rhs ) noexcept
 {
     lhs.swap(rhs);
 }
 
-} // namespace std
+} // namespace genesis
 
 #endif // include guard

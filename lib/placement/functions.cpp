@@ -229,9 +229,13 @@ void collect_duplicate_pqueries (PlacementMap& map)
         }
 
         // Delete all Pqueries that were merged to others during this iteration.
+        // We detach (and later reattach) the pqueries from the tree for speed reasons.
+        // See those functions for more information on why this is necessary.
+        map.detach_pqueries_from_tree();
         erase_if(map.pqueries(), [del] (std::unique_ptr<Pquery>& pqry) {
             return del.count(pqry.get()) > 0;
         });
+        map.reattach_pqueries_to_tree();
     }
 }
 
@@ -244,9 +248,9 @@ void collect_duplicate_pqueries (PlacementMap& map)
 void merge_duplicate_placements (Pquery& pquery)
 {
     // We want to merge all placements that are on the same edge. This object collects those sets,
-    // indexed by their edge.
+    // indexed by their edge_num.
     std::unordered_map <
-        PlacementTree::EdgeType*,
+        int,
         std::vector<PqueryPlacement*>
     > merge_units;
 
@@ -256,10 +260,10 @@ void merge_duplicate_placements (Pquery& pquery)
 
     // Collect all placements sorted (indexed) by their edge.
     for (auto& place : pquery.placements) {
-        merge_units[place->edge].push_back(place.get());
+        merge_units[place->edge_num].push_back(place.get());
     }
 
-    // For each edge (i.e., each index in the unordered_map), merge all placements into the first
+    // For each edge_num (i.e., each index in the unordered_map), merge all placements into the first
     // one and mark all other for deletion.
     for (auto place_it : merge_units) {
         auto& place_vec = place_it.second;
@@ -302,9 +306,11 @@ void merge_duplicate_placements (Pquery& pquery)
  */
 void merge_duplicate_placements (PlacementMap& map)
 {
+    map.detach_pqueries_from_tree();
     for (auto& pquery_it : map.pqueries()) {
         merge_duplicate_placements (*pquery_it);
     }
+    map.reattach_pqueries_to_tree();
 }
 
 /**
