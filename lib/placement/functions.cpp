@@ -5,14 +5,14 @@
  * @ingroup placement
  */
 
+#include "placement/functions.hpp"
+
 #include <algorithm>
 #include <assert.h>
 #include <string>
 #include <vector>
 #include <unordered_map>
 #include <unordered_set>
-
-#include "placement/functions.hpp"
 
 namespace genesis {
 

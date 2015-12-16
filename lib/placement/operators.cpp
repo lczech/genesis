@@ -5,6 +5,8 @@
  * @ingroup placement
  */
 
+#include "placement/operators.hpp"
+
 #include "placement/placement_map.hpp"
 #include "tree/iterators/postorder.hpp"
 #include "tree/operators.hpp"

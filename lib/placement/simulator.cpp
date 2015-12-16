@@ -6,6 +6,7 @@
  */
 
 #include "placement/simulator.hpp"
+
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
 #include "tree/operators.hpp"
