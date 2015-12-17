@@ -1,7 +1,7 @@
 genesis test suite
 ==================
 
-Genesis uses [Gtest](https://code.google.com/p/googletest/) for testing its components.
+Genesis uses [Gtest](https://github.com/google/googletest) for testing its components.
 The test suite is build using the standard build process of genesis in the main directory.
 
 ## Structure
@@ -54,5 +54,5 @@ where the suffix `test_name` is replaced by the test name itself.
 For convenience, the `run.sh` script also contains some additional modes:
 
 * `./run.sh list` lists all available test cases.
-* `./run.sh gtest ...` calls Gtest directly, using the filtering as described above.
+* `./run.sh gtest [filter]...` calls Gtest directly, using the filtering as described above.
 * `./run.sh clean` removes the `out` directory.
