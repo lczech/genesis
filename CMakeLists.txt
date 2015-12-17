@@ -52,16 +52,16 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O3       -DNDEBUG")
 
 option (BUILD_SHARED_LIB    "Build shared library" ON)
 option (BUILD_STATIC_LIB    "Build static library" OFF)
-option (BUILD_EXECUTABLES   "Build executables"    OFF)
 
-option (BUILD_PYTHON_MODULE "Build Python module"  ON)
+option (BUILD_APPLICATIONS  "Build applications"   ON)
+option (BUILD_PYTHON_MODULE "Build python module"  ON)
 option (BUILD_TESTS         "Build test suites"    ON)
 
 option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" ON)
 option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
 
-if (BUILD_EXECUTABLES OR BUILD_PYTHON_MODULE OR BUILD_TESTS)
-    # The execs, the Python module and the tests use the shared lib,
+if (BUILD_APPLICATIONS OR BUILD_PYTHON_MODULE OR BUILD_TESTS)
+    # The applications, the python module and the tests all use the shared lib,
     # so we need to build it if one of those is activated.
     set (BUILD_SHARED_LIB ON)
 endif()
@@ -70,8 +70,16 @@ endif()
 #   Build Libraries
 # ------------------------------------------------------------------------------
 
-if (BUILD_SHARED_LIB OR BUILD_STATIC_LIB OR BUILD_EXECUTABLES)
+if (BUILD_SHARED_LIB OR BUILD_STATIC_LIB)
     add_subdirectory(${PROJECT_SOURCE_DIR}/lib)
+endif()
+
+# ------------------------------------------------------------------------------
+#   Build Applications
+# ------------------------------------------------------------------------------
+
+if (BUILD_APPLICATIONS)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/apps)
 endif()
 
 # ------------------------------------------------------------------------------
@@ -87,7 +95,7 @@ endif()
 # ------------------------------------------------------------------------------
 
 if (BUILD_TESTS)
-    # Need to enable testing here, otherwise ./build/make test will not work.
+    # Need to enable testing here, otherwise `./build/make test` will not work.
     enable_testing()
 
     add_subdirectory(${PROJECT_SOURCE_DIR}/test/src)

@@ -29,6 +29,7 @@ build: build/CMakeCache.txt
 update:
 	@echo "Running make with new files..."
 	@touch lib/CMakeLists.txt
+	@touch apps/CMakeLists.txt
 	@touch python/src/CMakeLists.txt
 	@touch test/src/CMakeLists.txt
 	$(MAKE) -s -C build

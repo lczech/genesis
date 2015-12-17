@@ -18,7 +18,6 @@ endif()
 # ------------------------------------------------------------------------------
 
 set (LIBRARY_OUTPUT_PATH    ${PROJECT_SOURCE_DIR}/bin)
-set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 
 # ------------------------------------------------------------------------------
 #   Sources
@@ -53,24 +52,5 @@ if (BUILD_STATIC_LIB)
 
     if(THREADS_FOUND)
         target_link_libraries (genesis_lib_static ${CMAKE_THREAD_LIBS_INIT})
-    endif()
-endif()
-
-if (BUILD_EXECUTABLES)
-    # Find all main source files in /src and compile them into individual
-    # binaries, each linked to the shared lib.
-    file( GLOB exec_sources ${PROJECT_SOURCE_DIR}/src/*.cpp )
-
-    if (exec_sources)
-        message (STATUS "${ColorBlue}Building executables:${ColorEnd}")
-        foreach( exec_src ${exec_sources} )
-            get_filename_component( exec_name ${exec_src} NAME_WE )
-            message (STATUS "  ${ColorBlue}${exec_name}${ColorEnd}")
-
-            add_executable( ${exec_name} ${exec_src} )
-            target_link_libraries( ${exec_name} genesis_lib_shared )
-        endforeach()
-    else()
-        message (STATUS "${ColorBlue}No executables found${ColorEnd}")
     endif()
 endif()
