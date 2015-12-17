@@ -4,7 +4,7 @@ genesis applications
 This directory is provided for conveniently and quickly developing small applications which use
 genesis as their main library.
 
-Reasons to use this method instead of the genesis python bindings include:
+Reasons to use this method (instead of the genesis python bindings) include:
 
 * If Boost Python is not available on your target system.
 * If not all needed functions of genesis are exported to python (yet).
