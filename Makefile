@@ -3,7 +3,7 @@
 #     A simple call to "make" suffices to build the whole of genesis.
 #
 #     This script is mainly intended for fast development, as it 'misuses' cmake
-#     directly as a build system instead of a build system generator.
+#     directly as a build system instead of a build system _generator_.
 # --------------------------------------------------------------------------------------------------
 
 # Run everything by specifying the cmake file and the build command as dependencies.
@@ -26,13 +26,13 @@ build: build/CMakeCache.txt
 # Special make that also includes new files.
 # We first touch all inner cmake files so that their glob search for files is rerun.
 # This ensures that all new files are compiled, even when doing incremental builds.
-new_files:
+update:
 	@echo "Running make with new files..."
 	@touch lib/CMakeLists.txt
 	@touch python/src/CMakeLists.txt
 	@touch test/src/CMakeLists.txt
 	$(MAKE) -s -C build
-.PHONY: new_files
+.PHONY: update
 
 # Clean up all build targets.
 clean:
