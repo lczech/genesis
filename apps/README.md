@@ -4,9 +4,11 @@ genesis applications
 This directory is provided for conveniently and quickly developing small applications which use
 genesis as their main library.
 
-A reason for this might be that using the genesis python bindings is not an option:
-Boost might not be available on certain systems, or not all needed functions of genesis are
-exported to python (yet), or you simply feel more comfortable developing in C++ than in python.
+Reasons to use this method instead of the genesis python bindings include:
+
+* If Boost Python is not available on your target system.
+* If not all needed functions of genesis are exported to python (yet).
+* If you simply feel more comfortable developing in C++ than in python.
 
 To create a new application, create a `*.cpp` file in the `apps` directory.
 It is automatically compiled by the main build process and linked against the shared library
