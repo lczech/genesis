@@ -17,9 +17,9 @@
 
 namespace genesis {
 
-// =============================================================================
+// =================================================================================================
 //     Construction and Destruction
-// =============================================================================
+// =================================================================================================
 
 /**
  * @brief Copy constructor.
@@ -117,24 +117,18 @@ Tree<NDT, EDT>& Tree<NDT, EDT>::operator = (const Tree<NDT, EDT>& other)
 }
 
 /**
- * @brief Destructor. Calls clear() to free all memory used by the tree and its substructures.
- */
-template <class NDT, class EDT>
-Tree<NDT, EDT>::~Tree ()
-{
-    // TODO totally not necessary to have that here! remove, run mem test!
-    clear();
-}
-
-/**
  * @brief Deletes all data of the tree, including all links, nodes and edges.
  */
 template <class NDT, class EDT>
 void Tree<NDT, EDT>::clear()
 {
-    std::vector<std::unique_ptr<LinkType>>().swap(links_);
-    std::vector<std::unique_ptr<NodeType>>().swap(nodes_);
-    std::vector<std::unique_ptr<EdgeType>>().swap(edges_);
+    // std::vector<std::unique_ptr<LinkType>>().swap(links_);
+    // std::vector<std::unique_ptr<NodeType>>().swap(nodes_);
+    // std::vector<std::unique_ptr<EdgeType>>().swap(edges_);
+
+    links_.clear();
+    nodes_.clear();
+    edges_.clear();
 }
 
 /**
@@ -143,9 +137,10 @@ void Tree<NDT, EDT>::clear()
 template <class NDT, class EDT>
 void Tree<NDT, EDT>::swap (Tree<NDT, EDT>& other)
 {
-    std::swap(links_, other.links_);
-    std::swap(nodes_, other.nodes_);
-    std::swap(edges_, other.edges_);
+    using std::swap;
+    swap(links_, other.links_);
+    swap(nodes_, other.nodes_);
+    swap(edges_, other.edges_);
 }
 
 /**
@@ -193,9 +188,19 @@ void Tree<NDT, EDT>::export_content (
     edges = edges_;
 }
 
-// =============================================================================
+// =================================================================================================
+//     Accessors
+// =================================================================================================
+
+template <class NDT, class EDT>
+bool Tree<NDT, EDT>::empty() const
+{
+    return links_.empty() && nodes_.empty() && edges_.empty();
+}
+
+// =================================================================================================
 //     Member Functions
-// =============================================================================
+// =================================================================================================
 
 /**
  * @brief Returns the highest rank of the nodes of the Tree.
@@ -248,9 +253,9 @@ size_t Tree<NDT, EDT>::inner_count() const
     return nodes_.size() - leaf_count();
 }
 
-// =============================================================================
+// =================================================================================================
 //     Dump and Debug Functions
-// =============================================================================
+// =================================================================================================
 
 // TODO do all node->link_ links point to the root? same for all edge->primary?
 
