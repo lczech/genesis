@@ -92,12 +92,21 @@ PlacementMap::PlacementMap( PlacementMap const& other )
 /**
  * @brief Move constructor.
  */
+// PlacementMap::PlacementMap( PlacementMap&& other ) noexcept
+// {
+//     swap(other);
+// }
+
 PlacementMap::PlacementMap( PlacementMap&& other ) noexcept
     : pqueries_( std::move(other.pqueries_))
     , tree_(     std::move(other.tree_))
     , metadata(  std::move(other.metadata))
 {
-    // Nothing to do here.
+    other.pqueries_.clear();
+    if( other.tree_ ) {
+        other.tree_->clear();
+    }
+    other.metadata.clear();
 }
 
 /**
@@ -129,7 +138,19 @@ PlacementMap& PlacementMap::operator= (PlacementMap&& other) noexcept
 PlacementMap::~PlacementMap()
 {
     // We are going to destroy the PlacementMap. Let's speed it up!
-    detach_pqueries_from_tree();
+    // TODO make swapping work propery. then, this should work, too
+    // (currently, it gives a segfault if a moved-from placementmap is destroyed).
+    // if( tree_ ) {
+    //     detach_pqueries_from_tree();
+    // }
+
+    // Instead, use a weird half-copied solution for now:
+
+    for (auto const& pqry : pqueries_) {
+        for( auto const& place : pqry->placements ) {
+            place->edge = nullptr;
+        }
+    }
 }
 
 void PlacementMap::swap (PlacementMap& other) noexcept

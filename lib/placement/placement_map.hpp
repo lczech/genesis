@@ -47,6 +47,11 @@ public:
     PlacementMap& operator= (PlacementMap const&);
     PlacementMap& operator= (PlacementMap&&) noexcept;
 
+    // PlacementMap( PlacementMap&& ) = default;
+    //
+    // PlacementMap& operator= (PlacementMap const&) = default;
+    // PlacementMap& operator= (PlacementMap&&) = default;
+
     ~PlacementMap();
 
     void swap (PlacementMap& other) noexcept;

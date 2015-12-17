@@ -105,7 +105,7 @@ public:
     Tree (const TreeType& other);
     TreeType& operator = (const TreeType& other);
 
-    virtual ~Tree();
+    virtual ~Tree() = default;
     void clear();
 
     void swap (TreeType& other);
@@ -116,6 +116,8 @@ public:
     // -------------------------------------------------------------------------
     //     Accessors
     // -------------------------------------------------------------------------
+
+    bool empty() const;
 
     LinkType* root_link()
     {
