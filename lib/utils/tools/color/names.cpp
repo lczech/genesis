@@ -54,14 +54,14 @@ bool is_named_color( std::string const& name )
  * @brief Retrieve a named color by name.
  *
  * Names are filtered so that spaces, underscores and the letter case are ignored.
- * If the color name does not exist, an `std::out_of_range` exception is thrown.
+ * If the color name does not exist, an `std::invalid_argument` exception is thrown.
  */
 Color get_named_color( std::string const& name )
 {
     auto it = get_named_color_iterator(name);
 
     if( it == ColorNames::map.end() ) {
-        throw std::out_of_range("No color named " + name + ".");
+        throw std::invalid_argument("No color named " + name + ".");
     }
     return it->second;
 }
