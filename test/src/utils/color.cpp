@@ -24,6 +24,63 @@ void compare_color(const Color& expected, const Color& actual)
     EXPECT_EQ (expected.b(), actual.b());
 }
 
+TEST(Color, Gradient)
+{
+    // Set up colors for standard heat gradient.
+    auto ranges_heat = std::map<double, Color>();
+    ranges_heat[ 0.0 ] = Color(   0, 255, 0 );
+    ranges_heat[ 0.5 ] = Color( 255, 255, 0 );
+    ranges_heat[ 1.0 ] = Color( 255,   0, 0 );
+
+    // Proper value tests.
+    compare_color(Color(   0, 255, 0 ), gradient( ranges_heat, 0.0  ));
+    compare_color(Color( 128, 255, 0 ), gradient( ranges_heat, 0.25 ));
+    compare_color(Color( 255, 255, 0 ), gradient( ranges_heat, 0.5  ));
+    compare_color(Color( 255, 128, 0 ), gradient( ranges_heat, 0.75 ));
+    compare_color(Color( 255,   0, 0 ), gradient( ranges_heat, 1.0  ));
+
+    // Off-range values.
+    compare_color(Color(   0, 255, 0 ), gradient( ranges_heat, -1.0 ));
+    compare_color(Color( 255,   0, 0 ), gradient( ranges_heat,  2.0 ));
+
+
+    // Set up colors for some more complex gradient.
+    auto ranges_long = std::map<double, Color>();
+    ranges_long[ 0.0  ] = Color(   0,   0,   0 );
+    ranges_long[ 0.25 ] = Color(   0, 255,   0 );
+    ranges_long[ 0.5  ] = Color( 255, 255,   0 );
+    ranges_long[ 1.0  ] = Color( 255,   0, 255 );
+
+    // Test the complex gradient.
+    compare_color(Color(   0,   0,   0 ), gradient( ranges_long, 0.0  ));
+    compare_color(Color(   0, 102,   0 ), gradient( ranges_long, 0.1  ));
+    compare_color(Color(   0, 255,   0 ), gradient( ranges_long, 0.25 ));
+    compare_color(Color(  51, 255,   0 ), gradient( ranges_long, 0.3  ));
+    compare_color(Color( 255, 255,   0 ), gradient( ranges_long, 0.5  ));
+    compare_color(Color( 255, 204,  51 ), gradient( ranges_long, 0.6  ));
+    compare_color(Color( 255, 128, 128 ), gradient( ranges_long, 0.75 ));
+    compare_color(Color( 255,  51, 204 ), gradient( ranges_long, 0.9  ));
+    compare_color(Color( 255,   0, 255 ), gradient( ranges_long, 1.0  ));
+
+
+    // Invalid ranges.
+    auto ranges_inv1 = std::map<double, Color>();
+    auto ranges_inv2 = std::map<double, Color>();
+    auto ranges_inv3 = std::map<double, Color>();
+    auto ranges_inv4 = std::map<double, Color>();
+
+    ranges_inv2[0.0] = Color(   0, 255, 0 );
+    ranges_inv2[0.5] = Color( 255, 255, 0 );
+    ranges_inv3[0.5] = Color( 255, 255, 0 );
+    ranges_inv3[1.0] = Color( 255,   0, 0 );
+    ranges_inv4[0.5] = Color( 255, 255, 0 );
+
+    EXPECT_THROW( gradient(ranges_inv1, 0.0), std::invalid_argument );
+    EXPECT_THROW( gradient(ranges_inv2, 0.0), std::invalid_argument );
+    EXPECT_THROW( gradient(ranges_inv3, 0.0), std::invalid_argument );
+    EXPECT_THROW( gradient(ranges_inv4, 0.0), std::invalid_argument );
+}
+
 TEST(Color, HeatGradient)
 {
     // Proper value tests.
@@ -88,6 +145,6 @@ TEST( Color, Names )
     compare_color( Color(205, 92, 92), get_named_color("indian red") );
 
     // Get invalid color.
-    EXPECT_THROW( get_named_color(""), std::out_of_range );
-    EXPECT_THROW( get_named_color("boot polish"), std::out_of_range );
+    EXPECT_THROW( get_named_color(""), std::invalid_argument );
+    EXPECT_THROW( get_named_color("boot polish"), std::invalid_argument );
 }

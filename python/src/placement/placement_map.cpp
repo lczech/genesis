@@ -16,7 +16,8 @@ PYTHON_EXPORT_CLASS (PlacementMap, "placement")
 
     using namespace genesis;
 
-    boost::python::class_< PlacementMap, std::shared_ptr<PlacementMap> > ( "PlacementMap", boost::python::init<  >(  ) )
+    // boost::python::class_< PlacementMap, std::shared_ptr<PlacementMap> > ( "PlacementMap", boost::python::init<  >(  ) )
+    boost::python::class_< PlacementMap > ( "PlacementMap", boost::python::init<  >(  ) )
         .def( boost::python::init< std::shared_ptr<PlacementTree> >(( boost::python::arg("ptree") )) )
         .def( boost::python::init< const PlacementMap & >(( boost::python::arg("other") )) )
 
