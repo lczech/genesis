@@ -1,30 +1,27 @@
-genesis documentation
-=====================
+genesis api documentation
+=========================
 
-Genesis is documented in three different scopes:
+This directory contains the api documentation of genesis.
 
-1. **api**
+Scope
+-----
 
-   The documentation of the application programming interface is intended for
-   people who want to use the functions and classes as a library. It provides
-   a reference for the classes, functions and other symbols defined in genesis.
+The documentation of the application programming interface (api) is intended for people who want to
+use the functions and classes as a library or toolkit for their own applications.
+It provides a reference for the classes, functions and other symbols defined in genesis.
+It is usable for both the C++ and Python interfaces.
 
-   The API documentation is automatically generated from the doc-blocks within
-   the C++ source code using doxygen.
+High-level documentation for end users who want to use existing scripts and applications is instead
+provided via the [genesis wiki](https://github.com/lczech/genesis/wiki).
+The wiki also contains information for developers who want to work on genesis and contribute to its
+codebase.
 
-2. **dev**
+Build
+-----
 
-   This part of the documentation is intended for people who want to work on
-   genesis and contribute to its codebase. It contains guidelines and coding
-   standards as well as an introduction into the architecture.
-
-3. **man**
-
-   The manual is for people who simply want to use genesis for their purposes.
-   It provides first steps and examples that work with the given functionality.
-   **This is not yet available.**
-
-The documentations can be created by calling `make` in this directory. This will
+The api documentation is automatically generated from the doc-blocks within the C++ source code
+using doxygen. The files can be created by calling `make` in this directory. This will
 generate the necessary documents and create links to them for convenience.
+The api documentation is written to html, xml and latex formats.
 Requirements:
 [doxygen](http://www.doxygen.org/) and [latex](http://www.latex-project.org).
