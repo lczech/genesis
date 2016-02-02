@@ -60,38 +60,11 @@ __pycache__/
 #   Documentation
 # --------------------------------------------------------------------
 
-doc/doc-*
-doc/api/html/
-doc/api/latex/
-doc/api/xml/
-doc/dev/*.pdf
-
-# --------------------------------------------------------------------
-#   Latex Generated Files
-# --------------------------------------------------------------------
-
-*.aux
-*.glo
-*.idx
-*.log
-*.toc
-*.ist
-*.acn
-*.acr
-*.alg
-*.bbl
-*.blg
-*.dvi
-*.glg
-*.gls
-*.ilg
-*.ind
-*.lof
-*.lot
-*.maf
-*.mtc
-*.mtc1
-*.out
+doc/html/
+doc/latex/
+doc/xml/
+doc/api.pdf
+doc/index.html
 
 # --------------------------------------------------------------------
 #   Misc
