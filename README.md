@@ -1,7 +1,7 @@
 genesis
 =======
 
-A framework for evolutionary placement data.
+A framework for phylogenetic placement data.
 
 Introduction
 ------------
@@ -78,16 +78,16 @@ Please report any issues, bugs and feature requests to the
 References
 ----------
 
- *  S. Berger, D. Krompass, and A. Stamatakis,
-    **Performance, accuracy, and web server for evolutionary placement of short sequence reads
-    under maximum likelihood**,
-    *Syst. Biol., vol. 60, no. 3, pp. 291–302, 2011*.
+> S. Berger, D. Krompass, and A. Stamatakis,
+> **Performance, accuracy, and web server for evolutionary placement of short sequence reads
+> under maximum likelihood**,
+> *Syst. Biol., vol. 60, no. 3, pp. 291–302, 2011*.
 
- *  F. A. Matsen, R. B. Kodner, and E. V. Armbrust,
-    **pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences
-    onto a fixed reference tree**,
-    *BMC Bioinformatics, vol. 11, no. 1, p. 538, 2010*.
+> F. A. Matsen, R. B. Kodner, and E. V. Armbrust,
+> **pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences
+> onto a fixed reference tree**,
+> *BMC Bioinformatics, vol. 11, no. 1, p. 538, 2010*.
 
- *  F. A. Matsen, N. G. Hoffman, A. Gallagher, and A. Stamatakis,
-    **A format for phylogenetic placements**,
-    *PLoS One, vol. 7, no. 2, pp. 1–4, Jan. 2012*.
+> F. A. Matsen, N. G. Hoffman, A. Gallagher, and A. Stamatakis,
+> **A format for phylogenetic placements**,
+> *PLoS One, vol. 7, no. 2, pp. 1–4, Jan. 2012*.

@@ -9,7 +9,7 @@ Scope
 The documentation of the application programming interface (api) is intended for people who want to
 use the functions and classes as a library or toolkit for their own applications.
 It provides a reference for the classes, functions and other symbols defined in genesis.
-It is usable for both the C++ and Python interfaces.
+It is suitable for both the C++ and Python interfaces.
 
 High-level documentation for end users who want to use existing scripts and applications is instead
 provided via the [genesis wiki](https://github.com/lczech/genesis/wiki).
