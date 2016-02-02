@@ -78,6 +78,9 @@ Please report any issues, bugs and feature requests to the
 References
 ----------
 
+Please refer to the following articles for more information on phylogenetic placement of short
+reads:
+
 > S. Berger, D. Krompass, and A. Stamatakis,
 > **Performance, accuracy, and web server for evolutionary placement of short sequence reads
 > under maximum likelihood**,
