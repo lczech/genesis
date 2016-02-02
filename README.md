@@ -7,7 +7,8 @@ Introduction
 ------------
 
 The aim of this project is to provide an easy to use toolkit for working with data coming from
-evolutionary placement of short NGS reads. This data is produced by tools like
+evolutionary placement of short NGS reads on a reference phylogenetic tree.
+This data is produced by tools like
 [RAxML-EPA](http://sco.h-its.org/exelixis/web/software/epa/index.html) or
 [pplacer](http://matsen.fhcrc.org/pplacer/) and is usually stored in `.jplace` files.
 Please refer to the articles listed in the References section for background information on
