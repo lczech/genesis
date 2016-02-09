@@ -1,17 +1,18 @@
-#ifndef GENESIS_ALIGNMENT_SEQUENCE_SET_H_
-#define GENESIS_ALIGNMENT_SEQUENCE_SET_H_
+#ifndef GENESIS_SEQUENCE_SEQUENCE_SET_H_
+#define GENESIS_SEQUENCE_SEQUENCE_SET_H_
 
 /**
  * @brief
  *
  * @file
- * @ingroup alignment
+ * @ingroup sequence
  */
 
 #include <string>
 #include <vector>
 
 namespace genesis {
+namespace sequence {
 
 // =================================================================================================
 //     Forward Declarations
@@ -66,6 +67,7 @@ public:
     std::vector<Sequence*> sequences;
 };
 
+} // namespace sequence
 } // namespace genesis
 
 #endif // include guard

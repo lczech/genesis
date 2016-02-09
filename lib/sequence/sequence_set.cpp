@@ -2,19 +2,20 @@
  * @brief Implementation of SequenceSet class.
  *
  * @file
- * @ingroup alignment
+ * @ingroup sequence
  */
 
-#include "alignment/sequence_set.hpp"
+#include "sequence/sequence_set.hpp"
 
 #include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 
-#include "alignment/sequence.hpp"
+#include "sequence/sequence.hpp"
 #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace sequence {
 
 // =============================================================================
 //     Constructor and Destructor
@@ -29,7 +30,7 @@ SequenceSet::~SequenceSet()
 }
 
 /**
- * @brief Deletes all sequences from the alignment.
+ * @brief Deletes all sequences from the set.
  */
 void SequenceSet::clear()
 {
@@ -124,7 +125,7 @@ void SequenceSet::replace(char search, char replace)
 // =============================================================================
 
 /**
- * @brief Gives a summary of the sequences names and their lengths for this alignment.
+ * @brief Gives a summary of the sequences names and their lengths for this set.
  */
 std::string SequenceSet::dump() const
 {
@@ -135,4 +136,5 @@ std::string SequenceSet::dump() const
     return out.str();
 }
 
+} // namespace sequence
 } // namespace genesis

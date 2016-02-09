@@ -1,16 +1,17 @@
-#ifndef GENESIS_ALIGNMENT_SEQUENCE_H_
-#define GENESIS_ALIGNMENT_SEQUENCE_H_
+#ifndef GENESIS_SEQUENCE_SEQUENCE_H_
+#define GENESIS_SEQUENCE_SEQUENCE_H_
 
 /**
  * @brief
  *
  * @file
- * @ingroup alignment
+ * @ingroup sequence
  */
 
 #include <string>
 
 namespace genesis {
+namespace sequence {
 
 class Sequence
 {
@@ -73,6 +74,7 @@ protected:
     std::string sites_;
 };
 
+} // namespace sequence
 } // namespace genesis
 
 #endif // include guard

@@ -1,16 +1,17 @@
-#ifndef GENESIS_ALIGNMENT_IO_PHYLIP_LEXER_H_
-#define GENESIS_ALIGNMENT_IO_PHYLIP_LEXER_H_
+#ifndef GENESIS_SEQUENCE_IO_PHYLIP_LEXER_H_
+#define GENESIS_SEQUENCE_IO_PHYLIP_LEXER_H_
 
 /**
  * @brief Header of PhylipLexer class.
  *
  * @file
- * @ingroup alignment
+ * @ingroup sequence
  */
 
 #include "utils/io/lexer.hpp"
 
 namespace genesis {
+namespace sequence {
 
 // =================================================================================================
 //     PhylipLexer
@@ -37,6 +38,7 @@ public:
     }
 };
 
+} // namespace sequence
 } // namespace genesis
 
 #endif // include guard

@@ -2,21 +2,22 @@
  * @brief Implementation of functions for parsing and printing FASTA documents.
  *
  * @file
- * @ingroup alignment
+ * @ingroup sequence
  */
 
-#include "alignment/io/fasta_processor.hpp"
+#include "sequence/io/fasta_processor.hpp"
 
 #include <sstream>
 #include <string>
 
-#include "alignment/io/fasta_lexer.hpp"
-#include "alignment/sequence.hpp"
-#include "alignment/sequence_set.hpp"
+#include "sequence/io/fasta_lexer.hpp"
+#include "sequence/sequence.hpp"
+#include "sequence/sequence_set.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/fs.hpp"
 
 namespace genesis {
+namespace sequence {
 
 // =============================================================================
 //     Parsing
@@ -141,4 +142,5 @@ std::string FastaProcessor::to_string (const SequenceSet& sset)
     return seq.str();
 }
 
+} // namespace sequence
 } // namespace genesis

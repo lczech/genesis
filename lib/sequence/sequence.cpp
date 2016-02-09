@@ -2,10 +2,10 @@
  * @brief Implementation of Sequence class.
  *
  * @file
- * @ingroup alignment
+ * @ingroup sequence
  */
 
-#include "alignment/sequence.hpp"
+#include "sequence/sequence.hpp"
 
 #include <algorithm>
 
@@ -13,6 +13,7 @@
 #include "utils/text/string.hpp"
 
 namespace genesis {
+namespace sequence {
 
 // =============================================================================
 //     Constructor and Destructor
@@ -58,4 +59,5 @@ std::string Sequence::dump() const
     return label() + ": " + sites();
 }
 
+} // namespace sequence
 } // namespace genesis

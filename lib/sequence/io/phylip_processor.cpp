@@ -2,20 +2,21 @@
  * @brief Implementation of functions for parsing and printing Phylip documents.
  *
  * @file
- * @ingroup alignment
+ * @ingroup sequence
  */
 
-#include "alignment/io/phylip_processor.hpp"
+#include "sequence/io/phylip_processor.hpp"
 
 #include <sstream>
 
-#include "alignment/io/phylip_lexer.hpp"
-#include "alignment/sequence.hpp"
-#include "alignment/sequence_set.hpp"
+#include "sequence/io/phylip_lexer.hpp"
+#include "sequence/sequence.hpp"
+#include "sequence/sequence_set.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/fs.hpp"
 
 namespace genesis {
+namespace sequence {
 
 // =============================================================================
 //     Parsing
@@ -181,4 +182,5 @@ std::string PhylipProcessor::to_string (const SequenceSet& sset)
     return seq.str();
 }
 
+} // namespace sequence
 } // namespace genesis
