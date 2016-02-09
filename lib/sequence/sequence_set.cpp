@@ -19,6 +19,16 @@ size_t SequenceSet::size() const
     return sequences_.size();
 }
 
+SequenceSet::reference SequenceSet::operator[] (size_t index)
+{
+    return sequences_[index];
+}
+
+SequenceSet::const_reference SequenceSet::operator[] (size_t index) const
+{
+    return sequences_[index];
+}
+
 // =============================================================================
 //     Modifiers
 // =============================================================================

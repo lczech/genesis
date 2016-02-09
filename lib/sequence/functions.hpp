@@ -20,6 +20,20 @@ namespace sequence {
 Sequence const* find_sequence( SequenceSet const& set, std::string const& label );
 
 // ================================================================================================
+//     Characteristics
+// ================================================================================================
+
+size_t count_chars( SequenceSet const& set, std::string const& chars );
+
+size_t total_length( SequenceSet const& set );
+
+bool validate_chars( SequenceSet const& set, std::string const& chars );
+
+bool is_alignment( SequenceSet const& set );
+
+double gapyness( SequenceSet const& set, std::string const& undetermined_chars );
+
+// ================================================================================================
 //     Modifiers
 // ================================================================================================
 

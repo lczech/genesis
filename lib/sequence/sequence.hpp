@@ -78,6 +78,7 @@ public:
     // -----------------------------------------------------
 
     size_t length() const;
+    size_t size() const;
 
     char site_at( size_t index ) const;
 

@@ -36,6 +36,9 @@ public:
     typedef std::vector<Sequence>::iterator       iterator;
     typedef std::vector<Sequence>::const_iterator const_iterator;
 
+    typedef Sequence&       reference;
+    typedef Sequence const& const_reference;
+
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
@@ -60,6 +63,9 @@ public:
     // -------------------------------------------------------------------------
 
     size_t size() const;
+
+    reference       operator[] (size_t index);
+    const_reference operator[] (size_t index) const;
 
     // -------------------------------------------------------------------------
     //     Modifiers
