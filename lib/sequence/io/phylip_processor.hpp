@@ -1,17 +1,18 @@
-#ifndef GENESIS_ALIGNMENT_IO_PHYLIP_PROCESSOR_H_
-#define GENESIS_ALIGNMENT_IO_PHYLIP_PROCESSOR_H_
+#ifndef GENESIS_SEQUENCE_IO_PHYLIP_PROCESSOR_H_
+#define GENESIS_SEQUENCE_IO_PHYLIP_PROCESSOR_H_
 
 /**
  * @brief
  *
  * @file
- * @ingroup alignment
+ * @ingroup sequence
  */
 
 #include <assert.h>
 #include <string>
 
 namespace genesis {
+namespace sequence {
 
 // =================================================================================================
 //     Forward declarations
@@ -63,6 +64,7 @@ public:
     std::string to_string (const SequenceSet& sset);
 };
 
+} // namespace sequence
 } // namespace genesis
 
 #endif // include guard

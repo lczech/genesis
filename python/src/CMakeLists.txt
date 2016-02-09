@@ -9,7 +9,7 @@ else()
 endif()
 
 find_package (PythonLibs 2.7)
-find_package (Boost      1.55.0 COMPONENTS python)
+find_package (Boost      1.41.0 COMPONENTS python)
 
 if (NOT PYTHONLIBS_FOUND OR NOT Boost_PYTHON_FOUND)
     message (STATUS "Python Lib or Boost Python not found")

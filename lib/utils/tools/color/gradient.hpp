@@ -19,7 +19,7 @@ namespace color {
 //     Color Gradients
 // =================================================================================================
 
-Color gradient ( std::map<double, Color> ranges, double percentage );
+Color gradient ( std::map<double, Color> const& ranges, double percentage );
 
 Color heat_gradient (double percentage);
 

@@ -2,20 +2,21 @@
  * @brief Implementation of functions for parsing and printing Phylip documents.
  *
  * @file
- * @ingroup alignment
+ * @ingroup sequence
  */
 
-#include "alignment/io/phylip_processor.hpp"
+#include "sequence/io/phylip_processor.hpp"
 
 #include <sstream>
 
-#include "alignment/io/phylip_lexer.hpp"
-#include "alignment/sequence.hpp"
-#include "alignment/sequence_set.hpp"
+#include "sequence/io/phylip_lexer.hpp"
+#include "sequence/sequence.hpp"
+#include "sequence/sequence_set.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/fs.hpp"
 
 namespace genesis {
+namespace sequence {
 
 // =============================================================================
 //     Parsing
@@ -109,8 +110,8 @@ bool PhylipProcessor::from_string (const std::string& fs, SequenceSet& aln)
     // prepare alignment and sequences
     aln.clear();
     for (long i = 0; i < num_seq; ++i) {
-        Sequence* nseq = new Sequence(label, seq.str());
-        aln.sequences.push_back(nseq);
+        // Sequence* nseq = new Sequence(label, seq.str());
+        // aln.sequences.push_back(nseq);
     }
 
     // process the first batch of lines, which contain the labels.
@@ -157,12 +158,12 @@ void PhylipProcessor::to_string (const SequenceSet& sset, std::string& fs)
 std::string PhylipProcessor::to_string (const SequenceSet& sset)
 {
     size_t length = 0;
-    for (Sequence* s : sset.sequences) {
+    for (Sequence const& s : sset) {
         if (length == 0) {
-            length = s->length();
+            length = s.length();
             continue;
         }
-        if (s->length() != length) {
+        if (s.length() != length) {
             LOG_WARN << "Sequences in alignment have different lengths.";
             return "";
         }
@@ -173,12 +174,13 @@ std::string PhylipProcessor::to_string (const SequenceSet& sset)
     }
 
     std::ostringstream seq("");
-    seq << sset.sequences.size() << " " << length << "\n";
-    for (Sequence* s : sset.sequences) {
+    seq << sset.size() << " " << length << "\n";
+    for (Sequence const& s : sset) {
         // print label and sequence
-        seq << s->label() << " " << s->sites() << "\n";
+        seq << s.label() << " " << s.sites() << "\n";
     }
     return seq.str();
 }
 
+} // namespace sequence
 } // namespace genesis

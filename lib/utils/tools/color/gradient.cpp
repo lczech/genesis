@@ -69,7 +69,7 @@ Color interpolate (Color color1, Color color2, double fraction)
  * For example, given the range map above, a percentage value of 0.0 gives green; 0.5 gives yellow;
  * 1.0 gives red; values in between are interpolated accordingly.
  */
-Color gradient ( std::map<double, Color> ranges, double percentage )
+Color gradient ( std::map<double, Color> const& ranges, double percentage )
 {
     // Check range sanity.
     if( ranges.size() < 2 ) {

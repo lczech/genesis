@@ -30,7 +30,7 @@ inline std::string genesis_header()
       /   ) /___) /   ) /___) (_ ` / (_ `  \n\
      (___/ (___  /   / (___  (__) / (__)   \n\
         /                                  \n\
-    (__/       2014-2015 by Lucas Czech    \n";
+    (__/       2014-2016 by Lucas Czech    \n";
 }
 
 inline std::string ee(int r)

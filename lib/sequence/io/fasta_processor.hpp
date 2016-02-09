@@ -1,16 +1,17 @@
-#ifndef GENESIS_ALIGNMENT_IO_FASTA_PROCESSOR_H_
-#define GENESIS_ALIGNMENT_IO_FASTA_PROCESSOR_H_
+#ifndef GENESIS_SEQUENCE_IO_FASTA_PROCESSOR_H_
+#define GENESIS_SEQUENCE_IO_FASTA_PROCESSOR_H_
 
 /**
  * @brief
  *
  * @file
- * @ingroup alignment
+ * @ingroup sequence
  */
 
 #include <string>
 
 namespace genesis {
+namespace sequence {
 
 // =============================================================================
 //     Forward declarations
@@ -23,7 +24,7 @@ class SequenceSet;
 // =============================================================================
 
 /**
- * @brief Processes a FASTA file into an alignment object.
+ * @brief Processes a FASTA file into an SequenceSet.
  *
  * Specification:
  *
@@ -63,6 +64,7 @@ public:
     size_t line_length = 80;
 };
 
+} // namespace sequence
 } // namespace genesis
 
 #endif // include guard
