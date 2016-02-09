@@ -17,60 +17,70 @@ class Sequence
 {
 public:
 
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
+    Sequence() = default;
+
+    Sequence( std::string const& label, std::string const& sites )
+        : label_(label)
+        , metadata_()
+        , sites_(sites)
+    {}
+
+    Sequence( std::string const& label, std::string const& metadata, std::string const& sites )
+        : label_(label)
+        , metadata_(metadata)
+        , sites_(sites)
+    {}
+
+    ~Sequence() = default;
+
+    Sequence( Sequence const& ) = default;
+    Sequence( Sequence&& )      = default;
+
+    Sequence& operator= ( Sequence const& ) = default;
+    Sequence& operator= ( Sequence&& )      = default;
+
+    void swap( Sequence& other )
+    {
+        using std::swap;
+        swap( label_,    other.label_ );
+        swap( metadata_, other.metadata_ );
+        swap( sites_,    other.sites_ );
+    }
+
     // -----------------------------------------------------
-    //     Constructor and Typedefs
+    //     Properties
     // -----------------------------------------------------
 
-    typedef char SymbolType;
+    std::string const& label() const;
+    void               label( std::string const& value );
 
-    Sequence (std::string label, std::string sites) : label_(label), sites_(sites) {}
-    ~Sequence();
+    std::string const& metadata() const;
+    void               metadata( std::string const& value );
+
+    std::string const& sites() const;
+    void               sites( std::string const& value );
+    void               sites( std::string &&     value );
 
     // -----------------------------------------------------
     //     Accessors
     // -----------------------------------------------------
 
-    inline std::string label() const
-    {
-        return label_;
-    }
+    size_t length() const;
 
-    inline size_t length() const
-    {
-        return sites_.size();
-    }
-
-    inline SymbolType site(size_t index) const
-    {
-        return sites_[index];
-    }
-
-    inline const std::string& sites() const
-    {
-        return sites_;
-    }
+    char site_at( size_t index ) const;
 
     // -----------------------------------------------------
-    //     Mutators
+    //     Data Members
     // -----------------------------------------------------
 
-    void remove_gaps();
-    void replace(char search, char replace);
+private:
 
-    // -----------------------------------------------------
-    //     Dump and Debug
-    // -----------------------------------------------------
-
-    std::string dump() const;
-
-    // -----------------------------------------------------
-    //     Members
-    // -----------------------------------------------------
-
-    SymbolType gap_char = '-';
-
-protected:
     std::string label_;
+    std::string metadata_;
     std::string sites_;
 };
 

@@ -7,56 +7,60 @@
 
 #include "sequence/sequence.hpp"
 
-#include <algorithm>
-
-#include "utils/core/logging.hpp"
-#include "utils/text/string.hpp"
-
 namespace genesis {
 namespace sequence {
 
-// =============================================================================
-//     Constructor and Destructor
-// =============================================================================
+// ================================================================================================
+//     Properties
+// ================================================================================================
 
-/**
- * @brief Destructor.
- */
-Sequence::~Sequence()
+std::string const& Sequence::label() const
 {
-    //
+    return label_;
 }
 
-// =============================================================================
-//     Mutators
-// =============================================================================
-
-/**
- * @brief Removes all occurences of `gap_char` from the sequence.
- */
-void Sequence::remove_gaps()
+void Sequence::label( std::string const& value )
 {
-    sites_.erase(std::remove(sites_.begin(), sites_.end(), gap_char), sites_.end());
+    label_ = value;
 }
 
-/**
- * @brief Replaces all occurences of `search` by `replace`.
- */
-void Sequence::replace(char search, char replace)
+std::string const& Sequence::metadata() const
 {
-    sites_ = text::replace_all (sites_, std::string(1, search), std::string(1, replace));
+    return metadata_;
 }
 
-// =============================================================================
-//     Dump and Debug
-// =============================================================================
-
-/**
- * @brief Prints the label and the whole sequence (possibly very long!).
- */
-std::string Sequence::dump() const
+void Sequence::metadata( std::string const& value )
 {
-    return label() + ": " + sites();
+    metadata_ = value;
+}
+
+std::string const& Sequence::sites() const
+{
+    return sites_;
+}
+
+void Sequence::sites( std::string const& value )
+{
+    sites_ = value;
+}
+
+void Sequence::sites( std::string && value )
+{
+    sites_ = std::move(value);
+}
+
+// ================================================================================================
+//     Accessors
+// ================================================================================================
+
+size_t Sequence::length() const
+{
+    return sites_.size();
+}
+
+char Sequence::site_at( size_t index ) const
+{
+    return sites_.at(index);
 }
 
 } // namespace sequence

@@ -7,133 +7,72 @@
 
 #include "sequence/sequence_set.hpp"
 
-#include <sstream>
-#include <unordered_map>
-#include <unordered_set>
-
-#include "sequence/sequence.hpp"
-#include "utils/core/logging.hpp"
-
 namespace genesis {
 namespace sequence {
-
-// =============================================================================
-//     Constructor and Destructor
-// =============================================================================
-
-/**
- * @brief Destructor. Calls clear().
- */
-SequenceSet::~SequenceSet()
-{
-    clear();
-}
-
-/**
- * @brief Deletes all sequences from the set.
- */
-void SequenceSet::clear()
-{
-    for (Sequence* s : sequences) {
-        delete s;
-    }
-    sequences.clear();
-}
 
 // =============================================================================
 //     Accessors
 // =============================================================================
 
-/**
- * @brief Returns a pointer to a sequence with a specific label (or `nullptr`, if not found).
- */
-Sequence* SequenceSet::find_sequence(std::string label) const
+size_t SequenceSet::size() const
 {
-    for (Sequence* s : sequences) {
-        if (s->label() == label) {
-            return s;
-        }
-    }
-    return nullptr;
+    return sequences_.size();
 }
 
 // =============================================================================
 //     Modifiers
 // =============================================================================
 
-/**
- * @brief Removes and deletes all those sequences from the Aligment whose labels are in the given
- * list. If `invert` is set to true, it does the same inverted: it removes all except those in the
- * list.
- *
- * We cannot use standard algorithms like std::remove here, as those do not delete the elements
- * (call their destructor).
- */
-void SequenceSet::remove_list(std::vector<std::string> labels, bool invert)
+void SequenceSet::push_back( Sequence const& s )
 {
-    // create a set of all labels for fast lookup.
-    std::unordered_set<std::string> lmap(labels.begin(), labels.end());
-
-    // iterate and move elements from it to re
-    std::vector<Sequence*>::iterator it = sequences.begin();
-    std::vector<Sequence*>::iterator re = sequences.begin();
-
-    // this works similar to std::remove (http://www.cplusplus.com/reference/algorithm/remove/)
-    while (it != sequences.end()) {
-        // if the label is (not) in the map, move it to the re position, otherwise delete it.
-        if ( (!invert && lmap.count((*it)->label())  > 0) ||
-             ( invert && lmap.count((*it)->label()) == 0)
-        ) {
-            delete *it;
-        } else {
-            *re = std::move(*it);
-            ++re;
-        }
-        ++it;
-    }
-
-    // delete the tail of the vector.
-    sequences.erase(re, sequences.end());
+    sequences_.push_back(s);
 }
 
-// =============================================================================
-//     Sequence Modifiers
-// =============================================================================
-
-/**
- * @brief Calls remove_gaps() for every Sequence.
- */
-void SequenceSet::remove_gaps()
+void SequenceSet::push_back( Sequence && s )
 {
-    for (Sequence* s : sequences) {
-        s->remove_gaps();
-    }
+    sequences_.push_back(std::move(s));
 }
 
 /**
- * @brief Calls replace() for every Sequence.
+ * @brief Delete all sequences from the set.
  */
-void SequenceSet::replace(char search, char replace)
+void SequenceSet::clear()
 {
-    for (Sequence* s : sequences) {
-        s->replace(search, replace);
-    }
+    sequences_.clear();
 }
 
 // =============================================================================
-//     Dump and Debug
+//     Iterators
 // =============================================================================
 
-/**
- * @brief Gives a summary of the sequences names and their lengths for this set.
- */
-std::string SequenceSet::dump() const
+SequenceSet::iterator SequenceSet::begin()
 {
-    std::ostringstream out;
-    for (Sequence* s : sequences) {
-        out << s->label() << " [" << s->length() << "]\n";
-    }
-    return out.str();
+    return sequences_.begin();
+}
+
+SequenceSet::iterator SequenceSet::end()
+{
+    return sequences_.end();
+}
+
+SequenceSet::const_iterator SequenceSet::begin() const
+{
+    return sequences_.cbegin();
+}
+
+SequenceSet::const_iterator SequenceSet::end() const
+{
+    return sequences_.cend();
+}
+
+SequenceSet::const_iterator SequenceSet::cbegin() const
+{
+    return sequences_.cbegin();
+}
+
+SequenceSet::const_iterator SequenceSet::cend() const
+{
+    return sequences_.cend();
 }
 
 } // namespace sequence

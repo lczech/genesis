@@ -8,8 +8,9 @@
  * @ingroup sequence
  */
 
-#include <string>
 #include <vector>
+
+#include "sequence/sequence.hpp"
 
 namespace genesis {
 namespace sequence {
@@ -28,43 +29,67 @@ class SequenceSet
 {
 public:
 
-    // -----------------------------------------------------
-    //     Constructor and Typedefs
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
 
-    ~SequenceSet();
+    typedef std::vector<Sequence>::iterator       iterator;
+    typedef std::vector<Sequence>::const_iterator const_iterator;
+
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
+    SequenceSet() = default;
+    ~SequenceSet() = default;
+
+    SequenceSet( SequenceSet const& ) = default;
+    SequenceSet( SequenceSet&& )      = default;
+
+    SequenceSet& operator= ( SequenceSet const& ) = default;
+    SequenceSet& operator= ( SequenceSet&& )      = default;
+
+    void swap( SequenceSet& other )
+    {
+        using std::swap;
+        swap( sequences_, other.sequences_ );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Accessors
+    // -------------------------------------------------------------------------
+
+    size_t size() const;
+
+    // -------------------------------------------------------------------------
+    //     Modifiers
+    // -------------------------------------------------------------------------
+
+    void push_back( Sequence const& s );
+    void push_back( Sequence &&     s );
+
     void clear();
 
-    // -----------------------------------------------------
-    //     Accessors
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     Iterators
+    // -------------------------------------------------------------------------
 
-    Sequence* find_sequence (std::string label) const;
+    iterator begin();
+    iterator end();
 
-    // -----------------------------------------------------
-    //     Modifiers
-    // -----------------------------------------------------
+    const_iterator begin() const;
+    const_iterator end() const;
 
-    void remove_list (std::vector<std::string> labels, bool invert = false);
+    const_iterator cbegin() const;
+    const_iterator cend() const;
 
-    // -----------------------------------------------------
-    //     Sequence Modifiers
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
 
-    void remove_gaps();
-    void replace(char search, char replace);
+private:
 
-    // -----------------------------------------------------
-    //     Dump and Debug
-    // -----------------------------------------------------
-
-    std::string dump() const;
-
-    // -----------------------------------------------------
-    //     Members
-    // -----------------------------------------------------
-
-    std::vector<Sequence*> sequences;
+    std::vector<Sequence> sequences_;
 };
 
 } // namespace sequence

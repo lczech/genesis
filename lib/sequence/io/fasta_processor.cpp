@@ -26,19 +26,19 @@ namespace sequence {
 /**
  * @brief
  */
-bool FastaProcessor::from_file (const std::string fn, SequenceSet& aln)
+bool FastaProcessor::from_file (const std::string fn, SequenceSet& sset)
 {
     if (!file_exists(fn)) {
         LOG_WARN << "FASTA file '" << fn << "' does not exist.";
         return false;
     }
-    return from_string(file_read(fn), aln);
+    return from_string(file_read(fn), sset);
 }
 
 /**
  * @brief
  */
-bool FastaProcessor::from_string (const std::string& fs, SequenceSet& aln)
+bool FastaProcessor::from_string (const std::string& fs, SequenceSet& sset)
 {
     // do stepwise lexing
     FastaLexer lexer;
@@ -54,7 +54,7 @@ bool FastaProcessor::from_string (const std::string& fs, SequenceSet& aln)
                  << " with message: " << lexer.back().value();
         return false;
     }
-    aln.clear();
+    sset.clear();
 
     // delete tailing tokens immediately, produce tokens intime.
     FastaLexer::iterator it = lexer.begin();
@@ -81,8 +81,8 @@ bool FastaProcessor::from_string (const std::string& fs, SequenceSet& aln)
         }
 
         // add to alignment
-        Sequence* nseq = new Sequence(label, seq.str());
-        aln.sequences.push_back(nseq);
+        Sequence nseq = Sequence( label, seq.str() );
+        sset.push_back( std::move(nseq) );
 
         // there are no other lexer tokens than tag and symbol for fasta files!
         // not even an error token can be produced by the lexer in its current implementation.
@@ -124,19 +124,19 @@ void FastaProcessor::to_string (const SequenceSet& sset, std::string& fs)
 std::string FastaProcessor::to_string (const SequenceSet& sset)
 {
     std::ostringstream seq("");
-    for (Sequence* s : sset.sequences) {
+    for (Sequence const& s : sset) {
         // print label
-        seq << ">" << s->label() << "\n";
+        seq << ">" << s.label() << "\n";
 
         // print sequence. if needed, add new line at every line_length position.
         if (line_length > 0) {
-            for (size_t i = 0; i < s->length(); i += line_length) {
+            for (size_t i = 0; i < s.length(); i += line_length) {
                 // write line_length many characters.
                 // (if the string is shorter, as many characters as possible are used)
-                seq << s->sites().substr(i, line_length) << "\n";
+                seq << s.sites().substr(i, line_length) << "\n";
             }
         } else {
-            seq << s->sites() << "\n";
+            seq << s.sites() << "\n";
         }
     }
     return seq.str();
