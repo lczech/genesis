@@ -18,6 +18,14 @@ class Sequence
 public:
 
     // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    typedef std::string::iterator       iterator;
+    typedef std::string::const_iterator const_iterator;
+
+
+    // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
@@ -72,6 +80,19 @@ public:
     size_t length() const;
 
     char site_at( size_t index ) const;
+
+    // -------------------------------------------------------------------------
+    //     Iterators
+    // -------------------------------------------------------------------------
+
+    iterator begin();
+    iterator end();
+
+    const_iterator begin() const;
+    const_iterator end() const;
+
+    const_iterator cbegin() const;
+    const_iterator cend() const;
 
     // -----------------------------------------------------
     //     Data Members

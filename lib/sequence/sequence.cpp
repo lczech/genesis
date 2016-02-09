@@ -63,5 +63,39 @@ char Sequence::site_at( size_t index ) const
     return sites_.at(index);
 }
 
+// =============================================================================
+//     Iterators
+// =============================================================================
+
+Sequence::iterator Sequence::begin()
+{
+    return sites_.begin();
+}
+
+Sequence::iterator Sequence::end()
+{
+    return sites_.end();
+}
+
+Sequence::const_iterator Sequence::begin() const
+{
+    return sites_.cbegin();
+}
+
+Sequence::const_iterator Sequence::end() const
+{
+    return sites_.cend();
+}
+
+Sequence::const_iterator Sequence::cbegin() const
+{
+    return sites_.cbegin();
+}
+
+Sequence::const_iterator Sequence::cend() const
+{
+    return sites_.cend();
+}
+
 } // namespace sequence
 } // namespace genesis
