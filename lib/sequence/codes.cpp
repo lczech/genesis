@@ -9,7 +9,6 @@
 
 #include <cctype>
 #include <unordered_map>
-#include <stdexcept>
 
 namespace genesis {
 namespace sequence {
@@ -35,9 +34,11 @@ static const std::unordered_map<char, std::string> nucleic_acid_code_to_name = {
     { 'H', "not G" },
     { 'V', "not T" },
     { 'N', "any" },
+    { 'O', "omitted" },
     { 'X', "masked" },
     { '.', "gap" },
-    { '-', "gap" }
+    { '-', "gap" },
+    { '?', "gap" }
 };
 
 static const std::unordered_map<char, std::string> amino_acid_code_to_name = {
@@ -68,11 +69,102 @@ static const std::unordered_map<char, std::string> amino_acid_code_to_name = {
     { 'Z', "Glutamic acid or Glutamine" },
     { 'X', "any" },
     { '*', "translation stop" },
-    { '-', "gap" }
+    { '-', "gap" },
+    { '?', "gap" }
 };
 
 // =================================================================================================
-//     Functions
+//     Codes
+// =================================================================================================
+
+/**
+ * @brief Return all plain nucleic acid codes. Those are `ACGTU`.
+ */
+std::string nucleic_acid_codes_plain()
+{
+    return "ACGTU";
+}
+
+/**
+ * @brief Return all ambiguous nucleic acid codes. Those are `WSMKRYBDHV`.
+ */
+std::string nucleic_acid_codes_ambiguous()
+{
+    return "WSMKRYBDHV";
+}
+
+/**
+ * @brief Return all determined nucleic acid codes. Those are `ACGTUWSMKRYBDHV`.
+ */
+std::string nucleic_acid_codes_determined()
+{
+    return nucleic_acid_codes_plain()
+         + nucleic_acid_codes_ambiguous();
+}
+
+/**
+ * @brief Return all undetermined nucleic acid codes. Those are `NOX.-?`.
+ */
+std::string nucleic_acid_codes_undetermined()
+{
+    return "NOX.-?";
+}
+
+/**
+ * @brief Return all valid nucleic acid codes. Those are `ACGTUWSMKRYBDHVNOX.-?`.
+ */
+std::string nucleic_acid_codes_all()
+{
+    return nucleic_acid_codes_plain()
+         + nucleic_acid_codes_ambiguous()
+         + nucleic_acid_codes_undetermined();
+}
+
+/**
+ * @brief Return all plain amino acid codes. Those are `ACDEFGHIKLMNOPQRSTUVWY`.
+ */
+std::string amino_acid_codes_plain()
+{
+    return "ACDEFGHIKLMNOPQRSTUVWY";
+}
+
+/**
+ * @brief Return all ambiguous amino acid codes. Those are `BJZ`.
+ */
+std::string amino_acid_codes_ambiguous()
+{
+    return "BJZ";
+}
+
+/**
+ * @brief Return all determined amino acid codes. Those are `ACDEFGHIKLMNOPQRSTUVWYBJZ`.
+ */
+std::string amino_acid_codes_determined()
+{
+    return amino_acid_codes_plain()
+         + amino_acid_codes_ambiguous();
+}
+
+/**
+ * @brief Return all undetermined amino acid codes. Those are `X*-?`.
+ */
+std::string amino_acid_codes_undetermined()
+{
+    return "X*-?";
+}
+
+/**
+ * @brief Return all valid amino acid codes. Those are `ACDEFGHIKLMNOPQRSTUVWYBJZX*-?`.
+ */
+std::string amino_acid_codes_all()
+{
+    return amino_acid_codes_plain()
+         + amino_acid_codes_ambiguous()
+         + amino_acid_codes_undetermined();
+}
+
+// =================================================================================================
+//     Translate Codes
 // =================================================================================================
 
 /**
@@ -96,9 +188,11 @@ static const std::unordered_map<char, std::string> amino_acid_code_to_name = {
  *     H not G
  *     V not T
  *     N any
+ *     O omitted
  *     X masked
  *     . gap
  *     - gap
+ *     ? gap
  *
  * The code char is treated case-insensitive. If the given code char is not valid, an
  * `std::out_of_range` exception is thrown.
@@ -141,6 +235,7 @@ std::string translate_nucleic_acid( char code )
  *     X any
  *     * translation stop
  *     - gap
+ *     ? gap
  *
  * The code char is treated case-insensitive. If the given code char is not valid, an
  * `std::out_of_range` exception is thrown.
