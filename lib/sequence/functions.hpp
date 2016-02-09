@@ -10,6 +10,8 @@
 
 #include "sequence/sequence_set.hpp"
 
+#include <string>
+
 namespace genesis {
 namespace sequence {
 

@@ -54,7 +54,7 @@ std::array<bool, 128> make_lookup_table( std::string const& chars )
         if( c < 0 ) {
             throw std::invalid_argument("Invalid chars provided.");
         }
-        assert( c > 0 );
+        assert( c >= 0 );
         lookup[ static_cast<unsigned char>(c) ] = true;
     }
     return lookup;
