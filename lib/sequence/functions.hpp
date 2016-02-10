@@ -41,6 +41,10 @@ double gapyness( SequenceSet const& set, std::string const& undetermined_chars )
 
 /*
 
+normalize --> to upper
+normalize_chars
+normalize_gaps
+
 void remove_list(SequenceSet& set, std::vector<std::string> const& labels, bool invert);
 
 // ================================================================================================
@@ -49,6 +53,10 @@ void remove_list(SequenceSet& set, std::vector<std::string> const& labels, bool 
 
 void remove_gaps();
 void replace(char search, char replace);
+
+remove_chars
+compress_chars
+replace_chars
 
 // ================================================================================================
 //     Dump
