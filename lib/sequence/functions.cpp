@@ -154,12 +154,18 @@ bool is_alignment( SequenceSet const& set )
  * and 1.0 (all chars are undetermined).
  * See `nucleic_acid_codes_undetermined()` and `amino_acid_codes_undetermined()` for presettings
  * of gap character that can be used here depending on the data set type.
- * This function is case-insensitive.
+ * This function is case-insensitive. In the special case that there are no sequences or sites,
+ * 0.0 is returned.
  */
 double gapyness( SequenceSet const& set, std::string const& undetermined_chars )
 {
-    double ret = static_cast<double>( count_chars( set, undetermined_chars ) )
-               / static_cast<double>( total_length( set ) );
+    size_t gaps = count_chars( set, undetermined_chars );
+    size_t size = total_length( set );
+    if( size == 0 ) {
+        return 0.0;
+    }
+
+    double ret = static_cast<double>( gaps ) / static_cast<double>( size );
     assert( 0.0 <= ret && ret <= 1.0 );
     return ret;
 }
