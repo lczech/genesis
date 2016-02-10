@@ -7,18 +7,20 @@
 
 #include "sequence/functions.hpp"
 
+#include "sequence/sequence.hpp"
+#include "sequence/sequence_set.hpp"
+#include "utils/core/logging.hpp"
+#include "utils/text/string.hpp"
+
 #include <algorithm>
 #include <array>
 #include <assert.h>
 #include <numeric>
-#include <sstream>
+// #include <sstream>
 #include <stdexcept>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-
-#include "utils/core/logging.hpp"
-#include "utils/text/string.hpp"
+// #include <unordered_map>
+// #include <unordered_set>
+// #include <vector>
 
 namespace genesis {
 namespace sequence {
@@ -160,12 +162,12 @@ bool is_alignment( SequenceSet const& set )
 double gapyness( SequenceSet const& set, std::string const& undetermined_chars )
 {
     size_t gaps = count_chars( set, undetermined_chars );
-    size_t size = total_length( set );
-    if( size == 0 ) {
+    size_t len  = total_length( set );
+    if( len == 0 ) {
         return 0.0;
     }
 
-    double ret = static_cast<double>( gaps ) / static_cast<double>( size );
+    double ret = static_cast<double>( gaps ) / static_cast<double>( len );
     assert( 0.0 <= ret && ret <= 1.0 );
     return ret;
 }

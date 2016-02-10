@@ -8,12 +8,17 @@
  * @ingroup sequence
  */
 
-#include "sequence/sequence_set.hpp"
-
 #include <string>
 
 namespace genesis {
 namespace sequence {
+
+// ================================================================================================
+//     Forwad Declarations
+// ================================================================================================
+
+class Sequence;
+class SequenceSet;
 
 // ================================================================================================
 //     Accessors
