@@ -45,7 +45,7 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
 // ================================================================================================
 
 /**
- * @brief Local helper function to create a lookup table.
+ * @brief Local helper function to create a case-insensitive lookup table.
  */
 std::array<bool, 128> make_lookup_table( std::string const& chars )
 {
@@ -54,8 +54,9 @@ std::array<bool, 128> make_lookup_table( std::string const& chars )
         if( c < 0 ) {
             throw std::invalid_argument("Invalid chars provided.");
         }
-        assert( c > 0 );
-        lookup[ static_cast<unsigned char>(c) ] = true;
+        assert( c >= 0 );
+        lookup[ static_cast<unsigned char>( toupper(c) ) ] = true;
+        lookup[ static_cast<unsigned char>( tolower(c) ) ] = true;
     }
     return lookup;
 }
@@ -65,7 +66,7 @@ std::array<bool, 128> make_lookup_table( std::string const& chars )
  *
  * This function can be used to count e.g. gaps or ambiguous characters in sequences.
  * For presettings of usable chars, see the functions `nucleic_acid_codes_...` and
- * `amino_acid_codes_...`.
+ * `amino_acid_codes_...`. This function is case-insensitive.
  *
  * If `chars` contains invalid (non-standard ASCII) characters, an `std::invalid_argument`
  * exception is thrown.
@@ -105,7 +106,7 @@ size_t total_length( SequenceSet const& set )
  *
  * For presettings of usable chars, see the functions `nucleic_acid_codes_...` and
  * `amino_acid_codes_...`. For example, to check whether the sequences are nucleic acids,
- * use `nucleic_acid_codes_all()`.
+ * use `nucleic_acid_codes_all()`. This function is case-insensitive.
  *
  * If `chars` contains invalid (non-standard ASCII) characters, an `std::invalid_argument`
  * exception is thrown.
@@ -149,13 +150,18 @@ bool is_alignment( SequenceSet const& set )
  * @brief Return the "gapyness" of the sequences, i.e., the proportion of gap chars
  * and other completely undetermined chars to the total length of all sequences.
  *
+ * This function returns a value in the interval 0.0 (no gaps and undetermined chars at all)
+ * and 1.0 (all chars are undetermined).
  * See `nucleic_acid_codes_undetermined()` and `amino_acid_codes_undetermined()` for presettings
- * of gap character that can be used here.
+ * of gap character that can be used here depending on the data set type.
+ * This function is case-insensitive.
  */
 double gapyness( SequenceSet const& set, std::string const& undetermined_chars )
 {
-    return static_cast<double>( count_chars( set, undetermined_chars ) )
-         / static_cast<double>( total_length( set ) );
+    double ret = static_cast<double>( count_chars( set, undetermined_chars ) )
+               / static_cast<double>( total_length( set ) );
+    assert( 0.0 <= ret && ret <= 1.0 );
+    return ret;
 }
 
 // =============================================================================
