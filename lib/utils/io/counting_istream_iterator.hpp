@@ -26,12 +26,12 @@ namespace utils {
  * It provides most functionality of std::istreambuf_iterator, thus it is (almost) a drop-in
  * replacement. Differences are:
  *
- *   * The handling of '\r' characters (part of the CR+LF new lines as used in Windows): they are
+ *   * The handling of '\r' characters (part of the CR+LF new lines as used in Windows). Those are
  *     completely skipped in this iterator. This ensures that all new lines are simply represented
  *     as '\n' independent of the file format.
  *   * It has no copy constructor/assignment. This is to ensure that the line and column counting
- *     works properly. Therefore, also only pre-increment is allowed. The iterator must thus also
- *     be passed by reference.
+ *     works properly. Therefore, also only pre-increment is allowed. The iterator must thus be
+ *     passed by reference.
  *
  * It has two member functions line() and column() that return the corresponding values for the
  * current iterator position and a member function get() that provides a checked version of the
@@ -121,7 +121,7 @@ public:
     }
 
     /**
-     * @brief Return the current char, with range check.
+     * @brief Return the current char, with char check.
      *
      * This function is similar to the dereference operator, but additionally performs a check of
      * the current char: This iterator is meant for ASCII (or similar) text format encodings, and
