@@ -75,13 +75,13 @@ public:
         , column_(0)
     {}
 
-    CountingIstreamIterator(std::istream& in)
+    explicit CountingIstreamIterator(std::istream& in)
         : it_(in)
         , line_(1)
         , column_(1)
     {}
 
-    CountingIstreamIterator(std::streambuf* in_buf)
+    explicit CountingIstreamIterator(std::streambuf* in_buf)
         : it_(in_buf)
         , line_(1)
         , column_(1)
@@ -90,12 +90,12 @@ public:
     ~CountingIstreamIterator() = default;
 
     // Copy construction deleted to ensure correct line/column counting!
-    CountingIstreamIterator(self_type const&)     = delete;
-    CountingIstreamIterator(self_type&&) noexcept = default;
+    CountingIstreamIterator(self_type const&) = delete;
+    CountingIstreamIterator(self_type&&)      = default;
 
     // Copy construction deleted to ensure correct line/column counting!
-    self_type& operator= (self_type const&)     = delete;
-    self_type& operator= (self_type&&) noexcept = default;
+    self_type& operator= (self_type const&) = delete;
+    self_type& operator= (self_type&&)      = default;
 
     void swap (self_type& other) noexcept
     {
