@@ -53,6 +53,7 @@ std::array<bool, 128> make_lookup_table( std::string const& chars )
 {
     auto lookup = std::array<bool, 128> {};
     for( char c : chars ) {
+        // get rid of this check and leave it to the parser/lexer/stream iterator/lookup table
         if( c < 0 ) {
             throw std::invalid_argument("Invalid chars provided.");
         }
@@ -79,6 +80,7 @@ size_t count_chars( SequenceSet const& set, std::string const& chars )
     size_t counter = 0;
     for( auto& s : set ) {
         for( auto& c : s ) {
+            // get rid of this check and leave it to the parser/lexer/stream iterator
             if( c < 0 ) {
                 continue;
             }
@@ -118,6 +120,7 @@ bool validate_chars( SequenceSet const& set, std::string const& chars )
     auto lookup = make_lookup_table( chars );
     for( auto& s : set ) {
         for( auto& c : s ) {
+            // get rid of this check and leave it to the parser/lexer/stream iterator
             if( c < 0 ) {
                 return false;
             }

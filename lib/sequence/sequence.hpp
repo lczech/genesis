@@ -24,7 +24,6 @@ public:
     typedef std::string::iterator       iterator;
     typedef std::string::const_iterator const_iterator;
 
-
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
