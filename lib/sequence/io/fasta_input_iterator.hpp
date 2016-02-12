@@ -92,7 +92,7 @@ public:
 
     bool extract_sequence()
     {
-        return parse_fasta_sequence_fast( input_stream_, sequence_ );
+        return parse_fasta_sequence( input_stream_, sequence_ );
     }
 
     bool eof() const
