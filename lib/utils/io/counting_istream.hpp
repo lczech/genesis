@@ -150,16 +150,23 @@ public:
         // Maybe in the future we could provide some compile time handling of this issue, but for
         // now, this solution should work in most cases.
 
-        if (current_ == '\r') {
-            ++it_;
-        }
-        if (current_ == '\n') {
+        if( current_ == '\n' ) {
             ++line_;
             column_ = 1;
         }
-
         ++it_;
+
         current_ = *it_;
+        if( current_ == '\r' ) {
+            ++it_;
+            current_ = *it_;
+
+            if( current_ != '\n' ) {
+                throw std::domain_error(
+                    "Invalid input char: Expecting '\\n' after '\\r' at " + at() + "."
+                );
+            }
+        }
     }
 
     /**
@@ -167,12 +174,21 @@ public:
      */
     self_type& operator ++ ()
     {
-        // Override line counting for speed:
-        // ++it_;
-        // current_ = *it_;
-
         advance();
         return *this;
+    }
+
+    /**
+     * @brief Advance in the stream without updating the line and column counter.
+     *
+     * This function is meant for fast parsers that do not want to keep track of the stream
+     * position but still use the interface of this class.
+     * Of course, after calling this function, the positions are out of sync.
+     */
+    void advance_non_counting()
+    {
+        ++it_;
+        current_ = *it_;
     }
 
     // -------------------------------------------------------------
