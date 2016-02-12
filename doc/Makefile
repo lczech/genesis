@@ -7,11 +7,9 @@
 # Make Doxygen API doc
 api:
 	@doxygen Doxyfile
-	@cd latex && $(MAKE)
 	@ln -s html/index.html index.html
-	@ln -s latex/refman.pdf api.pdf
 
 # Remove all generated files
 clean:
-	-@$(RM) -r html latex xml
-	-@$(RM) index.html api.pdf
+	-@$(RM) -r html xml
+	-@$(RM) index.html

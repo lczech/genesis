@@ -22,6 +22,5 @@ Build
 The api documentation is automatically generated from the doc-blocks within the C++ source code
 using doxygen. The files can be created by calling `make` in this directory. This will
 generate the necessary documents and create links to them for convenience.
-The api documentation is written to html, xml and latex formats.
-Requirements:
-[doxygen](http://www.doxygen.org/) and [latex](http://www.latex-project.org).
+The api documentation is written to html and xml format.
+Requirements: [doxygen](http://www.doxygen.org/).
