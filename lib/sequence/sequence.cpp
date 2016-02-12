@@ -19,6 +19,11 @@ std::string const& Sequence::label() const
     return label_;
 }
 
+std::string& Sequence::label()
+{
+    return label_;
+}
+
 void Sequence::label( std::string const& value )
 {
     label_ = value;
@@ -29,12 +34,22 @@ std::string const& Sequence::metadata() const
     return metadata_;
 }
 
+std::string& Sequence::metadata()
+{
+    return metadata_;
+}
+
 void Sequence::metadata( std::string const& value )
 {
     metadata_ = value;
 }
 
 std::string const& Sequence::sites() const
+{
+    return sites_;
+}
+
+std::string& Sequence::sites()
 {
     return sites_;
 }

@@ -7,25 +7,27 @@
 
 #include "sequence/functions.hpp"
 
+#include "sequence/sequence.hpp"
+#include "sequence/sequence_set.hpp"
+#include "utils/core/logging.hpp"
+#include "utils/text/string.hpp"
+
 #include <algorithm>
 #include <array>
 #include <assert.h>
 #include <numeric>
-#include <sstream>
+// #include <sstream>
 #include <stdexcept>
-#include <unordered_map>
-#include <unordered_set>
-#include <vector>
-
-#include "utils/core/logging.hpp"
-#include "utils/text/string.hpp"
+// #include <unordered_map>
+// #include <unordered_set>
+// #include <vector>
 
 namespace genesis {
 namespace sequence {
 
-// ================================================================================================
+// =================================================================================================
 //     Accessors
-// ================================================================================================
+// =================================================================================================
 
 /**
  * @brief Return a pointer to a sequence with a specific label, or `nullptr` iff not found.
@@ -40,9 +42,9 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
     return nullptr;
 }
 
-// ================================================================================================
+// =================================================================================================
 //     Characteristics
-// ================================================================================================
+// =================================================================================================
 
 /**
  * @brief Local helper function to create a case-insensitive lookup table.
@@ -51,6 +53,7 @@ std::array<bool, 128> make_lookup_table( std::string const& chars )
 {
     auto lookup = std::array<bool, 128> {};
     for( char c : chars ) {
+        // get rid of this check and leave it to the parser/lexer/stream iterator/lookup table
         if( c < 0 ) {
             throw std::invalid_argument("Invalid chars provided.");
         }
@@ -66,7 +69,7 @@ std::array<bool, 128> make_lookup_table( std::string const& chars )
  *
  * This function can be used to count e.g. gaps or ambiguous characters in sequences.
  * For presettings of usable chars, see the functions `nucleic_acid_codes_...` and
- * `amino_acid_codes_...`. This function is case-insensitive.
+ * `amino_acid_codes_...`. The chars are treated case-insensitive.
  *
  * If `chars` contains invalid (non-standard ASCII) characters, an `std::invalid_argument`
  * exception is thrown.
@@ -77,6 +80,7 @@ size_t count_chars( SequenceSet const& set, std::string const& chars )
     size_t counter = 0;
     for( auto& s : set ) {
         for( auto& c : s ) {
+            // get rid of this check and leave it to the parser/lexer/stream iterator
             if( c < 0 ) {
                 continue;
             }
@@ -106,7 +110,7 @@ size_t total_length( SequenceSet const& set )
  *
  * For presettings of usable chars, see the functions `nucleic_acid_codes_...` and
  * `amino_acid_codes_...`. For example, to check whether the sequences are nucleic acids,
- * use `nucleic_acid_codes_all()`. This function is case-insensitive.
+ * use `nucleic_acid_codes_all()`. The chars are treated case-insensitive.
  *
  * If `chars` contains invalid (non-standard ASCII) characters, an `std::invalid_argument`
  * exception is thrown.
@@ -116,6 +120,7 @@ bool validate_chars( SequenceSet const& set, std::string const& chars )
     auto lookup = make_lookup_table( chars );
     for( auto& s : set ) {
         for( auto& c : s ) {
+            // get rid of this check and leave it to the parser/lexer/stream iterator
             if( c < 0 ) {
                 return false;
             }
@@ -154,18 +159,18 @@ bool is_alignment( SequenceSet const& set )
  * and 1.0 (all chars are undetermined).
  * See `nucleic_acid_codes_undetermined()` and `amino_acid_codes_undetermined()` for presettings
  * of gap character that can be used here depending on the data set type.
- * This function is case-insensitive. In the special case that there are no sequences or sites,
- * 0.0 is returned.
+ * The chars are treated case-insensitive.
+ * In the special case that there are no sequences or sites, 0.0 is returned.
  */
 double gapyness( SequenceSet const& set, std::string const& undetermined_chars )
 {
     size_t gaps = count_chars( set, undetermined_chars );
-    size_t size = total_length( set );
-    if( size == 0 ) {
+    size_t len  = total_length( set );
+    if( len == 0 ) {
         return 0.0;
     }
 
-    double ret = static_cast<double>( gaps ) / static_cast<double>( size );
+    double ret = static_cast<double>( gaps ) / static_cast<double>( len );
     assert( 0.0 <= ret && ret <= 1.0 );
     return ret;
 }

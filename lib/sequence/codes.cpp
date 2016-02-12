@@ -170,7 +170,7 @@ std::string amino_acid_codes_all()
 /**
  * @brief Get the name of a nucleic acid given its IUPAC code.
  *
- *  The codes are translates as follows:
+ * The codes are translated as follows:
  *
  *     A Adenine
  *     C Cytosine
@@ -205,7 +205,7 @@ std::string translate_nucleic_acid( char code )
 /**
  * @brief Get the name of a amino acid given its IUPAC code.
  *
- *  The codes are translates as follows:
+ * The codes are translated as follows:
  *
  *     A Alanine
  *     B Aspartic acid or Asparagine
