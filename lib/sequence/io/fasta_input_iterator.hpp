@@ -12,11 +12,7 @@
 #include "sequence/sequence.hpp"
 #include "utils/io/counting_istream.hpp"
 
-#include <assert.h>
-#include <iostream>
-#include <sstream>
-#include <stdexcept>
-#include <string>
+#include <iosfwd>
 
 namespace genesis {
 namespace sequence {
@@ -25,6 +21,22 @@ namespace sequence {
 //     Fasta Input Iterator
 // =================================================================================================
 
+/**
+ * @brief Iterate a input stream and parse it as fasta sequences.
+ *
+ * This class allows to iterate over an input stream, iterpreting it as fasta sequences, and
+ * yielding one such sequence per iteration step. This is useful for processing large files without
+ * having to keep them fully in memory.
+ *
+ * Example:
+ *
+ *     auto it = FastaInputIterator( some_istream );
+ *     while( it.extract_sequence() ) {
+ *         std::cout << it->length() << "\n";
+ *     }
+ *
+ * See parse_fasta_sequence() for a description of the expected format.
+ */
 class FastaInputIterator
 {
 public:
