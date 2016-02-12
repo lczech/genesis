@@ -1,7 +1,7 @@
 genesis
 =======
 
-A framework for phylogenetic placement data.
+A framework for working with phylogenetic data.
 
 Introduction
 ------------
