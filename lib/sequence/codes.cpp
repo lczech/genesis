@@ -78,7 +78,7 @@ static const std::unordered_map<char, std::string> amino_acid_code_to_name = {
 // =================================================================================================
 
 /**
- * @brief Return all plain nucleic acid codes. Those are `ACGTU`.
+ * @brief Return all plain nucleic acid codes. Those are "ACGTU".
  */
 std::string nucleic_acid_codes_plain()
 {
@@ -86,7 +86,7 @@ std::string nucleic_acid_codes_plain()
 }
 
 /**
- * @brief Return all ambiguous nucleic acid codes. Those are `WSMKRYBDHV`.
+ * @brief Return all ambiguous nucleic acid codes. Those are "WSMKRYBDHV".
  */
 std::string nucleic_acid_codes_ambiguous()
 {
@@ -94,7 +94,7 @@ std::string nucleic_acid_codes_ambiguous()
 }
 
 /**
- * @brief Return all determined nucleic acid codes. Those are `ACGTUWSMKRYBDHV`.
+ * @brief Return all determined nucleic acid codes. Those are "ACGTUWSMKRYBDHV".
  */
 std::string nucleic_acid_codes_determined()
 {
@@ -103,7 +103,7 @@ std::string nucleic_acid_codes_determined()
 }
 
 /**
- * @brief Return all undetermined nucleic acid codes. Those are `NOX.-?`.
+ * @brief Return all undetermined nucleic acid codes. Those are "NOX.-?".
  */
 std::string nucleic_acid_codes_undetermined()
 {
@@ -111,7 +111,7 @@ std::string nucleic_acid_codes_undetermined()
 }
 
 /**
- * @brief Return all valid nucleic acid codes. Those are `ACGTUWSMKRYBDHVNOX.-?`.
+ * @brief Return all valid nucleic acid codes. Those are "ACGTUWSMKRYBDHVNOX.-?".
  */
 std::string nucleic_acid_codes_all()
 {
@@ -121,7 +121,7 @@ std::string nucleic_acid_codes_all()
 }
 
 /**
- * @brief Return all plain amino acid codes. Those are `ACDEFGHIKLMNOPQRSTUVWY`.
+ * @brief Return all plain amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWY".
  */
 std::string amino_acid_codes_plain()
 {
@@ -129,7 +129,7 @@ std::string amino_acid_codes_plain()
 }
 
 /**
- * @brief Return all ambiguous amino acid codes. Those are `BJZ`.
+ * @brief Return all ambiguous amino acid codes. Those are "BJZ".
  */
 std::string amino_acid_codes_ambiguous()
 {
@@ -137,7 +137,7 @@ std::string amino_acid_codes_ambiguous()
 }
 
 /**
- * @brief Return all determined amino acid codes. Those are `ACDEFGHIKLMNOPQRSTUVWYBJZ`.
+ * @brief Return all determined amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWYBJZ".
  */
 std::string amino_acid_codes_determined()
 {
@@ -146,7 +146,7 @@ std::string amino_acid_codes_determined()
 }
 
 /**
- * @brief Return all undetermined amino acid codes. Those are `X*-?`.
+ * @brief Return all undetermined amino acid codes. Those are "X*-?".
  */
 std::string amino_acid_codes_undetermined()
 {
@@ -154,7 +154,7 @@ std::string amino_acid_codes_undetermined()
 }
 
 /**
- * @brief Return all valid amino acid codes. Those are `ACDEFGHIKLMNOPQRSTUVWYBJZX*-?`.
+ * @brief Return all valid amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWYBJZX*-?".
  */
 std::string amino_acid_codes_all()
 {
