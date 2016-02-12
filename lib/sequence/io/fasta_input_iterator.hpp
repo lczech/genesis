@@ -39,11 +39,11 @@ public:
     // -------------------------------------------------------------------------
 
     FastaInputIterator()
-        : it_()
+        : input_stream_()
     {}
 
     explicit FastaInputIterator(std::istream& in)
-        : it_(in)
+        : input_stream_(in)
     {}
 
     ~FastaInputIterator() = default;
@@ -84,7 +84,7 @@ public:
         }
 
         // Readability.
-        auto& it = it_;
+        auto& it = input_stream_;
 
         // Check beginning of sequence.
         if( it.current() != '>' ) {
@@ -121,8 +121,15 @@ public:
             }
         }
 
+        // Skip comments.
+        while( it && *it == ';' ) {
+            while( it && *it != '\n' ) {
+                ++it;
+            }
+        }
+
         // Check for unexpected end of file.
-        if( it.eof() ) {
+        if( it.eof() || *it == '>' ) {
             throw std::runtime_error(
                 "Malformed fasta file: Expecting a sequence after the label line at "
                 + it.at() + "."
@@ -131,13 +138,22 @@ public:
         assert( *it == '\n' );
         ++it;
 
-        // Parse sequence.
+        // Parse sequence. At every beginning of the outer loop, we are at a line start.
         sequence_.sites().clear();
-        while( it && *it != '>' ) {
-            if( *it != '\n' ) {
-                sequence_.sites() += *it;
+        while( it ) {
+            assert( it.column() == 1 );
+
+            if( *it == '>' ) {
+                break;
             }
-            ++it;
+            while( it && *it != '\n' ) {
+                sequence_.sites() += *it;
+                ++it;
+            }
+            if( it ) {
+                assert( *it == '\n' );
+                ++it;
+            }
         }
 
         return true;
@@ -145,7 +161,7 @@ public:
 
     bool eof() const
     {
-        return it_.eof();
+        return input_stream_.eof();
     }
 
     // -------------------------------------------------------------------------
@@ -154,7 +170,7 @@ public:
 
 private:
 
-    utils::CountingIstream it_;
+    utils::CountingIstream input_stream_;
     Sequence               sequence_;
 };
 
