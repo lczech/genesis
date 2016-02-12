@@ -1,6 +1,3 @@
-#ifndef GENESIS_UTILS_TOOLS_COLOR_OPERATORS_H_
-#define GENESIS_UTILS_TOOLS_COLOR_OPERATORS_H_
-
 /**
  * @brief Color operators.
  *
@@ -122,5 +119,3 @@ std::ostream& operator<< (std::ostream& os, const Color& color)
 
 } // namespace color
 } // namespace genesis
-
-#endif // include guard
