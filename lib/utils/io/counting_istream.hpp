@@ -114,7 +114,7 @@ public:
      */
     char operator * () const
     {
-        return *it_;
+        return current_;
     }
 
     /**
