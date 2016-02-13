@@ -1,4 +1,4 @@
-![genesis](/doc/logo/logo_github.png?raw=true "genesis")
+![genesis](/doc/logo/logo_readme.png?raw=true "genesis")
 
 A framework for working with phylogenetic data.
 
