@@ -10,7 +10,7 @@
    xmlns:xlink="http://www.w3.org/1999/xlink"
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
-   width="1545.4186"
+   width="1365.1888"
    height="473.36765"
    id="svg3160"
    version="1.1"
@@ -58,8 +58,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.49497475"
-     inkscape:cx="579.87731"
-     inkscape:cy="286.12068"
+     inkscape:cx="707.94021"
+     inkscape:cy="313.3598"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -75,12 +75,14 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1869"
-     inkscape:window-height="1056"
-     inkscape:window-x="51"
-     inkscape:window-y="24"
+     inkscape:window-width="1875"
+     inkscape:window-height="1059"
+     inkscape:window-x="45"
+     inkscape:window-y="34"
      inkscape:window-maximized="1"
-     inkscape:snap-page="true" />
+     inkscape:snap-page="true"
+     showguides="true"
+     inkscape:guide-bbox="true" />
   <metadata
      id="metadata3165">
     <rdf:RDF>
@@ -337,7 +339,7 @@
     <g
        id="layer3"
        inkscape:label="font path"
-       transform="matrix(2.0284342,0,0,2.0284342,25.201412,-240.82797)">
+       transform="matrix(1.666262,0,0,1.666262,119.58904,-109.45892)">
       <g
          transform="matrix(2.2824097,0,0,2.2824097,187.78454,-1572.273)"
          style="font-size:9px;font-style:normal;font-weight:normal;line-height:253.99999619%;letter-spacing:0px;word-spacing:0px;fill:#161616;fill-opacity:1;stroke:none;font-family:Sans"
