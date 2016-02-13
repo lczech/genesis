@@ -15,7 +15,7 @@
    id="svg3160"
    version="1.1"
    inkscape:version="0.48.4 r9939"
-   sodipodi:docname="logo_doxygen.svg">
+   sodipodi:docname="logo.svg">
   <defs
      id="defs3162">
     <linearGradient
@@ -58,8 +58,8 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.49497475"
-     inkscape:cx="10.847404"
-     inkscape:cy="264.13519"
+     inkscape:cx="579.87731"
+     inkscape:cy="286.12068"
      inkscape:document-units="px"
      inkscape:current-layer="layer1"
      showgrid="false"
@@ -79,7 +79,8 @@
      inkscape:window-height="1056"
      inkscape:window-x="51"
      inkscape:window-y="24"
-     inkscape:window-maximized="1" />
+     inkscape:window-maximized="1"
+     inkscape:snap-page="true" />
   <metadata
      id="metadata3165">
     <rdf:RDF>
@@ -336,7 +337,7 @@
     <g
        id="layer3"
        inkscape:label="font path"
-       transform="matrix(2.0284342,0,0,2.0284342,25.201412,-261.42437)">
+       transform="matrix(2.0284342,0,0,2.0284342,25.201412,-240.82797)">
       <g
          transform="matrix(2.2824097,0,0,2.2824097,187.78454,-1572.273)"
          style="font-size:9px;font-style:normal;font-weight:normal;line-height:253.99999619%;letter-spacing:0px;word-spacing:0px;fill:#161616;fill-opacity:1;stroke:none;font-family:Sans"
