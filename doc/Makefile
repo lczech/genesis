@@ -6,8 +6,8 @@
 
 # Make Doxygen API doc
 api:
-	@doxygen Doxyfile
-	@ln -s html/index.html index.html
+	@cd doxygen && doxygen Doxyfile
+	@ln -fs html/index.html index.html
 
 # Remove all generated files
 clean:
