@@ -39,7 +39,7 @@ inline bool char_is_sign (const char c)
 /**
  * @brief Returns whether two chars are the same, case insensitive.
  */
-inline bool char_match(const char c1, const char c2)
+inline bool char_match_ci(const char c1, const char c2)
 {
     return std::tolower(c1) == std::tolower(c2);
 }
