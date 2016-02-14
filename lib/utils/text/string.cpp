@@ -42,9 +42,9 @@ bool equals_ci( std::string const& lhs, std::string const& rhs)
 // =================================================================================================
 
 /**
- * @brief Returns the number of non-overlapping occurrences of a substring in a string.
+ * @brief Return the number of non-overlapping occurrences of a substring in a string.
  */
-size_t count_substring_occurrences( const std::string& str, const std::string& sub )
+size_t count_substring_occurrences( std::string const& str, std::string const& sub )
 {
     if (sub.length() == 0) {
         return 0;
@@ -62,9 +62,16 @@ size_t count_substring_occurrences( const std::string& str, const std::string& s
     return count;
 }
 
+/**
+ * @brief Spilt a string int parts, given a set of delimiter chars.
+ *
+ * The string `str` is split using any of the chars in `delimiters` and returned as a vector
+ * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiter chars are
+ * excluded from the output.
+ */
 std::vector<std::string> split (
-    const std::string& str,
-    const std::string& delimiters,
+    std::string const& str,
+    std::string const& delimiters,
     const bool trim_empty
 ) {
     size_t pos;
@@ -100,11 +107,11 @@ std::vector<std::string> split (
 // =================================================================================================
 
 /**
- * @brief Returns a copy of a string, where all occurences of a search string
+ * @brief Return a copy of a string, where all occurences of a search string
  * are replaced by a replace string.
  */
 std::string replace_all (
-    const std::string& text, const std::string& search, const std::string& replace
+    std::string const& text, std::string const& search, std::string const& replace
 ) {
     std::string tmp = text;
     for (size_t pos = 0; ; pos += replace.length()) {
@@ -137,11 +144,11 @@ void replace_all(
 */
 
 /**
- * @brief Returns a copy of the input string, with left trimmed white spaces.
+ * @brief Return a copy of the input string, with left trimmed white spaces.
  */
 std::string trim_right (
-    const std::string& s,
-    const std::string& delimiters
+    std::string const& s,
+    std::string const& delimiters
 ) {
     auto const pos = s.find_last_not_of(delimiters);
     if( std::string::npos == pos ) {
@@ -152,11 +159,11 @@ std::string trim_right (
 }
 
 /**
- * @brief Returns a copy of the input string, with right trimmed white spaces.
+ * @brief Return a copy of the input string, with right trimmed white spaces.
  */
 std::string trim_left (
-    const std::string& s,
-    const std::string& delimiters
+    std::string const& s,
+    std::string const& delimiters
 ) {
     auto const pos = s.find_first_not_of(delimiters);
     if( std::string::npos == pos ) {
@@ -167,11 +174,11 @@ std::string trim_left (
 }
 
 /**
- * @brief Returns a copy of the input string, with trimmed white spaces.
+ * @brief Return a copy of the input string, with trimmed white spaces.
  */
 std::string trim (
-    const std::string& s,
-    const std::string& delimiters
+    std::string const& s,
+    std::string const& delimiters
 ) {
     return trim_left(trim_right(s, delimiters), delimiters);
 }
@@ -181,13 +188,37 @@ std::string trim (
 // =================================================================================================
 
 /**
- * @brief Returns a string where special chars are replaces by their escape sequence.
+ * @brief Return an all-lowercase copy of the given string.
+ */
+std::string to_lower( std::string const& str )
+{
+    auto res = str;
+    for( auto& c : res ){
+        c = tolower(c);
+    }
+    return res;
+}
+
+/**
+ * @brief Return an all-uppercase copy of the given string.
+ */
+std::string to_upper( std::string const& str )
+{
+    auto res = str;
+    for( auto& c : res ){
+        c = toupper(c);
+    }
+    return res;
+}
+
+/**
+ * @brief Return a string where special chars are replaces by their escape sequence.
  *
  * All new lines are transformed into either \\r or \\n, tabs into \\t.
  * Double quotation marks are preceeded by a backslash, also the backslash itself will be escaped,
  * so that `"` becomes `\"` and `\` becomes `\\`.
  */
-std::string escape (const std::string& text)
+std::string escape( std::string const& text )
 {
     std::string tmp;
     tmp = replace_all(text, "\r", "\\r");
@@ -199,7 +230,7 @@ std::string escape (const std::string& text)
 }
 
 /**
- * @brief Returns a string where the escaped characters are transformed into
+ * @brief Return a string where the escaped characters are transformed into
  * their respective string form.
  *
  * For example, the escape sequence \\n (backshlash n) will be translated into
@@ -207,7 +238,7 @@ std::string escape (const std::string& text)
  * escaped sequences will simply translate into the second char, e.g., a double
  * backslash will become one backslash.
  */
-std::string deescape (const std::string& text)
+std::string deescape( std::string const& text )
 {
     std::string tmp = "";
     for (size_t i = 0; i < text.size(); i++) {
@@ -229,7 +260,7 @@ std::string deescape (const std::string& text)
     return tmp;
 }
 
-std::string unify_newlines(const std::string& s)
+std::string unify_newlines( std::string const& s )
 {
     throw std::domain_error("unify_newlines is not yet implemented.");
     return s;
@@ -240,9 +271,9 @@ std::string unify_newlines(const std::string& s)
 // =================================================================================================
 
 /**
- * @brief Returns a precise(er than to_string) string representation of the input value.
+ * @brief Return a precise(er than to_string) string representation of the input value.
  */
-std::string to_string_precise (double value, const int precision)
+std::string to_string_precise( double value, const int precision )
 {
     std::ostringstream out;
     out << std::fixed << std::setprecision(precision) << value;
