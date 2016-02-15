@@ -28,7 +28,10 @@ TEST( Sequence, Color )
 
     // Make a colorful string.
     std::string col = print_color( sset[0], nucleic_acid_text_colors(), 3 );
-    EXPECT_EQ( "\x1B[30;44mT\x1B[0m\x1B[30;42mC\x1B[0m\x1B[30;43mG\x1B[0m", col );
+    EXPECT_EQ( "\x1B[30;44mT\x1B[0m\x1B[30;42mC\x1B[0m\x1B[30;43mG\x1B[0m ...", col );
+
+    // std::cout << sset;
+    // std::cout << print_color( sset, nucleic_acid_text_colors(), 100, 10, true );
 }
 
 TEST( SequenceSet, Characteristics )

@@ -275,22 +275,47 @@ bool is_alignment( SequenceSet const& set )
 // =============================================================================
 
 /**
- * @brief Print a Sequence to an ostream in the form "label: sites". This can be very long!
+ * @brief Print a Sequence to an ostream in the form "label: sites".
+ *
+ * As this is meant for quickly having a look at the Sequence, only the first 100 sites are printed.
+ * If you need all sites, use the access methods provided by Sequence directly.
  */
 std::ostream& operator << ( std::ostream& out, Sequence    const& seq )
 {
-    out << seq.label() << ": " << seq.sites();
+    out << seq.label() << ": ";
+    out << seq.sites().substr( 0, 100 ) << (seq.length() > 100 ? " ...\n" : "\n");
     return out;
 }
 
 /**
- * @brief Print a SequenceSet to an ostream in the form "label: sites". This can be very (!) long!
+ * @brief Print a SequenceSet to an ostream in the form "label: sites".
+ *
+ * As this is meant for quickly having a look at the SequenceSet, only the first 10 Sequences and
+ * the first 100 sites of each are printed. If you need all sequences and sites, use the access
+ * methods provided by Sequence and SequenceSet directly.
  */
 std::ostream& operator << ( std::ostream& out, SequenceSet const& set )
 {
-    for( auto const& s : set ) {
-        out << s << "\n";
+    // Get the max number of sequences to be printed.
+    size_t const num = std::min( set.size(), static_cast<size_t>(10) );
+
+    // Get longest label.
+    size_t label_len = 0;
+    for( size_t i = 0; i < num; ++i ) {
+        label_len = std::max( label_len, set[i].label().size() );
     }
+
+    // Print sequences.
+    for( size_t i = 0; i < num; ++i ) {
+        out << set[i].label() << ": " << std::string( label_len - set[i].label().size(), ' ' );
+        out << set[i].sites().substr( 0, 100 ) << (set[i].length() > 100 ? " ..." : "") << "\n";
+    }
+
+    // Print ellipsis if needed.
+    if( set.size() > 10 ) {
+        out << "...\n";
+    }
+
     return out;
 }
 
@@ -299,7 +324,7 @@ std::ostream& operator << ( std::ostream& out, SequenceSet const& set )
  *
  * This function returns a color view of the sites of the given Sequence, using text::Style colors,
  * which can be displayed in a console/terminal. This is useful for visualizing the Sequence similar
- * to graphical alignment viewing tools.
+ * to graphical alignment and sequence viewing tools.
  *
  * The function takes a map from sequences characters to their colors (see text::Style for a list of
  * the available ones). The presettings `nucleic_acid_text_colors()` and
@@ -307,8 +332,10 @@ std::ostream& operator << ( std::ostream& out, SequenceSet const& set )
  * If the colors map does not contain a key for one of the chars in the sequence, the function
  * throws an `std::out_of_range` exception.
  *
- * Furthermore, the optional parameter `limit` just uses the first chars of the Sequence. If set
- * to 0 (default), the whole Sequence is used. This is useful to avoid line wrapping.
+ * Furthermore, the optional parameter `length_limit` just uses the first chars of the Sequence.
+ * If set to 0, the whole Sequence is used. Default is 100. This is useful to avoid line wrapping.
+ *
+ * The paramter `label` determines whether the sequence label is to be printed. Default is false.
  *
  * The parameter `background` can be used to control which part of the output is colored:
  * `true` (default) colors the text background and makes the foreground white, while `false` colors
@@ -317,15 +344,18 @@ std::ostream& operator << ( std::ostream& out, SequenceSet const& set )
 std::string print_color(
     Sequence const&                    seq,
     std::map<char, std::string> const& colors,
-    size_t                             limit,
+    size_t                             length_limit,
+    bool                               label,
     bool                               background
 ) {
-    if( limit == 0 ) {
-        limit = seq.length();
+    // Get the max number of sites to be printed.
+    if( length_limit == 0 ) {
+        length_limit = seq.length();
     }
+    length_limit = std::min( length_limit, seq.length() );
 
-    std::string ret = "";
-    for( size_t l = 0; l < limit; ++l ) {
+    std::string ret = (label ? seq.label() + ": " : "");
+    for( size_t l = 0; l < length_limit; ++l ) {
         char s = seq[l];
 
         // We use map.at() here, which throws in case of invalid keys, so we don't have to.
@@ -335,6 +365,9 @@ std::string print_color(
             ret += text::Style( std::string( 1, s ), colors.at(s) ).to_bash_string();
         }
     }
+    if( seq.length() > length_limit ) {
+        ret += " ...";
+    }
 
     return ret;
 }
@@ -342,17 +375,44 @@ std::string print_color(
 /**
  * @brief Return a string with the sites of a SequenceSet colored.
  *
- * See the Sequence version of this function for details.
+ * See the Sequence version of this function for details. The additional paramter `sequence_limit`
+ * controls the number of sequences to be printed. If set to 0, everything is printed. Default
+ * is 10.
  */
 std::string print_color(
     SequenceSet const&                 set,
     std::map<char, std::string> const& colors,
-    size_t                             limit,
+    size_t                             length_limit,
+    size_t                             sequence_limit,
+    bool                               label,
     bool                               background
 ) {
+    // Get the max number of sequences to be printed.
+    if( sequence_limit == 0 ) {
+        sequence_limit = set.size();
+    }
+    sequence_limit = std::min( sequence_limit, set.size() );
+
+    // Get longest label.
+    size_t label_len = 0;
+    if( label ) {
+        for( size_t i = 0; i < sequence_limit; ++i ) {
+            label_len = std::max( label_len, set[i].label().size() );
+        }
+    }
+
     std::string ret = "";
-    for( auto const& seq : set ) {
-        ret += print_color( seq, colors, limit, background ) + "\n";
+    for( size_t i = 0; i < sequence_limit; ++i ) {
+        if( label ) {
+            ret += set[i].label() + ": " + std::string( label_len - set[i].label().size(), ' ' );
+        }
+
+        ret += print_color( set[i], colors, length_limit, false, background ) + "\n";
+    }
+
+    // Print ellipsis if needed.
+    if( set.size() > sequence_limit ) {
+        ret += "...\n";
     }
     return ret;
 }

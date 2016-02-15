@@ -58,14 +58,17 @@ std::ostream& operator << ( std::ostream& out, SequenceSet const& set );
 std::string print_color(
     Sequence const&                    seq,
     std::map<char, std::string> const& colors,
-    size_t                             limit = 0,
+    size_t                             length_limit = 100,
+    bool                               label = false,
     bool                               background = true
 );
 
 std::string print_color(
     SequenceSet const&                 set,
     std::map<char, std::string> const& colors,
-    size_t                             limit = 0,
+    size_t                             length_limit = 100,
+    size_t                             sequence_limit = 10,
+    bool                               label = false,
     bool                               background = true
 );
 
