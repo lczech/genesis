@@ -8,6 +8,7 @@
  * @ingroup sequence
  */
 
+#include <map>
 #include <string>
 
 namespace genesis {
@@ -30,15 +31,21 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
 //     Characteristics
 // ================================================================================================
 
+std::map<char, size_t> site_histogram( Sequence    const& seq );
+std::map<char, size_t> site_histogram( SequenceSet const& set );
+
+std::map<char, double> base_frequencies( Sequence    const& seq, std::string const& plain_chars );
+std::map<char, double> base_frequencies( SequenceSet const& set, std::string const& plain_chars );
+
 size_t count_chars( SequenceSet const& set, std::string const& chars );
 
-size_t total_length( SequenceSet const& set );
+double gapyness( SequenceSet const& set, std::string const& undetermined_chars );
 
 bool validate_chars( SequenceSet const& set, std::string const& chars );
 
-bool is_alignment( SequenceSet const& set );
+size_t total_length( SequenceSet const& set );
 
-double gapyness( SequenceSet const& set, std::string const& undetermined_chars );
+bool is_alignment( SequenceSet const& set );
 
 // ================================================================================================
 //     Modifiers
@@ -68,6 +75,13 @@ replace_chars
 // ================================================================================================
 
 std::string dump() const;
+
+with text colouring, use sea view colours:
+A red
+C green
+G yellow
+T blue
+gap grey
 
 */
 
