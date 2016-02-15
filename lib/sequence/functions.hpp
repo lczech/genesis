@@ -8,6 +8,7 @@
  * @ingroup sequence
  */
 
+#include <iosfwd>
 #include <map>
 #include <string>
 
@@ -48,6 +49,27 @@ size_t total_length( SequenceSet const& set );
 bool is_alignment( SequenceSet const& set );
 
 // ================================================================================================
+//     Print and Output
+// ================================================================================================
+
+std::ostream& operator << ( std::ostream& out, Sequence    const& seq );
+std::ostream& operator << ( std::ostream& out, SequenceSet const& set );
+
+std::string print_color(
+    Sequence const&                    seq,
+    std::map<char, std::string> const& colors,
+    size_t                             limit = 0,
+    bool                               background = true
+);
+
+std::string print_color(
+    SequenceSet const&                 set,
+    std::map<char, std::string> const& colors,
+    size_t                             limit = 0,
+    bool                               background = true
+);
+
+// ================================================================================================
 //     Modifiers
 // ================================================================================================
 
@@ -69,19 +91,6 @@ void replace(char search, char replace);
 remove_chars
 compress_chars
 replace_chars
-
-// ================================================================================================
-//     Dump
-// ================================================================================================
-
-std::string dump() const;
-
-with text colouring, use sea view colours:
-A red
-C green
-G yellow
-T blue
-gap grey
 
 */
 

@@ -23,16 +23,19 @@ static const std::unordered_map<char, std::string> nucleic_acid_code_to_name = {
     { 'G', "Guanine" },
     { 'T', "Thymine" },
     { 'U', "Uracil" },
+
     { 'W', "Weak" },
     { 'S', "Strong" },
     { 'M', "aMino" },
     { 'K', "Keto" },
     { 'R', "puRine" },
     { 'Y', "pYrimidine" },
+
     { 'B', "not A" },
     { 'D', "not C" },
     { 'H', "not G" },
     { 'V', "not T" },
+
     { 'N', "any" },
     { 'O', "omitted" },
     { 'X', "masked" },
@@ -67,6 +70,7 @@ static const std::unordered_map<char, std::string> amino_acid_code_to_name = {
     { 'W', "Tryptophan" },
     { 'Y', "Tyrosine" },
     { 'Z', "Glutamic acid or Glutamine" },
+
     { 'X', "any" },
     { '*', "translation stop" },
     { '-', "gap" },
@@ -74,8 +78,76 @@ static const std::unordered_map<char, std::string> amino_acid_code_to_name = {
 };
 
 // =================================================================================================
+//     Color Lists
+// =================================================================================================
+
+static const std::map<char, std::string> nucleic_acid_text_colors_map = {
+    { 'A', "Red" },
+    { 'C', "Green" },
+    { 'G', "Yellow" },
+    { 'T', "Blue" },
+    { 'U', "Blue" },
+
+    { 'W', "DarkGray" },
+    { 'S', "DarkGray" },
+    { 'M', "DarkGray" },
+    { 'K', "DarkGray" },
+    { 'R', "DarkGray" },
+    { 'Y', "DarkGray" },
+
+    { 'B', "DarkGray" },
+    { 'D', "DarkGray" },
+    { 'H', "DarkGray" },
+    { 'V', "DarkGray" },
+
+    { 'N', "DarkGray" },
+    { 'O', "DarkGray" },
+    { 'X', "DarkGray" },
+    { '.', "DarkGray" },
+    { '-', "DarkGray" },
+    { '?', "DarkGray" }
+};
+
+static const std::map<char, std::string> amino_acid_text_colors_map = {
+    { 'A', "Blue" },
+    { 'B', "DarkGray" },
+    { 'C', "LightMagenta" },
+    { 'D', "Magenta" },
+    { 'E', "Magenta" },
+    { 'F', "Blue" },
+    { 'G', "LightRed" },
+    { 'H', "Cyan" },
+    { 'I', "Blue" },
+    { 'J', "DarkGray" },
+    { 'K', "Red" },
+    { 'L', "Blue" },
+    { 'M', "Blue" },
+    { 'N', "Green" },
+    { 'O', "DarkGray" },
+    { 'P', "Yellow" },
+    { 'Q', "Green" },
+    { 'R', "Red" },
+    { 'S', "Green" },
+    { 'T', "Green" },
+    { 'U', "DarkGray" },
+    { 'V', "Blue" },
+    { 'W', "Blue" },
+    { 'Y', "Cyan" },
+    { 'Z', "DarkGray" },
+
+    { 'X', "DarkGray" },
+    { '*', "DarkGray" },
+    { '-', "DarkGray" },
+    { '?', "DarkGray" }
+};
+
+// =================================================================================================
 //     Codes
 // =================================================================================================
+
+// ---------------------------------------------------------------------
+//     Nucleic Acids
+// ---------------------------------------------------------------------
 
 /**
  * @brief Return all plain nucleic acid codes. Those are "ACGTU".
@@ -120,6 +192,10 @@ std::string nucleic_acid_codes_all()
          + nucleic_acid_codes_undetermined();
 }
 
+// ---------------------------------------------------------------------
+//     Amino Acids
+// ---------------------------------------------------------------------
+
 /**
  * @brief Return all plain amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWY".
  */
@@ -161,6 +237,32 @@ std::string amino_acid_codes_all()
     return amino_acid_codes_plain()
          + amino_acid_codes_ambiguous()
          + amino_acid_codes_undetermined();
+}
+
+// =================================================================================================
+//     Color Codes
+// =================================================================================================
+
+/**
+ * @brief Return a map of colors for each nucleic acid code.
+ *
+ * This function gives a color name usable for text::Style for each nucleic acid code.
+ * The return value of this function can for example be used in sequence::print_color() function.
+ */
+std::map<char, std::string> nucleic_acid_text_colors()
+{
+    return nucleic_acid_text_colors_map;
+}
+
+/**
+ * @brief Return a map of colors for each amino acid code.
+ *
+ * This function gives a color name usable for text::Style for each amino acid code.
+ * The return value of this function can for example be used in sequence::print_color() function.
+ */
+std::map<char, std::string> amino_acid_text_colors()
+{
+    return amino_acid_text_colors_map;
 }
 
 // =================================================================================================

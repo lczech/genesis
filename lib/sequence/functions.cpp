@@ -11,17 +11,15 @@
 #include "sequence/sequence_set.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/text/string.hpp"
+#include "utils/text/style.hpp"
 
 #include <algorithm>
 #include <array>
 #include <assert.h>
 #include <numeric>
-// #include <sstream>
+#include <ostream>
 #include <stdexcept>
 #include <string>
-// #include <unordered_map>
-// #include <unordered_set>
-// #include <vector>
 
 namespace genesis {
 namespace sequence {
@@ -273,6 +271,93 @@ bool is_alignment( SequenceSet const& set )
 }
 
 // =============================================================================
+//     Print and Output
+// =============================================================================
+
+/**
+ * @brief Print a Sequence to an ostream in the form "label: sites". This can be very long!
+ */
+std::ostream& operator << ( std::ostream& out, Sequence    const& seq )
+{
+    out << seq.label() << ": " << seq.sites();
+    return out;
+}
+
+/**
+ * @brief Print a SequenceSet to an ostream in the form "label: sites". This can be very (!) long!
+ */
+std::ostream& operator << ( std::ostream& out, SequenceSet const& set )
+{
+    for( auto const& s : set ) {
+        out << s << "\n";
+    }
+    return out;
+}
+
+/**
+ * @brief Return a string with the sites of the Sequence colored.
+ *
+ * This function returns a color view of the sites of the given Sequence, using text::Style colors,
+ * which can be displayed in a console/terminal. This is useful for visualizing the Sequence similar
+ * to graphical alignment viewing tools.
+ *
+ * The function takes a map from sequences characters to their colors (see text::Style for a list of
+ * the available ones). The presettings `nucleic_acid_text_colors()` and
+ * `amino_acid_text_colors()` for default sequence types can be used as input.
+ * If the colors map does not contain a key for one of the chars in the sequence, the function
+ * throws an `std::out_of_range` exception.
+ *
+ * Furthermore, the optional parameter `limit` just uses the first chars of the Sequence. If set
+ * to 0 (default), the whole Sequence is used. This is useful to avoid line wrapping.
+ *
+ * The parameter `background` can be used to control which part of the output is colored:
+ * `true` (default) colors the text background and makes the foreground white, while `false` colors
+ * the foreground of the text and leaves the background at its default.
+ */
+std::string print_color(
+    Sequence const&                    seq,
+    std::map<char, std::string> const& colors,
+    size_t                             limit,
+    bool                               background
+) {
+    if( limit == 0 ) {
+        limit = seq.length();
+    }
+
+    std::string ret = "";
+    for( size_t l = 0; l < limit; ++l ) {
+        char s = seq[l];
+
+        // We use map.at() here, which throws in case of invalid keys, so we don't have to.
+        if( background ) {
+            ret += text::Style( std::string( 1, s ), "black", colors.at(s) ).to_bash_string();
+        } else {
+            ret += text::Style( std::string( 1, s ), colors.at(s) ).to_bash_string();
+        }
+    }
+
+    return ret;
+}
+
+/**
+ * @brief Return a string with the sites of a SequenceSet colored.
+ *
+ * See the Sequence version of this function for details.
+ */
+std::string print_color(
+    SequenceSet const&                 set,
+    std::map<char, std::string> const& colors,
+    size_t                             limit,
+    bool                               background
+) {
+    std::string ret = "";
+    for( auto const& seq : set ) {
+        ret += print_color( seq, colors, limit, background ) + "\n";
+    }
+    return ret;
+}
+
+// =============================================================================
 //     Modifiers
 // =============================================================================
 
@@ -373,19 +458,6 @@ void Sequence::replace(char search, char replace)
 {
     sites_ = text::replace_all (sites_, std::string(1, search), std::string(1, replace));
 }
-
-// =============================================================================
-//     Dump and Debug
-// =============================================================================
-
-/ **
- * @brief Prints the label and the whole sequence (possibly very long!).
- * /
-std::string Sequence::dump() const
-{
-    return label() + ": " + sites();
-}
-
 
 */
 

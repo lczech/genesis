@@ -16,6 +16,21 @@
 
 using namespace genesis::sequence;
 
+TEST( Sequence, Color )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/dna_354.fasta";
+    SequenceSet sset;
+    FastaProcessor().from_file(infile, sset);
+
+    // Make a colorful string.
+    std::string col = print_color( sset[0], nucleic_acid_text_colors(), 3 );
+    EXPECT_EQ( "\x1B[30;44mT\x1B[0m\x1B[30;42mC\x1B[0m\x1B[30;43mG\x1B[0m", col );
+}
+
 TEST( SequenceSet, Characteristics )
 {
     // Skip test if no data availabe.
