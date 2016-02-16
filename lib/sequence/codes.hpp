@@ -8,6 +8,7 @@
  * @ingroup sequence
  */
 
+#include <map>
 #include <string>
 
 namespace genesis {
@@ -28,6 +29,13 @@ std::string amino_acid_codes_ambiguous();
 std::string amino_acid_codes_determined();
 std::string amino_acid_codes_undetermined();
 std::string amino_acid_codes_all();
+
+// =================================================================================================
+//     Color Codes
+// =================================================================================================
+
+std::map<char, std::string> nucleic_acid_text_colors();
+std::map<char, std::string> amino_acid_text_colors();
 
 // =================================================================================================
 //     Translate Codes

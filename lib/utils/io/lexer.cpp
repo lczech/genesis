@@ -370,7 +370,7 @@ bool Lexer::scan_number()
                 break;
             }
             found_d = true;
-        } else if (text::char_match(get_char(), 'e')) {
+        } else if (text::char_match_ci(get_char(), 'e')) {
             // do not allow more than one e (treat the second one as the end of
             // the number and stop scannning).
             // also, require a number or sign before and after the first e. if not,
@@ -397,7 +397,7 @@ bool Lexer::scan_number()
                     && !is_end(+1) && text::char_is_digit(get_char(+1))
                 ) &&
                 !(
-                    found_e && text::char_match(get_char(-1), 'e')
+                    found_e && text::char_match_ci(get_char(-1), 'e')
                     && !is_end(+1) && text::char_is_digit(get_char(+1))
                 )
             ) {

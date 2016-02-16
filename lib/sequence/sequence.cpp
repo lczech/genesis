@@ -89,6 +89,11 @@ char Sequence::site_at( size_t index ) const
     return sites_.at(index);
 }
 
+char Sequence::operator [] (size_t index) const
+{
+    return sites_[index];
+}
+
 // =============================================================================
 //     Iterators
 // =============================================================================
