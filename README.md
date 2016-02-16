@@ -1,6 +1,6 @@
 ![genesis](/doc/logo/logo_readme.png?raw=true "genesis")
 
-A framework for working with phylogenetic data.
+A toolkit for working with phylogenetic data.
 
 Introduction
 ------------
@@ -16,7 +16,8 @@ evolutionary placement.
 Usage
 -----
 
-The framework can be used in two ways, depending on the users preferences and needs:
+The library provided by genesis can be used in two ways, depending on the users preferences and
+needs:
 
  *  As a C++ library.
  *  As a Python module.
@@ -24,7 +25,7 @@ The framework can be used in two ways, depending on the users preferences and ne
 The code is written as a C++11 library. It can thus be used in your projects by including
 the necessary headers and linking against the binary (either shared or static, see section Build).
 Furthermore, if you quickly want to build a small application that uses genesis as its main
-framework, have a look at the `./apps` directory.
+library, have a look at the `./apps` directory.
 
 In addition to C++, the classes and functions are (mostly) exported to Python. The genesis module
 can be imported and used as any other Python code.
