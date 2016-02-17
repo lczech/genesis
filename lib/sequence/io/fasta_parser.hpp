@@ -21,11 +21,18 @@ class CountingIstream;
 }
 
 namespace sequence {
+
 class Sequence;
 
 // =================================================================================================
 //     Fasta Parser
 // =================================================================================================
+
+/*
+ *  *  http://en.wikipedia.org/wiki/FASTA_format
+ *  *  http://blast.ncbi.nlm.nih.gov/blastcgihelp.shtml
+ *  *  http://zhanglab.ccmb.med.umich.edu/FASTA/
+ */
 
 bool parse_fasta_sequence(      utils::CountingIstream& input_stream, Sequence& sequence );
 bool parse_fasta_sequence_fast( utils::CountingIstream& input_stream, Sequence& sequence );
