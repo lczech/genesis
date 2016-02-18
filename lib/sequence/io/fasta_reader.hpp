@@ -49,6 +49,21 @@ public:
     void from_file   ( std::string const& fn, SequenceSet& sset );
     void from_string ( std::string const& fs, SequenceSet& sset );
 
+    // ---------------------------------------------------------------------
+    //     Properties
+    // ---------------------------------------------------------------------
+
+    FastaReader& to_upper( bool value );
+    bool         to_upper();
+
+    // ---------------------------------------------------------------------
+    //     Members
+    // ---------------------------------------------------------------------
+
+private:
+
+    bool to_upper_ = true;
+
 };
 
 } // namespace sequence

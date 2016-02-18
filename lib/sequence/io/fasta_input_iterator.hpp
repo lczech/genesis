@@ -8,7 +8,6 @@
  * @ingroup sequence
  */
 
-#include "sequence/io/fasta_parser.hpp"
 #include "sequence/sequence.hpp"
 #include "utils/io/counting_istream.hpp"
 
@@ -92,7 +91,8 @@ public:
 
     bool extract_sequence()
     {
-        return parse_fasta_sequence( input_stream_, sequence_ );
+        return false;
+        // return parse_fasta_sequence( input_stream_, sequence_ );
     }
 
     bool eos() const
