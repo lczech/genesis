@@ -8,6 +8,8 @@
  * @ingroup sequence
  */
 
+#include "utils/tools/char_lookup.hpp"
+
 #include <iosfwd>
 #include <string>
 
@@ -33,6 +35,34 @@ class Sequence;
 //     Fasta Reader
 // =================================================================================================
 
+/**
+ * @brief Read FASTA data.
+ *
+ * This class provides simple facilities for reading FASTA data. Currently, it supports to read
+ *
+ *   * from_stream()
+ *   * from_file()
+ *   * from_string()
+ *
+ * Exemplary usage:
+ *
+ *     std::string infile = "path/to/file.fasta";
+ *     SequenceSet sset;
+ *
+ *     FastaReader()
+ *         .to_upper()
+ *         .validate_chars( nucleic_acid_codes_all() )
+ *         .from_file( infile, sset );
+ *
+ * The expected data format:
+ *
+ *   1. Has to start with a '>' character, followed by a label and possibly metadata, ended by a
+ *      '\\n'. All text after the first space is considered to be metadata.
+ *   2. An arbitrary number of comment lines, starting with ';', can follow, but are ignored.
+ *   3. After that, a sequence has to follow, over one or more lines and ending in a '\\n' character.
+ *
+ * See validate_chars() for a way of checking correct input sequences.
+ */
 class FastaReader
 {
 public:
@@ -41,7 +71,7 @@ public:
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
-    FastaReader()  = default;
+    FastaReader();
     ~FastaReader() = default;
 
     FastaReader( FastaReader const& ) = default;
@@ -79,13 +109,20 @@ public:
     FastaReader& to_upper( bool value );
     bool         to_upper() const;
 
+    FastaReader& validate_chars( std::string const& chars );
+    std::string  validate_chars() const;
+
+    bool is_validating() const;
+    utils::CharLookup& valid_char_lookup();
+
     // ---------------------------------------------------------------------
     //     Members
     // ---------------------------------------------------------------------
 
 private:
 
-    bool to_upper_ = true;
+    bool              to_upper_ = true;
+    utils::CharLookup lookup_;
 
 };
 

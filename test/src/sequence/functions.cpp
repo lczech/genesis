@@ -132,7 +132,7 @@ TEST( SequenceSet, Characteristics )
     EXPECT_EQ( 40133, sh.at('G') );
     EXPECT_EQ( 28220, sh.at('T') );
 
-    // Site histogram: Noise in the dataset.
+    // Site histogram: Degenerated noise in the dataset.
     EXPECT_EQ( 3, sh.at('M') );
     EXPECT_EQ( 3, sh.at('R') );
     EXPECT_EQ( 1, sh.at('S') );
