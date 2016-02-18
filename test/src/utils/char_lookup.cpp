@@ -23,6 +23,6 @@ TEST(CharLookup, Simple)
     EXPECT_FALSE( cl.get('F') );
     EXPECT_TRUE(  cl.get('I') );
 
-    cl.set( 'I', false );
+    cl.set_char( 'I', false );
     EXPECT_FALSE( cl.get('I') );
 }
