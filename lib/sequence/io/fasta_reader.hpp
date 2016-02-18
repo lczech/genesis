@@ -73,14 +73,6 @@ public:
     void from_string ( std::string const& fs, SequenceSet& sset ) const;
 
     // ---------------------------------------------------------------------
-    //     Iteration
-    // ---------------------------------------------------------------------
-
-    FastaInputIterator iterate_stream ( std::istream&      is ) const;
-    FastaInputIterator iterate_file   ( std::string const& fn ) const;
-    FastaInputIterator iterate_string ( std::string const& fs ) const;
-
-    // ---------------------------------------------------------------------
     //     Properties
     // ---------------------------------------------------------------------
 
