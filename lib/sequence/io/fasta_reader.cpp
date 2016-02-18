@@ -51,11 +51,10 @@ namespace sequence {
  * See parse_fasta_sequence_fast() for a faster (~ double the speed), but non-error-checking
  * version of this function.
  */
-bool parse_fasta_sequence(
+bool FastaReader::parse_fasta_sequence(
     utils::CountingIstream& input_stream,
-    Sequence&               sequence,
-    bool                    to_upper
-) {
+    Sequence&               sequence
+) const {
     // Readability.
     auto& it = input_stream;
 
@@ -134,7 +133,7 @@ bool parse_fasta_sequence(
 
         size_t count = 0;
         while( it && isgraph(*it) ) {
-            sequence.sites() += ( to_upper ? toupper(*it) : *it );
+            sequence.sites() += ( to_upper_ ? toupper(*it) : *it );
             ++it;
             ++count;
         }
@@ -182,8 +181,10 @@ bool parse_fasta_sequence(
  * Most probably, it will either write rubbish into the sequence or produce a segfault or an
  * infinite loop. So be warned and check your data first. If they are good, enjoy the speed!
  */
-bool parse_fasta_sequence_fast( utils::CountingIstream& input_stream, Sequence& sequence )
-{
+bool FastaReader::parse_fasta_sequence_fast(
+    utils::CountingIstream& input_stream,
+    Sequence&               sequence
+) const {
     // Readability.
     auto& it = input_stream;
 
@@ -258,7 +259,7 @@ void FastaReader::from_stream ( std::istream& is, SequenceSet& sset ) const
     auto it = utils::CountingIstream( is );
     Sequence seq;
 
-    while( parse_fasta_sequence( it, seq, to_upper_ ) ) {
+    while( parse_fasta_sequence( it, seq ) ) {
         sset.push_back( seq );
     }
 }

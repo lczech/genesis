@@ -12,14 +12,22 @@
 #include <string>
 
 namespace genesis {
-namespace sequence {
 
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
 
+namespace utils {
+
+class CountingIstream;
+
+} // namespace utils
+
+namespace sequence {
+
 class FastaInputIterator;
 class SequenceSet;
+class Sequence;
 
 // =================================================================================================
 //     Fasta Reader
@@ -41,6 +49,20 @@ public:
 
     FastaReader& operator= ( FastaReader const& ) = default;
     FastaReader& operator= ( FastaReader&& )      = default;
+
+    // ---------------------------------------------------------------------
+    //     Parsing
+    // ---------------------------------------------------------------------
+
+    bool parse_fasta_sequence(
+        utils::CountingIstream& input_stream,
+        Sequence&               sequence
+    ) const;
+
+    bool parse_fasta_sequence_fast(
+        utils::CountingIstream& input_stream,
+        Sequence&               sequence
+    ) const;
 
     // ---------------------------------------------------------------------
     //     Reading
