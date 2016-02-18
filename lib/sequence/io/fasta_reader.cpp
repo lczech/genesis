@@ -40,9 +40,9 @@ FastaReader::FastaReader()
 // =================================================================================================
 
 /**
- * @brief Parse a char sequence in FASTA format.
+ * @brief Parse a char sequence in Fasta format.
  *
- * This function takes an input stream and interprets as as a FASTA formatted sequence. It extracts
+ * This function takes an input stream and interprets as as a Fasta formatted sequence. It extracts
  * the data and writes it into the given Sequence object. See the class description of FastaReader
  * for the expected data format.
  *
@@ -74,7 +74,7 @@ bool FastaReader::parse_fasta_sequence(
     // Check beginning of sequence.
     if( it.current() != '>' ) {
         throw std::runtime_error(
-            "Malformed FASTA file: Expecting '>' at beginning of sequence at " + it.at() + "."
+            "Malformed Fasta file: Expecting '>' at beginning of sequence at " + it.at() + "."
         );
     }
     assert( it && *it == '>' );
@@ -88,14 +88,14 @@ bool FastaReader::parse_fasta_sequence(
     }
     if( sequence.label() == "" ) {
         throw std::runtime_error(
-            "Malformed FASTA file: Expecting label after '>' at " + it.at() + "."
+            "Malformed Fasta file: Expecting label after '>' at " + it.at() + "."
         );
     }
 
     // Check for unexpected end of stream.
     if( it.eos() || (*it != '\n' && *it != ' ')) {
         throw std::runtime_error(
-            "Malformed FASTA file: Expecting a sequence after the label line at " + it.at() + "."
+            "Malformed Fasta file: Expecting a sequence after the label line at " + it.at() + "."
         );
     }
     assert( it && (*it == '\n' || *it == ' ') );
@@ -113,7 +113,7 @@ bool FastaReader::parse_fasta_sequence(
     // Check for unexpected end of file.
     if( it.eos() || *it != '\n' ) {
         throw std::runtime_error(
-            "Malformed FASTA file: Expecting a sequence after the label line at " + it.at() + "."
+            "Malformed Fasta file: Expecting a sequence after the label line at " + it.at() + "."
         );
     }
     assert( it && *it == '\n' );
@@ -128,7 +128,7 @@ bool FastaReader::parse_fasta_sequence(
     // Check for unexpected end of file.
     if( it.eos() || *it != '\n' ) {
         throw std::runtime_error(
-            "Malformed FASTA file: Expecting a sequence after the label line at " + it.at() + "."
+            "Malformed Fasta file: Expecting a sequence after the label line at " + it.at() + "."
         );
     }
     assert( it && *it == '\n' );
@@ -144,7 +144,7 @@ bool FastaReader::parse_fasta_sequence(
             char c = ( to_upper_ ? toupper(*it) : *it );
             if( !lookup_[c] ) {
                 throw std::runtime_error(
-                    "Malformed FASTA file: Invalid sequence symbols at " + it.at() + "."
+                    "Malformed Fasta file: Invalid sequence symbols at " + it.at() + "."
                 );
             }
 
@@ -155,7 +155,7 @@ bool FastaReader::parse_fasta_sequence(
 
         if( !it ) {
             throw std::runtime_error(
-                "Malformed FASTA file: Sequence does not end with '\\n' " + it.at() + "."
+                "Malformed Fasta file: Sequence does not end with '\\n' " + it.at() + "."
             );
         }
         assert( it && *it == '\n' );
@@ -163,7 +163,7 @@ bool FastaReader::parse_fasta_sequence(
 
         if( count == 0 ) {
             throw std::runtime_error(
-                "Malformed FASTA file: Empty sequence line at " + it.at() + "."
+                "Malformed Fasta file: Empty sequence line at " + it.at() + "."
             );
         }
     }
@@ -171,7 +171,7 @@ bool FastaReader::parse_fasta_sequence(
 
     if( sequence.sites().length() == 0 ) {
         throw std::runtime_error(
-            "Malformed FASTA file: Empty sequence at " + it.at() + "."
+            "Malformed Fasta file: Empty sequence at " + it.at() + "."
         );
     }
 
@@ -179,9 +179,9 @@ bool FastaReader::parse_fasta_sequence(
 }
 
 /**
- * @brief Parse a FASTA sequence without checking for errors.
+ * @brief Parse a Fasta sequence without checking for errors.
  *
- * This is a very fast implementation that neglects input error checking. Thus, the FASTA sequence
+ * This is a very fast implementation that neglects input error checking. Thus, the Fasta sequence
  * has to be well-formed in order for this function to work properly. See the class description of
  * FastaReader for the expected data format.
  *
@@ -306,7 +306,7 @@ void FastaReader::from_string ( std::string const& fs, SequenceSet& sset ) const
  * @brief Set whether Sequence sites are automatically turned into upper case.
  *
  * If set to `true` (default), all sites of the read Sequences are turned into upper case letters
- * automatically. This is demanded by the FASTA standard.
+ * automatically. This is demanded by the Fasta standard.
  * The function returns the FastaReader object to allow for fluent interfaces.
  */
 FastaReader& FastaReader::to_upper( bool value )

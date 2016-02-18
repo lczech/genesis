@@ -25,9 +25,9 @@ class SequenceSet;
 // =================================================================================================
 
 /**
- * @brief Write FASTA data.
+ * @brief Write Fasta data.
  *
- * This class provides simple facilities for writing FASTA data. It supports to write
+ * This class provides simple facilities for writing Fasta data. It supports to write
  *
  *   * to_stream()
  *   * to_file()
@@ -42,7 +42,7 @@ class SequenceSet;
  *         .line_length(100)
  *         .to_file( sset, outfile );
  *
- * See FastaReader for a description of the FASTA format.
+ * See FastaReader for a description of the Fasta format.
  */
 class FastaWriter
 {

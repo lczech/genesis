@@ -35,9 +35,9 @@ class Sequence;
 // =================================================================================================
 
 /**
- * @brief Read FASTA data.
+ * @brief Read Fasta data.
  *
- * This class provides simple facilities for reading FASTA data. It supports to read
+ * This class provides simple facilities for reading Fasta data. It supports to read
  *
  *   * from_stream()
  *   * from_file()
