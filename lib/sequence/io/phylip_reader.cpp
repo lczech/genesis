@@ -12,6 +12,7 @@
 #include "utils/core/fs.hpp"
 #include "utils/io/counting_istream.hpp"
 #include "utils/io/lexer/scanner.hpp"
+#include "utils/text/string.hpp"
 
 #include <assert.h>
 #include <cctype>
@@ -26,17 +27,8 @@ namespace sequence {
 //     Parsing
 // =================================================================================================
 
-// =================================================================================================
-//     Reading
-// =================================================================================================
-
-/**
- * @brief Read all Sequences from a std::istream in Phylip format into a SequenceSet.
- */
-void PhylipReader::from_stream( std::istream& is, SequenceSet& sset ) const
+std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstream& it ) const
 {
-    auto it = utils::CountingIstream( is );
-
     // Read number of sequences.
     lexer::skip_while( it, isblank );
     std::string num_seq_str;
@@ -46,7 +38,7 @@ void PhylipReader::from_stream( std::istream& is, SequenceSet& sset ) const
             "Malformed Phylip file: Expecting sequence number at " + it.at() + "."
         );
     }
-    long num_seq = std::stoi( num_seq_str );
+    size_t num_seq = std::stoi( num_seq_str );
 
     // Read length of sequences.
     lexer::skip_while( it, isblank );
@@ -57,7 +49,7 @@ void PhylipReader::from_stream( std::istream& is, SequenceSet& sset ) const
             "Malformed Phylip file: Expecting sequence length at " + it.at() + "."
         );
     }
-    long len_seq = std::stoi( len_seq_str );
+    size_t len_seq = std::stoi( len_seq_str );
 
     // Sanity check.
     if( num_seq == 0 || len_seq == 0 ) {
@@ -74,6 +66,90 @@ void PhylipReader::from_stream( std::istream& is, SequenceSet& sset ) const
         );
     }
     ++it;
+
+    return { num_seq, len_seq };
+}
+
+std::string PhylipReader::parse_phylip_label( utils::CountingIstream& it ) const
+{
+    std::string label;
+
+    // Scan label until first blank/tab.
+    if( label_length_ == 0 ) {
+        lexer::copy_while( it, label, isgraph );
+        if( !it || !isblank( *it ) ) {
+            throw std::runtime_error(
+                "Malformed Phylip file: Expecting delimiting white space at " + it.at() + "."
+            );
+        }
+        lexer::skip_while( it, isblank );
+
+    // Scan label for `label_length` many chars.
+    } else {
+        for( size_t i = 0; i < label_length_; ++i ) {
+            if( !it || !isprint( *it ) ) {
+                throw std::runtime_error(
+                    "Malformed Phylip file: Invalid label at " + it.at() + "."
+                );
+            }
+
+            label += *it;
+            ++it;
+        }
+    }
+
+    return text::trim( label );
+}
+
+std::string PhylipReader::parse_phylip_sequence( utils::CountingIstream& it ) const
+{
+    std::string seq;
+
+    while( it && *it != '\n' ) {
+
+        // Skip all blanks and digits.
+        if( isblank( *it ) || isdigit( *it ) ) {
+            ++it;
+            continue;
+        }
+
+        char c = ( to_upper_ ? toupper(*it) : *it );
+        // if( !lookup_[c] ) {
+        //     throw std::runtime_error(
+        //         "Malformed Fasta file: Invalid sequence symbols at " + it.at() + "."
+        //     );
+        // }
+
+        seq += c;
+        ++it;
+    }
+
+    return seq;
+}
+
+void PhylipReader::parse_phylip_interleaved( utils::CountingIstream& it, SequenceSet& sset ) const
+{
+    auto sizes = parse_phylip_header( it );
+    (void) sizes;
+}
+
+void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, SequenceSet& sset ) const
+{
+    auto sizes = parse_phylip_header( it );
+    (void) sizes;
+}
+
+// =================================================================================================
+//     Reading
+// =================================================================================================
+
+/**
+ * @brief Read all Sequences from a std::istream in Phylip format into a SequenceSet.
+ */
+void PhylipReader::from_stream( std::istream& is, SequenceSet& sset ) const
+{
+    auto it = utils::CountingIstream( is );
+    (void) it;
 
     throw std::runtime_error( "Not yet fully implemented." );
 

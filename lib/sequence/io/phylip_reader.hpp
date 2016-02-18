@@ -12,6 +12,7 @@
 
 #include <iosfwd>
 #include <string>
+#include <utility>
 
 namespace genesis {
 
@@ -55,10 +56,27 @@ public:
     //     Parsing
     // ---------------------------------------------------------------------
 
-    // bool parse_phylip_sequence(
-    //     utils::CountingIstream& input_stream,
-    //     Sequence&               sequence
-    // ) const;
+    std::pair<size_t, size_t> parse_phylip_header(
+        utils::CountingIstream& it
+    ) const;
+
+    std::string parse_phylip_label(
+        utils::CountingIstream& it
+    ) const;
+
+    std::string parse_phylip_sequence(
+        utils::CountingIstream& it
+    ) const;
+
+    void parse_phylip_interleaved(
+        utils::CountingIstream& it,
+        SequenceSet& sset
+    ) const;
+
+    void parse_phylip_sequential(
+        utils::CountingIstream& it,
+        SequenceSet& sset
+    ) const;
 
     // ---------------------------------------------------------------------
     //     Reading
