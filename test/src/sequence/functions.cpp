@@ -10,7 +10,7 @@
 #include "lib/sequence/codes.hpp"
 #include "lib/sequence/functions.hpp"
 #include "lib/sequence/sequence_set.hpp"
-#include "lib/sequence/io/fasta_processor.hpp"
+#include "lib/sequence/io/fasta_reader.hpp"
 
 #include <string>
 
@@ -24,7 +24,7 @@ TEST( Sequence, Print )
     // Load sequence file.
     std::string infile = environment->data_dir + "sequence/dna_354.fasta";
     SequenceSet sset;
-    FastaProcessor().from_file(infile, sset);
+    FastaReader().from_file(infile, sset);
 
     // Print Sequence.
     EXPECT_EQ(
@@ -112,7 +112,7 @@ TEST( SequenceSet, Characteristics )
     // Load sequence file.
     std::string infile = environment->data_dir + "sequence/dna_354.fasta";
     SequenceSet sset;
-    FastaProcessor().from_file(infile, sset);
+    FastaReader().from_file(infile, sset);
 
     EXPECT_TRUE( validate_chars( sset, nucleic_acid_codes_all() ));
 
@@ -132,7 +132,7 @@ TEST( SequenceSet, Characteristics )
     EXPECT_EQ( 40133, sh.at('G') );
     EXPECT_EQ( 28220, sh.at('T') );
 
-    // Site histogram: Noise in the dataset.
+    // Site histogram: Degenerated noise in the dataset.
     EXPECT_EQ( 3, sh.at('M') );
     EXPECT_EQ( 3, sh.at('R') );
     EXPECT_EQ( 1, sh.at('S') );

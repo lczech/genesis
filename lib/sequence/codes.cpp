@@ -158,20 +158,11 @@ std::string nucleic_acid_codes_plain()
 }
 
 /**
- * @brief Return all ambiguous nucleic acid codes. Those are "WSMKRYBDHV".
+ * @brief Return all degenerated nucleic acid codes. Those are "WSMKRYBDHV".
  */
-std::string nucleic_acid_codes_ambiguous()
+std::string nucleic_acid_codes_degenerated()
 {
     return "WSMKRYBDHV";
-}
-
-/**
- * @brief Return all determined nucleic acid codes. Those are "ACGTUWSMKRYBDHV".
- */
-std::string nucleic_acid_codes_determined()
-{
-    return nucleic_acid_codes_plain()
-         + nucleic_acid_codes_ambiguous();
 }
 
 /**
@@ -188,7 +179,7 @@ std::string nucleic_acid_codes_undetermined()
 std::string nucleic_acid_codes_all()
 {
     return nucleic_acid_codes_plain()
-         + nucleic_acid_codes_ambiguous()
+         + nucleic_acid_codes_degenerated()
          + nucleic_acid_codes_undetermined();
 }
 
@@ -205,20 +196,11 @@ std::string amino_acid_codes_plain()
 }
 
 /**
- * @brief Return all ambiguous amino acid codes. Those are "BJZ".
+ * @brief Return all degenerated amino acid codes. Those are "BJZ".
  */
-std::string amino_acid_codes_ambiguous()
+std::string amino_acid_codes_degenerated()
 {
     return "BJZ";
-}
-
-/**
- * @brief Return all determined amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWYBJZ".
- */
-std::string amino_acid_codes_determined()
-{
-    return amino_acid_codes_plain()
-         + amino_acid_codes_ambiguous();
 }
 
 /**
@@ -235,7 +217,7 @@ std::string amino_acid_codes_undetermined()
 std::string amino_acid_codes_all()
 {
     return amino_acid_codes_plain()
-         + amino_acid_codes_ambiguous()
+         + amino_acid_codes_degenerated()
          + amino_acid_codes_undetermined();
 }
 
