@@ -253,7 +253,7 @@ bool parse_fasta_sequence_fast( utils::CountingIstream& input_stream, Sequence& 
 /**
  * @brief
  */
-void FastaReader::from_stream ( std::istream& is, SequenceSet& sset )
+void FastaReader::from_stream ( std::istream& is, SequenceSet& sset ) const
 {
     auto it = utils::CountingIstream( is );
     Sequence seq;
@@ -266,7 +266,7 @@ void FastaReader::from_stream ( std::istream& is, SequenceSet& sset )
 /**
  * @brief
  */
-void FastaReader::from_file ( std::string const& fn, SequenceSet& sset )
+void FastaReader::from_file ( std::string const& fn, SequenceSet& sset ) const
 {
     if( !file_exists( fn ) ) {
         throw std::runtime_error( "File '" + fn + "' not found." );
@@ -283,7 +283,7 @@ void FastaReader::from_file ( std::string const& fn, SequenceSet& sset )
 /**
  * @brief
  */
-void FastaReader::from_string ( std::string const& fs, SequenceSet& sset )
+void FastaReader::from_string ( std::string const& fs, SequenceSet& sset ) const
 {
     std::istringstream iss( fs );
     from_stream( iss, sset );
@@ -309,7 +309,7 @@ FastaReader& FastaReader::to_upper( bool value )
 /**
  * @brief Get whether sequence sites are automatically turned into upper case.
  */
-bool FastaReader::to_upper()
+bool FastaReader::to_upper() const
 {
     return to_upper_;
 }

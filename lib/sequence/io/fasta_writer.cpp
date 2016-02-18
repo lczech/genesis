@@ -25,7 +25,7 @@ namespace sequence {
 /**
  * @brief Write Sequences of a SequenceSet to a stream.
  */
-void FastaWriter::to_stream( SequenceSet const& sset, std::ostream& os )
+void FastaWriter::to_stream( SequenceSet const& sset, std::ostream& os ) const
 {
     for( Sequence const& s : sset ) {
         // Write label.
@@ -53,7 +53,7 @@ void FastaWriter::to_stream( SequenceSet const& sset, std::ostream& os )
 /**
  * @brief Write Sequences of a SequenceSet to a file.
  */
-void FastaWriter::to_file( SequenceSet const& sset, std::string const& fn )
+void FastaWriter::to_file( SequenceSet const& sset, std::string const& fn ) const
 {
     if( file_exists( fn ) ) {
         throw std::runtime_error( "File '" + fn + "' already exists." );
@@ -72,7 +72,7 @@ void FastaWriter::to_file( SequenceSet const& sset, std::string const& fn )
  *
  * Caveat: This might be a long string!
  */
-std::string FastaWriter::to_string ( SequenceSet const& sset )
+std::string FastaWriter::to_string ( SequenceSet const& sset ) const
 {
     std::ostringstream oss;
     to_stream( sset, oss );
@@ -101,7 +101,7 @@ FastaWriter& FastaWriter::line_length( size_t value )
  *
  * See the setter line_length() for details.
  */
-size_t FastaWriter::line_length()
+size_t FastaWriter::line_length() const
 {
     return line_length_;
 }

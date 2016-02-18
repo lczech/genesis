@@ -18,6 +18,7 @@ namespace sequence {
 //     Forward Declarations
 // =================================================================================================
 
+class FastaInputIterator;
 class SequenceSet;
 
 // =================================================================================================
@@ -45,16 +46,24 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
-    void from_stream ( std::istream&      is, SequenceSet& sset );
-    void from_file   ( std::string const& fn, SequenceSet& sset );
-    void from_string ( std::string const& fs, SequenceSet& sset );
+    void from_stream ( std::istream&      is, SequenceSet& sset ) const;
+    void from_file   ( std::string const& fn, SequenceSet& sset ) const;
+    void from_string ( std::string const& fs, SequenceSet& sset ) const;
+
+    // ---------------------------------------------------------------------
+    //     Iteration
+    // ---------------------------------------------------------------------
+
+    FastaInputIterator iterate_stream ( std::istream&      is ) const;
+    FastaInputIterator iterate_file   ( std::string const& fn ) const;
+    FastaInputIterator iterate_string ( std::string const& fs ) const;
 
     // ---------------------------------------------------------------------
     //     Properties
     // ---------------------------------------------------------------------
 
     FastaReader& to_upper( bool value );
-    bool         to_upper();
+    bool         to_upper() const;
 
     // ---------------------------------------------------------------------
     //     Members

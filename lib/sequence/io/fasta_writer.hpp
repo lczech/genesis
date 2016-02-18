@@ -45,16 +45,16 @@ public:
     //     Writing
     // ---------------------------------------------------------------------
 
-    void        to_stream ( SequenceSet const& sset, std::ostream&      os );
-    void        to_file   ( SequenceSet const& sset, std::string const& fn );
-    std::string to_string ( SequenceSet const& sset );
+    void        to_stream ( SequenceSet const& sset, std::ostream&      os ) const;
+    void        to_file   ( SequenceSet const& sset, std::string const& fn ) const;
+    std::string to_string ( SequenceSet const& sset ) const;
 
     // ---------------------------------------------------------------------
     //     Properties
     // ---------------------------------------------------------------------
 
     FastaWriter& line_length( size_t value );
-    size_t       line_length();
+    size_t       line_length() const;
 
     // ---------------------------------------------------------------------
     //     Members
