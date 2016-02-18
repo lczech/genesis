@@ -321,7 +321,7 @@ bool FastaReader::to_upper() const
  *
  * When this function is called with a string of chars, those chars are used to validate the sites
  * when reading them. If set to an empty string, this check is deactivated. This is also the
- * default.
+ * default, meaning that no checking is done.
  *
  * In case that to_upper() is set to `true`: The validation is done after making the char upper
  * case, so that only capital letters have to be provided for validation.

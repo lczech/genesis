@@ -96,11 +96,11 @@ public:
     PhylipReader& to_upper( bool value );
     bool          to_upper() const;
 
-    // PhylipReader& validate_chars( std::string const& chars );
-    // std::string   validate_chars() const;
-    //
-    // bool is_validating() const;
-    // utils::CharLookup& valid_char_lookup();
+    PhylipReader& validate_chars( std::string const& chars );
+    std::string   validate_chars() const;
+
+    bool is_validating() const;
+    utils::CharLookup& valid_char_lookup();
 
     // ---------------------------------------------------------------------
     //     Members
@@ -108,10 +108,9 @@ public:
 
 private:
 
-    // utils::CharLookup lookup_;
-
-    bool   to_upper_ = true;
-    size_t label_length_ = 0;
+    size_t            label_length_ = 0;
+    bool              to_upper_     = true;
+    utils::CharLookup lookup_;
 
 };
 

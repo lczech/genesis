@@ -114,11 +114,11 @@ std::string PhylipReader::parse_phylip_sequence( utils::CountingIstream& it ) co
         }
 
         char c = ( to_upper_ ? toupper(*it) : *it );
-        // if( !lookup_[c] ) {
-        //     throw std::runtime_error(
-        //         "Malformed Fasta file: Invalid sequence symbols at " + it.at() + "."
-        //     );
-        // }
+        if( !lookup_[c] ) {
+            throw std::runtime_error(
+                "Malformed Fasta file: Invalid sequence symbols at " + it.at() + "."
+            );
+        }
 
         seq += c;
         ++it;
@@ -129,12 +129,18 @@ std::string PhylipReader::parse_phylip_sequence( utils::CountingIstream& it ) co
 
 void PhylipReader::parse_phylip_interleaved( utils::CountingIstream& it, SequenceSet& sset ) const
 {
+    (void) it;
+    (void) sset;
+
     auto sizes = parse_phylip_header( it );
     (void) sizes;
 }
 
 void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, SequenceSet& sset ) const
 {
+    (void) it;
+    (void) sset;
+
     auto sizes = parse_phylip_header( it );
     (void) sizes;
 }
@@ -247,5 +253,77 @@ bool PhylipReader::to_upper() const
 {
     return to_upper_;
 }
+
+/**
+ * @brief Set the chars that are used for validating Sequence sites when reading them.
+ *
+ * When this function is called with a string of chars, those chars are used to validate the sites
+ * when reading them. If set to an empty string, this check is deactivated. This is also the
+ * default, meaning that no checking is done.
+ *
+ * In case that to_upper() is set to `true`: The validation is done after making the char upper
+ * case, so that only capital letters have to be provided for validation.
+ * In case that to_upper() is set to `false`: All chars that are to be considered valid have to be
+ * provided for validation.
+ *
+ * See `nucleic_acid_codes...()` and `amino_acid_codes...()` functions for presettings of chars
+ * that can be used for validation here.
+ */
+PhylipReader& PhylipReader::validate_chars( std::string const& chars )
+{
+    // If we do not want to validate, simply set all chars in the lookup to true. This saves us
+    // from making that discintion in the actual parsing process. There, we can then always just
+    // check the lookup table and don't have to check a flag or so.
+    if( chars.size() == 0 ) {
+        lookup_.set_all( true );
+    } else {
+        lookup_.set_all( false );
+        lookup_.set_selection( chars );
+    }
+
+    return *this;
+}
+
+/**
+ * @brief Return the currently set chars used for validating Sequence sites.
+ *
+ * If none are set, an empty string is returned. See is_validating() for checking whether chars are
+ * set for validating - this is equal to checking whether this function returns an empty string.
+ */
+std::string PhylipReader::validate_chars() const
+{
+    // We need to distinguish the validating status here, because in case that no validating chars
+    // are set, the table is all true - which would return a string of _all_ instead of no chars.
+    if( is_validating() ) {
+        return lookup_.get_selection();
+    } else {
+        return "";
+    }
+}
+
+/**
+ * @brief Return whether currently chars are set for validating the Sequence sites.
+ *
+ * This functions returns `true` iff there are chars set for validating Sequence sites.
+ * Use validate_chars() for getting those chars.
+ */
+bool PhylipReader::is_validating() const
+{
+    // We could use a flag instead of this, but this function is not critical for speed, so this
+    // should work as well.
+    return lookup_.all_set();
+}
+
+/**
+ * @brief Return the internal CharLookup that is used for validating the Sequence sites.
+ *
+ * This function is provided in case direct access to the lookup is needed. Usually, the
+ * validate_chars() function should suffice. See there for details.
+ */
+utils::CharLookup& PhylipReader::valid_char_lookup()
+{
+    return lookup_;
+}
+
 } // namespace sequence
 } // namespace genesis
