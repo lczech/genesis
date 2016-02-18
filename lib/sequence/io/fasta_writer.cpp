@@ -60,6 +60,10 @@ void FastaWriter::to_file( SequenceSet const& sset, std::string const& fn )
     }
 
     std::ofstream ofs( fn );
+    if( ofs.fail() ) {
+        throw std::runtime_error( "Cannot write to file '" + fn + "'." );
+    }
+
     to_stream( sset, ofs );
 }
 

@@ -273,6 +273,10 @@ void FastaReader::from_file ( std::string const& fn, SequenceSet& sset )
     }
 
     std::ifstream ifs( fn );
+    if( ifs.fail() ) {
+        throw std::runtime_error( "Cannot read from file '" + fn + "'." );
+    }
+
     from_stream( ifs, sset );
 }
 
