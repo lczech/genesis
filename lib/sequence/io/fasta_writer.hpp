@@ -39,7 +39,7 @@ class SequenceSet;
  *     SequenceSet sset;
  *
  *     FastaWriter()
- *         .line_length(100)
+ *         .line_length( 100 )
  *         .to_file( sset, outfile );
  *
  * See FastaReader for a description of the Fasta format.

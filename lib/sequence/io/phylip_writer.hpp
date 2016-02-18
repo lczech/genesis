@@ -68,8 +68,8 @@ public:
 
 private:
 
-    size_t line_length_  = 80;
     size_t label_length_ = 0;
+    size_t line_length_  = 80;
 
 };
 

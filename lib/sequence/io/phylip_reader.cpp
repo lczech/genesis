@@ -27,6 +27,16 @@ namespace sequence {
 //     Parsing
 // =================================================================================================
 
+/**
+ * @brief Parse a Phylip header and return the contained sequence count and length.
+ *
+ * This helper function expects to find a Phylip header in the form `x y`, which describes the
+ * number of sequences `x` in the Phylip data and their length `y`. It leaves the stream at the
+ * beginning of the next line.
+ *
+ * Currently, the function does not support Phylip options. According to the standard, those might
+ * follow after the two integers, but will lead to exceptions here.
+ */
 std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstream& it ) const
 {
     // Read number of sequences.
@@ -62,7 +72,7 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstr
     lexer::skip_while( it, isblank );
     if( !it || *it != '\n' ) {
         throw std::runtime_error(
-            "Malformed Phylip file: Expecting start of sequences at " + it.at() + "."
+            "Malformed Phylip file: Expecting end of line at " + it.at() + "."
         );
     }
     ++it;
@@ -70,6 +80,13 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstr
     return { num_seq, len_seq };
 }
 
+/**
+ * @brief Parse and return a Phylip label.
+ *
+ * This helper functions either takes the first `label_length` chars as a label or, if
+ * `label_length == 0` takes all chars until the first blank as label. It returns the trimmed
+ * label and leaves the stream at the next char after the label (and after subsequent blanks).
+ */
 std::string PhylipReader::parse_phylip_label( utils::CountingIstream& it ) const
 {
     std::string label;
@@ -101,11 +118,21 @@ std::string PhylipReader::parse_phylip_label( utils::CountingIstream& it ) const
     return text::trim( label );
 }
 
-std::string PhylipReader::parse_phylip_sequence( utils::CountingIstream& it ) const
+/**
+ * @brief Parse one sequence line.
+ *
+ * The line (which can also start after a label) is parsed until the first '\\n' char.
+ * While parsing, the options to_upper() and validate_chars() are applied according to their
+ * settings. The stream is left at the beginning of the next line.
+ */
+std::string PhylipReader::parse_phylip_sequence_line( utils::CountingIstream& it ) const
 {
     std::string seq;
+    size_t count = 0;
 
+    // Process the whole line.
     while( it && *it != '\n' ) {
+        ++count;
 
         // Skip all blanks and digits.
         if( isblank( *it ) || isdigit( *it ) ) {
@@ -113,16 +140,33 @@ std::string PhylipReader::parse_phylip_sequence( utils::CountingIstream& it ) co
             continue;
         }
 
+        // Check and process current char.
         char c = ( to_upper_ ? toupper(*it) : *it );
         if( !lookup_[c] ) {
             throw std::runtime_error(
-                "Malformed Fasta file: Invalid sequence symbols at " + it.at() + "."
+                "Malformed Phylip file: Invalid sequence symbols at " + it.at() + "."
             );
         }
-
         seq += c;
         ++it;
     }
+
+    // All lines need to end with \n
+    if( !it ) {
+        throw std::runtime_error(
+            "Malformed Phylip file: Sequence line does not end with '\\n' " + it.at() + "."
+        );
+    }
+
+    // Sequence lines cannot be empty.
+    if( count == 0 ) {
+        throw std::runtime_error(
+            "Malformed Phylip file: Empty sequence line at " + it.at() + "."
+        );
+    }
+
+    assert( it && *it == '\n' );
+    ++it;
 
     return seq;
 }

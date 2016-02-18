@@ -148,7 +148,7 @@ bool FastaReader::parse_fasta_sequence(
 
         if( !it ) {
             throw std::runtime_error(
-                "Malformed Fasta file: Sequence does not end with '\\n' " + it.at() + "."
+                "Malformed Fasta file: Sequence line does not end with '\\n' " + it.at() + "."
             );
         }
         assert( it && *it == '\n' );

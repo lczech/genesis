@@ -64,7 +64,7 @@ public:
         utils::CountingIstream& it
     ) const;
 
-    std::string parse_phylip_sequence(
+    std::string parse_phylip_sequence_line(
         utils::CountingIstream& it
     ) const;
 
