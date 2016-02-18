@@ -51,7 +51,7 @@ void FastaWriter::to_stream( SequenceSet const& sset, std::ostream& os ) const
 }
 
 /**
- * @brief Write Sequences of a SequenceSet to a file.
+ * @brief Write Sequences of a SequenceSet to a file in FASTA format.
  */
 void FastaWriter::to_file( SequenceSet const& sset, std::string const& fn ) const
 {
@@ -70,7 +70,8 @@ void FastaWriter::to_file( SequenceSet const& sset, std::string const& fn ) cons
 /**
  * @brief Return Sequences of a SequenceSet in form of a Fasta formatted string.
  *
- * Caveat: This might be a long string!
+ * Caveat: This might be a long string! If you simply want to examine a Sequence or SequenceSet,
+ * have a look at the print() and print_color() functions.
  */
 std::string FastaWriter::to_string ( SequenceSet const& sset ) const
 {

@@ -24,6 +24,26 @@ class SequenceSet;
 //     Fasta Writer
 // =================================================================================================
 
+/**
+ * @brief Write FASTA data.
+ *
+ * This class provides simple facilities for writing FASTA data. It supports to write
+ *
+ *   * to_stream()
+ *   * to_file()
+ *   * to_string()
+ *
+ * Exemplary usage:
+ *
+ *     std::string outfile = "path/to/file.fasta";
+ *     SequenceSet sset;
+ *
+ *     FastaWriter()
+ *         .line_length(100)
+ *         .to_file( sset, outfile );
+ *
+ * See FastaReader for a description of the FASTA format.
+ */
 class FastaWriter
 {
 public:

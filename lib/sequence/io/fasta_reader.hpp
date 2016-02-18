@@ -27,7 +27,6 @@ class CountingIstream;
 
 namespace sequence {
 
-class FastaInputIterator;
 class SequenceSet;
 class Sequence;
 
@@ -38,7 +37,7 @@ class Sequence;
 /**
  * @brief Read FASTA data.
  *
- * This class provides simple facilities for reading FASTA data. Currently, it supports to read
+ * This class provides simple facilities for reading FASTA data. It supports to read
  *
  *   * from_stream()
  *   * from_file()
