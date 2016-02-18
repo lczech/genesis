@@ -44,7 +44,7 @@ bool parse_fasta_sequence( utils::CountingIstream& input_stream, Sequence& seque
     auto& it = input_stream;
 
     // Check for data.
-    if( it.eof() ) {
+    if( it.eos() ) {
         return false;
     }
 
@@ -69,8 +69,8 @@ bool parse_fasta_sequence( utils::CountingIstream& input_stream, Sequence& seque
         );
     }
 
-    // Check for unexpected end of file.
-    if( it.eof() || (*it != '\n' && *it != ' ')) {
+    // Check for unexpected end of stream.
+    if( it.eos() || (*it != '\n' && *it != ' ')) {
         throw std::runtime_error(
             "Malformed fasta file: Expecting a sequence after the label line at " + it.at() + "."
         );
@@ -88,7 +88,7 @@ bool parse_fasta_sequence( utils::CountingIstream& input_stream, Sequence& seque
     }
 
     // Check for unexpected end of file.
-    if( it.eof() || *it != '\n' ) {
+    if( it.eos() || *it != '\n' ) {
         throw std::runtime_error(
             "Malformed fasta file: Expecting a sequence after the label line at " + it.at() + "."
         );
@@ -103,7 +103,7 @@ bool parse_fasta_sequence( utils::CountingIstream& input_stream, Sequence& seque
     }
 
     // Check for unexpected end of file.
-    if( it.eof() || *it != '\n' ) {
+    if( it.eos() || *it != '\n' ) {
         throw std::runtime_error(
             "Malformed fasta file: Expecting a sequence after the label line at " + it.at() + "."
         );
@@ -172,7 +172,7 @@ bool parse_fasta_sequence_fast( utils::CountingIstream& input_stream, Sequence& 
     auto& it = input_stream;
 
     // Check for data.
-    if( it.eof() ) {
+    if( it.eos() ) {
         return false;
     }
 

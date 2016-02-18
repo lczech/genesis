@@ -55,7 +55,7 @@ public:
 
     CountingIstream()
         : it_()
-        , eof_()
+        , eos_()
         , current_('\0')
         , line_(0)
         , column_(0)
@@ -63,11 +63,11 @@ public:
 
     explicit CountingIstream(std::istream& in)
         : it_(in)
-        , eof_()
+        , eos_()
         , line_(1)
         , column_(1)
     {
-        if( eof() ) {
+        if( eos() ) {
             current_ = '\0';
         } else {
             current_ = *it_;
@@ -76,11 +76,11 @@ public:
 
     explicit CountingIstream(std::streambuf* in_buf)
         : it_(in_buf)
-        , eof_()
+        , eos_()
         , line_(1)
         , column_(1)
     {
-        if( eof() ) {
+        if( eos() ) {
             current_ = '\0';
         } else {
             current_ = *it_;
@@ -127,7 +127,7 @@ public:
      */
     char current() const
     {
-        if( eof() ) {
+        if( eos() ) {
             throw std::runtime_error( "Unexpected end of file at " + at() + "." );
         }
         if( current_ < 0 ) {
@@ -233,7 +233,7 @@ public:
      */
     bool good() const
     {
-        return it_ != eof_;
+        return it_ != eos_;
     }
 
     /**
@@ -241,15 +241,15 @@ public:
      */
     explicit operator bool() const
     {
-        return it_ != eof_;
+        return it_ != eos_;
     }
 
     /**
     * @brief Return true iff the input reached its end.
     */
-    bool eof() const
+    bool eos() const
     {
-        return it_ == eof_;
+        return it_ == eos_;
     }
 
     // -------------------------------------------------------------
@@ -259,7 +259,7 @@ public:
 private:
 
     std::istreambuf_iterator<char> it_;
-    std::istreambuf_iterator<char> eof_;
+    std::istreambuf_iterator<char> eos_;
 
     char   current_;
     size_t line_;

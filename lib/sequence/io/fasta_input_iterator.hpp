@@ -95,9 +95,9 @@ public:
         return parse_fasta_sequence( input_stream_, sequence_ );
     }
 
-    bool eof() const
+    bool eos() const
     {
-        return input_stream_.eof();
+        return input_stream_.eos();
     }
 
     // -------------------------------------------------------------------------

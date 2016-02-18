@@ -24,7 +24,7 @@ void test_input_specs( CountingIstream& iit, size_t lines, size_t columns )
     size_t max_col = 0;
     size_t max_lin = 0;
 
-    while( !iit.eof() ) {
+    while( !iit.eos() ) {
         max_col = std::max( max_col, iit.column() );
         max_lin = std::max( max_lin, iit.line() );
 
