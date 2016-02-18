@@ -260,7 +260,7 @@ bool FastaReader::parse_fasta_sequence_fast(
 // =================================================================================================
 
 /**
- * @brief Read all Sequences from a std::istream into a SequenceSet.
+ * @brief Read all Sequences from a std::istream in Fasta format into a SequenceSet.
  */
 void FastaReader::from_stream ( std::istream& is, SequenceSet& sset ) const
 {
@@ -273,7 +273,7 @@ void FastaReader::from_stream ( std::istream& is, SequenceSet& sset ) const
 }
 
 /**
- * @brief Read all Sequences from a file into a SequenceSet.
+ * @brief Read all Sequences from a file in Fasta format into a SequenceSet.
  */
 void FastaReader::from_file ( std::string const& fn, SequenceSet& sset ) const
 {
@@ -290,7 +290,7 @@ void FastaReader::from_file ( std::string const& fn, SequenceSet& sset ) const
 }
 
 /**
- * @brief Read all Sequences from a std::string into a SequenceSet.
+ * @brief Read all Sequences from a std::string in Fasta format into a SequenceSet.
  */
 void FastaReader::from_string ( std::string const& fs, SequenceSet& sset ) const
 {
