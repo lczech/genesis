@@ -11,6 +11,7 @@
 #include "sequence/sequence.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/io/counting_istream.hpp"
+#include "utils/io/lexer/scanner.hpp"
 
 #include <assert.h>
 #include <cctype>
@@ -82,10 +83,7 @@ bool FastaReader::parse_fasta_sequence(
 
     // Parse label.
     sequence.label().clear();
-    while( it && isgraph(*it) ) {
-        sequence.label() += *it;
-        ++it;
-    }
+    lexer::copy_while( it, sequence.label(), isgraph );
     if( sequence.label() == "" ) {
         throw std::runtime_error(
             "Malformed Fasta file: Expecting label after '>' at " + it.at() + "."
@@ -104,10 +102,7 @@ bool FastaReader::parse_fasta_sequence(
     sequence.metadata().clear();
     if( *it == ' ' ) {
         ++it;
-        while( it && isprint(*it) ) {
-            sequence.metadata() += *it;
-            ++it;
-        }
+        lexer::copy_while( it, sequence.metadata(), isprint );
     }
 
     // Check for unexpected end of file.
@@ -120,9 +115,7 @@ bool FastaReader::parse_fasta_sequence(
 
     // Skip comments.
     while( it && *it == ';' ) {
-        while( it && isprint(*it) ) {
-            ++it;
-        }
+        lexer::skip_while( it, isprint );
     }
 
     // Check for unexpected end of file.
