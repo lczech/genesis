@@ -23,7 +23,7 @@ namespace sequence {
 // =================================================================================================
 
 /**
- * @brief Write Sequences of a SequenceSet to a stream.
+ * @brief Write Sequences of a SequenceSet to a stream in Fasta format.
  */
 void FastaWriter::to_stream( SequenceSet const& sset, std::ostream& os ) const
 {
@@ -51,7 +51,7 @@ void FastaWriter::to_stream( SequenceSet const& sset, std::ostream& os ) const
 }
 
 /**
- * @brief Write Sequences of a SequenceSet to a file.
+ * @brief Write Sequences of a SequenceSet to a file in Fasta format.
  */
 void FastaWriter::to_file( SequenceSet const& sset, std::string const& fn ) const
 {
@@ -70,7 +70,8 @@ void FastaWriter::to_file( SequenceSet const& sset, std::string const& fn ) cons
 /**
  * @brief Return Sequences of a SequenceSet in form of a Fasta formatted string.
  *
- * Caveat: This might be a long string!
+ * Caveat: This might be a long string! If you simply want to examine a Sequence or SequenceSet,
+ * have a look at the print() and print_color() functions.
  */
 std::string FastaWriter::to_string ( SequenceSet const& sset ) const
 {
@@ -85,7 +86,7 @@ std::string FastaWriter::to_string ( SequenceSet const& sset ) const
 
 /**
  * @brief Set the line length, which determines after how many chars (Sequence sites) lines breaks
- * are inserted when writing the FASTA file.
+ * are inserted when writing the Fasta file.
  *
  * Default is `80`. If set to `0`, no breaks are inserted.
  * The functions returns the FastaWriter object to allow fluent interfaces.
