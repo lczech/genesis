@@ -14,12 +14,11 @@ namespace sequence {
 //     Properties
 // ================================================================================================
 
-std::string const& Sequence::label() const
-{
-    return label_;
-}
+// -----------------------------------------------------
+//     Label
+// -----------------------------------------------------
 
-std::string& Sequence::label()
+std::string const& Sequence::label() const
 {
     return label_;
 }
@@ -29,12 +28,11 @@ void Sequence::label( std::string const& value )
     label_ = value;
 }
 
-std::string const& Sequence::metadata() const
-{
-    return metadata_;
-}
+// -----------------------------------------------------
+//     Metadata
+// -----------------------------------------------------
 
-std::string& Sequence::metadata()
+std::string const& Sequence::metadata() const
 {
     return metadata_;
 }
@@ -44,12 +42,11 @@ void Sequence::metadata( std::string const& value )
     metadata_ = value;
 }
 
-std::string const& Sequence::sites() const
-{
-    return sites_;
-}
+// -----------------------------------------------------
+//     Sites
+// -----------------------------------------------------
 
-std::string& Sequence::sites()
+std::string const& Sequence::sites() const
 {
     return sites_;
 }
@@ -62,6 +59,11 @@ void Sequence::sites( std::string const& value )
 void Sequence::sites( std::string && value )
 {
     sites_ = std::move(value);
+}
+
+std::string& Sequence::sites()
+{
+    return sites_;
 }
 
 // ================================================================================================
