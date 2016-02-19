@@ -274,6 +274,11 @@ void PhylipReader::from_stream( std::istream& is, SequenceSet& sset ) const
  */
 void PhylipReader::from_file( std::string const& fn, SequenceSet& sset ) const
 {
+    // This function is very similar to from_string, but has some differences in treating the input
+    // when needing to restart in automatic mode. Unfortunately, we have to live with this code
+    // duplication for now. Everything else would end up in a mess of small helper functions, which
+    // is also not nice.
+
     // Check file.
     if( !file_exists( fn ) ) {
         throw std::runtime_error( "File '" + fn + "' not found." );
@@ -333,13 +338,46 @@ void PhylipReader::from_file( std::string const& fn, SequenceSet& sset ) const
  */
 void PhylipReader::from_string( std::string const& fs, SequenceSet& sset ) const
 {
-    (void) fs;
-    (void) sset;
+    // This function is very similar to from_file. See there for some more code explanations and for
+    // the reason why we currently do not re-engineer this to avoid this code duplication.
 
-    throw std::runtime_error( "Phylip from_string not yet implemented." );
+    // Prepare stream.
+    std::istringstream iss( fs );
+    auto it = utils::CountingIstream( iss );
 
-    // std::istringstream iss( fs );
-    // from_stream( iss, sset );
+    // If the mode is specified, use it.
+    if( mode_ == Mode::kSequential ) {
+        parse_phylip_sequential( it, sset );
+    } else if( mode_ == Mode::kInterleaved ) {
+        parse_phylip_interleaved( it, sset );
+
+    // If the mode is automatic, we need to do some magic.
+    } else {
+
+        // Temporary set.
+        SequenceSet tmp;
+
+        // Try sequential first.
+        try {
+            parse_phylip_sequential( it, tmp );
+
+        // If it fails, restart the stream and try interleaved.
+        } catch ( ... ) {
+            tmp.clear();
+
+            // Prepare stream. Again.
+            std::istringstream iss( fs );
+            auto it = utils::CountingIstream( iss );
+
+            parse_phylip_interleaved( it, tmp );
+        }
+
+        // If we reach this point, one of the parses succeeded.
+        // Move all sequences to the actual target.
+        for( auto s : tmp ) {
+            sset.push_back( std::move(s) );
+        }
+    }
 }
 
 // =================================================================================================
