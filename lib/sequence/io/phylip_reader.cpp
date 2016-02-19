@@ -390,15 +390,15 @@ PhylipReader::Mode PhylipReader::mode() const
  * to have a delimiter, but instead are simply the first `n` characters of the string. This value
  * determines after how many chars the label ends and the actual sequence begins.
  *
- * If set to 0 (default), a relaxed version of Phylip is used, where the sequence begin is
+ * If set to a value greater than 0, exaclty this many characters are read as label. Thus, they
+ * can also contain spaces. Spaces at the beginning or end of a label are stripped. The length
+ * that is dictated by the Phylip standard is 10, but any other length can also be used.
+ *
+ * If set to 0 (default), a relaxed version of Phylip is used instead, where the sequence begin is
  * automatically detected. Labels can then be of arbitrary lengths, as long as they do not contain
  * white spaces. However, in this case, there has to be at least one space or tab character between
  * the label and the sequence. After this first whitespace, the rest of the line is then treated
  * as sequence data.
- *
- * If set to a value greater than 0, exaclty this many characters are read as label. Thus, they
- * can also contain spaces. Spaces at the beginning or end of a label are stripped. The length
- * that is dictated by the Phylip standard is 10, but any other length can also be used.
  *
  * The function returns the PhylipReader object to allow for fluent interfaces.
  */
