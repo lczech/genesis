@@ -203,7 +203,10 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
         // Read label.
         seq.label() = parse_phylip_label( it );
 
-        // Read sequence.
+        // Read sequence. As long as we did not read as many sites as the header claimed, we read
+        // more lines from the input stream. If we then read too many chars (checked in the next
+        // step), the file is ill formatted. This is because a sequence always has to end with \n,
+        // and the label of the next sequence always has to start at the beginning of the line.
         seq.sites().reserve( len_seq );
         while( seq.sites().length() < len_seq ) {
             seq.sites() += parse_phylip_sequence_line( it );
@@ -222,13 +225,14 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
         sset.push_back( seq );
     }
 
-    // Final check.
+    // Final checks.
     lexer::skip_while( it, isspace );
     if( it ) {
         throw std::runtime_error(
             "Malformed Phylip file: Expected end of file at " + it.at() + "."
         );
     }
+    assert( sset.size() == num_seq );
 }
 
 // =================================================================================================
