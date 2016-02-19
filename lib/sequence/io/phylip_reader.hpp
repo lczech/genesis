@@ -40,6 +40,20 @@ class PhylipReader
 public:
 
     // ---------------------------------------------------------------------
+    //     Types and Enums
+    // ---------------------------------------------------------------------
+
+    /**
+     * @brief Enum to distinguish between the different file variants of Phylip.
+     */
+    enum class Mode
+    {
+        kSequential,
+        kInterleaved,
+        kAutomatic
+    };
+
+    // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
@@ -90,6 +104,9 @@ public:
     //     Properties
     // ---------------------------------------------------------------------
 
+    PhylipReader& mode( Mode value );
+    Mode          mode() const;
+
     PhylipReader& label_length( size_t value );
     size_t        label_length() const;
 
@@ -108,6 +125,7 @@ public:
 
 private:
 
+    Mode              mode_         = Mode::kSequential;
     size_t            label_length_ = 0;
     bool              to_upper_     = true;
     utils::CharLookup lookup_;

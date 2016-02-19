@@ -63,17 +63,15 @@ public:
     // -----------------------------------------------------
 
     std::string const& label() const;
-    std::string&       label();
     void               label( std::string const& value );
 
     std::string const& metadata() const;
-    std::string&       metadata();
     void               metadata( std::string const& value );
 
     std::string const& sites() const;
-    std::string&       sites();
     void               sites( std::string const& value );
     void               sites( std::string &&     value );
+    std::string&       sites();
 
     // -----------------------------------------------------
     //     Accessors

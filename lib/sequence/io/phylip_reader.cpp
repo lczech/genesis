@@ -180,15 +180,9 @@ std::string PhylipReader::parse_phylip_sequence_line( utils::CountingIstream& it
     return seq;
 }
 
-void PhylipReader::parse_phylip_interleaved( utils::CountingIstream& it, SequenceSet& sset ) const
-{
-    (void) it;
-    (void) sset;
-
-    auto sizes = parse_phylip_header( it );
-    (void) sizes;
-}
-
+/**
+ * @brief Parse a whole Phylip file using the sequential variant (Mode::kSequential).
+ */
 void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, SequenceSet& sset ) const
 {
     auto sizes = parse_phylip_header( it );
@@ -201,9 +195,12 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
         Sequence seq;
 
         // Read label.
-        seq.label() = parse_phylip_label( it );
+        seq.label( parse_phylip_label( it ) );
 
-        // Read sequence.
+        // Read sequence. As long as we did not read as many sites as the header claimed, we read
+        // more lines from the input stream. If we then read too many chars (checked in the next
+        // step), the file is ill formatted. This is because a sequence always has to end with \n,
+        // and the label of the next sequence always has to start at the beginning of the line.
         seq.sites().reserve( len_seq );
         while( seq.sites().length() < len_seq ) {
             seq.sites() += parse_phylip_sequence_line( it );
@@ -222,13 +219,28 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
         sset.push_back( seq );
     }
 
-    // Final check.
+    // Final checks.
     lexer::skip_while( it, isspace );
     if( it ) {
         throw std::runtime_error(
             "Malformed Phylip file: Expected end of file at " + it.at() + "."
         );
     }
+    assert( sset.size() == num_seq );
+}
+
+/**
+ * @brief Parse a whole Phylip file using the interleaved variant (Mode::kInterleaved).
+ */
+void PhylipReader::parse_phylip_interleaved( utils::CountingIstream& it, SequenceSet& sset ) const
+{
+    (void) it;
+    (void) sset;
+
+    throw std::runtime_error( "Phylip interleaved mode not yet implemented." );
+
+    auto sizes = parse_phylip_header( it );
+    (void) sizes;
 }
 
 // =================================================================================================
@@ -241,16 +253,20 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
 void PhylipReader::from_stream( std::istream& is, SequenceSet& sset ) const
 {
     auto it = utils::CountingIstream( is );
-    (void) it;
 
-    throw std::runtime_error( "Not yet fully implemented." );
+    switch( mode_ ) {
+        case Mode::kSequential:
+            parse_phylip_sequential( it, sset );
+            break;
 
-    sset.clear();
-    // Sequence seq;
-    //
-    // while( parse_fasta_sequence( it, seq ) ) {
-    //     sset.push_back( seq );
-    // }
+        case Mode::kInterleaved:
+            parse_phylip_interleaved( it, sset );
+            break;
+
+        case Mode::kAutomatic:
+        default:
+            throw std::runtime_error( "Automatic mode not possible when using from_stream()." );
+    }
 }
 
 /**
@@ -258,16 +274,63 @@ void PhylipReader::from_stream( std::istream& is, SequenceSet& sset ) const
  */
 void PhylipReader::from_file( std::string const& fn, SequenceSet& sset ) const
 {
+    // This function is very similar to from_string, but has some differences in treating the input
+    // when needing to restart in automatic mode. Unfortunately, we have to live with this code
+    // duplication for now. Everything else would end up in a mess of small helper functions, which
+    // is also not nice.
+
+    // Check file.
     if( !file_exists( fn ) ) {
         throw std::runtime_error( "File '" + fn + "' not found." );
     }
 
+    // Prepare stream.
     std::ifstream ifs( fn );
     if( ifs.fail() ) {
         throw std::runtime_error( "Cannot read from file '" + fn + "'." );
     }
+    auto it = utils::CountingIstream( ifs );
 
-    from_stream( ifs, sset );
+    // If the mode is specified, use it.
+    if( mode_ == Mode::kSequential ) {
+        parse_phylip_sequential( it, sset );
+    } else if( mode_ == Mode::kInterleaved ) {
+        parse_phylip_interleaved( it, sset );
+
+    // If the mode is automatic, we need to do some magic.
+    } else {
+
+        // We need a temporary set, because in case of failure, we need to start from the beginning,
+        // but we do not want to clear all other sequences in the set (that might be there from
+        // other stuff done before calling this function).
+        SequenceSet tmp;
+
+        // Try sequential first.
+        try {
+            parse_phylip_sequential( it, tmp );
+
+        // If it fails, restart the stream and try interleaved.
+        // If this also throws, the file is ill formatted and the exception will be forwared to
+        // the caller of this function.
+        } catch ( ... ) {
+            tmp.clear();
+
+            // Prepare stream. Again.
+            std::ifstream ifs( fn );
+            if( ifs.fail() ) {
+                throw std::runtime_error( "Cannot read from file '" + fn + "'." );
+            }
+            auto it = utils::CountingIstream( ifs );
+
+            parse_phylip_interleaved( it, tmp );
+        }
+
+        // If we reach this point, one of the parses succeeded.
+        // Move all sequences to the actual target.
+        for( auto s : tmp ) {
+            sset.push_back( std::move(s) );
+        }
+    }
 }
 
 /**
@@ -275,13 +338,88 @@ void PhylipReader::from_file( std::string const& fn, SequenceSet& sset ) const
  */
 void PhylipReader::from_string( std::string const& fs, SequenceSet& sset ) const
 {
+    // This function is very similar to from_file. See there for some more code explanations and for
+    // the reason why we currently do not re-engineer this to avoid this code duplication.
+
+    // Prepare stream.
     std::istringstream iss( fs );
-    from_stream( iss, sset );
+    auto it = utils::CountingIstream( iss );
+
+    // If the mode is specified, use it.
+    if( mode_ == Mode::kSequential ) {
+        parse_phylip_sequential( it, sset );
+    } else if( mode_ == Mode::kInterleaved ) {
+        parse_phylip_interleaved( it, sset );
+
+    // If the mode is automatic, we need to do some magic.
+    } else {
+
+        // Temporary set.
+        SequenceSet tmp;
+
+        // Try sequential first.
+        try {
+            parse_phylip_sequential( it, tmp );
+
+        // If it fails, restart the stream and try interleaved.
+        } catch ( ... ) {
+            tmp.clear();
+
+            // Prepare stream. Again.
+            std::istringstream iss( fs );
+            auto it = utils::CountingIstream( iss );
+
+            parse_phylip_interleaved( it, tmp );
+        }
+
+        // If we reach this point, one of the parses succeeded.
+        // Move all sequences to the actual target.
+        for( auto s : tmp ) {
+            sset.push_back( std::move(s) );
+        }
+    }
 }
 
 // =================================================================================================
 //     Properties
 // =================================================================================================
+
+/**
+ * @brief Set the mode for reading sequences.
+ *
+ * Phylip offers two variants for storing the sequences: sequential and interleaved. As there is no
+ * option or flag in the file itself, there is no chance of knowing the variant without trying to
+ * parse it. If one fails but not the other, it is proabably the latter variant. However, there are
+ * instances where both variants are valid at the same time, but yield different sequences.
+ * So, in general detecting the correct variant is undecidable, making Phylip a non-well-defined
+ * format.
+ *
+ * In order to avoid those problems, this function explicitly sets the variant being used for
+ * parsing. By default, it is set to Mode::kSequential. Use Mode::kInterleaved for the other
+ * variant.
+ *
+ * We also offer a Mode::kAutomatic. It first tries to parse in sequential mode, and, if this fails,
+ * in interleaved mode. However, as this might involve starting from the beginning of the data, this
+ * is only possible with the from_file() and from_string() readers and does not work when using the
+ * from_stream() reader. Also, be aware that using automatic mode is slower because of
+ * implementation details induced by those limitations.
+ * Try to avoid automatic mode. If possible, try to avoid Phylip at all.
+ */
+PhylipReader& PhylipReader::mode( Mode value )
+{
+    mode_ = value;
+    return *this;
+}
+
+/**
+ * Return the currently set mode for parsing Phylip.
+ *
+ * See the setter mode( Mode ) for details.
+ */
+PhylipReader::Mode PhylipReader::mode() const
+{
+    return mode_;
+}
 
 /**
  * @brief Set the length of the label in front of the sequences.
@@ -290,15 +428,15 @@ void PhylipReader::from_string( std::string const& fs, SequenceSet& sset ) const
  * to have a delimiter, but instead are simply the first `n` characters of the string. This value
  * determines after how many chars the label ends and the actual sequence begins.
  *
- * If set to 0 (default), a relaxed version of Phylip is used, where the sequence begin is
+ * If set to a value greater than 0, exaclty this many characters are read as label. Thus, they
+ * can also contain spaces. Spaces at the beginning or end of a label are stripped. The length
+ * that is dictated by the Phylip standard is 10, but any other length can also be used.
+ *
+ * If set to 0 (default), a relaxed version of Phylip is used instead, where the sequence begin is
  * automatically detected. Labels can then be of arbitrary lengths, as long as they do not contain
  * white spaces. However, in this case, there has to be at least one space or tab character between
  * the label and the sequence. After this first whitespace, the rest of the line is then treated
  * as sequence data.
- *
- * If set to a value greater than 0, exaclty this many characters are read as label. Thus, they
- * can also contain spaces. Spaces at the beginning or end of a label are stripped. The length
- * that is dictated by the Phylip standard is 10, but any other length can also be used.
  *
  * The function returns the PhylipReader object to allow for fluent interfaces.
  */

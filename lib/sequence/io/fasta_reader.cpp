@@ -82,13 +82,14 @@ bool FastaReader::parse_fasta_sequence(
     ++it;
 
     // Parse label.
-    sequence.label().clear();
-    lexer::copy_while( it, sequence.label(), isgraph );
-    if( sequence.label() == "" ) {
+    std::string label;
+    lexer::copy_while( it, label, isgraph );
+    if( label == "" ) {
         throw std::runtime_error(
             "Malformed Fasta file: Expecting label after '>' at " + it.at() + "."
         );
     }
+    sequence.label( label );
 
     // Check for unexpected end of stream.
     if( it.eos() || (*it != '\n' && *it != ' ')) {
@@ -99,11 +100,12 @@ bool FastaReader::parse_fasta_sequence(
     assert( it && (*it == '\n' || *it == ' ') );
 
     // Parse metadata.
-    sequence.metadata().clear();
+    std::string metadata;
     if( *it == ' ' ) {
         ++it;
-        lexer::copy_while( it, sequence.metadata(), isprint );
+        lexer::copy_while( it, metadata, isprint );
     }
+    sequence.metadata( metadata );
 
     // Check for unexpected end of file.
     if( it.eos() || *it != '\n' ) {
@@ -128,7 +130,7 @@ bool FastaReader::parse_fasta_sequence(
     ++it;
 
     // Parse sequence. At every beginning of the outer loop, we are at a line start.
-    sequence.sites().clear();
+    std::string sites;
     while( it && *it != '>' ) {
         assert( it.column() == 1 );
 
@@ -141,7 +143,7 @@ bool FastaReader::parse_fasta_sequence(
                 );
             }
 
-            sequence.sites() += c;
+            sites += c;
             ++it;
             ++count;
         }
@@ -162,11 +164,12 @@ bool FastaReader::parse_fasta_sequence(
     }
     assert( !it || *it == '>' );
 
-    if( sequence.sites().length() == 0 ) {
+    if( sites.length() == 0 ) {
         throw std::runtime_error(
             "Malformed Fasta file: Empty sequence at " + it.at() + "."
         );
     }
+    sequence.sites() = sites;
 
     return true;
 }
@@ -200,25 +203,27 @@ bool FastaReader::parse_fasta_sequence_fast(
     assert( it );
 
     // Parse label.
-    sequence.label().clear();
+    std::string label;
     while( *it != '\n' && *it != ' ' ) {
-        sequence.label() += *it;
+        label += *it;
         it.advance_non_counting();
         assert( it );
     }
+    sequence.label( label );
     assert( *it == '\n' || *it == ' ' );
 
     // Parse metadata.
-    sequence.metadata().clear();
+    std::string metadata;
     if( *it == ' ' ) {
         it.advance_non_counting();
         assert( it );
         while( *it != '\n' ) {
-            sequence.metadata() += *it;
+            metadata += *it;
             it.advance_non_counting();
             assert( it );
         }
     }
+    sequence.metadata( metadata );
     assert( *it == '\n' );
     it.advance_non_counting();
     assert( it );
