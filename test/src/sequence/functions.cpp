@@ -1,5 +1,5 @@
 /**
- * @brief Testing Sequence Set.
+ * @brief
  *
  * @file
  * @ingroup test

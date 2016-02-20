@@ -137,12 +137,9 @@ std::string PhylipReader::parse_phylip_label( utils::CountingIstream& it ) const
 std::string PhylipReader::parse_phylip_sequence_line( utils::CountingIstream& it ) const
 {
     std::string seq;
-    size_t count = 0;
 
     // Process the whole line.
     while( it && *it != '\n' ) {
-        ++count;
-
         // Skip all blanks and digits.
         if( isblank( *it ) || isdigit( *it ) ) {
             ++it;
@@ -167,13 +164,6 @@ std::string PhylipReader::parse_phylip_sequence_line( utils::CountingIstream& it
         );
     }
 
-    // Sequence lines cannot be empty.
-    if( count == 0 ) {
-        throw std::runtime_error(
-            "Malformed Phylip file: Empty sequence line at " + it.at() + "."
-        );
-    }
-
     assert( it && *it == '\n' );
     ++it;
 
@@ -192,18 +182,20 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
     // Process the given number of sequences. If there are not enough, the inner functions will
     // throw. If there are too many, the check at the end will throw.
     for( size_t seq_n = 0; seq_n < num_seq; ++seq_n ) {
+        assert( it.column() == 1 );
         Sequence seq;
 
-        // Read label.
+        // Parse label.
         seq.label( parse_phylip_label( it ) );
 
-        // Read sequence. As long as we did not read as many sites as the header claimed, we read
+        // Parse sequence. As long as we did not read as many sites as the header claimed, we read
         // more lines from the input stream. If we then read too many chars (checked in the next
         // step), the file is ill formatted. This is because a sequence always has to end with \n,
         // and the label of the next sequence always has to start at the beginning of the line.
         seq.sites().reserve( len_seq );
         while( seq.sites().length() < len_seq ) {
             seq.sites() += parse_phylip_sequence_line( it );
+            assert( it.column() == 1 );
         }
 
         // Check sequence length.
@@ -216,6 +208,7 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
         }
         assert( seq.sites().length() == len_seq );
 
+        // Add to set.
         sset.push_back( seq );
     }
 
@@ -234,13 +227,70 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
  */
 void PhylipReader::parse_phylip_interleaved( utils::CountingIstream& it, SequenceSet& sset ) const
 {
-    (void) it;
-    (void) sset;
-
-    throw std::runtime_error( "Phylip interleaved mode not yet implemented." );
-
+    // Parse header line.
     auto sizes = parse_phylip_header( it );
-    (void) sizes;
+    size_t num_seq = sizes.first;
+    size_t len_seq = sizes.second;
+
+    // Helper function that checks the sequence length and throws if it is too long.
+    auto check_seq_len = [ &it, &len_seq ] ( Sequence const& seq ) {
+        if( seq.length() > len_seq ) {
+            throw std::runtime_error(
+                "Malformed Phylip file: Sequence with length "
+                + std::to_string( seq.sites().length() ) + " instead of "
+                + std::to_string( len_seq ) + " at " + it.at() + "."
+            );
+        }
+    };
+
+    // Process the first block, which contains the labels.
+    for( size_t seq_n = 0; seq_n < num_seq; ++seq_n ) {
+        assert( it.column() == 1 );
+        Sequence seq;
+
+        // Parse label.
+        seq.label( parse_phylip_label( it ) );
+
+        // Reserve mem and parse first part of sequence.
+        seq.sites().reserve( len_seq );
+        seq.sites() += parse_phylip_sequence_line( it );
+        check_seq_len( seq );
+
+        // Add to set.
+        sset.push_back( seq );
+    }
+
+    // Helper function that checks whether there are still sequences in the set that are not yet
+    // done (i.e., don't have `len_seq` length).
+    auto unfinished_sequences = [ & ] () {
+        bool result = false;
+        for( auto const& seq : sset ) {
+            assert( seq.length() <= len_seq );
+            result |= seq.length() < len_seq;
+        }
+        return result;
+    };
+
+    while( unfinished_sequences() ) {
+        // Each block might start with an empty line. Skip.
+        if( !it ) {
+            throw std::runtime_error(
+                "Malformed Phylip file: Unexpected end of file at " + it.at() + "."
+            );
+        }
+        if( *it == '\n' ) {
+            ++it;
+        }
+
+        // Parse the next block.
+        for( size_t seq_n = 0; seq_n < num_seq; ++seq_n ) {
+            assert( it.column() == 1 );
+            sset[seq_n].sites() += parse_phylip_sequence_line( it );
+            check_seq_len( sset[seq_n] );
+        }
+    }
+
+    assert( sset.size() == num_seq );
 }
 
 // =================================================================================================
@@ -249,6 +299,9 @@ void PhylipReader::parse_phylip_interleaved( utils::CountingIstream& it, Sequenc
 
 /**
  * @brief Read all Sequences from a std::istream in Phylip format into a SequenceSet.
+ *
+ * This function is only allowed for Mode::kSequential and Mode::kInterleaved. Automatic mode does
+ * not work, as the stream might need to be reset, which is not possible. See mode(Mode).
  */
 void PhylipReader::from_stream( std::istream& is, SequenceSet& sset ) const
 {
