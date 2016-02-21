@@ -266,7 +266,7 @@ void PhylipReader::parse_phylip_interleaved( utils::CountingIstream& it, Sequenc
         bool result = false;
         for( auto const& seq : sset ) {
             assert( seq.length() <= len_seq );
-            result |= seq.length() < len_seq;
+            result |= ( seq.length() < len_seq );
         }
         return result;
     };
