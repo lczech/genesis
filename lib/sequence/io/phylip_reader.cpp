@@ -24,6 +24,20 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
+//     Constructor and Rule of Five
+// =================================================================================================
+
+/**
+ * @brief Create a default PhylipReader. Per default, chars are turned upper case, but not validated.
+ *
+ * See to_upper() and validate_chars() to change this behaviour.
+ */
+PhylipReader::PhylipReader()
+{
+    lookup_.set_all( true );
+}
+
+// =================================================================================================
 //     Parsing
 // =================================================================================================
 
