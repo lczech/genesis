@@ -57,7 +57,7 @@ public:
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
-    PhylipReader()  = default;
+    PhylipReader();
     ~PhylipReader() = default;
 
     PhylipReader( PhylipReader const& ) = default;
