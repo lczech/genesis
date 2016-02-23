@@ -212,16 +212,15 @@ print_separator "Publish to GitHub"
 # Show changes.
 echo -e "\e[34mCurrent git status:\e[0m\n"
 git status
-echo -e "\n\e[34mAbout to push commit and tag to GitHub.\e[0m"
 
 # Confirm.
-get_user_confirmation
+get_user_confirmation "Do you want to push the commit and tag to GitHub?"
 cont=$?
 
 # Push.
 if [[ $cont == 1 ]]; then
     echo -e "\nPush..."
-    git push --all
+    git push --all --follow-tags
     echo "...done."
 fi
 
@@ -231,10 +230,8 @@ fi
 
 print_separator "Publish to Web Server"
 
-echo -e "\e[34mAbout to push doxygen html help to web server.\e[0m"
-
 # Confirm.
-get_user_confirmation
+get_user_confirmation "Do you want to push the doxygen html help to the web server?"
 cont=$?
 
 # Transfer doxygen html help to server.
@@ -259,12 +256,12 @@ if [[ ${new_tag} != ${version} ]]; then
 fi
 
 # Get all important commits after the last tag and format them for Markdown.
-echo -e "\e[34mMentionable changes since the last release:\e[0m\n"
+echo -e "\e[34m### Notable Changes ###\e[0m\n"
 git log ${last_tag}..${new_tag} --oneline | cut -d " " -f 1 --complement | egrep -iv "^(Minor|Merge)" | sed "s/^/  \* /g"
 echo -e "\nUse this list for the release message."
 
 # Ask user for github page.
-get_user_confirmation "Do you want to open the GitHub release page now?"
+get_user_confirmation "Do you want to open the GitHub release page?"
 cont=$?
 
 # Open github release page.
