@@ -20,7 +20,18 @@
 namespace genesis {
 
 /**
- * @brief Returns the header for genesis.
+ * @brief Return the current genesis version.
+ *
+ * We use [semantic versioning](http://semver.org/) 2.0.0 for genesis.
+ */
+inline std::string genesis_version()
+{
+    // The following line is automatically replaced by the deploy scripts. Do not change manually.
+    return "v0.1.0"; // #GENESIS_VERSION#
+}
+
+/**
+ * @brief Return the header for genesis.
  */
 inline std::string genesis_header()
 {
@@ -29,8 +40,10 @@ inline std::string genesis_header()
         __    __    __    __   __     __   \n\
       /   ) /___) /   ) /___) (_ ` / (_ `  \n\
      (___/ (___  /   / (___  (__) / (__)   \n\
-        /                                  \n\
-    (__/       2014-2016 by Lucas Czech    \n";
+      __/______________________________    \n\
+    (__/                                   \n\
+               2014-2016 by Lucas Czech    \n\
+               " + genesis_version() + "\n";
 }
 
 inline std::string ee(int r)
