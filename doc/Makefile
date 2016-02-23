@@ -11,5 +11,5 @@ api:
 
 # Remove all generated files
 clean:
-	-@$(RM) -r html xml
+	-@$(RM) -r html
 	-@$(RM) index.html
