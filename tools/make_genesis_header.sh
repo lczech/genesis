@@ -13,8 +13,6 @@ echo " * symbols of genesis are available after including this header." >> genes
 echo " *" >> genesis.hpp
 echo " * You do not need to edit this file manually. Simply run the script" >> genesis.hpp
 echo " * make_genesis_header.sh in ./tools to update this file." >> genesis.hpp
-echo " *" >> genesis.hpp
-echo " * @file" >> genesis.hpp
 echo " */" >> genesis.hpp
 echo "" >> genesis.hpp
 
