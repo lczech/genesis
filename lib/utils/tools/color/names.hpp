@@ -27,7 +27,7 @@ namespace color {
  * The map stores all 140 color names of the HTML web colors. It is mainly used as a simple way to
  * create a color scheme in form of a vector of colors.
  *
- * The data of this struct is used by `is_named_color` and `get_named_color`.
+ * The data of this struct is used by is_named_color() and get_named_color().
  */
 struct ColorNames
 {

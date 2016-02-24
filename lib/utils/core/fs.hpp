@@ -13,6 +13,7 @@
 #include <vector>
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     File Access
@@ -39,6 +40,7 @@ std::string file_basename  ( std::string filename );
 std::string file_filename  ( std::string filename );
 std::string file_extension ( std::string filename );
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

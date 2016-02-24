@@ -26,6 +26,11 @@ LC_NUMERIC="en_US.UTF-8"
 #    Initialization
 ####################################################################################################
 
+# Change to top level of git repo and then to test dir.
+# This ensures that the script can be called from any directory.
+cd `git rev-parse --show-toplevel`
+cd test/
+
 # Cannot test without test suite!
 if [ ! -f "${test_exe}" ] ; then
     echo "Test executable '${test_exe}' not found."

@@ -41,6 +41,10 @@ function get_user_confirmation() {
 
 print_separator "Check preconditions"
 
+# Change to top level of git repo.
+# This ensures that the script can be called from any directory.
+cd `git rev-parse --show-toplevel`
+
 # Check repo mame.
 # If applied to a different repo, this script might do weird stuff, so better check.
 base_name=`git rev-parse --show-toplevel | xargs basename`
@@ -95,9 +99,16 @@ else
     echo "No unmerged branches."
 fi
 
-# Change to top level of git repo.
-# This ensures that the script can be called from any directory.
-cd `git rev-parse --show-toplevel`
+# Check header guards
+header_guards=`./tools/deploy/check_header_guards.sh`
+if [[ ${header_guards} != "" ]]; then
+    echo -e "\n\e[31mHeader guards inconsistent:\e[0m"
+    ./tools/deploy/check_header_guards.sh
+    echo -e "\n\e[31mAborted.\e[0m"
+    exit
+else
+    echo "Header guards okay."
+fi
 
 ####################################################################################################
 #    Build all
@@ -154,6 +165,10 @@ sed -i "s/    return \".*\"; \/\/ #GENESIS_VERSION#/    return \"${version}\"; \
 # Replace version line in doxygen file.
 echo "Replace version in doc/doxygen/Doxyfile"
 sed -i "s/PROJECT_NUMBER *=.*/PROJECT_NUMBER         = \"${version}\"/g" doc/doxygen/Doxyfile
+
+# Update genesis header
+echo "Update genesis header lib/genesis.hpp"
+./tools/deploy/make_genesis_header.sh
 
 ####################################################################################################
 #    Build with version

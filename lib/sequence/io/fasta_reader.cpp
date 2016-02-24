@@ -275,7 +275,7 @@ void FastaReader::from_stream ( std::istream& is, SequenceSet& sset ) const
  */
 void FastaReader::from_file ( std::string const& fn, SequenceSet& sset ) const
 {
-    if( !file_exists( fn ) ) {
+    if( ! utils::file_exists( fn ) ) {
         throw std::runtime_error( "File '" + fn + "' not found." );
     }
 

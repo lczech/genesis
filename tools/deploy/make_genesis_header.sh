@@ -1,6 +1,13 @@
 #!/bin/bash
 
-cd ../lib/
+####################################################################################################
+#    This script updates the generell (all-including) header file lib/genesis.hpp
+####################################################################################################
+
+# Change to top level of git repo and then to /lib
+# This ensures that the script can be called from any directory.
+cd `git rev-parse --show-toplevel`
+cd lib/
 rm -f genesis.hpp
 
 echo "#ifndef GENESIS_H_" >> genesis.hpp
@@ -13,8 +20,6 @@ echo " * symbols of genesis are available after including this header." >> genes
 echo " *" >> genesis.hpp
 echo " * You do not need to edit this file manually. Simply run the script" >> genesis.hpp
 echo " * make_genesis_header.sh in ./tools to update this file." >> genesis.hpp
-echo " *" >> genesis.hpp
-echo " * @file" >> genesis.hpp
 echo " */" >> genesis.hpp
 echo "" >> genesis.hpp
 

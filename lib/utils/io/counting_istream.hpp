@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_IO_COUNTING_ISTREAM_ITERATOR_H_
-#define GENESIS_UTILS_IO_COUNTING_ISTREAM_ITERATOR_H_
+#ifndef GENESIS_UTILS_IO_COUNTING_ISTREAM_H_
+#define GENESIS_UTILS_IO_COUNTING_ISTREAM_H_
 
 /**
  * @brief Header of CountingIstreamIterator class.
@@ -30,7 +30,7 @@ namespace utils {
  *     the line and column would already point to the next char while processing the last.
  *     Thus, advance() or the increment operator have to be called to get to the next char in the
  *     stream.
- *   * The handling of '\r' characters (part of the CR+LF new lines as used in Windows). Those are
+ *   * The handling of '\\r' characters (part of the CR+LF new lines as used in Windows). Those are
  *     completely skipped in this iterator. This ensures that all new lines are simply represented
  *     as '\n' independent of the file format.
  *

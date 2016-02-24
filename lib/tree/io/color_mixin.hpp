@@ -44,13 +44,13 @@ namespace genesis {
  *
  * For the root node, there is no color tag written, for those reasons:
  *
- *     * In unrooted trees, the color tags for the nodes next to the root will cover all edges
- *       anyway. In other words, there is no "root edge" that could get a color.
- *     * In rooted trees, the root node has two edges. Those two combined edges are usually
- *       interpreted as the one edge where the root is located. So again, there are actual edges
- *       that can be colored - no need for an extra root color.
- *       Caveat: It is possible to give different colors to those edges. What that means is up to
- *       the user.
+ *   * In unrooted trees, the color tags for the nodes next to the root will cover all edges
+ *     anyway. In other words, there is no "root edge" that could get a color.
+ *   * In rooted trees, the root node has two edges. Those two combined edges are usually
+ *     interpreted as the one edge where the root is located. So again, there are actual edges
+ *     that can be colored - no need for an extra root color.
+ *     Caveat: It is possible to give different colors to those edges. What that means is up to
+ *     the user.
  *
  * This class is intended to be used as base for mixin classes that do actual tree output.
  */

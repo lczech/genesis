@@ -1,5 +1,5 @@
 /**
- * @brief Implementation of ###CLASSNAME### class.
+ * @brief
  *
  * @file
  * @ingroup ###MODULNAME###
@@ -10,23 +10,7 @@
 namespace genesis {
 
 // =================================================================================================
-//     Constructor and Destructor
+//     Implementation
 // =================================================================================================
-
-/**
- * @brief Constructor.
- */
-###CLASSNAME###::###CLASSNAME###()
-{
-    // implementation
-}
-
-/**
- * @brief Destructor.
- */
-###CLASSNAME###::~###CLASSNAME###()
-{
-    // implementation
-}
 
 } // namespace genesis

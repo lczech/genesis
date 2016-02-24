@@ -58,13 +58,13 @@ namespace genesis {
 template <typename TreeType>
 bool PhyloxmlProcessor<TreeType>::to_file (const TreeType& tree, const std::string fn)
 {
-    if (file_exists(fn)) {
+    if( utils::file_exists(fn) ) {
         LOG_WARN << "Phyloxml file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
     to_string(tree, ts);
-    return file_write(fn, ts);
+    return utils::file_write(fn, ts);
 }
 
 /**

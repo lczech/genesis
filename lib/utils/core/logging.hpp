@@ -116,7 +116,7 @@ namespace genesis {
  *
  * It includes the run time difference to the last log message in seconds
  * as its only detail (independent of Logging::details). This is particularly
- * useful for timing and profiling code sections. Its level is ::kDebug, so
+ * useful for timing and profiling code sections. Its level is Logging::kDebug, so
  * that in can be easily turned of for production code.
  */
 #define LOG_TIME GENESIS_LOG_DETAILS(genesis::Logging::kDebug, \
@@ -289,7 +289,7 @@ typedef struct {
  *
  * The provided types of macros are: #LOG_ERR, #LOG_WARN, #LOG_INFO,
  * #LOG_DBG, #LOG_DBG1, #LOG_DBG2, #LOG_DBG3, #LOG_DBG4 for all levels of
- * logging explained in ::LoggingLevel.
+ * logging explained in LoggingLevel.
  *
  * The details that are logged with each message can be changed via accessing
  * Logging::details -- see LoggingDetails for more on that.

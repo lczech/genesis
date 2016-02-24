@@ -8,25 +8,7 @@
 namespace genesis {
 
 // =================================================================================================
-//     Constructor and Destructor
+//     Implementation
 // =================================================================================================
-
-/**
- * @brief Constructor.
- */
-template <###TEMPLATE_PARAM###>
-###CLASSNAME###::###CLASSNAME###()
-{
-    // implementation
-}
-
-/**
- * @brief Destructor.
- */
-template <###TEMPLATE_PARAM###>
-###CLASSNAME###::~###CLASSNAME###()
-{
-    // implementation
-}
 
 } // namespace genesis

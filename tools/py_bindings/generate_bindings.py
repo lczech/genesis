@@ -669,7 +669,11 @@ class BoostPythonWriter:
 
         # write them to files
         for fn, exp in export_files.iteritems():
+            if fn.startswith(".") or fn.startswith("/"):
+                fn = "unnamed" + fn
             fn = os.path.join(directory, fn)
+            print "Creating file", fn
+
             if not os.path.exists(os.path.dirname(fn)):
                 os.makedirs(os.path.dirname(fn))
 
@@ -750,8 +754,8 @@ class BoostPythonWriter:
 # ==============================================================================
 
 if __name__ == "__main__":
-    hierarchy = DoxygenReader.parse ("../doc/api/xml")
+    hierarchy = DoxygenReader.parse ("./xml")
     hierarchy.extract_iterators(True)
     hierarchy.shorten_location_prefix()
     #~ print BoostPythonWriter.generate (hierarchy)
-    BoostPythonWriter.generate_files (hierarchy, "python", "genesis")
+    BoostPythonWriter.generate_files (hierarchy, "./src", "genesis")

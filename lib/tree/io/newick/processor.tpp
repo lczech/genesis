@@ -39,11 +39,11 @@ template <typename TreeType>
 bool NewickProcessor<TreeType>::from_file (
     const std::string& fn, TreeType& tree
 ) {
-    if (!file_exists(fn)) {
+    if (!utils::file_exists(fn)) {
         LOG_WARN << "Newick file '" << fn << "' does not exist.";
         return false;
     }
-    return from_string(file_read(fn), tree);
+    return from_string( utils::file_read(fn), tree );
 }
 
 /**
@@ -106,12 +106,16 @@ template <typename TreeType>
 bool NewickProcessor<TreeType>::from_file (
     const std::string& fn, TreeSet<TreeType>& tset
 ) {
-    if (!file_exists(fn)) {
+    if (!utils::file_exists(fn)) {
         LOG_WARN << "Tree file '" << fn << "' does not exist.";
         return false;
     }
 
-    return from_string(file_read(fn), tset, file_filename(file_basename(fn)) + "_");
+    return from_string(
+        utils::file_read(fn),
+        tset,
+        utils::file_filename( utils::file_basename(fn) ) + "_"
+    );
 }
 
 /**
@@ -430,13 +434,13 @@ template <typename TreeType>
 bool NewickProcessor<TreeType>::to_file (
     const TreeType& tree, const std::string fn
 ) {
-    if (file_exists(fn)) {
+    if( utils::file_exists(fn) ) {
         LOG_WARN << "Newick file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
     to_string(tree, ts);
-    return file_write(fn, ts);
+    return utils::file_write(fn, ts);
 }
 
 /**
