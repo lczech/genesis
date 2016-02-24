@@ -41,6 +41,10 @@ function get_user_confirmation() {
 
 print_separator "Check preconditions"
 
+# Change to top level of git repo.
+# This ensures that the script can be called from any directory.
+cd `git rev-parse --show-toplevel`
+
 # Check repo mame.
 # If applied to a different repo, this script might do weird stuff, so better check.
 base_name=`git rev-parse --show-toplevel | xargs basename`
@@ -96,23 +100,15 @@ else
 fi
 
 # Check header guards
-cd tools
-header_guards=`./check_header_guards.sh`
-cd ..
+header_guards=`./tools/deploy/check_header_guards.sh`
 if [[ ${header_guards} != "" ]]; then
     echo -e "\n\e[31mHeader guards inconsistent:\e[0m"
-    cd tools
-    ./check_header_guards.sh
-    cd ..
+    ./tools/deploy/check_header_guards.sh
     echo -e "\n\e[31mAborted.\e[0m"
     exit
 else
     echo "Header guards okay."
 fi
-
-# Change to top level of git repo.
-# This ensures that the script can be called from any directory.
-cd `git rev-parse --show-toplevel`
 
 ####################################################################################################
 #    Build all
@@ -172,9 +168,7 @@ sed -i "s/PROJECT_NUMBER *=.*/PROJECT_NUMBER         = \"${version}\"/g" doc/dox
 
 # Update genesis header
 echo "Update genesis header lib/genesis.hpp"
-cd tools
-./make_genesis_header.sh
-cd ..
+./tools/deploy/make_genesis_header.sh
 
 ####################################################################################################
 #    Build with version
