@@ -9,7 +9,11 @@ echo "Please enter the module name that you want the class to be in:"
 echo "(this is simply the containing folder for the code files)"
 echo ""
 
-cd ../lib/
+# Change to top level of git repo and then to lib dir.
+# This ensures that the script can be called from any directory.
+cd `git rev-parse --show-toplevel`
+cd lib/
+
 select module in "Create new module" `ls -d */ | sed 's/\///g'` "Cancel"; do
     if [ "$module" == "Cancel" ]; then
         echo "Aborted. Nothing done."
