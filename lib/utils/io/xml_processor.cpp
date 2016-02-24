@@ -42,13 +42,13 @@ std::string XmlProcessor::XmlDescape (std::string& xml)
  */
 bool XmlProcessor::to_file (const std::string& fn, const XmlDocument& document)
 {
-    if (file_exists(fn)) {
+    if( utils::file_exists(fn) ) {
         LOG_WARN << "XML file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string xml;
     to_string(xml, document);
-    return file_write(fn, xml);
+    return utils::file_write(fn, xml);
 }
 
 /**

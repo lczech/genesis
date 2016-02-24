@@ -57,7 +57,7 @@ bool JplaceProcessor::from_files (const std::vector<std::string>& fns, Placement
         if (!from_file (fn, *map)) {
             return false;
         }
-        std::string name = file_filename(file_basename(fn));
+        std::string name = utils::file_filename( utils::file_basename(fn) );
         set.add(name, map);
     }
     return true;
@@ -88,11 +88,11 @@ bool JplaceProcessor::from_strings (const std::vector<std::string>& jps, Placeme
  */
 bool JplaceProcessor::from_file (const std::string& fn, PlacementMap& placements)
 {
-    if (!file_exists(fn)) {
+    if ( ! utils::file_exists(fn) ) {
         LOG_WARN << "Jplace file '" << fn << "' does not exist.";
         return false;
     }
-    return from_string(file_read(fn), placements);
+    return from_string( utils::file_read(fn), placements );
 }
 
 /**
@@ -456,13 +456,13 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
  */
 bool JplaceProcessor::to_file (const PlacementMap& placements, const std::string fn)
 {
-    if (file_exists(fn)) {
+    if( utils::file_exists(fn) ) {
         LOG_WARN << "Jplace file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
     to_string(placements, ts);
-    return file_write(fn, ts);
+    return utils::file_write( fn, ts );
 }
 
 /**

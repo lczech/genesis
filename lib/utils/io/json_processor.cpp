@@ -27,11 +27,11 @@ namespace genesis {
  */
 bool JsonProcessor::from_file (const std::string& fn, JsonDocument& document)
 {
-    if (!file_exists(fn)) {
+    if( ! utils::file_exists(fn)) {
         LOG_WARN << "JSON file '" << fn << "' does not exist.";
         return false;
     }
-    return from_string(file_read(fn), document);
+    return from_string( utils::file_read(fn), document );
 }
 
 /**
@@ -276,13 +276,13 @@ bool JsonProcessor::parse_object (
  */
 bool JsonProcessor::to_file (const std::string& fn, const JsonDocument& document)
 {
-    if (file_exists(fn)) {
+    if( utils::file_exists(fn) ) {
         LOG_WARN << "Json file '" << fn << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string jd;
     to_string(jd, document);
-    return file_write(fn, jd);
+    return utils::file_write(fn, jd);
 }
 
 /**

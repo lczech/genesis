@@ -18,6 +18,7 @@
 #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     File Access
@@ -244,4 +245,5 @@ std::string file_extension( std::string filename )
     return filename;
 }
 
+} // namespace utils
 } // namespace genesis

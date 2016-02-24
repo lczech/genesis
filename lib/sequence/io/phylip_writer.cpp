@@ -83,7 +83,7 @@ void PhylipWriter::to_stream( SequenceSet const& sset, std::ostream& os ) const
  */
 void PhylipWriter::to_file( SequenceSet const& sset, std::string const& fn ) const
 {
-    if( file_exists( fn ) ) {
+    if( utils::file_exists( fn ) ) {
         throw std::runtime_error( "File '" + fn + "' already exists." );
     }
 
