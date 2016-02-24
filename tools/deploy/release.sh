@@ -95,6 +95,21 @@ else
     echo "No unmerged branches."
 fi
 
+# Check header guards
+cd tools
+header_guards=`./check_header_guards.sh`
+cd ..
+if [[ ${header_guards} != "" ]]; then
+    echo -e "\n\e[31mHeader guards inconsistent:\e[0m"
+    cd tools
+    ./check_header_guards.sh
+    cd ..
+    echo -e "\n\e[31mAborted.\e[0m"
+    exit
+else
+    echo "Header guards okay."
+fi
+
 # Change to top level of git repo.
 # This ensures that the script can be called from any directory.
 cd `git rev-parse --show-toplevel`
@@ -104,10 +119,6 @@ cd `git rev-parse --show-toplevel`
 ####################################################################################################
 
 print_separator "Build all"
-
-cd tools
-./make_genesis_header.sh
-cd ..
 
 make clean
 make
@@ -158,6 +169,12 @@ sed -i "s/    return \".*\"; \/\/ #GENESIS_VERSION#/    return \"${version}\"; \
 # Replace version line in doxygen file.
 echo "Replace version in doc/doxygen/Doxyfile"
 sed -i "s/PROJECT_NUMBER *=.*/PROJECT_NUMBER         = \"${version}\"/g" doc/doxygen/Doxyfile
+
+# Update genesis header
+echo "Update genesis header lib/genesis.hpp"
+cd tools
+./make_genesis_header.sh
+cd ..
 
 ####################################################################################################
 #    Build with version
