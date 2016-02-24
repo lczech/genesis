@@ -13,7 +13,7 @@ for header in `find . -name "*.hpp"`; do
 
     line=`head -n 1 ${header} | cut -d " " -f 2`
 
-    if [[ ${line} != ${guard} ]]; then
+    if [[ ${line} != ${guard} && ${header} != "./genesis.hpp" ]]; then
         echo "In ${header}:"
         echo "   Actual: ${line}"
         echo "   Wanted: ${guard}"
