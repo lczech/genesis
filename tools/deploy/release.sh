@@ -105,6 +105,10 @@ cd `git rev-parse --show-toplevel`
 
 print_separator "Build all"
 
+cd tools
+./make_genesis_header.sh
+cd ..
+
 make clean
 make
 

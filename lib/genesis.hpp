@@ -9,7 +9,7 @@
  * You do not need to edit this file manually. Simply run the script
  * make_genesis_header.sh in ./tools to update this file.
  *
- * @file
+ * @file lib/genesis.hpp
  */
 
 #include "placement/functions.hpp"
@@ -30,10 +30,12 @@
 #include "placement/pquery/plain.hpp"
 #include "placement/simulator.hpp"
 
-#include "sequence/io/fasta_lexer.hpp"
-#include "sequence/io/fasta_processor.hpp"
-#include "sequence/io/phylip_lexer.hpp"
-#include "sequence/io/phylip_processor.hpp"
+#include "sequence/codes.hpp"
+#include "sequence/functions.hpp"
+#include "sequence/io/fasta_reader.hpp"
+#include "sequence/io/fasta_writer.hpp"
+#include "sequence/io/phylip_reader.hpp"
+#include "sequence/io/phylip_writer.hpp"
 #include "sequence/sequence.hpp"
 #include "sequence/sequence_set.hpp"
 
@@ -80,11 +82,13 @@
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
 #include "utils/core/std.hpp"
+#include "utils/io/counting_istream.hpp"
 #include "utils/io/json_document.hpp"
 #include "utils/io/json_lexer.hpp"
 #include "utils/io/json_processor.hpp"
 #include "utils/io/lexer.hpp"
 #include "utils/io/lexer_iterator.hpp"
+#include "utils/io/lexer/scanner.hpp"
 #include "utils/io/lexer_token.hpp"
 #include "utils/io/nexus/block.hpp"
 #include "utils/io/nexus/document.hpp"
@@ -107,6 +111,7 @@
 #include "utils/text/string.hpp"
 #include "utils/text/style.hpp"
 #include "utils/text/table.hpp"
+#include "utils/tools/char_lookup.hpp"
 #include "utils/tools/color/gradient.hpp"
 #include "utils/tools/color.hpp"
 #include "utils/tools/color/names.hpp"
