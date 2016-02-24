@@ -9,7 +9,7 @@
 
 #include "lib/###MODULNAME###/###FILENAME###.hpp"
 
-void BoostPythonExport_###CLASSNAME###()
+PYTHON_EXPORT_CLASS( ###CLASSNAME###, "###MODULNAME###" )
 {
     using namespace genesis;
 

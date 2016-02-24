@@ -2,7 +2,7 @@
 #define GENESIS_###CAPMODULNAME###_###CAPFILENAME###_H_
 
 /**
- * @brief Header of ###CLASSNAME### class.
+ * @brief
  *
  * @file
  * @ingroup ###MODULNAME###
@@ -23,11 +23,28 @@ class ###CLASSNAME###
 public:
 
     // -------------------------------------------------------------------------
-    //     Constructor and Destructor
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-    ###CLASSNAME###();
-    ~###CLASSNAME###();
+    ###CLASSNAME###()  = default;
+    ~###CLASSNAME###() = default;
+
+    ###CLASSNAME###( ###CLASSNAME### const& ) = default;
+    ###CLASSNAME###( ###CLASSNAME###&& )      = default;
+
+    ###CLASSNAME###& operator= ( ###CLASSNAME### const& ) = default;
+    ###CLASSNAME###& operator= ( ###CLASSNAME###&& )      = default;
+
+    void swap( ###CLASSNAME###& other )
+    {
+        using std::swap;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+private:
 
 };
 
