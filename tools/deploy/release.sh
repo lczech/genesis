@@ -215,7 +215,7 @@ echo
 # Commit and Tag.
 echo "Make commit, create tag..."
 git commit --allow-empty -am "Release ${version}"
-git tag "${version}"
+git tag -a "${version}" -m "Release ${version}"
 echo -e "...done."
 
 ####################################################################################################
