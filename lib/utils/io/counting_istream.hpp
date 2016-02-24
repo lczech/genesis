@@ -30,7 +30,7 @@ namespace utils {
  *     the line and column would already point to the next char while processing the last.
  *     Thus, advance() or the increment operator have to be called to get to the next char in the
  *     stream.
- *   * The handling of '\r' characters (part of the CR+LF new lines as used in Windows). Those are
+ *   * The handling of '\\r' characters (part of the CR+LF new lines as used in Windows). Those are
  *     completely skipped in this iterator. This ensures that all new lines are simply represented
  *     as '\n' independent of the file format.
  *

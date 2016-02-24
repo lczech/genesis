@@ -25,7 +25,7 @@ namespace genesis {
  * @brief Mixin class for Newick output that allows coloring of edges.
  *
  * The effect of this class on the Newick output is that (if enabled) a color tag comment will be
- * added to each Newick element like this: `[&!color=#c0ffee]`.
+ * added to each Newick element like this: `[&!color=#%c0ffee]`.
  *
  * For more information, see ColorMixin class.
  */
@@ -54,7 +54,7 @@ public:
      * color value.
      *
      * By default, this string is set to `&!color=`, which is for example used by FigTree to mark
-     * color in trees. This will result in a Newick comment like `[&!color=#c0ffee]`.
+     * color in trees. This will result in a Newick comment like `[&!color=#%c0ffee]`.
      */
     void color_tag_prefix( std::string prefix )
     {

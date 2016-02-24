@@ -38,10 +38,14 @@ const Bitvector::IntType Bitvector::bit_mask_[Bitvector::IntSize] =
 /**
  * @brief Contains as many ones as the position in the array tells.
  *
+ * The element at position `i` contains `i` many ones, starting from the right:
+ *
  *     ones_mask_[0] --> 0 ones: 0000...0000
  *     ones_mask_[1] --> 1 one:  0000...0001
  *     ones_mask_[2] --> 2 ones: 0000...0011
  *     ...
+ *
+ * This mask is used for unsetting the padding bits in unset_padding().
  */
 const Bitvector::IntType Bitvector::ones_mask_[Bitvector::IntSize] =
 {

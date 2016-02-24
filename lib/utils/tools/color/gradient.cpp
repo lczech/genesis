@@ -55,10 +55,14 @@ Color interpolate (Color color1, Color color2, double fraction)
  *
  * Example:
  *
- * 	   auto ranges = std::map<double, Color>();
+ *     // Prepare gradient ranges.
+ *     auto ranges = std::map<double, Color>();
  *     ranges[ 0.0 ] = Color(   0, 255, 0 );
  *     ranges[ 0.5 ] = Color( 255, 255, 0 );
  *     ranges[ 1.0 ] = Color( 255,   0, 0 );
+ *
+ *     // Get color at 30% of the green-yellow-red gradient.
+ *     Color c = gradient( ranges, 0.3 );
  *
  * This map defines the same gradient that is used for `heat_gradient`.
  *

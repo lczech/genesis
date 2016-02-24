@@ -9,7 +9,7 @@
  * You do not need to edit this file manually. Simply run the script
  * make_genesis_header.sh in ./tools to update this file.
  *
- * @file lib/genesis.hpp
+ * @file
  */
 
 #include "placement/functions.hpp"

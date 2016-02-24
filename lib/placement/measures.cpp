@@ -944,8 +944,8 @@ double center_of_gravity_distance (
  * between all pairs of pqueries in the map. It is similar to the variance() calculation, which
  * calculates this sum for the squared distances between all pqueries of one map.
  *
- * @param  left                The first PlacementMap to which the distances shall be calculated to.
- * @param  right               The second PlacementMap to which the distances shall be calculated to.
+ * @param  map_a               The first PlacementMap to which the distances shall be calculated to.
+ * @param  map_b               The second PlacementMap to which the distances shall be calculated to.
  * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
  *
  * @return                         Distance value.
