@@ -1,13 +1,14 @@
 language: cpp
+sudo: required
+
+os:
+    - linux
+
+dist: trusty
 
 compiler:
   - clang
   - gcc
 
-os:
-  - linux
-
 script:
   - make
-  - cd ./test/bin/
-  - ./test_suite
