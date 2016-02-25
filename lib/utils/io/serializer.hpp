@@ -10,11 +10,10 @@
 
 #include <algorithm>
 #include <cstring>
-#include <iostream>
 #include <fstream>
+#include <iostream>
+#include <stdexcept>
 #include <string>
-
-#include "utils/core/logging.hpp"
 
 namespace genesis {
 
@@ -38,7 +37,7 @@ public:
         outstream (outfile)
     {
         if (!outfile) {
-            LOG_ERR << "Cannot create Deserializer: " << strerror(errno);
+            throw std::runtime_error("Cannot create Serializer.");
         }
     };
 
@@ -57,7 +56,7 @@ public:
 
     inline operator bool() const
     {
-        return outstream;
+        return !outstream.fail();
     }
 
     inline bool good() const
@@ -202,7 +201,7 @@ public:
         instream (infile)
     {
         if (!infile) {
-            LOG_ERR << "Cannot create Deserializer: " << strerror(errno);
+            throw std::runtime_error("Cannot create Deserializer.");
         }
     };
 
@@ -221,7 +220,7 @@ public:
 
     inline operator bool() const
     {
-        return instream;
+        return !instream.fail();
     }
 
     inline bool good() const
