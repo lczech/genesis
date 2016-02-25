@@ -287,7 +287,7 @@ PlacementMap::EdgeNumMapType PlacementMap::edge_num_map() const
         assert(en_map.count(edge->data.edge_num) == 0);
         en_map.emplace(edge->data.edge_num, edge.get());
     }
-    return std::move(en_map);
+    return en_map;
 }
 
 /**

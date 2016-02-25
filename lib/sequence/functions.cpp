@@ -143,7 +143,13 @@ std::map<char, double> base_frequencies( SequenceSet const& set, std::string con
  */
 std::array<bool, 128> make_lookup_table( std::string const& chars )
 {
-    auto lookup = std::array<bool, 128> {};
+    // Init array to false.
+    auto lookup = std::array<bool, 128>();
+    for( size_t i = 0; i < 128; ++i ) {
+        lookup[i] = false;
+    }
+
+    // Set all necessary chars to true.
     for( char c : chars ) {
         // get rid of this check and leave it to the parser/lexer/stream iterator/lookup table
         if( c < 0 ) {
