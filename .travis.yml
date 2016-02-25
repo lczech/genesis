@@ -2,9 +2,6 @@ sudo: required
 dist: precise
 language: cpp
 
-os:
-  - linux
-
 branches:
   only:
     - master
