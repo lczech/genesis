@@ -1,24 +1,13 @@
-language: cpp
 sudo: required
+dist: precise
+language: cpp
 
 os:
   - linux
 
-dist: precise
-
 branches:
   only:
     - master
-
-script:
-  - mkdir build
-  - cd build
-  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
-  - make
-
-before_install:
-  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
-  - sudo apt-get update -qq
 
 matrix:
   include:
@@ -56,3 +45,13 @@ matrix:
           packages:
             - clang-3.7
       env: COMPILER=clang++-3.7
+
+before_install:
+  - sudo add-apt-repository -y ppa:ubuntu-toolchain-r/test
+  - sudo apt-get update -qq
+
+script:
+  - mkdir build
+  - cd build
+  - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
+  - make
