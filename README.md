@@ -2,6 +2,7 @@
 
 A toolkit for working with phylogenetic data.
 
+[![Build Status](https://travis-ci.org/lczech/genesis.svg?branch=master)](https://travis-ci.org/lczech/genesis)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg)
 ![Language](https://img.shields.io/badge/language-python-lightgrey.svg)

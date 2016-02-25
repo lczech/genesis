@@ -1,0 +1,13 @@
+language: cpp
+
+compiler:
+  - clang
+  - gcc
+
+os:
+  - linux
+
+script:
+  - make
+  - cd ./test/bin/
+  - ./test_suite
