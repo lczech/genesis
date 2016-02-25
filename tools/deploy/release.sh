@@ -188,7 +188,7 @@ print_separator "Commit and Tag"
 # Confirm changes.
 echo -e "\e[34mCurrent git status:\e[0m\n"
 git status
-echo -e "\n\e[34mAbout to commit changes and to create version tag ${version}\e[0m"
+echo -e "\n\e[34mAbout to commit changes and to create version tag ${version}\e[0m\n"
 
 get_user_confirmation
 cont=$?
@@ -213,6 +213,7 @@ print_separator "Publish to GitHub"
 # Show changes.
 echo -e "\e[34mCurrent git status:\e[0m\n"
 git status
+echo
 
 # Confirm.
 get_user_confirmation "Do you want to push the commit and tag to GitHub?"
@@ -220,9 +221,8 @@ cont=$?
 
 # Push.
 if [[ $cont == 1 ]]; then
-    echo -e "\nPush..."
+    echo
     git push --all --follow-tags
-    echo "...done."
 fi
 
 ####################################################################################################
@@ -241,8 +241,8 @@ fi
 
 # Get all important commits after the last tag and format them for Markdown.
 echo -e "\e[34m### Notable Changes ###\e[0m\n"
-git log ${last_tag}..${new_tag} --oneline | cut -d " " -f 1 --complement | egrep -iv "^(Minor|Merge)" | sed "s/^/  \* /g"
-echo -e "\nUse this list for the release message."
+git log ${last_tag}..${new_tag} --oneline | cut -d " " -f 1 --complement | egrep -iv "^(Minor|Merge|Release)" | sed "s/^/  \* /g"
+echo -e "\nUse this list for the release message.\n"
 
 # Ask user for github page.
 get_user_confirmation "Do you want to open the GitHub release page?"
