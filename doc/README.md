@@ -21,5 +21,6 @@ Build
 
 The api documentation is generated from the doc-blocks within the C++ source code using doxygen.
 The files can be created by calling `make` in this directory. This will generate the necessary
-documents and create links to them for convenience. The api documentation is written to html and xml format. This requires [doxygen](http://www.doxygen.org/) 1.8.6 and
+documents and create links to them for convenience. The api documentation is written to html format
+and stored in the ./api subdirectory. This requires [doxygen](http://www.doxygen.org/) 1.8.6 and
 [graphviz](http://www.graphviz.org/) to be installed on your system.

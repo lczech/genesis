@@ -180,20 +180,6 @@ print_separator "Build with version"
 make
 
 ####################################################################################################
-#    Doxygen
-####################################################################################################
-
-print_separator "Doxygen"
-
-echo -e "\e[34mDoxygen error output:\e[0m\n"
-
-# Build doxygen manual.
-cd doc
-make clean
-make > /dev/null
-cd ..
-
-####################################################################################################
 #    Commit and Tag
 ####################################################################################################
 
@@ -240,23 +226,6 @@ if [[ $cont == 1 ]]; then
 fi
 
 ####################################################################################################
-#    Publish to Web Server
-####################################################################################################
-
-print_separator "Publish to Web Server"
-
-# Confirm.
-get_user_confirmation "Do you want to push the doxygen html help to the web server?"
-cont=$?
-
-# Transfer doxygen html help to server.
-if [[ $cont == 1 ]]; then
-    echo -e "\nTransfer..."
-    # TODO
-    echo "...done."
-fi
-
-####################################################################################################
 #    Prepare GitHub Release
 ####################################################################################################
 
@@ -293,4 +262,26 @@ if [[ $cont == 1 ]]; then
     fi
 fi
 
-echo -e "\n\e[32mFinished.\e[0m"
+####################################################################################################
+#    Publish to Web Server
+####################################################################################################
+
+print_separator "Publish API to Web Server"
+
+# Confirm.
+get_user_confirmation "Do you want to update and publish the doxygen api help to the web server?"
+cont=$?
+echo
+
+# Transfer doxygen html help to server.
+if [[ $cont == 1 ]]; then
+    ./tools/deploy/update_api_doc.sh "build"
+    echo
+    ./tools/deploy/update_api_doc.sh "transfer"
+fi
+
+####################################################################################################
+#    Finished
+####################################################################################################
+
+print_separator "Finished"
