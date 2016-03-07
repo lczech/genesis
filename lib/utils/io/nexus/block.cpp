@@ -11,7 +11,7 @@
 // #include <ostream>
 
 namespace genesis {
-namespace nexus {
+namespace utils {
 
 // =================================================================================================
 //     Operators
@@ -23,5 +23,5 @@ namespace nexus {
 //     return os;
 // }
 
-} // namespace nexus
+} // namespace utils
 } // namespace genesis

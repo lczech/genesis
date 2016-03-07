@@ -19,7 +19,7 @@
 #include <vector>
 
 namespace genesis {
-namespace nexus {
+namespace utils {
 
 // =================================================================================================
 //     Nexus Block Trees
@@ -28,7 +28,7 @@ namespace nexus {
 /**
  * @brief
  */
-class Trees : public Block
+class NexusTrees : public NexusBlock
 {
 
     // -----------------------------------------------------
@@ -53,16 +53,16 @@ public:
 
 public:
 
-    Trees() = default;
-    ~Trees() = default;
+    NexusTrees() = default;
+    ~NexusTrees() = default;
 
-    Trees( Trees const& ) = default;
-    Trees( Trees&& )      = default;
+    NexusTrees( NexusTrees const& ) = default;
+    NexusTrees( NexusTrees&& )      = default;
 
-    Trees& operator= ( Trees const& ) = default;
-    Trees& operator= ( Trees&& )      = default;
+    NexusTrees& operator= ( NexusTrees const& ) = default;
+    NexusTrees& operator= ( NexusTrees&& )      = default;
 
-    void swap( Trees& other )
+    void swap( NexusTrees& other )
     {
         using std::swap;
         swap( entries_, other.entries_ );
@@ -74,12 +74,12 @@ public:
 
 public:
 
-    // friend bool operator == ( Trees const& lhs, Trees const& rhs )
+    // friend bool operator == ( NexusTrees const& lhs, NexusTrees const& rhs )
     // {
     //     return lhs.entries_ == rhs.entries_;
     // }
     //
-    // friend bool operator != ( Trees const& lhs, Trees const& rhs )
+    // friend bool operator != ( NexusTrees const& lhs, NexusTrees const& rhs )
     // {
     //     return !(lhs == rhs);
     // }
@@ -208,12 +208,12 @@ private:
 //     Operators
 // =================================================================================================
 
-inline void swap( Trees& lhs, Trees& rhs )
+inline void swap( NexusTrees& lhs, NexusTrees& rhs )
 {
     lhs.swap(rhs);
 }
 
-} // namespace nexus
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

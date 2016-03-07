@@ -11,13 +11,13 @@
 #include <iosfwd>
 
 namespace genesis {
-namespace nexus {
+namespace utils {
 
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
 
-class Document;
+class NexusDocument;
 
 // =================================================================================================
 //     Nexus Writer
@@ -26,18 +26,31 @@ class Document;
 /**
  * @brief
  */
-class Writer
+class NexusWriter
 {
+public:
+
+    // ---------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // ---------------------------------------------------------------------
+
+    NexusWriter()  = default;
+    ~NexusWriter() = default;
+
+    NexusWriter( NexusWriter const& ) = default;
+    NexusWriter( NexusWriter&& )      = default;
+
+    NexusWriter& operator= ( NexusWriter const& ) = default;
+    NexusWriter& operator= ( NexusWriter&& )      = default;
+
     // ---------------------------------------------------------------------
     //     Write Functions
     // ---------------------------------------------------------------------
 
-public:
-
-    void to_stream( Document const& doc, std::ostream& out );
+    void to_stream( NexusDocument const& doc, std::ostream& out ) const;
 };
 
-} // namespace nexus
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

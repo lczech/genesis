@@ -12,7 +12,7 @@
 #include <iosfwd>
 
 namespace genesis {
-namespace nexus {
+namespace utils {
 
 // =================================================================================================
 //     Nexus Block
@@ -21,16 +21,22 @@ namespace nexus {
 /**
  * @brief
  */
-class Block
+class NexusBlock
 {
-
     // -----------------------------------------------------
     //     Constructor and Rule of Five
     // -----------------------------------------------------
 
 public:
 
-    virtual ~Block() = default;
+    NexusBlock()  = default;
+    virtual ~NexusBlock() = default;
+
+    NexusBlock( NexusBlock const& ) = default;
+    NexusBlock( NexusBlock&& )      = default;
+
+    NexusBlock& operator= ( NexusBlock const& ) = default;
+    NexusBlock& operator= ( NexusBlock&& )      = default;
 
     // -----------------------------------------------------
     //     Virtual Functions
@@ -47,14 +53,14 @@ public:
 //     Operators
 // =================================================================================================
 
-// std::ostream& operator<< ( std::ostream& os, Block const& block )
-inline std::ostream& operator<< ( std::ostream& os, Block const& block )
+// std::ostream& operator<< ( std::ostream& os, NexusBlock const& block )
+inline std::ostream& operator<< ( std::ostream& os, NexusBlock const& block )
 {
     block.to_stream( os );
     return os;
 }
 
-} // namespace nexus
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard
