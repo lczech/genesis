@@ -155,7 +155,7 @@ double earth_movers_distance(
     double totalmass_r = rhs.placement_mass();
 
     // Disable all debug messages for this function...
-    LOG_SCOPE_LEVEL(Logging::kInfo)
+    LOG_SCOPE_LEVEL(utils::Logging::kInfo)
 
     LOG_DBG << "totalmass_l " << totalmass_l;
     LOG_DBG << "totalmass_r " << totalmass_r;
@@ -360,7 +360,7 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
     };
 
     // Disable debug messages while code is not in review.
-    LOG_SCOPE_LEVEL(Logging::kInfo)
+    LOG_SCOPE_LEVEL(utils::Logging::kInfo)
 
     // Store a balance value per link, so that each element contains the mass and its torque that
     // lies downwards the tree in the direction of this link.
@@ -876,7 +876,7 @@ double center_of_gravity_distance (
     }
 
     // Disable debug messages while code is not in review.
-    LOG_SCOPE_LEVEL(Logging::kInfo)
+    LOG_SCOPE_LEVEL(utils::Logging::kInfo)
 
     auto cog_a = center_of_gravity(map_a, with_pendant_length);
     auto cog_b = center_of_gravity(map_b, with_pendant_length);

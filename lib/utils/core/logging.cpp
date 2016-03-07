@@ -20,6 +20,7 @@
 #include "utils/tools/date_time.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     Settings
@@ -266,4 +267,5 @@ std::ostringstream& Logging::get(
     return buff_;
 }
 
+} // namespace utils
 } // namespace genesis
