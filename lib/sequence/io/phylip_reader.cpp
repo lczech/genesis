@@ -54,9 +54,9 @@ PhylipReader::PhylipReader()
 std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstream& it ) const
 {
     // Read number of sequences.
-    lexer::skip_while( it, isblank );
+    utils::skip_while( it, isblank );
     std::string num_seq_str;
-    lexer::copy_while( it, num_seq_str, isdigit );
+    utils::copy_while( it, num_seq_str, isdigit );
     if( num_seq_str.length() == 0 ) {
         throw std::runtime_error(
             "Malformed Phylip file: Expecting sequence number at " + it.at() + "."
@@ -65,9 +65,9 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstr
     size_t num_seq = std::stoi( num_seq_str );
 
     // Read length of sequences.
-    lexer::skip_while( it, isblank );
+    utils::skip_while( it, isblank );
     std::string len_seq_str;
-    lexer::copy_while( it, len_seq_str, isdigit );
+    utils::copy_while( it, len_seq_str, isdigit );
     if( len_seq_str.length() == 0 ) {
         throw std::runtime_error(
             "Malformed Phylip file: Expecting sequence length at " + it.at() + "."
@@ -83,7 +83,7 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstr
     }
 
     // Process end of header line.
-    lexer::skip_while( it, isblank );
+    utils::skip_while( it, isblank );
     if( !it || *it != '\n' ) {
         throw std::runtime_error(
             "Malformed Phylip file: Expecting end of line at " + it.at() + "."
@@ -114,13 +114,13 @@ std::string PhylipReader::parse_phylip_label( utils::CountingIstream& it ) const
 
     // Scan label until first blank/tab.
     if( label_length_ == 0 ) {
-        lexer::copy_while( it, label, isgraph );
+        utils::copy_while( it, label, isgraph );
         if( !it || !isblank( *it ) ) {
             throw std::runtime_error(
                 "Malformed Phylip file: Expecting delimiting white space at " + it.at() + "."
             );
         }
-        lexer::skip_while( it, isblank );
+        utils::skip_while( it, isblank );
 
     // Scan label for `label_length` many chars.
     } else {
@@ -227,7 +227,7 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
     }
 
     // Final checks.
-    lexer::skip_while( it, isspace );
+    utils::skip_while( it, isspace );
     if( it ) {
         throw std::runtime_error(
             "Malformed Phylip file: Expected end of file at " + it.at() + "."

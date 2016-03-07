@@ -14,7 +14,7 @@
 #include <functional>
 
 namespace genesis {
-namespace lexer {
+namespace utils {
 
 // =================================================================================================
 //     Scanners
@@ -116,7 +116,7 @@ inline void copy_until(
     }
 }
 
-} // namespace lexer
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard
