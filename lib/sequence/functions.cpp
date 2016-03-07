@@ -290,7 +290,7 @@ bool is_alignment( SequenceSet const& set )
  *
  * See the print() functions for details about the parameters.
  */
-void print_ostream(
+void print_to_ostream(
     std::ostream&                      out,
     Sequence const&                    seq,
     std::map<char, std::string> const& colors,
@@ -338,7 +338,7 @@ void print_ostream(
 *
 * See the print() functions for details about the parameters.
 */
-void print_ostream(
+void print_to_ostream(
     std::ostream&                      out,
     SequenceSet const&                 set,
     std::map<char, std::string> const& colors,
@@ -366,7 +366,7 @@ void print_ostream(
         if( print_label ) {
             out << set[i].label() << ": " << std::string( label_len - set[i].label().size(), ' ' );
         }
-        print_ostream( out, set[i], colors, false, length_limit, background );
+        print_to_ostream( out, set[i], colors, false, length_limit, background );
     }
 
     // Append ellipsis if needed.
@@ -388,7 +388,7 @@ void print_ostream(
  */
 std::ostream& operator << ( std::ostream& out, Sequence    const& seq )
 {
-    print_ostream( out, seq, {}, true, 100, false );
+    print_to_ostream( out, seq, {}, true, 100, false );
     return out;
 }
 
@@ -400,7 +400,7 @@ std::ostream& operator << ( std::ostream& out, Sequence    const& seq )
  */
 std::ostream& operator << ( std::ostream& out, SequenceSet const& set )
 {
-    print_ostream( out, set, {}, true, 100, 10, false );
+    print_to_ostream( out, set, {}, true, 100, 10, false );
     return out;
 }
 
@@ -424,7 +424,7 @@ std::string print(
     size_t                             length_limit
 ) {
     std::ostringstream stream;
-    print_ostream( stream, seq, {}, print_label, length_limit, false );
+    print_to_ostream( stream, seq, {}, print_label, length_limit, false );
     return stream.str();
 }
 
@@ -443,7 +443,7 @@ std::string print(
     size_t                             sequence_limit
 ) {
     std::ostringstream stream;
-    print_ostream( stream, set, {}, print_label, length_limit, sequence_limit, false );
+    print_to_ostream( stream, set, {}, print_label, length_limit, sequence_limit, false );
     return stream.str();
 }
 
@@ -484,7 +484,7 @@ std::string print_color(
     bool                               background
 ) {
     std::ostringstream stream;
-    print_ostream( stream, seq, colors, print_label, length_limit, background );
+    print_to_ostream( stream, seq, colors, print_label, length_limit, background );
     return stream.str();
 }
 
@@ -509,7 +509,7 @@ std::string print_color(
     bool                               background
 ) {
     std::ostringstream stream;
-    print_ostream( stream, set, colors, print_label, length_limit, sequence_limit, background );
+    print_to_ostream( stream, set, colors, print_label, length_limit, sequence_limit, background );
     return stream.str();
 }
 
