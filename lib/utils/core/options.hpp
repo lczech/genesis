@@ -13,6 +13,7 @@
 #include <vector>
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     Options
@@ -118,6 +119,7 @@ private:
     Options& operator= ( Options&& )      = delete;
 };
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

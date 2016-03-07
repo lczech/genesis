@@ -14,6 +14,7 @@
 #endif
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     Initialization
@@ -107,4 +108,5 @@ std::string Options::dump () const
     return res;
 }
 
+} // namespace utils
 } // namespace genesis

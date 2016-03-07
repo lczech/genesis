@@ -1169,7 +1169,7 @@ double variance(
 #ifdef PTHREADS
 
     // Prepare storage for thread data.
-    int num_threads = Options::get().number_of_threads();
+    int num_threads = utils::Options::get().number_of_threads();
     std::vector<double>      partials(num_threads, 0.0);
     std::vector<std::thread> threads;
 
