@@ -14,6 +14,7 @@
 #include "utils/core/std.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Forward Declarations
@@ -306,6 +307,7 @@ private:
     IndexedList<value_type>& il_;
 };
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard
