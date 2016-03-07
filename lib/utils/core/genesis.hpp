@@ -14,7 +14,7 @@
 /**
  * @namespace genesis
  *
- * @brief This namespace contains all symbols of genesis in order to keep them
+ * @brief Container namespace for all symbols of genesis in order to keep them
  * separate when used as a library.
  */
 namespace genesis {
