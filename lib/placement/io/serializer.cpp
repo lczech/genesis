@@ -37,7 +37,7 @@ unsigned char PlacementMapSerializer::version = 1;
 void PlacementMapSerializer::save (const PlacementMap& map, const std::string& file_name)
 {
     // Prepare.
-    Serializer ser (file_name);
+    utils::Serializer ser (file_name);
     if (!ser) {
         throw std::invalid_argument("Serialization failed.");
     }
@@ -92,7 +92,7 @@ void PlacementMapSerializer::save (const PlacementMap& map, const std::string& f
 void PlacementMapSerializer::load (const std::string& file_name, PlacementMap& map)
 {
     // Prepare, check stream status.
-    Deserializer des (file_name);
+    utils::Deserializer des (file_name);
     if (!des) {
         throw std::invalid_argument("Deserialization failed.");
     }

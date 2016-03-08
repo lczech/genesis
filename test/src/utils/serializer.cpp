@@ -13,6 +13,7 @@
 #include "lib/utils/io/serializer.hpp"
 
 using namespace genesis;
+using namespace utils;
 
 struct SerializerTestData
 {
