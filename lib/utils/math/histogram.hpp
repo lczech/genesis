@@ -12,6 +12,7 @@
 #include <vector>
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Histogram
@@ -181,6 +182,7 @@ inline void swap( Histogram& lhs, Histogram& rhs ) noexcept
     lhs.swap(rhs);
 }
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

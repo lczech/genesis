@@ -13,6 +13,7 @@
 #include "lib/utils/math/histogram/stats.hpp"
 
 using namespace genesis;
+using namespace utils;
 
 // TODO add border cases and exception throwing stuff!
 

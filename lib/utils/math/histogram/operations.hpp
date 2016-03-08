@@ -9,6 +9,7 @@
  */
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Forward Declarations
@@ -26,6 +27,7 @@ void scale (Histogram& h, double factor);
 
 void normalize (Histogram& h, double total = 1.0);
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

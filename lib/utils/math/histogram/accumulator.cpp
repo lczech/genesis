@@ -13,6 +13,7 @@
 #include "utils/math/histogram.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Constructors and Rule of Five
@@ -139,4 +140,5 @@ Histogram HistogramAccumulator::build_uniform_ranges_histogram(
     return h;
 }
 
+} // namespace utils
 } // namespace genesis

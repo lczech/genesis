@@ -13,6 +13,7 @@
 #include <vector>
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Forward Declarations
@@ -128,6 +129,7 @@ inline void swap( HistogramAccumulator& lhs, HistogramAccumulator& rhs ) noexcep
     lhs.swap(rhs);
 }
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

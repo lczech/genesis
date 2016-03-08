@@ -11,7 +11,8 @@
 #include <iosfwd>
 
 namespace genesis {
-
+namespace utils {
+    
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
@@ -31,6 +32,7 @@ std::ostream& operator<< (std::ostream& os, const Histogram& h);
 
 std::ostream& operator<< (std::ostream& os, const HistogramAccumulator& h);
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

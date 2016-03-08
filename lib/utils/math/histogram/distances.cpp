@@ -16,6 +16,7 @@
 #include "utils/math/histogram/operations.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Histogram Distances
@@ -72,4 +73,5 @@ double earth_movers_distance (const Histogram& h1, const Histogram& h2, bool nor
     }
 }
 
+} // namespace utils
 } // namespace genesis

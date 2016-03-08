@@ -13,6 +13,7 @@
 #include "utils/math/histogram/accumulator.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Histogram Operators
@@ -40,4 +41,5 @@ std::ostream& operator<< (std::ostream& os, const HistogramAccumulator& h)
     return os;
 }
 
+} // namespace utils
 } // namespace genesis

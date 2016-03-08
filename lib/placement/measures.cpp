@@ -988,7 +988,7 @@ double pairwise_distance (
 //     Node-Based Distances
 // =================================================================================================
 
-Histogram node_distance_histogram (
+utils::Histogram node_distance_histogram (
     // const PlacementMap& map,
     const PlacementTreeNode& node,
     bool                with_pendant_length
@@ -996,14 +996,14 @@ Histogram node_distance_histogram (
     (void) node;
     (void) with_pendant_length;
     throw std::domain_error("Not yet implemented.");
-    return Histogram(1);
+    return utils::Histogram(1);
 }
 
-std::vector<Histogram> node_distance_histograms (
+std::vector< utils::Histogram > node_distance_histograms (
     const PlacementMap& map,
     bool                with_pendant_length
 ) {
-    auto vec = std::vector<Histogram>();
+    auto vec = std::vector< utils::Histogram >();
     vec.reserve(map.tree().node_count());
 
     // TODO ensure that the node iterator gives the nodes in order of their index!

@@ -23,10 +23,6 @@ class TreeNode;
 template<class NodeDataType, class EdgeDataType>
 class TreeEdge;
 
-template<typename T>
-class Matrix;
-
-class Histogram;
 class PlacementMap;
 class PlacementMapSet;
 class PlacementTreeEdgeData;
@@ -36,6 +32,13 @@ struct PqueryPlain;
 typedef TreeNode <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeNode;
 typedef TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
 
+namespace utils {
+    template<typename T>
+    class Matrix;
+
+    class Histogram;
+}
+
 // =================================================================================================
 //     Placement Measures
 // =================================================================================================
@@ -43,7 +46,7 @@ typedef TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdg
 double pquery_distance (
     const PqueryPlain&     pqry_a,
     const PqueryPlain&     pqry_b,
-    const Matrix<double>&  node_distances,
+    const utils::Matrix<double>&  node_distances,
     bool                   with_pendant_length = false
 );
 
@@ -97,13 +100,13 @@ double pairwise_distance (
 //     Node-Based Distances
 // ----------------------------------------------------------------------------
 
-Histogram node_distance_histogram (
+utils::Histogram node_distance_histogram (
     // const PlacementMap& map,
     const PlacementTreeNode& node,
     bool                with_pendant_length = false
 );
 
-std::vector<Histogram> node_distance_histograms (
+std::vector< utils::Histogram > node_distance_histograms (
     const PlacementMap& map,
     bool                with_pendant_length = false
 );
@@ -114,7 +117,7 @@ double node_histogram_distance (
     bool                with_pendant_length = false
 );
 
-Matrix<double> node_histogram_distance_matrix (
+utils::Matrix<double> node_histogram_distance_matrix (
     const PlacementMapSet& maps,
     bool                   with_pendant_length = false
 );
