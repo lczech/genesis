@@ -11,6 +11,7 @@
 #include <string>
 
 namespace genesis {
+namespace utils {
 
 /**
  * @brief Returns the current date as a string in the format "2014-12-31".
@@ -22,6 +23,7 @@ std::string current_date();
  */
 std::string current_time();
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard
