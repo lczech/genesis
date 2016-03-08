@@ -17,7 +17,7 @@
 #include "utils/core/logging.hpp"
 
 namespace genesis {
-namespace color {
+namespace utils {
 
 // =================================================================================================
 //     Color Gradients
@@ -129,5 +129,5 @@ Color heat_gradient (double percentage)
     return interpolate(yellow, red, (percentage - 0.5) / 0.5);
 }
 
-} // namespace color
+} // namespace utils
 } // namespace genesis

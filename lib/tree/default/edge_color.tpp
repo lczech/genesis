@@ -22,10 +22,10 @@ namespace genesis {
  * @brief
  */
 template<class TreeType>
-std::vector<color::Color> edge_color_branch_length_gradient( TreeType const& tree, bool zero_based )
+std::vector<utils::Color> edge_color_branch_length_gradient( TreeType const& tree, bool zero_based )
 {
     // Init the result vector with the min head color (green) for each edge.
-    auto ret = std::vector<color::Color>( tree.edge_count(), color::heat_gradient(0.0) );
+    auto ret = std::vector<utils::Color>( tree.edge_count(), utils::heat_gradient(0.0) );
     if (tree.edge_count() == 0) {
         // If we are here, this is an empty vector.
         return ret;
@@ -56,7 +56,7 @@ std::vector<color::Color> edge_color_branch_length_gradient( TreeType const& tre
     for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it) {
         auto const& edge = **it;
         double val = (edge.data.branch_length - min_bl) / dist;
-        ret[edge.index()] = color::heat_gradient(val);
+        ret[edge.index()] = utils::heat_gradient(val);
     }
     return ret;
 }

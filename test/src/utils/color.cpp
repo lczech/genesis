@@ -15,7 +15,7 @@
 #include <stdexcept>
 
 using namespace genesis;
-using namespace color;
+using namespace utils;
 
 void compare_color(const Color& expected, const Color& actual)
 {

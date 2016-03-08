@@ -20,7 +20,7 @@
 #include "utils/core/logging.hpp"
 
 namespace genesis {
-namespace color {
+namespace utils {
 
 // =================================================================================================
 //     Color Conversion
@@ -117,5 +117,5 @@ std::ostream& operator<< (std::ostream& os, const Color& color)
     return os;
 }
 
-} // namespace color
+} // namespace utils
 } // namespace genesis

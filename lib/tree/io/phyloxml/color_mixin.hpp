@@ -99,7 +99,7 @@ protected:
 
     void set_color( utils::XmlElement& element, unsigned char r, unsigned char g, unsigned char b )
     {
-        if( color::Color(r, g, b) == ColorMixin::ignored_color() ) {
+        if( utils::Color(r, g, b) == ColorMixin::ignored_color() ) {
             return;
         }
 
@@ -121,7 +121,7 @@ protected:
         element.content.push_back(std::move(color));
     }
 
-    void set_color( utils::XmlElement& element, color::Color color )
+    void set_color( utils::XmlElement& element, utils::Color color )
     {
         set_color( element, color.r(), color.g(), color.b() );
     }
