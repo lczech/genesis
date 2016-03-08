@@ -80,10 +80,10 @@ namespace genesis {
  * summing it up to calculate the total distance between the pqueries.
  */
 double pquery_distance (
-    const PqueryPlain&     pqry_a,
-    const PqueryPlain&     pqry_b,
-    const Matrix<double>&  node_distances,
-    bool                   with_pendant_length
+    const PqueryPlain&            pqry_a,
+    const PqueryPlain&            pqry_b,
+    const utils::Matrix<double>&  node_distances,
+    bool                          with_pendant_length
 ) {
     double sum = 0.0;
     double pp, pd, dp, dist;
@@ -1076,7 +1076,7 @@ Matrix<double> node_histogram_distance_matrix (
 double variance_partial (
     const PqueryPlain&              pqry_a,
     const std::vector<PqueryPlain>& pqrys_b,
-    const Matrix<double>&           node_distances,
+    const utils::Matrix<double>&    node_distances,
     bool                            with_pendant_length
 ) {
     double partial = 0.0;
@@ -1106,7 +1106,7 @@ void variance_thread (
     const int                       offset,
     const int                       incr,
     const std::vector<PqueryPlain>* pqrys,
-    const Matrix<double>*           node_distances,
+    const utils::Matrix<double>*    node_distances,
     double*                         partial,
     bool                            with_pendant_length
 ) {

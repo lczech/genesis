@@ -51,7 +51,7 @@ double deepest_distance(const Tree& tree);
  * The elements of the matrix are indexed using node()->index().
  */
 template <class Tree>
-Matrix<double>      node_distance_matrix (
+utils::Matrix<double>      node_distance_matrix (
     const Tree& tree
 );
 
@@ -71,7 +71,7 @@ std::vector<double> node_distance_vector (
 );
 
 template <class Tree>
-Matrix<double>      edge_distance_matrix (
+utils::Matrix<double>      edge_distance_matrix (
     const Tree& tree
 );
 
