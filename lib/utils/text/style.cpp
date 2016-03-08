@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace genesis {
-namespace text {
+namespace utils {
 
 // =================================================================================================
 //     Output
@@ -70,14 +70,14 @@ std::string Style::to_python_string() const
 static std::array<std::pair<std::string, std::string>, 17>::const_iterator get_foreground_color_iterator(
     std::string name
 ) {
-    name = text::replace_all(name, " ", "");
-    name = text::replace_all(name, "_", "");
+    name = replace_all(name, " ", "");
+    name = replace_all(name, "_", "");
 
     return std::find_if(
         Style::foreground_colors.begin(),
         Style::foreground_colors.end(),
         [&name] ( std::pair<std::string, std::string> const& elem ) {
-            return text::equals_ci( elem.first, name );
+            return equals_ci( elem.first, name );
         }
     );
 }
@@ -124,14 +124,14 @@ const std::array<std::pair<std::string, std::string>, 17> Style::foreground_colo
 std::array<std::pair<std::string, std::string>, 17>::const_iterator get_background_color_iterator(
     std::string name
 ) {
-    name = text::replace_all(name, " ", "");
-    name = text::replace_all(name, "_", "");
+    name = replace_all(name, " ", "");
+    name = replace_all(name, "_", "");
 
     return std::find_if(
         Style::background_colors.begin(),
         Style::background_colors.end(),
         [&name] ( std::pair<std::string, std::string> const& elem ) {
-            return text::equals_ci( elem.first, name );
+            return equals_ci( elem.first, name );
         }
     );
 }
@@ -171,5 +171,5 @@ const std::array<std::pair<std::string, std::string>, 17> Style::background_colo
     { "White", "107" }
 }};
 
-} // namespace text
+} // namespace utils
 } // namespace genesis

@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace genesis {
-namespace text {
+namespace utils {
 
 // =================================================================================================
 //     Compare
@@ -89,7 +89,7 @@ std::string join( T const& v, std::string const& delimiter ) {
     return s.str();
 }
 
-} // namespace text
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

@@ -86,7 +86,7 @@ protected:
 
         // Handle underscores/spaces.
         if (replace_name_underscores) {
-            name = text::replace_all(name, "_", " ");
+            name = utils::replace_all(name, "_", " ");
         }
 
         node.data.name = name;
@@ -113,7 +113,7 @@ protected:
 
             // Handle spaces/underscores.
             if (replace_name_underscores) {
-                name = text::replace_all(name, " ", "_");
+                name = utils::replace_all(name, " ", "_");
             } else {
                 if (std::string::npos != name.find(" ")) {
                     name = "\"" + name + "\"";
@@ -138,7 +138,7 @@ protected:
         Base::edge_to_element(edge, element);
 
         if (enable_branch_lengths_) {
-            auto bl = text::to_string_precise(edge.data.branch_length, precision);
+            auto bl = utils::to_string_precise(edge.data.branch_length, precision);
             element.values.insert(element.values.begin(), bl);
         }
     }

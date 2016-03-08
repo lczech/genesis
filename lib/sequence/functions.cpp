@@ -318,9 +318,9 @@ void print_to_ostream(
 
             // We use map.at() here, which throws in case of invalid keys, so we don't have to.
             if( background ) {
-                out << text::Style( std::string( 1, s ), "black", colors.at(s) ).to_bash_string();
+                out << utils::Style( std::string( 1, s ), "black", colors.at(s) ).to_bash_string();
             } else {
-                out << text::Style( std::string( 1, s ), colors.at(s) ).to_bash_string();
+                out << utils::Style( std::string( 1, s ), colors.at(s) ).to_bash_string();
             }
 
         } else {
@@ -454,11 +454,11 @@ std::string print(
 /**
  * @brief Return a string with the sites of the Sequence colored.
  *
- * This function returns a color view of the sites of the given Sequence, using text::Style colors,
+ * This function returns a color view of the sites of the given Sequence, using utils::Style colors,
  * which can be displayed in a console/terminal. This is useful for visualizing the Sequence similar
  * to graphical alignment and sequence viewing tools.
  *
- * The function takes a map from sequences characters to their colors (see text::Style for a list of
+ * The function takes a map from sequences characters to their colors (see utils::Style for a list of
  * the available ones).
  * The presettings `nucleic_acid_text_colors()` and `amino_acid_text_colors()` for default sequence
  * types can be used as input for this parameter.
@@ -612,7 +612,7 @@ void Sequence::compress_gaps( std::string const& gap_chars )
  * /
 void Sequence::replace(char search, char replace)
 {
-    sites_ = text::replace_all (sites_, std::string(1, search), std::string(1, replace));
+    sites_ = utils::replace_all (sites_, std::string(1, search), std::string(1, replace));
 }
 
 */

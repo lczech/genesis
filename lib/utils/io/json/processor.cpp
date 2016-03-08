@@ -314,11 +314,11 @@ std::string JsonProcessor::print_value (const JsonValue* value)
             break;
 
         case JsonValue::kNumber:
-            return text::to_string_precise(json_value_to_number(value)->value, precision);
+            return utils::to_string_precise(json_value_to_number(value)->value, precision);
             break;
 
         case JsonValue::kString:
-            return "\"" + text::escape(json_value_to_string(value)->value) + "\"";
+            return "\"" + utils::escape(json_value_to_string(value)->value) + "\"";
             break;
 
         // This function is only called from within print_array() and print_object(), and both of

@@ -28,14 +28,14 @@ namespace color {
 std::array<std::pair<std::string, Color>, 140>::const_iterator get_named_color_iterator(
     std::string name
 ) {
-    name = text::replace_all(name, " ", "");
-    name = text::replace_all(name, "_", "");
+    name = utils::replace_all(name, " ", "");
+    name = utils::replace_all(name, "_", "");
 
     return std::find_if(
         ColorNames::map.begin(),
         ColorNames::map.end(),
         [&name] ( std::pair<std::string, Color> const& elem ) {
-            return text::equals_ci( elem.first, name );
+            return utils::equals_ci( elem.first, name );
         }
     );
 }

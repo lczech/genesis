@@ -136,7 +136,7 @@ std::string PhylipReader::parse_phylip_label( utils::CountingIstream& it ) const
         }
     }
 
-    label = text::trim( label );
+    label = utils::trim( label );
     assert( label.size() > 0 );
     return label;
 }

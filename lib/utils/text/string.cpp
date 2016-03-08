@@ -14,7 +14,7 @@
 #include <stdexcept>
 
 namespace genesis {
-namespace text {
+namespace utils {
 
 // =================================================================================================
 //     Compare
@@ -280,5 +280,5 @@ std::string to_string_precise( double value, const int precision )
     return out.str();
 }
 
-} // namespace text
+} // namespace utils
 } // namespace genesis

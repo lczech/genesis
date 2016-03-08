@@ -19,7 +19,7 @@
 #include <vector>
 
 namespace genesis {
-namespace text {
+namespace utils {
 
 // =================================================================================================
 //     Text Table
@@ -564,5 +564,5 @@ Layout double_frame( bool condensed )
     return f;
 }
 
-} // namespace text
+} // namespace utils
 } // namespace genesis

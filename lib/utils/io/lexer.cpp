@@ -359,34 +359,34 @@ bool Lexer::scan_number()
 
     // scan
     while(!is_end()) {
-        if(text::char_is_digit(get_char())) {
+        if(utils::char_is_digit(get_char())) {
             // nothing to do
         } else if (get_char() == '.') {
             // do not allow more than one dot, require a number after the dot
             // (if not, treat it as the end of the number, stop scanning)
             if (
                 found_d
-                || is_end(+1) || !text::char_is_digit(get_char(+1))
+                || is_end(+1) || !utils::char_is_digit(get_char(+1))
             ) {
                 break;
             }
             found_d = true;
-        } else if (text::char_match_ci(get_char(), 'e')) {
+        } else if (utils::char_match_ci(get_char(), 'e')) {
             // do not allow more than one e (treat the second one as the end of
             // the number and stop scannning).
             // also, require a number or sign before and after the first e. if not,
             // treat it also as the end of the number and stop scanning
             if (
                 found_e
-                || get_position() == 0 || !text::char_is_digit(get_char(-1))
+                || get_position() == 0 || !utils::char_is_digit(get_char(-1))
                 || is_end(+1)
-                || (!text::char_is_digit(get_char(+1)) && !text::char_is_sign(get_char(+1)))
+                || (!utils::char_is_digit(get_char(+1)) && !utils::char_is_sign(get_char(+1)))
             ) {
                 err = (get_position() == start);
                 break;
             }
             found_e = true;
-        } else if (text::char_is_sign(get_char())) {
+        } else if (utils::char_is_sign(get_char())) {
             // conditions for when a sign is valid:
             //   - it is at the beginning of the token and followed by digits
             //   - it comes immediately after the e and is followed by digits
@@ -395,11 +395,11 @@ bool Lexer::scan_number()
             if (
                 !(
                     get_position() == start
-                    && !is_end(+1) && text::char_is_digit(get_char(+1))
+                    && !is_end(+1) && utils::char_is_digit(get_char(+1))
                 ) &&
                 !(
-                    found_e && text::char_match_ci(get_char(-1), 'e')
-                    && !is_end(+1) && text::char_is_digit(get_char(+1))
+                    found_e && utils::char_match_ci(get_char(-1), 'e')
+                    && !is_end(+1) && utils::char_is_digit(get_char(+1))
                 )
             ) {
                 err = (get_position() == start);
@@ -494,12 +494,12 @@ bool Lexer::scan_string()
     // de-escape the string (transform backslash-escaped chars)
     std::string res = get_substr(start, get_position()-1);
     if (found_e && use_string_escape) {
-        res = text::deescape(res);
+        res = utils::deescape(res);
     }
 
     // transform doubled qmarks like "" into single ones like "
     if (found_q && use_string_doubled_quotes) {
-        res = text::replace_all(
+        res = utils::replace_all(
             res,
             std::string(2, qmark),
             std::string(1, qmark)
@@ -535,8 +535,8 @@ bool Lexer::scan_operator()
 {
     // if the operator is a sign followed by a number, scan it as a number
     if (
-        text::char_is_sign(get_char()) && glue_sign_to_number &&
-        !is_end(+1) && text::char_is_digit(get_char(+1))
+        utils::char_is_sign(get_char()) && glue_sign_to_number &&
+        !is_end(+1) && utils::char_is_digit(get_char(+1))
     ) {
         return scan_number();
     }

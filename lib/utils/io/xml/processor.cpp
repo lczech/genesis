@@ -25,11 +25,11 @@ namespace utils {
 std::string XmlProcessor::XmlDescape (std::string& xml)
 {
     std::string res;
-    res = text::replace_all(xml, "&lt;",   "<");
-    res = text::replace_all(res, "&gt;",   ">");
-    res = text::replace_all(res, "&amp;",  "&");
-    res = text::replace_all(res, "&apos;", "'");
-    res = text::replace_all(res, "&quot;", "\"");
+    res = utils::replace_all(xml, "&lt;",   "<");
+    res = utils::replace_all(res, "&gt;",   ">");
+    res = utils::replace_all(res, "&amp;",  "&");
+    res = utils::replace_all(res, "&apos;", "'");
+    res = utils::replace_all(res, "&quot;", "\"");
     return res;
 }
 */
@@ -152,11 +152,11 @@ std::string XmlProcessor::print_attributes_list (StringMapType attr)
 std::string XmlProcessor::xml_escape (const std::string& txt)
 {
     std::string res;
-    res = text::replace_all(txt, "<",  "&lt;");
-    res = text::replace_all(res, ">",  "&gt;");
-    res = text::replace_all(res, "&",  "&amp;");
-    res = text::replace_all(res, "'",  "&apos;");
-    res = text::replace_all(res, "\"", "&quot;");
+    res = utils::replace_all(txt, "<",  "&lt;");
+    res = utils::replace_all(res, ">",  "&gt;");
+    res = utils::replace_all(res, "&",  "&amp;");
+    res = utils::replace_all(res, "'",  "&apos;");
+    res = utils::replace_all(res, "\"", "&quot;");
     return res;
 }
 

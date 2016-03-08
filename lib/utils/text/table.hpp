@@ -13,7 +13,7 @@
 #include <vector>
 
 namespace genesis {
-namespace text {
+namespace utils {
 
 // =================================================================================================
 //     Forward Declarations
@@ -297,7 +297,7 @@ Layout extended_frame( bool condensed = false );
 Layout double_grid(    bool condensed = false );
 Layout double_frame(   bool condensed = false );
 
-} // namespace text
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

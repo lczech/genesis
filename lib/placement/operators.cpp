@@ -78,8 +78,8 @@ bool has_correct_edge_nums( PlacementMap const& map )
  */
 std::ostream& operator << (std::ostream& out, PlacementMap const& map)
 {
-    auto table = text::Table();
-    auto const kRight = text::Table::Column::Justification::kRight;
+    auto table = utils::Table();
+    auto const kRight = utils::Table::Column::Justification::kRight;
 
     table.add_column("#").justify(kRight);
     table.add_column("name");
@@ -109,7 +109,7 @@ std::ostream& operator << (std::ostream& out, PlacementMap const& map)
         ++i;
     }
 
-    out << text::simple_layout()(table);
+    out << utils::simple_layout()(table);
     return out;
 }
 

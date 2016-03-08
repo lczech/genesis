@@ -124,11 +124,11 @@ TEST(Newick, ColorMixin)
     std::string output = proc.to_string(tree);
 
     // Check if we actually got the right number of red color tag comments.
-    auto count_red = text::count_substring_occurrences( output, "[&!color=#ff0000]" );
+    auto count_red = utils::count_substring_occurrences( output, "[&!color=#ff0000]" );
     EXPECT_EQ( tree.leaf_count(), count_red );
 
     // Check if we also got the right number of black color tag comments.
     // This is one fewer than the number of nodes, as no color tag is written for the root.
-    auto count_black = text::count_substring_occurrences( output, "[&!color=#000000]" );
+    auto count_black = utils::count_substring_occurrences( output, "[&!color=#000000]" );
     EXPECT_EQ( tree.inner_count() - 1, count_black );
 }

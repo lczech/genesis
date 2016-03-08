@@ -13,7 +13,7 @@
 #include <string>
 
 namespace genesis {
-namespace text {
+namespace utils {
 
 // =================================================================================================
 //     Text Style
@@ -182,7 +182,7 @@ inline void swap (Style& lhs, Style& rhs) noexcept
     lhs.swap(rhs);
 }
 
-} // namespace text
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard
