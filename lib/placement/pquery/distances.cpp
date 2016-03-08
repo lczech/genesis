@@ -16,6 +16,7 @@
 // #include "utils/utils.hpp"
 
 namespace genesis {
+namespace placement {
 
 /*
 // =================================================================================================
@@ -68,4 +69,5 @@ double distance (
 }
 */
 
+} // namespace placement
 } // namespace genesis

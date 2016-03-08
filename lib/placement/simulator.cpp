@@ -17,6 +17,7 @@
 #include "utils/core/options.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Placement Simulator Two Step
@@ -278,4 +279,5 @@ double PlacementSimulatorTwostep::PendantLengthDistribution::generate(
     return distrib_( utils::Options::get().random_engine() );
 }
 
+} // namespace placement
 } // namespace genesis

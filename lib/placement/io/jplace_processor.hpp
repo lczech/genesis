@@ -21,12 +21,16 @@ namespace utils {
     class JsonDocument;
 }
 
-class PlacementMap;
-class PlacementMapSet;
+namespace placement {
+    class PlacementMap;
+    class PlacementMapSet;
+}
 
 // =================================================================================================
 //     Jplace Processor
 // =================================================================================================
+
+namespace placement {
 
 /**
  * @brief Parser and printer to process a Jplace document and create a PlacementMap object from it.
@@ -75,6 +79,7 @@ public:
     void        to_document (const PlacementMap& placements, utils::JsonDocument& doc);
 };
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

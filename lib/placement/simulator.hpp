@@ -14,6 +14,7 @@
 #include <vector>
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Placement Simulator
@@ -218,6 +219,7 @@ public:
     void generate (size_t n) override;
 };
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

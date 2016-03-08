@@ -11,6 +11,7 @@
 #include "utils/core/std.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =============================================================================
 //     Modifiers
@@ -88,4 +89,5 @@ PqueryName* Pquery::insert_name(const PqueryName& other)
     return name_ptr;
 }
 
+} // namespace placement
 } // namespace genesis

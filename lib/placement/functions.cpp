@@ -15,6 +15,7 @@
 #include <unordered_set>
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Pquery Names
@@ -397,4 +398,5 @@ std::pair<PlacementTreeEdge*, double> placement_mass_max_edge(PlacementTree cons
     return std::make_pair(edge, max);
 }
 
+} // namespace placement
 } // namespace genesis

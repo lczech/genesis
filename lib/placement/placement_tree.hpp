@@ -14,6 +14,7 @@
 #include "tree/tree.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Forward Declarations
@@ -89,6 +90,7 @@ typedef TreeNode <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeNod
 
 typedef Tree     <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTree;
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

@@ -17,15 +17,19 @@ namespace genesis {
 template<class NodeDataType, class EdgeDataType>
 class TreeEdge;
 
-class PlacementTreeEdgeData;
-class PlacementTreeNodeData;
-class Pquery;
+namespace placement {
+    class PlacementTreeEdgeData;
+    class PlacementTreeNodeData;
+    class Pquery;
+}
 
-typedef TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
+typedef TreeEdge< placement::PlacementTreeNodeData, placement::PlacementTreeEdgeData > PlacementTreeEdge;
 
 // =================================================================================================
 //     Pquery Placement
 // =================================================================================================
+
+namespace placement {
 
 /**
  * @brief
@@ -117,6 +121,7 @@ public:
     PlacementTreeEdge* edge;
 };
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

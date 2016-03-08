@@ -17,6 +17,7 @@
 #include "lib/tree/io/newick/processor.hpp"
 
 using namespace genesis;
+using namespace genesis::placement;
 
 TEST(PlacementMapSerializer, SaveAndLoad)
 {

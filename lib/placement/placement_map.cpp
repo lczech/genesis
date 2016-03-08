@@ -25,6 +25,7 @@
 #include "utils/core/std.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Constructor & Destructor
@@ -874,4 +875,5 @@ bool PlacementMap::validate (bool check_values, bool break_on_values) const
     return true;
 }
 
+} // namespace placement
 } // namespace genesis

@@ -16,6 +16,7 @@
 #include <stdexcept>
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Version
@@ -148,4 +149,5 @@ void PlacementMapSerializer::load (const std::string& file_name, PlacementMap& m
     }
 }
 
+} // namespace placement
 } // namespace genesis

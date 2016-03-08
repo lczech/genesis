@@ -12,6 +12,7 @@
 #include <string>
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Forward Declarations
@@ -37,6 +38,7 @@ bool has_correct_edge_nums( PlacementMap const& map );
 
 std::ostream& operator << ( std::ostream& out, PlacementMap const& map );
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

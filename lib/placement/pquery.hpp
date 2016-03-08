@@ -24,14 +24,19 @@ namespace genesis {
 template<class NodeDataType, class EdgeDataType>
 class TreeEdge;
 
-class PlacementTreeEdgeData;
-class PlacementTreeNodeData;
 
-typedef TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
+namespace placement {
+    class PlacementTreeEdgeData;
+    class PlacementTreeNodeData;
+}
+
+typedef TreeEdge< placement::PlacementTreeNodeData, placement::PlacementTreeEdgeData > PlacementTreeEdge;
 
 // =================================================================================================
 //     Pquery
 // =================================================================================================
+
+namespace placement {
 
 class Pquery
 {
@@ -107,6 +112,7 @@ public:
     std::vector<std::unique_ptr<PqueryName>>      names;
 };
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

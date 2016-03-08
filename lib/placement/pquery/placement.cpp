@@ -10,6 +10,7 @@
 #include "placement/placement_tree.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Constructor and Rule of Five
@@ -40,4 +41,5 @@ PqueryPlacement::~PqueryPlacement()
     edge->data.placements.erase(it);
 }
 
+} // namespace placement
 } // namespace genesis

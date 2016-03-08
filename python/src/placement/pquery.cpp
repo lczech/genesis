@@ -11,6 +11,8 @@
 
 #include "lib/placement/placement_tree.hpp"
 
+using namespace genesis::placement;
+
 // -------------------------------------------------------------------
 //     Class PqueryPlacement
 // -------------------------------------------------------------------
@@ -18,30 +20,30 @@
 PYTHON_EXPORT_CLASS (PqueryPlacement, "placement")
 {
 
-    boost::python::class_< ::genesis::PqueryPlacement > ( "PqueryPlacement", boost::python::init<  >(  ) )
+    boost::python::class_< ::genesis::placement::PqueryPlacement > ( "PqueryPlacement", boost::python::init<  >(  ) )
         .def( boost::python::init< const PqueryPlacement & >(( boost::python::arg("other") )) )
 
         // Public Member Functions
 
         .def(
             "edge",
-            ( const PlacementTree::EdgeType & ( ::genesis::PqueryPlacement::* )(  ) const )( &::genesis::PqueryPlacement::get_edge ),
+            ( const PlacementTree::EdgeType & ( ::genesis::placement::PqueryPlacement::* )(  ) const )( &::genesis::placement::PqueryPlacement::get_edge ),
             boost::python::return_value_policy<boost::python::reference_existing_object>()
         )
         .def(
             "pquery",
-            ( const Pquery & ( ::genesis::PqueryPlacement::* )(  ) const )( &::genesis::PqueryPlacement::get_pquery ),
+            ( const Pquery & ( ::genesis::placement::PqueryPlacement::* )(  ) const )( &::genesis::placement::PqueryPlacement::get_pquery ),
             boost::python::return_value_policy<boost::python::reference_existing_object>()
         )
 
         // Public Member Variables
 
-        .def_readonly("edge_num", &::genesis::PqueryPlacement::edge_num)
-        .def_readonly("likelihood", &::genesis::PqueryPlacement::likelihood)
-        .def_readonly("like_weight_ratio", &::genesis::PqueryPlacement::like_weight_ratio)
-        .def_readonly("proximal_length", &::genesis::PqueryPlacement::proximal_length)
-        .def_readonly("pendant_length", &::genesis::PqueryPlacement::pendant_length)
-        .def_readonly("parsimony", &::genesis::PqueryPlacement::parsimony)
+        .def_readonly("edge_num", &::genesis::placement::PqueryPlacement::edge_num)
+        .def_readonly("likelihood", &::genesis::placement::PqueryPlacement::likelihood)
+        .def_readonly("like_weight_ratio", &::genesis::placement::PqueryPlacement::like_weight_ratio)
+        .def_readonly("proximal_length", &::genesis::placement::PqueryPlacement::proximal_length)
+        .def_readonly("pendant_length", &::genesis::placement::PqueryPlacement::pendant_length)
+        .def_readonly("parsimony", &::genesis::placement::PqueryPlacement::parsimony)
     ;
 }
 
@@ -51,13 +53,13 @@ PYTHON_EXPORT_CLASS (PqueryPlacement, "placement")
 
 PYTHON_EXPORT_CLASS (PqueryName, "placement")
 {
-    boost::python::class_< ::genesis::PqueryName > ( "PqueryName", boost::python::init< boost::python::optional< std::string > >(( boost::python::arg("name")=(std::string)("") )) )
+    boost::python::class_< ::genesis::placement::PqueryName > ( "PqueryName", boost::python::init< boost::python::optional< std::string > >(( boost::python::arg("name")=(std::string)("") )) )
         .def( boost::python::init< const PqueryName & >(( boost::python::arg("other") )) )
 
         // Public Member Variables
 
-        .def_readonly("name", &::genesis::PqueryName::name)
-        .def_readonly("multiplicity", &::genesis::PqueryName::multiplicity)
+        .def_readonly("name", &::genesis::placement::PqueryName::name)
+        .def_readonly("multiplicity", &::genesis::placement::PqueryName::multiplicity)
     ;
 }
 
@@ -78,41 +80,41 @@ PYTHON_EXPORT_CLASS (Pquery, "placement")
     PYTHON_REQUIRES_CLASS(PqueryPlacement)
     PYTHON_REQUIRES_CLASS(PqueryName)
 
-    boost::python::class_< ::genesis::Pquery, boost::noncopyable > ( "Pquery" )
+    boost::python::class_< ::genesis::placement::Pquery, boost::noncopyable > ( "Pquery" )
 
         // Public Member Functions
 
         // .def(
         //     "add_name",
-        //     ( PqueryName * ( ::genesis::Pquery::* )( std::string ))( &::genesis::Pquery::add_name ),
+        //     ( PqueryName * ( ::genesis::placement::Pquery::* )( std::string ))( &::genesis::placement::Pquery::add_name ),
         //     ( boost::python::arg("name")=(std::string)("") ),
-        //     get_docstring("PqueryName * ::genesis::Pquery::add_name (std::string name="")")
+        //     get_docstring("PqueryName * ::genesis::placement::Pquery::add_name (std::string name="")")
         // )
         // .def(
         //     "add_placement",
-        //     ( PqueryPlacement * ( ::genesis::Pquery::* )( PlacementTree::EdgeType * ))( &::genesis::Pquery::add_placement ),
+        //     ( PqueryPlacement * ( ::genesis::placement::Pquery::* )( PlacementTree::EdgeType * ))( &::genesis::placement::Pquery::add_placement ),
         //     ( boost::python::arg("edge") ),
-        //     get_docstring("PqueryPlacement * ::genesis::Pquery::add_placement (PlacementTree::EdgeType * edge)")
+        //     get_docstring("PqueryPlacement * ::genesis::placement::Pquery::add_placement (PlacementTree::EdgeType * edge)")
         // )
         .def(
             "name_at",
-            ( PqueryName const & ( ::genesis::Pquery::* )( const size_t ) const )( &::genesis::Pquery::name_at ),
+            ( PqueryName const & ( ::genesis::placement::Pquery::* )( const size_t ) const )( &::genesis::placement::Pquery::name_at ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             ( boost::python::arg("index") )
         )
         .def(
             "placement_at",
-            ( PqueryPlacement const & ( ::genesis::Pquery::* )( const size_t ) const )( &::genesis::Pquery::placement_at ),
+            ( PqueryPlacement const & ( ::genesis::placement::Pquery::* )( const size_t ) const )( &::genesis::placement::Pquery::placement_at ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             ( boost::python::arg("index") )
         )
         .def(
             "name_size",
-            ( size_t ( ::genesis::Pquery::* )(  ) const )( &::genesis::Pquery::name_size )
+            ( size_t ( ::genesis::placement::Pquery::* )(  ) const )( &::genesis::placement::Pquery::name_size )
         )
         .def(
             "placement_size",
-            ( size_t ( ::genesis::Pquery::* )(  ) const )( &::genesis::Pquery::placement_size )
+            ( size_t ( ::genesis::placement::Pquery::* )(  ) const )( &::genesis::placement::Pquery::placement_size )
         )
     ;
 }

@@ -13,6 +13,7 @@
 #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =============================================================================
 //     PlacementTreeEdgeData
@@ -66,4 +67,5 @@ void PlacementTreeEdgeData::sort_placements()
     placements.swap(new_placements);
 }
 
+} // namespace placement
 } // namespace genesis

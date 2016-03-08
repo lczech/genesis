@@ -24,6 +24,7 @@
 #include "utils/io/json/processor.hpp"
 
 namespace genesis {
+namespace placement {
 
 /**
  * @brief Returns the version number that this class is written for.
@@ -566,4 +567,5 @@ void JplaceProcessor::to_document (const PlacementMap& placements, utils::JsonDo
     doc.set("metadata", jmetadata);
 }
 
+} // namespace placement
 } // namespace genesis

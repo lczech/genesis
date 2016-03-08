@@ -23,14 +23,16 @@ class TreeNode;
 template<class NodeDataType, class EdgeDataType>
 class TreeEdge;
 
-class PlacementMap;
-class PlacementMapSet;
-class PlacementTreeEdgeData;
-class PlacementTreeNodeData;
-struct PqueryPlain;
+namespace placement {
+    class PlacementMap;
+    class PlacementMapSet;
+    class PlacementTreeEdgeData;
+    class PlacementTreeNodeData;
+    struct PqueryPlain;
+}
 
-typedef TreeNode <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeNode;
-typedef TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
+typedef TreeNode< placement::PlacementTreeNodeData, placement::PlacementTreeEdgeData > PlacementTreeNode;
+typedef TreeEdge< placement::PlacementTreeNodeData, placement::PlacementTreeEdgeData > PlacementTreeEdge;
 
 namespace utils {
     template<typename T>
@@ -42,6 +44,8 @@ namespace utils {
 // =================================================================================================
 //     Placement Measures
 // =================================================================================================
+
+namespace placement {
 
 double pquery_distance (
     const PqueryPlain&     pqry_a,
@@ -131,6 +135,7 @@ double variance (
     bool                with_pendant_length = false
 );
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

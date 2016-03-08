@@ -23,6 +23,7 @@
 #include "lib/utils/io/nexus/writer.hpp"
 
 using namespace genesis;
+using namespace genesis::placement;
 using namespace genesis::utils;
 
 TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )

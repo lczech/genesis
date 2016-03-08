@@ -13,6 +13,7 @@
 #include "utils/tools/color/gradient.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Placement Edge Color Functions
@@ -73,4 +74,5 @@ std::vector<utils::Color> placement_color_count_gradient( PlacementTree const& t
     return ret;
 }
 
+} // namespace placement
 } // namespace genesis

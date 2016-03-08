@@ -14,6 +14,7 @@
 #include <utility>
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Pquery Names
@@ -60,6 +61,7 @@ std::pair<PlacementTreeEdge*, size_t> placement_count_max_edge( PlacementTree co
 
 std::pair<PlacementTreeEdge*, double> placement_mass_max_edge( PlacementTree const& tree );
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

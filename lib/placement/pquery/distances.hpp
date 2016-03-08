@@ -14,18 +14,24 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-template <typename T>
-class Matrix;
+namespace utils {
+    template <typename T>
+    class Matrix;
+}
 
-class Pquery;
-class PqueryPlacement;
-class PqueryPlain;
+namespace placement {
+    class Pquery;
+    class PqueryPlacement;
+    class PqueryPlain;
 
-class PlacementTreeNode;
+    class PlacementTreeNode;
+}
 
 // =================================================================================================
 //     Distance Measuring
 // =================================================================================================
+
+namespace placement {
 
 // double distance (
 //     const PqueryPlacement& placement_a,
@@ -35,13 +41,13 @@ class PlacementTreeNode;
 double distance (
     const PqueryPlacement& placement_a,
     const PqueryPlacement& placement_b,
-    const Matrix<double>& node_distance_matrix
+    const utils::Matrix<double>& node_distance_matrix
 );
 
 double distance (
     const PqueryPlacement& placement,
     const Pquery& pquery,
-    const Matrix<double>& node_distance_matrix
+    const utils::Matrix<double>& node_distance_matrix
 );
 
 // double distance (
@@ -52,7 +58,7 @@ double distance (
 double distance (
     const PqueryPlain& pqry_a,
     const PqueryPlain& pqry_b,
-    const Matrix<double>& node_distance_matrix
+    const utils::Matrix<double>& node_distance_matrix
 );
 
 // double distance (
@@ -63,21 +69,22 @@ double distance (
 double distance (
     const Pquery& pqry_a,
     const Pquery& pqry_b,
-    const Matrix<double>& node_distance_matrix
+    const utils::Matrix<double>& node_distance_matrix
 );
 
 double distance (
     const PqueryPlacement& placement,
     const PlacementTreeNode& node,
-    const Matrix<double>& node_distance_matrix
+    const utils::Matrix<double>& node_distance_matrix
 );
 
 double distance (
     const Pquery& pquery,
     const PlacementTreeNode& node,
-    const Matrix<double>& node_distance_matrix
+    const utils::Matrix<double>& node_distance_matrix
 );
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

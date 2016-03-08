@@ -17,13 +17,15 @@
 #include "lib/tree/io/newick/processor.hpp"
 
 using namespace genesis;
+using namespace genesis::placement;
 
 TEST(PlacementSimulator, TwoStepSimple)
 {
     auto tree = std::make_shared<PlacementTree>();
-    EXPECT_TRUE (PlacementTreeNewickProcessor().from_string(
+    EXPECT_TRUE( PlacementTreeNewickProcessor().from_string(
         "((B:2.0{0},(D:2.0{1},E:2.0{2})C:2.0{3})A:2.0{4},F:2.0{5},(H:2.0{6},I:2.0{7})G:2.0{8})R:2.0{9};",
-    *tree));
+        *tree
+    ));
 
     PlacementMap map(tree);
     EXPECT_EQ   (0, map.placement_count());
@@ -41,9 +43,10 @@ TEST(PlacementSimulator, TwoStepLeavesOnly)
 {
     // Build a simple tree.
     auto tree = std::make_shared<PlacementTree>();
-    EXPECT_TRUE (PlacementTreeNewickProcessor().from_string(
+    EXPECT_TRUE( PlacementTreeNewickProcessor().from_string(
         "((B:2.0{0},(D:2.0{1},E:2.0{2})C:2.0{3})A:2.0{4},F:2.0{5},(H:2.0{6},I:2.0{7})G:2.0{8})R:2.0{9};",
-    *tree));
+        *tree
+    ));
 
     PlacementMap map(tree);
     PlacementSimulatorTwostep sim(map);

@@ -15,6 +15,7 @@
 #include <sstream>
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Comparision and Equality
@@ -113,4 +114,5 @@ std::ostream& operator << (std::ostream& out, PlacementMap const& map)
     return out;
 }
 
+} // namespace placement
 } // namespace genesis

@@ -13,6 +13,7 @@
 #include <sstream>
 
 namespace genesis {
+namespace placement {
 
 // =============================================================================
 //     Modifiers
@@ -170,4 +171,5 @@ std::string PlacementMapSet::dump(bool full)
     return res;
 }
 
+} // namespace placement
 } // namespace genesis

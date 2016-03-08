@@ -25,6 +25,7 @@
 #include "utils/math/histogram/distances.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Helper Method pquery_distance
@@ -1214,4 +1215,5 @@ double variance(
     return ((variance / mass) / mass);
 }
 
+} // namespace placement
 } // namespace genesis

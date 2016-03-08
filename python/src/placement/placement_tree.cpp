@@ -15,6 +15,8 @@
 // #include "python/src/tree/phyloxml_processor.hpp"
 #include "python/src/tree/tree.hpp"
 
+using namespace genesis::placement;
+
 // -------------------------------------------------------------------
 //     Class PlacementTreeNodeData
 // -------------------------------------------------------------------
@@ -22,7 +24,7 @@
 void BoostPythonExport_PlacementTreeNodeData()
 {
 
-    boost::python::class_< ::genesis::PlacementTreeNodeData, boost::python::bases< ::genesis::DefaultTreeNodeData > > ( "PlacementTreeNodeData" )
+    boost::python::class_< ::genesis::placement::PlacementTreeNodeData, boost::python::bases< ::genesis::DefaultTreeNodeData > > ( "PlacementTreeNodeData" )
     ;
 }
 
@@ -32,29 +34,27 @@ void BoostPythonExport_PlacementTreeNodeData()
 
 void BoostPythonExport_PlacementTreeEdgeData()
 {
-    using namespace genesis;
-
-    boost::python::class_< ::genesis::PlacementTreeEdgeData, boost::python::bases< ::genesis::DefaultTreeEdgeData > > ( "PlacementTreeEdgeData" )
+    boost::python::class_< ::genesis::placement::PlacementTreeEdgeData, boost::python::bases< ::genesis::DefaultTreeEdgeData > > ( "PlacementTreeEdgeData" )
 
         // Public Member Functions
 
         .def(
             "dump",
-            ( std::string ( ::genesis::PlacementTreeEdgeData::* )(  ) const )( &::genesis::PlacementTreeEdgeData::dump )
+            ( std::string ( ::genesis::placement::PlacementTreeEdgeData::* )(  ) const )( &::genesis::placement::PlacementTreeEdgeData::dump )
         )
         .def(
             "placement_count",
-            ( size_t ( ::genesis::PlacementTreeEdgeData::* )(  ) const )( &::genesis::PlacementTreeEdgeData::placement_count ),
+            ( size_t ( ::genesis::placement::PlacementTreeEdgeData::* )(  ) const )( &::genesis::placement::PlacementTreeEdgeData::placement_count ),
             get_docstring("size_t ::genesis::PlacementTreeEdgeData::placement_count () const")
         )
         .def(
             "placement_mass",
-            ( double ( ::genesis::PlacementTreeEdgeData::* )(  ) const )( &::genesis::PlacementTreeEdgeData::placement_mass ),
+            ( double ( ::genesis::placement::PlacementTreeEdgeData::* )(  ) const )( &::genesis::placement::PlacementTreeEdgeData::placement_mass ),
             get_docstring("double ::genesis::PlacementTreeEdgeData::placement_mass () const")
         )
         .def(
             "sort_placements",
-            ( void ( ::genesis::PlacementTreeEdgeData::* )(  ))( &::genesis::PlacementTreeEdgeData::sort_placements ),
+            ( void ( ::genesis::placement::PlacementTreeEdgeData::* )(  ))( &::genesis::placement::PlacementTreeEdgeData::sort_placements ),
             get_docstring("void ::genesis::PlacementTreeEdgeData::sort_placements ()")
         )
 
@@ -65,7 +65,7 @@ void BoostPythonExport_PlacementTreeEdgeData()
 
         // Public Member Variables
 
-        .def_readonly("edge_num", &::genesis::PlacementTreeEdgeData::edge_num)
+        .def_readonly("edge_num", &::genesis::placement::PlacementTreeEdgeData::edge_num)
     ;
 }
 

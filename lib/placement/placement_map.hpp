@@ -21,6 +21,7 @@
 #include "placement/pquery/plain.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     PlacementMap
@@ -160,6 +161,7 @@ public:
     std::unordered_map<std::string, std::string> metadata;
 };
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard
