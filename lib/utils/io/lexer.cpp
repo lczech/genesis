@@ -18,6 +18,7 @@
 #include "utils/text/string.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     Process
@@ -672,4 +673,5 @@ std::string Lexer::dump() const
     return res;
 }
 
+} // namespace utils
 } // namespace genesis

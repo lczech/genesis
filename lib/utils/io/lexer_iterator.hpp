@@ -11,6 +11,7 @@
 #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     Lexer Iterator
@@ -144,6 +145,7 @@ protected:
     long   position_;
 };
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard
