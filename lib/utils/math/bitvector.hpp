@@ -14,6 +14,7 @@
 #include <vector>
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     Bitvector
@@ -222,6 +223,7 @@ protected:
     std::vector<IntType> data_;
 };
 
+} // namespace utils
 } // namespace genesis
 
 // =============================================================================
@@ -231,9 +233,9 @@ protected:
 namespace std {
 
 template<>
-struct hash<genesis::Bitvector>
+struct hash<genesis::utils::Bitvector>
 {
-    size_t operator() (genesis::Bitvector const &rhs) const
+    size_t operator() (genesis::utils::Bitvector const &rhs) const
     {
       return rhs.hash();
     }
