@@ -13,6 +13,7 @@
 #include "utils/tools/color/gradient.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Placement Edge Color Functions
@@ -40,10 +41,10 @@ namespace genesis {
  *
  * See color heat_gradient() for more information.
  */
-std::vector<color::Color> placement_color_count_gradient( PlacementTree const& tree, bool linear )
+std::vector<utils::Color> placement_color_count_gradient( PlacementTree const& tree, bool linear )
 {
     // Init the result vector with grey color for each edge.
-    auto ret = std::vector<color::Color>( tree.edge_count(), color::Color(128,128,128) );
+    auto ret = std::vector<utils::Color>( tree.edge_count(), utils::Color(128,128,128) );
 
     // Get the highest number of placements on any edge.
     // If this is zero, there are no placements, so we can immediately return.
@@ -62,7 +63,7 @@ std::vector<color::Color> placement_color_count_gradient( PlacementTree const& t
             } else {
                 val = log(edge.data.placements.size()) / log(max_placements_per_edge);
             }
-            ret[edge.index()] = color::heat_gradient(val);
+            ret[edge.index()] = utils::heat_gradient(val);
         }
 
         // LOG_DBG <<  edge.placements.size() << " --> "
@@ -73,4 +74,5 @@ std::vector<color::Color> placement_color_count_gradient( PlacementTree const& t
     return ret;
 }
 
+} // namespace placement
 } // namespace genesis

@@ -35,7 +35,7 @@ TEST(DefaultTree, Distances)
     EXPECT_TRUE(tree.is_bifurcating());
     EXPECT_TRUE(tree.validate());
 
-    Matrix<double> exp (12, 12, {
+    utils::Matrix<double> exp (12, 12, {
         0,	1536,	1280,	1664,	1856,	1824,	1552,	1032,	1044,	1050,	1049,	1040.5,
         1536,	0,	768,	1152,	1344,	1312,	1040,	2568,	2580,	2586,	2585,	2576.5,
         1280,	768,	0,	384,	576,	544,	272,	2312,	2324,	2330,	2329,	2320.5,

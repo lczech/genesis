@@ -4,30 +4,48 @@
 #    This script builds and transfers the api documentation in doc/html to the web server.
 ####################################################################################################
 
+# There are four operations this script can do:
+#   * clean: Delete all doc files.
+#   * make: Build the api doc. Update only the changed files.
+#   * refresh: Full new build of the doc files (= clean + make).
+#   * transfer: Transfer the files to the server. Does not build them!
+# The operation can be provided via the command line parameter.
+# If none is given, make is executed.
+
 # Change to top level of git repo and then to ./doc
 # This ensures that the script can be called from any directory.
 cd `git rev-parse --show-toplevel`
 cd doc/
 
 # Set options: build api and transfer it to server.
-do_build=0
+do_clean=0
+do_make=0
 do_trans=0
-if [[ $1 == "" || $1 == "both" ]]; then
-    do_build=1
-    do_trans=1
+
+# Check command line.
+if [[ $1 == "clean" ]]; then
+    do_clean=1
 fi
-if [[ $1 == "build" ]]; then
-    do_build=1
+if [[ $1 == "" || $1 == "make" ]]; then
+    do_make=1
+fi
+if [[ $1 == "refresh" ]]; then
+    do_clean=1
+    do_make=1
 fi
 if [[ $1 == "transfer" ]]; then
     do_trans=1
 fi
 
+# Clean up the files.
+if [[ ${do_clean} == 1 ]]; then
+    make clean
+fi
+
 # Build doxygen api manual.
-if [[ ${do_build} == 1 ]]; then
+if [[ ${do_make} == 1 ]]; then
     echo -e "\e[34mDoxygen error output:\e[0m\n"
 
-    make clean
     make > /dev/null
 fi
 

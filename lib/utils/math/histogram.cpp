@@ -15,6 +15,7 @@
 #include <stdexcept>
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Constructors and Rule of Five
@@ -329,4 +330,5 @@ void Histogram::accumulate_bin( size_t bin, double weight )
     bins_[bin] += weight;
 }
 
+} // namespace utils
 } // namespace genesis

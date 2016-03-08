@@ -14,7 +14,7 @@
 #include <vector>
 
 namespace genesis {
-namespace text {
+namespace utils {
 
 // =================================================================================================
 //     Chars Functions
@@ -44,7 +44,7 @@ inline bool char_match_ci(const char c1, const char c2)
     return std::tolower(c1) == std::tolower(c2);
 }
 
-} // namespace text
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

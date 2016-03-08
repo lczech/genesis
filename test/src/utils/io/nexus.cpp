@@ -15,19 +15,20 @@
 #include <sstream>
 
 using namespace genesis;
+using namespace genesis::utils;
 
 TEST(Nexus, Writer)
 {
-    auto doc = nexus::Document();
+    auto doc = NexusDocument();
 
     // TODO create a factory method for each class, just for simplicity.
     // TODO make all functions comparing block names case insensitive!
 
-    auto trees = make_unique<nexus::Trees>();
+    auto trees = make_unique<NexusTrees>();
     trees->add_tree( "life", "(human, mouse, rat);" );
     doc.set_block( std::move(trees) );
 
-    auto taxa = make_unique<nexus::Taxa>();
+    auto taxa = make_unique<NexusTaxa>();
     taxa->add_taxa({ "human", "mouse", "rat" });
     doc.set_block( std::move(taxa) );
 
@@ -37,7 +38,7 @@ TEST(Nexus, Writer)
 
     std::ostringstream buffer;
 
-    auto writer = nexus::Writer();
+    auto writer = NexusWriter();
     writer.to_stream( doc, buffer );
     std::cout << buffer.str();
 }

@@ -14,6 +14,7 @@
 #include "utils/io/lexer_token.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     Forward Declaration
@@ -478,6 +479,7 @@ private:
     std::vector<LexerToken> tokens_;
 };
 
+} // namespace utils
 } // namespace genesis
 
 // =============================================================================

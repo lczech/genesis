@@ -12,6 +12,7 @@
 #include <functional>
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     Declarations and Class Functions
@@ -361,4 +362,5 @@ std::string Bitvector::dump_int(IntType x) const
     return res;
 }
 
+} // namespace utils
 } // namespace genesis

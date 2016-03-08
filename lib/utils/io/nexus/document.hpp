@@ -19,7 +19,7 @@
 #include <vector>
 
 namespace genesis {
-namespace nexus {
+namespace utils {
 
 // =================================================================================================
 //     Nexus Document
@@ -28,15 +28,28 @@ namespace nexus {
 /**
  * @brief
  */
-class Document
+class NexusDocument
 {
+public:
+
+    // ---------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // ---------------------------------------------------------------------
+
+    NexusDocument()  = default;
+    ~NexusDocument() = default;
+
+    NexusDocument( NexusDocument const& ) = default;
+    NexusDocument( NexusDocument&& )      = default;
+
+    NexusDocument& operator= ( NexusDocument const& ) = default;
+    NexusDocument& operator= ( NexusDocument&& )      = default;
+
     // ---------------------------------------------------------------------
     //     Member Types
     // ---------------------------------------------------------------------
 
-public:
-
-    using container      = std::vector<std::unique_ptr<Block>>;
+    using container      = std::vector<std::unique_ptr<NexusBlock>>;
     using const_iterator = container::const_iterator;
 
     // ---------------------------------------------------------------------
@@ -45,22 +58,22 @@ public:
 
     bool has_block( std::string block_name ) const;
 
-    Block const* get_block( std::string block_name ) const;
-    Block*       get_block( std::string block_name );
+    NexusBlock const* get_block( std::string block_name ) const;
+    NexusBlock*       get_block( std::string block_name );
 
     // ---------------------------------------------------------------------
     //     Modifiers
     // ---------------------------------------------------------------------
 
-    // void push_back_block(Block const& block)
+    // void push_back_block(NexusBlock const& block)
     // {
-    //     data_.push_back(make_unique<Block>(block));
+    //     data_.push_back(make_unique<NexusBlock>(block));
     // }
 
     // void set_block_trees( Trees const& trees );
     // void set_block_taxa( Taxa const& taxa );
 
-    Block* set_block( std::unique_ptr<Block> block );
+    NexusBlock* set_block( std::unique_ptr<NexusBlock> block );
 
     // ---------------------------------------------------------------------
     //     Iterators
@@ -88,7 +101,7 @@ private:
 
 };
 
-} // namespace nexus
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

@@ -11,6 +11,7 @@
 #include <stddef.h>
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Forward Declarations
@@ -52,6 +53,7 @@ double sigma(const Histogram& h);
 
 double sum(const Histogram& h);
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

@@ -15,6 +15,7 @@
 #include "tree/tree_set.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =============================================================================
 //     PlacementMapSet
@@ -133,6 +134,7 @@ protected:
 
 };
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

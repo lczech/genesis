@@ -275,7 +275,7 @@ echo
 
 # Transfer doxygen html help to server.
 if [[ $cont == 1 ]]; then
-    ./tools/deploy/update_api_doc.sh "build"
+    ./tools/deploy/update_api_doc.sh "refresh"
     echo
     ./tools/deploy/update_api_doc.sh "transfer"
 fi

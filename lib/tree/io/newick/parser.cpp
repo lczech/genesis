@@ -46,7 +46,7 @@ bool parse_newick_tree (
     bool closed = false;
 
     // acts as pointer to previous token
-    Lexer::iterator pt = end;
+    utils::Lexer::iterator pt = end;
 
     // store error message. also serves as check whether an error occured
     std::string error = "";

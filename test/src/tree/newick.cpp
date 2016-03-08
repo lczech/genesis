@@ -108,10 +108,10 @@ TEST(Newick, ColorMixin)
     EXPECT_TRUE( ColorTreeNewickProcessor().from_string(input, tree) );
 
     // Create a color vector for all edges that marks edges leading to a leaf node in red.
-    auto color_vector = std::vector<color::Color>( tree.edge_count() );
+    auto color_vector = std::vector<utils::Color>( tree.edge_count() );
     for( auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
         if( (*it)->primary_node()->is_leaf() || (*it)->secondary_node()->is_leaf() ) {
-            color_vector[(*it)->index()] = color::Color(255, 0, 0);
+            color_vector[(*it)->index()] = utils::Color(255, 0, 0);
         }
     }
 
@@ -120,15 +120,15 @@ TEST(Newick, ColorMixin)
     // inner edges.
     auto proc = ColorTreeNewickProcessor();
     proc.edge_colors(color_vector);
-    proc.ignored_color(color::Color(255, 0, 255));
+    proc.ignored_color(utils::Color(255, 0, 255));
     std::string output = proc.to_string(tree);
 
     // Check if we actually got the right number of red color tag comments.
-    auto count_red = text::count_substring_occurrences( output, "[&!color=#ff0000]" );
+    auto count_red = utils::count_substring_occurrences( output, "[&!color=#ff0000]" );
     EXPECT_EQ( tree.leaf_count(), count_red );
 
     // Check if we also got the right number of black color tag comments.
     // This is one fewer than the number of nodes, as no color tag is written for the root.
-    auto count_black = text::count_substring_occurrences( output, "[&!color=#000000]" );
+    auto count_black = utils::count_substring_occurrences( output, "[&!color=#000000]" );
     EXPECT_EQ( tree.inner_count() - 1, count_black );
 }

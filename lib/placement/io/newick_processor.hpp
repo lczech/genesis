@@ -17,6 +17,7 @@
 #include "tree/io/newick/processor.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Placement Tree Newick Mixin
@@ -122,6 +123,7 @@ private:
 typedef PlacementTreeNewickMixin< DefaultTreeNewickMixin< NewickProcessor< PlacementTree > > >
     PlacementTreeNewickProcessor;
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

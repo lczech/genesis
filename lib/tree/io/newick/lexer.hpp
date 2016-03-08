@@ -16,7 +16,7 @@ namespace genesis {
 //     Newick Lexer
 // =============================================================================
 
-class NewickLexer : public Lexer
+class NewickLexer : public utils::Lexer
 {
 public:
 

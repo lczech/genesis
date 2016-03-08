@@ -11,6 +11,7 @@
 #include <string>
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Forward Declarations
@@ -58,6 +59,7 @@ public:
     Pquery* pquery;
 };
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

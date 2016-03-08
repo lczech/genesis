@@ -20,10 +20,11 @@
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
 #include "utils/core/std.hpp"
-#include "utils/io/json_document.hpp"
-#include "utils/io/json_processor.hpp"
+#include "utils/io/json/document.hpp"
+#include "utils/io/json/processor.hpp"
 
 namespace genesis {
+namespace placement {
 
 /**
  * @brief Returns the version number that this class is written for.
@@ -102,8 +103,8 @@ bool JplaceProcessor::from_file (const std::string& fn, PlacementMap& placements
  */
 bool JplaceProcessor::from_string (const std::string& jplace, PlacementMap& placements)
 {
-    JsonDocument doc;
-    if (!JsonProcessor().from_string(jplace, doc)) {
+    utils::JsonDocument doc;
+    if( ! utils::JsonProcessor().from_string( jplace, doc )) {
         return false;
     }
     return from_document(doc, placements);
@@ -114,12 +115,12 @@ bool JplaceProcessor::from_string (const std::string& jplace, PlacementMap& plac
  *
  * Returns true iff successful.
  */
-bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& placements)
+bool JplaceProcessor::from_document (const utils::JsonDocument& doc, PlacementMap& placements)
 {
     placements.clear();
 
     // check if the version is correct
-    JsonValue* val = doc.get("version");
+    utils::JsonValue* val = doc.get("version");
     if (!val) {
         LOG_WARN << "Jplace document does not contain a valid version number at key 'version'. "
                  << "Now continuing to parse in the hope that it still works.";
@@ -168,10 +169,10 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         LOG_WARN << "Jplace document does not contain field names at key 'fields'.";
         return false;
     }
-    JsonValueArray* fields_arr = json_value_to_array(val);
+    utils::JsonValueArray* fields_arr = json_value_to_array(val);
     std::vector<std::string> fields;
     bool has_edge_num = false;
-    for (JsonValue* fields_val : *fields_arr) {
+    for( utils::JsonValue* fields_val : *fields_arr ) {
         if (!fields_val->is_string()) {
             LOG_WARN << "Jplace document contains a value of type '" << fields_val->type_to_string()
                      << "' instead of a string with a field name at key 'fields'.";
@@ -217,14 +218,14 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         LOG_WARN << "Jplace document does not contain pqueries at key 'placements'.";
         return false;
     }
-    JsonValueArray* placements_arr = json_value_to_array(val);
-    for (JsonValue* pqry_val : *placements_arr) {
+    utils::JsonValueArray* placements_arr = json_value_to_array(val);
+    for( utils::JsonValue* pqry_val : *placements_arr ) {
         if (!pqry_val->is_object()) {
             LOG_WARN << "Jplace document contains a value of type '" << pqry_val->type_to_string()
                      << "' instead of an object with a pquery at key 'placements'.";
             return false;
         }
-        JsonValueObject* pqry_obj = json_value_to_object(pqry_val);
+        utils::JsonValueObject* pqry_obj = json_value_to_object(pqry_val);
         if (!pqry_obj->has("p") || !pqry_obj->get("p")->is_array()) {
             LOG_WARN << "Jplace document contains a pquery at key 'placements' that does not "
                      << "contain an array of placements at sub-key 'p'.";
@@ -235,13 +236,13 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
         auto pqry = make_unique<Pquery>();
 
         // Process the placements and store them in the pquery.
-        JsonValueArray* pqry_p_arr = json_value_to_array(pqry_obj->get("p"));
-        for (JsonValue* pqry_p_val : *pqry_p_arr) {
+        utils::JsonValueArray* pqry_p_arr = json_value_to_array(pqry_obj->get("p"));
+        for( utils::JsonValue* pqry_p_val : *pqry_p_arr ) {
             if (!pqry_p_val->is_array()) {
                 LOG_WARN << "Jplace document contains a pquery with invalid placement at key 'p'.";
                 return false;
             }
-            JsonValueArray* pqry_fields = json_value_to_array(pqry_p_val);
+            utils::JsonValueArray* pqry_fields = json_value_to_array(pqry_p_val);
             if (pqry_fields->size() != fields.size()) {
                 LOG_WARN << "Jplace document contains a placement fields array with different size "
                          << "than the fields name array.";
@@ -371,8 +372,8 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                 return false;
             }
 
-            JsonValueArray* pqry_n_arr = json_value_to_array(pqry_obj->get("n"));
-            for (JsonValue* pqry_n_val : *pqry_n_arr) {
+            utils::JsonValueArray* pqry_n_arr = json_value_to_array(pqry_obj->get("n"));
+            for( utils::JsonValue* pqry_n_val : *pqry_n_arr ) {
                 if (!pqry_n_val->is_string()) {
                     LOG_WARN << "Jplace document contains a pquery where key 'n' has a "
                              << "non-string field.";
@@ -394,15 +395,15 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
                 return false;
             }
 
-            JsonValueArray* pqry_nm_arr = json_value_to_array(pqry_obj->get("nm"));
-            for (JsonValue* pqry_nm_val : *pqry_nm_arr) {
+            utils::JsonValueArray* pqry_nm_arr = json_value_to_array(pqry_obj->get("nm"));
+            for( utils::JsonValue* pqry_nm_val : *pqry_nm_arr ) {
                 if (!pqry_nm_val->is_array()) {
                     LOG_WARN << "Jplace document contains a pquery where key 'nm' has a "
                              << "non-array field.";
                     return false;
                 }
 
-                JsonValueArray * pqry_nm_val_arr = json_value_to_array(pqry_nm_val);
+                utils::JsonValueArray * pqry_nm_val_arr = json_value_to_array(pqry_nm_val);
                 if (pqry_nm_val_arr->size() != 2) {
                     LOG_WARN << "Jplace document contains a pquery where key 'nm' has an array "
                              << "field with size != 2 (one for the name, one for the multiplicity).";
@@ -438,8 +439,8 @@ bool JplaceProcessor::from_document (const JsonDocument& doc, PlacementMap& plac
     // Check if there is metadata.
     val = doc.get("metadata");
     if (val && val->is_object()) {
-        JsonValueObject* meta_obj = json_value_to_object(val);
-        for (JsonValueObject::ObjectPair meta_pair : *meta_obj) {
+        utils::JsonValueObject* meta_obj = json_value_to_object(val);
+        for( utils::JsonValueObject::ObjectPair meta_pair : *meta_obj ) {
             placements.metadata[meta_pair.first] = meta_pair.second->to_string();
         }
     }
@@ -478,16 +479,19 @@ void JplaceProcessor::to_string (const PlacementMap& placements, std::string&  j
  */
 std::string JplaceProcessor::to_string (const PlacementMap& placements)
 {
-    JsonDocument json;
+    utils::JsonDocument json;
     to_document(placements, json);
-    return JsonProcessor().to_string(json);
+    return utils::JsonProcessor().to_string(json);
 }
 
 /**
  * @brief
  */
-void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument& doc)
+void JplaceProcessor::to_document (const PlacementMap& placements, utils::JsonDocument& doc)
 {
+    // Simplify the code. Specifying utils::Json... is cumbersome.
+    using namespace utils;
+
     doc.clear();
 
     // set tree
@@ -559,8 +563,9 @@ void JplaceProcessor::to_document (const PlacementMap& placements, JsonDocument&
 
     // set metadata
     JsonValueObject* jmetadata = new JsonValueObject();
-    jmetadata->set("invocation", new JsonValueString(Options::get().command_line_string()));
+    jmetadata->set("invocation", new JsonValueString( utils::Options::get().command_line_string()) );
     doc.set("metadata", jmetadata);
 }
 
+} // namespace placement
 } // namespace genesis

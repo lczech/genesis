@@ -16,6 +16,7 @@
 #include "utils/math/histogram.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Histogram Statistics
@@ -118,4 +119,5 @@ double sum(const Histogram& h)
     return std::accumulate (h.begin(), h.end(), 0.0);
 }
 
+} // namespace utils
 } // namespace genesis

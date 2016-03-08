@@ -74,10 +74,10 @@ double deepest_distance(const Tree& tree)
 // =================================================================================================
 
 template <class Tree>
-Matrix<double>      node_distance_matrix (
+utils::Matrix<double>      node_distance_matrix (
     const Tree& tree
 ) {
-    Matrix<double> mat (tree.node_count(), tree.node_count(), -1.0);
+    utils::Matrix<double> mat (tree.node_count(), tree.node_count(), -1.0);
 
     // fill every row of the matrix
     for (auto row_it = tree.begin_nodes(); row_it != tree.end_nodes(); ++row_it) {
@@ -157,11 +157,11 @@ std::vector<double> node_distance_vector (
 }
 
 template <class Tree>
-Matrix<double>      edge_distance_matrix (
+utils::Matrix<double>      edge_distance_matrix (
     const Tree& tree
 ) {
     // Result matrix that will be returned.
-    Matrix<double> mat (tree.edge_count(), tree.edge_count());
+    utils::Matrix<double> mat (tree.edge_count(), tree.edge_count());
 
     // For calculating the distance between edges, we use the distances between nodes and for every
     // pair of edged find the nodes at the ends of the edges that are closest to each other. This

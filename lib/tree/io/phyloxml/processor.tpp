@@ -17,8 +17,8 @@
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
-#include "utils/io/xml_document.hpp"
-#include "utils/io/xml_processor.hpp"
+#include "utils/io/xml/document.hpp"
+#include "utils/io/xml/processor.hpp"
 
 namespace genesis {
 
@@ -88,16 +88,16 @@ void PhyloxmlProcessor<TreeType>::to_string (const TreeType& tree, std::string& 
 template <typename TreeType>
 std::string PhyloxmlProcessor<TreeType>::to_string (const TreeType& tree)
 {
-    XmlDocument xml;
+    utils::XmlDocument xml;
     to_document(tree, xml);
-    return XmlProcessor().to_string(xml);
+    return utils::XmlProcessor().to_string(xml);
 }
 
 /**
  * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
  */
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, XmlDocument& xml)
+void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, utils::XmlDocument& xml)
 {
     xml.clear();
     prepare_writing(tree, xml);
@@ -117,13 +117,13 @@ void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, XmlDocument
     xml.attributes.emplace("xmlns",     "http://www.phyloxml.org");
 
     // Add the (phylogeny) element.
-    auto phylogeny = make_unique<XmlElement>();
+    auto phylogeny = make_unique< utils::XmlElement >();
     phylogeny->tag = "phylogeny";
     phylogeny->attributes.emplace("rooted",     "true");
     //~ phylogeny.attributes.emplace("rerootable", "true");
 
     // Create a stack where we will push the tree elements to. Use the phylogeny element as root.
-    std::vector<XmlElement*> stack;
+    std::vector< utils::XmlElement* > stack;
     stack.push_back(phylogeny.get());
     xml.content.push_back(std::move(phylogeny));
     int cur_d = 0;
@@ -152,7 +152,7 @@ void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, XmlDocument
 
         // Create clade element, append it to the stack, so that all sub-elements will use it as
         // parent.
-        auto clade = make_unique<XmlElement>();
+        auto clade = make_unique< utils::XmlElement >();
         clade->tag = "clade";
 
         node_to_element(*it.node(), *clade.get());
@@ -173,7 +173,7 @@ void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, XmlDocument
 // -------------------------------------------------------------------------
 
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::prepare_writing( TreeType const& tree, XmlDocument& xml )
+void PhyloxmlProcessor<TreeType>::prepare_writing( TreeType const& tree, utils::XmlDocument& xml )
 {
     // Silence unused parameter warnings.
     (void) tree;
@@ -181,7 +181,7 @@ void PhyloxmlProcessor<TreeType>::prepare_writing( TreeType const& tree, XmlDocu
 }
 
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::node_to_element( NodeType const& node, XmlElement& element )
+void PhyloxmlProcessor<TreeType>::node_to_element( NodeType const& node, utils::XmlElement& element )
 {
     // Silence unused parameter warnings.
     (void) element;
@@ -189,7 +189,7 @@ void PhyloxmlProcessor<TreeType>::node_to_element( NodeType const& node, XmlElem
 }
 
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::edge_to_element( EdgeType const& edge, XmlElement& element )
+void PhyloxmlProcessor<TreeType>::edge_to_element( EdgeType const& edge, utils::XmlElement& element )
 {
     // Silence unused parameter warnings.
     (void) element;
@@ -197,7 +197,7 @@ void PhyloxmlProcessor<TreeType>::edge_to_element( EdgeType const& edge, XmlElem
 }
 
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::finish_writing( TreeType const& tree, XmlDocument& xml )
+void PhyloxmlProcessor<TreeType>::finish_writing( TreeType const& tree, utils::XmlDocument& xml )
 {
     // Silence unused parameter warnings.
     (void) tree;

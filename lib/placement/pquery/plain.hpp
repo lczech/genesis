@@ -8,7 +8,11 @@
  * @ingroup placement
  */
 
+#include <cstddef>
+#include <vector>
+
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Pquery Placement Plain
@@ -45,6 +49,7 @@ struct PqueryPlain
     std::vector<PqueryPlacementPlain> placements;
 };
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

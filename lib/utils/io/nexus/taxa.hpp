@@ -17,7 +17,7 @@
 #include <vector>
 
 namespace genesis {
-namespace nexus {
+namespace utils {
 
 // =================================================================================================
 //     Nexus Block Taxa
@@ -26,7 +26,7 @@ namespace nexus {
 /**
  * @brief
  */
-class Taxa : public Block
+class NexusTaxa : public NexusBlock
 {
 
     // -----------------------------------------------------
@@ -44,16 +44,16 @@ public:
 
 public:
 
-    Taxa() = default;
-    ~Taxa() = default;
+    NexusTaxa() = default;
+    ~NexusTaxa() = default;
 
-    Taxa( Taxa const& ) = default;
-    Taxa( Taxa&& )      = default;
+    NexusTaxa( NexusTaxa const& ) = default;
+    NexusTaxa( NexusTaxa&& )      = default;
 
-    Taxa& operator= ( Taxa const& ) = default;
-    Taxa& operator= ( Taxa&& )      = default;
+    NexusTaxa& operator= ( NexusTaxa const& ) = default;
+    NexusTaxa& operator= ( NexusTaxa&& )      = default;
 
-    void swap( Taxa& other )
+    void swap( NexusTaxa& other )
     {
         using std::swap;
         swap( taxa_, other.taxa_ );
@@ -65,12 +65,12 @@ public:
 
 public:
 
-    friend bool operator == ( Taxa const& lhs, Taxa const& rhs )
+    friend bool operator == ( NexusTaxa const& lhs, NexusTaxa const& rhs )
     {
         return lhs.taxa_ == rhs.taxa_;
     }
 
-    friend bool operator != ( Taxa const& lhs, Taxa const& rhs )
+    friend bool operator != ( NexusTaxa const& lhs, NexusTaxa const& rhs )
     {
         return !(lhs == rhs);
     }
@@ -173,12 +173,12 @@ private:
 //     Operators
 // =================================================================================================
 
-inline void swap( Taxa& lhs, Taxa& rhs )
+inline void swap( NexusTaxa& lhs, NexusTaxa& rhs )
 {
     lhs.swap(rhs);
 }
 
-} // namespace nexus
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

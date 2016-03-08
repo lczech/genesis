@@ -17,6 +17,7 @@
 #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     JsonValue
@@ -585,6 +586,7 @@ JsonValueString* json_value_to_string (const JsonValue* v);
 JsonValueArray*  json_value_to_array  (const JsonValue* v);
 JsonValueObject* json_value_to_object (const JsonValue* v);
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

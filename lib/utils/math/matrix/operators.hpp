@@ -13,6 +13,7 @@
 #include "utils/math/matrix.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Matrix Operators
@@ -33,6 +34,7 @@ std::ostream& operator<< (std::ostream& os, const Matrix<T>& matrix)
     return os;
 }
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

@@ -9,7 +9,7 @@
 
 #include "lib/utils/text/table.hpp"
 
-using namespace text;
+using namespace utils;
 
 PYTHON_EXPORT_CLASS (Table, "utils.text")
 {
@@ -17,7 +17,7 @@ PYTHON_EXPORT_CLASS (Table, "utils.text")
     //     Class Column
     // -------------------------------------------------------------------
 
-    boost::python::class_< ::genesis::text::Table::Column > ( "Column", boost::python::init<  >(  ) )
+    boost::python::class_< ::genesis::utils::Table::Column > ( "Column", boost::python::init<  >(  ) )
         .def( boost::python::init< std::string >(( boost::python::arg("label") )) )
         // .def( boost::python::init< std::string, boost::python::optional< Justification > >(( boost::python::arg("label"), boost::python::arg("justify") )) )
         // .def( boost::python::init< Column const & >(( boost::python::arg("") )) )
@@ -27,63 +27,63 @@ PYTHON_EXPORT_CLASS (Table, "utils.text")
 
         .def(
             "append",
-            ( void ( ::genesis::text::Table::Column::* )( std::string ))( &::genesis::text::Table::Column::append ),
+            ( void ( ::genesis::utils::Table::Column::* )( std::string ))( &::genesis::utils::Table::Column::append ),
             ( boost::python::arg("value") )
         )
         .def(
             "clear_content",
-            ( void ( ::genesis::text::Table::Column::* )(  ))( &::genesis::text::Table::Column::clear_content )
+            ( void ( ::genesis::utils::Table::Column::* )(  ))( &::genesis::utils::Table::Column::clear_content )
         )
         // .def(
         //     "justify",
-        //     ( Justification ( ::genesis::text::Table::Column::* )(  ) const )( &::genesis::text::Table::Column::justify )
+        //     ( Justification ( ::genesis::utils::Table::Column::* )(  ) const )( &::genesis::utils::Table::Column::justify )
         // )
         // .def(
         //     "justify",
-        //     ( void ( ::genesis::text::Table::Column::* )( Justification ))( &::genesis::text::Table::Column::justify ),
+        //     ( void ( ::genesis::utils::Table::Column::* )( Justification ))( &::genesis::utils::Table::Column::justify ),
         //     ( boost::python::arg("value") )
         // )
         .def(
             "label",
-            ( std::string ( ::genesis::text::Table::Column::* )(  ) const )( &::genesis::text::Table::Column::label )
+            ( std::string ( ::genesis::utils::Table::Column::* )(  ) const )( &::genesis::utils::Table::Column::label )
         )
         .def(
             "label",
-            ( void ( ::genesis::text::Table::Column::* )( std::string ))( &::genesis::text::Table::Column::label ),
+            ( void ( ::genesis::utils::Table::Column::* )( std::string ))( &::genesis::utils::Table::Column::label ),
             ( boost::python::arg("value") )
         )
         .def(
             "length",
-            ( size_t ( ::genesis::text::Table::Column::* )(  ) const )( &::genesis::text::Table::Column::length )
+            ( size_t ( ::genesis::utils::Table::Column::* )(  ) const )( &::genesis::utils::Table::Column::length )
         )
         .def(
             "row",
-            ( std::string ( ::genesis::text::Table::Column::* )( size_t ) const )( &::genesis::text::Table::Column::row ),
+            ( std::string ( ::genesis::utils::Table::Column::* )( size_t ) const )( &::genesis::utils::Table::Column::row ),
             ( boost::python::arg("i") )
         )
         .def(
             "shrink_width",
-            ( void ( ::genesis::text::Table::Column::* )(  ))( &::genesis::text::Table::Column::shrink_width ),
-            get_docstring("void ::genesis::text::Table::Column::shrink_width ()")
+            ( void ( ::genesis::utils::Table::Column::* )(  ))( &::genesis::utils::Table::Column::shrink_width ),
+            get_docstring("void ::genesis::utils::Table::Column::shrink_width ()")
         )
         .def(
             "width",
-            ( size_t ( ::genesis::text::Table::Column::* )(  ) const )( &::genesis::text::Table::Column::width )
+            ( size_t ( ::genesis::utils::Table::Column::* )(  ) const )( &::genesis::utils::Table::Column::width )
         )
         .def(
             "width",
-            ( void ( ::genesis::text::Table::Column::* )( size_t ))( &::genesis::text::Table::Column::width ),
+            ( void ( ::genesis::utils::Table::Column::* )( size_t ))( &::genesis::utils::Table::Column::width ),
             ( boost::python::arg("value") ),
-            get_docstring("void ::genesis::text::Table::Column::width (size_t value)")
+            get_docstring("void ::genesis::utils::Table::Column::width (size_t value)")
         )
         .def(
             "write_label",
-            ( void ( ::genesis::text::Table::Column::* )( std::ostream & ) const )( &::genesis::text::Table::Column::write_label ),
+            ( void ( ::genesis::utils::Table::Column::* )( std::ostream & ) const )( &::genesis::utils::Table::Column::write_label ),
             ( boost::python::arg("stream") )
         )
         .def(
             "write_row",
-            ( void ( ::genesis::text::Table::Column::* )( std::ostream &, size_t ) const )( &::genesis::text::Table::Column::write_row ),
+            ( void ( ::genesis::utils::Table::Column::* )( std::ostream &, size_t ) const )( &::genesis::utils::Table::Column::write_row ),
             ( boost::python::arg("stream"), boost::python::arg("row") )
         )
 
@@ -95,7 +95,7 @@ PYTHON_EXPORT_CLASS (Table, "utils.text")
     //     Class Table
     // -------------------------------------------------------------------
 
-    boost::python::class_< ::genesis::text::Table > ( "Table", boost::python::init<  >(  ) )
+    boost::python::class_< ::genesis::utils::Table > ( "Table", boost::python::init<  >(  ) )
         // .def( boost::python::init< Table const & >(( boost::python::arg("") )) )
         // .def( boost::python::init< Table && >(( boost::python::arg("") )) )
 
@@ -103,48 +103,48 @@ PYTHON_EXPORT_CLASS (Table, "utils.text")
 
         .def(
             "add_column",
-            ( Table::Column & ( ::genesis::text::Table::* )( std::string ))( &::genesis::text::Table::add_column ),
+            ( Table::Column & ( ::genesis::utils::Table::* )( std::string ))( &::genesis::utils::Table::add_column ),
             ( boost::python::arg("label")=(std::string)("") ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            get_docstring("Column & ::genesis::text::Table::add_column (std::string label="")")
+            get_docstring("Column & ::genesis::utils::Table::add_column (std::string label="")")
         )
         .def(
             "append",
-            ( Table & ( ::genesis::text::Table::* )( std::string ))( &::genesis::text::Table::append ),
+            ( Table & ( ::genesis::utils::Table::* )( std::string ))( &::genesis::utils::Table::append ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             ( boost::python::arg("value") )
         )
         .def(
             "clear",
-            ( void ( ::genesis::text::Table::* )(  ))( &::genesis::text::Table::clear ),
-            get_docstring("void ::genesis::text::Table::clear ()")
+            ( void ( ::genesis::utils::Table::* )(  ))( &::genesis::utils::Table::clear ),
+            get_docstring("void ::genesis::utils::Table::clear ()")
         )
         .def(
             "clear_content",
-            ( void ( ::genesis::text::Table::* )(  ))( &::genesis::text::Table::clear_content ),
-            get_docstring("void ::genesis::text::Table::clear_content ()")
+            ( void ( ::genesis::utils::Table::* )(  ))( &::genesis::utils::Table::clear_content ),
+            get_docstring("void ::genesis::utils::Table::clear_content ()")
         )
         .def(
             "length",
-            ( size_t ( ::genesis::text::Table::* )(  ) const )( &::genesis::text::Table::length )
+            ( size_t ( ::genesis::utils::Table::* )(  ) const )( &::genesis::utils::Table::length )
         )
         .def(
             "to_string",
-            ( std::string ( ::genesis::text::Table::* )(  ) const )( &::genesis::text::Table::to_string )
+            ( std::string ( ::genesis::utils::Table::* )(  ) const )( &::genesis::utils::Table::to_string )
         )
         .def(
             "to_string",
-            ( std::string ( ::genesis::text::Table::* )( Layout const & ) const )( &::genesis::text::Table::to_string ),
+            ( std::string ( ::genesis::utils::Table::* )( Layout const & ) const )( &::genesis::utils::Table::to_string ),
             ( boost::python::arg("layout") )
         )
         .def(
             "write",
-            ( void ( ::genesis::text::Table::* )( std::ostream & ) const )( &::genesis::text::Table::write ),
+            ( void ( ::genesis::utils::Table::* )( std::ostream & ) const )( &::genesis::utils::Table::write ),
             ( boost::python::arg("out") )
         )
         .def(
             "write",
-            ( void ( ::genesis::text::Table::* )( std::ostream &, Layout const & ) const )( &::genesis::text::Table::write ),
+            ( void ( ::genesis::utils::Table::* )( std::ostream &, Layout const & ) const )( &::genesis::utils::Table::write ),
             ( boost::python::arg("out"), boost::python::arg("layout") )
         )
 
@@ -157,7 +157,7 @@ PYTHON_EXPORT_CLASS (Table, "utils.text")
     //     Class Layout
     // -------------------------------------------------------------------
 
-    boost::python::class_< ::genesis::text::Layout > ( "Layout" )
+    boost::python::class_< ::genesis::utils::Layout > ( "Layout" )
 
         // Operators
 

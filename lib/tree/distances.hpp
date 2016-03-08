@@ -26,7 +26,7 @@ namespace genesis {
  * The vector is indexed using the node()->index() for every node.
  */
 template <class Tree>
-Matrix<int>         node_depth_matrix    (
+utils::Matrix<int>         node_depth_matrix    (
     const Tree& tree
 );
 
@@ -46,7 +46,7 @@ std::vector<int>    node_depth_vector    (
 );
 
 template <class Tree>
-Matrix<int>         edge_depth_matrix    (
+utils::Matrix<int>         edge_depth_matrix    (
     const Tree& tree
 );
 

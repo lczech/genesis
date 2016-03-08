@@ -9,6 +9,8 @@
 
 #include "lib/placement/io/phyloxml_processor.hpp"
 
+using namespace genesis::placement;
+
 PYTHON_EXPORT_CLASS (PlacementTreePhyloxmlProcessor, "placement.tree")
 {
     // -------------------------------------------------------------------
@@ -42,7 +44,7 @@ PYTHON_EXPORT_CLASS (PlacementTreePhyloxmlProcessor, "placement.tree")
 
     */
 
-    boost::python::class_< ::genesis::PlacementTreePhyloxmlProcessor > ( "PhyloxmlProcessor" )
+    boost::python::class_< ::genesis::placement::PlacementTreePhyloxmlProcessor > ( "PhyloxmlProcessor" )
 
     ;
 

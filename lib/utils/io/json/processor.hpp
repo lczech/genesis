@@ -10,9 +10,10 @@
 
 #include <string>
 
-#include "utils/io/json_lexer.hpp"
+#include "utils/io/json/lexer.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Forward declarations
@@ -114,6 +115,7 @@ public:
 
 };
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

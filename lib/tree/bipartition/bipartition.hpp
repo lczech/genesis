@@ -43,7 +43,10 @@ public:
     typedef typename Tree::LinkType LinkType;
     typedef typename Tree::EdgeType EdgeType;
 
-    Bipartition (size_t num_leaves) : leaf_nodes_(Bitvector(num_leaves)), link_(nullptr) {};
+    Bipartition (size_t num_leaves)
+        : leaf_nodes_( utils::Bitvector(num_leaves) )
+        , link_(nullptr)
+    {}
 
     // -------------------------------------------------------------
     //     Member Functions
@@ -66,8 +69,8 @@ public:
 
 protected:
 
-    Bitvector       leaf_nodes_;
-    LinkType* link_;
+    utils::Bitvector leaf_nodes_;
+    LinkType*        link_;
 
 };
 

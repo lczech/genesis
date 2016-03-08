@@ -16,6 +16,8 @@ namespace genesis {
 // =================================================================================================
 
 NewickLexer::NewickLexer() {
+    using namespace utils;
+
     // set the special chars for newick trees
     set_char_type (LexerTokenType::kComment,  "[]");
     set_char_type (LexerTokenType::kTag,      "{}");
@@ -47,6 +49,8 @@ NewickLexer::NewickLexer() {
 
 bool NewickLexer::scan_comment()
 {
+    using namespace utils;
+
     if (get_char() == ']') {
         push_token(LexerTokenType::kError, get_position(), "Closing comment without opening it.");
         return false;
@@ -71,11 +75,13 @@ bool NewickLexer::scan_number()
 
     // skip it and continue to scan as a normal number
     next_char();
-    return Lexer::scan_number();
+    return utils::Lexer::scan_number();
 }
 
 bool NewickLexer::scan_tag()
 {
+    using namespace utils;
+
     if (get_char() == '}') {
         push_token(LexerTokenType::kError, get_position(), "Closing tag without opening tag.");
         return false;

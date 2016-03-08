@@ -16,8 +16,10 @@ namespace genesis {
 //     Forward declarations
 // =================================================================================================
 
-class XmlDocument;
-class XmlElement;
+namespace utils {
+    class XmlDocument;
+    class XmlElement;
+}
 
 // =================================================================================================
 //     Phyloxml Processor
@@ -66,14 +68,14 @@ public:
     bool        to_file     (const TreeType& tree, const std::string fn);
     void        to_string   (const TreeType& tree, std::string& ts);
     std::string to_string   (const TreeType& tree);
-    void        to_document (const TreeType& tree, XmlDocument& xml);
+    void        to_document (const TreeType& tree, utils::XmlDocument& xml);
 
 protected:
 
-    virtual void prepare_writing( TreeType const& tree, XmlDocument& xml );
-    virtual void node_to_element( NodeType const& node, XmlElement& element );
-    virtual void edge_to_element( EdgeType const& edge, XmlElement& element );
-    virtual void finish_writing( TreeType const& tree, XmlDocument& xml );
+    virtual void prepare_writing( TreeType const& tree, utils::XmlDocument& xml );
+    virtual void node_to_element( NodeType const& node, utils::XmlElement&  element );
+    virtual void edge_to_element( EdgeType const& edge, utils::XmlElement&  element );
+    virtual void finish_writing(  TreeType const& tree, utils::XmlDocument& xml );
 
 };
 

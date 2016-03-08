@@ -5,16 +5,17 @@
  * @ingroup utils
  */
 
-#include "utils/io/json_processor.hpp"
+#include "utils/io/json/processor.hpp"
 
 #include <assert.h>
 
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
-#include "utils/io/json_document.hpp"
+#include "utils/io/json/document.hpp"
 #include "utils/text/string.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Parsing
@@ -313,11 +314,11 @@ std::string JsonProcessor::print_value (const JsonValue* value)
             break;
 
         case JsonValue::kNumber:
-            return text::to_string_precise(json_value_to_number(value)->value, precision);
+            return utils::to_string_precise(json_value_to_number(value)->value, precision);
             break;
 
         case JsonValue::kString:
-            return "\"" + text::escape(json_value_to_string(value)->value) + "\"";
+            return "\"" + utils::escape(json_value_to_string(value)->value) + "\"";
             break;
 
         // This function is only called from within print_array() and print_object(), and both of
@@ -409,4 +410,5 @@ std::string JsonProcessor::print_object (const JsonValueObject* value, const int
     return ss.str();
 }
 
+} // namespace utils
 } // namespace genesis

@@ -11,6 +11,7 @@
 #include <ctime>
 
 namespace genesis {
+namespace utils {
 
 std::string current_date()
 {
@@ -34,4 +35,5 @@ std::string current_time()
     return out;
 }
 
+} // namespace utils
 } // namespace genesis

@@ -11,6 +11,7 @@
 #include <string>
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Forward Declarations
@@ -36,6 +37,7 @@ public:
 
 };
 
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

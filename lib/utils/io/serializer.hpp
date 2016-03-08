@@ -16,6 +16,7 @@
 #include <string>
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Serializer
@@ -384,6 +385,7 @@ protected:
     std::istream& instream;
 };
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

@@ -12,6 +12,7 @@
 #include <vector>
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Matrix
@@ -188,6 +189,7 @@ private:
     std::vector<T> data_;
 };
 
+} // namespace utils
 } // namespace genesis
 
 // =================================================================================================
@@ -197,7 +199,7 @@ private:
 namespace std {
 
 template<typename T>
-inline void swap (genesis::Matrix<T>& lhs, genesis::Matrix<T>& rhs) noexcept
+inline void swap (genesis::utils::Matrix<T>& lhs, genesis::utils::Matrix<T>& rhs) noexcept
 {
     lhs.swap(rhs);
 }

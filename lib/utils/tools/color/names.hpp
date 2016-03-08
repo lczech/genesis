@@ -15,7 +15,7 @@
 #include <string>
 
 namespace genesis {
-namespace color {
+namespace utils {
 
 // =================================================================================================
 //     Color Names
@@ -37,7 +37,7 @@ struct ColorNames
 bool is_named_color( std::string const& name );
 Color get_named_color( std::string const& name );
 
-} // namespace color
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

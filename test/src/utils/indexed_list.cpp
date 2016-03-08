@@ -10,6 +10,7 @@
 #include "lib/utils/core/indexed_list.hpp"
 
 using namespace genesis;
+using namespace genesis::utils;
 
 TEST(IndexedList, Basics)
 {

@@ -80,7 +80,7 @@ public:
      * If this function is called with an empty vector, the color printing is reset to not
      * print the edge colors that might have been set before.
      */
-    void edge_colors( std::vector<color::Color> const& color_vector )
+    void edge_colors( std::vector<utils::Color> const& color_vector )
     {
         edge_colors_ = color_vector;
     }
@@ -88,7 +88,7 @@ public:
     /**
      * @brief Return the edge colors that are currently set.
      */
-    std::vector<color::Color> edge_colors()
+    std::vector<utils::Color> edge_colors()
     {
         return edge_colors_;
     }
@@ -119,7 +119,7 @@ public:
      * By default, the ignored color is black (`Color(0, 0, 0)`). This way, all edges that have
      * black color will produce no color tag.
      */
-    void ignored_color( color::Color value )
+    void ignored_color( utils::Color value )
     {
         ignored_color_ = value;
     }
@@ -127,7 +127,7 @@ public:
     /**
      * @brief Return the currently set ignored color. See the setter for more information.
      */
-    color::Color ignored_color() const
+    utils::Color ignored_color() const
     {
         return ignored_color_;
     }
@@ -138,9 +138,9 @@ public:
 
 private:
 
-    std::vector<color::Color> edge_colors_;
+    std::vector<utils::Color> edge_colors_;
     bool                      enable_color_  = true;
-    color::Color              ignored_color_ = color::Color(0, 0, 0);
+    utils::Color              ignored_color_ = utils::Color(0, 0, 0);
 
 };
 

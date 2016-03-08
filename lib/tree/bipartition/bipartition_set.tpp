@@ -89,7 +89,7 @@ BipartitionSet<Tree>::find_smallest_subtree (
     std::vector<BipartitionSet<Tree>::NodeType*> nodes
 ) {
     make();
-    Bitvector comp(tree_.leaf_count());
+    utils::Bitvector comp(tree_.leaf_count());
 
     // make bitvector containing all wanted nodes.
     for (NodeType* n : nodes) {

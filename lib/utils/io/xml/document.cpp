@@ -5,11 +5,12 @@
  * @ingroup utils
  */
 
-#include "utils/io/xml_document.hpp"
+#include "utils/io/xml/document.hpp"
 
 #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Converter Functions
@@ -63,4 +64,5 @@ const XmlElement* xml_value_to_element (const XmlValue* v)
     return static_cast<XmlElement*> (const_cast<XmlValue*> (v));
 }
 
+} // namespace utils
 } // namespace genesis

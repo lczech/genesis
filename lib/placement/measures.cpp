@@ -25,6 +25,7 @@
 #include "utils/math/histogram/distances.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Helper Method pquery_distance
@@ -80,10 +81,10 @@ namespace genesis {
  * summing it up to calculate the total distance between the pqueries.
  */
 double pquery_distance (
-    const PqueryPlain&     pqry_a,
-    const PqueryPlain&     pqry_b,
-    const Matrix<double>&  node_distances,
-    bool                   with_pendant_length
+    const PqueryPlain&            pqry_a,
+    const PqueryPlain&            pqry_b,
+    const utils::Matrix<double>&  node_distances,
+    bool                          with_pendant_length
 ) {
     double sum = 0.0;
     double pp, pd, dp, dist;
@@ -155,7 +156,7 @@ double earth_movers_distance(
     double totalmass_r = rhs.placement_mass();
 
     // Disable all debug messages for this function...
-    LOG_SCOPE_LEVEL(Logging::kInfo)
+    LOG_SCOPE_LEVEL(utils::Logging::kInfo)
 
     LOG_DBG << "totalmass_l " << totalmass_l;
     LOG_DBG << "totalmass_r " << totalmass_r;
@@ -360,7 +361,7 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
     };
 
     // Disable debug messages while code is not in review.
-    LOG_SCOPE_LEVEL(Logging::kInfo)
+    LOG_SCOPE_LEVEL(utils::Logging::kInfo)
 
     // Store a balance value per link, so that each element contains the mass and its torque that
     // lies downwards the tree in the direction of this link.
@@ -876,7 +877,7 @@ double center_of_gravity_distance (
     }
 
     // Disable debug messages while code is not in review.
-    LOG_SCOPE_LEVEL(Logging::kInfo)
+    LOG_SCOPE_LEVEL(utils::Logging::kInfo)
 
     auto cog_a = center_of_gravity(map_a, with_pendant_length);
     auto cog_b = center_of_gravity(map_b, with_pendant_length);
@@ -988,7 +989,7 @@ double pairwise_distance (
 //     Node-Based Distances
 // =================================================================================================
 
-Histogram node_distance_histogram (
+utils::Histogram node_distance_histogram (
     // const PlacementMap& map,
     const PlacementTreeNode& node,
     bool                with_pendant_length
@@ -996,14 +997,14 @@ Histogram node_distance_histogram (
     (void) node;
     (void) with_pendant_length;
     throw std::domain_error("Not yet implemented.");
-    return Histogram(1);
+    return utils::Histogram(1);
 }
 
-std::vector<Histogram> node_distance_histograms (
+std::vector< utils::Histogram > node_distance_histograms (
     const PlacementMap& map,
     bool                with_pendant_length
 ) {
-    auto vec = std::vector<Histogram>();
+    auto vec = std::vector< utils::Histogram >();
     vec.reserve(map.tree().node_count());
 
     // TODO ensure that the node iterator gives the nodes in order of their index!
@@ -1076,7 +1077,7 @@ Matrix<double> node_histogram_distance_matrix (
 double variance_partial (
     const PqueryPlain&              pqry_a,
     const std::vector<PqueryPlain>& pqrys_b,
-    const Matrix<double>&           node_distances,
+    const utils::Matrix<double>&    node_distances,
     bool                            with_pendant_length
 ) {
     double partial = 0.0;
@@ -1106,7 +1107,7 @@ void variance_thread (
     const int                       offset,
     const int                       incr,
     const std::vector<PqueryPlain>* pqrys,
-    const Matrix<double>*           node_distances,
+    const utils::Matrix<double>*    node_distances,
     double*                         partial,
     bool                            with_pendant_length
 ) {
@@ -1169,7 +1170,7 @@ double variance(
 #ifdef PTHREADS
 
     // Prepare storage for thread data.
-    int num_threads = Options::get().number_of_threads();
+    int num_threads = utils::Options::get().number_of_threads();
     std::vector<double>      partials(num_threads, 0.0);
     std::vector<std::thread> threads;
 
@@ -1214,4 +1215,5 @@ double variance(
     return ((variance / mass) / mass);
 }
 
+} // namespace placement
 } // namespace genesis

@@ -65,8 +65,8 @@ int main(int argc, char **argv)
     }
 
     // We want to see Logging information while testing.
-    genesis::Logging::log_to_stdout();
-    genesis::Logging::max_level(genesis::Logging::kDebug4);
+    genesis::utils::Logging::log_to_stdout();
+    genesis::utils::Logging::max_level(genesis::utils::Logging::kDebug4);
 
     ::testing::AddGlobalTestEnvironment(environment);
     return RUN_ALL_TESTS();

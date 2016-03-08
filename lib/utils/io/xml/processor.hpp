@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Forward declarations
@@ -74,6 +75,7 @@ public:
     int indent = 4;
 };
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

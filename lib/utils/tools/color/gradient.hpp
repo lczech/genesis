@@ -13,7 +13,7 @@
 #include <map>
 
 namespace genesis {
-namespace color {
+namespace utils {
 
 // =================================================================================================
 //     Color Gradients
@@ -25,7 +25,7 @@ Color heat_gradient (double percentage);
 
 Color interpolate (Color color1, Color color2, double fraction);
 
-} // namespace color
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

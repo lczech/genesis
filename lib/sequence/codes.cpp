@@ -228,7 +228,7 @@ std::string amino_acid_codes_all()
 /**
  * @brief Return a map of colors for each nucleic acid code.
  *
- * This function gives a color name usable for text::Style for each nucleic acid code.
+ * This function gives a color name usable for utils::Style for each nucleic acid code.
  * The return value of this function can for example be used in sequence::print_color() function.
  */
 std::map<char, std::string> nucleic_acid_text_colors()
@@ -239,7 +239,7 @@ std::map<char, std::string> nucleic_acid_text_colors()
 /**
  * @brief Return a map of colors for each amino acid code.
  *
- * This function gives a color name usable for text::Style for each amino acid code.
+ * This function gives a color name usable for utils::Style for each amino acid code.
  * The return value of this function can for example be used in sequence::print_color() function.
  */
 std::map<char, std::string> amino_acid_text_colors()

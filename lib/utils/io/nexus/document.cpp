@@ -8,18 +8,18 @@
 #include "utils/io/nexus/document.hpp"
 
 namespace genesis {
-namespace nexus {
+namespace utils {
 
 // =================================================================================================
 //     Accessors
 // =================================================================================================
 
-bool Document::has_block( std::string block_name ) const
+bool NexusDocument::has_block( std::string block_name ) const
 {
     return get_block( block_name ) != nullptr;
 }
 
-Block const* Document::get_block( std::string block_name ) const
+NexusBlock const* NexusDocument::get_block( std::string block_name ) const
 {
     // Could use std::find_if instead, but checking iterators is also a bit tedious...
     for( auto& bptr : data_ ) {
@@ -30,7 +30,7 @@ Block const* Document::get_block( std::string block_name ) const
     return nullptr;
 }
 
-Block*       Document::get_block( std::string block_name )
+NexusBlock*       NexusDocument::get_block( std::string block_name )
 {
     // Identical to the const version of this function... a bit ugly!
     for( auto& bptr : data_ ) {
@@ -45,7 +45,7 @@ Block*       Document::get_block( std::string block_name )
 //     Modifiers
 // =================================================================================================
 
-Block* Document::set_block( std::unique_ptr<Block> block )
+NexusBlock* NexusDocument::set_block( std::unique_ptr<NexusBlock> block )
 {
     // First check if we already have a block with this name.
     // If so, replace it and return its pointer.
@@ -61,7 +61,7 @@ Block* Document::set_block( std::unique_ptr<Block> block )
     return data_.back().get();
 }
 
-// void Document::set_block_trees( Trees const& trees )
+// void NexusDocument::set_block_trees( Trees const& trees )
 // {
 //     for( auto& bptr : data_ ) {
 //         if( bptr->block_name() == trees.block_name() ) {
@@ -72,20 +72,20 @@ Block* Document::set_block( std::unique_ptr<Block> block )
 //     data_.push_back( make_unique<Trees>(trees) );
 // }
 //
-// void Document::set_block_taxa( Taxa const& taxa )
+// void NexusDocument::set_block_taxa( Taxa const& taxa )
 // {
 //     data_.push_back( make_unique<Taxa>(taxa) );
 // }
 
-// const_iterator Document::begin() const
+// const_iterator NexusDocument::begin() const
 // {
 //
 // }
 //
-// const_iterator Document::end() const
+// const_iterator NexusDocument::end() const
 // {
 //
 // }
 
-} // namespace nexus
+} // namespace utils
 } // namespace genesis

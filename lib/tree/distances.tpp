@@ -17,13 +17,13 @@ namespace genesis {
 // =================================================================================================
 
 template <class Tree>
-Matrix<int>         node_depth_matrix    (
+utils::Matrix<int>         node_depth_matrix    (
     const Tree& tree
 ) {
     // TODO implement!
     (void) tree;
     throw std::domain_error("Not yet implemented.");
-    return Matrix<int>(0,0);
+    return utils::Matrix<int>(0,0);
 }
 
 template <class Tree>
@@ -65,13 +65,13 @@ std::vector<int>    node_depth_vector    (
 }
 
 template <class Tree>
-Matrix<int>         edge_depth_matrix    (
+utils::Matrix<int>         edge_depth_matrix    (
     const Tree& tree
 ) {
     // TODO implement!
     (void) tree;
     throw std::domain_error("Not yet implemented.");
-    return Matrix<int>(0,0);
+    return utils::Matrix<int>(0,0);
 }
 
 template <class Tree>

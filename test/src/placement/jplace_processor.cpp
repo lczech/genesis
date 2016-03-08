@@ -14,6 +14,7 @@
 #include "lib/placement/placement_map.hpp"
 
 using namespace genesis;
+using namespace genesis::placement;
 
 TEST(JplaceProcessor, FromFile)
 {

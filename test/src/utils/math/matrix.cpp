@@ -13,6 +13,7 @@
 #include "lib/utils/math/matrix/operators.hpp"
 
 using namespace genesis;
+using namespace utils;
 
 TEST(Matrix, Copy)
 {

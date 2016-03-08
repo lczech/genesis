@@ -15,6 +15,7 @@
 #include "utils/math/histogram/stats.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Histogram Operations
@@ -39,4 +40,5 @@ void normalize (Histogram& h, double total)
     scale(h, total / sum(h));
 }
 
+} // namespace utils
 } // namespace genesis

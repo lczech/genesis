@@ -23,6 +23,8 @@
 #include "lib/utils/io/nexus/writer.hpp"
 
 using namespace genesis;
+using namespace genesis::placement;
+using namespace genesis::utils;
 
 TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
 {
@@ -82,13 +84,13 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
     proc.enable_edge_nums(false);
     std::string tree_out = proc.to_string(map.tree());
 
-    auto doc = nexus::Document();
+    auto doc = NexusDocument();
 
-    auto taxa = make_unique<nexus::Taxa>();
+    auto taxa = make_unique<NexusTaxa>();
     taxa->add_taxa(node_names(map.tree()));
     doc.set_block( std::move(taxa) );
 
-    auto trees = make_unique<nexus::Trees>();
+    auto trees = make_unique<NexusTrees>();
     trees->add_tree( "tree1", tree_out );
     doc.set_block( std::move(trees) );
 
@@ -97,7 +99,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
 
     std::ostringstream buffer;
 
-    auto writer = nexus::Writer();
+    auto writer = NexusWriter();
     writer.to_stream( doc, buffer );
     auto nexus_out = buffer.str();
 

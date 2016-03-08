@@ -12,13 +12,13 @@
 #include <ostream>
 
 namespace genesis {
-namespace nexus {
+namespace utils {
 
 // =================================================================================================
 //     Nexus Writer
 // =================================================================================================
 
-void Writer::to_stream( Document const& doc, std::ostream& out )
+void NexusWriter::to_stream( NexusDocument const& doc, std::ostream& out ) const
 {
     out << "#NEXUS\n";
 
@@ -29,5 +29,5 @@ void Writer::to_stream( Document const& doc, std::ostream& out )
     }
 }
 
-} // namespace nexus
+} // namespace utils
 } // namespace genesis

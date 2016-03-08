@@ -11,6 +11,7 @@
 #include <string>
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     General Definitions
@@ -327,6 +328,7 @@ private:
     std::string value_;
 };
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

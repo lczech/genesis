@@ -17,6 +17,7 @@
 #include "utils/core/options.hpp"
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Placement Simulator Two Step
@@ -75,7 +76,7 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_random_weights ()
 
     std::bernoulli_distribution distrib;
     for (size_t i = 0; i < num_edges; ++i) {
-        if (distrib (Options::get().random_engine())) {
+        if( distrib( utils::Options::get().random_engine() )) {
             weights[i] = 1.0;
         }
     }
@@ -90,7 +91,7 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_random_subtree_weights ()
     weights = std::vector<double>(num_edges, 0.0);
 
     std::uniform_int_distribution<int> edge_distrib(0, num_edges);
-    size_t edge_idx = edge_distrib (Options::get().random_engine());
+    size_t edge_idx = edge_distrib( utils::Options::get().random_engine() );
 
     PlacementTree::LinkType* start_link;
     // std::bernoulli_distribution dir_distrib;
@@ -228,7 +229,7 @@ void PlacementSimulatorTwostep::EdgeDistribution::prepare()
  */
 size_t PlacementSimulatorTwostep::EdgeDistribution::generate()
 {
-    return distrib_(Options::get().random_engine());
+    return distrib_( utils::Options::get().random_engine() );
 }
 
 // =================================================================================================
@@ -251,7 +252,7 @@ double PlacementSimulatorTwostep::ProximalLengthDistribution::generate(
 ) {
     // We do a multiplication with the branch length here, because this allows for a single
     // distribution instance instead of one per different length.
-    return distrib_(Options::get().random_engine()) * edge->data.branch_length;
+    return distrib_( utils::Options::get().random_engine() ) * edge->data.branch_length;
 }
 
 // =================================================================================================
@@ -275,7 +276,8 @@ double PlacementSimulatorTwostep::PendantLengthDistribution::generate(
     // We don't use the edge in the default distribution.
     (void) edge;
 
-    return distrib_(Options::get().random_engine());
+    return distrib_( utils::Options::get().random_engine() );
 }
 
+} // namespace placement
 } // namespace genesis
