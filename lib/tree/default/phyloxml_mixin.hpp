@@ -8,7 +8,7 @@
  * @ingroup tree
  */
 
-#include "utils/io/xml_document.hpp"
+#include "utils/io/xml/document.hpp"
 
 namespace genesis {
 
@@ -39,13 +39,13 @@ public:
 
 protected:
 
-    virtual void node_to_element( NodeType const& node, XmlElement& element ) override
+    virtual void node_to_element( NodeType const& node, utils::XmlElement& element ) override
     {
         Base::node_to_element(node, element);
         set_name(element, node.data.name);
     }
 
-    virtual void edge_to_element( EdgeType const& edge, XmlElement& element ) override
+    virtual void edge_to_element( EdgeType const& edge, utils::XmlElement& element ) override
     {
         Base::edge_to_element(edge, element);
         set_branch_length(element, edge.data.branch_length);
@@ -57,18 +57,18 @@ protected:
 
 protected:
 
-    void set_name (XmlElement& element, const std::string& name)
+    void set_name( utils::XmlElement& element, const std::string& name )
     {
         // TODO do not create new element if there is already one!
-        auto name_e = make_unique<XmlElement>("name");
+        auto name_e = make_unique< utils::XmlElement >( "name" );
         name_e->append_markup(name);
         element.content.push_back(std::move(name_e));
     }
 
-    void set_branch_length (XmlElement& element, double length)
+    void set_branch_length( utils::XmlElement& element, double length )
     {
         // TODO do not create new element if there is already one!
-        auto bl_e = make_unique<XmlElement>("branch_length");
+        auto bl_e = make_unique< utils::XmlElement >( "branch_length" );
         bl_e->append_markup(std::to_string(length));
         element.content.push_back(std::move(bl_e));
     }

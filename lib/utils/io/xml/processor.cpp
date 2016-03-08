@@ -5,16 +5,17 @@
  * @ingroup utils
  */
 
-#include "utils/io/xml_processor.hpp"
+#include "utils/io/xml/processor.hpp"
 
 #include <assert.h>
 
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
-#include "utils/io/xml_document.hpp"
+#include "utils/io/xml/document.hpp"
 #include "utils/text/string.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Parsing
@@ -159,4 +160,5 @@ std::string XmlProcessor::xml_escape (const std::string& txt)
     return res;
 }
 
+} // namespace utils
 } // namespace genesis

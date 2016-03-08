@@ -16,6 +16,7 @@
 #include "utils/core/std.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Xml Value
@@ -205,6 +206,7 @@ const XmlComment* xml_value_to_comment (const XmlValue* v);
 const XmlMarkup*  xml_value_to_markup  (const XmlValue* v);
 const XmlElement* xml_value_to_element (const XmlValue* v);
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard
