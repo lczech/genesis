@@ -11,6 +11,7 @@
 #include "utils/io/lexer.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     Json Lexer
@@ -68,6 +69,7 @@ protected:
     }
 };
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

@@ -17,7 +17,10 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-class JsonDocument;
+namespace utils {
+    class JsonDocument;
+}
+
 class PlacementMap;
 class PlacementMapSet;
 
@@ -51,9 +54,9 @@ public:
     bool from_files    (const std::vector<std::string>& fns, PlacementMapSet& set);
     bool from_strings  (const std::vector<std::string>& jps, PlacementMapSet& set);
 
-    bool from_file     (const std::string&  fn,     PlacementMap& placements);
-    bool from_string   (const std::string&  jplace, PlacementMap& placements);
-    bool from_document (const JsonDocument& doc,    PlacementMap& placements);
+    bool from_file     (const std::string&  fn,         PlacementMap& placements);
+    bool from_string   (const std::string&  jplace,     PlacementMap& placements);
+    bool from_document (const utils::JsonDocument& doc, PlacementMap& placements);
 
     // -----------------------------------------------------
     //     Members
@@ -66,10 +69,10 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    bool        to_file     (const PlacementMap& placements, const std::string   fn);
-    void        to_string   (const PlacementMap& placements,       std::string&  jplace);
+    bool        to_file     (const PlacementMap& placements,  const std::string   fn);
+    void        to_string   (const PlacementMap& placements,        std::string&  jplace);
     std::string to_string   (const PlacementMap& placements);
-    void        to_document (const PlacementMap& placements,       JsonDocument& doc);
+    void        to_document (const PlacementMap& placements, utils::JsonDocument& doc);
 };
 
 } // namespace genesis

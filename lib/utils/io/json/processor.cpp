@@ -5,16 +5,17 @@
  * @ingroup utils
  */
 
-#include "utils/io/json_processor.hpp"
+#include "utils/io/json/processor.hpp"
 
 #include <assert.h>
 
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
-#include "utils/io/json_document.hpp"
+#include "utils/io/json/document.hpp"
 #include "utils/text/string.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Parsing
@@ -409,4 +410,5 @@ std::string JsonProcessor::print_object (const JsonValueObject* value, const int
     return ss.str();
 }
 
+} // namespace utils
 } // namespace genesis

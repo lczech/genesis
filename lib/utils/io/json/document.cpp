@@ -5,12 +5,13 @@
  * @ingroup utils
  */
 
-#include "utils/io/json_document.hpp"
+#include "utils/io/json/document.hpp"
 
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace utils {
 
 // =============================================================================
 //     JsonDocument
@@ -136,4 +137,5 @@ JsonValueObject* json_value_to_object (const JsonValue* v)
     return static_cast<JsonValueObject*> (const_cast<JsonValue*> (v));
 }
 
+} // namespace utils
 } // namespace genesis
