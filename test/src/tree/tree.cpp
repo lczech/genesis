@@ -14,6 +14,7 @@
 #include "lib/tree/tree.hpp"
 
 using namespace genesis;
+using namespace tree;
 
 TEST(Tree, Basics)
 {

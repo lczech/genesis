@@ -13,6 +13,7 @@
 #include "tree/io/newick/processor.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Default Tree Newick Processor
@@ -20,6 +21,7 @@ namespace genesis {
 
 typedef DefaultTreeNewickMixin<NewickProcessor<DefaultTree>> DefaultTreeNewickProcessor;
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

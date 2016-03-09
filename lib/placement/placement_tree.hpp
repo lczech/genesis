@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "tree/default/tree.hpp"
 #include "tree/tree.hpp"
 
 namespace genesis {
@@ -26,7 +27,7 @@ class PqueryPlacement;
 //     Placement Tree Node Data
 // =================================================================================================
 
-class PlacementTreeNodeData : public DefaultTreeNodeData
+class PlacementTreeNodeData : public tree::DefaultTreeNodeData
 {
 public:
 
@@ -36,7 +37,7 @@ public:
 //     Placement Tree Edge Data
 // =================================================================================================
 
-class PlacementTreeEdgeData : public DefaultTreeEdgeData
+class PlacementTreeEdgeData : public tree::DefaultTreeEdgeData
 {
 public:
 
@@ -84,11 +85,11 @@ public:
 // =================================================================================================
 
 // let's avoid tedious names!
-typedef TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
-typedef TreeLink <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeLink;
-typedef TreeNode <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeNode;
+typedef tree::TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
+typedef tree::TreeLink <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeLink;
+typedef tree::TreeNode <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeNode;
 
-typedef Tree     <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTree;
+typedef tree::Tree     <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTree;
 
 } // namespace placement
 } // namespace genesis

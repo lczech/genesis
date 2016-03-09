@@ -13,6 +13,7 @@
 #include <iterator>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Path Iterator
@@ -142,6 +143,7 @@ protected:
 
 */
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

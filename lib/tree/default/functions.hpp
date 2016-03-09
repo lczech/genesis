@@ -12,6 +12,7 @@
 #include<vector>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Node Names
@@ -30,6 +31,7 @@ typename TreeType::NodeType* find_node(
     bool replace_underscores = false
 );
 
+} // namespace tree
 } // namespace genesis
 
 // =================================================================================================

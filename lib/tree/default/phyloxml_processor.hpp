@@ -13,6 +13,7 @@
 #include "tree/io/phyloxml/processor.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Default Tree Phyloxml Processor
@@ -20,6 +21,7 @@ namespace genesis {
 
 typedef DefaultTreePhyloxmlMixin<PhyloxmlProcessor<DefaultTree>> DefaultTreePhyloxmlProcessor;
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

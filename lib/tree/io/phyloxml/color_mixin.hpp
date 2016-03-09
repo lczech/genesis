@@ -15,6 +15,7 @@
 #include <stdexcept>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Phyloxml Color Mixin
@@ -128,6 +129,7 @@ protected:
 
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

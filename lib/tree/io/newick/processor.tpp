@@ -21,6 +21,7 @@
 #include "utils/core/std.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Parsing
@@ -544,4 +545,5 @@ void NewickProcessor<TreeType>::finish_writing( TreeType const& tree, NewickBrok
     (void) broker;
 }
 
+} // namespace tree
 } // namespace genesis

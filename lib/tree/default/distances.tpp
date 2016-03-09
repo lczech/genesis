@@ -9,6 +9,7 @@
 #include <assert.h>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Distance Related Propoerties
@@ -318,4 +319,5 @@ std::vector<std::pair<const typename Tree::NodeType*, double>> closest_leaf_dist
     return vec;
 }
 
+} // namespace tree
 } // namespace genesis

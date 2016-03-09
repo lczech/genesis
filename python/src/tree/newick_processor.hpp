@@ -19,7 +19,7 @@
 template <typename AdapterType>
 void BoostPythonExport_NewickProcessor(std::string name)
 {
-    typedef ::genesis::NewickProcessor<AdapterType> NewickProcessorType;
+    typedef ::genesis::tree::NewickProcessor<AdapterType> NewickProcessorType;
     typedef typename AdapterType::TreeType TreeType;
 
     boost::python::class_< NewickProcessorType > ( name.c_str(), boost::python::init<  >(  ) )

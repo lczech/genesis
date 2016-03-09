@@ -10,6 +10,7 @@
 #include <vector>
 
 namespace genesis {
+namespace tree {
 
 // =============================================================================
 //     Viewing Methods
@@ -105,4 +106,5 @@ std::string TreeView::compact (const TreeType& tree)
     return compact(tree, print_line);
 }
 
+} // namespace tree
 } // namespace genesis

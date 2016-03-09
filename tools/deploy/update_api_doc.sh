@@ -1,12 +1,12 @@
 #!/bin/bash
 
 ####################################################################################################
-#    This script builds and transfers the api documentation in doc/html to the web server.
+#    This script builds and transfers the documentation in doc/doc to the web server.
 ####################################################################################################
 
 # There are four operations this script can do:
 #   * clean: Delete all doc files.
-#   * make: Build the api doc. Update only the changed files.
+#   * make: Build the doc. Update only the changed files.
 #   * refresh: Full new build of the doc files (= clean + make).
 #   * transfer: Transfer the files to the server. Does not build them!
 # The operation can be provided via the command line parameter.
@@ -17,7 +17,7 @@
 cd `git rev-parse --show-toplevel`
 cd doc/
 
-# Set options: build api and transfer it to server.
+# Set options: build and transfer it to server.
 do_clean=0
 do_make=0
 do_trans=0
@@ -42,7 +42,7 @@ if [[ ${do_clean} == 1 ]]; then
     make clean
 fi
 
-# Build doxygen api manual.
+# Build doxygen manual.
 if [[ ${do_make} == 1 ]]; then
     echo -e "\e[34mDoxygen error output:\e[0m\n"
 
@@ -59,37 +59,37 @@ if [[ ${do_trans} == 1 ]]; then
     fi
 
     echo -e "\e[34mTransfer to server\e[0m\n"
-    cd api/
+    cd doc/
 
     remote_host="genesis-lib.org"
     remote_path="/html/"
 
-    echo -e    "Target:   ${remote_host}${remote_path}api/"
+    echo -e    "Target:   ${remote_host}${remote_path}doc/"
     read    -p "Username: " remote_user
     read -s -p "Password: " remote_pswd
     echo -e "\n"
 
     # Run the transfer script. (Unfortunately, indention has to be like that...)
     # The transfer for all the doxygen generated files (>2,000) takes a while. In order to minimize
-    # off-time, we first transfer to a tmp dir `api_new`. then quickly switch with the old one,
+    # off-time, we first transfer to a tmp dir `doc_new`. then quickly switch with the old one,
     # and only after that delete the old dir.
 ncftp <<EOF
 open -u $remote_user -p $remote_pswd $remote_host
 
 cd $remote_path
-mkdir api_mew
+mkdir doc_mew
 
-cd api_mew
+cd doc_mew
 put -R *
 cd ..
 
-rename api api_old
-rename api_mew api
+rename doc doc_old
+rename doc_mew doc
 
-rm api_old/search/*
-rmdir api_old/search/
-rm api_old/*
-rmdir api_old/
+rm doc_old/search/*
+rmdir doc_old/search/
+rm doc_old/*
+rmdir doc_old/
 
 bye
 EOF

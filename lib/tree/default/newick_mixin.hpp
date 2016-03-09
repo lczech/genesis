@@ -13,6 +13,7 @@
 #include "utils/text/string.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Default TreeNewick Adapter
@@ -180,6 +181,7 @@ private:
     // bool print_tags           = false;
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

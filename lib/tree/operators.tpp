@@ -10,6 +10,7 @@
 // #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Equality
@@ -109,4 +110,5 @@ bool identical_topology(const TreeTypeL& lhs, const TreeTypeR& rhs)
     return equal<TreeTypeL, TreeTypeR>(lhs, rhs, node_comparator, edge_comparator);
 }
 
+} // namespace tree
 } // namespace genesis

@@ -21,6 +21,7 @@
 #include "utils/io/xml/processor.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Parsing
@@ -204,4 +205,5 @@ void PhyloxmlProcessor<TreeType>::finish_writing( TreeType const& tree, utils::X
     (void) xml;
 }
 
+} // namespace tree
 } // namespace genesis

@@ -11,6 +11,7 @@
 #include <iterator>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Nodes Iterator
@@ -102,6 +103,7 @@ private:
     container_type::iterator it_;
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

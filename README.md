@@ -10,13 +10,19 @@ A toolkit for working with phylogenetic data.
 Introduction
 ------------
 
-The aim of this project is to provide an easy to use toolkit for working with data coming from
-evolutionary placement of short NGS reads on a reference phylogenetic tree.
-This data is produced by tools like
-[RAxML-EPA](http://sco.h-its.org/exelixis/web/software/epa/index.html) or
-[pplacer](http://matsen.fhcrc.org/pplacer/) and is usually stored in `.jplace` files.
-Please refer to the articles listed in the References section for background information on
-evolutionary placement.
+The aim of this project is to provide an easy to use toolkit for working with phylogenetic data.
+Currently, it supports:
+
+ *  **Placements**. Working with evolutionary placements of short NGS reads on a
+    reference phylogenetic tree is the main focus of genesis. The data is typically produced by
+    tools like [RAxML-EPA](http://sco.h-its.org/exelixis/web/software/epa/index.html) or
+    [pplacer](http://matsen.fhcrc.org/pplacer/) and usually stored in `jplace` files.
+ *  **Trees**: Reading, annotating and writing phylogenetic trees is supported, mainly for
+    visulization purposes.
+ *  **Sequences**. Some basic functionality for reading, filtering and writing sequences in e.g.,
+    `fasta` or `phylip` format is available.
+
+The feature list will hopefully grow in the future.
 
 Usage
 -----
@@ -27,9 +33,9 @@ needs:
  *  As a C++ library.
  *  As a Python module.
 
-The code is written as a C++11 library. It can thus be used in your projects by including
+The code is written as a C++11 library. It can thus be used in custom projects by including
 the necessary headers and linking against the binary (either shared or static, see section Build).
-Furthermore, if you quickly want to build a small application that uses genesis as its main
+Furthermore, for quickly prototyping small applications that use genesis as their main
 library, have a look at the `./apps` directory.
 
 In addition to C++, the classes and functions are (mostly) exported to Python. The genesis module
@@ -38,13 +44,7 @@ can be imported and used as any other Python code.
 Documentation
 -------------
 
-The high-level documentation for end users is provided via the
-[genesis wiki](https://github.com/lczech/genesis/wiki).
-See there for tutorials and examples to get started.
-
-Furthermore, the code is documented using Doxygen. This detailed api documentation is available in
-the `./doc` directory. It is intended for developers who want to use genesis to build their own
-applications.
+The genesis documentation is available at [doc.genesis-lib.org](http://doc.genesis-lib.org/).
 
 Build
 -----
@@ -60,13 +60,13 @@ It will build all parts of genesis for which the requirements are fulfilled.
 Requirements:
 
  *  Building the C++ library binaries (shared or static) requires a fairly up-to-date C++11
-    compiler. We currently use [clang](http://clang.llvm.org/) 3.6.0, but it should work with
+    compiler. We currently use [clang](http://clang.llvm.org/) 3.6.0, but it works with
     [gcc](https://gcc.gnu.org/) as well.
  *  Building the Python module requires [Boost Python](www.boost.org/doc/libs/release/libs/python/)
-    1.55 or higher. Frankly, this is a huge requirement, but currently this is the way it is.
+    1.41 or higher. Frankly, this is a huge requirement, but currently this is the way it is.
     You might need to compile Boost Python with the `-fPIC` flag to work properly.
  *  If you also want to build the tests, you need [Google Test](https://github.com/google/googletest).
-    We internally run the tests before every commit, so you don't need to. Have a look at the
+    We internally run the tests before every release, so you don't need to. Have a look at the
     `./test` directory for more information.
 
 The build files are written to the `./build` directory, and the final binaries to the `./bin`

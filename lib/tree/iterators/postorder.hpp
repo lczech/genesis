@@ -13,6 +13,7 @@
 #include <iterator>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Postorder Iterator
@@ -149,6 +150,7 @@ protected:
     std::deque<LinkPointerType> stack_;
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

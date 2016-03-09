@@ -11,6 +11,7 @@
 #include <string>
 
 namespace genesis {
+namespace tree {
 
 // =============================================================================
 //     Forward declarations
@@ -149,6 +150,7 @@ public:
     EdgeType* edge_;
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

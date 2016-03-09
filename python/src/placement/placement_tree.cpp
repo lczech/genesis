@@ -24,8 +24,10 @@ using namespace genesis::placement;
 void BoostPythonExport_PlacementTreeNodeData()
 {
 
-    boost::python::class_< ::genesis::placement::PlacementTreeNodeData, boost::python::bases< ::genesis::DefaultTreeNodeData > > ( "PlacementTreeNodeData" )
-    ;
+    boost::python::class_<
+        ::genesis::placement::PlacementTreeNodeData,
+        boost::python::bases< ::genesis::tree::DefaultTreeNodeData >
+    > ( "PlacementTreeNodeData" );
 }
 
 // -------------------------------------------------------------------
@@ -34,7 +36,10 @@ void BoostPythonExport_PlacementTreeNodeData()
 
 void BoostPythonExport_PlacementTreeEdgeData()
 {
-    boost::python::class_< ::genesis::placement::PlacementTreeEdgeData, boost::python::bases< ::genesis::DefaultTreeEdgeData > > ( "PlacementTreeEdgeData" )
+    boost::python::class_<
+        ::genesis::placement::PlacementTreeEdgeData,
+        boost::python::bases< ::genesis::tree::DefaultTreeEdgeData >
+    > ( "PlacementTreeEdgeData" )
 
         // Public Member Functions
 
@@ -77,7 +82,7 @@ PYTHON_EXPORT_CLASS (PlacementTree, "placement.tree")
 {
     using namespace genesis;
 
-    PYTHON_REQUIRES_CLASS(DefaultTree)
+    PYTHON_REQUIRES_CLASS( tree::DefaultTree )
 
     BoostPythonExport_PlacementTreeNodeData();
     BoostPythonExport_PlacementTreeEdgeData();

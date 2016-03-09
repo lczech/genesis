@@ -21,6 +21,7 @@
 #include <algorithm>
 
 using namespace genesis;
+using namespace tree;
 
 TEST(DefaultTree, EdgeColorBranchLengthGradient)
 {

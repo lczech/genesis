@@ -17,6 +17,7 @@
 #include "lib/utils/math/matrix.hpp"
 
 using namespace genesis;
+using namespace tree;
 
 TEST(DefaultTree, Distances)
 {

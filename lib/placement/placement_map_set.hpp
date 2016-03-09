@@ -110,7 +110,7 @@ public:
         return maps_.size();
     }
 
-    TreeSet<PlacementTree> tree_set();
+    tree::TreeSet<PlacementTree> tree_set();
 
     // -----------------------------------------------------
     //     Comparators

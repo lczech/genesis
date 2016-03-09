@@ -11,6 +11,7 @@
 #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace tree {
 
 // -------------------------------------------------------------
 //     Dump and Debug
@@ -197,4 +198,5 @@ std::string BipartitionSet<Tree>::dump()
     return out.str();
 }
 
+} // namespace tree
 } // namespace genesis

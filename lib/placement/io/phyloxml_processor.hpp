@@ -19,7 +19,7 @@ namespace placement {
 //     Placement Tree Phyloxml Processor
 // =================================================================================================
 
-typedef DefaultTreePhyloxmlMixin< PhyloxmlProcessor< PlacementTree > >
+typedef tree::DefaultTreePhyloxmlMixin< tree::PhyloxmlProcessor< PlacementTree > >
     PlacementTreePhyloxmlProcessor;
 
 } // namespace placement

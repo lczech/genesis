@@ -14,6 +14,7 @@
 #include <assert.h>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Newick Parser
@@ -339,4 +340,5 @@ std::string generate_newick_tree( NewickBroker const& broker )
     return to_string_rec(broker, 0) + ";";
 }
 
+} // namespace tree
 } // namespace genesis

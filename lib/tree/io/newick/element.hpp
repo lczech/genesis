@@ -13,6 +13,7 @@
 #include <vector>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Forward Declarations
@@ -134,6 +135,7 @@ private:
     mutable int rank_;
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

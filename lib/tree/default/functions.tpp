@@ -8,6 +8,7 @@
 #include "utils/text/string.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Node Names
@@ -60,4 +61,5 @@ typename TreeType::NodeType* find_node(
     return nullptr;
 }
 
+} // namespace tree
 } // namespace genesis

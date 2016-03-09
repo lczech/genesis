@@ -15,6 +15,7 @@
 #include "tree/bipartition/bipartition.hpp"
 
 namespace genesis {
+namespace tree {
 
 template <typename Tree>
 class BipartitionSet
@@ -62,6 +63,7 @@ protected:
 
 };
 
+} // namespace tree
 } // namespace genesis
 
 // =============================================================================

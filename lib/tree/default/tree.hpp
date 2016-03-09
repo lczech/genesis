@@ -11,6 +11,7 @@
 #include <string>
 
 namespace genesis {
+namespace tree {
 
 // =============================================================================
 //     Forward declarations
@@ -151,6 +152,7 @@ typedef TreeEdge <DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTreeEdge;
 typedef TreeLink <DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTreeLink;
 typedef TreeNode <DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTreeNode;
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

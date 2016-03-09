@@ -11,6 +11,7 @@
 #include <functional>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Equality
@@ -65,6 +66,7 @@ bool equal(const TreeTypeL& lhs, const TreeTypeR& rhs);
 template <class TreeTypeL, class TreeTypeR>
 bool identical_topology(const TreeTypeL& lhs, const TreeTypeR& rhs);
 
+} // namespace tree
 } // namespace genesis
 
 // =================================================================================================

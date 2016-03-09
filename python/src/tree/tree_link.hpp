@@ -17,9 +17,9 @@
 template <class NodeDataType, class EdgeDataType>
 void BoostPythonExport_TreeLink (std::string name)
 {
-    typedef ::genesis::TreeEdge<NodeDataType, EdgeDataType> EdgeType;
-    typedef ::genesis::TreeLink<NodeDataType, EdgeDataType> LinkType;
-    typedef ::genesis::TreeNode<NodeDataType, EdgeDataType> NodeType;
+    typedef ::genesis::tree::TreeEdge<NodeDataType, EdgeDataType> EdgeType;
+    typedef ::genesis::tree::TreeLink<NodeDataType, EdgeDataType> LinkType;
+    typedef ::genesis::tree::TreeNode<NodeDataType, EdgeDataType> NodeType;
 
     boost::python::class_< LinkType, boost::noncopyable > ( name.c_str() )
 

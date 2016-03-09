@@ -72,7 +72,7 @@ public:
 
 protected:
 
-    virtual void element_to_edge( NewickBrokerElement const& element, EdgeType& edge ) override
+    virtual void element_to_edge( tree::NewickBrokerElement const& element, EdgeType& edge ) override
     {
         Base::element_to_edge(element, edge);
 
@@ -94,7 +94,7 @@ protected:
         edge.data.edge_num = std::stoi(element.tags[0]);
     }
 
-    virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element ) override
+    virtual void edge_to_element( EdgeType const& edge, tree::NewickBrokerElement& element ) override
     {
         Base::edge_to_element(edge, element);
 
@@ -120,7 +120,9 @@ private:
 //     Placement Tree Newick Processor
 // =================================================================================================
 
-typedef PlacementTreeNewickMixin< DefaultTreeNewickMixin< NewickProcessor< PlacementTree > > >
+typedef PlacementTreeNewickMixin<
+        tree::DefaultTreeNewickMixin< tree::NewickProcessor< PlacementTree > >
+    >
     PlacementTreeNewickProcessor;
 
 } // namespace placement

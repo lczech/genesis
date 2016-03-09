@@ -11,6 +11,7 @@
 #include "utils/io/lexer.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =============================================================================
 //     Newick Lexer
@@ -31,6 +32,7 @@ private:
     bool scan_tag() override;
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

@@ -16,6 +16,7 @@
 #include "utils/core/std.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Construction and Destruction
@@ -528,4 +529,5 @@ std::string Tree<NDT, EDT>::dump_lists() const
     return out.str();
 }
 
+} // namespace tree
 } // namespace genesis

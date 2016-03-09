@@ -19,8 +19,8 @@ void BoostPythonExport_BipartitionSet(std::string name)
     typedef typename Tree::LinkType LinkType;
     typedef typename Tree::EdgeType EdgeType;
 
-    typedef ::genesis::Bipartition   <TreeType> BipartitionType;
-    typedef ::genesis::BipartitionSet<TreeType> BipartitionSetType;
+    typedef ::genesis::tree::Bipartition   <TreeType> BipartitionType;
+    typedef ::genesis::tree::BipartitionSet<TreeType> BipartitionSetType;
 
     // -------------------------------------------------------------------
     //     Class BipartitionSet
