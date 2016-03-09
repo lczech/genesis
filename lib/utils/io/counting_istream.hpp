@@ -21,21 +21,22 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Wrapper class to iterate over an std::istream while keeping track of lines and columns.
+ * @brief Wrapper class to iterate over an `std::istream` while keeping track of lines and columns.
  *
- * It provides similar functionality to std::istream, but has a different way of handling the
+ * It provides similar functionality to `std::istream`, but has a different way of handling the
  * stream and characters. The main differences are:
  *
  *   * The stream is not automatically advanced after reading a char. This is because otherwise
  *     the line and column would already point to the next char while processing the last.
- *     Thus, advance() or the increment operator have to be called to get to the next char in the
- *     stream.
- *   * The handling of '\\r' characters (part of the CR+LF new lines as used in Windows). Those are
- *     completely skipped in this iterator. This ensures that all new lines are simply represented
- *     as '\n' independent of the file format.
+ *     Thus, advance() or the increment operator++() have to be called to get to the next char in
+ *     the stream.
+ *   * The handling of '\\r' characters (part of the CR+LF new lines as used in Windows) is
+ *     different. Those are completely skipped in this iterator. This ensures that all new lines
+ *     are simply represented as '\\n' independent of the file format.
  *
  * It has two member functions line() and column() that return the corresponding values for the
- * current iterator position and a member function current() that provides a checked version of the
+ * current iterator position. Also, at() can be used to get a textual representation of the current
+ * position. The member function current() furthermore provides a checked version of the
  * dereference operator.
  */
 class CountingIstream
@@ -53,6 +54,9 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
+    /**
+     * @brief Default constructor. Creates an empty stream that cannot be read from.
+     */
     CountingIstream()
         : it_()
         , eos_()
@@ -61,6 +65,9 @@ public:
         , column_(0)
     {}
 
+    /**
+     * @brief Constructor that takes an `std::istream` reference as streaming input.
+     */
     explicit CountingIstream(std::istream& in)
         : it_(in)
         , eos_()
@@ -74,6 +81,9 @@ public:
         }
     }
 
+    /**
+     * @brief Constructor that takes an `std::streambuf` pointer as streaming input.
+     */
     explicit CountingIstream(std::streambuf* in_buf)
         : it_(in_buf)
         , eos_()
@@ -87,14 +97,29 @@ public:
         }
     }
 
+    /**
+     * @brief Default destructor.
+     */
     ~CountingIstream() = default;
 
-    // Copy construction deleted to ensure correct line/column counting!
+    /**
+     * @brief Copy constructor. Deleted to ensure correct line/column counting.
+     */
     CountingIstream(self_type const&) = delete;
+
+    /**
+     * @brief Move constructor.
+     */
     CountingIstream(self_type&&)      = default;
 
-    // Copy construction deleted to ensure correct line/column counting!
+    /**
+     * @brief Copy assignment. Deleted to ensure correct line/column counting.
+     */
     self_type& operator= (self_type const&) = delete;
+
+    /**
+     * @brief Move assignment.
+     */
     self_type& operator= (self_type&&)      = default;
 
     void swap (self_type& other) noexcept
