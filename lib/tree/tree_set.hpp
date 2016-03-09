@@ -16,6 +16,7 @@
 //~ #include "tree/tree.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =============================================================================
 //     Forward declarations
@@ -145,6 +146,7 @@ private:
     std::vector<NamedTree> trees_;
 };
 
+} // namespace tree
 } // namespace genesis
 
 // =============================================================================

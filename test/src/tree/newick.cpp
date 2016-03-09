@@ -16,6 +16,7 @@
 #include "lib/utils/text/string.hpp"
 
 using namespace genesis;
+using namespace tree;
 
 TEST(Newick, FromAndToString)
 {

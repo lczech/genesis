@@ -21,6 +21,7 @@
 #include "tree/tree_node.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Forward Declarations
@@ -585,6 +586,7 @@ private:
     std::vector<std::unique_ptr<EdgeType>> edges_;
 };
 
+} // namespace tree
 } // namespace genesis
 
 // =================================================================================================

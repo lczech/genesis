@@ -14,6 +14,7 @@
 #include "utils/math/bitvector.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =============================================================================
 //     Forward Declarations
@@ -74,6 +75,7 @@ protected:
 
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

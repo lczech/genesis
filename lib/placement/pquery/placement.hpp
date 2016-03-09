@@ -14,16 +14,18 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-template<class NodeDataType, class EdgeDataType>
-class TreeEdge;
+namespace tree {
+    template<class NodeDataType, class EdgeDataType>
+    class TreeEdge;
+}
 
 namespace placement {
     class PlacementTreeEdgeData;
     class PlacementTreeNodeData;
     class Pquery;
-}
 
-typedef TreeEdge< placement::PlacementTreeNodeData, placement::PlacementTreeEdgeData > PlacementTreeEdge;
+    typedef tree::TreeEdge< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTreeEdge;
+}
 
 // =================================================================================================
 //     Pquery Placement

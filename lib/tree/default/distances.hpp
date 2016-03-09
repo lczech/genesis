@@ -14,6 +14,7 @@
 #include "utils/math/matrix.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Distance Related Propoerties
@@ -99,6 +100,7 @@ std::vector<std::pair<const typename Tree::NodeType*, double>> closest_leaf_dist
     const Tree& tree
 );
 
+} // namespace tree
 } // namespace genesis
 
 // =================================================================================================

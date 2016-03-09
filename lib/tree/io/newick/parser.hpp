@@ -13,6 +13,7 @@
 #include <string>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Forward declarations
@@ -34,6 +35,7 @@ std::string generate_newick_tree (
     NewickBroker const& broker
 );
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

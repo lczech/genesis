@@ -13,6 +13,7 @@
 #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =============================================================================
 //     Modifiers
@@ -140,7 +141,7 @@ bool TreeSet<TreeType>::all_equal(
     // Thus, we do not need a complete pairwise comparision.
     // TODO the namespace thing is weird, but currently neccesary because of an ambiguous call...
     for (size_t i = 1; i < trees_.size(); i++) {
-        if (!genesis::equal(trees_[i-1].tree, trees_[i].tree, node_comparator, edge_comparator)) {
+        if( ! tree::equal( trees_[i-1].tree, trees_[i].tree, node_comparator, edge_comparator )) {
             return false;
         }
     }
@@ -221,4 +222,5 @@ std::string TreeSet<TreeType>::dump(bool full) const
     return res;
 }
 
+} // namespace tree
 } // namespace genesis

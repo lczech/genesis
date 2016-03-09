@@ -24,12 +24,15 @@ namespace utils {
 //     Edge Color Functions
 // =================================================================================================
 
+namespace tree {
+
 template<class TreeType>
 std::vector<utils::Color> edge_color_branch_length_gradient(
     TreeType const& tree,
     bool zero_based = false
 );
 
+} // namespace tree
 } // namespace genesis
 
 // =================================================================================================

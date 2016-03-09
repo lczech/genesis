@@ -20,15 +20,17 @@ namespace utils {
     class Color;
 }
 
-template<class NDT, class EDT>
-class Tree;
+namespace tree {
+    template<class NDT, class EDT>
+    class Tree;
+}
 
 namespace placement {
     class PlacementTreeNodeData;
     class PlacementTreeEdgeData;
-}
 
-typedef Tree< placement::PlacementTreeNodeData, placement::PlacementTreeEdgeData > PlacementTree;
+    typedef tree::Tree< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTree;
+}
 
 // =================================================================================================
 //     Placement Edge Color Functions

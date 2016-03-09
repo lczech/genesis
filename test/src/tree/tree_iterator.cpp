@@ -19,6 +19,7 @@
 #include "tree/iterators/preorder.hpp"
 
 using namespace genesis;
+using namespace tree;
 
 // =================================================================================================
 //     Eulertour

@@ -16,6 +16,7 @@
 #include "tree/io/newick/element.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     NewickBroker
@@ -190,6 +191,7 @@ private:
     std::deque<NewickBrokerElement> stack_;
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

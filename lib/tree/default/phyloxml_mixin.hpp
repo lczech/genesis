@@ -11,6 +11,7 @@
 #include "utils/io/xml/document.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Default Tree Phyloxml Mixin
@@ -97,6 +98,7 @@ protected:
 
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

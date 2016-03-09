@@ -32,7 +32,7 @@ template <class NodeDataType, class EdgeDataType>
 void BoostPythonExport_Tree (std::string name)
 {
     using namespace genesis;
-    typedef ::genesis::Tree<NodeDataType, EdgeDataType> TreeType;
+    typedef ::genesis::tree::Tree<NodeDataType, EdgeDataType> TreeType;
 
     // -------------------------------------------------------------------
     //     Export related classes

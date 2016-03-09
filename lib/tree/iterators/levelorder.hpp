@@ -13,6 +13,7 @@
 #include <iterator>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Levelorder Iterator
@@ -139,6 +140,7 @@ protected:
     std::deque<StackElement> stack_;
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

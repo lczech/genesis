@@ -17,11 +17,13 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-template<class NodeDataType, class EdgeDataType>
-class TreeNode;
+namespace tree {
+    template<class NodeDataType, class EdgeDataType>
+    class TreeNode;
 
-template<class NodeDataType, class EdgeDataType>
-class TreeEdge;
+    template<class NodeDataType, class EdgeDataType>
+    class TreeEdge;
+}
 
 namespace placement {
     class PlacementMap;
@@ -29,10 +31,10 @@ namespace placement {
     class PlacementTreeEdgeData;
     class PlacementTreeNodeData;
     struct PqueryPlain;
-}
 
-typedef TreeNode< placement::PlacementTreeNodeData, placement::PlacementTreeEdgeData > PlacementTreeNode;
-typedef TreeEdge< placement::PlacementTreeNodeData, placement::PlacementTreeEdgeData > PlacementTreeEdge;
+    typedef tree::TreeNode< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTreeNode;
+    typedef tree::TreeEdge< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTreeEdge;
+}
 
 namespace utils {
     template<typename T>

@@ -9,6 +9,7 @@
  */
 
 namespace genesis {
+namespace tree {
 
 // =============================================================================
 //     Iterator Links
@@ -92,6 +93,7 @@ protected:
     LinkPointerType start_;
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

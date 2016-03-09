@@ -11,6 +11,7 @@
 #include <iterator>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Euler Tour Iterator
@@ -237,6 +238,7 @@ TreeIteratorEulertourRange<typename PointerType::TreeType> eulertour(PointerType
     return TreeIteratorEulertourRange<typename PointerType::TreeType>(link_or_node);
 }
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

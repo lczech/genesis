@@ -10,6 +10,7 @@
 #include <assert.h>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Newick Lexer
@@ -101,4 +102,5 @@ bool NewickLexer::scan_tag()
     return true;
 }
 
+} // namespace tree
 } // namespace genesis

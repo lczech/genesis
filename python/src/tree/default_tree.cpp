@@ -15,30 +15,32 @@
 // #include "python/src/tree/phyloxml_processor.hpp"
 #include "python/src/tree/tree.hpp"
 
+using namespace tree;
+
 // -------------------------------------------------------------------
 //     Class DefaultTreeEdgeData
 // -------------------------------------------------------------------
 
 void BoostPythonExport_DefaultTreeEdgeData()
 {
-    boost::python::class_< ::genesis::DefaultTreeEdgeData > ( "DefaultTreeEdgeData" )
+    boost::python::class_< ::genesis::tree::DefaultTreeEdgeData > ( "DefaultTreeEdgeData" )
 
         // Public Member Functions
 
         // .def(
         //     "from_newick_broker_element",
-        //     ( void ( ::genesis::DefaultTreeEdgeData::* )( NewickBrokerElement * ))( &::genesis::DefaultTreeEdgeData::from_newick_broker_element ),
+        //     ( void ( ::genesis::tree::DefaultTreeEdgeData::* )( NewickBrokerElement * ))( &::genesis::tree::DefaultTreeEdgeData::from_newick_broker_element ),
         //     ( boost::python::arg("node") ),
         //     "Fills the edge with data from a NewickBrokerElement."
         // )
         // .def(
         //     "to_newick_broker_element",
-        //     ( void ( ::genesis::DefaultTreeEdgeData::* )( NewickBrokerElement * ) const )( &::genesis::DefaultTreeEdgeData::to_newick_broker_element ),
+        //     ( void ( ::genesis::tree::DefaultTreeEdgeData::* )( NewickBrokerElement * ) const )( &::genesis::tree::DefaultTreeEdgeData::to_newick_broker_element ),
         //     ( boost::python::arg("node") )
         // )
         .def(
             "dump",
-            ( std::string ( ::genesis::DefaultTreeEdgeData::* )(  ) const )( &::genesis::DefaultTreeEdgeData::dump )
+            ( std::string ( ::genesis::tree::DefaultTreeEdgeData::* )(  ) const )( &::genesis::tree::DefaultTreeEdgeData::dump )
         )
 
         // Operators
@@ -54,24 +56,24 @@ void BoostPythonExport_DefaultTreeEdgeData()
 
 void BoostPythonExport_DefaultTreeNodeData()
 {
-    boost::python::class_< ::genesis::DefaultTreeNodeData > ( "DefaultTreeNodeData" )
+    boost::python::class_< ::genesis::tree::DefaultTreeNodeData > ( "DefaultTreeNodeData" )
 
         // Public Member Functions
 
         // .def(
         //     "from_newick_broker_element",
-        //     ( void ( ::genesis::DefaultTreeNodeData::* )( NewickBrokerElement * ))( &::genesis::DefaultTreeNodeData::from_newick_broker_element ),
+        //     ( void ( ::genesis::tree::DefaultTreeNodeData::* )( NewickBrokerElement * ))( &::genesis::tree::DefaultTreeNodeData::from_newick_broker_element ),
         //     ( boost::python::arg("node") ),
         //     "Fills the node with data from a NewickBrokerElement."
         // )
         // .def(
         //     "to_newick_broker_element",
-        //     ( void ( ::genesis::DefaultTreeNodeData::* )( NewickBrokerElement * ) const )( &::genesis::DefaultTreeNodeData::to_newick_broker_element ),
+        //     ( void ( ::genesis::tree::DefaultTreeNodeData::* )( NewickBrokerElement * ) const )( &::genesis::tree::DefaultTreeNodeData::to_newick_broker_element ),
         //     ( boost::python::arg("node") )
         // )
         .def(
             "dump",
-            ( std::string ( ::genesis::DefaultTreeNodeData::* )(  ) const )( &::genesis::DefaultTreeNodeData::dump )
+            ( std::string ( ::genesis::tree::DefaultTreeNodeData::* )(  ) const )( &::genesis::tree::DefaultTreeNodeData::dump )
         )
 
         // Operators

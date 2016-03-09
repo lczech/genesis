@@ -14,6 +14,7 @@
 #include <vector>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Color Mixin Base
@@ -144,6 +145,7 @@ private:
 
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

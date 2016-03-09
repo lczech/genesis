@@ -107,9 +107,9 @@ PlacementMap PlacementMapSet::merge_all()
 /**
  * @brief Returns a TreeSet containing all the trees of the Placement Maps.
  */
-TreeSet<PlacementTree> PlacementMapSet::tree_set()
+tree::TreeSet<PlacementTree> PlacementMapSet::tree_set()
 {
-    TreeSet<PlacementTree> set;
+    tree::TreeSet<PlacementTree> set;
     for (auto& map : maps_) {
         // TODO this also needs to be fixed with the shared pointers problem
         set.add(map.name, map.map.tree());

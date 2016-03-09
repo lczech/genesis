@@ -24,6 +24,7 @@
 #include "tree/tree_link.hpp"
 
 namespace genesis {
+namespace tree {
 
 /**
  * @brief True iff the node is a leaf/tip.
@@ -43,6 +44,7 @@ inline bool TreeNode<NDT, EDT>::is_inner() const
     return link_->is_inner();
 }
 
+} // namespace tree
 } // namespace genesis
 
 // =============================================================================
@@ -52,6 +54,7 @@ inline bool TreeNode<NDT, EDT>::is_inner() const
 #include "tree/tree_link.hpp"
 
 namespace genesis {
+namespace tree {
 
 /**
  * @brief Rank of the node, i.e. how many immediate children it has.
@@ -82,4 +85,5 @@ std::string TreeNode<NDT, EDT>::dump() const
     return "Rank: " + std::to_string(rank()) + " \t " + "name: " + this->data.name;
 }
 
+} // namespace tree
 } // namespace genesis

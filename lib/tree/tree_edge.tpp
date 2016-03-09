@@ -24,6 +24,7 @@
 #include "tree/tree_link.hpp"
 
 namespace genesis {
+namespace tree {
 
 /**
  * @brief Returns the node of this edge that points towards the root.
@@ -43,6 +44,7 @@ inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::secondary_node() const
     return link_s_->node();
 }
 
+} // namespace tree
 } // namespace genesis
 
 // =============================================================================
@@ -50,6 +52,7 @@ inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::secondary_node() const
 // =============================================================================
 
 namespace genesis {
+namespace tree {
 
 /**
  * @brief Returns a one-line dump summary of the data of this edge.
@@ -62,4 +65,5 @@ std::string TreeEdge<NDT, EDT>::dump() const
     return "Node P: " + primary_node()->data.name + ", Node S: " + secondary_node()->data.name + "\t" + data.dump();
 }
 
+} // namespace tree
 } // namespace genesis

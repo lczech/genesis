@@ -24,6 +24,7 @@
 
 using namespace genesis;
 using namespace genesis::placement;
+using namespace genesis::tree;
 using namespace genesis::utils;
 
 TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )

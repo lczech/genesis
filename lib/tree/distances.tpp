@@ -11,6 +11,7 @@
 #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Distance Measures
@@ -125,4 +126,5 @@ std::vector< std::pair<const typename Tree::NodeType*, int> >  closest_leaf_dept
     return vec;
 }
 
+} // namespace tree
 } // namespace genesis

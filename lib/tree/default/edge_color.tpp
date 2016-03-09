@@ -13,6 +13,7 @@
 #include <limits>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Edge Color Functions
@@ -61,4 +62,5 @@ std::vector<utils::Color> edge_color_branch_length_gradient( TreeType const& tre
     return ret;
 }
 
+} // namespace tree
 } // namespace genesis

@@ -15,6 +15,7 @@
 #include "utils/math/matrix.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Distance Measures
@@ -81,6 +82,7 @@ std::vector< std::pair<const typename Tree::NodeType*, int> >  closest_leaf_dept
     const Tree& tree
 );
 
+} // namespace tree
 } // namespace genesis
 
 // =================================================================================================

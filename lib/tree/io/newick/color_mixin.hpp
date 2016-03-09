@@ -16,6 +16,7 @@
 #include <string>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Newick Color Mixin
@@ -158,6 +159,7 @@ private:
 
 };
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard

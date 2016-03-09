@@ -13,6 +13,7 @@
 #include <string>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Forward declarations
@@ -105,6 +106,7 @@ public:
     LinkType* link_s_;
 };
 
+} // namespace tree
 } // namespace genesis
 
 // =================================================================================================

@@ -13,6 +13,7 @@
 #include "utils/core/logging.hpp"
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Modifiers
@@ -442,4 +443,5 @@ std::string NewickBroker::dump() const
     return out;
 }
 
+} // namespace tree
 } // namespace genesis

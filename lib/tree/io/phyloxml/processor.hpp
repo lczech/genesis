@@ -25,6 +25,8 @@ namespace utils {
 //     Phyloxml Processor
 // =================================================================================================
 
+namespace tree {
+
 template <typename TreeType_>
 class PhyloxmlProcessor
 {
@@ -79,6 +81,7 @@ protected:
 
 };
 
+} // namespace tree
 } // namespace genesis
 
 // =================================================================================================

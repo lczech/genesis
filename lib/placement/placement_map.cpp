@@ -204,7 +204,7 @@ bool PlacementMap::merge(const PlacementMap& other)
         return edge_l.data.edge_num == edge_r.data.edge_num;
     };
 
-    if (!equal<PlacementTree, PlacementTree>(
+    if( ! tree::equal<PlacementTree, PlacementTree >(
         *tree_, *other.tree_, node_comparator, edge_comparator
     )) {
         LOG_WARN << "Cannot merge PlacementMaps with different reference trees.";
@@ -706,7 +706,7 @@ std::string PlacementMap::dump_tree() const
         return it.node()->data.name + " [" + std::to_string(it.edge()->data.edge_num) + "]" ": "
             + std::to_string(it.edge()->data.placement_count()) + " placements";
     };
-    return TreeView().compact<PlacementTree>(tree(), print_line);
+    return tree::TreeView().compact< PlacementTree >( tree(), print_line );
 }
 
 /**

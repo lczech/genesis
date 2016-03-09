@@ -9,6 +9,7 @@
  */
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Iterator Range Wrapper
@@ -65,6 +66,7 @@ private:
     ContainerType& c_;
 }
 
+} // namespace tree
 } // namespace genesis
 
 #endif // include guard
