@@ -2,14 +2,14 @@
 #     This makefile wraps around doxygen for easily creating the API documentation.
 # --------------------------------------------------------------------------------------------------
 
-.PHONY: api clean
+.PHONY: doc clean
 
-# Make Doxygen API doc
-api:
+# Make Doxygen documentation
+doc:
 	@cd doxygen && doxygen Doxyfile
-	@ln -fs ./api/index.html index.html
+	@ln -fs ./doc/index.html index.html
 
 # Remove all generated files
 clean:
-	-@$(RM) -r ./api
+	-@$(RM) -r ./doc
 	-@$(RM) ./index.html

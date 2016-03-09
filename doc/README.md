@@ -1,26 +1,18 @@
-genesis api documentation
-=========================
+genesis documentation
+=====================
 
-This directory contains the api documentation of genesis.
+The genesis documentation is available at [doc.genesis-lib.org](http://doc.genesis-lib.org/).
 
-Scope
------
+This directory contains the files that are used to generate the documentation with doxygen.
+The documentation of genesis contains both, the manual with tutorials and code examples,
+and the API documentation with more details about classes and functions:
 
-The documentation of the application programming interface (api) is intended for people who want to
-use the functions and classes as a library or toolkit for their own applications.
-It provides a reference for the classes, functions and other symbols defined in genesis.
-It is suitable for both the C++ and Python interfaces.
+ *  The files of the manual are written in
+    [doxygen-flavored markdown format](https://www.stack.nl/~dimitri/doxygen/manual/markdown.html)
+    and thus human-readable. They are stored in the subdirectory `manual`.
+ *  The API documentation is generated from the doc-blocks in the C++ source code.
 
-High-level documentation for end users who want to use existing scripts and applications is instead
-provided via the [genesis wiki](https://github.com/lczech/genesis/wiki).
-The wiki also contains information for developers who want to work on genesis and contribute to its
-codebase.
-
-Build
------
-
-The api documentation is generated from the doc-blocks within the C++ source code using doxygen.
-The files can be created by calling `make` in this directory. This will generate the necessary
-documents and create links to them for convenience. The api documentation is written to html format
-and stored in the ./api subdirectory. This requires [doxygen](http://www.doxygen.org/) 1.8.6 and
-[graphviz](http://www.graphviz.org/) to be installed on your system.
+In order to generate the full documentation, [doxygen](http://www.doxygen.org/) 1.8.6 and
+[graphviz](http://www.graphviz.org/) need to be installed.
+The files can then be generated into the subdirectory `doc` by calling `make` in this directory.
+A symlink to the index page is also created for convenience.
