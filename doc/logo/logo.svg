@@ -34,7 +34,7 @@
       <stop
          id="stop3794-3"
          offset="0"
-         style="stop-color:#ffee6f;stop-opacity:1;" />
+         style="stop-color:#ffdd77;stop-opacity:1;" />
       <stop
          id="stop3796-3"
          offset="1"
@@ -58,10 +58,10 @@
      inkscape:pageopacity="0.0"
      inkscape:pageshadow="2"
      inkscape:zoom="0.49497475"
-     inkscape:cx="707.94021"
+     inkscape:cx="387.72186"
      inkscape:cy="313.3598"
      inkscape:document-units="px"
-     inkscape:current-layer="layer1"
+     inkscape:current-layer="layer1-5"
      showgrid="false"
      inkscape:snap-bbox="true"
      inkscape:bbox-paths="true"
@@ -75,10 +75,10 @@
      fit-margin-left="0"
      fit-margin-right="0"
      fit-margin-bottom="0"
-     inkscape:window-width="1875"
-     inkscape:window-height="1059"
-     inkscape:window-x="45"
-     inkscape:window-y="34"
+     inkscape:window-width="1869"
+     inkscape:window-height="1056"
+     inkscape:window-x="51"
+     inkscape:window-y="24"
      inkscape:window-maximized="1"
      inkscape:snap-page="true"
      showguides="true"
@@ -128,7 +128,7 @@
          inkscape:connector-curvature="0"
          id="rect4123-8"
          d="m 32.59525,45.668838 c 35.056223,-35.056224 384.95607,-35.41864 420.37471,0 35.41864,35.418639 35.05622,385.318492 0,420.374712 -35.05622,35.05622 -384.593654,35.78105 -420.37471,0 -35.781056,-35.78106 -35.056224,-385.318489 0,-420.374712 z"
-         style="fill:#ffdc24;fill-opacity:1;stroke:none" />
+         style="fill:#ffc824;fill-opacity:1;stroke:none" />
       <g
          inkscape:transform-center-y="-170.45789"
          inkscape:transform-center-x="-184.43705"
