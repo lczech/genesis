@@ -1,5 +1,5 @@
 # --------------------------------------------------------------------------------------------------
-#     This makefile wraps around doxygen for easily creating the API documentation.
+#     This makefile wraps around doxygen for easily creating the documentation.
 # --------------------------------------------------------------------------------------------------
 
 .PHONY: doc clean
