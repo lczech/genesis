@@ -77,14 +77,14 @@ ncftp <<EOF
 open -u $remote_user -p $remote_pswd $remote_host
 
 cd $remote_path
-mkdir doc_mew
+mkdir doc_new
 
-cd doc_mew
+cd doc_new
 put -R *
 cd ..
 
 rename doc doc_old
-rename doc_mew doc
+rename doc_new doc
 
 rm doc_old/search/*
 rmdir doc_old/search/
