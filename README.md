@@ -17,7 +17,7 @@ Currently, it supports:
     reference phylogenetic tree is the main focus of genesis. The data is typically produced by
     tools like [RAxML-EPA](http://sco.h-its.org/exelixis/web/software/epa/index.html) or
     [pplacer](http://matsen.fhcrc.org/pplacer/) and usually stored in `jplace` files.
- *  **Trees**: Reading, annotating and writing phylogenetic trees is supported, mainly for
+ *  **Trees**. Reading, annotating and writing phylogenetic trees is supported, mainly for
     visulization purposes.
  *  **Sequences**. Some basic functionality for reading, filtering and writing sequences in e.g.,
     `fasta` or `phylip` format is available.

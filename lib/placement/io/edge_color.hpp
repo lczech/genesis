@@ -21,7 +21,7 @@ namespace utils {
 }
 
 namespace tree {
-    template<class NDT, class EDT>
+    template<class NodeDataType, class EdgeDataType>
     class Tree;
 }
 
