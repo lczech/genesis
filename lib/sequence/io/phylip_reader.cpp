@@ -55,8 +55,7 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstr
 {
     // Read number of sequences.
     utils::skip_while( it, isblank );
-    std::string num_seq_str;
-    utils::copy_while( it, num_seq_str, isdigit );
+    std::string num_seq_str = utils::read_while( it, isdigit );
     if( num_seq_str.length() == 0 ) {
         throw std::runtime_error(
             "Malformed Phylip file: Expecting sequence number at " + it.at() + "."
@@ -66,8 +65,7 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstr
 
     // Read length of sequences.
     utils::skip_while( it, isblank );
-    std::string len_seq_str;
-    utils::copy_while( it, len_seq_str, isdigit );
+    std::string len_seq_str = utils::read_while( it, isdigit );
     if( len_seq_str.length() == 0 ) {
         throw std::runtime_error(
             "Malformed Phylip file: Expecting sequence length at " + it.at() + "."
@@ -114,7 +112,7 @@ std::string PhylipReader::parse_phylip_label( utils::CountingIstream& it ) const
 
     // Scan label until first blank/tab.
     if( label_length_ == 0 ) {
-        utils::copy_while( it, label, isgraph );
+        label = utils::read_while( it, isgraph );
         if( !it || !isblank( *it ) ) {
             throw std::runtime_error(
                 "Malformed Phylip file: Expecting delimiting white space at " + it.at() + "."

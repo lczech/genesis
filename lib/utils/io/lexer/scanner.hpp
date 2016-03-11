@@ -10,8 +10,10 @@
 
 #include "utils/io/counting_istream.hpp"
 
+#include <assert.h>
 #include <cctype>
 #include <functional>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
@@ -24,6 +26,9 @@ namespace utils {
 //     skip while
 // -------------------------------------------------------------------------
 
+/**
+ * @brief Lexing function that advances the stream while its current char equals the provided one.
+ */
 inline void skip_while(
     utils::CountingIstream& source,
     char                    criterion
@@ -33,6 +38,10 @@ inline void skip_while(
     }
 }
 
+/**
+ * @brief Lexing function that advances the stream while its current char fulfills the provided
+ * criterion.
+ */
 inline void skip_while(
     utils::CountingIstream&    source,
     std::function<bool (char)> criterion
@@ -46,6 +55,9 @@ inline void skip_while(
 //     skip until
 // -------------------------------------------------------------------------
 
+/**
+ * @brief Lexing function that advances the stream unts its current char equals the provided one.
+ */
 inline void skip_until(
     utils::CountingIstream& source,
     char                    criterion
@@ -55,6 +67,10 @@ inline void skip_until(
     }
 }
 
+/**
+ * @brief Lexing function that advances the stream until its current char fulfills the provided
+ * criterion.
+ */
 inline void skip_until(
     utils::CountingIstream&    source,
     std::function<bool (char)> criterion
@@ -65,54 +81,151 @@ inline void skip_until(
 }
 
 // -------------------------------------------------------------------------
-//     copy while
+//     read while
 // -------------------------------------------------------------------------
 
-inline void copy_while(
+/**
+ * @brief Lexing function that reads from the stream while its current char equals the provided one.
+ * The read chars are returned.
+ */
+inline std::string read_while(
     utils::CountingIstream& source,
-    std::string&            target,
     char                    criterion
 ) {
+    std::string target;
     while( source && *source == criterion ) {
         target += *source;
         ++source;
     }
+    return target;
 }
 
-inline void copy_while(
+/**
+ * @brief Lexing function that reads from the stream while its current char fulfills the provided
+ * criterion. The read chars are returned.
+ */
+inline std::string read_while(
     utils::CountingIstream&    source,
-    std::string&               target,
     std::function<bool (char)> criterion
 ) {
+    std::string target;
     while( source && criterion(*source) ) {
         target += *source;
         ++source;
     }
+    return target;
 }
 
 // -------------------------------------------------------------------------
-//     copy until
+//     read until
 // -------------------------------------------------------------------------
 
-inline void copy_until(
+/**
+ * @brief Lexing function that reads from the stream until its current char equals the provided one.
+ * The read chars are returned.
+ */
+inline std::string read_until(
     utils::CountingIstream& source,
-    std::string&            target,
     char                    criterion
 ) {
+    std::string target;
     while( source && *source != criterion ) {
         target += *source;
         ++source;
     }
+    return target;
 }
 
-inline void copy_until(
+/**
+ * @brief Lexing function that reads from the stream until its current char fulfills the provided
+ * criterion. The read chars are returned.
+ */
+inline std::string read_until(
     utils::CountingIstream&    source,
-    std::string&               target,
     std::function<bool (char)> criterion
 ) {
+    std::string target;
     while( source && !criterion(*source) ) {
         target += *source;
         ++source;
+    }
+    return target;
+}
+
+// -------------------------------------------------------------------------
+//     read char
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Lexing function that reads a single char from the stream and checks whether it equals the
+ * provided one. If not, the function throws `std::runtime_error`. The stream is advanced by one
+ * position and the char is returned.
+ */
+inline char read_char(
+    utils::CountingIstream& source,
+    char                    criterion
+) {
+    if( !source || *source != criterion ) {
+        throw std::runtime_error(
+            std::string("Expecting '") + criterion + "' at " + source.at() + "."
+        );
+    }
+    assert( source && *source == criterion );
+    ++source;
+    return criterion;
+}
+
+/**
+ * @brief Lexing function that reads a single char from the stream and checks whether it fulfills
+ * the provided criterion. If not, the function throws `std::runtime_error`. The stream is advanced
+ * by one position and the char is returned.
+ */
+inline char read_char(
+    utils::CountingIstream&    source,
+    std::function<bool (char)> criterion
+) {
+    if( !source || !criterion(*source) ) {
+        throw std::runtime_error(
+            "Unexpected char at " + source.at() + "."
+        );
+    }
+    assert( source );
+    auto chr = *source;
+    ++source;
+    return chr;
+}
+
+// -------------------------------------------------------------------------
+//     expect char
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Lexing function that checks whether the current char from the stream equals the
+ * provided one. If not, the function throws `std::runtime_error`.
+ */
+inline void check_char(
+    utils::CountingIstream& source,
+    char                    criterion
+) {
+    if( !source || *source != criterion ) {
+        throw std::runtime_error(
+            std::string("Expecting '") + criterion + "' at " + source.at() + "."
+        );
+    }
+}
+
+/**
+ * @brief Lexing function that checks whether the current char from the stream fulfills
+ * the provided criterion. If not, the function throws `std::runtime_error`.
+ */
+inline void check_char(
+    utils::CountingIstream&    source,
+    std::function<bool (char)> criterion
+) {
+    if( !source || !criterion(*source) ) {
+        throw std::runtime_error(
+            "Unexpected char at " + source.at() + "."
+        );
     }
 }
 

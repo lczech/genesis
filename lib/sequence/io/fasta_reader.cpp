@@ -82,8 +82,7 @@ bool FastaReader::parse_fasta_sequence(
     ++it;
 
     // Parse label.
-    std::string label;
-    utils::copy_while( it, label, isgraph );
+    std::string label = utils::read_while( it, isgraph );
     if( label == "" ) {
         throw std::runtime_error(
             "Malformed Fasta file: Expecting label after '>' at " + it.at() + "."
@@ -103,7 +102,7 @@ bool FastaReader::parse_fasta_sequence(
     std::string metadata;
     if( *it == ' ' ) {
         ++it;
-        utils::copy_while( it, metadata, isprint );
+        metadata = utils::read_while( it, isprint );
     }
     sequence.metadata( metadata );
 
