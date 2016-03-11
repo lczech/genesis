@@ -4,13 +4,27 @@
 #    This script builds and transfers the documentation in doc/doc to the web server.
 ####################################################################################################
 
-# There are four operations this script can do:
+# These are the operations this script can do:
 #   * clean: Delete all doc files.
 #   * make: Build the doc. Update only the changed files.
 #   * refresh: Full new build of the doc files (= clean + make).
 #   * transfer: Transfer the files to the server. Does not build them!
+#   * local: Open the local page in a browser.
+#   * remote: Open the remote page in a browser.
 # The operation can be provided via the command line parameter.
 # If none is given, make is executed.
+
+function open_in_browser() {
+    if which xdg-open > /dev/null
+    then
+        xdg-open ${1}
+    elif which gnome-open > /dev/null
+    then
+        gnome-open ${1}
+    else
+        echo "Cannot open page."
+    fi
+}
 
 # Change to top level of git repo and then to ./doc
 # This ensures that the script can be called from any directory.
@@ -35,6 +49,14 @@ if [[ $1 == "refresh" ]]; then
 fi
 if [[ $1 == "transfer" ]]; then
     do_trans=1
+fi
+
+# Open in Browser
+if [[ $1 == "local" ]]; then
+    open_in_browser "doc/index.html"
+fi
+if [[ $1 == "remote" ]]; then
+    open_in_browser "http://doc.genesis-lib.org/"
 fi
 
 # Clean up the files.
@@ -77,14 +99,14 @@ ncftp <<EOF
 open -u $remote_user -p $remote_pswd $remote_host
 
 cd $remote_path
-mkdir doc_mew
+mkdir doc_new
 
-cd doc_mew
+cd doc_new
 put -R *
 cd ..
 
 rename doc doc_old
-rename doc_mew doc
+rename doc_new doc
 
 rm doc_old/search/*
 rmdir doc_old/search/
