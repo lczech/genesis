@@ -20,19 +20,19 @@ namespace genesis {
 // =================================================================================================
 
 namespace utils {
-
-class CountingIstream;
-
-} // namespace utils
+    class CountingIstream;
+}
 
 namespace sequence {
-
-class SequenceSet;
-class Sequence;
+    class SequenceSet;
+    class Sequence;
+}
 
 // =================================================================================================
 //     Fasta Reader
 // =================================================================================================
+
+namespace sequence {
 
 /**
  * @brief Read Fasta data.
@@ -60,7 +60,8 @@ class Sequence;
  *   2. An arbitrary number of comment lines, starting with ';', can follow, but are ignored.
  *   3. After that, a sequence has to follow, over one or more lines and ending in a '\\n' character.
  *
- * See validate_chars() for a way of checking correct input sequences.
+ * Using to_upper(bool), the sequences can automatically be turned into upper case letter.
+ * Also, see validate_chars( std::string const& chars ) for a way of checking correct input sequences.
  */
 class FastaReader
 {

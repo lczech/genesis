@@ -35,6 +35,34 @@ class Sequence;
 //     Phylip Reader
 // =================================================================================================
 
+/**
+ * @brief Read Phylip data.
+ *
+ * This class provides simple facilities for reading Phylip data. It supports to read
+ *
+ *   * from_stream()
+ *   * from_file()
+ *   * from_string()
+ *
+ * Exemplary usage:
+ *
+ *     std::string infile = "path/to/file.phylip";
+ *     SequenceSet sset;
+ *
+ *     PhylipReader()
+ *         .to_upper()
+ *         .validate_chars( nucleic_acid_codes_all() )
+ *         .from_file( infile, sset );
+ *
+ * The expected data format roughly follows
+ * [the original definition](http://evolution.genetics.washington.edu/phylip/doc/sequence.html).
+ * See mode( Mode ) to selected between sequential, interleaved and automatic mode.
+ * We furthermore support a relaxed version, where the label can be of any length.
+ * See label_length( size_t ) for more information.
+ *
+ * Using to_upper( bool ), the sequences can automatically be turned into upper case letter.
+ * Also, see validate_chars( std::string const& ) for a way of checking correct input sequences.
+ */
 class PhylipReader
 {
 public:
@@ -45,11 +73,23 @@ public:
 
     /**
      * @brief Enum to distinguish between the different file variants of Phylip.
+     * See mode( Mode value ) for more details.
      */
     enum class Mode
     {
+        /**
+         * @brief Read the data in Phylip sequential mode.
+         */
         kSequential,
+
+        /**
+        * @brief Read the data in Phylip interleaved mode.
+        */
         kInterleaved,
+
+        /**
+        * @brief Infer the Phylip mode via trial and error.
+        */
         kAutomatic
     };
 
