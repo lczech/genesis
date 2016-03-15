@@ -178,9 +178,9 @@ Pquery* Sample::add_pquery()
 }
 
 /**
- * @brief Adds the pqueries from another Sample objects to this one.
+ * @brief Add the pqueries from another Sample object to this one.
  *
- * For this method to succeed, the Samples need to have the same topology, including identical
+ * For this method to succeed, the Sample%s need to have the same topology, including identical
  * edge_nums and node names.
  *
  * The resulting tree is the original one of the Sample on which this method was called. If

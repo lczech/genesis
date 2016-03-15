@@ -82,7 +82,7 @@ public:
         return *tree_.get();
     }
 
-    inline const PlacementTree& tree() const
+    inline PlacementTree const& tree() const
     {
         return *tree_.get();
     }

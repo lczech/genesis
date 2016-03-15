@@ -22,7 +22,7 @@ namespace placement {
 // =================================================================================================
 
 /**
- * @brief Returns true iff the given Pquery contains a particular name.
+ * @brief Return true iff the given Pquery contains a particular name.
  */
 bool has_name( Pquery const& pquery, std::string const& name )
 {
@@ -35,7 +35,8 @@ bool has_name( Pquery const& pquery, std::string const& name )
 }
 
 /**
- * @brief Returns true iff the given Sample contains a Pquery with a particular name.
+ * @brief Return true iff the given Sample contains a Pquery with a particular name, i.e.,
+ * a PqueryName whose name member equals the given name.
  */
 bool has_name( Sample const& map, std::string const& name )
 {
@@ -48,7 +49,7 @@ bool has_name( Sample const& map, std::string const& name )
 }
 
 /**
- * @brief Returns the first Pquery that has a particular name, or nullptr of none has.
+ * @brief Return the first Pquery that has a particular name, or nullptr of none has.
  */
 Pquery const* find_pquery( Sample const& map, std::string const& name )
 {
@@ -74,8 +75,8 @@ Pquery const* find_pquery( Sample const& map, std::string const& name )
 // void sort_placements_by_proximal_length( Sample& map );
 
 /**
- * @brief Sort the Placements of a Pquery by their like_weight_ratio, in descending order (most
- * likely first).
+ * @brief Sort the PqueryPlacement%s of a Pquery by their `like_weight_ratio`, in descending order
+ * (most likely first).
  */
 void sort_placements_by_like_weight_ratio( Pquery& pquery )
 {
@@ -92,8 +93,8 @@ void sort_placements_by_like_weight_ratio( Pquery& pquery )
 }
 
 /**
- * @brief Sort the Placements of all Pqueries by their like_weight_ratio, in descending order (most
- * likely first).
+ * @brief Sort the PqueryPlacement%s of all @link Pquery Pqueries @endlink by their
+ * `like_weight_ratio`, in descending order (most likely first).
  */
 void sort_placements_by_like_weight_ratio( Sample& map )
 {
@@ -107,7 +108,7 @@ void sort_placements_by_like_weight_ratio( Sample& map )
 // =================================================================================================
 
 /**
- * @brief Looks for Pqueries with the same name and merges them.
+ * @brief Look for @link Pquery Pqueries @endlink with the same name and merge them.
  *
  * This function is a wrapper that simply calls three other functions on the provided Sample:
  *
@@ -125,8 +126,8 @@ void merge_duplicates (Sample& map)
 }
 
 /**
- * @brief Finds all Pqueries that share a common name and combines them into a single Pquery
- * containing all their collective Placements and Names.
+ * @brief Find all @link Pquery Pqueries @endlink that share a common name and combine them into a
+ * single Pquery containing all their collective PqueryPlacement%s and PqueryName%s.
  *
  * The function collects all Pqueries that share at least one name. This is transitive, so that for
  * example three Pqueries with two names each like `(a,b) (b,c) (c,d)` will be combined into one
@@ -241,10 +242,11 @@ void collect_duplicate_pqueries (Sample& map)
 }
 
 /**
- * @brief Merges all Placements of a Pquery that are on the same Edge into one averaged Placement.
+ * @brief Merge all PqueryPlacement%s of a Pquery that are on the same TreeEdge into one averaged
+ * PqueryPlacement.
  *
- * The merging is done via averaging all values of the Placement: `likelihood`, `like_weight_ratio`,
- * `proximal_length`, `pendant_length` and `parsimony`.
+ * The merging is done via averaging all values of the PqueryPlacement: `likelihood`,
+ * `like_weight_ratio`, `proximal_length`, `pendant_length` and `parsimony`.
  */
 void merge_duplicate_placements (Pquery& pquery)
 {
@@ -303,7 +305,7 @@ void merge_duplicate_placements (Pquery& pquery)
 }
 
 /**
- * @brief Calls `merge_duplicate_placements()` for each Pquery of the Sample.
+ * @brief Call `merge_duplicate_placements()` for each Pquery of the Sample.
  */
 void merge_duplicate_placements (Sample& map)
 {
@@ -315,7 +317,7 @@ void merge_duplicate_placements (Sample& map)
 }
 
 /**
- * @brief Merges all Names that are the same into one, while adding up their `multiplicity`.
+ * @brief Merge all PqueryName%s that are the same into one, while adding up their `multiplicity`.
  */
 void merge_duplicate_names (Pquery& pquery)
 {
@@ -343,7 +345,7 @@ void merge_duplicate_names (Pquery& pquery)
 }
 
 /**
- * @brief Calls `merge_duplicate_names()` for each Pquery of the Sample.
+ * @brief Call `merge_duplicate_names()` for each Pquery of the Sample.
  */
 void merge_duplicate_names (Sample& map)
 {
