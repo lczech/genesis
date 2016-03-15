@@ -8,7 +8,7 @@
  * @ingroup placement
  */
 
-#include "placement/placement_map.hpp"
+#include "placement/sample.hpp"
 
 #include <string>
 #include <utility>
@@ -21,37 +21,37 @@ namespace placement {
 // =================================================================================================
 
 bool has_name( Pquery const& pquery, std::string const& name );
-bool has_name( PlacementMap const& map, std::string const& name );
+bool has_name( Sample const& map, std::string const& name );
 
-Pquery const* find_pquery( PlacementMap const& map, std::string const& name );
+Pquery const* find_pquery( Sample const& map, std::string const& name );
 
 // =================================================================================================
 //     Normalization and Sorting
 // =================================================================================================
 
-void normalize_weight_ratios( PlacementMap& map );
+void normalize_weight_ratios( Sample& map );
 
-void restrain_to_max_weight_placements( PlacementMap& map );
+void restrain_to_max_weight_placements( Sample& map );
 
 void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
-void sort_placements_by_proximal_length( PlacementMap& map );
+void sort_placements_by_proximal_length( Sample& map );
 
 void sort_placements_by_like_weight_ratio( Pquery& pquery );
-void sort_placements_by_like_weight_ratio( PlacementMap& map );
+void sort_placements_by_like_weight_ratio( Sample& map );
 
 // =================================================================================================
 //     Merging Duplicates
 // =================================================================================================
 
-void merge_duplicates( PlacementMap& map );
+void merge_duplicates( Sample& map );
 
-void collect_duplicate_pqueries( PlacementMap& map );
+void collect_duplicate_pqueries( Sample& map );
 
 void merge_duplicate_placements( Pquery& pquery );
-void merge_duplicate_placements( PlacementMap& map );
+void merge_duplicate_placements( Sample& map );
 
 void merge_duplicate_names( Pquery& pquery );
-void merge_duplicate_names( PlacementMap& map );
+void merge_duplicate_names( Sample& map );
 
 // =================================================================================================
 //     Placement Mass

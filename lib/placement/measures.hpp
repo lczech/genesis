@@ -26,8 +26,8 @@ namespace tree {
 }
 
 namespace placement {
-    class PlacementMap;
-    class PlacementMapSet;
+    class Sample;
+    class SampleSet;
     class PlacementTreeEdgeData;
     class PlacementTreeNodeData;
     struct PqueryPlain;
@@ -61,8 +61,8 @@ double pquery_distance (
 // ----------------------------------------------------------------------------
 
 double earth_movers_distance (
-    const PlacementMap& map_a,
-    const PlacementMap& map_b,
+    const Sample& map_a,
+    const Sample& map_b,
     bool                with_pendant_length = false
 );
 
@@ -71,18 +71,18 @@ double earth_movers_distance (
 // ----------------------------------------------------------------------------
 
 std::pair<PlacementTreeEdge*, double> center_of_gravity (
-    const PlacementMap& map,
+    const Sample& map,
     bool                with_pendant_length = false
 );
 
 double center_of_gravity_variance (
-    const PlacementMap& map,
+    const Sample& map,
     bool                with_pendant_length = false
 );
 
 double center_of_gravity_distance (
-    const PlacementMap& map_a,
-    const PlacementMap& map_b,
+    const Sample& map_a,
+    const Sample& map_b,
     bool                with_pendant_length = false
 );
 
@@ -91,14 +91,14 @@ double center_of_gravity_distance (
 // ----------------------------------------------------------------------------
 
 double pairwise_distance (
-    const PlacementMap& map_a,
-    const PlacementMap& map_b,
+    const Sample& map_a,
+    const Sample& map_b,
     bool                with_pendant_length = false
 );
 
 // double closest_pair_distance (
-//     const PlacementMap& map_a,
-//     const PlacementMap& map_b,
+//     const Sample& map_a,
+//     const Sample& map_b,
 //     bool                with_pendant_length = false
 // );
 
@@ -107,24 +107,24 @@ double pairwise_distance (
 // ----------------------------------------------------------------------------
 
 utils::Histogram node_distance_histogram (
-    // const PlacementMap& map,
+    // const Sample& map,
     const PlacementTreeNode& node,
     bool                with_pendant_length = false
 );
 
 std::vector< utils::Histogram > node_distance_histograms (
-    const PlacementMap& map,
+    const Sample& map,
     bool                with_pendant_length = false
 );
 
 double node_histogram_distance (
-    const PlacementMap& map_a,
-    const PlacementMap& map_b,
+    const Sample& map_a,
+    const Sample& map_b,
     bool                with_pendant_length = false
 );
 
 utils::Matrix<double> node_histogram_distance_matrix (
-    const PlacementMapSet& maps,
+    const SampleSet& maps,
     bool                   with_pendant_length = false
 );
 
@@ -133,7 +133,7 @@ utils::Matrix<double> node_histogram_distance_matrix (
 // ----------------------------------------------------------------------------
 
 double variance (
-    const PlacementMap& map,
+    const Sample& map,
     bool                with_pendant_length = false
 );
 

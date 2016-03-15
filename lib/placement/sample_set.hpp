@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_PLACEMENT_MAP_SET_H_
-#define GENESIS_PLACEMENT_PLACEMENT_MAP_SET_H_
+#ifndef GENESIS_PLACEMENT_SAMPLE_SET_H_
+#define GENESIS_PLACEMENT_SAMPLE_SET_H_
 
 /**
  * @brief
@@ -11,17 +11,17 @@
 #include <memory>
 #include <vector>
 
-#include "placement/placement_map.hpp"
+#include "placement/sample.hpp"
 #include "tree/tree_set.hpp"
 
 namespace genesis {
 namespace placement {
 
 // =============================================================================
-//     PlacementMapSet
+//     SampleSet
 // =============================================================================
 
-class PlacementMapSet
+class SampleSet
 {
 public:
 
@@ -32,8 +32,8 @@ public:
     struct NamedMap
     {
         std::string                   name;
-        PlacementMap&                 map;
-        // std::shared_ptr<PlacementMap> map;
+        Sample&                 map;
+        // std::shared_ptr<Sample> map;
     };
 
     typedef typename std::vector<NamedMap>::iterator       iterator;
@@ -47,27 +47,27 @@ public:
     // TODO as soon as this is solved in boost, switch back to the original version, and also
     // TODO reactive get_first().
 
-    void add (const std::string& name, PlacementMap& map)
+    void add (const std::string& name, Sample& map)
     {
         maps_.push_back( { name, map } );
     }
 
-    void add (const std::string& name, std::shared_ptr<PlacementMap> map)
+    void add (const std::string& name, std::shared_ptr<Sample> map)
     {
         // TODO baaaaaad!
         maps_.push_back( { name, *map.get() } );
     }
 
-    // void add (const std::string& name, std::shared_ptr<PlacementMap> map);
+    // void add (const std::string& name, std::shared_ptr<Sample> map);
     void clear();
 
-    PlacementMap merge_all();
+    Sample merge_all();
 
     // -----------------------------------------------------
     //     Accessors
     // -----------------------------------------------------
 
-    // std::shared_ptr<PlacementMap> get_first (const std::string& name);
+    // std::shared_ptr<Sample> get_first (const std::string& name);
 
     inline iterator begin()
     {
@@ -95,7 +95,7 @@ public:
     }
 
     /**
-     * @brief Returns whether the placement map set is empty.
+     * @brief Return whether the SampleSet is empty.
      */
     inline bool empty() const
     {
@@ -103,7 +103,7 @@ public:
     }
 
     /**
-     * @brief Returns the size of the placement map set.
+     * @brief Returns the size of the SampleSet, i.e., the number of Sample%s.
      */
     inline size_t size() const
     {

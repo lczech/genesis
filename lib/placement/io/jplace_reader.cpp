@@ -9,8 +9,8 @@
 
 #include "placement/io/newick_processor.hpp"
 #include "placement/operators.hpp"
-#include "placement/placement_map_set.hpp"
-#include "placement/placement_map.hpp"
+#include "placement/sample_set.hpp"
+#include "placement/sample.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
@@ -62,11 +62,11 @@ bool JplaceReader::check_version ( std::string const& version )
 // =================================================================================================
 
 /**
- * @brief Read `jplace` data from a stream into a PlacementMap.
+ * @brief Read `jplace` data from a stream into a Sample.
  *
  * This implementation is currenlty not yet fully implemented. Don't use it yet!
  */
-void JplaceReader::from_stream ( std::istream& is, PlacementMap& placements ) const
+void JplaceReader::from_stream ( std::istream& is, Sample& placements ) const
 {
     auto it = utils::CountingIstream( is );
 
@@ -100,9 +100,9 @@ void JplaceReader::from_stream ( std::istream& is, PlacementMap& placements ) co
 }
 
 /**
- * @brief Read a file and parse it as a Jplace document into a PlacementMap object.
+ * @brief Read a file and parse it as a Jplace document into a Sample object.
  */
-void JplaceReader::from_file( std::string const& fn, PlacementMap& placements ) const
+void JplaceReader::from_file( std::string const& fn, Sample& placements ) const
 {
     if ( ! utils::file_exists(fn) ) {
         throw std::runtime_error( "Jplace file '" + fn + "' does not exist." );
@@ -111,9 +111,9 @@ void JplaceReader::from_file( std::string const& fn, PlacementMap& placements ) 
 }
 
 /**
- * @brief Parse a string as a Jplace document into a PlacementMap object.
+ * @brief Parse a string as a Jplace document into a Sample object.
  */
-void JplaceReader::from_string( std::string const& jplace, PlacementMap& placements ) const
+void JplaceReader::from_string( std::string const& jplace, Sample& placements ) const
 {
     utils::JsonDocument doc;
     if( ! utils::JsonProcessor().from_string( jplace, doc )) {
@@ -123,9 +123,9 @@ void JplaceReader::from_string( std::string const& jplace, PlacementMap& placeme
 }
 
 /**
- * @brief Take a JsonDocument object and parse it as a Jplace document into a PlacementMap object.
+ * @brief Take a JsonDocument object and parse it as a Jplace document into a Sample object.
  */
-void JplaceReader::from_document( utils::JsonDocument const& doc, PlacementMap& placements ) const
+void JplaceReader::from_document( utils::JsonDocument const& doc, Sample& placements ) const
 {
     process_json_version( doc );
     process_json_metadata( doc, placements );
@@ -137,12 +137,12 @@ void JplaceReader::from_document( utils::JsonDocument const& doc, PlacementMap& 
 }
 
 /**
- * @brief Read a list of files and parse them as a Jplace document into a PlacementMapSet object.
+ * @brief Read a list of files and parse them as a Jplace document into a SampleSet object.
  */
-void JplaceReader::from_files (const std::vector<std::string>& fns, PlacementMapSet& set) const
+void JplaceReader::from_files (const std::vector<std::string>& fns, SampleSet& set) const
 {
     for (auto fn : fns) {
-        auto map = std::make_shared<PlacementMap>();
+        auto map = std::make_shared<Sample>();
         from_file (fn, *map);
         std::string name = utils::file_filename( utils::file_basename(fn) );
         set.add(name, map);
@@ -150,13 +150,13 @@ void JplaceReader::from_files (const std::vector<std::string>& fns, PlacementMap
 }
 
 /**
- * @brief Parse a list of strings as a Jplace document into a PlacementMapSet object.
+ * @brief Parse a list of strings as a Jplace document into a SampleSet object.
  */
-void JplaceReader::from_strings (const std::vector<std::string>& jps, PlacementMapSet& set) const
+void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet& set) const
 {
     size_t cnt = 0;
     for (auto jplace : jps) {
-        auto map = std::make_shared<PlacementMap>();
+        auto map = std::make_shared<Sample>();
         from_string (jplace, *map);
         set.add(std::string("jplace_") + std::to_string(cnt++), map);
     }
@@ -191,9 +191,9 @@ void JplaceReader::process_json_version( utils::JsonDocument const& doc ) const
 
 /**
  * @brief Internal helper function that processes the `metadata` key of a JsonDocument and stores
- * its value in the PlacementMap metadata member.
+ * its value in the Sample metadata member.
  */
-void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, PlacementMap& placements ) const
+void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Sample& placements ) const
 {
     // Check if there is metadata.
     auto val = doc.get("metadata");
@@ -207,9 +207,9 @@ void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Placem
 
 /**
  * @brief Internal helper function that processes the `tree` key of a JsonDocument and stores it as
- * the Tree of a PlacementMap.
+ * the Tree of a Sample.
  */
-void JplaceReader::process_json_tree( utils::JsonDocument const& doc, PlacementMap& placements ) const
+void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& placements ) const
 {
     // find and process the reference tree
     auto val = doc.get("tree");
@@ -291,15 +291,15 @@ std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument 
 
 /**
  * @brief Internal helper function that processes the `placements` key of a JsonDocument and stores
- * the contained pqueries in the PlacementMap.
+ * the contained pqueries in the Sample.
  */
 void JplaceReader::process_json_placements(
     utils::JsonDocument const& doc,
-    PlacementMap&              placements,
+    Sample&              placements,
     std::vector<std::string>   fields
 ) const {
     // create a map from edge nums to the actual edge pointers, for later use when processing
-    // the pqueries. we do not use PlacementMap::EdgeNumMap() here, because we need to do extra
+    // the pqueries. we do not use Sample::EdgeNumMap() here, because we need to do extra
     // checking for validity first!
     std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
     for (

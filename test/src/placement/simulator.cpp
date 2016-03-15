@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "lib/placement/io/newick_processor.hpp"
-#include "lib/placement/placement_map.hpp"
+#include "lib/placement/sample.hpp"
 #include "lib/placement/simulator.hpp"
 #include "lib/tree/io/newick/processor.hpp"
 
@@ -27,7 +27,7 @@ TEST(PlacementSimulator, TwoStepSimple)
         *tree
     ));
 
-    PlacementMap map(tree);
+    Sample map(tree);
     EXPECT_EQ   (0, map.placement_count());
     EXPECT_TRUE (map.validate(true, false));
 
@@ -48,7 +48,7 @@ TEST(PlacementSimulator, TwoStepLeavesOnly)
         *tree
     ));
 
-    PlacementMap map(tree);
+    Sample map(tree);
     PlacementSimulatorTwostep sim(map);
 
     // Set weight so that onlye edges adjacet to leaves are populated.

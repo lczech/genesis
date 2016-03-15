@@ -35,9 +35,9 @@ bool has_name( Pquery const& pquery, std::string const& name )
 }
 
 /**
- * @brief Returns true iff the given PlacementMap contains a Pquery with a particular name.
+ * @brief Returns true iff the given Sample contains a Pquery with a particular name.
  */
-bool has_name( PlacementMap const& map, std::string const& name )
+bool has_name( Sample const& map, std::string const& name )
 {
     for( auto const& pqry : map.pqueries() ) {
         if( has_name( *pqry, name ) ) {
@@ -50,7 +50,7 @@ bool has_name( PlacementMap const& map, std::string const& name )
 /**
  * @brief Returns the first Pquery that has a particular name, or nullptr of none has.
  */
-Pquery const* find_pquery( PlacementMap const& map, std::string const& name )
+Pquery const* find_pquery( Sample const& map, std::string const& name )
 {
     // TODO instead of pointer, return an iterator!
     // then use find if directly!
@@ -66,12 +66,12 @@ Pquery const* find_pquery( PlacementMap const& map, std::string const& name )
 //     Normalization and Sorting
 // =================================================================================================
 
-// void normalize_weight_ratios( PlacementMap& map );
+// void normalize_weight_ratios( Sample& map );
 
-// void restrain_to_max_weight_placements( PlacementMap& map );
+// void restrain_to_max_weight_placements( Sample& map );
 
 // void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
-// void sort_placements_by_proximal_length( PlacementMap& map );
+// void sort_placements_by_proximal_length( Sample& map );
 
 /**
  * @brief Sort the Placements of a Pquery by their like_weight_ratio, in descending order (most
@@ -95,7 +95,7 @@ void sort_placements_by_like_weight_ratio( Pquery& pquery )
  * @brief Sort the Placements of all Pqueries by their like_weight_ratio, in descending order (most
  * likely first).
  */
-void sort_placements_by_like_weight_ratio( PlacementMap& map )
+void sort_placements_by_like_weight_ratio( Sample& map )
 {
     for( auto& pquery_it : map.pqueries() ) {
         sort_placements_by_like_weight_ratio( *pquery_it );
@@ -109,7 +109,7 @@ void sort_placements_by_like_weight_ratio( PlacementMap& map )
 /**
  * @brief Looks for Pqueries with the same name and merges them.
  *
- * This function is a wrapper that simply calls three other functions on the provided PlacementMap:
+ * This function is a wrapper that simply calls three other functions on the provided Sample:
  *
  *     * collect_duplicate_pqueries()
  *     * merge_duplicate_names()
@@ -117,7 +117,7 @@ void sort_placements_by_like_weight_ratio( PlacementMap& map )
  *
  * See there for more information on what they do.
  */
-void merge_duplicates (PlacementMap& map)
+void merge_duplicates (Sample& map)
 {
     collect_duplicate_pqueries (map);
     merge_duplicate_names      (map);
@@ -138,7 +138,7 @@ void merge_duplicates (PlacementMap& map)
  * Thus, usually `merge_duplicate_names()` and `merge_duplicate_placements()` are called after
  * this function. The function merge_duplicates() does exaclty this, for convenience.
  */
-void collect_duplicate_pqueries (PlacementMap& map)
+void collect_duplicate_pqueries (Sample& map)
 {
     // We are looking for the transitive closure of all Pqueries that pairwise share a common name.
     // In a graph theory setting, this could be depicted as follows:
@@ -303,9 +303,9 @@ void merge_duplicate_placements (Pquery& pquery)
 }
 
 /**
- * @brief Calls `merge_duplicate_placements()` for each Pquery of the PlacementMap.
+ * @brief Calls `merge_duplicate_placements()` for each Pquery of the Sample.
  */
-void merge_duplicate_placements (PlacementMap& map)
+void merge_duplicate_placements (Sample& map)
 {
     map.detach_pqueries_from_tree();
     for (auto& pquery_it : map.pqueries()) {
@@ -343,9 +343,9 @@ void merge_duplicate_names (Pquery& pquery)
 }
 
 /**
- * @brief Calls `merge_duplicate_names()` for each Pquery of the PlacementMap.
+ * @brief Calls `merge_duplicate_names()` for each Pquery of the Sample.
  */
-void merge_duplicate_names (PlacementMap& map)
+void merge_duplicate_names (Sample& map)
 {
     for (auto& pquery_it : map.pqueries()) {
         merge_duplicate_names (*pquery_it);

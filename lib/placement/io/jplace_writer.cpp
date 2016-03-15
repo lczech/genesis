@@ -13,8 +13,8 @@
 
 #include "placement/io/newick_processor.hpp"
 #include "placement/operators.hpp"
-#include "placement/placement_map_set.hpp"
-#include "placement/placement_map.hpp"
+#include "placement/sample_set.hpp"
+#include "placement/sample.hpp"
 #include "tree/io/newick/processor.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
@@ -35,9 +35,9 @@ namespace placement {
 // =================================================================================================
 
 /**
- * @brief Write the data of a PlacementMap to a file in `Jplace` format.
+ * @brief Write the data of a Sample to a file in `Jplace` format.
  */
-bool JplaceWriter::to_file (const PlacementMap& placements, const std::string fn)
+bool JplaceWriter::to_file (const Sample& placements, const std::string fn)
 {
     if( utils::file_exists(fn) ) {
         LOG_WARN << "Jplace file '" << fn << "' already exist. Will not overwrite it.";
@@ -49,17 +49,17 @@ bool JplaceWriter::to_file (const PlacementMap& placements, const std::string fn
 }
 
 /**
- * @brief Store the data of a PlacementMap in a string in `Jplace` format.
+ * @brief Store the data of a Sample in a string in `Jplace` format.
  */
-void JplaceWriter::to_string (const PlacementMap& placements, std::string&  jplace)
+void JplaceWriter::to_string (const Sample& placements, std::string&  jplace)
 {
     jplace = to_string(placements);
 }
 
 /**
- * @brief Return the data of a PlacementMap as a string in `Jplace` format.
+ * @brief Return the data of a Sample as a string in `Jplace` format.
  */
-std::string JplaceWriter::to_string (const PlacementMap& placements)
+std::string JplaceWriter::to_string (const Sample& placements)
 {
     utils::JsonDocument json;
     to_document(placements, json);
@@ -67,9 +67,9 @@ std::string JplaceWriter::to_string (const PlacementMap& placements)
 }
 
 /**
- * @brief Store the data of a PlacementMap in a JsonDocument object.
+ * @brief Store the data of a Sample in a JsonDocument object.
  */
-void JplaceWriter::to_document (const PlacementMap& placements, utils::JsonDocument& doc)
+void JplaceWriter::to_document (const Sample& placements, utils::JsonDocument& doc)
 {
     // Simplify the code. Specifying utils::Json... is cumbersome.
     using namespace utils;

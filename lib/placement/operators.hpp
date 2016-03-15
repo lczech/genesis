@@ -18,25 +18,25 @@ namespace placement {
 //     Forward Declarations
 // =================================================================================================
 
-class PlacementMap;
+class Sample;
 
 // =================================================================================================
 //     Comparision and Equality
 // =================================================================================================
 
-bool compatible_trees (const PlacementMap& lhs, const PlacementMap& rhs);
+bool compatible_trees (const Sample& lhs, const Sample& rhs);
 
 // =================================================================================================
 //     Verification
 // =================================================================================================
 
-bool has_correct_edge_nums( PlacementMap const& map );
+bool has_correct_edge_nums( Sample const& map );
 
 // =================================================================================================
 //     Output
 // =================================================================================================
 
-std::ostream& operator << ( std::ostream& out, PlacementMap const& map );
+std::ostream& operator << ( std::ostream& out, Sample const& map );
 
 } // namespace placement
 } // namespace genesis

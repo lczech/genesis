@@ -31,7 +31,7 @@ PYTHON_EXPORT_CLASS (PlacementTreePhyloxmlProcessor, "placement.tree")
     ;
 
     boost::python::class_< ::genesis::PlacementTreePhyloxmlAdapter, boost::python::bases<::genesis::DefaultTreePhyloxmlAdapter<genesis::PlacementTree>> > ( "PlacementTreePhyloxmlAdapter" )
-        .def( boost::python::init< ::genesis::PlacementMap & >(( boost::python::arg("map") )) )
+        .def( boost::python::init< ::genesis::Sample & >(( boost::python::arg("map") )) )
 
         // Public Member Functions
 

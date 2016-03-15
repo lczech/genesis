@@ -1,5 +1,5 @@
 /**
- * @brief Implementation of PlacementMapSerializer class.
+ * @brief Implementation of SampleSerializer class.
  *
  * @file
  * @ingroup placement
@@ -8,7 +8,7 @@
 #include "placement/io/serializer.hpp"
 
 #include "placement/io/newick_processor.hpp"
-#include "placement/placement_map.hpp"
+#include "placement/sample.hpp"
 #include "tree/io/newick/processor.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/io/serializer.hpp"
@@ -26,16 +26,16 @@ namespace placement {
  * @brief Version of this serialization helper. Is written to the stream and read again to make
  * sure that different versions don't crash inexpectedly.
  */
-unsigned char PlacementMapSerializer::version = 1;
+unsigned char SampleSerializer::version = 1;
 
 // =================================================================================================
 //     Save
 // =================================================================================================
 
 /**
- * @brief Saves the PlacementMap to a binary file that can later be read by using load().
+ * @brief Saves the Sample to a binary file that can later be read by using load().
  */
-void PlacementMapSerializer::save (const PlacementMap& map, const std::string& file_name)
+void SampleSerializer::save (const Sample& map, const std::string& file_name)
 {
     // Prepare.
     utils::Serializer ser (file_name);
@@ -88,9 +88,9 @@ void PlacementMapSerializer::save (const PlacementMap& map, const std::string& f
 // =================================================================================================
 
 /**
- * @brief Loads a PlacementMap from a binary file that was written by using save().
+ * @brief Loads a Sample from a binary file that was written by using save().
  */
-void PlacementMapSerializer::load (const std::string& file_name, PlacementMap& map)
+void SampleSerializer::load (const std::string& file_name, Sample& map)
 {
     // Prepare, check stream status.
     utils::Deserializer des (file_name);

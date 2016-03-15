@@ -1,11 +1,11 @@
 /**
- * @brief Implementation of PlacementMapSet class.
+ * @brief Implementation of SampleSet class.
  *
  * @file
  * @ingroup placement
  */
 
-#include "placement/placement_map_set.hpp"
+#include "placement/sample_set.hpp"
 
 #include "placement/operators.hpp"
 #include "utils/core/logging.hpp"
@@ -22,7 +22,7 @@ namespace placement {
 /**
  * @brief
  */
-// void PlacementMapSet::add (const std::string& name, std::shared_ptr<PlacementMap> map)
+// void SampleSet::add (const std::string& name, std::shared_ptr<Sample> map)
 // {
 //     maps_.push_back( { name, map } );
 // }
@@ -30,19 +30,19 @@ namespace placement {
 /**
  * @brief
  */
-void PlacementMapSet::clear ()
+void SampleSet::clear ()
 {
     maps_.clear();
 }
 
 /**
- * @brief Returns a PlacementMap where all maps of this set have been merged into.
+ * @brief Returns a Sample where all maps of this set have been merged into.
  *
- * For this method to succeed, all PlacementMaps need to have the same topology, including identical
- * edge_nums and node names. The Tree of the returned PlacementMap has the average branch lenghts
+ * For this method to succeed, all Samples need to have the same topology, including identical
+ * edge_nums and node names. The Tree of the returned Sample has the average branch lenghts
  * from the input trees, using TreeSet::average_branch_length_tree().
  */
-PlacementMap PlacementMapSet::merge_all()
+Sample SampleSet::merge_all()
 {
     // The following operations do a lot of traversals on all trees: first some for the
     // average_branch_length_tree, then for the merging again. This could be turned into
@@ -51,13 +51,13 @@ PlacementMap PlacementMapSet::merge_all()
     // optimize for speed. Instead, we opt for clean, separated and easy code here.
 
     if (maps_.size() == 0) {
-        LOG_WARN << "PlacementMapSet is empty.";
-        return PlacementMap();
+        LOG_WARN << "SampleSet is empty.";
+        return Sample();
     }
 
-    // Create a new Placement Map and initialize it with the average branch length tree of all
+    // Create a new Sample and initialize it with the average branch length tree of all
     // maps in this set, but without any placements.
-    auto res = PlacementMap(std::make_shared<PlacementTree>(
+    auto res = Sample(std::make_shared<PlacementTree>(
         tree_set().average_branch_length_tree()
     ));
 
@@ -77,8 +77,8 @@ PlacementMap PlacementMapSet::merge_all()
     // taxa names and edge_nums, which is important for correct merging.
     for (auto& map : maps_) {
         if (!res.merge(map.map)) {
-            LOG_WARN << "Cannot merge PlacementMaps with different reference trees.";
-            return PlacementMap();
+            LOG_WARN << "Cannot merge Samples with different reference trees.";
+            return Sample();
         }
     }
 
@@ -90,9 +90,9 @@ PlacementMap PlacementMapSet::merge_all()
 // =============================================================================
 
 /**
- * @brief Get the first PlacementMap in the set that is stored with a given name.
+ * @brief Get the first Sample in the set that is stored with a given name.
  */
-// std::shared_ptr<PlacementMap> PlacementMapSet::get_first(const std::string& name)
+// std::shared_ptr<Sample> SampleSet::get_first(const std::string& name)
 // {
 //     auto cm = maps_.begin();
 //     while (cm != maps_.end()) {
@@ -105,9 +105,9 @@ PlacementMap PlacementMapSet::merge_all()
 // }
 
 /**
- * @brief Returns a TreeSet containing all the trees of the Placement Maps.
+ * @brief Return a TreeSet containing all the trees of the SampleSet.
  */
-tree::TreeSet<PlacementTree> PlacementMapSet::tree_set()
+tree::TreeSet<PlacementTree> SampleSet::tree_set()
 {
     tree::TreeSet<PlacementTree> set;
     for (auto& map : maps_) {
@@ -123,12 +123,12 @@ tree::TreeSet<PlacementTree> PlacementMapSet::tree_set()
 // =============================================================================
 
 /**
- * @brief Returns true iff all Trees of the PlacementMaps in the set are identical.
+ * @brief Returns true iff all Trees of the Samples in the set are identical.
  *
  * This is the case if they have the same topology, node names and edge_nums. However, branch
  * lengths are not checked, because usually those differ slightly.
  */
-bool PlacementMapSet::all_identical_trees()
+bool SampleSet::all_identical_trees()
 {
     auto node_comparator = [] (
         const PlacementTree::NodeType& node_l,
@@ -154,7 +154,7 @@ bool PlacementMapSet::all_identical_trees()
 /**
  * @brief
  */
-std::string PlacementMapSet::dump(bool full)
+std::string SampleSet::dump(bool full)
 {
     // TODO make free function using ostream instead of dump
     size_t i = 0;

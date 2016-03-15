@@ -23,8 +23,8 @@ namespace utils {
 }
 
 namespace placement {
-    class PlacementMap;
-    class PlacementMapSet;
+    class Sample;
+    class SampleSet;
 }
 
 // =================================================================================================
@@ -45,7 +45,7 @@ namespace placement {
  * Exemplary usage:
  *
  *     std::string infile = "path/to/file.jplace";
- *     PlacementMap map;
+ *     Sample map;
  *
  *     JplaceReader()
  *         .invalid_number_behaviour( InvalidNumberBehaviour::kCorrect )
@@ -54,11 +54,11 @@ namespace placement {
  * The Jplace format is described in the following publication:
  *
  *     Matsen FA, Hoffman NG, Gallagher A, Stamatakis A. 2012.
- *     A Format for Phylogenetic PlacementMap.
+ *     A Format for Phylogenetic Sample.
  *     PLoS ONE 7(2): e31009. doi:10.1371/journal.pone.0031009
  *     http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009
  *
- * See PlacementMap for the data structure used to store the Pqueries.
+ * See Sample for the data structure used to store the Pqueries.
  */
 class JplaceReader
 {
@@ -83,13 +83,13 @@ public:
 
 public:
 
-    void from_files    ( std::vector<std::string> const& fns, PlacementMapSet& set ) const;
-    void from_strings  ( std::vector<std::string> const& jps, PlacementMapSet& set ) const;
+    void from_files    ( std::vector<std::string> const& fns, SampleSet& set ) const;
+    void from_strings  ( std::vector<std::string> const& jps, SampleSet& set ) const;
 
-    void from_stream   ( std::istream&       is,         PlacementMap& placements ) const;
-    void from_file     ( std::string const&  fn,         PlacementMap& placements ) const;
-    void from_string   ( std::string const&  jplace,     PlacementMap& placements ) const;
-    void from_document ( utils::JsonDocument const& doc, PlacementMap& placements ) const;
+    void from_stream   ( std::istream&       is,         Sample& placements ) const;
+    void from_file     ( std::string const&  fn,         Sample& placements ) const;
+    void from_string   ( std::string const&  jplace,     Sample& placements ) const;
+    void from_document ( utils::JsonDocument const& doc, Sample& placements ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -109,17 +109,17 @@ protected:
 
     void process_json_version(    utils::JsonDocument const& doc ) const;
 
-    void process_json_tree(       utils::JsonDocument const& doc, PlacementMap& placements ) const;
+    void process_json_tree(       utils::JsonDocument const& doc, Sample& placements ) const;
 
     std::vector<std::string> process_json_fields( utils::JsonDocument const& doc ) const;
 
     void process_json_placements(
         utils::JsonDocument const& doc,
-        PlacementMap&              placements,
+        Sample&              placements,
         std::vector<std::string>   fields
     ) const;
 
-    void process_json_metadata( utils::JsonDocument const& doc, PlacementMap& placements ) const;
+    void process_json_metadata( utils::JsonDocument const& doc, Sample& placements ) const;
 
     // ---------------------------------------------------------------------
     //     Properties

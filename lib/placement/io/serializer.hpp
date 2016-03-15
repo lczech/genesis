@@ -2,7 +2,7 @@
 #define GENESIS_PLACEMENT_IO_SERIALIZER_H_
 
 /**
- * @brief Header of PlacementMapSerializer class.
+ * @brief Header of SampleSerializer class.
  *
  * @file
  * @ingroup placement
@@ -17,21 +17,21 @@ namespace placement {
 //     Forward Declarations
 // =================================================================================================
 
-class PlacementMap;
+class Sample;
 
 // =================================================================================================
-//     PlacementMapSerializer
+//     SampleSerializer
 // =================================================================================================
 
 /**
  * @brief
  */
-class PlacementMapSerializer
+class SampleSerializer
 {
 public:
 
-    static void save (const PlacementMap& map, const std::string& file_name);
-    static void load (const std::string& file_name, PlacementMap& map);
+    static void save (const Sample& map, const std::string& file_name);
+    static void load (const std::string& file_name, Sample& map);
 
     static unsigned char version;
 

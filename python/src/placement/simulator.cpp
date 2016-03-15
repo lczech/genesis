@@ -17,7 +17,7 @@ void BoostPythonExport_PlacementSimulatorTwostep()
     //     Class PlacementSimulatorTwostep
     // -------------------------------------------------------------------
 
-    boost::python::scope twostep = boost::python::class_< ::genesis::placement::PlacementSimulatorTwostep > ( "PlacementSimulatorTwostep", boost::python::init< PlacementMap & >(( boost::python::arg("placements") )) )
+    boost::python::scope twostep = boost::python::class_< ::genesis::placement::PlacementSimulatorTwostep > ( "PlacementSimulatorTwostep", boost::python::init< Sample & >(( boost::python::arg("placements") )) )
 
         // Public Member Functions
 
@@ -52,7 +52,7 @@ void BoostPythonExport_PlacementSimulatorTwostep()
     //     Class PlacementSimulatorTwostep :: EdgeDistribution
     // -------------------------------------------------------------------
 
-    boost::python::class_< ::genesis::placement::PlacementSimulatorTwostep::EdgeDistribution > ( "EdgeDistribution", boost::python::init< PlacementMap & >(( boost::python::arg("placements") )) )
+    boost::python::class_< ::genesis::placement::PlacementSimulatorTwostep::EdgeDistribution > ( "EdgeDistribution", boost::python::init< Sample & >(( boost::python::arg("placements") )) )
 
         // Public Member Functions
 
@@ -75,7 +75,7 @@ void BoostPythonExport_PlacementSimulatorTwostep()
         )
         .def(
             "transfer_weights",
-            ( bool ( ::genesis::placement::PlacementSimulatorTwostep::EdgeDistribution::* )( const PlacementMap & ))( &::genesis::placement::PlacementSimulatorTwostep::EdgeDistribution::transfer_weights ),
+            ( bool ( ::genesis::placement::PlacementSimulatorTwostep::EdgeDistribution::* )( const Sample & ))( &::genesis::placement::PlacementSimulatorTwostep::EdgeDistribution::transfer_weights ),
             ( boost::python::arg("from_map") )
         )
     ;

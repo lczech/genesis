@@ -15,7 +15,7 @@
 #endif
 
 #include "placement/operators.hpp"
-#include "placement/placement_map.hpp"
+#include "placement/sample.hpp"
 #include "placement/placement_tree.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
@@ -138,8 +138,8 @@ double pquery_distance (
  * tree.
  */
 double earth_movers_distance(
-    const PlacementMap& lhs,
-    const PlacementMap& rhs,
+    const Sample& lhs,
+    const Sample& rhs,
     bool                with_pendant_length
 ) {
     // keep track of the total resulting distance.
@@ -344,7 +344,7 @@ double earth_movers_distance(
  * placements.
  */
 std::pair<PlacementTreeEdge*, double> center_of_gravity (
-    const PlacementMap& map,
+    const Sample& map,
     bool                with_pendant_length
 ) {
     // This struct stores the torque that acts on a certain point (called the fulcrum) from a
@@ -809,7 +809,7 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
  * the weights \f$ \omega \f$ are the `like_weight_ratio`s of the placements.
  */
 double center_of_gravity_variance (
-    const PlacementMap& map,
+    const Sample& map,
     bool                with_pendant_length
 ) {
     double variance = 0.0;
@@ -868,8 +868,8 @@ double center_of_gravity_variance (
  * @brief
  */
 double center_of_gravity_distance (
-    const PlacementMap& map_a,
-    const PlacementMap& map_b,
+    const Sample& map_a,
+    const Sample& map_b,
     bool                with_pendant_length
 ) {
     if (!compatible_trees(map_a, map_b)) {
@@ -939,21 +939,21 @@ double center_of_gravity_distance (
 // =================================================================================================
 
 /**
- * @brief Calculate the normalized pairwise distance between all placements of the two PlacementMaps.
+ * @brief Calculate the normalized pairwise distance between all placements of the two Samples.
  *
  * This method calculates the distance between two maps as the normalized sum of the distances
  * between all pairs of pqueries in the map. It is similar to the variance() calculation, which
  * calculates this sum for the squared distances between all pqueries of one map.
  *
- * @param  map_a               The first PlacementMap to which the distances shall be calculated to.
- * @param  map_b               The second PlacementMap to which the distances shall be calculated to.
+ * @param  map_a               The first Sample to which the distances shall be calculated to.
+ * @param  map_b               The second Sample to which the distances shall be calculated to.
  * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
  *
  * @return                         Distance value.
  */
 double pairwise_distance (
-    const PlacementMap& map_a,
-    const PlacementMap& map_b,
+    const Sample& map_a,
+    const Sample& map_b,
     bool                with_pendant_length
 ) {
     if (!compatible_trees(map_a, map_b)) {
@@ -990,7 +990,7 @@ double pairwise_distance (
 // =================================================================================================
 
 utils::Histogram node_distance_histogram (
-    // const PlacementMap& map,
+    // const Sample& map,
     const PlacementTreeNode& node,
     bool                with_pendant_length
 ) {
@@ -1001,7 +1001,7 @@ utils::Histogram node_distance_histogram (
 }
 
 std::vector< utils::Histogram > node_distance_histograms (
-    const PlacementMap& map,
+    const Sample& map,
     bool                with_pendant_length
 ) {
     auto vec = std::vector< utils::Histogram >();
@@ -1017,8 +1017,8 @@ std::vector< utils::Histogram > node_distance_histograms (
 }
 
 double node_histogram_distance (
-    const PlacementMap& map_a,
-    const PlacementMap& map_b,
+    const Sample& map_a,
+    const Sample& map_b,
     bool                with_pendant_length
 ) {
     if( !compatible_trees( map_a, map_b ) ) {
@@ -1046,7 +1046,7 @@ double node_histogram_distance (
 
 /*
 Matrix<double> node_histogram_distance_matrix (
-    const PlacementMapSet& maps,
+    const SampleSet& maps,
     bool                   with_pendant_length
 ) {
     auto const maps_count = maps.size();
@@ -1152,7 +1152,7 @@ void variance_thread (
  * dropped, so that their sum per pquery is less than 1.0), we cannout simply use the count.
  */
 double variance(
-    const PlacementMap& map,
+    const Sample& map,
     bool                with_pendant_length
 ) {
     // Init.

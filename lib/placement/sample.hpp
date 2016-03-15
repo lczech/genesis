@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_PLACEMENT_MAP_H_
-#define GENESIS_PLACEMENT_PLACEMENT_MAP_H_
+#ifndef GENESIS_PLACEMENT_SAMPLE_H_
+#define GENESIS_PLACEMENT_SAMPLE_H_
 
 /**
  * @brief
@@ -24,38 +24,38 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     PlacementMap
+//     Sample
 // =================================================================================================
 
-class PlacementMap
+class Sample
 {
 public:
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    PlacementMap ()
+    Sample ()
         : tree_(std::make_shared<PlacementTree>())
     {}
 
-    PlacementMap (std::shared_ptr<PlacementTree> ptree)
+    Sample (std::shared_ptr<PlacementTree> ptree)
         : tree_(ptree)
     {}
 
-    PlacementMap( PlacementMap const& );
-    PlacementMap( PlacementMap&& ) noexcept;
+    Sample( Sample const& );
+    Sample( Sample&& ) noexcept;
 
-    PlacementMap& operator= (PlacementMap const&);
-    PlacementMap& operator= (PlacementMap&&) noexcept;
+    Sample& operator= (Sample const&);
+    Sample& operator= (Sample&&) noexcept;
 
-    // PlacementMap( PlacementMap&& ) = default;
+    // Sample( Sample&& ) = default;
     //
-    // PlacementMap& operator= (PlacementMap const&) = default;
-    // PlacementMap& operator= (PlacementMap&&) = default;
+    // Sample& operator= (Sample const&) = default;
+    // Sample& operator= (Sample&&) = default;
 
-    ~PlacementMap();
+    ~Sample();
 
-    void swap (PlacementMap& other) noexcept;
+    void swap (Sample& other) noexcept;
 
     // -------------------------------------------------------------------------
     //     Modifiers
@@ -63,7 +63,7 @@ public:
 
     Pquery* add_pquery();
 
-    bool merge(const PlacementMap& other);
+    bool merge(const Sample& other);
 
     void clear();
     void clear_placements();

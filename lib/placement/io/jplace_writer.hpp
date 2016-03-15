@@ -22,8 +22,8 @@ namespace utils {
 }
 
 namespace placement {
-    class PlacementMap;
-    class PlacementMapSet;
+    class Sample;
+    class SampleSet;
 }
 
 // =================================================================================================
@@ -44,12 +44,12 @@ namespace placement {
  * Exemplary usage:
  *
  *     std::string outfile = "path/to/file.jplace";
- *     PlacementMap map;
+ *     Sample map;
  *
  *     JplaceWriter()
  *         .to_file( map, outfile );
  *
- * See JplaceReader for more information on the data format. See PlacementMap for more information
+ * See JplaceReader for more information on the data format. See Sample for more information
  * on the data structure.
  */
 class JplaceWriter
@@ -60,10 +60,10 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    bool        to_file     (const PlacementMap& placements,  const std::string   fn);
-    void        to_string   (const PlacementMap& placements,        std::string&  jplace);
-    std::string to_string   (const PlacementMap& placements);
-    void        to_document (const PlacementMap& placements, utils::JsonDocument& doc);
+    bool        to_file     (const Sample& placements,  const std::string   fn);
+    void        to_string   (const Sample& placements,        std::string&  jplace);
+    std::string to_string   (const Sample& placements);
+    void        to_document (const Sample& placements, utils::JsonDocument& doc);
 };
 
 } // namespace placement

@@ -7,7 +7,7 @@
 
 #include "placement/operators.hpp"
 
-#include "placement/placement_map.hpp"
+#include "placement/sample.hpp"
 #include "tree/iterators/postorder.hpp"
 #include "tree/operators.hpp"
 #include "utils/text/table.hpp"
@@ -21,7 +21,7 @@ namespace placement {
 //     Comparision and Equality
 // =================================================================================================
 
-bool compatible_trees (const PlacementMap& lhs, const PlacementMap& rhs)
+bool compatible_trees (const Sample& lhs, const Sample& rhs)
 {
     auto node_comparator = [] (
         const PlacementTree::NodeType& node_l,
@@ -49,7 +49,7 @@ bool compatible_trees (const PlacementMap& lhs, const PlacementMap& rhs)
 //     Verification
 // =================================================================================================
 
-bool has_correct_edge_nums( PlacementMap const& map )
+bool has_correct_edge_nums( Sample const& map )
 {
     auto const& tree = map.tree();
     int current = 0;
@@ -77,7 +77,7 @@ bool has_correct_edge_nums( PlacementMap const& map )
 /**
  * @brief Print a table of all Pqueries with their Placements and Names to the stream.
  */
-std::ostream& operator << (std::ostream& out, PlacementMap const& map)
+std::ostream& operator << (std::ostream& out, Sample const& map)
 {
     auto table = utils::Table();
     auto const kRight = utils::Table::Column::Justification::kRight;
