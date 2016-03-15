@@ -35,7 +35,7 @@ namespace utils {
  * setter functions. Per default, all of them are empty, meaning that no style manupulation is
  * done.
  *
- * In order to generate textual output with those styles, operator() is used.
+ * In order to generate textual output with those styles, operator()() is used.
  * Example:
  *
  *     Style blue( "blue" );
@@ -49,7 +49,7 @@ namespace utils {
  *
  * will output
  *
- *     Foreground Color: blue
+ *     Foreground Color: Blue
  *     Background Color:
  *     Bold:             true
  *
@@ -121,6 +121,9 @@ public:
 
     Style&      reset();
 
+    bool        enabled() const;
+    Style&      enabled( bool value );
+
     bool        bold() const;
     Style&      bold( bool value );
 
@@ -161,7 +164,8 @@ private:
     std::string foreground_ = "";
     std::string background_ = "";
 
-    bool bold_ = false;
+    bool bold_    = false;
+    bool enabled_ = true;
 };
 
 // =================================================================================================

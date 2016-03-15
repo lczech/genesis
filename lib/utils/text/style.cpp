@@ -10,6 +10,7 @@
 #include "utils/text/string.hpp"
 
 #include <algorithm>
+#include <assert.h>
 #include <ostream>
 #include <stdexcept>
 #include <vector>
@@ -18,9 +19,52 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Local Helper Functions
+// =================================================================================================
+
+/**
+ * @brief Internal helper function that returns an iterator into the foreground color list.
+ */
+static std::array<std::pair<std::string, std::string>, 17>::const_iterator get_foreground_color_iterator(
+    std::string name
+) {
+    name = replace_all(name, " ", "");
+    name = replace_all(name, "_", "");
+
+    return std::find_if(
+        Style::foreground_colors.begin(),
+        Style::foreground_colors.end(),
+        [&name] ( std::pair<std::string, std::string> const& elem ) {
+            return equals_ci( elem.first, name );
+        }
+    );
+}
+
+/**
+ * @brief Internal helper function that returns an iterator into the background color list.
+ */
+std::array<std::pair<std::string, std::string>, 17>::const_iterator get_background_color_iterator(
+    std::string name
+) {
+    name = replace_all(name, " ", "");
+    name = replace_all(name, "_", "");
+
+    return std::find_if(
+        Style::background_colors.begin(),
+        Style::background_colors.end(),
+        [&name] ( std::pair<std::string, std::string> const& elem ) {
+            return equals_ci( elem.first, name );
+        }
+    );
+}
+
+// =================================================================================================
 //     Properties
 // =================================================================================================
 
+/**
+ * @brief Reset the Style to use not colors and not bold.
+ */
 Style& Style::reset()
 {
     foreground_ = "";
@@ -30,11 +74,41 @@ Style& Style::reset()
     return *this;
 }
 
+/**
+ * @brief Return whether the Style is currently enabled.
+ */
+bool Style::enabled() const
+{
+    return enabled_;
+}
+
+/**
+ * @brief Set whether the Style is enabled.
+ *
+ * If set to `false`, no style attributes are outputted when the Style is applied to a text with
+ * operator()(). Default is `true`.
+ *
+ * The function returns the Style object itself, in order to allow a fluent interface.
+ */
+Style& Style::enabled( bool value )
+{
+    enabled_ = value;
+    return *this;
+}
+
+/**
+ * @brief Return whether the Style uses bold.
+ */
 bool Style::bold() const
 {
     return bold_;
 }
 
+/**
+ * @brief Set whether the Style uses bold.
+ *
+ * The function returns the Style object itself, in order to allow a fluent interface.
+ */
 Style& Style::bold( bool value )
 {
     bold_ = value;
@@ -43,7 +117,9 @@ Style& Style::bold( bool value )
 
 std::string Style::foreground_color() const
 {
-    return foreground_;
+    auto it = get_foreground_color_iterator(foreground_);
+    assert( it != Style::foreground_colors.end() );
+    return it->first;
 }
 
 Style& Style::foreground_color( std::string const& color )
@@ -59,7 +135,9 @@ Style& Style::foreground_color( std::string const& color )
 
 std::string Style::background_color() const
 {
-    return background_;
+    auto it = get_background_color_iterator(foreground_);
+    assert( it != Style::background_colors.end() );
+    return it->first;
 }
 
 Style& Style::background_color( std::string const& color )
@@ -83,6 +161,10 @@ Style& Style::background_color( std::string const& color )
  */
 std::string get_attribute_string( Style const& s)
 {
+    if( ! s.enabled() ) {
+        return "";
+    }
+
     std::vector<std::string> attribs;
 
     if( s.bold() ) {
@@ -152,24 +234,6 @@ std::string Style::to_python_string( std::string const& text ) const
 // -------------------------------------------------------------------
 
 /**
- * @brief Internal helper function that returns an iterator into the foreground color list.
- */
-static std::array<std::pair<std::string, std::string>, 17>::const_iterator get_foreground_color_iterator(
-    std::string name
-) {
-    name = replace_all(name, " ", "");
-    name = replace_all(name, "_", "");
-
-    return std::find_if(
-        Style::foreground_colors.begin(),
-        Style::foreground_colors.end(),
-        [&name] ( std::pair<std::string, std::string> const& elem ) {
-            return equals_ci( elem.first, name );
-        }
-    );
-}
-
-/**
  * @brief Return `true` iff the given name is a foreground color name.
  */
 bool Style::is_foreground_color( std::string name )
@@ -219,24 +283,6 @@ const std::array<std::pair<std::string, std::string>, 17> Style::foreground_colo
 // -------------------------------------------------------------------
 //     Background Color
 // -------------------------------------------------------------------
-
-/**
- * @brief Internal helper function that returns an iterator into the background color list.
- */
-std::array<std::pair<std::string, std::string>, 17>::const_iterator get_background_color_iterator(
-    std::string name
-) {
-    name = replace_all(name, " ", "");
-    name = replace_all(name, "_", "");
-
-    return std::find_if(
-        Style::background_colors.begin(),
-        Style::background_colors.end(),
-        [&name] ( std::pair<std::string, std::string> const& elem ) {
-            return equals_ci( elem.first, name );
-        }
-    );
-}
 
 /**
  * @brief Return `true` iff the given name is a background color name.
