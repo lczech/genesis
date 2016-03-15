@@ -19,7 +19,7 @@ namespace utils {
 //     Forward Declarations
 // =================================================================================================
 
-struct Layout;
+struct TableLayout;
 
 class Style;
 
@@ -86,10 +86,10 @@ public:
     // ---------------------------------------------------------------------
 
     void write( std::ostream& out ) const;
-    void write( std::ostream& out, Layout const& layout ) const;
+    void write( std::ostream& out, TableLayout const& layout ) const;
 
     std::string to_string() const;
-    std::string to_string( Layout const& layout ) const;
+    std::string to_string( TableLayout const& layout ) const;
 
     friend std::ostream& operator << (std::ostream& out, Table const& table);
 
@@ -210,17 +210,17 @@ private:
 };
 
 // =================================================================================================
-//     Table Layout
+//     TableLayout
 // =================================================================================================
 
-struct Layout
+struct TableLayout
 {
     // ---------------------------------------------------------------------
     //     Member Types
     // ---------------------------------------------------------------------
 
     /**
-     * @brief One line of the Layout.
+     * @brief One line of the TableLayout.
      *
      * This struct has different roles depending on the kind of line:
      *
@@ -252,12 +252,12 @@ struct Layout
      */
     struct Binder
     {
-        Binder(Layout const& l, Table const& t)
+        Binder(TableLayout const& l, Table const& t)
             : layout(l)
             , table(t)
         {}
 
-        Layout const& layout;
+        TableLayout const& layout;
         Table const& table;
 
         friend std::ostream& operator << (std::ostream& out, Binder const& binder);
@@ -285,17 +285,17 @@ struct Layout
 //     Default Table Layouts
 // ---------------------------------------------------------------------
 
-Layout minimal_layout();
+TableLayout minimal_layout();
 
-Layout simple_layout(  bool condensed = false );
-Layout simple_grid(    bool condensed = false );
-Layout simple_frame(   bool condensed = false );
+TableLayout simple_layout(  bool condensed = false );
+TableLayout simple_grid(    bool condensed = false );
+TableLayout simple_frame(   bool condensed = false );
 
-Layout extended_grid(  bool condensed = false );
-Layout extended_frame( bool condensed = false );
+TableLayout extended_grid(  bool condensed = false );
+TableLayout extended_frame( bool condensed = false );
 
-Layout double_grid(    bool condensed = false );
-Layout double_frame(   bool condensed = false );
+TableLayout double_grid(    bool condensed = false );
+TableLayout double_frame(   bool condensed = false );
 
 } // namespace utils
 } // namespace genesis

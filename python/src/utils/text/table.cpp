@@ -134,7 +134,7 @@ PYTHON_EXPORT_CLASS (Table, "utils.text")
         )
         .def(
             "to_string",
-            ( std::string ( ::genesis::utils::Table::* )( Layout const & ) const )( &::genesis::utils::Table::to_string ),
+            ( std::string ( ::genesis::utils::Table::* )( TableLayout const & ) const )( &::genesis::utils::Table::to_string ),
             ( boost::python::arg("layout") )
         )
         .def(
@@ -144,7 +144,7 @@ PYTHON_EXPORT_CLASS (Table, "utils.text")
         )
         .def(
             "write",
-            ( void ( ::genesis::utils::Table::* )( std::ostream &, Layout const & ) const )( &::genesis::utils::Table::write ),
+            ( void ( ::genesis::utils::Table::* )( std::ostream &, TableLayout const & ) const )( &::genesis::utils::Table::write ),
             ( boost::python::arg("out"), boost::python::arg("layout") )
         )
 
@@ -154,17 +154,17 @@ PYTHON_EXPORT_CLASS (Table, "utils.text")
     ;
 
     // -------------------------------------------------------------------
-    //     Class Layout
+    //     Class TableLayout
     // -------------------------------------------------------------------
 
-    boost::python::class_< ::genesis::utils::Layout > ( "Layout" )
+    boost::python::class_< ::genesis::utils::TableLayout > ( "TableLayout" )
 
         // Operators
 
     ;
 
     // -------------------------------------------------------------------
-    //     Default Table Layouts
+    //     Default Table TableLayouts
     // -------------------------------------------------------------------
 
     boost::python::def(
