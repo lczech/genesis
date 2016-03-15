@@ -4,15 +4,31 @@
 #    This script builds and transfers the documentation in doc/doc to the web server.
 ####################################################################################################
 
-# These are the operations this script can do:
-#   * clean: Delete all doc files.
-#   * make: Build the doc. Update only the changed files.
-#   * refresh: Full new build of the doc files (= clean + make).
-#   * transfer: Transfer the files to the server. Does not build them!
-#   * local: Open the local page in a browser.
-#   * remote: Open the remote page in a browser.
-# The operation can be provided via the command line parameter.
-# If none is given, make is executed.
+if [[ $1 != ""         &&
+      $1 != "clean"    &&
+      $1 != "make"     &&
+      $1 != "refresh"  &&
+      $1 != "transfer" &&
+      $1 != "local"    &&
+      $1 != "remote"
+]]; then
+    echo "Unsupported operation: ${1}."
+    cat <<EOF
+
+These are the operations this script can do:
+
+  * clean: Delete all doc files.
+  * make: Build the doc. Update only the changed files.
+  * refresh: Full new build of the doc files (= clean + make).
+  * transfer: Transfer the files to the server. Does not build them!
+  * local: Open the local page in a browser.
+  * remote: Open the remote page in a browser.
+
+The operation can be provided via the command line parameter.
+If none is given, make is executed.
+EOF
+    exit
+fi
 
 function open_in_browser() {
     if which xdg-open > /dev/null
