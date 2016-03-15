@@ -10,6 +10,7 @@
 #include "utils/text/string.hpp"
 
 #include <algorithm>
+#include <ostream>
 #include <stdexcept>
 #include <vector>
 
@@ -17,45 +18,128 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Properties
+// =================================================================================================
+
+Style& Style::reset()
+{
+    foreground_ = "";
+    background_ = "";
+    bold_ = false;
+
+    return *this;
+}
+
+bool Style::bold() const
+{
+    return bold_;
+}
+
+Style& Style::bold( bool value )
+{
+    bold_ = value;
+    return *this;
+}
+
+std::string Style::foreground_color() const
+{
+    return foreground_;
+}
+
+Style& Style::foreground_color( std::string const& color )
+{
+    // Check if valid color, throw if not.
+    if( color != "" ) {
+        get_foreground_color_value( color );
+    }
+
+    foreground_ = color;
+    return *this;
+}
+
+std::string Style::background_color() const
+{
+    return background_;
+}
+
+Style& Style::background_color( std::string const& color )
+{
+    // Check if valid color, throw if not.
+    if( color != "" ) {
+        get_background_color_value( color );
+    }
+
+    background_ = color;
+    return *this;
+}
+
+// =================================================================================================
 //     Output
 // =================================================================================================
 
+/**
+ * @brief Internal helper function that returns the attribute string of a Style based on its
+ * properties.
+ */
 std::string get_attribute_string( Style const& s)
 {
     std::vector<std::string> attribs;
 
     if( s.bold() ) {
-        attribs.push_back("1");
+        attribs.push_back( "1" );
     }
     if( s.foreground_color() != "" ) {
-        attribs.push_back(s.get_foreground_color(s.foreground_color()));
+        attribs.push_back( s.get_foreground_color_value( s.foreground_color() ));
     }
     if( s.background_color() != "" ) {
-        attribs.push_back(s.get_background_color(s.background_color()));
+        attribs.push_back( s.get_background_color_value( s.background_color() ));
     }
 
     return join( attribs, ";" );
 }
 
-std::string Style::to_bash_string() const
+/**
+ * @brief Operator that returns a text with the current Style applied to it.
+ *
+ * This is most helpful for outputting styled text to a terminal. See the Style class description
+ * for an example.
+ */
+std::string Style::operator() ( std::string const& text ) const
+{
+    return to_bash_string( text );
+}
+
+/**
+ * @brief Additional output function with the same purpose as operator().
+ *
+ * It uses the notation `\033` for the escape symbol, which is best interpreted by bash.
+ * Usually, there is no need to use this function. The operator() should just work fine.
+ */
+std::string Style::to_bash_string( std::string const& text ) const
 {
     // return "\e[" + get_attribute_string(*this) + "m" + text_ + "\e[0m";
 
     auto attribs = get_attribute_string(*this);
     if( attribs.size() > 0 ) {
-        return "\033[" + get_attribute_string(*this) + "m" + text_ + "\033[0m";
+        return "\033[" + get_attribute_string(*this) + "m" + text + "\033[0m";
     } else {
-        return text_;
+        return text;
     }
 }
 
-std::string Style::to_python_string() const
+/**
+ * @brief Additional output function with the same purpose as operator().
+ *
+ * It uses the notation `\x1b` for the escape symbol, which is best interpreted by python.
+ * Usually, there is no need to use this function. The operator() should just work fine.
+ */
+std::string Style::to_python_string( std::string const& text ) const
 {
     auto attribs = get_attribute_string(*this);
     if( attribs.size() > 0 ) {
-        return "\x1b[" + get_attribute_string(*this) + "m" + text_ + "\x1b[0m";
+        return "\x1b[" + get_attribute_string(*this) + "m" + text + "\x1b[0m";
     } else {
-        return text_;
+        return text;
     }
 }
 
@@ -67,6 +151,9 @@ std::string Style::to_python_string() const
 //     Foreground Color
 // -------------------------------------------------------------------
 
+/**
+ * @brief Internal helper function that returns an iterator into the foreground color list.
+ */
 static std::array<std::pair<std::string, std::string>, 17>::const_iterator get_foreground_color_iterator(
     std::string name
 ) {
@@ -82,12 +169,21 @@ static std::array<std::pair<std::string, std::string>, 17>::const_iterator get_f
     );
 }
 
+/**
+ * @brief Return `true` iff the given name is a foreground color name.
+ */
 bool Style::is_foreground_color( std::string name )
 {
     return get_foreground_color_iterator(name) != Style::foreground_colors.end();
 }
 
-std::string Style::get_foreground_color( std::string name )
+/**
+ * @brief Return the color value string for a given foreground color name.
+ *
+ * See Style::foreground_colors for valid foreground color names.
+ * If the name is invalid, the function throws an `std::out_of_range` exception.
+ */
+std::string Style::get_foreground_color_value( std::string name )
 {
     auto it = get_foreground_color_iterator(name);
 
@@ -97,6 +193,9 @@ std::string Style::get_foreground_color( std::string name )
     return it->second;
 }
 
+/**
+ * @brief List of all valid foreground color names and their color strings.
+ */
 const std::array<std::pair<std::string, std::string>, 17> Style::foreground_colors = {{
     { "Default", "39" },
     { "Black", "30" },
@@ -121,6 +220,9 @@ const std::array<std::pair<std::string, std::string>, 17> Style::foreground_colo
 //     Background Color
 // -------------------------------------------------------------------
 
+/**
+ * @brief Internal helper function that returns an iterator into the background color list.
+ */
 std::array<std::pair<std::string, std::string>, 17>::const_iterator get_background_color_iterator(
     std::string name
 ) {
@@ -136,12 +238,21 @@ std::array<std::pair<std::string, std::string>, 17>::const_iterator get_backgrou
     );
 }
 
+/**
+ * @brief Return `true` iff the given name is a background color name.
+ */
 bool Style::is_background_color( std::string name )
 {
     return get_background_color_iterator(name) != Style::background_colors.end();
 }
 
-std::string Style::get_background_color( std::string name )
+/**
+ * @brief Return the color value string for a given background color name.
+ *
+ * See Style::foreground_colors for background valid color names.
+ * If the name is invalid, the function throws an `std::out_of_range` exception.
+ */
+std::string Style::get_background_color_value( std::string name )
 {
     auto it = get_background_color_iterator(name);
 
@@ -151,6 +262,9 @@ std::string Style::get_background_color( std::string name )
     return it->second;
 }
 
+/**
+ * @brief List of all valid background color names and their color strings.
+ */
 const std::array<std::pair<std::string, std::string>, 17> Style::background_colors = {{
     { "Default", "49" },
     { "Black", "40" },
@@ -170,6 +284,29 @@ const std::array<std::pair<std::string, std::string>, 17> Style::background_colo
     { "LightCyan", "106" },
     { "White", "107" }
 }};
+
+// =================================================================================================
+//     Basic Operators
+// =================================================================================================
+
+/**
+ * @brief Print the properties of a Style object to a stream.
+ *
+ * The application of Style%s is usually done by invoking its operator(). However, in order to
+ * be able to show its properties at a glance, this operator instead prints them:
+ *
+ *     Style s( "blue" );
+ *     std::cout << s;
+ *
+ * will print this information instead of a stylized text.
+ */
+std::ostream& operator << ( std::ostream& out, Style const& style )
+{
+    out << "Foreground Color: " << style.foreground_color() << "\n";
+    out << "Background Color: " << style.background_color() << "\n";
+    out << "Bold:             " << ( style.bold() ? "true" : "false" ) << "\n";
+    return out;
+}
 
 } // namespace utils
 } // namespace genesis

@@ -318,9 +318,9 @@ void print_to_ostream(
 
             // We use map.at() here, which throws in case of invalid keys, so we don't have to.
             if( background ) {
-                out << utils::Style( std::string( 1, s ), "black", colors.at(s) ).to_bash_string();
+                out << utils::Style( "black", colors.at(s) )( std::string( 1, s ) );
             } else {
-                out << utils::Style( std::string( 1, s ), colors.at(s) ).to_bash_string();
+                out << utils::Style( colors.at(s) )( std::string( 1, s ) );
             }
 
         } else {

@@ -76,10 +76,10 @@ public:
     Column& add_column( std::string label = "" );
 
     Table& operator << ( std::string value );
-    Table& operator << ( Style const& value );
+    // Table& operator << ( Style const& value );
 
     Table& append ( std::string value );
-    Table& append ( Style const& value );
+    Table& append ( Style const& style, std::string value );
 
     // ---------------------------------------------------------------------
     //     Output
@@ -180,7 +180,7 @@ public:
     void clear_content();
 
     void append( std::string value );
-    void append( Style const& value );
+    void append( Style const& style, std::string value );
 
     // ---------------------------------------------------------------------
     //     Output

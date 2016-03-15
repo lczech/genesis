@@ -95,10 +95,10 @@ Table& Table::operator << ( std::string value )
     return append( value );
 }
 
-Table& Table::operator << ( Style const& value )
-{
-    return append( value );
-}
+// Table& Table::operator << ( Style const& value )
+// {
+//     return append( value );
+// }
 
 Table& Table::append ( std::string value )
 {
@@ -112,9 +112,9 @@ Table& Table::append ( std::string value )
     return *this;
 }
 
-Table& Table::append ( Style const& value )
+Table& Table::append ( Style const& style, std::string value )
 {
-    columns_[ current_col_ ].append( value );
+    columns_[ current_col_ ].append( style(value) );
 
     ++current_col_;
     if( current_col_ >= columns_.size() ) {
@@ -314,10 +314,10 @@ void Table::Column::append( std::string value )
     data_.push_back(value);
 }
 
-void Table::Column::append( Style const& value )
+void Table::Column::append( Style const& style, std::string value )
 {
     width_ = std::max( width_, value.size() );
-    data_.push_back(value.to_python_string());
+    data_.push_back( style(value) );
 }
 
 // ---------------------------------------------------------------------
