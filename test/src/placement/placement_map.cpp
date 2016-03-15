@@ -10,7 +10,7 @@
 #include <memory>
 
 #include "lib/placement/functions.hpp"
-#include "lib/placement/io/jplace_processor.hpp"
+#include "lib/placement/io/jplace_reader.hpp"
 #include "lib/placement/io/newick_processor.hpp"
 #include "lib/placement/placement_map.hpp"
 #include "lib/tree/io/newick/processor.hpp"
@@ -60,7 +60,7 @@ TEST(PlacementMap, MergeDuplicatesSimple)
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_a.jplace";
     PlacementMap map;
-    EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
+    EXPECT_NO_THROW( JplaceReader().from_file(infile, map) );
 
     // Check before merging.
     test_placement_map_stats(map, 7, 8, 7);
@@ -80,7 +80,7 @@ TEST(PlacementMap, MergeDuplicatesTransitive)
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
     PlacementMap map;
-    EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
+    EXPECT_NO_THROW( JplaceReader().from_file(infile, map) );
 
     // Check before merging.
     test_placement_map_stats(map, 7, 10, 11);

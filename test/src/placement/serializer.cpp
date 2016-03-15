@@ -11,7 +11,7 @@
 #include <memory>
 #include <string>
 
-#include "lib/placement/io/jplace_processor.hpp"
+#include "lib/placement/io/jplace_reader.hpp"
 #include "lib/placement/placement_map.hpp"
 #include "lib/placement/io/serializer.hpp"
 #include "lib/tree/io/newick/processor.hpp"
@@ -30,7 +30,7 @@ TEST(PlacementMapSerializer, SaveAndLoad)
 
     // Prepare a PlacementMap with data.
     PlacementMap map_save;
-    EXPECT_TRUE (JplaceProcessor().from_file(infile, map_save));
+    EXPECT_NO_THROW (JplaceReader().from_file(infile, map_save));
     EXPECT_EQ   (5, map_save.placement_count());
     EXPECT_TRUE (map_save.validate(true, false));
 

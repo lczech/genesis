@@ -12,7 +12,8 @@
 
 #include "placement/functions.hpp"
 #include "placement/io/edge_color.hpp"
-#include "placement/io/jplace_processor.hpp"
+#include "placement/io/jplace_reader.hpp"
+#include "placement/io/jplace_writer.hpp"
 #include "placement/io/newick_processor.hpp"
 #include "placement/io/phyloxml_processor.hpp"
 #include "placement/io/serializer.hpp"
@@ -86,6 +87,7 @@
 #include "utils/io/json/processor.hpp"
 #include "utils/io/lexer.hpp"
 #include "utils/io/lexer_iterator.hpp"
+#include "utils/io/lexer/parser.hpp"
 #include "utils/io/lexer/scanner.hpp"
 #include "utils/io/lexer_token.hpp"
 #include "utils/io/nexus/block.hpp"

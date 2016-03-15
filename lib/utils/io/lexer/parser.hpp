@@ -190,10 +190,11 @@ T parse_float( utils::CountingIstream& source )
  * The first char of the stream is considered to be the opening quotation mark. Everything up until
  * the closing quotation mark (the same char again, whatever it is) is then read.
  *
- * If the optional parameter `use_escapes` is set to `true`, chars preceeded by  a backslash are
+ * If the optional parameter `use_escapes` is set to `true`, chars preceeded by a backslash are
  * considered to be "escaped". The chars `\r`, `\n` and `\t` are then turned into their
  * respective white space equivalents, while all other chars are copied verbatim to the return
  * string. Thus, by escaping it, a the string can also include the quotation mark itself.
+ * Default of this parameter is `true`.
  *
  * The optional parameter `include_qmarks` demtermines whether the quotation marks are included in
  * the output or not. Default is `false`.
