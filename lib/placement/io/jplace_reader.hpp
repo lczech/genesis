@@ -34,7 +34,22 @@ namespace placement {
 namespace placement {
 
 /**
- * @brief Read a Jplace document and create a PlacementMap object from it.
+ * @brief Read Jplace data.
+ *
+ * This class provides facilities for reading Jplace files. It supports to read
+ *
+ *   * from_file()
+ *   * from_string()
+ *   * from_document()
+ *
+ * Exemplary usage:
+ *
+ *     std::string infile = "path/to/file.jplace";
+ *     PlacementMap map;
+ *
+ *     JplaceReader()
+ *         .invalid_number_behaviour( InvalidNumberBehaviour::kCorrect )
+ *         .from_file( infile, map );
  *
  * The Jplace format is described in the following publication:
  *
@@ -114,21 +129,55 @@ public:
 
     /**
      * @brief Enum to determine the behaviour of the reader in case of invalid numbers.
+     *
+     * When reading from `jplace` files, the numerical fields of each placement can contain small
+     * deviations or inaccuracies. Those are due to numerical issues or floating point number to
+     * text conversions, which occur when storing the exact values in a textual representation.
+     *
+     * Currently, the following checks are offered:
+     *
+     *   * `like_weight_ratio < 0.0`
+     *   * `like_weight_ratio > 1.0`
+     *   * `pendant_length    < 0.0`
+     *   * `proximal_length   < 0.0`
+     *   * `proximal_length   > branch_length`
+     *
+     * This enum offers choices to decide how the JplaceReader reacts when facing those errors.
+     * See invalid_number_behaviour( InvalidNumberBehaviour ) to set the behaviour.
      */
     enum class InvalidNumberBehaviour {
-        /** @brief Ignore invalid numbers. */
+        /**
+         * @brief Ignore invalid numbers.
+         *
+         * Erroneous numbers are simply ignored, meaning, they are stored as-is in the data
+         * structure. This is the default.
+         */
         kIgnore,
 
-         /** @brief Log invalid numbers to LOG_WARN. */
+         /**
+          * @brief Log invalid numbers to LOG_WARN.
+          *
+          * When encountering an erroneous number, a warning stating the error is logged. The
+          * number is stored as-is in the data structure.
+          */
         kLog,
 
-        /** @brief Correct invalid numbers to the next best correct number. */
+        /**
+         * @brief Correct invalid numbers to the next best correct number.
+         *
+         * Erroneous numbers are silently corrected. This means, they are set to the nearest correct
+         * value. For example, a value that cannot be smaller than 0.0 will be set to 0.0.
+         */
         kCorrect,
 
-        /** @brief Combination of kLog and kCorrect. */
+        /**
+         * @brief Combination of kLog and kCorrect.
+         */
         kLogAndCorrect,
 
-        /** @brief Throw an `std::runtime_error` when encountering an invalid number. */
+        /**
+         * @brief Throw an `std::runtime_error` when encountering an invalid number.
+         */
         kThrow
     };
 

@@ -11,7 +11,6 @@
 #include "placement/operators.hpp"
 #include "placement/placement_map_set.hpp"
 #include "placement/placement_map.hpp"
-// #include "tree/io/newick/processor.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
@@ -23,8 +22,6 @@
 #include "utils/io/lexer/scanner.hpp"
 #include "utils/text/string.hpp"
 
-// #include <fstream>
-// #include <memory>
 #include <assert.h>
 #include <cctype>
 #include <functional>
@@ -41,7 +38,7 @@ namespace placement {
 // =================================================================================================
 
 /**
- * @brief Returns the version number that this class is written for.
+ * @brief Returns the version number that this class is written for. Currently, this is "3".
  */
 std::string JplaceReader::version ()
 {
@@ -50,6 +47,9 @@ std::string JplaceReader::version ()
 
 /**
  * @brief Checks whether the version of the jplace format works with this parser.
+ *
+ * This parser is intended for `jplace` versions 2 and 3. If while reading a different version tag
+ * is found, the reader will trigger a warning and try to continue anyway.
  */
 bool JplaceReader::check_version ( std::string const& version )
 {
@@ -61,6 +61,11 @@ bool JplaceReader::check_version ( std::string const& version )
 //     Reading
 // =================================================================================================
 
+/**
+ * @brief Read `jplace` data from a stream into a PlacementMap.
+ *
+ * This implementation is currenlty not yet fully implemented. Don't use it yet!
+ */
 void JplaceReader::from_stream ( std::istream& is, PlacementMap& placements ) const
 {
     auto it = utils::CountingIstream( is );
@@ -89,7 +94,9 @@ void JplaceReader::from_stream ( std::istream& is, PlacementMap& placements ) co
     utils::read_char( it, ',' );
 
     (void) placements;
+
     // TODO
+    throw std::domain_error( "Not yet fully implemented." );
 }
 
 /**
@@ -163,6 +170,10 @@ void JplaceReader::from_strings (const std::vector<std::string>& jps, PlacementM
 //     Processing
 // =================================================================================================
 
+/**
+ * @brief Internal helper function that checks whether the `version` key in a JsonDocument
+ * corresponds to a valid version number for the JplaceReader.
+ */
 void JplaceReader::process_json_version( utils::JsonDocument const& doc ) const
 {
     // check if the version is correct
@@ -178,6 +189,26 @@ void JplaceReader::process_json_version( utils::JsonDocument const& doc ) const
     }
 }
 
+/**
+ * @brief Internal helper function that processes the `metadata` key of a JsonDocument and stores
+ * its value in the PlacementMap metadata member.
+ */
+void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, PlacementMap& placements ) const
+{
+    // Check if there is metadata.
+    auto val = doc.get("metadata");
+    if (val && val->is_object()) {
+        utils::JsonValueObject* meta_obj = json_value_to_object(val);
+        for( utils::JsonValueObject::ObjectPair meta_pair : *meta_obj ) {
+            placements.metadata[meta_pair.first] = meta_pair.second->to_string();
+        }
+    }
+}
+
+/**
+ * @brief Internal helper function that processes the `tree` key of a JsonDocument and stores it as
+ * the Tree of a PlacementMap.
+ */
 void JplaceReader::process_json_tree( utils::JsonDocument const& doc, PlacementMap& placements ) const
 {
     // find and process the reference tree
@@ -198,6 +229,10 @@ void JplaceReader::process_json_tree( utils::JsonDocument const& doc, PlacementM
     LOG_INFO << "nodes " << placements.tree().node_count();
 }
 
+/**
+ * @brief Internal helper function that processes the `fields` key of a JsonDocument and returns
+ * its values.
+ */
 std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument const& doc ) const
 {
     // get the field names and store them in array fields
@@ -254,6 +289,10 @@ std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument 
     return fields;
 }
 
+/**
+ * @brief Internal helper function that processes the `placements` key of a JsonDocument and stores
+ * the contained pqueries in the PlacementMap.
+ */
 void JplaceReader::process_json_placements(
     utils::JsonDocument const& doc,
     PlacementMap&              placements,
@@ -537,27 +576,26 @@ void JplaceReader::process_json_placements(
     }
 }
 
-void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, PlacementMap& placements ) const
-{
-    // Check if there is metadata.
-    auto val = doc.get("metadata");
-    if (val && val->is_object()) {
-        utils::JsonValueObject* meta_obj = json_value_to_object(val);
-        for( utils::JsonValueObject::ObjectPair meta_pair : *meta_obj ) {
-            placements.metadata[meta_pair.first] = meta_pair.second->to_string();
-        }
-    }
-}
-
 // =================================================================================================
 //     Properties
 // =================================================================================================
 
+/**
+ * @brief Return the currenlty set InvalidNumberBehaviour.
+ */
 JplaceReader::InvalidNumberBehaviour JplaceReader::invalid_number_behaviour() const
 {
     return invalid_number_behaviour_;
 }
 
+/**
+ * @brief Set the InvalidNumberBehaviour.
+ *
+ * This setter controls the InvalidNumberBehaviour of the JplaceReader. The default value is
+ * InvalidNumberBehaviour::kIgnore.
+ *
+ * The function returns the JplaceReader object to allow for a fluent interface.
+ */
 JplaceReader& JplaceReader::invalid_number_behaviour( InvalidNumberBehaviour val )
 {
     invalid_number_behaviour_ = val;

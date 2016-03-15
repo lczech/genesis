@@ -32,6 +32,26 @@ namespace placement {
 
 namespace placement {
 
+/**
+ * @brief Write Jplace data.
+ *
+ * This class provides facilities for writing Jplace data. It supports to write
+ *
+ *   * to_file()
+ *   * to_string()
+ *   * to_document()
+ *
+ * Exemplary usage:
+ *
+ *     std::string outfile = "path/to/file.jplace";
+ *     PlacementMap map;
+ *
+ *     JplaceWriter()
+ *         .to_file( map, outfile );
+ *
+ * See JplaceReader for more information on the data format. See PlacementMap for more information
+ * on the data structure.
+ */
 class JplaceWriter
 {
 public:

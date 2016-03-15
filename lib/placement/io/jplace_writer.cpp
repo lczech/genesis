@@ -35,7 +35,7 @@ namespace placement {
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Write the data of a PlacementMap to a file in `Jplace` format.
  */
 bool JplaceWriter::to_file (const PlacementMap& placements, const std::string fn)
 {
@@ -49,7 +49,7 @@ bool JplaceWriter::to_file (const PlacementMap& placements, const std::string fn
 }
 
 /**
- * @brief
+ * @brief Store the data of a PlacementMap in a string in `Jplace` format.
  */
 void JplaceWriter::to_string (const PlacementMap& placements, std::string&  jplace)
 {
@@ -57,7 +57,7 @@ void JplaceWriter::to_string (const PlacementMap& placements, std::string&  jpla
 }
 
 /**
- * @brief
+ * @brief Return the data of a PlacementMap as a string in `Jplace` format.
  */
 std::string JplaceWriter::to_string (const PlacementMap& placements)
 {
@@ -67,7 +67,7 @@ std::string JplaceWriter::to_string (const PlacementMap& placements)
 }
 
 /**
- * @brief
+ * @brief Store the data of a PlacementMap in a JsonDocument object.
  */
 void JplaceWriter::to_document (const PlacementMap& placements, utils::JsonDocument& doc)
 {
