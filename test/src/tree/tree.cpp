@@ -30,4 +30,6 @@ TEST(Tree, Basics)
 
     EXPECT_EQ("R", tree.root_node()->data.name);
     EXPECT_TRUE(tree.validate());
+
+    // LOG_INFO << tree;
 }

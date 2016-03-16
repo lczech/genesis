@@ -11,6 +11,7 @@
  */
 
 #include <memory>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -569,6 +570,14 @@ public:
     // -------------------------------------------------------------------------
     //     Debug and Dump
     // -------------------------------------------------------------------------
+
+    friend std::ostream& operator << ( std::ostream& out, TreeType const& tree )
+    {
+        out << "Node Count: " << tree.node_count() << "\n";
+        out << "Edge Count: " << tree.edge_count() << "\n";
+        out << "Link Count: " << tree.link_count() << "\n";
+        return out;
+    }
 
     bool validate() const;
 
