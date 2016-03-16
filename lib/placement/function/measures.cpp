@@ -229,7 +229,7 @@ double earth_movers_distance(
             }
             edge_balance.emplace(place->proximal_length, +place->like_weight_ratio / totalmass_l);
 
-            LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
+            // LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
             LOG_DBG2 << "it_l edge   " << it_l.edge()->index_;
             LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_l;
             LOG_DBG2 << "new dist    " << distance;
@@ -244,7 +244,7 @@ double earth_movers_distance(
             }
             edge_balance.emplace(place->proximal_length, -place->like_weight_ratio / totalmass_r);
 
-            LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
+            // LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
             LOG_DBG2 << "it_r edge   " << it_r.edge()->index_;
             LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_r;
             LOG_DBG2 << "new dist    " << distance;

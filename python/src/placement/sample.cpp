@@ -85,12 +85,12 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
             ( double ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::placement_mass ),
             get_docstring("double ::genesis::placement::Sample::placement_mass () const")
         )
-        .def(
-            "pquery_at",
-            ( Pquery const & ( ::genesis::placement::Sample::* )( const size_t ))( &::genesis::placement::Sample::pquery_at ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            ( boost::python::arg("index") )
-        )
+        // .def(
+        //     "pquery_at",
+        //     ( Pquery const & ( ::genesis::placement::Sample::* )( const size_t ))( &::genesis::placement::Sample::pquery_at ),
+        //     boost::python::return_value_policy<boost::python::reference_existing_object>(),
+        //     ( boost::python::arg("index") )
+        // )
         .def(
             "pquery_size",
             ( size_t ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::pquery_size )

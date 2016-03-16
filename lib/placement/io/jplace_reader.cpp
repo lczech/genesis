@@ -482,7 +482,6 @@ void JplaceReader::process_json_placements(
             );
 
             // Add the placement to the query and vice versa.
-            pqry_place->pquery = pqry.get();
             pqry->placements.push_back(std::move(pqry_place));
         }
 

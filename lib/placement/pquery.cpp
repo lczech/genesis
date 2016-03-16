@@ -58,7 +58,6 @@ PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementT
     // }
 
     // Add the placement to the query and vice versa.
-    place->pquery = this;
     placements.push_back(std::move(place));
 
     return place_ptr;

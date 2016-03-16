@@ -73,7 +73,6 @@ Sample::Sample( Sample const& other )
             auto np = make_unique<PqueryPlacement>(*op);
 
             np->edge   = en_map[np->edge_num];
-            np->pquery = npqry.get();
             npqry->placements.push_back(std::move(np));
         }
         for (const auto& on : opqry->names) {
@@ -241,7 +240,6 @@ bool Sample::merge(const Sample& other)
             // something broke the integrity of our in memory representation of the data.
             assert(en_map.count(np->edge_num) > 0);
             np->edge = en_map[np->edge_num];
-            np->pquery = npqry.get();
             npqry->placements.push_back(std::move(np));
         }
         for (const auto& on : opqry->names) {

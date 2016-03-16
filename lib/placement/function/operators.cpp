@@ -209,10 +209,6 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
         double ratio_sum = 0.0;
         for (const auto& p : pqry->placements) {
             // make sure the pointers and references are set correctly
-            if (p->pquery != pqry.get()) {
-                LOG_INFO << "Inconsistent pointer from placement to pquery at '" << name << "'.";
-                return false;
-            }
             int found_placement_on_edge = 0;
             for( PqueryPlacement const* pe : place_map[ p->edge->index() ]) {
                 if (pe == p.get()) {

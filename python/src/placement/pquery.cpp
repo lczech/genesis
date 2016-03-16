@@ -30,11 +30,11 @@ PYTHON_EXPORT_CLASS (PqueryPlacement, "placement")
             ( const PlacementTree::EdgeType & ( ::genesis::placement::PqueryPlacement::* )(  ) const )( &::genesis::placement::PqueryPlacement::get_edge ),
             boost::python::return_value_policy<boost::python::reference_existing_object>()
         )
-        .def(
-            "pquery",
-            ( const Pquery & ( ::genesis::placement::PqueryPlacement::* )(  ) const )( &::genesis::placement::PqueryPlacement::get_pquery ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>()
-        )
+        // .def(
+        //     "pquery",
+        //     ( const Pquery & ( ::genesis::placement::PqueryPlacement::* )(  ) const )( &::genesis::placement::PqueryPlacement::get_pquery ),
+        //     boost::python::return_value_policy<boost::python::reference_existing_object>()
+        // )
 
         // Public Member Variables
 

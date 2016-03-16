@@ -59,7 +59,7 @@ public:
         parsimony(0),
         // pquery(pquery),
         // edge(edge)
-        pquery(nullptr),
+        // pquery(nullptr),
         edge(nullptr)
     {}
 
@@ -80,7 +80,7 @@ public:
         parsimony(other.parsimony),
         // pquery(pquery),
         // edge(edge)
-        pquery(nullptr),
+        // pquery(nullptr),
         edge(nullptr)
     {}
 
@@ -91,11 +91,6 @@ public:
     // -------------------------------------------------------------------
 
     // TODO fix the get_ part in here!!! make members protected, refactor all occurences
-
-    inline const Pquery& get_pquery() const
-    {
-        return *pquery;
-    }
 
     inline const PlacementTreeEdge& get_edge() const
     {
@@ -119,7 +114,6 @@ public:
     // const Pquery*                  pquery_;
     // const PlacementTreeEdge* edge_;
 
-    Pquery*            pquery;
     PlacementTreeEdge* edge;
 };
 
