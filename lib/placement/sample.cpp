@@ -27,7 +27,7 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Constructor & Destructor
+//     Constructor and Rule of Five
 // =================================================================================================
 
 /**
@@ -157,6 +157,25 @@ void Sample::swap (Sample& other) noexcept
     swap(pqueries_, other.pqueries_);
     swap(tree_,     other.tree_);
     swap(metadata,  other.metadata);
+}
+
+// =================================================================================================
+//     Accessors
+// =================================================================================================
+
+size_t Sample::pquery_size() const
+{
+    return pqueries_.size();
+}
+
+Pquery& Sample::pquery_at( const size_t index )
+{
+    return *pqueries_.at( index );
+}
+
+Pquery const& Sample::pquery_at( const size_t index ) const
+{
+    return *pqueries_.at( index );
 }
 
 // =================================================================================================
