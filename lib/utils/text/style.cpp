@@ -43,7 +43,7 @@ static std::array<std::pair<std::string, std::string>, 17>::const_iterator get_f
 /**
  * @brief Internal helper function that returns an iterator into the background color list.
  */
-std::array<std::pair<std::string, std::string>, 17>::const_iterator get_background_color_iterator(
+static std::array<std::pair<std::string, std::string>, 17>::const_iterator get_background_color_iterator(
     std::string name
 ) {
     name = replace_all(name, " ", "");
@@ -117,6 +117,10 @@ Style& Style::bold( bool value )
 
 std::string Style::foreground_color() const
 {
+    if( foreground_ == "" ) {
+        return "";
+    }
+
     auto it = get_foreground_color_iterator(foreground_);
     assert( it != Style::foreground_colors.end() );
     return it->first;
@@ -135,7 +139,11 @@ Style& Style::foreground_color( std::string const& color )
 
 std::string Style::background_color() const
 {
-    auto it = get_background_color_iterator(foreground_);
+    if( background_ == "" ) {
+        return "";
+    }
+
+    auto it = get_background_color_iterator(background_);
     assert( it != Style::background_colors.end() );
     return it->first;
 }
