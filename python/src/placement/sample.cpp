@@ -32,23 +32,23 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
             ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::clear_placements ),
             get_docstring("void ::genesis::placement::Sample::clear_placements ()")
         )
-        .def(
-            "closest_leaf_depth_histogram",
-            ( std::vector< int > ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::closest_leaf_depth_histogram ),
-            get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_depth_histogram () const")
-        )
-        .def(
-            "closest_leaf_distance_histogram",
-            ( std::vector< int > ( ::genesis::placement::Sample::* )( const double, const double, const int ) const )( &::genesis::placement::Sample::closest_leaf_distance_histogram ),
-            ( boost::python::arg("min"), boost::python::arg("max"), boost::python::arg("bins")=(const int)(10) ),
-            get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_distance_histogram (const double min, const double max, const int bins=10) const")
-        )
-        .def(
-            "closest_leaf_distance_histogram_auto",
-            ( std::vector< int > ( ::genesis::placement::Sample::* )( double &, double &, const int ) const )( &::genesis::placement::Sample::closest_leaf_distance_histogram_auto ),
-            ( boost::python::arg("min"), boost::python::arg("max"), boost::python::arg("bins")=(const int)(10) ),
-            get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_distance_histogram_auto (double & min, double & max, const int bins=10) const")
-        )
+        // .def(
+        //     "closest_leaf_depth_histogram",
+        //     ( std::vector< int > ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::closest_leaf_depth_histogram ),
+        //     get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_depth_histogram () const")
+        // )
+        // .def(
+        //     "closest_leaf_distance_histogram",
+        //     ( std::vector< int > ( ::genesis::placement::Sample::* )( const double, const double, const int ) const )( &::genesis::placement::Sample::closest_leaf_distance_histogram ),
+        //     ( boost::python::arg("min"), boost::python::arg("max"), boost::python::arg("bins")=(const int)(10) ),
+        //     get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_distance_histogram (const double min, const double max, const int bins=10) const")
+        // )
+        // .def(
+        //     "closest_leaf_distance_histogram_auto",
+        //     ( std::vector< int > ( ::genesis::placement::Sample::* )( double &, double &, const int ) const )( &::genesis::placement::Sample::closest_leaf_distance_histogram_auto ),
+        //     ( boost::python::arg("min"), boost::python::arg("max"), boost::python::arg("bins")=(const int)(10) ),
+        //     get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_distance_histogram_auto (double & min, double & max, const int bins=10) const")
+        // )
         // .def(
         //     "dump",
         //     ( std::string ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::dump ),

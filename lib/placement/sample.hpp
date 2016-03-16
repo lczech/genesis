@@ -128,14 +128,6 @@ public:
     size_t placement_count() const;
     double placement_mass()  const;
 
-    std::vector<int> closest_leaf_depth_histogram() const;
-    std::vector<int> closest_leaf_distance_histogram (
-        const double min, const double max, const int bins = 10
-    ) const;
-    std::vector<int> closest_leaf_distance_histogram_auto (
-        double& min, double& max, const int bins = 10
-    ) const;
-
     // -------------------------------------------------------------------------
     //     Dump and Debug
     // -------------------------------------------------------------------------
