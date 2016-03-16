@@ -40,7 +40,7 @@ TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
     typedef PhyloxmlColorMixin<PlacementTreePhyloxmlProcessor> ColoredPlacementTreePhyloxmlProcessor;
 
     auto proc = ColoredPlacementTreePhyloxmlProcessor();
-    proc.edge_colors( placement_color_count_gradient( map.tree() ));
+    proc.edge_colors( placement_color_count_gradient( map ));
     std::string out = proc.to_string(map.tree());
 
     // At least one element in the output should have the color for the edge with most placements.
@@ -61,7 +61,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNewick )
     typedef NewickColorMixin<PlacementTreeNewickProcessor> ColoredPlacementTreeNewickProcessor;
 
     auto proc = ColoredPlacementTreeNewickProcessor();
-    proc.edge_colors( placement_color_count_gradient( map.tree() ));
+    proc.edge_colors( placement_color_count_gradient( map ));
     std::string out = proc.to_string(map.tree());
 
     // At least one element in the output should have the color for the edge with most placements.
@@ -81,7 +81,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
     typedef NewickColorMixin<PlacementTreeNewickProcessor> ColoredPlacementTreeNewickProcessor;
 
     auto proc = ColoredPlacementTreeNewickProcessor();
-    proc.edge_colors( placement_color_count_gradient( map.tree() ));
+    proc.edge_colors( placement_color_count_gradient( map ));
     proc.enable_edge_nums(false);
     std::string tree_out = proc.to_string(map.tree());
 

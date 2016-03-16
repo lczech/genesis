@@ -69,7 +69,6 @@ Sample SampleSet::merge_all()
     }
     for (size_t i = 0; i < res.tree().edge_count(); ++i) {
         res.tree().edge_at(i)->data.edge_num = maps_[0].map.tree().edge_at(i)->data.edge_num;
-        res.tree().edge_at(i)->data.placements.clear();
     }
 
     // Add the placements from all maps of this set.

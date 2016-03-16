@@ -13,6 +13,7 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <exception>
 #include <string>
 #include <vector>
 #include <unordered_map>
@@ -103,8 +104,6 @@ void normalize_weight_ratios( Sample& smp )
  */
 void restrain_to_max_weight_placements( Sample& smp )
 {
-    smp.detach_pqueries_from_tree();
-
     for( auto& pqry : smp.pqueries() ) {
         // Initialization.
         double             max_w = -1.0;
@@ -153,8 +152,6 @@ void restrain_to_max_weight_placements( Sample& smp )
         // Also, set the like_weight_ratio to 1.0, because we do not have any other placements left.
         max_p->like_weight_ratio = 1.0;
     }
-
-    smp.reattach_pqueries_to_tree();
 }
 
 // void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
@@ -317,13 +314,9 @@ void collect_duplicate_pqueries (Sample& smp)
         }
 
         // Delete all Pqueries that were merged to others during this iteration.
-        // We detach (and later reattach) the pqueries from the tree for speed reasons.
-        // See those functions for more information on why this is necessary.
-        smp.detach_pqueries_from_tree();
         erase_if(smp.pqueries(), [del] (std::unique_ptr<Pquery>& pqry) {
             return del.count(pqry.get()) > 0;
         });
-        smp.reattach_pqueries_to_tree();
     }
 }
 
@@ -395,11 +388,9 @@ void merge_duplicate_placements (Pquery& pquery)
  */
 void merge_duplicate_placements (Sample& smp)
 {
-    smp.detach_pqueries_from_tree();
     for (auto& pquery_it : smp.pqueries()) {
         merge_duplicate_placements (*pquery_it);
     }
-    smp.reattach_pqueries_to_tree();
 }
 
 /**
@@ -448,15 +439,17 @@ void merge_duplicate_names (Sample& smp)
  * @brief Get the number of placements on the edge with the most placements, and a pointer to this
  * edge.
  */
-std::pair<PlacementTreeEdge*, size_t> placement_count_max_edge(PlacementTree const& tree)
+std::pair<PlacementTreeEdge const*, size_t> placement_count_max_edge( Sample const& smp )
 {
-    PlacementTreeEdge* edge = nullptr;
-    size_t             max  = 0;
+    PlacementTreeEdge const* edge = nullptr;
+    size_t                   max  = 0;
 
-    for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
-        if ((*it)->data.placements.size() > max) {
-            edge = (*it).get();
-            max  = (*it)->data.placements.size();
+    auto place_map = placements_per_edge( smp );
+
+    for( auto const& it : place_map ) {
+        if( it.second.size() > max ) {
+            edge = smp.tree().edge_at( it.first );
+            max  = it.second.size();
         }
     }
 
@@ -467,18 +460,20 @@ std::pair<PlacementTreeEdge*, size_t> placement_count_max_edge(PlacementTree con
  * @brief Get the summed mass of the placements on the heaviest edge, measured by their
  * `like_weight_ratio`, and a pointer to this edge.
  */
-std::pair<PlacementTreeEdge*, double> placement_mass_max_edge(PlacementTree const& tree)
+std::pair<PlacementTreeEdge const*, double> placement_mass_max_edge( Sample const& smp )
 {
-    PlacementTreeEdge* edge = nullptr;
-    double             max  = 0.0;
+    PlacementTreeEdge const* edge = nullptr;
+    double                   max  = 0.0;
 
-    for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
+    auto place_map = placements_per_edge( smp );
+
+    for( auto const& it : place_map ) {
         double sum = 0.0;
-        for (const auto& place : (*it)->data.placements) {
+        for( auto const& place : it.second ) {
             sum += place->like_weight_ratio;
         }
         if (sum > max) {
-            edge = (*it).get();
+            edge = smp.tree().edge_at( it.first );
             max  = sum;
         }
     }
@@ -720,6 +715,37 @@ std::unordered_map<int, PlacementTree::EdgeType*> edge_num_to_edge_map( Placemen
 std::unordered_map<int, PlacementTree::EdgeType*> edge_num_to_edge_map( Sample const & smp )
 {
     return edge_num_to_edge_map( smp.tree() );
+}
+
+std::unordered_map< size_t, std::vector< PqueryPlacement const* >> placements_per_edge(
+    Sample const& smp
+) {
+    std::unordered_map< size_t, std::vector< PqueryPlacement const* >> result;
+
+    for( auto const& pqry : smp.pqueries() ) {
+        for( auto const& place : pqry->placements ) {
+            result[ place->edge->index() ].push_back( place.get() );
+        }
+    }
+
+    return result;
+}
+
+std::vector<PqueryPlacement const*> placements_per_edge(
+    Sample            const& smp,
+    PlacementTreeEdge const& edge
+) {
+    std::vector<PqueryPlacement const*> result;
+
+    for( auto const& pqry : smp.pqueries() ) {
+        for( auto const& place : pqry->placements ) {
+            if( place->edge == &edge ) {
+                result.push_back( place.get() );
+            }
+        }
+    }
+
+    return result;
 }
 
 /**

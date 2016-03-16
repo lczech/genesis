@@ -47,21 +47,21 @@ void BoostPythonExport_PlacementTreeEdgeData()
             "dump",
             ( std::string ( ::genesis::placement::PlacementTreeEdgeData::* )(  ) const )( &::genesis::placement::PlacementTreeEdgeData::dump )
         )
-        .def(
-            "placement_count",
-            ( size_t ( ::genesis::placement::PlacementTreeEdgeData::* )(  ) const )( &::genesis::placement::PlacementTreeEdgeData::placement_count ),
-            get_docstring("size_t ::genesis::PlacementTreeEdgeData::placement_count () const")
-        )
-        .def(
-            "placement_mass",
-            ( double ( ::genesis::placement::PlacementTreeEdgeData::* )(  ) const )( &::genesis::placement::PlacementTreeEdgeData::placement_mass ),
-            get_docstring("double ::genesis::PlacementTreeEdgeData::placement_mass () const")
-        )
-        .def(
-            "sort_placements",
-            ( void ( ::genesis::placement::PlacementTreeEdgeData::* )(  ))( &::genesis::placement::PlacementTreeEdgeData::sort_placements ),
-            get_docstring("void ::genesis::PlacementTreeEdgeData::sort_placements ()")
-        )
+        // .def(
+        //     "placement_count",
+        //     ( size_t ( ::genesis::placement::PlacementTreeEdgeData::* )(  ) const )( &::genesis::placement::PlacementTreeEdgeData::placement_count ),
+        //     get_docstring("size_t ::genesis::PlacementTreeEdgeData::placement_count () const")
+        // )
+        // .def(
+        //     "placement_mass",
+        //     ( double ( ::genesis::placement::PlacementTreeEdgeData::* )(  ) const )( &::genesis::placement::PlacementTreeEdgeData::placement_mass ),
+        //     get_docstring("double ::genesis::PlacementTreeEdgeData::placement_mass () const")
+        // )
+        // .def(
+        //     "sort_placements",
+        //     ( void ( ::genesis::placement::PlacementTreeEdgeData::* )(  ))( &::genesis::placement::PlacementTreeEdgeData::sort_placements ),
+        //     get_docstring("void ::genesis::PlacementTreeEdgeData::sort_placements ()")
+        // )
 
         // Operators
 

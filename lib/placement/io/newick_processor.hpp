@@ -11,8 +11,11 @@
 #include <assert.h>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
+#include "placement/function/functions.hpp"
 #include "placement/placement_tree.hpp"
+#include "placement/sample.hpp"
 #include "tree/default/newick_mixin.hpp"
 #include "tree/io/newick/processor.hpp"
 
@@ -66,6 +69,16 @@ public:
         enable_placement_counts_ = value;
     }
 
+    void prepare_sample( Sample const& smp )
+    {
+        auto place_map = placements_per_edge( smp );
+        placement_counts_.resize( place_map.size(), 0 );
+
+        for( auto const p : place_map ) {
+            placement_counts_[ p.first ] = p.second.size();
+        }
+    }
+
     // -------------------------------------------------------------------------
     //     Overridden Member Functions
     // -------------------------------------------------------------------------
@@ -102,7 +115,7 @@ protected:
             element.tags.push_back(std::to_string(edge.data.edge_num));
         }
         if (enable_placement_counts_) {
-            element.comments.push_back(std::to_string(edge.data.placement_count()));
+            element.comments.push_back(std::to_string( placement_counts_[ edge.index() ]));
         }
     }
 
@@ -114,6 +127,8 @@ private:
 
     bool enable_edge_nums_        = true;
     bool enable_placement_counts_ = false;
+
+    std::vector<size_t> placement_counts_;
 };
 
 // =================================================================================================

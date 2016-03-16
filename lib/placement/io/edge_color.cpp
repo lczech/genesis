@@ -9,6 +9,7 @@
 
 #include "placement/function/functions.hpp"
 #include "placement/placement_tree.hpp"
+#include "placement/sample.hpp"
 #include "utils/tools/color.hpp"
 #include "utils/tools/color/gradient.hpp"
 
@@ -43,27 +44,31 @@ namespace placement {
  *
  * See color heat_gradient() for more information.
  */
-std::vector<utils::Color> placement_color_count_gradient( PlacementTree const& tree, bool linear )
+std::vector<utils::Color> placement_color_count_gradient( Sample const& smp, bool linear )
 {
     // Init the result vector with grey color for each edge.
-    auto ret = std::vector<utils::Color>( tree.edge_count(), utils::Color(128,128,128) );
+    auto ret = std::vector<utils::Color>( smp.tree().edge_count(), utils::Color(128,128,128) );
 
     // Get the highest number of placements on any edge.
     // If this is zero, there are no placements, so we can immediately return.
-    auto const max_placements_per_edge = placement_count_max_edge(tree).second;
+    auto const max_placements_per_edge = placement_count_max_edge(smp).second;
     if (max_placements_per_edge == 0) {
         return ret;
     }
 
+    auto place_map = placements_per_edge( smp );
+
     // Calculate the heat gradient color based on the number of placements for each edge.
-    for (auto it = tree.begin_edges(); it != tree.end_edges(); ++it) {
+    for (auto it = smp.tree().begin_edges(); it != smp.tree().end_edges(); ++it) {
         auto const& edge = **it;
-        if (edge.data.placements.size() > 0) {
+        auto const placements_on_edge = place_map[ edge.index() ].size();
+
+        if( placements_on_edge > 0) {
             double val;
             if (linear) {
-                val = edge.data.placements.size() / max_placements_per_edge;
+                val = placements_on_edge / max_placements_per_edge;
             } else {
-                val = log(edge.data.placements.size()) / log(max_placements_per_edge);
+                val = log( placements_on_edge ) / log( max_placements_per_edge );
             }
             ret[edge.index()] = utils::heat_gradient(val);
         }

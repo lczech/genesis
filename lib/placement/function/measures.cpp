@@ -8,6 +8,7 @@
 #include "placement/function/measures.hpp"
 
 #include <assert.h>
+#include <algorithm>
 #include <map>
 #include <stdexcept>
 #ifdef PTHREADS
@@ -162,6 +163,9 @@ double earth_movers_distance(
     LOG_DBG << "totalmass_l " << totalmass_l;
     LOG_DBG << "totalmass_r " << totalmass_r;
 
+    auto place_map_l = placements_per_edge( lhs );
+    auto place_map_r = placements_per_edge( rhs );
+
     // do a postorder traversal on both trees in parallel. while doing so, move placements
     // from the leaves towards the root and store their movement (mass * distance) in balance[].
     // in theory, it does not matter where we start the traversal - however, the positions of the
@@ -218,7 +222,7 @@ double earth_movers_distance(
         LOG_DBG1 << "placing on branch...";
 
         // add all placements of the branch from the left tree (using positive mass)...
-        for (PqueryPlacement* place : it_l.edge()->data.placements) {
+        for( PqueryPlacement const* place :  place_map_l[ it_l.edge()->index() ] ) {
             if (with_pendant_length) {
                 distance += place->like_weight_ratio * place->pendant_length / totalmass_l;
             }
@@ -233,7 +237,7 @@ double earth_movers_distance(
         }
 
         // ... and the branch from the right tree (using negative mass)
-        for (PqueryPlacement* place : it_r.edge()->data.placements) {
+        for( PqueryPlacement const* place :  place_map_r[ it_r.edge()->index() ] ) {
             if (with_pendant_length) {
                 distance += place->like_weight_ratio * place->pendant_length / totalmass_r;
             }
@@ -368,6 +372,9 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
     // lies downwards the tree in the direction of this link.
     std::unordered_map<PlacementTree::LinkType const*, Fulcrum> balance;
 
+    // Prepare a map from edges to placements on those edges.
+    auto place_map = placements_per_edge( map );
+
     // -------------------------------------------------------------------------
     //     Collect All Masses, Calculate the Torque
     // -------------------------------------------------------------------------
@@ -406,7 +413,7 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
         }
 
         // Add up the masses of placements on the current edge.
-        for (PqueryPlacement* place : it.edge()->data.placements) {
+        for (PqueryPlacement const* place : place_map[ it.edge()->index() ]) {
             double place_dist = place->proximal_length;
             if (with_pendant_length) {
                 place_dist += place->pendant_length;
@@ -518,7 +525,7 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
         sum.torque += sum.mass * max_link->edge()->data.branch_length;
 
         // Add masses of the placements on this edge.
-        for (PqueryPlacement* place : max_link->edge()->data.placements) {
+        for( PqueryPlacement const* place : place_map[ max_link->edge()->index() ]) {
             double p_dist = max_link->edge()->data.branch_length - place->proximal_length;
             if (with_pendant_length) {
                 p_dist += place->pendant_length;
@@ -661,15 +668,24 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
     // We use a hand-sorted vector here (as opposed to a map, which does the ordering for us),
     // because it provides element access "[]", which comes in handy later.
     std::vector<BalancePoint> edge_balance;
-    edge_balance.reserve(central_edge->data.placements.size() + 2);
+    edge_balance.reserve( place_map[ central_edge->index() ].size() + 2);
     edge_balance.push_back(BalancePoint(0.0));
 
     double tqs = 0.0;
     double mss = 0.0;
 
+    // Sorts the placements on the central edge by their distance from the root, ascending.
+    auto sort_by_pos = [] ( PqueryPlacement const* lhs, PqueryPlacement const* rhs ) {
+        return lhs->proximal_length < rhs->proximal_length;
+    };
+    std::sort(
+        place_map[ central_edge->index() ].begin(),
+        place_map[ central_edge->index() ].end(),
+        sort_by_pos
+    );
+
     // Now add all placements on the edge to the balance variable, sorted by their proximal length.
-    central_edge->data.sort_placements();
-    for (PqueryPlacement* place : central_edge->data.placements) {
+    for( PqueryPlacement const* place : place_map[ central_edge->index() ]) {
         double place_prox = place->proximal_length;
 
         // Some sanity checks for wrong data. We do it here because otherwise the algorithm might

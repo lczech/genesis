@@ -54,7 +54,6 @@ Sample::Sample( Sample const& other )
         assert(it_n.node()->rank() == it_o.node()->rank());
 
         // TODO once the edge and node data are copyable and tree supports full data copies, these are not needed any longer.
-        it_n.edge()->data.placements.clear();
         it_n.edge()->data.branch_length = it_o.edge()->data.branch_length;
         it_n.edge()->data.edge_num = it_o.edge()->data.edge_num;
 
@@ -74,7 +73,6 @@ Sample::Sample( Sample const& other )
             auto np = make_unique<PqueryPlacement>(*op);
 
             np->edge   = en_map[np->edge_num];
-            np->edge->data.placements.push_back(np.get());
             np->pquery = npqry.get();
             npqry->placements.push_back(std::move(np));
         }
@@ -224,7 +222,6 @@ bool Sample::merge(const Sample& other)
             // something broke the integrity of our in memory representation of the data.
             assert(en_map.count(np->edge_num) > 0);
             np->edge = en_map[np->edge_num];
-            np->edge->data.placements.push_back(np.get());
             np->pquery = npqry.get();
             npqry->placements.push_back(std::move(np));
         }
@@ -255,68 +252,12 @@ void Sample::clear()
  * @brief Clears all placements of this Sample.
  *
  * All pqueries are deleted. However, the Tree and metadata are left as they are, thus this is a
- * useful method for simulating placements: Take a copy of a given map, clear its placements, then
- * generate new ones using PlacementSimulator.
+ * useful method for simulating placements: Take a copy of a given sample, clear its placements,
+ * then generate new ones using Simulator.
  */
 void Sample::clear_placements()
 {
-    for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it) {
-        (*it)->data.placements.clear();
-    }
     pqueries_.clear();
-}
-
-// =================================================================================================
-//     Helper Methods
-// =================================================================================================
-
-/**
- * @brief Delete all connecting pointers between the Pquery Placements and their edges on the tree.
- *
- * Each Placement has a pointer to its edge, and each edge has a vector of pointers to all
- * Placements that point to that edge.
- *
- * By default, each placement deletes these connections when being destroyed. This process includes
- * a linear search through the vector of the edge. If many Placements need to be deleted at the
- * same time, this is a bottleneck in speed, as it results in quadratic time complexity in the
- * number of placements.
- *
- * Thus, for operations that do a lot of Placement deletions (see restrain_to_max_weight_placements
- * or collect_duplicate_pqueries as examples), it is cheaper to first delete all pointers using
- * this method, and later restore the remaining ones using reattach_pqueries_to_tree.
- *
- * Caveat: While the pqueries are detached, the edge pointers of the placements and the placement
- * vector of the edges are empty and shall not be used.
- */
-void Sample::detach_pqueries_from_tree()
-{
-    for( auto it = tree().begin_edges(); it != tree().end_edges(); ++it ) {
-        (*it)->data.placements.clear();
-    }
-    for (auto const& pqry : pqueries_) {
-        for( auto const& place : pqry->placements ) {
-            assert( place->edge != nullptr );
-            place->edge = nullptr;
-        }
-    }
-}
-
-/**
- * @brief Restore all connecting pointers between the Pquery Placements and their edges on the tree.
- *
- * See detach_pqueries_from_tree for more information.
- */
-void Sample::reattach_pqueries_to_tree()
-{
-    auto enm = edge_num_to_edge_map( *tree_ );
-    for (auto const& pqry : pqueries_) {
-        for( auto const& place : pqry->placements ) {
-            assert( enm.count(place->edge_num) == 1 );
-            assert( place->edge == nullptr );
-            enm[place->edge_num]->data.placements.push_back(place.get());
-            place->edge = enm[place->edge_num];
-        }
-    }
 }
 
 // =================================================================================================

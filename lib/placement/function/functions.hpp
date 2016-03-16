@@ -59,9 +59,9 @@ void merge_duplicate_names( Sample& smp );
 //     Placement Mass
 // =================================================================================================
 
-std::pair<PlacementTreeEdge*, size_t> placement_count_max_edge( PlacementTree const& tree );
+std::pair<PlacementTreeEdge const*, size_t> placement_count_max_edge( Sample const& smp );
 
-std::pair<PlacementTreeEdge*, double> placement_mass_max_edge( PlacementTree const& tree );
+std::pair<PlacementTreeEdge const*, double> placement_mass_max_edge( Sample const& smp );
 
 // =================================================================================================
 //     Histograms
@@ -83,6 +83,15 @@ std::vector<int> closest_leaf_distance_histogram_auto (
 
 std::unordered_map<int, PlacementTree::EdgeType*> edge_num_to_edge_map( PlacementTree const& tree );
 std::unordered_map<int, PlacementTree::EdgeType*> edge_num_to_edge_map( Sample const & smp );
+
+std::unordered_map< size_t, std::vector< PqueryPlacement const* >> placements_per_edge(
+    Sample const& smp
+);
+
+std::vector<PqueryPlacement const*> placements_per_edge(
+    Sample            const& smp,
+    PlacementTreeEdge const& edge
+);
 
 std::vector<PqueryPlain> plain_queries( Sample const & smp );
 

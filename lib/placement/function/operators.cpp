@@ -7,6 +7,7 @@
 
 #include "placement/function/operators.hpp"
 
+#include "placement/function/functions.hpp"
 #include "placement/sample.hpp"
 #include "tree/iterator/postorder.hpp"
 #include "tree/operators.hpp"
@@ -97,10 +98,12 @@ std::ostream& operator << (std::ostream& out, Sample const& smp)
  */
 std::string print_tree( Sample const& smp )
 {
-    auto print_line = [] (typename PlacementTree::ConstIteratorPreorder& it)
+    auto place_map = placements_per_edge( smp );
+
+    auto print_line = [ &place_map ] (typename PlacementTree::ConstIteratorPreorder& it)
     {
         return it.node()->data.name + " [" + std::to_string(it.edge()->data.edge_num) + "]" ": "
-            + std::to_string(it.edge()->data.placement_count()) + " placements";
+            + std::to_string( place_map[ it.edge()->index() ].size() ) + " placements";
     };
     return tree::PrinterCompact().print< PlacementTree >( smp.tree(), print_line );
 }
@@ -149,6 +152,9 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
         return false;
     }
 
+    // get map of placements per edge
+    auto place_map = placements_per_edge( smp );
+
     // check edges
     std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
     size_t edge_place_count = 0;
@@ -166,7 +172,7 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
         edge_num_map.emplace(edge->data.edge_num, edge);
 
         // make sure the pointers and references are set correctly
-        for (const PqueryPlacement* p : edge->data.placements) {
+        for( PqueryPlacement const* p : place_map[ edge->index() ]) {
             if (p->edge != edge) {
                 LOG_INFO << "Inconsistent pointer from placement to edge at edge num '"
                          << edge->data.edge_num << "'.";
@@ -207,12 +213,12 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
                 return false;
             }
             int found_placement_on_edge = 0;
-            for (const PqueryPlacement* pe : p->edge->data.placements) {
+            for( PqueryPlacement const* pe : place_map[ p->edge->index() ]) {
                 if (pe == p.get()) {
                     ++found_placement_on_edge;
                 }
             }
-            if (p->edge->data.placements.size() > 0 && found_placement_on_edge == 0) {
+            if( place_map[ p->edge->index() ].size() > 0 && found_placement_on_edge == 0) {
                 LOG_INFO << "Inconsistency between placement and edge: edge num '"
                          << p->edge->data.edge_num << "' does not contain pointer to a placement "
                          << "that is referring to that edge at " << name << ".";

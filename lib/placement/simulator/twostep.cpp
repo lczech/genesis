@@ -7,6 +7,7 @@
 
 #include "placement/simulator/twostep.hpp"
 
+#include "placement/function/functions.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
 #include "tree/operators.hpp"
@@ -140,7 +141,7 @@ void SimulatorTwostep::EdgeDistribution::set_random_subtree_weights ()
  *
  * This method can conveniently be used with the output of Sample::closest_leaf_depth_histogram()
  * called on some other Sample (or the same, for that matter). This way, it will mimic this
- * map in terms of the depths distribution of the placements: E.g., if the original map (the one
+ * smp in terms of the depths distribution of the placements: E.g., if the original smp (the one
  * where the histrogram results were taken from and used as input for this method) has many
  * placements near the leaves, so will the simulated one.
  */
@@ -183,7 +184,7 @@ void SimulatorTwostep::EdgeDistribution::set_depths_distributed_weights (
  * @brief Sets the weights so that they follow the same distribution of placements per edge as a
  * given Sample.
  *
- * This method "learns" how the placements on the given map are distributed by counting them and
+ * This method "learns" how the placements on the given smp are distributed by counting them and
  * using those counts as weights. This way, the given distribution can be imitated by randomly
  * generated placements.
  *
@@ -191,22 +192,24 @@ void SimulatorTwostep::EdgeDistribution::set_depths_distributed_weights (
  * with the Sample, otherwise the Edge indices will not fit. It does not need to be the same
  * Sample or Tree -- usually, an empty copy is used.
  *
- * @param  map Use the counts of placements of this map to set the weights.
+ * @param  smp Use the counts of placements of this smp to set the weights.
  *
- * @return Returns true iff the `map` has the same topology as the one used for simulation. If false,
+ * @return Returns true iff the `smp` has the same topology as the one used for simulation. If false,
  * no weights were set.
  */
-bool SimulatorTwostep::EdgeDistribution::transfer_weights (const Sample& map)
+bool SimulatorTwostep::EdgeDistribution::transfer_weights (const Sample& smp)
 {
-    if (!identical_topology(map.tree(), sample_.tree())) {
+    if (!identical_topology(smp.tree(), sample_.tree())) {
         return false;
     }
 
-    size_t num_edges = map.tree().edge_count();
+    size_t num_edges = smp.tree().edge_count();
     weights = std::vector<double>(num_edges, 0.0);
 
-    for (auto it = map.tree().begin_edges(); it != map.tree().end_edges(); ++it) {
-        weights[(*it)->index()] = (*it)->data.placement_count();
+    auto place_smp = placements_per_edge( smp );
+
+    for (auto it = smp.tree().begin_edges(); it != smp.tree().end_edges(); ++it) {
+        weights[(*it)->index()] = place_smp[ (*it)->index() ].size();
     }
 
     return true;

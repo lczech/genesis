@@ -30,6 +30,8 @@ namespace placement {
     class PlacementTreeEdgeData;
 
     typedef tree::Tree< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTree;
+
+    class Sample;
 }
 
 // =================================================================================================
@@ -38,7 +40,7 @@ namespace placement {
 
 namespace placement {
 
-std::vector<utils::Color> placement_color_count_gradient( PlacementTree const& tree, bool linear = false );
+std::vector<utils::Color> placement_color_count_gradient( Sample const& smp, bool linear = false );
 
 } // namespace placement
 } // namespace genesis

@@ -389,7 +389,6 @@ void JplaceReader::process_json_placements(
                     }
                     pqry_place->edge_num = val_int;
                     pqry_place->edge = edge_num_map.at( val_int );
-                    pqry_place->edge->data.placements.push_back(pqry_place.get());
 
                 } else if (fields[i] == "likelihood") {
                     pqry_place->likelihood = pqry_place_val;

@@ -84,7 +84,7 @@ public:
         edge(nullptr)
     {}
 
-    ~PqueryPlacement();
+    ~PqueryPlacement() = default;
 
     // -------------------------------------------------------------------
     //     Accessors

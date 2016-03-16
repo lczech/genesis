@@ -41,8 +41,6 @@ class PlacementTreeEdgeData : public tree::DefaultTreeEdgeData
 {
 public:
 
-    ~PlacementTreeEdgeData();
-
     // -----------------------------------------------------
     //     Class Functions
     // -----------------------------------------------------
@@ -62,22 +60,16 @@ public:
     //     Member Functions
     // -----------------------------------------------------
 
-    size_t placement_count() const;
-    double placement_mass() const;
-
-    void sort_placements();
-
-    // -----------------------------------------------------
-    //     Data Members
-    // -----------------------------------------------------
-
     inline std::string dump() const
     {
         return "Length: " + std::to_string(branch_length) + "\tEdge Num: " + std::to_string(edge_num);
     }
 
-    int                           edge_num;
-    std::vector<PqueryPlacement*> placements;
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+
+    int edge_num;
 };
 
 // =================================================================================================
