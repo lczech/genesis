@@ -70,11 +70,11 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
             ( boost::python::arg("other") ),
             get_docstring("bool ::genesis::placement::Sample::merge (const Sample & other)")
         )
-        .def(
-            "normalize_weight_ratios",
-            ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::normalize_weight_ratios ),
-            get_docstring("void ::genesis::placement::Sample::normalize_weight_ratios ()")
-        )
+        // .def(
+        //     "normalize_weight_ratios",
+        //     ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::normalize_weight_ratios ),
+        //     get_docstring("void ::genesis::placement::Sample::normalize_weight_ratios ()")
+        // )
         .def(
             "placement_count",
             ( size_t ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::placement_count ),
@@ -95,11 +95,11 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
             "pquery_size",
             ( size_t ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::pquery_size )
         )
-        .def(
-            "restrain_to_max_weight_placements",
-            ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::restrain_to_max_weight_placements ),
-            get_docstring("void ::genesis::placement::Sample::restrain_to_max_weight_placements ()")
-        )
+        // .def(
+        //     "restrain_to_max_weight_placements",
+        //     ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::restrain_to_max_weight_placements ),
+        //     get_docstring("void ::genesis::placement::Sample::restrain_to_max_weight_placements ()")
+        // )
         .def(
             "tree",
             ( PlacementTree & ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::tree ),

@@ -69,9 +69,91 @@ Pquery const* find_pquery( Sample const& map, std::string const& name )
 //     Normalization and Sorting
 // =================================================================================================
 
-// void normalize_weight_ratios( Sample& map );
+/**
+ * @brief Recalculate the `like_weight_ratio` of the PqueryPlacement&s of each Pquery in the Sample,
+ * so that their sum is 1.0, while maintaining their ratio to each other.
+ */
+void normalize_weight_ratios( Sample& smp )
+{
+    for( auto& pqry : smp.pqueries() ) {
+        double sum = 0.0;
+        for (auto& place : pqry->placements) {
+            sum += place->like_weight_ratio;
+        }
+        for (auto& place : pqry->placements) {
+            place->like_weight_ratio /= sum;
+        }
+    }
+}
 
-// void restrain_to_max_weight_placements( Sample& map );
+/**
+ * @brief Remove all PqueryPlacement%s but the most likely one from all
+ * @link Pquery Pqueries @endlink in the Sample.
+ *
+ * Pqueries can contain multiple placements on different branches. For example, the EPA algorithm
+ * of RAxML outputs up to the 7 most likely positions for placements to the output Jplace file by
+ * default. The property `like_weight_ratio` weights those placement positions so that the sum over
+ * all positions per pquery is 1.0.
+ *
+ * This function removes all but the most likely placement (the one which has the maximal
+ * `like_weight_ratio`) from each Pquery. It additionally sets the `like_weight_ratio` of the
+ * remaining placement to 1.0, as this one now is the only one left, thus it's "sum" has to be 1.0.
+ */
+void restrain_to_max_weight_placements( Sample& smp )
+{
+    smp.detach_pqueries_from_tree();
+
+    for( auto& pqry : smp.pqueries() ) {
+        // Initialization.
+        double             max_w = -1.0;
+        PqueryPlacement*   max_p = nullptr;
+        // PlacementTreeEdge* max_e = nullptr;
+
+        for (auto& place : pqry->placements) {
+            // Find the maximum of the weight ratios in the placements of this pquery.
+            if (place->like_weight_ratio > max_w) {
+                max_w = place->like_weight_ratio;
+                max_p = place.get();
+                // max_e = place->edge;
+            }
+
+            // place->edge = nullptr;
+
+            // Delete the reference from the edge to the current placement. We will later add the
+            // one that points to the remaining (max weight) placement back to its edge.
+            // std::vector<PqueryPlacement*>::iterator it = place->edge->data.placements.begin();
+            // for (; it != place->edge->data.placements.end(); ++it) {
+            //     if (*it == place.get()) {
+            //         break;
+            //     }
+            // }
+
+            // Assert that the edge actually contains a reference to this pquery. If not,
+            // this means that we messed up somewhere else while adding/removing placements...
+            // assert(it != place->edge->data.placements.end());
+            // place->edge->data.placements.erase(it);
+        }
+
+        // Remove all but the max element from placements vector.
+        auto neq = [max_p] (const std::unique_ptr<PqueryPlacement>& other)
+        {
+            return other.get() != max_p;
+        };
+        auto pend = std::remove_if (pqry->placements.begin(), pqry->placements.end(), neq);
+        pqry->placements.erase(pend, pqry->placements.end());
+
+        // Now add back the reference from the edge to the pquery.
+        // Assert that we now have a single placement in the pquery (the most likely one).
+        assert(pqry->placements.size() == 1 && pqry->placements[0].get() == max_p);
+        // max_p->edge = max_e;
+        // max_p->edge->data.placements.push_back(max_p);
+
+        // Also, set the like_weight_ratio to 1.0, because we do not have any other placements left.
+        max_p->like_weight_ratio = 1.0;
+    }
+
+    smp.reattach_pqueries_to_tree();
+}
 
 // void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
 // void sort_placements_by_proximal_length( Sample& map );

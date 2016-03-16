@@ -118,9 +118,6 @@ public:
 
     std::vector<PqueryPlain> plain_queries() const;
 
-    void normalize_weight_ratios();
-    void restrain_to_max_weight_placements();
-
     void detach_pqueries_from_tree();
     void reattach_pqueries_to_tree();
 
