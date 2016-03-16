@@ -124,79 +124,24 @@ public:
 
     bool empty() const;
 
-    LinkType* root_link()
-    {
-        return links_.front().get();
-    }
+          LinkType* root_link();
+    const LinkType* root_link() const;
 
-    const LinkType* root_link() const
-    {
-        return links_.front().get();
-    }
+          NodeType* root_node();
+    const NodeType* root_node() const;
 
-    NodeType* root_node()
-    {
-        return links_.front()->node();
-    }
+          LinkType* link_at(size_t index);
+    const LinkType* link_at(size_t index) const;
 
-    const NodeType* root_node() const
-    {
-        return links_.front()->node();
-    }
+          NodeType* node_at(size_t index);
+    const NodeType* node_at(size_t index) const;
 
-    LinkType* link_at(size_t index)
-    {
-        return links_[index].get();
-    }
+          EdgeType* edge_at(size_t index);
+    const EdgeType* edge_at(size_t index) const;
 
-    const LinkType* link_at(size_t index) const
-    {
-        return links_[index].get();
-    }
-
-    NodeType* node_at(size_t index)
-    {
-        return nodes_[index].get();
-    }
-
-    const NodeType* node_at(size_t index) const
-    {
-        return nodes_[index].get();
-    }
-
-    EdgeType* edge_at(size_t index)
-    {
-        return edges_[index].get();
-    }
-
-    const EdgeType* edge_at(size_t index) const
-    {
-        return edges_[index].get();
-    }
-
-    /**
-     * @brief Returns the number of Links of the Tree.
-     */
-    inline size_t link_count() const
-    {
-        return links_.size();
-    }
-
-    /**
-     * @brief Returns the number of Nodes of the Tree.
-     */
-    inline size_t node_count() const
-    {
-        return nodes_.size();
-    }
-
-    /**
-     * @brief Returns the number of Edges of the Tree.
-     */
-    inline size_t edge_count() const
-    {
-        return edges_.size();
-    }
+    size_t link_count() const;
+    size_t node_count() const;
+    size_t edge_count() const;
 
     // -------------------------------------------------------------------------
     //     Iterators
