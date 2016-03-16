@@ -9,6 +9,8 @@
 
 #include "placement/placement_tree.hpp"
 
+#include <assert.h>
+
 namespace genesis {
 namespace placement {
 

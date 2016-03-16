@@ -12,6 +12,8 @@
 #include "utils/tools/color.hpp"
 #include "utils/tools/color/gradient.hpp"
 
+#include <cmath>
+
 namespace genesis {
 namespace placement {
 

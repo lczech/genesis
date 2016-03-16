@@ -7,6 +7,8 @@
 
 #include "placement/functions.hpp"
 
+#include "utils/core/std.hpp"
+
 #include <algorithm>
 #include <assert.h>
 #include <string>
