@@ -20,7 +20,7 @@
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
 #include "tree/operators.hpp"
-#include "tree/tree_view.hpp"
+#include "tree/printer/compact.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
 
@@ -706,7 +706,7 @@ std::string Sample::dump_tree() const
         return it.node()->data.name + " [" + std::to_string(it.edge()->data.edge_num) + "]" ": "
             + std::to_string(it.edge()->data.placement_count()) + " placements";
     };
-    return tree::TreeView().compact< PlacementTree >( tree(), print_line );
+    return tree::PrinterCompact().print< PlacementTree >( tree(), print_line );
 }
 
 /**

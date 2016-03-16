@@ -1,5 +1,5 @@
 /**
- * @brief Implementation of TreeView class.
+ * @brief
  *
  * @file
  * @ingroup tree
@@ -12,9 +12,9 @@
 namespace genesis {
 namespace tree {
 
-// =============================================================================
-//     Viewing Methods
-// =============================================================================
+// =================================================================================================
+//     Print Compact
+// =================================================================================================
 
 /**
  * @brief
@@ -22,12 +22,11 @@ namespace tree {
  * TODO this method assumes that the tree node has a name. not good.
  */
 template <typename TreeType>
-std::string TreeView::compact (
-    const TreeType& tree,
-    const std::function<std::string (typename TreeType::ConstIteratorPreorder& it)> print_line
+void PrinterCompact::print (
+    std::ostream&   out,
+    TreeType const& tree,
+    std::function<std::string (typename TreeType::ConstIteratorPreorder& it)> const print_line
 ) {
-    std::ostringstream res;
-
     // Stores a count of how many child nodes each node has left for viewing.
     auto ranks   = std::vector<size_t>(tree.node_count(), 0);
 
@@ -50,8 +49,10 @@ std::string TreeView::compact (
         // parent. Also, we do not draw any lines or indention for the root.
         if (it.is_first_iteration()) {
             ++ranks[cur_idx];
-            // TODO this should also use the print_line function. current users of this method then need to make sure that they check for the first iteration themselves in case they want to display is specially.
-            res << it.node()->data.name << "\n";
+            // this should also use the print_line function. current users of this method then need to make sure that they check for the first iteration themselves in case they want to display is specially.
+            // out << it.node()->data.name << "\n";
+            // done:
+            out << print_line(it) << "\n";
             continue;
         }
 
@@ -64,9 +65,9 @@ std::string TreeView::compact (
         // is zero, there will no other children follow, so do not draw a line then.
         for (size_t i = 0; i < parents.size() - 2; ++i) {
             if (ranks[parents[i]] > 0) {
-                res << "│   ";
+                out << "│   ";
             } else {
-                res << "    ";
+                out << "    ";
             }
         }
 
@@ -80,30 +81,40 @@ std::string TreeView::compact (
 
         // Draw the lines down from the immediate parent of the current node.
         if (ranks[par_idx] > 0) {
-            res << "├── ";
+            out << "├── ";
         } else {
-            res << "└── ";
+            out << "└── ";
         }
 
         // Print the actual information about the current node.
-        res << print_line(it) << "\n";
+        out << print_line(it) << "\n";
     }
+}
 
+template <typename TreeType>
+std::string PrinterCompact::print (
+    TreeType const& tree,
+    std::function<std::string (typename TreeType::ConstIteratorPreorder& it)> const print_line
+) {
+    std::ostringstream res;
+    print( res, tree, print_line );
     return res.str();
 }
 
 /**
  * @brief
+ *
+ * TODO this method assumes that the tree node has a name. not good.
  */
 template <typename TreeType>
-std::string TreeView::compact (const TreeType& tree)
+std::string PrinterCompact::print( TreeType const& tree )
 {
     // TODO this should move to default tree, as it uses the name data member
     auto print_line = [] (typename TreeType::ConstIteratorPreorder& it)
     {
         return it.node()->data.name;
     };
-    return compact(tree, print_line);
+    return print(tree, print_line);
 }
 
 } // namespace tree
