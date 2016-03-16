@@ -19,6 +19,22 @@ namespace placement {
 //     PlacementTreeEdgeData
 // =============================================================================
 
+int PlacementTreeEdgeData::edge_num() const
+{
+    return edge_num_;
+}
+
+/**
+ * @brief Force to set the edge_num to a certain value.
+ *
+ * The edge_num is usually considered to be constant for the tree. It rarely needs to be set,
+ * except for when constructing the object. Use with care.
+ */
+void PlacementTreeEdgeData::reset_edge_num( int val )
+{
+    edge_num_ = val;
+}
+
 // /**
 //  * @brief Destructor.
 //  */

@@ -68,7 +68,7 @@ Sample SampleSet::merge_all()
         res.tree().node_at(i)->data.name = maps_[0].map.tree().node_at(i)->data.name;
     }
     for (size_t i = 0; i < res.tree().edge_count(); ++i) {
-        res.tree().edge_at(i)->data.edge_num = maps_[0].map.tree().edge_at(i)->data.edge_num;
+        res.tree().edge_at(i)->data.reset_edge_num( maps_[0].map.tree().edge_at(i)->data.edge_num() );
     }
 
     // Add the placements from all maps of this set.
@@ -140,7 +140,7 @@ bool SampleSet::all_identical_trees()
         const PlacementTree::EdgeType& edge_l,
         const PlacementTree::EdgeType& edge_r
     ) {
-        return edge_l.data.edge_num == edge_r.data.edge_num;
+        return edge_l.data.edge_num() == edge_r.data.edge_num();
     };
 
     return tree_set().all_equal(node_comparator, edge_comparator);

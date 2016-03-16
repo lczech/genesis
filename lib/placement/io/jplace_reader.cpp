@@ -308,13 +308,13 @@ void JplaceReader::process_json_placements(
         ++it
     ) {
         PlacementTree::EdgeType* edge = it->get();
-        if (edge_num_map.count(edge->data.edge_num) > 0) {
+        if (edge_num_map.count(edge->data.edge_num()) > 0) {
             throw std::runtime_error(
                 "Jplace document contains a tree where the edge_num tag '"
-                + std::to_string( edge->data.edge_num ) + "' is used more than once."
+                + std::to_string( edge->data.edge_num() ) + "' is used more than once."
             );
         }
-        edge_num_map.emplace(edge->data.edge_num, edge);
+        edge_num_map.emplace(edge->data.edge_num(), edge);
     }
 
     // Find and process the pqueries.

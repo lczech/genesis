@@ -210,8 +210,8 @@ double earth_movers_distance(
 
         // check whether the data on both reference trees is the same. this has to be done after the
         // check for last iteration / root node, because we don't want to check this for the root.
-        if (it_l.node()->data.name     != it_r.node()->data.name ||
-            it_l.edge()->data.edge_num != it_r.edge()->data.edge_num
+        if (it_l.node()->data.name       != it_r.node()->data.name ||
+            it_l.edge()->data.edge_num() != it_r.edge()->data.edge_num()
         ) {
             throw std::invalid_argument("__FUNCTION__: Inconsistent trees.");
         }

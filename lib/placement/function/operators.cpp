@@ -38,7 +38,7 @@ bool compatible_trees (const Sample& lhs, const Sample& rhs)
         const PlacementTree::EdgeType& edge_l,
         const PlacementTree::EdgeType& edge_r
     ) {
-        return edge_l.data.edge_num             == edge_r.data.edge_num             &&
+        return edge_l.data.edge_num()           == edge_r.data.edge_num()           &&
                edge_l.primary_node()->index()   == edge_r.primary_node()->index()   &&
                edge_l.secondary_node()->index() == edge_r.secondary_node()->index();
     };
@@ -102,7 +102,7 @@ std::string print_tree( Sample const& smp )
 
     auto print_line = [ &place_map ] (typename PlacementTree::ConstIteratorPreorder& it)
     {
-        return it.node()->data.name + " [" + std::to_string(it.edge()->data.edge_num) + "]" ": "
+        return it.node()->data.name + " [" + std::to_string(it.edge()->data.edge_num()) + "]" ": "
             + std::to_string( place_map[ it.edge()->index() ].size() ) + " placements";
     };
     return tree::PrinterCompact().print< PlacementTree >( smp.tree(), print_line );
@@ -124,7 +124,7 @@ bool has_correct_edge_nums( Sample const& smp )
             continue;
         }
 
-        if (it.edge()->data.edge_num != current) {
+        if (it.edge()->data.edge_num() != current) {
             return false;
         }
         ++current;
@@ -165,22 +165,22 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
     ) {
         // make sure every edge num is used once only
         PlacementTree::EdgeType* edge = (*it_e).get();
-        if (edge_num_map.count(edge->data.edge_num) > 0) {
-            LOG_INFO << "More than one edge has edge_num '" << edge->data.edge_num << "'.";
+        if (edge_num_map.count(edge->data.edge_num()) > 0) {
+            LOG_INFO << "More than one edge has edge_num '" << edge->data.edge_num() << "'.";
             return false;
         }
-        edge_num_map.emplace(edge->data.edge_num, edge);
+        edge_num_map.emplace(edge->data.edge_num(), edge);
 
         // make sure the pointers and references are set correctly
         for( PqueryPlacement const* p : place_map[ edge->index() ]) {
             if (p->edge != edge) {
                 LOG_INFO << "Inconsistent pointer from placement to edge at edge num '"
-                         << edge->data.edge_num << "'.";
+                         << edge->data.edge_num() << "'.";
                 return false;
             }
-            if (p->edge_num != edge->data.edge_num) {
+            if (p->edge_num != edge->data.edge_num()) {
                 LOG_INFO << "Inconsistent edge_num between edge and placement: '"
-                         << edge->data.edge_num << " != " << p->edge_num << "'.";
+                         << edge->data.edge_num() << " != " << p->edge_num << "'.";
                 return false;
             }
             ++edge_place_count;
@@ -220,18 +220,18 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
             }
             if( place_map[ p->edge->index() ].size() > 0 && found_placement_on_edge == 0) {
                 LOG_INFO << "Inconsistency between placement and edge: edge num '"
-                         << p->edge->data.edge_num << "' does not contain pointer to a placement "
+                         << p->edge->data.edge_num() << "' does not contain pointer to a placement "
                          << "that is referring to that edge at " << name << ".";
                 return false;
             }
             if (found_placement_on_edge > 1) {
-                LOG_INFO << "Edge num '" << p->edge->data.edge_num << "' contains a pointer to one "
+                LOG_INFO << "Edge num '" << p->edge->data.edge_num() << "' contains a pointer to one "
                          << "of its placements more than once at " << name << ".";
                 return false;
             }
-            if (p->edge_num != p->edge->data.edge_num) {
+            if (p->edge_num != p->edge->data.edge_num()) {
                 LOG_INFO << "Inconsistent edge_num between edge and placement: '"
-                         << p->edge->data.edge_num << " != " << p->edge_num
+                         << p->edge->data.edge_num() << " != " << p->edge_num
                          << "' at " << name << ".";
                 return false;
             }

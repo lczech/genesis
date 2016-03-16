@@ -55,7 +55,7 @@ Sample::Sample( Sample const& other )
 
         // TODO once the edge and node data are copyable and tree supports full data copies, these are not needed any longer.
         it_n.edge()->data.branch_length = it_o.edge()->data.branch_length;
-        it_n.edge()->data.edge_num = it_o.edge()->data.edge_num;
+        it_n.edge()->data.reset_edge_num( it_o.edge()->data.edge_num() );
 
         it_n.node()->data.name = it_o.node()->data.name;
     }
@@ -198,7 +198,7 @@ bool Sample::merge(const Sample& other)
         const PlacementTree::EdgeType& edge_l,
         const PlacementTree::EdgeType& edge_r
     ) {
-        return edge_l.data.edge_num == edge_r.data.edge_num;
+        return edge_l.data.edge_num() == edge_r.data.edge_num();
     };
 
     if( ! tree::equal<PlacementTree, PlacementTree >(

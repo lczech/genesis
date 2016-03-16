@@ -701,8 +701,8 @@ std::unordered_map<int, PlacementTree::EdgeType*> edge_num_to_edge_map( Placemen
         ++it
     ) {
         const auto& edge = *it;
-        assert(en_map.count(edge->data.edge_num) == 0);
-        en_map.emplace(edge->data.edge_num, edge.get());
+        assert(en_map.count(edge->data.edge_num()) == 0);
+        en_map.emplace(edge->data.edge_num(), edge.get());
     }
     return en_map;
 }
