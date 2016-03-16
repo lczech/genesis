@@ -14,6 +14,7 @@
 #    include <thread>
 #endif
 
+#include "placement/function/functions.hpp"
 #include "placement/function/operators.hpp"
 #include "placement/placement_tree.hpp"
 #include "placement/sample.hpp"
@@ -966,8 +967,8 @@ double pairwise_distance (
     // Create PqueryPlain objects for every placement and copy all interesting data into it.
     // This way, we won't have to do all the pointer dereferencing during the actual calculations,
     // and furthermore, the data is close in memory. this gives a tremendous speedup!
-    std::vector<PqueryPlain> pqueries_a = map_a.plain_queries();
-    std::vector<PqueryPlain> pqueries_b = map_b.plain_queries();
+    std::vector<PqueryPlain> pqueries_a = plain_queries( map_a );
+    std::vector<PqueryPlain> pqueries_b = plain_queries( map_b );
 
     // Calculate a matrix containing the pairwise distance between all nodes. This way, we
     // do not need to search a path between placements every time. We use the tree of the first map
@@ -1161,7 +1162,7 @@ double variance(
     // Create PqueryPlain objects for every placement and copy all interesting data into it.
     // This way, we won't have to do all the pointer dereferencing during the actual calculations,
     // and furthermore, the data is close in memory. This gives a tremendous speedup!
-    std::vector<PqueryPlain> vd_pqueries = map.plain_queries();
+    std::vector<PqueryPlain> vd_pqueries = plain_queries( map );
 
     // Also, calculate a matrix containing the pairwise distance between all nodes. this way, we
     // do not need to search a path between placements every time.

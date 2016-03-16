@@ -102,9 +102,9 @@ public:
         return pqueries_.size();
     }
 
-    inline Pquery const & pquery (const size_t index)
+    inline Pquery const& pquery_at( const size_t index ) const
     {
-        return *pqueries_[index];
+        return *pqueries_.at( index );
     }
 
     // TODO add pquery iterator.
@@ -112,11 +112,6 @@ public:
     // -------------------------------------------------------------------------
     //     Helper Methods
     // -------------------------------------------------------------------------
-
-    typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
-    EdgeNumMapType edge_num_map() const;
-
-    std::vector<PqueryPlain> plain_queries() const;
 
     void detach_pqueries_from_tree();
     void reattach_pqueries_to_tree();
@@ -133,7 +128,7 @@ public:
     // -------------------------------------------------------------------------
 
 protected:
-    
+
     std::vector<std::unique_ptr<Pquery>>         pqueries_;
     std::shared_ptr<PlacementTree>               tree_;
 

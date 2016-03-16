@@ -17,6 +17,7 @@
 #include <unordered_map>
 #include <utility>
 
+#include "placement/function/functions.hpp"
 #include "tree/functions.hpp"
 #include "tree/operators.hpp"
 #include "utils/core/logging.hpp"
@@ -65,7 +66,7 @@ Sample::Sample( Sample const& other )
 
     // copy all (o)ther pqueries to (n)ew pqueries
     // TODO this is very similar to merge(). make this code shared somehow.
-    auto en_map = edge_num_map();
+    auto en_map = edge_num_to_edge_map( *tree_ );
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
 
@@ -210,7 +211,7 @@ bool Sample::merge(const Sample& other)
     }
 
     // We need to assign edge pointers to the correct edge objects, so we need a mapping.
-    auto en_map = edge_num_map();
+    auto en_map = edge_num_to_edge_map( *tree_ );
 
     // Copy all (o)ther pqueries to (n)ew pqueries.
     for (const auto& opqry : other.pqueries_) {
@@ -270,65 +271,6 @@ void Sample::clear_placements()
 // =================================================================================================
 
 /**
- * @brief Returns a mapping of edge_num integers to the corresponding Edge object.
- *
- * This function depends on the tree only and does not involve any pqueries.
- */
-Sample::EdgeNumMapType Sample::edge_num_map() const
-{
-    auto en_map = EdgeNumMapType();
-    for (
-        PlacementTree::ConstIteratorEdges it = tree_->begin_edges();
-        it != tree_->end_edges();
-        ++it
-    ) {
-        const auto& edge = *it;
-        assert(en_map.count(edge->data.edge_num) == 0);
-        en_map.emplace(edge->data.edge_num, edge.get());
-    }
-    return en_map;
-}
-
-/**
- * @brief Returns a plain representation of all pqueries of this map.
- *
- * This method produces a whole copy of all pqueries and their placements (though, not their names)
- * in a plain POD format. This format is meant for speeding up computations that need access to
- * the data a lot - which would require several pointer indirections in the normal representation
- * of the data.
- *
- * This comes of course at the cost of reduced flexibility, as all indices are fixed in the
- * plain data structre: changing a value here will not have any effect on the original data or
- * even on the values of the pqueries. Thus, most probably this will lead to corruption. Therefore,
- * this data structure is meant for reading only.
- */
-std::vector<PqueryPlain> Sample::plain_queries() const
-{
-    auto pqueries = std::vector<PqueryPlain>(pqueries_.size());
-    for (size_t i = 0; i < pqueries_.size(); ++i) {
-        pqueries[i].index = i;
-
-        const auto& opqry = pqueries_[i];
-        pqueries[i].placements = std::vector<PqueryPlacementPlain>(opqry->placements.size());
-
-        for (size_t j = 0; j < opqry->placements.size(); ++j) {
-            const auto& oplace = opqry->placements[j];
-            auto& place = pqueries[i].placements[j];
-
-            place.edge_index           = oplace->edge->index();
-            place.primary_node_index   = oplace->edge->primary_node()->index();
-            place.secondary_node_index = oplace->edge->secondary_node()->index();
-
-            place.branch_length        = oplace->edge->data.branch_length;
-            place.pendant_length       = oplace->pendant_length;
-            place.proximal_length      = oplace->proximal_length;
-            place.like_weight_ratio    = oplace->like_weight_ratio;
-        }
-    }
-    return pqueries;
-}
-
-/**
  * @brief Delete all connecting pointers between the Pquery Placements and their edges on the tree.
  *
  * Each Placement has a pointer to its edge, and each edge has a vector of pointers to all
@@ -366,7 +308,7 @@ void Sample::detach_pqueries_from_tree()
  */
 void Sample::reattach_pqueries_to_tree()
 {
-    auto enm = edge_num_map();
+    auto enm = edge_num_to_edge_map( *tree_ );
     for (auto const& pqry : pqueries_) {
         for( auto const& place : pqry->placements ) {
             assert( enm.count(place->edge_num) == 1 );
