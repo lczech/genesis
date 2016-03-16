@@ -13,7 +13,9 @@
 
 #include "lib/placement/io/newick_processor.hpp"
 #include "lib/placement/sample.hpp"
-#include "lib/placement/simulator.hpp"
+#include "lib/placement/simulator/simulator.hpp"
+#include "lib/placement/simulator/subtree.hpp"
+#include "lib/placement/simulator/twostep.hpp"
 #include "lib/tree/io/newick/processor.hpp"
 
 using namespace genesis;
@@ -31,7 +33,7 @@ TEST(PlacementSimulator, TwoStepSimple)
     EXPECT_EQ   (0, map.placement_count());
     EXPECT_TRUE (map.validate(true, false));
 
-    PlacementSimulatorTwostep sim(map);
+    SimulatorTwostep sim(map);
 
     size_t n = 100;
     sim.generate(n);
@@ -49,7 +51,7 @@ TEST(PlacementSimulator, TwoStepLeavesOnly)
     ));
 
     Sample map(tree);
-    PlacementSimulatorTwostep sim(map);
+    SimulatorTwostep sim(map);
 
     // Set weight so that onlye edges adjacet to leaves are populated.
     std::vector<int> edge_weights = {1};

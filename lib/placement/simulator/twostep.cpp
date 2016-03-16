@@ -5,7 +5,7 @@
  * @ingroup placement
  */
 
-#include "placement/simulator.hpp"
+#include "placement/simulator/twostep.hpp"
 
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
@@ -26,7 +26,7 @@ namespace placement {
 /**
  * @brief Generates `n` many Pqueries and places them in the Sample.
  */
-void PlacementSimulatorTwostep::generate (size_t n)
+void SimulatorTwostep::generate (size_t n)
 {
     // Prepare distributions.
     edge_distribution_.prepare();
@@ -35,12 +35,12 @@ void PlacementSimulatorTwostep::generate (size_t n)
 
     for (size_t i = 0; i < n; ++i) {
         // Generate one Pquery.
-        Pquery* pqry = placements_.add_pquery();
+        Pquery* pqry = sample_.add_pquery();
         pqry->emplace_name("pquery_" + std::to_string(i));
 
         // Get a random edge.
         size_t edge_idx = edge_distribution_.generate();
-        auto   edge     = placements_.tree().edge_at(edge_idx);
+        auto   edge     = sample_.tree().edge_at(edge_idx);
 
         // Add a placement at the edge.
         PqueryPlacement* place = pqry->emplace_placement(edge);
@@ -60,18 +60,18 @@ void PlacementSimulatorTwostep::generate (size_t n)
 /**
  * @brief Sets the weights to a uniform distribution for all edges.
  */
-void PlacementSimulatorTwostep::EdgeDistribution::set_uniform_weights ()
+void SimulatorTwostep::EdgeDistribution::set_uniform_weights ()
 {
-    size_t num_edges = placements_.tree().edge_count();
+    size_t num_edges = sample_.tree().edge_count();
     weights = std::vector<double>(num_edges, 1.0);
 }
 
 /**
  * @brief Set the weights randomly to 0.0 and 1.0.
  */
-void PlacementSimulatorTwostep::EdgeDistribution::set_random_weights ()
+void SimulatorTwostep::EdgeDistribution::set_random_weights ()
 {
-    size_t num_edges = placements_.tree().edge_count();
+    size_t num_edges = sample_.tree().edge_count();
     weights = std::vector<double>(num_edges, 0.0);
 
     std::bernoulli_distribution distrib;
@@ -85,9 +85,9 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_random_weights ()
 /**
  * @brief Sets the weights of a randomly chosen subtree to 1.0, all others to 0.0.
  */
-void PlacementSimulatorTwostep::EdgeDistribution::set_random_subtree_weights ()
+void SimulatorTwostep::EdgeDistribution::set_random_subtree_weights ()
 {
-    size_t num_edges = placements_.tree().edge_count();
+    size_t num_edges = sample_.tree().edge_count();
     weights = std::vector<double>(num_edges, 0.0);
 
     std::uniform_int_distribution<int> edge_distrib(0, num_edges);
@@ -97,10 +97,10 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_random_subtree_weights ()
     // std::bernoulli_distribution dir_distrib;
     // if (dir_distrib (Options::get().random_engine())) {
     //     // Primary direction
-    //     start_link = placements_.tree().edge_at(edge_idx)->primary_link();
+    //     start_link = sample_.tree().edge_at(edge_idx)->primary_link();
     // } else {
         // Secondary direction
-        start_link = placements_.tree().edge_at(edge_idx)->secondary_link();
+        start_link = sample_.tree().edge_at(edge_idx)->secondary_link();
     // }
 
     for (
@@ -111,14 +111,14 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_random_subtree_weights ()
         weights[cur_link->edge()->index()] = 1.0;
     }
 
-    // size_t num_edges = placements_.tree().edge_count();
+    // size_t num_edges = sample_.tree().edge_count();
     // weights = std::vector<double>(num_edges, 0.0);
     //
-    // size_t num_nodes = placements_.tree().node_count();
+    // size_t num_nodes = sample_.tree().node_count();
     // std::uniform_int_distribution<int> distrib(0, num_nodes);
     //
     // size_t node_idx = distrib (Options::get().random_engine());
-    // auto   node = placements_.tree().node_at(node_idx);
+    // auto   node = sample_.tree().node_at(node_idx);
     //
     // for (
     //     auto it = node->link()->next()->outer();
@@ -144,7 +144,7 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_random_subtree_weights ()
  * where the histrogram results were taken from and used as input for this method) has many
  * placements near the leaves, so will the simulated one.
  */
-void PlacementSimulatorTwostep::EdgeDistribution::set_depths_distributed_weights (
+void SimulatorTwostep::EdgeDistribution::set_depths_distributed_weights (
     const std::vector<int>& depth_weights
 ) {
     // TODO Some of the code is copied from Sample::closest_leaf_depth_histogram(). Maybe
@@ -152,14 +152,14 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_depths_distributed_weights
     //      of nodes.
 
     // Prepare weights vector.
-    size_t num_edges = placements_.tree().edge_count();
+    size_t num_edges = sample_.tree().edge_count();
     weights = std::vector<double>(num_edges, 0.0);
 
     // Get a vector telling us the depth from each node to its closest leaf node.
-    auto depths = closest_leaf_depth_vector(placements_.tree());
+    auto depths = closest_leaf_depth_vector(sample_.tree());
 
     // Set the weight of each edge according to its depth in the tree.
-    for (auto it = placements_.tree().begin_edges(); it != placements_.tree().end_edges(); ++it) {
+    for (auto it = sample_.tree().begin_edges(); it != sample_.tree().end_edges(); ++it) {
         // Try both nodes at the end of the edge and see which one is closer to a leaf.
         int dp = depths[(*it)->primary_node()->index()].second;
         int ds = depths[(*it)->secondary_node()->index()].second;
@@ -196,9 +196,9 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_depths_distributed_weights
  * @return Returns true iff the `map` has the same topology as the one used for simulation. If false,
  * no weights were set.
  */
-bool PlacementSimulatorTwostep::EdgeDistribution::transfer_weights (const Sample& map)
+bool SimulatorTwostep::EdgeDistribution::transfer_weights (const Sample& map)
 {
-    if (!identical_topology(map.tree(), placements_.tree())) {
+    if (!identical_topology(map.tree(), sample_.tree())) {
         return false;
     }
 
@@ -219,7 +219,7 @@ bool PlacementSimulatorTwostep::EdgeDistribution::transfer_weights (const Sample
 /**
  * @brief Prepares the distribution for usage.
  */
-void PlacementSimulatorTwostep::EdgeDistribution::prepare()
+void SimulatorTwostep::EdgeDistribution::prepare()
 {
     distrib_ = std::discrete_distribution<size_t>(weights.begin(), weights.end());
 }
@@ -227,7 +227,7 @@ void PlacementSimulatorTwostep::EdgeDistribution::prepare()
 /**
  * @brief Returns a randomly chosen edge index.
  */
-size_t PlacementSimulatorTwostep::EdgeDistribution::generate()
+size_t SimulatorTwostep::EdgeDistribution::generate()
 {
     return distrib_( utils::Options::get().random_engine() );
 }
@@ -239,7 +239,7 @@ size_t PlacementSimulatorTwostep::EdgeDistribution::generate()
 /**
  * @brief Prepares the distribution for usage.
  */
-void PlacementSimulatorTwostep::ProximalLengthDistribution::prepare()
+void SimulatorTwostep::ProximalLengthDistribution::prepare()
 {
     distrib_ = std::uniform_real_distribution<double>(0.0,1.0);
 }
@@ -247,7 +247,7 @@ void PlacementSimulatorTwostep::ProximalLengthDistribution::prepare()
 /**
  * @brief Returns a randomly chosen position on an edge.
  */
-double PlacementSimulatorTwostep::ProximalLengthDistribution::generate(
+double SimulatorTwostep::ProximalLengthDistribution::generate(
     typename PlacementTree::EdgeType* edge
 ) {
     // We do a multiplication with the branch length here, because this allows for a single
@@ -262,7 +262,7 @@ double PlacementSimulatorTwostep::ProximalLengthDistribution::generate(
 /**
  * @brief Prepares the distribution for usage.
  */
-void PlacementSimulatorTwostep::PendantLengthDistribution::prepare()
+void SimulatorTwostep::PendantLengthDistribution::prepare()
 {
     distrib_ = std::uniform_real_distribution<double>(min, max);
 }
@@ -270,7 +270,7 @@ void PlacementSimulatorTwostep::PendantLengthDistribution::prepare()
 /**
  * @brief Returns a randomly chosen position on an edge.
  */
-double PlacementSimulatorTwostep::PendantLengthDistribution::generate(
+double SimulatorTwostep::PendantLengthDistribution::generate(
     typename PlacementTree::EdgeType* edge
 ) {
     // We don't use the edge in the default distribution.
