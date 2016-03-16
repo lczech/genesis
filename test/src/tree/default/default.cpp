@@ -14,6 +14,7 @@
 #include "lib/tree/default/functions.hpp"
 #include "lib/tree/default/newick_processor.hpp"
 #include "lib/tree/io/newick/processor.hpp"
+#include "lib/tree/functions.hpp"
 #include "lib/tree/tree.hpp"
 
 #include "lib/utils/tools/color/operators.hpp"
@@ -50,7 +51,7 @@ TEST(DefaultTree, NodeNames)
     EXPECT_TRUE(DefaultTreeNewickProcessor().from_string(input, tree));
 
     EXPECT_EQ( 13, tree.node_count() );
-    EXPECT_EQ(  7, tree.leaf_count() );
+    EXPECT_EQ(  7, leaf_nodes_count(tree) );
 
     auto names_all    = node_names(tree);
     auto names_leaves = node_names(tree, true);
@@ -63,7 +64,7 @@ TEST(DefaultTree, NodeNames)
     EXPECT_TRUE(DefaultTreeNewickProcessor().from_string(input, tree));
 
     EXPECT_EQ( 13, tree.node_count() );
-    EXPECT_EQ(  7, tree.leaf_count() );
+    EXPECT_EQ(  7, leaf_nodes_count(tree) );
 
     names_all    = node_names(tree);
     names_leaves = node_names(tree, true);

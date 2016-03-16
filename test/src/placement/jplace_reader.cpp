@@ -10,7 +10,7 @@
 #include <string>
 
 #include "lib/placement/io/jplace_reader.hpp"
-#include "lib/placement/operators.hpp"
+#include "lib/placement/function/operators.hpp"
 #include "lib/placement/sample.hpp"
 
 using namespace genesis;
@@ -23,9 +23,9 @@ TEST(JplaceProcessor, FromFile)
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
-    Sample map;
-    EXPECT_NO_THROW( JplaceReader().from_file(infile, map) );
-    EXPECT_EQ  ( 5, map.placement_count() );
-    EXPECT_TRUE( map.validate(true, false) );
-    EXPECT_TRUE( has_correct_edge_nums(map) );
+    Sample smp;
+    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+    EXPECT_EQ  ( 5, smp.placement_count() );
+    EXPECT_TRUE( validate(smp, true, false) );
+    EXPECT_TRUE( has_correct_edge_nums(smp) );
 }

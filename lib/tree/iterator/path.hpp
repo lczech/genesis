@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_ITERATORS_LEVELORDER_H_
-#define GENESIS_TREE_ITERATORS_LEVELORDER_H_
+#ifndef GENESIS_TREE_ITERATOR_PATH_H_
+#define GENESIS_TREE_ITERATOR_PATH_H_
 
 /**
  * @brief
@@ -16,30 +16,42 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Levelorder Iterator
+//     Path Iterator
 // =================================================================================================
 
+/*
+
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeIteratorLevelorder
+class TreeIteratorPath
 {
 public:
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorLevelorder<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef TreeIteratorPath<LinkPointerType, NodePointerType, EdgePointerType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorLevelorder (LinkPointerType link) : link_(link), depth_(0), start_(link)
+    TreeIteratorPath (LinkPointerType from, LinkPointerType to) : start_(from), to_(to);
     {
         if (link) {
-            push_back_children(link, 0);
-            stack_.push_front({link->outer(), 1});
+            stack_.push_back(link);
+            if (link->outer() != link) {
+                stack_.push_front(link->outer());
+                link = link->outer();
+            }
+            while (link->is_inner()) {
+                push_front_children(link);
+                link = link->next()->outer();
+            }
+            assert(link == stack_.front());
+            stack_.pop_front();
         }
+        link_ = link;
     }
 
     // -----------------------------------------------------
@@ -49,14 +61,18 @@ public:
     inline self_type operator ++ ()
     {
         if (stack_.empty()) {
-            link_  = nullptr;
-            depth_ = -1;
-        } else {
-            StackElement se = stack_.front();
-            link_  = se.link;
-            depth_ = se.depth;
+            link_ = nullptr;
+        } else if (link_->outer()->next() == stack_.front()) {
+            link_ = stack_.front();
             stack_.pop_front();
-            push_back_children(link_, depth_);
+        } else {
+            link_ = stack_.front();
+            while (link_->is_inner()) {
+                push_front_children(link_);
+                link_ = link_->next()->outer();
+            }
+            assert(link_ == stack_.front());
+            stack_.pop_front();
         }
 
         return *this;
@@ -83,16 +99,6 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline bool is_first_iteration() const
-    {
-        return link_ == start_;
-    }
-
-    inline int depth() const
-    {
-        return depth_;
-    }
-
     inline LinkPointerType link() const
     {
         return link_;
@@ -108,37 +114,34 @@ public:
         return link_->edge();
     }
 
-    inline LinkPointerType start_link() const
+    inline LinkPointerType from_link() const
     {
-        return start_;
+        return from_;
     }
 
-    inline NodePointerType start_node() const
+    inline NodePointerType from_node() const
     {
-        return start_->node();
+        return from_->node();
+    }
+
+    inline LinkPointerType to_link() const
+    {
+        return to_;
+    }
+
+    inline NodePointerType to_node() const
+    {
+        return to_->node();
     }
 
 protected:
-    inline void push_back_children(LinkPointerType link, int link_depth)
-    {
-        LinkPointerType c = link->next();
-        while (c != link) {
-            stack_.push_back({c->outer(), link_depth + 1});
-            c = c->next();
-        }
-    }
-
-    // TODO add depth information to other iterators, as well.
-    typedef struct {
-        LinkPointerType link;
-        int             depth;
-    } StackElement;
-
-    LinkPointerType          link_;
-    int                      depth_;
-    LinkPointerType          start_;
-    std::deque<StackElement> stack_;
+    LinkPointerType             link_;
+    LinkPointerType             from_;
+    LinkPointerType             to_;
+    std::deque<LinkPointerType> stack_;
 };
+
+*/
 
 } // namespace tree
 } // namespace genesis

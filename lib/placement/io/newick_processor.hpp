@@ -11,8 +11,11 @@
 #include <assert.h>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
+#include "placement/function/helper.hpp"
 #include "placement/placement_tree.hpp"
+#include "placement/sample.hpp"
 #include "tree/default/newick_mixin.hpp"
 #include "tree/io/newick/processor.hpp"
 
@@ -66,6 +69,16 @@ public:
         enable_placement_counts_ = value;
     }
 
+    void prepare_sample( Sample const& smp )
+    {
+        auto place_map = placements_per_edge( smp );
+        placement_counts_.resize( place_map.size(), 0 );
+
+        for( auto const p : place_map ) {
+            placement_counts_[ p.first ] = p.second.size();
+        }
+    }
+
     // -------------------------------------------------------------------------
     //     Overridden Member Functions
     // -------------------------------------------------------------------------
@@ -77,7 +90,7 @@ protected:
         Base::element_to_edge(element, edge);
 
         // Process the edge num.
-        edge.data.edge_num      = -1;
+        edge.data.reset_edge_num(-1);
         if (element.tags.size() == 0) {
             throw std::invalid_argument(
                 "Edge at node '" + element.name + "' does not contain a tag value like '{42}'" +
@@ -91,7 +104,7 @@ protected:
             );
         }
         assert(element.tags.size() == 1);
-        edge.data.edge_num = std::stoi(element.tags[0]);
+        edge.data.reset_edge_num( std::stoi( element.tags[0] ));
     }
 
     virtual void edge_to_element( EdgeType const& edge, tree::NewickBrokerElement& element ) override
@@ -99,10 +112,10 @@ protected:
         Base::edge_to_element(edge, element);
 
         if (enable_edge_nums_) {
-            element.tags.push_back(std::to_string(edge.data.edge_num));
+            element.tags.push_back(std::to_string(edge.data.edge_num()));
         }
         if (enable_placement_counts_) {
-            element.comments.push_back(std::to_string(edge.data.placement_count()));
+            element.comments.push_back(std::to_string( placement_counts_[ edge.index() ]));
         }
     }
 
@@ -114,6 +127,8 @@ private:
 
     bool enable_edge_nums_        = true;
     bool enable_placement_counts_ = false;
+
+    std::vector<size_t> placement_counts_;
 };
 
 // =================================================================================================

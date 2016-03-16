@@ -135,21 +135,21 @@ void BoostPythonExport_Tree (std::string name)
         //     ( boost::python::arg("links"), boost::python::arg("nodes"), boost::python::arg("edges") ),
         //     get_docstring("void ::genesis::Tree::import_content (LinkArray & links, NodeArray & nodes, EdgeArray & edges)")
         // )
-        .def(
-            "inner_count",
-            ( size_t ( TreeType::* )(  ) const )( &TreeType::inner_count ),
-            get_docstring("size_t ::genesis::Tree::inner_count () const")
-        )
-        .def(
-            "is_bifurcating",
-            ( bool ( TreeType::* )(  ) const )( &TreeType::is_bifurcating ),
-            get_docstring("bool ::genesis::Tree::is_bifurcating () const")
-        )
-        .def(
-            "leaf_count",
-            ( size_t ( TreeType::* )(  ) const )( &TreeType::leaf_count ),
-            get_docstring("size_t ::genesis::Tree::leaf_count () const")
-        )
+        // .def(
+        //     "inner_count",
+        //     ( size_t ( TreeType::* )(  ) const )( &TreeType::inner_count ),
+        //     get_docstring("size_t ::genesis::Tree::inner_count () const")
+        // )
+        // .def(
+        //     "is_bifurcating",
+        //     ( bool ( TreeType::* )(  ) const )( &TreeType::is_bifurcating ),
+        //     get_docstring("bool ::genesis::Tree::is_bifurcating () const")
+        // )
+        // .def(
+        //     "leaf_count",
+        //     ( size_t ( TreeType::* )(  ) const )( &TreeType::leaf_count ),
+        //     get_docstring("size_t ::genesis::Tree::leaf_count () const")
+        // )
         // .def(
         //     "length",
         //     ( double ( TreeType::* )(  ) const )( &TreeType::length ),
@@ -166,11 +166,11 @@ void BoostPythonExport_Tree (std::string name)
             ( size_t ( TreeType::* )(  ) const )( &TreeType::link_count ),
             get_docstring("size_t ::genesis::Tree::link_count () const")
         )
-        .def(
-            "max_rank",
-            ( int ( TreeType::* )(  ) const )( &TreeType::max_rank ),
-            get_docstring("int ::genesis::Tree::max_rank () const")
-        )
+        // .def(
+        //     "max_rank",
+        //     ( int ( TreeType::* )(  ) const )( &TreeType::max_rank ),
+        //     get_docstring("int ::genesis::Tree::max_rank () const")
+        // )
         .def(
             "node_at",
             ( typename TreeType::NodeType * ( TreeType::* )( size_t ) )( &TreeType::node_at ),
@@ -220,10 +220,10 @@ void BoostPythonExport_Tree (std::string name)
             ( boost::python::arg("other") ),
             get_docstring("void ::genesis::Tree::swap (::genesis::Tree & other)")
         )
-        .def(
-            "validate",
-            ( bool ( TreeType::* )(  ) const )( &TreeType::validate )
-        )
+        // .def(
+        //     "validate",
+        //     ( bool ( TreeType::* )(  ) const )( &TreeType::validate )
+        // )
 
         // Iterators
 

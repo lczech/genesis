@@ -14,9 +14,9 @@
 #include "lib/tree/default/newick_processor.hpp"
 #include "lib/tree/io/newick/processor.hpp"
 #include "lib/tree/tree.hpp"
-#include "tree/iterators/eulertour.hpp"
-#include "tree/iterators/postorder.hpp"
-#include "tree/iterators/preorder.hpp"
+#include "tree/iterator/eulertour.hpp"
+#include "tree/iterator/postorder.hpp"
+#include "tree/iterator/preorder.hpp"
 
 using namespace genesis;
 using namespace tree;

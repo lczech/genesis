@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_SIMULATOR_H_
-#define GENESIS_PLACEMENT_SIMULATOR_H_
+#ifndef GENESIS_PLACEMENT_SIMULATOR_TWOSTEP_H_
+#define GENESIS_PLACEMENT_SIMULATOR_TWOSTEP_H_
 
 /**
  * @brief
@@ -8,7 +8,7 @@
  * @ingroup placement
  */
 
-#include "placement/sample.hpp"
+#include "placement/simulator/simulator.hpp"
 
 #include <random>
 #include <vector>
@@ -17,44 +17,13 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Placement Simulator
-// =================================================================================================
-
-/**
- * @brief Simulates Placements on a Tree.
- */
-class PlacementSimulator
-{
-public:
-
-    // -----------------------------------------------------
-    //     Constructor
-    // -----------------------------------------------------
-
-    PlacementSimulator(Sample& placements) : placements_(placements) {}
-
-    // -----------------------------------------------------
-    //     Member Functions
-    // -----------------------------------------------------
-
-    virtual void generate (size_t n) = 0;
-
-    // -----------------------------------------------------
-    //     Data Members
-    // -----------------------------------------------------
-protected:
-
-    Sample& placements_;
-};
-
-// =================================================================================================
 //     Placement Simulator Two Step
 // =================================================================================================
 
 /**
  * @brief
  */
-class PlacementSimulatorTwostep : public PlacementSimulator
+class SimulatorTwostep : public Simulator
 {
 public:
 
@@ -62,9 +31,9 @@ public:
     //     From Base Class
     // -----------------------------------------------------
 
-    PlacementSimulatorTwostep(Sample& placements) :
-        PlacementSimulator(placements),
-        edge_distribution_(placements)
+    SimulatorTwostep(Sample& smp) :
+        Simulator(smp),
+        edge_distribution_(smp)
     {};
     void generate (size_t n) override;
 
@@ -78,11 +47,11 @@ public:
         //     Constructor
         // -------------------------------------------------
 
-        friend PlacementSimulatorTwostep;
+        friend SimulatorTwostep;
 
         // TODO this ctor is public because otherwise the py binding does not work. this is ugly.
     public:
-        EdgeDistribution(Sample& placements) : placements_(placements) {
+        EdgeDistribution(Sample& smp) : sample_(smp) {
             set_uniform_weights();
         }
 
@@ -115,7 +84,7 @@ public:
 
     protected:
         std::discrete_distribution<size_t> distrib_;
-        Sample& placements_;
+        Sample& sample_;
     };
 
     // =========================================================================
@@ -128,7 +97,7 @@ public:
         //     Constructor
         // -------------------------------------------------
 
-        friend PlacementSimulatorTwostep;
+        friend SimulatorTwostep;
 
         // -----------------------------------------------------
         //     Generate Random Positions
@@ -152,7 +121,7 @@ public:
         //     Constructor
         // -------------------------------------------------
 
-        friend PlacementSimulatorTwostep;
+        friend SimulatorTwostep;
 
         // -----------------------------------------------------
         //     Generate Random Length
@@ -198,25 +167,11 @@ public:
     // -----------------------------------------------------
 
 protected:
+
     EdgeDistribution           edge_distribution_;
     ProximalLengthDistribution proximal_length_distribution_;
     PendantLengthDistribution  pendant_length_distribution_;
-};
 
-// =================================================================================================
-//     Placement Simulator Subtree
-// =================================================================================================
-
-/**
- * @brief
- */
-class PlacementSimulatorSubtree : public PlacementSimulator
-{
-public:
-
-    PlacementSimulatorSubtree(Sample& placements) : PlacementSimulator(placements) {}
-
-    void generate (size_t n) override;
 };
 
 } // namespace placement

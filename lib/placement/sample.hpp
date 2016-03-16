@@ -102,27 +102,12 @@ public:
         return pqueries_.size();
     }
 
-    inline Pquery const & pquery (const size_t index)
+    inline Pquery const& pquery_at( const size_t index ) const
     {
-        return *pqueries_[index];
+        return *pqueries_.at( index );
     }
 
     // TODO add pquery iterator.
-
-    // -------------------------------------------------------------------------
-    //     Helper Methods
-    // -------------------------------------------------------------------------
-
-    typedef std::unordered_map<int, PlacementTree::EdgeType*> EdgeNumMapType;
-    EdgeNumMapType edge_num_map() const;
-
-    std::vector<PqueryPlain> plain_queries() const;
-
-    void normalize_weight_ratios();
-    void restrain_to_max_weight_placements();
-
-    void detach_pqueries_from_tree();
-    void reattach_pqueries_to_tree();
 
     // -------------------------------------------------------------------------
     //     Placement Mass
@@ -131,28 +116,12 @@ public:
     size_t placement_count() const;
     double placement_mass()  const;
 
-    std::vector<int> closest_leaf_depth_histogram() const;
-    std::vector<int> closest_leaf_distance_histogram (
-        const double min, const double max, const int bins = 10
-    ) const;
-    std::vector<int> closest_leaf_distance_histogram_auto (
-        double& min, double& max, const int bins = 10
-    ) const;
-
-    // -------------------------------------------------------------------------
-    //     Dump and Debug
-    // -------------------------------------------------------------------------
-
-public:
-
-    std::string dump_tree() const;
-    bool validate (bool check_values = false, bool break_on_values = false) const;
-
     // -------------------------------------------------------------------------
     //     Members
     // -------------------------------------------------------------------------
 
 protected:
+
     std::vector<std::unique_ptr<Pquery>>         pqueries_;
     std::shared_ptr<PlacementTree>               tree_;
 

@@ -193,243 +193,130 @@ void Tree<NDT, EDT>::export_content (
 //     Accessors
 // =================================================================================================
 
+/**
+ * @brief Return whether the Tree is empty (i.e., has no nodes, edges and links).
+ */
 template <class NDT, class EDT>
 bool Tree<NDT, EDT>::empty() const
 {
     return links_.empty() && nodes_.empty() && edges_.empty();
 }
 
-// =================================================================================================
-//     Member Functions
-// =================================================================================================
-
 /**
- * @brief Returns the highest rank of the nodes of the Tree.
+ * @brief Return the TreeLink at the current root of the Tree.
  */
 template <class NDT, class EDT>
-int Tree<NDT, EDT>::max_rank() const
+typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::root_link()
 {
-    int max = -1;
-    for (size_t i = 0; i < nodes_.size(); ++i) {
-        int rank = nodes_[i]->rank();
-        if (rank == 1) {
-            LOG_WARN << "Node with rank 1 found. This is a node without furcation, and usually "
-                     << "indicates an error.";
-        }
-        max = std::max(rank, max);
-    }
-    return max;
+    return links_.front().get();
 }
 
 /**
- * @brief Returns whether the Tree is bifurcating.
+ * @brief Return the TreeLink at the current root of the Tree.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::is_bifurcating() const
+const typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::root_link() const
 {
-    return max_rank() == 2;
+    return links_.front().get();
 }
 
 /**
- * @brief Count the number of leaf nodes.
+ * @brief Return the TreeNode at the current root of the Tree.
  */
 template <class NDT, class EDT>
-size_t Tree<NDT, EDT>::leaf_count() const
+typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::root_node()
 {
-    size_t sum = 0;
-    for (const auto& n : nodes_) {
-        if (n->is_leaf()) {
-            ++sum;
-        }
-    }
-    return sum;
+    return links_.front()->node();
 }
 
 /**
- * @brief Count the number of inner nodes.
+ * @brief Return the TreeNode at the current root of the Tree.
  */
 template <class NDT, class EDT>
-size_t Tree<NDT, EDT>::inner_count() const
+const typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::root_node() const
 {
-    return nodes_.size() - leaf_count();
+    return links_.front()->node();
 }
 
-// =================================================================================================
-//     Dump and Debug Functions
-// =================================================================================================
-
-// TODO do all node->link_ links point to the root? same for all edge->primary?
-
 /**
- * @brief Validate that all pointers of the tree elements (links, nodes, edges) to each other
- * are correct and that some other invariants are met.
- *
- * This check is a bit pedantic, but better safe than sorry.
+ * @brief Return the TreeLink at a certain index.
  */
 template <class NDT, class EDT>
-bool Tree<NDT, EDT>::validate() const
+typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::link_at(size_t index)
 {
-    // check that the member arrays are valid: if at least one of them is empty, the tree is not
-    // fully initialized, so either it is a new tree without any data (all arrays empty, valid),
-    // or some are empty, but others not (not valid).
-    if (links_.empty() || nodes_.empty() || edges_.empty()) {
-        bool emp = links_.empty() && nodes_.empty() && edges_.empty();
-        if (emp) {
-            LOG_INFO << "Tree is empty.";
-        } else {
-            LOG_INFO << "Tree is not empty, but one of its data members is.";
-        }
-        return emp;
-    }
+    return links_[index].get();
+}
 
-    if (links_.front()->node_ != nodes_.front().get()) {
-        LOG_INFO << "The first link does not correspond to the first node.";
-        return false;
-    }
+/**
+ * @brief Return the TreeLink at a certain index.
+ */
+template <class NDT, class EDT>
+const typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::link_at(size_t index) const
+{
+    return links_[index].get();
+}
 
-    if (links_.front()->index() != 0 || links_.front()->node()->index() != 0) {
-        LOG_INFO << "Root does not have index 0.";
-        return false;
-    }
+/**
+ * @brief Return the TreeNode at a certain index.
+ */
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::node_at(size_t index)
+{
+    return nodes_[index].get();
+}
 
-    // Check Links.
-    std::vector<size_t> links_to_edges(edges_.size(), 0);
-    std::vector<size_t> links_to_nodes(nodes_.size(), 0);
-    for (size_t i = 0; i < links_.size(); ++i) {
-        // Check indices.
-        if (i != links_[i]->index_) {
-            LOG_INFO << "Link at index " << i << " has wrong index (" << links_[i]->index_ << ").";
-            return false;
-        }
+/**
+ * @brief Return the TreeNode at a certain index.
+ */
+template <class NDT, class EDT>
+const typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::node_at(size_t index) const
+{
+    return nodes_[index].get();
+}
 
-        // Check next cycle and node.
-        auto nl = links_[i].get();
-        do {
-            if (nl->node() != links_[i]->node()) {
-                LOG_INFO << "Link at index " << nl->index_ << " points to wrong node.";
-                return false;
-            }
-            nl = nl->next();
-        } while(nl != links_[i].get());
-        ++links_to_nodes[links_[i]->node()->index()];
+/**
+ * @brief Return the TreeEdge at a certain index.
+ */
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::EdgeType* Tree<NDT, EDT>::edge_at(size_t index)
+{
+    return edges_[index].get();
+}
 
-        // Check outer cycle.
-        if (links_[i]->outer()->outer() != links_[i].get()) {
-            LOG_INFO << "Link at index " << i << " has wrong outer link.";
-            return false;
-        }
+/**
+ * @brief Return the TreeEdge at a certain index.
+ */
+template <class NDT, class EDT>
+const typename Tree<NDT, EDT>::EdgeType* Tree<NDT, EDT>::edge_at(size_t index) const
+{
+    return edges_[index].get();
+}
 
-        // Check edge.
-        auto edge = links_[i]->edge();
-        if (edge->primary_link() != links_[i].get() && edge->secondary_link() != links_[i].get()) {
-            LOG_INFO << "Link at index " << i << " has wrong edge pointer.";
-            return false;
-        }
-        ++links_to_edges[links_[i]->edge()->index()];
-    }
+/**
+ * @brief Return the number of TreeLink%s of the Tree.
+ */
+template <class NDT, class EDT>
+inline size_t Tree<NDT, EDT>::link_count() const
+{
+    return links_.size();
+}
 
-    // Check if all edges have been hit twice.
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        if (links_to_edges[i] != 2) {
-            LOG_INFO << "Edge at index " << i << " is not visited twice but " << links_to_edges[i]
-                     << " times when traversing the links.";
-            return false;
-        }
-    }
+/**
+ * @brief Return the number of TreeNode%s of the Tree.
+ */
+template <class NDT, class EDT>
+inline size_t Tree<NDT, EDT>::node_count() const
+{
+    return nodes_.size();
+}
 
-    // Check if all nodes have been hit as many times as their rank is.
-    for (size_t i = 0; i < nodes_.size(); ++i) {
-        if (links_to_nodes[i] != nodes_[i]->rank() + 1) {
-            LOG_INFO << "Node at index " << i << " is not visited its rank + 1 ("
-                     << nodes_[i]->rank() << " + 1 = " << nodes_[i]->rank() + 1
-                     << ") times, but " << links_to_nodes[i] << " times when "
-                     << "traversing the links.";
-            return false;
-        }
-    }
-
-    // Check Nodes.
-    for (size_t i = 0; i < nodes_.size(); ++i) {
-        // Check indices.
-        if (i != nodes_[i]->index_) {
-            LOG_INFO << "Node at index " << i << " has wrong index (" << nodes_[i]->index_ << ").";
-            return false;
-        }
-
-        // Check link.
-        if (nodes_[i]->link()->node() != nodes_[i].get()) {
-            LOG_INFO << "Node at index " << i << " has wrong link.";
-            return false;
-        }
-    }
-
-    // Check Edges.
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        // Check indices.
-        if (i != edges_[i]->index_) {
-            LOG_INFO << "Edge at index " << i << " has wrong index (" << edges_[i]->index_ << ").";
-            return false;
-        }
-
-        // Check links.
-        if (edges_[i]->primary_link()->edge() != edges_[i].get()) {
-            LOG_INFO << "Edge at index " << i << " has wrong primary link.";
-            return false;
-        }
-        if (edges_[i]->secondary_link()->edge() != edges_[i].get()) {
-            LOG_INFO << "Edge at index " << i << " has wrong secondary link.";
-            return false;
-        }
-    }
-
-    // If we are here, all three arrays (links, nodes, edges) contain data, so we can start a full
-    // traversal along all links.
-
-    // Count, how many times the elements are hit while traversing.
-    std::vector<size_t> it_links(links_.size(), 0);
-    std::vector<size_t> it_edges(edges_.size(), 0);
-    std::vector<size_t> it_nodes(nodes_.size(), 0);
-
-    // Do the traversal. We do not use the iterator here, to keep it simple when testing.
-    // (We want to validate the tree here, not the iterator.)
-    LinkType* link = links_.front().get();
-    do {
-        ++it_links[link->index()];
-        ++it_edges[link->edge()->index()];
-        ++it_nodes[link->node()->index()];
-        link = link->next_->outer_;
-    } while (link != links_.front().get());
-
-    // Check if all links have been hit once.
-    for (size_t i = 0; i < links_.size(); i++) {
-        if (it_links[i] != 1) {
-            LOG_INFO << "Link at index " << i << " is not visited 1 but " << it_links[i]
-                     << " times when iterating the tree.";
-            return false;
-        }
-    }
-
-    // Check if all edges have been hit twice.
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        if (it_edges[i] != 2) {
-            LOG_INFO << "Edge at index " << i << " is not visited 2 but " << it_edges[i]
-                     << " times when iterating the tree.";
-            return false;
-        }
-    }
-
-    // Check if all nodes have been hit as many times as their rank is.
-    for (size_t i = 0; i < nodes_.size(); ++i) {
-        if (it_nodes[i] != nodes_[i]->rank() + 1) {
-            LOG_INFO << "Node at index " << i << " is not visited "
-                     << nodes_[i]->rank() << " + 1 = " << (nodes_[i]->rank() + 1)
-                     << " times, but " << it_nodes[i] << " times when iterating the "
-                     << "tree.";
-            return false;
-        }
-    }
-
-    return true;
+/**
+ * @brief Return the number of TreeEdge%s of the Tree.
+ */
+template <class NDT, class EDT>
+inline size_t Tree<NDT, EDT>::edge_count() const
+{
+    return edges_.size();
 }
 
 } // namespace tree

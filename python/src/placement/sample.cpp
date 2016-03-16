@@ -8,8 +8,8 @@
 #include <python/src/common.hpp>
 
 #include "lib/placement/sample.hpp"
-#include "lib/placement/operators.hpp"
-#include "lib/placement/functions.hpp"
+#include "lib/placement/function/operators.hpp"
+#include "lib/placement/function/functions.hpp"
 
 using namespace genesis::placement;
 
@@ -32,33 +32,33 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
             ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::clear_placements ),
             get_docstring("void ::genesis::placement::Sample::clear_placements ()")
         )
-        .def(
-            "closest_leaf_depth_histogram",
-            ( std::vector< int > ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::closest_leaf_depth_histogram ),
-            get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_depth_histogram () const")
-        )
-        .def(
-            "closest_leaf_distance_histogram",
-            ( std::vector< int > ( ::genesis::placement::Sample::* )( const double, const double, const int ) const )( &::genesis::placement::Sample::closest_leaf_distance_histogram ),
-            ( boost::python::arg("min"), boost::python::arg("max"), boost::python::arg("bins")=(const int)(10) ),
-            get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_distance_histogram (const double min, const double max, const int bins=10) const")
-        )
-        .def(
-            "closest_leaf_distance_histogram_auto",
-            ( std::vector< int > ( ::genesis::placement::Sample::* )( double &, double &, const int ) const )( &::genesis::placement::Sample::closest_leaf_distance_histogram_auto ),
-            ( boost::python::arg("min"), boost::python::arg("max"), boost::python::arg("bins")=(const int)(10) ),
-            get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_distance_histogram_auto (double & min, double & max, const int bins=10) const")
-        )
+        // .def(
+        //     "closest_leaf_depth_histogram",
+        //     ( std::vector< int > ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::closest_leaf_depth_histogram ),
+        //     get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_depth_histogram () const")
+        // )
+        // .def(
+        //     "closest_leaf_distance_histogram",
+        //     ( std::vector< int > ( ::genesis::placement::Sample::* )( const double, const double, const int ) const )( &::genesis::placement::Sample::closest_leaf_distance_histogram ),
+        //     ( boost::python::arg("min"), boost::python::arg("max"), boost::python::arg("bins")=(const int)(10) ),
+        //     get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_distance_histogram (const double min, const double max, const int bins=10) const")
+        // )
+        // .def(
+        //     "closest_leaf_distance_histogram_auto",
+        //     ( std::vector< int > ( ::genesis::placement::Sample::* )( double &, double &, const int ) const )( &::genesis::placement::Sample::closest_leaf_distance_histogram_auto ),
+        //     ( boost::python::arg("min"), boost::python::arg("max"), boost::python::arg("bins")=(const int)(10) ),
+        //     get_docstring("std::vector< int > ::genesis::placement::Sample::closest_leaf_distance_histogram_auto (double & min, double & max, const int bins=10) const")
+        // )
         // .def(
         //     "dump",
         //     ( std::string ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::dump ),
         //     get_docstring("std::string ::genesis::placement::Sample::dump () const")
         // )
-        .def(
-            "dump_tree",
-            ( std::string ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::dump_tree ),
-            get_docstring("std::string ::genesis::placement::Sample::dump_tree () const")
-        )
+        // .def(
+        //     "dump_tree",
+        //     ( std::string ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::dump_tree ),
+        //     get_docstring("std::string ::genesis::placement::Sample::dump_tree () const")
+        // )
         // .def(
         //     "edge_num_map",
         //     ( EdgeNumMapType * ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::edge_num_map ),
@@ -70,11 +70,11 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
             ( boost::python::arg("other") ),
             get_docstring("bool ::genesis::placement::Sample::merge (const Sample & other)")
         )
-        .def(
-            "normalize_weight_ratios",
-            ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::normalize_weight_ratios ),
-            get_docstring("void ::genesis::placement::Sample::normalize_weight_ratios ()")
-        )
+        // .def(
+        //     "normalize_weight_ratios",
+        //     ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::normalize_weight_ratios ),
+        //     get_docstring("void ::genesis::placement::Sample::normalize_weight_ratios ()")
+        // )
         .def(
             "placement_count",
             ( size_t ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::placement_count ),
@@ -86,8 +86,8 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
             get_docstring("double ::genesis::placement::Sample::placement_mass () const")
         )
         .def(
-            "pquery",
-            ( Pquery const & ( ::genesis::placement::Sample::* )( const size_t ))( &::genesis::placement::Sample::pquery ),
+            "pquery_at",
+            ( Pquery const & ( ::genesis::placement::Sample::* )( const size_t ))( &::genesis::placement::Sample::pquery_at ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             ( boost::python::arg("index") )
         )
@@ -95,22 +95,22 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
             "pquery_size",
             ( size_t ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::pquery_size )
         )
-        .def(
-            "restrain_to_max_weight_placements",
-            ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::restrain_to_max_weight_placements ),
-            get_docstring("void ::genesis::placement::Sample::restrain_to_max_weight_placements ()")
-        )
+        // .def(
+        //     "restrain_to_max_weight_placements",
+        //     ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::restrain_to_max_weight_placements ),
+        //     get_docstring("void ::genesis::placement::Sample::restrain_to_max_weight_placements ()")
+        // )
         .def(
             "tree",
             ( PlacementTree & ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::tree ),
             boost::python::return_value_policy<boost::python::reference_existing_object>()
         )
-        .def(
-            "validate",
-            ( bool ( ::genesis::placement::Sample::* )( bool, bool ) const )( &::genesis::placement::Sample::validate ),
-            ( boost::python::arg("check_values")=(bool)(false), boost::python::arg("break_on_values")=(bool)(false) ),
-            get_docstring("bool ::genesis::placement::Sample::validate (bool check_values=false, bool break_on_values=false) const")
-        )
+        // .def(
+        //     "validate",
+        //     ( bool ( ::genesis::placement::Sample::* )( bool, bool ) const )( &::genesis::placement::Sample::validate ),
+        //     ( boost::python::arg("check_values")=(bool)(false), boost::python::arg("break_on_values")=(bool)(false) ),
+        //     get_docstring("bool ::genesis::placement::Sample::validate (bool check_values=false, bool break_on_values=false) const")
+        // )
 
         // Public Member Variables
 

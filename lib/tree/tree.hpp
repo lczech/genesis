@@ -11,6 +11,7 @@
  */
 
 #include <memory>
+#include <ostream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -26,6 +27,9 @@ namespace tree {
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
+
+template <class TreeType>
+bool validate( TreeType const& tree );
 
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorEulertour;
@@ -120,79 +124,24 @@ public:
 
     bool empty() const;
 
-    LinkType* root_link()
-    {
-        return links_.front().get();
-    }
+          LinkType* root_link();
+    const LinkType* root_link() const;
 
-    const LinkType* root_link() const
-    {
-        return links_.front().get();
-    }
+          NodeType* root_node();
+    const NodeType* root_node() const;
 
-    NodeType* root_node()
-    {
-        return links_.front()->node();
-    }
+          LinkType* link_at(size_t index);
+    const LinkType* link_at(size_t index) const;
 
-    const NodeType* root_node() const
-    {
-        return links_.front()->node();
-    }
+          NodeType* node_at(size_t index);
+    const NodeType* node_at(size_t index) const;
 
-    LinkType* link_at(size_t index)
-    {
-        return links_[index].get();
-    }
+          EdgeType* edge_at(size_t index);
+    const EdgeType* edge_at(size_t index) const;
 
-    const LinkType* link_at(size_t index) const
-    {
-        return links_[index].get();
-    }
-
-    NodeType* node_at(size_t index)
-    {
-        return nodes_[index].get();
-    }
-
-    const NodeType* node_at(size_t index) const
-    {
-        return nodes_[index].get();
-    }
-
-    EdgeType* edge_at(size_t index)
-    {
-        return edges_[index].get();
-    }
-
-    const EdgeType* edge_at(size_t index) const
-    {
-        return edges_[index].get();
-    }
-
-    /**
-     * @brief Returns the number of Links of the Tree.
-     */
-    inline size_t link_count() const
-    {
-        return links_.size();
-    }
-
-    /**
-     * @brief Returns the number of Nodes of the Tree.
-     */
-    inline size_t node_count() const
-    {
-        return nodes_.size();
-    }
-
-    /**
-     * @brief Returns the number of Edges of the Tree.
-     */
-    inline size_t edge_count() const
-    {
-        return edges_.size();
-    }
+    size_t link_count() const;
+    size_t node_count() const;
+    size_t edge_count() const;
 
     // -------------------------------------------------------------------------
     //     Iterators
@@ -555,22 +504,23 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Member Functions
-    // -------------------------------------------------------------------------
-
-    // TODO add other interesting member functions: http://en.wikipedia.org/wiki/Tree_%28data_structure%29
-
-    int    max_rank() const;
-    bool   is_bifurcating() const;
-
-    size_t leaf_count() const;
-    size_t inner_count() const;
-
-    // -------------------------------------------------------------------------
     //     Debug and Dump
     // -------------------------------------------------------------------------
 
-    bool validate() const;
+    friend std::ostream& operator << ( std::ostream& out, TreeType const& tree )
+    {
+        out << "Node Count: " << tree.node_count() << "\n";
+        out << "Edge Count: " << tree.edge_count() << "\n";
+        out << "Link Count: " << tree.link_count() << "\n";
+        return out;
+    }
+
+    /**
+     * @brief Validate the correctness of all Tree pointers etc.
+     *
+     * This function is defined in tree/functions.hpp
+     */
+    friend bool validate<TreeType>( TreeType const& tree );
 
     // -------------------------------------------------------------------------
     //     Data Members

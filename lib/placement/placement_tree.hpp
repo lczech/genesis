@@ -41,8 +41,6 @@ class PlacementTreeEdgeData : public tree::DefaultTreeEdgeData
 {
 public:
 
-    ~PlacementTreeEdgeData();
-
     // -----------------------------------------------------
     //     Class Functions
     // -----------------------------------------------------
@@ -50,7 +48,7 @@ public:
     inline bool operator == (const PlacementTreeEdgeData &other) const
     {
         // TODO add a comparison of pqueries as well ?! is that good?!
-        return other.branch_length == branch_length && other.edge_num == edge_num;
+        return other.branch_length == branch_length && other.edge_num_ == edge_num_;
     }
 
     inline bool operator != (const PlacementTreeEdgeData &other) const
@@ -62,22 +60,21 @@ public:
     //     Member Functions
     // -----------------------------------------------------
 
-    size_t placement_count() const;
-    double placement_mass() const;
+    inline std::string dump() const
+    {
+        return "Length: " + std::to_string(branch_length) + "\tEdge Num: " + std::to_string(edge_num_);
+    }
 
-    void sort_placements();
+    int edge_num() const;
+    void reset_edge_num( int val );
 
     // -----------------------------------------------------
     //     Data Members
     // -----------------------------------------------------
 
-    inline std::string dump() const
-    {
-        return "Length: " + std::to_string(branch_length) + "\tEdge Num: " + std::to_string(edge_num);
-    }
+private:
 
-    int                           edge_num;
-    std::vector<PqueryPlacement*> placements;
+    int edge_num_;
 };
 
 // =================================================================================================

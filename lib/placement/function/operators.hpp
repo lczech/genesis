@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_OPERATORS_H_
-#define GENESIS_PLACEMENT_OPERATORS_H_
+#ifndef GENESIS_PLACEMENT_FUNCTION_OPERATORS_H_
+#define GENESIS_PLACEMENT_FUNCTION_OPERATORS_H_
 
 /**
  * @brief
@@ -27,16 +27,20 @@ class Sample;
 bool compatible_trees (const Sample& lhs, const Sample& rhs);
 
 // =================================================================================================
-//     Verification
-// =================================================================================================
-
-bool has_correct_edge_nums( Sample const& map );
-
-// =================================================================================================
 //     Output
 // =================================================================================================
 
-std::ostream& operator << ( std::ostream& out, Sample const& map );
+std::ostream& operator << ( std::ostream& out, Sample const& smp );
+
+std::string print_tree( Sample const& smp );
+
+// =================================================================================================
+//     Verification
+// =================================================================================================
+
+bool has_correct_edge_nums( Sample const& smp );
+
+bool validate( Sample const& smp, bool check_values = false, bool break_on_values = false );
 
 } // namespace placement
 } // namespace genesis

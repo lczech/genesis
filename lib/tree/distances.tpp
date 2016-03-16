@@ -7,7 +7,7 @@
 
 #include <stdexcept>
 
-#include "tree/iterators/levelorder.hpp"
+#include "tree/iterator/levelorder.hpp"
 #include "utils/core/logging.hpp"
 
 namespace genesis {

@@ -11,8 +11,8 @@
 #include <string>
 #include <vector>
 
+#include "placement/function/operators.hpp"
 #include "placement/io/newick_processor.hpp"
-#include "placement/operators.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
 #include "tree/io/newick/processor.hpp"

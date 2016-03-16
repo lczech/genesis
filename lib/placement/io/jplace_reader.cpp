@@ -7,8 +7,8 @@
 
 #include "placement/io/jplace_reader.hpp"
 
+#include "placement/function/operators.hpp"
 #include "placement/io/newick_processor.hpp"
-#include "placement/operators.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
 #include "utils/core/fs.hpp"
@@ -308,13 +308,13 @@ void JplaceReader::process_json_placements(
         ++it
     ) {
         PlacementTree::EdgeType* edge = it->get();
-        if (edge_num_map.count(edge->data.edge_num) > 0) {
+        if (edge_num_map.count(edge->data.edge_num()) > 0) {
             throw std::runtime_error(
                 "Jplace document contains a tree where the edge_num tag '"
-                + std::to_string( edge->data.edge_num ) + "' is used more than once."
+                + std::to_string( edge->data.edge_num() ) + "' is used more than once."
             );
         }
-        edge_num_map.emplace(edge->data.edge_num, edge);
+        edge_num_map.emplace(edge->data.edge_num(), edge);
     }
 
     // Find and process the pqueries.
@@ -389,7 +389,6 @@ void JplaceReader::process_json_placements(
                     }
                     pqry_place->edge_num = val_int;
                     pqry_place->edge = edge_num_map.at( val_int );
-                    pqry_place->edge->data.placements.push_back(pqry_place.get());
 
                 } else if (fields[i] == "likelihood") {
                     pqry_place->likelihood = pqry_place_val;
