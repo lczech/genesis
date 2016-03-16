@@ -12,6 +12,7 @@
 #include "lib/tree/default/newick_processor.hpp"
 #include "lib/tree/io/newick/processor.hpp"
 #include "lib/tree/io/newick/color_mixin.hpp"
+#include "lib/tree/functions.hpp"
 #include "lib/tree/tree.hpp"
 #include "lib/utils/text/string.hpp"
 
@@ -38,63 +39,63 @@ TEST(Newick, NewickVariants)
         "(,,(,));",
         tree
     ));
-    EXPECT_TRUE(tree.validate());
+    EXPECT_TRUE( validate(tree) );
 
     // Leaf nodes are named.
     EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
         "(A,B,(C,D));",
         tree
     ));
-    EXPECT_TRUE(tree.validate());
+    EXPECT_TRUE( validate(tree) );
 
     // All nodes are named.
     EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
         "(A,B,(C,D)E)F;",
         tree
     ));
-    EXPECT_TRUE(tree.validate());
+    EXPECT_TRUE( validate(tree) );
 
     // All but root node have a distance to parent.
     EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
         "(:0.1,:0.2,(:0.3,:0.4):0.5);",
         tree
     ));
-    EXPECT_TRUE(tree.validate());
+    EXPECT_TRUE( validate(tree) );
 
     // All have a distance to parent.
     EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
         "(:0.1,:0.2,(:0.3,:0.4):0.5):0.0;",
         tree
     ));
-    EXPECT_TRUE(tree.validate());
+    EXPECT_TRUE( validate(tree) );
 
     // Distances and leaf names (popular).
     EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
         "(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);",
         tree
     ));
-    EXPECT_TRUE(tree.validate());
+    EXPECT_TRUE( validate(tree) );
 
     // Distances and all names.
     EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
         "(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;",
         tree
     ));
-    EXPECT_TRUE(tree.validate());
+    EXPECT_TRUE( validate(tree) );
 
     // A tree rooted on a leaf node (rare).
     EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
         "((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;",
         tree
     ));
-    EXPECT_TRUE(tree.validate());
+    EXPECT_TRUE( validate(tree) );
 
     // All mixed, with comments and tags.
     EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
         "( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};",
         tree
     ));
-    EXPECT_TRUE(tree.validate());
+    EXPECT_TRUE( validate(tree) );
 }
 
 TEST(Newick, ColorMixin)
@@ -126,10 +127,10 @@ TEST(Newick, ColorMixin)
 
     // Check if we actually got the right number of red color tag comments.
     auto count_red = utils::count_substring_occurrences( output, "[&!color=#ff0000]" );
-    EXPECT_EQ( tree.leaf_count(), count_red );
+    EXPECT_EQ( leaf_nodes_count(tree), count_red );
 
     // Check if we also got the right number of black color tag comments.
     // This is one fewer than the number of nodes, as no color tag is written for the root.
     auto count_black = utils::count_substring_occurrences( output, "[&!color=#000000]" );
-    EXPECT_EQ( tree.inner_count() - 1, count_black );
+    EXPECT_EQ( inner_nodes_count(tree) - 1, count_black );
 }

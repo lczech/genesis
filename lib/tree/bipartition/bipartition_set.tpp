@@ -8,6 +8,7 @@
 #include <assert.h>
 
 #include "tree/bipartition/bipartition_set.hpp"
+#include "tree/functions.hpp"
 #include "utils/core/logging.hpp"
 
 namespace genesis {
@@ -20,7 +21,7 @@ namespace tree {
 template <typename Tree>
 void BipartitionSet<Tree>::make()
 {
-    const size_t num_leaves = tree_.leaf_count();
+    const size_t num_leaves = leaf_nodes_count( tree_ );
     make_index();
 
     bipartitions_.clear();
@@ -90,7 +91,7 @@ BipartitionSet<Tree>::find_smallest_subtree (
     std::vector<BipartitionSet<Tree>::NodeType*> nodes
 ) {
     make();
-    utils::Bitvector comp(tree_.leaf_count());
+    utils::Bitvector comp( leaf_nodes_count(tree_) );
 
     // make bitvector containing all wanted nodes.
     for (NodeType* n : nodes) {

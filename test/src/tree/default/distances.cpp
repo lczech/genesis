@@ -12,6 +12,7 @@
 #include "lib/tree/default/distances.hpp"
 #include "lib/tree/default/newick_processor.hpp"
 #include "lib/tree/distances.hpp"
+#include "lib/tree/functions.hpp"
 #include "lib/tree/io/newick/processor.hpp"
 #include "lib/tree/tree.hpp"
 #include "lib/utils/math/matrix.hpp"
@@ -30,11 +31,11 @@ TEST(DefaultTree, Distances)
     DefaultTreeNewickProcessor().from_file(infile, tree);
 
     // Basic checks.
-    EXPECT_EQ(7, tree.leaf_count());
-    EXPECT_EQ(6, tree.inner_count());
+    EXPECT_EQ(7, leaf_nodes_count(tree));
+    EXPECT_EQ(6, inner_nodes_count(tree));
     EXPECT_EQ(13, tree.node_count());
-    EXPECT_TRUE(tree.is_bifurcating());
-    EXPECT_TRUE(tree.validate());
+    EXPECT_TRUE( is_bifurcating( tree ));
+    EXPECT_TRUE( validate( tree ));
 
     utils::Matrix<double> exp (12, 12, {
         0,	1536,	1280,	1664,	1856,	1824,	1552,	1032,	1044,	1050,	1049,	1040.5,

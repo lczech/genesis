@@ -28,6 +28,9 @@ namespace tree {
 //     Forward Declarations
 // =================================================================================================
 
+template <class TreeType>
+bool validate( TreeType const& tree );
+
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeIteratorEulertour;
 
@@ -556,18 +559,6 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Member Functions
-    // -------------------------------------------------------------------------
-
-    // TODO add other interesting member functions: http://en.wikipedia.org/wiki/Tree_%28data_structure%29
-
-    int    max_rank() const;
-    bool   is_bifurcating() const;
-
-    size_t leaf_count() const;
-    size_t inner_count() const;
-
-    // -------------------------------------------------------------------------
     //     Debug and Dump
     // -------------------------------------------------------------------------
 
@@ -579,7 +570,12 @@ public:
         return out;
     }
 
-    bool validate() const;
+    /**
+     * @brief Validate the correctness of all Tree pointers etc.
+     *
+     * This function is defined in tree/functions.hpp
+     */
+    friend bool validate<TreeType>( TreeType const& tree );
 
     // -------------------------------------------------------------------------
     //     Data Members

@@ -19,6 +19,7 @@
 
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
+#include "tree/functions.hpp"
 #include "tree/operators.hpp"
 #include "tree/printer/compact.hpp"
 #include "utils/core/logging.hpp"
@@ -723,7 +724,7 @@ std::string Sample::dump_tree() const
 bool Sample::validate (bool check_values, bool break_on_values) const
 {
     // check tree
-    if (!tree_->validate()) {
+    if( ! tree::validate( *tree_ ) ) {
         LOG_INFO << "Invalid placement tree.";
         return false;
     }
