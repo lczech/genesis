@@ -105,12 +105,12 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
             ( PlacementTree & ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::tree ),
             boost::python::return_value_policy<boost::python::reference_existing_object>()
         )
-        .def(
-            "validate",
-            ( bool ( ::genesis::placement::Sample::* )( bool, bool ) const )( &::genesis::placement::Sample::validate ),
-            ( boost::python::arg("check_values")=(bool)(false), boost::python::arg("break_on_values")=(bool)(false) ),
-            get_docstring("bool ::genesis::placement::Sample::validate (bool check_values=false, bool break_on_values=false) const")
-        )
+        // .def(
+        //     "validate",
+        //     ( bool ( ::genesis::placement::Sample::* )( bool, bool ) const )( &::genesis::placement::Sample::validate ),
+        //     ( boost::python::arg("check_values")=(bool)(false), boost::python::arg("break_on_values")=(bool)(false) ),
+        //     get_docstring("bool ::genesis::placement::Sample::validate (bool check_values=false, bool break_on_values=false) const")
+        // )
 
         // Public Member Variables
 

@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "lib/placement/function/operators.hpp"
 #include "lib/placement/io/newick_processor.hpp"
 #include "lib/placement/sample.hpp"
 #include "lib/placement/simulator/simulator.hpp"
@@ -29,16 +30,16 @@ TEST(PlacementSimulator, TwoStepSimple)
         *tree
     ));
 
-    Sample map(tree);
-    EXPECT_EQ   (0, map.placement_count());
-    EXPECT_TRUE (map.validate(true, false));
+    Sample smp(tree);
+    EXPECT_EQ   (0, smp.placement_count());
+    EXPECT_TRUE (validate(smp, true, false));
 
-    SimulatorTwostep sim(map);
+    SimulatorTwostep sim(smp);
 
     size_t n = 100;
     sim.generate(n);
-    EXPECT_EQ   (n, map.placement_count());
-    EXPECT_TRUE (map.validate(true, false));
+    EXPECT_EQ   (n, smp.placement_count());
+    EXPECT_TRUE (validate(smp, true, false));
 }
 
 TEST(PlacementSimulator, TwoStepLeavesOnly)
@@ -50,8 +51,8 @@ TEST(PlacementSimulator, TwoStepLeavesOnly)
         *tree
     ));
 
-    Sample map(tree);
-    SimulatorTwostep sim(map);
+    Sample smp(tree);
+    SimulatorTwostep sim(smp);
 
     // Set weight so that onlye edges adjacet to leaves are populated.
     std::vector<int> edge_weights = {1};
@@ -60,11 +61,11 @@ TEST(PlacementSimulator, TwoStepLeavesOnly)
     // Generate placements.
     size_t n = 100;
     sim.generate(n);
-    EXPECT_EQ   (n, map.placement_count());
-    EXPECT_TRUE (map.validate(true, false));
+    EXPECT_EQ   (n, smp.placement_count());
+    EXPECT_TRUE (validate(smp, true, false));
 
     // Check whether all placements are next to leaf nodes.
-    for (auto& pqry : map.pqueries()) {
+    for (auto& pqry : smp.pqueries()) {
         auto edge = pqry->placements[0]->edge;
         EXPECT_TRUE (edge->primary_node()->is_leaf() || edge->secondary_node()->is_leaf());
     }
