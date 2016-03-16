@@ -76,16 +76,16 @@ void BoostPythonExport_Tree (std::string name)
         //     ( double ( TreeType::* )(  ) const )( &TreeType::deepest_distance ),
         //     get_docstring("double ::genesis::Tree::deepest_distance () const")
         // )
-        .def(
-            "dump",
-            ( std::string ( TreeType::* )(  ) const )( &TreeType::dump ),
-            get_docstring("std::string ::genesis::Tree::dump () const")
-        )
-        .def(
-            "dump_lists",
-            ( std::string ( TreeType::* )(  ) const )( &TreeType::dump_lists ),
-            get_docstring("std::string ::genesis::Tree::dump_lists () const")
-        )
+        // .def(
+        //     "dump",
+        //     ( std::string ( TreeType::* )(  ) const )( &TreeType::dump ),
+        //     get_docstring("std::string ::genesis::Tree::dump () const")
+        // )
+        // .def(
+        //     "dump_lists",
+        //     ( std::string ( TreeType::* )(  ) const )( &TreeType::dump_lists ),
+        //     get_docstring("std::string ::genesis::Tree::dump_lists () const")
+        // )
         .def(
             "edge_at",
             ( typename TreeType::EdgeType * ( TreeType::* )( size_t ) )( &TreeType::edge_at ),

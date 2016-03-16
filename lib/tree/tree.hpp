@@ -572,7 +572,6 @@ public:
 
     bool validate() const;
 
-    std::string dump() const;
     std::string dump_lists() const;
 
     // -------------------------------------------------------------------------

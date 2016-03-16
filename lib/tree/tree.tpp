@@ -433,63 +433,6 @@ bool Tree<NDT, EDT>::validate() const
 }
 
 /**
- * @brief Returns a simple text representation of the Tree, showing all nodes, edges and links
- * with their indices.
- */
-template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::dump() const
-{
-    std::vector<int>    depth = node_depth_vector(*this);
-    std::vector<size_t> done;
-    std::ostringstream  out;
-
-    // prepare link so that we point to the root link. this will ensure that the order of nodes
-    // displayed by this funtion is the one expected by the user. usually, we would go into
-    // the first branch immediately, but then there would be no way of first nicely displaying
-    // the information about the root node. so we need to do it a bit more complex than the
-    // usual iteration...
-    LinkType const* l = root_link();
-    while (l->next() != root_link()) {
-        l = l->next();
-    }
-
-    // do an euler tour traversal over all links. (we cannot use the iterator here, as
-    // we need each link on its own, and not each node as the iterator gives)
-    do {
-        NodeType* n = l->node();
-        std::string indent = std::string(4 * depth[n->index()], ' ');
-        if (!contains(done, n->index())) {
-            out << indent << "\033[1;31mNode " << n->index() << ": \"" << n->data.name << "\"\033[0m\n";
-        }
-        done.push_back(n->index());
-
-        // dont display the next link when we are at the first iteration.
-        if (l->next() == root_link()) {
-            l = l->next();
-        } else {
-            out << indent;
-            out << "    \033[34mLink " << l->index() << "\033[0m";
-            l = l->next();
-            out << " \033[32m>\033[0m \033[34mLink " << l->index() << "\033[0m\n";
-        }
-
-        out << indent;
-        out << " -- \033[34mLink " << l->index() << "\033[0m";
-        out << " -- \033[36mEdge " << l->edge()->index() << "\033[0m";
-        l = l->outer();
-        out << " --> \033[34mLink " << l->index() << "\033[0m\n";
-    } while (l->next() != root_link());
-
-    // output the last next link back to the root, because we skipped this in the loop
-    // (the one that was skipped in the beginning).
-    out << "    \033[34mLink " << l->index() << "\033[0m";
-    l = l->next();
-    out << " \033[32m>\033[0m \033[34mLink " << l->index() << "\033[0m\n";
-
-    return out.str();
-}
-
-/**
  * @brief Returns lists of all nodes, edges and links including their indices and connections
  * with each other.
  */
