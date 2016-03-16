@@ -66,6 +66,13 @@ bool equal(const TreeTypeL& lhs, const TreeTypeR& rhs);
 template <class TreeTypeL, class TreeTypeR>
 bool identical_topology(const TreeTypeL& lhs, const TreeTypeR& rhs);
 
+// =================================================================================================
+//     Validate
+// =================================================================================================
+
+template <class TreeType>
+bool validate( TreeType const& tree );
+
 } // namespace tree
 } // namespace genesis
 

@@ -33,13 +33,6 @@ size_t leaf_nodes_count( Tree const& tree );
 template <class Tree>
 size_t inner_nodes_count( Tree const& tree );
 
-// =================================================================================================
-//     Validate
-// =================================================================================================
-
-template <class TreeType>
-bool validate( TreeType const& tree );
-
 } // namespace tree
 } // namespace genesis
 
