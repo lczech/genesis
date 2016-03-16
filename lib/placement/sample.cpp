@@ -1,11 +1,11 @@
 /**
- * @brief Implementation of PlacementMap class.
+ * @brief Implementation of Sample class.
  *
  * @file
  * @ingroup placement
  */
 
-#include "placement/placement_map.hpp"
+#include "placement/sample.hpp"
 
 #include <algorithm>
 #include <assert.h>
@@ -20,7 +20,7 @@
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
 #include "tree/operators.hpp"
-#include "tree/tree_view.hpp"
+#include "tree/printer/compact.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
 
@@ -34,7 +34,7 @@ namespace placement {
 /**
  * @brief Copy constructor.
  */
-PlacementMap::PlacementMap( PlacementMap const& other )
+Sample::Sample( Sample const& other )
 {
     clear();
 
@@ -93,12 +93,12 @@ PlacementMap::PlacementMap( PlacementMap const& other )
 /**
  * @brief Move constructor.
  */
-// PlacementMap::PlacementMap( PlacementMap&& other ) noexcept
+// Sample::Sample( Sample&& other ) noexcept
 // {
 //     swap(other);
 // }
 
-PlacementMap::PlacementMap( PlacementMap&& other ) noexcept
+Sample::Sample( Sample&& other ) noexcept
     : pqueries_( std::move(other.pqueries_))
     , tree_(     std::move(other.tree_))
     , metadata(  std::move(other.metadata))
@@ -113,34 +113,34 @@ PlacementMap::PlacementMap( PlacementMap&& other ) noexcept
 /**
  * @brief Assignment operator. See Copy constructor for details.
  */
-PlacementMap& PlacementMap::operator = (const PlacementMap& other)
+Sample& Sample::operator = (const Sample& other)
 {
     // check for self-assignment.
     if (&other == this) {
         return *this;
     }
 
-    // the PlacementMap tmp is a copy of the right hand side object (automatically created using the
+    // the Sample tmp is a copy of the right hand side object (automatically created using the
     // copy constructor). we can thus simply swap the arrays, and upon leaving the function,
     // tmp is automatically destroyed, so that its arrays are cleared and the data freed.
-    PlacementMap tmp(other);
+    Sample tmp(other);
     std::swap(pqueries_, tmp.pqueries_);
     tree_->swap(*tmp.tree_);
     std::swap(metadata, tmp.metadata);
     return *this;
 }
 
-PlacementMap& PlacementMap::operator= (PlacementMap&& other) noexcept
+Sample& Sample::operator= (Sample&& other) noexcept
 {
     swap(other);
     return *this;
 }
 
-PlacementMap::~PlacementMap()
+Sample::~Sample()
 {
-    // We are going to destroy the PlacementMap. Let's speed it up!
+    // We are going to destroy the Sample. Let's speed it up!
     // TODO make swapping work propery. then, this should work, too
-    // (currently, it gives a segfault if a moved-from placementmap is destroyed).
+    // (currently, it gives a segfault if a moved-from Sample is destroyed).
     // if( tree_ ) {
     //     detach_pqueries_from_tree();
     // }
@@ -154,7 +154,7 @@ PlacementMap::~PlacementMap()
     }
 }
 
-void PlacementMap::swap (PlacementMap& other) noexcept
+void Sample::swap (Sample& other) noexcept
 {
     using std::swap;
     swap(pqueries_, other.pqueries_);
@@ -167,26 +167,26 @@ void PlacementMap::swap (PlacementMap& other) noexcept
 // =================================================================================================
 
 /**
- * @brief Creats an empty Pquery, adds it to the PlacementMap and returns a pointer to it.
+ * @brief Creats an empty Pquery, adds it to the Sample and returns a pointer to it.
  *
  * The returned pointer can then be used to add Placements and Names to the Pquery.
  */
-Pquery* PlacementMap::add_pquery()
+Pquery* Sample::add_pquery()
 {
     pqueries_.push_back(make_unique<Pquery>());
     return pqueries_.back().get();
 }
 
 /**
- * @brief Adds the pqueries from another PlacementMap objects to this one.
+ * @brief Add the pqueries from another Sample object to this one.
  *
- * For this method to succeed, the PlacementMaps need to have the same topology, including identical
+ * For this method to succeed, the Sample%s need to have the same topology, including identical
  * edge_nums and node names.
  *
- * The resulting tree is the original one of the PlacementMap on which this method was called. If
- * instead the average branch length tree is needed, see PlacementMapSet::merge_all().
+ * The resulting tree is the original one of the Sample on which this method was called. If
+ * instead the average branch length tree is needed, see SampleSet::merge_all().
  */
-bool PlacementMap::merge(const PlacementMap& other)
+bool Sample::merge(const Sample& other)
 {
     // Check for identical topology, taxa names and edge_nums.
     // We do not check here for branch_length, because usually those differ slightly.
@@ -207,7 +207,7 @@ bool PlacementMap::merge(const PlacementMap& other)
     if( ! tree::equal<PlacementTree, PlacementTree >(
         *tree_, *other.tree_, node_comparator, edge_comparator
     )) {
-        LOG_WARN << "Cannot merge PlacementMaps with different reference trees.";
+        LOG_WARN << "Cannot merge Samples with different reference trees.";
         return false;
     }
 
@@ -245,7 +245,7 @@ bool PlacementMap::merge(const PlacementMap& other)
  *
  * The pqueries, the tree and the metadata are deleted.
  */
-void PlacementMap::clear()
+void Sample::clear()
 {
     pqueries_.clear();
     tree_ = std::make_shared<PlacementTree>();
@@ -253,13 +253,13 @@ void PlacementMap::clear()
 }
 
 /**
- * @brief Clears all placements of this PlacementMap.
+ * @brief Clears all placements of this Sample.
  *
  * All pqueries are deleted. However, the Tree and metadata are left as they are, thus this is a
  * useful method for simulating placements: Take a copy of a given map, clear its placements, then
  * generate new ones using PlacementSimulator.
  */
-void PlacementMap::clear_placements()
+void Sample::clear_placements()
 {
     for (auto it = tree_->begin_edges(); it != tree_->end_edges(); ++it) {
         (*it)->data.placements.clear();
@@ -276,7 +276,7 @@ void PlacementMap::clear_placements()
  *
  * This function depends on the tree only and does not involve any pqueries.
  */
-PlacementMap::EdgeNumMapType PlacementMap::edge_num_map() const
+Sample::EdgeNumMapType Sample::edge_num_map() const
 {
     auto en_map = EdgeNumMapType();
     for (
@@ -304,7 +304,7 @@ PlacementMap::EdgeNumMapType PlacementMap::edge_num_map() const
  * even on the values of the pqueries. Thus, most probably this will lead to corruption. Therefore,
  * this data structure is meant for reading only.
  */
-std::vector<PqueryPlain> PlacementMap::plain_queries() const
+std::vector<PqueryPlain> Sample::plain_queries() const
 {
     auto pqueries = std::vector<PqueryPlain>(pqueries_.size());
     for (size_t i = 0; i < pqueries_.size(); ++i) {
@@ -334,7 +334,7 @@ std::vector<PqueryPlain> PlacementMap::plain_queries() const
  * @brief Recalculates the `like_weight_ratio` of the placements of each Pquery so that their sum
  * is 1.0, while maintaining their ratio to each other.
  */
-void PlacementMap::normalize_weight_ratios()
+void Sample::normalize_weight_ratios()
 {
     for (auto& pqry : pqueries_) {
         double sum = 0.0;
@@ -359,7 +359,7 @@ void PlacementMap::normalize_weight_ratios()
  * `like_weight_ratio`) from each Pquery. It additionally sets the `like_weight_ratio` of the
  * remaining placement to 1.0, as this one now is the only one left, thus it's "sum" has to be 1.0.
  */
-void PlacementMap::restrain_to_max_weight_placements()
+void Sample::restrain_to_max_weight_placements()
 {
     detach_pqueries_from_tree();
 
@@ -433,7 +433,7 @@ void PlacementMap::restrain_to_max_weight_placements()
  * Caveat: While the pqueries are detached, the edge pointers of the placements and the placement
  * vector of the edges are empty and shall not be used.
  */
-void PlacementMap::detach_pqueries_from_tree()
+void Sample::detach_pqueries_from_tree()
 {
     for( auto it = tree().begin_edges(); it != tree().end_edges(); ++it ) {
         (*it)->data.placements.clear();
@@ -451,7 +451,7 @@ void PlacementMap::detach_pqueries_from_tree()
  *
  * See detach_pqueries_from_tree for more information.
  */
-void PlacementMap::reattach_pqueries_to_tree()
+void Sample::reattach_pqueries_to_tree()
 {
     auto enm = edge_num_map();
     for (auto const& pqry : pqueries_) {
@@ -471,7 +471,7 @@ void PlacementMap::reattach_pqueries_to_tree()
 /**
  * @brief Get the total number of placements in all pqueries.
  */
-size_t PlacementMap::placement_count() const
+size_t Sample::placement_count() const
 {
     size_t count = 0;
     for (const auto& pqry : pqueries_) {
@@ -483,7 +483,7 @@ size_t PlacementMap::placement_count() const
 /**
  * @brief Get the summed mass of all placements on the tree, given by their `like_weight_ratio`.
  */
-double PlacementMap::placement_mass() const
+double Sample::placement_mass() const
 {
     double sum = 0.0;
     for (const auto& pqry : pqueries_) {
@@ -521,7 +521,7 @@ double PlacementMap::placement_mass() const
  *
  * The vector is automatically resized to the needed number of elements.
  */
-std::vector<int> PlacementMap::closest_leaf_depth_histogram() const
+std::vector<int> Sample::closest_leaf_depth_histogram() const
 {
     std::vector<int> hist;
 
@@ -571,7 +571,7 @@ std::vector<int> PlacementMap::closest_leaf_depth_histogram() const
  *     }
  * %
  */
-std::vector<int> PlacementMap::closest_leaf_distance_histogram (
+std::vector<int> Sample::closest_leaf_distance_histogram (
     const double min, const double max, const int bins
 ) const {
     std::vector<int> hist(bins, 0);
@@ -638,7 +638,7 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram (
  * closest_leaf_distance_histogram(), as it needs to process the values twice in order to find their
  * min and max.
  */
-std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
+std::vector<int> Sample::closest_leaf_distance_histogram_auto (
     double& min, double& max, const int bins
 ) const {
     std::vector<int> hist(bins, 0);
@@ -699,14 +699,14 @@ std::vector<int> PlacementMap::closest_leaf_distance_histogram_auto (
 /**
  * @brief Returns a simple view of the Tree with information about the Pqueries on it.
  */
-std::string PlacementMap::dump_tree() const
+std::string Sample::dump_tree() const
 {
     auto print_line = [] (typename PlacementTree::ConstIteratorPreorder& it)
     {
         return it.node()->data.name + " [" + std::to_string(it.edge()->data.edge_num) + "]" ": "
             + std::to_string(it.edge()->data.placement_count()) + " placements";
     };
-    return tree::TreeView().compact< PlacementTree >( tree(), print_line );
+    return tree::PrinterCompact().print< PlacementTree >( tree(), print_line );
 }
 
 /**
@@ -720,7 +720,7 @@ std::string PlacementMap::dump_tree() const
  * If additionally `break_on_values` is set, validate() will stop on the first encountered invalid
  * value. Otherwise it will report all invalid values.
  */
-bool PlacementMap::validate (bool check_values, bool break_on_values) const
+bool Sample::validate (bool check_values, bool break_on_values) const
 {
     // check tree
     if (!tree_->validate()) {

@@ -8,7 +8,7 @@
  * @ingroup placement
  */
 
-#include "placement/placement_map.hpp"
+#include "placement/sample.hpp"
 
 #include <random>
 #include <vector>
@@ -31,7 +31,7 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    PlacementSimulator(PlacementMap& placements) : placements_(placements) {}
+    PlacementSimulator(Sample& placements) : placements_(placements) {}
 
     // -----------------------------------------------------
     //     Member Functions
@@ -44,7 +44,7 @@ public:
     // -----------------------------------------------------
 protected:
 
-    PlacementMap& placements_;
+    Sample& placements_;
 };
 
 // =================================================================================================
@@ -62,7 +62,7 @@ public:
     //     From Base Class
     // -----------------------------------------------------
 
-    PlacementSimulatorTwostep(PlacementMap& placements) :
+    PlacementSimulatorTwostep(Sample& placements) :
         PlacementSimulator(placements),
         edge_distribution_(placements)
     {};
@@ -82,7 +82,7 @@ public:
 
         // TODO this ctor is public because otherwise the py binding does not work. this is ugly.
     public:
-        EdgeDistribution(PlacementMap& placements) : placements_(placements) {
+        EdgeDistribution(Sample& placements) : placements_(placements) {
             set_uniform_weights();
         }
 
@@ -93,7 +93,7 @@ public:
     public:
         void set_uniform_weights ();
         void set_depths_distributed_weights (const std::vector<int>& depth_weights);
-        bool transfer_weights (const PlacementMap& from_map);
+        bool transfer_weights (const Sample& from_map);
 
         void set_random_weights();
         void set_random_subtree_weights();
@@ -115,7 +115,7 @@ public:
 
     protected:
         std::discrete_distribution<size_t> distrib_;
-        PlacementMap& placements_;
+        Sample& placements_;
     };
 
     // =========================================================================
@@ -214,7 +214,7 @@ class PlacementSimulatorSubtree : public PlacementSimulator
 {
 public:
 
-    PlacementSimulatorSubtree(PlacementMap& placements) : PlacementSimulator(placements) {}
+    PlacementSimulatorSubtree(Sample& placements) : PlacementSimulator(placements) {}
 
     void generate (size_t n) override;
 };

@@ -24,7 +24,7 @@ namespace placement {
 // =================================================================================================
 
 /**
- * @brief Generates `n` many Pqueries and places them in the PlacementMap.
+ * @brief Generates `n` many Pqueries and places them in the Sample.
  */
 void PlacementSimulatorTwostep::generate (size_t n)
 {
@@ -138,8 +138,8 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_random_subtree_weights ()
  * at position 0; edges which are one level deeper in the tree will get the weight at position 1,
  * and so on.
  *
- * This method can conveniently be used with the output of PlacementMap::closest_leaf_depth_histogram()
- * called on some other PlacementMap (or the same, for that matter). This way, it will mimic this
+ * This method can conveniently be used with the output of Sample::closest_leaf_depth_histogram()
+ * called on some other Sample (or the same, for that matter). This way, it will mimic this
  * map in terms of the depths distribution of the placements: E.g., if the original map (the one
  * where the histrogram results were taken from and used as input for this method) has many
  * placements near the leaves, so will the simulated one.
@@ -147,7 +147,7 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_random_subtree_weights ()
 void PlacementSimulatorTwostep::EdgeDistribution::set_depths_distributed_weights (
     const std::vector<int>& depth_weights
 ) {
-    // TODO Some of the code is copied from PlacementMap::closest_leaf_depth_histogram(). Maybe
+    // TODO Some of the code is copied from Sample::closest_leaf_depth_histogram(). Maybe
     //      it is worth putting this into a method which returns the closest leaf for edges instead
     //      of nodes.
 
@@ -181,22 +181,22 @@ void PlacementSimulatorTwostep::EdgeDistribution::set_depths_distributed_weights
 
 /**
  * @brief Sets the weights so that they follow the same distribution of placements per edge as a
- * given PlacementMap.
+ * given Sample.
  *
  * This method "learns" how the placements on the given map are distributed by counting them and
  * using those counts as weights. This way, the given distribution can be imitated by randomly
  * generated placements.
  *
  * The method is intended to be used on a Tree that has the same topology as the one that is given
- * with the PlacementMap, otherwise the Edge indices will not fit. It does not need to be the same
- * PlacementMap or Tree -- usually, an empty copy is used.
+ * with the Sample, otherwise the Edge indices will not fit. It does not need to be the same
+ * Sample or Tree -- usually, an empty copy is used.
  *
  * @param  map Use the counts of placements of this map to set the weights.
  *
  * @return Returns true iff the `map` has the same topology as the one used for simulation. If false,
  * no weights were set.
  */
-bool PlacementSimulatorTwostep::EdgeDistribution::transfer_weights (const PlacementMap& map)
+bool PlacementSimulatorTwostep::EdgeDistribution::transfer_weights (const Sample& map)
 {
     if (!identical_topology(map.tree(), placements_.tree())) {
         return false;

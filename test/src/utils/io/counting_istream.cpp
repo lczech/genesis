@@ -56,6 +56,7 @@ TEST(CountingIstream, Strings)
 TEST(CountingIstream, LargeFile)
 {
     NEEDS_TEST_DATA;
+    SCOPED_TRACE("CountingIstream.LargeFile");
 
     std::string infile = environment->data_dir + "sequence/dna_354.fasta";
 

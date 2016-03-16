@@ -9,6 +9,7 @@
  */
 
 #include <array>
+#include <iosfwd>
 #include <utility>
 #include <string>
 
@@ -19,6 +20,41 @@ namespace utils {
 //     Text Style
 // =================================================================================================
 
+/**
+ * @brief Simple text style class for colorized and bold output to a terminal.
+ *
+ * This class bundles the following text style properties for output in a terminal:
+ *
+ *   * Foreground Color. Set using foreground_color( std::string const& color ).
+ *     See Style::foreground_colors for the valid color names.
+ *   * Background Color. Set using background_color( std::string const& color ).
+ *     See Style::background_colors for the valid color names.
+ *   * Bold. Set using bold( bool value ).
+ *
+ * Those properties can be set using either the respective constructor of this class or using the
+ * setter functions. Per default, all of them are empty, meaning that no style manupulation is
+ * done.
+ *
+ * In order to generate textual output with those styles, operator()() is used.
+ * Example:
+ *
+ *     Style blue( "blue" );
+ *     blue.bold( true );
+ *     std::cout << blue( "some text" );
+ *
+ * Furthermore, the stream operator can be used to get a summary of the properties of a Style
+ * object:
+ *
+ *     LOG_DBG << blue;
+ *
+ * will output
+ *
+ *     Foreground Color: Blue
+ *     Background Color:
+ *     Bold:             true
+ *
+ * to the LOG stream.
+ */
 class Style
 {
     // -------------------------------------------------------------------
@@ -27,48 +63,40 @@ class Style
 
 public:
 
-    explicit Style( std::string text )
-        : text_(text)
+    Style() = default;
+
+    explicit Style( std::string const& foreground_color )
+        : foreground_(foreground_color)
     {}
 
-    // explicit Style( std::string text, bool bold )
-    //     : text_(text)
-    //     , bold_(bold)
-    // {}
+    explicit Style( const char * foreground_color )
+        : foreground_(foreground_color)
+    {}
 
-    explicit Style( std::string text, std::string foreground_color )
-        : text_(text)
-        , foreground_(foreground_color)
-    {
-        get_foreground_color( foreground_color );
-    }
+    explicit Style( bool bold )
+        : bold_(bold)
+    {}
 
-    // explicit Style( std::string text, std::string foreground_color, bool bold )
-    //     : text_(text)
-    //     , foreground_(foreground_color)
-    //     , bold_(bold)
-    // {
-    //     get_foreground_color( foreground_color );
-    // }
+    Style( std::string const& foreground_color, bool bold )
+        : foreground_(foreground_color)
+        , bold_(bold)
+    {}
 
-    explicit Style( std::string text, std::string foreground_color, std::string background_color )
-        : text_(text)
-        , foreground_(foreground_color)
+    Style( std::string const& foreground_color, std::string const& background_color )
+        : foreground_(foreground_color)
         , background_(background_color)
-    {
-        get_foreground_color( foreground_color );
-        get_background_color( background_color );
-    }
+    {}
 
-    // explicit Style( std::string text, std::string foreground_color, std::string background_color, bool bold )
-    //     : text_(text)
-    //     , foreground_(foreground_color)
-    //     , background_(background_color)
-    //     , bold_(bold)
-    // {
-    //     get_foreground_color( foreground_color );
-    //     get_background_color( background_color );
-    // }
+    Style( std::string const& foreground_color, const char * background_color )
+        : foreground_(foreground_color)
+        , background_(background_color)
+    {}
+
+    Style( std::string const& foreground_color, std::string const& background_color, bool bold )
+        : foreground_(foreground_color)
+        , background_(background_color)
+        , bold_(bold)
+    {}
 
     ~Style() = default;
 
@@ -82,7 +110,6 @@ public:
     {
         using std::swap;
 
-        swap(text_, other.text_);
         swap(foreground_, other.foreground_);
         swap(background_, other.background_);
         swap(bold_, other.bold_);
@@ -92,59 +119,28 @@ public:
     //     Properties
     // -------------------------------------------------------------------
 
-    size_t size() const
-    {
-        return text_.size();
-    }
+    Style&      reset();
 
-    std::string text() const
-    {
-        return text_;
-    }
+    bool        enabled() const;
+    Style&      enabled( bool value );
 
-    void text( std::string const& value )
-    {
-        text_ = value;
-    }
+    bool        bold() const;
+    Style&      bold( bool value );
 
-    bool bold() const
-    {
-        return bold_;
-    }
+    std::string foreground_color() const;
+    Style&      foreground_color( std::string const& color );
 
-    void bold( bool value )
-    {
-        bold_ = value;
-    }
-
-    std::string foreground_color() const
-    {
-        return foreground_;
-    }
-
-    void foreground_color( std::string const& color )
-    {
-        get_foreground_color( color );
-        foreground_ = color;
-    }
-
-    std::string background_color() const
-    {
-        return background_;
-    }
-
-    void background_color( std::string const& color )
-    {
-        get_background_color( color );
-        background_ = color;
-    }
+    std::string background_color() const;
+    Style&      background_color( std::string const& color );
 
     // -------------------------------------------------------------------
     //     Output
     // -------------------------------------------------------------------
 
-    std::string to_bash_string() const;
-    std::string to_python_string() const;
+    std::string operator() (      std::string const& text ) const;
+
+    std::string to_bash_string(   std::string const& text ) const;
+    std::string to_python_string( std::string const& text ) const;
 
     // -------------------------------------------------------------------
     //     Style Data
@@ -153,8 +149,8 @@ public:
     static bool is_foreground_color( std::string name );
     static bool is_background_color( std::string name );
 
-    static std::string get_foreground_color( std::string name );
-    static std::string get_background_color( std::string name );
+    static std::string get_foreground_color_value( std::string name );
+    static std::string get_background_color_value( std::string name );
 
     static const std::array<std::pair<std::string, std::string>, 17> foreground_colors;
     static const std::array<std::pair<std::string, std::string>, 17> background_colors;
@@ -165,12 +161,11 @@ public:
 
 private:
 
-    std::string text_;
+    std::string foreground_ = "";
+    std::string background_ = "";
 
-    std::string foreground_;
-    std::string background_;
-
-    bool bold_ = false;
+    bool bold_    = false;
+    bool enabled_ = true;
 };
 
 // =================================================================================================
@@ -181,6 +176,8 @@ inline void swap (Style& lhs, Style& rhs) noexcept
 {
     lhs.swap(rhs);
 }
+
+std::ostream& operator << ( std::ostream& out, Style const& style );
 
 } // namespace utils
 } // namespace genesis

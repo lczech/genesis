@@ -10,10 +10,10 @@
 #include <string>
 
 #include "lib/placement/io/edge_color.hpp"
-#include "lib/placement/io/jplace_processor.hpp"
+#include "lib/placement/io/jplace_reader.hpp"
 #include "lib/placement/io/newick_processor.hpp"
 #include "lib/placement/io/phyloxml_processor.hpp"
-#include "lib/placement/placement_map.hpp"
+#include "lib/placement/sample.hpp"
 #include "lib/tree/default/functions.hpp"
 #include "lib/tree/io/newick/color_mixin.hpp"
 #include "lib/tree/io/phyloxml/color_mixin.hpp"
@@ -34,8 +34,8 @@ TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
-    PlacementMap map;
-    EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
+    Sample map;
+    EXPECT_NO_THROW (JplaceReader().from_file(infile, map));
 
     typedef PhyloxmlColorMixin<PlacementTreePhyloxmlProcessor> ColoredPlacementTreePhyloxmlProcessor;
 
@@ -55,8 +55,8 @@ TEST( PlacementTreeEdgeColor, CountGradientNewick )
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
-    PlacementMap map;
-    EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
+    Sample map;
+    EXPECT_NO_THROW (JplaceReader().from_file(infile, map));
 
     typedef NewickColorMixin<PlacementTreeNewickProcessor> ColoredPlacementTreeNewickProcessor;
 
@@ -75,8 +75,8 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
-    PlacementMap map;
-    EXPECT_TRUE (JplaceProcessor().from_file(infile, map));
+    Sample map;
+    EXPECT_NO_THROW (JplaceReader().from_file(infile, map));
 
     typedef NewickColorMixin<PlacementTreeNewickProcessor> ColoredPlacementTreeNewickProcessor;
 

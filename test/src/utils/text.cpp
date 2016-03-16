@@ -11,22 +11,9 @@
 #include "lib/utils/text/style.hpp"
 #include "lib/utils/text/table.hpp"
 
+#include <sstream>
+
 using namespace genesis::utils;
-
-TEST(Text, Split)
-{
-    auto simple = split("one:two:three:four", ":");
-    EXPECT_EQ(4, simple.size());
-
-    auto mulit_delim = split("one:two three-four", ": -");
-    EXPECT_EQ(4, mulit_delim.size());
-
-    auto empty = split("::one:two:three::four:", ":");
-    EXPECT_EQ(4, empty.size());
-
-    auto non_empty = split("::one:two:three::four:", ":", false);
-    EXPECT_EQ(8, non_empty.size());
-}
 
 TEST(Text, Table)
 {
@@ -77,4 +64,43 @@ TEST(Text, Table)
     // std::cout << "double_frame:\n";
     // std::cout << double_frame(true)(t) << "\n";
     // std::cout << double_frame(false)(t) << "\n";
+}
+
+TEST(Text, Split)
+{
+    auto simple = split("one:two:three:four", ":");
+    EXPECT_EQ(4, simple.size());
+
+    auto mulit_delim = split("one:two three-four", ": -");
+    EXPECT_EQ(4, mulit_delim.size());
+
+    auto empty = split("::one:two:three::four:", ":");
+    EXPECT_EQ(4, empty.size());
+
+    auto non_empty = split("::one:two:three::four:", ":", false);
+    EXPECT_EQ(8, non_empty.size());
+}
+
+TEST( Text, Style )
+{
+    Style blue( "blue" );
+    blue.bold( true );
+
+    // Basic
+    std::stringstream ss;
+    ss << blue( "text" );
+    EXPECT_EQ( "\x1B[1;34mtext\x1B[0m", ss.str() );
+
+    // Weird color names.
+    blue.foreground_color( "_R eD_ " );
+    blue.bold( false );
+    ss.str("");
+    ss << blue( "is now red!" );
+    EXPECT_EQ( "\x1B[31mis now red!\x1B[0m", ss.str() );
+
+    // Reset manually.
+    blue.foreground_color( "" );
+    ss.str("");
+    ss << blue( "empty" );
+    EXPECT_EQ( "empty", ss.str() );
 }

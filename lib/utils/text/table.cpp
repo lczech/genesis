@@ -95,10 +95,10 @@ Table& Table::operator << ( std::string value )
     return append( value );
 }
 
-Table& Table::operator << ( Style const& value )
-{
-    return append( value );
-}
+// Table& Table::operator << ( Style const& value )
+// {
+//     return append( value );
+// }
 
 Table& Table::append ( std::string value )
 {
@@ -112,9 +112,9 @@ Table& Table::append ( std::string value )
     return *this;
 }
 
-Table& Table::append ( Style const& value )
+Table& Table::append ( Style const& style, std::string value )
 {
-    columns_[ current_col_ ].append( value );
+    columns_[ current_col_ ].append( style(value) );
 
     ++current_col_;
     if( current_col_ >= columns_.size() ) {
@@ -147,10 +147,10 @@ void Table::write( std::ostream& out ) const
     }
 }
 
-void Table::write( std::ostream& out, Layout const& layout ) const
+void Table::write( std::ostream& out, TableLayout const& layout ) const
 {
-    // Take a Layout Line and print it according to the table data.
-    auto write_line = [&] (Layout::Line const& line) {
+    // Take a TableLayout Line and print it according to the table data.
+    auto write_line = [&] (TableLayout::Line const& line) {
         if( line.enabled ) {
             out << line.left_border;
             for( size_t ci = 0; ci < columns_.size(); ++ci ) {
@@ -205,7 +205,7 @@ std::string Table::to_string() const
     return ss.str();
 }
 
-std::string Table::to_string( Layout const& layout ) const
+std::string Table::to_string( TableLayout const& layout ) const
 {
     std::stringstream ss;
     write(ss, layout);
@@ -314,10 +314,10 @@ void Table::Column::append( std::string value )
     data_.push_back(value);
 }
 
-void Table::Column::append( Style const& value )
+void Table::Column::append( Style const& style, std::string value )
 {
     width_ = std::max( width_, value.size() );
-    data_.push_back(value.to_python_string());
+    data_.push_back( style(value) );
 }
 
 // ---------------------------------------------------------------------
@@ -358,31 +358,31 @@ void Table::Column::write( std::ostream& stream, std::string text ) const
 }
 
 // =================================================================================================
-//     Table Layout
+//     TableLayout
 // =================================================================================================
 
 // ---------------------------------------------------------------------
 //     Binding
 // ---------------------------------------------------------------------
 
-std::ostream& operator << (std::ostream& out, Layout::Binder const& binder)
+std::ostream& operator << (std::ostream& out, TableLayout::Binder const& binder)
 {
     binder.table.write(out, binder.layout);
     return out;
 }
 
 /**
- * @brief Functional operator that allows to bind a Layout to a Table so that they can be used
+ * @brief Functional operator that allows to bind a TableLayout to a Table so that they can be used
  * in one ostream command.
  *
  * Using this function makes outputting a Table to some stream easier when using layouts:
  *
  *     Table t;
- *     Layout f;
+ *     TableLayout f;
  *     // Fill t and set f.
  *     std::cout << f(t);
  *
- * or even simpler, create a Layout from one of the predefined settings on the fly:
+ * or even simpler, create a TableLayout from one of the predefined settings on the fly:
  *
  *     Table t;
  *     // Fill t.
@@ -390,24 +390,24 @@ std::ostream& operator << (std::ostream& out, Layout::Binder const& binder)
  *
  * This function is thus a handy shortcut to avoid using the Table write functions directly.
  */
-Layout::Binder Layout::operator () ( Table const& table )
+TableLayout::Binder TableLayout::operator () ( Table const& table )
 {
     return Binder(*this, table);
 }
 
 // ---------------------------------------------------------------------
-//     Default Layouts
+//     Default TableLayouts
 // ---------------------------------------------------------------------
 
-Layout minimal_layout()
+TableLayout minimal_layout()
 {
-    // Layout already has minimal settings (just a space as separator, nothing else).
-    return Layout();
+    // TableLayout already has minimal settings (just a space as separator, nothing else).
+    return TableLayout();
 }
 
-Layout simple_layout( bool condensed )
+TableLayout simple_layout( bool condensed )
 {
-    auto f = Layout();
+    auto f = TableLayout();
 
     f.header.left_border  = (condensed ? "" : " ");
     f.header.separator    = (condensed ? " " : "   ");
@@ -424,9 +424,9 @@ Layout simple_layout( bool condensed )
     return f;
 }
 
-Layout simple_grid( bool condensed )
+TableLayout simple_grid( bool condensed )
 {
-    auto f = Layout();
+    auto f = TableLayout();
 
     f.header.left_border  = (condensed ? "" : " ");
     f.header.separator    = (condensed ? "|" : " | ");
@@ -443,9 +443,9 @@ Layout simple_grid( bool condensed )
     return f;
 }
 
-Layout simple_frame( bool condensed )
+TableLayout simple_frame( bool condensed )
 {
-    auto f = Layout();
+    auto f = TableLayout();
 
     f.top.enabled      = true;
     f.top.left_border  = (condensed ? "+" : "+-");
@@ -464,9 +464,9 @@ Layout simple_frame( bool condensed )
     return f;
 }
 
-Layout extended_grid( bool condensed )
+TableLayout extended_grid( bool condensed )
 {
-    auto f = Layout();
+    auto f = TableLayout();
 
     f.header.left_border  = (condensed ? "" : " ");
     f.header.separator    = (condensed ? "│" : " │ ");
@@ -483,9 +483,9 @@ Layout extended_grid( bool condensed )
     return f;
 }
 
-Layout extended_frame( bool condensed )
+TableLayout extended_frame( bool condensed )
 {
-    auto f = Layout();
+    auto f = TableLayout();
 
     f.top.enabled      = true;
     f.top.left_border  = (condensed ? "┌" : "┌─");
@@ -514,9 +514,9 @@ Layout extended_frame( bool condensed )
     return f;
 }
 
-Layout double_grid( bool condensed )
+TableLayout double_grid( bool condensed )
 {
-    auto f = Layout();
+    auto f = TableLayout();
 
     f.header.left_border  = (condensed ? "" : " ");
     f.header.separator    = (condensed ? "║" : " ║ ");
@@ -533,9 +533,9 @@ Layout double_grid( bool condensed )
     return f;
 }
 
-Layout double_frame( bool condensed )
+TableLayout double_frame( bool condensed )
 {
-    auto f = Layout();
+    auto f = TableLayout();
 
     f.top.enabled      = true;
     f.top.left_border  = (condensed ? "╔" : "╔═");
