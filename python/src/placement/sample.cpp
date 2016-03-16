@@ -8,8 +8,8 @@
 #include <python/src/common.hpp>
 
 #include "lib/placement/sample.hpp"
-#include "lib/placement/operators.hpp"
-#include "lib/placement/functions.hpp"
+#include "lib/placement/function/operators.hpp"
+#include "lib/placement/function/functions.hpp"
 
 using namespace genesis::placement;
 

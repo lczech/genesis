@@ -10,7 +10,7 @@
 #include <string>
 
 #include "lib/placement/io/jplace_reader.hpp"
-#include "lib/placement/operators.hpp"
+#include "lib/placement/function/operators.hpp"
 #include "lib/placement/sample.hpp"
 
 using namespace genesis;

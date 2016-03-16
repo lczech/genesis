@@ -7,7 +7,7 @@
 
 #include "placement/sample_set.hpp"
 
-#include "placement/operators.hpp"
+#include "placement/function/operators.hpp"
 #include "utils/core/logging.hpp"
 
 #include <sstream>

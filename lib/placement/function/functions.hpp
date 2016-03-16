@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_FUNCTIONS_H_
-#define GENESIS_PLACEMENT_FUNCTIONS_H_
+#ifndef GENESIS_PLACEMENT_FUNCTION_FUNCTIONS_H_
+#define GENESIS_PLACEMENT_FUNCTION_FUNCTIONS_H_
 
 /**
  * @brief Provides functions for working with Placements and Pqueries.

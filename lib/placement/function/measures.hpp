@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_MEASURES_H_
-#define GENESIS_PLACEMENT_MEASURES_H_
+#ifndef GENESIS_PLACEMENT_FUNCTION_MEASURES_H_
+#define GENESIS_PLACEMENT_FUNCTION_MEASURES_H_
 
 /**
  * @brief Header for Placement Measures functions.

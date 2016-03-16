@@ -5,7 +5,7 @@
  * @ingroup placement
  */
 
-#include "placement/functions.hpp"
+#include "placement/function/functions.hpp"
 
 #include "utils/core/std.hpp"
 

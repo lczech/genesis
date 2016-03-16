@@ -7,8 +7,8 @@
 
 #include "placement/io/jplace_reader.hpp"
 
+#include "placement/function/operators.hpp"
 #include "placement/io/newick_processor.hpp"
-#include "placement/operators.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
 #include "utils/core/fs.hpp"

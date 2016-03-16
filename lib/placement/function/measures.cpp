@@ -5,7 +5,7 @@
  * @ingroup placement
  */
 
-#include "placement/measures.hpp"
+#include "placement/function/measures.hpp"
 
 #include <assert.h>
 #include <map>
@@ -14,9 +14,9 @@
 #    include <thread>
 #endif
 
-#include "placement/operators.hpp"
-#include "placement/sample.hpp"
+#include "placement/function/operators.hpp"
 #include "placement/placement_tree.hpp"
+#include "placement/sample.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
 #include "tree/iterator/postorder.hpp"

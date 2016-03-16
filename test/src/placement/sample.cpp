@@ -9,7 +9,7 @@
 
 #include <memory>
 
-#include "lib/placement/functions.hpp"
+#include "lib/placement/function/functions.hpp"
 #include "lib/placement/io/jplace_reader.hpp"
 #include "lib/placement/io/newick_processor.hpp"
 #include "lib/placement/sample.hpp"

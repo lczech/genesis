@@ -5,7 +5,7 @@
  * @ingroup placement
  */
 
-#include "placement/operators.hpp"
+#include "placement/function/operators.hpp"
 
 #include "placement/sample.hpp"
 #include "tree/iterator/postorder.hpp"
