@@ -7,6 +7,7 @@
 
 #include "placement/function/operators.hpp"
 
+#include "placement/function/helper.hpp"
 #include "placement/function/functions.hpp"
 #include "placement/sample.hpp"
 #include "tree/iterator/postorder.hpp"

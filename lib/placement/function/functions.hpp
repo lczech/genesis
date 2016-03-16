@@ -77,24 +77,6 @@ std::vector<int> closest_leaf_distance_histogram_auto (
     Sample const& smp, double& min, double& max, const int bins = 10
 );
 
-// =================================================================================================
-//     Helper Functions
-// =================================================================================================
-
-std::unordered_map<int, PlacementTree::EdgeType*> edge_num_to_edge_map( PlacementTree const& tree );
-std::unordered_map<int, PlacementTree::EdgeType*> edge_num_to_edge_map( Sample const & smp );
-
-std::unordered_map< size_t, std::vector< PqueryPlacement const* >> placements_per_edge(
-    Sample const& smp
-);
-
-std::vector<PqueryPlacement const*> placements_per_edge(
-    Sample            const& smp,
-    PlacementTreeEdge const& edge
-);
-
-std::vector<PqueryPlain> plain_queries( Sample const & smp );
-
 } // namespace placement
 } // namespace genesis
 

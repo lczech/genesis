@@ -15,6 +15,7 @@
 #    include <thread>
 #endif
 
+#include "placement/function/helper.hpp"
 #include "placement/function/functions.hpp"
 #include "placement/function/operators.hpp"
 #include "placement/placement_tree.hpp"

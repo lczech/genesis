@@ -7,7 +7,7 @@
 
 #include "placement/simulator/twostep.hpp"
 
-#include "placement/function/functions.hpp"
+#include "placement/function/helper.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
 #include "tree/operators.hpp"

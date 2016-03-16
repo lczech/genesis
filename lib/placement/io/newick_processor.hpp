@@ -13,7 +13,7 @@
 #include <string>
 #include <vector>
 
-#include "placement/function/functions.hpp"
+#include "placement/function/helper.hpp"
 #include "placement/placement_tree.hpp"
 #include "placement/sample.hpp"
 #include "tree/default/newick_mixin.hpp"

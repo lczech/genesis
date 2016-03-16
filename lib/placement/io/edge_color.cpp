@@ -7,6 +7,7 @@
 
 #include "placement/io/edge_color.hpp"
 
+#include "placement/function/helper.hpp"
 #include "placement/function/functions.hpp"
 #include "placement/placement_tree.hpp"
 #include "placement/sample.hpp"
