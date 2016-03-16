@@ -432,45 +432,5 @@ bool Tree<NDT, EDT>::validate() const
     return true;
 }
 
-/**
- * @brief Returns lists of all nodes, edges and links including their indices and connections
- * with each other.
- */
-template <class NDT, class EDT>
-std::string Tree<NDT, EDT>::dump_lists() const
-{
-    std::ostringstream out;
-
-    // nodes
-    for (size_t i = 0; i < nodes_.size(); ++i) {
-        out << "Node " << i
-            << " \t Main Link: " << nodes_[i]->link_->index_
-            << " \t " << nodes_[i]->dump() << "\n";
-    }
-    out << "\n";
-
-    // edges
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        out << "Edge " << i
-            << " \t Link P: " << edges_[i]->link_p_->index_
-            << " \t Link S: " << edges_[i]->link_s_->index_
-            << " \t " << edges_[i]->dump() << "\n";
-    }
-    out << "\n";
-
-    // links
-    for (size_t i = 0; i < links_.size(); ++i) {
-        out << "Link " << i
-            << "  \t Next: "  << links_[i]->next_->index_
-            << " \t Outer: " << links_[i]->outer_->index_
-            << " \t Node: "  << links_[i]->node_->index_
-            << " \t Edge: "  << links_[i]->edge_->index_
-            << " \t " << links_[i]->dump()
-            << "\n";
-    }
-
-    return out.str();
-}
-
 } // namespace tree
 } // namespace genesis

@@ -13,6 +13,7 @@
 #include "lib/tree/io/newick/processor.hpp"
 #include "lib/tree/printer/compact.hpp"
 #include "lib/tree/printer/detailed.hpp"
+#include "lib/tree/printer/table.hpp"
 #include "lib/tree/tree.hpp"
 
 using namespace genesis;
@@ -26,7 +27,7 @@ TEST(TreePrinter, Compact)
     EXPECT_TRUE( DefaultTreeNewickProcessor().from_string( input, tree ));
 
     auto tp = PrinterCompact();
-    // LOG_INFO << tp.print(tree);
+    auto res = tp.print(tree);
 }
 
 TEST(TreePrinter, Detailed)
@@ -37,5 +38,16 @@ TEST(TreePrinter, Detailed)
     EXPECT_TRUE( DefaultTreeNewickProcessor().from_string( input, tree ));
 
     auto tp = PrinterDetailed();
-    // LOG_INFO << tp.print(tree);
+    auto res = tp.print(tree);
+}
+
+TEST(TreePrinter, Table)
+{
+    std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
+
+    DefaultTree tree;
+    EXPECT_TRUE( DefaultTreeNewickProcessor().from_string( input, tree ));
+
+    auto tp = PrinterTable();
+    auto res = tp.print(tree);
 }
