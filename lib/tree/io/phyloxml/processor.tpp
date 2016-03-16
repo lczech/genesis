@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "tree/distances.hpp"
-#include "tree/iterators/preorder.hpp"
+#include "tree/iterator/preorder.hpp"
 #include "tree/tree.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"

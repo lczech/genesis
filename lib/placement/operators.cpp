@@ -8,7 +8,7 @@
 #include "placement/operators.hpp"
 
 #include "placement/sample.hpp"
-#include "tree/iterators/postorder.hpp"
+#include "tree/iterator/postorder.hpp"
 #include "tree/operators.hpp"
 #include "utils/text/table.hpp"
 

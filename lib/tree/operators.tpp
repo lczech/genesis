@@ -5,7 +5,7 @@
  * @ingroup tree
  */
 
-#include "tree/iterators/preorder.hpp"
+#include "tree/iterator/preorder.hpp"
 
 namespace genesis {
 namespace tree {

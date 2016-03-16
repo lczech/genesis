@@ -13,7 +13,7 @@
 #include "tree/distances.hpp"
 #include "tree/io/newick/broker.hpp"
 #include "tree/io/newick/parser.hpp"
-#include "tree/iterators/postorder.hpp"
+#include "tree/iterator/postorder.hpp"
 #include "tree/tree_set.hpp"
 #include "tree/tree.hpp"
 #include "utils/core/fs.hpp"

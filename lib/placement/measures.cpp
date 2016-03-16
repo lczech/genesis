@@ -19,7 +19,7 @@
 #include "placement/placement_tree.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
-#include "tree/iterators/postorder.hpp"
+#include "tree/iterator/postorder.hpp"
 #include "utils/core/options.hpp"
 #include "utils/math/histogram.hpp"
 #include "utils/math/histogram/distances.hpp"
