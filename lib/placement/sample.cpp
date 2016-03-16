@@ -19,7 +19,6 @@
 
 #include "tree/functions.hpp"
 #include "tree/operators.hpp"
-#include "tree/printer/compact.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
 
@@ -406,23 +405,6 @@ double Sample::placement_mass() const
         }
     }
     return sum;
-}
-
-// =================================================================================================
-//     Dump and Debug
-// =================================================================================================
-
-/**
- * @brief Returns a simple view of the Tree with information about the Pqueries on it.
- */
-std::string Sample::dump_tree() const
-{
-    auto print_line = [] (typename PlacementTree::ConstIteratorPreorder& it)
-    {
-        return it.node()->data.name + " [" + std::to_string(it.edge()->data.edge_num) + "]" ": "
-            + std::to_string(it.edge()->data.placement_count()) + " placements";
-    };
-    return tree::PrinterCompact().print< PlacementTree >( tree(), print_line );
 }
 
 } // namespace placement

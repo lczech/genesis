@@ -10,6 +10,7 @@
 #include "placement/sample.hpp"
 #include "tree/iterator/postorder.hpp"
 #include "tree/operators.hpp"
+#include "tree/printer/compact.hpp"
 #include "utils/text/table.hpp"
 
 #include <sstream>
@@ -88,6 +89,20 @@ std::ostream& operator << (std::ostream& out, Sample const& smp)
 
     out << utils::simple_layout()(table);
     return out;
+}
+
+/**
+ * @brief Return a simple view of the Tree of a Sample with information about the
+ * @link Pqyery Pqueries @endlink on it.
+ */
+std::string print_tree( Sample const& smp )
+{
+    auto print_line = [] (typename PlacementTree::ConstIteratorPreorder& it)
+    {
+        return it.node()->data.name + " [" + std::to_string(it.edge()->data.edge_num) + "]" ": "
+            + std::to_string(it.edge()->data.placement_count()) + " placements";
+    };
+    return tree::PrinterCompact().print< PlacementTree >( smp.tree(), print_line );
 }
 
 // =================================================================================================

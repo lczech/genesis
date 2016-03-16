@@ -32,6 +32,8 @@ bool compatible_trees (const Sample& lhs, const Sample& rhs);
 
 std::ostream& operator << ( std::ostream& out, Sample const& smp );
 
+std::string print_tree( Sample const& smp );
+
 // =================================================================================================
 //     Verification
 // =================================================================================================

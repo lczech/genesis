@@ -54,11 +54,11 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
         //     ( std::string ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::dump ),
         //     get_docstring("std::string ::genesis::placement::Sample::dump () const")
         // )
-        .def(
-            "dump_tree",
-            ( std::string ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::dump_tree ),
-            get_docstring("std::string ::genesis::placement::Sample::dump_tree () const")
-        )
+        // .def(
+        //     "dump_tree",
+        //     ( std::string ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::dump_tree ),
+        //     get_docstring("std::string ::genesis::placement::Sample::dump_tree () const")
+        // )
         // .def(
         //     "edge_num_map",
         //     ( EdgeNumMapType * ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::edge_num_map ),
