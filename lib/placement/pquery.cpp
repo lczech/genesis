@@ -14,6 +14,20 @@ namespace genesis {
 namespace placement {
 
 // =============================================================================
+//     Modifiers
+// =============================================================================
+
+/**
+ * @brief Clear all data stored in this Pquery, i.e., clear all PqueryName%s and all
+ * PqueryPlacement%s.
+ */
+void Pquery::clear()
+{
+    clear_placements();
+    clear_names();
+}
+
+// =============================================================================
 //     Placement Iterators
 // =============================================================================
 
@@ -94,6 +108,14 @@ size_t Pquery::placement_size() const
 PqueryPlacement const& Pquery::placement_at( size_t index ) const
 {
     return *placements[index];
+}
+
+/**
+ * @brief Delete all PqueryPlacement%s of this Pquery.
+ */
+void Pquery::clear_placements()
+{
+    placements.clear();
 }
 
 // =============================================================================
