@@ -55,6 +55,14 @@ public:
     // -------------------------------------------------------------------
 
     PqueryPlacement () = default;
+
+    /**
+     * @brief Constructor that takes the edge where this placement is being placed at.
+     */
+    PqueryPlacement( PlacementTreeEdge* edge )
+        : edge_(edge)
+    {}
+
     ~PqueryPlacement() = default;
 
     PqueryPlacement( PqueryPlacement const& ) = default;

@@ -22,7 +22,8 @@ namespace placement {
  * @brief Simple POD struct for a Placement used for speeding up some calculations.
  *
  * It is not as flexible as the default representation, but its memory footprint is compact, because
- * of the lack of pointers.
+ * of the lack of pointers. Except for its purpose in some calculations, it is normally not needed
+ * for anything else.
  */
 struct PqueryPlacementPlain
 {
@@ -41,7 +42,11 @@ struct PqueryPlacementPlain
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Simple POD struct that stores the information of a Pquery in a simple format for
+ * speeding up some calculations.
+ *
+ * This class is used as an alternative representation of Pqueries that does not use pointer and
+ * thus is faster in certain calculations. It is normally not needed for anything else.
  */
 struct PqueryPlain
 {
