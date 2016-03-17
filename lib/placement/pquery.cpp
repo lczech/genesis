@@ -14,7 +14,31 @@ namespace genesis {
 namespace placement {
 
 // =============================================================================
-//     Modifiers
+//     Placement Iterators
+// =============================================================================
+
+Pquery::iterator_placements Pquery::begin_placements()
+{
+    return placements.begin();
+}
+
+Pquery::iterator_placements Pquery::end_placements()
+{
+    return placements.end();
+}
+
+Pquery::const_iterator_placements Pquery::begin_placements() const
+{
+    return placements.cbegin();
+}
+
+Pquery::const_iterator_placements Pquery::end_placements() const
+{
+    return placements.cend();
+}
+
+// =============================================================================
+//     Placement Accessors and Modifiers
 // =============================================================================
 
 /**
@@ -62,6 +86,16 @@ PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementT
     return place_ptr;
 }
 
+size_t Pquery::placement_size() const
+{
+    return placements.size();
+}
+
+PqueryPlacement const& Pquery::placement_at( size_t index ) const
+{
+    return *placements[index];
+}
+
 // =============================================================================
 //     Name Iterators
 // =============================================================================
@@ -87,7 +121,7 @@ Pquery::const_iterator_names Pquery::end_names() const
 }
 
 // =============================================================================
-//     Name Accessros and Modifiers
+//     Name Accessors and Modifiers
 // =============================================================================
 
 /**
