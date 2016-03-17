@@ -80,20 +80,8 @@ public:
     //     Tree Accessors and Modifiers
     // -------------------------------------------------------------------------
 
-    inline std::shared_ptr<PlacementTree> tree_ptr()
-    {
-        return tree_;
-    }
-
-    inline PlacementTree& tree()
-    {
-        return *tree_.get();
-    }
-
-    inline PlacementTree const& tree() const
-    {
-        return *tree_.get();
-    }
+    PlacementTree      & tree();
+    PlacementTree const& tree() const;
 
     // -------------------------------------------------------------------------
     //     Pquery Accessors and Modifiers
