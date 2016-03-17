@@ -204,7 +204,7 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
         // use this name for reporting invalid placements.
         std::string name;
         if (pqry->names.size() > 0) {
-            name = "'" + pqry->names[0]->name + "'";
+            name = "'" + pqry->names[0].name + "'";
         } else {
             name = "(unnamed pquery)";
         }

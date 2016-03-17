@@ -91,26 +91,19 @@ public:
     //     Names
     // -------------------------------------------------------------------
 
-    PqueryName* emplace_name(std::string name = "", double multiplicity = 0.0);
+    PqueryName& add_name( std::string name = "", double multiplicity = 0.0 );
+    PqueryName& add_name( PqueryName const& other );
 
-    PqueryName* insert_name( PqueryName const& other );
+    size_t name_size() const;
 
-    size_t name_size() const
-    {
-        return names.size();
-    }
-
-    PqueryName const& name_at( size_t index ) const
-    {
-        return *names.at(index);
-    }
+    PqueryName const& name_at( size_t index ) const;
 
     // -------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------
 
     std::vector<std::unique_ptr<PqueryPlacement>> placements;
-    std::vector<std::unique_ptr<PqueryName>>      names;
+    std::vector<PqueryName>      names;
 };
 
 } // namespace placement

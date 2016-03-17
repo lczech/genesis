@@ -76,8 +76,7 @@ Sample::Sample( Sample const& other )
             npqry->placements.push_back(std::move(np));
         }
         for (const auto& on : opqry->names) {
-            auto nn = make_unique<PqueryName>(*on);
-            npqry->names.push_back(std::move(nn));
+            npqry->add_name( on );
         }
 
         pqueries_.push_back(std::move(npqry));
@@ -241,8 +240,7 @@ bool Sample::merge(const Sample& other)
             npqry->placements.push_back(std::move(np));
         }
         for (const auto& on : opqry->names) {
-            auto nn = make_unique<PqueryName>(*on);
-            npqry->names.push_back(std::move(nn));
+            npqry->add_name( on );
         }
         this->pqueries_.push_back(std::move(npqry));
     }

@@ -257,8 +257,8 @@ void collect_duplicate_pqueries (Sample& smp)
             // a common name.
             std::unordered_set<Pquery*> merges;
             for (auto& name : it->names) {
-                if (hash.count(name->name) > 0) {
-                    merges.insert(hash[name->name]);
+                if (hash.count(name.name) > 0) {
+                    merges.insert(hash[name.name]);
                 }
             }
 
@@ -268,10 +268,10 @@ void collect_duplicate_pqueries (Sample& smp)
                 for (auto& name : it->names) {
                     // We are here because we found no pquery to merge with. This means that the
                     // name cannot be in the hash smp already.
-                    assert(hash.count(name->name) == 0);
+                    assert(hash.count(name.name) == 0);
 
                     // Now add it.
-                    hash[name->name] = &*it;
+                    hash[name.name] = &*it;
                 }
             } else {
                 // We need merging. We will merge with only one Pquery in this iteration. If there
@@ -294,13 +294,13 @@ void collect_duplicate_pqueries (Sample& smp)
                 // bit of speed (probably).
                 for (auto& name : it->names) {
                     // Add the name to the Pquery.
-                    merge_into->insert_name(*name);
+                    merge_into->add_name( name );
 
                     // Also add it to the hash smp. If this was name that is responsible for the
                     // merging (the shared name), we will replace the entry by an indentical copy.
                     // For all other names of the current Pquery, we need this to ensure that the
                     // next Pqueries in the loop will find it.
-                    hash[name->name] = merge_into;
+                    hash[name.name] = merge_into;
                 }
 
                 // Mark the Pquery for deletion.
@@ -409,17 +409,17 @@ void merge_duplicate_names (Pquery& pquery)
     // Merge names. If two PlacementName objects have a commong name, add their multiplicity into
     // the first one and mark the other one for deletion.
     for (auto& name_it : pquery.names) {
-        if (hash.count(name_it->name) == 0) {
-            hash[name_it->name] = &*name_it;
+        if (hash.count(name_it.name) == 0) {
+            hash[name_it.name] = &name_it;
         } else {
-            hash[name_it->name]->multiplicity += name_it->multiplicity;
-            del.insert(&*name_it);
+            hash[name_it.name]->multiplicity += name_it.multiplicity;
+            del.insert(&name_it);
         }
     }
 
     // Now delete all Name objects whose values were merged into objects of the same name.
-    erase_if(pquery.names, [del] (std::unique_ptr<PqueryName>& name) {
-        return del.count(name.get()) > 0;
+    erase_if(pquery.names, [del] (PqueryName& name) {
+        return del.count(&name) > 0;
     });
 }
 

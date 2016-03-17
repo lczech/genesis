@@ -108,7 +108,7 @@ void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc)
         // find out whether names have multiplicity
         bool has_nm = false;
         for (auto& pqry_name : pqry->names) {
-            has_nm |= pqry_name->multiplicity != 0.0;
+            has_nm |= pqry_name.multiplicity != 0.0;
         }
 
         // set named multiplicity / name
@@ -116,15 +116,15 @@ void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc)
             JsonValueArray* pqry_nm_arr = new JsonValueArray();
             for (auto& pqry_name : pqry->names) {
                 JsonValueArray* pqry_nm_val = new JsonValueArray();
-                pqry_nm_val->push_back(new JsonValueString(pqry_name->name));
-                pqry_nm_val->push_back(new JsonValueNumber(pqry_name->multiplicity));
+                pqry_nm_val->push_back(new JsonValueString(pqry_name.name));
+                pqry_nm_val->push_back(new JsonValueNumber(pqry_name.multiplicity));
                 pqry_nm_arr->push_back(pqry_nm_val);
             }
             jpqry->set("nm", pqry_nm_arr);
         } else {
             JsonValueArray* pqry_n_arr  = new JsonValueArray();
             for (auto& pqry_name : pqry->names) {
-                pqry_n_arr->push_back(new JsonValueString(pqry_name->name));
+                pqry_n_arr->push_back(new JsonValueString(pqry_name.name));
             }
             jpqry->set("n", pqry_n_arr);
         }

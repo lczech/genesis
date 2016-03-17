@@ -63,26 +63,39 @@ PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementT
 }
 
 /**
- * @brief Creates a new PqueryName, adds it to the Pquery and returns a pointer to it.
+ * @brief Create a new PqueryName using the provided parameters, add it to the Pquery and return it.
  */
-PqueryName* Pquery::emplace_name(std::string name, double multiplicity)
+PqueryName& Pquery::add_name( std::string name, double multiplicity )
 {
-    return insert_name(PqueryName(name, multiplicity));
+    names.emplace_back( name, multiplicity );
+    return names.back();
 }
 
 /**
- * @brief
+ * @brief Create a new PqueryName as a copy of the provided one, add it to the Pquery and return it.
  */
-PqueryName* Pquery::insert_name(const PqueryName& other)
+PqueryName& Pquery::add_name( PqueryName const& other )
 {
-    // Create new name via copy constructor, get pointer to it.
-    auto pname = make_unique<PqueryName>(other);
-    PqueryName* name_ptr = pname.get();
+    names.push_back( PqueryName(other) );
+    return names.back();
+}
 
-    // Add the name to the query and vice versa.
-    names.push_back(std::move(pname));
+/**
+ * @brief Return the number of PqueryName%s stored in this Pquery.
+ */
+size_t Pquery::name_size() const
+{
+    return names.size();
+}
 
-    return name_ptr;
+/**
+ * @brief Return the PqueryName at a certain index.
+ *
+ * The index must be smaller than name_size(), otherwise this functions throws an exception.
+ */
+PqueryName const& Pquery::name_at( size_t index ) const
+{
+    return names.at(index);
 }
 
 } // namespace placement
