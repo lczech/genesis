@@ -78,7 +78,7 @@ PqueryPlacement& Pquery::add_placement( PlacementTreeEdge& edge )
  * return it.
  *
  * As this function might reallocate the memory where placements are stored, all iterators
- * and pointer to PqueryPlacement%s are invalidated.
+ * and pointer to PqueryPlacement%s are considered to be invalidated.
  */
 PqueryPlacement& Pquery::add_placement( PqueryPlacement const& val )
 {
@@ -94,7 +94,7 @@ PqueryPlacement& Pquery::add_placement( PqueryPlacement const& val )
  * its containing Sample do. This is up to the user and not checked.
  *
  * As this function might reallocate the memory where placements are stored, all iterators
- * and pointer to PqueryPlacement%s are invalidated.
+ * and pointer to PqueryPlacement%s are considered to be invalidated.
  */
 PqueryPlacement& Pquery::add_placement(
     PlacementTreeEdge    & edge,
@@ -144,6 +144,17 @@ PqueryPlacement const& Pquery::placement_at( size_t index ) const
 }
 
 /**
+ * @brief Remove the PqueryPlacement at a certain index position within this Pquery.
+ *
+ * As this function moves placements in the container, all iterators and pointer to
+ * PqueryPlacement%s are considered to be invalidated.
+ */
+void Pquery::remove_placement_at( size_t index )
+{
+    placements_.erase( placements_.begin() + index );
+}
+
+/**
  * @brief Delete all PqueryPlacement%s of this Pquery.
  */
 void Pquery::clear_placements()
@@ -183,7 +194,7 @@ Pquery::const_iterator_names Pquery::end_names() const
  * @brief Create a new PqueryName using the provided parameters, add it to the Pquery and return it.
  *
  * As this function might reallocate the memory where names are stored, all iterators
- * and pointer to PqueryNames%s are invalidated.
+ * and pointer to PqueryNames%s are considered to be invalidated.
  */
 PqueryName& Pquery::add_name( std::string name, double multiplicity )
 {
@@ -195,7 +206,7 @@ PqueryName& Pquery::add_name( std::string name, double multiplicity )
  * @brief Create a new PqueryName as a copy of the provided one, add it to the Pquery and return it.
  *
  * As this function might reallocate the memory where names are stored, all iterators
- * and pointer to PqueryNames%s are invalidated.
+ * and pointer to PqueryNames%s are considered to be invalidated.
  */
 PqueryName& Pquery::add_name( PqueryName const& other )
 {
@@ -239,6 +250,17 @@ PqueryName& Pquery::name_at( size_t index )
 PqueryName const& Pquery::name_at( size_t index ) const
 {
     return names_.at(index);
+}
+
+/**
+ * @brief Remove the PqueryName at a certain index position within this Pquery.
+ *
+ * As this function moves names in the container, all iterators and pointer to PqueryNames%s
+ * are considered to be invalidated.
+ */
+void Pquery::remove_name_at( size_t index )
+{
+    names_.erase( names_.begin() + index );
 }
 
 /**

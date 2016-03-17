@@ -216,6 +216,9 @@ void Sample::clear()
  * @brief Create an empty Pquery, add it to the Sample and return it.
  *
  * The returned reference can then be used to add PqueryPlacement%s and PqueryName%s to the Pquery.
+ *
+ * As this function might reallocate the memory where Pqueries are stored, all iterators
+ * and pointer to the Pqueries of this Sample are invalidated.
  */
 Pquery& Sample::add_pquery()
 {
@@ -223,32 +226,58 @@ Pquery& Sample::add_pquery()
     return pqueries_.back();
 }
 
+/**
+ * @brief Create a Pquery as a copy of the provided one, add it to the sample and return it.
+ *
+ * As this function might reallocate the memory where Pqueries are stored, all iterators
+ * and pointer to the Pqueries of this Sample are invalidated.
+ */
 Pquery& Sample::add_pquery( Pquery const& other )
 {
     pqueries_.push_back( other );
     return pqueries_.back();
 }
 
+/**
+ * @brief Return a const ref to the Pquery container.
+ *
+ * This makes iterating Pqueries via a range based for loop easy.
+ */
 std::vector<Pquery> const& Sample::pqueries() const
 {
     return pqueries_;
 }
 
+/**
+ * @brief Return the number of @link Pquery Pqueries @endling that are stored in this Sample.
+ */
 size_t Sample::pquery_size() const
 {
     return pqueries_.size();
 }
 
+/**
+ * @brief Return the Pquery at a certain index.
+ */
 Pquery& Sample::pquery_at( const size_t index )
 {
     return pqueries_.at( index );
 }
 
+/**
+ * @brief Return the Pquery at a certain index.
+ */
 Pquery const& Sample::pquery_at( const size_t index ) const
 {
     return pqueries_.at( index );
 }
 
+/**
+ * @brief Remove the Pquery at a certain index position within this Sample.
+ *
+ * As this function might reallocate the memory where Pqueries are stored, all iterators
+ * and pointer to the Pqueries of this Sample are considered to be invalidated.
+ */
 void Sample::remove_pquery_at( size_t index )
 {
     pqueries_.erase( pqueries_.begin() + index );
