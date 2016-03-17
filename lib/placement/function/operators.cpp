@@ -95,7 +95,7 @@ std::ostream& operator << (std::ostream& out, Sample const& smp)
 
 /**
  * @brief Return a simple view of the Tree of a Sample with information about the
- * @link Pqyery Pqueries @endlink on it.
+ * @link Pquery Pqueries @endlink on it.
  */
 std::string print_tree( Sample const& smp )
 {
