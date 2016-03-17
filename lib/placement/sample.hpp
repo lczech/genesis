@@ -42,7 +42,9 @@ namespace placement {
  */
 class Sample
 {
+
 public:
+
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
@@ -53,15 +55,15 @@ public:
         : tree_(tree)
     {}
 
-    Sample( Sample const& );
-    Sample( Sample&& );
+    Sample( Sample const& ) = default;
+    Sample( Sample&& )      = default;
 
-    Sample& operator= (Sample const&);
-    Sample& operator= (Sample&&);
+    Sample& operator= ( Sample const& ) = default;
+    Sample& operator= ( Sample&& )      = default;
 
     ~Sample() = default;
 
-    void swap (Sample& other);
+    void swap( Sample& other );
 
     // -------------------------------------------------------------------------
     //     Modifiers
@@ -117,6 +119,7 @@ private:
 public:
 
     // There is not much to mess up here for a user, so we can simply make this public.
+    // Okay, this is ugly. But for now, it's way easier. We never use the metadata anyway...
     std::unordered_map<std::string, std::string> metadata;
 
 };
