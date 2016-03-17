@@ -74,15 +74,12 @@ public:
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    Pquery* add_pquery();
-
     bool merge(const Sample& other);
 
     void clear();
-    void clear_pqueries();
 
     // -------------------------------------------------------------------------
-    //     Accessors
+    //     Tree Accessors and Modifiers
     // -------------------------------------------------------------------------
 
     inline std::shared_ptr<PlacementTree> tree_ptr()
@@ -100,27 +97,28 @@ public:
         return *tree_.get();
     }
 
-    inline std::vector<std::unique_ptr<Pquery>>& pqueries()
-    {
-        return pqueries_;
-    }
+    // -------------------------------------------------------------------------
+    //     Pquery Accessors and Modifiers
+    // -------------------------------------------------------------------------
 
-    inline const std::vector<std::unique_ptr<Pquery>>& pqueries() const
-    {
-        return pqueries_;
-    }
+    Pquery& add_pquery();
+    Pquery& add_pquery( Pquery const& other );
 
+    std::vector<Pquery> const& pqueries() const;
     size_t pquery_size() const;
 
-    Pquery      & pquery_at( const size_t index );
-    Pquery const& pquery_at( const size_t index ) const;
+    Pquery      & pquery_at( size_t index );
+    Pquery const& pquery_at( size_t index ) const;
+
+    void remove_pquery_at( size_t index );
+    void clear_pqueries();
 
     // -------------------------------------------------------------------------
     //     Pquery Iterator
     // -------------------------------------------------------------------------
 
-    typedef std::vector<std::unique_ptr<Pquery>>::iterator       iterator_pqueries;
-    typedef std::vector<std::unique_ptr<Pquery>>::const_iterator const_iterator_pqueries;
+    typedef std::vector<Pquery>::iterator       iterator_pqueries;
+    typedef std::vector<Pquery>::const_iterator const_iterator_pqueries;
 
     iterator_pqueries       begin();
     const_iterator_pqueries begin() const;
@@ -134,8 +132,8 @@ public:
 
 protected:
 
-    std::vector<std::unique_ptr<Pquery>>         pqueries_;
-    std::shared_ptr<PlacementTree>               tree_;
+    std::vector<Pquery>            pqueries_;
+    std::shared_ptr<PlacementTree> tree_;
 
 public:
 

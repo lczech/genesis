@@ -47,7 +47,7 @@ bool has_name( Pquery const& pquery, std::string const& name )
 bool has_name( Sample const& smp, std::string const& name )
 {
     for( auto const& pqry : smp.pqueries() ) {
-        if( has_name( *pqry, name ) ) {
+        if( has_name( pqry, name ) ) {
             return true;
         }
     }
@@ -62,8 +62,8 @@ Pquery const* find_pquery( Sample const& smp, std::string const& name )
     // TODO instead of pointer, return an iterator!
     // then use find if directly!
     for( auto const& pqry : smp.pqueries() ) {
-        if( has_name(*pqry, name) ) {
-            return pqry.get();
+        if( has_name( pqry, name )) {
+            return &pqry;
         }
     }
     return nullptr;
@@ -79,13 +79,14 @@ Pquery const* find_pquery( Sample const& smp, std::string const& name )
  */
 void normalize_weight_ratios( Sample& smp )
 {
-    for( auto& pqry : smp.pqueries() ) {
+    for( auto pqry_it = smp.begin(); pqry_it != smp.end(); ++pqry_it ) {
+        auto& pqry = *pqry_it;
         double sum = 0.0;
-        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
-            auto const& place = *pit;
+
+        for( auto const& place : pqry.placements() ) {
             sum += place.like_weight_ratio;
         }
-        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+        for( auto pit = pqry.begin_placements(); pit != pqry.end_placements(); ++pit ) {
             auto& place = *pit;
             place.like_weight_ratio /= sum;
         }
@@ -135,8 +136,8 @@ void restrain_to_max_weight_placements( Pquery& pquery )
  */
 void restrain_to_max_weight_placements( Sample& smp )
 {
-    for( auto& pquery_it : smp.pqueries() ) {
-        restrain_to_max_weight_placements( *pquery_it );
+    for( auto pqry_it = smp.begin(); pqry_it != smp.end(); ++pqry_it ) {
+        restrain_to_max_weight_placements( *pqry_it );
     }
 }
 
@@ -167,8 +168,8 @@ void sort_placements_by_like_weight_ratio( Pquery& pquery )
  */
 void sort_placements_by_like_weight_ratio( Sample& smp )
 {
-    for( auto& pquery_it : smp.pqueries() ) {
-        sort_placements_by_like_weight_ratio( *pquery_it );
+    for( auto pqry_it = smp.begin(); pqry_it != smp.end(); ++pqry_it ) {
+        sort_placements_by_like_weight_ratio( *pqry_it );
     }
 }
 
@@ -232,16 +233,18 @@ void collect_duplicate_pqueries (Sample& smp)
         // stored Pquery and the then surplus Pquery will be deleted.
         std::unordered_map<std::string, Pquery*> hash;
 
-        // This is a list of the Pqueries that we want to delete, because their placements have been
-        // moved to other Pqueries (those, which contain the same name). We need this list as
-        // deleting from a list while iterating it is not a good idea.
-        std::unordered_set<Pquery*> del;
+        // This is a list of the Pquery indices that we want to delete, because their placements
+        // have been moved to other Pqueries (those, which contain the same name). We need this
+        // list as deleting from a list while iterating it is not a good idea.
+        std::vector<size_t> del;
 
-        for (auto& it : smp.pqueries()) {
+        for( size_t i = 0; i < smp.pquery_size(); ++i ) {
+            auto& pqry = smp.pquery_at(i);
+
             // Collect the Pqueries that can be merged with the current one, because they share
             // a common name.
             std::unordered_set<Pquery*> merges;
-            for( auto name_it = it->begin_names(); name_it != it->end_names(); ++name_it ) {
+            for( auto name_it = pqry.begin_names(); name_it != pqry.end_names(); ++name_it ) {
                 auto& name = *name_it;
 
                 if (hash.count(name.name) > 0) {
@@ -252,7 +255,7 @@ void collect_duplicate_pqueries (Sample& smp)
             if (merges.size() == 0) {
                 // All names are new, so store them in the hash smp for later.
                 // We don't need to do any merging in this case.
-                for( auto name_it = it->begin_names(); name_it != it->end_names(); ++name_it ) {
+                for( auto name_it = pqry.begin_names(); name_it != pqry.end_names(); ++name_it ) {
                     auto& name = *name_it;
 
                     // We are here because we found no pquery to merge with. This means that the
@@ -260,7 +263,7 @@ void collect_duplicate_pqueries (Sample& smp)
                     assert(hash.count(name.name) == 0);
 
                     // Now add it.
-                    hash[name.name] = &*it;
+                    hash[name.name] = &pqry;
                 }
             } else {
                 // We need merging. We will merge with only one Pquery in this iteration. If there
@@ -273,17 +276,15 @@ void collect_duplicate_pqueries (Sample& smp)
                 // TODO we could use move here instead of copy creating.
 
                 // Add all placements to it.
-                for( auto pit = it->begin_placements(); pit != it->end_placements(); ++pit ) {
-                    merge_into->add_placement( *pit );
+                for( auto const& place : pqry.placements() ) {
+                    merge_into->add_placement( place );
                 }
 
                 // Add all names. This will cause doubled names, but they can be reduced later
                 // via merge_duplicate_names().
                 // We could do the check here, but this would increase complexity and gain just a
                 // bit of speed (probably).
-                for( auto name_it = it->begin_names(); name_it != it->end_names(); ++name_it ) {
-                    auto& name = *name_it;
-
+                for( auto const& name : pqry.names() ) {
                     // Add the name to the Pquery.
                     merge_into->add_name( name );
 
@@ -294,8 +295,10 @@ void collect_duplicate_pqueries (Sample& smp)
                     hash[name.name] = merge_into;
                 }
 
-                // Mark the Pquery for deletion.
-                del.insert(&*it);
+                // Mark the Pquery for deletion and delete its content
+                // (this is both to save memory, but also for some assertions later).
+                del.push_back(i);
+                pqry.clear();
 
                 // Check whether we need to merge with more than one Pquery, meaning that we have
                 // transitive connections. This means, we need another iteration to resolve this.
@@ -306,9 +309,15 @@ void collect_duplicate_pqueries (Sample& smp)
         }
 
         // Delete all Pqueries that were merged to others during this iteration.
-        erase_if(smp.pqueries(), [del] (std::unique_ptr<Pquery>& pqry) {
-            return del.count(pqry.get()) > 0;
-        });
+        // We need to do this in reverse order so that the indeces are not messed up while deleting.
+        for( auto it = del.rbegin(); it != del.rend(); ++it ) {
+            // Assert that this is an empty pquery. We cleared the ones that are marked for
+            // deletion, so in case that it is not empty, we are about to delete the wrong one!
+            assert( smp.pquery_at( *it ).placement_size() == 0 );
+            assert( smp.pquery_at( *it ).name_size()      == 0 );
+
+            smp.remove_pquery_at( *it );
+        }
     }
 }
 
@@ -370,8 +379,8 @@ void merge_duplicate_placements (Pquery& pquery)
  */
 void merge_duplicate_placements( Sample& smp )
 {
-    for (auto& pquery_it : smp.pqueries()) {
-        merge_duplicate_placements (*pquery_it);
+    for( auto pquery_it = smp.begin(); pquery_it != smp.end(); ++pquery_it ) {
+        merge_duplicate_placements( *pquery_it );
     }
 }
 
@@ -403,10 +412,10 @@ void merge_duplicate_names( Pquery& pquery )
 /**
  * @brief Call `merge_duplicate_names()` for each Pquery of the Sample.
  */
-void merge_duplicate_names (Sample& smp)
+void merge_duplicate_names( Sample& smp )
 {
-    for (auto& pquery_it : smp.pqueries()) {
-        merge_duplicate_names (*pquery_it);
+    for( auto pquery_it = smp.begin(); pquery_it != smp.end(); ++pquery_it ) {
+        merge_duplicate_names( *pquery_it );
     }
 }
 
@@ -422,7 +431,7 @@ size_t total_placement_count( Sample const& smp )
 {
     size_t count = 0;
     for( auto const& pqry : smp.pqueries() ) {
-        count += pqry->placement_size();
+        count += pqry.placement_size();
     }
     return count;
 }
@@ -435,8 +444,8 @@ double total_placement_mass(  Sample const& smp )
 {
     double sum = 0.0;
     for( const auto& pqry : smp.pqueries() ) {
-        for( auto place = pqry->begin_placements(); place != pqry->end_placements(); ++place ) {
-            sum += place->like_weight_ratio;
+        for( auto& place : pqry.placements() ) {
+            sum += place.like_weight_ratio;
         }
     }
     return sum;
@@ -527,9 +536,7 @@ std::vector<int> closest_leaf_depth_histogram( Sample const& smp )
     auto depths = closest_leaf_depth_vector( smp.tree() );
 
     for( auto const& pquery : smp.pqueries() ) {
-        for( auto pit = pquery->begin_placements(); pit != pquery->end_placements(); ++pit ) {
-            auto const& place = *pit;
-
+        for( auto& place : pquery.placements() ) {
             // Try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
             int dp = depths[ place.edge().primary_node()->index()   ].second;
@@ -581,9 +588,7 @@ std::vector<int> closest_leaf_distance_histogram (
     auto dists = tree::closest_leaf_distance_vector( smp.tree() );
 
     for (const auto& pquery : smp.pqueries()) {
-        for( auto pit = pquery->begin_placements(); pit != pquery->end_placements(); ++pit ) {
-            auto const& place = *pit;
-
+        for( auto& place : pquery.placements() ) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
             double dp = place.pendant_length
@@ -656,9 +661,7 @@ std::vector<int> closest_leaf_distance_histogram_auto (
 
     // calculate all distances from placements to their closest leaf and store them.
     for (const auto& pquery : smp.pqueries()) {
-        for( auto pit = pquery->begin_placements(); pit != pquery->end_placements(); ++pit ) {
-            auto const& place = *pit;
-
+        for( auto& place : pquery.placements() ) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
             double dp = place.pendant_length

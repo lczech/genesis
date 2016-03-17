@@ -67,17 +67,17 @@ Sample::Sample( Sample const& other )
     // TODO this is very similar to merge(). make this code shared somehow.
     auto en_map = edge_num_to_edge_map( *tree_ );
     for (const auto& opqry : other.pqueries_) {
-        auto npqry = make_unique<Pquery>();
+        auto npqry = Pquery();
 
-        for( auto opit = opqry->begin_placements(); opit != opqry->end_placements(); ++opit ) {
+        for( auto opit = opqry.begin_placements(); opit != opqry.end_placements(); ++opit ) {
             auto const& op = *opit;
-            npqry->add_placement( *en_map[ op.edge_num() ], op );
+            npqry.add_placement( *en_map[ op.edge_num() ], op );
         }
-        for( auto name_it = opqry->begin_names(); name_it != opqry->end_names(); ++name_it ) {
-            npqry->add_name( *name_it );
+        for( auto name_it = opqry.begin_names(); name_it != opqry.end_names(); ++name_it ) {
+            npqry.add_name( *name_it );
         }
 
-        pqueries_.push_back(std::move(npqry));
+        pqueries_.push_back(npqry);
     }
 }
 
@@ -136,38 +136,8 @@ void Sample::swap (Sample& other) noexcept
 }
 
 // =================================================================================================
-//     Accessors
-// =================================================================================================
-
-size_t Sample::pquery_size() const
-{
-    return pqueries_.size();
-}
-
-Pquery& Sample::pquery_at( const size_t index )
-{
-    return *pqueries_.at( index );
-}
-
-Pquery const& Sample::pquery_at( const size_t index ) const
-{
-    return *pqueries_.at( index );
-}
-
-// =================================================================================================
 //     Modifiers
 // =================================================================================================
-
-/**
- * @brief Creats an empty Pquery, adds it to the Sample and returns a pointer to it.
- *
- * The returned pointer can then be used to add Placements and Names to the Pquery.
- */
-Pquery* Sample::add_pquery()
-{
-    pqueries_.push_back(make_unique<Pquery>());
-    return pqueries_.back().get();
-}
 
 /**
  * @brief Add the pqueries from another Sample object to this one.
@@ -208,19 +178,19 @@ bool Sample::merge(const Sample& other)
 
     // Copy all (o)ther pqueries to (n)ew pqueries.
     for (const auto& opqry : other.pqueries_) {
-        auto npqry = make_unique<Pquery>();
-        for( auto opit = opqry->begin_placements(); opit != opqry->end_placements(); ++opit ) {
+        auto npqry = Pquery();
+        for( auto opit = opqry.begin_placements(); opit != opqry.end_placements(); ++opit ) {
             // Assuming that the trees have identical topology (checked at the beginning of this
             // function), there will be an edge for every placement. if this assertion fails,
             // something broke the integrity of our in memory representation of the data.
             assert( en_map.count( opit->edge_num() ) > 0 );
 
-            npqry->add_placement( *en_map[ opit->edge_num() ], *opit );
+            npqry.add_placement( *en_map[ opit->edge_num() ], *opit );
         }
-        for( auto name_it = opqry->begin_names(); name_it != opqry->end_names(); ++name_it ) {
-            npqry->add_name( *name_it );
+        for( auto name_it = opqry.begin_names(); name_it != opqry.end_names(); ++name_it ) {
+            npqry.add_name( *name_it );
         }
-        this->pqueries_.push_back(std::move(npqry));
+        this->pqueries_.push_back(npqry);
     }
 
     return true;
@@ -238,8 +208,54 @@ void Sample::clear()
     metadata.clear();
 }
 
+// =================================================================================================
+//     Pquery Accessors and Modifiers
+// =================================================================================================
+
 /**
- * @brief Clears all @link Pquery Pqueries @endlink of this Sample.
+ * @brief Create an empty Pquery, add it to the Sample and return it.
+ *
+ * The returned reference can then be used to add PqueryPlacement%s and PqueryName%s to the Pquery.
+ */
+Pquery& Sample::add_pquery()
+{
+    pqueries_.push_back( Pquery() );
+    return pqueries_.back();
+}
+
+Pquery& Sample::add_pquery( Pquery const& other )
+{
+    pqueries_.push_back( other );
+    return pqueries_.back();
+}
+
+std::vector<Pquery> const& Sample::pqueries() const
+{
+    return pqueries_;
+}
+
+size_t Sample::pquery_size() const
+{
+    return pqueries_.size();
+}
+
+Pquery& Sample::pquery_at( const size_t index )
+{
+    return pqueries_.at( index );
+}
+
+Pquery const& Sample::pquery_at( const size_t index ) const
+{
+    return pqueries_.at( index );
+}
+
+void Sample::remove_pquery_at( size_t index )
+{
+    pqueries_.erase( pqueries_.begin() + index );
+}
+
+/**
+ * @brief Clear all @link Pquery Pqueries @endlink of this Sample.
  *
  * All Pqueries are deleted. However, the PlacementTree and the #metadata are left as they are.
  * Thus this is a useful method for e.g., simulating placements: Take a copy of a given sample,

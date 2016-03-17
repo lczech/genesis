@@ -70,14 +70,12 @@ std::ostream& operator << (std::ostream& out, Sample const& smp)
 
     size_t i = 0;
     for( auto const& pqry : smp.pqueries() ) {
-        std::string name = pqry->name_size() > 0 ? pqry->name_at(0).name : "";
-        if( pqry->name_size() > 1 ) {
-            name += " (+" + std::to_string( pqry->name_size() - 1 ) + ")";
+        std::string name = pqry.name_size() > 0 ? pqry.name_at(0).name : "";
+        if( pqry.name_size() > 1 ) {
+            name += " (+" + std::to_string( pqry.name_size() - 1 ) + ")";
         }
 
-        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
-            auto const& p = *pit;
-
+        for( auto const& p : pqry.placements() ) {
             table << std::to_string(i);
             table << name;
             table << std::to_string( p.edge_num() );

@@ -106,6 +106,16 @@ PqueryPlacement& Pquery::add_placement(
 }
 
 /**
+ * @brief Return a const ref to the PqueryPlacement container.
+ *
+ * This makes iterating placements via a range based for loop easy.
+ */
+Pquery::PqueryPlacements const& Pquery::placements() const
+{
+    return placements_;
+}
+
+/**
  * @brief Return the number of PqueryPlacement%s stored in this Pquery.
  */
 size_t Pquery::placement_size() const
@@ -191,6 +201,16 @@ PqueryName& Pquery::add_name( PqueryName const& other )
 {
     names_.push_back( PqueryName(other) );
     return names_.back();
+}
+
+/**
+ * @brief Return a const ref to the PqueryName container.
+ *
+ * This makes iterating names via a range based for loop easy.
+ */
+Pquery::PqueryNames const& Pquery::names() const
+{
+    return names_;
 }
 
 /**

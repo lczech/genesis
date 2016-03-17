@@ -48,7 +48,7 @@ void test_sample_stats (
 
     size_t name_count = 0;
     for (auto& pqry : smp.pqueries()) {
-        name_count += pqry->name_size();
+        name_count += pqry.name_size();
     }
     EXPECT_EQ (expected_name_size, name_count);
 }

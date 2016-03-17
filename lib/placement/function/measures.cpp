@@ -845,8 +845,7 @@ double center_of_gravity_variance (
     auto   node_dist_dist  = node_distance_vector(map.tree(), central_edge->secondary_node());
 
     for (const auto& pqry : map.pqueries()) {
-        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
-            auto const& place = *pit;
+        for( auto const& place : pqry.placements() ) {
             double distance;
 
             if (place.edge().index() == central_edge->index()) {
