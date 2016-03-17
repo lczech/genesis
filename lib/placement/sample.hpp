@@ -17,9 +17,6 @@
 #include "placement/placement_tree.hpp"
 #include "placement/pquery.hpp"
 
-// TODO remove once the helper methods are outsourced
-#include "placement/pquery/plain.hpp"
-
 namespace genesis {
 namespace placement {
 
@@ -27,6 +24,22 @@ namespace placement {
 //     Sample
 // =================================================================================================
 
+/**
+ * @brief Manage a set of @link Pquery Pqueries @endlink along with the PlacementTree where
+ * the PqueryPlacement%s are placed on.
+ *
+ * This class stores both the tree and the set of pqueries with their placements. It is thus
+ * a representation of a whole `jplace` file according to the standard.
+ *
+ * For more information on the `jplace` format, see the following publication:
+ *
+ *     Matsen FA, Hoffman NG, Gallagher A, Stamatakis A. 2012.
+ *     A Format for Phylogenetic Sample.
+ *     PLoS ONE 7(2): e31009. doi:10.1371/journal.pone.0031009
+ *     http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009
+ *
+ * This class and other related classes are modeled after this standard.
+ */
 class Sample
 {
 public:

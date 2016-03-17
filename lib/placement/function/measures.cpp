@@ -15,10 +15,11 @@
 #    include <thread>
 #endif
 
-#include "placement/function/helper.hpp"
 #include "placement/function/functions.hpp"
+#include "placement/function/helper.hpp"
 #include "placement/function/operators.hpp"
 #include "placement/placement_tree.hpp"
+#include "placement/pquery/plain.hpp"
 #include "placement/sample.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
