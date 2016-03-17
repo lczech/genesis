@@ -29,9 +29,9 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
             get_docstring("void ::genesis::placement::Sample::clear ()")
         )
         .def(
-            "clear_placements",
-            ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::clear_placements ),
-            get_docstring("void ::genesis::placement::Sample::clear_placements ()")
+            "clear_pqueries",
+            ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::clear_pqueries ),
+            get_docstring("void ::genesis::placement::Sample::clear_pqueries ()")
         )
         // .def(
         //     "closest_leaf_depth_histogram",

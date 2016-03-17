@@ -229,7 +229,7 @@ bool Sample::merge(const Sample& other)
 /**
  * @brief Clears all data of this object.
  *
- * The pqueries, the tree and the metadata are deleted.
+ * The @link Pquery Pqueries @endlink, the PlacementTree and the #metadata are deleted.
  */
 void Sample::clear()
 {
@@ -239,13 +239,13 @@ void Sample::clear()
 }
 
 /**
- * @brief Clears all placements of this Sample.
+ * @brief Clears all @link Pquery Pqueries @endlink of this Sample.
  *
- * All pqueries are deleted. However, the Tree and metadata are left as they are, thus this is a
- * useful method for simulating placements: Take a copy of a given sample, clear its placements,
- * then generate new ones using Simulator.
+ * All Pqueries are deleted. However, the PlacementTree and the #metadata are left as they are.
+ * Thus this is a useful method for e.g., simulating placements: Take a copy of a given sample,
+ * clear its Pqueries, then generate new ones using the Simulator.
  */
-void Sample::clear_placements()
+void Sample::clear_pqueries()
 {
     pqueries_.clear();
 }

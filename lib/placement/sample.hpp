@@ -79,7 +79,7 @@ public:
     bool merge(const Sample& other);
 
     void clear();
-    void clear_placements();
+    void clear_pqueries();
 
     // -------------------------------------------------------------------------
     //     Accessors
