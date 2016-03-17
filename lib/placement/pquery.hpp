@@ -53,8 +53,8 @@ public:
     //     Placement Iterators
     // -------------------------------------------------------------------
 
-    typedef std::vector<std::unique_ptr<PqueryPlacement>>::iterator       iterator_placements;
-    typedef std::vector<std::unique_ptr<PqueryPlacement>>::const_iterator const_iterator_placements;
+    typedef std::vector<PqueryPlacement>::iterator       iterator_placements;
+    typedef std::vector<PqueryPlacement>::const_iterator const_iterator_placements;
 
     iterator_placements       begin_placements();
     const_iterator_placements begin_placements() const;
@@ -66,11 +66,12 @@ public:
     //     Placement Accessors and Modifiers
     // -------------------------------------------------------------------
 
-    PqueryPlacement& add_placement( PlacementTreeEdge* edge );
+    PqueryPlacement& add_placement( PlacementTreeEdge& edge );
+    PqueryPlacement& add_placement( PqueryPlacement const& val );
 
     PqueryPlacement& add_placement(
-        PqueryPlacement const& val,
-        PlacementTreeEdge* edge = nullptr
+        PlacementTreeEdge    & edge,
+        PqueryPlacement const& val
     );
 
     size_t placement_size() const;
@@ -107,11 +108,11 @@ public:
     //     Data Members
     // -------------------------------------------------------------------
 
-    std::vector<std::unique_ptr<PqueryPlacement>> placements;
-
 private:
 
+    std::vector<PqueryPlacement> placements_;
     std::vector<PqueryName>      names_;
+
 };
 
 } // namespace placement

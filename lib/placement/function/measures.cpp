@@ -844,38 +844,39 @@ double center_of_gravity_variance (
     auto   node_dist_dist  = node_distance_vector(map.tree(), central_edge->secondary_node());
 
     for (const auto& pqry : map.pqueries()) {
-        for (const auto& place : pqry->placements) {
+        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+            auto const& place = *pit;
             double distance;
 
-            if (place->edge().index() == central_edge->index()) {
-                distance = std::abs(place->proximal_length - proximal_length);
+            if (place.edge().index() == central_edge->index()) {
+                distance = std::abs(place.proximal_length - proximal_length);
             } else{
                 double pp, pd, dp;
 
                 // proximal-proximal case
                 pp = proximal_length
-                   + node_dist_prox[place->edge().primary_node()->index()]
-                   + place->proximal_length;
+                   + node_dist_prox[place.edge().primary_node()->index()]
+                   + place.proximal_length;
 
                 // proximal-distal case
                 pd = proximal_length
-                   + node_dist_prox[place->edge().secondary_node()->index()]
-                   + place->edge().data.branch_length - place->proximal_length;
+                   + node_dist_prox[place.edge().secondary_node()->index()]
+                   + place.edge().data.branch_length - place.proximal_length;
 
                 // distal-proximal case
                 dp = central_edge->data.branch_length - proximal_length
-                   + node_dist_dist[place->edge().primary_node()->index()]
-                   + place->proximal_length;
+                   + node_dist_dist[place.edge().primary_node()->index()]
+                   + place.proximal_length;
 
                 // find min of the three cases
                 distance = std::min(pp, std::min(pd, dp));
             }
 
             if (with_pendant_length) {
-                distance += place->pendant_length;
+                distance += place.pendant_length;
             }
-            variance += distance * distance * place->like_weight_ratio;
-            mass     += place->like_weight_ratio;
+            variance += distance * distance * place.like_weight_ratio;
+            mass     += place.like_weight_ratio;
         }
     }
 

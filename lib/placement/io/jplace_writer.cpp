@@ -90,17 +90,19 @@ void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc)
 
         // set placements
         JsonValueArray* pqry_p_arr  = new JsonValueArray();
-        for (auto& pqry_place : pqry->placements) {
+        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+            auto const& pqry_place = *pit;
+
             JsonValueArray* pqry_fields = new JsonValueArray();
-            pqry_fields->push_back(new JsonValueNumber(pqry_place->edge_num()));
-            pqry_fields->push_back(new JsonValueNumber(pqry_place->likelihood));
-            pqry_fields->push_back(new JsonValueNumber(pqry_place->like_weight_ratio));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place.edge_num()));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place.likelihood));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place.like_weight_ratio));
 
             // convert from proximal to distal length.
             pqry_fields->push_back(new JsonValueNumber(
-                pqry_place->edge().data.branch_length - pqry_place->proximal_length
+                pqry_place.edge().data.branch_length - pqry_place.proximal_length
             ));
-            pqry_fields->push_back(new JsonValueNumber(pqry_place->pendant_length));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place.pendant_length));
             pqry_p_arr->push_back(pqry_fields);
         }
         jpqry->set("p", pqry_p_arr);

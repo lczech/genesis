@@ -53,7 +53,7 @@ public:
     // Sample& operator= (Sample const&) = default;
     // Sample& operator= (Sample&&) = default;
 
-    ~Sample();
+    ~Sample() = default;
 
     void swap (Sample& other) noexcept;
 

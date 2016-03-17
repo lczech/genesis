@@ -48,19 +48,32 @@ class PqueryPlacement
 {
 public:
 
-    friend class Pquery;
-
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
-    PqueryPlacement () = default;
+    /**
+     * @brief Default constructor. Sets all values to 0.
+     */
+    PqueryPlacement ()
+        : likelihood(0.0)
+        , like_weight_ratio(0.0)
+        , proximal_length(0.0)
+        , pendant_length(0.0)
+        , parsimony(0)
+        , edge_(nullptr)
+    {}
 
     /**
      * @brief Constructor that takes the edge where this placement is being placed at.
      */
-    PqueryPlacement( PlacementTreeEdge* edge )
-        : edge_(edge)
+    PqueryPlacement( PlacementTreeEdge& edge )
+        : likelihood(0.0)
+        , like_weight_ratio(0.0)
+        , proximal_length(0.0)
+        , pendant_length(0.0)
+        , parsimony(0)
+        , edge_(&edge)
     {}
 
     ~PqueryPlacement() = default;
@@ -141,7 +154,7 @@ public:
     const PlacementTreeEdge& edge() const;
           PlacementTreeEdge& edge();
 
-    void reset_edge( PlacementTreeEdge* edge );
+    void reset_edge( PlacementTreeEdge& edge );
 
     // -------------------------------------------------------------------
     //     Data Members

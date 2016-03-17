@@ -61,17 +61,19 @@ void SampleSerializer::save (const Sample& map, const std::string& file_name)
     for (auto& pqry : map.pqueries()) {
 
         // Write placements.
-        ser.put_int(pqry->placements.size());
-        for (auto& place : pqry->placements) {
+        ser.put_int(pqry->placement_size());
+        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+            auto const& place = *pit;
+
             // We set the edge index instead of edge num. This is faster, simpler to resorte, and
             // consinstend with Pquery.add_placement() parameters.
-            ser.put_int   (place->edge().index());
+            ser.put_int   (place.edge().index());
 
-            ser.put_float (place->likelihood);
-            ser.put_float (place->like_weight_ratio);
-            ser.put_float (place->proximal_length);
-            ser.put_float (place->pendant_length);
-            ser.put_int   (place->parsimony);
+            ser.put_float (place.likelihood);
+            ser.put_float (place.like_weight_ratio);
+            ser.put_float (place.proximal_length);
+            ser.put_float (place.pendant_length);
+            ser.put_int   (place.parsimony);
         }
 
         // Write names.
@@ -128,7 +130,7 @@ void SampleSerializer::load (const std::string& file_name, Sample& map)
             // Get edge index, add the placement there.
             size_t edge_idx = des.get_int<size_t>();
             auto   edge     = map.tree().edge_at(edge_idx);
-            auto&  place    = pqry->add_placement(edge);
+            auto&  place    = pqry->add_placement(*edge);
 
             place.likelihood        = des.get_float<double>();
             place.like_weight_ratio = des.get_float<double>();

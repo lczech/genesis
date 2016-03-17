@@ -69,11 +69,9 @@ Sample::Sample( Sample const& other )
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
 
-        for (const auto& op : opqry->placements) {
-            auto np = make_unique<PqueryPlacement>(*op);
-
-            np->reset_edge( en_map[ np->edge_num() ]);
-            npqry->placements.push_back(std::move(np));
+        for( auto opit = opqry->begin_placements(); opit != opqry->end_placements(); ++opit ) {
+            auto const& op = *opit;
+            npqry->add_placement( *en_map[ op.edge_num() ], op );
         }
         for( auto name_it = opqry->begin_names(); name_it != opqry->end_names(); ++name_it ) {
             npqry->add_name( *name_it );
@@ -127,24 +125,6 @@ Sample& Sample::operator= (Sample&& other) noexcept
 {
     swap(other);
     return *this;
-}
-
-Sample::~Sample()
-{
-    // We are going to destroy the Sample. Let's speed it up!
-    // TODO make swapping work propery. then, this should work, too
-    // (currently, it gives a segfault if a moved-from Sample is destroyed).
-    // if( tree_ ) {
-    //     detach_pqueries_from_tree();
-    // }
-
-    // Instead, use a weird half-copied solution for now:
-
-    for (auto const& pqry : pqueries_) {
-        for( auto const& place : pqry->placements ) {
-            place->reset_edge( nullptr );
-        }
-    }
 }
 
 void Sample::swap (Sample& other) noexcept
@@ -229,15 +209,13 @@ bool Sample::merge(const Sample& other)
     // Copy all (o)ther pqueries to (n)ew pqueries.
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
-        for (const auto& op : opqry->placements) {
-            auto np = make_unique<PqueryPlacement>(*op);
-
+        for( auto opit = opqry->begin_placements(); opit != opqry->end_placements(); ++opit ) {
             // Assuming that the trees have identical topology (checked at the beginning of this
             // function), there will be an edge for every placement. if this assertion fails,
             // something broke the integrity of our in memory representation of the data.
-            assert( en_map.count( np->edge_num() ) > 0 );
-            np->reset_edge( en_map[ np->edge_num() ]);
-            npqry->placements.push_back(std::move(np));
+            assert( en_map.count( opit->edge_num() ) > 0 );
+
+            npqry->add_placement( *en_map[ opit->edge_num() ], *opit );
         }
         for( auto name_it = opqry->begin_names(); name_it != opqry->end_names(); ++name_it ) {
             npqry->add_name( *name_it );
@@ -283,7 +261,7 @@ size_t Sample::placement_count() const
 {
     size_t count = 0;
     for (const auto& pqry : pqueries_) {
-        count += pqry->placements.size();
+        count += pqry->placement_size();
     }
     return count;
 }
@@ -295,7 +273,7 @@ double Sample::placement_mass() const
 {
     double sum = 0.0;
     for (const auto& pqry : pqueries_) {
-        for (const auto& place : pqry->placements) {
+        for( auto place = pqry->begin_placements(); place != pqry->end_placements(); ++place ) {
             sum += place->like_weight_ratio;
         }
     }

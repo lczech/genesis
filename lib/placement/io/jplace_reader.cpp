@@ -360,7 +360,7 @@ void JplaceReader::process_json_placements(
             }
 
             // Process all fields of the placement.
-            auto pqry_place = make_unique<PqueryPlacement>();
+            auto pqry_place = PqueryPlacement();
             double distal_length = -1.0;
             for (size_t i = 0; i < pqry_fields->size(); ++i) {
                 // Up to version 3 of the jplace specification, the p-fields in a jplace document
@@ -387,25 +387,25 @@ void JplaceReader::process_json_placements(
                             + "given tree as an edge_num."
                         );
                     }
-                    pqry_place->reset_edge( edge_num_map.at( val_int ) );
+                    pqry_place.reset_edge( *edge_num_map.at( val_int ) );
 
                 } else if (fields[i] == "likelihood") {
-                    pqry_place->likelihood = pqry_place_val;
+                    pqry_place.likelihood = pqry_place_val;
 
                 } else if (fields[i] == "like_weight_ratio") {
-                    pqry_place->like_weight_ratio = pqry_place_val;
+                    pqry_place.like_weight_ratio = pqry_place_val;
 
                 } else if (fields[i] == "distal_length") {
                     distal_length = pqry_place_val;
 
                 } else if (fields[i] == "proximal_length") {
-                    pqry_place->proximal_length = pqry_place_val;
+                    pqry_place.proximal_length = pqry_place_val;
 
                 } else if (fields[i] == "pendant_length") {
-                    pqry_place->pendant_length = pqry_place_val;
+                    pqry_place.pendant_length = pqry_place_val;
 
                 } else if (fields[i] == "parsimony") {
-                    pqry_place->parsimony = pqry_place_val;
+                    pqry_place.parsimony = pqry_place_val;
                 }
             }
 
@@ -414,8 +414,8 @@ void JplaceReader::process_json_placements(
             // above), because it may happen that the edge_num field was not yet set while
             // processing. Also, we only set it if it was actually available in the fields and not
             // overwritten by the (more appropriate) field for the proximal length.
-            if (distal_length >= 0.0 && pqry_place->proximal_length == 0.0) {
-                pqry_place->proximal_length = pqry_place->edge().data.branch_length - distal_length;
+            if (distal_length >= 0.0 && pqry_place.proximal_length == 0.0) {
+                pqry_place.proximal_length = pqry_place.edge().data.branch_length - distal_length;
             }
 
             auto invalid_number_checker = [this] (
@@ -450,38 +450,38 @@ void JplaceReader::process_json_placements(
 
             // Check validity of placement values.
             invalid_number_checker(
-                pqry_place->like_weight_ratio,
+                pqry_place.like_weight_ratio,
                 std::less<double>(),
                 0.0,
                 "Invalid placement with like_weight_ratio < 0.0."
             );
             invalid_number_checker(
-                pqry_place->like_weight_ratio,
+                pqry_place.like_weight_ratio,
                 std::greater<double>(),
                 1.0,
                 "Invalid placement with like_weight_ratio > 1.0."
             );
             invalid_number_checker(
-                pqry_place->pendant_length,
+                pqry_place.pendant_length,
                 std::less<double>(),
                 0.0,
                 "Invalid placement with pendant_length < 0.0."
             );
             invalid_number_checker(
-                pqry_place->proximal_length,
+                pqry_place.proximal_length,
                 std::less<double>(),
                 0.0,
                 "Invalid placement with proximal_length < 0.0."
             );
             invalid_number_checker(
-                pqry_place->proximal_length,
+                pqry_place.proximal_length,
                 std::greater<double>(),
-                pqry_place->edge().data.branch_length,
+                pqry_place.edge().data.branch_length,
                 "Invalid placement with proximal_length > branch_length."
             );
 
             // Add the placement to the query and vice versa.
-            pqry->placements.push_back(std::move(pqry_place));
+            pqry->add_placement( pqry_place );
         }
 
         // Check name/named multiplicity validity.

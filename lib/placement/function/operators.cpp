@@ -75,14 +75,16 @@ std::ostream& operator << (std::ostream& out, Sample const& smp)
             name += " (+" + std::to_string( pqry->name_size() - 1 ) + ")";
         }
 
-        for( auto const& p : pqry->placements ) {
+        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+            auto const& p = *pit;
+
             table << std::to_string(i);
             table << name;
-            table << std::to_string( p->edge_num() );
-            table << std::to_string( p->likelihood );
-            table << std::to_string( p->like_weight_ratio );
-            table << std::to_string( p->proximal_length );
-            table << std::to_string( p->pendant_length );
+            table << std::to_string( p.edge_num() );
+            table << std::to_string( p.likelihood );
+            table << std::to_string( p.like_weight_ratio );
+            table << std::to_string( p.proximal_length );
+            table << std::to_string( p.pendant_length );
         }
 
         ++i;

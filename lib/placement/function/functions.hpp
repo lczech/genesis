@@ -33,6 +33,7 @@ Pquery const* find_pquery( Sample const& smp, std::string const& name );
 
 void normalize_weight_ratios( Sample& smp );
 
+void restrain_to_max_weight_placements( Pquery& pquery );
 void restrain_to_max_weight_placements( Sample& smp );
 
 void sort_placements_by_proximal_length( PlacementTreeEdge& edge );

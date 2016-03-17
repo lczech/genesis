@@ -53,9 +53,9 @@ PlacementTreeEdge& PqueryPlacement::edge()
  * a PlacementTreeEdge of the PlacementTree that belongs to the Sample where the Pquery of this
  * PqueryPlacement is stored.
  */
-void PqueryPlacement::reset_edge( PlacementTreeEdge* edge )
+void PqueryPlacement::reset_edge( PlacementTreeEdge& edge )
 {
-    edge_ = edge;
+    edge_ = &edge;
 }
 
 } // namespace placement
