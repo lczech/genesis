@@ -102,7 +102,18 @@ public:
     Pquery      & pquery_at( const size_t index );
     Pquery const& pquery_at( const size_t index ) const;
 
-    // TODO add pquery iterator.
+    // -------------------------------------------------------------------------
+    //     Pquery Iterator
+    // -------------------------------------------------------------------------
+
+    typedef std::vector<std::unique_ptr<Pquery>>::iterator       iterator_pqueries;
+    typedef std::vector<std::unique_ptr<Pquery>>::const_iterator const_iterator_pqueries;
+
+    iterator_pqueries       begin();
+    const_iterator_pqueries begin() const;
+
+    iterator_pqueries       end();
+    const_iterator_pqueries end() const;
 
     // -------------------------------------------------------------------------
     //     Members
@@ -114,8 +125,10 @@ protected:
     std::shared_ptr<PlacementTree>               tree_;
 
 public:
+
     // There is not much to mess up here for a user, so we can simply make this public.
     std::unordered_map<std::string, std::string> metadata;
+
 };
 
 } // namespace placement

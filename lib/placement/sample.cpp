@@ -250,5 +250,29 @@ void Sample::clear_placements()
     pqueries_.clear();
 }
 
+// =================================================================================================
+//     Pquery Iterator
+// =================================================================================================
+
+Sample::iterator_pqueries Sample::begin()
+{
+    return pqueries_.begin();
+}
+
+Sample::const_iterator_pqueries Sample::begin() const
+{
+    return pqueries_.begin();
+}
+
+Sample::iterator_pqueries Sample::end()
+{
+    return pqueries_.end();
+}
+
+Sample::const_iterator_pqueries Sample::end() const
+{
+    return pqueries_.end();
+}
+
 } // namespace placement
 } // namespace genesis
