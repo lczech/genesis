@@ -39,12 +39,38 @@ namespace placement {
 
 namespace placement {
 
+/**
+ * @brief A pquery holds a set of PqueryPlacement%s and a set of PqueryName%s.
+ *
+ * According to the `jplace` standard, a pquery is a container object that represents the possible
+ * phylogenetic placement positions of a sequence (or set of sequences). Each such position is
+ * stored as a PqueryPlacement and can be accessed via the functions of this class.
+ *
+ * Furthermore, it might be useful to combine the placement positions of several sequences into
+ * one object. This is for example the case if there are replicate sequences. Thus, a Pquery
+ * supports to store multiple PquereName%s, each of them containing an identifying name string and
+ * a so called `multiplicity`, which can be used as e.g., an abundance count for the associated
+ * name.
+ */
 class Pquery
 {
 public:
 
     // -------------------------------------------------------------------
-    //     Modifiers
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
+    Pquery () = default;
+    ~Pquery() = default;
+
+    Pquery( Pquery const& ) = default;
+    Pquery( Pquery&& )      = default;
+
+    Pquery& operator= ( Pquery const& ) = default;
+    Pquery& operator= ( Pquery&& )      = default;
+
+    // -------------------------------------------------------------------
+    //     General Modifiers
     // -------------------------------------------------------------------
 
     void clear();
