@@ -249,7 +249,7 @@ std::vector<Pquery> const& Sample::pqueries() const
 }
 
 /**
- * @brief Return the number of @link Pquery Pqueries @endling that are stored in this Sample.
+ * @brief Return the number of @link Pquery Pqueries @endlink that are stored in this Sample.
  */
 size_t Sample::pquery_size() const
 {
