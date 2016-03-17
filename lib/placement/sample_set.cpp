@@ -7,6 +7,7 @@
 
 #include "placement/sample_set.hpp"
 
+#include "placement/function/functions.hpp"
 #include "placement/function/operators.hpp"
 #include "utils/core/logging.hpp"
 
@@ -75,10 +76,7 @@ Sample SampleSet::merge_all()
     // In the merge method, we also check for identical topology (again), but mainly for identical
     // taxa names and edge_nums, which is important for correct merging.
     for (auto& map : maps_) {
-        if (!res.merge(map.map)) {
-            LOG_WARN << "Cannot merge Samples with different reference trees.";
-            return Sample();
-        }
+        copy_pqueries( map.map, res );
     }
 
     return res;

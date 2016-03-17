@@ -65,12 +65,12 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
         //     ( EdgeNumMapType * ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::edge_num_map ),
         //     get_docstring("EdgeNumMapType * ::genesis::placement::Sample::edge_num_map () const")
         // )
-        .def(
-            "merge",
-            ( bool ( ::genesis::placement::Sample::* )( const Sample & ))( &::genesis::placement::Sample::merge ),
-            ( boost::python::arg("other") ),
-            get_docstring("bool ::genesis::placement::Sample::merge (const Sample & other)")
-        )
+        // .def(
+        //     "merge",
+        //     ( bool ( ::genesis::placement::Sample::* )( const Sample & ))( &::genesis::placement::Sample::merge ),
+        //     ( boost::python::arg("other") ),
+        //     get_docstring("bool ::genesis::placement::Sample::merge (const Sample & other)")
+        // )
         // .def(
         //     "normalize_weight_ratios",
         //     ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::normalize_weight_ratios ),

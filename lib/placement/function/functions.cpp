@@ -10,6 +10,8 @@
 #include "placement/function/helper.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
+#include "tree/functions.hpp"
+#include "tree/operators.hpp"
 #include "utils/core/std.hpp"
 
 #include <algorithm>
@@ -174,8 +176,65 @@ void sort_placements_by_like_weight_ratio( Sample& smp )
 }
 
 // =================================================================================================
-//     Merging Duplicates
+//     Joining and Merging
 // =================================================================================================
+
+/**
+ * @brief Copy all @link Pquery Pqueries @endlink from the source Sample (left parameter) to the
+ * target Sample (right parameter).
+ *
+ * For this method to succeed, the PlacementTree%s of the Sample%s need to have the same topology,
+ * including identical edge_nums and node names.
+ * Otherwise, this function throws an `std::runtime_error`.
+ *
+ * The PlacementTree of the target Sample is not modified. If the average branch length tree is
+ * needed instead, see SampleSet::merge_all().
+ */
+void copy_pqueries( Sample const& source, Sample& target )
+{
+    // Check for identical topology, taxa names and edge_nums.
+    // We do not check here for branch_length, because usually those differ slightly.
+    auto node_comparator = [] (
+        const PlacementTree::NodeType& node_l,
+        const PlacementTree::NodeType& node_r
+    ) {
+        return node_l.data.name == node_r.data.name;
+    };
+
+    auto edge_comparator = [] (
+        const PlacementTree::EdgeType& edge_l,
+        const PlacementTree::EdgeType& edge_r
+    ) {
+        return edge_l.data.edge_num() == edge_r.data.edge_num();
+    };
+
+    if( ! tree::equal<PlacementTree, PlacementTree >(
+        source.tree(), target.tree(), node_comparator, edge_comparator
+    )) {
+        throw std::runtime_error("Cannot join Samples, because their PlacementTrees differ.");
+    }
+
+    // We need to assign edge pointers to the correct edge objects, so we need a mapping.
+    auto en_map = edge_num_to_edge_map( target.tree() );
+
+    // Copy all (o)ther pqueries to (n)ew pqueries.
+    for( const auto& opqry : source.pqueries() ) {
+        auto npqry = Pquery();
+        for( auto opit = opqry.begin_placements(); opit != opqry.end_placements(); ++opit ) {
+
+            // Assuming that the trees have identical topology (checked at the beginning of this
+            // function), there will be an edge for every placement. if this assertion fails,
+            // something broke the integrity of our in memory representation of the data.
+            assert( en_map.count( opit->edge_num() ) > 0 );
+
+            npqry.add_placement( *en_map[ opit->edge_num() ], *opit );
+        }
+        for( auto name_it = opqry.begin_names(); name_it != opqry.end_names(); ++name_it ) {
+            npqry.add_name( *name_it );
+        }
+        target.add_pquery( npqry );
+    }
+}
 
 /**
  * @brief Look for @link Pquery Pqueries @endlink with the same name and merge them.

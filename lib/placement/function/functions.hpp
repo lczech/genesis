@@ -43,8 +43,10 @@ void sort_placements_by_like_weight_ratio( Pquery& pquery );
 void sort_placements_by_like_weight_ratio( Sample& smp );
 
 // =================================================================================================
-//     Merging Duplicates
+//     Joining and Merging
 // =================================================================================================
+
+void copy_pqueries( Sample const& source, Sample& target );
 
 void merge_duplicates( Sample& smp );
 
