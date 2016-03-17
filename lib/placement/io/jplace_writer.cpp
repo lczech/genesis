@@ -92,13 +92,13 @@ void JplaceWriter::to_document (const Sample& placements, utils::JsonDocument& d
         JsonValueArray* pqry_p_arr  = new JsonValueArray();
         for (auto& pqry_place : pqry->placements) {
             JsonValueArray* pqry_fields = new JsonValueArray();
-            pqry_fields->push_back(new JsonValueNumber(pqry_place->edge_num));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place->edge_num()));
             pqry_fields->push_back(new JsonValueNumber(pqry_place->likelihood));
             pqry_fields->push_back(new JsonValueNumber(pqry_place->like_weight_ratio));
 
             // convert from proximal to distal length.
             pqry_fields->push_back(new JsonValueNumber(
-                pqry_place->edge->data.branch_length - pqry_place->proximal_length
+                pqry_place->edge().data.branch_length - pqry_place->proximal_length
             ));
             pqry_fields->push_back(new JsonValueNumber(pqry_place->pendant_length));
             pqry_p_arr->push_back(pqry_fields);

@@ -50,11 +50,11 @@ public:
     // TODO make construction private and Pquery a friend who is the only one to construct a Placement.
 
     PqueryPlacement () :
-        likelihood_(0.0),
-        like_weight_ratio_(0.0),
-        proximal_length_(0.0),
-        pendant_length_(0.0),
-        parsimony_(0),
+        likelihood(0.0),
+        like_weight_ratio(0.0),
+        proximal_length(0.0),
+        pendant_length(0.0),
+        parsimony(0),
         edge_num_(0),
         edge_(nullptr)
     {}
@@ -66,35 +66,16 @@ public:
     PqueryPlacement (
         const PqueryPlacement& other
     ) :
-        likelihood_(other.likelihood_),
-        like_weight_ratio_(other.like_weight_ratio_),
-        proximal_length_(other.proximal_length_),
-        pendant_length_(other.pendant_length_),
-        parsimony_(other.parsimony_),
+        likelihood(other.likelihood),
+        like_weight_ratio(other.like_weight_ratio),
+        proximal_length(other.proximal_length),
+        pendant_length(other.pendant_length),
+        parsimony(other.parsimony),
         edge_num_(other.edge_num_),
         edge_(nullptr)
     {}
 
     ~PqueryPlacement() = default;
-
-    // -------------------------------------------------------------------
-    //     Properties
-    // -------------------------------------------------------------------
-
-    double likelihood() const;
-    PqueryPlacement& likelihood( double val );
-
-    double like_weight_ratio() const;
-    PqueryPlacement& like_weight_ratio( double val );
-
-    double proximal_length() const;
-    PqueryPlacement& proximal_length( double val );
-
-    double pendant_length() const;
-    PqueryPlacement& pendant_length( double val );
-
-    int parsimony() const;
-    PqueryPlacement& parsimony( int val );
 
     // -------------------------------------------------------------------
     //     Accessors
@@ -109,16 +90,20 @@ public:
     void reset_edge( PlacementTreeEdge* edge );
 
     // -------------------------------------------------------------------
+    //     Public Properties
+    // -------------------------------------------------------------------
+
+    double    likelihood;
+    double    like_weight_ratio;
+    double    proximal_length;
+    double    pendant_length;
+    int       parsimony;
+
+    // -------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------
 
 private:
-
-    double    likelihood_;
-    double    like_weight_ratio_;
-    double    proximal_length_;
-    double    pendant_length_;
-    int       parsimony_;
 
     int       edge_num_;
     PlacementTreeEdge* edge_;

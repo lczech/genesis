@@ -72,7 +72,7 @@ Sample::Sample( Sample const& other )
         for (const auto& op : opqry->placements) {
             auto np = make_unique<PqueryPlacement>(*op);
 
-            np->edge   = en_map[np->edge_num];
+            np->reset_edge( en_map[ np->edge_num() ]);
             npqry->placements.push_back(std::move(np));
         }
         for (const auto& on : opqry->names) {
@@ -145,7 +145,7 @@ Sample::~Sample()
 
     for (auto const& pqry : pqueries_) {
         for( auto const& place : pqry->placements ) {
-            place->edge = nullptr;
+            place->reset_edge( nullptr );
         }
     }
 }
@@ -238,8 +238,8 @@ bool Sample::merge(const Sample& other)
             // Assuming that the trees have identical topology (checked at the beginning of this
             // function), there will be an edge for every placement. if this assertion fails,
             // something broke the integrity of our in memory representation of the data.
-            assert(en_map.count(np->edge_num) > 0);
-            np->edge = en_map[np->edge_num];
+            assert( en_map.count( np->edge_num() ) > 0 );
+            np->reset_edge( en_map[ np->edge_num() ]);
             npqry->placements.push_back(std::move(np));
         }
         for (const auto& on : opqry->names) {

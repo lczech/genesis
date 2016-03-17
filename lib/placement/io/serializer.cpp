@@ -65,7 +65,7 @@ void SampleSerializer::save (const Sample& map, const std::string& file_name)
         for (auto& place : pqry->placements) {
             // We set the edge index instead of edge num. This is faster, simpler to resorte, and
             // consinstend with Pquery.add_placement() parameters.
-            ser.put_int   (place->edge->index());
+            ser.put_int   (place->edge().index());
 
             ser.put_float (place->likelihood);
             ser.put_float (place->like_weight_ratio);

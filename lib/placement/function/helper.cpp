@@ -113,9 +113,9 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
             place.secondary_node_index = oplace->edge().secondary_node()->index();
 
             place.branch_length        = oplace->edge().data.branch_length;
-            place.pendant_length       = oplace->pendant_length();
-            place.proximal_length      = oplace->proximal_length();
-            place.like_weight_ratio    = oplace->like_weight_ratio();
+            place.pendant_length       = oplace->pendant_length;
+            place.proximal_length      = oplace->proximal_length;
+            place.like_weight_ratio    = oplace->like_weight_ratio;
         }
     }
     return pqueries;

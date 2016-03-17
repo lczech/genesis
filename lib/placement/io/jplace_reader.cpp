@@ -391,22 +391,22 @@ void JplaceReader::process_json_placements(
                     pqry_place->reset_edge( edge_num_map.at( val_int ) );
 
                 } else if (fields[i] == "likelihood") {
-                    pqry_place->likelihood( pqry_place_val );
+                    pqry_place->likelihood = pqry_place_val;
 
                 } else if (fields[i] == "like_weight_ratio") {
-                    pqry_place->like_weight_ratio( pqry_place_val );
+                    pqry_place->like_weight_ratio = pqry_place_val;
 
                 } else if (fields[i] == "distal_length") {
                     distal_length = pqry_place_val;
 
                 } else if (fields[i] == "proximal_length") {
-                    pqry_place->proximal_length( pqry_place_val );
+                    pqry_place->proximal_length = pqry_place_val;
 
                 } else if (fields[i] == "pendant_length") {
-                    pqry_place->pendant_length( pqry_place_val );
+                    pqry_place->pendant_length = pqry_place_val;
 
                 } else if (fields[i] == "parsimony") {
-                    pqry_place->parsimony( pqry_place_val );
+                    pqry_place->parsimony = pqry_place_val;
                 }
             }
 
@@ -415,7 +415,7 @@ void JplaceReader::process_json_placements(
             // above), because it may happen that the edge_num field was not yet set while
             // processing. Also, we only set it if it was actually available in the fields and not
             // overwritten by the (more appropriate) field for the proximal length.
-            if (distal_length >= 0.0 && pqry_place->proximal_length() == 0.0) {
+            if (distal_length >= 0.0 && pqry_place->proximal_length == 0.0) {
                 pqry_place->proximal_length = pqry_place->edge().data.branch_length - distal_length;
             }
 
@@ -477,7 +477,7 @@ void JplaceReader::process_json_placements(
             invalid_number_checker(
                 pqry_place->proximal_length,
                 std::greater<double>(),
-                pqry_place->edge->data.branch_length,
+                pqry_place->edge().data.branch_length,
                 "Invalid placement with proximal_length > branch_length."
             );
 

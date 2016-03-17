@@ -79,11 +79,11 @@ std::ostream& operator << (std::ostream& out, Sample const& smp)
         for( auto const& p : pqry->placements ) {
             table << std::to_string(i);
             table << name;
-            table << std::to_string(p->edge_num());
-            table << std::to_string(p->likelihood());
-            table << std::to_string(p->like_weight_ratio());
-            table << std::to_string(p->proximal_length());
-            table << std::to_string(p->pendant_length());
+            table << std::to_string( p->edge_num() );
+            table << std::to_string( p->likelihood );
+            table << std::to_string( p->like_weight_ratio );
+            table << std::to_string( p->proximal_length );
+            table << std::to_string( p->pendant_length );
         }
 
         ++i;
@@ -241,30 +241,30 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
             if (!check_values) {
                 continue;
             }
-            if (p->like_weight_ratio() < 0.0 || p->like_weight_ratio() > 1.0) {
-                LOG_INFO << "Invalid placement with like_weight_ratio '" << p->like_weight_ratio()
+            if (p->like_weight_ratio < 0.0 || p->like_weight_ratio > 1.0) {
+                LOG_INFO << "Invalid placement with like_weight_ratio '" << p->like_weight_ratio
                         << "' not in [0.0, 1.0] at " << name << ".";
                 if (break_on_values) {
                     return false;
                 }
             }
-            if (p->pendant_length() < 0.0 || p->proximal_length() < 0.0) {
-                LOG_INFO << "Invalid placement with pendant_length '" << p->pendant_length()
-                         << "' or proximal_length '" << p->proximal_length() << "' < 0.0 at "
+            if (p->pendant_length < 0.0 || p->proximal_length < 0.0) {
+                LOG_INFO << "Invalid placement with pendant_length '" << p->pendant_length
+                         << "' or proximal_length '" << p->proximal_length << "' < 0.0 at "
                          << name << ".";
                 if (break_on_values) {
                     return false;
                 }
             }
-            if (p->proximal_length() > p->edge().data.branch_length) {
-                LOG_INFO << "Invalid placement with proximal_length '" << p->proximal_length()
+            if (p->proximal_length > p->edge().data.branch_length) {
+                LOG_INFO << "Invalid placement with proximal_length '" << p->proximal_length
                          << "' > branch_length '" << p->edge().data.branch_length << "' at "
                          << name << ".";
                 if (break_on_values) {
                     return false;
                 }
             }
-            ratio_sum += p->like_weight_ratio();
+            ratio_sum += p->like_weight_ratio;
         }
         if (check_values && ratio_sum > 1.0) {
             LOG_INFO << "Invalid pquery with sum of like_weight_ratio '" << ratio_sum

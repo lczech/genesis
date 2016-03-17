@@ -82,10 +82,10 @@ void normalize_weight_ratios( Sample& smp )
     for( auto& pqry : smp.pqueries() ) {
         double sum = 0.0;
         for (auto& place : pqry->placements) {
-            sum += place->like_weight_ratio();
+            sum += place->like_weight_ratio;
         }
         for (auto& place : pqry->placements) {
-            place->like_weight_ratio( place->like_weight_ratio() / sum );
+            place->like_weight_ratio /= sum;
         }
     }
 }
@@ -113,8 +113,8 @@ void restrain_to_max_weight_placements( Sample& smp )
 
         for (auto& place : pqry->placements) {
             // Find the maximum of the weight ratios in the placements of this pquery.
-            if (place->like_weight_ratio() > max_w) {
-                max_w = place->like_weight_ratio();
+            if (place->like_weight_ratio > max_w) {
+                max_w = place->like_weight_ratio;
                 max_p = place.get();
                 // max_e = place->edge;
             }
@@ -151,7 +151,7 @@ void restrain_to_max_weight_placements( Sample& smp )
         // max_p->edge->data.placements.push_back(max_p);
 
         // Also, set the like_weight_ratio to 1.0, because we do not have any other placements left.
-        max_p->like_weight_ratio( 1.0 );
+        max_p->like_weight_ratio = 1.0;
     }
 }
 
@@ -171,7 +171,7 @@ void sort_placements_by_like_weight_ratio( Pquery& pquery )
             std::unique_ptr<PqueryPlacement> const& lhs,
             std::unique_ptr<PqueryPlacement> const& rhs
         ) {
-            return lhs->like_weight_ratio() > rhs->like_weight_ratio();
+            return lhs->like_weight_ratio > rhs->like_weight_ratio;
         }
     );
 }
@@ -357,21 +357,11 @@ void merge_duplicate_placements (Pquery& pquery)
         for (size_t i = 1; i < count; ++i) {
             assert( place_vec[0]->edge_num() == place_vec[i]->edge_num() );
 
-            place_vec[0]->likelihood(
-                place_vec[0]->likelihood()        + place_vec[i]->likelihood()
-            );
-            place_vec[0]->like_weight_ratio(
-                place_vec[0]->like_weight_ratio() + place_vec[i]->like_weight_ratio()
-            );
-            place_vec[0]->proximal_length(
-                place_vec[0]->proximal_length()   + place_vec[i]->proximal_length()
-            );
-            place_vec[0]->pendant_length(
-                place_vec[0]->pendant_length()    + place_vec[i]->pendant_length()
-            );
-            place_vec[0]->parsimony(
-                place_vec[0]->parsimony()         + place_vec[i]->parsimony()
-            );
+            place_vec[0]->likelihood        += place_vec[i]->likelihood;
+            place_vec[0]->like_weight_ratio += place_vec[i]->like_weight_ratio;
+            place_vec[0]->proximal_length   += place_vec[i]->proximal_length;
+            place_vec[0]->pendant_length    += place_vec[i]->pendant_length;
+            place_vec[0]->parsimony         += place_vec[i]->parsimony;
 
             del.insert(place_vec[i]);
         }
@@ -380,21 +370,11 @@ void merge_duplicate_placements (Pquery& pquery)
         if (count > 1) {
             double denom = static_cast<double> (count);
 
-            place_vec[0]->likelihood(
-                place_vec[0]->likelihood()        / denom
-            );
-            place_vec[0]->like_weight_ratio(
-                place_vec[0]->like_weight_ratio() / denom
-            );
-            place_vec[0]->proximal_length(
-                place_vec[0]->proximal_length()   / denom
-            );
-            place_vec[0]->pendant_length(
-                place_vec[0]->pendant_length()    / denom
-            );
-            place_vec[0]->parsimony(
-                place_vec[0]->parsimony()         / denom
-            );
+            place_vec[0]->likelihood        /= denom;
+            place_vec[0]->like_weight_ratio /= denom;
+            place_vec[0]->proximal_length   /= denom;
+            place_vec[0]->pendant_length    /= denom;
+            place_vec[0]->parsimony         /= denom;
 
         }
     }
@@ -492,7 +472,7 @@ std::pair<PlacementTreeEdge const*, double> placement_mass_max_edge( Sample cons
     for( auto const& it : place_map ) {
         double sum = 0.0;
         for( auto const& place : it.second ) {
-            sum += place->like_weight_ratio();
+            sum += place->like_weight_ratio;
         }
         if (sum > max) {
             edge = smp.tree().edge_at( it.first );
@@ -597,12 +577,12 @@ std::vector<int> closest_leaf_distance_histogram (
         for (const auto& place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            double dp = place->pendant_length()
-                      + place->proximal_length()
+            double dp = place->pendant_length
+                      + place->proximal_length
                       + dists[place->edge().primary_node()->index()].second;
-            double ds = place->pendant_length()
+            double ds = place->pendant_length
                       + place->edge().data.branch_length
-                      - place->proximal_length()
+                      - place->proximal_length
                       + dists[place->edge().secondary_node()->index()].second;
             double ld = std::min(dp, ds);
 
@@ -670,12 +650,12 @@ std::vector<int> closest_leaf_distance_histogram_auto (
         for (const auto& place : pqry->placements) {
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            double dp = place->pendant_length()
-                      + place->proximal_length()
+            double dp = place->pendant_length
+                      + place->proximal_length
                       + dists[place->edge().primary_node()->index()].second;
-            double ds = place->pendant_length()
+            double ds = place->pendant_length
                       + place->edge().data.branch_length
-                      - place->proximal_length()
+                      - place->proximal_length
                       + dists[place->edge().secondary_node()->index()].second;
             double ld = std::min(dp, ds);
             distrib.push_back(ld);
