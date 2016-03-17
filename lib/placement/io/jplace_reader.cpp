@@ -387,7 +387,6 @@ void JplaceReader::process_json_placements(
                             + "given tree as an edge_num."
                         );
                     }
-                    pqry_place->reset_edge_num( val_int );
                     pqry_place->reset_edge( edge_num_map.at( val_int ) );
 
                 } else if (fields[i] == "likelihood") {

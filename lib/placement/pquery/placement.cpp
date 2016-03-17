@@ -15,7 +15,7 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Accessors
+//     Properties
 // =================================================================================================
 
 /**
@@ -26,19 +26,7 @@ namespace placement {
  */
 int PqueryPlacement::edge_num() const
 {
-    return edge_num_;
-}
-
-/**
- * @brief Reset the edge num.
- *
- * This should be rarely needed. It is mostly intended for the Readers that populate the data.
- * Be aware that changing the value after the PqueryPlacement is in use may result in weird
- * behaviour.
- */
-void PqueryPlacement::reset_edge_num( int val )
-{
-    edge_num_ = val;
+    return edge_->data.edge_num();
 }
 
 /**
@@ -58,11 +46,12 @@ PlacementTreeEdge& PqueryPlacement::edge()
 }
 
 /**
- * @brief Reset the PlacementTreeEdge at which this PqueryPlacement is placed.
+ * @brief Set the PlacementTreeEdge at which this PqueryPlacement is placed.
  *
  * This should be rarely needed. It is mostly intended for the Readers that populate the data.
- * Be aware that changing the value after the PqueryPlacement is in use may result in weird
- * behaviour.
+ * When setting this value, the user is responsible to make sure that the new value is actually
+ * a PlacementTreeEdge of the PlacementTree that belongs to the Sample where the Pquery of this
+ * PqueryPlacement is stored.
  */
 void PqueryPlacement::reset_edge( PlacementTreeEdge* edge )
 {

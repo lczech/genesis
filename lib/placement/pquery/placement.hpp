@@ -63,7 +63,6 @@ public:
         proximal_length(0.0),
         pendant_length(0.0),
         parsimony(0),
-        edge_num_(0),
         edge_(nullptr)
     {}
 
@@ -79,14 +78,13 @@ public:
         proximal_length(other.proximal_length),
         pendant_length(other.pendant_length),
         parsimony(other.parsimony),
-        edge_num_(other.edge_num_),
         edge_(nullptr)
     {}
 
     ~PqueryPlacement() = default;
 
     // -------------------------------------------------------------------
-    //     Public Properties
+    //     Public Property Data Members
     // -------------------------------------------------------------------
 
     // Yes, the following members are public data members. It's neither nice nor consistent,
@@ -142,11 +140,10 @@ public:
     int       parsimony;
 
     // -------------------------------------------------------------------
-    //     Accessors
+    //     Properties
     // -------------------------------------------------------------------
 
     int edge_num() const;
-    void reset_edge_num( int val );
 
     const PlacementTreeEdge& edge() const;
           PlacementTreeEdge& edge();
@@ -159,7 +156,6 @@ public:
 
 private:
 
-    int                edge_num_;
     PlacementTreeEdge* edge_;
 };
 
