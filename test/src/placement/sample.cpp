@@ -27,7 +27,7 @@ TEST(Sample, WithTree)
     *tree));
 
     Sample smp(tree);
-    EXPECT_EQ   (0, smp.placement_count());
+    EXPECT_EQ   (0, total_placement_count(smp));
     EXPECT_TRUE (validate(smp, true, false));
 }
 
@@ -44,7 +44,7 @@ void test_sample_stats (
     EXPECT_TRUE (validate(smp, true, false));
 
     EXPECT_EQ (expected_pquery_size,    smp.pquery_size());
-    EXPECT_EQ (expected_placement_size, smp.placement_count());
+    EXPECT_EQ (expected_placement_size, total_placement_count(smp));
 
     size_t name_count = 0;
     for (auto& pqry : smp.pqueries()) {

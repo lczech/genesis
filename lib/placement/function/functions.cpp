@@ -415,6 +415,34 @@ void merge_duplicate_names (Sample& smp)
 // =================================================================================================
 
 /**
+ * @brief Get the total number of PqueryPlacement%s in all @link Pquery Pqueries @endlink of the
+ * given Sample.
+ */
+size_t total_placement_count( Sample const& smp )
+{
+    size_t count = 0;
+    for( auto const& pqry : smp.pqueries() ) {
+        count += pqry->placement_size();
+    }
+    return count;
+}
+
+/**
+ * @brief Get the summed mass of all PqueryPlacement%s in all @link Pquery Pqueries @endlink of the
+ * given Sample, where mass is measured by `like_weight_ratio`.
+ */
+double total_placement_mass(  Sample const& smp )
+{
+    double sum = 0.0;
+    for( const auto& pqry : smp.pqueries() ) {
+        for( auto place = pqry->begin_placements(); place != pqry->end_placements(); ++place ) {
+            sum += place->like_weight_ratio;
+        }
+    }
+    return sum;
+}
+
+/**
  * @brief Get the number of placements on the edge with the most placements, and a pointer to this
  * edge.
  */

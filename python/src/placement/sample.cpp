@@ -76,16 +76,16 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
         //     ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::normalize_weight_ratios ),
         //     get_docstring("void ::genesis::placement::Sample::normalize_weight_ratios ()")
         // )
-        .def(
-            "placement_count",
-            ( size_t ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::placement_count ),
-            get_docstring("size_t ::genesis::placement::Sample::placement_count () const")
-        )
-        .def(
-            "placement_mass",
-            ( double ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::placement_mass ),
-            get_docstring("double ::genesis::placement::Sample::placement_mass () const")
-        )
+        // .def(
+        //     "placement_count",
+        //     ( size_t ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::placement_count ),
+        //     get_docstring("size_t ::genesis::placement::Sample::placement_count () const")
+        // )
+        // .def(
+        //     "placement_mass",
+        //     ( double ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::placement_mass ),
+        //     get_docstring("double ::genesis::placement::Sample::placement_mass () const")
+        // )
         // .def(
         //     "pquery_at",
         //     ( Pquery const & ( ::genesis::placement::Sample::* )( const size_t ))( &::genesis::placement::Sample::pquery_at ),

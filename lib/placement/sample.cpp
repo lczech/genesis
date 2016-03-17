@@ -250,35 +250,5 @@ void Sample::clear_placements()
     pqueries_.clear();
 }
 
-// =================================================================================================
-//     Placement Mass
-// =================================================================================================
-
-/**
- * @brief Get the total number of placements in all pqueries.
- */
-size_t Sample::placement_count() const
-{
-    size_t count = 0;
-    for (const auto& pqry : pqueries_) {
-        count += pqry->placement_size();
-    }
-    return count;
-}
-
-/**
- * @brief Get the summed mass of all placements on the tree, given by their `like_weight_ratio`.
- */
-double Sample::placement_mass() const
-{
-    double sum = 0.0;
-    for (const auto& pqry : pqueries_) {
-        for( auto place = pqry->begin_placements(); place != pqry->end_placements(); ++place ) {
-            sum += place->like_weight_ratio;
-        }
-    }
-    return sum;
-}
-
 } // namespace placement
 } // namespace genesis

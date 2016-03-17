@@ -155,8 +155,8 @@ double earth_movers_distance(
     std::unordered_map<const PlacementTree::NodeType*, double> balance;
 
     // use the sum of masses as normalization factor for the masses.
-    double totalmass_l = lhs.placement_mass();
-    double totalmass_r = rhs.placement_mass();
+    double totalmass_l = total_placement_mass( lhs );
+    double totalmass_r = total_placement_mass( rhs );
 
     // Disable all debug messages for this function...
     LOG_SCOPE_LEVEL(utils::Logging::kInfo)
@@ -1001,7 +1001,7 @@ double pairwise_distance (
     }
 
     // Return normalized value.
-    return sum / map_a.placement_mass() / map_b.placement_mass();
+    return sum / total_placement_mass( map_a ) / total_placement_mass( map_b );
 }
 
 // =================================================================================================
