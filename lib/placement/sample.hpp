@@ -130,7 +130,7 @@ public:
     //     Members
     // -------------------------------------------------------------------------
 
-protected:
+private:
 
     std::vector<Pquery>            pqueries_;
     std::shared_ptr<PlacementTree> tree_;
