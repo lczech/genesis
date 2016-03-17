@@ -46,11 +46,11 @@ Pquery::const_iterator_placements Pquery::end_placements() const
  *
  * The values of the placement can than be adjusted using the returned pointer.
  */
-PqueryPlacement* Pquery::emplace_placement(PlacementTreeEdge* edge)
+PqueryPlacement& Pquery::add_placement(PlacementTreeEdge* edge)
 {
     // This is not totally efficient, as we create an empty Placement and then copy-construct it
     // again, but for now this should be sufficient...
-    return insert_placement(PqueryPlacement(), edge);
+    return add_placement(PqueryPlacement(), edge);
 }
 
 /**
@@ -59,7 +59,7 @@ PqueryPlacement* Pquery::emplace_placement(PlacementTreeEdge* edge)
  * If edge is given, the new Placement is attached to it. If not, the edge of the given Placement
  * is used instead. For this it is important that the given Placement belongs to the same Tree!
  */
-PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementTreeEdge* edge)
+PqueryPlacement& Pquery::add_placement(const PqueryPlacement& val, PlacementTreeEdge* edge)
 {
     auto place = make_unique<PqueryPlacement>(val);
     PqueryPlacement* place_ptr = place.get();
@@ -83,7 +83,7 @@ PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementT
     // Add the placement to the query and vice versa.
     placements.push_back(std::move(place));
 
-    return place_ptr;
+    return *place_ptr;
 }
 
 size_t Pquery::placement_size() const

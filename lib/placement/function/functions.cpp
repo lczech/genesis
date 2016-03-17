@@ -289,7 +289,7 @@ void collect_duplicate_pqueries (Sample& smp)
 
                 // Add all placements to it.
                 for (auto& place : it->placements) {
-                    merge_into->insert_placement(*place);
+                    merge_into->add_placement( *place );
                 }
 
                 // Add all names. This will cause doubled names, but they can be reduced later

@@ -128,13 +128,13 @@ void SampleSerializer::load (const std::string& file_name, Sample& map)
             // Get edge index, add the placement there.
             size_t edge_idx = des.get_int<size_t>();
             auto   edge     = map.tree().edge_at(edge_idx);
-            auto   place    = pqry->emplace_placement(edge);
+            auto&  place    = pqry->add_placement(edge);
 
-            place->likelihood        = des.get_float<double>();
-            place->like_weight_ratio = des.get_float<double>();
-            place->proximal_length   = des.get_float<double>();
-            place->pendant_length    = des.get_float<double>();
-            place->parsimony         = des.get_int<int>();
+            place.likelihood        = des.get_float<double>();
+            place.like_weight_ratio = des.get_float<double>();
+            place.proximal_length   = des.get_float<double>();
+            place.pendant_length    = des.get_float<double>();
+            place.parsimony         = des.get_int<int>();
         }
 
         // Read names.

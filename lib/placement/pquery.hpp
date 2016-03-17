@@ -60,9 +60,9 @@ public:
     //     Placement Accessors and Modifiers
     // -------------------------------------------------------------------
 
-    PqueryPlacement* emplace_placement(PlacementTreeEdge* edge);
+    PqueryPlacement& add_placement( PlacementTreeEdge* edge );
 
-    PqueryPlacement* insert_placement(
+    PqueryPlacement& add_placement(
         PqueryPlacement const& val,
         PlacementTreeEdge* edge = nullptr
     );
