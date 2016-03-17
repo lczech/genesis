@@ -79,11 +79,11 @@ std::ostream& operator << (std::ostream& out, Sample const& smp)
         for( auto const& p : pqry->placements ) {
             table << std::to_string(i);
             table << name;
-            table << std::to_string(p->edge_num);
-            table << std::to_string(p->likelihood);
-            table << std::to_string(p->like_weight_ratio);
-            table << std::to_string(p->proximal_length);
-            table << std::to_string(p->pendant_length);
+            table << std::to_string(p->edge_num());
+            table << std::to_string(p->likelihood());
+            table << std::to_string(p->like_weight_ratio());
+            table << std::to_string(p->proximal_length());
+            table << std::to_string(p->pendant_length());
         }
 
         ++i;
@@ -174,14 +174,14 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
 
         // make sure the pointers and references are set correctly
         for( PqueryPlacement const* p : place_map[ edge->index() ]) {
-            if (p->edge != edge) {
+            if (&p->edge() != edge) {
                 LOG_INFO << "Inconsistent pointer from placement to edge at edge num '"
                          << edge->data.edge_num() << "'.";
                 return false;
             }
-            if (p->edge_num != edge->data.edge_num()) {
+            if (p->edge_num() != edge->data.edge_num()) {
                 LOG_INFO << "Inconsistent edge_num between edge and placement: '"
-                         << edge->data.edge_num() << " != " << p->edge_num << "'.";
+                         << edge->data.edge_num() << " != " << p->edge_num() << "'.";
                 return false;
             }
             ++edge_place_count;
@@ -210,61 +210,61 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
         for (const auto& p : pqry->placements) {
             // make sure the pointers and references are set correctly
             int found_placement_on_edge = 0;
-            for( PqueryPlacement const* pe : place_map[ p->edge->index() ]) {
+            for( PqueryPlacement const* pe : place_map[ p->edge().index() ]) {
                 if (pe == p.get()) {
                     ++found_placement_on_edge;
                 }
             }
-            if( place_map[ p->edge->index() ].size() > 0 && found_placement_on_edge == 0) {
+            if( place_map[ p->edge().index() ].size() > 0 && found_placement_on_edge == 0) {
                 LOG_INFO << "Inconsistency between placement and edge: edge num '"
-                         << p->edge->data.edge_num() << "' does not contain pointer to a placement "
+                         << p->edge().data.edge_num() << "' does not contain pointer to a placement "
                          << "that is referring to that edge at " << name << ".";
                 return false;
             }
             if (found_placement_on_edge > 1) {
-                LOG_INFO << "Edge num '" << p->edge->data.edge_num() << "' contains a pointer to one "
+                LOG_INFO << "Edge num '" << p->edge().data.edge_num() << "' contains a pointer to one "
                          << "of its placements more than once at " << name << ".";
                 return false;
             }
-            if (p->edge_num != p->edge->data.edge_num()) {
+            if (p->edge_num() != p->edge().data.edge_num()) {
                 LOG_INFO << "Inconsistent edge_num between edge and placement: '"
-                         << p->edge->data.edge_num() << " != " << p->edge_num
+                         << p->edge().data.edge_num() << " != " << p->edge_num()
                          << "' at " << name << ".";
                 return false;
             }
             // now we know that all references between placements and edges are correct, so this
             // assertion breaks only if we forgot to check some sort of weird inconsistency.
-            assert(edge_num_map.count(p->edge_num) > 0);
+            assert( edge_num_map.count( p->edge_num() ) > 0 );
             ++pqry_place_count;
 
             // check numerical values
             if (!check_values) {
                 continue;
             }
-            if (p->like_weight_ratio < 0.0 || p->like_weight_ratio > 1.0) {
-                LOG_INFO << "Invalid placement with like_weight_ratio '" << p->like_weight_ratio
+            if (p->like_weight_ratio() < 0.0 || p->like_weight_ratio() > 1.0) {
+                LOG_INFO << "Invalid placement with like_weight_ratio '" << p->like_weight_ratio()
                         << "' not in [0.0, 1.0] at " << name << ".";
                 if (break_on_values) {
                     return false;
                 }
             }
-            if (p->pendant_length < 0.0 || p->proximal_length < 0.0) {
-                LOG_INFO << "Invalid placement with pendant_length '" << p->pendant_length
-                         << "' or proximal_length '" << p->proximal_length << "' < 0.0 at "
+            if (p->pendant_length() < 0.0 || p->proximal_length() < 0.0) {
+                LOG_INFO << "Invalid placement with pendant_length '" << p->pendant_length()
+                         << "' or proximal_length '" << p->proximal_length() << "' < 0.0 at "
                          << name << ".";
                 if (break_on_values) {
                     return false;
                 }
             }
-            if (p->proximal_length > p->edge->data.branch_length) {
-                LOG_INFO << "Invalid placement with proximal_length '" << p->proximal_length
-                         << "' > branch_length '" << p->edge->data.branch_length << "' at "
+            if (p->proximal_length() > p->edge().data.branch_length) {
+                LOG_INFO << "Invalid placement with proximal_length '" << p->proximal_length()
+                         << "' > branch_length '" << p->edge().data.branch_length << "' at "
                          << name << ".";
                 if (break_on_values) {
                     return false;
                 }
             }
-            ratio_sum += p->like_weight_ratio;
+            ratio_sum += p->like_weight_ratio();
         }
         if (check_values && ratio_sum > 1.0) {
             LOG_INFO << "Invalid pquery with sum of like_weight_ratio '" << ratio_sum

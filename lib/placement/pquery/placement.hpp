@@ -40,6 +40,8 @@ class PqueryPlacement
 {
 public:
 
+    friend Pquery;
+
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
@@ -47,20 +49,14 @@ public:
     // TODO introduce rule of five, make awesome c++ 11 stuff!
     // TODO make construction private and Pquery a friend who is the only one to construct a Placement.
 
-    PqueryPlacement (
-        // const Pquery* pquery, const PlacementTreeEdge* edge
-    ) :
-        // edge_num(edge->edge_num),
-        edge_num(0),
-        likelihood(0.0),
-        like_weight_ratio(0.0),
-        proximal_length(0.0),
-        pendant_length(0.0),
-        parsimony(0),
-        // pquery(pquery),
-        // edge(edge)
-        // pquery(nullptr),
-        edge(nullptr)
+    PqueryPlacement () :
+        likelihood_(0.0),
+        like_weight_ratio_(0.0),
+        proximal_length_(0.0),
+        pendant_length_(0.0),
+        parsimony_(0),
+        edge_num_(0),
+        edge_(nullptr)
     {}
 
     /**
@@ -68,53 +64,64 @@ public:
      * placement, plus another placement, from which the other values are copied.
      */
     PqueryPlacement (
-        // const Pquery* pquery, const PlacementTreeEdge* edge, const PqueryPlacement& other
         const PqueryPlacement& other
     ) :
-        // edge_num(edge.edge_num),
-        edge_num(other.edge_num),
-        likelihood(other.likelihood),
-        like_weight_ratio(other.like_weight_ratio),
-        proximal_length(other.proximal_length),
-        pendant_length(other.pendant_length),
-        parsimony(other.parsimony),
-        // pquery(pquery),
-        // edge(edge)
-        // pquery(nullptr),
-        edge(nullptr)
+        likelihood_(other.likelihood_),
+        like_weight_ratio_(other.like_weight_ratio_),
+        proximal_length_(other.proximal_length_),
+        pendant_length_(other.pendant_length_),
+        parsimony_(other.parsimony_),
+        edge_num_(other.edge_num_),
+        edge_(nullptr)
     {}
 
     ~PqueryPlacement() = default;
 
     // -------------------------------------------------------------------
+    //     Properties
+    // -------------------------------------------------------------------
+
+    double likelihood() const;
+    PqueryPlacement& likelihood( double val );
+
+    double like_weight_ratio() const;
+    PqueryPlacement& like_weight_ratio( double val );
+
+    double proximal_length() const;
+    PqueryPlacement& proximal_length( double val );
+
+    double pendant_length() const;
+    PqueryPlacement& pendant_length( double val );
+
+    int parsimony() const;
+    PqueryPlacement& parsimony( int val );
+
+    // -------------------------------------------------------------------
     //     Accessors
     // -------------------------------------------------------------------
 
-    // TODO fix the get_ part in here!!! make members protected, refactor all occurences
+    int edge_num() const;
+    void reset_edge_num( int val );
 
-    inline const PlacementTreeEdge& get_edge() const
-    {
-        return *edge;
-    }
+    const PlacementTreeEdge& edge() const;
+          PlacementTreeEdge& edge();
+
+    void reset_edge( PlacementTreeEdge* edge );
 
     // -------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------
 
-    // const int edge_num;
-    int       edge_num;
-    double    likelihood;
-    double    like_weight_ratio;
-    double    proximal_length;
-    double    pendant_length;
-    int       parsimony;
+private:
 
-// protected:
+    double    likelihood_;
+    double    like_weight_ratio_;
+    double    proximal_length_;
+    double    pendant_length_;
+    int       parsimony_;
 
-    // const Pquery*                  pquery_;
-    // const PlacementTreeEdge* edge_;
-
-    PlacementTreeEdge* edge;
+    int       edge_num_;
+    PlacementTreeEdge* edge_;
 };
 
 } // namespace placement

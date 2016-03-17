@@ -41,12 +41,12 @@ PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementT
     PqueryPlacement* place_ptr = place.get();
 
     if (!edge) {
-        edge = val.edge;
+        edge = val.edge_;
     }
 
     // Add connection to the edge and vice versa.
-    place->edge_num = edge->data.edge_num();
-    place->edge = edge;
+    place->edge_num_ = edge->data.edge_num();
+    place->edge_ = edge;
 
     // if( edge ) {
     //     place->edge_num = edge->data.edge_num;

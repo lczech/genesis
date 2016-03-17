@@ -225,30 +225,30 @@ double earth_movers_distance(
         // add all placements of the branch from the left tree (using positive mass)...
         for( PqueryPlacement const* place :  place_map_l[ it_l.edge()->index() ] ) {
             if (with_pendant_length) {
-                distance += place->like_weight_ratio * place->pendant_length / totalmass_l;
+                distance += place->like_weight_ratio() * place->pendant_length() / totalmass_l;
             }
-            edge_balance.emplace(place->proximal_length, +place->like_weight_ratio / totalmass_l);
+            edge_balance.emplace(place->proximal_length(), +place->like_weight_ratio() / totalmass_l);
 
             // LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
             LOG_DBG2 << "it_l edge   " << it_l.edge()->index_;
-            LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_l;
+            LOG_DBG2 << "added dist  " << place->like_weight_ratio() * place->pendant_length() / totalmass_l;
             LOG_DBG2 << "new dist    " << distance;
-            LOG_DBG2 << "emplaced at " << place->proximal_length << ": " << +place->like_weight_ratio / totalmass_l;
+            LOG_DBG2 << "emplaced at " << place->proximal_length() << ": " << +place->like_weight_ratio() / totalmass_l;
             LOG_DBG2;
         }
 
         // ... and the branch from the right tree (using negative mass)
         for( PqueryPlacement const* place :  place_map_r[ it_r.edge()->index() ] ) {
             if (with_pendant_length) {
-                distance += place->like_weight_ratio * place->pendant_length / totalmass_r;
+                distance += place->like_weight_ratio() * place->pendant_length() / totalmass_r;
             }
-            edge_balance.emplace(place->proximal_length, -place->like_weight_ratio / totalmass_r);
+            edge_balance.emplace(place->proximal_length(), -place->like_weight_ratio() / totalmass_r);
 
             // LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
             LOG_DBG2 << "it_r edge   " << it_r.edge()->index_;
-            LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_r;
+            LOG_DBG2 << "added dist  " << place->like_weight_ratio() * place->pendant_length() / totalmass_r;
             LOG_DBG2 << "new dist    " << distance;
-            LOG_DBG2 << "emplaced at " << place->proximal_length << ": " << -place->like_weight_ratio / totalmass_r;
+            LOG_DBG2 << "emplaced at " << place->proximal_length() << ": " << -place->like_weight_ratio() / totalmass_r;
             LOG_DBG2;
         }
 
@@ -415,12 +415,12 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
 
         // Add up the masses of placements on the current edge.
         for (PqueryPlacement const* place : place_map[ it.edge()->index() ]) {
-            double place_dist = place->proximal_length;
+            double place_dist = place->proximal_length();
             if (with_pendant_length) {
-                place_dist += place->pendant_length;
+                place_dist += place->pendant_length();
             }
-            curr_fulcrum.mass   += place->like_weight_ratio;
-            curr_fulcrum.torque += place->like_weight_ratio * place_dist;
+            curr_fulcrum.mass   += place->like_weight_ratio();
+            curr_fulcrum.torque += place->like_weight_ratio() * place_dist;
         }
 
         assert(balance.count(it.link()->outer()) == 0);
@@ -527,12 +527,12 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
 
         // Add masses of the placements on this edge.
         for( PqueryPlacement const* place : place_map[ max_link->edge()->index() ]) {
-            double p_dist = max_link->edge()->data.branch_length - place->proximal_length;
+            double p_dist = max_link->edge()->data.branch_length - place->proximal_length();
             if (with_pendant_length) {
-                p_dist += place->pendant_length;
+                p_dist += place->pendant_length();
             }
-            sum.mass   += place->like_weight_ratio;
-            sum.torque += place->like_weight_ratio * p_dist;
+            sum.mass   += place->like_weight_ratio();
+            sum.torque += place->like_weight_ratio() * p_dist;
         }
 
         // Store the values at the corresponding link.
@@ -677,7 +677,7 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
 
     // Sorts the placements on the central edge by their distance from the root, ascending.
     auto sort_by_pos = [] ( PqueryPlacement const* lhs, PqueryPlacement const* rhs ) {
-        return lhs->proximal_length < rhs->proximal_length;
+        return lhs->proximal_length() < rhs->proximal_length();
     };
     std::sort(
         place_map[ central_edge->index() ].begin(),
@@ -687,7 +687,7 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
 
     // Now add all placements on the edge to the balance variable, sorted by their proximal length.
     for( PqueryPlacement const* place : place_map[ central_edge->index() ]) {
-        double place_prox = place->proximal_length;
+        double place_prox = place->proximal_length();
 
         // Some sanity checks for wrong data. We do it here because otherwise the algorithm might
         // produce weird results. However, usually this task is up to the validate() method.
@@ -702,15 +702,15 @@ std::pair<PlacementTreeEdge*, double> center_of_gravity (
 
         double place_pendant_torque = 0.0;
         if (with_pendant_length) {
-            place_pendant_torque = place->like_weight_ratio * place->pendant_length;
+            place_pendant_torque = place->like_weight_ratio() * place->pendant_length();
         }
 
-        tqs += place_prox * place->like_weight_ratio;
-        mss += place->like_weight_ratio;
+        tqs += place_prox * place->like_weight_ratio();
+        mss += place->like_weight_ratio();
 
         BalancePoint place_balance;
         place_balance.proximal_length = place_prox;
-        place_balance.mass            = place->like_weight_ratio;
+        place_balance.mass            = place->like_weight_ratio();
         place_balance.pendant_torque  = place_pendant_torque;
 
         edge_balance.push_back(place_balance);
@@ -847,35 +847,35 @@ double center_of_gravity_variance (
         for (const auto& place : pqry->placements) {
             double distance;
 
-            if (place->edge->index() == central_edge->index()) {
-                distance = std::abs(place->proximal_length - proximal_length);
+            if (place->edge().index() == central_edge->index()) {
+                distance = std::abs(place->proximal_length() - proximal_length);
             } else{
                 double pp, pd, dp;
 
                 // proximal-proximal case
                 pp = proximal_length
-                   + node_dist_prox[place->edge->primary_node()->index()]
-                   + place->proximal_length;
+                   + node_dist_prox[place->edge().primary_node()->index()]
+                   + place->proximal_length();
 
                 // proximal-distal case
                 pd = proximal_length
-                   + node_dist_prox[place->edge->secondary_node()->index()]
-                   + place->edge->data.branch_length - place->proximal_length;
+                   + node_dist_prox[place->edge().secondary_node()->index()]
+                   + place->edge().data.branch_length - place->proximal_length();
 
                 // distal-proximal case
                 dp = central_edge->data.branch_length - proximal_length
-                   + node_dist_dist[place->edge->primary_node()->index()]
-                   + place->proximal_length;
+                   + node_dist_dist[place->edge().primary_node()->index()]
+                   + place->proximal_length();
 
                 // find min of the three cases
                 distance = std::min(pp, std::min(pd, dp));
             }
 
             if (with_pendant_length) {
-                distance += place->pendant_length;
+                distance += place->pendant_length();
             }
-            variance += distance * distance * place->like_weight_ratio;
-            mass     += place->like_weight_ratio;
+            variance += distance * distance * place->like_weight_ratio();
+            mass     += place->like_weight_ratio();
         }
     }
 

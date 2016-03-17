@@ -55,7 +55,7 @@ std::unordered_map< size_t, std::vector< PqueryPlacement const* >> placements_pe
 
     for( auto const& pqry : smp.pqueries() ) {
         for( auto const& place : pqry->placements ) {
-            result[ place->edge->index() ].push_back( place.get() );
+            result[ place->edge().index() ].push_back( place.get() );
         }
     }
 
@@ -73,7 +73,7 @@ std::vector<PqueryPlacement const*> placements_per_edge(
 
     for( auto const& pqry : smp.pqueries() ) {
         for( auto const& place : pqry->placements ) {
-            if( place->edge == &edge ) {
+            if( &place->edge() == &edge ) {
                 result.push_back( place.get() );
             }
         }
@@ -108,14 +108,14 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
             const auto& oplace = opqry.placements[j];
             auto& place = pqueries[i].placements[j];
 
-            place.edge_index           = oplace->edge->index();
-            place.primary_node_index   = oplace->edge->primary_node()->index();
-            place.secondary_node_index = oplace->edge->secondary_node()->index();
+            place.edge_index           = oplace->edge().index();
+            place.primary_node_index   = oplace->edge().primary_node()->index();
+            place.secondary_node_index = oplace->edge().secondary_node()->index();
 
-            place.branch_length        = oplace->edge->data.branch_length;
-            place.pendant_length       = oplace->pendant_length;
-            place.proximal_length      = oplace->proximal_length;
-            place.like_weight_ratio    = oplace->like_weight_ratio;
+            place.branch_length        = oplace->edge().data.branch_length;
+            place.pendant_length       = oplace->pendant_length();
+            place.proximal_length      = oplace->proximal_length();
+            place.like_weight_ratio    = oplace->like_weight_ratio();
         }
     }
     return pqueries;
