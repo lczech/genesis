@@ -62,13 +62,41 @@ PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementT
     return place_ptr;
 }
 
+// =============================================================================
+//     Name Iterators
+// =============================================================================
+
+Pquery::iterator_names Pquery::begin_names()
+{
+    return names_.begin();
+}
+
+Pquery::iterator_names Pquery::end_names()
+{
+    return names_.end();
+}
+
+Pquery::const_iterator_names Pquery::begin_names() const
+{
+    return names_.cbegin();
+}
+
+Pquery::const_iterator_names Pquery::end_names() const
+{
+    return names_.cend();
+}
+
+// =============================================================================
+//     Name Accessros and Modifiers
+// =============================================================================
+
 /**
  * @brief Create a new PqueryName using the provided parameters, add it to the Pquery and return it.
  */
 PqueryName& Pquery::add_name( std::string name, double multiplicity )
 {
-    names.emplace_back( name, multiplicity );
-    return names.back();
+    names_.emplace_back( name, multiplicity );
+    return names_.back();
 }
 
 /**
@@ -76,8 +104,8 @@ PqueryName& Pquery::add_name( std::string name, double multiplicity )
  */
 PqueryName& Pquery::add_name( PqueryName const& other )
 {
-    names.push_back( PqueryName(other) );
-    return names.back();
+    names_.push_back( PqueryName(other) );
+    return names_.back();
 }
 
 /**
@@ -85,7 +113,7 @@ PqueryName& Pquery::add_name( PqueryName const& other )
  */
 size_t Pquery::name_size() const
 {
-    return names.size();
+    return names_.size();
 }
 
 /**
@@ -95,7 +123,15 @@ size_t Pquery::name_size() const
  */
 PqueryName const& Pquery::name_at( size_t index ) const
 {
-    return names.at(index);
+    return names_.at(index);
+}
+
+/**
+ * @brief Delete all PqueryName%s of this Pquery.
+ */
+void Pquery::clear_names()
+{
+    names_.clear();
 }
 
 } // namespace placement

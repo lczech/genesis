@@ -70,9 +70,9 @@ std::ostream& operator << (std::ostream& out, Sample const& smp)
 
     size_t i = 0;
     for( auto const& pqry : smp.pqueries() ) {
-        std::string name = pqry->names.size() > 0 ? pqry->names[0].name : "";
-        if( pqry->names.size() > 1 ) {
-            name += " (+" + std::to_string( pqry->names.size() - 1 ) + ")";
+        std::string name = pqry->name_size() > 0 ? pqry->name_at(0).name : "";
+        if( pqry->name_size() > 1 ) {
+            name += " (+" + std::to_string( pqry->name_size() - 1 ) + ")";
         }
 
         for( auto const& p : pqry->placements ) {

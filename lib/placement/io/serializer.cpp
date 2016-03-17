@@ -75,8 +75,9 @@ void SampleSerializer::save (const Sample& map, const std::string& file_name)
         }
 
         // Write names.
-        ser.put_int(pqry->names.size());
-        for (auto& name : pqry->names) {
+        ser.put_int(pqry->name_size());
+        for( auto name_it = pqry->begin_names(); name_it != pqry->end_names(); ++name_it ) {
+            auto& name = *name_it;
             ser.put_string (name.name);
             ser.put_float  (name.multiplicity);
         }

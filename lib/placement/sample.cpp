@@ -75,8 +75,8 @@ Sample::Sample( Sample const& other )
             np->reset_edge( en_map[ np->edge_num() ]);
             npqry->placements.push_back(std::move(np));
         }
-        for (const auto& on : opqry->names) {
-            npqry->add_name( on );
+        for( auto name_it = opqry->begin_names(); name_it != opqry->end_names(); ++name_it ) {
+            npqry->add_name( *name_it );
         }
 
         pqueries_.push_back(std::move(npqry));
@@ -239,8 +239,8 @@ bool Sample::merge(const Sample& other)
             np->reset_edge( en_map[ np->edge_num() ]);
             npqry->placements.push_back(std::move(np));
         }
-        for (const auto& on : opqry->names) {
-            npqry->add_name( on );
+        for( auto name_it = opqry->begin_names(); name_it != opqry->end_names(); ++name_it ) {
+            npqry->add_name( *name_it );
         }
         this->pqueries_.push_back(std::move(npqry));
     }

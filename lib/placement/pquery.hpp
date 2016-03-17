@@ -88,22 +88,39 @@ public:
     }
 
     // -------------------------------------------------------------------
-    //     Names
+    //     Name Iterators
+    // -------------------------------------------------------------------
+
+    typedef std::vector<PqueryName>::iterator       iterator_names;
+    typedef std::vector<PqueryName>::const_iterator const_iterator_names;
+
+    iterator_names       begin_names();
+    const_iterator_names begin_names() const;
+
+    iterator_names       end_names();
+    const_iterator_names end_names() const;
+
+    // -------------------------------------------------------------------
+    //     Name Accessors and Modifiers
     // -------------------------------------------------------------------
 
     PqueryName& add_name( std::string name = "", double multiplicity = 0.0 );
     PqueryName& add_name( PqueryName const& other );
 
     size_t name_size() const;
-
     PqueryName const& name_at( size_t index ) const;
+
+    void clear_names();
 
     // -------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------
 
     std::vector<std::unique_ptr<PqueryPlacement>> placements;
-    std::vector<PqueryName>      names;
+
+private:
+
+    std::vector<PqueryName>      names_;
 };
 
 } // namespace placement

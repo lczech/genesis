@@ -256,7 +256,9 @@ void collect_duplicate_pqueries (Sample& smp)
             // Collect the Pqueries that can be merged with the current one, because they share
             // a common name.
             std::unordered_set<Pquery*> merges;
-            for (auto& name : it->names) {
+            for( auto name_it = it->begin_names(); name_it != it->end_names(); ++name_it ) {
+                auto& name = *name_it;
+
                 if (hash.count(name.name) > 0) {
                     merges.insert(hash[name.name]);
                 }
@@ -265,7 +267,9 @@ void collect_duplicate_pqueries (Sample& smp)
             if (merges.size() == 0) {
                 // All names are new, so store them in the hash smp for later.
                 // We don't need to do any merging in this case.
-                for (auto& name : it->names) {
+                for( auto name_it = it->begin_names(); name_it != it->end_names(); ++name_it ) {
+                    auto& name = *name_it;
+
                     // We are here because we found no pquery to merge with. This means that the
                     // name cannot be in the hash smp already.
                     assert(hash.count(name.name) == 0);
@@ -292,7 +296,9 @@ void collect_duplicate_pqueries (Sample& smp)
                 // via merge_duplicate_names().
                 // We could do the check here, but this would increase complexity and gain just a
                 // bit of speed (probably).
-                for (auto& name : it->names) {
+                for( auto name_it = it->begin_names(); name_it != it->end_names(); ++name_it ) {
+                    auto& name = *name_it;
+
                     // Add the name to the Pquery.
                     merge_into->add_name( name );
 
@@ -396,31 +402,28 @@ void merge_duplicate_placements (Sample& smp)
 }
 
 /**
- * @brief Merge all PqueryName%s that are the same into one, while adding up their `multiplicity`.
+ * @brief Merge all PqueryName%s that have the same `name` property into one, while adding up their
+ * `multiplicity`.
  */
-void merge_duplicate_names (Pquery& pquery)
+void merge_duplicate_names( Pquery& pquery )
 {
-    // We traverse all names of this Pquery and use a hash smp to find duplictes. As deleting during
-    // iteration is not a good idea, we also keep track of those names that are duplicates and
-    // delete them later.
-    std::unordered_map<std::string, PqueryName*> hash;
-    std::unordered_set<PqueryName*> del;
+    // We add names to this map, indexed by their actual name string.
+    std::unordered_map<std::string, PqueryName> result;
+    for( auto name_it = pquery.begin_names(); name_it != pquery.end_names(); ++name_it ) {
+        auto const& name = *name_it;
 
-    // Merge names. If two PlacementName objects have a commong name, add their multiplicity into
-    // the first one and mark the other one for deletion.
-    for (auto& name_it : pquery.names) {
-        if (hash.count(name_it.name) == 0) {
-            hash[name_it.name] = &name_it;
+        if( result.count( name.name ) == 0 ) {
+            result[ name.name ] = name;
         } else {
-            hash[name_it.name]->multiplicity += name_it.multiplicity;
-            del.insert(&name_it);
+            result[ name.name ].multiplicity += name.multiplicity;
         }
     }
 
-    // Now delete all Name objects whose values were merged into objects of the same name.
-    erase_if(pquery.names, [del] (PqueryName& name) {
-        return del.count(&name) > 0;
-    });
+    // Now delete all names and re-populate using the map.
+    pquery.clear_names();
+    for( auto const& n : result ) {
+        pquery.add_name( n.second );
+    }
 }
 
 /**

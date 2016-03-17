@@ -203,8 +203,8 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
     for( const auto& pqry : smp.pqueries() ) {
         // use this name for reporting invalid placements.
         std::string name;
-        if (pqry->names.size() > 0) {
-            name = "'" + pqry->names[0].name + "'";
+        if (pqry->name_size() > 0) {
+            name = "'" + pqry->name_at(0).name + "'";
         } else {
             name = "(unnamed pquery)";
         }
@@ -261,7 +261,7 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
         }
 
         // check names
-        if (check_values && pqry->names.size() == 0) {
+        if (check_values && pqry->name_size() == 0) {
             LOG_INFO << "Pquery without any names at '" << name << "'.";
             if (break_on_values) {
                 return false;
