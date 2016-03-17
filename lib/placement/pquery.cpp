@@ -80,7 +80,6 @@ PqueryName* Pquery::insert_name(const PqueryName& other)
     PqueryName* name_ptr = pname.get();
 
     // Add the name to the query and vice versa.
-    pname->pquery = this;
     names.push_back(std::move(pname));
 
     return name_ptr;

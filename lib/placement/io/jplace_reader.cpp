@@ -515,7 +515,6 @@ void JplaceReader::process_json_placements(
                 auto pqry_name = make_unique<PqueryName>();
                 pqry_name->name         = pqry_n_val->to_string();
                 pqry_name->multiplicity = 0.0;
-                pqry_name->pquery = pqry.get();
                 pqry->names.push_back(std::move(pqry_name));
             }
         }
@@ -563,7 +562,6 @@ void JplaceReader::process_json_placements(
                     LOG_WARN << "Jplace document contains pquery with negative multiplicity at "
                              << "name '" << pqry_name->name << "'.";
                 }
-                pqry_name->pquery = pqry.get();
                 pqry->names.push_back(std::move(pqry_name));
             }
         }

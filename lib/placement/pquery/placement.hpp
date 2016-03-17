@@ -106,7 +106,12 @@ public:
     * This property is not defined by the `jplace` standard. Instead, the standard uses
     * `distal_length`, which is the opposite of this value: It determines the distance to the next
     * node that lies away from the root. We use the `proximal_length` instead, as it is much more
-    * convenient for most purposes.
+    * convenient for most purposes. In order to obtain the `distal_length`, use
+    *
+    *     PqueryPlacement p;
+    *     double distal_length = p.edge().data.branch_length - p.proximal_length;
+    *
+    * This is also the formula that is internally used to convert between the two.
     */
     double    proximal_length;
 

@@ -1,5 +1,5 @@
 /**
- * @brief Implementation of PqueryName class.
+ * @brief
  *
  * @file
  * @ingroup placement

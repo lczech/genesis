@@ -267,13 +267,6 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
                 return false;
             }
         }
-        for (const auto& n : pqry->names) {
-            // make sure the pointers and references are set correctly
-            if (n->pquery != pqry.get()) {
-                LOG_INFO << "Inconsistent pointer from name '" << n->name << "' to pquery.";
-                return false;
-            }
-        }
     }
 
     return true;
