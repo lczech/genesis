@@ -78,6 +78,57 @@ public:
     ~PqueryPlacement() = default;
 
     // -------------------------------------------------------------------
+    //     Public Properties
+    // -------------------------------------------------------------------
+
+    // Yes, the following members are public data members. It's neither nice nor consistent,
+    // but makes life so much easier for the moment.
+
+    /**
+     * @brief Total likelihood of the tree with this placement attached to it.
+     *
+     * This property is defined by the `jplace` standard.
+     */
+    double    likelihood;
+
+    /**
+    * @brief Likelihood Weight Ratio that determines a probability-like value of how certain
+    * the placement algorithm was when placing the Pquery at the edge of this placement.
+    *
+    * This property is defined by the `jplace` standard. The `like_weight_ratio`s of all
+    * placements for one Pquery sum up to 1.0. As not all of them might be stored in the Pquery,
+    * however, the sum might be lower.
+    */
+    double    like_weight_ratio;
+
+    /**
+    * @brief Distance of the placement attachement position on the edge to the next
+    * PlacementTreeNode that lies towards the root of the PlacementTree.
+    *
+    * This property is not defined by the `jplace` standard. Instead, the standard uses
+    * `distal_length`, which is the opposite of this value: It determines the distance to the next
+    * node that lies away from the root. We use the `proximal_length` instead, as it is much more
+    * convenient for most purposes.
+    */
+    double    proximal_length;
+
+    /**
+    * @brief Length of the attached branch of this placement.
+    *
+    * The placement can be interpreted as a new branch on the PlacementTree. This value then gives
+    * the length of that branch.
+    * This property is defined by the `jplace` standard.
+    */
+    double    pendant_length;
+
+    /**
+    * @brief Parsimony value.
+    *
+    * This property is defined by the `jplace` standard. It is currently not used here.
+    */
+    int       parsimony;
+
+    // -------------------------------------------------------------------
     //     Accessors
     // -------------------------------------------------------------------
 
@@ -88,16 +139,6 @@ public:
           PlacementTreeEdge& edge();
 
     void reset_edge( PlacementTreeEdge* edge );
-
-    // -------------------------------------------------------------------
-    //     Public Properties
-    // -------------------------------------------------------------------
-
-    double    likelihood;
-    double    like_weight_ratio;
-    double    proximal_length;
-    double    pendant_length;
-    int       parsimony;
 
     // -------------------------------------------------------------------
     //     Data Members
