@@ -58,9 +58,7 @@ Sample SampleSet::merge_all()
 
     // Create a new Sample and initialize it with the average branch length tree of all
     // maps in this set, but without any placements.
-    auto res = Sample(std::make_shared<PlacementTree>(
-        tree_set().average_branch_length_tree()
-    ));
+    auto res = Sample( tree_set().average_branch_length_tree() );
 
     // Copy the rest of the data from the first tree to the averaged tree.
     // This is necessary, because the tree copy constructor does not do this for us.

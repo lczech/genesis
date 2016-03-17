@@ -47,28 +47,21 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    Sample ()
-        : tree_(std::make_shared<PlacementTree>())
-    {}
+    Sample() = default;
 
-    Sample (std::shared_ptr<PlacementTree> ptree)
-        : tree_(ptree)
+    Sample( PlacementTree const& tree )
+        : tree_(tree)
     {}
 
     Sample( Sample const& );
-    Sample( Sample&& ) noexcept;
+    Sample( Sample&& );
 
     Sample& operator= (Sample const&);
-    Sample& operator= (Sample&&) noexcept;
-
-    // Sample( Sample&& ) = default;
-    //
-    // Sample& operator= (Sample const&) = default;
-    // Sample& operator= (Sample&&) = default;
+    Sample& operator= (Sample&&);
 
     ~Sample() = default;
 
-    void swap (Sample& other) noexcept;
+    void swap (Sample& other);
 
     // -------------------------------------------------------------------------
     //     Modifiers
@@ -118,8 +111,8 @@ public:
 
 private:
 
-    std::vector<Pquery>            pqueries_;
-    std::shared_ptr<PlacementTree> tree_;
+    std::vector<Pquery> pqueries_;
+    PlacementTree       tree_;
 
 public:
 

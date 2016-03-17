@@ -34,25 +34,26 @@ namespace placement {
  */
 Sample::Sample( Sample const& other )
 {
+    // TODO once the edge and node data are copyable and tree supports full data copies, these are not needed any longer.
+
     clear();
 
     // use assignment operator to create copy of the tree and metadata.
-    *tree_   = *other.tree_;
+    tree_    = other.tree_;
     metadata = other.metadata;
 
     // copy all data of the tree: do a preorder traversal on both trees in parallel
-    PlacementTree::IteratorPreorder it_n = tree_->begin_preorder();
-    PlacementTree::IteratorPreorder it_o = other.tree_->begin_preorder();
+    auto it_n = tree_.begin_preorder();
+    auto it_o = other.tree_.begin_preorder();
     for (
         ;
-        it_n != tree_->end_preorder() && it_o != other.tree_->end_preorder();
+        it_n != tree_.end_preorder() && it_o != other.tree_.end_preorder();
         ++it_n, ++it_o
     ) {
         // the trees are copies of each other, they need to have the same rank. otherwise,
         // the copy constructor is not working!
         assert(it_n.node()->rank() == it_o.node()->rank());
 
-        // TODO once the edge and node data are copyable and tree supports full data copies, these are not needed any longer.
         it_n.edge()->data.branch_length = it_o.edge()->data.branch_length;
         it_n.edge()->data.reset_edge_num( it_o.edge()->data.edge_num() );
 
@@ -60,11 +61,11 @@ Sample::Sample( Sample const& other )
     }
 
     // the trees are copies. they should take equal iterations to finish a traversal.
-    assert(it_n == tree_->end_preorder() && it_o == other.tree_->end_preorder());
+    assert( it_n == tree_.end_preorder() && it_o == other.tree_.end_preorder() );
 
     // copy all (o)ther pqueries to (n)ew pqueries
     // TODO this is very similar to merge(). make this code shared somehow.
-    auto en_map = edge_num_to_edge_map( *tree_ );
+    auto en_map = edge_num_to_edge_map( tree_ );
     for (const auto& opqry : other.pqueries_) {
         auto npqry = Pquery();
 
@@ -88,15 +89,13 @@ Sample::Sample( Sample const& other )
 //     swap(other);
 // }
 
-Sample::Sample( Sample&& other ) noexcept
+Sample::Sample( Sample&& other )
     : pqueries_( std::move(other.pqueries_))
     , tree_(     std::move(other.tree_))
     , metadata(  std::move(other.metadata))
 {
     other.pqueries_.clear();
-    if( other.tree_ ) {
-        other.tree_->clear();
-    }
+    other.tree_.clear();
     other.metadata.clear();
 }
 
@@ -115,18 +114,18 @@ Sample& Sample::operator = (const Sample& other)
     // tmp is automatically destroyed, so that its arrays are cleared and the data freed.
     Sample tmp(other);
     std::swap(pqueries_, tmp.pqueries_);
-    tree_->swap(*tmp.tree_);
+    tree_.swap(tmp.tree_);
     std::swap(metadata, tmp.metadata);
     return *this;
 }
 
-Sample& Sample::operator= (Sample&& other) noexcept
+Sample& Sample::operator= (Sample&& other)
 {
     swap(other);
     return *this;
 }
 
-void Sample::swap (Sample& other) noexcept
+void Sample::swap (Sample& other)
 {
     using std::swap;
     swap(pqueries_, other.pqueries_);
@@ -146,7 +145,7 @@ void Sample::swap (Sample& other) noexcept
 void Sample::clear()
 {
     pqueries_.clear();
-    tree_ = std::make_shared<PlacementTree>();
+    tree_ = PlacementTree();
     metadata.clear();
 }
 
@@ -156,12 +155,12 @@ void Sample::clear()
 
 PlacementTree& Sample::tree()
 {
-    return *tree_.get();
+    return tree_;
 }
 
 PlacementTree const& Sample::tree() const
 {
-    return *tree_.get();
+    return tree_;
 }
 
 // =================================================================================================

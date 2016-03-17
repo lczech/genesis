@@ -18,8 +18,8 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
 {
     // boost::python::class_< Sample, std::shared_ptr<Sample> > ( "Sample", boost::python::init<  >(  ) )
     boost::python::class_< Sample > ( "Sample", boost::python::init<  >(  ) )
-        .def( boost::python::init< std::shared_ptr<PlacementTree> >(( boost::python::arg("ptree") )) )
-        .def( boost::python::init< const Sample & >(( boost::python::arg("other") )) )
+        .def( boost::python::init< PlacementTree const& >(( boost::python::arg("ptree") )) )
+        .def( boost::python::init< Sample const& >(( boost::python::arg("other") )) )
 
         // Public Member Functions
 
