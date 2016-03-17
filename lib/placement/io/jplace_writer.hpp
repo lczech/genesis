@@ -60,10 +60,10 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    bool        to_file     (const Sample& placements,  const std::string   fn);
-    void        to_string   (const Sample& placements,        std::string&  jplace);
-    std::string to_string   (const Sample& placements);
-    void        to_document (const Sample& placements, utils::JsonDocument& doc);
+    bool        to_file     (const Sample& smp,  const std::string   filename);
+    void        to_string   (const Sample& smp,        std::string&  output);
+    std::string to_string   (const Sample& smp);
+    void        to_document (const Sample& smp, utils::JsonDocument& doc);
 };
 
 } // namespace placement

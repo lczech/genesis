@@ -33,6 +33,7 @@ Pquery const* find_pquery( Sample const& smp, std::string const& name );
 
 void normalize_weight_ratios( Sample& smp );
 
+void restrain_to_max_weight_placements( Pquery& pquery );
 void restrain_to_max_weight_placements( Sample& smp );
 
 void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
@@ -59,8 +60,10 @@ void merge_duplicate_names( Sample& smp );
 //     Placement Mass
 // =================================================================================================
 
-std::pair<PlacementTreeEdge const*, size_t> placement_count_max_edge( Sample const& smp );
+size_t total_placement_count( Sample const& smp );
+double total_placement_mass(  Sample const& smp );
 
+std::pair<PlacementTreeEdge const*, size_t> placement_count_max_edge( Sample const& smp );
 std::pair<PlacementTreeEdge const*, double> placement_mass_max_edge( Sample const& smp );
 
 // =================================================================================================

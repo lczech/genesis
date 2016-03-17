@@ -14,78 +14,199 @@ namespace genesis {
 namespace placement {
 
 // =============================================================================
-//     Modifiers
+//     General Modifiers
 // =============================================================================
 
 /**
- * @brief Creates a new PqueryPlacement, adds it to the Pquery and returns a pointer to it.
+ * @brief Clear all data stored in this Pquery, i.e., clear all PqueryName%s and all
+ * PqueryPlacement%s.
+ */
+void Pquery::clear()
+{
+    clear_placements();
+    clear_names();
+}
+
+// =============================================================================
+//     Placement Iterators
+// =============================================================================
+
+Pquery::iterator_placements Pquery::begin_placements()
+{
+    return placements_.begin();
+}
+
+Pquery::iterator_placements Pquery::end_placements()
+{
+    return placements_.end();
+}
+
+Pquery::const_iterator_placements Pquery::begin_placements() const
+{
+    return placements_.cbegin();
+}
+
+Pquery::const_iterator_placements Pquery::end_placements() const
+{
+    return placements_.cend();
+}
+
+// =============================================================================
+//     Placement Accessors and Modifiers
+// =============================================================================
+
+/**
+ * @brief Create a new PqueryPlacement at a given PlacementTreeEdge, add it to the Pquery and
+ * return it.
  *
- * The values of the placement can than be adjusted using the returned pointer.
- */
-PqueryPlacement* Pquery::emplace_placement(PlacementTreeEdge* edge)
-{
-    // This is not totally efficient, as we create an empty Placement and then copy-construct it
-    // again, but for now this should be sufficient...
-    return insert_placement(PqueryPlacement(), edge);
-}
-
-/**
- * @brief Creates a PqueryPlacement by copying from another one.
+ * The values of the placement can then be adjusted using the returned object reference.
  *
- * If edge is given, the new Placement is attached to it. If not, the edge of the given Placement
- * is used instead. For this it is important that the given Placement belongs to the same Tree!
+ * It is important that the provided edge belongs to the same PlacementTree as the Pquery and
+ * its containing Sample do. This is up to the user and not checked.
+ *
+ * As this function might reallocate the memory where placements are stored, all iterators
+ * and pointer to PqueryPlacement%s are invalidated.
  */
-PqueryPlacement* Pquery::insert_placement(const PqueryPlacement& val, PlacementTreeEdge* edge)
+PqueryPlacement& Pquery::add_placement( PlacementTreeEdge& edge )
 {
-    auto place = make_unique<PqueryPlacement>(val);
-    PqueryPlacement* place_ptr = place.get();
-
-    if (!edge) {
-        edge = val.edge;
-    }
-
-    // Add connection to the edge and vice versa.
-    place->edge_num = edge->data.edge_num();
-    place->edge = edge;
-
-    // if( edge ) {
-    //     place->edge_num = edge->data.edge_num;
-    //     place->edge = edge;
-    //     place->edge->data.placements.push_back(place_ptr);
-    // } else {
-    //     place->edge_num = val.edge_num;
-    //     place->edge = nullptr;
-    // }
-
-    // Add the placement to the query and vice versa.
-    place->pquery = this;
-    placements.push_back(std::move(place));
-
-    return place_ptr;
+    placements_.emplace_back( edge );
+    return placements_.back();
 }
 
 /**
- * @brief Creates a new PqueryName, adds it to the Pquery and returns a pointer to it.
+ * @brief Create a new PqueryPlacement as a copy of the provided one, add it to the Pquery and
+ * return it.
+ *
+ * As this function might reallocate the memory where placements are stored, all iterators
+ * and pointer to PqueryPlacement%s are invalidated.
  */
-PqueryName* Pquery::emplace_name(std::string name, double multiplicity)
+PqueryPlacement& Pquery::add_placement( PqueryPlacement const& val )
 {
-    return insert_name(PqueryName(name, multiplicity));
+    placements_.emplace_back( val );
+    return placements_.back();
 }
 
 /**
- * @brief
+ * @brief Create a new PqueryPlacement at a given PlacementTreeEdge, add it to the Pquery and
+ * return it. The property values of the provided PqueryPlacement are copied.
+ *
+ * It is important that the provided edge belongs to the same PlacementTree as the Pquery and
+ * its containing Sample do. This is up to the user and not checked.
+ *
+ * As this function might reallocate the memory where placements are stored, all iterators
+ * and pointer to PqueryPlacement%s are invalidated.
  */
-PqueryName* Pquery::insert_name(const PqueryName& other)
+PqueryPlacement& Pquery::add_placement(
+    PlacementTreeEdge    & edge,
+    PqueryPlacement const& val
+) {
+    placements_.emplace_back( val );
+    placements_.back().reset_edge( edge );
+    return placements_.back();
+}
+
+/**
+ * @brief Return the number of PqueryPlacement%s stored in this Pquery.
+ */
+size_t Pquery::placement_size() const
 {
-    // Create new name via copy constructor, get pointer to it.
-    auto pname = make_unique<PqueryName>(other);
-    PqueryName* name_ptr = pname.get();
+    return placements_.size();
+}
 
-    // Add the name to the query and vice versa.
-    pname->pquery = this;
-    names.push_back(std::move(pname));
+/**
+ * @brief Return the PqueryPlacement at a certain index.
+ *
+ * The index must be smaller than placement_size(), otherwise this functions throws an exception.
+ */
+PqueryPlacement const& Pquery::placement_at( size_t index ) const
+{
+    return placements_[index];
+}
 
-    return name_ptr;
+/**
+ * @brief Delete all PqueryPlacement%s of this Pquery.
+ */
+void Pquery::clear_placements()
+{
+    placements_.clear();
+}
+
+// =============================================================================
+//     Name Iterators
+// =============================================================================
+
+Pquery::iterator_names Pquery::begin_names()
+{
+    return names_.begin();
+}
+
+Pquery::iterator_names Pquery::end_names()
+{
+    return names_.end();
+}
+
+Pquery::const_iterator_names Pquery::begin_names() const
+{
+    return names_.cbegin();
+}
+
+Pquery::const_iterator_names Pquery::end_names() const
+{
+    return names_.cend();
+}
+
+// =============================================================================
+//     Name Accessors and Modifiers
+// =============================================================================
+
+/**
+ * @brief Create a new PqueryName using the provided parameters, add it to the Pquery and return it.
+ *
+ * As this function might reallocate the memory where names are stored, all iterators
+ * and pointer to PqueryNames%s are invalidated.
+ */
+PqueryName& Pquery::add_name( std::string name, double multiplicity )
+{
+    names_.emplace_back( name, multiplicity );
+    return names_.back();
+}
+
+/**
+ * @brief Create a new PqueryName as a copy of the provided one, add it to the Pquery and return it.
+ *
+ * As this function might reallocate the memory where names are stored, all iterators
+ * and pointer to PqueryNames%s are invalidated.
+ */
+PqueryName& Pquery::add_name( PqueryName const& other )
+{
+    names_.push_back( PqueryName(other) );
+    return names_.back();
+}
+
+/**
+ * @brief Return the number of PqueryName%s stored in this Pquery.
+ */
+size_t Pquery::name_size() const
+{
+    return names_.size();
+}
+
+/**
+ * @brief Return the PqueryName at a certain index.
+ *
+ * The index must be smaller than name_size(), otherwise this functions throws an exception.
+ */
+PqueryName const& Pquery::name_at( size_t index ) const
+{
+    return names_.at(index);
+}
+
+/**
+ * @brief Delete all PqueryName%s of this Pquery.
+ */
+void Pquery::clear_names()
+{
+    names_.clear();
 }
 
 } // namespace placement

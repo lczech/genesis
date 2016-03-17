@@ -17,9 +17,6 @@
 #include "placement/placement_tree.hpp"
 #include "placement/pquery.hpp"
 
-// TODO remove once the helper methods are outsourced
-#include "placement/pquery/plain.hpp"
-
 namespace genesis {
 namespace placement {
 
@@ -27,6 +24,22 @@ namespace placement {
 //     Sample
 // =================================================================================================
 
+/**
+ * @brief Manage a set of @link Pquery Pqueries @endlink along with the PlacementTree where
+ * the PqueryPlacement%s are placed on.
+ *
+ * This class stores both the tree and the set of pqueries with their placements. It is thus
+ * a representation of a whole `jplace` file according to the standard.
+ *
+ * For more information on the `jplace` format, see the following publication:
+ *
+ *     Matsen FA, Hoffman NG, Gallagher A, Stamatakis A. 2012.
+ *     A Format for Phylogenetic Sample.
+ *     PLoS ONE 7(2): e31009. doi:10.1371/journal.pone.0031009
+ *     http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009
+ *
+ * This class and other related classes are modeled after this standard.
+ */
 class Sample
 {
 public:
@@ -53,7 +66,7 @@ public:
     // Sample& operator= (Sample const&) = default;
     // Sample& operator= (Sample&&) = default;
 
-    ~Sample();
+    ~Sample() = default;
 
     void swap (Sample& other) noexcept;
 
@@ -97,24 +110,23 @@ public:
         return pqueries_;
     }
 
-    inline size_t pquery_size() const
-    {
-        return pqueries_.size();
-    }
+    size_t pquery_size() const;
 
-    inline Pquery const& pquery_at( const size_t index ) const
-    {
-        return *pqueries_.at( index );
-    }
-
-    // TODO add pquery iterator.
+    Pquery      & pquery_at( const size_t index );
+    Pquery const& pquery_at( const size_t index ) const;
 
     // -------------------------------------------------------------------------
-    //     Placement Mass
+    //     Pquery Iterator
     // -------------------------------------------------------------------------
 
-    size_t placement_count() const;
-    double placement_mass()  const;
+    typedef std::vector<std::unique_ptr<Pquery>>::iterator       iterator_pqueries;
+    typedef std::vector<std::unique_ptr<Pquery>>::const_iterator const_iterator_pqueries;
+
+    iterator_pqueries       begin();
+    const_iterator_pqueries begin() const;
+
+    iterator_pqueries       end();
+    const_iterator_pqueries end() const;
 
     // -------------------------------------------------------------------------
     //     Members
@@ -126,8 +138,10 @@ protected:
     std::shared_ptr<PlacementTree>               tree_;
 
 public:
+
     // There is not much to mess up here for a user, so we can simply make this public.
     std::unordered_map<std::string, std::string> metadata;
+
 };
 
 } // namespace placement

@@ -11,6 +11,7 @@
 #include <string>
 #include <vector>
 
+#include "lib/placement/function/functions.hpp"
 #include "lib/placement/function/operators.hpp"
 #include "lib/placement/io/newick_processor.hpp"
 #include "lib/placement/sample.hpp"
@@ -31,14 +32,14 @@ TEST(PlacementSimulator, TwoStepSimple)
     ));
 
     Sample smp(tree);
-    EXPECT_EQ   (0, smp.placement_count());
+    EXPECT_EQ   (0, total_placement_count(smp));
     EXPECT_TRUE (validate(smp, true, false));
 
     SimulatorTwostep sim(smp);
 
     size_t n = 100;
     sim.generate(n);
-    EXPECT_EQ   (n, smp.placement_count());
+    EXPECT_EQ   (n, total_placement_count(smp));
     EXPECT_TRUE (validate(smp, true, false));
 }
 
@@ -61,12 +62,12 @@ TEST(PlacementSimulator, TwoStepLeavesOnly)
     // Generate placements.
     size_t n = 100;
     sim.generate(n);
-    EXPECT_EQ   (n, smp.placement_count());
+    EXPECT_EQ   (n, total_placement_count(smp));
     EXPECT_TRUE (validate(smp, true, false));
 
     // Check whether all placements are next to leaf nodes.
     for (auto& pqry : smp.pqueries()) {
-        auto edge = pqry->placements[0]->edge;
-        EXPECT_TRUE (edge->primary_node()->is_leaf() || edge->secondary_node()->is_leaf());
+        auto const& edge = pqry->placement_at(0).edge();
+        EXPECT_TRUE (edge.primary_node()->is_leaf() || edge.secondary_node()->is_leaf());
     }
 }

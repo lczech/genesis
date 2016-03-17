@@ -34,14 +34,6 @@ std::ostream& operator << ( std::ostream& out, Sample const& smp );
 
 std::string print_tree( Sample const& smp );
 
-// =================================================================================================
-//     Verification
-// =================================================================================================
-
-bool has_correct_edge_nums( Sample const& smp );
-
-bool validate( Sample const& smp, bool check_values = false, bool break_on_values = false );
-
 } // namespace placement
 } // namespace genesis
 

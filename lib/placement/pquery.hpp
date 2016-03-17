@@ -39,78 +39,106 @@ namespace placement {
 
 namespace placement {
 
+/**
+ * @brief A pquery holds a set of PqueryPlacement%s and a set of PqueryName%s.
+ *
+ * According to the `jplace` standard, a pquery is a container object that represents the possible
+ * phylogenetic placement positions of a sequence (or set of sequences). Each such position is
+ * stored as a PqueryPlacement and can be accessed via the functions of this class.
+ *
+ * Furthermore, it might be useful to combine the placement positions of several sequences into
+ * one object. This is for example the case if there are replicate sequences. Thus, a Pquery
+ * supports to store multiple PquereName%s, each of them containing an identifying name string and
+ * a so called `multiplicity`, which can be used as e.g., an abundance count for the associated
+ * name.
+ */
 class Pquery
 {
 public:
 
     // -------------------------------------------------------------------
-    //     Placements
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
-    typedef std::vector<std::unique_ptr<PqueryPlacement>>::iterator       iterator_placements;
-    typedef std::vector<std::unique_ptr<PqueryPlacement>>::const_iterator const_iterator_placements;
+    Pquery () = default;
+    ~Pquery() = default;
 
-    PqueryPlacement* emplace_placement(PlacementTreeEdge* edge);
+    Pquery( Pquery const& ) = default;
+    Pquery( Pquery&& )      = default;
 
-    PqueryPlacement* insert_placement(
-        PqueryPlacement const& val,
-        PlacementTreeEdge* edge = nullptr
+    Pquery& operator= ( Pquery const& ) = default;
+    Pquery& operator= ( Pquery&& )      = default;
+
+    // -------------------------------------------------------------------
+    //     General Modifiers
+    // -------------------------------------------------------------------
+
+    void clear();
+
+    // -------------------------------------------------------------------
+    //     Placement Iterators
+    // -------------------------------------------------------------------
+
+    typedef std::vector<PqueryPlacement>::iterator       iterator_placements;
+    typedef std::vector<PqueryPlacement>::const_iterator const_iterator_placements;
+
+    iterator_placements       begin_placements();
+    const_iterator_placements begin_placements() const;
+
+    iterator_placements       end_placements();
+    const_iterator_placements end_placements() const;
+
+    // -------------------------------------------------------------------
+    //     Placement Accessors and Modifiers
+    // -------------------------------------------------------------------
+
+    PqueryPlacement& add_placement( PlacementTreeEdge& edge );
+    PqueryPlacement& add_placement( PqueryPlacement const& val );
+
+    PqueryPlacement& add_placement(
+        PlacementTreeEdge    & edge,
+        PqueryPlacement const& val
     );
 
-    size_t placement_size() const
-    {
-        return placements.size();
-    }
+    size_t placement_size() const;
+    PqueryPlacement const& placement_at( size_t index ) const;
 
-    PqueryPlacement const& placement_at( size_t index ) const
-    {
-        return *placements[index];
-    }
-
-    iterator_placements begin_placements()
-    {
-        return placements.begin();
-    }
-
-    iterator_placements end_placements()
-    {
-        return placements.end();
-    }
-
-    const_iterator_placements begin_placements() const
-    {
-        return placements.cbegin();
-    }
-
-    const_iterator_placements end_placements() const
-    {
-        return placements.cend();
-    }
+    void clear_placements();
 
     // -------------------------------------------------------------------
-    //     Names
+    //     Name Iterators
     // -------------------------------------------------------------------
 
-    PqueryName* emplace_name(std::string name = "", double multiplicity = 0.0);
+    typedef std::vector<PqueryName>::iterator       iterator_names;
+    typedef std::vector<PqueryName>::const_iterator const_iterator_names;
 
-    PqueryName* insert_name( PqueryName const& other );
+    iterator_names       begin_names();
+    const_iterator_names begin_names() const;
 
-    size_t name_size() const
-    {
-        return names.size();
-    }
+    iterator_names       end_names();
+    const_iterator_names end_names() const;
 
-    PqueryName const& name_at( size_t index ) const
-    {
-        return *names.at(index);
-    }
+    // -------------------------------------------------------------------
+    //     Name Accessors and Modifiers
+    // -------------------------------------------------------------------
+
+    PqueryName& add_name( std::string name = "", double multiplicity = 0.0 );
+    PqueryName& add_name( PqueryName const& other );
+
+    size_t name_size() const;
+    PqueryName const& name_at( size_t index ) const;
+
+    void clear_names();
 
     // -------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------
 
-    std::vector<std::unique_ptr<PqueryPlacement>> placements;
-    std::vector<std::unique_ptr<PqueryName>>      names;
+private:
+
+    std::vector<PqueryPlacement> placements_;
+    std::vector<PqueryName>      names_;
+
 };
 
 } // namespace placement

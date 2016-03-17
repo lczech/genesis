@@ -34,7 +34,15 @@ namespace placement {
 namespace placement {
 
 /**
- * @brief
+ * @brief One placement position of a Pquery on a PlacementTree.
+ *
+ * This class is modeled after the `jplace` standard, which allows for multiple placement positions
+ * for a Pquery. Usually, those positions are on different branches of the tree. The property
+ * values of this class describe one such placement position.
+ *
+ * In order to check the position of this placement on the tree, see #proximal_length,
+ * #pendant_length and edge(). In order to check the likelihood and probability of this placement
+ * beging placed exaclty where it is, see #likelihood and #like_weight_ratio.
  */
 class PqueryPlacement
 {
@@ -44,83 +52,117 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
-    // TODO introduce rule of five, make awesome c++ 11 stuff!
-    // TODO make construction private and Pquery a friend who is the only one to construct a Placement.
-
-    PqueryPlacement (
-        // const Pquery* pquery, const PlacementTreeEdge* edge
-    ) :
-        // edge_num(edge->edge_num),
-        edge_num(0),
-        likelihood(0.0),
-        like_weight_ratio(0.0),
-        proximal_length(0.0),
-        pendant_length(0.0),
-        parsimony(0),
-        // pquery(pquery),
-        // edge(edge)
-        pquery(nullptr),
-        edge(nullptr)
+    /**
+     * @brief Default constructor. Sets all values to 0.
+     */
+    PqueryPlacement ()
+        : likelihood(0.0)
+        , like_weight_ratio(0.0)
+        , proximal_length(0.0)
+        , pendant_length(0.0)
+        , parsimony(0)
+        , edge_(nullptr)
     {}
 
     /**
-     * @brief Something lika copy constructor. Takes the pquery and edge for inserting this
-     * placement, plus another placement, from which the other values are copied.
+     * @brief Constructor that takes the edge where this placement is being placed at.
      */
-    PqueryPlacement (
-        // const Pquery* pquery, const PlacementTreeEdge* edge, const PqueryPlacement& other
-        const PqueryPlacement& other
-    ) :
-        // edge_num(edge.edge_num),
-        edge_num(other.edge_num),
-        likelihood(other.likelihood),
-        like_weight_ratio(other.like_weight_ratio),
-        proximal_length(other.proximal_length),
-        pendant_length(other.pendant_length),
-        parsimony(other.parsimony),
-        // pquery(pquery),
-        // edge(edge)
-        pquery(nullptr),
-        edge(nullptr)
+    PqueryPlacement( PlacementTreeEdge& edge )
+        : likelihood(0.0)
+        , like_weight_ratio(0.0)
+        , proximal_length(0.0)
+        , pendant_length(0.0)
+        , parsimony(0)
+        , edge_(&edge)
     {}
 
     ~PqueryPlacement() = default;
 
+    PqueryPlacement( PqueryPlacement const& ) = default;
+    PqueryPlacement( PqueryPlacement&& )      = default;
+
+    PqueryPlacement& operator= ( PqueryPlacement const& ) = default;
+    PqueryPlacement& operator= ( PqueryPlacement&& )      = default;
+
     // -------------------------------------------------------------------
-    //     Accessors
+    //     Public Property Data Members
     // -------------------------------------------------------------------
 
-    // TODO fix the get_ part in here!!! make members protected, refactor all occurences
+    // Yes, the following members are public data members. It's neither nice nor consistent,
+    // but makes life so much easier for the moment. Maybe we'll fix that in the future...
 
-    inline const Pquery& get_pquery() const
-    {
-        return *pquery;
-    }
+    /**
+     * @brief Total likelihood of the tree with this placement attached to it.
+     *
+     * This property is defined by the `jplace` standard.
+     */
+    double    likelihood;
 
-    inline const PlacementTreeEdge& get_edge() const
-    {
-        return *edge;
-    }
+    /**
+    * @brief Likelihood weight ratio of this placement.
+    *
+    * The likelihood weight ratio is a probability-like value of how certain the placement
+    * algorithm was when placing the Pquery at the edge of this placement.
+    * The `like_weight_ratio`s of all placements for one Pquery sum up to 1.0. As not all of them
+    * might be stored in the Pquery, however, the sum might be lower.
+    *
+    * This property is defined by the `jplace` standard.
+    */
+    double    like_weight_ratio;
+
+    /**
+    * @brief Distance of this placement to the next node towards the root.
+    *
+    * This value determines the distance of the placement attachement position on the edge to the
+    * next PlacementTreeNode that lies towards the root of the PlacementTree.
+    *
+    * This property is not defined by the `jplace` standard. Instead, the standard uses
+    * `distal_length`, which is the opposite of this value: It determines the distance to the next
+    * node that lies away from the root. We use the `proximal_length` instead, as it is much more
+    * convenient for most purposes. In order to obtain the `distal_length`, use
+    *
+    *     PqueryPlacement p;
+    *     double distal_length = p.edge().data.branch_length - p.proximal_length;
+    *
+    * This is also the formula that is internally used to convert between the two.
+    */
+    double    proximal_length;
+
+    /**
+    * @brief Length of the attached branch of this placement.
+    *
+    * The placement can be interpreted as a new branch on the PlacementTree. This value then gives
+    * the length of that branch.
+    *
+    * This property is defined by the `jplace` standard.
+    */
+    double    pendant_length;
+
+    /**
+    * @brief Parsimony value.
+    *
+    * This property is defined by the `jplace` standard. It is currently not used.
+    */
+    int       parsimony;
+
+    // -------------------------------------------------------------------
+    //     Properties
+    // -------------------------------------------------------------------
+
+    int edge_num() const;
+
+    const PlacementTreeEdge& edge() const;
+          PlacementTreeEdge& edge();
+
+    void reset_edge( PlacementTreeEdge& edge );
 
     // -------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------
 
-    // const int edge_num;
-    int       edge_num;
-    double    likelihood;
-    double    like_weight_ratio;
-    double    proximal_length;
-    double    pendant_length;
-    int       parsimony;
+private:
 
-// protected:
-
-    // const Pquery*                  pquery_;
-    // const PlacementTreeEdge* edge_;
-
-    Pquery*            pquery;
-    PlacementTreeEdge* edge;
+    PlacementTreeEdge* edge_;
 };
 
 } // namespace placement

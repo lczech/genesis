@@ -27,7 +27,7 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Constructor & Destructor
+//     Constructor and Rule of Five
 // =================================================================================================
 
 /**
@@ -69,18 +69,12 @@ Sample::Sample( Sample const& other )
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
 
-        for (const auto& op : opqry->placements) {
-            auto np = make_unique<PqueryPlacement>(*op);
-
-            np->edge   = en_map[np->edge_num];
-            np->pquery = npqry.get();
-            npqry->placements.push_back(std::move(np));
+        for( auto opit = opqry->begin_placements(); opit != opqry->end_placements(); ++opit ) {
+            auto const& op = *opit;
+            npqry->add_placement( *en_map[ op.edge_num() ], op );
         }
-        for (const auto& on : opqry->names) {
-            auto nn = make_unique<PqueryName>(*on);
-
-            nn->pquery = npqry.get();
-            npqry->names.push_back(std::move(nn));
+        for( auto name_it = opqry->begin_names(); name_it != opqry->end_names(); ++name_it ) {
+            npqry->add_name( *name_it );
         }
 
         pqueries_.push_back(std::move(npqry));
@@ -133,30 +127,31 @@ Sample& Sample::operator= (Sample&& other) noexcept
     return *this;
 }
 
-Sample::~Sample()
-{
-    // We are going to destroy the Sample. Let's speed it up!
-    // TODO make swapping work propery. then, this should work, too
-    // (currently, it gives a segfault if a moved-from Sample is destroyed).
-    // if( tree_ ) {
-    //     detach_pqueries_from_tree();
-    // }
-
-    // Instead, use a weird half-copied solution for now:
-
-    for (auto const& pqry : pqueries_) {
-        for( auto const& place : pqry->placements ) {
-            place->edge = nullptr;
-        }
-    }
-}
-
 void Sample::swap (Sample& other) noexcept
 {
     using std::swap;
     swap(pqueries_, other.pqueries_);
     swap(tree_,     other.tree_);
     swap(metadata,  other.metadata);
+}
+
+// =================================================================================================
+//     Accessors
+// =================================================================================================
+
+size_t Sample::pquery_size() const
+{
+    return pqueries_.size();
+}
+
+Pquery& Sample::pquery_at( const size_t index )
+{
+    return *pqueries_.at( index );
+}
+
+Pquery const& Sample::pquery_at( const size_t index ) const
+{
+    return *pqueries_.at( index );
 }
 
 // =================================================================================================
@@ -214,21 +209,16 @@ bool Sample::merge(const Sample& other)
     // Copy all (o)ther pqueries to (n)ew pqueries.
     for (const auto& opqry : other.pqueries_) {
         auto npqry = make_unique<Pquery>();
-        for (const auto& op : opqry->placements) {
-            auto np = make_unique<PqueryPlacement>(*op);
-
+        for( auto opit = opqry->begin_placements(); opit != opqry->end_placements(); ++opit ) {
             // Assuming that the trees have identical topology (checked at the beginning of this
             // function), there will be an edge for every placement. if this assertion fails,
             // something broke the integrity of our in memory representation of the data.
-            assert(en_map.count(np->edge_num) > 0);
-            np->edge = en_map[np->edge_num];
-            np->pquery = npqry.get();
-            npqry->placements.push_back(std::move(np));
+            assert( en_map.count( opit->edge_num() ) > 0 );
+
+            npqry->add_placement( *en_map[ opit->edge_num() ], *opit );
         }
-        for (const auto& on : opqry->names) {
-            auto nn = make_unique<PqueryName>(*on);
-            nn->pquery = npqry.get();
-            npqry->names.push_back(std::move(nn));
+        for( auto name_it = opqry->begin_names(); name_it != opqry->end_names(); ++name_it ) {
+            npqry->add_name( *name_it );
         }
         this->pqueries_.push_back(std::move(npqry));
     }
@@ -261,33 +251,27 @@ void Sample::clear_placements()
 }
 
 // =================================================================================================
-//     Placement Mass
+//     Pquery Iterator
 // =================================================================================================
 
-/**
- * @brief Get the total number of placements in all pqueries.
- */
-size_t Sample::placement_count() const
+Sample::iterator_pqueries Sample::begin()
 {
-    size_t count = 0;
-    for (const auto& pqry : pqueries_) {
-        count += pqry->placements.size();
-    }
-    return count;
+    return pqueries_.begin();
 }
 
-/**
- * @brief Get the summed mass of all placements on the tree, given by their `like_weight_ratio`.
- */
-double Sample::placement_mass() const
+Sample::const_iterator_pqueries Sample::begin() const
 {
-    double sum = 0.0;
-    for (const auto& pqry : pqueries_) {
-        for (const auto& place : pqry->placements) {
-            sum += place->like_weight_ratio;
-        }
-    }
-    return sum;
+    return pqueries_.begin();
+}
+
+Sample::iterator_pqueries Sample::end()
+{
+    return pqueries_.end();
+}
+
+Sample::const_iterator_pqueries Sample::end() const
+{
+    return pqueries_.end();
 }
 
 } // namespace placement

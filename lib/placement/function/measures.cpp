@@ -15,10 +15,11 @@
 #    include <thread>
 #endif
 
-#include "placement/function/helper.hpp"
 #include "placement/function/functions.hpp"
+#include "placement/function/helper.hpp"
 #include "placement/function/operators.hpp"
 #include "placement/placement_tree.hpp"
+#include "placement/pquery/plain.hpp"
 #include "placement/sample.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/distances.hpp"
@@ -155,8 +156,8 @@ double earth_movers_distance(
     std::unordered_map<const PlacementTree::NodeType*, double> balance;
 
     // use the sum of masses as normalization factor for the masses.
-    double totalmass_l = lhs.placement_mass();
-    double totalmass_r = rhs.placement_mass();
+    double totalmass_l = total_placement_mass( lhs );
+    double totalmass_r = total_placement_mass( rhs );
 
     // Disable all debug messages for this function...
     LOG_SCOPE_LEVEL(utils::Logging::kInfo)
@@ -229,7 +230,7 @@ double earth_movers_distance(
             }
             edge_balance.emplace(place->proximal_length, +place->like_weight_ratio / totalmass_l);
 
-            LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
+            // LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
             LOG_DBG2 << "it_l edge   " << it_l.edge()->index_;
             LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_l;
             LOG_DBG2 << "new dist    " << distance;
@@ -244,7 +245,7 @@ double earth_movers_distance(
             }
             edge_balance.emplace(place->proximal_length, -place->like_weight_ratio / totalmass_r);
 
-            LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
+            // LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
             LOG_DBG2 << "it_r edge   " << it_r.edge()->index_;
             LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_r;
             LOG_DBG2 << "new dist    " << distance;
@@ -844,38 +845,39 @@ double center_of_gravity_variance (
     auto   node_dist_dist  = node_distance_vector(map.tree(), central_edge->secondary_node());
 
     for (const auto& pqry : map.pqueries()) {
-        for (const auto& place : pqry->placements) {
+        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+            auto const& place = *pit;
             double distance;
 
-            if (place->edge->index() == central_edge->index()) {
-                distance = std::abs(place->proximal_length - proximal_length);
+            if (place.edge().index() == central_edge->index()) {
+                distance = std::abs(place.proximal_length - proximal_length);
             } else{
                 double pp, pd, dp;
 
                 // proximal-proximal case
                 pp = proximal_length
-                   + node_dist_prox[place->edge->primary_node()->index()]
-                   + place->proximal_length;
+                   + node_dist_prox[place.edge().primary_node()->index()]
+                   + place.proximal_length;
 
                 // proximal-distal case
                 pd = proximal_length
-                   + node_dist_prox[place->edge->secondary_node()->index()]
-                   + place->edge->data.branch_length - place->proximal_length;
+                   + node_dist_prox[place.edge().secondary_node()->index()]
+                   + place.edge().data.branch_length - place.proximal_length;
 
                 // distal-proximal case
                 dp = central_edge->data.branch_length - proximal_length
-                   + node_dist_dist[place->edge->primary_node()->index()]
-                   + place->proximal_length;
+                   + node_dist_dist[place.edge().primary_node()->index()]
+                   + place.proximal_length;
 
                 // find min of the three cases
                 distance = std::min(pp, std::min(pd, dp));
             }
 
             if (with_pendant_length) {
-                distance += place->pendant_length;
+                distance += place.pendant_length;
             }
-            variance += distance * distance * place->like_weight_ratio;
-            mass     += place->like_weight_ratio;
+            variance += distance * distance * place.like_weight_ratio;
+            mass     += place.like_weight_ratio;
         }
     }
 
@@ -1000,7 +1002,7 @@ double pairwise_distance (
     }
 
     // Return normalized value.
-    return sum / map_a.placement_mass() / map_b.placement_mass();
+    return sum / total_placement_mass( map_a ) / total_placement_mass( map_b );
 }
 
 // =================================================================================================

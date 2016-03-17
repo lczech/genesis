@@ -37,39 +37,39 @@ namespace placement {
 /**
  * @brief Write the data of a Sample to a file in `Jplace` format.
  */
-bool JplaceWriter::to_file (const Sample& placements, const std::string fn)
+bool JplaceWriter::to_file (const Sample& smp, const std::string filename)
 {
-    if( utils::file_exists(fn) ) {
-        LOG_WARN << "Jplace file '" << fn << "' already exist. Will not overwrite it.";
+    if( utils::file_exists(filename) ) {
+        LOG_WARN << "Jplace file '" << filename << "' already exist. Will not overwrite it.";
         return false;
     }
     std::string ts;
-    to_string(placements, ts);
-    return utils::file_write( fn, ts );
+    to_string(smp, ts);
+    return utils::file_write( filename, ts );
 }
 
 /**
  * @brief Store the data of a Sample in a string in `Jplace` format.
  */
-void JplaceWriter::to_string (const Sample& placements, std::string&  jplace)
+void JplaceWriter::to_string (const Sample& smp, std::string&  output)
 {
-    jplace = to_string(placements);
+    output = to_string(smp);
 }
 
 /**
  * @brief Return the data of a Sample as a string in `Jplace` format.
  */
-std::string JplaceWriter::to_string (const Sample& placements)
+std::string JplaceWriter::to_string (const Sample& smp)
 {
     utils::JsonDocument json;
-    to_document(placements, json);
+    to_document(smp, json);
     return utils::JsonProcessor().to_string(json);
 }
 
 /**
  * @brief Store the data of a Sample in a JsonDocument object.
  */
-void JplaceWriter::to_document (const Sample& placements, utils::JsonDocument& doc)
+void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc)
 {
     // Simplify the code. Specifying utils::Json... is cumbersome.
     using namespace utils;
@@ -80,51 +80,57 @@ void JplaceWriter::to_document (const Sample& placements, utils::JsonDocument& d
     auto nwp = PlacementTreeNewickProcessor();
     nwp.enable_names(true);
     nwp.enable_branch_lengths(true);
-    doc.set("tree", new JsonValueString(nwp.to_string(placements.tree())));
+    doc.set("tree", new JsonValueString(nwp.to_string(smp.tree())));
 
     // set placements
     JsonValueArray* placements_arr = new JsonValueArray();
-    for (auto& pqry : placements.pqueries()) {
+    for (auto& pqry : smp.pqueries()) {
         JsonValueObject* jpqry      = new JsonValueObject();
         placements_arr->push_back(jpqry);
 
         // set placements
         JsonValueArray* pqry_p_arr  = new JsonValueArray();
-        for (auto& pqry_place : pqry->placements) {
+        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+            auto const& pqry_place = *pit;
+
             JsonValueArray* pqry_fields = new JsonValueArray();
-            pqry_fields->push_back(new JsonValueNumber(pqry_place->edge_num));
-            pqry_fields->push_back(new JsonValueNumber(pqry_place->likelihood));
-            pqry_fields->push_back(new JsonValueNumber(pqry_place->like_weight_ratio));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place.edge_num()));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place.likelihood));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place.like_weight_ratio));
 
             // convert from proximal to distal length.
             pqry_fields->push_back(new JsonValueNumber(
-                pqry_place->edge->data.branch_length - pqry_place->proximal_length
+                pqry_place.edge().data.branch_length - pqry_place.proximal_length
             ));
-            pqry_fields->push_back(new JsonValueNumber(pqry_place->pendant_length));
+            pqry_fields->push_back(new JsonValueNumber(pqry_place.pendant_length));
             pqry_p_arr->push_back(pqry_fields);
         }
         jpqry->set("p", pqry_p_arr);
 
         // find out whether names have multiplicity
         bool has_nm = false;
-        for (auto& pqry_name : pqry->names) {
-            has_nm |= pqry_name->multiplicity != 0.0;
+        for( auto name_it = pqry->begin_names(); name_it != pqry->end_names(); ++name_it ) {
+            auto& pqry_name = *name_it;
+            has_nm |= pqry_name.multiplicity != 0.0;
         }
 
         // set named multiplicity / name
         if (has_nm) {
             JsonValueArray* pqry_nm_arr = new JsonValueArray();
-            for (auto& pqry_name : pqry->names) {
+            for( auto name_it = pqry->begin_names(); name_it != pqry->end_names(); ++name_it ) {
+                auto& pqry_name = *name_it;
+
                 JsonValueArray* pqry_nm_val = new JsonValueArray();
-                pqry_nm_val->push_back(new JsonValueString(pqry_name->name));
-                pqry_nm_val->push_back(new JsonValueNumber(pqry_name->multiplicity));
+                pqry_nm_val->push_back(new JsonValueString(pqry_name.name));
+                pqry_nm_val->push_back(new JsonValueNumber(pqry_name.multiplicity));
                 pqry_nm_arr->push_back(pqry_nm_val);
             }
             jpqry->set("nm", pqry_nm_arr);
         } else {
             JsonValueArray* pqry_n_arr  = new JsonValueArray();
-            for (auto& pqry_name : pqry->names) {
-                pqry_n_arr->push_back(new JsonValueString(pqry_name->name));
+            for( auto name_it = pqry->begin_names(); name_it != pqry->end_names(); ++name_it ) {
+                auto& pqry_name = *name_it;
+                pqry_n_arr->push_back(new JsonValueString(pqry_name.name));
             }
             jpqry->set("n", pqry_n_arr);
         }

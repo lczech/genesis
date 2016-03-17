@@ -7,6 +7,10 @@
 
 #include "placement/function/helper.hpp"
 
+#include "placement/pquery/plain.hpp"
+#include "tree/iterator/postorder.hpp"
+#include "tree/operators.hpp"
+
 namespace genesis {
 namespace placement {
 
@@ -47,6 +51,8 @@ std::unordered_map<int, PlacementTree::EdgeType*> edge_num_to_edge_map( Sample c
 /**
  * @brief Return a mapping from PlacementTreeEdge indices to a vector of all PqueryPlacement%s that
  * are placed on that edge, for all edges of the Sample.
+ *
+ * This map is invalidated after calling Pquery::add_placement().
  */
 std::unordered_map< size_t, std::vector< PqueryPlacement const* >> placements_per_edge(
     Sample const& smp
@@ -54,8 +60,8 @@ std::unordered_map< size_t, std::vector< PqueryPlacement const* >> placements_pe
     std::unordered_map< size_t, std::vector< PqueryPlacement const* >> result;
 
     for( auto const& pqry : smp.pqueries() ) {
-        for( auto const& place : pqry->placements ) {
-            result[ place->edge->index() ].push_back( place.get() );
+        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+            result[ pit->edge().index() ].push_back( &*pit );
         }
     }
 
@@ -64,6 +70,12 @@ std::unordered_map< size_t, std::vector< PqueryPlacement const* >> placements_pe
 
 /**
  * @brief Return a vector of all PqueryPlacement%s that are placed on the given PlacementTreeEdge.
+ *
+ * This functions iterates over all placements and collects those that are placed on the given
+ * edge. In case that this is needed for multiple edges, it will be faster to use
+ * placements_per_edge( Sample ) instead.
+ *
+ * This map is invalidated after calling Pquery::add_placement().
  */
 std::vector<PqueryPlacement const*> placements_per_edge(
     Sample            const& smp,
@@ -72,9 +84,9 @@ std::vector<PqueryPlacement const*> placements_per_edge(
     std::vector<PqueryPlacement const*> result;
 
     for( auto const& pqry : smp.pqueries() ) {
-        for( auto const& place : pqry->placements ) {
-            if( place->edge == &edge ) {
-                result.push_back( place.get() );
+        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+            if( &pit->edge() == &edge ) {
+                result.push_back( &*pit );
             }
         }
     }
@@ -102,23 +114,169 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
         pqueries[i].index = i;
 
         const auto& opqry = smp.pquery_at(i);
-        pqueries[i].placements = std::vector<PqueryPlacementPlain>(opqry.placements.size());
+        pqueries[i].placements = std::vector<PqueryPlacementPlain>(opqry.placement_size());
 
-        for (size_t j = 0; j < opqry.placements.size(); ++j) {
-            const auto& oplace = opqry.placements[j];
+        for (size_t j = 0; j < opqry.placement_size(); ++j) {
+            auto const& oplace = opqry.placement_at(j);
             auto& place = pqueries[i].placements[j];
 
-            place.edge_index           = oplace->edge->index();
-            place.primary_node_index   = oplace->edge->primary_node()->index();
-            place.secondary_node_index = oplace->edge->secondary_node()->index();
+            place.edge_index           = oplace.edge().index();
+            place.primary_node_index   = oplace.edge().primary_node()->index();
+            place.secondary_node_index = oplace.edge().secondary_node()->index();
 
-            place.branch_length        = oplace->edge->data.branch_length;
-            place.pendant_length       = oplace->pendant_length;
-            place.proximal_length      = oplace->proximal_length;
-            place.like_weight_ratio    = oplace->like_weight_ratio;
+            place.branch_length        = oplace.edge().data.branch_length;
+            place.pendant_length       = oplace.pendant_length;
+            place.proximal_length      = oplace.proximal_length;
+            place.like_weight_ratio    = oplace.like_weight_ratio;
         }
     }
     return pqueries;
+}
+
+// =================================================================================================
+//     Verification
+// =================================================================================================
+
+/**
+ * @brief Verify that the tree has correctly set edge nums.
+ *
+ * The `edge_num` property of the PlacementTreeEdge%s is defined by the `jplace` standard.
+ * The values have to be assigned increasingly with a postorder traversal of the tree.
+ * This function checks whether this is the case.
+ */
+bool has_correct_edge_nums( PlacementTree const& tree )
+{
+    int current = 0;
+
+    // Edge numbers need to be in ascending order via postorder traversal. Check this.
+    for (auto it = tree.begin_postorder(); it != tree.end_postorder(); ++it) {
+        // The last iteration is skipped, as the root does not have an edge.
+        if (it.is_last_iteration()) {
+            continue;
+        }
+
+        if (it.edge()->data.edge_num() != current) {
+            return false;
+        }
+        ++current;
+    }
+
+    return true;
+}
+
+/**
+ * @brief Validate the integrity of the pointers, references and data in a Sample object.
+ *
+ * Returns true iff everything is set up correctly. In case of inconsistencies, the function stops
+ * and returns false on the first encountered error.
+ *
+ * If `check_values` is set to true, also a check on the validity of numerical values is done, for
+ * example that the proximal_length is smaller than the corresponding branch_length.
+ * If additionally `break_on_values` is set, validate() will stop on the first encountered invalid
+ * value. Otherwise it will report all invalid values to the log stream.
+ */
+bool validate( Sample const& smp, bool check_values, bool break_on_values )
+{
+    // check tree
+    if( ! tree::validate( smp.tree() ) ) {
+        LOG_INFO << "Invalid placement tree.";
+        return false;
+    }
+
+    // check edges
+    std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
+    for (
+        auto it_e = smp.tree().begin_edges();
+        it_e != smp.tree().end_edges();
+        ++it_e
+    ) {
+        // make sure every edge num is used once only
+        PlacementTree::EdgeType* edge = (*it_e).get();
+        if (edge_num_map.count(edge->data.edge_num()) > 0) {
+            LOG_INFO << "More than one edge has edge_num '" << edge->data.edge_num() << "'.";
+            return false;
+        }
+        edge_num_map.emplace(edge->data.edge_num(), edge);
+    }
+    if( ! has_correct_edge_nums( smp.tree() )) {
+        LOG_INFO << "Tree does not have correct edge nums.";
+        return false;
+    }
+
+    // check pqueries
+    size_t pqry_place_count = 0;
+    for( const auto& pqry : smp.pqueries() ) {
+        // use this name for reporting invalid placements.
+        std::string name;
+        if (pqry->name_size() > 0) {
+            name = "'" + pqry->name_at(0).name + "'";
+        } else {
+            name = "(unnamed pquery)";
+        }
+
+        // check placements
+        if (check_values && pqry->placement_size() == 0) {
+            LOG_INFO << "Pquery without any placements at '" << name << "'.";
+            if (break_on_values) {
+                return false;
+            }
+        }
+        double ratio_sum = 0.0;
+        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+            auto const& p = *pit;
+
+            // now we know that all references between placements and edges are correct, so this
+            // assertion breaks only if we forgot to check some sort of weird inconsistency.
+            assert( edge_num_map.count( p.edge_num() ) > 0 );
+            ++pqry_place_count;
+
+            // check numerical values
+            if (!check_values) {
+                continue;
+            }
+            if (p.like_weight_ratio < 0.0 || p.like_weight_ratio > 1.0) {
+                LOG_INFO << "Invalid placement with like_weight_ratio '" << p.like_weight_ratio
+                        << "' not in [0.0, 1.0] at " << name << ".";
+                if (break_on_values) {
+                    return false;
+                }
+            }
+            if (p.pendant_length < 0.0 || p.proximal_length < 0.0) {
+                LOG_INFO << "Invalid placement with pendant_length '" << p.pendant_length
+                         << "' or proximal_length '" << p.proximal_length << "' < 0.0 at "
+                         << name << ".";
+                if (break_on_values) {
+                    return false;
+                }
+            }
+            if (p.proximal_length > p.edge().data.branch_length) {
+                LOG_INFO << "Invalid placement with proximal_length '" << p.proximal_length
+                         << "' > branch_length '" << p.edge().data.branch_length << "' at "
+                         << name << ".";
+                if (break_on_values) {
+                    return false;
+                }
+            }
+            ratio_sum += p.like_weight_ratio;
+        }
+        if (check_values && ratio_sum > 1.0) {
+            LOG_INFO << "Invalid pquery with sum of like_weight_ratio '" << ratio_sum
+                     << "' > 1.0 at " << name << ".";
+            if (break_on_values) {
+                return false;
+            }
+        }
+
+        // check names
+        if (check_values && pqry->name_size() == 0) {
+            LOG_INFO << "Pquery without any names at '" << name << "'.";
+            if (break_on_values) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 } // namespace placement

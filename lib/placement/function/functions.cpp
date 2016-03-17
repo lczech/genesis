@@ -81,77 +81,62 @@ void normalize_weight_ratios( Sample& smp )
 {
     for( auto& pqry : smp.pqueries() ) {
         double sum = 0.0;
-        for (auto& place : pqry->placements) {
-            sum += place->like_weight_ratio;
+        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+            auto const& place = *pit;
+            sum += place.like_weight_ratio;
         }
-        for (auto& place : pqry->placements) {
-            place->like_weight_ratio /= sum;
+        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+            auto& place = *pit;
+            place.like_weight_ratio /= sum;
         }
     }
+}
+
+/**
+ * @brief Remove all PqueryPlacement%s but the most likely one from the Pquery.
+ *
+ * Pqueries can contain multiple placements on different branches. For example, the EPA algorithm
+ * of RAxML outputs up to the 7 most likely positions for placements to the output Jplace file by
+ * default. The property `like_weight_ratio` weights those placement positions so that the sum over
+ * all positions (all branches of the tree) per pquery is 1.0.
+ *
+ * This function removes all but the most likely placement (the one which has the maximal
+ * `like_weight_ratio`) from the Pquery. It additionally sets the `like_weight_ratio` of the
+ * remaining placement to 1.0, as this one now is the only one left, thus its "sum" has to be 1.0.
+ */
+void restrain_to_max_weight_placements( Pquery& pquery )
+{
+    // Check if there is anything to do at all.
+    if( pquery.placement_size() == 0 ) {
+        return;
+    }
+
+    // Get a copy of the element with the highest like_weight_ratio.
+    PqueryPlacement max_place = *std::max_element(
+        pquery.begin_placements(),
+        pquery.end_placements(),
+        [] ( PqueryPlacement const& lhs, PqueryPlacement const& rhs ) {
+            return lhs.like_weight_ratio < rhs.like_weight_ratio;
+        }
+    );
+
+    // Set the new max placement as the only one in the Pquery.
+    max_place.like_weight_ratio = 1.0;
+    pquery.clear_placements();
+    pquery.add_placement( max_place );
 }
 
 /**
  * @brief Remove all PqueryPlacement%s but the most likely one from all
  * @link Pquery Pqueries @endlink in the Sample.
  *
- * Pqueries can contain multiple placements on different branches. For example, the EPA algorithm
- * of RAxML outputs up to the 7 most likely positions for placements to the output Jplace file by
- * default. The property `like_weight_ratio` weights those placement positions so that the sum over
- * all positions per pquery is 1.0.
- *
- * This function removes all but the most likely placement (the one which has the maximal
- * `like_weight_ratio`) from each Pquery. It additionally sets the `like_weight_ratio` of the
- * remaining placement to 1.0, as this one now is the only one left, thus it's "sum" has to be 1.0.
+ * This function calls restrain_to_max_weight_placements( Pquery& pquery ) for all Pqueries of
+ * the Sample. See this version of the function for more information.
  */
 void restrain_to_max_weight_placements( Sample& smp )
 {
-    for( auto& pqry : smp.pqueries() ) {
-        // Initialization.
-        double             max_w = -1.0;
-        PqueryPlacement*   max_p = nullptr;
-        // PlacementTreeEdge* max_e = nullptr;
-
-        for (auto& place : pqry->placements) {
-            // Find the maximum of the weight ratios in the placements of this pquery.
-            if (place->like_weight_ratio > max_w) {
-                max_w = place->like_weight_ratio;
-                max_p = place.get();
-                // max_e = place->edge;
-            }
-
-            // place->edge = nullptr;
-
-            // Delete the reference from the edge to the current placement. We will later add the
-            // one that points to the remaining (max weight) placement back to its edge.
-            // std::vector<PqueryPlacement*>::iterator it = place->edge->data.placements.begin();
-            // for (; it != place->edge->data.placements.end(); ++it) {
-            //     if (*it == place.get()) {
-            //         break;
-            //     }
-            // }
-
-            // Assert that the edge actually contains a reference to this pquery. If not,
-            // this means that we messed up somewhere else while adding/removing placements...
-            // assert(it != place->edge->data.placements.end());
-            // place->edge->data.placements.erase(it);
-        }
-
-        // Remove all but the max element from placements vector.
-        auto neq = [max_p] (const std::unique_ptr<PqueryPlacement>& other)
-        {
-            return other.get() != max_p;
-        };
-        auto pend = std::remove_if (pqry->placements.begin(), pqry->placements.end(), neq);
-        pqry->placements.erase(pend, pqry->placements.end());
-
-        // Now add back the reference from the edge to the pquery.
-        // Assert that we now have a single placement in the pquery (the most likely one).
-        assert(pqry->placements.size() == 1 && pqry->placements[0].get() == max_p);
-        // max_p->edge = max_e;
-        // max_p->edge->data.placements.push_back(max_p);
-
-        // Also, set the like_weight_ratio to 1.0, because we do not have any other placements left.
-        max_p->like_weight_ratio = 1.0;
+    for( auto& pquery_it : smp.pqueries() ) {
+        restrain_to_max_weight_placements( *pquery_it );
     }
 }
 
@@ -168,10 +153,10 @@ void sort_placements_by_like_weight_ratio( Pquery& pquery )
         pquery.begin_placements(),
         pquery.end_placements(),
         [] (
-            std::unique_ptr<PqueryPlacement> const& lhs,
-            std::unique_ptr<PqueryPlacement> const& rhs
+            PqueryPlacement const& lhs,
+            PqueryPlacement const& rhs
         ) {
-            return lhs->like_weight_ratio > rhs->like_weight_ratio;
+            return lhs.like_weight_ratio > rhs.like_weight_ratio;
         }
     );
 }
@@ -256,22 +241,26 @@ void collect_duplicate_pqueries (Sample& smp)
             // Collect the Pqueries that can be merged with the current one, because they share
             // a common name.
             std::unordered_set<Pquery*> merges;
-            for (auto& name : it->names) {
-                if (hash.count(name->name) > 0) {
-                    merges.insert(hash[name->name]);
+            for( auto name_it = it->begin_names(); name_it != it->end_names(); ++name_it ) {
+                auto& name = *name_it;
+
+                if (hash.count(name.name) > 0) {
+                    merges.insert(hash[name.name]);
                 }
             }
 
             if (merges.size() == 0) {
                 // All names are new, so store them in the hash smp for later.
                 // We don't need to do any merging in this case.
-                for (auto& name : it->names) {
+                for( auto name_it = it->begin_names(); name_it != it->end_names(); ++name_it ) {
+                    auto& name = *name_it;
+
                     // We are here because we found no pquery to merge with. This means that the
                     // name cannot be in the hash smp already.
-                    assert(hash.count(name->name) == 0);
+                    assert(hash.count(name.name) == 0);
 
                     // Now add it.
-                    hash[name->name] = &*it;
+                    hash[name.name] = &*it;
                 }
             } else {
                 // We need merging. We will merge with only one Pquery in this iteration. If there
@@ -284,23 +273,25 @@ void collect_duplicate_pqueries (Sample& smp)
                 // TODO we could use move here instead of copy creating.
 
                 // Add all placements to it.
-                for (auto& place : it->placements) {
-                    merge_into->insert_placement(*place);
+                for( auto pit = it->begin_placements(); pit != it->end_placements(); ++pit ) {
+                    merge_into->add_placement( *pit );
                 }
 
                 // Add all names. This will cause doubled names, but they can be reduced later
                 // via merge_duplicate_names().
                 // We could do the check here, but this would increase complexity and gain just a
                 // bit of speed (probably).
-                for (auto& name : it->names) {
+                for( auto name_it = it->begin_names(); name_it != it->end_names(); ++name_it ) {
+                    auto& name = *name_it;
+
                     // Add the name to the Pquery.
-                    merge_into->insert_name(*name);
+                    merge_into->add_name( name );
 
                     // Also add it to the hash smp. If this was name that is responsible for the
                     // merging (the shared name), we will replace the entry by an indentical copy.
                     // For all other names of the current Pquery, we need this to ensure that the
                     // next Pqueries in the loop will find it.
-                    hash[name->name] = merge_into;
+                    hash[name.name] = merge_into;
                 }
 
                 // Mark the Pquery for deletion.
@@ -330,64 +321,54 @@ void collect_duplicate_pqueries (Sample& smp)
  */
 void merge_duplicate_placements (Pquery& pquery)
 {
-    // We want to merge all placements that are on the same edge. This object collects those sets,
-    // indexed by their edge_num.
-    std::unordered_map <
-        int,
-        std::vector<PqueryPlacement*>
-    > merge_units;
+    // Merge the placements into this map, indexed by the edge index they belong to.
+    // Also, store how many placements have been merged into this one.
+    std::unordered_map< size_t, std::pair< PqueryPlacement, size_t >> merge_units;
 
-    // After merging, we can delete all but one placement per edge. This set collects the ones
-    // that we later want to delete.
-    std::unordered_set<PqueryPlacement*> del;
+    for( auto pit = pquery.begin_placements(); pit != pquery.end_placements(); ++pit ) {
+        auto const& place = *pit;
+        auto edge_idx = place.edge().index();
 
-    // Collect all placements sorted (indexed) by their edge.
-    for (auto& place : pquery.placements) {
-        merge_units[place->edge_num].push_back(place.get());
-    }
+        // For the first placement on each edge, make a copy.
+        if( merge_units.count( edge_idx ) == 0 ) {
+            merge_units[ edge_idx ] = { place, 0 };
 
-    // For each edge_num (i.e., each index in the unordered_map), merge all placements into the first
-    // one and mark all other for deletion.
-    for (auto place_it : merge_units) {
-        auto& place_vec = place_it.second;
-        size_t count = place_vec.size();
+        // For all others, add their values to the stored one.
+        } else {
+            auto& merge_into = merge_units[ edge_idx ].first;
+            ++merge_units[ edge_idx ].second;
 
-        // Add up everything into the first placement.
-        // If there is only one placement on this edge, nothing happens.
-        for (size_t i = 1; i < count; ++i) {
-            assert(place_vec[0]->edge_num == place_vec[i]->edge_num);
-
-            place_vec[0]->likelihood        += place_vec[i]->likelihood;
-            place_vec[0]->like_weight_ratio += place_vec[i]->like_weight_ratio;
-            place_vec[0]->proximal_length   += place_vec[i]->proximal_length;
-            place_vec[0]->pendant_length    += place_vec[i]->pendant_length;
-            place_vec[0]->parsimony         += place_vec[i]->parsimony;
-
-            del.insert(place_vec[i]);
-        }
-
-        // Average everything.
-        if (count > 1) {
-            double denom = static_cast<double> (count);
-
-            place_vec[0]->likelihood        /= denom;
-            place_vec[0]->like_weight_ratio /= denom;
-            place_vec[0]->proximal_length   /= denom;
-            place_vec[0]->pendant_length    /= denom;
-            place_vec[0]->parsimony         /= denom;
+            merge_into.likelihood        += place.likelihood;
+            merge_into.like_weight_ratio += place.like_weight_ratio;
+            merge_into.proximal_length   += place.proximal_length;
+            merge_into.pendant_length    += place.pendant_length;
+            merge_into.parsimony         += place.parsimony;
         }
     }
 
-    // Finally, we can delete all surplus placements.
-    erase_if(pquery.placements, [del] (std::unique_ptr<PqueryPlacement>& place) {
-        return del.count(place.get()) > 0;
-    });
+    // Clear all previous placements and add back the averaged merged ones.
+    pquery.clear_placements();
+    for( auto& merge_unit : merge_units ) {
+        auto& place = merge_unit.second.first;
+
+        if( merge_unit.second.second > 1 ) {
+            double denom = static_cast<double>( merge_unit.second.second );
+
+            place.likelihood        /= denom;
+            place.like_weight_ratio /= denom;
+            place.proximal_length   /= denom;
+            place.pendant_length    /= denom;
+            place.parsimony         /= denom;
+        }
+
+        pquery.add_placement(place);
+    }
 }
 
 /**
- * @brief Call `merge_duplicate_placements()` for each Pquery of the Sample.
+ * @brief Call merge_duplicate_placements( Pquery& ) for each Pquery of a Sample.
  */
-void merge_duplicate_placements (Sample& smp)
+void merge_duplicate_placements( Sample& smp )
 {
     for (auto& pquery_it : smp.pqueries()) {
         merge_duplicate_placements (*pquery_it);
@@ -395,31 +376,28 @@ void merge_duplicate_placements (Sample& smp)
 }
 
 /**
- * @brief Merge all PqueryName%s that are the same into one, while adding up their `multiplicity`.
+ * @brief Merge all PqueryName%s that have the same `name` property into one, while adding up their
+ * `multiplicity`.
  */
-void merge_duplicate_names (Pquery& pquery)
+void merge_duplicate_names( Pquery& pquery )
 {
-    // We traverse all names of this Pquery and use a hash smp to find duplictes. As deleting during
-    // iteration is not a good idea, we also keep track of those names that are duplicates and
-    // delete them later.
-    std::unordered_map<std::string, PqueryName*> hash;
-    std::unordered_set<PqueryName*> del;
+    // We add names to this map, indexed by their actual name string.
+    std::unordered_map<std::string, PqueryName> result;
+    for( auto name_it = pquery.begin_names(); name_it != pquery.end_names(); ++name_it ) {
+        auto const& name = *name_it;
 
-    // Merge names. If two PlacementName objects have a commong name, add their multiplicity into
-    // the first one and mark the other one for deletion.
-    for (auto& name_it : pquery.names) {
-        if (hash.count(name_it->name) == 0) {
-            hash[name_it->name] = &*name_it;
+        if( result.count( name.name ) == 0 ) {
+            result[ name.name ] = name;
         } else {
-            hash[name_it->name]->multiplicity += name_it->multiplicity;
-            del.insert(&*name_it);
+            result[ name.name ].multiplicity += name.multiplicity;
         }
     }
 
-    // Now delete all Name objects whose values were merged into objects of the same name.
-    erase_if(pquery.names, [del] (std::unique_ptr<PqueryName>& name) {
-        return del.count(name.get()) > 0;
-    });
+    // Now delete all names and re-populate using the map.
+    pquery.clear_names();
+    for( auto const& n : result ) {
+        pquery.add_name( n.second );
+    }
 }
 
 /**
@@ -435,6 +413,34 @@ void merge_duplicate_names (Sample& smp)
 // =================================================================================================
 //     Placement Mass
 // =================================================================================================
+
+/**
+ * @brief Get the total number of PqueryPlacement%s in all @link Pquery Pqueries @endlink of the
+ * given Sample.
+ */
+size_t total_placement_count( Sample const& smp )
+{
+    size_t count = 0;
+    for( auto const& pqry : smp.pqueries() ) {
+        count += pqry->placement_size();
+    }
+    return count;
+}
+
+/**
+ * @brief Get the summed mass of all PqueryPlacement%s in all @link Pquery Pqueries @endlink of the
+ * given Sample, where mass is measured by `like_weight_ratio`.
+ */
+double total_placement_mass(  Sample const& smp )
+{
+    double sum = 0.0;
+    for( const auto& pqry : smp.pqueries() ) {
+        for( auto place = pqry->begin_placements(); place != pqry->end_placements(); ++place ) {
+            sum += place->like_weight_ratio;
+        }
+    }
+    return sum;
+}
 
 /**
  * @brief Get the number of placements on the edge with the most placements, and a pointer to this
@@ -520,12 +526,14 @@ std::vector<int> closest_leaf_depth_histogram( Sample const& smp )
     // Get a vector telling us the depth from each node to its closest leaf node.
     auto depths = closest_leaf_depth_vector( smp.tree() );
 
-    for( auto const& pqry : smp.pqueries() ) {
-        for (const auto& place : pqry->placements) {
+    for( auto const& pquery : smp.pqueries() ) {
+        for( auto pit = pquery->begin_placements(); pit != pquery->end_placements(); ++pit ) {
+            auto const& place = *pit;
+
             // Try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            int dp = depths[place->edge->primary_node()->index()].second;
-            int ds = depths[place->edge->secondary_node()->index()].second;
+            int dp = depths[ place.edge().primary_node()->index()   ].second;
+            int ds = depths[ place.edge().secondary_node()->index() ].second;
             unsigned int ld = std::min(dp, ds);
 
             // Put the closer one into the histogram, resize if necessary.
@@ -572,17 +580,19 @@ std::vector<int> closest_leaf_distance_histogram (
     // get a vector telling us the distance from each node to its closest leaf node.
     auto dists = tree::closest_leaf_distance_vector( smp.tree() );
 
-    for (const auto& pqry : smp.pqueries()) {
-        for (const auto& place : pqry->placements) {
+    for (const auto& pquery : smp.pqueries()) {
+        for( auto pit = pquery->begin_placements(); pit != pquery->end_placements(); ++pit ) {
+            auto const& place = *pit;
+
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            double dp = place->pendant_length
-                      + place->proximal_length
-                      + dists[place->edge->primary_node()->index()].second;
-            double ds = place->pendant_length
-                      + place->edge->data.branch_length
-                      - place->proximal_length
-                      + dists[place->edge->secondary_node()->index()].second;
+            double dp = place.pendant_length
+                      + place.proximal_length
+                      + dists[ place.edge().primary_node()->index() ].second;
+            double ds = place.pendant_length
+                      + place.edge().data.branch_length
+                      - place.proximal_length
+                      + dists[ place.edge().secondary_node()->index() ].second;
             double ld = std::min(dp, ds);
 
             // find the right bin. if the distance value is outside the boundaries of [min;max],
@@ -645,17 +655,19 @@ std::vector<int> closest_leaf_distance_histogram_auto (
     auto dists = tree::closest_leaf_distance_vector( smp.tree() );
 
     // calculate all distances from placements to their closest leaf and store them.
-    for (const auto& pqry : smp.pqueries()) {
-        for (const auto& place : pqry->placements) {
+    for (const auto& pquery : smp.pqueries()) {
+        for( auto pit = pquery->begin_placements(); pit != pquery->end_placements(); ++pit ) {
+            auto const& place = *pit;
+
             // try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            double dp = place->pendant_length
-                      + place->proximal_length
-                      + dists[place->edge->primary_node()->index()].second;
-            double ds = place->pendant_length
-                      + place->edge->data.branch_length
-                      - place->proximal_length
-                      + dists[place->edge->secondary_node()->index()].second;
+            double dp = place.pendant_length
+                      + place.proximal_length
+                      + dists[ place.edge().primary_node()->index() ].second;
+            double ds = place.pendant_length
+                      + place.edge().data.branch_length
+                      - place.proximal_length
+                      + dists[ place.edge().secondary_node()->index() ].second;
             double ld = std::min(dp, ds);
             distrib.push_back(ld);
 
