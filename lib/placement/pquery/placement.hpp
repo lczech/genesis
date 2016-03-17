@@ -34,13 +34,21 @@ namespace placement {
 namespace placement {
 
 /**
- * @brief
+ * @brief One placement position of a Pquery on a PlacementTree.
+ *
+ * This class is modeled after the `jplace` standard, which allows for multiple placement positions
+ * for a Pquery. Usually, those positions are on different branches of the tree. The property
+ * values of this class describe one such placement position.
+ *
+ * In order to check the position of this placement on the tree, see #proximal_length,
+ * #pendant_length and edge(). In order to check the likelihood and probability of this placement
+ * beging placed exaclty where it is, see #likelihood and #like_weight_ratio.
  */
 class PqueryPlacement
 {
 public:
 
-    friend Pquery;
+    friend class Pquery;
 
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -82,7 +90,7 @@ public:
     // -------------------------------------------------------------------
 
     // Yes, the following members are public data members. It's neither nice nor consistent,
-    // but makes life so much easier for the moment.
+    // but makes life so much easier for the moment. Maybe we'll fix that in the future...
 
     /**
      * @brief Total likelihood of the tree with this placement attached to it.
@@ -92,18 +100,22 @@ public:
     double    likelihood;
 
     /**
-    * @brief Likelihood Weight Ratio that determines a probability-like value of how certain
-    * the placement algorithm was when placing the Pquery at the edge of this placement.
+    * @brief Likelihood weight ratio of this placement.
     *
-    * This property is defined by the `jplace` standard. The `like_weight_ratio`s of all
-    * placements for one Pquery sum up to 1.0. As not all of them might be stored in the Pquery,
-    * however, the sum might be lower.
+    * The likelihood weight ratio is a probability-like value of how certain the placement
+    * algorithm was when placing the Pquery at the edge of this placement.
+    * The `like_weight_ratio`s of all placements for one Pquery sum up to 1.0. As not all of them
+    * might be stored in the Pquery, however, the sum might be lower.
+    *
+    * This property is defined by the `jplace` standard.
     */
     double    like_weight_ratio;
 
     /**
-    * @brief Distance of the placement attachement position on the edge to the next
-    * PlacementTreeNode that lies towards the root of the PlacementTree.
+    * @brief Distance of this placement to the next node towards the root.
+    *
+    * This value determines the distance of the placement attachement position on the edge to the
+    * next PlacementTreeNode that lies towards the root of the PlacementTree.
     *
     * This property is not defined by the `jplace` standard. Instead, the standard uses
     * `distal_length`, which is the opposite of this value: It determines the distance to the next
@@ -117,6 +129,7 @@ public:
     *
     * The placement can be interpreted as a new branch on the PlacementTree. This value then gives
     * the length of that branch.
+    *
     * This property is defined by the `jplace` standard.
     */
     double    pendant_length;
@@ -124,7 +137,7 @@ public:
     /**
     * @brief Parsimony value.
     *
-    * This property is defined by the `jplace` standard. It is currently not used here.
+    * This property is defined by the `jplace` standard. It is currently not used.
     */
     int       parsimony;
 
@@ -146,7 +159,7 @@ public:
 
 private:
 
-    int       edge_num_;
+    int                edge_num_;
     PlacementTreeEdge* edge_;
 };
 
