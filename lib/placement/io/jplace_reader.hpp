@@ -86,10 +86,10 @@ public:
     void from_files    ( std::vector<std::string> const& fns, SampleSet& set ) const;
     void from_strings  ( std::vector<std::string> const& jps, SampleSet& set ) const;
 
-    void from_stream   ( std::istream&       is,         Sample& placements ) const;
-    void from_file     ( std::string const&  fn,         Sample& placements ) const;
-    void from_string   ( std::string const&  jplace,     Sample& placements ) const;
-    void from_document ( utils::JsonDocument const& doc, Sample& placements ) const;
+    void from_stream   ( std::istream&       is,         Sample& smp ) const;
+    void from_file     ( std::string const&  fn,         Sample& smp ) const;
+    void from_string   ( std::string const&  jplace,     Sample& smp ) const;
+    void from_document ( utils::JsonDocument const& doc, Sample& smp ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -109,17 +109,17 @@ protected:
 
     void process_json_version(    utils::JsonDocument const& doc ) const;
 
-    void process_json_tree(       utils::JsonDocument const& doc, Sample& placements ) const;
+    void process_json_tree(       utils::JsonDocument const& doc, Sample& smp ) const;
 
     std::vector<std::string> process_json_fields( utils::JsonDocument const& doc ) const;
 
     void process_json_placements(
         utils::JsonDocument const& doc,
-        Sample&              placements,
+        Sample&                    smp,
         std::vector<std::string>   fields
     ) const;
 
-    void process_json_metadata( utils::JsonDocument const& doc, Sample& placements ) const;
+    void process_json_metadata( utils::JsonDocument const& doc, Sample& smp ) const;
 
     // ---------------------------------------------------------------------
     //     Properties

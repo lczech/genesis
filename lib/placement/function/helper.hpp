@@ -34,6 +34,14 @@ std::vector<PqueryPlacement const*> placements_per_edge(
 
 std::vector<PqueryPlain> plain_queries( Sample const & smp );
 
+// =================================================================================================
+//     Verification
+// =================================================================================================
+
+bool has_correct_edge_nums( PlacementTree const& tree );
+
+bool validate( Sample const& smp, bool check_values = false, bool break_on_values = false );
+
 } // namespace placement
 } // namespace genesis
 

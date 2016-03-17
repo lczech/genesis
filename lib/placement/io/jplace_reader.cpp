@@ -7,7 +7,7 @@
 
 #include "placement/io/jplace_reader.hpp"
 
-#include "placement/function/operators.hpp"
+#include "placement/function/helper.hpp"
 #include "placement/io/newick_processor.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
@@ -66,7 +66,7 @@ bool JplaceReader::check_version ( std::string const& version )
  *
  * This implementation is currenlty not yet fully implemented. Don't use it yet!
  */
-void JplaceReader::from_stream ( std::istream& is, Sample& placements ) const
+void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
 {
     auto it = utils::CountingIstream( is );
 
@@ -93,7 +93,7 @@ void JplaceReader::from_stream ( std::istream& is, Sample& placements ) const
 
     utils::read_char( it, ',' );
 
-    (void) placements;
+    (void) smp;
 
     // TODO
     throw std::domain_error( "Not yet fully implemented." );
@@ -102,38 +102,38 @@ void JplaceReader::from_stream ( std::istream& is, Sample& placements ) const
 /**
  * @brief Read a file and parse it as a Jplace document into a Sample object.
  */
-void JplaceReader::from_file( std::string const& fn, Sample& placements ) const
+void JplaceReader::from_file( std::string const& fn, Sample& smp ) const
 {
     if ( ! utils::file_exists(fn) ) {
         throw std::runtime_error( "Jplace file '" + fn + "' does not exist." );
     }
-    return from_string( utils::file_read(fn), placements );
+    return from_string( utils::file_read(fn), smp );
 }
 
 /**
  * @brief Parse a string as a Jplace document into a Sample object.
  */
-void JplaceReader::from_string( std::string const& jplace, Sample& placements ) const
+void JplaceReader::from_string( std::string const& jplace, Sample& smp ) const
 {
     utils::JsonDocument doc;
     if( ! utils::JsonProcessor().from_string( jplace, doc )) {
         throw std::runtime_error( "Not a valid Json document." );
     }
-    return from_document(doc, placements);
+    return from_document(doc, smp);
 }
 
 /**
  * @brief Take a JsonDocument object and parse it as a Jplace document into a Sample object.
  */
-void JplaceReader::from_document( utils::JsonDocument const& doc, Sample& placements ) const
+void JplaceReader::from_document( utils::JsonDocument const& doc, Sample& smp ) const
 {
     process_json_version( doc );
-    process_json_metadata( doc, placements );
+    process_json_metadata( doc, smp );
 
-    placements.clear();
-    process_json_tree( doc, placements );
+    smp.clear();
+    process_json_tree( doc, smp );
     auto fields = process_json_fields( doc );
-    process_json_placements( doc, placements, fields);
+    process_json_placements( doc, smp, fields);
 }
 
 /**
@@ -193,14 +193,14 @@ void JplaceReader::process_json_version( utils::JsonDocument const& doc ) const
  * @brief Internal helper function that processes the `metadata` key of a JsonDocument and stores
  * its value in the Sample metadata member.
  */
-void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Sample& placements ) const
+void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Sample& smp ) const
 {
     // Check if there is metadata.
     auto val = doc.get("metadata");
     if (val && val->is_object()) {
         utils::JsonValueObject* meta_obj = json_value_to_object(val);
         for( utils::JsonValueObject::ObjectPair meta_pair : *meta_obj ) {
-            placements.metadata[meta_pair.first] = meta_pair.second->to_string();
+            smp.metadata[meta_pair.first] = meta_pair.second->to_string();
         }
     }
 }
@@ -209,24 +209,24 @@ void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Sample
  * @brief Internal helper function that processes the `tree` key of a JsonDocument and stores it as
  * the Tree of a Sample.
  */
-void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& placements ) const
+void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& smp ) const
 {
     // find and process the reference tree
     auto val = doc.get("tree");
     if (!val || !val->is_string() ||
-        !PlacementTreeNewickProcessor().from_string(val->to_string(), placements.tree())
+        !PlacementTreeNewickProcessor().from_string(val->to_string(), smp.tree())
     ) {
         throw std::runtime_error(
             "Jplace document does not contain a valid Newick tree at key 'tree'."
         );
     }
-    if (!has_correct_edge_nums(placements)) {
+    if( ! has_correct_edge_nums( smp.tree() )) {
         LOG_WARN << "Jplace document has a Newick tree where the edge_num tags are non standard. "
                  << "They are expected to be assigned in ascending order via postorder traversal. "
                  << "Now continuing to parse, as we can cope with this.";
     }
 
-    LOG_INFO << "nodes " << placements.tree().node_count();
+    LOG_INFO << "nodes " << smp.tree().node_count();
 }
 
 /**
@@ -295,7 +295,7 @@ std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument 
  */
 void JplaceReader::process_json_placements(
     utils::JsonDocument const& doc,
-    Sample&              placements,
+    Sample&              smp,
     std::vector<std::string>   fields
 ) const {
     // create a map from edge nums to the actual edge pointers, for later use when processing
@@ -303,8 +303,8 @@ void JplaceReader::process_json_placements(
     // checking for validity first!
     std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
     for (
-        PlacementTree::ConstIteratorEdges it = placements.tree().begin_edges();
-        it != placements.tree().end_edges();
+        PlacementTree::ConstIteratorEdges it = smp.tree().begin_edges();
+        it != smp.tree().end_edges();
         ++it
     ) {
         PlacementTree::EdgeType* edge = it->get();
@@ -568,8 +568,8 @@ void JplaceReader::process_json_placements(
             }
         }
 
-        // Finally, add the pquery to the placements object.
-        placements.pqueries().push_back(std::move(pqry));
+        // Finally, add the pquery to the smp object.
+        smp.pqueries().push_back(std::move(pqry));
     }
 }
 

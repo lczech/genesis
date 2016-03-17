@@ -11,7 +11,7 @@
 #include <memory>
 #include <string>
 
-#include "lib/placement/function/operators.hpp"
+#include "lib/placement/function/helper.hpp"
 #include "lib/placement/io/jplace_reader.hpp"
 #include "lib/placement/io/serializer.hpp"
 #include "lib/placement/sample.hpp"
