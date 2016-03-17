@@ -118,6 +118,16 @@ size_t Pquery::placement_size() const
  *
  * The index must be smaller than placement_size(), otherwise this functions throws an exception.
  */
+PqueryPlacement& Pquery::placement_at( size_t index )
+{
+    return placements_[index];
+}
+
+/**
+ * @brief Return the PqueryPlacement at a certain index.
+ *
+ * The index must be smaller than placement_size(), otherwise this functions throws an exception.
+ */
 PqueryPlacement const& Pquery::placement_at( size_t index ) const
 {
     return placements_[index];
@@ -189,6 +199,16 @@ PqueryName& Pquery::add_name( PqueryName const& other )
 size_t Pquery::name_size() const
 {
     return names_.size();
+}
+
+/**
+ * @brief Return the PqueryName at a certain index.
+ *
+ * The index must be smaller than name_size(), otherwise this functions throws an exception.
+ */
+PqueryName& Pquery::name_at( size_t index )
+{
+    return names_.at(index);
 }
 
 /**

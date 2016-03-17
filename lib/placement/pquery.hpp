@@ -101,6 +101,8 @@ public:
     );
 
     size_t placement_size() const;
+
+    PqueryPlacement      & placement_at( size_t index );
     PqueryPlacement const& placement_at( size_t index ) const;
 
     void clear_placements();
@@ -126,6 +128,8 @@ public:
     PqueryName& add_name( PqueryName const& other );
 
     size_t name_size() const;
+
+    PqueryName      & name_at( size_t index );
     PqueryName const& name_at( size_t index ) const;
 
     void clear_names();
