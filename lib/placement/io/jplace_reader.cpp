@@ -142,8 +142,8 @@ void JplaceReader::from_document( utils::JsonDocument const& doc, Sample& smp ) 
 void JplaceReader::from_files (const std::vector<std::string>& fns, SampleSet& set) const
 {
     for (auto fn : fns) {
-        auto map = std::make_shared<Sample>();
-        from_file (fn, *map);
+        auto map = Sample();
+        from_file (fn, map);
         std::string name = utils::file_filename( utils::file_basename(fn) );
         set.add(name, map);
     }
@@ -156,8 +156,8 @@ void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet&
 {
     size_t cnt = 0;
     for (auto jplace : jps) {
-        auto map = std::make_shared<Sample>();
-        from_string (jplace, *map);
+        auto map = Sample();
+        from_string (jplace, map);
         set.add(std::string("jplace_") + std::to_string(cnt++), map);
     }
 }

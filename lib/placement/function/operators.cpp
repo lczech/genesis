@@ -14,6 +14,7 @@
 #include "tree/printer/compact.hpp"
 #include "utils/text/table.hpp"
 
+#include <ostream>
 #include <sstream>
 #include <unordered_map>
 

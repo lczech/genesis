@@ -34,11 +34,11 @@ PYTHON_EXPORT_CLASS (SampleSet, "placement")
             "clear",
             ( void ( ::genesis::placement::SampleSet::* )(  ))( &::genesis::placement::SampleSet::clear )
         )
-        .def(
-            "dump",
-            ( std::string ( ::genesis::placement::SampleSet::* )( bool ))( &::genesis::placement::SampleSet::dump ),
-            ( boost::python::arg("full")=(bool)(false) )
-        )
+        // .def(
+        //     "dump",
+        //     ( std::string ( ::genesis::placement::SampleSet::* )( bool ))( &::genesis::placement::SampleSet::dump ),
+        //     ( boost::python::arg("full")=(bool)(false) )
+        // )
         .def(
             "empty",
             ( bool ( ::genesis::placement::SampleSet::* )(  ) const )( &::genesis::placement::SampleSet::empty ),
@@ -49,11 +49,11 @@ PYTHON_EXPORT_CLASS (SampleSet, "placement")
         //     ( std::shared_ptr< Sample > ( ::genesis::placement::SampleSet::* )( const std::string & ))( &::genesis::placement::SampleSet::get_first ),
         //     ( boost::python::arg("name") )
         // )
-        .def(
-            "merge_all",
-            ( Sample ( ::genesis::placement::SampleSet::* )(  ))( &::genesis::placement::SampleSet::merge_all ),
-            get_docstring("Sample ::genesis::placement::SampleSet::merge_all ()")
-        )
+        // .def(
+        //     "merge_all",
+        //     ( Sample ( ::genesis::placement::SampleSet::* )(  ))( &::genesis::placement::SampleSet::merge_all ),
+        //     get_docstring("Sample ::genesis::placement::SampleSet::merge_all ()")
+        // )
         .def(
             "size",
             ( size_t ( ::genesis::placement::SampleSet::* )(  ) const )( &::genesis::placement::SampleSet::size ),
@@ -77,7 +77,10 @@ PYTHON_EXPORT_CLASS (SampleSet, "placement")
 
         .def(
             "__iter__",
-            boost::python::range ( &::genesis::placement::SampleSet::begin, &::genesis::placement::SampleSet::end )
+            boost::python::range (
+                ( ::genesis::placement::SampleSet::iterator ( ::genesis::placement::SampleSet::* )(  )  )( &::genesis::placement::SampleSet::begin ),
+                ( ::genesis::placement::SampleSet::iterator ( ::genesis::placement::SampleSet::* )(  )  )( &::genesis::placement::SampleSet::end )
+            )
         )
     ;
 }
