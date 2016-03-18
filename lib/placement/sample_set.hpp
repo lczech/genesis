@@ -20,6 +20,11 @@ namespace placement {
 //     SampleSet
 // =================================================================================================
 
+/**
+ * @brief Store a set of Sample%s with associated names.
+ *
+ * The elements in this set are stored as a NamedSample.
+ */
 class SampleSet
 {
 public:
@@ -28,6 +33,9 @@ public:
     //     Typedefs
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Store a Sample together with a name for it.
+     */
     struct NamedSample
     {
         std::string name;

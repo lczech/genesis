@@ -30,18 +30,29 @@ void SampleSet::swap( SampleSet& other )
 //     Modifiers
 // =============================================================================
 
+/**
+ * @brief Add a Sample with a name to the SampleSet.
+ *
+ * The Sample is copied.
+ */
 void SampleSet::add( std::string const& name, Sample const& smp)
 {
     smps_.push_back( { name, smp } );
 }
 
+/**
+ * @brief Remove the Sample at a certain index position.
+ *
+ * As this function moves Sample%s in the container around, all iterators and pointers to
+ * the elements of this SampleSet are considered to be invalidated.
+ */
 void SampleSet::remove_at( size_t index )
 {
     smps_.erase( smps_.begin() + index );
 }
 
 /**
- * @brief
+ * @brief Delete all Sample%s in this SampleSet.
  */
 void SampleSet::clear ()
 {
@@ -72,21 +83,33 @@ SampleSet::const_iterator SampleSet::end() const
     return smps_.cend();
 }
 
+/**
+ * @brief Get the NamedSample at a certain index position.
+ */
 SampleSet::NamedSample& SampleSet::at ( size_t index )
 {
     return smps_.at(index);
 }
 
+/**
+* @brief Get the NamedSample at a certain index position.
+*/
 SampleSet::NamedSample const& SampleSet::at ( size_t index ) const
 {
     return smps_.at(index);
 }
 
+/**
+* @brief Get the NamedSample at a certain index position.
+*/
 SampleSet::NamedSample& SampleSet::operator [] ( size_t index )
 {
     return smps_[index];
 }
 
+/**
+* @brief Get the NamedSample at a certain index position.
+*/
 SampleSet::NamedSample const& SampleSet::operator [] ( size_t index ) const
 {
     return smps_[index];
