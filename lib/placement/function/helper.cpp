@@ -60,8 +60,8 @@ std::unordered_map< size_t, std::vector< PqueryPlacement const* >> placements_pe
     std::unordered_map< size_t, std::vector< PqueryPlacement const* >> result;
 
     for( auto const& pqry : smp.pqueries() ) {
-        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
-            result[ pit->edge().index() ].push_back( &*pit );
+        for( auto const& place : pqry.placements() ) {
+            result[ place.edge().index() ].push_back( &place );
         }
     }
 
@@ -84,9 +84,9 @@ std::vector<PqueryPlacement const*> placements_per_edge(
     std::vector<PqueryPlacement const*> result;
 
     for( auto const& pqry : smp.pqueries() ) {
-        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
-            if( &pit->edge() == &edge ) {
-                result.push_back( &*pit );
+        for( auto const& place : pqry.placements() ) {
+            if( &place.edge() == &edge ) {
+                result.push_back( &place );
             }
         }
     }
@@ -205,24 +205,24 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
 
     // check pqueries
     size_t pqry_place_count = 0;
-    for( const auto& pqry : smp.pqueries() ) {
+    for( auto const& pqry : smp.pqueries() ) {
         // use this name for reporting invalid placements.
         std::string name;
-        if (pqry->name_size() > 0) {
-            name = "'" + pqry->name_at(0).name + "'";
+        if (pqry.name_size() > 0) {
+            name = "'" + pqry.name_at(0).name + "'";
         } else {
             name = "(unnamed pquery)";
         }
 
         // check placements
-        if (check_values && pqry->placement_size() == 0) {
+        if (check_values && pqry.placement_size() == 0) {
             LOG_INFO << "Pquery without any placements at '" << name << "'.";
             if (break_on_values) {
                 return false;
             }
         }
         double ratio_sum = 0.0;
-        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
+        for( auto pit = pqry.begin_placements(); pit != pqry.end_placements(); ++pit ) {
             auto const& p = *pit;
 
             // now we know that all references between placements and edges are correct, so this
@@ -268,7 +268,7 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
         }
 
         // check names
-        if (check_values && pqry->name_size() == 0) {
+        if (check_values && pqry.name_size() == 0) {
             LOG_INFO << "Pquery without any names at '" << name << "'.";
             if (break_on_values) {
                 return false;

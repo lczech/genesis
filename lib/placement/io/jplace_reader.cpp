@@ -142,8 +142,8 @@ void JplaceReader::from_document( utils::JsonDocument const& doc, Sample& smp ) 
 void JplaceReader::from_files (const std::vector<std::string>& fns, SampleSet& set) const
 {
     for (auto fn : fns) {
-        auto map = std::make_shared<Sample>();
-        from_file (fn, *map);
+        auto map = Sample();
+        from_file (fn, map);
         std::string name = utils::file_filename( utils::file_basename(fn) );
         set.add(name, map);
     }
@@ -156,8 +156,8 @@ void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet&
 {
     size_t cnt = 0;
     for (auto jplace : jps) {
-        auto map = std::make_shared<Sample>();
-        from_string (jplace, *map);
+        auto map = Sample();
+        from_string (jplace, map);
         set.add(std::string("jplace_") + std::to_string(cnt++), map);
     }
 }
@@ -341,7 +341,7 @@ void JplaceReader::process_json_placements(
         }
 
         // Create new pquery.
-        auto pqry = make_unique<Pquery>();
+        auto pqry = Pquery();
 
         // Process the placements and store them in the pquery.
         utils::JsonValueArray* pqry_p_arr = json_value_to_array(pqry_obj->get("p"));
@@ -481,7 +481,7 @@ void JplaceReader::process_json_placements(
             );
 
             // Add the placement to the query and vice versa.
-            pqry->add_placement( pqry_place );
+            pqry.add_placement( pqry_place );
         }
 
         // Check name/named multiplicity validity.
@@ -512,7 +512,7 @@ void JplaceReader::process_json_placements(
                     );
                 }
 
-                pqry->add_name( pqry_n_val->to_string() , 0.0 );
+                pqry.add_name( pqry_n_val->to_string() , 0.0 );
             }
         }
 
@@ -560,12 +560,12 @@ void JplaceReader::process_json_placements(
                              << "name '" << pqry_name.name << "'.";
                 }
 
-                pqry->add_name( pqry_name );
+                pqry.add_name( pqry_name );
             }
         }
 
         // Finally, add the pquery to the smp object.
-        smp.pqueries().push_back(std::move(pqry));
+        smp.add_pquery( pqry );
     }
 }
 

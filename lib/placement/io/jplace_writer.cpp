@@ -90,9 +90,7 @@ void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc)
 
         // set placements
         JsonValueArray* pqry_p_arr  = new JsonValueArray();
-        for( auto pit = pqry->begin_placements(); pit != pqry->end_placements(); ++pit ) {
-            auto const& pqry_place = *pit;
-
+        for( auto const& pqry_place : pqry.placements() ) {
             JsonValueArray* pqry_fields = new JsonValueArray();
             pqry_fields->push_back(new JsonValueNumber(pqry_place.edge_num()));
             pqry_fields->push_back(new JsonValueNumber(pqry_place.likelihood));
@@ -109,17 +107,14 @@ void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc)
 
         // find out whether names have multiplicity
         bool has_nm = false;
-        for( auto name_it = pqry->begin_names(); name_it != pqry->end_names(); ++name_it ) {
-            auto& pqry_name = *name_it;
-            has_nm |= pqry_name.multiplicity != 0.0;
+        for( auto const& pqry_name : pqry.names() ) {
+            has_nm |= ( pqry_name.multiplicity != 0.0 );
         }
 
         // set named multiplicity / name
         if (has_nm) {
             JsonValueArray* pqry_nm_arr = new JsonValueArray();
-            for( auto name_it = pqry->begin_names(); name_it != pqry->end_names(); ++name_it ) {
-                auto& pqry_name = *name_it;
-
+            for( auto const& pqry_name : pqry.names() ) {
                 JsonValueArray* pqry_nm_val = new JsonValueArray();
                 pqry_nm_val->push_back(new JsonValueString(pqry_name.name));
                 pqry_nm_val->push_back(new JsonValueNumber(pqry_name.multiplicity));
@@ -128,8 +123,7 @@ void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc)
             jpqry->set("nm", pqry_nm_arr);
         } else {
             JsonValueArray* pqry_n_arr  = new JsonValueArray();
-            for( auto name_it = pqry->begin_names(); name_it != pqry->end_names(); ++name_it ) {
-                auto& pqry_name = *name_it;
+            for( auto const& pqry_name : pqry.names() ) {
                 pqry_n_arr->push_back(new JsonValueString(pqry_name.name));
             }
             jpqry->set("n", pqry_n_arr);

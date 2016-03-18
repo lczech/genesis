@@ -42,85 +42,64 @@ namespace placement {
  */
 class Sample
 {
+
 public:
+
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    Sample ()
-        : tree_(std::make_shared<PlacementTree>())
+    Sample() = default;
+
+    Sample( PlacementTree const& tree )
+        : tree_(tree)
     {}
 
-    Sample (std::shared_ptr<PlacementTree> ptree)
-        : tree_(ptree)
-    {}
+    Sample( Sample const& ) = default;
+    Sample( Sample&& )      = default;
 
-    Sample( Sample const& );
-    Sample( Sample&& ) noexcept;
-
-    Sample& operator= (Sample const&);
-    Sample& operator= (Sample&&) noexcept;
-
-    // Sample( Sample&& ) = default;
-    //
-    // Sample& operator= (Sample const&) = default;
-    // Sample& operator= (Sample&&) = default;
+    Sample& operator= ( Sample const& ) = default;
+    Sample& operator= ( Sample&& )      = default;
 
     ~Sample() = default;
 
-    void swap (Sample& other) noexcept;
+    void swap( Sample& other );
 
     // -------------------------------------------------------------------------
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    Pquery* add_pquery();
-
-    bool merge(const Sample& other);
-
     void clear();
-    void clear_placements();
 
     // -------------------------------------------------------------------------
-    //     Accessors
+    //     Tree Accessors and Modifiers
     // -------------------------------------------------------------------------
 
-    inline std::shared_ptr<PlacementTree> tree_ptr()
-    {
-        return tree_;
-    }
+    PlacementTree      & tree();
+    PlacementTree const& tree() const;
 
-    inline PlacementTree& tree()
-    {
-        return *tree_.get();
-    }
+    // -------------------------------------------------------------------------
+    //     Pquery Accessors and Modifiers
+    // -------------------------------------------------------------------------
 
-    inline PlacementTree const& tree() const
-    {
-        return *tree_.get();
-    }
+    Pquery& add_pquery();
+    Pquery& add_pquery( Pquery const& other );
 
-    inline std::vector<std::unique_ptr<Pquery>>& pqueries()
-    {
-        return pqueries_;
-    }
-
-    inline const std::vector<std::unique_ptr<Pquery>>& pqueries() const
-    {
-        return pqueries_;
-    }
-
+    std::vector<Pquery> const& pqueries() const;
     size_t pquery_size() const;
 
-    Pquery      & pquery_at( const size_t index );
-    Pquery const& pquery_at( const size_t index ) const;
+    Pquery      & pquery_at( size_t index );
+    Pquery const& pquery_at( size_t index ) const;
+
+    void remove_pquery_at( size_t index );
+    void clear_pqueries();
 
     // -------------------------------------------------------------------------
     //     Pquery Iterator
     // -------------------------------------------------------------------------
 
-    typedef std::vector<std::unique_ptr<Pquery>>::iterator       iterator_pqueries;
-    typedef std::vector<std::unique_ptr<Pquery>>::const_iterator const_iterator_pqueries;
+    typedef std::vector<Pquery>::iterator       iterator_pqueries;
+    typedef std::vector<Pquery>::const_iterator const_iterator_pqueries;
 
     iterator_pqueries       begin();
     const_iterator_pqueries begin() const;
@@ -132,14 +111,15 @@ public:
     //     Members
     // -------------------------------------------------------------------------
 
-protected:
+private:
 
-    std::vector<std::unique_ptr<Pquery>>         pqueries_;
-    std::shared_ptr<PlacementTree>               tree_;
+    std::vector<Pquery> pqueries_;
+    PlacementTree       tree_;
 
 public:
 
     // There is not much to mess up here for a user, so we can simply make this public.
+    // Okay, this is ugly. But for now, it's way easier. We never use the metadata anyway...
     std::unordered_map<std::string, std::string> metadata;
 
 };

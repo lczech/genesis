@@ -8,129 +8,93 @@
  * @ingroup placement
  */
 
-#include <memory>
+#include <string>
 #include <vector>
 
 #include "placement/sample.hpp"
-#include "tree/tree_set.hpp"
 
 namespace genesis {
 namespace placement {
 
-// =============================================================================
+// =================================================================================================
 //     SampleSet
-// =============================================================================
+// =================================================================================================
 
+/**
+ * @brief Store a set of Sample%s with associated names.
+ *
+ * The elements in this set are stored as a NamedSample.
+ */
 class SampleSet
 {
 public:
 
-    // -----------------------------------------------------
-    //     Constructor and Typedefs
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     Typedefs
+    // -------------------------------------------------------------------------
 
-    struct NamedMap
+    /**
+     * @brief Store a Sample together with a name for it.
+     */
+    struct NamedSample
     {
-        std::string                   name;
-        Sample&                 map;
-        // std::shared_ptr<Sample> map;
+        std::string name;
+        Sample      sample;
     };
 
-    typedef typename std::vector<NamedMap>::iterator       iterator;
-    typedef typename std::vector<NamedMap>::const_iterator const_iterator;
+    typedef std::vector<NamedSample>::iterator       iterator;
+    typedef std::vector<NamedSample>::const_iterator const_iterator;
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
+    SampleSet()  = default;
+    ~SampleSet() = default;
+
+    SampleSet( SampleSet const& ) = default;
+    SampleSet( SampleSet&& )      = default;
+
+    SampleSet& operator= ( SampleSet const& ) = default;
+    SampleSet& operator= ( SampleSet&& )      = default;
+
+    void swap( SampleSet& other );
+
+    // -------------------------------------------------------------------------
     //     Modifiers
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
-    // TODO !!! this is a quick fix for problems with std::shared_ptr in boost python.
-    // TODO as soon as this is solved in boost, switch back to the original version, and also
-    // TODO reactive get_first().
+    void add( std::string const& name, Sample const& smp);
 
-    void add (const std::string& name, Sample& map)
-    {
-        maps_.push_back( { name, map } );
-    }
-
-    void add (const std::string& name, std::shared_ptr<Sample> map)
-    {
-        // TODO baaaaaad!
-        maps_.push_back( { name, *map.get() } );
-    }
-
-    // void add (const std::string& name, std::shared_ptr<Sample> map);
+    void remove_at( size_t index );
     void clear();
 
-    Sample merge_all();
-
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Accessors
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
-    // std::shared_ptr<Sample> get_first (const std::string& name);
+    iterator       begin();
+    const_iterator begin() const;
 
-    inline iterator begin()
-    {
-        return maps_.begin();
-    }
+    iterator       end();
+    const_iterator end() const;
 
-    inline iterator end()
-    {
-        return maps_.end();
-    }
+          NamedSample& at ( size_t index );
+    const NamedSample& at ( size_t index ) const;
 
-    inline const_iterator cbegin() const
-    {
-        return maps_.cbegin();
-    }
+          NamedSample& operator [] ( size_t index );
+    const NamedSample& operator [] ( size_t index ) const;
 
-    inline const_iterator cend() const
-    {
-        return maps_.cend();
-    }
+    bool  empty() const;
+    size_t size() const;
 
-    inline const NamedMap& operator [] (const std::size_t index) const
-    {
-        return maps_[index];
-    }
-
-    /**
-     * @brief Return whether the SampleSet is empty.
-     */
-    inline bool empty() const
-    {
-        return maps_.empty();
-    }
-
-    /**
-     * @brief Returns the size of the SampleSet, i.e., the number of Sample%s.
-     */
-    inline size_t size() const
-    {
-        return maps_.size();
-    }
-
-    tree::TreeSet<PlacementTree> tree_set();
-
-    // -----------------------------------------------------
-    //     Comparators
-    // -----------------------------------------------------
-
-    bool all_identical_trees();
-
-    // -----------------------------------------------------
-    //     Dump & Debug
-    // -----------------------------------------------------
-
-    std::string dump (bool full = false);
-
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Data Members
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
-protected:
+private:
 
-    std::vector<NamedMap> maps_;
+    std::vector<NamedSample> smps_;
 
 };
 

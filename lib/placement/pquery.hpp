@@ -57,6 +57,19 @@ class Pquery
 public:
 
     // -------------------------------------------------------------------
+    //     Typedefs
+    // -------------------------------------------------------------------
+
+    typedef std::vector<PqueryPlacement>                 PqueryPlacements;
+    typedef std::vector<PqueryName>                      PqueryNames;
+
+    typedef std::vector<PqueryPlacement>::iterator       iterator_placements;
+    typedef std::vector<PqueryPlacement>::const_iterator const_iterator_placements;
+
+    typedef std::vector<PqueryName>::iterator            iterator_names;
+    typedef std::vector<PqueryName>::const_iterator      const_iterator_names;
+
+    // -------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
@@ -79,9 +92,6 @@ public:
     //     Placement Iterators
     // -------------------------------------------------------------------
 
-    typedef std::vector<PqueryPlacement>::iterator       iterator_placements;
-    typedef std::vector<PqueryPlacement>::const_iterator const_iterator_placements;
-
     iterator_placements       begin_placements();
     const_iterator_placements begin_placements() const;
 
@@ -100,17 +110,18 @@ public:
         PqueryPlacement const& val
     );
 
+    PqueryPlacements const& placements() const;
     size_t placement_size() const;
+
+    PqueryPlacement      & placement_at( size_t index );
     PqueryPlacement const& placement_at( size_t index ) const;
 
+    void remove_placement_at( size_t index );
     void clear_placements();
 
     // -------------------------------------------------------------------
     //     Name Iterators
     // -------------------------------------------------------------------
-
-    typedef std::vector<PqueryName>::iterator       iterator_names;
-    typedef std::vector<PqueryName>::const_iterator const_iterator_names;
 
     iterator_names       begin_names();
     const_iterator_names begin_names() const;
@@ -125,9 +136,13 @@ public:
     PqueryName& add_name( std::string name = "", double multiplicity = 0.0 );
     PqueryName& add_name( PqueryName const& other );
 
+    PqueryNames const& names() const;
     size_t name_size() const;
+
+    PqueryName      & name_at( size_t index );
     PqueryName const& name_at( size_t index ) const;
 
+    void remove_name_at( size_t index );
     void clear_names();
 
     // -------------------------------------------------------------------

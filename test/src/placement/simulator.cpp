@@ -25,10 +25,10 @@ using namespace genesis::placement;
 
 TEST(PlacementSimulator, TwoStepSimple)
 {
-    auto tree = std::make_shared<PlacementTree>();
+    auto tree = PlacementTree();
     EXPECT_TRUE( PlacementTreeNewickProcessor().from_string(
         "((B:2.0{0},(D:2.0{1},E:2.0{2})C:2.0{3})A:2.0{4},F:2.0{5},(H:2.0{6},I:2.0{7})G:2.0{8})R:2.0{9};",
-        *tree
+        tree
     ));
 
     Sample smp(tree);
@@ -46,10 +46,10 @@ TEST(PlacementSimulator, TwoStepSimple)
 TEST(PlacementSimulator, TwoStepLeavesOnly)
 {
     // Build a simple tree.
-    auto tree = std::make_shared<PlacementTree>();
+    auto tree = PlacementTree();
     EXPECT_TRUE( PlacementTreeNewickProcessor().from_string(
         "((B:2.0{0},(D:2.0{1},E:2.0{2})C:2.0{3})A:2.0{4},F:2.0{5},(H:2.0{6},I:2.0{7})G:2.0{8})R:2.0{9};",
-        *tree
+        tree
     ));
 
     Sample smp(tree);
@@ -67,7 +67,7 @@ TEST(PlacementSimulator, TwoStepLeavesOnly)
 
     // Check whether all placements are next to leaf nodes.
     for (auto& pqry : smp.pqueries()) {
-        auto const& edge = pqry->placement_at(0).edge();
+        auto const& edge = pqry.placement_at(0).edge();
         EXPECT_TRUE (edge.primary_node()->is_leaf() || edge.secondary_node()->is_leaf());
     }
 }

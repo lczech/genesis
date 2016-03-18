@@ -10,15 +10,16 @@
  * make_genesis_header.sh in ./tools to update this file.
  */
 
-#include "placement/functions.hpp"
+#include "placement/function/functions.hpp"
+#include "placement/function/helper.hpp"
+#include "placement/function/measures.hpp"
+#include "placement/function/operators.hpp"
 #include "placement/io/edge_color.hpp"
 #include "placement/io/jplace_reader.hpp"
 #include "placement/io/jplace_writer.hpp"
 #include "placement/io/newick_processor.hpp"
 #include "placement/io/phyloxml_processor.hpp"
 #include "placement/io/serializer.hpp"
-#include "placement/measures.hpp"
-#include "placement/operators.hpp"
 #include "placement/placement_tree.hpp"
 #include "placement/pquery/distances.hpp"
 #include "placement/pquery.hpp"
@@ -27,7 +28,9 @@
 #include "placement/pquery/plain.hpp"
 #include "placement/sample.hpp"
 #include "placement/sample_set.hpp"
-#include "placement/simulator.hpp"
+#include "placement/simulator/simulator.hpp"
+#include "placement/simulator/subtree.hpp"
+#include "placement/simulator/twostep.hpp"
 
 #include "sequence/codes.hpp"
 #include "sequence/functions.hpp"

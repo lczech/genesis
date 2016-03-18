@@ -18,8 +18,8 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
 {
     // boost::python::class_< Sample, std::shared_ptr<Sample> > ( "Sample", boost::python::init<  >(  ) )
     boost::python::class_< Sample > ( "Sample", boost::python::init<  >(  ) )
-        .def( boost::python::init< std::shared_ptr<PlacementTree> >(( boost::python::arg("ptree") )) )
-        .def( boost::python::init< const Sample & >(( boost::python::arg("other") )) )
+        .def( boost::python::init< PlacementTree const& >(( boost::python::arg("ptree") )) )
+        .def( boost::python::init< Sample const& >(( boost::python::arg("other") )) )
 
         // Public Member Functions
 
@@ -29,9 +29,9 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
             get_docstring("void ::genesis::placement::Sample::clear ()")
         )
         .def(
-            "clear_placements",
-            ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::clear_placements ),
-            get_docstring("void ::genesis::placement::Sample::clear_placements ()")
+            "clear_pqueries",
+            ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::clear_pqueries ),
+            get_docstring("void ::genesis::placement::Sample::clear_pqueries ()")
         )
         // .def(
         //     "closest_leaf_depth_histogram",
@@ -65,12 +65,12 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
         //     ( EdgeNumMapType * ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::edge_num_map ),
         //     get_docstring("EdgeNumMapType * ::genesis::placement::Sample::edge_num_map () const")
         // )
-        .def(
-            "merge",
-            ( bool ( ::genesis::placement::Sample::* )( const Sample & ))( &::genesis::placement::Sample::merge ),
-            ( boost::python::arg("other") ),
-            get_docstring("bool ::genesis::placement::Sample::merge (const Sample & other)")
-        )
+        // .def(
+        //     "merge",
+        //     ( bool ( ::genesis::placement::Sample::* )( const Sample & ))( &::genesis::placement::Sample::merge ),
+        //     ( boost::python::arg("other") ),
+        //     get_docstring("bool ::genesis::placement::Sample::merge (const Sample & other)")
+        // )
         // .def(
         //     "normalize_weight_ratios",
         //     ( void ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::normalize_weight_ratios ),
