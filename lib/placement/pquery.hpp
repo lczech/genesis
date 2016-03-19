@@ -14,6 +14,7 @@
 
 #include "placement/pquery/name.hpp"
 #include "placement/pquery/placement.hpp"
+#include "utils/core/range.hpp"
 
 namespace genesis {
 
@@ -110,7 +111,9 @@ public:
         PqueryPlacement const& val
     );
 
-    PqueryPlacements const& placements() const;
+    utils::Range<iterator_placements> placements();
+    utils::Range<const_iterator_placements> placements() const;
+
     size_t placement_size() const;
 
     PqueryPlacement      & placement_at( size_t index );
@@ -136,7 +139,9 @@ public:
     PqueryName& add_name( std::string name = "", double multiplicity = 0.0 );
     PqueryName& add_name( PqueryName const& other );
 
-    PqueryNames const& names() const;
+    utils::Range<iterator_names> names();
+    utils::Range<const_iterator_names> names() const;
+
     size_t name_size() const;
 
     PqueryName      & name_at( size_t index );
