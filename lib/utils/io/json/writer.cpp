@@ -8,6 +8,8 @@
 #include "utils/io/json/writer.hpp"
 
 #include <assert.h>
+#include <fstream>
+#include <ostream>
 #include <stdexcept>
 
 #include "utils/core/fs.hpp"
@@ -22,35 +24,47 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Writes a Json file from a JsonDocument. Returns true iff successful.
- *
- * If the file already exists, the function throws `std::runtime_error`.
- * The function uses utils::file_write. See there for other exceptions that can be thrown.
+ * @brief Write a JsonDocument to a stream.
  */
-void JsonWriter::to_file( JsonDocument const& document, std::string const& filename )
+void JsonWriter::to_stream( JsonDocument const& document, std::ostream& out ) const
+{
+    print_object( &document, out, 0 );
+}
+
+/**
+ * @brief Write a JsonDocument to a file.
+ *
+ * If the file already exists or cannot be written to, the function throws `std::runtime_error`.
+ */
+void JsonWriter::to_file( JsonDocument const& document, std::string const& filename ) const
 {
     if( utils::file_exists(filename) ) {
         throw std::runtime_error( "Json file '" + filename + "' already exist." );
     }
-    std::string jd;
-    to_string( document, jd );
-    utils::file_write( jd, filename );
+
+    std::ofstream fstr( filename );
+    if( !fstr ) {
+        throw std::runtime_error( "Cannot write Json file '" + filename + "'." );
+    }
+    print_object( &document, fstr, 0 );
 }
 
 /**
- * @brief Gives the Json string representation of a JsonDocument.
+ * @brief Give the Json string representation of a JsonDocument.
  */
-void JsonWriter::to_string( JsonDocument const& document, std::string& output )
+void JsonWriter::to_string( JsonDocument const& document, std::string& output ) const
 {
     output = to_string(document);
 }
 
 /**
- * @brief Returns the Json representation of a JsonDocument.
+ * @brief Return the Json representation of a JsonDocument.
  */
-std::string JsonWriter::to_string( JsonDocument const& document )
+std::string JsonWriter::to_string( JsonDocument const& document ) const
 {
-    return print_object(&document, 0);
+    std::stringstream sstr;
+    print_object( &document, sstr, 0 );
+    return sstr.str();
 }
 
 // =================================================================================================
@@ -58,22 +72,24 @@ std::string JsonWriter::to_string( JsonDocument const& document )
 // =================================================================================================
 
 /**
- * @brief Returns the Json representation of a Json Value.
+ * @brief Write the Json representation of a Json Value to a stream.
  */
-std::string JsonWriter::print_value( JsonValue const* value )
-{
+void JsonWriter::print_value(
+    JsonValue const* value,
+    std::ostream& out
+) const {
     switch(value->type()) {
         case JsonValue::kNull:
         case JsonValue::kBool:
-            return value->to_string();
+            out << value->to_string();
             break;
 
         case JsonValue::kNumber:
-            return utils::to_string_precise(json_value_to_number(value)->value, precision);
+            out << utils::to_string_precise(json_value_to_number(value)->value, precision);
             break;
 
         case JsonValue::kString:
-            return "\"" + utils::escape(json_value_to_string(value)->value) + "\"";
+            out << "\"" + utils::escape(json_value_to_string(value)->value) + "\"";
             break;
 
         // This function is only called from within print_array() and print_object(), and both of
@@ -84,18 +100,19 @@ std::string JsonWriter::print_value( JsonValue const* value )
         case JsonValue::kObject:
         default:
             assert(false);
-            return "";
     }
 }
 
 /**
- * @brief Returns the Json representation of a Json Array.
+ * @brief Write the Json representation of a Json Array to a stream.
  */
-std::string JsonWriter::print_array( JsonValueArray const* value, int indent_level )
-{
+void JsonWriter::print_array(
+    JsonValueArray const* value,
+    std::ostream& out,
+    int indent_level
+) const {
     int il = indent_level + 1;
     std::string in (il * indent, ' ');
-    std::ostringstream ss;
 
     // Check if array contains non-simple values. If so, we use better bracket
     // placement to make document look nicer.
@@ -105,64 +122,64 @@ std::string JsonWriter::print_array( JsonValueArray const* value, int indent_lev
         has_large |= (v->is_array() || v->is_object());
     }
 
-    ss << "[ ";
+    out << "[ ";
     bool first = true;
     for (JsonValueArray::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
         JsonValue* v = *it;
         if (!first) {
-            ss << ", ";
+            out << ", ";
         }
         if (has_large) {
-            ss << "\n" << in;
+            out << "\n" << in;
         }
         if (v->is_array()) {
-            ss << print_array(json_value_to_array(v), il);
+            print_array(json_value_to_array(v), out, il);
         } else if (v->is_object()) {
-            ss << print_object(json_value_to_object(v), il);
+            print_object(json_value_to_object(v), out, il);
         } else {
-            ss << print_value(v);
+            print_value(v, out);
         }
         first = false;
     }
 
     if (has_large) {
-        ss << "\n" << std::string(indent_level * indent, ' ');
+        out << "\n" << std::string(indent_level * indent, ' ');
     } else {
-        ss << " ";
+        out << " ";
     }
-    ss << "]";
-    return ss.str();
+    out << "]";
 }
 
 /**
- * @brief Returns the Json representation of a Json Object.
+ * @brief Write the Json representation of a Json Object to a stream.
  */
-std::string JsonWriter::print_object( JsonValueObject const* value, int indent_level )
-{
+void JsonWriter::print_object(
+    JsonValueObject const* value,
+    std::ostream& out,
+    int indent_level
+) const {
     int il = indent_level + 1;
     std::string in (il * indent, ' ');
-    std::stringstream ss;
-    ss << "{";
+    out << "{";
 
     bool first = true;
     for (JsonValueObject::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
         JsonValueObject::ObjectPair v = *it;
         if (!first) {
-            ss << ",";
+            out << ",";
         }
-        ss << "\n" << in << "\"" << v.first << "\": ";
+        out << "\n" << in << "\"" << v.first << "\": ";
         if (v.second->is_array()) {
-            ss << print_array(json_value_to_array(v.second), il);
+            print_array( json_value_to_array(v.second), out, il );
         } else if (v.second->is_object()) {
-            ss << print_object(json_value_to_object(v.second), il);
+            print_object( json_value_to_object(v.second), out, il );
         } else {
-            ss << print_value(v.second);
+            print_value( v.second, out );
         }
         first = false;
     }
 
-    ss << "\n" << std::string(indent_level * indent, ' ') << "}";
-    return ss.str();
+    out << "\n" << std::string(indent_level * indent, ' ') << "}";
 }
 
 } // namespace utils

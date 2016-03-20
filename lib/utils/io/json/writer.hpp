@@ -8,9 +8,10 @@
  * @ingroup utils
  */
 
-#include <string>
-
 #include "utils/io/json/lexer.hpp"
+
+#include <iosfwd>
+#include <string>
 
 namespace genesis {
 namespace utils {
@@ -54,9 +55,10 @@ public:
 
 public:
 
-    void        to_file   ( JsonDocument const& document, std::string const& filename);
-    void        to_string ( JsonDocument const& document, std::string& output);
-    std::string to_string ( JsonDocument const& document);
+    void        to_stream ( JsonDocument const& document, std::ostream& out ) const;
+    void        to_file   ( JsonDocument const& document, std::string const& filename) const;
+    void        to_string ( JsonDocument const& document, std::string& output) const;
+    std::string to_string ( JsonDocument const& document) const;
 
     // ---------------------------------------------------------------------
     //     Printing
@@ -64,9 +66,9 @@ public:
 
 protected:
 
-    std::string print_value  ( JsonValue       const* value);
-    std::string print_array  ( JsonValueArray  const* value, int indent_level);
-    std::string print_object ( JsonValueObject const* value, int indent_level);
+    void print_value  ( JsonValue       const* value, std::ostream& out) const;
+    void print_array  ( JsonValueArray  const* value, std::ostream& out, int indent_level) const;
+    void print_object ( JsonValueObject const* value, std::ostream& out, int indent_level) const;
 
     // ---------------------------------------------------------------------
     //     Members
