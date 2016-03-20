@@ -49,7 +49,7 @@ bool XmlProcessor::to_file (const std::string& fn, const XmlDocument& document)
     }
     std::string xml;
     to_string(xml, document);
-    return utils::file_write(fn, xml);
+    return utils::file_write(xml, fn);
 }
 
 /**

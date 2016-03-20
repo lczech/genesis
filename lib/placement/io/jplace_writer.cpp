@@ -45,7 +45,7 @@ bool JplaceWriter::to_file (const Sample& smp, const std::string filename)
     }
     std::string ts;
     to_string(smp, ts);
-    return utils::file_write( filename, ts );
+    return utils::file_write( ts, filename );
 }
 
 /**

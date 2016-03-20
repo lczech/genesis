@@ -65,7 +65,7 @@ bool PhyloxmlProcessor<TreeType>::to_file (const TreeType& tree, const std::stri
     }
     std::string ts;
     to_string(tree, ts);
-    return utils::file_write(fn, ts);
+    return utils::file_write(ts, fn);
 }
 
 /**

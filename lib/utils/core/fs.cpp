@@ -25,26 +25,26 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Returns true iff the file exists.
+ * @brief Return true iff the file exists.
  */
-bool file_exists( std::string const& fn )
+bool file_exists( std::string const& filename )
 {
-    std::ifstream infile(fn);
+    std::ifstream infile(filename);
     return infile.good();
 }
 
 /**
- * @brief Returns the contents of a file as a string.
+ * @brief Return the contents of a file as a string.
  *
  * If the file does not exist, a warning is triggered and an emtpty string returned.
  */
-std::string file_read( std::string const& fn )
+std::string file_read( std::string const& filename )
 {
-    std::ifstream infile(fn);
+    std::ifstream infile(filename);
     std::string   str;
 
     if (!infile.good()) {
-        LOG_WARN << "Cannot read from file '" << fn << "'.";
+        LOG_WARN << "Cannot read from file '" << filename << "'.";
         return "";
     }
 
@@ -60,14 +60,14 @@ std::string file_read( std::string const& fn )
 /**
  * @brief Writes the content of a string to a file.
  */
-bool file_write( std::string const& fn, std::string const& content )
+bool file_write( std::string const& content, std::string const& filename )
 {
     // TODO check if path exists, create if not (make a function for that)
     // TODO check if file exists, trigger warning?, check if writable
 
-    std::ofstream outfile(fn);
+    std::ofstream outfile(filename);
     if (!outfile.good()) {
-        LOG_WARN << "Cannot write to file '" << fn << "'.";
+        LOG_WARN << "Cannot write to file '" << filename << "'.";
         return false;
     }
     outfile << content;
@@ -77,15 +77,15 @@ bool file_write( std::string const& fn, std::string const& content )
 /**
  * @brief Appends the content of a string to a file.
  */
-bool file_append( std::string const& fn, std::string const& content )
+bool file_append( std::string const& content, std::string const& filename )
 {
     // TODO check if path exists, create if not (make a function for that)
     // TODO check if file exists, trigger warning?, check if writable
     // TODO maybe merge with file_write and use mode as optional parameter.
 
-    std::ofstream outfile(fn, std::ofstream::app);
+    std::ofstream outfile(filename, std::ofstream::app);
     if (!outfile.good()) {
-        LOG_WARN << "Cannot write to file '" << fn << "'.";
+        LOG_WARN << "Cannot write to file '" << filename << "'.";
         return false;
     }
     outfile << content;
@@ -126,7 +126,7 @@ void dir_create( std::string const& path )
 
     if( stat (path.c_str(), &info) != 0 ) {
         if( mkdir( path.c_str(), mode ) != 0 && errno != EEXIST ) {
-            throw std::runtime_error("Could not create directory: " + path);
+            throw std::runtime_error("Can not create directory: " + path);
         }
     } else if( !S_ISDIR(info.st_mode) ) {
         throw std::runtime_error("Path exists, but is not a directory: " + path);

@@ -283,7 +283,7 @@ bool JsonProcessor::to_file (const std::string& fn, const JsonDocument& document
     }
     std::string jd;
     to_string(jd, document);
-    return utils::file_write(fn, jd);
+    return utils::file_write( jd, fn );
 }
 
 /**
