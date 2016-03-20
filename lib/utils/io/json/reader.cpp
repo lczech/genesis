@@ -26,7 +26,7 @@ namespace utils {
  *
  * If the file does not exists, the function throws an `std::runtime_error`.
  */
-void JsonReader::from_file (const std::string& filename, JsonDocument& document)
+void JsonReader::from_file (const std::string& filename, JsonDocument& document) const
 {
     if( ! utils::file_exists(filename)) {
         throw std::runtime_error( "Json file '" + filename + "' does not exist." );
@@ -39,7 +39,7 @@ void JsonReader::from_file (const std::string& filename, JsonDocument& document)
  *
  * Returns true iff successfull.
  */
-void JsonReader::from_string (const std::string& json, JsonDocument& document)
+void JsonReader::from_string (const std::string& json, JsonDocument& document) const
 {
     // do stepwise lexing
     JsonLexer lexer;
@@ -95,7 +95,7 @@ void JsonReader::parse_value (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
     JsonValue*&          value
-) {
+) const {
     // Proper usage of this function is to hand over a null pointer to a json value, which will be
     // assigned to a newly created value instance depending on the token type, so check for this
     // here. We don't want to overwrite existing values!
@@ -154,7 +154,7 @@ void JsonReader::parse_array (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
     JsonValueArray*        value
-) {
+) const {
     // Proper usage of this function is to hand over a valid pointer to a json array, so check
     // for this here.
     assert(value);
@@ -206,7 +206,7 @@ void JsonReader::parse_object (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
     JsonValueObject*       value
-) {
+) const {
     // Proper usage of this function is to hand over a valid pointer to a json object, so check
     // for this here.
     assert(value);
