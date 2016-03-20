@@ -8,7 +8,7 @@
 #include <algorithm>
 #include <assert.h>
 
-#include "tree/operators.hpp"
+#include "tree/function/operators.hpp"
 #include "tree/tree_set.hpp"
 #include "utils/core/logging.hpp"
 

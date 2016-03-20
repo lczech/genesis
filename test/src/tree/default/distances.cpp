@@ -11,8 +11,8 @@
 
 #include "lib/tree/default/distances.hpp"
 #include "lib/tree/default/newick_processor.hpp"
-#include "lib/tree/distances.hpp"
-#include "lib/tree/functions.hpp"
+#include "lib/tree/function/distances.hpp"
+#include "lib/tree/function/functions.hpp"
 #include "lib/tree/io/newick/processor.hpp"
 #include "lib/tree/tree.hpp"
 #include "lib/utils/math/matrix.hpp"

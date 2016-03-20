@@ -7,10 +7,10 @@
 
 #include "placement/function/operators.hpp"
 
-#include "placement/function/helper.hpp"
 #include "placement/function/functions.hpp"
+#include "placement/function/helper.hpp"
 #include "placement/sample.hpp"
-#include "tree/operators.hpp"
+#include "tree/function/operators.hpp"
 #include "tree/printer/compact.hpp"
 #include "utils/text/table.hpp"
 

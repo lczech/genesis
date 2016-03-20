@@ -11,7 +11,7 @@
 #include <assert.h>
 #include <vector>
 
-#include "tree/distances.hpp"
+#include "tree/function/distances.hpp"
 #include "tree/iterator/preorder.hpp"
 #include "tree/tree.hpp"
 #include "utils/core/fs.hpp"

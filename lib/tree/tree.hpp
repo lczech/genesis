@@ -518,7 +518,7 @@ public:
     /**
      * @brief Validate the correctness of all Tree pointers etc.
      *
-     * This function is defined in tree/functions.hpp
+     * This function is defined in tree/operators/functions.hpp
      */
     friend bool validate<TreeType>( TreeType const& tree );
 

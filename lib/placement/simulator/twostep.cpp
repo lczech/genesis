@@ -9,8 +9,8 @@
 
 #include "placement/function/helper.hpp"
 #include "tree/default/distances.hpp"
-#include "tree/distances.hpp"
-#include "tree/operators.hpp"
+#include "tree/function/distances.hpp"
+#include "tree/function/operators.hpp"
 
 #include <assert.h>
 

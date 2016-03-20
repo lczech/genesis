@@ -22,7 +22,7 @@
 #include "placement/pquery/plain.hpp"
 #include "placement/sample.hpp"
 #include "tree/default/distances.hpp"
-#include "tree/distances.hpp"
+#include "tree/function/distances.hpp"
 #include "tree/iterator/postorder.hpp"
 #include "utils/core/options.hpp"
 #include "utils/math/histogram.hpp"

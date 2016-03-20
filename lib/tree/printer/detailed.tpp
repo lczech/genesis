@@ -5,7 +5,7 @@
  * @ingroup tree
  */
 
-#include "tree/distances.hpp"
+#include "tree/function/distances.hpp"
 #include "utils/text/style.hpp"
 
 #include <assert.h>

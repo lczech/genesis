@@ -9,9 +9,9 @@
 
 #include "placement/function/helper.hpp"
 #include "tree/default/distances.hpp"
-#include "tree/distances.hpp"
-#include "tree/functions.hpp"
-#include "tree/operators.hpp"
+#include "tree/function/distances.hpp"
+#include "tree/function/functions.hpp"
+#include "tree/function/operators.hpp"
 #include "utils/core/std.hpp"
 
 #include <algorithm>
