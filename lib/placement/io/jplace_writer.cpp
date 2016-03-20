@@ -22,7 +22,7 @@
 #include "utils/core/options.hpp"
 #include "utils/core/std.hpp"
 #include "utils/io/json/document.hpp"
-#include "utils/io/json/processor.hpp"
+#include "utils/io/json/writer.hpp"
 
 namespace genesis {
 namespace placement {
@@ -66,7 +66,7 @@ std::string JplaceWriter::to_string (const Sample& smp) const
 {
     utils::JsonDocument json;
     to_document(smp, json);
-    return utils::JsonProcessor().to_string(json);
+    return utils::JsonWriter().to_string(json);
 }
 
 /**

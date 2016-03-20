@@ -1,11 +1,11 @@
 /**
- * @brief Implementation of functions for parsing and printing JSON documents.
+ * @brief
  *
  * @file
  * @ingroup utils
  */
 
-#include "utils/io/json/processor.hpp"
+#include "utils/io/json/reader.hpp"
 
 #include <assert.h>
 
@@ -18,15 +18,15 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Parsing
+//     Reading
 // =================================================================================================
 
 /**
- * @brief Takes a JSON document file path and parses its contents into a JsonDocument.
+ * @brief Take a JSON document file path and parses its contents into a JsonDocument.
  *
  * Returns true iff successfull.
  */
-bool JsonProcessor::from_file (const std::string& filename, JsonDocument& document)
+bool JsonReader::from_file (const std::string& filename, JsonDocument& document)
 {
     if( ! utils::file_exists(filename)) {
         LOG_WARN << "JSON file '" << filename << "' does not exist.";
@@ -36,11 +36,11 @@ bool JsonProcessor::from_file (const std::string& filename, JsonDocument& docume
 }
 
 /**
- * @brief Takes a string containing a JSON document and parses its contents into a JsonDocument.
+ * @brief Take a string containing a JSON document and parses its contents into a JsonDocument.
  *
  * Returns true iff successfull.
  */
-bool JsonProcessor::from_string (const std::string& json, JsonDocument& document)
+bool JsonReader::from_string (const std::string& json, JsonDocument& document)
 {
     // do stepwise lexing
     JsonLexer lexer;
@@ -80,6 +80,10 @@ bool JsonProcessor::from_string (const std::string& json, JsonDocument& document
     return true;
 }
 
+// =================================================================================================
+//     Parsing
+// =================================================================================================
+
 // -----------------------------------------------------------------------------
 //     Parse Value
 // -----------------------------------------------------------------------------
@@ -92,10 +96,10 @@ bool JsonProcessor::from_string (const std::string& json, JsonDocument& document
  * entering the function it is not clear yet which type of value the current lexer token is, so a
  * new instance has to be created and stored in the pointer.
  */
-bool JsonProcessor::parse_value (
+bool JsonReader::parse_value (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
-    JsonValue*&            value
+    JsonValue*&          value
 ) {
     // Proper usage of this function is to hand over a null pointer to a json value, which will be
     // assigned to a newly created value instance depending on the token type, so check for this
@@ -144,7 +148,7 @@ bool JsonProcessor::parse_value (
 /**
  * @brief Parse a JSON array and fill it with data elements from the lexer.
  */
-bool JsonProcessor::parse_array (
+bool JsonReader::parse_array (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
     JsonValueArray*        value
@@ -199,7 +203,7 @@ bool JsonProcessor::parse_array (
 /**
  * @brief Parse a JSON object and fill it with data members from the lexer.
  */
-bool JsonProcessor::parse_object (
+bool JsonReader::parse_object (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
     JsonValueObject*       value
@@ -266,150 +270,6 @@ bool JsonProcessor::parse_object (
     }
     ++ct;
     return true;
-}
-
-// =================================================================================================
-//     Printing
-// =================================================================================================
-
-/**
- * @brief Writes a Json file from a JsonDocument. Returns true iff successful.
- *
- * If the file already exists, the function throws `std::runtime_error`.
- * The function uses utils::file_write. See there for other exceptions that can be thrown.
- */
-void JsonProcessor::to_file (const std::string& filename, const JsonDocument& document)
-{
-    if( utils::file_exists(filename) ) {
-        throw std::runtime_error( "Json file '" + filename + "' already exist." );
-    }
-    std::string jd;
-    to_string(jd, document);
-    utils::file_write( jd, filename );
-}
-
-/**
- * @brief Gives the Json string representation of a JsonDocument.
- */
-void JsonProcessor::to_string (std::string& json, const JsonDocument& document)
-{
-    json = to_string(document);
-}
-
-/**
- * @brief Returns the Json representation of a JsonDocument.
- */
-std::string JsonProcessor::to_string (const JsonDocument& document)
-{
-    return print_object(&document, 0);
-}
-
-/**
- * @brief Returns the Json representation of a Json Value.
- */
-std::string JsonProcessor::print_value (const JsonValue* value)
-{
-    switch(value->type()) {
-        case JsonValue::kNull:
-        case JsonValue::kBool:
-            return value->to_string();
-            break;
-
-        case JsonValue::kNumber:
-            return utils::to_string_precise(json_value_to_number(value)->value, precision);
-            break;
-
-        case JsonValue::kString:
-            return "\"" + utils::escape(json_value_to_string(value)->value) + "\"";
-            break;
-
-        // This function is only called from within print_array() and print_object(), and both of
-        // them handle the following two cases separately. So the assertion holds as long as this
-        // function is not called illegaly from a different context.
-        // Also, add a return to make the compiler happy ;-)
-        case JsonValue::kArray:
-        case JsonValue::kObject:
-        default:
-            assert(false);
-            return "";
-    }
-}
-
-/**
- * @brief Returns the Json representation of a Json Array.
- */
-std::string JsonProcessor::print_array (const JsonValueArray* value, const int indent_level)
-{
-    int il = indent_level + 1;
-    std::string in (il * indent, ' ');
-    std::ostringstream ss;
-
-    // Check if array contains non-simple values. If so, we use better bracket
-    // placement to make document look nicer.
-    bool has_large = false;
-    for (JsonValueArray::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
-        JsonValue* v = *it;
-        has_large |= (v->is_array() || v->is_object());
-    }
-
-    ss << "[ ";
-    bool first = true;
-    for (JsonValueArray::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
-        JsonValue* v = *it;
-        if (!first) {
-            ss << ", ";
-        }
-        if (has_large) {
-            ss << "\n" << in;
-        }
-        if (v->is_array()) {
-            ss << print_array(json_value_to_array(v), il);
-        } else if (v->is_object()) {
-            ss << print_object(json_value_to_object(v), il);
-        } else {
-            ss << print_value(v);
-        }
-        first = false;
-    }
-
-    if (has_large) {
-        ss << "\n" << std::string(indent_level * indent, ' ');
-    } else {
-        ss << " ";
-    }
-    ss << "]";
-    return ss.str();
-}
-
-/**
- * @brief Returns the Json representation of a Json Object.
- */
-std::string JsonProcessor::print_object (const JsonValueObject* value, const int indent_level)
-{
-    int il = indent_level + 1;
-    std::string in (il * indent, ' ');
-    std::stringstream ss;
-    ss << "{";
-
-    bool first = true;
-    for (JsonValueObject::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
-        JsonValueObject::ObjectPair v = *it;
-        if (!first) {
-            ss << ",";
-        }
-        ss << "\n" << in << "\"" << v.first << "\": ";
-        if (v.second->is_array()) {
-            ss << print_array(json_value_to_array(v.second), il);
-        } else if (v.second->is_object()) {
-            ss << print_object(json_value_to_object(v.second), il);
-        } else {
-            ss << print_value(v.second);
-        }
-        first = false;
-    }
-
-    ss << "\n" << std::string(indent_level * indent, ' ') << "}";
-    return ss.str();
 }
 
 } // namespace utils

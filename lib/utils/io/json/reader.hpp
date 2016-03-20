@@ -1,8 +1,8 @@
-#ifndef GENESIS_UTILS_IO_JSON_PROCESSOR_H_
-#define GENESIS_UTILS_IO_JSON_PROCESSOR_H_
+#ifndef GENESIS_UTILS_IO_JSON_READER_H_
+#define GENESIS_UTILS_IO_JSON_READER_H_
 
 /**
- * @brief Functions for parsing and printing a JSON document. See JsonProcessor for more.
+ * @brief
  *
  * @file
  * @ingroup utils
@@ -29,14 +29,12 @@ class JsonValueObject;
 // =================================================================================================
 
 /**
- * @brief A JSON parser that fills a JsonDocument with data from different JSON sources.
+ * @brief Read `Json` data.
  *
- * This class provides functions for parsing JSON data. Those take an input source containing
- * JSON data and parse them into a JsonDocument.
+ * This class provides functions for parsing `json` data into a JsonDocument. The parsing works
+ * this way:
  *
- * The parsing works this way:
- *
- * Each JSON document is also a JSON object, and can contain other objects, JSON arrays, or simple
+ * Each JsonDocutment is also a JsonObject, and can contain other objects, JsonArray%s, or simple
  * value types. The parsing here is thus splitted in those three functions, being recursively called
  * for every level of nesting within objects and arrays.
  *
@@ -46,17 +44,35 @@ class JsonValueObject;
  * provided, as well as a pointer to the resulting JSON value, which is filled with data during the
  * execution of the functions.
  */
-class JsonProcessor
+class JsonReader
 {
+public:
+
     // ---------------------------------------------------------------------
-    //     Parsing
+    //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
-public:
+    JsonReader()  = default;
+    ~JsonReader() = default;
+
+    JsonReader( JsonReader const& ) = default;
+    JsonReader( JsonReader&& )      = default;
+
+    JsonReader& operator= ( JsonReader const& ) = default;
+    JsonReader& operator= ( JsonReader&& )      = default;
+
+    // ---------------------------------------------------------------------
+    //     Reading
+    // ---------------------------------------------------------------------
+
     bool from_file   (const std::string& filename, JsonDocument& document);
     bool from_string (const std::string& json,     JsonDocument& document);
 
     // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
+
+    // ---------------------------------------------------------------------
+    //     Parsing
+    // ---------------------------------------------------------------------
 
 protected:
 
@@ -77,41 +93,6 @@ protected:
         JsonLexer::iterator& end,
         JsonValueObject*     value
     );
-
-    // ---------------------------------------------------------------------
-    //     Printing
-    // ---------------------------------------------------------------------
-
-public:
-
-    void        to_file   (const std::string& filename,const JsonDocument& document);
-    void        to_string (      std::string& json,    const JsonDocument& document);
-    std::string to_string (                            const JsonDocument& document);
-
-    // -----------------------------------------------------
-    //     Internal
-    // -----------------------------------------------------
-
-protected:
-    std::string print_value  (const JsonValue*       value);
-    std::string print_array  (const JsonValueArray*  value, const int indent_level);
-    std::string print_object (const JsonValueObject* value, const int indent_level);
-
-    // -----------------------------------------------------
-    //     Members
-    // -----------------------------------------------------
-
-public:
-
-    /**
-     * @brief The precision used for printing floating point numbers, particularly Json Value Numbers.
-     */
-    int precision = 6;
-
-    /**
-     * @brief The indent used for printing the elements of Json Arrays and Objects.
-     */
-    int indent = 4;
 
 };
 

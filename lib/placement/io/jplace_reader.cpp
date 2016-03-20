@@ -17,7 +17,7 @@
 #include "utils/core/std.hpp"
 #include "utils/io/counting_istream.hpp"
 #include "utils/io/json/document.hpp"
-#include "utils/io/json/processor.hpp"
+#include "utils/io/json/reader.hpp"
 #include "utils/io/lexer/parser.hpp"
 #include "utils/io/lexer/scanner.hpp"
 #include "utils/text/string.hpp"
@@ -116,7 +116,7 @@ void JplaceReader::from_file( std::string const& fn, Sample& smp ) const
 void JplaceReader::from_string( std::string const& jplace, Sample& smp ) const
 {
     utils::JsonDocument doc;
-    if( ! utils::JsonProcessor().from_string( jplace, doc )) {
+    if( ! utils::JsonReader().from_string( jplace, doc )) {
         throw std::runtime_error( "Not a valid Json document." );
     }
     return from_document(doc, smp);
