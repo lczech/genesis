@@ -67,7 +67,7 @@ protected:
 
 public:
 
-    bool        to_file     (const TreeType& tree, const std::string fn);
+    void        to_file     (const TreeType& tree, const std::string filename);
     void        to_string   (const TreeType& tree, std::string& ts);
     std::string to_string   (const TreeType& tree);
     void        to_document (const TreeType& tree, utils::XmlDocument& xml);

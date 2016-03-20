@@ -9,6 +9,7 @@
 #include <deque>
 #include <memory>
 #include <sstream>
+#include <stdexcept>
 
 #include "tree/function/distances.hpp"
 #include "tree/io/newick/broker.hpp"
@@ -429,19 +430,19 @@ void NewickProcessor<TreeType>::broker_to_tree (
 /**
  * @brief Writes the tree to a file in Newick format.
  *
- * If the file already exists, the function does not overwrite it.
+ * If the file already exists, the function throws `std::runtime_error`.
+ * The function uses utils::file_write. See there for other exceptions that can be thrown.
  */
 template <typename TreeType>
-bool NewickProcessor<TreeType>::to_file (
-    const TreeType& tree, const std::string fn
+void NewickProcessor<TreeType>::to_file (
+    const TreeType& tree, const std::string filename
 ) {
-    if( utils::file_exists(fn) ) {
-        LOG_WARN << "Newick file '" << fn << "' already exist. Will not overwrite it.";
-        return false;
+    if( utils::file_exists(filename) ) {
+        throw std::runtime_error( "Newick file '" + filename + "' already exist." );
     }
     std::string ts;
     to_string(tree, ts);
-    return utils::file_write(ts, fn);
+    utils::file_write(ts, filename);
 }
 
 /**

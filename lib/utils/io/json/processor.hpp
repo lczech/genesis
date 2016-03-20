@@ -53,8 +53,8 @@ class JsonProcessor
     // ---------------------------------------------------------------------
 
 public:
-    bool from_file   (const std::string& fn,    JsonDocument& document);
-    bool from_string (const std::string& json,  JsonDocument& document);
+    bool from_file   (const std::string& filename, JsonDocument& document);
+    bool from_string (const std::string& json,     JsonDocument& document);
 
     // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
 
@@ -84,9 +84,9 @@ protected:
 
 public:
 
-    bool        to_file   (const std::string& fn,   const JsonDocument& document);
-    void        to_string (      std::string& json, const JsonDocument& document);
-    std::string to_string (                         const JsonDocument& document);
+    void        to_file   (const std::string& filename,const JsonDocument& document);
+    void        to_string (      std::string& json,    const JsonDocument& document);
+    std::string to_string (                            const JsonDocument& document);
 
     // -----------------------------------------------------
     //     Internal

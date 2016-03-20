@@ -8,6 +8,7 @@
 #include "placement/io/jplace_writer.hpp"
 
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -36,16 +37,18 @@ namespace placement {
 
 /**
  * @brief Write the data of a Sample to a file in `Jplace` format.
+ *
+ * If the file already exists, the function throws `std::runtime_error`.
+ * The function uses utils::file_write. See there for other exceptions that can be thrown.
  */
-bool JplaceWriter::to_file (const Sample& smp, const std::string filename)
+void JplaceWriter::to_file (const Sample& smp, const std::string filename)
 {
     if( utils::file_exists(filename) ) {
-        LOG_WARN << "Jplace file '" << filename << "' already exist. Will not overwrite it.";
-        return false;
+        throw std::runtime_error( "Jplace file '" + filename + "' already exist." );
     }
     std::string ts;
     to_string(smp, ts);
-    return utils::file_write( ts, filename );
+    utils::file_write( ts, filename );
 }
 
 /**

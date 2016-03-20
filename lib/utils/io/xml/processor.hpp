@@ -47,9 +47,9 @@ class XmlProcessor
     // ---------------------------------------------------------------------
 
 public:
-    bool        to_file   (const std::string& fn,  const XmlDocument& document);
-    void        to_string (      std::string& xml, const XmlDocument& document);
-    std::string to_string (                        const XmlDocument& document);
+    void        to_file   (const std::string& filename, const XmlDocument& document);
+    void        to_string (      std::string& xml,      const XmlDocument& document);
+    std::string to_string (                             const XmlDocument& document);
 
     // -----------------------------------------------------
     //     Internal

@@ -8,6 +8,7 @@
 #include "utils/io/xml/processor.hpp"
 
 #include <assert.h>
+#include <stdexcept>
 
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
@@ -39,21 +40,23 @@ std::string XmlProcessor::XmlDescape (std::string& xml)
 // =================================================================================================
 
 /**
- * @brief Writes an XML file from an XmlDocument. Returns true iff successful.
+ * @brief Write an XML file from an XmlDocument. Returns true iff successful.
+ *
+ * If the file already exists, the function throws `std::runtime_error`.
+ * The function uses utils::file_write. See there for other exceptions that can be thrown.
  */
-bool XmlProcessor::to_file (const std::string& fn, const XmlDocument& document)
+void XmlProcessor::to_file (const std::string& filename, const XmlDocument& document)
 {
-    if( utils::file_exists(fn) ) {
-        LOG_WARN << "XML file '" << fn << "' already exist. Will not overwrite it.";
-        return false;
+    if( utils::file_exists(filename) ) {
+        throw std::runtime_error( "Xml file '" + filename + "' already exist." );
     }
     std::string xml;
     to_string(xml, document);
-    return utils::file_write(xml, fn);
+    utils::file_write(xml, filename);
 }
 
 /**
- * @brief Gives the XML string representation of a XmlDocument.
+ * @brief Give the XML string representation of a XmlDocument.
  */
 void XmlProcessor::to_string (std::string& xml, const XmlDocument& document)
 {
@@ -61,7 +64,7 @@ void XmlProcessor::to_string (std::string& xml, const XmlDocument& document)
 }
 
 /**
- * @brief Returns the XML representation of a XmlDocument.
+ * @brief Return the XML representation of a XmlDocument.
  */
 std::string XmlProcessor::to_string (const XmlDocument& document)
 {
@@ -74,7 +77,7 @@ std::string XmlProcessor::to_string (const XmlDocument& document)
 }
 
 /**
- * @brief Prints an XML comment.
+ * @brief Print an XML comment.
  */
 void XmlProcessor::print_comment (std::string& xml, const XmlComment* value)
 {
@@ -82,7 +85,7 @@ void XmlProcessor::print_comment (std::string& xml, const XmlComment* value)
 }
 
 /**
- * @brief Prints an XML markup (simple text).
+ * @brief Print an XML markup (simple text).
  */
 void XmlProcessor::print_markup  (std::string& xml, const XmlMarkup*  value)
 {
@@ -90,7 +93,7 @@ void XmlProcessor::print_markup  (std::string& xml, const XmlMarkup*  value)
 }
 
 /**
- * @brief Prints an XML element.
+ * @brief Print an XML element.
  */
 void XmlProcessor::print_element (std::string& xml, const XmlElement* value, const int indent_level)
 {
@@ -135,7 +138,7 @@ void XmlProcessor::print_element (std::string& xml, const XmlElement* value, con
 }
 
 /**
- * @brief Prints a list of XML attributes.
+ * @brief Print a list of XML attributes.
  */
 std::string XmlProcessor::print_attributes_list (StringMapType attr)
 {

@@ -60,7 +60,7 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    bool        to_file     (const Sample& smp,  const std::string   filename);
+    void        to_file     (const Sample& smp,  const std::string   filename);
     void        to_string   (const Sample& smp,        std::string&  output);
     std::string to_string   (const Sample& smp);
     void        to_document (const Sample& smp, utils::JsonDocument& doc);

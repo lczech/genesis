@@ -9,6 +9,7 @@
  */
 
 #include <assert.h>
+#include <stdexcept>
 #include <vector>
 
 #include "tree/function/distances.hpp"
@@ -54,18 +55,18 @@ namespace tree {
 /**
  * @brief Writes the tree to a file in Phyloxml format.
  *
- * If the file already exists, the function does not overwrite it.
+ * If the file already exists, the function throws `std::runtime_error`.
+ * The function uses utils::file_write. See there for other exceptions that can be thrown.
  */
 template <typename TreeType>
-bool PhyloxmlProcessor<TreeType>::to_file (const TreeType& tree, const std::string fn)
+void PhyloxmlProcessor<TreeType>::to_file (const TreeType& tree, const std::string filename)
 {
-    if( utils::file_exists(fn) ) {
-        LOG_WARN << "Phyloxml file '" << fn << "' already exist. Will not overwrite it.";
-        return false;
+    if( utils::file_exists(filename) ) {
+        throw std::runtime_error( "Phyloxml file '" + filename + "' already exist." );
     }
     std::string ts;
     to_string(tree, ts);
-    return utils::file_write(ts, fn);
+    utils::file_write(ts, filename);
 }
 
 /**

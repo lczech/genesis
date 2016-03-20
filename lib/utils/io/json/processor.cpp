@@ -26,13 +26,13 @@ namespace utils {
  *
  * Returns true iff successfull.
  */
-bool JsonProcessor::from_file (const std::string& fn, JsonDocument& document)
+bool JsonProcessor::from_file (const std::string& filename, JsonDocument& document)
 {
-    if( ! utils::file_exists(fn)) {
-        LOG_WARN << "JSON file '" << fn << "' does not exist.";
+    if( ! utils::file_exists(filename)) {
+        LOG_WARN << "JSON file '" << filename << "' does not exist.";
         return false;
     }
-    return from_string( utils::file_read(fn), document );
+    return from_string( utils::file_read(filename), document );
 }
 
 /**
@@ -274,16 +274,18 @@ bool JsonProcessor::parse_object (
 
 /**
  * @brief Writes a Json file from a JsonDocument. Returns true iff successful.
+ *
+ * If the file already exists, the function throws `std::runtime_error`.
+ * The function uses utils::file_write. See there for other exceptions that can be thrown.
  */
-bool JsonProcessor::to_file (const std::string& fn, const JsonDocument& document)
+void JsonProcessor::to_file (const std::string& filename, const JsonDocument& document)
 {
-    if( utils::file_exists(fn) ) {
-        LOG_WARN << "Json file '" << fn << "' already exist. Will not overwrite it.";
-        return false;
+    if( utils::file_exists(filename) ) {
+        throw std::runtime_error( "Json file '" + filename + "' already exist." );
     }
     std::string jd;
     to_string(jd, document);
-    return utils::file_write( jd, fn );
+    utils::file_write( jd, filename );
 }
 
 /**

@@ -21,12 +21,13 @@ namespace utils {
 
 bool        file_exists ( std::string const& filename );
 std::string file_read   ( std::string const& filename );
-bool        file_write  ( std::string const& content, std::string const& filename );
-bool        file_append ( std::string const& content, std::string const& filename );
+void        file_write  ( std::string const& content, std::string const& filename );
+void        file_append ( std::string const& content, std::string const& filename );
 
 bool        dir_exists     ( std::string const& dir );
 void        dir_create     ( std::string const& path );
-bool        dir_list_files ( std::string const& dir, std::vector<std::string>& list );
+
+std::vector<std::string> dir_list_files ( std::string const& dir );
 
 // =================================================================================================
 //     File Information
