@@ -60,10 +60,10 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    void        to_file     (const Sample& smp,  const std::string   filename);
-    void        to_string   (const Sample& smp,        std::string&  output);
-    std::string to_string   (const Sample& smp);
-    void        to_document (const Sample& smp, utils::JsonDocument& doc);
+    void        to_file     (const Sample& smp,  const std::string   filename) const;
+    void        to_string   (const Sample& smp,        std::string&  output) const;
+    std::string to_string   (const Sample& smp) const;
+    void        to_document (const Sample& smp, utils::JsonDocument& doc) const;
 };
 
 } // namespace placement
