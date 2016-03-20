@@ -19,7 +19,7 @@
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
 #include "utils/io/xml/document.hpp"
-#include "utils/io/xml/processor.hpp"
+#include "utils/io/xml/writer.hpp"
 
 namespace genesis {
 namespace tree {
@@ -92,7 +92,7 @@ std::string PhyloxmlProcessor<TreeType>::to_string (const TreeType& tree)
 {
     utils::XmlDocument xml;
     to_document(tree, xml);
-    return utils::XmlProcessor().to_string(xml);
+    return utils::XmlWriter().to_string(xml);
 }
 
 /**
