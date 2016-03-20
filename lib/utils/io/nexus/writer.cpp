@@ -9,7 +9,10 @@
 
 #include "utils/io/nexus/document.hpp"
 
+#include <stdexcept>
+#include <fstream>
 #include <ostream>
+#include <sstream>
 
 namespace genesis {
 namespace utils {
@@ -27,6 +30,30 @@ void NexusWriter::to_stream( NexusDocument const& doc, std::ostream& out ) const
         out << *block;
         out << "END;\n";
     }
+}
+
+void NexusWriter::to_file( NexusDocument const& doc, std::string const& filename) const
+{
+    std::ofstream fstr( filename );
+    if( !fstr ) {
+        throw std::runtime_error( "Cannot write Nexus file '" + filename + "'." );
+    }
+    to_stream( doc, fstr );
+    fstr.close();
+}
+
+void NexusWriter::to_string( NexusDocument const& doc, std::string& output) const
+{
+    std::stringstream sstr;
+    to_stream( doc, sstr );
+    output = sstr.str();
+}
+
+std::string NexusWriter::to_string( NexusDocument const& doc) const
+{
+    std::stringstream sstr;
+    to_stream( doc, sstr );
+    return sstr.str();
 }
 
 } // namespace utils
