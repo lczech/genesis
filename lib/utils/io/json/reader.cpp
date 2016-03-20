@@ -8,9 +8,9 @@
 #include "utils/io/json/reader.hpp"
 
 #include <assert.h>
+#include <stdexcept>
 
 #include "utils/core/fs.hpp"
-#include "utils/core/logging.hpp"
 #include "utils/io/json/document.hpp"
 #include "utils/text/string.hpp"
 
@@ -24,13 +24,12 @@ namespace utils {
 /**
  * @brief Take a JSON document file path and parses its contents into a JsonDocument.
  *
- * Returns true iff successfull.
+ * If the file does not exists, the function throws an `std::runtime_error`.
  */
-bool JsonReader::from_file (const std::string& filename, JsonDocument& document)
+void JsonReader::from_file (const std::string& filename, JsonDocument& document)
 {
     if( ! utils::file_exists(filename)) {
-        LOG_WARN << "JSON file '" << filename << "' does not exist.";
-        return false;
+        throw std::runtime_error( "Json file '" + filename + "' does not exist." );
     }
     return from_string( utils::file_read(filename), document );
 }
@@ -40,24 +39,22 @@ bool JsonReader::from_file (const std::string& filename, JsonDocument& document)
  *
  * Returns true iff successfull.
  */
-bool JsonReader::from_string (const std::string& json, JsonDocument& document)
+void JsonReader::from_string (const std::string& json, JsonDocument& document)
 {
     // do stepwise lexing
     JsonLexer lexer;
     lexer.from_string(json);
 
     if (lexer.empty()) {
-        LOG_INFO << "JSON document is empty.";
-        return false;
+        throw std::runtime_error( "Json document is empty." );
     }
     if (lexer.has_error()) {
-        LOG_WARN << "Lexing error at " << lexer.back().at()
-                 << " with message: " << lexer.back().value();
-        return false;
+        throw std::runtime_error(
+            "Lexing error at " + lexer.back().at() + " with message: " + lexer.back().value()
+        );
     }
     if (!lexer.begin()->is_bracket("{")) {
-        LOG_WARN << "JSON document does not start with JSON object opener '{'.";
-        return false;
+        throw std::runtime_error( "JSON document does not start with JSON object opener '{'." );
     }
 
     // A json document is also a json object, so we start parsing the doc as such.
@@ -66,18 +63,16 @@ bool JsonReader::from_string (const std::string& json, JsonDocument& document)
     JsonLexer::iterator begin = lexer.begin();
     JsonLexer::iterator end   = lexer.end();
 
-    if (!parse_object(begin, end, &document)) {
-        return false;
-    }
+    parse_object(begin, end, &document);
 
     // After processing, the begin iterator will point to the lexer token that comes after
     // the one being processed last. If the document is well-formatted, this token is also
     // the end pointer of the iterator.
     if (begin != end) {
-        LOG_WARN << "JSON document contains more information after the closing bracket.";
-        return false;
+        throw std::runtime_error(
+            "JSON document contains more information after the closing bracket."
+        );
     }
-    return true;
 }
 
 // =================================================================================================
@@ -96,7 +91,7 @@ bool JsonReader::from_string (const std::string& json, JsonDocument& document)
  * entering the function it is not clear yet which type of value the current lexer token is, so a
  * new instance has to be created and stored in the pointer.
  */
-bool JsonReader::parse_value (
+void JsonReader::parse_value (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
     JsonValue*&          value
@@ -115,30 +110,37 @@ bool JsonReader::parse_value (
             value = new JsonValueBool(ct->value());
         }
         ++ct;
-        return true;
+        return;
     }
+
     if (ct->is_number()) {
         value = new JsonValueNumber(ct->value());
         ++ct;
-        return true;
+        return;
     }
+
     if (ct->is_string()) {
         value = new JsonValueString(ct->value());
         ++ct;
-        return true;
+        return;
     }
+
     if (ct->is_bracket("[")) {
         value = new JsonValueArray();
-        return parse_array (ct, end, json_value_to_array(value));
+        parse_array (ct, end, json_value_to_array(value));
+        return;
     }
+
     if (ct->is_bracket("{")) {
         value = new JsonValueObject();
-        return parse_object (ct, end, json_value_to_object(value));
+        parse_object (ct, end, json_value_to_object(value));
+        return;
     }
 
     // If the lexer token is not a fitting json value, we have an error.
-    LOG_WARN << "JSON value contains invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
-    return false;
+    throw std::runtime_error(
+        "JSON value contains invalid characters at " + ct->at() + ": '" + ct->value() + "'."
+    );
 }
 
 // -----------------------------------------------------------------------------
@@ -148,7 +150,7 @@ bool JsonReader::parse_value (
 /**
  * @brief Parse a JSON array and fill it with data elements from the lexer.
  */
-bool JsonReader::parse_array (
+void JsonReader::parse_array (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
     JsonValueArray*        value
@@ -158,17 +160,14 @@ bool JsonReader::parse_array (
     assert(value);
 
     if (ct == end || !ct->is_bracket("[")) {
-        LOG_WARN << "JSON array does not start with '[' at " << ct->at() << ".";
-        return false;
+        throw std::runtime_error( "JSON array does not start with '[' at " + ct->at() + "." );
     }
 
     ++ct;
     while (ct != end) {
         // Proccess the array element.
         JsonValue* element = nullptr;
-        if (!parse_value(ct, end, element)) {
-            return false;
-        }
+        parse_value( ct, end, element );
         value->add(element);
 
         // Check for end of array, leave if found.
@@ -178,8 +177,9 @@ bool JsonReader::parse_array (
 
         // Check for delimiter comma (indicates that there are more elements following).
         if (!ct->is_operator(",")) {
-            LOG_WARN << "JSON array does not contain comma between elements at " << ct->at() << ".";
-            return false;
+            throw std::runtime_error(
+                "JSON array does not contain comma between elements at " + ct->at() + "."
+            );
         }
         ++ct;
     }
@@ -188,12 +188,11 @@ bool JsonReader::parse_array (
     // first case, we have an error; in the second, we are done with this object and can skip the
     // bracket.
     if (ct == end) {
-        LOG_WARN << "JSON array ended unexpectedly.";
-        return false;
+        throw std::runtime_error( "JSON array ended unexpectedly." );
     }
+
     assert(ct->is_bracket("]"));
     ++ct;
-    return true;
 }
 
 // -----------------------------------------------------------------------------
@@ -203,7 +202,7 @@ bool JsonReader::parse_array (
 /**
  * @brief Parse a JSON object and fill it with data members from the lexer.
  */
-bool JsonReader::parse_object (
+void JsonReader::parse_object (
     JsonLexer::iterator& ct,
     JsonLexer::iterator& end,
     JsonValueObject*       value
@@ -213,16 +212,16 @@ bool JsonReader::parse_object (
     assert(value);
 
     if (ct == end || !ct->is_bracket("{")) {
-        LOG_WARN << "JSON object does not start with '{' at " << ct->at() << ".";
-        return false;
+        throw std::runtime_error( "JSON object does not start with '{' at " + ct->at() + "." );
     }
 
     ++ct;
     while (ct != end) {
         // Check for name string and store it.
         if (!ct->is_string()) {
-            LOG_WARN << "JSON object member does not start with name string at " << ct->at() << ".";
-            return false;
+            throw std::runtime_error(
+                "JSON object member does not start with name string at " + ct->at() + "."
+            );
         }
         std::string name = ct->value();
         ++ct;
@@ -232,9 +231,10 @@ bool JsonReader::parse_object (
             break;
         }
         if (!ct->is_operator(":")) {
-            LOG_WARN << "JSON object member does not contain colon between name and value at "
-                     << ct->at() << ".";
-            return false;
+            throw std::runtime_error(
+                "JSON object member does not contain colon between name and value at "
+                + ct->at() + "."
+            );
         }
         ++ct;
 
@@ -242,11 +242,10 @@ bool JsonReader::parse_object (
         if (ct == end) {
             break;
         }
+
         JsonValue* member = nullptr;
-        if (!parse_value(ct, end, member)) {
-            return false;
-        }
-        value->set(name, member);
+        parse_value( ct, end, member );
+        value->set( name, member );
 
         // Check for end of object, leave if found (either way).
         if (ct == end || ct->is_bracket("}")) {
@@ -255,8 +254,9 @@ bool JsonReader::parse_object (
 
         // Check for delimiter comma (indicates that there are more members following).
         if (!ct->is_operator(",")) {
-            LOG_WARN << "JSON object does not contain comma between members at " << ct->at() << ".";
-            return false;
+            throw std::runtime_error(
+                "JSON object does not contain comma between members at " + ct->at() + "."
+            );
         }
         ++ct;
     }
@@ -265,11 +265,9 @@ bool JsonReader::parse_object (
     // first case, we have an error; in the second, we are done with this object and can skip the
     // bracket.
     if (ct == end) {
-        LOG_WARN << "JSON object ended unexpectedly.";
-        return false;
+        throw std::runtime_error( "JSON object ended unexpectedly." );
     }
     ++ct;
-    return true;
 }
 
 } // namespace utils

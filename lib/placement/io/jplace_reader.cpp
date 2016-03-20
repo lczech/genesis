@@ -116,9 +116,7 @@ void JplaceReader::from_file( std::string const& fn, Sample& smp ) const
 void JplaceReader::from_string( std::string const& jplace, Sample& smp ) const
 {
     utils::JsonDocument doc;
-    if( ! utils::JsonReader().from_string( jplace, doc )) {
-        throw std::runtime_error( "Not a valid Json document." );
-    }
+    utils::JsonReader().from_string( jplace, doc );
     return from_document(doc, smp);
 }
 

@@ -65,8 +65,8 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
-    bool from_file   (const std::string& filename, JsonDocument& document);
-    bool from_string (const std::string& json,     JsonDocument& document);
+    void from_file   (const std::string& filename, JsonDocument& document);
+    void from_string (const std::string& json,     JsonDocument& document);
 
     // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
 
@@ -76,19 +76,19 @@ public:
 
 protected:
 
-    bool parse_value (
+    void parse_value (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
         JsonValue*&          value
     );
 
-    bool parse_array (
+    void parse_array (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
         JsonValueArray*      value
     );
 
-    bool parse_object (
+    void parse_object (
         JsonLexer::iterator& ct,
         JsonLexer::iterator& end,
         JsonValueObject*     value
