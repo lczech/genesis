@@ -121,8 +121,8 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
             auto& place = pqueries[i].placements[j];
 
             place.edge_index           = oplace.edge().index();
-            place.primary_node_index   = oplace.edge().primary_node()->index();
-            place.secondary_node_index = oplace.edge().secondary_node()->index();
+            place.primary_node_index   = oplace.edge().primary_node().index();
+            place.secondary_node_index = oplace.edge().secondary_node().index();
 
             place.branch_length        = oplace.edge().data.branch_length;
             place.pendant_length       = oplace.pendant_length;
@@ -155,7 +155,7 @@ bool has_correct_edge_nums( PlacementTree const& tree )
             continue;
         }
 
-        if (it.edge()->data.edge_num() != current) {
+        if (it.edge().data.edge_num() != current) {
             return false;
         }
         ++current;

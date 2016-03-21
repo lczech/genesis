@@ -206,25 +206,25 @@ bool Tree<NDT, EDT>::empty() const
  * @brief Return the TreeLink at the current root of the Tree.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::root_link()
+typename Tree<NDT, EDT>::LinkType& Tree<NDT, EDT>::root_link()
 {
-    return links_.front().get();
+    return *links_.front().get();
 }
 
 /**
  * @brief Return the TreeLink at the current root of the Tree.
  */
 template <class NDT, class EDT>
-const typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::root_link() const
+typename Tree<NDT, EDT>::LinkType const& Tree<NDT, EDT>::root_link() const
 {
-    return links_.front().get();
+    return *links_.front().get();
 }
 
 /**
  * @brief Return the TreeNode at the current root of the Tree.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::root_node()
+typename Tree<NDT, EDT>::NodeType& Tree<NDT, EDT>::root_node()
 {
     return links_.front()->node();
 }
@@ -233,7 +233,7 @@ typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::root_node()
  * @brief Return the TreeNode at the current root of the Tree.
  */
 template <class NDT, class EDT>
-const typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::root_node() const
+typename Tree<NDT, EDT>::NodeType const& Tree<NDT, EDT>::root_node() const
 {
     return links_.front()->node();
 }
@@ -242,54 +242,54 @@ const typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::root_node() const
  * @brief Return the TreeLink at a certain index.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::link_at(size_t index)
+typename Tree<NDT, EDT>::LinkType& Tree<NDT, EDT>::link_at(size_t index)
 {
-    return links_[index].get();
+    return *links_[index].get();
 }
 
 /**
  * @brief Return the TreeLink at a certain index.
  */
 template <class NDT, class EDT>
-const typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::link_at(size_t index) const
+typename Tree<NDT, EDT>::LinkType const& Tree<NDT, EDT>::link_at(size_t index) const
 {
-    return links_[index].get();
+    return *links_[index].get();
 }
 
 /**
  * @brief Return the TreeNode at a certain index.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::node_at(size_t index)
+typename Tree<NDT, EDT>::NodeType& Tree<NDT, EDT>::node_at(size_t index)
 {
-    return nodes_[index].get();
+    return *nodes_[index].get();
 }
 
 /**
  * @brief Return the TreeNode at a certain index.
  */
 template <class NDT, class EDT>
-const typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::node_at(size_t index) const
+typename Tree<NDT, EDT>::NodeType const& Tree<NDT, EDT>::node_at(size_t index) const
 {
-    return nodes_[index].get();
+    return *nodes_[index].get();
 }
 
 /**
  * @brief Return the TreeEdge at a certain index.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::EdgeType* Tree<NDT, EDT>::edge_at(size_t index)
+typename Tree<NDT, EDT>::EdgeType& Tree<NDT, EDT>::edge_at(size_t index)
 {
-    return edges_[index].get();
+    return *edges_[index].get();
 }
 
 /**
  * @brief Return the TreeEdge at a certain index.
  */
 template <class NDT, class EDT>
-const typename Tree<NDT, EDT>::EdgeType* Tree<NDT, EDT>::edge_at(size_t index) const
+typename Tree<NDT, EDT>::EdgeType const& Tree<NDT, EDT>::edge_at(size_t index) const
 {
-    return edges_[index].get();
+    return *edges_[index].get();
 }
 
 /**

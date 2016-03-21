@@ -89,7 +89,7 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
                 continue;
             }
 
-            avgs[idx] += it.edge()->data.branch_length;
+            avgs[idx] += it.edge().data.branch_length;
             ++idx;
         }
     }
@@ -112,7 +112,7 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
             continue;
         }
 
-        it.edge()->data.branch_length = avgs[idx] / trees_.size();
+        it.edge().data.branch_length = avgs[idx] / trees_.size();
         ++idx;
     }
 

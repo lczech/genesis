@@ -25,7 +25,7 @@ int max_rank( Tree const& tree )
 {
     int max = -1;
     for (size_t i = 0; i < tree.node_count(); ++i) {
-        int rank = tree.node_at(i)->rank();
+        int rank = tree.node_at(i).rank();
         // if (rank == 1) {
         //     LOG_WARN << "Node with rank 1 found. This is a node without furcation, and usually "
         //              << "indicates an error.";
@@ -53,7 +53,7 @@ size_t leaf_nodes_count( Tree const& tree )
     size_t sum = 0;
     for (size_t i = 0; i < tree.node_count(); ++i) {
         auto const& n = tree.node_at(i);
-        if (n->is_leaf()) {
+        if (n.is_leaf()) {
             ++sum;
         }
     }

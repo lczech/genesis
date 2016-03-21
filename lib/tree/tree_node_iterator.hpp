@@ -40,7 +40,7 @@ public:
 
     self_type operator ++ ()
     {
-        link_ = link_->next();
+        link_ = &link_->next();
         if (link_ == start_) {
             link_ = nullptr;
         }

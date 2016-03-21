@@ -37,25 +37,25 @@ void BoostPythonExport_TreeEdge (std::string name)
         )
         .def(
             "primary_link",
-            ( LinkType * ( EdgeType::* )(  ) const )( &EdgeType::primary_link ),
+            ( LinkType & ( EdgeType::* )(  ) )( &EdgeType::primary_link ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             get_docstring("LinkType * ::genesis::TreeEdge::primary_link () const")
         )
         .def(
             "primary_node",
-            ( NodeType * ( EdgeType::* )(  ) const )( &EdgeType::primary_node ),
+            ( NodeType & ( EdgeType::* )(  )  )( &EdgeType::primary_node ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             get_docstring("NodeType * ::genesis::TreeEdge::primary_node () const")
         )
         .def(
             "secondary_link",
-            ( LinkType * ( EdgeType::* )(  ) const )( &EdgeType::secondary_link ),
+            ( LinkType & ( EdgeType::* )(  )  )( &EdgeType::secondary_link ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             get_docstring("LinkType * ::genesis::TreeEdge::secondary_link () const")
         )
         .def(
             "secondary_node",
-            ( NodeType * ( EdgeType::* )(  ) const )( &EdgeType::secondary_node ),
+            ( NodeType & ( EdgeType::* )(  )  )( &EdgeType::secondary_node ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             get_docstring("NodeType * ::genesis::TreeEdge::secondary_node () const")
         )

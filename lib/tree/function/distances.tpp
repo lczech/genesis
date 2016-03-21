@@ -20,7 +20,7 @@ namespace tree {
 /**
  * @brief
  *
- * The vector is indexed using the node()->index() for every node.
+ * The vector is indexed using the node().index() for every node.
  */
 template <class Tree>
 utils::Matrix<int>         node_depth_matrix    (
@@ -35,7 +35,7 @@ utils::Matrix<int>         node_depth_matrix    (
 /**
  * @brief Returns a vector containing the depth of all nodes with respect to the given start node.
  *
- * The vector is indexed using the node()->index() for every node. Its elements give the depth of
+ * The vector is indexed using the node().index() for every node. Its elements give the depth of
  * each node with respect to the given start node. The depth is the number of edges visited on the
  * path between two nodes (0 for itself, 1 for immediate neighbours, etc).
  *
@@ -47,7 +47,7 @@ std::vector<int>    node_depth_vector    (
     const typename Tree::NodeType* node
 ) {
     if (!node) {
-        node = tree.root_node();
+        node = &tree.root_node();
     }
 
     // store the distance from each node to the given node.
@@ -57,7 +57,7 @@ std::vector<int>    node_depth_vector    (
 
     // calculate the distance vector via levelorder iteration.
     for (
-        auto it = tree.begin_levelorder(node);
+        auto it = tree.begin_levelorder( *node );
         it != tree.end_levelorder();
         ++it
     ) {
@@ -68,12 +68,12 @@ std::vector<int>    node_depth_vector    (
 
         // we do not have the distance of the current node, but the one of its "parent" (the one in
         // direction of the starting node)!
-        assert(vec[it.node()->index()] == -1);
-        assert(vec[it.link()->outer()->node()->index()] > -1);
+        assert(vec[it.node().index()] == -1);
+        assert(vec[it.link().outer().node().index()] > -1);
 
         // the distance is the distance from the "parent" node (the next one in direction towards
         // the given node) plus 1.
-        vec[it.node()->index()] = 1 + vec[it.link()->outer()->node()->index()];
+        vec[it.node().index()] = 1 + vec[it.link().outer().node().index()];
     }
 
     return vec;
@@ -109,7 +109,7 @@ std::vector<int>    edge_depth_vector    (
  * @brief Returns a vector containing the closest leaf node for each node, measured in number of
  * edges between them and its depth (number of edges between them).
  *
- * The vector is indexed using the node()->index() for every node. Its value contains an std::pair,
+ * The vector is indexed using the node().index() for every node. Its value contains an std::pair,
  * where the first element is a NodeType* to the closest leaf node (with respect to its depth) and
  * the second element its depth with respect to the node at the given index of the vector. The depth
  * is the number of edges visited on the path between two nodes (0 for itself, 1 for immediate
@@ -126,7 +126,7 @@ std::vector< std::pair<const typename Tree::NodeType*, int> >  closest_leaf_dept
     const Tree& tree
 ) {
     // prepare a result vector with the size of number of nodes.
-    std::vector< std::pair<const typename Tree::NodeType*, int> > vec;
+    std::vector< std::pair<typename Tree::NodeType const*, int> > vec;
     vec.resize(tree.node_count(), {nullptr, 0});
 
     // fill the vector for every node.
@@ -140,14 +140,14 @@ std::vector< std::pair<const typename Tree::NodeType*, int> >  closest_leaf_dept
 
         // look for closest leaf node by doing a levelorder traversal.
         for (
-            auto it = tree.begin_levelorder(node);
+            auto it = tree.begin_levelorder( *node );
             it != tree.end_levelorder();
             ++it
         ) {
             // if we find a leaf, leave the loop.
-            if (it.node()->is_leaf()) {
-                vec[node->index()].first  = it.node();
-                vec[node->index()].second = it.depth();
+            if (it.node().is_leaf()) {
+                vec[node->index()].first  = &it.node();
+                vec[node->index()].second =  it.depth();
                 break;
             }
         }

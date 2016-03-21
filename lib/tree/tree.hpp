@@ -124,20 +124,20 @@ public:
 
     bool empty() const;
 
-          LinkType* root_link();
-    const LinkType* root_link() const;
+    LinkType      & root_link();
+    LinkType const& root_link() const;
 
-          NodeType* root_node();
-    const NodeType* root_node() const;
+    NodeType      & root_node();
+    NodeType const& root_node() const;
 
-          LinkType* link_at(size_t index);
-    const LinkType* link_at(size_t index) const;
+    LinkType      & link_at(size_t index);
+    LinkType const& link_at(size_t index) const;
 
-          NodeType* node_at(size_t index);
-    const NodeType* node_at(size_t index) const;
+    NodeType      & node_at(size_t index);
+    NodeType const& node_at(size_t index) const;
 
-          EdgeType* edge_at(size_t index);
-    const EdgeType* edge_at(size_t index) const;
+    EdgeType      & edge_at(size_t index);
+    EdgeType const& edge_at(size_t index) const;
 
     size_t link_count() const;
     size_t node_count() const;
@@ -150,17 +150,17 @@ public:
     typedef TreeIteratorEulertour <      LinkType,       NodeType,       EdgeType>      IteratorEulertour;
     typedef TreeIteratorEulertour <const LinkType, const NodeType, const EdgeType> ConstIteratorEulertour;
 
-    typedef TreeIteratorPreorder  <      LinkType*,       NodeType*,       EdgeType*>      IteratorPreorder;
-    typedef TreeIteratorPreorder  <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorPreorder;
+    typedef TreeIteratorPreorder  <      LinkType,       NodeType,       EdgeType>      IteratorPreorder;
+    typedef TreeIteratorPreorder  <const LinkType, const NodeType, const EdgeType> ConstIteratorPreorder;
 
-    //~ typedef TreeIteratorInorder   <      LinkType*,       NodeType*,       EdgeType*>      IteratorInorder;
-    //~ typedef TreeIteratorInorder   <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorInorder;
+    //~ typedef TreeIteratorInorder   <      LinkType,       NodeType,       EdgeType>      IteratorInorder;
+    //~ typedef TreeIteratorInorder   <const LinkType, const NodeType, const EdgeType> ConstIteratorInorder;
 
-    typedef TreeIteratorPostorder <      LinkType*,       NodeType*,       EdgeType*>      IteratorPostorder;
-    typedef TreeIteratorPostorder <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorPostorder;
+    typedef TreeIteratorPostorder <      LinkType,       NodeType,       EdgeType>      IteratorPostorder;
+    typedef TreeIteratorPostorder <const LinkType, const NodeType, const EdgeType> ConstIteratorPostorder;
 
-    typedef TreeIteratorLevelorder<      LinkType*,       NodeType*,       EdgeType*>      IteratorLevelorder;
-    typedef TreeIteratorLevelorder<const LinkType*, const NodeType*, const EdgeType*> ConstIteratorLevelorder;
+    typedef TreeIteratorLevelorder<      LinkType,       NodeType,       EdgeType>      IteratorLevelorder;
+    typedef TreeIteratorLevelorder<const LinkType, const NodeType, const EdgeType> ConstIteratorLevelorder;
 
     typedef typename std::vector<std::unique_ptr<LinkType>>::iterator               IteratorLinks;
     typedef typename std::vector<std::unique_ptr<LinkType>>::const_iterator    ConstIteratorLinks;
@@ -181,53 +181,53 @@ public:
 
     IteratorEulertour begin_eulertour()
     {
-        if (link_count() == 0) {
-            return IteratorEulertour(nullptr);
+        if( link_count() == 0 ) {
+            return IteratorEulertour();
             // return IteratorEulertour();
         }
-        return IteratorEulertour(root_link());
+        return IteratorEulertour( root_link() );
     }
 
-    IteratorEulertour begin_eulertour(LinkType* link)
+    IteratorEulertour begin_eulertour( LinkType& link )
     {
-        return IteratorEulertour(link);
+        return IteratorEulertour( link );
     }
 
-    IteratorEulertour begin_eulertour(NodeType* node)
+    IteratorEulertour begin_eulertour( NodeType& node )
     {
-        return IteratorEulertour(node->primary_link());
+        return IteratorEulertour( node.primary_link() );
         // return IteratorEulertour(node);
     }
 
     IteratorEulertour end_eulertour()
     {
-        return IteratorEulertour(nullptr);
+        return IteratorEulertour();
         // return IteratorEulertour();
     }
 
     ConstIteratorEulertour begin_eulertour() const
     {
-        if (link_count() == 0) {
-            return ConstIteratorEulertour(nullptr);
+        if( link_count() == 0 ) {
+            return ConstIteratorEulertour();
             // return ConstIteratorEulertour();
         }
-        return ConstIteratorEulertour(root_link());
+        return ConstIteratorEulertour( root_link() );
     }
 
-    ConstIteratorEulertour begin_eulertour(const LinkType* link) const
+    ConstIteratorEulertour begin_eulertour( LinkType const& link ) const
     {
-        return ConstIteratorEulertour(link);
+        return ConstIteratorEulertour( link );
     }
 
-    ConstIteratorEulertour begin_eulertour(const NodeType* node) const
+    ConstIteratorEulertour begin_eulertour( NodeType const& node) const
     {
-        return ConstIteratorEulertour(node->primary_link());
+        return ConstIteratorEulertour( node.primary_link() );
         // return ConstIteratorEulertour(node);
     }
 
     ConstIteratorEulertour end_eulertour() const
     {
-        return ConstIteratorEulertour(nullptr);
+        return ConstIteratorEulertour();
         // return ConstIteratorEulertour();
     }
 
@@ -237,48 +237,48 @@ public:
 
     IteratorPreorder begin_preorder()
     {
-        if (link_count() == 0) {
-            return IteratorPreorder(nullptr);
+        if( link_count() == 0 ) {
+            return IteratorPreorder();
         }
-        return IteratorPreorder(root_link());
+        return IteratorPreorder( root_link() );
     }
 
-    IteratorPreorder begin_preorder(LinkType* link)
+    IteratorPreorder begin_preorder( LinkType& link )
     {
-        return IteratorPreorder(link);
+        return IteratorPreorder( link );
     }
 
-    IteratorPreorder begin_preorder(NodeType* node)
+    IteratorPreorder begin_preorder( NodeType& node )
     {
-        return IteratorPreorder(node->primary_link());
+        return IteratorPreorder( node.primary_link() );
     }
 
     IteratorPreorder end_preorder()
     {
-        return IteratorPreorder(nullptr);
+        return IteratorPreorder();
     }
 
     ConstIteratorPreorder begin_preorder() const
     {
-        if (link_count() == 0) {
-            return ConstIteratorPreorder(nullptr);
+        if( link_count() == 0 ) {
+            return ConstIteratorPreorder();
         }
-        return ConstIteratorPreorder(root_link());
+        return ConstIteratorPreorder( root_link() );
     }
 
-    ConstIteratorPreorder begin_preorder(const LinkType* link) const
+    ConstIteratorPreorder begin_preorder( LinkType const& link ) const
     {
-        return ConstIteratorPreorder(link);
+        return ConstIteratorPreorder( link );
     }
 
-    ConstIteratorPreorder begin_preorder(const NodeType* node) const
+    ConstIteratorPreorder begin_preorder( NodeType const& node ) const
     {
-        return ConstIteratorPreorder(node->primary_link());
+        return ConstIteratorPreorder( node.primary_link() );
     }
 
     ConstIteratorPreorder end_preorder() const
     {
-        return ConstIteratorPreorder(nullptr);
+        return ConstIteratorPreorder();
     }
 
     // -----------------------------------------------------
@@ -287,15 +287,15 @@ public:
 
     //~ IteratorInorder begin_inorder()
     //~ {
-    //if (link_count() == 0) {
-    //     return IteratorInorder(nullptr);
+    //if( link_count() == 0 ) {
+    //     return IteratorInorder();
     // }
-        //~ return IteratorInorder(root_link());
+        //~ return IteratorInorder( root_link() );
     //~ }
 //~
-    //~ IteratorInorder begin_inorder(LinkType* link)
+    //~ IteratorInorder begin_inorder( LinkType& link )
     //~ {
-        //~ return IteratorInorder(link);
+        //~ return IteratorInorder( link );
     //~ }
 //~
     //~ IteratorInorder begin_inorder(NodeType* node)
@@ -305,13 +305,13 @@ public:
 //~
     //~ IteratorInorder end_inorder()
     //~ {
-        //~ return IteratorInorder(nullptr);
+        //~ return IteratorInorder();
     //~ }
 
     //~ ConstIteratorInorder begin_inorder() const
     //~ {
     //if (link_count() == 0) {
-    //     return ConstIteratorInorder(nullptr);
+    //     return ConstIteratorInorder();
     // }
         //~ return ConstIteratorInorder(root_link());
     //~ }
@@ -328,7 +328,7 @@ public:
 //~
     //~ ConstIteratorInorder end_inorder() const
     //~ {
-        //~ return ConstIteratorInorder(nullptr);
+        //~ return ConstIteratorInorder();
     //~ }
 
     // -----------------------------------------------------
@@ -338,47 +338,47 @@ public:
     IteratorPostorder begin_postorder()
     {
         if (link_count() == 0) {
-            return IteratorPostorder(nullptr);
+            return IteratorPostorder();
         }
         return IteratorPostorder(root_link());
     }
 
-    IteratorPostorder begin_postorder(LinkType* link)
+    IteratorPostorder begin_postorder(LinkType& link)
     {
         return IteratorPostorder(link);
     }
 
-    IteratorPostorder begin_postorder(NodeType* node)
+    IteratorPostorder begin_postorder(NodeType& node)
     {
-        return IteratorPostorder(node->primary_link());
+        return IteratorPostorder(node.primary_link());
     }
 
     IteratorPostorder end_postorder()
     {
-        return IteratorPostorder(nullptr);
+        return IteratorPostorder();
     }
 
     ConstIteratorPostorder begin_postorder() const
     {
         if (link_count() == 0) {
-            return ConstIteratorPostorder(nullptr);
+            return ConstIteratorPostorder();
         }
         return ConstIteratorPostorder(root_link());
     }
 
-    ConstIteratorPostorder begin_postorder(const LinkType* link) const
+    ConstIteratorPostorder begin_postorder(const LinkType& link) const
     {
         return ConstIteratorPostorder(link);
     }
 
-    ConstIteratorPostorder begin_postorder(const NodeType* node) const
+    ConstIteratorPostorder begin_postorder(const NodeType& node) const
     {
-        return ConstIteratorPostorder(node->primary_link());
+        return ConstIteratorPostorder(node.primary_link());
     }
 
     ConstIteratorPostorder end_postorder() const
     {
-        return ConstIteratorPostorder(nullptr);
+        return ConstIteratorPostorder();
     }
 
     // -----------------------------------------------------
@@ -388,47 +388,47 @@ public:
     IteratorLevelorder begin_levelorder()
     {
         if (link_count() == 0) {
-            return IteratorLevelorder(nullptr);
+            return IteratorLevelorder();
         }
         return IteratorLevelorder(root_link());
     }
 
-    IteratorLevelorder begin_levelorder(LinkType* link)
+    IteratorLevelorder begin_levelorder(LinkType& link)
     {
         return IteratorLevelorder(link);
     }
 
-    IteratorLevelorder begin_levelorder(NodeType* node)
+    IteratorLevelorder begin_levelorder(NodeType& node)
     {
-        return IteratorLevelorder(node->primary_link());
+        return IteratorLevelorder(node.primary_link());
     }
 
     IteratorLevelorder end_levelorder()
     {
-        return IteratorLevelorder(nullptr);
+        return IteratorLevelorder();
     }
 
     ConstIteratorLevelorder begin_levelorder() const
     {
         if (link_count() == 0) {
-            return ConstIteratorLevelorder(nullptr);
+            return ConstIteratorLevelorder();
         }
         return ConstIteratorLevelorder(root_link());
     }
 
-    ConstIteratorLevelorder begin_levelorder(const LinkType* link) const
+    ConstIteratorLevelorder begin_levelorder(const LinkType& link) const
     {
         return ConstIteratorLevelorder(link);
     }
 
-    ConstIteratorLevelorder begin_levelorder(const NodeType* node) const
+    ConstIteratorLevelorder begin_levelorder(const NodeType& node) const
     {
-        return ConstIteratorLevelorder(node->primary_link());
+        return ConstIteratorLevelorder(node.primary_link());
     }
 
     ConstIteratorLevelorder end_levelorder() const
     {
-        return ConstIteratorLevelorder(nullptr);
+        return ConstIteratorLevelorder();
     }
 
     // -----------------------------------------------------

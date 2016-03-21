@@ -140,25 +140,25 @@ void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, utils::XmlD
         ++it
     ) {
         // Depth can never increase more than one between two nodes when doing a preoder traversal.
-        assert(depths[it.node()->index()] <= cur_d + 1);
+        assert(depths[it.node().index()] <= cur_d + 1);
 
         // Delete end of stack when moving up the tree, unless we are already at the root.
-        while (cur_d >= depths[it.node()->index()] && depths[it.node()->index()] > 0) {
+        while (cur_d >= depths[it.node().index()] && depths[it.node().index()] > 0) {
             assert(stack.size() > 0);
             stack.pop_back();
             --cur_d;
         }
         // Set current depth (explicitly needed in case we are moving further into the tree, which
         // means that the loop above is not executed).
-        cur_d = depths[it.node()->index()];
+        cur_d = depths[it.node().index()];
 
         // Create clade element, append it to the stack, so that all sub-elements will use it as
         // parent.
         auto clade = make_unique< utils::XmlElement >();
         clade->tag = "clade";
 
-        node_to_element(*it.node(), *clade.get());
-        edge_to_element(*it.edge(), *clade.get());
+        node_to_element( it.node(), *clade.get() );
+        edge_to_element( it.edge(), *clade.get() );
 
         // Append the clade to the current parent (end of the stack), then use it as the new parent
         // for the next iteration of the loop.

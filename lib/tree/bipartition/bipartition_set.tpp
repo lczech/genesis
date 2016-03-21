@@ -37,19 +37,19 @@ void BipartitionSet<Tree>::make()
         }
 
         BipartitionType bp(num_leaves);
-        bp.link_ = it.link();
-        if (it.node()->is_leaf()) {
-            const int leaf_idx = node_to_leaf_map_[it.node()->index()];
+        bp.link_ = &it.link();
+        if (it.node().is_leaf()) {
+            const int leaf_idx = node_to_leaf_map_[it.node().index()];
             assert(leaf_idx > -1);
             bp.leaf_nodes_.set(leaf_idx);
         } else {
-            LinkType* l = it.link()->next();
-            while (l != it.link()) {
-                bp.leaf_nodes_ |= bipartitions_[l->outer()->node()->index()].leaf_nodes_;
-                l = l->next();
+            LinkType* l = &it.link().next();
+            while( l != &it.link() ) {
+                bp.leaf_nodes_ |= bipartitions_[l->outer().node().index()].leaf_nodes_;
+                l = &l->next();
             }
         }
-        bipartitions_[it.node()->index()] = bp;
+        bipartitions_[it.node().index()] = bp;
     }
 }
 
@@ -143,16 +143,16 @@ BipartitionSet<Tree>::get_subtree_edges (
 
     for (
         auto it = tree_.begin_preorder(subtree->next());
-        it != tree_.end_preorder() && it.link() != subtree->outer();
+        it != tree_.end_preorder() && &it.link() != &subtree->outer();
         ++it
     ) {
-        if (it.node()->is_leaf()) {
-            leaf_names.push_back(it.node()->data.name);
+        if( it.node().is_leaf() ) {
+            leaf_names.push_back( it.node().data.name );
         }
         if (it.is_first_iteration()) {
             continue;
         }
-        ret.insert(it.edge());
+        ret.insert( &it.edge() );
     }
 
     // LOG_DBG << "leaf nodes of subtree:";
@@ -192,8 +192,8 @@ std::string BipartitionSet<Tree>::dump()
         if (!bi.link_) {
             continue;
         }
-        out << "\nNode " << bi.link_->node()->index()
-            << ", Leaf " << node_to_leaf_map_[bi.link_->node()->index()]
+        out << "\nNode " << bi.link_->node().index()
+            << ", Leaf " << node_to_leaf_map_[bi.link_->node().index()]
             << "\n" << bi.leaf_nodes_.dump() << "\n";
     }
     return out.str();

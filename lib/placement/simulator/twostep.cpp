@@ -41,7 +41,7 @@ void SimulatorTwostep::generate (size_t n)
 
         // Get a random edge.
         size_t edge_idx = edge_distribution_.generate();
-        auto   edge     = sample_.tree().edge_at(edge_idx);
+        auto   edge     = &sample_.tree().edge_at(edge_idx);
 
         // Add a placement at the edge.
         PqueryPlacement& place = pqry.add_placement(*edge);
@@ -101,15 +101,15 @@ void SimulatorTwostep::EdgeDistribution::set_random_subtree_weights ()
     //     start_link = sample_.tree().edge_at(edge_idx)->primary_link();
     // } else {
         // Secondary direction
-        start_link = sample_.tree().edge_at(edge_idx)->secondary_link();
+        start_link = &sample_.tree().edge_at(edge_idx).secondary_link();
     // }
 
     for (
-        auto cur_link = start_link->next();
+        auto cur_link = &start_link->next();
         cur_link != start_link;
-        cur_link = cur_link->outer()->next()
+        cur_link = &cur_link->outer().next()
     ) {
-        weights[cur_link->edge()->index()] = 1.0;
+        weights[cur_link->edge().index()] = 1.0;
     }
 
     // size_t num_edges = sample_.tree().edge_count();
@@ -162,8 +162,8 @@ void SimulatorTwostep::EdgeDistribution::set_depths_distributed_weights (
     // Set the weight of each edge according to its depth in the tree.
     for (auto it = sample_.tree().begin_edges(); it != sample_.tree().end_edges(); ++it) {
         // Try both nodes at the end of the edge and see which one is closer to a leaf.
-        int dp = depths[(*it)->primary_node()->index()].second;
-        int ds = depths[(*it)->secondary_node()->index()].second;
+        int dp = depths[(*it)->primary_node().index()].second;
+        int ds = depths[(*it)->secondary_node().index()].second;
         unsigned int ld = std::min(dp, ds);
 
         // Some safty. This holds as long as the indices are correct.

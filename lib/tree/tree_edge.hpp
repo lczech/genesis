@@ -2,9 +2,9 @@
 #define GENESIS_TREE_TREE_EDGE_H_
 
 /**
- * @brief This class represents an edge inside of a tree.
+ * @brief
  *
- * For more information, see TreeEdge class.
+ * For more information, see TreeEdge.
  *
  * @file
  * @ingroup tree
@@ -38,12 +38,6 @@ class TreeEdge
     friend class Tree<NodeDataType, EdgeDataType>;
 
 public:
-    TreeEdge() : link_p_(nullptr), link_s_(nullptr) {}
-
-    // avoid copy constructor and assignment operator.
-    // creating copies is maintained by Tree only.
-    TreeEdge (const TreeEdge&) = delete;
-    TreeEdge& operator = (const TreeEdge&) = delete;
 
     // ---------------------------------------------------------------------
     //     Typedefs
@@ -55,27 +49,40 @@ public:
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
 
     // ---------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // ---------------------------------------------------------------------
+
+    TreeEdge()
+        : link_p_( nullptr )
+        , link_s_( nullptr )
+    {}
+
+    ~TreeEdge() = default;
+
+    // avoid copy constructor and assignment operator.
+    // creating copies is maintained by Tree only.
+
+    TreeEdge( TreeEdge const& ) = delete;
+    TreeEdge( TreeEdge&& )      = delete;
+
+    TreeEdge& operator= ( TreeEdge const& ) = delete;
+    TreeEdge& operator= ( TreeEdge&& )      = delete;
+
+    // ---------------------------------------------------------------------
     //     Accessors
     // ---------------------------------------------------------------------
 
-    /**
-     * @brief Returns the link of this edge that points towards the root.
-     */
-    LinkType* primary_link() const
-    {
-        return link_p_;
-    }
+    LinkType      & primary_link();
+    LinkType const& primary_link() const;
 
-    /**
-     * @brief Returns the link of this edge that points away from the root.
-     */
-    LinkType* secondary_link() const
-    {
-        return link_s_;
-    }
+    LinkType      & secondary_link();
+    LinkType const& secondary_link() const;
 
-    NodeType* primary_node() const;
-    NodeType* secondary_node() const;
+    NodeType      & primary_node();
+    NodeType const& primary_node() const;
+
+    NodeType      & secondary_node();
+    NodeType const& secondary_node() const;
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -110,7 +117,7 @@ public:
 } // namespace genesis
 
 // =================================================================================================
-//     Inclusion of the implementation
+//     Inclusion of the Implementation
 // =================================================================================================
 
 // This is a class template, so do the inclusion here.

@@ -494,14 +494,14 @@ void NewickProcessor<TreeType>::tree_to_broker (
         ++it
     ) {
         NewickBrokerElement bn;
-        bn.depth = depth[it.node()->index()];
+        bn.depth = depth[ it.node().index() ];
 
-        node_to_element(*it.node(), bn);
+        node_to_element( it.node(), bn );
         // only write edge data to the broker element if it is not the last iteration.
         // the last iteration is the root, which usually does not have edge information in newick.
         // caveat: for the root node, the edge will point to an arbitrary edge away from the root.
         if (!it.is_last_iteration()) {
-            edge_to_element(*it.edge(), bn);
+            edge_to_element( it.edge(), bn );
         }
 
         broker.push_top(bn);

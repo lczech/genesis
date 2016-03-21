@@ -19,7 +19,7 @@ namespace tree {
 //     Preorder Iterator
 // =================================================================================================
 
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
+template <typename LinkType, typename NodeType, typename EdgeType>
 class TreeIteratorPreorder
 {
 public:
@@ -27,19 +27,24 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorPreorder<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef TreeIteratorPreorder<LinkType, NodeType, EdgeType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorPreorder (LinkPointerType link) : link_(link), start_(link)
+    TreeIteratorPreorder ()
+        : start_( nullptr )
+        , link_ ( nullptr )
+    {}
+
+    TreeIteratorPreorder (LinkType& link)
+        : start_( &link )
+        , link_(  &link )
     {
-        if (link) {
-            push_front_children(link);
-            stack_.push_front(link->outer());
-        }
+        push_front_children(&link);
+        stack_.push_front(&link.outer());
     }
 
     // -----------------------------------------------------
@@ -85,53 +90,54 @@ public:
         return link_ == start_;
     }
 
-    LinkPointerType link() const
+    LinkType& link() const
     {
-        return link_;
+        return *link_;
     }
 
-    NodePointerType node() const
+    NodeType& node() const
     {
         return link_->node();
     }
 
-    EdgePointerType edge() const
+    EdgeType& edge() const
     {
         return link_->edge();
     }
 
-    LinkPointerType start_link() const
+    LinkType& start_link() const
     {
-        return start_;
+        return *start_;
     }
 
-    NodePointerType start_node() const
+    NodeType& start_node() const
     {
         return start_->node();
     }
 
 protected:
-    void push_front_children(const LinkPointerType link)
+    void push_front_children( LinkType* link )
     {
         // we need to push to a tmp queue first, in order to get the order right.
         // otherwise, we would still do a preorder traversal, but starting with
         // the last child of each node instead of the first one.
-        std::deque<LinkPointerType> tmp;
-        LinkPointerType c = link->next();
+        std::deque<LinkType*> tmp;
+        LinkType* c = &link->next();
         while (c != link) {
-            tmp.push_front(c->outer());
-            c = c->next();
+            tmp.push_front( &c->outer() );
+            c = &c->next();
         }
-        for (LinkPointerType l : tmp) {
+        for (LinkType* l : tmp) {
             stack_.push_front(l);
         }
     }
 
     // TODO take a stack or vector instead of deque here!!!
 
-    LinkPointerType             link_;
-    LinkPointerType             start_;
-    std::deque<LinkPointerType> stack_;
+    LinkType*             start_;
+    LinkType*             link_;
+
+    std::deque<LinkType*> stack_;
 };
 
 } // namespace tree

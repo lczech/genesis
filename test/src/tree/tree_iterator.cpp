@@ -52,7 +52,7 @@ TEST (TreeIterator, EulertourNew)
     // }
 
     for( auto const& it : eulertour(tree) ) {
-        resulting_nodes += it->node()->data.name;
+        resulting_nodes += it->node().data.name;
 
         // it->node()->data.name = "bla";
     }
@@ -129,8 +129,8 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
     ASSERT_NE(nullptr, node);
 
     // Do a normal traversal.
-    for (auto it = tree.begin_eulertour(node); it != tree.end_eulertour(); ++it) {
-        resulting_nodes += it.node()->data.name;
+    for (auto it = tree.begin_eulertour(*node); it != tree.end_eulertour(); ++it) {
+        resulting_nodes += it.node().data.name;
         // it.node()->data.name = "bla";
     }
     EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
@@ -138,7 +138,7 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
     // Use free function iterator wrapper.
     resulting_nodes = "";
     for (auto it = eulertour(node).begin(); it != eulertour(node).end(); ++it) {
-        resulting_nodes += it.node()->data.name;
+        resulting_nodes += it.node().data.name;
         // it.node()->data.name = "bla";
     }
     EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
@@ -147,7 +147,7 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
     resulting_nodes = "";
     // for (auto& node : eulertour(tree)) {
     for (auto const& node_it : eulertour(node)) {
-        resulting_nodes += node_it->node()->data.name;
+        resulting_nodes += node_it->node().data.name;
         // node.data.name = "bla";
     }
     // for (auto& node_it : eulertour(node)) {
@@ -219,8 +219,8 @@ void TestPreorder(std::string node_name, std::string out_nodes)
     auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
 
-    for (auto it = tree.begin_preorder(node); it != tree.end_preorder(); ++it) {
-        nodes += it.node()->data.name;
+    for (auto it = tree.begin_preorder(*node); it != tree.end_preorder(); ++it) {
+        nodes += it.node().data.name;
     }
     EXPECT_EQ(out_nodes, nodes) << " with start node " << node_name;
 }
@@ -254,8 +254,8 @@ void TestPostorder(std::string node_name, std::string out_nodes)
     auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
 
-    for (auto it = tree.begin_postorder(node); it != tree.end_postorder(); ++it) {
-        nodes += it.node()->data.name;
+    for (auto it = tree.begin_postorder(*node); it != tree.end_postorder(); ++it) {
+        nodes += it.node().data.name;
     }
     EXPECT_EQ(out_nodes, nodes) << " with start node " << node_name;
 }

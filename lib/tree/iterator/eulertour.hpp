@@ -52,7 +52,14 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    explicit TreeIteratorEulertour (LinkType* link) : link_(link), start_(link)
+    TreeIteratorEulertour()
+        : start_( nullptr )
+        , link_(  nullptr )
+    {}
+
+    explicit TreeIteratorEulertour (LinkType& link)
+        : start_( &link )
+        , link_(  &link )
     {}
 
     // TreeIteratorEulertour () :
@@ -90,7 +97,7 @@ public:
 
     self_type& operator ++ ()
     {
-        link_ = link_->outer()->next();
+        link_ = &link_->outer().next();
         if (link_ == start_) {
             link_ = nullptr;
         }
@@ -118,34 +125,34 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    LinkType* link() const
+    LinkType& link() const
     {
-        return link_;
+        return *link_;
     }
 
-    NodeType* node() const
+    NodeType& node() const
     {
         return link_->node();
     }
 
-    EdgeType* edge() const
+    EdgeType& edge() const
     {
         return link_->edge();
     }
 
-    LinkType* start_link() const
+    LinkType& start_link() const
     {
-        return start_;
+        return *start_;
     }
 
-    NodeType* start_node() const
+    NodeType& start_node() const
     {
         return start_->node();
     }
 
 protected:
-    LinkType* link_;
     LinkType* start_;
+    LinkType* link_;
 };
 
 // =================================================================================================
@@ -173,7 +180,7 @@ public:
     // -----------------------------------------------------
 
     explicit TreeIteratorEulertourRange(TreeType& tree)
-        : link_(tree.root_link())
+        : link_(&tree.root_link())
     {}
 
     explicit TreeIteratorEulertourRange(LinkType* link)
@@ -181,7 +188,7 @@ public:
     {}
 
     explicit TreeIteratorEulertourRange(NodeType* node)
-        : link_(node->primary_link())
+        : link_(&node->primary_link())
     {}
 
     // -----------------------------------------------------
@@ -190,32 +197,32 @@ public:
 
     iterator begin()
     {
-        return iterator(link_);
+        return iterator(*link_);
     }
 
     iterator end()
     {
-        return iterator(nullptr);
+        return iterator();
     }
 
     const_iterator begin() const
     {
-        return const_iterator(link_);
+        return const_iterator(*link_);
     }
 
     const_iterator end() const
     {
-        return const_iterator(nullptr);
+        return const_iterator();
     }
 
     const_iterator cbegin()
     {
-        return const_iterator(link_);
+        return const_iterator(*link_);
     }
 
     const_iterator cend()
     {
-        return const_iterator(nullptr);
+        return const_iterator();
     }
 
     // -----------------------------------------------------

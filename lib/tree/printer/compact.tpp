@@ -35,15 +35,15 @@ void PrinterCompact::print (
 
     for (auto it = tree.begin_preorder(); it != tree.end_preorder(); ++it) {
         // Index of current and its parent node.
-        size_t cur_idx = it.node()->index();
-        size_t par_idx = it.link()->outer()->node()->index();
+        size_t cur_idx = it.node().index();
+        size_t par_idx = it.link().outer().node().index();
 
         // Set parent stack correctly (including current node), and store current rank.
         while (!parents.empty() && parents.back() != par_idx) {
             parents.pop_back();
         }
         parents.push_back(cur_idx);
-        ranks[cur_idx] = it.node()->rank();
+        ranks[cur_idx] = it.node().rank();
 
         // The root node is special: We have to account for one more child, as it does not have a
         // parent. Also, we do not draw any lines or indention for the root.
@@ -112,7 +112,7 @@ std::string PrinterCompact::print( TreeType const& tree )
     // TODO this should move to default tree, as it uses the name data member
     auto print_line = [] (typename TreeType::ConstIteratorPreorder& it)
     {
-        return it.node()->data.name;
+        return it.node().data.name;
     };
     return print(tree, print_line);
 }

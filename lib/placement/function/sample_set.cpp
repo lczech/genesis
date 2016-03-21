@@ -110,10 +110,12 @@ Sample merge_all( SampleSet const& sset )
     // This is necessary, because the tree copy constructor does not do this for us.
     // TODO fix this!
     for (size_t i = 0; i < res.tree().node_count(); ++i) {
-        res.tree().node_at(i)->data.name = sset[0].sample.tree().node_at(i)->data.name;
+        res.tree().node_at(i).data.name = sset[0].sample.tree().node_at(i).data.name;
     }
     for (size_t i = 0; i < res.tree().edge_count(); ++i) {
-        res.tree().edge_at(i)->data.reset_edge_num( sset[0].sample.tree().edge_at(i)->data.edge_num() );
+        res.tree().edge_at(i).data.reset_edge_num(
+            sset[0].sample.tree().edge_at(i).data.edge_num()
+        );
     }
 
     // Add the placements from all maps of this set.

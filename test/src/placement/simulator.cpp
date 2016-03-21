@@ -68,6 +68,6 @@ TEST(PlacementSimulator, TwoStepLeavesOnly)
     // Check whether all placements are next to leaf nodes.
     for (auto& pqry : smp.pqueries()) {
         auto const& edge = pqry.placement_at(0).edge();
-        EXPECT_TRUE (edge.primary_node()->is_leaf() || edge.secondary_node()->is_leaf());
+        EXPECT_TRUE (edge.primary_node().is_leaf() || edge.secondary_node().is_leaf());
     }
 }

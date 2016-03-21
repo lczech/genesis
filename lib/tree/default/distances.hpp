@@ -49,7 +49,7 @@ double deepest_distance(const Tree& tree);
  * @brief Returns a distance matrix containing pairwise distances between all Nodes, using the
  * branch_length of the Edges as distance measurement.
  *
- * The elements of the matrix are indexed using node()->index().
+ * The elements of the matrix are indexed using node().index().
  */
 template <class Tree>
 utils::Matrix<double>      node_distance_matrix (
@@ -59,7 +59,7 @@ utils::Matrix<double>      node_distance_matrix (
 /**
  * @brief Returns a vector containing the distance of all nodes with respect to the given start node.
  *
- * The vector is indexed using the node()->index() for every node. Its elements give the distance of
+ * The vector is indexed using the node().index() for every node. Its elements give the distance of
  * each node with respect to the given start node. The distance is the sum of branch lengths of the
  * edges visited on the path between the two nodes.
  *
@@ -90,7 +90,7 @@ std::vector<double> edge_distance_vector (
  * @brief Returns a vector containing the closest leaf node for each node, using the branch_length
  * as distance measure.
  *
- * The vector is indexed using the node()->index() for every node. Its value contains an std::pair,
+ * The vector is indexed using the node().index() for every node. Its value contains an std::pair,
  * where the first element is a NodeType* to the closest leaf node of the node at the index,
  * measured using the branch_length; the second element of the pair is the distance value itself.
  * Thus, leaf nodes will have a pointer to themselves and a distance value of 0.

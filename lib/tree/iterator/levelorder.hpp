@@ -19,7 +19,7 @@ namespace tree {
 //     Levelorder Iterator
 // =================================================================================================
 
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
+template <typename LinkType, typename NodeType, typename EdgeType>
 class TreeIteratorLevelorder
 {
 public:
@@ -27,19 +27,26 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorLevelorder<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef TreeIteratorLevelorder<LinkType, NodeType, EdgeType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorLevelorder (LinkPointerType link) : link_(link), depth_(0), start_(link)
+    TreeIteratorLevelorder()
+        : start_( nullptr )
+        , link_(  nullptr )
+        , depth_( 0       )
+    {}
+
+    TreeIteratorLevelorder (LinkType& link)
+        : start_( &link )
+        , link_(  &link )
+        , depth_( 0     )
     {
-        if (link) {
-            push_back_children(link, 0);
-            stack_.push_front({link->outer(), 1});
-        }
+        push_back_children( &link, 0 );
+        stack_.push_front({ &link.outer(), 1 });
     }
 
     // -----------------------------------------------------
@@ -93,50 +100,52 @@ public:
         return depth_;
     }
 
-    LinkPointerType link() const
+    LinkType& link() const
     {
-        return link_;
+        return *link_;
     }
 
-    NodePointerType node() const
+    NodeType& node() const
     {
         return link_->node();
     }
 
-    EdgePointerType edge() const
+    EdgeType& edge() const
     {
         return link_->edge();
     }
 
-    LinkPointerType start_link() const
+    LinkType& start_link() const
     {
-        return start_;
+        return *start_;
     }
 
-    NodePointerType start_node() const
+    NodeType& start_node() const
     {
         return start_->node();
     }
 
 protected:
-    void push_back_children(LinkPointerType link, int link_depth)
+
+    void push_back_children(LinkType* link, int link_depth)
     {
-        LinkPointerType c = link->next();
+        LinkType* c = &link->next();
         while (c != link) {
-            stack_.push_back({c->outer(), link_depth + 1});
-            c = c->next();
+            stack_.push_back({ &c->outer(), link_depth + 1 });
+            c = &c->next();
         }
     }
 
     // TODO add depth information to other iterators, as well.
     typedef struct {
-        LinkPointerType link;
-        int             depth;
+        LinkType* link;
+        int       depth;
     } StackElement;
 
-    LinkPointerType          link_;
-    int                      depth_;
-    LinkPointerType          start_;
+    LinkType*         start_;
+    LinkType*         link_;
+    int               depth_;
+
     std::deque<StackElement> stack_;
 };
 

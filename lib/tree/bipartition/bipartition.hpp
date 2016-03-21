@@ -61,7 +61,7 @@ public:
     void invert()
     {
         leaf_nodes_.invert();
-        link_ = link_->outer();
+        link_ = &link_->outer();
     }
 
     // -------------------------------------------------------------

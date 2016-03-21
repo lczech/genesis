@@ -36,12 +36,6 @@ class TreeLink
     friend class Tree<NodeDataType, EdgeDataType>;
 
 public:
-    TreeLink() : next_(nullptr), outer_(nullptr), node_(nullptr), edge_(nullptr) {}
-
-    // avoid copy constructor and assignment operator.
-    // creating copies is maintained by Tree only.
-    TreeLink (const TreeLink&) = delete;
-    TreeLink& operator = (const TreeLink&) = delete;
 
     // ---------------------------------------------------------------------
     //     Typedefs
@@ -53,47 +47,45 @@ public:
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
 
     // ---------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // ---------------------------------------------------------------------
+
+    TreeLink()
+        : next_(  nullptr )
+        , outer_( nullptr )
+        , node_(  nullptr )
+        , edge_(  nullptr )
+    {}
+
+    ~TreeLink() = default;
+
+    // avoid copy constructor and assignment operator.
+    // creating copies is maintained by Tree only.
+
+    TreeLink( TreeLink const& ) = delete;
+    TreeLink( TreeLink&& )      = delete;
+
+    TreeLink& operator= ( TreeLink const& ) = delete;
+    TreeLink& operator= ( TreeLink&& )      = delete;
+
+    // ---------------------------------------------------------------------
     //     Accessors
     // ---------------------------------------------------------------------
 
-    /** @brief Returns a pointer to the next link within the node. */
-    LinkType* next() const
-    {
-        return next_;
-    }
+    LinkType      & next();
+    LinkType const& next() const;
 
-    /**
-     * @brief Returns a pointer to the previous link within the node.
-     *
-     * The previous link of a given link `L` is the one whose next-pointer is pointing to `L`.
-     * As this link first has to be found, this function is not as cheap as next().
-     */
-    LinkType* prev()
-    {
-        LinkType* res = this;
-        while (res->next() != this) {
-            res = res->next();
-        }
-        return res;
-    }
+    LinkType      & prev();
+    LinkType const& prev() const;
 
-    /** @brief Returns a pointer to the link of the adjacent node. */
-    LinkType* outer() const
-    {
-        return outer_;
-    }
+    LinkType      & outer();
+    LinkType const& outer() const;
 
-    /** @brief Returns a pointer to the TreeEdge containing the data of this link's edge. */
-    EdgeType* edge() const
-    {
-        return edge_;
-    }
+    EdgeType      & edge();
+    EdgeType const& edge() const;
 
-    /** @brief Returns a pointer to the TreeNode containing the data of this link's node. */
-    NodeType* node() const
-    {
-        return node_;
-    }
+    NodeType      & node();
+    NodeType const& node() const;
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -152,5 +144,12 @@ public:
 
 } // namespace tree
 } // namespace genesis
+
+// =================================================================================================
+//     Inclusion of the Implementation
+// =================================================================================================
+
+// This is a class template, so do the inclusion here.
+#include "tree/tree_link.tpp"
 
 #endif // include guard

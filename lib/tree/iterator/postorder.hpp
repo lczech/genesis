@@ -19,7 +19,7 @@ namespace tree {
 //     Postorder Iterator
 // =================================================================================================
 
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
+template <typename LinkType, typename NodeType, typename EdgeType>
 class TreeIteratorPostorder
 {
 public:
@@ -27,27 +27,32 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorPostorder<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef TreeIteratorPostorder<LinkType, NodeType, EdgeType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorPostorder (LinkPointerType link) : start_(link)
+    TreeIteratorPostorder()
+        : start_( nullptr )
+        , link_ ( nullptr )
+    {}
+
+    TreeIteratorPostorder (LinkType& link)
+        : start_( &link )
     {
-        if (link) {
-            stack_.push_back(link);
-            stack_.push_front(link->outer());
-            link = link->outer();
-            while (link->is_inner()) {
-                push_front_children(link);
-                link = link->next()->outer();
-            }
-            assert(link == stack_.front());
-            stack_.pop_front();
+        auto link_ptr = &link;
+        stack_.push_back(link_ptr);
+        stack_.push_front(&link_ptr->outer());
+        link_ptr = &link_ptr->outer();
+        while (link_ptr->is_inner()) {
+            push_front_children(link_ptr);
+            link_ptr = &link_ptr->next().outer();
         }
-        link_ = link;
+        assert(link_ptr == stack_.front());
+        stack_.pop_front();
+        link_ = link_ptr;
     }
 
     // -----------------------------------------------------
@@ -56,10 +61,10 @@ public:
 
     self_type operator ++ ()
     {
-        if (stack_.empty()) {
+        if( stack_.empty() ) {
             // this condition marks the end of the traversal
             link_ = nullptr;
-        } else if (link_->outer()->next() == stack_.front()) {
+        } else if( &link_->outer().next() == stack_.front() ) {
             // this condition is active when seeing an inner node the last time,
             // meaning that it is its turn to be traversed
             link_ = stack_.front();
@@ -69,9 +74,9 @@ public:
             link_ = stack_.front();
             while (link_->is_inner()) {
                 push_front_children(link_);
-                link_ = link_->next()->outer();
+                link_ = &link_->next().outer();
             }
-            assert(link_ == stack_.front());
+            assert( link_ == stack_.front() );
             stack_.pop_front();
         }
         return *this;
@@ -103,51 +108,52 @@ public:
         return link_ == start_;
     }
 
-    LinkPointerType link() const
+    LinkType& link() const
     {
-        return link_;
+        return *link_;
     }
 
-    NodePointerType node() const
+    NodeType& node() const
     {
         return link_->node();
     }
 
-    EdgePointerType edge() const
+    EdgeType& edge() const
     {
         return link_->edge();
     }
 
-    LinkPointerType start_link() const
+    LinkType& start_link() const
     {
-        return start_;
+        return *start_;
     }
 
-    NodePointerType start_node() const
+    NodeType& start_node() const
     {
         return start_->node();
     }
 
 protected:
-    void push_front_children(LinkPointerType link)
+    void push_front_children(LinkType* link)
     {
         // we need to push to a tmp queue first, in order to get the order right.
         // otherwise, we would still do a postorder traversal, but starting with
         // the last child of each node instead of the first one.
-        std::deque<LinkPointerType> tmp;
-        LinkPointerType c = link->next();
-        while (c != link) {
-            tmp.push_front(c->outer());
-            c = c->next();
+        std::deque<LinkType*> tmp;
+        LinkType* c = &link->next();
+        while( c != link ) {
+            tmp.push_front( &c->outer() );
+            c = &c->next();
         }
-        for (LinkPointerType l : tmp) {
+        for( LinkType* l : tmp ) {
             stack_.push_front(l);
         }
     }
 
-    LinkPointerType             link_;
-    LinkPointerType             start_;
-    std::deque<LinkPointerType> stack_;
+    LinkType*             start_;
+    LinkType*             link_;
+
+    std::deque<LinkType*> stack_;
 };
 
 } // namespace tree

@@ -57,9 +57,9 @@ bool equal(
         it_l != lhs.end_preorder() && it_r != rhs.end_preorder();
         ++it_l, ++it_r
     ) {
-        if (it_l.node()->rank() != it_r.node()->rank()   ||
-            !node_comparator(*it_l.node(), *it_r.node()) ||
-            !edge_comparator(*it_l.edge(), *it_r.edge())
+        if (it_l.node().rank() != it_r.node().rank()   ||
+            !node_comparator( it_l.node(), it_r.node() ) ||
+            !edge_comparator( it_l.edge(), it_r.edge() )
         ) {
             return false;
         }
@@ -166,7 +166,7 @@ bool validate( TreeType const& tree )
         return false;
     }
 
-    if (tree.links_.front()->index() != 0 || tree.links_.front()->node()->index() != 0) {
+    if (tree.links_.front()->   index() != 0 || tree.links_.front()->node().index() != 0) {
         LOG_INFO << "Root does not have index 0.";
         return false;
     }
@@ -184,27 +184,30 @@ bool validate( TreeType const& tree )
         // Check next cycle and node.
         auto nl = tree.links_[i].get();
         do {
-            if (nl->node() != tree.links_[i]->node()) {
+            if( &nl->node() != &tree.links_[i]->node() ) {
                 LOG_INFO << "Link at index " << nl->index_ << " points to wrong node.";
                 return false;
             }
-            nl = nl->next();
+            nl = &nl->next();
         } while(nl != tree.links_[i].get());
-        ++links_to_nodes[tree.links_[i]->node()->index()];
+        ++links_to_nodes[tree.links_[i]->node().index()];
 
         // Check outer cycle.
-        if (tree.links_[i]->outer()->outer() != tree.links_[i].get()) {
+        if( &tree.links_[i]->outer().outer() != tree.links_[i].get() ) {
             LOG_INFO << "Link at index " << i << " has wrong outer link.";
             return false;
         }
 
         // Check edge.
-        auto edge = tree.links_[i]->edge();
-        if (edge->primary_link() != tree.links_[i].get() && edge->secondary_link() != tree.links_[i].get()) {
+        auto edge = &tree.links_[i]->edge();
+        if(
+            &edge->primary_link()   != tree.links_[i].get() &&
+            &edge->secondary_link() != tree.links_[i].get()
+        ) {
             LOG_INFO << "Link at index " << i << " has wrong edge pointer.";
             return false;
         }
-        ++links_to_edges[tree.links_[i]->edge()->index()];
+        ++links_to_edges[tree.links_[i]->edge().index()];
     }
 
     // Check if all edges have been hit twice.
@@ -236,7 +239,7 @@ bool validate( TreeType const& tree )
         }
 
         // Check link.
-        if (tree.nodes_[i]->link()->node() != tree.nodes_[i].get()) {
+        if( &tree.nodes_[i]->link().node() != tree.nodes_[i].get() ) {
             LOG_INFO << "Node at index " << i << " has wrong link.";
             return false;
         }
@@ -251,11 +254,11 @@ bool validate( TreeType const& tree )
         }
 
         // Check links.
-        if (tree.edges_[i]->primary_link()->edge() != tree.edges_[i].get()) {
+        if( &tree.edges_[i]->primary_link().edge() != tree.edges_[i].get() ) {
             LOG_INFO << "Edge at index " << i << " has wrong primary link.";
             return false;
         }
-        if (tree.edges_[i]->secondary_link()->edge() != tree.edges_[i].get()) {
+        if( &tree.edges_[i]->secondary_link().edge() != tree.edges_[i].get() ) {
             LOG_INFO << "Edge at index " << i << " has wrong secondary link.";
             return false;
         }
@@ -273,9 +276,9 @@ bool validate( TreeType const& tree )
     // (We want to validate the tree here, not the iterator.)
     auto link = tree.links_.front().get();
     do {
-        ++it_links[link->index()];
-        ++it_edges[link->edge()->index()];
-        ++it_nodes[link->node()->index()];
+        ++it_links[ link->index() ];
+        ++it_edges[ link->edge().index() ];
+        ++it_nodes[ link->node().index() ];
         link = link->next_->outer_;
     } while (link != tree.links_.front().get());
 

@@ -523,7 +523,7 @@ std::pair<PlacementTreeEdge const*, size_t> placement_count_max_edge( Sample con
 
     for( auto const& it : place_map ) {
         if( it.second.size() > max ) {
-            edge = smp.tree().edge_at( it.first );
+            edge = &smp.tree().edge_at( it.first );
             max  = it.second.size();
         }
     }
@@ -548,7 +548,7 @@ std::pair<PlacementTreeEdge const*, double> placement_mass_max_edge( Sample cons
             sum += place->like_weight_ratio;
         }
         if (sum > max) {
-            edge = smp.tree().edge_at( it.first );
+            edge = &smp.tree().edge_at( it.first );
             max  = sum;
         }
     }
@@ -598,8 +598,8 @@ std::vector<int> closest_leaf_depth_histogram( Sample const& smp )
         for( auto& place : pquery.placements() ) {
             // Try both nodes at the end of the placement's edge and see which one is closer
             // to a leaf.
-            int dp = depths[ place.edge().primary_node()->index()   ].second;
-            int ds = depths[ place.edge().secondary_node()->index() ].second;
+            int dp = depths[ place.edge().primary_node().index()   ].second;
+            int ds = depths[ place.edge().secondary_node().index() ].second;
             unsigned int ld = std::min(dp, ds);
 
             // Put the closer one into the histogram, resize if necessary.
@@ -652,11 +652,11 @@ std::vector<int> closest_leaf_distance_histogram (
             // to a leaf.
             double dp = place.pendant_length
                       + place.proximal_length
-                      + dists[ place.edge().primary_node()->index() ].second;
+                      + dists[ place.edge().primary_node().index() ].second;
             double ds = place.pendant_length
                       + place.edge().data.branch_length
                       - place.proximal_length
-                      + dists[ place.edge().secondary_node()->index() ].second;
+                      + dists[ place.edge().secondary_node().index() ].second;
             double ld = std::min(dp, ds);
 
             // find the right bin. if the distance value is outside the boundaries of [min;max],
@@ -725,11 +725,11 @@ std::vector<int> closest_leaf_distance_histogram_auto (
             // to a leaf.
             double dp = place.pendant_length
                       + place.proximal_length
-                      + dists[ place.edge().primary_node()->index() ].second;
+                      + dists[ place.edge().primary_node().index() ].second;
             double ds = place.pendant_length
                       + place.edge().data.branch_length
                       - place.proximal_length
-                      + dists[ place.edge().secondary_node()->index() ].second;
+                      + dists[ place.edge().secondary_node().index() ].second;
             double ld = std::min(dp, ds);
             distrib.push_back(ld);
 

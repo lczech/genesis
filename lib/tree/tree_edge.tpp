@@ -1,5 +1,5 @@
 /**
- * @brief Implementation of TreeEdge functions.
+ * @brief Implementation of TreeEdge class template.
  *
  * For reasons of readability, in this implementation file, the template data types
  * NodeDataType and EdgeDataType are abbreviated NDT and EDT, respectively.
@@ -8,51 +8,95 @@
  * @ingroup tree
  */
 
+#include "tree/tree_link.hpp"
+
+namespace genesis {
+namespace tree {
+
 // =============================================================================
-//     Inline definitions with dependecies
+//     Accessors
 // =============================================================================
+
+/**
+ * @brief Return the TreeLink of this TreeEdge that points towards the root.
+ */
+template <class NDT, class EDT>
+TreeLink<NDT, EDT>& TreeEdge<NDT, EDT>::primary_link()
+{
+    return *link_p_;
+}
+
+/**
+ * @brief Return the TreeLink of this TreeEdge that points towards the root.
+ */
+template <class NDT, class EDT>
+TreeLink<NDT, EDT> const& TreeEdge<NDT, EDT>::primary_link() const
+{
+    return *link_p_;
+}
+
+/**
+ * @brief Return the TreeLink of this TreeEdge that points away from the root.
+ */
+template <class NDT, class EDT>
+TreeLink<NDT, EDT>& TreeEdge<NDT, EDT>::secondary_link()
+{
+    return *link_s_;
+}
+
+/**
+ * @brief Return the TreeLink of this TreeEdge that points away from the root.
+ */
+template <class NDT, class EDT>
+TreeLink<NDT, EDT> const& TreeEdge<NDT, EDT>::secondary_link() const
+{
+    return *link_s_;
+}
 
 // The following are inline definitions that would create circular dependecies when included in the
 // class definition. Thus, they need to be here, after the definition, so that their dependend
 // source files can be included without circles.
 // See http://www.cplusplus.com/forum/articles/10627/ for more information on this.
 
-// Usually, this part would be at the end of the header file, but as this is a class template,
-// where the implementation (this file) is included from within the header anyway, we can as well
-// outsource the inline functions to here.
-
-#include "tree/tree_link.hpp"
-
-namespace genesis {
-namespace tree {
-
 /**
- * @brief Returns the node of this edge that points towards the root.
+ * @brief Return the TreeNode of this TreeEdge that points towards the root.
  */
 template <class NDT, class EDT>
-inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::primary_node() const
+TreeNode<NDT, EDT>& TreeEdge<NDT, EDT>::primary_node()
 {
     return link_p_->node();
 }
 
 /**
- * @brief Returns the node of this edge that points away from the root.
+ * @brief Return the TreeNode of this TreeEdge that points towards the root.
  */
 template <class NDT, class EDT>
-inline TreeNode<NDT, EDT>* TreeEdge<NDT, EDT>::secondary_node() const
+TreeNode<NDT, EDT> const& TreeEdge<NDT, EDT>::primary_node() const
+{
+    return link_p_->node();
+}
+
+/**
+ * @brief Return the TreeNode of this TreeEdge that points away from the root.
+ */
+template <class NDT, class EDT>
+TreeNode<NDT, EDT>& TreeEdge<NDT, EDT>::secondary_node()
 {
     return link_s_->node();
 }
 
-} // namespace tree
-} // namespace genesis
+/**
+ * @brief Return the TreeNode of this TreeEdge that points away from the root.
+ */
+template <class NDT, class EDT>
+TreeNode<NDT, EDT> const& TreeEdge<NDT, EDT>::secondary_node() const
+{
+    return link_s_->node();
+}
 
 // =============================================================================
 //     Member Functions
 // =============================================================================
-
-namespace genesis {
-namespace tree {
 
 /**
  * @brief Returns a one-line dump summary of the data of this edge.
@@ -62,7 +106,7 @@ namespace tree {
 template <class NDT, class EDT>
 std::string TreeEdge<NDT, EDT>::dump() const
 {
-    return "Node P: " + primary_node()->data.name + ", Node S: " + secondary_node()->data.name + "\t" + data.dump();
+    return "Node P: " + primary_node().data.name + ", Node S: " + secondary_node().data.name + "\t" + data.dump();
 }
 
 } // namespace tree

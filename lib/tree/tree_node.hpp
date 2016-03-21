@@ -2,9 +2,9 @@
 #define GENESIS_TREE_TREE_NODE_H_
 
 /**
- * @brief This class represents a node inside of a tree.
+ * @brief Header of TreeNode class template.
  *
- * For more information, see TreeNode class.
+ * For more information, see TreeNode.
  *
  * @file
  * @ingroup tree
@@ -15,9 +15,9 @@
 namespace genesis {
 namespace tree {
 
-// =============================================================================
+// =================================================================================================
 //     Forward declarations
-// =============================================================================
+// =================================================================================================
 
 template <class NodeDataType, class EdgeDataType>
 class  Tree;
@@ -28,9 +28,9 @@ class  TreeLink;
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class TreeNodeIteratorLinks;
 
-// =============================================================================
+// =================================================================================================
 //     TreeNode
-// =============================================================================
+// =================================================================================================
 
 template <class NodeDataType, class EdgeDataType>
 class TreeNode
@@ -38,50 +38,48 @@ class TreeNode
     friend Tree<NodeDataType, EdgeDataType>;
 
 public:
-    TreeNode() : link_(nullptr) {}
 
-    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!! delete all copy and move stuff!!!
-
-    // avoid copy constructor and assignment operator.
-    // creating copies is maintained by Tree only.
-    TreeNode (const TreeNode&) = delete;
-    TreeNode& operator = (const TreeNode&) = delete;
-
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
     //     Typedefs
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
 
     typedef Tree    <NodeDataType, EdgeDataType> TreeType;
     typedef TreeLink<NodeDataType, EdgeDataType> LinkType;
     typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
 
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // ---------------------------------------------------------------------
+
+    TreeNode()
+        : link_( nullptr )
+    {}
+
+    ~TreeNode() = default;
+
+    // avoid copy constructor and assignment operator.
+    // creating copies is maintained by Tree only.
+
+    TreeNode( TreeNode const& ) = delete;
+    TreeNode( TreeNode&& )      = delete;
+
+    TreeNode& operator= ( TreeNode const& ) = delete;
+    TreeNode& operator= ( TreeNode&& )      = delete;
+
+    // ---------------------------------------------------------------------
     //     Accessors
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
 
-    /**
-     * @brief Returns the link of this node that points towards the root.
-     */
-    LinkType* primary_link() const
-    {
-        return link_;
-    }
+    LinkType      & primary_link();
+    LinkType const& primary_link() const;
 
-    /**
-     * @brief Returns the link of this node that points towards the root.
-     *
-     * This is just an alias for primary_link(), that is shorter to use when needed
-     * frequently in an algorithm.
-     */
-    LinkType* link() const
-    {
-        return link_;
-    }
+    LinkType      & link();
+    LinkType const& link() const;
 
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
     //     Iterators
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
 
     typedef TreeNodeIteratorLinks<      LinkType*,       NodeType*,       EdgeType*>      IteratorLinks;
     typedef TreeNodeIteratorLinks<const LinkType*, const NodeType*, const EdgeType*> ConstIteratorLinks;
@@ -106,9 +104,9 @@ public:
         return ConstIteratorLinks(nullptr);
     }
 
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
     //     Member Functions
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
 
     /**
      * @brief Returns the index of this link.
@@ -130,9 +128,9 @@ public:
 
     std::string dump() const;
 
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
     //     Member Variables
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
 
     NodeDataType data;
 
@@ -147,15 +145,15 @@ public:
 } // namespace tree
 } // namespace genesis
 
-// =============================================================================
+// =================================================================================================
 //     Inclusion of the iterator
-// =============================================================================
+// =================================================================================================
 
 #include "tree/tree_node_iterator.hpp"
 
-// =============================================================================
+// =================================================================================================
 //     Inclusion of the implementation
-// =============================================================================
+// =================================================================================================
 
 #include "tree/tree_node.tpp"
 
