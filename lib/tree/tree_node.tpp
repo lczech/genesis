@@ -12,14 +12,14 @@
 //     Inline definitions with dependecies
 // =============================================================================
 
-// The following are inline definitions that would create circular dependecies when included in the
+// The following are definitions that would create circular dependecies when included in the
 // class definition. Thus, they need to be here, after the definition, so that their dependend
 // source files can be included without circles.
 // See http://www.cplusplus.com/forum/articles/10627/ for more information on this.
 
 // Usually, this part would be at the end of the header file, but as this is a class template,
 // where the implementation (this file) is included from within the header anyway, we can as well
-// outsource the inline functions to here.
+// outsource the functions to here.
 
 #include "tree/tree_link.hpp"
 
@@ -30,7 +30,7 @@ namespace tree {
  * @brief True iff the node is a leaf/tip.
  */
 template <class NDT, class EDT>
-inline bool TreeNode<NDT, EDT>::is_leaf() const
+bool TreeNode<NDT, EDT>::is_leaf() const
 {
     return link_->is_leaf();
 }
@@ -39,7 +39,7 @@ inline bool TreeNode<NDT, EDT>::is_leaf() const
  * @brief True iff the node is an inner node.
  */
 template <class NDT, class EDT>
-inline bool TreeNode<NDT, EDT>::is_inner() const
+bool TreeNode<NDT, EDT>::is_inner() const
 {
     return link_->is_inner();
 }

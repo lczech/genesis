@@ -53,12 +53,12 @@ public:
     //     Member Functions
     // -------------------------------------------------------------
 
-    inline LinkType* link()
+    LinkType* link()
     {
         return link_;
     }
 
-    inline void invert()
+    void invert()
     {
         leaf_nodes_.invert();
         link_ = link_->outer();

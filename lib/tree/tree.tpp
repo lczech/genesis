@@ -296,7 +296,7 @@ const typename Tree<NDT, EDT>::EdgeType* Tree<NDT, EDT>::edge_at(size_t index) c
  * @brief Return the number of TreeLink%s of the Tree.
  */
 template <class NDT, class EDT>
-inline size_t Tree<NDT, EDT>::link_count() const
+size_t Tree<NDT, EDT>::link_count() const
 {
     return links_.size();
 }
@@ -305,7 +305,7 @@ inline size_t Tree<NDT, EDT>::link_count() const
  * @brief Return the number of TreeNode%s of the Tree.
  */
 template <class NDT, class EDT>
-inline size_t Tree<NDT, EDT>::node_count() const
+size_t Tree<NDT, EDT>::node_count() const
 {
     return nodes_.size();
 }
@@ -314,7 +314,7 @@ inline size_t Tree<NDT, EDT>::node_count() const
  * @brief Return the number of TreeEdge%s of the Tree.
  */
 template <class NDT, class EDT>
-inline size_t Tree<NDT, EDT>::edge_count() const
+size_t Tree<NDT, EDT>::edge_count() const
 {
     return edges_.size();
 }

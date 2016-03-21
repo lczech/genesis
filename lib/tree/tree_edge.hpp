@@ -61,7 +61,7 @@ public:
     /**
      * @brief Returns the link of this edge that points towards the root.
      */
-    inline LinkType* primary_link() const
+    LinkType* primary_link() const
     {
         return link_p_;
     }
@@ -69,7 +69,7 @@ public:
     /**
      * @brief Returns the link of this edge that points away from the root.
      */
-    inline LinkType* secondary_link() const
+    LinkType* secondary_link() const
     {
         return link_s_;
     }
@@ -84,7 +84,7 @@ public:
     /**
      * @brief Returns the index of this Link.
      */
-    inline size_t index() const
+    size_t index() const
     {
         return index_;
     }

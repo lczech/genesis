@@ -88,27 +88,27 @@ public:
 
     // TreeType* get_first (const std::string& name) const;
 
-    inline iterator begin()
+    iterator begin()
     {
         return trees_.begin();
     }
 
-    inline iterator end()
+    iterator end()
     {
         return trees_.end();
     }
 
-    inline const_iterator cbegin() const
+    const_iterator cbegin() const
     {
         return trees_.cbegin();
     }
 
-    inline const_iterator cend() const
+    const_iterator cend() const
     {
         return trees_.cend();
     }
 
-    inline const NamedTree& operator [] (const std::size_t index) const
+    const NamedTree& operator [] (const std::size_t index) const
     {
         return trees_[index];
     }
@@ -116,7 +116,7 @@ public:
     /**
      * @brief Returns whether the tree set is empty.
      */
-    inline bool empty() const
+    bool empty() const
     {
         return trees_.empty();
     }
@@ -124,7 +124,7 @@ public:
     /**
      * @brief Returns the size of the tree set.
      */
-    inline size_t size() const
+    size_t size() const
     {
         return trees_.size();
     }

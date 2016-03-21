@@ -38,7 +38,7 @@ public:
     //     Operators
     // -----------------------------------------------------
 
-    inline self_type operator ++ ()
+    self_type operator ++ ()
     {
         link_ = link_->next();
         if (link_ == start_) {
@@ -47,19 +47,19 @@ public:
         return *this;
     }
 
-    inline self_type operator ++ (int)
+    self_type operator ++ (int)
     {
         self_type tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    inline bool operator == (const self_type &other) const
+    bool operator == (const self_type &other) const
     {
         return other.link_ == link_;
     }
 
-    inline bool operator != (const self_type &other) const
+    bool operator != (const self_type &other) const
     {
         return !(other == *this);
     }
@@ -68,22 +68,22 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline LinkPointerType link()
+    LinkPointerType link()
     {
         return link_;
     }
 
-    inline NodePointerType node()
+    NodePointerType node()
     {
         return link_->node();
     }
 
-    inline EdgePointerType edge()
+    EdgePointerType edge()
     {
         return link_->edge();
     }
 
-    inline LinkPointerType start_link()
+    LinkPointerType start_link()
     {
         return start_;
     }

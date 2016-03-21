@@ -37,12 +37,12 @@ public:
     // typedef NodeType* pointer;
     // typedef NodeType& reference;
 
-    inline reference operator * ()
+    reference operator * ()
     {
         return **it_;
     }
 
-    inline pointer operator -> ()
+    pointer operator -> ()
     {
         return it_->get();
     }
@@ -58,12 +58,12 @@ public:
     //     Iteration
     // -----------------------------------------------------
 
-    // inline self_type begin()
+    // self_type begin()
     // {
     //     return self_type(start_);
     // }
     //
-    // inline self_type end()
+    // self_type end()
     // {
     //     return self_type(nullptr);
     // }
@@ -72,25 +72,25 @@ public:
     //     Operators
     // -----------------------------------------------------
 
-    inline self_type& operator ++ ()
+    self_type& operator ++ ()
     {
         ++it_;
         return *this;
     }
 
-    inline self_type operator ++ (int)
+    self_type operator ++ (int)
     {
         self_type tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    inline bool operator == (const self_type &other) const
+    bool operator == (const self_type &other) const
     {
         return other.it_ == it_;
     }
 
-    inline bool operator != (const self_type &other) const
+    bool operator != (const self_type &other) const
     {
         return !(other == *this);
     }

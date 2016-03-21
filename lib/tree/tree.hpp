@@ -179,7 +179,7 @@ public:
     //     Eulertour
     // -----------------------------------------------------
 
-    inline IteratorEulertour begin_eulertour()
+    IteratorEulertour begin_eulertour()
     {
         if (link_count() == 0) {
             return IteratorEulertour(nullptr);
@@ -188,24 +188,24 @@ public:
         return IteratorEulertour(root_link());
     }
 
-    inline IteratorEulertour begin_eulertour(LinkType* link)
+    IteratorEulertour begin_eulertour(LinkType* link)
     {
         return IteratorEulertour(link);
     }
 
-    inline IteratorEulertour begin_eulertour(NodeType* node)
+    IteratorEulertour begin_eulertour(NodeType* node)
     {
         return IteratorEulertour(node->primary_link());
         // return IteratorEulertour(node);
     }
 
-    inline IteratorEulertour end_eulertour()
+    IteratorEulertour end_eulertour()
     {
         return IteratorEulertour(nullptr);
         // return IteratorEulertour();
     }
 
-    inline ConstIteratorEulertour begin_eulertour() const
+    ConstIteratorEulertour begin_eulertour() const
     {
         if (link_count() == 0) {
             return ConstIteratorEulertour(nullptr);
@@ -214,18 +214,18 @@ public:
         return ConstIteratorEulertour(root_link());
     }
 
-    inline ConstIteratorEulertour begin_eulertour(const LinkType* link) const
+    ConstIteratorEulertour begin_eulertour(const LinkType* link) const
     {
         return ConstIteratorEulertour(link);
     }
 
-    inline ConstIteratorEulertour begin_eulertour(const NodeType* node) const
+    ConstIteratorEulertour begin_eulertour(const NodeType* node) const
     {
         return ConstIteratorEulertour(node->primary_link());
         // return ConstIteratorEulertour(node);
     }
 
-    inline ConstIteratorEulertour end_eulertour() const
+    ConstIteratorEulertour end_eulertour() const
     {
         return ConstIteratorEulertour(nullptr);
         // return ConstIteratorEulertour();
@@ -235,7 +235,7 @@ public:
     //     Preorder
     // -----------------------------------------------------
 
-    inline IteratorPreorder begin_preorder()
+    IteratorPreorder begin_preorder()
     {
         if (link_count() == 0) {
             return IteratorPreorder(nullptr);
@@ -243,22 +243,22 @@ public:
         return IteratorPreorder(root_link());
     }
 
-    inline IteratorPreorder begin_preorder(LinkType* link)
+    IteratorPreorder begin_preorder(LinkType* link)
     {
         return IteratorPreorder(link);
     }
 
-    inline IteratorPreorder begin_preorder(NodeType* node)
+    IteratorPreorder begin_preorder(NodeType* node)
     {
         return IteratorPreorder(node->primary_link());
     }
 
-    inline IteratorPreorder end_preorder()
+    IteratorPreorder end_preorder()
     {
         return IteratorPreorder(nullptr);
     }
 
-    inline ConstIteratorPreorder begin_preorder() const
+    ConstIteratorPreorder begin_preorder() const
     {
         if (link_count() == 0) {
             return ConstIteratorPreorder(nullptr);
@@ -266,17 +266,17 @@ public:
         return ConstIteratorPreorder(root_link());
     }
 
-    inline ConstIteratorPreorder begin_preorder(const LinkType* link) const
+    ConstIteratorPreorder begin_preorder(const LinkType* link) const
     {
         return ConstIteratorPreorder(link);
     }
 
-    inline ConstIteratorPreorder begin_preorder(const NodeType* node) const
+    ConstIteratorPreorder begin_preorder(const NodeType* node) const
     {
         return ConstIteratorPreorder(node->primary_link());
     }
 
-    inline ConstIteratorPreorder end_preorder() const
+    ConstIteratorPreorder end_preorder() const
     {
         return ConstIteratorPreorder(nullptr);
     }
@@ -285,7 +285,7 @@ public:
     //     Inorder
     // -----------------------------------------------------
 
-    //~ inline IteratorInorder begin_inorder()
+    //~ IteratorInorder begin_inorder()
     //~ {
     //if (link_count() == 0) {
     //     return IteratorInorder(nullptr);
@@ -293,22 +293,22 @@ public:
         //~ return IteratorInorder(root_link());
     //~ }
 //~
-    //~ inline IteratorInorder begin_inorder(LinkType* link)
+    //~ IteratorInorder begin_inorder(LinkType* link)
     //~ {
         //~ return IteratorInorder(link);
     //~ }
 //~
-    //~ inline IteratorInorder begin_inorder(NodeType* node)
+    //~ IteratorInorder begin_inorder(NodeType* node)
     //~ {
         //~ return IteratorInorder(node->primary_link());
     //~ }
 //~
-    //~ inline IteratorInorder end_inorder()
+    //~ IteratorInorder end_inorder()
     //~ {
         //~ return IteratorInorder(nullptr);
     //~ }
 
-    //~ inline ConstIteratorInorder begin_inorder() const
+    //~ ConstIteratorInorder begin_inorder() const
     //~ {
     //if (link_count() == 0) {
     //     return ConstIteratorInorder(nullptr);
@@ -316,17 +316,17 @@ public:
         //~ return ConstIteratorInorder(root_link());
     //~ }
 //~
-    //~ inline ConstIteratorInorder begin_inorder(const LinkType* link) const
+    //~ ConstIteratorInorder begin_inorder(const LinkType* link) const
     //~ {
         //~ return ConstIteratorInorder(link);
     //~ }
 //~
-    //~ inline ConstIteratorInorder begin_inorder(const NodeType* node) const
+    //~ ConstIteratorInorder begin_inorder(const NodeType* node) const
     //~ {
         //~ return ConstIteratorInorder(node->primary_link());
     //~ }
 //~
-    //~ inline ConstIteratorInorder end_inorder() const
+    //~ ConstIteratorInorder end_inorder() const
     //~ {
         //~ return ConstIteratorInorder(nullptr);
     //~ }
@@ -335,7 +335,7 @@ public:
     //     Postorder
     // -----------------------------------------------------
 
-    inline IteratorPostorder begin_postorder()
+    IteratorPostorder begin_postorder()
     {
         if (link_count() == 0) {
             return IteratorPostorder(nullptr);
@@ -343,22 +343,22 @@ public:
         return IteratorPostorder(root_link());
     }
 
-    inline IteratorPostorder begin_postorder(LinkType* link)
+    IteratorPostorder begin_postorder(LinkType* link)
     {
         return IteratorPostorder(link);
     }
 
-    inline IteratorPostorder begin_postorder(NodeType* node)
+    IteratorPostorder begin_postorder(NodeType* node)
     {
         return IteratorPostorder(node->primary_link());
     }
 
-    inline IteratorPostorder end_postorder()
+    IteratorPostorder end_postorder()
     {
         return IteratorPostorder(nullptr);
     }
 
-    inline ConstIteratorPostorder begin_postorder() const
+    ConstIteratorPostorder begin_postorder() const
     {
         if (link_count() == 0) {
             return ConstIteratorPostorder(nullptr);
@@ -366,17 +366,17 @@ public:
         return ConstIteratorPostorder(root_link());
     }
 
-    inline ConstIteratorPostorder begin_postorder(const LinkType* link) const
+    ConstIteratorPostorder begin_postorder(const LinkType* link) const
     {
         return ConstIteratorPostorder(link);
     }
 
-    inline ConstIteratorPostorder begin_postorder(const NodeType* node) const
+    ConstIteratorPostorder begin_postorder(const NodeType* node) const
     {
         return ConstIteratorPostorder(node->primary_link());
     }
 
-    inline ConstIteratorPostorder end_postorder() const
+    ConstIteratorPostorder end_postorder() const
     {
         return ConstIteratorPostorder(nullptr);
     }
@@ -385,7 +385,7 @@ public:
     //     Levelorder
     // -----------------------------------------------------
 
-    inline IteratorLevelorder begin_levelorder()
+    IteratorLevelorder begin_levelorder()
     {
         if (link_count() == 0) {
             return IteratorLevelorder(nullptr);
@@ -393,22 +393,22 @@ public:
         return IteratorLevelorder(root_link());
     }
 
-    inline IteratorLevelorder begin_levelorder(LinkType* link)
+    IteratorLevelorder begin_levelorder(LinkType* link)
     {
         return IteratorLevelorder(link);
     }
 
-    inline IteratorLevelorder begin_levelorder(NodeType* node)
+    IteratorLevelorder begin_levelorder(NodeType* node)
     {
         return IteratorLevelorder(node->primary_link());
     }
 
-    inline IteratorLevelorder end_levelorder()
+    IteratorLevelorder end_levelorder()
     {
         return IteratorLevelorder(nullptr);
     }
 
-    inline ConstIteratorLevelorder begin_levelorder() const
+    ConstIteratorLevelorder begin_levelorder() const
     {
         if (link_count() == 0) {
             return ConstIteratorLevelorder(nullptr);
@@ -416,17 +416,17 @@ public:
         return ConstIteratorLevelorder(root_link());
     }
 
-    inline ConstIteratorLevelorder begin_levelorder(const LinkType* link) const
+    ConstIteratorLevelorder begin_levelorder(const LinkType* link) const
     {
         return ConstIteratorLevelorder(link);
     }
 
-    inline ConstIteratorLevelorder begin_levelorder(const NodeType* node) const
+    ConstIteratorLevelorder begin_levelorder(const NodeType* node) const
     {
         return ConstIteratorLevelorder(node->primary_link());
     }
 
-    inline ConstIteratorLevelorder end_levelorder() const
+    ConstIteratorLevelorder end_levelorder() const
     {
         return ConstIteratorLevelorder(nullptr);
     }
@@ -435,22 +435,22 @@ public:
     //     Links
     // -----------------------------------------------------
 
-    inline IteratorLinks begin_links()
+    IteratorLinks begin_links()
     {
         return links_.begin();
     }
 
-    inline IteratorLinks end_links()
+    IteratorLinks end_links()
     {
         return links_.end();
     }
 
-    inline ConstIteratorLinks begin_links() const
+    ConstIteratorLinks begin_links() const
     {
         return links_.cbegin();
     }
 
-    inline ConstIteratorLinks end_links() const
+    ConstIteratorLinks end_links() const
     {
         return links_.cend();
     }
@@ -459,22 +459,22 @@ public:
     //     Nodes
     // -----------------------------------------------------
 
-    inline IteratorNodes begin_nodes()
+    IteratorNodes begin_nodes()
     {
         return nodes_.begin();
     }
 
-    inline IteratorNodes end_nodes()
+    IteratorNodes end_nodes()
     {
         return nodes_.end();
     }
 
-    inline ConstIteratorNodes begin_nodes() const
+    ConstIteratorNodes begin_nodes() const
     {
         return nodes_.cbegin();
     }
 
-    inline ConstIteratorNodes end_nodes() const
+    ConstIteratorNodes end_nodes() const
     {
         return nodes_.cend();
     }
@@ -483,22 +483,22 @@ public:
     //     Edges
     // -----------------------------------------------------
 
-    inline IteratorEdges begin_edges()
+    IteratorEdges begin_edges()
     {
         return edges_.begin();
     }
 
-    inline IteratorEdges end_edges()
+    IteratorEdges end_edges()
     {
         return edges_.end();
     }
 
-    inline ConstIteratorEdges begin_edges() const
+    ConstIteratorEdges begin_edges() const
     {
         return edges_.cbegin();
     }
 
-    inline ConstIteratorEdges end_edges() const
+    ConstIteratorEdges end_edges() const
     {
         return edges_.cend();
     }

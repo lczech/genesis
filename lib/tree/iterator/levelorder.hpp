@@ -46,7 +46,7 @@ public:
     //     Operators
     // -----------------------------------------------------
 
-    inline self_type operator ++ ()
+    self_type operator ++ ()
     {
         if (stack_.empty()) {
             link_  = nullptr;
@@ -62,19 +62,19 @@ public:
         return *this;
     }
 
-    inline self_type operator ++ (int)
+    self_type operator ++ (int)
     {
         self_type tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    inline bool operator == (const self_type &other) const
+    bool operator == (const self_type &other) const
     {
         return other.link_ == link_;
     }
 
-    inline bool operator != (const self_type &other) const
+    bool operator != (const self_type &other) const
     {
         return !(other == *this);
     }
@@ -83,43 +83,43 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline bool is_first_iteration() const
+    bool is_first_iteration() const
     {
         return link_ == start_;
     }
 
-    inline int depth() const
+    int depth() const
     {
         return depth_;
     }
 
-    inline LinkPointerType link() const
+    LinkPointerType link() const
     {
         return link_;
     }
 
-    inline NodePointerType node() const
+    NodePointerType node() const
     {
         return link_->node();
     }
 
-    inline EdgePointerType edge() const
+    EdgePointerType edge() const
     {
         return link_->edge();
     }
 
-    inline LinkPointerType start_link() const
+    LinkPointerType start_link() const
     {
         return start_;
     }
 
-    inline NodePointerType start_node() const
+    NodePointerType start_node() const
     {
         return start_->node();
     }
 
 protected:
-    inline void push_back_children(LinkPointerType link, int link_depth)
+    void push_back_children(LinkPointerType link, int link_depth)
     {
         LinkPointerType c = link->next();
         while (c != link) {

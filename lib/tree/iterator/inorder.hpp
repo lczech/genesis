@@ -97,7 +97,7 @@ public:
 
 // TODO Tree iterator inorder is NOT WORKING!!!
 
-    inline self_type operator ++ ()
+    self_type operator ++ ()
     {
         std::string m = "  ";
         if (link_) {
@@ -143,19 +143,19 @@ public:
         return *this;
     }
 
-    inline self_type operator ++ (int)
+    self_type operator ++ (int)
     {
         self_type tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    inline bool operator == (const self_type &other) const
+    bool operator == (const self_type &other) const
     {
         return other.link_ == link_;
     }
 
-    inline bool operator != (const self_type &other) const
+    bool operator != (const self_type &other) const
     {
         return !(other == *this);
     }
@@ -164,33 +164,33 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline LinkPointerType link() const
+    LinkPointerType link() const
     {
         return link_;
     }
 
-    inline NodePointerType node() const
+    NodePointerType node() const
     {
         return link_->node();
     }
 
-    inline EdgePointerType edge() const
+    EdgePointerType edge() const
     {
         return link_->edge();
     }
 
-    inline LinkPointerType start_link() const
+    LinkPointerType start_link() const
     {
         return start_;
     }
 
-    inline NodePointerType start_node() const
+    NodePointerType start_node() const
     {
         return start_->node();
     }
 
 protected:
-    inline void push_front_children(LinkPointerType link)
+    void push_front_children(LinkPointerType link)
     {
         // we need to push to a tmp queue first, in order to get the order right.
         // otherwise, we would still do a preorder traversal, but starting with

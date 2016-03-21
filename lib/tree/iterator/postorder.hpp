@@ -54,7 +54,7 @@ public:
     //     Operators
     // -----------------------------------------------------
 
-    inline self_type operator ++ ()
+    self_type operator ++ ()
     {
         if (stack_.empty()) {
             // this condition marks the end of the traversal
@@ -77,19 +77,19 @@ public:
         return *this;
     }
 
-    inline self_type operator ++ (int)
+    self_type operator ++ (int)
     {
         self_type tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    inline bool operator == (const self_type &other) const
+    bool operator == (const self_type &other) const
     {
         return other.link_ == link_;
     }
 
-    inline bool operator != (const self_type &other) const
+    bool operator != (const self_type &other) const
     {
         return !(other == *this);
     }
@@ -98,38 +98,38 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline bool is_last_iteration() const
+    bool is_last_iteration() const
     {
         return link_ == start_;
     }
 
-    inline LinkPointerType link() const
+    LinkPointerType link() const
     {
         return link_;
     }
 
-    inline NodePointerType node() const
+    NodePointerType node() const
     {
         return link_->node();
     }
 
-    inline EdgePointerType edge() const
+    EdgePointerType edge() const
     {
         return link_->edge();
     }
 
-    inline LinkPointerType start_link() const
+    LinkPointerType start_link() const
     {
         return start_;
     }
 
-    inline NodePointerType start_node() const
+    NodePointerType start_node() const
     {
         return start_->node();
     }
 
 protected:
-    inline void push_front_children(LinkPointerType link)
+    void push_front_children(LinkPointerType link)
     {
         // we need to push to a tmp queue first, in order to get the order right.
         // otherwise, we would still do a postorder traversal, but starting with

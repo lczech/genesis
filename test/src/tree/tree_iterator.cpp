@@ -25,6 +25,49 @@ using namespace tree;
 //     Eulertour
 // =================================================================================================
 
+TEST (TreeIterator, EulertourNew)
+{
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+
+    std::string node_name = "R";
+    std::string expected_nodes = "RABACDCECARFRGHGIG";
+
+    // Prepare Tree.
+    DefaultTree tree;
+    DefaultTreeNewickProcessor().from_string(input, tree);
+
+    // Find the Node for this test run.
+    auto node = find_node(tree, node_name);
+    ASSERT_NE(nullptr, node);
+
+    std::string resulting_nodes = "";
+
+    // for (auto it = eulertour(node).begin(); it != eulertour(node).end(); ++it) {
+    //     resulting_nodes += it.node()->data.name;
+    //     // it.node()->data.name = "bla";
+    // }
+
+    // for( auto const& it : TreeIteratorEulertourRange<DefaultTree>(tree) ) {
+    //     resulting_nodes += it.node()->data.name;
+    // }
+
+    for( auto const& it : eulertour(tree) ) {
+        resulting_nodes += it->node()->data.name;
+
+        // it->node()->data.name = "bla";
+    }
+
+    // for( auto const& it : eulertour(node->link()) ) {
+    //     resulting_nodes += it.node()->data.name;
+    // }
+
+    // for( auto const& it : eulertour(tree) ) {
+    //     resulting_nodes += it.node()->data.name;
+    // }
+
+    EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
+}
+
 /*
 class Eulertour : public ::testing::TestWithParam< std::pair<std::string, std::string> >
 {};
@@ -103,10 +146,14 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
     // Do range-based for loop traversal.
     resulting_nodes = "";
     // for (auto& node : eulertour(tree)) {
-    for (auto& node_it : eulertour(node)) {
-        resulting_nodes += node_it.data.name;
+    for (auto const& node_it : eulertour(node)) {
+        resulting_nodes += node_it->node()->data.name;
         // node.data.name = "bla";
     }
+    // for (auto& node_it : eulertour(node)) {
+    //     resulting_nodes += node_it.data.name;
+    //     // node.data.name = "bla";
+    // }
     EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
 
     // LOG_DBG << "did it\n=============";

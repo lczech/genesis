@@ -57,7 +57,7 @@ public:
     // ---------------------------------------------------------------------
 
     /** @brief Returns a pointer to the next link within the node. */
-    inline LinkType* next() const
+    LinkType* next() const
     {
         return next_;
     }
@@ -68,7 +68,7 @@ public:
      * The previous link of a given link `L` is the one whose next-pointer is pointing to `L`.
      * As this link first has to be found, this function is not as cheap as next().
      */
-    inline LinkType* prev()
+    LinkType* prev()
     {
         LinkType* res = this;
         while (res->next() != this) {
@@ -78,19 +78,19 @@ public:
     }
 
     /** @brief Returns a pointer to the link of the adjacent node. */
-    inline LinkType* outer() const
+    LinkType* outer() const
     {
         return outer_;
     }
 
     /** @brief Returns a pointer to the TreeEdge containing the data of this link's edge. */
-    inline EdgeType* edge() const
+    EdgeType* edge() const
     {
         return edge_;
     }
 
     /** @brief Returns a pointer to the TreeNode containing the data of this link's node. */
-    inline NodeType* node() const
+    NodeType* node() const
     {
         return node_;
     }
@@ -102,7 +102,7 @@ public:
     /**
      * @brief Returns the index of this Link.
      */
-    inline size_t index() const
+    size_t index() const
     {
         return index_;
     }
@@ -110,7 +110,7 @@ public:
     /**
      * @brief Returns true iff the node of this link is a leaf node.
      */
-    inline bool is_leaf() const
+    bool is_leaf() const
     {
         return next_ == this;
     }
@@ -118,7 +118,7 @@ public:
     /**
      * @brief Returns true iff the node of this link is an inner node.
      */
-    inline bool is_inner() const
+    bool is_inner() const
     {
         return next_ != this;
     }
@@ -129,7 +129,7 @@ public:
      * At the moment, a link does not contain any information, so an empty string is returned.
      * This might change in the future, in case links also contain data.
      */
-    inline std::string dump() const
+    std::string dump() const
     {
         return "";
     }

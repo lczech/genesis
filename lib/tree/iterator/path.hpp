@@ -58,7 +58,7 @@ public:
     //     Operators
     // -----------------------------------------------------
 
-    inline self_type operator ++ ()
+    self_type operator ++ ()
     {
         if (stack_.empty()) {
             link_ = nullptr;
@@ -78,19 +78,19 @@ public:
         return *this;
     }
 
-    inline self_type operator ++ (int)
+    self_type operator ++ (int)
     {
         self_type tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    inline bool operator == (const self_type &other) const
+    bool operator == (const self_type &other) const
     {
         return other.link_ == link_;
     }
 
-    inline bool operator != (const self_type &other) const
+    bool operator != (const self_type &other) const
     {
         return !(other == *this);
     }
@@ -99,37 +99,37 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline LinkPointerType link() const
+    LinkPointerType link() const
     {
         return link_;
     }
 
-    inline NodePointerType node() const
+    NodePointerType node() const
     {
         return link_->node();
     }
 
-    inline EdgePointerType edge() const
+    EdgePointerType edge() const
     {
         return link_->edge();
     }
 
-    inline LinkPointerType from_link() const
+    LinkPointerType from_link() const
     {
         return from_;
     }
 
-    inline NodePointerType from_node() const
+    NodePointerType from_node() const
     {
         return from_->node();
     }
 
-    inline LinkPointerType to_link() const
+    LinkPointerType to_link() const
     {
         return to_;
     }
 
-    inline NodePointerType to_node() const
+    NodePointerType to_node() const
     {
         return to_->node();
     }

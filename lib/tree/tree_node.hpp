@@ -63,7 +63,7 @@ public:
     /**
      * @brief Returns the link of this node that points towards the root.
      */
-    inline LinkType* primary_link() const
+    LinkType* primary_link() const
     {
         return link_;
     }
@@ -74,7 +74,7 @@ public:
      * This is just an alias for primary_link(), that is shorter to use when needed
      * frequently in an algorithm.
      */
-    inline LinkType* link() const
+    LinkType* link() const
     {
         return link_;
     }
@@ -86,22 +86,22 @@ public:
     typedef TreeNodeIteratorLinks<      LinkType*,       NodeType*,       EdgeType*>      IteratorLinks;
     typedef TreeNodeIteratorLinks<const LinkType*, const NodeType*, const EdgeType*> ConstIteratorLinks;
 
-    inline IteratorLinks begin_links()
+    IteratorLinks begin_links()
     {
         return IteratorLinks(link_);
     }
 
-    inline IteratorLinks end_links()
+    IteratorLinks end_links()
     {
         return IteratorLinks(nullptr);
     }
 
-    inline ConstIteratorLinks begin_links() const
+    ConstIteratorLinks begin_links() const
     {
         return ConstIteratorLinks(link_);
     }
 
-    inline ConstIteratorLinks end_links() const
+    ConstIteratorLinks end_links() const
     {
         return ConstIteratorLinks(nullptr);
     }
@@ -113,7 +113,7 @@ public:
     /**
      * @brief Returns the index of this link.
      */
-    inline size_t index() const
+    size_t index() const
     {
         return index_;
     }
