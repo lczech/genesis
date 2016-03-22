@@ -8,6 +8,8 @@
  * @ingroup tree
  */
 
+#include "utils/core/range.hpp"
+
 #include <assert.h>
 #include <deque>
 #include <iterator>
@@ -27,8 +29,15 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorPreorder<LinkType, NodeType, EdgeType> self_type;
-    typedef std::forward_iterator_tag iterator_category;
+    using TreeType          = typename LinkType::TreeType;
+
+    using iterator_category = std::forward_iterator_tag;
+    using self_type         = TreeIteratorPreorder<LinkType, NodeType, EdgeType>;
+
+    self_type operator * ()
+    {
+        return *this;
+    }
 
     // -----------------------------------------------------
     //     Constructor
@@ -39,12 +48,24 @@ public:
         , link_ ( nullptr )
     {}
 
-    TreeIteratorPreorder (LinkType& link)
+    explicit TreeIteratorPreorder( TreeType& tree )
+        : TreeIteratorPreorder( tree.root_link() )
+    {}
+
+    explicit TreeIteratorPreorder( TreeType const& tree )
+        : TreeIteratorPreorder( tree.root_link() )
+    {}
+
+    explicit TreeIteratorPreorder( NodeType& node )
+        : TreeIteratorPreorder( node.primary_link() )
+    {}
+
+    explicit TreeIteratorPreorder( LinkType& link )
         : start_( &link )
         , link_(  &link )
     {
-        push_front_children(&link);
-        stack_.push_front(&link.outer());
+        push_front_children( &link );
+        stack_.push_front( &link.outer() );
     }
 
     // -----------------------------------------------------
@@ -132,13 +153,51 @@ protected:
         }
     }
 
-    // TODO take a stack or vector instead of deque here!!!
+    // TODO take a stack or vector instead of deque here; maybe reverse pushing order
 
     LinkType*             start_;
     LinkType*             link_;
 
     std::deque<LinkType*> stack_;
 };
+
+// =================================================================================================
+//     Preorder Wrapper Functions
+// =================================================================================================
+
+template<typename ElementType>
+utils::Range< TreeIteratorPreorder<
+    typename ElementType::LinkType const,
+    typename ElementType::NodeType const,
+    typename ElementType::EdgeType const
+>> preorder( ElementType const& element )
+{
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        TreeIteratorPreorder< const LinkType, const NodeType, const EdgeType >( element ),
+        TreeIteratorPreorder< const LinkType, const NodeType, const EdgeType >()
+    };
+}
+
+template<typename ElementType>
+utils::Range< TreeIteratorPreorder<
+    typename ElementType::LinkType,
+    typename ElementType::NodeType,
+    typename ElementType::EdgeType
+>> preorder( ElementType& element )
+{
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        TreeIteratorPreorder< LinkType, NodeType, EdgeType >( element ),
+        TreeIteratorPreorder< LinkType, NodeType, EdgeType >()
+    };
+}
 
 } // namespace tree
 } // namespace genesis
