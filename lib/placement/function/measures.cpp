@@ -182,7 +182,7 @@ double earth_movers_distance(
         it_l != postorder( lhs.tree() ).end() && it_r != postorder( rhs.tree() ).end();
         ++it_l, ++it_r
     ) {
-        LOG_DBG << "\033[1;31miteration at node " << it_l.node().index_ << ": " << it_l.node().data.name << "\033[0m";
+        LOG_DBG << "\033[1;31miteration at node " << it_l.node().index() << ": " << it_l.node().data.name << "\033[0m";
         LOG_DBG << "current distance " << distance;
 
         // check whether both trees have identical topology. if they have, the ranks of all nodes

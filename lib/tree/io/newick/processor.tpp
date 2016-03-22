@@ -337,7 +337,7 @@ void NewickProcessor<TreeType>::broker_to_tree (
         // create the tree node for this broker node
         auto cur_node_u  = make_unique<typename TreeType::NodeType>();
         auto cur_node    = cur_node_u.get();
-        cur_node->index_ = nodes.size();
+        cur_node->reset_index( nodes.size() );
         element_to_node( broker_node, *cur_node );
         nodes.push_back(std::move(cur_node_u));
 
@@ -346,7 +346,7 @@ void NewickProcessor<TreeType>::broker_to_tree (
         auto up_link_u  = make_unique<typename TreeType::LinkType>();
         auto up_link    = up_link_u.get();
         up_link->reset_node( cur_node );
-        cur_node->link_ = up_link;
+        cur_node->reset_primary_link( up_link );
         up_link->reset_index( links.size() );
         links.push_back(std::move(up_link_u));
 
@@ -418,7 +418,7 @@ void NewickProcessor<TreeType>::broker_to_tree (
     for (size_t i = 0; i < links.size(); ++i) {
         links[i]->reset_index(i);
     }
-    next->node().link_ = &next->next();
+    next->node().reset_primary_link( &next->next() );
 
     // Finish and hand over the elements to the tree.
     finish_reading(broker, tree);

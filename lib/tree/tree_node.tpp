@@ -13,9 +13,18 @@
 namespace genesis {
 namespace tree {
 
-// =============================================================================
+// =================================================================================================
 //     Accessors
-// =============================================================================
+// =================================================================================================
+
+/**
+ * @brief Return the index of this Link.
+ */
+template <class NDT, class EDT>
+size_t TreeNode<NDT, EDT>::index() const
+{
+    return index_;
+}
 
 /**
  * @brief Return the TreeLink that points towards the root.
@@ -59,9 +68,27 @@ TreeLink<NDT, EDT> const& TreeNode<NDT, EDT>::link() const
     return *link_;
 }
 
-// =============================================================================
+// =================================================================================================
+//     Modifiers
+// =================================================================================================
+
+template <class NDT, class EDT>
+TreeNode<NDT, EDT>& TreeNode<NDT, EDT>::reset_index( size_t val )
+{
+    index_ = val;
+    return *this;
+}
+
+template <class NDT, class EDT>
+TreeNode<NDT, EDT>& TreeNode<NDT, EDT>::reset_primary_link( LinkType* val )
+{
+    link_ = val;
+    return *this;
+}
+
+// =================================================================================================
 //     Member Functions
-// =============================================================================
+// =================================================================================================
 
 /**
  * @brief Rank of the node, i.e. how many immediate children it has.

@@ -53,7 +53,13 @@ public:
     // ---------------------------------------------------------------------
 
     TreeNode()
-        : link_( nullptr )
+        : index_( 0 )
+        , link_(  nullptr )
+    {}
+
+    TreeNode( size_t index, LinkType* primary_link )
+        : index_( index )
+        , link_(  primary_link )
     {}
 
     ~TreeNode() = default;
@@ -71,6 +77,8 @@ public:
     //     Accessors
     // ---------------------------------------------------------------------
 
+    size_t index() const;
+
     LinkType      & primary_link();
     LinkType const& primary_link() const;
 
@@ -78,16 +86,16 @@ public:
     LinkType const& link() const;
 
     // ---------------------------------------------------------------------
-    //     Member Functions
+    //     Modifiers
     // ---------------------------------------------------------------------
 
-    /**
-     * @brief Returns the index of this link.
-     */
-    size_t index() const
-    {
-        return index_;
-    }
+    TreeNode& reset_index( size_t val );
+
+    TreeNode& reset_primary_link( LinkType* val );
+
+    // ---------------------------------------------------------------------
+    //     Member Functions
+    // ---------------------------------------------------------------------
 
     size_t rank() const;
     bool   is_leaf() const;
@@ -105,14 +113,14 @@ public:
     //     Member Variables
     // ---------------------------------------------------------------------
 
+public:
+
     NodeDataType data;
 
-// TODO !!! make protected again, and use some other mechanism for setting the members !!!
-//~ protected:
+private:
 
-    size_t index_;
-
-    LinkType* link_;
+    size_t       index_;
+    LinkType*    link_;
 };
 
 } // namespace tree
