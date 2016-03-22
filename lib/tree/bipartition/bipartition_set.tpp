@@ -8,7 +8,10 @@
 #include <assert.h>
 
 #include "tree/bipartition/bipartition_set.hpp"
-#include "tree/functions.hpp"
+#include "tree/function/functions.hpp"
+#include "tree/iterator/postorder.hpp"
+#include "tree/iterator/preorder.hpp"
+#include "tree/tree.hpp"
 #include "utils/core/logging.hpp"
 
 namespace genesis {
@@ -27,29 +30,25 @@ void BipartitionSet<Tree>::make()
     bipartitions_.clear();
     bipartitions_.resize(tree_.node_count(), BipartitionType(num_leaves));
 
-    for (
-        auto it = tree_.begin_postorder();
-        it != tree_.end_postorder();
-        ++it
-    ) {
+    for( auto it : postorder(tree_) ) {
         if (it.is_last_iteration()) {
             continue;
         }
 
         BipartitionType bp(num_leaves);
-        bp.link_ = it.link();
-        if (it.node()->is_leaf()) {
-            const int leaf_idx = node_to_leaf_map_[it.node()->index()];
+        bp.link_ = &it.link();
+        if (it.node().is_leaf()) {
+            const int leaf_idx = node_to_leaf_map_[it.node().index()];
             assert(leaf_idx > -1);
             bp.leaf_nodes_.set(leaf_idx);
         } else {
-            LinkType* l = it.link()->next();
-            while (l != it.link()) {
-                bp.leaf_nodes_ |= bipartitions_[l->outer()->node()->index()].leaf_nodes_;
-                l = l->next();
+            LinkType* l = &it.link().next();
+            while( l != &it.link() ) {
+                bp.leaf_nodes_ |= bipartitions_[l->outer().node().index()].leaf_nodes_;
+                l = &l->next();
             }
         }
-        bipartitions_[it.node()->index()] = bp;
+        bipartitions_[it.node().index()] = bp;
     }
 }
 
@@ -141,18 +140,26 @@ BipartitionSet<Tree>::get_subtree_edges (
     std::vector<std::string> leaf_names;
     std::unordered_set<EdgeType*> ret;
 
-    for (
-        auto it = tree_.begin_preorder(subtree->next());
-        it != tree_.end_preorder() && it.link() != subtree->outer();
+    // We don't want to use the standard iterator wrapper function here, as we are going
+    // to end the iteration after the end of the subtree, instead of iterating the whole tree.
+    // So we need to use the iterator class directly.
+    using LinkType = typename Tree::LinkType;
+    using NodeType = typename Tree::NodeType;
+    using EdgeType = typename Tree::EdgeType;
+    using Preorder = IteratorPreorder< LinkType, NodeType, EdgeType >;
+
+    for(
+        auto it = Preorder(subtree->next());
+        it != Preorder() && &it.link() != &subtree->outer();
         ++it
     ) {
-        if (it.node()->is_leaf()) {
-            leaf_names.push_back(it.node()->data.name);
+        if( it.node().is_leaf() ) {
+            leaf_names.push_back( it.node().data.name );
         }
         if (it.is_first_iteration()) {
             continue;
         }
-        ret.insert(it.edge());
+        ret.insert( &it.edge() );
     }
 
     // LOG_DBG << "leaf nodes of subtree:";
@@ -192,8 +199,8 @@ std::string BipartitionSet<Tree>::dump()
         if (!bi.link_) {
             continue;
         }
-        out << "\nNode " << bi.link_->node()->index()
-            << ", Leaf " << node_to_leaf_map_[bi.link_->node()->index()]
+        out << "\nNode " << bi.link_->node().index()
+            << ", Leaf " << node_to_leaf_map_[bi.link_->node().index()]
             << "\n" << bi.leaf_nodes_.dump() << "\n";
     }
     return out.str();

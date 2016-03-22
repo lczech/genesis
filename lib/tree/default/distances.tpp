@@ -60,9 +60,9 @@ double deepest_distance(const Tree& tree)
 
     auto leaf_dist = closest_leaf_distance_vector(tree);
 
-    for (const auto& e = tree.begin_edge(); e != tree.end_edges(); ++e) {
-        int idx_p = e->primary_node()->index();
-        int idx_s = e->secondary_node()->index();
+    for (const auto& e = tree.begin_edges(); e != tree.end_edges(); ++e) {
+        int idx_p = e->primary_node().index();
+        int idx_s = e->secondary_node().index();
         double d = (leaf_dist[idx_p].second + e->data.branch_length + leaf_dist[idx_s].second) / 2;
 
         if (d > max) {
@@ -94,11 +94,7 @@ utils::Matrix<double>      node_distance_matrix (
         // unfortunately, this prevents us from simply calculating the upper triangle of the matrix
         // and copying it (distance is symmetric), because we do not really know which nodes are in
         // which half during a levelorder traversal...
-        for (
-            auto it = tree.begin_levelorder(row_node->link());
-            it != tree.end_levelorder();
-            ++it
-        ) {
+        for( auto it : levelorder( row_node->link() )) {
             // skip the diagonal of the matrix.
             if (it.is_first_iteration()) {
                 continue;
@@ -106,14 +102,14 @@ utils::Matrix<double>      node_distance_matrix (
 
             // make sure we don't have touched the current position, but have calculated
             // the needed dependency already.
-            assert(mat(row_node->index(), it.node()->index()) == -1.0);
-            assert(mat(row_node->index(), it.link()->outer()->node()->index()) > -1.0);
+            assert(mat(row_node->index(), it.node().index()) == -1.0);
+            assert(mat(row_node->index(), it.link().outer().node().index()) > -1.0);
 
             // the distance to the current row node is: the length of the current branch plus
             // the distance from the other end of that branch to the row node.
-            mat(row_node->index(), it.node()->index())
-                = it.edge()->data.branch_length
-                + mat(row_node->index(), it.link()->outer()->node()->index());
+            mat(row_node->index(), it.node().index())
+                = it.edge().data.branch_length
+                + mat(row_node->index(), it.link().outer().node().index());
         }
     }
 
@@ -126,7 +122,7 @@ std::vector<double> node_distance_vector (
     const typename Tree::NodeType* node
 ) {
     if (!node) {
-        node = tree.root_node();
+        node = &tree.root_node();
     }
 
     // Store the distance from each node to the given node.
@@ -134,11 +130,7 @@ std::vector<double> node_distance_vector (
     vec[node->index()] = 0.0;
 
     // Calculate the distance vector via levelorder iteration.
-    for (
-        auto it = tree.begin_levelorder(node);
-        it != tree.end_levelorder();
-        ++it
-    ) {
+    for( auto it : levelorder( *node ) ) {
         // Skip the starting node (it is already set to 0).
         if (it.is_first_iteration()) {
             continue;
@@ -146,14 +138,14 @@ std::vector<double> node_distance_vector (
 
         // We do not have the distance of the current node, but the one of its "parent" (the one in
         // direction of the starting node)!
-        assert(vec[it.node()->index()] == -1.0);
-        assert(vec[it.link()->outer()->node()->index()] > -1.0);
+        assert(vec[it.node().index()] == -1.0);
+        assert(vec[it.link().outer().node().index()] > -1.0);
 
         // The distance is the distance from the "parent" node (the next one in direction towards
         // the starting node) plus the branch length.
-        vec[it.node()->index()]
-            = vec[it.link()->outer()->node()->index()]
-            + it.edge()->data.branch_length;
+        vec[it.node().index()]
+            = vec[it.link().outer().node().index()]
+            + it.edge().data.branch_length;
     }
 
     return vec;
@@ -190,28 +182,28 @@ utils::Matrix<double>      edge_distance_matrix (
 
             // primary-primary case
             double pp = node_dist_mat(
-                row_edge->primary_node()->index(),
-                col_edge->primary_node()->index()
+                row_edge->primary_node().index(),
+                col_edge->primary_node().index()
             );
 
             // primary-secondary case
             double ps = node_dist_mat(
-                row_edge->primary_node()->index(),
-                col_edge->secondary_node()->index()
+                row_edge->primary_node().index(),
+                col_edge->secondary_node().index()
             );
 
             // secondary-primary case
             double sp = node_dist_mat(
-                row_edge->secondary_node()->index(),
-                col_edge->primary_node()->index()
+                row_edge->secondary_node().index(),
+                col_edge->primary_node().index()
             );
 
             // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
             // (if this ever happens, the tree is broken).
             double dist = std::min(pp, std::min(ps, sp));
             assert(dist <= node_dist_mat(
-                row_edge->secondary_node()->index(),
-                col_edge->secondary_node()->index()
+                row_edge->secondary_node().index(),
+                col_edge->secondary_node().index()
             ));
 
             // Store in matrix, with halves of the branch lengths.
@@ -248,18 +240,18 @@ std::vector<double> edge_distance_vector (
         }
 
         // primary-primary case
-        double pp = p_node_dist(col_edge->primary_node()->index());
+        double pp = p_node_dist(col_edge->primary_node().index());
 
         // primary-secondary case
-        double ps = p_node_dist(col_edge->secondary_node()->index());
+        double ps = p_node_dist(col_edge->secondary_node().index());
 
         // secondary-primary case
-        double sp = s_node_dist(col_edge->primary_node()->index());
+        double sp = s_node_dist(col_edge->primary_node().index());
 
         // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
         // (if this ever happens, the tree is broken).
         double dist = std::min(pp, std::min(ps, sp));
-        assert(dist <= s_node_dist(col_edge->secondary_node()->index()));
+        assert(dist <= s_node_dist(col_edge->secondary_node().index()));
 
         // Store in vector, with halves of the branch lengths.
         vec(col_edge->index())

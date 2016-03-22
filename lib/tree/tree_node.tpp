@@ -1,5 +1,5 @@
 /**
- * @brief Implementation of TreeNode functions.
+ * @brief Implementation of TreeNode class template.
  *
  * For reasons of readability, in this implementation file, the template data types
  * NodeDataType and EdgeDataType are abbreviated NDT and EDT, respectively.
@@ -8,53 +8,87 @@
  * @ingroup tree
  */
 
-// =============================================================================
-//     Inline definitions with dependecies
-// =============================================================================
-
-// The following are inline definitions that would create circular dependecies when included in the
-// class definition. Thus, they need to be here, after the definition, so that their dependend
-// source files can be included without circles.
-// See http://www.cplusplus.com/forum/articles/10627/ for more information on this.
-
-// Usually, this part would be at the end of the header file, but as this is a class template,
-// where the implementation (this file) is included from within the header anyway, we can as well
-// outsource the inline functions to here.
-
 #include "tree/tree_link.hpp"
 
 namespace genesis {
 namespace tree {
 
+// =================================================================================================
+//     Accessors
+// =================================================================================================
+
 /**
- * @brief True iff the node is a leaf/tip.
+ * @brief Return the index of this Link.
  */
 template <class NDT, class EDT>
-inline bool TreeNode<NDT, EDT>::is_leaf() const
+size_t TreeNode<NDT, EDT>::index() const
 {
-    return link_->is_leaf();
+    return index_;
 }
 
 /**
- * @brief True iff the node is an inner node.
+ * @brief Return the TreeLink that points towards the root.
  */
 template <class NDT, class EDT>
-inline bool TreeNode<NDT, EDT>::is_inner() const
+TreeLink<NDT, EDT>& TreeNode<NDT, EDT>::primary_link()
 {
-    return link_->is_inner();
+    return *link_;
 }
 
-} // namespace tree
-} // namespace genesis
+/**
+ * @brief Return the TreeLink that points towards the root.
+ */
+template <class NDT, class EDT>
+TreeLink<NDT, EDT> const& TreeNode<NDT, EDT>::primary_link() const
+{
+    return *link_;
+}
 
-// =============================================================================
+/**
+ * @brief Return the TreeLink that points towards the root.
+ *
+ * This is just an alias for primary_link(), that is shorter to use when needed
+ * frequently in an algorithm.
+ */
+template <class NDT, class EDT>
+TreeLink<NDT, EDT>& TreeNode<NDT, EDT>::link()
+{
+    return *link_;
+}
+
+/**
+ * @brief Return the TreeLink that points towards the root.
+ *
+ * This is just an alias for primary_link(), that is shorter to use when needed
+ * frequently in an algorithm.
+ */
+template <class NDT, class EDT>
+TreeLink<NDT, EDT> const& TreeNode<NDT, EDT>::link() const
+{
+    return *link_;
+}
+
+// =================================================================================================
+//     Modifiers
+// =================================================================================================
+
+template <class NDT, class EDT>
+TreeNode<NDT, EDT>& TreeNode<NDT, EDT>::reset_index( size_t val )
+{
+    index_ = val;
+    return *this;
+}
+
+template <class NDT, class EDT>
+TreeNode<NDT, EDT>& TreeNode<NDT, EDT>::reset_primary_link( LinkType* val )
+{
+    link_ = val;
+    return *this;
+}
+
+// =================================================================================================
 //     Member Functions
-// =============================================================================
-
-#include "tree/tree_link.hpp"
-
-namespace genesis {
-namespace tree {
+// =================================================================================================
 
 /**
  * @brief Rank of the node, i.e. how many immediate children it has.
@@ -67,11 +101,38 @@ size_t TreeNode<NDT, EDT>::rank() const
 
     do {
         ++rank;
-        link = link->next();
-    } while (link != link_);
+        link = &link->next();
+    } while( link != link_ );
 
     // We add at least 1 to the initial value of the rank, so this is valid.
     return static_cast<size_t>(rank);
+}
+
+// The following are definitions that would create circular dependecies when included in the
+// class definition. Thus, they need to be here, after the definition, so that their dependend
+// source files can be included without circles.
+// See http://www.cplusplus.com/forum/articles/10627/ for more information on this.
+
+// Usually, this part would be at the end of the header file, but as this is a class template,
+// where the implementation (this file) is included from within the header anyway, we can as well
+// outsource the functions to here.
+
+/**
+ * @brief True iff the node is a leaf/tip.
+ */
+template <class NDT, class EDT>
+bool TreeNode<NDT, EDT>::is_leaf() const
+{
+    return link_->is_leaf();
+}
+
+/**
+ * @brief True iff the node is an inner node.
+ */
+template <class NDT, class EDT>
+bool TreeNode<NDT, EDT>::is_inner() const
+{
+    return link_->is_inner();
 }
 
 /**

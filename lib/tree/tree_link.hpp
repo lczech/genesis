@@ -13,9 +13,9 @@
 namespace genesis {
 namespace tree {
 
-// =============================================================================
+// =================================================================================================
 //     Forward declarations
-// =============================================================================
+// =================================================================================================
 
 template <class NodeDataType, class EdgeDataType>
 class Tree;
@@ -26,22 +26,14 @@ class TreeEdge;
 template <class NodeDataType, class EdgeDataType>
 class TreeNode;
 
-// =============================================================================
+// =================================================================================================
 //     TreeLink
-// =============================================================================
+// =================================================================================================
 
 template <class NodeDataType, class EdgeDataType>
 class TreeLink
 {
-    friend class Tree<NodeDataType, EdgeDataType>;
-
 public:
-    TreeLink() : next_(nullptr), outer_(nullptr), node_(nullptr), edge_(nullptr) {}
-
-    // avoid copy constructor and assignment operator.
-    // creating copies is maintained by Tree only.
-    TreeLink (const TreeLink&) = delete;
-    TreeLink& operator = (const TreeLink&) = delete;
 
     // ---------------------------------------------------------------------
     //     Typedefs
@@ -53,93 +45,83 @@ public:
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
 
     // ---------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // ---------------------------------------------------------------------
+
+    TreeLink()
+        : index_( 0       )
+        , next_(  nullptr )
+        , outer_( nullptr )
+        , node_(  nullptr )
+        , edge_(  nullptr )
+    {}
+
+    TreeLink( size_t index, LinkType* next, LinkType* outer, NodeType* node, EdgeType* edge )
+        : index_( index )
+        , next_(  next  )
+        , outer_( outer )
+        , node_(  node  )
+        , edge_(  edge  )
+    {}
+
+    ~TreeLink() = default;
+
+    // avoid copy constructor and assignment operator.
+    // creating copies is maintained by Tree only.
+
+    TreeLink( TreeLink const& ) = delete;
+    TreeLink( TreeLink&& )      = delete;
+
+    TreeLink& operator= ( TreeLink const& ) = delete;
+    TreeLink& operator= ( TreeLink&& )      = delete;
+
+    // ---------------------------------------------------------------------
     //     Accessors
     // ---------------------------------------------------------------------
 
-    /** @brief Returns a pointer to the next link within the node. */
-    inline LinkType* next() const
-    {
-        return next_;
-    }
+    size_t index() const;
 
-    /**
-     * @brief Returns a pointer to the previous link within the node.
-     *
-     * The previous link of a given link `L` is the one whose next-pointer is pointing to `L`.
-     * As this link first has to be found, this function is not as cheap as next().
-     */
-    inline LinkType* prev()
-    {
-        LinkType* res = this;
-        while (res->next() != this) {
-            res = res->next();
-        }
-        return res;
-    }
+    LinkType      & next();
+    LinkType const& next() const;
 
-    /** @brief Returns a pointer to the link of the adjacent node. */
-    inline LinkType* outer() const
-    {
-        return outer_;
-    }
+    LinkType      & prev();
+    LinkType const& prev() const;
 
-    /** @brief Returns a pointer to the TreeEdge containing the data of this link's edge. */
-    inline EdgeType* edge() const
-    {
-        return edge_;
-    }
+    LinkType      & outer();
+    LinkType const& outer() const;
 
-    /** @brief Returns a pointer to the TreeNode containing the data of this link's node. */
-    inline NodeType* node() const
-    {
-        return node_;
-    }
+    EdgeType      & edge();
+    EdgeType const& edge() const;
+
+    NodeType      & node();
+    NodeType const& node() const;
+
+    // ---------------------------------------------------------------------
+    //     Modifiers
+    // ---------------------------------------------------------------------
+
+    TreeLink& reset_index( size_t val );
+
+    TreeLink& reset_next(  LinkType* val );
+    TreeLink& reset_outer( LinkType* val );
+
+    TreeLink& reset_node(  NodeType* val );
+    TreeLink& reset_edge(  EdgeType* val );
 
     // ---------------------------------------------------------------------
     //     Member Functions
     // ---------------------------------------------------------------------
 
-    /**
-     * @brief Returns the index of this Link.
-     */
-    inline size_t index() const
-    {
-        return index_;
-    }
+    bool is_leaf() const;
+    bool is_inner() const;
 
-    /**
-     * @brief Returns true iff the node of this link is a leaf node.
-     */
-    inline bool is_leaf() const
-    {
-        return next_ == this;
-    }
-
-    /**
-     * @brief Returns true iff the node of this link is an inner node.
-     */
-    inline bool is_inner() const
-    {
-        return next_ != this;
-    }
-
-    /**
-     * @brief Returns a string containing dump information about this link.
-     *
-     * At the moment, a link does not contain any information, so an empty string is returned.
-     * This might change in the future, in case links also contain data.
-     */
-    inline std::string dump() const
-    {
-        return "";
-    }
-
-// TODO !!! make protected again, and use some other mechanism for setting the members !!!
-//~ protected:
+    std::string dump() const;
 
     // ---------------------------------------------------------------------
     //     Member Variables
     // ---------------------------------------------------------------------
+
+private:
 
     size_t index_;
 
@@ -152,5 +134,12 @@ public:
 
 } // namespace tree
 } // namespace genesis
+
+// =================================================================================================
+//     Inclusion of the Implementation
+// =================================================================================================
+
+// This is a class template, so do the inclusion here.
+#include "tree/tree_link.tpp"
 
 #endif // include guard

@@ -11,7 +11,7 @@
 #include <assert.h>
 #include <sstream>
 
-#include "tree/distances.hpp"
+// #include "tree/distances.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
 
@@ -68,28 +68,28 @@ Tree<NDT, EDT>::Tree (const Tree<NDT, EDT>& other)
     // set all pointers for the topology in a second round of loops.
     for (size_t i = 0; i < links_.size(); ++i) {
         const auto& olink = other.links_[i];
-        assert(olink->index_ == i);
+        assert(olink->index() == i);
 
-        links_[i]->index_  = i;
-        links_[i]->next_   = links_[olink->next_->index_].get();
-        links_[i]->outer_  = links_[olink->outer_->index_].get();
-        links_[i]->node_   = nodes_[olink->node_->index_].get();
-        links_[i]->edge_   = edges_[olink->edge_->index_].get();
+        links_[i]->reset_index( i );
+        links_[i]->reset_next(  links_[olink->next().index()].get() );
+        links_[i]->reset_outer( links_[olink->outer().index()].get() );
+        links_[i]->reset_node(  nodes_[olink->node().index()].get() );
+        links_[i]->reset_edge(  edges_[olink->edge().index()].get() );
     }
     for (size_t i = 0; i < nodes_.size(); ++i) {
         const auto& onode = other.nodes_[i];
-        assert(onode->index_ == i);
+        assert(onode->index() == i);
 
-        nodes_[i]->index_  = i;
-        nodes_[i]->link_   = links_[onode->link_->index_].get();
+        nodes_[i]->reset_index( i );
+        nodes_[i]->reset_primary_link( links_[onode->link().index()].get() );
     }
     for (size_t i = 0; i < edges_.size(); ++i) {
         const auto& oedge = other.edges_[i];
-        assert(oedge->index_ == i);
+        assert(oedge->index() == i);
 
-        edges_[i]->index_  = i;
-        edges_[i]->link_p_ = links_[oedge->link_p_->index_].get();
-        edges_[i]->link_s_ = links_[oedge->link_s_->index_].get();
+        edges_[i]->reset_index( i );
+        edges_[i]->reset_primary_link(   links_[oedge->primary_link().index()].get()   );
+        edges_[i]->reset_secondary_link( links_[oedge->secondary_link().index()].get() );
     }
 }
 
@@ -206,25 +206,25 @@ bool Tree<NDT, EDT>::empty() const
  * @brief Return the TreeLink at the current root of the Tree.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::root_link()
+typename Tree<NDT, EDT>::LinkType& Tree<NDT, EDT>::root_link()
 {
-    return links_.front().get();
+    return *links_.front().get();
 }
 
 /**
  * @brief Return the TreeLink at the current root of the Tree.
  */
 template <class NDT, class EDT>
-const typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::root_link() const
+typename Tree<NDT, EDT>::LinkType const& Tree<NDT, EDT>::root_link() const
 {
-    return links_.front().get();
+    return *links_.front().get();
 }
 
 /**
  * @brief Return the TreeNode at the current root of the Tree.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::root_node()
+typename Tree<NDT, EDT>::NodeType& Tree<NDT, EDT>::root_node()
 {
     return links_.front()->node();
 }
@@ -233,7 +233,7 @@ typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::root_node()
  * @brief Return the TreeNode at the current root of the Tree.
  */
 template <class NDT, class EDT>
-const typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::root_node() const
+typename Tree<NDT, EDT>::NodeType const& Tree<NDT, EDT>::root_node() const
 {
     return links_.front()->node();
 }
@@ -242,61 +242,61 @@ const typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::root_node() const
  * @brief Return the TreeLink at a certain index.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::link_at(size_t index)
+typename Tree<NDT, EDT>::LinkType& Tree<NDT, EDT>::link_at(size_t index)
 {
-    return links_[index].get();
+    return *links_[index].get();
 }
 
 /**
  * @brief Return the TreeLink at a certain index.
  */
 template <class NDT, class EDT>
-const typename Tree<NDT, EDT>::LinkType* Tree<NDT, EDT>::link_at(size_t index) const
+typename Tree<NDT, EDT>::LinkType const& Tree<NDT, EDT>::link_at(size_t index) const
 {
-    return links_[index].get();
+    return *links_[index].get();
 }
 
 /**
  * @brief Return the TreeNode at a certain index.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::node_at(size_t index)
+typename Tree<NDT, EDT>::NodeType& Tree<NDT, EDT>::node_at(size_t index)
 {
-    return nodes_[index].get();
+    return *nodes_[index].get();
 }
 
 /**
  * @brief Return the TreeNode at a certain index.
  */
 template <class NDT, class EDT>
-const typename Tree<NDT, EDT>::NodeType* Tree<NDT, EDT>::node_at(size_t index) const
+typename Tree<NDT, EDT>::NodeType const& Tree<NDT, EDT>::node_at(size_t index) const
 {
-    return nodes_[index].get();
+    return *nodes_[index].get();
 }
 
 /**
  * @brief Return the TreeEdge at a certain index.
  */
 template <class NDT, class EDT>
-typename Tree<NDT, EDT>::EdgeType* Tree<NDT, EDT>::edge_at(size_t index)
+typename Tree<NDT, EDT>::EdgeType& Tree<NDT, EDT>::edge_at(size_t index)
 {
-    return edges_[index].get();
+    return *edges_[index].get();
 }
 
 /**
  * @brief Return the TreeEdge at a certain index.
  */
 template <class NDT, class EDT>
-const typename Tree<NDT, EDT>::EdgeType* Tree<NDT, EDT>::edge_at(size_t index) const
+typename Tree<NDT, EDT>::EdgeType const& Tree<NDT, EDT>::edge_at(size_t index) const
 {
-    return edges_[index].get();
+    return *edges_[index].get();
 }
 
 /**
  * @brief Return the number of TreeLink%s of the Tree.
  */
 template <class NDT, class EDT>
-inline size_t Tree<NDT, EDT>::link_count() const
+size_t Tree<NDT, EDT>::link_count() const
 {
     return links_.size();
 }
@@ -305,7 +305,7 @@ inline size_t Tree<NDT, EDT>::link_count() const
  * @brief Return the number of TreeNode%s of the Tree.
  */
 template <class NDT, class EDT>
-inline size_t Tree<NDT, EDT>::node_count() const
+size_t Tree<NDT, EDT>::node_count() const
 {
     return nodes_.size();
 }
@@ -314,7 +314,7 @@ inline size_t Tree<NDT, EDT>::node_count() const
  * @brief Return the number of TreeEdge%s of the Tree.
  */
 template <class NDT, class EDT>
-inline size_t Tree<NDT, EDT>::edge_count() const
+size_t Tree<NDT, EDT>::edge_count() const
 {
     return edges_.size();
 }

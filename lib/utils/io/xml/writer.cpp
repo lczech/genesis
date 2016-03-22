@@ -1,13 +1,14 @@
 /**
- * @brief Implementation of functions for parsing and printing XML documents.
+ * @brief
  *
  * @file
  * @ingroup utils
  */
 
-#include "utils/io/xml/processor.hpp"
+#include "utils/io/xml/writer.hpp"
 
 #include <assert.h>
+#include <stdexcept>
 
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
@@ -22,7 +23,7 @@ namespace utils {
 // =================================================================================================
 
 /*
-std::string XmlProcessor::XmlDescape (std::string& xml)
+std::string XmlWriter::XmlDescape (std::string& xml)
 {
     std::string res;
     res = utils::replace_all(xml, "&lt;",   "<");
@@ -39,31 +40,33 @@ std::string XmlProcessor::XmlDescape (std::string& xml)
 // =================================================================================================
 
 /**
- * @brief Writes an XML file from an XmlDocument. Returns true iff successful.
+ * @brief Write an XML file from an XmlDocument. Return true iff successful.
+ *
+ * If the file already exists, the function throws `std::runtime_error`.
+ * The function uses utils::file_write. See there for other exceptions that can be thrown.
  */
-bool XmlProcessor::to_file (const std::string& fn, const XmlDocument& document)
+void XmlWriter::to_file( const XmlDocument& document, const std::string& filename )
 {
-    if( utils::file_exists(fn) ) {
-        LOG_WARN << "XML file '" << fn << "' already exist. Will not overwrite it.";
-        return false;
+    if( utils::file_exists(filename) ) {
+        throw std::runtime_error( "Xml file '" + filename + "' already exist." );
     }
     std::string xml;
-    to_string(xml, document);
-    return utils::file_write(fn, xml);
+    to_string( document, xml );
+    utils::file_write(xml, filename);
 }
 
 /**
- * @brief Gives the XML string representation of a XmlDocument.
+ * @brief Give the XML string representation of a XmlDocument.
  */
-void XmlProcessor::to_string (std::string& xml, const XmlDocument& document)
+void XmlWriter::to_string( const XmlDocument& document, std::string& output )
 {
-    xml = to_string(document);
+    output = to_string(document);
 }
 
 /**
- * @brief Returns the XML representation of a XmlDocument.
+ * @brief Return the XML representation of a XmlDocument.
  */
-std::string XmlProcessor::to_string (const XmlDocument& document)
+std::string XmlWriter::to_string( const XmlDocument& document )
 {
     std::string res = "";
     if (!document.xml_tag.empty() || !document.declarations.empty()) {
@@ -73,26 +76,30 @@ std::string XmlProcessor::to_string (const XmlDocument& document)
     return res + "\n";
 }
 
+// =================================================================================================
+//     Internal
+// =================================================================================================
+
 /**
- * @brief Prints an XML comment.
+ * @brief Print an XML comment.
  */
-void XmlProcessor::print_comment (std::string& xml, const XmlComment* value)
+void XmlWriter::print_comment (std::string& xml, const XmlComment* value)
 {
     xml += "<!--" + value->content + "-->";
 }
 
 /**
- * @brief Prints an XML markup (simple text).
+ * @brief Print an XML markup (simple text).
  */
-void XmlProcessor::print_markup  (std::string& xml, const XmlMarkup*  value)
+void XmlWriter::print_markup  (std::string& xml, const XmlMarkup*  value)
 {
     xml += xml_escape(value->content);
 }
 
 /**
- * @brief Prints an XML element.
+ * @brief Print an XML element.
  */
-void XmlProcessor::print_element (std::string& xml, const XmlElement* value, const int indent_level)
+void XmlWriter::print_element (std::string& xml, const XmlElement* value, const int indent_level)
 {
     // Prepare indention and opening tag.
     std::string in0 (indent_level * indent, ' ');
@@ -135,9 +142,9 @@ void XmlProcessor::print_element (std::string& xml, const XmlElement* value, con
 }
 
 /**
- * @brief Prints a list of XML attributes.
+ * @brief Print a list of XML attributes.
  */
-std::string XmlProcessor::print_attributes_list (StringMapType attr)
+std::string XmlWriter::print_attributes_list (StringMapType attr)
 {
     std::string xml;
     for (auto pair : attr) {
@@ -149,7 +156,7 @@ std::string XmlProcessor::print_attributes_list (StringMapType attr)
 /**
  * @brief Escape special XML characters.
  */
-std::string XmlProcessor::xml_escape (const std::string& txt)
+std::string XmlWriter::xml_escape (const std::string& txt)
 {
     std::string res;
     res = utils::replace_all(txt, "<",  "&lt;");

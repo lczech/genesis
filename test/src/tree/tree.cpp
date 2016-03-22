@@ -10,8 +10,8 @@
 #include <string>
 
 #include "lib/tree/default/newick_processor.hpp"
+#include "lib/tree/function/functions.hpp"
 #include "lib/tree/io/newick/processor.hpp"
-#include "lib/tree/functions.hpp"
 #include "lib/tree/tree.hpp"
 
 using namespace genesis;
@@ -29,7 +29,7 @@ TEST(Tree, Basics)
     EXPECT_EQ(13, tree.node_count());
     EXPECT_TRUE( is_bifurcating( tree ));
 
-    EXPECT_EQ("R", tree.root_node()->data.name);
+    EXPECT_EQ("R", tree.root_node().data.name);
     EXPECT_TRUE( validate( tree ));
 
     // LOG_INFO << tree;

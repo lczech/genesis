@@ -8,6 +8,7 @@
 #include "placement/io/jplace_writer.hpp"
 
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
@@ -21,7 +22,7 @@
 #include "utils/core/options.hpp"
 #include "utils/core/std.hpp"
 #include "utils/io/json/document.hpp"
-#include "utils/io/json/processor.hpp"
+#include "utils/io/json/writer.hpp"
 
 namespace genesis {
 namespace placement {
@@ -36,22 +37,24 @@ namespace placement {
 
 /**
  * @brief Write the data of a Sample to a file in `Jplace` format.
+ *
+ * If the file already exists, the function throws `std::runtime_error`.
+ * The function uses utils::file_write. See there for other exceptions that can be thrown.
  */
-bool JplaceWriter::to_file (const Sample& smp, const std::string filename)
+void JplaceWriter::to_file (const Sample& smp, const std::string filename) const
 {
     if( utils::file_exists(filename) ) {
-        LOG_WARN << "Jplace file '" << filename << "' already exist. Will not overwrite it.";
-        return false;
+        throw std::runtime_error( "Jplace file '" + filename + "' already exist." );
     }
     std::string ts;
     to_string(smp, ts);
-    return utils::file_write( filename, ts );
+    utils::file_write( ts, filename );
 }
 
 /**
  * @brief Store the data of a Sample in a string in `Jplace` format.
  */
-void JplaceWriter::to_string (const Sample& smp, std::string&  output)
+void JplaceWriter::to_string (const Sample& smp, std::string&  output) const
 {
     output = to_string(smp);
 }
@@ -59,17 +62,17 @@ void JplaceWriter::to_string (const Sample& smp, std::string&  output)
 /**
  * @brief Return the data of a Sample as a string in `Jplace` format.
  */
-std::string JplaceWriter::to_string (const Sample& smp)
+std::string JplaceWriter::to_string (const Sample& smp) const
 {
     utils::JsonDocument json;
     to_document(smp, json);
-    return utils::JsonProcessor().to_string(json);
+    return utils::JsonWriter().to_string(json);
 }
 
 /**
  * @brief Store the data of a Sample in a JsonDocument object.
  */
-void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc)
+void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc) const
 {
     // Simplify the code. Specifying utils::Json... is cumbersome.
     using namespace utils;

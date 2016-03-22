@@ -65,12 +65,12 @@ public:
     //     Class Functions
     // -----------------------------------------------------
 
-    inline bool operator == (const DefaultTreeNodeData &other) const
+    bool operator == (const DefaultTreeNodeData &other) const
     {
         return other.name == name;
     }
 
-    inline bool operator != (const DefaultTreeNodeData &other) const
+    bool operator != (const DefaultTreeNodeData &other) const
     {
         return !(other == *this);
     }
@@ -79,7 +79,7 @@ public:
     //     Data Members
     // -----------------------------------------------------
 
-    inline std::string dump() const
+    std::string dump() const
     {
         return "Name: '" + name + "'";
     }
@@ -113,12 +113,12 @@ public:
     //     Class Functions
     // -----------------------------------------------------
 
-    inline bool operator == (const DefaultTreeEdgeData &other) const
+    bool operator == (const DefaultTreeEdgeData &other) const
     {
         return other.branch_length == branch_length;
     }
 
-    inline bool operator != (const DefaultTreeEdgeData &other) const
+    bool operator != (const DefaultTreeEdgeData &other) const
     {
         return !(other == *this);
     }
@@ -127,7 +127,7 @@ public:
     //     Data Members
     // -----------------------------------------------------
 
-    inline std::string dump() const
+    std::string dump() const
     {
         return "Length: " + std::to_string(branch_length);
     }

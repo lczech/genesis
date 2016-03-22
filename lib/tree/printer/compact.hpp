@@ -47,13 +47,19 @@ public:
     void print (
         std::ostream&   out,
         TreeType const& tree,
-        std::function<std::string (typename TreeType::ConstIteratorPreorder& it)> const print_line
+        std::function<std::string (
+            typename TreeType::NodeType const& node,
+            typename TreeType::EdgeType const& edge
+        )> const print_line
     );
 
     template <typename TreeType>
     std::string print (
         TreeType const& tree,
-        std::function<std::string (typename TreeType::ConstIteratorPreorder& it)> const print_line
+        std::function<std::string (
+            typename TreeType::NodeType const& node,
+            typename TreeType::EdgeType const& edge
+        )> const print_line
     );
 
     template <typename TreeType>

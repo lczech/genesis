@@ -10,9 +10,10 @@
 #include <string>
 
 #include "lib/tree/default/newick_processor.hpp"
-#include "lib/tree/io/newick/processor.hpp"
+#include "lib/tree/function/functions.hpp"
+#include "lib/tree/function/operators.hpp"
 #include "lib/tree/io/newick/color_mixin.hpp"
-#include "lib/tree/functions.hpp"
+#include "lib/tree/io/newick/processor.hpp"
 #include "lib/tree/tree.hpp"
 #include "lib/utils/text/string.hpp"
 
@@ -112,7 +113,7 @@ TEST(Newick, ColorMixin)
     // Create a color vector for all edges that marks edges leading to a leaf node in red.
     auto color_vector = std::vector<utils::Color>( tree.edge_count() );
     for( auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
-        if( (*it)->primary_node()->is_leaf() || (*it)->secondary_node()->is_leaf() ) {
+        if( (*it)->primary_node().is_leaf() || (*it)->secondary_node().is_leaf() ) {
             color_vector[(*it)->index()] = utils::Color(255, 0, 0);
         }
     }

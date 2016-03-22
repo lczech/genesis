@@ -8,6 +8,8 @@
  * @ingroup tree
  */
 
+#include "utils/core/range.hpp"
+
 #include <iterator>
 
 namespace genesis {
@@ -18,93 +20,88 @@ namespace tree {
 // =================================================================================================
 
 template <typename LinkType, typename NodeType, typename EdgeType>
-class TreeIteratorEulertour
+class IteratorEulertour
 {
+
 public:
+
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorEulertour<LinkType, NodeType, EdgeType> self_type;
-    typedef std::forward_iterator_tag iterator_category;
+    using TreeType          = typename LinkType::TreeType;
 
-    // typedef NodeType  value_type;
-    // typedef size_t    difference_type;
-    typedef NodeType* pointer;
-    typedef NodeType& reference;
-
-    inline reference operator * ()
-    {
-        return *(link_->node());
-    }
-
-    // inline pointer operator -> ()
-    // {
-    //     return link_->node();
-    // }
+    using iterator_category = std::forward_iterator_tag;
+    using self_type         = IteratorEulertour<LinkType, NodeType, EdgeType>;
 
     // -----------------------------------------------------
-    //     Constructor
+    //     Constructors and Rule of Five
     // -----------------------------------------------------
 
-    explicit TreeIteratorEulertour (LinkType* link) : link_(link), start_(link)
+    IteratorEulertour()
+        : start_( nullptr )
+        , link_(  nullptr )
     {}
 
-    // TreeIteratorEulertour () :
-    //     link_(nullptr),
-    //     start_(nullptr)
-    // {}
-    //
-    // TreeIteratorEulertour (const LinkType* link) :
-    //     link_(link),
-    //     start_(link)
-    // {}
-    //
-    // TreeIteratorEulertour (const NodeType* node) :
-    //     link_(node->primary_link()->next()),
-    //     start_(node->primary_link()->next())
-    // {}
+    explicit IteratorEulertour (TreeType& tree)
+        : start_( &tree.root_link() )
+        , link_(  &tree.root_link() )
+    {}
 
-    // -----------------------------------------------------
-    //     Iteration
-    // -----------------------------------------------------
+    explicit IteratorEulertour (TreeType const& tree)
+        : start_( &tree.root_link() )
+        , link_(  &tree.root_link() )
+    {}
 
-    // inline self_type begin()
-    // {
-    //     return self_type(start_);
-    // }
-    //
-    // inline self_type end()
-    // {
-    //     return self_type(nullptr);
-    // }
+    explicit IteratorEulertour (NodeType& node)
+        : start_( &node.primary_link() )
+        , link_(  &node.primary_link() )
+    {}
+
+    explicit IteratorEulertour (LinkType& link)
+        : start_( &link )
+        , link_(  &link )
+    {}
+
+    ~IteratorEulertour() = default;
+
+    IteratorEulertour( IteratorEulertour const& ) = default;
+    IteratorEulertour( IteratorEulertour&& )      = default;
+
+    IteratorEulertour& operator= ( IteratorEulertour const& ) = default;
+    IteratorEulertour& operator= ( IteratorEulertour&& )      = default;
 
     // -----------------------------------------------------
     //     Operators
     // -----------------------------------------------------
 
-    inline self_type& operator ++ ()
+    self_type operator * ()
     {
-        link_ = link_->outer()->next();
+        return *this;
+    }
+
+    self_type& operator ++ ()
+    {
+        link_ = &link_->outer().next();
         if (link_ == start_) {
             link_ = nullptr;
         }
         return *this;
     }
 
-    inline self_type operator ++ (int)
+    self_type operator ++ (int)
     {
         self_type tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    inline bool operator == (const self_type &other) const
+    bool operator == (const self_type &other) const
     {
         return other.link_ == link_;
     }
 
-    inline bool operator != (const self_type &other) const
+    bool operator != (const self_type &other) const
     {
         return !(other == *this);
     }
@@ -113,112 +110,39 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline LinkType* link() const
+    bool is_first_iteration() const
     {
-        return link_;
+        return link_ == start_;
     }
 
-    inline NodeType* node() const
+    LinkType& link() const
+    {
+        return *link_;
+    }
+
+    NodeType& node() const
     {
         return link_->node();
     }
 
-    inline EdgeType* edge() const
+    EdgeType& edge() const
     {
         return link_->edge();
     }
 
-    inline LinkType* start_link() const
+    LinkType& start_link() const
     {
-        return start_;
+        return *start_;
     }
 
-    inline NodeType* start_node() const
+    NodeType& start_node() const
     {
         return start_->node();
     }
 
-protected:
-    LinkType* link_;
-    LinkType* start_;
-};
-
-// =================================================================================================
-//     Euler Tour Iterator Range
-// =================================================================================================
-
-template<typename TreeType>
-class TreeIteratorEulertourRange
-{
-public:
-
-    // -----------------------------------------------------
-    //     Typedefs
-    // -----------------------------------------------------
-
-    using LinkType = typename TreeType::LinkType;
-    using NodeType = typename TreeType::NodeType;
-    using EdgeType = typename TreeType::EdgeType;
-
-    using       iterator = TreeIteratorEulertour <      LinkType,       NodeType,       EdgeType>;
-    using const_iterator = TreeIteratorEulertour <const LinkType, const NodeType, const EdgeType>;
-
-    // -----------------------------------------------------
-    //     Constructors
-    // -----------------------------------------------------
-
-    explicit TreeIteratorEulertourRange(TreeType& tree)
-        : link_(tree.root_link())
-    {}
-
-    explicit TreeIteratorEulertourRange(LinkType* link)
-        : link_(link)
-    {}
-
-    explicit TreeIteratorEulertourRange(NodeType* node)
-        : link_(node->primary_link())
-    {}
-
-    // -----------------------------------------------------
-    //     Range-based loop functions
-    // -----------------------------------------------------
-
-    iterator begin()
-    {
-        return iterator(link_);
-    }
-
-    iterator end()
-    {
-        return iterator(nullptr);
-    }
-
-    const_iterator begin() const
-    {
-        return const_iterator(link_);
-    }
-
-    const_iterator end() const
-    {
-        return const_iterator(nullptr);
-    }
-
-    const_iterator cbegin()
-    {
-        return const_iterator(link_);
-    }
-
-    const_iterator cend()
-    {
-        return const_iterator(nullptr);
-    }
-
-    // -----------------------------------------------------
-    //     Data members
-    // -----------------------------------------------------
-
 private:
 
+    LinkType* start_;
     LinkType* link_;
 };
 
@@ -226,16 +150,38 @@ private:
 //     Euler Tour Wrapper Functions
 // =================================================================================================
 
-template<typename TreeType>
-TreeIteratorEulertourRange<TreeType> eulertour(TreeType& tree)
+template<typename ElementType>
+utils::Range< IteratorEulertour<
+    typename ElementType::LinkType const,
+    typename ElementType::NodeType const,
+    typename ElementType::EdgeType const
+>> eulertour( ElementType const& element )
 {
-    return TreeIteratorEulertourRange<TreeType>(tree);
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        IteratorEulertour< const LinkType, const NodeType, const EdgeType >( element ),
+        IteratorEulertour< const LinkType, const NodeType, const EdgeType >()
+    };
 }
 
-template<typename PointerType>
-TreeIteratorEulertourRange<typename PointerType::TreeType> eulertour(PointerType* link_or_node)
+template<typename ElementType>
+utils::Range< IteratorEulertour<
+    typename ElementType::LinkType,
+    typename ElementType::NodeType,
+    typename ElementType::EdgeType
+>> eulertour( ElementType& element )
 {
-    return TreeIteratorEulertourRange<typename PointerType::TreeType>(link_or_node);
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        IteratorEulertour< LinkType, NodeType, EdgeType >( element ),
+        IteratorEulertour< LinkType, NodeType, EdgeType >()
+    };
 }
 
 } // namespace tree

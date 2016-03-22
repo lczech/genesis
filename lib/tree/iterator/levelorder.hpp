@@ -8,6 +8,8 @@
  * @ingroup tree
  */
 
+#include "utils/core/range.hpp"
+
 #include <assert.h>
 #include <deque>
 #include <iterator>
@@ -19,34 +21,70 @@ namespace tree {
 //     Levelorder Iterator
 // =================================================================================================
 
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeIteratorLevelorder
+template <typename LinkType, typename NodeType, typename EdgeType>
+class IteratorLevelorder
 {
+
 public:
+
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorLevelorder<LinkPointerType, NodePointerType, EdgePointerType> self_type;
-    typedef std::forward_iterator_tag iterator_category;
+    using TreeType          = typename LinkType::TreeType;
+
+    using iterator_category = std::forward_iterator_tag;
+    using self_type         = IteratorLevelorder<LinkType, NodeType, EdgeType>;
 
     // -----------------------------------------------------
-    //     Constructor
+    //     Constructors and Rule of Five
     // -----------------------------------------------------
 
-    TreeIteratorLevelorder (LinkPointerType link) : link_(link), depth_(0), start_(link)
+    IteratorLevelorder()
+        : start_( nullptr )
+        , link_(  nullptr )
+        , depth_( 0       )
+    {}
+
+    explicit IteratorLevelorder( TreeType& tree )
+        : IteratorLevelorder( tree.root_link() )
+    {}
+
+    explicit IteratorLevelorder( TreeType const& tree )
+        : IteratorLevelorder( tree.root_link() )
+    {}
+
+    explicit IteratorLevelorder( NodeType& node )
+        : IteratorLevelorder( node.primary_link() )
+    {}
+
+    explicit IteratorLevelorder( LinkType& link )
+        : start_( &link )
+        , link_(  &link )
+        , depth_( 0     )
     {
-        if (link) {
-            push_back_children(link, 0);
-            stack_.push_front({link->outer(), 1});
-        }
+        push_back_children( &link, 0 );
+        stack_.push_front({ &link.outer(), 1 });
     }
+
+    ~IteratorLevelorder() = default;
+
+    IteratorLevelorder( IteratorLevelorder const& ) = default;
+    IteratorLevelorder( IteratorLevelorder&& )      = default;
+
+    IteratorLevelorder& operator= ( IteratorLevelorder const& ) = default;
+    IteratorLevelorder& operator= ( IteratorLevelorder&& )      = default;
 
     // -----------------------------------------------------
     //     Operators
     // -----------------------------------------------------
 
-    inline self_type operator ++ ()
+    self_type operator * ()
+    {
+        return *this;
+    }
+
+    self_type operator ++ ()
     {
         if (stack_.empty()) {
             link_  = nullptr;
@@ -62,19 +100,19 @@ public:
         return *this;
     }
 
-    inline self_type operator ++ (int)
+    self_type operator ++ (int)
     {
         self_type tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    inline bool operator == (const self_type &other) const
+    bool operator == (const self_type &other) const
     {
         return other.link_ == link_;
     }
 
-    inline bool operator != (const self_type &other) const
+    bool operator != (const self_type &other) const
     {
         return !(other == *this);
     }
@@ -83,62 +121,102 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline bool is_first_iteration() const
+    bool is_first_iteration() const
     {
         return link_ == start_;
     }
 
-    inline int depth() const
+    int depth() const
     {
         return depth_;
     }
 
-    inline LinkPointerType link() const
+    LinkType& link() const
     {
-        return link_;
+        return *link_;
     }
 
-    inline NodePointerType node() const
+    NodeType& node() const
     {
         return link_->node();
     }
 
-    inline EdgePointerType edge() const
+    EdgeType& edge() const
     {
         return link_->edge();
     }
 
-    inline LinkPointerType start_link() const
+    LinkType& start_link() const
     {
-        return start_;
+        return *start_;
     }
 
-    inline NodePointerType start_node() const
+    NodeType& start_node() const
     {
         return start_->node();
     }
 
-protected:
-    inline void push_back_children(LinkPointerType link, int link_depth)
+private:
+
+    void push_back_children( LinkType* link, int link_depth )
     {
-        LinkPointerType c = link->next();
-        while (c != link) {
-            stack_.push_back({c->outer(), link_depth + 1});
-            c = c->next();
+        LinkType* c = &link->next();
+        while( c != link ) {
+            stack_.push_back({ &c->outer(), link_depth + 1 });
+            c = &c->next();
         }
     }
 
     // TODO add depth information to other iterators, as well.
     typedef struct {
-        LinkPointerType link;
-        int             depth;
+        LinkType*     link;
+        int           depth;
     } StackElement;
 
-    LinkPointerType          link_;
-    int                      depth_;
-    LinkPointerType          start_;
+    LinkType*         start_;
+    LinkType*         link_;
+    int               depth_;
+
     std::deque<StackElement> stack_;
 };
+
+// =================================================================================================
+//     Levelorder Wrapper Functions
+// =================================================================================================
+
+template<typename ElementType>
+utils::Range< IteratorLevelorder<
+    typename ElementType::LinkType const,
+    typename ElementType::NodeType const,
+    typename ElementType::EdgeType const
+>> levelorder( ElementType const& element )
+{
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        IteratorLevelorder< const LinkType, const NodeType, const EdgeType >( element ),
+        IteratorLevelorder< const LinkType, const NodeType, const EdgeType >()
+    };
+}
+
+template<typename ElementType>
+utils::Range< IteratorLevelorder<
+    typename ElementType::LinkType,
+    typename ElementType::NodeType,
+    typename ElementType::EdgeType
+>> levelorder( ElementType& element )
+{
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        IteratorLevelorder< LinkType, NodeType, EdgeType >( element ),
+        IteratorLevelorder< LinkType, NodeType, EdgeType >()
+    };
+}
 
 } // namespace tree
 } // namespace genesis

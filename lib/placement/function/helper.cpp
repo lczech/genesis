@@ -8,8 +8,8 @@
 #include "placement/function/helper.hpp"
 
 #include "placement/pquery/plain.hpp"
+#include "tree/function/operators.hpp"
 #include "tree/iterator/postorder.hpp"
-#include "tree/operators.hpp"
 
 namespace genesis {
 namespace placement {
@@ -121,8 +121,8 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
             auto& place = pqueries[i].placements[j];
 
             place.edge_index           = oplace.edge().index();
-            place.primary_node_index   = oplace.edge().primary_node()->index();
-            place.secondary_node_index = oplace.edge().secondary_node()->index();
+            place.primary_node_index   = oplace.edge().primary_node().index();
+            place.secondary_node_index = oplace.edge().secondary_node().index();
 
             place.branch_length        = oplace.edge().data.branch_length;
             place.pendant_length       = oplace.pendant_length;
@@ -149,13 +149,13 @@ bool has_correct_edge_nums( PlacementTree const& tree )
     int current = 0;
 
     // Edge numbers need to be in ascending order via postorder traversal. Check this.
-    for (auto it = tree.begin_postorder(); it != tree.end_postorder(); ++it) {
+    for( auto it : postorder(tree) ) {
         // The last iteration is skipped, as the root does not have an edge.
         if (it.is_last_iteration()) {
             continue;
         }
 
-        if (it.edge()->data.edge_num() != current) {
+        if (it.edge().data.edge_num() != current) {
             return false;
         }
         ++current;

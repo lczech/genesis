@@ -7,10 +7,10 @@
 
 #include "placement/function/operators.hpp"
 
-#include "placement/function/helper.hpp"
 #include "placement/function/functions.hpp"
+#include "placement/function/helper.hpp"
 #include "placement/sample.hpp"
-#include "tree/operators.hpp"
+#include "tree/function/operators.hpp"
 #include "tree/printer/compact.hpp"
 #include "utils/text/table.hpp"
 
@@ -39,9 +39,9 @@ bool compatible_trees (const Sample& lhs, const Sample& rhs)
         const PlacementTree::EdgeType& edge_l,
         const PlacementTree::EdgeType& edge_r
     ) {
-        return edge_l.data.edge_num()           == edge_r.data.edge_num()           &&
-               edge_l.primary_node()->index()   == edge_r.primary_node()->index()   &&
-               edge_l.secondary_node()->index() == edge_r.secondary_node()->index();
+        return edge_l.data.edge_num()          == edge_r.data.edge_num()           &&
+               edge_l.primary_node().index()   == edge_r.primary_node().index()   &&
+               edge_l.secondary_node().index() == edge_r.secondary_node().index();
     };
 
     return tree::equal<PlacementTree, PlacementTree>(
@@ -99,12 +99,15 @@ std::ostream& operator << (std::ostream& out, Sample const& smp)
  */
 std::string print_tree( Sample const& smp )
 {
+    using NodeType = typename PlacementTree::NodeType;
+    using EdgeType = typename PlacementTree::EdgeType;
+
     auto place_map = placements_per_edge( smp );
 
-    auto print_line = [ &place_map ] (typename PlacementTree::ConstIteratorPreorder& it)
+    auto print_line = [ &place_map ] ( NodeType const& node, EdgeType const& edge )
     {
-        return it.node()->data.name + " [" + std::to_string(it.edge()->data.edge_num()) + "]" ": "
-            + std::to_string( place_map[ it.edge()->index() ].size() ) + " placements";
+        return node.data.name + " [" + std::to_string( edge.data.edge_num() ) + "]" ": "
+            + std::to_string( place_map[ edge.index() ].size() ) + " placements";
     };
     return tree::PrinterCompact().print< PlacementTree >( smp.tree(), print_line );
 }

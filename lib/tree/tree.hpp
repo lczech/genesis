@@ -31,21 +31,6 @@ namespace tree {
 template <class TreeType>
 bool validate( TreeType const& tree );
 
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeIteratorEulertour;
-
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeIteratorPreorder;
-
-//~ template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-//~ class TreeIteratorInorder;
-
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeIteratorPostorder;
-
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeIteratorLevelorder;
-
 // =================================================================================================
 //     Tree
 // =================================================================================================
@@ -124,20 +109,20 @@ public:
 
     bool empty() const;
 
-          LinkType* root_link();
-    const LinkType* root_link() const;
+    LinkType      & root_link();
+    LinkType const& root_link() const;
 
-          NodeType* root_node();
-    const NodeType* root_node() const;
+    NodeType      & root_node();
+    NodeType const& root_node() const;
 
-          LinkType* link_at(size_t index);
-    const LinkType* link_at(size_t index) const;
+    LinkType      & link_at(size_t index);
+    LinkType const& link_at(size_t index) const;
 
-          NodeType* node_at(size_t index);
-    const NodeType* node_at(size_t index) const;
+    NodeType      & node_at(size_t index);
+    NodeType const& node_at(size_t index) const;
 
-          EdgeType* edge_at(size_t index);
-    const EdgeType* edge_at(size_t index) const;
+    EdgeType      & edge_at(size_t index);
+    EdgeType const& edge_at(size_t index) const;
 
     size_t link_count() const;
     size_t node_count() const;
@@ -146,21 +131,6 @@ public:
     // -------------------------------------------------------------------------
     //     Iterators
     // -------------------------------------------------------------------------
-
-    typedef TreeIteratorEulertour <      LinkType,       NodeType,       EdgeType>      IteratorEulertour;
-    typedef TreeIteratorEulertour <const LinkType, const NodeType, const EdgeType> ConstIteratorEulertour;
-
-    typedef TreeIteratorPreorder  <      LinkType*,       NodeType*,       EdgeType*>      IteratorPreorder;
-    typedef TreeIteratorPreorder  <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorPreorder;
-
-    //~ typedef TreeIteratorInorder   <      LinkType*,       NodeType*,       EdgeType*>      IteratorInorder;
-    //~ typedef TreeIteratorInorder   <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorInorder;
-
-    typedef TreeIteratorPostorder <      LinkType*,       NodeType*,       EdgeType*>      IteratorPostorder;
-    typedef TreeIteratorPostorder <const LinkType*, const NodeType*, const EdgeType*> ConstIteratorPostorder;
-
-    typedef TreeIteratorLevelorder<      LinkType*,       NodeType*,       EdgeType*>      IteratorLevelorder;
-    typedef TreeIteratorLevelorder<const LinkType*, const NodeType*, const EdgeType*> ConstIteratorLevelorder;
 
     typedef typename std::vector<std::unique_ptr<LinkType>>::iterator               IteratorLinks;
     typedef typename std::vector<std::unique_ptr<LinkType>>::const_iterator    ConstIteratorLinks;
@@ -171,286 +141,26 @@ public:
     typedef typename std::vector<std::unique_ptr<EdgeType>>::iterator               IteratorEdges;
     typedef typename std::vector<std::unique_ptr<EdgeType>>::const_iterator    ConstIteratorEdges;
 
-    // TODO so far, the End... iterators are called anew for every comparison in a loop like
-    // TODO it != tree.end_inorder(), which will slow it down compared to having e.g. a fixed
-    // TODO end iterator object or so... not sure, if worth the effort.
-
-    // -----------------------------------------------------
-    //     Eulertour
-    // -----------------------------------------------------
-
-    inline IteratorEulertour begin_eulertour()
-    {
-        if (link_count() == 0) {
-            return IteratorEulertour(nullptr);
-            // return IteratorEulertour();
-        }
-        return IteratorEulertour(root_link());
-    }
-
-    inline IteratorEulertour begin_eulertour(LinkType* link)
-    {
-        return IteratorEulertour(link);
-    }
-
-    inline IteratorEulertour begin_eulertour(NodeType* node)
-    {
-        return IteratorEulertour(node->primary_link());
-        // return IteratorEulertour(node);
-    }
-
-    inline IteratorEulertour end_eulertour()
-    {
-        return IteratorEulertour(nullptr);
-        // return IteratorEulertour();
-    }
-
-    inline ConstIteratorEulertour begin_eulertour() const
-    {
-        if (link_count() == 0) {
-            return ConstIteratorEulertour(nullptr);
-            // return ConstIteratorEulertour();
-        }
-        return ConstIteratorEulertour(root_link());
-    }
-
-    inline ConstIteratorEulertour begin_eulertour(const LinkType* link) const
-    {
-        return ConstIteratorEulertour(link);
-    }
-
-    inline ConstIteratorEulertour begin_eulertour(const NodeType* node) const
-    {
-        return ConstIteratorEulertour(node->primary_link());
-        // return ConstIteratorEulertour(node);
-    }
-
-    inline ConstIteratorEulertour end_eulertour() const
-    {
-        return ConstIteratorEulertour(nullptr);
-        // return ConstIteratorEulertour();
-    }
-
-    // -----------------------------------------------------
-    //     Preorder
-    // -----------------------------------------------------
-
-    inline IteratorPreorder begin_preorder()
-    {
-        if (link_count() == 0) {
-            return IteratorPreorder(nullptr);
-        }
-        return IteratorPreorder(root_link());
-    }
-
-    inline IteratorPreorder begin_preorder(LinkType* link)
-    {
-        return IteratorPreorder(link);
-    }
-
-    inline IteratorPreorder begin_preorder(NodeType* node)
-    {
-        return IteratorPreorder(node->primary_link());
-    }
-
-    inline IteratorPreorder end_preorder()
-    {
-        return IteratorPreorder(nullptr);
-    }
-
-    inline ConstIteratorPreorder begin_preorder() const
-    {
-        if (link_count() == 0) {
-            return ConstIteratorPreorder(nullptr);
-        }
-        return ConstIteratorPreorder(root_link());
-    }
-
-    inline ConstIteratorPreorder begin_preorder(const LinkType* link) const
-    {
-        return ConstIteratorPreorder(link);
-    }
-
-    inline ConstIteratorPreorder begin_preorder(const NodeType* node) const
-    {
-        return ConstIteratorPreorder(node->primary_link());
-    }
-
-    inline ConstIteratorPreorder end_preorder() const
-    {
-        return ConstIteratorPreorder(nullptr);
-    }
-
-    // -----------------------------------------------------
-    //     Inorder
-    // -----------------------------------------------------
-
-    //~ inline IteratorInorder begin_inorder()
-    //~ {
-    //if (link_count() == 0) {
-    //     return IteratorInorder(nullptr);
-    // }
-        //~ return IteratorInorder(root_link());
-    //~ }
-//~
-    //~ inline IteratorInorder begin_inorder(LinkType* link)
-    //~ {
-        //~ return IteratorInorder(link);
-    //~ }
-//~
-    //~ inline IteratorInorder begin_inorder(NodeType* node)
-    //~ {
-        //~ return IteratorInorder(node->primary_link());
-    //~ }
-//~
-    //~ inline IteratorInorder end_inorder()
-    //~ {
-        //~ return IteratorInorder(nullptr);
-    //~ }
-
-    //~ inline ConstIteratorInorder begin_inorder() const
-    //~ {
-    //if (link_count() == 0) {
-    //     return ConstIteratorInorder(nullptr);
-    // }
-        //~ return ConstIteratorInorder(root_link());
-    //~ }
-//~
-    //~ inline ConstIteratorInorder begin_inorder(const LinkType* link) const
-    //~ {
-        //~ return ConstIteratorInorder(link);
-    //~ }
-//~
-    //~ inline ConstIteratorInorder begin_inorder(const NodeType* node) const
-    //~ {
-        //~ return ConstIteratorInorder(node->primary_link());
-    //~ }
-//~
-    //~ inline ConstIteratorInorder end_inorder() const
-    //~ {
-        //~ return ConstIteratorInorder(nullptr);
-    //~ }
-
-    // -----------------------------------------------------
-    //     Postorder
-    // -----------------------------------------------------
-
-    inline IteratorPostorder begin_postorder()
-    {
-        if (link_count() == 0) {
-            return IteratorPostorder(nullptr);
-        }
-        return IteratorPostorder(root_link());
-    }
-
-    inline IteratorPostorder begin_postorder(LinkType* link)
-    {
-        return IteratorPostorder(link);
-    }
-
-    inline IteratorPostorder begin_postorder(NodeType* node)
-    {
-        return IteratorPostorder(node->primary_link());
-    }
-
-    inline IteratorPostorder end_postorder()
-    {
-        return IteratorPostorder(nullptr);
-    }
-
-    inline ConstIteratorPostorder begin_postorder() const
-    {
-        if (link_count() == 0) {
-            return ConstIteratorPostorder(nullptr);
-        }
-        return ConstIteratorPostorder(root_link());
-    }
-
-    inline ConstIteratorPostorder begin_postorder(const LinkType* link) const
-    {
-        return ConstIteratorPostorder(link);
-    }
-
-    inline ConstIteratorPostorder begin_postorder(const NodeType* node) const
-    {
-        return ConstIteratorPostorder(node->primary_link());
-    }
-
-    inline ConstIteratorPostorder end_postorder() const
-    {
-        return ConstIteratorPostorder(nullptr);
-    }
-
-    // -----------------------------------------------------
-    //     Levelorder
-    // -----------------------------------------------------
-
-    inline IteratorLevelorder begin_levelorder()
-    {
-        if (link_count() == 0) {
-            return IteratorLevelorder(nullptr);
-        }
-        return IteratorLevelorder(root_link());
-    }
-
-    inline IteratorLevelorder begin_levelorder(LinkType* link)
-    {
-        return IteratorLevelorder(link);
-    }
-
-    inline IteratorLevelorder begin_levelorder(NodeType* node)
-    {
-        return IteratorLevelorder(node->primary_link());
-    }
-
-    inline IteratorLevelorder end_levelorder()
-    {
-        return IteratorLevelorder(nullptr);
-    }
-
-    inline ConstIteratorLevelorder begin_levelorder() const
-    {
-        if (link_count() == 0) {
-            return ConstIteratorLevelorder(nullptr);
-        }
-        return ConstIteratorLevelorder(root_link());
-    }
-
-    inline ConstIteratorLevelorder begin_levelorder(const LinkType* link) const
-    {
-        return ConstIteratorLevelorder(link);
-    }
-
-    inline ConstIteratorLevelorder begin_levelorder(const NodeType* node) const
-    {
-        return ConstIteratorLevelorder(node->primary_link());
-    }
-
-    inline ConstIteratorLevelorder end_levelorder() const
-    {
-        return ConstIteratorLevelorder(nullptr);
-    }
-
     // -----------------------------------------------------
     //     Links
     // -----------------------------------------------------
 
-    inline IteratorLinks begin_links()
+    IteratorLinks begin_links()
     {
         return links_.begin();
     }
 
-    inline IteratorLinks end_links()
+    IteratorLinks end_links()
     {
         return links_.end();
     }
 
-    inline ConstIteratorLinks begin_links() const
+    ConstIteratorLinks begin_links() const
     {
         return links_.cbegin();
     }
 
-    inline ConstIteratorLinks end_links() const
+    ConstIteratorLinks end_links() const
     {
         return links_.cend();
     }
@@ -459,22 +169,22 @@ public:
     //     Nodes
     // -----------------------------------------------------
 
-    inline IteratorNodes begin_nodes()
+    IteratorNodes begin_nodes()
     {
         return nodes_.begin();
     }
 
-    inline IteratorNodes end_nodes()
+    IteratorNodes end_nodes()
     {
         return nodes_.end();
     }
 
-    inline ConstIteratorNodes begin_nodes() const
+    ConstIteratorNodes begin_nodes() const
     {
         return nodes_.cbegin();
     }
 
-    inline ConstIteratorNodes end_nodes() const
+    ConstIteratorNodes end_nodes() const
     {
         return nodes_.cend();
     }
@@ -483,22 +193,22 @@ public:
     //     Edges
     // -----------------------------------------------------
 
-    inline IteratorEdges begin_edges()
+    IteratorEdges begin_edges()
     {
         return edges_.begin();
     }
 
-    inline IteratorEdges end_edges()
+    IteratorEdges end_edges()
     {
         return edges_.end();
     }
 
-    inline ConstIteratorEdges begin_edges() const
+    ConstIteratorEdges begin_edges() const
     {
         return edges_.cbegin();
     }
 
-    inline ConstIteratorEdges end_edges() const
+    ConstIteratorEdges end_edges() const
     {
         return edges_.cend();
     }
@@ -518,7 +228,7 @@ public:
     /**
      * @brief Validate the correctness of all Tree pointers etc.
      *
-     * This function is defined in tree/functions.hpp
+     * This function is defined in tree/operators/functions.hpp
      */
     friend bool validate<TreeType>( TreeType const& tree );
 

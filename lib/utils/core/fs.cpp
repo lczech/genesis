@@ -25,27 +25,26 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Returns true iff the file exists.
+ * @brief Return true iff the file exists.
  */
-bool file_exists( std::string const& fn )
+bool file_exists( std::string const& filename )
 {
-    std::ifstream infile(fn);
+    std::ifstream infile(filename);
     return infile.good();
 }
 
 /**
- * @brief Returns the contents of a file as a string.
+ * @brief Return the contents of a file as a string.
  *
- * If the file does not exist, a warning is triggered and an emtpty string returned.
+ * If the file is not readable, the function throws `std::runtime_error`.
  */
-std::string file_read( std::string const& fn )
+std::string file_read( std::string const& filename )
 {
-    std::ifstream infile(fn);
+    std::ifstream infile(filename);
     std::string   str;
 
     if (!infile.good()) {
-        LOG_WARN << "Cannot read from file '" << fn << "'.";
-        return "";
+        throw std::runtime_error( "Cannot read from file '" + filename + "'." );
     }
 
     infile.seekg(0, std::ios::end);
@@ -58,38 +57,38 @@ std::string file_read( std::string const& fn )
 }
 
 /**
- * @brief Writes the content of a string to a file.
+ * @brief Write the content of a string to a file.
+ *
+ * If the file is not writable, the function throws `std::runtime_error`.
  */
-bool file_write( std::string const& fn, std::string const& content )
+void file_write( std::string const& content, std::string const& filename )
 {
     // TODO check if path exists, create if not (make a function for that)
     // TODO check if file exists, trigger warning?, check if writable
 
-    std::ofstream outfile(fn);
+    std::ofstream outfile(filename);
     if (!outfile.good()) {
-        LOG_WARN << "Cannot write to file '" << fn << "'.";
-        return false;
+        throw std::runtime_error( "Cannot write to file '" + filename + "'." );
     }
     outfile << content;
-    return true;
 }
 
 /**
- * @brief Appends the content of a string to a file.
+ * @brief Append the content of a string to a file.
+ *
+ * If the file is not writable, the function throws `std::runtime_error`.
  */
-bool file_append( std::string const& fn, std::string const& content )
+void file_append( std::string const& content, std::string const& filename )
 {
     // TODO check if path exists, create if not (make a function for that)
     // TODO check if file exists, trigger warning?, check if writable
     // TODO maybe merge with file_write and use mode as optional parameter.
 
-    std::ofstream outfile(fn, std::ofstream::app);
+    std::ofstream outfile(filename, std::ofstream::app);
     if (!outfile.good()) {
-        LOG_WARN << "Cannot write to file '" << fn << "'.";
-        return false;
+        throw std::runtime_error( "Cannot write to file '" + filename + "'." );
     }
     outfile << content;
-    return true;
 }
 
 /**
@@ -103,6 +102,7 @@ bool dir_exists( std::string const& dir )
     }
     return info.st_mode & S_IFDIR;
 
+    // alternative implementation:
     // DIR* dp = opendir(dir);
     // if (dp) {
     //     closedir(dir);
@@ -113,7 +113,7 @@ bool dir_exists( std::string const& dir )
 }
 
 /**
- * @brief Creates a directory.
+ * @brief Create a directory.
  *
  * If the directory already exists, nothing happens.
  * If the path exists, but is not a directory, a `std::runtime_error` is thrown.
@@ -126,7 +126,7 @@ void dir_create( std::string const& path )
 
     if( stat (path.c_str(), &info) != 0 ) {
         if( mkdir( path.c_str(), mode ) != 0 && errno != EEXIST ) {
-            throw std::runtime_error("Could not create directory: " + path);
+            throw std::runtime_error("Cannot create directory: " + path);
         }
     } else if( !S_ISDIR(info.st_mode) ) {
         throw std::runtime_error("Path exists, but is not a directory: " + path);
@@ -135,15 +135,18 @@ void dir_create( std::string const& path )
 
 /**
  * @brief Get a list of files in a directory.
+ *
+ * If the directory is not readable, the function throws `std::runtime_error`.
  */
-bool dir_list_files( std::string const& dir, std::vector<std::string>& list )
+std::vector<std::string> dir_list_files( std::string const& dir )
 {
+    std::vector<std::string> list;
+
     DIR*           dp;
     struct dirent* dirp;
 
-    if((dp  = opendir(dir.c_str())) == nullptr) {
-        LOG_WARN << "Cannot open directory '" << dir << "' (Error " << errno << ").";
-        return false;
+    if( ( dp  = opendir( dir.c_str() )) == nullptr) {
+        throw std::runtime_error( "Cannot open directory '" + dir + "'." );
     }
     while ((dirp = readdir(dp)) != nullptr) {
         std::string fn = std::string(dirp->d_name);
@@ -154,7 +157,7 @@ bool dir_list_files( std::string const& dir, std::vector<std::string>& list )
     }
     closedir(dp);
     //~ std::sort(list.begin(), list.end());
-    return true;
+    return list;
 }
 
 // =================================================================================================
@@ -162,7 +165,7 @@ bool dir_list_files( std::string const& dir, std::vector<std::string>& list )
 // =================================================================================================
 
 /**
- * @brief Returns information about a file.
+ * @brief Return information about a file.
  */
 std::unordered_map<std::string, std::string> file_info( std::string const& filename )
 {
@@ -187,7 +190,7 @@ size_t file_size( std::string filename )
 }
 
 /**
- * @brief Returns the path leading to a file.
+ * @brief Return the path leading to a file.
  *
  * Does not resolve the path. Simply splits at the last directory separator.
  */
@@ -231,7 +234,7 @@ std::string file_filename( std::string filename )
 }
 
 /**
- * @brief Returns the extension name of a file.
+ * @brief Return the extension name of a file.
  *
  * Also see file_filename().
  */

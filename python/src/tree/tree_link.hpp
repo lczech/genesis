@@ -32,7 +32,7 @@ void BoostPythonExport_TreeLink (std::string name)
         )
         .def(
             "edge",
-            ( EdgeType * ( LinkType::* )(  ) const )( &LinkType::edge ),
+            ( EdgeType & ( LinkType::* )(  )  )( &LinkType::edge ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             get_docstring("EdgeType * ::genesis::TreeLink::edge () const")
         )
@@ -53,25 +53,25 @@ void BoostPythonExport_TreeLink (std::string name)
         )
         .def(
             "next",
-            ( LinkType * ( LinkType::* )(  ) const )( &LinkType::next ),
+            ( LinkType & ( LinkType::* )(  )  )( &LinkType::next ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             get_docstring("LinkType * ::genesis::TreeLink::next () const")
         )
         .def(
             "node",
-            ( NodeType * ( LinkType::* )(  ) const )( &LinkType::node ),
+            ( NodeType & ( LinkType::* )(  )  )( &LinkType::node ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             get_docstring("NodeType * ::genesis::TreeLink::node () const")
         )
         .def(
             "outer",
-            ( LinkType * ( LinkType::* )(  ) const )( &LinkType::outer ),
+            ( LinkType & ( LinkType::* )(  )  )( &LinkType::outer ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             get_docstring("LinkType * ::genesis::TreeLink::outer () const")
         )
         .def(
             "prev",
-            ( LinkType * ( LinkType::* )(  ))( &LinkType::prev ),
+            ( LinkType & ( LinkType::* )(  ))( &LinkType::prev ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             get_docstring("LinkType * ::genesis::TreeLink::prev ()")
         )

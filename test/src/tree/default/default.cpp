@@ -13,8 +13,8 @@
 #include "lib/tree/default/edge_color.hpp"
 #include "lib/tree/default/functions.hpp"
 #include "lib/tree/default/newick_processor.hpp"
+#include "lib/tree/function/functions.hpp"
 #include "lib/tree/io/newick/processor.hpp"
-#include "lib/tree/functions.hpp"
 #include "lib/tree/tree.hpp"
 
 #include "lib/utils/tools/color/operators.hpp"

@@ -1,8 +1,8 @@
-#ifndef GENESIS_UTILS_IO_XML_PROCESSOR_H_
-#define GENESIS_UTILS_IO_XML_PROCESSOR_H_
+#ifndef GENESIS_UTILS_IO_XML_WRITER_H_
+#define GENESIS_UTILS_IO_XML_WRITER_H_
 
 /**
- * @brief Functions for parsing and printing an XML document. See XmlProcessor for more.
+ * @brief
  *
  * @file
  * @ingroup utils
@@ -22,34 +22,26 @@ class XmlComment;
 class XmlMarkup;
 class XmlElement;
 class XmlDocument;
-
+\
 // =================================================================================================
-//     Xml Lexer
-// =================================================================================================
-
-// =================================================================================================
-//     Xml Processor
+//     Xml Writer
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Write Xml data.
  */
-class XmlProcessor
+class XmlWriter
 {
     typedef std::unordered_map<std::string, std::string> StringMapType;
-
-    // ---------------------------------------------------------------------
-    //     Parsing
-    // ---------------------------------------------------------------------
 
     // ---------------------------------------------------------------------
     //     Printing
     // ---------------------------------------------------------------------
 
 public:
-    bool        to_file   (const std::string& fn,  const XmlDocument& document);
-    void        to_string (      std::string& xml, const XmlDocument& document);
-    std::string to_string (                        const XmlDocument& document);
+    void        to_file   ( const XmlDocument& document, const std::string& filename);
+    void        to_string ( const XmlDocument& document,       std::string& output);
+    std::string to_string ( const XmlDocument& document);
 
     // -----------------------------------------------------
     //     Internal
@@ -70,7 +62,7 @@ protected:
 public:
 
     /**
-     * @brief The indent used for printing the XML elements.
+     * @brief Indent used for printing the XML elements.
      */
     int indent = 4;
 };

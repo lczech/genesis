@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_FUNCTIONS_H_
-#define GENESIS_TREE_FUNCTIONS_H_
+#ifndef GENESIS_TREE_FUNCTION_FUNCTIONS_H_
+#define GENESIS_TREE_FUNCTION_FUNCTIONS_H_
 
 /**
  * @brief
@@ -40,6 +40,6 @@ size_t inner_nodes_count( Tree const& tree );
 //     Inclusion of the implementation
 // =================================================================================================
 
-#include "tree/functions.tpp"
+#include "tree/function/functions.tpp"
 
 #endif // include guard

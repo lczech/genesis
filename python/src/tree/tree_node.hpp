@@ -47,13 +47,13 @@ void BoostPythonExport_TreeNode (std::string name)
         )
         .def(
             "link",
-            ( LinkType * ( NodeType::* )(  ) const )( &NodeType::link ),
+            ( LinkType & ( NodeType::* )(  )  )( &NodeType::link ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             get_docstring("LinkType * ::genesis::TreeNode::link () const")
         )
         .def(
             "primary_link",
-            ( LinkType * ( NodeType::* )(  ) const )( &NodeType::primary_link ),
+            ( LinkType & ( NodeType::* )(  )  )( &NodeType::primary_link ),
             boost::python::return_value_policy<boost::python::reference_existing_object>(),
             get_docstring("LinkType * ::genesis::TreeNode::primary_link () const")
         )

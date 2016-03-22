@@ -22,21 +22,23 @@ namespace tree {
 /*
 
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeIteratorPath
+class IteratorPath
 {
+
 public:
+
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorPath<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef IteratorPath<LinkPointerType, NodePointerType, EdgePointerType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
-    //     Constructor
+    //     Constructors and Rule of Five
     // -----------------------------------------------------
 
-    TreeIteratorPath (LinkPointerType from, LinkPointerType to) : start_(from), to_(to);
+    IteratorPath (LinkPointerType from, LinkPointerType to) : start_(from), to_(to);
     {
         if (link) {
             stack_.push_back(link);
@@ -54,11 +56,19 @@ public:
         link_ = link;
     }
 
+    ~IteratorPath() = default;
+
+    IteratorPath( IteratorPath const& ) = default;
+    IteratorPath( IteratorPath&& )      = default;
+
+    IteratorPath& operator= ( IteratorPath const& ) = default;
+    IteratorPath& operator= ( IteratorPath&& )      = default;
+
     // -----------------------------------------------------
     //     Operators
     // -----------------------------------------------------
 
-    inline self_type operator ++ ()
+    self_type operator ++ ()
     {
         if (stack_.empty()) {
             link_ = nullptr;
@@ -78,19 +88,19 @@ public:
         return *this;
     }
 
-    inline self_type operator ++ (int)
+    self_type operator ++ (int)
     {
         self_type tmp = *this;
         ++(*this);
         return tmp;
     }
 
-    inline bool operator == (const self_type &other) const
+    bool operator == (const self_type &other) const
     {
         return other.link_ == link_;
     }
 
-    inline bool operator != (const self_type &other) const
+    bool operator != (const self_type &other) const
     {
         return !(other == *this);
     }
@@ -99,42 +109,43 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    inline LinkPointerType link() const
+    LinkPointerType link() const
     {
         return link_;
     }
 
-    inline NodePointerType node() const
+    NodePointerType node() const
     {
         return link_->node();
     }
 
-    inline EdgePointerType edge() const
+    EdgePointerType edge() const
     {
         return link_->edge();
     }
 
-    inline LinkPointerType from_link() const
+    LinkPointerType from_link() const
     {
         return from_;
     }
 
-    inline NodePointerType from_node() const
+    NodePointerType from_node() const
     {
         return from_->node();
     }
 
-    inline LinkPointerType to_link() const
+    LinkPointerType to_link() const
     {
         return to_;
     }
 
-    inline NodePointerType to_node() const
+    NodePointerType to_node() const
     {
         return to_->node();
     }
 
-protected:
+private:
+
     LinkPointerType             link_;
     LinkPointerType             from_;
     LinkPointerType             to_;

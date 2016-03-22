@@ -2,9 +2,9 @@
 #define GENESIS_TREE_TREE_NODE_H_
 
 /**
- * @brief This class represents a node inside of a tree.
+ * @brief Header of TreeNode class template.
  *
- * For more information, see TreeNode class.
+ * For more information, see TreeNode.
  *
  * @file
  * @ingroup tree
@@ -15,108 +15,85 @@
 namespace genesis {
 namespace tree {
 
-// =============================================================================
+// =================================================================================================
 //     Forward declarations
-// =============================================================================
+// =================================================================================================
 
 template <class NodeDataType, class EdgeDataType>
 class  Tree;
 
 template <class NodeDataType, class EdgeDataType>
+class  TreeEdge;
+
+template <class NodeDataType, class EdgeDataType>
 class  TreeLink;
 
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeNodeIteratorLinks;
-
-// =============================================================================
+// =================================================================================================
 //     TreeNode
-// =============================================================================
+// =================================================================================================
 
 template <class NodeDataType, class EdgeDataType>
 class TreeNode
 {
-    friend Tree<NodeDataType, EdgeDataType>;
-
 public:
-    TreeNode() : link_(nullptr) {}
 
-    // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!! delete all copy and move stuff!!!
-
-    // avoid copy constructor and assignment operator.
-    // creating copies is maintained by Tree only.
-    TreeNode (const TreeNode&) = delete;
-    TreeNode& operator = (const TreeNode&) = delete;
-
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
     //     Typedefs
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
 
     typedef Tree    <NodeDataType, EdgeDataType> TreeType;
     typedef TreeLink<NodeDataType, EdgeDataType> LinkType;
     typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
 
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // ---------------------------------------------------------------------
+
+    TreeNode()
+        : index_( 0 )
+        , link_(  nullptr )
+    {}
+
+    TreeNode( size_t index, LinkType* primary_link )
+        : index_( index )
+        , link_(  primary_link )
+    {}
+
+    ~TreeNode() = default;
+
+    // avoid copy constructor and assignment operator.
+    // creating copies is maintained by Tree only.
+
+    TreeNode( TreeNode const& ) = delete;
+    TreeNode( TreeNode&& )      = delete;
+
+    TreeNode& operator= ( TreeNode const& ) = delete;
+    TreeNode& operator= ( TreeNode&& )      = delete;
+
+    // ---------------------------------------------------------------------
     //     Accessors
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
 
-    /**
-     * @brief Returns the link of this node that points towards the root.
-     */
-    inline LinkType* primary_link() const
-    {
-        return link_;
-    }
+    size_t index() const;
 
-    /**
-     * @brief Returns the link of this node that points towards the root.
-     *
-     * This is just an alias for primary_link(), that is shorter to use when needed
-     * frequently in an algorithm.
-     */
-    inline LinkType* link() const
-    {
-        return link_;
-    }
+    LinkType      & primary_link();
+    LinkType const& primary_link() const;
 
-    // -----------------------------------------------------
-    //     Iterators
-    // -----------------------------------------------------
+    LinkType      & link();
+    LinkType const& link() const;
 
-    typedef TreeNodeIteratorLinks<      LinkType*,       NodeType*,       EdgeType*>      IteratorLinks;
-    typedef TreeNodeIteratorLinks<const LinkType*, const NodeType*, const EdgeType*> ConstIteratorLinks;
+    // ---------------------------------------------------------------------
+    //     Modifiers
+    // ---------------------------------------------------------------------
 
-    inline IteratorLinks begin_links()
-    {
-        return IteratorLinks(link_);
-    }
+    TreeNode& reset_index( size_t val );
 
-    inline IteratorLinks end_links()
-    {
-        return IteratorLinks(nullptr);
-    }
+    TreeNode& reset_primary_link( LinkType* val );
 
-    inline ConstIteratorLinks begin_links() const
-    {
-        return ConstIteratorLinks(link_);
-    }
-
-    inline ConstIteratorLinks end_links() const
-    {
-        return ConstIteratorLinks(nullptr);
-    }
-
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
     //     Member Functions
-    // -----------------------------------------------------
-
-    /**
-     * @brief Returns the index of this link.
-     */
-    inline size_t index() const
-    {
-        return index_;
-    }
+    // ---------------------------------------------------------------------
 
     size_t rank() const;
     bool   is_leaf() const;
@@ -130,32 +107,26 @@ public:
 
     std::string dump() const;
 
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
     //     Member Variables
-    // -----------------------------------------------------
+    // ---------------------------------------------------------------------
+
+public:
 
     NodeDataType data;
 
-// TODO !!! make protected again, and use some other mechanism for setting the members !!!
-//~ protected:
+private:
 
-    size_t index_;
-
-    LinkType* link_;
+    size_t       index_;
+    LinkType*    link_;
 };
 
 } // namespace tree
 } // namespace genesis
 
-// =============================================================================
-//     Inclusion of the iterator
-// =============================================================================
-
-#include "tree/tree_node_iterator.hpp"
-
-// =============================================================================
+// =================================================================================================
 //     Inclusion of the implementation
-// =============================================================================
+// =================================================================================================
 
 #include "tree/tree_node.tpp"
 

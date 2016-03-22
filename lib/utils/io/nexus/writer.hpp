@@ -9,6 +9,7 @@
  */
 
 #include <iosfwd>
+#include <string>
 
 namespace genesis {
 namespace utils {
@@ -47,7 +48,10 @@ public:
     //     Write Functions
     // ---------------------------------------------------------------------
 
-    void to_stream( NexusDocument const& doc, std::ostream& out ) const;
+    void        to_stream   ( NexusDocument const& doc, std::ostream& out ) const;
+    void        to_file     ( NexusDocument const& doc, std::string const& filename) const;
+    void        to_string   ( NexusDocument const& doc, std::string& output) const;
+    std::string to_string   ( NexusDocument const& doc) const;
 };
 
 } // namespace utils

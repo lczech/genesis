@@ -5,7 +5,7 @@
  * @ingroup tree
  */
 
-#include "tree/distances.hpp"
+#include "tree/function/distances.hpp"
 #include "utils/text/style.hpp"
 
 #include <assert.h>
@@ -45,45 +45,45 @@ void PrinterDetailed::print (
     // the first branch immediately, but then there would be no way of first nicely displaying
     // the information about the root node. so we need to do it a bit more complex than the
     // usual iteration...
-    auto l = tree.root_link();
-    while (l->next() != tree.root_link()) {
-        l = l->next();
+    auto l = &tree.root_link();
+    while( &l->next() != &tree.root_link() ) {
+        l = &l->next();
     }
 
     // do an euler tour traversal over all links. (we cannot use the iterator here, as
     // we need each link on its own, and not each node as the iterator gives)
     do {
-        auto n = l->node();
-        std::string indent = std::string(4 * depth[n->index()], ' ');
-        if( !contains( done, n->index() )) {
+        auto& n = l->node();
+        std::string indent = std::string(4 * depth[n.index()], ' ');
+        if( !contains( done, n.index() )) {
             out << indent
-                << node_color( "Node " + std::to_string(n->index()) + ": \"" + n->data.name + "\"" )
+                << node_color( "Node " + std::to_string(n.index()) + ": \"" + n.data.name + "\"" )
                 << "\n";
         }
-        done.push_back(n->index());
+        done.push_back(n.index());
 
         // dont display the next link when we are at the first iteration.
-        if( l->next() == tree.root_link() ) {
-            l = l->next();
+        if( &l->next() == &tree.root_link() ) {
+            l = &l->next();
         } else {
             out << indent;
             out << "    " << link_color( "Link " + std::to_string( l->index() ));
-            l = l->next();
+            l = &l->next();
             out << " " << next_color(">") << " "
                 << link_color( "Link " + std::to_string( l->index() )) << "\n";
         }
 
         out << indent;
         out << " -- " << link_color( "Link " + std::to_string( l->index() ));
-        out << " -- " << edge_color( "Edge " + std::to_string( l->edge()->index() ));
-        l = l->outer();
+        out << " -- " << edge_color( "Edge " + std::to_string( l->edge().index() ));
+        l = &l->outer();
         out << " --> " << link_color( "Link " + std::to_string( l->index() )) << "\n";
-    } while( l->next() != tree.root_link() );
+    } while( &l->next() != &tree.root_link() );
 
     // output the last next link back to the root, because we skipped this in the loop
     // (the one that was skipped in the beginning).
     out << "    " << link_color( "Link " + std::to_string( l->index() ));
-    l = l->next();
+    l = &l->next();
     out << " " << next_color(">") << " "
         << link_color( "Link " + std::to_string( l->index() )) << "\n";
 }

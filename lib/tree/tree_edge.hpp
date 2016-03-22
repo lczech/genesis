@@ -2,9 +2,9 @@
 #define GENESIS_TREE_TREE_EDGE_H_
 
 /**
- * @brief This class represents an edge inside of a tree.
+ * @brief
  *
- * For more information, see TreeEdge class.
+ * For more information, see TreeEdge.
  *
  * @file
  * @ingroup tree
@@ -35,15 +35,7 @@ class  TreeNode;
 template <class NodeDataType, class EdgeDataType>
 class TreeEdge
 {
-    friend class Tree<NodeDataType, EdgeDataType>;
-
 public:
-    TreeEdge() : link_p_(nullptr), link_s_(nullptr) {}
-
-    // avoid copy constructor and assignment operator.
-    // creating copies is maintained by Tree only.
-    TreeEdge (const TreeEdge&) = delete;
-    TreeEdge& operator = (const TreeEdge&) = delete;
 
     // ---------------------------------------------------------------------
     //     Typedefs
@@ -55,39 +47,62 @@ public:
     typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
 
     // ---------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // ---------------------------------------------------------------------
+
+    TreeEdge()
+        : index_( 0 )
+        , link_p_( nullptr )
+        , link_s_( nullptr )
+    {}
+
+    TreeEdge( size_t index, LinkType* primary_link, LinkType* secondary_link )
+        : index_(  index )
+        , link_p_( primary_link )
+        , link_s_( secondary_link )
+    {}
+
+    ~TreeEdge() = default;
+
+    // avoid copy constructor and assignment operator.
+    // creating copies is maintained by Tree only.
+
+    TreeEdge( TreeEdge const& ) = delete;
+    TreeEdge( TreeEdge&& )      = delete;
+
+    TreeEdge& operator= ( TreeEdge const& ) = delete;
+    TreeEdge& operator= ( TreeEdge&& )      = delete;
+
+    // ---------------------------------------------------------------------
     //     Accessors
     // ---------------------------------------------------------------------
 
-    /**
-     * @brief Returns the link of this edge that points towards the root.
-     */
-    inline LinkType* primary_link() const
-    {
-        return link_p_;
-    }
+    size_t index() const;
 
-    /**
-     * @brief Returns the link of this edge that points away from the root.
-     */
-    inline LinkType* secondary_link() const
-    {
-        return link_s_;
-    }
+    LinkType      & primary_link();
+    LinkType const& primary_link() const;
 
-    NodeType* primary_node() const;
-    NodeType* secondary_node() const;
+    LinkType      & secondary_link();
+    LinkType const& secondary_link() const;
+
+    NodeType      & primary_node();
+    NodeType const& primary_node() const;
+
+    NodeType      & secondary_node();
+    NodeType const& secondary_node() const;
+
+    // ---------------------------------------------------------------------
+    //     Modifiers
+    // ---------------------------------------------------------------------
+
+    TreeEdge& reset_index( size_t val );
+
+    TreeEdge& reset_primary_link(   LinkType* val );
+    TreeEdge& reset_secondary_link( LinkType* val );
 
     // ---------------------------------------------------------------------
     //     Member Functions
     // ---------------------------------------------------------------------
-
-    /**
-     * @brief Returns the index of this Link.
-     */
-    inline size_t index() const
-    {
-        return index_;
-    }
 
     std::string dump() const;
 
@@ -95,22 +110,23 @@ public:
     //     Member Variables
     // ---------------------------------------------------------------------
 
+public:
+
     EdgeDataType data;
 
-// TODO !!! make protected again, and use some other mechanism for setting the members !!!
-//~ protected:
+private:
 
-    size_t index_;
+    size_t       index_;
 
-    LinkType* link_p_;
-    LinkType* link_s_;
+    LinkType*    link_p_;
+    LinkType*    link_s_;
 };
 
 } // namespace tree
 } // namespace genesis
 
 // =================================================================================================
-//     Inclusion of the implementation
+//     Inclusion of the Implementation
 // =================================================================================================
 
 // This is a class template, so do the inclusion here.

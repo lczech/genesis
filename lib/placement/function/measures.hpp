@@ -70,7 +70,7 @@ double earth_movers_distance (
 //     Center of Gravity
 // ----------------------------------------------------------------------------
 
-std::pair<PlacementTreeEdge*, double> center_of_gravity (
+std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     const Sample& map,
     bool                with_pendant_length = false
 );

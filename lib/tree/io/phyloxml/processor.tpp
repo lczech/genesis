@@ -9,16 +9,17 @@
  */
 
 #include <assert.h>
+#include <stdexcept>
 #include <vector>
 
-#include "tree/distances.hpp"
+#include "tree/function/distances.hpp"
 #include "tree/iterator/preorder.hpp"
 #include "tree/tree.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
 #include "utils/io/xml/document.hpp"
-#include "utils/io/xml/processor.hpp"
+#include "utils/io/xml/writer.hpp"
 
 namespace genesis {
 namespace tree {
@@ -54,18 +55,18 @@ namespace tree {
 /**
  * @brief Writes the tree to a file in Phyloxml format.
  *
- * If the file already exists, the function does not overwrite it.
+ * If the file already exists, the function throws `std::runtime_error`.
+ * The function uses utils::file_write. See there for other exceptions that can be thrown.
  */
 template <typename TreeType>
-bool PhyloxmlProcessor<TreeType>::to_file (const TreeType& tree, const std::string fn)
+void PhyloxmlProcessor<TreeType>::to_file (const TreeType& tree, const std::string filename)
 {
-    if( utils::file_exists(fn) ) {
-        LOG_WARN << "Phyloxml file '" << fn << "' already exist. Will not overwrite it.";
-        return false;
+    if( utils::file_exists(filename) ) {
+        throw std::runtime_error( "Phyloxml file '" + filename + "' already exist." );
     }
     std::string ts;
     to_string(tree, ts);
-    return utils::file_write(fn, ts);
+    utils::file_write(ts, filename);
 }
 
 /**
@@ -91,7 +92,7 @@ std::string PhyloxmlProcessor<TreeType>::to_string (const TreeType& tree)
 {
     utils::XmlDocument xml;
     to_document(tree, xml);
-    return utils::XmlProcessor().to_string(xml);
+    return utils::XmlWriter().to_string(xml);
 }
 
 /**
@@ -133,31 +134,27 @@ void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, utils::XmlD
     // stack that is used for adding clades to the phylogeny.
     std::vector<int> depths = node_depth_vector(tree);
 
-    for (
-        auto it = tree.begin_preorder();
-        it != tree.end_preorder();
-        ++it
-    ) {
+    for( auto it : preorder(tree) ) {
         // Depth can never increase more than one between two nodes when doing a preoder traversal.
-        assert(depths[it.node()->index()] <= cur_d + 1);
+        assert(depths[it.node().index()] <= cur_d + 1);
 
         // Delete end of stack when moving up the tree, unless we are already at the root.
-        while (cur_d >= depths[it.node()->index()] && depths[it.node()->index()] > 0) {
+        while (cur_d >= depths[it.node().index()] && depths[it.node().index()] > 0) {
             assert(stack.size() > 0);
             stack.pop_back();
             --cur_d;
         }
         // Set current depth (explicitly needed in case we are moving further into the tree, which
         // means that the loop above is not executed).
-        cur_d = depths[it.node()->index()];
+        cur_d = depths[it.node().index()];
 
         // Create clade element, append it to the stack, so that all sub-elements will use it as
         // parent.
         auto clade = make_unique< utils::XmlElement >();
         clade->tag = "clade";
 
-        node_to_element(*it.node(), *clade.get());
-        edge_to_element(*it.edge(), *clade.get());
+        node_to_element( it.node(), *clade.get() );
+        edge_to_element( it.edge(), *clade.get() );
 
         // Append the clade to the current parent (end of the stack), then use it as the new parent
         // for the next iteration of the loop.
