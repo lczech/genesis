@@ -144,7 +144,7 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
 
     // Use free function iterator wrapper.
     resulting_nodes = "";
-    for (auto it = eulertour_from_node(*node).begin(); it != eulertour_from_node(*node).end(); ++it) {
+    for (auto it = eulertour(*node).begin(); it != eulertour(*node).end(); ++it) {
         resulting_nodes += it.node().data.name;
         // it.node()->data.name = "bla";
     }
@@ -153,7 +153,7 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
     // Do range-based for loop traversal.
     resulting_nodes = "";
     // for (auto& node : eulertour(tree)) {
-    for (auto const& node_it : eulertour_from_node(*node)) {
+    for (auto const& node_it : eulertour(*node)) {
         resulting_nodes += node_it.node().data.name;
         // node.data.name = "bla";
     }
