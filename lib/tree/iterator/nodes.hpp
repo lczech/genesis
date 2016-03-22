@@ -18,14 +18,14 @@ namespace tree {
 // =================================================================================================
 
 template <typename TreeType>
-class TreeIteratorNodes
+class IteratorNodes
 {
 public:
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorNodes<TreeType> self_type;
+    typedef IteratorNodes<TreeType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
     typedef typename TreeType::NodeContainer container_type;
@@ -51,7 +51,7 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorNodes (container_type::iterator it) : it_(it)
+    IteratorNodes (container_type::iterator it) : it_(it)
     {}
 
     // -----------------------------------------------------
@@ -100,6 +100,7 @@ public:
     // -----------------------------------------------------
 
 private:
+
     container_type::iterator it_;
 };
 

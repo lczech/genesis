@@ -50,11 +50,11 @@ bool equal(
     }
 
     // do a preorder traversal on both trees in parallel
-    auto it_l = lhs.begin_preorder();
-    auto it_r = rhs.begin_preorder();
+    auto it_l = preorder(lhs).begin();
+    auto it_r = preorder(rhs).begin();
     for (
         ;
-        it_l != lhs.end_preorder() && it_r != rhs.end_preorder();
+        it_l != preorder(lhs).end() && it_r != preorder(rhs).end();
         ++it_l, ++it_r
     ) {
         if (it_l.node().rank() != it_r.node().rank()   ||
@@ -66,7 +66,7 @@ bool equal(
     }
 
     // check whether we are done with both trees
-    if (it_l != lhs.end_preorder() || it_r != rhs.end_preorder()) {
+    if( it_l != preorder(lhs).end() || it_r != preorder(rhs).end() ) {
         return false;
     }
 

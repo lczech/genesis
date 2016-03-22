@@ -16,14 +16,14 @@ namespace tree {
 // =================================================================================================
 
 template <typename ContainerType>
-class TreeIteratorContainerRange
+class IteratorContainerRange
 {
 public:
 
     typedef ContainerType::iterator             iterator;
     typedef ContainerType::const_iterator const_iterator;
 
-    TreeIteratorContainerRange (ContainerType& container)
+    IteratorContainerRange (ContainerType& container)
         : c_(container)
     {}
 

@@ -22,7 +22,7 @@ namespace tree {
 // =================================================================================================
 
 template <typename LinkType, typename NodeType, typename EdgeType>
-class TreeIteratorPreorder
+class IteratorPreorder
 {
 public:
     // -----------------------------------------------------
@@ -32,7 +32,7 @@ public:
     using TreeType          = typename LinkType::TreeType;
 
     using iterator_category = std::forward_iterator_tag;
-    using self_type         = TreeIteratorPreorder<LinkType, NodeType, EdgeType>;
+    using self_type         = IteratorPreorder<LinkType, NodeType, EdgeType>;
 
     self_type operator * ()
     {
@@ -43,24 +43,24 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorPreorder ()
+    IteratorPreorder ()
         : start_( nullptr )
         , link_ ( nullptr )
     {}
 
-    explicit TreeIteratorPreorder( TreeType& tree )
-        : TreeIteratorPreorder( tree.root_link() )
+    explicit IteratorPreorder( TreeType& tree )
+        : IteratorPreorder( tree.root_link() )
     {}
 
-    explicit TreeIteratorPreorder( TreeType const& tree )
-        : TreeIteratorPreorder( tree.root_link() )
+    explicit IteratorPreorder( TreeType const& tree )
+        : IteratorPreorder( tree.root_link() )
     {}
 
-    explicit TreeIteratorPreorder( NodeType& node )
-        : TreeIteratorPreorder( node.primary_link() )
+    explicit IteratorPreorder( NodeType& node )
+        : IteratorPreorder( node.primary_link() )
     {}
 
-    explicit TreeIteratorPreorder( LinkType& link )
+    explicit IteratorPreorder( LinkType& link )
         : start_( &link )
         , link_(  &link )
     {
@@ -136,7 +136,8 @@ public:
         return start_->node();
     }
 
-protected:
+private:
+
     void push_front_children( LinkType* link )
     {
         // we need to push to a tmp queue first, in order to get the order right.
@@ -166,7 +167,7 @@ protected:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< TreeIteratorPreorder<
+utils::Range< IteratorPreorder<
     typename ElementType::LinkType const,
     typename ElementType::NodeType const,
     typename ElementType::EdgeType const
@@ -177,13 +178,13 @@ utils::Range< TreeIteratorPreorder<
     using EdgeType = typename ElementType::EdgeType;
 
     return {
-        TreeIteratorPreorder< const LinkType, const NodeType, const EdgeType >( element ),
-        TreeIteratorPreorder< const LinkType, const NodeType, const EdgeType >()
+        IteratorPreorder< const LinkType, const NodeType, const EdgeType >( element ),
+        IteratorPreorder< const LinkType, const NodeType, const EdgeType >()
     };
 }
 
 template<typename ElementType>
-utils::Range< TreeIteratorPreorder<
+utils::Range< IteratorPreorder<
     typename ElementType::LinkType,
     typename ElementType::NodeType,
     typename ElementType::EdgeType
@@ -194,8 +195,8 @@ utils::Range< TreeIteratorPreorder<
     using EdgeType = typename ElementType::EdgeType;
 
     return {
-        TreeIteratorPreorder< LinkType, NodeType, EdgeType >( element ),
-        TreeIteratorPreorder< LinkType, NodeType, EdgeType >()
+        IteratorPreorder< LinkType, NodeType, EdgeType >( element ),
+        IteratorPreorder< LinkType, NodeType, EdgeType >()
     };
 }
 

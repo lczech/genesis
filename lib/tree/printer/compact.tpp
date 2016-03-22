@@ -25,7 +25,10 @@ template <typename TreeType>
 void PrinterCompact::print (
     std::ostream&   out,
     TreeType const& tree,
-    std::function<std::string (typename TreeType::ConstIteratorPreorder& it)> const print_line
+    std::function<std::string (
+        typename TreeType::NodeType const& node,
+        typename TreeType::EdgeType const& edge
+    )> const print_line
 ) {
     // Stores a count of how many child nodes each node has left for viewing.
     auto ranks   = std::vector<size_t>(tree.node_count(), 0);
@@ -33,7 +36,7 @@ void PrinterCompact::print (
     // Store the current stack of parents while traversing.
     auto parents = std::vector<size_t>();
 
-    for (auto it = tree.begin_preorder(); it != tree.end_preorder(); ++it) {
+    for( auto it : preorder(tree) ) {
         // Index of current and its parent node.
         size_t cur_idx = it.node().index();
         size_t par_idx = it.link().outer().node().index();
@@ -52,7 +55,7 @@ void PrinterCompact::print (
             // this should also use the print_line function. current users of this method then need to make sure that they check for the first iteration themselves in case they want to display is specially.
             // out << it.node()->data.name << "\n";
             // done:
-            out << print_line(it) << "\n";
+            out << print_line( it.node(), it.edge() ) << "\n";
             continue;
         }
 
@@ -87,14 +90,17 @@ void PrinterCompact::print (
         }
 
         // Print the actual information about the current node.
-        out << print_line(it) << "\n";
+        out << print_line( it.node(), it.edge() ) << "\n";
     }
 }
 
 template <typename TreeType>
 std::string PrinterCompact::print (
     TreeType const& tree,
-    std::function<std::string (typename TreeType::ConstIteratorPreorder& it)> const print_line
+    std::function<std::string (
+        typename TreeType::NodeType const& node,
+        typename TreeType::EdgeType const& edge
+    )> const print_line
 ) {
     std::ostringstream res;
     print( res, tree, print_line );
@@ -109,10 +115,14 @@ std::string PrinterCompact::print (
 template <typename TreeType>
 std::string PrinterCompact::print( TreeType const& tree )
 {
+    using NodeType = typename TreeType::NodeType;
+    using EdgeType = typename TreeType::EdgeType;
+
     // TODO this should move to default tree, as it uses the name data member
-    auto print_line = [] (typename TreeType::ConstIteratorPreorder& it)
+    auto print_line = [] ( NodeType const& node, EdgeType const& edge )
     {
-        return it.node().data.name;
+        (void) edge;
+        return node.data.name;
     };
     return print(tree, print_line);
 }

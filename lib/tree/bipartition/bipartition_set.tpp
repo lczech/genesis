@@ -27,11 +27,7 @@ void BipartitionSet<Tree>::make()
     bipartitions_.clear();
     bipartitions_.resize(tree_.node_count(), BipartitionType(num_leaves));
 
-    for (
-        auto it = tree_.begin_postorder();
-        it != tree_.end_postorder();
-        ++it
-    ) {
+    for( auto it : postorder(tree_) ) {
         if (it.is_last_iteration()) {
             continue;
         }
@@ -141,9 +137,17 @@ BipartitionSet<Tree>::get_subtree_edges (
     std::vector<std::string> leaf_names;
     std::unordered_set<EdgeType*> ret;
 
-    for (
-        auto it = tree_.begin_preorder(subtree->next());
-        it != tree_.end_preorder() && &it.link() != &subtree->outer();
+    // We don't want to use the standard iterator wrapper function here, as we are going
+    // to end the iteration after the end of the subtree, instead of iterating the whole tree.
+    // So we need to use the iterator class directly.
+    using LinkType = typename Tree::LinkType;
+    using NodeType = typename Tree::NodeType;
+    using EdgeType = typename Tree::EdgeType;
+    using Preorder = IteratorPreorder< LinkType, NodeType, EdgeType >;
+
+    for(
+        auto it = Preorder(subtree->next());
+        it != Preorder() && &it.link() != &subtree->outer();
         ++it
     ) {
         if( it.node().is_leaf() ) {

@@ -56,11 +56,7 @@ std::vector<int>    node_depth_vector    (
     vec[node->index()] = 0;
 
     // calculate the distance vector via levelorder iteration.
-    for (
-        auto it = tree.begin_levelorder( *node );
-        it != tree.end_levelorder();
-        ++it
-    ) {
+    for( auto it : levelorder( *node ) ) {
         // skip the starting node (it is already set to 0).
         if (it.is_first_iteration()) {
             continue;
@@ -139,11 +135,7 @@ std::vector< std::pair<const typename Tree::NodeType*, int> >  closest_leaf_dept
         assert(vec[node->index()].first == nullptr);
 
         // look for closest leaf node by doing a levelorder traversal.
-        for (
-            auto it = tree.begin_levelorder( *node );
-            it != tree.end_levelorder();
-            ++it
-        ) {
+        for( auto it : levelorder( *node ) ) {
             // if we find a leaf, leave the loop.
             if (it.node().is_leaf()) {
                 vec[node->index()].first  = &it.node();

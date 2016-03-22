@@ -20,7 +20,7 @@ namespace tree {
 // =================================================================================================
 
 template <typename LinkType, typename NodeType, typename EdgeType>
-class TreeIteratorEulertour
+class IteratorEulertour
 {
 
 public:
@@ -32,7 +32,7 @@ public:
     using TreeType          = typename LinkType::TreeType;
 
     using iterator_category = std::forward_iterator_tag;
-    using self_type         = TreeIteratorEulertour<LinkType, NodeType, EdgeType>;
+    using self_type         = IteratorEulertour<LinkType, NodeType, EdgeType>;
 
     // typedef NodeType  value_type;
     // typedef size_t    difference_type;
@@ -57,27 +57,27 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorEulertour()
+    IteratorEulertour()
         : start_( nullptr )
         , link_(  nullptr )
     {}
 
-    explicit TreeIteratorEulertour (TreeType& tree)
+    explicit IteratorEulertour (TreeType& tree)
         : start_( &tree.root_link() )
         , link_(  &tree.root_link() )
     {}
 
-    explicit TreeIteratorEulertour (TreeType const& tree)
+    explicit IteratorEulertour (TreeType const& tree)
         : start_( &tree.root_link() )
         , link_(  &tree.root_link() )
     {}
 
-    explicit TreeIteratorEulertour (NodeType& node)
+    explicit IteratorEulertour (NodeType& node)
         : start_( &node.primary_link() )
         , link_(  &node.primary_link() )
     {}
 
-    explicit TreeIteratorEulertour (LinkType& link)
+    explicit IteratorEulertour (LinkType& link)
         : start_( &link )
         , link_(  &link )
     {}
@@ -157,7 +157,7 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< TreeIteratorEulertour<
+utils::Range< IteratorEulertour<
     typename ElementType::LinkType const,
     typename ElementType::NodeType const,
     typename ElementType::EdgeType const
@@ -168,13 +168,13 @@ utils::Range< TreeIteratorEulertour<
     using EdgeType = typename ElementType::EdgeType;
 
     return {
-        TreeIteratorEulertour< const LinkType, const NodeType, const EdgeType >( element ),
-        TreeIteratorEulertour< const LinkType, const NodeType, const EdgeType >()
+        IteratorEulertour< const LinkType, const NodeType, const EdgeType >( element ),
+        IteratorEulertour< const LinkType, const NodeType, const EdgeType >()
     };
 }
 
 template<typename ElementType>
-utils::Range< TreeIteratorEulertour<
+utils::Range< IteratorEulertour<
     typename ElementType::LinkType,
     typename ElementType::NodeType,
     typename ElementType::EdgeType
@@ -185,8 +185,8 @@ utils::Range< TreeIteratorEulertour<
     using EdgeType = typename ElementType::EdgeType;
 
     return {
-        TreeIteratorEulertour< LinkType, NodeType, EdgeType >( element ),
-        TreeIteratorEulertour< LinkType, NodeType, EdgeType >()
+        IteratorEulertour< LinkType, NodeType, EdgeType >( element ),
+        IteratorEulertour< LinkType, NodeType, EdgeType >()
     };
 }
 

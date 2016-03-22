@@ -78,11 +78,7 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
         size_t idx = 0;
 
         // Do a preorder traversal and collect branch lengths.
-        for (
-            auto it = ct.tree.begin_preorder();
-            it != ct.tree.end_preorder();
-            ++it
-        ) {
+        for( auto it : preorder(ct.tree) ) {
             // The first iteration points to an edge which will be covered later again.
             // Skip it to prevent double coverage.
             if (it.is_first_iteration()) {
@@ -101,11 +97,7 @@ TreeType TreeSet<TreeType>::average_branch_length_tree () const
     // Do the same kind of traversal as before in order to keep the indexing order (preorder) and
     // set the branch lengths.
     size_t idx = 0;
-    for (
-        auto it = tree.begin_preorder();
-        it != tree.end_preorder();
-        ++it
-    ) {
+    for( auto it : preorder(tree) ) {
         // The first iteration points to an edge which will be covered later again.
         // Skip it to prevent double coverage.
         if (it.is_first_iteration()) {

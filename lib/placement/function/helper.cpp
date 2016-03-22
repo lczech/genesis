@@ -149,7 +149,7 @@ bool has_correct_edge_nums( PlacementTree const& tree )
     int current = 0;
 
     // Edge numbers need to be in ascending order via postorder traversal. Check this.
-    for (auto it = tree.begin_postorder(); it != tree.end_postorder(); ++it) {
+    for( auto it : postorder(tree) ) {
         // The last iteration is skipped, as the root does not have an edge.
         if (it.is_last_iteration()) {
             continue;

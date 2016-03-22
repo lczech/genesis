@@ -134,11 +134,7 @@ void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, utils::XmlD
     // stack that is used for adding clades to the phylogeny.
     std::vector<int> depths = node_depth_vector(tree);
 
-    for (
-        auto it = tree.begin_preorder();
-        it != tree.end_preorder();
-        ++it
-    ) {
+    for( auto it : preorder(tree) ) {
         // Depth can never increase more than one between two nodes when doing a preoder traversal.
         assert(depths[it.node().index()] <= cur_d + 1);
 

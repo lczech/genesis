@@ -22,7 +22,7 @@ namespace tree {
 // =================================================================================================
 
 template <typename LinkType, typename NodeType, typename EdgeType>
-class TreeIteratorLevelorder
+class IteratorLevelorder
 {
 
 public:
@@ -34,7 +34,7 @@ public:
     using TreeType          = typename LinkType::TreeType;
 
     using iterator_category = std::forward_iterator_tag;
-    using self_type         = TreeIteratorLevelorder<LinkType, NodeType, EdgeType>;
+    using self_type         = IteratorLevelorder<LinkType, NodeType, EdgeType>;
 
     self_type operator * ()
     {
@@ -45,25 +45,25 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorLevelorder()
+    IteratorLevelorder()
         : start_( nullptr )
         , link_(  nullptr )
         , depth_( 0       )
     {}
 
-    explicit TreeIteratorLevelorder( TreeType& tree )
-        : TreeIteratorLevelorder( tree.root_link() )
+    explicit IteratorLevelorder( TreeType& tree )
+        : IteratorLevelorder( tree.root_link() )
     {}
 
-    explicit TreeIteratorLevelorder( TreeType const& tree )
-        : TreeIteratorLevelorder( tree.root_link() )
+    explicit IteratorLevelorder( TreeType const& tree )
+        : IteratorLevelorder( tree.root_link() )
     {}
 
-    explicit TreeIteratorLevelorder( NodeType& node )
-        : TreeIteratorLevelorder( node.primary_link() )
+    explicit IteratorLevelorder( NodeType& node )
+        : IteratorLevelorder( node.primary_link() )
     {}
 
-    explicit TreeIteratorLevelorder( LinkType& link )
+    explicit IteratorLevelorder( LinkType& link )
         : start_( &link )
         , link_(  &link )
         , depth_( 0     )
@@ -177,7 +177,7 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< TreeIteratorLevelorder<
+utils::Range< IteratorLevelorder<
     typename ElementType::LinkType const,
     typename ElementType::NodeType const,
     typename ElementType::EdgeType const
@@ -188,13 +188,13 @@ utils::Range< TreeIteratorLevelorder<
     using EdgeType = typename ElementType::EdgeType;
 
     return {
-        TreeIteratorLevelorder< const LinkType, const NodeType, const EdgeType >( element ),
-        TreeIteratorLevelorder< const LinkType, const NodeType, const EdgeType >()
+        IteratorLevelorder< const LinkType, const NodeType, const EdgeType >( element ),
+        IteratorLevelorder< const LinkType, const NodeType, const EdgeType >()
     };
 }
 
 template<typename ElementType>
-utils::Range< TreeIteratorLevelorder<
+utils::Range< IteratorLevelorder<
     typename ElementType::LinkType,
     typename ElementType::NodeType,
     typename ElementType::EdgeType
@@ -205,8 +205,8 @@ utils::Range< TreeIteratorLevelorder<
     using EdgeType = typename ElementType::EdgeType;
 
     return {
-        TreeIteratorLevelorder< LinkType, NodeType, EdgeType >( element ),
-        TreeIteratorLevelorder< LinkType, NodeType, EdgeType >()
+        IteratorLevelorder< LinkType, NodeType, EdgeType >( element ),
+        IteratorLevelorder< LinkType, NodeType, EdgeType >()
     };
 }
 

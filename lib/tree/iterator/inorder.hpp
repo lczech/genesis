@@ -42,21 +42,21 @@ namespace tree {
  * %
  * /
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeIteratorInorder
+class IteratorInorder
 {
 public:
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorInorder<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef IteratorInorder<LinkPointerType, NodePointerType, EdgePointerType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorInorder (LinkPointerType link) : start_(link)
+    IteratorInorder (LinkPointerType link) : start_(link)
     {
         // the end iterator is created by handing over a nullptr to this constructor, so we first
         // need to check for this:
@@ -189,7 +189,8 @@ public:
         return start_->node();
     }
 
-protected:
+private:
+
     void push_front_children(LinkPointerType link)
     {
         // we need to push to a tmp queue first, in order to get the order right.

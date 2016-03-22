@@ -22,7 +22,7 @@ namespace tree {
 // =================================================================================================
 
 template <typename LinkType, typename NodeType, typename EdgeType>
-class TreeIteratorPostorder
+class IteratorPostorder
 {
 
 public:
@@ -34,7 +34,7 @@ public:
     using TreeType          = typename LinkType::TreeType;
 
     using iterator_category = std::forward_iterator_tag;
-    using self_type         = TreeIteratorPostorder<LinkType, NodeType, EdgeType>;
+    using self_type         = IteratorPostorder<LinkType, NodeType, EdgeType>;
 
     self_type operator * ()
     {
@@ -45,24 +45,24 @@ public:
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorPostorder()
+    IteratorPostorder()
         : start_( nullptr )
         , link_ ( nullptr )
     {}
 
-    explicit TreeIteratorPostorder( TreeType& tree )
-        : TreeIteratorPostorder( tree.root_link() )
+    explicit IteratorPostorder( TreeType& tree )
+        : IteratorPostorder( tree.root_link() )
     {}
 
-    explicit TreeIteratorPostorder( TreeType const& tree )
-        : TreeIteratorPostorder( tree.root_link() )
+    explicit IteratorPostorder( TreeType const& tree )
+        : IteratorPostorder( tree.root_link() )
     {}
 
-    explicit TreeIteratorPostorder( NodeType& node )
-        : TreeIteratorPostorder( node.primary_link() )
+    explicit IteratorPostorder( NodeType& node )
+        : IteratorPostorder( node.primary_link() )
     {}
 
-    explicit TreeIteratorPostorder( LinkType& link )
+    explicit IteratorPostorder( LinkType& link )
         : start_( &link )
     {
         auto link_ptr = &link;
@@ -185,7 +185,7 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< TreeIteratorPostorder<
+utils::Range< IteratorPostorder<
     typename ElementType::LinkType const,
     typename ElementType::NodeType const,
     typename ElementType::EdgeType const
@@ -196,13 +196,13 @@ utils::Range< TreeIteratorPostorder<
     using EdgeType = typename ElementType::EdgeType;
 
     return {
-        TreeIteratorPostorder< const LinkType, const NodeType, const EdgeType >( element ),
-        TreeIteratorPostorder< const LinkType, const NodeType, const EdgeType >()
+        IteratorPostorder< const LinkType, const NodeType, const EdgeType >( element ),
+        IteratorPostorder< const LinkType, const NodeType, const EdgeType >()
     };
 }
 
 template<typename ElementType>
-utils::Range< TreeIteratorPostorder<
+utils::Range< IteratorPostorder<
     typename ElementType::LinkType,
     typename ElementType::NodeType,
     typename ElementType::EdgeType
@@ -213,8 +213,8 @@ utils::Range< TreeIteratorPostorder<
     using EdgeType = typename ElementType::EdgeType;
 
     return {
-        TreeIteratorPostorder< LinkType, NodeType, EdgeType >( element ),
-        TreeIteratorPostorder< LinkType, NodeType, EdgeType >()
+        IteratorPostorder< LinkType, NodeType, EdgeType >( element ),
+        IteratorPostorder< LinkType, NodeType, EdgeType >()
     };
 }
 

@@ -174,11 +174,11 @@ double earth_movers_distance(
     // placements are given as "proximal_length" on their branch, which always points away from the
     // root. thus, if we decided to traverse from a different node than the root, we would have to
     // take this into account. so we do start at the root, to keep it simple.
-    auto it_l = lhs.tree().begin_postorder();
-    auto it_r = rhs.tree().begin_postorder();
+    auto it_l = postorder( lhs.tree() ).begin();
+    auto it_r = postorder( rhs.tree() ).begin();
     for (
         ;
-        it_l != lhs.tree().end_postorder() && it_r != rhs.tree().end_postorder();
+        it_l != postorder( lhs.tree() ).end() && it_r != postorder( rhs.tree() ).end();
         ++it_l, ++it_r
     ) {
         LOG_DBG << "\033[1;31miteration at node " << it_l.node().index_ << ": " << it_l.node().data.name << "\033[0m";
@@ -315,7 +315,7 @@ double earth_movers_distance(
     }
 
     // check whether we are done with both trees.
-    if (it_l != lhs.tree().end_postorder() || it_r != rhs.tree().end_postorder()) {
+    if( it_l != postorder( lhs.tree() ).end() || it_r != postorder( rhs.tree() ).end() ) {
         throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
     }
 
@@ -383,11 +383,7 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
 
     // Do a postorder traversal. Collect all placement masses and push them towards the root in
     // order to calculate the torque that acts on each node.
-    for (
-        PlacementTree::ConstIteratorPostorder it = map.tree().begin_postorder();
-        it != map.tree().end_postorder();
-        ++it
-    ) {
+    for( auto it : postorder( map.tree() ) ) {
         // Skip the last iteration, as we would assign an unneeded value to the first child
         // of the root.
         if( it.is_last_iteration() ) {

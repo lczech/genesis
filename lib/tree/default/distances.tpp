@@ -60,7 +60,7 @@ double deepest_distance(const Tree& tree)
 
     auto leaf_dist = closest_leaf_distance_vector(tree);
 
-    for (const auto& e = tree.begin_edge(); e != tree.end_edges(); ++e) {
+    for (const auto& e = tree.begin_edges(); e != tree.end_edges(); ++e) {
         int idx_p = e->primary_node().index();
         int idx_s = e->secondary_node().index();
         double d = (leaf_dist[idx_p].second + e->data.branch_length + leaf_dist[idx_s].second) / 2;
@@ -94,11 +94,7 @@ utils::Matrix<double>      node_distance_matrix (
         // unfortunately, this prevents us from simply calculating the upper triangle of the matrix
         // and copying it (distance is symmetric), because we do not really know which nodes are in
         // which half during a levelorder traversal...
-        for (
-            auto it = tree.begin_levelorder(row_node->link());
-            it != tree.end_levelorder();
-            ++it
-        ) {
+        for( auto it : levelorder( row_node->link() )) {
             // skip the diagonal of the matrix.
             if (it.is_first_iteration()) {
                 continue;
@@ -134,11 +130,7 @@ std::vector<double> node_distance_vector (
     vec[node->index()] = 0.0;
 
     // Calculate the distance vector via levelorder iteration.
-    for (
-        auto it = tree.begin_levelorder(*node);
-        it != tree.end_levelorder();
-        ++it
-    ) {
+    for( auto it : levelorder( *node ) ) {
         // Skip the starting node (it is already set to 0).
         if (it.is_first_iteration()) {
             continue;

@@ -488,11 +488,7 @@ void NewickProcessor<TreeType>::tree_to_broker (
 
     // now fill the broker with nodes via postorder traversal, so that the root is put on top last.
     broker.clear();
-    for (
-        auto it = tree.begin_postorder();
-        it != tree.end_postorder();
-        ++it
-    ) {
+    for( auto it : postorder(tree) ) {
         NewickBrokerElement bn;
         bn.depth = depth[ it.node().index() ];
 

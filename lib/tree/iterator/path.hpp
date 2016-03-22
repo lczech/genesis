@@ -22,21 +22,21 @@ namespace tree {
 /*
 
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeIteratorPath
+class IteratorPath
 {
 public:
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorPath<LinkPointerType, NodePointerType, EdgePointerType> self_type;
+    typedef IteratorPath<LinkPointerType, NodePointerType, EdgePointerType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
     //     Constructor
     // -----------------------------------------------------
 
-    TreeIteratorPath (LinkPointerType from, LinkPointerType to) : start_(from), to_(to);
+    IteratorPath (LinkPointerType from, LinkPointerType to) : start_(from), to_(to);
     {
         if (link) {
             stack_.push_back(link);
@@ -134,7 +134,8 @@ public:
         return to_->node();
     }
 
-protected:
+private:
+
     LinkPointerType             link_;
     LinkPointerType             from_;
     LinkPointerType             to_;
