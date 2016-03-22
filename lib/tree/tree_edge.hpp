@@ -53,8 +53,15 @@ public:
     // ---------------------------------------------------------------------
 
     TreeEdge()
-        : link_p_( nullptr )
+        : index_( 0 )
+        , link_p_( nullptr )
         , link_s_( nullptr )
+    {}
+
+    TreeEdge( size_t index, LinkType* primary_link, LinkType* secondary_link )
+        : index_(  index )
+        , link_p_( primary_link )
+        , link_s_( secondary_link )
     {}
 
     ~TreeEdge() = default;
@@ -72,6 +79,8 @@ public:
     //     Accessors
     // ---------------------------------------------------------------------
 
+    size_t index() const;
+
     LinkType      & primary_link();
     LinkType const& primary_link() const;
 
@@ -85,16 +94,17 @@ public:
     NodeType const& secondary_node() const;
 
     // ---------------------------------------------------------------------
-    //     Member Functions
+    //     Modifiers
     // ---------------------------------------------------------------------
 
-    /**
-     * @brief Returns the index of this Link.
-     */
-    size_t index() const
-    {
-        return index_;
-    }
+    TreeEdge& reset_index( size_t val );
+
+    TreeEdge& reset_primary_link(   LinkType* val );
+    TreeEdge& reset_secondary_link( LinkType* val );
+
+    // ---------------------------------------------------------------------
+    //     Member Functions
+    // ---------------------------------------------------------------------
 
     std::string dump() const;
 
@@ -102,15 +112,16 @@ public:
     //     Member Variables
     // ---------------------------------------------------------------------
 
+public:
+
     EdgeDataType data;
 
-// TODO !!! make protected again, and use some other mechanism for setting the members !!!
-//~ protected:
+private:
 
-    size_t index_;
+    size_t       index_;
 
-    LinkType* link_p_;
-    LinkType* link_s_;
+    LinkType*    link_p_;
+    LinkType*    link_s_;
 };
 
 } // namespace tree

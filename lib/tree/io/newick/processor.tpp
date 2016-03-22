@@ -363,12 +363,14 @@ void NewickProcessor<TreeType>::broker_to_tree (
             link_stack.back()->outer_ = up_link;
 
             // also, create an edge that connects both nodes
-            auto up_edge = make_unique<typename TreeType::EdgeType>();
-            up_edge->link_p_         = link_stack.back();
-            up_edge->link_s_         = up_link;
+            auto up_edge = make_unique<typename TreeType::EdgeType>(
+                edges.size(),
+                link_stack.back(),
+                up_link
+            );
+
             up_link->edge_           = up_edge.get();
             link_stack.back()->edge_ = up_edge.get();
-            up_edge->index_ = edges.size();
             element_to_edge( broker_node, *up_edge );
             edges.push_back(std::move(up_edge));
 

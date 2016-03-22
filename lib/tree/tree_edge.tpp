@@ -18,6 +18,15 @@ namespace tree {
 // =============================================================================
 
 /**
+ * @brief Return the index of this Link.
+ */
+template <class NDT, class EDT>
+size_t TreeEdge<NDT, EDT>::index() const
+{
+    return index_;
+}
+
+/**
  * @brief Return the TreeLink of this TreeEdge that points towards the root.
  */
 template <class NDT, class EDT>
@@ -92,6 +101,30 @@ template <class NDT, class EDT>
 TreeNode<NDT, EDT> const& TreeEdge<NDT, EDT>::secondary_node() const
 {
     return link_s_->node();
+}
+// =============================================================================
+//     Modifiers
+// =============================================================================
+
+template <class NDT, class EDT>
+TreeEdge<NDT, EDT>& TreeEdge<NDT, EDT>::reset_index( size_t val )
+{
+    index_ = val;
+    return *this;
+}
+
+template <class NDT, class EDT>
+TreeEdge<NDT, EDT>& TreeEdge<NDT, EDT>::reset_primary_link( LinkType* val )
+{
+    link_p_ = val;
+    return *this;
+}
+
+template <class NDT, class EDT>
+TreeEdge<NDT, EDT>& TreeEdge<NDT, EDT>::reset_secondary_link( LinkType* val )
+{
+    link_s_ = val;
+    return *this;
 }
 
 // =============================================================================
