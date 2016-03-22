@@ -161,7 +161,7 @@ bool validate( TreeType const& tree )
         return emp;
     }
 
-    if (tree.links_.front()->node_ != tree.nodes_.front().get()) {
+    if( &tree.links_.front()->node() != tree.nodes_.front().get() ) {
         LOG_INFO << "The first link does not correspond to the first node.";
         return false;
     }
@@ -176,8 +176,9 @@ bool validate( TreeType const& tree )
     std::vector<size_t> links_to_nodes(tree.nodes_.size(), 0);
     for (size_t i = 0; i < tree.links_.size(); ++i) {
         // Check indices.
-        if (i != tree.links_[i]->index_) {
-            LOG_INFO << "Link at index " << i << " has wrong index (" << tree.links_[i]->index_ << ").";
+        if( i != tree.link_at(i).index() ) {
+            LOG_INFO << "Link at index " << i << " has wrong index ("
+                     << tree.link_at(i).index() << ").";
             return false;
         }
 
@@ -185,7 +186,7 @@ bool validate( TreeType const& tree )
         auto nl = tree.links_[i].get();
         do {
             if( &nl->node() != &tree.links_[i]->node() ) {
-                LOG_INFO << "Link at index " << nl->index_ << " points to wrong node.";
+                LOG_INFO << "Link at index " << nl->index() << " points to wrong node.";
                 return false;
             }
             nl = &nl->next();
@@ -233,8 +234,9 @@ bool validate( TreeType const& tree )
     // Check Nodes.
     for (size_t i = 0; i < tree.nodes_.size(); ++i) {
         // Check indices.
-        if (i != tree.nodes_[i]->index_) {
-            LOG_INFO << "Node at index " << i << " has wrong index (" << tree.nodes_[i]->index_ << ").";
+        if( i != tree.node_at(i).index() ) {
+            LOG_INFO << "Node at index " << i << " has wrong index ("
+                     << tree.node_at(i).index() << ").";
             return false;
         }
 
@@ -248,8 +250,9 @@ bool validate( TreeType const& tree )
     // Check Edges.
     for (size_t i = 0; i < tree.edges_.size(); ++i) {
         // Check indices.
-        if (i != tree.edges_[i]->index_) {
-            LOG_INFO << "Edge at index " << i << " has wrong index (" << tree.edges_[i]->index_ << ").";
+        if( i != tree.edge_at(i).index() ) {
+            LOG_INFO << "Edge at index " << i << " has wrong index ("
+                     << tree.edge_at(i).index() << ").";
             return false;
         }
 
@@ -279,7 +282,7 @@ bool validate( TreeType const& tree )
         ++it_links[ link->index() ];
         ++it_edges[ link->edge().index() ];
         ++it_nodes[ link->node().index() ];
-        link = link->next_->outer_;
+        link = &link->next().outer();
     } while (link != tree.links_.front().get());
 
     // Check if all links have been hit once.

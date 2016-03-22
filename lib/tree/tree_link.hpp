@@ -33,8 +33,6 @@ class TreeNode;
 template <class NodeDataType, class EdgeDataType>
 class TreeLink
 {
-    friend class Tree<NodeDataType, EdgeDataType>;
-
 public:
 
     // ---------------------------------------------------------------------
