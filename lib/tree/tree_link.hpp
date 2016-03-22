@@ -13,9 +13,9 @@
 namespace genesis {
 namespace tree {
 
-// =============================================================================
+// =================================================================================================
 //     Forward declarations
-// =============================================================================
+// =================================================================================================
 
 template <class NodeDataType, class EdgeDataType>
 class Tree;
@@ -26,9 +26,9 @@ class TreeEdge;
 template <class NodeDataType, class EdgeDataType>
 class TreeNode;
 
-// =============================================================================
+// =================================================================================================
 //     TreeLink
-// =============================================================================
+// =================================================================================================
 
 template <class NodeDataType, class EdgeDataType>
 class TreeLink
@@ -51,10 +51,19 @@ public:
     // ---------------------------------------------------------------------
 
     TreeLink()
-        : next_(  nullptr )
+        : index_( 0       )
+        , next_(  nullptr )
         , outer_( nullptr )
         , node_(  nullptr )
         , edge_(  nullptr )
+    {}
+
+    TreeLink( size_t index, LinkType* next, LinkType* outer, NodeType* node, EdgeType* edge )
+        : index_( index )
+        , next_(  next  )
+        , outer_( outer )
+        , node_(  node  )
+        , edge_(  edge  )
     {}
 
     ~TreeLink() = default;
@@ -72,6 +81,8 @@ public:
     //     Accessors
     // ---------------------------------------------------------------------
 
+    size_t index() const;
+
     LinkType      & next();
     LinkType const& next() const;
 
@@ -88,50 +99,31 @@ public:
     NodeType const& node() const;
 
     // ---------------------------------------------------------------------
+    //     Modifiers
+    // ---------------------------------------------------------------------
+
+    TreeLink& reset_index( size_t val );
+
+    TreeLink& reset_next(  LinkType* val );
+    TreeLink& reset_outer( LinkType* val );
+
+    TreeLink& reset_node(  NodeType* val );
+    TreeLink& reset_edge(  EdgeType* val );
+
+    // ---------------------------------------------------------------------
     //     Member Functions
     // ---------------------------------------------------------------------
 
-    /**
-     * @brief Returns the index of this Link.
-     */
-    size_t index() const
-    {
-        return index_;
-    }
+    bool is_leaf() const;
+    bool is_inner() const;
 
-    /**
-     * @brief Returns true iff the node of this link is a leaf node.
-     */
-    bool is_leaf() const
-    {
-        return next_ == this;
-    }
-
-    /**
-     * @brief Returns true iff the node of this link is an inner node.
-     */
-    bool is_inner() const
-    {
-        return next_ != this;
-    }
-
-    /**
-     * @brief Returns a string containing dump information about this link.
-     *
-     * At the moment, a link does not contain any information, so an empty string is returned.
-     * This might change in the future, in case links also contain data.
-     */
-    std::string dump() const
-    {
-        return "";
-    }
-
-// TODO !!! make protected again, and use some other mechanism for setting the members !!!
-//~ protected:
+    std::string dump() const;
 
     // ---------------------------------------------------------------------
     //     Member Variables
     // ---------------------------------------------------------------------
+
+private:
 
     size_t index_;
 

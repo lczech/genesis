@@ -345,9 +345,9 @@ void NewickProcessor<TreeType>::broker_to_tree (
         // this link is created for every node, root, inner and leaves.
         auto up_link_u  = make_unique<typename TreeType::LinkType>();
         auto up_link    = up_link_u.get();
-        up_link->node_  = cur_node;
+        up_link->reset_node( cur_node );
         cur_node->link_ = up_link;
-        up_link->index_ = links.size();
+        up_link->reset_index( links.size() );
         links.push_back(std::move(up_link_u));
 
         // establish the link towards the root
@@ -355,12 +355,12 @@ void NewickProcessor<TreeType>::broker_to_tree (
             // if the link stack is empty, we are currently at the very beginning of this loop,
             // which means we are at the root itself. in this case, make the "link towards the root"
             // point to itself.
-            up_link->outer_ = up_link;
+            up_link->reset_outer( up_link );
         } else {
             // if we are however in some other node (leaf or inner, but not the root), we establish
             // the link "upwards" to the root, and back from there.
-            up_link->outer_ = link_stack.back();
-            link_stack.back()->outer_ = up_link;
+            up_link->reset_outer( link_stack.back() );
+            link_stack.back()->reset_outer( up_link );
 
             // also, create an edge that connects both nodes
             auto up_edge = make_unique<typename TreeType::EdgeType>(
@@ -369,8 +369,8 @@ void NewickProcessor<TreeType>::broker_to_tree (
                 up_link
             );
 
-            up_link->edge_           = up_edge.get();
-            link_stack.back()->edge_ = up_edge.get();
+            up_link->reset_edge( up_edge.get() );
+            link_stack.back()->reset_edge( up_edge.get() );
             element_to_edge( broker_node, *up_edge );
             edges.push_back(std::move(up_edge));
 
@@ -389,15 +389,15 @@ void NewickProcessor<TreeType>::broker_to_tree (
         auto prev_link = up_link;
         for (int i = 0; i < broker_node.rank(); ++i) {
             auto down_link = make_unique<typename TreeType::LinkType>();
-            prev_link->next_ = down_link.get();
+            prev_link->reset_next( down_link.get() );
             prev_link = down_link.get();
 
-            down_link->node_ = cur_node;
-            down_link->index_ = links.size();
+            down_link->reset_node( cur_node );
+            down_link->reset_index( links.size() );
             link_stack.push_back(down_link.get());
             links.push_back(std::move(down_link));
         }
-        prev_link->next_ = up_link;
+        prev_link->reset_next( up_link );
     }
 
     // we pushed elements to the link_stack for all children of the nodes and popped them when we
@@ -407,18 +407,18 @@ void NewickProcessor<TreeType>::broker_to_tree (
 
     // now delete the uplink of the root, in order to make the tree fully unrooted.
     // (we do that after the tree creation, as it is way easier this way)
-    assert(links.front()->outer_ == links.front().get());
-    auto next = links.front()->next_;
-    while (next->next_ != links.front().get()) {
-        next = next->next_;
+    assert( &links.front()->outer() == links.front().get() );
+    auto next = &links.front()->next();
+    while( &next->next() != links.front().get() ) {
+        next = &next->next();
     }
-    next->next_ = next->next_->next_;
-    assert(next->next_ == links.front()->next_);
+    next->reset_next( &next->next().next() );
+    assert( &next->next() == &links.front()->next() );
     links.erase(links.begin());
     for (size_t i = 0; i < links.size(); ++i) {
-        links[i]->index_ = i;
+        links[i]->reset_index(i);
     }
-    next->node_->link_ = next->next_;
+    next->node().link_ = &next->next();
 
     // Finish and hand over the elements to the tree.
     finish_reading(broker, tree);

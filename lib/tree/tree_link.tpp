@@ -11,9 +11,18 @@
 namespace genesis {
 namespace tree {
 
-// =============================================================================
+// =================================================================================================
 //     Accessors
-// =============================================================================
+// =================================================================================================
+
+/**
+ * @brief Return the index of this Link.
+ */
+template <class NDT, class EDT>
+size_t TreeLink<NDT, EDT>::index() const
+{
+    return index_;
+}
 
 /**
  * @brief Return the next TreeLink within the TreeNode of this link.
@@ -117,6 +126,79 @@ template <class NDT, class EDT>
 TreeNode<NDT, EDT> const& TreeLink<NDT, EDT>::node() const
 {
     return *node_;
+}
+
+// =================================================================================================
+//     Modifiers
+// =================================================================================================
+
+template <class NDT, class EDT>
+TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::reset_index( size_t val )
+{
+    index_ = val;
+    return *this;
+}
+
+template <class NDT, class EDT>
+TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::reset_next(  LinkType* val )
+{
+    next_ = val;
+    return *this;
+}
+
+template <class NDT, class EDT>
+TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::reset_outer( LinkType* val )
+{
+    outer_ = val;
+    return *this;
+}
+
+template <class NDT, class EDT>
+TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::reset_node(  NodeType* val )
+{
+    node_ = val;
+    return *this;
+}
+
+template <class NDT, class EDT>
+TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::reset_edge(  EdgeType* val )
+{
+    edge_ = val;
+    return *this;
+}
+
+// =================================================================================================
+//     Member Functions
+// =================================================================================================
+
+/**
+ * @brief Return true iff the node of this link is a leaf node.
+ */
+template <class NDT, class EDT>
+bool TreeLink<NDT, EDT>::is_leaf() const
+{
+    return next_ == this;
+}
+
+/**
+ * @brief Return true iff the node of this link is an inner node.
+ */
+template <class NDT, class EDT>
+bool TreeLink<NDT, EDT>::is_inner() const
+{
+    return next_ != this;
+}
+
+/**
+ * @brief Return a string containing dump information about this link.
+ *
+ * At the moment, a link does not contain any information, so an empty string is returned.
+ * This might change in the future, in case links also contain data.
+ */
+template <class NDT, class EDT>
+std::string TreeLink<NDT, EDT>::dump() const
+{
+    return "";
 }
 
 } // namespace tree
