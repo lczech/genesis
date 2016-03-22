@@ -30,22 +30,24 @@ public:
     typedef TreeIteratorEulertour<LinkType, NodeType, EdgeType> self_type;
     typedef std::forward_iterator_tag iterator_category;
 
+    typedef typename LinkType::TreeType TreeType;
+
     // typedef NodeType  value_type;
     // typedef size_t    difference_type;
     typedef NodeType* pointer;
     typedef NodeType& reference;
 
-    LinkType* operator * ()
+    self_type operator * ()
     // reference operator * ()
     {
-        // return *this;
+        return *this;
         // return *(link_->node());
-        return link_;
+        // return link_;
     }
 
-    LinkType* operator -> ()
+    self_type operator -> ()
     {
-        return link_;
+        return *this;
     }
 
     // -----------------------------------------------------
@@ -55,6 +57,21 @@ public:
     TreeIteratorEulertour()
         : start_( nullptr )
         , link_(  nullptr )
+    {}
+
+    explicit TreeIteratorEulertour (TreeType& tree)
+        : start_( &tree.root_link() )
+        , link_(  &tree.root_link() )
+    {}
+
+    explicit TreeIteratorEulertour (TreeType const& tree)
+        : start_( &tree.root_link() )
+        , link_(  &tree.root_link() )
+    {}
+
+    explicit TreeIteratorEulertour (NodeType& node)
+        : start_( &node.primary_link() )
+        , link_(  &node.primary_link() )
     {}
 
     explicit TreeIteratorEulertour (LinkType& link)
@@ -238,33 +255,10 @@ private:
 //     Euler Tour Wrapper Functions
 // =================================================================================================
 
-template<typename TreeType>
-TreeIteratorEulertourRange<TreeType> eulertour(TreeType& tree)
-{
-    return TreeIteratorEulertourRange<TreeType>(tree);
-}
-
-template<typename PointerType>
-TreeIteratorEulertourRange<typename PointerType::TreeType> eulertour(PointerType* link_or_node)
-{
-    return TreeIteratorEulertourRange<typename PointerType::TreeType>(link_or_node);
-}
-
 // template<typename TreeType>
-// utils::Range< TreeIteratorEulertour<
-//     typename TreeType::LinkType,
-//     typename TreeType::NodeType,
-//     typename TreeType::EdgeType
-// >> eulertour(TreeType& tree)
+// TreeIteratorEulertourRange<TreeType> eulertour(TreeType& tree)
 // {
-//     using LinkType = typename TreeType::LinkType;
-//     using NodeType = typename TreeType::NodeType;
-//     using EdgeType = typename TreeType::EdgeType;
-//
-//     return {
-//         TreeIteratorEulertour< LinkType, NodeType, EdgeType >( tree.root_link() ),
-//         TreeIteratorEulertour< LinkType, NodeType, EdgeType >( nullptr )
-//     };
+//     return TreeIteratorEulertourRange<TreeType>(tree);
 // }
 //
 // template<typename PointerType>
@@ -272,6 +266,103 @@ TreeIteratorEulertourRange<typename PointerType::TreeType> eulertour(PointerType
 // {
 //     return TreeIteratorEulertourRange<typename PointerType::TreeType>(link_or_node);
 // }
+
+// -----------------------------------------------------
+//     Tree
+// -----------------------------------------------------
+
+template<typename ElementType>
+utils::Range< TreeIteratorEulertour<
+    typename ElementType::LinkType const,
+    typename ElementType::NodeType const,
+    typename ElementType::EdgeType const
+>> eulertour( ElementType const& element )
+{
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        TreeIteratorEulertour< const LinkType, const NodeType, const EdgeType >( element ),
+        TreeIteratorEulertour< const LinkType, const NodeType, const EdgeType >()
+    };
+}
+
+template<typename ElementType>
+utils::Range< TreeIteratorEulertour<
+    typename ElementType::LinkType,
+    typename ElementType::NodeType,
+    typename ElementType::EdgeType
+>> eulertour( ElementType& element )
+{
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        TreeIteratorEulertour< LinkType, NodeType, EdgeType >( element ),
+        TreeIteratorEulertour< LinkType, NodeType, EdgeType >()
+    };
+}
+
+// -----------------------------------------------------
+//     Link
+// -----------------------------------------------------
+
+template<typename LinkType>
+utils::Range< TreeIteratorEulertour<
+    typename LinkType::LinkType const,
+    typename LinkType::NodeType const,
+    typename LinkType::EdgeType const
+>> eulertour_from_link( LinkType const& link )
+{
+    using LT = typename LinkType::LinkType;
+    using NT = typename LinkType::NodeType;
+    using ET = typename LinkType::EdgeType;
+
+    return {
+        TreeIteratorEulertour< LT const, NT const, ET const >( link ),
+        TreeIteratorEulertour< LT const, NT const, ET const >()
+    };
+}
+
+template<typename LinkType>
+utils::Range< TreeIteratorEulertour<
+    typename LinkType::LinkType,
+    typename LinkType::NodeType,
+    typename LinkType::EdgeType
+>> eulertour_from_link( LinkType& link )
+{
+    using LT = typename LinkType::LinkType;
+    using NT = typename LinkType::NodeType;
+    using ET = typename LinkType::EdgeType;
+
+    return {
+        TreeIteratorEulertour< LT, NT, ET >( link ),
+        TreeIteratorEulertour< LT, NT, ET >()
+    };
+}
+
+// -----------------------------------------------------
+//     Node
+// -----------------------------------------------------
+
+template<typename NodeType>
+utils::Range< TreeIteratorEulertour<
+    typename NodeType::LinkType,
+    typename NodeType::NodeType,
+    typename NodeType::EdgeType
+>> eulertour_from_node( NodeType& node )
+{
+    using LT = typename NodeType::LinkType;
+    using NT = typename NodeType::NodeType;
+    using ET = typename NodeType::EdgeType;
+
+    return {
+        TreeIteratorEulertour< LT, NT, ET >( node.link() ),
+        TreeIteratorEulertour< LT, NT, ET >()
+    };
+}
 
 // template<class TreeType>
 // class Eulertour

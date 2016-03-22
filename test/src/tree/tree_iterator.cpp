@@ -37,8 +37,11 @@ TEST (TreeIterator, EulertourNew)
     DefaultTreeNewickProcessor().from_string(input, tree);
 
     // Find the Node for this test run.
-    auto node = find_node(tree, node_name);
+    auto const& ttr = tree;
+    const auto node = find_node(ttr, node_name);
     ASSERT_NE(nullptr, node);
+
+    DefaultTreeNode const& nn = *node;
 
     std::string resulting_nodes = "";
 
@@ -51,15 +54,19 @@ TEST (TreeIterator, EulertourNew)
     //     resulting_nodes += it.node()->data.name;
     // }
 
-    for( auto const& it : eulertour(tree) ) {
-        resulting_nodes += it->node().data.name;
-
-        // it->node()->data.name = "bla";
-    }
-
-    // for( auto const& it : eulertour(node->link()) ) {
-    //     resulting_nodes += it.node()->data.name;
+    // for( auto const& it : eulertour(tree) ) {
+    //     resulting_nodes += it->node().data.name;
+    //
+    //     // it->node()->data.name = "bla";
     // }
+
+    // for( auto it : eulertour_from_link(nn.link()) ) {
+    // for( auto it : eulertour( ttr ) ) {
+    for( auto it : eulertour( nn ) ) {
+        resulting_nodes += it.node().data.name;
+        // it.node().data.name = "bla";
+        // resulting_nodes += it->node().data.name;
+    }
 
     // for( auto const& it : eulertour(tree) ) {
     //     resulting_nodes += it.node()->data.name;
@@ -137,7 +144,7 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
 
     // Use free function iterator wrapper.
     resulting_nodes = "";
-    for (auto it = eulertour(node).begin(); it != eulertour(node).end(); ++it) {
+    for (auto it = eulertour_from_node(*node).begin(); it != eulertour_from_node(*node).end(); ++it) {
         resulting_nodes += it.node().data.name;
         // it.node()->data.name = "bla";
     }
@@ -146,8 +153,8 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
     // Do range-based for loop traversal.
     resulting_nodes = "";
     // for (auto& node : eulertour(tree)) {
-    for (auto const& node_it : eulertour(node)) {
-        resulting_nodes += node_it->node().data.name;
+    for (auto const& node_it : eulertour_from_node(*node)) {
+        resulting_nodes += node_it.node().data.name;
         // node.data.name = "bla";
     }
     // for (auto& node_it : eulertour(node)) {
