@@ -8,6 +8,8 @@
  * @ingroup tree
  */
 
+#include "utils/core/range.hpp"
+
 #include <assert.h>
 #include <deque>
 #include <iterator>
@@ -22,13 +24,22 @@ namespace tree {
 template <typename LinkType, typename NodeType, typename EdgeType>
 class TreeIteratorPostorder
 {
+
 public:
+
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorPostorder<LinkType, NodeType, EdgeType> self_type;
-    typedef std::forward_iterator_tag iterator_category;
+    using TreeType          = typename LinkType::TreeType;
+
+    using iterator_category = std::forward_iterator_tag;
+    using self_type         = TreeIteratorPostorder<LinkType, NodeType, EdgeType>;
+
+    self_type operator * ()
+    {
+        return *this;
+    }
 
     // -----------------------------------------------------
     //     Constructor
@@ -39,7 +50,19 @@ public:
         , link_ ( nullptr )
     {}
 
-    TreeIteratorPostorder (LinkType& link)
+    explicit TreeIteratorPostorder( TreeType& tree )
+        : TreeIteratorPostorder( tree.root_link() )
+    {}
+
+    explicit TreeIteratorPostorder( TreeType const& tree )
+        : TreeIteratorPostorder( tree.root_link() )
+    {}
+
+    explicit TreeIteratorPostorder( NodeType& node )
+        : TreeIteratorPostorder( node.primary_link() )
+    {}
+
+    explicit TreeIteratorPostorder( LinkType& link )
         : start_( &link )
     {
         auto link_ptr = &link;
@@ -133,8 +156,9 @@ public:
         return start_->node();
     }
 
-protected:
-    void push_front_children(LinkType* link)
+private:
+
+    void push_front_children( LinkType* link )
     {
         // we need to push to a tmp queue first, in order to get the order right.
         // otherwise, we would still do a postorder traversal, but starting with
@@ -155,6 +179,44 @@ protected:
 
     std::deque<LinkType*> stack_;
 };
+
+// =================================================================================================
+//     Postorder Wrapper Functions
+// =================================================================================================
+
+template<typename ElementType>
+utils::Range< TreeIteratorPostorder<
+    typename ElementType::LinkType const,
+    typename ElementType::NodeType const,
+    typename ElementType::EdgeType const
+>> postorder( ElementType const& element )
+{
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        TreeIteratorPostorder< const LinkType, const NodeType, const EdgeType >( element ),
+        TreeIteratorPostorder< const LinkType, const NodeType, const EdgeType >()
+    };
+}
+
+template<typename ElementType>
+utils::Range< TreeIteratorPostorder<
+    typename ElementType::LinkType,
+    typename ElementType::NodeType,
+    typename ElementType::EdgeType
+>> postorder( ElementType& element )
+{
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        TreeIteratorPostorder< LinkType, NodeType, EdgeType >( element ),
+        TreeIteratorPostorder< LinkType, NodeType, EdgeType >()
+    };
+}
 
 } // namespace tree
 } // namespace genesis
