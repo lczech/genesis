@@ -8,6 +8,8 @@
  * @ingroup tree
  */
 
+#include "utils/core/range.hpp"
+
 #include <assert.h>
 #include <deque>
 #include <iterator>
@@ -22,13 +24,22 @@ namespace tree {
 template <typename LinkType, typename NodeType, typename EdgeType>
 class TreeIteratorLevelorder
 {
+
 public:
+
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef TreeIteratorLevelorder<LinkType, NodeType, EdgeType> self_type;
-    typedef std::forward_iterator_tag iterator_category;
+    using TreeType          = typename LinkType::TreeType;
+
+    using iterator_category = std::forward_iterator_tag;
+    using self_type         = TreeIteratorLevelorder<LinkType, NodeType, EdgeType>;
+
+    self_type operator * ()
+    {
+        return *this;
+    }
 
     // -----------------------------------------------------
     //     Constructor
@@ -40,7 +51,19 @@ public:
         , depth_( 0       )
     {}
 
-    TreeIteratorLevelorder (LinkType& link)
+    explicit TreeIteratorLevelorder( TreeType& tree )
+        : TreeIteratorLevelorder( tree.root_link() )
+    {}
+
+    explicit TreeIteratorLevelorder( TreeType const& tree )
+        : TreeIteratorLevelorder( tree.root_link() )
+    {}
+
+    explicit TreeIteratorLevelorder( NodeType& node )
+        : TreeIteratorLevelorder( node.primary_link() )
+    {}
+
+    explicit TreeIteratorLevelorder( LinkType& link )
         : start_( &link )
         , link_(  &link )
         , depth_( 0     )
@@ -125,12 +148,12 @@ public:
         return start_->node();
     }
 
-protected:
+private:
 
-    void push_back_children(LinkType* link, int link_depth)
+    void push_back_children( LinkType* link, int link_depth )
     {
         LinkType* c = &link->next();
-        while (c != link) {
+        while( c != link ) {
             stack_.push_back({ &c->outer(), link_depth + 1 });
             c = &c->next();
         }
@@ -138,8 +161,8 @@ protected:
 
     // TODO add depth information to other iterators, as well.
     typedef struct {
-        LinkType* link;
-        int       depth;
+        LinkType*     link;
+        int           depth;
     } StackElement;
 
     LinkType*         start_;
@@ -148,6 +171,44 @@ protected:
 
     std::deque<StackElement> stack_;
 };
+
+// =================================================================================================
+//     Levelorder Wrapper Functions
+// =================================================================================================
+
+template<typename ElementType>
+utils::Range< TreeIteratorLevelorder<
+    typename ElementType::LinkType const,
+    typename ElementType::NodeType const,
+    typename ElementType::EdgeType const
+>> levelorder( ElementType const& element )
+{
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        TreeIteratorLevelorder< const LinkType, const NodeType, const EdgeType >( element ),
+        TreeIteratorLevelorder< const LinkType, const NodeType, const EdgeType >()
+    };
+}
+
+template<typename ElementType>
+utils::Range< TreeIteratorLevelorder<
+    typename ElementType::LinkType,
+    typename ElementType::NodeType,
+    typename ElementType::EdgeType
+>> levelorder( ElementType& element )
+{
+    using LinkType = typename ElementType::LinkType;
+    using NodeType = typename ElementType::NodeType;
+    using EdgeType = typename ElementType::EdgeType;
+
+    return {
+        TreeIteratorLevelorder< LinkType, NodeType, EdgeType >( element ),
+        TreeIteratorLevelorder< LinkType, NodeType, EdgeType >()
+    };
+}
 
 } // namespace tree
 } // namespace genesis
