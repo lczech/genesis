@@ -23,6 +23,7 @@
 #include "placement/sample.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/function/distances.hpp"
+#include "tree/iterator/node_links.hpp"
 #include "tree/iterator/postorder.hpp"
 #include "utils/core/options.hpp"
 #include "utils/math/histogram.hpp"
@@ -196,13 +197,9 @@ double earth_movers_distance(
             LOG_DBG1 << "last iteration";
             // we do a check for the mass at the root here for debug purposes.
             double root_mass = 0.0;
-            for (
-                auto n_it = it_l.node().begin_links();
-                n_it != it_l.node().end_links();
-                ++n_it
-            ) {
-                assert( balance.count( &n_it.link()->outer().node() ) );
-                root_mass += balance[ &n_it.link()->outer().node() ];
+            for( auto n_it : node_links( it_l.node() )) {
+                assert( balance.count( &n_it.link().outer().node() ) );
+                root_mass += balance[ &n_it.link().outer().node() ];
             }
 
             LOG_DBG << "Mass at root: " << root_mass;
@@ -473,23 +470,19 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
         double                         max_torque = -1.0;
         Fulcrum                        sum;
 
-        for (
-            auto it_l = curr_link->node().begin_links();
-            it_l != curr_link->node().end_links();
-            ++it_l
-        ) {
+        for( auto it_l : node_links( curr_link->node() )) {
             // Make sure that we actually have a useable value.
-            assert(balance.count(it_l.link()) > 0);
+            assert(balance.count( &it_l.link() ) > 0);
 
-            LOG_DBG2 << "at " <<  it_l.link()->outer().node().data.name
-                     << " with mass "  << balance[it_l.link()].mass
-                     << " and torque "  << balance[it_l.link()].torque;
-            if (balance[it_l.link()].torque > max_torque) {
-                max_link   = it_l.link();
-                max_torque = balance[it_l.link()].torque;
+            LOG_DBG2 << "at " <<  it_l.link().outer().node().data.name
+                     << " with mass "  << balance[ &it_l.link() ].mass
+                     << " and torque "  << balance[ &it_l.link() ].torque;
+            if (balance[ &it_l.link() ].torque > max_torque) {
+                max_link   = &it_l.link();
+                max_torque = balance[ &it_l.link() ].torque;
             }
-            sum.mass   += balance[it_l.link()].mass;
-            sum.torque += balance[it_l.link()].torque;
+            sum.mass   += balance[ &it_l.link() ].mass;
+            sum.torque += balance[ &it_l.link() ].torque;
         }
         assert(max_link);
 

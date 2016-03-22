@@ -23,10 +23,10 @@ template <class NodeDataType, class EdgeDataType>
 class  Tree;
 
 template <class NodeDataType, class EdgeDataType>
-class  TreeLink;
+class  TreeEdge;
 
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
-class TreeNodeIteratorLinks;
+template <class NodeDataType, class EdgeDataType>
+class  TreeLink;
 
 // =================================================================================================
 //     TreeNode
@@ -78,33 +78,6 @@ public:
     LinkType const& link() const;
 
     // ---------------------------------------------------------------------
-    //     Iterators
-    // ---------------------------------------------------------------------
-
-    typedef TreeNodeIteratorLinks<      LinkType*,       NodeType*,       EdgeType*>      IteratorLinks;
-    typedef TreeNodeIteratorLinks<const LinkType*, const NodeType*, const EdgeType*> ConstIteratorLinks;
-
-    IteratorLinks begin_links()
-    {
-        return IteratorLinks(link_);
-    }
-
-    IteratorLinks end_links()
-    {
-        return IteratorLinks(nullptr);
-    }
-
-    ConstIteratorLinks begin_links() const
-    {
-        return ConstIteratorLinks(link_);
-    }
-
-    ConstIteratorLinks end_links() const
-    {
-        return ConstIteratorLinks(nullptr);
-    }
-
-    // ---------------------------------------------------------------------
     //     Member Functions
     // ---------------------------------------------------------------------
 
@@ -144,12 +117,6 @@ public:
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the iterator
-// =================================================================================================
-
-#include "tree/tree_node_iterator.hpp"
 
 // =================================================================================================
 //     Inclusion of the implementation
