@@ -166,7 +166,7 @@ bool validate( TreeType const& tree )
         return false;
     }
 
-    if (tree.links_.front()->   index() != 0 || tree.links_.front()->node().index() != 0) {
+    if (tree.links_.front()->index() != 0 || tree.links_.front()->node().index() != 0) {
         LOG_INFO << "Root does not have index 0.";
         return false;
     }

@@ -22,7 +22,9 @@ namespace tree {
 template <typename LinkType, typename NodeType, typename EdgeType>
 class IteratorNodeLinks
 {
+
 public:
+
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
@@ -32,13 +34,8 @@ public:
     using iterator_category = std::forward_iterator_tag;
     using self_type         = IteratorNodeLinks<LinkType, NodeType, EdgeType>;
 
-    self_type operator * ()
-    {
-        return *this;
-    }
-
     // -----------------------------------------------------
-    //     Constructor
+    //     Constructors and Rule of Five
     // -----------------------------------------------------
 
     IteratorNodeLinks()
@@ -56,9 +53,22 @@ public:
         , link_(  &link )
     {}
 
+    ~IteratorNodeLinks() = default;
+
+    IteratorNodeLinks( IteratorNodeLinks const& ) = default;
+    IteratorNodeLinks( IteratorNodeLinks&& )      = default;
+
+    IteratorNodeLinks& operator= ( IteratorNodeLinks const& ) = default;
+    IteratorNodeLinks& operator= ( IteratorNodeLinks&& )      = default;
+
     // -----------------------------------------------------
     //     Operators
     // -----------------------------------------------------
+
+    self_type operator * ()
+    {
+        return *this;
+    }
 
     self_type operator ++ ()
     {

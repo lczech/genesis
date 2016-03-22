@@ -24,7 +24,9 @@ namespace tree {
 template <typename LinkType, typename NodeType, typename EdgeType>
 class IteratorPreorder
 {
+
 public:
+
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
@@ -34,13 +36,8 @@ public:
     using iterator_category = std::forward_iterator_tag;
     using self_type         = IteratorPreorder<LinkType, NodeType, EdgeType>;
 
-    self_type operator * ()
-    {
-        return *this;
-    }
-
     // -----------------------------------------------------
-    //     Constructor
+    //     Constructors and Rule of Five
     // -----------------------------------------------------
 
     IteratorPreorder ()
@@ -68,9 +65,22 @@ public:
         stack_.push_front( &link.outer() );
     }
 
+    ~IteratorPreorder() = default;
+
+    IteratorPreorder( IteratorPreorder const& ) = default;
+    IteratorPreorder( IteratorPreorder&& )      = default;
+
+    IteratorPreorder& operator= ( IteratorPreorder const& ) = default;
+    IteratorPreorder& operator= ( IteratorPreorder&& )      = default;
+
     // -----------------------------------------------------
     //     Operators
     // -----------------------------------------------------
+
+    self_type operator * ()
+    {
+        return *this;
+    }
 
     self_type operator ++ ()
     {

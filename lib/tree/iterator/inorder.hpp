@@ -44,7 +44,9 @@ namespace tree {
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class IteratorInorder
 {
+
 public:
+
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
@@ -53,7 +55,7 @@ public:
     typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
-    //     Constructor
+    //     Constructors and Rule of Five
     // -----------------------------------------------------
 
     IteratorInorder (LinkPointerType link) : start_(link)
@@ -90,6 +92,14 @@ public:
         }
         link_ = link;
     }
+
+    ~IteratorInorder() = default;
+
+    IteratorInorder( IteratorInorder const& ) = default;
+    IteratorInorder( IteratorInorder&& )      = default;
+
+    IteratorInorder& operator= ( IteratorInorder const& ) = default;
+    IteratorInorder& operator= ( IteratorInorder&& )      = default;
 
     // -----------------------------------------------------
     //     Operators

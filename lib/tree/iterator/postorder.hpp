@@ -36,13 +36,8 @@ public:
     using iterator_category = std::forward_iterator_tag;
     using self_type         = IteratorPostorder<LinkType, NodeType, EdgeType>;
 
-    self_type operator * ()
-    {
-        return *this;
-    }
-
     // -----------------------------------------------------
-    //     Constructor
+    //     Constructors and Rule of Five
     // -----------------------------------------------------
 
     IteratorPostorder()
@@ -78,9 +73,22 @@ public:
         link_ = link_ptr;
     }
 
+    ~IteratorPostorder() = default;
+
+    IteratorPostorder( IteratorPostorder const& ) = default;
+    IteratorPostorder( IteratorPostorder&& )      = default;
+
+    IteratorPostorder& operator= ( IteratorPostorder const& ) = default;
+    IteratorPostorder& operator= ( IteratorPostorder&& )      = default;
+
     // -----------------------------------------------------
     //     Operators
     // -----------------------------------------------------
+
+    self_type operator * ()
+    {
+        return *this;
+    }
 
     self_type operator ++ ()
     {

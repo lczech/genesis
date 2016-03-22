@@ -24,7 +24,9 @@ namespace tree {
 template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
 class IteratorPath
 {
+
 public:
+
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
@@ -33,7 +35,7 @@ public:
     typedef std::forward_iterator_tag iterator_category;
 
     // -----------------------------------------------------
-    //     Constructor
+    //     Constructors and Rule of Five
     // -----------------------------------------------------
 
     IteratorPath (LinkPointerType from, LinkPointerType to) : start_(from), to_(to);
@@ -53,6 +55,14 @@ public:
         }
         link_ = link;
     }
+
+    ~IteratorPath() = default;
+
+    IteratorPath( IteratorPath const& ) = default;
+    IteratorPath( IteratorPath&& )      = default;
+
+    IteratorPath& operator= ( IteratorPath const& ) = default;
+    IteratorPath& operator= ( IteratorPath&& )      = default;
 
     // -----------------------------------------------------
     //     Operators

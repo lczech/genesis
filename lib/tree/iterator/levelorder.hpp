@@ -36,13 +36,8 @@ public:
     using iterator_category = std::forward_iterator_tag;
     using self_type         = IteratorLevelorder<LinkType, NodeType, EdgeType>;
 
-    self_type operator * ()
-    {
-        return *this;
-    }
-
     // -----------------------------------------------------
-    //     Constructor
+    //     Constructors and Rule of Five
     // -----------------------------------------------------
 
     IteratorLevelorder()
@@ -72,9 +67,22 @@ public:
         stack_.push_front({ &link.outer(), 1 });
     }
 
+    ~IteratorLevelorder() = default;
+
+    IteratorLevelorder( IteratorLevelorder const& ) = default;
+    IteratorLevelorder( IteratorLevelorder&& )      = default;
+
+    IteratorLevelorder& operator= ( IteratorLevelorder const& ) = default;
+    IteratorLevelorder& operator= ( IteratorLevelorder&& )      = default;
+
     // -----------------------------------------------------
     //     Operators
     // -----------------------------------------------------
+
+    self_type operator * ()
+    {
+        return *this;
+    }
 
     self_type operator ++ ()
     {

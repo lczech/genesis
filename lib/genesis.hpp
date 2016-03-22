@@ -67,6 +67,7 @@
 #include "tree/iterator/eulertour.hpp"
 #include "tree/iterator/inorder.hpp"
 #include "tree/iterator/levelorder.hpp"
+#include "tree/iterator/node_links.hpp"
 #include "tree/iterator/path.hpp"
 #include "tree/iterator/postorder.hpp"
 #include "tree/iterator/preorder.hpp"
@@ -77,7 +78,6 @@
 #include "tree/tree.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
-#include "tree/tree_node_iterator.hpp"
 #include "tree/tree_set.hpp"
 
 #include "utils/core/fs.hpp"

@@ -34,27 +34,8 @@ public:
     using iterator_category = std::forward_iterator_tag;
     using self_type         = IteratorEulertour<LinkType, NodeType, EdgeType>;
 
-    // typedef NodeType  value_type;
-    // typedef size_t    difference_type;
-
-    // typedef NodeType* pointer;
-    // typedef NodeType& reference;
-
-    self_type operator * ()
-    // reference operator * ()
-    {
-        return *this;
-        // return *(link_->node());
-        // return link_;
-    }
-
-    // self_type operator -> ()
-    // {
-    //     return *this;
-    // }
-
     // -----------------------------------------------------
-    //     Constructor
+    //     Constructors and Rule of Five
     // -----------------------------------------------------
 
     IteratorEulertour()
@@ -82,9 +63,22 @@ public:
         , link_(  &link )
     {}
 
+    ~IteratorEulertour() = default;
+
+    IteratorEulertour( IteratorEulertour const& ) = default;
+    IteratorEulertour( IteratorEulertour&& )      = default;
+
+    IteratorEulertour& operator= ( IteratorEulertour const& ) = default;
+    IteratorEulertour& operator= ( IteratorEulertour&& )      = default;
+
     // -----------------------------------------------------
     //     Operators
     // -----------------------------------------------------
+
+    self_type operator * ()
+    {
+        return *this;
+    }
 
     self_type& operator ++ ()
     {
