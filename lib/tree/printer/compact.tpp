@@ -5,6 +5,8 @@
  * @ingroup tree
  */
 
+#include "tree/iterator/preorder.hpp"
+
 #include <assert.h>
 #include <sstream>
 #include <vector>

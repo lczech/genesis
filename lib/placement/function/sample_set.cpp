@@ -9,6 +9,8 @@
 
 #include "placement/function/functions.hpp"
 #include "placement/function/operators.hpp"
+#include "tree/function/tree_set.hpp"
+#include "tree/tree_set.hpp"
 
 #include <ostream>
 
@@ -67,7 +69,7 @@ bool all_identical_trees( SampleSet const& sset )
         return edge_l.data.edge_num() == edge_r.data.edge_num();
     };
 
-    return tree_set( sset ).all_equal(node_comparator, edge_comparator);
+    return all_equal( tree_set( sset ), node_comparator, edge_comparator );
 }
 
 /**
@@ -76,10 +78,9 @@ bool all_identical_trees( SampleSet const& sset )
 tree::TreeSet<PlacementTree> tree_set( SampleSet const& sset )
 {
     tree::TreeSet<PlacementTree> tset;
-    // for( auto const& smp : sset ) {
-        // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        // tset.add( smp.name, smp.sample.tree() );
-    // }
+    for( auto const& smp : sset ) {
+        tset.add( smp.name, smp.sample.tree() );
+    }
     return tset;
 }
 
@@ -104,7 +105,7 @@ Sample merge_all( SampleSet const& sset )
 
     // Create a new Sample and initialize it with the average branch length tree of all
     // maps in this set, but without any placements.
-    auto res = Sample( tree_set( sset ).average_branch_length_tree() );
+    auto res = Sample( average_branch_length_tree( tree_set( sset )));
 
     // Copy the rest of the data from the first tree to the averaged tree.
     // This is necessary, because the tree copy constructor does not do this for us.

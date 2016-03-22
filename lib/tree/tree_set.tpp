@@ -5,31 +5,49 @@
  * @ingroup tree
  */
 
-#include <algorithm>
-#include <assert.h>
-
-#include "tree/function/operators.hpp"
-#include "tree/tree_set.hpp"
-#include "utils/core/logging.hpp"
-
 namespace genesis {
 namespace tree {
 
-// =============================================================================
+// =================================================================================================
+//     Constructors and Rule of Five
+// =================================================================================================
+
+template <class TreeType>
+void TreeSet<TreeType>::swap( TreeSet<TreeType>& other )
+{
+    using std::swap;
+    swap( trees_, other.trees_ );
+}
+
+// =================================================================================================
 //     Modifiers
-// =============================================================================
+// =================================================================================================
 
 /**
- * @brief Adds a Tree to the TreeSet.
+* @brief Add a Tree with a name to the TreeSet.
+*
+* The Tree is copied.
+*/
+template <class TreeType>
+void TreeSet<TreeType>::add( std::string const& name, TreeType const& tree )
+{
+    trees_.push_back( { name, tree } );
+}
+
+/**
+ * @brief Remove the Tree at a certain index position.
+ *
+ * As this function moves Tree%s in the container around, all iterators and pointers to
+ * the elements of this TreeSet are considered to be invalidated.
  */
-// template <class TreeType>
-// void TreeSet<TreeType>::add (const std::string& name, std::shared_ptr<TreeType> tree)
-// {
-//     trees_.push_back( { name, tree } );
-// }
+template <class TreeType>
+void TreeSet<TreeType>::remove_at( size_t index )
+{
+    trees_.erase( trees_.begin() + index );
+}
 
 /**
- * @brief Clears the TreeSet and destroys all contained Trees.
+ * @brief Clear the TreeSet and destroy all contained Trees.
  */
 template <class TreeType>
 void TreeSet<TreeType>::clear ()
@@ -37,181 +55,74 @@ void TreeSet<TreeType>::clear ()
     trees_.clear();
 }
 
-/**
- * @brief Returns a Tree where the branch lengths are the average of the trees in the set, given that
- * they all have the same topology.
- *
- * The method works only under the following conditions:
- *
- *     * All trees must have the same topology.
- *     * The TreeType must provide field `branch_length` for the edges.
- *
- * Otherwise, the method will return an empty tree. It does not check for node names, but the
- * returned tree will contain the names of the first tree in the set.
- *
- * TODO this method assumes that the tree edge has a branch_length. not good.
- */
-template <class TreeType>
-TreeType TreeSet<TreeType>::average_branch_length_tree () const
-{
-    if (trees_.size() == 0) {
-        LOG_WARN << "TreeSet is empty.";
-        return TreeType();
-    }
-
-    if (!all_identical_topology()) {
-        LOG_WARN << "Trees in TreeSet do not have the same topology.";
-        return TreeType();
-    }
-
-    // Prepare storage for average branch lengths.
-    size_t num_edges = trees_.front().tree.edge_count();
-    auto avgs = std::vector<double>(num_edges, 0.0);
-
-    // We traverse all trees (again, because all_identical_topology() already did this). This is
-    // probably a bit slower than the previous version of this method which worked with less
-    // traversals, but way easier to understand and debug.
-    for (auto& ct : trees_) {
-        // Use an index for position in the preorder traversal. This makes sure that the
-        // index actually always points to the correct edges, indepently of their order in
-        // different trees in the set.
-        size_t idx = 0;
-
-        // Do a preorder traversal and collect branch lengths.
-        for( auto it : preorder(ct.tree) ) {
-            // The first iteration points to an edge which will be covered later again.
-            // Skip it to prevent double coverage.
-            if (it.is_first_iteration()) {
-                continue;
-            }
-
-            avgs[idx] += it.edge().data.branch_length;
-            ++idx;
-        }
-    }
-
-    // We know that all trees have the same topology. So we take a copy of the first one (thus, also
-    // copying its node names) and modify its branch lengths.
-    TreeType tree = TreeType(trees_.front().tree);
-
-    // Do the same kind of traversal as before in order to keep the indexing order (preorder) and
-    // set the branch lengths.
-    size_t idx = 0;
-    for( auto it : preorder(tree) ) {
-        // The first iteration points to an edge which will be covered later again.
-        // Skip it to prevent double coverage.
-        if (it.is_first_iteration()) {
-            continue;
-        }
-
-        it.edge().data.branch_length = avgs[idx] / trees_.size();
-        ++idx;
-    }
-
-    return tree;
-}
-
-// =============================================================================
-//     Comparators
-// =============================================================================
-
-/**
- * @brief Compares whether all Trees in the set are equal using a given comparator functional.
- *
- * See Tree::equal() for more information.
- */
-template <class TreeType>
-bool TreeSet<TreeType>::all_equal(
-    std::function<bool
-        (const typename TreeType::NodeType&, const typename TreeType::NodeType&)
-    > node_comparator,
-    std::function<bool
-        (const typename TreeType::EdgeType&, const typename TreeType::EdgeType&)
-    > edge_comparator
-) const {
-    // If all pairs of two adjacent trees are equal, all of them are.
-    // Thus, we do not need a complete pairwise comparision.
-    // TODO the namespace thing is weird, but currently neccesary because of an ambiguous call...
-    for (size_t i = 1; i < trees_.size(); i++) {
-        if( ! tree::equal( trees_[i-1].tree, trees_[i].tree, node_comparator, edge_comparator )) {
-            return false;
-        }
-    }
-    return true;
-}
-
-/**
- * @brief Compares whether all Trees in the set are equal using their default comparision operators
- * for nodes and edges.
- */
-template <class TreeType>
-bool TreeSet<TreeType>::all_equal() const
-{
-    // If all pairs of two adjacent trees are equal, all of them are.
-    // Thus, we do not need a complete pairwise comparision.
-    for (size_t i = 1; i < trees_.size(); i++) {
-        if (!equal(trees_[i-1].tree, trees_[i].tree)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-/**
- * @brief Returns true iff all Trees in the set have an identical topology.
- */
-template <class TreeType>
-bool TreeSet<TreeType>::all_identical_topology() const
-{
-    // If all pairs of two adjacent trees have same the topology, all of them have.
-    // Thus, we do not need a complete pairwise comparision.
-    for (size_t i = 1; i < trees_.size(); i++) {
-        if (!identical_topology(trees_[i-1].tree, trees_[i].tree)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-// =============================================================================
+// =================================================================================================
 //     Accessors
-// =============================================================================
+// =================================================================================================
+
+template <class TreeType>
+typename TreeSet<TreeType>::iterator TreeSet<TreeType>::begin()
+{
+    return trees_.begin();
+}
+
+template <class TreeType>
+typename TreeSet<TreeType>::const_iterator TreeSet<TreeType>::begin() const
+{
+    return trees_.cbegin();
+}
+
+template <class TreeType>
+typename TreeSet<TreeType>::iterator TreeSet<TreeType>::end()
+{
+    return trees_.end();
+}
+
+template <class TreeType>
+typename TreeSet<TreeType>::const_iterator TreeSet<TreeType>::end() const
+{
+    return trees_.cend();
+}
+
+template <class TreeType>
+typename TreeSet<TreeType>::NamedTree& TreeSet<TreeType>::at ( size_t index )
+{
+    return trees_.at(index);
+}
+
+template <class TreeType>
+typename TreeSet<TreeType>::NamedTree const& TreeSet<TreeType>::at ( size_t index ) const
+{
+    return trees_.at(index);
+}
+
+template <class TreeType>
+typename TreeSet<TreeType>::NamedTree& TreeSet<TreeType>::operator [] (const std::size_t index)
+{
+    return trees_[index];
+}
+
+template <class TreeType>
+typename TreeSet<TreeType>::NamedTree const& TreeSet<TreeType>::operator [] (const std::size_t index) const
+{
+    return trees_[index];
+}
 
 /**
- * @brief Get the first Tree in the set that is stored with a given name.
- */
-// template <class TreeType>
-// TreeType* TreeSet<TreeType>::get_first(const std::string& name) const
-// {
-//     auto ct = trees_.begin();
-//     while (ct != trees_.end()) {
-//         if (ct->name == name) {
-//             return ct->tree.get();
-//         }
-//         ++ct;
-//     }
-//     return nullptr;
-// }
-
-// =============================================================================
-//     Dump & Debug
-// =============================================================================
-
-/**
- * @brief Dump a list of all names of the Trees in the set. If provided with the optional parameter
- * `full`, also dump all Trees.
+ * @brief Return whether the TreeSet is empty.
  */
 template <class TreeType>
-std::string TreeSet<TreeType>::dump(bool full) const
+bool TreeSet<TreeType>::empty() const
 {
-    std::string res = "";
-    for (auto& ct : trees_) {
-        res += ct.name + "\n";
-        if (full) {
-            res += ct.tree.dump() + "\n";
-        }
-    }
-    return res;
+    return trees_.empty();
+}
+
+/**
+ * @brief Return the size of the TreeSet, i.e., the number of stored Tree%s.
+ */
+template <class TreeType>
+size_t TreeSet<TreeType>::size() const
+{
+    return trees_.size();
 }
 
 } // namespace tree

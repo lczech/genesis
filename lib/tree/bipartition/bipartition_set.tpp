@@ -9,6 +9,9 @@
 
 #include "tree/bipartition/bipartition_set.hpp"
 #include "tree/function/functions.hpp"
+#include "tree/iterator/postorder.hpp"
+#include "tree/iterator/preorder.hpp"
+#include "tree/tree.hpp"
 #include "utils/core/logging.hpp"
 
 namespace genesis {

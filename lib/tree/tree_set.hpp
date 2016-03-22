@@ -8,150 +8,130 @@
  * @ingroup tree
  */
 
-#include <functional>
-#include <memory>
+#include <ostream>
 #include <string>
 #include <vector>
-
-//~ #include "tree/tree.hpp"
 
 namespace genesis {
 namespace tree {
 
-// =============================================================================
+// =================================================================================================
 //     Forward declarations
-// =============================================================================
+// =================================================================================================
 
 template <class NodeDataType, class EdgeDataType>
 class  Tree;
 
-// =============================================================================
+// =================================================================================================
 //     Tree Set
-// =============================================================================
+// =================================================================================================
 
-template <class TreeType>
+template <class TreeType_>
 class TreeSet
 {
 public:
 
-    // -----------------------------------------------------
-    //     Constructor and Typedefs
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     Typedefs
+    // -------------------------------------------------------------------------
 
+    using TreeType       = TreeType_;
+
+    /**
+     * @brief Store a Tree together with a name for it.
+     */
     struct NamedTree
     {
-        std::string               name;
-        TreeType& tree;
-        // std::shared_ptr<TreeType> tree;
+        std::string name;
+        TreeType    tree;
     };
 
-    typedef typename std::vector<NamedTree>::iterator       iterator;
-    typedef typename std::vector<NamedTree>::const_iterator const_iterator;
+    using iterator       = typename std::vector<NamedTree>::iterator;
+    using const_iterator = typename std::vector<NamedTree>::const_iterator;
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------------------
+
+    TreeSet()  = default;
+    ~TreeSet() = default;
+
+    TreeSet( TreeSet const& ) = default;
+    TreeSet( TreeSet&& )      = default;
+
+    TreeSet& operator= ( TreeSet const& ) = default;
+    TreeSet& operator= ( TreeSet&& )      = default;
+
+    void swap( TreeSet& other );
+
+    // -------------------------------------------------------------------------
     //     Modifiers
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
-    // TODO !!! this is a quick fix for problems with std::shared_ptr in boost python.
-    // TODO as soon as this is solved in boost, switch back to the original version.
+    void add( std::string const& name, TreeType const& tree );
 
-    void add (const std::string& name, TreeType& tree)
-    {
-        trees_.push_back( { name, tree } );
-    }
-
-    // void add (const std::string& name, std::shared_ptr<TreeType> tree);
+    void remove_at( size_t index );
     void clear();
 
-    TreeType average_branch_length_tree() const;
-
-    // -----------------------------------------------------
-    //     Comparators
-    // -----------------------------------------------------
-
-    bool all_equal(
-        std::function<bool
-            (const typename TreeType::NodeType&, const typename TreeType::NodeType&)
-        > node_comparator,
-        std::function<bool
-            (const typename TreeType::EdgeType&, const typename TreeType::EdgeType&)
-        > edge_comparator
-    ) const;
-
-    bool all_equal() const;
-
-    bool all_identical_topology() const;
-
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Accessors
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
-    // TreeType* get_first (const std::string& name) const;
+    iterator       begin();
+    const_iterator begin() const;
 
-    iterator begin()
-    {
-        return trees_.begin();
-    }
+    iterator       end();
+    const_iterator end() const;
 
-    iterator end()
-    {
-        return trees_.end();
-    }
+          NamedTree& at ( size_t index );
+    const NamedTree& at ( size_t index ) const;
 
-    const_iterator cbegin() const
-    {
-        return trees_.cbegin();
-    }
+          NamedTree& operator [] (const std::size_t index);
+    const NamedTree& operator [] (const std::size_t index) const;
 
-    const_iterator cend() const
-    {
-        return trees_.cend();
-    }
+    bool   empty() const;
+    size_t size()  const;
 
-    const NamedTree& operator [] (const std::size_t index) const
-    {
-        return trees_[index];
-    }
+    // -------------------------------------------------------------------------
+    //     Output
+    // -------------------------------------------------------------------------
 
     /**
-     * @brief Returns whether the tree set is empty.
+     * @brief Write a list of all names of the Tree%s in a TreeSet to a stream.
      */
-    bool empty() const
+    friend std::ostream& operator << ( std::ostream& out, TreeSet const& tset )
     {
-        return trees_.empty();
+        // If provided with the optional parameter `full`, also dump all Trees.
+        // TODO this was meant for full output. turn it into a printer instead!
+        bool full = false;
+
+        for (auto& ct : tset) {
+            out << ct.name << "\n";
+            if (full) {
+                out << ct.tree.dump() << "\n";
+            }
+        }
+        return out;
     }
 
-    /**
-     * @brief Returns the size of the tree set.
-     */
-    size_t size() const
-    {
-        return trees_.size();
-    }
-
-    // -----------------------------------------------------
-    //     Dump & Debug
-    // -----------------------------------------------------
-
-    std::string dump (bool full = false) const;
-
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Data Members
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
 private:
 
-    // We use a vector of <string, tree> pairs here, because we want to preserve the order in which
-    // elements were inserted into the TreeMap. This is not the case with simple maps.
+    // We use a vector of elements here, because we want to preserve the order in which
+    // elements are inserted into the TreeMap. This is not the case with simple maps.
     std::vector<NamedTree> trees_;
+
 };
 
 } // namespace tree
 } // namespace genesis
 
-// =============================================================================
+// =================================================================================================
 //     Inclusion of the implementation
-// =============================================================================
+// =================================================================================================
 
 // This is a class template, so do the inclusion here.
 #include "tree/tree_set.tpp"
