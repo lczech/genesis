@@ -154,7 +154,7 @@ void Tree<NDT, EDT>::swap (Tree<NDT, EDT>& other)
  * this function is not intended for creating a deep copy. It merely is a fast way to pass pointers
  * to tree elements.
  *
- * Therefore, the main usage of this function is to get a tree from different TreeProcessor objects
+ * Therefore, the main usage of this function is to get a tree from different Tree Reader classes
  * for reading trees from files.
  */
 template <class NDT, class EDT>

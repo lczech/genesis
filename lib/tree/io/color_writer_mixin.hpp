@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_COLOR_MIXIN_H_
-#define GENESIS_TREE_IO_COLOR_MIXIN_H_
+#ifndef GENESIS_TREE_IO_COLOR_WRITER_MIXIN_H_
+#define GENESIS_TREE_IO_COLOR_WRITER_MIXIN_H_
 
 /**
  * @brief
@@ -17,7 +17,7 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Color Mixin Base
+//     Color Writer Mixin Base
 // =================================================================================================
 
 /**
@@ -55,7 +55,7 @@ namespace tree {
  *
  * This class is intended to be used as base for mixin classes that do actual tree output.
  */
-class ColorMixin
+class ColorWriterMixin
 {
     // -------------------------------------------------------------------------
     //     Base Class
@@ -63,7 +63,7 @@ class ColorMixin
 
 public:
 
-    virtual ~ColorMixin() {}
+    virtual ~ColorWriterMixin() {}
 
     // -------------------------------------------------------------------------
     //     Properties

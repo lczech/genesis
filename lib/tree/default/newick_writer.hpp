@@ -1,14 +1,16 @@
-#ifndef GENESIS_TREE_DEFAULT_NEWICK_MIXIN_H_
-#define GENESIS_TREE_DEFAULT_NEWICK_MIXIN_H_
+#ifndef GENESIS_TREE_DEFAULT_NEWICK_WRITER_H_
+#define GENESIS_TREE_DEFAULT_NEWICK_WRITER_H_
 
 /**
- * @brief Header of DefaultTreeNewickAdapter class.
+ * @brief
  *
  * @file
  * @ingroup tree
  */
 
+#include "tree/default/tree.hpp"
 #include "tree/io/newick/element.hpp"
+#include "tree/io/newick/writer.hpp"
 #include "utils/core/std.hpp"
 #include "utils/text/string.hpp"
 
@@ -16,14 +18,14 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Default TreeNewick Adapter
+//     Default Tree Newick Writer Mixin
 // =================================================================================================
 
 /**
  * @brief
  */
 template <typename Base>
-class DefaultTreeNewickMixin : public Base
+class DefaultTreeNewickWriterMixin : public Base
 {
     // -------------------------------------------------------------------------
     //     Member Types
@@ -67,43 +69,6 @@ public:
     // -------------------------------------------------------------------------
 
 protected:
-
-    virtual void element_to_node( NewickBrokerElement const& element, NodeType& node ) override
-    {
-        Base::element_to_node(element, node);
-
-        std::string name = element.name;
-
-        // Insert default names if needed.
-        if (name.empty() && use_default_names) {
-            if (element.is_leaf) {
-                name = default_leaf_name;
-            } else if(element.depth == 0) {
-                name = default_root_name;
-            } else {
-                name = default_internal_name;
-            }
-        }
-
-        // Handle underscores/spaces.
-        if (replace_name_underscores) {
-            name = utils::replace_all(name, "_", " ");
-        }
-
-        node.data.name = name;
-    }
-
-    virtual void element_to_edge( NewickBrokerElement const& element, EdgeType& edge ) override
-    {
-        Base::element_to_edge(element, edge);
-
-        // We assume that the branch length is always the first (or only) value.
-        // If there is an interpretation where this is not the case, it is best to introduce
-        // an array index for this as a paramter of this class.
-        if (element.values.size() > 0) {
-            edge.data.branch_length = std::stod(element.values[0]);
-        }
-    }
 
     virtual void node_to_element( NodeType const& node, NewickBrokerElement& element ) override
     {
@@ -151,8 +116,7 @@ protected:
 public:
 
     // TODO for now, this is all public. use getters and setters instead, and outsource those
-    // properties that belong to the (yet to create) superclass TreeProcessor or so.
-
+    // properties that belong to the (yet to create) superclass DefaultNewickMixinBase or so.
 
     /**
      * @brief The precision used for printing floating point numbers, particularly the branch_length.
@@ -164,22 +128,34 @@ public:
     std::string default_root_name     = "Root_Node";
 
     /**
-     * @brief If set to true, unnamed nodes are named using one of the default names.
+     * @brief If set to true, nodes that are named using one of the default names are written
+     * without names.
      *
-     * The default names can be set using `default_leaf_name`, `default_internal_name` and
-     * `default_root_name`. They are used both when parsing and printing a Newick file.
+     * This option effictively reverses the effect of the same option in the
+     * DefaultTreeNewickReaderMixin. Thus, when both are set to the same value, the resulting
+     * Newick file contains the same names.
+     *
+     * The default names can be set using #default_leaf_name, #default_internal_name and
+     * #default_root_name. They are used both when parsing and printing a Newick file.
      */
     bool        use_default_names = false;
 
-    bool        replace_name_underscores = false;
+    bool        replace_name_underscores = true;
 
 private:
 
     bool enable_names_          = true;
     bool enable_branch_lengths_ = false;
+
     // bool print_comments       = false;
     // bool print_tags           = false;
 };
+
+// =================================================================================================
+//     Default Tree Newick Writer
+// =================================================================================================
+
+typedef DefaultTreeNewickWriterMixin<NewickWriter<DefaultTree>> DefaultTreeNewickWriter;
 
 } // namespace tree
 } // namespace genesis

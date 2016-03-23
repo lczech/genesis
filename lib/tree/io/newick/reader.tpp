@@ -1,5 +1,5 @@
 /**
- * @brief Implementation of functions for reading and writing Newick files.
+ * @brief
  *
  * @file
  * @ingroup tree
@@ -11,10 +11,8 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "tree/function/distances.hpp"
 #include "tree/io/newick/broker.hpp"
 #include "tree/io/newick/parser.hpp"
-#include "tree/iterator/postorder.hpp"
 #include "tree/tree_set.hpp"
 #include "tree/tree.hpp"
 #include "utils/core/fs.hpp"
@@ -25,7 +23,7 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Parsing
+//     Reading
 // =================================================================================================
 
 // -------------------------------------------------------------------------
@@ -38,7 +36,7 @@ namespace tree {
  * Returns true iff successful.
  */
 template <typename TreeType>
-bool NewickProcessor<TreeType>::from_file (
+bool NewickReader<TreeType>::from_file (
     const std::string& fn, TreeType& tree
 ) {
     if (!utils::file_exists(fn)) {
@@ -54,7 +52,7 @@ bool NewickProcessor<TreeType>::from_file (
  * Returns true iff successful.
  */
 template <typename TreeType>
-bool NewickProcessor<TreeType>::from_string (
+bool NewickReader<TreeType>::from_string (
     const std::string& ts, TreeType& tree
 ) {
     // run the lexer
@@ -105,7 +103,7 @@ bool NewickProcessor<TreeType>::from_string (
  * Returns true iff successful.
  */
 template <typename TreeType>
-bool NewickProcessor<TreeType>::from_file (
+bool NewickReader<TreeType>::from_file (
     const std::string& fn, TreeSet<TreeType>& tset
 ) {
     if (!utils::file_exists(fn)) {
@@ -140,7 +138,7 @@ bool NewickProcessor<TreeType>::from_file (
  * Returns true iff successful.
  */
 template <typename TreeType>
-bool NewickProcessor<TreeType>::from_string (
+bool NewickReader<TreeType>::from_string (
     const std::string& ts,
     TreeSet<TreeType>& tset,
     const std::string& default_name
@@ -239,7 +237,7 @@ bool NewickProcessor<TreeType>::from_string (
  * Returns true iff successful.
  */
 template <typename TreeType>
-bool NewickProcessor<TreeType>::from_files (
+bool NewickReader<TreeType>::from_files (
     const std::vector<std::string>& fns, TreeSet<TreeType>& set
 ) {
     for (auto fn : fns) {
@@ -256,7 +254,7 @@ bool NewickProcessor<TreeType>::from_files (
  * Returns true iff successful.
  */
 template <typename TreeType>
-bool NewickProcessor<TreeType>::from_strings (
+bool NewickReader<TreeType>::from_strings (
     const std::vector<std::string>& tss,
     TreeSet<TreeType>& set,
     const std::string& default_name
@@ -270,11 +268,11 @@ bool NewickProcessor<TreeType>::from_strings (
 }
 
 // -------------------------------------------------------------------------
-//     Virtual Methods
+//     Virtual Parsing Helpers
 // -------------------------------------------------------------------------
 
 template <typename TreeType>
-void NewickProcessor<TreeType>::prepare_reading( NewickBroker const& broker, TreeType& tree )
+void NewickReader<TreeType>::prepare_reading( NewickBroker const& broker, TreeType& tree )
 {
     // Silence unused parameter warnings.
     (void) broker;
@@ -282,7 +280,7 @@ void NewickProcessor<TreeType>::prepare_reading( NewickBroker const& broker, Tre
 }
 
 template <typename TreeType>
-void NewickProcessor<TreeType>::element_to_node( NewickBrokerElement const& element, NodeType& node )
+void NewickReader<TreeType>::element_to_node( NewickBrokerElement const& element, NodeType& node )
 {
     // Silence unused parameter warnings.
     (void) element;
@@ -290,7 +288,7 @@ void NewickProcessor<TreeType>::element_to_node( NewickBrokerElement const& elem
 }
 
 template <typename TreeType>
-void NewickProcessor<TreeType>::element_to_edge( NewickBrokerElement const& element, EdgeType& edge )
+void NewickReader<TreeType>::element_to_edge( NewickBrokerElement const& element, EdgeType& edge )
 {
     // Silence unused parameter warnings.
     (void) element;
@@ -298,7 +296,7 @@ void NewickProcessor<TreeType>::element_to_edge( NewickBrokerElement const& elem
 }
 
 template <typename TreeType>
-void NewickProcessor<TreeType>::finish_reading( NewickBroker const& broker, TreeType& tree )
+void NewickReader<TreeType>::finish_reading( NewickBroker const& broker, TreeType& tree )
 {
     // Silence unused parameter warnings.
     (void) broker;
@@ -313,7 +311,7 @@ void NewickProcessor<TreeType>::finish_reading( NewickBroker const& broker, Tree
  * @brief Build a Tree from a NewickBroker.
  */
 template <typename TreeType>
-void NewickProcessor<TreeType>::broker_to_tree (
+void NewickReader<TreeType>::broker_to_tree (
     NewickBroker const& broker, TreeType& tree
 ) {
     typename TreeType::LinkContainer links;
@@ -419,125 +417,6 @@ void NewickProcessor<TreeType>::broker_to_tree (
     // Finish and hand over the elements to the tree.
     finish_reading(broker, tree);
     tree.import_content(links, nodes, edges);
-}
-
-// =================================================================================================
-//     Printing
-// =================================================================================================
-
-/**
- * @brief Writes the tree to a file in Newick format.
- *
- * If the file already exists, the function throws `std::runtime_error`.
- * The function uses utils::file_write. See there for other exceptions that can be thrown.
- */
-template <typename TreeType>
-void NewickProcessor<TreeType>::to_file (
-    const TreeType& tree, const std::string filename
-) {
-    if( utils::file_exists(filename) ) {
-        throw std::runtime_error( "Newick file '" + filename + "' already exist." );
-    }
-    std::string ts;
-    to_string(tree, ts);
-    utils::file_write(ts, filename);
-}
-
-/**
- * @brief Gives a Newick string representation of the tree.
- *
- * In case the tree was read from a Newick file, this function should produce the same
- * representation.
- */
-template <typename TreeType>
-void NewickProcessor<TreeType>::to_string (
-    const TreeType& tree, std::string& ts
-) {
-    ts = to_string(tree);
-}
-
-/**
- * @brief Returns a Newick string representation of the tree.
- *
- * In case the tree was read from a Newick file, this function should produce the same
- * representation.
- */
-template <typename TreeType>
-std::string NewickProcessor<TreeType>::to_string (const TreeType& tree)
-{
-    NewickBroker broker;
-    tree_to_broker(tree, broker);
-    broker.assign_ranks();
-    return generate_newick_tree(broker);
-}
-
-/**
- * @brief Stores the information of the tree into a NewickBroker object.
- */
-template <typename TreeType>
-void NewickProcessor<TreeType>::tree_to_broker (
-    const TreeType& tree, NewickBroker& broker
-) {
-    prepare_writing(tree, broker);
-
-    // store the depth from each node to the root. this is needed to assign levels of depth
-    // to the nodes for the broker.
-    std::vector<int> depth = node_depth_vector(tree);
-
-    // now fill the broker with nodes via postorder traversal, so that the root is put on top last.
-    broker.clear();
-    for( auto it : postorder(tree) ) {
-        NewickBrokerElement bn;
-        bn.depth = depth[ it.node().index() ];
-
-        node_to_element( it.node(), bn );
-        // only write edge data to the broker element if it is not the last iteration.
-        // the last iteration is the root, which usually does not have edge information in newick.
-        // caveat: for the root node, the edge will point to an arbitrary edge away from the root.
-        if (!it.is_last_iteration()) {
-            edge_to_element( it.edge(), bn );
-        }
-
-        broker.push_top(bn);
-    }
-
-    finish_writing(tree, broker);
-}
-
-// -------------------------------------------------------------------------
-//     Virtual Methods
-// -------------------------------------------------------------------------
-
-template <typename TreeType>
-void NewickProcessor<TreeType>::prepare_writing( TreeType const& tree, NewickBroker& broker )
-{
-    // Silence unused parameter warnings.
-    (void) tree;
-    (void) broker;
-}
-
-template <typename TreeType>
-void NewickProcessor<TreeType>::node_to_element( NodeType const& node, NewickBrokerElement& element )
-{
-    // Silence unused parameter warnings.
-    (void) node;
-    (void) element;
-}
-
-template <typename TreeType>
-void NewickProcessor<TreeType>::edge_to_element( EdgeType const& edge, NewickBrokerElement& element )
-{
-    // Silence unused parameter warnings.
-    (void) edge;
-    (void) element;
-}
-
-template <typename TreeType>
-void NewickProcessor<TreeType>::finish_writing( TreeType const& tree, NewickBroker& broker )
-{
-    // Silence unused parameter warnings.
-    (void) tree;
-    (void) broker;
 }
 
 } // namespace tree

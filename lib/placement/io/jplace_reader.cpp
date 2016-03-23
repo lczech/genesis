@@ -8,7 +8,7 @@
 #include "placement/io/jplace_reader.hpp"
 
 #include "placement/function/helper.hpp"
-#include "placement/io/newick_processor.hpp"
+#include "placement/io/newick_reader.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
 #include "utils/core/fs.hpp"
@@ -212,7 +212,7 @@ void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& sm
     // find and process the reference tree
     auto val = doc.get("tree");
     if (!val || !val->is_string() ||
-        !PlacementTreeNewickProcessor().from_string(val->to_string(), smp.tree())
+        !PlacementTreeNewickReader().from_string(val->to_string(), smp.tree())
     ) {
         throw std::runtime_error(
             "Jplace document does not contain a valid Newick tree at key 'tree'."

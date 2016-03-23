@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_PHYLOXML_COLOR_MIXIN_H_
-#define GENESIS_TREE_IO_PHYLOXML_COLOR_MIXIN_H_
+#ifndef GENESIS_TREE_IO_PHYLOXML_COLOR_WRITER_MIXIN_H_
+#define GENESIS_TREE_IO_PHYLOXML_COLOR_WRITER_MIXIN_H_
 
 /**
  * @brief
@@ -8,7 +8,7 @@
  * @ingroup tree
  */
 
-#include "tree/io/color_mixin.hpp"
+#include "tree/io/color_writer_mixin.hpp"
 #include "utils/io/xml/document.hpp"
 
 #include <assert.h>
@@ -18,7 +18,7 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Phyloxml Color Mixin
+//     Phyloxml Color Writer Mixin
 // =================================================================================================
 
 /**
@@ -36,10 +36,10 @@ namespace tree {
  *         </color>
  *     </clade>
  *
- * For more information, see ColorMixin class.
+ * For more information, see ColorWriterMixin class.
  */
 template <typename Base>
-class PhyloxmlColorMixin : public Base, public ColorMixin
+class PhyloxmlColorWriterMixin : public Base, public ColorWriterMixin
 {
     // -------------------------------------------------------------------------
     //     Member Types
@@ -62,14 +62,14 @@ protected:
     {
         Base::prepare_writing(tree, xml);
 
-        if (!ColorMixin::enable_color()) {
+        if (!ColorWriterMixin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, it needs to match the tree's edge count.
         if (
-            ColorMixin::edge_colors().size() > 0 &&
-            ColorMixin::edge_colors().size() != tree.edge_count()
+            ColorWriterMixin::edge_colors().size() > 0 &&
+            ColorWriterMixin::edge_colors().size() != tree.edge_count()
         ) {
             throw std::length_error(
                 "Color vector does not have as many elements as the tree has edges."
@@ -81,14 +81,14 @@ protected:
     {
         Base::edge_to_element(edge, element);
 
-        if (!ColorMixin::enable_color()) {
+        if (!ColorWriterMixin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, use it.
-        if (ColorMixin::edge_colors().size() > 0) {
-            assert( edge.index() <= ColorMixin::edge_colors().size() );
-            set_color(element, ColorMixin::edge_colors()[edge.index()]);
+        if (ColorWriterMixin::edge_colors().size() > 0) {
+            assert( edge.index() <= ColorWriterMixin::edge_colors().size() );
+            set_color(element, ColorWriterMixin::edge_colors()[edge.index()]);
         }
     }
 
@@ -100,7 +100,7 @@ protected:
 
     void set_color( utils::XmlElement& element, unsigned char r, unsigned char g, unsigned char b )
     {
-        if( utils::Color(r, g, b) == ColorMixin::ignored_color() ) {
+        if( utils::Color(r, g, b) == ColorWriterMixin::ignored_color() ) {
             return;
         }
 

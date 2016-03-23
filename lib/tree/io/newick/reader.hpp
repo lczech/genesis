@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_NEWICK_PROCESSOR_H_
-#define GENESIS_TREE_IO_NEWICK_PROCESSOR_H_
+#ifndef GENESIS_TREE_IO_NEWICK_READER_H_
+#define GENESIS_TREE_IO_NEWICK_READER_H_
 
 /**
  * @brief
@@ -25,11 +25,11 @@ class  NewickBroker;
 struct NewickBrokerElement;
 
 // =================================================================================================
-//     Newick Processor
+//     Newick Reader
 // =================================================================================================
 
 template <typename TreeType_>
-class NewickProcessor
+class NewickReader
 {
 
     // -------------------------------------------------------------------------
@@ -49,10 +49,17 @@ public:
 
 public:
 
-    virtual ~NewickProcessor() {}
+    NewickReader() = default;
+    virtual ~NewickReader() {}
+
+    NewickReader(NewickReader const&) = default;
+    NewickReader(NewickReader&&)      = default;
+
+    NewickReader& operator= (NewickReader const&) = default;
+    NewickReader& operator= (NewickReader&&)      = default;
 
     // -------------------------------------------------------------------------
-    //     Parsing
+    //     Reading
     // -------------------------------------------------------------------------
 
 public:
@@ -81,6 +88,10 @@ public:
         const std::string& default_name = ""
     );
 
+    // -------------------------------------------------------------------------
+    //     Virtual Parsing Helpers
+    // -------------------------------------------------------------------------
+
 protected:
 
     virtual void prepare_reading( NewickBroker const& broker, TreeType& tree );
@@ -89,30 +100,12 @@ protected:
     virtual void finish_reading( NewickBroker const& broker, TreeType& tree );
 
     // -------------------------------------------------------------------------
-    //     Printing
-    // -------------------------------------------------------------------------
-
-public:
-
-    void        to_file   (const TreeType& tree, const std::string filename);
-    void        to_string (const TreeType& tree, std::string& ts);
-    std::string to_string (const TreeType& tree);
-
-protected:
-
-    virtual void prepare_writing( TreeType const& tree, NewickBroker& broker );
-    virtual void node_to_element( NodeType const& node, NewickBrokerElement& element );
-    virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element );
-    virtual void finish_writing( TreeType const& tree, NewickBroker& broker );
-
-    // -------------------------------------------------------------------------
     //     Internal Member Functions
     // -------------------------------------------------------------------------
 
 private:
 
     void broker_to_tree (NewickBroker const& broker, TreeType& tree);
-    void tree_to_broker (const TreeType& tree, NewickBroker& broker);
 
 };
 
@@ -124,6 +117,6 @@ private:
 // =================================================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/io/newick/processor.tpp"
+#include "tree/io/newick/reader.tpp"
 
 #endif // include guard

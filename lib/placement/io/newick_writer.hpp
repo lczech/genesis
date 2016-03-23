@@ -1,8 +1,8 @@
-#ifndef GENESIS_PLACEMENT_IO_NEWICK_PROCESSOR_H_
-#define GENESIS_PLACEMENT_IO_NEWICK_PROCESSOR_H_
+#ifndef GENESIS_PLACEMENT_IO_NEWICK_WRITER_H_
+#define GENESIS_PLACEMENT_IO_NEWICK_WRITER_H_
 
 /**
- * @brief Header of Placement Tree Newick Processor class.
+ * @brief
  *
  * @file
  * @ingroup placement
@@ -16,21 +16,21 @@
 #include "placement/function/helper.hpp"
 #include "placement/placement_tree.hpp"
 #include "placement/sample.hpp"
-#include "tree/default/newick_mixin.hpp"
-#include "tree/io/newick/processor.hpp"
+#include "tree/default/newick_writer.hpp"
+#include "tree/io/newick/writer.hpp"
 
 namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Placement Tree Newick Mixin
+//     Placement Tree Newick Writer Mixin
 // =================================================================================================
 
 /**
  * @brief
  */
 template <typename Base>
-class PlacementTreeNewickMixin : public Base
+class PlacementTreeNewickWriterMixin : public Base
 {
     // -------------------------------------------------------------------------
     //     Member Types
@@ -85,28 +85,6 @@ public:
 
 protected:
 
-    virtual void element_to_edge( tree::NewickBrokerElement const& element, EdgeType& edge ) override
-    {
-        Base::element_to_edge(element, edge);
-
-        // Process the edge num.
-        edge.data.reset_edge_num(-1);
-        if (element.tags.size() == 0) {
-            throw std::invalid_argument(
-                "Edge at node '" + element.name + "' does not contain a tag value like '{42}'" +
-                " for the placement edge_num of this edge."
-            );
-        }
-        if (element.tags.size() > 1) {
-            throw std::invalid_argument(
-                "Edge at node '" + element.name + "' contains more than one tag value like " +
-                "'{xyz}'. Expecting only one for the placement edge_num of this edge."
-            );
-        }
-        assert(element.tags.size() == 1);
-        edge.data.reset_edge_num( std::stoi( element.tags[0] ));
-    }
-
     virtual void edge_to_element( EdgeType const& edge, tree::NewickBrokerElement& element ) override
     {
         Base::edge_to_element(edge, element);
@@ -132,13 +110,13 @@ private:
 };
 
 // =================================================================================================
-//     Placement Tree Newick Processor
+//     Placement Tree Newick Writer
 // =================================================================================================
 
-typedef PlacementTreeNewickMixin<
-        tree::DefaultTreeNewickMixin< tree::NewickProcessor< PlacementTree > >
+typedef PlacementTreeNewickWriterMixin<
+        tree::DefaultTreeNewickWriterMixin< tree::NewickWriter< PlacementTree > >
     >
-    PlacementTreeNewickProcessor;
+    PlacementTreeNewickWriter;
 
 } // namespace placement
 } // namespace genesis

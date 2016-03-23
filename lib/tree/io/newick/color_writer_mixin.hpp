@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_NEWICK_COLOR_MIXIN_H_
-#define GENESIS_TREE_IO_NEWICK_COLOR_MIXIN_H_
+#ifndef GENESIS_TREE_IO_NEWICK_COLOR_WRITER_MIXIN_H_
+#define GENESIS_TREE_IO_NEWICK_COLOR_WRITER_MIXIN_H_
 
 /**
  * @brief
@@ -8,7 +8,7 @@
  * @ingroup tree
  */
 
-#include "tree/io/color_mixin.hpp"
+#include "tree/io/color_writer_mixin.hpp"
 #include "tree/io/newick/element.hpp"
 
 #include <assert.h>
@@ -28,10 +28,10 @@ namespace tree {
  * The effect of this class on the Newick output is that (if enabled) a color tag comment will be
  * added to each Newick element like this: `[&!color=#%c0ffee]`.
  *
- * For more information, see ColorMixin class.
+ * For more information, see ColorWriterMixin class.
  */
 template <typename Base>
-class NewickColorMixin : public Base, public ColorMixin
+class NewickColorWriterMixin : public Base, public ColorWriterMixin
 {
     // -------------------------------------------------------------------------
     //     Member Types
@@ -99,14 +99,14 @@ protected:
     {
         Base::prepare_writing(tree, broker);
 
-        if (!ColorMixin::enable_color()) {
+        if (!ColorWriterMixin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, it needs to match the tree's edge count.
         if (
-            ColorMixin::edge_colors().size() > 0 &&
-            ColorMixin::edge_colors().size() != tree.edge_count()
+            ColorWriterMixin::edge_colors().size() > 0 &&
+            ColorWriterMixin::edge_colors().size() != tree.edge_count()
         ) {
             throw std::length_error(
                 "Color vector does not have as many elements as the tree has edges."
@@ -118,14 +118,14 @@ protected:
     {
         Base::edge_to_element(edge, element);
 
-        if (!ColorMixin::enable_color()) {
+        if (!ColorWriterMixin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, use it.
-        if (ColorMixin::edge_colors().size() > 0) {
-            assert( edge.index() <= ColorMixin::edge_colors().size() );
-            set_color(element, ColorMixin::edge_colors()[edge.index()]);
+        if (ColorWriterMixin::edge_colors().size() > 0) {
+            assert( edge.index() <= ColorWriterMixin::edge_colors().size() );
+            set_color(element, ColorWriterMixin::edge_colors()[edge.index()]);
         }
     }
 
@@ -142,7 +142,7 @@ protected:
 
     void set_color( NewickBrokerElement& element, utils::Color color )
     {
-        if( color != ColorMixin::ignored_color() ) {
+        if( color != ColorWriterMixin::ignored_color() ) {
             // TODO do not create new element if there is already one!
             element.comments.push_back( color_tag_prefix_ + color_to_hex(color) + color_tag_suffix_ );
         }

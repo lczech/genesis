@@ -16,7 +16,6 @@
 #include "lib/placement/io/jplace_reader.hpp"
 #include "lib/placement/io/serializer.hpp"
 #include "lib/placement/sample.hpp"
-#include "lib/tree/io/newick/processor.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;

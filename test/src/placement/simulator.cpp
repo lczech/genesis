@@ -11,14 +11,15 @@
 #include <string>
 #include <vector>
 
+#include "lib/placement/function/helper.hpp"
 #include "lib/placement/function/functions.hpp"
 #include "lib/placement/function/operators.hpp"
-#include "lib/placement/io/newick_processor.hpp"
+#include "lib/placement/io/newick_reader.hpp"
 #include "lib/placement/sample.hpp"
 #include "lib/placement/simulator/simulator.hpp"
 #include "lib/placement/simulator/subtree.hpp"
 #include "lib/placement/simulator/twostep.hpp"
-#include "lib/tree/io/newick/processor.hpp"
+#include "lib/tree/io/newick/reader.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;
@@ -26,7 +27,7 @@ using namespace genesis::placement;
 TEST(PlacementSimulator, TwoStepSimple)
 {
     auto tree = PlacementTree();
-    EXPECT_TRUE( PlacementTreeNewickProcessor().from_string(
+    EXPECT_TRUE( PlacementTreeNewickReader().from_string(
         "((B:2.0{0},(D:2.0{1},E:2.0{2})C:2.0{3})A:2.0{4},F:2.0{5},(H:2.0{6},I:2.0{7})G:2.0{8})R:2.0{9};",
         tree
     ));
@@ -47,7 +48,7 @@ TEST(PlacementSimulator, TwoStepLeavesOnly)
 {
     // Build a simple tree.
     auto tree = PlacementTree();
-    EXPECT_TRUE( PlacementTreeNewickProcessor().from_string(
+    EXPECT_TRUE( PlacementTreeNewickReader().from_string(
         "((B:2.0{0},(D:2.0{1},E:2.0{2})C:2.0{3})A:2.0{4},F:2.0{5},(H:2.0{6},I:2.0{7})G:2.0{8})R:2.0{9};",
         tree
     ));

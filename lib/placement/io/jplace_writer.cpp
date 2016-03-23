@@ -13,10 +13,10 @@
 #include <vector>
 
 #include "placement/function/operators.hpp"
-#include "placement/io/newick_processor.hpp"
+#include "placement/io/newick_writer.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
-#include "tree/io/newick/processor.hpp"
+#include "tree/io/newick/writer.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
@@ -80,7 +80,7 @@ void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc) con
     doc.clear();
 
     // set tree
-    auto nwp = PlacementTreeNewickProcessor();
+    auto nwp = PlacementTreeNewickWriter();
     nwp.enable_names(true);
     nwp.enable_branch_lengths(true);
     doc.set("tree", new JsonValueString(nwp.to_string(smp.tree())));
