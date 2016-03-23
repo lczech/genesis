@@ -310,11 +310,7 @@ void NewickProcessor<TreeType>::finish_reading( NewickBroker const& broker, Tree
 // -------------------------------------------------------------------------
 
 /**
- * @brief Builds a Tree from a NewickBroker.
- *
- * It does not take the NewickBroker by const, because assign_ranks() has to be called in order to
- * get the nesting right.
- * TODO: this could be changed by not assigning ranks to the broker but a tmp struct. or by using mutable!!!
+ * @brief Build a Tree from a NewickBroker.
  */
 template <typename TreeType>
 void NewickProcessor<TreeType>::broker_to_tree (
