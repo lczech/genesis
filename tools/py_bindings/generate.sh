@@ -28,4 +28,4 @@ doxygen > /dev/null
 # Run the script
 print_separator "Running bindings script"
 rm -rf src/
-./generate_bindings.py
+./py_binder.py
