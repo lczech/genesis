@@ -24,9 +24,18 @@ project (genesis C CXX)
 # set (genesis_VERSION_MAJOR 0)
 # set (genesis_VERSION_MINOR 1)
 
-set (CMAKE_BUILD_TYPE DEBUG)
-# set (CMAKE_BUILD_TYPE RELEASE)
-# set (CMAKE_VERBOSE_MAKEFILE ON)
+# ------------------------------------------------------------------------------
+#   Build Type
+# ------------------------------------------------------------------------------
+
+set (CMAKE_BUILD_TYPE RELEASE)
+
+# Using the environment variable `GENESIS_DEBUG`, it is possible to change from
+# release mode (default) to debug mode. This is useful for developers.
+if( $ENV{GENESIS_DEBUG} )
+    set (CMAKE_BUILD_TYPE DEBUG)
+    # set (CMAKE_VERBOSE_MAKEFILE ON)
+endif()
 
 message (STATUS "${ColorBlue}Building ${CMAKE_BUILD_TYPE}${ColorEnd}")
 
