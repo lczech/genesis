@@ -152,14 +152,30 @@ class BoostPythonWriter:
         symbol = op.name[len("operator"):]
         if symbol in [ "+=", "-=", "*=", "/=", "%=", ">>=", "<<=", "&=", "^=", "|=" ]:
             return (symbol, "inplace")
+
         if symbol in [ "==", "!=", "<", ">", "<=", ">=" ]:
             return (symbol, "comparison")
+
         if symbol in [ "-", "+", "~", "!" ]:
             return (symbol, "unary")
+
+        if symbol in [ "*", "->" ]:
+            return (symbol, "dereference")
+
+        if symbol in [ "++", "--" ]:
+            return (symbol, "crement")
+
         if symbol == "[]":
             return (symbol, "array")
+
+        if symbol == "()":
+            return (symbol, "access")
+
         if symbol == "<<":
             return (symbol, "ostream")
+
+        if symbol == "=":
+            return (symbol, "assignment")
 
         return None
 
@@ -175,16 +191,22 @@ class BoostPythonWriter:
             if op_class is None:
                 # print "Unknown operator:", operator.name
                 pass
+
             elif op_class[1] in [ "inplace", "comparison" ]:
                 val += "        .def( boost::python::self " + op_class[0] + " boost::python::self )\n"
+
             elif op_class[1] == "unary":
                 val += "        .def( " + op_class[0] + "boost::python::self )\n"
+
             elif op_class[1] == "array":
                 val += BoostPythonWriter.generate_class_function_body (operator, "__getitem__")
+
             elif op_class[1] == "ostream":
                 val += "        .def( boost::python::self_ns::str( boost::python::self ) )\n"
+
             else:
-                print "Operator type not handled:", op_class[1]
+                # print "Operator type not handled:", op_class[1]
+                pass
         return val
 
     # ----------------------------------------------------------------
@@ -248,6 +270,46 @@ class BoostPythonWriter:
     # ----------------------------------------------------------------
 
     @staticmethod
+    def generate_docstring_file (namespace, directory):
+        fn = os.path.join(directory, "docstrings.cpp")
+        f = open(fn, 'w')
+        f.write("/**\n")
+        f.write("* @brief Documentation strings for the Python module.\n")
+        f.write(" *\n")
+        f.write(" * @file\n")
+        f.write(" * @ingroup python\n")
+        f.write(" */\n")
+        f.write("\n")
+        f.write("#include <python/src/common.hpp>\n")
+        f.write("\n")
+        f.write("#include <map>\n")
+        f.write("#include <string>\n")
+        f.write("\n")
+        f.write ("static std::map<std::string, std::string> doc_strings_ = {\n")
+        for cls in namespace.get_all_classes():
+            for func in sorted(cls.methods, key=lambda x: x.name):
+                if func.briefdescription != "" or func.detaileddescription != "":
+                    f.write("    {\"" + func.cpp_signature() + "\", \"")
+                    if func.briefdescription != "":
+                        f.write(CppEscapeString(func.briefdescription))
+                    if func.briefdescription != "" and func.detaileddescription != "":
+                        f.write("\\n\\n")
+                    if func.detaileddescription != "":
+                        f.write(CppEscapeString(func.detaileddescription))
+                    f.write("\"},\n")
+        f.write ("};\n")
+        f.write ("\n")
+        f.write ("const char* get_docstring (const std::string& signature)\n")
+        f.write ("{\n")
+        f.write ("    if (doc_strings_.count(signature) > 0) {\n")
+        f.write ("        return doc_strings_[signature].c_str();\n")
+        f.write ("    } else {\n")
+        f.write ("        return \"\";\n")
+        f.write ("    }\n")
+        f.write ("}\n")
+        f.close()
+
+    @staticmethod
     def generate_files (namespace, directory, module_name):
         class ExportFile:
             def __init__ (self):
@@ -306,43 +368,7 @@ class BoostPythonWriter:
         f.close()
 
         # write doc string file
-        fn = os.path.join(directory, "docstrings.cpp")
-        f = open(fn, 'w')
-        f.write("/**\n")
-        f.write("* @brief Documentation strings for the genesis Python module.\n")
-        f.write(" *\n")
-        f.write(" * @file\n")
-        f.write(" * @ingroup python\n")
-        f.write(" */\n")
-        f.write("\n")
-        f.write("#include <python/src/common.hpp>\n")
-        f.write("\n")
-        f.write("#include <map>\n")
-        f.write("#include <string>\n")
-        f.write("\n")
-        f.write ("static std::map<std::string, std::string> doc_strings_ = {\n")
-        for cls in namespace.get_all_classes():
-            for func in sorted(cls.methods, key=lambda x: x.name):
-                if func.briefdescription != "" or func.detaileddescription != "":
-                    f.write("    {\"" + func.cpp_signature() + "\", \"")
-                    if func.briefdescription != "":
-                        f.write(CppEscapeString(func.briefdescription))
-                    if func.briefdescription != "" and func.detaileddescription != "":
-                        f.write("\\n\\n")
-                    if func.detaileddescription != "":
-                        f.write(CppEscapeString(func.detaileddescription))
-                    f.write("\"},\n")
-        f.write ("};\n")
-        f.write ("\n")
-        f.write ("const char* get_docstring (const std::string& signature)\n")
-        f.write ("{\n")
-        f.write ("    if (doc_strings_.count(signature) > 0) {\n")
-        f.write ("        return doc_strings_[signature].c_str();\n")
-        f.write ("    } else {\n")
-        f.write ("        return \"\";\n")
-        f.write ("    }\n")
-        f.write ("}\n")
-        f.close()
+        BoostPythonWriter.generate_docstring_file( namespace, directory )
 
     @staticmethod
     def generate (namespace):
@@ -353,5 +379,5 @@ class BoostPythonWriter:
 # ==================================================================================================
 
 if __name__ == "__main__":
-    print "This has no  main function."
+    print "This has no main function."
     sys.exit()

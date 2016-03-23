@@ -139,5 +139,5 @@ class DoxygenReader:
 # ==================================================================================================
 
 if __name__ == "__main__":
-    print "This has no  main function."
+    print "This has no main function."
     sys.exit()

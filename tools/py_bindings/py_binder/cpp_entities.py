@@ -14,6 +14,8 @@ class CppParameter:
         self.value = ""
 
     def cpp_signature(self):
+        if self.value == None:
+            self.value = ""
         return self.type+" "+self.name+("="+self.value if self.value != "" else "")
 
 # ==================================================================================================
@@ -36,6 +38,8 @@ class CppFunction:
         self.briefdescription    = ""
         self.detaileddescription = ""
 
+        self.location = ""
+
     def cpp_full_name (self):
         return self.parent.cpp_full_name() + "::" + self.name
 
@@ -46,6 +50,9 @@ class CppFunction:
         val += " (" + ', '.join(x.cpp_signature() for x in self.params) + ")"
         val += (" const" if self.const else "")
         return val
+
+    def dump (self):
+        print "Function " + self.cpp_full_name()
 
 # ==================================================================================================
 #     Class: C++ Iterator
@@ -145,15 +152,18 @@ class CppClass:
             self.add_named_iterator(it_name, begin_name, end_name)
             self.methods[:] = [f for f in self.methods if f.name not in [ begin_name, end_name ]]
 
-    def dump (self, indent=0):
+    def dump (self, indent=0, full=False):
         in_str0 = " " * 4 * indent
         in_str1 = " " * 4 * (indent + 1)
         in_str2 = " " * 4 * (indent + 2)
 
-        print in_str0 + "Class " + self.name
-        print in_str1 + "@ " + self.location
-        if self.briefdescription != "":
-            print in_str1 + self.briefdescription.strip()
+        print in_str0 + "\x1b[33mClass", self.name + "\x1b[0m"
+        print in_str1 + "  \x1b[90m" + self.location + "\x1b[0m"
+        if full == False:
+            return
+
+        # if self.briefdescription != "":
+        #     print in_str1 + self.briefdescription.strip()
 
         if len(self.ctors) > 0:
             print in_str1 + "Constructors:"
@@ -240,7 +250,10 @@ class CppNamespace:
     def get_file_locations (self):
         locations = []
         for cls in self.classes:
-            locations.append(self.classes[cls].location)
+            if self.classes[cls].location == "":
+                print "Warn: Class without location:", self.classes[cls].name
+            else:
+                locations.append(self.classes[cls].location)
         for ns in self.namespaces:
             for loc in self.namespaces[ns].get_file_locations():
                 locations.append(loc)
@@ -260,19 +273,19 @@ class CppNamespace:
             self.classes[cls].location = self.classes[cls].location[len(prefix):]
 
         for ns in self.namespaces:
-            self.namespaces[ns].shorten_location_prefix()
+            self.namespaces[ns].shorten_location_prefix(prefix)
 
-    def dump (self, indent=0):
-        print " " * 4 * indent + "Namespace " + self.name
+    def dump (self, indent=0, full=False):
+        print " " * 4 * indent + "\x1b[31mNamespace " + self.name + "\x1b[0m"
         for ns in self.namespaces:
-            self.namespaces[ns].dump(indent+1)
+            self.namespaces[ns].dump(indent+1, full)
         for cls in self.classes:
-            self.classes[cls].dump(indent+1)
+            self.classes[cls].dump(indent+1, full)
 
 # ==================================================================================================
 #     Main
 # ==================================================================================================
 
 if __name__ == "__main__":
-    print "This has no  main function."
+    print "This has no main function."
     sys.exit()
