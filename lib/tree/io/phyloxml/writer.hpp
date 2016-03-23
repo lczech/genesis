@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_PHYLOXML_PROCESSOR_H_
-#define GENESIS_TREE_IO_PHYLOXML_PROCESSOR_H_
+#ifndef GENESIS_TREE_IO_PHYLOXML_WRITER_H_
+#define GENESIS_TREE_IO_PHYLOXML_WRITER_H_
 
 /**
  * @brief
@@ -22,13 +22,13 @@ namespace utils {
 }
 
 // =================================================================================================
-//     Phyloxml Processor
+//     Phyloxml Writer
 // =================================================================================================
 
 namespace tree {
 
 template <typename TreeType_>
-class PhyloxmlProcessor
+class PhyloxmlWriter
 {
 
     // -------------------------------------------------------------------------
@@ -48,7 +48,7 @@ public:
 
 public:
 
-    virtual ~PhyloxmlProcessor() {}
+    virtual ~PhyloxmlWriter() {}
 
     // ---------------------------------------------------------------------
     //     Reading
@@ -89,6 +89,6 @@ protected:
 // =================================================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/io/phyloxml/processor.tpp"
+#include "tree/io/phyloxml/writer.tpp"
 
 #endif // include guard

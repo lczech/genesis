@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_DEFAULT_PHYLOXML_MIXIN_H_
-#define GENESIS_TREE_DEFAULT_PHYLOXML_MIXIN_H_
+#ifndef GENESIS_TREE_DEFAULT_PHYLOXML_WRITER_H_
+#define GENESIS_TREE_DEFAULT_PHYLOXML_WRITER_H_
 
 /**
  * @brief
@@ -8,20 +8,22 @@
  * @ingroup tree
  */
 
+#include "tree/default/tree.hpp"
+#include "tree/io/phyloxml/writer.hpp"
 #include "utils/io/xml/document.hpp"
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Default Tree Phyloxml Mixin
+//     Default Tree Phyloxml Writer Mixin
 // =================================================================================================
 
 /**
  * @brief
  */
 template <typename Base>
-class DefaultTreePhyloxmlMixin : public Base
+class DefaultTreePhyloxmlWriterMixin : public Base
 {
     // -------------------------------------------------------------------------
     //     Member Types
@@ -97,6 +99,12 @@ protected:
     // }
 
 };
+
+// =================================================================================================
+//     Default Tree Phyloxml Writer
+// =================================================================================================
+
+typedef DefaultTreePhyloxmlWriterMixin<PhyloxmlWriter<DefaultTree>> DefaultTreePhyloxmlWriter;
 
 } // namespace tree
 } // namespace genesis

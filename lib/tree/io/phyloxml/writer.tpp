@@ -33,7 +33,7 @@ namespace tree {
 // -------------------------------------------------------------------------
 
 // template <typename TreeType>
-// void PhyloxmlProcessor<TreeType>::element_to_node( XmlElement const& element, NodeType& node )
+// void PhyloxmlWriter<TreeType>::element_to_node( XmlElement const& element, NodeType& node )
 // {
 //     // Silence unused parameter warnings.
 //     (void) element;
@@ -41,7 +41,7 @@ namespace tree {
 // }
 //
 // template <typename TreeType>
-// void PhyloxmlProcessor<TreeType>::element_to_edge( XmlElement const& element, EdgeType& edge )
+// void PhyloxmlWriter<TreeType>::element_to_edge( XmlElement const& element, EdgeType& edge )
 // {
 //     // Silence unused parameter warnings.
 //     (void) element;
@@ -59,7 +59,7 @@ namespace tree {
  * The function uses utils::file_write. See there for other exceptions that can be thrown.
  */
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::to_file (const TreeType& tree, const std::string filename)
+void PhyloxmlWriter<TreeType>::to_file (const TreeType& tree, const std::string filename)
 {
     if( utils::file_exists(filename) ) {
         throw std::runtime_error( "Phyloxml file '" + filename + "' already exist." );
@@ -76,7 +76,7 @@ void PhyloxmlProcessor<TreeType>::to_file (const TreeType& tree, const std::stri
  * representation.
  */
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::to_string (const TreeType& tree, std::string& ts)
+void PhyloxmlWriter<TreeType>::to_string (const TreeType& tree, std::string& ts)
 {
     ts = to_string(tree);
 }
@@ -88,7 +88,7 @@ void PhyloxmlProcessor<TreeType>::to_string (const TreeType& tree, std::string& 
  * representation.
  */
 template <typename TreeType>
-std::string PhyloxmlProcessor<TreeType>::to_string (const TreeType& tree)
+std::string PhyloxmlWriter<TreeType>::to_string (const TreeType& tree)
 {
     utils::XmlDocument xml;
     to_document(tree, xml);
@@ -99,7 +99,7 @@ std::string PhyloxmlProcessor<TreeType>::to_string (const TreeType& tree)
  * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
  */
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, utils::XmlDocument& xml)
+void PhyloxmlWriter<TreeType>::to_document (const TreeType& tree, utils::XmlDocument& xml)
 {
     xml.clear();
     prepare_writing(tree, xml);
@@ -171,7 +171,7 @@ void PhyloxmlProcessor<TreeType>::to_document (const TreeType& tree, utils::XmlD
 // -------------------------------------------------------------------------
 
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::prepare_writing( TreeType const& tree, utils::XmlDocument& xml )
+void PhyloxmlWriter<TreeType>::prepare_writing( TreeType const& tree, utils::XmlDocument& xml )
 {
     // Silence unused parameter warnings.
     (void) tree;
@@ -179,7 +179,7 @@ void PhyloxmlProcessor<TreeType>::prepare_writing( TreeType const& tree, utils::
 }
 
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::node_to_element( NodeType const& node, utils::XmlElement& element )
+void PhyloxmlWriter<TreeType>::node_to_element( NodeType const& node, utils::XmlElement& element )
 {
     // Silence unused parameter warnings.
     (void) element;
@@ -187,7 +187,7 @@ void PhyloxmlProcessor<TreeType>::node_to_element( NodeType const& node, utils::
 }
 
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::edge_to_element( EdgeType const& edge, utils::XmlElement& element )
+void PhyloxmlWriter<TreeType>::edge_to_element( EdgeType const& edge, utils::XmlElement& element )
 {
     // Silence unused parameter warnings.
     (void) element;
@@ -195,7 +195,7 @@ void PhyloxmlProcessor<TreeType>::edge_to_element( EdgeType const& edge, utils::
 }
 
 template <typename TreeType>
-void PhyloxmlProcessor<TreeType>::finish_writing( TreeType const& tree, utils::XmlDocument& xml )
+void PhyloxmlWriter<TreeType>::finish_writing( TreeType const& tree, utils::XmlDocument& xml )
 {
     // Silence unused parameter warnings.
     (void) tree;

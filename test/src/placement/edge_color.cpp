@@ -12,7 +12,7 @@
 #include "lib/placement/io/edge_color.hpp"
 #include "lib/placement/io/jplace_reader.hpp"
 #include "lib/placement/io/newick_writer.hpp"
-#include "lib/placement/io/phyloxml_processor.hpp"
+#include "lib/placement/io/phyloxml_writer.hpp"
 #include "lib/placement/sample.hpp"
 #include "lib/tree/default/functions.hpp"
 #include "lib/tree/io/newick/color_writer_mixin.hpp"
@@ -37,7 +37,7 @@ TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
     Sample map;
     EXPECT_NO_THROW (JplaceReader().from_file(infile, map));
 
-    typedef PhyloxmlColorWriterMixin<PlacementTreePhyloxmlProcessor> ColoredPlacementTreePhyloxmlWriter;
+    typedef PhyloxmlColorWriterMixin<PlacementTreePhyloxmlWriter> ColoredPlacementTreePhyloxmlWriter;
 
     auto proc = ColoredPlacementTreePhyloxmlWriter();
     proc.edge_colors( placement_color_count_gradient( map ));
