@@ -69,17 +69,17 @@ class BoostPythonWriter:
         return val
 
     @staticmethod
-    def generate_class_header (cls):
-        if len(cls.ctors) > 0:
-            ctor_val  = ", " + BoostPythonWriter.generate_class_constructor(cls.ctors[0])
+    def generate_class_header (clss):
+        if len(clss.ctors) > 0:
+            ctor_val  = ", " + BoostPythonWriter.generate_class_constructor(clss.ctors[0])
         else:
             ctor_val  = ""
-        val  = "    boost::python::class_< " + cls.cpp_full_name() + " > "
-        val += "( \"" + cls.name + "\"" + ctor_val + " )\n"
-        if len(cls.ctors) > 1:
-            for i in range(1, len(cls.ctors)):
+        val  = "    boost::python::class_< " + clss.cpp_full_name() + " > "
+        val += "( \"" + clss.name + "\"" + ctor_val + " )\n"
+        if len(clss.ctors) > 1:
+            for i in range(1, len(clss.ctors)):
                 val += "        .def( "
-                val += BoostPythonWriter.generate_class_constructor(cls.ctors[i])
+                val += BoostPythonWriter.generate_class_constructor(clss.ctors[i])
                 val += " )\n"
         return val
 
@@ -124,13 +124,13 @@ class BoostPythonWriter:
         return val
 
     @staticmethod
-    def generate_class_methods (cls):
-        if len(cls.methods) == 0:
+    def generate_class_methods (clss):
+        if len(clss.methods) == 0:
             return ""
 
         val = "\n        // Public Member Functions\n\n"
         m_list = []
-        for func in cls.methods:
+        for func in clss.methods:
             m_list.append(BoostPythonWriter.generate_class_function_body (func))
 
         for d in sorted(set(m_list)):
@@ -180,13 +180,13 @@ class BoostPythonWriter:
         return None
 
     @staticmethod
-    def generate_class_operators (cls):
-        if len(cls.operators) == 0:
+    def generate_class_operators (clss):
+        if len(clss.operators) == 0:
             return ""
 
         # TODO missing doc strings here!
         val = "\n        // Operators\n\n"
-        for operator in cls.operators:
+        for operator in clss.operators:
             op_class = BoostPythonWriter.classify_operator(operator)
             if op_class is None:
                 # print "Unknown operator:", operator.name
@@ -214,14 +214,14 @@ class BoostPythonWriter:
     # ----------------------------------------------------------------
 
     @staticmethod
-    def generate_class_iterators (cls):
-        if len(cls.iterators) == 0:
+    def generate_class_iterators (clss):
+        if len(clss.iterators) == 0:
             return ""
 
         # TODO missing doc strings here!
         # TODO add iterators with parameters
         val = "\n        // Iterators\n\n"
-        for it in cls.iterators:
+        for it in clss.iterators:
             if it.name == "__iter__":
                 val += "        .def"
             else:
@@ -238,12 +238,12 @@ class BoostPythonWriter:
     # ----------------------------------------------------------------
 
     @staticmethod
-    def generate_class (cls):
-        val = BoostPythonWriter.make_section_header_minor ("Class " + cls.name)
-        val += BoostPythonWriter.generate_class_header (cls)
-        val += BoostPythonWriter.generate_class_methods (cls)
-        val += BoostPythonWriter.generate_class_operators (cls)
-        val += BoostPythonWriter.generate_class_iterators (cls)
+    def generate_class (clss):
+        val = BoostPythonWriter.make_section_header_minor ("Class " + clss.name)
+        val += BoostPythonWriter.generate_class_header (clss)
+        val += BoostPythonWriter.generate_class_methods (clss)
+        val += BoostPythonWriter.generate_class_operators (clss)
+        val += BoostPythonWriter.generate_class_iterators (clss)
         val += "    ;"
         return val
 
@@ -286,8 +286,8 @@ class BoostPythonWriter:
         f.write("#include <string>\n")
         f.write("\n")
         f.write ("static std::map<std::string, std::string> doc_strings_ = {\n")
-        for cls in namespace.get_all_classes():
-            for func in sorted(cls.methods, key=lambda x: x.name):
+        for clss in namespace.get_all_classes():
+            for func in sorted(clss.methods, key=lambda x: x.name):
                 if func.briefdescription != "" or func.detaileddescription != "":
                     f.write("    {\"" + func.cpp_signature() + "\", \"")
                     if func.briefdescription != "":
@@ -318,15 +318,15 @@ class BoostPythonWriter:
 
         # collect export functions for all classes
         export_files = {}
-        for cls in namespace.get_all_classes():
-            cls_str  = BoostPythonWriter.generate_class(cls)
-            cls_file = os.path.splitext(cls.location)[0] + ".cpp"
+        for clss in namespace.get_all_classes():
+            clss_str  = BoostPythonWriter.generate_class(clss)
+            clss_file = os.path.splitext(clss.location)[0] + ".cpp"
 
-            if not export_files.has_key(cls_file):
-                export_files[cls_file] = ExportFile()
+            if not export_files.has_key(clss_file):
+                export_files[clss_file] = ExportFile()
 
-            export_files[cls_file].includes.append(cls.location)
-            export_files[cls_file].class_strings[cls.name] = cls_str
+            export_files[clss_file].includes.append(clss.location)
+            export_files[clss_file].class_strings[clss.name] = clss_str
 
         # write them to files
         for fn, exp in export_files.iteritems():
@@ -344,9 +344,9 @@ class BoostPythonWriter:
                 f.write ("#include \"" + inc + "\"\n")
             f.write ("\n")
 
-            for cls_name, cls_str in exp.class_strings.iteritems():
-                f.write ("void BoostPythonExport_" + cls_name + "()\n{")
-                f.write (cls_str)
+            for clss_name, clss_str in exp.class_strings.iteritems():
+                f.write ("void BoostPythonExport_" + clss_name + "()\n{")
+                f.write (clss_str)
                 f.write ("\n}\n\n")
             f.close()
 
@@ -356,14 +356,14 @@ class BoostPythonWriter:
         f.write ("#include <boost/python.hpp>\n")
         f.write (BoostPythonWriter.make_section_header_major("Forward declarations of all exported classes"))
         for fn, exp in export_files.iteritems():
-             for cls_name, cls_str in exp.class_strings.iteritems():
-                 f.write ("void BoostPythonExport_" + cls_name + "();\n")
+             for clss_name, clss_str in exp.class_strings.iteritems():
+                 f.write ("void BoostPythonExport_" + clss_name + "();\n")
 
         f.write (BoostPythonWriter.make_section_header_major("Boost Python Module"))
         f.write ("BOOST_PYTHON_MODULE(" + module_name + ")\n{\n")
         for fn, exp in export_files.iteritems():
-             for cls_name, cls_str in exp.class_strings.iteritems():
-                 f.write ("    BoostPythonExport_" + cls_name + "();\n")
+             for clss_name, clss_str in exp.class_strings.iteritems():
+                 f.write ("    BoostPythonExport_" + clss_name + "();\n")
         f.write ("}\n")
         f.close()
 

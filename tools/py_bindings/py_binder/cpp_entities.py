@@ -51,8 +51,12 @@ class CppFunction:
         val += (" const" if self.const else "")
         return val
 
-    def dump (self):
-        print "Function " + self.cpp_full_name()
+    def dump (self, indent=0, detail=1):
+        print " " * 4 * indent       + "\x1b[34mFunction " + self.name + "\x1b[0m"
+
+        if detail >= 1:
+            print " " * 4 * (indent + 1) + "\x1b[90m" + self.location + "\x1b[0m"
+            print " " * 4 * (indent + 1) + "\x1b[90m" + self.cpp_signature() + "\x1b[0m"
 
 # ==================================================================================================
 #     Class: C++ Iterator
@@ -66,6 +70,12 @@ class CppIterator:
 
         self.begin  = ""
         self.end    = ""
+
+    def dump (self, indent=0, detail=1):
+        print " " * 4 * indent       + "\x1b[34mIterator " + self.name + "\x1b[0m"
+
+        if detail >= 1:
+            print " " * 4 * (indent + 1) + "\x1b[90m["+self.begin+",",self.end+")\x1b[0m"
 
 # ==================================================================================================
 #     Class: C++ Class
@@ -152,43 +162,65 @@ class CppClass:
             self.add_named_iterator(it_name, begin_name, end_name)
             self.methods[:] = [f for f in self.methods if f.name not in [ begin_name, end_name ]]
 
-    def dump (self, indent=0, full=False):
+    def shorten_location_prefix (self, prefix = ""):
+        if prefix == "":
+            return
+
+        for func in self.ctors:
+            if not func.location.startswith(prefix):
+                print "Location of function", func, "does not start with prefix", prefix
+                continue
+            func.location = func.location[len(prefix):]
+
+        for func in self.dtors:
+            if not func.location.startswith(prefix):
+                print "Location of function", func, "does not start with prefix", prefix
+                continue
+            func.location = func.location[len(prefix):]
+
+        for func in self.methods:
+            if not func.location.startswith(prefix):
+                print "Location of function", func, "does not start with prefix", prefix
+                continue
+            func.location = func.location[len(prefix):]
+
+        for func in self.operators:
+            if not func.location.startswith(prefix):
+                print "Location of function", func, "does not start with prefix", prefix
+                continue
+            func.location = func.location[len(prefix):]
+
+    def dump (self, indent=0, detail=1):
         in_str0 = " " * 4 * indent
         in_str1 = " " * 4 * (indent + 1)
         in_str2 = " " * 4 * (indent + 2)
 
         print in_str0 + "\x1b[33mClass", self.name + "\x1b[0m"
-        print in_str1 + "  \x1b[90m" + self.location + "\x1b[0m"
-        if full == False:
+
+        if detail >= 1:
+            print in_str1 + "\x1b[90m" + self.location + "\x1b[0m"
+            print in_str1 + "\x1b[90m" + self.cpp_full_name() + "\x1b[0m"
+
+        if detail < 2:
             return
 
         # if self.briefdescription != "":
         #     print in_str1 + self.briefdescription.strip()
 
-        if len(self.ctors) > 0:
-            print in_str1 + "Constructors:"
-            for ctor in self.ctors:
-                print in_str2 + ctor.cpp_signature()
+        def print_funcs(name, func_set):
+            if len(func_set) > 0:
+                print in_str1 + "\x1b[34m"+name+":\x1b[0m"
+                for func in sorted(func_set):
+                    if detail == 2:
+                        print in_str2 + "\x1b[34m"+func.name+"\x1b[0m"
+                    else:
+                        func.dump(indent+2, 1)
 
-        if len(self.dtors) > 0:
-            print in_str1 + "Destructors:"
-            for dtor in self.dtors:
-                print in_str2 + dtor.cpp_signature()
-
-        if len(self.methods) > 0:
-            print in_str1 + "Methods:"
-            for m in self.methods:
-                print in_str2 + m.cpp_signature()
-
-        if len(self.operators) > 0:
-            print in_str1 + "Operators:"
-            for o in self.operators:
-                print in_str2 + o.cpp_signature()
-
-        if len(self.iterators) > 0:
-            print in_str1 + "Iterators:"
-            for it in self.iterators:
-                print in_str2 + it.name
+        print_funcs( "Constructors", self.ctors )
+        print_funcs( "Destructors",  self.dtors )
+        print_funcs( "Methods",      self.methods )
+        print_funcs( "Operators",    self.operators )
+        print_funcs( "Iterators",    self.iterators )
 
 # ==================================================================================================
 #     Class: C++ Namespace
@@ -219,41 +251,44 @@ class CppNamespace:
             return
         self.namespaces[ns] = CppNamespace(ns)
 
-    def add_class (self, cls):
-        if cls is None:
+    def add_class (self, clss):
+        if clss is None:
             return
-        if self.classes.has_key (cls.name):
-            print "Namespace", self.name, "already contains a class named", cls.name
+        if self.classes.has_key (clss.cpp_full_name()):
+            print "Namespace", self.name, "already contains a class named", clss.cpp_full_name()
             return
-        self.classes[cls.name] = cls
+        self.classes[clss.cpp_full_name()] = clss
 
     def get_all_classes (self):
         classlist = []
-        for cls in sorted(self.classes):
-            classlist.append(self.classes[cls])
+        for clss in sorted(self.classes):
+            classlist.append(self.classes[clss])
         for ns in sorted(self.namespaces):
-            for cls in self.namespaces[ns].get_all_classes():
-                classlist.append(cls)
+            for clss in self.namespaces[ns].get_all_classes():
+                classlist.append(clss)
         return classlist
 
     def add_function (self, func):
         if func is None:
             return
-        self.functions[func.name] = func
+        if self.functions.has_key (func.cpp_signature()):
+            print "Namespace", self.name, "already contains a function named", func.cpp_signature()
+            return
+        self.functions[func.cpp_signature()] = func
 
     def extract_iterators (self, named = False):
-        for cls in self.classes:
-            self.classes[cls].extract_iterators(named)
+        for clss in self.classes:
+            self.classes[clss].extract_iterators(named)
         for ns in self.namespaces:
             self.namespaces[ns].extract_iterators(named)
 
     def get_file_locations (self):
         locations = []
-        for cls in self.classes:
-            if self.classes[cls].location == "":
-                print "Warn: Class without location:", self.classes[cls].name
+        for clss in self.classes:
+            if self.classes[clss].location == "":
+                print "Warn: Class without location:", self.classes[clss].name
             else:
-                locations.append(self.classes[cls].location)
+                locations.append(self.classes[clss].location)
         for ns in self.namespaces:
             for loc in self.namespaces[ns].get_file_locations():
                 locations.append(loc)
@@ -266,21 +301,36 @@ class CppNamespace:
         if prefix == "":
             prefix = self.get_location_prefix()
 
-        for cls in self.classes:
-            if not self.classes[cls].location.startswith(prefix):
-                print "Location of class", cls, "does not start with prefix", prefix
+        for clss in self.classes:
+            if not self.classes[clss].location.startswith(prefix):
+                print "Location of class", clss, "does not start with prefix", prefix
                 continue
-            self.classes[cls].location = self.classes[cls].location[len(prefix):]
+            self.classes[clss].location = self.classes[clss].location[len(prefix):]
+            self.classes[clss].shorten_location_prefix(prefix)
+
+        for func in self.functions:
+            if not self.functions[func].location.startswith(prefix):
+                print "Location of function", func, "does not start with prefix", prefix
+                continue
+            self.functions[func].location = self.functions[func].location[len(prefix):]
 
         for ns in self.namespaces:
             self.namespaces[ns].shorten_location_prefix(prefix)
 
-    def dump (self, indent=0, full=False):
+    def dump (self, indent=0, detail=1):
+        """Print the content of this namespace: all sub-namespaces, classes and functions.
+        Use of the detail parameter:
+        0: just the names,
+        1: with path and fully qualified names
+        2: with all subfunctions (for classes)"""
+
         print " " * 4 * indent + "\x1b[31mNamespace " + self.name + "\x1b[0m"
-        for ns in self.namespaces:
-            self.namespaces[ns].dump(indent+1, full)
-        for cls in self.classes:
-            self.classes[cls].dump(indent+1, full)
+        for ns in sorted(self.namespaces):
+            self.namespaces[ns].dump(indent+1, detail)
+        for clss in sorted(self.classes):
+            self.classes[clss].dump(indent+1, detail)
+        for func in sorted(self.functions):
+            self.functions[func].dump(indent+1, detail)
 
 # ==================================================================================================
 #     Main

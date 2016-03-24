@@ -36,21 +36,21 @@ if __name__ == "__main__":
         print "Usage:", sys.argv[0], "[input_xml_dir=\"./xml\"] [output_src_dir=\"./src\"]"
         sys.exit()
 
-    # Some user information
+    # Print some user information
     print "Using input  xml dir:", xml_dir
     print "Using output src dir:", src_dir
     print
 
-    # Read doxygen files
-    hierarchy = DoxygenReader.parse (xml_dir)
+    # Read doxygen files into global namespace object
+    ns_global = DoxygenReader.parse_xml_dir (xml_dir)
 
     # Modify according to needs
-    hierarchy.extract_iterators(True)
-    hierarchy.shorten_location_prefix()
+    ns_global.extract_iterators(True)
+    ns_global.shorten_location_prefix()
 
     # Debug output
-    # hierarchy.dump()
+    ns_global.dump(detail=3)
 
     # Generate boost files
-    # print BoostPythonWriter.generate (hierarchy)
-    BoostPythonWriter.generate_files (hierarchy, src_dir, "genesis")
+    # print BoostPythonWriter.generate (ns_global)
+    # BoostPythonWriter.generate_files (ns_global, src_dir, "genesis")

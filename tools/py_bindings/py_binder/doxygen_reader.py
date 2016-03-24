@@ -17,7 +17,7 @@ class DoxygenReader:
     # ----------------------------------------------------------------
 
     @staticmethod
-    def parse_member_function (xml_elem):
+    def parse_function (xml_elem):
         if xml_elem.tag != "memberdef":
             print "Invalid xml tag:", xml_elem.tag
             return None
@@ -45,10 +45,11 @@ class DoxygenReader:
 
         func.briefdescription    = ''.join(xml_elem.find("briefdescription").itertext()).strip()
         func.detaileddescription = ''.join(xml_elem.find("detaileddescription").itertext()).strip()
+        func.location            = xml_elem.find("location").attrib["file"]
 
         # unused properties of the xml element:
-        #~ print "definition:",x.find("definition").text
-        #~ print "argsstring:",x.find("argsstring").text
+        # print "definition:",x.find("definition").text
+        # print "argsstring:",x.find("argsstring").text
 
         return func
 
@@ -62,16 +63,16 @@ class DoxygenReader:
         root = tree.getroot()
 
         classes = []
-        #~ for compound in root.iter("compound"):
+        # for compound in root.iter("compound"):
         for compound in root:
             if not compound.attrib["kind"] in [ "class", "struct" ]:
                 continue
 
-            cls_name = compound.find("compoundname").text.rsplit('::', 1)[1]
-            cls = CppClass(cls_name)
+            clss_name = compound.find("compoundname").text.rsplit('::', 1)[1]
+            clss = CppClass(clss_name)
 
-            cls.briefdescription    = ''.join(compound.find("briefdescription").itertext()).strip()
-            cls.detaileddescription = ''.join(compound.find("detaileddescription").itertext()).strip()
+            clss.briefdescription    = ''.join(compound.find("briefdescription").itertext()).strip()
+            clss.detaileddescription = ''.join(compound.find("detaileddescription").itertext()).strip()
 
             # doxygen sets the class-wide location to the file where the class is first used,
             # which often is a forward declaration, but not the actual definition of the class.
@@ -86,51 +87,110 @@ class DoxygenReader:
                     continue
 
                 for member in section:
-                    func = DoxygenReader.parse_member_function(member)
-                    func.parent = cls
-                    locations.add(member.find("location").attrib["file"])
-                    cls.add_function (func)
+                    if not member.attrib["kind"] == "function":
+                        print "Weird. Member in section '"+section.attrib["kind"]+"' that is not a function."
+                        continue
+
+                    func = DoxygenReader.parse_function(member)
+                    func.parent = clss
+                    locations.add(func.location)
+                    clss.add_function (func)
 
             if len(locations) > 1:
-                print "Weird. Multiple locations for class", cls_name, ":", locations
+                print "Weird. Multiple locations for class", clss_name, ":", locations
             if len(locations) == 0:
-                cls.location = compound.find("location").attrib["file"]
+                clss.location = compound.find("location").attrib["file"]
             else:
-                cls.location = locations.pop()
+                clss.location = locations.pop()
 
-            cls.location = compound.find("location").attrib["file"]
-            classes.append(cls)
+            classes.append(clss)
 
-        classes = sorted(classes, key=lambda cls: cls.name)
+        classes = sorted(classes, key=lambda clss: clss.name)
         return classes
+
+    # ----------------------------------------------------------------
+    #     Parse Namespace
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def parse_namespace_file (filename):
+        tree = xml.etree.ElementTree.parse(filename)
+        root = tree.getroot()
+
+        functions = []
+        for compound in root:
+            if not compound.attrib["kind"] == "namespace":
+                continue
+
+            for section in compound:
+                if section.tag != "sectiondef":
+                    continue
+
+                if not section.attrib["kind"] in [ "func" ]:
+                    continue
+
+                for member in section:
+                    if not member.attrib["kind"] == "function":
+                        print "Weird. Member in section '"+section.attrib["kind"]+"' that is not a function."
+                        continue
+
+                    func = DoxygenReader.parse_function(member)
+                    functions.append(func)
+
+        functions = sorted(functions, key=lambda func: func.name)
+        return functions
 
     # ----------------------------------------------------------------
     #     Parse Doxygen Index
     # ----------------------------------------------------------------
 
     @staticmethod
-    def parse (directory):
+    def parse_xml_dir (directory):
         tree = xml.etree.ElementTree.parse(os.path.join(directory, "index.xml"))
         root = tree.getroot()
 
         ns_global = CppNamespace("")
         for compound in root:
-            if compound.attrib["kind"] in [ "class", "struct" ]:
-                cls_full_name = compound.find("name").text
-                cls_ns_list   = cls_full_name.split("::")
-                cls_name      = cls_ns_list.pop()
 
+            # Process all elements of the namespace.
+            if compound.attrib["kind"] in [ "class", "struct", "namespace" ]:
+
+                # Get basic class information: name and namespace.
+                elem_full_name = compound.find("name").text
+                elem_ns_list   = elem_full_name.split("::")
+
+                # If the element is a class or struct, it's name is not used as a namespace,
+                # so we pop it from the namespace list.
+                # However, if the element is a namespace, we skip this, as we need the element
+                # itself as a namespace.
+                if not compound.attrib["kind"] == "namespace":
+                    elem_name  = elem_ns_list.pop()
+
+                # Move into the namespace of that element,
+                # create parent namespaces when necessary.
                 ns_local = ns_global
-                for ns in cls_ns_list:
+                for ns in elem_ns_list:
                     ns_local.create_namespace(ns)
                     ns_tmp   = ns_local
                     ns_local = ns_local.namespaces[ns]
                     ns_local.parent = ns_tmp
 
+                # Get the details file for the class and parse it.
                 xml_file = os.path.join(directory, compound.attrib["refid"] + ".xml")
-                for cls in DoxygenReader.parse_class_file (xml_file):
-                    cls.parent = ns_local
-                    ns_local.add_class (cls)
+
+                # Parse if the element is a class or struct.
+                if compound.attrib["kind"] in [ "class", "struct" ]:
+                    for clss in DoxygenReader.parse_class_file (xml_file):
+                        clss.parent = ns_local
+                        ns_local.add_class (clss)
+
+                # Parse if the element is a namespace.
+                # Currently, the namespace parser only returns functions.
+                # If this changes, the following needs to be adapted accordingly.
+                if compound.attrib["kind"] == "namespace":
+                    for func in DoxygenReader.parse_namespace_file (xml_file):
+                        func.parent = ns_local
+                        ns_local.add_function (func)
 
         return ns_global
 
