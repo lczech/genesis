@@ -16,6 +16,14 @@ def CamelCaseToUnderscore(name):
 def CppEscapeString(txt):
     return txt.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")
 
+# Helper struct that collects all the information that goes into one file.
+class ExportFile:
+    def __init__ (self):
+        self.scope            = ""
+        self.includes         = []
+        self.class_strings    = {}
+        self.function_strings = []
+
 # ==================================================================================================
 #     Class: Boost Python Writer
 # ==================================================================================================
@@ -40,6 +48,39 @@ class BoostPythonWriter:
     @staticmethod
     def make_section_header_minor(title, indent = 4, length = 70):
         return BoostPythonWriter.make_section_header ("-", title, indent, length)
+
+    # ----------------------------------------------------------------
+    #     Generate Free Functions
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def generate_function_body (func, py_name = ""):
+        val  = "    boost::python::def(\n"
+        val += "        \"" + (func.name if py_name == "" else py_name) + "\",\n"
+        val += "        ( " + func.type + " ( * )( "
+        val += ", ".join(
+            (
+                param.type
+            ) for param in func.params
+        )
+        val += " )"
+        val += ")( &" + func.cpp_full_name() + " )"
+        if len(func.params) > 0:
+            val += ",\n        ( " + ", ".join (
+                (
+                    "boost::python::arg(\"" + param.name + "\")" + (
+                        "" if param.value == "" else
+                        "=(" + param.type + ")(" + param.value + ")"
+                    )
+                ) for param in func.params
+            ) + " )"
+        if func.briefdescription != "":
+            # val += ",\n            \"" + func.briefdescription + "\"\n"
+            val += ",\n        get_docstring(\"" + func.cpp_signature() + "\")\n"
+        else:
+            val += "\n"
+        val += "    );\n"
+        return val
 
     # ----------------------------------------------------------------
     #     Generate Class Header
@@ -302,22 +343,29 @@ class BoostPythonWriter:
         f.write("\n")
         f.write ("static std::map<std::string, std::string> doc_strings_ = {\n")
 
+        def write_docstring( func ):
+            if func.briefdescription != "" or func.detaileddescription != "":
+                if func.cpp_signature() in written_signatures:
+                    print "Warn: Signature already in docstring file:", func.cpp_signature()
+                else:
+                    written_signatures.append( func.cpp_signature() )
+
+                f.write("    {\"" + func.cpp_signature() + "\", \"")
+                if func.briefdescription != "":
+                    f.write(CppEscapeString(func.briefdescription))
+                if func.briefdescription != "" and func.detaileddescription != "":
+                    f.write("\\n\\n")
+                if func.detaileddescription != "":
+                    f.write(CppEscapeString(func.detaileddescription))
+                f.write("\"},\n")
+
         for clss in namespace.get_all_classes():
             for func in sorted(clss.methods, key=lambda x: x.name):
-                if func.briefdescription != "" or func.detaileddescription != "":
-                    if func.cpp_signature() in written_signatures:
-                        print "Warn: Signature already in docstring file:", func.cpp_signature()
-                    else:
-                        written_signatures.append( func.cpp_signature() )
+                write_docstring(func)
+            f.write ("\n")
 
-                    f.write("    {\"" + func.cpp_signature() + "\", \"")
-                    if func.briefdescription != "":
-                        f.write(CppEscapeString(func.briefdescription))
-                    if func.briefdescription != "" and func.detaileddescription != "":
-                        f.write("\\n\\n")
-                    if func.detaileddescription != "":
-                        f.write(CppEscapeString(func.detaileddescription))
-                    f.write("\"},\n")
+        for func in sorted(namespace.get_all_functions()):
+            write_docstring(func)
 
         f.write ("};\n")
         f.write ("\n")
@@ -357,52 +405,16 @@ class BoostPythonWriter:
         f.close()
 
     # ----------------------------------------------------------------
-    #     Generate Files
+    #     Write export files
     # ----------------------------------------------------------------
 
     @staticmethod
-    def generate_files (namespace, directory, module_name):
-        # Helper struct that collects all the information that goes into one file.
-        class ExportFile:
-            def __init__ (self):
-                self.includes      = []
-                self.class_strings = {}
-
-        # Store a dict of file name -> file content.
-        export_files = {}
-
-        # Collect exports for all classes.
-        for clss in namespace.get_all_classes():
-            scope = clss.cpp_full_name().split("::")
-            if scope[0] != "" or scope[1] != module_name:
-                # print "Weird scope:", scope
-                pass
-            if len(scope) > 4:
-                # print "Passing scope", scope
-                pass
-            scope = ".".join( scope[ 2 : len(scope)-1 ])
-
-            clss_str  = "PYTHON_EXPORT_CLASS (" + clss.name + ", \"" + scope + "\")\n{\n"
-            clss_str += BoostPythonWriter.generate_class(clss)
-            clss_str += "}\n"
-
-            inc_file  = os.path.splitext(clss.location)[0] + ".hpp"
-            clss_file = os.path.splitext(clss.location)[0] + ".cpp"
-
-            if not export_files.has_key(clss_file):
-                export_files[clss_file] = ExportFile()
-
-            if export_files[clss_file].class_strings.has_key(clss.name):
-                print "Warn. Export file", clss_file, "already has class", clss.name
-
-            export_files[clss_file].includes.append( inc_file )
-            export_files[clss_file].class_strings[clss.name] = clss_str
-
+    def write_export_files (export_files, directory):
         # Write all the files.
-        for fn, exp in export_files.iteritems():
-            if fn.startswith(".") or fn.startswith("/"):
-                fn = "unnamed" + fn
-            fn = os.path.join(directory, fn)
+        for filename, exp in export_files.iteritems():
+            if filename.startswith(".") or filename.startswith("/"):
+                filename = "unnamed" + filename
+            fn = os.path.join(directory, filename)
             # print "Creating file", fn
 
             if not os.path.exists(os.path.dirname(fn)):
@@ -433,9 +445,87 @@ class BoostPythonWriter:
                 f.write (clss_str)
                 # f.write ("\n}\n\n")
 
+            # Write free functions.
+            if len(exp.function_strings) > 0:
+                identifier = os.path.splitext(filename)[0].replace("/", "_").replace(".", "_") + "_export"
+                f.write("\nPYTHON_EXPORT_FUNCTIONS(" + identifier + ", \"" + exp.scope + "\")\n{\n")
+                for func_str in exp.function_strings:
+                    f.write ("\n")
+                    # f.write ("void BoostPythonExport_" + clss_name + "()\n{")
+                    f.write (func_str)
+                    # f.write ("\n}\n\n")
+                f.write("}\n")
+
             f.close()
 
-        # Write main directory files.
+    # ----------------------------------------------------------------
+    #     Generate Files
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def generate_files (namespace, directory, module_name):
+        # Store a dict of file name -> file content.
+        export_files = {}
+
+        # Collect exports for all classes.
+        for clss in namespace.get_all_classes():
+            scope = clss.cpp_full_name().split("::")
+            if scope[0] != "" or scope[1] != module_name:
+                # print "Weird scope:", scope
+                continue
+            if len(scope) > 4:
+                # print "Passing scope", scope
+                continue
+            scope = ".".join( scope[ 2 : len(scope)-1 ])
+
+            inc_file  = os.path.splitext(clss.location)[0] + ".hpp"
+            clss_file = os.path.splitext(clss.location)[0] + ".cpp"
+
+            if not export_files.has_key(clss_file):
+                export_files[clss_file] = ExportFile()
+                export_files[clss_file].scope = scope
+
+            if export_files[clss_file].scope != scope:
+                print "Warn: Multiple scopes in one file:", export_files[clss_file].scope, "and", scope
+
+            if export_files[clss_file].class_strings.has_key(clss.name):
+                print "Warn. Export file", clss_file, "already has class", clss.name
+
+            clss_str  = "PYTHON_EXPORT_CLASS (" + clss.name + ", \"" + scope + "\")\n{\n"
+            clss_str += BoostPythonWriter.generate_class(clss)
+            clss_str += "}\n"
+
+            export_files[clss_file].includes.append( inc_file )
+            export_files[clss_file].class_strings[clss.name] = clss_str
+
+        # Collect exports for all free functions.
+        for func in namespace.get_all_functions():
+            scope = func.cpp_full_name().split("::")
+            if scope[0] != "" or scope[1] != module_name:
+                # print "Weird scope:", scope
+                continue
+            if len(scope) > 4:
+                # print "Passing scope", scope
+                continue
+            scope = ".".join( scope[ 2 : len(scope)-1 ])
+
+            inc_file  = os.path.splitext(func.location)[0] + ".hpp"
+            func_file = os.path.splitext(func.location)[0] + ".cpp"
+
+            if not export_files.has_key(func_file):
+                export_files[func_file] = ExportFile()
+                export_files[func_file].scope = scope
+
+            if export_files[func_file].scope != scope:
+                print "Warn: Multiple scopes in one file:", export_files[func_file].scope, "and", scope
+
+            func_str = BoostPythonWriter.generate_function_body(func)
+
+            export_files[func_file].includes.append( inc_file )
+            export_files[func_file].function_strings.append( func_str )
+
+        # Write all files.
+        BoostPythonWriter.write_export_files( export_files, directory )
         BoostPythonWriter.generate_docstring_file( namespace, directory )
         # BoostPythonWriter.generate_main_bindings_file( export_files, directory )
 

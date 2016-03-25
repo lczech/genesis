@@ -40,18 +40,19 @@ const char* get_docstring (const std::string& signature);
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Scoped class export macro.
  *
  * The class registration is performed by calling PythonExport::registerClassInitializer. In order
  * to call this when the program is started, we initiate a static object of type
- * RegisterPythonExportClass<classname> with name PythonExporterInstance##Classname; the constructor
- * calls (with an intermediate step) the function PythonExportWrapper<T>(). The body of the
- * PYTHON_EXPORT_CLASS(classname) { .. } macro is the body of PythonExportWrapper<classname>.
+ * RegisterPythonExportClass<classname> with name PythonClassExporterInstance##Classname; the
+ * constructor calls (with an intermediate step) the function PythonExportWrapper<T>().
+ * The body of the PYTHON_EXPORT_CLASS(classname) { .. } macro is the body of
+ * PythonExportWrapper<classname>.
  */
-#define PYTHON_EXPORT_SCOPED_CLASS(Classname, Scope, ...)                              \
-    namespace {                                                                        \
-        RegisterPythonExportClass<Classname> PythonExporterInstance##Classname(Scope); \
-    }                                                                                  \
+#define PYTHON_EXPORT_SCOPED_CLASS(Classname, Scope, ...)                                   \
+    namespace {                                                                             \
+        RegisterPythonExportClass<Classname> PythonClassExporterInstance##Classname(Scope); \
+    }                                                                                       \
     template<> inline void PythonExportWrapper<Classname>()
 
 /**
@@ -69,6 +70,22 @@ const char* get_docstring (const std::string& signature);
 */
 #define PYTHON_REQUIRES_CLASS(Classname) \
     RegisterPythonExportClass<Classname>::PythonExportWrapperDelegator();
+
+/**
+ * @brief Scoped function export macro. Works the same as the scoped class export macro.
+ */
+#define PYTHON_EXPORT_SCOPED_FUNCTIONS(Identifier, Scope, ...)                       \
+    class PythonFuncWrapperClass##Identifier;                                        \
+    namespace {                                                                      \
+        RegisterPythonExportFunction<PythonFuncWrapperClass##Identifier>             \
+            PythonFuncExporterInstance##Identifier(Scope);                           \
+    }                                                                                \
+    template<> inline void PythonExportWrapper<PythonFuncWrapperClass##Identifier>()
+
+/**
+ * @brief Function export macro. Works the same as the class export macro.
+ */
+#define PYTHON_EXPORT_FUNCTIONS(...) PYTHON_EXPORT_SCOPED_FUNCTIONS(__VA_ARGS__, "", 0)
 
 /**
  * @brief Template for export definition function.
@@ -99,7 +116,7 @@ public:
     }
 
     /**
-     * @brief Register a Python initialization function.
+     * @brief Register a Python class initialization function.
      *
      * Functions registered first are called first.
      * Note that therefore, base classes must be registered before
@@ -108,7 +125,14 @@ public:
      * This function is called by the PYTHON_EXPORT_CLASS macro expansion.
      */
     void register_class_initializer(const std::string& ns, void (*func)()) {
-        initializers.push_back(std::make_pair(ns, func));
+        class_initializers.push_back(std::make_pair(ns, func));
+    }
+
+    /**
+     * @brief Register a Python free function initialization function.
+     */
+    void register_func_initializer(const std::string& ns, void (*func)()) {
+        func_initializers.push_back(std::make_pair(ns, func));
     }
 
     /**
@@ -119,12 +143,20 @@ public:
     void init_python() {
         namespace bp = boost::python;
 
-        for (auto it = initializers.begin(); it != initializers.end(); ++it) {
+        // Export all classes.
+        for (auto it = class_initializers.begin(); it != class_initializers.end(); ++it) {
             // Set the current scope to the new sub-module. As long as this variable lives (which is
             // for the body of this loop only), all new exports go into that scope.
             bp::scope current_scope = get_scope(MODULE_NAME + "." + (*it).first);
 
             // Export into the namespace.
+            (*it).second();
+        }
+
+        // Export all functions. Comes after the classes, to make sure that all necessary types
+        // are known to the functions.
+        for (auto it = func_initializers.begin(); it != func_initializers.end(); ++it) {
+            bp::scope current_scope = get_scope(MODULE_NAME + "." + (*it).first);
             (*it).second();
         }
     }
@@ -186,12 +218,20 @@ private:
     }
 
     /**
-     * @brief List of initializer functions.
+     * @brief List of initializer functions for classes.
      *
      * We store the python namespace first, and then the initializer function that defines the
      * class definition.
      */
-    std::vector<std::pair<std::string, void(*)()>> initializers;
+    std::vector<std::pair<std::string, void(*)()>> class_initializers;
+
+    /**
+     * @brief List of initializer functions for free functions.
+     *
+     * We store the python namespace first, and then the initializer function that defines the
+     * free function definition.
+     */
+    std::vector<std::pair<std::string, void(*)()>> func_initializers;
 
     /**
      * @brief
@@ -200,7 +240,7 @@ private:
 };
 
 /**
- * @brief Helper class which is instantiated in order to register a Python export function.
+ * @brief Helper class which is instantiated in order to register a Python class export function.
  *
  * Do not use this class directly, it is used by the PYTHON_... macros.
  *
@@ -229,6 +269,23 @@ public:
             PythonExportWrapper<T>();
             hasBeenCalled = true;
         }
+    }
+};
+
+/**
+ * @brief Helper class which is instantiated in order to register a Python free function
+ * export function.
+ *
+ * Works similar to RegisterPythonExportClass. See there for details.
+ */
+template<typename T>
+class RegisterPythonExportFunction {
+public:
+    RegisterPythonExportFunction(const std::string& ns) {
+        PythonExportHandler::instance().register_func_initializer(
+            ns,
+            &PythonExportWrapper<T>
+        );
     }
 };
 

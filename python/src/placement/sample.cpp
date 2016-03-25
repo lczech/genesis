@@ -145,6 +145,11 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
     //     "merge_duplicates",
     //     void ( ::genesis::placement::Sample & ) ( &::genesis::placement::merge_duplicates )
     // );
+
+}
+
+PYTHON_EXPORT_FUNCTIONS(Sample_Functions, "placement")
+{
     boost::python::def(
         "merge_duplicates",
         ::genesis::placement::merge_duplicates
@@ -168,5 +173,4 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
         "sort_placements_by_like_weight_ratio",
         ( void ( * )( ::genesis::placement::Sample& map ))( &::genesis::placement::sort_placements_by_like_weight_ratio )
     );
-
 }

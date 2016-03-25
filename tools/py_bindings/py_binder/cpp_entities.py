@@ -276,6 +276,15 @@ class CppNamespace:
             return
         self.functions[func.cpp_signature()] = func
 
+    def get_all_functions( self ):
+        funclist = []
+        for func in sorted(self.functions):
+            funclist.append(self.functions[func])
+        for ns in sorted(self.namespaces):
+            for func in self.namespaces[ns].get_all_functions():
+                funclist.append(func)
+        return funclist
+
     def extract_iterators (self, named = False):
         for clss in self.classes:
             self.classes[clss].extract_iterators(named)
