@@ -26,6 +26,7 @@ class CppFunction:
     def __init__ (self):
         self.parent  = None
         self.name    = ""
+        self.template_params = None
 
         self.prot    = "public"
         self.static  = False
@@ -85,6 +86,7 @@ class CppClass:
     def __init__ (self, name):
         self.parent = None
         self.name   = name
+        self.template_params = None
 
         self.ctors = []
         self.dtors = []

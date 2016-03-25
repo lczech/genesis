@@ -1,6 +1,3 @@
-#ifndef GENESIS_BOOST_PYTHON_EXPORT_TREE_TREE_NODE_H_
-#define GENESIS_BOOST_PYTHON_EXPORT_TREE_TREE_NODE_H_
-
 /**
  * @brief
  *
@@ -10,70 +7,81 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/tree/tree_edge.hpp"
-#include "lib/tree/tree_link.hpp"
-#include "lib/tree/tree_node.hpp"
+#include "tree/tree_node.hpp"
 
 template <class NodeDataType, class EdgeDataType>
-void BoostPythonExport_TreeNode (std::string name)
+void PythonExportClass_TreeNode(std::string name)
 {
-    // typedef ::genesis::tree::TreeEdge<NodeDataType, EdgeDataType> EdgeType;
-    typedef ::genesis::tree::TreeLink<NodeDataType, EdgeDataType> LinkType;
-    typedef ::genesis::tree::TreeNode<NodeDataType, EdgeDataType> NodeType;
 
-    boost::python::class_< NodeType, boost::noncopyable > ( name.c_str() )
+    // -------------------------------------------------------------------
+    //     Class TreeNode
+    // -------------------------------------------------------------------
+
+    using namespace ::genesis::tree;
+
+    using TreeNodeType = TreeNode<class NodeDataType, class EdgeDataType>;
+
+    boost::python::class_< TreeNodeType > ( name.c_str(), boost::python::init<  >(  ) )
+        .def( boost::python::init< size_t, LinkType * >(( boost::python::arg("index"), boost::python::arg("primary_link") )) )
+        .def( boost::python::init< TreeNode const & >(( boost::python::arg("") )) )
+        .def( boost::python::init< TreeNode && >(( boost::python::arg("") )) )
 
         // Public Member Functions
 
         .def(
             "dump",
-            ( std::string ( NodeType::* )(  ) const )( &NodeType::dump ),
-            get_docstring("std::string ::genesis::TreeNode::dump () const")
+            ( std::string ( TreeNodeType::* )(  ) const )( &TreeNodeType::dump ),
+            get_docstring("std::string ::genesis::tree::TreeNode::dump () const")
         )
         .def(
             "index",
-            ( size_t ( NodeType::* )(  ) const )( &NodeType::index ),
-            get_docstring("size_t ::genesis::TreeNode::index () const")
+            ( size_t ( TreeNodeType::* )(  ) const )( &TreeNodeType::index ),
+            get_docstring("size_t ::genesis::tree::TreeNode::index () const")
         )
         .def(
             "is_inner",
-            ( bool ( NodeType::* )(  ) const )( &NodeType::is_inner ),
-            get_docstring("bool ::genesis::TreeNode::is_inner () const")
+            ( bool ( TreeNodeType::* )(  ) const )( &TreeNodeType::is_inner ),
+            get_docstring("bool ::genesis::tree::TreeNode::is_inner () const")
         )
         .def(
             "is_leaf",
-            ( bool ( NodeType::* )(  ) const )( &NodeType::is_leaf ),
-            get_docstring("bool ::genesis::TreeNode::is_leaf () const")
+            ( bool ( TreeNodeType::* )(  ) const )( &TreeNodeType::is_leaf ),
+            get_docstring("bool ::genesis::tree::TreeNode::is_leaf () const")
         )
         .def(
             "link",
-            ( LinkType & ( NodeType::* )(  )  )( &NodeType::link ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            get_docstring("LinkType * ::genesis::TreeNode::link () const")
+            ( LinkType & ( TreeNodeType::* )(  ))( &TreeNodeType::link ),
+            get_docstring("LinkType & ::genesis::tree::TreeNode::link ()")
+        )
+        .def(
+            "link",
+            ( LinkType const & ( TreeNodeType::* )(  ) const )( &TreeNodeType::link ),
+            get_docstring("LinkType const & ::genesis::tree::TreeNode::link () const")
         )
         .def(
             "primary_link",
-            ( LinkType & ( NodeType::* )(  )  )( &NodeType::primary_link ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            get_docstring("LinkType * ::genesis::TreeNode::primary_link () const")
+            ( LinkType & ( TreeNodeType::* )(  ))( &TreeNodeType::primary_link ),
+            get_docstring("LinkType & ::genesis::tree::TreeNode::primary_link ()")
+        )
+        .def(
+            "primary_link",
+            ( LinkType const & ( TreeNodeType::* )(  ) const )( &TreeNodeType::primary_link ),
+            get_docstring("LinkType const & ::genesis::tree::TreeNode::primary_link () const")
         )
         .def(
             "rank",
-            ( int ( NodeType::* )(  ) const )( &NodeType::rank ),
-            get_docstring("int ::genesis::TreeNode::rank () const")
+            ( size_t ( TreeNodeType::* )(  ) const )( &TreeNodeType::rank ),
+            get_docstring("size_t ::genesis::tree::TreeNode::rank () const")
         )
-
-        // Operators
-
-
-        // Iterators
-
-        // .add_property(
-        //     "links",
-        //     boost::python::range ( &NodeType::begin_links, &NodeType::end_links )
-        // )
+        .def(
+            "reset_index",
+            ( TreeNode & ( TreeNodeType::* )( size_t ))( &TreeNodeType::reset_index ),
+            ( boost::python::arg("val") )
+        )
+        .def(
+            "reset_primary_link",
+            ( TreeNode & ( TreeNodeType::* )( LinkType * ))( &TreeNodeType::reset_primary_link ),
+            ( boost::python::arg("val") )
+        )
     ;
-
 }
-
-#endif // include guard

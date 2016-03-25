@@ -115,8 +115,16 @@ class BoostPythonWriter:
             ctor_val  = ", " + BoostPythonWriter.generate_class_constructor(clss.ctors[0])
         else:
             ctor_val  = ""
-        val  = "    boost::python::class_< " + clss.cpp_full_name() + " > "
-        val += "( \"" + clss.name + "\"" + ctor_val + " )\n"
+
+        if clss.template_params is None:
+            ctype = clss.cpp_full_name()
+            name  = "\"" + clss.name + "\""
+        else:
+            ctype = clss.name + "Type"
+            name  = "name.c_str()"
+
+        val  = "    boost::python::class_< " + ctype + " > "
+        val += "( " + name + ctor_val + " )\n"
         if len(clss.ctors) > 1:
             for i in range(1, len(clss.ctors)):
                 val += "        .def( "
@@ -129,11 +137,16 @@ class BoostPythonWriter:
     # ----------------------------------------------------------------
 
     @staticmethod
-    def generate_class_function_body (func, py_name = ""):
+    def generate_class_function_body (func, ctype=None, py_name=None):
+        # For class templates, the function type argument is not the class name itself,
+        # so it needs to be provided. For normales classes, we however infer it from the class name:
+        if ctype is None:
+            ctype = func.parent.cpp_full_name()
+
         val  = "        .def(\n"
-        val += "            \"" + (func.name if py_name == "" else py_name) + "\",\n"
+        val += "            \"" + (func.name if py_name == None else py_name) + "\",\n"
         val += "            ( " + func.type + " ( "
-        val += "*" if func.static else func.parent.cpp_full_name() + "::*"
+        val += "*" if func.static else ctype + "::*"
         val += " )( "
         val += ", ".join(
             (
@@ -142,7 +155,7 @@ class BoostPythonWriter:
         )
         val += " )"
         val += " const " if func.const else ""
-        val += ")( &" + func.cpp_full_name() + " )"
+        val += ")( &" + ctype + "::" + func.name + " )"
         if len(func.params) > 0:
             val += ",\n            ( " + ", ".join (
                 (
@@ -160,7 +173,7 @@ class BoostPythonWriter:
         val += "        )\n"
         if func.static:
             val += "        .staticmethod(\""
-            val += func.name if py_name == "" else py_name
+            val += func.name if py_name == None else py_name
             val += "\")\n"
         return val
 
@@ -169,10 +182,15 @@ class BoostPythonWriter:
         if len(clss.methods) == 0:
             return ""
 
+        if clss.template_params is None:
+            ctype = None
+        else:
+            ctype = clss.name + "Type"
+
         val = "\n        // Public Member Functions\n\n"
         m_list = []
         for func in clss.methods:
-            m_list.append(BoostPythonWriter.generate_class_function_body (func))
+            m_list.append(BoostPythonWriter.generate_class_function_body (func, ctype=ctype))
 
         for d in sorted(set(m_list)):
             val += d
@@ -228,6 +246,11 @@ class BoostPythonWriter:
         if len(clss.operators) == 0:
             return ""
 
+        if clss.template_params is None:
+            ctype = None
+        else:
+            ctype = clss.name + "Type"
+
         # TODO missing doc strings here!
         val = ""
         for operator in clss.operators:
@@ -243,7 +266,7 @@ class BoostPythonWriter:
                 val += "        .def( " + op_class[0] + "boost::python::self )\n"
 
             elif op_class[1] == "array":
-                val += BoostPythonWriter.generate_class_function_body (operator, "__getitem__")
+                val += BoostPythonWriter.generate_class_function_body (operator, ctype=ctype, py_name="__getitem__")
 
             elif op_class[1] == "access":
                 pass
@@ -272,6 +295,11 @@ class BoostPythonWriter:
         if len(clss.iterators) == 0:
             return ""
 
+        if clss.template_params is None:
+            ctype = clss.cpp_full_name()
+        else:
+            ctype = clss.name + "Type"
+
         # TODO missing doc strings here!
         # TODO add iterators with parameters
         val = "\n        // Iterators\n\n"
@@ -281,8 +309,8 @@ class BoostPythonWriter:
             else:
                 val += "        .add_property"
             val += "(\n            \"" + it.name + "\",\n            boost::python::range ( &"
-            val += it.parent.cpp_full_name() + "::" + it.begin + ", &"
-            val += it.parent.cpp_full_name() + "::" + it.end
+            val += ctype + "::" + it.begin + ", &"
+            val += ctype + "::" + it.end
             val += " )\n        )\n"
 
         return val
@@ -294,7 +322,15 @@ class BoostPythonWriter:
     @staticmethod
     def generate_class (clss):
         val = BoostPythonWriter.make_section_header_minor ("Class " + clss.name)
-        val += BoostPythonWriter.generate_class_header (clss)
+
+        if clss.template_params is None:
+            val += BoostPythonWriter.generate_class_header (clss)
+        else:
+            val += "    using namespace " + clss.parent.cpp_full_name() + ";\n\n"
+            val += "    using " + clss.name + "Type = "
+            val += clss.name + "<" + ", ".join(clss.template_params) + ">;\n\n"
+            val += BoostPythonWriter.generate_class_header (clss)
+
         val += BoostPythonWriter.generate_class_methods (clss)
         val += BoostPythonWriter.generate_class_operators (clss)
         val += BoostPythonWriter.generate_class_iterators (clss)
@@ -436,7 +472,7 @@ class BoostPythonWriter:
             # f.write ("#include <boost/python.hpp>\n")
             f.write ("#include <python/src/common.hpp>\n\n")
             for inc in set(exp.includes):
-                f.write ("#include \"" + inc + "\"\n")
+                f.write ("#include \"lib/" + inc + "\"\n")
 
             # Write classes.
             for clss_name, clss_str in exp.class_strings.iteritems():
@@ -479,7 +515,11 @@ class BoostPythonWriter:
             scope = ".".join( scope[ 2 : len(scope)-1 ])
 
             inc_file  = os.path.splitext(clss.location)[0] + ".hpp"
-            clss_file = os.path.splitext(clss.location)[0] + ".cpp"
+
+            if clss.template_params is None:
+                clss_file = os.path.splitext(clss.location)[0] + ".cpp"
+            else:
+                clss_file = os.path.splitext(clss.location)[0] + ".hpp"
 
             if not export_files.has_key(clss_file):
                 export_files[clss_file] = ExportFile()
@@ -491,9 +531,16 @@ class BoostPythonWriter:
             if export_files[clss_file].class_strings.has_key(clss.name):
                 print "Warn. Export file", clss_file, "already has class", clss.name
 
-            clss_str  = "PYTHON_EXPORT_CLASS (" + clss.name + ", \"" + scope + "\")\n{\n"
-            clss_str += BoostPythonWriter.generate_class(clss)
-            clss_str += "}\n"
+            if clss.template_params is None:
+                clss_str  = "using namespace " + clss.parent.cpp_full_name() + ";\n\n"
+                clss_str += "PYTHON_EXPORT_CLASS (" + clss.name + ", \"" + scope + "\")\n{\n"
+                clss_str += BoostPythonWriter.generate_class(clss)
+                clss_str += "}\n"
+            else:
+                clss_str  = "template <" + ", ".join(clss.template_params) + ">\n"
+                clss_str += "void PythonExportClass_" + clss.name + "(std::string name)\n{\n"
+                clss_str += BoostPythonWriter.generate_class(clss)
+                clss_str += "}\n"
 
             export_files[clss_file].includes.append( inc_file )
             export_files[clss_file].class_strings[clss.name] = clss_str

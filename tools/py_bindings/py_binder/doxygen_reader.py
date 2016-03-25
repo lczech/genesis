@@ -13,28 +13,49 @@ from cpp_entities import *
 class DoxygenReader:
 
     # ----------------------------------------------------------------
+    #     Parse Template Parameters
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def parse_template_parameters (compound):
+        if compound.find("templateparamlist") is not None:
+            param_list = []
+            for param in compound.find("templateparamlist"):
+                if not param.tag == "param":
+                    print "Warn: Unknown template parameter tag:", param.tag
+
+                param_str = ''.join(param.find("type").itertext()).strip()
+                if param.find("declname") is not None:
+                    param_str += " " + ''.join(param.find("declname").itertext()).strip()
+                param_list.append(param_str)
+            return param_list
+        return None
+
+    # ----------------------------------------------------------------
     #     Parse Member Function
     # ----------------------------------------------------------------
 
     @staticmethod
-    def parse_function (xml_elem):
-        if xml_elem.tag != "memberdef":
-            print "Invalid xml tag:", xml_elem.tag
+    def parse_function (member):
+        if member.tag != "memberdef":
+            print "Invalid xml tag:", member.tag
             return None
-        if xml_elem.attrib["kind"] != "function":
-            print "Invalid member kind:", xml_elem.attrib["kind"]
+        if member.attrib["kind"] != "function":
+            print "Invalid member kind:", member.attrib["kind"]
             return None
 
         func = CppFunction()
-        func.name = xml_elem.find("name").text
-        func.type = ''.join(xml_elem.find("type").itertext())
+        func.name = member.find("name").text
+        func.type = ''.join(member.find("type").itertext())
 
-        func.prot    = (xml_elem.attrib["prot"])
-        func.static  = (xml_elem.attrib["static"] == "yes")
-        func.const   = (xml_elem.attrib["const"]  == "yes")
-        func.virtual = (xml_elem.attrib["virt"]   == "virtual")
+        func.template_params = DoxygenReader.parse_template_parameters(member)
 
-        for p in xml_elem.findall("param"):
+        func.prot    = (member.attrib["prot"])
+        func.static  = (member.attrib["static"] == "yes")
+        func.const   = (member.attrib["const"]  == "yes")
+        func.virtual = (member.attrib["virt"]   == "virtual")
+
+        for p in member.findall("param"):
             param = CppParameter()
             param.type = ''.join(p.find("type").itertext()).strip()
             if p.find("declname") is not None:
@@ -43,9 +64,9 @@ class DoxygenReader:
                 param.value = p.find("defval").text
             func.params.append(param)
 
-        func.briefdescription    = ''.join(xml_elem.find("briefdescription").itertext()).strip()
-        func.detaileddescription = ''.join(xml_elem.find("detaileddescription").itertext()).strip()
-        func.location            = xml_elem.find("location").attrib["file"]
+        func.briefdescription    = ''.join(member.find("briefdescription").itertext()).strip()
+        func.detaileddescription = ''.join(member.find("detaileddescription").itertext()).strip()
+        func.location            = member.find("location").attrib["file"]
 
         # unused properties of the xml element:
         # print "definition:",x.find("definition").text
@@ -71,6 +92,7 @@ class DoxygenReader:
             clss_name = compound.find("compoundname").text.rsplit('::', 1)[1]
             clss = CppClass(clss_name)
 
+            clss.template_params     = DoxygenReader.parse_template_parameters(compound)
             clss.briefdescription    = ''.join(compound.find("briefdescription").itertext()).strip()
             clss.detaileddescription = ''.join(compound.find("detaileddescription").itertext()).strip()
 

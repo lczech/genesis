@@ -1,6 +1,3 @@
-#ifndef GENESIS_BOOST_PYTHON_EXPORT_TREE_TREE_EDGE_H_
-#define GENESIS_BOOST_PYTHON_EXPORT_TREE_TREE_EDGE_H_
-
 /**
  * @brief
  *
@@ -10,60 +7,91 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/tree/tree_edge.hpp"
-#include "lib/tree/tree_link.hpp"
-#include "lib/tree/tree_node.hpp"
+#include "tree/tree_edge.hpp"
 
 template <class NodeDataType, class EdgeDataType>
-void BoostPythonExport_TreeEdge (std::string name)
+void PythonExportClass_TreeEdge(std::string name)
 {
-    typedef ::genesis::tree::TreeEdge<NodeDataType, EdgeDataType> EdgeType;
-    typedef ::genesis::tree::TreeLink<NodeDataType, EdgeDataType> LinkType;
-    typedef ::genesis::tree::TreeNode<NodeDataType, EdgeDataType> NodeType;
 
-    boost::python::class_< EdgeType,  boost::noncopyable > ( name.c_str() )
+    // -------------------------------------------------------------------
+    //     Class TreeEdge
+    // -------------------------------------------------------------------
+
+    using namespace ::genesis::tree;
+
+    using TreeEdgeType = TreeEdge<class NodeDataType, class EdgeDataType>;
+
+    boost::python::class_< TreeEdgeType > ( name.c_str(), boost::python::init<  >(  ) )
+        .def( boost::python::init< size_t, LinkType *, LinkType * >(( boost::python::arg("index"), boost::python::arg("primary_link"), boost::python::arg("secondary_link") )) )
+        .def( boost::python::init< TreeEdge const & >(( boost::python::arg("") )) )
+        .def( boost::python::init< TreeEdge && >(( boost::python::arg("") )) )
 
         // Public Member Functions
 
         .def(
             "dump",
-            ( std::string ( EdgeType::* )(  ) const )( &EdgeType::dump ),
-            get_docstring("std::string ::genesis::TreeEdge::dump () const")
+            ( std::string ( TreeEdgeType::* )(  ) const )( &TreeEdgeType::dump ),
+            get_docstring("std::string ::genesis::tree::TreeEdge::dump () const")
         )
         .def(
             "index",
-            ( size_t ( EdgeType::* )(  ) const )( &EdgeType::index ),
-            get_docstring("size_t ::genesis::TreeEdge::index () const")
+            ( size_t ( TreeEdgeType::* )(  ) const )( &TreeEdgeType::index ),
+            get_docstring("size_t ::genesis::tree::TreeEdge::index () const")
         )
         .def(
             "primary_link",
-            ( LinkType & ( EdgeType::* )(  ) )( &EdgeType::primary_link ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            get_docstring("LinkType * ::genesis::TreeEdge::primary_link () const")
+            ( LinkType & ( TreeEdgeType::* )(  ))( &TreeEdgeType::primary_link ),
+            get_docstring("LinkType & ::genesis::tree::TreeEdge::primary_link ()")
+        )
+        .def(
+            "primary_link",
+            ( LinkType const & ( TreeEdgeType::* )(  ) const )( &TreeEdgeType::primary_link ),
+            get_docstring("LinkType const & ::genesis::tree::TreeEdge::primary_link () const")
         )
         .def(
             "primary_node",
-            ( NodeType & ( EdgeType::* )(  )  )( &EdgeType::primary_node ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            get_docstring("NodeType * ::genesis::TreeEdge::primary_node () const")
+            ( NodeType & ( TreeEdgeType::* )(  ))( &TreeEdgeType::primary_node ),
+            get_docstring("NodeType & ::genesis::tree::TreeEdge::primary_node ()")
+        )
+        .def(
+            "primary_node",
+            ( NodeType const & ( TreeEdgeType::* )(  ) const )( &TreeEdgeType::primary_node ),
+            get_docstring("NodeType const & ::genesis::tree::TreeEdge::primary_node () const")
+        )
+        .def(
+            "reset_index",
+            ( TreeEdge & ( TreeEdgeType::* )( size_t ))( &TreeEdgeType::reset_index ),
+            ( boost::python::arg("val") )
+        )
+        .def(
+            "reset_primary_link",
+            ( TreeEdge & ( TreeEdgeType::* )( LinkType * ))( &TreeEdgeType::reset_primary_link ),
+            ( boost::python::arg("val") )
+        )
+        .def(
+            "reset_secondary_link",
+            ( TreeEdge & ( TreeEdgeType::* )( LinkType * ))( &TreeEdgeType::reset_secondary_link ),
+            ( boost::python::arg("val") )
         )
         .def(
             "secondary_link",
-            ( LinkType & ( EdgeType::* )(  )  )( &EdgeType::secondary_link ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            get_docstring("LinkType * ::genesis::TreeEdge::secondary_link () const")
+            ( LinkType & ( TreeEdgeType::* )(  ))( &TreeEdgeType::secondary_link ),
+            get_docstring("LinkType & ::genesis::tree::TreeEdge::secondary_link ()")
+        )
+        .def(
+            "secondary_link",
+            ( LinkType const & ( TreeEdgeType::* )(  ) const )( &TreeEdgeType::secondary_link ),
+            get_docstring("LinkType const & ::genesis::tree::TreeEdge::secondary_link () const")
         )
         .def(
             "secondary_node",
-            ( NodeType & ( EdgeType::* )(  )  )( &EdgeType::secondary_node ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            get_docstring("NodeType * ::genesis::TreeEdge::secondary_node () const")
+            ( NodeType & ( TreeEdgeType::* )(  ))( &TreeEdgeType::secondary_node ),
+            get_docstring("NodeType & ::genesis::tree::TreeEdge::secondary_node ()")
         )
-
-        // Operators
-
+        .def(
+            "secondary_node",
+            ( NodeType const & ( TreeEdgeType::* )(  ) const )( &TreeEdgeType::secondary_node ),
+            get_docstring("NodeType const & ::genesis::tree::TreeEdge::secondary_node () const")
+        )
     ;
-
 }
-
-#endif // include guard
