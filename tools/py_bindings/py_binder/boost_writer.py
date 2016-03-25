@@ -149,7 +149,7 @@ class BoostPythonWriter:
         if not op.name.startswith("operator"):
             return None
 
-        symbol = op.name[len("operator"):]
+        symbol = op.name[len("operator"):].strip()
         if symbol in [ "+=", "-=", "*=", "/=", "%=", ">>=", "<<=", "&=", "^=", "|=" ]:
             return (symbol, "inplace")
 
@@ -158,12 +158,6 @@ class BoostPythonWriter:
 
         if symbol in [ "-", "+", "~", "!" ]:
             return (symbol, "unary")
-
-        if symbol in [ "*", "->" ]:
-            return (symbol, "dereference")
-
-        if symbol in [ "++", "--" ]:
-            return (symbol, "crement")
 
         if symbol == "[]":
             return (symbol, "array")
@@ -174,8 +168,17 @@ class BoostPythonWriter:
         if symbol == "<<":
             return (symbol, "ostream")
 
+        if symbol in [ "*", "->" ]:
+            return (symbol, "dereference")
+
+        if symbol in [ "++", "--" ]:
+            return (symbol, "crement")
+
         if symbol == "=":
             return (symbol, "assignment")
+
+        if symbol in [ "bool" ]:
+            return (symbol, "conversion")
 
         return None
 
@@ -185,11 +188,11 @@ class BoostPythonWriter:
             return ""
 
         # TODO missing doc strings here!
-        val = "\n        // Operators\n\n"
+        val = ""
         for operator in clss.operators:
             op_class = BoostPythonWriter.classify_operator(operator)
             if op_class is None:
-                # print "Unknown operator:", operator.name
+                print "Weird. Empty operator in class", clss.name
                 pass
 
             elif op_class[1] in [ "inplace", "comparison" ]:
@@ -201,12 +204,22 @@ class BoostPythonWriter:
             elif op_class[1] == "array":
                 val += BoostPythonWriter.generate_class_function_body (operator, "__getitem__")
 
+            elif op_class[1] == "access":
+                pass
+
             elif op_class[1] == "ostream":
                 val += "        .def( boost::python::self_ns::str( boost::python::self ) )\n"
 
-            else:
-                # print "Operator type not handled:", op_class[1]
+            elif op_class[1] in [ "dereference", "crement", "assignment", "conversion" ]:
                 pass
+
+            else:
+                print "Operator type not handled:", op_class[1], operator.name
+                pass
+
+        # If we actually added operators, make a section for them.
+        if val != "":
+            val = "\n        // Operators\n\n" + val
         return val
 
     # ----------------------------------------------------------------
@@ -244,7 +257,7 @@ class BoostPythonWriter:
         val += BoostPythonWriter.generate_class_methods (clss)
         val += BoostPythonWriter.generate_class_operators (clss)
         val += BoostPythonWriter.generate_class_iterators (clss)
-        val += "    ;"
+        val += "    ;\n"
         return val
 
     # ----------------------------------------------------------------
@@ -266,13 +279,15 @@ class BoostPythonWriter:
         return val
 
     # ----------------------------------------------------------------
-    #     Generate
+    #     Generate Docstring File
     # ----------------------------------------------------------------
 
     @staticmethod
     def generate_docstring_file (namespace, directory):
+        written_signatures = []
         fn = os.path.join(directory, "docstrings.cpp")
         f = open(fn, 'w')
+
         f.write("/**\n")
         f.write("* @brief Documentation strings for the Python module.\n")
         f.write(" *\n")
@@ -286,9 +301,15 @@ class BoostPythonWriter:
         f.write("#include <string>\n")
         f.write("\n")
         f.write ("static std::map<std::string, std::string> doc_strings_ = {\n")
+
         for clss in namespace.get_all_classes():
             for func in sorted(clss.methods, key=lambda x: x.name):
                 if func.briefdescription != "" or func.detaileddescription != "":
+                    if func.cpp_signature() in written_signatures:
+                        print "Warn: Signature already in docstring file:", func.cpp_signature()
+                    else:
+                        written_signatures.append( func.cpp_signature() )
+
                     f.write("    {\"" + func.cpp_signature() + "\", \"")
                     if func.briefdescription != "":
                         f.write(CppEscapeString(func.briefdescription))
@@ -297,6 +318,7 @@ class BoostPythonWriter:
                     if func.detaileddescription != "":
                         f.write(CppEscapeString(func.detaileddescription))
                     f.write("\"},\n")
+
         f.write ("};\n")
         f.write ("\n")
         f.write ("const char* get_docstring (const std::string& signature)\n")
@@ -309,48 +331,15 @@ class BoostPythonWriter:
         f.write ("}\n")
         f.close()
 
+    # ----------------------------------------------------------------
+    #     Generate Docstring File
+    # ----------------------------------------------------------------
+
     @staticmethod
-    def generate_files (namespace, directory, module_name):
-        class ExportFile:
-            def __init__ (self):
-                self.includes      = []
-                self.class_strings = {}
+    def generate_main_bindings_file (export_files, directory):
+        """Helper function for the old export way, where the module main file calls all export
+        functions explicitly. Not used any more, due to the export registry."""
 
-        # collect export functions for all classes
-        export_files = {}
-        for clss in namespace.get_all_classes():
-            clss_str  = BoostPythonWriter.generate_class(clss)
-            clss_file = os.path.splitext(clss.location)[0] + ".cpp"
-
-            if not export_files.has_key(clss_file):
-                export_files[clss_file] = ExportFile()
-
-            export_files[clss_file].includes.append(clss.location)
-            export_files[clss_file].class_strings[clss.name] = clss_str
-
-        # write them to files
-        for fn, exp in export_files.iteritems():
-            if fn.startswith(".") or fn.startswith("/"):
-                fn = "unnamed" + fn
-            fn = os.path.join(directory, fn)
-            print "Creating file", fn
-
-            if not os.path.exists(os.path.dirname(fn)):
-                os.makedirs(os.path.dirname(fn))
-
-            f = open(fn, 'w')
-            f.write ("#include <boost/python.hpp>\n")
-            for inc in set(exp.includes):
-                f.write ("#include \"" + inc + "\"\n")
-            f.write ("\n")
-
-            for clss_name, clss_str in exp.class_strings.iteritems():
-                f.write ("void BoostPythonExport_" + clss_name + "()\n{")
-                f.write (clss_str)
-                f.write ("\n}\n\n")
-            f.close()
-
-        # write main bindings file
         fn = os.path.join(directory, "bindings.cpp")
         f = open(fn, 'w')
         f.write ("#include <boost/python.hpp>\n")
@@ -367,8 +356,88 @@ class BoostPythonWriter:
         f.write ("}\n")
         f.close()
 
-        # write doc string file
+    # ----------------------------------------------------------------
+    #     Generate Files
+    # ----------------------------------------------------------------
+
+    @staticmethod
+    def generate_files (namespace, directory, module_name):
+        # Helper struct that collects all the information that goes into one file.
+        class ExportFile:
+            def __init__ (self):
+                self.includes      = []
+                self.class_strings = {}
+
+        # Store a dict of file name -> file content.
+        export_files = {}
+
+        # Collect exports for all classes.
+        for clss in namespace.get_all_classes():
+            scope = clss.cpp_full_name().split("::")
+            if scope[0] != "" or scope[1] != module_name:
+                # print "Weird scope:", scope
+                pass
+            if len(scope) > 4:
+                # print "Passing scope", scope
+                pass
+            scope = ".".join( scope[ 2 : len(scope)-1 ])
+
+            clss_str  = "PYTHON_EXPORT_CLASS (" + clss.name + ", \"" + scope + "\")\n{\n"
+            clss_str += BoostPythonWriter.generate_class(clss)
+            clss_str += "}\n"
+
+            inc_file  = os.path.splitext(clss.location)[0] + ".hpp"
+            clss_file = os.path.splitext(clss.location)[0] + ".cpp"
+
+            if not export_files.has_key(clss_file):
+                export_files[clss_file] = ExportFile()
+
+            if export_files[clss_file].class_strings.has_key(clss.name):
+                print "Warn. Export file", clss_file, "already has class", clss.name
+
+            export_files[clss_file].includes.append( inc_file )
+            export_files[clss_file].class_strings[clss.name] = clss_str
+
+        # Write all the files.
+        for fn, exp in export_files.iteritems():
+            if fn.startswith(".") or fn.startswith("/"):
+                fn = "unnamed" + fn
+            fn = os.path.join(directory, fn)
+            # print "Creating file", fn
+
+            if not os.path.exists(os.path.dirname(fn)):
+                os.makedirs(os.path.dirname(fn))
+
+            if os.path.isfile(fn):
+                print "Warn: File already exists:", fn
+
+            # Write file intro.
+            f = open(fn, 'w')
+            f.write("/**\n")
+            f.write(" * @brief\n")
+            f.write(" *\n")
+            f.write(" * @file\n")
+            f.write(" * @ingroup python\n")
+            f.write(" */\n\n")
+
+            # Write includes.
+            # f.write ("#include <boost/python.hpp>\n")
+            f.write ("#include <python/src/common.hpp>\n\n")
+            for inc in set(exp.includes):
+                f.write ("#include \"" + inc + "\"\n")
+
+            # Write classes.
+            for clss_name, clss_str in exp.class_strings.iteritems():
+                f.write ("\n")
+                # f.write ("void BoostPythonExport_" + clss_name + "()\n{")
+                f.write (clss_str)
+                # f.write ("\n}\n\n")
+
+            f.close()
+
+        # Write main directory files.
         BoostPythonWriter.generate_docstring_file( namespace, directory )
+        # BoostPythonWriter.generate_main_bindings_file( export_files, directory )
 
     @staticmethod
     def generate (namespace):

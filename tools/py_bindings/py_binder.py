@@ -49,8 +49,9 @@ if __name__ == "__main__":
     ns_global.shorten_location_prefix()
 
     # Debug output
-    ns_global.dump(detail=3)
+    # ns_global.dump(detail=3)
 
     # Generate boost files
     # print BoostPythonWriter.generate (ns_global)
-    # BoostPythonWriter.generate_files (ns_global, src_dir, "genesis")
+    BoostPythonWriter.generate_files (ns_global, src_dir, "genesis")
+    print "Finished."

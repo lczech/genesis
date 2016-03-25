@@ -66,7 +66,6 @@ const char* get_docstring (const std::string& signature);
 /**
 * @brief Call this macro inside the initialization function to tell the system that
 * another class must be initialized previously (particularly, a base class)
-*
 */
 #define PYTHON_REQUIRES_CLASS(Classname) \
     RegisterPythonExportClass<Classname>::PythonExportWrapperDelegator();
