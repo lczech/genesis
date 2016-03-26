@@ -24,6 +24,7 @@ class ExportFile:
         self.includes         = []
         self.class_strings    = {}
         self.function_strings = []
+        self.func_templates   = {}
 
 # ==================================================================================================
 #     Class: Boost Python Writer
@@ -505,6 +506,17 @@ class BoostPythonWriter:
                     # f.write ("\n}\n\n")
                 f.write("}\n")
 
+            # Write function templates.
+            if len(exp.func_templates) > 0:
+                for tmpl_params, func_str in exp.func_templates.iteritems():
+                    identifier  = os.path.splitext(filename)[0].replace("/", "_").replace(".", "_")
+                    identifier += "_" + tmpl_params.replace("class", "").replace("typename", "").replace(" ", "").replace(",", "_")
+
+                    f.write( "\ntemplate<" + tmpl_params + ">\n" )
+                    f.write( "void python_export_function_" + identifier + " ()\n{\n" )
+                    f.write( "\n".join(func_str) + "}\n" )
+                f.write("\n")
+
             f.close()
 
     # ----------------------------------------------------------------
@@ -575,7 +587,11 @@ class BoostPythonWriter:
             scope = ".".join( scope[ 2 : len(scope)-1 ])
 
             inc_file  = os.path.splitext(func.location)[0] + ".hpp"
-            func_file = os.path.splitext(func.location)[0] + ".cpp"
+
+            if func.template_params is None:
+                func_file = os.path.splitext(func.location)[0] + ".cpp"
+            else:
+                func_file = os.path.splitext(func.location)[0] + ".hpp"
 
             if not export_files.has_key(func_file):
                 export_files[func_file] = ExportFile()
@@ -586,12 +602,19 @@ class BoostPythonWriter:
 
             if export_files[func_file].using not in [ "", func.parent.cpp_full_name() ]:
                 print "Warn: using namespace already set to", export_files[func_file].using, "instead of", func.parent.cpp_full_name();
+
             export_files[func_file].using = func.parent.cpp_full_name()
-
-            func_str = BoostPythonWriter.generate_function_body(func)
-
             export_files[func_file].includes.append( inc_file )
-            export_files[func_file].function_strings.append( func_str )
+
+            if func.template_params is None:
+                func_str = BoostPythonWriter.generate_function_body(func)
+                export_files[func_file].function_strings.append( func_str )
+            else:
+                tmpl_params = ", ".join(func.template_params)
+                func_str = BoostPythonWriter.generate_function_body(func)
+                if not export_files[func_file].func_templates.has_key(tmpl_params):
+                    export_files[func_file].func_templates[tmpl_params] = []
+                export_files[func_file].func_templates[tmpl_params].append(func_str)
 
         # Write all files.
         BoostPythonWriter.write_export_files( export_files, directory )
