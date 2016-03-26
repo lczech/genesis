@@ -24,6 +24,10 @@ body, table, div, p, dl {
 
 /* @group Heading Levels */
 
+h1 {
+	font-size: 150%;
+}
+
 h1.groupheader {
 	font-size: 150%;
 }

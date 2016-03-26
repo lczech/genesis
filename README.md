@@ -7,8 +7,8 @@ A toolkit for working with phylogenetic data.
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg)
 ![Language](https://img.shields.io/badge/language-python-lightgrey.svg)
 
-Introduction
-------------
+Purpose
+-------------------
 
 The aim of this project is to provide an easy to use toolkit for working with phylogenetic data.
 Currently, it supports:
@@ -24,79 +24,19 @@ Currently, it supports:
 
 The feature list will hopefully grow in the future.
 
-Usage
------
+Usage and Resources
+-------------------
 
-The library provided by genesis can be used in two ways, depending on the users preferences and
-needs:
+The functionality of genesis can be used in two ways:
 
  *  As a C++ library.
  *  As a Python module.
 
-The code is written as a C++11 library. It can thus be used in custom projects by including
-the necessary headers and linking against the binary (either shared or static, see section Build).
-Furthermore, for quickly prototyping small applications that use genesis as their main
-library, have a look at the `./apps` directory.
+The documentation is available at [doc.genesis-lib.org](http://doc.genesis-lib.org/). It contains a
+user manual with setup instructions and tutorials, as well as the full API reference.
 
-In addition to C++, the classes and functions are (mostly) exported to Python. The genesis module
-can be imported and used as any other Python code.
+For user support, please see our [support forum](http://support.genesis-lib.org/). It is
+intended for questions on how to do things with genesis.
 
-Documentation
--------------
-
-The genesis documentation is available at [doc.genesis-lib.org](http://doc.genesis-lib.org/).
-
-Build
------
-
-To build all of genesis, call
-
-    make
-
-in the main directory. This requires [make](https://www.gnu.org/software/make/) and
-[cmake](https://cmake.org/) 2.6 or higher.
-It will build all parts of genesis for which the requirements are fulfilled.
-
-Requirements:
-
- *  Building the C++ library binaries (shared or static) requires a fairly up-to-date C++11
-    compiler. We currently use [clang](http://clang.llvm.org/) 3.6.0, but it works with
-    [gcc](https://gcc.gnu.org/) as well.
- *  Building the Python module requires [Boost Python](www.boost.org/doc/libs/release/libs/python/)
-    1.41 or higher. Frankly, this is a huge requirement, but currently this is the way it is.
-    You might need to compile Boost Python with the `-fPIC` flag to work properly.
- *  If you also want to build the tests, you need [Google Test](https://github.com/google/googletest).
-    We internally run the tests before every release, so you don't need to. Have a look at the
-    `./test` directory for more information.
-
-The build files are written to the `./build` directory, and the final binaries to the `./bin`
-directory.
-
-If you add new files to be compiled (either an app, some lib function, python bindings, or tests),
-you can call `make update` to include those files without need for recompiling everything.
-
-Issues & Bugs
--------------
-
-Please report any issues, bugs and feature requests to the
-[issues](https://github.com/lczech/genesis/issues) page.
-
-References
-----------
-
-Please refer to the following articles for more information on phylogenetic placement of short
-reads:
-
-> S. Berger, D. Krompass, and A. Stamatakis,
-> **Performance, accuracy, and web server for evolutionary placement of short sequence reads
-> under maximum likelihood**,
-> *Syst. Biol., vol. 60, no. 3, pp. 291–302, 2011*.
-
-> F. A. Matsen, R. B. Kodner, and E. V. Armbrust,
-> **pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences
-> onto a fixed reference tree**,
-> *BMC Bioinformatics, vol. 11, no. 1, p. 538, 2010*.
-
-> F. A. Matsen, N. G. Hoffman, A. Gallagher, and A. Stamatakis,
-> **A format for phylogenetic placements**,
-> *PLoS One, vol. 7, no. 2, pp. 1–4, Jan. 2012*.
+For bug reports and feature requests, please
+[open an issue on our GitHub page](https://github.com/lczech/genesis/issues).

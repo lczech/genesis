@@ -1,4 +1,4 @@
-User Manual {#manual}
+Tutorials {#tutorials}
 ===========
 
 The functionality of genesis is divided into different modules:
