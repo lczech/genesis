@@ -20,6 +20,7 @@ def CppEscapeString(txt):
 class ExportFile:
     def __init__ (self):
         self.scope            = ""
+        self.using            = ""
         self.includes         = []
         self.class_strings    = {}
         self.function_strings = []
@@ -74,6 +75,8 @@ class BoostPythonWriter:
                     )
                 ) for param in func.params
             ) + " )"
+        if func.type.strip().endswith("*") or func.type.strip().endswith("&"):
+            val += ",\n        boost::python::return_value_policy<boost::python::reference_existing_object>()"
         if func.briefdescription != "":
             # val += ",\n            \"" + func.briefdescription + "\"\n"
             val += ",\n        get_docstring(\"" + func.cpp_signature() + "\")\n"
@@ -127,6 +130,10 @@ class BoostPythonWriter:
         val += "( " + name + ctor_val + " )\n"
         if len(clss.ctors) > 1:
             for i in range(1, len(clss.ctors)):
+                # Skip move constructor
+                if len(clss.ctors[i].params) == 1 and clss.ctors[i].params[0].type == clss.name + " &&":
+                    continue
+
                 val += "        .def( "
                 val += BoostPythonWriter.generate_class_constructor(clss.ctors[i])
                 val += " )\n"
@@ -165,6 +172,8 @@ class BoostPythonWriter:
                     )
                 ) for param in func.params
             ) + " )"
+        if func.type.strip().endswith("*") or func.type.strip().endswith("&"):
+            val += ",\n            boost::python::return_value_policy<boost::python::reference_existing_object>()"
         if func.briefdescription != "":
             # val += ",\n            \"" + func.briefdescription + "\"\n"
             val += ",\n            get_docstring(\"" + func.cpp_signature() + "\")\n"
@@ -471,8 +480,12 @@ class BoostPythonWriter:
             # Write includes.
             # f.write ("#include <boost/python.hpp>\n")
             f.write ("#include <python/src/common.hpp>\n\n")
-            for inc in set(exp.includes):
-                f.write ("#include \"lib/" + inc + "\"\n")
+            # for inc in set(exp.includes):
+            #     f.write ("#include \"lib/" + inc + "\"\n")
+            f.write ("#include \"lib/genesis.hpp\"\n")
+
+            if exp.using != "":
+                f.write( "\nusing namespace " + exp.using + ";\n" )
 
             # Write classes.
             for clss_name, clss_str in exp.class_strings.iteritems():
@@ -531,9 +544,14 @@ class BoostPythonWriter:
             if export_files[clss_file].class_strings.has_key(clss.name):
                 print "Warn. Export file", clss_file, "already has class", clss.name
 
+
             if clss.template_params is None:
-                clss_str  = "using namespace " + clss.parent.cpp_full_name() + ";\n\n"
-                clss_str += "PYTHON_EXPORT_CLASS (" + clss.name + ", \"" + scope + "\")\n{\n"
+                if export_files[clss_file].using not in [ "", clss.parent.cpp_full_name() ]:
+                    print "Warn: using namespace already set to", export_files[clss_file].using, "instead of", clss.parent.cpp_full_name();
+                export_files[clss_file].using = clss.parent.cpp_full_name()
+
+                # clss_str  = "using namespace " + clss.parent.cpp_full_name() + ";\n\n"
+                clss_str  = "PYTHON_EXPORT_CLASS (" + clss.name + ", \"" + scope + "\")\n{\n"
                 clss_str += BoostPythonWriter.generate_class(clss)
                 clss_str += "}\n"
             else:
@@ -565,6 +583,10 @@ class BoostPythonWriter:
 
             if export_files[func_file].scope != scope:
                 print "Warn: Multiple scopes in one file:", export_files[func_file].scope, "and", scope
+
+            if export_files[func_file].using not in [ "", func.parent.cpp_full_name() ]:
+                print "Warn: using namespace already set to", export_files[func_file].using, "instead of", func.parent.cpp_full_name();
+            export_files[func_file].using = func.parent.cpp_full_name()
 
             func_str = BoostPythonWriter.generate_function_body(func)
 
