@@ -39,7 +39,7 @@ public:
     NexusDocument()  = default;
     ~NexusDocument() = default;
 
-    NexusDocument( NexusDocument const& ) = default;
+    // NexusDocument( NexusDocument const& ) = default;
     NexusDocument( NexusDocument&& )      = default;
 
     NexusDocument& operator= ( NexusDocument const& ) = default;

@@ -44,7 +44,7 @@ namespace utils {
 // =================================================================================================
 
 namespace placement {
-
+/*
 // double distance (
 //     const PqueryPlacement& placement_a,
 //     const PqueryPlacement& placement_b
@@ -98,5 +98,5 @@ double distance (
 
 } // namespace placement
 } // namespace genesis
-
+*/
 #endif // include guard

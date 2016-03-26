@@ -123,10 +123,10 @@ double node_histogram_distance (
     bool                with_pendant_length = false
 );
 
-utils::Matrix<double> node_histogram_distance_matrix (
-    const SampleSet& maps,
-    bool                   with_pendant_length = false
-);
+// utils::Matrix<double> node_histogram_distance_matrix (
+//     const SampleSet& maps,
+//     bool                   with_pendant_length = false
+// );
 
 // ----------------------------------------------------------------------------
 //     Variance

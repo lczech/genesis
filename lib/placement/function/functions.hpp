@@ -36,8 +36,8 @@ void normalize_weight_ratios( Sample& smp );
 void restrain_to_max_weight_placements( Pquery& pquery );
 void restrain_to_max_weight_placements( Sample& smp );
 
-void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
-void sort_placements_by_proximal_length( Sample& smp );
+// void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
+// void sort_placements_by_proximal_length( Sample& smp );
 
 void sort_placements_by_like_weight_ratio( Pquery& pquery );
 void sort_placements_by_like_weight_ratio( Sample& smp );

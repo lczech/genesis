@@ -97,20 +97,5 @@ std::string PrinterDetailed::print (
     return res.str();
 }
 
-// =================================================================================================
-//     Properties
-// =================================================================================================
-
-bool PrinterDetailed::use_color() const
-{
-    return use_color_;
-}
-
-PrinterDetailed& PrinterDetailed::use_color( bool value )
-{
-    use_color_ = value;
-    return *this;
-}
-
 } // namespace tree
 } // namespace genesis

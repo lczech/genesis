@@ -62,8 +62,16 @@ public:
     //     Properties
     // -------------------------------------------------------------------------
 
-    bool             use_color() const;
-    PrinterDetailed& use_color( bool value );
+    bool             use_color() const
+    {
+        return use_color_;
+    }
+
+    PrinterDetailed& use_color( bool value )
+    {
+        use_color_ = value;
+        return *this;
+    }
 
     // -------------------------------------------------------------------------
     //     Member Data
