@@ -95,8 +95,9 @@ double distance (
     const PlacementTreeNode& node,
     const utils::Matrix<double>& node_distance_matrix
 );
+*/
 
 } // namespace placement
 } // namespace genesis
-*/
+
 #endif // include guard

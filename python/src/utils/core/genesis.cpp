@@ -11,12 +11,12 @@
 
 using namespace ::genesis;
 
-PYTHON_EXPORT_FUNCTIONS(utils_core_genesis_export, "")
+PYTHON_EXPORT_FUNCTIONS(utils_core_genesis_export, "utils")
 {
 
     boost::python::def(
         "ee",
-        ( std::string ( * )( int ))( &::genesis::ee ),
+        ( std::string ( * )( int ))( &::genesis::utils::ee ),
         ( boost::python::arg("r") )
     );
 
