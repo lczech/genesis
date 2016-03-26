@@ -181,6 +181,9 @@ class BoostPythonWriter:
         else:
             val += "\n"
         val += "        )\n"
+
+        # TODO if there are overloaded static functions, the static delcarations needs to come
+        # after all of them! so maybe, add this to the end of the class definition instead.
         if func.static:
             val += "        .staticmethod(\""
             val += func.name if py_name == None else py_name
