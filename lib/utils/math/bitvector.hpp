@@ -230,6 +230,7 @@ protected:
 //     Namespace std extension
 // =============================================================================
 
+/*
 namespace std {
 
 template<>
@@ -242,5 +243,6 @@ struct hash<genesis::utils::Bitvector>
 };
 
 } // namespace std
+*/
 
 #endif // include guard

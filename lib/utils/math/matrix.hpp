@@ -196,6 +196,7 @@ private:
 //     Namespace std Extension
 // =================================================================================================
 
+/*
 namespace std {
 
 template<typename T>
@@ -205,5 +206,6 @@ inline void swap (genesis::utils::Matrix<T>& lhs, genesis::utils::Matrix<T>& rhs
 }
 
 } // namespace std
+*/
 
 #endif // include guard
