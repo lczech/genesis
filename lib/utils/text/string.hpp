@@ -22,6 +22,9 @@ namespace utils {
 
 bool equals_ci( std::string const& lhs, std::string const& rhs );
 
+bool starts_with( std::string const & text, std::string const & start );
+bool ends_with(   std::string const & text, std::string const & ending );
+
 // =================================================================================================
 //     Find and Count
 // =================================================================================================

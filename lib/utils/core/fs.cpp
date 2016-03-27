@@ -25,6 +25,17 @@ namespace utils {
 // =================================================================================================
 
 /**
+ * @brief Return true iff the provided path is a file.
+ *
+ * Internally, this function simply return the value of file_exists(), as this already does the
+ * needed check. Thus, it is an alias.
+ */
+bool is_file( std::string const& path )
+{
+    return file_exists( path );
+}
+
+/**
  * @brief Return true iff the file exists.
  */
 bool file_exists( std::string const& filename )
@@ -89,6 +100,17 @@ void file_append( std::string const& content, std::string const& filename )
         throw std::runtime_error( "Cannot write to file '" + filename + "'." );
     }
     outfile << content;
+}
+
+/**
+ * @brief Return true iff the provided path is a directory.
+ *
+ * Internally, this function simply return the value of dir_exists(), as this already does the
+ * needed check. Thus, it is an alias.
+ */
+bool is_dir( std::string const& path )
+{
+    return dir_exists( path );
 }
 
 /**

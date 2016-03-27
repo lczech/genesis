@@ -37,6 +37,28 @@ bool equals_ci( std::string const& lhs, std::string const& rhs)
     return true;
 }
 
+/**
+ * @brief Return whether a string starts with another string.
+ */
+bool starts_with( std::string const & text, std::string const & start )
+{
+    if (start.size() > text.size()) {
+        return false;
+    }
+    return std::equal( start.begin(), start.end(), text.begin() );
+}
+
+/**
+ * @brief Return whether a string ends with another string.
+ */
+bool ends_with( std::string const & text, std::string const & ending )
+{
+    if (ending.size() > text.size()) {
+        return false;
+    }
+    return std::equal( ending.rbegin(), ending.rend(), text.rbegin() );
+}
+
 // =================================================================================================
 //     Find and Count
 // =================================================================================================
