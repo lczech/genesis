@@ -223,8 +223,6 @@ void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& sm
                  << "They are expected to be assigned in ascending order via postorder traversal. "
                  << "Now continuing to parse, as we can cope with this.";
     }
-
-    LOG_INFO << "nodes " << smp.tree().node_count();
 }
 
 /**

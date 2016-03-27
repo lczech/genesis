@@ -36,7 +36,7 @@ bool validate( TreeType const& tree );
 // =================================================================================================
 
 /**
- * @brief Basic class for representing phylogenetic tree topologies.
+ * @brief Basic class template for representing phylogenetic trees.
  *
  * A tree in this implementation consists of three types of elements: Links, Nodes and Edges.
  * The topoloty of the tree is completely described by the links, while nodes and edges add the
@@ -52,7 +52,7 @@ bool validate( TreeType const& tree );
  * tree and its data are also not direct members of the tree - for the same reason of flexibility
  * and extensibility: Instead of adding more and more data and algorithms to the tree, we create
  * new classes that encapsulate a tree and all the other needed code to work with it.
- * See Placements for an example.
+ * See the Sample class for an example.
  *
  * Thus, the tree itself only contains the needed information to store and work with a topology.
  *
@@ -67,6 +67,8 @@ bool validate( TreeType const& tree );
  *     integers stored in those elements: `nodes_[i]->index_ == i`.
  *  *  The link that is stored in a node has to be the one pointing towards the root.
  *  *  The primary link of an edge has to point towards the root, the secondary away from it.
+ *
+ * Those invariants are established when the Tree is constructed.
  */
 template <class NodeDataType = DefaultTreeNodeData, class EdgeDataType = DefaultTreeEdgeData>
 class Tree
@@ -99,12 +101,14 @@ public:
     //     Construction and Destruction
     // -------------------------------------------------------------------------
 
-    Tree() = default;
+    Tree()  = default;
+    ~Tree() = default;
 
-    Tree (const TreeType& other);
-    TreeType& operator = (const TreeType& other);
+    Tree( const Tree<NodeDataType, EdgeDataType>& other );
+    Tree( Tree&& other ) = default;
 
-    virtual ~Tree() = default;
+    Tree& operator= ( Tree<NodeDataType, EdgeDataType> const& other );
+    Tree& operator= ( Tree&& other ) = default;
 
     void swap (TreeType& other);
 

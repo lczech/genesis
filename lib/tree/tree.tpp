@@ -33,25 +33,21 @@ namespace tree {
  * other structures that need a deep copy, it is the responsibility of those data classes to make
  * sure its own data is copied correctly.
  *
- * In case of pointers, the class that is using the tree might need to do further copying after
- * calling this copy constructor. See Placements for an example.
- *
  * TODO Idea for a nice feature (not yet implemented):
  * The advantage of copying the topology only is that we are able to make this function completely
  * independend of the data, hence the `other` Tree does not need to share the same data types.
- * Some potential function declarations can be found in the header file tree.hpp.
  */
 template <class NDT, class EDT>
-Tree<NDT, EDT>::Tree (const Tree<NDT, EDT>& other)
+Tree<NDT, EDT>::Tree( const Tree<NDT, EDT>& other )
 {
-    // preparation.
+    // Preparation.
     clear();
     links_.resize(other.links_.size());
     nodes_.resize(other.nodes_.size());
     edges_.resize(other.edges_.size());
 
-    // create all objects. we need two loops per array, because the pointers have to exist
-    // in order to be used with each other.
+    // Create all objects. We need two loops per array, because the pointers have to exist
+    // in order to be linked to each other.
     for (size_t i = 0; i < links_.size(); ++i) {
         links_[i] = make_unique<LinkType>();
         // links_[i]->data = other.links_[i]->data;
@@ -65,7 +61,7 @@ Tree<NDT, EDT>::Tree (const Tree<NDT, EDT>& other)
         edges_[i]->data = other.edges_[i]->data;
     }
 
-    // set all pointers for the topology in a second round of loops.
+    // Set all pointers for the topology in a second round of loops.
     for (size_t i = 0; i < links_.size(); ++i) {
         const auto& olink = other.links_[i];
         assert(olink->index() == i);
@@ -94,12 +90,12 @@ Tree<NDT, EDT>::Tree (const Tree<NDT, EDT>& other)
 }
 
 /**
- * @brief Assignment operator. Copies the topology, but not the data of a tree.
+ * @brief Assignment operator.
  *
  * See Tree copy constructor for more information.
  */
 template <class NDT, class EDT>
-Tree<NDT, EDT>& Tree<NDT, EDT>::operator = (const Tree<NDT, EDT>& other)
+Tree<NDT, EDT>& Tree<NDT, EDT>::operator = ( Tree<NDT, EDT> const& other )
 {
     // check for self-assignment. we want this explicitly, in order to avoid unnecessary copies of
     // the tree, which would mean loosing the data in process.
@@ -115,21 +111,6 @@ Tree<NDT, EDT>& Tree<NDT, EDT>::operator = (const Tree<NDT, EDT>& other)
     std::swap(nodes_, tmp.nodes_);
     std::swap(edges_, tmp.edges_);
     return *this;
-}
-
-/**
- * @brief Deletes all data of the tree, including all links, nodes and edges.
- */
-template <class NDT, class EDT>
-void Tree<NDT, EDT>::clear()
-{
-    // std::vector<std::unique_ptr<LinkType>>().swap(links_);
-    // std::vector<std::unique_ptr<NodeType>>().swap(nodes_);
-    // std::vector<std::unique_ptr<EdgeType>>().swap(edges_);
-
-    links_.clear();
-    nodes_.clear();
-    edges_.clear();
 }
 
 /**
@@ -187,6 +168,21 @@ void Tree<NDT, EDT>::export_content (
     links = links_;
     nodes = nodes_;
     edges = edges_;
+}
+
+/**
+ * @brief Deletes all data of the tree, including all links, nodes and edges.
+ */
+template <class NDT, class EDT>
+void Tree<NDT, EDT>::clear()
+{
+    // std::vector<std::unique_ptr<LinkType>>().swap(links_);
+    // std::vector<std::unique_ptr<NodeType>>().swap(nodes_);
+    // std::vector<std::unique_ptr<EdgeType>>().swap(edges_);
+
+    links_.clear();
+    nodes_.clear();
+    edges_.clear();
 }
 
 // =================================================================================================
