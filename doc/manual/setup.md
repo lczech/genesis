@@ -22,6 +22,12 @@ we provide the so-called genesis apps. See section @ref setup_apps.
 In addition to C++, the classes and functions are (mostly) exported to Python. The genesis module
 can be imported and used as any other Python module. See section @ref setup_python.
 
+Currently, we only test and use genesis on Linux systems. It is tested with Ubuntu 12.04 and 14.04,
+as well as CentOS 6.3. If you are using a different operating system, you can either try yourself,
+or use a virtual machine. In the future, we hope to support more systems out of the box.
+Please report any issues, questions or solutions to our
+[support forum](http://support.genesis-lib.org/).
+
 # Download {#setup_download}
 
 Genesis is open source software under the [GNU GPL v3 license](http://www.gnu.org/licenses/gpl.html).
