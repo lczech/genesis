@@ -9,7 +9,7 @@ its code base.
 We use cmake as build system. The `CMakeLists.txt` in the main directory contains basic
 information about the whole project. It further calls the following sub-build-scripts:
 
- *  `libCMakeLists.txt`: main build script for the library.
+ *  `lib/CMakeLists.txt`: main build script for the library.
  *  `apps/CMakeLists.txt`: compiles small applications using genesis.
  *  `python/src/CMakeLists.txt`: if
     [Boost Python](http://www.boost.org/doc/libs/1_60_0/libs/python/doc/html/index.html)

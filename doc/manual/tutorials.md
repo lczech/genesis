@@ -1,8 +1,6 @@
 Tutorials {#tutorials}
 ===========
 
-# Demo Programs {#tutorials_demo_programs}
-
 # Module Tutorials {#tutorials_module_tutorials}
 
 The functionality of genesis is divided into different modules:

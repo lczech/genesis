@@ -3,13 +3,14 @@ The **User Manual** and the **API Reference**.
 
 ## User Manual
 
-The manual contains tutorials, code examples and high level explanations of the
+The manual contains high level explanations, tutorials and code examples for the
 functionality of genesis. It is intended for end users who want to use existing scripts and
 applications, and for getting started with genesis.
 
- <!-- *  @subpage intro on how to set up and use genesis. -->
- *  @subpage setup of genesis.
- *  @subpage tutorials with code examples.
+ <!-- *  @subpage intro -->
+ *  @subpage setup
+ *  @subpage tutorials
+ *  @subpage demos
 
 Furthermore, there is an information page for the @subpage dev of genesis for those who want
 to contribute to the code base.
