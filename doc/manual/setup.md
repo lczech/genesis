@@ -1,9 +1,9 @@
-Introduction {#intro}
+Setup {#setup}
 ============
 
 This page contains information about how to set up and use genesis.
 
-# Overview {#intro_overview}
+# Overview {#setup_overview}
 
 The functionality of genesis can be used in two ways:
 
@@ -12,17 +12,17 @@ The functionality of genesis can be used in two ways:
 
 The code is written as a C++11 library. It can thus be used in custom projects by including
 the necessary headers and linking against the binary (either shared or static, see section
-@ref intro_build).
+@ref setup_build).
 
 A common use case of genesis are small programs for a certain limited purpose, e.g., project related
 analyses. Usually, scripts are used for such purposes. However, C++ is not a scripting language.
 In order to still provide a quick and easy way for multiple small script-like programs in C++,
-we provide the so-called genesis apps. See section @ref intro_apps.
+we provide the so-called genesis apps. See section @ref setup_apps.
 
 In addition to C++, the classes and functions are (mostly) exported to Python. The genesis module
-can be imported and used as any other Python module. See section @ref intro_python.
+can be imported and used as any other Python module. See section @ref setup_python.
 
-# Get the Source {#intro_source}
+# Download {#setup_download}
 
 Genesis is open source software under the [GNU GPL v3 license](http://www.gnu.org/licenses/gpl.html).
 
@@ -31,7 +31,7 @@ To get the source, you can [download the latest release](https://github.com/lcze
 If you want to work with the newest features or contribute code of your own, you can also
 [fork the project on GitHub](https://github.com/lczech/genesis).
 
-# Build {#intro_build}
+# Build {#setup_build}
 
 To build all of genesis, call
 
@@ -60,7 +60,7 @@ Build output:
     need to link against when using genesis as a library for your own C++ projects.
     By default, only the shared lib (`.so`) is build. If you need the static lib, use the option
     flag `BUILD_STATIC_LIB` of the main cmake script.
- *  `./bin/*`: App executables are also stored in the bin directory. See section @ref intro_apps.
+ *  `./bin/*`: App executables are also stored in the bin directory. See section @ref setup_apps.
  *  `./python/module/genesis.so`: Python module file. Make sure this file can be found by python
     (e.g., by creating a symlink to it in the path of your Python script). Then, in Python call
     `import genesis` to use the module.
@@ -77,7 +77,7 @@ you can call
 to include those files without need for recompiling everything.
 See @ref dev for more information on incremental builds.
 
-# Apps {#intro_apps}
+# Apps {#setup_apps}
 
 The `app` directory is provided for conveniently and quickly developing small C++ applications
 which use genesis as their main library. This is a way of using C++ similar to a scripting language.
@@ -113,11 +113,11 @@ file (without the ending).
 Apart from that, there are no further requirements. Simply include the needed genesis headers (or
 any other headers you might need) and compile. Happy coding!
 
-# Python {#intro_python}
+# Python {#setup_python}
 
 For users who are more comfortable to develop in Python, we also offer a Python interface.
 The module file is created using [Boost Python](www.boost.org/doc/libs/release/libs/python/),
-see @ref intro_build for details.
+see @ref setup_build for details.
 
 After building, the module file is located at `./python/module/genesis.so`. According to
 [the Python documentation](https://docs.python.org/2/tutorial/modules.html#the-module-search-path),
