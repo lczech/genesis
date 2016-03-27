@@ -77,31 +77,41 @@ public:
     //     Typedefs
     // -------------------------------------------------------------------------
 
-    typedef Tree    <NodeDataType, EdgeDataType> TreeType;
-    typedef TreeLink<NodeDataType, EdgeDataType> LinkType;
-    typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
-    typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
+    using TreeType = Tree    <NodeDataType, EdgeDataType>;
+    using LinkType = TreeLink<NodeDataType, EdgeDataType>;
+    using NodeType = TreeNode<NodeDataType, EdgeDataType>;
+    using EdgeType = TreeEdge<NodeDataType, EdgeDataType>;
 
-    typedef std::vector<std::unique_ptr<LinkType>> LinkContainer;
-    typedef std::vector<std::unique_ptr<NodeType>> NodeContainer;
-    typedef std::vector<std::unique_ptr<EdgeType>> EdgeContainer;
+    using LinkContainer = std::vector<std::unique_ptr<LinkType>>;
+    using NodeContainer = std::vector<std::unique_ptr<NodeType>>;
+    using EdgeContainer = std::vector<std::unique_ptr<EdgeType>>;
+
+    using      IteratorLinks = typename std::vector<std::unique_ptr<LinkType>>::iterator;
+    using ConstIteratorLinks = typename std::vector<std::unique_ptr<LinkType>>::const_iterator;
+
+    using      IteratorNodes = typename std::vector<std::unique_ptr<NodeType>>::iterator;
+    using ConstIteratorNodes = typename std::vector<std::unique_ptr<NodeType>>::const_iterator;
+
+    using      IteratorEdges = typename std::vector<std::unique_ptr<EdgeType>>::iterator;
+    using ConstIteratorEdges = typename std::vector<std::unique_ptr<EdgeType>>::const_iterator;
 
     // -------------------------------------------------------------------------
     //     Construction and Destruction
     // -------------------------------------------------------------------------
 
-    Tree () {};
+    Tree() = default;
 
     Tree (const TreeType& other);
     TreeType& operator = (const TreeType& other);
 
     virtual ~Tree() = default;
-    void clear();
 
     void swap (TreeType& other);
 
     void import_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
     void export_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
+
+    void clear();
 
     // -------------------------------------------------------------------------
     //     Accessors
@@ -132,86 +142,35 @@ public:
     //     Iterators
     // -------------------------------------------------------------------------
 
-    typedef typename std::vector<std::unique_ptr<LinkType>>::iterator               IteratorLinks;
-    typedef typename std::vector<std::unique_ptr<LinkType>>::const_iterator    ConstIteratorLinks;
-
-    typedef typename std::vector<std::unique_ptr<NodeType>>::iterator               IteratorNodes;
-    typedef typename std::vector<std::unique_ptr<NodeType>>::const_iterator    ConstIteratorNodes;
-
-    typedef typename std::vector<std::unique_ptr<EdgeType>>::iterator               IteratorEdges;
-    typedef typename std::vector<std::unique_ptr<EdgeType>>::const_iterator    ConstIteratorEdges;
-
     // -----------------------------------------------------
     //     Links
     // -----------------------------------------------------
 
-    IteratorLinks begin_links()
-    {
-        return links_.begin();
-    }
+    IteratorLinks      begin_links();
+    ConstIteratorLinks begin_links() const;
 
-    IteratorLinks end_links()
-    {
-        return links_.end();
-    }
-
-    ConstIteratorLinks begin_links() const
-    {
-        return links_.cbegin();
-    }
-
-    ConstIteratorLinks end_links() const
-    {
-        return links_.cend();
-    }
+    IteratorLinks      end_links();
+    ConstIteratorLinks end_links() const;
 
     // -----------------------------------------------------
     //     Nodes
     // -----------------------------------------------------
 
-    IteratorNodes begin_nodes()
-    {
-        return nodes_.begin();
-    }
+    IteratorNodes      begin_nodes();
+    ConstIteratorNodes begin_nodes() const;
 
-    IteratorNodes end_nodes()
-    {
-        return nodes_.end();
-    }
-
-    ConstIteratorNodes begin_nodes() const
-    {
-        return nodes_.cbegin();
-    }
-
-    ConstIteratorNodes end_nodes() const
-    {
-        return nodes_.cend();
-    }
+    IteratorNodes      end_nodes();
+    ConstIteratorNodes end_nodes() const;
 
     // -----------------------------------------------------
     //     Edges
     // -----------------------------------------------------
 
-    IteratorEdges begin_edges()
-    {
-        return edges_.begin();
-    }
+    IteratorEdges      begin_edges();
+    ConstIteratorEdges begin_edges() const;
 
-    IteratorEdges end_edges()
-    {
-        return edges_.end();
-    }
-
-    ConstIteratorEdges begin_edges() const
-    {
-        return edges_.cbegin();
-    }
-
-    ConstIteratorEdges end_edges() const
-    {
-        return edges_.cend();
-    }
+    IteratorEdges      end_edges();
+    ConstIteratorEdges end_edges() const;
 
     // -------------------------------------------------------------------------
     //     Debug and Dump

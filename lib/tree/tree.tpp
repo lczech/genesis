@@ -319,5 +319,93 @@ size_t Tree<NDT, EDT>::edge_count() const
     return edges_.size();
 }
 
+// =================================================================================================
+//     Iterators
+// =================================================================================================
+
+// -------------------------------------------------------------------------
+//     Links
+// -------------------------------------------------------------------------
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::IteratorLinks Tree<NDT, EDT>::begin_links()
+{
+    return links_.begin();
+}
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::IteratorLinks Tree<NDT, EDT>::end_links()
+{
+    return links_.end();
+}
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::ConstIteratorLinks Tree<NDT, EDT>::begin_links() const
+{
+    return links_.cbegin();
+}
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::ConstIteratorLinks Tree<NDT, EDT>::end_links() const
+{
+    return links_.cend();
+}
+
+// -------------------------------------------------------------------------
+//     Nodes
+// -------------------------------------------------------------------------
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::IteratorNodes Tree<NDT, EDT>::begin_nodes()
+{
+    return nodes_.begin();
+}
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::IteratorNodes Tree<NDT, EDT>::end_nodes()
+{
+    return nodes_.end();
+}
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::ConstIteratorNodes Tree<NDT, EDT>::begin_nodes() const
+{
+    return nodes_.cbegin();
+}
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::ConstIteratorNodes Tree<NDT, EDT>::end_nodes() const
+{
+    return nodes_.cend();
+}
+
+// -------------------------------------------------------------------------
+//     Edges
+// -------------------------------------------------------------------------
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::IteratorEdges Tree<NDT, EDT>::begin_edges()
+{
+    return edges_.begin();
+}
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::IteratorEdges Tree<NDT, EDT>::end_edges()
+{
+    return edges_.end();
+}
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::ConstIteratorEdges Tree<NDT, EDT>::begin_edges() const
+{
+    return edges_.cbegin();
+}
+
+template <class NDT, class EDT>
+typename Tree<NDT, EDT>::ConstIteratorEdges Tree<NDT, EDT>::end_edges() const
+{
+    return edges_.cend();
+}
+
 } // namespace tree
 } // namespace genesis
