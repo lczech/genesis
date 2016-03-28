@@ -12,9 +12,9 @@
 #include "lib/tree/default/distances.hpp"
 #include "lib/tree/default/edge_color.hpp"
 #include "lib/tree/default/functions.hpp"
-#include "lib/tree/default/newick_processor.hpp"
+#include "lib/tree/default/newick_reader.hpp"
 #include "lib/tree/function/functions.hpp"
-#include "lib/tree/io/newick/processor.hpp"
+#include "lib/tree/io/newick/reader.hpp"
 #include "lib/tree/tree.hpp"
 
 #include "lib/utils/tools/color/operators.hpp"
@@ -32,7 +32,7 @@ TEST(DefaultTree, EdgeColorBranchLengthGradient)
     // Read and process tree.
     DefaultTree tree;
     std::string infile = environment->data_dir + "tree/distances.newick";
-    DefaultTreeNewickProcessor().from_file(infile, tree);
+    DefaultTreeNewickReader().from_file(infile, tree);
 
     // Colorize the branches according to their length.
     auto colors = edge_color_branch_length_gradient(tree);
@@ -48,7 +48,7 @@ TEST(DefaultTree, NodeNames)
 
     // Using a tree with all names set to some value.
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
-    EXPECT_TRUE(DefaultTreeNewickProcessor().from_string(input, tree));
+    EXPECT_TRUE(DefaultTreeNewickReader().from_string(input, tree));
 
     EXPECT_EQ( 13, tree.node_count() );
     EXPECT_EQ(  7, leaf_nodes_count(tree) );
@@ -61,7 +61,7 @@ TEST(DefaultTree, NodeNames)
 
     // Using a tree where some names are empty.
     input = "((A,(B,))E,((,(G,H))J,)L);";
-    EXPECT_TRUE(DefaultTreeNewickProcessor().from_string(input, tree));
+    EXPECT_TRUE(DefaultTreeNewickReader().from_string(input, tree));
 
     EXPECT_EQ( 13, tree.node_count() );
     EXPECT_EQ(  7, leaf_nodes_count(tree) );

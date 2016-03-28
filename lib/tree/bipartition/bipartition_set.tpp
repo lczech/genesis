@@ -133,12 +133,11 @@ BipartitionSet<Tree>::find_smallest_subtree (
 }
 
 template <typename Tree>
-std::unordered_set<typename BipartitionSet<Tree>::EdgeType *>
-BipartitionSet<Tree>::get_subtree_edges (
+std::unordered_set<size_t> BipartitionSet<Tree>::get_subtree_edges (
     BipartitionSet<Tree>::LinkType* subtree
 ) {
     std::vector<std::string> leaf_names;
-    std::unordered_set<EdgeType*> ret;
+    std::unordered_set<size_t> ret;
 
     // We don't want to use the standard iterator wrapper function here, as we are going
     // to end the iteration after the end of the subtree, instead of iterating the whole tree.
@@ -159,7 +158,7 @@ BipartitionSet<Tree>::get_subtree_edges (
         if (it.is_first_iteration()) {
             continue;
         }
-        ret.insert( &it.edge() );
+        ret.insert( it.edge().index() );
     }
 
     // LOG_DBG << "leaf nodes of subtree:";

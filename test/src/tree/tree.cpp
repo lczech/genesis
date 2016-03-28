@@ -9,9 +9,9 @@
 
 #include <string>
 
-#include "lib/tree/default/newick_processor.hpp"
+#include "lib/tree/default/newick_reader.hpp"
 #include "lib/tree/function/functions.hpp"
-#include "lib/tree/io/newick/processor.hpp"
+#include "lib/tree/io/newick/reader.hpp"
 #include "lib/tree/tree.hpp"
 
 using namespace genesis;
@@ -22,7 +22,7 @@ TEST(Tree, Basics)
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
     DefaultTree tree;
-    DefaultTreeNewickProcessor().from_string(input, tree);
+    DefaultTreeNewickReader().from_string(input, tree);
 
     EXPECT_EQ(7, leaf_nodes_count( tree ));
     EXPECT_EQ(6, inner_nodes_count( tree ));

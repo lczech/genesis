@@ -7,6 +7,7 @@
 
 #include "utils/io/nexus/writer.hpp"
 
+#include "utils/core/fs.hpp"
 #include "utils/io/nexus/document.hpp"
 
 #include <stdexcept>
@@ -34,6 +35,10 @@ void NexusWriter::to_stream( NexusDocument const& doc, std::ostream& out ) const
 
 void NexusWriter::to_file( NexusDocument const& doc, std::string const& filename) const
 {
+    if( utils::file_exists(filename) ) {
+        throw std::runtime_error( "Nexus file '" + filename + "' already exists." );
+    }
+
     std::ofstream fstr( filename );
     if( !fstr ) {
         throw std::runtime_error( "Cannot write Nexus file '" + filename + "'." );

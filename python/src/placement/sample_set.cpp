@@ -7,80 +7,91 @@
 
 #include <python/src/common.hpp>
 
-#include "lib/placement/sample_set.hpp"
+#include "lib/genesis.hpp"
 
-using namespace genesis::placement;
+using namespace ::genesis::placement;
 
 PYTHON_EXPORT_CLASS (SampleSet, "placement")
 {
-    boost::python::class_< ::genesis::placement::SampleSet > ( "SampleSet" )
+
+    // -------------------------------------------------------------------
+    //     Class SampleSet
+    // -------------------------------------------------------------------
+
+    boost::python::class_< ::genesis::placement::SampleSet > ( "SampleSet", boost::python::init<  >(  ) )
+        .def( boost::python::init< SampleSet const & >(( boost::python::arg("") )) )
 
         // Public Member Functions
 
         .def(
             "add",
-            ( void ( ::genesis::placement::SampleSet::* )( const std::string &, Sample& ))( &::genesis::placement::SampleSet::add ),
-            ( boost::python::arg("name"), boost::python::arg("map") )
+            ( void ( ::genesis::placement::SampleSet::* )( std::string const &, Sample const & ))( &::genesis::placement::SampleSet::add ),
+            ( boost::python::arg("name"), boost::python::arg("smp") ),
+            get_docstring("void ::genesis::placement::SampleSet::add (std::string const & name, Sample const & smp)")
         )
         // .def(
-        //     "cbegin",
-        //     ( const_iterator ( ::genesis::placement::SampleSet::* )(  ) const )( &::genesis::placement::SampleSet::cbegin )
+        //     "at",
+        //     ( NamedSample & ( ::genesis::placement::SampleSet::* )( size_t ))( &::genesis::placement::SampleSet::at ),
+        //     ( boost::python::arg("index") ),
+        //     boost::python::return_value_policy<boost::python::reference_existing_object>(),
+        //     get_docstring("NamedSample & ::genesis::placement::SampleSet::at (size_t index)")
         // )
         // .def(
-        //     "cend",
-        //     ( const_iterator ( ::genesis::placement::SampleSet::* )(  ) const )( &::genesis::placement::SampleSet::cend )
+        //     "at",
+        //     ( const NamedSample & ( ::genesis::placement::SampleSet::* )( size_t ) const )( &::genesis::placement::SampleSet::at ),
+        //     ( boost::python::arg("index") ),
+        //     boost::python::return_value_policy<boost::python::reference_existing_object>(),
+        //     get_docstring("const NamedSample & ::genesis::placement::SampleSet::at (size_t index) const")
         // )
         .def(
             "clear",
-            ( void ( ::genesis::placement::SampleSet::* )(  ))( &::genesis::placement::SampleSet::clear )
+            ( void ( ::genesis::placement::SampleSet::* )(  ))( &::genesis::placement::SampleSet::clear ),
+            get_docstring("void ::genesis::placement::SampleSet::clear ()")
         )
-        // .def(
-        //     "dump",
-        //     ( std::string ( ::genesis::placement::SampleSet::* )( bool ))( &::genesis::placement::SampleSet::dump ),
-        //     ( boost::python::arg("full")=(bool)(false) )
-        // )
         .def(
             "empty",
             ( bool ( ::genesis::placement::SampleSet::* )(  ) const )( &::genesis::placement::SampleSet::empty ),
             get_docstring("bool ::genesis::placement::SampleSet::empty () const")
         )
-        // .def(
-        //     "get_first",
-        //     ( std::shared_ptr< Sample > ( ::genesis::placement::SampleSet::* )( const std::string & ))( &::genesis::placement::SampleSet::get_first ),
-        //     ( boost::python::arg("name") )
-        // )
-        // .def(
-        //     "merge_all",
-        //     ( Sample ( ::genesis::placement::SampleSet::* )(  ))( &::genesis::placement::SampleSet::merge_all ),
-        //     get_docstring("Sample ::genesis::placement::SampleSet::merge_all ()")
-        // )
+        .def(
+            "remove_at",
+            ( void ( ::genesis::placement::SampleSet::* )( size_t ))( &::genesis::placement::SampleSet::remove_at ),
+            ( boost::python::arg("index") ),
+            get_docstring("void ::genesis::placement::SampleSet::remove_at (size_t index)")
+        )
         .def(
             "size",
             ( size_t ( ::genesis::placement::SampleSet::* )(  ) const )( &::genesis::placement::SampleSet::size ),
             get_docstring("size_t ::genesis::placement::SampleSet::size () const")
         )
+        .def(
+            "swap",
+            ( void ( ::genesis::placement::SampleSet::* )( SampleSet & ))( &::genesis::placement::SampleSet::swap ),
+            ( boost::python::arg("other") )
+        )
 
         // Operators
 
-        .def(
-            "__len__",
-            (::size_t ( ::genesis::placement::SampleSet::* )(  ) const)( &::genesis::placement::SampleSet::size ),
-            get_docstring("size_t ::genesis::placement::SampleSet::size () const")
-        )
         // .def(
         //     "__getitem__",
-        //     ( const ::genesis::placement::SampleSet::NamedMap & ( ::genesis::placement::SampleSet::* )( const std::size_t ) const )( &::genesis::placement::SampleSet::operator[] ),
-        //     ( boost::python::arg("index") )
+        //     ( NamedSample & ( ::genesis::placement::SampleSet::* )( size_t ))( &::genesis::placement::SampleSet::operator[] ),
+        //     ( boost::python::arg("index") ),
+        //     boost::python::return_value_policy<boost::python::reference_existing_object>(),
+        //     get_docstring("NamedSample & ::genesis::placement::SampleSet::operator[] (size_t index)")
+        // )
+        // .def(
+        //     "__getitem__",
+        //     ( const NamedSample & ( ::genesis::placement::SampleSet::* )( size_t ) const )( &::genesis::placement::SampleSet::operator[] ),
+        //     ( boost::python::arg("index") ),
+        //     boost::python::return_value_policy<boost::python::reference_existing_object>(),
+        //     get_docstring("const NamedSample & ::genesis::placement::SampleSet::operator[] (size_t index) const")
         // )
 
         // Iterators
 
-        .def(
-            "__iter__",
-            boost::python::range (
-                ( ::genesis::placement::SampleSet::iterator ( ::genesis::placement::SampleSet::* )(  )  )( &::genesis::placement::SampleSet::begin ),
-                ( ::genesis::placement::SampleSet::iterator ( ::genesis::placement::SampleSet::* )(  )  )( &::genesis::placement::SampleSet::end )
-            )
-        )
+        // .def(
+        //     "__iter__",
+        //     boost::python::range ( &::genesis::placement::SampleSet::begin, &::genesis::placement::SampleSet::end )
+        // )
     ;
 }

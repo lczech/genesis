@@ -42,8 +42,8 @@ public:
     void make();
     void make_index();
 
-    BipartitionType*              find_smallest_subtree (std::vector<NodeType*> nodes);
-    std::unordered_set<EdgeType*> get_subtree_edges     (LinkType*              subtree);
+    BipartitionType*           find_smallest_subtree (std::vector<NodeType*> nodes);
+    std::unordered_set<size_t> get_subtree_edges     (LinkType*              subtree);
 
     bool        validate();
     std::string dump();

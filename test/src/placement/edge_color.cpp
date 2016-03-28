@@ -11,12 +11,12 @@
 
 #include "lib/placement/io/edge_color.hpp"
 #include "lib/placement/io/jplace_reader.hpp"
-#include "lib/placement/io/newick_processor.hpp"
-#include "lib/placement/io/phyloxml_processor.hpp"
+#include "lib/placement/io/newick_writer.hpp"
+#include "lib/placement/io/phyloxml_writer.hpp"
 #include "lib/placement/sample.hpp"
 #include "lib/tree/default/functions.hpp"
-#include "lib/tree/io/newick/color_mixin.hpp"
-#include "lib/tree/io/phyloxml/color_mixin.hpp"
+#include "lib/tree/io/newick/color_writer_mixin.hpp"
+#include "lib/tree/io/phyloxml/color_writer_mixin.hpp"
 #include "lib/utils/io/nexus/document.hpp"
 #include "lib/utils/io/nexus/taxa.hpp"
 #include "lib/utils/io/nexus/trees.hpp"
@@ -37,9 +37,9 @@ TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
     Sample map;
     EXPECT_NO_THROW (JplaceReader().from_file(infile, map));
 
-    typedef PhyloxmlColorMixin<PlacementTreePhyloxmlProcessor> ColoredPlacementTreePhyloxmlProcessor;
+    typedef PhyloxmlColorWriterMixin<PlacementTreePhyloxmlWriter> ColoredPlacementTreePhyloxmlWriter;
 
-    auto proc = ColoredPlacementTreePhyloxmlProcessor();
+    auto proc = ColoredPlacementTreePhyloxmlWriter();
     proc.edge_colors( placement_color_count_gradient( map ));
     std::string out = proc.to_string(map.tree());
 
@@ -58,9 +58,9 @@ TEST( PlacementTreeEdgeColor, CountGradientNewick )
     Sample map;
     EXPECT_NO_THROW (JplaceReader().from_file(infile, map));
 
-    typedef NewickColorMixin<PlacementTreeNewickProcessor> ColoredPlacementTreeNewickProcessor;
+    typedef NewickColorWriterMixin<PlacementTreeNewickWriter> ColoredPlacementTreeNewickWriter;
 
-    auto proc = ColoredPlacementTreeNewickProcessor();
+    auto proc = ColoredPlacementTreeNewickWriter();
     proc.edge_colors( placement_color_count_gradient( map ));
     std::string out = proc.to_string(map.tree());
 
@@ -78,9 +78,9 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
     Sample map;
     EXPECT_NO_THROW (JplaceReader().from_file(infile, map));
 
-    typedef NewickColorMixin<PlacementTreeNewickProcessor> ColoredPlacementTreeNewickProcessor;
+    typedef NewickColorWriterMixin<PlacementTreeNewickWriter> ColoredPlacementTreeNewickWriter;
 
-    auto proc = ColoredPlacementTreeNewickProcessor();
+    auto proc = ColoredPlacementTreeNewickWriter();
     proc.edge_colors( placement_color_count_gradient( map ));
     proc.enable_edge_nums(false);
     std::string tree_out = proc.to_string(map.tree());

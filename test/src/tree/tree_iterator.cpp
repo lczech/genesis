@@ -11,8 +11,8 @@
 #include <utility>
 
 #include "lib/tree/default/functions.hpp"
-#include "lib/tree/default/newick_processor.hpp"
-#include "lib/tree/io/newick/processor.hpp"
+#include "lib/tree/default/newick_reader.hpp"
+#include "lib/tree/io/newick/reader.hpp"
 #include "lib/tree/tree.hpp"
 #include "tree/iterator/eulertour.hpp"
 #include "tree/iterator/postorder.hpp"
@@ -34,7 +34,7 @@ TEST (TreeIterator, EulertourNew)
 
     // Prepare Tree.
     DefaultTree tree;
-    DefaultTreeNewickProcessor().from_string(input, tree);
+    DefaultTreeNewickReader().from_string(input, tree);
 
     // Find the Node for this test run.
     auto const& ttr = tree;
@@ -173,7 +173,7 @@ void TestEulertour(const std::string node_name, const std::string expected_nodes
 
     // Prepare Tree.
     DefaultTree tree;
-    DefaultTreeNewickProcessor().from_string(input, tree);
+    DefaultTreeNewickReader().from_string(input, tree);
 
     do_test(node_name, expected_nodes, tree);
 
@@ -221,7 +221,7 @@ void TestPreorder(std::string node_name, std::string out_nodes)
     std::string nodes = "";
 
     DefaultTree tree;
-    DefaultTreeNewickProcessor().from_string(input, tree);
+    DefaultTreeNewickReader().from_string(input, tree);
 
     auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
@@ -256,7 +256,7 @@ void TestPostorder(std::string node_name, std::string out_nodes)
     std::string nodes = "";
 
     DefaultTree tree;
-    DefaultTreeNewickProcessor().from_string(input, tree);
+    DefaultTreeNewickReader().from_string(input, tree);
 
     auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);

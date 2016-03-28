@@ -14,17 +14,29 @@ namespace genesis {
 //     Forward Declarations
 // =================================================================================================
 
-namespace utils {
-    template <typename T>
-    class Matrix;
+namespace tree {
+    template<class NodeDataType, class EdgeDataType>
+    class TreeNode;
+
+    template<class NodeDataType, class EdgeDataType>
+    class TreeEdge;
 }
 
 namespace placement {
-    class Pquery;
-    class PqueryPlacement;
-    class PqueryPlain;
+    class  Pquery;
+    class  PqueryPlacement;
+    struct PqueryPlain;
 
-    class PlacementTreeNode;
+    class  PlacementTreeEdgeData;
+    class  PlacementTreeNodeData;
+
+    typedef tree::TreeNode< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTreeNode;
+    typedef tree::TreeEdge< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTreeEdge;
+}
+
+namespace utils {
+    template <typename T>
+    class Matrix;
 }
 
 // =================================================================================================
@@ -32,7 +44,7 @@ namespace placement {
 // =================================================================================================
 
 namespace placement {
-
+/*
 // double distance (
 //     const PqueryPlacement& placement_a,
 //     const PqueryPlacement& placement_b
@@ -83,6 +95,7 @@ double distance (
     const PlacementTreeNode& node,
     const utils::Matrix<double>& node_distance_matrix
 );
+*/
 
 } // namespace placement
 } // namespace genesis

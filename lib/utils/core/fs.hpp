@@ -19,11 +19,13 @@ namespace utils {
 //     File Access
 // =================================================================================================
 
+bool        is_file     ( std::string const& path );
 bool        file_exists ( std::string const& filename );
 std::string file_read   ( std::string const& filename );
 void        file_write  ( std::string const& content, std::string const& filename );
 void        file_append ( std::string const& content, std::string const& filename );
 
+bool        is_dir         ( std::string const& path );
 bool        dir_exists     ( std::string const& dir );
 void        dir_create     ( std::string const& path );
 

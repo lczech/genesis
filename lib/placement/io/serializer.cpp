@@ -7,9 +7,9 @@
 
 #include "placement/io/serializer.hpp"
 
-#include "placement/io/newick_processor.hpp"
+#include "placement/io/newick_reader.hpp"
+#include "placement/io/newick_writer.hpp"
 #include "placement/sample.hpp"
-#include "tree/io/newick/processor.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/io/serializer.hpp"
 
@@ -51,7 +51,7 @@ void SampleSerializer::save (const Sample& map, const std::string& file_name)
     // Write tree.
     // TODO if there is a tree serialization in the future, this one could be used here, and in
     // addition to edge numbers, the edge indices can be stored, so that deserialization is easier.
-    auto nw = PlacementTreeNewickProcessor();
+    auto nw = PlacementTreeNewickWriter();
     nw.enable_names(true);
     nw.enable_branch_lengths(true);
     ser.put_string(nw.to_string(map.tree()));
@@ -112,7 +112,7 @@ void SampleSerializer::load (const std::string& file_name, Sample& map)
 
     // Read and check tree.
     auto tree_string = des.get_string();
-    if (!PlacementTreeNewickProcessor().from_string(tree_string, map.tree())) {
+    if (!PlacementTreeNewickReader().from_string(tree_string, map.tree())) {
         throw std::invalid_argument("Invalid Tree.");
     }
 

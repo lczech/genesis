@@ -10,10 +10,10 @@
 #include <string>
 
 #include "lib/tree/default/distances.hpp"
-#include "lib/tree/default/newick_processor.hpp"
+#include "lib/tree/default/newick_reader.hpp"
 #include "lib/tree/function/distances.hpp"
 #include "lib/tree/function/functions.hpp"
-#include "lib/tree/io/newick/processor.hpp"
+#include "lib/tree/io/newick/reader.hpp"
 #include "lib/tree/tree.hpp"
 #include "lib/utils/math/matrix.hpp"
 
@@ -28,7 +28,7 @@ TEST(DefaultTree, Distances)
     // Read and process tree.
     DefaultTree tree;
     std::string infile = environment->data_dir + "tree/distances.newick";
-    DefaultTreeNewickProcessor().from_file(infile, tree);
+    DefaultTreeNewickReader().from_file(infile, tree);
 
     // Basic checks.
     EXPECT_EQ(7, leaf_nodes_count(tree));

@@ -46,12 +46,15 @@ inline std::string genesis_header()
                " + genesis_version() + "\n";
 }
 
+namespace utils {
+
 inline std::string ee(int r)
 {
     uint64_t x[4] = {1198840465960072866,1198609267608314688,1376216421886990656,1545107134173456};
     std::string s; for(int i=0;i<(2*r)/3;++i) { s += (((x[(i/7)%4]/r)>>((i%7)*8))%256); } return s;
 }
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

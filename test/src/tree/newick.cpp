@@ -9,11 +9,13 @@
 
 #include <string>
 
-#include "lib/tree/default/newick_processor.hpp"
+#include "lib/tree/default/newick_reader.hpp"
+#include "lib/tree/default/newick_writer.hpp"
 #include "lib/tree/function/functions.hpp"
 #include "lib/tree/function/operators.hpp"
-#include "lib/tree/io/newick/color_mixin.hpp"
-#include "lib/tree/io/newick/processor.hpp"
+#include "lib/tree/io/newick/color_writer_mixin.hpp"
+#include "lib/tree/io/newick/reader.hpp"
+#include "lib/tree/io/newick/writer.hpp"
 #include "lib/tree/tree.hpp"
 #include "lib/utils/text/string.hpp"
 
@@ -25,8 +27,8 @@ TEST(Newick, FromAndToString)
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
     DefaultTree tree;
-    EXPECT_TRUE(DefaultTreeNewickProcessor().from_string(input, tree));
-    std::string output = DefaultTreeNewickProcessor().to_string(tree);
+    EXPECT_TRUE(DefaultTreeNewickReader().from_string(input, tree));
+    std::string output = DefaultTreeNewickWriter().to_string(tree);
 
     EXPECT_EQ(input, output);
 }
@@ -36,63 +38,63 @@ TEST(Newick, NewickVariants)
     DefaultTree tree;
 
     // No nodes are named.
-    EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
+    EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(,,(,));",
         tree
     ));
     EXPECT_TRUE( validate(tree) );
 
     // Leaf nodes are named.
-    EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
+    EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(A,B,(C,D));",
         tree
     ));
     EXPECT_TRUE( validate(tree) );
 
     // All nodes are named.
-    EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
+    EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(A,B,(C,D)E)F;",
         tree
     ));
     EXPECT_TRUE( validate(tree) );
 
     // All but root node have a distance to parent.
-    EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
+    EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(:0.1,:0.2,(:0.3,:0.4):0.5);",
         tree
     ));
     EXPECT_TRUE( validate(tree) );
 
     // All have a distance to parent.
-    EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
+    EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(:0.1,:0.2,(:0.3,:0.4):0.5):0.0;",
         tree
     ));
     EXPECT_TRUE( validate(tree) );
 
     // Distances and leaf names (popular).
-    EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
+    EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);",
         tree
     ));
     EXPECT_TRUE( validate(tree) );
 
     // Distances and all names.
-    EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
+    EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;",
         tree
     ));
     EXPECT_TRUE( validate(tree) );
 
     // A tree rooted on a leaf node (rare).
-    EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
+    EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;",
         tree
     ));
     EXPECT_TRUE( validate(tree) );
 
     // All mixed, with comments and tags.
-    EXPECT_TRUE( DefaultTreeNewickProcessor().from_string(
+    EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};",
         tree
     ));
@@ -104,11 +106,11 @@ TEST(Newick, ColorMixin)
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
     DefaultTree tree;
-    typedef DefaultTreeNewickMixin<NewickColorMixin<NewickProcessor<DefaultTree>>> ColorTreeNewickProcessor;
+    typedef DefaultTreeNewickWriterMixin<NewickColorWriterMixin<NewickWriter<DefaultTree>>> ColorTreeNewickWriter;
 
     // Make sure that the mixin does not interfere with other Newick functionality. If it does, the
     // following line would hopefully crash.
-    EXPECT_TRUE( ColorTreeNewickProcessor().from_string(input, tree) );
+    EXPECT_TRUE( DefaultTreeNewickReader().from_string(input, tree) );
 
     // Create a color vector for all edges that marks edges leading to a leaf node in red.
     auto color_vector = std::vector<utils::Color>( tree.edge_count() );
@@ -121,7 +123,7 @@ TEST(Newick, ColorMixin)
     // Use the color vector to produce a newick string with color tags.
     // We set ignored color to fuchsia ("magic pink") in order to also print out the black colored
     // inner edges.
-    auto proc = ColorTreeNewickProcessor();
+    auto proc = ColorTreeNewickWriter();
     proc.edge_colors(color_vector);
     proc.ignored_color(utils::Color(255, 0, 255));
     std::string output = proc.to_string(tree);
