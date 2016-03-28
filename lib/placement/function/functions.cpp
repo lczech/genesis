@@ -76,70 +76,101 @@ Pquery const* find_pquery( Sample const& smp, std::string const& name )
 // =================================================================================================
 
 /**
- * @brief Recalculate the `like_weight_ratio` of the PqueryPlacement&s of each Pquery in the Sample,
+ * @brief Recalculate the `like_weight_ratio` of the PqueryPlacement&s of a Pquery,
  * so that their sum is 1.0, while maintaining their ratio to each other.
  */
-void normalize_weight_ratios( Sample& smp )
+void normalize_weight_ratios( Pquery& pquery )
 {
-    for( auto pqry_it = smp.begin(); pqry_it != smp.end(); ++pqry_it ) {
-        auto& pqry = *pqry_it;
-        double sum = 0.0;
-
-        for( auto const& place : pqry.placements() ) {
-            sum += place.like_weight_ratio;
-        }
-        for( auto pit = pqry.begin_placements(); pit != pqry.end_placements(); ++pit ) {
-            auto& place = *pit;
-            place.like_weight_ratio /= sum;
-        }
+    double sum = 0.0;
+    for( auto const& place : pquery.placements() ) {
+        sum += place.like_weight_ratio;
+    }
+    for( auto& place : pquery.placements() ) {
+        place.like_weight_ratio /= sum;
     }
 }
 
 /**
- * @brief Remove all PqueryPlacement%s but the most likely one from the Pquery.
+ * @brief Recalculate the `like_weight_ratio` of the PqueryPlacement&s of each Pquery in the Sample,
+ * so that their sum is 1.0, while maintaining their ratio to each other.
+ *
+ * This function simply calls normalize_weight_ratios( Pquery& pquery ) for all Pqueries of
+ * the Sample.
+ */
+void normalize_weight_ratios( Sample& smp )
+{
+    for( auto pqry_it = smp.begin(); pqry_it != smp.end(); ++pqry_it ) {
+        normalize_weight_ratios( *pqry_it );
+    }
+}
+
+/**
+ * @brief Remove all PqueryPlacement%s but the `n` most likely ones from the Pquery.
  *
  * Pqueries can contain multiple placements on different branches. For example, the EPA algorithm
  * of RAxML outputs up to the 7 most likely positions for placements to the output Jplace file by
  * default. The property `like_weight_ratio` weights those placement positions so that the sum over
  * all positions (all branches of the tree) per pquery is 1.0.
  *
- * This function removes all but the most likely placement (the one which has the maximal
- * `like_weight_ratio`) from the Pquery. It additionally sets the `like_weight_ratio` of the
- * remaining placement to 1.0, as this one now is the only one left, thus its "sum" has to be 1.0.
+ * This function removes all but the `n` most likely placements (the ones which have the highest
+ * `like_weight_ratio`) from the Pquery. The `like_weight_ratio` of the remaining placements is not
+ * changed.
  */
-void restrain_to_max_weight_placements( Pquery& pquery )
+void filter_n_max_weight_placements( Pquery& pquery, size_t n )
 {
     // Check if there is anything to do at all.
-    if( pquery.placement_size() == 0 ) {
+    if( pquery.placement_size() == 0 || pquery.placement_size() <= n ) {
         return;
     }
 
-    // Get a copy of the element with the highest like_weight_ratio.
-    PqueryPlacement max_place = *std::max_element(
-        pquery.begin_placements(),
-        pquery.end_placements(),
-        [] ( PqueryPlacement const& lhs, PqueryPlacement const& rhs ) {
-            return lhs.like_weight_ratio < rhs.like_weight_ratio;
-        }
-    );
-
-    // Set the new max placement as the only one in the Pquery.
-    max_place.like_weight_ratio = 1.0;
-    pquery.clear_placements();
-    pquery.add_placement( max_place );
+    // Sort and remove elements from the back until n are left
+    // (this is not the cleanest solution, but works for now).
+    sort_placements_by_weight( pquery );
+    while( pquery.placement_size() > n ) {
+        pquery.remove_placement_at( pquery.placement_size() - 1 );
+    }
 }
 
 /**
- * @brief Remove all PqueryPlacement%s but the most likely one from all
+ * @brief Remove all PqueryPlacement%s but the `n` most likely ones from all
  * @link Pquery Pqueries @endlink in the Sample.
  *
- * This function calls restrain_to_max_weight_placements( Pquery& pquery ) for all Pqueries of
- * the Sample. See this version of the function for more information.
+ * This function calls filter_n_max_weight_placements( Pquery& pquery, size_t n ) for all Pqueries
+ * of the Sample. See this version of the function for more information.
  */
-void restrain_to_max_weight_placements( Sample& smp )
+void filter_n_max_weight_placements( Sample& smp, size_t n )
 {
-    for( auto pqry_it = smp.begin(); pqry_it != smp.end(); ++pqry_it ) {
-        restrain_to_max_weight_placements( *pqry_it );
+    for( auto& pquery : smp ) {
+        filter_n_max_weight_placements( pquery, n );
+    }
+}
+
+/**
+ * @brief Remove all PqueryPlacement%s that have a `like_weight_ratio` below the given threshold.
+ */
+void filter_min_weight_threshold( Pquery& pquery, double threshold )
+{
+    // This is certainly not the cleanest solution, as it might cause quite some relocations.
+    // However, we'd need full write access to the placement vector, which is currently not
+    // supported for reasons of encapsulation...
+    size_t i = 0;
+    while( i < pquery.placement_size() ) {
+        if( pquery.placement_at(i).like_weight_ratio < threshold ) {
+            pquery.remove_placement_at(i);
+        } else {
+            ++i;
+        }
+    }
+}
+
+/**
+ * @brief Remove all PqueryPlacement%s that have a `like_weight_ratio` below the given threshold
+ * from all @link Pquery Pqueries @endlink of the Sample.
+ */
+void filter_min_weight_threshold( Sample& smp,    double threshold )
+{
+    for( auto& pquery : smp ) {
+        filter_min_weight_threshold( pquery, threshold );
     }
 }
 
@@ -150,7 +181,7 @@ void restrain_to_max_weight_placements( Sample& smp )
  * @brief Sort the PqueryPlacement%s of a Pquery by their `like_weight_ratio`, in descending order
  * (most likely first).
  */
-void sort_placements_by_like_weight_ratio( Pquery& pquery )
+void sort_placements_by_weight( Pquery& pquery )
 {
     std::sort(
         pquery.begin_placements(),
@@ -168,10 +199,10 @@ void sort_placements_by_like_weight_ratio( Pquery& pquery )
  * @brief Sort the PqueryPlacement%s of all @link Pquery Pqueries @endlink by their
  * `like_weight_ratio`, in descending order (most likely first).
  */
-void sort_placements_by_like_weight_ratio( Sample& smp )
+void sort_placements_by_weight( Sample& smp )
 {
     for( auto pqry_it = smp.begin(); pqry_it != smp.end(); ++pqry_it ) {
-        sort_placements_by_like_weight_ratio( *pqry_it );
+        sort_placements_by_weight( *pqry_it );
     }
 }
 

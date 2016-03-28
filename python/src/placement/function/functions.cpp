@@ -100,6 +100,34 @@ PYTHON_EXPORT_FUNCTIONS(placement_function_functions_export, "placement")
     );
 
     boost::python::def(
+        "filter_min_weight_threshold",
+        ( void ( * )( Pquery &, double ))( &::genesis::placement::filter_min_weight_threshold ),
+        ( boost::python::arg("pquery"), boost::python::arg("threshold") ),
+        get_docstring("void ::genesis::placement::filter_min_weight_threshold (Pquery & pquery, double threshold)")
+    );
+
+    boost::python::def(
+        "filter_min_weight_threshold",
+        ( void ( * )( Sample &, double ))( &::genesis::placement::filter_min_weight_threshold ),
+        ( boost::python::arg("smp"), boost::python::arg("threshold") ),
+        get_docstring("void ::genesis::placement::filter_min_weight_threshold (Sample & smp, double threshold)")
+    );
+
+    boost::python::def(
+        "filter_n_max_weight_placements",
+        ( void ( * )( Pquery &, size_t ))( &::genesis::placement::filter_n_max_weight_placements ),
+        ( boost::python::arg("pquery"), boost::python::arg("n") ),
+        get_docstring("void ::genesis::placement::filter_n_max_weight_placements (Pquery & pquery, size_t n)")
+    );
+
+    boost::python::def(
+        "filter_n_max_weight_placements",
+        ( void ( * )( Sample &, size_t ))( &::genesis::placement::filter_n_max_weight_placements ),
+        ( boost::python::arg("smp"), boost::python::arg("n") ),
+        get_docstring("void ::genesis::placement::filter_n_max_weight_placements (Sample & smp, size_t n)")
+    );
+
+    boost::python::def(
         "merge_duplicate_names",
         ( void ( * )( Pquery & ))( &::genesis::placement::merge_duplicate_names ),
         ( boost::python::arg("pquery") ),
@@ -136,48 +164,29 @@ PYTHON_EXPORT_FUNCTIONS(placement_function_functions_export, "placement")
 
     boost::python::def(
         "normalize_weight_ratios",
+        ( void ( * )( Pquery & ))( &::genesis::placement::normalize_weight_ratios ),
+        ( boost::python::arg("pquery") ),
+        get_docstring("void ::genesis::placement::normalize_weight_ratios (Pquery & pquery)")
+    );
+
+    boost::python::def(
+        "normalize_weight_ratios",
         ( void ( * )( Sample & ))( &::genesis::placement::normalize_weight_ratios ),
         ( boost::python::arg("smp") ),
         get_docstring("void ::genesis::placement::normalize_weight_ratios (Sample & smp)")
     );
 
     boost::python::def(
-        "restrain_to_max_weight_placements",
-        ( void ( * )( Pquery & ))( &::genesis::placement::restrain_to_max_weight_placements ),
+        "sort_placements_by_weight",
+        ( void ( * )( Pquery & ))( &::genesis::placement::sort_placements_by_weight ),
         ( boost::python::arg("pquery") ),
-        get_docstring("void ::genesis::placement::restrain_to_max_weight_placements (Pquery & pquery)")
+        get_docstring("void ::genesis::placement::sort_placements_by_weight (Pquery & pquery)")
     );
 
     boost::python::def(
-        "restrain_to_max_weight_placements",
-        ( void ( * )( Sample & ))( &::genesis::placement::restrain_to_max_weight_placements ),
+        "sort_placements_by_weight",
+        ( void ( * )( Sample & ))( &::genesis::placement::sort_placements_by_weight ),
         ( boost::python::arg("smp") ),
-        get_docstring("void ::genesis::placement::restrain_to_max_weight_placements (Sample & smp)")
+        get_docstring("void ::genesis::placement::sort_placements_by_weight (Sample & smp)")
     );
-
-    boost::python::def(
-        "sort_placements_by_like_weight_ratio",
-        ( void ( * )( Pquery & ))( &::genesis::placement::sort_placements_by_like_weight_ratio ),
-        ( boost::python::arg("pquery") ),
-        get_docstring("void ::genesis::placement::sort_placements_by_like_weight_ratio (Pquery & pquery)")
-    );
-
-    boost::python::def(
-        "sort_placements_by_like_weight_ratio",
-        ( void ( * )( Sample & ))( &::genesis::placement::sort_placements_by_like_weight_ratio ),
-        ( boost::python::arg("smp") ),
-        get_docstring("void ::genesis::placement::sort_placements_by_like_weight_ratio (Sample & smp)")
-    );
-
-    // boost::python::def(
-    //     "sort_placements_by_proximal_length",
-    //     ( void ( * )( PlacementTreeEdge & ))( &::genesis::placement::sort_placements_by_proximal_length ),
-    //     ( boost::python::arg("edge") )
-    // );
-    //
-    // boost::python::def(
-    //     "sort_placements_by_proximal_length",
-    //     ( void ( * )( Sample & ))( &::genesis::placement::sort_placements_by_proximal_length ),
-    //     ( boost::python::arg("smp") )
-    // );
 }
