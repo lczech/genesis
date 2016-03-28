@@ -103,8 +103,6 @@ You can find the whole code listing of this tutorial at
 
     ./doc/tutorials/samples.cpp
 
-For more code examples, see the @ref demos page.
-
 # References
 <!-- # References {#placement_references} -->
 

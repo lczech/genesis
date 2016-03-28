@@ -42,7 +42,8 @@ intended for questions on how to do things with genesis.
 For bug reports and feature requests, please
 [open an issue on our GitHub page](https://github.com/lczech/genesis/issues).
 
-# Acknowledgements {#main_acknowledgements}
+# Acknowledgements
+<!-- # Acknowledgements {#main_acknowledgements} -->
 
 This work is financially supported by the
 [Klaus Tschira Foundation](http://www.klaus-tschira-stiftung.de/) and the
