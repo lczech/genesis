@@ -5,6 +5,9 @@ The demo programs are located in
 
     ./doc/demo/
 
+They are intended to show some of the functionality of genesis in a ready-to-use setting. You can
+also use them as starting point for developing your own applications.
+
 The simplest way to test and use them is to copy the needed files to the `./apps` directory and
 compile them using `make update`.
 
@@ -22,7 +25,7 @@ all of them and counts the placement mass (according to the `like_weight_ratio` 
 for each branch of the tree. Those masses are then turned into colors representing a heat
 gradient of how much placement mass was placed on each branch, and writes a tree with this
 color information to a given nexus file path. The resulting file can be read and visualized
-with, e.g., FigTree:
+with, e.g., [FigTree](http://tree.bio.ed.ac.uk/software/figtree/):
 
 ![Tree with branches colored according to weight of placements on the branches.](visualize_placements.png)
 

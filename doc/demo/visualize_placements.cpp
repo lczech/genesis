@@ -1,5 +1,3 @@
-// file visualize_placements.cpp
-
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
@@ -52,11 +50,15 @@ void count_placement_mass_per_edge(
         throw std::runtime_error( "Placement mass vector has wrong size." );
     }
 
-    // Loop and count.
+    // Loop over all placements of all pqueries of the sample and accumulate the mass.
     for( auto const& pquery : sample ) {
         for( auto const& placement : pquery.placements() ) {
             auto index = placement.edge().index();
             placement_mass[index] += placement.like_weight_ratio;
+        }
+
+        for( auto const& name : pquery.names() ) {
+            LOG_INFO << "Name " << name.name;
         }
     }
 }

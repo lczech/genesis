@@ -32,11 +32,11 @@ The functionality of genesis can be used in two ways:
  *  As a C++ library.
  *  As a Python module.
 
-The documentation is available at [doc.genesis-lib.org](http://doc.genesis-lib.org/). It contains a
-user manual with setup instructions and tutorials, as well as the full API reference.
+The **documentation** is available at [doc.genesis-lib.org](http://doc.genesis-lib.org/).
+It contains a user manual with setup instructions and tutorials, as well as the full API reference.
 
-For user support, please see our [support forum](http://support.genesis-lib.org/). It is
-intended for questions on how to do things with genesis.
+For **user support**, please see our [support forum](http://support.genesis-lib.org/).
+It is intended for questions on how to do things with genesis.
 
-For bug reports and feature requests, please
+For **bug reports and feature requests**, please
 [open an issue on our GitHub page](https://github.com/lczech/genesis/issues).

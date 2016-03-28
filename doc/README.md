@@ -1,9 +1,10 @@
 genesis documentation
 =====================
 
+This directory contains the files needed for the tutorials and demos.
 The genesis documentation is available at [doc.genesis-lib.org](http://doc.genesis-lib.org/).
 
-This directory contains the files that are used to generate the documentation with doxygen.
+Also, the files that are used to generate the documentation with doxygen are stored here.
 The documentation of genesis contains both, the user manual with tutorials and code examples,
 and the API Reference with more details about classes and functions:
 

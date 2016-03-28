@@ -85,11 +85,12 @@ See @ref dev for more information on incremental builds.
 
 # Apps {#setup_apps}
 
-The `app` directory is provided for conveniently and quickly developing small C++ applications
+The `./apps` directory is provided for conveniently and quickly developing small C++ applications
 which use genesis as their main library. This is a way of using C++ similar to a scripting language.
 
 Reasons to use this method (instead of the genesis Python bindings) include:
 
+ *  If you quickly want to test an idea or get some experience with genesis.
  *  If Boost Python is not available on your target system.
  *  If not all needed functions of genesis are exported to Python (yet).
  *  If you simply feel more comfortable developing in C++ than in Python.
@@ -118,6 +119,9 @@ file (without the ending).
 
 Apart from that, there are no further requirements. Simply include the needed genesis headers (or
 any other headers you might need) and compile. Happy coding!
+
+Remark: The apps are only a convenience for users. Genesis can of course also be used like any
+other C++ library by including its headers and linking against its binaries.
 
 # Python {#setup_python}
 
@@ -148,6 +152,9 @@ You can test whether or not the module is available for import in Python with
 import genesis
 print genesis.utils.genesis_header()
 ~~~
+
+We recommend to use an interactive Python shell like [IPython](https://ipython.org/) or
+[bpython](http://bpython-interpreter.org/) in order to discover the functionality of genesis.
 
 **Important remark:** At the moment, most, but not all functionality of genesis is exported to
 Python. This is mainly due to the fact that the library is developed by a C++ advocate. Well, also
