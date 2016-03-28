@@ -71,6 +71,23 @@ Pquery const* find_pquery( Sample const& smp, std::string const& name )
     return nullptr;
 }
 
+/**
+ * @brief Return a set of all unique PqueryName%s of the @link Pquery Pqueries @endlink
+ * of the given sample.
+ *
+ * If a Pquery contains multiple names, all of them are added to the set.
+ */
+std::unordered_set<std::string> all_pquery_names( Sample const& sample )
+{
+    std::unordered_set<std::string> result;
+    for( auto const& pquery : sample ) {
+        for( auto const& pname : pquery.names() ) {
+            result.insert( pname.name );
+        }
+    }
+    return result;
+}
+
 // =================================================================================================
 //     Normalization and Sorting
 // =================================================================================================

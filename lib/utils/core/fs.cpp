@@ -102,6 +102,10 @@ void file_append( std::string const& content, std::string const& filename )
     outfile << content;
 }
 
+// =================================================================================================
+//     Directory Access
+// =================================================================================================
+
 /**
  * @brief Return true iff the provided path is a directory.
  *

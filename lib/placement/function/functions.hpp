@@ -12,6 +12,7 @@
 
 #include <string>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -26,6 +27,9 @@ bool has_name( Pquery const& pquery, std::string const& name );
 bool has_name( Sample const& smp, std::string const& name );
 
 Pquery const* find_pquery( Sample const& smp, std::string const& name );
+// Pquery*       find_pquery( Sample&       smp, std::string const& name );
+
+std::unordered_set<std::string> all_pquery_names( Sample const& sample );
 
 // =================================================================================================
 //     Normalization and Sorting

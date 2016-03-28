@@ -65,6 +65,13 @@ PYTHON_EXPORT_FUNCTIONS(placement_function_functions_export, "placement")
     );
 
     boost::python::def(
+        "all_pquery_names",
+        ( std::unordered_set< std::string > ( * )( Sample const & ))( &::genesis::placement::all_pquery_names ),
+        ( boost::python::arg("sample") ),
+        get_docstring("std::unordered_set< std::string > ::genesis::placement::all_pquery_names (Sample const & sample)")
+    );
+
+    boost::python::def(
         "closest_leaf_depth_histogram",
         ( std::vector< int > ( * )( Sample const & ))( &::genesis::placement::closest_leaf_depth_histogram ),
         ( boost::python::arg("smp") ),

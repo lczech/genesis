@@ -38,7 +38,7 @@ void PythonExportClass_BipartitionSet(std::string name)
         )
         .def(
             "get_subtree_edges",
-            ( std::unordered_set< EdgeType * > ( BipartitionSetType::* )( LinkType * ))( &BipartitionSetType::get_subtree_edges ),
+            ( std::unordered_set< size_t > ( BipartitionSetType::* )( LinkType * ))( &BipartitionSetType::get_subtree_edges ),
             ( boost::python::arg("subtree") )
         )
         .def(
