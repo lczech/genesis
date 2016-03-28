@@ -3,13 +3,13 @@ Demos {#demos}
 
 The demo programs are located in
 
-    ./doc/demo/
+    ./doc/demos/
 
 They are intended to show some of the functionality of genesis in a ready-to-use setting. You can
 also use them as starting point for developing your own applications.
 
 The simplest way to test and use them is to copy the needed files to the `./apps` directory and
-compile them using `make update`.
+compile them using `make update`. See @ref setup_apps for setup instructions.
 
 For the C++ demos, start by inspecting the `main` function. From there, all other functions
 of the demos are called.
@@ -18,7 +18,7 @@ of the demos are called.
 
 This demo is located at
 
-    ./doc/demo/visualize_placements.cpp
+    ./doc/demos/visualize_placements.cpp
 
 The program takes a path to either a `jplace` file, or a directory containing `jplace` files, reads
 all of them and counts the placement mass (according to the `like_weight_ratio` of each placement)

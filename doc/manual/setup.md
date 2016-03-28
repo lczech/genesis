@@ -159,7 +159,8 @@ We recommend to use an interactive Python shell like [IPython](https://ipython.o
 **Important remark:** At the moment, most, but not all functionality of genesis is exported to
 Python. This is mainly due to the fact that the library is developed by a C++ advocate. Well, also
 because there are some limits for the interoperability between Python and C++, e.g., regarding C++
-concepts like streams, const correctness and templates.
+concepts like streams, const correctness and templates. This make exporting certain functions
+more difficult than others.
 
 If you find yourself in need of a function of genesis that is not yet available via the Python
 interface, please

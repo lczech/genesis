@@ -1,3 +1,7 @@
+/**
+ * This is the demo "Visualize Placements". See the Manual for more information.
+ */
+
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
@@ -186,12 +190,12 @@ int main( int argc, char** argv )
     // Activate logging.
     utils::Logging::log_to_stdout();
 
-    // Check if the command line contains an argument that we can use as input path.
+    // Check if the command line contains the right number of arguments.
     if (argc != 3) {
         throw std::runtime_error(
             "Need to provide two command line arguments:\n"
             "  * A valid path to either a jplace file or a directory containing jplace files.\n"
-            "  * An output nexus file path."
+            "  * An output nexus file name."
         );
     }
     auto input_path = std::string( argv[1] );

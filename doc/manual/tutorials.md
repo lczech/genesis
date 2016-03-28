@@ -4,7 +4,16 @@ Tutorials {#tutorials}
 # Getting Started {#tutorials_getting_started}
 
 The easiest way to get started with genesis is to use the the `./apps` directory.
-See @ref setup_apps for setup instructions.
+See @ref setup_apps for setup instructions. Once you have set everything up, you can create a new
+`*.cpp` file in the `./apps` directory and compile it using `make update`.
+
+You find the code listings of the tutorials in
+
+    ./doc/tutorials/
+
+Those files can be copied to the `./apps` directory for testing them. They contain the examples
+from the tutorials, plus all needed headers and namespace declarations (which are omitted in the
+tutorials to keep them simple).
 
 # Module Tutorials
 

@@ -82,6 +82,29 @@ if( found_pquery == nullptr ) {
 LOG_INFO << "Pquery contains " << found_pquery->placement_size() << " placements";
 ~~~
 
+Removing placements with certain properties (filtering) works like this:
+
+~~~{.cpp}
+// Filter out all placements with a like_weight_ration below 0.5,
+// filter out all but the two most likely placements.
+filter_min_weight_threshold(    sample, 0.5 );
+filter_n_max_weight_placements( sample, 2   );
+~~~
+
+Writing back your results to a new `jplace` file is done using a
+@ref genesis::placement::JplaceWriter "JplaceWriter":
+
+~~~{.cpp}
+// Write the results back to a file.
+JplaceWriter().to_file( sample, "path/to/new_file.jplace" );
+~~~
+
+You can find the whole code listing of this tutorial at
+
+    ./doc/tutorials/samples.cpp
+
+For more code examples, see the @ref demos page.
+
 # References
 <!-- # References {#placement_references} -->
 

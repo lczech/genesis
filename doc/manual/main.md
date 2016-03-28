@@ -1,6 +1,12 @@
 The documentation of genesis has two main parts:
 The **User Manual** and the **API Reference**.
 
+**Important remark:** genesis is under active development and quite young. The manual is not yet
+exhaustive, the API might change with subsequent releases, there might be functions missing that
+you consider essential, and of course, there might be bugs.
+Please [report all issues on our GitHub page](https://github.com/lczech/genesis/issues).
+Your feedback is highly appreciated!
+
 # User Manual
 
 The manual contains high level explanations, tutorials and code examples for the
