@@ -31,16 +31,20 @@ Pquery const* find_pquery( Sample const& smp, std::string const& name );
 //     Normalization and Sorting
 // =================================================================================================
 
+void normalize_weight_ratios( Pquery& pquery );
 void normalize_weight_ratios( Sample& smp );
 
-void restrain_to_max_weight_placements( Pquery& pquery );
-void restrain_to_max_weight_placements( Sample& smp );
+void filter_n_max_weight_placements( Pquery& pquery, size_t n = 1 );
+void filter_n_max_weight_placements( Sample& smp,    size_t n = 1 );
+
+void filter_min_weight_threshold( Pquery& pquery, double threshold = 0.01 );
+void filter_min_weight_threshold( Sample& smp,    double threshold = 0.01 );
 
 // void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
 // void sort_placements_by_proximal_length( Sample& smp );
 
-void sort_placements_by_like_weight_ratio( Pquery& pquery );
-void sort_placements_by_like_weight_ratio( Sample& smp );
+void sort_placements_by_weight( Pquery& pquery );
+void sort_placements_by_weight( Sample& smp );
 
 // =================================================================================================
 //     Joining and Merging
