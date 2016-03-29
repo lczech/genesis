@@ -85,10 +85,14 @@ LOG_INFO << "Pquery contains " << found_pquery->placement_size() << " placements
 Removing placements with certain properties (filtering) works like this:
 
 ~~~{.cpp}
-// Filter out all placements with a like_weight_ration below 0.5,
-// filter out all but the two most likely placements.
-filter_min_weight_threshold(    sample, 0.5 );
+// Filter out all placements with a like_weight_ratio below 0.5.
+filter_min_weight_threshold( sample, 0.5 );
+
+// Filter out all but the two most likely placements.
 filter_n_max_weight_placements( sample, 2   );
+
+// Keep enough placements to get an accumulated like_weight_ratio of 98%, filter out the rest.
+filter_min_accumulated_weight( sample, 0.98 );
 ~~~
 
 Writing back your results to a new `jplace` file is done using a
