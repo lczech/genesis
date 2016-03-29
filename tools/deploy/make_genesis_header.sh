@@ -34,6 +34,29 @@ rm -f genesis.hpp
 echo "#ifndef GENESIS_H_" >> genesis.hpp
 echo "#define GENESIS_H_" >> genesis.hpp
 echo "" >> genesis.hpp
+echo "/*" >> genesis.hpp
+echo "    Genesis - A toolkit for working with phylogenetic data." >> genesis.hpp
+echo "    Copyright (C) 2014-2016 Lucas Czech" >> genesis.hpp
+echo "" >> genesis.hpp
+echo "    This program is free software: you can redistribute it and/or modify" >> genesis.hpp
+echo "    it under the terms of the GNU General Public License as published by" >> genesis.hpp
+echo "    the Free Software Foundation, either version 3 of the License, or" >> genesis.hpp
+echo "    (at your option) any later version." >> genesis.hpp
+echo "" >> genesis.hpp
+echo "    This program is distributed in the hope that it will be useful," >> genesis.hpp
+echo "    but WITHOUT ANY WARRANTY; without even the implied warranty of" >> genesis.hpp
+echo "    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the" >> genesis.hpp
+echo "    GNU General Public License for more details." >> genesis.hpp
+echo "" >> genesis.hpp
+echo "    You should have received a copy of the GNU General Public License" >> genesis.hpp
+echo "    along with this program.  If not, see <http://www.gnu.org/licenses/>." >> genesis.hpp
+echo "" >> genesis.hpp
+echo "    Contact:" >> genesis.hpp
+echo "    Lucas Czech <lucas.czech@h-its.org>" >> genesis.hpp
+echo "    Exelixis Lab, Heidelberg Institute for Theoretical Studies" >> genesis.hpp
+echo "    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany" >> genesis.hpp
+echo "*/" >> genesis.hpp
+echo "" >> genesis.hpp
 echo "/**" >> genesis.hpp
 echo " * @brief This header includes all other genesis headers (*.hpp)." >> genesis.hpp
 echo " * This makes it easy to integrate the code as a library, as all" >> genesis.hpp
