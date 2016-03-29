@@ -33,7 +33,7 @@ There are furthermore several detail functions, as well as a multitude of conven
 functions and classes.
 The feature list will hopefully grow in the future.
 
-Usage and Resources
+Getting Started
 -------------------
 
 The functionality of genesis can be used in two ways:
