@@ -37,7 +37,17 @@ TEST(SampleFunctions, Filter)
     filter_min_weight_threshold( smp, 0.5 );
     EXPECT_EQ( 8, total_placement_count(smp) );
 
+    // Re-read the file.
+    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+
     // Filter max number of placements and check result.
     filter_n_max_weight_placements( smp, 1 );
     EXPECT_EQ( 7, total_placement_count(smp) );
+
+    // Re-read the file.
+    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+
+    // Filter max number of placements and check result.
+    filter_min_accumulated_weight( smp, 0.6 );
+    EXPECT_EQ( 8, total_placement_count(smp) );
 }

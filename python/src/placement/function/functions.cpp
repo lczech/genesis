@@ -107,6 +107,20 @@ PYTHON_EXPORT_FUNCTIONS(placement_function_functions_export, "placement")
     );
 
     boost::python::def(
+        "filter_min_accumulated_weight",
+        ( void ( * )( Pquery &, double ))( &::genesis::placement::filter_min_accumulated_weight ),
+        ( boost::python::arg("pquery"), boost::python::arg("threshold") ),
+        get_docstring("void ::genesis::placement::filter_min_accumulated_weight (Pquery & pquery, double threshold)")
+    );
+
+    boost::python::def(
+        "filter_min_accumulated_weight",
+        ( void ( * )( Sample &, double ))( &::genesis::placement::filter_min_accumulated_weight ),
+        ( boost::python::arg("smp"), boost::python::arg("threshold") ),
+        get_docstring("void ::genesis::placement::filter_min_accumulated_weight (Sample & smp, double threshold)")
+    );
+
+    boost::python::def(
         "filter_min_weight_threshold",
         ( void ( * )( Pquery &, double ))( &::genesis::placement::filter_min_weight_threshold ),
         ( boost::python::arg("pquery"), boost::python::arg("threshold") ),

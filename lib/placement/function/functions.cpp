@@ -122,6 +122,47 @@ void normalize_weight_ratios( Sample& smp )
 }
 
 /**
+ * @brief Remove the PqueryPlacement%s with the lowest `like_weight_ratio`, while keeping the
+ * accumulated weight (sum of all remaining `like_weight_ratio`s) above a given threshold.
+ *
+ * This is a cleaning function to get rid of unlikely placement positions, withouth sacrificing
+ * too much detail of the overall distribution of weights. The EPA support a similar option, which
+ * only writes enough of the most likely placement positions to the output to fullfil a threshold.
+ */
+void filter_min_accumulated_weight( Pquery& pquery, double threshold )
+{
+    // Sort, so that the most likely placements are in the beginning.
+    sort_placements_by_weight( pquery );
+
+    // Find the position where enough weight is accumulated.
+    size_t i          = 0 ;
+    double weight_sum = 0.0;
+    do {
+        weight_sum += pquery.placement_at(i).like_weight_ratio;
+        ++i;
+    } while( weight_sum < threshold && i < pquery.placement_size() );
+
+    // Remove the rest.
+    while( pquery.placement_size() > i ) {
+        pquery.remove_placement_at( pquery.placement_size() - 1 );
+    }
+}
+
+/**
+ * @brief Remove the PqueryPlacement%s with the lowest `like_weight_ratio`, while keeping the
+ * accumulated weight (sum of all remaining `like_weight_ratio`s) above a given threshold.
+ *
+ * This function calls threshold( Pquery& pquery, double threshold ) for all Pqueries
+ * of the Sample. See this version of the function for more information.
+ */
+void filter_min_accumulated_weight( Sample& smp, double threshold )
+{
+    for( auto& pquery : smp ) {
+        filter_min_accumulated_weight( pquery, threshold );
+    }
+}
+
+/**
  * @brief Remove all PqueryPlacement%s but the `n` most likely ones from the Pquery.
  *
  * Pqueries can contain multiple placements on different branches. For example, the EPA algorithm

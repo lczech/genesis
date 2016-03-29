@@ -38,6 +38,9 @@ std::unordered_set<std::string> all_pquery_names( Sample const& sample );
 void normalize_weight_ratios( Pquery& pquery );
 void normalize_weight_ratios( Sample& smp );
 
+void filter_min_accumulated_weight( Pquery& pquery, double threshold = 0.99 );
+void filter_min_accumulated_weight( Sample& smp,    double threshold = 0.99 );
+
 void filter_n_max_weight_placements( Pquery& pquery, size_t n = 1 );
 void filter_n_max_weight_placements( Sample& smp,    size_t n = 1 );
 
