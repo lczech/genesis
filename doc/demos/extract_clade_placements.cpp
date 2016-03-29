@@ -272,21 +272,23 @@ void write_sample_set( placement::SampleSet const& sample_set, std::string outpu
  *
  * The program takes three input arguments in the following order:
  *
- *   1. A jplace input file. The pqueries in this file are then split into different samples. Each
+ *   1. A `jplace` input file. The pqueries in this file are then split into different samples. Each
  *      such sample contains all pqueries whose placements are placed in a certain clade of the
- *      reference tree with more than a cutoff threshold.
+ *      reference tree with more than a cutoff threshold of their accumulated likelihood weight.
  *
- *      According to the jplace standard, each pquery can have multiple possible placement positions.
+ *      According to the `jplace` standard, each pquery can have multiple possible placement positions.
  *      Each position has a value `like_weight_ratio`, which can be interpreted as a measure of
  *      probability of how likely the placement belongs to the branch that it is attached to.
  *      The ratios for all branches of the tree thus sum up to 1.0.
 
  *      If more of this placement mass than the threshold is placed on the branches of a single
- *      clade of the tree, the according pquery is assigned to that clade.
+ *      clade of the tree, the according pquery is assigned to that clade. The threshold is
+ *      hardcoded in this demo and set to 0.95 (but can be changed if needed, of course).
  *   2. A directory path, which needs to contain a single file for each clade of the reference tree.
- *      The clades are named accordinng to the file names.
- *      Each such file then needs to contain a list of all taxa names of that clade, one per line.
- *      The taxa names need to be the same as the node names of the tree tips.
+ *      The file names are used as clade names. Each file in the directory then needs to contain a
+ *      list of all taxa names of that clade, one per line.
+ *      The taxa names need to be the same as the node names of the reference tree in the `jplace`
+ *      file.
  *
  *      If a taxon in a clade file is not found on the tree, a warning is issued, and the taxon is
  *      ignored. If the tree contains taxa which are not in any clade file, those branches are
@@ -301,18 +303,18 @@ void write_sample_set( placement::SampleSet const& sample_set, std::string outpu
  *      The edges that belong to a clade are determined by finding the smalles subtree (split) of
  *      the tree that contains all nodes of the clade. That means, the clades should be monophyletic
  *      in order for this algorithm to work properly. Furthermore, the user needs to make sure that
- *      each taxa is contained in at most one clade. Otherwise, the algorithm won't work properly.
- *   3. An output directory path. For each clade (including the two special clades), a jplace file
- *      named after the clade is written to that path. Each jplace file then contains all pqueries
+ *      each taxon is contained in at most one clade. Otherwise, the algorithm won't work properly.
+ *   3. An output directory path. For each clade (including the two special clades), a `jplace` file
+ *      named after the clade is written to that path. Each `jplace` file then contains all pqueries
  *      that were assigned to that clade.
  *
  * A typical use case for this program is to extract pqueries that were placed in a particular
- * clade of interest in a first run of evolutionary placement. The extracted placements can then be
+ * clade of interest in an evolutionary placement analysis. The extracted placements can then be
  * further examined in downstream analyses.
  *
  * It is also possible to do a second run of evolutionary placement with the original sequences of
- * the pqueries of one clade, using a refined reference tree with a higher resolutin
- * (more reference taxa) for this clade. This two-step placement approach allows for finely grained
+ * the pqueries of one clade, using a refined reference tree for that clade with a higher resolution
+ * (more reference taxa). This two-step placement approach allows for finely grained
  * placement positions while keeping the computational load relatively small.
  */
 int main( int argc, char** argv )
