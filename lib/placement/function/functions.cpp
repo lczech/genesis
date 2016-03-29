@@ -1,3 +1,26 @@
+/*
+    Genesis - A toolkit for working with phylogenetic data.
+    Copyright (C) 2014-2016 Lucas Czech
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Contact:
+    Lucas Czech <lucas.czech@h-its.org>
+    Exelixis Lab, Heidelberg Institute for Theoretical Studies
+    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+*/
+
 /**
  * @brief Implementation of the Placement Functions.
  *
@@ -118,6 +141,47 @@ void normalize_weight_ratios( Sample& smp )
 {
     for( auto pqry_it = smp.begin(); pqry_it != smp.end(); ++pqry_it ) {
         normalize_weight_ratios( *pqry_it );
+    }
+}
+
+/**
+ * @brief Remove the PqueryPlacement%s with the lowest `like_weight_ratio`, while keeping the
+ * accumulated weight (sum of all remaining `like_weight_ratio`s) above a given threshold.
+ *
+ * This is a cleaning function to get rid of unlikely placement positions, withouth sacrificing
+ * too much detail of the overall distribution of weights. The EPA support a similar option, which
+ * only writes enough of the most likely placement positions to the output to fullfil a threshold.
+ */
+void filter_min_accumulated_weight( Pquery& pquery, double threshold )
+{
+    // Sort, so that the most likely placements are in the beginning.
+    sort_placements_by_weight( pquery );
+
+    // Find the position where enough weight is accumulated.
+    size_t i          = 0 ;
+    double weight_sum = 0.0;
+    do {
+        weight_sum += pquery.placement_at(i).like_weight_ratio;
+        ++i;
+    } while( weight_sum < threshold && i < pquery.placement_size() );
+
+    // Remove the rest.
+    while( pquery.placement_size() > i ) {
+        pquery.remove_placement_at( pquery.placement_size() - 1 );
+    }
+}
+
+/**
+ * @brief Remove the PqueryPlacement%s with the lowest `like_weight_ratio`, while keeping the
+ * accumulated weight (sum of all remaining `like_weight_ratio`s) above a given threshold.
+ *
+ * This function calls threshold( Pquery& pquery, double threshold ) for all Pqueries
+ * of the Sample. See this version of the function for more information.
+ */
+void filter_min_accumulated_weight( Sample& smp, double threshold )
+{
+    for( auto& pquery : smp ) {
+        filter_min_accumulated_weight( pquery, threshold );
     }
 }
 

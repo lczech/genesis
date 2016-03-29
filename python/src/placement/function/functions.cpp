@@ -1,3 +1,26 @@
+/*
+    Genesis - A toolkit for working with phylogenetic data.
+    Copyright (C) 2014-2016 Lucas Czech
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Contact:
+    Lucas Czech <lucas.czech@h-its.org>
+    Exelixis Lab, Heidelberg Institute for Theoretical Studies
+    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
+*/
+
 /**
  * @brief
  *
@@ -104,6 +127,20 @@ PYTHON_EXPORT_FUNCTIONS(placement_function_functions_export, "placement")
         ( void ( * )( Sample const &, Sample & ))( &::genesis::placement::copy_pqueries ),
         ( boost::python::arg("source"), boost::python::arg("target") ),
         get_docstring("void ::genesis::placement::copy_pqueries (Sample const & source, Sample & target)")
+    );
+
+    boost::python::def(
+        "filter_min_accumulated_weight",
+        ( void ( * )( Pquery &, double ))( &::genesis::placement::filter_min_accumulated_weight ),
+        ( boost::python::arg("pquery"), boost::python::arg("threshold") ),
+        get_docstring("void ::genesis::placement::filter_min_accumulated_weight (Pquery & pquery, double threshold)")
+    );
+
+    boost::python::def(
+        "filter_min_accumulated_weight",
+        ( void ( * )( Sample &, double ))( &::genesis::placement::filter_min_accumulated_weight ),
+        ( boost::python::arg("smp"), boost::python::arg("threshold") ),
+        get_docstring("void ::genesis::placement::filter_min_accumulated_weight (Sample & smp, double threshold)")
     );
 
     boost::python::def(
