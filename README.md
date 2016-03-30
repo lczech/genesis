@@ -1,4 +1,4 @@
-![genesis](/doc/logo/logo_readme.png?raw=true "genesis")
+[![genesis](/doc/logo/logo_readme.png?raw=true "genesis")](http://genesis-lib.org/)
 
 A toolkit for working with phylogenetic data.
 
@@ -7,7 +7,7 @@ A toolkit for working with phylogenetic data.
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg)
 ![Language](https://img.shields.io/badge/language-python-lightgrey.svg)
 
-Purpose
+Features
 -------------------
 
 The aim of this project is to provide an easy to use toolkit for working with phylogenetic data.
