@@ -42,6 +42,9 @@ namespace placement {
 //     PlacementTreeEdgeData
 // =============================================================================
 
+/**
+ * @brief Return the `edge_num` of this edge. This value is defined by the `jplace` standard.
+ */
 int PlacementTreeEdgeData::edge_num() const
 {
     return edge_num_;

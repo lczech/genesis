@@ -32,7 +32,6 @@
  */
 
 #include <string>
-#include <vector>
 
 #include "tree/default/tree.hpp"
 #include "tree/tree.hpp"
@@ -41,15 +40,15 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Forward Declarations
-// =================================================================================================
-
-class PqueryPlacement;
-
-// =================================================================================================
 //     Placement Tree Node Data
 // =================================================================================================
 
+/**
+ * @brief Data class for @link PlacementTreeNode PlacementTreeNodes @endlink. Stores a node name.
+ *
+ * This class is derived from tree::DefaultTreeNodeData and currently adds no functionality on top
+ * of this base class. See there for more information.
+ */
 class PlacementTreeNodeData : public tree::DefaultTreeNodeData
 {
 public:
@@ -60,6 +59,12 @@ public:
 //     Placement Tree Edge Data
 // =================================================================================================
 
+/**
+ * @brief Data class for @link PlacementTreeEdge PlacementTreeEdges @endlink. Stores the branch
+ * length of the edge, and the `edge_num`, as defined in the `jplace` standard.
+ *
+ * This class is derived from tree::DefaultTreeEdgeData. See there for more information.
+ */
 class PlacementTreeEdgeData : public tree::DefaultTreeEdgeData
 {
 public:
