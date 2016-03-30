@@ -22,7 +22,7 @@
 */
 
 /**
- * @brief Implementation of basic tree functions.
+ * @brief Implementation of Tree class template.
  *
  * For reasons of readability, in this implementation file, the template data types
  * NodeDataType and EdgeDataType are abbreviated using NDT and EDT, respectively.
@@ -32,7 +32,6 @@
  */
 
 #include <assert.h>
-#include <sstream>
 
 // #include "tree/distances.hpp"
 #include "utils/core/logging.hpp"
@@ -56,60 +55,17 @@ namespace tree {
  * other structures that need a deep copy, it is the responsibility of those data classes to make
  * sure its own data is copied correctly.
  *
- * TODO Idea for a nice feature (not yet implemented):
- * The advantage of copying the topology only is that we are able to make this function completely
- * independend of the data, hence the `other` Tree does not need to share the same data types.
+ * This function internally uses convert_from(), with trivial conversion by copy assigning the data.
+ * See there for converting trees with different template parameter types to each other.
  */
 template <class NDT, class EDT>
 Tree<NDT, EDT>::Tree( const Tree<NDT, EDT>& other )
 {
-    // Preparation.
-    clear();
-    links_.resize(other.links_.size());
-    nodes_.resize(other.nodes_.size());
-    edges_.resize(other.edges_.size());
-
-    // Create all objects. We need two loops per array, because the pointers have to exist
-    // in order to be linked to each other.
-    for (size_t i = 0; i < links_.size(); ++i) {
-        links_[i] = make_unique<LinkType>();
-        // links_[i]->data = other.links_[i]->data;
-    }
-    for (size_t i = 0; i < nodes_.size(); ++i) {
-        nodes_[i] = make_unique<NodeType>();
-        nodes_[i]->data = other.nodes_[i]->data;
-    }
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        edges_[i] = make_unique<EdgeType>();
-        edges_[i]->data = other.edges_[i]->data;
-    }
-
-    // Set all pointers for the topology in a second round of loops.
-    for (size_t i = 0; i < links_.size(); ++i) {
-        const auto& olink = other.links_[i];
-        assert(olink->index() == i);
-
-        links_[i]->reset_index( i );
-        links_[i]->reset_next(  links_[olink->next().index()].get() );
-        links_[i]->reset_outer( links_[olink->outer().index()].get() );
-        links_[i]->reset_node(  nodes_[olink->node().index()].get() );
-        links_[i]->reset_edge(  edges_[olink->edge().index()].get() );
-    }
-    for (size_t i = 0; i < nodes_.size(); ++i) {
-        const auto& onode = other.nodes_[i];
-        assert(onode->index() == i);
-
-        nodes_[i]->reset_index( i );
-        nodes_[i]->reset_primary_link( links_[onode->link().index()].get() );
-    }
-    for (size_t i = 0; i < edges_.size(); ++i) {
-        const auto& oedge = other.edges_[i];
-        assert(oedge->index() == i);
-
-        edges_[i]->reset_index( i );
-        edges_[i]->reset_primary_link(   links_[oedge->primary_link().index()].get()   );
-        edges_[i]->reset_secondary_link( links_[oedge->secondary_link().index()].get() );
-    }
+    convert_from(
+        other,
+        [] ( NodeDataType const& node_data ) { return node_data; },
+        [] ( EdgeDataType const& edge_data ) { return edge_data; }
+    );
 }
 
 /**
@@ -194,7 +150,77 @@ void Tree<NDT, EDT>::export_content (
 }
 
 /**
+ * @brief Copy the topology of another tree to this tree, and convert its data.
+ *
+ * The current content of this tree is cleared. Then, this function takes the given Tree
+ * (possibly with different template parameters, i.e., a different tree type) and copies its
+ * topology (i.e., all links, nodes and edges, and their structure) to this tree.
+ * Furthermore, the data types are converted using the two provided functions for the node data
+ * type and edge data type, respectively.
+ *
+ * This function is also internally used by the copy constructor, with trivial conversion by
+ * copy assigning the data.
+ */
+template <class NDT, class EDT>
+template <class OtherTreeType>
+void Tree<NDT, EDT>::convert_from(
+    OtherTreeType const& other_tree,
+    std::function<typename Tree<NDT, EDT>::NodeDataType ( typename OtherTreeType::NodeDataType const& node_data )> node_data_converter,
+    std::function<typename Tree<NDT, EDT>::EdgeDataType ( typename OtherTreeType::EdgeDataType const& edge_data )> edge_data_converter
+) {
+    // Preparation.
+    clear();
+    links_.resize(other_tree.link_count());
+    nodes_.resize(other_tree.node_count());
+    edges_.resize(other_tree.edge_count());
+
+    // Create all objects. We need two loops per array, because the pointers have to exist
+    // in order to be linked to each other.
+    for (size_t i = 0; i < links_.size(); ++i) {
+        links_[i] = make_unique<LinkType>();
+        // links_[i]->data = other_tree.links_[i]->data;
+    }
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        nodes_[i] = make_unique<NodeType>();
+        nodes_[i]->data = node_data_converter( other_tree.node_at(i).data );
+    }
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        edges_[i] = make_unique<EdgeType>();
+        edges_[i]->data = edge_data_converter( other_tree.edge_at(i).data );
+    }
+
+    // Set all pointers for the topology in a second round of loops.
+    for (size_t i = 0; i < links_.size(); ++i) {
+        const auto& olink = other_tree.link_at(i);
+        assert(olink.index() == i);
+
+        links_[i]->reset_index( i );
+        links_[i]->reset_next(  links_[olink.next().index()].get() );
+        links_[i]->reset_outer( links_[olink.outer().index()].get() );
+        links_[i]->reset_node(  nodes_[olink.node().index()].get() );
+        links_[i]->reset_edge(  edges_[olink.edge().index()].get() );
+    }
+    for (size_t i = 0; i < nodes_.size(); ++i) {
+        const auto& onode = other_tree.node_at(i);
+        assert(onode.index() == i);
+
+        nodes_[i]->reset_index( i );
+        nodes_[i]->reset_primary_link( links_[onode.link().index()].get() );
+    }
+    for (size_t i = 0; i < edges_.size(); ++i) {
+        const auto& oedge = other_tree.edge_at(i);
+        assert(oedge.index() == i);
+
+        edges_[i]->reset_index( i );
+        edges_[i]->reset_primary_link(   links_[oedge.primary_link().index()].get()   );
+        edges_[i]->reset_secondary_link( links_[oedge.secondary_link().index()].get() );
+    }
+}
+
+/**
  * @brief Deletes all data of the tree, including all links, nodes and edges.
+ *
+ * This functions results in an empty tree.
  */
 template <class NDT, class EDT>
 void Tree<NDT, EDT>::clear()
@@ -370,6 +396,18 @@ typename Tree<NDT, EDT>::ConstIteratorLinks Tree<NDT, EDT>::end_links() const
     return links_.cend();
 }
 
+template <class NDT, class EDT>
+utils::Range<typename Tree<NDT, EDT>::IteratorLinks> Tree<NDT, EDT>::links()
+{
+    return { links_ };
+}
+
+template <class NDT, class EDT>
+utils::Range<typename Tree<NDT, EDT>::ConstIteratorLinks> Tree<NDT, EDT>::links() const
+{
+    return { links_ };
+}
+
 // -------------------------------------------------------------------------
 //     Nodes
 // -------------------------------------------------------------------------
@@ -398,6 +436,18 @@ typename Tree<NDT, EDT>::ConstIteratorNodes Tree<NDT, EDT>::end_nodes() const
     return nodes_.cend();
 }
 
+template <class NDT, class EDT>
+utils::Range<typename Tree<NDT, EDT>::IteratorNodes> Tree<NDT, EDT>::nodes()
+{
+    return { nodes_ };
+}
+
+template <class NDT, class EDT>
+utils::Range<typename Tree<NDT, EDT>::ConstIteratorNodes> Tree<NDT, EDT>::nodes() const
+{
+    return { nodes_ };
+}
+
 // -------------------------------------------------------------------------
 //     Edges
 // -------------------------------------------------------------------------
@@ -424,6 +474,18 @@ template <class NDT, class EDT>
 typename Tree<NDT, EDT>::ConstIteratorEdges Tree<NDT, EDT>::end_edges() const
 {
     return edges_.cend();
+}
+
+template <class NDT, class EDT>
+utils::Range<typename Tree<NDT, EDT>::IteratorEdges> Tree<NDT, EDT>::edges()
+{
+    return { edges_ };
+}
+
+template <class NDT, class EDT>
+utils::Range<typename Tree<NDT, EDT>::ConstIteratorEdges> Tree<NDT, EDT>::edges() const
+{
+    return { edges_ };
 }
 
 } // namespace tree
