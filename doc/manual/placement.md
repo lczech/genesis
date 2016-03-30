@@ -33,6 +33,7 @@ The most important class for evolutionary placement is the @ref genesis::placeme
 A sample is a representation of a whole `jplace` file: It stores the
 @ref genesis::placement::PlacementTree "reference tree" and a set of
 @ref genesis::placement::Pquery "Pqueries".
+
 To read the data from a `jplace` file into a Sample, use a
 @ref genesis::placement::JplaceReader "JplaceReader":
 
@@ -89,7 +90,7 @@ Removing placements with certain properties (filtering) works like this:
 filter_min_weight_threshold( sample, 0.5 );
 
 // Filter out all but the two most likely placements.
-filter_n_max_weight_placements( sample, 2   );
+filter_n_max_weight_placements( sample, 2 );
 
 // Keep enough placements to get an accumulated like_weight_ratio of 98%, filter out the rest.
 filter_min_accumulated_weight( sample, 0.98 );

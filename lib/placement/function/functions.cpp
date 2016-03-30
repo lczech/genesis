@@ -175,8 +175,8 @@ void filter_min_accumulated_weight( Pquery& pquery, double threshold )
  * @brief Remove the PqueryPlacement%s with the lowest `like_weight_ratio`, while keeping the
  * accumulated weight (sum of all remaining `like_weight_ratio`s) above a given threshold.
  *
- * This function calls threshold( Pquery& pquery, double threshold ) for all Pqueries
- * of the Sample. See this version of the function for more information.
+ * This function calls filter_min_accumulated_weight( Pquery& pquery, double threshold ) for all
+ * Pqueries of the Sample. See this version of the function for more information.
  */
 void filter_min_accumulated_weight( Sample& smp, double threshold )
 {
