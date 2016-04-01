@@ -44,10 +44,20 @@
 #include "placement/placement_tree.hpp"
 #include "placement/pquery/plain.hpp"
 #include "placement/sample.hpp"
+
 #include "tree/default/distances.hpp"
 #include "tree/function/distances.hpp"
+#include "tree/function/emd_tree.hpp"
+#include "tree/function/emd.hpp"
+#include "tree/function/tree_set.hpp"
 #include "tree/iterator/node_links.hpp"
 #include "tree/iterator/postorder.hpp"
+#include "tree/tree_set.hpp"
+
+// TODO remove asap.
+#include "tree/printer/compact.hpp"
+#include "utils/core/logging.hpp"
+
 #include "utils/core/options.hpp"
 #include "utils/math/histogram.hpp"
 #include "utils/math/histogram/distances.hpp"
@@ -161,6 +171,83 @@ double pquery_distance (
 //     Earth Movers Distance
 // =================================================================================================
 
+double earth_movers_distance_new (
+    const Sample& lhs,
+    const Sample& rhs,
+    bool          with_pendant_length
+) {
+    // Get a tree with the average branch lengths of both provided trees.
+    // This function also throws in case the trees have different topologies.
+    tree::TreeSet<PlacementTree> tset;
+    tset.add( "lhs", lhs.tree() );
+    tset.add( "rhs", rhs.tree() );
+    auto avg_length_tree = tree::average_branch_length_tree( tset );
+
+    // Create an EMD tree from the average branch length tree.
+    tree::EmdTree emd_tree;
+    emd_tree.convert_from(
+        avg_length_tree,
+        [] ( PlacementTreeNodeData const& node ) {
+            (void) node;
+            return tree::EmdTreeNodeData();
+        },
+        [] ( PlacementTreeEdgeData const& edge ) {
+            auto emd_edge =  tree::EmdTreeEdgeData();
+            emd_edge.branch_length = edge.branch_length;
+            return emd_edge;
+        }
+    );
+
+    // Helper function that copies the masses from a sample to the emd tree.
+    // It furthermore returns the amount of work needed to move the masses from their pendant
+    // position to the branch (this result is only used if with_pendant_length is true).
+    // Yep, this function does quite a lot of different things. But it's faster this way and it is
+    // only a local function. Don't judge me.
+    auto move_masses = [ &emd_tree ] ( Sample const& smp, double sign, double sum ) {
+        double pendant_work = 0.0;
+
+        for( auto const& pqry : smp.pqueries() ) {
+            for( auto const& place : pqry.placements() ) {
+                auto& edge = emd_tree.edge_at( place.edge().index() );
+
+                // Use the relative position of the mass on its original branch to put it to the
+                // same position relative to its new branch.
+                double position = place.proximal_length
+                                / place.edge().data.branch_length
+                                * edge.data.branch_length;
+
+                // Add the mass at that position, normalized and using the sign.
+                edge.data.masses[ position ] += sign * place.like_weight_ratio / sum;
+
+                // Accumulate the work we need to do to move the masses from their pendant
+                // positions to the branches.
+                pendant_work += place.like_weight_ratio * place.pendant_length / sum;
+            }
+        }
+
+        return pendant_work;
+    };
+
+    // Use the sum of masses as normalization factor for the masses.
+    double totalmass_l = total_placement_mass( lhs );
+    double totalmass_r = total_placement_mass( rhs );
+
+    // Copy masses of both samples to the EMD tree, with different signs.
+    double pendant_work_l = move_masses( lhs, +1.0, totalmass_l );
+    double pendant_work_r = move_masses( rhs, -1.0, totalmass_r );
+
+    // Calculate EMD.
+    double work = tree::earth_movers_distance( emd_tree );
+
+    // If we also want the amout of work that was needed to move the placement masses from their
+    // pendant position to the branch, we need to add those values.
+    if( with_pendant_length ) {
+        work += pendant_work_l + pendant_work_r;
+    }
+
+    return work;
+}
+
 /**
  * @brief Calculates the Earth Movers Distance between two sets of placements on a fixed reference
  * tree.
@@ -168,7 +255,7 @@ double pquery_distance (
 double earth_movers_distance(
     const Sample& lhs,
     const Sample& rhs,
-    bool                with_pendant_length
+    bool          with_pendant_length
 ) {
     // keep track of the total resulting distance.
     double distance = 0.0;
@@ -371,8 +458,8 @@ double earth_movers_distance(
  * placements.
  */
 std::pair<PlacementTreeEdge const*, double> center_of_gravity (
-    const Sample& map,
-    bool                with_pendant_length
+    const Sample& smp,
+    bool          with_pendant_length
 ) {
     // This struct stores the torque that acts on a certain point (called the fulcrum) from a
     // specific direction. It also stores the mass that created that torque, in order to be able to
@@ -395,7 +482,7 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     std::unordered_map<PlacementTree::LinkType const*, Fulcrum> balance;
 
     // Prepare a map from edges to placements on those edges.
-    auto place_map = placements_per_edge( map );
+    auto place_map = placements_per_edge( smp );
 
     // -------------------------------------------------------------------------
     //     Collect All Masses, Calculate the Torque
@@ -403,7 +490,7 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
 
     // Do a postorder traversal. Collect all placement masses and push them towards the root in
     // order to calculate the torque that acts on each node.
-    for( auto it : postorder( map.tree() ) ) {
+    for( auto it : postorder( smp.tree() ) ) {
         // Skip the last iteration, as we would assign an unneeded value to the first child
         // of the root.
         if( it.is_last_iteration() ) {
@@ -459,14 +546,14 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
 
     // Keep track of the link whose edge we are currently examining, as well as the one that we
     // examined previously (on iteration of the loop earlier). We start at the root.
-    PlacementTree::LinkType const* curr_link = &map.tree().root_link();
+    PlacementTree::LinkType const* curr_link = &smp.tree().root_link();
     PlacementTree::LinkType const* prev_link = nullptr;
 
     // For asserting purposes, we keep track of the number of loop iterations we do.
     // This can never be more than the tree height (in number of nodes from root to deepest leaf)
     // plus one last iteration for going back towards the root.
     size_t num_iterations = 0;
-    auto   depth_vector = node_depth_vector(map.tree());
+    auto   depth_vector = node_depth_vector(smp.tree());
     size_t max_iterations = 1 + static_cast<size_t>(
         *std::max_element(depth_vector.begin(), depth_vector.end())
     );
@@ -837,23 +924,23 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
  * the weights \f$ \omega \f$ are the `like_weight_ratio`s of the placements.
  */
 double center_of_gravity_variance (
-    const Sample& map,
-    bool                with_pendant_length
+    const Sample& smp,
+    bool          with_pendant_length
 ) {
     double variance = 0.0;
     double mass     = 0.0;
 
-    auto   cog             = center_of_gravity(map, with_pendant_length);
+    auto   cog             = center_of_gravity(smp, with_pendant_length);
     auto   central_edge    = cog.first;
     double proximal_length = cog.second;
 
     LOG_DBG << "edge " << central_edge->primary_node().data.name << " " << central_edge->secondary_node().data.name;
     LOG_DBG << "prox " << proximal_length;
 
-    auto   node_dist_prox  = node_distance_vector( map.tree(), &central_edge->primary_node() );
-    auto   node_dist_dist  = node_distance_vector( map.tree(), &central_edge->secondary_node() );
+    auto   node_dist_prox  = node_distance_vector( smp.tree(), &central_edge->primary_node() );
+    auto   node_dist_dist  = node_distance_vector( smp.tree(), &central_edge->secondary_node() );
 
-    for (const auto& pqry : map.pqueries()) {
+    for (const auto& pqry : smp.pqueries()) {
         for( auto const& place : pqry.placements() ) {
             double distance;
 
@@ -896,19 +983,19 @@ double center_of_gravity_variance (
  * @brief
  */
 double center_of_gravity_distance (
-    const Sample& map_a,
-    const Sample& map_b,
-    bool                with_pendant_length
+    const Sample& smp_a,
+    const Sample& smp_b,
+    bool          with_pendant_length
 ) {
-    if (!compatible_trees(map_a, map_b)) {
+    if (!compatible_trees(smp_a, smp_b)) {
         throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
     }
 
     // Disable debug messages while code is not in review.
     LOG_SCOPE_LEVEL(utils::Logging::kInfo)
 
-    auto cog_a = center_of_gravity(map_a, with_pendant_length);
-    auto cog_b = center_of_gravity(map_b, with_pendant_length);
+    auto cog_a = center_of_gravity(smp_a, with_pendant_length);
+    auto cog_b = center_of_gravity(smp_b, with_pendant_length);
 
     auto edge_a = cog_a.first;
     auto edge_b = cog_b.first;
@@ -935,8 +1022,8 @@ double center_of_gravity_distance (
     } else {
         // TODO instead of the whole vector, we need a distnace between nodes function in the future,
         // which probably uses the path iterator.
-        auto node_dist_a_prox = node_distance_vector(map_a.tree(), &edge_a->primary_node());
-        auto node_dist_a_dist = node_distance_vector(map_a.tree(), &edge_a->secondary_node());
+        auto node_dist_a_prox = node_distance_vector(smp_a.tree(), &edge_a->primary_node());
+        auto node_dist_a_dist = node_distance_vector(smp_a.tree(), &edge_a->secondary_node());
 
         double pp, pd, dp;
 
@@ -969,22 +1056,23 @@ double center_of_gravity_distance (
 /**
  * @brief Calculate the normalized pairwise distance between all placements of the two Samples.
  *
- * This method calculates the distance between two maps as the normalized sum of the distances
- * between all pairs of pqueries in the map. It is similar to the variance() calculation, which
- * calculates this sum for the squared distances between all pqueries of one map.
+ * This method calculates the distance between two Sample%s as the normalized sum of the distances
+ * between all pairs of @link Pquery Pqueries @endling in the Sample. It is similar to the
+ * variance() calculation, which calculates this sum for the squared distances between all Pqueries
+ * of one Sample.
  *
- * @param  map_a               The first Sample to which the distances shall be calculated to.
- * @param  map_b               The second Sample to which the distances shall be calculated to.
+ * @param  smp_a               First Sample to which the distances shall be calculated to.
+ * @param  smp_b               Second Sample to which the distances shall be calculated to.
  * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
  *
  * @return                         Distance value.
  */
 double pairwise_distance (
-    const Sample& map_a,
-    const Sample& map_b,
-    bool                with_pendant_length
+    const Sample& smp_a,
+    const Sample& smp_b,
+    bool          with_pendant_length
 ) {
-    if (!compatible_trees(map_a, map_b)) {
+    if (!compatible_trees(smp_a, smp_b)) {
         throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
     }
 
@@ -994,14 +1082,14 @@ double pairwise_distance (
     // Create PqueryPlain objects for every placement and copy all interesting data into it.
     // This way, we won't have to do all the pointer dereferencing during the actual calculations,
     // and furthermore, the data is close in memory. this gives a tremendous speedup!
-    std::vector<PqueryPlain> pqueries_a = plain_queries( map_a );
-    std::vector<PqueryPlain> pqueries_b = plain_queries( map_b );
+    std::vector<PqueryPlain> pqueries_a = plain_queries( smp_a );
+    std::vector<PqueryPlain> pqueries_b = plain_queries( smp_b );
 
     // Calculate a matrix containing the pairwise distance between all nodes. This way, we
-    // do not need to search a path between placements every time. We use the tree of the first map
+    // do not need to search a path between placements every time. We use the tree of the first smp
     // here, ignoring branch lengths on tree b.
     // FIXME this might be made better by using average or so in the future.
-    auto node_distances = node_distance_matrix(map_a.tree());
+    auto node_distances = node_distance_matrix(smp_a.tree());
 
     for (const PqueryPlain& pqry_a : pqueries_a) {
         for (const PqueryPlain& pqry_b : pqueries_b) {
@@ -1010,7 +1098,7 @@ double pairwise_distance (
     }
 
     // Return normalized value.
-    return sum / total_placement_mass( map_a ) / total_placement_mass( map_b );
+    return sum / total_placement_mass( smp_a ) / total_placement_mass( smp_b );
 }
 
 // =================================================================================================
@@ -1018,9 +1106,9 @@ double pairwise_distance (
 // =================================================================================================
 
 utils::Histogram node_distance_histogram (
-    // const Sample& map,
+    // const Sample& smp,
     const PlacementTreeNode& node,
-    bool                with_pendant_length
+    bool                     with_pendant_length
 ) {
     (void) node;
     (void) with_pendant_length;
@@ -1029,15 +1117,15 @@ utils::Histogram node_distance_histogram (
 }
 
 std::vector< utils::Histogram > node_distance_histograms (
-    const Sample& map,
+    const Sample& smp,
     bool                with_pendant_length
 ) {
     auto vec = std::vector< utils::Histogram >();
-    vec.reserve(map.tree().node_count());
+    vec.reserve(smp.tree().node_count());
 
     // TODO ensure that the node iterator gives the nodes in order of their index!
 
-    for (auto it = map.tree().begin_nodes(); it != map.tree().end_nodes(); ++it) {
+    for (auto it = smp.tree().begin_nodes(); it != smp.tree().end_nodes(); ++it) {
         vec.push_back(node_distance_histogram(**it, with_pendant_length));
     }
 
@@ -1045,22 +1133,22 @@ std::vector< utils::Histogram > node_distance_histograms (
 }
 
 double node_histogram_distance (
-    const Sample& map_a,
-    const Sample& map_b,
-    bool                with_pendant_length
+    const Sample& smp_a,
+    const Sample& smp_b,
+    bool          with_pendant_length
 ) {
-    if( !compatible_trees( map_a, map_b ) ) {
+    if( !compatible_trees( smp_a, smp_b ) ) {
         throw std::invalid_argument( "Incompatible trees." );
     }
 
     // Get the histograms describing the distances from placements to all nodes.
-    auto vec_a = node_distance_histograms( map_a, with_pendant_length );
-    auto vec_b = node_distance_histograms( map_b, with_pendant_length );
+    auto vec_a = node_distance_histograms( smp_a, with_pendant_length );
+    auto vec_b = node_distance_histograms( smp_b, with_pendant_length );
 
     // If the trees are compatible (as ensured in the beginning of this function), they need to have
     // the same number of nodes. Thus, also there should be this number of histograms in the vectors.
-    assert( vec_a.size() == map_a.tree().node_count() );
-    assert( vec_b.size() == map_b.tree().node_count() );
+    assert( vec_a.size() == smp_a.tree().node_count() );
+    assert( vec_b.size() == smp_b.tree().node_count() );
     assert( vec_a.size() == vec_b.size() );
 
     double dist = 0.0;
@@ -1074,15 +1162,15 @@ double node_histogram_distance (
 
 /*
 Matrix<double> node_histogram_distance_matrix (
-    const SampleSet& maps,
+    const SampleSet& smps,
     bool                   with_pendant_length
 ) {
-    auto const maps_count = maps.size();
-    auto mat = Matrix<double> (maps_count, maps_count);
+    auto const smps_count = smps.size();
+    auto mat = Matrix<double> (smps_count, smps_count);
 
     // TODO do not write this function. instead, create a generic function that takes a placement
-    // map set and a functor to some distance function. also, put it into some map set file
-    // instead of the general map file.
+    // smp set and a functor to some distance function. also, put it into some smp set file
+    // instead of the general smp file.
 
     (void) with_pendant_length;
     throw std::domain_error("Not yet implemented.");
@@ -1180,8 +1268,8 @@ void variance_thread (
  * dropped, so that their sum per pquery is less than 1.0), we cannout simply use the count.
  */
 double variance(
-    const Sample& map,
-    bool                with_pendant_length
+    const Sample& smp,
+    bool          with_pendant_length
 ) {
     // Init.
     double variance = 0.0;
@@ -1189,11 +1277,11 @@ double variance(
     // Create PqueryPlain objects for every placement and copy all interesting data into it.
     // This way, we won't have to do all the pointer dereferencing during the actual calculations,
     // and furthermore, the data is close in memory. This gives a tremendous speedup!
-    std::vector<PqueryPlain> vd_pqueries = plain_queries( map );
+    std::vector<PqueryPlain> vd_pqueries = plain_queries( smp );
 
     // Also, calculate a matrix containing the pairwise distance between all nodes. this way, we
     // do not need to search a path between placements every time.
-    auto node_distances = node_distance_matrix(map.tree());
+    auto node_distances = node_distance_matrix(smp.tree());
 
 #ifdef PTHREADS
 
