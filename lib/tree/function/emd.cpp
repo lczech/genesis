@@ -47,6 +47,41 @@ namespace tree {
 //     EMD Functions
 // =================================================================================================
 
+/**
+ * @brief Calculate the earth mover's distance of two distributions of masses on a given tree.
+ *
+ * The earth mover's distance is typically a distance measure between two distributions.
+ * See https://en.wikipedia.org/wiki/Earth_mover's_distance for an introduction.
+ *
+ * In our case, we use distibutions of masses along the branches of a tree. Each branch can have
+ * multiple masses at different positions within [0.0, branch_length].
+ *
+ * The distance is calculated as the amount of work needed to move the masses of one distribution
+ * so that they end up in the positions of the masses of the other distribution.
+ * Work is here defined as mass times dislocation. Thus, the work ( = total distance ) is higher
+ * if either more mass has to be moved, or mass has to be moved further.
+ *
+ * The resulting distance is independed of the rooting of the tree and commutative with respect
+ * to the two mass distributions.
+ *
+ * In order to keep the calculations simple, we use the following convention for the two
+ * distributions: The masses of one distribution are stored using a positive sign, the masses of the
+ * other distribution use a negative sign. This way, only one storage for the masses can be used
+ * and the algorithm is simplyfied.
+ *
+ * The earth mover's distance is only meaningful if both mass distributions contain the same amount
+ * of total mass. Thus, as they use opposite signs, the sum of all masses on the tree should ideally
+ * be zero (apart from numerical derivations).
+ * See @link sum_of_masses( EmdTree const& tree ) sum_of_masses() @endlink and
+ * @link validate( EmdTree const& tree, double valid_total_mass_difference )
+ * validate() @endlink for functions to verify this.
+ *
+ * See @link placement::earth_movers_distance( const Sample& lhs, const Sample& rhs, bool with_pendant_length )
+ * earth_movers_distance( Sample const&, ... ) @endlink for an exemplary
+ * usage of this function, which applies the earth mover's distance to the placement weights
+ * (@link placement::PqueryPlacement::like_weight_ratio like_weight_ratio@endlink) of a
+ * PlacementTree.
+ */
 double earth_movers_distance( EmdTree const& tree )
 {
     // Keep track of the total resulting work (the distance we moved the masses).
@@ -194,8 +229,12 @@ double sum_of_masses( EmdTree const& tree )
  *  *  The sum of all masses is close to 0.0, using the optional arument
  *     `valid_total_mass_difference` as a measure of closeness.
  *
- * The function stops at the first encountered invalid condition and outputs a message to
- * LOG_INFO.
+ * The function stops at the first encountered invalid condition and outputs a description message
+ * of the invalid value to LOG_INFO.
+ *
+ * @param tree                        EmdTree to be validated.
+ * @param valid_total_mass_difference (= 0.00001 by default) allowed difference from zero for the
+ *                                    total sum of all masses on the tree.
  */
 bool validate( EmdTree const& tree, double valid_total_mass_difference )
 {
@@ -216,7 +255,7 @@ bool validate( EmdTree const& tree, double valid_total_mass_difference )
         }
     }
 
-    if( mass_sum > valid_total_mass_difference ) {
+    if( std::abs(mass_sum) > valid_total_mass_difference ) {
         LOG_INFO << "Total mass difference " << mass_sum
                  << " is higher than " << valid_total_mass_difference;
         return false;

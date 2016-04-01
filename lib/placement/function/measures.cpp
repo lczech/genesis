@@ -168,9 +168,32 @@ double pquery_distance (
 // =================================================================================================
 
 /**
- * @brief Calculate the Earth Movers Distance between two Sample%s.
+ * @brief Calculate the earth mover's distance between two Sample%s.
  *
+ * This function interprets the @link PqueryPlacement::like_weight_ratio like_weight_ratios@endlink
+ * of the PqueryPlacement%s as masses distributed along the branches of a tree. It then calculates
+ * the earth mover's distance between those masses for the distrubitons induced by the two given
+ * Sample%s.
  *
+ * In order to do so, first, a tree with the average branch lengths of the two PlacementTree%s is
+ * calculated. This is because of numerical issues that might yield different branch lengths.
+ * This necessiates that the trees have the same topology. If not, an std::runtime_error is thrown.
+ * The masses are then distributed on this tree, using the same relative position on their branches
+ * that they had in their original trees.
+ *
+ * The calculation furthermore takes the @link PqueryName::multiplicity multiplicities @endlink of
+ * the @link Pquery Pqueries @endlink into account. That means, pqueries with higher (total)
+ * multiplicity have a higher influence on the calculated distance.
+ *
+ * As the two Sample%s might have a different total number of @link Pquery Pqueries @endlink, the
+ * masses of the Samples are first normalized to 1.0, using all the
+ * @link PqueryPlacement::like_weight_ratio like_weight_ratios@endlink and
+ * @link PqueryName::multiplicity multiplicities @endlink of the Pqueries.
+ * As a consequence, the resulting distance will not reflect the total number of Pqueries, but only
+ * their relative (normalized) distrubution on the tree.
+ *
+ * See @link tree::earth_movers_distance( EmdTree const& ) earth_movers_distance( EmdTree const& )
+ * @endlink for more information on the actual distance calculation.
  */
 double earth_movers_distance (
     const Sample& lhs,
@@ -242,7 +265,7 @@ double earth_movers_distance (
     // Calculate EMD.
     double work = tree::earth_movers_distance( emd_tree );
 
-    // If we also want the amout of work that was needed to move the placement masses from their
+    // If we also want the amount of work that was needed to move the placement masses from their
     // pendant position to the branch, we need to add those values.
     if( with_pendant_length ) {
         work += pendant_work_l + pendant_work_r;
@@ -878,7 +901,7 @@ double center_of_gravity_distance (
  * @brief Calculate the normalized pairwise distance between all placements of the two Samples.
  *
  * This method calculates the distance between two Sample%s as the normalized sum of the distances
- * between all pairs of @link Pquery Pqueries @endling in the Sample. It is similar to the
+ * between all pairs of @link Pquery Pqueries @endlink in the Sample. It is similar to the
  * variance() calculation, which calculates this sum for the squared distances between all Pqueries
  * of one Sample.
  *

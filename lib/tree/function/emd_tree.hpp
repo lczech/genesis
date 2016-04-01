@@ -57,7 +57,9 @@ class  TreeNode;
 // =============================================================================
 
 /**
- * @brief Data class for @link EmdTreeNode EmdTreeNodes @endlink. Stores nothing.
+ * @brief Data class for @link EmdTreeNode EmdTreeNodes@endlink. Stores nothing.
+ *
+ * See @link EmdTree EmdTree@endlink for more information.
  */
 class EmdTreeNodeData
 {
@@ -70,15 +72,28 @@ public:
 // =============================================================================
 
 /**
- * @brief Data class for @link EmdTreeEdge EmdTreeEdges @endlink. Stores the branch length and
+ * @brief Data class for @link EmdTreeEdge EmdTreeEdges@endlink. Stores the branch length and
  * a list of masses with their positions along the edge.
+ *
+ * See @link EmdTree EmdTree@endlink for more information.
  */
 class EmdTreeEdgeData
 {
 public:
 
+    /**
+     * @brief Length of this branch/edge.
+     */
     double branch_length;
 
+    /**
+     * @brief List of masses stored on this branch, sorted by their position on the branch.
+     *
+     * This data member maps from a position on the branch to the mass at that position.
+     * In order to be valid, the positions have to be in the interval [0.0, branch_length].
+     * See @link validate( EmdTree const& tree, double valid_total_mass_difference )
+     * validate() @endlink for a validation function.
+     */
     std::map<double, double> masses;
 
 };
@@ -88,12 +103,30 @@ public:
 // =============================================================================
 
 /**
- * @brief Short name for a Tree using the Emd data types EmdTreeNodeData and EmdTreeEdgeData.
+ * @brief Tree type used to calculate the earth movers distance between to sets of masses
+ * distributed on a Tree.
+ *
+ * See earth_movers_distance( EmdTree const& tree ) for more details on the purpose of this tree
+ * type and on the earth movers distance in general.
+ *
+ * The branches of an EmdTree hold a list of @link EmdTreeEdgeData::masses masses@endlink, sorted
+ * along their position on the branch.
  */
 typedef Tree     <EmdTreeNodeData, EmdTreeEdgeData> EmdTree;
 
+/**
+ * @brief Edge type of a @link EmdTree EmdTree@endlink. See there for more information.
+ */
 typedef TreeEdge <EmdTreeNodeData, EmdTreeEdgeData> EmdTreeEdge;
+
+/**
+* @brief Link type of a @link EmdTree EmdTree@endlink. See there for more information.
+*/
 typedef TreeLink <EmdTreeNodeData, EmdTreeEdgeData> EmdTreeLink;
+
+/**
+* @brief Node type of a @link EmdTree EmdTree@endlink. See there for more information.
+*/
 typedef TreeNode <EmdTreeNodeData, EmdTreeEdgeData> EmdTreeNode;
 
 } // namespace tree
