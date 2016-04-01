@@ -53,11 +53,6 @@ TEST(SampleMeasures, EarthMoversDistance)
     EXPECT_NO_THROW( JplaceReader().from_file(infile_lhs, smp_lhs) );
     EXPECT_NO_THROW( JplaceReader().from_file(infile_rhs, smp_rhs) );
 
-    LOG_DBG << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
-    LOG_DBG << earth_movers_distance( smp_lhs, smp_rhs, false );
-    LOG_DBG << earth_movers_distance( smp_lhs, smp_rhs, true );
-    LOG_DBG << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
-    LOG_DBG << earth_movers_distance_new( smp_lhs, smp_rhs );
-    LOG_DBG << earth_movers_distance_new( smp_lhs, smp_rhs, true );
-    LOG_DBG << "++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++";
+    EXPECT_FLOAT_EQ( 2.435, earth_movers_distance( smp_lhs, smp_rhs, false ));
+    EXPECT_FLOAT_EQ( 2.635, earth_movers_distance( smp_lhs, smp_rhs, true  ));
 }

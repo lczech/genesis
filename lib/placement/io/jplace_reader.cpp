@@ -531,7 +531,8 @@ void JplaceReader::process_json_placements(
                     );
                 }
 
-                pqry.add_name( pqry_n_val->to_string() , 0.0 );
+                // Add the name with a default multiplicity.
+                pqry.add_name( pqry_n_val->to_string() );
             }
         }
 

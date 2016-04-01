@@ -83,12 +83,6 @@ double pquery_distance (
 //     Earth Movers Distance
 // ----------------------------------------------------------------------------
 
-double earth_movers_distance_new (
-    const Sample& lhs,
-    const Sample& rhs,
-    bool          with_pendant_length = false
-);
-
 double earth_movers_distance (
     const Sample& lhs,
     const Sample& rhs,

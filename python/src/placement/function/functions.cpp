@@ -60,6 +60,13 @@ PYTHON_EXPORT_FUNCTIONS(placement_function_functions_export, "placement")
     );
 
     boost::python::def(
+        "total_multiplicity",
+        ( double ( * )( Pquery const & ))( &::genesis::placement::total_multiplicity ),
+        ( boost::python::arg("pqry") ),
+        get_docstring("double ::genesis::placement::total_multiplicity (Pquery const & pqry)")
+    );
+
+    boost::python::def(
         "total_placement_mass",
         ( double ( * )( Sample const & ))( &::genesis::placement::total_placement_mass ),
         ( boost::python::arg("smp") ),
@@ -67,10 +74,10 @@ PYTHON_EXPORT_FUNCTIONS(placement_function_functions_export, "placement")
     );
 
     boost::python::def(
-        "total_placement_mass_with_multiplicity",
-        ( double ( * )( Sample const & ))( &::genesis::placement::total_placement_mass_with_multiplicity ),
+        "total_placement_mass_with_multiplicities",
+        ( double ( * )( Sample const & ))( &::genesis::placement::total_placement_mass_with_multiplicities ),
         ( boost::python::arg("smp") ),
-        get_docstring("double ::genesis::placement::total_placement_mass_with_multiplicity (Sample const & smp)")
+        get_docstring("double ::genesis::placement::total_placement_mass_with_multiplicities (Sample const & smp)")
     );
 
     boost::python::def(

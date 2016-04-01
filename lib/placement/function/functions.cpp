@@ -595,6 +595,19 @@ void merge_duplicate_names( Sample& smp )
 // =================================================================================================
 
 /**
+ * @brief Return the sum of all @link PqueryName::multiplicity multiplicities @endlink of the
+ * Pquery.
+ */
+double total_multiplicity( Pquery const& pqry )
+{
+    double mult = 0.0;
+    for( auto const& name : pqry.names() ) {
+        mult += name.multiplicity;
+    }
+    return mult;
+}
+
+/**
  * @brief Get the total number of PqueryPlacement%s in all @link Pquery Pqueries @endlink of the
  * given Sample.
  */
@@ -613,7 +626,7 @@ size_t total_placement_count( Sample const& smp )
  * @link PqueryPlacement::like_weight_ratio like_weight_ratios@endlink of the PqueryPlacement%s.
  *
  * Be aware that this function only gives the pure sum of the `like_weight_ratio`s. See
- * total_placement_mass_with_multiplicity() for a version of this function, which also takes
+ * total_placement_mass_with_multiplicities() for a version of this function, which also takes
  * the @link PqueryName::multiplicity multiplicities @endlink of the Pqueries into account.
  */
 double total_placement_mass(  Sample const& smp )
@@ -640,7 +653,7 @@ double total_placement_mass(  Sample const& smp )
  * This method returns the same value as total_placement_mass() in case that the `multiplicity` is
  * left at its default value of 1.0.
  */
-double total_placement_mass_with_multiplicity(  Sample const& smp )
+double total_placement_mass_with_multiplicities(  Sample const& smp )
 {
     double sum = 0.0;
     for( const auto& pqry : smp.pqueries() ) {

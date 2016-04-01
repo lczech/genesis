@@ -96,9 +96,11 @@ void merge_duplicate_names( Sample& smp );
 //     Placement Mass
 // =================================================================================================
 
+double total_multiplicity( Pquery const& pqry );
+
 size_t total_placement_count( Sample const& smp );
 double total_placement_mass(  Sample const& smp );
-double total_placement_mass_with_multiplicity(  Sample const& smp );
+double total_placement_mass_with_multiplicities(  Sample const& smp );
 
 std::pair<PlacementTreeEdge const*, size_t> placement_count_max_edge( Sample const& smp );
 std::pair<PlacementTreeEdge const*, double> placement_mass_max_edge( Sample const& smp );

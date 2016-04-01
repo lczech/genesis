@@ -54,10 +54,6 @@
 #include "tree/iterator/postorder.hpp"
 #include "tree/tree_set.hpp"
 
-// TODO remove asap.
-#include "tree/printer/compact.hpp"
-#include "utils/core/logging.hpp"
-
 #include "utils/core/options.hpp"
 #include "utils/math/histogram.hpp"
 #include "utils/math/histogram/distances.hpp"
@@ -171,7 +167,12 @@ double pquery_distance (
 //     Earth Movers Distance
 // =================================================================================================
 
-double earth_movers_distance_new (
+/**
+ * @brief Calculate the Earth Movers Distance between two Sample%s.
+ *
+ *
+ */
+double earth_movers_distance (
     const Sample& lhs,
     const Sample& rhs,
     bool          with_pendant_length
@@ -207,6 +208,8 @@ double earth_movers_distance_new (
         double pendant_work = 0.0;
 
         for( auto const& pqry : smp.pqueries() ) {
+            double multiplicity = total_multiplicity( pqry );
+
             for( auto const& place : pqry.placements() ) {
                 auto& edge = emd_tree.edge_at( place.edge().index() );
 
@@ -217,11 +220,11 @@ double earth_movers_distance_new (
                                 * edge.data.branch_length;
 
                 // Add the mass at that position, normalized and using the sign.
-                edge.data.masses[ position ] += sign * place.like_weight_ratio / sum;
+                edge.data.masses[ position ] += sign * place.like_weight_ratio * multiplicity / sum;
 
                 // Accumulate the work we need to do to move the masses from their pendant
                 // positions to the branches.
-                pendant_work += place.like_weight_ratio * place.pendant_length / sum;
+                pendant_work += place.like_weight_ratio * multiplicity * place.pendant_length / sum;
             }
         }
 
@@ -229,8 +232,8 @@ double earth_movers_distance_new (
     };
 
     // Use the sum of masses as normalization factor for the masses.
-    double totalmass_l = total_placement_mass( lhs );
-    double totalmass_r = total_placement_mass( rhs );
+    double totalmass_l = total_placement_mass_with_multiplicities( lhs );
+    double totalmass_r = total_placement_mass_with_multiplicities( rhs );
 
     // Copy masses of both samples to the EMD tree, with different signs.
     double pendant_work_l = move_masses( lhs, +1.0, totalmass_l );
@@ -246,188 +249,6 @@ double earth_movers_distance_new (
     }
 
     return work;
-}
-
-/**
- * @brief Calculates the Earth Movers Distance between two sets of placements on a fixed reference
- * tree.
- */
-double earth_movers_distance(
-    const Sample& lhs,
-    const Sample& rhs,
-    bool          with_pendant_length
-) {
-    // keep track of the total resulting distance.
-    double distance = 0.0;
-
-    // store a per-node balance of mass. each element in this map contains information about how
-    // much placement mass is pushing from the direction of this node towards the root.
-    // caveat: the masses that are stored here are already fully pushed towards the root, but are
-    // stored here using the node at the lower end of the branch as key.
-    std::unordered_map<const PlacementTree::NodeType*, double> balance;
-
-    // use the sum of masses as normalization factor for the masses.
-    double totalmass_l = total_placement_mass( lhs );
-    double totalmass_r = total_placement_mass( rhs );
-
-    // Disable all debug messages for this function...
-    LOG_SCOPE_LEVEL(utils::Logging::kInfo)
-
-    LOG_DBG << "totalmass_l " << totalmass_l;
-    LOG_DBG << "totalmass_r " << totalmass_r;
-
-    auto place_map_l = placements_per_edge( lhs );
-    auto place_map_r = placements_per_edge( rhs );
-
-    // do a postorder traversal on both trees in parallel. while doing so, move placements
-    // from the leaves towards the root and store their movement (mass * distance) in balance[].
-    // in theory, it does not matter where we start the traversal - however, the positions of the
-    // placements are given as "proximal_length" on their branch, which always points away from the
-    // root. thus, if we decided to traverse from a different node than the root, we would have to
-    // take this into account. so we do start at the root, to keep it simple.
-    auto it_l = postorder( lhs.tree() ).begin();
-    auto it_r = postorder( rhs.tree() ).begin();
-    for (
-        ;
-        it_l != postorder( lhs.tree() ).end() && it_r != postorder( rhs.tree() ).end();
-        ++it_l, ++it_r
-    ) {
-        LOG_DBG << "\033[1;31miteration at node " << it_l.node().index() << ": " << it_l.node().data.name << "\033[0m";
-        LOG_DBG << "current distance " << distance;
-
-        // check whether both trees have identical topology. if they have, the ranks of all nodes
-        // are the same. however, if not, at some point their ranks will differ.
-        if (it_l.node().rank() != it_r.node().rank()) {
-            throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
-        }
-
-        // if we are at the last iteration, we reached the root, thus we have moved all masses now
-        // and don't need to proceed. if we did, we would count an edge of the root again.
-        if (it_l.is_last_iteration()) {
-            LOG_DBG1 << "last iteration";
-            // we do a check for the mass at the root here for debug purposes.
-            double root_mass = 0.0;
-            for( auto n_it : node_links( it_l.node() )) {
-                assert( balance.count( &n_it.link().outer().node() ) );
-                root_mass += balance[ &n_it.link().outer().node() ];
-            }
-
-            LOG_DBG << "Mass at root: " << root_mass;
-
-            continue;
-        }
-
-        // check whether the data on both reference trees is the same. this has to be done after the
-        // check for last iteration / root node, because we don't want to check this for the root.
-        if( it_l.node().data.name       != it_r.node().data.name ||
-            it_l.edge().data.edge_num() != it_r.edge().data.edge_num()
-        ) {
-            throw std::invalid_argument("__FUNCTION__: Inconsistent trees.");
-        }
-
-        // we now start a "normal" earth_movers_distance caluclation on the current edge. for this,
-        // we store the masses of all placements sorted by their position on the branch.
-        std::multimap<double, double> edge_balance;
-        LOG_DBG1 << "placing on branch...";
-
-        // add all placements of the branch from the left tree (using positive mass)...
-        for( PqueryPlacement const* place :  place_map_l[ it_l.edge().index() ] ) {
-            if (with_pendant_length) {
-                distance += place->like_weight_ratio * place->pendant_length / totalmass_l;
-            }
-            edge_balance.emplace(place->proximal_length, +place->like_weight_ratio / totalmass_l);
-
-            // LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
-            LOG_DBG2 << "it_l edge   " << it_l.edge().index();
-            LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_l;
-            LOG_DBG2 << "new dist    " << distance;
-            LOG_DBG2 << "emplaced at " << place->proximal_length << ": " << +place->like_weight_ratio / totalmass_l;
-            LOG_DBG2;
-        }
-
-        // ... and the branch from the right tree (using negative mass)
-        for( PqueryPlacement const* place :  place_map_r[ it_r.edge().index() ] ) {
-            if (with_pendant_length) {
-                distance += place->like_weight_ratio * place->pendant_length / totalmass_r;
-            }
-            edge_balance.emplace(place->proximal_length, -place->like_weight_ratio / totalmass_r);
-
-            // LOG_DBG2 << "placement   " << place->pquery->names[0]->name;
-            LOG_DBG2 << "it_r edge   " << it_r.edge().index();
-            LOG_DBG2 << "added dist  " << place->like_weight_ratio * place->pendant_length / totalmass_r;
-            LOG_DBG2 << "new dist    " << distance;
-            LOG_DBG2 << "emplaced at " << place->proximal_length << ": " << -place->like_weight_ratio / totalmass_r;
-            LOG_DBG2;
-        }
-
-        LOG_DBG1 << "placed all.";
-
-        // distribute placement mass between children of this node, and collect the remaining mass
-        // in mass_s. mass_s then contains the rest mass of the subtree that could not be
-        // distributed among the children and thus has to be moved upwards.
-        double mass_s = 0.0;
-        PlacementTree::LinkType const* link = &it_l.link().next();
-        while( link != &it_l.link() ) {
-            // we do postorder traversal, so we have seen the child nodes of the current node,
-            // which means, they should be in the balance list already.
-            assert( balance.count( &link->outer().node() ) );
-
-            mass_s += balance[ &link->outer().node() ];
-            link = &link->next();
-        }
-        LOG_DBG1 << "subtrees mass_s " << mass_s;
-        LOG_DBG1 << "entering standard emd part...";
-
-        // start the earth_movers_distance with the mass that is left over from the subtrees...
-        double cur_pos  = it_l.edge().data.branch_length;
-        double cur_mass = mass_s;
-
-        LOG_DBG1 << "cur_pos  " << cur_pos;
-        LOG_DBG1 << "cur_mass " << cur_mass;
-
-        // ... and move it along the branch, balancing it with the placements found on the branches.
-        // this is basically a standard earth_movers_distance calculation along the branch.
-        std::multimap<double, double>::reverse_iterator rit;
-        for (rit = edge_balance.rbegin(); rit != edge_balance.rend(); ++rit) {
-            LOG_DBG2 << "at " << rit->first << " with " << rit->second;
-            //~ LOG_INFO << "at " << rit->first << " with " << rit->second;
-            //~ assert(cur_pos >= rit->first);
-            LOG_DBG2 << "is " << cur_pos << " >= " << rit->first << "? with " << rit->second;
-            //~ if (cur_pos < rit->first) {
-                //~ LOG_INFO << "is " << cur_pos << " >= " << rit->first << "? with " << rit->second;
-                //~ return -1.0;
-            //~ }
-            distance += std::abs(cur_mass) * (cur_pos - rit->first);
-            LOG_DBG2 << "added dist " << std::abs(cur_mass) * (cur_pos - rit->first);
-            LOG_DBG2 << "new dist   " << distance;
-
-            cur_pos   = rit->first;
-            cur_mass += rit->second;
-
-            LOG_DBG2 << "cur_pos  " << cur_pos;
-            LOG_DBG2 << "cur_mass " << cur_mass;
-            LOG_DBG2;
-        }
-
-        // finally, move the rest to the end of the branch and store its mass in balance[],
-        // so that it can be used for the nodes further up in the tree.
-        distance += std::abs(cur_mass) * cur_pos;
-        balance[ &it_l.node() ] = cur_mass;
-
-        LOG_DBG1 << "added dist " << std::abs(cur_mass) * cur_pos;
-        LOG_DBG1 << "new dist   " << distance;
-        LOG_DBG1 << "balance at node " << it_l.node().index() << ": " << it_l.node().data.name << " = " << cur_mass;
-        LOG_DBG1 << "finished standard emd part";
-        LOG_DBG1;
-    }
-
-    // check whether we are done with both trees.
-    if( it_l != postorder( lhs.tree() ).end() || it_r != postorder( rhs.tree() ).end() ) {
-        throw std::invalid_argument("__FUNCTION__: Incompatible trees.");
-    }
-
-    LOG_DBG << "final distance: " << distance;
-    return distance;
 }
 
 // =================================================================================================
