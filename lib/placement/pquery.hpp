@@ -72,9 +72,10 @@ namespace placement {
  *
  * Furthermore, it might be useful to combine the placement positions of several sequences into
  * one object. This is for example the case if there are replicate sequences. Thus, a Pquery
- * supports to store multiple PquereName%s, each of them containing an identifying name string and
- * a so called `multiplicity`, which can be used as e.g., an abundance count for the associated
- * name.
+ * supports to store multiple PqueryName%s, each of them containing an identifying name string and
+ * a so called @link PqueryName::multiplicity multiplicity@endlink, which can be used as e.g.,
+ * an abundance count for the associated name, and is used as a factor for the weights of the
+ * placements in some calculations.
  */
 class Pquery
 {
@@ -122,6 +123,9 @@ public:
     iterator_placements       end_placements();
     const_iterator_placements end_placements() const;
 
+    utils::Range<iterator_placements>       placements();
+    utils::Range<const_iterator_placements> placements() const;
+
     // -------------------------------------------------------------------
     //     Placement Accessors and Modifiers
     // -------------------------------------------------------------------
@@ -133,9 +137,6 @@ public:
         PlacementTreeEdge    & edge,
         PqueryPlacement const& val
     );
-
-    utils::Range<iterator_placements> placements();
-    utils::Range<const_iterator_placements> placements() const;
 
     size_t placement_size() const;
 
@@ -155,15 +156,15 @@ public:
     iterator_names       end_names();
     const_iterator_names end_names() const;
 
+    utils::Range<iterator_names>       names();
+    utils::Range<const_iterator_names> names() const;
+
     // -------------------------------------------------------------------
     //     Name Accessors and Modifiers
     // -------------------------------------------------------------------
 
-    PqueryName& add_name( std::string name = "", double multiplicity = 0.0 );
+    PqueryName& add_name( std::string name = "", double multiplicity = 1.0 );
     PqueryName& add_name( PqueryName const& other );
-
-    utils::Range<iterator_names> names();
-    utils::Range<const_iterator_names> names() const;
 
     size_t name_size() const;
 

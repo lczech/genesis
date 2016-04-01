@@ -55,7 +55,8 @@ class Pquery;
  * i.e., one Pquery, while still maintaining all their identifiers (names).
  *
  * Furthermore, each such #name can have a #multiplicity, which can be used to store e.g., the
- * number of replicates of the original sequence.
+ * number of replicates of the original sequence. It is used as a factor for the weights of
+ * PqueryPlacement%s in some calculations.
  */
 class PqueryName
 {
@@ -65,12 +66,16 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
+    /**
+     * @brief Default constructor. Initializes the #name to an empty string and the #multiplicity
+     * to 1.0.
+     */
     PqueryName () = default;
 
     /**
-     * @brief Constructor that takes a name and optionally a multiplicity for this PqueryName.
+     * @brief Constructor that takes a #name and optionally a #multiplicity.
      */
-    PqueryName(std::string name, double multiplicity = 0.0)
+    PqueryName(std::string name, double multiplicity = 1.0)
         : name(name)
         , multiplicity(multiplicity)
     {}
@@ -88,21 +93,28 @@ public:
     // -------------------------------------------------------------------
 
     // Yes, the following members are public data members. It's neither nice nor consistent,
-    // but makes life so much easier for the moment. Maybe we'll fix that in the future...
+    // but makes life so much easier for the moment. Maybe we'll change that in the future...
 
     /**
      * @brief Name for a Pquery.
      *
-     * This property is defined by the `jplace` standard.
+     * This property is defined by the `jplace` standard. It does not need to be unique. However,
+     * using unique names certainly makes iditifying @link Pquery Pqueries @endlink easier.
      */
     std::string name;
 
     /**
      * @brief Multiplicity of the #name.
      *
-     * This property is defined by the `jplace` standard.
+     * This property is defined by the `jplace` standard. It is used as a count for e.g., the
+     * abundance of this Pquery (respectively this name). For some calculations, this value is used
+     * as a factor for the placment weights (see PqueryPlacement::like_weight_ratio). Thus, by
+     * default, the value is initialized to 1.0.
+     *
+     * If a Pquery has multiple names, all their multiplicities are added when being used as a
+     * weight factor.
      */
-    double      multiplicity;
+    double multiplicity = 1.0;
 
 };
 

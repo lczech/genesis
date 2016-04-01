@@ -134,7 +134,7 @@ void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc) con
         // find out whether names have multiplicity
         bool has_nm = false;
         for( auto const& pqry_name : pqry.names() ) {
-            has_nm |= ( pqry_name.multiplicity != 0.0 );
+            has_nm |= ( pqry_name.multiplicity != 1.0 );
         }
 
         // set named multiplicity / name
