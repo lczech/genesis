@@ -57,6 +57,8 @@ double center_masses_on_branches( EmdTree& tree );
 
 double sum_of_masses( EmdTree const& tree );
 
+bool validate( EmdTree const& tree, double valid_total_mass_difference = 0.00001 );
+
 } // namespace tree
 } // namespace genesis
 

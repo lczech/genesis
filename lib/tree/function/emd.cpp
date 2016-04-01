@@ -34,9 +34,7 @@
 #include "tree/iterator/postorder.hpp"
 #include "tree/tree.hpp"
 
-#include "tree/printer/compact.hpp"
 #include "utils/core/logging.hpp"
-#include "utils/text/string.hpp"
 
 #include <assert.h>
 #include <cmath>
@@ -185,6 +183,45 @@ double sum_of_masses( EmdTree const& tree )
         }
     }
     return total_mass;
+}
+
+/**
+ * @brief Validate the data on an EmdTree.
+ *
+ * This function returns true iff the data on the EmdTree is valid:
+ *
+ *  *  The positions of the masses are in [0.0, branch_length] on their respective branches.
+ *  *  The sum of all masses is close to 0.0, using the optional arument
+ *     `valid_total_mass_difference` as a measure of closeness.
+ *
+ * The function stops at the first encountered invalid condition and outputs a message to
+ * LOG_INFO.
+ */
+bool validate( EmdTree const& tree, double valid_total_mass_difference )
+{
+    double mass_sum = 0.0;
+
+    for( auto const& edge : tree.edges() ) {
+        for( auto const& mass : edge->data.masses ) {
+            if( mass.first < 0.0 ) {
+                LOG_INFO << "Mass with branch position < 0.0";
+                return false;
+            }
+            if( mass.first > edge->data.branch_length ) {
+                LOG_INFO << "Mass with branch position > branch_length";
+                return false;
+            }
+
+            mass_sum += mass.second;
+        }
+    }
+
+    if( mass_sum > valid_total_mass_difference ) {
+        LOG_INFO << "Total mass difference " << mass_sum
+                 << " is higher than " << valid_total_mass_difference;
+        return false;
+    }
+    return true;
 }
 
 } // namespace tree
