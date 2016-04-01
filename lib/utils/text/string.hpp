@@ -107,7 +107,7 @@ std::string to_string_precise( double value, const int precision = 6 );
  * @brief Return a string representation of a given value.
  *
  * This function template is a drop-in replacement for std::to_string, with the difference that it
- * treats floating point numbers more nicely: Instead of printing a fixed amout of digits, it
+ * treats floating point numbers more nicely: Instead of printing a fixed amount of digits, it
  * only prints significant digits without trailing zeros.
  *
  * As it uses operator << on the given value, it is suitable for any class or value for which this
