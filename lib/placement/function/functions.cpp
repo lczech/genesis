@@ -609,7 +609,12 @@ size_t total_placement_count( Sample const& smp )
 
 /**
  * @brief Get the summed mass of all PqueryPlacement%s in all @link Pquery Pqueries @endlink of the
- * given Sample, where mass is measured by `like_weight_ratio`.
+ * given Sample, where mass is measured by the
+ * @link PqueryPlacement::like_weight_ratio like_weight_ratios@endlink of the PqueryPlacement%s.
+ *
+ * Be aware that this function only gives the pure sum of the `like_weight_ratio`s. See
+ * total_placement_mass_with_multiplicity() for a version of this function, which also takes
+ * the @link PqueryName::multiplicity multiplicities @endlink of the Pqueries into account.
  */
 double total_placement_mass(  Sample const& smp )
 {
@@ -617,6 +622,35 @@ double total_placement_mass(  Sample const& smp )
     for( const auto& pqry : smp.pqueries() ) {
         for( auto& place : pqry.placements() ) {
             sum += place.like_weight_ratio;
+        }
+    }
+    return sum;
+}
+
+/**
+ * @brief Get the mass of all PqueryPlacement%s of the Sample, using the
+ * @link PqueryName::multiplicity multiplicities @endlink as factors.
+ *
+ * This function returns the summed mass of all PqueryPlacement%s in all
+ * @link Pquery Pqueries @endlink of the
+ * given Sample, where mass is measured by `like_weight_ratio`, and the mass of each Pquery is
+ * multiplied by the sum of the @link PqueryName::multiplicity multiplicities @endlink of this
+ * Pquery.
+ *
+ * This method returns the same value as total_placement_mass() in case that the `multiplicity` is
+ * left at its default value of 1.0.
+ */
+double total_placement_mass_with_multiplicity(  Sample const& smp )
+{
+    double sum = 0.0;
+    for( const auto& pqry : smp.pqueries() ) {
+        double mult = 0.0;
+        for( auto const& name : pqry.names() ) {
+            mult += name.multiplicity;
+        }
+
+        for( auto const& place : pqry.placements() ) {
+            sum += place.like_weight_ratio * mult;
         }
     }
     return sum;

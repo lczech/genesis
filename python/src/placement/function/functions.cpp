@@ -67,6 +67,13 @@ PYTHON_EXPORT_FUNCTIONS(placement_function_functions_export, "placement")
     );
 
     boost::python::def(
+        "total_placement_mass_with_multiplicity",
+        ( double ( * )( Sample const & ))( &::genesis::placement::total_placement_mass_with_multiplicity ),
+        ( boost::python::arg("smp") ),
+        get_docstring("double ::genesis::placement::total_placement_mass_with_multiplicity (Sample const & smp)")
+    );
+
+    boost::python::def(
         "total_placement_count",
         ( size_t ( * )( Sample const & ))( &::genesis::placement::total_placement_count ),
         ( boost::python::arg("smp") ),
