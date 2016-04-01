@@ -103,8 +103,33 @@ std::string unify_newlines( std::string const& s );
 
 std::string to_string_precise( double value, const int precision = 6 );
 
+/**
+ * @brief Return a string representation of a given value.
+ *
+ * This function template is a drop-in replacement for std::to_string, with the difference that it
+ * treats floating point numbers more nicely: Instead of printing a fixed amout of digits, it
+ * only prints significant digits without trailing zeros.
+ *
+ * As it uses operator << on the given value, it is suitable for any class or value for which this
+ * stream operator is available. Thus, this function can also be used for conveniently returning a
+ * string where otherwise some stream operations would have been necessary.
+ */
 template <typename T>
-std::string join( T const& v, std::string const& delimiter ) {
+std::string to_string( T const& v )
+{
+    std::ostringstream s;
+    s << v;
+    return s.str();
+}
+
+/**
+ * @brief Return a string where the elements of `v` are joined using the delimiter in between.
+ *
+ * For turning the elements into a string, their operator << is used.
+ */
+template <typename T>
+std::string join( T const& v, std::string const& delimiter )
+{
     std::ostringstream s;
     for( auto const& i : v ) {
         if( &i != &v[0] ) {
