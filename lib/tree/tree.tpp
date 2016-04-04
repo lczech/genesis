@@ -31,11 +31,10 @@
  * @ingroup tree
  */
 
-#include <assert.h>
-
-// #include "tree/distances.hpp"
-#include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
+
+#include <assert.h>
+#include <stdexcept>
 
 namespace genesis {
 namespace tree {
@@ -255,92 +254,124 @@ bool Tree<NDT, EDT>::empty() const
 
 /**
  * @brief Return the TreeLink at the current root of the Tree.
+ *
+ * If the tree is empty(), the functions throws an std::out_of_range exception.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::LinkType& Tree<NDT, EDT>::root_link()
 {
+    if( links_.empty() ) {
+        throw std::out_of_range( "Cannot return root link. Tree is empty." );
+    }
     return *links_.front().get();
 }
 
 /**
  * @brief Return the TreeLink at the current root of the Tree.
+ *
+ * If the tree is empty(), the functions throws an std::out_of_range exception.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::LinkType const& Tree<NDT, EDT>::root_link() const
 {
+    if( links_.empty() ) {
+        throw std::out_of_range( "Cannot return root link. Tree is empty." );
+    }
     return *links_.front().get();
 }
 
 /**
  * @brief Return the TreeNode at the current root of the Tree.
+ *
+ * If the tree is empty(), the functions throws an std::out_of_range exception.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::NodeType& Tree<NDT, EDT>::root_node()
 {
+    if( links_.empty() ) {
+        throw std::out_of_range( "Cannot return root node. Tree is empty." );
+    }
     return links_.front()->node();
 }
 
 /**
  * @brief Return the TreeNode at the current root of the Tree.
+ *
+ * If the tree is empty(), the functions throws an std::out_of_range exception.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::NodeType const& Tree<NDT, EDT>::root_node() const
 {
+    if( links_.empty() ) {
+        throw std::out_of_range( "Cannot return root node. Tree is empty." );
+    }
     return links_.front()->node();
 }
 
 /**
  * @brief Return the TreeLink at a certain index.
+ *
+ * If the index is invalid, the functions throws an std::out_of_range exception.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::LinkType& Tree<NDT, EDT>::link_at(size_t index)
 {
-    return *links_[index].get();
+    return *links_.at(index).get();
 }
 
 /**
  * @brief Return the TreeLink at a certain index.
+ *
+ * If the index is invalid, the functions throws an std::out_of_range exception.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::LinkType const& Tree<NDT, EDT>::link_at(size_t index) const
 {
-    return *links_[index].get();
+    return *links_.at(index).get();
 }
 
 /**
  * @brief Return the TreeNode at a certain index.
+ *
+ * If the index is invalid, the functions throws an std::out_of_range exception.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::NodeType& Tree<NDT, EDT>::node_at(size_t index)
 {
-    return *nodes_[index].get();
+    return *nodes_.at(index).get();
 }
 
 /**
  * @brief Return the TreeNode at a certain index.
+ *
+ * If the index is invalid, the functions throws an std::out_of_range exception.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::NodeType const& Tree<NDT, EDT>::node_at(size_t index) const
 {
-    return *nodes_[index].get();
+    return *nodes_.at(index).get();
 }
 
 /**
  * @brief Return the TreeEdge at a certain index.
+ *
+ * If the index is invalid, the functions throws an std::out_of_range exception.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::EdgeType& Tree<NDT, EDT>::edge_at(size_t index)
 {
-    return *edges_[index].get();
+    return *edges_.at(index).get();
 }
 
 /**
  * @brief Return the TreeEdge at a certain index.
+ *
+ * If the index is invalid, the functions throws an std::out_of_range exception.
  */
 template <class NDT, class EDT>
 typename Tree<NDT, EDT>::EdgeType const& Tree<NDT, EDT>::edge_at(size_t index) const
 {
-    return *edges_[index].get();
+    return *edges_.at(index).get();
 }
 
 /**

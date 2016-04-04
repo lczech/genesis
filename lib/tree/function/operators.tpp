@@ -29,6 +29,7 @@
  */
 
 #include "tree/iterator/preorder.hpp"
+#include "utils/core/logging.hpp"
 
 namespace genesis {
 namespace tree {
