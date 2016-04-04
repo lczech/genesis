@@ -237,29 +237,15 @@ placement::SampleSet extract_pqueries(
             }
             auto& clade_sample = *sample_ptr;
 
-            // Add a copy of the pquery to the sample. As the pointers from the placements
-            // to their edges are now pointing to a wrong tree, we need to fix this
-            // (this is currently a bad situation, we hope to fix this in the future).
-            auto& new_pquery = clade_sample.add_pquery( pquery );
-            for( auto& placement : new_pquery.placements() ) {
-                // Get the edge index of the old edge, then set the edge to the edge of the
-                // correct sample that is at that index.
-                auto edge_index = placement.edge().index();
-                placement.reset_edge( clade_sample.tree().edge_at( edge_index ));
-            }
+            // Add a copy of the pquery to the sample.
+            clade_sample.add_pquery( pquery );
         }
 
         // If there is no sure assignment ( < threshold ) for this pquery, we copy it into the
         // special `uncertain` sample.
         if( ! found_clade ) {
-            // We need to do the same pointer fixing as above... ugly.
-            // Note to self: fix this ;-)
             auto& uncertain_sample = *find_sample( sample_set, "uncertain" );
-            auto& new_pquery = uncertain_sample.add_pquery( pquery );
-            for( auto& placement : new_pquery.placements() ) {
-                auto edge_index = placement.edge().index();
-                placement.reset_edge( uncertain_sample.tree().edge_at( edge_index ));
-            }
+            uncertain_sample.add_pquery( pquery );
         }
     }
 
