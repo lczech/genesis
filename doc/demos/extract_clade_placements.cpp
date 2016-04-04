@@ -313,6 +313,11 @@ void write_sample_set( placement::SampleSet const& sample_set, std::string outpu
  *      the tree that contains all nodes of the clade. That means, the clades should be monophyletic
  *      in order for this algorithm to work properly. Furthermore, the user needs to make sure that
  *      each taxon is contained in at most one clade. Otherwise, the algorithm won't work properly.
+ *
+ *      Remark: The rooting of the tree is insignificant for this program. Even if the root
+ *      coincidentally lies within one of the clades, the result is the same. The program does not
+ *      change the root; thus, when visualizing the clades, be aware that the tree might look
+ *      different depending on the rooting.
  *   3. An output directory path. For each clade (including the two special clades), a `jplace` file
  *      named after the clade is written to that path. Each `jplace` file then contains all pqueries
  *      that were assigned to that clade.
