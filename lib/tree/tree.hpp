@@ -143,14 +143,22 @@ public:
     void import_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
     void export_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
 
-    template<class OtherTreeType>
-    void convert_from(
-        OtherTreeType const& other_tree,
-        std::function<NodeDataType ( typename OtherTreeType::NodeDataType const& node_data )> node_data_converter,
-        std::function<EdgeDataType ( typename OtherTreeType::EdgeDataType const& edge_data )> edge_data_converter
-    );
-
     void clear();
+
+    // -------------------------------------------------------------------------
+    //     Conversion
+    // -------------------------------------------------------------------------
+
+    template<class SourceTreeType>
+    static TreeType convert_from(
+        SourceTreeType const& source,
+        std::function<NodeDataType (
+            typename SourceTreeType::NodeDataType const& node_data
+        )> node_data_converter,
+        std::function<EdgeDataType (
+            typename SourceTreeType::EdgeDataType const& edge_data
+        )> edge_data_converter
+    );
 
     // -------------------------------------------------------------------------
     //     Accessors

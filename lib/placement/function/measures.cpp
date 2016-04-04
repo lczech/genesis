@@ -208,8 +208,7 @@ double earth_movers_distance (
     auto avg_length_tree = tree::average_branch_length_tree( tset );
 
     // Create an EMD tree from the average branch length tree.
-    tree::EmdTree emd_tree;
-    emd_tree.convert_from(
+    auto emd_tree = tree::EmdTree::convert_from(
         avg_length_tree,
         [] ( PlacementTreeNodeData const& node ) {
             (void) node;
