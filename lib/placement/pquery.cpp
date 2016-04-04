@@ -74,6 +74,26 @@ Pquery::const_iterator_placements Pquery::end_placements() const
     return placements_.cend();
 }
 
+/**
+ * @brief Return a Range iterator to the PqueryPlacement%s.
+ *
+ * This makes iterating placements via a range based for loop easy.
+ */
+utils::Range<Pquery::iterator_placements> Pquery::placements()
+{
+    return { placements_ };
+}
+
+/**
+* @brief Return a const Range iterator to the PqueryPlacement%s.
+*
+* This makes iterating placements via a range based for loop easy.
+*/
+utils::Range<Pquery::const_iterator_placements> Pquery::placements() const
+{
+    return { placements_ };
+}
+
 // =============================================================================
 //     Placement Accessors and Modifiers
 // =============================================================================
@@ -126,26 +146,6 @@ PqueryPlacement& Pquery::add_placement(
     placements_.emplace_back( val );
     placements_.back().reset_edge( edge );
     return placements_.back();
-}
-
-/**
- * @brief Return a Range iterator to the PqueryPlacement%s.
- *
- * This makes iterating placements via a range based for loop easy.
- */
-utils::Range<Pquery::iterator_placements> Pquery::placements()
-{
-    return { placements_ };
-}
-
-/**
-* @brief Return a const Range iterator to the PqueryPlacement%s.
-*
-* This makes iterating placements via a range based for loop easy.
-*/
-utils::Range<Pquery::const_iterator_placements> Pquery::placements() const
-{
-    return { placements_ };
 }
 
 /**
@@ -219,6 +219,26 @@ Pquery::const_iterator_names Pquery::end_names() const
     return names_.cend();
 }
 
+/**
+* @brief Return a Range iterator to the PqueryName%s.
+*
+* This makes iterating placements via a range based for loop easy.
+*/
+utils::Range<Pquery::iterator_names> Pquery::names()
+{
+    return { names_ };
+}
+
+/**
+* @brief Return a const Range iterator to the PqueryName%s.
+*
+* This makes iterating placements via a range based for loop easy.
+*/
+utils::Range<Pquery::const_iterator_names> Pquery::names() const
+{
+    return { names_ };
+}
+
 // =============================================================================
 //     Name Accessors and Modifiers
 // =============================================================================
@@ -245,26 +265,6 @@ PqueryName& Pquery::add_name( PqueryName const& other )
 {
     names_.push_back( PqueryName(other) );
     return names_.back();
-}
-
-/**
-* @brief Return a Range iterator to the PqueryName%s.
-*
-* This makes iterating placements via a range based for loop easy.
-*/
-utils::Range<Pquery::iterator_names> Pquery::names()
-{
-    return { names_ };
-}
-
-/**
-* @brief Return a const Range iterator to the PqueryName%s.
-*
-* This makes iterating placements via a range based for loop easy.
-*/
-utils::Range<Pquery::const_iterator_names> Pquery::names() const
-{
-    return { names_ };
 }
 
 /**

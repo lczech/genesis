@@ -316,7 +316,8 @@ std::string unify_newlines( std::string const& s )
 // =================================================================================================
 
 /**
- * @brief Return a precise(er than to_string) string representation of the input value.
+ * @brief Return a precise(er than to_string) string representation of the input value, using
+ * the provided precision value. This is most suitable for floating point to string conversions.
  */
 std::string to_string_precise( double value, const int precision )
 {

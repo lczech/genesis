@@ -41,7 +41,7 @@ namespace tree {
 // =================================================================================================
 
 /**
- * @brief Return the index of this Link.
+ * @brief Return the index of this Node.
  */
 template <class NDT, class EDT>
 size_t TreeNode<NDT, EDT>::index() const

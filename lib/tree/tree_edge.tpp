@@ -41,7 +41,7 @@ namespace tree {
 // =================================================================================================
 
 /**
- * @brief Return the index of this Link.
+ * @brief Return the index of this Edge.
  */
 template <class NDT, class EDT>
 size_t TreeEdge<NDT, EDT>::index() const

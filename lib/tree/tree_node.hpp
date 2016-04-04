@@ -43,19 +43,19 @@ namespace tree {
 // =================================================================================================
 
 template <class NodeDataType, class EdgeDataType>
-class  Tree;
+class Tree;
 
 template <class NodeDataType, class EdgeDataType>
-class  TreeEdge;
+class TreeEdge;
 
 template <class NodeDataType, class EdgeDataType>
-class  TreeLink;
+class TreeLink;
 
 // =================================================================================================
 //     TreeNode
 // =================================================================================================
 
-template <class NodeDataType, class EdgeDataType>
+template <class node_data_type, class edge_data_type>
 class TreeNode
 {
 public:
@@ -64,10 +64,13 @@ public:
     //     Typedefs
     // ---------------------------------------------------------------------
 
-    typedef Tree    <NodeDataType, EdgeDataType> TreeType;
-    typedef TreeLink<NodeDataType, EdgeDataType> LinkType;
-    typedef TreeNode<NodeDataType, EdgeDataType> NodeType;
-    typedef TreeEdge<NodeDataType, EdgeDataType> EdgeType;
+    using NodeDataType       = node_data_type;
+    using EdgeDataType       = edge_data_type;
+
+    using TreeType           = Tree    <NodeDataType, EdgeDataType>;
+    using LinkType           = TreeLink<NodeDataType, EdgeDataType>;
+    using NodeType           = TreeNode<NodeDataType, EdgeDataType>;
+    using EdgeType           = TreeEdge<NodeDataType, EdgeDataType>;
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five

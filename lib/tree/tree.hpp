@@ -25,7 +25,7 @@
 */
 
 /**
- * @brief Provides the basic interface for phylogenetic trees.
+ * @brief Header of Tree class template.
  *
  * For more information, see Tree class.
  *
@@ -33,9 +33,9 @@
  * @ingroup tree
  */
 
+#include <functional>
 #include <memory>
 #include <ostream>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -43,6 +43,8 @@
 #include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 #include "tree/tree_node.hpp"
+
+#include "utils/core/range.hpp"
 
 namespace genesis {
 namespace tree {
@@ -93,7 +95,7 @@ bool validate( TreeType const& tree );
  *
  * Those invariants are established when the Tree is constructed.
  */
-template <class NodeDataType = DefaultTreeNodeData, class EdgeDataType = DefaultTreeEdgeData>
+template <class node_data_type = DefaultTreeNodeData, class edge_data_type = DefaultTreeEdgeData>
 class Tree
 {
 public:
@@ -102,14 +104,17 @@ public:
     //     Typedefs
     // -------------------------------------------------------------------------
 
-    using TreeType = Tree    <NodeDataType, EdgeDataType>;
-    using LinkType = TreeLink<NodeDataType, EdgeDataType>;
-    using NodeType = TreeNode<NodeDataType, EdgeDataType>;
-    using EdgeType = TreeEdge<NodeDataType, EdgeDataType>;
+    using NodeDataType       = node_data_type;
+    using EdgeDataType       = edge_data_type;
 
-    using LinkContainer = std::vector<std::unique_ptr<LinkType>>;
-    using NodeContainer = std::vector<std::unique_ptr<NodeType>>;
-    using EdgeContainer = std::vector<std::unique_ptr<EdgeType>>;
+    using TreeType           = Tree    <NodeDataType, EdgeDataType>;
+    using LinkType           = TreeLink<NodeDataType, EdgeDataType>;
+    using NodeType           = TreeNode<NodeDataType, EdgeDataType>;
+    using EdgeType           = TreeEdge<NodeDataType, EdgeDataType>;
+
+    using LinkContainer      = std::vector<std::unique_ptr<LinkType>>;
+    using NodeContainer      = std::vector<std::unique_ptr<NodeType>>;
+    using EdgeContainer      = std::vector<std::unique_ptr<EdgeType>>;
 
     using      IteratorLinks = typename std::vector<std::unique_ptr<LinkType>>::iterator;
     using ConstIteratorLinks = typename std::vector<std::unique_ptr<LinkType>>::const_iterator;
@@ -139,6 +144,21 @@ public:
     void export_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
 
     void clear();
+
+    // -------------------------------------------------------------------------
+    //     Conversion
+    // -------------------------------------------------------------------------
+
+    template<class SourceTreeType>
+    static TreeType convert_from(
+        SourceTreeType const& source,
+        std::function<NodeDataType (
+            typename SourceTreeType::NodeDataType const& node_data
+        )> node_data_converter,
+        std::function<EdgeDataType (
+            typename SourceTreeType::EdgeDataType const& edge_data
+        )> edge_data_converter
+    );
 
     // -------------------------------------------------------------------------
     //     Accessors
@@ -179,6 +199,9 @@ public:
     IteratorLinks      end_links();
     ConstIteratorLinks end_links() const;
 
+    utils::Range<     IteratorLinks> links();
+    utils::Range<ConstIteratorLinks> links() const;
+
     // -----------------------------------------------------
     //     Nodes
     // -----------------------------------------------------
@@ -189,6 +212,9 @@ public:
     IteratorNodes      end_nodes();
     ConstIteratorNodes end_nodes() const;
 
+    utils::Range<     IteratorNodes> nodes();
+    utils::Range<ConstIteratorNodes> nodes() const;
+
     // -----------------------------------------------------
     //     Edges
     // -----------------------------------------------------
@@ -198,6 +224,9 @@ public:
 
     IteratorEdges      end_edges();
     ConstIteratorEdges end_edges() const;
+
+    utils::Range<     IteratorEdges> edges();
+    utils::Range<ConstIteratorEdges> edges() const;
 
     // -------------------------------------------------------------------------
     //     Debug and Dump

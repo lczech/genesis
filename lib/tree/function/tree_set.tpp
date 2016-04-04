@@ -34,7 +34,7 @@
 #include <vector>
 
 namespace genesis {
-namespace placement {
+namespace tree {
 
 // =================================================================================================
 //     Tree Set Functions
