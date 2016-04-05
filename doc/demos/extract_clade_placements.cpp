@@ -293,6 +293,14 @@ void write_sample_set( placement::SampleSet const& sample_set, std::string outpu
  *      If more of this placement mass than the threshold is placed on the branches of a single
  *      clade of the tree, the according pquery is assigned to that clade. The threshold is
  *      hardcoded in this demo and set to 0.95 (but can be changed if needed, of course).
+ *
+ *      It is possible that the placement algorithm (e.g., EPA or pplacer) did not output placements
+ *      with low like_weight_ratios, depending on the selected options (see the respective manual
+ *      for more details on how to change this). This means that the provided sum might be lower
+ *      than 1.0 for some pqueries. In order to compensate for this (thus, to avoid classifying
+ *      those pqueries as uncertain), we normalize the like_weight_ratios first, so that their sum
+ *      is 1.0 again. This step thus ignores the uncertainties resulting from the placement
+ *      algorithm.
  *   2. A directory path, which needs to contain a single file for each clade of the reference tree.
  *      The file names are used as clade names. Each file in the directory then needs to contain a
  *      list of all taxa names of that clade, one per line.
@@ -366,7 +374,13 @@ int main( int argc, char** argv )
 
     // Read the Jplace file into a Sample object.
     Sample sample;
-    JplaceReader().from_file(jplace_filename, sample);
+    JplaceReader().from_file( jplace_filename, sample );
+
+    // Normalize the like_weight_ratios. This step makes sure that missing placement weights do not
+    // lead to a pquery being placed in the uncertain clade. That means, we only use the provided
+    // placement masses as given in the jplace files, and scale them so that they sum up to 1.0.
+    // In turn, this means that uncertainties resulting from the placement algorithm are ignored.
+    normalize_weight_ratios( sample );
 
     // Get a list of the edges per clade of the reference tree.
     auto clade_edges = get_clade_edges( clades, sample.tree() );
