@@ -76,6 +76,8 @@
 #include "tree/default/phyloxml_writer.hpp"
 #include "tree/default/tree.hpp"
 #include "tree/function/distances.hpp"
+#include "tree/function/emd.hpp"
+#include "tree/function/emd_tree.hpp"
 #include "tree/function/functions.hpp"
 #include "tree/function/operators.hpp"
 #include "tree/function/tree_set.hpp"
