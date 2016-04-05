@@ -121,12 +121,12 @@ Pquery& Sample::add_pquery()
 /**
  * @brief Create a Pquery as a copy of the provided one, add it to the sample and return it.
  *
- * It is possible to copy a Pquery from a different Sample, as long as the tree topology of both
+ * It is possible to provide a Pquery from a different Sample, as long as the tree topology of both
  * Sample%s is identical, including identical @link tree::TreeEdge::index() edge indices @endlink
- * and @link PqueryPlacement::edge_num edge_nums@endlink. For thas purpose, this function adjusts
- * the internal pointers of the Pquery and its PqueryPlacement%s.
+ * and @link PqueryPlacement::edge_num edge_nums@endlink. For that purpose, this function
+ * automatically adjusts the internal pointers of the Pquery and its PqueryPlacement%s accordingly.
  *
- * However, if the trees are incompatible (i.e., have a different topology, indices or edge nums ),
+ * However, if the trees are incompatible (i.e., have a different topology, indices or edge nums),
  * the PqueryPlacement%s will either point to different edges or the function might throw an
  * exception, in cases where the tree does not have a corresponding edge at all. To further ensure
  * correct behaviour, the function also checks whether the @link PqueryPlacement::edge_num
@@ -144,7 +144,7 @@ Pquery& Sample::add_pquery( Pquery const& other )
     for( auto& placement : pqueries_.back().placements() ) {
         // Get the edge index of the old edge, then set the edge to the edge of the
         // correct sample that is at that index.
-        auto edge_index = placement.edge().index();
+        auto edge_index   = placement.edge().index();
         auto old_edge_num = placement.edge().data.edge_num();
         placement.reset_edge( tree().edge_at( edge_index ));
 
