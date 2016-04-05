@@ -83,10 +83,6 @@ void count_placement_mass_per_edge(
             auto index = placement.edge().index();
             placement_mass[index] += placement.like_weight_ratio;
         }
-
-        for( auto const& name : pquery.names() ) {
-            LOG_INFO << "Name " << name.name;
-        }
     }
 }
 

@@ -99,10 +99,10 @@ protected:
 
 public:
 
-    /**
-     * @brief Precision used for printing floating point numbers, particularly Json Value Numbers.
-     */
-    int precision = 6;
+    // /**
+    //  * @brief Precision used for printing floating point numbers, particularly Json Value Numbers.
+    //  */
+    // int precision = 6;
 
     /**
      * @brief Indent used for printing the elements of Json Arrays and Objects.

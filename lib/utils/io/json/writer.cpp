@@ -108,7 +108,10 @@ void JsonWriter::print_value(
             break;
 
         case JsonValue::kNumber:
-            out << utils::to_string_precise(json_value_to_number(value)->value, precision);
+            // Use automatic double conversion. The old way with a fixed precision turned integers
+            // into floats, which was not intended.
+            out << json_value_to_number(value)->value;
+            // out << utils::to_string_precise(json_value_to_number(value)->value, precision);
             break;
 
         case JsonValue::kString:
