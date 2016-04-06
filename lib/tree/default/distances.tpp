@@ -56,7 +56,7 @@ double length(const Tree& tree)
 template <class Tree>
 double height(const Tree& tree)
 {
-    auto dists = node_distance_vector(tree);
+    auto dists = node_branch_length_distance_vector(tree);
     return *std::max_element(dists.begin(), dists.end());
 }
 
@@ -99,8 +99,14 @@ double deepest_distance(const Tree& tree)
 //     Branch Distance Measures
 // =================================================================================================
 
+/**
+ * @brief Return a distance matrix containing pairwise distances between all Nodes, using the
+ * branch_length of the Edges as distance measurement.
+ *
+ * The elements of the matrix are indexed using node().index().
+ */
 template <class Tree>
-utils::Matrix<double>      node_distance_matrix (
+utils::Matrix<double> node_branch_length_distance_matrix(
     const Tree& tree
 ) {
     utils::Matrix<double> mat (tree.node_count(), tree.node_count(), -1.0);
@@ -139,8 +145,18 @@ utils::Matrix<double>      node_distance_matrix (
     return mat;
 }
 
+/**
+ * @brief Return a vector containing the distance of all nodes with respect to the given start node,
+ * where distance is measured in the sum of branch lengths between the nodes.
+ *
+ * The vector is indexed using the node().index() for every node. Its elements give the distance of
+ * each node with respect to the given start node. The distance is the sum of branch lengths of the
+ * edges visited on the path between the two nodes.
+ *
+ * If no Node pointer is provided, the root is taken as node.
+ */
 template <class Tree>
-std::vector<double> node_distance_vector (
+std::vector<double> node_branch_length_distance_vector(
     const Tree& tree,
     const typename Tree::NodeType* node
 ) {
@@ -175,7 +191,7 @@ std::vector<double> node_distance_vector (
 }
 
 template <class Tree>
-utils::Matrix<double>      edge_distance_matrix (
+utils::Matrix<double> edge_branch_length_distance_matrix(
     const Tree& tree
 ) {
     // Result matrix that will be returned.
@@ -183,11 +199,11 @@ utils::Matrix<double>      edge_distance_matrix (
 
     // For calculating the distance between edges, we use the distances between nodes and for every
     // pair of edged find the nodes at the ends of the edges that are closest to each other. This
-    // is then the shortest distance between the two edged.
+    // is then the shortest distance between the two edges.
     // There is probably a way to get this distance via some tree traversal, which would save us
     // some lookups and calculation of the min, but be more complex and error prone.
     // For now, this version should be fast enough.
-    auto node_dist_mat = node_distance_matrix(tree);
+    auto node_dist_mat = node_branch_length_distance_matrix(tree);
 
     for (auto row_it = tree.begin_edges(); row_it != tree.end_edges(); ++row_it) {
         const auto row_edge = row_it->get();
@@ -242,17 +258,17 @@ utils::Matrix<double>      edge_distance_matrix (
 }
 
 template <class Tree>
-std::vector<double> edge_distance_vector (
+std::vector<double> edge_branch_length_distance_vector(
     const Tree& tree,
     const typename Tree::EdgeType* edge
 ) {
     std::vector<double> vec (tree.edge_count());
 
-    // Works similar to edge_distance_matrix(). See there for a description of the implementation.
+    // Works similar to edge_branch_length_distance_matrix(). See there for a description of the implementation.
 
     // We just need two rows of the distance matrix - let's take the vectors instead for speed.
-    auto p_node_dist = node_distance_vector(tree, edge->primary_node());
-    auto s_node_dist = node_distance_vector(tree, edge->secondary_node());
+    auto p_node_dist = node_branch_length_distance_vector(tree, edge->primary_node());
+    auto s_node_dist = node_branch_length_distance_vector(tree, edge->secondary_node());
 
     for (auto col_it = tree.begin_edges(); col_it != tree.end_edges(); ++col_it) {
         const auto col_edge = col_it->get();
@@ -300,7 +316,7 @@ std::vector<std::pair<const typename Tree::NodeType*, double>> closest_leaf_dist
     vec.resize(tree.node_count(), {nullptr, 0.0});
 
     // we need the pairwise distances between all nodes, so we can do quick lookups.
-    auto node_distances = node_distance_matrix(tree);
+    auto node_distances = node_branch_length_distance_matrix(tree);
 
     // fill the vector for every node.
     // there is probably a faster way of doing this: preorder traversal with pruning. but for now,

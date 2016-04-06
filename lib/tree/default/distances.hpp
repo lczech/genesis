@@ -68,39 +68,24 @@ double deepest_distance(const Tree& tree);
 //     Branch Distance Measures
 // =================================================================================================
 
-/**
- * @brief Returns a distance matrix containing pairwise distances between all Nodes, using the
- * branch_length of the Edges as distance measurement.
- *
- * The elements of the matrix are indexed using node().index().
- */
 template <class Tree>
-utils::Matrix<double>      node_distance_matrix (
+utils::Matrix<double> node_branch_length_distance_matrix(
     const Tree& tree
 );
 
-/**
- * @brief Returns a vector containing the distance of all nodes with respect to the given start node.
- *
- * The vector is indexed using the node().index() for every node. Its elements give the distance of
- * each node with respect to the given start node. The distance is the sum of branch lengths of the
- * edges visited on the path between the two nodes.
- *
- * If no Node pointer is provided, the root is taken as node.
- */
 template <class Tree>
-std::vector<double> node_distance_vector (
+std::vector<double> node_branch_length_distance_vector(
     const Tree& tree,
     const typename Tree::NodeType* node = nullptr
 );
 
 template <class Tree>
-utils::Matrix<double>      edge_distance_matrix (
+utils::Matrix<double> edge_branch_length_distance_matrix(
     const Tree& tree
 );
 
 template <class Tree>
-std::vector<double> edge_distance_vector (
+std::vector<double> edge_branch_length_distance_vector(
     const Tree& tree,
     const typename Tree::EdgeType* edge = nullptr
 );

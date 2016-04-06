@@ -28,6 +28,8 @@
  * @ingroup tree
  */
 
+#include <algorithm>
+#include <assert.h>
 #include <stdexcept>
 
 #include "tree/iterator/levelorder.hpp"
@@ -46,17 +48,46 @@ namespace tree {
  * The vector is indexed using the node().index() for every node.
  */
 template <class Tree>
-utils::Matrix<int>         node_depth_matrix    (
+utils::Matrix<int> node_path_length_matrix(
     const Tree& tree
 ) {
-    // TODO implement!
-    (void) tree;
-    throw std::domain_error("Not yet implemented.");
-    return utils::Matrix<int>(0,0);
+    utils::Matrix<int> mat( tree.node_count(), tree.node_count(), -1 );
+
+    // Fill every row of the matrix.
+    for( auto const& row_node : tree.nodes() ) {
+
+        // Set the diagonal element of the matrix.
+        mat( row_node->index(), row_node->index() ) = 0;
+
+        // The columns are filled using a levelorder traversal. This makes sure that for every node
+        // we know how to calculate the distance to the current row node.
+        // Unfortunately, this prevents us from simply calculating the upper triangle of the matrix
+        // and copying it (distance is symmetric), because we do not really know which nodes are in
+        // which half during a levelorder traversal...
+        for( auto it : levelorder( row_node->link() )) {
+            // Skip the diagonal of the matrix.
+            if (it.is_first_iteration()) {
+                assert( it.node().index() == row_node->index() );
+                continue;
+            }
+
+            // Make sure we don't have touched the current position, but have calculated
+            // the needed dependency already.
+            assert( mat(row_node->index(), it.node().index()) == -1 );
+            assert( mat(row_node->index(), it.link().outer().node().index()) > -1 );
+
+            // The distance to the current row node is one more than the distance from the other
+            // end of that branch to the row node.
+            mat( row_node->index(), it.node().index() )
+                = 1 + mat(row_node->index(), it.link().outer().node().index());
+        }
+    }
+
+    return mat;
 }
 
 /**
- * @brief Returns a vector containing the depth of all nodes with respect to the given start node.
+ * @brief Return a vector containing the depth of all nodes with respect to the given start node.
  *
  * The vector is indexed using the node().index() for every node. Its elements give the depth of
  * each node with respect to the given start node. The depth is the number of edges visited on the
@@ -65,7 +96,7 @@ utils::Matrix<int>         node_depth_matrix    (
  * If no start node pointer is provided, the root is taken as node.
  */
 template <class Tree>
-std::vector<int>    node_depth_vector    (
+std::vector<int> node_path_length_vector(
     const Tree& tree,
     const typename Tree::NodeType* node
 ) {
@@ -99,25 +130,97 @@ std::vector<int>    node_depth_vector    (
 }
 
 template <class Tree>
-utils::Matrix<int>         edge_depth_matrix    (
+utils::Matrix<int> edge_path_length_matrix(
     const Tree& tree
 ) {
-    // TODO implement!
-    (void) tree;
-    throw std::domain_error("Not yet implemented.");
-    return utils::Matrix<int>(0,0);
+    // Result matrix that will be returned.
+    utils::Matrix<int> mat (tree.edge_count(), tree.edge_count());
+
+    // For calculating the distance between edges, we use the distances between nodes and for every
+    // pair of edged find the nodes at the ends of the edges that are closest to each other. This
+    // is then the shortest distance between the two edges.
+    auto node_depth_mat = node_path_length_matrix(tree);
+
+    for( auto const& row_edge : tree.edges() ) {
+        for( auto const& col_edge : tree.edges() ) {
+
+            // Set the diagonal element of the matrix. We don't need to compare nodes in this case.
+            if (row_edge->index() == col_edge->index()) {
+                mat(row_edge->index(), row_edge->index()) = 0;
+                continue;
+            }
+
+            // primary-primary case
+            auto pp = node_depth_mat(
+                row_edge->primary_node().index(),
+                col_edge->primary_node().index()
+            );
+
+            // primary-secondary case
+            auto ps = node_depth_mat(
+                row_edge->primary_node().index(),
+                col_edge->secondary_node().index()
+            );
+
+            // secondary-primary case
+            auto sp = node_depth_mat(
+                row_edge->secondary_node().index(),
+                col_edge->primary_node().index()
+            );
+
+            // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
+            // (if this ever happens, the tree is broken).
+            auto dist = std::min(pp, std::min(ps, sp));
+            assert( dist <= node_depth_mat(
+                row_edge->secondary_node().index(),
+                col_edge->secondary_node().index()
+            ));
+
+            // Store in matrix.
+            mat( row_edge->index(), col_edge->index() ) = dist + 1;
+        }
+    }
+
+    return mat;
 }
 
 template <class Tree>
-std::vector<int>    edge_depth_vector    (
+std::vector<int> edge_path_length_vector(
     const Tree& tree,
     const typename Tree::EdgeType* edge
 ) {
-    // TODO implement!
-    (void) tree;
-    (void) edge;
-    throw std::domain_error("Not yet implemented.");
-    return std::vector<int>();
+    std::vector<int> vec (tree.edge_count(), -1);
+
+    // We just need two rows of the distance matrix - let's take the vectors instead for speed.
+    auto p_node_dist = node_path_length_vector(tree, edge->primary_node());
+    auto s_node_dist = node_path_length_vector(tree, edge->secondary_node());
+
+    for( auto const& col_edge : tree.edges() ) {
+
+        if( edge->index() == col_edge->index() ) {
+            vec(edge->index()) = 0;
+            continue;
+        }
+
+        // primary-primary case
+        double pp = p_node_dist(col_edge->primary_node().index());
+
+        // primary-secondary case
+        double ps = p_node_dist(col_edge->secondary_node().index());
+
+        // secondary-primary case
+        double sp = s_node_dist(col_edge->primary_node().index());
+
+        // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
+        // (if this ever happens, the tree is broken).
+        double dist = std::min(pp, std::min(ps, sp));
+        assert(dist <= s_node_dist(col_edge->secondary_node().index()));
+
+        // Store in vector.
+        vec(col_edge->index()) = dist + 1;
+    }
+
+    return vec;
 }
 
 // =================================================================================================

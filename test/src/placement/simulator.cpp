@@ -39,9 +39,8 @@
 #include "lib/placement/function/operators.hpp"
 #include "lib/placement/io/newick_reader.hpp"
 #include "lib/placement/sample.hpp"
+#include "lib/placement/simulator/functions.hpp"
 #include "lib/placement/simulator/simulator.hpp"
-#include "lib/placement/simulator/subtree.hpp"
-#include "lib/placement/simulator/twostep.hpp"
 #include "lib/tree/io/newick/reader.hpp"
 
 using namespace genesis;
@@ -59,10 +58,10 @@ TEST(PlacementSimulator, TwoStepSimple)
     EXPECT_EQ   (0, total_placement_count(smp));
     EXPECT_TRUE (validate(smp, true, false));
 
-    SimulatorTwostep sim(smp);
+    Simulator sim;
 
     size_t n = 100;
-    sim.generate(n);
+    sim.generate(smp, n);
     EXPECT_EQ   (n, total_placement_count(smp));
     EXPECT_TRUE (validate(smp, true, false));
 }
@@ -77,15 +76,15 @@ TEST(PlacementSimulator, TwoStepLeavesOnly)
     ));
 
     Sample smp(tree);
-    SimulatorTwostep sim(smp);
+    Simulator sim;
 
     // Set weight so that onlye edges adjacet to leaves are populated.
     std::vector<int> edge_weights = {1};
-    sim.edge_distribution().set_depths_distributed_weights(edge_weights);
+    set_depths_distributed_weights( smp, edge_weights, sim.edge_distribution() );
 
     // Generate placements.
     size_t n = 100;
-    sim.generate(n);
+    sim.generate(smp, n);
     EXPECT_EQ   (n, total_placement_count(smp));
     EXPECT_TRUE (validate(smp, true, false));
 

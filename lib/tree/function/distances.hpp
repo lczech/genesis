@@ -45,23 +45,23 @@ namespace tree {
 // =================================================================================================
 
 template <class Tree>
-utils::Matrix<int>         node_depth_matrix    (
+utils::Matrix<int> node_path_length_matrix(
     const Tree& tree
 );
 
 template <class Tree>
-std::vector<int>    node_depth_vector    (
+std::vector<int> node_path_length_vector(
     const Tree& tree,
     const typename Tree::NodeType* node = nullptr
 );
 
 template <class Tree>
-utils::Matrix<int>         edge_depth_matrix    (
+utils::Matrix<int> edge_path_length_matrix(
     const Tree& tree
 );
 
 template <class Tree>
-std::vector<int>    edge_depth_vector    (
+std::vector<int> edge_path_length_vector(
     const Tree& tree,
     const typename Tree::EdgeType* edge = nullptr
 );

@@ -38,16 +38,16 @@ template<class Tree>
 void python_export_function_tree_function_distances_Tree ()
 {
     boost::python::def(
-        "edge_depth_vector",
-        ( std::vector< int > ( * )( const Tree &, const typename Tree::EdgeType * ))( &::genesis::tree::edge_depth_vector ),
+        "edge_path_length_vector",
+        ( std::vector< int > ( * )( const Tree &, const typename Tree::EdgeType * ))( &::genesis::tree::edge_path_length_vector ),
         ( boost::python::arg("tree"), boost::python::arg("edge")=(const typename Tree::EdgeType *)(nullptr) )
     );
 
     boost::python::def(
-        "node_depth_vector",
-        ( std::vector< int > ( * )( const Tree &, const typename Tree::NodeType * ))( &::genesis::tree::node_depth_vector ),
+        "node_path_length_vector",
+        ( std::vector< int > ( * )( const Tree &, const typename Tree::NodeType * ))( &::genesis::tree::node_path_length_vector ),
         ( boost::python::arg("tree"), boost::python::arg("node")=(const typename Tree::NodeType *)(nullptr) ),
-        get_docstring("std::vector< int > ::genesis::tree::node_depth_vector (const Tree & tree, const typename Tree::NodeType * node=nullptr)")
+        get_docstring("std::vector< int > ::genesis::tree::node_path_length_vector (const Tree & tree, const typename Tree::NodeType * node=nullptr)")
     );
 
     boost::python::def(
@@ -58,15 +58,15 @@ void python_export_function_tree_function_distances_Tree ()
     );
 
     boost::python::def(
-        "edge_depth_matrix",
-        ( utils::Matrix< int > ( * )( const Tree & ))( &::genesis::tree::edge_depth_matrix ),
+        "edge_path_length_matrix",
+        ( utils::Matrix< int > ( * )( const Tree & ))( &::genesis::tree::edge_path_length_matrix ),
         ( boost::python::arg("tree") )
     );
 
     boost::python::def(
-        "node_depth_matrix",
-        ( utils::Matrix< int > ( * )( const Tree & ))( &::genesis::tree::node_depth_matrix ),
+        "node_path_length_matrix",
+        ( utils::Matrix< int > ( * )( const Tree & ))( &::genesis::tree::node_path_length_matrix ),
         ( boost::python::arg("tree") ),
-        get_docstring("utils::Matrix< int > ::genesis::tree::node_depth_matrix (const Tree & tree)")
+        get_docstring("utils::Matrix< int > ::genesis::tree::node_path_length_matrix (const Tree & tree)")
     );
 }
