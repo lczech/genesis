@@ -87,7 +87,7 @@ void count_placement_mass_per_edge(
 }
 
 // =================================================================================================
-//      Counts To Colors
+//      Counts To Colorss
 // =================================================================================================
 
 /**
@@ -160,12 +160,12 @@ void write_color_tree_to_nexus(
     auto nexus_doc = utils::NexusDocument();
 
     // Add the taxa of the tree to the document.
-    auto taxa = make_unique<utils::NexusTaxa>();
+    auto taxa = utils::make_unique<utils::NexusTaxa>();
     taxa->add_taxa(node_names(tree));
     nexus_doc.set_block( std::move(taxa) );
 
     // Add the tree itself to the document.
-    auto trees = make_unique<utils::NexusTrees>();
+    auto trees = utils::make_unique<utils::NexusTrees>();
     trees->add_tree( "tree1", newick_tree );
     nexus_doc.set_block( std::move(trees) );
 
@@ -227,7 +227,7 @@ int main( int argc, char** argv )
 
         // If the provided path is a directory, find all jplace files in it.
         auto all_files = utils::dir_list_files( input_path );
-        erase_if( all_files, [](std::string const& file) {
+        utils::erase_if( all_files, [](std::string const& file) {
             return ! utils::ends_with( utils::to_lower( file ), ".jplace" );
         });
 
