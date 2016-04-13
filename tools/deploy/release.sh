@@ -141,6 +141,25 @@ make clean
 make
 
 ####################################################################################################
+#    Demo and Tutorial Programs
+####################################################################################################
+
+print_separator "Demo and Tutorial Programs"
+
+# Build the demo and tutorial programs.
+./tools/deploy/build_example_apps.sh
+success=$?
+echo
+
+# Abort if not successfull.
+if [[ ${success} != 0 ]]; then
+    echo -e "\e[31mCannot build demo and tutorial programs. Aborting.\e[0m"
+    exit
+else
+    echo "Build demo and tutorial programs."
+fi
+
+####################################################################################################
 #    Tests
 ####################################################################################################
 

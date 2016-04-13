@@ -34,7 +34,21 @@ Genesis is open source software under the [GNU GPL v3 license](http://www.gnu.or
 
 To get the source, you can [download the latest release](https://github.com/lczech/genesis/releases).
 
-If you want to work with the newest features or contribute code of your own, you can also
+Alternatively, in order to stay up to date, you can clone the repository. For this, you need to have
+[Git](https://git-scm.com/) installed. Then, call
+
+    git clone https://github.com/lczech/genesis.git
+
+in some directory. This will create a sub-directory `genesis`, containing all files. In case new
+commits are pushed to the GitHub repository, you can call
+
+    git pull
+
+from within the `genesis` directory to get them. Don't forget to build genesis again after pulling
+(see next section for details).
+We recommend this method, as this is the easiest way to get new features, bug fixes etc.
+
+Furthermore, if you want to contribute code of your own, you can also
 [fork the project on GitHub](https://github.com/lczech/genesis).
 
 # Build {#setup_build}
@@ -73,14 +87,12 @@ Build output:
  *  `./test/bin/test_suite`: Test executable. See `./test/README.md` for more information.
  *  `./build`: Intermediate build files. No need to worry about them too much.
 
-
-
-If you add new files to be compiled (either an app, some lib function, Python bindings, or tests),
-you can call
+If you just pulled new commits from the repository, or added new files to be compiled
+(either an app, some lib function, Python bindings, or tests), you can call
 
     make update
 
-to include those files without need for recompiling everything.
+to include those files without need for recompiling everything (a so-called incremental build).
 See @ref dev for more information on incremental builds.
 
 # Apps {#setup_apps}
@@ -90,6 +102,7 @@ which use genesis as their main library. This is a way of using C++ similar to a
 
 Reasons to use this method (instead of the genesis Python bindings) include:
 
+ *  If you want to try out the @ref tutorials and @ref demos.
  *  If you quickly want to test an idea or get some experience with genesis.
  *  If Boost Python is not available on your target system.
  *  If not all needed functions of genesis are exported to Python (yet).
