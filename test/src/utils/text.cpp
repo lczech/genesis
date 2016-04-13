@@ -127,3 +127,28 @@ TEST( Text, Style )
     ss << blue( "empty" );
     EXPECT_EQ( "empty", ss.str() );
 }
+
+TEST( Text, ToString )
+{
+    double pi    = 3.14159267535;
+    double zeros = 42.4200000000;
+
+    EXPECT_EQ( "3.14159", to_string( pi ) );
+    EXPECT_EQ( "42.42",   to_string( zeros ) );
+
+    EXPECT_EQ( "3",       to_string_precise( pi, 0 ) );
+    EXPECT_EQ( "3.1",     to_string_precise( pi, 1 ) );
+    EXPECT_EQ( "3.1416",  to_string_precise( pi, 4 ) );
+
+    EXPECT_EQ( "42",      to_string_precise( zeros, 0 ) );
+    EXPECT_EQ( "42.4",    to_string_precise( zeros, 1 ) );
+    EXPECT_EQ( "42.4200", to_string_precise( zeros, 4 ) );
+
+    EXPECT_EQ( "3",       to_string_rounded( pi, 0 ) );
+    EXPECT_EQ( "3.1",     to_string_rounded( pi, 1 ) );
+    EXPECT_EQ( "3.1416",  to_string_rounded( pi, 4 ) );
+
+    EXPECT_EQ( "42",      to_string_rounded( zeros, 0 ) );
+    EXPECT_EQ( "42.4",    to_string_rounded( zeros, 1 ) );
+    EXPECT_EQ( "42.42",   to_string_rounded( zeros, 4 ) );
+}

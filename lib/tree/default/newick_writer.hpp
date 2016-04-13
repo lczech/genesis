@@ -124,11 +124,11 @@ protected:
 
     virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element ) override
     {
-        Base::edge_to_element(edge, element);
+        Base::edge_to_element( edge, element );
 
         if (enable_branch_lengths_) {
-            auto bl = utils::to_string_precise(edge.data.branch_length, precision);
-            element.values.insert(element.values.begin(), bl);
+            auto bl = utils::to_string_rounded( edge.data.branch_length, branch_length_precision );
+            element.values.insert (element.values.begin(), bl );
         }
     }
 
@@ -142,9 +142,9 @@ public:
     // properties that belong to the (yet to create) superclass DefaultNewickMixinBase or so.
 
     /**
-     * @brief The precision used for printing floating point numbers, particularly the branch_length.
+     * @brief The precision used for printing the `branch_length` floating point numbers.
      */
-    int  precision = 6;
+    int branch_length_precision = 6;
 
     std::string default_leaf_name     = "Leaf_Node";
     std::string default_internal_name = "Internal_Node";

@@ -102,13 +102,16 @@ std::string unify_newlines( std::string const& s );
 // =================================================================================================
 
 std::string to_string_precise( double value, const int precision = 6 );
+std::string to_string_rounded( double value, const int precision = 6 );
 
 /**
  * @brief Return a string representation of a given value.
  *
  * This function template is a drop-in replacement for std::to_string, with the difference that it
  * treats floating point numbers more nicely: Instead of printing a fixed amount of digits, it
- * only prints significant digits without trailing zeros.
+ * only prints digits without trailing zeros.
+ *
+ * If you also want to round the value, see to_string_precise() and to_string_rounded().
  *
  * As it uses operator << on the given value, it is suitable for any class or value for which this
  * stream operator is available. Thus, this function can also be used for conveniently returning a
