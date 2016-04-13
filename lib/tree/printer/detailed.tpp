@@ -78,7 +78,7 @@ void PrinterDetailed::print (
     do {
         auto& n = l->node();
         std::string indent = std::string(4 * depth[n.index()], ' ');
-        if( !contains( done, n.index() )) {
+        if( ! utils::contains( done, n.index() )) {
             out << indent
                 << node_color( "Node " + std::to_string(n.index()) + ": \"" + n.data.name + "\"" )
                 << "\n";

@@ -37,6 +37,7 @@
 #include <string>
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Shortcomings of the C++ 11 STL...
@@ -103,6 +104,7 @@ inline double round_to( double x, size_t precision )
     return std::round( x * factor ) / factor;
 }
 
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

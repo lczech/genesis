@@ -25,21 +25,22 @@
  * @brief
  *
  * @file
- * @ingroup test
+ * @ingroup python
  */
 
-#include "common.hpp"
+#include <python/src/common.hpp>
 
-#include "lib/utils/core/std.hpp"
+#include "lib/genesis.hpp"
 
-using namespace genesis::utils;
+using namespace ::genesis::utils;
 
-TEST(Std, RoundTo)
+PYTHON_EXPORT_FUNCTIONS(utils_core_std_export, "utils")
 {
-    EXPECT_FLOAT_EQ( 3.0     , round_to( 3.1415926535, 0 ) );
-    EXPECT_FLOAT_EQ( 3.1     , round_to( 3.1415926535, 1 ) );
-    EXPECT_FLOAT_EQ( 3.14    , round_to( 3.1415926535, 2 ) );
-    EXPECT_FLOAT_EQ( 3.142   , round_to( 3.1415926535, 3 ) );
-    EXPECT_FLOAT_EQ( 3.1416  , round_to( 3.1415926535, 4 ) );
-    EXPECT_FLOAT_EQ( 3.14159 , round_to( 3.1415926535, 5 ) );
+
+    boost::python::def(
+        "round_to",
+        ( double ( * )( double, size_t ))( &::genesis::utils::round_to ),
+        ( boost::python::arg("x"), boost::python::arg("precision") ),
+        get_docstring("double ::genesis::utils::round_to (double x, size_t precision)")
+    );
 }

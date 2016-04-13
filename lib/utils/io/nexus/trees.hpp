@@ -182,7 +182,7 @@ public:
 
     void erase_tree( std::string name )
     {
-        erase_if(
+        utils::erase_if(
             entries_,
             [&name] (Entry const& entry) {
                 return entry.name == name;

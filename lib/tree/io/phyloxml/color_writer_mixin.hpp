@@ -128,16 +128,16 @@ protected:
         }
 
         // TODO do not create new element if there is already one!
-        auto re = make_unique< utils::XmlElement >("red");
+        auto re = utils::make_unique< utils::XmlElement >("red");
         re->append_markup(std::to_string(r));
 
-        auto ge = make_unique< utils::XmlElement >("green");
+        auto ge = utils::make_unique< utils::XmlElement >("green");
         ge->append_markup(std::to_string(g));
 
-        auto be = make_unique< utils::XmlElement >("blue");
+        auto be = utils::make_unique< utils::XmlElement >("blue");
         be->append_markup(std::to_string(b));
 
-        auto color = make_unique< utils::XmlElement >("color");
+        auto color = utils::make_unique< utils::XmlElement >("color");
         color->content.push_back(std::move(re));
         color->content.push_back(std::move(ge));
         color->content.push_back(std::move(be));

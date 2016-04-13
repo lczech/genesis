@@ -142,7 +142,7 @@ void PhyloxmlWriter<TreeType>::to_document (const TreeType& tree, utils::XmlDocu
     xml.attributes.emplace("xmlns",     "http://www.phyloxml.org");
 
     // Add the (phylogeny) element.
-    auto phylogeny = make_unique< utils::XmlElement >();
+    auto phylogeny = utils::make_unique< utils::XmlElement >();
     phylogeny->tag = "phylogeny";
     phylogeny->attributes.emplace("rooted",     "true");
     //~ phylogeny.attributes.emplace("rerootable", "true");
@@ -173,7 +173,7 @@ void PhyloxmlWriter<TreeType>::to_document (const TreeType& tree, utils::XmlDocu
 
         // Create clade element, append it to the stack, so that all sub-elements will use it as
         // parent.
-        auto clade = make_unique< utils::XmlElement >();
+        auto clade = utils::make_unique< utils::XmlElement >();
         clade->tag = "clade";
 
         node_to_element( it.node(), *clade.get() );
