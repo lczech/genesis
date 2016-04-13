@@ -32,6 +32,7 @@
  */
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <string>
 
@@ -87,6 +88,19 @@ inline void erase_if( Container &c, UnaryPredicate p )
     if ( new_end != old_end ) {
         c.erase( new_end, old_end );
     }
+}
+
+// =================================================================================================
+//     Some other useful functions
+// =================================================================================================
+
+/**
+ * @brief Retun the value of `x`, rounded to the decimal digit given by `precision`.
+ */
+inline double round_to( double x, size_t precision )
+{
+    double factor = std::pow( 10, precision );
+    return std::round( x * factor ) / factor;
 }
 
 } // namespace genesis
