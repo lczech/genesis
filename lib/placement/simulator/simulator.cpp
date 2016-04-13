@@ -1,6 +1,3 @@
-#ifndef GENESIS_PLACEMENT_SIMULATOR_SUBTREE_H_
-#define GENESIS_PLACEMENT_SIMULATOR_SUBTREE_H_
-
 /*
     Genesis - A toolkit for working with phylogenetic data.
     Copyright (C) 2014-2016 Lucas Czech
@@ -25,7 +22,7 @@
 */
 
 /**
- * @brief
+ * @brief Implementation of Placement Simulator class.
  *
  * @file
  * @ingroup placement
@@ -37,24 +34,34 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Placement Simulator Subtree
+//     Placement Simulator
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Generate `n` many Pqueries and place them in the Sample.
  */
-class SimulatorSubtree : public Simulator
+void Simulator::generate( Sample& sample, size_t n )
 {
-public:
+    // Prepare distributions.
+    edge_distribution_.prepare( sample );
+    proximal_length_distribution_.prepare( sample );
+    pendant_length_distribution_.prepare( sample );
 
-    SimulatorSubtree( Sample& smp )
-        : Simulator( smp )
-    {}
+    for (size_t i = 0; i < n; ++i) {
+        // Generate one Pquery.
+        Pquery& pqry = sample.add_pquery();
+        pqry.add_name( "pquery_" + std::to_string( sample.pquery_size() ) );
 
-    void generate( size_t n ) override;
-};
+        // Get a random edge.
+        size_t edge_idx = edge_distribution_.generate();
+        auto&  edge     = sample.tree().edge_at(edge_idx);
+
+        // Add a placement at the edge.
+        PqueryPlacement& place = pqry.add_placement(edge);
+        place.proximal_length = proximal_length_distribution_.generate(edge);
+        place.pendant_length  = pendant_length_distribution_.generate(edge);
+    }
+}
 
 } // namespace placement
 } // namespace genesis
-
-#endif // include guard

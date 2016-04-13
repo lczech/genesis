@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_SIMULATOR_SIMULATOR_H_
-#define GENESIS_PLACEMENT_SIMULATOR_SIMULATOR_H_
+#ifndef GENESIS_PLACEMENT_SIMULATOR_PLACEMENT_NUMBER_DISTRIBUTION_H_
+#define GENESIS_PLACEMENT_SIMULATOR_PLACEMENT_NUMBER_DISTRIBUTION_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -33,73 +33,66 @@
 
 #include "placement/sample.hpp"
 
-#include "placement/simulator/edge_distribution.hpp"
-#include "placement/simulator/pendant_length_distribution.hpp"
-#include "placement/simulator/placement_number_distribution.hpp"
-#include "placement/simulator/proximal_length_distribution.hpp"
+#include <random>
+#include <vector>
 
 namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Placement Simulator
+//     Placement Simulator Placement Number Distribution
 // =================================================================================================
 
-/**
- * @brief Simulate @link Pquery Pqueries @endlink on the Tree of a Sample.
- */
-class Simulator
+class PlacementNumberDistribution
 {
 public:
 
     // -----------------------------------------------------
-    //     Constructor
+    //     Typedefs and Structs
     // -----------------------------------------------------
 
-    Simulator()  = default;
-    ~Simulator() = default;
-
-    Simulator( Simulator const& ) = default;
-    Simulator( Simulator&& )      = default;
-
-    Simulator& operator= ( Simulator const& ) = default;
-    Simulator& operator= ( Simulator&& )      = default;
-
-    // -----------------------------------------------------
-    //     Member Functions
-    // -----------------------------------------------------
-
-    void generate( Sample& sample, size_t n );
-
-    // -----------------------------------------------------
-    //     Accessors
-    // -----------------------------------------------------
-
-    EdgeDistribution& edge_distribution()
+    struct EdgeProximity
     {
-        return edge_distribution_;
-    }
+        using EdgeCandidates = std::vector<size_t>;
+        std::vector<EdgeCandidates> candidates_per_level;
+        size_t total_candidates = 0;
+    };
 
-    ProximalLengthDistribution& proximal_length_distribution()
-    {
-        return proximal_length_distribution_;
-    }
+    // -----------------------------------------------------
+    //     Constructor and Rule of Five
+    // -----------------------------------------------------
 
-    PendantLengthDistribution& pendant_length_distribution()
-    {
-        return pendant_length_distribution_;
-    }
+    PlacementNumberDistribution()  = default;
+    ~PlacementNumberDistribution() = default;
+
+    PlacementNumberDistribution( PlacementNumberDistribution const& ) = default;
+    PlacementNumberDistribution( PlacementNumberDistribution&& )      = default;
+
+    PlacementNumberDistribution& operator= ( PlacementNumberDistribution const& ) = default;
+    PlacementNumberDistribution& operator= ( PlacementNumberDistribution&& )      = default;
+
+    // -----------------------------------------------------
+    //     Generate Random Positions
+    // -----------------------------------------------------
+
+    void prepare( Sample const& sample );
+    std::vector<size_t> generate( typename PlacementTree::EdgeType const& edge );
 
     // -----------------------------------------------------
     //     Data Members
     // -----------------------------------------------------
 
+public:
+
+    std::vector<double> placement_number_weights;
+    std::vector<double> placement_path_length_weights;
+
 private:
 
-    EdgeDistribution           edge_distribution_;
-    ProximalLengthDistribution proximal_length_distribution_;
-    PendantLengthDistribution  pendant_length_distribution_;
+    std::discrete_distribution<size_t> placement_number_distrib_;
+    std::discrete_distribution<size_t> placement_path_length_distrib_;
 
+    std::vector<EdgeProximity> edge_proximities_;
 };
 
 } // namespace placement
