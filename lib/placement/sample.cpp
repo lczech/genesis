@@ -161,16 +161,6 @@ Pquery& Sample::add_pquery( Pquery const& other )
 }
 
 /**
- * @brief Return a const ref to the Pquery container.
- *
- * This makes iterating Pqueries via a range based for loop easy.
- */
-std::vector<Pquery> const& Sample::pqueries() const
-{
-    return pqueries_;
-}
-
-/**
  * @brief Return the number of @link Pquery Pqueries @endlink that are stored in this Sample.
  */
 size_t Sample::pquery_size() const
@@ -252,6 +242,26 @@ Sample::iterator_pqueries Sample::end()
 Sample::const_iterator_pqueries Sample::end() const
 {
     return pqueries_.end();
+}
+
+/**
+ * @brief Return a Range iterator to the @link Pquery Pqueries @endlink.
+ *
+ * This makes iterating Pqueries via a range based for loop easy.
+ */
+utils::Range<Sample::iterator_pqueries> Sample::pqueries()
+{
+    return { pqueries_ };
+}
+
+/**
+ * @brief Return a const Range iterator to the @link Pquery Pqueries @endlink.
+ *
+ * This makes iterating Pqueries via a range based for loop easy.
+ */
+utils::Range<Sample::const_iterator_pqueries> Sample::pqueries() const
+{
+    return { pqueries_ };
 }
 
 } // namespace placement

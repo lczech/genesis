@@ -40,6 +40,8 @@
 #include "placement/placement_tree.hpp"
 #include "placement/pquery.hpp"
 
+#include "utils/core/range.hpp"
+
 namespace genesis {
 namespace placement {
 
@@ -67,6 +69,13 @@ class Sample
 {
 
 public:
+
+    // -------------------------------------------------------------------
+    //     Typedefs
+    // -------------------------------------------------------------------
+
+    typedef std::vector<Pquery>::iterator       iterator_pqueries;
+    typedef std::vector<Pquery>::const_iterator const_iterator_pqueries;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -108,7 +117,6 @@ public:
     Pquery& add_pquery();
     Pquery& add_pquery( Pquery const& other );
 
-    std::vector<Pquery> const& pqueries() const;
     size_t pquery_size() const;
 
     Pquery      & pquery_at( size_t index );
@@ -121,14 +129,14 @@ public:
     //     Pquery Iterator
     // -------------------------------------------------------------------------
 
-    typedef std::vector<Pquery>::iterator       iterator_pqueries;
-    typedef std::vector<Pquery>::const_iterator const_iterator_pqueries;
-
     iterator_pqueries       begin();
     const_iterator_pqueries begin() const;
 
     iterator_pqueries       end();
     const_iterator_pqueries end() const;
+
+    utils::Range<iterator_pqueries>       pqueries();
+    utils::Range<const_iterator_pqueries> pqueries() const;
 
     // -------------------------------------------------------------------------
     //     Members

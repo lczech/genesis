@@ -72,9 +72,13 @@ PYTHON_EXPORT_CLASS (Sample, "placement")
         )
         .def(
             "pqueries",
-            ( std::vector< Pquery > const & ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::pqueries ),
-            boost::python::return_value_policy<boost::python::reference_existing_object>(),
-            get_docstring("std::vector< Pquery > const & ::genesis::placement::Sample::pqueries () const")
+            ( utils::Range< genesis::placement::Sample::const_iterator_pqueries > ( ::genesis::placement::Sample::* )(  ) const )( &::genesis::placement::Sample::pqueries ),
+            get_docstring("utils::Range< const_iterator_pqueries > ::genesis::placement::Sample::pqueries () const")
+        )
+        .def(
+            "pqueries",
+            ( utils::Range< genesis::placement::Sample::iterator_pqueries > ( ::genesis::placement::Sample::* )(  ))( &::genesis::placement::Sample::pqueries ),
+            get_docstring("utils::Range< iterator_pqueries > ::genesis::placement::Sample::pqueries ()")
         )
         .def(
             "pquery_at",

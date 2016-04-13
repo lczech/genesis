@@ -80,7 +80,7 @@ void SampleSerializer::save (const Sample& map, const std::string& file_name)
     ser.put_string(nw.to_string(map.tree()));
 
     // Write pqueries.
-    ser.put_int(map.pqueries().size());
+    ser.put_int(map.pquery_size());
     for (auto& pqry : map.pqueries()) {
 
         // Write placements.
