@@ -132,8 +132,8 @@ std::vector<PqueryPlacement const*> placements_per_edge(
  */
 std::vector<PqueryPlain> plain_queries( Sample const & smp )
 {
-    auto pqueries = std::vector<PqueryPlain>( smp.pqueries().size() );
-    for (size_t i = 0; i < smp.pqueries().size(); ++i) {
+    auto pqueries = std::vector<PqueryPlain>( smp.pquery_size() );
+    for (size_t i = 0; i < smp.pquery_size(); ++i) {
         pqueries[i].index = i;
 
         const auto& opqry = smp.pquery_at(i);

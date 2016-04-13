@@ -152,6 +152,36 @@ public:
     }
 
     // -------------------------------------------------------------
+    //     Slicing
+    // -------------------------------------------------------------
+
+    std::vector<T> row( size_t index ) const
+    {
+        if( index >= rows_ ) {
+            throw std::out_of_range("__FUNCTION__: out_of_range");
+        }
+
+        auto result = std::vector<T>( cols() );
+        for( size_t i = 0; i < cols(); ++i ) {
+            result[i] = at( index, i );
+        }
+        return result;
+    }
+
+    std::vector<T> col( size_t index ) const
+    {
+        if( index >= cols_ ) {
+            throw std::out_of_range("__FUNCTION__: out_of_range");
+        }
+
+        auto result = std::vector<T>( rows() );
+        for( size_t i = 0; i < rows(); ++i ) {
+            result[i] = at( i, index );
+        }
+        return result;
+    }
+
+    // -------------------------------------------------------------
     //     Iterators
     // -------------------------------------------------------------
 

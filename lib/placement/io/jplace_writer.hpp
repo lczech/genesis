@@ -87,6 +87,19 @@ public:
     void        to_string   (const Sample& smp,        std::string&  output) const;
     std::string to_string   (const Sample& smp) const;
     void        to_document (const Sample& smp, utils::JsonDocument& doc) const;
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+public:
+
+    // TODO for now, this is all public. use getters and setters instead
+
+    /**
+     * @brief The precision used for printing the `branch_length` floating point numbers.
+     */
+    int branch_length_precision = 6;
 };
 
 } // namespace placement

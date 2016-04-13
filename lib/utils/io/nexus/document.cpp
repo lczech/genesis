@@ -88,16 +88,16 @@ NexusBlock* NexusDocument::set_block( std::unique_ptr<NexusBlock> block )
 // {
 //     for( auto& bptr : data_ ) {
 //         if( bptr->block_name() == trees.block_name() ) {
-//             bptr = make_unique<Trees>(trees);
+//             bptr = utils::make_unique<Trees>(trees);
 //             return;
 //         }
 //     }
-//     data_.push_back( make_unique<Trees>(trees) );
+//     data_.push_back( utils::make_unique<Trees>(trees) );
 // }
 //
 // void NexusDocument::set_block_taxa( Taxa const& taxa )
 // {
-//     data_.push_back( make_unique<Taxa>(taxa) );
+//     data_.push_back( utils::make_unique<Taxa>(taxa) );
 // }
 
 // const_iterator NexusDocument::begin() const

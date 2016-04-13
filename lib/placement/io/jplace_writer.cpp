@@ -106,6 +106,7 @@ void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc) con
     auto nwp = PlacementTreeNewickWriter();
     nwp.enable_names(true);
     nwp.enable_branch_lengths(true);
+    nwp.branch_length_precision = branch_length_precision;
     doc.set("tree", new JsonValueString(nwp.to_string(smp.tree())));
 
     // set placements

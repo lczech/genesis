@@ -352,7 +352,7 @@ void NewickReader<TreeType>::broker_to_tree (
         NewickBrokerElement const& broker_node = *b_itr;
 
         // create the tree node for this broker node
-        auto cur_node_u  = make_unique<typename TreeType::NodeType>();
+        auto cur_node_u  = utils::make_unique<typename TreeType::NodeType>();
         auto cur_node    = cur_node_u.get();
         cur_node->reset_index( nodes.size() );
         element_to_node( broker_node, *cur_node );
@@ -360,7 +360,7 @@ void NewickReader<TreeType>::broker_to_tree (
 
         // create the link that points towards the root.
         // this link is created for every node, root, inner and leaves.
-        auto up_link_u  = make_unique<typename TreeType::LinkType>();
+        auto up_link_u  = utils::make_unique<typename TreeType::LinkType>();
         auto up_link    = up_link_u.get();
         up_link->reset_node( cur_node );
         cur_node->reset_primary_link( up_link );
@@ -380,7 +380,7 @@ void NewickReader<TreeType>::broker_to_tree (
             link_stack.back()->reset_outer( up_link );
 
             // also, create an edge that connects both nodes
-            auto up_edge = make_unique<typename TreeType::EdgeType>(
+            auto up_edge = utils::make_unique<typename TreeType::EdgeType>(
                 edges.size(),
                 link_stack.back(),
                 up_link
@@ -405,7 +405,7 @@ void NewickReader<TreeType>::broker_to_tree (
         // in summary, make all next pointers of a node point to each other in a circle.
         auto prev_link = up_link;
         for (int i = 0; i < broker_node.rank(); ++i) {
-            auto down_link = make_unique<typename TreeType::LinkType>();
+            auto down_link = utils::make_unique<typename TreeType::LinkType>();
             prev_link->reset_next( down_link.get() );
             prev_link = down_link.get();
 

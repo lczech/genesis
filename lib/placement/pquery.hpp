@@ -37,6 +37,7 @@
 
 #include "placement/pquery/name.hpp"
 #include "placement/pquery/placement.hpp"
+
 #include "utils/core/range.hpp"
 
 namespace genesis {

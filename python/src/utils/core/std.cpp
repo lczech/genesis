@@ -1,6 +1,3 @@
-#ifndef GENESIS_PLACEMENT_SIMULATOR_SUBTREE_H_
-#define GENESIS_PLACEMENT_SIMULATOR_SUBTREE_H_
-
 /*
     Genesis - A toolkit for working with phylogenetic data.
     Copyright (C) 2014-2016 Lucas Czech
@@ -28,33 +25,22 @@
  * @brief
  *
  * @file
- * @ingroup placement
+ * @ingroup python
  */
 
-#include "placement/simulator/simulator.hpp"
+#include <python/src/common.hpp>
 
-namespace genesis {
-namespace placement {
+#include "lib/genesis.hpp"
 
-// =================================================================================================
-//     Placement Simulator Subtree
-// =================================================================================================
+using namespace ::genesis::utils;
 
-/**
- * @brief
- */
-class SimulatorSubtree : public Simulator
+PYTHON_EXPORT_FUNCTIONS(utils_core_std_export, "utils")
 {
-public:
 
-    SimulatorSubtree( Sample& smp )
-        : Simulator( smp )
-    {}
-
-    void generate( size_t n ) override;
-};
-
-} // namespace placement
-} // namespace genesis
-
-#endif // include guard
+    boost::python::def(
+        "round_to",
+        ( double ( * )( double, size_t ))( &::genesis::utils::round_to ),
+        ( boost::python::arg("x"), boost::python::arg("precision") ),
+        get_docstring("double ::genesis::utils::round_to (double x, size_t precision)")
+    );
+}

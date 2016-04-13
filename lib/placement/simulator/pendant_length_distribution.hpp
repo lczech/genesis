@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_SIMULATOR_SIMULATOR_H_
-#define GENESIS_PLACEMENT_SIMULATOR_SIMULATOR_H_
+#ifndef GENESIS_PLACEMENT_SIMULATOR_PENDANT_LENGTH_DISTRIBUTION_H_
+#define GENESIS_PLACEMENT_SIMULATOR_PENDANT_LENGTH_DISTRIBUTION_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -32,74 +32,70 @@
  */
 
 #include "placement/sample.hpp"
+#include "utils/core/options.hpp"
 
-#include "placement/simulator/edge_distribution.hpp"
-#include "placement/simulator/pendant_length_distribution.hpp"
-#include "placement/simulator/placement_number_distribution.hpp"
-#include "placement/simulator/proximal_length_distribution.hpp"
+#include <random>
 
 namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Placement Simulator
+//     Placement Simulator Pendant Length Distribution
 // =================================================================================================
 
-/**
- * @brief Simulate @link Pquery Pqueries @endlink on the Tree of a Sample.
- */
-class Simulator
+class PendantLengthDistribution
 {
 public:
 
-    // -----------------------------------------------------
-    //     Constructor
-    // -----------------------------------------------------
+    // -------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------
 
-    Simulator()  = default;
-    ~Simulator() = default;
+    PendantLengthDistribution()  = default;
+    ~PendantLengthDistribution() = default;
 
-    Simulator( Simulator const& ) = default;
-    Simulator( Simulator&& )      = default;
+    PendantLengthDistribution( PendantLengthDistribution const& ) = default;
+    PendantLengthDistribution( PendantLengthDistribution&& )      = default;
 
-    Simulator& operator= ( Simulator const& ) = default;
-    Simulator& operator= ( Simulator&& )      = default;
-
-    // -----------------------------------------------------
-    //     Member Functions
-    // -----------------------------------------------------
-
-    void generate( Sample& sample, size_t n );
+    PendantLengthDistribution& operator= ( PendantLengthDistribution const& ) = default;
+    PendantLengthDistribution& operator= ( PendantLengthDistribution&& )      = default;
 
     // -----------------------------------------------------
-    //     Accessors
+    //     Generate Random Length
     // -----------------------------------------------------
 
-    EdgeDistribution& edge_distribution()
+    /**
+     * @brief Prepare the distribution for usage. Needs to be called before generate().
+     */
+    void prepare( Sample const& sample )
     {
-        return edge_distribution_;
+        (void) sample;
+        distrib_ = std::uniform_real_distribution<double>(min, max);
     }
 
-    ProximalLengthDistribution& proximal_length_distribution()
+    /**
+     * @brief Return a randomly chosen position on an edge.
+     */
+    double generate( typename PlacementTree::EdgeType const& edge )
     {
-        return proximal_length_distribution_;
-    }
+        // We don't use the edge in the default distribution.
+        (void) edge;
 
-    PendantLengthDistribution& pendant_length_distribution()
-    {
-        return pendant_length_distribution_;
+        return distrib_( utils::Options::get().random_engine() );
     }
 
     // -----------------------------------------------------
     //     Data Members
     // -----------------------------------------------------
 
+public:
+
+    double min = 0.0;
+    double max = 1.0;
+
 private:
 
-    EdgeDistribution           edge_distribution_;
-    ProximalLengthDistribution proximal_length_distribution_;
-    PendantLengthDistribution  pendant_length_distribution_;
-
+    std::uniform_real_distribution<double> distrib_;
 };
 
 } // namespace placement

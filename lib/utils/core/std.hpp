@@ -32,10 +32,12 @@
  */
 
 #include <algorithm>
+#include <cmath>
 #include <memory>
 #include <string>
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Shortcomings of the C++ 11 STL...
@@ -89,6 +91,20 @@ inline void erase_if( Container &c, UnaryPredicate p )
     }
 }
 
+// =================================================================================================
+//     Some other useful functions
+// =================================================================================================
+
+/**
+ * @brief Retun the value of `x`, rounded to the decimal digit given by `precision`.
+ */
+inline double round_to( double x, size_t precision )
+{
+    double factor = std::pow( 10, precision );
+    return std::round( x * factor ) / factor;
+}
+
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

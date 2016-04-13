@@ -142,7 +142,7 @@ void PhyloxmlWriter<TreeType>::to_document (const TreeType& tree, utils::XmlDocu
     xml.attributes.emplace("xmlns",     "http://www.phyloxml.org");
 
     // Add the (phylogeny) element.
-    auto phylogeny = make_unique< utils::XmlElement >();
+    auto phylogeny = utils::make_unique< utils::XmlElement >();
     phylogeny->tag = "phylogeny";
     phylogeny->attributes.emplace("rooted",     "true");
     //~ phylogeny.attributes.emplace("rerootable", "true");
@@ -155,7 +155,7 @@ void PhyloxmlWriter<TreeType>::to_document (const TreeType& tree, utils::XmlDocu
 
     // Store the distance from each node to the root. Will be used to determine the position on the
     // stack that is used for adding clades to the phylogeny.
-    std::vector<int> depths = node_depth_vector(tree);
+    std::vector<int> depths = node_path_length_vector(tree);
 
     for( auto it : preorder(tree) ) {
         // Depth can never increase more than one between two nodes when doing a preoder traversal.
@@ -173,7 +173,7 @@ void PhyloxmlWriter<TreeType>::to_document (const TreeType& tree, utils::XmlDocu
 
         // Create clade element, append it to the stack, so that all sub-elements will use it as
         // parent.
-        auto clade = make_unique< utils::XmlElement >();
+        auto clade = utils::make_unique< utils::XmlElement >();
         clade->tag = "clade";
 
         node_to_element( it.node(), *clade.get() );

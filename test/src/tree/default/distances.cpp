@@ -75,6 +75,6 @@ TEST(DefaultTree, Distances)
         1040.5,	2576.5,	2320.5,	2704.5,	2896.5,	2864.5,	2592.5,	8.5,	4.5,	10.5,	9.5,	0
     });
 
-    EXPECT_TRUE(edge_distance_matrix(tree) == exp);
-    EXPECT_EQ(exp, edge_distance_matrix(tree));
+    EXPECT_TRUE( exp == edge_branch_length_distance_matrix(tree) );
+    EXPECT_EQ(   exp,   edge_branch_length_distance_matrix(tree) );
 }

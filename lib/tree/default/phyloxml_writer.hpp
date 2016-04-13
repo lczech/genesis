@@ -86,7 +86,7 @@ protected:
     void set_name( utils::XmlElement& element, const std::string& name )
     {
         // TODO do not create new element if there is already one!
-        auto name_e = make_unique< utils::XmlElement >( "name" );
+        auto name_e = utils::make_unique< utils::XmlElement >( "name" );
         name_e->append_markup(name);
         element.content.push_back(std::move(name_e));
     }
@@ -94,7 +94,7 @@ protected:
     void set_branch_length( utils::XmlElement& element, double length )
     {
         // TODO do not create new element if there is already one!
-        auto bl_e = make_unique< utils::XmlElement >( "branch_length" );
+        auto bl_e = utils::make_unique< utils::XmlElement >( "branch_length" );
         bl_e->append_markup(std::to_string(length));
         element.content.push_back(std::move(bl_e));
     }

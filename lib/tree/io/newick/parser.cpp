@@ -134,7 +134,7 @@ bool parse_newick_tree (
         // node and pushed it to the stack (either closing bracket or comma), so we need to create a
         // new one here.
         if (!node) {
-            node = make_unique<NewickBrokerElement>();
+            node = utils::make_unique<NewickBrokerElement>();
             node->depth = depth;
 
             // checks if the new node is a leaf.

@@ -180,15 +180,15 @@ Tree<NDT, EDT> Tree<NDT, EDT>::convert_from(
     // Create all objects. We need two loops per array, because the pointers have to exist
     // in order to be linked to each other.
     for (size_t i = 0; i < target.links_.size(); ++i) {
-        target.links_[i] = make_unique< Tree<NDT, EDT>::LinkType >();
+        target.links_[i] = utils::make_unique< Tree<NDT, EDT>::LinkType >();
         // links_[i]->data = source.links_[i]->data;
     }
     for (size_t i = 0; i < target.nodes_.size(); ++i) {
-        target.nodes_[i] = make_unique< Tree<NDT, EDT>::NodeType >();
+        target.nodes_[i] = utils::make_unique< Tree<NDT, EDT>::NodeType >();
         target.nodes_[i]->data = node_data_converter( source.node_at(i).data );
     }
     for (size_t i = 0; i < target.edges_.size(); ++i) {
-        target.edges_[i] = make_unique< Tree<NDT, EDT>::EdgeType >();
+        target.edges_[i] = utils::make_unique< Tree<NDT, EDT>::EdgeType >();
         target.edges_[i]->data = edge_data_converter( source.edge_at(i).data );
     }
 

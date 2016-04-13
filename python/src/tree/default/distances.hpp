@@ -65,16 +65,16 @@ void python_export_function_tree_default_distances_Tree ()
     );
 
     boost::python::def(
-        "edge_distance_vector",
-        ( std::vector< double > ( * )( const Tree &, const typename Tree::EdgeType * ))( &::genesis::tree::edge_distance_vector ),
+        "edge_branch_length_distance_vector",
+        ( std::vector< double > ( * )( const Tree &, const typename Tree::EdgeType * ))( &::genesis::tree::edge_branch_length_distance_vector ),
         ( boost::python::arg("tree"), boost::python::arg("edge")=(const typename Tree::EdgeType *)(nullptr) )
     );
 
     boost::python::def(
-        "node_distance_vector",
-        ( std::vector< double > ( * )( const Tree &, const typename Tree::NodeType * ))( &::genesis::tree::node_distance_vector ),
+        "node_branch_length_distance_vector",
+        ( std::vector< double > ( * )( const Tree &, const typename Tree::NodeType * ))( &::genesis::tree::node_branch_length_distance_vector ),
         ( boost::python::arg("tree"), boost::python::arg("node")=(const typename Tree::NodeType *)(nullptr) ),
-        get_docstring("std::vector< double > ::genesis::tree::node_distance_vector (const Tree & tree, const typename Tree::NodeType * node=nullptr)")
+        get_docstring("std::vector< double > ::genesis::tree::node_branch_length_distance_vector (const Tree & tree, const typename Tree::NodeType * node=nullptr)")
     );
 
     boost::python::def(
@@ -85,15 +85,15 @@ void python_export_function_tree_default_distances_Tree ()
     );
 
     boost::python::def(
-        "edge_distance_matrix",
-        ( utils::Matrix< double > ( * )( const Tree & ))( &::genesis::tree::edge_distance_matrix ),
+        "edge_branch_length_distance_matrix",
+        ( utils::Matrix< double > ( * )( const Tree & ))( &::genesis::tree::edge_branch_length_distance_matrix ),
         ( boost::python::arg("tree") )
     );
 
     boost::python::def(
-        "node_distance_matrix",
-        ( utils::Matrix< double > ( * )( const Tree & ))( &::genesis::tree::node_distance_matrix ),
+        "node_branch_length_distance_matrix",
+        ( utils::Matrix< double > ( * )( const Tree & ))( &::genesis::tree::node_branch_length_distance_matrix ),
         ( boost::python::arg("tree") ),
-        get_docstring("utils::Matrix< double > ::genesis::tree::node_distance_matrix (const Tree & tree)")
+        get_docstring("utils::Matrix< double > ::genesis::tree::node_branch_length_distance_matrix (const Tree & tree)")
     );
 }

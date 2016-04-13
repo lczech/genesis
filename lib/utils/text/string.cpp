@@ -28,6 +28,7 @@
  * @ingroup utils
  */
 
+#include "utils/core/std.hpp"
 #include "utils/text/string.hpp"
 
 #include <algorithm>
@@ -316,14 +317,39 @@ std::string unify_newlines( std::string const& s )
 // =================================================================================================
 
 /**
- * @brief Return a precise(er than to_string) string representation of the input value, using
- * the provided precision value. This is most suitable for floating point to string conversions.
+ * @brief Return a precise string representation of the input value, using the provided precision
+ * value (determining its decimal places).
+ *
+ * This function rounds the value to the given precision, and then returns its string representation
+ * with possible trailing zeros. Thus, it uses fixed precision. This is useful for e.g., output
+ * in a table format.
+ *
+ * For a version of this function that truncates trailing zeros, see to_string_rounded().
+ * Also, use to_string() if you do not want to round the value at all.
  */
 std::string to_string_precise( double value, const int precision )
 {
     std::ostringstream out;
     out << std::fixed << std::setprecision(precision) << value;
     return out.str();
+}
+
+/**
+ * @brief Return a string representation of the input value, using the provided precision value
+ * (determining its decimal places) to round, and truncate trailing zeros.
+ *
+ * This function rounds the value to the given precision, and then returns its string representation
+ * without trailing zeros. This is useful for output that keeps a certain amount of significant
+ * decimal digits, while making the output as short as possible.
+ *
+ * If you want to round, but also keep trailing zeros, see to_string_precise().
+ * Also, use to_string() if you do not want to round the value at all.
+ */
+std::string to_string_rounded( double value, const int precision )
+{
+    std::ostringstream s;
+    s << utils::round_to( value, precision);
+    return s.str();
 }
 
 } // namespace utils

@@ -396,7 +396,7 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     // This can never be more than the tree height (in number of nodes from root to deepest leaf)
     // plus one last iteration for going back towards the root.
     size_t num_iterations = 0;
-    auto   depth_vector = node_depth_vector(smp.tree());
+    auto   depth_vector = node_path_length_vector(smp.tree());
     size_t max_iterations = 1 + static_cast<size_t>(
         *std::max_element(depth_vector.begin(), depth_vector.end())
     );
@@ -777,11 +777,16 @@ double center_of_gravity_variance (
     auto   central_edge    = cog.first;
     double proximal_length = cog.second;
 
-    LOG_DBG << "edge " << central_edge->primary_node().data.name << " " << central_edge->secondary_node().data.name;
+    LOG_DBG << "edge " << central_edge->primary_node().data.name << " "
+            << central_edge->secondary_node().data.name;
     LOG_DBG << "prox " << proximal_length;
 
-    auto   node_dist_prox  = node_distance_vector( smp.tree(), &central_edge->primary_node() );
-    auto   node_dist_dist  = node_distance_vector( smp.tree(), &central_edge->secondary_node() );
+    auto node_dist_prox = node_branch_length_distance_vector(
+        smp.tree(), &central_edge->primary_node()
+    );
+    auto node_dist_dist = node_branch_length_distance_vector(
+        smp.tree(), &central_edge->secondary_node()
+    );
 
     for (const auto& pqry : smp.pqueries()) {
         for( auto const& place : pqry.placements() ) {
@@ -865,8 +870,12 @@ double center_of_gravity_distance (
     } else {
         // TODO instead of the whole vector, we need a distnace between nodes function in the future,
         // which probably uses the path iterator.
-        auto node_dist_a_prox = node_distance_vector(smp_a.tree(), &edge_a->primary_node());
-        auto node_dist_a_dist = node_distance_vector(smp_a.tree(), &edge_a->secondary_node());
+        auto node_dist_a_prox = node_branch_length_distance_vector(
+            smp_a.tree(), &edge_a->primary_node()
+        );
+        auto node_dist_a_dist = node_branch_length_distance_vector(
+            smp_a.tree(), &edge_a->secondary_node()
+        );
 
         double pp, pd, dp;
 
@@ -932,7 +941,7 @@ double pairwise_distance (
     // do not need to search a path between placements every time. We use the tree of the first smp
     // here, ignoring branch lengths on tree b.
     // FIXME this might be made better by using average or so in the future.
-    auto node_distances = node_distance_matrix(smp_a.tree());
+    auto node_distances = node_branch_length_distance_matrix(smp_a.tree());
 
     for (const PqueryPlain& pqry_a : pqueries_a) {
         for (const PqueryPlain& pqry_b : pqueries_b) {
@@ -1124,7 +1133,7 @@ double variance(
 
     // Also, calculate a matrix containing the pairwise distance between all nodes. this way, we
     // do not need to search a path between placements every time.
-    auto node_distances = node_distance_matrix(smp.tree());
+    auto node_distances = node_branch_length_distance_matrix(smp.tree());
 
 #ifdef PTHREADS
 
