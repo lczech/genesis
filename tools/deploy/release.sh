@@ -156,7 +156,7 @@ if [[ ${success} != 0 ]]; then
     echo -e "\e[31mCannot build demo and tutorial programs. Aborting.\e[0m"
     exit
 else
-    echo "Build demo and tutorial programs."
+    echo "Built demo and tutorial programs."
 fi
 
 ####################################################################################################
@@ -311,10 +311,10 @@ print_separator "Publish API to Web Server"
 # Confirm.
 get_user_confirmation "Do you want to update and publish the doxygen api help to the web server?"
 cont=$?
-echo
 
 # Transfer doxygen html help to server.
 if [[ $cont == 1 ]]; then
+    echo
     ./tools/deploy/update_api_doc.sh "refresh"
     echo
     ./tools/deploy/update_api_doc.sh "transfer"
