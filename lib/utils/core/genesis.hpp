@@ -46,6 +46,15 @@ namespace genesis {
  * @brief Return the current genesis version.
  *
  * We use [semantic versioning](http://semver.org/) 2.0.0 for genesis.
+ *
+ * Given a version number MAJOR.MINOR.PATCH, increment the:
+ *
+ *  *  MAJOR version when you make incompatible API changes,
+ *  *  MINOR version when you add functionality in a backwards-compatible manner, and
+ *  *  PATCH version when you make backwards-compatible bug fixes.
+ *
+ * Additional labels for pre-release and build metadata are available as extensions to the
+ * MAJOR.MINOR.PATCH format.
  */
 inline std::string genesis_version()
 {
@@ -55,6 +64,9 @@ inline std::string genesis_version()
 
 /**
  * @brief Return the header for genesis.
+ *
+ * This is simply a text version of the logo, including the current version. It can for example be
+ * displayed at the start of a program to indicate that this program uses genesis.
  */
 inline std::string genesis_header()
 {
@@ -69,15 +81,37 @@ inline std::string genesis_header()
                " + genesis_version() + "\n";
 }
 
-namespace utils {
-
-inline std::string ee(int r)
+/**
+ * @brief Return the genesis license boilerplate information.
+ *
+ * This function is useful for programs with terminal interaction. In such cases, you should include
+ * a command to show this license information.
+ */
+inline std::string genesis_license()
 {
-    uint64_t x[4] = {1198840465960072866,1198609267608314688,1376216421886990656,1545107134173456};
-    std::string s; for(int i=0;i<(2*r)/3;++i) { s += (((x[(i/7)%4]/r)>>((i%7)*8))%256); } return s;
+    return "\
+    Genesis - A toolkit for working with phylogenetic data.\n\
+    Copyright (C) 2014-2016 Lucas Czech\n\
+    \n\
+    This program is free software: you can redistribute it and/or modify\n\
+    it under the terms of the GNU General Public License as published by\n\
+    the Free Software Foundation, either version 3 of the License, or\n\
+    (at your option) any later version.\n\
+    \n\
+    This program is distributed in the hope that it will be useful,\n\
+    but WITHOUT ANY WARRANTY; without even the implied warranty of\n\
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the\n\
+    GNU General Public License for more details.\n\
+    \n\
+    You should have received a copy of the GNU General Public License\n\
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.\n\
+    \n\
+    Contact:\n\
+    Lucas Czech <lucas.czech@h-its.org>\n\
+    Exelixis Lab, Heidelberg Institute for Theoretical Studies\n\
+    Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany\n";
 }
 
-} // namespace utils
 } // namespace genesis
 
 #endif // include guard
