@@ -60,6 +60,7 @@ namespace placement {
  *
  * This class provides facilities for writing Jplace data. It supports to write
  *
+ *   * to_stream()
  *   * to_file()
  *   * to_string()
  *   * to_document()
@@ -67,10 +68,10 @@ namespace placement {
  * Exemplary usage:
  *
  *     std::string outfile = "path/to/file.jplace";
- *     Sample map;
+ *     Sample sample;
  *
  *     JplaceWriter()
- *         .to_file( map, outfile );
+ *         .to_file( sample, outfile );
  *
  * See JplaceReader for more information on the data format. See Sample for more information
  * on the data structure.
@@ -83,10 +84,13 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-    void        to_file     (const Sample& smp,  const std::string   filename) const;
-    void        to_string   (const Sample& smp,        std::string&  output) const;
-    std::string to_string   (const Sample& smp) const;
-    void        to_document (const Sample& smp, utils::JsonDocument& doc) const;
+    void        to_stream   ( Sample const& smp, std::ostream& os ) const;
+    void        to_file     ( Sample const& smp, std::string const& filename) const;
+
+    void        to_string   ( Sample const& smp, std::string&       output) const;
+    std::string to_string   ( Sample const& smp) const;
+
+    void        to_document ( Sample const& smp, utils::JsonDocument& doc) const;
 
     // -------------------------------------------------------------------------
     //     Data Members

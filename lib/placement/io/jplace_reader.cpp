@@ -34,6 +34,7 @@
 #include "placement/io/newick_reader.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
+
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
@@ -80,6 +81,17 @@ bool JplaceReader::check_version ( std::string const& version )
     return v == "2" || v == "3";
 }
 
+/**
+ * @brief Checks whether the version of the jplace format works with this parser.
+ *
+ * This parser is intended for `jplace` versions 2 and 3. If while reading a different version tag
+ * is found, the reader will trigger a warning and try to continue anyway.
+ */
+bool JplaceReader::check_version ( size_t version )
+{
+    return version == 2 || version == 3;
+}
+
 // =================================================================================================
 //     Reading
 // =================================================================================================
@@ -91,7 +103,14 @@ bool JplaceReader::check_version ( std::string const& version )
  */
 void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
 {
-    auto it = utils::CountingIstream( is );
+    using namespace utils;
+    auto it = CountingIstream( is );
+
+    // We need to check whether all important keys of the document appeared.
+    bool found_version    = false;
+    bool found_tree       = false;
+    bool found_fields     = false;
+    bool found_placements = false;
 
     // Check for data.
     if( it.eos() ) {
@@ -100,23 +119,57 @@ void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
         );
     }
 
-    // Proceed to first non-white char
-    utils::skip_while( it, isspace );
+    // Find beginning of json document.
+    skip_while( it, isspace );
+    read_char_if( it, '{' );
 
-    // Check beginning of Json structure.
-    utils::read_char( it, '{' );
+    // Read all elemetns of the document.
+    do {
 
-    utils::skip_while( it, isspace );
-    utils::check_char( it, '"' );
-    std::string key = utils::parse_quoted_string( it );
+        // Get key of the json element.
+        skip_while( it, isspace );
+        expect_char( it, '"' );
+        std::string key = parse_quoted_string( it );
+        skip_while( it, isspace );
+        read_char_if( it, ':' );
+        skip_while( it, isspace );
 
-    utils::skip_while( it, isspace );
-    utils::read_char( it, ':' );
-    utils::skip_while( it, isspace );
+        if( key == "version" ) {
+            /* code */
+        }
+        if( key == "metadata" ) {
+            /* code */
+        }
+        if( key == "tree" ) {
+            /* code */
+        }
+        if( key == "fields" ) {
+            /* code */
+        }
+        if( key == "placements" ) {
+            /* code */
+        }
 
-    utils::read_char( it, ',' );
+    } while( it && *it == ',' );
+
+
+    read_char_if( it, ',' );
 
     (void) smp;
+
+    // Check whether all needed keys were found.
+    if( ! found_version ) {
+        throw std::runtime_error( "Json document does not provide mandatory key 'version'." );
+    }
+    if( ! found_tree ) {
+        throw std::runtime_error( "Json document does not provide mandatory key 'tree'." );
+    }
+    if( ! found_fields ) {
+        throw std::runtime_error( "Json document does not provide mandatory key 'fields'." );
+    }
+    if( ! found_placements ) {
+        throw std::runtime_error( "Json document does not provide mandatory key 'placements'." );
+    }
 
     // TODO
     throw std::domain_error( "Not yet fully implemented." );
@@ -186,6 +239,16 @@ void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet&
 // =================================================================================================
 //     Parsing
 // =================================================================================================
+
+void JplaceReader::parse_version( utils::CountingIstream& input_stream ) const
+{
+    auto ver = utils::parse_unsigned_integer<size_t>( input_stream );
+    if( ! check_version( ver ) ) {
+        LOG_WARN << "Jplace document has version " << utils::to_string( ver ) << ", however "
+                 << "this parser is written for version " << version() <<  " of the Jplace format. "
+                 << "Now continuing to parse in the hope that it still works.";
+    }
+}
 
 // =================================================================================================
 //     Processing

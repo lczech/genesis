@@ -181,10 +181,13 @@ inline std::string read_until(
 
 /**
  * @brief Lexing function that reads a single char from the stream and checks whether it equals the
- * provided one. If not, the function throws `std::runtime_error`. The stream is advanced by one
- * position and the char is returned.
+ * provided one.
+ *
+ * If not, the function throws `std::runtime_error`. The stream is advanced by one position and the
+ * char is returned. For a similar function that checks the value of the current char but does
+ * advance in the stream, see expect_char().
  */
-inline char read_char(
+inline char read_char_if(
     utils::CountingIstream& source,
     char                    criterion
 ) {
@@ -200,10 +203,13 @@ inline char read_char(
 
 /**
  * @brief Lexing function that reads a single char from the stream and checks whether it fulfills
- * the provided criterion. If not, the function throws `std::runtime_error`. The stream is advanced
- * by one position and the char is returned.
+ * the provided criterion.
+ *
+ * If not, the function throws `std::runtime_error`. The stream is advanced by one position and the
+ * char is returned. For a similar function that checks the value of the current char but does
+ * advance in the stream, see expect_char().
  */
-inline char read_char(
+inline char read_char_if(
     utils::CountingIstream&    source,
     std::function<bool (char)> criterion
 ) {
@@ -224,9 +230,13 @@ inline char read_char(
 
 /**
  * @brief Lexing function that checks whether the current char from the stream equals the
- * provided one. If not, the function throws `std::runtime_error`.
+ * provided one.
+ *
+ * If not, the function throws `std::runtime_error`. The stream is not advanced (i.e., it stays at
+ * its current position). For a similar function that reads (i.e., also advances) the current char
+ * from the stream, see read_char_if().
  */
-inline void check_char(
+inline void expect_char(
     utils::CountingIstream& source,
     char                    criterion
 ) {
@@ -239,9 +249,13 @@ inline void check_char(
 
 /**
  * @brief Lexing function that checks whether the current char from the stream fulfills
- * the provided criterion. If not, the function throws `std::runtime_error`.
+ * the provided criterion.
+ *
+ * If not, the function throws `std::runtime_error`. The stream is not advanced (i.e., it stays at
+ * its current position). For a similar function that reads (i.e., also advances) the current char
+ * from the stream, see read_char_if().
  */
-inline void check_char(
+inline void expect_char(
     utils::CountingIstream&    source,
     std::function<bool (char)> criterion
 ) {
