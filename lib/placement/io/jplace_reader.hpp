@@ -120,9 +120,7 @@ public:
 
 protected:
 
-    bool parse_version(
-        utils::CountingIstream& input_stream
-    ) const;
+    void parse_version( utils::CountingIstream& input_stream ) const;
 
     // ---------------------------------------------------------------------
     //     Processing
@@ -209,6 +207,7 @@ public:
 
     static std::string version   ();
     static bool        check_version ( std::string const& version );
+    static bool        check_version ( size_t             version );
 
     // ---------------------------------------------------------------------
     //     Members
