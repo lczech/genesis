@@ -28,7 +28,7 @@
  * @ingroup placement
  */
 
-#include "placement/simulator/placement_number_distribution.hpp"
+#include "placement/simulator/placement_distribution.hpp"
 
 #include "tree/function/distances.hpp"
 #include "utils/core/options.hpp"
@@ -49,7 +49,7 @@ namespace placement {
 /**
  * @brief Prepare the distribution for usage. Needs to be called before generate().
  */
-void PlacementNumberDistribution::prepare( Sample const& sample )
+void SimulatorPlacementDistribution::prepare( Sample const& sample )
 {
     // If nothing was set, initialize to use 1 placement (with 0 path length).
     if( placement_number_weights.size() == 0 ) {
@@ -109,7 +109,7 @@ void PlacementNumberDistribution::prepare( Sample const& sample )
 /**
  * @brief
  */
-std::vector<size_t> PlacementNumberDistribution::generate( typename PlacementTree::EdgeType const& edge )
+std::vector<size_t> SimulatorPlacementDistribution::generate( typename PlacementTree::EdgeType const& edge )
 {
     // Draw a number of placements and build a result vector of that size.
     size_t placement_num = placement_number_distrib_( utils::Options::get().random_engine() );

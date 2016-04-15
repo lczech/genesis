@@ -43,7 +43,7 @@ namespace placement {
 //     Placement Simulator Pendant Length Distribution
 // =================================================================================================
 
-class PendantLengthDistribution
+class SimulatorPendantLengthDistribution
 {
 public:
 
@@ -51,14 +51,14 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------
 
-    PendantLengthDistribution()  = default;
-    ~PendantLengthDistribution() = default;
+    SimulatorPendantLengthDistribution()  = default;
+    ~SimulatorPendantLengthDistribution() = default;
 
-    PendantLengthDistribution( PendantLengthDistribution const& ) = default;
-    PendantLengthDistribution( PendantLengthDistribution&& )      = default;
+    SimulatorPendantLengthDistribution( SimulatorPendantLengthDistribution const& ) = default;
+    SimulatorPendantLengthDistribution( SimulatorPendantLengthDistribution&& )      = default;
 
-    PendantLengthDistribution& operator= ( PendantLengthDistribution const& ) = default;
-    PendantLengthDistribution& operator= ( PendantLengthDistribution&& )      = default;
+    SimulatorPendantLengthDistribution& operator= ( SimulatorPendantLengthDistribution const& ) = default;
+    SimulatorPendantLengthDistribution& operator= ( SimulatorPendantLengthDistribution&& )      = default;
 
     // -----------------------------------------------------
     //     Generate Random Length

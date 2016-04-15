@@ -34,7 +34,7 @@
 #include "placement/function/helper.hpp"
 
 #include "placement/simulator/edge_distribution.hpp"
-#include "placement/simulator/placement_number_distribution.hpp"
+#include "placement/simulator/placement_distribution.hpp"
 
 #include "tree/function/distances.hpp"
 
@@ -54,21 +54,21 @@ namespace placement {
 // -----------------------------------------------------
 
 /**
- * @brief Sets the weights of an EdgeDistribution to 1.0 for all edges, so that each edge has the
+ * @brief Sets the weights of an SimulatorEdgeDistribution to 1.0 for all edges, so that each edge has the
  * same probability of being chosen.
  *
  * The number of edges is taken from the provided Sample.
  */
-void set_uniform_weights( Sample const& sample, EdgeDistribution& edge_distrib )
+void set_uniform_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
 {
     set_uniform_weights( sample.tree().edge_count(), edge_distrib );
 }
 
 /**
- * @brief Sets the weights of an EdgeDistribution to 1.0 for all edges, so that each edge has the
+ * @brief Sets the weights of an SimulatorEdgeDistribution to 1.0 for all edges, so that each edge has the
  * same probability of being chosen.
  */
-void set_uniform_weights( size_t edge_count, EdgeDistribution& edge_distrib )
+void set_uniform_weights( size_t edge_count, SimulatorEdgeDistribution& edge_distrib )
 {
     edge_distrib.edge_weights = std::vector<double>( edge_count, 1.0 );
 }
@@ -78,21 +78,21 @@ void set_uniform_weights( size_t edge_count, EdgeDistribution& edge_distrib )
 // -----------------------------------------------------
 
 /**
- * @brief Set the weights of an EdgeDistribution for the edges randomly to a value
+ * @brief Set the weights of an SimulatorEdgeDistribution for the edges randomly to a value
  * between 0.0 and 1.0.
  *
  * The number of edges is taken from the provided Sample.
  */
-void set_random_weights( Sample const& sample, EdgeDistribution& edge_distrib )
+void set_random_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
 {
     set_random_weights( sample.tree().edge_count(), edge_distrib );
 }
 
 /**
- * @brief Set the weights of an EdgeDistribution for the edges randomly to a value
+ * @brief Set the weights of an SimulatorEdgeDistribution for the edges randomly to a value
  * between 0.0 and 1.0.
  */
-void set_random_weights( size_t edge_count, EdgeDistribution& edge_distrib )
+void set_random_weights( size_t edge_count, SimulatorEdgeDistribution& edge_distrib )
 {
     edge_distrib.edge_weights = std::vector<double>( edge_count, 0.0 );
 
@@ -107,21 +107,21 @@ void set_random_weights( size_t edge_count, EdgeDistribution& edge_distrib )
 // -----------------------------------------------------
 
 /**
- * @brief Set the weights of an EdgeDistribution randomly to either 0.0 or 1.0, so that a random
+ * @brief Set the weights of an SimulatorEdgeDistribution randomly to either 0.0 or 1.0, so that a random
  * subset of edges is selected (with the same probability for each selected edge).
  *
  * The number of edges is taken from the provided Sample.
  */
-void set_random_edges( Sample const& sample, EdgeDistribution& edge_distrib )
+void set_random_edges( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
 {
     set_random_edges( sample.tree().edge_count(), edge_distrib );
 }
 
 /**
- * @brief Set the weights of an EdgeDistribution randomly to either 0.0 or 1.0, so that a random
+ * @brief Set the weights of an SimulatorEdgeDistribution randomly to either 0.0 or 1.0, so that a random
  * subset of edges is selected (with the same probability for each selected edge).
  */
-void set_random_edges( size_t edge_count, EdgeDistribution& edge_distrib )
+void set_random_edges( size_t edge_count, SimulatorEdgeDistribution& edge_distrib )
 {
     edge_distrib.edge_weights = std::vector<double>( edge_count, 0.0 );
 
@@ -138,16 +138,16 @@ void set_random_edges( size_t edge_count, EdgeDistribution& edge_distrib )
 // -----------------------------------------------------
 
 /**
- * @brief Set the weights of an EdgeDistribution so that they follow the depth distribution of the
+ * @brief Set the weights of an SimulatorEdgeDistribution so that they follow the depth distribution of the
  * edges in the provided Sample.
  *
  * This function is similar to
  * set_depths_distributed_weights(
- *     Sample const& sample, std::vector<int> const& depth_weights, EdgeDistribution& edge_distrib
+ *     Sample const& sample, std::vector<int> const& depth_weights, SimulatorEdgeDistribution& edge_distrib
  * ), but instead of using a given depth_weight vector, this vector is also estimated from the
  * given Sample.
  */
-void set_depths_distributed_weights( Sample const& sample, EdgeDistribution& edge_distrib )
+void set_depths_distributed_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
 {
     auto depth_weights = closest_leaf_depth_histogram( sample );
     set_depths_distributed_weights( sample, depth_weights, edge_distrib );
@@ -167,13 +167,13 @@ void set_depths_distributed_weights( Sample const& sample, EdgeDistribution& edg
  * distribution of the placements: E.g., if the original sample (the one where the histrogram
  * results were taken from and used as input for this method) has many placements near the leaves,
  * so will the simulated one.
- * See set_depths_distributed_weights( Sample const& sample, EdgeDistribution& edge_distrib ) for
+ * See set_depths_distributed_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib ) for
  * a version of this function which does exaclty that.
  */
 void set_depths_distributed_weights(
     Sample const&           sample,
     std::vector<int> const& depth_weights,
-    EdgeDistribution&       edge_distrib
+    SimulatorEdgeDistribution&       edge_distrib
 ) {
     // TODO Some of the code is copied from Sample::closest_leaf_depth_histogram(). Maybe
     //      it is worth putting this into a method which returns the closest leaf for edges instead
@@ -212,10 +212,10 @@ void set_depths_distributed_weights(
 // -----------------------------------------------------
 
 /**
- * @brief Sets the weights of an EdgeDistribution to 1.0 for a randomly chosen subtree,
+ * @brief Sets the weights of an SimulatorEdgeDistribution to 1.0 for a randomly chosen subtree,
  * all others to 0.0.
  */
-void set_random_subtree_weights( Sample const& sample, EdgeDistribution& edge_distrib )
+void set_random_subtree_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
 {
     size_t num_edges = sample.tree().edge_count();
     edge_distrib.edge_weights = std::vector<double>( num_edges, 0.0 );
@@ -264,7 +264,7 @@ void set_random_subtree_weights( Sample const& sample, EdgeDistribution& edge_di
 // -----------------------------------------------------
 
 /**
- * @brief Sets the weights of an EdgeDistributionso that they follow the same distribution of
+ * @brief Sets the weights of an SimulatorEdgeDistributionso that they follow the same distribution of
  * placements per edge as a given Sample.
  *
  * This method "learns" how the placements on the given smp are distributed by counting them and
@@ -274,7 +274,7 @@ void set_random_subtree_weights( Sample const& sample, EdgeDistribution& edge_di
  * The method is intended to be used on a Tree that has the same topology as the one that is given
  * with the Sample, otherwise the Edge indices will not fit.
  */
-void learn_per_edge_weights( Sample const& sample, EdgeDistribution& edge_distrib )
+void learn_per_edge_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
 {
     size_t num_edges = sample.tree().edge_count();
     edge_distrib.edge_weights = std::vector<double>(num_edges, 0.0);
@@ -290,7 +290,7 @@ void learn_per_edge_weights( Sample const& sample, EdgeDistribution& edge_distri
 //     Placement Number Distribution
 // =================================================================================================
 
-void learn_placement_number_weights( Sample const& sample, PlacementNumberDistribution& p_distib )
+void learn_placement_number_weights( Sample const& sample, SimulatorPlacementDistribution& p_distib )
 {
     auto weights = std::vector<double>();
     for( auto const& pquery : sample.pqueries() ) {
@@ -302,7 +302,7 @@ void learn_placement_number_weights( Sample const& sample, PlacementNumberDistri
     p_distib.placement_number_weights = weights;
 }
 
-void learn_placement_path_length_weights( Sample const& sample, PlacementNumberDistribution& p_distib )
+void learn_placement_path_length_weights( Sample const& sample, SimulatorPlacementDistribution& p_distib )
 {
     auto edge_dist_matrix_ = tree::edge_path_length_matrix( sample.tree() );
 

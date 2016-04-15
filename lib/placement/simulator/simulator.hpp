@@ -35,7 +35,7 @@
 
 #include "placement/simulator/edge_distribution.hpp"
 #include "placement/simulator/pendant_length_distribution.hpp"
-#include "placement/simulator/placement_number_distribution.hpp"
+#include "placement/simulator/placement_distribution.hpp"
 #include "placement/simulator/proximal_length_distribution.hpp"
 
 namespace genesis {
@@ -75,17 +75,17 @@ public:
     //     Accessors
     // -----------------------------------------------------
 
-    EdgeDistribution& edge_distribution()
+    SimulatorEdgeDistribution& edge_distribution()
     {
         return edge_distribution_;
     }
 
-    ProximalLengthDistribution& proximal_length_distribution()
+    SimulatorProximalLengthDistribution& proximal_length_distribution()
     {
         return proximal_length_distribution_;
     }
 
-    PendantLengthDistribution& pendant_length_distribution()
+    SimulatorPendantLengthDistribution& pendant_length_distribution()
     {
         return pendant_length_distribution_;
     }
@@ -96,9 +96,9 @@ public:
 
 private:
 
-    EdgeDistribution           edge_distribution_;
-    ProximalLengthDistribution proximal_length_distribution_;
-    PendantLengthDistribution  pendant_length_distribution_;
+    SimulatorEdgeDistribution           edge_distribution_;
+    SimulatorProximalLengthDistribution proximal_length_distribution_;
+    SimulatorPendantLengthDistribution  pendant_length_distribution_;
 
 };
 

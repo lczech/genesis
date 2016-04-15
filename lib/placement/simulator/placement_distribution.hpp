@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_SIMULATOR_PLACEMENT_NUMBER_DISTRIBUTION_H_
-#define GENESIS_PLACEMENT_SIMULATOR_PLACEMENT_NUMBER_DISTRIBUTION_H_
+#ifndef GENESIS_PLACEMENT_SIMULATOR_PLACEMENT_DISTRIBUTION_H_
+#define GENESIS_PLACEMENT_SIMULATOR_PLACEMENT_DISTRIBUTION_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -43,7 +43,7 @@ namespace placement {
 //     Placement Simulator Placement Number Distribution
 // =================================================================================================
 
-class PlacementNumberDistribution
+class SimulatorPlacementDistribution
 {
 public:
 
@@ -62,14 +62,14 @@ public:
     //     Constructor and Rule of Five
     // -----------------------------------------------------
 
-    PlacementNumberDistribution()  = default;
-    ~PlacementNumberDistribution() = default;
+    SimulatorPlacementDistribution()  = default;
+    ~SimulatorPlacementDistribution() = default;
 
-    PlacementNumberDistribution( PlacementNumberDistribution const& ) = default;
-    PlacementNumberDistribution( PlacementNumberDistribution&& )      = default;
+    SimulatorPlacementDistribution( SimulatorPlacementDistribution const& ) = default;
+    SimulatorPlacementDistribution( SimulatorPlacementDistribution&& )      = default;
 
-    PlacementNumberDistribution& operator= ( PlacementNumberDistribution const& ) = default;
-    PlacementNumberDistribution& operator= ( PlacementNumberDistribution&& )      = default;
+    SimulatorPlacementDistribution& operator= ( SimulatorPlacementDistribution const& ) = default;
+    SimulatorPlacementDistribution& operator= ( SimulatorPlacementDistribution&& )      = default;
 
     // -----------------------------------------------------
     //     Generate Random Positions

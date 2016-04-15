@@ -43,7 +43,7 @@ namespace placement {
 //     Placement Simulator Proximal Length Distribution
 // =================================================================================================
 
-class ProximalLengthDistribution
+class SimulatorProximalLengthDistribution
 {
 public:
 
@@ -51,14 +51,14 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------
 
-    ProximalLengthDistribution()  = default;
-    ~ProximalLengthDistribution() = default;
+    SimulatorProximalLengthDistribution()  = default;
+    ~SimulatorProximalLengthDistribution() = default;
 
-    ProximalLengthDistribution( ProximalLengthDistribution const& ) = default;
-    ProximalLengthDistribution( ProximalLengthDistribution&& )      = default;
+    SimulatorProximalLengthDistribution( SimulatorProximalLengthDistribution const& ) = default;
+    SimulatorProximalLengthDistribution( SimulatorProximalLengthDistribution&& )      = default;
 
-    ProximalLengthDistribution& operator= ( ProximalLengthDistribution const& ) = default;
-    ProximalLengthDistribution& operator= ( ProximalLengthDistribution&& )      = default;
+    SimulatorProximalLengthDistribution& operator= ( SimulatorProximalLengthDistribution const& ) = default;
+    SimulatorProximalLengthDistribution& operator= ( SimulatorProximalLengthDistribution&& )      = default;
 
     // -----------------------------------------------------
     //     Generate Random Positions
