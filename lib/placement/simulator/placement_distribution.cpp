@@ -76,6 +76,10 @@ void SimulatorPlacementDistribution::prepare( Sample const& sample )
 
     // If we are only ever creating one placement per pquery, we can skip the part with
     // edge candidates. Those are only used when creating more than one placements.
+    //
+    //
+    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    // TODO wrong. this would be 0 placements.
     if( placement_number_weights.size() == 1 ) {
         return;
     }

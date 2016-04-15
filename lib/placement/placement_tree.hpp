@@ -44,10 +44,11 @@ namespace placement {
 // =================================================================================================
 
 /**
- * @brief Data class for @link PlacementTreeNode PlacementTreeNodes @endlink. Stores a node name.
+ * @brief Data class for @link PlacementTreeNode PlacementTreeNodes@endlink. Stores a node name.
  *
  * This class is derived from tree::DefaultTreeNodeData and currently adds no functionality on top
  * of this base class. See there for more information.
+ * Also, see ::PlacementTree for information on how and where this class is used.
  */
 class PlacementTreeNodeData : public tree::DefaultTreeNodeData
 {
@@ -60,10 +61,11 @@ public:
 // =================================================================================================
 
 /**
- * @brief Data class for @link PlacementTreeEdge PlacementTreeEdges @endlink. Stores the branch
+ * @brief Data class for @link PlacementTreeEdge PlacementTreeEdges@endlink. Stores the branch
  * length of the edge, and the `edge_num`, as defined in the `jplace` standard.
  *
  * This class is derived from tree::DefaultTreeEdgeData. See there for more information.
+ * Also, see ::PlacementTree for information on how and where this class is used.
  */
 class PlacementTreeEdgeData : public tree::DefaultTreeEdgeData
 {
@@ -109,11 +111,34 @@ private:
 //     Definitions and Typedefs
 // =================================================================================================
 
-// let's avoid tedious names!
+/**
+ * @brief Type of @link tree::TreeEdge TreeEdge @endlink used for a ::PlacementTree.
+ * See PlacementTreeEdgeData for the data stored on the edges.
+ */
 typedef tree::TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
+
+/**
+* @brief Type of @link tree::TreeLink TreeLink @endlink used for a ::PlacementTree.
+*/
 typedef tree::TreeLink <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeLink;
+
+/**
+* @brief Type of @link tree::TreeNode TreeNode @endlink used for a ::PlacementTree.
+* See PlacementTreeNodeData for the data stored on the nodes.
+*/
 typedef tree::TreeNode <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeNode;
 
+/**
+* @brief Type of @link tree::Tree Tree @endlink used for storing a tree with information needed for
+* storing @link Pquery Pqueries@endlink. This tree type is used by Sample.
+*
+* This type of tree inherits the data of @link tree::DefaultTree DefaultTree@endlink, that is,
+* it stores names for the nodes (usually those are taxa names) and branch lengths for the edges.
+*
+* In addition to that, each edge of this tree has a value `edge_num`. This is not the same as the
+* internally used @link tree::TreeEdge::index index @endlink property of tree edges. Instead, it is
+* a value defined by the `jplace` standard to identify edges. See Sample for more information.
+*/
 typedef tree::Tree     <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTree;
 
 } // namespace placement

@@ -50,7 +50,7 @@ namespace placement {
 // =================================================================================================
 
 /**
- * @brief Manage a set of @link Pquery Pqueries @endlink along with the PlacementTree where
+ * @brief Manage a set of @link Pquery Pqueries @endlink along with the ::PlacementTree where
  * the PqueryPlacement%s are placed on.
  *
  * This class stores both the tree and the set of pqueries with their placements. It is thus
