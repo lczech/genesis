@@ -719,6 +719,32 @@ std::pair<PlacementTreeEdge const*, double> placement_mass_max_edge( Sample cons
 //     Histograms
 // =================================================================================================
 
+std::vector<double> closest_leaf_weight_distribution( Sample const& sample )
+{
+    std::vector<double> distrib;
+
+    // Get a vector telling us the depth from each node to its closest leaf node.
+    auto depths = tree::closest_leaf_depth_vector( sample.tree() );
+
+    for( auto const& pquery : sample.pqueries() ) {
+        for( auto& place : pquery.placements() ) {
+            // Try both nodes at the end of the placement's edge and see which one is closer
+            // to a leaf.
+            int dp = depths[ place.edge().primary_node().index()   ].second;
+            int ds = depths[ place.edge().secondary_node().index() ].second;
+            unsigned int ld = std::min(dp, ds);
+
+            // Put the closer one into the histogram, resize if necessary.
+            if( distrib.size() < ld + 1 ) {
+                distrib.resize( ld + 1, 0.0 );
+            }
+            distrib[ld] += place.like_weight_ratio;
+        }
+    }
+
+    return distrib;
+}
+
 // TODO use the histogram class of utils here!
 
 /**
@@ -751,7 +777,7 @@ std::vector<int> closest_leaf_depth_histogram( Sample const& smp )
     std::vector<int> hist;
 
     // Get a vector telling us the depth from each node to its closest leaf node.
-    auto depths = closest_leaf_depth_vector( smp.tree() );
+    auto depths = tree::closest_leaf_depth_vector( smp.tree() );
 
     for( auto const& pquery : smp.pqueries() ) {
         for( auto& place : pquery.placements() ) {

@@ -54,8 +54,8 @@ namespace placement {
 // -----------------------------------------------------
 
 /**
- * @brief Sets the weights of an SimulatorEdgeDistribution to 1.0 for all edges, so that each edge has the
- * same probability of being chosen.
+ * @brief Sets the weights of an SimulatorEdgeDistribution to 1.0 for all edges, so that each edge
+ * has the same probability of being chosen.
  *
  * The number of edges is taken from the provided Sample.
  */
@@ -65,8 +65,8 @@ void set_uniform_weights( Sample const& sample, SimulatorEdgeDistribution& edge_
 }
 
 /**
- * @brief Sets the weights of an SimulatorEdgeDistribution to 1.0 for all edges, so that each edge has the
- * same probability of being chosen.
+ * @brief Sets the weights of an SimulatorEdgeDistribution to 1.0 for all edges, so that each edge
+ * has the same probability of being chosen.
  */
 void set_uniform_weights( size_t edge_count, SimulatorEdgeDistribution& edge_distrib )
 {
@@ -107,8 +107,8 @@ void set_random_weights( size_t edge_count, SimulatorEdgeDistribution& edge_dist
 // -----------------------------------------------------
 
 /**
- * @brief Set the weights of an SimulatorEdgeDistribution randomly to either 0.0 or 1.0, so that a random
- * subset of edges is selected (with the same probability for each selected edge).
+ * @brief Set the weights of a SimulatorEdgeDistribution randomly to either 0.0 or 1.0, so that a
+ * random subset of edges is selected (with the same probability for each selected edge).
  *
  * The number of edges is taken from the provided Sample.
  */
@@ -118,8 +118,8 @@ void set_random_edges( Sample const& sample, SimulatorEdgeDistribution& edge_dis
 }
 
 /**
- * @brief Set the weights of an SimulatorEdgeDistribution randomly to either 0.0 or 1.0, so that a random
- * subset of edges is selected (with the same probability for each selected edge).
+ * @brief Set the weights of an SimulatorEdgeDistribution randomly to either 0.0 or 1.0, so that a
+ * random subset of edges is selected (with the same probability for each selected edge).
  */
 void set_random_edges( size_t edge_count, SimulatorEdgeDistribution& edge_distrib )
 {
@@ -138,18 +138,19 @@ void set_random_edges( size_t edge_count, SimulatorEdgeDistribution& edge_distri
 // -----------------------------------------------------
 
 /**
- * @brief Set the weights of an SimulatorEdgeDistribution so that they follow the depth distribution of the
- * edges in the provided Sample.
+ * @brief Set the weights of an SimulatorEdgeDistribution so that they follow the depth distribution
+ * of the edges in the provided Sample.
  *
  * This function is similar to
  * set_depths_distributed_weights(
- *     Sample const& sample, std::vector<int> const& depth_weights, SimulatorEdgeDistribution& edge_distrib
- * ), but instead of using a given depth_weight vector, this vector is also estimated from the
- * given Sample.
+ * Sample const& sample, std::vector<int> const& depth_weights, SimulatorEdgeDistribution&
+ * edge_distrib ), but instead of using a given depth_weight vector, this vector is also
+ * estimated from the given Sample. This is done by using closest_leaf_weight_distribution(), which
+ * counts the number of placements at a given depth in the tree.
  */
 void set_depths_distributed_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
 {
-    auto depth_weights = closest_leaf_depth_histogram( sample );
+    auto depth_weights = closest_leaf_weight_distribution( sample );
     set_depths_distributed_weights( sample, depth_weights, edge_distrib );
 }
 
@@ -162,20 +163,20 @@ void set_depths_distributed_weights( Sample const& sample, SimulatorEdgeDistribu
  * at position 0; edges which are one level deeper in the tree will get the weight at position 1,
  * and so on.
  *
- * This method can conveniently be used with the output of closest_leaf_depth_histogram()
+ * This method can conveniently be used with the output of closest_leaf_weight_distribution()
  * called on some exemplary Sample. This way, it will mimic this sample in terms of the depths
  * distribution of the placements: E.g., if the original sample (the one where the histrogram
  * results were taken from and used as input for this method) has many placements near the leaves,
  * so will the simulated one.
- * See set_depths_distributed_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib ) for
- * a version of this function which does exaclty that.
+ * See set_depths_distributed_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
+ * for a version of this function which does exaclty that.
  */
 void set_depths_distributed_weights(
-    Sample const&           sample,
-    std::vector<int> const& depth_weights,
-    SimulatorEdgeDistribution&       edge_distrib
+    Sample const&              sample,
+    std::vector<double> const& depth_weights,
+    SimulatorEdgeDistribution& edge_distrib
 ) {
-    // TODO Some of the code is copied from Sample::closest_leaf_depth_histogram(). Maybe
+    // TODO Some of the code is copied from Sample::closest_leaf_weight_distribution(). Maybe
     //      it is worth putting this into a method which returns the closest leaf for edges instead
     //      of nodes.
 
@@ -200,9 +201,9 @@ void set_depths_distributed_weights(
         // Otherwise, the tree is deeper than the given depth vector, so use zero instead,
         // which will result in no placements being generated on this edge.
         if (ld < depth_weights.size()) {
-            edge_distrib.edge_weights[(*it)->index()] = static_cast<double>(depth_weights[ld]);
+            edge_distrib.edge_weights[ (*it)->index() ] = depth_weights[ld];
         } else {
-            edge_distrib.edge_weights[(*it)->index()] = 0.0;
+            edge_distrib.edge_weights[ (*it)->index() ] = 0.0;
         }
     }
 }
@@ -264,8 +265,8 @@ void set_random_subtree_weights( Sample const& sample, SimulatorEdgeDistribution
 // -----------------------------------------------------
 
 /**
- * @brief Sets the weights of an SimulatorEdgeDistributionso that they follow the same distribution of
- * placements per edge as a given Sample.
+ * @brief Sets the weights of an SimulatorEdgeDistributionso that they follow the same distribution
+ * of placements per edge as a given Sample.
  *
  * This method "learns" how the placements on the given smp are distributed by counting them and
  * using those counts as weights. This way, the given distribution can be imitated by randomly

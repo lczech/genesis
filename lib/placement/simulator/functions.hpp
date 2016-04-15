@@ -60,9 +60,9 @@ void set_random_edges(               size_t edge_count,    SimulatorEdgeDistribu
 
 void set_depths_distributed_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib );
 void set_depths_distributed_weights(
-    Sample const&           sample,
-    std::vector<int> const& depth_weights,
-    SimulatorEdgeDistribution&       edge_distrib
+    Sample const&              sample,
+    std::vector<double> const& depth_weights,
+    SimulatorEdgeDistribution& edge_distrib
 );
 
 void set_random_subtree_weights(     Sample const& sample, SimulatorEdgeDistribution& edge_distrib );
