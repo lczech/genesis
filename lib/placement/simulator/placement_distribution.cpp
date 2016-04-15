@@ -87,9 +87,9 @@ void SimulatorPlacementDistribution::prepare( Sample const& sample )
     // For each edge, create a list of other edges in its proximity, sorted by their
     // distance level from that edge.
     edge_proximities_.resize( edge_dist_matrix_.rows() );
-    for( size_t edge_num = 0; edge_num < edge_dist_matrix_.rows(); ++edge_num ) {
-        for( size_t prox_num = 0; prox_num < edge_dist_matrix_.cols(); ++prox_num ) {
-            size_t level = edge_dist_matrix_( edge_num, prox_num );
+    for( size_t edge_idx = 0; edge_idx < edge_dist_matrix_.rows(); ++edge_idx ) {
+        for( size_t prox_idx = 0; prox_idx < edge_dist_matrix_.cols(); ++prox_idx ) {
+            size_t level = edge_dist_matrix_( edge_idx, prox_idx );
 
             // This list will contain all other edges of the tree in the end. We might want to reduce
             // this to only a certain level, depending on the length
@@ -97,11 +97,11 @@ void SimulatorPlacementDistribution::prepare( Sample const& sample )
                 /* code */
             }
 
-            if( edge_proximities_[edge_num].candidates_per_level.size() < level ) {
-                edge_proximities_[edge_num].candidates_per_level.resize( level + 1 );
+            if( edge_proximities_[edge_idx].candidates_per_level.size() < level ) {
+                edge_proximities_[edge_idx].candidates_per_level.resize( level + 1 );
             }
-            edge_proximities_[edge_num].candidates_per_level[level].push_back( prox_num );
-            edge_proximities_[edge_num].total_candidates += 1;
+            edge_proximities_[edge_idx].candidates_per_level[level].push_back( prox_idx );
+            edge_proximities_[edge_idx].total_candidates += 1;
         }
     }
 }
@@ -166,6 +166,28 @@ std::vector<size_t> SimulatorPlacementDistribution::generate( typename Placement
             result[i] = place_edge_num;
             placed = true;
         } while( ! placed );
+    }
+
+    return result;
+}
+
+/**
+ * @brief
+ */
+std::string SimulatorPlacementDistribution::show_edge_proximities() const
+{
+    std::string result;
+
+    for( size_t edge_idx = 0; edge_idx < edge_proximities_.size(); ++edge_idx ) {
+        auto& prox = edge_proximities_[ edge_idx ];
+        result += "Edge at index " + std::to_string( edge_idx ) + ":\n";
+
+        for( size_t cand_idx = 0; cand_idx < prox.candidates_per_level.size(); ++cand_idx ) {
+            auto& cand = prox.candidates_per_level[ cand_idx ];
+
+            result += "    Level " + std::to_string( cand_idx ) + ": ";
+            result += std::to_string( cand.size() ) + " candidates\n";
+        }
     }
 
     return result;

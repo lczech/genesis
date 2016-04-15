@@ -34,6 +34,7 @@
 #include "placement/sample.hpp"
 
 #include <random>
+#include <string>
 #include <vector>
 
 namespace genesis {
@@ -43,6 +44,12 @@ namespace placement {
 //     Placement Simulator Placement Number Distribution
 // =================================================================================================
 
+/**
+ * @brief Generate a certain number of PqueryPlacement%s around a given ::PlacementTreeEdge.
+ *
+ * This class models both the distribution of the number of generated placements and their
+ * distribution around the given edge.
+ */
 class SimulatorPlacementDistribution
 {
 public:
@@ -77,6 +84,8 @@ public:
 
     void prepare( Sample const& sample );
     std::vector<size_t> generate( typename PlacementTree::EdgeType const& edge );
+
+    std::string show_edge_proximities() const;
 
     // -----------------------------------------------------
     //     Data Members
