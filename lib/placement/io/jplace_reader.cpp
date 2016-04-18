@@ -250,6 +250,136 @@ void JplaceReader::parse_version( utils::CountingIstream& input_stream ) const
     }
 }
 
+std::unordered_map<std::string, std::string> JplaceReader::parse_metadata(
+    utils::CountingIstream& input_stream
+) const {
+    using namespace utils;
+    auto& it = input_stream;
+
+    auto res = std::unordered_map<std::string, std::string>();
+
+    // Go into the metadata field.
+    skip_while( it, isspace );
+    read_char_if( it, '{' );
+    skip_while( it, isspace );
+
+    // Read metadata while there is.
+    bool get_more = it && *it == '\"';
+    while( get_more ) {
+        get_more = false;
+
+        // Get key of the field.
+        expect_char( it, '"' );
+        std::string key = parse_quoted_string( it );
+        skip_while( it, isspace );
+        read_char_if( it, ':' );
+
+        // Get the value of the field.
+        skip_while( it, isspace );
+        expect_char( it, '"' );
+        std::string value = parse_quoted_string( it );
+
+        // Store and go to next element.
+        res[ key ] = value;
+        skip_while( it, isspace );
+        if( it && *it == ',' ) {
+            ++it;
+            get_more = true;
+        }
+        skip_while( it, isspace );
+    }
+
+    // Expected end of metatdata field.
+    read_char_if( it, '}' );
+    return res;
+}
+
+std::vector<std::string> JplaceReader::parse_fields( utils::CountingIstream& input_stream ) const
+{
+    using namespace utils;
+    auto& it = input_stream;
+
+    auto fields = std::vector<std::string>();
+
+    // Go into the fields field.
+    skip_while( it, isspace );
+    read_char_if( it, '[' );
+    skip_while( it, isspace );
+
+    // Read fields while there are.
+    bool get_more = it && *it == '\"';
+    while( get_more ) {
+        get_more = false;
+
+        // Get key of the field.
+        expect_char( it, '"' );
+        std::string field = parse_quoted_string( it );
+        fields.push_back( field );
+
+        // Go to next element.
+        skip_while( it, isspace );
+        if( it && *it == ',' ) {
+            ++it;
+            get_more = true;
+        }
+        skip_while( it, isspace );
+    }
+    read_char_if( it, ']' );
+
+    // Check field validity.
+    bool has_edge_num        = false;
+    bool has_distal_length   = false;
+    bool has_proximal_length = false;
+    for( size_t i = 0; i < fields.size(); ++i ) {
+        auto const& field = fields[i];
+        if (field == "edge_num"      || field == "likelihood"     || field == "like_weight_ratio" ||
+            field == "distal_length" || field == "pendant_length" || field == "proximal_length"   ||
+            field == "parsimony"
+        ) {
+
+            // Simple check for fields that appear multiple times. It's certainly not a nice algo,
+            // but the vector is small, so this suffices.
+            for( size_t j = i + 1; j < fields.size(); ++j ) {
+                if( fields[i] == fields[j] ) {
+                    throw std::runtime_error(
+                        "Jplace document contains field name '" + fields[i]
+                        + "' more than once at key 'fields'."
+                    );
+                }
+            }
+
+        } else {
+
+            LOG_WARN << "Jplace document contains a field name '" << field << "' "
+                     << "at key 'fields', which is not used by this parser and thus ignored.";
+        }
+
+        has_edge_num        |= (field == "edge_num");
+        has_distal_length   |= (field == "distal_length");
+        has_proximal_length |= (field == "proximal_length");
+    }
+    if( ! has_edge_num ) {
+        throw std::runtime_error(
+            "Jplace document does not contain necessary field 'edge_num' at key 'fields'."
+        );
+    }
+    if( has_distal_length && has_proximal_length ) {
+        LOG_WARN << "Jplace document contains both fields 'distal_length', and 'proximal_length'. "
+                 << "Currently, only one value is used internally to represent both, which might "
+                 << "lead to inconsistency if the sum of both is not equal to the branch length.";
+    }
+
+    return fields;
+}
+
+void JplaceReader::parse_tree( utils::CountingIstream& input_stream ) const
+{
+    using namespace utils;
+    auto& it = input_stream;
+
+    auto tree_string = parse_quoted_string( it );
+}
+
 // =================================================================================================
 //     Processing
 // =================================================================================================
@@ -349,7 +479,7 @@ std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument 
             }
         } else {
             LOG_WARN << "Jplace document contains a field name '" << field << "' "
-                     << "at key 'fields', which is not used by this parser and thus skipped.";
+                     << "at key 'fields', which is not used by this parser and thus ignored.";
         }
         fields.push_back(field);
         has_edge_num |= (field == "edge_num");
