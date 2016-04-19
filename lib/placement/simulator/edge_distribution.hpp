@@ -78,7 +78,9 @@ public:
 
         // Check size.
         if( edge_weights.size() != sample.tree().edge_count() ) {
-            throw std::runtime_error( "Incorrect number of edge weights for SimulatorEdgeDistribution." );
+            throw std::runtime_error(
+                "Incorrect number of edge weights for SimulatorEdgeDistribution."
+            );
         }
 
         // Prepare the actual distrib.

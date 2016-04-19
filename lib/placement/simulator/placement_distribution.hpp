@@ -48,7 +48,10 @@ namespace placement {
  * @brief Generate a certain number of PqueryPlacement%s around a given ::PlacementTreeEdge.
  *
  * This class models both the distribution of the number of generated placements and their
- * distribution around the given edge.
+ * distribution around the given edge. It is easier to model it this way (both distributions in one
+ * class), because they have a dependency: Once the number of placements is drawn, they have to be
+ * distributed along the edges of the tree without repetition according to a distribution of
+ * distance (path length) from the central edge. Doing those two steps in one is easier.
  */
 class SimulatorPlacementDistribution
 {

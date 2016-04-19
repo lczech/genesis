@@ -37,6 +37,7 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <numeric>
 #include <stdexcept>
 
 namespace genesis {
@@ -48,21 +49,61 @@ namespace placement {
 
 /**
  * @brief Prepare the distribution for usage. Needs to be called before generate().
+ *
+ * It expects to be called with the Sample into which the generated (simulated) placements are
+ * inserted.
  */
 void SimulatorPlacementDistribution::prepare( Sample const& sample )
 {
-    // If nothing was set, initialize to use 1 placement (with 0 path length).
     if( placement_number_weights.size() == 0 ) {
-        placement_number_weights = std::vector<double>( 1, 1.0 );
+
+        // If nothing was set, initialize to always produce 1 placement.
+        placement_number_weights = std::vector<double>( 2, 1.0 );
+
+    } else if( placement_number_weights.size() == 1 ) {
+
+        // If there is only one weight, this is an error, as this means we produce 0 placements.
+        throw std::runtime_error( "Cannot use placement_number_weights with size 1." );
     }
+
+    // If everything is correct (more than one weight), set the weight of position 0 to 0.0,
+    // as we never want to produce zero placements.
+    assert( placement_number_weights.size() > 1 );
+    placement_number_weights[0] = 0.0;
+
+    // Now check if the remaining weights still have an actual weight different from 0.
+    double sum_number_weights = std::accumulate(
+        placement_number_weights.begin(),
+        placement_number_weights.end(),
+        0.0
+    );
+    if( sum_number_weights <= 0.0 ) {
+        throw std::runtime_error(
+            "At least one weight of placement_number_weights needs to be > 0.0."
+        );
+    }
+
     if( placement_path_length_weights.size() == 0 ) {
-        placement_path_length_weights = std::vector<double>();
+
+        // If there are no weights for the path length set, we need to check whether we ever will
+        // generate more than one placement. If so, this is an error, because we will need path lengths
+        // then. If not, this distribution is never used anyway, so we can continue.
+        if( placement_number_weights.size() > 2 ) {
+            throw std::runtime_error(
+                "There need to be some weights in placement_path_length_weights."
+            );
+        }
+        placement_path_length_weights = std::vector<double>( 2, 1.0 );
+
     } else if( placement_path_length_weights.size() == 1 ) {
+
+        // One weight means path length 0. We cannot use this.
         throw std::runtime_error( "Cannot use placement_path_length_weights with size 1." );
-    } else {
-        // We never want to place additional placements on the first edge of the pquery.
-        placement_path_length_weights[0] = 0.0;
     }
+
+    // We never want to place additional placements on the first edge of the pquery.
+    assert( placement_path_length_weights.size() > 1 );
+    placement_path_length_weights[0] = 0.0;
 
     // Init the distribs.
     placement_number_distrib_ = std::discrete_distribution<size_t>(
@@ -76,36 +117,40 @@ void SimulatorPlacementDistribution::prepare( Sample const& sample )
 
     // If we are only ever creating one placement per pquery, we can skip the part with
     // edge candidates. Those are only used when creating more than one placements.
-    //
-    //
-    //!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // TODO wrong. this would be 0 placements.
-    if( placement_number_weights.size() == 1 ) {
+    if( placement_number_weights.size() == 2 ) {
         return;
     }
 
     // Init a matrix with the path lengths from all edges to each other
     // (that is, the number of nodes between them).
-    auto edge_dist_matrix_ = tree::edge_path_length_matrix( sample.tree() );
+    auto edge_dist_matrix = tree::edge_path_length_matrix( sample.tree() );
 
     // For each edge, create a list of other edges in its proximity, sorted by their
-    // distance level from that edge.
-    edge_proximities_.resize( edge_dist_matrix_.rows() );
-    for( size_t edge_idx = 0; edge_idx < edge_dist_matrix_.rows(); ++edge_idx ) {
-        for( size_t prox_idx = 0; prox_idx < edge_dist_matrix_.cols(); ++prox_idx ) {
-            size_t level = edge_dist_matrix_( edge_idx, prox_idx );
+    // distance level (number of nodes in between) from that edge.
+    edge_proximities_.clear();
+    edge_proximities_.resize( edge_dist_matrix.rows() );
+    for( size_t edge_idx = 0; edge_idx < edge_dist_matrix.rows(); ++edge_idx ) {
+        for( size_t prox_idx = 0; prox_idx < edge_dist_matrix.cols(); ++prox_idx ) {
+            size_t level = edge_dist_matrix( edge_idx, prox_idx );
 
-            // This list will contain all other edges of the tree in the end. We might want to reduce
-            // this to only a certain level, depending on the length
-            if( level > placement_path_length_weights.size() ) {
-                /* code */
+            // No need to add the edge itself.
+            if( level == 0 ) {
+                assert( edge_idx == prox_idx );
+                continue;
             }
 
-            if( edge_proximities_[edge_idx].candidates_per_level.size() < level ) {
-                edge_proximities_[edge_idx].candidates_per_level.resize( level + 1 );
+            // This list will contain all other edges of the tree in the end. We want to
+            // reduce this to only a certain level, depending on the maximal length of a path that
+            // we can ever generate according to the given distribution.
+            if( level >= placement_path_length_weights.size() ) {
+                continue;
             }
-            edge_proximities_[edge_idx].candidates_per_level[level].push_back( prox_idx );
-            edge_proximities_[edge_idx].total_candidates += 1;
+
+            if( edge_proximities_[ edge_idx ].candidates_per_level.size() < level ) {
+                edge_proximities_[ edge_idx ].candidates_per_level.resize( level + 1 );
+            }
+            edge_proximities_[ edge_idx ].candidates_per_level[ level ].push_back( prox_idx );
+            edge_proximities_[ edge_idx ].total_candidates += 1;
         }
     }
 }
