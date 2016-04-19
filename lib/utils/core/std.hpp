@@ -96,11 +96,11 @@ inline void erase_if( Container &c, UnaryPredicate p )
 // =================================================================================================
 
 /**
- * @brief Retun the value of `x`, rounded to the decimal digit given by `precision`.
+ * @brief Retun the value of `x`, rounded to the decimal digit given by `accuracy_order`.
  */
-inline double round_to( double x, size_t precision )
+inline double round_to( double x, size_t accuracy_order )
 {
-    double factor = std::pow( 10, precision );
+    double factor = std::pow( 10, accuracy_order );
     return std::round( x * factor ) / factor;
 }
 

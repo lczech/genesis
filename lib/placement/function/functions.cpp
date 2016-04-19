@@ -125,6 +125,9 @@ void normalize_weight_ratios( Pquery& pquery )
     for( auto const& place : pquery.placements() ) {
         sum += place.like_weight_ratio;
     }
+    if( sum == 0.0 ) {
+        throw std::overflow_error( "Cannot normalize weight ratios if all of them are zero." );
+    }
     for( auto& place : pquery.placements() ) {
         place.like_weight_ratio /= sum;
     }
