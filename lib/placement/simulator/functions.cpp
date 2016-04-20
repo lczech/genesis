@@ -34,16 +34,62 @@
 #include "placement/function/helper.hpp"
 
 #include "placement/simulator/edge_distribution.hpp"
-#include "placement/simulator/placement_distribution.hpp"
+#include "placement/simulator/extra_placement_distribution.hpp"
+#include "placement/simulator/like_weight_ratio_distribution.hpp"
+#include "placement/simulator/pendant_length_distribution.hpp"
+#include "placement/simulator/proximal_length_distribution.hpp"
 
 #include "tree/function/distances.hpp"
 
+#include "utils/core/std.hpp"
 #include "utils/math/matrix.hpp"
+#include "utils/text/string.hpp"
 
+#include <assert.h>
+#include <cmath>
+#include <ostream>
+#include <stdexcept>
 #include <vector>
 
 namespace genesis {
 namespace placement {
+
+// =================================================================================================
+//     Stream Output Operators
+// =================================================================================================
+
+std::ostream& operator << ( std::ostream& out, SimulatorEdgeDistribution const& distrib )
+{
+    out << "Weight of each edge: ";
+    out << utils::join( distrib.edge_weights, ", ") << "\n";
+    return out;
+}
+
+std::ostream& operator << ( std::ostream& out, SimulatorExtraPlacementDistribution const& distrib )
+{
+    out << "Extra placement weights:\n";
+    for( size_t i = 0; i < distrib.placement_number_weights.size(); ++i ) {
+        out << i << ": " << distrib.placement_number_weights[i] << "\n";
+    }
+    out << "Path length weights:\n";
+    for( size_t i = 0; i < distrib.placement_path_length_weights.size(); ++i ) {
+        out << i << ": " << distrib.placement_path_length_weights[i] << "\n";
+    }
+    return out;
+}
+
+std::ostream& operator << ( std::ostream& out, SimulatorLikeWeightRatioDistribution const& distrib )
+{
+    if( distrib.intervals.size() != distrib.weights.size() ) {
+        throw std::logic_error( "Invalid SimulatorLikeWeightRatioDistribution." );
+    }
+
+    out << "Like weight ratio intervals and weights:\n";
+    for( size_t i = 0; i < distrib.intervals.size(); ++i ) {
+        out << distrib.intervals[i] << ": " << distrib.weights[i] << "\n";
+    }
+    return out;
+}
 
 // =================================================================================================
 //     Edge Distribution : Set Weights
@@ -261,66 +307,120 @@ void set_random_subtree_weights( Sample const& sample, SimulatorEdgeDistribution
 }
 
 // -----------------------------------------------------
-//     set_per_edge_weights
+//     learn_per_edge_weights
 // -----------------------------------------------------
 
 /**
  * @brief Sets the weights of an SimulatorEdgeDistributionso that they follow the same distribution
- * of placements per edge as a given Sample.
+ * of placement weight per edge as a given Sample.
  *
- * This method "learns" how the placements on the given smp are distributed by counting them and
- * using those counts as weights. This way, the given distribution can be imitated by randomly
- * generated placements.
+ * This method "learns" how the placements on the given Sample are distributed by summing up their
+ * weight per edge and using this as weights. This way, the given distribution can be imitated by
+ * randomly generated placements.
  *
  * The method is intended to be used on a Tree that has the same topology as the one that is given
  * with the Sample, otherwise the Edge indices will not fit.
  */
 void learn_per_edge_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
 {
-    size_t num_edges = sample.tree().edge_count();
-    edge_distrib.edge_weights = std::vector<double>(num_edges, 0.0);
-
-    auto place_smp = placements_per_edge( sample );
-
-    for (auto it = sample.tree().begin_edges(); it != sample.tree().end_edges(); ++it) {
-        edge_distrib.edge_weights[(*it)->index()] = place_smp[ (*it)->index() ].size();
-    }
+    edge_distrib.edge_weights = placement_weight_per_edge( sample );
 }
 
 // =================================================================================================
 //     Placement Number Distribution
 // =================================================================================================
 
-void learn_placement_number_weights( Sample const& sample, SimulatorPlacementDistribution& p_distib )
-{
+void learn_placement_number_weights(
+    Sample const& sample,
+    SimulatorExtraPlacementDistribution& p_distib
+) {
     auto weights = std::vector<double>();
     for( auto const& pquery : sample.pqueries() ) {
-        if( weights.size() < pquery.placement_size() ) {
-            weights.resize( pquery.placement_size() + 1 );
+        size_t extra_placements = pquery.placement_size() - 1;
+        if( weights.size() < extra_placements + 1 ) {
+            weights.resize( extra_placements + 1 );
         }
-        ++weights[ pquery.placement_size() ];
+        ++weights[ extra_placements ];
     }
     p_distib.placement_number_weights = weights;
 }
 
-void learn_placement_path_length_weights( Sample const& sample, SimulatorPlacementDistribution& p_distib )
-{
-    auto edge_dist_matrix_ = tree::edge_path_length_matrix( sample.tree() );
+void learn_placement_path_length_weights(
+    Sample const& sample,
+    SimulatorExtraPlacementDistribution& p_distib
+) {
+    // The distance (path length) between two placements is the number of nodes between them.
+    // Get a matrix that gives us this number for each pair of edges of the tree.
+    auto edge_dist_matrix = tree::edge_path_length_matrix( sample.tree() );
 
+    // Iterate all pqueries and collect the distances between all of their placements, where
+    // the distance is the number of nodes between them.
     auto weights = std::vector<double>();
     for( auto const& pquery : sample.pqueries() ) {
         for( auto const& place_from : pquery.placements() ) {
             for( auto const& place_to : pquery.placements() ) {
-                size_t dist = edge_dist_matrix_( place_from.edge().index(), place_to.edge().index() );
+                size_t dist = edge_dist_matrix(
+                    place_from.edge().index(), place_to.edge().index()
+                );
 
-                if( weights.size() < dist ) {
+                // The following assertion holds as long as our dist matrix is correct.
+                // If assertions are disabled (release), the whole condition should be eliminated
+                // from the binary, so there is no speed penalty.
+                if( place_from.edge().index() == place_to.edge().index() ) {
+                    assert( dist == 0 );
+                }
+
+                // We don't need paths of length 0 currently. They will be eliminated in the
+                // distrubution class anyway, when calling prepare().
+                if( dist == 0 ) {
+                    continue;
+                }
+                if( weights.size() < dist + 1 ) {
                     weights.resize( dist + 1 );
                 }
-                ++weights[ dist ];
+                weights[ dist ] += 1.0;
             }
         }
     }
     p_distib.placement_path_length_weights = weights;
+}
+
+// =================================================================================================
+//     Like Weight Ratio Distribution
+// =================================================================================================
+
+void learn_like_weight_ratio_distribution(
+    Sample const& sample,
+    SimulatorLikeWeightRatioDistribution& lwr_distib,
+    size_t number_of_intervals
+) {
+    // Init the result vectors (we need one more element than number of intervals).
+    auto intervals = std::vector<double>( number_of_intervals + 1, 0.0 );
+    auto weights   = std::vector<double>( number_of_intervals + 1, 0.0 );
+    for( size_t i = 0; i < number_of_intervals + 1; ++i ) {
+        intervals[i] = static_cast<double>( i ) / static_cast<double>( number_of_intervals );
+    }
+
+    // Iterate all placements and use their rounded lwr value to increase the weights of the
+    // distribution.
+    for( auto const& pquery : sample.pqueries() ) {
+        for( auto const& placement : pquery.placements() ) {
+
+            double rounded_lwr = std::round( placement.like_weight_ratio * number_of_intervals )
+                               / number_of_intervals;
+
+            if( 0.0 > rounded_lwr || rounded_lwr > 1.0 ) {
+                throw std::runtime_error( "Invalid like_weight_ratio in Sample." );
+            }
+            size_t pos = static_cast<size_t>( rounded_lwr * number_of_intervals );
+            assert( pos < weights.size() );
+            weights[ pos ] += 1.0;
+        }
+    }
+
+    // Set the result.
+    lwr_distib.intervals = intervals;
+    lwr_distib.weights   = weights;
 }
 
 } // namespace placement

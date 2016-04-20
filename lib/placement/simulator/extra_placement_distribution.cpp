@@ -28,7 +28,7 @@
  * @ingroup placement
  */
 
-#include "placement/simulator/placement_distribution.hpp"
+#include "placement/simulator/extra_placement_distribution.hpp"
 
 #include "tree/function/distances.hpp"
 #include "utils/core/options.hpp"
@@ -53,57 +53,13 @@ namespace placement {
  * It expects to be called with the Sample into which the generated (simulated) placements are
  * inserted.
  */
-void SimulatorPlacementDistribution::prepare( Sample const& sample )
+void SimulatorExtraPlacementDistribution::prepare( Sample const& sample )
 {
-    if( placement_number_weights.size() == 0 ) {
-
-        // If nothing was set, initialize to always produce 1 placement.
-        placement_number_weights = std::vector<double>( 2, 1.0 );
-
-    } else if( placement_number_weights.size() == 1 ) {
-
-        // If there is only one weight, this is an error, as this means we produce 0 placements.
-        throw std::runtime_error( "Cannot use placement_number_weights with size 1." );
+    // Make sure to never produce a placement on the central edge. We only want to produce
+    // additional placements, as we assume that the simulator already placed on the central edge.
+    if( placement_path_length_weights.size() > 0 ) {
+        placement_path_length_weights[0] = 0.0;
     }
-
-    // If everything is correct (more than one weight), set the weight of position 0 to 0.0,
-    // as we never want to produce zero placements.
-    assert( placement_number_weights.size() > 1 );
-    placement_number_weights[0] = 0.0;
-
-    // Now check if the remaining weights still have an actual weight different from 0.
-    double sum_number_weights = std::accumulate(
-        placement_number_weights.begin(),
-        placement_number_weights.end(),
-        0.0
-    );
-    if( sum_number_weights <= 0.0 ) {
-        throw std::runtime_error(
-            "At least one weight of placement_number_weights needs to be > 0.0."
-        );
-    }
-
-    if( placement_path_length_weights.size() == 0 ) {
-
-        // If there are no weights for the path length set, we need to check whether we ever will
-        // generate more than one placement. If so, this is an error, because we will need path lengths
-        // then. If not, this distribution is never used anyway, so we can continue.
-        if( placement_number_weights.size() > 2 ) {
-            throw std::runtime_error(
-                "There need to be some weights in placement_path_length_weights."
-            );
-        }
-        placement_path_length_weights = std::vector<double>( 2, 1.0 );
-
-    } else if( placement_path_length_weights.size() == 1 ) {
-
-        // One weight means path length 0. We cannot use this.
-        throw std::runtime_error( "Cannot use placement_path_length_weights with size 1." );
-    }
-
-    // We never want to place additional placements on the first edge of the pquery.
-    assert( placement_path_length_weights.size() > 1 );
-    placement_path_length_weights[0] = 0.0;
 
     // Init the distribs.
     placement_number_distrib_ = std::discrete_distribution<size_t>(
@@ -115,9 +71,10 @@ void SimulatorPlacementDistribution::prepare( Sample const& sample )
         placement_path_length_weights.end()
     );
 
-    // If we are only ever creating one placement per pquery, we can skip the part with
-    // edge candidates. Those are only used when creating more than one placements.
-    if( placement_number_weights.size() == 2 ) {
+    // If we are never ever creating additional placements (so, either we have 0 or 1 weights for
+    // the distribution), we can skip the part with edge candidates.
+    // Those are only used when creating additional placements.
+    if( placement_number_weights.size() < 2 ) {
         return;
     }
 
@@ -133,7 +90,8 @@ void SimulatorPlacementDistribution::prepare( Sample const& sample )
         for( size_t prox_idx = 0; prox_idx < edge_dist_matrix.cols(); ++prox_idx ) {
             size_t level = edge_dist_matrix( edge_idx, prox_idx );
 
-            // No need to add the edge itself.
+            // We do not want to add the edge itself. This would mean to add more than one
+            // placement on that edge.
             if( level == 0 ) {
                 assert( edge_idx == prox_idx );
                 continue;
@@ -146,7 +104,7 @@ void SimulatorPlacementDistribution::prepare( Sample const& sample )
                 continue;
             }
 
-            if( edge_proximities_[ edge_idx ].candidates_per_level.size() < level ) {
+            if( edge_proximities_[ edge_idx ].candidates_per_level.size() < level + 1 ) {
                 edge_proximities_[ edge_idx ].candidates_per_level.resize( level + 1 );
             }
             edge_proximities_[ edge_idx ].candidates_per_level[ level ].push_back( prox_idx );
@@ -158,25 +116,20 @@ void SimulatorPlacementDistribution::prepare( Sample const& sample )
 /**
  * @brief
  */
-std::vector<size_t> SimulatorPlacementDistribution::generate( typename PlacementTree::EdgeType const& edge )
+std::vector<size_t> SimulatorExtraPlacementDistribution::generate( typename PlacementTree::EdgeType const& edge )
 {
     // Draw a number of placements and build a result vector of that size.
     size_t placement_num = placement_number_distrib_( utils::Options::get().random_engine() );
-    assert( placement_num > 0 );
-
     auto result = std::vector<size_t>( placement_num );
 
-    // The first entry in the result is the edge for which the actual position is given.
-    result[0] = edge.index();
-
-    // If we are only creating one placement for this pquery, we can skip the next steps.
-    if( placement_num == 1 ) {
+    // If we are not creating any additional placements, we can skip the next steps.
+    if( placement_num == 0 ) {
         return result;
     }
 
-    // We keep track of edges that we already placed a placement on.
-    // This way, we make sure that no edge gets at most one placement per pquery.
-    // Fot his, get a list of candidates of neighbouring edges of the given edge.
+    // We make sure that an edge gets at most one placement per pquery by maintaining a list of
+    // possible candidate edges that do not have a placement (for this pquery) yet.
+    // For this, get a list of all possible candidates of neighbouring edges of the given edge.
     // We shuffle them so that we take different edges for every pquery.
     auto edge_prox = edge_proximities_[ edge.index() ];
     for( auto& candidates : edge_prox.candidates_per_level ) {
@@ -190,12 +143,12 @@ std::vector<size_t> SimulatorPlacementDistribution::generate( typename Placement
     }
 
     // Now create as many more placement positions as needed.
-    for( size_t i = 1; i < placement_num; ++i ) {
+    for( size_t i = 0; i < placement_num; ++i ) {
 
         // Loop until we found an edge where this placement can go.
         bool placed = false;
         do {
-            // Draw randomly a value used to determine the distance of this placment from the
+            // Draw randomly a value used to determine the distance of this placement from the
             // central one. As we set the weight for path length 0 to 0.0, there should never
             // be a path of 0 length, so assert it.
             size_t path_len = placement_path_length_distrib_(
@@ -223,7 +176,7 @@ std::vector<size_t> SimulatorPlacementDistribution::generate( typename Placement
 /**
  * @brief
  */
-std::string SimulatorPlacementDistribution::show_edge_proximities() const
+std::string SimulatorExtraPlacementDistribution::dump_edge_proximities() const
 {
     std::string result;
 
@@ -236,6 +189,27 @@ std::string SimulatorPlacementDistribution::show_edge_proximities() const
 
             result += "    Level " + std::to_string( cand_idx ) + ": ";
             result += std::to_string( cand.size() ) + " candidates\n";
+        }
+    }
+
+    return result;
+}
+
+/**
+ * @brief
+ */
+std::vector<size_t> SimulatorExtraPlacementDistribution::edge_proximity_maxima() const
+{
+    auto result = std::vector<size_t>();
+
+    for( auto const& prox : edge_proximities_ ) {
+        for( size_t cand_idx = 0; cand_idx < prox.candidates_per_level.size(); ++cand_idx ) {
+            auto& cand = prox.candidates_per_level[ cand_idx ];
+
+            if( result.size() < cand_idx + 1 ) {
+                result.resize( cand_idx + 1 );
+            }
+            result[ cand_idx ] = std::max( result[ cand_idx ], cand.size() );
         }
     }
 

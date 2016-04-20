@@ -61,6 +61,9 @@ std::vector<PqueryPlacement const*> placements_per_edge(
     PlacementTreeEdge const& edge
 );
 
+std::vector<size_t> placement_count_per_edge( Sample const& sample );
+std::vector<double> placement_weight_per_edge( Sample const& sample );
+
 std::vector<PqueryPlain> plain_queries( Sample const & smp );
 
 // =================================================================================================

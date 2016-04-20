@@ -34,8 +34,9 @@
 #include "placement/sample.hpp"
 
 #include "placement/simulator/edge_distribution.hpp"
+#include "placement/simulator/extra_placement_distribution.hpp"
+#include "placement/simulator/like_weight_ratio_distribution.hpp"
 #include "placement/simulator/pendant_length_distribution.hpp"
-#include "placement/simulator/placement_distribution.hpp"
 #include "placement/simulator/proximal_length_distribution.hpp"
 
 namespace genesis {
@@ -80,6 +81,16 @@ public:
         return edge_distribution_;
     }
 
+    SimulatorExtraPlacementDistribution& extra_placement_distribution()
+    {
+        return extra_placement_distribution_;
+    }
+
+    SimulatorLikeWeightRatioDistribution& like_weight_ratio_distribution()
+    {
+        return like_weight_ratio_distribution_;
+    }
+
     SimulatorProximalLengthDistribution& proximal_length_distribution()
     {
         return proximal_length_distribution_;
@@ -96,9 +107,11 @@ public:
 
 private:
 
-    SimulatorEdgeDistribution           edge_distribution_;
-    SimulatorProximalLengthDistribution proximal_length_distribution_;
-    SimulatorPendantLengthDistribution  pendant_length_distribution_;
+    SimulatorEdgeDistribution            edge_distribution_;
+    SimulatorExtraPlacementDistribution  extra_placement_distribution_;
+    SimulatorLikeWeightRatioDistribution like_weight_ratio_distribution_;
+    SimulatorProximalLengthDistribution  proximal_length_distribution_;
+    SimulatorPendantLengthDistribution   pendant_length_distribution_;
 
 };
 
