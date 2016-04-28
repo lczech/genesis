@@ -166,6 +166,7 @@ PYTHON_EXPORT_CLASS (Histogram, "utils")
             ( double ( ::genesis::utils::Histogram::* )( size_t ) const )( &::genesis::utils::Histogram::operator[] ),
             ( boost::python::arg("bin_num") )
         )
+        .def( boost::python::self == boost::python::self )
 
         // Iterators
 
@@ -185,11 +186,11 @@ PYTHON_EXPORT_FUNCTIONS(utils_math_histogram_export, "utils")
     //     ( boost::python::arg("lhs"), boost::python::arg("rhs") )
     // );
 
-    boost::python::def(
-        "operator==",
-        ( bool ( * )( Histogram const &, Histogram const & ))( &::genesis::utils::operator== ),
-        ( boost::python::arg("lhs"), boost::python::arg("rhs") )
-    );
+    // boost::python::def(
+    //     "operator==",
+    //     ( bool ( * )( Histogram const &, Histogram const & ))( &::genesis::utils::operator== ),
+    //     ( boost::python::arg("lhs"), boost::python::arg("rhs") )
+    // );
 
     boost::python::def(
         "swap",

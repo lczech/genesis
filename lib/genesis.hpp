@@ -54,9 +54,10 @@
 #include "placement/sample.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/simulator/edge_distribution.hpp"
+#include "placement/simulator/extra_placement_distribution.hpp"
 #include "placement/simulator/functions.hpp"
+#include "placement/simulator/like_weight_ratio_distribution.hpp"
 #include "placement/simulator/pendant_length_distribution.hpp"
-#include "placement/simulator/placement_number_distribution.hpp"
 #include "placement/simulator/proximal_length_distribution.hpp"
 #include "placement/simulator/simulator.hpp"
 
