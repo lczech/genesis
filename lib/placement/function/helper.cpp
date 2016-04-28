@@ -118,6 +118,45 @@ std::vector<PqueryPlacement const*> placements_per_edge(
 }
 
 /**
+ * @brief Return a vector that contains the number of PqueryPlacement%s per
+ * @link ::PlacementTreeEdge edge@endlink of the @link ::PlacementTree tree@endlink of the Sample.
+ *
+ * The vector is indexed using the @link PlacementTreeEdge::index() index@endlink of the edges.
+ */
+std::vector<size_t> placement_count_per_edge( Sample const& sample )
+{
+    auto result = std::vector<size_t>( sample.tree().edge_count(), 0 );
+
+    for( auto const& pqry : sample.pqueries() ) {
+        for( auto const& place : pqry.placements() ) {
+            ++result[ place.edge().index() ];
+        }
+    }
+
+    return result;
+}
+
+/**
+ * @brief Return a vector that contains the sum of the weights of the PqueryPlacement%s per
+ * @link ::PlacementTreeEdge edge@endlink of the @link ::PlacementTree tree@endlink of the Sample.
+ *
+ * The weight is measured in @link PqueryPlacement::like_weight_ratio `like_weight_ratio`@endlink.
+ * The vector is indexed using the @link PlacementTreeEdge::index() index@endlink of the edges.
+ */
+std::vector<double> placement_weight_per_edge( Sample const& sample )
+{
+    auto result = std::vector<double>( sample.tree().edge_count(), 0.0 );
+
+    for( auto const& pqry : sample.pqueries() ) {
+        for( auto const& place : pqry.placements() ) {
+            result[ place.edge().index() ] += place.like_weight_ratio;
+        }
+    }
+
+    return result;
+}
+
+/**
  * @brief Return a plain representation of all pqueries of this map.
  *
  * This method produces a whole copy of all pqueries and their placements (though, not their names)

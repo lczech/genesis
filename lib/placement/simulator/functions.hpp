@@ -32,6 +32,7 @@
  */
 
 #include <cstddef>
+#include <iosfwd>
 #include <vector>
 
 namespace genesis {
@@ -41,39 +42,72 @@ namespace placement {
 //     Forward Declarations
 // =================================================================================================
 
-class EdgeDistribution;
-class PlacementNumberDistribution;
 class Sample;
+
+class SimulatorEdgeDistribution;
+class SimulatorExtraPlacementDistribution;
+class SimulatorLikeWeightRatioDistribution;
+class SimulatorPendantLengthDistribution;
+class SimulatorProximalLengthDistribution;
+
+// =================================================================================================
+//     Stream Output Operators
+// =================================================================================================
+
+std::ostream& operator <<( std::ostream& out, SimulatorEdgeDistribution const&            distrib );
+std::ostream& operator <<( std::ostream& out, SimulatorExtraPlacementDistribution const&  distrib );
+std::ostream& operator <<( std::ostream& out, SimulatorLikeWeightRatioDistribution const& distrib );
 
 // =================================================================================================
 //     Edge Distribution
 // =================================================================================================
 
-void set_uniform_weights(            Sample const& sample, EdgeDistribution& edge_distrib );
-void set_uniform_weights(            size_t edge_count,    EdgeDistribution& edge_distrib );
+void set_uniform_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib );
+void set_uniform_weights( size_t edge_count,    SimulatorEdgeDistribution& edge_distrib );
 
-void set_random_weights(             Sample const& sample, EdgeDistribution& edge_distrib );
-void set_random_weights(             size_t edge_count,    EdgeDistribution& edge_distrib );
+void set_random_weights(  Sample const& sample, SimulatorEdgeDistribution& edge_distrib );
+void set_random_weights(  size_t edge_count,    SimulatorEdgeDistribution& edge_distrib );
 
-void set_random_edges(               Sample const& sample, EdgeDistribution& edge_distrib );
-void set_random_edges(               size_t edge_count,    EdgeDistribution& edge_distrib );
+void set_random_edges(    Sample const& sample, SimulatorEdgeDistribution& edge_distrib );
+void set_random_edges(    size_t edge_count,    SimulatorEdgeDistribution& edge_distrib );
 
-void set_depths_distributed_weights( Sample const& sample, EdgeDistribution& edge_distrib );
 void set_depths_distributed_weights(
-    Sample const&           sample,
-    std::vector<int> const& depth_weights,
-    EdgeDistribution&       edge_distrib
+    Sample const& sample,
+    SimulatorEdgeDistribution& edge_distrib
 );
 
-void set_random_subtree_weights(     Sample const& sample, EdgeDistribution& edge_distrib );
-void learn_per_edge_weights(           Sample const& sample, EdgeDistribution& edge_distrib );
+void set_depths_distributed_weights(
+    Sample const&              sample,
+    std::vector<double> const& depth_weights,
+    SimulatorEdgeDistribution& edge_distrib
+);
+
+void set_random_subtree_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib );
+void learn_per_edge_weights(     Sample const& sample, SimulatorEdgeDistribution& edge_distrib );
 
 // =================================================================================================
-//     Placement Number Distribution
+//     Extra Placement Number Distribution
 // =================================================================================================
 
-void learn_placement_number_weights(      Sample const& sample, PlacementNumberDistribution& p_distib );
-void learn_placement_path_length_weights( Sample const& sample, PlacementNumberDistribution& p_distib );
+void learn_placement_number_weights(
+    Sample const& sample,
+    SimulatorExtraPlacementDistribution& p_distib
+);
+
+void learn_placement_path_length_weights(
+    Sample const& sample,
+    SimulatorExtraPlacementDistribution& p_distib
+);
+
+// =================================================================================================
+//     Like Weight Ratio Distribution
+// =================================================================================================
+
+void learn_like_weight_ratio_distribution(
+    Sample const& sample,
+    SimulatorLikeWeightRatioDistribution& lwr_distib,
+    size_t number_of_intervals = 10
+);
 
 } // namespace placement
 } // namespace genesis

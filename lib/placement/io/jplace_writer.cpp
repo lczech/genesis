@@ -30,7 +30,9 @@
 
 #include "placement/io/jplace_writer.hpp"
 
+#include <fstream>
 #include <memory>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -39,7 +41,10 @@
 #include "placement/io/newick_writer.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
+
 #include "tree/io/newick/writer.hpp"
+
+#include "utils/core/genesis.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
@@ -51,51 +56,163 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Parsing
-// =================================================================================================
-
-// =================================================================================================
 //     Printing
 // =================================================================================================
 
 /**
+ * @brief Write a Sample to a stream, using the Jplace format.
+ */
+void JplaceWriter::to_stream( Sample const& sample, std::ostream& os ) const
+{
+    // Indent. Might be replaced by some setting for the class in the future.
+    std::string in = "    ";
+
+    // Open json document.
+    os << "{\n";
+
+    // Write version.
+    os << in << "\"version\": 3,\n";
+
+    // Write metadata.
+    os << in << "\"metadata\": {\n";
+    os << in << in << "\"program\": \"" << "genesis " << genesis_version() << "\",\n";
+    os << in << in << "\"invocation\": \"" << utils::Options::get().command_line_string() << "\"\n";
+    os << in << "},\n";
+
+    // Write tree.
+    auto newick_writer = PlacementTreeNewickWriter();
+    newick_writer.enable_names(true);
+    newick_writer.enable_branch_lengths(true);
+    newick_writer.branch_length_precision = branch_length_precision;
+    os << in << "\"tree\": \"" << newick_writer.to_string( sample.tree() ) << "\",\n";
+
+    // Write field names.
+    os << in << "\"fields\": [ \"edge_num\", \"likelihood\", \"like_weight_ratio\", "
+    << "\"distal_length\", \"pendant_length\" ],\n";
+
+    // Write pqueries.
+    os << in << "\"placements\": [\n";
+    for( size_t i = 0; i < sample.pquery_size(); ++i ) {
+        auto const& pquery = sample.pquery_at(i);
+        os << in << in << "{\n";
+
+        // Write placements.
+        os << in << in << in << "\"p\": [\n";
+        for( size_t j = 0; j < pquery.placement_size(); ++j ) {
+            auto const& placement = pquery.placement_at(j);
+            os << in << in << in << in << "[ ";
+
+            os << placement.edge_num() << ", ";
+            os << placement.likelihood << ", ";
+            os << placement.like_weight_ratio << ", ";
+            os << placement.edge().data.branch_length - placement.proximal_length << ", ";
+            os << placement.pendant_length;
+
+            os << " ]";
+            if( j < pquery.placement_size() - 1 ) {
+                os << ",";
+            }
+            os << "\n";
+        }
+        os << in << in << in << "],\n";
+
+        // Find out whether names have multiplicity.
+        bool has_nm = false;
+        for( auto const& pqry_name : pquery.names() ) {
+            has_nm |= ( pqry_name.multiplicity != 1.0 );
+        }
+
+        // Write names.
+        if( has_nm ) {
+
+            // With multiplicity.
+            os << in << in << in << "\"nm\": [\n";
+            for( size_t j = 0; j < pquery.name_size(); ++j ) {
+                os << in << in << in << in << "[ \"" << pquery.name_at(j).name << "\", ";
+                os << pquery.name_at(j).multiplicity << " ]";
+
+                if( j < pquery.name_size() - 1 ) {
+                    os << ", ";
+                }
+                os << "\n";
+            }
+            os << in << in << in << "]\n";
+
+        } else {
+
+            // Without multiplicity.
+            os << in << in << in << "\"n\": [ ";
+            for( size_t j = 0; j < pquery.name_size(); ++j ) {
+                os << "\"" << pquery.name_at(j).name << "\"";
+
+                if( j < pquery.name_size() - 1 ) {
+                    os << ", ";
+                }
+            }
+            os << " ]\n";
+
+        }
+
+        // Write end of placement stuff.
+        os << in << in << "}";
+        if( i < sample.pquery_size() - 1 ) {
+            os << ",";
+        }
+        os << "\n";
+    }
+    os << in << "]\n";
+
+    // Close json document.
+    os << "}\n";
+}
+
+/**
  * @brief Write the data of a Sample to a file in `Jplace` format.
  *
- * If the file already exists, the function throws `std::runtime_error`.
- * The function uses utils::file_write. See there for other exceptions that can be thrown.
+ * If the file already exists or cannot be written to, the function throws `std::runtime_error`.
  */
-void JplaceWriter::to_file (const Sample& smp, const std::string filename) const
+void JplaceWriter::to_file( Sample const& sample, std::string const& filename ) const
 {
-    if( utils::file_exists(filename) ) {
+    if( utils::file_exists( filename )) {
         throw std::runtime_error( "Jplace file '" + filename + "' already exist." );
     }
-    std::string ts;
-    to_string(smp, ts);
-    utils::file_write( ts, filename );
+
+    std::ofstream ofs( filename );
+    if( ofs.fail() ) {
+        throw std::runtime_error( "Cannot write to file '" + filename + "'." );
+    }
+
+    to_stream( sample, ofs );
 }
 
 /**
  * @brief Store the data of a Sample in a string in `Jplace` format.
  */
-void JplaceWriter::to_string (const Sample& smp, std::string&  output) const
+void JplaceWriter::to_string( Sample const& sample, std::string& output ) const
 {
-    output = to_string(smp);
+    std::ostringstream oss;
+    to_stream( sample, oss );
+    output = oss.str();
 }
 
 /**
  * @brief Return the data of a Sample as a string in `Jplace` format.
  */
-std::string JplaceWriter::to_string (const Sample& smp) const
+std::string JplaceWriter::to_string( Sample const& sample ) const
 {
-    utils::JsonDocument json;
-    to_document(smp, json);
-    return utils::JsonWriter().to_string(json);
+    std::ostringstream oss;
+    to_stream( sample, oss );
+    return oss.str();
 }
 
 /**
  * @brief Store the data of a Sample in a JsonDocument object.
+ *
+ * This method is not really useful anymore, as we can now directly write to files, strings and
+ * streams. It is however kept here for reference and in case someone wants to work with Json files
+ * directly.
  */
-void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc) const
+void JplaceWriter::to_document( Sample const& smp, utils::JsonDocument& doc ) const
 {
     // Simplify the code. Specifying utils::Json... is cumbersome.
     using namespace utils;
@@ -172,7 +289,8 @@ void JplaceWriter::to_document (const Sample& smp, utils::JsonDocument& doc) con
 
     // set metadata
     JsonValueObject* jmetadata = new JsonValueObject();
-    jmetadata->set("invocation", new JsonValueString( utils::Options::get().command_line_string()) );
+    jmetadata->set("program", new JsonValueString( "genesis " + genesis_version() ));
+    jmetadata->set("invocation", new JsonValueString( utils::Options::get().command_line_string() ));
     doc.set("metadata", jmetadata);
 }
 

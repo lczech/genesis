@@ -109,6 +109,8 @@ std::pair<PlacementTreeEdge const*, double> placement_mass_max_edge( Sample cons
 //     Histograms
 // =================================================================================================
 
+std::vector<double> closest_leaf_weight_distribution( Sample const& sample );
+
 std::vector<int> closest_leaf_depth_histogram( Sample const& smp );
 
 std::vector<int> closest_leaf_distance_histogram (

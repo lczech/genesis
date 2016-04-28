@@ -45,7 +45,7 @@ namespace placement {
 //     Placement Simulator Edge Distribution
 // =================================================================================================
 
-class EdgeDistribution
+class SimulatorEdgeDistribution
 {
 public:
 
@@ -53,14 +53,14 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------
 
-    EdgeDistribution()  = default;
-    ~EdgeDistribution() = default;
+    SimulatorEdgeDistribution()  = default;
+    ~SimulatorEdgeDistribution() = default;
 
-    EdgeDistribution( EdgeDistribution const& ) = default;
-    EdgeDistribution( EdgeDistribution&& )      = default;
+    SimulatorEdgeDistribution( SimulatorEdgeDistribution const& ) = default;
+    SimulatorEdgeDistribution( SimulatorEdgeDistribution&& )      = default;
 
-    EdgeDistribution& operator= ( EdgeDistribution const& ) = default;
-    EdgeDistribution& operator= ( EdgeDistribution&& )      = default;
+    SimulatorEdgeDistribution& operator= ( SimulatorEdgeDistribution const& ) = default;
+    SimulatorEdgeDistribution& operator= ( SimulatorEdgeDistribution&& )      = default;
 
     // -------------------------------------------------
     //     Generate Random Edges
@@ -78,7 +78,9 @@ public:
 
         // Check size.
         if( edge_weights.size() != sample.tree().edge_count() ) {
-            throw std::runtime_error( "Incorrect number of edge weights for EdgeDistribution." );
+            throw std::runtime_error(
+                "Incorrect number of edge weights for SimulatorEdgeDistribution."
+            );
         }
 
         // Prepare the actual distrib.

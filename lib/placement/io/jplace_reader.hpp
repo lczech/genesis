@@ -32,6 +32,7 @@
  */
 
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace genesis {
@@ -120,9 +121,15 @@ public:
 
 protected:
 
-    bool parse_version(
+    void parse_version( utils::CountingIstream& input_stream ) const;
+
+    std::unordered_map<std::string, std::string> parse_metadata(
         utils::CountingIstream& input_stream
     ) const;
+
+    std::vector<std::string> parse_fields( utils::CountingIstream& input_stream ) const;
+
+    void parse_tree( utils::CountingIstream& input_stream ) const;
 
     // ---------------------------------------------------------------------
     //     Processing
@@ -209,6 +216,7 @@ public:
 
     static std::string version   ();
     static bool        check_version ( std::string const& version );
+    static bool        check_version ( size_t             version );
 
     // ---------------------------------------------------------------------
     //     Members

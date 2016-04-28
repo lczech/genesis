@@ -81,9 +81,7 @@ Build output:
     By default, only the shared lib (`.so`) is build. If you need the static lib, use the option
     flag `BUILD_STATIC_LIB` of the main cmake script.
  *  `./bin/*`: App executables are also stored in the bin directory. See section @ref setup_apps.
- *  `./python/module/genesis.so`: Python module file. Make sure this file can be found by python
-    (e.g., by creating a symlink to it in the path of your Python script). Then, in Python call
-    `import genesis` to use the module.
+ *  `./python/module/genesis.so`: Python module file. See section @ref setup_python.
  *  `./test/bin/test_suite`: Test executable. See `./test/README.md` for more information.
  *  `./build`: Intermediate build files. No need to worry about them too much.
 

@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_SIMULATOR_PENDANT_LENGTH_DISTRIBUTION_H_
-#define GENESIS_PLACEMENT_SIMULATOR_PENDANT_LENGTH_DISTRIBUTION_H_
+#ifndef GENESIS_PLACEMENT_SIMULATOR_LIKE_WEIGHT_RATIO_DISTRIBUTION_H_
+#define GENESIS_PLACEMENT_SIMULATOR_LIKE_WEIGHT_RATIO_DISTRIBUTION_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -35,15 +35,17 @@
 #include "utils/core/options.hpp"
 
 #include <random>
+#include <string>
+#include <vector>
 
 namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Placement Simulator Pendant Length Distribution
+//     Placement Simulator Like Weight Ratio Distribution
 // =================================================================================================
 
-class SimulatorPendantLengthDistribution
+class SimulatorLikeWeightRatioDistribution
 {
 public:
 
@@ -51,36 +53,29 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------
 
-    SimulatorPendantLengthDistribution()  = default;
-    ~SimulatorPendantLengthDistribution() = default;
+    SimulatorLikeWeightRatioDistribution()  = default;
+    ~SimulatorLikeWeightRatioDistribution() = default;
 
-    SimulatorPendantLengthDistribution( SimulatorPendantLengthDistribution const& ) = default;
-    SimulatorPendantLengthDistribution( SimulatorPendantLengthDistribution&& )      = default;
+    SimulatorLikeWeightRatioDistribution( SimulatorLikeWeightRatioDistribution const& ) = default;
+    SimulatorLikeWeightRatioDistribution( SimulatorLikeWeightRatioDistribution&& )      = default;
 
-    SimulatorPendantLengthDistribution& operator= ( SimulatorPendantLengthDistribution const& ) = default;
-    SimulatorPendantLengthDistribution& operator= ( SimulatorPendantLengthDistribution&& )      = default;
+    SimulatorLikeWeightRatioDistribution& operator= ( SimulatorLikeWeightRatioDistribution const& ) = default;
+    SimulatorLikeWeightRatioDistribution& operator= ( SimulatorLikeWeightRatioDistribution&& )      = default;
 
     // -----------------------------------------------------
-    //     Generate Random Length
+    //     Generate Random Ratios
     // -----------------------------------------------------
 
     /**
      * @brief Prepare the distribution for usage. Needs to be called before generate().
      */
-    void prepare( Sample const& sample )
-    {
-        (void) sample;
-        distrib_ = std::uniform_real_distribution<double>(min, max);
-    }
+    void prepare( Sample const& sample );
 
     /**
-     * @brief Return a randomly chosen position on an edge.
+     * @brief Return a randomly chosen like weight ratio.
      */
-    double generate( typename PlacementTree::EdgeType const& edge )
+    double generate()
     {
-        // We don't use the edge in the default distribution.
-        (void) edge;
-
         return distrib_( utils::Options::get().random_engine() );
     }
 
@@ -90,12 +85,12 @@ public:
 
 public:
 
-    double min = 0.0;
-    double max = 1.0;
+    std::vector<double> intervals;
+    std::vector<double> weights;
 
 private:
 
-    std::uniform_real_distribution<double> distrib_;
+    std::piecewise_linear_distribution<double> distrib_;
 };
 
 } // namespace placement

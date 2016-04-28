@@ -126,9 +126,14 @@ std::string to_string( T const& v )
 }
 
 /**
- * @brief Return a string where the elements of `v` are joined using the delimiter in between.
+ * @brief Return a string where the elements of a container `v` are joined using the string
+ * `delimiter` in between them.
  *
- * For turning the elements into a string, their operator << is used.
+ * The container is iterated via its range based for loop, thus it needs to have begin() and end()
+ * functions.
+ *
+ * For turning the elements of the container into a string, their operator << is used.
+ * Thus, this function can used with all types that support this operator.
  */
 template <typename T>
 std::string join( T const& v, std::string const& delimiter )

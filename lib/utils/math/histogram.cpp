@@ -159,9 +159,9 @@ void Histogram::out_of_range_behaviour( OutOfRangeBehaviour v )
 //     Comparison
 // =================================================================================================
 
-bool operator== (Histogram const& lhs, Histogram const& rhs)
+bool Histogram::operator== ( Histogram const& rhs )
 {
-    return lhs.bins_ == rhs.bins_ && lhs.ranges_ == rhs.ranges_;
+    return bins_ == rhs.bins_ && ranges_ == rhs.ranges_;
 }
 
 bool equal_ranges (Histogram const& lhs, Histogram const& rhs)

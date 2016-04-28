@@ -120,7 +120,7 @@ public:
     //     Comparison
     // -------------------------------------------------------------------------
 
-    friend bool operator== (Histogram const& lhs, Histogram const& rhs);
+    bool operator== ( Histogram const& rhs );
 
     friend bool equal_ranges (Histogram const& lhs, Histogram const& rhs);
 

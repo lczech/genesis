@@ -38,17 +38,17 @@ PYTHON_EXPORT_FUNCTIONS(utils_io_lexer_scanner_export, "utils")
 {
 
     boost::python::def(
-        "read_char",
-        ( char ( * )( utils::CountingIstream &, char ))( &::genesis::utils::read_char ),
+        "read_char_if",
+        ( char ( * )( utils::CountingIstream &, char ))( &::genesis::utils::read_char_if ),
         ( boost::python::arg("source"), boost::python::arg("criterion") ),
-        get_docstring("char ::genesis::utils::read_char (utils::CountingIstream & source, char criterion)")
+        get_docstring("char ::genesis::utils::read_char_if (utils::CountingIstream & source, char criterion)")
     );
 
     boost::python::def(
-        "read_char",
-        ( char ( * )( utils::CountingIstream &, std::function< bool(char)> ))( &::genesis::utils::read_char ),
+        "read_char_if",
+        ( char ( * )( utils::CountingIstream &, std::function< bool(char)> ))( &::genesis::utils::read_char_if ),
         ( boost::python::arg("source"), boost::python::arg("criterion") ),
-        get_docstring("char ::genesis::utils::read_char (utils::CountingIstream & source, std::function< bool(char)> criterion)")
+        get_docstring("char ::genesis::utils::read_char_if (utils::CountingIstream & source, std::function< bool(char)> criterion)")
     );
 
     boost::python::def(
@@ -80,17 +80,17 @@ PYTHON_EXPORT_FUNCTIONS(utils_io_lexer_scanner_export, "utils")
     );
 
     boost::python::def(
-        "check_char",
-        ( void ( * )( utils::CountingIstream &, char ))( &::genesis::utils::check_char ),
+        "expect_char",
+        ( void ( * )( utils::CountingIstream &, char ))( &::genesis::utils::expect_char ),
         ( boost::python::arg("source"), boost::python::arg("criterion") ),
-        get_docstring("void ::genesis::utils::check_char (utils::CountingIstream & source, char criterion)")
+        get_docstring("void ::genesis::utils::expect_char (utils::CountingIstream & source, char criterion)")
     );
 
     boost::python::def(
-        "check_char",
-        ( void ( * )( utils::CountingIstream &, std::function< bool(char)> ))( &::genesis::utils::check_char ),
+        "expect_char",
+        ( void ( * )( utils::CountingIstream &, std::function< bool(char)> ))( &::genesis::utils::expect_char ),
         ( boost::python::arg("source"), boost::python::arg("criterion") ),
-        get_docstring("void ::genesis::utils::check_char (utils::CountingIstream & source, std::function< bool(char)> criterion)")
+        get_docstring("void ::genesis::utils::expect_char (utils::CountingIstream & source, std::function< bool(char)> criterion)")
     );
 
     boost::python::def(

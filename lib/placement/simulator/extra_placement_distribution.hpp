@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_SIMULATOR_PLACEMENT_NUMBER_DISTRIBUTION_H_
-#define GENESIS_PLACEMENT_SIMULATOR_PLACEMENT_NUMBER_DISTRIBUTION_H_
+#ifndef GENESIS_PLACEMENT_SIMULATOR_EXTRA_PLACEMENT_DISTRIBUTION_H_
+#define GENESIS_PLACEMENT_SIMULATOR_EXTRA_PLACEMENT_DISTRIBUTION_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -34,16 +34,27 @@
 #include "placement/sample.hpp"
 
 #include <random>
+#include <string>
 #include <vector>
 
 namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Placement Simulator Placement Number Distribution
+//     Placement Simulator Extra Placement Distribution
 // =================================================================================================
 
-class PlacementNumberDistribution
+/**
+ * @brief Generate a certain number of additional PqueryPlacement%s around a given
+ * ::PlacementTreeEdge.
+ *
+ * This class models both the distribution of the number of generated placements and their
+ * distribution around the given edge. It is easier to model it this way (both distributions in one
+ * class), because they have a dependency: Once the number of placements is drawn, they have to be
+ * distributed along the edges of the tree without repetition according to a distribution of
+ * distances (path lengths) from the central edge. Doing those two steps in one class is easier.
+ */
+class SimulatorExtraPlacementDistribution
 {
 public:
 
@@ -62,14 +73,14 @@ public:
     //     Constructor and Rule of Five
     // -----------------------------------------------------
 
-    PlacementNumberDistribution()  = default;
-    ~PlacementNumberDistribution() = default;
+    SimulatorExtraPlacementDistribution()  = default;
+    ~SimulatorExtraPlacementDistribution() = default;
 
-    PlacementNumberDistribution( PlacementNumberDistribution const& ) = default;
-    PlacementNumberDistribution( PlacementNumberDistribution&& )      = default;
+    SimulatorExtraPlacementDistribution( SimulatorExtraPlacementDistribution const& ) = default;
+    SimulatorExtraPlacementDistribution( SimulatorExtraPlacementDistribution&& )      = default;
 
-    PlacementNumberDistribution& operator= ( PlacementNumberDistribution const& ) = default;
-    PlacementNumberDistribution& operator= ( PlacementNumberDistribution&& )      = default;
+    SimulatorExtraPlacementDistribution& operator= ( SimulatorExtraPlacementDistribution const& ) = default;
+    SimulatorExtraPlacementDistribution& operator= ( SimulatorExtraPlacementDistribution&& )      = default;
 
     // -----------------------------------------------------
     //     Generate Random Positions
@@ -77,6 +88,9 @@ public:
 
     void prepare( Sample const& sample );
     std::vector<size_t> generate( typename PlacementTree::EdgeType const& edge );
+
+    std::string         dump_edge_proximities() const;
+    std::vector<size_t> edge_proximity_maxima() const;
 
     // -----------------------------------------------------
     //     Data Members
