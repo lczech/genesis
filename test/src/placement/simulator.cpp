@@ -117,17 +117,17 @@ TEST(PlacementSimulator, Learning)
     learn_like_weight_ratio_distribution( sample, sim.like_weight_ratio_distribution(), 25 );
 
     // Check edge weight sum.
-    size_t sum_edge_weights = std::accumulate(
+    double sum_edge_weights = std::accumulate(
         sim.edge_distribution().edge_weights.begin(),
         sim.edge_distribution().edge_weights.end(),
         0.0
     );
-    EXPECT_EQ( total_placement_count( sample ), sum_edge_weights );
+    EXPECT_EQ( total_placement_mass( sample ), sum_edge_weights );
 
     auto& placement_number_weights = sim.extra_placement_distribution().placement_number_weights;
 
     // Check extra placement weight sum.
-    size_t sum_extra_placement_weights = std::accumulate(
+    double sum_extra_placement_weights = std::accumulate(
         placement_number_weights.begin(),
         placement_number_weights.end(),
         0
@@ -151,11 +151,11 @@ TEST(PlacementSimulator, Learning)
     // many placements. Take this x times the number of combinations of those placements, which is
     // (i+1)*(i+1), and add this up for all pqueries, to get the total expected number of paths
     // between all placements of the pqueries.
-    size_t possible_placement_combinations = 0;
+    double possible_placement_combinations = 0;
     for( size_t i = 0; i < placement_number_weights.size(); ++i ) {
         possible_placement_combinations += (i+1) * (i+1) * placement_number_weights[ i ];
     }
-    size_t sum_path_length_weights = std::accumulate(
+    double sum_path_length_weights = std::accumulate(
         sim.extra_placement_distribution().placement_path_length_weights.begin(),
         sim.extra_placement_distribution().placement_path_length_weights.end(),
         0
