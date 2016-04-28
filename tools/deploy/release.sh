@@ -217,7 +217,7 @@ echo "Update genesis header lib/genesis.hpp"
 print_separator "Build with version"
 
 # Build again, this time with the updated version tag.
-make
+make update
 
 ####################################################################################################
 #    Commit and Tag
