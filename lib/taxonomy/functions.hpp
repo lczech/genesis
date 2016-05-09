@@ -61,14 +61,22 @@ Rank& add_children_from_string(
     Taxonomy&          taxonomy,
     std::string const& children,
     std::string const& delimiters = ";",
-    bool               trim = true
+    bool               trim_whitespaces = true
 );
+
+void remove_ranks_deeper_than( Taxonomy& tax, size_t level );
 
 // =================================================================================================
 //     Print and Output
 // =================================================================================================
 
 std::ostream& operator << ( std::ostream& out, Taxonomy const& tax );
+
+std::string taxonomic_string(
+    Rank const& rank,
+    std::string delimiter = ";",
+    bool trim_nested_duplicates = true
+);
 
 } // namespace taxonomy
 } // namespace genesis

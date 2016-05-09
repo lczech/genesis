@@ -100,6 +100,7 @@ public:
     Rank& add_child( std::string const& name );
 
     void remove_child( std::string const& name );
+    void clear_children();
 
     // -------------------------------------------------------------------------
     //     Iterators

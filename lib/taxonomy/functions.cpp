@@ -35,10 +35,12 @@
 
 #include "utils/text/string.hpp"
 
+#include <algorithm>
 #include <assert.h>
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <vector>
 
 namespace genesis {
 namespace taxonomy {
@@ -123,6 +125,8 @@ size_t total_taxa_count( Taxonomy const& tax )
  * If any of the later taxa are empty, the taxon name of the previous level rank is used instead.
  * This is useful for unspecified ranks in deeper taxonomies.
  *
+ * This function is the reverse of taxonomic_string().
+ *
  * @param taxonomy   Taxonomy to add the taxa to.
  *
  * @param children   String containing a list of taxa, separated by any of the chars in
@@ -132,7 +136,7 @@ size_t total_taxa_count( Taxonomy const& tax )
  * @param delimiters Optional, defaults to ';'. Determines the characters used to split the
  *                   `children` string.
  *
- * @param trim       Optional, defaults to `true`. If set to true, the taxa given by `children` are
+ * @param trim_whitespaces Optional, defaults to `true`. If set to true, the taxa given by `children`
  *                   are trimmed off white spaces after splitting them. This is helpful if the input
  *                   string is copied from some spreadsheet application or CSV file, where spaces
  *                   between cells might be added. Default is to trim.
@@ -144,7 +148,7 @@ Rank& add_children_from_string(
     Taxonomy&          taxonomy,
     std::string const& children,
     std::string const& delimiters,
-    bool               trim
+    bool               trim_whitespaces
 ){
     // Split the given string, while keeping empty parts.
     auto ranks = utils::split( children, delimiters, false );
@@ -156,7 +160,7 @@ Rank& add_children_from_string(
     }
 
     // Remove white spaces.
-    if( trim ) {
+    if( trim_whitespaces ) {
         for( auto& r : ranks ) {
             r = utils::trim( r );
         }
@@ -191,6 +195,23 @@ Rank& add_children_from_string(
     return static_cast< Rank& >( *cur_rank );
 }
 
+/**
+ * @brief Remove all sub-ranks that are deeper in the hierarchy than the given level.
+ *
+ * That is, providing `level = 0` has the same effect as calling Taxonomy::clear_children() on the
+ * given Taxonomy; `level = 1` has this effect for the children of the given Taxonomy; and so on.
+ */
+void remove_ranks_deeper_than( Taxonomy& tax, size_t level )
+{
+    if( level == 0 ) {
+        tax.clear_children();
+    } else {
+        for( auto& c : tax ) {
+            remove_ranks_deeper_than( c, level - 1 );
+        }
+    }
+}
+
 // =================================================================================================
 //     Print and Output
 // =================================================================================================
@@ -217,6 +238,53 @@ std::ostream& operator << ( std::ostream& out, Taxonomy const& tax )
 {
     print_to_ostream( out, tax, 0 );
     return out;
+}
+
+/**
+ * @brief Return the taxonomic string representation of a given Rank.
+ *
+ * This function is the reverse of add_children_from_string(). It returns a string with all
+ * names of the super-taxa of the given rank, concatenated using `delimiter`.
+ * If `trim_nested_duplicates` is set to true (default), lower level names are set to empty if they
+ * are the same as higher level names.
+ *
+ * Example: For a rank with this list of parents
+ *
+ *     Tax_1
+ *         Tax_1
+ *             Tax_2
+ *
+ * the functions returns "Tax_1;;Tax_2", and respectively "Tax_1;Tax_1;Tax_2" without trimming
+ * nested duplicates.
+ */
+std::string taxonomic_string( Rank const& rank, std::string delimiter, bool trim_nested_duplicates )
+{
+    // This implementation is probably not the fastest, but it is simple and kind of elegant.
+    // Start with an empty vector that will store the super-taxa of the given rank.
+    std::vector<std::string> taxa;
+
+    // Add taxa in reverse order: the deepest rank will be stored first.
+    // This is fast with a vector.
+    Rank const* r = &rank;
+    while( r != nullptr ) {
+        taxa.push_back( r->name() );
+        r = r->parent();
+    }
+
+    // If wanted, set all taxa to an empty string for which the super-taxon has the same name.
+    // As we stored them in reverse order, we can simply go from start to one-but-the-end and check
+    // for equality.
+    if( trim_nested_duplicates ) {
+        for( size_t i = 0; i < taxa.size() - 1; ++i ) {
+            if( taxa[i] == taxa[i+1] ) {
+                taxa[i] = "";
+            }
+        }
+    }
+
+    // Now reverse and return the joined result.
+    std::reverse( taxa.begin(), taxa.end() );
+    return utils::join( taxa, delimiter );
 }
 
 } // namespace taxonomy

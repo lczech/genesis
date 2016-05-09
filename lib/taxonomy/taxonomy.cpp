@@ -161,6 +161,14 @@ void Taxonomy::remove_child( std::string const& name )
     children_.erase( it );
 }
 
+/**
+ * @brief Remove all children.
+ */
+void Taxonomy::clear_children()
+{
+    children_.clear();
+}
+
 // ================================================================================================
 //     Iterators
 // ================================================================================================

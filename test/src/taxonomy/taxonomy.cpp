@@ -77,3 +77,36 @@ TEST( Taxonomy, AddChildren )
     par.parent()->parent()->remove_child( "Tax_7" );
     EXPECT_EQ( 9, total_taxa_count( tax ));
 }
+
+TEST( Taxonomy, ToString )
+{
+    Taxonomy tax;
+
+    std::string s1 = "Tax_1;Tax_2;Tax_3;Tax_4";
+    auto        r1 = add_children_from_string( tax, s1 );
+    EXPECT_EQ( s1, taxonomic_string( r1 ));
+
+    std::string s2 = "Tax_1;;Tax_3;Tax_4";
+    auto        r2 = add_children_from_string( tax, s2 );
+    EXPECT_EQ( s2, taxonomic_string( r2 ));
+    EXPECT_NE( s2, taxonomic_string( r2, ";", false ));
+}
+
+TEST( Taxonomy, Remove )
+{
+    // Add some elements.
+    Taxonomy tax;
+    add_children_from_string( tax, "Tax_1;Tax_2;Tax_3;Tax_4" );
+    add_children_from_string( tax, "Tax_1;Tax_2;Tax_3;Tax_5" );
+    add_children_from_string( tax, "Tax_1;Tax_2;Tax_3;Tax_6" );
+    add_children_from_string( tax, "Tax_1;Tax_2;Tax_7;Tax_8" );
+    EXPECT_EQ( 8, total_taxa_count( tax ));
+
+    // Remove fourth level.
+    remove_ranks_deeper_than( tax, 3 );
+    EXPECT_EQ( 4, total_taxa_count( tax ));
+
+    // Remove third level.
+    remove_ranks_deeper_than( tax, 2 );
+    EXPECT_EQ( 2, total_taxa_count( tax ));
+}
