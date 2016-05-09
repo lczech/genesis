@@ -110,3 +110,84 @@ TEST( Taxonomy, Remove )
     remove_taxa_deeper_than( tax, 2 );
     EXPECT_EQ( 2, total_taxa_count( tax ));
 }
+
+TEST( Taxonomy, ForEach )
+{
+    // Add some elements.
+    Taxonomy tax;
+    add_children_from_string( tax, "A;B;C;D" );
+    add_children_from_string( tax, "A;B;E;F" );
+    add_children_from_string( tax, "A;G;H;I" );
+    add_children_from_string( tax, "A;G;H;J" );
+    add_children_from_string( tax, "K;L" );
+    add_children_from_string( tax, "K;M" );
+    EXPECT_EQ( 13, total_taxa_count( tax ));
+
+    // std::cout << tax;
+
+    // Levelorder with inner taxa.
+    std::string levelorder;
+    levelorder_for_each(
+        tax,
+        [ &levelorder ] ( Taxon & tax ) {
+            levelorder += tax.name();
+        },
+        true
+    );
+    EXPECT_EQ( "AKBGLMCEHDFIJ", levelorder );
+
+    // Levelorder without inner taxa.
+    levelorder = "";
+    levelorder_for_each(
+        tax,
+        [ &levelorder ] ( Taxon & tax ) {
+            levelorder += tax.name();
+        },
+        false
+    );
+    EXPECT_EQ( "LMDFIJ", levelorder );
+
+    // Preorder with inner taxa.
+    std::string preorder;
+    preorder_for_each(
+        tax,
+        [ &preorder ] ( Taxon & tax ) {
+            preorder += tax.name();
+        },
+        true
+    );
+    EXPECT_EQ( "ABCDEFGHIJKLM", preorder );
+
+    // Preorder without inner taxa.
+    preorder = "";
+    preorder_for_each(
+        tax,
+        [ &preorder ] ( Taxon & tax ) {
+            preorder += tax.name();
+        },
+        false
+    );
+    EXPECT_EQ( "DFIJLM", preorder );
+
+    // Postorder with inner taxa.
+    std::string postorder;
+    postorder_for_each(
+        tax,
+        [ &postorder ] ( Taxon & tax ) {
+            postorder += tax.name();
+        },
+        true
+    );
+    EXPECT_EQ( "DCFEBIJHGALMK", postorder );
+
+    // Postorder without inner taxa.
+    postorder = "";
+    postorder_for_each(
+        tax,
+        [ &postorder ] ( Taxon & tax ) {
+            postorder += tax.name();
+        },
+        false
+    );
+    EXPECT_EQ( "DFIJLM", postorder );
+}

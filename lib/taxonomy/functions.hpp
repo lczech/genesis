@@ -31,6 +31,7 @@
  * @ingroup taxonomy
  */
 
+#include <functional>
 #include <iosfwd>
 #include <string>
 
@@ -52,6 +53,24 @@ Taxon const* find_taxon( Taxonomy const& tax, std::string const& name );
 Taxon*       find_taxon( Taxonomy&       tax, std::string const& name );
 
 size_t total_taxa_count( Taxonomy const& tax );
+
+void levelorder_for_each(
+    Taxonomy& tax,
+    std::function< void( Taxon& )> fn,
+    bool include_inner_taxa = true
+);
+
+void preorder_for_each(
+    Taxonomy& tax,
+    std::function< void( Taxon& )> fn,
+    bool include_inner_taxa = true
+);
+
+void postorder_for_each(
+    Taxonomy& tax,
+    std::function< void( Taxon& )> fn,
+    bool include_inner_taxa = true
+);
 
 // =================================================================================================
 //     Modifiers
