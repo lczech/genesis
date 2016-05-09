@@ -30,7 +30,7 @@
 
 #include "common.hpp"
 
-#include "lib/taxonomy/rank.hpp"
+#include "lib/taxonomy/taxon.hpp"
 #include "lib/taxonomy/taxonomy.hpp"
 #include "lib/taxonomy/functions.hpp"
 
@@ -42,14 +42,14 @@ TEST( Taxonomy, Basics )
 {
     Taxonomy tax;
 
-    // Add some simple ranks.
+    // Add some simple taxa.
     auto& r = tax.add_child( "Tax_1" );
     r.add_child( "Tax_2" );
     EXPECT_EQ( 2, total_taxa_count( tax ));
     EXPECT_TRUE( tax.has_child( "Tax_1" ));
 
     // Add recursively.
-    auto a = Rank( "Tax_1" );
+    auto a = Taxon( "Tax_1" );
     a.add_child( "Tax_2" ).add_child( "Tax_3" );
     tax.add_child( a );
     EXPECT_EQ( 3, total_taxa_count( tax ));
@@ -103,10 +103,10 @@ TEST( Taxonomy, Remove )
     EXPECT_EQ( 8, total_taxa_count( tax ));
 
     // Remove fourth level.
-    remove_ranks_deeper_than( tax, 3 );
+    remove_taxa_deeper_than( tax, 3 );
     EXPECT_EQ( 4, total_taxa_count( tax ));
 
     // Remove third level.
-    remove_ranks_deeper_than( tax, 2 );
+    remove_taxa_deeper_than( tax, 2 );
     EXPECT_EQ( 2, total_taxa_count( tax ));
 }

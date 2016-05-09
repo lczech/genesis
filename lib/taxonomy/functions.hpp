@@ -42,14 +42,14 @@ namespace taxonomy {
 // =================================================================================================
 
 class Taxonomy;
-class Rank;
+class Taxon;
 
 // =================================================================================================
 //     Accessors
 // =================================================================================================
 
-Rank const* find_taxon( Taxonomy const& tax, std::string const& name );
-Rank*       find_taxon( Taxonomy&       tax, std::string const& name );
+Taxon const* find_taxon( Taxonomy const& tax, std::string const& name );
+Taxon*       find_taxon( Taxonomy&       tax, std::string const& name );
 
 size_t total_taxa_count( Taxonomy const& tax );
 
@@ -57,14 +57,14 @@ size_t total_taxa_count( Taxonomy const& tax );
 //     Modifiers
 // =================================================================================================
 
-Rank& add_children_from_string(
+Taxon& add_children_from_string(
     Taxonomy&          taxonomy,
     std::string const& children,
     std::string const& delimiters = ";",
     bool               trim_whitespaces = true
 );
 
-void remove_ranks_deeper_than( Taxonomy& tax, size_t level );
+void remove_taxa_deeper_than( Taxonomy& tax, size_t level );
 
 // =================================================================================================
 //     Print and Output
@@ -73,7 +73,7 @@ void remove_ranks_deeper_than( Taxonomy& tax, size_t level );
 std::ostream& operator << ( std::ostream& out, Taxonomy const& tax );
 
 std::string taxonomic_string(
-    Rank const& rank,
+    Taxon const& taxon,
     std::string delimiter = ";",
     bool trim_nested_duplicates = true
 );

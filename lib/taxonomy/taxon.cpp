@@ -22,13 +22,13 @@
 */
 
 /**
- * @brief Implementation of Rank class.
+ * @brief Implementation of Taxon class.
  *
  * @file
  * @ingroup taxonomy
  */
 
-#include "taxonomy/rank.hpp"
+#include "taxonomy/taxon.hpp"
 
 #include <algorithm>
 #include <stdexcept>
@@ -45,19 +45,39 @@ namespace taxonomy {
 // -----------------------------------------------------
 
 /**
- * @brief Return the name of this rank.
+ * @brief Return the name of this taxon.
  */
-std::string const& Rank::name() const
+std::string const& Taxon::name() const
 {
     return name_;
 }
 
 /**
- * @brief Set the name of this rank.
+ * @brief Set the name of this taxon.
  */
-void Rank::name( std::string const& value )
+void Taxon::name( std::string const& value )
 {
     name_ = value;
+}
+
+// -----------------------------------------------------
+//     Rank
+// -----------------------------------------------------
+
+/**
+ * @brief Return the rank of this taxon.
+ */
+std::string const& Taxon::rank() const
+{
+    return rank_;
+}
+
+/**
+ * @brief Set the rank of this taxon.
+ */
+void Taxon::rank( std::string const& value )
+{
+    rank_ = value;
 }
 
 // -----------------------------------------------------
@@ -65,17 +85,17 @@ void Rank::name( std::string const& value )
 // -----------------------------------------------------
 
 /**
- * @brief Return a pointer to the parent of this rank, or a `nullptr` if this is the top level rank.
+ * @brief Return a pointer to the parent of this taxon, or a `nullptr` if this is the top level taxon.
  */
-Rank const* Rank::parent () const
+Taxon const* Taxon::parent () const
 {
     return parent_;
 }
 
 /**
- * @brief Return a pointer to the parent of this rank, or a `nullptr` if this is the top level rank.
+ * @brief Return a pointer to the parent of this taxon, or a `nullptr` if this is the top level taxon.
  */
-Rank* Rank::parent ()
+Taxon* Taxon::parent ()
 {
     return parent_;
 }
@@ -85,11 +105,11 @@ Rank* Rank::parent ()
 // ================================================================================================
 
 /**
- * @brief Virtual implementation function for adding a child rank.
+ * @brief Virtual implementation function for adding a child taxon.
  *
  * See Taxonomy::add_child_() for details.
  */
-Rank& Rank::add_child_( Rank&& child )
+Taxon& Taxon::add_child_( Taxon&& child )
 {
     auto& c = Taxonomy::add_child_( std::move( child ));
     c.parent_ = this;

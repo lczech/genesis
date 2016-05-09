@@ -30,7 +30,7 @@
 
 #include "taxonomy/functions.hpp"
 
-#include "taxonomy/rank.hpp"
+#include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
 
 #include "utils/text/string.hpp"
@@ -50,9 +50,9 @@ namespace taxonomy {
 // =================================================================================================
 
 /**
- * @brief Find a Rank with a given name by recursively searching the taxonomy.
+ * @brief Find a Taxon with a given name by recursively searching the taxonomy.
  */
-Rank const* find_taxon( Taxonomy const& tax, std::string const& name )
+Taxon const* find_taxon( Taxonomy const& tax, std::string const& name )
 {
     for( auto const& c : tax ) {
         if( c.name() == name ) {
@@ -67,13 +67,13 @@ Rank const* find_taxon( Taxonomy const& tax, std::string const& name )
 }
 
 /**
- * @brief Find a Rank with a given name by recursively searching the taxonomy.
+ * @brief Find a Taxon with a given name by recursively searching the taxonomy.
  */
-Rank* find_taxon( Taxonomy& tax, std::string const& name )
+Taxon* find_taxon( Taxonomy& tax, std::string const& name )
 {
     // Avoid code duplication according to Scott Meyers.
-    auto const& ctax = static_cast<Taxonomy const>( tax );
-    return const_cast<Rank*>( find_taxon( ctax, name ));
+    auto const& ctax = static_cast< Taxonomy const >( tax );
+    return const_cast< Taxon* >( find_taxon( ctax, name ));
 }
 
 /**
@@ -122,8 +122,8 @@ size_t total_taxa_count( Taxonomy const& tax )
  *                 Tax_4
  *
  * The first taxon in the string cannot be empty. Otherwise an `std::runtime_error` is thrown.
- * If any of the later taxa are empty, the taxon name of the previous level rank is used instead.
- * This is useful for unspecified ranks in deeper taxonomies. The only exception to this is the last
+ * If any of the later taxa are empty, the taxon name of the previous level taxon is used instead.
+ * This is useful for unspecified taxa in deeper taxonomies. The only exception to this is the last
  * taxon. If it is empty, it is simply omitted. This is because many taxonomy databases end the
  * taxonomic string representation with a ';' by default.
  *
@@ -143,78 +143,78 @@ size_t total_taxa_count( Taxonomy const& tax )
  *                   string is copied from some spreadsheet application or CSV file, where spaces
  *                   between cells might be added. Default is to trim.
  *
- * @return           Return value of the function is the deepest Rank that was given in the
+ * @return           Return value of the function is the deepest Taxon that was given in the
  *                   `children` string, i.e., the last element after splitting the string.
  */
-Rank& add_children_from_string(
+Taxon& add_children_from_string(
     Taxonomy&          taxonomy,
     std::string const& children,
     std::string const& delimiters,
     bool               trim_whitespaces
 ){
     // Split the given string, while keeping empty parts.
-    auto ranks = utils::split( children, delimiters, false );
+    auto taxa = utils::split( children, delimiters, false );
 
     // If there are no elements, the string was empty. This is illegal.
-    if( ranks.size() == 0 ) {
+    if( taxa.size() == 0 ) {
         assert( children == "" );
         throw std::runtime_error( "Cannot add empty child to taxonomy." );
     }
 
     // Remove white spaces.
     if( trim_whitespaces ) {
-        for( auto& r : ranks ) {
+        for( auto& r : taxa ) {
             r = utils::trim( r );
         }
     }
 
-    // The first name in the list of sub-ranks must not be empty.
-    if( ranks.front() == "" ) {
+    // The first name in the list of sub-taxa must not be empty.
+    if( taxa.front() == "" ) {
         throw std::runtime_error( "Cannot add children to taxomonmy if first child is empty." );
     }
 
     // The last name is ommited if empty.
-    if( ranks.back() == "" ) {
-        ranks.pop_back();
+    if( taxa.back() == "" ) {
+        taxa.pop_back();
     }
 
     // Prepare: we need a Taxonomy to add children to. This pointer is updated in the loop so that
     // we go deeper and deeper into the taxonomy. Also, we keep track of the previously assigned
-    // name, for cases where a rank is empty.
-    Taxonomy*   cur_rank = &taxonomy;
+    // name, for cases where a taxon is empty.
+    Taxonomy*   cur_taxon = &taxonomy;
     std::string prev_name;
 
     // Add the names to the Taxonomy.
-    for( auto name : ranks ) {
-        // If a sub-rank is empty, use the super-rank.
-        // As we previously checked that the first rank is not empty, this is well-formed.
+    for( auto name : taxa ) {
+        // If a sub-taxon is empty, use the super-taxon.
+        // As we previously checked that the first taxon is not empty, this is well-formed.
         if( name == "" ) {
             name = prev_name;
         }
 
-        cur_rank  = &cur_rank->add_child( name );
+        cur_taxon  = &cur_taxon->add_child( name );
         prev_name = name;
     }
 
-    // Convert to Rank. This is always legal because we have ensured that we are adding at least
-    // one sub-rank to the taxonomy, and in the loop set cur_rank to this rank, so that it is
-    // actually of dynamic type Rank.
-    return static_cast< Rank& >( *cur_rank );
+    // Convert to Taxon. This is always legal because we have ensured that we are adding at least
+    // one sub-taxon to the taxonomy, and in the loop set cur_taxon to this taxon, so that it is
+    // actually of dynamic type Taxon.
+    return static_cast< Taxon& >( *cur_taxon );
 }
 
 /**
- * @brief Remove all sub-ranks that are deeper in the hierarchy than the given level.
+ * @brief Remove all sub-taxa that are deeper in the hierarchy than the given level.
  *
  * That is, providing `level = 0` has the same effect as calling Taxonomy::clear_children() on the
  * given Taxonomy; `level = 1` has this effect for the children of the given Taxonomy; and so on.
  */
-void remove_ranks_deeper_than( Taxonomy& tax, size_t level )
+void remove_taxa_deeper_than( Taxonomy& tax, size_t level )
 {
     if( level == 0 ) {
         tax.clear_children();
     } else {
         for( auto& c : tax ) {
-            remove_ranks_deeper_than( c, level - 1 );
+            remove_taxa_deeper_than( c, level - 1 );
         }
     }
 }
@@ -224,7 +224,7 @@ void remove_ranks_deeper_than( Taxonomy& tax, size_t level )
 // =================================================================================================
 
 /**
- * @brief Local helper function to print the contents of a Taxonomy or Rank to an ostream.
+ * @brief Local helper function to print the contents of a Taxonomy or Taxon to an ostream.
  */
 void print_to_ostream(
     std::ostream&   out,
@@ -239,7 +239,7 @@ void print_to_ostream(
 }
 
 /**
- * @brief Print the contents of a Taxonomy, i.e., all nested ranks.
+ * @brief Print the contents of a Taxonomy, i.e., all nested taxa.
  */
 std::ostream& operator << ( std::ostream& out, Taxonomy const& tax )
 {
@@ -248,14 +248,14 @@ std::ostream& operator << ( std::ostream& out, Taxonomy const& tax )
 }
 
 /**
- * @brief Return the taxonomic string representation of a given Rank.
+ * @brief Return the taxonomic string representation of a given Taxon.
  *
  * This function is the reverse of add_children_from_string(). It returns a string with all
- * names of the super-taxa of the given rank, concatenated using `delimiter`.
+ * names of the super-taxa of the given taxon, concatenated using `delimiter`.
  * If `trim_nested_duplicates` is set to true (default), lower level names are set to empty if they
  * are the same as higher level names.
  *
- * Example: For a rank with this list of parents
+ * Example: For a taxon with this list of parents
  *
  *     Tax_1
  *         Tax_1
@@ -264,15 +264,15 @@ std::ostream& operator << ( std::ostream& out, Taxonomy const& tax )
  * the functions returns "Tax_1;;Tax_2", and respectively "Tax_1;Tax_1;Tax_2" without trimming
  * nested duplicates.
  */
-std::string taxonomic_string( Rank const& rank, std::string delimiter, bool trim_nested_duplicates )
+std::string taxonomic_string( Taxon const& taxon, std::string delimiter, bool trim_nested_duplicates )
 {
     // This implementation is probably not the fastest, but it is simple and kind of elegant.
-    // Start with an empty vector that will store the super-taxa of the given rank.
+    // Start with an empty vector that will store the super-taxa of the given taxon.
     std::vector<std::string> taxa;
 
-    // Add taxa in reverse order: the deepest rank will be stored first.
+    // Add taxa in reverse order: the deepest taxon will be stored first.
     // This is fast with a vector.
-    Rank const* r = &rank;
+    Taxon const* r = &taxon;
     while( r != nullptr ) {
         taxa.push_back( r->name() );
         r = r->parent();
