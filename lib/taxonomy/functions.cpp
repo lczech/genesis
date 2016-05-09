@@ -123,7 +123,9 @@ size_t total_taxa_count( Taxonomy const& tax )
  *
  * The first taxon in the string cannot be empty. Otherwise an `std::runtime_error` is thrown.
  * If any of the later taxa are empty, the taxon name of the previous level rank is used instead.
- * This is useful for unspecified ranks in deeper taxonomies.
+ * This is useful for unspecified ranks in deeper taxonomies. The only exception to this is the last
+ * taxon. If it is empty, it is simply omitted. This is because many taxonomy databases end the
+ * taxonomic string representation with a ';' by default.
  *
  * This function is the reverse of taxonomic_string().
  *
@@ -169,6 +171,11 @@ Rank& add_children_from_string(
     // The first name in the list of sub-ranks must not be empty.
     if( ranks.front() == "" ) {
         throw std::runtime_error( "Cannot add children to taxomonmy if first child is empty." );
+    }
+
+    // The last name is ommited if empty.
+    if( ranks.back() == "" ) {
+        ranks.pop_back();
     }
 
     // Prepare: we need a Taxonomy to add children to. This pointer is updated in the loop so that
