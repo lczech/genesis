@@ -116,7 +116,7 @@ T parse_signed_integer( utils::CountingIstream& source )
 template<class T>
 T parse_integer( utils::CountingIstream& source )
 {
-    return parse_integer<T>(source);
+    return parse_signed_integer<T>(source);
 }
 
 // =================================================================================================
