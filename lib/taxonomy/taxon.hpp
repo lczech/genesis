@@ -1,5 +1,5 @@
-#ifndef GENESIS_TAXONOMY_RANK_H_
-#define GENESIS_TAXONOMY_RANK_H_
+#ifndef GENESIS_TAXONOMY_TAXON_H_
+#define GENESIS_TAXONOMY_TAXON_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -36,7 +36,16 @@
 namespace genesis {
 namespace taxonomy {
 
-class Rank : public Taxonomy
+/**
+ * @brief Store a Taxon, i.e., an element in a Taxonomy, with its name, rank and sub-taxa.
+ *
+ * This class models a taxon within the hierarchy of a Taxonomy. Each such taxon can have a name
+ * assigned to it, a taxonomic rank, and a arbitrarily nested set of sub-taxa.
+ *
+ * Each taxon is itself also a Taxonomy, in terms of class inheritance. This also makes some
+ * biological sense, as a taxon can be seen as the taxonomy of its sub-taxa.
+ */
+class Taxon : public Taxonomy
 {
 public:
 
@@ -56,14 +65,14 @@ public:
     /**
      * @brief Default constructor. Does nothing.
      */
-    Rank()
+    Taxon()
         : parent_(nullptr)
     {}
 
     /**
-     * @brief Constructor that uses the given name for the Rank.
+     * @brief Constructor that uses the given name for the Taxon.
      */
-    Rank( std::string name )
+    Taxon( std::string name )
         : name_(name)
         , parent_(nullptr)
     {}
@@ -71,15 +80,15 @@ public:
     /**
      * @brief Default destructor.
      */
-    ~Rank() = default;
+    ~Taxon() = default;
 
-    Rank( Rank const& ) = default;
-    Rank( Rank&& )      = default;
+    Taxon( Taxon const& ) = default;
+    Taxon( Taxon&& )      = default;
 
-    Rank& operator= ( Rank const& ) = default;
-    Rank& operator= ( Rank&& )      = default;
+    Taxon& operator= ( Taxon const& ) = default;
+    Taxon& operator= ( Taxon&& )      = default;
 
-    void swap( Rank& other )
+    void swap( Taxon& other )
     {
         using std::swap;
         Taxonomy::swap( other );
@@ -94,8 +103,11 @@ public:
     std::string const& name() const;
     void               name( std::string const& value );
 
-    Rank const* parent () const;
-    Rank*       parent ();
+    std::string const& rank() const;
+    void               rank( std::string const& value );
+
+    Taxon const* parent () const;
+    Taxon*       parent ();
 
     // -------------------------------------------------------------------------
     //     Protected Implementation Details
@@ -103,7 +115,7 @@ public:
 
 protected:
 
-    Rank& add_child_( Rank&& child ) override;
+    Taxon& add_child_( Taxon&& child ) override;
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -112,7 +124,9 @@ protected:
 private:
 
     std::string name_;
-    Rank*       parent_;
+    std::string rank_;
+
+    Taxon*      parent_;
 };
 
 } // namespace taxonomy

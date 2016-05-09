@@ -30,7 +30,7 @@
 
 #include "common.hpp"
 
-#include "lib/taxonomy/rank.hpp"
+#include "lib/taxonomy/taxon.hpp"
 #include "lib/taxonomy/taxonomy.hpp"
 #include "lib/taxonomy/functions.hpp"
 
@@ -42,14 +42,14 @@ TEST( Taxonomy, Basics )
 {
     Taxonomy tax;
 
-    // Add some simple ranks.
+    // Add some simple taxa.
     auto& r = tax.add_child( "Tax_1" );
     r.add_child( "Tax_2" );
     EXPECT_EQ( 2, total_taxa_count( tax ));
     EXPECT_TRUE( tax.has_child( "Tax_1" ));
 
     // Add recursively.
-    auto a = Rank( "Tax_1" );
+    auto a = Taxon( "Tax_1" );
     a.add_child( "Tax_2" ).add_child( "Tax_3" );
     tax.add_child( a );
     EXPECT_EQ( 3, total_taxa_count( tax ));
@@ -103,10 +103,91 @@ TEST( Taxonomy, Remove )
     EXPECT_EQ( 8, total_taxa_count( tax ));
 
     // Remove fourth level.
-    remove_ranks_deeper_than( tax, 3 );
+    remove_taxa_deeper_than( tax, 3 );
     EXPECT_EQ( 4, total_taxa_count( tax ));
 
     // Remove third level.
-    remove_ranks_deeper_than( tax, 2 );
+    remove_taxa_deeper_than( tax, 2 );
     EXPECT_EQ( 2, total_taxa_count( tax ));
+}
+
+TEST( Taxonomy, ForEach )
+{
+    // Add some elements.
+    Taxonomy tax;
+    add_children_from_string( tax, "A;B;C;D" );
+    add_children_from_string( tax, "A;B;E;F" );
+    add_children_from_string( tax, "A;G;H;I" );
+    add_children_from_string( tax, "A;G;H;J" );
+    add_children_from_string( tax, "K;L" );
+    add_children_from_string( tax, "K;M" );
+    EXPECT_EQ( 13, total_taxa_count( tax ));
+
+    // std::cout << tax;
+
+    // Levelorder with inner taxa.
+    std::string levelorder;
+    levelorder_for_each(
+        tax,
+        [ &levelorder ] ( Taxon & tax ) {
+            levelorder += tax.name();
+        },
+        true
+    );
+    EXPECT_EQ( "AKBGLMCEHDFIJ", levelorder );
+
+    // Levelorder without inner taxa.
+    levelorder = "";
+    levelorder_for_each(
+        tax,
+        [ &levelorder ] ( Taxon & tax ) {
+            levelorder += tax.name();
+        },
+        false
+    );
+    EXPECT_EQ( "LMDFIJ", levelorder );
+
+    // Preorder with inner taxa.
+    std::string preorder;
+    preorder_for_each(
+        tax,
+        [ &preorder ] ( Taxon & tax ) {
+            preorder += tax.name();
+        },
+        true
+    );
+    EXPECT_EQ( "ABCDEFGHIJKLM", preorder );
+
+    // Preorder without inner taxa.
+    preorder = "";
+    preorder_for_each(
+        tax,
+        [ &preorder ] ( Taxon & tax ) {
+            preorder += tax.name();
+        },
+        false
+    );
+    EXPECT_EQ( "DFIJLM", preorder );
+
+    // Postorder with inner taxa.
+    std::string postorder;
+    postorder_for_each(
+        tax,
+        [ &postorder ] ( Taxon & tax ) {
+            postorder += tax.name();
+        },
+        true
+    );
+    EXPECT_EQ( "DCFEBIJHGALMK", postorder );
+
+    // Postorder without inner taxa.
+    postorder = "";
+    postorder_for_each(
+        tax,
+        [ &postorder ] ( Taxon & tax ) {
+            postorder += tax.name();
+        },
+        false
+    );
+    EXPECT_EQ( "DFIJLM", postorder );
 }

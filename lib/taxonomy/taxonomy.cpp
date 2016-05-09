@@ -30,7 +30,7 @@
 
 #include "taxonomy/taxonomy.hpp"
 
-#include "taxonomy/rank.hpp"
+#include "taxonomy/taxon.hpp"
 
 #include <algorithm>
 #include <stdexcept>
@@ -43,7 +43,7 @@ namespace taxonomy {
 // ================================================================================================
 
 /**
- * @brief Return the number of child ranks.
+ * @brief Return the number of child taxa.
  */
 size_t Taxonomy::size() const
 {
@@ -51,57 +51,57 @@ size_t Taxonomy::size() const
 }
 
 /**
- * @brief Return whether an immediate child rank with the given name exists.
+ * @brief Return whether an immediate child taxon with the given name exists.
  */
 bool Taxonomy::has_child ( std::string name ) const
 {
     return children_.end() != std::find_if(
         children_.begin(),
         children_.end(),
-        [ &name ] ( Rank const& r ) {
+        [ &name ] ( Taxon const& r ) {
             return r.name() == name;
         }
     );
 }
 
 /**
- * @brief Return the child rank with a given name if it exists, or throw otherwise.
+ * @brief Return the child taxon with a given name if it exists, or throw otherwise.
  */
-Rank const& Taxonomy::get_child ( std::string name ) const
+Taxon const& Taxonomy::get_child ( std::string name ) const
 {
     for( auto const& c : children_ ) {
         if( c.name() == name ) {
             return c;
         }
     }
-    throw std::runtime_error( "Rank has no child named '" + name + "'." );
+    throw std::runtime_error( "Taxon has no child named '" + name + "'." );
 }
 
 /**
- * @brief Return the child rank with a given name if it exists, or throw otherwise.
+ * @brief Return the child taxon with a given name if it exists, or throw otherwise.
  */
-Rank& Taxonomy::get_child ( std::string name )
+Taxon& Taxonomy::get_child ( std::string name )
 {
     for( auto& c : children_ ) {
         if( c.name() == name ) {
             return c;
         }
     }
-    throw std::runtime_error( "Rank has no child named '" + name + "'." );
+    throw std::runtime_error( "Taxon has no child named '" + name + "'." );
 }
 
 /**
- * @brief Return the child rank with a given name if it exists, or throw otherwise.
+ * @brief Return the child taxon with a given name if it exists, or throw otherwise.
  */
-Rank const& Taxonomy::operator [] ( std::string name ) const
+Taxon const& Taxonomy::operator [] ( std::string name ) const
 {
     return get_child( name );
 }
 
 /**
- * @brief Return the child rank with a given name if it exists, or throw otherwise.
+ * @brief Return the child taxon with a given name if it exists, or throw otherwise.
  */
-Rank& Taxonomy::operator [] ( std::string name )
+Taxon& Taxonomy::operator [] ( std::string name )
 {
     return get_child( name );
 }
@@ -111,52 +111,52 @@ Rank& Taxonomy::operator [] ( std::string name )
 // ================================================================================================
 
 /**
- * @brief Add a child rank as a copy of a given rank and return it.
+ * @brief Add a child taxon as a copy of a given taxon and return it.
  *
- * If a child rank with the same name already exists, it is recursively merged with the given rank.
+ * If a child taxon with the same name already exists, it is recursively merged with the given taxon.
  */
-Rank& Taxonomy::add_child( Rank const& child )
+Taxon& Taxonomy::add_child( Taxon const& child )
 {
-    return add_child_( Rank( child ));
+    return add_child_( Taxon( child ));
 }
 
 /**
- * @brief Add a child rank by moving from a given rank and return it.
+ * @brief Add a child taxon by moving from a given taxon and return it.
  *
- * If a child rank with the same name already exists, it is recursively merged with the given rank.
+ * If a child taxon with the same name already exists, it is recursively merged with the given taxon.
  */
-Rank& Taxonomy::add_child( Rank&& child )
+Taxon& Taxonomy::add_child( Taxon&& child )
 {
     return add_child_( std::move( child ));
 }
 
 /**
- * @brief Add a child rank by creating a new one with the given name and return it.
+ * @brief Add a child taxon by creating a new one with the given name and return it.
  *
- * If a child rank with the same name already exists, nothing happens.
+ * If a child taxon with the same name already exists, nothing happens.
  */
-Rank& Taxonomy::add_child( std::string const& name )
+Taxon& Taxonomy::add_child( std::string const& name )
 {
-    return add_child_( Rank( name ));
+    return add_child_( Taxon( name ));
 }
 
 /**
- * @brief Remove a child rank with a certain name.
+ * @brief Remove a child taxon with a certain name.
  *
- * The rank (and all its sub-ranks) are destroyed.
- * Throws an `std::runtime_error` if there is no rank with the given name.
+ * The taxon (and all its sub-taxa) are destroyed.
+ * Throws an `std::runtime_error` if there is no taxon with the given name.
  */
 void Taxonomy::remove_child( std::string const& name )
 {
     auto it = std::find_if(
         children_.begin(),
         children_.end(),
-        [ &name ] ( Rank const& r ) {
+        [ &name ] ( Taxon const& r ) {
             return r.name() == name;
         }
     );
     if( it == children_.end() ) {
-        throw std::runtime_error( "Rank has no child named '" + name + "'." );
+        throw std::runtime_error( "Taxon has no child named '" + name + "'." );
     }
     children_.erase( it );
 }
@@ -174,7 +174,7 @@ void Taxonomy::clear_children()
 // ================================================================================================
 
 /**
- * @brief Return an iterator to the beginning of the child ranks.
+ * @brief Return an iterator to the beginning of the child taxa.
  */
 Taxonomy::iterator Taxonomy::begin()
 {
@@ -182,7 +182,7 @@ Taxonomy::iterator Taxonomy::begin()
 }
 
 /**
- * @brief Return an iterator to the end of the child ranks.
+ * @brief Return an iterator to the end of the child taxa.
  */
 Taxonomy::iterator Taxonomy::end()
 {
@@ -190,7 +190,7 @@ Taxonomy::iterator Taxonomy::end()
 }
 
 /**
- * @brief Return a const iterator to the beginning of the child ranks.
+ * @brief Return a const iterator to the beginning of the child taxa.
  */
 Taxonomy::const_iterator Taxonomy::begin() const
 {
@@ -198,7 +198,7 @@ Taxonomy::const_iterator Taxonomy::begin() const
 }
 
 /**
- * @brief Return a const iterator to the end of the child ranks.
+ * @brief Return a const iterator to the end of the child taxa.
  */
 Taxonomy::const_iterator Taxonomy::end() const
 {
@@ -206,7 +206,7 @@ Taxonomy::const_iterator Taxonomy::end() const
 }
 
 /**
- * @brief Return a const iterator to the beginning of the child ranks.
+ * @brief Return a const iterator to the beginning of the child taxa.
  */
 Taxonomy::const_iterator Taxonomy::cbegin() const
 {
@@ -214,7 +214,7 @@ Taxonomy::const_iterator Taxonomy::cbegin() const
 }
 
 /**
- * @brief Return a const iterator to the end of the child ranks.
+ * @brief Return a const iterator to the end of the child taxa.
  */
 Taxonomy::const_iterator Taxonomy::cend() const
 {
@@ -226,20 +226,20 @@ Taxonomy::const_iterator Taxonomy::cend() const
 // ================================================================================================
 
 /**
- * @brief Virtual implementation function for adding a child rank.
+ * @brief Virtual implementation function for adding a child taxon.
  *
  * This function is invoked by all add_child() functions in order to implement the non-virtual
  * interface pattern.
- * It is needed because adding a child rank differs for Taxonomy and Rank. In the latter case,
- * the additional @link Rank::parent() parent @endlink property has to be set. Thus, this function
- * is overridden by Rank, see Rank::add_child_().
+ * It is needed because adding a child taxon differs for Taxonomy and Taxon. In the latter case,
+ * the additional @link Taxon::parent() parent @endlink property has to be set. Thus, this function
+ * is overridden by Taxon, see Taxon::add_child_().
  *
- * If a child rank with the same name already exists, it is recursively merged with the given rank.
+ * If a child taxon with the same name already exists, it is recursively merged with the given taxon.
  * The function returns the child.
  */
-Rank& Taxonomy::add_child_( Rank&& child )
+Taxon& Taxonomy::add_child_( Taxon&& child )
 {
-    // Check if a child rank with the given name already exists.
+    // Check if a child taxon with the given name already exists.
     for( auto& c : children_ ) {
         if( c.name() == child.name() ) {
 

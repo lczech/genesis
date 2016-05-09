@@ -41,12 +41,15 @@ namespace taxonomy {
 //     Forward Declarations
 // ================================================================================================
 
-class Rank;
+class Taxon;
 
 // ================================================================================================
 //     Taxonomy
 // ================================================================================================
 
+/**
+ * @brief Store a Taxonomy, i.e., a nested hierarchy of @link Taxon Taxa @endlink.
+ */
 class Taxonomy
 {
 public:
@@ -55,8 +58,8 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------------------
 
-    typedef std::vector<Rank>::iterator             iterator;
-    typedef std::vector<Rank>::const_iterator const_iterator;
+    typedef std::vector<Taxon>::iterator             iterator;
+    typedef std::vector<Taxon>::const_iterator const_iterator;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -85,19 +88,19 @@ public:
 
     bool has_child ( std::string name ) const;
 
-    Rank const& get_child ( std::string name ) const;
-    Rank&       get_child ( std::string name );
+    Taxon const& get_child ( std::string name ) const;
+    Taxon&       get_child ( std::string name );
 
-    Rank const& operator [] ( std::string name ) const;
-    Rank&       operator [] ( std::string name );
+    Taxon const& operator [] ( std::string name ) const;
+    Taxon&       operator [] ( std::string name );
 
     // -------------------------------------------------------------------------
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    Rank& add_child( Rank const&        child );
-    Rank& add_child( Rank&&             child );
-    Rank& add_child( std::string const& name );
+    Taxon& add_child( Taxon const&        child );
+    Taxon& add_child( Taxon&&             child );
+    Taxon& add_child( std::string const& name );
 
     void remove_child( std::string const& name );
     void clear_children();
@@ -121,7 +124,7 @@ public:
 
 protected:
 
-    virtual Rank& add_child_( Rank&& child );
+    virtual Taxon& add_child_( Taxon&& child );
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -129,7 +132,7 @@ protected:
 
 private:
 
-    std::vector<Rank> children_;
+    std::vector<Taxon> children_;
 };
 
 } // namespace taxonomy
