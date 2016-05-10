@@ -43,7 +43,9 @@ namespace taxonomy {
 // ================================================================================================
 
 /**
- * @brief Return the number of child taxa.
+ * @brief Return the number of immediate child @link Taxon Taxa@endlink.
+ *
+ * See total_taxa_count() for counting all Taxa, including all nested ones.
  */
 size_t Taxonomy::size() const
 {
@@ -117,6 +119,8 @@ Taxon& Taxonomy::operator [] ( std::string name )
  */
 Taxon& Taxonomy::add_child( Taxon const& child )
 {
+    // We create a copy here and move it. Instead, we could also have taken the Taxon by value,
+    // but then the interface is inconsistent, as we usually take by const ref.
     return add_child_( Taxon( child ));
 }
 

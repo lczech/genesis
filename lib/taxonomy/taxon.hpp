@@ -39,11 +39,14 @@ namespace taxonomy {
 /**
  * @brief Store a Taxon, i.e., an element in a Taxonomy, with its name, rank and sub-taxa.
  *
- * This class models a taxon within the hierarchy of a Taxonomy. Each such taxon can have a name
- * assigned to it, a taxonomic rank, and a arbitrarily nested set of sub-taxa.
+ * This class models a taxon within the hierarchy of a Taxonomy. Each such taxon can have a
+ * @link name() name@endlink assigned to it, a @link rank() taxonomic rank@endlink, and an
+ * arbitrarily nested set of sub-taxa.
+ * The name and the rank are both free-form strings which can have any value.
  *
  * Each taxon is itself also a Taxonomy, in terms of class inheritance. This also makes some
- * biological sense, as a taxon can be seen as the taxonomy of its sub-taxa.
+ * biological sense, as a taxon can be seen as the taxonomy of its sub-taxa. We however only
+ * consider the Taxonomy as the top level of the hierarchy. For more information, see there.
  */
 class Taxon : public Taxonomy
 {

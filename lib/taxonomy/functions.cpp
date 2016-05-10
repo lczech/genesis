@@ -78,6 +78,24 @@ Taxon* find_taxon( Taxonomy& tax, std::string const& name )
 }
 
 /**
+ * @brief Return the level of depth of a given Taxon.
+ *
+ * This level is the number of parents the Taxon has, excluding the Taxonomy which contains them.
+ * That means, the immediate children of a Taxonomy all have level 0, their children level 1,
+ * and so on.
+ */
+size_t taxon_level( Taxon const& taxon )
+{
+    size_t res = 0;
+    Taxon const* parent = taxon.parent();
+    while( parent != nullptr ) {
+        parent = parent->parent();
+        ++res;
+    }
+    return res;
+}
+
+/**
  * @brief Return the total number of taxa contained in the Taxomony, i.e., the number of
  * (non-unique) names of all children (recursively).
  *
@@ -280,18 +298,23 @@ Taxon& add_children_from_string(
 }
 
 /**
- * @brief Remove all sub-taxa that are deeper in the hierarchy than the given level.
+ * @brief Remove all @link Taxon Taxa @endlink at a given level of depth in the Taxonomy hierarchy,
+ * and all their children.
  *
- * That is, providing `level = 0` has the same effect as calling Taxonomy::clear_children() on the
- * given Taxonomy; `level = 1` has this effect for the children of the given Taxonomy; and so on.
+ * That is, providing `level = 0` has the same effect as calling
+ * @link Taxonomy::clear_children() clear_children() @endlink on the given Taxonomy;
+ * `level = 1` has this effect for the children of the given Taxonomy; and so on.
+ *
+ * See taxon_level() for more information on the level.
  */
-void remove_taxa_deeper_than( Taxonomy& tax, size_t level )
+void remove_taxa_at_level( Taxonomy& tax, size_t level )
 {
+    // Recursive implementation, because we are lazy.
     if( level == 0 ) {
         tax.clear_children();
     } else {
         for( auto& c : tax ) {
-            remove_taxa_deeper_than( c, level - 1 );
+            remove_taxa_at_level( c, level - 1 );
         }
     }
 }
