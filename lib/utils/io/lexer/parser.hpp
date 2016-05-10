@@ -209,8 +209,9 @@ T parse_float( utils::CountingIstream& source )
 
 std::string parse_quoted_string(
     utils::CountingIstream& source,
-    bool use_escapes = true,
-    bool include_qmarks = false
+    bool use_escapes     = true,
+    bool use_twin_quotes = false,
+    bool include_qmarks  = false
 );
 
 } // namespace utils

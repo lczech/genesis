@@ -203,12 +203,13 @@ void test_string(
     std::string val,
     size_t col,
     bool use_escapes,
+    bool use_twin_quotes,
     bool include_qmarks
 ) {
     std::istringstream iss ( str );
     CountingIstream iit (iss);
 
-    auto res = parse_quoted_string( iit, use_escapes, include_qmarks );
+    auto res = parse_quoted_string( iit, use_escapes, use_twin_quotes, include_qmarks );
     EXPECT_EQ( val, res )
         << "Input string: '" << str << "', "
         << "use_escapes: "   << (use_escapes ? "true" : "false") << ", "
@@ -226,38 +227,68 @@ TEST(Parser, String)
     SCOPED_TRACE("Parser.String");
 
     // empty string
-    test_string( "", "", 1, true, true);
+    test_string( "", "", 1, true, true, true);
+    test_string( "", "", 1, true, false, true);
+    test_string( "", "", 1, false, true, true);
+    test_string( "", "", 1, false, false, true);
+
+    // Escape
 
     // no closing qmark
-    EXPECT_THROW( test_string( "\"", "", 1, true, true), std::runtime_error);
-    EXPECT_THROW( test_string( "\"xyz", "", 1, true, true), std::runtime_error);
-    EXPECT_THROW( test_string( "xyz", "", 1, true, true), std::runtime_error);
+    EXPECT_THROW( test_string( "\"",    "", 1, true, false, true), std::runtime_error);
+    EXPECT_THROW( test_string( "\"xyz", "", 1, true, false, true), std::runtime_error);
+    EXPECT_THROW( test_string( "xyz",   "", 1, true, false, true), std::runtime_error);
 
     // end after escape sequence
-    EXPECT_THROW( test_string( "\"bla\\", "", 1, true, true), std::runtime_error);
+    EXPECT_THROW( test_string( "\"bla\\", "", 1, true, false, true), std::runtime_error);
 
     // no escape sequences
-    test_string( "\"bla\"", "bla",     6, true,  false );
-    test_string( "\"bla\"", "\"bla\"", 6, true,  true  );
-    test_string( "\"bla\"", "bla",     6, false, false );
-    test_string( "\"bla\"", "\"bla\"", 6, false, true  );
+    test_string( "\"bla\"", "bla",     6, true, false,  false );
+    test_string( "\"bla\"", "\"bla\"", 6, true, false,  true  );
+    test_string( "\"bla\"", "bla",     6, false, false, false );
+    test_string( "\"bla\"", "\"bla\"", 6, false, false, true  );
 
     // other qmarks
-    test_string( "-bla-", "bla",   6, true,  false );
-    test_string( ".bla.", ".bla.", 6, true,  true  );
-    test_string( "\nbla\n", "bla", 1, false, false );
-    test_string( "xblax", "xblax", 6, false, true  );
+    test_string( "-bla-", "bla",   6, true, false,  false );
+    test_string( ".bla.", ".bla.", 6, true, false,  true  );
+    test_string( "\nbla\n", "bla", 1, false, false, false );
+    test_string( "xblax", "xblax", 6, false, false, true  );
 
     // with escape sequences
-    test_string( "'bl\\\\a'", "bl\\a",     8, true,  false );
-    test_string( "'bl\\\\a'", "'bl\\a'",   8, true,  true  );
-    test_string( "'bl\\\\a'", "bl\\\\a",   8, false, false );
-    test_string( "'bl\\\\a'", "'bl\\\\a'", 8, false, true  );
+    test_string( "'bl\\\\a'", "bl\\a",     8, true, false,  false );
+    test_string( "'bl\\\\a'", "'bl\\a'",   8, true, false,  true  );
+    test_string( "'bl\\\\a'", "bl\\\\a",   8, false, false, false );
+    test_string( "'bl\\\\a'", "'bl\\\\a'", 8, false, false, true  );
 
     // other escape sequences
-    test_string( "'bl\\ra'", "bl\ra",     8, true,  false );
-    test_string( "'bl\\na'", "bl\na",     8, true,  false );
-    test_string( "'bl\\ta'", "bl\ta",     8, true,  false );
-    test_string( "'bl\\:a'", "bl:a",      8, true,  false );
-    test_string( "'bl\\\"a'", "bl\"a",    8, true,  false );
+    test_string( "'bl\\ra'", "bl\ra",     8, true, false,  false );
+    test_string( "'bl\\na'", "bl\na",     8, true, false,  false );
+    test_string( "'bl\\ta'", "bl\ta",     8, true, false,  false );
+    test_string( "'bl\\:a'", "bl:a",      8, true, false,  false );
+    test_string( "'bl\\\"a'", "bl\"a",    8, true, false,  false );
+
+    // Double quotes
+
+    // no closing qmark
+    EXPECT_THROW( test_string( "\"",     "", 1, false, true, true), std::runtime_error);
+    EXPECT_THROW( test_string( "\"xyz",  "", 1, false, true, true), std::runtime_error);
+    EXPECT_THROW( test_string( "xyz",    "", 1, false, true, true), std::runtime_error);
+    EXPECT_THROW( test_string( "'xy''z", "", 1, false, true, true), std::runtime_error);
+
+    // end after escape sequence
+    EXPECT_THROW( test_string( "\"bla\\", "", 1, false, true, true), std::runtime_error);
+
+    // no escape sequences
+    test_string( "\"bla\"", "bla",     6, false, true,  false );
+    test_string( "\"bla\"", "\"bla\"", 6, false, true,  true  );
+
+    // with double qmarks
+    test_string( "''", "",              3, false, true, false );
+    test_string( "''''", "'",           5, false, true, false );
+    test_string( "''''''", "''",        7, false, true, false );
+    test_string( "'bla'", "bla",        6, false, true, false );
+    test_string( "'bl''a'", "bl'a",     8, false, true, false );
+    test_string( "'''bla'", "'bla",     8, false, true, false );
+    test_string( "'bla'''", "bla'",     8, false, true, false );
+    test_string( "'a''''b'", "a''b",    9, false, true, false );
 }

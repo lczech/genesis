@@ -46,23 +46,31 @@ namespace utils {
  * @brief Read a string in quotation marks from a stream and return it.
  *
  * The first char of the stream is considered to be the opening quotation mark. Everything up until
- * the closing quotation mark (the same char again, whatever it is) is then read.
- *
- * If the optional parameter `use_escapes` is set to `true`, chars preceeded by a backslash are
- * considered to be "escaped". The chars `\r`, `\n` and `\t` are then turned into their
- * respective white space equivalents, while all other chars are copied verbatim to the return
- * string. Thus, by escaping it, a the string can also include the quotation mark itself.
- * Default of this parameter is `true`.
- *
- * The optional parameter `include_qmarks` demtermines whether the quotation marks are included in
- * the output or not. Default is `false`.
+ * the closing quotation mark (the same char again, whatever it is) is then read. The stream is
+ * then pointing to the char right after the closing quotation mark.
  *
  * If the string ends prematurely, i.e., without the closing quotation mark, or right after a
  * backslash if `use_escapes` is used, the function throws an `std::runtime_error`.
+ *
+ * @param source Stream to read from.
+ *
+ * @param use_escapes If this optional parameter is set to `true`, chars preceeded by
+ *        a backslash `\` are considered to be "escaped". If the char following the backslash is any
+ *        of `r`, `n` or `t`, it is turned into its respective white space equivalent, while all
+ *        other chars are copied verbatim to the return string. Thus, by escaping it, a the string
+ *        can also include the quotation mark itself. Default of this parameter is `true`.
+ *
+ * @param use_twin_quotes If this optional parameter is set to `true`, the quotation mark itself
+ *        can be escaped using two consecutive quotation marks. This works in addition to escaping
+ *        it with a backslash (when `use_escapes` is used).
+ *
+ * @param include_qmarks The optional parameter `include_qmarks` demtermines whether the quotation
+ *        marks are included in the output or not. Default is `false`.
  */
 std::string parse_quoted_string(
     utils::CountingIstream& source,
     bool use_escapes,
+    bool use_twin_quotes,
     bool include_qmarks
 ) {
     if( !source ) {
@@ -79,10 +87,32 @@ std::string parse_quoted_string(
         value += qmark;
     }
 
-    while( source && *source != qmark ) {
-        // Treat escape sequences.
-        if( *source == '\\' && use_escapes ) {
+    bool found_closing_qmark = false;
+    while( source ) {
 
+        // Treat quotation marks.
+        if( *source == qmark ) {
+            ++source;
+
+            // This is the end if we are not looking for double qmarks.
+            if( ! use_twin_quotes ) {
+                found_closing_qmark = true;
+                break;
+            }
+
+            // If we are here, this is potentially a double qmark.
+            // If so, it belongs to the result string. If not, this is the end.
+            if( source && *source == qmark ) {
+                value += qmark;
+            } else {
+                found_closing_qmark = true;
+                break;
+            }
+
+        // Treat escape sequences.
+        } else if( *source == '\\' && use_escapes ) {
+
+            // Skip the backslash.
             ++source;
 
             // We found an escaping backslash. This cannot be the end of the stream.
@@ -108,24 +138,26 @@ std::string parse_quoted_string(
                 default :
                     value += *source;
             }
-            ++source;
 
+        // Treat normal (non-escape) chars.
         } else {
-            // Treat normal (non-escape) chars.
             value += *source;
-            ++source;
         }
+
+        // Next char.
+        ++source;
     }
 
     // We need to find the closing qmark, otherwise it's an error.
-    if( !source ) {
+    // This case only occurs if the stream ends before the qmark is found, so assert this.
+    // (This is not true the other way round: the stream can have reached its end right after
+    // the closing qmark!)
+    if( ! found_closing_qmark ) {
+        assert( ! source );
         throw std::runtime_error(
-            "Unexpected end of string at " + source.at() + "."
+            "Unexpected end of string at " + source.at() + ". Expected closing quotation mark."
         );
     }
-
-    assert( source && *source == qmark );
-    ++source;
 
     // Finish the return value.
     if( include_qmarks ) {
