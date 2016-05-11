@@ -31,6 +31,8 @@
 #include "utils/formats/csv/reader.hpp"
 
 #include <assert.h>
+#include <fstream>
+#include <sstream>
 #include <stdexcept>
 
 #include "utils/core/fs.hpp"
@@ -43,6 +45,51 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Reading
+// =================================================================================================
+
+/**
+ * @brief Read CSV data until the end of the stream is reached, and return it.
+ */
+CsvReader::table CsvReader::from_stream( std::istream& is ) const
+{
+    table result;
+    auto it = utils::CountingIstream( is );
+
+    while( it ) {
+        result.push_back( parse_line( it ));
+    }
+
+    return result;
+}
+
+/**
+ * @brief Read a CSV file and return its contents.
+ */
+CsvReader::table CsvReader::from_file( std::string const& fn ) const
+{
+    if( ! utils::file_exists( fn ) ) {
+        throw std::runtime_error( "File '" + fn + "' not found." );
+    }
+
+    std::ifstream ifs( fn );
+    if( ifs.fail() ) {
+        throw std::runtime_error( "Cannot read from file '" + fn + "'." );
+    }
+
+    return from_stream( ifs );
+}
+
+/**
+ * @brief Read a string in CSV format and return its contents.
+ */
+CsvReader::table CsvReader::from_string( std::string const& fs ) const
+{
+    std::istringstream iss( fs );
+    return from_stream( iss );
+}
+
+// =================================================================================================
 //     Parsing
 // =================================================================================================
 
@@ -53,7 +100,7 @@ namespace utils {
  * or the end of the stream is found. It furthermore trims the necessary chars from the beginning
  * and end of the field, and handles quoted strings according to the settings of the CsvReader.
  *
- * The stream is left at either the separater char, the new line char, or the end of the file,
+ * The stream is left at either the separator char, the new line char, or the end of the file,
  * depending on which occurs first.
  *
  * See
@@ -77,7 +124,30 @@ std::string CsvReader::parse_field( utils::CountingIstream& input_stream ) const
         return trim_chars_.find( c ) != std::string::npos;
     });
 
+    // Read as long as there is input. We will break when finding a new line later.
     while( it ) {
+
+        // Treat escape sequences if needed.
+        if( use_escapes_ && *it == '\\' ) {
+
+            // Skip the backslash.
+            ++it;
+
+            // We found an escaping backslash. This cannot be the end of the stream.
+            if( !it ) {
+                throw std::runtime_error(
+                    "Unexpected end of string at " + it.at() + ". Expecting escape sequence."
+                );
+            }
+
+            // De-escape.
+            buffer_ += deescape( *it );
+
+            // Next char. We skip the rest of this loop, as we already treated the current char.
+            ++it;
+            continue;
+        }
+
         // Finish reading at the end of the line or when one of the separator chars is found.
         if( *it == '\n' || separator_chars_.find( *it ) != std::string::npos ) {
             break;
@@ -86,7 +156,19 @@ std::string CsvReader::parse_field( utils::CountingIstream& input_stream ) const
         // Parse quoted strings if needed.
         // We add them to the result, even when they occur in the middle of a field.
         if( quotation_chars_.find( *it ) != std::string::npos ) {
-            buffer_ += parse_quoted_string( it, use_escapes_, use_twin_quotes_, false );
+
+            // If the parsing results in an empty string, this means that there were two
+            // consecutive quotation marks. So, if also use_twin_quotes is activated, we need
+            // to add one quotation mark to the result.
+            // In all other cases (i.e., there was content in the quoted string, or we do not
+            // use twin quotes), add this content to the result.
+            char qm = *it;
+            auto qs = parse_quoted_string( it, use_escapes_, use_twin_quotes_, false );
+            if( qs == "" && use_twin_quotes_ ) {
+                buffer_ += qm;
+            } else {
+                buffer_ += qs;
+            }
             continue;
         }
 

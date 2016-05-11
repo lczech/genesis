@@ -48,11 +48,38 @@ class CountingIstream;
 // =================================================================================================
 
 /**
- * @brief Read Comma Separated Values (CSV) data.
+ * @brief Read Comma Separated Values (CSV) data and other delimiter-separated formats.
+ *
+ * This class provides simple facilities for reading data in a format that uses delimiter chars
+ * to separate tabulated data into fields, where one line represents one row of the table.
+ *
+ * It supports to read
+ *
+ *   * from_stream()
+ *   * from_file()
+ *   * from_string()
+ *
+ * Those functions return the table as a vector, with one entry per line (i.e., row). Each such
+ * entry is itself a vector of strings, representing the fields (values of the columns) of that row.
+ *
+ * There are several properties that can be changed in order to customize the behaviour. By default,
+ * the reader uses the comma char to separate fields and uses double quotation marks. See the
+ * property functions for more information.
+ *
+ * If the data is too big to be read at once into memory, or if you want to parse the data line by
+ * line, you can also use the parser functions parse_line() and parse_field() directly.
  */
 class CsvReader
 {
 public:
+
+    // ---------------------------------------------------------------------
+    //     Typedefs and Enums
+    // ---------------------------------------------------------------------
+
+    typedef std::string        field;
+    typedef std::vector<field> row;
+    typedef std::vector<row>   table;
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -71,9 +98,9 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
-    // void from_stream ( std::istream&      is, SequenceSet& sset ) const;
-    // void from_file   ( std::string const& fn, SequenceSet& sset ) const;
-    // void from_string ( std::string const& fs, SequenceSet& sset ) const;
+    table from_stream( std::istream&      is ) const;
+    table from_file  ( std::string const& fn ) const;
+    table from_string( std::string const& fs ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
@@ -123,7 +150,7 @@ private:
     bool        use_escapes_       = false;
     bool        use_twin_quotes_   = true;
 
-    // We use a buffer in order to make copying and resizing strings as small and fast as possible.
+    // We use a buffer in order to make copying and resizing strings rare and faster.
     // This buffer will grow for bigger csv input fields (but never shrink). We then copy from it,
     // so that the new strings are as small as possible. After some fields, the buffer size
     // approaches a value where it rarely needs to grow any more.
