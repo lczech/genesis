@@ -94,6 +94,7 @@ std::string to_upper( std::string const& str );
 
 std::string escape  ( std::string const& text );
 std::string deescape( std::string const& text );
+char        deescape( char c );
 
 std::string unify_newlines( std::string const& s );
 

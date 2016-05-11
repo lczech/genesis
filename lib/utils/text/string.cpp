@@ -266,44 +266,68 @@ std::string to_upper( std::string const& str )
  */
 std::string escape( std::string const& text )
 {
+    // This is slow-ish, because the string is iterated multiple times. Could be done faster.
     std::string tmp;
-    tmp = replace_all(text, "\r", "\\r");
-    tmp = replace_all(tmp,  "\n", "\\n");
-    tmp = replace_all(tmp,  "\t", "\\t");
-    tmp = replace_all(tmp,  "\"", "\\\"");
-    tmp = replace_all(tmp,  "\\", "\\\\");
+    tmp = replace_all( text, "\r", "\\r"  );
+    tmp = replace_all( tmp,  "\n", "\\n"  );
+    tmp = replace_all( tmp,  "\t", "\\t"  );
+    tmp = replace_all( tmp,  "\"", "\\\"" );
+    tmp = replace_all( tmp,  "\\", "\\\\" );
     return tmp;
 }
 
 /**
- * @brief Return a string where the escaped characters are transformed into
+ * @brief Return a string where backslash-escaped characters are transformed into
  * their respective string form.
  *
- * For example, the escape sequence \\n (backshlash n) will be translated into
- * a new line. The same applies for tabs and carrier returns. All other
- * escaped sequences will simply translate into the second char, e.g., a double
- * backslash will become one backslash.
+ * All occurences of `backslash + char` in the string are de-escaped. That is, all `\n`, `\t` and
+ * `\r` are turned into their respective control sequences, while all other chars folloing a
+ * backslash are translated into the char itself (so that e.g., quotation marks or backslashes
+ * themself can be escaped).
+ *
+ * Also see deescape( char c ).
  */
 std::string deescape( std::string const& text )
 {
     std::string tmp = "";
-    for (size_t i = 0; i < text.size(); i++) {
-        if (text[i] == '\\') {
-            if (i+1 >= text.size()){
+    for( size_t i = 0; i < text.size(); i++ ) {
+        if( text[ i ] == '\\' ) {
+            if( i + 1 >= text.size() ){
                 break;
             }
-            switch (text[i+1]) {
-                case 'r' : tmp += '\r'; break;
-                case 'n' : tmp += '\n'; break;
-                case 't' : tmp += '\t'; break;
-                default  : tmp += text[i+1];
-            }
+
+            tmp += deescape( text[ i + 1 ] );
             ++i;
         } else {
-            tmp += text[i];
+            tmp += text[ i ];
         }
     }
     return tmp;
+}
+
+/**
+ * @brief Return the de-escaped char for a backslash-escaped char.
+ *
+ * The function takes the char that follows a backslash in an escaped string and returns its
+ * de-escaped char. That is, `n` is turned into a new line (`\n`), `t` is turned into a tab (`\t`)
+ * and `r` is turned into a carrier return (`\r`). All other chars (e.g., quotation marks or
+ * the backslash itself) are simply returned as-is.
+ */
+char deescape( char c )
+{
+    switch( c ) {
+        case 'r' :
+            return '\r';
+
+        case 'n' :
+            return '\n';
+
+        case 't' :
+            return '\t';
+
+        default :
+            return c;
+    }
 }
 
 std::string unify_newlines( std::string const& s )

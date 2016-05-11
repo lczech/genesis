@@ -29,6 +29,7 @@
  */
 
 #include "utils/io/lexer/parser.hpp"
+#include "utils/text/string.hpp"
 
 #include <assert.h>
 #include <cctype>
@@ -118,26 +119,12 @@ std::string parse_quoted_string(
             // We found an escaping backslash. This cannot be the end of the stream.
             if( !source ) {
                 throw std::runtime_error(
-                    "Unexpected end of string at " + source.at() + "."
+                    "Unexpected end of string at " + source.at() + ". Expecting escape sequence."
                 );
             }
 
-            switch( *source ) {
-                case 'r' :
-                    value += '\r';
-                    break;
-
-                case 'n' :
-                    value += '\n';
-                    break;
-
-                case 't' :
-                    value += '\t';
-                    break;
-
-                default :
-                    value += *source;
-            }
+            // Turn the char after the backslash into its correct de-escaped char.
+            value += deescape( *source );
 
         // Treat normal (non-escape) chars.
         } else {
