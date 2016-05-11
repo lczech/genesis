@@ -289,8 +289,12 @@ std::string escape( std::string const& text )
  */
 std::string deescape( std::string const& text )
 {
-    std::string tmp = "";
-    for( size_t i = 0; i < text.size(); i++ ) {
+    // Prepare a string that might be a bit too big, but saves reallocation.
+    std::string tmp;
+    tmp.reserve( text.size() );
+
+    // Copy from text to tmp string, while deescaping.
+    for( size_t i = 0; i < text.size(); ++i ) {
         if( text[ i ] == '\\' ) {
             if( i + 1 >= text.size() ){
                 break;
