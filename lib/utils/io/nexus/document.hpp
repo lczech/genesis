@@ -90,7 +90,7 @@ public:
 
     // void push_back_block(NexusBlock const& block)
     // {
-    //     data_.push_back(make_unique<NexusBlock>(block));
+    //     data_.push_back( utils::make_unique<NexusBlock>(block) );
     // }
 
     // void set_block_trees( Trees const& trees );

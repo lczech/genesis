@@ -168,7 +168,7 @@ public:
 
     inline XmlComment* append_comment (const std::string& comment)
     {
-        auto elm = make_unique<XmlComment>(comment);
+        auto elm = utils::make_unique<XmlComment>(comment);
         auto ptr = elm.get();
         content.push_back(std::move(elm));
         return ptr;
@@ -176,7 +176,7 @@ public:
 
     inline XmlMarkup* append_markup (const std::string& text)
     {
-        auto elm = make_unique<XmlMarkup>(text);
+        auto elm = utils::make_unique<XmlMarkup>(text);
         auto ptr = elm.get();
         content.push_back(std::move(elm));
         return ptr;
@@ -184,7 +184,7 @@ public:
 
     inline XmlElement* append_element (const std::string& tag)
     {
-        auto elm = make_unique<XmlElement>(tag);
+        auto elm = utils::make_unique<XmlElement>(tag);
         auto ptr = elm.get();
         content.push_back(std::move(elm));
         return ptr;
