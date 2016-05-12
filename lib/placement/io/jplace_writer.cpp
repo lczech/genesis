@@ -49,8 +49,8 @@
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
 #include "utils/core/std.hpp"
-#include "utils/io/json/document.hpp"
-#include "utils/io/json/writer.hpp"
+#include "utils/formats/json/document.hpp"
+#include "utils/formats/json/writer.hpp"
 
 namespace genesis {
 namespace placement {

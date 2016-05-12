@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_IO_JSON_READER_H_
-#define GENESIS_UTILS_IO_JSON_READER_H_
+#ifndef GENESIS_UTILS_FORMATS_JSON_READER_H_
+#define GENESIS_UTILS_FORMATS_JSON_READER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -33,7 +33,7 @@
 
 #include <string>
 
-#include "utils/io/json/lexer.hpp"
+#include "utils/formats/json/lexer.hpp"
 
 namespace genesis {
 namespace utils {

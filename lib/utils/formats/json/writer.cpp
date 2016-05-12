@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "utils/io/json/writer.hpp"
+#include "utils/formats/json/writer.hpp"
 
 #include <assert.h>
 #include <fstream>
@@ -36,7 +36,7 @@
 #include <stdexcept>
 
 #include "utils/core/fs.hpp"
-#include "utils/io/json/document.hpp"
+#include "utils/formats/json/document.hpp"
 #include "utils/text/string.hpp"
 
 namespace genesis {

@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "utils/io/json/document.hpp"
+#include "utils/formats/json/document.hpp"
 
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"

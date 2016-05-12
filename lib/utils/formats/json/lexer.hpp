@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_IO_JSON_LEXER_H_
-#define GENESIS_UTILS_IO_JSON_LEXER_H_
+#ifndef GENESIS_UTILS_FORMATS_JSON_LEXER_H_
+#define GENESIS_UTILS_FORMATS_JSON_LEXER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
