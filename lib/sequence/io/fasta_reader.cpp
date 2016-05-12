@@ -221,14 +221,14 @@ bool FastaReader::parse_fasta_sequence_fast(
 
     // Check beginning of sequence.
     assert( *it == '>' );
-    it.advance_non_counting();
+    ++it;
     assert( it );
 
     // Parse label.
     std::string label;
     while( *it != '\n' && *it != ' ' ) {
         label += *it;
-        it.advance_non_counting();
+        ++it;
         assert( it );
     }
     sequence.label( label );
@@ -237,26 +237,26 @@ bool FastaReader::parse_fasta_sequence_fast(
     // Parse metadata.
     std::string metadata;
     if( *it == ' ' ) {
-        it.advance_non_counting();
+        ++it;
         assert( it );
         while( *it != '\n' ) {
             metadata += *it;
-            it.advance_non_counting();
+            ++it;
             assert( it );
         }
     }
     sequence.metadata( metadata );
     assert( *it == '\n' );
-    it.advance_non_counting();
+    ++it;
     assert( it );
 
     // Skip comments.
     while( *it == ';' ) {
         while( *it != '\n' ) {
-            it.advance_non_counting();
+            ++it;
         }
         assert( *it == '\n' );
-        it.advance_non_counting();
+        ++it;
         assert( it );
     }
 
@@ -265,11 +265,11 @@ bool FastaReader::parse_fasta_sequence_fast(
     while( it && *it != '>' ) {
         while( *it != '\n' ) {
             sequence.sites() += *it;
-            it.advance_non_counting();
+            ++it;
             assert( it );
         }
         assert( *it == '\n' );
-        it.advance_non_counting();
+        ++it;
     }
 
     return true;

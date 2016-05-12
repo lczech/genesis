@@ -88,3 +88,21 @@ TEST(CountingIstream, LargeFile)
 
     test_input_specs( iit, 3894, 51 );
 }
+
+TEST(CountingIstream, NewLines)
+{
+    // Just \n.
+    test_string( "a\nb",   2, 2);
+    test_string( "a\nb\n", 2, 2);
+
+    // Just \r.
+    test_string( "a\rb",   2, 2);
+    test_string( "a\rb\r", 2, 2);
+
+    // Both.
+    test_string( "a\r\nb",     2, 2);
+    test_string( "a\r\nb\r\n", 2, 2);
+
+    // Go crazy.
+    test_string( "\r\r\n\r\n\n", 4, 1);
+}

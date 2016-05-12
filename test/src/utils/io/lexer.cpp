@@ -60,7 +60,7 @@ TEST(Parser, UnsignedInteger)
 {
     SCOPED_TRACE("Parser.UnsignedInteger");
 
-    test_uint( "",   0, 1 );
+    test_uint( "",   0, 0 );
     test_uint( " ",  0, 1 );
     test_uint( "x",  0, 1 );
     test_uint( "-",  0, 1 );
@@ -94,7 +94,7 @@ TEST(Parser, SignedInteger)
 {
     SCOPED_TRACE("Parser.SignedInteger");
 
-    test_int( "",   0, 1 );
+    test_int( "",   0, 0 );
     test_int( " ",  0, 1 );
     test_int( "x",  0, 1 );
     test_int( "-",  0, 2 );
@@ -138,7 +138,7 @@ TEST(Parser, Float)
 {
     SCOPED_TRACE("Parser.Float");
 
-    test_float( "",   0.0, 1);
+    test_float( "",   0.0, 0);
     test_float( " ",  0.0, 1);
     test_float( "x",  0.0, 1 );
     test_float( "-",  0.0, 2 );
@@ -227,10 +227,10 @@ TEST(Parser, String)
     SCOPED_TRACE("Parser.String");
 
     // empty string
-    test_string( "", "", 1, true, true, true);
-    test_string( "", "", 1, true, false, true);
-    test_string( "", "", 1, false, true, true);
-    test_string( "", "", 1, false, false, true);
+    test_string( "", "", 0, true, true, true);
+    test_string( "", "", 0, true, false, true);
+    test_string( "", "", 0, false, true, true);
+    test_string( "", "", 0, false, false, true);
 
     // Escape
 
