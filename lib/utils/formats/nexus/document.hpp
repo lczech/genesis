@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_IO_NEXUS_DOCUMENT_H_
-#define GENESIS_UTILS_IO_NEXUS_DOCUMENT_H_
+#ifndef GENESIS_UTILS_FORMATS_NEXUS_DOCUMENT_H_
+#define GENESIS_UTILS_FORMATS_NEXUS_DOCUMENT_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,9 +31,9 @@
  * @ingroup utils
  */
 
-#include "utils/io/nexus/block.hpp"
-#include "utils/io/nexus/taxa.hpp"
-#include "utils/io/nexus/trees.hpp"
+#include "utils/formats/nexus/block.hpp"
+#include "utils/formats/nexus/taxa.hpp"
+#include "utils/formats/nexus/trees.hpp"
 
 #include "utils/core/std.hpp"
 

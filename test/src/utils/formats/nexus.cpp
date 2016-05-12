@@ -30,10 +30,10 @@
 
 #include "common.hpp"
 
-#include "lib/utils/io/nexus/document.hpp"
-#include "lib/utils/io/nexus/taxa.hpp"
-#include "lib/utils/io/nexus/trees.hpp"
-#include "lib/utils/io/nexus/writer.hpp"
+#include "lib/utils/formats/nexus/document.hpp"
+#include "lib/utils/formats/nexus/taxa.hpp"
+#include "lib/utils/formats/nexus/trees.hpp"
+#include "lib/utils/formats/nexus/writer.hpp"
 
 #include <sstream>
 

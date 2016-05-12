@@ -28,10 +28,10 @@
  * @ingroup utils
  */
 
-#include "utils/io/nexus/writer.hpp"
+#include "utils/formats/nexus/writer.hpp"
 
 #include "utils/core/fs.hpp"
-#include "utils/io/nexus/document.hpp"
+#include "utils/formats/nexus/document.hpp"
 
 #include <stdexcept>
 #include <fstream>

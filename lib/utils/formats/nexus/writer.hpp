@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_IO_NEXUS_WRITER_H_
-#define GENESIS_UTILS_IO_NEXUS_WRITER_H_
+#ifndef GENESIS_UTILS_FORMATS_NEXUS_WRITER_H_
+#define GENESIS_UTILS_FORMATS_NEXUS_WRITER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.

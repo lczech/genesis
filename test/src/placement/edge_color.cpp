@@ -40,10 +40,10 @@
 #include "lib/tree/default/functions.hpp"
 #include "lib/tree/io/newick/color_writer_mixin.hpp"
 #include "lib/tree/io/phyloxml/color_writer_mixin.hpp"
-#include "lib/utils/io/nexus/document.hpp"
-#include "lib/utils/io/nexus/taxa.hpp"
-#include "lib/utils/io/nexus/trees.hpp"
-#include "lib/utils/io/nexus/writer.hpp"
+#include "lib/utils/formats/nexus/document.hpp"
+#include "lib/utils/formats/nexus/taxa.hpp"
+#include "lib/utils/formats/nexus/trees.hpp"
+#include "lib/utils/formats/nexus/writer.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;
