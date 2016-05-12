@@ -142,7 +142,7 @@ public:
 
 private:
 
-    std::string trim_chars_        = " \t";
+    std::string trim_chars_        = "";
     std::string quotation_chars_   = "\"";
     std::string separator_chars_   = ",";
 

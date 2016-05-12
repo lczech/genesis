@@ -241,10 +241,9 @@ std::vector<std::string> CsvReader::parse_line( utils::CountingIstream& input_st
 /**
  * @brief Set chars that are trimmed from the start and end of each field.
  *
- * By default, space and tab chars are trimmed. Use this function
- * to change that behaviour. Be aware that according to some CSV definitions, blanks are considered
- * to bepart of a field and should not be ignored. If you are working with a file that adheres to
- * such a standard, call this function with an empty string to disable trimming.
+ * By default, no chars are trimmed. Use this function to change that behaviour, e.g., to trim
+ * spaces and tabs. Be aware that according to some CSV definitions, blanks are considered
+ * to be part of the field and should not be trimmed.
  *
  * The function returns a reference to the CsvReader object in order to allow a fluent interface.
  */
