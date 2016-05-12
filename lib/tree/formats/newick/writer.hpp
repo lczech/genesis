@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_PHYLOXML_WRITER_H_
-#define GENESIS_TREE_IO_PHYLOXML_WRITER_H_
+#ifndef GENESIS_TREE_FORMATS_NEWICK_WRITER_H_
+#define GENESIS_TREE_FORMATS_NEWICK_WRITER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -34,24 +34,24 @@
 #include <string>
 
 namespace genesis {
+namespace tree {
 
 // =================================================================================================
 //     Forward declarations
 // =================================================================================================
 
-namespace utils {
-    class XmlDocument;
-    class XmlElement;
-}
+template <class TreeType>
+class  TreeSet;
+
+class  NewickBroker;
+struct NewickBrokerElement;
 
 // =================================================================================================
-//     Phyloxml Writer
+//     Newick Writer
 // =================================================================================================
-
-namespace tree {
 
 template <typename TreeType_>
-class PhyloxmlWriter
+class NewickWriter
 {
 
     // -------------------------------------------------------------------------
@@ -71,36 +71,43 @@ public:
 
 public:
 
-    virtual ~PhyloxmlWriter() {}
+    NewickWriter() = default;
+    virtual ~NewickWriter() {}
 
-    // ---------------------------------------------------------------------
-    //     Reading
-    // ---------------------------------------------------------------------
+    NewickWriter(NewickWriter const&) = default;
+    NewickWriter(NewickWriter&&)      = default;
 
-protected:
+    NewickWriter& operator= (NewickWriter const&) = default;
+    NewickWriter& operator= (NewickWriter&&)      = default;
 
-    // virtual void prepare_reading( XmlDocument const& xml, TreeType& tree );
-    // virtual void element_to_node( XmlElement const& element, NodeType& edge );
-    // virtual void element_to_edge( XmlElement const& element, EdgeType& node );
-    // virtual void finish_reading( XmlDocument const& xml, TreeType& tree );
-
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Writing
-    // ---------------------------------------------------------------------
+    // -------------------------------------------------------------------------
 
 public:
 
-    void        to_file     (const TreeType& tree, const std::string filename);
-    void        to_string   (const TreeType& tree, std::string& ts);
-    std::string to_string   (const TreeType& tree);
-    void        to_document (const TreeType& tree, utils::XmlDocument& xml);
+    void        to_file   (const TreeType& tree, const std::string filename);
+    void        to_string (const TreeType& tree, std::string& ts);
+    std::string to_string (const TreeType& tree);
+
+    // -------------------------------------------------------------------------
+    //     Virtual Printing Helpers
+    // -------------------------------------------------------------------------
 
 protected:
 
-    virtual void prepare_writing( TreeType const& tree, utils::XmlDocument& xml );
-    virtual void node_to_element( NodeType const& node, utils::XmlElement&  element );
-    virtual void edge_to_element( EdgeType const& edge, utils::XmlElement&  element );
-    virtual void finish_writing(  TreeType const& tree, utils::XmlDocument& xml );
+    virtual void prepare_writing( TreeType const& tree, NewickBroker& broker );
+    virtual void node_to_element( NodeType const& node, NewickBrokerElement& element );
+    virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element );
+    virtual void finish_writing( TreeType const& tree, NewickBroker& broker );
+
+    // -------------------------------------------------------------------------
+    //     Internal Member Functions
+    // -------------------------------------------------------------------------
+
+private:
+
+    void tree_to_broker (const TreeType& tree, NewickBroker& broker);
 
 };
 
@@ -112,6 +119,6 @@ protected:
 // =================================================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/io/phyloxml/writer.tpp"
+#include "tree/formats/newick/writer.tpp"
 
 #endif // include guard

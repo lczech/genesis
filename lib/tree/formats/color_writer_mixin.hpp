@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_COLOR_WRITER_MIXIN_H_
-#define GENESIS_TREE_IO_COLOR_WRITER_MIXIN_H_
+#ifndef GENESIS_TREE_FORMATS_COLOR_WRITER_MIXIN_H_
+#define GENESIS_TREE_FORMATS_COLOR_WRITER_MIXIN_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.

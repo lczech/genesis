@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_NEWICK_READER_H_
-#define GENESIS_TREE_IO_NEWICK_READER_H_
+#ifndef GENESIS_TREE_FORMATS_NEWICK_READER_H_
+#define GENESIS_TREE_FORMATS_NEWICK_READER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -140,6 +140,6 @@ private:
 // =================================================================================================
 
 // This is a class template, so do the inclusion here.
-#include "tree/io/newick/reader.tpp"
+#include "tree/formats/newick/reader.tpp"
 
 #endif // include guard

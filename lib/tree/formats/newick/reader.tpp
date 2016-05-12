@@ -34,8 +34,8 @@
 #include <sstream>
 #include <stdexcept>
 
-#include "tree/io/newick/broker.hpp"
-#include "tree/io/newick/parser.hpp"
+#include "tree/formats/newick/broker.hpp"
+#include "tree/formats/newick/parser.hpp"
 #include "tree/tree_set.hpp"
 #include "tree/tree.hpp"
 #include "utils/core/fs.hpp"

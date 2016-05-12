@@ -36,9 +36,9 @@
 #include "lib/tree/default/newick_writer.hpp"
 #include "lib/tree/function/functions.hpp"
 #include "lib/tree/function/operators.hpp"
-#include "lib/tree/io/newick/color_writer_mixin.hpp"
-#include "lib/tree/io/newick/reader.hpp"
-#include "lib/tree/io/newick/writer.hpp"
+#include "lib/tree/formats/newick/color_writer_mixin.hpp"
+#include "lib/tree/formats/newick/reader.hpp"
+#include "lib/tree/formats/newick/writer.hpp"
 #include "lib/tree/tree.hpp"
 #include "lib/utils/text/string.hpp"
 

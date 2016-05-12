@@ -28,7 +28,7 @@
  * @ingroup tree
  */
 
-#include "tree/io/newick/broker.hpp"
+#include "tree/formats/newick/broker.hpp"
 
 #include <algorithm>
 #include <string>

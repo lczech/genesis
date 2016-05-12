@@ -43,7 +43,7 @@
 #include "lib/placement/sample.hpp"
 #include "lib/placement/simulator/functions.hpp"
 #include "lib/placement/simulator/simulator.hpp"
-#include "lib/tree/io/newick/reader.hpp"
+#include "lib/tree/formats/newick/reader.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;

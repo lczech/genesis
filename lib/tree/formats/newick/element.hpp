@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_NEWICK_ELEMENT_H_
-#define GENESIS_TREE_IO_NEWICK_ELEMENT_H_
+#ifndef GENESIS_TREE_FORMATS_NEWICK_ELEMENT_H_
+#define GENESIS_TREE_FORMATS_NEWICK_ELEMENT_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.

@@ -38,7 +38,7 @@
 #include "lib/placement/io/jplace_reader.hpp"
 #include "lib/placement/io/newick_reader.hpp"
 #include "lib/placement/sample.hpp"
-#include "lib/tree/io/newick/reader.hpp"
+#include "lib/tree/formats/newick/reader.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;

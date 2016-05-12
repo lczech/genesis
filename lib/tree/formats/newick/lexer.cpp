@@ -28,7 +28,7 @@
  * @ingroup tree
  */
 
-#include "tree/io/newick/lexer.hpp"
+#include "tree/formats/newick/lexer.hpp"
 
 #include <assert.h>
 

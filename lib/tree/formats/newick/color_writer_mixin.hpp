@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_PHYLOXML_COLOR_WRITER_MIXIN_H_
-#define GENESIS_TREE_IO_PHYLOXML_COLOR_WRITER_MIXIN_H_
+#ifndef GENESIS_TREE_FORMATS_NEWICK_COLOR_WRITER_MIXIN_H_
+#define GENESIS_TREE_FORMATS_NEWICK_COLOR_WRITER_MIXIN_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,38 +31,30 @@
  * @ingroup tree
  */
 
-#include "tree/io/color_writer_mixin.hpp"
-#include "utils/formats/xml/document.hpp"
+#include "tree/formats/color_writer_mixin.hpp"
+#include "tree/formats/newick/element.hpp"
 
 #include <assert.h>
 #include <stdexcept>
+#include <string>
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Phyloxml Color Writer Mixin
+//     Newick Color Mixin
 // =================================================================================================
 
 /**
- * @brief Mixin class for PhyloXML output that allows coloring of edges.
+ * @brief Mixin class for Newick output that allows coloring of edges.
  *
- * The effect of this class on the PhyloXML output is that (if enabled) a color tag will be added
- * to each clade like this:
- *
- *     <clade>
- *         [other tags, like name or branch_length]
- *         <color>
- *             <red>0</red>
- *             <green>128</green>
- *             <blue>255</blue>
- *         </color>
- *     </clade>
+ * The effect of this class on the Newick output is that (if enabled) a color tag comment will be
+ * added to each Newick element like this: `[&!color=#%c0ffee]`.
  *
  * For more information, see ColorWriterMixin class.
  */
 template <typename Base>
-class PhyloxmlColorWriterMixin : public Base, public ColorWriterMixin
+class NewickColorWriterMixin : public Base, public ColorWriterMixin
 {
     // -------------------------------------------------------------------------
     //     Member Types
@@ -76,14 +68,59 @@ public:
     typedef typename Base::LinkType LinkType;
 
     // -------------------------------------------------------------------------
-    //     Overridden Virtual Functions
+    //     Properties
+    // -------------------------------------------------------------------------
+
+public:
+
+    /**
+     * @brief Set the prefix string that is used within the Newick comment before the actual
+     * color value.
+     *
+     * By default, this string is set to `&!color=`, which is for example used by FigTree to mark
+     * color in trees. This will result in a Newick comment like `[&!color=#%c0ffee]`.
+     */
+    void color_tag_prefix( std::string prefix )
+    {
+        color_tag_prefix_ = prefix;
+    }
+
+    /**
+     * @brief Get the currently set prefix string. See the setter for more information.
+     */
+    std::string color_tag_prefix()
+    {
+        return color_tag_prefix_;
+    }
+
+    /**
+     * @brief Set the suffix string that is used within the Newick comment after the actual
+     * color value.
+     *
+     * By default, this string is empty. See the setter color_tag_prefix() for more information.
+     */
+    void color_tag_suffix( std::string suffix )
+    {
+        color_tag_suffix_ = suffix;
+    }
+
+    /**
+     * @brief Get the currently set suffix string. See the setter for more information.
+     */
+    std::string color_tag_suffix()
+    {
+        return color_tag_suffix_;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Overridden Member Functions
     // -------------------------------------------------------------------------
 
 protected:
 
-    virtual void prepare_writing( TreeType const& tree, utils::XmlDocument& xml ) override
+    virtual void prepare_writing( TreeType const& tree, NewickBroker& broker ) override
     {
-        Base::prepare_writing(tree, xml);
+        Base::prepare_writing(tree, broker);
 
         if (!ColorWriterMixin::enable_color()) {
             return;
@@ -100,7 +137,7 @@ protected:
         }
     }
 
-    virtual void edge_to_element( EdgeType const& edge, utils::XmlElement& element ) override
+    virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element ) override
     {
         Base::edge_to_element(edge, element);
 
@@ -121,34 +158,27 @@ protected:
 
 protected:
 
-    void set_color( utils::XmlElement& element, unsigned char r, unsigned char g, unsigned char b )
+    void set_color( NewickBrokerElement& element, unsigned char r, unsigned char g, unsigned char b )
     {
-        if( utils::Color(r, g, b) == ColorWriterMixin::ignored_color() ) {
-            return;
+        set_color( element, utils::Color(r, g, b) );
+    }
+
+    void set_color( NewickBrokerElement& element, utils::Color color )
+    {
+        if( color != ColorWriterMixin::ignored_color() ) {
+            // TODO do not create new element if there is already one!
+            element.comments.push_back( color_tag_prefix_ + color_to_hex(color) + color_tag_suffix_ );
         }
-
-        // TODO do not create new element if there is already one!
-        auto re = utils::make_unique< utils::XmlElement >("red");
-        re->append_markup(std::to_string(r));
-
-        auto ge = utils::make_unique< utils::XmlElement >("green");
-        ge->append_markup(std::to_string(g));
-
-        auto be = utils::make_unique< utils::XmlElement >("blue");
-        be->append_markup(std::to_string(b));
-
-        auto color = utils::make_unique< utils::XmlElement >("color");
-        color->content.push_back(std::move(re));
-        color->content.push_back(std::move(ge));
-        color->content.push_back(std::move(be));
-
-        element.content.push_back(std::move(color));
     }
 
-    void set_color( utils::XmlElement& element, utils::Color color )
-    {
-        set_color( element, color.r(), color.g(), color.b() );
-    }
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    std::string color_tag_prefix_ = "&!color=";
+    std::string color_tag_suffix_ = "";
 
 };
 

@@ -40,7 +40,7 @@
 #include "placement/placement_tree.hpp"
 #include "placement/sample.hpp"
 #include "tree/default/newick_writer.hpp"
-#include "tree/io/newick/writer.hpp"
+#include "tree/formats/newick/writer.hpp"
 
 namespace genesis {
 namespace placement {

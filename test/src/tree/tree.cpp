@@ -34,7 +34,7 @@
 
 #include "lib/tree/default/newick_reader.hpp"
 #include "lib/tree/function/functions.hpp"
-#include "lib/tree/io/newick/reader.hpp"
+#include "lib/tree/formats/newick/reader.hpp"
 #include "lib/tree/tree.hpp"
 
 using namespace genesis;

@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_NEWICK_PARSER_H_
-#define GENESIS_TREE_IO_NEWICK_PARSER_H_
+#ifndef GENESIS_TREE_FORMATS_NEWICK_PARSER_H_
+#define GENESIS_TREE_FORMATS_NEWICK_PARSER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "tree/io/newick/lexer.hpp"
+#include "tree/formats/newick/lexer.hpp"
 
 #include <string>
 

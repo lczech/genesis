@@ -28,9 +28,9 @@
  * @ingroup tree
  */
 
-#include "tree/io/newick/parser.hpp"
+#include "tree/formats/newick/parser.hpp"
 
-#include "tree/io/newick/broker.hpp"
+#include "tree/formats/newick/broker.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
 

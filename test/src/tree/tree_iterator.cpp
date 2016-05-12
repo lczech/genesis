@@ -35,7 +35,7 @@
 
 #include "lib/tree/default/functions.hpp"
 #include "lib/tree/default/newick_reader.hpp"
-#include "lib/tree/io/newick/reader.hpp"
+#include "lib/tree/formats/newick/reader.hpp"
 #include "lib/tree/tree.hpp"
 #include "tree/iterator/eulertour.hpp"
 #include "tree/iterator/postorder.hpp"

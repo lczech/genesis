@@ -42,7 +42,7 @@
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
 
-#include "tree/io/newick/writer.hpp"
+#include "tree/formats/newick/writer.hpp"
 
 #include "utils/core/genesis.hpp"
 #include "utils/core/fs.hpp"

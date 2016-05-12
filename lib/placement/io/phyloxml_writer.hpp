@@ -33,7 +33,7 @@
 
 #include "placement/placement_tree.hpp"
 #include "tree/default/phyloxml_writer.hpp"
-#include "tree/io/phyloxml/writer.hpp"
+#include "tree/formats/phyloxml/writer.hpp"
 
 namespace genesis {
 namespace placement {

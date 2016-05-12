@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_IO_NEWICK_BROKER_H_
-#define GENESIS_TREE_IO_NEWICK_BROKER_H_
+#ifndef GENESIS_TREE_FORMATS_NEWICK_BROKER_H_
+#define GENESIS_TREE_FORMATS_NEWICK_BROKER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -36,7 +36,7 @@
 #include <string>
 #include <vector>
 
-#include "tree/io/newick/element.hpp"
+#include "tree/formats/newick/element.hpp"
 
 namespace genesis {
 namespace tree {

@@ -36,7 +36,7 @@
 
 #include "placement/placement_tree.hpp"
 #include "tree/default/newick_reader.hpp"
-#include "tree/io/newick/reader.hpp"
+#include "tree/formats/newick/reader.hpp"
 
 namespace genesis {
 namespace placement {
