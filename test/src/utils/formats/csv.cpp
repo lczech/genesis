@@ -46,11 +46,23 @@ void test_csv_table(
     CsvReader::table const& actual,
     CsvReader::table const& expected
 ) {
-    EXPECT_EQ( expected.size(), actual.size() )
+    // Print the table (for manual testing).
+    // std::cout << "File: " << filename;
+    // for( auto const& line : table ) {
+    //     std::cout << "|";
+    //     for( auto const& field : line ) {
+    //         std::cout << field << "|";
+    //     }
+    //     std::cout << "\n";
+    // }
+    // std::cout << "\n";
+
+    // Assert the vector sizes (aborts if not - otherwise we'd end of with segfaults).
+    ASSERT_EQ( expected.size(), actual.size() )
         << "File: " << filename;
 
     for( size_t i = 0; i < expected.size(); ++i ) {
-        EXPECT_EQ( expected[i].size(), actual[i].size() )
+        ASSERT_EQ( expected[i].size(), actual[i].size() )
             << "Line: " << i << ", File: " << filename;
 
         for( size_t j = 0; j < expected[i].size(); ++j ) {
@@ -70,7 +82,6 @@ TEST( Csv, ReaderDefault )
     CsvReader::table table;
 
     // Simple table with default settings.
-
     infile = environment->data_dir + "utils/simple.csv";
     table  = reader.from_file( infile );
 
@@ -83,7 +94,6 @@ TEST( Csv, ReaderDefault )
     });
 
     // Complex(ish) table with default settings.
-
     infile = environment->data_dir + "utils/complex.csv";
     table  = reader.from_file( infile );
 
@@ -111,14 +121,12 @@ TEST( Csv, ReaderTabulatedEscaped )
     CsvReader::table table;
 
     // Change Reader settings.
-
     reader.separator_chars( " \t" );
     reader.merge_separators( true );
     reader.use_escapes( true );
     reader.use_twin_quotes( false );
 
     // Read table that uses tabs as separators and escape sequences.
-
     infile = environment->data_dir + "utils/tab_esc.csv";
     table  = reader.from_file( infile );
 
@@ -130,5 +138,40 @@ TEST( Csv, ReaderTabulatedEscaped )
         { "5",  "Heather\nnew line", "\"Richards\"" },
         { "6",  "Man \"with quotes\"", "Wins" }
     });
+}
 
+TEST( Csv, ReaderCommentEmpty )
+{
+    NEEDS_TEST_DATA;
+
+    // Preparation.
+    auto reader = CsvReader();
+    std::string infile;
+    CsvReader::table table;
+
+    // Change Reader settings.
+    reader.comment_chars( "#" );
+    reader.merge_separators( true );
+    reader.skip_empty_lines( true );
+
+    // Read table that has comments and empty lines and stuff.
+    infile = environment->data_dir + "utils/comment_empty.csv";
+    table  = reader.from_file( infile );
+
+    for( auto const& line : table ) {
+        std::cout << "|";
+        for( auto const& field : line ) {
+            std::cout << field << "|";
+        }
+        std::cout << "\n";
+    }
+
+    test_csv_table( infile, table, {
+        { "1",  "Brandon", "Butler" },
+        { "2",  "Gerald", "Gilbert" },
+        { "3",  "Anna", "Edwards" },
+        { "" },
+        { " # this is not", " but", " no!" },
+        { "4",  "Randy", "Anderson" }
+    });
 }

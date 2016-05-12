@@ -30,7 +30,9 @@
 
 #include "utils/formats/csv/reader.hpp"
 
+#include <algorithm>
 #include <assert.h>
+#include <cctype>
 #include <fstream>
 #include <sstream>
 #include <stdexcept>
@@ -57,7 +59,12 @@ CsvReader::table CsvReader::from_stream( std::istream& is ) const
     auto it = utils::CountingIstream( is );
 
     while( it ) {
-        result.push_back( parse_line( it ));
+        // Parse the next line and push it if it has content.
+        // (If the file ends on empty lines, this might not be the case).
+        auto line = parse_line( it );
+        if( line.size() > 0 ) {
+            result.push_back( line );
+        }
     }
 
     return result;
@@ -185,8 +192,8 @@ std::string CsvReader::parse_field( utils::CountingIstream& input_stream ) const
  * @brief Parse one line of the CSV data and return it.
  *
  * This function parses a whole line using parse_field() until the new line char (or the end of the
- * stream) is found. The fields are returned in a vector. The stream is left at either the new line
- * char or the end of the file, if there is no new line.
+ * stream) is found. The fields are returned in a vector. The stream is left at either the next char
+ * after the new line char or the end of the file, if there is no new line.
  *
  * See @link merge_separators( bool value ) merge_separators() @endlink to change the behaviour of
  * this function.
@@ -196,12 +203,22 @@ std::vector<std::string> CsvReader::parse_line( utils::CountingIstream& input_st
     // Init.
     auto& it = input_stream;
     std::vector<std::string> result;
+    size_t field_count = 0;
 
     // Read until one of the inner breaking conditions applies.
     // We need this to make sure that the stream can also end with a separator char
     // (it then depends on the settings whether an empty field is added to the line).
     while( true ) {
+
+        // Skip comment lines if needed.
+        while( comment_chars_.find( *it ) != std::string::npos ) {
+            skip_until( it, '\n' );
+            assert( *it == '\n' );
+            ++it;
+        }
+
         auto field = parse_field( it );
+        ++field_count;
 
         // Store the field if it has content. If not, store it anyway if we do not want to
         // merge adjacent separators (i.e., leave out empty fields).
@@ -209,14 +226,34 @@ std::vector<std::string> CsvReader::parse_line( utils::CountingIstream& input_st
             result.push_back( field );
         }
 
-        // No more input. Leave the parser.
-        if( ! it ) {
-            break;
-        }
-
-        // If we are at the end of the line, go to the next one, and leave the parser.
-        if( *it == '\n' ) {
+        // No more input or end of the line. Leave.
+        if( ! it || *it == '\n' ) {
+            // We can go to the next char even if its the end of the stream. Nothing bad happens.
             ++it;
+
+            // Skip empty lines and continue parsing, if needed.
+            // We need the additional field counter to make sure that we do not skip lines that
+            // "seem" empty because all their fields are empty and were merged (in case
+            // merge_separator is true).
+            if( skip_empty_lines_
+                && field_count == 1
+                && std::all_of( field.begin(), field.end(), isblank )
+            ) {
+
+                // Special case: The file ends on an empty line.
+                // We then return an empty vector as a sign that there was nothing left -
+                // the reader functions will not add a line then.
+                if( ! it ) {
+                    return std::vector<std::string>();
+                }
+
+                // Reset and parse next line.
+                result.clear();
+                field_count = 0;
+                continue;
+            }
+
+            // If this was not an empty line that we skipped, we are done with this line.
             break;
         }
 
@@ -227,12 +264,50 @@ std::vector<std::string> CsvReader::parse_line( utils::CountingIstream& input_st
         ++it;
     }
 
+    // Special case: Merge separators is set to true and all fields were empty. This results
+    // in no content, but we at least want to return one empty field for that line.
+    if( result.size() == 0 ) {
+        assert( merge_separators_ == true );
+        result.push_back( "" );
+    }
+
     return result;
 }
 
 // =================================================================================================
 //     Properties
 // =================================================================================================
+
+// ---------------------------------------------------------------------
+//     comment_chars
+// ---------------------------------------------------------------------
+
+/**
+ * @brief Set chars that are used to mark comment lines.
+ *
+ * By default, no chars are used, that is, no line is interpreted as comment. Use this function
+ * to change that behaviour, e.g., use `#` as marker for comment lines.
+ * All lines starting with any of the set chars are then skipped while reading. The char has to
+ * be the first on the line, that is, no leading blanks are allowed.
+ *
+ * The function returns a reference to the CsvReader object in order to allow a fluent interface.
+ */
+CsvReader& CsvReader::comment_chars( std::string const& chars )
+{
+    comment_chars_ = chars;
+    return *this;
+}
+
+/**
+ * @brief Return the currently set chars that are used to mark comment lines.
+ *
+ * See the @link comment_chars( std::string const& chars ) setter @endlink of this function for
+ * more details.
+ */
+std::string const& CsvReader::comment_chars() const
+{
+    return comment_chars_;
+}
 
 // ---------------------------------------------------------------------
 //     trim_chars
@@ -334,6 +409,34 @@ CsvReader& CsvReader::separator_chars( std::string const& chars )
 std::string const& CsvReader::separator_chars() const
 {
     return separator_chars_;
+}
+
+// ---------------------------------------------------------------------
+//     skip_empty_lines
+// ---------------------------------------------------------------------
+
+/**
+ * @brief Set whether to skip empty lines.
+ *
+ * Default is `false`. If set to `true`, all lines that are empty (that is, no content, or just
+ * consisting of spaces and tabs) are skipped while reading.
+ *
+ * The function returns a reference to the CsvReader object in order to allow a fluent interface.
+ */
+CsvReader& CsvReader::skip_empty_lines( bool value )
+{
+    skip_empty_lines_ = value;
+    return *this;
+}
+
+/**
+ * @brief Return whether currently empty lines are skipped.
+ *
+ * See the @link skip_empty_lines( bool value ) setter @endlink of this function for more details.
+ */
+bool CsvReader::skip_empty_lines() const
+{
+    return skip_empty_lines_;
 }
 
 // ---------------------------------------------------------------------

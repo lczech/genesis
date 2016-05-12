@@ -118,6 +118,9 @@ public:
     //     Properties
     // ---------------------------------------------------------------------
 
+    CsvReader&         comment_chars( std::string const& chars );
+    std::string const& comment_chars() const;
+
     CsvReader&         trim_chars( std::string const& chars );
     std::string const& trim_chars() const;
 
@@ -126,6 +129,9 @@ public:
 
     CsvReader&         separator_chars( std::string const& chars );
     std::string const& separator_chars() const;
+
+    CsvReader& skip_empty_lines( bool value );
+    bool       skip_empty_lines() const;
 
     CsvReader& merge_separators( bool value );
     bool       merge_separators() const;
@@ -146,10 +152,12 @@ private:
     // is part of the sets. This is linear in length of the string. As there are usually just a
     // few chars in there, this is fast. We also tested with a char lookup table, which offers
     // constant time, but still was slower. See also http://stackoverflow.com/a/29068727/4184258
+    std::string comment_chars_     = "";
     std::string trim_chars_        = "";
     std::string quotation_chars_   = "\"";
     std::string separator_chars_   = ",";
 
+    bool        skip_empty_lines_  = false;
     bool        merge_separators_  = false;
     bool        use_escapes_       = false;
     bool        use_twin_quotes_   = true;
