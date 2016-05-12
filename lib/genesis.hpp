@@ -62,11 +62,11 @@
 #include "placement/simulator/simulator.hpp"
 
 #include "sequence/codes.hpp"
+#include "sequence/formats/fasta_reader.hpp"
+#include "sequence/formats/fasta_writer.hpp"
+#include "sequence/formats/phylip_reader.hpp"
+#include "sequence/formats/phylip_writer.hpp"
 #include "sequence/functions.hpp"
-#include "sequence/io/fasta_reader.hpp"
-#include "sequence/io/fasta_writer.hpp"
-#include "sequence/io/phylip_reader.hpp"
-#include "sequence/io/phylip_writer.hpp"
 #include "sequence/sequence.hpp"
 #include "sequence/sequence_set.hpp"
 

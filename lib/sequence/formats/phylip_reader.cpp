@@ -28,7 +28,7 @@
  * @ingroup sequence
  */
 
-#include "sequence/io/phylip_reader.hpp"
+#include "sequence/formats/phylip_reader.hpp"
 
 #include "sequence/sequence_set.hpp"
 #include "sequence/sequence.hpp"

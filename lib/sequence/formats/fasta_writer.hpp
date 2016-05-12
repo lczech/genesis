@@ -1,5 +1,5 @@
-#ifndef GENESIS_SEQUENCE_IO_PHYLIP_WRITER_H_
-#define GENESIS_SEQUENCE_IO_PHYLIP_WRITER_H_
+#ifndef GENESIS_SEQUENCE_FORMATS_FASTA_WRITER_H_
+#define GENESIS_SEQUENCE_FORMATS_FASTA_WRITER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -44,10 +44,30 @@ namespace sequence {
 class SequenceSet;
 
 // =================================================================================================
-//     Phylip Writer
+//     Fasta Writer
 // =================================================================================================
 
-class PhylipWriter
+/**
+ * @brief Write Fasta data.
+ *
+ * This class provides simple facilities for writing Fasta data. It supports to write
+ *
+ *   * to_stream()
+ *   * to_file()
+ *   * to_string()
+ *
+ * Exemplary usage:
+ *
+ *     std::string outfile = "path/to/file.fasta";
+ *     SequenceSet sset;
+ *
+ *     FastaWriter()
+ *         .line_length( 100 )
+ *         .to_file( sset, outfile );
+ *
+ * See FastaReader for a description of the Fasta format.
+ */
+class FastaWriter
 {
 public:
 
@@ -55,21 +75,18 @@ public:
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
-    PhylipWriter()  = default;
-    ~PhylipWriter() = default;
+    FastaWriter()  = default;
+    ~FastaWriter() = default;
 
-    PhylipWriter( PhylipWriter const& ) = default;
-    PhylipWriter( PhylipWriter&& )      = default;
+    FastaWriter( FastaWriter const& ) = default;
+    FastaWriter( FastaWriter&& )      = default;
 
-    PhylipWriter& operator= ( PhylipWriter const& ) = default;
-    PhylipWriter& operator= ( PhylipWriter&& )      = default;
+    FastaWriter& operator= ( FastaWriter const& ) = default;
+    FastaWriter& operator= ( FastaWriter&& )      = default;
 
     // ---------------------------------------------------------------------
     //     Writing
     // ---------------------------------------------------------------------
-
-    // void to_stream_interleaved ( SequenceSet const& sset, std::ostream& os ) const;
-    // void to_stream_sequential  ( SequenceSet const& sset, std::ostream& os ) const;
 
     void        to_stream ( SequenceSet const& sset, std::ostream&      os ) const;
     void        to_file   ( SequenceSet const& sset, std::string const& fn ) const;
@@ -79,11 +96,8 @@ public:
     //     Properties
     // ---------------------------------------------------------------------
 
-    PhylipWriter& label_length( size_t value );
-    size_t        label_length() const;
-
-    PhylipWriter& line_length( size_t value );
-    size_t        line_length() const;
+    FastaWriter& line_length( size_t value );
+    size_t       line_length() const;
 
     // ---------------------------------------------------------------------
     //     Members
@@ -91,8 +105,7 @@ public:
 
 private:
 
-    size_t label_length_ = 0;
-    size_t line_length_  = 80;
+    size_t line_length_ = 80;
 
 };
 

@@ -28,7 +28,7 @@
  * @ingroup sequence
  */
 
-#include "sequence/io/phylip_writer.hpp"
+#include "sequence/formats/phylip_writer.hpp"
 
 #include "sequence/sequence_set.hpp"
 #include "sequence/sequence.hpp"

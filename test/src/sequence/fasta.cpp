@@ -33,7 +33,7 @@
 #include "lib/sequence/codes.hpp"
 #include "lib/sequence/functions.hpp"
 #include "lib/sequence/sequence_set.hpp"
-#include "lib/sequence/io/fasta_reader.hpp"
+#include "lib/sequence/formats/fasta_reader.hpp"
 
 #include <string>
 

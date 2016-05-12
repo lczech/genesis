@@ -1,5 +1,5 @@
-#ifndef GENESIS_SEQUENCE_IO_FASTA_READER_H_
-#define GENESIS_SEQUENCE_IO_FASTA_READER_H_
+#ifndef GENESIS_SEQUENCE_FORMATS_PHYLIP_READER_H_
+#define GENESIS_SEQUENCE_FORMATS_PHYLIP_READER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -35,6 +35,7 @@
 
 #include <iosfwd>
 #include <string>
+#include <utility>
 
 namespace genesis {
 
@@ -43,24 +44,24 @@ namespace genesis {
 // =================================================================================================
 
 namespace utils {
-    class CountingIstream;
-}
+
+class CountingIstream;
+
+} // namespace utils
 
 namespace sequence {
-    class SequenceSet;
-    class Sequence;
-}
+
+class SequenceSet;
+class Sequence;
 
 // =================================================================================================
-//     Fasta Reader
+//     Phylip Reader
 // =================================================================================================
-
-namespace sequence {
 
 /**
- * @brief Read Fasta data.
+ * @brief Read Phylip data.
  *
- * This class provides simple facilities for reading Fasta data. It supports to read
+ * This class provides simple facilities for reading Phylip data. It supports to read
  *
  *   * from_stream()
  *   * from_file()
@@ -68,53 +69,90 @@ namespace sequence {
  *
  * Exemplary usage:
  *
- *     std::string infile = "path/to/file.fasta";
+ *     std::string infile = "path/to/file.phylip";
  *     SequenceSet sset;
  *
- *     FastaReader()
+ *     PhylipReader()
  *         .to_upper()
  *         .validate_chars( nucleic_acid_codes_all() )
  *         .from_file( infile, sset );
  *
- * The expected data format:
+ * The expected data format roughly follows
+ * [the original definition](http://evolution.genetics.washington.edu/phylip/doc/sequence.html).
+ * See mode( Mode ) to selected between sequential, interleaved and automatic mode.
+ * We furthermore support a relaxed version, where the label can be of any length.
+ * See label_length( size_t ) for more information.
  *
- *   1. Has to start with a '>' character, followed by a label and possibly metadata, ended by a
- *      '\\n'. All text after the first space is considered to be metadata.
- *   2. An arbitrary number of comment lines, starting with ';', can follow, but are ignored.
- *   3. After that, a sequence has to follow, over one or more lines and ending in a '\\n' character.
- *
- * Using to_upper(bool), the sequences can automatically be turned into upper case letter.
- * Also, see validate_chars( std::string const& chars ) for a way of checking correct input sequences.
+ * Using to_upper( bool ), the sequences can automatically be turned into upper case letter.
+ * Also, see validate_chars( std::string const& ) for a way of checking correct input sequences.
  */
-class FastaReader
+class PhylipReader
 {
 public:
+
+    // ---------------------------------------------------------------------
+    //     Types and Enums
+    // ---------------------------------------------------------------------
+
+    /**
+     * @brief Enum to distinguish between the different file variants of Phylip.
+     * See mode( Mode value ) for more details.
+     */
+    enum class Mode
+    {
+        /**
+         * @brief Read the data in Phylip sequential mode.
+         */
+        kSequential,
+
+        /**
+        * @brief Read the data in Phylip interleaved mode.
+        */
+        kInterleaved,
+
+        /**
+        * @brief Infer the Phylip mode via trial and error.
+        */
+        kAutomatic
+    };
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
-    FastaReader();
-    ~FastaReader() = default;
+    PhylipReader();
+    ~PhylipReader() = default;
 
-    FastaReader( FastaReader const& ) = default;
-    FastaReader( FastaReader&& )      = default;
+    PhylipReader( PhylipReader const& ) = default;
+    PhylipReader( PhylipReader&& )      = default;
 
-    FastaReader& operator= ( FastaReader const& ) = default;
-    FastaReader& operator= ( FastaReader&& )      = default;
+    PhylipReader& operator= ( PhylipReader const& ) = default;
+    PhylipReader& operator= ( PhylipReader&& )      = default;
 
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
 
-    bool parse_fasta_sequence(
-        utils::CountingIstream& input_stream,
-        Sequence&               sequence
+    std::pair<size_t, size_t> parse_phylip_header(
+        utils::CountingIstream& it
     ) const;
 
-    bool parse_fasta_sequence_fast(
-        utils::CountingIstream& input_stream,
-        Sequence&               sequence
+    std::string parse_phylip_label(
+        utils::CountingIstream& it
+    ) const;
+
+    std::string parse_phylip_sequence_line(
+        utils::CountingIstream& it
+    ) const;
+
+    void parse_phylip_interleaved(
+        utils::CountingIstream& it,
+        SequenceSet& sset
+    ) const;
+
+    void parse_phylip_sequential(
+        utils::CountingIstream& it,
+        SequenceSet& sset
     ) const;
 
     // ---------------------------------------------------------------------
@@ -129,11 +167,17 @@ public:
     //     Properties
     // ---------------------------------------------------------------------
 
-    FastaReader& to_upper( bool value );
-    bool         to_upper() const;
+    PhylipReader& mode( Mode value );
+    Mode          mode() const;
 
-    FastaReader& validate_chars( std::string const& chars );
-    std::string  validate_chars() const;
+    PhylipReader& label_length( size_t value );
+    size_t        label_length() const;
+
+    PhylipReader& to_upper( bool value );
+    bool          to_upper() const;
+
+    PhylipReader& validate_chars( std::string const& chars );
+    std::string   validate_chars() const;
 
     bool is_validating() const;
     utils::CharLookup& valid_char_lookup();
@@ -144,7 +188,9 @@ public:
 
 private:
 
-    bool              to_upper_ = true;
+    Mode              mode_         = Mode::kSequential;
+    size_t            label_length_ = 0;
+    bool              to_upper_     = true;
     utils::CharLookup lookup_;
 
 };
