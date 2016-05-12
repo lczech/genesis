@@ -32,7 +32,7 @@
 
 #include <string>
 
-#include "lib/placement/io/jplace_reader.hpp"
+#include "lib/placement/formats/jplace_reader.hpp"
 #include "lib/placement/function/helper.hpp"
 #include "lib/placement/function/functions.hpp"
 #include "lib/placement/sample.hpp"

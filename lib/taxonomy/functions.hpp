@@ -52,6 +52,7 @@ class Taxon;
 Taxon const* find_taxon( Taxonomy const& tax, std::string const& name );
 Taxon*       find_taxon( Taxonomy&       tax, std::string const& name );
 
+size_t taxon_level( Taxon const& taxon );
 size_t total_taxa_count( Taxonomy const& tax );
 
 void levelorder_for_each(
@@ -83,7 +84,7 @@ Taxon& add_children_from_string(
     bool               trim_whitespaces = true
 );
 
-void remove_taxa_deeper_than( Taxonomy& tax, size_t level );
+void remove_taxa_at_level( Taxonomy& tax, size_t level );
 
 // =================================================================================================
 //     Print and Output

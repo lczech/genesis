@@ -48,7 +48,16 @@ class Taxon;
 // ================================================================================================
 
 /**
- * @brief Store a Taxonomy, i.e., a nested hierarchy of @link Taxon Taxa @endlink.
+ * @brief Store a Taxonomy, i.e., a nested hierarchy of @link Taxon Taxa@endlink.
+ *
+ * This class serves as a container for storing a list of @link Taxon Taxa@endlink. It allows to
+ * @link add_child( std::string const& ) add@endlink, @link remove_child() remove @endlink and
+ * @link get_child() get @endlink Taxa by their name, as well as iterating over them.
+ *
+ * Each Taxon can itself contain further lower level Taxa, resulting in a hierarchy. Thus, in a
+ * sense, each Taxon is itself a Taxonomy. However, we use the distinction between the two in order
+ * to separate concerns. That means, only the Taxonomy should be seen as the top level of the
+ * hierarchy.
  */
 class Taxonomy
 {

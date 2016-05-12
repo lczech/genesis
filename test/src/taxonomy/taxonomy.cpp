@@ -66,6 +66,7 @@ TEST( Taxonomy, AddChildren )
     // Leave some out
     add_children_from_string( tax, "Tax_1;Tax_5;Tax_6;" );
     auto par = add_children_from_string( tax, "Tax_1;;;Tax_7;Tax8" );
+    EXPECT_EQ( 4, taxon_level( par ));
     EXPECT_EQ( 10, total_taxa_count( tax ));
     EXPECT_EQ( "Tax_1", par.parent()->parent()->name() );
 
@@ -103,11 +104,11 @@ TEST( Taxonomy, Remove )
     EXPECT_EQ( 8, total_taxa_count( tax ));
 
     // Remove fourth level.
-    remove_taxa_deeper_than( tax, 3 );
+    remove_taxa_at_level( tax, 3 );
     EXPECT_EQ( 4, total_taxa_count( tax ));
 
     // Remove third level.
-    remove_taxa_deeper_than( tax, 2 );
+    remove_taxa_at_level( tax, 2 );
     EXPECT_EQ( 2, total_taxa_count( tax ));
 }
 

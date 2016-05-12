@@ -32,8 +32,8 @@
  */
 
 #include "tree/default/tree.hpp"
-#include "tree/io/newick/element.hpp"
-#include "tree/io/newick/reader.hpp"
+#include "tree/formats/newick/element.hpp"
+#include "tree/formats/newick/reader.hpp"
 #include "utils/core/std.hpp"
 #include "utils/text/string.hpp"
 

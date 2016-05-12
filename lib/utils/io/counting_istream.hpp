@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include <assert.h>
 #include <iterator>
 #include <stdexcept>
 #include <streambuf>
@@ -53,9 +54,12 @@ namespace utils {
  *     the line and column would already point to the next char while processing the last.
  *     Thus, advance() or the increment operator++() have to be called to get to the next char in
  *     the stream.
- *   * The handling of '\\r' characters (part of the CR+LF new lines as used in Windows) is
- *     different. Those are completely skipped in this iterator. This ensures that all new lines
- *     are simply represented as '\\n' independent of the file format.
+ *   * The handling of line feed chars (LF or `\n`, as used in Unix-like systems) and carriage
+ *     return chars (CR or `\r`, which are the new line delimiters in many Mac systems, and which
+ *     are part of the CR+LF new lines as used in Windows) is different.
+ *     Both, CR and LF chars (and the whole CR+LF combination), are turned into single line feed
+ *     chars (`\n`) in this iterator. This ensures that all new lines delimiters are internally
+ *     represented as one LF, independently of the file format. That makes parsing way easier.
  *
  * It has two member functions line() and column() that return the corresponding values for the
  * current iterator position. Also, at() can be used to get a textual representation of the current
@@ -99,6 +103,10 @@ public:
     {
         if( eos() ) {
             current_ = '\0';
+            line_    = 0;
+            column_  = 0;
+        } else if( *it_ == '\r') {
+            current_ = '\n';
         } else {
             current_ = *it_;
         }
@@ -115,6 +123,10 @@ public:
     {
         if( eos() ) {
             current_ = '\0';
+            line_    = 0;
+            column_  = 0;
+        } else if( *it_ == '\r') {
+            current_ = '\n';
         } else {
             current_ = *it_;
         }
@@ -191,29 +203,54 @@ public:
     {
         ++column_;
 
-        // Treat new lines always as a simple '\n' internally.
-        // This works for both unix and Win formatted files. It does not work for Mac OS <= 9,
-        // as this uses a single \r for delimiting lines, thus the line and column counter will
-        // never be increased in this case and the whitespace not outputted.
-        // Maybe in the future we could provide some compile time handling of this issue, but for
-        // now, this solution should work in most cases.
-
+        // Check whether we marked the current char as a line break (remember: all \r chars are
+        // turned into \n for the outside world, i.e., in current_).
         if( current_ == '\n' ) {
+
+            // Adjust counters. The current (not yet advanced) char is a line break, so the next
+            // one will be on a new line.
             ++line_;
             column_ = 1;
-        }
-        ++it_;
 
-        current_ = *it_;
-        if( current_ == '\r' ) {
-            ++it_;
-            current_ = *it_;
+            // We need to further check whether the char actually was an \r (before being
+            // internally changed to an \n - so we need to check the stream again). If so, we have
+            // either a Mac or a Windows file and need to act accordingly.
+            // What follows is a bit of code duplication, but this seemed easier and probably faster
+            // than introducing a flag variable and checking it later.
+            if( *it_ == '\r' ) {
 
-            if( current_ != '\n' ) {
-                throw std::domain_error(
-                    "Invalid input char: Expecting '\\n' after '\\r' at " + at() + "."
-                );
+                // Read and store next char.
+                ++it_;
+                current_ = *it_;
+
+                // If the next char (after the \r that we just had) is another \r, that means we
+                // have a Mac file and there are two consecutive new lines, so treat that.
+                if( current_ == '\r' ) {
+                    current_ = '\n';
+                    return;
+
+                // If it is just a normal char, we also have a Mac file, and simply continue
+                // with the first char of the next line.
+                } else if( current_ != '\n' )  {
+                    return;
+                }
+
+                // Else (that is, if both previous conditions fail), it must be an \n char.
+                // That means, we came from an \r, now are at an \n, so it's a Windows line break.
+                // We then simply continue to read the next char as usual, so that in effect,
+                // the \n is skipped.
+                assert( current_ == '\n' );
             }
+        }
+
+        // Read and store next char.
+        ++it_;
+        current_ = *it_;
+
+        // Turn \r into \n (for the outside world - internally, *it_ is still pointing to \r, which
+        // will be used in the next call of this function to determine how to proceed).
+        if( current_ == '\r' ) {
+            current_ = '\n';
         }
     }
 
@@ -224,19 +261,6 @@ public:
     {
         advance();
         return *this;
-    }
-
-    /**
-     * @brief Advance in the stream without updating the line and column counter.
-     *
-     * This function is meant for fast parsers that do not want to keep track of the stream
-     * position but still use the interface of this class.
-     * Of course, after calling this function, the positions are out of sync.
-     */
-    void advance_non_counting()
-    {
-        ++it_;
-        current_ = *it_;
     }
 
     // -------------------------------------------------------------

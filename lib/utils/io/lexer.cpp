@@ -59,11 +59,11 @@ bool Lexer::from_file   (const std::string& fn)
     // TODO !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! this is highly dangerous! the string will go
     // TODO out of scope at the end of this function, however, we just did one step!
 
-    if (!file_exists(fn)) {
-        LOG_WARN << "File '" << fn << "' does not exist.";
-        return false;
-    }
-    return from_string(file_read(fn));
+    // if (!file_exists(fn)) {
+    //     LOG_WARN << "File '" << fn << "' does not exist.";
+    //     return false;
+    // }
+    // return from_string(file_read(fn));
 }
 */
 

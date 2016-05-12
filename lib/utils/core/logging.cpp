@@ -33,6 +33,7 @@
 #include <fstream>
 #include <iomanip>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 
 #ifdef PTHREADS
@@ -158,7 +159,7 @@ void Logging::log_to_file (const std::string& fn)
     if (file->is_open()) {
         ostreams_.push_back (file);
     } else {
-        LOG_WARN << "Cannot open logging file " << fn;
+        throw std::runtime_error( "Cannot open logging file " + fn );
     }
 }
 

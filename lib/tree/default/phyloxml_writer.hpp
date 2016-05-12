@@ -32,8 +32,8 @@
  */
 
 #include "tree/default/tree.hpp"
-#include "tree/io/phyloxml/writer.hpp"
-#include "utils/io/xml/document.hpp"
+#include "tree/formats/phyloxml/writer.hpp"
+#include "utils/formats/xml/document.hpp"
 
 namespace genesis {
 namespace tree {

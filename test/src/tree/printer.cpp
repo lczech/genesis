@@ -33,7 +33,7 @@
 #include <string>
 
 #include "lib/tree/default/newick_reader.hpp"
-#include "lib/tree/io/newick/reader.hpp"
+#include "lib/tree/formats/newick/reader.hpp"
 #include "lib/tree/printer/compact.hpp"
 #include "lib/tree/printer/detailed.hpp"
 #include "lib/tree/printer/table.hpp"

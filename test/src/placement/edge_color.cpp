@@ -32,18 +32,18 @@
 
 #include <string>
 
-#include "lib/placement/io/edge_color.hpp"
-#include "lib/placement/io/jplace_reader.hpp"
-#include "lib/placement/io/newick_writer.hpp"
-#include "lib/placement/io/phyloxml_writer.hpp"
+#include "lib/placement/formats/edge_color.hpp"
+#include "lib/placement/formats/jplace_reader.hpp"
+#include "lib/placement/formats/newick_writer.hpp"
+#include "lib/placement/formats/phyloxml_writer.hpp"
 #include "lib/placement/sample.hpp"
 #include "lib/tree/default/functions.hpp"
-#include "lib/tree/io/newick/color_writer_mixin.hpp"
-#include "lib/tree/io/phyloxml/color_writer_mixin.hpp"
-#include "lib/utils/io/nexus/document.hpp"
-#include "lib/utils/io/nexus/taxa.hpp"
-#include "lib/utils/io/nexus/trees.hpp"
-#include "lib/utils/io/nexus/writer.hpp"
+#include "lib/tree/formats/newick/color_writer_mixin.hpp"
+#include "lib/tree/formats/phyloxml/color_writer_mixin.hpp"
+#include "lib/utils/formats/nexus/document.hpp"
+#include "lib/utils/formats/nexus/taxa.hpp"
+#include "lib/utils/formats/nexus/trees.hpp"
+#include "lib/utils/formats/nexus/writer.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;

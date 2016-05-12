@@ -97,7 +97,7 @@ public:
     {
         content_.reserve(n);
         for (size_t i = 0; i < n; ++i) {
-            content_.push_back(make_unique<value_type>(val));
+            content_.push_back( utils::make_unique<value_type>(val) );
         }
     }
 
