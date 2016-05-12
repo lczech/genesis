@@ -79,7 +79,7 @@ inline void skip_while(
 // -------------------------------------------------------------------------
 
 /**
- * @brief Lexing function that advances the stream unts its current char equals the provided one.
+ * @brief Lexing function that advances the stream until its current char equals the provided one.
  */
 inline void skip_until(
     utils::CountingIstream& source,
