@@ -30,7 +30,7 @@
 
 #include "utils/formats/xml/document.hpp"
 
-#include "utils/core/logging.hpp"
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
@@ -42,15 +42,14 @@ namespace utils {
 /**
  * @brief Converts a pointer to an XmlValue to XmlComment if appropriate.
  *
- * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
- * an XmlComment object.
+ * Throws if the dynamic type of the object is not actually an XmlComment object.
  */
 const XmlComment* xml_value_to_comment (const XmlValue* v)
 {
     if (v->type() != XmlValue::kComment) {
-        LOG_WARN << "Invalid conversion from XmlValue::" << v->type_to_string()
-                 << " to XmlValue::Comment.";
-        return nullptr;
+        throw std::domain_error(
+            "Invalid conversion from XmlValue::" + v->type_to_string() + " to XmlValue::Comment."
+        );
     }
     return static_cast<XmlComment*> (const_cast<XmlValue*> (v));
 }
@@ -58,15 +57,14 @@ const XmlComment* xml_value_to_comment (const XmlValue* v)
 /**
  * @brief Converts a pointer to an XmlValue to XmlMarkup if appropriate.
  *
- * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
- * an XmlMarkup object.
+ * Throws if the dynamic type of the object is not actually an XmlMarkup object.
  */
 const XmlMarkup* xml_value_to_markup (const XmlValue* v)
 {
     if (v->type() != XmlValue::kMarkup) {
-        LOG_WARN << "Invalid conversion from XmlValue::" << v->type_to_string()
-                 << " to XmlValue::Markup.";
-        return nullptr;
+        throw std::domain_error(
+            "Invalid conversion from XmlValue::" + v->type_to_string() + " to XmlValue::Markup."
+        );
     }
     return static_cast<XmlMarkup*> (const_cast<XmlValue*> (v));
 }
@@ -74,15 +72,14 @@ const XmlMarkup* xml_value_to_markup (const XmlValue* v)
 /**
  * @brief Converts a pointer to an XmlValue to XmlElement if appropriate.
  *
- * Triggers a warning and returns a nullptr if the dynamic type of the object is not actually
- * an XmlElement object.
+ * Throws if the dynamic type of the object is not actually an XmlElement object.
  */
 const XmlElement* xml_value_to_element (const XmlValue* v)
 {
     if (v->type() != XmlValue::kElement) {
-        LOG_WARN << "Invalid conversion from XmlValue::" << v->type_to_string()
-                 << " to XmlValue::Element.";
-        return nullptr;
+        throw std::domain_error(
+            "Invalid conversion from XmlValue::" + v->type_to_string() + " to XmlValue::Element."
+        );
     }
     return static_cast<XmlElement*> (const_cast<XmlValue*> (v));
 }

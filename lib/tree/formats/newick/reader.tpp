@@ -63,8 +63,7 @@ bool NewickReader<TreeType>::from_file (
     const std::string& fn, TreeType& tree
 ) {
     if (!utils::file_exists(fn)) {
-        LOG_WARN << "Newick file '" << fn << "' does not exist.";
-        return false;
+        throw std::runtime_error( "Newick file '" + fn + "' does not exist." );
     }
     return from_string( utils::file_read(fn), tree );
 }
@@ -90,9 +89,9 @@ bool NewickReader<TreeType>::from_string (
         return false;
     }
     if (lexer.has_error()) {
-        LOG_WARN << "Lexing error at " << lexer.back().at()
-                 << " with message: " << lexer.back().value();
-        return false;
+        throw std::runtime_error(
+            "Lexing error at " + lexer.back().at() + " with message: " + lexer.back().value()
+        );
     }
 
     // parse the tree from lexer into a tree broker
@@ -130,8 +129,7 @@ bool NewickReader<TreeType>::from_file (
     const std::string& fn, TreeSet<TreeType>& tset
 ) {
     if (!utils::file_exists(fn)) {
-        LOG_WARN << "Tree file '" << fn << "' does not exist.";
-        return false;
+        throw std::runtime_error( "Tree file '" + fn + "' does not exist." );
     }
 
     return from_string(
@@ -178,9 +176,9 @@ bool NewickReader<TreeType>::from_string (
         return false;
     }
     if (lexer.has_error()) {
-        LOG_WARN << "Lexing error at " << lexer.back().at()
-                 << " with message: " << lexer.back().value();
-        return false;
+        throw std::runtime_error(
+            "Lexing error at " + lexer.back().at() + " with message: " + lexer.back().value()
+        );
     }
 
     // Store error message. Also serves as flag whether an error occured.
@@ -247,8 +245,7 @@ bool NewickReader<TreeType>::from_string (
     }
 
     if (!error.empty()) {
-        LOG_WARN << error;
-        return false;
+        throw std::runtime_error( error );
     }
 
     return true;

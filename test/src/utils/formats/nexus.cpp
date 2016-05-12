@@ -59,9 +59,8 @@ TEST(Nexus, Writer)
     EXPECT_TRUE( doc.has_block("TAXA") );
     EXPECT_FALSE( doc.has_block("stargazer") );
 
-    std::ostringstream buffer;
-
-    auto writer = NexusWriter();
-    writer.to_stream( doc, buffer );
-    std::cout << buffer.str();
+    // std::ostringstream buffer;
+    // auto writer = NexusWriter();
+    // writer.to_stream( doc, buffer );
+    // std::cout << buffer.str();
 }

@@ -403,23 +403,23 @@ bool NewickBroker::validate() const
     int cur_depth = 0;
     for (auto const& node : stack_) {
         if (node.rank_ == -1) {
-            LOG_WARN << "NewickBroker::assign_ranks() was not called before.";
+            LOG_INFO << "NewickBroker::assign_ranks() was not called before.";
             return false;
         }
         if (node.rank_ == 0 && !(node.is_leaf)) {
-            LOG_WARN << "Leaf node found with rank == 0, but is_leaf == false.";
+            LOG_INFO << "Leaf node found with rank == 0, but is_leaf == false.";
             return false;
         }
         if (node.rank_ == 1) {
-            LOG_WARN << "Node with rank 1 found.";
+            LOG_INFO << "Node with rank 1 found.";
             return false;
         }
         if (node.rank_ > 1 && node.is_leaf) {
-            LOG_WARN << "Inner node found with rank > 1, but is_leaf == true.";
+            LOG_INFO << "Inner node found with rank > 1, but is_leaf == true.";
             return false;
         }
         if (node.depth > cur_depth + 1) {
-            LOG_WARN << "Node found that increases depth more than 1 compared to parent.";
+            LOG_INFO << "Node found that increases depth more than 1 compared to parent.";
             return false;
         }
         cur_depth = node.depth;

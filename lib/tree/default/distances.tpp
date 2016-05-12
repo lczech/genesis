@@ -32,6 +32,7 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <stdexcept>
 
 namespace genesis {
 namespace tree {
@@ -64,7 +65,7 @@ template <class Tree>
 double depth(const Tree& tree)
 {
     // TODO implement!
-    LOG_WARN << "Not yet implemented.";
+    throw std::domain_error( "Not yet implemented." );
     (void) tree;
     return 0.0;
 }

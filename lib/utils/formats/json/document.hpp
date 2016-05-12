@@ -33,6 +33,7 @@
 
 #include <iomanip>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -147,7 +148,7 @@ public:
     JsonValueNull (const std::string& v) : JsonValue(kNull)
     {
         if (v.compare("null") != 0) {
-            LOG_WARN << "Not a valid JSON null expression: '" << v << "'.";
+            throw std::runtime_error( "Not a valid JSON null expression: '" + v + "'." );
         }
     }
 
@@ -175,8 +176,7 @@ public:
         } else if (v.compare("false") == 0) {
             value = false;
         } else {
-            LOG_WARN << "Not a valid JSON bool expression: '" << v << "'.";
-            value = false;
+            throw std::runtime_error( "Not a valid JSON bool expression: '" + v + "'." );
         }
     }
 

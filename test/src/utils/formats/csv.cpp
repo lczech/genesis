@@ -158,14 +158,6 @@ TEST( Csv, ReaderCommentEmpty )
     infile = environment->data_dir + "utils/comment_empty.csv";
     table  = reader.from_file( infile );
 
-    for( auto const& line : table ) {
-        std::cout << "|";
-        for( auto const& field : line ) {
-            std::cout << field << "|";
-        }
-        std::cout << "\n";
-    }
-
     test_csv_table( infile, table, {
         { "1",  "Brandon", "Butler" },
         { "2",  "Gerald", "Gilbert" },

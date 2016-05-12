@@ -35,6 +35,7 @@
 #include "utils/core/std.hpp"
 
 #include <assert.h>
+#include <stdexcept>
 
 namespace genesis {
 namespace tree {
@@ -281,13 +282,11 @@ bool parse_newick_tree (
     }
 
     if (!error.empty()) {
-        LOG_WARN << error;
-        return false;
+        throw std::runtime_error( error );
     }
 
     if (ct == end || !ct->is_operator(";")) {
-        LOG_WARN << "Tree does not finish with a semicolon.";
-        return false;
+        throw std::runtime_error( "Tree does not finish with a semicolon." );
     }
 
     // Move to the token after the closing semicolon. This is needed for the TreeSet parser.

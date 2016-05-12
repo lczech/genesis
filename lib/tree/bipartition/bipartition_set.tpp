@@ -29,6 +29,7 @@
  */
 
 #include <assert.h>
+#include <stdexcept>
 
 #include "tree/bipartition/bipartition_set.hpp"
 #include "tree/function/functions.hpp"
@@ -119,8 +120,7 @@ BipartitionSet<Tree>::find_smallest_subtree (
     for (NodeType* n : nodes) {
         int leaf_idx = node_to_leaf_map_[n->index()];
         if (leaf_idx == -1) {
-            LOG_WARN << "Node at index " << n->index() << " is not leaf.";
-            continue;
+            throw std::runtime_error( "Node at index " + n->index() + " is not leaf." );
         }
         comp.set(leaf_idx);
     }

@@ -33,6 +33,8 @@
 
 #include "utils/core/logging.hpp"
 
+#include <stdexcept>
+
 namespace genesis {
 namespace utils {
 
@@ -101,8 +103,7 @@ public:
     {
         // if we are already at the end, do not do anything
         if (position_ < 0) {
-            LOG_WARN << "Already reached end of Lexer Tokens.";
-            return *this;
+            throw std::runtime_error( "Already reached end of Lexer Tokens." );
         }
 
         // go to next position, produce token if needed, and set position to end marker when done.
@@ -127,7 +128,7 @@ public:
     inline LexerIterator& operator -- ()
     {
         if (position_ == 0) {
-            LOG_WARN << "Cannot decrease Lexer Iterator any more.";
+            throw std::runtime_error( "Cannot decrease Lexer Iterator any more." );
         }
         if (position_ > 0) {
             --position_;
