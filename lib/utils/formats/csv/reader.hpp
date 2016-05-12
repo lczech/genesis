@@ -142,6 +142,10 @@ public:
 
 private:
 
+    // We store the following char sets as strings and use find() to check whether a given char
+    // is part of the sets. This is linear in length of the string. As there are usually just a
+    // few chars in there, this is fast. We also tested with a char lookup table, which offers
+    // constant time, but still was slower. See also http://stackoverflow.com/a/29068727/4184258
     std::string trim_chars_        = "";
     std::string quotation_chars_   = "\"";
     std::string separator_chars_   = ",";
@@ -150,10 +154,10 @@ private:
     bool        use_escapes_       = false;
     bool        use_twin_quotes_   = true;
 
-    // We use a buffer in order to make copying and resizing strings rare and faster.
+    // We use a buffer in order to make copying and resizing strings rare and hence fast.
     // This buffer will grow for bigger csv input fields (but never shrink). We then copy from it,
     // so that the new strings are as small as possible. After some fields, the buffer size
-    // approaches a value where it rarely needs to grow any more.
+    // approaches a value where it rarely needs to grow any more. Speedup (using a 4MB file): ~20%.
     mutable std::string buffer_;
 
 };

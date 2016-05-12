@@ -273,9 +273,11 @@ std::string const& CsvReader::trim_chars() const
  *
  * By default, the double quotation mark char \" is used as quotation mark. Any other set of chars
  * can be used instead, for example a combination of single and double quotation marks by providing
- * '" to this function.
+ * `'"` to this function.
  *
- * See also @link use_escapes( bool value ) use_escapes() @endlink and
+ * Within a quoted part, any char can appear, even new lines. However, in order to use the quotation
+ * mark itself, it has to be escaped.
+ * See @link use_escapes( bool value ) use_escapes() @endlink and
  * @link use_twin_quotes( bool value ) use_twin_quotes() @endlink for changing the behaviour
  * of escaping with backslashes and with twin quotation marks.
  *
@@ -379,7 +381,14 @@ bool CsvReader::merge_separators() const
 /**
  * @brief Set whether to use backslash escape sequences.
  *
+ * Default is `false`. If set to `true`, character sequences of `\x` (backslash and some other char)
+ * are turned into the respective string form, according to the rules of deescape().
+ * Also, see parse_quoted_string() for more information on escaping.
  *
+ * This works inside and outside of quoted strings. In order to create new lines within a field,
+ * either the sequence `\n` (backslash n) can be used, or a backslash at the end of the line.
+ *
+ * The function returns a reference to the CsvReader object in order to allow a fluent interface.
  */
 CsvReader& CsvReader::use_escapes( bool value )
 {
@@ -388,7 +397,9 @@ CsvReader& CsvReader::use_escapes( bool value )
 }
 
 /**
- * @brief
+ * @brief Return whether backslash escape sequences are used.
+ *
+ * See the @link use_escapes( bool value ) setter @endlink of this function for details.
  */
 bool CsvReader::use_escapes() const
 {
@@ -400,9 +411,24 @@ bool CsvReader::use_escapes() const
 // ---------------------------------------------------------------------
 
 /**
- * @brief
+ * @brief Set whether to interpret two consequtive quotation marks as a single ("escaped") one.
  *
- * Same effect as trim empty in split
+ * Default is `true`. Use this setting in order to be able to escape quotation marks by doubling
+ * them. This is a common variant in CSV data. It means, whenever two consecutive quotation marks
+ * are encountered, they are turned into one (thus, the first one "escapes" the second). This
+ * works both inside and outside of regularly quoted parts. That is, the following two fields
+ * are interpreted the same:
+ *
+ *     "My ""old"" friend"
+ *     My ""old"" friend
+ *
+ * This also works in addition to normal backslash escape sequences, see
+ * @link use_escapes( bool value ) use_escapes() @endlink for more on this.
+ *
+ * See @link quotation_chars( std::string const& chars ) quotation_chars() @endlink to set which
+ * chars are interpreted as quotation marks.
+ *
+ * The function returns a reference to the CsvReader object in order to allow a fluent interface.
  */
 CsvReader& CsvReader::use_twin_quotes( bool value )
 {
@@ -411,7 +437,9 @@ CsvReader& CsvReader::use_twin_quotes( bool value )
 }
 
 /**
- * @brief
+ * @brief Return whether to interpret two consequtive quotation marks as a single ("escaped") one.
+ *
+ * See the @link use_twin_quotes( bool value ) setter @endlink of this function for details.
  */
 bool CsvReader::use_twin_quotes() const
 {
