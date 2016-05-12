@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_IO_SERIALIZER_H_
-#define GENESIS_PLACEMENT_IO_SERIALIZER_H_
+#ifndef GENESIS_PLACEMENT_FORMATS_PHYLOXML_WRITER_H_
+#define GENESIS_PLACEMENT_FORMATS_PHYLOXML_WRITER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -25,40 +25,25 @@
 */
 
 /**
- * @brief Header of SampleSerializer class.
+ * @brief
  *
  * @file
  * @ingroup placement
  */
 
-#include <string>
+#include "placement/placement_tree.hpp"
+#include "tree/default/phyloxml_writer.hpp"
+#include "tree/formats/phyloxml/writer.hpp"
 
 namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Forward Declarations
+//     Placement Tree Phyloxml Writer
 // =================================================================================================
 
-class Sample;
-
-// =================================================================================================
-//     SampleSerializer
-// =================================================================================================
-
-/**
- * @brief
- */
-class SampleSerializer
-{
-public:
-
-    static void save (const Sample& map, const std::string& file_name);
-    static void load (const std::string& file_name, Sample& map);
-
-    static unsigned char version;
-
-};
+typedef tree::DefaultTreePhyloxmlWriterMixin< tree::PhyloxmlWriter< PlacementTree > >
+    PlacementTreePhyloxmlWriter;
 
 } // namespace placement
 } // namespace genesis

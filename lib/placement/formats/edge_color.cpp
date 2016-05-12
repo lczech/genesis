@@ -28,7 +28,7 @@
  * @ingroup placement
  */
 
-#include "placement/io/edge_color.hpp"
+#include "placement/formats/edge_color.hpp"
 
 #include "placement/function/helper.hpp"
 #include "placement/function/functions.hpp"

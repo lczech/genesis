@@ -35,11 +35,11 @@
 #include <string>
 #include <vector>
 
-#include "lib/placement/function/helper.hpp"
+#include "lib/placement/formats/jplace_reader.hpp"
+#include "lib/placement/formats/newick_reader.hpp"
 #include "lib/placement/function/functions.hpp"
+#include "lib/placement/function/helper.hpp"
 #include "lib/placement/function/operators.hpp"
-#include "lib/placement/io/jplace_reader.hpp"
-#include "lib/placement/io/newick_reader.hpp"
 #include "lib/placement/sample.hpp"
 #include "lib/placement/simulator/functions.hpp"
 #include "lib/placement/simulator/simulator.hpp"

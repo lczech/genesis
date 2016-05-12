@@ -28,10 +28,10 @@
  * @ingroup placement
  */
 
-#include "placement/io/serializer.hpp"
+#include "placement/formats/serializer.hpp"
 
-#include "placement/io/newick_reader.hpp"
-#include "placement/io/newick_writer.hpp"
+#include "placement/formats/newick_reader.hpp"
+#include "placement/formats/newick_writer.hpp"
 #include "placement/sample.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/io/serializer.hpp"

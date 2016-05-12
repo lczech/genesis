@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_IO_NEWICK_READER_H_
-#define GENESIS_PLACEMENT_IO_NEWICK_READER_H_
+#ifndef GENESIS_PLACEMENT_FORMATS_NEWICK_READER_H_
+#define GENESIS_PLACEMENT_FORMATS_NEWICK_READER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.

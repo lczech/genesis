@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_IO_NEWICK_WRITER_H_
-#define GENESIS_PLACEMENT_IO_NEWICK_WRITER_H_
+#ifndef GENESIS_PLACEMENT_FORMATS_NEWICK_WRITER_H_
+#define GENESIS_PLACEMENT_FORMATS_NEWICK_WRITER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.

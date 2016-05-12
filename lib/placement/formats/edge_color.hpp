@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_IO_PHYLOXML_WRITER_H_
-#define GENESIS_PLACEMENT_IO_PHYLOXML_WRITER_H_
+#ifndef GENESIS_PLACEMENT_FORMATS_EDGE_COLOR_H_
+#define GENESIS_PLACEMENT_FORMATS_EDGE_COLOR_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,19 +31,39 @@
  * @ingroup placement
  */
 
-#include "placement/placement_tree.hpp"
-#include "tree/default/phyloxml_writer.hpp"
-#include "tree/formats/phyloxml/writer.hpp"
+#include <vector>
 
 namespace genesis {
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+namespace utils {
+    class Color;
+}
+
+namespace tree {
+    template<class NodeDataType, class EdgeDataType>
+    class Tree;
+}
+
+namespace placement {
+    class PlacementTreeNodeData;
+    class PlacementTreeEdgeData;
+
+    typedef tree::Tree< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTree;
+
+    class Sample;
+}
+
+// =================================================================================================
+//     Placement Edge Color Functions
+// =================================================================================================
+
 namespace placement {
 
-// =================================================================================================
-//     Placement Tree Phyloxml Writer
-// =================================================================================================
-
-typedef tree::DefaultTreePhyloxmlWriterMixin< tree::PhyloxmlWriter< PlacementTree > >
-    PlacementTreePhyloxmlWriter;
+std::vector<utils::Color> placement_color_count_gradient( Sample const& smp, bool linear = false );
 
 } // namespace placement
 } // namespace genesis

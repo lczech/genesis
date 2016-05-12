@@ -28,10 +28,10 @@
  * @ingroup placement
  */
 
-#include "placement/io/jplace_reader.hpp"
+#include "placement/formats/jplace_reader.hpp"
 
 #include "placement/function/helper.hpp"
-#include "placement/io/newick_reader.hpp"
+#include "placement/formats/newick_reader.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
 

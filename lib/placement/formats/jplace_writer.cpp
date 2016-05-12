@@ -28,7 +28,7 @@
  * @ingroup placement
  */
 
-#include "placement/io/jplace_writer.hpp"
+#include "placement/formats/jplace_writer.hpp"
 
 #include <fstream>
 #include <memory>
@@ -38,7 +38,7 @@
 #include <vector>
 
 #include "placement/function/operators.hpp"
-#include "placement/io/newick_writer.hpp"
+#include "placement/formats/newick_writer.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
 

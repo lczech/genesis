@@ -1,5 +1,5 @@
-#ifndef GENESIS_PLACEMENT_IO_EDGE_COLOR_H_
-#define GENESIS_PLACEMENT_IO_EDGE_COLOR_H_
+#ifndef GENESIS_PLACEMENT_FORMATS_SERIALIZER_H_
+#define GENESIS_PLACEMENT_FORMATS_SERIALIZER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -25,45 +25,40 @@
 */
 
 /**
- * @brief
+ * @brief Header of SampleSerializer class.
  *
  * @file
  * @ingroup placement
  */
 
-#include <vector>
+#include <string>
 
 namespace genesis {
+namespace placement {
 
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
 
-namespace utils {
-    class Color;
-}
-
-namespace tree {
-    template<class NodeDataType, class EdgeDataType>
-    class Tree;
-}
-
-namespace placement {
-    class PlacementTreeNodeData;
-    class PlacementTreeEdgeData;
-
-    typedef tree::Tree< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTree;
-
-    class Sample;
-}
+class Sample;
 
 // =================================================================================================
-//     Placement Edge Color Functions
+//     SampleSerializer
 // =================================================================================================
 
-namespace placement {
+/**
+ * @brief
+ */
+class SampleSerializer
+{
+public:
 
-std::vector<utils::Color> placement_color_count_gradient( Sample const& smp, bool linear = false );
+    static void save (const Sample& map, const std::string& file_name);
+    static void load (const std::string& file_name, Sample& map);
+
+    static unsigned char version;
+
+};
 
 } // namespace placement
 } // namespace genesis

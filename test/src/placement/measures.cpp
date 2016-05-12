@@ -32,8 +32,8 @@
 
 #include <memory>
 
+#include "lib/placement/formats/jplace_reader.hpp"
 #include "lib/placement/function/measures.hpp"
-#include "lib/placement/io/jplace_reader.hpp"
 #include "lib/placement/sample.hpp"
 
 using namespace genesis;
