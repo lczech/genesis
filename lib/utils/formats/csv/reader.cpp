@@ -39,8 +39,8 @@
 
 #include "utils/core/fs.hpp"
 #include "utils/io/counting_istream.hpp"
-#include "utils/io/lexer/parser.hpp"
-#include "utils/io/lexer/scanner.hpp"
+#include "utils/io/parser.hpp"
+#include "utils/io/scanner.hpp"
 #include "utils/text/string.hpp"
 
 namespace genesis {

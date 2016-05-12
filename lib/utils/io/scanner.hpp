@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_IO_LEXER_SCANNER_H_
-#define GENESIS_UTILS_IO_LEXER_SCANNER_H_
+#ifndef GENESIS_UTILS_IO_SCANNER_H_
+#define GENESIS_UTILS_IO_SCANNER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.

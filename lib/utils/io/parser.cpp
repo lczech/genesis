@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "utils/io/lexer/parser.hpp"
+#include "utils/io/parser.hpp"
 #include "utils/text/string.hpp"
 
 #include <assert.h>

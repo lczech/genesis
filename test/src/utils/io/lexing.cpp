@@ -30,8 +30,8 @@
 
 #include "common.hpp"
 
-#include "lib/utils/io/lexer/parser.hpp"
-#include "lib/utils/io/lexer/scanner.hpp"
+#include "lib/utils/io/parser.hpp"
+#include "lib/utils/io/scanner.hpp"
 #include "lib/utils/io/counting_istream.hpp"
 
 #include <algorithm>

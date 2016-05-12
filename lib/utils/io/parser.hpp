@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_IO_LEXER_PARSER_H_
-#define GENESIS_UTILS_IO_LEXER_PARSER_H_
+#ifndef GENESIS_UTILS_IO_PARSER_H_
+#define GENESIS_UTILS_IO_PARSER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
