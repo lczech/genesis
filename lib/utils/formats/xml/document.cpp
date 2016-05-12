@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "utils/io/xml/document.hpp"
+#include "utils/formats/xml/document.hpp"
 
 #include "utils/core/logging.hpp"
 

@@ -32,7 +32,7 @@
  */
 
 #include "tree/io/color_writer_mixin.hpp"
-#include "utils/io/xml/document.hpp"
+#include "utils/formats/xml/document.hpp"
 
 #include <assert.h>
 #include <stdexcept>

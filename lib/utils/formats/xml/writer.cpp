@@ -28,14 +28,14 @@
  * @ingroup utils
  */
 
-#include "utils/io/xml/writer.hpp"
+#include "utils/formats/xml/writer.hpp"
 
 #include <assert.h>
 #include <stdexcept>
 
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
-#include "utils/io/xml/document.hpp"
+#include "utils/formats/xml/document.hpp"
 #include "utils/text/string.hpp"
 
 namespace genesis {

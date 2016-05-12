@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_IO_XML_DOCUMENT_H_
-#define GENESIS_UTILS_IO_XML_DOCUMENT_H_
+#ifndef GENESIS_UTILS_FORMATS_XML_DOCUMENT_H_
+#define GENESIS_UTILS_FORMATS_XML_DOCUMENT_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
