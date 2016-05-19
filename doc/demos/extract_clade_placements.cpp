@@ -34,8 +34,8 @@
 
 #include "placement/function/functions.hpp"
 #include "placement/function/sample_set.hpp"
-#include "placement/io/jplace_reader.hpp"
-#include "placement/io/jplace_writer.hpp"
+#include "placement/formats/jplace_reader.hpp"
+#include "placement/formats/jplace_writer.hpp"
 #include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
 
@@ -44,6 +44,7 @@
 #include "tree/tree.hpp"
 
 #include "utils/core/fs.hpp"
+#include "utils/core/logging.hpp"
 #include "utils/text/string.hpp"
 
 using namespace genesis;

@@ -36,7 +36,9 @@
 #include "tree/iterator/postorder.hpp"
 #include "tree/iterator/preorder.hpp"
 #include "tree/tree.hpp"
+
 #include "utils/core/logging.hpp"
+#include "utils/text/string.hpp"
 
 namespace genesis {
 namespace tree {
@@ -120,7 +122,9 @@ BipartitionSet<Tree>::find_smallest_subtree (
     for (NodeType* n : nodes) {
         int leaf_idx = node_to_leaf_map_[n->index()];
         if (leaf_idx == -1) {
-            throw std::runtime_error( "Node at index " + n->index() + " is not leaf." );
+            throw std::runtime_error(
+                "Node at index " + utils::to_string( n->index() ) + " is not leaf."
+            );
         }
         comp.set(leaf_idx);
     }
