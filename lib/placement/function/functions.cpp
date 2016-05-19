@@ -95,6 +95,21 @@ Pquery const* find_pquery( Sample const& smp, std::string const& name )
 }
 
 /**
+ * @brief Return the first Pquery that has a particular name, or nullptr of none has.
+ */
+Pquery* find_pquery( Sample& smp, std::string const& name )
+{
+    // TODO instead of pointer, return an iterator!
+    // then use find if directly!
+    for( auto& pqry : smp.pqueries() ) {
+        if( has_name( pqry, name )) {
+            return &pqry;
+        }
+    }
+    return nullptr;
+}
+
+/**
  * @brief Return a set of all unique PqueryName%s of the @link Pquery Pqueries @endlink
  * of the given sample.
  *
