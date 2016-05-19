@@ -24,8 +24,8 @@
 #include <stdexcept>
 
 #include "placement/function/functions.hpp"
-#include "placement/io/jplace_reader.hpp"
-#include "placement/io/jplace_writer.hpp"
+#include "placement/formats/jplace_reader.hpp"
+#include "placement/formats/jplace_writer.hpp"
 #include "placement/sample.hpp"
 
 #include "utils/core/fs.hpp"

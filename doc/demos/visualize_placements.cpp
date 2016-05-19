@@ -31,21 +31,21 @@
 #include <string>
 #include <vector>
 
-#include "placement/io/jplace_reader.hpp"
-#include "placement/io/newick_writer.hpp"
+#include "placement/formats/jplace_reader.hpp"
+#include "placement/formats/newick_writer.hpp"
 #include "placement/placement_tree.hpp"
 #include "placement/sample.hpp"
 
-#include "tree/io/newick/color_writer_mixin.hpp"
+#include "tree/formats/newick/color_writer_mixin.hpp"
 #include "tree/default/functions.hpp"
 
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 
-#include "utils/io/nexus/document.hpp"
-#include "utils/io/nexus/taxa.hpp"
-#include "utils/io/nexus/trees.hpp"
-#include "utils/io/nexus/writer.hpp"
+#include "utils/formats/nexus/document.hpp"
+#include "utils/formats/nexus/taxa.hpp"
+#include "utils/formats/nexus/trees.hpp"
+#include "utils/formats/nexus/writer.hpp"
 
 #include "utils/text/string.hpp"
 #include "utils/tools/color.hpp"

@@ -86,11 +86,11 @@ TEST( Csv, ReaderDefault )
     table  = reader.from_file( infile );
 
     test_csv_table( infile, table, {
-        { "1", "Brandon", "Butler" },
-        { "2", "Gerald",  "Gilbert" },
-        { "3", "Anna",    "Edwards" },
-        { "4", "Randy",   "Anderson" },
-        { "5", "Heather", "Richards" }
+        { "1", "Bran",     "Stark" },
+        { "2", "Petyr",    "Baelish" },
+        { "3", "Samwell",  "Tarly" },
+        { "4", "Davos",    "Seaworth" },
+        { "5", "Margaery", "Tyrell" }
     });
 
     // Complex(ish) table with default settings.
@@ -98,16 +98,16 @@ TEST( Csv, ReaderDefault )
     table  = reader.from_file( infile );
 
     test_csv_table( infile, table, {
-        { "1",   "Brandon", "" },
-        { "2",   "", "Gilbert" },
-        { "",    "Anna", "Edwards" },
+        { "1",   "Bran", "" },
+        { "2",   "", "Bolton" },
+        { "",    "Tormund", "Giantsbane" },
         { "4",   "", "" },
-        { "",    "Heather", "" },
-        { "",    "", "Cox" },
+        { "",    "Joffrey", "" },
+        { "",    "", "Stark" },
         { "",    "", "" },
-        { "8  ", "Jeremy \"The trick\"", "Campbell" },
-        { "9",   "  John, or was it Steve", "\"" },
-        { "10",  "Raymond with \"quotes\"", " \"" }
+        { "8  ", "Jaime \"The Kingslayer\"", "Lannister" },
+        { "9",   "  Sandor, called The Hound", "\"" },
+        { "10",  "Daenerys \"Mother of Dragons\"", " \"" }
     });
 }
 
@@ -131,12 +131,12 @@ TEST( Csv, ReaderTabulatedEscaped )
     table  = reader.from_file( infile );
 
     test_csv_table( infile, table, {
-        { "1",  "Brandon", "Butler" },
-        { "2",  "Gerald", "Gilbert\nBold" },
-        { "3",  "Anna with spaces", "Edwards\twith\ttabs" },
-        { "4,", "Randy,", "Anderson\ncontinued" },
-        { "5",  "Heather\nnew line", "\"Richards\"" },
-        { "6",  "Man \"with quotes\"", "Wins" }
+        { "1",  "Jon", "Snow" },
+        { "2",  "Tommen", "Baratheon\nThe King" },
+        { "3",  "Jorah with spaces", "Mormont\twith\ttabs" },
+        { "4,", "Tyrion,", "Lannister\ncontinued: The Imp" },
+        { "5",  "Jaqen\nnew line", "\"H'ghar\"" },
+        { "6",  "Arya \"with quotes\"", "Stark" }
     });
 }
 
@@ -159,11 +159,11 @@ TEST( Csv, ReaderCommentEmpty )
     table  = reader.from_file( infile );
 
     test_csv_table( infile, table, {
-        { "1",  "Brandon", "Butler" },
-        { "2",  "Gerald", "Gilbert" },
-        { "3",  "Anna", "Edwards" },
+        { "1",  "Cersei", "Lannister" },
+        { "2",  "Ned", "Stark" },
+        { "3",  "Khal", "Drogo" },
         { "" },
         { " # this is not", " but", " no!" },
-        { "4",  "Randy", "Anderson" }
+        { "4",  "Daario", "Naharis" }
     });
 }

@@ -42,6 +42,12 @@ intended for questions on how to do things with genesis.
 For bug reports and feature requests, please
 [open an issue on our GitHub page](https://github.com/lczech/genesis/issues).
 
+# Citation
+
+Currently, there is no publication to be cited. This is unfortunate and will hopefully change.
+Until then, please write an email to <a href="mailto:lucas.czech@h-its.org">lucas.czech@h-its.org</a>
+to ask for instructions.
+
 # Acknowledgements
 <!-- # Acknowledgements {#main_acknowledgements} -->
 
@@ -70,6 +76,6 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 Contact:<br />
-Lucas Czech <a href="mailto:lucas.czech@h-its.org">lucas.czech@h-its.org</a><br />
+Lucas Czech: <a href="mailto:lucas.czech@h-its.org">lucas.czech@h-its.org</a><br />
 Exelixis Lab, Heidelberg Institute for Theoretical Studies<br />
 Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany<br />
