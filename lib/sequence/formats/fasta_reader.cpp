@@ -80,15 +80,18 @@ FastaReader::FastaReader()
  *    * http://blast.ncbi.nlm.nih.gov/blastcgihelp.shtml
  *    * http://zhanglab.ccmb.med.umich.edu/FASTA/
  *
- * See parse_fasta_sequence_fast() for a faster (~ double the speed), but non-error-checking
+ * See parse_sequence_fast() for a faster (~ double the speed), but non-error-checking
  * version of this function.
  */
-bool FastaReader::parse_fasta_sequence(
+bool FastaReader::parse_sequence(
     utils::CountingIstream& input_stream,
     Sequence&               sequence
 ) const {
-    // Readability.
+    // Init. Call clear in order to avoid not setting properties that might be added to
+    // Sequence in the future. Should not noticeable affect speed, as the sequence string capacities
+    // should not change when setting the strings to empty strings.
     auto& it = input_stream;
+    sequence.clear();
 
     // Check for data.
     if( it.eos() ) {
@@ -207,7 +210,7 @@ bool FastaReader::parse_fasta_sequence(
  * Most probably, it will either write rubbish into the sequence or produce a segfault or an
  * infinite loop. So be warned and check your data first. If they are good, enjoy the speed!
  */
-bool FastaReader::parse_fasta_sequence_fast(
+bool FastaReader::parse_sequence_fast(
     utils::CountingIstream& input_stream,
     Sequence&               sequence
 ) const {
@@ -287,7 +290,7 @@ void FastaReader::from_stream ( std::istream& is, SequenceSet& sset ) const
     auto it = utils::CountingIstream( is );
     Sequence seq;
 
-    while( parse_fasta_sequence( it, seq ) ) {
+    while( parse_sequence( it, seq ) ) {
         sset.push_back( seq );
     }
 }
