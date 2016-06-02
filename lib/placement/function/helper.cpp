@@ -200,6 +200,31 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
 // =================================================================================================
 
 /**
+ * @brief Reset all edge nums of a PlacementTree.
+ *
+ * The `edge_num` property of the PlacementTreeEdge%s is defined by the `jplace` standard.
+ * The values have to be assigned increasingly with a postorder traversal of the tree.
+ * This function resets them so that this is established.
+ *
+ * See has_correct_edge_nums() to check whether the edge nums are already correct. This should
+ * be the case for any valid `jplace` file.
+ */
+void reset_edge_nums( PlacementTree& tree )
+{
+    // Edge numbers need to be in ascending order via postorder traversal.
+    int current = 0;
+    for( auto it : postorder(tree) ) {
+        // The last iteration is skipped, as the root does not have an edge.
+        if (it.is_last_iteration()) {
+            continue;
+        }
+
+        it.edge().data.reset_edge_num( current );
+        ++current;
+    }
+}
+
+/**
  * @brief Verify that the tree has correctly set edge nums.
  *
  * The `edge_num` property of the PlacementTreeEdge%s is defined by the `jplace` standard.
