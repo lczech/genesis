@@ -33,8 +33,10 @@
 #include "lib/sequence/codes.hpp"
 #include "lib/sequence/functions.hpp"
 #include "lib/sequence/sequence_set.hpp"
+#include "lib/sequence/formats/fasta_input_iterator.hpp"
 #include "lib/sequence/formats/fasta_reader.hpp"
 
+#include <fstream>
 #include <string>
 
 using namespace genesis::sequence;
@@ -57,4 +59,26 @@ TEST( Sequence, FastaReaderValidating )
     EXPECT_EQ( "Di106BGTue",           sset[0].label() );
     EXPECT_EQ( "",                     sset[0].metadata() );
     EXPECT_EQ( "TCGAAACCTGC------CTA", sset[0].sites().substr( 0, 20 ) );
+}
+
+TEST( FastaInputIterator, Reading )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    std::string infile = environment->data_dir + "sequence/dna_354.fasta";
+    std::ifstream ifs (infile);
+
+    auto it = FastaInputIterator( ifs );
+
+    size_t len = 0;
+    size_t cnt = 0;
+    while( it ) {
+        len = std::max( len, it->length() );
+        ++cnt;
+        ++it;
+    }
+
+    EXPECT_EQ( 460, len );
+    EXPECT_EQ( 354, cnt );
 }
