@@ -84,6 +84,19 @@ class DefaultTreeNodeData
 {
 public:
 
+    // -------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
+    DefaultTreeNodeData () = default;
+    ~DefaultTreeNodeData() = default;
+
+    DefaultTreeNodeData( DefaultTreeNodeData const& ) = default;
+    DefaultTreeNodeData( DefaultTreeNodeData&& )      = default;
+
+    DefaultTreeNodeData& operator= ( DefaultTreeNodeData const& ) = default;
+    DefaultTreeNodeData& operator= ( DefaultTreeNodeData&& )      = default;
+
     // -----------------------------------------------------
     //     Class Functions
     // -----------------------------------------------------
@@ -131,6 +144,19 @@ public:
 class DefaultTreeEdgeData
 {
 public:
+
+    // -------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
+    DefaultTreeEdgeData () = default;
+    ~DefaultTreeEdgeData() = default;
+
+    DefaultTreeEdgeData( DefaultTreeEdgeData const& ) = default;
+    DefaultTreeEdgeData( DefaultTreeEdgeData&& )      = default;
+
+    DefaultTreeEdgeData& operator= ( DefaultTreeEdgeData const& ) = default;
+    DefaultTreeEdgeData& operator= ( DefaultTreeEdgeData&& )      = default;
 
     // -----------------------------------------------------
     //     Class Functions
