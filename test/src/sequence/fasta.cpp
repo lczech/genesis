@@ -61,7 +61,7 @@ TEST( Sequence, FastaReaderValidating )
     EXPECT_EQ( "TCGAAACCTGC------CTA", sset[0].sites().substr( 0, 20 ) );
 }
 
-TEST( FastaInputIterator, Reading )
+TEST( FastaInputIterator, ReadingLoop )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -74,6 +74,11 @@ TEST( FastaInputIterator, Reading )
     size_t len = 0;
     size_t cnt = 0;
     while( it ) {
+        // Check first sequence.
+        if( cnt == 0 ) {
+            EXPECT_EQ( "Di106BGTue", it->label() );
+        }
+
         len = std::max( len, it->length() );
         ++cnt;
         ++it;
@@ -82,3 +87,38 @@ TEST( FastaInputIterator, Reading )
     EXPECT_EQ( 460, len );
     EXPECT_EQ( 354, cnt );
 }
+
+// TEST( FastaInputIterator, ReadingInput )
+// {
+//     // Skip test if no data availabe.
+//     NEEDS_TEST_DATA;
+//
+//     std::string infile = environment->data_dir + "sequence/dna_354.fasta";
+//     std::ifstream ifs (infile);
+//
+//     auto it = FastaInputIterator( ifs );
+//     Sequence seq;
+//
+//     size_t len = 0;
+//     size_t cnt = 0;
+//
+//     while( it >> seq ) {
+//         // Check first sequence.
+//         if( cnt == 0 ) {
+//             EXPECT_EQ( "Di106BGTue", seq.label() );
+//         }
+//
+//         len = std::max( len, seq.length() );
+//         ++cnt;
+//
+//         if( cnt == 353 ) {
+//             std::cout << seq.label() << "\n";
+//             std::cout << ( it ? "si" : "no" ) << "\n";
+//         }
+//     }
+//
+//     std::cout << ( it ? "si" : "no" ) << "\n";
+//
+//     EXPECT_EQ( 460, len );
+//     EXPECT_EQ( 354, cnt );
+// }

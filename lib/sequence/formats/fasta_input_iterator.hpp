@@ -35,6 +35,8 @@
 #include "sequence/formats/fasta_reader.hpp"
 #include "utils/io/counting_istream.hpp"
 
+#include <iterator>
+
 namespace genesis {
 namespace sequence {
 
@@ -69,7 +71,8 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using self_type = FastaInputIterator;
+    using self_type         = FastaInputIterator;
+    using iterator_category = std::input_iterator_tag;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
