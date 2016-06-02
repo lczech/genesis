@@ -38,6 +38,7 @@
 #include "lib/placement/function/helper.hpp"
 #include "lib/placement/function/operators.hpp"
 #include "lib/placement/sample.hpp"
+#include "lib/tree/default/tree.hpp"
 #include "lib/tree/formats/newick/reader.hpp"
 
 using namespace genesis;
@@ -73,4 +74,22 @@ TEST(SampleFunctions, Filter)
     // Filter max number of placements and check result.
     filter_min_accumulated_weight( smp, 0.6 );
     EXPECT_EQ( 8, total_placement_count(smp) );
+}
+
+TEST( SampleFunctions, ConvertFromDefaultTree )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read and process a normal newick tree.
+    tree::DefaultTree def_tree;
+    std::string infile = environment->data_dir + "tree/distances.newick";
+    tree::DefaultTreeNewickReader().from_file(infile, def_tree);
+
+    // Convert it to a tree that is usable for samples.
+    auto place_tree = convert_to_placement_tree( def_tree );
+
+    // Check if the tree is correct.
+    EXPECT_EQ( 13, place_tree.node_count() );
+    EXPECT_TRUE( has_correct_edge_nums( place_tree ));
 }
