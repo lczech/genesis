@@ -54,6 +54,45 @@ namespace placement {
 // =================================================================================================
 
 /**
+ * @brief Copy constructor.
+ */
+Sample::Sample( Sample const& other )
+{
+    // We need this custom ctor because the placements contain pointers to their edges.
+    // As the whole tree is copied, the pointers need to be adjusted to that new tree.
+
+    // First, use normal copy assignment for the data structures.
+    pqueries_ = other.pqueries_;
+    tree_     = other.tree_;
+    metadata  = other.metadata;
+
+    // Now adjust all placement to edge pointers.
+    for( auto& pqry : pqueries_ ) {
+        for( auto& place : pqry.placements() ) {
+            // Get the index using the pointer to the (still valid) old edge.
+            // (Remember: the placement is still pointing to the old edge at that point.)
+            auto index = place.edge().index();
+
+            // Now set the pointer of the placement to the edge of the new tree.
+            place.reset_edge( tree_.edge_at( index ) );
+        }
+    }
+}
+
+/**
+ * @brief Copy assignment.
+ */
+Sample& Sample::operator= ( Sample const& other )
+{
+    // As we need a custom copy constructor, it is proably safer to also use a custom copy
+    // assignment, just to make sure that it actually does the copying part correctly.
+    // Use copy swap idiom.
+    auto tmp = Sample( other );
+    this->swap( tmp );
+    return *this;
+}
+
+/**
  * @brief Swap the contents of this Sample with the contents of another Sample.
  */
 void Sample::swap( Sample& other )

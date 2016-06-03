@@ -87,11 +87,11 @@ public:
         : tree_(tree)
     {}
 
-    Sample( Sample const& ) = default;
-    Sample( Sample&& )      = default;
+    Sample( Sample const& );
+    Sample( Sample&& ) = default;
 
-    Sample& operator= ( Sample const& ) = default;
-    Sample& operator= ( Sample&& )      = default;
+    Sample& operator= ( Sample const& );
+    Sample& operator= ( Sample&& ) = default;
 
     ~Sample() = default;
 

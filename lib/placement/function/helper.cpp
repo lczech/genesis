@@ -312,6 +312,19 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
         for( auto pit = pqry.begin_placements(); pit != pqry.end_placements(); ++pit ) {
             auto const& p = *pit;
 
+            // Check if the placement has a valid pointer to its edge. This is a bit hard to do,
+            // as we use a raw pointer, so there is no easy way of telling whether it is valid
+            // or dangling. Instead, we simply check if the object behind it has the correct
+            // properties.
+            if(
+                p.edge().index() >= smp.tree().edge_count()         ||
+                edge_num_map.count( p.edge().data.edge_num() ) == 0 ||
+                p.edge().data.edge_num() != p.edge_num()
+            ) {
+                LOG_INFO << "Invlaid edge pointer or edge num.";
+                return false;
+            }
+
             // now we know that all references between placements and edges are correct, so this
             // assertion breaks only if we forgot to check some sort of weird inconsistency.
             assert( edge_num_map.count( p.edge_num() ) > 0 );
