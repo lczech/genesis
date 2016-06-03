@@ -89,6 +89,11 @@ double earth_movers_distance (
     bool          with_pendant_length = false
 );
 
+utils::Matrix<double> earth_movers_distance(
+    SampleSet const& sample_set,
+    bool             with_pendant_length = false
+);
+
 // ----------------------------------------------------------------------------
 //     Center of Gravity
 // ----------------------------------------------------------------------------

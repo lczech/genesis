@@ -46,7 +46,8 @@ namespace placement {
 /**
  * @brief Store a set of Sample%s with associated names.
  *
- * The elements in this set are stored as a NamedSample.
+ * The elements in this set are stored as a NamedSample. They are stored in the sequence in which
+ * they are added to the set, and can be accessed via an index.
  */
 class SampleSet
 {
