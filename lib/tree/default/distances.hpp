@@ -43,26 +43,14 @@ namespace tree {
 //     Distance Related Propoerties
 // =================================================================================================
 
-/**
- * @brief Returns the length of the tree (sum of all branch lengths).
- */
 template <class Tree>
-double length(const Tree& tree);
-
-/**
- * @brief Returns the height of the tree (longest distance from root to a leaf).
- */
-template <class Tree>
-double height(const Tree& tree);
+double length( Tree const& tree );
 
 template <class Tree>
-double depth(const Tree& tree);
+double height( Tree const& tree );
 
-/**
- * @brief Returns the longest distance from any point in the tree (on the edges) to any leaf.
- */
 template <class Tree>
-double deepest_distance(const Tree& tree);
+double diameter( Tree const& tree );
 
 // =================================================================================================
 //     Branch Distance Measures
@@ -70,23 +58,23 @@ double deepest_distance(const Tree& tree);
 
 template <class Tree>
 utils::Matrix<double> node_branch_length_distance_matrix(
-    const Tree& tree
+    Tree const& tree
 );
 
 template <class Tree>
 std::vector<double> node_branch_length_distance_vector(
-    const Tree& tree,
+    Tree const& tree,
     const typename Tree::NodeType* node = nullptr
 );
 
 template <class Tree>
 utils::Matrix<double> edge_branch_length_distance_matrix(
-    const Tree& tree
+    Tree const& tree
 );
 
 template <class Tree>
 std::vector<double> edge_branch_length_distance_vector(
-    const Tree& tree,
+    Tree const& tree,
     const typename Tree::EdgeType* edge = nullptr
 );
 
@@ -94,18 +82,12 @@ std::vector<double> edge_branch_length_distance_vector(
 //     Complex Distance Methods
 // =================================================================================================
 
-/**
- * @brief Returns a vector containing the closest leaf node for each node, using the branch_length
- * as distance measure.
- *
- * The vector is indexed using the node().index() for every node. Its value contains an std::pair,
- * where the first element is a NodeType* to the closest leaf node of the node at the index,
- * measured using the branch_length; the second element of the pair is the distance value itself.
- * Thus, leaf nodes will have a pointer to themselves and a distance value of 0.
- */
+template <class Tree>
+double deepest_distance( Tree const& tree );
+
 template <class Tree>
 std::vector<std::pair<const typename Tree::NodeType*, double>> closest_leaf_distance_vector(
-    const Tree& tree
+    Tree const& tree
 );
 
 } // namespace tree

@@ -41,59 +41,39 @@ namespace tree {
 //     Distance Related Propoerties
 // =================================================================================================
 
+/**
+ * @brief Get the length of the tree, i.e., the sum of all branch lengths.
+ */
 template <class Tree>
-double length(const Tree& tree)
+double length(Tree const& tree)
 {
-    // TODO if we introduce some naming convention for with/withou branch length, the without
-    // branch lengths version of this function will basically return edges.size()... is that needed?
-    // TODO use an algorithm here
     double len = 0.0;
-    for (const auto edge_it = tree.begin_edges(); edge_it != tree.end_edges(); ++edge_it) {
-        len += edge_it->data.branch_length;
+    for( auto const& edge : tree.edges() ) {
+        len += edge->data.branch_length;
     }
     return len;
 }
 
+/**
+ * @brief Get the height of the tree, i.e., the longest distance from the root to a leaf,
+ * measured using the branch_length.
+ */
 template <class Tree>
-double height(const Tree& tree)
+double height(Tree const& tree)
 {
     auto dists = node_branch_length_distance_vector(tree);
     return *std::max_element(dists.begin(), dists.end());
 }
 
+/**
+ * @brief Get the diameter of the tree, i.e., the longest distance between any two nodes,
+ * measured using the branch_length.
+ */
 template <class Tree>
-double depth(const Tree& tree)
+double diameter( Tree const& tree )
 {
-    // TODO implement!
-    throw std::domain_error( "Not yet implemented." );
-    (void) tree;
-    return 0.0;
-}
-
-template <class Tree>
-double deepest_distance(const Tree& tree)
-{
-    // TODO this should better be called diameter, return the double of this value. also, it can
-    // be calculated in a different way: take the max of the node distance matrix. this should yield
-    // the same value. this is also a good way of verifiying the result for testing!
-    // TODO diameter method already exists as a method called heigth, see above!
-    // TODO also, find a naming convention for weighted (with branch lengths) and unweighted diamter and
-    // all other functions dealing with tree distances!
-
-    double max = 0.0;
-
-    auto leaf_dist = closest_leaf_distance_vector(tree);
-
-    for (const auto& e = tree.begin_edges(); e != tree.end_edges(); ++e) {
-        int idx_p = e->primary_node().index();
-        int idx_s = e->secondary_node().index();
-        double d = (leaf_dist[idx_p].second + e->data.branch_length + leaf_dist[idx_s].second) / 2;
-
-        if (d > max) {
-            max = d;
-        }
-    }
-    return max;
+    auto dist_mat = node_branch_length_distance_matrix( tree );
+    return *std::max_element( dist_mat.begin(), dist_mat.end() );
 }
 
 // =================================================================================================
@@ -108,7 +88,7 @@ double deepest_distance(const Tree& tree)
  */
 template <class Tree>
 utils::Matrix<double> node_branch_length_distance_matrix(
-    const Tree& tree
+    Tree const& tree
 ) {
     utils::Matrix<double> mat (tree.node_count(), tree.node_count(), -1.0);
 
@@ -158,7 +138,7 @@ utils::Matrix<double> node_branch_length_distance_matrix(
  */
 template <class Tree>
 std::vector<double> node_branch_length_distance_vector(
-    const Tree& tree,
+    Tree const& tree,
     const typename Tree::NodeType* node
 ) {
     if (!node) {
@@ -193,7 +173,7 @@ std::vector<double> node_branch_length_distance_vector(
 
 template <class Tree>
 utils::Matrix<double> edge_branch_length_distance_matrix(
-    const Tree& tree
+    Tree const& tree
 ) {
     // Result matrix that will be returned.
     utils::Matrix<double> mat (tree.edge_count(), tree.edge_count());
@@ -260,7 +240,7 @@ utils::Matrix<double> edge_branch_length_distance_matrix(
 
 template <class Tree>
 std::vector<double> edge_branch_length_distance_vector(
-    const Tree& tree,
+    Tree const& tree,
     const typename Tree::EdgeType* edge
 ) {
     std::vector<double> vec (tree.edge_count());
@@ -308,9 +288,39 @@ std::vector<double> edge_branch_length_distance_vector(
 //     Complex Distance Methods
 // =================================================================================================
 
+/**
+ * @brief Return the longest distance from any point in the tree (on the edges) to any leaf.
+ */
+template <class Tree>
+double deepest_distance(Tree const& tree)
+{
+    double max = 0.0;
+    auto leaf_dist = closest_leaf_distance_vector(tree);
+
+    for( auto const& e : tree.edges() ) {
+        int idx_p = e->primary_node().index();
+        int idx_s = e->secondary_node().index();
+
+        double d = (leaf_dist[idx_p].second + e->data.branch_length + leaf_dist[idx_s].second) / 2;
+        if (d > max) {
+            max = d;
+        }
+    }
+    return max;
+}
+
+/**
+ * @brief Return a vector containing the closest leaf node for each node, using the branch_length
+ * as distance measure.
+ *
+ * The vector is indexed using the node().index() for every node. Its value contains an std::pair,
+ * where the first element is a NodeType* to the closest leaf node of the node at the index,
+ * measured using the branch_length; the second element of the pair is the distance value itself.
+ * Thus, leaf nodes will have a pointer to themselves and a distance value of 0.
+ */
 template <class Tree>
 std::vector<std::pair<const typename Tree::NodeType*, double>> closest_leaf_distance_vector(
-    const Tree& tree
+    Tree const& tree
 ) {
     // prepare a result vector with the size of number of nodes.
     std::vector<std::pair<const typename Tree::NodeType*, double>> vec;
