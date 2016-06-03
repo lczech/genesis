@@ -54,8 +54,8 @@ TEST(DefaultTree, Distances)
     DefaultTreeNewickReader().from_file(infile, tree);
 
     // Basic checks.
-    EXPECT_EQ(7, leaf_nodes_count(tree));
-    EXPECT_EQ(6, inner_nodes_count(tree));
+    EXPECT_EQ(7, leaf_node_count(tree));
+    EXPECT_EQ(6, inner_node_count(tree));
     EXPECT_EQ(13, tree.node_count());
     EXPECT_TRUE( is_bifurcating( tree ));
     EXPECT_TRUE( validate( tree ));

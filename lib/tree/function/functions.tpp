@@ -71,7 +71,7 @@ bool is_bifurcating( Tree const& tree )
  * @brief Count the number of leaf nodes of a Tree.
  */
 template <class Tree>
-size_t leaf_nodes_count( Tree const& tree )
+size_t leaf_node_count( Tree const& tree )
 {
     size_t sum = 0;
     for (size_t i = 0; i < tree.node_count(); ++i) {
@@ -87,9 +87,9 @@ size_t leaf_nodes_count( Tree const& tree )
  * @brief Count the number of inner nodes.
  */
 template <class Tree>
-size_t inner_nodes_count( Tree const& tree )
+size_t inner_node_count( Tree const& tree )
 {
-    return tree.node_count() - leaf_nodes_count( tree );
+    return tree.node_count() - leaf_node_count( tree );
 }
 
 } // namespace tree
