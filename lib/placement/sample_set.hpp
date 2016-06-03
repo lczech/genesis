@@ -88,7 +88,8 @@ public:
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    void add( std::string const& name, Sample const& smp);
+    void add( Sample const& smp );
+    void add( Sample const& smp, std::string const& name );
 
     void remove_at( size_t index );
     void clear();

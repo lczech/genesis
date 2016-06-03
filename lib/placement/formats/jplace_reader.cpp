@@ -219,7 +219,7 @@ void JplaceReader::from_files (const std::vector<std::string>& fns, SampleSet& s
         auto map = Sample();
         from_file (fn, map);
         std::string name = utils::file_filename( utils::file_basename(fn) );
-        set.add(name, map);
+        set.add( map, name );
     }
 }
 
@@ -232,7 +232,8 @@ void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet&
     for (auto jplace : jps) {
         auto map = Sample();
         from_string (jplace, map);
-        set.add(std::string("jplace_") + std::to_string(cnt++), map);
+        set.add( map, std::string("jplace_") + std::to_string(cnt) );
+        ++cnt;
     }
 }
 
