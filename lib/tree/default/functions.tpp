@@ -45,7 +45,7 @@ namespace tree {
  */
 template <class TreeType>
 std::vector<std::string> node_names(
-    TreeType& tree,
+    TreeType const& tree,
     bool leaves_only
 ) {
     std::vector<std::string> ret;
@@ -65,8 +65,8 @@ std::vector<std::string> node_names(
  * @brief Finds a Node, given its name. If not found, nullptr is returned.
  */
 template <class TreeType>
-typename TreeType::NodeType* find_node(
-    TreeType& tree,
+typename TreeType::NodeType const* find_node(
+    TreeType const& tree,
     const std::string& name,
     bool replace_underscores
 ) {
@@ -82,6 +82,55 @@ typename TreeType::NodeType* find_node(
     }
 
     return nullptr;
+}
+
+/**
+ * @brief Finds a Node, given its name. If not found, nullptr is returned.
+ */
+template <class TreeType>
+typename TreeType::NodeType* find_node(
+    TreeType& tree,
+    const std::string& name,
+    bool replace_underscores
+) {
+    // Avoid code duplication according to Scott Meyers.
+    auto const& ctree = static_cast< TreeType const >( tree );
+    return const_cast< typename TreeType::NodeType* >(
+        find_node( ctree, name, replace_underscores )
+    );
+}
+
+// =================================================================================================
+//     Branch Length
+// =================================================================================================
+
+/**
+ * @brief Get a vector of all branch lengths of a Tree, index by the
+ * @link TreeEdge::index() edge index@endlink.
+ */
+template <class TreeType>
+std::vector<double> branch_lengths(
+    TreeType const& tree
+) {
+    std::vector<double> result;
+    result.reserve( tree.edge_count() );
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        result.push_back( tree.edge_at(i).data.branch_length );
+    }
+    return result;
+}
+
+/**
+ * @brief Set all branch lengths of a Tree to a given value.
+ */
+template <class TreeType>
+void set_all_branch_lengths(
+    TreeType& tree,
+    double length
+) {
+    for( auto& edge : tree.edges() ) {
+        edge->data.branch_length = length;
+    }
 }
 
 } // namespace tree

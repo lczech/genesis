@@ -43,15 +43,37 @@ namespace tree {
 
 template <class TreeType>
 std::vector<std::string> node_names(
-    TreeType& tree,
+    TreeType const& tree,
     bool leaves_only = false
+);
+
+template <class TreeType>
+typename TreeType::NodeType const* find_node(
+    TreeType const& tree,
+    std::string const& name,
+    bool replace_underscores = false
 );
 
 template <class TreeType>
 typename TreeType::NodeType* find_node(
     TreeType& tree,
-    const std::string& name,
+    std::string const& name,
     bool replace_underscores = false
+);
+
+// =================================================================================================
+//     Branch Length
+// =================================================================================================
+
+template <class TreeType>
+std::vector<double> branch_lengths(
+    TreeType const& tree
+);
+
+template <class TreeType>
+void set_all_branch_lengths(
+    TreeType& tree,
+    double length = 1.0
 );
 
 } // namespace tree

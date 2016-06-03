@@ -181,7 +181,7 @@ public:
         return "Length: " + std::to_string(branch_length);
     }
 
-    double branch_length;
+    double branch_length = 1.0;
 
 };
 
