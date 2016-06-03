@@ -73,7 +73,7 @@ Taxon const* find_taxon( Taxonomy const& tax, std::string const& name )
 Taxon* find_taxon( Taxonomy& tax, std::string const& name )
 {
     // Avoid code duplication according to Scott Meyers.
-    auto const& ctax = static_cast< Taxonomy const >( tax );
+    auto const& ctax = static_cast< Taxonomy const& >( tax );
     return const_cast< Taxon* >( find_taxon( ctax, name ));
 }
 

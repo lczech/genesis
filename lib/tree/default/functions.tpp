@@ -94,7 +94,7 @@ typename TreeType::NodeType* find_node(
     bool replace_underscores
 ) {
     // Avoid code duplication according to Scott Meyers.
-    auto const& ctree = static_cast< TreeType const >( tree );
+    auto const& ctree = static_cast< TreeType const& >( tree );
     return const_cast< typename TreeType::NodeType* >(
         find_node( ctree, name, replace_underscores )
     );
