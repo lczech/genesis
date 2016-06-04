@@ -1,5 +1,5 @@
-#ifndef GENESIS_SEQUENCE_SEQUENCE_H_
-#define GENESIS_SEQUENCE_SEQUENCE_H_
+#ifndef GENESIS_SEQUENCE_FORMATS_FASTA_OUTPUT_ITERATOR_H_
+#define GENESIS_SEQUENCE_FORMATS_FASTA_OUTPUT_ITERATOR_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,96 +31,95 @@
  * @ingroup sequence
  */
 
-#include <string>
+#include "sequence/sequence.hpp"
+#include "sequence/formats/fasta_writer.hpp"
+
+#include <iterator>
+#include <iostream>
 
 namespace genesis {
 namespace sequence {
 
-class Sequence
+// =================================================================================================
+//     Fasta Output Iterator
+// =================================================================================================
+
+/**
+ * @brief
+ */
+class FastaOutputIterator
 {
 public:
 
     // -------------------------------------------------------------------------
-    //     Typedefs and Enums
+    //     Member Types
     // -------------------------------------------------------------------------
 
-    typedef std::string::iterator       iterator;
-    typedef std::string::const_iterator const_iterator;
+    using self_type         = FastaOutputIterator;
+    using iterator_category = std::output_iterator_tag;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    Sequence() = default;
+    FastaOutputIterator() = default;
 
-    Sequence( std::string const& label, std::string const& sites )
-        : label_(label)
-        , metadata_()
-        , sites_(sites)
+    FastaOutputIterator( std::ostream& out )
+        : writer_()
+        , output_stream_( out )
     {}
 
-    Sequence( std::string const& label, std::string const& metadata, std::string const& sites )
-        : label_(label)
-        , metadata_(metadata)
-        , sites_(sites)
+    FastaOutputIterator( std::ostream& out, FastaWriter const& writer )
+        : writer_( writer )
+        , output_stream_( out )
     {}
 
-    ~Sequence() = default;
+    ~FastaOutputIterator() = default;
 
-    Sequence( Sequence const& ) = default;
-    Sequence( Sequence&& )      = default;
+    FastaOutputIterator( self_type const& ) = default;
+    FastaOutputIterator( self_type&& )      = default;
 
-    Sequence& operator= ( Sequence const& ) = default;
-    Sequence& operator= ( Sequence&& )      = default;
-
-    void swap( Sequence& other )
-    {
-        using std::swap;
-        swap( label_,    other.label_ );
-        swap( metadata_, other.metadata_ );
-        swap( sites_,    other.sites_ );
-    }
-
-    // -------------------------------------------------------------------------
-    //     Properties
-    // -------------------------------------------------------------------------
-
-    std::string const& label() const;
-    void               label( std::string const& value );
-
-    std::string const& metadata() const;
-    void               metadata( std::string const& value );
-
-    std::string const& sites() const;
-    void               sites( std::string const& value );
-    void               sites( std::string &&     value );
-    std::string&       sites();
-
-    void clear();
+    self_type& operator= ( self_type const& ) = default;
+    self_type& operator= ( self_type&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Accessors
     // -------------------------------------------------------------------------
 
-    size_t length() const;
-    size_t size() const;
+    self_type& operator = ( Sequence const& seq )
+    {
+        writer_.write_sequence( seq, output_stream_ );
+        return *this;
+    }
 
-    char site_at( size_t index ) const;
+    self_type& operator * ()
+    {
+        return *this;
+    }
 
-    char operator [] (size_t index) const;
+    /**
+     * @brief Return the FastaWrtier used for this iterator.
+     *
+     * Use this to change the writing behaviour of the iterator. See FastaWriter for details.
+     */
+    FastaWriter& writer()
+    {
+        return writer_;
+    }
 
     // -------------------------------------------------------------------------
-    //     Iterators
+    //     Iteration
     // -------------------------------------------------------------------------
 
-    iterator begin();
-    iterator end();
+    self_type& operator ++ ()
+    {
+        return *this;
+    }
 
-    const_iterator begin() const;
-    const_iterator end() const;
-
-    const_iterator cbegin() const;
-    const_iterator cend() const;
+    self_type& operator ++ ( int )
+    {
+        return *this;
+    }
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -128,9 +127,8 @@ public:
 
 private:
 
-    std::string label_;
-    std::string metadata_;
-    std::string sites_;
+    FastaWriter   writer_;
+    std::ostream& output_stream_;
 };
 
 } // namespace sequence

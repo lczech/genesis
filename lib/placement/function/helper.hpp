@@ -70,6 +70,7 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp );
 //     Verification
 // =================================================================================================
 
+void reset_edge_nums( PlacementTree& tree );
 bool has_correct_edge_nums( PlacementTree const& tree );
 
 bool validate( Sample const& smp, bool check_values = false, bool break_on_values = false );

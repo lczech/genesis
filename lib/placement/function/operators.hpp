@@ -35,19 +35,44 @@
 #include <string>
 
 namespace genesis {
-namespace placement {
 
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
 
-class Sample;
+namespace tree {
+    template<class NodeDataType, class EdgeDataType>
+    class Tree;
+
+    class DefaultTreeNodeData;
+    class DefaultTreeEdgeData;
+
+    using DefaultTree = Tree<DefaultTreeNodeData, DefaultTreeEdgeData>;
+}
+
+namespace placement {
+    class PlacementTreeEdgeData;
+    class PlacementTreeNodeData;
+
+    using PlacementTree = tree::Tree< PlacementTreeNodeData, PlacementTreeEdgeData >;
+
+    class Sample;
+}
+
+namespace placement {
 
 // =================================================================================================
 //     Comparision and Equality
 // =================================================================================================
 
-bool compatible_trees (const Sample& lhs, const Sample& rhs);
+bool compatible_trees( PlacementTree const& lhs, PlacementTree const& rhs );
+bool compatible_trees( Sample        const& lhs, Sample        const& rhs );
+
+// =================================================================================================
+//     Conversion
+// =================================================================================================
+
+PlacementTree convert_to_placement_tree( tree::DefaultTree const& source_tree );
 
 // =================================================================================================
 //     Output

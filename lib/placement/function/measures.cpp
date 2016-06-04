@@ -43,6 +43,7 @@
 #include "placement/function/operators.hpp"
 #include "placement/placement_tree.hpp"
 #include "placement/pquery/plain.hpp"
+#include "placement/sample_set.hpp"
 #include "placement/sample.hpp"
 
 #include "tree/default/distances.hpp"
@@ -57,6 +58,7 @@
 #include "utils/core/options.hpp"
 #include "utils/math/histogram.hpp"
 #include "utils/math/histogram/distances.hpp"
+#include "utils/math/matrix.hpp"
 
 namespace genesis {
 namespace placement {
@@ -181,14 +183,14 @@ double pquery_distance (
  * The masses are then distributed on this tree, using the same relative position on their branches
  * that they had in their original trees.
  *
- * The calculation furthermore takes the @link PqueryName::multiplicity multiplicities @endlink of
- * the @link Pquery Pqueries @endlink into account. That means, pqueries with higher (total)
+ * The calculation furthermore takes the @link PqueryName::multiplicity multiplicities@endlink of
+ * the @link Pquery Pqueries@endlink into account. That means, pqueries with higher (total)
  * multiplicity have a higher influence on the calculated distance.
  *
- * As the two Sample%s might have a different total number of @link Pquery Pqueries @endlink, the
+ * As the two Sample%s might have a different total number of @link Pquery Pqueries@endlink, the
  * masses of the Samples are first normalized to 1.0, using all the
  * @link PqueryPlacement::like_weight_ratio like_weight_ratios@endlink and
- * @link PqueryName::multiplicity multiplicities @endlink of the Pqueries.
+ * @link PqueryName::multiplicity multiplicities@endlink of the Pqueries.
  * As a consequence, the resulting distance will not reflect the total number of Pqueries, but only
  * their relative (normalized) distrubution on the tree.
  *
@@ -271,6 +273,34 @@ double earth_movers_distance (
     }
 
     return work;
+}
+
+/**
+ * @brief Calculate the pairwise Earth Movers Distance for all Sample%s in a SampleSet.
+ *
+ * The result is a pairwise distance @link utils::Matrix Matrix@endlink using the indices of the
+ * Sample%s in the SampleSet.
+ * See @link earth_movers_distance( const Sample& lhs, const Sample& rhs, bool with_pendant_length )
+ * the Sample version@endlink of this function for details on this distance measure.
+ */
+utils::Matrix<double> earth_movers_distance(
+    SampleSet const& sample_set,
+    bool             with_pendant_length
+) {
+    auto result = utils::Matrix<double>( sample_set.size(), sample_set.size(), 0.0 );
+    for( size_t i = 0; i < sample_set.size(); ++i ) {
+
+        // The result is symmetric - we only calculate the upper triangle.
+        for( size_t j = i + 1; j < sample_set.size(); ++j ) {
+            result(i, j) = earth_movers_distance(
+                sample_set[i].sample,
+                sample_set[j].sample,
+                with_pendant_length
+            );
+            result(j, i) = result(i, j);
+        }
+    }
+    return result;
 }
 
 // =================================================================================================

@@ -267,7 +267,7 @@ void set_random_subtree_weights( Sample const& sample, SimulatorEdgeDistribution
     size_t num_edges = sample.tree().edge_count();
     edge_distrib.edge_weights = std::vector<double>( num_edges, 0.0 );
 
-    std::uniform_int_distribution<int> edge_selection( 0, num_edges );
+    std::uniform_int_distribution<int> edge_selection( 0, num_edges - 1 );
     size_t edge_idx = edge_selection( utils::Options::get().random_engine() );
 
     PlacementTree::LinkType const* start_link;

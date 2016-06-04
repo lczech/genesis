@@ -54,6 +54,19 @@ class PlacementTreeNodeData : public tree::DefaultTreeNodeData
 {
 public:
 
+    // -------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
+    PlacementTreeNodeData () = default;
+    ~PlacementTreeNodeData() = default;
+
+    PlacementTreeNodeData( PlacementTreeNodeData const& ) = default;
+    PlacementTreeNodeData( PlacementTreeNodeData&& )      = default;
+
+    PlacementTreeNodeData& operator= ( PlacementTreeNodeData const& ) = default;
+    PlacementTreeNodeData& operator= ( PlacementTreeNodeData&& )      = default;
+
 };
 
 // =================================================================================================
@@ -70,6 +83,19 @@ public:
 class PlacementTreeEdgeData : public tree::DefaultTreeEdgeData
 {
 public:
+
+    // -------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
+    PlacementTreeEdgeData () = default;
+    ~PlacementTreeEdgeData() = default;
+
+    PlacementTreeEdgeData( PlacementTreeEdgeData const& ) = default;
+    PlacementTreeEdgeData( PlacementTreeEdgeData&& )      = default;
+
+    PlacementTreeEdgeData& operator= ( PlacementTreeEdgeData const& ) = default;
+    PlacementTreeEdgeData& operator= ( PlacementTreeEdgeData&& )      = default;
 
     // -----------------------------------------------------
     //     Class Functions

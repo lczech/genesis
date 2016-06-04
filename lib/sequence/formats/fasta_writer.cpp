@@ -46,30 +46,38 @@ namespace sequence {
 // =================================================================================================
 
 /**
+ * @brief Write a single Sequence to an output stream in Fasta format.
+ */
+void FastaWriter::write_sequence( Sequence const& seq, std::ostream& os ) const
+{
+    // Write label.
+    os << ">" << seq.label();
+
+    // Write metadata if available.
+    if( seq.metadata().size() > 0 ) {
+        os << " " << seq.metadata();
+    }
+    os << "\n";
+
+    // Write sequence. If needed, add new line at every line_length_ position.
+    if (line_length_ > 0) {
+        for (size_t i = 0; i < seq.length(); i += line_length_) {
+            // Write line_length_ many characters.
+            // (If the string is shorter, as many characters as possible are used.)
+            os << seq.sites().substr(i, line_length_) << "\n";
+        }
+    } else {
+        os << seq.sites() << "\n";
+    }
+}
+
+/**
  * @brief Write Sequences of a SequenceSet to a stream in Fasta format.
  */
 void FastaWriter::to_stream( SequenceSet const& sset, std::ostream& os ) const
 {
-    for( Sequence const& s : sset ) {
-        // Write label.
-        os << ">" << s.label();
-
-        // Write metadata if available.
-        if( s.metadata().size() > 0 ) {
-            os << " " << s.metadata();
-        }
-        os << "\n";
-
-        // Write sequence. If needed, add new line at every line_length_ position.
-        if (line_length_ > 0) {
-            for (size_t i = 0; i < s.length(); i += line_length_) {
-                // Write line_length_ many characters.
-                // (If the string is shorter, as many characters as possible are used.)
-                os << s.sites().substr(i, line_length_) << "\n";
-            }
-        } else {
-            os << s.sites() << "\n";
-        }
+    for( Sequence const& seq : sset ) {
+        write_sequence( seq, os );
     }
 }
 

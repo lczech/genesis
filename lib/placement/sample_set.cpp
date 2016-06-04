@@ -54,11 +54,21 @@ void SampleSet::swap( SampleSet& other )
 // =================================================================================================
 
 /**
+ * @brief Add a Sample to the SampleSet.
+ *
+ * The Sample is copied. The name is set to empty string.
+ */
+void SampleSet::add( Sample const& smp )
+{
+    smps_.push_back( { "", smp } );
+}
+
+/**
  * @brief Add a Sample with a name to the SampleSet.
  *
  * The Sample is copied.
  */
-void SampleSet::add( std::string const& name, Sample const& smp)
+void SampleSet::add( Sample const& smp, std::string const& name )
 {
     smps_.push_back( { name, smp } );
 }

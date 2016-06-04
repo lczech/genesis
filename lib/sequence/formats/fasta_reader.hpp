@@ -107,12 +107,12 @@ public:
     //     Parsing
     // ---------------------------------------------------------------------
 
-    bool parse_fasta_sequence(
+    bool parse_sequence(
         utils::CountingIstream& input_stream,
         Sequence&               sequence
     ) const;
 
-    bool parse_fasta_sequence_fast(
+    bool parse_sequence_fast(
         utils::CountingIstream& input_stream,
         Sequence&               sequence
     ) const;

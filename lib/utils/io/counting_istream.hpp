@@ -325,6 +325,34 @@ public:
     }
 
     // -------------------------------------------------------------
+    //     Comparators
+    // -------------------------------------------------------------
+
+    /**
+     * @brief Compare two CountingIstream%s for equality.
+     *
+     * This function compares the underlying buffers for equality. That is, two CountingIstream%s
+     * are considered equal if either both of them are at the end of their stream or neither is.
+     * Thus, iterators on different streams or with different current chars can still be considered
+     * equal. This equality is hence mostly useful to test for end-of-stream in loops reading
+     * from the stream.
+     */
+    bool operator == ( self_type const& other ) const
+    {
+        return it_ == other.it_;
+    }
+
+    /**
+     * @brief Compare two CountingIstream%s for inequality.
+     *
+     * See operator==() for details.
+     */
+    bool operator != ( self_type const& other ) const
+    {
+        return !( *this == other );
+    }
+
+    // -------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------
 

@@ -41,6 +41,7 @@ namespace sequence {
 //     Forward Declarations
 // =================================================================================================
 
+class Sequence;
 class SequenceSet;
 
 // =================================================================================================
@@ -87,6 +88,8 @@ public:
     // ---------------------------------------------------------------------
     //     Writing
     // ---------------------------------------------------------------------
+
+    void write_sequence( Sequence const& seq, std::ostream& os ) const;
 
     void        to_stream ( SequenceSet const& sset, std::ostream&      os ) const;
     void        to_file   ( SequenceSet const& sset, std::string const& fn ) const;

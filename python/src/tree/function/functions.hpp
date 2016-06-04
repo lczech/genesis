@@ -52,16 +52,16 @@ void python_export_function_tree_function_functions_Tree ()
     );
 
     boost::python::def(
-        "inner_nodes_count",
-        ( size_t ( * )( Tree const & ))( &::genesis::tree::inner_nodes_count ),
+        "inner_node_count",
+        ( size_t ( * )( Tree const & ))( &::genesis::tree::inner_node_count ),
         ( boost::python::arg("tree") ),
-        get_docstring("size_t ::genesis::tree::inner_nodes_count (Tree const & tree)")
+        get_docstring("size_t ::genesis::tree::inner_node_count (Tree const & tree)")
     );
 
     boost::python::def(
-        "leaf_nodes_count",
-        ( size_t ( * )( Tree const & ))( &::genesis::tree::leaf_nodes_count ),
+        "leaf_node_count",
+        ( size_t ( * )( Tree const & ))( &::genesis::tree::leaf_node_count ),
         ( boost::python::arg("tree") ),
-        get_docstring("size_t ::genesis::tree::leaf_nodes_count (Tree const & tree)")
+        get_docstring("size_t ::genesis::tree::leaf_node_count (Tree const & tree)")
     );
 }

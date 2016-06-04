@@ -46,7 +46,8 @@ namespace placement {
 /**
  * @brief Store a set of Sample%s with associated names.
  *
- * The elements in this set are stored as a NamedSample.
+ * The elements in this set are stored as a NamedSample. They are stored in the sequence in which
+ * they are added to the set, and can be accessed via an index.
  */
 class SampleSet
 {
@@ -87,7 +88,8 @@ public:
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    void add( std::string const& name, Sample const& smp);
+    void add( Sample const& smp );
+    void add( Sample const& smp, std::string const& name );
 
     void remove_at( size_t index );
     void clear();

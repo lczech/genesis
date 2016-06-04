@@ -32,9 +32,14 @@
 
 #include "placement/function/functions.hpp"
 #include "placement/function/helper.hpp"
+#include "placement/placement_tree.hpp"
 #include "placement/sample.hpp"
+
+#include "tree/default/tree.hpp"
 #include "tree/function/operators.hpp"
 #include "tree/printer/compact.hpp"
+#include "tree/tree.hpp"
+
 #include "utils/text/table.hpp"
 
 #include <ostream>
@@ -48,28 +53,88 @@ namespace placement {
 //     Comparision and Equality
 // =================================================================================================
 
-bool compatible_trees (const Sample& lhs, const Sample& rhs)
+/**
+ * @brief Return whether two PlacementTree%s are compatible.
+ *
+ * This is the case iff:
+ *
+ *   * they have the same topology,
+ *   * they have the same internal structure (e.g., node indices),
+ *   * they have the same node names at corresponding nodes,
+ *   * they have the same edge nums at corresponding edges
+ *
+ * In all other cases, `false` is returned.
+ */
+bool compatible_trees( PlacementTree const& lhs, PlacementTree const& rhs )
 {
     auto node_comparator = [] (
-        const PlacementTree::NodeType& node_l,
-        const PlacementTree::NodeType& node_r
+        PlacementTree::NodeType const& node_l,
+        PlacementTree::NodeType const& node_r
     ) {
         return node_l.data.name == node_r.data.name &&
                node_l.index()   == node_r.index();
     };
 
     auto edge_comparator = [] (
-        const PlacementTree::EdgeType& edge_l,
-        const PlacementTree::EdgeType& edge_r
+        PlacementTree::EdgeType const& edge_l,
+        PlacementTree::EdgeType const& edge_r
     ) {
-        return edge_l.data.edge_num()          == edge_r.data.edge_num()           &&
+        return edge_l.data.edge_num()          == edge_r.data.edge_num()          &&
                edge_l.primary_node().index()   == edge_r.primary_node().index()   &&
                edge_l.secondary_node().index() == edge_r.secondary_node().index();
     };
 
     return tree::equal<PlacementTree, PlacementTree>(
-        lhs.tree(), rhs.tree(), node_comparator, edge_comparator
+        lhs, rhs, node_comparator, edge_comparator
     );
+}
+
+/**
+ * @brief Return whether the PlacementTree%s of two Sample%s are compatible.
+ *
+ * See
+ * @link compatible_trees( PlacementTree const& lhs, PlacementTree const& rhs ) this version @endlink
+ * of the function for details.
+ */
+bool compatible_trees( Sample const& lhs, Sample const& rhs )
+{
+    return compatible_trees( lhs.tree(), rhs.tree() );
+}
+
+// =================================================================================================
+//     Conversion
+// =================================================================================================
+
+/**
+ * @brief Convert a @link tree::DefaultTree DefaultTree @endlink into a PlacementTree.
+ *
+ * This function returns a new tree with the same topology as the source tree, and the same
+ * node names and branch lengths. In addition, the `edge_num` property of the PlacementTree is
+ * established, as it is not part of the DefaultTree data.
+ */
+PlacementTree convert_to_placement_tree( tree::DefaultTree const& source_tree )
+{
+    auto node_data_converter = [] ( tree::DefaultTreeNodeData const& source_node ) {
+        auto node_data = PlacementTreeNodeData();
+        node_data.name = source_node.name;
+        return node_data;
+    };
+
+    auto edge_data_converter = [] ( tree::DefaultTreeEdgeData const& source_edge ) {
+        auto edge_data = PlacementTreeEdgeData();
+        edge_data.branch_length = source_edge.branch_length;
+        return edge_data;
+    };
+
+    auto result = PlacementTree::convert_from(
+        source_tree,
+        node_data_converter,
+        edge_data_converter
+    );
+
+    // Need to set the edge nums accordingly, as those are not part of Default Tree Edge Data.
+    reset_edge_nums( result );
+    return result;
 }
 
 // =================================================================================================

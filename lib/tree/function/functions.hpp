@@ -51,10 +51,10 @@ template <class Tree>
 bool is_bifurcating( Tree const& tree );
 
 template <class Tree>
-size_t leaf_nodes_count( Tree const& tree );
+size_t leaf_node_count( Tree const& tree );
 
 template <class Tree>
-size_t inner_nodes_count( Tree const& tree );
+size_t inner_node_count( Tree const& tree );
 
 } // namespace tree
 } // namespace genesis
