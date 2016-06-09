@@ -51,6 +51,11 @@ namespace taxonomy {
 //     Constructor and Rule of Five
 // =================================================================================================
 
+/**
+ * @brief Default constructor.
+ *
+ * Initializes the CsvReader so that tabs are used as field separators instead of commata.
+ */
 TaxonomyReader::TaxonomyReader()
 {
     csv_reader_.separator_chars( "\t" );
@@ -60,6 +65,10 @@ TaxonomyReader::TaxonomyReader()
 //     Reading
 // =================================================================================================
 
+/**
+ * @brief Read taxonomy data until the end of the stream is reached,
+ * and add the contents to a Taxonomy.
+ */
 void TaxonomyReader::from_stream( std::istream& is, Taxonomy& tax ) const
 {
     auto it = utils::CountingIstream( is );
@@ -72,10 +81,15 @@ void TaxonomyReader::from_stream( std::istream& is, Taxonomy& tax ) const
             continue;
         }
 
-        add_children_from_string( tax, line.name );
+        add_children_from_string(
+            tax, line.name, delimiters_, trim_whitespaces_, expect_strict_order_
+        );
     }
 }
 
+/**
+ * @brief Read a taxonomy file and add its contents to a Taxonomy.
+ */
 void TaxonomyReader::from_file( std::string const& fn, Taxonomy& tax ) const
 {
     if( ! utils::file_exists( fn ) ) {
@@ -90,6 +104,9 @@ void TaxonomyReader::from_file( std::string const& fn, Taxonomy& tax ) const
     from_stream( ifs, tax );
 }
 
+/**
+ * @brief Read a string with taxonomy data and add its contents to a Taxonomy.
+ */
 void TaxonomyReader::from_string( std::string const& fs, Taxonomy& tax ) const
 {
     std::istringstream iss( fs );
@@ -100,6 +117,9 @@ void TaxonomyReader::from_string( std::string const& fs, Taxonomy& tax ) const
 //     Parsing
 // =================================================================================================
 
+/**
+ * @brief Read a single line of a taxonomy file and return the contained name and rank.
+ */
 TaxonomyReader::Line TaxonomyReader::parse_line(
     utils::CountingIstream& it
 ) const {
@@ -145,10 +165,11 @@ TaxonomyReader::Line TaxonomyReader::parse_line(
 // =================================================================================================
 
 /**
- * @brief Get the CsvReader used for reading a taxonomy file.
+ * @brief Get the @link utils::CsvReader CsvReader@endlink used for reading a taxonomy file.
  *
  * This can be used to modify the reading behaviour, particularly values like the separator chars
- * within the lines of the file. See CsvReader for details about those properties.
+ * within the lines of the file. See @link utils::CsvReader CsvReader@endlink for details about
+ * those properties.
  */
 utils::CsvReader& TaxonomyReader::csv_reader()
 {
@@ -220,6 +241,65 @@ TaxonomyReader& TaxonomyReader::rank_field_position( int value )
 int TaxonomyReader::rank_field_position() const
 {
     return rank_field_position_;
+}
+
+/**
+ * @brief Set the delimiter chars used for splitting Taxon names.
+ *
+ * Default is `;` (semicolon). This string can also contain multiple chars, in which case any of
+ * them is used to split the Taxon name.
+ *
+ * Example: The taxa in the line
+ *
+ *     Archaea;Euryarchaeota;Halobacteria;	63	class	119
+ *
+ * are split into "Archaea", "Euryarchaeota" and "Halobacteria".
+ */
+TaxonomyReader& TaxonomyReader::taxon_delimiters( std::string value )
+{
+    delimiters_ = value;
+    return *this;
+}
+
+/**
+ * @brief Return the currently set delimiter chars for splitting Taxon names.
+ *
+ * See @link taxon_delimiters( std::string value ) the setter@endlink of this function for details.
+ */
+std::string TaxonomyReader::taxon_delimiters() const
+{
+    return delimiters_;
+}
+
+/**
+ * @brief Set whether to trim whitespaces off the Taxon names.
+ *
+ * If set to true, the taxa in each line are trimmed off white spaces after splitting them.
+ * This is helpful if the input data is not clean and contains spaces between cells.
+ *
+ * Example: The line
+ *
+ *     Archaea; Aigarchaeota; Aigarchaeota Incertae Sedis;	11091	class	123
+ *
+ * contains spaces both between the taxa names (separated by `;`), as well as within the names.
+ * Only the former ones will be trimmed, while latter ones are left as they are.
+ *
+ * Default is `true`, that is, trimming is active.
+ */
+TaxonomyReader& TaxonomyReader::trim_whitespaces( bool value )
+{
+    trim_whitespaces_ = value;
+    return *this;
+}
+
+/**
+ * @brief Return whether currently the reader trims whitespacces off the Taxon names.
+ *
+ * See @link trim_whitespaces( bool value ) the setter@endlink of this function for details.
+ */
+bool TaxonomyReader::trim_whitespaces() const
+{
+    return trim_whitespaces_;
 }
 
 /**

@@ -57,6 +57,39 @@ namespace taxonomy {
 
 /**
  * @brief Read Taxonomy file formats.
+ *
+ * This reader populates a Taxonomy. It supports to read
+ *
+ *   * from_stream()
+ *   * from_file()
+ *   * from_string()
+ *
+ * Exemplary usage:
+ *
+ *     std::string infile = "path/to/taxonomy.txt";
+ *     Taxonomy tax;
+ *
+ *     TaxonomyReader()
+ *         .rank_field_position( 2 )
+ *         .expect_strict_order( true )
+ *         .from_file( infile, tax );
+ *
+ * It expects one taxon per input line. This line can also contain other information, for example
+ *
+ *     Archaea;Crenarchaeota;Thermoprotei;Desulfurococcales;	14	order	119
+ *
+ * In order to separate the fields of the input, a @link utils::CsvReader CsvReader@endlink is used.
+ * Use the getter csv_reader() to change the behaviour of the CsvReader, for example, to change the
+ * field separator char. By default, a tab `\t` char is used. Also, other properties of the
+ * CsvReader can be used.
+ * By default, no other of its properties (except for the separator chars) are changed.
+ *
+ * Once the fields of a line are split, this reader uses its properties
+ * @link name_field_position( int value ) name_field_position()@endlink and
+ * @link rank_field_position( int value ) rank_field_position()@endlink to determine which of the
+ * fields represent the taxon name and its rank, respectively. For example, given the line from
+ * above, those would have to be set to `0` and `2`. All other fields of the line are ignored,
+ * which in the example are "14" and "119".
  */
 class TaxonomyReader
 {
@@ -116,6 +149,12 @@ public:
     TaxonomyReader& rank_field_position( int value );
     int             rank_field_position() const;
 
+    TaxonomyReader& taxon_delimiters( std::string value );
+    std::string     taxon_delimiters() const;
+
+    TaxonomyReader& trim_whitespaces( bool value );
+    bool            trim_whitespaces() const;
+
     TaxonomyReader& expect_strict_order( bool value );
     bool            expect_strict_order() const;
 
@@ -127,10 +166,12 @@ private:
 
     utils::CsvReader csv_reader_;
 
-    bool expect_strict_order_ = false;
-
     int name_field_position_ =  0;
     int rank_field_position_ = -1;
+
+    std::string delimiters_   = ";";
+    bool trim_whitespaces_    = true;
+    bool expect_strict_order_ = false;
 
 };
 

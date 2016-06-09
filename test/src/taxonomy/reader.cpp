@@ -39,18 +39,58 @@
 
 using namespace genesis::taxonomy;
 
-TEST( Taxonomy, Reader )
+TEST( Taxonomy, ReaderOrder )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
-
-    Taxonomy tax;
+    std::string infile;
 
     auto reader = TaxonomyReader();
-    reader.from_file( "/home/lucas/Downloads/silva/tax_slv_ssu_123.1.txt", tax );
 
-    // LOG_DBG << "tax size " << tax.size();
-    // LOG_DBG << "tax tots " << total_taxa_count( tax );
+    // Read ordered file, expect order.
+    Taxonomy tax_0;
+    reader.expect_strict_order( true );
+    infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.ordered";
+    EXPECT_NO_THROW( reader.from_file( infile, tax_0 ));
+    EXPECT_EQ( 32, total_taxa_count(tax_0) );
 
-    // LOG_DBG << tax;
+    // Read ordered file, don't use order.
+    Taxonomy tax_1;
+    reader.expect_strict_order( false );
+    infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.ordered";
+    EXPECT_NO_THROW( reader.from_file( infile, tax_1 ));
+    EXPECT_EQ( 32, total_taxa_count(tax_1) );
+
+    // Read unordered file, expect order.
+    Taxonomy tax_2;
+    reader.expect_strict_order( true );
+    infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.unordered";
+    EXPECT_THROW( reader.from_file( infile, tax_2 ), std::runtime_error );
+    EXPECT_EQ( 0, total_taxa_count(tax_2) );
+
+    // Read unordered file, don't use order.
+    Taxonomy tax_3;
+    reader.expect_strict_order( false );
+    infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.unordered";
+    EXPECT_NO_THROW( reader.from_file( infile, tax_3 ));
+    EXPECT_EQ( 32, total_taxa_count(tax_3) );
+}
+
+TEST( Taxonomy, ReaderTrimming )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+    std::string infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.unordered";
+
+    // Read file and check basics.
+    Taxonomy tax;
+    auto reader = TaxonomyReader();
+    reader.trim_whitespaces( true );
+    EXPECT_NO_THROW( reader.from_file( infile, tax ));
+    EXPECT_EQ( 32, total_taxa_count(tax) );
+
+    // We trimmed white spaces. This should only affect the surrounding onces.
+    // So, find a taxon with internal whitespaces. If it is there, this worked.
+    auto t = find_taxon( tax, "Candidatus Caldiarchaeum" );
+    ASSERT_NE( nullptr, t );
 }

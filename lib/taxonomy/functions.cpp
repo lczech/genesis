@@ -311,7 +311,7 @@ void postorder_for_each(
  *
  * Example: The input string
  *
- *     Tax_1;Tax_2;;Tax_4
+ *     Tax_1;Tax_2;;Tax_4;
  *
  * results in the Taxonomy
  *
@@ -321,10 +321,12 @@ void postorder_for_each(
  *                 Tax_4
  *
  * The first taxon in the string cannot be empty. Otherwise an `std::runtime_error` is thrown.
- * If any of the later taxa are empty, the taxon name of the previous level taxon is used instead.
- * This is useful for unspecified taxa in deeper taxonomies. The only exception to this is the last
- * taxon. If it is empty, it is simply omitted. This is because many taxonomy databases end the
- * taxonomic string representation with a ';' by default.
+ * If any of the later taxa are empty (as in the example above), the taxon name of the previous
+ * level taxon is used instead. This is useful for unspecified taxa in deeper taxonomies.
+ *
+ * The only exception to this is the last taxon. If it is empty, that is, if the string ends with
+ * the delimiter char, this  is simply omitted (see example above). This is because many taxonomy
+ * databases end the taxonomic string representation with a ';' by default.
  *
  * This function is the reverse of taxonomic_string().
  *
@@ -342,6 +344,14 @@ void postorder_for_each(
  *                   string is copied from some spreadsheet application or CSV file, where spaces
  *                   between cells might be added. Default is to trim.
  *
+ * @param expect_parents Optional, defaults to `false`. If set to true, the function expects all
+ *                   super-taxa to exists, that is, all taxa except for the last one. In the example
+ *                   above, the last taxon is "Tax_4". If then this expectation is not met, that is,
+ *                   if not all super-taxa exist, an `std::runtime_error` exception is thrown.
+ *
+ *                   If left at the default (`false`), all necessary super-taxa are created if they
+ *                   do not exists yet.
+ *
  * @return           Return value of the function is the deepest Taxon that was given in the
  *                   `children` string, i.e., the last element after splitting the string.
  */
@@ -349,7 +359,8 @@ Taxon& add_children_from_string(
     Taxonomy&          taxonomy,
     std::string const& children,
     std::string const& delimiters,
-    bool               trim_whitespaces
+    bool               trim_whitespaces,
+    bool               expect_parents
 ){
     // Split the given string, while keeping empty parts.
     auto taxa = utils::split( children, delimiters, false );
@@ -384,12 +395,23 @@ Taxon& add_children_from_string(
     std::string prev_name;
 
     // Add the names to the Taxonomy.
-    for( auto name : taxa ) {
+    for( size_t i = 0; i < taxa.size(); ++i ) {
+        auto name = taxa[i];
+
         // If a sub-taxon is empty, use the super-taxon.
         // As we previously checked that the first taxon is not empty, this is well-formed.
         if( name == "" ) {
             assert( prev_name != "" );
             name = prev_name;
+        }
+
+        // If we expect parents to exists, we need to check if the child exists
+        // (but only when we are still considering parents, and not the last taxon itself,
+        // that is, if we are not at the last element of the vector).
+        if( expect_parents && ( i < taxa.size() - 1 ) && ( ! cur_taxon->has_child( name )) ) {
+            throw std::runtime_error(
+                "Not all super-taxa of the given taxon are present in the given Taxonomy."
+            );
         }
 
         cur_taxon = &cur_taxon->add_child( name );
