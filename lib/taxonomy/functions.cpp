@@ -41,10 +41,114 @@
 #include <queue>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 namespace genesis {
 namespace taxonomy {
+
+// =================================================================================================
+//     Ranks
+// =================================================================================================
+
+
+/**
+ * @brief Local helper data that stores the abbreviations and names of common taxonomic ranks.
+ */
+static const std::unordered_map<char, std::string> rank_abbreviations = {
+    { 'd', "Domain" },
+    { 'k', "Kingdom" },
+    { 'p', "Phylum" },
+    { 'c', "Class" },
+    { 'o', "Order" },
+    { 'f', "Family" },
+    { 'g', "Genus" },
+    { 's', "Species" }
+};
+
+/**
+ * @brief Get the taxonomic rank name given its abbreviation.
+ *
+ * The common taxonomic ranks are used:
+ *
+ *     D Domain
+ *     K Kingdom
+ *     P Phylum
+ *     C Class
+ *     O Order
+ *     F Family
+ *     G Genus
+ *     S Species
+ *
+ * If any of those abbreviations (case-independend) is given, the full rank name is returned.
+ * For all other input, an empty string is returned.
+ */
+std::string rank_from_abbreviation( char r )
+{
+    char c = tolower( r );
+    if( rank_abbreviations.count( c ) > 0 ) {
+        return rank_abbreviations.at( c );
+    } else {
+        return "";
+    }
+}
+
+/**
+ * @brief Get the abbreviation of a taxonomic rank name.
+ *
+ * This function returns the abbreviation for a given common taxonomic rank name,
+ * case-independently. See rank_from_abbreviation() for a list of valid rank names.
+ * If the given rank name is invalid, an empty string is returned.
+ */
+std::string rank_to_abbreviation( std::string const& rank )
+{
+    auto r = utils::to_lower( rank );
+    for( auto const& p : rank_abbreviations ) {
+        if( utils::to_lower( p.second ) == r ) {
+            return std::string( 1, p.first );
+        }
+    }
+    return "";
+}
+
+/**
+ * @brief Resolve a combined rank and name entry of the form "k_Bacteria" into the full rank
+ * and the name, i.e. "Kingdom" and "Bacteria".
+ *
+ * The function returns a pair of `{ "rank", "name" }`.
+ *
+ * The expected format of the input string is "x_abc", where "x" is a rank name abbreviation
+ * and "abc" is a taxon name. If the string is in this format, it is split and the rank name
+ * abbreviation is resolved.
+ * If this abbreviation is valid, the rank (first) and the name (second) are returned.
+ * See rank_from_abbreviation() for the list of valid rank name abbreviations.
+ * The number of underscores is irrelevant, that is, "C__Mammalia" also works and will return
+ * "Class" and "Mammalia".
+ *
+ * If any of the conditions is not met (either, the string does not start with "x_", or the rank
+ * name abbreviation is invalid), the rank is left empty, and the whole given string is used as
+ * name. Thus, this function also works on normal taxon names.
+ */
+std::pair< std::string, std::string > resolve_rank_abbreviation( std::string const& entry )
+{
+    std::string rank = "";
+    std::string name = entry;
+
+    // Check whether the name is of the form "X_something".
+    // If so, use it to split off the rank name and resolve the abbreviation.
+    if( entry.size() >= 2 && entry[1] == '_' ) {
+        rank = rank_from_abbreviation( entry[0] );
+    }
+
+    // If the previous step was successful and yielded a valid rank name,
+    // shorten the actual name accordingly.
+    if( rank != "" ) {
+        size_t pos = entry.find_first_not_of( "_", 1 );
+        name = entry.substr( pos );
+    }
+
+    return { rank, name };
+}
 
 // =================================================================================================
 //     Accessors
@@ -284,17 +388,18 @@ Taxon& add_children_from_string(
         // If a sub-taxon is empty, use the super-taxon.
         // As we previously checked that the first taxon is not empty, this is well-formed.
         if( name == "" ) {
+            assert( prev_name != "" );
             name = prev_name;
         }
 
-        cur_taxon  = &cur_taxon->add_child( name );
+        cur_taxon = &cur_taxon->add_child( name );
         prev_name = name;
     }
 
     // Convert to Taxon. This is always legal because we have ensured that we are adding at least
     // one sub-taxon to the taxonomy, and in the loop set cur_taxon to this taxon, so that it is
     // actually of dynamic type Taxon.
-    return static_cast< Taxon& >( *cur_taxon );
+    return dynamic_cast< Taxon& >( *cur_taxon );
 }
 
 /**
@@ -351,7 +456,7 @@ std::ostream& operator << ( std::ostream& out, Taxonomy const& tax )
  * @brief Return the taxonomic string representation of a given Taxon.
  *
  * This function is the reverse of add_children_from_string(). It returns a string with all
- * names of the super-taxa of the given taxon, concatenated using `delimiter`.
+ * names of the super-taxa of the given taxon (and the taxon itself), concatenated using `delimiter`.
  * If `trim_nested_duplicates` is set to true (default), lower level names are set to empty if they
  * are the same as higher level names.
  *
@@ -392,6 +497,30 @@ std::string taxonomic_string( Taxon const& taxon, std::string delimiter, bool tr
     // Now reverse and return the joined result.
     std::reverse( taxa.begin(), taxa.end() );
     return utils::join( taxa, delimiter );
+}
+
+/**
+ * @brief Return a string vector representation of a given Taxon and its super-taxa.
+ *
+ * The function returns a vector with the names of all super-taxa of the given Taxon (and the taxon
+ * itself).
+ */
+std::vector<std::string> taxonomic_vector( Taxon const& taxon )
+{
+    // Start with an empty vector that will store the super-taxa of the given taxon.
+    std::vector<std::string> taxa;
+
+    // Add taxa in reverse order: the deepest taxon will be stored first.
+    // This is fast with a vector.
+    Taxon const* r = &taxon;
+    while( r != nullptr ) {
+        taxa.push_back( r->name() );
+        r = r->parent();
+    }
+
+    // Now reverse and return the result.
+    std::reverse( taxa.begin(), taxa.end() );
+    return taxa;
 }
 
 } // namespace taxonomy
