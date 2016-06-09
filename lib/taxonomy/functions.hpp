@@ -34,6 +34,8 @@
 #include <functional>
 #include <iosfwd>
 #include <string>
+#include <utility>
+#include <vector>
 
 namespace genesis {
 namespace taxonomy {
@@ -44,6 +46,15 @@ namespace taxonomy {
 
 class Taxonomy;
 class Taxon;
+
+// =================================================================================================
+//     Ranks
+// =================================================================================================
+
+std::string rank_from_abbreviation( char r );
+std::string rank_to_abbreviation( std::string const& rank );
+
+std::pair< std::string, std::string > resolve_rank_abbreviation( std::string const& entry );
 
 // =================================================================================================
 //     Accessors
@@ -81,7 +92,8 @@ Taxon& add_children_from_string(
     Taxonomy&          taxonomy,
     std::string const& children,
     std::string const& delimiters = ";",
-    bool               trim_whitespaces = true
+    bool               trim_whitespaces = true,
+    bool               expect_parents   = false
 );
 
 void remove_taxa_at_level( Taxonomy& tax, size_t level );
@@ -97,6 +109,8 @@ std::string taxonomic_string(
     std::string delimiter = ";",
     bool trim_nested_duplicates = true
 );
+
+std::vector<std::string> taxonomic_vector( Taxon const& taxon );
 
 } // namespace taxonomy
 } // namespace genesis
