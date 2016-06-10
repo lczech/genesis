@@ -103,6 +103,9 @@ std::string taxpression(
     bool trim_nested_duplicates = false
 );
 
+// Taxon const* find_taxon_by_taxpression( Taxonomy const& tax, std::string const& taxpression );
+// Taxon*       find_taxon_by_taxpression( Taxonomy&       tax, std::string const& taxpression );
+
 // =================================================================================================
 //     Ranks
 // =================================================================================================

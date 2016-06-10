@@ -52,7 +52,7 @@ namespace taxonomy {
 // =================================================================================================
 
 /**
- * @brief Find a Taxon with a given name by recursively searching the taxonomy.
+ * @brief Find a Taxon with a given name by recursively searching the Taxonomy.
  */
 Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name )
 {
@@ -69,7 +69,7 @@ Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name )
 }
 
 /**
- * @brief Find a Taxon with a given name by recursively searching the taxonomy.
+ * @brief Find a Taxon with a given name by recursively searching the Taxonomy.
  */
 Taxon* find_taxon_by_name( Taxonomy& tax, std::string const& name )
 {
@@ -400,6 +400,28 @@ std::string taxpression( Taxon const& taxon, std::string delimiter, bool trim_ne
     std::reverse( taxa.begin(), taxa.end() );
     return utils::join( taxa, delimiter );
 }
+
+// /**
+//  * @brief Find a Taxon in a Taxonomy, given its Taxpression.
+//  *
+//  * See Taxonomy for details on Taxpressions.
+//  */
+// Taxon const* find_taxon_by_taxpression( Taxonomy const& tax, std::string const& taxpression )
+// {
+//
+// }
+//
+// /**
+//  * @brief Find a Taxon in a Taxonomy, given its Taxpression.
+//  *
+//  * See Taxonomy for details on Taxpressions.
+//  */
+// Taxon* find_taxon_by_taxpression( Taxonomy& tax, std::string const& taxpression )
+// {
+//     // Avoid code duplication according to Scott Meyers.
+//     auto const& ctax = static_cast< Taxonomy const& >( tax );
+//     return const_cast< Taxon* >( find_taxon_by_taxpression( ctax, taxpression ));
+// }
 
 // =================================================================================================
 //     Ranks
