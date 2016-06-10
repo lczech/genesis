@@ -48,122 +48,19 @@ namespace genesis {
 namespace taxonomy {
 
 // =================================================================================================
-//     Ranks
-// =================================================================================================
-
-
-/**
- * @brief Local helper data that stores the abbreviations and names of common taxonomic ranks.
- */
-static const std::unordered_map<char, std::string> rank_abbreviations = {
-    { 'd', "Domain" },
-    { 'k', "Kingdom" },
-    { 'p', "Phylum" },
-    { 'c', "Class" },
-    { 'o', "Order" },
-    { 'f', "Family" },
-    { 'g', "Genus" },
-    { 's', "Species" }
-};
-
-/**
- * @brief Get the taxonomic rank name given its abbreviation.
- *
- * The common taxonomic ranks are used:
- *
- *     D Domain
- *     K Kingdom
- *     P Phylum
- *     C Class
- *     O Order
- *     F Family
- *     G Genus
- *     S Species
- *
- * If any of those abbreviations (case-independend) is given, the full rank name is returned.
- * For all other input, an empty string is returned.
- */
-std::string rank_from_abbreviation( char r )
-{
-    char c = tolower( r );
-    if( rank_abbreviations.count( c ) > 0 ) {
-        return rank_abbreviations.at( c );
-    } else {
-        return "";
-    }
-}
-
-/**
- * @brief Get the abbreviation of a taxonomic rank name.
- *
- * This function returns the abbreviation for a given common taxonomic rank name,
- * case-independently. See rank_from_abbreviation() for a list of valid rank names.
- * If the given rank name is invalid, an empty string is returned.
- */
-std::string rank_to_abbreviation( std::string const& rank )
-{
-    auto r = utils::to_lower( rank );
-    for( auto const& p : rank_abbreviations ) {
-        if( utils::to_lower( p.second ) == r ) {
-            return std::string( 1, p.first );
-        }
-    }
-    return "";
-}
-
-/**
- * @brief Resolve a combined rank and name entry of the form "k_Bacteria" into the full rank
- * and the name, i.e. "Kingdom" and "Bacteria".
- *
- * The function returns a pair of `{ "rank", "name" }`.
- *
- * The expected format of the input string is "x_abc", where "x" is a rank name abbreviation
- * and "abc" is a taxon name. If the string is in this format, it is split and the rank name
- * abbreviation is resolved.
- * If this abbreviation is valid, the rank (first) and the name (second) are returned.
- * See rank_from_abbreviation() for the list of valid rank name abbreviations.
- * The number of underscores is irrelevant, that is, "C__Mammalia" also works and will return
- * "Class" and "Mammalia".
- *
- * If any of the conditions is not met (either, the string does not start with "x_", or the rank
- * name abbreviation is invalid), the rank is left empty, and the whole given string is used as
- * name. Thus, this function also works on normal taxon names.
- */
-std::pair< std::string, std::string > resolve_rank_abbreviation( std::string const& entry )
-{
-    std::string rank = "";
-    std::string name = entry;
-
-    // Check whether the name is of the form "X_something".
-    // If so, use it to split off the rank name and resolve the abbreviation.
-    if( entry.size() >= 2 && entry[1] == '_' ) {
-        rank = rank_from_abbreviation( entry[0] );
-    }
-
-    // If the previous step was successful and yielded a valid rank name,
-    // shorten the actual name accordingly.
-    if( rank != "" ) {
-        size_t pos = entry.find_first_not_of( "_", 1 );
-        name = entry.substr( pos );
-    }
-
-    return { rank, name };
-}
-
-// =================================================================================================
 //     Accessors
 // =================================================================================================
 
 /**
  * @brief Find a Taxon with a given name by recursively searching the taxonomy.
  */
-Taxon const* find_taxon( Taxonomy const& tax, std::string const& name )
+Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name )
 {
     for( auto const& c : tax ) {
         if( c.name() == name ) {
             return &c;
         }
-        auto rec = find_taxon( c, name );
+        auto rec = find_taxon_by_name( c, name );
         if( rec != nullptr ) {
             return rec;
         }
@@ -174,11 +71,11 @@ Taxon const* find_taxon( Taxonomy const& tax, std::string const& name )
 /**
  * @brief Find a Taxon with a given name by recursively searching the taxonomy.
  */
-Taxon* find_taxon( Taxonomy& tax, std::string const& name )
+Taxon* find_taxon_by_name( Taxonomy& tax, std::string const& name )
 {
     // Avoid code duplication according to Scott Meyers.
     auto const& ctax = static_cast< Taxonomy const& >( tax );
-    return const_cast< Taxon* >( find_taxon( ctax, name ));
+    return const_cast< Taxon* >( find_taxon_by_name( ctax, name ));
 }
 
 /**
@@ -207,11 +104,12 @@ size_t taxon_level( Taxon const& taxon )
  *
  *     Tax_1
  *         Tax_2
- *         Tax_3
- *             Tax_4
+ *             Tax_3
+ *         Tax_4
+ *             Tax_3
  *     Tax_5
  *
- * contains a total of 5 taxa.
+ * contains a total of 6 taxa. The name `Tax_3` appears twice and is counted twice.
  */
 size_t total_taxa_count( Taxonomy const& tax )
 {
@@ -221,6 +119,10 @@ size_t total_taxa_count( Taxonomy const& tax )
     }
     return count;
 }
+
+// =================================================================================================
+//     Iterators
+// =================================================================================================
 
 /**
  * @brief Apply a function to all taxa of the Taxonomy, traversing it in levelorder.
@@ -303,13 +205,39 @@ void postorder_for_each(
 // =================================================================================================
 
 /**
- * @brief Add nested child taxa to a Taxonomy by splitting a string with their names.
+ * @brief Remove all @link Taxon Taxa @endlink at a given level of depth in the Taxonomy hierarchy,
+ * and all their children.
  *
- * This function takes a string `children` containing the names of taxa, separated from each other
+ * That is, providing `level = 0` has the same effect as calling
+ * @link Taxonomy::clear_children() clear_children() @endlink on the given Taxonomy;
+ * `level = 1` has this effect for the children of the given Taxonomy; and so on.
+ *
+ * See taxon_level() for more information on the level.
+ */
+void remove_taxa_at_level( Taxonomy& tax, size_t level )
+{
+    // Recursive implementation, because we are lazy.
+    if( level == 0 ) {
+        tax.clear_children();
+    } else {
+        for( auto& c : tax ) {
+            remove_taxa_at_level( c, level - 1 );
+        }
+    }
+}
+
+// =================================================================================================
+//     Taxpressions
+// =================================================================================================
+
+/**
+ * @brief Add nested child taxa to a Taxonomy by splitting a Taxpression string with their names.
+ *
+ * This function takes a string `taxpression` containing the names of taxa, separated from each other
  * by any of the chars given in the parameter `delimiters`. Those taxa are added to the Taxonomy by
- * nesting them.
+ * nesting them. See Taxonomy for details on Taxpressions.
  *
- * Example: The input string
+ * Example: The input taxpression string
  *
  *     Tax_1;Tax_2;;Tax_4;
  *
@@ -328,21 +256,21 @@ void postorder_for_each(
  * the delimiter char, this  is simply omitted (see example above). This is because many taxonomy
  * databases end the taxonomic string representation with a ';' by default.
  *
- * This function is the reverse of taxonomic_string().
+ * This function is the reverse of taxpression().
  *
  * @param taxonomy   Taxonomy to add the taxa to.
  *
- * @param children   String containing a list of taxa, separated by any of the chars in
- *                   `delimiters`. The first element must not be empty, thus ";Tax_2" is not
+ * @param taxpression Taxpression string containing a list of taxa, separated by any of the chars
+ *                   in `delimiters`. The first element must not be empty, thus ";Tax_2" is not
  *                   allowed.
  *
  * @param delimiters Optional, defaults to ';'. Determines the characters used to split the
- *                   `children` string.
+ *                   `taxpression` string.
  *
- * @param trim_whitespaces Optional, defaults to `true`. If set to true, the taxa given by `children`
- *                   are trimmed off white spaces after splitting them. This is helpful if the input
- *                   string is copied from some spreadsheet application or CSV file, where spaces
- *                   between cells might be added. Default is to trim.
+ * @param trim_whitespaces Optional, defaults to `true`. If set to true, the taxa given by
+ *                   `taxpression` are trimmed off white spaces after splitting them. This is
+ *                   helpful if the input string is copied from some spreadsheet application or
+ *                   CSV file, where spaces between cells might be added. Default is to trim.
  *
  * @param expect_parents Optional, defaults to `false`. If set to true, the function expects all
  *                   super-taxa to exists, that is, all taxa except for the last one. In the example
@@ -353,21 +281,21 @@ void postorder_for_each(
  *                   do not exists yet.
  *
  * @return           Return value of the function is the deepest Taxon that was given in the
- *                   `children` string, i.e., the last element after splitting the string.
+ *                   `taxpression` string, i.e., the last element after splitting the string.
  */
-Taxon& add_children_from_string(
+Taxon& add_from_taxpression(
     Taxonomy&          taxonomy,
-    std::string const& children,
+    std::string const& taxpression,
     std::string const& delimiters,
     bool               trim_whitespaces,
     bool               expect_parents
 ){
     // Split the given string, while keeping empty parts.
-    auto taxa = utils::split( children, delimiters, false );
+    auto taxa = utils::split( taxpression, delimiters, false );
 
     // If there are no elements, the string was empty. This is illegal.
     if( taxa.size() == 0 ) {
-        assert( children == "" );
+        assert( taxpression == "" );
         throw std::runtime_error( "Cannot add empty child to taxonomy." );
     }
 
@@ -380,7 +308,7 @@ Taxon& add_children_from_string(
 
     // The first name in the list of sub-taxa must not be empty.
     if( taxa.front() == "" ) {
-        throw std::runtime_error( "Cannot add children to taxomonmy if first child is empty." );
+        throw std::runtime_error( "Cannot add taxpression to taxomonmy if first taxon is empty." );
     }
 
     // The last name is ommited if empty.
@@ -425,25 +353,155 @@ Taxon& add_children_from_string(
 }
 
 /**
- * @brief Remove all @link Taxon Taxa @endlink at a given level of depth in the Taxonomy hierarchy,
- * and all their children.
+ * @brief Return the Taxpression string representation of a given Taxon.
  *
- * That is, providing `level = 0` has the same effect as calling
- * @link Taxonomy::clear_children() clear_children() @endlink on the given Taxonomy;
- * `level = 1` has this effect for the children of the given Taxonomy; and so on.
+ * This function is the reverse of add_from_taxpression(). It returns a string with all
+ * names of the super-taxa of the given taxon (and the taxon itself), concatenated using `delimiter`.
+ * If `trim_nested_duplicates` is set to `true`, lower level names are set to empty if
+ * they are the same as higher level names. Default is `false`, that is, nothing is trimmed.
  *
- * See taxon_level() for more information on the level.
+ * Example: For a taxon with this list of parents
+ *
+ *     Tax_1
+ *         Tax_1
+ *             Tax_2
+ *
+ * the functions returns "Tax_1;Tax_1;Tax_2", and respectively "Tax_1;;Tax_2" with trimming
+ * nested duplicates.
+ *
+ * See Taxonomy for details on Taxpressions.
  */
-void remove_taxa_at_level( Taxonomy& tax, size_t level )
+std::string taxpression( Taxon const& taxon, std::string delimiter, bool trim_nested_duplicates )
 {
-    // Recursive implementation, because we are lazy.
-    if( level == 0 ) {
-        tax.clear_children();
-    } else {
-        for( auto& c : tax ) {
-            remove_taxa_at_level( c, level - 1 );
+    // This implementation is probably not the fastest, but it is simple and kind of elegant.
+    // Start with an empty vector that will store the super-taxa of the given taxon.
+    std::vector<std::string> taxa;
+
+    // Add taxa in reverse order: the deepest taxon will be stored first.
+    // This is fast with a vector.
+    Taxon const* r = &taxon;
+    while( r != nullptr ) {
+        taxa.push_back( r->name() );
+        r = r->parent();
+    }
+
+    // If wanted, set all taxa to an empty string for which the super-taxon has the same name.
+    // As we stored them in reverse order, we can simply go from start to one-but-the-end and check
+    // for equality.
+    if( trim_nested_duplicates ) {
+        for( size_t i = 0; i < taxa.size() - 1; ++i ) {
+            if( taxa[i] == taxa[i+1] ) {
+                taxa[i] = "";
+            }
         }
     }
+
+    // Now reverse and return the joined result.
+    std::reverse( taxa.begin(), taxa.end() );
+    return utils::join( taxa, delimiter );
+}
+
+// =================================================================================================
+//     Ranks
+// =================================================================================================
+
+
+/**
+ * @brief Local helper data that stores the abbreviations and names of common taxonomic ranks.
+ */
+static const std::unordered_map<char, std::string> rank_abbreviations = {
+    { 'd', "Domain" },
+    { 'k', "Kingdom" },
+    { 'p', "Phylum" },
+    { 'c', "Class" },
+    { 'o', "Order" },
+    { 'f', "Family" },
+    { 'g', "Genus" },
+    { 's', "Species" }
+};
+
+/**
+ * @brief Get the taxonomic rank name given its abbreviation.
+ *
+ * The common taxonomic ranks are used:
+ *
+ *     D Domain
+ *     K Kingdom
+ *     P Phylum
+ *     C Class
+ *     O Order
+ *     F Family
+ *     G Genus
+ *     S Species
+ *
+ * If any of those abbreviations (case-independend) is given, the full rank name is returned.
+ * For all other input, an empty string is returned.
+ */
+std::string rank_from_abbreviation( char r )
+{
+    char c = tolower( r );
+    if( rank_abbreviations.count( c ) > 0 ) {
+        return rank_abbreviations.at( c );
+    } else {
+        return "";
+    }
+}
+
+/**
+ * @brief Get the abbreviation of a taxonomic rank name.
+ *
+ * This function returns the abbreviation for a given common taxonomic rank name,
+ * case-independently. See rank_from_abbreviation() for a list of valid rank names.
+ * If the given rank name is invalid, an empty string is returned.
+ */
+std::string rank_to_abbreviation( std::string const& rank )
+{
+    auto r = utils::to_lower( rank );
+    for( auto const& p : rank_abbreviations ) {
+        if( utils::to_lower( p.second ) == r ) {
+            return std::string( 1, p.first );
+        }
+    }
+    return "";
+}
+
+/**
+ * @brief Resolve a combined rank and name entry of the form "k_Bacteria" into the full rank
+ * and the name, i.e. "Kingdom" and "Bacteria".
+ *
+ * The function returns a pair of `{ "rank", "name" }`.
+ *
+ * The expected format of the input string is "x_abc", where "x" is a rank name abbreviation
+ * and "abc" is a taxon name. If the string is in this format, it is split and the rank name
+ * abbreviation is resolved.
+ * If this abbreviation is valid, the rank (first) and the name (second) are returned.
+ * See rank_from_abbreviation() for the list of valid rank name abbreviations.
+ * The number of underscores is irrelevant, that is, `C___Mammalia` also works and will return
+ * `{ "Class", "Mammalia" }`.
+ *
+ * If any of the conditions is not met (either, the string does not start with "x_", or the rank
+ * name abbreviation is invalid), the rank is left empty, and the whole given string is used as
+ * name. Thus, this function also works on normal taxon names.
+ */
+std::pair< std::string, std::string > resolve_rank_abbreviation( std::string const& entry )
+{
+    std::string rank = "";
+    std::string name = entry;
+
+    // Check whether the name is of the form "X_something".
+    // If so, use it to split off the rank name and resolve the abbreviation.
+    if( entry.size() >= 2 && entry[1] == '_' ) {
+        rank = rank_from_abbreviation( entry[0] );
+    }
+
+    // If the previous step was successful and yielded a valid rank name,
+    // shorten the actual name accordingly.
+    if( rank != "" ) {
+        size_t pos = entry.find_first_not_of( "_", 1 );
+        name = entry.substr( pos );
+    }
+
+    return { rank, name };
 }
 
 // =================================================================================================
@@ -475,57 +533,18 @@ std::ostream& operator << ( std::ostream& out, Taxonomy const& tax )
 }
 
 /**
- * @brief Return the taxonomic string representation of a given Taxon.
+ * @brief Return a string vector representation of a given Taxon and its super-taxa.
  *
- * This function is the reverse of add_children_from_string(). It returns a string with all
- * names of the super-taxa of the given taxon (and the taxon itself), concatenated using `delimiter`.
- * If `trim_nested_duplicates` is set to true (default), lower level names are set to empty if they
- * are the same as higher level names.
+ * The function returns a vector with the names of all super-taxa of the given Taxon (and the taxon
+ * itself).
  *
- * Example: For a taxon with this list of parents
+ * For example, when given the last Taxon in this Taxonomy:
  *
  *     Tax_1
  *         Tax_1
  *             Tax_2
  *
- * the functions returns "Tax_1;;Tax_2", and respectively "Tax_1;Tax_1;Tax_2" without trimming
- * nested duplicates.
- */
-std::string taxonomic_string( Taxon const& taxon, std::string delimiter, bool trim_nested_duplicates )
-{
-    // This implementation is probably not the fastest, but it is simple and kind of elegant.
-    // Start with an empty vector that will store the super-taxa of the given taxon.
-    std::vector<std::string> taxa;
-
-    // Add taxa in reverse order: the deepest taxon will be stored first.
-    // This is fast with a vector.
-    Taxon const* r = &taxon;
-    while( r != nullptr ) {
-        taxa.push_back( r->name() );
-        r = r->parent();
-    }
-
-    // If wanted, set all taxa to an empty string for which the super-taxon has the same name.
-    // As we stored them in reverse order, we can simply go from start to one-but-the-end and check
-    // for equality.
-    if( trim_nested_duplicates ) {
-        for( size_t i = 0; i < taxa.size() - 1; ++i ) {
-            if( taxa[i] == taxa[i+1] ) {
-                taxa[i] = "";
-            }
-        }
-    }
-
-    // Now reverse and return the joined result.
-    std::reverse( taxa.begin(), taxa.end() );
-    return utils::join( taxa, delimiter );
-}
-
-/**
- * @brief Return a string vector representation of a given Taxon and its super-taxa.
- *
- * The function returns a vector with the names of all super-taxa of the given Taxon (and the taxon
- * itself).
+ * the function gives a vector with strings `{ "Tax_1", "Tax_1", "Tax_2" }`.
  */
 std::vector<std::string> taxonomic_vector( Taxon const& taxon )
 {
