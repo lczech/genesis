@@ -79,10 +79,12 @@ namespace taxonomy {
  *     Archaea;Crenarchaeota;Thermoprotei;Desulfurococcales;	14	order	119
  *
  * In order to separate the fields of the input, a @link utils::CsvReader CsvReader@endlink is used.
- * Use the getter csv_reader() to change the behaviour of the CsvReader, for example, to change the
- * field separator char. By default, a tab `\t` char is used. Also, other properties of the
- * CsvReader can be used.
- * By default, no other of its properties (except for the separator chars) are changed.
+ * By default, all its properties except for the separator chars are left at their default values.
+ * The separator char is set to a tab `\t` instead of a comma, as this is more common for
+ * taxonomy files.
+ *
+ * Use the getter csv_reader() to access the CsvReader and change its behaviour, for example, to
+ * change the field separator char. Also, all other properties can be used.
  *
  * Once the fields of a line are split, this reader uses its properties
  * @link name_field_position( int value ) name_field_position()@endlink and
@@ -90,6 +92,9 @@ namespace taxonomy {
  * fields represent the taxon name and its rank, respectively. For example, given the line from
  * above, those would have to be set to `0` and `2`. All other fields of the line are ignored,
  * which in the example are "14" and "119".
+ *
+ * In summary, by default, this reader reads tab-separated lines and expects the taxonomy entry
+ * to be the first (or only) field in the line.
  */
 class TaxonomyReader
 {
