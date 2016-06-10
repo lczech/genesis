@@ -83,7 +83,7 @@ public:
     /**
      * @brief Default destructor.
      */
-    ~Taxon() = default;
+    virtual ~Taxon() = default;
 
     Taxon( Taxon const& ) = default;
     Taxon( Taxon&& )      = default;
