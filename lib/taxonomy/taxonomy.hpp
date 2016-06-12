@@ -50,14 +50,34 @@ class Taxon;
 /**
  * @brief Store a Taxonomy, i.e., a nested hierarchy of @link Taxon Taxa@endlink.
  *
- * This class serves as a container for storing a list of @link Taxon Taxa@endlink. It allows to
- * @link add_child( std::string const& ) add@endlink, @link remove_child() remove @endlink and
- * @link get_child() get @endlink Taxa by their name, as well as iterating over them.
+ * We call a string of the form
+ *
+ *     Animalia;Vertebrata;Mammalia;Carnivora
+ *
+ * a "Taxpression", that is, a taxonomic expression. Those strings are often found in taxonomic
+ * databases, and usually use semicola to separete their parts. Each part of such a string is
+ * called a Taxon, and can have a rank associated with it.
+ *
+ * In the example above, this could be
+ *
+ *     Kingdom: Animalia
+ *     Phylum:  Vertebrata
+ *     Class:   Mammalia
+ *     Order:   Carnivora
+ *
+ * We use the term "taxon" to refer to one such entity in a Taxpression, and model this in the
+ * Taxon class. Both the Taxonomy and Taxon classes work with just those parts of the string.
+ * There are however functions to work with Taxpressions and "translate" them into a Taxonomy
+ * or to find a Taxon given a Taxpression. See the namespace taxonomy for a list of them.
  *
  * Each Taxon can itself contain further lower level Taxa, resulting in a hierarchy. Thus, in a
  * sense, each Taxon is itself a Taxonomy. However, we use the distinction between the two in order
  * to separate concerns. That means, only the Taxonomy should be seen as the top level of the
  * hierarchy.
+ *
+ * This class serves as a container for storing a list of @link Taxon Taxa@endlink. It allows to
+ * @link add_child( std::string const& ) add@endlink, @link remove_child() remove @endlink and
+ * @link get_child() get @endlink Taxa by their name, as well as iterating over them.
  */
 class Taxonomy
 {

@@ -91,6 +91,6 @@ TEST( Taxonomy, ReaderTrimming )
 
     // We trimmed white spaces. This should only affect the surrounding onces.
     // So, find a taxon with internal whitespaces. If it is there, this worked.
-    auto t = find_taxon( tax, "Candidatus Caldiarchaeum" );
+    auto t = find_taxon_by_name( tax, "Candidatus Caldiarchaeum" );
     ASSERT_NE( nullptr, t );
 }

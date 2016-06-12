@@ -48,23 +48,18 @@ class Taxonomy;
 class Taxon;
 
 // =================================================================================================
-//     Ranks
-// =================================================================================================
-
-std::string rank_from_abbreviation( char r );
-std::string rank_to_abbreviation( std::string const& rank );
-
-std::pair< std::string, std::string > resolve_rank_abbreviation( std::string const& entry );
-
-// =================================================================================================
 //     Accessors
 // =================================================================================================
 
-Taxon const* find_taxon( Taxonomy const& tax, std::string const& name );
-Taxon*       find_taxon( Taxonomy&       tax, std::string const& name );
+Taxon const* find_taxon_by_name( Taxonomy const& tax, std::string const& name );
+Taxon*       find_taxon_by_name( Taxonomy&       tax, std::string const& name );
 
 size_t taxon_level( Taxon const& taxon );
 size_t total_taxa_count( Taxonomy const& tax );
+
+// =================================================================================================
+//     Iterators
+// =================================================================================================
 
 void levelorder_for_each(
     Taxonomy& tax,
@@ -88,27 +83,43 @@ void postorder_for_each(
 //     Modifiers
 // =================================================================================================
 
-Taxon& add_children_from_string(
+void remove_taxa_at_level( Taxonomy& tax, size_t level );
+
+// =================================================================================================
+//     Taxpressions
+// =================================================================================================
+
+Taxon& add_from_taxpression(
     Taxonomy&          taxonomy,
-    std::string const& children,
+    std::string const& taxpression,
     std::string const& delimiters = ";",
     bool               trim_whitespaces = true,
     bool               expect_parents   = false
 );
 
-void remove_taxa_at_level( Taxonomy& tax, size_t level );
+std::string taxpression(
+    Taxon const& taxon,
+    std::string delimiter = ";",
+    bool trim_nested_duplicates = false
+);
+
+// Taxon const* find_taxon_by_taxpression( Taxonomy const& tax, std::string const& taxpression );
+// Taxon*       find_taxon_by_taxpression( Taxonomy&       tax, std::string const& taxpression );
+
+// =================================================================================================
+//     Ranks
+// =================================================================================================
+
+std::string rank_from_abbreviation( char r );
+std::string rank_to_abbreviation( std::string const& rank );
+
+std::pair< std::string, std::string > resolve_rank_abbreviation( std::string const& entry );
 
 // =================================================================================================
 //     Print and Output
 // =================================================================================================
 
 std::ostream& operator << ( std::ostream& out, Taxonomy const& tax );
-
-std::string taxonomic_string(
-    Taxon const& taxon,
-    std::string delimiter = ";",
-    bool trim_nested_duplicates = true
-);
 
 std::vector<std::string> taxonomic_vector( Taxon const& taxon );
 

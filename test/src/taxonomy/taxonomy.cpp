@@ -60,19 +60,19 @@ TEST( Taxonomy, AddChildren )
     Taxonomy tax;
 
     // Simple
-    add_children_from_string( tax, "Tax_1;Tax_2;Tax_3;Tax_4" );
+    add_from_taxpression( tax, "Tax_1;Tax_2;Tax_3;Tax_4" );
     EXPECT_EQ( 4, total_taxa_count( tax ));
 
     // Leave some out
-    add_children_from_string( tax, "Tax_1;Tax_5;Tax_6;" );
-    auto par = add_children_from_string( tax, "Tax_1;;;Tax_7;Tax8" );
+    add_from_taxpression( tax, "Tax_1;Tax_5;Tax_6;" );
+    auto par = add_from_taxpression( tax, "Tax_1;;;Tax_7;Tax8" );
     EXPECT_EQ( 4, taxon_level( par ));
     EXPECT_EQ( 10, total_taxa_count( tax ));
     EXPECT_EQ( "Tax_1", par.parent()->parent()->name() );
 
     // Invalid strings
-    EXPECT_THROW( add_children_from_string( tax, "" ), std::runtime_error );
-    EXPECT_THROW( add_children_from_string( tax, ";Tax_x" ), std::runtime_error );
+    EXPECT_THROW( add_from_taxpression( tax, "" ), std::runtime_error );
+    EXPECT_THROW( add_from_taxpression( tax, ";Tax_x" ), std::runtime_error );
 
     // Remove some
     par.parent()->parent()->remove_child( "Tax_7" );
@@ -84,23 +84,23 @@ TEST( Taxonomy, ToString )
     Taxonomy tax;
 
     std::string s1 = "Tax_1;Tax_2;Tax_3;Tax_4";
-    auto        r1 = add_children_from_string( tax, s1 );
-    EXPECT_EQ( s1, taxonomic_string( r1 ));
+    auto        r1 = add_from_taxpression( tax, s1 );
+    EXPECT_EQ( s1, taxpression( r1 ));
 
     std::string s2 = "Tax_1;;Tax_3;Tax_4";
-    auto        r2 = add_children_from_string( tax, s2 );
-    EXPECT_EQ( s2, taxonomic_string( r2 ));
-    EXPECT_NE( s2, taxonomic_string( r2, ";", false ));
+    auto        r2 = add_from_taxpression( tax, s2 );
+    EXPECT_EQ( s2, taxpression( r2, ";", true ));
+    EXPECT_NE( s2, taxpression( r2 ));
 }
 
 TEST( Taxonomy, Remove )
 {
     // Add some elements.
     Taxonomy tax;
-    add_children_from_string( tax, "Tax_1;Tax_2;Tax_3;Tax_4" );
-    add_children_from_string( tax, "Tax_1;Tax_2;Tax_3;Tax_5" );
-    add_children_from_string( tax, "Tax_1;Tax_2;Tax_3;Tax_6" );
-    add_children_from_string( tax, "Tax_1;Tax_2;Tax_7;Tax_8" );
+    add_from_taxpression( tax, "Tax_1;Tax_2;Tax_3;Tax_4" );
+    add_from_taxpression( tax, "Tax_1;Tax_2;Tax_3;Tax_5" );
+    add_from_taxpression( tax, "Tax_1;Tax_2;Tax_3;Tax_6" );
+    add_from_taxpression( tax, "Tax_1;Tax_2;Tax_7;Tax_8" );
     EXPECT_EQ( 8, total_taxa_count( tax ));
 
     // Remove fourth level.
@@ -116,12 +116,12 @@ TEST( Taxonomy, ForEach )
 {
     // Add some elements.
     Taxonomy tax;
-    add_children_from_string( tax, "A;B;C;D" );
-    add_children_from_string( tax, "A;B;E;F" );
-    add_children_from_string( tax, "A;G;H;I" );
-    add_children_from_string( tax, "A;G;H;J" );
-    add_children_from_string( tax, "K;L" );
-    add_children_from_string( tax, "K;M" );
+    add_from_taxpression( tax, "A;B;C;D" );
+    add_from_taxpression( tax, "A;B;E;F" );
+    add_from_taxpression( tax, "A;G;H;I" );
+    add_from_taxpression( tax, "A;G;H;J" );
+    add_from_taxpression( tax, "K;L" );
+    add_from_taxpression( tax, "K;M" );
     EXPECT_EQ( 13, total_taxa_count( tax ));
 
     // std::cout << tax;

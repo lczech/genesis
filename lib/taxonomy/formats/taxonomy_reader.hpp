@@ -84,7 +84,8 @@ namespace taxonomy {
  * taxonomy files.
  *
  * Use the getter csv_reader() to access the CsvReader and change its behaviour, for example, to
- * change the field separator char. Also, all other properties can be used.
+ * change the field separator char. Also, all other properties of the CsvReader can be adjusted
+ * in order to suit any char-separated input format.
  *
  * Once the fields of a line are split, this reader uses its properties
  * @link name_field_position( int value ) name_field_position()@endlink and
@@ -92,6 +93,11 @@ namespace taxonomy {
  * fields represent the taxon name and its rank, respectively. For example, given the line from
  * above, those would have to be set to `0` and `2`. All other fields of the line are ignored,
  * which in the example are "14" and "119".
+ *
+ * The taxon name is expected to be a 'Taxpression'. This is what we call a string consisting of
+ * the different parts of the taxonomic hierarchy, usually separated by semicola.
+ * See @link taxpression_delimiters( std::string value ) taxpression_delimiters()@endlink to change
+ * the separator char for those expressions. See Taxonomy for details about Taxpressions.
  *
  * In summary, by default, this reader reads tab-separated lines and expects the taxonomy entry
  * to be the first (or only) field in the line.
@@ -154,8 +160,8 @@ public:
     TaxonomyReader& rank_field_position( int value );
     int             rank_field_position() const;
 
-    TaxonomyReader& taxon_delimiters( std::string value );
-    std::string     taxon_delimiters() const;
+    TaxonomyReader& taxpression_delimiters( std::string value );
+    std::string     taxpression_delimiters() const;
 
     TaxonomyReader& trim_whitespaces( bool value );
     bool            trim_whitespaces() const;

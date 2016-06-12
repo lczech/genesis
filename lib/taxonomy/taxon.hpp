@@ -44,6 +44,13 @@ namespace taxonomy {
  * arbitrarily nested set of sub-taxa.
  * The name and the rank are both free-form strings which can have any value.
  *
+ * The name is one part of a Taxpression. For example, given the Taxpression
+ *
+ *     Animalia;Vertebrata;Mammalia;Carnivora
+ *
+ * a Taxon could have the name "Mammalia", and contain a Taxon with the name "Carnivora" as child.
+ * See Taxonomy for details on Taxpressions.
+ *
  * Each taxon is itself also a Taxonomy, in terms of class inheritance. This also makes some
  * biological sense, as a taxon can be seen as the taxonomy of its sub-taxa. We however only
  * consider the Taxonomy as the top level of the hierarchy. For more information, see there.
@@ -83,7 +90,7 @@ public:
     /**
      * @brief Default destructor.
      */
-    ~Taxon() = default;
+    virtual ~Taxon() = default;
 
     Taxon( Taxon const& ) = default;
     Taxon( Taxon&& )      = default;

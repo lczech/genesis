@@ -74,6 +74,7 @@ void TaxonomyReader::from_stream( std::istream& is, Taxonomy& tax ) const
     auto it = utils::CountingIstream( is );
 
     while( it ) {
+        // Get line as name rank pair.
         auto line = parse_line( it );
 
         if( line.name == "" ) {
@@ -81,7 +82,8 @@ void TaxonomyReader::from_stream( std::istream& is, Taxonomy& tax ) const
             continue;
         }
 
-        add_children_from_string(
+        // Parse the taxpression.
+        add_from_taxpression(
             tax, line.name, delimiters_, trim_whitespaces_, expect_strict_order_
         );
     }
@@ -119,6 +121,9 @@ void TaxonomyReader::from_string( std::string const& fs, Taxonomy& tax ) const
 
 /**
  * @brief Read a single line of a taxonomy file and return the contained name and rank.
+ *
+ * The name is expected to be a Taxpression. See @link TaxonomyReader the class description @endlink
+ * for details.
  */
 TaxonomyReader::Line TaxonomyReader::parse_line(
     utils::CountingIstream& it
@@ -168,8 +173,13 @@ TaxonomyReader::Line TaxonomyReader::parse_line(
  * @brief Get the @link utils::CsvReader CsvReader@endlink used for reading a taxonomy file.
  *
  * This can be used to modify the reading behaviour, particularly values like the separator chars
- * within the lines of the file. See @link utils::CsvReader CsvReader@endlink for details about
- * those properties.
+ * within the lines of the file. By default, the TaxonomyReader uses a tab '\t' char to separate
+ * fields, which is different from the comma ',' that is used as default by the CsvReader.
+ *
+ * It is also possible to change other properties of the CsvReader, for example escaping behaviour,
+ * if the input data needs special treatment in those regards.
+ *
+ * See @link utils::CsvReader CsvReader@endlink for details about those properties.
  */
 utils::CsvReader& TaxonomyReader::csv_reader()
 {
@@ -177,7 +187,7 @@ utils::CsvReader& TaxonomyReader::csv_reader()
 }
 
 /**
- * @brief Set the position of the field in each line where the taxon name is located.
+ * @brief Set the position of the field in each line where the taxon name (Taxpression) is located.
  *
  * This value determines at with position (zero based) the field for the taxon name is located.
  *
@@ -185,7 +195,9 @@ utils::CsvReader& TaxonomyReader::csv_reader()
  *
  *     Archaea;Crenarchaeota;Thermoprotei;	7	class	119
  *
- * this value would have to be set to `0`, as this is where the taxon name is found.
+ * this value would have to be set to `0`, as this is where the taxon name is found. This reader
+ * expects the taxon name to be a Taxpression. This is what we call a string of taxonomic hierarchy
+ * entries, usually separated by semicola. See Taxonomy for details.
  *
  * By default, this value is set to `0`, that is, the first field. As it does not make sense to
  * skip this value, it cannot be set to values below zero - which is different from
@@ -194,6 +206,8 @@ utils::CsvReader& TaxonomyReader::csv_reader()
  */
 TaxonomyReader& TaxonomyReader::name_field_position( int value )
 {
+    // We could also use size_t instead of int here to avoid setting the value to sub-zero.
+    // However, now we have consistency with the rank field position, which is nicer.
     if( value < 0 ) {
         throw std::out_of_range(
             "Cannot set TaxonomyReader::name_field_position to a value below zero."
@@ -246,16 +260,20 @@ int TaxonomyReader::rank_field_position() const
 /**
  * @brief Set the delimiter chars used for splitting Taxon names.
  *
+ * Those chars are used to split the taxon name into its hierarchical parts. That is, the taxon
+ * names are expected to be what we call a Taxpression.
+ * See @link TaxonomyReader the class description@endlink for details.
+ *
  * Default is `;` (semicolon). This string can also contain multiple chars, in which case any of
  * them is used to split the Taxon name.
  *
- * Example: The taxa in the line
+ * Example: The Taxpression in the line
  *
  *     Archaea;Euryarchaeota;Halobacteria;	63	class	119
  *
- * are split into "Archaea", "Euryarchaeota" and "Halobacteria".
+ * is split into "Archaea", "Euryarchaeota" and "Halobacteria".
  */
-TaxonomyReader& TaxonomyReader::taxon_delimiters( std::string value )
+TaxonomyReader& TaxonomyReader::taxpression_delimiters( std::string value )
 {
     delimiters_ = value;
     return *this;
@@ -264,9 +282,9 @@ TaxonomyReader& TaxonomyReader::taxon_delimiters( std::string value )
 /**
  * @brief Return the currently set delimiter chars for splitting Taxon names.
  *
- * See @link taxon_delimiters( std::string value ) the setter@endlink of this function for details.
+ * See @link taxpression_delimiters( std::string value ) the setter@endlink of this function for details.
  */
-std::string TaxonomyReader::taxon_delimiters() const
+std::string TaxonomyReader::taxpression_delimiters() const
 {
     return delimiters_;
 }
