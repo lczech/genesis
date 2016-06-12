@@ -7,9 +7,6 @@ A toolkit for working with phylogenetic data.
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg)
 ![Language](https://img.shields.io/badge/language-python-lightgrey.svg)
 
-Please note: The error message "build error" above is due to the Clang compiler website having
-trouble with network traffic. Genesis still builds without errors (as far as we are aware).
-
 Features
 -------------------
 
