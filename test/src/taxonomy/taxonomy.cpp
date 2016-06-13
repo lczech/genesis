@@ -32,7 +32,11 @@
 
 #include "lib/taxonomy/taxon.hpp"
 #include "lib/taxonomy/taxonomy.hpp"
-#include "lib/taxonomy/functions.hpp"
+#include "lib/taxonomy/taxscriptor.hpp"
+#include "lib/taxonomy/formats/taxscriptor_parser.hpp"
+#include "lib/taxonomy/formats/taxscriptor_generator.hpp"
+#include "lib/taxonomy/functions/taxonomy.hpp"
+#include "lib/taxonomy/functions/taxscriptor.hpp"
 
 #include <stdexcept>
 
@@ -58,21 +62,22 @@ TEST( Taxonomy, Basics )
 TEST( Taxonomy, AddChildren )
 {
     Taxonomy tax;
+    auto parser = TaxscriptorParser();
 
     // Simple
-    add_from_taxpression( tax, "Tax_1;Tax_2;Tax_3;Tax_4" );
+    add_from_taxscriptor( tax, parser( "Tax_1;Tax_2;Tax_3;Tax_4" ));
     EXPECT_EQ( 4, total_taxa_count( tax ));
 
     // Leave some out
-    add_from_taxpression( tax, "Tax_1;Tax_5;Tax_6;" );
-    auto par = add_from_taxpression( tax, "Tax_1;;;Tax_7;Tax8" );
+    add_from_taxscriptor( tax, parser( "Tax_1;Tax_5;Tax_6;" ));
+    auto par = add_from_taxscriptor( tax, parser( "Tax_1;;;Tax_7;Tax8" ));
     EXPECT_EQ( 4, taxon_level( par ));
     EXPECT_EQ( 10, total_taxa_count( tax ));
     EXPECT_EQ( "Tax_1", par.parent()->parent()->name() );
 
     // Invalid strings
-    EXPECT_THROW( add_from_taxpression( tax, "" ), std::runtime_error );
-    EXPECT_THROW( add_from_taxpression( tax, ";Tax_x" ), std::runtime_error );
+    EXPECT_THROW( add_from_taxscriptor( tax, parser( "" )), std::runtime_error );
+    EXPECT_THROW( add_from_taxscriptor( tax, parser( ";Tax_x" )), std::runtime_error );
 
     // Remove some
     par.parent()->parent()->remove_child( "Tax_7" );
@@ -82,25 +87,34 @@ TEST( Taxonomy, AddChildren )
 TEST( Taxonomy, ToString )
 {
     Taxonomy tax;
+    auto parser    = TaxscriptorParser();
+    auto generator = TaxscriptorGenerator();
 
+    // Standard behaviour.
     std::string s1 = "Tax_1;Tax_2;Tax_3;Tax_4";
-    auto        r1 = add_from_taxpression( tax, s1 );
-    EXPECT_EQ( s1, taxpression( r1 ));
+    auto        r1 = add_from_taxscriptor( tax, parser( s1 ));
+    EXPECT_EQ( s1, generator( r1 ));
 
+    // With left out elements.
     std::string s2 = "Tax_1;;Tax_3;Tax_4";
-    auto        r2 = add_from_taxpression( tax, s2 );
-    EXPECT_EQ( s2, taxpression( r2, ";", true ));
-    EXPECT_NE( s2, taxpression( r2 ));
+    auto        r2 = add_from_taxscriptor( tax, parser( s2 ));
+    EXPECT_NE( s2, generator( r2 ));
+
+    // Leav out elements in generator as well.
+    generator.trim_nested_duplicates( true );
+    EXPECT_EQ( s2, generator( r2 ));
 }
 
 TEST( Taxonomy, Remove )
 {
     // Add some elements.
     Taxonomy tax;
-    add_from_taxpression( tax, "Tax_1;Tax_2;Tax_3;Tax_4" );
-    add_from_taxpression( tax, "Tax_1;Tax_2;Tax_3;Tax_5" );
-    add_from_taxpression( tax, "Tax_1;Tax_2;Tax_3;Tax_6" );
-    add_from_taxpression( tax, "Tax_1;Tax_2;Tax_7;Tax_8" );
+    auto parser = TaxscriptorParser();
+
+    add_from_taxscriptor( tax, parser( "Tax_1;Tax_2;Tax_3;Tax_4" ));
+    add_from_taxscriptor( tax, parser( "Tax_1;Tax_2;Tax_3;Tax_5" ));
+    add_from_taxscriptor( tax, parser( "Tax_1;Tax_2;Tax_3;Tax_6" ));
+    add_from_taxscriptor( tax, parser( "Tax_1;Tax_2;Tax_7;Tax_8" ));
     EXPECT_EQ( 8, total_taxa_count( tax ));
 
     // Remove fourth level.
@@ -116,12 +130,14 @@ TEST( Taxonomy, ForEach )
 {
     // Add some elements.
     Taxonomy tax;
-    add_from_taxpression( tax, "A;B;C;D" );
-    add_from_taxpression( tax, "A;B;E;F" );
-    add_from_taxpression( tax, "A;G;H;I" );
-    add_from_taxpression( tax, "A;G;H;J" );
-    add_from_taxpression( tax, "K;L" );
-    add_from_taxpression( tax, "K;M" );
+    auto parser = TaxscriptorParser();
+
+    add_from_taxscriptor( tax, parser( "A;B;C;D" ));
+    add_from_taxscriptor( tax, parser( "A;B;E;F" ));
+    add_from_taxscriptor( tax, parser( "A;G;H;I" ));
+    add_from_taxscriptor( tax, parser( "A;G;H;J" ));
+    add_from_taxscriptor( tax, parser( "K;L" ));
+    add_from_taxscriptor( tax, parser( "K;M" ));
     EXPECT_EQ( 13, total_taxa_count( tax ));
 
     // std::cout << tax;

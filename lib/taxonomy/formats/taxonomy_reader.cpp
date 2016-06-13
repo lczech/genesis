@@ -30,7 +30,7 @@
 
 #include "taxonomy/formats/taxonomy_reader.hpp"
 
-#include "taxonomy/functions.hpp"
+#include "taxonomy/functions/taxscriptor.hpp"
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
 #include "taxonomy/taxscriptor.hpp"

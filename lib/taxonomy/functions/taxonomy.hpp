@@ -1,5 +1,5 @@
-#ifndef GENESIS_TAXONOMY_FUNCTIONS_H_
-#define GENESIS_TAXONOMY_FUNCTIONS_H_
+#ifndef GENESIS_TAXONOMY_FUNCTIONS_TAXONOMY_H_
+#define GENESIS_TAXONOMY_FUNCTIONS_TAXONOMY_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -34,7 +34,6 @@
 #include <functional>
 #include <iosfwd>
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace genesis {
@@ -46,7 +45,6 @@ namespace taxonomy {
 
 class Taxon;
 class Taxonomy;
-class Taxscriptor;
 
 // =================================================================================================
 //     Accessors
@@ -85,34 +83,6 @@ void postorder_for_each(
 // =================================================================================================
 
 void remove_taxa_at_level( Taxonomy& tax, size_t level );
-
-// =================================================================================================
-//     Taxscriptor
-// =================================================================================================
-
-Taxon& add_from_taxscriptor(
-    Taxonomy&          taxonomy,
-    Taxscriptor const& taxscriptor,
-    bool               expect_parents
-);
-
-Taxon& add_from_taxscriptor(
-    Taxonomy&          taxonomy,
-    Taxscriptor &&     taxscriptor,
-    bool               expect_parents
-);
-
-Taxon const* find_taxon_by_taxscriptor( Taxonomy const& tax, Taxscriptor const& taxscriptor );
-Taxon*       find_taxon_by_taxscriptor( Taxonomy&       tax, Taxscriptor const& taxscriptor );
-
-// =================================================================================================
-//     Ranks
-// =================================================================================================
-
-std::string rank_from_abbreviation( char r );
-std::string rank_to_abbreviation( std::string const& rank );
-
-std::pair< std::string, std::string > resolve_rank_abbreviation( std::string const& entry );
 
 // =================================================================================================
 //     Print and Output
