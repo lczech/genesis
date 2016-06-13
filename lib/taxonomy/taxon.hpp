@@ -44,12 +44,12 @@ namespace taxonomy {
  * arbitrarily nested set of sub-taxa.
  * The name and the rank are both free-form strings which can have any value.
  *
- * The name is one part of a Taxpression. For example, given the Taxpression
+ * The name is one part of a taxonomic description string. For example, given the string
  *
  *     Animalia;Vertebrata;Mammalia;Carnivora
  *
  * a Taxon could have the name "Mammalia", and contain a Taxon with the name "Carnivora" as child.
- * See Taxonomy for details on Taxpressions.
+ * See Taxonomy for details, see Taxscriptor for the string format.
  *
  * Each taxon is itself also a Taxonomy, in terms of class inheritance. This also makes some
  * biological sense, as a taxon can be seen as the taxonomy of its sub-taxa. We however only
@@ -72,23 +72,11 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    /**
-     * @brief Default constructor. Does nothing.
-     */
-    Taxon()
-        : parent_(nullptr)
-    {}
+    Taxon();
+    Taxon( std::string name );
 
     /**
-     * @brief Constructor that uses the given name for the Taxon.
-     */
-    Taxon( std::string name )
-        : name_(name)
-        , parent_(nullptr)
-    {}
-
-    /**
-     * @brief Default destructor.
+     * @brief Default virtual destructor.
      */
     virtual ~Taxon() = default;
 

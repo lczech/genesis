@@ -232,28 +232,38 @@ void remove_taxa_at_level( Taxonomy& tax, size_t level )
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Add a Taxon to a Taxonomy, given its Taxscriptor.
  *
- * @param taxonomy   Taxonomy to add the taxa to.
+ * The optional paramter `expect_parents` defaults to `false`. If set to true, the function expects
+ * all super-taxa of the added Taxon to exists, that is, all taxa except for the last one.
+ * If this expectation is not met, that is, if not all super-taxa exist, an `std::runtime_error`
+ * exception is thrown.
  *
- * @param taxpression Taxpression string containing a list of taxa, separated by any of the chars
- *                   in `delimiters`. The first element must not be empty, thus ";Tax_2" is not
- *                   allowed.
+ * If left at the default (`false`), all necessary super-taxa are created if they do not exists yet.
  *
- * @param expect_parents Optional, defaults to `false`. If set to true, the function expects all
- *                   super-taxa to exists, that is, all taxa except for the last one. In the example
- *                   above, the last taxon is "Tax_4". If then this expectation is not met, that is,
- *                   if not all super-taxa exist, an `std::runtime_error` exception is thrown.
- *
- *                   If left at the default (`false`), all necessary super-taxa are created if they
- *                   do not exists yet.
- *
- * @return           Return value of the function is the deepest Taxon that was given in the
- *                   `taxpression` string, i.e., the last element after splitting the string.
+ * The return value of the function is the deepest Taxon of the Taxscriptor, that is, its last
+ * element.
  */
 Taxon& add_from_taxscriptor(
     Taxonomy&          taxonomy,
     Taxscriptor const& taxscriptor,
+    bool               expect_parents
+) {
+    // Copy and move, in order to only have one implementation.
+    auto copy = taxscriptor;
+    return add_from_taxscriptor( taxonomy, std::move( copy ), expect_parents);
+}
+
+/**
+ * @brief Add a Taxon to a Taxonomy, given its Taxscriptor.
+ *
+ * This is the move version of this function. See the copy version
+ * @link add_from_taxscriptor( Taxonomy& taxonomy, Taxscriptor const& taxscriptor, bool expect_parents )
+ * add_from_taxscriptor()@endlink for details.
+ */
+Taxon& add_from_taxscriptor(
+    Taxonomy&          taxonomy,
+    Taxscriptor &&     taxscriptor,
     bool               expect_parents
 ) {
     // The return value of this function is the added Taxon. If we don't add anything, we
@@ -270,18 +280,20 @@ Taxon& add_from_taxscriptor(
 
     // Add the names to the Taxonomy.
     for( size_t i = 0; i < taxscriptor.size(); ++i ) {
-        auto name = taxscriptor[i];
 
         // If we expect parents to exists, we need to check if the child exists
         // (but only when we are still considering parents, and not the last taxon itself,
         // that is, if we are not at the last element of the taxscriptor).
-        if( expect_parents && ( i < taxscriptor.size() - 1 ) && ( ! cur_taxon->has_child( name )) ) {
+        if( ( expect_parents ) &&
+            ( i < taxscriptor.size() - 1 ) &&
+            ( ! cur_taxon->has_child( taxscriptor[i] ))
+        ) {
             throw std::runtime_error(
                 "Not all super-taxa of the Taxon in the Taxscripyot are present in the given Taxonomy."
             );
         }
 
-        cur_taxon = &cur_taxon->add_child( name );
+        cur_taxon = &cur_taxon->add_child( std::move( taxscriptor[i] ));
     }
 
     // Convert to Taxon. This is always legal because we have ensured that we are adding at least

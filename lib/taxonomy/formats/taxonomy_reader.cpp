@@ -84,11 +84,14 @@ void TaxonomyReader::from_stream( std::istream& is, Taxonomy& tax ) const
         }
 
         // Parse the taxscriptor and add it to the taxonomy.
-        add_from_taxscriptor(
+        auto& taxon = add_from_taxscriptor(
             tax,
             taxscriptor_parser_.from_string( line.name ),
             expect_strict_order_
         );
+
+        // Set the rank.
+        taxon.rank( line.rank );
     }
 }
 
@@ -125,8 +128,8 @@ void TaxonomyReader::from_string( std::string const& fs, Taxonomy& tax ) const
 /**
  * @brief Read a single line of a taxonomy file and return the contained name and rank.
  *
- * The name is expected to be a Taxpression. See @link TaxonomyReader the class description @endlink
- * for details.
+ * The name is expected to be a taxonomic description string. See Taxscriptor for details on that
+ * format.
  */
 TaxonomyReader::Line TaxonomyReader::parse_line(
     utils::CountingIstream& it
@@ -193,7 +196,8 @@ utils::CsvReader& TaxonomyReader::csv_reader()
  * @brief Get the TaxscriptorParser used for parsing taxonomic description strings.
  *
  * The name field is expected to be a taxonomic description string. It is turned into a Taxon
- * using the settings of the TaxscriptorParser. See there for details.
+ * using the settings of the TaxscriptorParser. See there for details. See Taxscriptor for
+ * a description of the expected string format.
  */
 TaxscriptorParser& TaxonomyReader::taxscriptor_parser()
 {
@@ -201,7 +205,7 @@ TaxscriptorParser& TaxonomyReader::taxscriptor_parser()
 }
 
 /**
- * @brief Set the position of the field in each line where the taxon name (Taxpression) is located.
+ * @brief Set the position of the field in each line where the taxon name (Taxscriptor) is located.
  *
  * This value determines at with position (zero based) the field for the taxon name is located.
  *
@@ -210,8 +214,8 @@ TaxscriptorParser& TaxonomyReader::taxscriptor_parser()
  *     Archaea;Crenarchaeota;Thermoprotei;	7	class	119
  *
  * this value would have to be set to `0`, as this is where the taxon name is found. This reader
- * expects the taxon name to be a Taxpression. This is what we call a string of taxonomic hierarchy
- * entries, usually separated by semicola. See Taxonomy for details.
+ * expects the taxon name to be a Taxscriptor. This is what we call a string of taxonomic hierarchy
+ * elements, usually separated by semicola. See Taxscriptor for details.
  *
  * By default, this value is set to `0`, that is, the first field. As it does not make sense to
  * skip this value, it cannot be set to values below zero - which is different from

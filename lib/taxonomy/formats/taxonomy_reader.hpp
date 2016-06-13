@@ -97,9 +97,10 @@ namespace taxonomy {
  *
  * The taxon name is expected to be a taxonomic description string. This is what we call a string
  * consisting of the different parts of the taxonomic hierarchy, usually separated by semicola.
- * This string is split into its @link Taxon Taxa@endlink using a TaxscriptorParser. See Taxscriptor
- * for a description of the expected format. In order to change the behaviour of this splitting,
- * access the parser via taxscriptor_parser().
+ * See Taxscriptor for a description of the expected format.
+ *
+ * This string is split into its @link Taxon Taxa@endlink using a TaxscriptorParser.
+ * In order to change the behaviour of this splitting, access the parser via taxscriptor_parser().
  *
  * In summary, by default, this reader reads tab-separated lines and expects the taxonomy entry
  * to be the first (or only) field in the line and to be a taxonomic description in the format

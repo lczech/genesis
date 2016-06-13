@@ -148,7 +148,7 @@ std::string TaxscriptorGenerator::operator() ( Taxon const& taxon ) const
 // =================================================================================================
 
 /**
- * @brief Set the string used to join the taxpression string elements.
+ * @brief Set the string used to join the taxonomic description string elements.
  *
  * This value is used in between the elements of the taxonomic description string.
  * Default is ';', as this is the usual value in many databases. See Taxscriptor for details.
@@ -160,7 +160,7 @@ TaxscriptorGenerator& TaxscriptorGenerator::delimiter( std::string const& value 
 }
 
 /**
- * @brief Return the currelty set value used to join the taxpression string elements.
+ * @brief Return the currelty set value used to join the taxonomic description string elements.
  *
  * See @link delimiter( std::string const& value ) the setter@endlink for details.
  */

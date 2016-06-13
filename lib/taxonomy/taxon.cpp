@@ -37,6 +37,25 @@ namespace genesis {
 namespace taxonomy {
 
 // ================================================================================================
+//     Constructors and Rule of Five
+// ================================================================================================
+
+/**
+ * @brief Default constructor. Does nothing.
+ */
+Taxon::Taxon()
+    : parent_(nullptr)
+{}
+
+/**
+ * @brief Constructor that uses the given name for the Taxon.
+ */
+Taxon::Taxon( std::string name )
+    : name_(name)
+    , parent_(nullptr)
+{}
+
+// ================================================================================================
 //     Properties
 // ================================================================================================
 

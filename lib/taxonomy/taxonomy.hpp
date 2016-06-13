@@ -54,9 +54,9 @@ class Taxon;
  *
  *     Animalia;Vertebrata;Mammalia;Carnivora
  *
- * a "Taxpression", that is, a taxonomic expression. Those strings are often found in taxonomic
+ * a taxonomic description string. Those strings are often found in taxonomic
  * databases, and usually use semicola to separete their parts. Each part of such a string is
- * called a Taxon, and can have a rank associated with it.
+ * called a Taxon, and can have a rank associated with it. See Taxscriptor for details on the format.
  *
  * In the example above, this could be
  *
@@ -65,10 +65,11 @@ class Taxon;
  *     Class:   Mammalia
  *     Order:   Carnivora
  *
- * We use the term "taxon" to refer to one such entity in a Taxpression, and model this in the
+ * We use the term "taxon" to refer to one element in such a string, and model this in the
  * Taxon class. Both the Taxonomy and Taxon classes work with just those parts of the string.
- * There are however functions to work with Taxpressions and "translate" them into a Taxonomy
- * or to find a Taxon given a Taxpression. See the namespace taxonomy for a list of them.
+ * There are however functions to work with Taxscriptor%s directly, for example to "translate" them
+ * into a Taxonomy or to find a Taxon given a Taxscriptor.
+ * See the namespace taxonomy for a list of those functions.
  *
  * Each Taxon can itself contain further lower level Taxa, resulting in a hierarchy. Thus, in a
  * sense, each Taxon is itself a Taxonomy. However, we use the distinction between the two in order

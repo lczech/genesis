@@ -96,6 +96,12 @@ Taxon& add_from_taxscriptor(
     bool               expect_parents
 );
 
+Taxon& add_from_taxscriptor(
+    Taxonomy&          taxonomy,
+    Taxscriptor &&     taxscriptor,
+    bool               expect_parents
+);
+
 Taxon const* find_taxon_by_taxscriptor( Taxonomy const& tax, Taxscriptor const& taxscriptor );
 Taxon*       find_taxon_by_taxscriptor( Taxonomy&       tax, Taxscriptor const& taxscriptor );
 

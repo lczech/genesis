@@ -111,7 +111,7 @@ Taxscriptor TaxscriptorParser::operator() ( std::string const& taxscriptor ) con
 // =================================================================================================
 
 /**
- * @brief Set the chars used to split the taxpression string.
+ * @brief Set the chars used to split the taxonomic description string.
  *
  * Those chars are used to split the taxon name into its hierarchical parts.
  * Default is ';', as this is the usual value in many databases. See Taxscriptor for details.
@@ -131,7 +131,7 @@ TaxscriptorParser& TaxscriptorParser::delimiters( std::string const& value )
 }
 
 /**
- * @brief Return the currelty set delimiter chars used to split the taxpression string.
+ * @brief Return the currelty set delimiter chars used to split the taxonomic description string.
  *
  * See @link delimiters( std::string const& value ) the setter@endlink for details.
  */
@@ -190,7 +190,8 @@ TaxscriptorParser& TaxscriptorParser::remove_trailing_delimiter( bool value )
 }
 
 /**
- * @brief Return whether currently trailing delimiters are removed from the Taxpression.
+ * @brief Return whether currently trailing delimiters are removed from the taxonomic description
+ * string.
  *
  * See @link remove_trailing_delimiter( bool value ) the setter@endlink for details.
  */
