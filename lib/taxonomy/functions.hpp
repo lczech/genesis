@@ -44,8 +44,9 @@ namespace taxonomy {
 //     Forwad Declarations
 // =================================================================================================
 
-class Taxonomy;
 class Taxon;
+class Taxonomy;
+class Taxscriptor;
 
 // =================================================================================================
 //     Accessors
@@ -86,25 +87,17 @@ void postorder_for_each(
 void remove_taxa_at_level( Taxonomy& tax, size_t level );
 
 // =================================================================================================
-//     Taxpressions
+//     Taxscriptor
 // =================================================================================================
 
-Taxon& add_from_taxpression(
+Taxon& add_from_taxscriptor(
     Taxonomy&          taxonomy,
-    std::string const& taxpression,
-    std::string const& delimiters = ";",
-    bool               trim_whitespaces = true,
-    bool               expect_parents   = false
+    Taxscriptor const& taxscriptor,
+    bool               expect_parents
 );
 
-std::string taxpression(
-    Taxon const& taxon,
-    std::string delimiter = ";",
-    bool trim_nested_duplicates = false
-);
-
-// Taxon const* find_taxon_by_taxpression( Taxonomy const& tax, std::string const& taxpression );
-// Taxon*       find_taxon_by_taxpression( Taxonomy&       tax, std::string const& taxpression );
+Taxon const* find_taxon_by_taxscriptor( Taxonomy const& tax, Taxscriptor const& taxscriptor );
+Taxon*       find_taxon_by_taxscriptor( Taxonomy&       tax, Taxscriptor const& taxscriptor );
 
 // =================================================================================================
 //     Ranks

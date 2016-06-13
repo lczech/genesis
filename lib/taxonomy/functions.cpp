@@ -32,6 +32,7 @@
 
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
+#include "taxonomy/taxscriptor.hpp"
 
 #include "utils/text/string.hpp"
 
@@ -227,50 +228,17 @@ void remove_taxa_at_level( Taxonomy& tax, size_t level )
 }
 
 // =================================================================================================
-//     Taxpressions
+//     Taxscriptor
 // =================================================================================================
 
 /**
- * @brief Add nested child taxa to a Taxonomy by splitting a Taxpression string with their names.
- *
- * This function takes a string `taxpression` containing the names of taxa, separated from each other
- * by any of the chars given in the parameter `delimiters`. Those taxa are added to the Taxonomy by
- * nesting them. See Taxonomy for details on Taxpressions.
- *
- * Example: The input taxpression string
- *
- *     Tax_1;Tax_2;;Tax_4;
- *
- * results in the Taxonomy
- *
- *     Tax_1
- *         Tax_2
- *             Tax_2
- *                 Tax_4
- *
- * The first taxon in the string cannot be empty. Otherwise an `std::runtime_error` is thrown.
- * If any of the later taxa are empty (as in the example above), the taxon name of the previous
- * level taxon is used instead. This is useful for unspecified taxa in deeper taxonomies.
- *
- * The only exception to this is the last taxon. If it is empty, that is, if the string ends with
- * the delimiter char, this  is simply omitted (see example above). This is because many taxonomy
- * databases end the taxonomic string representation with a ';' by default.
- *
- * This function is the reverse of taxpression().
+ * @brief
  *
  * @param taxonomy   Taxonomy to add the taxa to.
  *
  * @param taxpression Taxpression string containing a list of taxa, separated by any of the chars
  *                   in `delimiters`. The first element must not be empty, thus ";Tax_2" is not
  *                   allowed.
- *
- * @param delimiters Optional, defaults to ';'. Determines the characters used to split the
- *                   `taxpression` string.
- *
- * @param trim_whitespaces Optional, defaults to `true`. If set to true, the taxa given by
- *                   `taxpression` are trimmed off white spaces after splitting them. This is
- *                   helpful if the input string is copied from some spreadsheet application or
- *                   CSV file, where spaces between cells might be added. Default is to trim.
  *
  * @param expect_parents Optional, defaults to `false`. If set to true, the function expects all
  *                   super-taxa to exists, that is, all taxa except for the last one. In the example
@@ -283,67 +251,37 @@ void remove_taxa_at_level( Taxonomy& tax, size_t level )
  * @return           Return value of the function is the deepest Taxon that was given in the
  *                   `taxpression` string, i.e., the last element after splitting the string.
  */
-Taxon& add_from_taxpression(
+Taxon& add_from_taxscriptor(
     Taxonomy&          taxonomy,
-    std::string const& taxpression,
-    std::string const& delimiters,
-    bool               trim_whitespaces,
+    Taxscriptor const& taxscriptor,
     bool               expect_parents
-){
-    // Split the given string, while keeping empty parts.
-    auto taxa = utils::split( taxpression, delimiters, false );
-
-    // If there are no elements, the string was empty. This is illegal.
-    if( taxa.size() == 0 ) {
-        assert( taxpression == "" );
-        throw std::runtime_error( "Cannot add empty child to taxonomy." );
-    }
-
-    // Remove white spaces.
-    if( trim_whitespaces ) {
-        for( auto& r : taxa ) {
-            r = utils::trim( r );
-        }
-    }
-
-    // The first name in the list of sub-taxa must not be empty.
-    if( taxa.front() == "" ) {
-        throw std::runtime_error( "Cannot add taxpression to taxomonmy if first taxon is empty." );
-    }
-
-    // The last name is ommited if empty.
-    if( taxa.back() == "" ) {
-        taxa.pop_back();
+) {
+    // The return value of this function is the added Taxon. If we don't add anything, we
+    // cannot return anything. So better throw. This might need to change in the future...
+    if( taxscriptor.empty() ) {
+        throw std::runtime_error(
+            "Cannot add empty Taxscriptor to Taxonomy."
+        );
     }
 
     // Prepare: we need a Taxonomy to add children to. This pointer is updated in the loop so that
-    // we go deeper and deeper into the taxonomy. Also, we keep track of the previously assigned
-    // name, for cases where a taxon is empty.
-    Taxonomy*   cur_taxon = &taxonomy;
-    std::string prev_name;
+    // we go deeper and deeper into the taxonomy.
+    Taxonomy* cur_taxon = &taxonomy;
 
     // Add the names to the Taxonomy.
-    for( size_t i = 0; i < taxa.size(); ++i ) {
-        auto name = taxa[i];
-
-        // If a sub-taxon is empty, use the super-taxon.
-        // As we previously checked that the first taxon is not empty, this is well-formed.
-        if( name == "" ) {
-            assert( prev_name != "" );
-            name = prev_name;
-        }
+    for( size_t i = 0; i < taxscriptor.size(); ++i ) {
+        auto name = taxscriptor[i];
 
         // If we expect parents to exists, we need to check if the child exists
         // (but only when we are still considering parents, and not the last taxon itself,
-        // that is, if we are not at the last element of the vector).
-        if( expect_parents && ( i < taxa.size() - 1 ) && ( ! cur_taxon->has_child( name )) ) {
+        // that is, if we are not at the last element of the taxscriptor).
+        if( expect_parents && ( i < taxscriptor.size() - 1 ) && ( ! cur_taxon->has_child( name )) ) {
             throw std::runtime_error(
-                "Not all super-taxa of the given taxon are present in the given Taxonomy."
+                "Not all super-taxa of the Taxon in the Taxscripyot are present in the given Taxonomy."
             );
         }
 
         cur_taxon = &cur_taxon->add_child( name );
-        prev_name = name;
     }
 
     // Convert to Taxon. This is always legal because we have ensured that we are adding at least
@@ -353,80 +291,45 @@ Taxon& add_from_taxpression(
 }
 
 /**
- * @brief Return the Taxpression string representation of a given Taxon.
- *
- * This function is the reverse of add_from_taxpression(). It returns a string with all
- * names of the super-taxa of the given taxon (and the taxon itself), concatenated using `delimiter`.
- * If `trim_nested_duplicates` is set to `true`, lower level names are set to empty if
- * they are the same as higher level names. Default is `false`, that is, nothing is trimmed.
- *
- * Example: For a taxon with this list of parents
- *
- *     Tax_1
- *         Tax_1
- *             Tax_2
- *
- * the functions returns "Tax_1;Tax_1;Tax_2", and respectively "Tax_1;;Tax_2" with trimming
- * nested duplicates.
- *
- * See Taxonomy for details on Taxpressions.
+ * @brief Find a Taxon in a Taxonomy, given its Taxscriptor.
  */
-std::string taxpression( Taxon const& taxon, std::string delimiter, bool trim_nested_duplicates )
+Taxon const* find_taxon_by_taxscriptor( Taxonomy const& tax, Taxscriptor const& taxscriptor )
 {
-    // This implementation is probably not the fastest, but it is simple and kind of elegant.
-    // Start with an empty vector that will store the super-taxa of the given taxon.
-    std::vector<std::string> taxa;
-
-    // Add taxa in reverse order: the deepest taxon will be stored first.
-    // This is fast with a vector.
-    Taxon const* r = &taxon;
-    while( r != nullptr ) {
-        taxa.push_back( r->name() );
-        r = r->parent();
+    // Border condition: nothing to search for.
+    if( taxscriptor.empty() ) {
+        return nullptr;
     }
 
-    // If wanted, set all taxa to an empty string for which the super-taxon has the same name.
-    // As we stored them in reverse order, we can simply go from start to one-but-the-end and check
-    // for equality.
-    if( trim_nested_duplicates ) {
-        for( size_t i = 0; i < taxa.size() - 1; ++i ) {
-            if( taxa[i] == taxa[i+1] ) {
-                taxa[i] = "";
-            }
+    // Use a pointer that is updated in the loop while we go deeper and deeper into the taxonomy.
+    Taxonomy const* cur_taxon = &tax;
+
+    // Find the elements of the Taxscriptor in the Taxonomy.
+    for( auto const& name : taxscriptor ) {
+        if( ! cur_taxon->has_child( name )) {
+            return nullptr;
         }
+        cur_taxon = &cur_taxon->get_child( name );
     }
 
-    // Now reverse and return the joined result.
-    std::reverse( taxa.begin(), taxa.end() );
-    return utils::join( taxa, delimiter );
+    // Convert to Taxon. This is always legal because we have ensured that we execute the loop at
+    // least once. If we thus reach this point, we have set cur_taxon to a child of the Taxonomy,
+    // which is a Taxon.
+    return dynamic_cast< Taxon const* >( cur_taxon );
 }
 
-// /**
-//  * @brief Find a Taxon in a Taxonomy, given its Taxpression.
-//  *
-//  * See Taxonomy for details on Taxpressions.
-//  */
-// Taxon const* find_taxon_by_taxpression( Taxonomy const& tax, std::string const& taxpression )
-// {
-//
-// }
-//
-// /**
-//  * @brief Find a Taxon in a Taxonomy, given its Taxpression.
-//  *
-//  * See Taxonomy for details on Taxpressions.
-//  */
-// Taxon* find_taxon_by_taxpression( Taxonomy& tax, std::string const& taxpression )
-// {
-//     // Avoid code duplication according to Scott Meyers.
-//     auto const& ctax = static_cast< Taxonomy const& >( tax );
-//     return const_cast< Taxon* >( find_taxon_by_taxpression( ctax, taxpression ));
-// }
+/**
+ * @brief Find a Taxon in a Taxonomy, given its Taxscriptor.
+ */
+Taxon* find_taxon_by_taxscriptor( Taxonomy& tax, Taxscriptor const& taxscriptor )
+{
+    // Avoid code duplication according to Scott Meyers.
+    auto const& ctax = static_cast< Taxonomy const& >( tax );
+    return const_cast< Taxon* >( find_taxon_by_taxscriptor( ctax, taxscriptor ));
+}
 
 // =================================================================================================
 //     Ranks
 // =================================================================================================
-
 
 /**
  * @brief Local helper data that stores the abbreviations and names of common taxonomic ranks.

@@ -31,6 +31,7 @@
  * @ingroup taxonomy
  */
 
+#include "taxonomy/formats/taxscriptor_parser.hpp"
 #include "utils/formats/csv/reader.hpp"
 
 #include <string>
@@ -94,13 +95,15 @@ namespace taxonomy {
  * above, those would have to be set to `0` and `2`. All other fields of the line are ignored,
  * which in the example are "14" and "119".
  *
- * The taxon name is expected to be a 'Taxpression'. This is what we call a string consisting of
- * the different parts of the taxonomic hierarchy, usually separated by semicola.
- * See @link taxpression_delimiters( std::string value ) taxpression_delimiters()@endlink to change
- * the separator char for those expressions. See Taxonomy for details about Taxpressions.
+ * The taxon name is expected to be a taxonomic description string. This is what we call a string
+ * consisting of the different parts of the taxonomic hierarchy, usually separated by semicola.
+ * This string is split into its @link Taxon Taxa@endlink using a TaxscriptorParser. See Taxscriptor
+ * for a description of the expected format. In order to change the behaviour of this splitting,
+ * access the parser via taxscriptor_parser().
  *
  * In summary, by default, this reader reads tab-separated lines and expects the taxonomy entry
- * to be the first (or only) field in the line.
+ * to be the first (or only) field in the line and to be a taxonomic description in the format
+ * descript at Taxscriptor.
  */
 class TaxonomyReader
 {
@@ -152,19 +155,14 @@ public:
     //     Properties
     // ---------------------------------------------------------------------
 
-    utils::CsvReader& csv_reader();
+    utils::CsvReader&  csv_reader();
+    TaxscriptorParser& taxscriptor_parser();
 
     TaxonomyReader& name_field_position( int value );
     int             name_field_position() const;
 
     TaxonomyReader& rank_field_position( int value );
     int             rank_field_position() const;
-
-    TaxonomyReader& taxpression_delimiters( std::string value );
-    std::string     taxpression_delimiters() const;
-
-    TaxonomyReader& trim_whitespaces( bool value );
-    bool            trim_whitespaces() const;
 
     TaxonomyReader& expect_strict_order( bool value );
     bool            expect_strict_order() const;
@@ -175,13 +173,11 @@ public:
 
 private:
 
-    utils::CsvReader csv_reader_;
+    utils::CsvReader  csv_reader_;
+    TaxscriptorParser taxscriptor_parser_;
 
-    int name_field_position_ =  0;
-    int rank_field_position_ = -1;
-
-    std::string delimiters_   = ";";
-    bool trim_whitespaces_    = true;
+    int  name_field_position_ =  0;
+    int  rank_field_position_ = -1;
     bool expect_strict_order_ = false;
 
 };
