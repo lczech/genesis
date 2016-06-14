@@ -223,7 +223,7 @@ void sort_by_name( Taxonomy& tax, bool recursive, bool case_sensitive )
         return lhs.name() < rhs.name();
     };
     auto comp_by_name_ci = []( Taxon const& lhs, Taxon const& rhs ) {
-        return utils::equals_ci( lhs.name(), rhs.name() );
+        return utils::to_lower( lhs.name() ) < utils::to_lower( rhs.name() );
     };
 
     // Sort.
