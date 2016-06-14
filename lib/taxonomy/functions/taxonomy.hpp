@@ -82,6 +82,8 @@ void postorder_for_each(
 //     Modifiers
 // =================================================================================================
 
+void sort_by_name( Taxonomy& tax, bool recursive = true, bool case_sensitive = false );
+
 void remove_taxa_at_level( Taxonomy& tax, size_t level );
 
 // =================================================================================================

@@ -205,6 +205,43 @@ void postorder_for_each(
 // =================================================================================================
 
 /**
+ * @brief Sort the @link Taxon Taxa@endlink of a Taxonomy by their name.
+ *
+ * After calling this function, the @link Taxon Taxa@endlink are stored in the order given by their
+ * names. This is useful for e.g., output.
+ *
+ * @param tax       Taxonomy to be sorted.
+ * @param recursive Optional, default is `true`. If set to `true`, the sub-taxa are also sorted.
+ *                  If set to `false`, only the immediate children of the given Taxonomy are sorted.
+ * @param case_sensitive Optional, default is `false`. Determines whether the name string comparison
+ *                  is done in a case sensitive manner or not.
+ */
+void sort_by_name( Taxonomy& tax, bool recursive, bool case_sensitive )
+{
+    // Make two functions for case sensitive and insensitive comparison.
+    auto comp_by_name_cs = []( Taxon const& lhs, Taxon const& rhs ) {
+        return lhs.name() < rhs.name();
+    };
+    auto comp_by_name_ci = []( Taxon const& lhs, Taxon const& rhs ) {
+        return utils::equals_ci( lhs.name(), rhs.name() );
+    };
+
+    // Sort.
+    if( case_sensitive ) {
+        std::sort( tax.begin(), tax.end(), comp_by_name_cs );
+    } else {
+        std::sort( tax.begin(), tax.end(), comp_by_name_ci );
+    }
+
+    // Run recursion if necessary.
+    if( recursive ) {
+        for( auto& child : tax ) {
+            sort_by_name( child, true );
+        }
+    }
+}
+
+/**
  * @brief Remove all @link Taxon Taxa @endlink at a given level of depth in the Taxonomy hierarchy,
  * and all their children.
  *
