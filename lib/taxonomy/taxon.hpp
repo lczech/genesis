@@ -73,7 +73,7 @@ public:
     // -------------------------------------------------------------------------
 
     Taxon();
-    Taxon( std::string name );
+    Taxon( std::string const& name );
 
     /**
      * @brief Default virtual destructor.

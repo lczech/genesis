@@ -50,7 +50,7 @@ Taxon::Taxon()
 /**
  * @brief Constructor that uses the given name for the Taxon.
  */
-Taxon::Taxon( std::string name )
+Taxon::Taxon( std::string const& name )
     : name_(name)
     , parent_(nullptr)
 {}
