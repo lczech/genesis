@@ -65,10 +65,10 @@ message (STATUS "${ColorBlue}Building ${CMAKE_BUILD_TYPE}${ColorEnd}")
 # ------------------------------------------------------------------------------
 
 set (WARN_FLAGS              "-Wall -Wextra -pedantic -pedantic-errors")
-set (CMAKE_CXX_FLAGS         "-std=c++11 ${WARN_FLAGS}")
+set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
 
-set (CMAKE_CXX_FLAGS_DEBUG   "-g -ggdb3 -DDEBUG")
-set (CMAKE_CXX_FLAGS_RELEASE "-O3       -DNDEBUG")
+set (CMAKE_CXX_FLAGS_DEBUG   "-g -ggdb3 -DDEBUG -D_GLIBCXX_DEBUG")
+set (CMAKE_CXX_FLAGS_RELEASE "-O2       -DNDEBUG")
 
 # Misc options
 # STDCC   = clang++
@@ -84,7 +84,7 @@ option (BUILD_SHARED_LIB    "Build shared library" ON)
 option (BUILD_STATIC_LIB    "Build static library" OFF)
 
 option (BUILD_APPLICATIONS  "Build applications"   ON)
-option (BUILD_PYTHON_MODULE "Build python module"  ON)
+option (BUILD_PYTHON_MODULE "Build python module"  OFF)
 option (BUILD_TESTS         "Build test suites"    ON)
 
 option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" ON)
