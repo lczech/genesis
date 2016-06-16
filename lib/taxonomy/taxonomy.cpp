@@ -39,6 +39,35 @@ namespace genesis {
 namespace taxonomy {
 
 // =================================================================================================
+//     Constructors and Rule of Five
+// =================================================================================================
+
+/**
+ * @brief Copy constructor.
+ *
+ * We need a custom version of this in order to set the Taxon::parent() pointers of all children
+ * correctly when copying.
+ */
+Taxonomy::Taxonomy( Taxonomy const& other )
+{
+    children_ = other.children_;
+    reset_parents_( children_, nullptr );
+}
+
+/**
+ * @brief Copy assigment operator.
+ *
+ * We need a custom version of this in order to set the Taxon::parent() pointers of all children
+ * correctly when copying.
+ */
+Taxonomy& Taxonomy::operator= ( Taxonomy const& other )
+{
+    auto copy = Taxonomy( other );
+    swap( copy );
+    return *this;
+}
+
+// =================================================================================================
 //     Accessors
 // =================================================================================================
 
@@ -119,19 +148,7 @@ Taxon& Taxonomy::operator [] ( std::string name )
  */
 Taxon& Taxonomy::add_child( Taxon const& child )
 {
-    // We create a copy here and move it. Instead, we could also have taken the Taxon by value,
-    // but then the interface is inconsistent, as we usually take by const ref.
-    return add_child_( Taxon( child ));
-}
-
-/**
- * @brief Add a child taxon by moving from a given taxon and return it.
- *
- * If a child taxon with the same name already exists, it is recursively merged with the given taxon.
- */
-Taxon& Taxonomy::add_child( Taxon&& child )
-{
-    return add_child_( std::move( child ));
+    return add_child_( child );
 }
 
 /**
@@ -226,7 +243,7 @@ Taxonomy::const_iterator Taxonomy::cend() const
 }
 
 // =================================================================================================
-//     Protected Implementation Details
+//     Internal Implementation Details
 // =================================================================================================
 
 /**
@@ -234,14 +251,15 @@ Taxonomy::const_iterator Taxonomy::cend() const
  *
  * This function is invoked by all add_child() functions in order to implement the non-virtual
  * interface pattern.
- * It is needed because adding a child taxon differs for Taxonomy and Taxon. In the latter case,
- * the additional @link Taxon::parent() parent @endlink property has to be set. Thus, this function
- * is overridden by Taxon, see Taxon::add_child_().
+ *
+ * It needs to be virtual because adding a child taxon differs for Taxonomy and Taxon.
+ * In the latter case, the additional @link Taxon::parent() parent @endlink property has to be set.
+ * Thus, this function is overridden by Taxon, see Taxon::add_child_().
  *
  * If a child taxon with the same name already exists, it is recursively merged with the given taxon.
  * The function returns the child.
  */
-Taxon& Taxonomy::add_child_( Taxon&& child )
+Taxon& Taxonomy::add_child_( Taxon const& child )
 {
     // Check if a child taxon with the given name already exists.
     for( auto& c : children_ ) {
@@ -249,16 +267,30 @@ Taxon& Taxonomy::add_child_( Taxon&& child )
 
             // If so, add the children of the new child to it (recursively), and return it.
             for( auto& child_children : child ) {
-                c.add_child_( std::move( child_children ));
+                c.add_child_( child_children );
             }
             return c;
         }
     }
 
     // If not, add it as a a new child and return it.
-    children_.push_back( std::move( child ));
+    children_.push_back( child );
     children_.back().parent_ = nullptr;
     return children_.back();
+}
+
+/**
+ * @brief Internal helper function that recursively resets the parent pointer of all Taxa.
+ *
+ * This function is used in the @link Taxonomy( Taxonomy const& other ) copy constructor@endlink
+ * to make sure that all pointers are correct after copying the raw data (children_ vector).
+ */
+void Taxonomy::reset_parents_( std::vector<Taxon>& taxa, Taxon* parent )
+{
+    for( auto& taxon : taxa ) {
+        taxon.parent_ = parent;
+        reset_parents_( taxon.children_, &taxon );
+    }
 }
 
 } // namespace taxonomy

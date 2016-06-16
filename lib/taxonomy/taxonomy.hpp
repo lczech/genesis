@@ -67,14 +67,24 @@ class Taxon;
  *
  * We use the term "taxon" to refer to one element in such a string, and model this in the
  * Taxon class. Both the Taxonomy and Taxon classes work with just those parts of the string.
- * There are however functions to work with Taxscriptor%s directly, for example to "translate" them
- * into a Taxonomy or to find a Taxon given a Taxscriptor.
+ * Each Taxon can itself contain further lower level Taxa, resulting in a hierarchy.
+ *
+ * The above taxonomic description string for example would give a hierarchy of Taxa like this
+ *
+ *     Animalia
+ *         Vertebrata
+ *             Mammalia
+ *                 Carnivora
+ *
+ * where each line is one Taxon, stored within a Taxonomy.
+ *
+ * There are functions to work with taxonomic description strings and Taxscriptor%s directly,
+ * for example to "translate" them into a Taxonomy or to find a Taxon given a Taxscriptor.
  * See the namespace taxonomy for a list of those functions.
  *
- * Each Taxon can itself contain further lower level Taxa, resulting in a hierarchy. Thus, in a
- * sense, each Taxon is itself a Taxonomy. However, we use the distinction between the two in order
- * to separate concerns. That means, only the Taxonomy should be seen as the top level of the
- * hierarchy.
+ * In a sense, each Taxon is itself a Taxonomy, because of their hierarchical relationship.
+ * However, we use the distinction between the two in order to separate concerns.
+ * That means, only the Taxonomy should be seen as the top level of the hierarchy.
  *
  * This class serves as a container for storing a list of @link Taxon Taxa@endlink. It allows to
  * @link add_child( std::string const& ) add@endlink, @link remove_child() remove @endlink and
@@ -98,11 +108,11 @@ public:
     Taxonomy()          = default;
     virtual ~Taxonomy() = default;
 
-    Taxonomy( Taxonomy const& ) = default;
-    Taxonomy( Taxonomy&& )      = default;
+    Taxonomy( Taxonomy const& );
+    Taxonomy( Taxonomy&& ) = default;
 
-    Taxonomy& operator= ( Taxonomy const& ) = default;
-    Taxonomy& operator= ( Taxonomy&& )      = default;
+    Taxonomy& operator= ( Taxonomy const& );
+    Taxonomy& operator= ( Taxonomy&& ) = default;
 
     void swap( Taxonomy& other )
     {
@@ -128,8 +138,7 @@ public:
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    Taxon& add_child( Taxon const&        child );
-    Taxon& add_child( Taxon&&             child );
+    Taxon& add_child( Taxon const&       child );
     Taxon& add_child( std::string const& name );
 
     void remove_child( std::string const& name );
@@ -149,12 +158,16 @@ public:
     const_iterator cend() const;
 
     // -------------------------------------------------------------------------
-    //     Protected Implementation Details
+    //     Internal Implementation Details
     // -------------------------------------------------------------------------
 
 protected:
 
-    virtual Taxon& add_child_( Taxon&& child );
+    virtual Taxon& add_child_( Taxon const& child );
+
+private:
+
+    void reset_parents_( std::vector<Taxon>& taxa, Taxon* parent );
 
     // -------------------------------------------------------------------------
     //     Data Members
