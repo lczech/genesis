@@ -34,6 +34,7 @@
 #include "taxonomy/taxonomy.hpp"
 #include "taxonomy/taxscriptor.hpp"
 
+#include "utils/core/logging.hpp"
 #include "utils/text/string.hpp"
 
 #include <algorithm>
@@ -292,35 +293,44 @@ std::ostream& operator << ( std::ostream& out, Taxonomy const& tax )
 }
 
 /**
- * @brief Return a string vector representation of a given Taxon and its super-taxa.
+ * @brief Validate the internal data structures of a Taxonomy and its child
+ * @link Taxon Taxa Taxa@endlink.
  *
- * The function returns a vector with the names of all super-taxa of the given Taxon (and the taxon
- * itself).
+ * The function validates the correctness of internal pointers, particularly, the
+ * @link Taxon::parent() parent pointers@endlink of Taxon.
+ * If the structure is broken, a @link utils::Logging log message@endlink is logged to `LOG_INFO`
+ * and the functions returns `false`.
  *
- * For example, when given the last Taxon in this Taxonomy:
- *
- *     Tax_1
- *         Tax_1
- *             Tax_2
- *
- * the function gives a vector with strings `{ "Tax_1", "Tax_1", "Tax_2" }`.
+ * @param taxonomy The Taxonomy object to validate.
+ * @param stop_at_first_error Optional, defaults to `false`. By default, all errors are reported.
+ *     If set to `true`, only the first one is logged and the function immediately returns `false`
+ *     (or runs through and returns `true` if no errors are found).
  */
-std::vector<std::string> taxonomic_vector( Taxon const& taxon )
+bool validate( Taxonomy const& taxonomy, bool stop_at_first_error )
 {
-    // Start with an empty vector that will store the super-taxa of the given taxon.
-    std::vector<std::string> taxa;
+    bool res = true;
+    for( auto const& c : taxonomy ) {
 
-    // Add taxa in reverse order: the deepest taxon will be stored first.
-    // This is fast with a vector.
-    Taxon const* r = &taxon;
-    while( r != nullptr ) {
-        taxa.push_back( r->name() );
-        r = r->parent();
+        // Check current parent.
+        if( c.parent() != nullptr && c.parent() != &taxonomy ) {
+            LOG_INFO << "Taxon child with invalid parent pointer: " << c.name();
+            if( stop_at_first_error ) {
+                return false;
+            } else {
+                res = false;
+            }
+        }
+
+        // Recurse.
+        if( ! validate( c )) {
+            if( stop_at_first_error ) {
+                return false;
+            } else {
+                res = false;
+            }
+        }
     }
-
-    // Now reverse and return the result.
-    std::reverse( taxa.begin(), taxa.end() );
-    return taxa;
+    return res;
 }
 
 } // namespace taxonomy

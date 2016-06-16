@@ -92,7 +92,7 @@ void remove_taxa_at_level( Taxonomy& tax, size_t level );
 
 std::ostream& operator << ( std::ostream& out, Taxonomy const& tax );
 
-std::vector<std::string> taxonomic_vector( Taxon const& taxon );
+bool validate( Taxonomy const& taxonomy, bool stop_at_first_error = false );
 
 } // namespace taxonomy
 } // namespace genesis
