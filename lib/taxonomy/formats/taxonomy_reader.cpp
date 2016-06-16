@@ -30,9 +30,10 @@
 
 #include "taxonomy/formats/taxonomy_reader.hpp"
 
-#include "taxonomy/functions.hpp"
+#include "taxonomy/functions/taxscriptor.hpp"
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
+#include "taxonomy/taxscriptor.hpp"
 
 #include "utils/core/fs.hpp"
 #include "utils/io/counting_istream.hpp"
@@ -82,10 +83,15 @@ void TaxonomyReader::from_stream( std::istream& is, Taxonomy& tax ) const
             continue;
         }
 
-        // Parse the taxpression.
-        add_from_taxpression(
-            tax, line.name, delimiters_, trim_whitespaces_, expect_strict_order_
+        // Parse the taxscriptor and add it to the taxonomy.
+        auto& taxon = add_from_taxscriptor(
+            tax,
+            taxscriptor_parser_.from_string( line.name ),
+            expect_strict_order_
         );
+
+        // Set the rank.
+        taxon.rank( line.rank );
     }
 }
 
@@ -122,8 +128,8 @@ void TaxonomyReader::from_string( std::string const& fs, Taxonomy& tax ) const
 /**
  * @brief Read a single line of a taxonomy file and return the contained name and rank.
  *
- * The name is expected to be a Taxpression. See @link TaxonomyReader the class description @endlink
- * for details.
+ * The name is expected to be a taxonomic description string. See Taxscriptor for details on that
+ * format.
  */
 TaxonomyReader::Line TaxonomyReader::parse_line(
     utils::CountingIstream& it
@@ -173,7 +179,7 @@ TaxonomyReader::Line TaxonomyReader::parse_line(
  * @brief Get the @link utils::CsvReader CsvReader@endlink used for reading a taxonomy file.
  *
  * This can be used to modify the reading behaviour, particularly values like the separator chars
- * within the lines of the file. By default, the TaxonomyReader uses a tab '\t' char to separate
+ * within the lines of the file. By default, the TaxonomyReader uses a tab `\t` char to separate
  * fields, which is different from the comma ',' that is used as default by the CsvReader.
  *
  * It is also possible to change other properties of the CsvReader, for example escaping behaviour,
@@ -187,7 +193,19 @@ utils::CsvReader& TaxonomyReader::csv_reader()
 }
 
 /**
- * @brief Set the position of the field in each line where the taxon name (Taxpression) is located.
+ * @brief Get the TaxscriptorParser used for parsing taxonomic description strings.
+ *
+ * The name field is expected to be a taxonomic description string. It is turned into a Taxon
+ * using the settings of the TaxscriptorParser. See there for details. See Taxscriptor for
+ * a description of the expected string format.
+ */
+TaxscriptorParser& TaxonomyReader::taxscriptor_parser()
+{
+    return taxscriptor_parser_;
+}
+
+/**
+ * @brief Set the position of the field in each line where the taxon name (Taxscriptor) is located.
  *
  * This value determines at with position (zero based) the field for the taxon name is located.
  *
@@ -196,8 +214,8 @@ utils::CsvReader& TaxonomyReader::csv_reader()
  *     Archaea;Crenarchaeota;Thermoprotei;	7	class	119
  *
  * this value would have to be set to `0`, as this is where the taxon name is found. This reader
- * expects the taxon name to be a Taxpression. This is what we call a string of taxonomic hierarchy
- * entries, usually separated by semicola. See Taxonomy for details.
+ * expects the taxon name to be a Taxscriptor. This is what we call a string of taxonomic hierarchy
+ * elements, usually separated by semicola. See Taxscriptor for details.
  *
  * By default, this value is set to `0`, that is, the first field. As it does not make sense to
  * skip this value, it cannot be set to values below zero - which is different from
@@ -255,69 +273,6 @@ TaxonomyReader& TaxonomyReader::rank_field_position( int value )
 int TaxonomyReader::rank_field_position() const
 {
     return rank_field_position_;
-}
-
-/**
- * @brief Set the delimiter chars used for splitting Taxon names.
- *
- * Those chars are used to split the taxon name into its hierarchical parts. That is, the taxon
- * names are expected to be what we call a Taxpression.
- * See @link TaxonomyReader the class description@endlink for details.
- *
- * Default is `;` (semicolon). This string can also contain multiple chars, in which case any of
- * them is used to split the Taxon name.
- *
- * Example: The Taxpression in the line
- *
- *     Archaea;Euryarchaeota;Halobacteria;	63	class	119
- *
- * is split into "Archaea", "Euryarchaeota" and "Halobacteria".
- */
-TaxonomyReader& TaxonomyReader::taxpression_delimiters( std::string value )
-{
-    delimiters_ = value;
-    return *this;
-}
-
-/**
- * @brief Return the currently set delimiter chars for splitting Taxon names.
- *
- * See @link taxpression_delimiters( std::string value ) the setter@endlink of this function for details.
- */
-std::string TaxonomyReader::taxpression_delimiters() const
-{
-    return delimiters_;
-}
-
-/**
- * @brief Set whether to trim whitespaces off the Taxon names.
- *
- * If set to true, the taxa in each line are trimmed off white spaces after splitting them.
- * This is helpful if the input data is not clean and contains spaces between cells.
- *
- * Example: The line
- *
- *     Archaea; Aigarchaeota; Aigarchaeota Incertae Sedis;	11091	class	123
- *
- * contains spaces both between the taxa names (separated by `;`), as well as within the names.
- * Only the former ones will be trimmed, while latter ones are left as they are.
- *
- * Default is `true`, that is, trimming is active.
- */
-TaxonomyReader& TaxonomyReader::trim_whitespaces( bool value )
-{
-    trim_whitespaces_ = value;
-    return *this;
-}
-
-/**
- * @brief Return whether currently the reader trims whitespacces off the Taxon names.
- *
- * See @link trim_whitespaces( bool value ) the setter@endlink of this function for details.
- */
-bool TaxonomyReader::trim_whitespaces() const
-{
-    return trim_whitespaces_;
 }
 
 /**

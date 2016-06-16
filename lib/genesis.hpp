@@ -62,6 +62,8 @@
 #include "placement/simulator/simulator.hpp"
 
 #include "sequence/codes.hpp"
+#include "sequence/formats/fasta_input_iterator.hpp"
+#include "sequence/formats/fasta_output_iterator.hpp"
 #include "sequence/formats/fasta_reader.hpp"
 #include "sequence/formats/fasta_writer.hpp"
 #include "sequence/formats/phylip_reader.hpp"
@@ -70,9 +72,15 @@
 #include "sequence/sequence.hpp"
 #include "sequence/sequence_set.hpp"
 
-#include "taxonomy/functions.hpp"
+#include "taxonomy/formats/taxonomy_reader.hpp"
+#include "taxonomy/formats/taxscriptor_generator.hpp"
+#include "taxonomy/formats/taxscriptor_parser.hpp"
+#include "taxonomy/functions/ranks.hpp"
+#include "taxonomy/functions/taxonomy.hpp"
+#include "taxonomy/functions/taxscriptor.hpp"
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
+#include "taxonomy/taxscriptor.hpp"
 
 #include "tree/bipartition/bipartition.hpp"
 #include "tree/bipartition/bipartition_set.hpp"

@@ -37,6 +37,38 @@ namespace genesis {
 namespace taxonomy {
 
 // ================================================================================================
+//     Constructors and Rule of Five
+// ================================================================================================
+
+/**
+ * @brief Default constructor. Does nothing.
+ */
+Taxon::Taxon()
+    : parent_(nullptr)
+{}
+
+/**
+ * @brief Constructor that uses the given name for the Taxon.
+ */
+Taxon::Taxon( std::string const& name )
+    : name_(name)
+    , parent_(nullptr)
+{}
+
+/**
+ * @brief Swapperator for Taxon.
+ */
+void swap( Taxon& lhs, Taxon& rhs )
+{
+    using std::swap;
+    swap( static_cast< Taxonomy& >( lhs ), static_cast< Taxonomy& >( rhs ) );
+
+    swap( lhs.name_,   rhs.name_ );
+    swap( lhs.rank_,   rhs.rank_ );
+    swap( lhs.parent_, rhs.parent_ );
+}
+
+// ================================================================================================
 //     Properties
 // ================================================================================================
 
@@ -107,11 +139,12 @@ Taxon* Taxon::parent ()
 /**
  * @brief Virtual implementation function for adding a child taxon.
  *
- * See Taxonomy::add_child_() for details.
+ * See Taxonomy::add_child_() for details. In addition to the base class implementation, this
+ * function also sets the parent pointer of the Taxon.
  */
-Taxon& Taxon::add_child_( Taxon&& child )
+Taxon& Taxon::add_child_( Taxon const& child )
 {
-    auto& c = Taxonomy::add_child_( std::move( child ));
+    auto& c = Taxonomy::add_child_( child );
     c.parent_ = this;
     return c;
 }

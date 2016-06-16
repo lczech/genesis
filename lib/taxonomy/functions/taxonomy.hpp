@@ -1,5 +1,5 @@
-#ifndef GENESIS_TAXONOMY_FUNCTIONS_H_
-#define GENESIS_TAXONOMY_FUNCTIONS_H_
+#ifndef GENESIS_TAXONOMY_FUNCTIONS_TAXONOMY_H_
+#define GENESIS_TAXONOMY_FUNCTIONS_TAXONOMY_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -34,7 +34,6 @@
 #include <functional>
 #include <iosfwd>
 #include <string>
-#include <utility>
 #include <vector>
 
 namespace genesis {
@@ -44,8 +43,8 @@ namespace taxonomy {
 //     Forwad Declarations
 // =================================================================================================
 
-class Taxonomy;
 class Taxon;
+class Taxonomy;
 
 // =================================================================================================
 //     Accessors
@@ -83,37 +82,9 @@ void postorder_for_each(
 //     Modifiers
 // =================================================================================================
 
+void sort_by_name( Taxonomy& tax, bool recursive = true, bool case_sensitive = false );
+
 void remove_taxa_at_level( Taxonomy& tax, size_t level );
-
-// =================================================================================================
-//     Taxpressions
-// =================================================================================================
-
-Taxon& add_from_taxpression(
-    Taxonomy&          taxonomy,
-    std::string const& taxpression,
-    std::string const& delimiters = ";",
-    bool               trim_whitespaces = true,
-    bool               expect_parents   = false
-);
-
-std::string taxpression(
-    Taxon const& taxon,
-    std::string delimiter = ";",
-    bool trim_nested_duplicates = false
-);
-
-// Taxon const* find_taxon_by_taxpression( Taxonomy const& tax, std::string const& taxpression );
-// Taxon*       find_taxon_by_taxpression( Taxonomy&       tax, std::string const& taxpression );
-
-// =================================================================================================
-//     Ranks
-// =================================================================================================
-
-std::string rank_from_abbreviation( char r );
-std::string rank_to_abbreviation( std::string const& rank );
-
-std::pair< std::string, std::string > resolve_rank_abbreviation( std::string const& entry );
 
 // =================================================================================================
 //     Print and Output
@@ -121,7 +92,7 @@ std::pair< std::string, std::string > resolve_rank_abbreviation( std::string con
 
 std::ostream& operator << ( std::ostream& out, Taxonomy const& tax );
 
-std::vector<std::string> taxonomic_vector( Taxon const& taxon );
+bool validate( Taxonomy const& taxonomy, bool stop_at_first_error = false );
 
 } // namespace taxonomy
 } // namespace genesis

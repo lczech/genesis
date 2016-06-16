@@ -44,16 +44,19 @@ namespace taxonomy {
  * arbitrarily nested set of sub-taxa.
  * The name and the rank are both free-form strings which can have any value.
  *
- * The name is one part of a Taxpression. For example, given the Taxpression
+ * The name is one part of a taxonomic description string. For example, given the string
  *
  *     Animalia;Vertebrata;Mammalia;Carnivora
  *
  * a Taxon could have the name "Mammalia", and contain a Taxon with the name "Carnivora" as child.
- * See Taxonomy for details on Taxpressions.
+ * See Taxonomy for details, see Taxscriptor for the taxonomic description string format.
  *
  * Each taxon is itself also a Taxonomy, in terms of class inheritance. This also makes some
  * biological sense, as a taxon can be seen as the taxonomy of its sub-taxa. We however only
  * consider the Taxonomy as the top level of the hierarchy. For more information, see there.
+ * The class inheritance is mainly due to software design descisions, in order to make working
+ * with @link Taxonomy Taxonomies@endlink and @link Taxon Taxa@endlink as easy and straight forward
+ * as possible.
  */
 class Taxon : public Taxonomy
 {
@@ -72,24 +75,9 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    /**
-     * @brief Default constructor. Does nothing.
-     */
-    Taxon()
-        : parent_(nullptr)
-    {}
+    Taxon();
+    Taxon( std::string const& name );
 
-    /**
-     * @brief Constructor that uses the given name for the Taxon.
-     */
-    Taxon( std::string name )
-        : name_(name)
-        , parent_(nullptr)
-    {}
-
-    /**
-     * @brief Default destructor.
-     */
     virtual ~Taxon() = default;
 
     Taxon( Taxon const& ) = default;
@@ -98,13 +86,7 @@ public:
     Taxon& operator= ( Taxon const& ) = default;
     Taxon& operator= ( Taxon&& )      = default;
 
-    void swap( Taxon& other )
-    {
-        using std::swap;
-        Taxonomy::swap( other );
-        swap( name_,   other.name_ );
-        swap( parent_, other.parent_ );
-    }
+    friend void swap( Taxon& lhs, Taxon& rhs );
 
     // -------------------------------------------------------------------------
     //     Properties
@@ -125,7 +107,7 @@ public:
 
 protected:
 
-    Taxon& add_child_( Taxon&& child ) override;
+    Taxon& add_child_( Taxon const& child ) override;
 
     // -------------------------------------------------------------------------
     //     Data Members

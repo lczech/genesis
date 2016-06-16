@@ -1,3 +1,6 @@
+#ifndef GENESIS_TAXONOMY_FUNCTIONS_RANKS_H_
+#define GENESIS_TAXONOMY_FUNCTIONS_RANKS_H_
+
 /*
     Genesis - A toolkit for working with phylogenetic data.
     Copyright (C) 2014-2016 Lucas Czech
@@ -25,34 +28,25 @@
  * @brief
  *
  * @file
- * @ingroup test
+ * @ingroup taxonomy
  */
 
-#include "common.hpp"
+#include <string>
+#include <utility>
 
-#include "lib/taxonomy/functions/ranks.hpp"
+namespace genesis {
+namespace taxonomy {
 
-#include <stdexcept>
+// =================================================================================================
+//     Ranks
+// =================================================================================================
 
-using namespace genesis::taxonomy;
+std::string rank_from_abbreviation( char r );
+std::string rank_to_abbreviation( std::string const& rank );
 
-TEST( Taxonomy, Rank )
-{
-    EXPECT_EQ( "Kingdom", rank_from_abbreviation( 'k' ));
-    EXPECT_EQ( "",        rank_from_abbreviation( 'q' ));
+std::pair< std::string, std::string > resolve_rank_abbreviation( std::string const& entry );
 
-    EXPECT_EQ( "f", rank_to_abbreviation( "familY" ));
-    EXPECT_EQ( "",  rank_to_abbreviation( "hamlet" ));
+} // namespace taxonomy
+} // namespace genesis
 
-    auto rra_0 = resolve_rank_abbreviation( "K__Bacteria" );
-    EXPECT_EQ( "Kingdom",  rra_0.first );
-    EXPECT_EQ( "Bacteria", rra_0.second );
-
-    auto rra_1 = resolve_rank_abbreviation( "q__quartz" );
-    EXPECT_EQ( "",  rra_1.first );
-    EXPECT_EQ( "q__quartz", rra_1.second );
-
-    auto rra_2 = resolve_rank_abbreviation( "Panthera tigris altaicia" );
-    EXPECT_EQ( "",  rra_2.first );
-    EXPECT_EQ( "Panthera tigris altaicia", rra_2.second );
-}
+#endif // include guard

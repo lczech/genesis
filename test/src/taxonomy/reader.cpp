@@ -33,7 +33,7 @@
 #include "lib/taxonomy/formats/taxonomy_reader.hpp"
 #include "lib/taxonomy/taxon.hpp"
 #include "lib/taxonomy/taxonomy.hpp"
-#include "lib/taxonomy/functions.hpp"
+#include "lib/taxonomy/functions/taxonomy.hpp"
 
 #include <stdexcept>
 
@@ -85,7 +85,7 @@ TEST( Taxonomy, ReaderTrimming )
     // Read file and check basics.
     Taxonomy tax;
     auto reader = TaxonomyReader();
-    reader.trim_whitespaces( true );
+    reader.taxscriptor_parser().trim_whitespaces( true );
     EXPECT_NO_THROW( reader.from_file( infile, tax ));
     EXPECT_EQ( 32, total_taxa_count(tax) );
 
