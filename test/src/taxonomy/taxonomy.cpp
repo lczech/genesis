@@ -57,6 +57,7 @@ TEST( Taxonomy, Basics )
     a.add_child( "Tax_2" ).add_child( "Tax_3" );
     tax.add_child( a );
     EXPECT_EQ( 3, total_taxa_count( tax ));
+    EXPECT_TRUE( validate( tax ));
 }
 
 TEST( Taxonomy, AddChildren )
@@ -82,6 +83,7 @@ TEST( Taxonomy, AddChildren )
     // Remove some
     par.parent()->parent()->remove_child( "Tax_7" );
     EXPECT_EQ( 8, total_taxa_count( tax ));
+    EXPECT_TRUE( validate( tax ));
 }
 
 TEST( Taxonomy, ToString )
@@ -103,6 +105,7 @@ TEST( Taxonomy, ToString )
     // Leav out elements in generator as well.
     generator.trim_nested_duplicates( true );
     EXPECT_EQ( s2, generator( r2 ));
+    EXPECT_TRUE( validate( tax ));
 }
 
 TEST( Taxonomy, Remove )
@@ -124,6 +127,7 @@ TEST( Taxonomy, Remove )
     // Remove third level.
     remove_taxa_at_level( tax, 2 );
     EXPECT_EQ( 2, total_taxa_count( tax ));
+    EXPECT_TRUE( validate( tax ));
 }
 
 TEST( Taxonomy, ForEach )
@@ -207,4 +211,7 @@ TEST( Taxonomy, ForEach )
         false
     );
     EXPECT_EQ( "DFIJLM", postorder );
+
+    // Final check.
+    EXPECT_TRUE( validate( tax ));
 }
