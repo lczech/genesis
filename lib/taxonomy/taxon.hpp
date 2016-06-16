@@ -49,11 +49,14 @@ namespace taxonomy {
  *     Animalia;Vertebrata;Mammalia;Carnivora
  *
  * a Taxon could have the name "Mammalia", and contain a Taxon with the name "Carnivora" as child.
- * See Taxonomy for details, see Taxscriptor for the string format.
+ * See Taxonomy for details, see Taxscriptor for the taxonomic description string format.
  *
  * Each taxon is itself also a Taxonomy, in terms of class inheritance. This also makes some
  * biological sense, as a taxon can be seen as the taxonomy of its sub-taxa. We however only
  * consider the Taxonomy as the top level of the hierarchy. For more information, see there.
+ * The class inheritance is mainly due to software design descisions, in order to make working
+ * with @link Taxonomy Taxonomies@endlink and @link Taxon Taxa@endlink as easy and straight forward
+ * as possible.
  */
 class Taxon : public Taxonomy
 {
@@ -75,9 +78,6 @@ public:
     Taxon();
     Taxon( std::string const& name );
 
-    /**
-     * @brief Default virtual destructor.
-     */
     virtual ~Taxon() = default;
 
     Taxon( Taxon const& ) = default;
@@ -86,13 +86,7 @@ public:
     Taxon& operator= ( Taxon const& ) = default;
     Taxon& operator= ( Taxon&& )      = default;
 
-    void swap( Taxon& other )
-    {
-        using std::swap;
-        Taxonomy::swap( other );
-        swap( name_,   other.name_ );
-        swap( parent_, other.parent_ );
-    }
+    friend void swap( Taxon& lhs, Taxon& rhs );
 
     // -------------------------------------------------------------------------
     //     Properties
@@ -113,7 +107,7 @@ public:
 
 protected:
 
-    Taxon& add_child_( Taxon&& child ) override;
+    Taxon& add_child_( Taxon const& child ) override;
 
     // -------------------------------------------------------------------------
     //     Data Members

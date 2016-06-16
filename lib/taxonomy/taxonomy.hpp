@@ -58,7 +58,7 @@ class Taxon;
  * databases, and usually use semicola to separete their parts. Each part of such a string is
  * called a Taxon, and can have a rank associated with it. See Taxscriptor for details on the format.
  *
- * In the example above, this could be
+ * In the example above, the rank associations could be
  *
  *     Kingdom: Animalia
  *     Phylum:  Vertebrata
@@ -109,16 +109,12 @@ public:
     virtual ~Taxonomy() = default;
 
     Taxonomy( Taxonomy const& );
-    Taxonomy( Taxonomy&& ) = default;
+    Taxonomy( Taxonomy&& );
 
     Taxonomy& operator= ( Taxonomy const& );
-    Taxonomy& operator= ( Taxonomy&& ) = default;
+    Taxonomy& operator= ( Taxonomy&& );
 
-    void swap( Taxonomy& other )
-    {
-        using std::swap;
-        swap( children_, other.children_ );
-    }
+    friend void swap( Taxonomy& lhs, Taxonomy& rhs );
 
     // -------------------------------------------------------------------------
     //     Accessors

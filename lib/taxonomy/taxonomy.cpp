@@ -55,6 +55,18 @@ Taxonomy::Taxonomy( Taxonomy const& other )
 }
 
 /**
+ * @brief Move constructor.
+ *
+ * We need a custom version of this in order to set the Taxon::parent() pointers of all children
+ * correctly when copying.
+ */
+Taxonomy::Taxonomy( Taxonomy&& other )
+{
+    children_ = std::move( other.children_ );
+    reset_parents_( children_, nullptr );
+}
+
+/**
  * @brief Copy assigment operator.
  *
  * We need a custom version of this in order to set the Taxon::parent() pointers of all children
@@ -62,9 +74,31 @@ Taxonomy::Taxonomy( Taxonomy const& other )
  */
 Taxonomy& Taxonomy::operator= ( Taxonomy const& other )
 {
-    auto copy = Taxonomy( other );
-    swap( copy );
+    children_ = other.children_;
+    reset_parents_( children_, nullptr );
     return *this;
+}
+
+/**
+ * @brief Move assignment operator.
+ *
+ * We need a custom version of this in order to set the Taxon::parent() pointers of all children
+ * correctly when copying.
+ */
+Taxonomy& Taxonomy::operator= ( Taxonomy&& other )
+{
+    children_ = std::move( other.children_ );
+    reset_parents_( children_, nullptr );
+    return *this;
+}
+
+/**
+ * @brief Swapperator for Taxonomy.
+ */
+void swap( Taxonomy& lhs, Taxonomy& rhs )
+{
+    using std::swap;
+    swap( lhs.children_, rhs.children_ );
 }
 
 // =================================================================================================
