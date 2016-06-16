@@ -178,7 +178,7 @@ std::string TaxscriptorGenerator::delimiter() const
  *
  * Example: For a Taxscriptor
  *
- *     { "Tax_1", "Tax_1", "Tax_2" }
+ *     [ "Tax_1", "Tax_1", "Tax_2" ]
  *
  * @link to_string( Taxscriptor const& taxscriptor ) const the generator function@endlink returns
  * `Tax_1;Tax_1;Tax_2`, and respectively `Tax_1;;Tax_2` with trimming nested duplicates.

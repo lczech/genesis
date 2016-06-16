@@ -69,7 +69,7 @@ class Taxscriptor;
  *
  *     Tax_1;Tax_2;;Tax_4;
  *
- * The same result is also obtained from a Taxscriptor `{ "Tax_1", "Tax_2", "Tax_2", "Tax_4" }`.
+ * The same result is also obtained from a Taxscriptor `[ "Tax_1", "Tax_2", "Tax_2", "Tax_4" ]`.
  */
 class TaxscriptorGenerator
 {

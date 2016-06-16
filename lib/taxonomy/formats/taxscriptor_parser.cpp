@@ -30,9 +30,11 @@
 
 #include "taxonomy/formats/taxscriptor_parser.hpp"
 
+#include "taxonomy/taxon.hpp"
 #include "taxonomy/taxscriptor.hpp"
 #include "utils/text/string.hpp"
 
+#include <algorithm>
 #include <assert.h>
 #include <stdexcept>
 
@@ -93,7 +95,7 @@ Taxscriptor TaxscriptorParser::from_string( std::string const& taxscriptor ) con
         prev_name = name;
     }
 
-    return Taxscriptor( std::move( elements ));
+    return Taxscriptor( elements );
 }
 
 /**
@@ -104,6 +106,43 @@ Taxscriptor TaxscriptorParser::from_string( std::string const& taxscriptor ) con
 Taxscriptor TaxscriptorParser::operator() ( std::string const& taxscriptor ) const
 {
     return from_string( taxscriptor );
+}
+
+/**
+ * @brief Helper function to turn a Taxon into a Taxscriptor.
+ *
+ * This function is probably not need often, as the Taxscriptor is a helper object from
+ * a taxonomic description string towards a Taxon object, but not the other way round.
+ * In order to get the string from a Taxon, see the TaxscriptorGenerator class instead.
+ *
+ * However, this function might still be useful in some cases. You never know.
+ */
+Taxscriptor TaxscriptorParser::from_taxon(  Taxon const& taxon ) const
+{
+    // Start with an empty vector that will store the super-taxa of the given taxon.
+    std::vector<std::string> elements;
+
+    // Add taxa in reverse order: the deepest taxon will be stored first.
+    // This is fast with a vector.
+    Taxon const* r = &taxon;
+    while( r != nullptr ) {
+        elements.push_back( r->name() );
+        r = r->parent();
+    }
+
+    // Now reverse and return the result.
+    std::reverse( elements.begin(), elements.end() );
+    return Taxscriptor( elements );
+}
+
+/**
+ * @brief Shortcut function alias for from_taxon().
+ *
+ * This shortcut enables to use a TaxscriptorParser object as functor.
+ */
+Taxscriptor TaxscriptorParser::operator() ( Taxon const& taxon ) const
+{
+    return from_taxon( taxon );
 }
 
 // =================================================================================================

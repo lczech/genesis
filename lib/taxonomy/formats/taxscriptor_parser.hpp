@@ -41,6 +41,7 @@ namespace taxonomy {
 //     Forward Declarations
 // =================================================================================================
 
+class Taxon;
 class Taxscriptor;
 
 // =================================================================================================
@@ -48,11 +49,12 @@ class Taxscriptor;
 // =================================================================================================
 
 /**
- * @brief Helper class to parse a string containing taxonomic elements into a Taxscriptor object.
+ * @brief Helper class to parse a string containing a taxonomic descriptor into a Taxscriptor object.
  *
  * This class bundles the parameters used for parsing a taxonomic description and offers functions
  * for the actual parsing. This is needed in order to allow customization of the parsing process,
- * for example in TaxonomyReader.
+ * for example in TaxonomyReader. Furthermore, this prevents code duplication in places where the
+ * input is a taxonomic description string.
  * The result of the parsing process is a Taxscriptor object. See there for details.
  *
  * The elements are expected to be char separated, using the value of
@@ -65,12 +67,15 @@ class Taxscriptor;
  *
  * is parsed into the Taxscriptor
  *
- *     { "Tax_1", "Tax_2", "Tax_2", "Tax_4" }
+ *     [ "Tax_1", "Tax_2", "Tax_2", "Tax_4" ]
  *
  * That is, missing elements are filled up with the preceeding ones - this is a common technique
  * in taxonomic databases, which is useful for unspecified taxa in deeper taxonomies.
  *
- * Furthermore, if the string ends with the delimiter char, this is removed by default.
+ * Furthermore, if the string ends with the delimiter char, this is removed by default. See above
+ * for an example of this;
+ * see @link remove_trailing_delimiter( bool value ) remove_trailing_delimiter()@endlink
+ * to change that behaviour and instead keep this last element.
  * Also, the first taxon in the string cannot be empty. Otherwise an `std::runtime_error` is thrown.
  */
 class TaxscriptorParser
@@ -96,6 +101,9 @@ public:
 
     Taxscriptor from_string( std::string const& taxscriptor ) const;
     Taxscriptor operator() ( std::string const& taxscriptor ) const;
+
+    Taxscriptor from_taxon(  Taxon const& taxon ) const;
+    Taxscriptor operator() ( Taxon const& taxon ) const;
 
     // -------------------------------------------------------------------------
     //     Properties
