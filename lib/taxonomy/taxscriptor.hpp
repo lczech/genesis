@@ -55,22 +55,22 @@ class Taxonomy;
  *
  *     Animalia;Vertebrata;Mammalia;Carnivora
  *
- * a "Taxscriptor", that is, a taxonomic description sring. Those strings are often found in
- * taxonomic databases, and usually use semicola to separete their parts.
+ * a taxonomic description sring. Those strings are often found in taxonomic databases, and usually
+ * use semicola to separete their parts.
  *
  * This class stores such a string, splitted into its single elements. Each such element can be
- * seen as a Taxon, and the whole Taxscriptor can be added to a Taxonomy.
+ * seen as a Taxon; thus, a Taxscriptor can be added to a Taxonomy.
  *
  * This class is mainly an intermediate broker between a taxonomic description string and a Taxon.
  * It is useful to transition between a Taxonomy and its string representation, for storing it
  * in a text file or some other database format. It is also useful for looking up certain Taxa
  * in a Taxonomy by using their taxonomic description string.
  *
- * See TaxscriptorParser and TaxscriptorGenerator classes for populating a Taxscriptor and for
+ * See the TaxscriptorParser and TaxscriptorGenerator classes for populating a Taxscriptor and for
  * turning it back into a string, respectively.
  *
- * Internally, it is a thin wrapper for a vector of strings. This technique offers expansion that
- * might become necessary in the future.
+ * Internally, it is a thin wrapper for a vector of strings. This might be a bit overengineered for
+ * now, but offers expansion that might become necessary in the future.
  */
 class Taxscriptor
 {
