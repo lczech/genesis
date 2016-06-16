@@ -49,7 +49,7 @@ namespace taxonomy {
  *
  * For example, given a Taxscriptor like
  *
- *     { "Animalia", "Vertebrata", "Mammalia", "Carnivora" }
+ *     [ "Animalia", "Vertebrata", "Mammalia", "Carnivora" ]
  *
  * this functions adds the following hierarchy to the Taxonomy:
  *

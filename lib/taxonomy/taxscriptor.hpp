@@ -61,6 +61,10 @@ class Taxonomy;
  * This class stores such a string, splitted into its single elements. Each such element can be
  * seen as a Taxon; thus, a Taxscriptor can be added to a Taxonomy.
  *
+ * For example, the above taxonomic descriptor string would be stored as
+ *
+ *     [ "Animalia", "Vertebrata", "Mammalia", "Carnivora" ]
+ *
  * This class is mainly an intermediate broker between a taxonomic description string and a Taxon.
  * It is useful to transition between a Taxonomy and its string representation, for storing it
  * in a text file or some other database format. It is also useful for looking up certain Taxa
