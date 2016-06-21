@@ -46,7 +46,7 @@ template <typename TreeType>
 void PrinterDetailed::print (
     std::ostream&   out,
     TreeType const& tree
-) {
+)  const {
     std::vector<int>    depth = node_path_length_vector(tree);
     std::vector<size_t> done;
 
@@ -114,7 +114,7 @@ void PrinterDetailed::print (
 template <typename TreeType>
 std::string PrinterDetailed::print (
     TreeType const& tree
-) {
+)  const {
     std::ostringstream res;
     print( res, tree );
     return res.str();

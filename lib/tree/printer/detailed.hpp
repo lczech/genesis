@@ -71,12 +71,12 @@ public:
     void print (
         std::ostream&   out,
         TreeType const& tree
-    );
+    ) const;
 
     template <typename TreeType>
     std::string print (
         TreeType const& tree
-    );
+    ) const;
 
     // template <typename TreeType>
     // std::string operator() ( TreeType const& tree );
