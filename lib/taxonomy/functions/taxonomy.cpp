@@ -33,6 +33,7 @@
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
 #include "taxonomy/taxscriptor.hpp"
+#include "taxonomy/printers/nested.hpp"
 
 #include "utils/core/logging.hpp"
 #include "utils/text/string.hpp"
@@ -269,26 +270,17 @@ void remove_taxa_at_level( Taxonomy& tax, size_t level )
 // =================================================================================================
 
 /**
- * @brief Local helper function to print the contents of a Taxonomy or Taxon to an ostream.
- */
-void print_to_ostream(
-    std::ostream&   out,
-    Taxonomy const& tax,
-    size_t          indent
-) {
-    auto in = std::string( indent, '\t' );
-    for( auto const& t : tax ) {
-        out << in << t.name() << "\n";
-        print_to_ostream( out, t, indent + 1 );
-    }
-}
-
-/**
- * @brief Print the contents of a Taxonomy, i.e., all nested taxa.
+ * @brief Print the contents of a Taxonomy, i.e., all nested taxa, up to a limit of 10.
+ *
+ * This simple output function prints the first 10 nested @link Taxon Taxa@endlink of a Taxonomy.
+ * If you need all Taxa and more control over what you want to print, see PrinterNested class.
  */
 std::ostream& operator << ( std::ostream& out, Taxonomy const& tax )
 {
-    print_to_ostream( out, tax, 0 );
+    // We use a nested printer with max 10 lines per default.
+    auto printer = PrinterNested();
+    printer.line_limit( 10 );
+    printer.print( out, tax );
     return out;
 }
 
