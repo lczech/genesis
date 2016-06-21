@@ -316,8 +316,19 @@ Taxon& Taxonomy::add_child_( Taxon const& child )
 /**
  * @brief Internal helper function that recursively resets the parent pointer of all Taxa.
  *
- * This function is used in the @link Taxonomy( Taxonomy const& other ) copy constructor@endlink
- * to make sure that all pointers are correct after copying the raw data (children_ vector).
+ * This function is used in the
+ * @link Taxonomy( Taxonomy const& other ) copy constructor@endlink,
+ * @link Taxonomy( Taxonomy&& ) move constructor@endlink,
+ * @link Taxonomy& operator= ( Taxonomy const& ) copy assignment@endlink and
+ * @link Taxonomy& operator= ( Taxonomy&& ) move assignment@endlink
+ * in order to make sure that all parent pointers are correct after moving the raw data
+ * (children_ vector).
+ *
+ * As all constructors and assignment operators use this function, we also make sure that
+ * adding or removing elements or changing their order (sort etc) does not break the correctness of
+ * the parent pointers. This might be slightly inefficient if many such moves (and thus, reset
+ * operations) are done in sequence. However, this is acceptable in order to keep the object
+ * stable at any time.
  */
 void Taxonomy::reset_parents_( std::vector<Taxon>& taxa, Taxon* parent )
 {
