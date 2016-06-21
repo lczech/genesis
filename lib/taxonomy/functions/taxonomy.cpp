@@ -122,6 +122,60 @@ size_t total_taxa_count( Taxonomy const& tax )
     return count;
 }
 
+/**
+ * @brief Count the number of @link Taxon Taxa@endlink at a certain level of depth in the
+ * Taxonomy.
+ *
+ * The function returns how many @link Taxon Taxa@endlink there are in the Taxonomy that are
+ * at a certain level - that is excluding the number of their respective sub-taxa.
+ * The first/top level has depth 0.
+ */
+size_t taxa_count_at_level( Taxonomy const& tax, size_t level )
+{
+    // Recursive implementation, because we are lazy.
+    size_t count = 0;
+    if( level == 0 ) {
+        count += tax.size();
+    } else {
+        for( auto& c : tax ) {
+            count += taxa_count_at_level( c, level - 1 );
+        }
+    }
+    return count;
+}
+
+/**
+ * @brief Count the number of @link Taxon Taxa@endlink of a Taxonomy that have a certain rank
+ * assigned to them.
+ *
+ * The function recursively iterates all sub-taxa of the Taxonomy and counts how many of the
+ * @link Taxon Taxa@endlink have the given rank assigned (case sensitive or not).
+ */
+size_t taxa_count_with_rank(
+    Taxonomy const&    tax,
+    std::string const& rank,
+    bool               case_sensitive
+) {
+    size_t count = 0;
+    for( auto const& t : tax ) {
+
+        // Count.
+        if( case_sensitive ) {
+            if( t.rank() == rank ) {
+                ++count;
+            }
+        } else {
+            if( utils::equals_ci( t.rank(), rank )) {
+                ++count;
+            }
+        }
+
+        // Recurse.
+        count += taxa_count_with_rank( t, rank, case_sensitive );
+    }
+    return count;
+}
+
 // =================================================================================================
 //     Iterators
 // =================================================================================================
