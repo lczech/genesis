@@ -84,6 +84,34 @@ bool ends_with( std::string const & text, std::string const & ending )
 }
 
 // =================================================================================================
+//     Substrings
+// =================================================================================================
+
+/**
+ * @brief Return the first lines of the text.
+ */
+std::string head( std::string const& text, size_t lines )
+{
+    // Not totally efficient, but works for now.
+    auto vec = split( text, "\n", false );
+    size_t remove = vec.size() > lines ? vec.size() - lines : 0;
+    vec.erase( vec.end() - remove, vec.end() );
+    return join( vec, "\n" );
+}
+
+/**
+ * @brief Return the last lines of the text.
+ */
+std::string tail( std::string const& text, size_t lines )
+{
+    // Not totally efficient, but works for now.
+    auto vec = split( text, "\n", false );
+    size_t remove = vec.size() > lines ? vec.size() - lines : 0;
+    vec.erase( vec.begin(), vec.begin() + remove );
+    return join( vec, "\n" );
+}
+
+// =================================================================================================
 //     Find and Count
 // =================================================================================================
 
