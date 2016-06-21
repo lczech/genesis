@@ -237,7 +237,7 @@ void sort_by_name( Taxonomy& tax, bool recursive, bool case_sensitive )
     // Run recursion if necessary.
     if( recursive ) {
         for( auto& child : tax ) {
-            sort_by_name( child, true );
+            sort_by_name( child, true, case_sensitive );
         }
     }
 }
