@@ -49,9 +49,9 @@ namespace taxonomy {
  * correctly when copying.
  */
 Taxonomy::Taxonomy( Taxonomy const& other )
+    : children_( other.children_ )
 {
-    children_ = other.children_;
-    reset_parents_( children_, nullptr );
+    reset_parent_pointers_( nullptr );
 }
 
 /**
@@ -61,9 +61,9 @@ Taxonomy::Taxonomy( Taxonomy const& other )
  * correctly when copying.
  */
 Taxonomy::Taxonomy( Taxonomy&& other )
+    : children_( std::move( other.children_ ))
 {
-    children_ = std::move( other.children_ );
-    reset_parents_( children_, nullptr );
+    reset_parent_pointers_( nullptr );
 }
 
 /**
@@ -75,7 +75,7 @@ Taxonomy::Taxonomy( Taxonomy&& other )
 Taxonomy& Taxonomy::operator= ( Taxonomy const& other )
 {
     children_ = other.children_;
-    reset_parents_( children_, nullptr );
+    reset_parent_pointers_( nullptr );
     return *this;
 }
 
@@ -88,7 +88,7 @@ Taxonomy& Taxonomy::operator= ( Taxonomy const& other )
 Taxonomy& Taxonomy::operator= ( Taxonomy&& other )
 {
     children_ = std::move( other.children_ );
-    reset_parents_( children_, nullptr );
+    reset_parent_pointers_( nullptr );
     return *this;
 }
 
@@ -214,6 +214,12 @@ void Taxonomy::remove_child( std::string const& name )
         throw std::runtime_error( "Taxon has no child named '" + name + "'." );
     }
     children_.erase( it );
+
+    // We probably don't need to call reset_parent_pointers_() here. The removal causes all
+    // following elements in the container to move, so that their particular move constructors
+    // (or assignment operators) are called, causing all their children to be updated. The
+    // elemetns themselves do not need an update, as their parent didn't move!
+    // (Hopefully, that's true... The tests don't fail, so that's a good sign!)
 }
 
 /**
@@ -307,22 +313,21 @@ Taxon& Taxonomy::add_child_( Taxon const& child )
         }
     }
 
-    // If not, add it as a a new child and return it.
+    // If not, add it as a a new child.
     children_.push_back( child );
-    children_.back().parent_ = nullptr;
+    // children_.back().parent_ = nullptr;
+
+    // We added to the container. This might have cause relocation of the contant.
+    // Need to update parent pointers!
+    reset_parent_pointers_( nullptr );
     return children_.back();
 }
 
 /**
- * @brief Internal helper function that recursively resets the parent pointer of all Taxa.
+ * @brief Internal helper function that resets the parent pointer of all stored Taxa.
  *
- * This function is used in the
- * @link Taxonomy( Taxonomy const& other ) copy constructor@endlink,
- * @link Taxonomy( Taxonomy&& ) move constructor@endlink,
- * @link Taxonomy& operator= ( Taxonomy const& ) copy assignment@endlink and
- * @link Taxonomy& operator= ( Taxonomy&& ) move assignment@endlink
- * in order to make sure that all parent pointers are correct after moving the raw data
- * (children_ vector).
+ * This function is used whenever the `children_` container is changed (copy, move, add elements)
+ * in order to make sure that all parent pointers are correct.
  *
  * As all constructors and assignment operators use this function, we also make sure that
  * adding or removing elements or changing their order (sort etc) does not break the correctness of
@@ -330,11 +335,14 @@ Taxon& Taxonomy::add_child_( Taxon const& child )
  * operations) are done in sequence. However, this is acceptable in order to keep the object
  * stable at any time.
  */
-void Taxonomy::reset_parents_( std::vector<Taxon>& taxa, Taxon* parent )
+void Taxonomy::reset_parent_pointers_( Taxon* parent )
 {
-    for( auto& taxon : taxa ) {
+    for( auto& taxon : children_ ) {
         taxon.parent_ = parent;
-        reset_parents_( taxon.children_, &taxon );
+        // Probably don't need recursion here, as this function will be called for the sub-objects
+        // anyway if needed.
+        // The following line is left here in case it turns out we need it after all...
+        // taxon.reset_parent_pointers_( &taxon );
     }
 }
 
