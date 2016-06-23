@@ -80,11 +80,11 @@ public:
 
     virtual ~Taxon() = default;
 
-    Taxon( Taxon const& ) = default;
-    Taxon( Taxon&& )      = default;
+    Taxon( Taxon const& );
+    Taxon( Taxon&& );
 
-    Taxon& operator= ( Taxon const& ) = default;
-    Taxon& operator= ( Taxon&& )      = default;
+    Taxon& operator= ( Taxon const& );
+    Taxon& operator= ( Taxon&& );
 
     friend void swap( Taxon& lhs, Taxon& rhs );
 

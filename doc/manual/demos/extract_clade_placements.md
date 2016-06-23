@@ -26,9 +26,13 @@ The program takes three input arguments in the following order:
     than 1.0 for some pqueries. In order to compensate for this (thus, to avoid classifying those
     pqueries as uncertain), we normalize the like_weight_ratios first, so that their sum is 1.0
     again. This step thus ignores the uncertainties resulting from the placement algorithm.
- 2. A directory path, which needs to contain a single file for each clade of the reference tree.
-    The file names are used as clade names. Each file in the directory then needs to contain a
-    list of all taxa names of that clade, one per line.
+ 2. A path to a file, which needs to contain a single line for each taxon of the reference tree.
+    Each line needs to contain a tab-separated entry that maps from a taxon of the tree to the
+    clade name that this taxon belongs to:
+
+        Taxon_1 <tab> clade_a
+
+    (where the " <tab> " of course is just a single tab character).
     The taxa names need to be the same as the node names of the reference tree in the `jplace` file.
 
     If a taxon in a clade file is not found on the tree, a warning is issued, and the taxon is
@@ -69,20 +73,20 @@ Example files to test the demo are located at
 
     ./doc/demos/extract_clade_placements/
 
-This directory contains an `example.jplace` file, a directory `clades` with two files `clade_a` and
-`clade_b`, each of them listing certain taxa of the reference tree of the jplace file, and an empty
-`output` directory.
+This directory contains an `example.jplace` file, a `clades.tsv` file listing the taxa of the
+reference tree of the `jplace` file and assigning each of them to either `clade_a` or `clade_b`,
+and an empty `output` directory.
 
 After compiling the demo program (using `make update`), you can run the example like this
 
     cd ./doc/demos/extract_clade_placements/
-    ../../../bin/extract_clade_placements example.jplace clades/ output/
+    ../../../bin/extract_clade_placements example.jplace clades.tsv output/
 
 The expected output of the program is
 
     INFO Using jplace file      example.jplace
-    INFO Using clade directory  clades/
-    INFO Using outout directory output/
+    INFO Using clade file       clades.tsv
+    INFO Using output directory output/
     INFO Found 2 clades
     INFO Finished.
 

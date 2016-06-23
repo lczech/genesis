@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_PRINTER_DETAILED_H_
-#define GENESIS_TREE_PRINTER_DETAILED_H_
+#ifndef GENESIS_TAXONOMY_PRINTERS_NESTED_H_
+#define GENESIS_TAXONOMY_PRINTERS_NESTED_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -28,91 +28,100 @@
  * @brief
  *
  * @file
- * @ingroup tree
+ * @ingroup taxonomy
  */
 
 #include <iosfwd>
-#include <functional>
 #include <string>
 
 namespace genesis {
-namespace tree {
+namespace taxonomy {
 
 // =================================================================================================
-//     Printer Detailed
+//     Forward Declarations
+// =================================================================================================
+
+class Taxonomy;
+
+// =================================================================================================
+//     PrinterNested
 // =================================================================================================
 
 /**
- * @brief Print a text representation of the Tree, showing all nodes, edges and links
- * with their indices.
+ * @brief Simple printer class for Taxonomy.
  */
-class PrinterDetailed
+class PrinterNested
 {
 public:
 
     // -------------------------------------------------------------------------
-    //     Constructor and Rule of Five
+    //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    PrinterDetailed()  = default;
-    ~PrinterDetailed() = default;
+    PrinterNested()  = default;
+    ~PrinterNested() = default;
 
-    PrinterDetailed( PrinterDetailed const& ) = default;
-    PrinterDetailed( PrinterDetailed&& )      = default;
+    PrinterNested( PrinterNested const& ) = default;
+    PrinterNested( PrinterNested&& )      = default;
 
-    PrinterDetailed& operator= ( PrinterDetailed const& ) = default;
-    PrinterDetailed& operator= ( PrinterDetailed&& )      = default;
+    PrinterNested& operator= ( PrinterNested const& ) = default;
+    PrinterNested& operator= ( PrinterNested&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Print
     // -------------------------------------------------------------------------
 
-    template <typename TreeType>
-    void print (
+    void print(
         std::ostream&   out,
-        TreeType const& tree
+        Taxonomy const& tax
     ) const;
 
-    template <typename TreeType>
-    std::string print (
-        TreeType const& tree
+    std::string print(
+        Taxonomy const& tax
     ) const;
 
-    // template <typename TreeType>
-    // std::string operator() ( TreeType const& tree );
+    std::string operator() (
+        Taxonomy const& tax
+    ) const;
 
     // -------------------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------------------
 
-    bool             use_color() const
-    {
-        return use_color_;
-    }
+    PrinterNested& line_limit( int value );
+    int            line_limit() const;
 
-    PrinterDetailed& use_color( bool value )
-    {
-        use_color_ = value;
-        return *this;
-    }
+    PrinterNested& depth_limit( int value );
+    int            depth_limit() const;
+
+    PrinterNested& print_ranks( bool value );
+    bool           print_ranks() const;
 
     // -------------------------------------------------------------------------
-    //     Member Data
+    //     Internal Functions
     // -------------------------------------------------------------------------
 
 private:
 
-    bool use_color_ = true;
+    bool print_to_ostream(
+        std::ostream&   out,
+        Taxonomy const& tax,
+        size_t          depth,
+        size_t&         lines
+    ) const;
+
+    // -------------------------------------------------------------------------
+    //     Data Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    int  line_limit_  = -1;
+    int  depth_limit_ = -1;
+    bool print_ranks_ = true;
 };
 
-} // namespace tree
+} // namespace taxonomy
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-// This class contains function templates, so do the inclusion here.
-#include "tree/printer/detailed.tpp"
 
 #endif // include guard

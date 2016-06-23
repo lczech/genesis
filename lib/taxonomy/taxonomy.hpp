@@ -161,9 +161,7 @@ protected:
 
     virtual Taxon& add_child_( Taxon const& child );
 
-private:
-
-    void reset_parents_( std::vector<Taxon>& taxa, Taxon* parent );
+    void reset_parent_pointers_( Taxon* parent );
 
     // -------------------------------------------------------------------------
     //     Data Members

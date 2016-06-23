@@ -33,6 +33,7 @@
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
 #include "taxonomy/taxscriptor.hpp"
+#include "taxonomy/printers/nested.hpp"
 
 #include "utils/core/logging.hpp"
 #include "utils/text/string.hpp"
@@ -119,6 +120,138 @@ size_t total_taxa_count( Taxonomy const& tax )
         count += total_taxa_count( t );
     }
     return count;
+}
+
+/**
+ * @brief Count the number of @link Taxon Taxa@endlink at a certain level of depth in the
+ * Taxonomy.
+ *
+ * The function returns how many @link Taxon Taxa@endlink there are in the Taxonomy that are
+ * at a certain level - that is excluding the number of their respective sub-taxa.
+ * The first/top level has depth 0.
+ *
+ * See @link taxa_count_levels( Taxonomy const& tax ) here@endlink for a version of this function
+ * that returns those values for all levels of depth.
+ */
+size_t taxa_count_at_level( Taxonomy const& tax, size_t level )
+{
+    // Recursive implementation, because we are lazy.
+    size_t count = 0;
+    if( level == 0 ) {
+        count += tax.size();
+    } else {
+        for( auto& c : tax ) {
+            count += taxa_count_at_level( c, level - 1 );
+        }
+    }
+    return count;
+}
+
+/**
+ * @brief Count the number of @link Taxon Taxa@endlink at each level of depth in the Taxonomy.
+ *
+ * The function returns how many @link Taxon Taxa@endlink there are in the Taxonomy that are
+ * at each level - that is excluding the number of their respective sub-taxa.
+ * The first/top level has depth 0; it's count is the first element in the returned vector,
+ * and so on.
+ *
+ * This function returns the values of taxa_count_at_level( Taxonomy const& tax, size_t level )
+ * for all levels of depth.
+ */
+std::vector< size_t > taxa_count_levels( Taxonomy const& tax )
+{
+    if( tax.size() == 0 ) {
+        return std::vector< size_t >();
+    }
+
+    std::vector< size_t > result( 1, 0 );
+    result[ 0 ] = tax.size();
+
+    for( auto const& child : tax ) {
+        auto cres = taxa_count_levels( child );
+
+        if( result.size() < cres.size() + 1 ) {
+            result.resize( cres.size() + 1, 0 );
+        }
+
+        for( size_t i = 0; i < cres.size(); ++i ) {
+            result[ i+1 ] += cres[ i ];
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Count the number of @link Taxon Taxa@endlink in a Taxonomy that have a certain rank
+ * assigned to them.
+ *
+ * The function recursively iterates all sub-taxa of the Taxonomy and counts how many of the
+ * @link Taxon Taxa@endlink have the given rank assigned (case sensitive or not).
+ *
+ * See @link taxa_count_ranks( Taxonomy const&, bool ) here@endlink for a version of this function
+ * that returns this number for all ranks in the Taxonomy.
+ */
+size_t taxa_count_with_rank(
+    Taxonomy const&    tax,
+    std::string const& rank,
+    bool               case_sensitive
+) {
+    size_t count = 0;
+    for( auto const& t : tax ) {
+
+        // Count.
+        if( case_sensitive ) {
+            if( t.rank() == rank ) {
+                ++count;
+            }
+        } else {
+            if( utils::equals_ci( t.rank(), rank )) {
+                ++count;
+            }
+        }
+
+        // Recurse.
+        count += taxa_count_with_rank( t, rank, case_sensitive );
+    }
+    return count;
+}
+
+/**
+ * @brief Count the number of @link Taxon Taxa@endlink in a Taxonomy per rank.
+ *
+ * The function gives a list of all ranks found in the Taxonomy, with a count of how many Taxa
+ * there are that have this rank.
+ *
+ * It is similar to
+ * @link taxa_count_with_rank( Taxonomy const&, std::string const&, bool ) this function@endlink,
+ * but gives the result for all ranks.
+ *
+ * If the optional parameter `case_sensitive` is set to `true`, all ranks are treated case
+ * sensitive, that is, ranks with different case produce different entries.
+ * If left at the default `false`, they are converted to lower case first, so that they are all
+ * treated case insensitivly.
+ */
+std::unordered_map< std::string, size_t> taxa_count_ranks(
+    Taxonomy const& tax,
+    bool            case_sensitive
+) {
+    std::unordered_map< std::string, size_t> result;
+
+    for( auto const& taxon : tax ) {
+        if( case_sensitive ) {
+            ++result[ taxon.rank() ];
+        } else {
+            ++result[ utils::to_lower( taxon.rank() ) ];
+        }
+
+        // Recurse.
+        auto children = taxa_count_ranks( taxon, case_sensitive );
+        for( auto const& ctaxon : children ) {
+            result[ ctaxon.first ] += ctaxon.second;
+        }
+    }
+
+    return result;
 }
 
 // =================================================================================================
@@ -237,7 +370,7 @@ void sort_by_name( Taxonomy& tax, bool recursive, bool case_sensitive )
     // Run recursion if necessary.
     if( recursive ) {
         for( auto& child : tax ) {
-            sort_by_name( child, true );
+            sort_by_name( child, true, case_sensitive );
         }
     }
 }
@@ -269,26 +402,17 @@ void remove_taxa_at_level( Taxonomy& tax, size_t level )
 // =================================================================================================
 
 /**
- * @brief Local helper function to print the contents of a Taxonomy or Taxon to an ostream.
- */
-void print_to_ostream(
-    std::ostream&   out,
-    Taxonomy const& tax,
-    size_t          indent
-) {
-    auto in = std::string( indent, '\t' );
-    for( auto const& t : tax ) {
-        out << in << t.name() << "\n";
-        print_to_ostream( out, t, indent + 1 );
-    }
-}
-
-/**
- * @brief Print the contents of a Taxonomy, i.e., all nested taxa.
+ * @brief Print the contents of a Taxonomy, i.e., all nested taxa, up to a limit of 10.
+ *
+ * This simple output function prints the first 10 nested @link Taxon Taxa@endlink of a Taxonomy.
+ * If you need all Taxa and more control over what you want to print, see PrinterNested class.
  */
 std::ostream& operator << ( std::ostream& out, Taxonomy const& tax )
 {
-    print_to_ostream( out, tax, 0 );
+    // We use a nested printer with max 10 lines per default.
+    auto printer = PrinterNested();
+    printer.line_limit( 10 );
+    printer.print( out, tax );
     return out;
 }
 
@@ -308,29 +432,36 @@ std::ostream& operator << ( std::ostream& out, Taxonomy const& tax )
  */
 bool validate( Taxonomy const& taxonomy, bool stop_at_first_error )
 {
-    bool res = true;
-    for( auto const& c : taxonomy ) {
+    // Local recursive implementation of the function.
+    std::function< bool ( Taxonomy const&, bool, size_t ) > validate_rec = [&] (
+        Taxonomy const& tax, bool stop_at_first_error, size_t level
+    ) {
+        bool res = true;
+        for( auto const& c : tax ) {
 
-        // Check current parent.
-        if( c.parent() != nullptr && c.parent() != &taxonomy ) {
-            LOG_INFO << "Taxon child with invalid parent pointer: " << c.name();
-            if( stop_at_first_error ) {
-                return false;
-            } else {
-                res = false;
+            // Check current parent.
+            if( (level == 0 && c.parent() != nullptr) || (level > 0 && c.parent() != &tax) ) {
+                LOG_INFO << "Taxon child with invalid parent pointer: " << c.name();
+                if( stop_at_first_error ) {
+                    return false;
+                } else {
+                    res = false;
+                }
+            }
+
+            // Recurse.
+            if( ! validate_rec( c, stop_at_first_error, level + 1 )) {
+                if( stop_at_first_error ) {
+                    return false;
+                } else {
+                    res = false;
+                }
             }
         }
+        return res;
+    };
 
-        // Recurse.
-        if( ! validate( c )) {
-            if( stop_at_first_error ) {
-                return false;
-            } else {
-                res = false;
-            }
-        }
-    }
-    return res;
+    return validate_rec( taxonomy, stop_at_first_error, 0 );
 }
 
 } // namespace taxonomy

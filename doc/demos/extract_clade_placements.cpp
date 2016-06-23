@@ -45,6 +45,7 @@
 
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
+#include "utils/formats/csv/reader.hpp"
 #include "utils/text/string.hpp"
 
 using namespace genesis;
@@ -76,27 +77,30 @@ using CladeEdgeList = std::vector<std::pair<std::string, std::unordered_set<size
 /**
  * @brief Return a list of clades, each containing a list of taxa.
  *
- * The function takes a directory path as input, and reads all files in that directory. Each file
- * stands for one clade of a tree, while the filename is used as the name of that clade.
- * Each such clade file needs to contain a list of taxa names, one per line. Those are the taxa
- * of the reference tree that are considered to belong to that clade.
+ * The function takes a file path as input. Each line contains a tab-separated entry that maps
+ * from a taxon of the tree to the clade name that this taxon belongs to:
+ *
+ *     Taxon_1 <tab> clade_a
+ *
+ * (where the " <tab> " of course is just a single tab character).
  *
  * The return value of this function is a map from clade names to a vector of taxa names.
  */
-CladeTaxaList get_clade_taxa_lists( std::string dir )
+CladeTaxaList get_clade_taxa_lists( std::string const& clade_filename )
 {
-    // Get a list of the clade files in the given directory.
-    auto clade_files = utils::dir_list_files( dir );
+    auto csv_reader = utils::CsvReader();
+    csv_reader.separator_chars( "\t" );
 
     // Create a list of all clades and fill each clade with its taxa.
     CladeTaxaList clades;
-    for (auto clade_filename : clade_files) {
-        // The files contain one taxa per line. Split the file using a new line character.
-        auto taxa = utils::split( utils::file_read( dir + clade_filename ), "\n" );
-        std::sort( taxa.begin(), taxa.end() );
+    auto table = csv_reader.from_file( clade_filename );
+    for( auto const& line : table ) {
+        if( line.size() != 2 ) {
+            throw std::runtime_error( "Invalid line in clade file." );
+        }
 
-        // Add those taxa to their clade.
-        clades[ clade_filename ] = taxa;
+        // Add the taxon to its clade.
+        clades[ line[1] ].push_back( line[0] );
     }
 
     return clades;
@@ -192,12 +196,12 @@ placement::SampleSet extract_pqueries(
     // We will then copy the pqueries of the provided sample into the correct sample of this set.
     SampleSet sample_set;
     for( auto const& clade : clade_edges ) {
-        sample_set.add( clade.first, Sample( sample.tree() ));
+        sample_set.add( Sample( sample.tree() ), clade.first);
     }
 
     // Also add a special `uncertain` sample, that will collect all pqueries for which there is no
     // clade with more than `threshold` percent of the placement mass.
-    sample_set.add( "uncertain", Sample( sample.tree() ));
+    sample_set.add( Sample( sample.tree() ), "uncertain" );
 
     // Process all pqueries of the given sample.
     for( auto const& pquery : sample ) {
@@ -302,9 +306,13 @@ void write_sample_set( placement::SampleSet const& sample_set, std::string outpu
  *      those pqueries as uncertain), we normalize the like_weight_ratios first, so that their sum
  *      is 1.0 again. This step thus ignores the uncertainties resulting from the placement
  *      algorithm.
- *   2. A directory path, which needs to contain a single file for each clade of the reference tree.
- *      The file names are used as clade names. Each file in the directory then needs to contain a
- *      list of all taxa names of that clade, one per line.
+ *   2. A path to a file, which needs to contain a single line for each taxon of the reference tree.
+ *      Each line needs to contain a tab-separated entry that maps from a taxon of the tree to the
+ *      clade name that this taxon belongs to:
+ *
+ *          Taxon_1 <tab> clade_a
+ *
+ *      (where the " <tab> " of course is just a single tab character).
  *      The taxa names need to be the same as the node names of the reference tree in the `jplace`
  *      file.
  *
@@ -361,16 +369,16 @@ int main( int argc, char** argv )
         );
     }
     auto jplace_filename = std::string( argv[1] );
-    auto clade_dir       = utils::trim_right( std::string( argv[2] ), "/") + "/";
+    auto clade_filename  = std::string( argv[2] );
     auto output_dir      = utils::trim_right( std::string( argv[3] ), "/") + "/";
 
     // Some user output.
     LOG_INFO << "Using jplace file      " << jplace_filename;
-    LOG_INFO << "Using clade directory  " << clade_dir;
-    LOG_INFO << "Using outout directory " << output_dir;
+    LOG_INFO << "Using clade file       " << clade_filename;
+    LOG_INFO << "Using output directory " << output_dir;
 
     // Read the taxa of all clades.
-    auto clades = get_clade_taxa_lists( clade_dir );
+    auto clades = get_clade_taxa_lists( clade_filename );
     LOG_INFO << "Found " << clades.size() << " clades";
 
     // Read the Jplace file into a Sample object.

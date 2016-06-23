@@ -49,6 +49,13 @@ bool starts_with( std::string const & text, std::string const & start );
 bool ends_with(   std::string const & text, std::string const & ending );
 
 // =================================================================================================
+//     Substrings
+// =================================================================================================
+
+std::string head( std::string const& text, size_t lines = 10 );
+std::string tail( std::string const& text, size_t lines = 10 );
+
+// =================================================================================================
 //     Find and Count
 // =================================================================================================
 

@@ -50,7 +50,7 @@ namespace tree {
 template <typename Tree>
 void BipartitionSet<Tree>::make()
 {
-    const size_t num_leaves = leaf_nodes_count( tree_ );
+    const size_t num_leaves = leaf_node_count( tree_ );
     make_index();
 
     bipartitions_.clear();
@@ -116,7 +116,7 @@ BipartitionSet<Tree>::find_smallest_subtree (
     std::vector<BipartitionSet<Tree>::NodeType*> nodes
 ) {
     make();
-    utils::Bitvector comp( leaf_nodes_count(tree_) );
+    utils::Bitvector comp( leaf_node_count(tree_) );
 
     // make bitvector containing all wanted nodes.
     for (NodeType* n : nodes) {

@@ -53,6 +53,9 @@ TEST( Taxonomy, ReaderOrder )
     infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.ordered";
     EXPECT_NO_THROW( reader.from_file( infile, tax_0 ));
     EXPECT_EQ( 32, total_taxa_count(tax_0) );
+    EXPECT_TRUE( validate( tax_0 ));
+    sort_by_name( tax_0 );
+    EXPECT_TRUE( validate( tax_0 ));
 
     // Read ordered file, don't use order.
     Taxonomy tax_1;
@@ -60,6 +63,9 @@ TEST( Taxonomy, ReaderOrder )
     infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.ordered";
     EXPECT_NO_THROW( reader.from_file( infile, tax_1 ));
     EXPECT_EQ( 32, total_taxa_count(tax_1) );
+    EXPECT_TRUE( validate( tax_1 ));
+    sort_by_name( tax_1 );
+    EXPECT_TRUE( validate( tax_1 ));
 
     // Read unordered file, expect order.
     Taxonomy tax_2;
@@ -67,6 +73,7 @@ TEST( Taxonomy, ReaderOrder )
     infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.unordered";
     EXPECT_THROW( reader.from_file( infile, tax_2 ), std::runtime_error );
     EXPECT_EQ( 0, total_taxa_count(tax_2) );
+    EXPECT_TRUE( validate( tax_2 ));
 
     // Read unordered file, don't use order.
     Taxonomy tax_3;
@@ -74,6 +81,9 @@ TEST( Taxonomy, ReaderOrder )
     infile = environment->data_dir + "taxonomy/tax_slv_ssu_123.1.unordered";
     EXPECT_NO_THROW( reader.from_file( infile, tax_3 ));
     EXPECT_EQ( 32, total_taxa_count(tax_3) );
+    EXPECT_TRUE( validate( tax_3 ));
+    sort_by_name( tax_3 );
+    EXPECT_TRUE( validate( tax_3 ));
 }
 
 TEST( Taxonomy, ReaderTrimming )
@@ -88,6 +98,7 @@ TEST( Taxonomy, ReaderTrimming )
     reader.taxscriptor_parser().trim_whitespaces( true );
     EXPECT_NO_THROW( reader.from_file( infile, tax ));
     EXPECT_EQ( 32, total_taxa_count(tax) );
+    EXPECT_TRUE( validate( tax ));
 
     // We trimmed white spaces. This should only affect the surrounding onces.
     // So, find a taxon with internal whitespaces. If it is there, this worked.

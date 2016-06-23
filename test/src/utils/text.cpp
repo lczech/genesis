@@ -89,6 +89,23 @@ TEST(Text, Table)
     // std::cout << double_frame(false)(t) << "\n";
 }
 
+TEST( Text, HeadTail )
+{
+    std::string large = "hello\nworld.\nthis\nis\na\ntest\nwith\nsome\ntext.";
+
+    // Check length.
+    auto vec = split( large, "\n" );
+    EXPECT_EQ( 9, vec.size() );
+
+    // Get first and last 3 words.
+    EXPECT_EQ( "hello\nworld.\nthis", head( large, 3 ) );
+    EXPECT_EQ( "with\nsome\ntext.",   tail( large, 3 ) );
+
+    // Get all words.
+    EXPECT_EQ( large, head( large, 10 ) );
+    EXPECT_EQ( large, tail( large, 10 ) );
+}
+
 TEST(Text, Split)
 {
     auto simple = split("one:two:three:four", ":");
