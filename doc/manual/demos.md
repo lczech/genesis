@@ -27,8 +27,8 @@ The following demo programs are available:
 
  *  @subpage demos_extract_clade_placements "Extract Clade Placements"
 
-    Takes a jplace file and a set of clades of the reference tree and outputs a jplace file for each
-    clade, where each file contains all @ref genesis::placement::Pquery "Pqueries" that fell into
-    that clade.
+    Takes a jplace file and a mapping of the taxa of its reference tree to some clade names.
+    It outputs a jplace file for each clade, where each file contains all
+    @ref genesis::placement::Pquery "Pqueries" that fell into that clade.
 
 See there for more details.
