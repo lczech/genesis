@@ -188,7 +188,7 @@ std::vector< size_t > taxa_count_levels( Taxonomy const& tax )
  * The function recursively iterates all sub-taxa of the Taxonomy and counts how many of the
  * @link Taxon Taxa@endlink have the given rank assigned (case sensitive or not).
  *
- * See @link taxa_count_ranks( Taxonomy const& tax ) here@endlink for a version of this function
+ * See @link taxa_count_ranks( Taxonomy const&, bool ) here@endlink for a version of this function
  * that returns this number for all ranks in the Taxonomy.
  */
 size_t taxa_count_with_rank(
