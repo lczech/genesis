@@ -129,6 +129,9 @@ size_t total_taxa_count( Taxonomy const& tax )
  * The function returns how many @link Taxon Taxa@endlink there are in the Taxonomy that are
  * at a certain level - that is excluding the number of their respective sub-taxa.
  * The first/top level has depth 0.
+ *
+ * See @link taxa_count_levels( Taxonomy const& tax ) here@endlink for a version of this function
+ * that returns those values for all levels of depth.
  */
 size_t taxa_count_at_level( Taxonomy const& tax, size_t level )
 {
@@ -145,11 +148,48 @@ size_t taxa_count_at_level( Taxonomy const& tax, size_t level )
 }
 
 /**
- * @brief Count the number of @link Taxon Taxa@endlink of a Taxonomy that have a certain rank
+ * @brief Count the number of @link Taxon Taxa@endlink at each level of depth in the Taxonomy.
+ *
+ * The function returns how many @link Taxon Taxa@endlink there are in the Taxonomy that are
+ * at each level - that is excluding the number of their respective sub-taxa.
+ * The first/top level has depth 0; it's count is the first element in the returned vector,
+ * and so on.
+ *
+ * This function returns the values of taxa_count_at_level( Taxonomy const& tax, size_t level )
+ * for all levels of depth.
+ */
+std::vector< size_t > taxa_count_levels( Taxonomy const& tax )
+{
+    if( tax.size() == 0 ) {
+        return std::vector< size_t >();
+    }
+
+    std::vector< size_t > result( 1, 0 );
+    result[ 0 ] = tax.size();
+
+    for( auto const& child : tax ) {
+        auto cres = taxa_count_levels( child );
+
+        if( result.size() < cres.size() + 1 ) {
+            result.resize( cres.size() + 1, 0 );
+        }
+
+        for( size_t i = 0; i < cres.size(); ++i ) {
+            result[ i+1 ] += cres[ i ];
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Count the number of @link Taxon Taxa@endlink in a Taxonomy that have a certain rank
  * assigned to them.
  *
  * The function recursively iterates all sub-taxa of the Taxonomy and counts how many of the
  * @link Taxon Taxa@endlink have the given rank assigned (case sensitive or not).
+ *
+ * See @link taxa_count_ranks( Taxonomy const& tax ) here@endlink for a version of this function
+ * that returns this number for all ranks in the Taxonomy.
  */
 size_t taxa_count_with_rank(
     Taxonomy const&    tax,
@@ -174,6 +214,44 @@ size_t taxa_count_with_rank(
         count += taxa_count_with_rank( t, rank, case_sensitive );
     }
     return count;
+}
+
+/**
+ * @brief Count the number of @link Taxon Taxa@endlink in a Taxonomy per rank.
+ *
+ * The function gives a list of all ranks found in the Taxonomy, with a count of how many Taxa
+ * there are that have this rank.
+ *
+ * It is similar to
+ * @link taxa_count_with_rank( Taxonomy const&, std::string const&, bool ) this function@endlink,
+ * but gives the result for all ranks.
+ *
+ * If the optional parameter `case_sensitive` is set to `true`, all ranks are treated case
+ * sensitive, that is, ranks with different case produce different entries.
+ * If left at the default `false`, they are converted to lower case first, so that they are all
+ * treated case insensitivly.
+ */
+std::unordered_map< std::string, size_t> taxa_count_ranks(
+    Taxonomy const& tax,
+    bool            case_sensitive
+) {
+    std::unordered_map< std::string, size_t> result;
+
+    for( auto const& taxon : tax ) {
+        if( case_sensitive ) {
+            ++result[ taxon.rank() ];
+        } else {
+            ++result[ utils::to_lower( taxon.rank() ) ];
+        }
+
+        // Recurse.
+        auto children = taxa_count_ranks( taxon, case_sensitive );
+        for( auto const& ctaxon : children ) {
+            result[ ctaxon.first ] += ctaxon.second;
+        }
+    }
+
+    return result;
 }
 
 // =================================================================================================

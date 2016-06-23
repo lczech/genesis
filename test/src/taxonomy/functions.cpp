@@ -39,6 +39,8 @@
 #include "lib/taxonomy/taxonomy.hpp"
 #include "lib/taxonomy/taxscriptor.hpp"
 
+#include "lib/taxonomy/printers/nested.hpp"
+
 using namespace genesis::taxonomy;
 
 TEST( Taxonomy, Counts )
@@ -66,6 +68,11 @@ TEST( Taxonomy, Counts )
     EXPECT_EQ( 9, taxa_count_at_level( tax, 5 ));
     EXPECT_EQ( 0, taxa_count_at_level( tax, 6 ));
 
+    // Level all count.
+    auto level_count = taxa_count_levels( tax );
+    std::vector< size_t > level_count_ref { 1, 4, 5, 7, 6, 9 };
+    EXPECT_EQ( level_count_ref, level_count );
+
     // Rank count.
     EXPECT_EQ( 1, taxa_count_with_rank( tax, "Domain" ));
     EXPECT_EQ( 4, taxa_count_with_rank( tax, "Phylum" ));
@@ -74,4 +81,16 @@ TEST( Taxonomy, Counts )
     EXPECT_EQ( 6, taxa_count_with_rank( tax, "Family" ));
     EXPECT_EQ( 9, taxa_count_with_rank( tax, "Genus" ));
     EXPECT_EQ( 0, taxa_count_with_rank( tax, "Something" ));
+
+    // All rank counts.
+    auto rank_count = taxa_count_ranks( tax );
+    std::unordered_map< std::string, size_t> rank_count_ref = {
+        { "domain", 1 },
+        { "phylum", 4 },
+        { "class",  5 },
+        { "order",  7 },
+        { "family", 6 },
+        { "genus",  9 }
+    };
+    EXPECT_EQ( rank_count_ref, rank_count );
 }
