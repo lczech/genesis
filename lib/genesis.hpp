@@ -78,6 +78,7 @@
 #include "taxonomy/functions/ranks.hpp"
 #include "taxonomy/functions/taxonomy.hpp"
 #include "taxonomy/functions/taxscriptor.hpp"
+#include "taxonomy/printers/nested.hpp"
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
 #include "taxonomy/taxscriptor.hpp"
