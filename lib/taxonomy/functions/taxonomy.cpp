@@ -354,29 +354,36 @@ std::ostream& operator << ( std::ostream& out, Taxonomy const& tax )
  */
 bool validate( Taxonomy const& taxonomy, bool stop_at_first_error )
 {
-    bool res = true;
-    for( auto const& c : taxonomy ) {
+    // Local recursive implementation of the function.
+    std::function< bool ( Taxonomy const&, bool, size_t ) > validate_rec = [&] (
+        Taxonomy const& tax, bool stop_at_first_error, size_t level
+    ) {
+        bool res = true;
+        for( auto const& c : tax ) {
 
-        // Check current parent.
-        if( c.parent() != nullptr && c.parent() != &taxonomy ) {
-            LOG_INFO << "Taxon child with invalid parent pointer: " << c.name();
-            if( stop_at_first_error ) {
-                return false;
-            } else {
-                res = false;
+            // Check current parent.
+            if( (level == 0 && c.parent() != nullptr) || (level > 0 && c.parent() != &tax) ) {
+                LOG_INFO << "Taxon child with invalid parent pointer: " << c.name();
+                if( stop_at_first_error ) {
+                    return false;
+                } else {
+                    res = false;
+                }
+            }
+
+            // Recurse.
+            if( ! validate_rec( c, stop_at_first_error, level + 1 )) {
+                if( stop_at_first_error ) {
+                    return false;
+                } else {
+                    res = false;
+                }
             }
         }
+        return res;
+    };
 
-        // Recurse.
-        if( ! validate( c )) {
-            if( stop_at_first_error ) {
-                return false;
-            } else {
-                res = false;
-            }
-        }
-    }
-    return res;
+    return validate_rec( taxonomy, stop_at_first_error, 0 );
 }
 
 } // namespace taxonomy
