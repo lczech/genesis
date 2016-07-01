@@ -115,7 +115,7 @@ TwobitVector::WordType test_delete_position( std::vector< TwobitVector > const& 
         }
     }
 
-    LOG_DBG << twobit_to_bitstring( xhash );
+    LOG_DBG << bitstring( xhash );
     return xhash;
 }
 
@@ -146,7 +146,7 @@ TwobitVector::WordType test_delete_iterator( std::vector< TwobitVector > const& 
         }
     }
 
-    LOG_DBG << twobit_to_bitstring( xhash );
+    LOG_DBG << bitstring( xhash );
     return xhash;
 }
 
@@ -164,7 +164,7 @@ TwobitVector::WordType test_insert_position( std::vector< TwobitVector > const& 
                 // auto n_str = std::string( 1, translate_to_nucleic_acid( j ));
 
                 auto ins_vec = vec;
-                ins_vec.insert_at( i, j );
+                ins_vec.insert_at( i, TwobitVector::ValueType( j ));
 
                 // auto ins_seq = seq;
                 // ins_seq.insert( i, n_str );
@@ -238,7 +238,7 @@ TEST( TwobitVector, Copy )
     // return;
 
     auto rng = RandomNucleotideGenerator();
-    for( size_t i = 0; i < 10000; ++i ) {
+    for( size_t i = 0; i < 1000; ++i ) {
         auto seq = rng.generate_random_nt_string();
         auto vec = from_nucleic_acids( seq );
         sequences.push_back( vec );
@@ -352,4 +352,17 @@ TEST( TwobitVector, Copy )
     //  111010010101111010
     //  111010010100000000
 
+}
+
+TEST( TwobitVector, Bitstring )
+{
+    std::string seq  = "CGACAAAGGTTTTCGGTGCTTAACGTCTTAAGGGTCCCGGT";
+    auto vec = from_nucleic_acids( seq );
+    std::string bits =
+        "10 00 00 11 11 01 11 10 01 00 00 11 11 01 10 11 "
+        "10 10 01 11 11 11 11 10 10 00 00 00 01 00 10 01\n"
+        "00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 "
+        "00 00 00 00 00 00 00 11 10 10 01 01 01 11 10 10\n";
+
+    EXPECT_EQ( bits, bitstring( vec ));
 }

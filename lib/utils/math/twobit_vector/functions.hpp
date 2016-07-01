@@ -42,14 +42,14 @@ namespace utils {
 //     Strings
 // =================================================================================================
 
-TwobitVector::CharType translate_from_nucleic_acid( char site );
-char                   translate_to_nucleic_acid( TwobitVector::CharType value );
+TwobitVector::ValueType translate_from_nucleic_acid( char site );
+char                    translate_to_nucleic_acid( TwobitVector::ValueType value );
 
 TwobitVector from_nucleic_acids( std::string const& sequence );
 std::string to_nucleic_acids( TwobitVector const& vec );
 
-std::string twobit_to_bitstring( TwobitVector const& vec );
-std::string twobit_to_bitstring( TwobitVector::WordType const& vec );
+std::string bitstring( TwobitVector const& vec );
+std::string bitstring( TwobitVector::WordType const& vec );
 
 } // namespace utils
 } // namespace genesis

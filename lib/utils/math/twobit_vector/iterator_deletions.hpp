@@ -35,10 +35,7 @@
 #include "utils/math/twobit_vector.hpp"
 #include "utils/math/twobit_vector/functions.hpp"
 
-#include "utils/core/logging.hpp"
-
 #include <assert.h>
-#include <deque>
 #include <iterator>
 
 namespace genesis {
@@ -48,9 +45,11 @@ namespace utils {
 //     Iterator Deletions
 // =================================================================================================
 
+/**
+ * @brief Take a TwobitVector sequence and iterate over all possible deletions of its values.
+ */
 class IteratorDeletions
 {
-
 public:
 
     // -----------------------------------------------------
@@ -69,7 +68,7 @@ public:
         : origin_( nullptr )
         , vec_()
         , pos_( 0 )
-        , cur_( 0u )
+        , cur_( TwobitVector::ValueType::A )
         , hash_( 0 )
     {}
 
@@ -79,6 +78,9 @@ public:
         , pos_( 0 )
         , cur_( vector[ 0 ] )
     {
+        // Remove the first value (we stored it in the initializer),
+        // and do a first hash calculation. Later iterations will just update
+        // all of this.
         vec_.remove_at( 0 );
         hash_ = vec_.hash();
     }
@@ -95,41 +97,50 @@ public:
     //     Operators
     // -----------------------------------------------------
 
-    self_type operator * ()
-    {
-        return *this;
-    }
-
-    value_type const& operator -> ()
+    value_type const& operator * ()
     {
         return vec_;
     }
 
+    value_type const* operator -> ()
+    {
+        return &vec_;
+    }
+
     self_type operator ++ ()
     {
+        // Toy example:
         // Original: ACGT
         // CGT --> pos = 0, cur = A
         // AGT --> pos = 1, cur = C
         // ACT --> pos = 2, cur = G
         // ACG --> pos = 3, cur = T
 
+        // If we are not done yet:
         if( pos_ < vec_.size() ) {
-            auto tmp = vec_[ pos_ ];
+            // We will swap the value at the current position. So first, get it.
+            auto tmp = vec_.get( pos_ );
 
-            hash_ ^= (
-                static_cast<TwobitVector::WordType>( tmp ^ cur_ )
-                << ( 2 * ( pos_ % TwobitVector::CharsPerWord ))
+            // Update the hash: Remove the current value, and store the new one.
+            hash_ ^= ((
+                static_cast< TwobitVector::WordType >( tmp ) ^
+                static_cast< TwobitVector::WordType >( cur_ )
+                ) << ( 2 * ( pos_ % TwobitVector::kValuesPerWord ))
             );
 
+            // Now do the swap and move to the next position, so that next time,
+            // we will swap the next value.
             vec_.set( pos_, cur_ );
-            ++pos_;
             cur_ = tmp;
+            ++pos_;
 
+        // If we are done, set everything to zero, so that the iterator
+        // is equal to the default-constructed end-iterator.
         } else {
             origin_ = nullptr;
             vec_.clear();
             pos_  = 0;
-            cur_  = 0;
+            cur_  = TwobitVector::ValueType::A;
             hash_ = 0;
         }
 
@@ -157,16 +168,25 @@ public:
     //     Members
     // -----------------------------------------------------
 
+    /**
+     * @brief Get the position that is currently deleted.
+     */
     size_t position() const
     {
         return pos_;
     }
 
+    /**
+     * @brief Get the hash value of the current vector.
+     */
     TwobitVector::WordType hash() const
     {
         return hash_;
     }
 
+    /**
+     * @brief Get the current vector.
+     */
     TwobitVector const& vector() const
     {
         return vec_;
@@ -174,14 +194,22 @@ public:
 
 private:
 
+    // Store the location of the original vector. This is mainly used for quickly checking
+    // whether two iterators refer to the same underlying vector.
+    // (We do not want to do a full vector equality check at each iteration.)
     TwobitVector const* origin_;
 
+    // The current vector, which always has a missing value (compared to the original vector).
     TwobitVector vec_;
 
-    size_t                 pos_;
-    TwobitVector::CharType cur_;
+    // The position that is currently deleted.
+    size_t                  pos_;
 
-    TwobitVector::WordType hash_;
+    // The value that is currently deleted (need it to restore it later).
+    TwobitVector::ValueType cur_;
+
+    // The hash value of the current vector.
+    TwobitVector::WordType  hash_;
 
 };
 
