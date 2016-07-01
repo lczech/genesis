@@ -31,6 +31,7 @@
 #include "common.hpp"
 
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <vector>
 // #include <sstream>
@@ -39,11 +40,16 @@
 #include "lib/utils/math/twobit_vector/functions.hpp"
 #include "lib/utils/math/twobit_vector/iterator_deletions.hpp"
 #include "lib/utils/math/twobit_vector/iterator_insertions.hpp"
+#include "lib/utils/math/twobit_vector/iterator_substitutions.hpp"
 #include "lib/utils/core/options.hpp"
 #include "lib/utils/text/string.hpp"
 
 using namespace genesis;
 using namespace utils;
+
+// =================================================================================================
+//     Helper
+// =================================================================================================
 
 class RandomNucleotideGenerator
 {
@@ -83,6 +89,10 @@ public:
     std::normal_distribution<double>   length_distrib;
 
 };
+
+// =================================================================================================
+//     Deletions
+// =================================================================================================
 
 TwobitVector::WordType test_delete_position( std::vector< TwobitVector > const& seqs )
 {
@@ -149,6 +159,10 @@ TwobitVector::WordType test_delete_iterator( std::vector< TwobitVector > const& 
     LOG_DBG << bitstring( xhash );
     return xhash;
 }
+
+// =================================================================================================
+//     Insertions
+// =================================================================================================
 
 TwobitVector::WordType test_insert_position( std::vector< TwobitVector > const& seqs )
 {
@@ -219,6 +233,121 @@ TwobitVector::WordType test_insert_iterator( std::vector< TwobitVector > const& 
     return xhash;
 }
 
+// =================================================================================================
+//     Substitutions
+// =================================================================================================
+
+char cycle_substitution( char original, size_t count )
+{
+    switch( original ) {
+        case 'A':
+            switch( count ) {
+                case 0: return 'C';
+                case 1: return 'G';
+                case 2: return 'T';
+            }
+        case 'C':
+            switch( count ) {
+                case 0: return 'A';
+                case 1: return 'T';
+                case 2: return 'G';
+            }
+        case 'G':
+            switch( count ) {
+                case 0: return 'T';
+                case 1: return 'A';
+                case 2: return 'C';
+            }
+        case 'T':
+            switch( count ) {
+                case 0: return 'G';
+                case 1: return 'C';
+                case 2: return 'A';
+            }
+    }
+    throw std::runtime_error( "Invalid char in test. Weird." );
+    return '\0';
+}
+
+TwobitVector::WordType test_substitution_position( std::vector< TwobitVector > const& seqs )
+{
+    TwobitVector::WordType xhash = 0;
+
+    for( size_t is = 0; is < seqs.size(); ++is ) {
+        auto const& vec = seqs[ is ];
+        auto seq = to_nucleic_acids( vec );
+        // LOG_DBG << "o " << to_nucleic_acids( vec );
+
+        for( size_t i = 0; i < vec.size(); ++i ) {
+            auto orig = seq[i];
+
+            for( size_t j = 0; j < 3; ++j ) {
+
+                seq[i] = cycle_substitution( orig, j );
+                auto sub_vec = from_nucleic_acids( seq );
+
+                // LOG_DBG << seq;
+
+                // auto ins_vec = vec;
+                // ins_vec.insert_at( i, TwobitVector::ValueType( j ));
+
+                // auto ins_seq = seq;
+                // ins_seq.insert( i, n_str );
+
+                xhash ^= sub_vec.hash();
+
+                // LOG_DBG << "i " << to_nucleic_acids( ins_vec );
+                // LOG_DBG << "s " << ins_seq;
+
+                // EXPECT_EQ( ins_seq, to_nucleic_acids( ins_vec ));
+                // EXPECT_TRUE( ins_vec.validate() );
+                // EXPECT_EQ( vec.size() + 1, ins_vec.size() );
+            }
+
+            seq[i] = orig;
+        }
+    }
+
+    return xhash;
+}
+
+TwobitVector::WordType test_substitution_iterator( std::vector< TwobitVector > const& seqs )
+{
+    TwobitVector::WordType xhash = 0;
+
+    for( size_t is = 0; is < seqs.size(); ++is ) {
+        auto const& vec = seqs[ is ];
+        auto const  seq = to_nucleic_acids( vec );
+        // LOG_DBG << seq;
+
+        auto it_b = IteratorSubstitutions( vec );
+        auto it_e = IteratorSubstitutions();
+        while( it_b != it_e ) {
+            // LOG_DBG;
+            // LOG_DBG << to_nucleic_acids( it_b.vector() );
+            // LOG_DBG << "i " << twobit_to_bitstring( it_b.hash() );
+            // LOG_DBG << "v " << twobit_to_bitstring( it_b.vector().hash() );
+
+            auto h1 = it_b.hash();
+            auto h2 = it_b.vector().hash();
+            // LOG_DBG << h1 << " " << h2 << " " << ( h1 == h2 ? "." : "x" );
+            EXPECT_EQ( h2, h1 );
+
+            xhash ^= h1;
+
+            EXPECT_EQ( vec.size(), it_b.vector().size() );
+            EXPECT_TRUE( it_b.vector().validate() );
+            ++it_b;
+        }
+    }
+
+    return xhash;
+}
+
+// =================================================================================================
+//     Main Tests
+// =================================================================================================
+
 TEST( TwobitVector, Copy )
 {
     std::vector< TwobitVector > sequences;
@@ -227,7 +356,10 @@ TEST( TwobitVector, Copy )
     // auto g_vec = from_nucleic_acids( g_seq );
 
     // sequences.push_back( g_vec );
-    // test_insert_iterator( sequences );
+    // // test_insert_iterator( sequences );
+    // test_substitution_position( sequences );
+    // LOG_DBG;
+    // test_substitution_iterator( sequences );
     // return;
     //
     // test_insert_position( sequences );
@@ -238,7 +370,7 @@ TEST( TwobitVector, Copy )
     // return;
 
     auto rng = RandomNucleotideGenerator();
-    for( size_t i = 0; i < 1000; ++i ) {
+    for( size_t i = 0; i < 500; ++i ) {
         auto seq = rng.generate_random_nt_string();
         auto vec = from_nucleic_acids( seq );
         sequences.push_back( vec );
@@ -246,10 +378,12 @@ TEST( TwobitVector, Copy )
 
     LOG_TIME << "start";
     // auto pxhash = test_delete_position( sequences );
-    auto pxhash = test_insert_position( sequences );
+    // auto pxhash = test_insert_position( sequences );
+    auto pxhash = test_substitution_position( sequences );
     LOG_TIME << "done pos";
     // auto ixhash = test_delete_iterator( sequences );
-    auto ixhash = test_insert_iterator( sequences );
+    // auto ixhash = test_insert_iterator( sequences );
+    auto ixhash = test_substitution_iterator( sequences );
     LOG_TIME << "done it";
 
     EXPECT_EQ( pxhash, ixhash );
