@@ -34,9 +34,6 @@ endif()
 message (STATUS "Found Gtest")
 message (STATUS "${ColorBlue}Building tests${ColorEnd}")
 
-# We want to see all debug messages while testing!
-set (CMAKE_BUILD_TYPE DEBUG)
-
 # ------------------------------------------------------------------------------
 #   Build Options
 # ------------------------------------------------------------------------------
