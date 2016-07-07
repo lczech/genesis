@@ -40,7 +40,7 @@
 
 using namespace genesis::utils;
 
-void test_input_specs( CountingIstream& iit, size_t lines, size_t columns )
+static void test_input_specs( CountingIstream& iit, size_t lines, size_t columns )
 {
     CountingIstream eos;
 
@@ -58,7 +58,7 @@ void test_input_specs( CountingIstream& iit, size_t lines, size_t columns )
     EXPECT_EQ( lines,   max_lin );
 }
 
-void test_string ( std::string str, size_t lines, size_t columns )
+static void test_string ( std::string str, size_t lines, size_t columns )
 {
     std::istringstream iss ( str );
     CountingIstream iit (iss);
