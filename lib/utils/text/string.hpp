@@ -96,14 +96,22 @@ std::string trim (
 //     Normalize
 // =================================================================================================
 
-std::string to_lower( std::string const& str );
-std::string to_upper( std::string const& str );
+std::string to_lower(         std::string const& str );
+void        to_lower_inplace( std::string&       str );
+std::string to_upper(         std::string const& str );
+void        to_upper_inplace( std::string&       str );
+
+char        to_lower_ascii( char c );
+char        to_upper_ascii( char c );
+
+std::string to_lower_ascii(         std::string const& str );
+void        to_lower_ascii_inplace( std::string&       str );
+std::string to_upper_ascii(         std::string const& str );
+void        to_upper_ascii_inplace( std::string&       str );
 
 std::string escape  ( std::string const& text );
 std::string deescape( std::string const& text );
 char        deescape( char c );
-
-std::string unify_newlines( std::string const& s );
 
 // =================================================================================================
 //     Output
