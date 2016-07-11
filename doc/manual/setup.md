@@ -131,8 +131,15 @@ file (without the ending).
 Apart from that, there are no further requirements. Simply include the needed genesis headers (or
 any other headers you might need) and compile. Happy coding!
 
-Remark: The apps are only a convenience for users. Genesis can of course also be used like any
+# Library {#setup_lib}
+
+The apps are only a convenience for users. Genesis can of course also be used like any
 other C++ library by including its headers and linking against its binaries.
+
+If you include genesis in bigger projects which are separately compiled, you need to make sure to
+use compatible options for compiling the genesis binaries. For example, if you want to link against
+the shared library, the settings for threads (e.g., Pthreads) need to be the same for every
+compilation unit. See the main Cmake script for the available compiler options.
 
 # Python {#setup_python}
 
