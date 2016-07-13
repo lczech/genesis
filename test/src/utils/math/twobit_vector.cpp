@@ -58,7 +58,7 @@ public:
 
     RandomNucleotideGenerator()
         : nucleotids_distrib({ 1, 1, 1, 1 })
-        , length_distrib( 400, 20 )
+        , length_distrib( 100, 20 )
     {}
 
     std::string generate_random_nt_string( size_t n )
@@ -303,7 +303,7 @@ TwobitVector::WordType test_substitution_iterator( std::vector< TwobitVector > c
 TEST( TwobitVector, Deletion )
 {
     auto rng = RandomNucleotideGenerator();
-    for( size_t n = 0; n < 100; ++n ) {
+    for( size_t n = 0; n < 10; ++n ) {
 
         // Generate a sequence.
         auto seq = rng.generate_random_nt_string();
@@ -331,7 +331,7 @@ TEST( TwobitVector, Hashing )
     // Test the iterators and their hashing shortcuts.
 
     // Generate sequences.
-    size_t n = 10;
+    size_t n = 5;
     std::vector< TwobitVector > sequences;
     auto rng = RandomNucleotideGenerator();
     for( size_t i = 0; i < n; ++i ) {
