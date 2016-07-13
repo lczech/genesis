@@ -680,9 +680,11 @@ double total_placement_mass_with_multiplicities(  Sample const& smp )
             mult += name.multiplicity;
         }
 
+        double lwr_sum = 0.0;
         for( auto const& place : pqry.placements() ) {
-            sum += place.like_weight_ratio * mult;
+            lwr_sum += place.like_weight_ratio;
         }
+        sum += lwr_sum * mult;
     }
     return sum;
 }

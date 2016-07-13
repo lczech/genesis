@@ -57,7 +57,9 @@
 
 #include "utils/core/options.hpp"
 #include "utils/math/histogram.hpp"
+#include "utils/math/histogram/accumulator.hpp"
 #include "utils/math/histogram/distances.hpp"
+#include "utils/math/histogram/operators.hpp"
 #include "utils/math/matrix.hpp"
 
 namespace genesis {
@@ -288,6 +290,7 @@ utils::Matrix<double> earth_movers_distance(
     bool             with_pendant_length
 ) {
     auto result = utils::Matrix<double>( sample_set.size(), sample_set.size(), 0.0 );
+
     for( size_t i = 0; i < sample_set.size(); ++i ) {
 
         // The result is symmetric - we only calculate the upper triangle.
@@ -987,79 +990,144 @@ double pairwise_distance (
 //     Node-Based Distances
 // =================================================================================================
 
+/**
+ * @brief Local helper function to calculate a histogram of distances from each PqueryPlacement
+ * in a Sample to a given @link tree::TreeNode Node@endlink of the @link PlacementTree Tree@endlink.
+ */
 utils::Histogram node_distance_histogram (
-    // const Sample& smp,
-    const PlacementTreeNode& node,
-    bool                     with_pendant_length
+    Sample const&                sample,
+    size_t                       node_index,
+    utils::Matrix<double> const& node_dists,
+    double                       diameter,
+    size_t                       histogram_bins
 ) {
-    (void) node;
-    (void) with_pendant_length;
-    throw std::domain_error("Not yet implemented.");
-    return utils::Histogram(1);
-}
+    // Prepare proximal and distal distances of each placement to the node.
+    double p_dist, d_dist, dist;
 
-std::vector< utils::Histogram > node_distance_histograms (
-    const Sample& smp,
-    bool                with_pendant_length
-) {
-    auto vec = std::vector< utils::Histogram >();
-    vec.reserve(smp.tree().node_count());
+    // Fill an accumulator with the distances from all placments to the node.
+    auto hist_acc = utils::HistogramAccumulator();
+    for( auto const& pquery : sample ) {
+        double mult = total_multiplicity( pquery );
 
-    // TODO ensure that the node iterator gives the nodes in order of their index!
+        // Get the distance from the placement to the given node, and accumulate it.
+        for( auto const& placement : pquery.placements() ) {
 
-    for (auto it = smp.tree().begin_nodes(); it != smp.tree().end_nodes(); ++it) {
-        vec.push_back(node_distance_histogram(**it, with_pendant_length));
+            p_dist = placement.proximal_length
+                   + node_dists( node_index, placement.edge().primary_node().index() );
+
+            d_dist = placement.edge().data.branch_length - placement.proximal_length
+                   + node_dists( node_index, placement.edge().secondary_node().index() );
+
+            dist = std::min( p_dist, d_dist );
+            assert( dist >= 0.0 && dist <= diameter );
+
+            // Accumulate at the distance, using the lwr and multiplicity as weight, so that the
+            // total weight of a pquery sums up to the multiplicity.
+            hist_acc.accumulate( dist, placement.like_weight_ratio * mult );
+        }
     }
 
-    return vec;
+    // Use the accumulator to build the histogram.
+    return hist_acc.build_uniform_ranges_histogram( histogram_bins, 0.0, diameter );
 }
 
-double node_histogram_distance (
-    const Sample& smp_a,
-    const Sample& smp_b,
-    bool          with_pendant_length
+/**
+ * @brief Local helper function to calculate the histograms of distances from all
+ * @link tree::TreeNode Nodes@endlink of the @link PlacementTree Tree@endlink of a Sample to all
+ * its PqueryPlacement%s.
+ */
+std::vector< utils::Histogram > node_distance_histograms (
+    Sample const& sample,
+    size_t        histogram_bins
 ) {
-    if( !compatible_trees( smp_a, smp_b ) ) {
+    // Prepare a vector of histograms for each node of the tree.
+    auto hist_vec = std::vector< utils::Histogram >();
+    hist_vec.reserve( sample.tree().node_count() );
+
+    // Calculate the pairwise distance between all pairs of nodes.
+    auto node_dists = node_branch_length_distance_matrix( sample.tree() );
+
+    // Calculate the diameter of the tree, i.e., the longest distance between any two nodes.
+    // This is used as upper bound for the histogram. Its calculation is the same as in
+    // tree::diameter().
+    double diameter = *std::max_element( node_dists.begin(), node_dists.end() );
+
+    // Prepare a counter for asserting that the node order follows the indices.
+    size_t cnt = 0;
+    (void) cnt;
+
+    // Calculate the histogram for all nodes of the tree, and store it in the vector.
+    for( auto it = sample.tree().begin_nodes(); it != sample.tree().end_nodes(); ++it ) {
+        assert( it->get()->index() == cnt++ );
+
+        hist_vec.push_back( node_distance_histogram(
+            sample, it->get()->index(), node_dists, diameter, histogram_bins
+        ));
+    }
+    assert( cnt == sample.tree().node_count() );
+
+    return hist_vec;
+}
+
+/**
+ * @brief Calculate the Node Histogram Distance of two Sample%s.
+ */
+double node_histogram_distance (
+    Sample const& sample_a,
+    Sample const& sample_b,
+    size_t        histogram_bins
+) {
+    if( ! compatible_trees( sample_a, sample_b ) ) {
         throw std::invalid_argument( "Incompatible trees." );
     }
 
     // Get the histograms describing the distances from placements to all nodes.
-    auto vec_a = node_distance_histograms( smp_a, with_pendant_length );
-    auto vec_b = node_distance_histograms( smp_b, with_pendant_length );
+    auto hist_vec_a = node_distance_histograms( sample_a, histogram_bins );
+    auto hist_vec_b = node_distance_histograms( sample_b, histogram_bins );
 
     // If the trees are compatible (as ensured in the beginning of this function), they need to have
     // the same number of nodes. Thus, also there should be this number of histograms in the vectors.
-    assert( vec_a.size() == smp_a.tree().node_count() );
-    assert( vec_b.size() == smp_b.tree().node_count() );
-    assert( vec_a.size() == vec_b.size() );
+    assert( hist_vec_a.size() == sample_a.tree().node_count() );
+    assert( hist_vec_b.size() == sample_b.tree().node_count() );
+    assert( hist_vec_a.size() == hist_vec_b.size() );
 
     double dist = 0.0;
-    for( size_t i = 0; i < vec_a.size(); ++i ) {
-        dist += earth_movers_distance( vec_a[i], vec_b[i], true );
+    for( size_t i = 0; i < hist_vec_a.size(); ++i ) {
+        dist += earth_movers_distance( hist_vec_a[i], hist_vec_b[i], true );
+    }
+    assert( dist >= 0.0 );
+
+    // Return normalized distance.
+    return dist / static_cast< double >( sample_a.tree().node_count() );
+}
+
+/**
+ * @brief Calculate the
+ * @link node_histogram_distance( Sample const&, Sample const&, size_t ) node_histogram_distance()@endlink
+ * for every pair of Sample%s in the SampleSet.
+ */
+utils::Matrix<double> node_histogram_distance (
+    SampleSet const& sample_set,
+    size_t           histogram_bins
+) {
+    auto const smps_count = sample_set.size();
+    auto result = utils::Matrix<double> (smps_count, smps_count);
+
+    for( size_t i = 0; i < sample_set.size(); ++i ) {
+
+        // The result is symmetric - we only calculate the upper triangle.
+        for( size_t j = i + 1; j < sample_set.size(); ++j ) {
+            result(i, j) = node_histogram_distance(
+                sample_set[i].sample,
+                sample_set[j].sample,
+                histogram_bins
+            );
+            result(j, i) = result(i, j);
+        }
     }
 
-    assert( dist >= 0.0 );
-    return dist;
+    return result;
 }
-
-/*
-Matrix<double> node_histogram_distance_matrix (
-    const SampleSet& smps,
-    bool                   with_pendant_length
-) {
-    auto const smps_count = smps.size();
-    auto mat = Matrix<double> (smps_count, smps_count);
-
-    // TODO do not write this function. instead, create a generic function that takes a placement
-    // smp set and a functor to some distance function. also, put it into some smp set file
-    // instead of the general smp file.
-
-    (void) with_pendant_length;
-    throw std::domain_error("Not yet implemented.");
-
-    return mat;
-}
-*/
 
 // =================================================================================================
 //     Variance

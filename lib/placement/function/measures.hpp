@@ -31,6 +31,7 @@
  * @ingroup placement
  */
 
+#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -134,27 +135,16 @@ double pairwise_distance (
 //     Node-Based Distances
 // ----------------------------------------------------------------------------
 
-utils::Histogram node_distance_histogram (
-    // const Sample& smp,
-    const PlacementTreeNode& node,
-    bool                     with_pendant_length = false
-);
-
-std::vector< utils::Histogram > node_distance_histograms (
-    const Sample& smp,
-    bool          with_pendant_length = false
-);
-
 double node_histogram_distance (
-    const Sample& smp_a,
-    const Sample& smp_b,
-    bool          with_pendant_length = false
+    Sample const& sample_a,
+    Sample const& sample_b,
+    size_t        histogram_bins = 25
 );
 
-// utils::Matrix<double> node_histogram_distance_matrix (
-//     const SampleSet& smps,
-//     bool                   with_pendant_length = false
-// );
+utils::Matrix<double> node_histogram_distance (
+    SampleSet const& sample_set,
+    size_t           histogram_bins = 25
+);
 
 // ----------------------------------------------------------------------------
 //     Variance
