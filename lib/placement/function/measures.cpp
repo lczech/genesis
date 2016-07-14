@@ -1050,7 +1050,7 @@ std::vector< utils::Histogram > node_distance_histograms (
     // Calculate the diameter of the tree, i.e., the longest distance between any two nodes.
     // This is used as upper bound for the histogram. Its calculation is the same as in
     // tree::diameter().
-    double diameter = *std::max_element( node_dists.begin(), node_dists.end() );
+    double const diameter = *std::max_element( node_dists.begin(), node_dists.end() );
 
     // Prepare a counter for asserting that the node order follows the indices.
     size_t cnt = 0;
@@ -1082,8 +1082,8 @@ double node_histogram_distance (
     }
 
     // Get the histograms describing the distances from placements to all nodes.
-    auto hist_vec_a = node_distance_histograms( sample_a, histogram_bins );
-    auto hist_vec_b = node_distance_histograms( sample_b, histogram_bins );
+    auto const hist_vec_a = node_distance_histograms( sample_a, histogram_bins );
+    auto const hist_vec_b = node_distance_histograms( sample_b, histogram_bins );
 
     // If the trees are compatible (as ensured in the beginning of this function), they need to have
     // the same number of nodes. Thus, also there should be this number of histograms in the vectors.
@@ -1110,19 +1110,47 @@ utils::Matrix<double> node_histogram_distance (
     SampleSet const& sample_set,
     size_t           histogram_bins
 ) {
-    auto const smps_count = sample_set.size();
-    auto result = utils::Matrix<double> (smps_count, smps_count);
+    auto const set_size = sample_set.size();
 
-    for( size_t i = 0; i < sample_set.size(); ++i ) {
+    // Get the histograms for all samples.
+    auto hist_vecs = std::vector< std::vector< utils::Histogram >>( set_size );
+    for( size_t i = 0; i < set_size; ++i ) {
+
+        // Check compatibility.
+        // It suffices to check adjacent pairs of samples, as compatibility is transitive.
+        if( i > 0 ) {
+            if( ! compatible_trees( sample_set[ i - 1 ].sample, sample_set[ i ].sample )) {
+                throw std::invalid_argument(
+                    "Trees in SampleSet not compatible for calculating Node Histogram Distance."
+                );
+            }
+        }
+
+        // Calculate the histograms for every node of the sample.
+        hist_vecs[ i ] = node_distance_histograms( sample_set[ i ].sample, histogram_bins );
+        assert( hist_vecs[ i ].size() == sample_set[ i ].sample.tree().node_count() );
+    }
+
+    // Calculate distance matrix for every pair of samples.
+    auto result = utils::Matrix<double>( set_size, set_size, 0.0 );
+    for( size_t i = 0; i < set_size; ++i ) {
 
         // The result is symmetric - we only calculate the upper triangle.
-        for( size_t j = i + 1; j < sample_set.size(); ++j ) {
-            result(i, j) = node_histogram_distance(
-                sample_set[i].sample,
-                sample_set[j].sample,
-                histogram_bins
-            );
-            result(j, i) = result(i, j);
+        for( size_t j = i + 1; j < set_size; ++j ) {
+
+            // Sum up the emd distances of the histograms for each node of the tree in the
+            // two samples.
+            double dist = 0.0;
+            assert( hist_vecs[ i ].size() == hist_vecs[ j ].size() );
+            for( size_t k = 0; k < hist_vecs[ i ].size(); ++k ) {
+                dist += earth_movers_distance( hist_vecs[ i ][ k ], hist_vecs[ j ][ k ], true );
+            }
+            assert( dist >= 0.0 );
+
+            // Store normalized distance.
+            dist /= static_cast< double >( sample_set[ i ].sample.tree().node_count() );
+            result(i, j) = dist;
+            result(j, i) = dist;
         }
     }
 
