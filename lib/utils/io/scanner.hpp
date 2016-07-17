@@ -31,8 +31,6 @@
  * @ingroup utils
  */
 
-#include "utils/io/counting_istream.hpp"
-
 #include <assert.h>
 #include <cctype>
 #include <functional>
@@ -52,8 +50,9 @@ namespace utils {
 /**
  * @brief Lexing function that advances the stream while its current char equals the provided one.
  */
+template< typename InputStream >
 inline void skip_while(
-    utils::CountingIstream& source,
+    InputStream&            source,
     char                    criterion
 ) {
     while( source && *source == criterion ) {
@@ -65,11 +64,12 @@ inline void skip_while(
  * @brief Lexing function that advances the stream while its current char fulfills the provided
  * criterion.
  */
+template< typename InputStream >
 inline void skip_while(
-    utils::CountingIstream&    source,
+    InputStream&               source,
     std::function<bool (char)> criterion
 ) {
-    while( source && criterion(*source) ) {
+    while( source && criterion( *source )) {
         ++source;
     }
 }
@@ -81,8 +81,9 @@ inline void skip_while(
 /**
  * @brief Lexing function that advances the stream until its current char equals the provided one.
  */
+template< typename InputStream >
 inline void skip_until(
-    utils::CountingIstream& source,
+    InputStream&            source,
     char                    criterion
 ) {
     while( source && *source != criterion ) {
@@ -94,11 +95,12 @@ inline void skip_until(
  * @brief Lexing function that advances the stream until its current char fulfills the provided
  * criterion.
  */
+template< typename InputStream >
 inline void skip_until(
-    utils::CountingIstream&    source,
+    InputStream&               source,
     std::function<bool (char)> criterion
 ) {
-    while( source && !criterion(*source) ) {
+    while( source && ! criterion( *source )) {
         ++source;
     }
 }
@@ -111,8 +113,9 @@ inline void skip_until(
  * @brief Lexing function that reads from the stream while its current char equals the provided one.
  * The read chars are returned.
  */
+template< typename InputStream >
 inline std::string read_while(
-    utils::CountingIstream& source,
+    InputStream&            source,
     char                    criterion
 ) {
     std::string target;
@@ -127,12 +130,13 @@ inline std::string read_while(
  * @brief Lexing function that reads from the stream while its current char fulfills the provided
  * criterion. The read chars are returned.
  */
+template< typename InputStream >
 inline std::string read_while(
-    utils::CountingIstream&    source,
+    InputStream&               source,
     std::function<bool (char)> criterion
 ) {
     std::string target;
-    while( source && criterion(*source) ) {
+    while( source && criterion( *source )) {
         target += *source;
         ++source;
     }
@@ -147,8 +151,9 @@ inline std::string read_while(
  * @brief Lexing function that reads from the stream until its current char equals the provided one.
  * The read chars are returned.
  */
+template< typename InputStream >
 inline std::string read_until(
-    utils::CountingIstream& source,
+    InputStream&            source,
     char                    criterion
 ) {
     std::string target;
@@ -163,12 +168,13 @@ inline std::string read_until(
  * @brief Lexing function that reads from the stream until its current char fulfills the provided
  * criterion. The read chars are returned.
  */
+template< typename InputStream >
 inline std::string read_until(
-    utils::CountingIstream&    source,
+    InputStream&               source,
     std::function<bool (char)> criterion
 ) {
     std::string target;
-    while( source && !criterion(*source) ) {
+    while( source && ! criterion( *source )) {
         target += *source;
         ++source;
     }
@@ -187,8 +193,9 @@ inline std::string read_until(
  * char is returned. For a similar function that checks the value of the current char but does
  * advance in the stream, see expect_char().
  */
+template< typename InputStream >
 inline char read_char_if(
-    utils::CountingIstream& source,
+    InputStream&            source,
     char                    criterion
 ) {
     if( !source || *source != criterion ) {
@@ -209,11 +216,12 @@ inline char read_char_if(
  * char is returned. For a similar function that checks the value of the current char but does
  * advance in the stream, see expect_char().
  */
+template< typename InputStream >
 inline char read_char_if(
-    utils::CountingIstream&    source,
+    InputStream&               source,
     std::function<bool (char)> criterion
 ) {
-    if( !source || !criterion(*source) ) {
+    if( !source || ! criterion( *source )) {
         throw std::runtime_error(
             "Unexpected char at " + source.at() + "."
         );
@@ -236,8 +244,9 @@ inline char read_char_if(
  * its current position). For a similar function that reads (i.e., also advances) the current char
  * from the stream, see read_char_if().
  */
+template< typename InputStream >
 inline void expect_char(
-    utils::CountingIstream& source,
+    InputStream&            source,
     char                    criterion
 ) {
     if( !source || *source != criterion ) {
@@ -255,11 +264,12 @@ inline void expect_char(
  * its current position). For a similar function that reads (i.e., also advances) the current char
  * from the stream, see read_char_if().
  */
+template< typename InputStream >
 inline void expect_char(
-    utils::CountingIstream&    source,
+    InputStream&               source,
     std::function<bool (char)> criterion
 ) {
-    if( !source || !criterion(*source) ) {
+    if( !source || ! criterion( *source )) {
         throw std::runtime_error(
             "Unexpected char at " + source.at() + "."
         );
