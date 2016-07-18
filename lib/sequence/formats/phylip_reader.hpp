@@ -45,7 +45,7 @@ namespace genesis {
 
 namespace utils {
 
-class CountingIstream;
+class InputStream;
 
 } // namespace utils
 
@@ -130,38 +130,38 @@ public:
     PhylipReader& operator= ( PhylipReader&& )      = default;
 
     // ---------------------------------------------------------------------
+    //     Reading
+    // ---------------------------------------------------------------------
+
+    void from_stream ( std::istream&      input_stream, SequenceSet& sequence_set ) const;
+    void from_file   ( std::string const& file_name,    SequenceSet& sequence_set ) const;
+    void from_string ( std::string const& input_string, SequenceSet& sequence_set ) const;
+
+    // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
 
     std::pair<size_t, size_t> parse_phylip_header(
-        utils::CountingIstream& it
+        utils::InputStream& it
     ) const;
 
     std::string parse_phylip_label(
-        utils::CountingIstream& it
+        utils::InputStream& it
     ) const;
 
     std::string parse_phylip_sequence_line(
-        utils::CountingIstream& it
+        utils::InputStream& it
     ) const;
 
     void parse_phylip_interleaved(
-        utils::CountingIstream& it,
+        utils::InputStream& it,
         SequenceSet& sset
     ) const;
 
     void parse_phylip_sequential(
-        utils::CountingIstream& it,
+        utils::InputStream& it,
         SequenceSet& sset
     ) const;
-
-    // ---------------------------------------------------------------------
-    //     Reading
-    // ---------------------------------------------------------------------
-
-    void from_stream ( std::istream&      is, SequenceSet& sset ) const;
-    void from_file   ( std::string const& fn, SequenceSet& sset ) const;
-    void from_string ( std::string const& fs, SequenceSet& sset ) const;
 
     // ---------------------------------------------------------------------
     //     Properties
