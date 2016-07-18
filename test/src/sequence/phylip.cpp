@@ -58,7 +58,7 @@ TEST( Sequence, PhylipReaderAaInterleaved )
     PhylipReader()
         .label_length( 10 )
         .mode( PhylipReader::Mode::kInterleaved )
-        .validate_chars( amino_acid_codes_all() )
+        .valid_chars( amino_acid_codes_all() )
         .from_file(infile, sset);
 
     // Check data.
@@ -80,7 +80,7 @@ TEST( Sequence, PhylipReaderDnaInterleaved )
     PhylipReader()
         .label_length( 10 )
         .mode( PhylipReader::Mode::kInterleaved )
-        .validate_chars( nucleic_acid_codes_all() )
+        .valid_chars( nucleic_acid_codes_all() )
         .from_file(infile, sset);
 
     // Check data.
@@ -105,7 +105,7 @@ TEST( Sequence, PhylipReaderAaSequential )
     SequenceSet sset;
     PhylipReader()
         .label_length( 10 )
-        .validate_chars( amino_acid_codes_all() )
+        .valid_chars( amino_acid_codes_all() )
         .from_file(infile, sset);
 
     // Check data.
@@ -126,7 +126,7 @@ TEST( Sequence, PhylipReaderDnaSequential )
     SequenceSet sset;
     PhylipReader()
         .label_length( 10 )
-        .validate_chars( nucleic_acid_codes_all() )
+        .valid_chars( nucleic_acid_codes_all() )
         .from_file(infile, sset);
 
     // Check data.
@@ -152,7 +152,7 @@ TEST( Sequence, PhylipReaderAaInterleavedAuto )
     PhylipReader()
         .label_length( 10 )
         .mode( PhylipReader::Mode::kAutomatic )
-        .validate_chars( amino_acid_codes_all() )
+        .valid_chars( amino_acid_codes_all() )
         .from_file(infile, sset);
 
     // Check data.
@@ -174,7 +174,7 @@ TEST( Sequence, PhylipReaderDnaInterleavedAuto )
     PhylipReader()
         .label_length( 10 )
         .mode( PhylipReader::Mode::kAutomatic )
-        .validate_chars( nucleic_acid_codes_all() )
+        .valid_chars( nucleic_acid_codes_all() )
         .from_file(infile, sset);
 
     // Check data.
@@ -200,7 +200,7 @@ TEST( Sequence, PhylipReaderAaSequentialAuto )
     PhylipReader()
         .label_length( 10 )
         .mode( PhylipReader::Mode::kAutomatic )
-        .validate_chars( amino_acid_codes_all() )
+        .valid_chars( amino_acid_codes_all() )
         .from_file(infile, sset);
 
     // Check data.
@@ -222,7 +222,7 @@ TEST( Sequence, PhylipReaderDnaSequentialAuto )
     PhylipReader()
         .label_length( 10 )
         .mode( PhylipReader::Mode::kAutomatic )
-        .validate_chars( nucleic_acid_codes_all() )
+        .valid_chars( nucleic_acid_codes_all() )
         .from_file(infile, sset);
 
     // Check data.
