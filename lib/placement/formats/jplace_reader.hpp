@@ -42,7 +42,7 @@ namespace genesis {
 // =================================================================================================
 
 namespace utils {
-    class CountingIstream;
+    class InputStream;
     class JsonDocument;
 }
 
@@ -121,15 +121,15 @@ public:
 
 protected:
 
-    void parse_version( utils::CountingIstream& input_stream ) const;
+    void parse_version( utils::InputStream& input_stream ) const;
 
     std::unordered_map<std::string, std::string> parse_metadata(
-        utils::CountingIstream& input_stream
+        utils::InputStream& input_stream
     ) const;
 
-    std::vector<std::string> parse_fields( utils::CountingIstream& input_stream ) const;
+    std::vector<std::string> parse_fields( utils::InputStream& input_stream ) const;
 
-    void parse_tree( utils::CountingIstream& input_stream ) const;
+    void parse_tree( utils::InputStream& input_stream ) const;
 
     // ---------------------------------------------------------------------
     //     Processing

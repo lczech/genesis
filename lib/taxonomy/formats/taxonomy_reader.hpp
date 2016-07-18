@@ -44,7 +44,7 @@ namespace genesis {
 
 namespace utils {
 
-    class CountingIstream;
+    class InputStream;
 
 } // namespace utils
 
@@ -142,14 +142,19 @@ public:
 
     void from_stream( std::istream&      is, Taxonomy& tax ) const;
     void from_file  ( std::string const& fn, Taxonomy& tax ) const;
-    void from_string( std::string const& fs, Taxonomy& tax ) const;
+    void from_string( std::string const& is, Taxonomy& tax ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
 
+    void parse_document(
+        utils::InputStream& it,
+        Taxonomy&           tax
+    ) const;
+
     Line parse_line(
-        utils::CountingIstream& it
+        utils::InputStream& it
     ) const;
 
     // ---------------------------------------------------------------------

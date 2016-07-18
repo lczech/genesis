@@ -38,7 +38,8 @@
 #include <stdexcept>
 
 #include "utils/core/fs.hpp"
-#include "utils/io/counting_istream.hpp"
+#include "utils/core/std.hpp"
+#include "utils/io/input_stream.hpp"
 #include "utils/io/parser.hpp"
 #include "utils/io/scanner.hpp"
 #include "utils/text/string.hpp"
@@ -55,8 +56,40 @@ namespace utils {
  */
 CsvReader::table CsvReader::from_stream( std::istream& is ) const
 {
+    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( is ));
+    return parse_document( it );
+}
+
+/**
+ * @brief Read a CSV file and return its contents.
+ */
+CsvReader::table CsvReader::from_file( std::string const& fn ) const
+{
+    utils::InputStream it( utils::make_unique< utils::FileInputSource >( fn ));
+    return parse_document( it );
+}
+
+/**
+ * @brief Read a string in CSV format and return its contents.
+ */
+CsvReader::table CsvReader::from_string( std::string const& fs ) const
+{
+    utils::InputStream it( utils::make_unique< utils::StringInputSource >( fs ));
+    return parse_document( it );
+}
+
+// =================================================================================================
+//     Parsing
+// =================================================================================================
+
+/**
+ * @brief Parse a whole CSV document and return its contents.
+ */
+CsvReader::table CsvReader::parse_document(
+    utils::InputStream& input_stream
+) const {
+    auto& it = input_stream;
     table result;
-    auto it = utils::CountingIstream( is );
 
     while( it ) {
         // Parse the next line and push it if it has content.
@@ -69,36 +102,6 @@ CsvReader::table CsvReader::from_stream( std::istream& is ) const
 
     return result;
 }
-
-/**
- * @brief Read a CSV file and return its contents.
- */
-CsvReader::table CsvReader::from_file( std::string const& fn ) const
-{
-    if( ! utils::file_exists( fn ) ) {
-        throw std::runtime_error( "File '" + fn + "' not found." );
-    }
-
-    std::ifstream ifs( fn );
-    if( ifs.fail() ) {
-        throw std::runtime_error( "Cannot read from file '" + fn + "'." );
-    }
-
-    return from_stream( ifs );
-}
-
-/**
- * @brief Read a string in CSV format and return its contents.
- */
-CsvReader::table CsvReader::from_string( std::string const& fs ) const
-{
-    std::istringstream iss( fs );
-    return from_stream( iss );
-}
-
-// =================================================================================================
-//     Parsing
-// =================================================================================================
 
 /**
  * @brief Parse one field (i.e., one column) of the CSV data and return it.
@@ -118,7 +121,7 @@ CsvReader::table CsvReader::from_string( std::string const& fs ) const
  * @link use_twin_quotes( bool value ) use_twin_quotes() @endlink
  * to change the behaviour of this function.
  */
-std::string CsvReader::parse_field( utils::CountingIstream& input_stream ) const
+std::string CsvReader::parse_field( utils::InputStream& input_stream ) const
 {
     // Init. We use a buffer in order to keep memory reallocations to a minimum.
     // See see member variable in the class declaration for more information.
@@ -198,7 +201,7 @@ std::string CsvReader::parse_field( utils::CountingIstream& input_stream ) const
  * See @link merge_separators( bool value ) merge_separators() @endlink to change the behaviour of
  * this function.
  */
-std::vector<std::string> CsvReader::parse_line( utils::CountingIstream& input_stream ) const
+std::vector<std::string> CsvReader::parse_line( utils::InputStream& input_stream ) const
 {
     // Init.
     auto& it = input_stream;

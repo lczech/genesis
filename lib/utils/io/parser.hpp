@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "utils/io/counting_istream.hpp"
+#include "utils/io/input_stream.hpp"
 
 #include <assert.h>
 #include <cctype>
@@ -52,7 +52,7 @@ namespace utils {
  * In case the value range is too small, the function throws `std::overflow_error`.
  */
 template<class T>
-T parse_unsigned_integer( utils::CountingIstream& source )
+T parse_unsigned_integer( utils::InputStream& source )
 {
     T x = 0;
     while( source && isdigit( *source )) {
@@ -60,7 +60,7 @@ T parse_unsigned_integer( utils::CountingIstream& source )
 
         if( x > ( std::numeric_limits<T>::max() - y ) / 10 ) {
             throw std::overflow_error(
-                "Numerical overflow at " + source.at() + "."
+                "Numerical overflow in " + source.source_name() + " at " + source.at() + "."
             );
         }
 
@@ -79,7 +79,7 @@ T parse_unsigned_integer( utils::CountingIstream& source )
  * or `underflow_error`, respectively.
  */
 template<class T>
-T parse_signed_integer( utils::CountingIstream& source )
+T parse_signed_integer( utils::InputStream& source )
 {
     if( !source ) {
         return 0;
@@ -94,7 +94,7 @@ T parse_signed_integer( utils::CountingIstream& source )
 
             if( x < ( std::numeric_limits<T>::min() + y ) / 10 ) {
                 throw std::underflow_error(
-                    "Numerical underflow at " + source.at() + "."
+                    "Numerical underflow in " + source.source_name() + " at " + source.at() + "."
                 );
             }
 
@@ -114,7 +114,7 @@ T parse_signed_integer( utils::CountingIstream& source )
  * @brief Alias for parse_signed_integer().
  */
 template<class T>
-T parse_integer( utils::CountingIstream& source )
+T parse_integer( utils::InputStream& source )
 {
     return parse_signed_integer<T>(source);
 }
@@ -135,7 +135,7 @@ T parse_integer( utils::CountingIstream& source )
  * after the 'E') does not fit into integer value range.
  */
 template<class T>
-T parse_float( utils::CountingIstream& source )
+T parse_float( utils::InputStream& source )
 {
     T x = 0.0;
 
@@ -208,7 +208,7 @@ T parse_float( utils::CountingIstream& source )
 // =================================================================================================
 
 std::string parse_quoted_string(
-    utils::CountingIstream& source,
+    utils::InputStream& source,
     bool use_escapes     = true,
     bool use_twin_quotes = false,
     bool include_qmarks  = false

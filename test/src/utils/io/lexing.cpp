@@ -30,9 +30,10 @@
 
 #include "common.hpp"
 
+#include "lib/utils/core/std.hpp"
 #include "lib/utils/io/parser.hpp"
 #include "lib/utils/io/scanner.hpp"
-#include "lib/utils/io/counting_istream.hpp"
+#include "lib/utils/io/input_stream.hpp"
 
 #include <algorithm>
 #include <iterator>
@@ -49,7 +50,7 @@ using namespace genesis::utils;
 void test_uint ( std::string str, unsigned int val, size_t col )
 {
     std::istringstream iss ( str );
-    CountingIstream iit (iss);
+    InputStream iit( make_unique< StreamInputSource >( iss ));
 
     auto res = parse_unsigned_integer<unsigned int>( iit );
     EXPECT_EQ( val, res ) << "Input string: '" << str << "'";
@@ -83,7 +84,7 @@ TEST(Parser, UnsignedInteger)
 void test_int ( std::string str, int val, size_t col )
 {
     std::istringstream iss ( str );
-    CountingIstream iit (iss);
+    InputStream iit( make_unique< StreamInputSource >( iss ));
 
     auto res = parse_signed_integer<int>( iit );
     EXPECT_EQ( val, res ) << "Input string: '" << str << "'";
@@ -127,7 +128,7 @@ TEST(Parser, SignedInteger)
 void test_float( std::string str, float val, size_t col )
 {
     std::istringstream iss ( str );
-    CountingIstream iit (iss);
+    InputStream iit( make_unique< StreamInputSource >( iss ));
 
     auto res = parse_float<double>( iit );
     EXPECT_FLOAT_EQ( val, res ) << "Input string: '" << str << "'";
@@ -207,7 +208,7 @@ void test_string(
     bool include_qmarks
 ) {
     std::istringstream iss ( str );
-    CountingIstream iit (iss);
+    InputStream iit( make_unique< StreamInputSource >( iss ));
 
     auto res = parse_quoted_string( iit, use_escapes, use_twin_quotes, include_qmarks );
     EXPECT_EQ( val, res )
