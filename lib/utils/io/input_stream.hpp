@@ -36,6 +36,7 @@
 
 #include <assert.h>
 #include <stdexcept>
+#include <string>
 #include <utility>
 
 namespace genesis {
@@ -95,6 +96,16 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
+    InputStream()
+        : source_name_( "invalid source" )
+        , buffer_(   nullptr )
+        , data_pos_( 0 )
+        , data_end_( 0 )
+        , current_( '\0' )
+        , line_(     0 )
+        , column_(   0 )
+    {}
+
     explicit InputStream( std::unique_ptr<InputSourceInterface> input_source )
         : line_(   1 )
         , column_( 1 )
@@ -105,13 +116,14 @@ public:
     ~InputStream()
     {
         delete[] buffer_;
+        buffer_ = nullptr;
     }
 
     InputStream(self_type const&) = delete;
-    InputStream(self_type&&)      = default;
+    InputStream(self_type&&)      = delete;
 
     self_type& operator= (self_type const&) = delete;
-    self_type& operator= (self_type&&)      = default;
+    self_type& operator= (self_type&&)      = delete;
 
     // -------------------------------------------------------------
     //     Char Operations
@@ -142,10 +154,14 @@ public:
     char current() const
     {
         if( data_pos_ >= data_end_ ) {
-            throw std::runtime_error( "Unexpected end of file at " + at() + "." );
+            throw std::runtime_error(
+                "Unexpected end of " + source_name() + " at " + at() + "."
+            );
         }
         if( current_ < 0 ) {
-            throw std::domain_error( "Invalid input char at " + at() + "." );
+            throw std::domain_error(
+                "Invalid input char in " + source_name() + " at " + at() + "."
+            );
         }
         return current_;
     }
@@ -241,7 +257,7 @@ public:
 
         // If the line is too long, throw.
         if( line_end - data_pos_ + 1 > BlockLength ) {
-            throw std::runtime_error( "Input line too long at " + at() );
+            throw std::runtime_error( "Input line too long in " + source_name() + " at " + at() );
         }
 
         // Set the end of the line to \0, so that downstream parses can work with it.
@@ -341,6 +357,14 @@ public:
         return data_pos_ >= data_end_;
     }
 
+    /**
+     * @brief Get the input source name used to read from. Mainly useful for user output.
+     */
+    std::string source_name() const
+    {
+        return source_name_;
+    }
+
     // -------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------
@@ -380,10 +404,10 @@ private:
 
             // If we are not yet at the end of the data, start the reader again:
             // Copy the third block to the second, and read into the third one.
-            if( reader_.valid() ) {
-                data_end_ += reader_.finish_reading();
+            if( input_reader_.valid() ) {
+                data_end_ += input_reader_.finish_reading();
                 std::memcpy( buffer_ + BlockLength, buffer_ + 2 * BlockLength, BlockLength );
-                reader_.start_reading( buffer_ + 2 * BlockLength, BlockLength );
+                input_reader_.start_reading( buffer_ + 2 * BlockLength, BlockLength );
             }
         }
     }
@@ -421,7 +445,28 @@ private:
      */
     void init_( std::unique_ptr<InputSourceInterface> input_source )
     {
+        // Set to empty defaults if there is no input.
+        if( input_source == nullptr ) {
+            source_name_ = "invalid source";
+
+            buffer_   = nullptr;
+            data_pos_ = 0;
+            data_end_ = 0;
+
+            current_ = '\0';
+            line_    = 0;
+            column_  = 0;
+            return;
+        }
+
+        // We use three buffer blocks: one and two for the current line. The max line length is
+        // one buffer length, so the beginning of the line is always in the first block, while its
+        // end can reach into the second block, but never exeed it.
+        // The third block is for the async reading.
         buffer_ = new char[ 3 * BlockLength ];
+
+        // Set source name.
+        source_name_ = input_source->source_name();
 
         try {
             // Read up to two blocks.
@@ -449,8 +494,8 @@ private:
             // If there is more data after the two blocks that we just read, start the
             // reading process (possibly async, if pthreads is available).
             if( data_end_ == 2 * BlockLength ) {
-                reader_.init( std::move( input_source ));
-                reader_.start_reading( buffer_ + 2 * BlockLength, BlockLength );
+                input_reader_.init( std::move( input_source ));
+                input_reader_.start_reading( buffer_ + 2 * BlockLength, BlockLength );
             }
 
         } catch( ... ) {
@@ -466,7 +511,8 @@ private:
 private:
 
     // Input data comes from here...
-    InputReader reader_;
+    InputReader input_reader_;
+    std::string source_name_;
 
     // ...and is buffered here.
     char*  buffer_;
