@@ -33,8 +33,6 @@
 
 #include "utils/io/input_source.hpp"
 
-#include "utils/core/logging.hpp"
-
 #include <memory>
 #include <string>
 #include <utility>
@@ -89,10 +87,52 @@ public:
     AsynchronousReader() = default;
 
     AsynchronousReader( AsynchronousReader const& ) = delete;
-    AsynchronousReader( AsynchronousReader&& )      = default;
+    AsynchronousReader( AsynchronousReader&& )      = delete;
+
+    // Not sure if this move constructor and the move assignment are correct.
+    // We don't need them right now, so better disable them.
+    // Inspired by http://stackoverflow.com/questions/29986208/how-should-i-deal-with-mutexes-in-movable-types-in-c
+
+    // AsynchronousReader( AsynchronousReader&& other )
+    // {
+    //     std::unique_lock< std::mutex > guard( lock_ );
+    //
+    //     input_source_  = std::move( other.input_source_ );
+    //
+    //     target_buffer_ = std::move( other.target_buffer_ );
+    //     target_size_   = std::move( other.target_size_ );
+    //     achieved_size_ = std::move( other.achieved_size_ );
+    //
+    //     worker_            = std::move( other.worker_ );
+    //     destructor_called_ = std::move( other.destructor_called_ );
+    //     read_except_ptr_   = std::move( other.read_except_ptr_ );
+    // }
 
     AsynchronousReader& operator= ( AsynchronousReader const& ) = delete;
-    AsynchronousReader& operator= ( AsynchronousReader&& )      = default;
+    AsynchronousReader& operator= ( AsynchronousReader&& )      = delete;
+
+    // AsynchronousReader& operator= ( AsynchronousReader&& other )
+    // {
+    //     if( this == &other ) {
+    //         return *this;
+    //     }
+    //
+    //     std::unique_lock< std::mutex > guard_lhs( lock_,       std::defer_lock );
+    //     std::unique_lock< std::mutex > guard_rhs( other.lock_, std::defer_lock );
+    //     std::lock( guard_lhs, guard_rhs);
+    //
+    //     input_source_  = std::move( other.input_source_ );
+    //
+    //     target_buffer_ = std::move( other.target_buffer_ );
+    //     target_size_   = std::move( other.target_size_ );
+    //     achieved_size_ = std::move( other.achieved_size_ );
+    //
+    //     worker_            = std::move( other.worker_ );
+    //     destructor_called_ = std::move( other.destructor_called_ );
+    //     read_except_ptr_   = std::move( other.read_except_ptr_ );
+    //
+    //     return *this;
+    // }
 
     ~AsynchronousReader()
     {
