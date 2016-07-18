@@ -83,6 +83,15 @@ public:
         return read_( buffer, size );
     }
 
+    /**
+     * @brief Get a name of the input source. Mainly interesting for user output.
+     */
+    std::string source_name() const
+    {
+        // Non-virtual interface.
+        return source_name_();
+    }
+
     // -------------------------------------------------------------
     //     Internal Members
     // -------------------------------------------------------------
@@ -90,6 +99,8 @@ public:
 private:
 
     virtual size_t read_( char* buffer, size_t size ) = 0;
+
+    virtual std::string source_name_() const = 0;
 
 };
 
@@ -103,6 +114,9 @@ private:
  * The input string is provided via the constructor. It is not owned by this class, thus
  * the owner must keep it alive as long as reading from it is required, and is responsbile for
  * destroying it. This class merely keeps a pointer to it.
+ *
+ * That implies that the string shall not be modified while this input source is used, thus,
+ * only const-members of the string can be called.
  */
 class StringInputSource : public InputSourceInterface
 {
@@ -112,15 +126,27 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
+    /**
+     * @brief Construct the input source from a char array.
+     */
     StringInputSource( char const* str, size_t size )
         : instr_( str )
         , rest_size_( size )
     {}
 
+    /**
+    * @brief Construct the input source from a `std::string`.
+    */
     StringInputSource( std::string const& str )
         : instr_( str.c_str() )
         , rest_size_( str.size() )
     {}
+
+    StringInputSource( StringInputSource const& ) = default;
+    StringInputSource( StringInputSource&& )      = default;
+
+    StringInputSource& operator= ( StringInputSource const& ) = default;
+    StringInputSource& operator= ( StringInputSource&& )      = default;
 
     ~StringInputSource()
     {}
@@ -131,6 +157,9 @@ public:
 
 private:
 
+    /**
+     * @brief Override of the read function.
+     */
     size_t read_( char* buffer, size_t size ) override
     {
         // Don't overshoot.
@@ -145,6 +174,13 @@ private:
         return size;
     }
 
+    /**
+     * @brief Override of the source name funtion. Returns "input string".
+     */
+    std::string source_name_() const override
+    {
+        return "input string";
+    }
 
     char const* instr_;
     size_t      rest_size_;
@@ -170,9 +206,18 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
+    /**
+     * @brief Construct the input source from an `std::istream`.
+     */
     explicit StreamInputSource( std::istream& in )
         : in_( in )
     {}
+
+    StreamInputSource( StreamInputSource const& ) = default;
+    StreamInputSource( StreamInputSource&& )      = default;
+
+    StreamInputSource& operator= ( StreamInputSource const& ) = default;
+    StreamInputSource& operator= ( StreamInputSource&& )      = default;
 
     ~StreamInputSource()
     {}
@@ -183,10 +228,21 @@ public:
 
 private:
 
+    /**
+     * @brief Override of the read function.
+     */
     size_t read_( char* buffer, size_t size ) override
     {
         in_.read( buffer, size );
         return in_.gcount();
+    }
+
+    /**
+     * @brief Override of the source name funtion. Returns "input stream".
+     */
+    std::string source_name_() const override
+    {
+        return "input stream";
     }
 
     std::istream& in_;
@@ -212,31 +268,47 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    explicit FileInputSource( std::string const& filename )
+    /**
+     * @brief Construct the input source from a file with the given file name.
+     */
+    explicit FileInputSource( std::string const& file_name )
+        : file_name_( file_name )
     {
-        if( ! file_exists( filename ) ) {
-            throw std::runtime_error( "File does not exists: " + filename );
+        if( ! file_exists( file_name ) ) {
+            throw std::runtime_error( "File does not exists: " + file_name );
         }
 
-        file_ = std::fopen( filename.c_str(), "rb" );
+        file_ = std::fopen( file_name.c_str(), "rb" );
 
         if( file_ == nullptr ) {
             // TODO use errno here.
-            throw std::runtime_error( "Cannot open file: " + filename );
+            throw std::runtime_error( "Cannot open file: " + file_name );
         }
 
         // We do our own buffering.
         std::setvbuf( file_, 0, _IONBF, 0 );
     }
 
-    explicit FileInputSource( FILE* file )
+    /**
+     * @brief Construct the input source from a `FILE` pointer. The `file_name` is used for the
+     * source_name() function only.
+     */
+    explicit FileInputSource( std::string const& file_name, FILE* file )
         : file_( file )
+        , file_name_( file_name )
     {
         // We do our own buffering.
         std::setvbuf( file_, 0, _IONBF, 0 );
     }
 
-    ~FileInputSource(){
+    FileInputSource( FileInputSource const& ) = default;
+    FileInputSource( FileInputSource&& )      = default;
+
+    FileInputSource& operator= ( FileInputSource const& ) = default;
+    FileInputSource& operator= ( FileInputSource&& )      = default;
+
+    ~FileInputSource()
+    {
         std::fclose( file_ );
     }
 
@@ -246,12 +318,24 @@ public:
 
 private:
 
+    /**
+     * @brief Override of the read function.
+     */
     size_t read_( char* buffer, size_t size ) override
     {
         return std::fread( buffer, 1, size, file_ );
     }
 
-    FILE* file_;
+    /**
+     * @brief Override of the source name funtion. Returns "input file <file_name>".
+     */
+    std::string source_name_() const override
+    {
+        return "input file " + file_name_;
+    }
+
+    FILE*       file_;
+    std::string file_name_;
 };
 
 } // namespace utils
