@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include <string>
+#include <utility>
 
 namespace genesis {
 namespace utils {
