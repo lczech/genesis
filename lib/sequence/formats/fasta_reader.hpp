@@ -44,6 +44,7 @@ namespace genesis {
 
 namespace utils {
     class CountingIstream;
+    class InputStream;
 }
 
 namespace sequence {
@@ -73,7 +74,7 @@ namespace sequence {
  *
  *     FastaReader()
  *         .to_upper()
- *         .validate_chars( nucleic_acid_codes_all() )
+ *         .valid_chars( nucleic_acid_codes_all() )
  *         .from_file( infile, sset );
  *
  * The expected data format:
@@ -84,7 +85,7 @@ namespace sequence {
  *   3. After that, a sequence has to follow, over one or more lines and ending in a '\\n' character.
  *
  * Using to_upper(bool), the sequences can automatically be turned into upper case letter.
- * Also, see validate_chars( std::string const& chars ) for a way of checking correct input sequences.
+ * Also, see valid_chars( std::string const& chars ) for a way of checking correct input sequences.
  */
 class FastaReader
 {
@@ -104,26 +105,31 @@ public:
     FastaReader& operator= ( FastaReader&& )      = default;
 
     // ---------------------------------------------------------------------
-    //     Parsing
-    // ---------------------------------------------------------------------
-
-    bool parse_sequence(
-        utils::CountingIstream& input_stream,
-        Sequence&               sequence
-    ) const;
-
-    bool parse_sequence_fast(
-        utils::CountingIstream& input_stream,
-        Sequence&               sequence
-    ) const;
-
-    // ---------------------------------------------------------------------
     //     Reading
     // ---------------------------------------------------------------------
 
-    void from_stream ( std::istream&      is, SequenceSet& sset ) const;
-    void from_file   ( std::string const& fn, SequenceSet& sset ) const;
-    void from_string ( std::string const& fs, SequenceSet& sset ) const;
+    void from_stream ( std::istream&      input_stream, SequenceSet& sequence_set ) const;
+    void from_file   ( std::string const& file_name,    SequenceSet& sequence_set ) const;
+    void from_string ( std::string const& input_string, SequenceSet& sequence_set ) const;
+
+    // ---------------------------------------------------------------------
+    //     Parsing
+    // ---------------------------------------------------------------------
+
+    void parse_document(
+        utils::InputStream& input_stream,
+        SequenceSet& sset
+    ) const;
+
+    bool parse_sequence(
+        utils::CountingIstream& input_stream,
+        Sequence&           sequence
+    ) const;
+
+    bool parse_sequence(
+        utils::InputStream& input_stream,
+        Sequence&           sequence
+    ) const;
 
     // ---------------------------------------------------------------------
     //     Properties
@@ -132,10 +138,9 @@ public:
     FastaReader& to_upper( bool value );
     bool         to_upper() const;
 
-    FastaReader& validate_chars( std::string const& chars );
-    std::string  validate_chars() const;
+    FastaReader& valid_chars( std::string const& chars );
+    std::string  valid_chars() const;
 
-    bool is_validating() const;
     utils::CharLookup& valid_char_lookup();
 
     // ---------------------------------------------------------------------
@@ -144,7 +149,8 @@ public:
 
 private:
 
-    bool              to_upper_ = true;
+    bool              to_upper_       = true;
+    bool              use_validation_ = false;
     utils::CharLookup lookup_;
 
 };

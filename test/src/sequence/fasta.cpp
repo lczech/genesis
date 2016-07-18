@@ -31,14 +31,18 @@
 #include "common.hpp"
 
 #include "lib/sequence/codes.hpp"
-#include "lib/sequence/functions.hpp"
-#include "lib/sequence/sequence_set.hpp"
 #include "lib/sequence/formats/fasta_input_iterator.hpp"
 #include "lib/sequence/formats/fasta_reader.hpp"
+#include "lib/sequence/functions.hpp"
+#include "lib/sequence/sequence_set.hpp"
+
+#include "lib/utils/core/std.hpp"
+#include "lib/utils/io/input_stream.hpp"
 
 #include <fstream>
 #include <string>
 
+using namespace genesis;
 using namespace genesis::sequence;
 
 TEST( Sequence, FastaReaderValidating )
@@ -50,7 +54,7 @@ TEST( Sequence, FastaReaderValidating )
     std::string infile = environment->data_dir + "sequence/dna_354.fasta";
     SequenceSet sset;
     FastaReader()
-        .validate_chars( nucleic_acid_codes_all() )
+        .valid_chars( nucleic_acid_codes_all() )
         .from_file(infile, sset);
 
     // Check data.
@@ -67,9 +71,8 @@ TEST( FastaInputIterator, ReadingLoop )
     NEEDS_TEST_DATA;
 
     std::string infile = environment->data_dir + "sequence/dna_354.fasta";
-    std::ifstream ifs (infile);
-
-    auto it = FastaInputIterator( ifs );
+    utils::InputStream instr( utils::make_unique< utils::FileInputSource >( infile ));
+    auto it = FastaInputIterator( instr );
 
     size_t len = 0;
     size_t cnt = 0;
