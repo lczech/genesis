@@ -190,12 +190,6 @@ public:
 
         // Next position.
         ++data_pos_;
-        if( data_pos_ >= data_end_ ) {
-            // If we just reached the end, do not fully reset the line and column counters.
-            // They might be needed in some parser.
-            current_ = '\0';
-            return *this;
-        }
 
         // Set the char.
         set_current_char_();
@@ -284,12 +278,10 @@ public:
         char*  ret_ptr = buffer_ + data_pos_;
         size_t ret_len = line_end - data_pos_;
 
-        // Move to the first char of the next line, so that future calles for reading a line or
+        // Move to the first char of the next line, so that future calls for reading a line or
         // char start at the right position.
         data_pos_ = line_end + 1;
-        if( data_pos_ <  data_end_ ) {
-            current_ = buffer_[ data_pos_ ];
-        }
+        set_current_char_();
 
         // Set counters.
         ++line_;
@@ -426,6 +418,13 @@ private:
      */
     void set_current_char_()
     {
+        if( data_pos_ >= data_end_ ) {
+            // If we just reached the end, do not fully reset the line and column counters.
+            // They might be needed in some parser.
+            current_ = '\0';
+            return;
+        }
+
         // Treat stupid Windows and Mac lines breaks. Set them to \n, so that downstream parsers
         // don't have to deal with this.
         if( buffer_[ data_pos_ ] == '\r' ) {
