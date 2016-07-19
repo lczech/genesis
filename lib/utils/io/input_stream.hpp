@@ -358,7 +358,15 @@ public:
     }
 
     /**
-     * @brief Get the input source name used to read from. Mainly useful for user output.
+     * @brief Get the input source name where this stream reads from.
+     *
+     * Depending on the type of input, this is either
+     *
+     *  *  "input string",
+     *  *  "input stream" or
+     *  *  "input file <filename>"
+     *
+     * This is mainly useful for user output like log and error messages.
      */
     std::string source_name() const
     {
