@@ -53,11 +53,37 @@ namespace utils {
 #ifdef PTHREADS
 
     class AsynchronousReader;
+
+    /**
+     * @brief Alias for the either AsynchronousReader or SynchronousReader, depending on the
+     * threading setting.
+     *
+     * This typedef is an alias for AsynchronousReader, if threading is available, that is,
+     * if the `PTHREADS` macro definition is set.
+     * If not, it is an alias for SynchronousReader.
+     *
+     * Using this typedef instead of one of the two reader classes directly thus makes it possible
+     * to ignore the `PTHREADS` setting when using them. It serves as an abstraction. For example,
+     * InputStream uses the typedef this way.
+     */
     using InputReader = AsynchronousReader;
 
 #else
 
     class SynchronousReader;
+
+    /**
+    * @brief Alias for the either AsynchronousReader or SynchronousReader, depending on the
+    * threading setting.
+    *
+    * This typedef is an alias for AsynchronousReader, if threading is available, that is,
+    * if the `PTHREADS` macro definition is set.
+    * If not, it is an alias for SynchronousReader.
+    *
+    * Using this typedef instead of one of the two reader classes directly thus makes it possible
+    * to ignore the `PTHREADS` setting when using them. It serves as an abstraction. For example,
+    * InputStream uses the typedef this way.
+    */
     using InputReader = SynchronousReader;
 
 #endif
@@ -71,7 +97,14 @@ namespace utils {
 /**
  * @brief Read bytes from an @link InputSourceInterface InputSource@endlink into a `char buffer`.
  *
- * The reading is done asynchronously, that is, a second thread is started.
+ * The reading is done asynchronously, that is, a second thread is started. This is usually faster
+ * than synchronous reading (see SynchronousReader), particularly for large data blocks.
+ * It is thus the preferred reader, if available.
+ *
+ * This class is only available if threading is available, that is, if the `PTHREADS` macro
+ * definition is set. If this is the case, the @link utils::InputReader InputReader@endlink
+ * typedef is an alias of this class. Otherwise, only the SynchronousReader is available and
+ * @link utils::InputReader InputReader@endlink aliases this one instead.
  *
  * Implementation details inspired by
  * [fast-cpp-csv-parser](https://github.com/ben-strasser/fast-cpp-csv-parser) by Ben Strasser.
@@ -275,7 +308,7 @@ private:
     std::condition_variable cond_read_finished_;
 };
 
-#else
+#endif
 
 // =================================================================================================
 //     Synchronous Reader
@@ -284,7 +317,12 @@ private:
 /**
  * @brief Read bytes from an @link InputSourceInterface InputSource@endlink into a `char buffer`.
  *
- * The reading is done synchronously, that is, reading occurs on request.
+ * The reading is done synchronously, that is, reading occurs on request. This is usually slower
+ * than asynchronous reading (see AsynchronousReader).
+ *
+ * This class is always available. If threading is not available (that is, if the `PTHREADS`
+ * macro definition is not set), the @link utils::InputReader InputReader@endlink typedef is an
+ * alias for this class.
  *
  * Implementation details inspired by
  * [fast-cpp-csv-parser](https://github.com/ben-strasser/fast-cpp-csv-parser) by Ben Strasser.
@@ -356,8 +394,6 @@ private:
     char* target_buffer_;
     int   target_size_;
 };
-
-#endif
 
 } // namespace utils
 } // namespace genesis
