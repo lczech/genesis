@@ -33,7 +33,8 @@
 #include "sequence/sequence_set.hpp"
 #include "sequence/sequence.hpp"
 #include "utils/core/fs.hpp"
-#include "utils/io/counting_istream.hpp"
+#include "utils/core/std.hpp"
+#include "utils/io/input_stream.hpp"
 #include "utils/io/scanner.hpp"
 #include "utils/text/string.hpp"
 
@@ -53,11 +54,136 @@ namespace sequence {
 /**
  * @brief Create a default PhylipReader. Per default, chars are turned upper case, but not validated.
  *
- * See to_upper() and validate_chars() to change this behaviour.
+ * See to_upper() and valid_chars() to change this behaviour.
  */
 PhylipReader::PhylipReader()
 {
     lookup_.set_all( true );
+}
+
+// =================================================================================================
+//     Reading
+// =================================================================================================
+
+/**
+ * @brief Read all Sequences from a std::istream in Phylip format into a SequenceSet.
+ *
+ * This function is only allowed for Mode::kSequential and Mode::kInterleaved. Automatic mode does
+ * not work, as the stream might need to be reset, which is not possible. See mode(Mode).
+ */
+void PhylipReader::from_stream( std::istream& input_stream, SequenceSet& sequence_set ) const
+{
+    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
+
+    switch( mode_ ) {
+        case Mode::kSequential:
+            parse_phylip_sequential( it, sequence_set );
+            break;
+
+        case Mode::kInterleaved:
+            parse_phylip_interleaved( it, sequence_set );
+            break;
+
+        case Mode::kAutomatic:
+        default:
+            throw std::runtime_error(
+                "Automatic mode of PhylipReader not possible when using from_stream()."
+            );
+    }
+}
+
+/**
+ * @brief Read all Sequences from a file in Phylip format into a SequenceSet.
+ */
+void PhylipReader::from_file( std::string const& file_name, SequenceSet& sequence_set ) const
+{
+    // This function is very similar to from_string, but has some differences in treating the input
+    // when needing to restart in automatic mode. Unfortunately, we have to live with this code
+    // duplication for now. Everything else would end up in a mess of small helper functions, which
+    // is also not nice.
+
+    // Get stream.
+    utils::InputStream it( utils::make_unique< utils::FileInputSource >( file_name ));
+
+    // If the mode is specified, use it.
+    if( mode_ == Mode::kSequential ) {
+        parse_phylip_sequential( it, sequence_set );
+    } else if( mode_ == Mode::kInterleaved ) {
+        parse_phylip_interleaved( it, sequence_set );
+
+    // If the mode is automatic, we need to do some magic.
+    } else {
+
+        // We need a temporary set, because in case of failure, we need to start from the beginning,
+        // but we do not want to clear all other sequences in the set (that might be there from
+        // other stuff done before calling this function).
+        SequenceSet tmp;
+
+        // Try sequential first.
+        try {
+            parse_phylip_sequential( it, tmp );
+
+        // If it fails, restart the stream and try interleaved.
+        // If this also throws, the file is ill formatted and the exception will be forwared to
+        // the caller of this function.
+        } catch ( ... ) {
+            tmp.clear();
+
+            // Prepare stream. Again. Then parse.
+            utils::InputStream it( utils::make_unique< utils::FileInputSource >( file_name ));
+            parse_phylip_interleaved( it, tmp );
+        }
+
+        // If we reach this point, one of the parses succeeded.
+        // Move all sequences to the actual target.
+        for( auto s : tmp ) {
+            sequence_set.push_back( std::move(s) );
+        }
+    }
+}
+
+/**
+ * @brief Read all Sequences from a std::string in Phylip format into a SequenceSet.
+ */
+void PhylipReader::from_string( std::string const& input_string, SequenceSet& sequence_set ) const
+{
+    // This function is very similar to from_file. See there for some more code explanations and for
+    // the reason why we currently do not re-engineer this to avoid this code duplication.
+
+    // Prepare stream.
+    utils::InputStream it( utils::make_unique< utils::StringInputSource >( input_string ));
+
+    // If the mode is specified, use it.
+    if( mode_ == Mode::kSequential ) {
+        parse_phylip_sequential( it, sequence_set );
+    } else if( mode_ == Mode::kInterleaved ) {
+        parse_phylip_interleaved( it, sequence_set );
+
+    // If the mode is automatic, we need to do some magic.
+    } else {
+
+        // Temporary set.
+        SequenceSet tmp;
+
+        // Try sequential first.
+        try {
+            parse_phylip_sequential( it, tmp );
+
+        // If it fails, restart the stream and try interleaved.
+        } catch ( ... ) {
+            tmp.clear();
+
+            // Prepare stream. Again. Then parse.
+            utils::InputStream it( utils::make_unique< utils::StringInputSource >( input_string ));
+            parse_phylip_interleaved( it, tmp );
+        }
+
+        // If we reach this point, one of the parses succeeded.
+        // Move all sequences to the actual target.
+        for( auto s : tmp ) {
+            sequence_set.push_back( std::move(s) );
+        }
+    }
 }
 
 // =================================================================================================
@@ -74,14 +200,15 @@ PhylipReader::PhylipReader()
  * Currently, the function does not support Phylip options. According to the standard, those might
  * follow after the two integers, but will lead to exceptions here.
  */
-std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstream& it ) const
+std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::InputStream& it ) const
 {
     // Read number of sequences.
     utils::skip_while( it, isblank );
     std::string num_seq_str = utils::read_while( it, isdigit );
     if( num_seq_str.length() == 0 ) {
         throw std::runtime_error(
-            "Malformed Phylip file: Expecting sequence number at " + it.at() + "."
+            "Malformed Phylip " + it.source_name() + ": Expecting sequence number at "
+            + it.at() + "."
         );
     }
     size_t num_seq = std::stoi( num_seq_str );
@@ -91,7 +218,8 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstr
     std::string len_seq_str = utils::read_while( it, isdigit );
     if( len_seq_str.length() == 0 ) {
         throw std::runtime_error(
-            "Malformed Phylip file: Expecting sequence length at " + it.at() + "."
+            "Malformed Phylip " + it.source_name() + ": Expecting sequence length at "
+            + it.at() + "."
         );
     }
     size_t len_seq = std::stoi( len_seq_str );
@@ -99,7 +227,7 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstr
     // Sanity check.
     if( num_seq == 0 || len_seq == 0 ) {
         throw std::runtime_error(
-            "Malformed Phylip file: Sequences are empty."
+            "Malformed Phylip " + it.source_name() + ": Sequences are empty."
         );
     }
 
@@ -107,7 +235,7 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstr
     utils::skip_while( it, isblank );
     if( !it || *it != '\n' ) {
         throw std::runtime_error(
-            "Malformed Phylip file: Expecting end of line at " + it.at() + "."
+            "Malformed Phylip " + it.source_name() + ": Expecting end of line at " + it.at() + "."
         );
     }
     ++it;
@@ -122,14 +250,14 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::CountingIstr
  * `label_length == 0` takes all chars until the first blank as label. It returns the trimmed
  * label and leaves the stream at the next char after the label (and after subsequent blanks).
  */
-std::string PhylipReader::parse_phylip_label( utils::CountingIstream& it ) const
+std::string PhylipReader::parse_phylip_label( utils::InputStream& it ) const
 {
     std::string label;
 
     // Labels need to start with some graphical char.
     if( !it || !isgraph( *it ) ) {
         throw std::runtime_error(
-            "Malformed Phylip file: Expecting label at " + it.at() + "."
+            "Malformed Phylip " + it.source_name() + ": Expecting label at " + it.at() + "."
         );
     }
 
@@ -138,7 +266,8 @@ std::string PhylipReader::parse_phylip_label( utils::CountingIstream& it ) const
         label = utils::read_while( it, isgraph );
         if( !it || !isblank( *it ) ) {
             throw std::runtime_error(
-                "Malformed Phylip file: Expecting delimiting white space at " + it.at() + "."
+                "Malformed Phylip " + it.source_name() + ": Expecting delimiting white space at "
+                + it.at() + "."
             );
         }
         utils::skip_while( it, isblank );
@@ -148,7 +277,7 @@ std::string PhylipReader::parse_phylip_label( utils::CountingIstream& it ) const
         for( size_t i = 0; i < label_length_; ++i ) {
             if( !it || !isprint( *it ) ) {
                 throw std::runtime_error(
-                    "Malformed Phylip file: Invalid label at " + it.at() + "."
+                    "Malformed Phylip " + it.source_name() + ": Invalid label at " + it.at() + "."
                 );
             }
 
@@ -166,10 +295,10 @@ std::string PhylipReader::parse_phylip_label( utils::CountingIstream& it ) const
  * @brief Parse one sequence line.
  *
  * The line (which can also start after a label) is parsed until the first '\\n' char.
- * While parsing, the options to_upper() and validate_chars() are applied according to their
+ * While parsing, the options to_upper() and valid_chars() are applied according to their
  * settings. The stream is left at the beginning of the next line.
  */
-std::string PhylipReader::parse_phylip_sequence_line( utils::CountingIstream& it ) const
+std::string PhylipReader::parse_phylip_sequence_line( utils::InputStream& it ) const
 {
     std::string seq;
 
@@ -183,9 +312,10 @@ std::string PhylipReader::parse_phylip_sequence_line( utils::CountingIstream& it
 
         // Check and process current char.
         char c = ( to_upper_ ? toupper(*it) : *it );
-        if( !lookup_[c] ) {
+        if( use_validation_ && !lookup_[c] ) {
             throw std::runtime_error(
-                "Malformed Phylip file: Invalid sequence symbols at " + it.at() + "."
+                "Malformed Phylip " + it.source_name() + ": Invalid sequence symbols at "
+                + it.at() + "."
             );
         }
         seq += c;
@@ -195,7 +325,8 @@ std::string PhylipReader::parse_phylip_sequence_line( utils::CountingIstream& it
     // All lines need to end with \n
     if( !it ) {
         throw std::runtime_error(
-            "Malformed Phylip file: Sequence line does not end with '\\n' " + it.at() + "."
+            "Malformed Phylip " + it.source_name() + ": Sequence line does not end with '\\n' "
+            + it.at() + "."
         );
     }
 
@@ -208,7 +339,7 @@ std::string PhylipReader::parse_phylip_sequence_line( utils::CountingIstream& it
 /**
  * @brief Parse a whole Phylip file using the sequential variant (Mode::kSequential).
  */
-void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, SequenceSet& sset ) const
+void PhylipReader::parse_phylip_sequential(  utils::InputStream& it, SequenceSet& sset ) const
 {
     auto sizes = parse_phylip_header( it );
     size_t num_seq = sizes.first;
@@ -236,7 +367,7 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
         // Check sequence length.
         if( seq.sites().length() > len_seq ) {
             throw std::runtime_error(
-                "Malformed Phylip file: Sequence with length "
+                "Malformed Phylip " + it.source_name() + ": Sequence with length "
                 + std::to_string( seq.sites().length() ) + " instead of "
                 + std::to_string( len_seq ) + " at " + it.at() + "."
             );
@@ -251,7 +382,7 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
     utils::skip_while( it, isspace );
     if( it ) {
         throw std::runtime_error(
-            "Malformed Phylip file: Expected end of file at " + it.at() + "."
+            "Malformed Phylip " + it.source_name() + ": Expected end of file at " + it.at() + "."
         );
     }
     assert( sset.size() == num_seq );
@@ -260,7 +391,7 @@ void PhylipReader::parse_phylip_sequential(  utils::CountingIstream& it, Sequenc
 /**
  * @brief Parse a whole Phylip file using the interleaved variant (Mode::kInterleaved).
  */
-void PhylipReader::parse_phylip_interleaved( utils::CountingIstream& it, SequenceSet& sset ) const
+void PhylipReader::parse_phylip_interleaved( utils::InputStream& it, SequenceSet& sset ) const
 {
     // Parse header line.
     auto sizes = parse_phylip_header( it );
@@ -271,7 +402,7 @@ void PhylipReader::parse_phylip_interleaved( utils::CountingIstream& it, Sequenc
     auto check_seq_len = [ &it, &len_seq ] ( Sequence const& seq ) {
         if( seq.length() > len_seq ) {
             throw std::runtime_error(
-                "Malformed Phylip file: Sequence with length "
+                "Malformed Phylip " + it.source_name() + ": Sequence with length "
                 + std::to_string( seq.sites().length() ) + " instead of "
                 + std::to_string( len_seq ) + " at " + it.at() + "."
             );
@@ -310,7 +441,8 @@ void PhylipReader::parse_phylip_interleaved( utils::CountingIstream& it, Sequenc
         // Each block might start with an empty line. Skip.
         if( !it ) {
             throw std::runtime_error(
-                "Malformed Phylip file: Unexpected end of file at " + it.at() + "."
+                "Malformed Phylip " + it.source_name() + ": Unexpected end of file at "
+                + it.at() + "."
             );
         }
         if( *it == '\n' ) {
@@ -326,146 +458,6 @@ void PhylipReader::parse_phylip_interleaved( utils::CountingIstream& it, Sequenc
     }
 
     assert( sset.size() == num_seq );
-}
-
-// =================================================================================================
-//     Reading
-// =================================================================================================
-
-/**
- * @brief Read all Sequences from a std::istream in Phylip format into a SequenceSet.
- *
- * This function is only allowed for Mode::kSequential and Mode::kInterleaved. Automatic mode does
- * not work, as the stream might need to be reset, which is not possible. See mode(Mode).
- */
-void PhylipReader::from_stream( std::istream& is, SequenceSet& sset ) const
-{
-    auto it = utils::CountingIstream( is );
-
-    switch( mode_ ) {
-        case Mode::kSequential:
-            parse_phylip_sequential( it, sset );
-            break;
-
-        case Mode::kInterleaved:
-            parse_phylip_interleaved( it, sset );
-            break;
-
-        case Mode::kAutomatic:
-        default:
-            throw std::runtime_error( "Automatic mode not possible when using from_stream()." );
-    }
-}
-
-/**
- * @brief Read all Sequences from a file in Phylip format into a SequenceSet.
- */
-void PhylipReader::from_file( std::string const& fn, SequenceSet& sset ) const
-{
-    // This function is very similar to from_string, but has some differences in treating the input
-    // when needing to restart in automatic mode. Unfortunately, we have to live with this code
-    // duplication for now. Everything else would end up in a mess of small helper functions, which
-    // is also not nice.
-
-    // Check file.
-    if( ! utils::file_exists( fn ) ) {
-        throw std::runtime_error( "File '" + fn + "' not found." );
-    }
-
-    // Prepare stream.
-    std::ifstream ifs( fn );
-    if( ifs.fail() ) {
-        throw std::runtime_error( "Cannot read from file '" + fn + "'." );
-    }
-    auto it = utils::CountingIstream( ifs );
-
-    // If the mode is specified, use it.
-    if( mode_ == Mode::kSequential ) {
-        parse_phylip_sequential( it, sset );
-    } else if( mode_ == Mode::kInterleaved ) {
-        parse_phylip_interleaved( it, sset );
-
-    // If the mode is automatic, we need to do some magic.
-    } else {
-
-        // We need a temporary set, because in case of failure, we need to start from the beginning,
-        // but we do not want to clear all other sequences in the set (that might be there from
-        // other stuff done before calling this function).
-        SequenceSet tmp;
-
-        // Try sequential first.
-        try {
-            parse_phylip_sequential( it, tmp );
-
-        // If it fails, restart the stream and try interleaved.
-        // If this also throws, the file is ill formatted and the exception will be forwared to
-        // the caller of this function.
-        } catch ( ... ) {
-            tmp.clear();
-
-            // Prepare stream. Again.
-            std::ifstream ifs( fn );
-            if( ifs.fail() ) {
-                throw std::runtime_error( "Cannot read from file '" + fn + "'." );
-            }
-            auto it = utils::CountingIstream( ifs );
-
-            parse_phylip_interleaved( it, tmp );
-        }
-
-        // If we reach this point, one of the parses succeeded.
-        // Move all sequences to the actual target.
-        for( auto s : tmp ) {
-            sset.push_back( std::move(s) );
-        }
-    }
-}
-
-/**
- * @brief Read all Sequences from a std::string in Phylip format into a SequenceSet.
- */
-void PhylipReader::from_string( std::string const& fs, SequenceSet& sset ) const
-{
-    // This function is very similar to from_file. See there for some more code explanations and for
-    // the reason why we currently do not re-engineer this to avoid this code duplication.
-
-    // Prepare stream.
-    std::istringstream iss( fs );
-    auto it = utils::CountingIstream( iss );
-
-    // If the mode is specified, use it.
-    if( mode_ == Mode::kSequential ) {
-        parse_phylip_sequential( it, sset );
-    } else if( mode_ == Mode::kInterleaved ) {
-        parse_phylip_interleaved( it, sset );
-
-    // If the mode is automatic, we need to do some magic.
-    } else {
-
-        // Temporary set.
-        SequenceSet tmp;
-
-        // Try sequential first.
-        try {
-            parse_phylip_sequential( it, tmp );
-
-        // If it fails, restart the stream and try interleaved.
-        } catch ( ... ) {
-            tmp.clear();
-
-            // Prepare stream. Again.
-            std::istringstream iss( fs );
-            auto it = utils::CountingIstream( iss );
-
-            parse_phylip_interleaved( it, tmp );
-        }
-
-        // If we reach this point, one of the parses succeeded.
-        // Move all sequences to the actual target.
-        for( auto s : tmp ) {
-            sset.push_back( std::move(s) );
-        }
-    }
 }
 
 // =================================================================================================
@@ -570,8 +562,10 @@ bool PhylipReader::to_upper() const
  * @brief Set the chars that are used for validating Sequence sites when reading them.
  *
  * When this function is called with a string of chars, those chars are used to validate the sites
- * when reading them. If set to an empty string, this check is deactivated. This is also the
- * default, meaning that no checking is done.
+ * when reading them. That is, only sequences consisting of the given chars are valid.
+ *
+ * If set to an empty string, this check is deactivated. This is also the default, meaning that no
+ * checking is done.
  *
  * In case that to_upper() is set to `true`: The validation is done after making the char upper
  * case, so that only capital letters have to be provided for validation.
@@ -581,16 +575,15 @@ bool PhylipReader::to_upper() const
  * See `nucleic_acid_codes...()` and `amino_acid_codes...()` functions for presettings of chars
  * that can be used for validation here.
  */
-PhylipReader& PhylipReader::validate_chars( std::string const& chars )
+PhylipReader& PhylipReader::valid_chars( std::string const& chars )
 {
-    // If we do not want to validate, simply set all chars in the lookup to true. This saves us
-    // from making that discintion in the actual parsing process. There, we can then always just
-    // check the lookup table and don't have to check a flag or so.
     if( chars.size() == 0 ) {
         lookup_.set_all( true );
+        use_validation_ = false;
     } else {
         lookup_.set_all( false );
         lookup_.set_selection( chars );
+        use_validation_ = true;
     }
 
     return *this;
@@ -599,38 +592,24 @@ PhylipReader& PhylipReader::validate_chars( std::string const& chars )
 /**
  * @brief Return the currently set chars used for validating Sequence sites.
  *
- * If none are set, an empty string is returned. See is_validating() for checking whether chars are
- * set for validating - this is equal to checking whether this function returns an empty string.
+ * An empty string means that no validation is done.
  */
-std::string PhylipReader::validate_chars() const
+std::string PhylipReader::valid_chars() const
 {
-    // We need to distinguish the validating status here, because in case that no validating chars
-    // are set, the table is all true - which would return a string of _all_ instead of no chars.
-    if( is_validating() ) {
-        return lookup_.get_selection();
-    } else {
+    // We need to check the valid chars lookup here, because we don't want to return a string
+    // of _all_ chars.
+    if( ! use_validation_ || lookup_.all_set() ) {
         return "";
+    } else {
+        return lookup_.get_selection();
     }
-}
-
-/**
- * @brief Return whether currently chars are set for validating the Sequence sites.
- *
- * This functions returns `true` iff there are chars set for validating Sequence sites.
- * Use validate_chars() for getting those chars.
- */
-bool PhylipReader::is_validating() const
-{
-    // We could use a flag instead of this, but this function is not critical for speed, so this
-    // should work as well.
-    return lookup_.all_set();
 }
 
 /**
  * @brief Return the internal CharLookup that is used for validating the Sequence sites.
  *
  * This function is provided in case direct access to the lookup is needed. Usually, the
- * validate_chars() function should suffice. See there for details.
+ * valid_chars() function should suffice. See there for details.
  */
 utils::CharLookup& PhylipReader::valid_char_lookup()
 {

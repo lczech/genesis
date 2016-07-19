@@ -82,8 +82,18 @@ void set_depths_distributed_weights(
     SimulatorEdgeDistribution& edge_distrib
 );
 
-void set_random_subtree_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib );
-void learn_per_edge_weights(     Sample const& sample, SimulatorEdgeDistribution& edge_distrib );
+size_t set_random_subtree_weights(
+    Sample const& sample,
+    SimulatorEdgeDistribution& edge_distrib
+);
+
+void set_subtree_weights(
+    Sample const& sample,
+    size_t link_index,
+    SimulatorEdgeDistribution& edge_distrib
+);
+
+void learn_per_edge_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib );
 
 // =================================================================================================
 //     Extra Placement Number Distribution

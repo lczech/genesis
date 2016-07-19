@@ -45,7 +45,7 @@ namespace genesis {
 
 namespace utils {
 
-class CountingIstream;
+class InputStream;
 
 } // namespace utils
 
@@ -74,17 +74,17 @@ class Sequence;
  *
  *     PhylipReader()
  *         .to_upper()
- *         .validate_chars( nucleic_acid_codes_all() )
+ *         .valid_chars( nucleic_acid_codes_all() )
  *         .from_file( infile, sset );
  *
  * The expected data format roughly follows
  * [the original definition](http://evolution.genetics.washington.edu/phylip/doc/sequence.html).
  * See mode( Mode ) to selected between sequential, interleaved and automatic mode.
- * We furthermore support a relaxed version, where the label can be of any length.
+ * We furthermore support a relaxed version (by default), where the label can be of any length.
  * See label_length( size_t ) for more information.
  *
  * Using to_upper( bool ), the sequences can automatically be turned into upper case letter.
- * Also, see validate_chars( std::string const& ) for a way of checking correct input sequences.
+ * Also, see valid_chars( std::string const& ) for a way of checking correct input sequences.
  */
 class PhylipReader
 {
@@ -130,38 +130,38 @@ public:
     PhylipReader& operator= ( PhylipReader&& )      = default;
 
     // ---------------------------------------------------------------------
+    //     Reading
+    // ---------------------------------------------------------------------
+
+    void from_stream ( std::istream&      input_stream, SequenceSet& sequence_set ) const;
+    void from_file   ( std::string const& file_name,    SequenceSet& sequence_set ) const;
+    void from_string ( std::string const& input_string, SequenceSet& sequence_set ) const;
+
+    // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
 
     std::pair<size_t, size_t> parse_phylip_header(
-        utils::CountingIstream& it
+        utils::InputStream& it
     ) const;
 
     std::string parse_phylip_label(
-        utils::CountingIstream& it
+        utils::InputStream& it
     ) const;
 
     std::string parse_phylip_sequence_line(
-        utils::CountingIstream& it
+        utils::InputStream& it
     ) const;
 
     void parse_phylip_interleaved(
-        utils::CountingIstream& it,
+        utils::InputStream& it,
         SequenceSet& sset
     ) const;
 
     void parse_phylip_sequential(
-        utils::CountingIstream& it,
+        utils::InputStream& it,
         SequenceSet& sset
     ) const;
-
-    // ---------------------------------------------------------------------
-    //     Reading
-    // ---------------------------------------------------------------------
-
-    void from_stream ( std::istream&      is, SequenceSet& sset ) const;
-    void from_file   ( std::string const& fn, SequenceSet& sset ) const;
-    void from_string ( std::string const& fs, SequenceSet& sset ) const;
 
     // ---------------------------------------------------------------------
     //     Properties
@@ -176,10 +176,9 @@ public:
     PhylipReader& to_upper( bool value );
     bool          to_upper() const;
 
-    PhylipReader& validate_chars( std::string const& chars );
-    std::string   validate_chars() const;
+    PhylipReader& valid_chars( std::string const& chars );
+    std::string   valid_chars() const;
 
-    bool is_validating() const;
     utils::CharLookup& valid_char_lookup();
 
     // ---------------------------------------------------------------------
@@ -188,9 +187,11 @@ public:
 
 private:
 
-    Mode              mode_         = Mode::kSequential;
-    size_t            label_length_ = 0;
-    bool              to_upper_     = true;
+    Mode              mode_           = Mode::kSequential;
+    size_t            label_length_   = 0;
+
+    bool              to_upper_       = true;
+    bool              use_validation_ = false;
     utils::CharLookup lookup_;
 
 };

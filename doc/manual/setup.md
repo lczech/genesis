@@ -63,7 +63,12 @@ Requirements:
 
  *  [make](https://www.gnu.org/software/make/) and [cmake](https://cmake.org/) 2.6 or higher.
  *  A fairly up-to-date C++11 compiler. We currently test with [clang++](http://clang.llvm.org/)
-   3.6 and 3.7, as well as [g++](https://gcc.gnu.org/) 4.9 and 5.0.
+    3.6 and 3.7, as well as [g++](https://gcc.gnu.org/) 4.9 and 5.0.
+
+Make sure that your `libstdc++` is also up to date. This is the standard library for C++, which is
+heavily used in genesis. It is usually installed with `g++`. However, `clang++` uses the `g++`
+version of `libstdc++`, so if you have a new `clang++`, but old `g++` version, this might cause
+trouble. Best to update both of them.
 
 Optional:
 
@@ -131,8 +136,15 @@ file (without the ending).
 Apart from that, there are no further requirements. Simply include the needed genesis headers (or
 any other headers you might need) and compile. Happy coding!
 
-Remark: The apps are only a convenience for users. Genesis can of course also be used like any
+# Library {#setup_lib}
+
+The apps are only a convenience for users. Genesis can of course also be used like any
 other C++ library by including its headers and linking against its binaries.
+
+If you include genesis in bigger projects which are separately compiled, you need to make sure to
+use compatible options for compiling the genesis binaries. For example, if you want to link against
+the shared library, the settings for threads (e.g., Pthreads) need to be the same for every
+compilation unit. See the main Cmake script for the available compiler options.
 
 # Python {#setup_python}
 

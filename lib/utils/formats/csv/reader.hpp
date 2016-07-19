@@ -41,7 +41,7 @@ namespace utils {
 //     Forward Declarations
 // =================================================================================================
 
-class CountingIstream;
+class InputStream;
 
 // =================================================================================================
 //     Csv Reader
@@ -106,12 +106,16 @@ public:
     //     Parsing
     // ---------------------------------------------------------------------
 
+    table parse_document(
+        utils::InputStream& input_stream
+    ) const;
+
     std::string parse_field(
-        utils::CountingIstream& input_stream
+        utils::InputStream& input_stream
     ) const;
 
     std::vector<std::string> parse_line(
-        utils::CountingIstream& input_stream
+        utils::InputStream& input_stream
     ) const;
 
     // ---------------------------------------------------------------------

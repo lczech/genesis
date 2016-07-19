@@ -261,49 +261,77 @@ void set_depths_distributed_weights(
 /**
  * @brief Sets the weights of an SimulatorEdgeDistribution to 1.0 for a randomly chosen subtree,
  * all others to 0.0.
+ *
+ * Returns the index of the chosen edge.
  */
-void set_random_subtree_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
+size_t set_random_subtree_weights( Sample const& sample, SimulatorEdgeDistribution& edge_distrib )
 {
-    size_t num_edges = sample.tree().edge_count();
-    edge_distrib.edge_weights = std::vector<double>( num_edges, 0.0 );
+    // Reset all edge weights.
+    size_t edge_count = sample.tree().edge_count();
+    edge_distrib.edge_weights = std::vector<double>( edge_count, 0.0 );
 
-    std::uniform_int_distribution<int> edge_selection( 0, num_edges - 1 );
+    std::uniform_int_distribution<int> edge_selection( 0, edge_count - 1 );
     size_t edge_idx = edge_selection( utils::Options::get().random_engine() );
 
+    // Randomly select a subtree, either starting at the end of the edge in direction of the root,
+    // or away from it.
     PlacementTree::LinkType const* start_link;
-    // std::bernoulli_distribution dir_distrib;
-    // if (dir_distrib (Options::get().random_engine())) {
-    //     // Primary direction
-    //     start_link = sample.tree().edge_at(edge_idx)->primary_link();
-    // } else {
+    std::bernoulli_distribution dir_distrib;
+    if( dir_distrib( utils::Options::get().random_engine() )) {
+        // Primary direction
+        start_link = &sample.tree().edge_at(edge_idx).primary_link();
+    } else {
         // Secondary direction
         start_link = &sample.tree().edge_at(edge_idx).secondary_link();
-    // }
+    }
 
     for (
         auto cur_link = &start_link->next();
         cur_link != start_link;
         cur_link = &cur_link->outer().next()
     ) {
-        edge_distrib.edge_weights[cur_link->edge().index()] = 1.0;
+        edge_distrib.edge_weights[ cur_link->edge().index() ] = 1.0;
     }
 
-    // size_t num_edges = sample.tree().edge_count();
-    // weights = std::vector<double>(num_edges, 0.0);
-    //
-    // size_t num_nodes = sample.tree().node_count();
-    // std::uniform_int_distribution<int> distrib(0, num_nodes);
-    //
-    // size_t node_idx = distrib (Options::get().random_engine());
-    // auto   node = sample.tree().node_at(node_idx);
-    //
-    // for (
-    //     auto it = node->link()->next()->outer();
-    //     it != node->link()->next();
-    //     it = it->next()->outer()
-    // ) {
-    //     weights[it->edge()->index()] = 1.0;
-    // }
+    return edge_idx;
+}
+
+// -----------------------------------------------------
+//     set_subtree_weights
+// -----------------------------------------------------
+
+/**
+ * @brief Set the weights of a subtree to 1.0 and all other weights to 0.0.
+ *
+ * The subtree is selected via the index of the link that leads away from it. As leaf nodes do not
+ * count as subtrees, the link has to belong to an inner node.
+ */
+void set_subtree_weights(
+    Sample const& sample,
+    size_t link_index,
+    SimulatorEdgeDistribution& edge_distrib
+) {
+    // Validity checks.
+    if( link_index >= sample.tree().link_count() ) {
+        throw std::runtime_error( "Invalid link index for subtree." );
+    }
+    if( sample.tree().link_at( link_index ).is_leaf() ) {
+        throw std::runtime_error( "Cannot use a leaf node as subtree." );
+    }
+
+    // Reset all edge weights.
+    auto edge_count = sample.tree().edge_count();
+    edge_distrib.edge_weights = std::vector<double>( edge_count, 0.0 );
+
+    // Iterate the subtree and set edge weights.
+    PlacementTree::LinkType const* start_link = &sample.tree().link_at( link_index );
+    for (
+        auto cur_link = &start_link->next();
+        cur_link != start_link;
+        cur_link = &cur_link->outer().next()
+    ) {
+        edge_distrib.edge_weights[ cur_link->edge().index() ] = 1.0;
+    }
 }
 
 // -----------------------------------------------------

@@ -20,21 +20,6 @@
 # Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 
 # ------------------------------------------------------------------------------
-#   Setup
-# ------------------------------------------------------------------------------
-
-IF(USE_THREADS)
-    set (CMAKE_THREAD_PREFER_PTHREAD ON)
-    set (THREADS_PREFER_PTHREAD_FLAG ON)
-    find_package (Threads)
-ENDIF()
-
-if(THREADS_FOUND)
-    message (STATUS "Using threads")
-    add_definitions( "-DPTHREADS" )
-endif()
-
-# ------------------------------------------------------------------------------
 #   Build Options
 # ------------------------------------------------------------------------------
 

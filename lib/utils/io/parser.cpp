@@ -69,7 +69,7 @@ namespace utils {
  *        marks are included in the output or not. Default is `false`.
  */
 std::string parse_quoted_string(
-    utils::CountingIstream& source,
+    utils::InputStream& source,
     bool use_escapes,
     bool use_twin_quotes,
     bool include_qmarks
@@ -119,7 +119,8 @@ std::string parse_quoted_string(
             // We found an escaping backslash. This cannot be the end of the stream.
             if( !source ) {
                 throw std::runtime_error(
-                    "Unexpected end of string at " + source.at() + ". Expecting escape sequence."
+                    "Unexpected end of " + source.source_name() + " at " + source.at()
+                    + ". Expecting escape sequence."
                 );
             }
 
@@ -142,7 +143,8 @@ std::string parse_quoted_string(
     if( ! found_closing_qmark ) {
         assert( ! source );
         throw std::runtime_error(
-            "Unexpected end of string at " + source.at() + ". Expected closing quotation mark."
+            "Unexpected end of " + source.source_name() + " at " + source.at()
+            + ". Expected closing quotation mark."
         );
     }
 

@@ -41,7 +41,7 @@
 #include "utils/core/std.hpp"
 #include "utils/formats/json/document.hpp"
 #include "utils/formats/json/reader.hpp"
-#include "utils/io/counting_istream.hpp"
+#include "utils/io/input_stream.hpp"
 #include "utils/io/parser.hpp"
 #include "utils/io/scanner.hpp"
 #include "utils/text/string.hpp"
@@ -104,7 +104,7 @@ bool JplaceReader::check_version ( size_t version )
 void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
 {
     using namespace utils;
-    auto it = CountingIstream( is );
+    InputStream it( make_unique< StreamInputSource >( is ));
 
     // We need to check whether all important keys of the document appeared.
     bool found_version    = false;
@@ -113,7 +113,7 @@ void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
     bool found_placements = false;
 
     // Check for data.
-    if( it.eos() ) {
+    if( ! it ) {
         throw std::runtime_error(
             "Malformed Jplace file: Expecting begin of Json structure at " + it.at() + "."
         );
@@ -241,7 +241,7 @@ void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet&
 //     Parsing
 // =================================================================================================
 
-void JplaceReader::parse_version( utils::CountingIstream& input_stream ) const
+void JplaceReader::parse_version( utils::InputStream& input_stream ) const
 {
     auto ver = utils::parse_unsigned_integer<size_t>( input_stream );
     if( ! check_version( ver ) ) {
@@ -252,7 +252,7 @@ void JplaceReader::parse_version( utils::CountingIstream& input_stream ) const
 }
 
 std::unordered_map<std::string, std::string> JplaceReader::parse_metadata(
-    utils::CountingIstream& input_stream
+    utils::InputStream& input_stream
 ) const {
     using namespace utils;
     auto& it = input_stream;
@@ -295,7 +295,7 @@ std::unordered_map<std::string, std::string> JplaceReader::parse_metadata(
     return res;
 }
 
-std::vector<std::string> JplaceReader::parse_fields( utils::CountingIstream& input_stream ) const
+std::vector<std::string> JplaceReader::parse_fields( utils::InputStream& input_stream ) const
 {
     using namespace utils;
     auto& it = input_stream;
@@ -373,7 +373,7 @@ std::vector<std::string> JplaceReader::parse_fields( utils::CountingIstream& inp
     return fields;
 }
 
-void JplaceReader::parse_tree( utils::CountingIstream& input_stream ) const
+void JplaceReader::parse_tree( utils::InputStream& input_stream ) const
 {
     using namespace utils;
     auto& it = input_stream;

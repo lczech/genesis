@@ -31,14 +31,18 @@
 #include "common.hpp"
 
 #include "lib/sequence/codes.hpp"
-#include "lib/sequence/functions.hpp"
-#include "lib/sequence/sequence_set.hpp"
 #include "lib/sequence/formats/fasta_input_iterator.hpp"
 #include "lib/sequence/formats/fasta_reader.hpp"
+#include "lib/sequence/functions.hpp"
+#include "lib/sequence/sequence_set.hpp"
+
+#include "lib/utils/core/std.hpp"
+#include "lib/utils/io/input_stream.hpp"
 
 #include <fstream>
 #include <string>
 
+using namespace genesis;
 using namespace genesis::sequence;
 
 TEST( Sequence, FastaReaderValidating )
@@ -47,14 +51,14 @@ TEST( Sequence, FastaReaderValidating )
     NEEDS_TEST_DATA;
 
     // Load sequence file.
-    std::string infile = environment->data_dir + "sequence/dna_354.fasta";
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
     SequenceSet sset;
     FastaReader()
-        .validate_chars( nucleic_acid_codes_all() )
+        .valid_chars( nucleic_acid_codes_all() )
         .from_file(infile, sset);
 
     // Check data.
-    EXPECT_EQ( 354, sset.size() );
+    EXPECT_EQ( 10, sset.size() );
     EXPECT_EQ( 460,                    sset[0].length() );
     EXPECT_EQ( "Di106BGTue",           sset[0].label() );
     EXPECT_EQ( "",                     sset[0].metadata() );
@@ -66,10 +70,9 @@ TEST( FastaInputIterator, ReadingLoop )
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
 
-    std::string infile = environment->data_dir + "sequence/dna_354.fasta";
-    std::ifstream ifs (infile);
-
-    auto it = FastaInputIterator( ifs );
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+    utils::InputStream instr( utils::make_unique< utils::FileInputSource >( infile ));
+    auto it = FastaInputIterator( instr );
 
     size_t len = 0;
     size_t cnt = 0;
@@ -85,7 +88,7 @@ TEST( FastaInputIterator, ReadingLoop )
     }
 
     EXPECT_EQ( 460, len );
-    EXPECT_EQ( 354, cnt );
+    EXPECT_EQ( 10, cnt );
 }
 
 // TEST( FastaInputIterator, ReadingInput )
@@ -93,7 +96,7 @@ TEST( FastaInputIterator, ReadingLoop )
 //     // Skip test if no data availabe.
 //     NEEDS_TEST_DATA;
 //
-//     std::string infile = environment->data_dir + "sequence/dna_354.fasta";
+//     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
 //     std::ifstream ifs (infile);
 //
 //     auto it = FastaInputIterator( ifs );
@@ -120,5 +123,5 @@ TEST( FastaInputIterator, ReadingLoop )
 //     std::cout << ( it ? "si" : "no" ) << "\n";
 //
 //     EXPECT_EQ( 460, len );
-//     EXPECT_EQ( 354, cnt );
+//     EXPECT_EQ( 10, cnt );
 // }

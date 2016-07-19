@@ -33,7 +33,7 @@
 
 #include "sequence/sequence.hpp"
 #include "sequence/formats/fasta_reader.hpp"
-#include "utils/io/counting_istream.hpp"
+#include "utils/io/input_stream.hpp"
 
 #include <iterator>
 
@@ -80,22 +80,22 @@ public:
 
     FastaInputIterator()
         : reader_()
-        , input_stream_()
+        , input_stream_( nullptr )
         , sequence_()
     {}
 
-    FastaInputIterator( std::istream& in )
+    FastaInputIterator( utils::InputStream& in )
         : reader_()
-        , input_stream_( in )
+        , input_stream_( &in )
         , sequence_()
     {
         // Read first sequence.
         increment();
     }
 
-    FastaInputIterator( std::istream& in, FastaReader const& reader )
+    FastaInputIterator( utils::InputStream& in, FastaReader const& reader )
         : reader_( reader )
-        , input_stream_( in )
+        , input_stream_( &in )
         , sequence_()
     {
         // Read first sequence.
@@ -104,10 +104,10 @@ public:
 
     ~FastaInputIterator() = default;
 
-    FastaInputIterator( self_type const& ) = default;
+    FastaInputIterator( self_type const& ) = delete;
     FastaInputIterator( self_type&& )      = default;
 
-    self_type& operator= ( self_type const& ) = default;
+    self_type& operator= ( self_type const& ) = delete;
     self_type& operator= ( self_type&& )      = default;
 
     // -------------------------------------------------------------------------
@@ -175,12 +175,12 @@ public:
     {
         // Check whether the input stream is good (not end-of-stream) and can be read from.
         // If not, we reached its end, so we stop reading in the next iteration.
-        if( ! input_stream_.good() ) {
+        if( input_stream_ == nullptr || ! *input_stream_ ) {
             good_ = false;
             return;
         }
 
-        reader_.parse_sequence( input_stream_, sequence_ );
+        reader_.parse_sequence( *input_stream_, sequence_ );
     }
 
     // -------------------------------------------------------------------------
@@ -189,10 +189,10 @@ public:
 
 private:
 
-    FastaReader            reader_;
-    utils::CountingIstream input_stream_;
-    Sequence               sequence_;
-    bool                   good_ = true;
+    FastaReader         reader_;
+    utils::InputStream* input_stream_;
+    Sequence            sequence_;
+    bool                good_ = true;
 };
 
 } // namespace sequence

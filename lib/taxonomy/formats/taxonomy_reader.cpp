@@ -36,7 +36,8 @@
 #include "taxonomy/taxscriptor.hpp"
 
 #include "utils/core/fs.hpp"
-#include "utils/io/counting_istream.hpp"
+#include "utils/core/std.hpp"
+#include "utils/io/input_stream.hpp"
 #include "utils/text/string.hpp"
 
 #include <assert.h>
@@ -72,8 +73,39 @@ TaxonomyReader::TaxonomyReader()
  */
 void TaxonomyReader::from_stream( std::istream& is, Taxonomy& tax ) const
 {
-    auto it = utils::CountingIstream( is );
+    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( is ));
+    parse_document( it, tax );
+}
 
+/**
+ * @brief Read a taxonomy file and add its contents to a Taxonomy.
+ */
+void TaxonomyReader::from_file( std::string const& fn, Taxonomy& tax ) const
+{
+    utils::InputStream it( utils::make_unique< utils::FileInputSource >( fn ));
+    parse_document( it, tax );
+}
+
+/**
+ * @brief Read a string with taxonomy data and add its contents to a Taxonomy.
+ */
+void TaxonomyReader::from_string( std::string const& is, Taxonomy& tax ) const
+{
+    utils::InputStream it( utils::make_unique< utils::StringInputSource >( is ));
+    parse_document( it, tax );
+}
+
+// =================================================================================================
+//     Parsing
+// =================================================================================================
+
+/**
+ * @brief Parse all data from an InputStream into a Taxonomy object.
+ */
+void TaxonomyReader::parse_document(
+    utils::InputStream& it,
+    Taxonomy&           tax
+) const {
     while( it ) {
         // Get line as name rank pair.
         auto line = parse_line( it );
@@ -96,43 +128,13 @@ void TaxonomyReader::from_stream( std::istream& is, Taxonomy& tax ) const
 }
 
 /**
- * @brief Read a taxonomy file and add its contents to a Taxonomy.
- */
-void TaxonomyReader::from_file( std::string const& fn, Taxonomy& tax ) const
-{
-    if( ! utils::file_exists( fn ) ) {
-        throw std::runtime_error( "File '" + fn + "' not found." );
-    }
-
-    std::ifstream ifs( fn );
-    if( ifs.fail() ) {
-        throw std::runtime_error( "Cannot read from file '" + fn + "'." );
-    }
-
-    from_stream( ifs, tax );
-}
-
-/**
- * @brief Read a string with taxonomy data and add its contents to a Taxonomy.
- */
-void TaxonomyReader::from_string( std::string const& fs, Taxonomy& tax ) const
-{
-    std::istringstream iss( fs );
-    from_stream( iss, tax );
-}
-
-// =================================================================================================
-//     Parsing
-// =================================================================================================
-
-/**
  * @brief Read a single line of a taxonomy file and return the contained name and rank.
  *
  * The name is expected to be a taxonomic description string. See Taxscriptor for details on that
  * format.
  */
 TaxonomyReader::Line TaxonomyReader::parse_line(
-    utils::CountingIstream& it
+    utils::InputStream& it
 ) const {
     // Get the fields of the current line.
     auto fields = csv_reader_.parse_line( it );

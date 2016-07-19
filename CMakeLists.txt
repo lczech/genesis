@@ -46,6 +46,26 @@ project (genesis C CXX)
 # set (genesis_VERSION_MINOR 1)
 
 # ------------------------------------------------------------------------------
+#   Build Options
+# ------------------------------------------------------------------------------
+
+option (BUILD_SHARED_LIB    "Build shared library" ON)
+option (BUILD_STATIC_LIB    "Build static library" OFF)
+
+option (BUILD_APPLICATIONS  "Build applications"   ON)
+option (BUILD_PYTHON_MODULE "Build python module"  OFF)
+option (BUILD_TESTS         "Build test suites"    ON)
+
+option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" ON)
+option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
+
+if (BUILD_APPLICATIONS OR BUILD_PYTHON_MODULE OR BUILD_TESTS)
+    # The applications, the python module and the tests all use the shared lib,
+    # so we need to build it if one of those is activated.
+    set (BUILD_SHARED_LIB ON)
+endif()
+
+# ------------------------------------------------------------------------------
 #   Build Type
 # ------------------------------------------------------------------------------
 
@@ -77,52 +97,41 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O2       -DNDEBUG")
 # LDFLAGS = -lm $(THREADS)
 
 # ------------------------------------------------------------------------------
-#   Build Options
+#   Threads
 # ------------------------------------------------------------------------------
 
-option (BUILD_SHARED_LIB    "Build shared library" ON)
-option (BUILD_STATIC_LIB    "Build static library" OFF)
+# We check whether to use threads here, so that all binaries are compiled with
+# the same setting.
 
-option (BUILD_APPLICATIONS  "Build applications"   ON)
-option (BUILD_PYTHON_MODULE "Build python module"  OFF)
-option (BUILD_TESTS         "Build test suites"    ON)
+IF(USE_THREADS)
+    set (CMAKE_THREAD_PREFER_PTHREAD ON)
+    set (THREADS_PREFER_PTHREAD_FLAG ON)
+    find_package (Threads)
+ENDIF()
 
-option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" ON)
-option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
-
-if (BUILD_APPLICATIONS OR BUILD_PYTHON_MODULE OR BUILD_TESTS)
-    # The applications, the python module and the tests all use the shared lib,
-    # so we need to build it if one of those is activated.
-    set (BUILD_SHARED_LIB ON)
+if(THREADS_FOUND)
+    message (STATUS "Using threads")
+    add_definitions( "-DPTHREADS" )
 endif()
 
 # ------------------------------------------------------------------------------
-#   Build Libraries
+#   Sub-Scripts
 # ------------------------------------------------------------------------------
+
+# Using the build options from above, include the cmake sub-scripts
+# that the user wants to compile.
 
 if (BUILD_SHARED_LIB OR BUILD_STATIC_LIB)
     add_subdirectory(${PROJECT_SOURCE_DIR}/lib)
 endif()
 
-# ------------------------------------------------------------------------------
-#   Build Applications
-# ------------------------------------------------------------------------------
-
 if (BUILD_APPLICATIONS)
     add_subdirectory(${PROJECT_SOURCE_DIR}/apps)
 endif()
 
-# ------------------------------------------------------------------------------
-#   Build Python Module
-# ------------------------------------------------------------------------------
-
 if (BUILD_PYTHON_MODULE)
     add_subdirectory(${PROJECT_SOURCE_DIR}/python/src)
 endif()
-
-# ------------------------------------------------------------------------------
-#   Build Tests
-# ------------------------------------------------------------------------------
 
 if (BUILD_TESTS)
     # Need to enable testing here, otherwise `./build/make test` will not work.

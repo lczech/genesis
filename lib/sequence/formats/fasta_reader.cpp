@@ -33,8 +33,10 @@
 #include "sequence/sequence_set.hpp"
 #include "sequence/sequence.hpp"
 #include "utils/core/fs.hpp"
-#include "utils/io/counting_istream.hpp"
+#include "utils/core/std.hpp"
+#include "utils/io/input_stream.hpp"
 #include "utils/io/scanner.hpp"
+#include "utils/text/string.hpp"
 
 #include <assert.h>
 #include <cctype>
@@ -52,7 +54,7 @@ namespace sequence {
 /**
  * @brief Create a default FastaReader. Per default, chars are turned upper case, but not validated.
  *
- * See to_upper() and validate_chars() to change this behaviour.
+ * See to_upper() and valid_chars() to change this behaviour.
  */
 FastaReader::FastaReader()
 {
@@ -60,13 +62,72 @@ FastaReader::FastaReader()
 }
 
 // =================================================================================================
+//     Reading
+// =================================================================================================
+
+/**
+ * @brief Read all Sequences from a std::istream in Fasta format into a SequenceSet.
+ */
+void FastaReader::from_stream ( std::istream& input_stream, SequenceSet& sequence_set ) const
+{
+    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
+    parse_document( it, sequence_set );
+}
+
+/**
+ * @brief Read all Sequences from a file in Fasta format into a SequenceSet.
+ */
+void FastaReader::from_file ( std::string const& file_name, SequenceSet& sequence_set ) const
+{
+    utils::InputStream it( utils::make_unique< utils::FileInputSource >( file_name ));
+    parse_document( it, sequence_set );
+}
+
+/**
+ * @brief Read all Sequences from a std::string in Fasta format into a SequenceSet.
+ */
+void FastaReader::from_string ( std::string const& input_string, SequenceSet& sequence_set ) const
+{
+    utils::InputStream it( utils::make_unique< utils::StringInputSource >( input_string ));
+    parse_document( it, sequence_set );
+}
+
+// =================================================================================================
 //     Parsing
 // =================================================================================================
 
 /**
- * @brief Parse a char sequence in Fasta format.
+ * @brief Parse a whole fasta document into a SequenceSet.
  *
- * This function takes an input stream and interprets as as a Fasta formatted sequence. It extracts
+ * This function is mainly used internally by the reading functions from_...().
+ * It uses the currently set parsing_method() for parsing the data.
+ */
+void FastaReader::parse_document(
+    utils::InputStream& input_stream,
+    SequenceSet&        sequence_set
+) const {
+    Sequence seq;
+
+    if( parsing_method_ == ParsingMethod::kDefault ) {
+        while( parse_sequence( input_stream, seq ) ) {
+            sequence_set.push_back( seq );
+        }
+
+    } else if( parsing_method_ == ParsingMethod::kPedantic ) {
+        while( parse_sequence_pedantic( input_stream, seq ) ) {
+            sequence_set.push_back( seq );
+        }
+
+    } else {
+        // There are no other methods currently implemented.
+        assert( false );
+    }
+}
+
+/**
+ * @brief Parse a Sequence in Fasta format.
+ *
+ * This function takes an InputStream and interprets it as a Fasta formatted sequence. It extracts
  * the data and writes it into the given Sequence object. See the class description of FastaReader
  * for the expected data format.
  *
@@ -74,18 +135,14 @@ FastaReader::FastaReader()
  * and false if the stream is empty. If the input is not in the correct format, an
  * `std::runtime_error` exception is thrown indicating the malicious position in the input stream.
  *
- * More information on the format can be found at:
- *
- *    * http://en.wikipedia.org/wiki/FASTA_format
- *    * http://blast.ncbi.nlm.nih.gov/blastcgihelp.shtml
- *    * http://zhanglab.ccmb.med.umich.edu/FASTA/
- *
- * See parse_sequence_fast() for a faster (~ double the speed), but non-error-checking
- * version of this function.
+ * This method has a maximum line length of utils::InputStream::BlockLength and reports errors
+ * only on the line where the sequence starts.  If you have files with longer lines or want error
+ * reporting at the exact line and column where the error occurs, use ParsingMethod::kPedantic
+ * instead. See FastaReader::ParsingMethod for details.
  */
 bool FastaReader::parse_sequence(
-    utils::CountingIstream& input_stream,
-    Sequence&               sequence
+    utils::InputStream& input_stream,
+    Sequence&           sequence
 ) const {
     // Init. Call clear in order to avoid not setting properties that might be added to
     // Sequence in the future. Should not noticeable affect speed, as the sequence string capacities
@@ -94,14 +151,175 @@ bool FastaReader::parse_sequence(
     sequence.clear();
 
     // Check for data.
-    if( it.eos() ) {
+    if( !it ) {
+        return false;
+    }
+
+    // We will do whole line reading in this parser. Thus, when reporting an error within a line,
+    // the input stream will already be at a different position. We can thus only report the
+    // beginning of the sequence where the error occured, but not the actual position.
+    // If we wanted to do this, we'd need more bookkeeping and awkward helper functions.
+    // Use parse_sequence_pedantic() instead in cases where you need exact error reporting.
+    auto seq_at = it.at();
+
+    // Scope to ensure that the label and metadata line is only used
+    // while we actually are in that line.
+    {
+
+    // Get the label and metadata line.
+    auto  line_pair = it.get_line();
+    char* line = line_pair.first;
+
+    // Check beginning of sequence.
+    if( line == nullptr || *line != '>' ) {
+        throw std::runtime_error(
+            "Malformed Fasta " + it.source_name()
+            + ": Expecting '>' at beginning of sequence at " + seq_at + "."
+        );
+    }
+    assert( line && *line == '>' );
+    ++line;
+
+    // Parse label.
+    std::string label = utils::read_while( line, isgraph );
+    if( label == "" ) {
+        throw std::runtime_error(
+            "Malformed Fasta " + it.source_name()
+            + ": Expecting label after '>' in sequence at " + seq_at + "."
+        );
+    }
+    sequence.label( label );
+
+    // Check for unexpected end of stream.
+    if( *line != '\0' && *line != ' ' ) {
+        throw std::runtime_error(
+            "Malformed Fasta " + it.source_name()
+            + ": Expecting a sequence after the label line in sequence at " + seq_at + "."
+        );
+    }
+    assert( *line == '\0' || *line == ' ' );
+
+    // Parse metadata.
+    std::string metadata;
+    if( *line == ' ' ) {
+        ++line;
+        metadata = utils::read_while( line, isprint );
+    }
+    sequence.metadata( metadata );
+
+    // Check for unexpected end of file.
+    if( *line != '\0' ) {
+        throw std::runtime_error(
+            "Malformed Fasta " + it.source_name()
+            + ": Unexpected characters at the end of the label line in sequence at " + seq_at + "."
+        );
+    }
+    assert( *line == '\0' );
+
+    } // End of line scope. We are done with the label and metadata line.
+
+    // Skip comments.
+    while( it && *it == ';' ) {
+        utils::skip_until( it, '\n' );
+        assert( it && *it == '\n' );
+        ++it;
+    }
+
+    // Check for unexpected end of file.
+    if( !it ) {
+        throw std::runtime_error(
+            "Malformed Fasta " + it.source_name()
+            + ": Expecting a sequence after the label line in sequence at " + seq_at + "."
+        );
+    }
+    assert( it );
+
+    // Reserve some tmp memory. We will later copy the content, so that superfluous capacity
+    // is stripped.
+    // We could do a sites.reserve( ... ) here, but this yields only minor speedups.
+    std::string sites;
+    // sites.reserve( n );
+
+    // Parse sequence. At every beginning of the loop, we are at a line start.
+    while( it && *it != '>' ) {
+        assert( it.column() == 1 );
+
+        auto line_pair = it.get_line();
+        if( line_pair.second == 0 ) {
+            throw std::runtime_error(
+                "Malformed Fasta " + it.source_name()
+                + ": Empty sequence line in sequence at " + seq_at + "."
+            );
+        }
+
+        sites += std::string( line_pair.first, line_pair.second );
+    }
+    assert( !it || *it == '>' );
+
+    if( sites.length() == 0 ) {
+        throw std::runtime_error(
+            "Malformed Fasta " + it.source_name() + ": Empty sequence at " + seq_at + "."
+        );
+    }
+
+    if( to_upper_ ) {
+        sequence.sites() = utils::to_upper_ascii( sites );
+    } else {
+        // We could do a move here instead, but this way, we save some memory, which might be
+        // more reasonable for big sequences files than the small gain in speed.
+        // sequence.sites() = std::move(sites);
+        sequence.sites() = sites;
+    }
+
+    if( use_validation_ ) {
+        for( auto const& c : sequence.sites() ) {
+            if( !lookup_[c] ) {
+                throw std::runtime_error(
+                    "Malformed Fasta " + it.source_name()
+                    + ": Invalid sequence symbols in sequence at " + seq_at + "."
+                );
+            }
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Parse a Sequence in Fasta format.
+ *
+ * This function takes an InputStream and interprets it as a Fasta formatted sequence. It extracts
+ * the data and writes it into the given Sequence object. See the class description of FastaReader
+ * for the expected data format.
+ *
+ * The function stops after parsing one such sequence. It returns true if a sequence was extracted
+ * and false if the stream is empty. If the input is not in the correct format, an
+ * `std::runtime_error` exception is thrown indicating the malicious position in the input stream.
+ *
+ * Compared to parse_sequence(), this function allows for arbitrarily long lines and
+ * reports errors at the exact line and column where they occur. It is however
+ * slower. Apart from that, there are no differences. See FastaReader::ParsingMethod for details.
+ */
+bool FastaReader::parse_sequence_pedantic(
+    utils::InputStream& input_stream,
+    Sequence&           sequence
+) const {
+    // Init. Call clear in order to avoid not setting properties that might be added to
+    // Sequence in the future. Should not noticeable affect speed, as the sequence string capacities
+    // should not change when setting the strings to empty strings.
+    auto& it = input_stream;
+    sequence.clear();
+
+    // Check for data.
+    if( !it ) {
         return false;
     }
 
     // Check beginning of sequence.
     if( it.current() != '>' ) {
         throw std::runtime_error(
-            "Malformed Fasta file: Expecting '>' at beginning of sequence at " + it.at() + "."
+            "Malformed Fasta " + it.source_name()
+            + ": Expecting '>' at beginning of sequence at " + it.at() + "."
         );
     }
     assert( it && *it == '>' );
@@ -111,15 +329,17 @@ bool FastaReader::parse_sequence(
     std::string label = utils::read_while( it, isgraph );
     if( label == "" ) {
         throw std::runtime_error(
-            "Malformed Fasta file: Expecting label after '>' at " + it.at() + "."
+            "Malformed Fasta " + it.source_name()
+            + ": Expecting label after '>' at " + it.at() + "."
         );
     }
     sequence.label( label );
 
     // Check for unexpected end of stream.
-    if( it.eos() || (*it != '\n' && *it != ' ')) {
+    if( !it || ( *it != '\n' && *it != ' ' )) {
         throw std::runtime_error(
-            "Malformed Fasta file: Expecting a sequence after the label line at " + it.at() + "."
+            "Malformed Fasta " + it.source_name()
+            + ": Expecting a sequence after the label line at " + it.at() + "."
         );
     }
     assert( it && (*it == '\n' || *it == ' ') );
@@ -133,9 +353,10 @@ bool FastaReader::parse_sequence(
     sequence.metadata( metadata );
 
     // Check for unexpected end of file.
-    if( it.eos() || *it != '\n' ) {
+    if( !it || *it != '\n' ) {
         throw std::runtime_error(
-            "Malformed Fasta file: Expecting a sequence after the label line at " + it.at() + "."
+            "Malformed Fasta " + it.source_name()
+            + ": Expecting a sequence after the label line at " + it.at() + "."
         );
     }
     assert( it && *it == '\n' );
@@ -146,9 +367,10 @@ bool FastaReader::parse_sequence(
     }
 
     // Check for unexpected end of file.
-    if( it.eos() || *it != '\n' ) {
+    if( !it || *it != '\n' ) {
         throw std::runtime_error(
-            "Malformed Fasta file: Expecting a sequence after the label line at " + it.at() + "."
+            "Malformed Fasta " + it.source_name()
+            + ": Expecting a sequence after the label line at " + it.at() + "."
         );
     }
     assert( it && *it == '\n' );
@@ -162,9 +384,10 @@ bool FastaReader::parse_sequence(
         size_t count = 0;
         while( it && *it != '\n' ) {
             char c = ( to_upper_ ? toupper(*it) : *it );
-            if( !lookup_[c] ) {
+            if( use_validation_ && ! lookup_[c] ) {
                 throw std::runtime_error(
-                    "Malformed Fasta file: Invalid sequence symbols at " + it.at() + "."
+                    "Malformed Fasta " + it.source_name()
+                    + ": Invalid sequence symbols at " + it.at() + "."
                 );
             }
 
@@ -173,157 +396,62 @@ bool FastaReader::parse_sequence(
             ++count;
         }
 
+        if( count == 0 ) {
+            throw std::runtime_error(
+                "Malformed Fasta " + it.source_name()
+                + ": Empty sequence line at " + it.at() + "."
+            );
+        }
+
         if( !it ) {
             throw std::runtime_error(
-                "Malformed Fasta file: Sequence line does not end with '\\n' " + it.at() + "."
+                "Malformed Fasta " + it.source_name()
+                + ": Sequence line does not end with '\\n' at " + it.at() + "."
             );
         }
         assert( it && *it == '\n' );
         ++it;
-
-        if( count == 0 ) {
-            throw std::runtime_error(
-                "Malformed Fasta file: Empty sequence line at " + it.at() + "."
-            );
-        }
     }
     assert( !it || *it == '>' );
 
     if( sites.length() == 0 ) {
         throw std::runtime_error(
-            "Malformed Fasta file: Empty sequence at " + it.at() + "."
+            "Malformed Fasta " + it.source_name()
+            + ": Empty sequence at " + it.at() + "."
         );
     }
+
+    // Copy the sequence. We do not use move here, as we can save some memory this way.
     sequence.sites() = sites;
 
     return true;
 }
 
-/**
- * @brief Parse a Fasta sequence without checking for errors.
- *
- * This is a very fast implementation that neglects input error checking. Thus, the Fasta sequence
- * has to be well-formed in order for this function to work properly. See the class description of
- * FastaReader for the expected data format.
- *
- * If the expected conditions are not met, instead of exceptions, undefined behaviour results.
- * Most probably, it will either write rubbish into the sequence or produce a segfault or an
- * infinite loop. So be warned and check your data first. If they are good, enjoy the speed!
- */
-bool FastaReader::parse_sequence_fast(
-    utils::CountingIstream& input_stream,
-    Sequence&               sequence
-) const {
-    // Readability.
-    auto& it = input_stream;
-
-    // Check for data.
-    if( it.eos() ) {
-        return false;
-    }
-
-    // Check beginning of sequence.
-    assert( *it == '>' );
-    ++it;
-    assert( it );
-
-    // Parse label.
-    std::string label;
-    while( *it != '\n' && *it != ' ' ) {
-        label += *it;
-        ++it;
-        assert( it );
-    }
-    sequence.label( label );
-    assert( *it == '\n' || *it == ' ' );
-
-    // Parse metadata.
-    std::string metadata;
-    if( *it == ' ' ) {
-        ++it;
-        assert( it );
-        while( *it != '\n' ) {
-            metadata += *it;
-            ++it;
-            assert( it );
-        }
-    }
-    sequence.metadata( metadata );
-    assert( *it == '\n' );
-    ++it;
-    assert( it );
-
-    // Skip comments.
-    while( *it == ';' ) {
-        while( *it != '\n' ) {
-            ++it;
-        }
-        assert( *it == '\n' );
-        ++it;
-        assert( it );
-    }
-
-    // Parse sequence. At every beginning of the outer loop, we are at a line start.
-    sequence.sites().clear();
-    while( it && *it != '>' ) {
-        while( *it != '\n' ) {
-            sequence.sites() += *it;
-            ++it;
-            assert( it );
-        }
-        assert( *it == '\n' );
-        ++it;
-    }
-
-    return true;
-}
-
-// =================================================================================================
-//     Reading
-// =================================================================================================
-
-/**
- * @brief Read all Sequences from a std::istream in Fasta format into a SequenceSet.
- */
-void FastaReader::from_stream ( std::istream& is, SequenceSet& sset ) const
-{
-    auto it = utils::CountingIstream( is );
-    Sequence seq;
-
-    while( parse_sequence( it, seq ) ) {
-        sset.push_back( seq );
-    }
-}
-
-/**
- * @brief Read all Sequences from a file in Fasta format into a SequenceSet.
- */
-void FastaReader::from_file ( std::string const& fn, SequenceSet& sset ) const
-{
-    if( ! utils::file_exists( fn ) ) {
-        throw std::runtime_error( "File '" + fn + "' not found." );
-    }
-
-    std::ifstream ifs( fn );
-    if( ifs.fail() ) {
-        throw std::runtime_error( "Cannot read from file '" + fn + "'." );
-    }
-
-    from_stream( ifs, sset );
-}
-
-/**
- * @brief Read all Sequences from a std::string in Fasta format into a SequenceSet.
- */
-void FastaReader::from_string ( std::string const& fs, SequenceSet& sset ) const
-{
-    std::istringstream iss( fs );
-    from_stream( iss, sset );
-}
-
 // =================================================================================================
 //     Properties
 // =================================================================================================
+
+/**
+ * @brief Set the parsing method.
+ *
+ * The parsing method is used for all the reader functions and parse_document().
+ * See the @link FastaReader::ParsingMethod ParsingMethod enum@endlink for details.
+ */
+FastaReader& FastaReader::parsing_method( FastaReader::ParsingMethod value )
+{
+    parsing_method_ = value;
+    return *this;
+}
+
+/**
+ * @brief Return the currently set parsing method.
+ *
+ * See the @link FastaReader::ParsingMethod ParsingMethod enum@endlink for details.
+ */
+FastaReader::ParsingMethod FastaReader::parsing_method() const
+{
+    return parsing_method_;
+}
 
 /**
  * @brief Set whether Sequence sites are automatically turned into upper case.
@@ -350,8 +478,10 @@ bool FastaReader::to_upper() const
  * @brief Set the chars that are used for validating Sequence sites when reading them.
  *
  * When this function is called with a string of chars, those chars are used to validate the sites
- * when reading them. If set to an empty string, this check is deactivated. This is also the
- * default, meaning that no checking is done.
+ * when reading them. That is, only sequences consisting of the given chars are valid.
+ *
+ * If set to an empty string, this check is deactivated. This is also the default, meaning that no
+ * checking is done.
  *
  * In case that to_upper() is set to `true`: The validation is done after making the char upper
  * case, so that only capital letters have to be provided for validation.
@@ -361,16 +491,15 @@ bool FastaReader::to_upper() const
  * See `nucleic_acid_codes...()` and `amino_acid_codes...()` functions for presettings of chars
  * that can be used for validation here.
  */
-FastaReader& FastaReader::validate_chars( std::string const& chars )
+FastaReader& FastaReader::valid_chars( std::string const& chars )
 {
-    // If we do not want to validate, simply set all chars in the lookup to true. This saves us
-    // from making that discintion in the actual parsing process. There, we can then always just
-    // check the lookup table and don't have to check a flag or so.
     if( chars.size() == 0 ) {
         lookup_.set_all( true );
+        use_validation_ = false;
     } else {
         lookup_.set_all( false );
         lookup_.set_selection( chars );
+        use_validation_ = true;
     }
 
     return *this;
@@ -379,38 +508,24 @@ FastaReader& FastaReader::validate_chars( std::string const& chars )
 /**
  * @brief Return the currently set chars used for validating Sequence sites.
  *
- * If none are set, an empty string is returned. See is_validating() for checking whether chars are
- * set for validating - this is equal to checking whether this function returns an empty string.
+ * An empty string means that no validation is done.
  */
-std::string FastaReader::validate_chars() const
+std::string FastaReader::valid_chars() const
 {
-    // We need to distinguish the validating status here, because in case that no validating chars
-    // are set, the table is all true - which would return a string of _all_ instead of no chars.
-    if( is_validating() ) {
-        return lookup_.get_selection();
-    } else {
+    // We need to check the valid chars lookup here, because we don't want to return a string
+    // of _all_ chars.
+    if( ! use_validation_ || lookup_.all_set() ) {
         return "";
+    } else {
+        return lookup_.get_selection();
     }
-}
-
-/**
- * @brief Return whether currently chars are set for validating the Sequence sites.
- *
- * This functions returns `true` iff there are chars set for validating Sequence sites.
- * Use validate_chars() for getting those chars.
- */
-bool FastaReader::is_validating() const
-{
-    // We could use a flag instead of this, but this function is not critical for speed, so this
-    // should work as well.
-    return lookup_.all_set();
 }
 
 /**
  * @brief Return the internal CharLookup that is used for validating the Sequence sites.
  *
  * This function is provided in case direct access to the lookup is needed. Usually, the
- * validate_chars() function should suffice. See there for details.
+ * valid_chars() function should suffice. See there for details.
  */
 utils::CharLookup& FastaReader::valid_char_lookup()
 {

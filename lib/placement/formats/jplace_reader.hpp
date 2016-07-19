@@ -42,7 +42,7 @@ namespace genesis {
 // =================================================================================================
 
 namespace utils {
-    class CountingIstream;
+    class InputStream;
     class JsonDocument;
 }
 
@@ -78,7 +78,7 @@ namespace placement {
  * The Jplace format is described in the following publication:
  *
  *     Matsen FA, Hoffman NG, Gallagher A, Stamatakis A. 2012.
- *     A Format for Phylogenetic Sample.
+ *     A Format for Phylogenetic Placements.
  *     PLoS ONE 7(2): e31009. doi:10.1371/journal.pone.0031009
  *     http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009
  *
@@ -121,15 +121,15 @@ public:
 
 protected:
 
-    void parse_version( utils::CountingIstream& input_stream ) const;
+    void parse_version( utils::InputStream& input_stream ) const;
 
     std::unordered_map<std::string, std::string> parse_metadata(
-        utils::CountingIstream& input_stream
+        utils::InputStream& input_stream
     ) const;
 
-    std::vector<std::string> parse_fields( utils::CountingIstream& input_stream ) const;
+    std::vector<std::string> parse_fields( utils::InputStream& input_stream ) const;
 
-    void parse_tree( utils::CountingIstream& input_stream ) const;
+    void parse_tree( utils::InputStream& input_stream ) const;
 
     // ---------------------------------------------------------------------
     //     Processing
