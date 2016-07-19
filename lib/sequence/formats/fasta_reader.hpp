@@ -43,7 +43,6 @@ namespace genesis {
 // =================================================================================================
 
 namespace utils {
-    class CountingIstream;
     class InputStream;
 }
 
@@ -70,19 +69,25 @@ namespace sequence {
  * Exemplary usage:
  *
  *     std::string infile = "path/to/file.fasta";
- *     SequenceSet sset;
+ *     SequenceSet sequence_set;
  *
  *     FastaReader()
  *         .to_upper()
  *         .valid_chars( nucleic_acid_codes_all() )
- *         .from_file( infile, sset );
+ *         .from_file( infile, sequence_set );
  *
  * The expected data format:
  *
  *   1. Has to start with a '>' character, followed by a label and possibly metadata, ended by a
  *      '\\n'. All text after the first space is considered to be metadata.
  *   2. An arbitrary number of comment lines, starting with ';', can follow, but are ignored.
- *   3. After that, a sequence has to follow, over one or more lines and ending in a '\\n' character.
+ *   3. After that, a sequence has to follow, over one or more lines.
+ *
+ * More information on the format can be found at:
+ *
+ *    * http://en.wikipedia.org/wiki/FASTA_format
+ *    * http://blast.ncbi.nlm.nih.gov/blastcgihelp.shtml
+ *    * http://zhanglab.ccmb.med.umich.edu/FASTA/
  *
  * Using to_upper(bool), the sequences can automatically be turned into upper case letter.
  * Also, see valid_chars( std::string const& chars ) for a way of checking correct input sequences.
@@ -90,6 +95,50 @@ namespace sequence {
 class FastaReader
 {
 public:
+
+    // ---------------------------------------------------------------------
+    //     Typedefs and Enums
+    // ---------------------------------------------------------------------
+
+    /**
+     * @brief Enumeration of the available methods for parsing Fasta sequences.
+     */
+    enum class ParsingMethod
+    {
+        /**
+         * @brief Fast method, used by default.
+         *
+         * There are two limitations of this method:
+         *
+         *  *  It has a max line length of utils::InputStream::BlockLength.
+         *  *  It only reports errors using the line where the sequence starts.
+         *
+         * Those limitations do not affect most applications, as the maximum line length
+         * is long enough for most files, and if your data is good, there won't be errors to
+         * report. If you however have files with longer lines or want error reporting at the
+         * exact line and column where the error occurs, use kPedantic instead.
+         *
+         * With this setting, parse_sequence() is used for parsing.
+         * In our tests, it achieved ~350 MB/s parsing speed.
+         */
+        kDefault,
+
+        /**
+         * @brief Pedantic method.
+         *
+         * Compared to the fast method, this one allows for arbitrarily long lines and
+         * reports errors at the exact line and column where they occur. It is however
+         * slower (~3.5x the time of the default method). Apart from that, there are no differences.
+         *
+         * If you need this method for certain files, it might be useful to use it only once and
+         * use a FastaWriter to write out a new Fasta file with fitting line lengths and without
+         * errors. This way, for subsequent reading you can then use the faster default method.
+         *
+         * With this setting, parse_sequence_pedantic() is used for parsing.
+         * In our tests, it achieved ~100 MB/s parsing speed.
+         */
+        kPedantic
+    };
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -118,12 +167,7 @@ public:
 
     void parse_document(
         utils::InputStream& input_stream,
-        SequenceSet& sset
-    ) const;
-
-    bool parse_sequence(
-        utils::CountingIstream& input_stream,
-        Sequence&           sequence
+        SequenceSet&        sequence_set
     ) const;
 
     bool parse_sequence(
@@ -131,9 +175,17 @@ public:
         Sequence&           sequence
     ) const;
 
+    bool parse_sequence_pedantic(
+        utils::InputStream& input_stream,
+        Sequence&           sequence
+    ) const;
+
     // ---------------------------------------------------------------------
     //     Properties
     // ---------------------------------------------------------------------
+
+    FastaReader&  parsing_method( ParsingMethod value );
+    ParsingMethod parsing_method() const;
 
     FastaReader& to_upper( bool value );
     bool         to_upper() const;
@@ -148,6 +200,8 @@ public:
     // ---------------------------------------------------------------------
 
 private:
+
+    ParsingMethod     parsing_method_ = ParsingMethod::kDefault;
 
     bool              to_upper_       = true;
     bool              use_validation_ = false;
