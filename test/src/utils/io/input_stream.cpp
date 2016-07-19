@@ -79,10 +79,10 @@ TEST(InputStream, LargeFile)
     NEEDS_TEST_DATA;
     SCOPED_TRACE("InputStream.LargeFile");
 
-    std::string infile = environment->data_dir + "sequence/dna_354.fasta";
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
     InputStream instr( make_unique< FileInputSource >( infile ));
 
-    test_input_specs( instr, 3894, 51 );
+    test_input_specs( instr, 110, 51 );
 }
 
 TEST(InputStream, NewLines)
