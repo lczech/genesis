@@ -429,12 +429,13 @@ void PhylipReader::parse_phylip_interleaved( utils::InputStream& it, SequenceSet
     // Helper function that checks whether there are still sequences in the set that are not yet
     // done (i.e., don't have `len_seq` length).
     auto unfinished_sequences = [ & ] () {
-        bool result = false;
         for( auto const& seq : sset ) {
             assert( seq.length() <= len_seq );
-            result |= ( seq.length() < len_seq );
+            if( seq.length() < len_seq ) {
+                return true;
+            }
         }
-        return result;
+        return false;
     };
 
     while( unfinished_sequences() ) {
