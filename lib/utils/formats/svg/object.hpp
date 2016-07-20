@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include "utils/formats/svg/helper.hpp"
 #include "utils/core/std.hpp"
 
 #include <iosfwd>
@@ -83,9 +84,14 @@ public:
     //     Members
     // -------------------------------------------------------------
 
-    void to_svg_element( std::ostream& out, size_t indent = 0 ) const
+    void offset( double x, double y )
     {
-        pimpl_->to_svg_element_( out, indent );
+        pimpl_->offset_( x, y );
+    }
+
+    void write( std::ostream& out, size_t indent = 0 ) const
+    {
+        pimpl_->write_( out, indent );
     }
 
     // -------------------------------------------------------------
@@ -97,7 +103,10 @@ private:
     struct Concept
     {
         virtual ~Concept() {}
-        virtual void to_svg_element_( std::ostream& out, size_t indent = 0 ) const = 0;
+
+        virtual void offset_( double x, double y ) = 0;
+        virtual void write_( std::ostream& out, size_t indent = 0 ) const = 0;
+
         virtual std::unique_ptr< Concept > clone() const = 0;
     };
 
@@ -108,9 +117,14 @@ private:
             : object_( value )
         {}
 
-        void to_svg_element_( std::ostream& out, size_t indent = 0 ) const
+        void offset_( double x, double y )
         {
-            object_.to_svg_element( out, indent );
+            object_.offset( x, y );
+        }
+
+        void write_( std::ostream& out, size_t indent = 0 ) const
+        {
+            object_.write( out, indent );
         }
 
         std::unique_ptr< Concept > clone() const

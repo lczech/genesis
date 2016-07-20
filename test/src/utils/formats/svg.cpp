@@ -77,7 +77,7 @@ TEST( Svg, Basics )
     doc << poly;
 
     std::ostringstream out;
-    doc.to_svg_document( out );
+    doc.write( out );
 
     // LOG_DBG << out.str();
     // file_write( out.str(), "/home/lucas/bla.svg" );

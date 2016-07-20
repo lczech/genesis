@@ -54,10 +54,17 @@ std::string SvgDocument::indentation_string = "    ";
 //     Members
 // -------------------------------------------------------------
 
+void SvgDocument::offset( double x, double y )
+{
+    for( auto& elem : content_ ) {
+        elem.offset( x, y );
+    }
+}
+
 /**
  * @brief Write the SvgDocument to an output stream.
  */
-void SvgDocument::to_svg_document( std::ostream& out ) const
+void SvgDocument::write( std::ostream& out ) const
 {
     // SVG header.
     out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -75,7 +82,7 @@ void SvgDocument::to_svg_document( std::ostream& out ) const
 
     // Content.
     for( auto const& elem : content_ ) {
-        elem.to_svg_element( out, 1 );
+        elem.write( out, 1 );
     }
 
     // Finish.

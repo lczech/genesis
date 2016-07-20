@@ -70,7 +70,7 @@ SvgStroke::SvgStroke( Color color_value, double width_value )
 //     Drawing Function
 // -------------------------------------------------------------
 
-void SvgStroke::to_svg_attribute( std::ostream& out ) const
+void SvgStroke::write( std::ostream& out ) const
 {
     out << svg_attribute( "stroke", color_to_hex( color ) );
     out << svg_attribute( "stroke-opacity", opacity );
@@ -135,7 +135,7 @@ SvgFill::SvgFill( Color color_value )
 //     Drawing Function
 // -------------------------------------------------------------
 
-void SvgFill::to_svg_attribute( std::ostream& out ) const
+void SvgFill::write( std::ostream& out ) const
 {
     out << svg_attribute( "fill", color_to_hex( color ) );
     out << svg_attribute( "fill-opacity", opacity );
@@ -169,7 +169,7 @@ SvgFont::SvgFont( double size_value, std::string const& family_value )
 //     Drawing Function
 // -------------------------------------------------------------
 
-void SvgFont::to_svg_attribute( std::ostream& out ) const
+void SvgFont::write( std::ostream& out ) const
 {
     out << svg_attribute( "font-size", size );
     out << svg_attribute( "font-family", family );

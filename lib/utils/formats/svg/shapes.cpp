@@ -60,7 +60,15 @@ SvgLine::SvgLine( double x1, double y1, double x2, double y2, SvgStroke const& s
 //     Members
 // -------------------------------------------------------------
 
-void SvgLine::to_svg_element( std::ostream& out, size_t indent ) const
+void SvgLine::offset( double x, double y )
+{
+    point_1.x += x;
+    point_1.y += y;
+    point_2.x += x;
+    point_2.y += y;
+}
+
+void SvgLine::write( std::ostream& out, size_t indent ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<line";
@@ -70,7 +78,7 @@ void SvgLine::to_svg_element( std::ostream& out, size_t indent ) const
     out << svg_attribute( "x2", point_2.x );
     out << svg_attribute( "y2", point_2.y );
 
-    stroke.to_svg_attribute( out );
+    stroke.write( out );
     out << " />\n";
 }
 
@@ -109,7 +117,13 @@ SvgRect::SvgRect(
 //     Members
 // -------------------------------------------------------------
 
-void SvgRect::to_svg_element( std::ostream& out, size_t indent ) const
+void SvgRect::offset( double x, double y )
+{
+    location.x += x;
+    location.y += y;
+}
+
+void SvgRect::write( std::ostream& out, size_t indent ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<rect";
@@ -124,8 +138,8 @@ void SvgRect::to_svg_element( std::ostream& out, size_t indent ) const
         out << svg_attribute( "ry", ry );
     }
 
-    stroke.to_svg_attribute( out );
-    fill.to_svg_attribute( out );
+    stroke.write( out );
+    fill.write( out );
     out << " />\n";
 }
 
@@ -162,7 +176,13 @@ SvgCircle::SvgCircle(
 //     Members
 // -------------------------------------------------------------
 
-void SvgCircle::to_svg_element( std::ostream& out, size_t indent ) const
+void SvgCircle::offset( double x, double y )
+{
+    center.x += x;
+    center.y += y;
+}
+
+void SvgCircle::write( std::ostream& out, size_t indent ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<circle";
@@ -171,8 +191,8 @@ void SvgCircle::to_svg_element( std::ostream& out, size_t indent ) const
     out << svg_attribute( "cy", center.y );
     out << svg_attribute( "r",  radius );
 
-    stroke.to_svg_attribute( out );
-    fill.to_svg_attribute( out );
+    stroke.write( out );
+    fill.write( out );
     out << " />\n";
 }
 
@@ -210,7 +230,13 @@ SvgEllipse::SvgEllipse(
 //     Members
 // -------------------------------------------------------------
 
-void SvgEllipse::to_svg_element( std::ostream& out, size_t indent ) const
+void SvgEllipse::offset( double x, double y )
+{
+    center.x += x;
+    center.y += y;
+}
+
+void SvgEllipse::write( std::ostream& out, size_t indent ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<ellipse";
@@ -220,8 +246,8 @@ void SvgEllipse::to_svg_element( std::ostream& out, size_t indent ) const
     out << svg_attribute( "rx", rx );
     out << svg_attribute( "ry", ry );
 
-    stroke.to_svg_attribute( out );
-    fill.to_svg_attribute( out );
+    stroke.write( out );
+    fill.write( out );
     out << " />\n";
 }
 
@@ -271,7 +297,15 @@ SvgPolyline& SvgPolyline::operator <<( SvgPoint p )
     return add( p );
 }
 
-void SvgPolyline::to_svg_element( std::ostream& out, size_t indent ) const
+void SvgPolyline::offset( double x, double y )
+{
+    for( auto& point : points ) {
+        point.x += x;
+        point.y += y;
+    }
+}
+
+void SvgPolyline::write( std::ostream& out, size_t indent ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<polyline";
@@ -285,8 +319,8 @@ void SvgPolyline::to_svg_element( std::ostream& out, size_t indent ) const
     }
     out << "\"";
 
-    stroke.to_svg_attribute( out );
-    fill.to_svg_attribute( out );
+    stroke.write( out );
+    fill.write( out );
     out << " />\n";
 }
 
@@ -336,7 +370,15 @@ SvgPolygon& SvgPolygon::operator <<( SvgPoint p )
     return add( p );
 }
 
-void SvgPolygon::to_svg_element( std::ostream& out, size_t indent ) const
+void SvgPolygon::offset( double x, double y )
+{
+    for( auto& point : points ) {
+        point.x += x;
+        point.y += y;
+    }
+}
+
+void SvgPolygon::write( std::ostream& out, size_t indent ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<polygon";
@@ -350,8 +392,8 @@ void SvgPolygon::to_svg_element( std::ostream& out, size_t indent ) const
     }
     out << "\"";
 
-    stroke.to_svg_attribute( out );
-    fill.to_svg_attribute( out );
+    stroke.write( out );
+    fill.write( out );
     out << " />\n";
 }
 

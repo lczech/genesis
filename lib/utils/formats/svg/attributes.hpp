@@ -89,7 +89,7 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    void to_svg_attribute( std::ostream& out ) const;
+    void write( std::ostream& out ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -150,7 +150,7 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    void to_svg_attribute( std::ostream& out ) const;
+    void write( std::ostream& out ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -194,7 +194,7 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    void to_svg_attribute( std::ostream& out ) const;
+    void write( std::ostream& out ) const;
 
     // -------------------------------------------------------------
     //     Properties

@@ -72,7 +72,8 @@ public:
     //     Members
     // -------------------------------------------------------------
 
-    void to_svg_document( std::ostream& out ) const;
+    void offset( double x, double y );
+    void write( std::ostream& out ) const;
 
     self_type& add(          SvgObject const& object );
     self_type& operator << ( SvgObject const& object );

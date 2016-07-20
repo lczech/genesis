@@ -83,7 +83,8 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    void to_svg_element( std::ostream& out, size_t indent = 0 ) const;
+    void offset( double x, double y );
+    void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -139,7 +140,8 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    void to_svg_element( std::ostream& out, size_t indent = 0 ) const;
+    void offset( double x, double y );
+    void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -200,7 +202,8 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    void to_svg_element( std::ostream& out, size_t indent = 0 ) const;
+    void offset( double x, double y );
+    void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -258,7 +261,8 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    void to_svg_element( std::ostream& out, size_t indent = 0 ) const;
+    void offset( double x, double y );
+    void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -319,7 +323,8 @@ public:
 
     self_type& operator <<( SvgPoint p );
 
-    void to_svg_element( std::ostream& out, size_t indent = 0 ) const;
+    void offset( double x, double y );
+    void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -378,7 +383,8 @@ public:
 
     self_type& operator <<( SvgPoint p );
 
-    void to_svg_element( std::ostream& out, size_t indent = 0 ) const;
+    void offset( double x, double y );
+    void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------
     //     Properties
