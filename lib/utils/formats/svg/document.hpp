@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include "utils/formats/svg/helper.hpp"
 #include "utils/formats/svg/object.hpp"
 
 #include <iosfwd>
@@ -79,8 +80,12 @@ public:
     self_type& operator << ( SvgObject const& object );
 
     // -------------------------------------------------------------
-    //     Internal Members
+    //     Data Members
     // -------------------------------------------------------------
+
+public:
+
+    SvgMargin margin;
 
 private:
 

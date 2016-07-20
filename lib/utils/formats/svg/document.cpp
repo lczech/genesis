@@ -30,8 +30,6 @@
 
 #include "utils/formats/svg/document.hpp"
 
-#include "utils/formats/svg/helper.hpp"
-
 #include "utils/core/genesis.hpp"
 #include "utils/core/options.hpp"
 #include "utils/text/string.hpp"
@@ -54,6 +52,9 @@ std::string SvgDocument::indentation_string = "    ";
 //     Members
 // -------------------------------------------------------------
 
+/**
+ * @brief Move the whole content of the document around by a given offset.
+ */
 void SvgDocument::offset( double x, double y )
 {
     for( auto& elem : content_ ) {
@@ -66,21 +67,21 @@ void SvgDocument::offset( double x, double y )
  */
 void SvgDocument::write( std::ostream& out ) const
 {
-    // Get bounding box of all elements.
-    SvgBox bounding_box;
+    // Get bounding box of all elements and the dimensions of the document.
+    SvgBox bbox;
     for( auto const& elem : content_ ) {
-        bounding_box = SvgBox::combine( bounding_box, elem.bounding_box() );
+        bbox = SvgBox::combine( bbox, elem.bounding_box() );
     }
+    double doc_width  = margin.left + bbox.top_left.x + bbox.width()  + margin.right;
+    double doc_height = margin.top  + bbox.top_left.y + bbox.height() + margin.bottom;
 
     // SVG header.
     out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
     out << "<svg";
     out << svg_attribute( "xmlns", "http://www.w3.org/2000/svg" );
     out << svg_attribute( "xmlns:xlink", "http://www.w3.org/1999/xlink" );
-    if( ! bounding_box.empty() ) {
-        out << svg_attribute( "width",  bounding_box.width() );
-        out << svg_attribute( "height", bounding_box.height() );
-    }
+    out << svg_attribute( "width",  doc_width );
+    out << svg_attribute( "height", doc_height );
     out << ">\n";
 
     // Some metadata.
@@ -92,12 +93,15 @@ void SvgDocument::write( std::ostream& out ) const
         out << svg_comment( "Program invocation: " + Options::get().command_line_string() );
     }
 
-    // Content.
-    for( auto const& elem : content_ ) {
+    // Content. Take them by copy, so that the margin offset does not affect the originals.
+    // Slightly inefficient, maybe we can offer a temporary offset function, or introduce an
+    // offset parameter to the writing function instead.
+    for( auto elem : content_ ) {
+        elem.offset( margin.left, margin.top );
         elem.write( out, 1 );
 
         // Draw bounding boxes around all elements, for testing purposes.
-        // auto bb = elem.bounding_box();
+        // auto bb = elem.bbox();
         // SvgRect( bb.top_left, bb.size(), SvgStroke(), SvgFill( Color(), 0.0 ) ).write( out, 1 );
     }
 

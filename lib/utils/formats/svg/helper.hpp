@@ -71,6 +71,41 @@ struct SvgSize
 };
 
 // =================================================================================================
+//     Svg Margin
+// =================================================================================================
+
+struct SvgMargin
+{
+    explicit SvgMargin()
+        : SvgMargin( 0.0, 0.0, 0.0, 0.0 )
+    {}
+
+    explicit SvgMargin( double all )
+        : SvgMargin( all, all, all, all )
+    {}
+
+    explicit SvgMargin( double top_bottom, double right_left )
+        : SvgMargin( top_bottom, right_left, top_bottom, right_left )
+    {}
+
+    explicit SvgMargin( double top, double right_left, double bottom )
+        : SvgMargin( top, right_left, bottom, right_left )
+    {}
+
+    explicit SvgMargin( double top, double right, double bottom, double left )
+        : top(top)
+        , right(right)
+        , bottom(bottom)
+        , left(left)
+    {}
+
+    double top;
+    double right;
+    double bottom;
+    double left;
+};
+
+// =================================================================================================
 //     Svg (Bounding) Box
 // =================================================================================================
 

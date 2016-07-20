@@ -76,6 +76,8 @@ TEST( Svg, Basics )
     poly << SvgPoint( 00, 40 ) << SvgPoint( 20, 30 ) << SvgPoint( 10, 10 ) << SvgPoint( 30, 20 );
     doc << poly;
 
+    doc.margin = SvgMargin( 10, 30 );
+
     std::ostringstream out;
     doc.write( out );
 
