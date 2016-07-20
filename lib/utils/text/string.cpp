@@ -462,6 +462,22 @@ char deescape( char c )
 // =================================================================================================
 
 /**
+ * @brief Take a string and repeat it a given number of times.
+ */
+std::string repeat( std::string const& word, size_t times )
+{
+    // Init and avoid repeated reallocation.
+    std::string result;
+    result.reserve( times * word.length() );
+
+    // Concat repeats.
+    for( size_t i = 0; i < times; ++i ) {
+        result += word ;
+    }
+    return result;
+}
+
+/**
  * @brief Return a precise string representation of the input value, using the provided precision
  * value (determining its decimal places).
  *
