@@ -106,6 +106,18 @@ TEST( Text, HeadTail )
     EXPECT_EQ( large, tail( large, 10 ) );
 }
 
+TEST( Text, Indent )
+{
+    std::string lines_orig_1 = "this is\na test with normal\nlines  ";
+    std::string lines_orig_2 = "this is  \n   a test with weird\nlines \n  ";
+
+    std::string lines_idnt_1 = "    this is\n    a test with normal\n    lines";
+    std::string lines_idnt_2 = "    this is  \n       a test with weird\n    lines \n";
+
+    EXPECT_EQ( lines_idnt_1, indent( lines_orig_1 ));
+    EXPECT_EQ( lines_idnt_2, indent( lines_orig_2 ));
+}
+
 TEST(Text, Split)
 {
     auto simple = split("one:two:three:four", ":");

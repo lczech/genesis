@@ -71,6 +71,11 @@ std::vector<std::string> split (
 //     Manipulate
 // =================================================================================================
 
+std::string indent(
+    std::string const& text,
+    std::string const& indentation = "    "
+);
+
 std::string replace_all (
     std::string const& text,
     std::string const& search,

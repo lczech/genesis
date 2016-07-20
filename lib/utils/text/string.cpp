@@ -181,6 +181,21 @@ std::vector<std::string> split (
 // =================================================================================================
 
 /**
+ * @brief Indent each line of `text` with `indentation` and return the result.
+ *
+ * By default, four spaces are used to indent. Whether the text ends with a new line or not is not
+ * changed. Any trailing indentation chars are trimmed, in order to not have trailing whitespaces
+ * in the result (except for the new line, if the text ends in one).
+ */
+std::string indent(
+    std::string const& text,
+    std::string const& indentation
+) {
+    auto ret = indentation + replace_all( text, "\n", "\n" + indentation );
+    return trim_right( ret, indentation );
+}
+
+/**
  * @brief Return a copy of a string, where all occurences of a search string
  * are replaced by a replace string.
  */
