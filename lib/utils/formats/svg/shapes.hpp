@@ -117,7 +117,7 @@ public:
     // -------------------------------------------------------------
 
     SvgRect(
-        SvgPoint const&  location,
+        SvgPoint const&  position,
         SvgSize  const&  size,
         SvgStroke const& stroke = SvgStroke(),
         SvgFill   const& fill   = SvgFill()
@@ -151,7 +151,7 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
-    SvgPoint  location;
+    SvgPoint  position;
     SvgSize   size;
 
     SvgStroke stroke;
@@ -395,7 +395,7 @@ public:
 
     void offset( double x, double y );
     SvgBox bounding_box() const;
-    
+
     void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------

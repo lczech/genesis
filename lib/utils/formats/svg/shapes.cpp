@@ -101,12 +101,12 @@ void SvgLine::write( std::ostream& out, size_t indent ) const
 // -------------------------------------------------------------
 
 SvgRect::SvgRect(
-    SvgPoint const&  location,
+    SvgPoint const&  position,
     SvgSize  const&  size,
     SvgStroke const& stroke,
     SvgFill   const& fill
 )
-    : location( location )
+    : position( position )
     , size( size )
     , stroke( stroke )
     , fill( fill )
@@ -129,13 +129,13 @@ SvgRect::SvgRect(
 
 void SvgRect::offset( double x, double y )
 {
-    location.x += x;
-    location.y += y;
+    position.x += x;
+    position.y += y;
 }
 
 SvgBox SvgRect::bounding_box() const
 {
-    return { location, size.width, size.height };
+    return { position, size.width, size.height };
 }
 
 void SvgRect::write( std::ostream& out, size_t indent ) const
@@ -143,8 +143,8 @@ void SvgRect::write( std::ostream& out, size_t indent ) const
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<rect";
 
-    out << svg_attribute( "x", location.x );
-    out << svg_attribute( "y", location.y );
+    out << svg_attribute( "x", position.x );
+    out << svg_attribute( "y", position.y );
     out << svg_attribute( "width",  size.width );
     out << svg_attribute( "height", size.height );
 
