@@ -28,7 +28,7 @@
  * @ingroup tree
  */
 
-#include "utils/core/logging.hpp"
+#include "tree/iterator/levelorder.hpp"
 
 #include <algorithm>
 #include <assert.h>
