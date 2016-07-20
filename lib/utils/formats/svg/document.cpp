@@ -66,10 +66,22 @@ void SvgDocument::offset( double x, double y )
  */
 void SvgDocument::write( std::ostream& out ) const
 {
+    // Get bounding box of all elements.
+    SvgBox bounding_box;
+    for( auto const& elem : content_ ) {
+        bounding_box = SvgBox::combine( bounding_box, elem.bounding_box() );
+    }
+
     // SVG header.
     out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
-    out << "<svg xmlns=\"http://www.w3.org/2000/svg\" ";
-    out << "xmlns:xlink=\"http://www.w3.org/1999/xlink\">\n";
+    out << "<svg";
+    out << svg_attribute( "xmlns", "http://www.w3.org/2000/svg" );
+    out << svg_attribute( "xmlns:xlink", "http://www.w3.org/1999/xlink" );
+    if( ! bounding_box.empty() ) {
+        out << svg_attribute( "width",  bounding_box.width() );
+        out << svg_attribute( "height", bounding_box.height() );
+    }
+    out << ">\n";
 
     // Some metadata.
     out << svg_comment(
@@ -83,6 +95,10 @@ void SvgDocument::write( std::ostream& out ) const
     // Content.
     for( auto const& elem : content_ ) {
         elem.write( out, 1 );
+
+        // Draw bounding boxes around all elements, for testing purposes.
+        // auto bb = elem.bounding_box();
+        // SvgRect( bb.top_left, bb.size(), SvgStroke(), SvgFill( Color(), 0.0 ) ).write( out, 1 );
     }
 
     // Finish.

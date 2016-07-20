@@ -33,7 +33,9 @@
 #include "utils/formats/svg/document.hpp"
 #include "utils/text/string.hpp"
 
+#include <algorithm>
 #include <ostream>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
@@ -66,6 +68,14 @@ void SvgLine::offset( double x, double y )
     point_1.y += y;
     point_2.x += x;
     point_2.y += y;
+}
+
+SvgBox SvgLine::bounding_box() const
+{
+    return {
+        SvgPoint( std::min( point_1.x, point_2.x ), std::min( point_1.y, point_2.y )),
+        SvgPoint( std::max( point_1.x, point_2.x ), std::max( point_1.y, point_2.y ))
+    };
 }
 
 void SvgLine::write( std::ostream& out, size_t indent ) const
@@ -121,6 +131,11 @@ void SvgRect::offset( double x, double y )
 {
     location.x += x;
     location.y += y;
+}
+
+SvgBox SvgRect::bounding_box() const
+{
+    return { location, size.width, size.height };
 }
 
 void SvgRect::write( std::ostream& out, size_t indent ) const
@@ -182,6 +197,14 @@ void SvgCircle::offset( double x, double y )
     center.y += y;
 }
 
+SvgBox SvgCircle::bounding_box() const
+{
+    return {
+        SvgPoint( center.x - radius, center.y - radius ),
+        SvgPoint( center.x + radius, center.y + radius )
+    };
+}
+
 void SvgCircle::write( std::ostream& out, size_t indent ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
@@ -234,6 +257,14 @@ void SvgEllipse::offset( double x, double y )
 {
     center.x += x;
     center.y += y;
+}
+
+SvgBox SvgEllipse::bounding_box() const
+{
+    return {
+        SvgPoint( center.x - rx, center.y - ry ),
+        SvgPoint( center.x + rx, center.y + ry )
+    };
 }
 
 void SvgEllipse::write( std::ostream& out, size_t indent ) const
@@ -303,6 +334,30 @@ void SvgPolyline::offset( double x, double y )
         point.x += x;
         point.y += y;
     }
+}
+
+SvgBox SvgPolyline::bounding_box() const
+{
+    if( points.size() == 0 ) {
+        return {};
+        // throw std::runtime_error(
+        //     "Cannot calculate bounding box of Polyline without any points."
+        // );
+    }
+
+    auto minmax_x = std::minmax_element(
+        points.begin(), points.end(),
+        []( SvgPoint lhs, SvgPoint rhs ){ return lhs.x < rhs.x; }
+    );
+    auto minmax_y = std::minmax_element(
+        points.begin(), points.end(),
+        []( SvgPoint lhs, SvgPoint rhs ){ return lhs.y < rhs.y; }
+    );
+
+    return {
+        SvgPoint( minmax_x.first->x,  minmax_y.first->y ),
+        SvgPoint( minmax_x.second->x, minmax_y.second->y )
+    };
 }
 
 void SvgPolyline::write( std::ostream& out, size_t indent ) const
@@ -376,6 +431,30 @@ void SvgPolygon::offset( double x, double y )
         point.x += x;
         point.y += y;
     }
+}
+
+SvgBox SvgPolygon::bounding_box() const
+{
+    if( points.size() == 0 ) {
+        return {};
+        // throw std::runtime_error(
+        //     "Cannot calculate bounding box of Polygon without any points."
+        // );
+    }
+
+    auto minmax_x = std::minmax_element(
+        points.begin(), points.end(),
+        []( SvgPoint lhs, SvgPoint rhs ){ return lhs.x < rhs.x; }
+    );
+    auto minmax_y = std::minmax_element(
+        points.begin(), points.end(),
+        []( SvgPoint lhs, SvgPoint rhs ){ return lhs.y < rhs.y; }
+    );
+
+    return {
+        SvgPoint( minmax_x.first->x,  minmax_y.first->y ),
+        SvgPoint( minmax_x.second->x, minmax_y.second->y )
+    };
 }
 
 void SvgPolygon::write( std::ostream& out, size_t indent ) const

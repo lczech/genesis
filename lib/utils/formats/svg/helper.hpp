@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include <algorithm>
 #include <ostream>
 #include <sstream>
 #include <string>
@@ -67,6 +68,92 @@ struct SvgSize
 
     double width;
     double height;
+};
+
+// =================================================================================================
+//     Svg (Bounding) Box
+// =================================================================================================
+
+struct SvgBox
+{
+    SvgBox() = default;
+
+    SvgBox( SvgPoint top_left, SvgPoint bottom_right )
+        : top_left(top_left)
+        , bottom_right(bottom_right)
+    {
+        // Make it fool-proof.
+        if( bottom_right.x < top_left.x ) {
+            std::swap( bottom_right.x, top_left.x );
+        }
+        if( bottom_right.y < top_left.y ) {
+            std::swap( bottom_right.y, top_left.y );
+        }
+    }
+
+    SvgBox( SvgPoint top_left_v, double width, double height )
+        : top_left(top_left_v)
+        , bottom_right( top_left.x + width, top_left.y + height )
+    {
+        // Allow negative size.
+        if( width < 0.0 ) {
+            std::swap( top_left.x, bottom_right.x );
+        }
+        if( height < 0.0 ) {
+            std::swap( top_left.y, bottom_right.y );
+        }
+    }
+
+    double width() const
+    {
+        return bottom_right.x - top_left.x;
+    }
+
+    double height() const
+    {
+        return bottom_right.y - top_left.y;
+    }
+
+    SvgSize size() const
+    {
+        return SvgSize( width(), height() );
+    }
+
+    bool empty() const
+    {
+        // If everything is zero, this either is an uninitialized default box, or we are at the
+        // big bang, where everything is condensed into one point. Either way, this means there
+        // is no bounding box, as the singularity does not have a dimension.
+        return top_left.x     == 0.0 && top_left.y     == 0.0 &&
+               bottom_right.x == 0.0 && bottom_right.y == 0.0;
+    }
+
+    static SvgBox combine( SvgBox const& lhs, SvgBox const& rhs )
+    {
+        // If any of the two boxes is empty, return the other one.
+        // (If both are empty, this also returns an empty box.)
+        if( lhs.empty() ) {
+            return rhs;
+        }
+        if( rhs.empty() ) {
+            return lhs;
+        }
+
+        return {
+            SvgPoint(
+                std::min( lhs.top_left.x, rhs.top_left.x ),
+                std::min( lhs.top_left.y, rhs.top_left.y )
+            ),
+            SvgPoint(
+                std::max( lhs.bottom_right.x, rhs.bottom_right.x ),
+                std::max( lhs.bottom_right.y, rhs.bottom_right.y )
+            )
+        };
+    }
+
+    SvgPoint top_left;
+    SvgPoint bottom_right;
+
 };
 
 // =================================================================================================

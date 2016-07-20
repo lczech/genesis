@@ -136,7 +136,7 @@ public:
     // -------------------------------------------------------------
 
     SvgFill();
-    explicit SvgFill( Color color );
+    explicit SvgFill( Color color, double opacity = 1.0 );
 
     ~SvgFill() = default;
 

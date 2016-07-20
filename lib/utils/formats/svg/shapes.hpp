@@ -84,6 +84,8 @@ public:
     // -------------------------------------------------------------
 
     void offset( double x, double y );
+    SvgBox bounding_box() const;
+
     void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------
@@ -141,6 +143,8 @@ public:
     // -------------------------------------------------------------
 
     void offset( double x, double y );
+    SvgBox bounding_box() const;
+
     void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------
@@ -203,6 +207,8 @@ public:
     // -------------------------------------------------------------
 
     void offset( double x, double y );
+    SvgBox bounding_box() const;
+
     void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------
@@ -262,6 +268,8 @@ public:
     // -------------------------------------------------------------
 
     void offset( double x, double y );
+    SvgBox bounding_box() const;
+
     void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------
@@ -324,6 +332,8 @@ public:
     self_type& operator <<( SvgPoint p );
 
     void offset( double x, double y );
+    SvgBox bounding_box() const;
+
     void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------
@@ -384,6 +394,8 @@ public:
     self_type& operator <<( SvgPoint p );
 
     void offset( double x, double y );
+    SvgBox bounding_box() const;
+    
     void write( std::ostream& out, size_t indent = 0 ) const;
 
     // -------------------------------------------------------------

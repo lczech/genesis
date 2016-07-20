@@ -125,11 +125,11 @@ SvgFill::SvgFill()
     , rule( Rule::kNone )
 {}
 
-SvgFill::SvgFill( Color color_value )
-    : SvgFill()
-{
-    color = color_value;
-}
+SvgFill::SvgFill( Color color_value, double opacity )
+    : color( color_value )
+    , opacity( opacity )
+    , rule( Rule::kNone )
+{}
 
 // -------------------------------------------------------------
 //     Drawing Function

@@ -89,6 +89,11 @@ public:
         pimpl_->offset_( x, y );
     }
 
+    SvgBox bounding_box() const
+    {
+        return pimpl_->bounding_box_();
+    }
+
     void write( std::ostream& out, size_t indent = 0 ) const
     {
         pimpl_->write_( out, indent );
@@ -105,6 +110,7 @@ private:
         virtual ~Concept() {}
 
         virtual void offset_( double x, double y ) = 0;
+        virtual SvgBox bounding_box_() const = 0;
         virtual void write_( std::ostream& out, size_t indent = 0 ) const = 0;
 
         virtual std::unique_ptr< Concept > clone() const = 0;
@@ -120,6 +126,11 @@ private:
         void offset_( double x, double y )
         {
             object_.offset( x, y );
+        }
+
+        SvgBox bounding_box_() const
+        {
+            return object_.bounding_box();
         }
 
         void write_( std::ostream& out, size_t indent = 0 ) const
