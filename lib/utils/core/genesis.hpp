@@ -63,6 +63,14 @@ inline std::string genesis_version()
 }
 
 /**
+ * @brief Return the URL of the genesis home page.
+ */
+inline std::string genesis_url()
+{
+    return "http://genesis-lib.org/";
+}
+
+/**
  * @brief Return the header for genesis.
  *
  * This is simply a text version of the logo, including the current version. It can for example be
@@ -78,7 +86,8 @@ inline std::string genesis_header()
       __/______________________________    \n\
     (__/                                   \n\
                2014-2016 by Lucas Czech    \n\
-               " + genesis_version() + "\n";
+               " + genesis_version() +    "\n\
+               " + genesis_url()     +    "\n";
 }
 
 /**

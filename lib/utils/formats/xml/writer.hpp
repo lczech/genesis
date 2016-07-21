@@ -76,7 +76,6 @@ protected:
     void print_element (std::string& xml, const XmlElement* value, const int indent_level);
 
     std::string print_attributes_list (StringMapType attr);
-    std::string xml_escape (const std::string& txt);
 
     // -----------------------------------------------------
     //     Members

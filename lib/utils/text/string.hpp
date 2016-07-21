@@ -71,6 +71,11 @@ std::vector<std::string> split (
 //     Manipulate
 // =================================================================================================
 
+std::string indent(
+    std::string const& text,
+    std::string const& indentation = "    "
+);
+
 std::string replace_all (
     std::string const& text,
     std::string const& search,
@@ -116,6 +121,8 @@ char        deescape( char c );
 // =================================================================================================
 //     Output
 // =================================================================================================
+
+std::string repeat( std::string const& word, size_t times );
 
 std::string to_string_precise( double value, const int precision = 6 );
 std::string to_string_rounded( double value, const int precision = 6 );

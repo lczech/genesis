@@ -99,7 +99,7 @@ protected:
 
 public:
 
-    // /**
+    // /* *
     //  * @brief Precision used for printing floating point numbers, particularly Json Value Numbers.
     //  */
     // int precision = 6;
