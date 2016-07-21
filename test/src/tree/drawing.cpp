@@ -55,6 +55,6 @@ TEST(Tree, Drawing)
     layout.to_svg_document().write( out );
 
     // LOG_DBG << out.str();
-    utils::file_write( out.str(), "/home/lucas/tree.svg" );
+    // utils::file_write( out.str(), "/home/lucas/tree.svg" );
 
 }
