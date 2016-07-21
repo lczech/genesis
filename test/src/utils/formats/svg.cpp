@@ -76,11 +76,13 @@ TEST( Svg, Basics )
     poly << SvgPoint( 00, 40 ) << SvgPoint( 20, 30 ) << SvgPoint( 10, 10 ) << SvgPoint( 30, 20 );
     doc << poly;
 
+    doc << SvgText( SvgPoint( 20, 120 ), "Hello World!" );
+
     doc.margin = SvgMargin( 10, 30 );
 
     std::ostringstream out;
     doc.write( out );
 
     // LOG_DBG << out.str();
-    // file_write( out.str(), "/home/lucas/bla.svg" );
+    file_write( out.str(), "/home/lucas/bla.svg" );
 }

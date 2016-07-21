@@ -40,5 +40,6 @@
 #include "utils/formats/svg/helper.hpp"
 #include "utils/formats/svg/object.hpp"
 #include "utils/formats/svg/shapes.hpp"
+#include "utils/formats/svg/text.hpp"
 
 #endif // include guard

@@ -101,7 +101,7 @@ void SvgDocument::write( std::ostream& out ) const
         elem.write( out, 1 );
 
         // Draw bounding boxes around all elements, for testing purposes.
-        // auto bb = elem.bbox();
+        // auto bb = elem.bounding_box();
         // SvgRect( bb.top_left, bb.size(), SvgStroke(), SvgFill( Color(), 0.0 ) ).write( out, 1 );
     }
 
