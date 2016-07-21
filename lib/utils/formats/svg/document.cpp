@@ -88,9 +88,9 @@ void SvgDocument::write( std::ostream& out ) const
     out << svg_comment(
         "Created with genesis " + genesis_version() + " (" + genesis_url() + ") " +
         "on " + current_date() + " at " + current_time()
-    );
+    ) << "\n";
     if( Options::get().command_line_string() != "" ) {
-        out << svg_comment( "Program invocation: " + Options::get().command_line_string() );
+        out << svg_comment( "Program invocation: " + Options::get().command_line_string() ) << "\n";
     }
 
     // Content. Take them by copy, so that the margin offset does not affect the originals.

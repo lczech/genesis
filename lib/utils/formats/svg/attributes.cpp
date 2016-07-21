@@ -47,8 +47,9 @@ namespace utils {
 //     Constructors and Rule of Five
 // -------------------------------------------------------------
 
-SvgStroke::SvgStroke()
-    : color()
+SvgStroke::SvgStroke( bool enabled )
+    : enabled( enabled )
+    , color()
     , opacity( 1.0 )
     , width( 1.0 )
     , width_unit()
@@ -72,6 +73,10 @@ SvgStroke::SvgStroke( Color color_value, double width_value )
 
 void SvgStroke::write( std::ostream& out ) const
 {
+    if( ! enabled ) {
+        return;
+    }
+
     out << svg_attribute( "stroke", color_to_hex( color ) );
     out << svg_attribute( "stroke-opacity", opacity );
     out << svg_attribute( "stroke-width", width, width_unit );
@@ -119,8 +124,9 @@ void SvgStroke::write( std::ostream& out ) const
 //     Constructors and Rule of Five
 // -------------------------------------------------------------
 
-SvgFill::SvgFill()
-    : color()
+SvgFill::SvgFill( bool enabled )
+    : enabled( enabled )
+    , color()
     , opacity( 1.0 )
     , rule( Rule::kNone )
 {}
@@ -137,6 +143,10 @@ SvgFill::SvgFill( Color color_value, double opacity )
 
 void SvgFill::write( std::ostream& out ) const
 {
+    if( ! enabled ) {
+        return;
+    }
+
     out << svg_attribute( "fill", color_to_hex( color ) );
     out << svg_attribute( "fill-opacity", opacity );
 
@@ -160,8 +170,15 @@ void SvgFill::write( std::ostream& out ) const
 //     Constructors and Rule of Five
 // -------------------------------------------------------------
 
+SvgFont::SvgFont( bool enabled )
+    : enabled( enabled )
+    , size( 10 )
+    , family( "Verdama" )
+{}
+
 SvgFont::SvgFont( double size_value, std::string const& family_value )
-    : size( size_value )
+    : enabled( true )
+    , size( size_value )
     , family( family_value )
 {}
 
@@ -171,6 +188,10 @@ SvgFont::SvgFont( double size_value, std::string const& family_value )
 
 void SvgFont::write( std::ostream& out ) const
 {
+    if( ! enabled ) {
+        return;
+    }
+
     out << svg_attribute( "font-size", size );
     out << svg_attribute( "font-family", family );
 }

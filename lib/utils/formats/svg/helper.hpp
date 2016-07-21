@@ -197,7 +197,7 @@ struct SvgBox
 
 inline std::string svg_comment( std::string const& content )
 {
-    return "<!-- " + content + " -->\n";
+    return "<!-- " + content + " -->";
 }
 
 template< typename T >

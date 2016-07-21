@@ -74,7 +74,7 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    SvgStroke();
+    explicit SvgStroke( bool enabled = true );
     explicit SvgStroke( Color color, double width = 1.0 );
 
     ~SvgStroke() = default;
@@ -94,6 +94,8 @@ public:
     // -------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------
+
+    bool enabled;
 
     Color  color;
     double opacity;
@@ -135,7 +137,7 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    SvgFill();
+    explicit SvgFill( bool enabled = true );
     explicit SvgFill( Color color, double opacity = 1.0 );
 
     ~SvgFill() = default;
@@ -155,6 +157,8 @@ public:
     // -------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------
+
+    bool enabled;
 
     Color  color;
     double opacity;
@@ -180,6 +184,7 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
+    explicit SvgFont( bool enabled );
     explicit SvgFont( double size = 10, std::string const& family = "Verdana" );
 
     ~SvgFont() = default;
@@ -199,6 +204,8 @@ public:
     // -------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------
+
+    bool enabled;
 
     double      size;
     std::string family;
