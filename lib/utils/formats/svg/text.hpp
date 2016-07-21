@@ -69,9 +69,9 @@ public:
     SvgText(
         SvgPoint const&    position,
         std::string const& text,
-        SvgFont const&     font = SvgFont(),
-        SvgFill const&     fill = SvgFill(),
-        SvgStroke const&   stroke = SvgStroke( false )
+        SvgFont const&     font   = SvgFont(),
+        SvgFill const&     fill   = SvgFill(),
+        SvgStroke const&   stroke = SvgStroke( SvgStroke::Type::kOmit )
     );
 
     ~SvgText() = default;

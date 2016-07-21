@@ -54,9 +54,16 @@ public:
 
     using self_type = SvgStroke;
 
+    enum class Type
+    {
+        kColor,
+        kNone,
+        kOmit
+    };
+
     enum class LineCap
     {
-        kNone,
+        kOmit,
         kButt,
         kSquare,
         kRound
@@ -64,7 +71,7 @@ public:
 
     enum class LineJoin
     {
-        kNone,
+        kOmit,
         kMiter,
         kRound,
         kBevel
@@ -74,7 +81,7 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    explicit SvgStroke( bool enabled = true );
+    explicit SvgStroke( Type type = Type::kColor );
     explicit SvgStroke( Color color, double width = 1.0 );
 
     ~SvgStroke() = default;
@@ -95,7 +102,7 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
-    bool enabled;
+    Type type;
 
     Color  color;
     double opacity;
@@ -126,6 +133,13 @@ public:
 
     using self_type = SvgFill;
 
+    enum class Type
+    {
+        kColor,
+        kNone,
+        kOmit
+    };
+
     enum class Rule
     {
         kNone,
@@ -137,7 +151,7 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    explicit SvgFill( bool enabled = true );
+    explicit SvgFill( Type type = Type::kColor );
     explicit SvgFill( Color color, double opacity = 1.0 );
 
     ~SvgFill() = default;
@@ -158,7 +172,7 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
-    bool enabled;
+    Type type;
 
     Color  color;
     double opacity;
@@ -184,7 +198,6 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    explicit SvgFont( bool enabled );
     explicit SvgFont( double size = 10, std::string const& family = "Verdana" );
 
     ~SvgFont() = default;
@@ -204,8 +217,6 @@ public:
     // -------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------
-
-    bool enabled;
 
     double      size;
     std::string family;

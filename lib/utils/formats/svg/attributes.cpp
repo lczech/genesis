@@ -47,21 +47,21 @@ namespace utils {
 //     Constructors and Rule of Five
 // -------------------------------------------------------------
 
-SvgStroke::SvgStroke( bool enabled )
-    : enabled( enabled )
+SvgStroke::SvgStroke( SvgStroke::Type type )
+    : type( type )
     , color()
     , opacity( 1.0 )
     , width( 1.0 )
     , width_unit()
-    , line_cap( LineCap::kNone )
-    , line_join( LineJoin::kNone )
+    , line_cap( LineCap::kOmit )
+    , line_join( LineJoin::kOmit )
     , miterlimit( 1.0 )
     , dash_array()
     , dash_offset( 0.0 )
 {}
 
 SvgStroke::SvgStroke( Color color_value, double width_value )
-    : SvgStroke()
+    : SvgStroke( Type::kColor )
 {
     color = color_value;
     width = width_value;
@@ -73,7 +73,12 @@ SvgStroke::SvgStroke( Color color_value, double width_value )
 
 void SvgStroke::write( std::ostream& out ) const
 {
-    if( ! enabled ) {
+    // Treat special cases.
+    if( type == Type::kOmit ) {
+        return;
+    }
+    if( type == Type::kNone ) {
+        out << svg_attribute( "stroke", "none" );
         return;
     }
 
@@ -82,7 +87,7 @@ void SvgStroke::write( std::ostream& out ) const
     out << svg_attribute( "stroke-width", width, width_unit );
 
     switch( line_cap ) {
-        case LineCap::kNone:
+        case LineCap::kOmit:
             break;
         case LineCap::kButt:
             out << svg_attribute( "stroke-linecap", "butt" );
@@ -96,7 +101,7 @@ void SvgStroke::write( std::ostream& out ) const
     }
 
     switch( line_join ) {
-        case LineJoin::kNone:
+        case LineJoin::kOmit:
             break;
         case LineJoin::kMiter:
             out << svg_attribute( "stroke-linejoin", "miter" );
@@ -124,15 +129,16 @@ void SvgStroke::write( std::ostream& out ) const
 //     Constructors and Rule of Five
 // -------------------------------------------------------------
 
-SvgFill::SvgFill( bool enabled )
-    : enabled( enabled )
+SvgFill::SvgFill( SvgFill::Type type )
+    : type( type )
     , color()
     , opacity( 1.0 )
     , rule( Rule::kNone )
 {}
 
-SvgFill::SvgFill( Color color_value, double opacity )
-    : color( color_value )
+SvgFill::SvgFill( Color color, double opacity )
+    : type( SvgFill::Type::kColor )
+    , color( color )
     , opacity( opacity )
     , rule( Rule::kNone )
 {}
@@ -143,7 +149,12 @@ SvgFill::SvgFill( Color color_value, double opacity )
 
 void SvgFill::write( std::ostream& out ) const
 {
-    if( ! enabled ) {
+    // Treat special cases.
+    if( type == Type::kOmit ) {
+        return;
+    }
+    if( type == Type::kNone ) {
+        out << svg_attribute( "fill", "none" );
         return;
     }
 
@@ -170,15 +181,8 @@ void SvgFill::write( std::ostream& out ) const
 //     Constructors and Rule of Five
 // -------------------------------------------------------------
 
-SvgFont::SvgFont( bool enabled )
-    : enabled( enabled )
-    , size( 10 )
-    , family( "Verdama" )
-{}
-
 SvgFont::SvgFont( double size_value, std::string const& family_value )
-    : enabled( true )
-    , size( size_value )
+    : size( size_value )
     , family( family_value )
 {}
 
@@ -188,10 +192,6 @@ SvgFont::SvgFont( double size_value, std::string const& family_value )
 
 void SvgFont::write( std::ostream& out ) const
 {
-    if( ! enabled ) {
-        return;
-    }
-
     out << svg_attribute( "font-size", size );
     out << svg_attribute( "font-family", family );
 }
