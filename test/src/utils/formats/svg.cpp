@@ -76,7 +76,13 @@ TEST( Svg, Basics )
     poly << SvgPoint( 00, 40 ) << SvgPoint( 20, 30 ) << SvgPoint( 10, 10 ) << SvgPoint( 30, 20 );
     doc << poly;
 
-    doc << SvgText( SvgPoint( 20, 120 ), "Hello World!" );
+    auto text = SvgText( SvgPoint( 20, 120 ), "Hello World! ygp", SvgFont( 15 ) );
+    auto bb = text.bounding_box();
+    doc << SvgRect( bb.top_left, bb.size(), SvgStroke( Color( 255, 128, 128 ) ), SvgFill( Color(), 0.0 ));
+    doc << text;
+
+    // doc << SvgLine( 20, 120, 20 + 12.0*10.0/2.0, 120 );
+    // doc << SvgLine( 20, 120, 20, 120 - 10.0/1.2 );
 
     doc.margin = SvgMargin( 10, 30 );
 
@@ -84,5 +90,5 @@ TEST( Svg, Basics )
     doc.write( out );
 
     // LOG_DBG << out.str();
-    file_write( out.str(), "/home/lucas/bla.svg" );
+    file_write( out.str(), "/home/lucas/test.svg" );
 }

@@ -76,7 +76,32 @@ void SvgText::offset( double x, double y )
 
 SvgBox SvgText::bounding_box() const
 {
-    return {};
+    // Resuting box positions.
+    double t, b, l, r;
+
+    // Dimensions.
+    auto fs = font.size;
+    double width  = text.size() * fs / 1.8;
+    double height = fs * 1.2;
+
+    // Horizontal.
+    if( anchor == Anchor::kEnd ) {
+        l = position.x - width;
+
+    } else if( anchor == Anchor::kMiddle ) {
+        l = position.x - width / 2.0;
+
+    } else {
+        l = position.x;
+    }
+    r = l + width;
+
+    // Vertical.
+    // Allow for letters below the ground line.
+    b = position.y + height * 0.3;
+    t = b - height;
+
+    return { SvgPoint( l, t ), SvgPoint( r, b ) };
 }
 
 void SvgText::write( std::ostream& out, size_t indent ) const
