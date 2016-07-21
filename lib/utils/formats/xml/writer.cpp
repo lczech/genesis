@@ -30,33 +30,17 @@
 
 #include "utils/formats/xml/writer.hpp"
 
-#include <assert.h>
-#include <stdexcept>
-
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/formats/xml/document.hpp"
+#include "utils/formats/xml/helper.hpp"
 #include "utils/text/string.hpp"
+
+#include <assert.h>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
-
-// =================================================================================================
-//     Parsing
-// =================================================================================================
-
-/*
-std::string XmlWriter::XmlDescape (std::string& xml)
-{
-    std::string res;
-    res = utils::replace_all(xml, "&lt;",   "<");
-    res = utils::replace_all(res, "&gt;",   ">");
-    res = utils::replace_all(res, "&amp;",  "&");
-    res = utils::replace_all(res, "&apos;", "'");
-    res = utils::replace_all(res, "&quot;", "\"");
-    return res;
-}
-*/
 
 // =================================================================================================
 //     Printing
@@ -108,7 +92,7 @@ std::string XmlWriter::to_string( const XmlDocument& document )
  */
 void XmlWriter::print_comment (std::string& xml, const XmlComment* value)
 {
-    xml += "<!--" + value->content + "-->";
+    xml += xml_comment( value->content );
 }
 
 /**
@@ -171,23 +155,10 @@ std::string XmlWriter::print_attributes_list (StringMapType attr)
 {
     std::string xml;
     for (auto pair : attr) {
-        xml += " " + pair.first + "=\"" + pair.second + "\"";
+        xml += xml_attribute( pair.first, pair.second );
+        // xml += " " + pair.first + "=\"" + pair.second + "\"";
     }
     return xml;
-}
-
-/**
- * @brief Escape special XML characters.
- */
-std::string XmlWriter::xml_escape (const std::string& txt)
-{
-    std::string res;
-    res = utils::replace_all(txt, "<",  "&lt;");
-    res = utils::replace_all(res, ">",  "&gt;");
-    res = utils::replace_all(res, "&",  "&amp;");
-    res = utils::replace_all(res, "'",  "&apos;");
-    res = utils::replace_all(res, "\"", "&quot;");
-    return res;
 }
 
 } // namespace utils
