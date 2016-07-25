@@ -56,13 +56,13 @@ for filename in ${file_paths[@]}; do
 
     # Check if a file of that name already exists in the apps dir.
     if [ -f ./apps/${basename} ]; then
-        echo "\e[31mFile ${basename} already exists in apps dir.\e[0m"
+        echo -e "\e[31mFile ${basename} already exists in apps dir.\e[0m"
         do_exit=1
     fi
 
     # Check if multiple files of the demos or tutorials have the same name.
     if [[ ${file_names[*]} =~ ${basename} ]]; then
-        echo "\e[31mFile ${basename} is listed multiple times.\e[0m"
+        echo -e "\e[31mFile ${basename} is listed multiple times.\e[0m"
         do_exit=1
     fi
 
