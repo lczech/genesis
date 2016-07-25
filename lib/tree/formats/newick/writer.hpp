@@ -40,7 +40,9 @@ namespace tree {
 //     Forward declarations
 // =================================================================================================
 
-template <class TreeType>
+class  Tree;
+class  TreeNode;
+class  TreeEdge;
 class  TreeSet;
 
 class  NewickBroker;
@@ -50,20 +52,9 @@ struct NewickBrokerElement;
 //     Newick Writer
 // =================================================================================================
 
-template <typename TreeType_>
 class NewickWriter
 {
-
-    // -------------------------------------------------------------------------
-    //     Member Types
-    // -------------------------------------------------------------------------
-
 public:
-
-    typedef TreeType_ TreeType;
-    typedef typename TreeType::NodeType NodeType;
-    typedef typename TreeType::EdgeType EdgeType;
-    typedef typename TreeType::LinkType LinkType;
 
     // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -86,9 +77,9 @@ public:
 
 public:
 
-    void        to_file   (const TreeType& tree, const std::string filename);
-    void        to_string (const TreeType& tree, std::string& ts);
-    std::string to_string (const TreeType& tree);
+    void        to_file   (const Tree& tree, const std::string filename);
+    void        to_string (const Tree& tree, std::string& ts);
+    std::string to_string (const Tree& tree);
 
     // -------------------------------------------------------------------------
     //     Virtual Printing Helpers
@@ -96,10 +87,10 @@ public:
 
 protected:
 
-    virtual void prepare_writing( TreeType const& tree, NewickBroker& broker );
-    virtual void node_to_element( NodeType const& node, NewickBrokerElement& element );
-    virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element );
-    virtual void finish_writing( TreeType const& tree, NewickBroker& broker );
+    virtual void prepare_writing( Tree const& tree, NewickBroker& broker );
+    virtual void node_to_element( TreeNode const& node, NewickBrokerElement& element );
+    virtual void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element );
+    virtual void finish_writing( Tree const& tree, NewickBroker& broker );
 
     // -------------------------------------------------------------------------
     //     Internal Member Functions
@@ -107,18 +98,11 @@ protected:
 
 private:
 
-    void tree_to_broker (const TreeType& tree, NewickBroker& broker);
+    void tree_to_broker (const Tree& tree, NewickBroker& broker);
 
 };
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-// This is a class template, so do the inclusion here.
-#include "tree/formats/newick/writer.tpp"
 
 #endif // include guard

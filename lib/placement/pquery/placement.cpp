@@ -49,7 +49,7 @@ namespace placement {
  */
 int PqueryPlacement::edge_num() const
 {
-    return edge_->data.edge_num();
+    return placement_edge_data( *edge_ ).edge_num();
 }
 
 /**

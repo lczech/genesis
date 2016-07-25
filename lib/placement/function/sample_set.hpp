@@ -50,7 +50,7 @@ Sample const* find_sample( SampleSet const& sset, std::string const& name );
 
 bool all_identical_trees( SampleSet const& sset );
 
-tree::TreeSet<PlacementTree> tree_set( SampleSet const& sset );
+tree::TreeSet tree_set( SampleSet const& sset );
 
 Sample merge_all( SampleSet const& sset );
 

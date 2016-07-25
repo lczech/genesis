@@ -33,6 +33,9 @@
  * @ingroup tree
  */
 
+#include "utils/core/std.hpp"
+
+#include <memory>
 #include <string>
 
 namespace genesis {
@@ -42,35 +45,48 @@ namespace tree {
 //     Forward declarations
 // =================================================================================================
 
-template <class NodeDataType, class EdgeDataType>
 class Tree;
-
-template <class NodeDataType, class EdgeDataType>
 class TreeLink;
-
-template <class NodeDataType, class EdgeDataType>
 class TreeNode;
 
 // =================================================================================================
-//     TreeEdge
+//     Tree Edge Data Base
 // =================================================================================================
 
-template <class node_data_type, class edge_data_type>
-class TreeEdge
+class BaseEdgeData
 {
 public:
 
-    // ---------------------------------------------------------------------
-    //     Typedefs
-    // ---------------------------------------------------------------------
+    BaseEdgeData() = default;
+    virtual ~BaseEdgeData()
+    {}
 
-    using NodeDataType       = node_data_type;
-    using EdgeDataType       = edge_data_type;
+    virtual std::unique_ptr< BaseEdgeData > clone() const
+    {
+        // return utils::make_unique< BaseEdgeData >( *this );
+        return std::unique_ptr< BaseEdgeData >( new BaseEdgeData( *this ));
+    };
 
-    using TreeType           = Tree    <NodeDataType, EdgeDataType>;
-    using LinkType           = TreeLink<NodeDataType, EdgeDataType>;
-    using NodeType           = TreeNode<NodeDataType, EdgeDataType>;
-    using EdgeType           = TreeEdge<NodeDataType, EdgeDataType>;
+    // Move ctor and assignment.
+    BaseEdgeData( BaseEdgeData&& other )             = delete;
+    BaseEdgeData& operator= ( BaseEdgeData&& other ) = delete;
+
+
+protected:
+
+    // Copy ctor and assignment.
+    BaseEdgeData( BaseEdgeData const& other )             = default;
+    BaseEdgeData& operator= ( BaseEdgeData const& other ) = default;
+
+};
+
+// =================================================================================================
+//     Tree Edge
+// =================================================================================================
+
+class TreeEdge
+{
+public:
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -82,7 +98,7 @@ public:
         , link_s_( nullptr )
     {}
 
-    TreeEdge( size_t index, LinkType* primary_link, LinkType* secondary_link )
+    TreeEdge( size_t index, TreeLink* primary_link, TreeLink* secondary_link )
         : index_(  index )
         , link_p_( primary_link )
         , link_s_( secondary_link )
@@ -105,17 +121,17 @@ public:
 
     size_t index() const;
 
-    LinkType      & primary_link();
-    LinkType const& primary_link() const;
+    TreeLink      & primary_link();
+    TreeLink const& primary_link() const;
 
-    LinkType      & secondary_link();
-    LinkType const& secondary_link() const;
+    TreeLink      & secondary_link();
+    TreeLink const& secondary_link() const;
 
-    NodeType      & primary_node();
-    NodeType const& primary_node() const;
+    TreeNode      & primary_node();
+    TreeNode const& primary_node() const;
 
-    NodeType      & secondary_node();
-    NodeType const& secondary_node() const;
+    TreeNode      & secondary_node();
+    TreeNode const& secondary_node() const;
 
     // ---------------------------------------------------------------------
     //     Modifiers
@@ -123,8 +139,8 @@ public:
 
     TreeEdge& reset_index( size_t val );
 
-    TreeEdge& reset_primary_link(   LinkType* val );
-    TreeEdge& reset_secondary_link( LinkType* val );
+    TreeEdge& reset_primary_link(   TreeLink* val );
+    TreeEdge& reset_secondary_link( TreeLink* val );
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -138,24 +154,17 @@ public:
 
 public:
 
-    EdgeDataType data;
+    std::unique_ptr< BaseEdgeData > data;
 
 private:
 
     size_t       index_;
 
-    LinkType*    link_p_;
-    LinkType*    link_s_;
+    TreeLink*    link_p_;
+    TreeLink*    link_s_;
 };
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the Implementation
-// =================================================================================================
-
-// This is a class template, so do the inclusion here.
-#include "tree/tree_edge.tpp"
 
 #endif // include guard

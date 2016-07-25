@@ -31,6 +31,8 @@
  * @ingroup placement
  */
 
+#include "placement/placement_tree.hpp"
+
 #include <iosfwd>
 #include <string>
 
@@ -41,20 +43,18 @@ namespace genesis {
 // =================================================================================================
 
 namespace tree {
-    template<class NodeDataType, class EdgeDataType>
+
     class Tree;
 
-    class DefaultTreeNodeData;
-    class DefaultTreeEdgeData;
+    class DefaultNodeData;
+    class DefaultEdgeData;
 
-    using DefaultTree = Tree<DefaultTreeNodeData, DefaultTreeEdgeData>;
+    using DefaultTree = Tree;
 }
 
 namespace placement {
-    class PlacementTreeEdgeData;
-    class PlacementTreeNodeData;
-
-    using PlacementTree = tree::Tree< PlacementTreeNodeData, PlacementTreeEdgeData >;
+    class PlacementEdgeData;
+    class PlacementNodeData;
 
     class Sample;
 }

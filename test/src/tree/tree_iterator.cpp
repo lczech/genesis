@@ -56,7 +56,7 @@ TEST (TreeIterator, EulertourNew)
     std::string expected_nodes = "RABACDCECARFRGHGIG";
 
     // Prepare Tree.
-    DefaultTree tree;
+    Tree tree;
     DefaultTreeNewickReader().from_string(input, tree);
 
     // Find the Node for this test run.
@@ -64,7 +64,7 @@ TEST (TreeIterator, EulertourNew)
     const auto node = find_node(ttr, node_name);
     ASSERT_NE(nullptr, node);
 
-    DefaultTreeNode const& nn = *node;
+    TreeNode const& nn = *node;
 
     std::string resulting_nodes = "";
 
@@ -86,7 +86,7 @@ TEST (TreeIterator, EulertourNew)
     // for( auto it : eulertour_from_link(nn.link()) ) {
     // for( auto it : eulertour( ttr ) ) {
     for( auto it : eulertour( nn ) ) {
-        resulting_nodes += it.node().data.name;
+        resulting_nodes += default_node_data( it.node() ).name;
         // it.node().data.name = "bla";
         // resulting_nodes += it->node().data.name;
     }
@@ -150,7 +150,7 @@ INSTANTIATE_TEST_CASE_P (TreeIterator, Eulertour, ::testing::Values(
     so for now, we leave it in this dirty state. be warned!
 
  */
-void do_test(const std::string node_name, const std::string expected_nodes, DefaultTree const& tree)
+void do_test(const std::string node_name, const std::string expected_nodes, Tree const& tree)
 {
     std::string resulting_nodes = "";
 
@@ -160,7 +160,7 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
 
     // Do a normal traversal.
     for( auto it : eulertour(*node) ) {
-        resulting_nodes += it.node().data.name;
+        resulting_nodes += default_node_data( it.node() ).name;
         // it.node()->data.name = "bla";
     }
     EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
@@ -168,7 +168,7 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
     // Use free function iterator wrapper.
     resulting_nodes = "";
     for (auto it = eulertour(*node).begin(); it != eulertour(*node).end(); ++it) {
-        resulting_nodes += it.node().data.name;
+        resulting_nodes += default_node_data( it.node() ).name;
         // it.node()->data.name = "bla";
     }
     EXPECT_EQ(expected_nodes, resulting_nodes) << " with start node " << node_name;
@@ -177,7 +177,7 @@ void do_test(const std::string node_name, const std::string expected_nodes, Defa
     resulting_nodes = "";
     // for (auto& node : eulertour(tree)) {
     for (auto const& node_it : eulertour(*node)) {
-        resulting_nodes += node_it.node().data.name;
+        resulting_nodes += default_node_data( node_it.node() ).name;
         // node.data.name = "bla";
     }
     // for (auto& node_it : eulertour(node)) {
@@ -195,7 +195,7 @@ void TestEulertour(const std::string node_name, const std::string expected_nodes
     // std::string resulting_nodes = "";
 
     // Prepare Tree.
-    DefaultTree tree;
+    Tree tree;
     DefaultTreeNewickReader().from_string(input, tree);
 
     do_test(node_name, expected_nodes, tree);
@@ -243,14 +243,14 @@ void TestPreorder(std::string node_name, std::string out_nodes)
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     std::string nodes = "";
 
-    DefaultTree tree;
+    Tree tree;
     DefaultTreeNewickReader().from_string(input, tree);
 
     auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
 
     for( auto it : preorder(*node) ) {
-        nodes += it.node().data.name;
+        nodes += default_node_data( it.node() ).name;
     }
     EXPECT_EQ(out_nodes, nodes) << " with start node " << node_name;
 }
@@ -278,14 +278,14 @@ void TestPostorder(std::string node_name, std::string out_nodes)
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     std::string nodes = "";
 
-    DefaultTree tree;
+    Tree tree;
     DefaultTreeNewickReader().from_string(input, tree);
 
     auto node = find_node(tree, node_name);
     ASSERT_NE(nullptr, node);
 
     for( auto it : postorder(*node) ) {
-        nodes += it.node().data.name;
+        nodes += default_node_data( it.node() ).name;
     }
     EXPECT_EQ(out_nodes, nodes) << " with start node " << node_name;
 }

@@ -40,35 +40,17 @@ namespace tree {
 //     Forward declarations
 // =================================================================================================
 
-template <class NodeDataType, class EdgeDataType>
 class Tree;
-
-template <class NodeDataType, class EdgeDataType>
 class TreeEdge;
-
-template <class NodeDataType, class EdgeDataType>
 class TreeNode;
 
 // =================================================================================================
 //     TreeLink
 // =================================================================================================
 
-template <class node_data_type, class edge_data_type>
 class TreeLink
 {
 public:
-
-    // ---------------------------------------------------------------------
-    //     Typedefs
-    // ---------------------------------------------------------------------
-
-    using NodeDataType       = node_data_type;
-    using EdgeDataType       = edge_data_type;
-
-    using TreeType           = Tree    <NodeDataType, EdgeDataType>;
-    using LinkType           = TreeLink<NodeDataType, EdgeDataType>;
-    using NodeType           = TreeNode<NodeDataType, EdgeDataType>;
-    using EdgeType           = TreeEdge<NodeDataType, EdgeDataType>;
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -82,7 +64,7 @@ public:
         , edge_(  nullptr )
     {}
 
-    TreeLink( size_t index, LinkType* next, LinkType* outer, NodeType* node, EdgeType* edge )
+    TreeLink( size_t index, TreeLink* next, TreeLink* outer, TreeNode* node, TreeEdge* edge )
         : index_( index )
         , next_(  next  )
         , outer_( outer )
@@ -107,20 +89,20 @@ public:
 
     size_t index() const;
 
-    LinkType      & next();
-    LinkType const& next() const;
+    TreeLink      & next();
+    TreeLink const& next() const;
 
-    LinkType      & prev();
-    LinkType const& prev() const;
+    TreeLink      & prev();
+    TreeLink const& prev() const;
 
-    LinkType      & outer();
-    LinkType const& outer() const;
+    TreeLink      & outer();
+    TreeLink const& outer() const;
 
-    EdgeType      & edge();
-    EdgeType const& edge() const;
+    TreeEdge      & edge();
+    TreeEdge const& edge() const;
 
-    NodeType      & node();
-    NodeType const& node() const;
+    TreeNode      & node();
+    TreeNode const& node() const;
 
     // ---------------------------------------------------------------------
     //     Modifiers
@@ -128,11 +110,11 @@ public:
 
     TreeLink& reset_index( size_t val );
 
-    TreeLink& reset_next(  LinkType* val );
-    TreeLink& reset_outer( LinkType* val );
+    TreeLink& reset_next(  TreeLink* val );
+    TreeLink& reset_outer( TreeLink* val );
 
-    TreeLink& reset_node(  NodeType* val );
-    TreeLink& reset_edge(  EdgeType* val );
+    TreeLink& reset_node(  TreeNode* val );
+    TreeLink& reset_edge(  TreeEdge* val );
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -151,21 +133,14 @@ private:
 
     size_t index_;
 
-    LinkType* next_;
-    LinkType* outer_;
+    TreeLink* next_;
+    TreeLink* outer_;
 
-    NodeType* node_;
-    EdgeType* edge_;
+    TreeNode* node_;
+    TreeEdge* edge_;
 };
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the Implementation
-// =================================================================================================
-
-// This is a class template, so do the inclusion here.
-#include "tree/tree_link.tpp"
 
 #endif // include guard

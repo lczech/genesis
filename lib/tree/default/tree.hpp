@@ -31,56 +31,31 @@
  * @ingroup tree
  */
 
+#include "tree/tree.hpp"
+#include "tree/tree_node.hpp"
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
+
 #include <string>
 
 namespace genesis {
 namespace tree {
 
-// =============================================================================
-//     Forward declarations
-// =============================================================================
-
-template <class NodeDataType, class EdgeDataType>
-class  Tree;
-
-template <class NodeDataType, class EdgeDataType>
-class  TreeEdge;
-
-template <class NodeDataType, class EdgeDataType>
-class  TreeLink;
-
-template <class NodeDataType, class EdgeDataType>
-class  TreeNode;
-
-// =============================================================================
+// =================================================================================================
 //     Default Tree Node Data
-// =============================================================================
+// =================================================================================================
 
 /**
- * @brief Base class containing the commonly needed data for tree nodes.
+ * @brief Default class containing the commonly needed data for tree nodes.
  *
- * The Tree class takes two template parameters in order to determine what kind of data it stores:
- * one parameter for the node data, and one for the edge data. In most cases, nodes will contain
- * the node's name and edges will contain a branch length.
+ * The Tree class can use all data for its nodes that derive from BaseNodeData.
+ * In most cases, nodes will contain the node's name and edges will contain a branch length.
  *
- * This class is a base for node data, and can be derived from if a node name is wanted. It is
+ * This class is a default for node data, and can be derived from if a node name is wanted. It is
  * however not necessary -- so if there is no need for node names, you can provide your own,
- * independent class as template parameter for tree.
- *
- * For reasons of speed, this class contains no virtual functions. It is still valid, as we never
- * do any upcasting when working with the tree: All types are known at compile time (as they are
- * given as fixed template parameters).
- *
- * However, slicing can happen, for example when the
- * operator == is called on some derived class. Then, both objects are sliced, so that all that
- * is left of them is the data of the base class. Thus, it is still a valid operation.
- * It simply results in comparing the base data members (currently, the node name only) to each
- * other, while all additional data of the derived class is neglected. In consequence, if you don't
- * want those extra data members to influence the outcome of the comparision, you do not need to
- * rewrite this function. Only if you want to compare this data as well, the function has to be
- * overridden.
+ * class for tree, as long as it also derives from BaseNodeData.
  */
-class DefaultTreeNodeData
+class DefaultNodeData : public BaseNodeData
 {
 public:
 
@@ -88,25 +63,30 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
-    DefaultTreeNodeData () = default;
-    ~DefaultTreeNodeData() = default;
+    DefaultNodeData () = default;
+    ~DefaultNodeData() = default;
 
-    DefaultTreeNodeData( DefaultTreeNodeData const& ) = default;
-    DefaultTreeNodeData( DefaultTreeNodeData&& )      = default;
+    DefaultNodeData( DefaultNodeData const& ) = default;
+    DefaultNodeData( DefaultNodeData&& )      = default;
 
-    DefaultTreeNodeData& operator= ( DefaultTreeNodeData const& ) = default;
-    DefaultTreeNodeData& operator= ( DefaultTreeNodeData&& )      = default;
+    DefaultNodeData& operator= ( DefaultNodeData const& ) = default;
+    DefaultNodeData& operator= ( DefaultNodeData&& )      = default;
+
+    std::unique_ptr< BaseNodeData > clone() const override
+    {
+        return utils::make_unique< DefaultNodeData >( *this );
+    }
 
     // -----------------------------------------------------
     //     Class Functions
     // -----------------------------------------------------
 
-    bool operator == (const DefaultTreeNodeData &other) const
+    bool operator == (const DefaultNodeData &other) const
     {
         return other.name == name;
     }
 
-    bool operator != (const DefaultTreeNodeData &other) const
+    bool operator != (const DefaultNodeData &other) const
     {
         return !(other == *this);
     }
@@ -128,20 +108,20 @@ public:
 
 };
 
-// =============================================================================
+// =================================================================================================
 //     Default Tree Edge Data
-// =============================================================================
+// =================================================================================================
 
 /**
- * @brief Base class containing the commonly needed data for tree edges.
+ * @brief Default class containing the commonly needed data for tree edges.
  *
- * This class is the equivalent of DefaultTreeNodeData for the tree edges. It stores a branch length
- * for each edge. For more information, see DefaultTreeNodeData.
+ * This class is the equivalent of DefaultNodeData for the tree edges. It stores a branch length
+ * for each edge. For more information, see DefaultNodeData.
  *
  * If you for example do not need a single branch length, but multiple ones (e.g., when working with
  * partitions), simply do not derive from this class, but provide your own implementation.
  */
-class DefaultTreeEdgeData
+class DefaultEdgeData : public BaseEdgeData
 {
 public:
 
@@ -149,25 +129,30 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
-    DefaultTreeEdgeData () = default;
-    ~DefaultTreeEdgeData() = default;
+    DefaultEdgeData () = default;
+    ~DefaultEdgeData() = default;
 
-    DefaultTreeEdgeData( DefaultTreeEdgeData const& ) = default;
-    DefaultTreeEdgeData( DefaultTreeEdgeData&& )      = default;
+    DefaultEdgeData( DefaultEdgeData const& ) = default;
+    DefaultEdgeData( DefaultEdgeData&& )      = default;
 
-    DefaultTreeEdgeData& operator= ( DefaultTreeEdgeData const& ) = default;
-    DefaultTreeEdgeData& operator= ( DefaultTreeEdgeData&& )      = default;
+    DefaultEdgeData& operator= ( DefaultEdgeData const& ) = default;
+    DefaultEdgeData& operator= ( DefaultEdgeData&& )      = default;
+
+    std::unique_ptr< BaseEdgeData > clone() const override
+    {
+        return utils::make_unique< DefaultEdgeData >( *this );
+    }
 
     // -----------------------------------------------------
     //     Class Functions
     // -----------------------------------------------------
 
-    bool operator == (const DefaultTreeEdgeData &other) const
+    bool operator == (const DefaultEdgeData &other) const
     {
         return other.branch_length == branch_length;
     }
 
-    bool operator != (const DefaultTreeEdgeData &other) const
+    bool operator != (const DefaultEdgeData &other) const
     {
         return !(other == *this);
     }
@@ -185,21 +170,57 @@ public:
 
 };
 
-// =============================================================================
-//     Definitions and Typedefs
-// =============================================================================
+// =================================================================================================
+//     Conversions
+// =================================================================================================
 
-/**
- * @brief Short name for a Tree using the default data types DefaultTreeNodeData and
- * DefaultTreeEdgeData.
- *
- * The same type can also be produced by using `Tree<>`.
- */
-typedef Tree     <DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTree;
+// -----------------------------------------------------
+//     Node
+// -----------------------------------------------------
 
-typedef TreeEdge <DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTreeEdge;
-typedef TreeLink <DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTreeLink;
-typedef TreeNode <DefaultTreeNodeData, DefaultTreeEdgeData> DefaultTreeNode;
+inline DefaultNodeData& default_node_data( std::unique_ptr<TreeNode>& node )
+{
+    return dynamic_cast< DefaultNodeData& >( *node->data );
+}
+
+inline DefaultNodeData const& default_node_data( std::unique_ptr<TreeNode> const& node )
+{
+    return dynamic_cast< DefaultNodeData const& >( *node->data );
+}
+
+inline DefaultNodeData& default_node_data( TreeNode& node )
+{
+    return dynamic_cast< DefaultNodeData& >( *node.data );
+}
+
+inline DefaultNodeData const& default_node_data( TreeNode const& node )
+{
+    return dynamic_cast< DefaultNodeData const& >( *node.data );
+}
+
+// -----------------------------------------------------
+//     Edge
+// -----------------------------------------------------
+
+inline DefaultEdgeData& default_edge_data( std::unique_ptr<TreeEdge>& edge )
+{
+    return dynamic_cast< DefaultEdgeData& >( *edge->data );
+}
+
+inline DefaultEdgeData const& default_edge_data( std::unique_ptr<TreeEdge> const& edge )
+{
+    return dynamic_cast< DefaultEdgeData const& >( *edge->data );
+}
+
+inline DefaultEdgeData& default_edge_data( TreeEdge& edge )
+{
+    return dynamic_cast< DefaultEdgeData& >( *edge.data );
+}
+
+inline DefaultEdgeData const& default_edge_data( TreeEdge const& edge )
+{
+    return dynamic_cast< DefaultEdgeData const& >( *edge.data );
+}
 
 } // namespace tree
 } // namespace genesis

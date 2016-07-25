@@ -105,7 +105,7 @@ void JplaceWriter::to_stream( Sample const& sample, std::ostream& os ) const
             os << placement.edge_num() << ", ";
             os << placement.likelihood << ", ";
             os << placement.like_weight_ratio << ", ";
-            os << placement.edge().data.branch_length - placement.proximal_length << ", ";
+            os << placement_edge_data( placement.edge() ).branch_length - placement.proximal_length << ", ";
             os << placement.pendant_length;
 
             os << " ]";
@@ -242,7 +242,7 @@ void JplaceWriter::to_document( Sample const& smp, utils::JsonDocument& doc ) co
 
             // convert from proximal to distal length.
             pqry_fields->push_back(new JsonValueNumber(
-                pqry_place.edge().data.branch_length - pqry_place.proximal_length
+                placement_edge_data( pqry_place.edge() ).branch_length - pqry_place.proximal_length
             ));
             pqry_fields->push_back(new JsonValueNumber(pqry_place.pendant_length));
             pqry_p_arr->push_back(pqry_fields);

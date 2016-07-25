@@ -87,7 +87,7 @@ public:
     // -----------------------------------------------------
 
     void prepare( Sample const& sample );
-    std::vector<size_t> generate( typename PlacementTree::EdgeType const& edge );
+    std::vector<size_t> generate( PlacementTreeEdge const& edge );
 
     std::string         dump_edge_proximities() const;
     std::vector<size_t> edge_proximity_maxima() const;

@@ -28,7 +28,19 @@
  * @ingroup tree
  */
 
+#include "tree/printer/detailed.hpp"
+
+#include "tree/tree.hpp"
+#include "tree/tree_node.hpp"
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
+
+// TODO used for conversion - ensure typesafety!
+#include "tree/default/tree.hpp"
+
 #include "tree/function/distances.hpp"
+
+#include "utils/core/std.hpp"
 #include "utils/text/style.hpp"
 
 #include <assert.h>
@@ -42,10 +54,9 @@ namespace tree {
 //     Print Detailed
 // =================================================================================================
 
-template <typename TreeType>
 void PrinterDetailed::print (
     std::ostream&   out,
-    TreeType const& tree
+    Tree const& tree
 )  const {
     std::vector<int>    depth = node_path_length_vector(tree);
     std::vector<size_t> done;
@@ -80,7 +91,8 @@ void PrinterDetailed::print (
         std::string indent = std::string(4 * depth[n.index()], ' ');
         if( ! utils::contains( done, n.index() )) {
             out << indent
-                << node_color( "Node " + std::to_string(n.index()) + ": \"" + n.data.name + "\"" )
+                // TODO typesafety!
+                << node_color( "Node " + std::to_string(n.index()) + ": \"" + default_node_data( n ).name + "\"" )
                 << "\n";
         }
         done.push_back(n.index());
@@ -111,9 +123,8 @@ void PrinterDetailed::print (
         << link_color( "Link " + std::to_string( l->index() )) << "\n";
 }
 
-template <typename TreeType>
 std::string PrinterDetailed::print (
-    TreeType const& tree
+    Tree const& tree
 )  const {
     std::ostringstream res;
     print( res, tree );

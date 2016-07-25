@@ -31,12 +31,22 @@
  * @ingroup tree
  */
 
+#include "tree/tree.hpp"
 #include "utils/core/range.hpp"
 
 #include <iterator>
 
 namespace genesis {
 namespace tree {
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Tree;
+class TreeNode;
+class TreeEdge;
+class TreeLink;
 
 // =============================================================================
 //     Iterator Node Links
@@ -51,8 +61,6 @@ public:
     // -----------------------------------------------------
     //     Typedefs
     // -----------------------------------------------------
-
-    using TreeType          = typename LinkType::TreeType;
 
     using iterator_category = std::forward_iterator_tag;
     using self_type         = IteratorNodeLinks<LinkType, NodeType, EdgeType>;
@@ -159,36 +167,22 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorNodeLinks<
-    typename ElementType::LinkType const,
-    typename ElementType::NodeType const,
-    typename ElementType::EdgeType const
->> node_links( ElementType const& element )
+utils::Range< IteratorNodeLinks< TreeLink const, TreeNode const, TreeEdge const >>
+node_links( ElementType const& element )
 {
-    using LinkType = typename ElementType::LinkType;
-    using NodeType = typename ElementType::NodeType;
-    using EdgeType = typename ElementType::EdgeType;
-
     return {
-        IteratorNodeLinks< const LinkType, const NodeType, const EdgeType >( element ),
-        IteratorNodeLinks< const LinkType, const NodeType, const EdgeType >()
+        IteratorNodeLinks< const TreeLink, const TreeNode, const TreeEdge >( element ),
+        IteratorNodeLinks< const TreeLink, const TreeNode, const TreeEdge >()
     };
 }
 
 template<typename ElementType>
-utils::Range< IteratorNodeLinks<
-    typename ElementType::LinkType,
-    typename ElementType::NodeType,
-    typename ElementType::EdgeType
->> node_links( ElementType& element )
+utils::Range< IteratorNodeLinks< TreeLink, TreeNode, TreeEdge >>
+node_links( ElementType& element )
 {
-    using LinkType = typename ElementType::LinkType;
-    using NodeType = typename ElementType::NodeType;
-    using EdgeType = typename ElementType::EdgeType;
-
     return {
-        IteratorNodeLinks< LinkType, NodeType, EdgeType >( element ),
-        IteratorNodeLinks< LinkType, NodeType, EdgeType >()
+        IteratorNodeLinks< TreeLink, TreeNode, TreeEdge >( element ),
+        IteratorNodeLinks< TreeLink, TreeNode, TreeEdge >()
     };
 }
 

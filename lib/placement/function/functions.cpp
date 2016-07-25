@@ -31,6 +31,7 @@
 #include "placement/function/functions.hpp"
 
 #include "placement/function/helper.hpp"
+#include "placement/function/operators.hpp"
 #include "tree/default/distances.hpp"
 #include "tree/function/distances.hpp"
 #include "tree/function/functions.hpp"
@@ -324,23 +325,7 @@ void copy_pqueries( Sample const& source, Sample& target )
 {
     // Check for identical topology, taxa names and edge_nums.
     // We do not check here for branch_length, because usually those differ slightly.
-    auto node_comparator = [] (
-        const PlacementTree::NodeType& node_l,
-        const PlacementTree::NodeType& node_r
-    ) {
-        return node_l.data.name == node_r.data.name;
-    };
-
-    auto edge_comparator = [] (
-        const PlacementTree::EdgeType& edge_l,
-        const PlacementTree::EdgeType& edge_r
-    ) {
-        return edge_l.data.edge_num() == edge_r.data.edge_num();
-    };
-
-    if( ! tree::equal<PlacementTree, PlacementTree >(
-        source.tree(), target.tree(), node_comparator, edge_comparator
-    )) {
+    if( ! compatible_trees( source.tree(), target.tree() )) {
         throw std::runtime_error("Cannot join Samples, because their PlacementTrees differ.");
     }
 
@@ -859,7 +844,7 @@ std::vector<int> closest_leaf_distance_histogram (
                       + place.proximal_length
                       + dists[ place.edge().primary_node().index() ].second;
             double ds = place.pendant_length
-                      + place.edge().data.branch_length
+                      + placement_edge_data( place.edge() ).branch_length
                       - place.proximal_length
                       + dists[ place.edge().secondary_node().index() ].second;
             double ld = std::min(dp, ds);
@@ -932,7 +917,7 @@ std::vector<int> closest_leaf_distance_histogram_auto (
                       + place.proximal_length
                       + dists[ place.edge().primary_node().index() ].second;
             double ds = place.pendant_length
-                      + place.edge().data.branch_length
+                      + placement_edge_data( place.edge() ).branch_length
                       - place.proximal_length
                       + dists[ place.edge().secondary_node().index() ].second;
             double ld = std::min(dp, ds);

@@ -275,7 +275,7 @@ size_t set_random_subtree_weights( Sample const& sample, SimulatorEdgeDistributi
 
     // Randomly select a subtree, either starting at the end of the edge in direction of the root,
     // or away from it.
-    PlacementTree::LinkType const* start_link;
+    PlacementTreeLink const* start_link;
     std::bernoulli_distribution dir_distrib;
     if( dir_distrib( utils::Options::get().random_engine() )) {
         // Primary direction
@@ -324,7 +324,7 @@ void set_subtree_weights(
     edge_distrib.edge_weights = std::vector<double>( edge_count, 0.0 );
 
     // Iterate the subtree and set edge weights.
-    PlacementTree::LinkType const* start_link = &sample.tree().link_at( link_index );
+    PlacementTreeLink const* start_link = &sample.tree().link_at( link_index );
     for (
         auto cur_link = &start_link->next();
         cur_link != start_link;

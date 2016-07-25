@@ -39,6 +39,15 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Tree;
+class TreeNode;
+class TreeEdge;
+class TreeLink;
+
+// =================================================================================================
 //     Printer Compact
 // =================================================================================================
 
@@ -66,41 +75,30 @@ public:
     //     Print
     // -------------------------------------------------------------------------
 
-    template <typename TreeType>
     void print (
         std::ostream&   out,
-        TreeType const& tree,
+        Tree const& tree,
         std::function<std::string (
-            typename TreeType::NodeType const& node,
-            typename TreeType::EdgeType const& edge
+            TreeNode const& node,
+            TreeEdge const& edge
         )> const print_line
     );
 
-    template <typename TreeType>
     std::string print (
-        TreeType const& tree,
+        Tree const& tree,
         std::function<std::string (
-            typename TreeType::NodeType const& node,
-            typename TreeType::EdgeType const& edge
+            TreeNode const& node,
+            TreeEdge const& edge
         )> const print_line
     );
 
-    template <typename TreeType>
-    std::string print ( TreeType const& tree );
+    std::string print ( Tree const& tree );
 
-    // template <typename TreeType>
-    // std::string operator() ( TreeType const& tree );
+    // std::string operator() ( Tree const& tree );
 
 };
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-// This class contains function templates, so do the inclusion here.
-#include "tree/printer/compact.tpp"
 
 #endif // include guard

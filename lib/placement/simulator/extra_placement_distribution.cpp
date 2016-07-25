@@ -116,7 +116,7 @@ void SimulatorExtraPlacementDistribution::prepare( Sample const& sample )
 /**
  * @brief
  */
-std::vector<size_t> SimulatorExtraPlacementDistribution::generate( typename PlacementTree::EdgeType const& edge )
+std::vector<size_t> SimulatorExtraPlacementDistribution::generate( PlacementTreeEdge const& edge )
 {
     // Draw a number of placements and build a result vector of that size.
     size_t placement_num = placement_number_distrib_( utils::Options::get().random_engine() );

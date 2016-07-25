@@ -79,17 +79,30 @@ Sample const* find_sample( SampleSet const& sset, std::string const& name )
 bool all_identical_trees( SampleSet const& sset )
 {
     auto node_comparator = [] (
-        const PlacementTree::NodeType& node_l,
-        const PlacementTree::NodeType& node_r
+        PlacementTreeNode const& node_l,
+        PlacementTreeNode const& node_r
     ) {
-        return node_l.data.name == node_r.data.name;
+        auto l_ptr = dynamic_cast< PlacementNodeData* >( node_l.data.get() );
+        auto r_ptr = dynamic_cast< PlacementNodeData* >( node_r.data.get() );
+        if( l_ptr == nullptr || r_ptr == nullptr ) {
+            return false;
+        }
+        return l_ptr->name    == r_ptr->name &&
+               node_l.index() == node_r.index();
     };
 
     auto edge_comparator = [] (
-        const PlacementTree::EdgeType& edge_l,
-        const PlacementTree::EdgeType& edge_r
+        PlacementTreeEdge const& edge_l,
+        PlacementTreeEdge const& edge_r
     ) {
-        return edge_l.data.edge_num() == edge_r.data.edge_num();
+        auto l_ptr = dynamic_cast< PlacementEdgeData* >( edge_l.data.get() );
+        auto r_ptr = dynamic_cast< PlacementEdgeData* >( edge_r.data.get() );
+        if( l_ptr == nullptr || r_ptr == nullptr ) {
+            return false;
+        }
+        return l_ptr->edge_num()               == r_ptr->edge_num()               &&
+               edge_l.primary_node().index()   == edge_r.primary_node().index()   &&
+               edge_l.secondary_node().index() == edge_r.secondary_node().index();
     };
 
     return all_equal( tree_set( sset ), node_comparator, edge_comparator );
@@ -98,9 +111,9 @@ bool all_identical_trees( SampleSet const& sset )
 /**
  * @brief Return a TreeSet containing all the trees of the SampleSet.
  */
-tree::TreeSet<PlacementTree> tree_set( SampleSet const& sset )
+tree::TreeSet tree_set( SampleSet const& sset )
 {
-    tree::TreeSet<PlacementTree> tset;
+    tree::TreeSet tset;
     for( auto const& smp : sset ) {
         tset.add( smp.name, smp.sample.tree() );
     }
@@ -134,11 +147,12 @@ Sample merge_all( SampleSet const& sset )
     // This is necessary, because the tree copy constructor does not do this for us.
     // TODO fix this!
     for (size_t i = 0; i < res.tree().node_count(); ++i) {
-        res.tree().node_at(i).data.name = sset[0].sample.tree().node_at(i).data.name;
+        placement_node_data( res.tree().node_at(i) ).name
+            = placement_node_data( sset[0].sample.tree().node_at(i) ).name;
     }
     for (size_t i = 0; i < res.tree().edge_count(); ++i) {
-        res.tree().edge_at(i).data.reset_edge_num(
-            sset[0].sample.tree().edge_at(i).data.edge_num()
+        placement_edge_data( res.tree().edge_at(i) ).reset_edge_num(
+            placement_edge_data( sset[0].sample.tree().edge_at(i) ).edge_num()
         );
     }
 

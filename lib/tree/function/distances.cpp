@@ -28,12 +28,19 @@
  * @ingroup tree
  */
 
+#include "tree/function/distances.hpp"
+
+#include "tree/tree.hpp"
+#include "tree/tree_node.hpp"
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
+#include "tree/iterator/levelorder.hpp"
+
+#include "utils/core/logging.hpp"
+
 #include <algorithm>
 #include <assert.h>
 #include <stdexcept>
-
-#include "tree/iterator/levelorder.hpp"
-#include "utils/core/logging.hpp"
 
 namespace genesis {
 namespace tree {
@@ -47,9 +54,8 @@ namespace tree {
  *
  * The vector is indexed using the node().index() for every node.
  */
-template <class Tree>
 utils::Matrix<int> node_path_length_matrix(
-    const Tree& tree
+    Tree const& tree
 ) {
     utils::Matrix<int> mat( tree.node_count(), tree.node_count(), -1 );
 
@@ -95,10 +101,9 @@ utils::Matrix<int> node_path_length_matrix(
  *
  * If no start node pointer is provided, the root is taken as node.
  */
-template <class Tree>
 std::vector<int> node_path_length_vector(
-    const Tree& tree,
-    const typename Tree::NodeType* node
+    Tree const& tree,
+    TreeNode const* node
 ) {
     if (!node) {
         node = &tree.root_node();
@@ -129,9 +134,8 @@ std::vector<int> node_path_length_vector(
     return vec;
 }
 
-template <class Tree>
 utils::Matrix<int> edge_path_length_matrix(
-    const Tree& tree
+    Tree const& tree
 ) {
     // Result matrix that will be returned.
     utils::Matrix<int> mat (tree.edge_count(), tree.edge_count());
@@ -184,40 +188,39 @@ utils::Matrix<int> edge_path_length_matrix(
     return mat;
 }
 
-template <class Tree>
 std::vector<int> edge_path_length_vector(
-    const Tree& tree,
-    const typename Tree::EdgeType* edge
+    Tree const& tree,
+    TreeEdge const* edge
 ) {
     std::vector<int> vec (tree.edge_count(), -1);
 
     // We just need two rows of the distance matrix - let's take the vectors instead for speed.
-    auto p_node_dist = node_path_length_vector(tree, edge->primary_node());
-    auto s_node_dist = node_path_length_vector(tree, edge->secondary_node());
+    auto p_node_dist = node_path_length_vector(tree, &edge->primary_node());
+    auto s_node_dist = node_path_length_vector(tree, &edge->secondary_node());
 
     for( auto const& col_edge : tree.edges() ) {
 
         if( edge->index() == col_edge->index() ) {
-            vec(edge->index()) = 0;
+            vec[ edge->index() ] = 0;
             continue;
         }
 
         // primary-primary case
-        double pp = p_node_dist(col_edge->primary_node().index());
+        double pp = p_node_dist[ col_edge->primary_node().index() ];
 
         // primary-secondary case
-        double ps = p_node_dist(col_edge->secondary_node().index());
+        double ps = p_node_dist[ col_edge->secondary_node().index() ];
 
         // secondary-primary case
-        double sp = s_node_dist(col_edge->primary_node().index());
+        double sp = s_node_dist[ col_edge->primary_node().index() ];
 
         // Find min. Make sure that the fourth case "secondary-secondary" is not shorter
         // (if this ever happens, the tree is broken).
         double dist = std::min(pp, std::min(ps, sp));
-        assert(dist <= s_node_dist(col_edge->secondary_node().index()));
+        assert(dist <= s_node_dist[ col_edge->secondary_node().index() ]);
 
         // Store in vector.
-        vec(col_edge->index()) = dist + 1;
+        vec[ col_edge->index() ] = dist + 1;
     }
 
     return vec;
@@ -243,12 +246,11 @@ std::vector<int> edge_path_length_vector(
  * There might be more than one leaf with the same depth to a given node. In this case, an
  * arbitrary one is used.
  */
-template <class Tree>
-std::vector< std::pair<const typename Tree::NodeType*, int> >  closest_leaf_depth_vector (
+std::vector< std::pair< TreeNode const*, int >> closest_leaf_depth_vector (
     const Tree& tree
 ) {
     // prepare a result vector with the size of number of nodes.
-    std::vector< std::pair<typename Tree::NodeType const*, int> > vec;
+    std::vector< std::pair< TreeNode const*, int >> vec;
     vec.resize(tree.node_count(), {nullptr, 0});
 
     // fill the vector for every node.

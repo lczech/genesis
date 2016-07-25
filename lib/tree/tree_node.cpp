@@ -22,14 +22,13 @@
 */
 
 /**
- * @brief Implementation of TreeNode class template.
- *
- * For reasons of readability, in this implementation file, the template data types
- * NodeDataType and EdgeDataType are abbreviated NDT and EDT, respectively.
+ * @brief Implementation of TreeNode class.
  *
  * @file
  * @ingroup tree
  */
+
+#include "tree/tree_node.hpp"
 
 #include "tree/tree_link.hpp"
 
@@ -43,8 +42,7 @@ namespace tree {
 /**
  * @brief Return the index of this Node.
  */
-template <class NDT, class EDT>
-size_t TreeNode<NDT, EDT>::index() const
+size_t TreeNode::index() const
 {
     return index_;
 }
@@ -52,8 +50,7 @@ size_t TreeNode<NDT, EDT>::index() const
 /**
  * @brief Return the TreeLink that points towards the root.
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeNode<NDT, EDT>::primary_link()
+TreeLink& TreeNode::primary_link()
 {
     return *link_;
 }
@@ -61,20 +58,7 @@ TreeLink<NDT, EDT>& TreeNode<NDT, EDT>::primary_link()
 /**
  * @brief Return the TreeLink that points towards the root.
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT> const& TreeNode<NDT, EDT>::primary_link() const
-{
-    return *link_;
-}
-
-/**
- * @brief Return the TreeLink that points towards the root.
- *
- * This is just an alias for primary_link(), that is shorter to use when needed
- * frequently in an algorithm.
- */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeNode<NDT, EDT>::link()
+TreeLink const& TreeNode::primary_link() const
 {
     return *link_;
 }
@@ -85,8 +69,18 @@ TreeLink<NDT, EDT>& TreeNode<NDT, EDT>::link()
  * This is just an alias for primary_link(), that is shorter to use when needed
  * frequently in an algorithm.
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT> const& TreeNode<NDT, EDT>::link() const
+TreeLink& TreeNode::link()
+{
+    return *link_;
+}
+
+/**
+ * @brief Return the TreeLink that points towards the root.
+ *
+ * This is just an alias for primary_link(), that is shorter to use when needed
+ * frequently in an algorithm.
+ */
+TreeLink const& TreeNode::link() const
 {
     return *link_;
 }
@@ -95,15 +89,13 @@ TreeLink<NDT, EDT> const& TreeNode<NDT, EDT>::link() const
 //     Modifiers
 // =================================================================================================
 
-template <class NDT, class EDT>
-TreeNode<NDT, EDT>& TreeNode<NDT, EDT>::reset_index( size_t val )
+TreeNode& TreeNode::reset_index( size_t val )
 {
     index_ = val;
     return *this;
 }
 
-template <class NDT, class EDT>
-TreeNode<NDT, EDT>& TreeNode<NDT, EDT>::reset_primary_link( LinkType* val )
+TreeNode& TreeNode::reset_primary_link( TreeLink* val )
 {
     link_ = val;
     return *this;
@@ -116,11 +108,10 @@ TreeNode<NDT, EDT>& TreeNode<NDT, EDT>::reset_primary_link( LinkType* val )
 /**
  * @brief Rank of the node, i.e. how many immediate children it has.
  */
-template <class NDT, class EDT>
-size_t TreeNode<NDT, EDT>::rank() const
+size_t TreeNode::rank() const
 {
     int rank = -1;
-    TreeLink<NDT, EDT>* link = link_;
+    TreeLink* link = link_;
 
     do {
         ++rank;
@@ -131,20 +122,10 @@ size_t TreeNode<NDT, EDT>::rank() const
     return static_cast<size_t>(rank);
 }
 
-// The following are definitions that would create circular dependecies when included in the
-// class definition. Thus, they need to be here, after the definition, so that their dependend
-// source files can be included without circles.
-// See http://www.cplusplus.com/forum/articles/10627/ for more information on this.
-
-// Usually, this part would be at the end of the header file, but as this is a class template,
-// where the implementation (this file) is included from within the header anyway, we can as well
-// outsource the functions to here.
-
 /**
  * @brief True iff the node is a leaf/tip.
  */
-template <class NDT, class EDT>
-bool TreeNode<NDT, EDT>::is_leaf() const
+bool TreeNode::is_leaf() const
 {
     return link_->is_leaf();
 }
@@ -152,8 +133,7 @@ bool TreeNode<NDT, EDT>::is_leaf() const
 /**
  * @brief True iff the node is an inner node.
  */
-template <class NDT, class EDT>
-bool TreeNode<NDT, EDT>::is_inner() const
+bool TreeNode::is_inner() const
 {
     return link_->is_inner();
 }
@@ -163,10 +143,12 @@ bool TreeNode<NDT, EDT>::is_inner() const
  *
  * TODO this method assumes that the tree node has a name. not good.
  */
-template <class NDT, class EDT>
-std::string TreeNode<NDT, EDT>::dump() const
+std::string TreeNode::dump() const
 {
-    return "Rank: " + std::to_string(rank()) + " \t " + "name: " + this->data.name;
+    // throw std::runtime_error( "Not implemented" );
+    // return "";
+    return "Base node dump";
+    // return "Rank: " + std::to_string(rank()) + " \t " + "name: " + this->data.name;
 }
 
 } // namespace tree

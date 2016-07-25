@@ -28,11 +28,45 @@
  * @ingroup tree
  */
 
+#include "tree/function/operators.hpp"
+
 #include "tree/iterator/preorder.hpp"
 #include "utils/core/logging.hpp"
 
+#include <ostream>
+
 namespace genesis {
 namespace tree {
+
+// =================================================================================================
+//     Conversion
+// =================================================================================================
+
+/**
+ * @brief Create a tree with the same topology as the source tree, while converting its data.
+ *
+ * This function takes the given source Tree (possibly with different data types at the nodes and
+ * edges), and copies its topology (i.e., all links, nodes and edges, and their structure) to the
+ * newly created and returned tree.
+ * The data types are converted using the two provided functions for the node data type and edge
+ * data type, respectively.
+ */
+Tree convert(
+    Tree const& source,
+    std::function< std::unique_ptr<BaseNodeData>( BaseNodeData const& node_data )> node_data_converter,
+    std::function< std::unique_ptr<BaseEdgeData>( BaseEdgeData const& edge_data )> edge_data_converter
+) {
+    auto res = source.clone_topology();
+
+    for( size_t i = 0; i < res.node_count(); ++i ) {
+        res.node_at(i).data = node_data_converter( *source.node_at(i).data );
+    }
+    for( size_t i = 0; i < res.edge_count(); ++i ) {
+        res.edge_at(i).data = edge_data_converter( *source.edge_at(i).data );
+    }
+
+    return res;
+}
 
 // =================================================================================================
 //     Equality
@@ -43,7 +77,7 @@ namespace tree {
  * edges.
  *
  * This function does a preorder traversal of both trees in parallel and calls the comparator
- * functionals for each position of the iterator. It returns true iff the comparator is true for
+ * functionals for each position of the iterator. It returns true iff the comparators are true for
  * every position.
  *
  * The comparator functionals can be either function pointers, function objects, or lambda
@@ -54,16 +88,11 @@ namespace tree {
  * the traversal has to be identical in both trees. Those assumptions are made because two trees
  * that do not have identical topology are never considered equal.
  */
-template <class TreeTypeL, class TreeTypeR>
 bool equal(
-    const TreeTypeL& lhs,
-    const TreeTypeR& rhs,
-    std::function<bool
-        (const typename TreeTypeL::NodeType&, const typename TreeTypeR::NodeType&)
-    > node_comparator,
-    std::function<bool
-        (const typename TreeTypeL::EdgeType&, const typename TreeTypeR::EdgeType&)
-    > edge_comparator
+    Tree const& lhs,
+    Tree const& rhs,
+    std::function<bool ( TreeNode const&, TreeNode const&) > node_comparator,
+    std::function<bool ( TreeEdge const&, TreeEdge const&) > edge_comparator
 ) {
     // Check array sizes.
     if (lhs.link_count() != rhs.link_count() ||
@@ -104,25 +133,24 @@ bool equal(
  * This method is mainly a shortcut for the other equal function, where the comparator functionals
  * are instanciated using the default comparision operators of the tree's data.
  */
-template <class TreeTypeL, class TreeTypeR>
-bool equal(const TreeTypeL& lhs, const TreeTypeR& rhs)
-{
-    auto node_comparator = [] (
-        const typename TreeTypeL::NodeType& node_l,
-        const typename TreeTypeR::NodeType& node_r
-    ) {
-        return node_l == node_r;
-    };
-
-    auto edge_comparator = [] (
-        const typename TreeTypeL::EdgeType& edge_l,
-        const typename TreeTypeR::EdgeType& edge_r
-    ) {
-        return edge_l == edge_r;
-    };
-
-    return equal<TreeTypeL, TreeTypeR>(lhs, rhs, node_comparator, edge_comparator);
-}
+// bool equal( Tree const& lhs, Tree const& rhs)
+// {
+//     auto node_comparator = [] (
+//         TreeNode const& node_l,
+//         TreeNode const& node_r
+//     ) {
+//         return node_l == node_r;
+//     };
+//
+//     auto edge_comparator = [] (
+//         TreeEdge const& edge_l,
+//         TreeEdge const& edge_r
+//     ) {
+//         return edge_l == edge_r;
+//     };
+//
+//     return equal<TreeTypeL, TreeTypeR>(lhs, rhs, node_comparator, edge_comparator);
+// }
 
 /**
  * @brief Returns true iff both trees have an identical topology.
@@ -132,12 +160,11 @@ bool equal(const TreeTypeL& lhs, const TreeTypeR& rhs)
  * still be not identical (with respect to this function) when the branches appear in a different
  * order or when the root sits at a different node.
  */
-template <class TreeTypeL, class TreeTypeR>
-bool identical_topology(const TreeTypeL& lhs, const TreeTypeR& rhs)
+bool identical_topology( Tree const& lhs, Tree const& rhs)
 {
     auto node_comparator = [] (
-        const typename TreeTypeL::NodeType& node_l,
-        const typename TreeTypeR::NodeType& node_r
+        TreeNode const& node_l,
+        TreeNode const& node_r
     ) {
         (void) node_l;
         (void) node_r;
@@ -145,15 +172,27 @@ bool identical_topology(const TreeTypeL& lhs, const TreeTypeR& rhs)
     };
 
     auto edge_comparator = [] (
-        const typename TreeTypeL::EdgeType& edge_l,
-        const typename TreeTypeR::EdgeType& edge_r
+        TreeEdge const& edge_l,
+        TreeEdge const& edge_r
     ) {
         (void) edge_l;
         (void) edge_r;
         return true;
     };
 
-    return equal<TreeTypeL, TreeTypeR>(lhs, rhs, node_comparator, edge_comparator);
+    return equal( lhs, rhs, node_comparator, edge_comparator );
+}
+
+// =================================================================================================
+//     Output
+// =================================================================================================
+
+std::ostream& operator << ( std::ostream& out, Tree const& tree )
+{
+    out << "Node Count: " << tree.node_count() << "\n";
+    out << "Edge Count: " << tree.edge_count() << "\n";
+    out << "Link Count: " << tree.link_count() << "\n";
+    return out;
 }
 
 // =================================================================================================
@@ -168,9 +207,7 @@ bool identical_topology(const TreeTypeL& lhs, const TreeTypeR& rhs)
  *
  * This check is a bit pedantic, but better safe than sorry.
  */
-// bool Tree<NDT, EDT>::validate() const
-template <class TreeType>
-bool validate( TreeType const& tree )
+bool validate( Tree const& tree )
 {
     // check that the member arrays are valid: if at least one of them is empty, the tree is not
     // fully initialized, so either it is a new tree without any data (all arrays empty, valid),

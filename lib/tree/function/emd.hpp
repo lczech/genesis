@@ -38,13 +38,15 @@ namespace tree {
 //     Forward Declarations
 // =================================================================================================
 
-class EmdTreeNodeData;
-class EmdTreeEdgeData;
-
-template<class NodeDataType, class EdgeDataType>
 class Tree;
+class TreeNode;
+class TreeEdge;
 
-typedef Tree<EmdTreeNodeData, EmdTreeEdgeData> EmdTree;
+// =================================================================================================
+//     Typedefs
+// =================================================================================================
+
+using EmdTree = Tree;
 
 // =================================================================================================
 //     EMD Functions
@@ -57,7 +59,7 @@ double center_masses_on_branches( EmdTree& tree );
 
 double sum_of_masses( EmdTree const& tree );
 
-bool validate( EmdTree const& tree, double valid_total_mass_difference = 0.00001 );
+bool validate_emd_tree( EmdTree const& tree, double valid_total_mass_difference = 0.00001 );
 
 } // namespace tree
 } // namespace genesis

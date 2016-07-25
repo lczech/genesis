@@ -38,23 +38,21 @@ namespace genesis {
 // =================================================================================================
 
 namespace tree {
-    template<class NodeDataType, class EdgeDataType>
-    class TreeNode;
 
-    template<class NodeDataType, class EdgeDataType>
+    class TreeNode;
     class TreeEdge;
+
 }
 
 namespace placement {
+
     class  Pquery;
     class  PqueryPlacement;
     struct PqueryPlain;
 
-    class  PlacementTreeEdgeData;
-    class  PlacementTreeNodeData;
+    class  PlacementEdgeData;
+    class  PlacementNodeData;
 
-    typedef tree::TreeNode< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTreeNode;
-    typedef tree::TreeEdge< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTreeEdge;
 }
 
 namespace utils {

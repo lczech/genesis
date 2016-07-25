@@ -31,48 +31,130 @@
  * @ingroup tree
  */
 
+#include "tree/tree.hpp"
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
+#include "tree/tree_node.hpp"
+
 #include <functional>
+#include <iosfwd>
+#include <memory>
+#include <typeinfo>
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class BaseNodeData;
+class BaseEdgeData;
+
+// =================================================================================================
+//     Data Type Checks
+// =================================================================================================
+
+/**
+ * @brief Check whether the data of the nodes and edges of the Tree are exactly of the specified
+ * data types.
+ *
+ * This function returns true iff all data types of the nodes and edges match exaclty the
+ * specified types. It uses typeid() for this matching.
+ */
+template< class NodeDataType, class EdgeDataType >
+bool tree_data_is( Tree const& tree )
+{
+    // Check node data types.
+    for( auto const& node : tree.nodes() ) {
+        if( ! node->data ) {
+            return false;
+        }
+        auto const& ref = *node->data;
+        if( typeid( ref ) != typeid( NodeDataType )) {
+            return false;
+        }
+    }
+
+    // Check edge data types.
+    for( auto const& edge : tree.edges() ) {
+        if( ! edge->data ) {
+            return false;
+        }
+        auto const& ref = *edge->data;
+        if( typeid( ref ) != typeid( EdgeDataType )) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Check whether the data of the nodes and edges of the Tree are derived from the specified
+ * data types.
+ *
+ * This function returns true iff all data types of the nodes and edges are derived from the
+ * specified types. It uses dynamic_cast() for this.
+ */
+template< class NodeDataType, class EdgeDataType >
+bool tree_data_is_derived_from( Tree const& tree )
+{
+    // Check node data types.
+    for( auto const& node : tree.nodes() ) {
+        if( dynamic_cast< NodeDataType const* >( node->data.get() ) == nullptr ) {
+            return false;
+        }
+    }
+
+    // Check edge data types.
+    for( auto const& edge : tree.edges() ) {
+        if( dynamic_cast< EdgeDataType const* >( edge->data.get() ) == nullptr ) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+// =================================================================================================
+//     Conversion
+// =================================================================================================
+
+Tree convert(
+    Tree const& source,
+    std::function< std::unique_ptr<BaseNodeData>( BaseNodeData const& node_data )> node_data_converter,
+    std::function< std::unique_ptr<BaseEdgeData>( BaseEdgeData const& edge_data )> edge_data_converter
+);
+
+// =================================================================================================
 //     Equality
 // =================================================================================================
 
-template <class TreeTypeL, class TreeTypeR>
 bool equal(
-    const TreeTypeL& lhs,
-    const TreeTypeR& rhs,
-    std::function<bool
-        (const typename TreeTypeL::NodeType&, const typename TreeTypeR::NodeType&)
-    > node_comparator,
-    std::function<bool
-        (const typename TreeTypeL::EdgeType&, const typename TreeTypeR::EdgeType&)
-    > edge_comparator
+    Tree const& lhs,
+    Tree const& rhs,
+    std::function<bool ( TreeNode const&, TreeNode const&) > node_comparator,
+    std::function<bool ( TreeEdge const&, TreeEdge const&) > edge_comparator
 );
 
-template <class TreeTypeL, class TreeTypeR>
-bool equal(const TreeTypeL& lhs, const TreeTypeR& rhs);
+// bool equal( Tree const& lhs, Tree const& rhs);
 
-template <class TreeTypeL, class TreeTypeR>
-bool identical_topology(const TreeTypeL& lhs, const TreeTypeR& rhs);
+bool identical_topology( Tree const& lhs, Tree const& rhs);
+
+// =================================================================================================
+//     Output
+// =================================================================================================
+
+std::ostream& operator << ( std::ostream& out, Tree const& tree );
 
 // =================================================================================================
 //     Validate
 // =================================================================================================
 
-template <class TreeType>
-bool validate( TreeType const& tree );
+bool validate( Tree const& tree );
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-// This is a class template, so do the inclusion here.
-#include "tree/function/operators.tpp"
 
 #endif // include guard

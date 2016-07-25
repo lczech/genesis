@@ -22,14 +22,13 @@
 */
 
 /**
- * @brief Implementation of TreeEdge class template.
- *
- * For reasons of readability, in this implementation file, the template data types
- * NodeDataType and EdgeDataType are abbreviated NDT and EDT, respectively.
+ * @brief Implementation of TreeEdge class.
  *
  * @file
  * @ingroup tree
  */
+
+#include "tree/tree_edge.hpp"
 
 #include "tree/tree_link.hpp"
 
@@ -43,8 +42,7 @@ namespace tree {
 /**
  * @brief Return the index of this Edge.
  */
-template <class NDT, class EDT>
-size_t TreeEdge<NDT, EDT>::index() const
+size_t TreeEdge::index() const
 {
     return index_;
 }
@@ -52,8 +50,7 @@ size_t TreeEdge<NDT, EDT>::index() const
 /**
  * @brief Return the TreeLink of this TreeEdge that points towards the root.
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeEdge<NDT, EDT>::primary_link()
+TreeLink& TreeEdge::primary_link()
 {
     return *link_p_;
 }
@@ -61,8 +58,7 @@ TreeLink<NDT, EDT>& TreeEdge<NDT, EDT>::primary_link()
 /**
  * @brief Return the TreeLink of this TreeEdge that points towards the root.
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT> const& TreeEdge<NDT, EDT>::primary_link() const
+TreeLink const& TreeEdge::primary_link() const
 {
     return *link_p_;
 }
@@ -70,8 +66,7 @@ TreeLink<NDT, EDT> const& TreeEdge<NDT, EDT>::primary_link() const
 /**
  * @brief Return the TreeLink of this TreeEdge that points away from the root.
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeEdge<NDT, EDT>::secondary_link()
+TreeLink& TreeEdge::secondary_link()
 {
     return *link_s_;
 }
@@ -79,22 +74,15 @@ TreeLink<NDT, EDT>& TreeEdge<NDT, EDT>::secondary_link()
 /**
  * @brief Return the TreeLink of this TreeEdge that points away from the root.
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT> const& TreeEdge<NDT, EDT>::secondary_link() const
+TreeLink const& TreeEdge::secondary_link() const
 {
     return *link_s_;
 }
 
-// The following are inline definitions that would create circular dependecies when included in the
-// class definition. Thus, they need to be here, after the definition, so that their dependend
-// source files can be included without circles.
-// See http://www.cplusplus.com/forum/articles/10627/ for more information on this.
-
 /**
  * @brief Return the TreeNode of this TreeEdge that points towards the root.
  */
-template <class NDT, class EDT>
-TreeNode<NDT, EDT>& TreeEdge<NDT, EDT>::primary_node()
+TreeNode& TreeEdge::primary_node()
 {
     return link_p_->node();
 }
@@ -102,8 +90,7 @@ TreeNode<NDT, EDT>& TreeEdge<NDT, EDT>::primary_node()
 /**
  * @brief Return the TreeNode of this TreeEdge that points towards the root.
  */
-template <class NDT, class EDT>
-TreeNode<NDT, EDT> const& TreeEdge<NDT, EDT>::primary_node() const
+TreeNode const& TreeEdge::primary_node() const
 {
     return link_p_->node();
 }
@@ -111,8 +98,7 @@ TreeNode<NDT, EDT> const& TreeEdge<NDT, EDT>::primary_node() const
 /**
  * @brief Return the TreeNode of this TreeEdge that points away from the root.
  */
-template <class NDT, class EDT>
-TreeNode<NDT, EDT>& TreeEdge<NDT, EDT>::secondary_node()
+TreeNode& TreeEdge::secondary_node()
 {
     return link_s_->node();
 }
@@ -120,8 +106,7 @@ TreeNode<NDT, EDT>& TreeEdge<NDT, EDT>::secondary_node()
 /**
  * @brief Return the TreeNode of this TreeEdge that points away from the root.
  */
-template <class NDT, class EDT>
-TreeNode<NDT, EDT> const& TreeEdge<NDT, EDT>::secondary_node() const
+TreeNode const& TreeEdge::secondary_node() const
 {
     return link_s_->node();
 }
@@ -130,22 +115,19 @@ TreeNode<NDT, EDT> const& TreeEdge<NDT, EDT>::secondary_node() const
 //     Modifiers
 // =================================================================================================
 
-template <class NDT, class EDT>
-TreeEdge<NDT, EDT>& TreeEdge<NDT, EDT>::reset_index( size_t val )
+TreeEdge& TreeEdge::reset_index( size_t val )
 {
     index_ = val;
     return *this;
 }
 
-template <class NDT, class EDT>
-TreeEdge<NDT, EDT>& TreeEdge<NDT, EDT>::reset_primary_link( LinkType* val )
+TreeEdge& TreeEdge::reset_primary_link( TreeLink* val )
 {
     link_p_ = val;
     return *this;
 }
 
-template <class NDT, class EDT>
-TreeEdge<NDT, EDT>& TreeEdge<NDT, EDT>::reset_secondary_link( LinkType* val )
+TreeEdge& TreeEdge::reset_secondary_link( TreeLink* val )
 {
     link_s_ = val;
     return *this;
@@ -160,10 +142,11 @@ TreeEdge<NDT, EDT>& TreeEdge<NDT, EDT>::reset_secondary_link( LinkType* val )
  *
  * TODO this method assumes that the tree node has a name. not good.
  */
-template <class NDT, class EDT>
-std::string TreeEdge<NDT, EDT>::dump() const
+std::string TreeEdge::dump() const
 {
-    return "Node P: " + primary_node().data.name + ", Node S: " + secondary_node().data.name + "\t" + data.dump();
+    // throw std::runtime_error( "Not implemented" );
+    // return "Node P: " + primary_node().data.name + ", Node S: " + secondary_node().data.name + "\t" + data.dump();
+    return "Base edge dump";
 }
 
 } // namespace tree

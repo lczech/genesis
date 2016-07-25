@@ -47,15 +47,16 @@ namespace genesis {
 // =================================================================================================
 
 namespace tree {
-    template<class NodeDataType, class EdgeDataType>
+
     class TreeEdge;
+
 }
 
 namespace placement {
-    class PlacementTreeEdgeData;
-    class PlacementTreeNodeData;
 
-    typedef tree::TreeEdge< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTreeEdge;
+    class PlacementEdgeData;
+    class PlacementNodeData;
+
 }
 
 // =================================================================================================

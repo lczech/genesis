@@ -31,6 +31,7 @@
  * @ingroup tree
  */
 
+#include "tree/tree.hpp"
 #include "utils/core/range.hpp"
 
 #include <assert.h>
@@ -39,6 +40,15 @@
 
 namespace genesis {
 namespace tree {
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Tree;
+class TreeNode;
+class TreeEdge;
+class TreeLink;
 
 // =================================================================================================
 //     Levelorder Iterator
@@ -54,8 +64,6 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    using TreeType          = typename LinkType::TreeType;
-
     using iterator_category = std::forward_iterator_tag;
     using self_type         = IteratorLevelorder<LinkType, NodeType, EdgeType>;
 
@@ -69,11 +77,11 @@ public:
         , depth_( 0       )
     {}
 
-    explicit IteratorLevelorder( TreeType& tree )
+    explicit IteratorLevelorder( Tree& tree )
         : IteratorLevelorder( tree.root_link() )
     {}
 
-    explicit IteratorLevelorder( TreeType const& tree )
+    explicit IteratorLevelorder( Tree const& tree )
         : IteratorLevelorder( tree.root_link() )
     {}
 
@@ -208,36 +216,22 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorLevelorder<
-    typename ElementType::LinkType const,
-    typename ElementType::NodeType const,
-    typename ElementType::EdgeType const
->> levelorder( ElementType const& element )
+utils::Range< IteratorLevelorder< TreeLink const, TreeNode const, TreeEdge const >>
+levelorder( ElementType const& element )
 {
-    using LinkType = typename ElementType::LinkType;
-    using NodeType = typename ElementType::NodeType;
-    using EdgeType = typename ElementType::EdgeType;
-
     return {
-        IteratorLevelorder< const LinkType, const NodeType, const EdgeType >( element ),
-        IteratorLevelorder< const LinkType, const NodeType, const EdgeType >()
+        IteratorLevelorder< const TreeLink, const TreeNode, const TreeEdge >( element ),
+        IteratorLevelorder< const TreeLink, const TreeNode, const TreeEdge >()
     };
 }
 
 template<typename ElementType>
-utils::Range< IteratorLevelorder<
-    typename ElementType::LinkType,
-    typename ElementType::NodeType,
-    typename ElementType::EdgeType
->> levelorder( ElementType& element )
+utils::Range< IteratorLevelorder< TreeLink, TreeNode, TreeEdge >>
+levelorder( ElementType& element )
 {
-    using LinkType = typename ElementType::LinkType;
-    using NodeType = typename ElementType::NodeType;
-    using EdgeType = typename ElementType::EdgeType;
-
     return {
-        IteratorLevelorder< LinkType, NodeType, EdgeType >( element ),
-        IteratorLevelorder< LinkType, NodeType, EdgeType >()
+        IteratorLevelorder< TreeLink, TreeNode, TreeEdge >( element ),
+        IteratorLevelorder< TreeLink, TreeNode, TreeEdge >()
     };
 }
 

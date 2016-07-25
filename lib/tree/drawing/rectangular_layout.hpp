@@ -55,6 +55,8 @@ namespace utils {
 
 namespace tree {
 
+    class Tree;
+
 // =================================================================================================
 //     Rectangular Layout
 // =================================================================================================
@@ -95,56 +97,7 @@ public:
     //     Drawing
     // -------------------------------------------------------------
 
-    template< class TreeType >
-    void from_tree( TreeType const& tree )
-    {
-        if( tree.empty() ) {
-            throw std::runtime_error( "Cannot draw an empty tree." );
-        }
-
-        nodes_ = std::vector< Node >( tree.node_count() );
-
-        // Set node x-coords according to branch lengths (distance from root).
-        auto node_dists = node_branch_length_distance_vector( tree );
-        set_node_x_phylogram_( node_dists );
-        // auto node_dists = node_path_length_vector( tree );
-        // set_node_x_cladogram_( node_dists );
-
-        // Set node parents and y-coord of leaves.
-        size_t leaf_count = 0;
-        size_t parent = 0;
-        for( auto it : eulertour( tree )) {
-            auto& node = nodes_[ it.node().index() ];
-
-            if( node.parent == -1 ) {
-                node.parent = parent;
-                // edge_to_layout[it.edge()] = &node;
-            }
-            if( it.node().is_leaf() ) {
-                node.y = scaler_y_ * leaf_count++;
-            }
-
-            node.name = it.node().data.name;
-            parent = it.node().index();
-        }
-
-        // Set remaining y-coords of inner nodes to mid-points of their children.
-        for( auto it : postorder( tree )) {
-            auto& node = nodes_[ it.node().index() ];
-            auto& parent_node = nodes_[ node.parent ];
-
-            if( node.y < 0.0 ) {
-                node.y = node.children_min_y + ( node.children_max_y - node.children_min_y ) / 2;
-            }
-
-            if( parent_node.children_min_y < 0.0 || parent_node.children_min_y > node.y ) {
-                parent_node.children_min_y = node.y;
-            }
-            if( parent_node.children_max_y < 0.0 || parent_node.children_max_y < node.y ) {
-                parent_node.children_max_y = node.y;
-            }
-        }
-    }
+    void from_tree( Tree const& tree );
 
     utils::SvgDocument to_svg_document() const;
 

@@ -61,30 +61,41 @@ namespace placement {
  *   * they have the same topology,
  *   * they have the same internal structure (e.g., node indices),
  *   * they have the same node names at corresponding nodes,
- *   * they have the same edge nums at corresponding edges
+ *   * they have the same edge nums at corresponding edges,
+ *   * the data types of all nodes and edges are those of a ::PlacementTree
  *
  * In all other cases, `false` is returned.
  */
 bool compatible_trees( PlacementTree const& lhs, PlacementTree const& rhs )
 {
     auto node_comparator = [] (
-        PlacementTree::NodeType const& node_l,
-        PlacementTree::NodeType const& node_r
+        PlacementTreeNode const& node_l,
+        PlacementTreeNode const& node_r
     ) {
-        return node_l.data.name == node_r.data.name &&
-               node_l.index()   == node_r.index();
+        auto l_ptr = dynamic_cast< PlacementNodeData const* >( node_l.data.get() );
+        auto r_ptr = dynamic_cast< PlacementNodeData const* >( node_r.data.get() );
+        if( l_ptr == nullptr || r_ptr == nullptr ) {
+            return false;
+        }
+        return l_ptr->name    == r_ptr->name &&
+               node_l.index() == node_r.index();
     };
 
     auto edge_comparator = [] (
-        PlacementTree::EdgeType const& edge_l,
-        PlacementTree::EdgeType const& edge_r
+        PlacementTreeEdge const& edge_l,
+        PlacementTreeEdge const& edge_r
     ) {
-        return edge_l.data.edge_num()          == edge_r.data.edge_num()          &&
+        auto l_ptr = dynamic_cast< PlacementEdgeData const* >( edge_l.data.get() );
+        auto r_ptr = dynamic_cast< PlacementEdgeData const* >( edge_r.data.get() );
+        if( l_ptr == nullptr || r_ptr == nullptr ) {
+            return false;
+        }
+        return l_ptr->edge_num()               == r_ptr->edge_num()               &&
                edge_l.primary_node().index()   == edge_r.primary_node().index()   &&
                edge_l.secondary_node().index() == edge_r.secondary_node().index();
     };
 
-    return tree::equal<PlacementTree, PlacementTree>(
+    return tree::equal(
         lhs, rhs, node_comparator, edge_comparator
     );
 }
@@ -106,7 +117,7 @@ bool compatible_trees( Sample const& lhs, Sample const& rhs )
 // =================================================================================================
 
 /**
- * @brief Convert a @link tree::DefaultTree DefaultTree @endlink into a PlacementTree.
+ * @brief Convert a @link tree::DefaultTree DefaultTree @endlink into a ::PlacementTree.
  *
  * This function returns a new tree with the same topology as the source tree, and the same
  * node names and branch lengths. In addition, the `edge_num` property of the PlacementTree is
@@ -114,19 +125,22 @@ bool compatible_trees( Sample const& lhs, Sample const& rhs )
  */
 PlacementTree convert_to_placement_tree( tree::DefaultTree const& source_tree )
 {
-    auto node_data_converter = [] ( tree::DefaultTreeNodeData const& source_node ) {
-        auto node_data = PlacementTreeNodeData();
-        node_data.name = source_node.name;
-        return node_data;
+    // TODO those converters need to do double copies of the node and edge data. wasteful!
+    auto node_data_converter = [] ( tree::BaseNodeData const& source_node ) {
+        auto node_data   = PlacementNodeData();
+        auto source_data = dynamic_cast< tree::DefaultNodeData const& >( source_node );
+        node_data.name = source_data.name;
+        return std::unique_ptr< tree::BaseNodeData >( new PlacementNodeData( node_data ));
     };
 
-    auto edge_data_converter = [] ( tree::DefaultTreeEdgeData const& source_edge ) {
-        auto edge_data = PlacementTreeEdgeData();
-        edge_data.branch_length = source_edge.branch_length;
-        return edge_data;
+    auto edge_data_converter = [] ( tree::BaseEdgeData const& source_edge ) {
+        auto edge_data   = PlacementEdgeData();
+        auto source_data = dynamic_cast< tree::DefaultEdgeData const& >( source_edge );
+        edge_data.branch_length = source_data.branch_length;
+        return std::unique_ptr< tree::BaseEdgeData >( new PlacementEdgeData( edge_data ));
     };
 
-    auto result = PlacementTree::convert_from(
+    auto result = tree::convert(
         source_tree,
         node_data_converter,
         edge_data_converter
@@ -187,17 +201,15 @@ std::ostream& operator << (std::ostream& out, Sample const& smp)
  */
 std::string print_tree( Sample const& smp )
 {
-    using NodeType = typename PlacementTree::NodeType;
-    using EdgeType = typename PlacementTree::EdgeType;
-
     auto place_map = placements_per_edge( smp );
 
-    auto print_line = [ &place_map ] ( NodeType const& node, EdgeType const& edge )
+    auto print_line = [ &place_map ]( PlacementTreeNode const& node, PlacementTreeEdge const& edge )
     {
-        return node.data.name + " [" + std::to_string( edge.data.edge_num() ) + "]" ": "
+        return placement_node_data( node ).name
+            + " [" + std::to_string( placement_edge_data( edge ).edge_num() ) + "]" ": "
             + std::to_string( place_map[ edge.index() ].size() ) + " placements";
     };
-    return tree::PrinterCompact().print< PlacementTree >( smp.tree(), print_line );
+    return tree::PrinterCompact().print( smp.tree(), print_line );
 }
 
 } // namespace placement

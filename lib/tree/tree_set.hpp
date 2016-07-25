@@ -31,6 +31,8 @@
  * @ingroup tree
  */
 
+#include "tree/tree.hpp"
+
 #include <ostream>
 #include <string>
 #include <vector>
@@ -39,17 +41,9 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Forward declarations
-// =================================================================================================
-
-template <class NodeDataType, class EdgeDataType>
-class  Tree;
-
-// =================================================================================================
 //     Tree Set
 // =================================================================================================
 
-template <class TreeType_>
 class TreeSet
 {
 public:
@@ -58,15 +52,13 @@ public:
     //     Typedefs
     // -------------------------------------------------------------------------
 
-    using TreeType       = TreeType_;
-
     /**
      * @brief Store a Tree together with a name for it.
      */
     struct NamedTree
     {
         std::string name;
-        TreeType    tree;
+        Tree        tree;
     };
 
     using iterator       = typename std::vector<NamedTree>::iterator;
@@ -91,7 +83,7 @@ public:
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    void add( std::string const& name, TreeType const& tree );
+    void add( std::string const& name, Tree const& tree );
 
     void remove_at( size_t index );
     void clear();
@@ -122,20 +114,21 @@ public:
     /**
      * @brief Write a list of all names of the Tree%s in a TreeSet to a stream.
      */
-    friend std::ostream& operator << ( std::ostream& out, TreeSet const& tset )
-    {
-        // If provided with the optional parameter `full`, also dump all Trees.
-        // TODO this was meant for full output. turn it into a printer instead!
-        bool full = false;
-
-        for (auto& ct : tset) {
-            out << ct.name << "\n";
-            if (full) {
-                out << ct.tree.dump() << "\n";
-            }
-        }
-        return out;
-    }
+    // friend std::ostream& operator << ( std::ostream& out, TreeSet const& tset )
+    // {
+    //     // If provided with the optional parameter `full`, also dump all Trees.
+    //     // TODO this was meant for full output. turn it into a printer instead!
+    //     bool full = false;
+    //
+    //     for (auto& ct : tset) {
+    //         out << ct.name << "\n";
+    //         // TODO
+    //         if (full) {
+    //             out << ct.tree.dump() << "\n";
+    //         }
+    //     }
+    //     return out;
+    // }
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -151,12 +144,5 @@ private:
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-// This is a class template, so do the inclusion here.
-#include "tree/tree_set.tpp"
 
 #endif // include guard

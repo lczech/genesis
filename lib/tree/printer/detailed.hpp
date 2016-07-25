@@ -39,6 +39,15 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Tree;
+class TreeNode;
+class TreeEdge;
+class TreeLink;
+
+// =================================================================================================
 //     Printer Detailed
 // =================================================================================================
 
@@ -67,19 +76,10 @@ public:
     //     Print
     // -------------------------------------------------------------------------
 
-    template <typename TreeType>
-    void print (
-        std::ostream&   out,
-        TreeType const& tree
-    ) const;
+    void        print( std::ostream& out, Tree const& tree ) const;
+    std::string print( Tree const& tree ) const;
 
-    template <typename TreeType>
-    std::string print (
-        TreeType const& tree
-    ) const;
-
-    // template <typename TreeType>
-    // std::string operator() ( TreeType const& tree );
+    // std::string operator() ( Tree const& tree );
 
     // -------------------------------------------------------------------------
     //     Properties
@@ -107,12 +107,5 @@ private:
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-// This class contains function templates, so do the inclusion here.
-#include "tree/printer/detailed.tpp"
 
 #endif // include guard

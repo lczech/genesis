@@ -28,7 +28,17 @@
  * @ingroup tree
  */
 
+#include "tree/function/tree_set.hpp"
+
+#include "tree/tree.hpp"
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
+#include "tree/tree_node.hpp"
+#include "tree/tree_set.hpp"
+
+#include "tree/default/tree.hpp"
 #include "tree/function/operators.hpp"
+#include "tree/iterator/preorder.hpp"
 
 #include <stdexcept>
 #include <vector>
@@ -44,8 +54,7 @@ namespace tree {
  * @brief Get the first Tree in a TreeSet that is stored with a given name,
  * or `nullptr` if not found.
  */
-template <class TreeSetType>
-typename TreeSetType::TreeType* find_tree ( TreeSetType& tset, std::string const& name)
+Tree* find_tree ( TreeSet& tset, std::string const& name)
 {
     for (auto& tree : tset) {
         if( tree.name == name ) {
@@ -59,8 +68,7 @@ typename TreeSetType::TreeType* find_tree ( TreeSetType& tset, std::string const
  * @brief Get the first Tree in a TreeSet that is stored with a given name,
  * or `nullptr` if not found.
  */
-template <class TreeSetType>
-typename TreeSetType::TreeType const* find_tree ( TreeSetType const& tset, std::string const& name)
+Tree const* find_tree ( TreeSet const& tset, std::string const& name)
 {
     for (auto& tree : tset) {
         if( tree.name == name ) {
@@ -84,10 +92,9 @@ typename TreeSetType::TreeType const* find_tree ( TreeSetType const& tset, std::
  *
  * TODO this function assumes that the tree edge has a branch_length. move it to default tree.
  */
-template <class TreeSetType>
-typename TreeSetType::TreeType average_branch_length_tree( TreeSetType const& tset )
+Tree average_branch_length_tree( TreeSet const& tset )
 {
-    using TreeType = typename TreeSetType::TreeType;
+    using TreeType = Tree;
 
     if( tset.size() == 0 ) {
         return TreeType();
@@ -118,7 +125,7 @@ typename TreeSetType::TreeType average_branch_length_tree( TreeSetType const& ts
                 continue;
             }
 
-            avgs[idx] += it.edge().data.branch_length;
+            avgs[idx] += default_edge_data( it.edge() ).branch_length;
             ++idx;
         }
     }
@@ -137,7 +144,7 @@ typename TreeSetType::TreeType average_branch_length_tree( TreeSetType const& ts
             continue;
         }
 
-        it.edge().data.branch_length = avgs[idx] / tset.size();
+        default_edge_data( it.edge() ).branch_length = avgs[idx] / tset.size();
         ++idx;
     }
 
@@ -153,17 +160,10 @@ typename TreeSetType::TreeType average_branch_length_tree( TreeSetType const& ts
  *
  * See Tree::equal() for more information.
  */
-template <class TreeSetType>
 bool all_equal(
-    TreeSetType const& tset,
-    std::function<bool(
-        typename TreeSetType::TreeType::NodeType const&,
-        typename TreeSetType::TreeType::NodeType const&
-    )> node_comparator,
-    std::function<bool(
-        typename TreeSetType::TreeType::EdgeType const&,
-        typename TreeSetType::TreeType::EdgeType const&
-    )> edge_comparator
+    TreeSet const& tset,
+    std::function<bool( TreeNode const&, TreeNode const& )> node_comparator,
+    std::function<bool( TreeEdge const&, TreeEdge const& )> edge_comparator
 ) {
     // If all pairs of two adjacent trees are equal, all of them are.
     // Thus, we do not need a complete pairwise comparision.
@@ -180,24 +180,22 @@ bool all_equal(
  * @brief Compare whether all Tree%s in a TreeSet are equal using their default comparision
  * operators for nodes and edges.
  */
-template <class TreeSetType>
-bool all_equal( TreeSetType const& tset )
-{
-    // If all pairs of two adjacent trees are equal, all of them are.
-    // Thus, we do not need a complete pairwise comparision.
-    for (size_t i = 1; i < tset.size(); i++) {
-        if( ! equal( tset[i-1].tree, tset[i].tree )) {
-            return false;
-        }
-    }
-    return true;
-}
+// bool all_equal( TreeSet const& tset )
+// {
+//     // If all pairs of two adjacent trees are equal, all of them are.
+//     // Thus, we do not need a complete pairwise comparision.
+//     for (size_t i = 1; i < tset.size(); i++) {
+//         if( ! equal( tset[i-1].tree, tset[i].tree )) {
+//             return false;
+//         }
+//     }
+//     return true;
+// }
 
 /**
  * @brief Return true iff all Tree%s in a TreeSet have an identical topology.
  */
-template <class TreeSetType>
-bool all_identical_topology( TreeSetType const& tset )
+bool all_identical_topology( TreeSet const& tset )
 {
     // If all pairs of two adjacent trees have same the topology, all of them have.
     // Thus, we do not need a complete pairwise comparision.

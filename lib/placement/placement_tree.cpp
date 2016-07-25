@@ -45,7 +45,7 @@ namespace placement {
 /**
  * @brief Return the `edge_num` of this edge. This value is defined by the `jplace` standard.
  */
-int PlacementTreeEdgeData::edge_num() const
+int PlacementEdgeData::edge_num() const
 {
     return edge_num_;
 }
@@ -56,7 +56,7 @@ int PlacementTreeEdgeData::edge_num() const
  * The edge_num is usually considered to be constant for the tree. It rarely needs to be set,
  * except for when constructing the object. Use with care.
  */
-void PlacementTreeEdgeData::reset_edge_num( int val )
+void PlacementEdgeData::reset_edge_num( int val )
 {
     edge_num_ = val;
 }

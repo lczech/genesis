@@ -38,16 +38,19 @@ namespace genesis {
 // =================================================================================================
 
 namespace tree {
-    template<class NodeDataType, class EdgeDataType>
+
     class TreeEdge;
+
 }
 
 namespace placement {
-    class PlacementTreeEdgeData;
-    class PlacementTreeNodeData;
+
+    using PlacementTreeEdge = tree::TreeEdge;
+
+    class PlacementEdgeData;
+    class PlacementNodeData;
     class Pquery;
 
-    typedef tree::TreeEdge< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTreeEdge;
 }
 
 // =================================================================================================
@@ -57,7 +60,7 @@ namespace placement {
 namespace placement {
 
 /**
- * @brief One placement position of a Pquery on a PlacementTree.
+ * @brief One placement position of a Pquery on a Tree.
  *
  * This class is modeled after the `jplace` standard, which allows for multiple placement positions
  * for a Pquery. Usually, those positions are on different branches of the tree. The property
@@ -137,7 +140,7 @@ public:
     * @brief Distance of this placement to the next node towards the root.
     *
     * This value determines the distance of the placement attachement position on the edge to the
-    * next PlacementTreeNode that lies towards the root of the PlacementTree.
+    * next TreeNode that lies towards the root of the Tree.
     *
     * This property is not defined by the `jplace` standard. Instead, the standard uses
     * `distal_length`, which is the opposite of this value: It determines the distance to the next
@@ -154,7 +157,7 @@ public:
     /**
     * @brief Length of the attached branch of this placement.
     *
-    * The placement can be interpreted as a new branch on the PlacementTree. This value then gives
+    * The placement can be interpreted as a new branch on the Tree. This value then gives
     * the length of that branch.
     *
     * This property is defined by the `jplace` standard.

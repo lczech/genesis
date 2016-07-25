@@ -82,10 +82,7 @@ public:
     // -------------------------------------------------------------------------
 
     Sample() = default;
-
-    Sample( PlacementTree const& tree )
-        : tree_(tree)
-    {}
+    Sample( PlacementTree const& tree );
 
     Sample( Sample const& );
     Sample( Sample&& ) = default;

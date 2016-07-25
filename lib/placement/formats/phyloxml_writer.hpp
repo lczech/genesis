@@ -42,7 +42,7 @@ namespace placement {
 //     Placement Tree Phyloxml Writer
 // =================================================================================================
 
-typedef tree::DefaultTreePhyloxmlWriterMixin< tree::PhyloxmlWriter< PlacementTree > >
+typedef tree::DefaultTreePhyloxmlWriterMixin< tree::PhyloxmlWriter >
     PlacementTreePhyloxmlWriter;
 
 } // namespace placement

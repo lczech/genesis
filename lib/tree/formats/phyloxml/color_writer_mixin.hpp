@@ -31,6 +31,8 @@
  * @ingroup tree
  */
 
+#include "tree/tree.hpp"
+#include "tree/tree_edge.hpp"
 #include "tree/formats/color_writer_mixin.hpp"
 #include "utils/formats/xml/document.hpp"
 
@@ -70,18 +72,13 @@ class PhyloxmlColorWriterMixin : public Base, public ColorWriterMixin
 
 public:
 
-    typedef typename Base::TreeType TreeType;
-    typedef typename Base::NodeType NodeType;
-    typedef typename Base::EdgeType EdgeType;
-    typedef typename Base::LinkType LinkType;
-
     // -------------------------------------------------------------------------
     //     Overridden Virtual Functions
     // -------------------------------------------------------------------------
 
 protected:
 
-    virtual void prepare_writing( TreeType const& tree, utils::XmlDocument& xml ) override
+    virtual void prepare_writing( Tree const& tree, utils::XmlDocument& xml ) override
     {
         Base::prepare_writing(tree, xml);
 
@@ -100,7 +97,7 @@ protected:
         }
     }
 
-    virtual void edge_to_element( EdgeType const& edge, utils::XmlElement& element ) override
+    virtual void edge_to_element( TreeEdge const& edge, utils::XmlElement& element ) override
     {
         Base::edge_to_element(edge, element);
 

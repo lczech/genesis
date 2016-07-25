@@ -49,8 +49,8 @@ struct PqueryPlain;
 //     Helper Functions
 // =================================================================================================
 
-std::unordered_map<int, PlacementTree::EdgeType*> edge_num_to_edge_map( PlacementTree const& tree );
-std::unordered_map<int, PlacementTree::EdgeType*> edge_num_to_edge_map( Sample const & smp );
+std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( PlacementTree const& tree );
+std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( Sample const & smp );
 
 std::unordered_map< size_t, std::vector< PqueryPlacement const* >> placements_per_edge(
     Sample const& smp

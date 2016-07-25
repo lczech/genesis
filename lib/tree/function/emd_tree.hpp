@@ -31,26 +31,47 @@
  * @ingroup tree
  */
 
+#include "tree/tree.hpp"
+#include "tree/tree_node.hpp"
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
+#include "tree/default/tree.hpp"
+
 #include <map>
 
 namespace genesis {
 namespace tree {
 
 // =============================================================================
-//     Forward declarations
+//     Definitions and Typedefs
 // =============================================================================
 
-template <class NodeDataType, class EdgeDataType>
-class  Tree;
+/**
+ * @brief Alias for a Tree used to calculate the earth movers distance between to sets of masses
+ * distributed on a Tree.
+ *
+ * See earth_movers_distance( EmdTree const& tree ) for more details on the purpose of this tree
+ * type and on the earth movers distance in general.
+ *
+ * The branches of an EmdTree hold a list of @link EmdTreeEdgeData::masses masses@endlink, sorted
+ * along their position on the branch.
+ */
+using EmdTree = Tree;
 
-template <class NodeDataType, class EdgeDataType>
-class  TreeEdge;
+/**
+ * @brief Alias for a TreeEdge of an @link EmdTree EmdTree@endlink. See there for more information.
+ */
+using EmdTreeEdge = TreeEdge;
 
-template <class NodeDataType, class EdgeDataType>
-class  TreeLink;
+/**
+ * @brief Alias for a TreeLink of an @link EmdTree EmdTree@endlink. See there for more information.
+ */
+using EmdTreeLink = TreeLink;
 
-template <class NodeDataType, class EdgeDataType>
-class  TreeNode;
+/**
+ * @brief Alias for a TreeNode of an @link EmdTree EmdTree@endlink. See there for more information.
+ */
+using EmdTreeNode = TreeNode;
 
 // =============================================================================
 //     Emd Tree Node Data
@@ -61,9 +82,14 @@ class  TreeNode;
  *
  * See @link EmdTree EmdTree@endlink for more information.
  */
-class EmdTreeNodeData
+class EmdNodeData : public BaseNodeData
 {
 public:
+
+    std::unique_ptr< BaseNodeData > clone() const override
+    {
+        return utils::make_unique< EmdNodeData >( *this );
+    }
 
 };
 
@@ -77,14 +103,22 @@ public:
  *
  * See @link EmdTree EmdTree@endlink for more information.
  */
-class EmdTreeEdgeData
+class EmdEdgeData : public DefaultEdgeData
 {
 public:
 
-    /**
-     * @brief Length of this branch/edge.
-     */
-    double branch_length;
+    // -----------------------------------------------------
+    //     Construction and Rule of Five
+    // -----------------------------------------------------
+
+    std::unique_ptr< BaseEdgeData > clone() const override
+    {
+        return utils::make_unique< EmdEdgeData >( *this );
+    }
+
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
 
     /**
      * @brief List of masses stored on this branch, sorted by their position on the branch.
@@ -98,36 +132,57 @@ public:
 
 };
 
-// =============================================================================
-//     Definitions and Typedefs
-// =============================================================================
+// =================================================================================================
+//     Conversions
+// =================================================================================================
 
-/**
- * @brief Tree type used to calculate the earth movers distance between to sets of masses
- * distributed on a Tree.
- *
- * See earth_movers_distance( EmdTree const& tree ) for more details on the purpose of this tree
- * type and on the earth movers distance in general.
- *
- * The branches of an EmdTree hold a list of @link EmdTreeEdgeData::masses masses@endlink, sorted
- * along their position on the branch.
- */
-typedef Tree     <EmdTreeNodeData, EmdTreeEdgeData> EmdTree;
+// -----------------------------------------------------
+//     Node
+// -----------------------------------------------------
 
-/**
- * @brief Edge type of a @link EmdTree EmdTree@endlink. See there for more information.
- */
-typedef TreeEdge <EmdTreeNodeData, EmdTreeEdgeData> EmdTreeEdge;
+inline EmdNodeData& emd_node_data( std::unique_ptr<TreeNode>& node )
+{
+    return dynamic_cast< EmdNodeData& >( *node->data );
+}
 
-/**
-* @brief Link type of a @link EmdTree EmdTree@endlink. See there for more information.
-*/
-typedef TreeLink <EmdTreeNodeData, EmdTreeEdgeData> EmdTreeLink;
+inline EmdNodeData const& emd_node_data( std::unique_ptr<TreeNode> const& node )
+{
+    return dynamic_cast< EmdNodeData const& >( *node->data );
+}
 
-/**
-* @brief Node type of a @link EmdTree EmdTree@endlink. See there for more information.
-*/
-typedef TreeNode <EmdTreeNodeData, EmdTreeEdgeData> EmdTreeNode;
+inline EmdNodeData& emd_node_data( TreeNode& node )
+{
+    return dynamic_cast< EmdNodeData& >( *node.data );
+}
+
+inline EmdNodeData const& emd_node_data( TreeNode const& node )
+{
+    return dynamic_cast< EmdNodeData const& >( *node.data );
+}
+
+// -----------------------------------------------------
+//     Edge
+// -----------------------------------------------------
+
+inline EmdEdgeData& emd_edge_data( std::unique_ptr<TreeEdge>& edge )
+{
+    return dynamic_cast< EmdEdgeData& >( *edge->data );
+}
+
+inline EmdEdgeData const& emd_edge_data( std::unique_ptr<TreeEdge> const& edge )
+{
+    return dynamic_cast< EmdEdgeData const& >( *edge->data );
+}
+
+inline EmdEdgeData& emd_edge_data( TreeEdge& edge )
+{
+    return dynamic_cast< EmdEdgeData& >( *edge.data );
+}
+
+inline EmdEdgeData const& emd_edge_data( TreeEdge const& edge )
+{
+    return dynamic_cast< EmdEdgeData const& >( *edge.data );
+}
 
 } // namespace tree
 } // namespace genesis

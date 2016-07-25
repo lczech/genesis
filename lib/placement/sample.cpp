@@ -30,6 +30,14 @@
 
 #include "placement/sample.hpp"
 
+#include "placement/function/helper.hpp"
+
+#include "tree/iterator/preorder.hpp"
+#include "tree/function/operators.hpp"
+
+#include "utils/core/logging.hpp"
+#include "utils/core/std.hpp"
+
 #include <algorithm>
 #include <assert.h>
 #include <cmath>
@@ -41,17 +49,26 @@
 #include <unordered_map>
 #include <utility>
 
-#include "placement/function/helper.hpp"
-#include "tree/iterator/preorder.hpp"
-#include "utils/core/logging.hpp"
-#include "utils/core/std.hpp"
-
 namespace genesis {
 namespace placement {
 
 // =================================================================================================
 //     Constructor and Rule of Five
 // =================================================================================================
+
+/**
+ * @brief Constructor taking a reference tree.
+ *
+ * The tree has to have the data types PlacementNodeData and PlacementEdgeData at its nodes and
+ * edges, respectively. If not, an exception is thrown.
+ */
+Sample::Sample( PlacementTree const& tree )
+    : tree_( tree )
+{
+    if( ! tree::tree_data_is< PlacementNodeData, PlacementEdgeData >( tree_ ) ) {
+        throw std::runtime_error( "Tree for constructing the Sample is no PlacementTree." );
+    }
+}
 
 /**
  * @brief Copy constructor.
@@ -161,7 +178,7 @@ Pquery& Sample::add_pquery()
  * @brief Create a Pquery as a copy of the provided one, add it to the sample and return it.
  *
  * It is possible to provide a Pquery from a different Sample, as long as the tree topology of both
- * Sample%s is identical, including identical @link tree::TreeEdge::index() edge indices @endlink
+ * Sample%s is identical, including identical @link PlacementTreeEdge::index() edge indices @endlink
  * and @link PqueryPlacement::edge_num edge_nums@endlink. For that purpose, this function
  * automatically adjusts the internal pointers of the Pquery and its PqueryPlacement%s accordingly.
  *
@@ -184,12 +201,12 @@ Pquery& Sample::add_pquery( Pquery const& other )
         // Get the edge index of the old edge, then set the edge to the edge of the
         // correct sample that is at that index.
         auto edge_index   = placement.edge().index();
-        auto old_edge_num = placement.edge().data.edge_num();
+        auto old_edge_num = placement_edge_data( placement.edge() ).edge_num();
         placement.reset_edge( tree().edge_at( edge_index ));
 
         // Now the placement points to the new edge. We can thus check if this one still has the
         // same edge_num as the old edge.
-        if( old_edge_num != placement.edge().data.edge_num() ) {
+        if( old_edge_num != placement_edge_data( placement.edge() ).edge_num() ) {
             throw std::runtime_error(
                 "Trees are incompatible for copying Pqueries between Samples."
             );

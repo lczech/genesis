@@ -28,6 +28,9 @@
  * @ingroup tree
  */
 
+#include "tree/default/functions.hpp"
+
+#include "tree/default/tree.hpp"
 #include "utils/text/string.hpp"
 
 namespace genesis {
@@ -43,20 +46,19 @@ namespace tree {
  * If `leaves_only` is set to true, nodes names of inner nodes are not included.
  * Unnamed nodes (`node.data.name == ""`) are always excluded.
  */
-template <class TreeType>
 std::vector<std::string> node_names(
-    TreeType const& tree,
+    Tree const& tree,
     bool leaves_only
 ) {
     std::vector<std::string> ret;
     for (auto it = tree.begin_nodes(); it != tree.end_nodes(); ++it) {
-        if ( (*it)->is_inner() && leaves_only ) {
+        if( (*it)->is_inner() && leaves_only ) {
             continue;
         }
-        if ( (*it)->data.name == "" ) {
+        if( default_node_data( *it ).name == "" ) {
             continue;
         }
-        ret.push_back( (*it)->data.name );
+        ret.push_back( default_node_data( *it ).name );
     }
     return ret;
 }
@@ -64,9 +66,8 @@ std::vector<std::string> node_names(
 /**
  * @brief Finds a Node, given its name. If not found, nullptr is returned.
  */
-template <class TreeType>
-typename TreeType::NodeType const* find_node(
-    TreeType const& tree,
+TreeNode const* find_node(
+    Tree const& tree,
     const std::string& name,
     bool replace_underscores
 ) {
@@ -76,7 +77,7 @@ typename TreeType::NodeType const* find_node(
     }
 
     for (auto it = tree.begin_nodes(); it != tree.end_nodes(); ++it) {
-        if ((*it)->data.name == clean_name) {
+        if( default_node_data( *it ).name == clean_name) {
             return it->get();
         }
     }
@@ -87,15 +88,14 @@ typename TreeType::NodeType const* find_node(
 /**
  * @brief Finds a Node, given its name. If not found, nullptr is returned.
  */
-template <class TreeType>
-typename TreeType::NodeType* find_node(
-    TreeType& tree,
+TreeNode* find_node(
+    Tree& tree,
     const std::string& name,
     bool replace_underscores
 ) {
     // Avoid code duplication according to Scott Meyers.
-    auto const& ctree = static_cast< TreeType const& >( tree );
-    return const_cast< typename TreeType::NodeType* >(
+    auto const& ctree = static_cast< Tree const& >( tree );
+    return const_cast< TreeNode* >(
         find_node( ctree, name, replace_underscores )
     );
 }
@@ -108,14 +108,13 @@ typename TreeType::NodeType* find_node(
  * @brief Get a vector of all branch lengths of a Tree, index by the
  * @link TreeEdge::index() edge index@endlink.
  */
-template <class TreeType>
 std::vector<double> branch_lengths(
-    TreeType const& tree
+    Tree const& tree
 ) {
     std::vector<double> result;
     result.reserve( tree.edge_count() );
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
-        result.push_back( tree.edge_at(i).data.branch_length );
+        result.push_back( default_edge_data( tree.edge_at(i) ).branch_length );
     }
     return result;
 }
@@ -123,13 +122,12 @@ std::vector<double> branch_lengths(
 /**
  * @brief Set all branch lengths of a Tree to a given value.
  */
-template <class TreeType>
 void set_all_branch_lengths(
-    TreeType& tree,
+    Tree& tree,
     double length
 ) {
     for( auto& edge : tree.edges() ) {
-        edge->data.branch_length = length;
+        default_edge_data( edge ).branch_length = length;
     }
 }
 

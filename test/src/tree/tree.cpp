@@ -44,7 +44,7 @@ TEST(Tree, Basics)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    DefaultTree tree;
+    Tree tree;
     DefaultTreeNewickReader().from_string(input, tree);
 
     EXPECT_EQ(7, leaf_node_count( tree ));
@@ -52,7 +52,7 @@ TEST(Tree, Basics)
     EXPECT_EQ(13, tree.node_count());
     EXPECT_TRUE( is_bifurcating( tree ));
 
-    EXPECT_EQ("R", tree.root_node().data.name);
+    EXPECT_EQ("R", default_node_data( tree.root_node() ).name);
     EXPECT_TRUE( validate( tree ));
 
     // LOG_INFO << tree;

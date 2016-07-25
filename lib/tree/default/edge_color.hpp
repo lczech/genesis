@@ -43,25 +43,20 @@ namespace utils {
     class Color;
 }
 
+namespace tree {
+
+class Tree;
+
 // =================================================================================================
 //     Edge Color Functions
 // =================================================================================================
 
-namespace tree {
-
-template<class TreeType>
 std::vector<utils::Color> edge_color_branch_length_gradient(
-    TreeType const& tree,
+    Tree const& tree,
     bool zero_based = false
 );
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-#include "tree/default/edge_color.tpp"
 
 #endif // include guard

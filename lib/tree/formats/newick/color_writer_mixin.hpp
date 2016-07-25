@@ -31,6 +31,8 @@
  * @ingroup tree
  */
 
+#include "tree/tree.hpp"
+#include "tree/tree_edge.hpp"
 #include "tree/formats/color_writer_mixin.hpp"
 #include "tree/formats/newick/element.hpp"
 
@@ -61,11 +63,6 @@ class NewickColorWriterMixin : public Base, public ColorWriterMixin
     // -------------------------------------------------------------------------
 
 public:
-
-    typedef typename Base::TreeType TreeType;
-    typedef typename Base::NodeType NodeType;
-    typedef typename Base::EdgeType EdgeType;
-    typedef typename Base::LinkType LinkType;
 
     // -------------------------------------------------------------------------
     //     Properties
@@ -118,7 +115,7 @@ public:
 
 protected:
 
-    virtual void prepare_writing( TreeType const& tree, NewickBroker& broker ) override
+    virtual void prepare_writing( Tree const& tree, NewickBroker& broker ) override
     {
         Base::prepare_writing(tree, broker);
 
@@ -137,7 +134,7 @@ protected:
         }
     }
 
-    virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element ) override
+    virtual void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element ) override
     {
         Base::edge_to_element(edge, element);
 
