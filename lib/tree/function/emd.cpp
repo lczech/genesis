@@ -130,12 +130,12 @@ double earth_movers_distance( EmdTree const& tree )
 
         // We now start a "normal" earth movers distance caluclation along the current edge.
         // We start at the end of the branch, with the mass that comes from the subtree below it...
-        double current_pos  = emd_edge_data( tree_it.edge() ).branch_length;
+        double current_pos  = edge_data_cast< EmdEdgeData >( tree_it.edge() ).branch_length;
         double current_mass = node_masses[ sec_node_index ];
 
         // ... and move the mass along the branch, balancing it with the masses found on the branch.
         // We use a reverse iterator in order to traverse the branch from end to start.
-        auto const& edge_masses = emd_edge_data( tree_it.edge() ).masses;
+        auto const& edge_masses = edge_data_cast< EmdEdgeData >( tree_it.edge() ).masses;
         for(
             auto mass_rit = edge_masses.crbegin();
             mass_rit != edge_masses.crend();
@@ -168,12 +168,12 @@ void transform_to_unit_branch_lengths( EmdTree& tree )
 {
     for( auto& edge : tree.edges() ) {
         std::map<double, double> relative;
-        for( auto mass : emd_edge_data( edge ).masses ) {
-            relative[ mass.first / emd_edge_data( edge ).branch_length ] += mass.second;
+        for( auto mass : edge_data_cast< EmdEdgeData >( edge ).masses ) {
+            relative[ mass.first / edge_data_cast< EmdEdgeData >( edge ).branch_length ] += mass.second;
         }
-        emd_edge_data( edge ).masses = relative;
+        edge_data_cast< EmdEdgeData >( edge ).masses = relative;
 
-        emd_edge_data( edge ).branch_length = 1.0;
+        edge_data_cast< EmdEdgeData >( edge ).branch_length = 1.0;
     }
 }
 
@@ -185,16 +185,16 @@ double center_masses_on_branches( EmdTree& tree )
 {
     double work = 0.0;
     for( auto& edge : tree.edges() ) {
-        double branch_center = emd_edge_data( edge ).branch_length / 2;
+        double branch_center = edge_data_cast< EmdEdgeData >( edge ).branch_length / 2;
         double central_mass  = 0.0;
 
-        for( auto mass : emd_edge_data( edge ).masses ) {
+        for( auto mass : edge_data_cast< EmdEdgeData >( edge ).masses ) {
             work         += mass.second * std::abs( branch_center - mass.first );
             central_mass += mass.second;
         }
 
-        emd_edge_data( edge ).masses.clear();
-        emd_edge_data( edge ).masses[ branch_center ] = central_mass;
+        edge_data_cast< EmdEdgeData >( edge ).masses.clear();
+        edge_data_cast< EmdEdgeData >( edge ).masses[ branch_center ] = central_mass;
     }
     return work;
 }
@@ -213,7 +213,7 @@ double sum_of_masses( EmdTree const& tree )
 {
     double total_mass = 0.0;
     for( auto& edge : tree.edges() ) {
-        for( auto mass : emd_edge_data( edge ).masses ) {
+        for( auto mass : edge_data_cast< EmdEdgeData >( edge ).masses ) {
             total_mass += mass.second;
         }
     }
@@ -241,7 +241,7 @@ bool validate_emd_tree( EmdTree const& tree, double valid_total_mass_difference 
     double mass_sum = 0.0;
 
     for( auto const& edge : tree.edges() ) {
-        auto const edge_data = dynamic_cast< EmdEdgeData const* >( edge->data.get() );
+        auto const edge_data = dynamic_cast< EmdEdgeData const* >( &edge->data() );
         if( edge_data == nullptr ) {
             LOG_INFO << "Edge data type is not 'EmdEdgeData'.";
             return false;

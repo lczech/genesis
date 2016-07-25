@@ -93,7 +93,7 @@ protected:
         Base::node_to_element(node, element);
 
         if (enable_names_) {
-            std::string name = default_node_data( node ).name;
+            std::string name = node_data_cast< DefaultNodeData >( node ).name;
 
             // Handle spaces/underscores.
             if (replace_name_underscores) {
@@ -122,7 +122,8 @@ protected:
         Base::edge_to_element( edge, element );
 
         if (enable_branch_lengths_) {
-            auto bl = utils::to_string_rounded( default_edge_data( edge ).branch_length, branch_length_precision );
+            auto const& edge_data = edge_data_cast< DefaultEdgeData >( edge );
+            auto bl = utils::to_string_rounded( edge_data.branch_length, branch_length_precision );
             element.values.insert (element.values.begin(), bl );
         }
     }

@@ -63,13 +63,13 @@ protected:
     virtual void node_to_element( TreeNode const& node, utils::XmlElement& element ) override
     {
         Base::node_to_element(node, element);
-        set_name(element, default_node_data( node ).name);
+        set_name(element, node_data_cast< DefaultNodeData >( node ).name);
     }
 
     virtual void edge_to_element( TreeEdge const& edge, utils::XmlElement& element ) override
     {
         Base::edge_to_element(edge, element);
-        set_branch_length(element, default_edge_data( edge ).branch_length);
+        set_branch_length(element, edge_data_cast< DefaultEdgeData >( edge ).branch_length);
     }
 
     // -------------------------------------------------------------------------

@@ -125,6 +125,11 @@ public:
     TreeLink      & link();
     TreeLink const& link() const;
 
+    bool has_data() const;
+
+    BaseNodeData&       data();
+    BaseNodeData const& data() const;
+
     // ---------------------------------------------------------------------
     //     Modifiers
     // ---------------------------------------------------------------------
@@ -132,6 +137,8 @@ public:
     TreeNode& reset_index( size_t val );
 
     TreeNode& reset_primary_link( TreeLink* val );
+
+    TreeNode& reset_data( std::unique_ptr< BaseNodeData > data );
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -153,15 +160,55 @@ public:
     //     Member Variables
     // ---------------------------------------------------------------------
 
-public:
-
-    std::unique_ptr< BaseNodeData > data;
 
 private:
 
     size_t       index_;
     TreeLink*    link_;
+
+    std::unique_ptr< BaseNodeData > data_;
+
 };
+
+// =================================================================================================
+//     Casts
+// =================================================================================================
+
+template< class NodeDataType >
+NodeDataType& node_data_cast( std::unique_ptr< TreeNode >& node )
+{
+    return dynamic_cast< NodeDataType& >( node->data() );
+}
+
+template< class NodeDataType >
+NodeDataType const& node_data_cast( std::unique_ptr< TreeNode > const& node )
+{
+    return dynamic_cast< NodeDataType const& >( node->data() );
+}
+
+template< class NodeDataType >
+NodeDataType& node_data_cast( TreeNode& node )
+{
+    return dynamic_cast< NodeDataType& >( node.data() );
+}
+
+template< class NodeDataType >
+NodeDataType const& node_data_cast( TreeNode const& node )
+{
+    return dynamic_cast< NodeDataType const& >( node.data() );
+}
+
+template< class NodeDataType >
+NodeDataType& node_data_cast( BaseNodeData& data )
+{
+    return dynamic_cast< NodeDataType& >( data );
+}
+
+template< class NodeDataType >
+NodeDataType const& node_data_cast( BaseNodeData const& data )
+{
+    return dynamic_cast< NodeDataType const& >( data );
+}
 
 } // namespace tree
 } // namespace genesis

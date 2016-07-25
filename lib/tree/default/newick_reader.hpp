@@ -88,22 +88,22 @@ protected:
             name = utils::replace_all(name, "_", " ");
         }
 
-        node.data = utils::make_unique< DefaultNodeData >();
-        default_node_data( node ).name = name;
+        node.reset_data( utils::make_unique< DefaultNodeData >() );
+        node_data_cast< DefaultNodeData >( node ).name = name;
     }
 
     virtual void element_to_edge( NewickBrokerElement const& element, TreeEdge& edge ) override
     {
         Base::element_to_edge(element, edge);
-        edge.data = utils::make_unique< DefaultEdgeData >();
+        edge.reset_data( utils::make_unique< DefaultEdgeData >() );
 
         // We assume that the branch length is always the first (or only) value.
         // If there is an interpretation where this is not the case, it is best to introduce
         // an array index for this as a paramter of this class.
         if (element.values.size() > 0) {
-            default_edge_data( edge ).branch_length = std::stod(element.values[0]);
+            edge_data_cast< DefaultEdgeData >( edge ).branch_length = std::stod(element.values[0]);
         } else {
-            default_edge_data( edge ).branch_length = 1.0;
+            edge_data_cast< DefaultEdgeData >( edge ).branch_length = 1.0;
         }
     }
 

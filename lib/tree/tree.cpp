@@ -76,35 +76,35 @@ Tree::Tree( const Tree& other )
         // res.links_[i]->data = other.links_[i]->data;
     }
     for( size_t i = 0; i < res.nodes_.size(); ++i ) {
-        if( other.node_at(i).data ) {
-            res.nodes_[i]->data = other.node_at(i).data->clone();
+        if( other.node_at(i).has_data() ) {
+            res.node_at(i).reset_data( other.node_at(i).data().clone() );
         }
 
         // Some assertions.
-        if( res.nodes_[i]->data && other.node_at(i).data ) {
-            auto const& res_data = *res.nodes_[i]->data.get();
-            auto const& oth_data = *other.node_at(i).data.get();
+        if( res.node_at(i).has_data() && other.node_at(i).has_data() ) {
+            auto const& res_data = res.node_at(i).data();
+            auto const& oth_data = other.node_at(i).data();
             (void) res_data;
             (void) oth_data;
             assert( typeid( res_data ) == typeid( oth_data ));
         } else {
-            assert( ! res.nodes_[i]->data && ! other.node_at(i).data );
+            assert( ! res.node_at(i).has_data() && ! other.node_at(i).has_data() );
         }
     }
     for( size_t i = 0; i < res.edges_.size(); ++i ) {
-        if( other.edge_at(i).data ) {
-            res.edges_[i]->data = other.edge_at(i).data->clone();
+        if( other.edge_at(i).has_data() ) {
+            res.edge_at(i).reset_data( other.edge_at(i).data().clone() );
         }
 
         // Some assertions.
-        if( res.edges_[i]->data && other.edge_at(i).data ) {
-            auto const& res_data = *res.edges_[i]->data.get();
-            auto const& oth_data = *other.edge_at(i).data.get();
+        if( res.edges_[i]->has_data() && other.edge_at(i).has_data() ) {
+            auto const& res_data = res.edge_at(i).data();
+            auto const& oth_data = other.edge_at(i).data();
             (void) res_data;
             (void) oth_data;
             assert( typeid( res_data ) == typeid( oth_data ));
         } else {
-            assert( ! res.edges_[i]->data && ! other.node_at(i).data );
+            assert( ! res.edge_at(i).has_data() && ! other.edge_at(i).has_data() );
         }
     }
 

@@ -177,58 +177,6 @@ private:
     int edge_num_;
 };
 
-// =================================================================================================
-//     Conversions
-// =================================================================================================
-
-// -----------------------------------------------------
-//     Node
-// -----------------------------------------------------
-
-inline PlacementNodeData& placement_node_data( std::unique_ptr< tree::TreeNode >& node )
-{
-    return dynamic_cast< PlacementNodeData& >( *node->data );
-}
-
-inline PlacementNodeData const& placement_node_data( std::unique_ptr< tree::TreeNode > const& node )
-{
-    return dynamic_cast< PlacementNodeData const& >( *node->data );
-}
-
-inline PlacementNodeData& placement_node_data( tree::TreeNode& node )
-{
-    return dynamic_cast< PlacementNodeData& >( *node.data );
-}
-
-inline PlacementNodeData const& placement_node_data( tree::TreeNode const& node )
-{
-    return dynamic_cast< PlacementNodeData const& >( *node.data );
-}
-
-// -----------------------------------------------------
-//     Edge
-// -----------------------------------------------------
-
-inline PlacementEdgeData& placement_edge_data( std::unique_ptr< tree::TreeEdge >& edge )
-{
-    return dynamic_cast< PlacementEdgeData& >( *edge->data );
-}
-
-inline PlacementEdgeData const& placement_edge_data( std::unique_ptr< tree::TreeEdge > const& edge )
-{
-    return dynamic_cast< PlacementEdgeData const& >( *edge->data );
-}
-
-inline PlacementEdgeData& placement_edge_data( tree::TreeEdge& edge )
-{
-    return dynamic_cast< PlacementEdgeData& >( *edge.data );
-}
-
-inline PlacementEdgeData const& placement_edge_data( tree::TreeEdge const& edge )
-{
-    return dynamic_cast< PlacementEdgeData const& >( *edge.data );
-}
-
 } // namespace placement
 } // namespace genesis
 

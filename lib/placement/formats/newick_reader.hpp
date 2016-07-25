@@ -66,17 +66,17 @@ protected:
     virtual void element_to_node( tree::NewickBrokerElement const& element, tree::TreeNode& node ) override
     {
         Base::element_to_node( element, node );
-        std::string name = default_node_data( node ).name;
-        node.data = utils::make_unique< PlacementNodeData >();
-        placement_node_data( node ).name = name;
+        std::string name = tree::node_data_cast< tree::DefaultNodeData >( node ).name;
+        node.reset_data( utils::make_unique< PlacementNodeData >() );
+        tree::node_data_cast< PlacementNodeData >( node ).name = name;
     }
 
     virtual void element_to_edge( tree::NewickBrokerElement const& element, tree::TreeEdge& edge ) override
     {
         Base::element_to_edge(element, edge);
-        double branch_length = default_edge_data( edge ).branch_length;
-        edge.data = utils::make_unique< PlacementEdgeData >();
-        auto& edge_data = placement_edge_data( edge );
+        double branch_length = tree::edge_data_cast< tree::DefaultEdgeData >( edge ).branch_length;
+        edge.reset_data( utils::make_unique< PlacementEdgeData >() );
+        auto& edge_data = tree::edge_data_cast< PlacementEdgeData >( edge );
         edge_data.branch_length = branch_length;
 
         // Process the edge num.

@@ -41,6 +41,30 @@
 namespace genesis {
 namespace tree {
 
+// =============================================================================
+//     Typedefs
+// =============================================================================
+
+/**
+ * @brief Alias for a Tree with data types DefaultNodeData and DefaultEdgeData
+ */
+using DefaultTree     = Tree;
+
+/**
+ * @brief Alias for a TreeEdge of a ::DefaultTree. See there for more information.
+ */
+using DefaultTreeEdge = TreeEdge;
+
+/**
+ * @brief Alias for a TreeLink of a ::DefaultTree. See there for more information.
+ */
+using DefaultTreeLink = TreeLink;
+
+/**
+ * @brief Alias for a TreeNode of a ::DefaultTree. See there for more information.
+ */
+using DefaultTreeNode = TreeNode;
+
 // =================================================================================================
 //     Default Tree Node Data
 // =================================================================================================
@@ -169,58 +193,6 @@ public:
     double branch_length = 1.0;
 
 };
-
-// =================================================================================================
-//     Conversions
-// =================================================================================================
-
-// -----------------------------------------------------
-//     Node
-// -----------------------------------------------------
-
-inline DefaultNodeData& default_node_data( std::unique_ptr<TreeNode>& node )
-{
-    return dynamic_cast< DefaultNodeData& >( *node->data );
-}
-
-inline DefaultNodeData const& default_node_data( std::unique_ptr<TreeNode> const& node )
-{
-    return dynamic_cast< DefaultNodeData const& >( *node->data );
-}
-
-inline DefaultNodeData& default_node_data( TreeNode& node )
-{
-    return dynamic_cast< DefaultNodeData& >( *node.data );
-}
-
-inline DefaultNodeData const& default_node_data( TreeNode const& node )
-{
-    return dynamic_cast< DefaultNodeData const& >( *node.data );
-}
-
-// -----------------------------------------------------
-//     Edge
-// -----------------------------------------------------
-
-inline DefaultEdgeData& default_edge_data( std::unique_ptr<TreeEdge>& edge )
-{
-    return dynamic_cast< DefaultEdgeData& >( *edge->data );
-}
-
-inline DefaultEdgeData const& default_edge_data( std::unique_ptr<TreeEdge> const& edge )
-{
-    return dynamic_cast< DefaultEdgeData const& >( *edge->data );
-}
-
-inline DefaultEdgeData& default_edge_data( TreeEdge& edge )
-{
-    return dynamic_cast< DefaultEdgeData& >( *edge.data );
-}
-
-inline DefaultEdgeData const& default_edge_data( TreeEdge const& edge )
-{
-    return dynamic_cast< DefaultEdgeData const& >( *edge.data );
-}
 
 } // namespace tree
 } // namespace genesis

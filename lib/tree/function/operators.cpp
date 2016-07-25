@@ -59,10 +59,10 @@ Tree convert(
     auto res = source.clone_topology();
 
     for( size_t i = 0; i < res.node_count(); ++i ) {
-        res.node_at(i).data = node_data_converter( *source.node_at(i).data );
+        res.node_at(i).reset_data( node_data_converter( source.node_at(i).data() ));
     }
     for( size_t i = 0; i < res.edge_count(); ++i ) {
-        res.edge_at(i).data = edge_data_converter( *source.edge_at(i).data );
+        res.edge_at(i).reset_data( edge_data_converter( source.edge_at(i).data() ));
     }
 
     return res;

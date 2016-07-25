@@ -85,6 +85,21 @@ TreeLink const& TreeNode::link() const
     return *link_;
 }
 
+bool TreeNode::has_data() const
+{
+    return data_.get() != nullptr;
+}
+
+BaseNodeData& TreeNode::data()
+{
+    return *data_;
+}
+
+BaseNodeData const& TreeNode::data() const
+{
+    return *data_;
+}
+
 // =================================================================================================
 //     Modifiers
 // =================================================================================================
@@ -98,6 +113,12 @@ TreeNode& TreeNode::reset_index( size_t val )
 TreeNode& TreeNode::reset_primary_link( TreeLink* val )
 {
     link_ = val;
+    return *this;
+}
+
+TreeNode& TreeNode::reset_data( std::unique_ptr< BaseNodeData > data )
+{
+    data_ = std::move( data );
     return *this;
 }
 

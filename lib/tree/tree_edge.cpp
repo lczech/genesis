@@ -111,6 +111,21 @@ TreeNode const& TreeEdge::secondary_node() const
     return link_s_->node();
 }
 
+bool TreeEdge::has_data() const
+{
+    return data_.get() != nullptr;
+}
+
+BaseEdgeData& TreeEdge::data()
+{
+    return *data_;
+}
+
+BaseEdgeData const& TreeEdge::data() const
+{
+    return *data_;
+}
+
 // =================================================================================================
 //     Modifiers
 // =================================================================================================
@@ -130,6 +145,12 @@ TreeEdge& TreeEdge::reset_primary_link( TreeLink* val )
 TreeEdge& TreeEdge::reset_secondary_link( TreeLink* val )
 {
     link_s_ = val;
+    return *this;
+}
+
+TreeEdge& TreeEdge::reset_data( std::unique_ptr< BaseEdgeData > data )
+{
+    data_ = std::move( data );
     return *this;
 }
 

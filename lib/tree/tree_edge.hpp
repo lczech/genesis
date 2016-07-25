@@ -133,6 +133,11 @@ public:
     TreeNode      & secondary_node();
     TreeNode const& secondary_node() const;
 
+    bool has_data() const;
+
+    BaseEdgeData&       data();
+    BaseEdgeData const& data() const;
+
     // ---------------------------------------------------------------------
     //     Modifiers
     // ---------------------------------------------------------------------
@@ -141,6 +146,8 @@ public:
 
     TreeEdge& reset_primary_link(   TreeLink* val );
     TreeEdge& reset_secondary_link( TreeLink* val );
+
+    TreeEdge& reset_data( std::unique_ptr< BaseEdgeData > data );
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -152,17 +159,55 @@ public:
     //     Member Variables
     // ---------------------------------------------------------------------
 
-public:
-
-    std::unique_ptr< BaseEdgeData > data;
-
 private:
 
     size_t       index_;
 
     TreeLink*    link_p_;
     TreeLink*    link_s_;
+
+    std::unique_ptr< BaseEdgeData > data_;
 };
+
+// =================================================================================================
+//     Casts
+// =================================================================================================
+
+template< class EdgeDataType >
+EdgeDataType& edge_data_cast( std::unique_ptr< TreeEdge >& edge )
+{
+    return dynamic_cast< EdgeDataType& >( edge->data() );
+}
+
+template< class EdgeDataType >
+EdgeDataType const& edge_data_cast( std::unique_ptr< TreeEdge > const& edge )
+{
+    return dynamic_cast< EdgeDataType const& >( edge->data() );
+}
+
+template< class EdgeDataType >
+EdgeDataType& edge_data_cast( TreeEdge& edge )
+{
+    return dynamic_cast< EdgeDataType& >( edge.data() );
+}
+
+template< class EdgeDataType >
+EdgeDataType const& edge_data_cast( TreeEdge const& edge )
+{
+    return dynamic_cast< EdgeDataType const& >( edge.data() );
+}
+
+template< class EdgeDataType >
+EdgeDataType& edge_data_cast( BaseEdgeData& data )
+{
+    return dynamic_cast< EdgeDataType& >( data );
+}
+
+template< class EdgeDataType >
+EdgeDataType const& edge_data_cast( BaseEdgeData const& data )
+{
+    return dynamic_cast< EdgeDataType const& >( data );
+}
 
 } // namespace tree
 } // namespace genesis

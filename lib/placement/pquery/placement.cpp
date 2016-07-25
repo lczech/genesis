@@ -49,7 +49,7 @@ namespace placement {
  */
 int PqueryPlacement::edge_num() const
 {
-    return placement_edge_data( *edge_ ).edge_num();
+    return tree::edge_data_cast< PlacementEdgeData >( *edge_ ).edge_num();
 }
 
 /**

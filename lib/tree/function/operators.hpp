@@ -67,10 +67,10 @@ bool tree_data_is( Tree const& tree )
 {
     // Check node data types.
     for( auto const& node : tree.nodes() ) {
-        if( ! node->data ) {
+        if( ! node->has_data() ) {
             return false;
         }
-        auto const& ref = *node->data;
+        auto const& ref = node->data();
         if( typeid( ref ) != typeid( NodeDataType )) {
             return false;
         }
@@ -78,10 +78,10 @@ bool tree_data_is( Tree const& tree )
 
     // Check edge data types.
     for( auto const& edge : tree.edges() ) {
-        if( ! edge->data ) {
+        if( ! edge->has_data() ) {
             return false;
         }
-        auto const& ref = *edge->data;
+        auto const& ref = edge->data();
         if( typeid( ref ) != typeid( EdgeDataType )) {
             return false;
         }
@@ -102,14 +102,14 @@ bool tree_data_is_derived_from( Tree const& tree )
 {
     // Check node data types.
     for( auto const& node : tree.nodes() ) {
-        if( dynamic_cast< NodeDataType const* >( node->data.get() ) == nullptr ) {
+        if( dynamic_cast< NodeDataType const* >( node->data() ) == nullptr ) {
             return false;
         }
     }
 
     // Check edge data types.
     for( auto const& edge : tree.edges() ) {
-        if( dynamic_cast< EdgeDataType const* >( edge->data.get() ) == nullptr ) {
+        if( dynamic_cast< EdgeDataType const* >( edge->data() ) == nullptr ) {
             return false;
         }
     }

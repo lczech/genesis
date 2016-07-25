@@ -55,10 +55,10 @@ std::vector<std::string> node_names(
         if( (*it)->is_inner() && leaves_only ) {
             continue;
         }
-        if( default_node_data( *it ).name == "" ) {
+        if( node_data_cast< DefaultNodeData >( *it ).name == "" ) {
             continue;
         }
-        ret.push_back( default_node_data( *it ).name );
+        ret.push_back( node_data_cast< DefaultNodeData >( *it ).name );
     }
     return ret;
 }
@@ -77,7 +77,7 @@ TreeNode const* find_node(
     }
 
     for (auto it = tree.begin_nodes(); it != tree.end_nodes(); ++it) {
-        if( default_node_data( *it ).name == clean_name) {
+        if( node_data_cast< DefaultNodeData >( *it ).name == clean_name) {
             return it->get();
         }
     }
@@ -114,7 +114,7 @@ std::vector<double> branch_lengths(
     std::vector<double> result;
     result.reserve( tree.edge_count() );
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
-        result.push_back( default_edge_data( tree.edge_at(i) ).branch_length );
+        result.push_back( edge_data_cast< DefaultEdgeData >( tree.edge_at(i) ).branch_length );
     }
     return result;
 }
@@ -127,7 +127,7 @@ void set_all_branch_lengths(
     double length
 ) {
     for( auto& edge : tree.edges() ) {
-        default_edge_data( edge ).branch_length = length;
+        edge_data_cast< DefaultEdgeData >( edge ).branch_length = length;
     }
 }
 

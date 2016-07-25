@@ -175,7 +175,7 @@ std::unordered_set<size_t> BipartitionSet::get_subtree_edges (
     ) {
         // TODO not typesafe!
         // if( it.node().is_leaf() ) {
-        //     leaf_names.push_back( default_node_data( it.node() ).name );
+        //     leaf_names.push_back( node_data_cast< DefaultNodeData >( it.node() ).name );
         // }
         if (it.is_first_iteration()) {
             continue;

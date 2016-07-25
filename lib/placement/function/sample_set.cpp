@@ -82,8 +82,8 @@ bool all_identical_trees( SampleSet const& sset )
         PlacementTreeNode const& node_l,
         PlacementTreeNode const& node_r
     ) {
-        auto l_ptr = dynamic_cast< PlacementNodeData* >( node_l.data.get() );
-        auto r_ptr = dynamic_cast< PlacementNodeData* >( node_r.data.get() );
+        auto l_ptr = dynamic_cast< PlacementNodeData const* >( &node_l.data() );
+        auto r_ptr = dynamic_cast< PlacementNodeData const* >( &node_r.data() );
         if( l_ptr == nullptr || r_ptr == nullptr ) {
             return false;
         }
@@ -95,8 +95,8 @@ bool all_identical_trees( SampleSet const& sset )
         PlacementTreeEdge const& edge_l,
         PlacementTreeEdge const& edge_r
     ) {
-        auto l_ptr = dynamic_cast< PlacementEdgeData* >( edge_l.data.get() );
-        auto r_ptr = dynamic_cast< PlacementEdgeData* >( edge_r.data.get() );
+        auto l_ptr = dynamic_cast< PlacementEdgeData const* >( &edge_l.data() );
+        auto r_ptr = dynamic_cast< PlacementEdgeData const* >( &edge_r.data() );
         if( l_ptr == nullptr || r_ptr == nullptr ) {
             return false;
         }
@@ -147,12 +147,12 @@ Sample merge_all( SampleSet const& sset )
     // This is necessary, because the tree copy constructor does not do this for us.
     // TODO fix this!
     for (size_t i = 0; i < res.tree().node_count(); ++i) {
-        placement_node_data( res.tree().node_at(i) ).name
-            = placement_node_data( sset[0].sample.tree().node_at(i) ).name;
+        tree::node_data_cast< PlacementNodeData >( res.tree().node_at(i) ).name
+            = tree::node_data_cast< PlacementNodeData >( sset[0].sample.tree().node_at(i) ).name;
     }
     for (size_t i = 0; i < res.tree().edge_count(); ++i) {
-        placement_edge_data( res.tree().edge_at(i) ).reset_edge_num(
-            placement_edge_data( sset[0].sample.tree().edge_at(i) ).edge_num()
+        tree::edge_data_cast< PlacementEdgeData >( res.tree().edge_at(i) ).reset_edge_num(
+            tree::edge_data_cast< PlacementEdgeData >( sset[0].sample.tree().edge_at(i) ).edge_num()
         );
     }
 

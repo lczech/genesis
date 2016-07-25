@@ -43,7 +43,7 @@ namespace genesis {
 namespace tree {
 
 // =============================================================================
-//     Definitions and Typedefs
+//     Typedefs
 // =============================================================================
 
 /**
@@ -131,58 +131,6 @@ public:
     std::map<double, double> masses;
 
 };
-
-// =================================================================================================
-//     Conversions
-// =================================================================================================
-
-// -----------------------------------------------------
-//     Node
-// -----------------------------------------------------
-
-inline EmdNodeData& emd_node_data( std::unique_ptr<TreeNode>& node )
-{
-    return dynamic_cast< EmdNodeData& >( *node->data );
-}
-
-inline EmdNodeData const& emd_node_data( std::unique_ptr<TreeNode> const& node )
-{
-    return dynamic_cast< EmdNodeData const& >( *node->data );
-}
-
-inline EmdNodeData& emd_node_data( TreeNode& node )
-{
-    return dynamic_cast< EmdNodeData& >( *node.data );
-}
-
-inline EmdNodeData const& emd_node_data( TreeNode const& node )
-{
-    return dynamic_cast< EmdNodeData const& >( *node.data );
-}
-
-// -----------------------------------------------------
-//     Edge
-// -----------------------------------------------------
-
-inline EmdEdgeData& emd_edge_data( std::unique_ptr<TreeEdge>& edge )
-{
-    return dynamic_cast< EmdEdgeData& >( *edge->data );
-}
-
-inline EmdEdgeData const& emd_edge_data( std::unique_ptr<TreeEdge> const& edge )
-{
-    return dynamic_cast< EmdEdgeData const& >( *edge->data );
-}
-
-inline EmdEdgeData& emd_edge_data( TreeEdge& edge )
-{
-    return dynamic_cast< EmdEdgeData& >( *edge.data );
-}
-
-inline EmdEdgeData const& emd_edge_data( TreeEdge const& edge )
-{
-    return dynamic_cast< EmdEdgeData const& >( *edge.data );
-}
 
 } // namespace tree
 } // namespace genesis

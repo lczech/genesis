@@ -57,7 +57,7 @@ std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( PlacementTree 
         ++it
     ) {
         auto const& edge      = *it;
-        auto const& edge_data = placement_edge_data( edge );
+        auto const& edge_data = tree::edge_data_cast< PlacementEdgeData >( edge );
         assert( en_map.count( edge_data.edge_num() ) == 0);
         en_map.emplace( edge_data.edge_num(), edge.get());
     }
@@ -189,7 +189,7 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
             place.primary_node_index   = oplace.edge().primary_node().index();
             place.secondary_node_index = oplace.edge().secondary_node().index();
 
-            place.branch_length        = placement_edge_data( oplace.edge() ).branch_length;
+            place.branch_length        = tree::edge_data_cast< PlacementEdgeData >( oplace.edge() ).branch_length;
             place.pendant_length       = oplace.pendant_length;
             place.proximal_length      = oplace.proximal_length;
             place.like_weight_ratio    = oplace.like_weight_ratio;
@@ -222,7 +222,7 @@ void reset_edge_nums( PlacementTree& tree )
             continue;
         }
 
-        placement_edge_data( it.edge() ).reset_edge_num( current );
+        tree::edge_data_cast< PlacementEdgeData >( it.edge() ).reset_edge_num( current );
         ++current;
     }
 }
@@ -245,7 +245,7 @@ bool has_correct_edge_nums( PlacementTree const& tree )
             continue;
         }
 
-        if( placement_edge_data( it.edge() ).edge_num() != current) {
+        if( tree::edge_data_cast< PlacementEdgeData >( it.edge() ).edge_num() != current) {
             return false;
         }
         ++current;
@@ -282,12 +282,12 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
     ) {
         // make sure every edge num is used once only
         PlacementTreeEdge& edge = *(*it_e).get();
-        if (edge_num_map.count( placement_edge_data( edge ).edge_num()) > 0) {
+        if (edge_num_map.count( tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num()) > 0) {
             LOG_INFO << "More than one edge has edge_num '"
-                     << placement_edge_data( edge ).edge_num() << "'.";
+                     << tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num() << "'.";
             return false;
         }
-        edge_num_map.emplace( placement_edge_data( edge ).edge_num(), (*it_e).get() );
+        edge_num_map.emplace( tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num(), (*it_e).get() );
     }
     if( ! has_correct_edge_nums( smp.tree() )) {
         LOG_INFO << "Tree does not have correct edge nums.";
@@ -322,8 +322,8 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
             // properties.
             if(
                 p.edge().index() >= smp.tree().edge_count()         ||
-                edge_num_map.count( placement_edge_data( p.edge() ).edge_num() ) == 0 ||
-                placement_edge_data( p.edge() ).edge_num() != p.edge_num()
+                edge_num_map.count( tree::edge_data_cast< PlacementEdgeData >( p.edge() ).edge_num() ) == 0 ||
+                tree::edge_data_cast< PlacementEdgeData >( p.edge() ).edge_num() != p.edge_num()
             ) {
                 LOG_INFO << "Invlaid edge pointer or edge num.";
                 return false;
@@ -353,10 +353,10 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
                     return false;
                 }
             }
-            if (p.proximal_length > placement_edge_data( p.edge() ).branch_length) {
+            if (p.proximal_length > tree::edge_data_cast< PlacementEdgeData >( p.edge() ).branch_length) {
                 LOG_INFO << "Invalid placement with proximal_length '" << p.proximal_length
                          << "' > branch_length '"
-                         << placement_edge_data( p.edge() ).branch_length << "' at "
+                         << tree::edge_data_cast< PlacementEdgeData >( p.edge() ).branch_length << "' at "
                          << name << ".";
                 if (break_on_values) {
                     return false;

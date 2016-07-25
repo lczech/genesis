@@ -72,8 +72,8 @@ bool compatible_trees( PlacementTree const& lhs, PlacementTree const& rhs )
         PlacementTreeNode const& node_l,
         PlacementTreeNode const& node_r
     ) {
-        auto l_ptr = dynamic_cast< PlacementNodeData const* >( node_l.data.get() );
-        auto r_ptr = dynamic_cast< PlacementNodeData const* >( node_r.data.get() );
+        auto l_ptr = dynamic_cast< PlacementNodeData const* >( &node_l.data() );
+        auto r_ptr = dynamic_cast< PlacementNodeData const* >( &node_r.data() );
         if( l_ptr == nullptr || r_ptr == nullptr ) {
             return false;
         }
@@ -85,8 +85,8 @@ bool compatible_trees( PlacementTree const& lhs, PlacementTree const& rhs )
         PlacementTreeEdge const& edge_l,
         PlacementTreeEdge const& edge_r
     ) {
-        auto l_ptr = dynamic_cast< PlacementEdgeData const* >( edge_l.data.get() );
-        auto r_ptr = dynamic_cast< PlacementEdgeData const* >( edge_r.data.get() );
+        auto l_ptr = dynamic_cast< PlacementEdgeData const* >( &edge_l.data() );
+        auto r_ptr = dynamic_cast< PlacementEdgeData const* >( &edge_r.data() );
         if( l_ptr == nullptr || r_ptr == nullptr ) {
             return false;
         }
@@ -205,8 +205,10 @@ std::string print_tree( Sample const& smp )
 
     auto print_line = [ &place_map ]( PlacementTreeNode const& node, PlacementTreeEdge const& edge )
     {
-        return placement_node_data( node ).name
-            + " [" + std::to_string( placement_edge_data( edge ).edge_num() ) + "]" ": "
+        return tree::node_data_cast< PlacementNodeData >( node ).name
+            + " [" + std::to_string(
+                tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num()
+            ) + "]" ": "
             + std::to_string( place_map[ edge.index() ].size() ) + " placements";
     };
     return tree::PrinterCompact().print( smp.tree(), print_line );
