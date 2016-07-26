@@ -95,7 +95,7 @@ namespace utils {
 #ifdef PTHREADS
 
 /**
- * @brief Read bytes from an @link InputSourceInterface InputSource@endlink into a `char buffer`.
+ * @brief Read bytes from an @link BaseInputSource InputSource@endlink into a `char buffer`.
  *
  * The reading is done asynchronously, that is, a second thread is started. This is usually faster
  * than synchronous reading (see SynchronousReader), particularly for large data blocks.
@@ -187,7 +187,7 @@ public:
     //     Init and General Members
     // -------------------------------------------------------------
 
-    void init( std::unique_ptr< InputSourceInterface > input_source )
+    void init( std::unique_ptr< BaseInputSource > input_source )
     {
         // Get a lock.
         std::unique_lock< std::mutex > guard( lock_ );
@@ -244,7 +244,7 @@ public:
         return input_source_ != nullptr;
     }
 
-    InputSourceInterface const* input_source() const
+    BaseInputSource const* input_source() const
     {
         return input_source_.get();
     }
@@ -293,7 +293,7 @@ public:
 
 private:
 
-    std::unique_ptr<InputSourceInterface> input_source_;
+    std::unique_ptr<BaseInputSource> input_source_;
 
     char* target_buffer_;
     int   target_size_;
@@ -315,7 +315,7 @@ private:
 // =================================================================================================
 
 /**
- * @brief Read bytes from an @link InputSourceInterface InputSource@endlink into a `char buffer`.
+ * @brief Read bytes from an @link BaseInputSource InputSource@endlink into a `char buffer`.
  *
  * The reading is done synchronously, that is, reading occurs on request. This is usually slower
  * than asynchronous reading (see AsynchronousReader).
@@ -348,7 +348,7 @@ public:
     //     Init and General Members
     // -------------------------------------------------------------
 
-    void init( std::unique_ptr<InputSourceInterface> input_source )
+    void init( std::unique_ptr<BaseInputSource> input_source )
     {
         input_source_ = std::move( input_source );
     }
@@ -358,7 +358,7 @@ public:
         return input_source_ != nullptr;
     }
 
-    InputSourceInterface const* input_source() const
+    BaseInputSource const* input_source() const
     {
         return input_source_.get();
     }
@@ -389,7 +389,7 @@ public:
 
 private:
 
-    std::unique_ptr<InputSourceInterface> input_source_;
+    std::unique_ptr<BaseInputSource> input_source_;
 
     char* target_buffer_;
     int   target_size_;

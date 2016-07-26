@@ -43,7 +43,7 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Input Source Interface
+//     Base Input Source
 // =================================================================================================
 
 /**
@@ -51,7 +51,7 @@ namespace utils {
  *
  * It offers to read() a certain amount of bytes into a char buffer.
  */
-class InputSourceInterface
+class BaseInputSource
 {
 public:
 
@@ -59,15 +59,15 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    InputSourceInterface() = default;
+    BaseInputSource() = default;
 
-    InputSourceInterface( InputSourceInterface const& ) = default;
-    InputSourceInterface( InputSourceInterface&& )      = default;
+    BaseInputSource( BaseInputSource const& ) = default;
+    BaseInputSource( BaseInputSource&& )      = default;
 
-    InputSourceInterface& operator= ( InputSourceInterface const& ) = default;
-    InputSourceInterface& operator= ( InputSourceInterface&& )      = default;
+    BaseInputSource& operator= ( BaseInputSource const& ) = default;
+    BaseInputSource& operator= ( BaseInputSource&& )      = default;
 
-    virtual ~InputSourceInterface()
+    virtual ~BaseInputSource()
     {}
 
     // -------------------------------------------------------------
@@ -118,7 +118,7 @@ private:
  * That implies that the string shall not be modified while this input source is used, thus,
  * only const-members of the string can be called.
  */
-class StringInputSource : public InputSourceInterface
+class StringInputSource : public BaseInputSource
 {
 public:
 
@@ -198,7 +198,7 @@ private:
  * the owner must keep it alive as long as reading from it is required, and is responsbile for
  * destroying it. This class merely keeps a reference to it.
  */
-class StreamInputSource : public InputSourceInterface
+class StreamInputSource : public BaseInputSource
 {
 public:
 
@@ -260,7 +260,7 @@ private:
  * It is also possible to provide a `FILE` pointer directly. In this case, the ownership of the file
  * pointer is taken by this class. Thus, closing the file is done when destructing this class.
  */
-class FileInputSource : public InputSourceInterface
+class FileInputSource : public BaseInputSource
 {
 public:
 
