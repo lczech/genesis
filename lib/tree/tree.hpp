@@ -214,9 +214,12 @@ public:
 
 private:
 
+    size_t root_link_index_ = 0;
+
     std::vector<std::unique_ptr<TreeLink>> links_;
     std::vector<std::unique_ptr<TreeNode>> nodes_;
     std::vector<std::unique_ptr<TreeEdge>> edges_;
+
 };
 
 } // namespace tree

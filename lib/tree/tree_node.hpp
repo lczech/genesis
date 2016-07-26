@@ -147,12 +147,7 @@ public:
     size_t rank() const;
     bool   is_leaf() const;
     bool   is_inner() const;
-
-    //~ /** True if the node is the root, false otherwise. */
-    //~ bool IsRoot();
-
-    //~ /** Depth of the node in the tree, i.e. its distance from root. */
-    //~ int Depth();
+    bool   is_root() const;
 
     std::string dump() const;
 

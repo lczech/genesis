@@ -63,7 +63,7 @@ namespace tree {
  */
 Tree::Tree( const Tree& other )
 {
-    // Get a copy of the topology.
+    // Get a copy of the topology. (Copy swap idiom.)
     auto res = other.clone_topology();
 
     // Instead of using non-covariant clone functions for the data, this might be an option:
@@ -142,6 +142,7 @@ Tree Tree::clone_topology() const
     res.links_.resize( link_count() );
     res.nodes_.resize( node_count() );
     res.edges_.resize( edge_count() );
+    res.root_link_index_ = root_link_index_;
 
     // Create all objects. We need two loops per array, because the pointers have to exist
     // in order to be linked to each other.
@@ -191,6 +192,9 @@ Tree Tree::clone_topology() const
 void Tree::swap( Tree& other )
 {
     using std::swap;
+
+    swap( root_link_index_, other.root_link_index_ );
+
     swap( links_, other.links_ );
     swap( nodes_, other.nodes_ );
     swap( edges_, other.edges_ );
@@ -246,10 +250,7 @@ void Tree::import_content (
  */
 void Tree::clear()
 {
-    // std::vector<std::unique_ptr<LinkType>>().swap(links_);
-    // std::vector<std::unique_ptr<NodeType>>().swap(nodes_);
-    // std::vector<std::unique_ptr<EdgeType>>().swap(edges_);
-
+    root_link_index_ = 0;
     links_.clear();
     nodes_.clear();
     edges_.clear();
@@ -277,7 +278,7 @@ TreeLink& Tree::root_link()
     if( links_.empty() ) {
         throw std::out_of_range( "Cannot return root link. Tree is empty." );
     }
-    return *links_.front().get();
+    return *links_.at( root_link_index_ ).get();
 }
 
 /**
@@ -290,7 +291,7 @@ TreeLink const& Tree::root_link() const
     if( links_.empty() ) {
         throw std::out_of_range( "Cannot return root link. Tree is empty." );
     }
-    return *links_.front().get();
+    return *links_.at( root_link_index_ ).get();
 }
 
 /**
@@ -303,7 +304,7 @@ TreeNode& Tree::root_node()
     if( links_.empty() ) {
         throw std::out_of_range( "Cannot return root node. Tree is empty." );
     }
-    return links_.front()->node();
+    return links_.at( root_link_index_ )->node();
 }
 
 /**
@@ -316,7 +317,7 @@ TreeNode const& Tree::root_node() const
     if( links_.empty() ) {
         throw std::out_of_range( "Cannot return root node. Tree is empty." );
     }
-    return links_.front()->node();
+    return links_.at( root_link_index_ )->node();
 }
 
 /**

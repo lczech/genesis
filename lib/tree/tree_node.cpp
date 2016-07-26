@@ -30,6 +30,7 @@
 
 #include "tree/tree_node.hpp"
 
+#include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 
 namespace genesis {
@@ -157,6 +158,14 @@ bool TreeNode::is_leaf() const
 bool TreeNode::is_inner() const
 {
     return link_->is_inner();
+}
+
+/**
+ * @brief True iff the node is the root of its Tree.
+ */
+bool TreeNode::is_root() const
+{
+    return &primary_link().edge().primary_link() == &primary_link();
 }
 
 /**

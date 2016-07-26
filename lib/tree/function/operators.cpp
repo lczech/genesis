@@ -209,28 +209,24 @@ std::ostream& operator << ( std::ostream& out, Tree const& tree )
  */
 bool validate( Tree const& tree )
 {
+    // -----------------------------------------------------
+    //     Empty Tree
+    // -----------------------------------------------------
+
     // check that the member arrays are valid: if at least one of them is empty, the tree is not
     // fully initialized, so either it is a new tree without any data (all arrays empty, valid),
     // or some are empty, but others not (not valid).
     if (tree.links_.empty() || tree.nodes_.empty() || tree.edges_.empty()) {
-        bool emp = tree.links_.empty() && tree.nodes_.empty() && tree.edges_.empty();
-        if (emp) {
-            LOG_INFO << "Tree is empty.";
-        } else {
+        bool empty = tree.links_.empty() && tree.nodes_.empty() && tree.edges_.empty();
+        if( !empty ) {
             LOG_INFO << "Tree is not empty, but one of its data members is.";
         }
-        return emp;
+        return empty;
     }
 
-    if( &tree.links_.front()->node() != tree.nodes_.front().get() ) {
-        LOG_INFO << "The first link does not correspond to the first node.";
-        return false;
-    }
-
-    if (tree.links_.front()->index() != 0 || tree.links_.front()->node().index() != 0) {
-        LOG_INFO << "Root does not have index 0.";
-        return false;
-    }
+    // -----------------------------------------------------
+    //     Links
+    // -----------------------------------------------------
 
     // Check Links.
     std::vector<size_t> links_to_edges(tree.edges_.size(), 0);
@@ -292,6 +288,10 @@ bool validate( Tree const& tree )
         }
     }
 
+    // -----------------------------------------------------
+    //     Nodes
+    // -----------------------------------------------------
+
     // Check Nodes.
     for (size_t i = 0; i < tree.nodes_.size(); ++i) {
         // Check indices.
@@ -306,7 +306,33 @@ bool validate( Tree const& tree )
             LOG_INFO << "Node at index " << i << " has wrong link.";
             return false;
         }
+
+        // If a node claims to be the root, it better be the root.
+        if( tree.node_at(i).is_root() && i != tree.root_node().index() ) {
+            LOG_INFO << "Node at index " << i << " has is_root(), but it is not tree.root_node().";
+            return false;
+        }
+
+        // Except for the root, all nodes must have a primary link that is the secondary link
+        // of its edge.
+        if( ! tree.node_at(i).is_root() &&
+            &tree.node_at(i).primary_link() != &tree.node_at(i).primary_link().edge().secondary_link()
+        ) {
+            LOG_INFO << "Node at " << i << " (not the root node) has a primary link which is not "
+                     << "the secondary link of its edge.";
+            return false;
+        }
     }
+
+    // Further check the root.
+    if( ! tree.root_node().is_root() ) {
+        LOG_INFO << "Root node does not have is_root().";
+        return false;
+    }
+
+    // -----------------------------------------------------
+    //     Edges
+    // -----------------------------------------------------
 
     // Check Edges.
     for (size_t i = 0; i < tree.edges_.size(); ++i) {
@@ -326,7 +352,27 @@ bool validate( Tree const& tree )
             LOG_INFO << "Edge at index " << i << " has wrong secondary link.";
             return false;
         }
+
+        // Check primary node, except for root.
+        if( ! tree.edge_at(i).primary_node().is_root() &&
+            &tree.edge_at(i).primary_node().primary_link() == &tree.edge_at(i).primary_link()
+        ) {
+            LOG_INFO << "Edge at " << i << " has a primary node that does not "
+                     << "point towards the root.";
+            return false;
+        }
+
+        // Check secondary node.
+        if( &tree.edge_at(i).secondary_node().primary_link() != &tree.edge_at(i).secondary_link() ) {
+            LOG_INFO << "Edge at " << i << " has a secondary node that does not "
+                     << "point towards the root.";
+            return false;
+        }
     }
+
+    // -----------------------------------------------------
+    //     Eulertour
+    // -----------------------------------------------------
 
     // If we are here, all three arrays (links, nodes, edges) contain data, so we can start a full
     // traversal along all links.
@@ -344,6 +390,12 @@ bool validate( Tree const& tree )
         ++it_edges[ link->edge().index() ];
         ++it_nodes[ link->node().index() ];
         link = &link->next().outer();
+
+        // Check if we have a loop. Baaad.
+        if( it_links[ link->index() ] > 1 ) {
+            LOG_INFO << "Loop or other kind of wrong link chain in Tree.";
+            return false;
+        }
     } while (link != tree.links_.front().get());
 
     // Check if all links have been hit once.
