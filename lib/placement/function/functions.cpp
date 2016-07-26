@@ -163,6 +163,42 @@ void normalize_weight_ratios( Sample& smp )
     }
 }
 
+// void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
+// void sort_placements_by_proximal_length( Sample& smp );
+
+/**
+ * @brief Sort the PqueryPlacement%s of a Pquery by their `like_weight_ratio`, in descending order
+ * (most likely first).
+ */
+void sort_placements_by_weight( Pquery& pquery )
+{
+    std::sort(
+        pquery.begin_placements(),
+        pquery.end_placements(),
+        [] (
+            PqueryPlacement const& lhs,
+            PqueryPlacement const& rhs
+        ) {
+            return lhs.like_weight_ratio > rhs.like_weight_ratio;
+        }
+    );
+}
+
+/**
+ * @brief Sort the PqueryPlacement%s of all @link Pquery Pqueries @endlink by their
+ * `like_weight_ratio`, in descending order (most likely first).
+ */
+void sort_placements_by_weight( Sample& smp )
+{
+    for( auto pqry_it = smp.begin(); pqry_it != smp.end(); ++pqry_it ) {
+        sort_placements_by_weight( *pqry_it );
+    }
+}
+
+// =================================================================================================
+//     Filtering
+// =================================================================================================
+
 /**
  * @brief Remove the PqueryPlacement%s with the lowest `like_weight_ratio`, while keeping the
  * accumulated weight (sum of all remaining `like_weight_ratio`s) above a given threshold.
@@ -337,38 +373,6 @@ void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string
         } else {
             ++i;
         }
-    }
-}
-
-// void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
-// void sort_placements_by_proximal_length( Sample& smp );
-
-/**
- * @brief Sort the PqueryPlacement%s of a Pquery by their `like_weight_ratio`, in descending order
- * (most likely first).
- */
-void sort_placements_by_weight( Pquery& pquery )
-{
-    std::sort(
-        pquery.begin_placements(),
-        pquery.end_placements(),
-        [] (
-            PqueryPlacement const& lhs,
-            PqueryPlacement const& rhs
-        ) {
-            return lhs.like_weight_ratio > rhs.like_weight_ratio;
-        }
-    );
-}
-
-/**
- * @brief Sort the PqueryPlacement%s of all @link Pquery Pqueries @endlink by their
- * `like_weight_ratio`, in descending order (most likely first).
- */
-void sort_placements_by_weight( Sample& smp )
-{
-    for( auto pqry_it = smp.begin(); pqry_it != smp.end(); ++pqry_it ) {
-        sort_placements_by_weight( *pqry_it );
     }
 }
 

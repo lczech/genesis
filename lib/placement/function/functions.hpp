@@ -61,6 +61,16 @@ std::unordered_set<std::string> all_pquery_names( Sample const& sample );
 void normalize_weight_ratios( Pquery& pquery );
 void normalize_weight_ratios( Sample& smp );
 
+// void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
+// void sort_placements_by_proximal_length( Sample& smp );
+
+void sort_placements_by_weight( Pquery& pquery );
+void sort_placements_by_weight( Sample& smp );
+
+// =================================================================================================
+//     Filtering
+// =================================================================================================
+
 void filter_min_accumulated_weight( Pquery& pquery, double threshold = 0.99 );
 void filter_min_accumulated_weight( Sample& smp,    double threshold = 0.99 );
 
@@ -72,12 +82,6 @@ void filter_min_weight_threshold( Sample& smp,    double threshold = 0.01 );
 
 void filter_pqueries_keeping_names(  Sample& smp, std::unordered_set<std::string> keep_list );
 void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string> remove_list );
-
-// void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
-// void sort_placements_by_proximal_length( Sample& smp );
-
-void sort_placements_by_weight( Pquery& pquery );
-void sort_placements_by_weight( Sample& smp );
 
 // =================================================================================================
 //     Joining and Merging
