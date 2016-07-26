@@ -41,7 +41,9 @@ namespace tree {
 //     Forward declarations
 // =================================================================================================
 
-template <class TreeType>
+class  Tree;
+class  TreeNode;
+class  TreeEdge;
 class  TreeSet;
 
 class  NewickBroker;
@@ -51,20 +53,9 @@ struct NewickBrokerElement;
 //     Newick Reader
 // =================================================================================================
 
-template <typename TreeType_>
 class NewickReader
 {
-
-    // -------------------------------------------------------------------------
-    //     Member Types
-    // -------------------------------------------------------------------------
-
 public:
-
-    typedef TreeType_ TreeType;
-    typedef typename TreeType::NodeType NodeType;
-    typedef typename TreeType::EdgeType EdgeType;
-    typedef typename TreeType::LinkType LinkType;
 
     // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -87,27 +78,27 @@ public:
 
 public:
 
-    bool from_file    (const std::string& filename,    TreeType& tree);
-    bool from_string  (const std::string& tree_string, TreeType& tree);
+    bool from_file    (const std::string& filename,    Tree& tree);
+    bool from_string  (const std::string& tree_string, Tree& tree);
 
     bool from_file    (
         const std::string& filename,
-        TreeSet<TreeType>& tree_set
+        TreeSet& tree_set
     );
     bool from_string  (
         const std::string& tree_string,
-        TreeSet<TreeType>& tree_set,
+        TreeSet& tree_set,
         const std::string& default_name = ""
     );
 
     bool from_files   (
         const std::vector<std::string>& filenames,
-        TreeSet<TreeType>& tree_set
+        TreeSet& tree_set
     );
 
     bool from_strings (
         const std::vector<std::string>& tree_strings,
-        TreeSet<TreeType>& tree_set,
+        TreeSet& tree_set,
         const std::string& default_name = ""
     );
 
@@ -117,10 +108,10 @@ public:
 
 protected:
 
-    virtual void prepare_reading( NewickBroker const& broker, TreeType& tree );
-    virtual void element_to_node( NewickBrokerElement const& element, NodeType& node );
-    virtual void element_to_edge( NewickBrokerElement const& element, EdgeType& edge );
-    virtual void finish_reading( NewickBroker const& broker, TreeType& tree );
+    virtual void prepare_reading( NewickBroker const& broker, Tree& tree );
+    virtual void element_to_node( NewickBrokerElement const& element, TreeNode& node );
+    virtual void element_to_edge( NewickBrokerElement const& element, TreeEdge& edge );
+    virtual void finish_reading( NewickBroker const& broker, Tree& tree );
 
     // -------------------------------------------------------------------------
     //     Internal Member Functions
@@ -128,18 +119,11 @@ protected:
 
 private:
 
-    void broker_to_tree (NewickBroker const& broker, TreeType& tree);
+    void broker_to_tree (NewickBroker const& broker, Tree& tree);
 
 };
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-// This is a class template, so do the inclusion here.
-#include "tree/formats/newick/reader.tpp"
 
 #endif // include guard

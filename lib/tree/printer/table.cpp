@@ -28,6 +28,12 @@
  * @ingroup tree
  */
 
+#include "tree/printer/table.hpp"
+
+#include "tree/tree.hpp"
+#include "tree/tree_node.hpp"
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
 // #include "lib/utils/text/table.hpp"
 
 #include <assert.h>
@@ -41,11 +47,8 @@ namespace tree {
 //     Print Table
 // =================================================================================================
 
-template <typename TreeType>
-void PrinterTable::print (
-    std::ostream&   out,
-    TreeType const& tree
-) {
+void PrinterTable::print( std::ostream& out, Tree const& tree )
+{
     /*
     // nodes
     auto node_table = utils::Table();
@@ -90,8 +93,7 @@ void PrinterTable::print (
     }
 }
 
-template <typename TreeType>
-std::string PrinterTable::print ( TreeType const& tree )
+std::string PrinterTable::print( Tree const& tree )
 {
     std::ostringstream res;
     print( res, tree );

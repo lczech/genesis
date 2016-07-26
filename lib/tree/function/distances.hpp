@@ -33,55 +33,47 @@
 
 #include <vector>
 
-#include "tree/tree.hpp"
-#include "tree/tree_edge.hpp"
 #include "utils/math/matrix.hpp"
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
+//     Foward Declarations
+// =================================================================================================
+
+class Tree;
+class TreeNode;
+class TreeEdge;
+class TreeLink;
+
+// =================================================================================================
 //     Distance Measures
 // =================================================================================================
 
-template <class Tree>
-utils::Matrix<int> node_path_length_matrix(
-    const Tree& tree
-);
+utils::Matrix<int> node_path_length_matrix( Tree const& tree );
 
-template <class Tree>
 std::vector<int> node_path_length_vector(
-    const Tree& tree,
-    const typename Tree::NodeType* node = nullptr
+    Tree const& tree,
+    TreeNode const* node = nullptr
 );
 
-template <class Tree>
-utils::Matrix<int> edge_path_length_matrix(
-    const Tree& tree
-);
+utils::Matrix<int> edge_path_length_matrix( Tree const& tree );
 
-template <class Tree>
 std::vector<int> edge_path_length_vector(
-    const Tree& tree,
-    const typename Tree::EdgeType* edge = nullptr
+    Tree const& tree,
+    TreeEdge const* edge = nullptr
 );
 
 // =================================================================================================
 //     Complex Distance Methods
 // =================================================================================================
 
-template <class Tree>
-std::vector< std::pair<const typename Tree::NodeType*, int> >  closest_leaf_depth_vector(
-    const Tree& tree
+std::vector< std::pair< TreeNode const*, int >>  closest_leaf_depth_vector(
+    Tree const& tree
 );
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-#include "tree/function/distances.tpp"
 
 #endif // include guard

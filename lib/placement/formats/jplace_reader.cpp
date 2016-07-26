@@ -514,20 +514,21 @@ void JplaceReader::process_json_placements(
     // create a map from edge nums to the actual edge pointers, for later use when processing
     // the pqueries. we do not use Sample::EdgeNumMap() here, because we need to do extra
     // checking for validity first!
-    std::unordered_map<int, PlacementTree::EdgeType*> edge_num_map;
+    std::unordered_map<int, PlacementTreeEdge*> edge_num_map;
     for (
         PlacementTree::ConstIteratorEdges it = smp.tree().begin_edges();
         it != smp.tree().end_edges();
         ++it
     ) {
-        PlacementTree::EdgeType* edge = it->get();
-        if (edge_num_map.count(edge->data.edge_num()) > 0) {
+        auto& edge = *it;
+        auto& edge_data = tree::edge_data_cast< PlacementEdgeData >( edge );
+        if (edge_num_map.count( edge_data.edge_num()) > 0) {
             throw std::runtime_error(
                 "Jplace document contains a tree where the edge_num tag '"
-                + std::to_string( edge->data.edge_num() ) + "' is used more than once."
+                + std::to_string( edge_data.edge_num() ) + "' is used more than once."
             );
         }
-        edge_num_map.emplace(edge->data.edge_num(), edge);
+        edge_num_map.emplace( edge_data.edge_num(), edge.get() );
     }
 
     // Find and process the pqueries.
@@ -628,7 +629,9 @@ void JplaceReader::process_json_placements(
             // processing. Also, we only set it if it was actually available in the fields and not
             // overwritten by the (more appropriate) field for the proximal length.
             if (distal_length >= 0.0 && pqry_place.proximal_length == 0.0) {
-                pqry_place.proximal_length = pqry_place.edge().data.branch_length - distal_length;
+                pqry_place.proximal_length = tree::edge_data_cast< PlacementEdgeData >(
+                    pqry_place.edge()
+                ).branch_length - distal_length;
             }
 
             auto invalid_number_checker = [this] (
@@ -689,7 +692,7 @@ void JplaceReader::process_json_placements(
             invalid_number_checker(
                 pqry_place.proximal_length,
                 std::greater<double>(),
-                pqry_place.edge().data.branch_length,
+                tree::edge_data_cast< PlacementEdgeData >( pqry_place.edge() ).branch_length,
                 "Invalid placement with proximal_length > branch_length."
             );
 

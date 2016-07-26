@@ -38,25 +38,29 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Tree;
+class TreeNode;
+
+// =================================================================================================
 //     Node Names
 // =================================================================================================
 
-template <class TreeType>
 std::vector<std::string> node_names(
-    TreeType const& tree,
+    Tree const& tree,
     bool leaves_only = false
 );
 
-template <class TreeType>
-typename TreeType::NodeType const* find_node(
-    TreeType const& tree,
+TreeNode const* find_node(
+    Tree const& tree,
     std::string const& name,
     bool replace_underscores = false
 );
 
-template <class TreeType>
-typename TreeType::NodeType* find_node(
-    TreeType& tree,
+TreeNode* find_node(
+    Tree& tree,
     std::string const& name,
     bool replace_underscores = false
 );
@@ -65,25 +69,16 @@ typename TreeType::NodeType* find_node(
 //     Branch Length
 // =================================================================================================
 
-template <class TreeType>
 std::vector<double> branch_lengths(
-    TreeType const& tree
+    Tree const& tree
 );
 
-template <class TreeType>
 void set_all_branch_lengths(
-    TreeType& tree,
+    Tree& tree,
     double length = 1.0
 );
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-// This is a class template, so do the inclusion here.
-#include "tree/default/functions.tpp"
 
 #endif // include guard

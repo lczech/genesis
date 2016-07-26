@@ -49,7 +49,7 @@ TEST(Newick, FromAndToString)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    DefaultTree tree;
+    Tree tree;
     EXPECT_TRUE(DefaultTreeNewickReader().from_string(input, tree));
     std::string output = DefaultTreeNewickWriter().to_string(tree);
 
@@ -58,7 +58,7 @@ TEST(Newick, FromAndToString)
 
 TEST(Newick, NewickVariants)
 {
-    DefaultTree tree;
+    Tree tree;
 
     // No nodes are named.
     EXPECT_TRUE( DefaultTreeNewickReader().from_string(
@@ -128,8 +128,8 @@ TEST(Newick, ColorMixin)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    DefaultTree tree;
-    typedef DefaultTreeNewickWriterMixin<NewickColorWriterMixin<NewickWriter<DefaultTree>>> ColorTreeNewickWriter;
+    Tree tree;
+    typedef DefaultTreeNewickWriterMixin<NewickColorWriterMixin<NewickWriter>> ColorTreeNewickWriter;
 
     // Make sure that the mixin does not interfere with other Newick functionality. If it does, the
     // following line would hopefully crash.

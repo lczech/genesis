@@ -28,22 +28,29 @@
  * @ingroup tree
  */
 
+#include "tree/formats/newick/writer.hpp"
+
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
+#include "tree/tree_node.hpp"
+#include "tree/tree_set.hpp"
+#include "tree/tree.hpp"
+
+#include "tree/formats/newick/broker.hpp"
+#include "tree/formats/newick/parser.hpp"
+#include "tree/function/distances.hpp"
+#include "tree/iterator/postorder.hpp"
+
+#include "utils/core/fs.hpp"
+#include "utils/core/logging.hpp"
+#include "utils/core/std.hpp"
+
 #include <assert.h>
 #include <deque>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
 #include <vector>
-
-#include "tree/function/distances.hpp"
-#include "tree/formats/newick/broker.hpp"
-#include "tree/formats/newick/parser.hpp"
-#include "tree/iterator/postorder.hpp"
-#include "tree/tree_set.hpp"
-#include "tree/tree.hpp"
-#include "utils/core/fs.hpp"
-#include "utils/core/logging.hpp"
-#include "utils/core/std.hpp"
 
 namespace genesis {
 namespace tree {
@@ -58,9 +65,8 @@ namespace tree {
  * If the file already exists, the function throws `std::runtime_error`.
  * The function uses utils::file_write. See there for other exceptions that can be thrown.
  */
-template <typename TreeType>
-void NewickWriter<TreeType>::to_file (
-    const TreeType& tree, const std::string filename
+void NewickWriter::to_file (
+    Tree const& tree, const std::string filename
 ) {
     if( utils::file_exists(filename) ) {
         throw std::runtime_error( "Newick file '" + filename + "' already exist." );
@@ -76,9 +82,8 @@ void NewickWriter<TreeType>::to_file (
  * In case the tree was read from a Newick file, this function should produce the same
  * representation.
  */
-template <typename TreeType>
-void NewickWriter<TreeType>::to_string (
-    const TreeType& tree, std::string& ts
+void NewickWriter::to_string (
+    Tree const& tree, std::string& ts
 ) {
     ts = to_string(tree);
 }
@@ -89,8 +94,7 @@ void NewickWriter<TreeType>::to_string (
  * In case the tree was read from a Newick file, this function should produce the same
  * representation.
  */
-template <typename TreeType>
-std::string NewickWriter<TreeType>::to_string (const TreeType& tree)
+std::string NewickWriter::to_string (Tree const& tree)
 {
     NewickBroker broker;
     tree_to_broker(tree, broker);
@@ -101,9 +105,8 @@ std::string NewickWriter<TreeType>::to_string (const TreeType& tree)
 /**
  * @brief Stores the information of the tree into a NewickBroker object.
  */
-template <typename TreeType>
-void NewickWriter<TreeType>::tree_to_broker (
-    const TreeType& tree, NewickBroker& broker
+void NewickWriter::tree_to_broker (
+    Tree const& tree, NewickBroker& broker
 ) {
     prepare_writing(tree, broker);
 
@@ -135,32 +138,28 @@ void NewickWriter<TreeType>::tree_to_broker (
 //     Virtual Methods
 // -------------------------------------------------------------------------
 
-template <typename TreeType>
-void NewickWriter<TreeType>::prepare_writing( TreeType const& tree, NewickBroker& broker )
+void NewickWriter::prepare_writing( Tree const& tree, NewickBroker& broker )
 {
     // Silence unused parameter warnings.
     (void) tree;
     (void) broker;
 }
 
-template <typename TreeType>
-void NewickWriter<TreeType>::node_to_element( NodeType const& node, NewickBrokerElement& element )
+void NewickWriter::node_to_element( TreeNode const& node, NewickBrokerElement& element )
 {
     // Silence unused parameter warnings.
     (void) node;
     (void) element;
 }
 
-template <typename TreeType>
-void NewickWriter<TreeType>::edge_to_element( EdgeType const& edge, NewickBrokerElement& element )
+void NewickWriter::edge_to_element( TreeEdge const& edge, NewickBrokerElement& element )
 {
     // Silence unused parameter warnings.
     (void) edge;
     (void) element;
 }
 
-template <typename TreeType>
-void NewickWriter<TreeType>::finish_writing( TreeType const& tree, NewickBroker& broker )
+void NewickWriter::finish_writing( Tree const& tree, NewickBroker& broker )
 {
     // Silence unused parameter warnings.
     (void) tree;

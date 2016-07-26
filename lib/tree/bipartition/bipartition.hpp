@@ -43,14 +43,12 @@ namespace tree {
 //     Forward Declarations
 // =============================================================================
 
-template <typename Tree>
 class BipartitionSet;
 
 // =============================================================================
 //     Bipartition
 // =============================================================================
 
-template <typename Tree>
 class Bipartition
 {
 public:
@@ -59,13 +57,7 @@ public:
     //     Declarations and Constructor
     // -------------------------------------------------------------
 
-    typedef BipartitionSet<Tree> BipartitionSetType;
-    friend  BipartitionSetType;
-
-    typedef Tree                    TreeType;
-    typedef typename Tree::NodeType NodeType;
-    typedef typename Tree::LinkType LinkType;
-    typedef typename Tree::EdgeType EdgeType;
+    friend  BipartitionSet;
 
     Bipartition (size_t num_leaves)
         : leaf_nodes_( utils::Bitvector(num_leaves) )
@@ -76,7 +68,7 @@ public:
     //     Member Functions
     // -------------------------------------------------------------
 
-    LinkType* link()
+    TreeLink* link()
     {
         return link_;
     }
@@ -94,7 +86,7 @@ public:
 protected:
 
     utils::Bitvector leaf_nodes_;
-    LinkType*        link_;
+    TreeLink*        link_;
 
 };
 

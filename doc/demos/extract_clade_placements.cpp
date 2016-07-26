@@ -139,9 +139,9 @@ CladeEdgeList get_clade_edges( CladeTaxaList const& clades, TreeType& tree )
     for( auto const& clade : clades ) {
 
         // Find the nodes that belong to the taxa of this clade.
-        std::vector< TreeType::NodeType* > node_list;
+        std::vector< tree::TreeNode* > node_list;
         for( auto const& taxon : clade.second ) {
-            TreeType::NodeType* node = find_node( tree, taxon );
+            tree::TreeNode* node = find_node( tree, taxon );
             if( node == nullptr ) {
                 LOG_WARN << "Cannot find taxon " << taxon;
                 continue;
@@ -151,7 +151,7 @@ CladeEdgeList get_clade_edges( CladeTaxaList const& clades, TreeType& tree )
 
         // Find the edges that are part of the subtree of this clade.
         // This part is a bit messy and might be cleaned up in the future.
-        auto bipartitions = tree::BipartitionSet<TreeType>( tree );
+        auto bipartitions = tree::BipartitionSet( tree );
         auto smallest     = bipartitions.find_smallest_subtree( node_list );
         auto subedges     = bipartitions.get_subtree_edges( smallest->link() );
 

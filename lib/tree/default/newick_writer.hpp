@@ -56,11 +56,6 @@ class DefaultTreeNewickWriterMixin : public Base
 
 public:
 
-    typedef typename Base::TreeType TreeType;
-    typedef typename Base::NodeType NodeType;
-    typedef typename Base::EdgeType EdgeType;
-    typedef typename Base::LinkType LinkType;
-
     // -------------------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------------------
@@ -93,12 +88,12 @@ public:
 
 protected:
 
-    virtual void node_to_element( NodeType const& node, NewickBrokerElement& element ) override
+    virtual void node_to_element( TreeNode const& node, NewickBrokerElement& element ) override
     {
         Base::node_to_element(node, element);
 
         if (enable_names_) {
-            std::string name = node.data.name;
+            std::string name = node_data_cast< DefaultNodeData >( node ).name;
 
             // Handle spaces/underscores.
             if (replace_name_underscores) {
@@ -122,12 +117,13 @@ protected:
         }
     }
 
-    virtual void edge_to_element( EdgeType const& edge, NewickBrokerElement& element ) override
+    virtual void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element ) override
     {
         Base::edge_to_element( edge, element );
 
         if (enable_branch_lengths_) {
-            auto bl = utils::to_string_rounded( edge.data.branch_length, branch_length_precision );
+            auto const& edge_data = edge_data_cast< DefaultEdgeData >( edge );
+            auto bl = utils::to_string_rounded( edge_data.branch_length, branch_length_precision );
             element.values.insert (element.values.begin(), bl );
         }
     }
@@ -178,7 +174,7 @@ private:
 //     Default Tree Newick Writer
 // =================================================================================================
 
-typedef DefaultTreeNewickWriterMixin<NewickWriter<DefaultTree>> DefaultTreeNewickWriter;
+typedef DefaultTreeNewickWriterMixin<NewickWriter> DefaultTreeNewickWriter;
 
 } // namespace tree
 } // namespace genesis

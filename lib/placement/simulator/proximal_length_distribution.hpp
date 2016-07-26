@@ -76,11 +76,12 @@ public:
     /**
      * @brief Return a randomly chosen position on an edge.
      */
-    double generate( typename PlacementTree::EdgeType const& edge )
+    double generate( PlacementTreeEdge const& edge )
     {
         // We do a multiplication with the branch length here, because this allows for a single
         // distribution instance instead of one per different length.
-        return distrib_( utils::Options::get().random_engine() ) * edge.data.branch_length;
+        auto branch_length = tree::edge_data_cast< PlacementEdgeData >( edge ).branch_length;
+        return distrib_( utils::Options::get().random_engine() ) * branch_length;
     }
 
     // -----------------------------------------------------

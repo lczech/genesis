@@ -25,7 +25,7 @@
 */
 
 /**
- * @brief Header of TreeNode class template.
+ * @brief Header of TreeNode class.
  *
  * For more information, see TreeNode.
  *
@@ -33,6 +33,9 @@
  * @ingroup tree
  */
 
+#include "utils/core/std.hpp"
+
+#include <memory>
 #include <string>
 
 namespace genesis {
@@ -42,35 +45,48 @@ namespace tree {
 //     Forward declarations
 // =================================================================================================
 
-template <class NodeDataType, class EdgeDataType>
 class Tree;
-
-template <class NodeDataType, class EdgeDataType>
 class TreeEdge;
-
-template <class NodeDataType, class EdgeDataType>
 class TreeLink;
 
 // =================================================================================================
-//     TreeNode
+//     Tree Node Data Base
 // =================================================================================================
 
-template <class node_data_type, class edge_data_type>
-class TreeNode
+class BaseNodeData
 {
 public:
 
-    // ---------------------------------------------------------------------
-    //     Typedefs
-    // ---------------------------------------------------------------------
+    BaseNodeData() = default;
+    virtual ~BaseNodeData()
+    {}
 
-    using NodeDataType       = node_data_type;
-    using EdgeDataType       = edge_data_type;
+    virtual std::unique_ptr< BaseNodeData > clone() const
+    {
+        // return utils::make_unique< BaseNodeData >( *this );
+        return std::unique_ptr< BaseNodeData >( new BaseNodeData( *this ));
+    };
 
-    using TreeType           = Tree    <NodeDataType, EdgeDataType>;
-    using LinkType           = TreeLink<NodeDataType, EdgeDataType>;
-    using NodeType           = TreeNode<NodeDataType, EdgeDataType>;
-    using EdgeType           = TreeEdge<NodeDataType, EdgeDataType>;
+    // Move ctor and assignment.
+    BaseNodeData( BaseNodeData&& other )             = delete;
+    BaseNodeData& operator= ( BaseNodeData&& other ) = delete;
+
+
+protected:
+
+    // Copy ctor and assignment.
+    BaseNodeData( BaseNodeData const& other )             = default;
+    BaseNodeData& operator= ( BaseNodeData const& other ) = default;
+
+};
+
+// =================================================================================================
+//     Tree Node
+// =================================================================================================
+
+class TreeNode
+{
+public:
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -81,7 +97,7 @@ public:
         , link_(  nullptr )
     {}
 
-    TreeNode( size_t index, LinkType* primary_link )
+    TreeNode( size_t index, TreeLink* primary_link )
         : index_( index )
         , link_(  primary_link )
     {}
@@ -103,11 +119,16 @@ public:
 
     size_t index() const;
 
-    LinkType      & primary_link();
-    LinkType const& primary_link() const;
+    TreeLink      & primary_link();
+    TreeLink const& primary_link() const;
 
-    LinkType      & link();
-    LinkType const& link() const;
+    TreeLink      & link();
+    TreeLink const& link() const;
+
+    bool has_data() const;
+
+    BaseNodeData&       data();
+    BaseNodeData const& data() const;
 
     // ---------------------------------------------------------------------
     //     Modifiers
@@ -115,7 +136,9 @@ public:
 
     TreeNode& reset_index( size_t val );
 
-    TreeNode& reset_primary_link( LinkType* val );
+    TreeNode& reset_primary_link( TreeLink* val );
+
+    TreeNode& reset_data( std::unique_ptr< BaseNodeData > data );
 
     // ---------------------------------------------------------------------
     //     Member Functions
@@ -137,23 +160,57 @@ public:
     //     Member Variables
     // ---------------------------------------------------------------------
 
-public:
-
-    NodeDataType data;
 
 private:
 
     size_t       index_;
-    LinkType*    link_;
+    TreeLink*    link_;
+
+    std::unique_ptr< BaseNodeData > data_;
+
 };
+
+// =================================================================================================
+//     Casts
+// =================================================================================================
+
+template< class NodeDataType >
+NodeDataType& node_data_cast( std::unique_ptr< TreeNode >& node )
+{
+    return dynamic_cast< NodeDataType& >( node->data() );
+}
+
+template< class NodeDataType >
+NodeDataType const& node_data_cast( std::unique_ptr< TreeNode > const& node )
+{
+    return dynamic_cast< NodeDataType const& >( node->data() );
+}
+
+template< class NodeDataType >
+NodeDataType& node_data_cast( TreeNode& node )
+{
+    return dynamic_cast< NodeDataType& >( node.data() );
+}
+
+template< class NodeDataType >
+NodeDataType const& node_data_cast( TreeNode const& node )
+{
+    return dynamic_cast< NodeDataType const& >( node.data() );
+}
+
+template< class NodeDataType >
+NodeDataType& node_data_cast( BaseNodeData& data )
+{
+    return dynamic_cast< NodeDataType& >( data );
+}
+
+template< class NodeDataType >
+NodeDataType const& node_data_cast( BaseNodeData const& data )
+{
+    return dynamic_cast< NodeDataType const& >( data );
+}
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-#include "tree/tree_node.tpp"
 
 #endif // include guard

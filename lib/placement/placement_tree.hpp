@@ -40,17 +40,51 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
+//     Typedefs
+// =================================================================================================
+
+/**
+ * @brief Alias for a tree::Tree used for a tree with information needed
+ * for storing @link Pquery Pqueries@endlink. This kind of tree is used by Sample.
+ *
+ * A PlacementTree inherits the data from tree::DefaultTree, that is,
+ * it stores names for the nodes (usually those are taxa names) and branch lengths for the edges.
+ *
+ * In addition to that, each edge of this tree has a value `edge_num`. This is not the same as the
+ * internally used @link tree::TreeEdge::index index @endlink property of tree edges. Instead, it is
+ * a value defined by the `jplace` standard to identify edges. See Sample for more information.
+ */
+using PlacementTree     = tree::Tree;
+
+/**
+* @brief Alias for tree::TreeNode used in a ::PlacementTree.
+* See PlacementNodeData for the data stored on the nodes.
+*/
+using PlacementTreeNode = tree::TreeNode;
+
+/**
+ * @brief Alias for tree::TreeEdge used in a ::PlacementTree.
+ * See PlacementEdgeData for the data stored on the edges.
+ */
+using PlacementTreeEdge = tree::TreeEdge;
+
+/**
+ * @brief Alias for tree::TreeLink used in a ::PlacementTree.
+ */
+using PlacementTreeLink = tree::TreeLink;
+
+// =================================================================================================
 //     Placement Tree Node Data
 // =================================================================================================
 
 /**
- * @brief Data class for @link PlacementTreeNode PlacementTreeNodes@endlink. Stores a node name.
+ * @brief Data class for ::PlacementTreeNode%s. Stores a node name.
  *
- * This class is derived from tree::DefaultTreeNodeData and currently adds no functionality on top
+ * This class is derived from tree::DefaultNodeData and currently adds no functionality on top
  * of this base class. See there for more information.
  * Also, see ::PlacementTree for information on how and where this class is used.
  */
-class PlacementTreeNodeData : public tree::DefaultTreeNodeData
+class PlacementNodeData : public tree::DefaultNodeData
 {
 public:
 
@@ -58,14 +92,19 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
-    PlacementTreeNodeData () = default;
-    ~PlacementTreeNodeData() = default;
+    PlacementNodeData () = default;
+    ~PlacementNodeData() = default;
 
-    PlacementTreeNodeData( PlacementTreeNodeData const& ) = default;
-    PlacementTreeNodeData( PlacementTreeNodeData&& )      = default;
+    PlacementNodeData( PlacementNodeData const& ) = default;
+    PlacementNodeData( PlacementNodeData&& )      = default;
 
-    PlacementTreeNodeData& operator= ( PlacementTreeNodeData const& ) = default;
-    PlacementTreeNodeData& operator= ( PlacementTreeNodeData&& )      = default;
+    PlacementNodeData& operator= ( PlacementNodeData const& ) = default;
+    PlacementNodeData& operator= ( PlacementNodeData&& )      = default;
+
+    std::unique_ptr< BaseNodeData > clone() const override
+    {
+        return utils::make_unique< PlacementNodeData >( *this );
+    }
 
 };
 
@@ -74,13 +113,13 @@ public:
 // =================================================================================================
 
 /**
- * @brief Data class for @link PlacementTreeEdge PlacementTreeEdges@endlink. Stores the branch
+ * @brief Data class for PlacementTreeEdge%s. Stores the branch
  * length of the edge, and the `edge_num`, as defined in the `jplace` standard.
  *
- * This class is derived from tree::DefaultTreeEdgeData. See there for more information.
+ * This class is derived from tree::DefaultEdgeData. See there for more information.
  * Also, see ::PlacementTree for information on how and where this class is used.
  */
-class PlacementTreeEdgeData : public tree::DefaultTreeEdgeData
+class PlacementEdgeData : public tree::DefaultEdgeData
 {
 public:
 
@@ -88,26 +127,31 @@ public:
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
-    PlacementTreeEdgeData () = default;
-    ~PlacementTreeEdgeData() = default;
+    PlacementEdgeData () = default;
+    ~PlacementEdgeData() = default;
 
-    PlacementTreeEdgeData( PlacementTreeEdgeData const& ) = default;
-    PlacementTreeEdgeData( PlacementTreeEdgeData&& )      = default;
+    PlacementEdgeData( PlacementEdgeData const& ) = default;
+    PlacementEdgeData( PlacementEdgeData&& )      = default;
 
-    PlacementTreeEdgeData& operator= ( PlacementTreeEdgeData const& ) = default;
-    PlacementTreeEdgeData& operator= ( PlacementTreeEdgeData&& )      = default;
+    PlacementEdgeData& operator= ( PlacementEdgeData const& ) = default;
+    PlacementEdgeData& operator= ( PlacementEdgeData&& )      = default;
+
+    std::unique_ptr< BaseEdgeData > clone() const override
+    {
+        return utils::make_unique< PlacementEdgeData >( *this );
+    }
 
     // -----------------------------------------------------
     //     Class Functions
     // -----------------------------------------------------
 
-    inline bool operator == (const PlacementTreeEdgeData &other) const
+    inline bool operator == (const PlacementEdgeData &other) const
     {
         // TODO add a comparison of pqueries as well ?! is that good?!
         return other.branch_length == branch_length && other.edge_num_ == edge_num_;
     }
 
-    inline bool operator != (const PlacementTreeEdgeData &other) const
+    inline bool operator != (const PlacementEdgeData &other) const
     {
         return !(other == *this);
     }
@@ -132,40 +176,6 @@ private:
 
     int edge_num_;
 };
-
-// =================================================================================================
-//     Definitions and Typedefs
-// =================================================================================================
-
-/**
- * @brief Type of @link tree::TreeEdge TreeEdge @endlink used for a ::PlacementTree.
- * See PlacementTreeEdgeData for the data stored on the edges.
- */
-typedef tree::TreeEdge <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeEdge;
-
-/**
-* @brief Type of @link tree::TreeLink TreeLink @endlink used for a ::PlacementTree.
-*/
-typedef tree::TreeLink <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeLink;
-
-/**
-* @brief Type of @link tree::TreeNode TreeNode @endlink used for a ::PlacementTree.
-* See PlacementTreeNodeData for the data stored on the nodes.
-*/
-typedef tree::TreeNode <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTreeNode;
-
-/**
-* @brief Type of @link tree::Tree Tree @endlink used for storing a tree with information needed for
-* storing @link Pquery Pqueries@endlink. This tree type is used by Sample.
-*
-* This type of tree inherits the data of @link tree::DefaultTree DefaultTree@endlink, that is,
-* it stores names for the nodes (usually those are taxa names) and branch lengths for the edges.
-*
-* In addition to that, each edge of this tree has a value `edge_num`. This is not the same as the
-* internally used @link tree::TreeEdge::index index @endlink property of tree edges. Instead, it is
-* a value defined by the `jplace` standard to identify edges. See Sample for more information.
-*/
-typedef tree::Tree     <PlacementTreeNodeData, PlacementTreeEdgeData> PlacementTree;
 
 } // namespace placement
 } // namespace genesis

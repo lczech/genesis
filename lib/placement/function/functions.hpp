@@ -70,6 +70,9 @@ void filter_n_max_weight_placements( Sample& smp,    size_t n = 1 );
 void filter_min_weight_threshold( Pquery& pquery, double threshold = 0.01 );
 void filter_min_weight_threshold( Sample& smp,    double threshold = 0.01 );
 
+void filter_pqueries_keeping_names(  Sample& smp, std::unordered_set<std::string> keep_list );
+void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string> remove_list );
+
 // void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
 // void sort_placements_by_proximal_length( Sample& smp );
 

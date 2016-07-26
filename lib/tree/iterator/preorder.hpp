@@ -31,6 +31,7 @@
  * @ingroup tree
  */
 
+#include "tree/tree.hpp"
 #include "utils/core/range.hpp"
 
 #include <assert.h>
@@ -39,6 +40,15 @@
 
 namespace genesis {
 namespace tree {
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Tree;
+class TreeNode;
+class TreeEdge;
+class TreeLink;
 
 // =================================================================================================
 //     Preorder Iterator
@@ -54,8 +64,6 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    using TreeType          = typename LinkType::TreeType;
-
     using iterator_category = std::forward_iterator_tag;
     using self_type         = IteratorPreorder<LinkType, NodeType, EdgeType>;
 
@@ -68,11 +76,11 @@ public:
         , link_ ( nullptr )
     {}
 
-    explicit IteratorPreorder( TreeType& tree )
+    explicit IteratorPreorder( Tree& tree )
         : IteratorPreorder( tree.root_link() )
     {}
 
-    explicit IteratorPreorder( TreeType const& tree )
+    explicit IteratorPreorder( Tree const& tree )
         : IteratorPreorder( tree.root_link() )
     {}
 
@@ -200,36 +208,22 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorPreorder<
-    typename ElementType::LinkType const,
-    typename ElementType::NodeType const,
-    typename ElementType::EdgeType const
->> preorder( ElementType const& element )
+utils::Range< IteratorPreorder< TreeLink const, TreeNode const, TreeEdge const >>
+preorder( ElementType const& element )
 {
-    using LinkType = typename ElementType::LinkType;
-    using NodeType = typename ElementType::NodeType;
-    using EdgeType = typename ElementType::EdgeType;
-
     return {
-        IteratorPreorder< const LinkType, const NodeType, const EdgeType >( element ),
-        IteratorPreorder< const LinkType, const NodeType, const EdgeType >()
+        IteratorPreorder< const TreeLink, const TreeNode, const TreeEdge >( element ),
+        IteratorPreorder< const TreeLink, const TreeNode, const TreeEdge >()
     };
 }
 
 template<typename ElementType>
-utils::Range< IteratorPreorder<
-    typename ElementType::LinkType,
-    typename ElementType::NodeType,
-    typename ElementType::EdgeType
->> preorder( ElementType& element )
+utils::Range< IteratorPreorder< TreeLink, TreeNode, TreeEdge >>
+preorder( ElementType& element )
 {
-    using LinkType = typename ElementType::LinkType;
-    using NodeType = typename ElementType::NodeType;
-    using EdgeType = typename ElementType::EdgeType;
-
     return {
-        IteratorPreorder< LinkType, NodeType, EdgeType >( element ),
-        IteratorPreorder< LinkType, NodeType, EdgeType >()
+        IteratorPreorder< TreeLink, TreeNode, TreeEdge >( element ),
+        IteratorPreorder< TreeLink, TreeNode, TreeEdge >()
     };
 }
 

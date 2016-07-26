@@ -40,6 +40,7 @@
 #include "lib/tree/formats/newick/reader.hpp"
 #include "lib/tree/tree.hpp"
 
+#include "lib/utils/tools/color.hpp"
 #include "lib/utils/tools/color/operators.hpp"
 
 #include <algorithm>
@@ -53,7 +54,7 @@ TEST(DefaultTree, EdgeColorBranchLengthGradient)
     NEEDS_TEST_DATA;
 
     // Read and process tree.
-    DefaultTree tree;
+    Tree tree;
     std::string infile = environment->data_dir + "tree/distances.newick";
     DefaultTreeNewickReader().from_file(infile, tree);
 
@@ -67,7 +68,7 @@ TEST(DefaultTree, EdgeColorBranchLengthGradient)
 
 TEST(DefaultTree, NodeNames)
 {
-    DefaultTree tree;
+    Tree tree;
 
     // Using a tree with all names set to some value.
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";

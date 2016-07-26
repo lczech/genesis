@@ -28,19 +28,26 @@
  * @ingroup tree
  */
 
+#include "tree/formats/newick/reader.hpp"
+
+#include "tree/tree.hpp"
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
+#include "tree/tree_node.hpp"
+
+#include "tree/formats/newick/broker.hpp"
+#include "tree/formats/newick/parser.hpp"
+#include "tree/tree_set.hpp"
+
+#include "utils/core/fs.hpp"
+#include "utils/core/logging.hpp"
+#include "utils/core/std.hpp"
+
 #include <assert.h>
 #include <deque>
 #include <memory>
 #include <sstream>
 #include <stdexcept>
-
-#include "tree/formats/newick/broker.hpp"
-#include "tree/formats/newick/parser.hpp"
-#include "tree/tree_set.hpp"
-#include "tree/tree.hpp"
-#include "utils/core/fs.hpp"
-#include "utils/core/logging.hpp"
-#include "utils/core/std.hpp"
 
 namespace genesis {
 namespace tree {
@@ -58,9 +65,8 @@ namespace tree {
  *
  * Returns true iff successful.
  */
-template <typename TreeType>
-bool NewickReader<TreeType>::from_file (
-    const std::string& fn, TreeType& tree
+bool NewickReader::from_file (
+    const std::string& fn, Tree& tree
 ) {
     if (!utils::file_exists(fn)) {
         throw std::runtime_error( "Newick file '" + fn + "' does not exist." );
@@ -73,9 +79,8 @@ bool NewickReader<TreeType>::from_file (
  *
  * Returns true iff successful.
  */
-template <typename TreeType>
-bool NewickReader<TreeType>::from_string (
-    const std::string& ts, TreeType& tree
+bool NewickReader::from_string (
+    const std::string& ts, Tree& tree
 ) {
     // run the lexer
     NewickLexer lexer;
@@ -124,9 +129,8 @@ bool NewickReader<TreeType>::from_string (
  *
  * Returns true iff successful.
  */
-template <typename TreeType>
-bool NewickReader<TreeType>::from_file (
-    const std::string& fn, TreeSet<TreeType>& tset
+bool NewickReader::from_file (
+    const std::string& fn, TreeSet& tset
 ) {
     if (!utils::file_exists(fn)) {
         throw std::runtime_error( "Tree file '" + fn + "' does not exist." );
@@ -158,10 +162,9 @@ bool NewickReader<TreeType>::from_file (
  *
  * Returns true iff successful.
  */
-template <typename TreeType>
-bool NewickReader<TreeType>::from_string (
+bool NewickReader::from_string (
     const std::string& ts,
-    TreeSet<TreeType>& tset,
+    TreeSet& tset,
     const std::string& default_name
 ) {
     // Run the Lexer.
@@ -232,8 +235,8 @@ bool NewickReader<TreeType>::from_string (
             return false;
         }
 
-        auto tree = new TreeType();
-        broker_to_tree(broker, &tree);
+        auto tree = Tree();
+        broker_to_tree(broker, tree);
 
         if (name.empty()) {
             name = default_name + std::to_string(unnamed_ctr++);
@@ -256,9 +259,8 @@ bool NewickReader<TreeType>::from_string (
  *
  * Returns true iff successful.
  */
-template <typename TreeType>
-bool NewickReader<TreeType>::from_files (
-    const std::vector<std::string>& fns, TreeSet<TreeType>& set
+bool NewickReader::from_files (
+    const std::vector<std::string>& fns, TreeSet& set
 ) {
     for (auto fn : fns) {
         if (!from_file (fn, set)) {
@@ -273,10 +275,9 @@ bool NewickReader<TreeType>::from_files (
  *
  * Returns true iff successful.
  */
-template <typename TreeType>
-bool NewickReader<TreeType>::from_strings (
+bool NewickReader::from_strings (
     const std::vector<std::string>& tss,
-    TreeSet<TreeType>& set,
+    TreeSet& set,
     const std::string& default_name
 ) {
     for (auto ts : tss) {
@@ -291,32 +292,28 @@ bool NewickReader<TreeType>::from_strings (
 //     Virtual Parsing Helpers
 // -------------------------------------------------------------------------
 
-template <typename TreeType>
-void NewickReader<TreeType>::prepare_reading( NewickBroker const& broker, TreeType& tree )
+void NewickReader::prepare_reading( NewickBroker const& broker, Tree& tree )
 {
     // Silence unused parameter warnings.
     (void) broker;
     (void) tree;
 }
 
-template <typename TreeType>
-void NewickReader<TreeType>::element_to_node( NewickBrokerElement const& element, NodeType& node )
+void NewickReader::element_to_node( NewickBrokerElement const& element, TreeNode& node )
 {
     // Silence unused parameter warnings.
     (void) element;
     (void) node;
 }
 
-template <typename TreeType>
-void NewickReader<TreeType>::element_to_edge( NewickBrokerElement const& element, EdgeType& edge )
+void NewickReader::element_to_edge( NewickBrokerElement const& element, TreeEdge& edge )
 {
     // Silence unused parameter warnings.
     (void) element;
     (void) edge;
 }
 
-template <typename TreeType>
-void NewickReader<TreeType>::finish_reading( NewickBroker const& broker, TreeType& tree )
+void NewickReader::finish_reading( NewickBroker const& broker, Tree& tree )
 {
     // Silence unused parameter warnings.
     (void) broker;
@@ -330,15 +327,14 @@ void NewickReader<TreeType>::finish_reading( NewickBroker const& broker, TreeTyp
 /**
  * @brief Build a Tree from a NewickBroker.
  */
-template <typename TreeType>
-void NewickReader<TreeType>::broker_to_tree (
-    NewickBroker const& broker, TreeType& tree
+void NewickReader::broker_to_tree (
+    NewickBroker const& broker, Tree& tree
 ) {
-    typename TreeType::LinkContainer links;
-    typename TreeType::NodeContainer nodes;
-    typename TreeType::EdgeContainer edges;
+    typename Tree::LinkContainer links;
+    typename Tree::NodeContainer nodes;
+    typename Tree::EdgeContainer edges;
 
-    std::vector<typename TreeType::LinkType*> link_stack;
+    std::vector< TreeLink* > link_stack;
 
     // we need the ranks (number of immediate children) of all nodes
     broker.assign_ranks();
@@ -349,7 +345,7 @@ void NewickReader<TreeType>::broker_to_tree (
         NewickBrokerElement const& broker_node = *b_itr;
 
         // create the tree node for this broker node
-        auto cur_node_u  = utils::make_unique<typename TreeType::NodeType>();
+        auto cur_node_u  = utils::make_unique< TreeNode >();
         auto cur_node    = cur_node_u.get();
         cur_node->reset_index( nodes.size() );
         element_to_node( broker_node, *cur_node );
@@ -357,7 +353,7 @@ void NewickReader<TreeType>::broker_to_tree (
 
         // create the link that points towards the root.
         // this link is created for every node, root, inner and leaves.
-        auto up_link_u  = utils::make_unique<typename TreeType::LinkType>();
+        auto up_link_u  = utils::make_unique< TreeLink >();
         auto up_link    = up_link_u.get();
         up_link->reset_node( cur_node );
         cur_node->reset_primary_link( up_link );
@@ -377,7 +373,7 @@ void NewickReader<TreeType>::broker_to_tree (
             link_stack.back()->reset_outer( up_link );
 
             // also, create an edge that connects both nodes
-            auto up_edge = utils::make_unique<typename TreeType::EdgeType>(
+            auto up_edge = utils::make_unique< TreeEdge >(
                 edges.size(),
                 link_stack.back(),
                 up_link
@@ -402,7 +398,7 @@ void NewickReader<TreeType>::broker_to_tree (
         // in summary, make all next pointers of a node point to each other in a circle.
         auto prev_link = up_link;
         for (int i = 0; i < broker_node.rank(); ++i) {
-            auto down_link = utils::make_unique<typename TreeType::LinkType>();
+            auto down_link = utils::make_unique< TreeLink >();
             prev_link->reset_next( down_link.get() );
             prev_link = down_link.get();
 

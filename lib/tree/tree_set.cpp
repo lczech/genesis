@@ -28,6 +28,12 @@
  * @ingroup tree
  */
 
+#include "tree/tree_set.hpp"
+
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
+#include "tree/tree_node.hpp"
+
 namespace genesis {
 namespace tree {
 
@@ -35,8 +41,7 @@ namespace tree {
 //     Constructors and Rule of Five
 // =================================================================================================
 
-template <class TreeType>
-void TreeSet<TreeType>::swap( TreeSet<TreeType>& other )
+void TreeSet::swap( TreeSet& other )
 {
     using std::swap;
     swap( trees_, other.trees_ );
@@ -51,8 +56,7 @@ void TreeSet<TreeType>::swap( TreeSet<TreeType>& other )
 *
 * The Tree is copied.
 */
-template <class TreeType>
-void TreeSet<TreeType>::add( std::string const& name, TreeType const& tree )
+void TreeSet::add( std::string const& name, Tree const& tree )
 {
     trees_.push_back( { name, tree } );
 }
@@ -63,8 +67,7 @@ void TreeSet<TreeType>::add( std::string const& name, TreeType const& tree )
  * As this function moves Tree%s in the container around, all iterators and pointers to
  * the elements of this TreeSet are considered to be invalidated.
  */
-template <class TreeType>
-void TreeSet<TreeType>::remove_at( size_t index )
+void TreeSet::remove_at( size_t index )
 {
     trees_.erase( trees_.begin() + index );
 }
@@ -72,8 +75,7 @@ void TreeSet<TreeType>::remove_at( size_t index )
 /**
  * @brief Clear the TreeSet and destroy all contained Trees.
  */
-template <class TreeType>
-void TreeSet<TreeType>::clear ()
+void TreeSet::clear ()
 {
     trees_.clear();
 }
@@ -82,50 +84,42 @@ void TreeSet<TreeType>::clear ()
 //     Accessors
 // =================================================================================================
 
-template <class TreeType>
-typename TreeSet<TreeType>::iterator TreeSet<TreeType>::begin()
+TreeSet::iterator TreeSet::begin()
 {
     return trees_.begin();
 }
 
-template <class TreeType>
-typename TreeSet<TreeType>::const_iterator TreeSet<TreeType>::begin() const
+TreeSet::const_iterator TreeSet::begin() const
 {
     return trees_.cbegin();
 }
 
-template <class TreeType>
-typename TreeSet<TreeType>::iterator TreeSet<TreeType>::end()
+TreeSet::iterator TreeSet::end()
 {
     return trees_.end();
 }
 
-template <class TreeType>
-typename TreeSet<TreeType>::const_iterator TreeSet<TreeType>::end() const
+TreeSet::const_iterator TreeSet::end() const
 {
     return trees_.cend();
 }
 
-template <class TreeType>
-typename TreeSet<TreeType>::NamedTree& TreeSet<TreeType>::at ( size_t index )
+TreeSet::NamedTree& TreeSet::at ( size_t index )
 {
     return trees_.at(index);
 }
 
-template <class TreeType>
-typename TreeSet<TreeType>::NamedTree const& TreeSet<TreeType>::at ( size_t index ) const
+TreeSet::NamedTree const& TreeSet::at ( size_t index ) const
 {
     return trees_.at(index);
 }
 
-template <class TreeType>
-typename TreeSet<TreeType>::NamedTree& TreeSet<TreeType>::operator [] (const std::size_t index)
+TreeSet::NamedTree& TreeSet::operator [] (const std::size_t index)
 {
     return trees_[index];
 }
 
-template <class TreeType>
-typename TreeSet<TreeType>::NamedTree const& TreeSet<TreeType>::operator [] (const std::size_t index) const
+TreeSet::NamedTree const& TreeSet::operator [] (const std::size_t index) const
 {
     return trees_[index];
 }
@@ -133,8 +127,7 @@ typename TreeSet<TreeType>::NamedTree const& TreeSet<TreeType>::operator [] (con
 /**
  * @brief Return whether the TreeSet is empty.
  */
-template <class TreeType>
-bool TreeSet<TreeType>::empty() const
+bool TreeSet::empty() const
 {
     return trees_.empty();
 }
@@ -142,8 +135,7 @@ bool TreeSet<TreeType>::empty() const
 /**
  * @brief Return the size of the TreeSet, i.e., the number of stored Tree%s.
  */
-template <class TreeType>
-size_t TreeSet<TreeType>::size() const
+size_t TreeSet::size() const
 {
     return trees_.size();
 }

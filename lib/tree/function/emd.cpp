@@ -130,12 +130,12 @@ double earth_movers_distance( EmdTree const& tree )
 
         // We now start a "normal" earth movers distance caluclation along the current edge.
         // We start at the end of the branch, with the mass that comes from the subtree below it...
-        double current_pos  = tree_it.edge().data.branch_length;
+        double current_pos  = edge_data_cast< EmdEdgeData >( tree_it.edge() ).branch_length;
         double current_mass = node_masses[ sec_node_index ];
 
         // ... and move the mass along the branch, balancing it with the masses found on the branch.
         // We use a reverse iterator in order to traverse the branch from end to start.
-        auto const& edge_masses = tree_it.edge().data.masses;
+        auto const& edge_masses = edge_data_cast< EmdEdgeData >( tree_it.edge() ).masses;
         for(
             auto mass_rit = edge_masses.crbegin();
             mass_rit != edge_masses.crend();
@@ -161,46 +161,46 @@ double earth_movers_distance( EmdTree const& tree )
 }
 
 /**
- * @brief Set all branch lengths of the EmdTree to 1.0, while keeping the relative position of all
+ * @brief Set all branch lengths of the Tree to 1.0, while keeping the relative position of all
  * masses on the branches.
  */
 void transform_to_unit_branch_lengths( EmdTree& tree )
 {
     for( auto& edge : tree.edges() ) {
         std::map<double, double> relative;
-        for( auto mass : edge->data.masses ) {
-            relative[ mass.first / edge->data.branch_length ] += mass.second;
+        for( auto mass : edge_data_cast< EmdEdgeData >( edge ).masses ) {
+            relative[ mass.first / edge_data_cast< EmdEdgeData >( edge ).branch_length ] += mass.second;
         }
-        edge->data.masses = relative;
+        edge_data_cast< EmdEdgeData >( edge ).masses = relative;
 
-        edge->data.branch_length = 1.0;
+        edge_data_cast< EmdEdgeData >( edge ).branch_length = 1.0;
     }
 }
 
 /**
- * @brief Accumulate all masses of the EmdTree on the centers of their edges. Return the work
+ * @brief Accumulate all masses of the Tree on the centers of their edges. Return the work
  * (mass times distance) that was needed to move the masses to the centers.
  */
 double center_masses_on_branches( EmdTree& tree )
 {
     double work = 0.0;
     for( auto& edge : tree.edges() ) {
-        double branch_center = edge->data.branch_length / 2;
+        double branch_center = edge_data_cast< EmdEdgeData >( edge ).branch_length / 2;
         double central_mass  = 0.0;
 
-        for( auto mass : edge->data.masses ) {
+        for( auto mass : edge_data_cast< EmdEdgeData >( edge ).masses ) {
             work         += mass.second * std::abs( branch_center - mass.first );
             central_mass += mass.second;
         }
 
-        edge->data.masses.clear();
-        edge->data.masses[ branch_center ] = central_mass;
+        edge_data_cast< EmdEdgeData >( edge ).masses.clear();
+        edge_data_cast< EmdEdgeData >( edge ).masses[ branch_center ] = central_mass;
     }
     return work;
 }
 
 /**
- * @brief Return the total sum of all masses on the EmdTree.
+ * @brief Return the total sum of all masses on the Tree.
  *
  * In order for the earth_movers_distance() algorithm to work properly (and give meaningful
  * results), the total mass on the tree should ideally be 0.0. This function can be used to check
@@ -213,7 +213,7 @@ double sum_of_masses( EmdTree const& tree )
 {
     double total_mass = 0.0;
     for( auto& edge : tree.edges() ) {
-        for( auto mass : edge->data.masses ) {
+        for( auto mass : edge_data_cast< EmdEdgeData >( edge ).masses ) {
             total_mass += mass.second;
         }
     }
@@ -221,9 +221,9 @@ double sum_of_masses( EmdTree const& tree )
 }
 
 /**
- * @brief Validate the data on an EmdTree.
+ * @brief Validate the data on an Tree.
  *
- * This function returns true iff the data on the EmdTree is valid:
+ * This function returns true iff the data on the Tree is valid:
  *
  *  *  The positions of the masses are in [0.0, branch_length] on their respective branches.
  *  *  The sum of all masses is close to 0.0, using the optional arument
@@ -232,21 +232,27 @@ double sum_of_masses( EmdTree const& tree )
  * The function stops at the first encountered invalid condition and outputs a description message
  * of the invalid value to LOG_INFO.
  *
- * @param tree                        EmdTree to be validated.
+ * @param tree                        Tree to be validated.
  * @param valid_total_mass_difference (= 0.00001 by default) allowed difference from zero for the
  *                                    total sum of all masses on the tree.
  */
-bool validate( EmdTree const& tree, double valid_total_mass_difference )
+bool validate_emd_tree( EmdTree const& tree, double valid_total_mass_difference )
 {
     double mass_sum = 0.0;
 
     for( auto const& edge : tree.edges() ) {
-        for( auto const& mass : edge->data.masses ) {
+        auto const edge_data = dynamic_cast< EmdEdgeData const* >( &edge->data() );
+        if( edge_data == nullptr ) {
+            LOG_INFO << "Edge data type is not 'EmdEdgeData'.";
+            return false;
+        }
+
+        for( auto const& mass : edge_data->masses ) {
             if( mass.first < 0.0 ) {
                 LOG_INFO << "Mass with branch position < 0.0";
                 return false;
             }
-            if( mass.first > edge->data.branch_length ) {
+            if( mass.first > edge_data->branch_length ) {
                 LOG_INFO << "Mass with branch position > branch_length";
                 return false;
             }

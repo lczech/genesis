@@ -31,12 +31,22 @@
  * @ingroup tree
  */
 
+#include "tree/tree.hpp"
 #include "utils/core/range.hpp"
 
 #include <iterator>
 
 namespace genesis {
 namespace tree {
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Tree;
+class TreeNode;
+class TreeEdge;
+class TreeLink;
 
 // =================================================================================================
 //     Euler Tour Iterator
@@ -52,8 +62,6 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    using TreeType          = typename LinkType::TreeType;
-
     using iterator_category = std::forward_iterator_tag;
     using self_type         = IteratorEulertour<LinkType, NodeType, EdgeType>;
 
@@ -66,12 +74,12 @@ public:
         , link_(  nullptr )
     {}
 
-    explicit IteratorEulertour (TreeType& tree)
+    explicit IteratorEulertour (Tree& tree)
         : start_( &tree.root_link() )
         , link_(  &tree.root_link() )
     {}
 
-    explicit IteratorEulertour (TreeType const& tree)
+    explicit IteratorEulertour (Tree const& tree)
         : start_( &tree.root_link() )
         , link_(  &tree.root_link() )
     {}
@@ -174,36 +182,22 @@ private:
 // =================================================================================================
 
 template<typename ElementType>
-utils::Range< IteratorEulertour<
-    typename ElementType::LinkType const,
-    typename ElementType::NodeType const,
-    typename ElementType::EdgeType const
->> eulertour( ElementType const& element )
+utils::Range< IteratorEulertour< TreeLink const, TreeNode const, TreeEdge const >>
+eulertour( ElementType const& element )
 {
-    using LinkType = typename ElementType::LinkType;
-    using NodeType = typename ElementType::NodeType;
-    using EdgeType = typename ElementType::EdgeType;
-
     return {
-        IteratorEulertour< const LinkType, const NodeType, const EdgeType >( element ),
-        IteratorEulertour< const LinkType, const NodeType, const EdgeType >()
+        IteratorEulertour< const TreeLink, const TreeNode, const TreeEdge >( element ),
+        IteratorEulertour< const TreeLink, const TreeNode, const TreeEdge >()
     };
 }
 
 template<typename ElementType>
-utils::Range< IteratorEulertour<
-    typename ElementType::LinkType,
-    typename ElementType::NodeType,
-    typename ElementType::EdgeType
->> eulertour( ElementType& element )
+utils::Range< IteratorEulertour< TreeLink, TreeNode, TreeEdge >>
+eulertour( ElementType& element )
 {
-    using LinkType = typename ElementType::LinkType;
-    using NodeType = typename ElementType::NodeType;
-    using EdgeType = typename ElementType::EdgeType;
-
     return {
-        IteratorEulertour< LinkType, NodeType, EdgeType >( element ),
-        IteratorEulertour< LinkType, NodeType, EdgeType >()
+        IteratorEulertour< TreeLink, TreeNode, TreeEdge >( element ),
+        IteratorEulertour< TreeLink, TreeNode, TreeEdge >()
     };
 }
 

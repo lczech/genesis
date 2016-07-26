@@ -43,60 +43,43 @@ namespace tree {
 //     Distance Related Propoerties
 // =================================================================================================
 
-template <class Tree>
-double length( Tree const& tree );
-
-template <class Tree>
-double height( Tree const& tree );
-
-template <class Tree>
+double length(   Tree const& tree );
+double height(   Tree const& tree );
 double diameter( Tree const& tree );
 
 // =================================================================================================
 //     Branch Distance Measures
 // =================================================================================================
 
-template <class Tree>
 utils::Matrix<double> node_branch_length_distance_matrix(
     Tree const& tree
 );
 
-template <class Tree>
 std::vector<double> node_branch_length_distance_vector(
     Tree const& tree,
-    const typename Tree::NodeType* node = nullptr
+    TreeNode const* node = nullptr
 );
 
-template <class Tree>
 utils::Matrix<double> edge_branch_length_distance_matrix(
     Tree const& tree
 );
 
-template <class Tree>
 std::vector<double> edge_branch_length_distance_vector(
     Tree const& tree,
-    const typename Tree::EdgeType* edge = nullptr
+    TreeEdge const* edge = nullptr
 );
 
 // =================================================================================================
 //     Complex Distance Methods
 // =================================================================================================
 
-template <class Tree>
 double deepest_distance( Tree const& tree );
 
-template <class Tree>
-std::vector<std::pair<const typename Tree::NodeType*, double>> closest_leaf_distance_vector(
+std::vector<std::pair< TreeNode const*, double>> closest_leaf_distance_vector(
     Tree const& tree
 );
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-#include "tree/default/distances.tpp"
 
 #endif // include guard

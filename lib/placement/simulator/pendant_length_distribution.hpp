@@ -76,7 +76,7 @@ public:
     /**
      * @brief Return a randomly chosen position on an edge.
      */
-    double generate( typename PlacementTree::EdgeType const& edge )
+    double generate( PlacementTreeEdge const& edge )
     {
         // We don't use the edge in the default distribution.
         (void) edge;

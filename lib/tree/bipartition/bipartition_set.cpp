@@ -28,8 +28,7 @@
  * @ingroup tree
  */
 
-#include <assert.h>
-#include <stdexcept>
+#include "tree/bipartition/bipartition_set.hpp"
 
 #include "tree/bipartition/bipartition_set.hpp"
 #include "tree/function/functions.hpp"
@@ -40,6 +39,9 @@
 #include "utils/core/logging.hpp"
 #include "utils/text/string.hpp"
 
+#include <assert.h>
+#include <stdexcept>
+
 namespace genesis {
 namespace tree {
 
@@ -47,28 +49,27 @@ namespace tree {
 //     Dump and Debug
 // -------------------------------------------------------------
 
-template <typename Tree>
-void BipartitionSet<Tree>::make()
+void BipartitionSet::make()
 {
     const size_t num_leaves = leaf_node_count( tree_ );
     make_index();
 
     bipartitions_.clear();
-    bipartitions_.resize(tree_.node_count(), BipartitionType(num_leaves));
+    bipartitions_.resize(tree_.node_count(), Bipartition(num_leaves));
 
     for( auto it : postorder(tree_) ) {
         if (it.is_last_iteration()) {
             continue;
         }
 
-        BipartitionType bp(num_leaves);
+        Bipartition bp(num_leaves);
         bp.link_ = &it.link();
         if (it.node().is_leaf()) {
             const int leaf_idx = node_to_leaf_map_[it.node().index()];
             assert(leaf_idx > -1);
             bp.leaf_nodes_.set(leaf_idx);
         } else {
-            LinkType* l = &it.link().next();
+            TreeLink* l = &it.link().next();
             while( l != &it.link() ) {
                 bp.leaf_nodes_ |= bipartitions_[l->outer().node().index()].leaf_nodes_;
                 l = &l->next();
@@ -78,8 +79,7 @@ void BipartitionSet<Tree>::make()
     }
 }
 
-template <typename Tree>
-void BipartitionSet<Tree>::make_index()
+void BipartitionSet::make_index()
 {
     leaf_to_node_map_.clear();
     node_to_leaf_map_.clear();
@@ -110,16 +110,14 @@ void BipartitionSet<Tree>::make_index()
  *
  * If no fitting subtree exists, the function returns a `nullptr`.
  */
-template <typename Tree>
-typename BipartitionSet<Tree>::BipartitionType*
-BipartitionSet<Tree>::find_smallest_subtree (
-    std::vector<BipartitionSet<Tree>::NodeType*> nodes
+Bipartition* BipartitionSet::find_smallest_subtree (
+    std::vector<TreeNode*> nodes
 ) {
     make();
     utils::Bitvector comp( leaf_node_count(tree_) );
 
     // make bitvector containing all wanted nodes.
-    for (NodeType* n : nodes) {
+    for (TreeNode* n : nodes) {
         int leaf_idx = node_to_leaf_map_[n->index()];
         if (leaf_idx == -1) {
             throw std::runtime_error(
@@ -129,12 +127,12 @@ BipartitionSet<Tree>::find_smallest_subtree (
         comp.set(leaf_idx);
     }
 
-    BipartitionType* best_bp   = nullptr;
+    Bipartition* best_bp   = nullptr;
     size_t           min_count = 0;
 
     // loop over all bipartitions and compare their bitvectors to the given one, to find one that
     // is a superset. try both ways (normal and inverted) for each bipartition.
-    for (BipartitionType& bp : bipartitions_) {
+    for (Bipartition& bp : bipartitions_) {
         if (!bp.link_) {
             continue;
         }
@@ -159,29 +157,26 @@ BipartitionSet<Tree>::find_smallest_subtree (
     return best_bp;
 }
 
-template <typename Tree>
-std::unordered_set<size_t> BipartitionSet<Tree>::get_subtree_edges (
-    BipartitionSet<Tree>::LinkType* subtree
+std::unordered_set<size_t> BipartitionSet::get_subtree_edges (
+    TreeLink* subtree
 ) {
-    std::vector<std::string> leaf_names;
+    // std::vector<std::string> leaf_names;
     std::unordered_set<size_t> ret;
 
     // We don't want to use the standard iterator wrapper function here, as we are going
     // to end the iteration after the end of the subtree, instead of iterating the whole tree.
     // So we need to use the iterator class directly.
-    using LinkType = typename Tree::LinkType;
-    using NodeType = typename Tree::NodeType;
-    using EdgeType = typename Tree::EdgeType;
-    using Preorder = IteratorPreorder< LinkType, NodeType, EdgeType >;
+    using Preorder = IteratorPreorder< TreeLink, TreeNode, TreeEdge >;
 
     for(
         auto it = Preorder(subtree->next());
         it != Preorder() && &it.link() != &subtree->outer();
         ++it
     ) {
-        if( it.node().is_leaf() ) {
-            leaf_names.push_back( it.node().data.name );
-        }
+        // TODO not typesafe!
+        // if( it.node().is_leaf() ) {
+        //     leaf_names.push_back( node_data_cast< DefaultNodeData >( it.node() ).name );
+        // }
         if (it.is_first_iteration()) {
             continue;
         }
@@ -200,14 +195,12 @@ std::unordered_set<size_t> BipartitionSet<Tree>::get_subtree_edges (
 //     Dump and Debug
 // -------------------------------------------------------------
 
-template <typename Tree>
-bool BipartitionSet<Tree>::validate()
+bool BipartitionSet::validate()
 {
     return true;
 }
 
-template <typename Tree>
-std::string BipartitionSet<Tree>::dump()
+std::string BipartitionSet::dump()
 {
     std::ostringstream out;
 
@@ -221,7 +214,7 @@ std::string BipartitionSet<Tree>::dump()
         out << "    " << i << " --> " << leaf_to_node_map_[i] << "\n";
     }
 
-    for (BipartitionType bi : bipartitions_) {
+    for (Bipartition bi : bipartitions_) {
         if (!bi.link_) {
             continue;
         }

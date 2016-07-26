@@ -31,12 +31,16 @@
  * @ingroup tree
  */
 
-#include <vector>
-
-#include "tree/tree.hpp"
+#include <cstddef> // size_t
 
 namespace genesis {
 namespace tree {
+
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Tree;
 
 // =================================================================================================
 //     Node Count Properties
@@ -44,25 +48,14 @@ namespace tree {
 
 // TODO add other interesting member functions: http://en.wikipedia.org/wiki/Tree_%28data_structure%29
 
-template <class Tree>
 int max_rank( Tree const& tree );
 
-template <class Tree>
 bool is_bifurcating( Tree const& tree );
 
-template <class Tree>
-size_t leaf_node_count( Tree const& tree );
-
-template <class Tree>
+size_t leaf_node_count(  Tree const& tree );
 size_t inner_node_count( Tree const& tree );
 
 } // namespace tree
 } // namespace genesis
-
-// =================================================================================================
-//     Inclusion of the implementation
-// =================================================================================================
-
-#include "tree/function/functions.tpp"
 
 #endif // include guard

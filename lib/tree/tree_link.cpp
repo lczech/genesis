@@ -22,14 +22,13 @@
 */
 
 /**
- * @brief Implementation of TreeLink class template.
- *
- * For reasons of readability, in this implementation file, the template data types
- * NodeDataType and EdgeDataType are abbreviated NDT and EDT, respectively.
+ * @brief Implementation of TreeLink class.
  *
  * @file
  * @ingroup tree
  */
+
+#include "tree/tree_link.hpp"
 
 namespace genesis {
 namespace tree {
@@ -41,8 +40,7 @@ namespace tree {
 /**
  * @brief Return the index of this Link.
  */
-template <class NDT, class EDT>
-size_t TreeLink<NDT, EDT>::index() const
+size_t TreeLink::index() const
 {
     return index_;
 }
@@ -50,8 +48,7 @@ size_t TreeLink<NDT, EDT>::index() const
 /**
  * @brief Return the next TreeLink within the TreeNode of this link.
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::next()
+TreeLink& TreeLink::next()
 {
     return *next_;
 }
@@ -59,8 +56,7 @@ TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::next()
 /**
  * @brief Return the next TreeLink within the TreeNode of this link.
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT> const& TreeLink<NDT, EDT>::next() const
+TreeLink const& TreeLink::next() const
 {
     return *next_;
 }
@@ -71,10 +67,9 @@ TreeLink<NDT, EDT> const& TreeLink<NDT, EDT>::next() const
  * The previous link of a given link `L` is the one whose next-pointer is pointing to `L`.
  * As this link first has to be found, this function is not as cheap as next().
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::prev()
+TreeLink& TreeLink::prev()
 {
-    LinkType* res = this;
+    TreeLink* res = this;
     while( &res->next() != this ) {
         res = &res->next();
     }
@@ -87,10 +82,9 @@ TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::prev()
  * The previous link of a given link `L` is the one whose next-pointer is pointing to `L`.
  * As this link first has to be found, this function is not as cheap as next().
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT> const& TreeLink<NDT, EDT>::prev() const
+TreeLink const& TreeLink::prev() const
 {
-    LinkType const* res = this;
+    TreeLink const* res = this;
     while( &res->next() != this ) {
         res = &res->next();
     }
@@ -100,8 +94,7 @@ TreeLink<NDT, EDT> const& TreeLink<NDT, EDT>::prev() const
 /**
  * @brief Return the TreeLink of the adjacent TreeNode.
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::outer()
+TreeLink& TreeLink::outer()
 {
     return *outer_;
 }
@@ -109,8 +102,7 @@ TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::outer()
 /**
  * @brief Return the TreeLink of the adjacent TreeNode.
  */
-template <class NDT, class EDT>
-TreeLink<NDT, EDT> const& TreeLink<NDT, EDT>::outer() const
+TreeLink const& TreeLink::outer() const
 {
     return *outer_;
 }
@@ -118,8 +110,7 @@ TreeLink<NDT, EDT> const& TreeLink<NDT, EDT>::outer() const
 /**
  * @brief Return the TreeEdge of this TreeLink.
  */
-template <class NDT, class EDT>
-TreeEdge<NDT, EDT>& TreeLink<NDT, EDT>::edge()
+TreeEdge& TreeLink::edge()
 {
     return *edge_;
 }
@@ -127,8 +118,7 @@ TreeEdge<NDT, EDT>& TreeLink<NDT, EDT>::edge()
 /**
  * @brief Return the TreeEdge of this TreeLink.
  */
-template <class NDT, class EDT>
-TreeEdge<NDT, EDT> const& TreeLink<NDT, EDT>::edge() const
+TreeEdge const& TreeLink::edge() const
 {
     return *edge_;
 }
@@ -136,8 +126,7 @@ TreeEdge<NDT, EDT> const& TreeLink<NDT, EDT>::edge() const
 /**
  * @brief Return the TreeNode of this TreeLink.
  */
-template <class NDT, class EDT>
-TreeNode<NDT, EDT>& TreeLink<NDT, EDT>::node()
+TreeNode& TreeLink::node()
 {
     return *node_;
 }
@@ -145,8 +134,7 @@ TreeNode<NDT, EDT>& TreeLink<NDT, EDT>::node()
 /**
  * @brief Return the TreeNode of this TreeLink.
  */
-template <class NDT, class EDT>
-TreeNode<NDT, EDT> const& TreeLink<NDT, EDT>::node() const
+TreeNode const& TreeLink::node() const
 {
     return *node_;
 }
@@ -155,36 +143,31 @@ TreeNode<NDT, EDT> const& TreeLink<NDT, EDT>::node() const
 //     Modifiers
 // =================================================================================================
 
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::reset_index( size_t val )
+TreeLink& TreeLink::reset_index( size_t val )
 {
     index_ = val;
     return *this;
 }
 
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::reset_next(  LinkType* val )
+TreeLink& TreeLink::reset_next(  TreeLink* val )
 {
     next_ = val;
     return *this;
 }
 
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::reset_outer( LinkType* val )
+TreeLink& TreeLink::reset_outer( TreeLink* val )
 {
     outer_ = val;
     return *this;
 }
 
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::reset_node(  NodeType* val )
+TreeLink& TreeLink::reset_node( TreeNode* val )
 {
     node_ = val;
     return *this;
 }
 
-template <class NDT, class EDT>
-TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::reset_edge(  EdgeType* val )
+TreeLink& TreeLink::reset_edge( TreeEdge* val )
 {
     edge_ = val;
     return *this;
@@ -197,8 +180,7 @@ TreeLink<NDT, EDT>& TreeLink<NDT, EDT>::reset_edge(  EdgeType* val )
 /**
  * @brief Return true iff the node of this link is a leaf node.
  */
-template <class NDT, class EDT>
-bool TreeLink<NDT, EDT>::is_leaf() const
+bool TreeLink::is_leaf() const
 {
     return next_ == this;
 }
@@ -206,8 +188,7 @@ bool TreeLink<NDT, EDT>::is_leaf() const
 /**
  * @brief Return true iff the node of this link is an inner node.
  */
-template <class NDT, class EDT>
-bool TreeLink<NDT, EDT>::is_inner() const
+bool TreeLink::is_inner() const
 {
     return next_ != this;
 }
@@ -218,8 +199,7 @@ bool TreeLink<NDT, EDT>::is_inner() const
  * At the moment, a link does not contain any information, so an empty string is returned.
  * This might change in the future, in case links also contain data.
  */
-template <class NDT, class EDT>
-std::string TreeLink<NDT, EDT>::dump() const
+std::string TreeLink::dump() const
 {
     return "";
 }

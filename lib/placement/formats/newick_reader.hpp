@@ -57,23 +57,30 @@ class PlacementTreeNewickReaderMixin : public Base
 
 public:
 
-    typedef typename Base::TreeType TreeType;
-    typedef typename Base::NodeType NodeType;
-    typedef typename Base::EdgeType EdgeType;
-    typedef typename Base::LinkType LinkType;
-
     // -------------------------------------------------------------------------
     //     Overridden Member Functions
     // -------------------------------------------------------------------------
 
 protected:
 
-    virtual void element_to_edge( tree::NewickBrokerElement const& element, EdgeType& edge ) override
+    virtual void element_to_node( tree::NewickBrokerElement const& element, tree::TreeNode& node ) override
+    {
+        Base::element_to_node( element, node );
+        std::string name = tree::node_data_cast< tree::DefaultNodeData >( node ).name;
+        node.reset_data( utils::make_unique< PlacementNodeData >() );
+        tree::node_data_cast< PlacementNodeData >( node ).name = name;
+    }
+
+    virtual void element_to_edge( tree::NewickBrokerElement const& element, tree::TreeEdge& edge ) override
     {
         Base::element_to_edge(element, edge);
+        double branch_length = tree::edge_data_cast< tree::DefaultEdgeData >( edge ).branch_length;
+        edge.reset_data( utils::make_unique< PlacementEdgeData >() );
+        auto& edge_data = tree::edge_data_cast< PlacementEdgeData >( edge );
+        edge_data.branch_length = branch_length;
 
         // Process the edge num.
-        edge.data.reset_edge_num(-1);
+        edge_data.reset_edge_num(-1);
         if (element.tags.size() == 0) {
             throw std::invalid_argument(
                 "Edge at node '" + element.name + "' does not contain a tag value like '{42}'" +
@@ -87,7 +94,7 @@ protected:
             );
         }
         assert(element.tags.size() == 1);
-        edge.data.reset_edge_num( std::stoi( element.tags[0] ));
+        edge_data.reset_edge_num( std::stoi( element.tags[0] ));
     }
 
 };
@@ -97,7 +104,7 @@ protected:
 // =================================================================================================
 
 typedef PlacementTreeNewickReaderMixin<
-        tree::DefaultTreeNewickReaderMixin< tree::NewickReader< PlacementTree > >
+        tree::DefaultTreeNewickReaderMixin< tree::NewickReader >
     >
     PlacementTreeNewickReader;
 

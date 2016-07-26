@@ -24,25 +24,29 @@
 /**
  * @brief Implementation of functions for reading and writing Phyloxml files.
  *
- * For reasons of readability, in this implementation file, the template data types
- * NodeDataType and EdgeDataType are abbreviated using NDT and EDT, respectively.
- *
  * @file
  * @ingroup tree
  */
 
-#include <assert.h>
-#include <stdexcept>
-#include <vector>
+#include "tree/formats/phyloxml/writer.hpp"
+
+#include "tree/tree.hpp"
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
+#include "tree/tree_node.hpp"
 
 #include "tree/function/distances.hpp"
 #include "tree/iterator/preorder.hpp"
-#include "tree/tree.hpp"
+
 #include "utils/core/fs.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/core/std.hpp"
 #include "utils/formats/xml/document.hpp"
 #include "utils/formats/xml/writer.hpp"
+
+#include <assert.h>
+#include <stdexcept>
+#include <vector>
 
 namespace genesis {
 namespace tree {
@@ -55,16 +59,14 @@ namespace tree {
 //     Virtual Methods
 // -------------------------------------------------------------------------
 
-// template <typename TreeType>
-// void PhyloxmlWriter<TreeType>::element_to_node( XmlElement const& element, NodeType& node )
+// // void PhyloxmlWriter::element_to_node( XmlElement const& element, NodeType& node )
 // {
 //     // Silence unused parameter warnings.
 //     (void) element;
 //     (void) noe;
 // }
 //
-// template <typename TreeType>
-// void PhyloxmlWriter<TreeType>::element_to_edge( XmlElement const& element, EdgeType& edge )
+// // void PhyloxmlWriter::element_to_edge( XmlElement const& element, EdgeType& edge )
 // {
 //     // Silence unused parameter warnings.
 //     (void) element;
@@ -81,8 +83,7 @@ namespace tree {
  * If the file already exists, the function throws `std::runtime_error`.
  * The function uses utils::file_write. See there for other exceptions that can be thrown.
  */
-template <typename TreeType>
-void PhyloxmlWriter<TreeType>::to_file (const TreeType& tree, const std::string filename)
+void PhyloxmlWriter::to_file (const Tree& tree, const std::string filename)
 {
     if( utils::file_exists(filename) ) {
         throw std::runtime_error( "Phyloxml file '" + filename + "' already exist." );
@@ -98,8 +99,7 @@ void PhyloxmlWriter<TreeType>::to_file (const TreeType& tree, const std::string 
  * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
-template <typename TreeType>
-void PhyloxmlWriter<TreeType>::to_string (const TreeType& tree, std::string& ts)
+void PhyloxmlWriter::to_string (const Tree& tree, std::string& ts)
 {
     ts = to_string(tree);
 }
@@ -110,8 +110,7 @@ void PhyloxmlWriter<TreeType>::to_string (const TreeType& tree, std::string& ts)
  * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
-template <typename TreeType>
-std::string PhyloxmlWriter<TreeType>::to_string (const TreeType& tree)
+std::string PhyloxmlWriter::to_string (const Tree& tree)
 {
     utils::XmlDocument xml;
     to_document(tree, xml);
@@ -121,8 +120,7 @@ std::string PhyloxmlWriter<TreeType>::to_string (const TreeType& tree)
 /**
  * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
  */
-template <typename TreeType>
-void PhyloxmlWriter<TreeType>::to_document (const TreeType& tree, utils::XmlDocument& xml)
+void PhyloxmlWriter::to_document (const Tree& tree, utils::XmlDocument& xml)
 {
     xml.clear();
     prepare_writing(tree, xml);
@@ -193,32 +191,28 @@ void PhyloxmlWriter<TreeType>::to_document (const TreeType& tree, utils::XmlDocu
 //     Virtual Methods
 // -------------------------------------------------------------------------
 
-template <typename TreeType>
-void PhyloxmlWriter<TreeType>::prepare_writing( TreeType const& tree, utils::XmlDocument& xml )
+void PhyloxmlWriter::prepare_writing( Tree const& tree, utils::XmlDocument& xml )
 {
     // Silence unused parameter warnings.
     (void) tree;
     (void) xml;
 }
 
-template <typename TreeType>
-void PhyloxmlWriter<TreeType>::node_to_element( NodeType const& node, utils::XmlElement& element )
+void PhyloxmlWriter::node_to_element( TreeNode const& node, utils::XmlElement& element )
 {
     // Silence unused parameter warnings.
     (void) element;
     (void) node;
 }
 
-template <typename TreeType>
-void PhyloxmlWriter<TreeType>::edge_to_element( EdgeType const& edge, utils::XmlElement& element )
+void PhyloxmlWriter::edge_to_element( TreeEdge const& edge, utils::XmlElement& element )
 {
     // Silence unused parameter warnings.
     (void) element;
     (void) edge;
 }
 
-template <typename TreeType>
-void PhyloxmlWriter<TreeType>::finish_writing( TreeType const& tree, utils::XmlDocument& xml )
+void PhyloxmlWriter::finish_writing( Tree const& tree, utils::XmlDocument& xml )
 {
     // Silence unused parameter warnings.
     (void) tree;

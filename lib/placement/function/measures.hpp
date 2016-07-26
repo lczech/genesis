@@ -31,6 +31,8 @@
  * @ingroup placement
  */
 
+#include "placement/placement_tree.hpp"
+
 #include <cstddef>
 #include <utility>
 #include <vector>
@@ -42,22 +44,20 @@ namespace genesis {
 // =================================================================================================
 
 namespace tree {
-    template<class NodeDataType, class EdgeDataType>
-    class TreeNode;
 
-    template<class NodeDataType, class EdgeDataType>
+    class TreeNode;
     class TreeEdge;
+
 }
 
 namespace placement {
+
     class Sample;
     class SampleSet;
     class PlacementTreeEdgeData;
     class PlacementTreeNodeData;
     struct PqueryPlain;
 
-    typedef tree::TreeNode< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTreeNode;
-    typedef tree::TreeEdge< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTreeEdge;
 }
 
 namespace utils {

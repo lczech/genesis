@@ -28,6 +28,13 @@
  * @ingroup tree
  */
 
+#include "tree/function/functions.hpp"
+
+#include "tree/tree.hpp"
+#include "tree/tree_edge.hpp"
+#include "tree/tree_link.hpp"
+#include "tree/tree_node.hpp"
+
 #include "utils/core/logging.hpp"
 
 #include <algorithm>
@@ -43,7 +50,6 @@ namespace tree {
 /**
  * @brief Return the highest rank of the nodes of the Tree.
  */
-template <class Tree>
 int max_rank( Tree const& tree )
 {
     int max = -1;
@@ -61,7 +67,6 @@ int max_rank( Tree const& tree )
 /**
  * @brief Return whether the Tree is bifurcating.
  */
-template <class Tree>
 bool is_bifurcating( Tree const& tree )
 {
     return max_rank( tree ) == 2;
@@ -70,7 +75,6 @@ bool is_bifurcating( Tree const& tree )
 /**
  * @brief Count the number of leaf nodes of a Tree.
  */
-template <class Tree>
 size_t leaf_node_count( Tree const& tree )
 {
     size_t sum = 0;
@@ -86,7 +90,6 @@ size_t leaf_node_count( Tree const& tree )
 /**
  * @brief Count the number of inner nodes.
  */
-template <class Tree>
 size_t inner_node_count( Tree const& tree )
 {
     return tree.node_count() - leaf_node_count( tree );

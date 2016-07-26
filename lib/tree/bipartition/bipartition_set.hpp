@@ -40,7 +40,6 @@
 namespace genesis {
 namespace tree {
 
-template <typename Tree>
 class BipartitionSet
 {
 public:
@@ -49,14 +48,7 @@ public:
     //     Declarations and Constructor
     // -------------------------------------------------------------
 
-    typedef Bipartition <Tree> BipartitionType;
-
-    typedef Tree                    TreeType;
-    typedef typename Tree::NodeType NodeType;
-    typedef typename Tree::LinkType LinkType;
-    typedef typename Tree::EdgeType EdgeType;
-
-    BipartitionSet (TreeType& tree) : tree_(tree) {};
+    BipartitionSet (Tree& tree) : tree_(tree) {};
 
     // -------------------------------------------------------------
     //     Member Functions
@@ -65,8 +57,8 @@ public:
     void make();
     void make_index();
 
-    BipartitionType*           find_smallest_subtree (std::vector<NodeType*> nodes);
-    std::unordered_set<size_t> get_subtree_edges     (LinkType*              subtree);
+    Bipartition* find_smallest_subtree ( std::vector<TreeNode*> nodes );
+    std::unordered_set<size_t> get_subtree_edges( TreeLink* subtree );
 
     bool        validate();
     std::string dump();
@@ -77,23 +69,16 @@ public:
 
 protected:
 
-    TreeType&              tree_;
+    Tree&              tree_;
 
     std::vector<int>             node_to_leaf_map_;
     std::vector<size_t>          leaf_to_node_map_;
 
-    std::vector<BipartitionType> bipartitions_;
+    std::vector<Bipartition> bipartitions_;
 
 };
 
 } // namespace tree
 } // namespace genesis
-
-// =============================================================================
-//     Inclusion of the implementation
-// =============================================================================
-
-// This is a class template, so do the inclusion here.
-#include "tree/bipartition/bipartition_set.tpp"
 
 #endif // include guard

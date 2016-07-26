@@ -44,15 +44,14 @@ namespace utils {
 }
 
 namespace tree {
-    template<class NodeDataType, class EdgeDataType>
     class Tree;
 }
 
 namespace placement {
-    class PlacementTreeNodeData;
-    class PlacementTreeEdgeData;
+    class PlacementNodeData;
+    class PlacementEdgeData;
 
-    typedef tree::Tree< PlacementTreeNodeData, PlacementTreeEdgeData > PlacementTree;
+    using PlacementTree = tree::Tree;
 
     class Sample;
 }

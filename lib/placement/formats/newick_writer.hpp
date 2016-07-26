@@ -61,11 +61,6 @@ class PlacementTreeNewickWriterMixin : public Base
 
 public:
 
-    typedef typename Base::TreeType TreeType;
-    typedef typename Base::NodeType NodeType;
-    typedef typename Base::EdgeType EdgeType;
-    typedef typename Base::LinkType LinkType;
-
     // -------------------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------------------
@@ -108,12 +103,14 @@ public:
 
 protected:
 
-    virtual void edge_to_element( EdgeType const& edge, tree::NewickBrokerElement& element ) override
+    virtual void edge_to_element( tree::TreeEdge const& edge, tree::NewickBrokerElement& element ) override
     {
         Base::edge_to_element(edge, element);
 
         if (enable_edge_nums_) {
-            element.tags.push_back(std::to_string(edge.data.edge_num()));
+            element.tags.push_back( std::to_string( 
+                tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num()
+            ));
         }
         if (enable_placement_counts_) {
             element.comments.push_back(std::to_string( placement_counts_[ edge.index() ]));
@@ -137,7 +134,7 @@ private:
 // =================================================================================================
 
 typedef PlacementTreeNewickWriterMixin<
-        tree::DefaultTreeNewickWriterMixin< tree::NewickWriter< PlacementTree > >
+        tree::DefaultTreeNewickWriterMixin< tree::NewickWriter >
     >
     PlacementTreeNewickWriter;
 
