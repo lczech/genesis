@@ -950,7 +950,8 @@ std::vector<int> closest_leaf_depth_histogram( Sample const& smp )
  *     double bin_size = (max - min) / bins;
  *     std::vector<int> hist = closest_leaf_distance_histogram (min, max, bins);
  *     for (unsigned int bin = 0; bin < hist.size(); ++bin) {
- *         LOG_INFO << "Bin " << bin << " [" << bin * bin_size << "; " << (bin+1) * bin_size << ") has " << hist[bin] << " placements.";
+ *         LOG_INFO << "Bin " << bin << " [" << bin * bin_size << "; "
+ *                  << (bin+1) * bin_size << ") has " << hist[bin] << " placements.";
  *     }
  * %
  */
@@ -1014,7 +1015,8 @@ std::vector<int> closest_leaf_distance_histogram (
  *     double bin_size = (max - min) / bins;
  *     LOG_INFO << "Histogram boundaries: [" << min << "," << max << ").";
  *     for (unsigned int bin = 0; bin < hist.size(); ++bin) {
- *         LOG_INFO << "Bin " << bin << " [" << bin * bin_size << "; " << (bin+1) * bin_size << ") has " << hist[bin] << " placements.";
+ *         LOG_INFO << "Bin " << bin << " [" << bin * bin_size << "; "
+ *                  << (bin+1) * bin_size << ") has " << hist[bin] << " placements.";
  *     }
  *
  * It has a slightly higher time and memory consumption than the non-automatic version

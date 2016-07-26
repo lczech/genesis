@@ -162,7 +162,8 @@ public:
 
     inline std::string dump() const
     {
-        return "Length: " + std::to_string(branch_length) + "\tEdge Num: " + std::to_string(edge_num_);
+        return "Length: " + std::to_string(branch_length)
+             + "\tEdge Num: " + std::to_string(edge_num_);
     }
 
     int edge_num() const;
