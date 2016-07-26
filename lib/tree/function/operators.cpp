@@ -126,7 +126,7 @@ bool equal(
     return true;
 }
 
-/**
+/* *
  * @brief Compares two trees for equality using the respective comparision operators for their nodes
  * and edges.
  *
