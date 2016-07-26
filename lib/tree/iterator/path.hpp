@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_ITERATOR_reverse_path_H_
-#define GENESIS_TREE_ITERATOR_reverse_path_H_
+#ifndef GENESIS_TREE_ITERATOR_PATH_H_
+#define GENESIS_TREE_ITERATOR_PATH_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
