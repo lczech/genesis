@@ -31,6 +31,8 @@
 #include "common.hpp"
 
 #include <memory>
+#include <string>
+#include <unordered_set>
 
 #include "lib/placement/formats/jplace_reader.hpp"
 #include "lib/placement/formats/newick_reader.hpp"
@@ -44,7 +46,7 @@
 using namespace genesis;
 using namespace genesis::placement;
 
-TEST(SampleFunctions, Filter)
+TEST( SampleFunctions, FilterPlacements )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -54,7 +56,7 @@ TEST(SampleFunctions, Filter)
     Sample smp;
     EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
 
-    // Check before merging.
+    // Check before filtering.
     EXPECT_EQ( 10, total_placement_count(smp) );
 
     // Filter everything below a threshold and check result.
@@ -74,6 +76,65 @@ TEST(SampleFunctions, Filter)
     // Filter max number of placements and check result.
     filter_min_accumulated_weight( smp, 0.6 );
     EXPECT_EQ( 8, total_placement_count(smp) );
+}
+
+TEST( SampleFunctions, FilterPqueryNames )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read file.
+    std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
+    Sample smp;
+    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+
+    // Check before filtering.
+    EXPECT_EQ( 10, total_placement_count(smp) );
+
+    // Keep list.
+    std::unordered_set<std::string> keep_list = { "a", "c" };
+    filter_pqueries_keeping_names( smp, keep_list );
+    EXPECT_EQ( 6, total_placement_count(smp) );
+
+    // Re-read the file.
+    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+
+    // Remove list.
+    std::unordered_set<std::string> remove_list = { "a", "c" };
+    filter_pqueries_removing_names( smp, remove_list );
+    EXPECT_EQ( 4, total_placement_count(smp) );
+}
+
+TEST( SampleFunctions, FilterPqueryNameSets )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read files.
+    std::string infile_1 = environment->data_dir + "placement/duplicates_a.jplace";
+    std::string infile_2 = environment->data_dir + "placement/duplicates_b.jplace";
+    Sample sample_1;
+    Sample sample_2;
+    EXPECT_NO_THROW( JplaceReader().from_file( infile_1, sample_1 ));
+    EXPECT_NO_THROW( JplaceReader().from_file( infile_2, sample_2 ));
+
+    // Checks before filtering.
+    EXPECT_EQ(  8, total_placement_count( sample_1 ));
+    EXPECT_EQ( 10, total_placement_count( sample_2 ));
+
+    // Intersection.
+    filter_pqueries_intersecting_names( sample_1, sample_2 );
+    EXPECT_EQ(  8, total_placement_count( sample_1 ));
+    EXPECT_EQ(  8, total_placement_count( sample_2 ));
+
+    // Re-read the files.
+    EXPECT_NO_THROW( JplaceReader().from_file( infile_1, sample_1 ));
+    EXPECT_NO_THROW( JplaceReader().from_file( infile_2, sample_2 ));
+
+    // Symmetric difference.
+    filter_pqueries_differing_names( sample_1, sample_2 );
+    EXPECT_EQ(  0, total_placement_count( sample_1 ));
+    EXPECT_EQ(  2, total_placement_count( sample_2 ));
 }
 
 TEST( SampleFunctions, ConvertFromDefaultTree )

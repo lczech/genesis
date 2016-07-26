@@ -189,7 +189,8 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
             place.primary_node_index   = oplace.edge().primary_node().index();
             place.secondary_node_index = oplace.edge().secondary_node().index();
 
-            place.branch_length        = tree::edge_data_cast< PlacementEdgeData >( oplace.edge() ).branch_length;
+            auto const& oplace_data    = tree::edge_data_cast< PlacementEdgeData >( oplace.edge() );
+            place.branch_length        = oplace_data.branch_length;
             place.pendant_length       = oplace.pendant_length;
             place.proximal_length      = oplace.proximal_length;
             place.like_weight_ratio    = oplace.like_weight_ratio;
@@ -287,7 +288,9 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
                      << tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num() << "'.";
             return false;
         }
-        edge_num_map.emplace( tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num(), (*it_e).get() );
+        edge_num_map.emplace(
+            tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num(), (*it_e).get()
+        );
     }
     if( ! has_correct_edge_nums( smp.tree() )) {
         LOG_INFO << "Tree does not have correct edge nums.";
@@ -315,6 +318,7 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
         double ratio_sum = 0.0;
         for( auto pit = pqry.begin_placements(); pit != pqry.end_placements(); ++pit ) {
             auto const& p = *pit;
+            auto const& edge_data = tree::edge_data_cast< PlacementEdgeData >( p.edge() );
 
             // Check if the placement has a valid pointer to its edge. This is a bit hard to do,
             // as we use a raw pointer, so there is no easy way of telling whether it is valid
@@ -322,8 +326,8 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
             // properties.
             if(
                 p.edge().index() >= smp.tree().edge_count()         ||
-                edge_num_map.count( tree::edge_data_cast< PlacementEdgeData >( p.edge() ).edge_num() ) == 0 ||
-                tree::edge_data_cast< PlacementEdgeData >( p.edge() ).edge_num() != p.edge_num()
+                edge_num_map.count( edge_data.edge_num() ) == 0     ||
+                edge_data.edge_num() != p.edge_num()
             ) {
                 LOG_INFO << "Invlaid edge pointer or edge num.";
                 return false;
@@ -353,10 +357,10 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
                     return false;
                 }
             }
-            if (p.proximal_length > tree::edge_data_cast< PlacementEdgeData >( p.edge() ).branch_length) {
+            if (p.proximal_length > edge_data.branch_length) {
                 LOG_INFO << "Invalid placement with proximal_length '" << p.proximal_length
                          << "' > branch_length '"
-                         << tree::edge_data_cast< PlacementEdgeData >( p.edge() ).branch_length << "' at "
+                         << edge_data.branch_length << "' at "
                          << name << ".";
                 if (break_on_values) {
                     return false;

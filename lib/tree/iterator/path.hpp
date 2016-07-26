@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_ITERATOR_PATH_H_
-#define GENESIS_TREE_ITERATOR_PATH_H_
+#ifndef GENESIS_TREE_ITERATOR_reverse_path_H_
+#define GENESIS_TREE_ITERATOR_reverse_path_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,20 +31,30 @@
  * @ingroup tree
  */
 
+#include "tree/tree.hpp"
+#include "utils/core/range.hpp"
+
 #include <assert.h>
-#include <deque>
 #include <iterator>
+#include <vector>
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Tree;
+class TreeNode;
+class TreeEdge;
+class TreeLink;
+
+// =================================================================================================
 //     Path Iterator
 // =================================================================================================
 
-/*
-
-template <typename LinkPointerType, typename NodePointerType, typename EdgePointerType>
+template <typename LinkType, typename NodeType, typename EdgeType>
 class IteratorPath
 {
 
@@ -54,29 +64,100 @@ public:
     //     Typedefs
     // -----------------------------------------------------
 
-    typedef IteratorPath<LinkPointerType, NodePointerType, EdgePointerType> self_type;
-    typedef std::forward_iterator_tag iterator_category;
+    using iterator_category = std::forward_iterator_tag;
+    using self_type         = IteratorPath<LinkType, NodeType, EdgeType>;
 
     // -----------------------------------------------------
     //     Constructors and Rule of Five
     // -----------------------------------------------------
 
-    IteratorPath (LinkPointerType from, LinkPointerType to) : start_(from), to_(to);
+    IteratorPath()
+        : start_(  nullptr )
+        , finish_( nullptr )
+        , lca_(    nullptr )
+        , reverse_path_()
+    {}
+
+    IteratorPath( NodeType& start, NodeType& finish )
+        : IteratorPath( start.link(), finish.link() )
+    {}
+
+    IteratorPath( LinkType& start, LinkType& finish )
+        : start_(  &start  )
+        , finish_( &finish )
+        , lca_(    &start  )
+        , reverse_path_()
     {
-        if (link) {
-            stack_.push_back(link);
-            if (link->outer() != link) {
-                stack_.push_front(link->outer());
-                link = link->outer();
+        // Helper function to find all links between a given link and the root.
+        auto path_to_root = [] ( LinkType& link ) {
+            std::vector<LinkType*> path;
+
+            // Move towards the root and record all links in between.
+            LinkType* cur_link = &link.node().primary_link();
+            while( ! cur_link->node().is_root() ) {
+
+                // Assert that the primary direction is correct.
+                assert( cur_link == &cur_link->edge().secondary_link() );
+
+                // Add the primary link of the current node to the list.
+                path.push_back( cur_link );
+
+                // Move one node towards the root.
+                cur_link = &cur_link->edge().primary_link().node().primary_link();
             }
-            while (link->is_inner()) {
-                push_front_children(link);
-                link = link->next()->outer();
-            }
-            assert(link == stack_.front());
-            stack_.pop_front();
+
+            // Now finally add the root itself and return the list.
+            assert( cur_link->node().is_root() );
+            path.push_back( cur_link );
+            return path;
+        };
+
+        // Treat special case start == finish.
+        // That makes sure that we do not need to specially check for an empty path later.
+        if( &start == &finish ) {
+            reverse_path_.push_back( &start );
+            return;
         }
-        link_ = link;
+
+        // Get paths to root for both links.
+        auto start_path  = path_to_root( start );
+        auto finish_path = path_to_root( finish );
+
+        // We must have at least the two original links in the front and the root in the back.
+        assert( start_path.size() > 0 && finish_path.size() > 0 );
+        assert( start_path.front()    == &start  );
+        assert( finish_path.front()   == &finish );
+        assert( start_path.back()     == finish_path.back() );
+
+        // Remove from back as long as the last two elements are the same.
+        // At the end of this, the remaining links are the ones on the path between
+        // the two original links.
+        while(
+            start_path.size()  > 1 &&
+            finish_path.size() > 1 &&
+            start_path.at( start_path.size() - 1 ) == finish_path.at( finish_path.size() - 1 ) &&
+            start_path.at( start_path.size() - 2 ) == finish_path.at( finish_path.size() - 2 )
+        ) {
+            start_path.pop_back();
+            finish_path.pop_back();
+        }
+
+        // Now, the last elements need to be the same (the LCA of the start and finish node).
+        assert( start_path.size() > 0 && finish_path.size() > 0 );
+        assert( start_path.back()     == finish_path.back() );
+
+        // The LCA (last common ancestor) is the node that both paths have in common. Store it.
+        lca_ = start_path.back();
+
+        // We store the path backwards, because removing from a vector's end is faster.
+        // Thus, first add the path from finish to root/LCA, then from root/LCA to start (reversed).
+        // Also, remove the root/LCA once, otherwise, it would appear twice, as it is in both lists.
+        reverse_path_ = std::move( finish_path );
+        reverse_path_.pop_back();
+        reverse_path_.insert( reverse_path_.end(), start_path.rbegin(), start_path.rend() );
+
+        assert( reverse_path_.front() == &finish );
+        assert( reverse_path_.back()  == &start );
     }
 
     ~IteratorPath() = default;
@@ -91,23 +172,24 @@ public:
     //     Operators
     // -----------------------------------------------------
 
+    self_type operator * ()
+    {
+        return *this;
+    }
+
     self_type operator ++ ()
     {
-        if (stack_.empty()) {
-            link_ = nullptr;
-        } else if (link_->outer()->next() == stack_.front()) {
-            link_ = stack_.front();
-            stack_.pop_front();
-        } else {
-            link_ = stack_.front();
-            while (link_->is_inner()) {
-                push_front_children(link_);
-                link_ = link_->next()->outer();
-            }
-            assert(link_ == stack_.front());
-            stack_.pop_front();
-        }
+        // If there is more than one element in the path, move to the next one.
+        if( reverse_path_.size() > 1 ) {
+            reverse_path_.pop_back();
 
+        // If there is only one element left (which was just visited), we are done.
+        } else {
+            start_  = nullptr;
+            finish_ = nullptr;
+            lca_    = nullptr;
+            reverse_path_.clear();
+        }
         return *this;
     }
 
@@ -120,7 +202,9 @@ public:
 
     bool operator == (const self_type &other) const
     {
-        return other.link_ == link_;
+        return other.start_               == start_ &&
+               other.finish_              == finish_ &&
+               other.reverse_path_.size() == reverse_path_.size();
     }
 
     bool operator != (const self_type &other) const
@@ -132,50 +216,107 @@ public:
     //     Members
     // -----------------------------------------------------
 
-    LinkPointerType link() const
+    /**
+     * @brief Return whether the current iterator position (node) is the last common ancestor of
+     * the two start and finish nodes.
+     *
+     * This is useful in many cases:
+     *
+     *   * Find the LCA (obviously).
+     *   * Check when the path is moving away from the root again.
+     *   * Iterating edges instead of nodes.
+     *
+     * The last bullet point may need some explanation:
+     *
+     * The iterator visits all nodes between the start and the finish (both included).
+     * On the path between them, there is however one edge fewer than the number of visited nodes.
+     * That means, if you want to visit each *edge* on the path between two nodes
+     * (instead of each *node*), you need a way to spot this superflous edge.
+     * This function indicates the edge that needs to be skipped in this case.
+     */
+    bool is_last_common_ancestor() const
     {
-        return link_;
+        return reverse_path_.back() == lca_;
     }
 
-    NodePointerType node() const
+    /**
+     * @brief Alias for is_last_common_ancestor(). See there for more information.
+     */
+    bool is_lca() const
     {
-        return link_->node();
+        return is_last_common_ancestor();
     }
 
-    EdgePointerType edge() const
+    LinkType& link() const
     {
-        return link_->edge();
+        return *reverse_path_.back();
     }
 
-    LinkPointerType from_link() const
+    NodeType& node() const
     {
-        return from_;
+        return reverse_path_.back()->node();
     }
 
-    NodePointerType from_node() const
+    EdgeType& edge() const
     {
-        return from_->node();
+        return reverse_path_.back()->edge();
     }
 
-    LinkPointerType to_link() const
+    LinkType& start_link() const
     {
-        return to_;
+        return *start_;
     }
 
-    NodePointerType to_node() const
+    NodeType& start_node() const
     {
-        return to_->node();
+        return start_->node();
+    }
+
+    LinkType& finish_link() const
+    {
+        return *finish_;
+    }
+
+    NodeType& finish_node() const
+    {
+        return finish_->node();
     }
 
 private:
 
-    LinkPointerType             link_;
-    LinkPointerType             from_;
-    LinkPointerType             to_;
-    std::deque<LinkPointerType> stack_;
+    LinkType*              start_;
+    LinkType*              finish_;
+    LinkType*              lca_;
+
+    // Store the path between the finish and the start (thus, reversed). We do it this way
+    // as we can then simply pop elements from the vector's end while iterating, which is fast.
+    std::vector<LinkType*> reverse_path_;
+
 };
 
-*/
+// =================================================================================================
+//     Path Wrapper Functions
+// =================================================================================================
+
+template<typename ElementType>
+utils::Range< IteratorPath< TreeLink const, TreeNode const, TreeEdge const >>
+path( ElementType const& start, ElementType const& finish )
+{
+    return {
+        IteratorPath< const TreeLink, const TreeNode, const TreeEdge >( start, finish ),
+        IteratorPath< const TreeLink, const TreeNode, const TreeEdge >()
+    };
+}
+
+template<typename ElementType>
+utils::Range< IteratorPath< TreeLink, TreeNode, TreeEdge >>
+path( ElementType& start, ElementType& finish )
+{
+    return {
+        IteratorPath< TreeLink, TreeNode, TreeEdge >( start, finish ),
+        IteratorPath< TreeLink, TreeNode, TreeEdge >()
+    };
+}
 
 } // namespace tree
 } // namespace genesis

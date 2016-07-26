@@ -36,10 +36,8 @@
 #include "lib/tree/default/functions.hpp"
 #include "lib/tree/default/newick_reader.hpp"
 #include "lib/tree/formats/newick/reader.hpp"
+#include "lib/tree/iterator/eulertour.hpp"
 #include "lib/tree/tree.hpp"
-#include "tree/iterator/eulertour.hpp"
-#include "tree/iterator/postorder.hpp"
-#include "tree/iterator/preorder.hpp"
 
 using namespace genesis;
 using namespace tree;
@@ -232,74 +230,4 @@ TEST (TreeIterator, Eulertour)
     TestEulertour("G", "GRABACDCECARFRGHGI");
     TestEulertour("H", "HGIGRABACDCECARFRG");
     TestEulertour("I", "IGRABACDCECARFRGHG");
-}
-
-// =================================================================================================
-//     Preorder
-// =================================================================================================
-
-void TestPreorder(std::string node_name, std::string out_nodes)
-{
-    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    std::string nodes = "";
-
-    Tree tree;
-    DefaultTreeNewickReader().from_string(input, tree);
-
-    auto node = find_node(tree, node_name);
-    ASSERT_NE(nullptr, node);
-
-    for( auto it : preorder(*node) ) {
-        nodes += node_data_cast< DefaultNodeData >( it.node() ).name;
-    }
-    EXPECT_EQ(out_nodes, nodes) << " with start node " << node_name;
-}
-
-TEST (TreeIterator, Preorder)
-{
-    TestPreorder("R", "RABCDEFGHI");
-    TestPreorder("A", "ARFGHIBCDE");
-    TestPreorder("B", "BACDERFGHI");
-    TestPreorder("C", "CARFGHIBDE");
-    TestPreorder("D", "DCEARFGHIB");
-    TestPreorder("E", "ECARFGHIBD");
-    TestPreorder("F", "FRGHIABCDE");
-    TestPreorder("G", "GRABCDEFHI");
-    TestPreorder("H", "HGIRABCDEF");
-    TestPreorder("I", "IGRABCDEFH");
-}
-
-// =================================================================================================
-//     Postorder
-// =================================================================================================
-
-void TestPostorder(std::string node_name, std::string out_nodes)
-{
-    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
-    std::string nodes = "";
-
-    Tree tree;
-    DefaultTreeNewickReader().from_string(input, tree);
-
-    auto node = find_node(tree, node_name);
-    ASSERT_NE(nullptr, node);
-
-    for( auto it : postorder(*node) ) {
-        nodes += node_data_cast< DefaultNodeData >( it.node() ).name;
-    }
-    EXPECT_EQ(out_nodes, nodes) << " with start node " << node_name;
-}
-
-TEST (TreeIterator, Postorder)
-{
-    TestPostorder("R", "BDECAFHIGR");
-    TestPostorder("A", "FHIGRBDECA");
-    TestPostorder("B", "DECFHIGRAB");
-    TestPostorder("C", "FHIGRBADEC");
-    // TestPostorder("D", "");
-    // TestPostorder("E", "");
-    // TestPostorder("F", "");
-    // TestPostorder("G", "");
-    // TestPostorder("H", "");
-    // TestPostorder("I", "");
 }

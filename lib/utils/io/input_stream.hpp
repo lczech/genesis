@@ -47,7 +47,7 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Stream interface for reading data from an @link InputSourceInterface InputSource@endlink,
+ * @brief Stream interface for reading data from an @link BaseInputSource InputSource@endlink,
  * that keeps track of line and column counters.
  *
  * This class provides similar functionality to `std::istream`, but has a different way of handling
@@ -106,7 +106,7 @@ public:
         , column_(   0 )
     {}
 
-    explicit InputStream( std::unique_ptr<InputSourceInterface> input_source )
+    explicit InputStream( std::unique_ptr<BaseInputSource> input_source )
         : line_(   1 )
         , column_( 1 )
     {
@@ -450,7 +450,7 @@ private:
     /**
      * @brief Init the buffers and the state of this object.
      */
-    void init_( std::unique_ptr<InputSourceInterface> input_source )
+    void init_( std::unique_ptr<BaseInputSource> input_source )
     {
         // Set to empty defaults if there is no input.
         if( input_source == nullptr ) {
@@ -472,10 +472,10 @@ private:
         // The third block is for the async reading.
         buffer_ = new char[ 3 * BlockLength ];
 
-        // Set source name.
-        source_name_ = input_source->source_name();
-
         try {
+            // Set source name.
+            source_name_ = input_source->source_name();
+
             // Read up to two blocks.
             data_pos_ = 0;
             data_end_ = input_source->read( buffer_, 2 * BlockLength );

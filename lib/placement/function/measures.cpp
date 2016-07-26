@@ -248,9 +248,10 @@ double earth_movers_distance (
 
                 // Use the relative position of the mass on its original branch to put it to the
                 // same position relative to its new branch.
-                double position = place.proximal_length
-                                / tree::edge_data_cast< PlacementEdgeData >( place.edge() ).branch_length
-                                * tree::edge_data_cast< tree::EmdEdgeData >( edge ).branch_length;
+                double position
+                    = place.proximal_length
+                    / tree::edge_data_cast< PlacementEdgeData >( place.edge() ).branch_length
+                    * tree::edge_data_cast< tree::EmdEdgeData >( edge ).branch_length;
 
                 // Add the mass at that position, normalized and using the sign.
                 tree::edge_data_cast< tree::EmdEdgeData >( edge ).masses[ position ]
@@ -392,8 +393,9 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
             // which means, they should be in the balance list already.
             assert(balance.count(link));
 
+            auto const& edge_data = tree::edge_data_cast< PlacementEdgeData >( it.edge() );
             curr_fulcrum.mass   += balance[link].mass;
-            curr_fulcrum.torque += balance[link].mass * tree::edge_data_cast< PlacementEdgeData >( it.edge() ).branch_length;
+            curr_fulcrum.torque += balance[link].mass * edge_data.branch_length;
             curr_fulcrum.torque += balance[link].torque;
             link    = &link->next();
         }
@@ -414,7 +416,8 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
 
     // LOG_DBG << "current balance:";
     // for (auto& v : balance) {
-    //     LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass << ", torque " << v.second.torque;
+    //     LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass
+    //              << ", torque " << v.second.torque;
     // }
 
     // Now we have calculated all massed that lie down the tree as seen from the root and the torque
@@ -504,13 +507,14 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
         // Subtract the mass and torque of the direction where we found the most torque again,
         // so that all that is left are the sums of all the other (not maximum) nodes. Then push it
         // towards to the end of the edge.
+        auto const& max_edge_data = tree::edge_data_cast< PlacementEdgeData >( max_link->edge() );
         sum.mass   -= balance[max_link].mass;
         sum.torque -= balance[max_link].torque;
-        sum.torque += sum.mass * tree::edge_data_cast< PlacementEdgeData >( max_link->edge() ).branch_length;
+        sum.torque += sum.mass * max_edge_data.branch_length;
 
         // Add masses of the placements on this edge.
         for( PqueryPlacement const* place : place_map[ max_link->edge().index() ]) {
-            double p_dist = tree::edge_data_cast< PlacementEdgeData >( max_link->edge() ).branch_length - place->proximal_length;
+            double p_dist = max_edge_data.branch_length - place->proximal_length;
             if (with_pendant_length) {
                 p_dist += place->pendant_length;
             }
@@ -534,11 +538,14 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
 
     // LOG_DBG << "current balance:";
     // for (auto& v : balance) {
-    //     LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass << ", torque " << v.second.torque;
+    //     LOG_DBG1 << "node " << v.first->node()->name << ", mass " << v.second.mass
+    //              << ", torque " << v.second.torque;
     // }
 
-    LOG_DBG << "cur  " << tree::node_data_cast< PlacementNodeData >( curr_link->node() ).name << " with mass " << balance[curr_link].mass << " and torque " << balance[curr_link].torque;
-    LOG_DBG << "prev " << tree::node_data_cast< PlacementNodeData >( prev_link->node() ).name << " with mass " << balance[prev_link].mass << " and torque " << balance[prev_link].torque;
+    LOG_DBG << "cur  " << tree::node_data_cast< PlacementNodeData >( curr_link->node() ).name
+            << " with mass " << balance[curr_link].mass << " and torque " << balance[curr_link].torque;
+    LOG_DBG << "prev " << tree::node_data_cast< PlacementNodeData >( prev_link->node() ).name
+            << " with mass " << balance[prev_link].mass << " and torque " << balance[prev_link].torque;
 
     // At this point, we have found the central edge that balances the placement masses on the tree.
     // curr_link is at the downwards (away from the root) end of this edge, while prev_link at its
@@ -547,7 +554,7 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     // consider the masses and torques that come from both ends of the edge, as well as the
     // placements on the edge itself.
 
-    PlacementTreeEdge const* central_edge = &curr_link->edge();
+    PlacementTreeEdge const* const central_edge = &curr_link->edge();
 
     // -------------------------------------------------------------------------
     //     Calculate Torques at Central Edge
@@ -594,11 +601,12 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     // approximation.
     // In code:
     double approx_proximal_length;
+    auto const& central_edge_data = tree::edge_data_cast< PlacementEdgeData >( *central_edge );
     if (prox_fulcrum.mass == 0.0 || dist_fulcrum.mass == 0.0) {
-        approx_proximal_length = tree::edge_data_cast< PlacementEdgeData >( *central_edge ).branch_length / 2.0;
+        approx_proximal_length = central_edge_data.branch_length / 2.0;
     } else {
         approx_proximal_length = (dist_fulcrum.torque - prox_fulcrum.torque
-                               + (dist_fulcrum.mass * tree::edge_data_cast< PlacementEdgeData >( *central_edge ).branch_length))
+                               + (dist_fulcrum.mass * central_edge_data.branch_length))
                                / (dist_fulcrum.mass + prox_fulcrum.mass);
     }
 
@@ -675,9 +683,9 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
 
         // Some sanity checks for wrong data. We do it here because otherwise the algorithm might
         // produce weird results. However, usually this task is up to the validate() method.
-        if (place_prox > tree::edge_data_cast< PlacementEdgeData >( *central_edge ).branch_length) {
+        if (place_prox > central_edge_data.branch_length) {
             LOG_WARN << "Placement found that has proximal_length > branch_length.";
-            place_prox = tree::edge_data_cast< PlacementEdgeData >( *central_edge ).branch_length;
+            place_prox = central_edge_data.branch_length;
         }
         if (place_prox < 0.0) {
             LOG_WARN << "Placement found that has proximal_length < 0.0.";
@@ -701,7 +709,7 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     }
 
     tqs += dist_fulcrum.torque - prox_fulcrum.torque
-        + (dist_fulcrum.mass * tree::edge_data_cast< PlacementEdgeData >( *central_edge).branch_length);
+        + (dist_fulcrum.mass * central_edge_data.branch_length);
     mss += dist_fulcrum.mass + prox_fulcrum.mass;
     double solution_without_pendant_length = tqs / mss;
     LOG_DBG << "tqs " << tqs << ", mss " << mss;
@@ -719,11 +727,12 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     // -------------------------------------------------------------------------
 
     // Finally, story the dummy for the end of the edge.
-    edge_balance.push_back(BalancePoint( tree::edge_data_cast< PlacementEdgeData >( *central_edge ).branch_length ));
+    edge_balance.push_back(BalancePoint( central_edge_data.branch_length ));
 
     LOG_DBG << "edge_balance:";
     for (auto& e : edge_balance) {
-        LOG_DBG1 << "at " << e.proximal_length << " with mass " << e.mass << " and pen torque " << e.pendant_torque;
+        LOG_DBG1 << "at " << e.proximal_length << " with mass " << e.mass
+                 << " and pen torque " << e.pendant_torque;
     }
 
     LOG_DBG << "prox_sum mass " << prox_sum.mass << ", prox_sum torque " << prox_sum.torque;
@@ -741,7 +750,8 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
 
         LOG_DBG1 << "iteration " << pos;
 
-        LOG_DBG1 << "at " << curr_point.proximal_length << " with mass " << curr_point.mass << " and pen torque " << curr_point.pendant_torque;
+        LOG_DBG1 << "at " << curr_point.proximal_length << " with mass " << curr_point.mass
+                 << " and pen torque " << curr_point.pendant_torque;
 
         LOG_DBG2 << "dist diff " << dist_diff;
 
@@ -818,12 +828,13 @@ double center_of_gravity_variance (
     double variance = 0.0;
     double mass     = 0.0;
 
-    auto   cog             = center_of_gravity(smp, with_pendant_length);
-    auto   central_edge    = cog.first;
-    double proximal_length = cog.second;
+    auto const   cog               = center_of_gravity(smp, with_pendant_length);
+    auto const   central_edge      = cog.first;
+    auto const&  central_edge_data = tree::edge_data_cast< PlacementEdgeData >( *central_edge );
+    double const proximal_length   = cog.second;
 
-    LOG_DBG << "edge " << tree::node_data_cast< PlacementNodeData >( central_edge->primary_node() ).name << " "
-            << tree::node_data_cast< PlacementNodeData >( central_edge->secondary_node() ).name;
+    LOG_DBG << "edge " << tree::node_data_cast< PlacementNodeData >( central_edge->primary_node() ).name
+            << " "     << tree::node_data_cast< PlacementNodeData >( central_edge->secondary_node() ).name;
     LOG_DBG << "prox " << proximal_length;
 
     auto node_dist_prox = node_branch_length_distance_vector(
@@ -835,6 +846,7 @@ double center_of_gravity_variance (
 
     for (const auto& pqry : smp.pqueries()) {
         for( auto const& place : pqry.placements() ) {
+            auto const& place_edge_data = tree::edge_data_cast< PlacementEdgeData >( place.edge() );
             double distance;
 
             if (place.edge().index() == central_edge->index()) {
@@ -850,10 +862,10 @@ double center_of_gravity_variance (
                 // proximal-distal case
                 pd = proximal_length
                    + node_dist_prox[ place.edge().secondary_node().index() ]
-                   + tree::edge_data_cast< PlacementEdgeData >( place.edge() ).branch_length - place.proximal_length;
+                   + place_edge_data.branch_length - place.proximal_length;
 
                 // distal-proximal case
-                dp = tree::edge_data_cast< PlacementEdgeData >( *central_edge ).branch_length - proximal_length
+                dp = central_edge_data.branch_length - proximal_length
                    + node_dist_dist[ place.edge().primary_node().index() ]
                    + place.proximal_length;
 
