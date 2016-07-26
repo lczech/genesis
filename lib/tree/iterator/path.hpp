@@ -74,6 +74,7 @@ public:
     IteratorPath()
         : start_(  nullptr )
         , finish_( nullptr )
+        , lca_(    nullptr )
         , reverse_path_()
     {}
 
@@ -84,6 +85,7 @@ public:
     IteratorPath( LinkType& start, LinkType& finish )
         : start_(  &start  )
         , finish_( &finish )
+        , lca_(    &start  )
         , reverse_path_()
     {
         // Helper function to find all links between a given link and the root.
@@ -118,38 +120,41 @@ public:
         }
 
         // Get paths to root for both links.
-        auto start_to_root  = path_to_root( start );
-        auto finish_to_root = path_to_root( finish );
+        auto start_path  = path_to_root( start );
+        auto finish_path = path_to_root( finish );
 
         // We must have at least the two original links in the front and the root in the back.
-        assert( start_to_root.size() > 0 && finish_to_root.size() > 0 );
-        assert( start_to_root.front()    == &start  );
-        assert( finish_to_root.front()   == &finish );
-        assert( start_to_root.back()     == finish_to_root.back() );
+        assert( start_path.size() > 0 && finish_path.size() > 0 );
+        assert( start_path.front()    == &start  );
+        assert( finish_path.front()   == &finish );
+        assert( start_path.back()     == finish_path.back() );
 
         // Remove from back as long as the last two elements are the same.
         // At the end of this, the remaining links are the ones on the path between
         // the two original links.
         while(
-            start_to_root.size()  > 1 &&
-            finish_to_root.size() > 1 &&
-            start_to_root.at( start_to_root.size() - 1 ) == finish_to_root.at( finish_to_root.size() - 1 ) &&
-            start_to_root.at( start_to_root.size() - 2 ) == finish_to_root.at( finish_to_root.size() - 2 )
+            start_path.size()  > 1 &&
+            finish_path.size() > 1 &&
+            start_path.at( start_path.size() - 1 ) == finish_path.at( finish_path.size() - 1 ) &&
+            start_path.at( start_path.size() - 2 ) == finish_path.at( finish_path.size() - 2 )
         ) {
-            start_to_root.pop_back();
-            finish_to_root.pop_back();
+            start_path.pop_back();
+            finish_path.pop_back();
         }
 
         // Now, the last elements need to be the same (the LCA of the start and finish node).
-        assert( start_to_root.size() > 0 && finish_to_root.size() > 0 );
-        assert( start_to_root.back()     == finish_to_root.back() );
+        assert( start_path.size() > 0 && finish_path.size() > 0 );
+        assert( start_path.back()     == finish_path.back() );
 
-        // We store the path backwards, because removing from a vector end is cheaper.
+        // The LCA (last common ancestor) is the node that both paths have in common. Store it.
+        lca_ = start_path.back();
+
+        // We store the path backwards, because removing from a vector's end is faster.
         // Thus, first add the path from finish to root/LCA, then from root/LCA to start (reversed).
         // Also, remove the root/LCA once, otherwise, it would appear twice, as it is in both lists.
-        reverse_path_.insert( reverse_path_.end(), finish_to_root.begin(), finish_to_root.end() );
+        reverse_path_ = std::move( finish_path );
         reverse_path_.pop_back();
-        reverse_path_.insert( reverse_path_.end(), start_to_root.rbegin(), start_to_root.rend() );
+        reverse_path_.insert( reverse_path_.end(), start_path.rbegin(), start_path.rend() );
 
         assert( reverse_path_.front() == &finish );
         assert( reverse_path_.back()  == &start );
@@ -174,11 +179,15 @@ public:
 
     self_type operator ++ ()
     {
+        // If there is more than one element in the path, move to the next one.
         if( reverse_path_.size() > 1 ) {
             reverse_path_.pop_back();
+
+        // If there is only one element left (which was just visited), we are done.
         } else {
             start_  = nullptr;
             finish_ = nullptr;
+            lca_    = nullptr;
             reverse_path_.clear();
         }
         return *this;
@@ -206,6 +215,37 @@ public:
     // -----------------------------------------------------
     //     Members
     // -----------------------------------------------------
+
+    /**
+     * @brief Return whether the current iterator position (node) is the last common ancestor of
+     * the two start and finish nodes.
+     *
+     * This is useful in many cases:
+     *
+     *   * Find the LCA (obviously).
+     *   * Check when the path is moving away from the root again.
+     *   * Iterating edges instead of nodes.
+     *
+     * The last bullet point may need some explanation:
+     *
+     * The iterator visits all nodes between the start and the finish (both included).
+     * On the path between them, there is however one edge fewer than the number of visited nodes.
+     * That means, if you want to visit each *edge* on the path between two nodes
+     * (instead of each *node*), you need a way to spot this superflous edge.
+     * This function indicates the edge that needs to be skipped in this case.
+     */
+    bool is_last_common_ancestor() const
+    {
+        return reverse_path_.back() == lca_;
+    }
+
+    /**
+     * @brief Alias for is_last_common_ancestor(). See there for more information.
+     */
+    bool is_lca() const
+    {
+        return is_last_common_ancestor();
+    }
 
     LinkType& link() const
     {
@@ -246,6 +286,10 @@ private:
 
     LinkType*              start_;
     LinkType*              finish_;
+    LinkType*              lca_;
+
+    // Store the path between the finish and the start (thus, reversed). We do it this way
+    // as we can then simply pop elements from the vector's end while iterating, which is fast.
     std::vector<LinkType*> reverse_path_;
 
 };
