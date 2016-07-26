@@ -83,6 +83,9 @@ void filter_min_weight_threshold( Sample& smp,    double threshold = 0.01 );
 void filter_pqueries_keeping_names(  Sample& smp, std::unordered_set<std::string> keep_list );
 void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string> remove_list );
 
+void filter_pqueries_intersecting_names( Sample& sample_1, Sample& sample_2 );
+void filter_pqueries_differing_names(    Sample& sample_1, Sample& sample_2 );
+
 // =================================================================================================
 //     Joining and Merging
 // =================================================================================================

@@ -317,8 +317,8 @@ void filter_min_weight_threshold( Sample& smp,    double threshold )
  * If the Pquery has a PqueryName whose PqueryName::name value is in the `keep_list`, the Pquery is
  * kept. If none of its names is in the `keep_list`, the Pquery is removed.
  *
- * This is similar to filter_pqueries_removing_names(), but not the opposite, as Pqueries can have
- * multiple names.
+ * This is similar to filter_pqueries_keeping_names(), but not quite the opposite, as Pqueries can
+ * have multiple names.
  */
 void filter_pqueries_keeping_names( Sample& smp, std::unordered_set<std::string> keep_list )
 {
@@ -350,8 +350,8 @@ void filter_pqueries_keeping_names( Sample& smp, std::unordered_set<std::string>
  * If the Pquery has a PqueryName whose PqueryName::name value is in the `remove_list`,
  * the Pquery is remove. If none of its names is in the `remove_list`, the Pquery is kept.
  *
- * This is similar to filter_pqueries_keeping_names(), but not the opposite, as Pqueries can have
- * multiple names.
+ * This is similar to filter_pqueries_keeping_names(), but not quite the opposite, as Pqueries can
+ * have multiple names.
  */
 void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string> remove_list )
 {
@@ -374,6 +374,63 @@ void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string
             ++i;
         }
     }
+}
+
+/**
+ * @brief Remove all @link Pquery Pqueries@endlink from the two Sample%s except the ones that
+ * have names in common.
+ *
+ * This function builds the intersection of the set of names of both Samples and only keeps those
+ * Pqueries that have a PqueryName with one of those names.
+ */
+void filter_pqueries_intersecting_names( Sample& sample_1, Sample& sample_2 )
+{
+    // Remove those pqueries from sample_2 which do not occur in sample_1.
+    auto names = all_pquery_names( sample_1 );
+    filter_pqueries_keeping_names( sample_2, names );
+
+    // And vice versa (using the names of the already smaller sample_2).
+    names = all_pquery_names( sample_2 );
+    filter_pqueries_keeping_names( sample_1, names );
+}
+
+/**
+ * @brief Remove all @link Pquery Pqueries@endlink from the two Sample%s that have a name in common.
+ *
+ * This function builds the intersection of the set of names of both Samples and removes all those
+ * Pqueries that have a PqueryName with one of those names.
+ *
+ * This is not quite the same as building the symmetric difference and keeping those elements, and,
+ * although similar, it not the opposite of filter_pqueries_intersecting_names(), because Pqueries
+ * can have multiple names.
+ */
+void filter_pqueries_differing_names( Sample& sample_1, Sample& sample_2 )
+{
+    // Yep, yep, this is wasteful. But it works for now.
+
+    // Get all sorted names in sample 1 ...
+    auto names_1_u = all_pquery_names( sample_1 );
+    auto names_1   = std::vector< std::string >( names_1_u.begin(), names_1_u.end() );
+    std::sort( names_1.begin(), names_1.end() );
+    names_1_u.clear();
+
+    // ... and in sample 2.
+    auto names_2_u = all_pquery_names( sample_2 );
+    auto names_2   = std::vector< std::string >( names_2_u.begin(), names_2_u.end() );
+    std::sort( names_2.begin(), names_2.end() );
+    names_2_u.clear();
+
+    // Get their intersection.
+    std::unordered_set< std::string > symdiff;
+    std::set_intersection(
+        names_1.begin(), names_1.end(),
+        names_2.begin(), names_2.end(),
+        std::inserter( symdiff, symdiff.end() )
+    );
+
+    // Remove all intersecting elements from the sampels.
+    filter_pqueries_removing_names( sample_1, symdiff );
+    filter_pqueries_removing_names( sample_2, symdiff );
 }
 
 // =================================================================================================
