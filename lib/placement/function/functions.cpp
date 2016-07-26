@@ -274,6 +274,72 @@ void filter_min_weight_threshold( Sample& smp,    double threshold )
     }
 }
 
+/**
+ * @brief Remove all @link Pquery Pqueries@endlink which do not have at least one name that is in
+ * the given keep list.
+ *
+ * If the Pquery has a PqueryName whose PqueryName::name value is in the `keep_list`, the Pquery is
+ * kept. If none of its names is in the `keep_list`, the Pquery is removed.
+ *
+ * This is similar to filter_pqueries_removing_names(), but not the opposite, as Pqueries can have
+ * multiple names.
+ */
+void filter_pqueries_keeping_names( Sample& smp, std::unordered_set<std::string> keep_list )
+{
+    // Again, not the cleanest solution, see above functions for discussion.
+    size_t i = 0;
+    while( i < smp.pquery_size() ) {
+
+        // See if the Pquery has a name in the list.
+        bool keep = false;
+        for( auto const& name : smp.pquery_at(i).names() ) {
+            if( keep_list.count( name.name ) > 0 ) {
+                keep = true;
+            }
+        }
+
+        // If not, remove it. If so, move to the next Pquery.
+        if( ! keep ) {
+            smp.remove_pquery_at(i);
+        } else {
+            ++i;
+        }
+    }
+}
+
+/**
+ * @brief Remove all @link Pquery Pqueries@endlink which have at least one name that is in
+ * the given remove list.
+ *
+ * If the Pquery has a PqueryName whose PqueryName::name value is in the `remove_list`,
+ * the Pquery is remove. If none of its names is in the `remove_list`, the Pquery is kept.
+ *
+ * This is similar to filter_pqueries_keeping_names(), but not the opposite, as Pqueries can have
+ * multiple names.
+ */
+void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string> remove_list )
+{
+    // Again, not the cleanest solution, see above functions for discussion.
+    size_t i = 0;
+    while( i < smp.pquery_size() ) {
+
+        // See if the Pquery has a name in the list.
+        bool remove = false;
+        for( auto const& name : smp.pquery_at(i).names() ) {
+            if( remove_list.count( name.name ) > 0 ) {
+                remove = true;
+            }
+        }
+
+        // If so, remove it. If not, move to the next Pquery.
+        if( remove ) {
+            smp.remove_pquery_at(i);
+        } else {
+            ++i;
+        }
+    }
+}
+
 // void sort_placements_by_proximal_length( PlacementTreeEdge& edge );
 // void sort_placements_by_proximal_length( Sample& smp );
 
