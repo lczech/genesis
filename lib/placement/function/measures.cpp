@@ -54,8 +54,6 @@
 #include "tree/function/tree_set.hpp"
 #include "tree/iterator/node_links.hpp"
 #include "tree/iterator/postorder.hpp"
-#include "tree/tree_node.hpp"
-#include "tree/tree_edge.hpp"
 #include "tree/tree_set.hpp"
 #include "tree/tree.hpp"
 

@@ -1,3 +1,6 @@
+#ifndef GENESIS_TREE_TREE_EDGE_DATA_H_
+#define GENESIS_TREE_TREE_EDGE_DATA_H_
+
 /*
     Genesis - A toolkit for working with phylogenetic data.
     Copyright (C) 2014-2016 Lucas Czech
@@ -28,69 +31,53 @@
  * @ingroup tree
  */
 
-#include "tree/function/functions.hpp"
+#include "utils/core/std.hpp"
 
-#include "tree/tree.hpp"
-
-#include "utils/core/logging.hpp"
-
-#include <algorithm>
-#include <vector>
+#include <memory>
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Node Count Properties
+//     Forward declarations
 // =================================================================================================
 
-/**
- * @brief Return the highest rank of the nodes of the Tree.
- */
-int max_rank( Tree const& tree )
-{
-    int max = -1;
-    for (size_t i = 0; i < tree.node_count(); ++i) {
-        int rank = tree.node_at(i).rank();
-        // if (rank == 1) {
-        //     LOG_WARN << "Node with rank 1 found. This is a node without furcation, and usually "
-        //              << "indicates an error.";
-        // }
-        max = std::max(rank, max);
-    }
-    return max;
-}
+class Tree;
+class TreeNode;
+class TreeEdge;
+class TreeLink;
 
-/**
- * @brief Return whether the Tree is bifurcating.
- */
-bool is_bifurcating( Tree const& tree )
-{
-    return max_rank( tree ) == 2;
-}
+// =================================================================================================
+//     Tree Edge Data Base
+// =================================================================================================
 
-/**
- * @brief Count the number of leaf nodes of a Tree.
- */
-size_t leaf_node_count( Tree const& tree )
+class BaseEdgeData
 {
-    size_t sum = 0;
-    for (size_t i = 0; i < tree.node_count(); ++i) {
-        auto const& n = tree.node_at(i);
-        if (n.is_leaf()) {
-            ++sum;
-        }
-    }
-    return sum;
-}
+public:
 
-/**
- * @brief Count the number of inner nodes.
- */
-size_t inner_node_count( Tree const& tree )
-{
-    return tree.node_count() - leaf_node_count( tree );
-}
+    BaseEdgeData() = default;
+    virtual ~BaseEdgeData()
+    {}
+
+    virtual std::unique_ptr< BaseEdgeData > clone() const
+    {
+        // return utils::make_unique< BaseEdgeData >( *this );
+        return std::unique_ptr< BaseEdgeData >( new BaseEdgeData( *this ));
+    };
+
+    // Move ctor and assignment.
+    BaseEdgeData( BaseEdgeData&& other )             = delete;
+    BaseEdgeData& operator= ( BaseEdgeData&& other ) = delete;
+
+protected:
+
+    // Copy ctor and assignment.
+    BaseEdgeData( BaseEdgeData const& other )             = default;
+    BaseEdgeData& operator= ( BaseEdgeData const& other ) = default;
+
+};
 
 } // namespace tree
 } // namespace genesis
+
+#endif // include guard

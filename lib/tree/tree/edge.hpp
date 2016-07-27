@@ -27,11 +27,11 @@
 /**
  * @brief
  *
- * For more information, see TreeEdge.
- *
  * @file
  * @ingroup tree
  */
+
+#include "tree/tree/edge_data.hpp"
 
 #include "utils/core/std.hpp"
 
@@ -49,36 +49,7 @@ class Tree;
 class TreeLink;
 class TreeNode;
 
-// =================================================================================================
-//     Tree Edge Data Base
-// =================================================================================================
-
-class BaseEdgeData
-{
-public:
-
-    BaseEdgeData() = default;
-    virtual ~BaseEdgeData()
-    {}
-
-    virtual std::unique_ptr< BaseEdgeData > clone() const
-    {
-        // return utils::make_unique< BaseEdgeData >( *this );
-        return std::unique_ptr< BaseEdgeData >( new BaseEdgeData( *this ));
-    };
-
-    // Move ctor and assignment.
-    BaseEdgeData( BaseEdgeData&& other )             = delete;
-    BaseEdgeData& operator= ( BaseEdgeData&& other ) = delete;
-
-
-protected:
-
-    // Copy ctor and assignment.
-    BaseEdgeData( BaseEdgeData const& other )             = default;
-    BaseEdgeData& operator= ( BaseEdgeData const& other ) = default;
-
-};
+class BaseEdgeData;
 
 // =================================================================================================
 //     Tree Edge
@@ -96,12 +67,14 @@ public:
         : index_( 0 )
         , link_p_( nullptr )
         , link_s_( nullptr )
+        , data_( nullptr )
     {}
 
     TreeEdge( size_t index, TreeLink* primary_link, TreeLink* secondary_link )
         : index_(  index )
         , link_p_( primary_link )
         , link_s_( secondary_link )
+        , data_( nullptr )
     {}
 
     ~TreeEdge() = default;
@@ -168,46 +141,6 @@ private:
 
     std::unique_ptr< BaseEdgeData > data_;
 };
-
-// =================================================================================================
-//     Casts
-// =================================================================================================
-
-template< class EdgeDataType >
-EdgeDataType& edge_data_cast( std::unique_ptr< TreeEdge >& edge )
-{
-    return dynamic_cast< EdgeDataType& >( edge->data() );
-}
-
-template< class EdgeDataType >
-EdgeDataType const& edge_data_cast( std::unique_ptr< TreeEdge > const& edge )
-{
-    return dynamic_cast< EdgeDataType const& >( edge->data() );
-}
-
-template< class EdgeDataType >
-EdgeDataType& edge_data_cast( TreeEdge& edge )
-{
-    return dynamic_cast< EdgeDataType& >( edge.data() );
-}
-
-template< class EdgeDataType >
-EdgeDataType const& edge_data_cast( TreeEdge const& edge )
-{
-    return dynamic_cast< EdgeDataType const& >( edge.data() );
-}
-
-template< class EdgeDataType >
-EdgeDataType& edge_data_cast( BaseEdgeData& data )
-{
-    return dynamic_cast< EdgeDataType& >( data );
-}
-
-template< class EdgeDataType >
-EdgeDataType const& edge_data_cast( BaseEdgeData const& data )
-{
-    return dynamic_cast< EdgeDataType const& >( data );
-}
 
 } // namespace tree
 } // namespace genesis

@@ -31,9 +31,6 @@
 #include "tree/printer/detailed.hpp"
 
 #include "tree/tree.hpp"
-#include "tree/tree_node.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
 
 // TODO used for conversion - ensure typesafety!
 #include "tree/default/tree.hpp"

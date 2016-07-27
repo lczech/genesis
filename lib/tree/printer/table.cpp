@@ -31,9 +31,6 @@
 #include "tree/printer/table.hpp"
 
 #include "tree/tree.hpp"
-#include "tree/tree_node.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
 // #include "lib/utils/text/table.hpp"
 
 #include <assert.h>

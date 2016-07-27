@@ -28,9 +28,9 @@
  * @ingroup tree
  */
 
-#include "tree/tree_edge.hpp"
+#include "tree/tree/edge.hpp"
 
-#include "tree/tree_link.hpp"
+#include "tree/tree/link.hpp"
 
 namespace genesis {
 namespace tree {

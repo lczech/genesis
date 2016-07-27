@@ -28,10 +28,10 @@
  * @ingroup tree
  */
 
-#include "tree/tree_node.hpp"
+#include "tree/tree/node.hpp"
 
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
+#include "tree/tree/edge.hpp"
+#include "tree/tree/link.hpp"
 
 #include <assert.h>
 

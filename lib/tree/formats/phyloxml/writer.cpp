@@ -31,9 +31,6 @@
 #include "tree/formats/phyloxml/writer.hpp"
 
 #include "tree/tree.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
-#include "tree/tree_node.hpp"
 
 #include "tree/function/distances.hpp"
 #include "tree/iterator/preorder.hpp"

@@ -29,28 +29,27 @@
  *
  * For more information, see Tree class.
  *
+ * This header also includes all the essential other tree elements,
+ * as there is rarely a case where they are not needed anyway.
+ *
  * @file
  * @ingroup tree
  */
 
-#include <functional>
-#include <memory>
-#include <ostream>
-#include <utility>
-#include <vector>
+#include "tree/tree/node.hpp"
+#include "tree/tree/edge.hpp"
+#include "tree/tree/link.hpp"
+#include "tree/tree/node_data.hpp"
+#include "tree/tree/edge_data.hpp"
+#include "tree/tree/casts.hpp"
 
 #include "utils/core/range.hpp"
 
+#include <memory>
+#include <vector>
+
 namespace genesis {
 namespace tree {
-
-// =================================================================================================
-//     Forward Declarations
-// =================================================================================================
-
-class TreeNode;
-class TreeEdge;
-class TreeLink;
 
 // =================================================================================================
 //     Tree

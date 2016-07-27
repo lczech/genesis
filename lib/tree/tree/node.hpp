@@ -25,13 +25,13 @@
 */
 
 /**
- * @brief Header of TreeNode class.
- *
- * For more information, see TreeNode.
+ * @brief
  *
  * @file
  * @ingroup tree
  */
+
+#include "tree/tree/node_data.hpp"
 
 #include "utils/core/std.hpp"
 
@@ -50,37 +50,6 @@ class TreeEdge;
 class TreeLink;
 
 // =================================================================================================
-//     Tree Node Data Base
-// =================================================================================================
-
-class BaseNodeData
-{
-public:
-
-    BaseNodeData() = default;
-    virtual ~BaseNodeData()
-    {}
-
-    virtual std::unique_ptr< BaseNodeData > clone() const
-    {
-        // return utils::make_unique< BaseNodeData >( *this );
-        return std::unique_ptr< BaseNodeData >( new BaseNodeData( *this ));
-    };
-
-    // Move ctor and assignment.
-    BaseNodeData( BaseNodeData&& other )             = delete;
-    BaseNodeData& operator= ( BaseNodeData&& other ) = delete;
-
-
-protected:
-
-    // Copy ctor and assignment.
-    BaseNodeData( BaseNodeData const& other )             = default;
-    BaseNodeData& operator= ( BaseNodeData const& other ) = default;
-
-};
-
-// =================================================================================================
 //     Tree Node
 // =================================================================================================
 
@@ -95,11 +64,13 @@ public:
     TreeNode()
         : index_( 0 )
         , link_(  nullptr )
+        , data_(  nullptr )
     {}
 
     TreeNode( size_t index, TreeLink* primary_link )
         : index_( index )
         , link_(  primary_link )
+        , data_(  nullptr )
     {}
 
     ~TreeNode() = default;
@@ -163,46 +134,6 @@ private:
     std::unique_ptr< BaseNodeData > data_;
 
 };
-
-// =================================================================================================
-//     Casts
-// =================================================================================================
-
-template< class NodeDataType >
-NodeDataType& node_data_cast( std::unique_ptr< TreeNode >& node )
-{
-    return dynamic_cast< NodeDataType& >( node->data() );
-}
-
-template< class NodeDataType >
-NodeDataType const& node_data_cast( std::unique_ptr< TreeNode > const& node )
-{
-    return dynamic_cast< NodeDataType const& >( node->data() );
-}
-
-template< class NodeDataType >
-NodeDataType& node_data_cast( TreeNode& node )
-{
-    return dynamic_cast< NodeDataType& >( node.data() );
-}
-
-template< class NodeDataType >
-NodeDataType const& node_data_cast( TreeNode const& node )
-{
-    return dynamic_cast< NodeDataType const& >( node.data() );
-}
-
-template< class NodeDataType >
-NodeDataType& node_data_cast( BaseNodeData& data )
-{
-    return dynamic_cast< NodeDataType& >( data );
-}
-
-template< class NodeDataType >
-NodeDataType const& node_data_cast( BaseNodeData const& data )
-{
-    return dynamic_cast< NodeDataType const& >( data );
-}
 
 } // namespace tree
 } // namespace genesis
