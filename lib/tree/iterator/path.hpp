@@ -94,7 +94,11 @@ public:
 
             // Move towards the root and record all links in between.
             LinkType* cur_link = &link.node().primary_link();
-            while( ! cur_link->node().is_root() ) {
+            while( &cur_link->edge().secondary_link() == cur_link ) {
+
+                // The above while condition means: is it the root?! Assert, that the default way of
+                // checking for the root by using the node gives the same result.
+                assert( ! cur_link->node().is_root() );
 
                 // Assert that the primary direction is correct.
                 assert( cur_link == &cur_link->edge().secondary_link() );
@@ -103,7 +107,12 @@ public:
                 path.push_back( cur_link );
 
                 // Move one node towards the root.
-                cur_link = &cur_link->edge().primary_link().node().primary_link();
+                // Assert that the default way of finding the next node towards the root (by using
+                // the edge) gives the same result as simply using the link's outer node.
+                // This is the case because the cur link is the one that points towards the root
+                // (which was asserted above).
+                assert( &cur_link->edge().primary_link() == &cur_link->outer() );
+                cur_link = &cur_link->outer().node().primary_link();
             }
 
             // Now finally add the root itself and return the list.

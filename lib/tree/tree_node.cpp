@@ -33,6 +33,8 @@
 #include "tree/tree_edge.hpp"
 #include "tree/tree_link.hpp"
 
+#include <assert.h>
+
 namespace genesis {
 namespace tree {
 
@@ -165,7 +167,11 @@ bool TreeNode::is_inner() const
  */
 bool TreeNode::is_root() const
 {
-    return &primary_link().edge().primary_link() == &primary_link();
+    // The link_ is always the one pointing towards the root. Also, the edge of that link always has
+    // the primary link set to that it points towards the root.
+    // At the root itself, however, this means we are pointing to ourselves. Use this to check
+    // if this node is the root.
+    return &link_->edge().primary_link() == link_;
 }
 
 /**
