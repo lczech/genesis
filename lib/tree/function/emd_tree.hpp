@@ -81,11 +81,30 @@ using EmdTreeNode = TreeNode;
  */
 class EmdNodeData : public BaseNodeData
 {
+    // -------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
 public:
 
-    std::unique_ptr< BaseNodeData > clone() const override
+    EmdNodeData ()         = default;
+    virtual ~EmdNodeData() = default;
+
+    // Move ctor and assignment.
+    EmdNodeData( EmdNodeData&& )             = delete;
+    EmdNodeData& operator= ( EmdNodeData&& ) = delete;
+
+protected:
+
+    // Copy ctor and assignment.
+    EmdNodeData( EmdNodeData const& )             = default;
+    EmdNodeData& operator= ( EmdNodeData const& ) = default;
+
+public:
+
+    virtual std::unique_ptr< BaseNodeData > clone() const override
     {
-        return utils::make_unique< EmdNodeData >( *this );
+        return std::unique_ptr< EmdNodeData >( new EmdNodeData( *this ));
     }
 
 };
@@ -102,15 +121,31 @@ public:
  */
 class EmdEdgeData : public DefaultEdgeData
 {
+    // -------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
 public:
 
-    // -----------------------------------------------------
-    //     Construction and Rule of Five
-    // -----------------------------------------------------
+    EmdEdgeData ()         = default;
+    virtual ~EmdEdgeData() = default;
 
-    std::unique_ptr< BaseEdgeData > clone() const override
+    // Move ctor and assignment.
+    EmdEdgeData( EmdEdgeData&& )             = delete;
+    EmdEdgeData& operator= ( EmdEdgeData&& ) = delete;
+
+protected:
+
+    // Copy ctor and assignment.
+    EmdEdgeData( EmdEdgeData const& )             = default;
+    EmdEdgeData& operator= ( EmdEdgeData const& ) = default;
+
+public:
+
+    virtual std::unique_ptr< BaseEdgeData > clone() const override
     {
-        return utils::make_unique< EmdEdgeData >( *this );
+        // return utils::make_unique< EmdEdgeData >( *this );
+        return std::unique_ptr< EmdEdgeData >( new EmdEdgeData( *this ));
     }
 
     // -----------------------------------------------------

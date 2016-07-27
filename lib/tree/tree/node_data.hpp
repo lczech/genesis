@@ -31,39 +31,35 @@
  * @ingroup tree
  */
 
-#include "utils/core/std.hpp"
-
 #include <memory>
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Forward declarations
-// =================================================================================================
-
-class Tree;
-class TreeNode;
-class TreeEdge;
-class TreeLink;
-
-// =================================================================================================
 //     Tree Node Data Base
 // =================================================================================================
 
+/**
+ * @brief Base class for storing data on @link TreeNode Nodes@endlink of a Tree.
+ *
+ * This class merely provides the start point for the class hierarchy of node data classes.
+ * It provides a clone() function and hides copy construction and assignment in order to achieve
+ * correct virtual behaviour. It is thus recommended that derived classes follow the same access
+ * rules. See DefaultNodeData for an example.
+ *
+ * This class does not contain any data itself. Also, see BaseEdgeData for its "partner" class.
+ */
 class BaseNodeData
 {
+    // -------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
 public:
 
-    BaseNodeData() = default;
-    virtual ~BaseNodeData()
-    {}
-
-    virtual std::unique_ptr< BaseNodeData > clone() const
-    {
-        // return utils::make_unique< BaseNodeData >( *this );
-        return std::unique_ptr< BaseNodeData >( new BaseNodeData( *this ));
-    };
+    BaseNodeData()          = default;
+    virtual ~BaseNodeData() = default;
 
     // Move ctor and assignment.
     BaseNodeData( BaseNodeData&& other )             = delete;
@@ -74,6 +70,14 @@ protected:
     // Copy ctor and assignment.
     BaseNodeData( BaseNodeData const& other )             = default;
     BaseNodeData& operator= ( BaseNodeData const& other ) = default;
+
+public:
+
+    virtual std::unique_ptr< BaseNodeData > clone() const
+    {
+        // return utils::make_unique< BaseNodeData >( *this );
+        return std::unique_ptr< BaseNodeData >( new BaseNodeData( *this ));
+    };
 
 };
 

@@ -31,39 +31,35 @@
  * @ingroup tree
  */
 
-#include "utils/core/std.hpp"
-
 #include <memory>
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Forward declarations
-// =================================================================================================
-
-class Tree;
-class TreeNode;
-class TreeEdge;
-class TreeLink;
-
-// =================================================================================================
 //     Tree Edge Data Base
 // =================================================================================================
 
+/**
+ * @brief Base class for storing data on @link TreeEdge Edges@endlink of a Tree.
+ *
+ * This class merely provides the start point for the class hierarchy of edge data classes.
+ * It provides a clone() function and hides copy construction and assignment in order to achieve
+ * correct virtual behaviour. It is thus recommended that derived classes follow the same access
+ * rules. See DefaultEdgeData for an example.
+ *
+ * This class does not contain any data itself. Also, see BaseNodeData for its "partner" class.
+ */
 class BaseEdgeData
 {
+    // -------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
 public:
 
-    BaseEdgeData() = default;
-    virtual ~BaseEdgeData()
-    {}
-
-    virtual std::unique_ptr< BaseEdgeData > clone() const
-    {
-        // return utils::make_unique< BaseEdgeData >( *this );
-        return std::unique_ptr< BaseEdgeData >( new BaseEdgeData( *this ));
-    };
+    BaseEdgeData()          = default;
+    virtual ~BaseEdgeData() = default;
 
     // Move ctor and assignment.
     BaseEdgeData( BaseEdgeData&& other )             = delete;
@@ -74,6 +70,14 @@ protected:
     // Copy ctor and assignment.
     BaseEdgeData( BaseEdgeData const& other )             = default;
     BaseEdgeData& operator= ( BaseEdgeData const& other ) = default;
+
+public:
+
+    virtual std::unique_ptr< BaseEdgeData > clone() const
+    {
+        // return utils::make_unique< BaseEdgeData >( *this );
+        return std::unique_ptr< BaseEdgeData >( new BaseEdgeData( *this ));
+    };
 
 };
 
