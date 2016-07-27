@@ -92,7 +92,6 @@ class PlacementNodeData : public tree::DefaultNodeData
 
 public:
 
-    PlacementNodeData ()         = default;
     virtual ~PlacementNodeData() = default;
 
     // Move ctor and assignment.
@@ -101,15 +100,21 @@ public:
 
 protected:
 
+    PlacementNodeData() = default;
+
     // Copy ctor and assignment.
     PlacementNodeData( PlacementNodeData const& )             = default;
     PlacementNodeData& operator= ( PlacementNodeData const& ) = default;
 
 public:
 
+    static std::unique_ptr< PlacementNodeData > create()
+    {
+        return std::unique_ptr< PlacementNodeData >( new PlacementNodeData() );
+    }
+
     virtual std::unique_ptr< BaseNodeData > clone() const override
     {
-        // return utils::make_unique< PlacementNodeData >( *this );
         return std::unique_ptr< PlacementNodeData >( new PlacementNodeData( *this ));
     }
 
@@ -134,7 +139,6 @@ class PlacementEdgeData : public tree::DefaultEdgeData
 
 public:
 
-    PlacementEdgeData ()        = default;
     virtual ~PlacementEdgeData() = default;
 
     // Move ctor and assignment.
@@ -143,15 +147,21 @@ public:
 
 protected:
 
+    PlacementEdgeData() = default;
+
     // Copy ctor and assignment.
     PlacementEdgeData( PlacementEdgeData const& )             = default;
     PlacementEdgeData& operator= ( PlacementEdgeData const& ) = default;
 
 public:
 
+    static std::unique_ptr< PlacementEdgeData > create()
+    {
+        return std::unique_ptr< PlacementEdgeData >( new PlacementEdgeData() );
+    }
+
     virtual std::unique_ptr< BaseEdgeData > clone() const override
     {
-        // return utils::make_unique< PlacementEdgeData >( *this );
         return std::unique_ptr< PlacementEdgeData >( new PlacementEdgeData( *this ));
     }
 

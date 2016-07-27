@@ -44,11 +44,17 @@ namespace tree {
  * @brief Base class for storing data on @link TreeEdge Edges@endlink of a Tree.
  *
  * This class merely provides the start point for the class hierarchy of edge data classes.
- * It provides a clone() function and hides copy construction and assignment in order to achieve
- * correct virtual behaviour. It is thus recommended that derived classes follow the same access
- * rules. See DefaultEdgeData for an example.
+ * In order to correctly achieve polymorphic behaviour, and with its use case in a Tree in mind,
+ * this class and its derived classes are only usable via unique pointers to their instances.
  *
- * This class does not contain any data itself. Also, see BaseNodeData for its "partner" class.
+ * It thus provides a create() function instead of a default constructor.
+ * Stack copies of this class are useless; we always want a pointer to the class.
+ * For the same reason, instead of a copy constructor, it provides a clone() function.
+ *
+ * It is recommended that derived classes follow the same access rules for its constructors.
+ * See DefaultEdgeData for an example.
+ *
+ * This class does not contain any data itself. See BaseNodeData for its "partner" class.
  */
 class BaseEdgeData
 {
@@ -58,24 +64,53 @@ class BaseEdgeData
 
 public:
 
-    BaseEdgeData()          = default;
+    /**
+     * @brief Virtual destructor. Needed for polymorphism.
+     */
     virtual ~BaseEdgeData() = default;
 
-    // Move ctor and assignment.
-    BaseEdgeData( BaseEdgeData&& other )             = delete;
+    /**
+     * @brief Deleted move constructor. Not viable with polymorphism.
+     */
+    BaseEdgeData( BaseEdgeData&& other ) = delete;
+
+    /**
+    * @brief Deleted move assignment. Not viable with polymorphism.
+    */
     BaseEdgeData& operator= ( BaseEdgeData&& other ) = delete;
 
 protected:
 
-    // Copy ctor and assignment.
-    BaseEdgeData( BaseEdgeData const& other )             = default;
+    /**
+     * @brief Protected default constructor. Called from the create() function.
+     */
+    BaseEdgeData() = default;
+
+    /**
+     * @brief Protected copy constructor. Called from the clone() function.
+     */
+    BaseEdgeData( BaseEdgeData const& other ) = default;
+
+    /**
+    * @brief Protected move constructor. Not used right now.
+    */
     BaseEdgeData& operator= ( BaseEdgeData const& other ) = default;
 
 public:
 
+    /**
+     * @brief Create a new instance of this class. Use instead of default constructor.
+     */
+    static std::unique_ptr< BaseEdgeData > create()
+    {
+        return std::unique_ptr< BaseEdgeData >( new BaseEdgeData() );
+    };
+
+    /**
+     * @brief Polymorphically copy an instance of this class. Use instead of copy constructor.
+     */
     virtual std::unique_ptr< BaseEdgeData > clone() const
     {
-        // return utils::make_unique< BaseEdgeData >( *this );
         return std::unique_ptr< BaseEdgeData >( new BaseEdgeData( *this ));
     };
 

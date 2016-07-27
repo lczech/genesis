@@ -84,7 +84,6 @@ class DefaultNodeData : public BaseNodeData
 
 public:
 
-    DefaultNodeData ()         = default;
     virtual ~DefaultNodeData() = default;
 
     // Move ctor and assignment.
@@ -93,15 +92,21 @@ public:
 
 protected:
 
+    DefaultNodeData() = default;
+
     // Copy ctor and assignment.
     DefaultNodeData( DefaultNodeData const& )             = default;
     DefaultNodeData& operator= ( DefaultNodeData const& ) = default;
 
 public:
 
+    static std::unique_ptr< DefaultNodeData > create()
+    {
+        return std::unique_ptr< DefaultNodeData >( new DefaultNodeData() );
+    }
+
     virtual std::unique_ptr< BaseNodeData > clone() const override
     {
-        // return utils::make_unique< DefaultNodeData >( *this );
         return std::unique_ptr< DefaultNodeData >( new DefaultNodeData( *this ));
     }
 
@@ -139,7 +144,6 @@ class DefaultEdgeData : public BaseEdgeData
 
 public:
 
-    DefaultEdgeData ()         = default;
     virtual ~DefaultEdgeData() = default;
 
     // Move ctor and assignment.
@@ -148,15 +152,21 @@ public:
 
 protected:
 
+    DefaultEdgeData() = default;
+
     // Copy ctor and assignment.
     DefaultEdgeData( DefaultEdgeData const& )             = default;
     DefaultEdgeData& operator= ( DefaultEdgeData const& ) = default;
 
 public:
 
+    static std::unique_ptr< DefaultEdgeData > create()
+    {
+        return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData() );
+    };
+
     virtual std::unique_ptr< BaseEdgeData > clone() const override
     {
-        // return utils::make_unique< DefaultEdgeData >( *this );
         return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData( *this ));
     }
 

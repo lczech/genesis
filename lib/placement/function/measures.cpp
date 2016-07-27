@@ -222,11 +222,11 @@ double earth_movers_distance (
             return std::unique_ptr< tree::EmdNodeData >();
         },
         [] ( tree::BaseEdgeData const& edge_data ) {
-            tree::EmdEdgeData emd_edge;
-            emd_edge.branch_length
+            auto emd_edge = tree::EmdEdgeData::create();
+            emd_edge->branch_length
                 = dynamic_cast< PlacementEdgeData const& >( edge_data ).branch_length;
 
-            return emd_edge.clone();
+            return std::move( emd_edge );
         }
     );
 

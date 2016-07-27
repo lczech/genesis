@@ -87,7 +87,6 @@ class EmdNodeData : public BaseNodeData
 
 public:
 
-    EmdNodeData ()         = default;
     virtual ~EmdNodeData() = default;
 
     // Move ctor and assignment.
@@ -96,11 +95,18 @@ public:
 
 protected:
 
+    EmdNodeData() = default;
+
     // Copy ctor and assignment.
     EmdNodeData( EmdNodeData const& )             = default;
     EmdNodeData& operator= ( EmdNodeData const& ) = default;
 
 public:
+
+    static std::unique_ptr< EmdNodeData > create()
+    {
+        return std::unique_ptr< EmdNodeData >( new EmdNodeData() );
+    }
 
     virtual std::unique_ptr< BaseNodeData > clone() const override
     {
@@ -127,7 +133,6 @@ class EmdEdgeData : public DefaultEdgeData
 
 public:
 
-    EmdEdgeData ()         = default;
     virtual ~EmdEdgeData() = default;
 
     // Move ctor and assignment.
@@ -136,15 +141,21 @@ public:
 
 protected:
 
+    EmdEdgeData() = default;
+
     // Copy ctor and assignment.
     EmdEdgeData( EmdEdgeData const& )             = default;
     EmdEdgeData& operator= ( EmdEdgeData const& ) = default;
 
 public:
 
+    static std::unique_ptr< EmdEdgeData > create()
+    {
+        return std::unique_ptr< EmdEdgeData >( new EmdEdgeData() );
+    }
+
     virtual std::unique_ptr< BaseEdgeData > clone() const override
     {
-        // return utils::make_unique< EmdEdgeData >( *this );
         return std::unique_ptr< EmdEdgeData >( new EmdEdgeData( *this ));
     }
 

@@ -67,7 +67,7 @@ protected:
     {
         Base::element_to_node( element, node );
         std::string name = tree::node_data_cast< tree::DefaultNodeData >( node ).name;
-        node.reset_data( utils::make_unique< PlacementNodeData >() );
+        node.reset_data( PlacementNodeData::create() );
         tree::node_data_cast< PlacementNodeData >( node ).name = name;
     }
 
@@ -75,7 +75,7 @@ protected:
     {
         Base::element_to_edge(element, edge);
         double branch_length = tree::edge_data_cast< tree::DefaultEdgeData >( edge ).branch_length;
-        edge.reset_data( utils::make_unique< PlacementEdgeData >() );
+        edge.reset_data( PlacementEdgeData::create() );
         auto& edge_data = tree::edge_data_cast< PlacementEdgeData >( edge );
         edge_data.branch_length = branch_length;
 

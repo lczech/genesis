@@ -125,19 +125,18 @@ bool compatible_trees( Sample const& lhs, Sample const& rhs )
  */
 PlacementTree convert_to_placement_tree( tree::DefaultTree const& source_tree )
 {
-    // TODO those converters need to do double copies of the node and edge data. wasteful!
     auto node_data_converter = [] ( tree::BaseNodeData const& source_node ) {
-        PlacementNodeData node_data;
+        auto node_data = PlacementNodeData::create();
         auto& source_data = dynamic_cast< tree::DefaultNodeData const& >( source_node );
-        node_data.name = source_data.name;
-        return node_data.clone();
+        node_data->name = source_data.name;
+        return std::move( node_data );
     };
 
     auto edge_data_converter = [] ( tree::BaseEdgeData const& source_edge ) {
-        PlacementEdgeData edge_data;
+        auto edge_data = PlacementEdgeData::create();
         auto& source_data = dynamic_cast< tree::DefaultEdgeData const& >( source_edge );
-        edge_data.branch_length = source_data.branch_length;
-        return edge_data.clone();
+        edge_data->branch_length = source_data.branch_length;
+        return std::move( edge_data );
     };
 
     auto result = tree::convert(

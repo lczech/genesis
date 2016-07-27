@@ -88,14 +88,14 @@ protected:
             name = utils::replace_all(name, "_", " ");
         }
 
-        node.reset_data( utils::make_unique< DefaultNodeData >() );
+        node.reset_data( DefaultNodeData::create() );
         node_data_cast< DefaultNodeData >( node ).name = name;
     }
 
     virtual void element_to_edge( NewickBrokerElement const& element, TreeEdge& edge ) override
     {
         Base::element_to_edge(element, edge);
-        edge.reset_data( utils::make_unique< DefaultEdgeData >() );
+        edge.reset_data( DefaultEdgeData::create() );
 
         // We assume that the branch length is always the first (or only) value.
         // If there is an interpretation where this is not the case, it is best to introduce
