@@ -83,17 +83,24 @@ public:
     {}
 
     IteratorPath( LinkType& start, LinkType& finish )
-        : start_(  &start  )
-        , finish_( &finish )
-        , lca_(    &start  )
+        : start_(  &start.node().primary_link()  )
+        , finish_( &finish.node().primary_link() )
+        , lca_(    nullptr  )
         , reverse_path_()
     {
+        // In this constructor, we find and store the primary links of the nodes on the path.
+        // Then, when moving along the path with this iterator (operator++), we simply need to
+        // move along that list of links.
+        // Furthermore, by using the primary links of the nodes (that is, the ones pointing towards
+        // the root), we can easily spot the last common ancestor (LCA) of the start and finish
+        // node.
+
         // Helper function to find all links between a given link and the root.
-        auto path_to_root = [] ( LinkType& link ) {
+        auto path_to_root = [] ( LinkType* link ) {
             std::vector<LinkType*> path;
 
             // Move towards the root and record all links in between.
-            LinkType* cur_link = &link.node().primary_link();
+            LinkType* cur_link = link;
             while( &cur_link->edge().secondary_link() == cur_link ) {
 
                 // The above while condition means: is it the root?! Assert, that the default way of
@@ -123,19 +130,20 @@ public:
 
         // Treat special case start == finish.
         // That makes sure that we do not need to specially check for an empty path later.
-        if( &start == &finish ) {
-            reverse_path_.push_back( &start );
+        if( start_ == finish_ ) {
+            reverse_path_.push_back( start_ );
+            lca_ = start_;
             return;
         }
 
         // Get paths to root for both links.
-        auto start_path  = path_to_root( start );
-        auto finish_path = path_to_root( finish );
+        auto start_path  = path_to_root( start_  );
+        auto finish_path = path_to_root( finish_ );
 
         // We must have at least the two original links in the front and the root in the back.
         assert( start_path.size() > 0 && finish_path.size() > 0 );
-        assert( start_path.front()    == &start  );
-        assert( finish_path.front()   == &finish );
+        assert( start_path.front()    == start_  );
+        assert( finish_path.front()   == finish_ );
         assert( start_path.back()     == finish_path.back() );
 
         // Remove from back as long as the last two elements are the same.
@@ -165,8 +173,8 @@ public:
         reverse_path_.pop_back();
         reverse_path_.insert( reverse_path_.end(), start_path.rbegin(), start_path.rend() );
 
-        assert( reverse_path_.front() == &finish );
-        assert( reverse_path_.back()  == &start );
+        assert( reverse_path_.front() == finish_ );
+        assert( reverse_path_.back()  == start_  );
     }
 
     ~IteratorPath() = default;
@@ -299,6 +307,8 @@ private:
 
     // Store the path between the finish and the start (thus, reversed). We do it this way
     // as we can then simply pop elements from the vector's end while iterating, which is fast.
+    // All links stored in this vector are the primary links of their nodes (that is, they
+    // are pointing towards the root).
     std::vector<LinkType*> reverse_path_;
 
 };
