@@ -73,8 +73,8 @@ namespace tree {
  * of total mass. Thus, as they use opposite signs, the sum of all masses on the tree should ideally
  * be zero (apart from numerical derivations).
  * See @link sum_of_masses( EmdTree const& tree ) sum_of_masses() @endlink and
- * @link validate( EmdTree const& tree, double valid_total_mass_difference )
- * validate() @endlink for functions to verify this.
+ * @link validate_emd_tree( EmdTree const& tree, double valid_total_mass_difference )
+ * validate_emd_tree() @endlink for functions to verify this.
  *
  * See @link placement::earth_movers_distance( const Sample& lhs, const Sample& rhs, bool with_pendant_length )
  * earth_movers_distance( Sample const&, ... ) @endlink for an exemplary

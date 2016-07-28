@@ -50,7 +50,7 @@ namespace tree {
  * See earth_movers_distance( EmdTree const& tree ) for more details on the purpose of this tree
  * type and on the earth movers distance in general.
  *
- * The branches of an EmdTree hold a list of @link EmdTreeEdgeData::masses masses@endlink, sorted
+ * The branches of an EmdTree hold a list of @link EmdEdgeData::masses masses@endlink, sorted
  * along their position on the branch.
  */
 using EmdTree = Tree;
@@ -168,8 +168,8 @@ public:
      *
      * This data member maps from a position on the branch to the mass at that position.
      * In order to be valid, the positions have to be in the interval [0.0, branch_length].
-     * See @link validate( EmdTree const& tree, double valid_total_mass_difference )
-     * validate() @endlink for a validation function.
+     * See @link validate_emd_tree( EmdTree const& tree, double valid_total_mass_difference )
+     * validate_emd_tree() @endlink for a validation function.
      */
     std::map<double, double> masses;
 
