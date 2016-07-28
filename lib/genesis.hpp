@@ -133,6 +133,7 @@
 #include "utils/core/logging.hpp"
 #include "utils/core/options.hpp"
 #include "utils/core/range.hpp"
+#include "utils/core/sorted_vector.hpp"
 #include "utils/core/std.hpp"
 #include "utils/formats/csv/reader.hpp"
 #include "utils/formats/json/document.hpp"
