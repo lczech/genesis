@@ -149,7 +149,7 @@ std::ostream& operator << ( std::ostream& out, Tree const& tree );
 //     Validate
 // =================================================================================================
 
-bool validate( Tree const& tree );
+bool validate_topology( Tree const& tree );
 
 } // namespace tree
 } // namespace genesis

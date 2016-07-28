@@ -269,7 +269,7 @@ bool has_correct_edge_nums( PlacementTree const& tree )
 bool validate( Sample const& smp, bool check_values, bool break_on_values )
 {
     // check tree
-    if( ! tree::validate( smp.tree() ) ) {
+    if( ! tree::validate_topology( smp.tree() ) ) {
         LOG_INFO << "Invalid placement tree.";
         return false;
     }

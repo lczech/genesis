@@ -65,63 +65,63 @@ TEST(Newick, NewickVariants)
         "(,,(,));",
         tree
     ));
-    EXPECT_TRUE( validate(tree) );
+    EXPECT_TRUE( validate_topology(tree) );
 
     // Leaf nodes are named.
     EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(A,B,(C,D));",
         tree
     ));
-    EXPECT_TRUE( validate(tree) );
+    EXPECT_TRUE( validate_topology(tree) );
 
     // All nodes are named.
     EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(A,B,(C,D)E)F;",
         tree
     ));
-    EXPECT_TRUE( validate(tree) );
+    EXPECT_TRUE( validate_topology(tree) );
 
     // All but root node have a distance to parent.
     EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(:0.1,:0.2,(:0.3,:0.4):0.5);",
         tree
     ));
-    EXPECT_TRUE( validate(tree) );
+    EXPECT_TRUE( validate_topology(tree) );
 
     // All have a distance to parent.
     EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(:0.1,:0.2,(:0.3,:0.4):0.5):0.0;",
         tree
     ));
-    EXPECT_TRUE( validate(tree) );
+    EXPECT_TRUE( validate_topology(tree) );
 
     // Distances and leaf names (popular).
     EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(A:0.1,B:0.2,(C:0.3,D:0.4):0.5);",
         tree
     ));
-    EXPECT_TRUE( validate(tree) );
+    EXPECT_TRUE( validate_topology(tree) );
 
     // Distances and all names.
     EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "(A:0.1,B:0.2,(C:0.3,D:0.4)E:0.5)F;",
         tree
     ));
-    EXPECT_TRUE( validate(tree) );
+    EXPECT_TRUE( validate_topology(tree) );
 
     // A tree rooted on a leaf node (rare).
     EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "((B:0.2,(C:0.3,D:0.4)E:0.5)F:0.1)A;",
         tree
     ));
-    EXPECT_TRUE( validate(tree) );
+    EXPECT_TRUE( validate_topology(tree) );
 
     // All mixed, with comments and tags.
     EXPECT_TRUE( DefaultTreeNewickReader().from_string(
         "( ( Ant:0.2{0}, [a comment] 'Bee':0.09{1} )Inner:0.7{2}, Coyote:0.5{3} ){4};",
         tree
     ));
-    EXPECT_TRUE( validate(tree) );
+    EXPECT_TRUE( validate_topology(tree) );
 }
 
 TEST(Newick, ColorMixin)

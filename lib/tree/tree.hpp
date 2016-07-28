@@ -152,7 +152,7 @@ public:
     size_t link_count() const;
     size_t node_count() const;
     size_t edge_count() const;
-    
+
     // -------------------------------------------------------------------------
     //     Modifiers
     // -------------------------------------------------------------------------
@@ -214,7 +214,7 @@ public:
      *
      * This function is defined in tree/functions/operators.hpp
      */
-    friend bool validate( Tree const& tree );
+    friend bool validate_topology( Tree const& tree );
 
     // -------------------------------------------------------------------------
     //     Data Members

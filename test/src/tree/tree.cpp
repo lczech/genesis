@@ -53,7 +53,7 @@ TEST(Tree, Basics)
     EXPECT_TRUE( is_bifurcating( tree ));
 
     EXPECT_EQ("R", node_data_cast< DefaultNodeData >( tree.root_node() ).name);
-    EXPECT_TRUE( validate( tree ));
+    EXPECT_TRUE( validate_topology( tree ));
 
     // LOG_INFO << tree;
 }

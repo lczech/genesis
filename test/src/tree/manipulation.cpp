@@ -67,7 +67,7 @@ void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts
 
     // Root the tree at the given link, validate its pointers.
     tree.reroot( *root_link );
-    EXPECT_TRUE( validate( tree ));
+    EXPECT_TRUE( validate_topology( tree ));
 
     // Build a string of the nodes in levelorder, starting from the new root.
     for( auto it : levelorder( tree ) ) {

@@ -199,15 +199,13 @@ std::ostream& operator << ( std::ostream& out, Tree const& tree )
 //     Validate
 // =================================================================================================
 
-// TODO do all node->link_ links point to the root? same for all edge->primary?
-
 /**
- * @brief Validate that all pointers of the tree elements (links, nodes, edges) to each other
- * are correct and that some other invariants are met.
+ * @brief Validate that all internal pointers of the Tree elements (TreeLink%s, TreeNode%s,
+ * TreeEdge%s) to each other are correct and that some other invariants are met.
  *
  * This check is a bit pedantic, but better safe than sorry.
  */
-bool validate( Tree const& tree )
+bool validate_topology( Tree const& tree )
 {
     // -----------------------------------------------------
     //     Empty Tree
@@ -350,6 +348,18 @@ bool validate( Tree const& tree )
         }
         if( &tree.edges_[i]->secondary_link().edge() != tree.edges_[i].get() ) {
             LOG_INFO << "Edge at index " << i << " has wrong secondary link.";
+            return false;
+        }
+
+        // Check outer links.
+        if( &tree.edges_[i]->primary_link().outer() != &tree.edges_[i]->secondary_link() ) {
+            LOG_INFO << "Edge at index " << i << " has a primary link that does not "
+                     << "connect to its secondary link.";
+            return false;
+        }
+        if( &tree.edges_[i]->secondary_link().outer() != &tree.edges_[i]->primary_link() ) {
+            LOG_INFO << "Edge at index " << i << " has a secondary link that does not "
+            << "connect to its primary link.";
             return false;
         }
 
