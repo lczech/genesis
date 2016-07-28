@@ -60,7 +60,7 @@ void TestPath( std::string start_node_name, std::string finish_node_name, std::s
     ASSERT_NE(nullptr, finish_node);
 
     for( auto it : path( *start_node, *finish_node )) {
-        nodes += node_data_cast< DefaultNodeData >( it.node() ).name;
+        nodes += it.node().data<DefaultNodeData>().name;
     }
 
     EXPECT_EQ( out_nodes, nodes)

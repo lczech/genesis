@@ -47,22 +47,31 @@ namespace tree {
  *
  * This function takes the given source Tree (possibly with different data types at the nodes and
  * edges), and copies its topology (i.e., all links, nodes and edges, and their structure) to the
- * newly created and returned tree.
- * The data types are converted using the two provided functions for the node data type and edge
- * data type, respectively.
+ * newly created result tree.
+ *
+ * The data types are then converted using the two provided functions for the node data type and
+ * edge data type, respectively. If a node or an edge does not have data (i.e., the data pointer
+ * is a nullptr), the converter functions are not called, but the data of the new tree at that
+ * node or edge is also set to a nullptr.
  */
 Tree convert(
     Tree const& source,
     std::function< std::unique_ptr<BaseNodeData>( BaseNodeData const& node_data )> node_data_converter,
     std::function< std::unique_ptr<BaseEdgeData>( BaseEdgeData const& edge_data )> edge_data_converter
 ) {
+    // Copy the topology. All data pointers of the new tree are nullptrs.
     auto res = source.clone_topology();
 
+    // Convert data where there is data.
     for( size_t i = 0; i < res.node_count(); ++i ) {
-        res.node_at(i).reset_data( node_data_converter( source.node_at(i).data() ));
+        if( source.node_at(i).has_data() ) {
+            res.node_at(i).reset_data( node_data_converter( *source.node_at(i).data_ptr() ));
+        }
     }
     for( size_t i = 0; i < res.edge_count(); ++i ) {
-        res.edge_at(i).reset_data( edge_data_converter( source.edge_at(i).data() ));
+        if( source.edge_at(i).has_data() ) {
+            res.edge_at(i).reset_data( edge_data_converter( *source.edge_at(i).data_ptr() ));
+        }
     }
 
     return res;

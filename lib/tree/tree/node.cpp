@@ -93,14 +93,14 @@ bool TreeNode::has_data() const
     return data_.get() != nullptr;
 }
 
-BaseNodeData& TreeNode::data()
+BaseNodeData* TreeNode::data_ptr()
 {
-    return *data_;
+    return data_.get();
 }
 
-BaseNodeData const& TreeNode::data() const
+BaseNodeData const* TreeNode::data_ptr() const
 {
-    return *data_;
+    return data_.get();
 }
 
 // =================================================================================================

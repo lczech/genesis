@@ -114,8 +114,20 @@ public:
 
     bool has_data() const;
 
-    BaseEdgeData&       data();
-    BaseEdgeData const& data() const;
+    template< class EdgeDataType >
+    EdgeDataType& data()
+    {
+        return dynamic_cast< EdgeDataType& >( *data_ );
+    }
+
+    template< class EdgeDataType >
+    EdgeDataType const& data() const
+    {
+        return dynamic_cast< EdgeDataType const& >( *data_ );
+    }
+
+    BaseEdgeData*       data_ptr();
+    BaseEdgeData const* data_ptr() const;
 
     // ---------------------------------------------------------------------
     //     Modifiers

@@ -149,7 +149,7 @@ std::string PrinterCompact::print( Tree const& tree )
     {
         (void) edge;
         // TODO typesafety!
-        return node_data_cast< DefaultNodeData >( node ).name;
+        return node.data<DefaultNodeData>().name;
     };
     return print(tree, print_line);
 }

@@ -89,7 +89,7 @@ protected:
         }
 
         node.reset_data( DefaultNodeData::create() );
-        node_data_cast< DefaultNodeData >( node ).name = name;
+        node.data<DefaultNodeData>().name = name;
     }
 
     virtual void element_to_edge( NewickBrokerElement const& element, TreeEdge& edge ) override
@@ -101,9 +101,9 @@ protected:
         // If there is an interpretation where this is not the case, it is best to introduce
         // an array index for this as a paramter of this class.
         if (element.values.size() > 0) {
-            edge_data_cast< DefaultEdgeData >( edge ).branch_length = std::stod(element.values[0]);
+            edge.data<DefaultEdgeData>().branch_length = std::stod(element.values[0]);
         } else {
-            edge_data_cast< DefaultEdgeData >( edge ).branch_length = 1.0;
+            edge.data<DefaultEdgeData>().branch_length = 1.0;
         }
     }
 

@@ -116,14 +116,14 @@ bool TreeEdge::has_data() const
     return data_.get() != nullptr;
 }
 
-BaseEdgeData& TreeEdge::data()
+BaseEdgeData* TreeEdge::data_ptr()
 {
-    return *data_;
+    return data_.get();
 }
 
-BaseEdgeData const& TreeEdge::data() const
+BaseEdgeData const* TreeEdge::data_ptr() const
 {
-    return *data_;
+    return data_.get();
 }
 
 // =================================================================================================

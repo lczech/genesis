@@ -61,7 +61,7 @@ void TestLevelorder(std::string node_name, std::string out_nodes)
 
     for( auto it : levelorder( *node )) {
         nodes += std::to_string( it.depth() )
-              +  node_data_cast< DefaultNodeData >( it.node() ).name
+              +  it.node().data<DefaultNodeData>().name
               +  " ";
     }
     EXPECT_EQ( out_nodes, nodes ) << " with start node " << node_name;

@@ -104,8 +104,20 @@ public:
 
     bool has_data() const;
 
-    BaseNodeData&       data();
-    BaseNodeData const& data() const;
+    template< class NodeDataType >
+    NodeDataType& data()
+    {
+        return dynamic_cast< NodeDataType& >( *data_ );
+    }
+
+    template< class NodeDataType >
+    NodeDataType const& data() const
+    {
+        return dynamic_cast< NodeDataType const& >( *data_ );
+    }
+
+    BaseNodeData*       data_ptr();
+    BaseNodeData const* data_ptr() const;
 
     // ---------------------------------------------------------------------
     //     Modifiers

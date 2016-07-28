@@ -76,13 +76,13 @@ Tree::Tree( const Tree& other )
     }
     for( size_t i = 0; i < res.nodes_.size(); ++i ) {
         if( other.node_at(i).has_data() ) {
-            res.node_at(i).reset_data( other.node_at(i).data().clone() );
+            res.node_at(i).reset_data( other.node_at(i).data_ptr()->clone() );
         }
 
         // Some assertions.
         if( res.node_at(i).has_data() && other.node_at(i).has_data() ) {
-            auto const& res_data = res.node_at(i).data();
-            auto const& oth_data = other.node_at(i).data();
+            auto const& res_data = *res.node_at(i).data_ptr();
+            auto const& oth_data = *other.node_at(i).data_ptr();
             (void) res_data;
             (void) oth_data;
             assert( typeid( res_data ) == typeid( oth_data ));
@@ -92,13 +92,13 @@ Tree::Tree( const Tree& other )
     }
     for( size_t i = 0; i < res.edges_.size(); ++i ) {
         if( other.edge_at(i).has_data() ) {
-            res.edge_at(i).reset_data( other.edge_at(i).data().clone() );
+            res.edge_at(i).reset_data( other.edge_at(i).data_ptr()->clone() );
         }
 
         // Some assertions.
         if( res.edges_[i]->has_data() && other.edge_at(i).has_data() ) {
-            auto const& res_data = res.edge_at(i).data();
-            auto const& oth_data = other.edge_at(i).data();
+            auto const& res_data = *res.edge_at(i).data_ptr();
+            auto const& oth_data = *other.edge_at(i).data_ptr();
             (void) res_data;
             (void) oth_data;
             assert( typeid( res_data ) == typeid( oth_data ));

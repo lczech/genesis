@@ -122,7 +122,7 @@ Tree average_branch_length_tree( TreeSet const& tset )
                 continue;
             }
 
-            avgs[idx] += edge_data_cast< DefaultEdgeData >( it.edge() ).branch_length;
+            avgs[idx] += it.edge().data<DefaultEdgeData>().branch_length;
             ++idx;
         }
     }
@@ -141,7 +141,7 @@ Tree average_branch_length_tree( TreeSet const& tset )
             continue;
         }
 
-        edge_data_cast< DefaultEdgeData >( it.edge() ).branch_length = avgs[idx] / tset.size();
+        it.edge().data<DefaultEdgeData>().branch_length = avgs[idx] / tset.size();
         ++idx;
     }
 

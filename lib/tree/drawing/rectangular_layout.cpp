@@ -75,7 +75,7 @@ void RectangularLayout::from_tree( Tree const& tree )
             node.y = scaler_y_ * leaf_count++;
         }
 
-        node.name = node_data_cast< DefaultNodeData >( it.node() ).name;
+        node.name = it.node().data<DefaultNodeData>().name;
         parent = it.node().index();
     }
 

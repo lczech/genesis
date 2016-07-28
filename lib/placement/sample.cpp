@@ -201,12 +201,12 @@ Pquery& Sample::add_pquery( Pquery const& other )
         // Get the edge index of the old edge, then set the edge to the edge of the
         // correct sample that is at that index.
         auto edge_index   = placement.edge().index();
-        auto old_edge_num = tree::edge_data_cast< PlacementEdgeData >( placement.edge() ).edge_num();
+        auto old_edge_num = placement.edge().data<PlacementEdgeData>().edge_num();
         placement.reset_edge( tree().edge_at( edge_index ));
 
         // Now the placement points to the new edge. We can thus check if this one still has the
         // same edge_num as the old edge.
-        auto const& edge_data = tree::edge_data_cast< PlacementEdgeData >( placement.edge() );
+        auto const& edge_data = placement.edge().data<PlacementEdgeData>();
         if( old_edge_num != edge_data.edge_num() ) {
             throw std::runtime_error(
                 "Trees are incompatible for copying Pqueries between Samples."

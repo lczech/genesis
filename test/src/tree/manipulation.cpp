@@ -72,7 +72,7 @@ void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts
     // Build a string of the nodes in levelorder, starting from the new root.
     for( auto it : levelorder( tree ) ) {
         nodes += std::to_string( it.depth() )
-              +  node_data_cast< DefaultNodeData >( it.node() ).name
+              +  it.node().data<DefaultNodeData>().name
               +  " ";
     }
 

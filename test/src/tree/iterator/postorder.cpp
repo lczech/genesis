@@ -58,7 +58,7 @@ void TestPostorder(std::string node_name, std::string out_nodes)
     ASSERT_NE(nullptr, node);
 
     for( auto it : postorder(*node) ) {
-        nodes += node_data_cast< DefaultNodeData >( it.node() ).name;
+        nodes += it.node().data<DefaultNodeData>().name;
     }
     EXPECT_EQ(out_nodes, nodes) << " with start node " << node_name;
 }
