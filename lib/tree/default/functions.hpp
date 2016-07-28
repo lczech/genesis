@@ -31,6 +31,8 @@
  * @ingroup tree
  */
 
+#include "utils/core/sorted_vector.hpp"
+
 #include<set>
 #include<string>
 #include<unordered_set>
@@ -55,7 +57,7 @@ std::unordered_set<std::string> node_names(
     bool leaves_only = false
 );
 
-std::set<std::string> node_names_sorted(
+utils::SortedVector<std::string> node_names_sorted(
     Tree const& tree,
     bool leaves_only = false
 );

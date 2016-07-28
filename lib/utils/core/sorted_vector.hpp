@@ -76,8 +76,8 @@ public:
     SortedVector()  = default;
     ~SortedVector() = default;
 
-    explicit SortedVector( SortedVector const& x ) = default;
-    explicit SortedVector (SortedVector&& x)       = default;
+    SortedVector( SortedVector const& x ) = default;
+    SortedVector (SortedVector&& x)       = default;
 
     SortedVector( std::initializer_list<value_type> il )
     {

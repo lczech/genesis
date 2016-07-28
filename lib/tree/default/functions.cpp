@@ -72,11 +72,11 @@ std::unordered_set<std::string> node_names(
  * Unnamed nodes (`node.data.name == ""`) are always excluded.
  * The only difference to node_names() is the type of container used for storing the result.
  */
-std::set<std::string> node_names_sorted(
+utils::SortedVector<std::string> node_names_sorted(
     Tree const& tree,
     bool leaves_only
 ) {
-    std::set<std::string> ret;
+    utils::SortedVector<std::string> ret;
     for( auto const& node : tree.nodes() ) {
         if( node->is_inner() && leaves_only ) {
             continue;
@@ -85,7 +85,7 @@ std::set<std::string> node_names_sorted(
         if( name == "" ) {
             continue;
         }
-        ret.insert( std::move( name ));
+        ret.add( std::move( name ));
     }
     return ret;
 }
