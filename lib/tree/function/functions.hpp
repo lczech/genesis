@@ -32,6 +32,7 @@
  */
 
 #include <cstddef> // size_t
+#include <vector>
 
 namespace genesis {
 namespace tree {
@@ -41,6 +42,9 @@ namespace tree {
 // =================================================================================================
 
 class Tree;
+class TreeNode;
+class TreeEdge;
+class TreeLink;
 
 // =================================================================================================
 //     Node Count Properties
@@ -54,6 +58,11 @@ bool is_bifurcating( Tree const& tree );
 
 size_t leaf_node_count(  Tree const& tree );
 size_t inner_node_count( Tree const& tree );
+
+size_t subtree_size( TreeLink const& link );
+
+std::vector<size_t> subtree_sizes( Tree const& tree, TreeNode const& node );
+std::vector<size_t> subtree_sizes( Tree const& tree );
 
 } // namespace tree
 } // namespace genesis
