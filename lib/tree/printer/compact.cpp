@@ -31,9 +31,6 @@
 #include "tree/printer/compact.hpp"
 
 #include "tree/tree.hpp"
-#include "tree/tree_node.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
 
 // TODO used for conversion - ensure typesafety!
 #include "tree/default/tree.hpp"
@@ -152,7 +149,7 @@ std::string PrinterCompact::print( Tree const& tree )
     {
         (void) edge;
         // TODO typesafety!
-        return node_data_cast< DefaultNodeData >( node ).name;
+        return node.data<DefaultNodeData>().name;
     };
     return print(tree, print_line);
 }

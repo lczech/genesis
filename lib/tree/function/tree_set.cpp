@@ -31,9 +31,6 @@
 #include "tree/function/tree_set.hpp"
 
 #include "tree/tree.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
-#include "tree/tree_node.hpp"
 #include "tree/tree_set.hpp"
 
 #include "tree/default/tree.hpp"
@@ -125,7 +122,7 @@ Tree average_branch_length_tree( TreeSet const& tset )
                 continue;
             }
 
-            avgs[idx] += edge_data_cast< DefaultEdgeData >( it.edge() ).branch_length;
+            avgs[idx] += it.edge().data<DefaultEdgeData>().branch_length;
             ++idx;
         }
     }
@@ -144,7 +141,7 @@ Tree average_branch_length_tree( TreeSet const& tset )
             continue;
         }
 
-        edge_data_cast< DefaultEdgeData >( it.edge() ).branch_length = avgs[idx] / tset.size();
+        it.edge().data<DefaultEdgeData>().branch_length = avgs[idx] / tset.size();
         ++idx;
     }
 

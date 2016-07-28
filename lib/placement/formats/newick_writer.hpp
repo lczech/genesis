@@ -108,8 +108,8 @@ protected:
         Base::edge_to_element(edge, element);
 
         if (enable_edge_nums_) {
-            element.tags.push_back( std::to_string( 
-                tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num()
+            element.tags.push_back( std::to_string(
+                edge.data<PlacementEdgeData>().edge_num()
             ));
         }
         if (enable_placement_counts_) {

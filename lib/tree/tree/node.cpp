@@ -28,10 +28,12 @@
  * @ingroup tree
  */
 
-#include "tree/tree_node.hpp"
+#include "tree/tree/node.hpp"
 
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
+#include "tree/tree/edge.hpp"
+#include "tree/tree/link.hpp"
+
+#include <assert.h>
 
 namespace genesis {
 namespace tree {
@@ -91,14 +93,14 @@ bool TreeNode::has_data() const
     return data_.get() != nullptr;
 }
 
-BaseNodeData& TreeNode::data()
+BaseNodeData* TreeNode::data_ptr()
 {
-    return *data_;
+    return data_.get();
 }
 
-BaseNodeData const& TreeNode::data() const
+BaseNodeData const* TreeNode::data_ptr() const
 {
-    return *data_;
+    return data_.get();
 }
 
 // =================================================================================================
@@ -165,7 +167,11 @@ bool TreeNode::is_inner() const
  */
 bool TreeNode::is_root() const
 {
-    return &primary_link().edge().primary_link() == &primary_link();
+    // The link_ is always the one pointing towards the root. Also, the edge of that link always has
+    // the primary link set to that it points towards the root.
+    // At the root itself, however, this means we are pointing to ourselves. Use this to check
+    // if this node is the root.
+    return &link_->edge().primary_link() == link_;
 }
 
 /**

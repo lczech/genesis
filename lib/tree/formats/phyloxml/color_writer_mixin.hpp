@@ -32,7 +32,6 @@
  */
 
 #include "tree/tree.hpp"
-#include "tree/tree_edge.hpp"
 #include "tree/formats/color_writer_mixin.hpp"
 #include "utils/formats/xml/document.hpp"
 

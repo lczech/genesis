@@ -32,9 +32,6 @@
  */
 
 #include "tree/tree.hpp"
-#include "tree/tree_node.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
 #include "tree/default/tree.hpp"
 
 #include <map>
@@ -53,7 +50,7 @@ namespace tree {
  * See earth_movers_distance( EmdTree const& tree ) for more details on the purpose of this tree
  * type and on the earth movers distance in general.
  *
- * The branches of an EmdTree hold a list of @link EmdTreeEdgeData::masses masses@endlink, sorted
+ * The branches of an EmdTree hold a list of @link EmdEdgeData::masses masses@endlink, sorted
  * along their position on the branch.
  */
 using EmdTree = Tree;
@@ -84,11 +81,36 @@ using EmdTreeNode = TreeNode;
  */
 class EmdNodeData : public BaseNodeData
 {
+    // -------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
 public:
 
-    std::unique_ptr< BaseNodeData > clone() const override
+    virtual ~EmdNodeData() = default;
+
+    // Move ctor and assignment.
+    EmdNodeData( EmdNodeData&& )             = delete;
+    EmdNodeData& operator= ( EmdNodeData&& ) = delete;
+
+protected:
+
+    EmdNodeData() = default;
+
+    // Copy ctor and assignment.
+    EmdNodeData( EmdNodeData const& )             = default;
+    EmdNodeData& operator= ( EmdNodeData const& ) = default;
+
+public:
+
+    static std::unique_ptr< EmdNodeData > create()
     {
-        return utils::make_unique< EmdNodeData >( *this );
+        return std::unique_ptr< EmdNodeData >( new EmdNodeData() );
+    }
+
+    virtual std::unique_ptr< BaseNodeData > clone() const override
+    {
+        return std::unique_ptr< EmdNodeData >( new EmdNodeData( *this ));
     }
 
 };
@@ -105,15 +127,36 @@ public:
  */
 class EmdEdgeData : public DefaultEdgeData
 {
+    // -------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------
+
 public:
 
-    // -----------------------------------------------------
-    //     Construction and Rule of Five
-    // -----------------------------------------------------
+    virtual ~EmdEdgeData() = default;
 
-    std::unique_ptr< BaseEdgeData > clone() const override
+    // Move ctor and assignment.
+    EmdEdgeData( EmdEdgeData&& )             = delete;
+    EmdEdgeData& operator= ( EmdEdgeData&& ) = delete;
+
+protected:
+
+    EmdEdgeData() = default;
+
+    // Copy ctor and assignment.
+    EmdEdgeData( EmdEdgeData const& )             = default;
+    EmdEdgeData& operator= ( EmdEdgeData const& ) = default;
+
+public:
+
+    static std::unique_ptr< EmdEdgeData > create()
     {
-        return utils::make_unique< EmdEdgeData >( *this );
+        return std::unique_ptr< EmdEdgeData >( new EmdEdgeData() );
+    }
+
+    virtual std::unique_ptr< BaseEdgeData > clone() const override
+    {
+        return std::unique_ptr< EmdEdgeData >( new EmdEdgeData( *this ));
     }
 
     // -----------------------------------------------------
@@ -125,8 +168,8 @@ public:
      *
      * This data member maps from a position on the branch to the mass at that position.
      * In order to be valid, the positions have to be in the interval [0.0, branch_length].
-     * See @link validate( EmdTree const& tree, double valid_total_mass_difference )
-     * validate() @endlink for a validation function.
+     * See @link validate_emd_tree( EmdTree const& tree, double valid_total_mass_difference )
+     * validate_emd_tree() @endlink for a validation function.
      */
     std::map<double, double> masses;
 

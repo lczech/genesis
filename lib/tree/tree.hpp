@@ -29,28 +29,26 @@
  *
  * For more information, see Tree class.
  *
+ * This header also includes all the essential other tree elements,
+ * as there is rarely a case where they are not needed anyway.
+ *
  * @file
  * @ingroup tree
  */
 
-#include <functional>
-#include <memory>
-#include <ostream>
-#include <utility>
-#include <vector>
+#include "tree/tree/node.hpp"
+#include "tree/tree/edge.hpp"
+#include "tree/tree/link.hpp"
+#include "tree/tree/node_data.hpp"
+#include "tree/tree/edge_data.hpp"
 
 #include "utils/core/range.hpp"
 
+#include <memory>
+#include <vector>
+
 namespace genesis {
 namespace tree {
-
-// =================================================================================================
-//     Forward Declarations
-// =================================================================================================
-
-class TreeNode;
-class TreeEdge;
-class TreeLink;
 
 // =================================================================================================
 //     Tree
@@ -155,6 +153,15 @@ public:
     size_t edge_count() const;
 
     // -------------------------------------------------------------------------
+    //     Modifiers
+    // -------------------------------------------------------------------------
+
+    void reroot( TreeLink const& at_link );
+    void reroot( TreeNode const& at_node );
+
+    void reroot_at_node( size_t node_index );
+
+    // -------------------------------------------------------------------------
     //     Iterators
     // -------------------------------------------------------------------------
 
@@ -206,7 +213,7 @@ public:
      *
      * This function is defined in tree/functions/operators.hpp
      */
-    friend bool validate( Tree const& tree );
+    friend bool validate_topology( Tree const& tree );
 
     // -------------------------------------------------------------------------
     //     Data Members

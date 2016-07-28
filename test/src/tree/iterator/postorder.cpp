@@ -58,7 +58,7 @@ void TestPostorder(std::string node_name, std::string out_nodes)
     ASSERT_NE(nullptr, node);
 
     for( auto it : postorder(*node) ) {
-        nodes += node_data_cast< DefaultNodeData >( it.node() ).name;
+        nodes += it.node().data<DefaultNodeData>().name;
     }
     EXPECT_EQ(out_nodes, nodes) << " with start node " << node_name;
 }
@@ -69,10 +69,10 @@ TEST (TreeIterator, Postorder)
     TestPostorder("A", "FHIGRBDECA");
     TestPostorder("B", "DECFHIGRAB");
     TestPostorder("C", "FHIGRBADEC");
-    // TestPostorder("D", "");
-    // TestPostorder("E", "");
-    // TestPostorder("F", "");
-    // TestPostorder("G", "");
-    // TestPostorder("H", "");
-    // TestPostorder("I", "");
+    TestPostorder("D", "EFHIGRBACD");
+    TestPostorder("E", "FHIGRBADCE");
+    TestPostorder("F", "HIGBDECARF");
+    TestPostorder("G", "BDECAFRHIG");
+    TestPostorder("H", "IBDECAFRGH");
+    TestPostorder("I", "BDECAFRHGI");
 }

@@ -31,9 +31,6 @@
 #include "tree/default/distances.hpp"
 
 #include "tree/tree.hpp"
-#include "tree/tree_node.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
 #include "tree/iterator/levelorder.hpp"
 
 #include <algorithm>
@@ -54,7 +51,7 @@ double length(Tree const& tree)
 {
     double len = 0.0;
     for( auto const& edge : tree.edges() ) {
-        len += edge_data_cast< DefaultEdgeData >( edge ).branch_length;
+        len += edge->data<DefaultEdgeData>().branch_length;
     }
     return len;
 }
@@ -120,7 +117,7 @@ utils::Matrix<double> node_branch_length_distance_matrix(
             // the distance to the current row node is: the length of the current branch plus
             // the distance from the other end of that branch to the row node.
             mat(row_node->index(), it.node().index())
-                = edge_data_cast< DefaultEdgeData >( it.edge() ).branch_length
+                = it.edge().data<DefaultEdgeData>().branch_length
                 + mat(row_node->index(), it.link().outer().node().index());
         }
     }
@@ -166,7 +163,7 @@ std::vector<double> node_branch_length_distance_vector(
         // the starting node) plus the branch length.
         vec[it.node().index()]
             = vec[it.link().outer().node().index()]
-            + edge_data_cast< DefaultEdgeData >( it.edge() ).branch_length;
+            + it.edge().data<DefaultEdgeData>().branch_length;
     }
 
     return vec;
@@ -229,8 +226,8 @@ utils::Matrix<double> edge_branch_length_distance_matrix(
             // Store in matrix, with halves of the branch lengths.
             mat(row_edge.index(), col_edge.index())
                 = (dist)
-                + ( edge_data_cast< DefaultEdgeData >( row_edge ).branch_length / 2 )
-                + ( edge_data_cast< DefaultEdgeData >( col_edge ).branch_length / 2 )
+                + ( row_edge.data<DefaultEdgeData>().branch_length / 2 )
+                + ( col_edge.data<DefaultEdgeData>().branch_length / 2 )
             ;
         }
     }
@@ -279,8 +276,8 @@ std::vector<double> edge_branch_length_distance_vector(
         // Store in vector, with halves of the branch lengths.
         vec[ col_edge.index() ]
             = ( dist )
-            + ( edge_data_cast< DefaultEdgeData >( *edge ).branch_length / 2 )
-            + ( edge_data_cast< DefaultEdgeData >( col_edge ).branch_length / 2 )
+            + ( edge->data<DefaultEdgeData>().branch_length / 2 )
+            + ( col_edge.data<DefaultEdgeData>().branch_length / 2 )
         ;
     }
 
@@ -304,7 +301,7 @@ double deepest_distance(Tree const& tree)
         int idx_s = e->secondary_node().index();
 
         double d = (leaf_dist[idx_p].second
-                 + edge_data_cast< DefaultEdgeData >( *e ).branch_length
+                 + e->data<DefaultEdgeData>().branch_length
                  + leaf_dist[ idx_s ].second) / 2;
 
         if (d > max) {

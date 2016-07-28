@@ -28,9 +28,9 @@
  * @ingroup tree
  */
 
-#include "tree/tree_edge.hpp"
+#include "tree/tree/edge.hpp"
 
-#include "tree/tree_link.hpp"
+#include "tree/tree/link.hpp"
 
 namespace genesis {
 namespace tree {
@@ -116,14 +116,14 @@ bool TreeEdge::has_data() const
     return data_.get() != nullptr;
 }
 
-BaseEdgeData& TreeEdge::data()
+BaseEdgeData* TreeEdge::data_ptr()
 {
-    return *data_;
+    return data_.get();
 }
 
-BaseEdgeData const& TreeEdge::data() const
+BaseEdgeData const* TreeEdge::data_ptr() const
 {
-    return *data_;
+    return data_.get();
 }
 
 // =================================================================================================

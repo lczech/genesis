@@ -47,22 +47,31 @@ namespace tree {
  *
  * This function takes the given source Tree (possibly with different data types at the nodes and
  * edges), and copies its topology (i.e., all links, nodes and edges, and their structure) to the
- * newly created and returned tree.
- * The data types are converted using the two provided functions for the node data type and edge
- * data type, respectively.
+ * newly created result tree.
+ *
+ * The data types are then converted using the two provided functions for the node data type and
+ * edge data type, respectively. If a node or an edge does not have data (i.e., the data pointer
+ * is a nullptr), the converter functions are not called, but the data of the new tree at that
+ * node or edge is also set to a nullptr.
  */
 Tree convert(
     Tree const& source,
     std::function< std::unique_ptr<BaseNodeData>( BaseNodeData const& node_data )> node_data_converter,
     std::function< std::unique_ptr<BaseEdgeData>( BaseEdgeData const& edge_data )> edge_data_converter
 ) {
+    // Copy the topology. All data pointers of the new tree are nullptrs.
     auto res = source.clone_topology();
 
+    // Convert data where there is data.
     for( size_t i = 0; i < res.node_count(); ++i ) {
-        res.node_at(i).reset_data( node_data_converter( source.node_at(i).data() ));
+        if( source.node_at(i).has_data() ) {
+            res.node_at(i).reset_data( node_data_converter( *source.node_at(i).data_ptr() ));
+        }
     }
     for( size_t i = 0; i < res.edge_count(); ++i ) {
-        res.edge_at(i).reset_data( edge_data_converter( source.edge_at(i).data() ));
+        if( source.edge_at(i).has_data() ) {
+            res.edge_at(i).reset_data( edge_data_converter( *source.edge_at(i).data_ptr() ));
+        }
     }
 
     return res;
@@ -183,6 +192,30 @@ bool identical_topology( Tree const& lhs, Tree const& rhs)
     return equal( lhs, rhs, node_comparator, edge_comparator );
 }
 
+/**
+ * @brief Return whether the TreeNode belongs to the Tree, i.e., whether it is owned by the Tree.
+ */
+bool belongs_to( Tree const& tree, TreeNode const& node )
+{
+    return node.index() <= tree.node_count() && &tree.node_at( node.index() ) == &node;
+}
+
+/**
+ * @brief Return whether the TreeEdge belongs to the Tree, i.e., whether it is owned by the Tree.
+ */
+bool belongs_to( Tree const& tree, TreeEdge const& edge )
+{
+    return edge.index() <= tree.edge_count() && &tree.edge_at( edge.index() ) == &edge;
+}
+
+/**
+ * @brief Return whether the TreeLink belongs to the Tree, i.e., whether it is owned by the Tree.
+ */
+bool belongs_to( Tree const& tree, TreeLink const& link )
+{
+    return link.index() <= tree.link_count() && &tree.link_at( link.index() ) == &link;
+}
+
 // =================================================================================================
 //     Output
 // =================================================================================================
@@ -199,15 +232,13 @@ std::ostream& operator << ( std::ostream& out, Tree const& tree )
 //     Validate
 // =================================================================================================
 
-// TODO do all node->link_ links point to the root? same for all edge->primary?
-
 /**
- * @brief Validate that all pointers of the tree elements (links, nodes, edges) to each other
- * are correct and that some other invariants are met.
+ * @brief Validate that all internal pointers of the Tree elements (TreeLink%s, TreeNode%s,
+ * TreeEdge%s) to each other are correct and that some other invariants are met.
  *
  * This check is a bit pedantic, but better safe than sorry.
  */
-bool validate( Tree const& tree )
+bool validate_topology( Tree const& tree )
 {
     // -----------------------------------------------------
     //     Empty Tree
@@ -350,6 +381,18 @@ bool validate( Tree const& tree )
         }
         if( &tree.edges_[i]->secondary_link().edge() != tree.edges_[i].get() ) {
             LOG_INFO << "Edge at index " << i << " has wrong secondary link.";
+            return false;
+        }
+
+        // Check outer links.
+        if( &tree.edges_[i]->primary_link().outer() != &tree.edges_[i]->secondary_link() ) {
+            LOG_INFO << "Edge at index " << i << " has a primary link that does not "
+                     << "connect to its secondary link.";
+            return false;
+        }
+        if( &tree.edges_[i]->secondary_link().outer() != &tree.edges_[i]->primary_link() ) {
+            LOG_INFO << "Edge at index " << i << " has a secondary link that does not "
+            << "connect to its primary link.";
             return false;
         }
 

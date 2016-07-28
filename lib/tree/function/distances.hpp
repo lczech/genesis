@@ -54,15 +54,21 @@ class TreeLink;
 utils::Matrix<int> node_path_length_matrix( Tree const& tree );
 
 std::vector<int> node_path_length_vector(
-    Tree const& tree,
-    TreeNode const* node = nullptr
+    Tree     const& tree,
+    TreeNode const& node
 );
 
-utils::Matrix<int> edge_path_length_matrix( Tree const& tree );
+std::vector<int> node_path_length_vector(
+    Tree     const& tree
+);
+
+utils::Matrix<int> edge_path_length_matrix(
+    Tree const& tree
+);
 
 std::vector<int> edge_path_length_vector(
-    Tree const& tree,
-    TreeEdge const* edge = nullptr
+    Tree     const& tree,
+    TreeEdge const& edge
 );
 
 // =================================================================================================

@@ -32,9 +32,6 @@
  */
 
 #include "tree/tree.hpp"
-#include "tree/tree_node.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
 
 #include <string>
 
@@ -81,52 +78,46 @@ using DefaultTreeNode = TreeNode;
  */
 class DefaultNodeData : public BaseNodeData
 {
-public:
-
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
-    DefaultNodeData () = default;
-    ~DefaultNodeData() = default;
+public:
 
-    DefaultNodeData( DefaultNodeData const& ) = default;
-    DefaultNodeData( DefaultNodeData&& )      = default;
+    virtual ~DefaultNodeData() = default;
 
+    // Move ctor and assignment.
+    DefaultNodeData( DefaultNodeData&& )             = delete;
+    DefaultNodeData& operator= ( DefaultNodeData&& ) = delete;
+
+protected:
+
+    DefaultNodeData() = default;
+
+    // Copy ctor and assignment.
+    DefaultNodeData( DefaultNodeData const& )             = default;
     DefaultNodeData& operator= ( DefaultNodeData const& ) = default;
-    DefaultNodeData& operator= ( DefaultNodeData&& )      = default;
 
-    std::unique_ptr< BaseNodeData > clone() const override
+public:
+
+    static std::unique_ptr< DefaultNodeData > create()
     {
-        return utils::make_unique< DefaultNodeData >( *this );
+        return std::unique_ptr< DefaultNodeData >( new DefaultNodeData() );
     }
 
-    // -----------------------------------------------------
-    //     Class Functions
-    // -----------------------------------------------------
-
-    bool operator == (const DefaultNodeData &other) const
+    virtual std::unique_ptr< BaseNodeData > clone() const override
     {
-        return other.name == name;
-    }
-
-    bool operator != (const DefaultNodeData &other) const
-    {
-        return !(other == *this);
+        return std::unique_ptr< DefaultNodeData >( new DefaultNodeData( *this ));
     }
 
     // -----------------------------------------------------
     //     Data Members
     // -----------------------------------------------------
 
-    std::string dump() const
-    {
-        return "Name: '" + name + "'";
-    }
-
     /**
-     * Name of the node. In case it is a leaf, this is usually the name of
-     * the taxon represented by the node.
+     * @brief Name of the node.
+     *
+     * In case it is a leaf, this is usually the name of the taxon represented by the node.
      */
     std::string name;
 
@@ -147,49 +138,47 @@ public:
  */
 class DefaultEdgeData : public BaseEdgeData
 {
-public:
-
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
-    DefaultEdgeData () = default;
-    ~DefaultEdgeData() = default;
+public:
 
-    DefaultEdgeData( DefaultEdgeData const& ) = default;
-    DefaultEdgeData( DefaultEdgeData&& )      = default;
+    virtual ~DefaultEdgeData() = default;
 
+    // Move ctor and assignment.
+    DefaultEdgeData( DefaultEdgeData&& )             = delete;
+    DefaultEdgeData& operator= ( DefaultEdgeData&& ) = delete;
+
+protected:
+
+    DefaultEdgeData() = default;
+
+    // Copy ctor and assignment.
+    DefaultEdgeData( DefaultEdgeData const& )             = default;
     DefaultEdgeData& operator= ( DefaultEdgeData const& ) = default;
-    DefaultEdgeData& operator= ( DefaultEdgeData&& )      = default;
 
-    std::unique_ptr< BaseEdgeData > clone() const override
+public:
+
+    static std::unique_ptr< DefaultEdgeData > create()
     {
-        return utils::make_unique< DefaultEdgeData >( *this );
-    }
+        return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData() );
+    };
 
-    // -----------------------------------------------------
-    //     Class Functions
-    // -----------------------------------------------------
-
-    bool operator == (const DefaultEdgeData &other) const
+    virtual std::unique_ptr< BaseEdgeData > clone() const override
     {
-        return other.branch_length == branch_length;
-    }
-
-    bool operator != (const DefaultEdgeData &other) const
-    {
-        return !(other == *this);
+        return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData( *this ));
     }
 
     // -----------------------------------------------------
     //     Data Members
     // -----------------------------------------------------
 
-    std::string dump() const
-    {
-        return "Length: " + std::to_string(branch_length);
-    }
-
+    /**
+     * @brief Branch length of the edge.
+     *
+     * Defaults to 1.0.
+     */
     double branch_length = 1.0;
 
 };

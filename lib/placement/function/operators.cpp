@@ -72,8 +72,8 @@ bool compatible_trees( PlacementTree const& lhs, PlacementTree const& rhs )
         PlacementTreeNode const& node_l,
         PlacementTreeNode const& node_r
     ) {
-        auto l_ptr = dynamic_cast< PlacementNodeData const* >( &node_l.data() );
-        auto r_ptr = dynamic_cast< PlacementNodeData const* >( &node_r.data() );
+        auto l_ptr = dynamic_cast< PlacementNodeData const* >( node_l.data_ptr() );
+        auto r_ptr = dynamic_cast< PlacementNodeData const* >( node_r.data_ptr() );
         if( l_ptr == nullptr || r_ptr == nullptr ) {
             return false;
         }
@@ -85,8 +85,8 @@ bool compatible_trees( PlacementTree const& lhs, PlacementTree const& rhs )
         PlacementTreeEdge const& edge_l,
         PlacementTreeEdge const& edge_r
     ) {
-        auto l_ptr = dynamic_cast< PlacementEdgeData const* >( &edge_l.data() );
-        auto r_ptr = dynamic_cast< PlacementEdgeData const* >( &edge_r.data() );
+        auto l_ptr = dynamic_cast< PlacementEdgeData const* >( edge_l.data_ptr() );
+        auto r_ptr = dynamic_cast< PlacementEdgeData const* >( edge_r.data_ptr() );
         if( l_ptr == nullptr || r_ptr == nullptr ) {
             return false;
         }
@@ -125,19 +125,18 @@ bool compatible_trees( Sample const& lhs, Sample const& rhs )
  */
 PlacementTree convert_to_placement_tree( tree::DefaultTree const& source_tree )
 {
-    // TODO those converters need to do double copies of the node and edge data. wasteful!
     auto node_data_converter = [] ( tree::BaseNodeData const& source_node ) {
-        auto node_data   = PlacementNodeData();
-        auto source_data = dynamic_cast< tree::DefaultNodeData const& >( source_node );
-        node_data.name = source_data.name;
-        return std::unique_ptr< tree::BaseNodeData >( new PlacementNodeData( node_data ));
+        auto node_data = PlacementNodeData::create();
+        auto& source_data = dynamic_cast< tree::DefaultNodeData const& >( source_node );
+        node_data->name = source_data.name;
+        return std::move( node_data );
     };
 
     auto edge_data_converter = [] ( tree::BaseEdgeData const& source_edge ) {
-        auto edge_data   = PlacementEdgeData();
-        auto source_data = dynamic_cast< tree::DefaultEdgeData const& >( source_edge );
-        edge_data.branch_length = source_data.branch_length;
-        return std::unique_ptr< tree::BaseEdgeData >( new PlacementEdgeData( edge_data ));
+        auto edge_data = PlacementEdgeData::create();
+        auto& source_data = dynamic_cast< tree::DefaultEdgeData const& >( source_edge );
+        edge_data->branch_length = source_data.branch_length;
+        return std::move( edge_data );
     };
 
     auto result = tree::convert(
@@ -205,9 +204,9 @@ std::string print_tree( Sample const& smp )
 
     auto print_line = [ &place_map ]( PlacementTreeNode const& node, PlacementTreeEdge const& edge )
     {
-        return tree::node_data_cast< PlacementNodeData >( node ).name
+        return node.data<PlacementNodeData>().name
             + " [" + std::to_string(
-                tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num()
+                edge.data<PlacementEdgeData>().edge_num()
             ) + "]" ": "
             + std::to_string( place_map[ edge.index() ].size() ) + " placements";
     };

@@ -73,8 +73,8 @@ namespace tree {
  * of total mass. Thus, as they use opposite signs, the sum of all masses on the tree should ideally
  * be zero (apart from numerical derivations).
  * See @link sum_of_masses( EmdTree const& tree ) sum_of_masses() @endlink and
- * @link validate( EmdTree const& tree, double valid_total_mass_difference )
- * validate() @endlink for functions to verify this.
+ * @link validate_emd_tree( EmdTree const& tree, double valid_total_mass_difference )
+ * validate_emd_tree() @endlink for functions to verify this.
  *
  * See @link placement::earth_movers_distance( const Sample& lhs, const Sample& rhs, bool with_pendant_length )
  * earth_movers_distance( Sample const&, ... ) @endlink for an exemplary
@@ -130,12 +130,12 @@ double earth_movers_distance( EmdTree const& tree )
 
         // We now start a "normal" earth movers distance caluclation along the current edge.
         // We start at the end of the branch, with the mass that comes from the subtree below it...
-        double current_pos  = edge_data_cast< EmdEdgeData >( tree_it.edge() ).branch_length;
+        double current_pos  = tree_it.edge().data<EmdEdgeData>().branch_length;
         double current_mass = node_masses[ sec_node_index ];
 
         // ... and move the mass along the branch, balancing it with the masses found on the branch.
         // We use a reverse iterator in order to traverse the branch from end to start.
-        auto const& edge_masses = edge_data_cast< EmdEdgeData >( tree_it.edge() ).masses;
+        auto const& edge_masses = tree_it.edge().data<EmdEdgeData>().masses;
         for(
             auto mass_rit = edge_masses.crbegin();
             mass_rit != edge_masses.crend();
@@ -167,13 +167,15 @@ double earth_movers_distance( EmdTree const& tree )
 void transform_to_unit_branch_lengths( EmdTree& tree )
 {
     for( auto& edge : tree.edges() ) {
+        auto& edge_data = edge->data<EmdEdgeData>();
         std::map<double, double> relative;
-        for( auto mass : edge_data_cast< EmdEdgeData >( edge ).masses ) {
-            relative[ mass.first / edge_data_cast< EmdEdgeData >( edge ).branch_length ] += mass.second;
-        }
-        edge_data_cast< EmdEdgeData >( edge ).masses = relative;
 
-        edge_data_cast< EmdEdgeData >( edge ).branch_length = 1.0;
+        for( auto mass : edge_data.masses ) {
+            relative[ mass.first / edge_data.branch_length ] += mass.second;
+        }
+
+        edge_data.masses = relative;
+        edge_data.branch_length = 1.0;
     }
 }
 
@@ -185,16 +187,18 @@ double center_masses_on_branches( EmdTree& tree )
 {
     double work = 0.0;
     for( auto& edge : tree.edges() ) {
-        double branch_center = edge_data_cast< EmdEdgeData >( edge ).branch_length / 2;
+        auto& edge_data = edge->data<EmdEdgeData>();
+
+        double branch_center = edge_data.branch_length / 2;
         double central_mass  = 0.0;
 
-        for( auto mass : edge_data_cast< EmdEdgeData >( edge ).masses ) {
+        for( auto mass : edge_data.masses ) {
             work         += mass.second * std::abs( branch_center - mass.first );
             central_mass += mass.second;
         }
 
-        edge_data_cast< EmdEdgeData >( edge ).masses.clear();
-        edge_data_cast< EmdEdgeData >( edge ).masses[ branch_center ] = central_mass;
+        edge_data.masses.clear();
+        edge_data.masses[ branch_center ] = central_mass;
     }
     return work;
 }
@@ -213,7 +217,7 @@ double sum_of_masses( EmdTree const& tree )
 {
     double total_mass = 0.0;
     for( auto& edge : tree.edges() ) {
-        for( auto mass : edge_data_cast< EmdEdgeData >( edge ).masses ) {
+        for( auto mass : edge->data<EmdEdgeData>().masses ) {
             total_mass += mass.second;
         }
     }
@@ -241,7 +245,7 @@ bool validate_emd_tree( EmdTree const& tree, double valid_total_mass_difference 
     double mass_sum = 0.0;
 
     for( auto const& edge : tree.edges() ) {
-        auto const edge_data = dynamic_cast< EmdEdgeData const* >( &edge->data() );
+        auto const edge_data = dynamic_cast< EmdEdgeData const* >( edge->data_ptr() );
         if( edge_data == nullptr ) {
             LOG_INFO << "Edge data type is not 'EmdEdgeData'.";
             return false;

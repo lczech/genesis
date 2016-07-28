@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_TREE_LINK_H_
-#define GENESIS_TREE_TREE_LINK_H_
+#ifndef GENESIS_TREE_TREE_EDGE_H_
+#define GENESIS_TREE_TREE_EDGE_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,6 +31,11 @@
  * @ingroup tree
  */
 
+#include "tree/tree/edge_data.hpp"
+
+#include "utils/core/std.hpp"
+
+#include <memory>
 #include <string>
 
 namespace genesis {
@@ -41,47 +46,53 @@ namespace tree {
 // =================================================================================================
 
 class Tree;
-class TreeEdge;
+class TreeLink;
 class TreeNode;
 
+class BaseEdgeData;
+
 // =================================================================================================
-//     TreeLink
+//     Tree Edge
 // =================================================================================================
 
-class TreeLink
+class TreeEdge
 {
 public:
+
+    // ---------------------------------------------------------------------
+    //     Typedefs and Enums
+    // ---------------------------------------------------------------------
+
+    friend class Tree;
 
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
-    TreeLink()
-        : index_( 0       )
-        , next_(  nullptr )
-        , outer_( nullptr )
-        , node_(  nullptr )
-        , edge_(  nullptr )
+    TreeEdge()
+        : index_( 0 )
+        , link_p_( nullptr )
+        , link_s_( nullptr )
+        , data_( nullptr )
     {}
 
-    TreeLink( size_t index, TreeLink* next, TreeLink* outer, TreeNode* node, TreeEdge* edge )
-        : index_( index )
-        , next_(  next  )
-        , outer_( outer )
-        , node_(  node  )
-        , edge_(  edge  )
+    TreeEdge( size_t index, TreeLink* primary_link, TreeLink* secondary_link )
+        : index_(  index )
+        , link_p_( primary_link )
+        , link_s_( secondary_link )
+        , data_( nullptr )
     {}
 
-    ~TreeLink() = default;
+    ~TreeEdge() = default;
 
     // avoid copy constructor and assignment operator.
     // creating copies is maintained by Tree only.
 
-    TreeLink( TreeLink const& ) = delete;
-    TreeLink( TreeLink&& )      = delete;
+    TreeEdge( TreeEdge const& ) = delete;
+    TreeEdge( TreeEdge&& )      = delete;
 
-    TreeLink& operator= ( TreeLink const& ) = delete;
-    TreeLink& operator= ( TreeLink&& )      = delete;
+    TreeEdge& operator= ( TreeEdge const& ) = delete;
+    TreeEdge& operator= ( TreeEdge&& )      = delete;
 
     // ---------------------------------------------------------------------
     //     Accessors
@@ -89,39 +100,49 @@ public:
 
     size_t index() const;
 
-    TreeLink      & next();
-    TreeLink const& next() const;
+    TreeLink      & primary_link();
+    TreeLink const& primary_link() const;
 
-    TreeLink      & prev();
-    TreeLink const& prev() const;
+    TreeLink      & secondary_link();
+    TreeLink const& secondary_link() const;
 
-    TreeLink      & outer();
-    TreeLink const& outer() const;
+    TreeNode      & primary_node();
+    TreeNode const& primary_node() const;
 
-    TreeEdge      & edge();
-    TreeEdge const& edge() const;
+    TreeNode      & secondary_node();
+    TreeNode const& secondary_node() const;
 
-    TreeNode      & node();
-    TreeNode const& node() const;
+    bool has_data() const;
+
+    template< class EdgeDataType >
+    EdgeDataType& data()
+    {
+        return dynamic_cast< EdgeDataType& >( *data_ );
+    }
+
+    template< class EdgeDataType >
+    EdgeDataType const& data() const
+    {
+        return dynamic_cast< EdgeDataType const& >( *data_ );
+    }
+
+    BaseEdgeData*       data_ptr();
+    BaseEdgeData const* data_ptr() const;
 
     // ---------------------------------------------------------------------
     //     Modifiers
     // ---------------------------------------------------------------------
 
-    TreeLink& reset_index( size_t val );
+    TreeEdge& reset_index( size_t val );
 
-    TreeLink& reset_next(  TreeLink* val );
-    TreeLink& reset_outer( TreeLink* val );
+    TreeEdge& reset_primary_link(   TreeLink* val );
+    TreeEdge& reset_secondary_link( TreeLink* val );
 
-    TreeLink& reset_node(  TreeNode* val );
-    TreeLink& reset_edge(  TreeEdge* val );
+    TreeEdge& reset_data( std::unique_ptr< BaseEdgeData > data );
 
     // ---------------------------------------------------------------------
     //     Member Functions
     // ---------------------------------------------------------------------
-
-    bool is_leaf() const;
-    bool is_inner() const;
 
     std::string dump() const;
 
@@ -131,13 +152,12 @@ public:
 
 private:
 
-    size_t index_;
+    size_t       index_;
 
-    TreeLink* next_;
-    TreeLink* outer_;
+    TreeLink*    link_p_;
+    TreeLink*    link_s_;
 
-    TreeNode* node_;
-    TreeEdge* edge_;
+    std::unique_ptr< BaseEdgeData > data_;
 };
 
 } // namespace tree

@@ -93,7 +93,7 @@ protected:
         Base::node_to_element(node, element);
 
         if (enable_names_) {
-            std::string name = node_data_cast< DefaultNodeData >( node ).name;
+            std::string name = node.data<DefaultNodeData>().name;
 
             // Handle spaces/underscores.
             if (replace_name_underscores) {
@@ -122,7 +122,7 @@ protected:
         Base::edge_to_element( edge, element );
 
         if (enable_branch_lengths_) {
-            auto const& edge_data = edge_data_cast< DefaultEdgeData >( edge );
+            auto const& edge_data = edge.data<DefaultEdgeData>();
             auto bl = utils::to_string_rounded( edge_data.branch_length, branch_length_precision );
             element.values.insert (element.values.begin(), bl );
         }

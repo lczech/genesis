@@ -30,10 +30,8 @@
 
 #include "tree/function/distances.hpp"
 
+#include "tree/function/operators.hpp"
 #include "tree/tree.hpp"
-#include "tree/tree_node.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
 #include "tree/iterator/levelorder.hpp"
 
 #include "utils/core/logging.hpp"
@@ -50,7 +48,10 @@ namespace tree {
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Return a matrix containing the pairwise depth of all nodes of the tree.
+ *
+ * See @link node_path_length_vector( Tree const& tree, TreeNode const& node ) node_path_length_vector(...)@endlink
+ * for more information.
  *
  * The vector is indexed using the node().index() for every node.
  */
@@ -98,24 +99,24 @@ utils::Matrix<int> node_path_length_matrix(
  * The vector is indexed using the node().index() for every node. Its elements give the depth of
  * each node with respect to the given start node. The depth is the number of edges visited on the
  * path between two nodes (0 for itself, 1 for immediate neighbours, etc).
- *
- * If no start node pointer is provided, the root is taken as node.
  */
 std::vector<int> node_path_length_vector(
     Tree const& tree,
-    TreeNode const* node
+    TreeNode const& node
 ) {
-    if (!node) {
-        node = &tree.root_node();
+    if( ! belongs_to( tree, node )) {
+        throw std::runtime_error(
+            "Cannot caluclate node_path_length_vector, as the given Node does not belong to the Tree."
+        );
     }
 
     // store the distance from each node to the given node.
     std::vector<int> vec;
     vec.resize(tree.node_count(), -1);
-    vec[node->index()] = 0;
+    vec[ node.index() ] = 0;
 
     // calculate the distance vector via levelorder iteration.
-    for( auto it : levelorder( *node ) ) {
+    for( auto it : levelorder( node ) ) {
         // skip the starting node (it is already set to 0).
         if (it.is_first_iteration()) {
             continue;
@@ -132,6 +133,19 @@ std::vector<int> node_path_length_vector(
     }
 
     return vec;
+}
+
+/**
+ * @brief Return a vector containing the depth of all nodes with respect to the root node.
+ *
+ * This function calls and returns the value of
+ * @link node_path_length_vector( Tree const& tree, TreeNode const& node ) node_path_length_vector(...)@endlink
+ * using the root node of the tree.
+ */
+std::vector<int> node_path_length_vector(
+    Tree const& tree
+) {
+    return node_path_length_vector( tree, tree.root_node() );
 }
 
 utils::Matrix<int> edge_path_length_matrix(
@@ -190,18 +204,24 @@ utils::Matrix<int> edge_path_length_matrix(
 
 std::vector<int> edge_path_length_vector(
     Tree const& tree,
-    TreeEdge const* edge
+    TreeEdge const& edge
 ) {
+    if( ! belongs_to( tree, edge )) {
+        throw std::runtime_error(
+            "Cannot caluclate node_path_length_vector, as the given Edge does not belong to the Tree."
+        );
+    }
+
     std::vector<int> vec (tree.edge_count(), -1);
 
     // We just need two rows of the distance matrix - let's take the vectors instead for speed.
-    auto p_node_dist = node_path_length_vector(tree, &edge->primary_node());
-    auto s_node_dist = node_path_length_vector(tree, &edge->secondary_node());
+    auto p_node_dist = node_path_length_vector(tree, edge.primary_node());
+    auto s_node_dist = node_path_length_vector(tree, edge.secondary_node());
 
     for( auto const& col_edge : tree.edges() ) {
 
-        if( edge->index() == col_edge->index() ) {
-            vec[ edge->index() ] = 0;
+        if( edge.index() == col_edge->index() ) {
+            vec[ edge.index() ] = 0;
             continue;
         }
 

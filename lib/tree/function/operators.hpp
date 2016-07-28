@@ -32,9 +32,6 @@
  */
 
 #include "tree/tree.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
-#include "tree/tree_node.hpp"
 
 #include <functional>
 #include <iosfwd>
@@ -70,7 +67,7 @@ bool tree_data_is( Tree const& tree )
         if( ! node->has_data() ) {
             return false;
         }
-        auto const& ref = node->data();
+        auto const& ref = *node->data_ptr();
         if( typeid( ref ) != typeid( NodeDataType )) {
             return false;
         }
@@ -81,7 +78,7 @@ bool tree_data_is( Tree const& tree )
         if( ! edge->has_data() ) {
             return false;
         }
-        auto const& ref = edge->data();
+        auto const& ref = *edge->data_ptr();
         if( typeid( ref ) != typeid( EdgeDataType )) {
             return false;
         }
@@ -102,14 +99,14 @@ bool tree_data_is_derived_from( Tree const& tree )
 {
     // Check node data types.
     for( auto const& node : tree.nodes() ) {
-        if( dynamic_cast< NodeDataType const* >( node->data() ) == nullptr ) {
+        if( dynamic_cast< NodeDataType const* >( node->data_ptr() ) == nullptr ) {
             return false;
         }
     }
 
     // Check edge data types.
     for( auto const& edge : tree.edges() ) {
-        if( dynamic_cast< EdgeDataType const* >( edge->data() ) == nullptr ) {
+        if( dynamic_cast< EdgeDataType const* >( edge->data_ptr() ) == nullptr ) {
             return false;
         }
     }
@@ -142,6 +139,10 @@ bool equal(
 
 bool identical_topology( Tree const& lhs, Tree const& rhs);
 
+bool belongs_to( Tree const& tree, TreeNode const& node );
+bool belongs_to( Tree const& tree, TreeEdge const& edge );
+bool belongs_to( Tree const& tree, TreeLink const& link );
+
 // =================================================================================================
 //     Output
 // =================================================================================================
@@ -152,7 +153,7 @@ std::ostream& operator << ( std::ostream& out, Tree const& tree );
 //     Validate
 // =================================================================================================
 
-bool validate( Tree const& tree );
+bool validate_topology( Tree const& tree );
 
 } // namespace tree
 } // namespace genesis

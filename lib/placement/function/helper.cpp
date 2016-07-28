@@ -57,7 +57,7 @@ std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( PlacementTree 
         ++it
     ) {
         auto const& edge      = *it;
-        auto const& edge_data = tree::edge_data_cast< PlacementEdgeData >( edge );
+        auto const& edge_data = edge->data<PlacementEdgeData>();
         assert( en_map.count( edge_data.edge_num() ) == 0);
         en_map.emplace( edge_data.edge_num(), edge.get());
     }
@@ -189,7 +189,7 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
             place.primary_node_index   = oplace.edge().primary_node().index();
             place.secondary_node_index = oplace.edge().secondary_node().index();
 
-            auto const& oplace_data    = tree::edge_data_cast< PlacementEdgeData >( oplace.edge() );
+            auto const& oplace_data    = oplace.edge().data<PlacementEdgeData>();
             place.branch_length        = oplace_data.branch_length;
             place.pendant_length       = oplace.pendant_length;
             place.proximal_length      = oplace.proximal_length;
@@ -223,7 +223,7 @@ void reset_edge_nums( PlacementTree& tree )
             continue;
         }
 
-        tree::edge_data_cast< PlacementEdgeData >( it.edge() ).reset_edge_num( current );
+        it.edge().data<PlacementEdgeData>().reset_edge_num( current );
         ++current;
     }
 }
@@ -246,7 +246,7 @@ bool has_correct_edge_nums( PlacementTree const& tree )
             continue;
         }
 
-        if( tree::edge_data_cast< PlacementEdgeData >( it.edge() ).edge_num() != current) {
+        if( it.edge().data<PlacementEdgeData>().edge_num() != current) {
             return false;
         }
         ++current;
@@ -269,8 +269,12 @@ bool has_correct_edge_nums( PlacementTree const& tree )
 bool validate( Sample const& smp, bool check_values, bool break_on_values )
 {
     // check tree
-    if( ! tree::validate( smp.tree() ) ) {
+    if( ! tree::validate_topology( smp.tree() ) ) {
         LOG_INFO << "Invalid placement tree.";
+        return false;
+    }
+    if( ! tree::tree_data_is< PlacementNodeData, PlacementEdgeData >( smp.tree() )) {
+        LOG_INFO << "Tree does not only contain Placement Node and Edge data types.";
         return false;
     }
 
@@ -283,13 +287,13 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
     ) {
         // make sure every edge num is used once only
         PlacementTreeEdge& edge = *(*it_e).get();
-        if (edge_num_map.count( tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num()) > 0) {
+        if( edge_num_map.count( edge.data<PlacementEdgeData>().edge_num() ) > 0 ) {
             LOG_INFO << "More than one edge has edge_num '"
-                     << tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num() << "'.";
+                     << edge.data<PlacementEdgeData>().edge_num() << "'.";
             return false;
         }
         edge_num_map.emplace(
-            tree::edge_data_cast< PlacementEdgeData >( edge ).edge_num(), (*it_e).get()
+            edge.data<PlacementEdgeData>().edge_num(), (*it_e).get()
         );
     }
     if( ! has_correct_edge_nums( smp.tree() )) {
@@ -318,7 +322,7 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
         double ratio_sum = 0.0;
         for( auto pit = pqry.begin_placements(); pit != pqry.end_placements(); ++pit ) {
             auto const& p = *pit;
-            auto const& edge_data = tree::edge_data_cast< PlacementEdgeData >( p.edge() );
+            auto const& edge_data = p.edge().data<PlacementEdgeData>();
 
             // Check if the placement has a valid pointer to its edge. This is a bit hard to do,
             // as we use a raw pointer, so there is no easy way of telling whether it is valid

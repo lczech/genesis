@@ -521,7 +521,7 @@ void JplaceReader::process_json_placements(
         ++it
     ) {
         auto& edge = *it;
-        auto& edge_data = tree::edge_data_cast< PlacementEdgeData >( edge );
+        auto& edge_data = edge->data<PlacementEdgeData>();
         if (edge_num_map.count( edge_data.edge_num()) > 0) {
             throw std::runtime_error(
                 "Jplace document contains a tree where the edge_num tag '"
@@ -629,9 +629,8 @@ void JplaceReader::process_json_placements(
             // processing. Also, we only set it if it was actually available in the fields and not
             // overwritten by the (more appropriate) field for the proximal length.
             if (distal_length >= 0.0 && pqry_place.proximal_length == 0.0) {
-                pqry_place.proximal_length = tree::edge_data_cast< PlacementEdgeData >(
-                    pqry_place.edge()
-                ).branch_length - distal_length;
+                auto const& edge_data = pqry_place.edge().data<PlacementEdgeData>();
+                pqry_place.proximal_length = edge_data.branch_length - distal_length;
             }
 
             auto invalid_number_checker = [this] (
@@ -692,7 +691,7 @@ void JplaceReader::process_json_placements(
             invalid_number_checker(
                 pqry_place.proximal_length,
                 std::greater<double>(),
-                tree::edge_data_cast< PlacementEdgeData >( pqry_place.edge() ).branch_length,
+                pqry_place.edge().data<PlacementEdgeData>().branch_length,
                 "Invalid placement with proximal_length > branch_length."
             );
 

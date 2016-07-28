@@ -31,9 +31,6 @@
 #include "tree/printer/detailed.hpp"
 
 #include "tree/tree.hpp"
-#include "tree/tree_node.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
 
 // TODO used for conversion - ensure typesafety!
 #include "tree/default/tree.hpp"
@@ -92,7 +89,7 @@ void PrinterDetailed::print (
         if( ! utils::contains( done, n.index() )) {
             out << indent
                 // TODO typesafety!
-                << node_color( "Node " + std::to_string(n.index()) + ": \"" + node_data_cast< DefaultNodeData >( n ).name + "\"" )
+                << node_color( "Node " + std::to_string(n.index()) + ": \"" + n.data<DefaultNodeData>().name + "\"" )
                 << "\n";
         }
         done.push_back(n.index());

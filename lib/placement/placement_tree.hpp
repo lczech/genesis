@@ -86,24 +86,36 @@ using PlacementTreeLink = tree::TreeLink;
  */
 class PlacementNodeData : public tree::DefaultNodeData
 {
-public:
-
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
-    PlacementNodeData () = default;
-    ~PlacementNodeData() = default;
+public:
 
-    PlacementNodeData( PlacementNodeData const& ) = default;
-    PlacementNodeData( PlacementNodeData&& )      = default;
+    virtual ~PlacementNodeData() = default;
 
+    // Move ctor and assignment.
+    PlacementNodeData( PlacementNodeData&& )             = delete;
+    PlacementNodeData& operator= ( PlacementNodeData&& ) = delete;
+
+protected:
+
+    PlacementNodeData() = default;
+
+    // Copy ctor and assignment.
+    PlacementNodeData( PlacementNodeData const& )             = default;
     PlacementNodeData& operator= ( PlacementNodeData const& ) = default;
-    PlacementNodeData& operator= ( PlacementNodeData&& )      = default;
 
-    std::unique_ptr< BaseNodeData > clone() const override
+public:
+
+    static std::unique_ptr< PlacementNodeData > create()
     {
-        return utils::make_unique< PlacementNodeData >( *this );
+        return std::unique_ptr< PlacementNodeData >( new PlacementNodeData() );
+    }
+
+    virtual std::unique_ptr< BaseNodeData > clone() const override
+    {
+        return std::unique_ptr< PlacementNodeData >( new PlacementNodeData( *this ));
     }
 
 };
@@ -121,50 +133,41 @@ public:
  */
 class PlacementEdgeData : public tree::DefaultEdgeData
 {
-public:
-
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------
 
-    PlacementEdgeData () = default;
-    ~PlacementEdgeData() = default;
+public:
 
-    PlacementEdgeData( PlacementEdgeData const& ) = default;
-    PlacementEdgeData( PlacementEdgeData&& )      = default;
+    virtual ~PlacementEdgeData() = default;
 
+    // Move ctor and assignment.
+    PlacementEdgeData( PlacementEdgeData&& )             = delete;
+    PlacementEdgeData& operator= ( PlacementEdgeData&& ) = delete;
+
+protected:
+
+    PlacementEdgeData() = default;
+
+    // Copy ctor and assignment.
+    PlacementEdgeData( PlacementEdgeData const& )             = default;
     PlacementEdgeData& operator= ( PlacementEdgeData const& ) = default;
-    PlacementEdgeData& operator= ( PlacementEdgeData&& )      = default;
 
-    std::unique_ptr< BaseEdgeData > clone() const override
+public:
+
+    static std::unique_ptr< PlacementEdgeData > create()
     {
-        return utils::make_unique< PlacementEdgeData >( *this );
+        return std::unique_ptr< PlacementEdgeData >( new PlacementEdgeData() );
+    }
+
+    virtual std::unique_ptr< BaseEdgeData > clone() const override
+    {
+        return std::unique_ptr< PlacementEdgeData >( new PlacementEdgeData( *this ));
     }
 
     // -----------------------------------------------------
-    //     Class Functions
+    //     Data Functions
     // -----------------------------------------------------
-
-    inline bool operator == (const PlacementEdgeData &other) const
-    {
-        // TODO add a comparison of pqueries as well ?! is that good?!
-        return other.branch_length == branch_length && other.edge_num_ == edge_num_;
-    }
-
-    inline bool operator != (const PlacementEdgeData &other) const
-    {
-        return !(other == *this);
-    }
-
-    // -----------------------------------------------------
-    //     Member Functions
-    // -----------------------------------------------------
-
-    inline std::string dump() const
-    {
-        return "Length: " + std::to_string(branch_length)
-             + "\tEdge Num: " + std::to_string(edge_num_);
-    }
 
     int edge_num() const;
     void reset_edge_num( int val );

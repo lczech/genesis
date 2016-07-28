@@ -31,9 +31,6 @@
 #include "tree/formats/newick/reader.hpp"
 
 #include "tree/tree.hpp"
-#include "tree/tree_edge.hpp"
-#include "tree/tree_link.hpp"
-#include "tree/tree_node.hpp"
 
 #include "tree/formats/newick/broker.hpp"
 #include "tree/formats/newick/parser.hpp"

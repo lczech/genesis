@@ -972,7 +972,7 @@ std::vector<int> closest_leaf_distance_histogram (
                       + place.proximal_length
                       + dists[ place.edge().primary_node().index() ].second;
             double ds = place.pendant_length
-                      + tree::edge_data_cast< PlacementEdgeData >( place.edge() ).branch_length
+                      + place.edge().data<PlacementEdgeData>().branch_length
                       - place.proximal_length
                       + dists[ place.edge().secondary_node().index() ].second;
             double ld = std::min(dp, ds);
@@ -1046,7 +1046,7 @@ std::vector<int> closest_leaf_distance_histogram_auto (
                       + place.proximal_length
                       + dists[ place.edge().primary_node().index() ].second;
             double ds = place.pendant_length
-                      + tree::edge_data_cast< PlacementEdgeData >( place.edge() ).branch_length
+                      + place.edge().data<PlacementEdgeData>().branch_length
                       - place.proximal_length
                       + dists[ place.edge().secondary_node().index() ].second;
             double ld = std::min(dp, ds);

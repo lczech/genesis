@@ -58,7 +58,7 @@ TEST(DefaultTree, Distances)
     EXPECT_EQ(6, inner_node_count(tree));
     EXPECT_EQ(13, tree.node_count());
     EXPECT_TRUE( is_bifurcating( tree ));
-    EXPECT_TRUE( validate( tree ));
+    EXPECT_TRUE( validate_topology( tree ));
 
     utils::Matrix<double> exp (12, 12, {
         0,	1536,	1280,	1664,	1856,	1824,	1552,	1032,	1044,	1050,	1049,	1040.5,
