@@ -197,7 +197,7 @@ bool identical_topology( Tree const& lhs, Tree const& rhs)
  */
 bool belongs_to( Tree const& tree, TreeNode const& node )
 {
-    return tree.node_count() <= node.index() && &tree.node_at( node.index() ) == &node;
+    return node.index() <= tree.node_count() && &tree.node_at( node.index() ) == &node;
 }
 
 /**
@@ -205,7 +205,7 @@ bool belongs_to( Tree const& tree, TreeNode const& node )
  */
 bool belongs_to( Tree const& tree, TreeEdge const& edge )
 {
-    return tree.edge_count() <= edge.index() && &tree.edge_at( edge.index() ) == &edge;
+    return edge.index() <= tree.edge_count() && &tree.edge_at( edge.index() ) == &edge;
 }
 
 /**
@@ -213,7 +213,7 @@ bool belongs_to( Tree const& tree, TreeEdge const& edge )
  */
 bool belongs_to( Tree const& tree, TreeLink const& link )
 {
-    return tree.link_count() <= link.index() && &tree.link_at( link.index() ) == &link;
+    return link.index() <= tree.link_count() && &tree.link_at( link.index() ) == &link;
 }
 
 // =================================================================================================
