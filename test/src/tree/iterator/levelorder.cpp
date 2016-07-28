@@ -64,7 +64,7 @@ void TestLevelorder(std::string node_name, std::string out_nodes)
               +  it.node().data<DefaultNodeData>().name
               +  " ";
     }
-    EXPECT_EQ( out_nodes, nodes ) << " with start node " << node_name;
+    EXPECT_EQ( out_nodes, utils::trim( nodes )) << " with start node " << node_name;
 }
 
 TEST (TreeIterator, Levelorder)
