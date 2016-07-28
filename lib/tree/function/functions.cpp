@@ -36,6 +36,7 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <unordered_set>
 #include <vector>
 
 namespace genesis {
@@ -93,10 +94,23 @@ size_t inner_node_count( Tree const& tree )
     return tree.node_count() - leaf_node_count( tree );
 }
 
+/**
+ * @brief Return the size of the subtree defined by the given TreeLink, measured in number of nodes.
+ */
 size_t subtree_size( TreeLink const& link )
 {
-    (void) link;
-    throw std::domain_error( "subtree_size not yet implemented." );
+    // This is a quick and dirty solution. Traverse the whole subtree, add all nodes to a set
+    // and simply return the size of that set.
+
+    std::unordered_set< TreeNode const* > visited_nodes;
+
+    auto cur_link = &link.outer();
+    while( cur_link != &link ) {
+        visited_nodes.insert( &cur_link->node() );
+        cur_link = &cur_link->next().outer();
+    }
+
+    return visited_nodes.size();
 }
 
 /**

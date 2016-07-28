@@ -45,7 +45,44 @@ using namespace genesis;
 using namespace tree;
 
 // =================================================================================================
-//     Node Count Functions
+//     Subtree Size
+// =================================================================================================
+
+void TestSubtreeSize( size_t link_index, size_t out_subtree_size )
+{
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+
+    Tree tree;
+    DefaultTreeNewickReader().from_string( input, tree );
+
+    auto st_size = subtree_size( tree.link_at( link_index ));
+    EXPECT_EQ( out_subtree_size, st_size ) << " with link index " << link_index;
+}
+
+TEST( TreeFunctions, SubtreeSize )
+{
+    TestSubtreeSize(  0, 5 );
+    TestSubtreeSize(  1, 1 );
+    TestSubtreeSize(  2, 3 );
+    TestSubtreeSize(  3, 7 );
+    TestSubtreeSize(  4, 1 );
+    TestSubtreeSize(  5, 1 );
+    TestSubtreeSize(  6, 9 );
+    TestSubtreeSize(  7, 9 );
+    TestSubtreeSize(  8, 9 );
+    TestSubtreeSize(  9, 5 );
+    TestSubtreeSize( 10, 1 );
+    TestSubtreeSize( 11, 3 );
+    TestSubtreeSize( 12, 7 );
+    TestSubtreeSize( 13, 1 );
+    TestSubtreeSize( 14, 1 );
+    TestSubtreeSize( 15, 9 );
+    TestSubtreeSize( 16, 9 );
+    TestSubtreeSize( 17, 9 );
+}
+
+// =================================================================================================
+//     Subtree Sizes
 // =================================================================================================
 
 void TestSubtreeSizes( std::string node_name, std::vector<size_t> out_sizes )
