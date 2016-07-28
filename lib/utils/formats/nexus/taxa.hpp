@@ -146,7 +146,7 @@ public:
         taxa_.insert( name );
     }
 
-    void add_taxa( std::vector<std::string> taxa )
+    void add_taxa( std::unordered_set<std::string> taxa )
     {
         taxa_.insert( taxa.begin(), taxa.end() );
     }

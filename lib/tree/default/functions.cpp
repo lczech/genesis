@@ -41,24 +41,51 @@ namespace tree {
 // =================================================================================================
 
 /**
- * @brief Returns a list of all node names of a Tree.
+ * @brief Returns an unordered set of all node names of a Tree.
  *
  * If `leaves_only` is set to true, nodes names of inner nodes are not included.
  * Unnamed nodes (`node.data.name == ""`) are always excluded.
+ * The only difference to node_names_sorted() is the type of container used for storing the result.
  */
-std::vector<std::string> node_names(
+std::unordered_set<std::string> node_names(
     Tree const& tree,
     bool leaves_only
 ) {
-    std::vector<std::string> ret;
-    for (auto it = tree.begin_nodes(); it != tree.end_nodes(); ++it) {
-        if( (*it)->is_inner() && leaves_only ) {
+    std::unordered_set<std::string> ret;
+    for( auto const& node : tree.nodes() ) {
+        if( node->is_inner() && leaves_only ) {
             continue;
         }
-        if( it->get()->data<DefaultNodeData>().name == "" ) {
+        auto const name = node->data<DefaultNodeData>().name;
+        if( name == "" ) {
             continue;
         }
-        ret.push_back( it->get()->data<DefaultNodeData>().name );
+        ret.insert( std::move( name ));
+    }
+    return ret;
+}
+
+/**
+ * @brief Returns a set of all node names of a Tree.
+ *
+ * If `leaves_only` is set to true, nodes names of inner nodes are not included.
+ * Unnamed nodes (`node.data.name == ""`) are always excluded.
+ * The only difference to node_names() is the type of container used for storing the result.
+ */
+std::set<std::string> node_names_sorted(
+    Tree const& tree,
+    bool leaves_only
+) {
+    std::set<std::string> ret;
+    for( auto const& node : tree.nodes() ) {
+        if( node->is_inner() && leaves_only ) {
+            continue;
+        }
+        auto const name = node->data<DefaultNodeData>().name;
+        if( name == "" ) {
+            continue;
+        }
+        ret.insert( std::move( name ));
     }
     return ret;
 }
