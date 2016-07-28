@@ -152,6 +152,15 @@ public:
     size_t link_count() const;
     size_t node_count() const;
     size_t edge_count() const;
+    
+    // -------------------------------------------------------------------------
+    //     Modifiers
+    // -------------------------------------------------------------------------
+
+    void reroot( TreeLink const& at_link );
+    void reroot( TreeNode const& at_node );
+
+    void reroot_at_node( size_t node_index );
 
     // -------------------------------------------------------------------------
     //     Iterators

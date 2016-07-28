@@ -32,6 +32,9 @@
 
 #include "utils/core/std.hpp"
 
+#include "tree/default/tree.hpp"
+#include "utils/core/logging.hpp"
+
 #include <assert.h>
 #include <stdexcept>
 #include <typeinfo>
@@ -398,6 +401,112 @@ size_t Tree::node_count() const
 size_t Tree::edge_count() const
 {
     return edges_.size();
+}
+
+// =================================================================================================
+//     Modifiers
+// =================================================================================================
+
+/**
+ * @brief Reroot the Tree at the given TreeLink.
+ *
+ * The function sets the root of the tree to the node of the given link. This operation does not
+ * change the topology of the tree, but merely adjusts some internal properties. The main changes
+ * are that root_node() and root_link() will return the new root after calling this function,
+ * and that tree iterators will start traversing the tree from this new root by default.
+ *
+ * There are three internal changes made to the tree data structure:
+ *
+ *   * All primary and secondary ends of the edges on the path between the new root and the old
+ *     root are swapped. This is because the edges now need to point towards the new root.
+ *   * Similarly, all (primary) links of the nodes on that path are changed so that they point
+ *     towards the new root.
+ *   * Also, the (internal) root_link_index is changed to the new root link. This is used for
+ *     the tree function root_node() and root_link().
+ *
+ * The difference between this function and @link reroot( TreeNode const& ) its node version@endlink
+ * is that when specifying a specific link, this link is used as the (primary) link of the new root
+ * node. This way, algorithms and iterators (e.g., IteratorLevelorder) will start traversing the
+ * tree in the direction of this link by default.
+ * When specifying a node for rerooting instead, the primary link of that node is used,
+ * so that iterators start traversing the tree in the direction of the old root instead.
+ * For most applications, this does not make a difference. However, there might be cases where the
+ * start directing makes a difference. Thus, we offer both versions of this function.
+ *
+ * The link needs to be part of the tree, otherwise an exception is thrown.
+ */
+void Tree::reroot( TreeLink const& at_link )
+{
+    if( at_link.index() >= link_count() || &link_at( at_link.index() ) != &at_link ) {
+        throw std::runtime_error( "Cannot reroot Tree on a Link that is not part of the Tree." );
+    }
+
+    // We store the old root node, becasue we will change internals of the tree, so that
+    // node().is_root() won't work while this function is running.
+    TreeNode* old_root = &root_node();
+
+    // Pointer to the primary link of the target node.
+    TreeLink* cur_link = &link_at( at_link.index() ).node().primary_link();
+
+    // Set new root index and node link of the new root.
+    root_link_index_ = at_link.index();
+    at_link.node_->link_ = &link_at( at_link.index() );
+
+    // Walk the path from the new root to the old, and change all pointers of the edges and nodes
+    // on that path so that they point towards the new root.
+    while( cur_link->node_ != old_root ) {
+
+        // Assert that the primary direction is correct: Is the current link is at the secondary
+        // end of its edge?
+        assert( cur_link == cur_link->edge_->link_s_ );
+
+        // Swap the edge's links, so that they point towards the new root.
+        std::swap( cur_link->edge_->link_p_, cur_link->edge_->link_s_ );
+
+        // Assert that this worked.
+        assert( cur_link         == cur_link->edge_->link_p_ );
+        assert( cur_link->outer_ == cur_link->edge_->link_s_ );
+
+        // Store the link of the next node that points towards the root.
+        // We need it, because we will change this upwards link of the next node now.
+        auto to_root_link = cur_link->outer_->node_->link_;
+
+        // Change the main link of the next node so that it points towards the new root.
+        cur_link->outer_->node_->link_ = cur_link->outer_;
+
+        // Move one node towards the root.
+        cur_link = to_root_link;
+    }
+}
+
+/**
+ * @brief Reroot the Tree at the given TreeNode.
+ *
+ * See @link reroot( TreeLink const& ) this version of the function@endlink for details.
+ *
+ * The node needs to be part of the tree, otherwise an exception is thrown.
+ */
+void Tree::reroot( TreeNode const& at_node )
+{
+    if( at_node.index() >= node_count() || &node_at( at_node.index() ) != &at_node ) {
+        throw std::runtime_error( "Cannot reroot Tree on a Node that is not part of the Tree." );
+    }
+    reroot( at_node.link() );
+}
+
+/**
+ * @brief Reroot the Tree at the TreeNode with the given index.
+ *
+ * See @link reroot( TreeLink const& ) reroot(...)@endlink for details.
+ *
+ * The node index needs to be valid for the tree, otherwise an exception is thrown.
+ */
+void Tree::reroot_at_node( size_t node_index )
+{
+    if( node_index >= node_count() ) {
+        throw std::runtime_error( "Cannot reroot Tree on a Node that is not part of the Tree." );
+    }
+    reroot( node_at( node_index ));
 }
 
 // =================================================================================================
