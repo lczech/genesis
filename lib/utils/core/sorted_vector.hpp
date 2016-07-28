@@ -32,6 +32,7 @@
  */
 
 #include <algorithm>
+#include <functional>
 #include <iterator>
 #include <vector>
 
@@ -48,7 +49,7 @@ namespace utils {
  * This class offers a thin wrapper around std::vector which ensures that the stored elements are
  * unique and sorted. It also offers to retrieve the index of a value, see index_of().
  */
-template <typename T>
+template< class T, class Compare = std::less<T> >
 class SortedVector
 {
 public:
@@ -68,6 +69,7 @@ public:
     using const_iterator  = typename std::vector< value_type >::const_iterator;
 
     using size_type       = size_t;
+    using value_compare   = Compare;
 
     // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -147,7 +149,7 @@ public:
      */
     bool contains( const_reference value ) const
     {
-        return std::binary_search( content_.begin(), content_.end(), value );
+        return std::binary_search( content_.begin(), content_.end(), value, Compare() );
     }
 
     /**
@@ -156,7 +158,7 @@ public:
      */
     size_type index_of( const_reference value ) const
     {
-        auto lower = std::lower_bound( content_.begin(), content_.end(), value );
+        auto lower = std::lower_bound( content_.begin(), content_.end(), value, Compare() );
 
         if( lower == content_.end() || value < *lower ) {
             return size();
@@ -221,7 +223,7 @@ public:
     void add( const_reference value )
     {
         // Find the position where the new value belongs.
-        auto range = std::equal_range( content_.begin(), content_.end(), value );
+        auto range = std::equal_range( content_.begin(), content_.end(), value, Compare() );
 
         // If it is not yet in the list, add it.
         if( range.first == range.second ) {
@@ -238,7 +240,7 @@ public:
     void add( value_type&& value )
     {
         // Find the position where the new value belongs.
-        auto range = std::equal_range( content_.begin(), content_.end(), value );
+        auto range = std::equal_range( content_.begin(), content_.end(), value, Compare() );
 
         // If it is not yet in the list, add it.
         if( range.first == range.second ) {
@@ -254,7 +256,7 @@ public:
     void remove( const_reference value )
     {
         // Find the position of the value.
-        auto range = std::equal_range( content_.begin(), content_.end(), value );
+        auto range = std::equal_range( content_.begin(), content_.end(), value, Compare() );
 
         // If found, remove it.
         if( range.first != range.second ) {
