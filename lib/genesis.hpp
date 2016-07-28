@@ -119,7 +119,6 @@
 #include "tree/printer/compact.hpp"
 #include "tree/printer/detailed.hpp"
 #include "tree/printer/table.hpp"
-#include "tree/tree/casts.hpp"
 #include "tree/tree/edge_data.hpp"
 #include "tree/tree/edge.hpp"
 #include "tree/tree.hpp"
