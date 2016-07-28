@@ -43,6 +43,10 @@
 using namespace genesis;
 using namespace tree;
 
+// =================================================================================================
+//     Reroot
+// =================================================================================================
+
 void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts = 0 )
 {
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
