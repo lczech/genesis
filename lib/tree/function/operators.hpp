@@ -139,6 +139,10 @@ bool equal(
 
 bool identical_topology( Tree const& lhs, Tree const& rhs);
 
+bool belongs_to( Tree const& tree, TreeNode const& node );
+bool belongs_to( Tree const& tree, TreeEdge const& edge );
+bool belongs_to( Tree const& tree, TreeLink const& link );
+
 // =================================================================================================
 //     Output
 // =================================================================================================

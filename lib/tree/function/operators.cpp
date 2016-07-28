@@ -192,6 +192,30 @@ bool identical_topology( Tree const& lhs, Tree const& rhs)
     return equal( lhs, rhs, node_comparator, edge_comparator );
 }
 
+/**
+ * @brief Return whether the TreeNode belongs to the Tree, i.e., whether it is owned by the Tree.
+ */
+bool belongs_to( Tree const& tree, TreeNode const& node )
+{
+    return tree.node_count() <= node.index() && &tree.node_at( node.index() ) == &node;
+}
+
+/**
+ * @brief Return whether the TreeEdge belongs to the Tree, i.e., whether it is owned by the Tree.
+ */
+bool belongs_to( Tree const& tree, TreeEdge const& edge )
+{
+    return tree.edge_count() <= edge.index() && &tree.edge_at( edge.index() ) == &edge;
+}
+
+/**
+ * @brief Return whether the TreeLink belongs to the Tree, i.e., whether it is owned by the Tree.
+ */
+bool belongs_to( Tree const& tree, TreeLink const& link )
+{
+    return tree.link_count() <= link.index() && &tree.link_at( link.index() ) == &link;
+}
+
 // =================================================================================================
 //     Output
 // =================================================================================================
