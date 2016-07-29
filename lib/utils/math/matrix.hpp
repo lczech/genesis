@@ -58,22 +58,28 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    Matrix (size_t rows, size_t cols) :
-        rows_(rows),
-        cols_(cols),
-        data_(rows * cols)
+    Matrix()
+        : rows_(0)
+        , cols_(0)
+        , data_()
     {}
 
-    Matrix (size_t rows, size_t cols, T init) :
-        rows_(rows),
-        cols_(cols),
-        data_(rows * cols, init)
+    Matrix (size_t rows, size_t cols)
+        : rows_(rows)
+        , cols_(cols)
+        , data_(rows * cols)
     {}
 
-    Matrix (size_t rows, size_t cols, std::initializer_list<T> const& init_list) :
-        rows_(rows),
-        cols_(cols),
-        data_(rows * cols)
+    Matrix (size_t rows, size_t cols, T init)
+        : rows_(rows)
+        , cols_(cols)
+        , data_(rows * cols, init)
+    {}
+
+    Matrix (size_t rows, size_t cols, std::initializer_list<T> const& init_list)
+        : rows_(rows)
+        , cols_(cols)
+        , data_(rows * cols)
     {
         if (init_list.size() != size()) {
             throw std::length_error("__FUNCTION__: length_error");
