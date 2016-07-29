@@ -264,6 +264,14 @@ public:
         }
     }
 
+    /**
+     * @brief Reserve space in the unterlying vector.
+     */
+    void reserve( size_t n )
+    {
+        content_.reserve( n );
+    }
+
     void clear()
     {
         content_.clear();
