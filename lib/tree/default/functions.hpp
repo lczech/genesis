@@ -31,7 +31,7 @@
  * @ingroup tree
  */
 
-#include "utils/core/sorted_vector.hpp"
+#include "utils/containers/sorted_vector.hpp"
 
 #include<set>
 #include<string>

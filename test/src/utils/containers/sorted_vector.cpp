@@ -30,11 +30,12 @@
 
 #include "common.hpp"
 
-#include "lib/utils/core/sorted_vector.hpp"
+#include "lib/utils/containers/sorted_vector.hpp"
+#include "lib/utils/containers/sorted_vector/operators.hpp"
 
 using namespace genesis::utils;
 
-TEST( Core, SortedVector )
+TEST( Containers, SortedVectorBasics )
 {
     SortedVector<int> vec = { 0, 1, 2, 3, -5 };
 
@@ -52,4 +53,19 @@ TEST( Core, SortedVector )
     EXPECT_EQ( 4, vec.size() );
     EXPECT_EQ( 4, vec.index_of( 1 ) );
     EXPECT_EQ( 2, vec.index_of( 2 ) );
+}
+
+TEST( Containers, SortedVectorCompare )
+{
+    SortedVector<int> sup = { 0, 1, 2, 3, 4, 5 };
+
+    EXPECT_TRUE( equals( sup, { 0, 1, 2, 3, 4, 5 } ) );
+    EXPECT_TRUE( ! equals( sup, { 0, 2, 3, 4, 5 } ) );
+
+    EXPECT_TRUE( is_subset_of( {}, sup ));
+    EXPECT_TRUE( is_subset_of( { 0 }, sup ));
+    EXPECT_TRUE( is_subset_of( { 1, 3 }, sup ));
+    EXPECT_TRUE( is_subset_of( { 5 }, sup ));
+    EXPECT_TRUE( !is_subset_of( { 0, 1, 2, 3, 4, 5 }, sup ));
+    EXPECT_TRUE( is_subset_or_equal( { 0, 1, 2, 3, 4, 5 }, sup ));
 }

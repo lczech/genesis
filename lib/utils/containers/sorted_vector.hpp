@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_CORE_SORTED_VECTOR_H_
-#define GENESIS_UTILS_CORE_SORTED_VECTOR_H_
+#ifndef GENESIS_UTILS_CONTAINERS_SORTED_VECTOR_H_
+#define GENESIS_UTILS_CONTAINERS_SORTED_VECTOR_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -85,7 +85,7 @@ public:
     {
         content_.reserve( il.size() );
         for( auto const& elem : il ) {
-            add( elem );
+            insert( elem );
         }
     }
 
@@ -220,7 +220,7 @@ public:
      *
      * If a value comparing equal to the new one is already stored in the container, nothing happens.
      */
-    void add( const_reference value )
+    void insert( const_reference value )
     {
         // Find the position where the new value belongs.
         auto range = std::equal_range( content_.begin(), content_.end(), value, Compare() );
@@ -237,7 +237,7 @@ public:
     *
     * If a value comparing equal to the new one is already stored in the container, nothing happens.
     */
-    void add( value_type&& value )
+    void insert( value_type&& value )
     {
         // Find the position where the new value belongs.
         auto range = std::equal_range( content_.begin(), content_.end(), value, Compare() );

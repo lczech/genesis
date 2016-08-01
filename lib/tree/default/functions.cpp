@@ -85,7 +85,7 @@ utils::SortedVector<std::string> node_names_sorted(
         if( name == "" ) {
             continue;
         }
-        ret.add( std::move( name ));
+        ret.insert( std::move( name ));
     }
     return ret;
 }
