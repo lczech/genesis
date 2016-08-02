@@ -61,6 +61,7 @@
 #include "placement/simulator/proximal_length_distribution.hpp"
 #include "placement/simulator/simulator.hpp"
 
+#include "sequence/counts.hpp"
 #include "sequence/formats/fasta_input_iterator.hpp"
 #include "sequence/formats/fasta_output_iterator.hpp"
 #include "sequence/formats/fasta_reader.hpp"
@@ -68,6 +69,7 @@
 #include "sequence/formats/phylip_reader.hpp"
 #include "sequence/formats/phylip_writer.hpp"
 #include "sequence/functions/codes.hpp"
+#include "sequence/functions/counts.hpp"
 #include "sequence/functions/functions.hpp"
 #include "sequence/sequence.hpp"
 #include "sequence/sequence_set.hpp"
