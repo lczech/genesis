@@ -53,9 +53,17 @@ namespace sequence {
  *
  * Furthermore, if two or more characters have the same frequency, the first one is used. That is,
  * the one that appears first in SequenceCounts::characters().
+ *
+ * The optional parameter `prefer_non_gaps` (default is `false`) can be used to always use the
+ * most frequent non-gap character. By default, if a site consists mostly of gaps, the consensus
+ * sequence also contains a gap at that site. If however this option is used, a single non-gap
+ * character will be preferred and unsed instead of a gap.
  */
-std::string consensus_sequence( SequenceCounts const& counts, char gap_char )
-{
+std::string consensus_sequence(
+    SequenceCounts const& counts,
+    char                  gap_char,
+    bool                  prefer_non_gaps
+) {
     std::string res;
     res.reserve( counts.length() );
 
@@ -65,17 +73,24 @@ std::string consensus_sequence( SequenceCounts const& counts, char gap_char )
 
     for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
 
-        size_t                        max_pos = 0;
-        SequenceCounts::CountsIntType max_val = 0;
+        size_t                        max_pos    = 0;
+        SequenceCounts::CountsIntType max_val    = 0;
+        SequenceCounts::CountsIntType counts_sum = 0;
 
         for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
-            if( counts.count_at( site_idx, char_idx ) > max_val ) {
+            auto char_count = counts.count_at( site_idx, char_idx );
+            counts_sum += char_count;
+
+            if( char_count > max_val ) {
                 max_pos = char_idx;
                 max_val = counts.count_at( site_idx, char_idx );
             }
         }
 
-        if( max_val > 0 ) {
+        assert( max_val    <= counts_sum );
+        assert( counts_sum <= num_chars  );
+
+        if(( max_val > 0 ) && (( prefer_non_gaps ) || ( max_val > num_chars - counts_sum ))) {
             res += chars[ max_pos ];
         } else {
             res += gap_char;
@@ -97,8 +112,8 @@ std::string consensus_sequence( SequenceCounts const& counts, char gap_char )
  * \f$ f_{c,i} \f$ is the relative frequency of character \f$ c \f$ at site \f$ i \f$, summed
  * over all characters in the SequenceCounts object.
  *
- * The function additionally takes optional flags to refine the calculation, see SiteEntropyOptions
- * for their explanation.
+ * The function additionally takes optional flags to refine the calculation, see
+ * ::SiteEntropyOptions for their explanation.
  */
 double site_entropy(
     SequenceCounts const& counts,
@@ -168,7 +183,7 @@ double site_entropy(
  *
  * Here, \f$ s \f$ is the number of possible characters in the sequences
  * (usually, 4 for nucleic acids and 20 for amino acids), which is taken from the
- * @link SequenceCounts::characters() characters@endlink used in the SequenceCounts object.
+ * @link SequenceCounts::characters() characters()@endlink used in the SequenceCounts object.
  * Furthermore, \f$ H_{i} \f$ is the site_entropy() at the given site.
  *
  * The optional term \f$ e_{n} \f$ is the small-sample correction, calculated as
@@ -177,7 +192,7 @@ double site_entropy(
  * `use_small_sample_correction` is set to `true` (default is `false`).
  *
  * The function additionally takes optional flags to refine the site entropy calculation,
- * see SiteEntropyOptions for their explanation.
+ * see ::SiteEntropyOptions for their explanation.
  */
 double site_information(
     SequenceCounts const& counts,
@@ -206,7 +221,7 @@ double site_information(
  *
  * This function simply sums up up the site_entropy() for all sites of the SequenceCount object.
  * The function additionally takes optional flags to refine the site entropy calculation,
- * see SiteEntropyOptions for their explanation.
+ * see ::SiteEntropyOptions for their explanation.
  */
 double absolute_entropy(
     SequenceCounts const& counts,
@@ -234,7 +249,7 @@ double absolute_entropy(
  * determiend site.
  *
  * The function additionally takes optional flags to refine the site entropy calculation,
- * see SiteEntropyOptions for their explanation.
+ * see ::SiteEntropyOptions for their explanation.
  */
 double averaged_entropy(
     SequenceCounts const& counts,

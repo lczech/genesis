@@ -50,7 +50,11 @@ class SequenceSet;
 //     Consensus
 // =================================================================================================
 
-std::string consensus_sequence( SequenceCounts const& counts, char gap_char = '-' );
+std::string consensus_sequence(
+    SequenceCounts const& counts,
+    char                  gap_char        = '-',
+    bool                  prefer_non_gaps = false
+);
 
 // =================================================================================================
 //     Entropy
@@ -137,7 +141,7 @@ enum class SiteEntropyOptions : unsigned char
      * the entropy is divided by \f$ log_2{(4)} \f$.
      *
      * If additionally the SiteEntropyOptions::kIncludeGaps flag is set, the divisor is calculated
-     * using one additional value, i.e., \f$ log_2{(4+1)} \f$.
+     * using one additional value, e.g., \f$ log_2{(4+1)} \f$.
      */
     kNormalized  = 4
 };
