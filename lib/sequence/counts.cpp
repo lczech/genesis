@@ -49,18 +49,28 @@ namespace sequence {
 SequenceCounts::SequenceCounts( std::string const& characters, size_t length )
     : num_seqs_( 0 )
 {
-    // Add upper chase chars to lookup table.
-    auto up_chars = utils::to_upper_ascii( characters );
-    lookup_.reserve( up_chars.size() );
-    for( auto const& c : up_chars ) {
-        lookup_.insert( c );
+    // Uppercase, sort, uniq the characters.
+    characters_ = utils::to_upper_ascii( characters );
+    std::sort( characters_.begin(), characters_.end() );
+    characters_.erase( std::unique( characters_.begin(), characters_.end() ), characters_.end() );
+
+    // Add characters to lookup table, set all other to a max value indicating that this char
+    // is not part of the table.
+    lookup_ = std::array< unsigned char, 128 >();
+    for( size_t i = 0; i < lookup_.size(); ++i ) {
+        lookup_[i] = characters_.size();
+    }
+    for( size_t i = 0; i < characters_.size(); ++i ) {
+        auto c = characters_[i];
+        lookup_[ static_cast< size_t >( tolower(c) ) ] = i;
+        lookup_[ static_cast< size_t >( toupper(c) ) ] = i;
     }
 
     // Use number of chars and number of sites to init data matrix.
     // We store the chars per row, and the sites per column (e.g., one column represents the 'A's
     // for all sites, while one row represents the possible chars for one site).
     // This way, we use cache locality when filling in data.
-    counts_ = utils::Matrix< CountsIntType >( length, lookup_.size() );
+    counts_ = utils::Matrix< CountsIntType >( length, characters_.size() );
 }
 
 // ================================================================================================
@@ -82,8 +92,8 @@ size_t SequenceCounts::length() const
  */
 std::string SequenceCounts::characters() const
 {
-    assert( counts_.cols() == lookup_.size() );
-    return std::string( lookup_.begin(), lookup_.end() );
+    assert( counts_.cols() == characters_.size() );
+    return characters_;
 }
 
 /**
@@ -108,8 +118,8 @@ SequenceCounts::CountsIntType SequenceCounts::count_at( size_t site_index, char 
         );
     }
 
-    auto char_idx = lookup_.index_of( utils::to_upper_ascii( character ));
-    if( char_idx == lookup_.size() ) {
+    auto char_idx = lookup_[ static_cast< size_t >( character ) ];
+    if( char_idx == characters_.size() ) {
         throw std::runtime_error(
             "Invalid character for retrieving count: '" + std::string( 1, character ) + "'."
         );
@@ -165,8 +175,8 @@ void SequenceCounts::add_sequence( std::string const& sites )
 
     for( size_t site_idx = 0; site_idx < sites.size(); ++site_idx ) {
         // Get the index of the char. If not found, this char is not to be counted, so continue.
-        auto char_idx = lookup_.index_of( utils::to_upper_ascii( sites[ site_idx ] ));
-        if( char_idx == lookup_.size() ) {
+        auto char_idx = lookup_[ static_cast< size_t >( sites[ site_idx ] ) ];
+        if( char_idx == characters_.size() ) {
             continue;
         }
 

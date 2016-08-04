@@ -31,9 +31,9 @@
  * @ingroup sequence
  */
 
-#include "utils/containers/sorted_vector.hpp"
 #include "utils/math/matrix.hpp"
 
+#include <array>
 #include <cstdint>
 #include <string>
 #include <vector>
@@ -114,9 +114,10 @@ public:
 
 private:
 
-    utils::SortedVector< char >    lookup_;
-    utils::Matrix< CountsIntType > counts_;
-    CountsIntType                  num_seqs_ = 0;
+    std::string                      characters_;
+    std::array< unsigned char, 128 > lookup_;
+    utils::Matrix< CountsIntType >   counts_;
+    CountsIntType                    num_seqs_ = 0;
 
 };
 
