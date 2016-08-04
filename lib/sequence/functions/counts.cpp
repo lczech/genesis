@@ -174,12 +174,45 @@ double absolute_entropy( SequenceCounts const& counts )
  * @brief Return the normalized sum of all site entropies.
  *
  * This function sums up up the site_entropy() for all sites of the SequenceCount object and
- * normalizes the result using the number of sites, that is, it calculates the average entropy
- * per site.
+ * normalizes the result.
+ *
+ * If `only_determined_sites` is `false` (default), the normalization is done using the number of
+ * sites, that is, it calculates the average entropy per site.
+ *
+ * If `only_determined_sites` is `true`, the normalization is done using the number of determined
+ * sites only, that is, sites that only contain zeroes in all counts are skipped.
+ * Those sites do not contribute entropy anyway. Thus, it calcuates the average entropy per
+ * determiend site.
  */
-double averaged_entropy( SequenceCounts const& counts )
+double averaged_entropy( SequenceCounts const& counts, bool only_determined_sites )
 {
-    return absolute_entropy( counts ) / static_cast<double>( counts.length() );
+    // Counters.
+    double sum = 0.0;
+    size_t determined_sites = 0;
+
+    // Consts for speedup.
+    auto const num_chars = counts.characters().size();
+
+    for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
+        sum += site_entropy( counts, site_idx );
+
+        // Count determined sites.
+        if( only_determined_sites ) {
+            bool det = false;
+            for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
+                det |= ( counts.count_at( site_idx, char_idx ) > 0 );
+            }
+            if( det ) {
+                ++determined_sites;
+            }
+        }
+    }
+
+    if( only_determined_sites ) {
+        return sum / static_cast<double>( determined_sites );
+    } else {
+        return sum / static_cast<double>( counts.length() );
+    }
 }
 
 } // namespace sequence

@@ -64,7 +64,7 @@ double site_information(
 );
 
 double absolute_entropy( SequenceCounts const& counts );
-double averaged_entropy( SequenceCounts const& counts );
+double averaged_entropy( SequenceCounts const& counts, bool only_determined_sites = false );
 
 } // namespace sequence
 } // namespace genesis
