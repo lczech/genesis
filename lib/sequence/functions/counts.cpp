@@ -34,7 +34,8 @@
 #include "sequence/sequence_set.hpp"
 #include "sequence/sequence.hpp"
 
-#include "utils/core/logging.hpp"
+#include <assert.h>
+#include <cmath>
 
 namespace genesis {
 namespace sequence {
@@ -95,9 +96,15 @@ std::string consensus_sequence( SequenceCounts const& counts, char gap_char )
  * \f$ H_{i}=-\sum f_{{c,i}}\times \log _{2}f_{{c,i}} \f$, where
  * \f$ f_{c,i} \f$ is the relative frequency of character \f$ c \f$ at site \f$ i \f$, summed
  * over all characters in the SequenceCounts object.
+ *
+ * The function additionally takes optional flags to refine the calculation, see SiteEntropyOptions
+ * for their explanation.
  */
-double site_entropy( SequenceCounts const& counts, size_t site_idx )
-{
+double site_entropy(
+    SequenceCounts const& counts,
+    size_t                site_idx,
+    SiteEntropyOptions    options
+) {
     if( site_idx >= counts.length() ) {
         throw std::runtime_error(
             "Invalid site index for calculating site entropy: " + std::to_string( site_idx ) + "."
@@ -109,14 +116,48 @@ double site_entropy( SequenceCounts const& counts, size_t site_idx )
     auto const num_seqs  = static_cast<double>( counts.added_sequences_count() );
     auto const num_chars = counts.characters().size();
 
+    // Results: we add up the entropy and the number of counts that we have seen in total.
     double entropy = 0.0;
+    SequenceCounts::CountsIntType counts_sum = 0;
+
+    // Accumulate entropy and total counts for the site.
     for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
-        double prob = static_cast<double>( counts.count_at( site_idx, char_idx )) / num_seqs;
-        if( prob > 0.0 ) {
-            entropy -= prob * log( prob ) / ln_2;
+        auto char_count = counts.count_at( site_idx, char_idx );
+        counts_sum += char_count;
+
+        double char_prob = static_cast<double>( char_count ) / num_seqs;
+        if( char_prob > 0.0 ) {
+            entropy -= char_prob * log( char_prob ) / ln_2;
         }
     }
-    return entropy;
+
+    // If we want to include gaps, add the entropy for the gap probability.
+    if( options & SiteEntropyOptions::kIncludeGaps ) {
+        assert( counts_sum <= num_seqs );
+        double gap_prob = 1.0 - ( static_cast<double>( counts_sum ) / num_seqs );
+        if( gap_prob > 0.0 ) {
+            entropy -= gap_prob * log( gap_prob ) / ln_2;
+        }
+    }
+
+    // If we want to weight using the determined characters, use their proportion as a factor.
+    if( options & SiteEntropyOptions::kWeighted ) {
+        entropy *= ( static_cast<double>( counts_sum ) / num_seqs );
+    }
+
+    // If we want to normalize, calculate the H_max for the used number of characters.
+    if( options & SiteEntropyOptions::kNormalized ) {
+        double hmax = 1.0;
+        if( options & SiteEntropyOptions::kIncludeGaps ) {
+            hmax = log( static_cast<double>( num_chars + 1 )) / ln_2;
+        } else {
+            hmax = log( static_cast<double>( num_chars )) / ln_2;
+        }
+        return entropy / hmax;
+
+    } else {
+        return entropy;
+    }
 }
 
 /**
@@ -134,11 +175,15 @@ double site_entropy( SequenceCounts const& counts, size_t site_idx )
  * \f$ e_{n}={\frac{1}{\ln {2}}}\times {\frac{s-1}{2n}} \f$, with \f$ n \f$ being the
  * @link SequenceCounts::added_sequences_count() number of sequences@endlink. It is only used if
  * `use_small_sample_correction` is set to `true` (default is `false`).
+ *
+ * The function additionally takes optional flags to refine the site entropy calculation,
+ * see SiteEntropyOptions for their explanation.
  */
 double site_information(
     SequenceCounts const& counts,
-    size_t site_index,
-    bool use_small_sample_correction
+    size_t                site_index,
+    bool                  use_small_sample_correction,
+    SiteEntropyOptions    options
 ) {
     // Max possible entropy for the given number of characters in the counts object.
     auto const num_chars = static_cast<double>( counts.characters().size() );
@@ -153,39 +198,49 @@ double site_information(
     }
 
     // Result, using the entropy.
-    return log_num - site_entropy( counts, site_index ) - e;
+    return log_num - site_entropy( counts, site_index, options ) - e;
 }
 
 /**
  * @brief Return the sum of all site entropies.
  *
  * This function simply sums up up the site_entropy() for all sites of the SequenceCount object.
+ * The function additionally takes optional flags to refine the site entropy calculation,
+ * see SiteEntropyOptions for their explanation.
  */
-double absolute_entropy( SequenceCounts const& counts )
-{
+double absolute_entropy(
+    SequenceCounts const& counts,
+    SiteEntropyOptions    per_site_options
+) {
     double sum = 0.0;
     for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
-        sum += site_entropy( counts, site_idx );
+        sum += site_entropy( counts, site_idx, per_site_options );
     }
     return sum;
 }
 
 /**
- * @brief Return the normalized sum of all site entropies.
+ * @brief Return the averaged sum of all site entropies.
  *
  * This function sums up up the site_entropy() for all sites of the SequenceCount object and
- * normalizes the result.
+ * returns the average result per site.
  *
- * If `only_determined_sites` is `false` (default), the normalization is done using the number of
- * sites, that is, it calculates the average entropy per site.
+ * If `only_determined_sites` is `false` (default), the average is calculated using the total
+ * number of sites, that is, it simply calculates the average entropy per site.
  *
- * If `only_determined_sites` is `true`, the normalization is done using the number of determined
- * sites only, that is, sites that only contain zeroes in all counts are skipped.
+ * If `only_determined_sites` is `true`, the average is calculated using the number of determined
+ * sites only; that is, sites that only contain zeroes in all counts are skipped.
  * Those sites do not contribute entropy anyway. Thus, it calcuates the average entropy per
  * determiend site.
+ *
+ * The function additionally takes optional flags to refine the site entropy calculation,
+ * see SiteEntropyOptions for their explanation.
  */
-double averaged_entropy( SequenceCounts const& counts, bool only_determined_sites )
-{
+double averaged_entropy(
+    SequenceCounts const& counts,
+    bool                  only_determined_sites,
+    SiteEntropyOptions    per_site_options
+) {
     // Counters.
     double sum = 0.0;
     size_t determined_sites = 0;
@@ -194,7 +249,7 @@ double averaged_entropy( SequenceCounts const& counts, bool only_determined_site
     auto const num_chars = counts.characters().size();
 
     for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
-        sum += site_entropy( counts, site_idx );
+        sum += site_entropy( counts, site_idx, per_site_options );
 
         // Count determined sites.
         if( only_determined_sites ) {
