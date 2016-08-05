@@ -55,7 +55,7 @@ void TestSubtreeSize( size_t link_index, size_t out_subtree_size )
     Tree tree;
     DefaultTreeNewickReader().from_string( input, tree );
 
-    auto st_size = subtree_size( tree.link_at( link_index ));
+    auto st_size = subtree_size( tree, tree.link_at( link_index ));
     EXPECT_EQ( out_subtree_size, st_size ) << " with link index " << link_index;
 }
 

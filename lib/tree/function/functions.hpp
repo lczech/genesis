@@ -59,10 +59,15 @@ bool is_bifurcating( Tree const& tree );
 size_t leaf_node_count(  Tree const& tree );
 size_t inner_node_count( Tree const& tree );
 
-size_t subtree_size( TreeLink const& link );
+size_t subtree_size( Tree const& tree, TreeLink const& link );
 
 std::vector<size_t> subtree_sizes( Tree const& tree, TreeNode const& node );
 std::vector<size_t> subtree_sizes( Tree const& tree );
+
+// size_t subtree_height( Tree const& tree, TreeLink const& link );
+//
+// std::vector<size_t> subtree_heights( Tree const& tree, TreeNode const& node );
+// std::vector<size_t> subtree_heights( Tree const& tree );
 
 } // namespace tree
 } // namespace genesis
