@@ -265,6 +265,8 @@ std::unordered_map< std::string, size_t> taxa_count_ranks(
  * `include_inner_taxa` is set to true (default), the provided functional is called for all
  * @link Taxon Taxa @endlink. Otherwise, the functional is only called for the taxa of lowest rank,
  * that is, for each Taxon that does not have sub-taxa.
+ *
+ * This is the non-const version of the function.
  */
 void levelorder_for_each(
     Taxonomy& tax,
@@ -291,12 +293,48 @@ void levelorder_for_each(
 }
 
 /**
+ * @brief Apply a function to all taxa of the Taxonomy, traversing it in levelorder.
+ *
+ * The given Taxonomy is traversed in levelorder (i.e., breadth-first search). If
+ * `include_inner_taxa` is set to true (default), the provided functional is called for all
+ * @link Taxon Taxa @endlink. Otherwise, the functional is only called for the taxa of lowest rank,
+ * that is, for each Taxon that does not have sub-taxa.
+ *
+ * This is the const version of the function.
+ */
+void levelorder_for_each(
+    Taxonomy const& tax,
+    std::function< void( Taxon const& )> fn,
+    bool include_inner_taxa
+) {
+    std::queue< Taxon const* > taxa_queue;
+    for( auto& t : tax ) {
+        taxa_queue.push( &t );
+    }
+
+    while( ! taxa_queue.empty() ) {
+        auto const& cur = *taxa_queue.front();
+
+        if( include_inner_taxa || cur.size() == 0 ) {
+            fn( cur );
+        }
+
+        for( auto const& t : cur ) {
+            taxa_queue.push( &t );
+        }
+        taxa_queue.pop();
+    }
+}
+
+/**
  * @brief Apply a function to all taxa of the Taxonomy, traversing it in preorder.
  *
  * The given Taxonomy is traversed in preorder (i.e., a variant of depth-first search). If
  * `include_inner_taxa` is set to true (default), the provided functional is called for all
  * @link Taxon Taxa @endlink. Otherwise, the functional is only called for the taxa of lowest rank,
  * that is, for each Taxon that does not have sub-taxa.
+ *
+ * This is the non-const version of the function.
  */
 void preorder_for_each(
     Taxonomy& tax,
@@ -313,12 +351,38 @@ void preorder_for_each(
 }
 
 /**
+ * @brief Apply a function to all taxa of the Taxonomy, traversing it in preorder.
+ *
+ * The given Taxonomy is traversed in preorder (i.e., a variant of depth-first search). If
+ * `include_inner_taxa` is set to true (default), the provided functional is called for all
+ * @link Taxon Taxa @endlink. Otherwise, the functional is only called for the taxa of lowest rank,
+ * that is, for each Taxon that does not have sub-taxa.
+ *
+ * This is the const version of the function.
+ */
+void preorder_for_each(
+    Taxonomy const& tax,
+    std::function< void( Taxon const& )> fn,
+    bool include_inner_taxa
+) {
+    for( auto const& t : tax ) {
+        if( include_inner_taxa || t.size() == 0 ) {
+            fn( t );
+        }
+
+        preorder_for_each( t, fn, include_inner_taxa );
+    }
+}
+
+/**
  * @brief Apply a function to all taxa of the Taxonomy, traversing it in postorder.
  *
  * The given Taxonomy is traversed in postorder (i.e., a variant of depth-first search). If
  * `include_inner_taxa` is set to true (default), the provided functional is called for all
  * @link Taxon Taxa @endlink. Otherwise, the functional is only called for the taxa of lowest rank,
  * that is, for each Taxon that does not have sub-taxa.
+ *
+ * This is the non-const version of the function.
  */
 void postorder_for_each(
     Taxonomy& tax,
@@ -326,6 +390,30 @@ void postorder_for_each(
     bool include_inner_taxa
 ) {
     for( auto& t : tax ) {
+        postorder_for_each( t, fn, include_inner_taxa );
+
+        if( include_inner_taxa || t.size() == 0 ) {
+            fn( t );
+        }
+    }
+}
+
+/**
+ * @brief Apply a function to all taxa of the Taxonomy, traversing it in postorder.
+ *
+ * The given Taxonomy is traversed in postorder (i.e., a variant of depth-first search). If
+ * `include_inner_taxa` is set to true (default), the provided functional is called for all
+ * @link Taxon Taxa @endlink. Otherwise, the functional is only called for the taxa of lowest rank,
+ * that is, for each Taxon that does not have sub-taxa.
+ *
+ * This is the const version of the function.
+ */
+void postorder_for_each(
+    Taxonomy const& tax,
+    std::function< void( Taxon const& )> fn,
+    bool include_inner_taxa
+) {
+    for( auto const& t : tax ) {
         postorder_for_each( t, fn, include_inner_taxa );
 
         if( include_inner_taxa || t.size() == 0 ) {

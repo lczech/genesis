@@ -80,15 +80,33 @@ void levelorder_for_each(
     bool include_inner_taxa = true
 );
 
+void levelorder_for_each(
+    Taxonomy const& tax,
+    std::function< void( Taxon const& )> fn,
+    bool include_inner_taxa = true
+);
+
 void preorder_for_each(
     Taxonomy& tax,
     std::function< void( Taxon& )> fn,
     bool include_inner_taxa = true
 );
 
+void preorder_for_each(
+    Taxonomy const& tax,
+    std::function< void( Taxon const& )> fn,
+    bool include_inner_taxa = true
+);
+
 void postorder_for_each(
     Taxonomy& tax,
     std::function< void( Taxon& )> fn,
+    bool include_inner_taxa = true
+);
+
+void postorder_for_each(
+    Taxonomy const& tax,
+    std::function< void( Taxon const& )> fn,
     bool include_inner_taxa = true
 );
 
