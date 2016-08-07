@@ -55,7 +55,7 @@ void PrinterDetailed::print (
     std::ostream&   out,
     Tree const& tree
 )  const {
-    std::vector<int>    depth = node_path_length_vector(tree);
+    std::vector<size_t> depth = node_path_length_vector(tree);
     std::vector<size_t> done;
 
     // Prepare text color styles.

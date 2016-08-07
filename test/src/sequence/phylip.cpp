@@ -30,8 +30,8 @@
 
 #include "common.hpp"
 
-#include "lib/sequence/codes.hpp"
-#include "lib/sequence/functions.hpp"
+#include "lib/sequence/functions/codes.hpp"
+#include "lib/sequence/functions/functions.hpp"
 #include "lib/sequence/sequence_set.hpp"
 #include "lib/sequence/formats/phylip_reader.hpp"
 

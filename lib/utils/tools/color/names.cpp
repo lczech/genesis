@@ -33,6 +33,7 @@
 #include "utils/text/string.hpp"
 
 #include <algorithm>
+#include <iterator>
 #include <stdexcept>
 
 namespace genesis {
@@ -87,6 +88,39 @@ Color get_named_color( std::string const& name )
         throw std::invalid_argument("No color named " + name + ".");
     }
     return it->second;
+}
+
+/**
+ * @brief Get the index of a named color in the list.
+ *
+ * The colors are stored in alphabetical order.
+ * If the color name does not exist, an `std::invalid_argument` exception is thrown.
+ */
+size_t get_named_color_index( std::string const& name )
+{
+    auto it = get_named_color_iterator(name);
+
+    if( it == ColorNames::map.end() ) {
+        throw std::invalid_argument("No color named " + name + ".");
+    }
+    return std::distance( ColorNames::map.begin(), it );
+}
+
+/**
+ * @brief Retrieve a named color by its index in the list.
+ *
+ * The index for a color can be obtained using get_named_color_index().
+ * If the color name does not exist, an `std::invalid_argument` exception is thrown.
+ *
+ * This function is mainly useful for automatic picking of colors, e.g. when using some incrementing
+ * counter. However, a proper color scheme might be more usefule in most cases.
+ */
+Color get_named_color_at( size_t at )
+{
+    if( at >= ColorNames::map.size() ) {
+        throw std::invalid_argument( "Invalid color index " + std::to_string(at) + "." );
+    }
+    return ColorNames::map.at( at ).second;
 }
 
 // =================================================================================================

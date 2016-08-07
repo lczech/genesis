@@ -55,7 +55,7 @@ void TestSubtreeSize( size_t link_index, size_t out_subtree_size )
     Tree tree;
     DefaultTreeNewickReader().from_string( input, tree );
 
-    auto st_size = subtree_size( tree.link_at( link_index ));
+    auto st_size = subtree_size( tree, tree.link_at( link_index ));
     EXPECT_EQ( out_subtree_size, st_size ) << " with link index " << link_index;
 }
 
@@ -111,4 +111,37 @@ TEST( TreeFunctions, SubtreeSizes )
     TestSubtreeSizes( "G", { 6, 9, 0, 0, 0, 4, 2, 0, 0, 0 } );
     TestSubtreeSizes( "H", { 6, 8, 0, 9, 0, 4, 2, 0, 0, 0 } );
     TestSubtreeSizes( "I", { 6, 8, 9, 0, 0, 4, 2, 0, 0, 0 } );
+}
+
+// =================================================================================================
+//     Subtree Max Path Height
+// =================================================================================================
+
+void TestSubtreeMaxPathHeight( std::string node_name, size_t out_size )
+{
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+
+    Tree tree;
+    DefaultTreeNewickReader().from_string( input, tree );
+
+    auto node = find_node( tree, node_name );
+    ASSERT_NE( nullptr, node );
+
+    // We are lazy and only evaluate the links towards the root.
+    auto st_size = subtree_max_path_height( tree, node->link().outer() );
+    EXPECT_EQ( out_size, st_size ) << " with start node " << node_name;
+}
+
+TEST( TreeFunctions, SubtreeMaxPathHeight )
+{
+    // TestSubtreeMaxPathHeight( "R", 3 );
+    TestSubtreeMaxPathHeight( "A", 2 );
+    TestSubtreeMaxPathHeight( "B", 0 );
+    TestSubtreeMaxPathHeight( "C", 1 );
+    TestSubtreeMaxPathHeight( "D", 0 );
+    TestSubtreeMaxPathHeight( "E", 0 );
+    TestSubtreeMaxPathHeight( "F", 0 );
+    TestSubtreeMaxPathHeight( "G", 1 );
+    TestSubtreeMaxPathHeight( "H", 0 );
+    TestSubtreeMaxPathHeight( "I", 0 );
 }

@@ -31,7 +31,11 @@
  * @ingroup tree
  */
 
+#include "utils/containers/sorted_vector.hpp"
+
+#include<set>
 #include<string>
+#include<unordered_set>
 #include<vector>
 
 namespace genesis {
@@ -48,7 +52,12 @@ class TreeNode;
 //     Node Names
 // =================================================================================================
 
-std::vector<std::string> node_names(
+std::unordered_set<std::string> node_names(
+    Tree const& tree,
+    bool leaves_only = false
+);
+
+utils::SortedVector<std::string> node_names_sorted(
     Tree const& tree,
     bool leaves_only = false
 );

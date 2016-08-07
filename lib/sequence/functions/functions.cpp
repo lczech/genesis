@@ -28,7 +28,7 @@
  * @ingroup sequence
  */
 
-#include "sequence/functions.hpp"
+#include "sequence/functions/functions.hpp"
 
 #include "sequence/sequence.hpp"
 #include "sequence/sequence_set.hpp"

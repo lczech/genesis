@@ -63,7 +63,7 @@ public:
     {}
 
     SvgObject( SvgObject const& other )
-        : pimpl_( std::move( other.pimpl_->clone() ))
+        : pimpl_( other.pimpl_->clone() )
     {}
 
     SvgObject( SvgObject&& )      = default;

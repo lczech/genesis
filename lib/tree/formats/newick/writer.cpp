@@ -109,7 +109,7 @@ void NewickWriter::tree_to_broker (
 
     // store the depth from each node to the root. this is needed to assign levels of depth
     // to the nodes for the broker.
-    std::vector<int> depth = node_path_length_vector(tree);
+    auto depth = node_path_length_vector(tree);
 
     // now fill the broker with nodes via postorder traversal, so that the root is put on top last.
     broker.clear();

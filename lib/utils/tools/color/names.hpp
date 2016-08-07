@@ -60,6 +60,9 @@ struct ColorNames
 bool is_named_color( std::string const& name );
 Color get_named_color( std::string const& name );
 
+size_t get_named_color_index( std::string const& name );
+Color get_named_color_at( size_t at );
+
 } // namespace utils
 } // namespace genesis
 

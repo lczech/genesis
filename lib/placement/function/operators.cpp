@@ -129,14 +129,14 @@ PlacementTree convert_to_placement_tree( tree::DefaultTree const& source_tree )
         auto node_data = PlacementNodeData::create();
         auto& source_data = dynamic_cast< tree::DefaultNodeData const& >( source_node );
         node_data->name = source_data.name;
-        return std::move( node_data );
+        return node_data;
     };
 
     auto edge_data_converter = [] ( tree::BaseEdgeData const& source_edge ) {
         auto edge_data = PlacementEdgeData::create();
         auto& source_data = dynamic_cast< tree::DefaultEdgeData const& >( source_edge );
         edge_data->branch_length = source_data.branch_length;
-        return std::move( edge_data );
+        return edge_data;
     };
 
     auto result = tree::convert(

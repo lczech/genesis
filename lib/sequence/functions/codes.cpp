@@ -28,7 +28,7 @@
  * @ingroup sequence
  */
 
-#include "sequence/codes.hpp"
+#include "sequence/functions/codes.hpp"
 
 #include <cctype>
 #include <unordered_map>

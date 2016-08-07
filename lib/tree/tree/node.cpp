@@ -88,16 +88,31 @@ TreeLink const& TreeNode::link() const
     return *link_;
 }
 
+/**
+ * @brief Return `true` if the TreeNode has a data object assigned to it.
+ */
 bool TreeNode::has_data() const
 {
     return data_.get() != nullptr;
 }
 
+/**
+ * @brief Return a pointer to the data.
+ *
+ * In most cases, using data<>() is more convenient. However, in some cases, this function
+ * might be necessary.
+ */
 BaseNodeData* TreeNode::data_ptr()
 {
     return data_.get();
 }
 
+/**
+ * @brief Return a const pointer to the data.
+ *
+ * In most cases, using data<>() is more convenient. However, in some cases, this function
+ * might be necessary.
+ */
 BaseNodeData const* TreeNode::data_ptr() const
 {
     return data_.get();
@@ -107,18 +122,44 @@ BaseNodeData const* TreeNode::data_ptr() const
 //     Modifiers
 // =================================================================================================
 
+/**
+ * @brief Reset the internal index of this TreeNode.
+ *
+ * This is a helper function that needs to be used with care and only in cases where appropriate.
+ * The index is an invariant that needs to be kept, as it needs to match the index in the Tree
+ * container.
+ *
+ * This function exists to allow building and modifying a Tree without the need for many friend
+ * declarations. However, the function should rarely be needed outside of this context.
+ */
 TreeNode& TreeNode::reset_index( size_t val )
 {
     index_ = val;
     return *this;
 }
 
+/**
+ * @brief Reset the internal pointer to the TreeLink of this TreeNode.
+ *
+ * This is a helper function that needs to be used with care and only in cases where appropriate.
+ *
+ * This function exists to allow building and modifying a Tree without the need for many friend
+ * declarations. However, the function should rarely be needed outside of this context.
+ */
 TreeNode& TreeNode::reset_primary_link( TreeLink* val )
 {
     link_ = val;
     return *this;
 }
 
+/**
+ * @brief Reset the data pointer of this TreeNode.
+ *
+ * Using this function, a TreeNode can be assigend new data. It is also possible to change the
+ * data type completely (as long as it derives from BaseNodeData). Be however aware that many
+ * functions that work with trees expcet a certain data type. Thus, changing it might break those
+ * functions and lead to exceptions and other errors.
+ */
 TreeNode& TreeNode::reset_data( std::unique_ptr< BaseNodeData > data )
 {
     data_ = std::move( data );

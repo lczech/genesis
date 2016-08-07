@@ -96,6 +96,17 @@ inline void erase_if( Container &c, UnaryPredicate p )
 // =================================================================================================
 
 /**
+ * @brief Calculate the absolute differenence between two values.
+ *
+ * This function is particularly useful for unsigned types, as subtracting them and then using
+ * std::abs() does not work for them.
+ */
+template< typename T >
+T abs_diff( T const& lhs, T const& rhs ) {
+    return ((lhs > rhs) ? (lhs - rhs) : (rhs - lhs));
+}
+
+/**
  * @brief Retun the value of `x`, rounded to the decimal digit given by `accuracy_order`.
  */
 inline double round_to( double x, size_t accuracy_order )

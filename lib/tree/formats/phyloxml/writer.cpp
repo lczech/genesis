@@ -146,11 +146,11 @@ void PhyloxmlWriter::to_document (const Tree& tree, utils::XmlDocument& xml)
     std::vector< utils::XmlElement* > stack;
     stack.push_back(phylogeny.get());
     xml.content.push_back(std::move(phylogeny));
-    int cur_d = 0;
+    size_t cur_d = 0;
 
     // Store the distance from each node to the root. Will be used to determine the position on the
     // stack that is used for adding clades to the phylogeny.
-    std::vector<int> depths = node_path_length_vector(tree);
+    auto depths = node_path_length_vector(tree);
 
     for( auto it : preorder(tree) ) {
         // Depth can never increase more than one between two nodes when doing a preoder traversal.

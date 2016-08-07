@@ -140,6 +140,13 @@ void SvgText::write( std::ostream& out, size_t indent ) const
         out << svg_attribute( "word-spacing", word_spacing );
     }
 
+    if( dx != "" ) {
+        out << svg_attribute( "dx", dx );
+    }
+    if( dy != "" ) {
+        out << svg_attribute( "dy", dy );
+    }
+
     out << ">";
     out << xml_escape( text );
     out << "</text>\n";

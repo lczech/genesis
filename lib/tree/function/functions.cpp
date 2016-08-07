@@ -30,6 +30,7 @@
 
 #include "tree/function/functions.hpp"
 
+#include "tree/function/distances.hpp"
 #include "tree/function/operators.hpp"
 #include "tree/iterator/eulertour.hpp"
 #include "tree/tree.hpp"
@@ -97,9 +98,15 @@ size_t inner_node_count( Tree const& tree )
 /**
  * @brief Return the size of the subtree defined by the given TreeLink, measured in number of nodes.
  */
-size_t subtree_size( TreeLink const& link )
+size_t subtree_size( Tree const& tree, TreeLink const& link )
 {
-    // This is a quick and dirty solution. Traverse the whole subtree, add all nodes to a set
+    if( ! belongs_to( tree, link )) {
+        throw std::runtime_error(
+            "Cannot caluclate subtree_size, as the given Link does not belong to the Tree."
+        );
+    }
+
+    // TODO This is a quick and dirty solution. Traverse the whole subtree, add all nodes to a set
     // and simply return the size of that set.
 
     std::unordered_set< TreeNode const* > visited_nodes;
@@ -136,6 +143,8 @@ std::vector<size_t> subtree_sizes( Tree const& tree, TreeNode const& node )
             "Cannot calculate subtree_sizes(), as the given Node does not belong to the Tree."
         );
     }
+
+    // TODO this is an overly complex and thus error prone solution, maybe there is a better way?!
 
     // Prepare result vector.
     std::vector<size_t> result;
@@ -205,6 +214,36 @@ std::vector<size_t> subtree_sizes( Tree const& tree )
 {
     return subtree_sizes( tree, tree.root_node() );
 }
+
+/**
+ * @brief Calculate the height of a subtree, that is, the maximum path length to a leaf of that
+ * subtree, measured in edges between the link and the leaf.
+ */
+size_t subtree_max_path_height( Tree const& tree, TreeLink const& link )
+{
+    // TODO make more efficient. no need for full dist vector.
+    auto dists = node_path_length_vector( tree, link.outer().node() );
+    size_t max = 0;
+
+    auto cur_link = &link.outer();
+    while( cur_link != &link ) {
+        max = std::max( max, dists[ cur_link->node().index() ] );
+        cur_link = &cur_link->next().outer();
+    }
+    return max;
+}
+
+// std::vector<size_t> subtree_max_path_heights( Tree const& tree, TreeNode const& node )
+// {
+//     (void) tree;
+//     (void) node;
+//     throw std::domain_error("Not implemented.");
+// }
+//
+// std::vector<size_t> subtree_max_path_heights( Tree const& tree )
+// {
+//     return subtree_heights( tree, tree.root_node() );
+// }
 
 } // namespace tree
 } // namespace genesis

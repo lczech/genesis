@@ -116,6 +116,18 @@ public:
         return dynamic_cast< NodeDataType const& >( *data_ );
     }
 
+    template< class NodeDataType >
+    NodeDataType* data_cast()
+    {
+        return dynamic_cast< NodeDataType* >( data_.get() );
+    }
+
+    template< class NodeDataType >
+    NodeDataType const* data_cast() const
+    {
+        return dynamic_cast< NodeDataType const* >( data_.get() );
+    }
+
     BaseNodeData*       data_ptr();
     BaseNodeData const* data_ptr() const;
 

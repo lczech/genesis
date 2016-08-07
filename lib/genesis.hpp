@@ -61,14 +61,16 @@
 #include "placement/simulator/proximal_length_distribution.hpp"
 #include "placement/simulator/simulator.hpp"
 
-#include "sequence/codes.hpp"
+#include "sequence/counts.hpp"
 #include "sequence/formats/fasta_input_iterator.hpp"
 #include "sequence/formats/fasta_output_iterator.hpp"
 #include "sequence/formats/fasta_reader.hpp"
 #include "sequence/formats/fasta_writer.hpp"
 #include "sequence/formats/phylip_reader.hpp"
 #include "sequence/formats/phylip_writer.hpp"
-#include "sequence/functions.hpp"
+#include "sequence/functions/codes.hpp"
+#include "sequence/functions/counts.hpp"
+#include "sequence/functions/functions.hpp"
 #include "sequence/sequence.hpp"
 #include "sequence/sequence_set.hpp"
 
@@ -127,6 +129,8 @@
 #include "tree/tree/node.hpp"
 #include "tree/tree_set.hpp"
 
+#include "utils/containers/sorted_vector.hpp"
+#include "utils/containers/sorted_vector/operators.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/core/genesis.hpp"
 #include "utils/core/indexed_list.hpp"

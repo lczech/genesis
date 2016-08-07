@@ -1,5 +1,5 @@
-#ifndef GENESIS_SEQUENCE_FUNCTIONS_H_
-#define GENESIS_SEQUENCE_FUNCTIONS_H_
+#ifndef GENESIS_SEQUENCE_FUNCTIONS_FUNCTIONS_H_
+#define GENESIS_SEQUENCE_FUNCTIONS_FUNCTIONS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.

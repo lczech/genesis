@@ -38,6 +38,7 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <limits>
 #include <stdexcept>
 
 namespace genesis {
@@ -55,10 +56,11 @@ namespace tree {
  *
  * The vector is indexed using the node().index() for every node.
  */
-utils::Matrix<int> node_path_length_matrix(
+utils::Matrix<size_t> node_path_length_matrix(
     Tree const& tree
 ) {
-    utils::Matrix<int> mat( tree.node_count(), tree.node_count(), -1 );
+    auto max_val = std::numeric_limits<size_t>::max();
+    utils::Matrix<size_t> mat( tree.node_count(), tree.node_count(), max_val );
 
     // Fill every row of the matrix.
     for( auto const& row_node : tree.nodes() ) {
@@ -80,8 +82,8 @@ utils::Matrix<int> node_path_length_matrix(
 
             // Make sure we don't have touched the current position, but have calculated
             // the needed dependency already.
-            assert( mat(row_node->index(), it.node().index()) == -1 );
-            assert( mat(row_node->index(), it.link().outer().node().index()) > -1 );
+            assert( mat(row_node->index(), it.node().index()) == max_val );
+            assert( mat(row_node->index(), it.link().outer().node().index()) != max_val );
 
             // The distance to the current row node is one more than the distance from the other
             // end of that branch to the row node.
@@ -100,7 +102,7 @@ utils::Matrix<int> node_path_length_matrix(
  * each node with respect to the given start node. The depth is the number of edges visited on the
  * path between two nodes (0 for itself, 1 for immediate neighbours, etc).
  */
-std::vector<int> node_path_length_vector(
+std::vector<size_t> node_path_length_vector(
     Tree const& tree,
     TreeNode const& node
 ) {
@@ -109,10 +111,11 @@ std::vector<int> node_path_length_vector(
             "Cannot caluclate node_path_length_vector, as the given Node does not belong to the Tree."
         );
     }
+    auto max_val = std::numeric_limits<size_t>::max();
 
     // store the distance from each node to the given node.
-    std::vector<int> vec;
-    vec.resize(tree.node_count(), -1);
+    std::vector<size_t> vec;
+    vec.resize(tree.node_count(), max_val);
     vec[ node.index() ] = 0;
 
     // calculate the distance vector via levelorder iteration.
@@ -124,8 +127,8 @@ std::vector<int> node_path_length_vector(
 
         // we do not have the distance of the current node, but the one of its "parent" (the one in
         // direction of the starting node)!
-        assert(vec[it.node().index()] == -1);
-        assert(vec[it.link().outer().node().index()] > -1);
+        assert( vec[it.node().index()] == max_val );
+        assert( vec[it.link().outer().node().index()] != max_val );
 
         // the distance is the distance from the "parent" node (the next one in direction towards
         // the given node) plus 1.
@@ -142,17 +145,17 @@ std::vector<int> node_path_length_vector(
  * @link node_path_length_vector( Tree const& tree, TreeNode const& node ) node_path_length_vector(...)@endlink
  * using the root node of the tree.
  */
-std::vector<int> node_path_length_vector(
+std::vector<size_t> node_path_length_vector(
     Tree const& tree
 ) {
     return node_path_length_vector( tree, tree.root_node() );
 }
 
-utils::Matrix<int> edge_path_length_matrix(
+utils::Matrix<size_t> edge_path_length_matrix(
     Tree const& tree
 ) {
     // Result matrix that will be returned.
-    utils::Matrix<int> mat (tree.edge_count(), tree.edge_count());
+    utils::Matrix<size_t> mat (tree.edge_count(), tree.edge_count());
 
     // For calculating the distance between edges, we use the distances between nodes and for every
     // pair of edged find the nodes at the ends of the edges that are closest to each other. This
@@ -202,7 +205,7 @@ utils::Matrix<int> edge_path_length_matrix(
     return mat;
 }
 
-std::vector<int> edge_path_length_vector(
+std::vector<size_t> edge_path_length_vector(
     Tree const& tree,
     TreeEdge const& edge
 ) {
@@ -212,7 +215,8 @@ std::vector<int> edge_path_length_vector(
         );
     }
 
-    std::vector<int> vec (tree.edge_count(), -1);
+    auto max_val = std::numeric_limits<size_t>::max();
+    std::vector<size_t> vec( tree.edge_count(), max_val );
 
     // We just need two rows of the distance matrix - let's take the vectors instead for speed.
     auto p_node_dist = node_path_length_vector(tree, edge.primary_node());
@@ -266,11 +270,11 @@ std::vector<int> edge_path_length_vector(
  * There might be more than one leaf with the same depth to a given node. In this case, an
  * arbitrary one is used.
  */
-std::vector< std::pair< TreeNode const*, int >> closest_leaf_depth_vector (
+std::vector< std::pair< TreeNode const*, size_t >> closest_leaf_depth_vector (
     const Tree& tree
 ) {
     // prepare a result vector with the size of number of nodes.
-    std::vector< std::pair< TreeNode const*, int >> vec;
+    std::vector< std::pair< TreeNode const*, size_t >> vec;
     vec.resize(tree.node_count(), {nullptr, 0});
 
     // fill the vector for every node.

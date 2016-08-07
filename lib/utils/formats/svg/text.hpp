@@ -108,6 +108,9 @@ public:
     double      letter_spacing;
     double      word_spacing;
 
+    std::string dx;
+    std::string dy;
+
 };
 
 } // namespace utils
