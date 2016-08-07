@@ -89,6 +89,14 @@ Color get_named_color( std::string const& name )
     return it->second;
 }
 
+Color get_named_color_at( size_t at )
+{
+    if( at >= ColorNames::map.size() ) {
+        throw std::invalid_argument( "Invalid color index " + std::to_string(at) + "." );
+    }
+    return ColorNames::map.at( at ).second;
+}
+
 // =================================================================================================
 //     Color Name List
 // =================================================================================================
