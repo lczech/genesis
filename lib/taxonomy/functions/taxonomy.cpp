@@ -123,6 +123,38 @@ size_t total_taxa_count( Taxonomy const& tax )
 }
 
 /**
+ * @brief Return the number of lowest level @link Taxon Taxa@endlink (i.e., taxa without sub-taxa)
+ * in the Taxonomy.
+ *
+ * The function counts the number of taxa without any sub-taxa, that is, the "leaves" of the
+ * Taxonomy.
+ *
+ * Example: The Taxonomy
+ *
+ *     Tax_1
+ *         Tax_2
+ *             Tax_3
+ *         Tax_4
+ *             Tax_5
+ *     Tax_6
+ *         Tax_7
+ *
+ * contains 3 such taxa, i.e., `Tax_3`, `Tax_5` and `Tax_7`.
+ */
+size_t taxa_count_lowest_levels( Taxonomy const& tax )
+{
+    size_t count = 0;
+    for( auto const& t : tax ) {
+        if( t.size() == 0 ) {
+            ++count;
+        } else {
+            count += taxa_count_lowest_levels( t );
+        }
+    }
+    return count;
+}
+
+/**
  * @brief Count the number of @link Taxon Taxa@endlink at a certain level of depth in the
  * Taxonomy.
  *

@@ -59,6 +59,8 @@ TEST( Taxonomy, Counts )
     EXPECT_EQ( 32, total_taxa_count(tax) );
     EXPECT_TRUE( validate( tax ));
 
+    EXPECT_EQ( 16, taxa_count_lowest_levels( tax ));
+
     // Level count.
     EXPECT_EQ( 1, taxa_count_at_level( tax, 0 ));
     EXPECT_EQ( 4, taxa_count_at_level( tax, 1 ));

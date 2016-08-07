@@ -57,6 +57,7 @@ Taxon*       find_taxon_by_name( Taxonomy&       tax, std::string const& name );
 size_t taxon_level( Taxon const& taxon );
 size_t total_taxa_count( Taxonomy const& tax );
 
+size_t taxa_count_lowest_levels( Taxonomy const& tax );
 size_t taxa_count_at_level( Taxonomy const& tax, size_t level );
 std::vector< size_t > taxa_count_levels( Taxonomy const& tax );
 
