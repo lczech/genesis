@@ -215,19 +215,23 @@ std::vector<size_t> subtree_sizes( Tree const& tree )
     return subtree_sizes( tree, tree.root_node() );
 }
 
-// size_t subtree_max_path_height( Tree const& tree, TreeLink const& link )
-// {
-//     // TODO make more efficient. no need for full dist vector.
-//     auto dists = node_path_length_vector( tree, link.node() );
-//     size_t max = 0;
-//
-//     auto cur_link = &link.outer();
-//     while( cur_link != &link ) {
-//         max = std::max( max, dists[ cur_link->node().index() ] );
-//         cur_link = &cur_link->next().outer();
-//     }
-//     return max;
-// }
+/**
+ * @brief Calculate the height of a subtree, that is, the maximum path length to a leaf of that
+ * subtree, measured in edges between the link and the leaf.
+ */
+size_t subtree_max_path_height( Tree const& tree, TreeLink const& link )
+{
+    // TODO make more efficient. no need for full dist vector.
+    auto dists = node_path_length_vector( tree, link.outer().node() );
+    size_t max = 0;
+
+    auto cur_link = &link.outer();
+    while( cur_link != &link ) {
+        max = std::max( max, dists[ cur_link->node().index() ] );
+        cur_link = &cur_link->next().outer();
+    }
+    return max;
+}
 
 // std::vector<size_t> subtree_max_path_heights( Tree const& tree, TreeNode const& node )
 // {
