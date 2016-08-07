@@ -143,6 +143,10 @@ utils::SvgDocument RectangularLayout::to_svg_document() const
             nodes_[ node.parent ].x, nodes_[ node.parent ].y,
             stroke
         );
+
+        auto label = SvgText( SvgPoint( node.x + 5, node.y ), node.name );
+        label.dy = "0.4em";
+        doc << label;
     }
 
     return doc;
