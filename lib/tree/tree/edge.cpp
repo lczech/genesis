@@ -111,16 +111,31 @@ TreeNode const& TreeEdge::secondary_node() const
     return link_s_->node();
 }
 
+/**
+ * @brief Return `true` if the TreeNode has a data object assigned to it.
+ */
 bool TreeEdge::has_data() const
 {
     return data_.get() != nullptr;
 }
 
+/**
+ * @brief Return a pointer to the data.
+ *
+ * In most cases, using data<>() is more convenient. However, in some cases, this function
+ * might be necessary.
+ */
 BaseEdgeData* TreeEdge::data_ptr()
 {
     return data_.get();
 }
 
+/**
+ * @brief Return a const pointer to the data.
+ *
+ * In most cases, using data<>() is more convenient. However, in some cases, this function
+ * might be necessary.
+ */
 BaseEdgeData const* TreeEdge::data_ptr() const
 {
     return data_.get();
@@ -130,24 +145,58 @@ BaseEdgeData const* TreeEdge::data_ptr() const
 //     Modifiers
 // =================================================================================================
 
+/**
+ * @brief Reset the internal index of this TreeEdge.
+ *
+ * This is a helper function that needs to be used with care and only in cases where appropriate.
+ * The index is an invariant that needs to be kept, as it needs to match the index in the Tree
+ * container.
+ *
+ * This function exists to allow building and modifying a Tree without the need for many friend
+ * declarations. However, the function should rarely be needed outside of this context.
+ */
 TreeEdge& TreeEdge::reset_index( size_t val )
 {
     index_ = val;
     return *this;
 }
 
+/**
+ * @brief Reset the internal pointer to the primary TreeLink of this TreeEdge.
+ *
+ * This is a helper function that needs to be used with care and only in cases where appropriate.
+ *
+ * This function exists to allow building and modifying a Tree without the need for many friend
+ * declarations. However, the function should rarely be needed outside of this context.
+ */
 TreeEdge& TreeEdge::reset_primary_link( TreeLink* val )
 {
     link_p_ = val;
     return *this;
 }
 
+/**
+ * @brief Reset the internal pointer to the secondary TreeLink of this TreeEdge.
+ *
+ * This is a helper function that needs to be used with care and only in cases where appropriate.
+ *
+ * This function exists to allow building and modifying a Tree without the need for many friend
+ * declarations. However, the function should rarely be needed outside of this context.
+ */
 TreeEdge& TreeEdge::reset_secondary_link( TreeLink* val )
 {
     link_s_ = val;
     return *this;
 }
 
+/**
+ * @brief Reset the data pointer of this TreeEdge.
+ *
+ * Using this function, a TreeEdge can be assigend new data. It is also possible to change the
+ * data type completely (as long as it derives from BaseEdgeData). Be however aware that many
+ * functions that work with trees expect a certain data type. Thus, changing it might break those
+ * functions and lead to exceptions and other errors.
+ */
 TreeEdge& TreeEdge::reset_data( std::unique_ptr< BaseEdgeData > data )
 {
     data_ = std::move( data );

@@ -126,6 +126,18 @@ public:
         return dynamic_cast< EdgeDataType const& >( *data_ );
     }
 
+    template< class EdgeDataType >
+    EdgeDataType* data_cast()
+    {
+        return dynamic_cast< EdgeDataType* >( data_.get() );
+    }
+
+    template< class EdgeDataType >
+    EdgeDataType const* data_cast() const
+    {
+        return dynamic_cast< EdgeDataType const* >( data_.get() );
+    }
+
     BaseEdgeData*       data_ptr();
     BaseEdgeData const* data_ptr() const;
 

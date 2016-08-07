@@ -67,7 +67,11 @@ void RectangularLayout::from_tree( Tree const& tree )
     for( auto const& tree_node : tree.nodes() ) {
         auto& node = nodes_[ tree_node->index() ];
 
-        node.name = tree_node->data<DefaultNodeData>().name;
+        auto node_data = tree_node->data_cast<DefaultNodeData>();
+        if( node_data ) {
+            node.name = node_data->name;
+        }
+
         node.node_index = tree_node->index();
         node.edge_index = tree_node->link().edge().index();
     }
