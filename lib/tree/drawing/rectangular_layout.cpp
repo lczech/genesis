@@ -38,8 +38,6 @@
 #include "tree/iterator/preorder.hpp"
 #include "tree/iterator/postorder.hpp"
 
-#include "utils/formats/svg/svg.hpp"
-
 #include "utils/core/logging.hpp"
 
 #include <algorithm>
@@ -65,9 +63,17 @@ void RectangularLayout::from_tree( Tree const& tree )
 
     nodes_ = std::vector< Node >( tree.node_count() );
 
+    // Set basic node properties.
+    for( auto const& tree_node : tree.nodes() ) {
+        auto& node = nodes_[ tree_node->index() ];
+
+        node.name = tree_node->data<DefaultNodeData>().name;
+        node.node_index = tree_node->index();
+        node.edge_index = tree_node->link().edge().index();
+    }
+
     // Set node x-coords according to branch lengths (distance from root).
     // set_node_x_phylogram_( tree );
-
     set_node_x_cladogram_( tree );
 
     // Set node parents and y-coord of leaves.
@@ -78,13 +84,11 @@ void RectangularLayout::from_tree( Tree const& tree )
 
         if( node.parent == -1 ) {
             node.parent = parent;
-            // edge_to_layout[it.edge()] = &node;
         }
         if( it.node().is_leaf() ) {
             node.y = scaler_y_ * leaf_count++;
         }
 
-        node.name = it.node().data<DefaultNodeData>().name;
         parent = it.node().index();
     }
 
@@ -106,15 +110,29 @@ void RectangularLayout::from_tree( Tree const& tree )
     }
 }
 
+void RectangularLayout::set_edge_strokes( std::vector< utils::SvgStroke > strokes )
+{
+    if( strokes.size() != nodes_.size() - 1 ) {
+        throw std::runtime_error( "Edge stroke vector has wrong size." );
+    }
+    for( auto& node : nodes_ ) {
+        node.edge_stroke = strokes[ node.edge_index ];
+    }
+}
+
 utils::SvgDocument RectangularLayout::to_svg_document() const
 {
     using namespace utils;
     SvgDocument doc;
 
-    auto stroke = SvgStroke();
-    stroke.line_cap = SvgStroke::LineCap::kRound;
+    // Default edge stroke.
+    // auto stroke = SvgStroke();
+    // stroke.line_cap = SvgStroke::LineCap::kRound;
 
     for( auto const& node : nodes_ ) {
+        auto stroke = node.edge_stroke;
+        stroke.line_cap = utils::SvgStroke::LineCap::kRound;
+
         doc << SvgLine(
             node.x, node.y,
             nodes_[ node.parent ].x, node.y,

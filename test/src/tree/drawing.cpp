@@ -36,6 +36,7 @@
 
 #include "lib/utils/formats/svg/svg.hpp"
 #include "lib/utils/core/fs.hpp"
+#include "lib/utils/tools/color/names.hpp"
 
 using namespace genesis;
 using namespace tree;
@@ -50,6 +51,39 @@ TEST(Tree, Drawing)
     auto layout = RectangularLayout();
 
     layout.from_tree( tree );
+
+    std::vector<std::string> scheme = {
+        "Crimson",
+        "DarkCyan",
+        "DarkGoldenRod",
+        "DarkGreen",
+        "DarkOrchid",
+        "DeepPink",
+        "DodgerBlue",
+        "DimGray",
+        "GreenYellow",
+        "Indigo",
+        "MediumVioletRed",
+        "MidnightBlue",
+        "Olive",
+        "Orange",
+        "OrangeRed",
+        "Peru",
+        "Purple",
+        "SeaGreen",
+        "DeepSkyBlue",
+        "RoyalBlue",
+        "SlateBlue",
+        "Tomato",
+        "YellowGreen"
+    };
+
+    std::vector<utils::SvgStroke> strokes;
+    for( size_t i = 0; i < 12; ++i ) {
+        strokes.push_back( utils::SvgStroke() );
+        strokes.back().color = utils::get_named_color( scheme[i] );
+    }
+    layout.set_edge_strokes( strokes );
 
     std::ostringstream out;
     layout.to_svg_document().write( out );

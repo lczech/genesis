@@ -31,6 +31,8 @@
  * @ingroup tree
  */
 
+#include "utils/formats/svg/svg.hpp"
+
 #include <string>
 #include <vector>
 
@@ -39,12 +41,6 @@ namespace genesis {
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
-
-namespace utils {
-
-    class SvgDocument;
-
-} // namespace utils
 
 namespace tree {
 
@@ -63,6 +59,9 @@ public:
     // -------------------------------------------------------------
 
     struct Node {
+        size_t node_index;
+        size_t edge_index;
+
         double x = -1.0;
         double y = -1.0;
         int    parent = -1;
@@ -71,6 +70,8 @@ public:
         double children_max_y = -1.0;
 
         std::string name;
+
+        utils::SvgStroke edge_stroke;
     };
 
     // -------------------------------------------------------------
@@ -91,6 +92,8 @@ public:
     // -------------------------------------------------------------
 
     void from_tree( Tree const& tree );
+
+    void set_edge_strokes( std::vector< utils::SvgStroke > strokes );
 
     utils::SvgDocument to_svg_document() const;
 
