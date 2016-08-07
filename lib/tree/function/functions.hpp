@@ -64,10 +64,10 @@ size_t subtree_size( Tree const& tree, TreeLink const& link );
 std::vector<size_t> subtree_sizes( Tree const& tree, TreeNode const& node );
 std::vector<size_t> subtree_sizes( Tree const& tree );
 
-// size_t subtree_height( Tree const& tree, TreeLink const& link );
-//
-// std::vector<size_t> subtree_heights( Tree const& tree, TreeNode const& node );
-// std::vector<size_t> subtree_heights( Tree const& tree );
+// size_t subtree_max_path_height( Tree const& tree, TreeLink const& link );
+
+// std::vector<size_t> subtree_max_path_heights( Tree const& tree, TreeNode const& node );
+// std::vector<size_t> subtree_max_path_heights( Tree const& tree );
 
 } // namespace tree
 } // namespace genesis

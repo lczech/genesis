@@ -51,22 +51,22 @@ class TreeLink;
 //     Distance Measures
 // =================================================================================================
 
-utils::Matrix<int> node_path_length_matrix( Tree const& tree );
+utils::Matrix<size_t> node_path_length_matrix( Tree const& tree );
 
-std::vector<int> node_path_length_vector(
+std::vector<size_t> node_path_length_vector(
     Tree     const& tree,
     TreeNode const& node
 );
 
-std::vector<int> node_path_length_vector(
+std::vector<size_t> node_path_length_vector(
     Tree     const& tree
 );
 
-utils::Matrix<int> edge_path_length_matrix(
+utils::Matrix<size_t> edge_path_length_matrix(
     Tree const& tree
 );
 
-std::vector<int> edge_path_length_vector(
+std::vector<size_t> edge_path_length_vector(
     Tree     const& tree,
     TreeEdge const& edge
 );
@@ -75,7 +75,7 @@ std::vector<int> edge_path_length_vector(
 //     Complex Distance Methods
 // =================================================================================================
 
-std::vector< std::pair< TreeNode const*, int >>  closest_leaf_depth_vector(
+std::vector< std::pair< TreeNode const*, size_t >>  closest_leaf_depth_vector(
     Tree const& tree
 );
 

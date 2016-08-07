@@ -215,12 +215,11 @@ std::vector<size_t> subtree_sizes( Tree const& tree )
     return subtree_sizes( tree, tree.root_node() );
 }
 
-// size_t subtree_height( Tree const& tree, TreeLink const& link )
+// size_t subtree_max_path_height( Tree const& tree, TreeLink const& link )
 // {
-//     // TODO use size_t instead of int if vector allows it.
 //     // TODO make more efficient. no need for full dist vector.
 //     auto dists = node_path_length_vector( tree, link.node() );
-//     int max = 0;
+//     size_t max = 0;
 //
 //     auto cur_link = &link.outer();
 //     while( cur_link != &link ) {
@@ -229,15 +228,15 @@ std::vector<size_t> subtree_sizes( Tree const& tree )
 //     }
 //     return max;
 // }
-//
-// std::vector<size_t> subtree_heights( Tree const& tree, TreeNode const& node )
+
+// std::vector<size_t> subtree_max_path_heights( Tree const& tree, TreeNode const& node )
 // {
 //     (void) tree;
 //     (void) node;
 //     throw std::domain_error("Not implemented.");
 // }
 //
-// std::vector<size_t> subtree_heights( Tree const& tree )
+// std::vector<size_t> subtree_max_path_heights( Tree const& tree )
 // {
 //     return subtree_heights( tree, tree.root_node() );
 // }
