@@ -226,7 +226,7 @@ double earth_movers_distance (
             emd_edge->branch_length
                 = dynamic_cast< PlacementEdgeData const& >( edge_data ).branch_length;
 
-            return std::move( emd_edge );
+            return emd_edge;
         }
     );
 
