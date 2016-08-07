@@ -55,6 +55,12 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_threshold(
     double                                            entropy_threshold
 );
 
+std::unordered_set< Taxon const* > split_taxonomy_by_entropy_nested_invervals(
+    Taxonomy const&                                   taxonomy,
+    std::unordered_map< Taxon const*, double > const& entropies,
+    size_t                                            target_taxonomy_size
+);
+
 std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
     Taxonomy const&                                   taxonomy,
     std::unordered_map< Taxon const*, double > const& entropies,

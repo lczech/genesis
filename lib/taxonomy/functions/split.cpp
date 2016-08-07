@@ -41,7 +41,9 @@
 
 #include <algorithm>
 #include <assert.h>
+#include <functional>
 #include <limits>
+#include <map>
 #include <numeric>
 #include <stack>
 #include <stdexcept>
@@ -53,6 +55,11 @@ namespace taxonomy {
 //     Split
 // =================================================================================================
 
+/**
+ * @brief Split a Taxonomy at Taxa that exceed a certain entropy threshold.
+ *
+ * This is mainly a test method, as it is currently not further used.
+ */
 std::unordered_set< Taxon const* > split_taxonomy_by_entropy_threshold(
     Taxonomy const&                                   taxonomy,
     std::unordered_map< Taxon const*, double > const& entropies,
@@ -68,9 +75,6 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_threshold(
     for( auto const& t : taxonomy ) {
         taxa_stack.push( &t );
     }
-
-
-    // LOG_DBG1 << "thresh  " << entropy_threshold;
 
     // Iterate the taxonomy and either decide to not split but keep a certain Taxon
     // (if its entropy is below threshold), or go deeper into the Taxon by adding it to the stack,
@@ -89,10 +93,6 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_threshold(
             throw std::runtime_error( "Entropy list not complete. Missing Taxon " + name );
         }
 
-        // auto name = TaxscriptorGenerator()( cur );
-        // LOG_DBG1 << "at " << name;
-        // LOG_DBG1 << "entropy " << entropies[ &cur ];
-
         // If the Taxon has a low entropy, it's sequences are similar to each other, so we can
         // keep it as it is. Thus, no need to split it further, so add it to the list.
         // Also, if it is a leaf of the taxonomy, we will not further traverse it, so add it.
@@ -110,7 +110,13 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_threshold(
     return crop_list;
 }
 
-std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
+/**
+ * @brief Test method for splitting a Taxonomy using nested intervals.
+ *
+ * This method is a test whether a Taxonomy can be splitted into low entropy regions using
+ * nested intervals. Did not work, as the entropy per Taxon is not monotonic in the hierarchy.
+ */
+std::unordered_set< Taxon const* > split_taxonomy_by_entropy_nested_invervals(
     Taxonomy const&                                   taxonomy,
     std::unordered_map< Taxon const*, double > const& entropies,
     size_t                                            target_taxonomy_size
@@ -131,47 +137,45 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
     }
     average /= static_cast< double >( entropies.size() );
 
-    // Some safety.
+    // Check invariants for the limits.
     assert( lower_limit <= average     );
     assert( average     <= upper_limit );
 
     // Start the iterative process with the average threshold.
-    // double threshold = average;
-    double threshold = lower_limit;
+    double threshold = average;
 
+    // Target list: store the leaf taxa of the taxonomy.
     std::unordered_set< Taxon const* > crop_list;
 
     while( true ) {
-        LOG_DBG << "------------------------------------";
-        LOG_DBG << "lower_limit " << lower_limit;
-        LOG_DBG << "upper_limit " << upper_limit;
-        LOG_DBG << "threshold   " << threshold;
-        LOG_DBG << "run split...";
-
+        // Split the taxonomy using the current threshold.
         auto cand_list = split_taxonomy_by_entropy_threshold( taxonomy, entropies, threshold );
 
         // If we are closer to our target size, update the list.
         if( utils::absolute_difference( cand_list.size(), target_taxonomy_size ) <
             utils::absolute_difference( crop_list.size(), target_taxonomy_size )
         ) {
-            LOG_DBG << "  updating";
             crop_list = cand_list;
         }
 
-        // // Adjust the nested invervals, or finish.
-        // if( cand_list.size() > target_taxonomy_size ) {
-        //     lower_limit = threshold;
-        //     threshold   = ( threshold + upper_limit ) / 2.0;
-        //
-        // } else
-        // if( cand_list.size() < target_taxonomy_size ) {
-        //     upper_limit = threshold;
-        //     threshold   = ( threshold + lower_limit ) / 2.0;
-        //
-        // } else {
-        //     break;
-        // }
+        // Adjust the nested invervals, or finish.
+        // If the list is too big, use a higher threshold,
+        // if it is too small, use a lower one.
+        // If we hit the target size, we can stop.
+        if( cand_list.size() > target_taxonomy_size ) {
+            lower_limit = threshold;
+            threshold   = ( threshold + upper_limit ) / 2.0;
 
+        } else
+        if( cand_list.size() < target_taxonomy_size ) {
+            upper_limit = threshold;
+            threshold   = ( threshold + lower_limit ) / 2.0;
+
+        } else {
+            break;
+        }
+
+        // Check invariants for the limits.
         assert( lower_limit <= threshold   );
         assert( threshold   <= upper_limit );
 
@@ -180,36 +184,187 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
         // and forth between a value too low and one too high. Then, at some point, the interval
         // converges at the entropy value that separates those two split candidates.
         // If we converged enough, we can stop, there won't be a better split candidate.
-        // if( upper_limit - lower_limit < 1.0E-10 * average ) {
-        //     break;
-        // }
-
-        // test
-        threshold += (upper_limit - lower_limit) / 200.0;
-        if( threshold > upper_limit ) {
+        if( upper_limit - lower_limit < 1.0E-10 * average ) {
             break;
         }
 
-        LOG_DBG << "done.";
-        LOG_DBG << "target      " << target_taxonomy_size;
-        LOG_DBG << "cand        " << utils::Style("Blue")( std::to_string( cand_list.size() ));
-        LOG_DBG << "splits      " << utils::Style("Red")( std::to_string( crop_list.size() ));
-        LOG_DBG << "new:";
-        LOG_DBG << "lower_limit " << lower_limit;
-        LOG_DBG << "upper_limit " << upper_limit;
-        LOG_DBG << "threshold   " << threshold;
+        // Test: Instead of nested intervals, simply try every n-th interval.
+        // threshold += (upper_limit - lower_limit) / 200.0;
+        // if( threshold > upper_limit ) {
+        //     break;
+        // }
     }
-
-    LOG_DBG << "------------------------------------";
-    LOG_DBG << "finished. final:";
-    LOG_DBG << "splits      " << crop_list.size();
-    LOG_DBG << "lower_limit " << lower_limit;
-    LOG_DBG << "upper_limit " << upper_limit;
-    LOG_DBG << "threshold   " << threshold;
 
     return crop_list;
 }
 
+/**
+ * @brief Split a Taxonomy so that the result (approximately) contains a desired number of "leaf"
+ * @link Taxon Taxa@endlink, using the entropy of the Taxa as indicator where to split.
+ *
+ * The function takes a Taxonomy and a list of entropy values for each Taxon of the Taxonomy.
+ * This list can e.g. be obtained from the Sequence%s that belong to each Taxon, using
+ * sequence::absolute_entropy() or sequence::averaged_entropy().
+ *
+ * The function further takes a target size which indicates the desired number of "leaf" Taxa after
+ * splitting the Taxonomy. In the splitted Taxonomy, some Taxa are considered as belonging to the
+ * Taxonomy, while other (with higher ranks) are excluded. The number of "endpoints" or "leaves"
+ * of the included Taxa then is aimed to be as close as possible to the target size.
+ *
+ * Example: The Taxonomy
+ *
+ *     Tax_1
+ *         Tax_2
+ *             Tax_3
+ *             Tax_4
+ *         Tax_5
+ *             Tax_6
+ *     Tax_7
+ *         Tax_8
+ *         Tax_9
+ *
+ * contains 5 "leaf" taxa, i.e., `Tax_3`, `Tax_4`, `Tax_6`, `Tax_8` and `Tax_9`. If we want to split
+ * it with a target size of 3, we might end up with either
+ *
+ *     Tax_1
+ *         Tax_2
+ *         Tax_5
+ *     Tax_7
+ *
+ * or
+ *
+ *     Tax_1
+ *     Tax_7
+ *         Tax_8
+ *         Tax_9
+ *
+ * as both contain 3 "leaves": `Tax_2`, `Tax_5` and `Tax_7` in the former case and `Tax_1`, `Tax_8`
+ * and `Tax_9` in the latter.
+ *
+ * It is not always possible to split a Taxonomy in a way the we exaclty hit the target size. The
+ * function then chooses the split that is closest (either below or above the target size).
+ *
+ * In order to decide which Taxa to split (i.e., not include as leaves, but further resolve into
+ * their children), we use the given entropy list: We choose to split at the (not yet splitted)
+ * Taxon with the highest entropy value, as long as this split brings us closer to the target size.
+ *
+ * This means that the above case where we had two possible ways of splitting should be rare, as
+ * the entropies will rarely be identical with real world data sets. If this happens nonetheless,
+ * it is random with of the Taxa with equal entropy will be used.
+ *
+ * The resultung list then contains all leaf/endpoint Taxa, that is, those, which we do not want
+ * to further split. The size of that list is then as close as possible to the target size, given
+ * the method of splitting.
+ */
+std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
+    Taxonomy const&                                   taxonomy,
+    std::unordered_map< Taxon const*, double > const& entropies,
+    size_t                                            target_taxonomy_size
+) {
+    // Basic check.
+    if( taxa_count_lowest_levels( taxonomy ) < target_taxonomy_size ) {
+        throw std::runtime_error(
+            "Taxonomy only has " + std::to_string( taxa_count_lowest_levels( taxonomy ) ) +
+            " leaf Taxa. Cannot split it into " + std::to_string( target_taxonomy_size ) + " parts."
+        );
+    }
+
+    // Resulting list of Taxa where to split. The list contains all those taxa where we want to
+    // stop going deeper and take this taxon as leaf instead.
+    std::unordered_set< Taxon const* > crop_list;
+
+    // Candidate list of Taxa to split.
+    // We will do a preorder traversal of the Taxonomy, but do not go deeper into branches that we
+    // do not want to split further. We use this list to decide which taxa to further split:
+    // Always go deeper (i.e., split) into the taxon with the highest entropy.
+    std::multimap< double, Taxon const* > split_candidates;
+
+    // Helper function to fill the lists of taxa with the children of a Taxonomy.
+    std::function< void ( Taxonomy const& ) > fill_lists_with_children = [&] (
+        Taxonomy const& parent
+    ) {
+        for( auto const& child : parent ) {
+
+            // Make sure that the entropy has entries that belong to the taxonomy.
+            if( entropies.count( &child ) == 0 ) {
+                auto name = TaxscriptorGenerator()( child );
+                throw std::runtime_error( "Entropy list not complete. Missing Taxon " + name );
+            }
+
+            // If a Taxon has only one child, there is no need in adding this Taxon. We can instead
+            // directly add its child. This will not increase the resulting list, as we still add
+            // only one. This mainly avoids to stop too early, which would result in branches of the
+            // taxonomy that only contain one child anyway, so it would make little sense to
+            // split there.
+            if( child.size() == 1 ) {
+                fill_lists_with_children( child );
+
+            // If we have either zero children, or more than one, this is a potential leaf
+            // of the taxonomy, so add it to the list. Also, if it has children, add those as
+            // split candidates, in case we want to do more splitting.
+            } else {
+                crop_list.insert( &child );
+                if( child.size() > 0 ) {
+                    split_candidates.emplace( entropies.at( &child ), &child );
+                }
+            }
+        }
+    };
+
+    // Init with first level.
+    fill_lists_with_children( taxonomy );
+
+    // Loop until we have done enough splitting, i.e., if we exceeded the target size.
+    while( crop_list.size() < target_taxonomy_size ) {
+
+        // We already checked that we will have enough leaf taxa to achieve the target size.
+        // So, there should always be candidates to choose for splitting.
+        assert( split_candidates.size() > 0 );
+
+        // Get the taxon with the highest entropy from the candidates list. Remove it from there,
+        // because we are about to use it for splitting.
+        // Assert that we removed it - the removal of reverse iterators is a bit weird, so better
+        // make sure.
+        auto cur_split = *split_candidates.rbegin();
+        split_candidates.erase( --split_candidates.rbegin().base() );
+        assert( cur_split != *split_candidates.rbegin() );
+
+        // The taxon where we want to split was considered a leaf taxon before (it was added to
+        // crop_list at some point in fill_lists_with_children). So it should be in that list.
+        assert( crop_list.count( cur_split.second ) > 0 );
+
+        // If we split at the candidate taxon, but achieve a new size that is furthere away from
+        // our target size, we don't do the split but stop here.
+        if( utils::absolute_difference( crop_list.size(), target_taxonomy_size ) <
+            utils::absolute_difference( crop_list.size() + cur_split.second->size(), target_taxonomy_size )
+        ) {
+            break;
+        }
+
+        // Do the split by removing it from the crop list but adding its children to the list
+        // instead. Also, add those children as further candidates for the next rounds.
+        crop_list.erase( cur_split.second );
+        fill_lists_with_children( *cur_split.second );
+    }
+
+    // Helper code that also adds the inner taxa to the list. Might be useful if we want this
+    // as output at some point, instead of just the leaf taxa.
+    // auto crop_copy = crop_list;
+    // for( auto const& elem : crop_copy ) {
+    //     auto const* parent = elem->parent();
+    //     while( parent != nullptr ) {
+    //         crop_list.insert( parent );
+    //         parent = parent->parent();
+    //     }
+    // }
+
+    return crop_list;
+}
+
+/**
+ * @brief Print a Taxonomy, highlighting those @link Taxon Taxa@endlink that are used for splitting,
+ * i.e., where we cut off the sub-taxa.
+ */
 std::string print_splitted_taxonomy(
     Taxonomy const&                                   taxonomy,
     std::unordered_set< Taxon const* > const&         crop_list
@@ -221,6 +376,10 @@ std::string print_splitted_taxonomy(
     );
 }
 
+/**
+ * @brief Print a Taxonomy, highlighting those @link Taxon Taxa@endlink that are used for splitting,
+ * i.e., where we cut off the sub-taxa, and print their entropies next to them.
+ */
 std::string print_splitted_taxonomy(
     Taxonomy const&                                   taxonomy,
     std::unordered_set< Taxon const* > const&         crop_list,
@@ -243,6 +402,11 @@ std::string print_splitted_taxonomy(
     return result;
 }
 
+/**
+ * @brief Helper function for validating the internal validity of a splitted Taxonomy.
+ *
+ * See split_taxonomy_by_entropy_with_target_size() for the method behind this.
+ */
 bool validated_splitted_taxonomy(
     Taxonomy const&                            taxonomy,
     std::unordered_set< Taxon const* > const&  crop_list
