@@ -102,7 +102,7 @@ inline void erase_if( Container &c, UnaryPredicate p )
  * std::abs() does not work for them.
  */
 template< typename T >
-T absolute_difference( T const& lhs, T const& rhs ) {
+T abs_diff( T const& lhs, T const& rhs ) {
     return ((lhs > rhs) ? (lhs - rhs) : (rhs - lhs));
 }
 

@@ -152,8 +152,8 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_nested_invervals(
         auto cand_list = split_taxonomy_by_entropy_threshold( taxonomy, entropies, threshold );
 
         // If we are closer to our target size, update the list.
-        if( utils::absolute_difference( cand_list.size(), target_taxonomy_size ) <
-            utils::absolute_difference( crop_list.size(), target_taxonomy_size )
+        if( utils::abs_diff( cand_list.size(), target_taxonomy_size ) <
+            utils::abs_diff( crop_list.size(), target_taxonomy_size )
         ) {
             crop_list = cand_list;
         }
@@ -335,8 +335,8 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
 
         // If we split at the candidate taxon, but achieve a new size that is furthere away from
         // our target size, we don't do the split but stop here.
-        if( utils::absolute_difference( crop_list.size(), target_taxonomy_size ) <
-            utils::absolute_difference( crop_list.size() + cur_split.second->size(), target_taxonomy_size )
+        if( utils::abs_diff( crop_list.size(), target_taxonomy_size ) <
+            utils::abs_diff( crop_list.size() + cur_split.second->size(), target_taxonomy_size )
         ) {
             break;
         }
