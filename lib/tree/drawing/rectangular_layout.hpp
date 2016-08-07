@@ -31,14 +31,7 @@
  * @ingroup tree
  */
 
-#include "tree/default/distances.hpp"
-#include "tree/function/distances.hpp"
-#include "tree/iterator/eulertour.hpp"
-#include "tree/iterator/postorder.hpp"
-
-#include <assert.h>
 #include <string>
-#include <stdexcept>
 #include <vector>
 
 namespace genesis {
@@ -107,8 +100,8 @@ public:
 
 private:
 
-    void set_node_x_phylogram_( std::vector<double> node_dists );
-    void set_node_x_cladogram_( std::vector<int>    node_dists );
+    void set_node_x_phylogram_( Tree const& tree );
+    void set_node_x_cladogram_( Tree const& tree );
 
     // -------------------------------------------------------------
     //     Data Members
