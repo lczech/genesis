@@ -321,11 +321,13 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
         // So, there should always be candidates to choose for splitting.
         assert( split_candidates.size() > 0 );
 
-        // Get the taxon with the highest entropy from the candidates list. Remove it from there,
-        // because we are about to use it for splitting.
+        // Get the taxon with the highest entropy from the candidates list.
+        // Assert that the iterators do their thing correctly and the last element is the last.
+        // Remove it from there, because we are about to use it for splitting.
         // Assert that we removed it - the removal of reverse iterators is a bit weird, so better
         // make sure.
         auto cur_split = *split_candidates.rbegin();
+        assert( *std::prev(split_candidates.end()) == *split_candidates.rbegin() );
         split_candidates.erase( --split_candidates.rbegin().base() );
         assert( cur_split != *split_candidates.rbegin() );
 
@@ -333,7 +335,7 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
         // crop_list at some point in fill_lists_with_children). So it should be in that list.
         assert( crop_list.count( cur_split.second ) > 0 );
 
-        // If we split at the candidate taxon, but achieve a new size that is furthere away from
+        // If we split at the candidate taxon, but achieve a new size that is further away from
         // our target size, we don't do the split but stop here.
         if( utils::abs_diff( crop_list.size(), target_taxonomy_size ) <
             utils::abs_diff( crop_list.size() + cur_split.second->size(), target_taxonomy_size )
