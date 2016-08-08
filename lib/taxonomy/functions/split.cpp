@@ -360,7 +360,35 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
     //     }
     // }
 
+    // Output the entropy of the next split candidate. This is an indicator where the
+    // entropy threshold for splitting is.
+    // if( split_candidates.size() > 0 ) {
+    //     auto cur_split = *split_candidates.rbegin();
+    //     LOG_DBG << "entropy end: " << cur_split.first;
+    // }
+
     return crop_list;
+}
+
+/**
+ * @brief Add the parents of the split candidates and return the result.
+ *
+ * The entropy split functions return a list of @link Taxon Taxa@endlink that only contains those
+ * at the boundary of the splitted Taxonomy, i.e., the "leaf" Taxa. This function takes such a list
+ * and also adds the "inner" Taxa to it. This is for example useful for printing the Taxonomy.
+ */
+std::unordered_set< Taxon const* > fill_splitted_entropy_parents(
+    std::unordered_set< Taxon const* >                split_list
+) {
+    auto full_split_list = split_list;
+    for( auto const& elem : split_list ) {
+        auto const* parent = elem->parent();
+        while( parent != nullptr ) {
+            full_split_list.insert( parent );
+            parent = parent->parent();
+        }
+    }
+    return full_split_list;
 }
 
 /**
