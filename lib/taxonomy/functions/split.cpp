@@ -391,6 +391,51 @@ std::unordered_set< Taxon const* > fill_splitted_entropy_parents(
     return full_split_list;
 }
 
+size_t count_splitted_taxonomy_total_size(
+    Taxonomy const&                                   taxonomy,
+    std::unordered_set< Taxon const* >                full_split_list
+) {
+    size_t count = 0;
+    auto do_count = [&] ( Taxon const& t ) {
+        if( full_split_list.count( &t ) > 0 ) {
+            ++count;
+        }
+    };
+    preorder_for_each( taxonomy, do_count );
+    return count;
+}
+
+/**
+ * @brief Remove the children of all Taxa that are in the split list.
+ */
+void remove_splitted_taxonomy_children(
+    Taxonomy&                                         taxonomy,
+    std::unordered_set< Taxon const* >                split_list
+) {
+    // First check that only the leaves are marked in the split list.
+    for( auto const& elem : split_list ) {
+        auto const* parent = elem->parent();
+        while( parent != nullptr ) {
+            if( split_list.count( parent ) > 0 ) {
+                auto name = TaxscriptorGenerator()( *elem );
+                throw std::runtime_error(
+                    "Removing splitted Taxa from Taxonomy where inner Taxa are also in the list "
+                    "is not possible. This occured at Taxon " + name
+                );
+            }
+            parent = parent->parent();
+        }
+    }
+
+    // If all is good (not thrown), remove the children.
+    auto do_removal = [&] ( Taxon& t ) {
+        if( split_list.count( &t ) > 0 ) {
+            t.clear_children();
+        }
+    };
+    preorder_for_each( taxonomy, do_removal );
+}
+
 /**
  * @brief Print a Taxonomy, highlighting those @link Taxon Taxa@endlink that are used for splitting,
  * i.e., where we cut off the sub-taxa.
