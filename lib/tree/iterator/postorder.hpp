@@ -197,6 +197,10 @@ public:
 
 private:
 
+    // -----------------------------------------------------
+    //     Internal Helper Functions
+    // -----------------------------------------------------
+
     void push_front_children( LinkType* link )
     {
         // we need to push to a tmp queue first, in order to get the order right.
@@ -213,7 +217,11 @@ private:
         }
     }
 
-    LinkType*             start_;
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+
+    LinkType* const       start_;
     LinkType*             link_;
 
     std::deque<LinkType*> stack_;
