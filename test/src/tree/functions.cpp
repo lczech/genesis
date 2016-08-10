@@ -145,3 +145,34 @@ TEST( TreeFunctions, SubtreeMaxPathHeight )
     TestSubtreeMaxPathHeight( "H", 0 );
     TestSubtreeMaxPathHeight( "I", 0 );
 }
+
+// =================================================================================================
+//     Misc
+// =================================================================================================
+
+void TestTreeLCA( std::string node_name_a, std::string node_name_b, std::string node_name_lca )
+{
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+
+    Tree tree;
+    DefaultTreeNewickReader().from_string( input, tree );
+
+    auto node_a = find_node( tree, node_name_a );
+    auto node_b = find_node( tree, node_name_b );
+    ASSERT_NE( nullptr, node_a );
+    ASSERT_NE( nullptr, node_b );
+
+    auto& node_lca = lowest_common_ancestor( *node_a, *node_b );
+    EXPECT_EQ( node_name_lca, node_lca.data<DefaultNodeData>().name )
+        << " with nodes " << node_name_a << ", " << node_name_b << " and LCA " << node_name_lca;
+}
+
+TEST( TreeFunctions, LCA )
+{
+    TestTreeLCA( "A", "A", "A" );
+    TestTreeLCA( "A", "B", "A" );
+    TestTreeLCA( "A", "F", "R" );
+    TestTreeLCA( "E", "C", "C" );
+    TestTreeLCA( "E", "H", "R" );
+    TestTreeLCA( "H", "I", "G" );
+}
