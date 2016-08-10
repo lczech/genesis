@@ -193,7 +193,7 @@ public:
     FastaReader& valid_chars( std::string const& chars );
     std::string  valid_chars() const;
 
-    utils::CharLookup& valid_char_lookup();
+    utils::CharLookup<bool>& valid_char_lookup();
 
     // ---------------------------------------------------------------------
     //     Members
@@ -201,11 +201,11 @@ public:
 
 private:
 
-    ParsingMethod     parsing_method_ = ParsingMethod::kDefault;
+    ParsingMethod           parsing_method_ = ParsingMethod::kDefault;
 
-    bool              to_upper_       = true;
-    bool              use_validation_ = false;
-    utils::CharLookup lookup_;
+    bool                    to_upper_       = true;
+    bool                    use_validation_ = false;
+    utils::CharLookup<bool> lookup_;
 
 };
 

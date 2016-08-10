@@ -583,7 +583,7 @@ PhylipReader& PhylipReader::valid_chars( std::string const& chars )
         use_validation_ = false;
     } else {
         lookup_.set_all( false );
-        lookup_.set_selection( chars );
+        lookup_.set_selection( chars, true );
         use_validation_ = true;
     }
 
@@ -599,10 +599,10 @@ std::string PhylipReader::valid_chars() const
 {
     // We need to check the valid chars lookup here, because we don't want to return a string
     // of _all_ chars.
-    if( ! use_validation_ || lookup_.all_set() ) {
+    if( ! use_validation_ || lookup_.all_equal_to( true ) ) {
         return "";
     } else {
-        return lookup_.get_selection();
+        return lookup_.get_chars_equal_to( true );
     }
 }
 
@@ -612,7 +612,7 @@ std::string PhylipReader::valid_chars() const
  * This function is provided in case direct access to the lookup is needed. Usually, the
  * valid_chars() function should suffice. See there for details.
  */
-utils::CharLookup& PhylipReader::valid_char_lookup()
+utils::CharLookup<bool>& PhylipReader::valid_char_lookup()
 {
     return lookup_;
 }
