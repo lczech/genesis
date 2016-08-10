@@ -216,7 +216,7 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Add a value to the container by copying it.
+     * @brief Insert a value into the container by copying it.
      *
      * If a value comparing equal to the new one is already stored in the container, nothing happens.
      */
@@ -233,7 +233,7 @@ public:
 
 
     /**
-    * @brief Add a value to the container by moving it.
+    * @brief Insert a value into the container by moving it.
     *
     * If a value comparing equal to the new one is already stored in the container, nothing happens.
     */
@@ -245,6 +245,20 @@ public:
         // If it is not yet in the list, add it.
         if( range.first == range.second ) {
             content_.insert( range.first, std::move( value ));
+        }
+    }
+
+    /**
+     * @brief Insert values into the container by copying from an InputIterator range.
+     *
+     * The function copies all values in the range `[ first, last )` into the container.
+     */
+    template< class InputIterator >
+    void insert( InputIterator first, InputIterator last )
+    {
+        while( first != last ) {
+            insert( *first );
+            ++first;
         }
     }
 
