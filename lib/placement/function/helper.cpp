@@ -270,7 +270,7 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
 {
     // check tree
     if( ! tree::validate_topology( smp.tree() ) ) {
-        LOG_INFO << "Invalid placement tree.";
+        LOG_INFO << "Invalid placement tree topology.";
         return false;
     }
     if( ! tree::tree_data_is< PlacementNodeData, PlacementEdgeData >( smp.tree() )) {
