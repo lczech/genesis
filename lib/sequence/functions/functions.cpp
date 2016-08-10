@@ -30,11 +30,12 @@
 
 #include "sequence/functions/functions.hpp"
 
-#include "sequence/sequence.hpp"
 #include "sequence/sequence_set.hpp"
+#include "sequence/sequence.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/text/string.hpp"
 #include "utils/text/style.hpp"
+#include "utils/tools/char_lookup.hpp"
 
 #include <algorithm>
 #include <array>
@@ -162,30 +163,6 @@ std::map<char, double> base_frequencies( SequenceSet const& set, std::string con
 // -------------------------------------------------------------------------
 
 /**
- * @brief Local helper function to create a case-insensitive lookup table.
- */
-std::array<bool, 128> make_lookup_table( std::string const& chars )
-{
-    // Init array to false.
-    auto lookup = std::array<bool, 128>();
-    for( size_t i = 0; i < 128; ++i ) {
-        lookup[i] = false;
-    }
-
-    // Set all necessary chars to true.
-    for( char c : chars ) {
-        // get rid of this check and leave it to the parser/lexer/stream iterator/lookup table
-        if( c < 0 ) {
-            throw std::invalid_argument("Invalid chars provided.");
-        }
-        assert( c >= 0 );
-        lookup[ static_cast<unsigned char>( toupper(c) ) ] = true;
-        lookup[ static_cast<unsigned char>( tolower(c) ) ] = true;
-    }
-    return lookup;
-}
-
-/**
  * @brief Count the number of occurrences of the given `chars` within the sites of the SequenceSet.
  *
  * This function can be used to count e.g. gaps or ambiguous characters in sequences.
@@ -197,7 +174,10 @@ std::array<bool, 128> make_lookup_table( std::string const& chars )
  */
 size_t count_chars( SequenceSet const& set, std::string const& chars )
 {
-    auto lookup = make_lookup_table( chars );
+    // Init array to false, then set all necessary chars to true.
+    auto lookup = utils::CharLookup<bool>( false );
+    lookup.set_selection_upper_lower( chars, true );
+
     size_t counter = 0;
     for( auto& s : set ) {
         for( auto& c : s ) {
@@ -206,7 +186,7 @@ size_t count_chars( SequenceSet const& set, std::string const& chars )
                 continue;
             }
             assert( c >= 0 );
-            if( lookup[ static_cast<unsigned char>(c) ] ) {
+            if( lookup[ c ] ) {
                 ++counter;
             }
         }
@@ -250,7 +230,10 @@ double gapyness( SequenceSet const& set, std::string const& undetermined_chars )
  */
 bool validate_chars( SequenceSet const& set, std::string const& chars )
 {
-    auto lookup = make_lookup_table( chars );
+    // Init array to false, then set all necessary chars to true.
+    auto lookup = utils::CharLookup<bool>( false );
+    lookup.set_selection_upper_lower( chars, true );
+
     for( auto& s : set ) {
         for( auto& c : s ) {
             // get rid of this check and leave it to the parser/lexer/stream iterator
@@ -258,7 +241,7 @@ bool validate_chars( SequenceSet const& set, std::string const& chars )
                 return false;
             }
             assert( c >= 0 );
-            if( ! lookup[ static_cast<unsigned char>(c) ] ) {
+            if( ! lookup[ c ] ) {
                 return false;
             }
         }

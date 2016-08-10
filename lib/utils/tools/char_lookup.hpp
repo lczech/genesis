@@ -61,20 +61,23 @@ public:
     using value_type = T;
     using key_type   = char;
 
-    using size_type       = size_t;
-
     static const size_t ArraySize = 128;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Constructor that sets all values to the default value of the template parameter type.
+     */
     CharLookup()
-        : table_()
+        : CharLookup( T{} )
     {}
 
+    /**
+     * @brief Constructor that sets all values to a given one.
+     */
     CharLookup( T const& init_all )
-        : table_()
     {
         for( size_t i = 0; i < ArraySize; ++i ) {
             table_[i] = init_all;
@@ -103,6 +106,16 @@ public:
     }
 
     /**
+     * @brief Set the lookup status for both the upper and lower case of a given char.
+     */
+    void set_char_upper_lower( char c, T value )
+    {
+        assert( 0 <= c );
+        table_[ static_cast<unsigned char>( toupper(c) )] = value;
+        table_[ static_cast<unsigned char>( tolower(c) )] = value;
+    }
+
+    /**
      * @brief Set the lookup status for all chars that fulfill a given predicate.
      */
     void set_if( std::function<bool ( char )> predicate, T value )
@@ -120,8 +133,21 @@ public:
     void set_selection( std::string const& chars, T value )
     {
         for( char c : chars ) {
-            assert( 0 <= c);
+            assert( 0 <= c );
             table_[ static_cast<unsigned char>(c) ] = value;
+        }
+    }
+
+    /**
+     * @brief Set the lookup status for both the upper and lower case of all chars that are
+     * contained in a given std::string.
+     */
+    void set_selection_upper_lower( std::string const& chars, T value )
+    {
+        for( char c : chars ) {
+            assert( 0 <= c );
+            table_[ static_cast<unsigned char>( toupper(c) )] = value;
+            table_[ static_cast<unsigned char>( tolower(c) )] = value;
         }
     }
 
@@ -158,6 +184,7 @@ public:
      */
     T operator [] ( char c ) const
     {
+        assert( 0 <= c );
         return table_[ static_cast<unsigned char>(c) ];
     }
 
@@ -166,6 +193,7 @@ public:
      */
     T get( char c ) const
     {
+        assert( 0 <= c );
         return table_[ static_cast<unsigned char>(c) ];
     }
 

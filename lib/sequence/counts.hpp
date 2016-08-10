@@ -32,6 +32,7 @@
  */
 
 #include "utils/math/matrix.hpp"
+#include "utils/tools/char_lookup.hpp"
 
 #include <array>
 #include <cstdint>
@@ -114,10 +115,10 @@ public:
 
 private:
 
-    std::string                      characters_;
-    std::array< unsigned char, 128 > lookup_;
-    utils::Matrix< CountsIntType >   counts_;
-    CountsIntType                    num_seqs_ = 0;
+    std::string                        characters_;
+    utils::CharLookup< unsigned char > lookup_;
+    utils::Matrix< CountsIntType >     counts_;
+    CountsIntType                      num_seqs_ = 0;
 
 };
 
