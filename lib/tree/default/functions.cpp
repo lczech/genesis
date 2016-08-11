@@ -31,6 +31,7 @@
 #include "tree/default/functions.hpp"
 
 #include "tree/default/tree.hpp"
+#include "tree/tree_set.hpp"
 #include "utils/text/string.hpp"
 
 namespace genesis {
@@ -41,17 +42,19 @@ namespace tree {
 // =================================================================================================
 
 /**
- * @brief Returns an unordered set of all node names of a Tree.
+ * @brief Returns an unordered set of all TreeNode names of a Tree.
  *
  * If `leaves_only` is set to true, nodes names of inner nodes are not included.
  * Unnamed nodes (`node.data.name == ""`) are always excluded.
  * The only difference to node_names_sorted() is the type of container used for storing the result.
+ *
+ * The provided Tree needs to have TreeNode%s with data types deriveed from DefaultNodeData.
  */
 std::unordered_set<std::string> node_names(
     Tree const& tree,
     bool leaves_only
 ) {
-    std::unordered_set<std::string> ret;
+    std::unordered_set<std::string> name_set;
     for( auto const& node : tree.nodes() ) {
         if( node->is_inner() && leaves_only ) {
             continue;
@@ -60,23 +63,25 @@ std::unordered_set<std::string> node_names(
         if( name == "" ) {
             continue;
         }
-        ret.insert( std::move( name ));
+        name_set.insert( std::move( name ));
     }
-    return ret;
+    return name_set;
 }
 
 /**
- * @brief Returns a set of all node names of a Tree.
+ * @brief Returns a set of all TreeNode names of a Tree.
  *
  * If `leaves_only` is set to true, nodes names of inner nodes are not included.
  * Unnamed nodes (`node.data.name == ""`) are always excluded.
  * The only difference to node_names() is the type of container used for storing the result.
+ *
+ * The provided Tree needs to have TreeNode%s with data types deriveed from DefaultNodeData.
  */
 utils::SortedVector<std::string> node_names_sorted(
     Tree const& tree,
     bool leaves_only
 ) {
-    utils::SortedVector<std::string> ret;
+    utils::SortedVector<std::string> name_set;
     for( auto const& node : tree.nodes() ) {
         if( node->is_inner() && leaves_only ) {
             continue;
@@ -85,9 +90,53 @@ utils::SortedVector<std::string> node_names_sorted(
         if( name == "" ) {
             continue;
         }
-        ret.insert( std::move( name ));
+        name_set.insert( std::move( name ));
     }
-    return ret;
+    return name_set;
+}
+
+/**
+ * @brief Returns a set of all TreeNode names of a TreeSet.
+ *
+ * The function returns the set of all names of all Tree%s in the set. See
+ * @link node_names( Tree const&, bool ) node_names(...)@endlink this version of the
+ * function for details.
+ */
+std::unordered_set<std::string> node_names(
+    TreeSet const& tree_set,
+    bool leaves_only
+) {
+    // It would be faster to directly insert into the resulting container, but this version
+    // avoids code duplication and is fast enough for now.
+    std::unordered_set<std::string> name_set;
+    for( auto const& tree : tree_set ) {
+        auto tree_name_set = node_names( tree.tree, leaves_only );
+        name_set.insert( tree_name_set.begin(), tree_name_set.end() );
+    }
+    return name_set;
+}
+
+/**
+ * @brief Returns a set of all TreeNode names of a TreeSet.
+ *
+ * The function returns the set of all names of all Tree%s in the set. See
+ * @link node_names_sorted( Tree const&, bool ) node_names_sorted(...)@endlink this version of the
+ * function for details.
+ */
+utils::SortedVector<std::string> node_names_sorted(
+    TreeSet const& tree_set,
+    bool leaves_only
+) {
+    // It would be faster to directly insert into the resulting container, but this version
+    // avoids code duplication and is fast enough for now.
+    utils::SortedVector<std::string> name_set;
+    for( auto const& tree : tree_set ) {
+        // We can use the unsorted version here, which should be a bit faster (not tested...).
+        // Sorting is then done when inserting the names into the final set.
+        auto tree_name_set = node_names( tree.tree, leaves_only );
+        name_set.insert( tree_name_set.begin(), tree_name_set.end() );
+    }
+    return name_set;
 }
 
 /**

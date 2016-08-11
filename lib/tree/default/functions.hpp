@@ -47,6 +47,7 @@ namespace tree {
 
 class Tree;
 class TreeNode;
+class TreeSet;
 
 // =================================================================================================
 //     Node Names
@@ -59,6 +60,16 @@ std::unordered_set<std::string> node_names(
 
 utils::SortedVector<std::string> node_names_sorted(
     Tree const& tree,
+    bool leaves_only = false
+);
+
+std::unordered_set<std::string> node_names(
+    TreeSet const& tree_set,
+    bool leaves_only = false
+);
+
+utils::SortedVector<std::string> node_names_sorted(
+    TreeSet const& tree_set,
     bool leaves_only = false
 );
 

@@ -36,13 +36,13 @@ using namespace genesis::utils;
 
 TEST(CharLookup, Simple)
 {
-    auto cl = CharLookup();
+    auto cl = CharLookup<bool>();
 
-    cl.set_selection( "abc" );
+    cl.set_selection( "abc", true );
     EXPECT_TRUE(  cl.get('a') );
     EXPECT_FALSE( cl.get('A') );
 
-    cl.set_range( 'G', 'L' );
+    cl.set_range( 'G', 'L', true );
     EXPECT_FALSE( cl.get('F') );
     EXPECT_TRUE(  cl.get('I') );
 

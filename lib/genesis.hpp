@@ -116,6 +116,7 @@
 #include "tree/iterator/levelorder.hpp"
 #include "tree/iterator/node_links.hpp"
 #include "tree/iterator/path.hpp"
+#include "tree/iterator/path_set.hpp"
 #include "tree/iterator/postorder.hpp"
 #include "tree/iterator/preorder.hpp"
 #include "tree/printer/compact.hpp"

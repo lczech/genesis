@@ -189,6 +189,10 @@ public:
 
 private:
 
+    // -----------------------------------------------------
+    //     Internal Helper Functions
+    // -----------------------------------------------------
+
     void push_back_children( LinkType* link, int link_depth )
     {
         LinkType* c = &link->next();
@@ -198,13 +202,21 @@ private:
         }
     }
 
+    // -----------------------------------------------------
+    //     Internal Helper Typedefs
+    // -----------------------------------------------------
+
     // TODO add depth information to other iterators, as well.
     typedef struct {
         LinkType*     link;
         int           depth;
     } StackElement;
 
-    LinkType*         start_;
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+
+    LinkType* const   start_;
     LinkType*         link_;
     int               depth_;
 

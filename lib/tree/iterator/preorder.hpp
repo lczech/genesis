@@ -177,6 +177,10 @@ public:
         return start_->node();
     }
 
+    // -----------------------------------------------------
+    //     Internal Helper Functions
+    // -----------------------------------------------------
+
 private:
 
     void push_front_children( LinkType* link )
@@ -195,9 +199,13 @@ private:
         }
     }
 
+    // -----------------------------------------------------
+    //     Data Members
+    // -----------------------------------------------------
+
     // TODO take a stack or vector instead of deque here; maybe reverse pushing order
 
-    LinkType*             start_;
+    LinkType* const       start_;
     LinkType*             link_;
 
     std::deque<LinkType*> stack_;

@@ -45,22 +45,44 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Simple lookup table providing a binary state for each char.
+ * @brief Simple lookup table providing a value lookup for each ASCII char (0-127).
  *
- * This char lookup table class is mostly useful for checking valid chars when reading data.
- * By default (after using the default constructor), the lookup status of all chars is `false`.
+ * The class provides a fast mapping from each char to the provided template parameter type.
  */
+template< typename T >
 class CharLookup
 {
 public:
 
     // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    using value_type = T;
+    using key_type   = char;
+
+    static const size_t ArraySize = 128;
+
+    // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Constructor that sets all values to the default value of the template parameter type.
+     */
     CharLookup()
-        : table_()
+        : CharLookup( T{} )
     {}
+
+    /**
+     * @brief Constructor that sets all values to a given one.
+     */
+    CharLookup( T const& init_all )
+    {
+        for( size_t i = 0; i < ArraySize; ++i ) {
+            table_[i] = init_all;
+        }
+    }
 
     ~CharLookup() = default;
 
@@ -76,64 +98,77 @@ public:
 
     /**
      * @brief Set the lookup status for a given char.
-     *
-     * The set value is `true` by default.
      */
-    void set_char( char c, bool value = true )
+    void set_char( char c, T value )
     {
-        assert(0 <= c);
-        table_[c] = value;
+        assert( 0 <= c );
+        table_[ static_cast<unsigned char>(c) ] = value;
+    }
+
+    /**
+     * @brief Set the lookup status for both the upper and lower case of a given char.
+     */
+    void set_char_upper_lower( char c, T value )
+    {
+        assert( 0 <= c );
+        table_[ static_cast<unsigned char>( toupper(c) )] = value;
+        table_[ static_cast<unsigned char>( tolower(c) )] = value;
     }
 
     /**
      * @brief Set the lookup status for all chars that fulfill a given predicate.
-     *
-     * The set value is `true` by default.
      */
-    void set_if( std::function<bool ( char )> predicate, bool value = true )
+    void set_if( std::function<bool ( char )> predicate, T value )
     {
-        for (unsigned char c = 0; c < 128; ++c) {
-            if (predicate(c)) {
-                table_[c] = value;
+        for( unsigned char c = 0; c < ArraySize; ++c ) {
+            if( predicate(c) ) {
+                table_[ c ] = value;
             }
         }
     }
 
     /**
      * @brief Set the lookup status for all chars that are contained in a given std::string.
-     *
-     * The set value is `true` by default.
      */
-    void set_selection( std::string const& chars, bool value = true )
+    void set_selection( std::string const& chars, T value )
     {
-        for (char c : chars) {
-            assert( 0 <= c);
-            table_[static_cast<unsigned char>(c)] = value;
+        for( char c : chars ) {
+            assert( 0 <= c );
+            table_[ static_cast<unsigned char>(c) ] = value;
+        }
+    }
+
+    /**
+     * @brief Set the lookup status for both the upper and lower case of all chars that are
+     * contained in a given std::string.
+     */
+    void set_selection_upper_lower( std::string const& chars, T value )
+    {
+        for( char c : chars ) {
+            assert( 0 <= c );
+            table_[ static_cast<unsigned char>( toupper(c) )] = value;
+            table_[ static_cast<unsigned char>( tolower(c) )] = value;
         }
     }
 
     /**
      * @brief Set the lookup status for all chars in an inlcuding range between two chars.
-     *
-     * The set value is `true` by default.
      */
-    void set_range( char first, char last, bool value = true )
+    void set_range( char first, char last, T value )
     {
-        for (auto c = first; c <= last; ++c) {
-            assert(0 <= c);
-            table_[c] = value;
+        for( auto c = first; c <= last; ++c ) {
+            assert( 0 <= c );
+            table_[ static_cast<unsigned char>(c) ] = value;
         }
     }
 
     /**
      * @brief Set the lookup status for all chars at once.
-     *
-     * The set value is `true` by default.
      */
-    void set_all( bool value = true )
+    void set_all( T value )
     {
         for( unsigned char c = 0; c < 128; ++c ) {
-            table_[c] = value;
+            table_[ c ] = value;
         }
     }
 
@@ -147,27 +182,30 @@ public:
      * We only provide the const getter version of this operator in order to avoid accidentally
      * setting the value. Use one of the `set...()` functions explicitily for this.
      */
-    bool operator [] ( char c ) const
+    T operator [] ( char c ) const
     {
-        return table_[c];
+        assert( 0 <= c );
+        return table_[ static_cast<unsigned char>(c) ];
     }
 
     /**
      * @brief Return the lookup status for a given char.
      */
-    bool get( char c ) const
+    T get( char c ) const
     {
-        return table_[c];
+        assert( 0 <= c );
+        return table_[ static_cast<unsigned char>(c) ];
     }
 
     /**
-     * @brief Return a `std::string` containg all chars which have lookup status `true`.
+     * @brief Return a `std::string` containg all chars which have lookup status equal to a
+     * given value.
      */
-    std::string get_selection() const
+    std::string get_chars_equal_to( T comp_value ) const
     {
         std::string ret;
-        for( size_t c = 0; c < 128; ++c ) {
-            if( get(c) ) {
+        for( unsigned char c = 0; c < 128; ++c ) {
+            if( get(c) == comp_value ) {
                 ret += c;
             }
         }
@@ -175,26 +213,12 @@ public:
     }
 
     /**
-     * @brief Return whether all chars are set to `true`.
+     * @brief Return whether all chars compare equal to a given value.
      */
-    bool all_set() const
+    bool all_equal_to( T comp_value ) const
     {
-        for( size_t c = 0; c < 128; ++c ) {
-            if( !get(c) ) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
-    /**
-     * @brief Return whether all chars are set to `false`.
-     */
-    bool all_unset() const
-    {
-        for( size_t c = 0; c < 128; ++c ) {
-            if( get(c) ) {
+        for( unsigned char c = 0; c < 128; ++c ) {
+            if( get(c) != comp_value ) {
                 return false;
             }
         }
@@ -207,7 +231,7 @@ public:
 
 private:
 
-    std::array<bool, 128> table_;
+    std::array< T, ArraySize > table_;
 };
 
 } // namespace utils

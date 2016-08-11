@@ -241,7 +241,7 @@ private:
     }
 
     LinkPointerType             link_;
-    LinkPointerType             start_;
+    LinkPointerType const       start_;
     std::deque<LinkPointerType> stack_;
 };
 

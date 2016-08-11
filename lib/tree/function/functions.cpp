@@ -95,6 +95,10 @@ size_t inner_node_count( Tree const& tree )
     return tree.node_count() - leaf_node_count( tree );
 }
 
+// =================================================================================================
+//     Subtrees
+// =================================================================================================
+
 /**
  * @brief Return the size of the subtree defined by the given TreeLink, measured in number of nodes.
  */
@@ -244,6 +248,100 @@ size_t subtree_max_path_height( Tree const& tree, TreeLink const& link )
 // {
 //     return subtree_heights( tree, tree.root_node() );
 // }
+
+// =================================================================================================
+//     Misc
+// =================================================================================================
+
+/**
+ * @brief Helper function that finds all TreeLink%s between a given TreeNode and the root of the
+ * Tree.
+ *
+ * Both the @link TreeNode::primary_link() primary_link()@endlink of the Node and the
+ * @link Tree::root_link() root_link()@endlink of the Tree are included in the list.
+ * The order of the list starts at the provided node and ends at the root.
+ */
+std::vector< TreeLink const* > path_to_root( TreeNode const& node )
+{
+    std::vector< TreeLink const* > path;
+
+    // Move towards the root and record all links in between.
+    TreeLink const* cur_link = &node.primary_link();
+    while( &cur_link->edge().secondary_link() == cur_link ) {
+
+        // The above while condition means: is it the root?! Assert, that the default way of
+        // checking for the root by using the node gives the same result.
+        assert( ! cur_link->node().is_root() );
+
+        // Assert that the primary direction is correct.
+        assert( cur_link == &cur_link->edge().secondary_link() );
+
+        // Add the primary link of the current node to the list.
+        path.push_back( cur_link );
+
+        // Move one node towards the root.
+        // Assert that the default way of finding the next node towards the root (by using
+        // the edge) gives the same result as simply using the link's outer node.
+        // This is the case because the cur link is the one that points towards the root
+        // (which was asserted above).
+        assert( &cur_link->edge().primary_link() == &cur_link->outer() );
+        cur_link = &cur_link->outer().node().primary_link();
+    }
+
+    // Now finally add the root itself and return the list.
+    assert( cur_link->node().is_root() );
+    path.push_back( cur_link );
+    return path;
+}
+
+/**
+ * @brief Return the lowest common ancestor of two TreeNode%s.
+ */
+TreeNode const& lowest_common_ancestor( TreeNode const& node_a, TreeNode const& node_b )
+{
+    // Speedup and simplification.
+    if( &node_a == &node_b ) {
+        return node_a;
+    }
+
+    auto path_a = path_to_root( node_a );
+    auto path_b = path_to_root( node_b );
+
+    // We must have at least the two original links in the front and the root in the back.
+    assert( path_a.size() > 0 && path_b.size() > 0 );
+    assert( path_a.front()    == &node_a.link() );
+    assert( path_b.front()    == &node_b.link() );
+    assert( path_a.back()     == path_b.back() );
+
+    // Remove from back as long as the last two elements are the same.
+    // At the end of this, the remaining links are the ones on the path between
+    // the two original links.
+    while(
+        path_a.size() > 1 &&
+        path_b.size() > 1 &&
+        path_a.at( path_a.size() - 1 ) == path_b.at( path_b.size() - 1 ) &&
+        path_a.at( path_a.size() - 2 ) == path_b.at( path_b.size() - 2 )
+    ) {
+        path_a.pop_back();
+        path_b.pop_back();
+    }
+
+    // Now, the last elements need to be the same (the LCA of the start and finish node).
+    assert( path_a.size() > 0 && path_b.size() > 0 );
+    assert( path_a.back()     == path_b.back() );
+
+    return path_a.back()->node();
+}
+
+/**
+ * @brief Return the lowest common ancestor of two TreeNode%s.
+ */
+TreeNode&       lowest_common_ancestor( TreeNode& node_a,       TreeNode& node_b )
+{
+    auto const& c_node_a = static_cast< TreeNode const& >( node_a );
+    auto const& c_node_b = static_cast< TreeNode const& >( node_b );
+    return const_cast< TreeNode& >( lowest_common_ancestor( c_node_a, c_node_b ));
+}
 
 } // namespace tree
 } // namespace genesis

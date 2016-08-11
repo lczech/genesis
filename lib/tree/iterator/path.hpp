@@ -95,6 +95,9 @@ public:
         // the root), we can easily spot the last common ancestor (LCA) of the start and finish
         // node.
 
+        // TODO there is a lot of code duplication between this and the lowest common ancestor
+        // TODO function. this is bad and could be resolved some how...
+
         // Helper function to find all links between a given link and the root.
         auto path_to_root = [] ( LinkType* link ) {
             std::vector<LinkType*> path;

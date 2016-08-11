@@ -81,51 +81,91 @@ public:
     /**
      * @brief Default constructor.
      */
-    IndexedList () {};
+    IndexedList() = default;
 
     /**
-     * @brief Fill constructor with default initialization.
+     * @brief Fill constructor with default initialization of the values.
      */
-    explicit IndexedList (size_type n)
-        : IndexedList(n, value_type())
+    explicit IndexedList( size_type n )
+        : IndexedList( n, value_type{} )
     {}
 
     /**
-     * @brief Fill constructor.
+     * @brief Fill constructor, using a certain value to initialize all elements.
      */
-    IndexedList (size_type n, const value_type& val)
+    IndexedList( size_type n, value_type const& val )
     {
         content_.reserve(n);
-        for (size_t i = 0; i < n; ++i) {
-            content_.push_back( utils::make_unique<value_type>(val) );
+        for( size_t i = 0; i < n; ++i ) {
+            push_back( val );
         }
     }
 
-    /*
-    // range (3)
-    template <class InputIterator>
-    IndexedList (InputIterator first, InputIterator last);
-    */
+    // /**
+    //  * @brief Range constructor, copies all elements in the range `[ first, last )`.
+    //  */
+    // template <class InputIterator>
+    // IndexedList (InputIterator first, InputIterator last)
+    // {
+    //     while( first != last ) {
+    //         push_back( *first );
+    //         ++first;
+    //     }
+    // }
 
-    // copy (4)
-    explicit IndexedList (const IndexedList& x) = delete;
+    /**
+     * @brief Copy constructor.
+     */
+    IndexedList( IndexedList const& other )
+    {
+        content_.clear();
+        content_.reserve( other.size() );
+        for( auto const& up_elem : other.content_ ) {
+            push_back( *up_elem );
+        }
+    }
 
-    // move (5)
-    // IndexedList (IndexedList&& x);
+    /**
+     * @brief Move constructor.
+     */
+    IndexedList( IndexedList&& other ) = default;
 
-    // initializer list (6)
-    // IndexedList (std::initializer_list<value_type> il);
+    /**
+     * @brief Construct from initializer list by copying all elements.
+     */
+    IndexedList( std::initializer_list<value_type> il )
+    {
+        content_.reserve( il.size() );
+        for( auto const& elem : il ) {
+            push_back( elem );
+        }
+    }
 
-    // copy (1)
-    IndexedList& operator= (const IndexedList& x) = delete;
+    /**
+     * @brief Copy assignment.
+     */
+    IndexedList& operator= ( IndexedList other )
+    {
+        // Copy-swap-idiom.
+        swap( other );
+        return *this;
+    }
 
-    // move (2)
-    // IndexedList& operator= (IndexedList&& x);
+    /**
+     * @brief Move assignment.
+     */
+    IndexedList& operator= ( IndexedList&& other ) = default;
 
     /**
      * @brief Destructor.
      */
     ~IndexedList() = default;
+
+    void swap( IndexedList& other )
+    {
+        using std::swap;
+        swap( content_, other.content_ );
+    }
 
     // -------------------------------------------------------------------------
     //     Iterators
@@ -133,32 +173,32 @@ public:
 
     iterator begin() noexcept
     {
-        return IndexedListIterator<value_type> (*this);
+        return IndexedListIterator<value_type>( *this );
     }
 
     const_iterator begin() const noexcept
     {
-        return IndexedListIterator<const value_type> (*this);
+        return IndexedListIterator<const value_type>( *this );
     }
 
     iterator end() noexcept
     {
-        return IndexedListIterator<value_type> (*this, size());
+        return IndexedListIterator<value_type>( *this, size() );
     }
 
     const_iterator end() const noexcept
     {
-        return IndexedListIterator<const value_type> (*this, size());
+        return IndexedListIterator<const value_type>( *this, size() );
     }
 
     const_iterator cbegin() const noexcept
     {
-        return IndexedListIterator<const value_type> (*this);
+        return IndexedListIterator<const value_type>( *this );
     }
 
     const_iterator cend() const noexcept
     {
-        return IndexedListIterator<const value_type> (*this, size());
+        return IndexedListIterator<const value_type>( *this, size() );
     }
 
     // -------------------------------------------------------------------------
@@ -223,9 +263,14 @@ public:
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    void push_back()
+    void push_back( value_type const& value )
     {
+        content_.push_back( utils::make_unique<value_type>( value ));
+    }
 
+    void push_back( value_type&& value )
+    {
+        content_.push_back( utils::make_unique<value_type>( std::move( value )));
     }
 
     // -------------------------------------------------------------------------
@@ -234,7 +279,7 @@ public:
 
 private:
 
-    std::vector<std::unique_ptr<value_type>> content_;
+    std::vector< std::unique_ptr< value_type >> content_;
 };
 
 // =================================================================================================
@@ -266,18 +311,26 @@ public:
 
     // IndexedListIterator()
     //     : pos_(0)
-    //     , il_(il)
+    //     , list_(il)
     // {}
 
     IndexedListIterator(IndexedList<value_type>& il)
         : pos_(0)
-        , il_(il)
+        , list_(il)
     {}
 
     IndexedListIterator(IndexedList<value_type>& il, size_type pos)
         : pos_(pos)
-        , il_(il)
+        , list_(il)
     {}
+
+    ~IndexedListIterator() = default;
+
+    IndexedListIterator( IndexedListIterator const& x ) = default;
+    IndexedListIterator (IndexedListIterator&& x)       = default;
+
+    IndexedListIterator& operator= ( IndexedListIterator const& x ) = default;
+    IndexedListIterator& operator= ( IndexedListIterator&& x )      = default;
 
     // -------------------------------------------------------------
     //     Accessors
@@ -285,12 +338,12 @@ public:
 
     reference operator * ()
     {
-        return il_[pos_];
+        return list_[pos_];
     }
 
     pointer operator -> ()
     {
-        return &(il_[pos_]);
+        return &(list_[pos_]);
     }
 
     // -------------------------------------------------------------
@@ -312,7 +365,7 @@ public:
 
     bool operator == (self_type const& other) const
     {
-        return &il_ == &(other.il_) && pos_ == other.pos_;
+        return &list_ == &(other.list_) && pos_ == other.pos_;
     }
 
     bool operator != (self_type const& other) const
@@ -327,7 +380,7 @@ public:
 private:
 
     size_type                pos_;
-    IndexedList<value_type>& il_;
+    IndexedList<value_type>& list_;
 };
 
 } // namespace utils

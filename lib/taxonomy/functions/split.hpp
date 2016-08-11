@@ -67,6 +67,20 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
     size_t                                            target_taxonomy_size
 );
 
+std::unordered_set< Taxon const* > fill_splitted_entropy_parents(
+    std::unordered_set< Taxon const* >                split_list
+);
+
+size_t count_splitted_taxonomy_total_size(
+    Taxonomy const&                                   taxonomy,
+    std::unordered_set< Taxon const* >                full_split_list
+);
+
+void remove_splitted_taxonomy_children(
+    Taxonomy&                                         taxonomy,
+    std::unordered_set< Taxon const* >                split_list
+);
+
 std::string print_splitted_taxonomy(
     Taxonomy const&                                   taxonomy,
     std::unordered_set< Taxon const* > const&         split_list

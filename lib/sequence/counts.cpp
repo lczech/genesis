@@ -56,14 +56,10 @@ SequenceCounts::SequenceCounts( std::string const& characters, size_t length )
 
     // Add characters to lookup table, set all other to a max value indicating that this char
     // is not part of the table.
-    lookup_ = std::array< unsigned char, 128 >();
-    for( size_t i = 0; i < lookup_.size(); ++i ) {
-        lookup_[i] = characters_.size();
-    }
+    lookup_.set_all( characters_.size() );
     for( size_t i = 0; i < characters_.size(); ++i ) {
         auto c = characters_[i];
-        lookup_[ static_cast< size_t >( tolower(c) ) ] = i;
-        lookup_[ static_cast< size_t >( toupper(c) ) ] = i;
+        lookup_.set_char_upper_lower( c, i );
     }
 
     // Use number of chars and number of sites to init data matrix.
@@ -118,7 +114,7 @@ SequenceCounts::CountsIntType SequenceCounts::count_at( size_t site_index, char 
         );
     }
 
-    auto char_idx = lookup_[ static_cast< size_t >( character ) ];
+    auto char_idx = lookup_[ character ];
     if( char_idx == characters_.size() ) {
         throw std::runtime_error(
             "Invalid character for retrieving count: '" + std::string( 1, character ) + "'."

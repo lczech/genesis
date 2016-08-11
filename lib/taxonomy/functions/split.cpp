@@ -321,11 +321,13 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
         // So, there should always be candidates to choose for splitting.
         assert( split_candidates.size() > 0 );
 
-        // Get the taxon with the highest entropy from the candidates list. Remove it from there,
-        // because we are about to use it for splitting.
+        // Get the taxon with the highest entropy from the candidates list.
+        // Assert that the iterators do their thing correctly and the last element is the last.
+        // Remove it from there, because we are about to use it for splitting.
         // Assert that we removed it - the removal of reverse iterators is a bit weird, so better
         // make sure.
         auto cur_split = *split_candidates.rbegin();
+        assert( *std::prev(split_candidates.end()) == *split_candidates.rbegin() );
         split_candidates.erase( --split_candidates.rbegin().base() );
         assert( cur_split != *split_candidates.rbegin() );
 
@@ -333,7 +335,7 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
         // crop_list at some point in fill_lists_with_children). So it should be in that list.
         assert( crop_list.count( cur_split.second ) > 0 );
 
-        // If we split at the candidate taxon, but achieve a new size that is furthere away from
+        // If we split at the candidate taxon, but achieve a new size that is further away from
         // our target size, we don't do the split but stop here.
         if( utils::abs_diff( crop_list.size(), target_taxonomy_size ) <
             utils::abs_diff( crop_list.size() + cur_split.second->size(), target_taxonomy_size )
@@ -358,7 +360,80 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
     //     }
     // }
 
+    // Output the entropy of the next split candidate. This is an indicator where the
+    // entropy threshold for splitting is.
+    // if( split_candidates.size() > 0 ) {
+    //     auto cur_split = *split_candidates.rbegin();
+    //     LOG_DBG << "entropy end: " << cur_split.first;
+    // }
+
     return crop_list;
+}
+
+/**
+ * @brief Add the parents of the split candidates and return the result.
+ *
+ * The entropy split functions return a list of @link Taxon Taxa@endlink that only contains those
+ * at the boundary of the splitted Taxonomy, i.e., the "leaf" Taxa. This function takes such a list
+ * and also adds the "inner" Taxa to it. This is for example useful for printing the Taxonomy.
+ */
+std::unordered_set< Taxon const* > fill_splitted_entropy_parents(
+    std::unordered_set< Taxon const* >                split_list
+) {
+    auto full_split_list = split_list;
+    for( auto const& elem : split_list ) {
+        auto const* parent = elem->parent();
+        while( parent != nullptr ) {
+            full_split_list.insert( parent );
+            parent = parent->parent();
+        }
+    }
+    return full_split_list;
+}
+
+size_t count_splitted_taxonomy_total_size(
+    Taxonomy const&                                   taxonomy,
+    std::unordered_set< Taxon const* >                full_split_list
+) {
+    size_t count = 0;
+    auto do_count = [&] ( Taxon const& t ) {
+        if( full_split_list.count( &t ) > 0 ) {
+            ++count;
+        }
+    };
+    preorder_for_each( taxonomy, do_count );
+    return count;
+}
+
+/**
+ * @brief Remove the children of all Taxa that are in the split list.
+ */
+void remove_splitted_taxonomy_children(
+    Taxonomy&                                         taxonomy,
+    std::unordered_set< Taxon const* >                split_list
+) {
+    // First check that only the leaves are marked in the split list.
+    for( auto const& elem : split_list ) {
+        auto const* parent = elem->parent();
+        while( parent != nullptr ) {
+            if( split_list.count( parent ) > 0 ) {
+                auto name = TaxscriptorGenerator()( *elem );
+                throw std::runtime_error(
+                    "Removing splitted Taxa from Taxonomy where inner Taxa are also in the list "
+                    "is not possible. This occured at Taxon " + name
+                );
+            }
+            parent = parent->parent();
+        }
+    }
+
+    // If all is good (not thrown), remove the children.
+    auto do_removal = [&] ( Taxon& t ) {
+        if( split_list.count( &t ) > 0 ) {
+            t.clear_children();
+        }
+    };
+    preorder_for_each( taxonomy, do_removal );
 }
 
 /**

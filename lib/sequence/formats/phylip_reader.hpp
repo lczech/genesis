@@ -179,7 +179,7 @@ public:
     PhylipReader& valid_chars( std::string const& chars );
     std::string   valid_chars() const;
 
-    utils::CharLookup& valid_char_lookup();
+    utils::CharLookup<bool>& valid_char_lookup();
 
     // ---------------------------------------------------------------------
     //     Members
@@ -187,12 +187,12 @@ public:
 
 private:
 
-    Mode              mode_           = Mode::kSequential;
-    size_t            label_length_   = 0;
+    Mode                    mode_           = Mode::kSequential;
+    size_t                  label_length_   = 0;
 
-    bool              to_upper_       = true;
-    bool              use_validation_ = false;
-    utils::CharLookup lookup_;
+    bool                    to_upper_       = true;
+    bool                    use_validation_ = false;
+    utils::CharLookup<bool> lookup_;
 
 };
 

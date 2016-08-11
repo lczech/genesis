@@ -31,6 +31,7 @@
 #include "tree/function/emd.hpp"
 
 #include "tree/function/emd_tree.hpp"
+#include "tree/function/operators.hpp"
 #include "tree/iterator/postorder.hpp"
 #include "tree/tree.hpp"
 
@@ -229,6 +230,7 @@ double sum_of_masses( EmdTree const& tree )
  *
  * This function returns true iff the data on the Tree is valid:
  *
+ *  *  The node and edge data types have to be EmdNodeData and EmdEdgeData, respectively.
  *  *  The positions of the masses are in [0.0, branch_length] on their respective branches.
  *  *  The sum of all masses is close to 0.0, using the optional arument
  *     `valid_total_mass_difference` as a measure of closeness.
@@ -242,8 +244,18 @@ double sum_of_masses( EmdTree const& tree )
  */
 bool validate_emd_tree( EmdTree const& tree, double valid_total_mass_difference )
 {
-    double mass_sum = 0.0;
+    // Check tree.
+    if( ! validate_topology( tree ) ) {
+        LOG_INFO << "Invalid EMD tree topology.";
+        return false;
+    }
+    if( ! tree_data_is< EmdNodeData, EmdEdgeData >( tree )) {
+        LOG_INFO << "Tree does not only contain EMD Node and Edge data types.";
+        return false;
+    }
 
+    // Check masses.
+    double mass_sum = 0.0;
     for( auto const& edge : tree.edges() ) {
         auto const edge_data = dynamic_cast< EmdEdgeData const* >( edge->data_ptr() );
         if( edge_data == nullptr ) {
