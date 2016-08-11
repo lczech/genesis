@@ -82,6 +82,12 @@ std::string replace_all (
     std::string const& replace
 );
 
+std::string replace_all_chars (
+    std::string const& text,
+    std::string const& search_chars,
+    char               replace
+);
+
 std::string trim_right (
     std::string const& s,
     std::string const& delimiters = " \f\n\r\t\v"

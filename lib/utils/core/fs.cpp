@@ -30,6 +30,7 @@
 
 #include "utils/core/fs.hpp"
 
+#include <cctype>
 #include <dirent.h>
 #include <errno.h>
 #include <fstream>
@@ -38,7 +39,7 @@
 #include <streambuf>
 #include <sys/stat.h>
 
-#include "utils/core/logging.hpp"
+#include "utils/text/string.hpp"
 
 namespace genesis {
 namespace utils {
@@ -232,9 +233,10 @@ std::unordered_map<std::string, std::string> file_info( std::string const& filen
 /**
  * @brief Return the size of a file.
  */
-size_t file_size( std::string filename )
+size_t file_size( std::string const& filename )
 {
-    std::ifstream in(filename, std::ifstream::ate | std::ifstream::binary);
+    auto result = filename;
+    std::ifstream in(result, std::ifstream::ate | std::ifstream::binary);
     return static_cast<size_t>(in.tellg());
 }
 
@@ -243,27 +245,29 @@ size_t file_size( std::string filename )
  *
  * Does not resolve the path. Simply splits at the last directory separator.
  */
-std::string file_path( std::string filename )
+std::string file_path( std::string const& filename )
 {
-    const size_t idx = filename.find_last_of("\\/");
+    auto result = filename;
+    const size_t idx = result.find_last_of("\\/");
     if (idx != std::string::npos)
     {
-        filename.erase(idx);
+        result.erase(idx);
     }
-    return filename;
+    return result;
 }
 
 /**
  * @brief Remove directory name from file name if present.
  */
-std::string file_basename( std::string filename )
+std::string file_basename( std::string const& filename )
 {
-    const size_t idx = filename.find_last_of("\\/");
+    auto result = filename;
+    const size_t idx = result.find_last_of("\\/");
     if (idx != std::string::npos)
     {
-        filename.erase(0, idx + 1);
+        result.erase(0, idx + 1);
     }
-    return filename;
+    return result;
 }
 
 /**
@@ -272,14 +276,15 @@ std::string file_basename( std::string filename )
  * Caveat: Does not remove the path. So, if the filename itself does not contain an extension
  * separator ".", but the path does, this will yield an unwanted result. Call file_basename() first.
  */
-std::string file_filename( std::string filename )
+std::string file_filename( std::string const& filename )
 {
-    const size_t idx = filename.rfind('.');
+    auto result = filename;
+    const size_t idx = result.rfind('.');
     if (idx != 0 && idx != std::string::npos)
     {
-        filename.erase(idx);
+        result.erase(idx);
     }
-    return filename;
+    return result;
 }
 
 /**
@@ -287,14 +292,112 @@ std::string file_filename( std::string filename )
  *
  * Also see file_filename().
  */
-std::string file_extension( std::string filename )
+std::string file_extension( std::string const& filename )
 {
-    const size_t idx = filename.rfind('.');
+    auto result = filename;
+    const size_t idx = result.rfind('.');
     if (idx != 0 && idx != std::string::npos)
     {
-        filename.erase(0, idx + 1);
+        result.erase(0, idx + 1);
     }
-    return filename;
+    return result;
+}
+
+// =================================================================================================
+//     File Names
+// =================================================================================================
+
+/**
+ * @brief Check whether a file name is valid.
+ *
+ * Validating filenames depends on the operating system and file system of the disk. Thus, this is
+ * usually not an easy task. This function only checks some basics and is meant to catch the most
+ * common problems.
+ *
+ * The function is meant to be called on the file name itself, without the directory path leading
+ * to it. File extensions are allowed. Thus, you might need to call file_basename() before in order
+ * to get the file name without the path.
+ *
+ * Invalid filenames are:
+ *
+ *   * Those with spaces at the beginning or end, or only consisting of spaces (or empty).
+ *   * Those which contain any of the chars `< > : " \ / | ? *`.
+ *   * Those which contain any non-printable character, as determined via isprint().
+ *
+ * This might be too converative for some system, or allow too much for others. It however should
+ * return true for filenames that work on most systems.
+ */
+bool is_valid_filname( std::string const& filename )
+{
+    // No empty filenames.
+    if( trim( filename ) == "" ) {
+        return false;
+    }
+
+    // No space at beginning or end.
+    if( starts_with( filename, " " ) || ends_with( filename, " " )) {
+        return false;
+    }
+
+    // Check forbidden chars of Win and Unix systems.
+    if( filename.find_first_of( "<>:\"\\/|?*" ) != std::string::npos ) {
+        return false;
+    }
+
+    // Check for non-printable chars.
+    // They might be allowed on most systems, but better be conservative here.
+    for( auto c : filename ) {
+        if( ! isprint( c ) ) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+/**
+ * @brief Remove or replace all invalid parts of a filename.
+ *
+ * Similar to is_valid_filname(), this function is not meant to be an ultimate solution to valid
+ * filenames. See there for details.
+ *
+ * The function is meant to be called on the file name itself, without the directory path leading
+ * to it. File extensions are allowed. Thus, you might need to call file_basename() before in order
+ * to get the file name without the path.
+ *
+ * This function does the following:
+ *
+ *   * All non-printable characters are removed.
+ *   * Spaces at the beginning and end are removed.
+ *   * All invalid chars are replaced by an underscore. See is_valid_filname() for a list of those
+ *     chars.
+ *
+ * If after this procedure the filename is empty, an exception is thrown. This is meant to save the
+ * user from checking this, or from running into trouble when trying to write to this "file" -
+ * because an empty filename will point to a directory name.
+ */
+std::string sanitize_filname( std::string const& filename )
+{
+    // Prepare result.
+    std::string result = "";
+    result.reserve( filename.size() );
+
+    // Copy all printable chars, drop the others.
+    for( auto c : filename ) {
+        if( isprint( c ) ) {
+            result += c;
+        }
+    }
+
+    // No spaces around the name, and replace all forbidden chars by underscores.
+    result = trim( result );
+    result = replace_all_chars( result, "<>:\"\\/|?*", '_' );
+
+    if( result == "" ) {
+        throw std::runtime_error( "Invalid filename." );
+    }
+
+    return result;
 }
 
 } // namespace utils

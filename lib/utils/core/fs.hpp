@@ -60,11 +60,18 @@ std::vector<std::string> dir_list_files ( std::string const& dir );
 
 std::unordered_map<std::string, std::string> file_info ( std::string const& filename );
 
-size_t      file_size      ( std::string filename );
-std::string file_path      ( std::string filename );
-std::string file_basename  ( std::string filename );
-std::string file_filename  ( std::string filename );
-std::string file_extension ( std::string filename );
+size_t      file_size      ( std::string const& filename );
+std::string file_path      ( std::string const& filename );
+std::string file_basename  ( std::string const& filename );
+std::string file_filename  ( std::string const& filename );
+std::string file_extension ( std::string const& filename );
+
+// =================================================================================================
+//     File Names
+// =================================================================================================
+
+bool        is_valid_filname( std::string const& filename );
+std::string sanitize_filname( std::string const& filename );
 
 } // namespace utils
 } // namespace genesis

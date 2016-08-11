@@ -196,7 +196,7 @@ std::string indent(
 }
 
 /**
- * @brief Return a copy of a string, where all occurences of a search string
+ * @brief Return a copy of a string, where all occurrences of a search string
  * are replaced by a replace string.
  */
 std::string replace_all (
@@ -231,6 +231,23 @@ void replace_all(
     }
 }
 */
+
+/**
+ * @brief Replace all occurrences of the `search_chars` in `text` by the `replace` char.
+ */
+std::string replace_all_chars (
+    std::string const& text,
+    std::string const& search_chars,
+    char               replace
+) {
+    auto result = text;
+    for( auto& c : result ) {
+        if( search_chars.find( c ) != std::string::npos ) {
+            c = replace;
+        }
+    }
+    return result;
+}
 
 /**
  * @brief Return a copy of the input string, with left trimmed white spaces.
@@ -403,7 +420,7 @@ std::string escape( std::string const& text )
  * @brief Return a string where backslash-escaped characters are transformed into
  * their respective string form.
  *
- * All occurences of `backslash + char` in the string are de-escaped. That is, all `\n`, `\t` and
+ * All occurrences of `backslash + char` in the string are de-escaped. That is, all `\n`, `\t` and
  * `\r` are turned into their respective control sequences, while all other chars folloing a
  * backslash are translated into the char itself (so that e.g., quotation marks or backslashes
  * themself can be escaped).
