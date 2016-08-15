@@ -41,6 +41,7 @@
 #include <string>
 #include <sstream>
 
+using namespace genesis;
 using namespace genesis::utils;
 
 // -------------------------------------------------------------------------
@@ -50,7 +51,7 @@ using namespace genesis::utils;
 void test_uint ( std::string str, unsigned int val, size_t col )
 {
     std::istringstream iss ( str );
-    InputStream iit( make_unique< StreamInputSource >( iss ));
+    InputStream iit( utils::make_unique< StreamInputSource >( iss ));
 
     auto res = parse_unsigned_integer<unsigned int>( iit );
     EXPECT_EQ( val, res ) << "Input string: '" << str << "'";
@@ -84,7 +85,7 @@ TEST(Parser, UnsignedInteger)
 void test_int ( std::string str, int val, size_t col )
 {
     std::istringstream iss ( str );
-    InputStream iit( make_unique< StreamInputSource >( iss ));
+    InputStream iit( utils::make_unique< StreamInputSource >( iss ));
 
     auto res = parse_signed_integer<int>( iit );
     EXPECT_EQ( val, res ) << "Input string: '" << str << "'";
@@ -128,7 +129,7 @@ TEST(Parser, SignedInteger)
 void test_float( std::string str, float val, size_t col )
 {
     std::istringstream iss ( str );
-    InputStream iit( make_unique< StreamInputSource >( iss ));
+    InputStream iit( utils::make_unique< StreamInputSource >( iss ));
 
     auto res = parse_float<double>( iit );
     EXPECT_FLOAT_EQ( val, res ) << "Input string: '" << str << "'";
@@ -208,7 +209,7 @@ void test_string(
     bool include_qmarks
 ) {
     std::istringstream iss ( str );
-    InputStream iit( make_unique< StreamInputSource >( iss ));
+    InputStream iit( utils::make_unique< StreamInputSource >( iss ));
 
     auto res = parse_quoted_string( iit, use_escapes, use_twin_quotes, include_qmarks );
     EXPECT_EQ( val, res )

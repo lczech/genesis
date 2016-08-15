@@ -39,6 +39,7 @@
 #include <string>
 #include <sstream>
 
+using namespace genesis;
 using namespace genesis::utils;
 
 static void test_input_specs( InputStream& instr, size_t lines, size_t columns )
@@ -59,7 +60,7 @@ static void test_input_specs( InputStream& instr, size_t lines, size_t columns )
 
 static void test_string ( std::string str, size_t lines, size_t columns )
 {
-    InputStream instr( make_unique< StringInputSource >( str ));
+    InputStream instr( utils::make_unique< StringInputSource >( str ));
     test_input_specs( instr, lines, columns );
 }
 
@@ -80,7 +81,7 @@ TEST(InputStream, LargeFile)
     SCOPED_TRACE("InputStream.LargeFile");
 
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    InputStream instr( make_unique< FileInputSource >( infile ));
+    InputStream instr( utils::make_unique< FileInputSource >( infile ));
 
     test_input_specs( instr, 110, 51 );
 }

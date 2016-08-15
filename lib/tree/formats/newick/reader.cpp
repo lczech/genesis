@@ -241,7 +241,8 @@ bool NewickReader::from_string (
         tset.add(name, tree);
 
         // Let's clean up all tokens used so far. We don't need them anymore.
-        ct.consume_head();
+        // TODO FIXME Hm. Somehow this may cause a segfault. Need to investigate. Or rewrite!
+        // ct.consume_head();
     }
 
     if (!error.empty()) {
