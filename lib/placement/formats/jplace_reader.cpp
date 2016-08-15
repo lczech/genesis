@@ -104,7 +104,7 @@ bool JplaceReader::check_version ( size_t version )
 void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
 {
     using namespace utils;
-    InputStream it( make_unique< StreamInputSource >( is ));
+    InputStream it( utils::make_unique< StreamInputSource >( is ));
 
     // We need to check whether all important keys of the document appeared.
     bool found_version    = false;
