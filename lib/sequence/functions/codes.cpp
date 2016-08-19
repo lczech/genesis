@@ -34,6 +34,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <stdexcept>
 #include <unordered_map>
 
 namespace genesis {
@@ -362,7 +363,11 @@ std::map<char, std::string> amino_acid_text_colors()
  */
 std::string translate_nucleic_acid( char code )
 {
-    return nucleic_acid_code_to_name.at( toupper(code) );
+    auto ucode = toupper(code);
+    if( nucleic_acid_code_to_name.count( ucode ) == 0 ) {
+        throw std::out_of_range( "Invalid nucleic acid code '" + std::string( 1, code ) + "'." );
+    }
+    return nucleic_acid_code_to_name.at( ucode );
 }
 
 /**
@@ -405,7 +410,11 @@ std::string translate_nucleic_acid( char code )
  */
 std::string translate_amino_acid( char code )
 {
-    return amino_acid_code_to_name.at( toupper(code) );
+    auto ucode = toupper(code);
+    if( amino_acid_code_to_name.count( ucode ) == 0 ) {
+        throw std::out_of_range( "Invalid amino acid code '" + std::string( 1, code ) + "'." );
+    }
+    return amino_acid_code_to_name.at( ucode );
 }
 
 /**
@@ -447,7 +456,11 @@ std::string translate_amino_acid( char code )
  */
 std::string nucleic_acid_ambiguities( char code )
 {
-    return nucleic_acid_ambiguity_char_map.at( toupper(code) );
+    auto ucode = toupper(code);
+    if( nucleic_acid_code_to_name.count( ucode ) == 0 ) {
+        throw std::out_of_range( "Invalid nucleic acid code '" + std::string( 1, code ) + "'." );
+    }
+    return nucleic_acid_ambiguity_char_map.at( ucode );
 }
 
 /**
@@ -487,6 +500,10 @@ char nucleic_acid_ambiguity_code( std::string codes )
     auto tmp = utils::to_upper_ascii( codes );
     std::sort( tmp.begin(), tmp.end() );
     tmp.erase( std::unique( tmp.begin(), tmp.end() ), tmp.end() );
+
+    if( nucleic_acid_ambiguity_string_map.count( tmp ) == 0 ) {
+        throw std::out_of_range( "Invalid nucleic acid codes '" + tmp + "'." );
+    }
     return nucleic_acid_ambiguity_string_map.at( tmp );
 }
 
