@@ -30,6 +30,9 @@
 
 #include "sequence/functions/codes.hpp"
 
+#include "utils/text/string.hpp"
+
+#include <algorithm>
 #include <cctype>
 #include <unordered_map>
 
@@ -165,6 +168,59 @@ static const std::map<char, std::string> amino_acid_text_colors_map = {
 };
 
 // =================================================================================================
+//     Ambiguity Lists
+// =================================================================================================
+
+static const std::unordered_map<char, std::string> nucleic_acid_ambiguity_char_map = {
+    { 'A', "A" },
+    { 'C', "C" },
+    { 'G', "G" },
+    { 'T', "T" },
+    { 'U', "T" },
+
+    { 'W', "AT" },
+    { 'S', "CG" },
+    { 'M', "AC" },
+    { 'K', "GT" },
+    { 'R', "AG" },
+    { 'Y', "CT" },
+
+    { 'B', "CGT" },
+    { 'D', "AGT" },
+    { 'H', "ACT" },
+    { 'V', "ACG" },
+
+    { 'N', "ACGT" },
+    { 'O', "-" },
+    { 'X', "-" },
+    { '.', "-" },
+    { '-', "-" },
+    { '?', "-" }
+};
+
+static const std::unordered_map< std::string, char > nucleic_acid_ambiguity_string_map = {
+    { "A", 'A' },
+    { "C", 'C' },
+    { "G", 'G' },
+    { "T", 'T' },
+
+    { "AT", 'W' },
+    { "CG", 'S' },
+    { "AC", 'M' },
+    { "GT", 'K' },
+    { "AG", 'R' },
+    { "CT", 'Y' },
+
+    { "CGT", 'B' },
+    { "AGT", 'D' },
+    { "ACT", 'H' },
+    { "ACG", 'V' },
+
+    { "ACGT", 'N' },
+    { "-", '-' }
+};
+
+// =================================================================================================
 //     Codes
 // =================================================================================================
 
@@ -177,7 +233,7 @@ static const std::map<char, std::string> amino_acid_text_colors_map = {
  */
 std::string nucleic_acid_codes_plain()
 {
-    return "ACGTU";
+    return "ACGT";
 }
 
 /**
@@ -350,6 +406,88 @@ std::string translate_nucleic_acid( char code )
 std::string translate_amino_acid( char code )
 {
     return amino_acid_code_to_name.at( toupper(code) );
+}
+
+/**
+ * @brief Return the possible ambiguous nucleic acid codes for a given code char.
+ *
+ * The codes are resolved as follows:
+ *
+ *    'A' ==> "A"
+ *    'C' ==> "C"
+ *    'G' ==> "G"
+ *    'T' ==> "T"
+ *    'U' ==> "T"
+ *
+ *    'W' ==> "AT"
+ *    'S' ==> "CG"
+ *    'M' ==> "AC"
+ *    'K' ==> "GT"
+ *    'R' ==> "AG"
+ *    'Y' ==> "CT"
+ *
+ *    'B' ==> "CGT"
+ *    'D' ==> "AGT"
+ *    'H' ==> "ACT"
+ *    'V' ==> "ACG"
+ *
+ *    'N' ==> "ACGT"
+ *    'O' ==> "-"
+ *    'X' ==> "-"
+ *    '.' ==> "-"
+ *    '-' ==> "-"
+ *    '?' ==> "-"
+ *
+ * The code char is treated case-insensitive. If the given code char is not valid, an
+ * `std::out_of_range` exception is thrown.
+ *
+ * See nucleic_acid_ambiguity_code() for a reverse version of this function. It is however not
+ * exactly the reverse, as some degenerated codes are mapped to the gap char. Thus, this function
+ * is not injective.
+ */
+std::string nucleic_acid_ambiguities( char code )
+{
+    return nucleic_acid_ambiguity_char_map.at( toupper(code) );
+}
+
+/**
+ * @brief Return the nucleic acid code that represents all given `codes`.
+ *
+ * The codes are resolved as follows:
+ *
+ *    "A" ==> 'A'
+ *    "C" ==> 'C'
+ *    "G" ==> 'G'
+ *    "T" ==> 'T'
+ *
+ *    "AT" ==> 'W'
+ *    "CG" ==> 'S'
+ *    "AC" ==> 'M'
+ *    "GT" ==> 'K'
+ *    "AG" ==> 'R'
+ *    "CT" ==> 'Y'
+ *
+ *    "CGT" ==> 'B'
+ *    "AGT" ==> 'D'
+ *    "ACT" ==> 'H'
+ *    "ACG" ==> 'V'
+ *
+ *    "ACGT" ==> 'N'
+ *    "-" ==> '-'
+ *
+ * The given codes are treated case-insensitive and order-independent. For example, given `"tCgG"`,
+ * the function still returns `'B'`. However, if any of the given codes is not valid, an
+ * `std::out_of_range` exception is thrown.
+ *
+ * See nucleic_acid_ambiguities() for the reverse of this function.
+ */
+char nucleic_acid_ambiguity_code( std::string codes )
+{
+    // Uppercase, sort, uniq the codes.
+    auto tmp = utils::to_upper_ascii( codes );
+    std::sort( tmp.begin(), tmp.end() );
+    tmp.erase( std::unique( tmp.begin(), tmp.end() ), tmp.end() );
+    return nucleic_acid_ambiguity_string_map.at( tmp );
 }
 
 } // namespace sequence
