@@ -50,10 +50,10 @@ class SequenceSet;
 //     Consensus
 // =================================================================================================
 
-std::string consensus_sequence(
+std::string consensus_sequence_with_majorities(
     SequenceCounts const& counts,
-    char                  gap_char        = '-',
-    bool                  prefer_non_gaps = false
+    bool                  allow_gaps = true,
+    char                  gap_char   = '-'
 );
 
 // =================================================================================================

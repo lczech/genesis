@@ -65,7 +65,7 @@ TEST( Sequence, Entropy )
     EXPECT_FLOAT_EQ( 4.3112783, absolute_entropy( counts ));
     EXPECT_FLOAT_EQ( 1.0778196, averaged_entropy( counts ));
 
-    EXPECT_EQ( "AAAA", consensus_sequence( counts ));
+    EXPECT_EQ( "AAAA", consensus_sequence_with_majorities( counts ));
 }
 
 TEST( Sequence, Consensus )
@@ -85,5 +85,8 @@ TEST( Sequence, Consensus )
     counts.add_sequences( sset );
 
     // Correct sequence calculated with Seaview.
-    EXPECT_EQ( "AAACCCTGGCCGTTCAGGGTAAACCGTGGCCGGGCAGGGTAT", consensus_sequence( counts ) );
+    EXPECT_EQ(
+        "AAACCCTGGCCGTTCAGGGTAAACCGTGGCCGGGCAGGGTAT", 
+        consensus_sequence_with_majorities( counts )
+    );
 }
