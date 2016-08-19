@@ -516,7 +516,7 @@ PhylipReader::Mode PhylipReader::mode() const
  * If set to 0 (default), a relaxed version of Phylip is used instead, where the sequence begin is
  * automatically detected. Labels can then be of arbitrary lengths, as long as they do not contain
  * white spaces. However, in this case, there has to be at least one space or tab character between
- * the label and the sequence. After this first whitespace, the rest of the line is then treated
+ * the label and the sequence. After the whitespace(s), the rest of the line is then treated
  * as sequence data.
  *
  * The function returns the PhylipReader object to allow for fluent interfaces.
