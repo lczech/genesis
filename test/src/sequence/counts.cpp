@@ -31,8 +31,10 @@
 #include "common.hpp"
 
 #include "lib/sequence/counts.hpp"
-#include "lib/sequence/sequence.hpp"
+#include "lib/sequence/formats/phylip_reader.hpp"
 #include "lib/sequence/functions/counts.hpp"
+#include "lib/sequence/sequence_set.hpp"
+#include "lib/sequence/sequence.hpp"
 
 using namespace genesis;
 using namespace genesis::sequence;
@@ -64,4 +66,24 @@ TEST( Sequence, Entropy )
     EXPECT_FLOAT_EQ( 1.0778196, averaged_entropy( counts ));
 
     EXPECT_EQ( "AAAA", consensus_sequence( counts ));
+}
+
+TEST( Sequence, Consensus )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/dna_5_42_s.phylip";
+    SequenceSet sset;
+    PhylipReader()
+        .label_length( 10 )
+        .from_file(infile, sset);
+
+    // Create counts object.
+    auto counts = SequenceCounts( "ACGT", 42 );
+    counts.add_sequences( sset );
+
+    // Correct sequence calculated with Seaview.
+    EXPECT_EQ( "AAACCCTGGCCGTTCAGGGTAAACCGTGGCCGGGCAGGGTAT", consensus_sequence( counts ) );
 }

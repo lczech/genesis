@@ -52,12 +52,15 @@ namespace sequence {
  * original sequences.
  *
  * Furthermore, if two or more characters have the same frequency, the first one is used. That is,
- * the one that appears first in SequenceCounts::characters().
+ * the one that appears first in SequenceCounts::characters(). For an alternative version of this
+ * function that takes those ambiguities into account, see consensus_sequence_with_ambiguities().
  *
  * The optional parameter `prefer_non_gaps` (default is `false`) can be used to always use the
  * most frequent non-gap character. By default, if a site consists mostly of gaps, the consensus
  * sequence also contains a gap at that site. If however this option is used, a single non-gap
- * character will be preferred and unsed instead of a gap.
+ * character will be preferred and unsed instead of a gap. In other words, if set to `true`, this
+ * option treats gaps as missing characters instead of another type of character for computing
+ * the consensus.
  */
 std::string consensus_sequence(
     SequenceCounts const& counts,
@@ -67,8 +70,9 @@ std::string consensus_sequence(
     std::string res;
     res.reserve( counts.length() );
 
-    // Prepare some constants (speedup).
+    // Prepare some constants for simplicity.
     auto const chars     = counts.characters();
+    auto const seq_count = counts.added_sequences_count();
     auto const num_chars = counts.characters().size();
 
     for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
@@ -78,19 +82,19 @@ std::string consensus_sequence(
         SequenceCounts::CountsIntType counts_sum = 0;
 
         for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
-            auto char_count = counts.count_at( site_idx, char_idx );
+            auto const char_count = counts.count_at( site_idx, char_idx );
             counts_sum += char_count;
 
             if( char_count > max_val ) {
                 max_pos = char_idx;
-                max_val = counts.count_at( site_idx, char_idx );
+                max_val = char_count;
             }
         }
 
         assert( max_val    <= counts_sum );
-        assert( counts_sum <= num_chars  );
+        assert( counts_sum <= seq_count  );
 
-        if(( max_val > 0 ) && (( prefer_non_gaps ) || ( max_val > num_chars - counts_sum ))) {
+        if(( max_val > 0 ) && (( prefer_non_gaps ) || ( max_val > seq_count - counts_sum ))) {
             res += chars[ max_pos ];
         } else {
             res += gap_char;
