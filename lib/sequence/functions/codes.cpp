@@ -422,30 +422,30 @@ std::string translate_amino_acid( char code )
  *
  * The codes are resolved as follows:
  *
- *    'A' ==> "A"
- *    'C' ==> "C"
- *    'G' ==> "G"
- *    'T' ==> "T"
- *    'U' ==> "T"
+ *     'A' ==> "A"
+ *     'C' ==> "C"
+ *     'G' ==> "G"
+ *     'T' ==> "T"
+ *     'U' ==> "T"
  *
- *    'W' ==> "AT"
- *    'S' ==> "CG"
- *    'M' ==> "AC"
- *    'K' ==> "GT"
- *    'R' ==> "AG"
- *    'Y' ==> "CT"
+ *     'W' ==> "AT"
+ *     'S' ==> "CG"
+ *     'M' ==> "AC"
+ *     'K' ==> "GT"
+ *     'R' ==> "AG"
+ *     'Y' ==> "CT"
  *
- *    'B' ==> "CGT"
- *    'D' ==> "AGT"
- *    'H' ==> "ACT"
- *    'V' ==> "ACG"
+ *     'B' ==> "CGT"
+ *     'D' ==> "AGT"
+ *     'H' ==> "ACT"
+ *     'V' ==> "ACG"
  *
- *    'N' ==> "ACGT"
- *    'O' ==> "-"
- *    'X' ==> "-"
- *    '.' ==> "-"
- *    '-' ==> "-"
- *    '?' ==> "-"
+ *     'N' ==> "ACGT"
+ *     'O' ==> "-"
+ *     'X' ==> "-"
+ *     '.' ==> "-"
+ *     '-' ==> "-"
+ *     '?' ==> "-"
  *
  * The code char is treated case-insensitive. If the given code char is not valid, an
  * `std::out_of_range` exception is thrown.
@@ -468,25 +468,25 @@ std::string nucleic_acid_ambiguities( char code )
  *
  * The codes are resolved as follows:
  *
- *    "A" ==> 'A'
- *    "C" ==> 'C'
- *    "G" ==> 'G'
- *    "T" ==> 'T'
+ *     "A" ==> 'A'
+ *     "C" ==> 'C'
+ *     "G" ==> 'G'
+ *     "T" ==> 'T'
  *
- *    "AT" ==> 'W'
- *    "CG" ==> 'S'
- *    "AC" ==> 'M'
- *    "GT" ==> 'K'
- *    "AG" ==> 'R'
- *    "CT" ==> 'Y'
+ *     "AT" ==> 'W'
+ *     "CG" ==> 'S'
+ *     "AC" ==> 'M'
+ *     "GT" ==> 'K'
+ *     "AG" ==> 'R'
+ *     "CT" ==> 'Y'
  *
- *    "CGT" ==> 'B'
- *    "AGT" ==> 'D'
- *    "ACT" ==> 'H'
- *    "ACG" ==> 'V'
+ *     "CGT" ==> 'B'
+ *     "AGT" ==> 'D'
+ *     "ACT" ==> 'H'
+ *     "ACG" ==> 'V'
  *
- *    "ACGT" ==> 'N'
- *    "-" ==> '-'
+ *     "ACGT" ==> 'N'
+ *     "-" ==> '-'
  *
  * The given codes are treated case-insensitive and order-independent. For example, given `"tCgG"`,
  * the function still returns `'B'`. However, if any of the given codes is not valid, an
