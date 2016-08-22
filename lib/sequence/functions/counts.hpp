@@ -56,6 +56,18 @@ std::string consensus_sequence_with_majorities(
     char                  gap_char   = '-'
 );
 
+std::string consensus_sequence_with_ambiguities(
+    SequenceCounts const& counts,
+    double                allowed_deviation = 0.1,
+    bool                  allow_gaps = true
+);
+
+std::string consensus_sequence_with_threshold(
+    SequenceCounts const& counts,
+    double                frequency_threshold = 0.6,
+    bool                  allow_gaps = true
+);
+
 // =================================================================================================
 //     Entropy
 // =================================================================================================
