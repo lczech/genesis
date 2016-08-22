@@ -45,30 +45,36 @@ namespace sequence {
 // =================================================================================================
 
 /**
- * @brief Calculate the consensus sequence by using the most frequent character at each site.
+ * @brief Calculate the majority rule consensus sequence by using the most frequent character at
+ * each site.
+ *
+ * The optional parameter `allow_gaps` (default is `true`) determines whether gaps in the consensus
+ * sequence are allowed. By default, if a site consists mostly of gaps, the consensus
+ * sequence also contains a gap at that site. If however this option is set to `false`, the
+ * consensus sequence will contain the most frequent non-gap character, even if there are more gaps
+ * at this site than the character itself. In other words, if set to
+ * `false`, this option treats gaps as missing characters instead of another type of character for
+ * computing the consensus. Thus, gaps will appear in the output only iff the site only has gaps.
  *
  * The optional parameter `gap_char` (default value '-') is used for sites where no counts are
- * available, e.g. because all of them where undetermined or contained invalid characters in the
- * original sequences.
+ * available (i.e., are all zero), or, if `allow_gaps` is set to `true`, for sites that contain
+ * mostly gaps.
  *
  * Furthermore, if two or more characters have the same frequency, the first one is used. That is,
- * the one that appears first in SequenceCounts::characters().
- *
- * The optional parameter `prefer_non_gaps` (default is `false`) can be used to always use the
- * most frequent non-gap character. By default, if a site consists mostly of gaps, the consensus
- * sequence also contains a gap at that site. If however this option is used, a single non-gap
- * character will be preferred and unsed instead of a gap.
+ * the one that appears first in SequenceCounts::characters(). For an alternative version of this
+ * function that takes those ambiguities into account, see consensus_sequence_with_ambiguities().
  */
-std::string consensus_sequence(
+std::string consensus_sequence_with_majorities(
     SequenceCounts const& counts,
-    char                  gap_char,
-    bool                  prefer_non_gaps
+    bool                  allow_gaps,
+    char                  gap_char
 ) {
     std::string res;
     res.reserve( counts.length() );
 
-    // Prepare some constants (speedup).
+    // Prepare some constants for simplicity.
     auto const chars     = counts.characters();
+    auto const seq_count = counts.added_sequences_count();
     auto const num_chars = counts.characters().size();
 
     for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
@@ -78,19 +84,22 @@ std::string consensus_sequence(
         SequenceCounts::CountsIntType counts_sum = 0;
 
         for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
-            auto char_count = counts.count_at( site_idx, char_idx );
+            auto const char_count = counts.count_at( site_idx, char_idx );
             counts_sum += char_count;
 
             if( char_count > max_val ) {
                 max_pos = char_idx;
-                max_val = counts.count_at( site_idx, char_idx );
+                max_val = char_count;
             }
         }
 
         assert( max_val    <= counts_sum );
-        assert( counts_sum <= num_chars  );
+        assert( counts_sum <= seq_count  );
 
-        if(( max_val > 0 ) && (( prefer_non_gaps ) || ( max_val > num_chars - counts_sum ))) {
+        // We write a code char if it is the majority, that is, > 0 and > all other code counts.
+        // In other cases, write a gap. That is, either no code has a count > 0, or, if we allow
+        // gaps and gaps are more frquent than actual codes.
+        if(( max_val > 0 ) && (( ! allow_gaps ) || ( max_val > seq_count - counts_sum ))) {
             res += chars[ max_pos ];
         } else {
             res += gap_char;

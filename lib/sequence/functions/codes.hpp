@@ -65,6 +65,9 @@ std::map<char, std::string> amino_acid_text_colors();
 std::string translate_nucleic_acid( char code );
 std::string translate_amino_acid( char code );
 
+std::string nucleic_acid_ambiguities( char code );
+char        nucleic_acid_ambiguity_code( std::string codes );
+
 } // namespace sequence
 } // namespace genesis
 
