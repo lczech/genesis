@@ -32,7 +32,6 @@
 
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
-#include "taxonomy/taxscriptor.hpp"
 #include "taxonomy/printers/nested.hpp"
 
 #include "utils/core/logging.hpp"

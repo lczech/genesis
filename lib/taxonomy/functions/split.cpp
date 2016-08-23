@@ -35,7 +35,7 @@
 #include "taxonomy/functions/taxonomy.hpp"
 
 #include "utils/core/std.hpp"
-#include "taxonomy/formats/taxscriptor_generator.hpp"
+#include "taxonomy/formats/taxopath_generator.hpp"
 #include "utils/core/logging.hpp"
 #include "utils/text/style.hpp"
 
@@ -89,7 +89,7 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_threshold(
 
         // Make sure that the entropy has entries that belong to the taxonomy.
         if( entropies.count( &cur ) == 0 ) {
-            auto name = TaxscriptorGenerator()( cur );
+            auto name = TaxopathGenerator()( cur );
             throw std::runtime_error( "Entropy list not complete. Missing Taxon " + name );
         }
 
@@ -287,7 +287,7 @@ std::unordered_set< Taxon const* > split_taxonomy_by_entropy_with_target_size(
 
             // Make sure that the entropy has entries that belong to the taxonomy.
             if( entropies.count( &child ) == 0 ) {
-                auto name = TaxscriptorGenerator()( child );
+                auto name = TaxopathGenerator()( child );
                 throw std::runtime_error( "Entropy list not complete. Missing Taxon " + name );
             }
 
@@ -417,7 +417,7 @@ void remove_splitted_taxonomy_children(
         auto const* parent = elem->parent();
         while( parent != nullptr ) {
             if( split_list.count( parent ) > 0 ) {
-                auto name = TaxscriptorGenerator()( *elem );
+                auto name = TaxopathGenerator()( *elem );
                 throw std::runtime_error(
                     "Removing splitted Taxa from Taxonomy where inner Taxa are also in the list "
                     "is not possible. This occured at Taxon " + name
@@ -497,7 +497,7 @@ bool validated_splitted_taxonomy(
             cur = cur->parent();
         }
         if( split_count > 1 ) {
-            auto name = TaxscriptorGenerator()( t );
+            auto name = TaxopathGenerator()( t );
             LOG_INFO << "Taxon has " << split_count << " splitted parents: " << name;
             ++wrong_parents;
         }

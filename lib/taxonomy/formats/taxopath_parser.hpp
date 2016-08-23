@@ -1,5 +1,5 @@
-#ifndef GENESIS_TAXONOMY_FORMATS_TAXSCRIPTOR_PARSER_H_
-#define GENESIS_TAXONOMY_FORMATS_TAXSCRIPTOR_PARSER_H_
+#ifndef GENESIS_TAXONOMY_FORMATS_TAXOPATH_PARSER_H_
+#define GENESIS_TAXONOMY_FORMATS_TAXOPATH_PARSER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -42,20 +42,20 @@ namespace taxonomy {
 // =================================================================================================
 
 class Taxon;
-class Taxscriptor;
+class Taxopath;
 
 // =================================================================================================
-//     Taxscriptor Parser
+//     Taxopath Parser
 // =================================================================================================
 
 /**
- * @brief Helper class to parse a string containing a taxonomic descriptor into a Taxscriptor object.
+ * @brief Helper class to parse a string containing a taxonomic path string into a Taxopath object.
  *
- * This class bundles the parameters used for parsing a taxonomic description and offers functions
+ * This class bundles the parameters used for parsing a taxonomic path strings and offers functions
  * for the actual parsing. This is needed in order to allow customization of the parsing process,
  * for example in TaxonomyReader. Furthermore, this prevents code duplication in places where the
- * input is a taxonomic description string.
- * The result of the parsing process is a Taxscriptor object. See there for details.
+ * input is a taxonomic path string.
+ * The result of the parsing process is a Taxopath object. See there for details.
  *
  * The elements are expected to be char separated, using the value of
  * @link delimiters( std::string const& value ) delimiters()@endlink to separate them.
@@ -65,7 +65,7 @@ class Taxscriptor;
  *
  *     Tax_1; Tax_2 ;;Tax_4;
  *
- * is parsed into the Taxscriptor
+ * is parsed into the Taxopath
  *
  *     [ "Tax_1", "Tax_2", "Tax_2", "Tax_4" ]
  *
@@ -78,7 +78,7 @@ class Taxscriptor;
  * to change that behaviour and instead keep this last element.
  * Also, the first taxon in the string cannot be empty. Otherwise an `std::runtime_error` is thrown.
  */
-class TaxscriptorParser
+class TaxopathParser
 {
 public:
 
@@ -86,37 +86,37 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    TaxscriptorParser()  = default;
-    ~TaxscriptorParser() = default;
+    TaxopathParser()  = default;
+    ~TaxopathParser() = default;
 
-    TaxscriptorParser( TaxscriptorParser const& ) = default;
-    TaxscriptorParser( TaxscriptorParser&& )      = default;
+    TaxopathParser( TaxopathParser const& ) = default;
+    TaxopathParser( TaxopathParser&& )      = default;
 
-    TaxscriptorParser& operator= ( TaxscriptorParser const& ) = default;
-    TaxscriptorParser& operator= ( TaxscriptorParser&& )      = default;
+    TaxopathParser& operator= ( TaxopathParser const& ) = default;
+    TaxopathParser& operator= ( TaxopathParser&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Parsing
     // -------------------------------------------------------------------------
 
-    Taxscriptor from_string( std::string const& taxscriptor ) const;
-    Taxscriptor operator() ( std::string const& taxscriptor ) const;
+    Taxopath from_string( std::string const& taxopath ) const;
+    Taxopath operator() ( std::string const& taxopath ) const;
 
-    Taxscriptor from_taxon(  Taxon const& taxon ) const;
-    Taxscriptor operator() ( Taxon const& taxon ) const;
+    Taxopath from_taxon(  Taxon const& taxon ) const;
+    Taxopath operator() ( Taxon const& taxon ) const;
 
     // -------------------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------------------
 
-    TaxscriptorParser& delimiters( std::string const& value );
-    std::string        delimiters() const;
+    TaxopathParser& delimiters( std::string const& value );
+    std::string     delimiters() const;
 
-    TaxscriptorParser& trim_whitespaces( bool value );
-    bool               trim_whitespaces() const;
+    TaxopathParser& trim_whitespaces( bool value );
+    bool            trim_whitespaces() const;
 
-    TaxscriptorParser& remove_trailing_delimiter( bool value );
-    bool               remove_trailing_delimiter() const;
+    TaxopathParser& remove_trailing_delimiter( bool value );
+    bool            remove_trailing_delimiter() const;
 
     // -------------------------------------------------------------------------
     //     Data Members

@@ -1,5 +1,5 @@
-#ifndef GENESIS_TAXONOMY_FUNCTIONS_TAXSCRIPTOR_H_
-#define GENESIS_TAXONOMY_FUNCTIONS_TAXSCRIPTOR_H_
+#ifndef GENESIS_TAXONOMY_FUNCTIONS_TAXOPATH_H_
+#define GENESIS_TAXONOMY_FUNCTIONS_TAXOPATH_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -40,20 +40,20 @@ namespace taxonomy {
 
 class Taxon;
 class Taxonomy;
-class Taxscriptor;
+class Taxopath;
 
 // =================================================================================================
-//     Taxscriptor
+//     Taxopath
 // =================================================================================================
 
-Taxon& add_from_taxscriptor(
-    Taxonomy&          taxonomy,
-    Taxscriptor const& taxscriptor,
-    bool               expect_parents = false
+Taxon& add_from_taxopath(
+    Taxonomy&       taxonomy,
+    Taxopath const& taxopath,
+    bool            expect_parents = false
 );
 
-Taxon const* find_taxon_by_taxscriptor( Taxonomy const& tax, Taxscriptor const& taxscriptor );
-Taxon*       find_taxon_by_taxscriptor( Taxonomy&       tax, Taxscriptor const& taxscriptor );
+Taxon const* find_taxon_by_taxopath( Taxonomy const& tax, Taxopath const& taxopath );
+Taxon*       find_taxon_by_taxopath( Taxonomy&       tax, Taxopath const& taxopath );
 
 } // namespace taxonomy
 } // namespace genesis

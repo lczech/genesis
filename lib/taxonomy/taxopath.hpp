@@ -1,5 +1,5 @@
-#ifndef GENESIS_TAXONOMY_TAXSCRIPTOR_H_
-#define GENESIS_TAXONOMY_TAXSCRIPTOR_H_
+#ifndef GENESIS_TAXONOMY_TAXOPATH_H_
+#define GENESIS_TAXONOMY_TAXOPATH_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -45,38 +45,40 @@ class Taxon;
 class Taxonomy;
 
 // =================================================================================================
-//     Taxscriptor
+//     Taxopath
 // =================================================================================================
 
 /**
- * @brief Helper class to store a taxonomic descriptor.
+ * @brief Helper class to store a taxonomic path.
  *
  * We call a string of the form
  *
  *     Animalia;Vertebrata;Mammalia;Carnivora
  *
- * a taxonomic description sring. Those strings are often found in taxonomic databases, and usually
- * use semicola to separete their parts.
+ * a taxonomic path. Those strings are often used in taxonomic databases, and usually
+ * use semicola to separate their parts.
  *
  * This class stores such a string, splitted into its single elements. Each such element can be
- * seen as a Taxon; thus, a Taxscriptor can be added to a Taxonomy.
+ * seen as a Taxon; thus, a Taxopath can be added to a Taxonomy.
  *
- * For example, the above taxonomic descriptor string would be stored as
+ * For example, the above taxonomic path would be stored as
  *
  *     [ "Animalia", "Vertebrata", "Mammalia", "Carnivora" ]
  *
- * This class is mainly an intermediate broker between a taxonomic description string and a Taxon.
+ * Each of those strings is then called a taxonomic path element.
+ *
+ * This class is mainly an intermediate broker between a taxonomic path string and a Taxon.
  * It is useful to transition between a Taxonomy and its string representation, for storing it
  * in a text file or some other database format. It is also useful for looking up certain Taxa
- * in a Taxonomy by using their taxonomic description string.
+ * in a Taxonomy by using their taxonomic path.
  *
- * See the TaxscriptorParser and TaxscriptorGenerator classes for populating a Taxscriptor and for
+ * See the TaxopathParser and TaxopathGenerator classes for populating a Taxopath and for
  * turning it back into a string, respectively.
  *
  * Internally, it is a thin wrapper for a vector of strings. This might be a bit overengineered for
  * now, but offers expansion that might become necessary in the future.
  */
-class Taxscriptor
+class Taxopath
 {
 public:
 
@@ -93,19 +95,19 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    Taxscriptor()  = default;
-    ~Taxscriptor() = default;
+    Taxopath()  = default;
+    ~Taxopath() = default;
 
-    explicit Taxscriptor( std::vector< std::string > const& elements );
-    explicit Taxscriptor( std::vector< std::string > &&     elements );
+    explicit Taxopath( std::vector< std::string > const& elements );
+    explicit Taxopath( std::vector< std::string > &&     elements );
 
-    Taxscriptor( Taxscriptor const& ) = default;
-    Taxscriptor( Taxscriptor&& )      = default;
+    Taxopath( Taxopath const& ) = default;
+    Taxopath( Taxopath&& )      = default;
 
-    Taxscriptor& operator= ( Taxscriptor const& ) = default;
-    Taxscriptor& operator= ( Taxscriptor&& )      = default;
+    Taxopath& operator= ( Taxopath const& ) = default;
+    Taxopath& operator= ( Taxopath&& )      = default;
 
-    void swap( Taxscriptor& other );
+    void swap( Taxopath& other );
 
     // -------------------------------------------------------------------------
     //     Accessors

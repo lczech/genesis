@@ -31,13 +31,13 @@
 #include "common.hpp"
 
 #include "lib/taxonomy/formats/taxonomy_reader.hpp"
-#include "lib/taxonomy/formats/taxscriptor_generator.hpp"
-#include "lib/taxonomy/formats/taxscriptor_parser.hpp"
+#include "lib/taxonomy/formats/taxopath_generator.hpp"
+#include "lib/taxonomy/formats/taxopath_parser.hpp"
 #include "lib/taxonomy/functions/taxonomy.hpp"
-#include "lib/taxonomy/functions/taxscriptor.hpp"
+#include "lib/taxonomy/functions/taxopath.hpp"
 #include "lib/taxonomy/taxon.hpp"
 #include "lib/taxonomy/taxonomy.hpp"
-#include "lib/taxonomy/taxscriptor.hpp"
+#include "lib/taxonomy/taxopath.hpp"
 
 #include "lib/taxonomy/printers/nested.hpp"
 

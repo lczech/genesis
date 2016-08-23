@@ -223,7 +223,7 @@ Taxon& Taxon::add_child_( Taxon const& child )
     auto& c = Taxonomy::add_child_( child );
     // c.parent_ = this;
 
-    // We added to the container. This might have cause relocation of the contant.
+    // We added to the container. This might have caused relocation of the contant.
     // Need to update parent pointers!
     reset_parent_pointers_( this );
     return c;

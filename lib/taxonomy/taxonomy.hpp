@@ -54,9 +54,9 @@ class Taxon;
  *
  *     Animalia;Vertebrata;Mammalia;Carnivora
  *
- * a taxonomic description string. Those strings are often found in taxonomic
+ * a taxonomic path string. Those strings are often found in taxonomic
  * databases, and usually use semicola to separete their parts. Each part of such a string is
- * called a Taxon, and can have a rank associated with it. See Taxscriptor for details on the format.
+ * called a Taxon, and can have a rank associated with it. See Taxopath for details on the format.
  *
  * In the example above, the rank associations could be
  *
@@ -69,17 +69,18 @@ class Taxon;
  * Taxon class. Both the Taxonomy and Taxon classes work with just those parts of the string.
  * Each Taxon can itself contain further lower level Taxa, resulting in a hierarchy.
  *
- * The above taxonomic description string for example would give a hierarchy of Taxa like this
+ * The above taxonomic path string for example would give a hierarchy of Taxa like this
  *
  *     Animalia
  *         Vertebrata
  *             Mammalia
  *                 Carnivora
  *
- * where each line is one Taxon, stored within a Taxonomy.
+ * where each line is one Taxon, stored within their parent Taxa. A Taxonomy is the uppermost
+ * parent of the Taxa in the hierarchy.
  *
- * There are functions to work with taxonomic description strings and Taxscriptor%s directly,
- * for example to "translate" them into a Taxonomy or to find a Taxon given a Taxscriptor.
+ * There are functions to work with taxonomic path strings and Taxopath%s directly,
+ * for example to "translate" them into a Taxonomy or to find a Taxon given a Taxopath.
  * See the namespace taxonomy for a list of those functions.
  *
  * In a sense, each Taxon is itself a Taxonomy, because of their hierarchical relationship.

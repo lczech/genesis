@@ -30,10 +30,10 @@
 
 #include "taxonomy/formats/taxonomy_reader.hpp"
 
-#include "taxonomy/functions/taxscriptor.hpp"
+#include "taxonomy/functions/taxopath.hpp"
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
-#include "taxonomy/taxscriptor.hpp"
+#include "taxonomy/taxopath.hpp"
 
 #include "utils/core/fs.hpp"
 #include "utils/core/std.hpp"
@@ -115,10 +115,10 @@ void TaxonomyReader::parse_document(
             continue;
         }
 
-        // Parse the taxscriptor and add it to the taxonomy.
-        auto& taxon = add_from_taxscriptor(
+        // Parse the taxopath and add it to the taxonomy.
+        auto& taxon = add_from_taxopath(
             tax,
-            taxscriptor_parser_.from_string( line.name ),
+            taxopath_parser_.from_string( line.name ),
             expect_strict_order_
         );
 
@@ -130,8 +130,7 @@ void TaxonomyReader::parse_document(
 /**
  * @brief Read a single line of a taxonomy file and return the contained name and rank.
  *
- * The name is expected to be a taxonomic description string. See Taxscriptor for details on that
- * format.
+ * The name is expected to be a taxonomic path string. See Taxopath for details on that format.
  */
 TaxonomyReader::Line TaxonomyReader::parse_line(
     utils::InputStream& it
@@ -195,19 +194,19 @@ utils::CsvReader& TaxonomyReader::csv_reader()
 }
 
 /**
- * @brief Get the TaxscriptorParser used for parsing taxonomic description strings.
+ * @brief Get the TaxopathParser used for parsing taxonomic path strings.
  *
- * The name field is expected to be a taxonomic description string. It is turned into a Taxon
- * using the settings of the TaxscriptorParser. See there for details. See Taxscriptor for
- * a description of the expected string format.
+ * The name field is expected to be a taxonomic path string. It is turned into a Taxon
+ * using the settings of the TaxopathParser. See there for details. See Taxopath for
+ * a path of the expected string format.
  */
-TaxscriptorParser& TaxonomyReader::taxscriptor_parser()
+TaxopathParser& TaxonomyReader::taxopath_parser()
 {
-    return taxscriptor_parser_;
+    return taxopath_parser_;
 }
 
 /**
- * @brief Set the position of the field in each line where the taxon name (Taxscriptor) is located.
+ * @brief Set the position of the field in each line where the taxon name (Taxopath) is located.
  *
  * This value determines at with position (zero based) the field for the taxon name is located.
  *
@@ -216,8 +215,8 @@ TaxscriptorParser& TaxonomyReader::taxscriptor_parser()
  *     Archaea;Crenarchaeota;Thermoprotei;	7	class	119
  *
  * this value would have to be set to `0`, as this is where the taxon name is found. This reader
- * expects the taxon name to be a Taxscriptor. This is what we call a string of taxonomic hierarchy
- * elements, usually separated by semicola. See Taxscriptor for details.
+ * expects the taxon name to be a Taxopath. This is what we call a string of taxonomic hierarchy
+ * elements, usually separated by semicola. See Taxopath for details.
  *
  * By default, this value is set to `0`, that is, the first field. As it does not make sense to
  * skip this value, it cannot be set to values below zero - which is different from
