@@ -77,13 +77,13 @@ std::string consensus_sequence_with_majorities(
 std::string consensus_sequence_with_ambiguities(
     SequenceCounts const& counts,
     double                similarity_factor = 0.9,
-    bool                  allow_gaps = true
+    bool                  allow_gaps        = true
 );
 
 std::string consensus_sequence_with_ambiguities(
     SequenceSet const&    sequences,
     double                similarity_factor = 0.9,
-    bool                  allow_gaps = true
+    bool                  allow_gaps        = true
 );
 
 // ------------------------------------------------------
@@ -93,13 +93,15 @@ std::string consensus_sequence_with_ambiguities(
 std::string consensus_sequence_with_threshold(
     SequenceCounts const& counts,
     double                frequency_threshold = 0.6,
-    bool                  allow_gaps = true
+    bool                  allow_gaps          = true,
+    bool                  use_ambiguities     = true
 );
 
 std::string consensus_sequence_with_threshold(
     SequenceSet const&    sequences,
     double                frequency_threshold = 0.6,
-    bool                  allow_gaps = true
+    bool                  allow_gaps          = true,
+    bool                  use_ambiguities     = true
 );
 
 } // namespace sequence

@@ -101,6 +101,8 @@ std::string consensus_sequence_with_majorities(
             auto const char_count = counts.count_at( site_idx, char_idx );
             counts_sum += char_count;
 
+            // We use a strict greater here, as this ensures to use the first character in cases
+            // where many have the same count.
             if( char_count > max_val ) {
                 max_pos = char_idx;
                 max_val = char_count;
@@ -115,8 +117,8 @@ std::string consensus_sequence_with_majorities(
         // We write a code char if it is the majority, that is, > 0 and > all other code counts.
         // In other cases, write a gap. That is, either no code has a count > 0, or, if we allow
         // gaps and gaps are more frquent than actual codes.
-        // Here, seq_count - counts_sum is the number of gaps at the current site.
-        if(( max_val > 0 ) && (( ! allow_gaps ) || ( max_val > seq_count - counts_sum ))) {
+        auto const gap_count = seq_count - counts_sum;
+        if(( max_val > 0 ) && (( ! allow_gaps ) || ( max_val > gap_count ))) {
             result += chars[ max_pos ];
         } else {
             result += gap_char;
@@ -201,20 +203,21 @@ std::string consensus_sequence_with_majorities(
  * other in order to be consiered ambiguous.
  *
  * For example, with `similarity_factor == 1.0`, only exact matches are used, that is, if two
- * counts are exactly the same. Let `count('A') == 42` and `count('T') == 42`, and both other
- * counts be 0, this results in the code `W` at that site. If however `count('T') == 41`, only `A`
- * is used for the site. Thus, with `similarity_factor == 1.0`, this function behaves very similar
- * to consensus_sequence_with_majorities(), except in cases were two counts are exaclty the same.
+ * counts are exactly the same. Let <code>count('A') == 42</code> and <code>count('T') == 42</code>,
+ * and both other counts be 0, this results in the code `W` at that site. If however
+ * <code>count('T') == 41</code>, only `A` is used for the site.
+ * Thus, with `similarity_factor == 1.0`, this function behaves very similar to
+ * consensus_sequence_with_majorities(), except in cases were two counts are exaclty the same.
  *
  * On the other hand, with `similarity_factor == 0.0`, all codes that are present at a site are
  * considered to be ambiguous. That is, if a site contains counts `> 0` for `A`, `G` and `T`, the
  * resulting site gets the code `D` (not C).
  *
  * For intermediate values, e.g., the default `0.9`, the value is used as a threshold to decide
- * the ambiguities. For example, let `count('A') == 42` and `count('T') == 38`, and both other
- * counts be 0. Then, the allowed deviation from the maximum 42 is `0.9 * 42 = 37.8`. Thus,
- * as the count for `T` is above this value, those two codes are considered ambiguous, resulting
- * in a `W` at that site.
+ * the ambiguities. For example, let <code>count('A') == 42</code> and <code>count('T') == 38</code>,
+ * and both other counts be 0. Then, the allowed deviation from the maximum 42 is `0.9 * 42 = 37.8`.
+ * Thus, as the count for `T` is above this value, those two codes are considered ambiguous,
+ * resulting in a `W` at that site.
  *
  * The optional parameter `allow_gaps` (default is `true`) behaves similar to its counterpart in
  * consensus_sequence_with_majorities(). If set to `true`, the count of the gap character is also
@@ -382,7 +385,6 @@ std::string consensus_sequence_with_ambiguities(
  *
  * See @link consensus_sequence_with_ambiguities( SequenceCounts const&, double, bool )
  * consensus_sequence_with_ambiguities(...)@endlink for details.
- *
  * This is merely a wrapper function that takes a SequenceSet instead of a SequenceCounts object.
  */
 std::string consensus_sequence_with_ambiguities(
@@ -413,15 +415,216 @@ std::string consensus_sequence_with_ambiguities(
 //     Threshold
 // =================================================================================================
 
+/**
+ * @brief Calculate a consensus sequence where the character frequency needs to be above a given
+ * threshold, for nucleic acid codes `ACGT`.
+ *
+ * The function calculates a consensus sequence for nucleic acid codes (`ACGT`). It uses the
+ * frequency of characters at each site to determine the consensus. The requency is relative to the
+ * total number of counts at that site, thus, it is a value in the range `[ 0.0, 1.0 ]`.
+ *
+ * If the frequency of a character at a site is above the given `frequency_threshold`, it is used
+ * for the consensus. If not, the resulting character depends on `use_ambiguities`.
+ * If `use_ambiguities` is set to `true` (default), the ambiguity code for all characters which
+ * occur at that site is used.
+ * For example, let `frequency_threshold == 0.9`, <code>count('A') == 42</code> and
+ * <code>count('T') == 42</code>, and both other counts be 0. Then, neither `A` nor `T` have counts
+ * above the threshold, so the result is code `W == AT` at that site.
+ * If however `use_ambiguities` is `false`, the mask character `X` is used for sites that are below
+ *  the threshold.
+ *
+ * Furthermore, if `allow_gaps` is set to `true` (default), gaps are counted when determining the
+ * threshold and checking whether the frequency is above it. That is, gaps are then treated as just
+ * another character at the site. For sites that mostly contain gaps and the gap frequency is not
+ * below the threshold, a gap is used as consensus. If gaps and all other character are less
+ * frequent than the threshold, again the ambiguity code or mask char is used (depending on the
+ * value of `use_ambiguities`).
+ * If `allow_gaps` is `false`, however, gaps are not counted for determining the frequency of the
+ * other characters. This is similar to the counterpart in consensus_sequence_with_majorities().
+ * Solely sites that are gaps-only result in a gap char for the consensus then.
+ *
+ * For `frequency_threshold < 0.5`, it may happen that more than one character has a frequency
+ * above the threshold. In such cases, the most frequent character is used (or, if they have exaclty
+ * the same counts, they are used in the order `ACGT`).
+ * This is in line with the behaviour of consensus_sequence_with_majorities(). Usually, however,
+ * the threshold is above 0.5 anyway, as this gives more meaningful results. If you want to use
+ * ambiguity characters for low frequency characters, you can use
+ * consensus_sequence_with_ambiguities() instead.
+ *
+ * An extreme case is a `frequency_threshold` of 1.0. In this case, only sites where all characters
+ * are the same are used as-is in the consensus, while all other sites are turned into the
+ * ambiguity code of all occuring characters at that site. Thus, the function then behaves similar
+ * to consensus_sequence_with_ambiguities() with a `similarity_factor` of 0.0.
+ *
+ * The other extrem case is a `frequency_threshold` of 0.0. In this case, the function simply uses
+ * the most frequent character per site, as it always fulfills the threshold. As said above, if then
+ * more than one character has exactly the same frequency, they are used in the order `ACGT`, thus
+ * the function then behaves similar to consensus_sequence_with_majorities().
+ *
+ * Remark: As this function expects nucleic acid codes, the gap character is fixed to '-' here,
+ * and the mask character to 'X'.
+ * The ambiguity codes are converted using nucleic_acid_ambiguity_code(). See there for more
+ * information on the used codes.
+ *
+ * If the provided SequenceCounts object does not use nucleic acid codes, or if the
+ * `frequency_threshold` is not within the range `[ 0.0, 1.0 ]`, an exception is thrown.
+ */
 std::string consensus_sequence_with_threshold(
     SequenceCounts const& counts,
     double                frequency_threshold,
-    bool                  allow_gaps
+    bool                  allow_gaps,
+    bool                  use_ambiguities
 ) {
-    (void) counts;
-    (void) frequency_threshold;
-    (void) allow_gaps;
-    throw std::runtime_error( "Not yet implemented." );
+    // Check whether the counts object uses the needed character codes for this function.
+    // The characters in the counts object are sorted, so we can directly compare then like this.
+    if( counts.characters() != "ACGT" ) {
+        throw std::runtime_error(
+            "Computation of consensus_sequence_with_ambiguities() only possible "
+            "for nucleic acid codes (ACGT)."
+        );
+    }
+
+    // Check the frequency threshold.
+    if( frequency_threshold < 0.0 || frequency_threshold > 1.0 ) {
+        throw std::invalid_argument(
+            "Value of frequency_threshold has to be in range [ 0.0, 1.0 ]."
+        );
+    }
+
+    std::string result;
+    result.reserve( counts.length() );
+
+    // Prepare some constants for simplicity.
+    auto const chars     = counts.characters();
+    auto const seq_count = counts.added_sequences_count();
+    auto const num_chars = counts.characters().size();
+
+    // Use hard coded chars here, as we have fixed character codes anyway.
+    auto const gap_char  = '-';
+    auto const mask_char = 'X';
+
+    // We expect ACGT here.
+    assert( num_chars == 4 );
+
+    // Process all sites of the sequence.
+    for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
+
+        size_t                        max_pos    = 0;
+        SequenceCounts::CountsIntType max_val    = 0;
+        SequenceCounts::CountsIntType counts_sum = 0;
+
+        // Find the maximum frequent char.
+        for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
+            auto const char_count = counts.count_at( site_idx, char_idx );
+            counts_sum += char_count;
+
+            // We use a strict greater here, as this ensures to use the first character in cases
+            // where many have the same count.
+            if( char_count > max_val ) {
+                max_pos = char_idx;
+                max_val = char_count;
+            }
+        }
+
+        // If we want to allow gaps, add them as a special kind of char. We use `num_chars` as
+        // an indicater here that gaps are the most frequent chars at the site.
+        // We will later have to check this again, in order to give the right consensus char.
+        auto const gap_count = seq_count - counts_sum;
+        if( allow_gaps ) {
+            if( gap_count > max_val ) {
+                max_pos     = num_chars;
+                max_val     = gap_count;
+            }
+            counts_sum += gap_count;
+
+            // Now that we added gaps, the total sum matches the number of added sequences.
+            assert( counts_sum == seq_count );
+        }
+
+        // We can never have a max higher than the total sum of counts, and this again cannot be
+        // higher then the number of sequences that were added to the counts object.
+        assert( max_val    <= counts_sum );
+        assert( counts_sum <= seq_count  );
+
+        // Threshold check.
+        auto fraction = static_cast<double>( max_val ) / static_cast<double>( counts_sum );
+        if( fraction >= frequency_threshold ) {
+
+            // If we are above the threshold, use whatever is the most frequent char
+            // (taking care of gaps).
+            if( max_pos == num_chars ) {
+                result += gap_char;
+            } else {
+                result += chars[ max_pos ];
+            }
+        } else {
+
+            // If we are below the threshold, either use gap (if it is an all-gap site), or
+            // ambiguities for all occuring chars, or simply mask it.
+            if( gap_count == seq_count ) {
+
+                // This condition can only happen if we do not allow gaps. Otherwise, gaps would be
+                // the most frequent chars (100%), so that we would have ended up in the
+                // "above threshold" part. Only exception: empty counts object. So, assert this!
+                assert( ! allow_gaps || seq_count == 0 );
+                result += gap_char;
+
+            } else if( use_ambiguities ) {
+
+                // Need to go through the counts one more time and collect occuring chars.
+                std::string ambiguity_codes;
+                for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
+                    if( counts.count_at( site_idx, char_idx ) > 0 ) {
+                        ambiguity_codes += chars[ char_idx ];
+                    }
+                }
+                result += nucleic_acid_ambiguity_code( ambiguity_codes );
+
+            } else {
+                result += mask_char;
+            }
+        }
+    }
+
+    return result;
+}
+
+/**
+ * @brief Calculate a consensus sequence where the character frequency needs to be above a given
+ * threshold, for nucleic acid codes `ACGT`.
+ *
+ * See @link consensus_sequence_with_threshold( SequenceCounts const&, double, bool, bool )
+ * consensus_sequence_with_ambiguities(...)@endlink for details.
+ * This is merely a wrapper function that takes a SequenceSet instead of a SequenceCounts object.
+ */
+std::string consensus_sequence_with_threshold(
+    SequenceSet const&    sequences,
+    double                frequency_threshold,
+    bool                  allow_gaps,
+    bool                  use_ambiguities
+) {
+    // Basic checks.
+    if( sequences.size() == 0 ) {
+        throw std::runtime_error( "Cannot caluclate consensus sequence of empty SequenceSet." );
+    }
+    if( ! is_alignment( sequences ) ) {
+        throw std::runtime_error(
+            "Cannot caluclate consensus sequence for SequenceSet that is not an alignment. "
+            "That is, all Sequences need to have the same length."
+        );
+    }
+
+    // Build counts object.
+    auto counts = SequenceCounts( nucleic_acid_codes_plain(), sequences[0].size() );
+    counts.add_sequences( sequences );
+
+    // Return consensus sequence.
+    return consensus_sequence_with_threshold(
+        counts,
+        frequency_threshold,
+        allow_gaps,
+        use_ambiguities
+     );
 }
 
 } // namespace sequence
