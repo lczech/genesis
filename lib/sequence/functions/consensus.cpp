@@ -28,12 +28,13 @@
  * @ingroup sequence
  */
 
-#include "sequence/functions/counts.hpp"
+#include "sequence/functions/consensus.hpp"
 
 #include "sequence/counts.hpp"
 #include "sequence/sequence_set.hpp"
 #include "sequence/sequence.hpp"
 #include "sequence/functions/codes.hpp"
+#include "sequence/functions/functions.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -45,7 +46,7 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
-//     Consensus
+//     Majority
 // =================================================================================================
 
 /**
@@ -74,7 +75,7 @@ namespace sequence {
  *
  * For an alternative version of this function that takes those ambiguities into account, see
  * consensus_sequence_with_ambiguities(). Also, for a version of this function that takes a
- * threshold for the character frequency into account, see consensus_sequence_with_threshold().
+ * threshold for the character frequencies into account, see consensus_sequence_with_threshold().
  * However, both of them currently only work for nucleic acid codes (`ACGT`).
  */
 std::string consensus_sequence_with_majorities(
@@ -126,34 +127,100 @@ std::string consensus_sequence_with_majorities(
 }
 
 /**
- * @brief Calculate a consensus sequence by using the the most frequent characters at each site.
+ * @brief Calculate the majority rule consensus sequence by using the most frequent character at
+ * each site.
+ *
+ * See @link consensus_sequence_with_majorities( SequenceCounts const&, bool, char )
+ * consensus_sequence_with_majorities(...)@endlink for details.
+ *
+ * This function is merely a wrapper that instead of a SequenceCount objects, takes a SequenceSet
+ * object and the set of characters to be used for counting character frequencies in the Sequence%s.
+ * That means, only the provided characters are counted and used for the consensus sequence.
+ * This is useful in order to get rid of errors and noise in the Sequence%s. For example, if you
+ * want to build a consensus sequence for a set of sequences with amino acid codes, use
+ * amino_acid_codes_plain() for set `characters` parameter.
+ */
+std::string consensus_sequence_with_majorities(
+    SequenceSet const&    sequences,
+    std::string const&    characters,
+    bool                  allow_gaps,
+    char                  gap_char
+) {
+    // Basic checks.
+    if( sequences.size() == 0 ) {
+        throw std::runtime_error( "Cannot caluclate consensus sequence of empty SequenceSet." );
+    }
+    if( ! is_alignment( sequences ) ) {
+        throw std::runtime_error(
+            "Cannot caluclate consensus sequence for SequenceSet that is not an alignment. "
+            "That is, all Sequences need to have the same length."
+        );
+    }
+
+    // Build counts object.
+    auto counts = SequenceCounts( characters, sequences[0].size() );
+    counts.add_sequences( sequences );
+
+    // Return consensus sequence.
+    return consensus_sequence_with_majorities( counts, allow_gaps, gap_char );
+}
+
+/**
+ * @brief Calculate the majority rule consensus sequence by using the most frequent character at
+ * each site for nucleic acid codes `ACGT`.
+ *
+ * See @link consensus_sequence_with_majorities( SequenceCounts const&, bool, char )
+ * consensus_sequence_with_majorities(...)@endlink for details.
+ *
+ * This function is merely a wrapper that instead of a SequenceCount objects, takes a SequenceSet
+ * object consisting of Sequence%s with nucleic acid codes `ACGT` and uses '-' for gaps.
+ */
+std::string consensus_sequence_with_majorities(
+    SequenceSet const&    sequences,
+    bool                  allow_gaps
+) {
+    return consensus_sequence_with_majorities(
+        sequences,
+        nucleic_acid_codes_plain(),
+        allow_gaps,
+        '-'
+    );
+}
+
+// =================================================================================================
+//     Ambiguity
+// =================================================================================================
+
+/**
+ * @brief Calculate a consensus sequence by using the most frequent characters at each site,
+ * for nucleic acid codes `ACGT` and their ambiguities.
  *
  * The function calculates a consensus sequence for nucleic acid codes (`ACGT`), using their
  * ambiguity codes (e.g., `W` for "weak" == `AT`) if the counts (i.e., character frequencies) are
- * similar at a site. It uses `allowed_deviation` to decide which counts are close enough to each
+ * similar at a site. It uses `similarity_factor` to decide which counts are close enough to each
  * other in order to be consiered ambiguous.
  *
- * For example, with `allowed_deviation == 0.0`, only exact matches are used, that is, if two
+ * For example, with `similarity_factor == 1.0`, only exact matches are used, that is, if two
  * counts are exactly the same. Let `count('A') == 42` and `count('T') == 42`, and both other
  * counts be 0, this results in the code `W` at that site. If however `count('T') == 41`, only `A`
- * is used for the site. Thus, with `allowed_deviation == 0.0`, this function behaves very similar
+ * is used for the site. Thus, with `similarity_factor == 1.0`, this function behaves very similar
  * to consensus_sequence_with_majorities(), except in cases were two counts are exaclty the same.
  *
- * On the other hand, with `allowed_deviation == 1.0`, all codes that are present at a site are
+ * On the other hand, with `similarity_factor == 0.0`, all codes that are present at a site are
  * considered to be ambiguous. That is, if a site contains counts `> 0` for `A`, `G` and `T`, the
  * resulting site gets the code `D` (not C).
  *
- * For intermediate values, e.g., the default `0.1`, the value is used as a threshold to decide
+ * For intermediate values, e.g., the default `0.9`, the value is used as a threshold to decide
  * the ambiguities. For example, let `count('A') == 42` and `count('T') == 38`, and both other
- * counts be 0. Then, the allowed deviation from the maximum 42 is `42 - 0.1 * 42 = 37.8`. Thus,
+ * counts be 0. Then, the allowed deviation from the maximum 42 is `0.9 * 42 = 37.8`. Thus,
  * as the count for `T` is above this value, those two codes are considered ambiguous, resulting
- * in a `W` at that site. We call this threshold the allowed deviation range.
+ * in a `W` at that site.
  *
  * The optional parameter `allow_gaps` (default is `true`) behaves similar to its counterpart in
  * consensus_sequence_with_majorities(). If set to `true`, the count of the gap character is also
- * considered. If then the count of no character is within the deviation range of the gap count, the
- * result contains a gap at that site. If however there are codes within the range, those are used
- * instead, even if gaps are more frequent.
+ * considered. If then the count of no character is within the similarity range of the gap count,
+ * the result contains a gap at that site. If however there are codes within the range (i.e., above
+ * `similarity_factor * max_count`), those are used instead, even if gaps are more frequent.
  *
  * If `allow_gaps` is set to `false` instead, gaps are not considered. That means, the ambiguities
  * are calculated as if there were no gaps. So even if a site contains mostly gaps, but only a few
@@ -164,11 +231,11 @@ std::string consensus_sequence_with_majorities(
  * information on the used codes.
  *
  * If the provided SequenceCounts object does not use nucleic acid codes, or if the
- * `allowed_deviation` is not within the range `[ 0.0, 1.0 ]`, an exception is thrown.
+ * `similarity_factor` is not within the range `[ 0.0, 1.0 ]`, an exception is thrown.
  */
 std::string consensus_sequence_with_ambiguities(
     SequenceCounts const& counts,
-    double                allowed_deviation,
+    double                similarity_factor,
     bool                  allow_gaps
 ) {
     // Check whether the counts object uses the needed character codes for this function.
@@ -181,9 +248,9 @@ std::string consensus_sequence_with_ambiguities(
     }
 
     // Check the deviation range.
-    if( allowed_deviation < 0.0 || allowed_deviation > 1.0 ) {
+    if( similarity_factor < 0.0 || similarity_factor > 1.0 ) {
         throw std::invalid_argument(
-            "Value of allowed_deviation has to be in range [ 0.0, 1.0 ]."
+            "Value of similarity_factor has to be in range [ 0.0, 1.0 ]."
         );
     }
 
@@ -264,7 +331,7 @@ std::string consensus_sequence_with_ambiguities(
             }
 
             // Every character that has at least this count is added to the ambiguity.
-            auto const deviation_threshold = ( 1.0 - allowed_deviation )
+            auto const deviation_threshold = similarity_factor
                                            * static_cast<double>( counts_map[0].first );
 
             // Compare the less frequent codes to the most frequent one and
@@ -274,7 +341,7 @@ std::string consensus_sequence_with_ambiguities(
 
                 // If the count is within the deviation range (and not a gap), add it.
                 // We also avoid zero counts, as this leads to wrong results with an
-                // allowed_deviation of 1.0. It would then just add all, ending up with all "N"s,
+                // similarity_factor of 0.0. It would then just add all, ending up with all "N"s,
                 // instead of just all codes that appear in the sequence.
                 if( cur_count > 0.0 && cur_count >= deviation_threshold ) {
                     if( counts_map[i].second != gap_char ) {
@@ -309,6 +376,43 @@ std::string consensus_sequence_with_ambiguities(
     return result;
 }
 
+/**
+ * @brief Calculate a consensus sequence by using the most frequent characters at each site,
+ * for nucleic acid codes `ACGT` and their ambiguities.
+ *
+ * See @link consensus_sequence_with_ambiguities( SequenceCounts const&, double, bool )
+ * consensus_sequence_with_ambiguities(...)@endlink for details.
+ *
+ * This is merely a wrapper function that takes a SequenceSet instead of a SequenceCounts object.
+ */
+std::string consensus_sequence_with_ambiguities(
+    SequenceSet const&    sequences,
+    double                similarity_factor,
+    bool                  allow_gaps
+) {
+    // Basic checks.
+    if( sequences.size() == 0 ) {
+        throw std::runtime_error( "Cannot caluclate consensus sequence of empty SequenceSet." );
+    }
+    if( ! is_alignment( sequences ) ) {
+        throw std::runtime_error(
+            "Cannot caluclate consensus sequence for SequenceSet that is not an alignment. "
+            "That is, all Sequences need to have the same length."
+        );
+    }
+
+    // Build counts object.
+    auto counts = SequenceCounts( nucleic_acid_codes_plain(), sequences[0].size() );
+    counts.add_sequences( sequences );
+
+    // Return consensus sequence.
+    return consensus_sequence_with_ambiguities( counts, similarity_factor, allow_gaps );
+}
+
+// =================================================================================================
+//     Threshold
+// =================================================================================================
+
 std::string consensus_sequence_with_threshold(
     SequenceCounts const& counts,
     double                frequency_threshold,
@@ -318,191 +422,6 @@ std::string consensus_sequence_with_threshold(
     (void) frequency_threshold;
     (void) allow_gaps;
     throw std::runtime_error( "Not yet implemented." );
-}
-
-// =================================================================================================
-//     Entropy
-// =================================================================================================
-
-/**
- * @brief Calculate the entropy at one site of a SequenceCounts object.
- *
- * The entropy \f$ H \f$ (uncertainty) at site \f$ i \f$ (= `site_idx`) is calculated as
- * \f$ H_{i}=-\sum f_{{c,i}}\times \log _{2}f_{{c,i}} \f$, where
- * \f$ f_{c,i} \f$ is the relative frequency of character \f$ c \f$ at site \f$ i \f$, summed
- * over all characters in the SequenceCounts object.
- *
- * The function additionally takes optional flags to refine the calculation, see
- * ::SiteEntropyOptions for their explanation.
- */
-double site_entropy(
-    SequenceCounts const& counts,
-    size_t                site_idx,
-    SiteEntropyOptions    options
-) {
-    if( site_idx >= counts.length() ) {
-        throw std::runtime_error(
-            "Invalid site index for calculating site entropy: " + std::to_string( site_idx ) + "."
-        );
-    }
-
-    // Prepare some constants (speedup).
-    auto const ln_2      = log( 2.0 );
-    auto const num_seqs  = static_cast<double>( counts.added_sequences_count() );
-    auto const num_chars = counts.characters().size();
-
-    // Results: we add up the entropy and the number of counts that we have seen in total.
-    double entropy = 0.0;
-    SequenceCounts::CountsIntType counts_sum = 0;
-
-    // Accumulate entropy and total counts for the site.
-    for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
-        auto char_count = counts.count_at( site_idx, char_idx );
-        counts_sum += char_count;
-
-        double char_prob = static_cast<double>( char_count ) / num_seqs;
-        if( char_prob > 0.0 ) {
-            entropy -= char_prob * log( char_prob ) / ln_2;
-        }
-    }
-
-    // If we want to include gaps, add the entropy for the gap probability.
-    if( options & SiteEntropyOptions::kIncludeGaps ) {
-        assert( counts_sum <= num_seqs );
-        double gap_prob = 1.0 - ( static_cast<double>( counts_sum ) / num_seqs );
-        if( gap_prob > 0.0 ) {
-            entropy -= gap_prob * log( gap_prob ) / ln_2;
-        }
-    }
-
-    // If we want to weight using the determined characters, use their proportion as a factor.
-    if( options & SiteEntropyOptions::kWeighted ) {
-        entropy *= ( static_cast<double>( counts_sum ) / num_seqs );
-    }
-
-    // If we want to normalize, calculate the H_max for the used number of characters.
-    if( options & SiteEntropyOptions::kNormalized ) {
-        double hmax = 1.0;
-        if( options & SiteEntropyOptions::kIncludeGaps ) {
-            hmax = log( static_cast<double>( num_chars + 1 )) / ln_2;
-        } else {
-            hmax = log( static_cast<double>( num_chars )) / ln_2;
-        }
-        return entropy / hmax;
-
-    } else {
-        return entropy;
-    }
-}
-
-/**
- * @brief Calculate the information content at one site of a SequenceCounts object.
- *
- * The information content \f$ R \f$ at site \f$ i \f$ (= `site_index`) is calculated as
- * \f$ R_{i} = \log_{2}( s ) - (H_{i}+e_{n}) \f$.
- *
- * Here, \f$ s \f$ is the number of possible characters in the sequences
- * (usually, 4 for nucleic acids and 20 for amino acids), which is taken from the
- * @link SequenceCounts::characters() characters()@endlink used in the SequenceCounts object.
- * Furthermore, \f$ H_{i} \f$ is the site_entropy() at the given site.
- *
- * The optional term \f$ e_{n} \f$ is the small-sample correction, calculated as
- * \f$ e_{n}={\frac{1}{\ln {2}}}\times {\frac{s-1}{2n}} \f$, with \f$ n \f$ being the
- * @link SequenceCounts::added_sequences_count() number of sequences@endlink. It is only used if
- * `use_small_sample_correction` is set to `true` (default is `false`).
- *
- * The function additionally takes optional flags to refine the site entropy calculation,
- * see ::SiteEntropyOptions for their explanation.
- */
-double site_information(
-    SequenceCounts const& counts,
-    size_t                site_index,
-    bool                  use_small_sample_correction,
-    SiteEntropyOptions    options
-) {
-    // Max possible entropy for the given number of characters in the counts object.
-    auto const num_chars = static_cast<double>( counts.characters().size() );
-    auto const log_num   = log( num_chars ) / log( 2.0 );
-
-    // Small sample correction.
-    double e = 0.0;
-    if( use_small_sample_correction ) {
-        // Approximation for the small-sample correction, according to
-        // https://en.wikipedia.org/wiki/Sequence_logo
-        e = ( 1.0 / log( 2.0 ) ) * (( num_chars - 1.0 ) / ( 2.0 * counts.added_sequences_count() ));
-    }
-
-    // Result, using the entropy.
-    return log_num - site_entropy( counts, site_index, options ) - e;
-}
-
-/**
- * @brief Return the sum of all site entropies.
- *
- * This function simply sums up up the site_entropy() for all sites of the SequenceCount object.
- * The function additionally takes optional flags to refine the site entropy calculation,
- * see ::SiteEntropyOptions for their explanation.
- */
-double absolute_entropy(
-    SequenceCounts const& counts,
-    SiteEntropyOptions    per_site_options
-) {
-    double sum = 0.0;
-    for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
-        sum += site_entropy( counts, site_idx, per_site_options );
-    }
-    return sum;
-}
-
-/**
- * @brief Return the averaged sum of all site entropies.
- *
- * This function sums up up the site_entropy() for all sites of the SequenceCount object and
- * returns the average result per site.
- *
- * If `only_determined_sites` is `false` (default), the average is calculated using the total
- * number of sites, that is, it simply calculates the average entropy per site.
- *
- * If `only_determined_sites` is `true`, the average is calculated using the number of determined
- * sites only; that is, sites that only contain zeroes in all counts are skipped.
- * Those sites do not contribute entropy anyway. Thus, it calcuates the average entropy per
- * determiend site.
- *
- * The function additionally takes optional flags to refine the site entropy calculation,
- * see ::SiteEntropyOptions for their explanation.
- */
-double averaged_entropy(
-    SequenceCounts const& counts,
-    bool                  only_determined_sites,
-    SiteEntropyOptions    per_site_options
-) {
-    // Counters.
-    double sum = 0.0;
-    size_t determined_sites = 0;
-
-    // Consts for speedup.
-    auto const num_chars = counts.characters().size();
-
-    for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
-        sum += site_entropy( counts, site_idx, per_site_options );
-
-        // Count determined sites.
-        if( only_determined_sites ) {
-            bool det = false;
-            for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
-                det |= ( counts.count_at( site_idx, char_idx ) > 0 );
-            }
-            if( det ) {
-                ++determined_sites;
-            }
-        }
-    }
-
-    if( only_determined_sites ) {
-        return sum / static_cast<double>( determined_sites );
-    } else {
-        return sum / static_cast<double>( counts.length() );
-    }
 }
 
 } // namespace sequence

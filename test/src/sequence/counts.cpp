@@ -32,7 +32,8 @@
 
 #include "lib/sequence/counts.hpp"
 #include "lib/sequence/formats/phylip_reader.hpp"
-#include "lib/sequence/functions/counts.hpp"
+#include "lib/sequence/functions/consensus.hpp"
+#include "lib/sequence/functions/entropy.hpp"
 #include "lib/sequence/sequence_set.hpp"
 #include "lib/sequence/sequence.hpp"
 
@@ -110,11 +111,11 @@ TEST( Sequence, ConsensusAmbiguity )
     // Manually calculated correct sequences.
     EXPECT_EQ(
         "AARCCYTGGCCGTTCAGGGTAAACCGTGGCCGGKCAGGGTAT",
-        consensus_sequence_with_ambiguities( counts, 0.0 )
+        consensus_sequence_with_ambiguities( counts, 1.0 )
     );
     EXPECT_EQ(
         "AARCCYTGGCCGTTCAGGGTAAACCGTGGCCGGKCAGGGTAT",
-        consensus_sequence_with_ambiguities( counts, 0.25 )
+        consensus_sequence_with_ambiguities( counts, 0.75 )
     );
     EXPECT_EQ(
         "AAVCCYTKGCMGTTMMGSKTRARCCNTGGCCGKDMMGSKTAW",
@@ -122,24 +123,24 @@ TEST( Sequence, ConsensusAmbiguity )
     );
     EXPECT_EQ(
         "AMVSBYKKGCMKKKMMGSKTRMRSSNDKGCMRKDMMVSKYAW",
-        consensus_sequence_with_ambiguities( counts, 1.0 )
+        consensus_sequence_with_ambiguities( counts, 0.0 )
     );
 
     // Some edge cases: zero sequences.
     auto counts_2 = SequenceCounts( "ACGT", 5 );
-    EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 0.0 ));
     EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 1.0 ));
+    EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 0.0 ));
 
     // One sequence.
     counts_2.add_sequence( "-ACGT" );
-    EXPECT_EQ( "-ACGT", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
     EXPECT_EQ( "-ACGT", consensus_sequence_with_ambiguities( counts_2, 1.0, true ));
+    EXPECT_EQ( "-ACGT", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
 
     // More.
     counts_2.add_sequence( "-ACCT" );
     counts_2.add_sequence( "ACCT-" );
-    EXPECT_EQ( "-ACBT", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
-    EXPECT_EQ( "AMCBT", consensus_sequence_with_ambiguities( counts_2, 1.0, true ));
-    EXPECT_EQ( "AACBT", consensus_sequence_with_ambiguities( counts_2, 0.0, false ));
-    EXPECT_EQ( "AMCBT", consensus_sequence_with_ambiguities( counts_2, 1.0, false ));
+    EXPECT_EQ( "-ACBT", consensus_sequence_with_ambiguities( counts_2, 1.0, true ));
+    EXPECT_EQ( "AMCBT", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
+    EXPECT_EQ( "AACBT", consensus_sequence_with_ambiguities( counts_2, 1.0, false ));
+    EXPECT_EQ( "AMCBT", consensus_sequence_with_ambiguities( counts_2, 0.0, false ));
 }
