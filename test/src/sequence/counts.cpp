@@ -32,7 +32,8 @@
 
 #include "lib/sequence/counts.hpp"
 #include "lib/sequence/formats/phylip_reader.hpp"
-#include "lib/sequence/functions/counts.hpp"
+#include "lib/sequence/functions/consensus.hpp"
+#include "lib/sequence/functions/entropy.hpp"
 #include "lib/sequence/sequence_set.hpp"
 #include "lib/sequence/sequence.hpp"
 
@@ -68,7 +69,7 @@ TEST( Sequence, Entropy )
     EXPECT_EQ( "AAAA", consensus_sequence_with_majorities( counts ));
 }
 
-TEST( Sequence, Consensus )
+TEST( Sequence, ConsensusMajority )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -86,7 +87,113 @@ TEST( Sequence, Consensus )
 
     // Correct sequence calculated with Seaview.
     EXPECT_EQ(
-        "AAACCCTGGCCGTTCAGGGTAAACCGTGGCCGGGCAGGGTAT", 
+        "AAACCCTGGCCGTTCAGGGTAAACCGTGGCCGGGCAGGGTAT",
         consensus_sequence_with_majorities( counts )
     );
+}
+
+TEST( Sequence, ConsensusAmbiguity )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/dna_5_42_s.phylip";
+    SequenceSet sset;
+    PhylipReader()
+        .label_length( 10 )
+        .from_file(infile, sset);
+
+    // Create counts object.
+    auto counts = SequenceCounts( "ACGT", 42 );
+    counts.add_sequences( sset );
+
+    // Manually calculated correct sequences.
+    EXPECT_EQ(
+        "AARCCYTGGCCGTTCAGGGTAAACCGTGGCCGGKCAGGGTAT",
+        consensus_sequence_with_ambiguities( counts, 1.0 )
+    );
+    EXPECT_EQ(
+        "AARCCYTGGCCGTTCAGGGTAAACCGTGGCCGGKCAGGGTAT",
+        consensus_sequence_with_ambiguities( counts, 0.75 )
+    );
+    EXPECT_EQ(
+        "AAVCCYTKGCMGTTMMGSKTRARCCNTGGCCGKDMMGSKTAW",
+        consensus_sequence_with_ambiguities( counts, 0.5 )
+    );
+    EXPECT_EQ(
+        "AMVSBYKKGCMKKKMMGSKTRMRSSNDKGCMRKDMMVSKYAW",
+        consensus_sequence_with_ambiguities( counts, 0.0 )
+    );
+
+    // Some edge cases: zero sequences.
+    auto counts_2 = SequenceCounts( "ACGT", 5 );
+    EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 1.0 ));
+    EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 0.0 ));
+
+    // One sequence.
+    counts_2.add_sequence( "-ACGT" );
+    EXPECT_EQ( "-ACGT", consensus_sequence_with_ambiguities( counts_2, 1.0, true ));
+    EXPECT_EQ( "-ACGT", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
+
+    // More.
+    counts_2.add_sequence( "-ACCT" );
+    counts_2.add_sequence( "ACCT-" );
+    EXPECT_EQ( "-ACBT", consensus_sequence_with_ambiguities( counts_2, 1.0, true ));
+    EXPECT_EQ( "AMCBT", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
+    EXPECT_EQ( "AACBT", consensus_sequence_with_ambiguities( counts_2, 1.0, false ));
+    EXPECT_EQ( "AMCBT", consensus_sequence_with_ambiguities( counts_2, 0.0, false ));
+}
+
+TEST( Sequence, ConsensusThreshold )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/dna_5_42_s.phylip";
+    SequenceSet sset;
+    PhylipReader()
+        .label_length( 10 )
+        .from_file(infile, sset);
+
+    // Create counts object.
+    auto counts = SequenceCounts( "ACGT", 42 );
+    counts.add_sequences( sset );
+
+    // Manually calculated correct sequences.
+    EXPECT_EQ(
+        "AMVSBYKKGCMKKKMMGSKTRMRSSNDKGCMRKDMMVSKYAW",
+        consensus_sequence_with_threshold( counts, 1.0 )
+    );
+    EXPECT_EQ(
+        "AAVCBYTKGCMGTTMMGSKTRARCCNDGGCCGKDMMVSKTAW",
+        consensus_sequence_with_threshold( counts, 0.75 )
+    );
+    EXPECT_EQ(
+        "AAVCCYTGGCCGTTCAGGGTAAACCNTGGCCGGDCAGGGTAT",
+        consensus_sequence_with_threshold( counts, 0.5 )
+    );
+    EXPECT_EQ(
+        "AAACCCTGGCCGTTCAGGGTAAACCGTGGCCGGGCAGGGTAT",
+        consensus_sequence_with_threshold( counts, 0.0 )
+    );
+
+    // Some edge cases: zero sequences.
+    auto counts_2 = SequenceCounts( "ACGT", 5 );
+    EXPECT_EQ( "-----", consensus_sequence_with_threshold( counts_2, 1.0 ));
+    EXPECT_EQ( "-----", consensus_sequence_with_threshold( counts_2, 0.0 ));
+
+    // One sequence.
+    counts_2.add_sequence( "-ACGT" );
+    EXPECT_EQ( "-ACGT", consensus_sequence_with_threshold( counts_2, 1.0, true ));
+    EXPECT_EQ( "-ACGT", consensus_sequence_with_threshold( counts_2, 0.0, true ));
+
+    // More.
+    counts_2.add_sequence( "-ACCT" );
+    counts_2.add_sequence( "ACCT-" );
+    EXPECT_EQ( "AMCBT", consensus_sequence_with_threshold( counts_2, 1.0, true ));
+    EXPECT_EQ( "-ACCT", consensus_sequence_with_threshold( counts_2, 0.0, true ));
+    EXPECT_EQ( "AMCBT", consensus_sequence_with_threshold( counts_2, 1.0, false ));
+    EXPECT_EQ( "AACCT", consensus_sequence_with_threshold( counts_2, 0.0, false ));
 }

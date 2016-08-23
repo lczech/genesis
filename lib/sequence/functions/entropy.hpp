@@ -1,5 +1,5 @@
-#ifndef GENESIS_SEQUENCE_FUNCTIONS_COUNTS_H_
-#define GENESIS_SEQUENCE_FUNCTIONS_COUNTS_H_
+#ifndef GENESIS_SEQUENCE_FUNCTIONS_ENTROPY_H_
+#define GENESIS_SEQUENCE_FUNCTIONS_ENTROPY_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,7 +31,7 @@
  * @ingroup sequence
  */
 
-#include <cstddef> // size_t
+#include <cstddef>     // size_t
 #include <type_traits> // underlying_type_t
 #include <string>
 
@@ -45,16 +45,6 @@ namespace sequence {
 class Sequence;
 class SequenceCounts;
 class SequenceSet;
-
-// =================================================================================================
-//     Consensus
-// =================================================================================================
-
-std::string consensus_sequence_with_majorities(
-    SequenceCounts const& counts,
-    bool                  allow_gaps = true,
-    char                  gap_char   = '-'
-);
 
 // =================================================================================================
 //     Entropy

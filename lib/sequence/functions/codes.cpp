@@ -468,25 +468,25 @@ std::string nucleic_acid_ambiguities( char code )
  *
  * The codes are resolved as follows:
  *
- *     "A" ==> 'A'
- *     "C" ==> 'C'
- *     "G" ==> 'G'
- *     "T" ==> 'T'
+ *     "A"    ==> 'A'
+ *     "C"    ==> 'C'
+ *     "G"    ==> 'G'
+ *     "T"    ==> 'T'
  *
- *     "AT" ==> 'W'
- *     "CG" ==> 'S'
- *     "AC" ==> 'M'
- *     "GT" ==> 'K'
- *     "AG" ==> 'R'
- *     "CT" ==> 'Y'
+ *     "AT"   ==> 'W'
+ *     "CG"   ==> 'S'
+ *     "AC"   ==> 'M'
+ *     "GT"   ==> 'K'
+ *     "AG"   ==> 'R'
+ *     "CT"   ==> 'Y'
  *
- *     "CGT" ==> 'B'
- *     "AGT" ==> 'D'
- *     "ACT" ==> 'H'
- *     "ACG" ==> 'V'
+ *     "CGT"  ==> 'B'
+ *     "AGT"  ==> 'D'
+ *     "ACT"  ==> 'H'
+ *     "ACG"  ==> 'V'
  *
  *     "ACGT" ==> 'N'
- *     "-" ==> '-'
+ *     "-"    ==> '-'
  *
  * The given codes are treated case-insensitive and order-independent. For example, given `"tCgG"`,
  * the function still returns `'B'`. However, if any of the given codes is not valid, an

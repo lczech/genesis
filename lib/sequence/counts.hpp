@@ -34,10 +34,8 @@
 #include "utils/math/matrix.hpp"
 #include "utils/tools/char_lookup.hpp"
 
-#include <array>
 #include <cstdint>
 #include <string>
-#include <vector>
 
 namespace genesis {
 namespace sequence {

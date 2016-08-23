@@ -47,8 +47,14 @@ namespace utils {
  *
  * The implementation is based on the Succinct RMQ implementation
  * (https://www.bio.ifi.lmu.de/forschung/succinct/#software) by Johanens Fischer, with the author's
- * explicit permission to use this code here. Most of the implementation is used as-is,
- * with only some minor changes to the data types in order to make it work with genesis.
+ * explicit permission to use this code here. Most of the implementation is used as-is.
+ *
+ * We added some convenience by introducing the ability to use data with only a few elements.
+ * The original code expected input data with > 100 elements.
+ * Furthermore, we adapted the code to C++11, by replacing manually allocated data (`new ...`) with
+ * `std::vector` and utils::Matrix, and by replacing C-style casts with proper C++-casts.
+ * The functions, variables and typedefs were renamed and the code reformatted in order to fit our
+ * code guidelines.
  */
 class RangeMinimumQuery
 {
