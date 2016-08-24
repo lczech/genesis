@@ -191,5 +191,33 @@ void SequenceCounts::add_sequences( SequenceSet const& sequences )
     }
 }
 
+/**
+ * @brief Clear the object, that is, delete everything.
+ *
+ * This function sets the object status to the same that the
+ * @link SequenceCounts() default constructor@endlink gives. Thus, it is not usable any more.
+ * It is mainly intended to save memory when many objects are needed.
+ *
+ * For an alternative function that simply resets the counts to zero, see clear_counts().
+ */
+void SequenceCounts::clear()
+{
+    characters_ = "";
+    lookup_.set_all( 0 );
+    counts_ = utils::Matrix< CountsIntType >();
+    num_seqs_ = 0;
+}
+
+/**
+ * @brief Reset all counts to 0.
+ */
+void SequenceCounts::clear_counts()
+{
+    for( auto& e : counts_ ) {
+        e = 0;
+    }
+    num_seqs_ = 0;
+}
+
 } // namespace sequence
 } // namespace genesis
