@@ -32,6 +32,10 @@
  */
 
 #include "taxonomy/taxonomy.hpp"
+#include "taxonomy/taxon_data.hpp"
+
+#include <memory>
+#include <string>
 
 namespace genesis {
 namespace taxonomy {
@@ -106,6 +110,41 @@ public:
     Taxon*       parent ();
 
     // -------------------------------------------------------------------------
+    //     Data
+    // -------------------------------------------------------------------------
+
+    bool has_data() const;
+
+    template< class TaxonDataType >
+    TaxonDataType& data()
+    {
+        return dynamic_cast< TaxonDataType& >( *data_ );
+    }
+
+    template< class TaxonDataType >
+    TaxonDataType const& data() const
+    {
+        return dynamic_cast< TaxonDataType const& >( *data_ );
+    }
+
+    template< class TaxonDataType >
+    TaxonDataType* data_cast()
+    {
+        return dynamic_cast< TaxonDataType* >( data_.get() );
+    }
+
+    template< class TaxonDataType >
+    TaxonDataType const* data_cast() const
+    {
+        return dynamic_cast< TaxonDataType const* >( data_.get() );
+    }
+
+    BaseTaxonData*       data_ptr();
+    BaseTaxonData const* data_ptr() const;
+
+    Taxon& reset_data( std::unique_ptr< BaseTaxonData > data );
+
+    // -------------------------------------------------------------------------
     //     Protected Implementation Details
     // -------------------------------------------------------------------------
 
@@ -123,6 +162,9 @@ private:
     std::string rank_;
 
     Taxon*      parent_;
+
+    std::unique_ptr< BaseTaxonData > data_;
+
 };
 
 } // namespace taxonomy

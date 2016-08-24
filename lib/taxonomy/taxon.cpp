@@ -48,6 +48,7 @@ Taxon::Taxon()
     , name_()
     , rank_()
     , parent_( nullptr )
+    , data_( nullptr )
 {}
 
 /**
@@ -58,13 +59,14 @@ Taxon::Taxon( std::string const& name )
     , name_( name )
     , rank_()
     , parent_( nullptr )
+    , data_( nullptr )
 {}
 
 /**
  * @brief Copy constructor.
  *
  * We need a custom version of this in order to set the Taxon::parent() pointers of all children
- * correctly when copying.
+ * correctly when copying and to copy the data.
  *
  * Copying first sets the parent() pointer to `nullptr`. This is because we might want to get a
  * 'blank' copy, i.e., a Taxon that is not attached to a Taxonomy. This way, the functions
@@ -79,6 +81,9 @@ Taxon::Taxon( Taxon const& other )
     , rank_( other.rank_ )
     , parent_( nullptr )
 {
+    if( other.has_data() ) {
+        reset_data( other.data_->clone() );
+    }
     reset_parent_pointers_( this );
 }
 
@@ -86,13 +91,14 @@ Taxon::Taxon( Taxon const& other )
  * @brief Move constructor.
  *
  * We need a custom version of this in order to set the Taxon::parent() pointers of all children
- * correctly when copying.
+ * correctly, and to treat the data correctlty when copying.
  */
 Taxon::Taxon( Taxon&& other )
     : Taxonomy( std::move( other ))
     , name_(    std::move( other.name_ ))
     , rank_(    std::move( other.rank_ ))
     , parent_(  other.parent_ )
+    , data_(    std::move( other.data_ ))
 {
     reset_parent_pointers_( this );
 }
@@ -101,7 +107,7 @@ Taxon::Taxon( Taxon&& other )
  * @brief Copy assignment operator.
  *
  * We need a custom version of this in order to set the Taxon::parent() pointers of all children
- * correctly when copying.
+ * correctly, and to treat the data correctlty when copying.
  *
  * See the @link Taxon( Taxon const& other ) move constructor@endlink for details.
  */
@@ -111,6 +117,9 @@ Taxon& Taxon::operator= ( Taxon const& other )
     name_ = other.name_;
     rank_ = other.rank_;
     parent_ = nullptr;
+    if( other.has_data() ) {
+        reset_data( other.data_->clone() );
+    }
     reset_parent_pointers_( this );
     return *this;
 }
@@ -119,7 +128,7 @@ Taxon& Taxon::operator= ( Taxon const& other )
  * @brief Move assignment operator.
  *
  * We need a custom version of this in order to set the Taxon::parent() pointers of all children
- * correctly when copying.
+ * correctly, and to treat the data correctlty when copying.
  */
 Taxon& Taxon::operator= ( Taxon&& other )
 {
@@ -127,6 +136,7 @@ Taxon& Taxon::operator= ( Taxon&& other )
     name_ = std::move( other.name_ );
     rank_ = std::move( other.rank_ );
     parent_ = other.parent_;
+    data_ = std::move( other.data_ );
     reset_parent_pointers_( this );
     return *this;
 }
@@ -142,6 +152,7 @@ void swap( Taxon& lhs, Taxon& rhs )
     swap( lhs.name_,   rhs.name_ );
     swap( lhs.rank_,   rhs.rank_ );
     swap( lhs.parent_, rhs.parent_ );
+    swap( lhs.data_,   rhs.data_ );
 }
 
 // ================================================================================================
@@ -206,6 +217,54 @@ Taxon const* Taxon::parent () const
 Taxon* Taxon::parent ()
 {
     return parent_;
+}
+
+// ================================================================================================
+//     Data
+// ================================================================================================
+
+/**
+ * @brief Return `true` if the Taxon has a data object assigned to it.
+ */
+bool Taxon::has_data() const
+{
+    return data_.get() != nullptr;
+}
+
+/**
+ * @brief Return a pointer to the data.
+ *
+ * In most cases, using data<>() is more convenient. However, in some cases, this function
+ * might be necessary.
+ */
+BaseTaxonData* Taxon::data_ptr()
+{
+    return data_.get();
+}
+
+/**
+ * @brief Return a const pointer to the data.
+ *
+ * In most cases, using data<>() is more convenient. However, in some cases, this function
+ * might be necessary.
+ */
+BaseTaxonData const* Taxon::data_ptr() const
+{
+    return data_.get();
+}
+
+/**
+ * @brief Reset the data pointer of this Taxon.
+ *
+ * Using this function, a Taxon can be assigend new data. It is also possible to change the
+ * data type completely (as long as it derives from BaseTaxonData). Be however aware that many
+ * functions that work with a Taxonomy expect a certain data type. Thus, changing it might break
+ * those functions and lead to exceptions and other errors.
+ */
+Taxon& Taxon::reset_data( std::unique_ptr< BaseTaxonData > data )
+{
+    data_ = std::move( data );
+    return *this;
 }
 
 // ================================================================================================
