@@ -1,5 +1,5 @@
-#ifndef GENESIS_TAXONOMY_FORMATS_TAXSCRIPTOR_GENERATOR_H_
-#define GENESIS_TAXONOMY_FORMATS_TAXSCRIPTOR_GENERATOR_H_
+#ifndef GENESIS_TAXONOMY_FORMATS_TAXOPATH_GENERATOR_H_
+#define GENESIS_TAXONOMY_FORMATS_TAXOPATH_GENERATOR_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -42,19 +42,19 @@ namespace taxonomy {
 // =================================================================================================
 
 class Taxon;
-class Taxscriptor;
+class Taxopath;
 
 // =================================================================================================
-//     Taxscriptor Generator
+//     Taxopath Generator
 // =================================================================================================
 
 /**
- * @brief Helper class to generate a taxonomic description string from a Taxscriptor object
+ * @brief Helper class to generate a taxonomic path string from a Taxopath object
  * or a Taxon.
  *
- * This class bundles the parameters used for generating a taxonomic description.
+ * This class bundles the parameters used for generating a taxonomic path string.
  * This is needed in order to allow customization of the generation process.
- * The result of the process is a string representation of the taxonomic description, with all
+ * The result of the process is a string representation of the taxonomic path, with all
  * names of the super-taxa of the given taxon (and the taxon itself), concatenated using the
  * @link delimiter( std::string const& value ) delimiter()@endlink.
  *
@@ -69,9 +69,9 @@ class Taxscriptor;
  *
  *     Tax_1;Tax_2;;Tax_4;
  *
- * The same result is also obtained from a Taxscriptor `[ "Tax_1", "Tax_2", "Tax_2", "Tax_4" ]`.
+ * The same result is also obtained from a Taxopath `[ "Tax_1", "Tax_2", "Tax_2", "Tax_4" ]`.
  */
-class TaxscriptorGenerator
+class TaxopathGenerator
 {
 public:
 
@@ -79,21 +79,21 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    TaxscriptorGenerator()  = default;
-    ~TaxscriptorGenerator() = default;
+    TaxopathGenerator()  = default;
+    ~TaxopathGenerator() = default;
 
-    TaxscriptorGenerator( TaxscriptorGenerator const& ) = default;
-    TaxscriptorGenerator( TaxscriptorGenerator&& )      = default;
+    TaxopathGenerator( TaxopathGenerator const& ) = default;
+    TaxopathGenerator( TaxopathGenerator&& )      = default;
 
-    TaxscriptorGenerator& operator= ( TaxscriptorGenerator const& ) = default;
-    TaxscriptorGenerator& operator= ( TaxscriptorGenerator&& )      = default;
+    TaxopathGenerator& operator= ( TaxopathGenerator const& ) = default;
+    TaxopathGenerator& operator= ( TaxopathGenerator&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Generating
     // -------------------------------------------------------------------------
 
-    std::string to_string(   Taxscriptor const& taxscriptor ) const;
-    std::string operator() ( Taxscriptor const& taxscriptor ) const;
+    std::string to_string(   Taxopath const& taxopath ) const;
+    std::string operator() ( Taxopath const& taxopath ) const;
 
     std::string to_string(   Taxon const& taxon ) const;
     std::string operator() ( Taxon const& taxon ) const;
@@ -102,13 +102,13 @@ public:
     //     Properties
     // -------------------------------------------------------------------------
 
-    TaxscriptorGenerator& delimiter( std::string const& value );
+    TaxopathGenerator& delimiter( std::string const& value );
     std::string           delimiter() const;
 
-    TaxscriptorGenerator& trim_nested_duplicates( bool value );
+    TaxopathGenerator& trim_nested_duplicates( bool value );
     bool                  trim_nested_duplicates() const;
 
-    TaxscriptorGenerator& append_delimiter( bool value );
+    TaxopathGenerator& append_delimiter( bool value );
     bool                  append_delimiter() const;
 
     // -------------------------------------------------------------------------

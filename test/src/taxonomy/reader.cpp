@@ -95,7 +95,7 @@ TEST( Taxonomy, ReaderTrimming )
     // Read file and check basics.
     Taxonomy tax;
     auto reader = TaxonomyReader();
-    reader.taxscriptor_parser().trim_whitespaces( true );
+    reader.taxopath_parser().trim_whitespaces( true );
     EXPECT_NO_THROW( reader.from_file( infile, tax ));
     EXPECT_EQ( 32, total_taxa_count(tax) );
     EXPECT_TRUE( validate( tax ));

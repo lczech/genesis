@@ -70,13 +70,19 @@ public:
     virtual ~BaseEdgeData() = default;
 
     /**
-     * @brief Deleted move constructor. Not viable with polymorphism.
+     * @brief Deleted move constructor.
+     *
+     * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
+     * to allow polymorphism in the first place), so we can simply move the pointer instead.
      */
     BaseEdgeData( BaseEdgeData&& other ) = delete;
 
     /**
-    * @brief Deleted move assignment. Not viable with polymorphism.
-    */
+     * @brief Deleted move assignment.
+     *
+     * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
+     * to allow polymorphism in the first place), so we can simply move the pointer instead.
+     */
     BaseEdgeData& operator= ( BaseEdgeData&& other ) = delete;
 
 protected:
@@ -92,7 +98,7 @@ protected:
     BaseEdgeData( BaseEdgeData const& other ) = default;
 
     /**
-    * @brief Protected move constructor. Not used right now.
+    * @brief Protected copy assignment. Not used right now.
     */
     BaseEdgeData& operator= ( BaseEdgeData const& other ) = default;
 

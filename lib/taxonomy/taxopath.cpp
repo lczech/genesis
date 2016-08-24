@@ -22,13 +22,13 @@
 */
 
 /**
- * @brief Implementation of Taxscriptor class.
+ * @brief Implementation of Taxopath class.
  *
  * @file
  * @ingroup taxonomy
  */
 
-#include "taxonomy/taxscriptor.hpp"
+#include "taxonomy/taxopath.hpp"
 
 #include <stdexcept>
 
@@ -42,27 +42,27 @@ namespace taxonomy {
 /**
  * @brief Fill constructor that uses the given strings to initialize the taxonomic elements.
  *
- * The strings are copied and used as Taxscriptor elements in the order in which they are stored
+ * The strings are copied and used as Taxopath elements in the order in which they are stored
  * in the vector.
  */
-Taxscriptor::Taxscriptor( std::vector< std::string > const& elements )
+Taxopath::Taxopath( std::vector< std::string > const& elements )
     : elements_( elements )
 {}
 
 /**
  * @brief Fill constructor that uses the given strings to initialize the taxonomic elements.
  *
- * The strings are moved and used as Taxscriptor elements in the order in which they are stored
+ * The strings are moved and used as Taxopath elements in the order in which they are stored
  * in the vector.
  */
-Taxscriptor::Taxscriptor( std::vector< std::string > && elements )
+Taxopath::Taxopath( std::vector< std::string > && elements )
     : elements_( std::move( elements ))
 {}
 
 /**
- * @brief Swap the elements of two Taxscriptor%s.
+ * @brief Swap the elements of two Taxopath%s.
  */
-void Taxscriptor::swap( Taxscriptor& other )
+void Taxopath::swap( Taxopath& other )
 {
     using std::swap;
     swap( elements_, other.elements_ );
@@ -73,17 +73,17 @@ void Taxscriptor::swap( Taxscriptor& other )
 // =================================================================================================
 
 /**
- * @brief Return whether the Taxscriptor is empty, i.e., does not contain any elements.
+ * @brief Return whether the Taxopath is empty, i.e., does not contain any elements.
  */
-bool Taxscriptor::empty() const
+bool Taxopath::empty() const
 {
     return elements_.empty();
 }
 
 /**
- * @brief Return the number of elements of this Taxscriptor.
+ * @brief Return the number of elements of this Taxopath.
  */
-size_t Taxscriptor::size() const
+size_t Taxopath::size() const
 {
     return elements_.size();
 }
@@ -93,7 +93,7 @@ size_t Taxscriptor::size() const
  *
  * The function throws if the given index is not within the size of the taxonomic elements.
  */
-std::string const& Taxscriptor::at ( size_t index ) const
+std::string const& Taxopath::at ( size_t index ) const
 {
     return elements_.at( index );
 }
@@ -103,7 +103,7 @@ std::string const& Taxscriptor::at ( size_t index ) const
  *
  * The function throws if the given index is not within the size of the taxonomic elements.
  */
-std::string& Taxscriptor::at ( size_t index )
+std::string& Taxopath::at ( size_t index )
 {
     return elements_.at( index );
 }
@@ -113,7 +113,7 @@ std::string& Taxscriptor::at ( size_t index )
  *
  * The function does not check whether the given index is valid.
  */
-std::string const& Taxscriptor::operator [] ( size_t index ) const
+std::string const& Taxopath::operator [] ( size_t index ) const
 {
     return elements_[ index ];
 }
@@ -123,23 +123,23 @@ std::string const& Taxscriptor::operator [] ( size_t index ) const
  *
  * The function does not check whether the given index is valid.
  */
-std::string& Taxscriptor::operator [] ( size_t index )
+std::string& Taxopath::operator [] ( size_t index )
 {
     return elements_[ index ];
 }
 
 /**
- * @brief Return the elements of the Taxscriptor as a vector of strings.
+ * @brief Return the elements of the Taxopath as a vector of strings.
  */
-std::vector< std::string > const& Taxscriptor::elements() const
+std::vector< std::string > const& Taxopath::elements() const
 {
     return elements_;
 }
 
 /**
- * @brief Return the elements of the Taxscriptor as a vector of strings.
+ * @brief Return the elements of the Taxopath as a vector of strings.
  */
-std::vector< std::string > & Taxscriptor::elements()
+std::vector< std::string > & Taxopath::elements()
 {
     return elements_;
 }
@@ -149,41 +149,41 @@ std::vector< std::string > & Taxscriptor::elements()
 // =================================================================================================
 
 /**
- * @brief Replace the current elements of the Taxscriptor by a list of strings.
+ * @brief Replace the current elements of the Taxopath by a list of strings.
  *
- * The strings are copied and used as Taxscriptor elements in the order in which they are stored
+ * The strings are copied and used as Taxopath elements in the order in which they are stored
  * in the vector.
  */
-void Taxscriptor::assign( std::vector< std::string > const& from )
+void Taxopath::assign( std::vector< std::string > const& from )
 {
     elements_ = from;
 }
 
 /**
- * @brief Add an element to the end of the Taxscriptor by copying it.
+ * @brief Add an element to the end of the Taxopath by copying it.
  */
-void Taxscriptor::push_back( std::string const& value )
+void Taxopath::push_back( std::string const& value )
 {
     elements_.push_back( value );
 }
 
 /**
- * @brief Add an element to the end of the Taxscriptor by moving it.
+ * @brief Add an element to the end of the Taxopath by moving it.
  */
-void Taxscriptor::push_back( std::string&& value )
+void Taxopath::push_back( std::string&& value )
 {
     elements_.push_back( std::move( value ));
 }
 
 /**
- * @brief Remove the last element of the Taxscriptor and return its value.
+ * @brief Remove the last element of the Taxopath and return its value.
  *
  * The returned value is obtained as a copy of the last element before it is removed.
  */
-std::string Taxscriptor::pop_back()
+std::string Taxopath::pop_back()
 {
     if( elements_.empty() ) {
-        throw std::out_of_range( "Cannot pop last element of empty Taxscriptor." );
+        throw std::out_of_range( "Cannot pop last element of empty Taxopath." );
     }
     auto last = elements_.back();
     elements_.pop_back();
@@ -191,9 +191,9 @@ std::string Taxscriptor::pop_back()
 }
 
 /**
- * @brief Clear all taxonomic elements. This results in an empty Taxscriptor.
+ * @brief Clear all taxonomic elements. This results in an empty Taxopath.
  */
-void Taxscriptor::clear()
+void Taxopath::clear()
 {
     elements_.clear();
 }
@@ -205,7 +205,7 @@ void Taxscriptor::clear()
 /**
  * @brief Return an iterator to the beginning of the taxonomic elements.
  */
-Taxscriptor::iterator Taxscriptor::begin() noexcept
+Taxopath::iterator Taxopath::begin() noexcept
 {
     return elements_.begin();
 }
@@ -213,7 +213,7 @@ Taxscriptor::iterator Taxscriptor::begin() noexcept
 /**
  * @brief Return an iterator to the end of the taxonomic elements.
  */
-Taxscriptor::iterator Taxscriptor::end() noexcept
+Taxopath::iterator Taxopath::end() noexcept
 {
     return elements_.end();
 }
@@ -221,7 +221,7 @@ Taxscriptor::iterator Taxscriptor::end() noexcept
 /**
  * @brief Return a const iterator to the beginning of the taxonomic elements.
  */
-Taxscriptor::const_iterator Taxscriptor::begin() const noexcept
+Taxopath::const_iterator Taxopath::begin() const noexcept
 {
     return elements_.cbegin();
 }
@@ -229,7 +229,7 @@ Taxscriptor::const_iterator Taxscriptor::begin() const noexcept
 /**
  * @brief Return a const iterator to the end of the taxonomic elements.
  */
-Taxscriptor::const_iterator Taxscriptor::end() const noexcept
+Taxopath::const_iterator Taxopath::end() const noexcept
 {
     return elements_.cend();
 }
@@ -237,7 +237,7 @@ Taxscriptor::const_iterator Taxscriptor::end() const noexcept
 /**
  * @brief Return a reverse iterator to the reverse beginning of the taxonomic elements.
  */
-Taxscriptor::reverse_iterator Taxscriptor::rbegin() noexcept
+Taxopath::reverse_iterator Taxopath::rbegin() noexcept
 {
     return elements_.rbegin();
 }
@@ -245,7 +245,7 @@ Taxscriptor::reverse_iterator Taxscriptor::rbegin() noexcept
 /**
  * @brief Return a reverse iterator to the reverse end of the taxonomic elements.
  */
-Taxscriptor::reverse_iterator Taxscriptor::rend() noexcept
+Taxopath::reverse_iterator Taxopath::rend() noexcept
 {
     return elements_.rend();
 }
@@ -253,7 +253,7 @@ Taxscriptor::reverse_iterator Taxscriptor::rend() noexcept
 /**
  * @brief Return a const reverse iterator to the reverse beginning of the taxonomic elements.
  */
-Taxscriptor::const_reverse_iterator Taxscriptor::rbegin() const noexcept
+Taxopath::const_reverse_iterator Taxopath::rbegin() const noexcept
 {
     return elements_.crbegin();
 }
@@ -261,7 +261,7 @@ Taxscriptor::const_reverse_iterator Taxscriptor::rbegin() const noexcept
 /**
  * @brief Return a const reverse iterator to the reverse end of the taxonomic elements.
  */
-Taxscriptor::const_reverse_iterator Taxscriptor::rend() const noexcept
+Taxopath::const_reverse_iterator Taxopath::rend() const noexcept
 {
     return elements_.crend();
 }

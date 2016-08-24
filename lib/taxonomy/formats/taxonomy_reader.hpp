@@ -31,7 +31,7 @@
  * @ingroup taxonomy
  */
 
-#include "taxonomy/formats/taxscriptor_parser.hpp"
+#include "taxonomy/formats/taxopath_parser.hpp"
 #include "utils/formats/csv/reader.hpp"
 
 #include <string>
@@ -95,16 +95,16 @@ namespace taxonomy {
  * above, those would have to be set to `0` and `2`. All other fields of the line are ignored,
  * which in the example are "14" and "119".
  *
- * The taxon name is expected to be a taxonomic description string. This is what we call a string
+ * The taxon name is expected to be a taxonomic path string. This is what we call a string
  * consisting of the different parts of the taxonomic hierarchy, usually separated by semicola.
- * See Taxscriptor for a description of the expected format.
+ * See Taxopath for a description of the expected format.
  *
- * This string is split into its @link Taxon Taxa@endlink using a TaxscriptorParser.
- * In order to change the behaviour of this splitting, access the parser via taxscriptor_parser().
+ * This string is split into its @link Taxon Taxa@endlink using a TaxopathParser.
+ * In order to change the behaviour of this splitting, access the parser via taxopath_parser().
  *
  * In summary, by default, this reader reads tab-separated lines and expects the taxonomy entry
- * to be the first (or only) field in the line and to be a taxonomic description in the format
- * descript at Taxscriptor.
+ * to be the first (or only) field in the line and to be a taxonomic path in the format
+ * described at Taxopath.
  */
 class TaxonomyReader
 {
@@ -162,7 +162,7 @@ public:
     // ---------------------------------------------------------------------
 
     utils::CsvReader&  csv_reader();
-    TaxscriptorParser& taxscriptor_parser();
+    TaxopathParser& taxopath_parser();
 
     TaxonomyReader& name_field_position( int value );
     int             name_field_position() const;
@@ -180,7 +180,7 @@ public:
 private:
 
     utils::CsvReader  csv_reader_;
-    TaxscriptorParser taxscriptor_parser_;
+    TaxopathParser taxopath_parser_;
 
     int  name_field_position_ =  0;
     int  rank_field_position_ = -1;

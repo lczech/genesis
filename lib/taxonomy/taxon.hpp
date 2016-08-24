@@ -32,9 +32,17 @@
  */
 
 #include "taxonomy/taxonomy.hpp"
+#include "taxonomy/taxon_data.hpp"
+
+#include <memory>
+#include <string>
 
 namespace genesis {
 namespace taxonomy {
+
+// =================================================================================================
+//     Taxon
+// =================================================================================================
 
 /**
  * @brief Store a Taxon, i.e., an element in a Taxonomy, with its name, rank and sub-taxa.
@@ -44,12 +52,12 @@ namespace taxonomy {
  * arbitrarily nested set of sub-taxa.
  * The name and the rank are both free-form strings which can have any value.
  *
- * The name is one part of a taxonomic description string. For example, given the string
+ * The name is one part of a taxonomic path string. For example, given the string
  *
  *     Animalia;Vertebrata;Mammalia;Carnivora
  *
  * a Taxon could have the name "Mammalia", and contain a Taxon with the name "Carnivora" as child.
- * See Taxonomy for details, see Taxscriptor for the taxonomic description string format.
+ * See Taxonomy for details, see Taxopath for the taxonomic path string format.
  *
  * Each taxon is itself also a Taxonomy, in terms of class inheritance. This also makes some
  * biological sense, as a taxon can be seen as the taxonomy of its sub-taxa. We however only
@@ -102,6 +110,41 @@ public:
     Taxon*       parent ();
 
     // -------------------------------------------------------------------------
+    //     Data
+    // -------------------------------------------------------------------------
+
+    bool has_data() const;
+
+    template< class TaxonDataType >
+    TaxonDataType& data()
+    {
+        return dynamic_cast< TaxonDataType& >( *data_ );
+    }
+
+    template< class TaxonDataType >
+    TaxonDataType const& data() const
+    {
+        return dynamic_cast< TaxonDataType const& >( *data_ );
+    }
+
+    template< class TaxonDataType >
+    TaxonDataType* data_cast()
+    {
+        return dynamic_cast< TaxonDataType* >( data_.get() );
+    }
+
+    template< class TaxonDataType >
+    TaxonDataType const* data_cast() const
+    {
+        return dynamic_cast< TaxonDataType const* >( data_.get() );
+    }
+
+    BaseTaxonData*       data_ptr();
+    BaseTaxonData const* data_ptr() const;
+
+    Taxon& reset_data( std::unique_ptr< BaseTaxonData > data );
+
+    // -------------------------------------------------------------------------
     //     Protected Implementation Details
     // -------------------------------------------------------------------------
 
@@ -119,6 +162,9 @@ private:
     std::string rank_;
 
     Taxon*      parent_;
+
+    std::unique_ptr< BaseTaxonData > data_;
+
 };
 
 } // namespace taxonomy

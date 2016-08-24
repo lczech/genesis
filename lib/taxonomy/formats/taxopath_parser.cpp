@@ -22,16 +22,16 @@
 */
 
 /**
- * @brief Implementation of TaxscriptorParser class.
+ * @brief Implementation of TaxopathParser class.
  *
  * @file
  * @ingroup taxonomy
  */
 
-#include "taxonomy/formats/taxscriptor_parser.hpp"
+#include "taxonomy/formats/taxopath_parser.hpp"
 
 #include "taxonomy/taxon.hpp"
-#include "taxonomy/taxscriptor.hpp"
+#include "taxonomy/taxopath.hpp"
 #include "utils/text/string.hpp"
 
 #include <algorithm>
@@ -46,21 +46,21 @@ namespace taxonomy {
 // =================================================================================================
 
 /**
- * @brief Parse a taxonomic description string into a Taxscriptor object and return it.
+ * @brief Parse a taxonomic path string into a Taxopath object and return it.
  *
- * See @link TaxscriptorParser the class description@endlink for details on what this parser does.
+ * See @link TaxopathParser the class description@endlink for details on what this parser does.
  */
-Taxscriptor TaxscriptorParser::from_string( std::string const& taxscriptor ) const
+Taxopath TaxopathParser::from_string( std::string const& taxopath ) const
 {
     std::vector< std::string > elements;
 
     // Split the given string, while keeping empty parts.
-    elements = utils::split( taxscriptor, delimiters_, false );
+    elements = utils::split( taxopath, delimiters_, false );
 
     // If there are no elements, the string was empty. Nothing to do.
     if( elements.size() == 0 ) {
-        assert( taxscriptor == "" );
-        return Taxscriptor();
+        assert( taxopath == "" );
+        return Taxopath();
     }
 
     // Remove white spaces.
@@ -72,7 +72,7 @@ Taxscriptor TaxscriptorParser::from_string( std::string const& taxscriptor ) con
 
     // The first name in the list of sub-taxa must not be empty.
     if( elements.front() == "" ) {
-        throw std::runtime_error( "Cannot use Taxscriptor if first Taxon is empty." );
+        throw std::runtime_error( "Cannot use Taxopath if first Taxon is empty." );
     }
 
     // The last name is ommited if empty.
@@ -95,29 +95,29 @@ Taxscriptor TaxscriptorParser::from_string( std::string const& taxscriptor ) con
         prev_name = name;
     }
 
-    return Taxscriptor( elements );
+    return Taxopath( elements );
 }
 
 /**
  * @brief Shortcut function alias for from_string().
  *
- * This shortcut enables to use a TaxscriptorParser object as functor.
+ * This shortcut enables to use a TaxopathParser object as functor.
  */
-Taxscriptor TaxscriptorParser::operator() ( std::string const& taxscriptor ) const
+Taxopath TaxopathParser::operator() ( std::string const& taxopath ) const
 {
-    return from_string( taxscriptor );
+    return from_string( taxopath );
 }
 
 /**
- * @brief Helper function to turn a Taxon into a Taxscriptor.
+ * @brief Helper function to turn a Taxon into a Taxopath.
  *
- * This function is probably not need often, as the Taxscriptor is a helper object from
- * a taxonomic description string towards a Taxon object, but not the other way round.
- * In order to get the string from a Taxon, see the TaxscriptorGenerator class instead.
+ * This function is probably not need often, as the Taxopath is a helper object from
+ * a taxonomic path string towards a Taxon object, but not the other way round.
+ * In order to get the string from a Taxon, see the TaxopathGenerator class instead.
  *
  * However, this function might still be useful in some cases. You never know.
  */
-Taxscriptor TaxscriptorParser::from_taxon(  Taxon const& taxon ) const
+Taxopath TaxopathParser::from_taxon(  Taxon const& taxon ) const
 {
     // Start with an empty vector that will store the super-taxa of the given taxon.
     std::vector<std::string> elements;
@@ -132,15 +132,15 @@ Taxscriptor TaxscriptorParser::from_taxon(  Taxon const& taxon ) const
 
     // Now reverse and return the result.
     std::reverse( elements.begin(), elements.end() );
-    return Taxscriptor( elements );
+    return Taxopath( elements );
 }
 
 /**
  * @brief Shortcut function alias for from_taxon().
  *
- * This shortcut enables to use a TaxscriptorParser object as functor.
+ * This shortcut enables to use a TaxopathParser object as functor.
  */
-Taxscriptor TaxscriptorParser::operator() ( Taxon const& taxon ) const
+Taxopath TaxopathParser::operator() ( Taxon const& taxon ) const
 {
     return from_taxon( taxon );
 }
@@ -150,31 +150,31 @@ Taxscriptor TaxscriptorParser::operator() ( Taxon const& taxon ) const
 // =================================================================================================
 
 /**
- * @brief Set the chars used to split the taxonomic description string.
+ * @brief Set the chars used to split the taxonomic path string.
  *
  * Those chars are used to split the taxon name into its hierarchical parts.
- * Default is ';', as this is the usual value in many databases. See Taxscriptor for details.
+ * Default is ';', as this is the usual value in many databases. See Taxopath for details.
  *
  * If this value is set to multiple chars (string longer than 1), any of them is used for splitting.
  *
- * Example: The taxonomic description
+ * Example: The taxonomic path string
  *
  *     Archaea;Euryarchaeota;Halobacteria;
  *
  * is split into "Archaea", "Euryarchaeota" and "Halobacteria".
  */
-TaxscriptorParser& TaxscriptorParser::delimiters( std::string const& value )
+TaxopathParser& TaxopathParser::delimiters( std::string const& value )
 {
     delimiters_ = value;
     return *this;
 }
 
 /**
- * @brief Return the currelty set delimiter chars used to split the taxonomic description string.
+ * @brief Return the currelty set delimiter chars used to split the taxonomic path string.
  *
  * See @link delimiters( std::string const& value ) the setter@endlink for details.
  */
-std::string TaxscriptorParser::delimiters() const
+std::string TaxopathParser::delimiters() const
 {
     return delimiters_;
 }
@@ -195,7 +195,7 @@ std::string TaxscriptorParser::delimiters() const
  * contains spaces both between the taxa names (separated by `;`), as well as within the names.
  * Only the former ones will be trimmed, while latter ones are left as they are.
  */
-TaxscriptorParser& TaxscriptorParser::trim_whitespaces( bool value )
+TaxopathParser& TaxopathParser::trim_whitespaces( bool value )
 {
     trim_whitespaces_ = value;
     return *this;
@@ -206,7 +206,7 @@ TaxscriptorParser& TaxscriptorParser::trim_whitespaces( bool value )
  *
  * See @link trim_whitespaces( bool value ) the setter@endlink for details.
  */
-bool TaxscriptorParser::trim_whitespaces() const
+bool TaxopathParser::trim_whitespaces() const
 {
     return trim_whitespaces_;
 }
@@ -216,25 +216,25 @@ bool TaxscriptorParser::trim_whitespaces() const
  *
  * In many taxonomic databases, the taxonomic string representation end with a ';' by default.
  * When splitting such a string, this results in an empty last element. If this option is set to
- * `true` (default), this element is removed from the Taxscriptor.
+ * `true` (default), this element is removed from the Taxopath.
  *
  * If set to `false`, the element is not removed, but instead treated as a normal "empty" element,
  * which means, it is replaced by the value of the preceeding element. See
- * @link TaxscriptorParser the class description@endlink for details on that.
+ * @link TaxopathParser the class description@endlink for details on that.
  */
-TaxscriptorParser& TaxscriptorParser::remove_trailing_delimiter( bool value )
+TaxopathParser& TaxopathParser::remove_trailing_delimiter( bool value )
 {
     remove_trailing_delimiter_ = value;
     return *this;
 }
 
 /**
- * @brief Return whether currently trailing delimiters are removed from the taxonomic description
+ * @brief Return whether currently trailing delimiters are removed from the taxonomic path
  * string.
  *
  * See @link remove_trailing_delimiter( bool value ) the setter@endlink for details.
  */
-bool TaxscriptorParser::remove_trailing_delimiter() const
+bool TaxopathParser::remove_trailing_delimiter() const
 {
     return remove_trailing_delimiter_;
 }

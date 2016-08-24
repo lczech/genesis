@@ -28,11 +28,11 @@
  * @ingroup taxonomy
  */
 
-#include "taxonomy/functions/taxscriptor.hpp"
+#include "taxonomy/functions/taxopath.hpp"
 
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
-#include "taxonomy/taxscriptor.hpp"
+#include "taxonomy/taxopath.hpp"
 #include "utils/text/string.hpp"
 
 #include <stdexcept>
@@ -41,13 +41,13 @@ namespace genesis {
 namespace taxonomy {
 
 // =================================================================================================
-//     Taxscriptor
+//     Taxopath
 // =================================================================================================
 
 /**
- * @brief Add a Taxon to a Taxonomy, using the taxonomic elements of a Taxscriptor.
+ * @brief Add a Taxon to a Taxonomy, using the taxonomic elements of a Taxopath.
  *
- * For example, given a Taxscriptor like
+ * For example, given a Taxopath like
  *
  *     [ "Animalia", "Vertebrata", "Mammalia", "Carnivora" ]
  *
@@ -62,7 +62,7 @@ namespace taxonomy {
  * it is created by default.
  *
  * @param taxonomy Taxonomy to add the Taxon to.
- * @param taxscriptor A Taxscriptor object from which the Taxon and its parents are taken.
+ * @param taxopath A Taxopath object from which the Taxon and its parents are taken.
  * @param expect_parents Optional, defaults to `false`. If set to true, the function expects
  *     all super-taxa of the added Taxon to exists, that is, all taxa except for the last one
  *     in the hierachry.
@@ -71,18 +71,18 @@ namespace taxonomy {
  *     if they do not exists yet.
  *
  * @return The function returns a reference to the newly created Taxon. This is the deepest Taxon
- *     of the Taxscriptor; in other words, its last element.
+ *     of the Taxopath; in other words, its last element.
  */
-Taxon& add_from_taxscriptor(
+Taxon& add_from_taxopath(
     Taxonomy&          taxonomy,
-    Taxscriptor const& taxscriptor,
+    Taxopath const& taxopath,
     bool               expect_parents
 ) {
     // The return value of this function is the added Taxon. If we don't add anything, we
     // cannot return anything. So better throw. This might need to change in the future...
-    if( taxscriptor.empty() ) {
+    if( taxopath.empty() ) {
         throw std::runtime_error(
-            "Cannot add empty Taxscriptor to Taxonomy."
+            "Cannot add empty Taxopath to Taxonomy."
         );
     }
 
@@ -91,21 +91,21 @@ Taxon& add_from_taxscriptor(
     Taxonomy* cur_taxon = &taxonomy;
 
     // Add the names to the Taxonomy.
-    for( size_t i = 0; i < taxscriptor.size(); ++i ) {
+    for( size_t i = 0; i < taxopath.size(); ++i ) {
 
         // If we expect parents to exists, we need to check if the child exists
         // (but only when we are still considering parents, and not the last taxon itself,
-        // that is, if we are not at the last element of the taxscriptor).
+        // that is, if we are not at the last element of the taxopath).
         if( ( expect_parents ) &&
-            ( i < taxscriptor.size() - 1 ) &&
-            ( ! cur_taxon->has_child( taxscriptor[i] ))
+            ( i < taxopath.size() - 1 ) &&
+            ( ! cur_taxon->has_child( taxopath[i] ))
         ) {
             throw std::runtime_error(
-                "Not all super-taxa of the Taxon in the Taxscripyot are present in the given Taxonomy."
+                "Not all super-taxa of the Taxon in the Taxopath are present in the given Taxonomy."
             );
         }
 
-        cur_taxon = &cur_taxon->add_child( taxscriptor[i] );
+        cur_taxon = &cur_taxon->add_child( taxopath[i] );
     }
 
     // Convert to Taxon. This is always legal because we have ensured that we are adding at least
@@ -115,20 +115,20 @@ Taxon& add_from_taxscriptor(
 }
 
 /**
- * @brief Find a Taxon in a Taxonomy, given its Taxscriptor.
+ * @brief Find a Taxon in a Taxonomy, given its Taxopath.
  */
-Taxon const* find_taxon_by_taxscriptor( Taxonomy const& tax, Taxscriptor const& taxscriptor )
+Taxon const* find_taxon_by_taxopath( Taxonomy const& tax, Taxopath const& taxopath )
 {
     // Border condition: nothing to search for.
-    if( taxscriptor.empty() ) {
+    if( taxopath.empty() ) {
         return nullptr;
     }
 
     // Use a pointer that is updated in the loop while we go deeper and deeper into the taxonomy.
     Taxonomy const* cur_taxon = &tax;
 
-    // Find the elements of the Taxscriptor in the Taxonomy.
-    for( auto const& name : taxscriptor ) {
+    // Find the elements of the Taxopath in the Taxonomy.
+    for( auto const& name : taxopath ) {
         if( ! cur_taxon->has_child( name )) {
             return nullptr;
         }
@@ -142,13 +142,13 @@ Taxon const* find_taxon_by_taxscriptor( Taxonomy const& tax, Taxscriptor const& 
 }
 
 /**
- * @brief Find a Taxon in a Taxonomy, given its Taxscriptor.
+ * @brief Find a Taxon in a Taxonomy, given its Taxopath.
  */
-Taxon* find_taxon_by_taxscriptor( Taxonomy& tax, Taxscriptor const& taxscriptor )
+Taxon* find_taxon_by_taxopath( Taxonomy& tax, Taxopath const& taxopath )
 {
     // Avoid code duplication according to Scott Meyers.
     auto const& ctax = static_cast< Taxonomy const& >( tax );
-    return const_cast< Taxon* >( find_taxon_by_taxscriptor( ctax, taxscriptor ));
+    return const_cast< Taxon* >( find_taxon_by_taxopath( ctax, taxopath ));
 }
 
 } // namespace taxonomy

@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_TREE_NODE_DATA_H_
-#define GENESIS_TREE_TREE_NODE_DATA_H_
+#ifndef GENESIS_TAXONOMY_TAXON_DATA_H_
+#define GENESIS_TAXONOMY_TAXON_DATA_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -28,23 +28,23 @@
  * @brief
  *
  * @file
- * @ingroup tree
+ * @ingroup taxonomy
  */
 
 #include <memory>
 
 namespace genesis {
-namespace tree {
+namespace taxonomy {
 
 // =================================================================================================
-//     Tree Node Data Base
+//     Taxon Data
 // =================================================================================================
 
 /**
- * @brief Base class for storing data on @link TreeNode Nodes@endlink of a Tree.
+ * @brief Base class for storing data on @link Taxon Taxa@endlink of a Taxonomy.
  *
- * This class merely provides the start point for the class hierarchy of node data classes.
- * In order to correctly achieve polymorphic behaviour, and with its use case in a Tree in mind,
+ * This class provides the start point for the class hierarchy of taxon data classes.
+ * In order to correctly achieve polymorphic behaviour, and with its use case in a Taxonomy in mind,
  * this class and its derived classes are only usable via unique pointers to their instances.
  *
  * It thus provides a create() function instead of a default constructor.
@@ -52,11 +52,8 @@ namespace tree {
  * For the same reason, instead of a copy constructor, it provides a clone() function.
  *
  * It is recommended that derived classes follow the same access rules for its constructors.
- * See DefaultNodeData for an example.
- *
- * This class does not contain any data itself. See BaseEdgeData for its "partner" class.
  */
-class BaseNodeData
+class BaseTaxonData
 {
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -67,7 +64,7 @@ public:
     /**
      * @brief Virtual destructor. Needed for polymorphism.
      */
-    virtual ~BaseNodeData() = default;
+    virtual ~BaseTaxonData() = default;
 
     /**
      * @brief Deleted move constructor.
@@ -75,7 +72,7 @@ public:
      * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
      * to allow polymorphism in the first place), so we can simply move the pointer instead.
      */
-    BaseNodeData( BaseNodeData&& other ) = delete;
+    BaseTaxonData( BaseTaxonData&& other ) = delete;
 
     /**
      * @brief Deleted move assignment.
@@ -83,46 +80,46 @@ public:
      * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
      * to allow polymorphism in the first place), so we can simply move the pointer instead.
      */
-    BaseNodeData& operator= ( BaseNodeData&& other ) = delete;
+    BaseTaxonData& operator= ( BaseTaxonData&& other ) = delete;
 
 protected:
 
     /**
      * @brief Protected default constructor. Called from the create() function.
      */
-    BaseNodeData() = default;
+    BaseTaxonData() = default;
 
     /**
      * @brief Protected copy constructor. Called from the clone() function.
      */
-    BaseNodeData( BaseNodeData const& other ) = default;
+    BaseTaxonData( BaseTaxonData const& other ) = default;
 
     /**
     * @brief Protected copy assignment. Not used right now.
     */
-    BaseNodeData& operator= ( BaseNodeData const& other ) = default;
+    BaseTaxonData& operator= ( BaseTaxonData const& other ) = default;
 
 public:
 
     /**
      * @brief Create a new instance of this class. Use instead of default constructor.
      */
-    static std::unique_ptr< BaseNodeData > create()
+    static std::unique_ptr< BaseTaxonData > create()
     {
-        return std::unique_ptr< BaseNodeData >( new BaseNodeData() );
+        return std::unique_ptr< BaseTaxonData >( new BaseTaxonData() );
     };
 
     /**
      * @brief Polymorphically copy an instance of this class. Use instead of copy constructor.
      */
-    virtual std::unique_ptr< BaseNodeData > clone() const
+    virtual std::unique_ptr< BaseTaxonData > clone() const
     {
-        return std::unique_ptr< BaseNodeData >( new BaseNodeData( *this ));
+        return std::unique_ptr< BaseTaxonData >( new BaseTaxonData( *this ));
     };
 
 };
 
-} // namespace tree
+} // namespace taxonomy
 } // namespace genesis
 
 #endif // include guard

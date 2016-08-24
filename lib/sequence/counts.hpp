@@ -107,6 +107,9 @@ public:
 
     void add_sequences( SequenceSet const& sequences );
 
+    void clear();
+    void clear_counts();
+
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
