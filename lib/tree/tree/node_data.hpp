@@ -70,13 +70,19 @@ public:
     virtual ~BaseNodeData() = default;
 
     /**
-     * @brief Deleted move constructor. Not viable with polymorphism.
+     * @brief Deleted move constructor.
+     *
+     * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
+     * to allow polymorphism in the first place), so we can simply move the pointer instead.
      */
     BaseNodeData( BaseNodeData&& other ) = delete;
 
     /**
-    * @brief Deleted move assignment. Not viable with polymorphism.
-    */
+     * @brief Deleted move assignment.
+     *
+     * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
+     * to allow polymorphism in the first place), so we can simply move the pointer instead.
+     */
     BaseNodeData& operator= ( BaseNodeData&& other ) = delete;
 
 protected:
@@ -92,7 +98,7 @@ protected:
     BaseNodeData( BaseNodeData const& other ) = default;
 
     /**
-    * @brief Protected move constructor. Not used right now.
+    * @brief Protected copy assignment. Not used right now.
     */
     BaseNodeData& operator= ( BaseNodeData const& other ) = default;
 
