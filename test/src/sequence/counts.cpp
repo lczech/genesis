@@ -128,13 +128,17 @@ TEST( Sequence, ConsensusAmbiguity )
 
     // Some edge cases: zero sequences.
     auto counts_2 = SequenceCounts( "ACGT", 5 );
-    EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 1.0 ));
-    EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 0.0 ));
+    EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 1.0, true ));
+    EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
+    EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 1.0, false ));
+    EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 0.0, false ));
 
     // One sequence.
     counts_2.add_sequence( "-ACGT" );
     EXPECT_EQ( "-ACGT", consensus_sequence_with_ambiguities( counts_2, 1.0, true ));
     EXPECT_EQ( "-ACGT", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
+    EXPECT_EQ( "-ACGT", consensus_sequence_with_ambiguities( counts_2, 1.0, false ));
+    EXPECT_EQ( "-ACGT", consensus_sequence_with_ambiguities( counts_2, 0.0, false ));
 
     // More.
     counts_2.add_sequence( "-ACCT" );
@@ -167,11 +171,11 @@ TEST( Sequence, ConsensusThreshold )
         consensus_sequence_with_threshold( counts, 1.0 )
     );
     EXPECT_EQ(
-        "AAVCBYTKGCMGTTMMGSKTRARCCNDGGCCGKDMMVSKTAW",
+        "AARCSYTKGCMGTTMMGSKTRARCCVWGGCCGKKMMRSKTAW",
         consensus_sequence_with_threshold( counts, 0.75 )
     );
     EXPECT_EQ(
-        "AAVCCYTGGCCGTTCAGGGTAAACCNTGGCCGGDCAGGGTAT",
+        "AARCCYTGGCCGTTCAGGGTAAACCRTGGCCGGKCAGGGTAT",
         consensus_sequence_with_threshold( counts, 0.5 )
     );
     EXPECT_EQ(
@@ -181,13 +185,17 @@ TEST( Sequence, ConsensusThreshold )
 
     // Some edge cases: zero sequences.
     auto counts_2 = SequenceCounts( "ACGT", 5 );
-    EXPECT_EQ( "-----", consensus_sequence_with_threshold( counts_2, 1.0 ));
-    EXPECT_EQ( "-----", consensus_sequence_with_threshold( counts_2, 0.0 ));
+    EXPECT_EQ( "-----", consensus_sequence_with_threshold( counts_2, 1.0, true ));
+    EXPECT_EQ( "-----", consensus_sequence_with_threshold( counts_2, 0.0, true ));
+    EXPECT_EQ( "-----", consensus_sequence_with_threshold( counts_2, 1.0, false ));
+    EXPECT_EQ( "-----", consensus_sequence_with_threshold( counts_2, 0.0, false ));
 
     // One sequence.
     counts_2.add_sequence( "-ACGT" );
     EXPECT_EQ( "-ACGT", consensus_sequence_with_threshold( counts_2, 1.0, true ));
     EXPECT_EQ( "-ACGT", consensus_sequence_with_threshold( counts_2, 0.0, true ));
+    EXPECT_EQ( "-ACGT", consensus_sequence_with_threshold( counts_2, 1.0, false ));
+    EXPECT_EQ( "-ACGT", consensus_sequence_with_threshold( counts_2, 0.0, false ));
 
     // More.
     counts_2.add_sequence( "-ACCT" );
