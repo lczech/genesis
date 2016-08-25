@@ -136,6 +136,16 @@ enum class SiteEntropyOptions : unsigned char
     kNormalized  = 4
 };
 
+/**
+ * @brief Or-operator to combine two SiteEntropyOptions%s.
+ *
+ * Typical usage:
+ *
+ *     auto options = SiteEntropyOptions::kWeighted | SiteEntropyOptions::kNormalized;
+ *
+ * Use the @link operator & ( SiteEntropyOptions, SiteEntropyOptions ) and-operator@endlink
+ * in order to check whether an option is set.
+ */
 inline SiteEntropyOptions operator | ( SiteEntropyOptions lhs, SiteEntropyOptions rhs )
 {
     using T = std::underlying_type< SiteEntropyOptions >::type;
@@ -144,6 +154,17 @@ inline SiteEntropyOptions operator | ( SiteEntropyOptions lhs, SiteEntropyOption
     );
 }
 
+/**
+ * @brief Or-assignment-operator to combine two SiteEntropyOptions%s.
+ *
+ * Typical usage:
+ *
+ *     SiteEntropyOptions options;
+ *     options |= SiteEntropyOptions::kWeighted;
+ *
+ * Use the @link operator & ( SiteEntropyOptions, SiteEntropyOptions ) and-operator@endlink
+ * in order to check whether an option is set.
+ */
 inline SiteEntropyOptions& operator |= ( SiteEntropyOptions& lhs, SiteEntropyOptions rhs )
 {
     using T = std::underlying_type< SiteEntropyOptions >::type;
@@ -153,6 +174,19 @@ inline SiteEntropyOptions& operator |= ( SiteEntropyOptions& lhs, SiteEntropyOpt
     return lhs;
 }
 
+/**
+ * @brief And-operator to check whether a SiteEntropyOptions is set.
+ *
+ * Typical usage:
+ *
+ *     SiteEntropyOptions options;
+ *     if( options & SiteEntropyOptions::kWeighted ) {
+ *         // Do stuff...
+ *     }
+ *
+ * Use the @link operator | ( SiteEntropyOptions, SiteEntropyOptions ) or-operator@endlink
+ * in order to set and combine options.
+ */
 inline bool operator & ( SiteEntropyOptions lhs, SiteEntropyOptions rhs )
 {
     using T = std::underlying_type< SiteEntropyOptions >::type;
