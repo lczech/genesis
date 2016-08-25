@@ -72,6 +72,18 @@ size_t total_length( SequenceSet const& set );
 bool is_alignment( SequenceSet const& set );
 
 // =================================================================================================
+//     Modifiers
+// =================================================================================================
+
+void replace_characters( Sequence&    seq, std::string const& search, char replacement );
+void replace_characters( SequenceSet& set, std::string const& search, char replacement );
+
+void replace_u_with_t( Sequence&    seq );
+void replace_u_with_t( SequenceSet& set );
+void replace_t_with_u( Sequence&    seq );
+void replace_t_with_u( SequenceSet& set );
+
+// =================================================================================================
 //     Print and Output
 // =================================================================================================
 
@@ -107,31 +119,6 @@ std::string print_color(
     size_t                             sequence_limit = 10,
     bool                               background     = true
 );
-
-// =================================================================================================
-//     Modifiers
-// =================================================================================================
-
-/*
-
-normalize --> to upper
-normalize_chars
-normalize_gaps
-
-void remove_list(SequenceSet& set, std::vector<std::string> const& labels, bool invert);
-
-// =================================================================================================
-//     Sequence Modifiers
-// =================================================================================================
-
-void remove_gaps();
-void replace(char search, char replace);
-
-remove_chars
-compress_chars
-replace_chars
-
-*/
 
 } // namespace sequence
 } // namespace genesis

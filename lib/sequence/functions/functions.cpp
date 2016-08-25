@@ -284,6 +284,135 @@ bool is_alignment( SequenceSet const& set )
 }
 
 // =================================================================================================
+//     Modifiers
+// =================================================================================================
+
+/**
+ * @brief Replace all occurences of the chars in `search` by the `replace` char, for all sites in
+ * the given Sequence.
+ *
+ * The function is case sensitive. Thus, you need to use both cases for the search string if you
+ * are unsure. The replace char is always used as is, independent of the case of the matching
+ * search char.
+ */
+void replace_characters( Sequence& seq, std::string const& search, char replacement )
+{
+    seq.sites() = utils::replace_all_chars( seq.sites(), search, replacement );
+}
+
+/**
+ * @brief Replace all occurences of the chars in `search` by the `replace` char, for all sites in
+ * the Sequence%s in the given SequenceSet.
+ *
+ * The function is case sensitive. Thus, you need to use both cases for the search string if you
+ * are unsure. The replace char is always used as is, independent of the case of the matching
+ * search char.
+ */
+void replace_characters( SequenceSet& set, std::string const& search, char replacement )
+{
+    for( auto& sequence : set ) {
+        replace_characters( sequence, search, replacement );
+    }
+}
+
+/**
+ * @brief Replace all occurrences of `U` by `T` in the sites of the Sequence.
+ *
+ * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * that is, lower case `u` is replaced by lower case `t`, and upper case `U` by upper case `T`.
+ */
+void replace_u_with_t( Sequence& seq )
+{
+    for( auto& c : seq.sites() ) {
+        if( c == 'U' ) {
+            c = 'T';
+        }
+        if( c == 'u' ) {
+            c = 't';
+        }
+    }
+}
+
+/**
+ * @brief Replace all occurrences of `U` by `T` in the sites of all Sequence%s in the SequenceSet.
+ *
+ * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * that is, lower case `u` is replaced by lower case `t`, and upper case `U` by upper case `T`.
+ */
+void replace_u_with_t( SequenceSet& set )
+{
+    for( auto& sequence : set ) {
+        replace_u_with_t( sequence );
+    }
+}
+
+/**
+ * @brief Replace all occurrences of `T` by `U` in the sites of the Sequence.
+ *
+ * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * that is, lower case `t` is replaced by lower case `u`, and upper case `T` by upper case `U`.
+ */
+void replace_t_with_u( Sequence& seq )
+{
+    for( auto& c : seq.sites() ) {
+        if( c == 'T' ) {
+            c = 'U';
+        }
+        if( c == 't' ) {
+            c = 'u';
+        }
+    }
+}
+
+/**
+ * @brief Replace all occurrences of `T` by `U` in the sites of all Sequence%s in the SequenceSet.
+ *
+ * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * that is, lower case `t` is replaced by lower case `u`, and upper case `T` by upper case `U`.
+ */
+void replace_t_with_u( SequenceSet& set )
+{
+    for( auto& sequence : set ) {
+        replace_t_with_u( sequence );
+    }
+}
+
+/*
+/ **
+ * @brief Remove and delete all those sequences from a SequenceSet whose labels are in the given
+ * list. If `invert` is set to true, it does the same inverted: it removes all except those in the
+ * list.
+ * /
+void remove_list(SequenceSet& set, std::vector<std::string> const& labels, bool invert)
+{
+    // create a set of all labels for fast lookup.
+    std::unordered_set<std::string> lmap(labels.begin(), labels.end());
+
+    // iterate and move elements from it to re
+    std::vector<Sequence*>::iterator it = sequences.begin();
+    std::vector<Sequence*>::iterator re = sequences.begin();
+
+    // this works similar to std::remove (http://www.cplusplus.com/reference/algorithm/remove/)
+    while (it != sequences.end()) {
+        // if the label is (not) in the map, move it to the re position, otherwise delete it.
+        if ( (!invert && lmap.count((*it)->label())  > 0) ||
+             ( invert && lmap.count((*it)->label()) == 0)
+        ) {
+            delete *it;
+        } else {
+            *re = std::move(*it);
+            ++re;
+        }
+        ++it;
+    }
+
+    // delete the tail of the vector.
+    sequences.erase(re, sequences.end());
+}
+
+*/
+
+// =================================================================================================
 //     Print and Output
 // =================================================================================================
 
@@ -518,110 +647,6 @@ std::string print_color(
     print_to_ostream( stream, set, colors, print_label, length_limit, sequence_limit, background );
     return stream.str();
 }
-
-// =============================================================================
-//     Modifiers
-// =============================================================================
-
-/*
-/ **
- * @brief Remove and delete all those sequences from a SequenceSet whose labels are in the given
- * list. If `invert` is set to true, it does the same inverted: it removes all except those in the
- * list.
- * /
-void remove_list(SequenceSet& set, std::vector<std::string> const& labels, bool invert)
-{
-    // create a set of all labels for fast lookup.
-    std::unordered_set<std::string> lmap(labels.begin(), labels.end());
-
-    // iterate and move elements from it to re
-    std::vector<Sequence*>::iterator it = sequences.begin();
-    std::vector<Sequence*>::iterator re = sequences.begin();
-
-    // this works similar to std::remove (http://www.cplusplus.com/reference/algorithm/remove/)
-    while (it != sequences.end()) {
-        // if the label is (not) in the map, move it to the re position, otherwise delete it.
-        if ( (!invert && lmap.count((*it)->label())  > 0) ||
-             ( invert && lmap.count((*it)->label()) == 0)
-        ) {
-            delete *it;
-        } else {
-            *re = std::move(*it);
-            ++re;
-        }
-        ++it;
-    }
-
-    // delete the tail of the vector.
-    sequences.erase(re, sequences.end());
-}
-
-// =============================================================================
-//     Sequence Modifiers
-// =============================================================================
-
-/ **
- * @brief Calls remove_gaps() for every Sequence.
- * /
-void SequenceSet::remove_gaps()
-{
-    for (Sequence* s : sequences) {
-        s->remove_gaps();
-    }
-}
-
-/ **
- * @brief Calls replace() for every Sequence.
- * /
-void SequenceSet::replace(char search, char replace)
-{
-    for (Sequence* s : sequences) {
-        s->replace(search, replace);
-    }
-}
-
-// =============================================================================
-//     Dump
-// =============================================================================
-
-/ **
- * @brief Gives a summary of the sequences names and their lengths for this set.
- * /
-std::string SequenceSet::dump() const
-{
-    std::ostringstream out;
-    for (Sequence* s : sequences) {
-        out << s->label() << " [" << s->length() << "]\n";
-    }
-    return out.str();
-}
-
-// =============================================================================
-//     Mutators
-// =============================================================================
-
-/ **
- * @brief Removes all occurences of `gap_char` from the sequence.
- * /
-void Sequence::remove_gaps( std::string const& gap_chars )
-{
-    sites_.erase(std::remove(sites_.begin(), sites_.end(), gap_char), sites_.end());
-}
-
-void Sequence::compress_gaps( std::string const& gap_chars )
-{
-    ...
-}
-
-/ **
- * @brief Replaces all occurences of `search` by `replace`.
- * /
-void Sequence::replace(char search, char replace)
-{
-    sites_ = utils::replace_all (sites_, std::string(1, search), std::string(1, replace));
-}
-
-*/
 
 } // namespace sequence
 } // namespace genesis
