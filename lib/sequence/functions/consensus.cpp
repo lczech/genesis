@@ -200,24 +200,24 @@ std::string consensus_sequence_with_majorities(
  * The function calculates a consensus sequence for nucleic acid codes (`ACGT`), using their
  * ambiguity codes (e.g., `W` for "weak" == `AT`) if the counts (i.e., character frequencies) are
  * similar at a site. It uses `similarity_factor` to decide which counts are close enough to each
- * other in order to be consiered ambiguous.
+ * other in order to be considered ambiguous.
  *
  * For example, with `similarity_factor == 1.0`, only exact matches are used, that is, if two
  * counts are exactly the same. Let <code>count('A') == 42</code> and <code>count('T') == 42</code>,
- * and both other counts be 0, this results in the code `W` at that site. If however
+ * and both other counts be `0`, this results in the code `W` at that site. If however
  * <code>count('T') == 41</code>, only `A` is used for the site.
  * Thus, with `similarity_factor == 1.0`, this function behaves very similar to
  * consensus_sequence_with_majorities(), except in cases were two counts are exaclty the same.
  *
  * On the other hand, with `similarity_factor == 0.0`, all codes that are present at a site are
- * considered to be ambiguous. That is, if a site contains counts `> 0` for `A`, `G` and `T`, the
- * resulting site gets the code `D` (not C).
+ * considered to be ambiguous. That is, if a site contains `counts > 0` for `A`, `G` and `T`, the
+ * resulting site gets the code `D` ("not C").
  *
  * For intermediate values, e.g., the default `0.9`, the value is used as a threshold to decide
  * the ambiguities. For example, let <code>count('A') == 42</code> and <code>count('T') == 38</code>,
- * and both other counts be 0. Then, the allowed deviation from the maximum 42 is `0.9 * 42 = 37.8`.
- * Thus, as the count for `T` is above this value, those two codes are considered ambiguous,
- * resulting in a `W` at that site.
+ * and both other counts be `0`. Then, the allowed deviation from the maximum `42` is
+ * `0.9 * 42 = 37.8`. Thus, as the count for `T` is above this value, those two codes are
+ * considered ambiguous, resulting in a `W` at that site.
  *
  * The optional parameter `allow_gaps` (default is `true`) behaves similar to its counterpart in
  * consensus_sequence_with_majorities(). If set to `true`, the count of the gap character is also
