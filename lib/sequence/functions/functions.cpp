@@ -40,6 +40,7 @@
 #include <algorithm>
 #include <array>
 #include <assert.h>
+#include <cctype>
 #include <numeric>
 #include <ostream>
 #include <sstream>
@@ -64,6 +65,109 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
         }
     }
     return nullptr;
+}
+
+// =================================================================================================
+//     Labels
+// =================================================================================================
+
+/**
+ * @brief Check whether a given string is a valid label for a Sequence.
+ *
+ * A label is valid if its characters have a graphical representation (i.e., isgraph() is true) and
+ * if non of these characters occurs:
+ *
+ *     :,();[]'
+ *
+ * Thus, all whitespaces, control characters, and the listed special characters are invalid.
+ * See sanitize_label() for a function that replaces all invalid characters of the label by
+ * underscores.
+ */
+bool is_valid_label( std::string const& label )
+{
+    std::string invalid_chars = ":,();[]'";
+    for( auto c : label ) {
+        if( ! isgraph(c) || invalid_chars.find( c ) != std::string::npos ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Check whether a Sequence has a valid label.
+ *
+ * This might be important for printing the Sequence to a file that needs to be read by other
+ * applications. See is_valid_label() for details on what is considered a valid label.
+ * See sanitize_label() for a function that replaces all invalid characters of the label by
+ * underscores.
+ */
+bool has_valid_label(  Sequence const& seq )
+{
+    return is_valid_label( seq.label() );
+}
+
+/**
+ * @brief Check whether all Sequence%s in a SequenceSet have valid labels.
+ *
+ * This might be important for printing the Sequences to a file that needs to be read by other
+ * applications. See is_valid_label() for details on what is considered a valid label.
+ * See sanitize_labels() for a function that replaces all invalid characters of the labels by
+ * underscores.
+ */
+bool has_valid_labels( SequenceSet const& set )
+{
+    for( auto const& seq : set ) {
+        if( ! has_valid_label( seq )) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Sanitize a label by replacing all invalid characters with underscores.
+ *
+ * See is_valid_label() for a list of all characters that are considered invalid in a Sequence
+ * label.
+ */
+std::string sanitize_label( std::string const& label )
+{
+    std::string result;
+    std::string invalid_chars = ":,();[]'";
+    for( auto c : label ) {
+        if( ! isgraph(c) || invalid_chars.find( c ) != std::string::npos ) {
+            result += "_";
+        } else {
+            result += c;
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Sanitize a label by replacing all invalid characters with underscores.
+ *
+ * See is_valid_label() for a list of all characters that are considered invalid in a Sequence
+ * label.
+ */
+void sanitize_label( Sequence& seq )
+{
+    seq.label( sanitize_label( seq.label() ));
+}
+
+/**
+ * @brief Sanitize the labels of all Sequence%s in the SequenceSet by replacing all invalid
+ * characters with underscores.
+ *
+ * See is_valid_label() for a list of all characters that are considered invalid in a Sequence
+ * label.
+ */
+void sanitize_labels( SequenceSet& set )
+{
+    for( auto& seq : set ) {
+        sanitize_label( seq );
+    }
 }
 
 // =================================================================================================
