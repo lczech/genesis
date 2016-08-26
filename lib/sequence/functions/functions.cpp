@@ -186,11 +186,11 @@ void sanitize_labels( SequenceSet& set )
  */
 std::map<char, size_t> site_histogram( Sequence const& seq )
 {
-    std::map<char, size_t> sh;
+    std::map<char, size_t> result;
     for( auto const& s : seq ) {
-        ++sh[s];
+        ++result[s];
     }
-    return sh;
+    return result;
 }
 
 /**
@@ -201,13 +201,13 @@ std::map<char, size_t> site_histogram( Sequence const& seq )
  */
 std::map<char, size_t> site_histogram( SequenceSet const& set )
 {
-    std::map<char, size_t> sh;
+    std::map<char, size_t> result;
     for( auto const& seq : set ) {
         for( auto const& s : seq ) {
-            ++sh[s];
+            ++result[s];
         }
     }
-    return sh;
+    return result;
 }
 
 /**
@@ -217,6 +217,9 @@ std::map<char, double> base_frequencies_accumulator(
     std::map<char, size_t> const& sitehistogram,
     std::string            const& plain_chars
 ) {
+    // Prepare result (do it here to facilitate copy elision).
+    std::map<char, double> result;
+
     // Calculate sum of raw counts of all chars given in plain_chars.
     size_t sum = 0;
     for( auto const& shp : sitehistogram ) {
@@ -226,13 +229,12 @@ std::map<char, double> base_frequencies_accumulator(
     }
 
     // Make relative.
-    std::map<char, double> bf;
     for( auto const& pc : plain_chars ) {
         if( sitehistogram.count( pc )) {
-            bf[pc] = static_cast<double>( sitehistogram.at(pc) ) / static_cast<double>( sum );
+            result[pc] = static_cast<double>( sitehistogram.at(pc) ) / static_cast<double>( sum );
         }
     }
-    return bf;
+    return result;
 }
 
 /**
@@ -299,7 +301,7 @@ size_t count_chars( SequenceSet const& set, std::string const& chars )
 }
 
 /**
- * @brief Return the "gapyness" of the sequences, i.e., the proportion of gap chars
+ * @brief Return the "gapyness" of the Sequence%s, i.e., the proportion of gap chars
  * and other completely undetermined chars to the total length of all sequences.
  *
  * This function returns a value in the interval 0.0 (no gaps and undetermined chars at all)
@@ -323,7 +325,7 @@ double gapyness( SequenceSet const& set, std::string const& undetermined_chars )
 }
 
 /**
- * @brief Returns true iff all sequences only consist of the given `chars`.
+ * @brief Returns true iff all Sequence%s only consist of the given `chars`.
  *
  * For presettings of usable chars, see the functions `nucleic_acid_codes_...` and
  * `amino_acid_codes_...`. For example, to check whether the sequences are nucleic acids,
@@ -358,7 +360,7 @@ bool validate_chars( SequenceSet const& set, std::string const& chars )
 // -------------------------------------------------------------------------
 
 /**
- * @brief Return the total length (sum) of all sequences in the set.
+ * @brief Return the total length (sum) of all Sequence%s in the SequenceSet.
  */
 size_t total_length( SequenceSet const& set )
 {
@@ -370,7 +372,7 @@ size_t total_length( SequenceSet const& set )
 }
 
 /**
- * @brief Return true iff all sequences in the set have the same length.
+ * @brief Return true iff all Sequence%s in the SequenceSet have the same length.
  */
 bool is_alignment( SequenceSet const& set )
 {
