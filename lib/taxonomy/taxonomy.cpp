@@ -172,19 +172,43 @@ Taxon& Taxonomy::operator [] ( std::string name )
 }
 
 /**
- * @brief Return the child Taxon at the given index, or throw an exception if the index in invalid.
+ * @brief Return the child Taxon at the given index.
+ *
+ * The function throws an exception if the index in invalid, i.e., `>=` size().
  */
-Taxon const& Taxonomy::operator [] ( size_t index ) const
+Taxon const& Taxonomy::at ( size_t index  ) const
 {
     return children_.at( index );
 }
 
 /**
- * @brief Return the child Taxon at the given index, or throw an exception if the index in invalid.
+ * @brief Return the child Taxon at the given index.
+ *
+ * The function throws an exception if the index in invalid, i.e., `>=` size().
+ */
+Taxon& Taxonomy::at ( size_t index  )
+{
+    return children_.at( index );
+}
+
+/**
+ * @brief Return the child Taxon at the given index.
+ *
+ * The function does not check whether the provided index is within the valid range of size().
+ */
+Taxon const& Taxonomy::operator [] ( size_t index ) const
+{
+    return children_[ index ];
+}
+
+/**
+ * @brief Return the child Taxon at the given index.
+ *
+ * The function does not check whether the provided index is within the valid range of size().
  */
 Taxon& Taxonomy::operator [] ( size_t index )
 {
-    return children_.at( index );
+    return children_[ index ];
 }
 
 // =================================================================================================

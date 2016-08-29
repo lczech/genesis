@@ -131,6 +131,9 @@ public:
     Taxon const& operator [] ( std::string name ) const;
     Taxon&       operator [] ( std::string name );
 
+    Taxon const& at ( size_t index  ) const;
+    Taxon&       at ( size_t index  );
+
     Taxon const& operator [] ( size_t index ) const;
     Taxon&       operator [] ( size_t index );
 
