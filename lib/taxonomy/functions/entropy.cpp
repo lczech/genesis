@@ -32,6 +32,7 @@
 
 #include "taxonomy/formats/taxopath_generator.hpp"
 #include "taxonomy/functions/taxonomy.hpp"
+#include "taxonomy/iterator/preorder.hpp"
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
 
