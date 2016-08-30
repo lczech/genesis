@@ -102,13 +102,17 @@ public:
     FastaWriter& line_length( size_t value );
     size_t       line_length() const;
 
+    FastaWriter& enable_metadata( bool value );
+    bool         enable_metadata();
+
     // ---------------------------------------------------------------------
     //     Members
     // ---------------------------------------------------------------------
 
 private:
 
-    size_t line_length_ = 80;
+    size_t line_length_     = 80;
+    bool   enable_metadata_ = true;
 
 };
 
