@@ -46,6 +46,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 
 namespace genesis {
 namespace sequence {
@@ -70,6 +71,33 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
 // =================================================================================================
 //     Labels
 // =================================================================================================
+
+/**
+ * @brief Return true iff all labels of the Sequence%s in the SequenceSet are unique.
+ *
+ * The optional parameter `case_sensitive` controls how labels are compared. Default is `true`,
+ * that is, Sequence%s are compared case-sensitively.
+ */
+bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
+{
+    std::unordered_set< std::string > labels;
+    std::string label;
+
+    for( auto const& seq : set ) {
+        if( case_sensitive ) {
+            label = seq.label();
+        } else {
+            label = utils::to_lower( seq.label() );
+        }
+
+        if( labels.count( label ) > 0 ) {
+            return false;
+        } else {
+            labels.insert( label );
+        }
+    }
+    return true;
+}
 
 /**
  * @brief Check whether a given string is a valid label for a Sequence.

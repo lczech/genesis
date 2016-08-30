@@ -55,6 +55,8 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
 //     Labels
 // =================================================================================================
 
+bool has_unique_labels( SequenceSet const& set, bool case_sensitive = true );
+
 bool is_valid_label(   std::string const& label );
 bool has_valid_label(  Sequence const&    seq );
 bool has_valid_labels( SequenceSet const& set );
