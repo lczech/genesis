@@ -57,7 +57,9 @@ option (BUILD_PYTHON_MODULE "Build python module"  OFF)
 option (BUILD_TESTS         "Build test suites"    ON)
 
 option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" ON)
+
 option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
+option (USE_OPENMP          "Use OpenMP if available"                         OFF)
 
 if (BUILD_APPLICATIONS OR BUILD_PYTHON_MODULE OR BUILD_TESTS)
     # The applications, the python module and the tests all use the shared lib,
@@ -97,11 +99,11 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O2       -DNDEBUG")
 # LDFLAGS = -lm $(THREADS)
 
 # ------------------------------------------------------------------------------
-#   Threads
+#   Threads and OpenMP
 # ------------------------------------------------------------------------------
 
-# We check whether to use threads here, so that all binaries are compiled with
-# the same setting.
+# We check whether to use threads and OpenMP here,
+# so that all binaries are compiled with the same settings.
 
 IF(USE_THREADS)
     set (CMAKE_THREAD_PREFER_PTHREAD ON)
@@ -112,6 +114,18 @@ ENDIF()
 if(THREADS_FOUND)
     message (STATUS "Using threads")
     add_definitions( "-DPTHREADS" )
+endif()
+
+IF(USE_OPENMP)
+    find_package( OpenMP )
+ENDIF()
+
+if(OPENMP_FOUND)
+    message (STATUS "Using OpenMP")
+
+    set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${OpenMP_C_FLAGS}")
+    set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
+    set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
 endif()
 
 # ------------------------------------------------------------------------------
