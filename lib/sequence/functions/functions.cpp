@@ -102,6 +102,11 @@ bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
 /**
  * @brief Check whether a given string is a valid label for a Sequence.
  *
+ * While we can work with any form of label (as long as it is a string), most file formats and
+ * consequently most programs that read them restrict the set of valid characters for labels of
+ * sequences. We thus provide this function, which uses the most common interpretation of valid
+ * labels.
+ *
  * A label is valid if its characters have a graphical representation (i.e., isgraph() is true) and
  * if non of these characters occurs:
  *
@@ -156,8 +161,8 @@ bool has_valid_labels( SequenceSet const& set )
 /**
  * @brief Sanitize a label by replacing all invalid characters with underscores.
  *
- * See is_valid_label() for a list of all characters that are considered invalid in a Sequence
- * label.
+ * This might be important for printing the Sequences to a file that needs to be read by other
+ * applications. See is_valid_label() for details on what is considered a valid label.
  */
 std::string sanitize_label( std::string const& label )
 {
@@ -176,8 +181,8 @@ std::string sanitize_label( std::string const& label )
 /**
  * @brief Sanitize a label by replacing all invalid characters with underscores.
  *
- * See is_valid_label() for a list of all characters that are considered invalid in a Sequence
- * label.
+ * This might be important for printing the Sequences to a file that needs to be read by other
+ * applications. See is_valid_label() for details on what is considered a valid label.
  */
 void sanitize_label( Sequence& seq )
 {
@@ -188,8 +193,8 @@ void sanitize_label( Sequence& seq )
  * @brief Sanitize the labels of all Sequence%s in the SequenceSet by replacing all invalid
  * characters with underscores.
  *
- * See is_valid_label() for a list of all characters that are considered invalid in a Sequence
- * label.
+ * This might be important for printing the Sequences to a file that needs to be read by other
+ * applications. See is_valid_label() for details on what is considered a valid label.
  */
 void sanitize_labels( SequenceSet& set )
 {
