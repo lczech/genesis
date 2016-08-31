@@ -547,6 +547,26 @@ void remove_list(SequenceSet& set, std::vector<std::string> const& labels, bool 
 */
 
 // =================================================================================================
+//     Filters
+// =================================================================================================
+
+/**
+ * @brief Remove all Sequence%s from the SequenceSet whose @link Sequence::length() length@endlink
+ * is below the given `min_length`.
+ */
+void filter_min_sequence_length( SequenceSet& set, size_t min_length )
+{
+    size_t index = 0;
+    while( index < set.size() ) {
+        if( set.at(index).length() < min_length ) {
+            set.remove_at(index);
+        } else {
+            ++index;
+        }
+    }
+}
+
+// =================================================================================================
 //     Print and Output
 // =================================================================================================
 
