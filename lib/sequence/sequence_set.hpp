@@ -31,9 +31,9 @@
  * @ingroup sequence
  */
 
-#include <vector>
-
 #include "sequence/sequence.hpp"
+
+#include <vector>
 
 namespace genesis {
 namespace sequence {
@@ -87,6 +87,9 @@ public:
 
     size_t size() const;
 
+    reference       at (size_t index);
+    const_reference at (size_t index) const;
+
     reference       operator[] (size_t index);
     const_reference operator[] (size_t index) const;
 
@@ -96,6 +99,8 @@ public:
 
     void push_back( Sequence const& s );
     void push_back( Sequence &&     s );
+
+    void remove_at( size_t index );
 
     void clear();
 

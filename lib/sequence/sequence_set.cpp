@@ -30,6 +30,8 @@
 
 #include "sequence/sequence_set.hpp"
 
+#include <stdexcept>
+
 namespace genesis {
 namespace sequence {
 
@@ -40,6 +42,16 @@ namespace sequence {
 size_t SequenceSet::size() const
 {
     return sequences_.size();
+}
+
+SequenceSet::reference SequenceSet::at (size_t index)
+{
+    return sequences_.at( index );
+}
+
+SequenceSet::const_reference SequenceSet::at (size_t index) const
+{
+    return sequences_.at( index );
 }
 
 SequenceSet::reference SequenceSet::operator[] (size_t index)
@@ -64,6 +76,15 @@ void SequenceSet::push_back( Sequence const& s )
 void SequenceSet::push_back( Sequence && s )
 {
     sequences_.push_back(std::move(s));
+}
+
+void SequenceSet::remove_at( size_t index )
+{
+    if( index >= sequences_.size() ) {
+        throw std::out_of_range( "Index out of range for removing from SequenceSet." );
+    }
+
+    sequences_.erase( sequences_.begin() + index );
 }
 
 /**
