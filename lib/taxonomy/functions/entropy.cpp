@@ -118,6 +118,11 @@ namespace taxonomy {
  * recurse into the smaller "sub" Taxonomies. In such cases, those sub taxonomies might need to
  * not exceed a certain size, thus this option.
  *
+ * If the optional parameter `min_subtaxonomy_size` is set to a value > 0, the algorithm prevents
+ * sub-taxonomies from becoming smaller than this threshold. Instead of pruning at such a small
+ * sub-taxonomy, it is fully expanded. This avoids ending up with overly many small sub-taxonomies
+ * with just a few leaf taxa inside them.
+ *
  * If the optional parameter `allow_approximation` (default is `false`) is set to `true`,
  * we also allow to split up a border Taxon that has not the currently highest entropy of all
  * border Taxa, as long as this brings us closer to the target size.
@@ -130,6 +135,7 @@ void prune_by_entropy_with_target_size(
     Taxonomy& taxonomy,
     size_t    target_taxonomy_size,
     size_t    max_subtaxonomy_size,
+    size_t    min_subtaxonomy_size,
     bool      allow_approximation
 ) {
     // Basic check.
@@ -155,6 +161,48 @@ void prune_by_entropy_with_target_size(
     // Keep track of how many border taxa we have. This value should approach the target size.
     size_t border_taxa_count = 0;
 
+    // Helper function that adds a taxon to the border and sets it as a border candidate,
+    // unless it has too few leaves. In this case, it and its children will become inner and
+    // the leaves border taxa. That is, this taxon will be fully contained and not pruned.
+    auto add_as_border = [&] ( Taxon& taxon ) {
+
+        // If the taxon has fewer leaves than the threshold (but is not a leaf itself),
+        // we make the whole sub-taxonomy a part of the pruned taxonomy.
+        if(
+            taxon.size() > 0 &&
+            min_subtaxonomy_size > 0 &&
+            taxa_count_lowest_levels( taxon ) < min_subtaxonomy_size
+        ) {
+
+            // First, the taxon itself is inside.
+            taxon.data<EntropyTaxonData>().status = EntropyTaxonData::PruneStatus::kInside;
+
+            // Then, iterate it, and set all taxa in it to inner or
+            // border, depending on whether they are inner of leaf taxa.
+            for( auto it : preorder( taxon ) ) {
+                auto& sub_taxon_data = it.taxon().data<EntropyTaxonData>();
+                if( it.taxon().size() == 0 ) {
+                    sub_taxon_data.status = EntropyTaxonData::PruneStatus::kBorder;
+                    ++border_taxa_count;
+                } else {
+                    sub_taxon_data.status = EntropyTaxonData::PruneStatus::kInside;
+                }
+            }
+
+        } else {
+
+            // If the taxon has more leaves than the threshold, make it a border taxon.
+            taxon.data<EntropyTaxonData>().status = EntropyTaxonData::PruneStatus::kBorder;
+            ++border_taxa_count;
+
+            // Also, if it has children, add them as new candidates. Thus, in the pruning algorithm,
+            // they can be used to go deeper into the taxonomy.
+            if( taxon.size() > 0 ) {
+                border_candidates.emplace( taxon.data<EntropyTaxonData>().entropy, &taxon );
+            }
+        }
+    };
+
     // Helper function to fill the lists of taxa with the children of a Taxonomy.
     std::function< void ( Taxonomy& ) > add_children_to_border = [&] (
         Taxonomy& taxon
@@ -175,12 +223,7 @@ void prune_by_entropy_with_target_size(
                 // of the pruned taxonomy, so add it to the list. Also, if it has children, add those
                 // as border candidates, in case we want to go deeper there.
 
-                child.data<EntropyTaxonData>().status = EntropyTaxonData::PruneStatus::kBorder;
-                ++border_taxa_count;
-
-                if( child.size() > 0 ) {
-                    border_candidates.emplace( child.data<EntropyTaxonData>().entropy, &child );
-                }
+                add_as_border( child );
             }
         }
     };
@@ -211,12 +254,7 @@ void prune_by_entropy_with_target_size(
                 // We do not want to change the state of their children then - thus, those stay
                 // outside for the moment. Later, the entropy pruning phase can then start from there.
 
-                taxon.data<EntropyTaxonData>().status = EntropyTaxonData::PruneStatus::kBorder;
-                ++border_taxa_count;
-
-                if( taxon.size() > 0 ) {
-                    border_candidates.emplace( taxon.data<EntropyTaxonData>().entropy, &taxon );
-                }
+                add_as_border( taxon );
             }
         };
 
@@ -283,6 +321,54 @@ void prune_by_entropy_with_target_size(
     //     auto cur_front = *border_candidates.rbegin();
     //     LOG_DBG << "entropy end: " << cur_front.first;
     // }
+}
+
+/**
+ * @brief Expand the leaves of a pruned Taxonomy if their sub-taxonomies are smaller than the
+ * given threshold.
+ *
+ * This function takes a Taxonomy with EntropyTaxonData on its @link Taxon Taxa@endlink and
+ * looks for taxa with status @linlk EntropyTaxonData::PruneStatus::kBorder kBorder@endlink
+ * which have fewer than the threshold many leaves. If so, this sub-taxonomy is expaneded.
+ * This is, it is turned into taxa with status
+ * @linlk EntropyTaxonData::PruneStatus::kInside kInside@endlink for inner taxa and
+ * @linlk EntropyTaxonData::PruneStatus::kBorder kBorder@endlink for leaf taxa.
+ */
+void expand_small_subtaxonomies(
+    Taxonomy& taxonomy,
+    size_t    min_subtaxonomy_size
+) {
+    for( auto& taxon : taxonomy ) {
+        auto status = taxon.data<EntropyTaxonData>().status;
+
+        // Recurse
+        if( status == EntropyTaxonData::PruneStatus::kInside ) {
+            expand_small_subtaxonomies( taxon, min_subtaxonomy_size );
+        }
+
+        // If the taxon has fewer leaves than the threshold (but is not a leaf itself),
+        // we make the whole sub-taxonomy a part of the pruned taxonomy.
+        if(
+            status == EntropyTaxonData::PruneStatus::kBorder &&
+            taxon.size() > 0 &&
+            taxa_count_lowest_levels( taxon ) < min_subtaxonomy_size
+        ) {
+
+            // First, the taxon itself is inside.
+            taxon.data<EntropyTaxonData>().status = EntropyTaxonData::PruneStatus::kInside;
+
+            // Then, iterate it, and set all taxa in it to inner or
+            // border, depending on whether they are inner of leaf taxa.
+            for( auto it : preorder( taxon ) ) {
+                auto& sub_taxon_data = it.taxon().data<EntropyTaxonData>();
+                if( it.taxon().size() == 0 ) {
+                    sub_taxon_data.status = EntropyTaxonData::PruneStatus::kBorder;
+                } else {
+                    sub_taxon_data.status = EntropyTaxonData::PruneStatus::kInside;
+                }
+            }
+        }
+    }
 }
 
 /**
