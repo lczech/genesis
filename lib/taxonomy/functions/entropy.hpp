@@ -56,7 +56,8 @@ class Taxonomy;
 void prune_by_entropy_with_target_size(
     Taxonomy& taxonomy,
     size_t    target_taxonomy_size,
-    bool      allow_approximation = false
+    size_t    max_subtaxonomy_size = 0,
+    bool      allow_approximation  = false
 );
 
 size_t count_taxa_with_prune_status(
