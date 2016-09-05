@@ -31,6 +31,9 @@
  * @ingroup sequence
  */
 
+#include "sequence/functions/codes.hpp"
+#include "utils/math/bitvector.hpp"
+
 #include <iosfwd>
 #include <map>
 #include <string>
@@ -77,7 +80,17 @@ std::map<char, double> base_frequencies( SequenceSet const& set, std::string con
 
 size_t count_chars( SequenceSet const& set, std::string const& chars );
 
-double gapyness( SequenceSet const& set, std::string const& undetermined_chars );
+double gapyness( SequenceSet const& set, std::string const& gap_chars );
+
+utils::Bitvector gap_sites(
+    Sequence const& seq,
+    std::string const& gap_chars = nucleic_acid_codes_undetermined()
+);
+
+utils::Bitvector gap_sites(
+    SequenceSet const& set,
+    std::string const& gap_chars = nucleic_acid_codes_undetermined()
+);
 
 bool validate_chars( SequenceSet const& set, std::string const& chars );
 
@@ -88,6 +101,9 @@ bool is_alignment( SequenceSet const& set );
 // =================================================================================================
 //     Modifiers
 // =================================================================================================
+
+void remove_sites( Sequence&    seq, utils::Bitvector sites );
+void remove_sites( SequenceSet& set, utils::Bitvector sites );
 
 void replace_characters( Sequence&    seq, std::string const& search, char replacement );
 void replace_characters( SequenceSet& set, std::string const& search, char replacement );

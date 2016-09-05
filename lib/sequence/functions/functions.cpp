@@ -344,9 +344,9 @@ size_t count_chars( SequenceSet const& set, std::string const& chars )
  * The chars are treated case-insensitive.
  * In the special case that there are no sequences or sites, 0.0 is returned.
  */
-double gapyness( SequenceSet const& set, std::string const& undetermined_chars )
+double gapyness( SequenceSet const& set, std::string const& gap_chars )
 {
-    size_t gaps = count_chars( set, undetermined_chars );
+    size_t gaps = count_chars( set, gap_chars );
     size_t len  = total_length( set );
     if( len == 0 ) {
         return 0.0;
@@ -355,6 +355,67 @@ double gapyness( SequenceSet const& set, std::string const& undetermined_chars )
     double ret = static_cast<double>( gaps ) / static_cast<double>( len );
     assert( 0.0 <= ret && ret <= 1.0 );
     return ret;
+}
+
+/**
+ * @brief Return a @link utils::Bitvector Bitvector@endlink that is `true` where the Sequence has
+ * a gap and `false` where not.
+ *
+ * The `gap_chars` are used case-insensitively to determine what is considerted to be a gap.
+ * By default, nucleic_acid_codes_undetermined() are used, but any other set of characters
+ * is allowed.
+ */
+utils::Bitvector gap_sites( Sequence const& seq, std::string const& gap_chars )
+{
+    auto result = utils::Bitvector( seq.length() );
+    for( size_t i = 0; i < seq.length(); ++i ) {
+        auto gap = ( gap_chars.find( seq[ i ] ) != std::string::npos );
+        result.set( i, gap );
+    }
+    return result;
+}
+
+/**
+ * @brief Return a @link utils::Bitvector Bitvector@endlink that is `true` where all Sequence%s in
+ * the SequenceSet have a gap and `false` where not, that is, where at least on Sequence is not a
+ * gap.
+ *
+ * The `gap_chars` are used case-insensitively to determine what is considerted to be a gap.
+ * By default, nucleic_acid_codes_undetermined() are used, but any other set of characters
+ * is allowed.
+ */
+utils::Bitvector gap_sites( SequenceSet const& set, std::string const& gap_chars )
+{
+    // Edge case.
+    if( set.size() == 0 ) {
+        return utils::Bitvector();
+    }
+
+    // Init result bitvector to all true. Then, for every site that is not a gap, reset to false.
+    auto result = utils::Bitvector( set[0].length(), true );
+
+    // Init lookup array.
+    auto lookup = utils::CharLookup<bool>( false );
+    lookup.set_selection_upper_lower( gap_chars, true );
+
+    // Process all sequences in the set.
+    for( auto const& seq : set ) {
+        if( seq.length() != result.size() ) {
+            throw std::runtime_error(
+                "Cannot calculate gap_sites() if SequenceSet is not an alignment."
+            );
+        }
+
+        // Process the sites of the sequence. If it is not a gap, set it to false in the bitvector.
+        // This way, only sites that are all-gap will remain with value `true` in the end.
+        for( size_t i = 0; i < seq.length(); ++i ) {
+            if( ! lookup[ seq[ i ] ] ) {
+                result.set( i, false );
+            }
+        }
+    }
+
+    return result;
 }
 
 /**
@@ -425,6 +486,62 @@ bool is_alignment( SequenceSet const& set )
 // =================================================================================================
 //     Modifiers
 // =================================================================================================
+
+/**
+ * @brief Remove all sites from a Sequence where the given @link utils::Bitvector Bitvector@endlink
+ * is `true`, and keep all others.
+ *
+ * The Bitvector needs to have the same size as the Sequence, otherwise an expection is thrown.
+ *
+ * This function is for example useful in combination with gap_sites().
+ */
+void remove_sites( Sequence& seq, utils::Bitvector sites )
+{
+    if( seq.length() != sites.size() ) {
+        throw std::runtime_error(
+            "Cannot remove sites from Sequence. "
+            "Given Bitvector has not the same size as the Sequence."
+        );
+    }
+
+    auto const num_sites = sites.size() - sites.count();
+    std::string result;
+    result.reserve( num_sites );
+
+    for( size_t i = 0; i < sites.size(); ++i ) {
+        if( ! sites[i] ) {
+            result += seq[i];
+        }
+    }
+
+    seq.sites( result );
+}
+
+/**
+ * @brief Remove all sites from all Sequence%s in a SequenceSet where the given
+ * @link utils::Bitvector Bitvector@endlink is `true`, and keep all others.
+ *
+ * The Bitvector and all Sequences need to have the same size, otherwise an expection is thrown.
+ * This check is done before any Sequence is changed. Thus, if the function throws for this reason,
+ * the Sequences are left unchanged.
+ *
+ * This function is for example useful in combination with gap_sites().
+ */
+void remove_sites( SequenceSet& set, utils::Bitvector sites )
+{
+    for( auto const& seq : set ) {
+        if( seq.length() != sites.size() ) {
+            throw std::runtime_error(
+                "Cannot remove sites from SequenceSet. "
+                "Given Bitvector has not the same size as the Sequences."
+            );
+        }
+    }
+
+    for( auto& seq : set ) {
+        remove_sites( seq, sites );
+    }
+}
 
 /**
  * @brief Replace all occurences of the chars in `search` by the `replace` char, for all sites in

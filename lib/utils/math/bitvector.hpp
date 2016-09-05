@@ -62,6 +62,11 @@ public:
     friend std::ostream& operator << (std::ostream& out, Bitvector const& rhs);
 
     /**
+     * @brief Default constructor. Creates an empty Bitvector of size 0.
+     */
+    Bitvector() = default;
+
+    /**
      * @brief Constructor that takes a size and an optional bool value to initialize the Bitvector,
      * false by default.
      */
@@ -242,7 +247,7 @@ protected:
     //     Data Members
     // ---------------------------------------------------------
 
-    size_t               size_;
+    size_t               size_ = 0;
     std::vector<IntType> data_;
 };
 
