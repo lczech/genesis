@@ -368,9 +368,13 @@ double gapyness( SequenceSet const& set, std::string const& gap_chars )
 utils::Bitvector gap_sites( Sequence const& seq, std::string const& gap_chars )
 {
     auto result = utils::Bitvector( seq.length() );
+
+    // Init lookup array.
+    auto lookup = utils::CharLookup<bool>( false );
+    lookup.set_selection_upper_lower( gap_chars, true );
+
     for( size_t i = 0; i < seq.length(); ++i ) {
-        auto gap = ( gap_chars.find( seq[ i ] ) != std::string::npos );
-        result.set( i, gap );
+        result.set( i, lookup[ seq[ i ] ] );
     }
     return result;
 }
