@@ -118,6 +118,8 @@ void replace_t_with_u( SequenceSet& set );
 // =================================================================================================
 
 void filter_min_sequence_length( SequenceSet& set, size_t min_length );
+void filter_max_sequence_length( SequenceSet& set, size_t max_length );
+void filter_min_max_sequence_length( SequenceSet& set, size_t min_length, size_t max_length );
 
 // =================================================================================================
 //     Print and Output

@@ -679,12 +679,52 @@ void remove_list(SequenceSet& set, std::vector<std::string> const& labels, bool 
 /**
  * @brief Remove all Sequence%s from the SequenceSet whose @link Sequence::length() length@endlink
  * is below the given `min_length`.
+ *
+ * See also filter_max_sequence_length() and filter_min_max_sequence_length().
  */
 void filter_min_sequence_length( SequenceSet& set, size_t min_length )
 {
     size_t index = 0;
     while( index < set.size() ) {
         if( set.at(index).length() < min_length ) {
+            set.remove_at(index);
+        } else {
+            ++index;
+        }
+    }
+}
+
+/**
+ * @brief Remove all Sequence%s from the SequenceSet whose @link Sequence::length() length@endlink
+ * is above the given `max_length`.
+ *
+ * See also filter_min_sequence_length() and filter_min_max_sequence_length().
+ */
+void filter_max_sequence_length( SequenceSet& set, size_t max_length )
+{
+    size_t index = 0;
+    while( index < set.size() ) {
+        if( set.at(index).length() > max_length ) {
+            set.remove_at(index);
+        } else {
+            ++index;
+        }
+    }
+}
+
+/**
+ * @brief Remove all Sequence%s from the SequenceSet whose @link Sequence::length() length@endlink
+ * is not inbetween the `min_length` and `max_length`.
+ *
+ * This function has the same effect as calling filter_min_sequence_length() and
+ * filter_max_sequence_length(), but does it in one iteration over the SequenceSet.
+ */
+void filter_min_max_sequence_length( SequenceSet& set, size_t min_length, size_t max_length )
+{
+    size_t index = 0;
+    while( index < set.size() ) {
+        auto len = set.at(index).length();
+        if( len < min_length || len > max_length ) {
             set.remove_at(index);
         } else {
             ++index;
