@@ -128,36 +128,6 @@ void filter_min_max_sequence_length( SequenceSet& set, size_t min_length, size_t
 std::ostream& operator << ( std::ostream& out, Sequence    const& seq );
 std::ostream& operator << ( std::ostream& out, SequenceSet const& set );
 
-std::string print(
-    Sequence const&                    seq,
-    bool                               print_label  = true,
-    size_t                             length_limit = 100
-);
-
-std::string print(
-    SequenceSet const&                 set,
-    bool                               print_label    = true,
-    size_t                             length_limit   = 100,
-    size_t                             sequence_limit = 10
-);
-
-std::string print_color(
-    Sequence const&                    seq,
-    std::map<char, std::string> const& colors,
-    bool                               print_label  = true,
-    size_t                             length_limit = 100,
-    bool                               background   = true
-);
-
-std::string print_color(
-    SequenceSet const&                 set,
-    std::map<char, std::string> const& colors,
-    bool                               print_label    = true,
-    size_t                             length_limit   = 100,
-    size_t                             sequence_limit = 10,
-    bool                               background     = true
-);
-
 } // namespace sequence
 } // namespace genesis
 
