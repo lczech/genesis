@@ -143,7 +143,7 @@ enum class SiteEntropyOptions : unsigned char
  *
  *     auto options = SiteEntropyOptions::kWeighted | SiteEntropyOptions::kNormalized;
  *
- * Use the @link operator & ( SiteEntropyOptions, SiteEntropyOptions ) and-operator@endlink
+ * Use the @link operator&( SiteEntropyOptions, SiteEntropyOptions ) and-operator@endlink
  * in order to check whether an option is set.
  */
 inline SiteEntropyOptions operator | ( SiteEntropyOptions lhs, SiteEntropyOptions rhs )
@@ -162,7 +162,7 @@ inline SiteEntropyOptions operator | ( SiteEntropyOptions lhs, SiteEntropyOption
  *     SiteEntropyOptions options;
  *     options |= SiteEntropyOptions::kWeighted;
  *
- * Use the @link operator & ( SiteEntropyOptions, SiteEntropyOptions ) and-operator@endlink
+ * Use the @link operator&( SiteEntropyOptions, SiteEntropyOptions ) and-operator@endlink
  * in order to check whether an option is set.
  */
 inline SiteEntropyOptions& operator |= ( SiteEntropyOptions& lhs, SiteEntropyOptions rhs )
@@ -184,7 +184,7 @@ inline SiteEntropyOptions& operator |= ( SiteEntropyOptions& lhs, SiteEntropyOpt
  *         // Do stuff...
  *     }
  *
- * Use the @link operator | ( SiteEntropyOptions, SiteEntropyOptions ) or-operator@endlink
+ * Use the @link operator|( SiteEntropyOptions, SiteEntropyOptions ) or-operator@endlink
  * in order to set and combine options.
  */
 inline bool operator & ( SiteEntropyOptions lhs, SiteEntropyOptions rhs )

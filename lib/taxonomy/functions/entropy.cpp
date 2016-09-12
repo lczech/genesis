@@ -328,11 +328,11 @@ void prune_by_entropy_with_target_size(
  * given threshold.
  *
  * This function takes a Taxonomy with EntropyTaxonData on its @link Taxon Taxa@endlink and
- * looks for taxa with status @linlk EntropyTaxonData::PruneStatus::kBorder kBorder@endlink
+ * looks for taxa with status @link EntropyTaxonData::PruneStatus::kBorder kBorder@endlink
  * which have fewer than the threshold many leaves. If so, this sub-taxonomy is expaneded.
  * This is, it is turned into taxa with status
- * @linlk EntropyTaxonData::PruneStatus::kInside kInside@endlink for inner taxa and
- * @linlk EntropyTaxonData::PruneStatus::kBorder kBorder@endlink for leaf taxa.
+ * @link EntropyTaxonData::PruneStatus::kInside kInside@endlink for inner taxa and
+ * @link EntropyTaxonData::PruneStatus::kBorder kBorder@endlink for leaf taxa.
  */
 void expand_small_subtaxonomies(
     Taxonomy& taxonomy,
@@ -442,7 +442,7 @@ std::string print_pruned_taxonomy( Taxonomy const& taxonomy )
  *     children of the same status or of @link EntropyTaxonData::PruneStatus::kBorder kBorder@endlink.
  *   * Taxa with status @link EntropyTaxonData::PruneStatus::kBorder kBorder@endlink can only have
  *     children of status @link EntropyTaxonData::PruneStatus::kOutside kOutside@endlink.
- *   * Taxa with status @link EntropyTaxonData::PruneStatus::kOutside kOutside@ can only have
+ *   * Taxa with status @link EntropyTaxonData::PruneStatus::kOutside kOutside@endlink can only have
  *     children of the same status.
  *
  * If any of those conditions is not met, an information about the faulty Taxon is written to

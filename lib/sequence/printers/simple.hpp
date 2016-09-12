@@ -98,13 +98,13 @@ public:
         kNone,
 
         /**
-         * @brief The label is printed on a line preceeding the Sequence sites.
+         * @brief The label is printed on the line where the Sequence sites start, separated
+         * from them by ": ".
          */
         kSameLine,
 
         /**
-         * @brief The label is printed on the line where the Sequence sites start, separated
-         * from them by ": ".
+         * @brief The label is printed on a line preceeding the Sequence sites.
          */
         kSeparateLine
     };
