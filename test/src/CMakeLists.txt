@@ -62,7 +62,11 @@ add_executable        (genesis_tests ${genesis_test_sources})
 set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME test_suite)
 
 target_link_libraries (genesis_tests genesis_lib_shared)
-target_link_libraries (genesis_tests ${GTEST_BOTH_LIBRARIES} -pthread)
+target_link_libraries (genesis_tests ${GTEST_BOTH_LIBRARIES})
+
+if(THREADS_FOUND)
+    target_link_libraries (genesis_tests ${CMAKE_THREAD_LIBS_INIT})
+endif()
 
 # Need to specify the whole path here. For some reason, cmake does not
 # extract it from the executable name here...
