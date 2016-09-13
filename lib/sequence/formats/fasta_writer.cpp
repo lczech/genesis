@@ -54,7 +54,7 @@ void FastaWriter::write_sequence( Sequence const& seq, std::ostream& os ) const
     os << ">" << seq.label();
 
     // Write metadata if available.
-    if( seq.metadata().size() > 0 ) {
+    if( enable_metadata_ && seq.metadata().size() > 0 ) {
         os << " " << seq.metadata();
     }
     os << "\n";
@@ -136,6 +136,30 @@ FastaWriter& FastaWriter::line_length( size_t value )
 size_t FastaWriter::line_length() const
 {
     return line_length_;
+}
+
+/**
+ * @brief Set whether metadata is written.
+ *
+ * If set to `true` (default), the metadata of the Sequence%s is written after the label, separated
+ * by a space. This is also the format that FastaReader can read.
+ *
+ * The functions returns the FastaWriter object to allow fluent interfaces.
+ */
+FastaWriter& FastaWriter::enable_metadata( bool value )
+{
+    enable_metadata_ = value;
+    return *this;
+}
+
+/**
+ * @brief Return whether currently the FastaWriter is set to write metadata.
+ *
+ * See the setter enable_metadata( bool ) for details.
+ */
+bool FastaWriter::enable_metadata()
+{
+    return enable_metadata_;
 }
 
 } // namespace sequence

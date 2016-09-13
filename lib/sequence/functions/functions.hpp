@@ -31,6 +31,9 @@
  * @ingroup sequence
  */
 
+#include "sequence/functions/codes.hpp"
+#include "utils/math/bitvector.hpp"
+
 #include <iosfwd>
 #include <map>
 #include <string>
@@ -52,6 +55,20 @@ class SequenceSet;
 Sequence const* find_sequence( SequenceSet const& set, std::string const& label );
 
 // =================================================================================================
+//     Labels
+// =================================================================================================
+
+bool has_unique_labels( SequenceSet const& set, bool case_sensitive = true );
+
+bool is_valid_label(   std::string const& label );
+bool has_valid_label(  Sequence const&    seq );
+bool has_valid_labels( SequenceSet const& set );
+
+std::string sanitize_label( std::string const& label );
+void sanitize_label( Sequence&     seq );
+void sanitize_labels( SequenceSet& set );
+
+// =================================================================================================
 //     Characteristics
 // =================================================================================================
 
@@ -63,7 +80,17 @@ std::map<char, double> base_frequencies( SequenceSet const& set, std::string con
 
 size_t count_chars( SequenceSet const& set, std::string const& chars );
 
-double gapyness( SequenceSet const& set, std::string const& undetermined_chars );
+double gapyness( SequenceSet const& set, std::string const& gap_chars );
+
+utils::Bitvector gap_sites(
+    Sequence const& seq,
+    std::string const& gap_chars = nucleic_acid_codes_undetermined()
+);
+
+utils::Bitvector gap_sites(
+    SequenceSet const& set,
+    std::string const& gap_chars = nucleic_acid_codes_undetermined()
+);
 
 bool validate_chars( SequenceSet const& set, std::string const& chars );
 
@@ -72,66 +99,34 @@ size_t total_length( SequenceSet const& set );
 bool is_alignment( SequenceSet const& set );
 
 // =================================================================================================
+//     Modifiers
+// =================================================================================================
+
+void remove_sites( Sequence&    seq, utils::Bitvector sites );
+void remove_sites( SequenceSet& set, utils::Bitvector sites );
+
+void replace_characters( Sequence&    seq, std::string const& search, char replacement );
+void replace_characters( SequenceSet& set, std::string const& search, char replacement );
+
+void replace_u_with_t( Sequence&    seq );
+void replace_u_with_t( SequenceSet& set );
+void replace_t_with_u( Sequence&    seq );
+void replace_t_with_u( SequenceSet& set );
+
+// =================================================================================================
+//     Filters
+// =================================================================================================
+
+void filter_min_sequence_length( SequenceSet& set, size_t min_length );
+void filter_max_sequence_length( SequenceSet& set, size_t max_length );
+void filter_min_max_sequence_length( SequenceSet& set, size_t min_length, size_t max_length );
+
+// =================================================================================================
 //     Print and Output
 // =================================================================================================
 
 std::ostream& operator << ( std::ostream& out, Sequence    const& seq );
 std::ostream& operator << ( std::ostream& out, SequenceSet const& set );
-
-std::string print(
-    Sequence const&                    seq,
-    bool                               print_label  = true,
-    size_t                             length_limit = 100
-);
-
-std::string print(
-    SequenceSet const&                 set,
-    bool                               print_label    = true,
-    size_t                             length_limit   = 100,
-    size_t                             sequence_limit = 10
-);
-
-std::string print_color(
-    Sequence const&                    seq,
-    std::map<char, std::string> const& colors,
-    bool                               print_label  = true,
-    size_t                             length_limit = 100,
-    bool                               background   = true
-);
-
-std::string print_color(
-    SequenceSet const&                 set,
-    std::map<char, std::string> const& colors,
-    bool                               print_label    = true,
-    size_t                             length_limit   = 100,
-    size_t                             sequence_limit = 10,
-    bool                               background     = true
-);
-
-// =================================================================================================
-//     Modifiers
-// =================================================================================================
-
-/*
-
-normalize --> to upper
-normalize_chars
-normalize_gaps
-
-void remove_list(SequenceSet& set, std::vector<std::string> const& labels, bool invert);
-
-// =================================================================================================
-//     Sequence Modifiers
-// =================================================================================================
-
-void remove_gaps();
-void replace(char search, char replace);
-
-remove_chars
-compress_chars
-replace_chars
-
-*/
 
 } // namespace sequence
 } // namespace genesis

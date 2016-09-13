@@ -5,13 +5,13 @@ A toolkit for working with phylogenetic data.
 [![Build Status](https://travis-ci.org/lczech/genesis.svg?branch=master)](https://travis-ci.org/lczech/genesis)
 [![License](https://img.shields.io/badge/license-GPLv3-blue.svg)](http://www.gnu.org/licenses/gpl.html)
 ![Language](https://img.shields.io/badge/language-C%2B%2B11-lightgrey.svg)
-![Language](https://img.shields.io/badge/language-python-lightgrey.svg)
+<!--![Language](https://img.shields.io/badge/language-python-lightgrey.svg)-->
 
 Features
 -------------------
 
 The aim of this project is to provide an easy to use toolkit for working with phylogenetic data.
-Currently, it supports:
+It is a library written in C++, which currently supports:
 
  *  **Placements**. Working with evolutionary placements of short NGS reads on a
     reference phylogenetic tree is the main focus of genesis. The data is typically produced by
@@ -36,10 +36,12 @@ The feature list will hopefully grow in the future.
 Getting Started
 -------------------
 
+<!--
 The functionality of genesis can be used in two ways:
 
  *  As a C++ library.
  *  As a Python module.
+-->
 
 You find all the information for getting started with genesis in the
 **[documentation](http://doc.genesis-lib.org/)**.
@@ -50,7 +52,6 @@ It is intended for questions on how to do things with genesis.
 
 For **bug reports and feature requests**, please
 [open an issue on our GitHub page](https://github.com/lczech/genesis/issues).
-
 
 Showcase
 -------------------

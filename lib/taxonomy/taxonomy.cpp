@@ -116,7 +116,7 @@ size_t Taxonomy::size() const
 }
 
 /**
- * @brief Return whether an immediate child taxon with the given name exists.
+ * @brief Return whether an immediate child Taxon with the given name exists.
  */
 bool Taxonomy::has_child ( std::string name ) const
 {
@@ -130,7 +130,7 @@ bool Taxonomy::has_child ( std::string name ) const
 }
 
 /**
- * @brief Return the child taxon with a given name if it exists, or throw otherwise.
+ * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
  */
 Taxon const& Taxonomy::get_child ( std::string name ) const
 {
@@ -143,7 +143,7 @@ Taxon const& Taxonomy::get_child ( std::string name ) const
 }
 
 /**
- * @brief Return the child taxon with a given name if it exists, or throw otherwise.
+ * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
  */
 Taxon& Taxonomy::get_child ( std::string name )
 {
@@ -156,7 +156,7 @@ Taxon& Taxonomy::get_child ( std::string name )
 }
 
 /**
- * @brief Return the child taxon with a given name if it exists, or throw otherwise.
+ * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
  */
 Taxon const& Taxonomy::operator [] ( std::string name ) const
 {
@@ -164,11 +164,51 @@ Taxon const& Taxonomy::operator [] ( std::string name ) const
 }
 
 /**
- * @brief Return the child taxon with a given name if it exists, or throw otherwise.
+ * @brief Return the child Taxon with a given name if it exists, or throw otherwise.
  */
 Taxon& Taxonomy::operator [] ( std::string name )
 {
     return get_child( name );
+}
+
+/**
+ * @brief Return the child Taxon at the given index.
+ *
+ * The function throws an exception if the index in invalid, i.e., `>=` size().
+ */
+Taxon const& Taxonomy::at ( size_t index  ) const
+{
+    return children_.at( index );
+}
+
+/**
+ * @brief Return the child Taxon at the given index.
+ *
+ * The function throws an exception if the index in invalid, i.e., `>=` size().
+ */
+Taxon& Taxonomy::at ( size_t index  )
+{
+    return children_.at( index );
+}
+
+/**
+ * @brief Return the child Taxon at the given index.
+ *
+ * The function does not check whether the provided index is within the valid range of size().
+ */
+Taxon const& Taxonomy::operator [] ( size_t index ) const
+{
+    return children_[ index ];
+}
+
+/**
+ * @brief Return the child Taxon at the given index.
+ *
+ * The function does not check whether the provided index is within the valid range of size().
+ */
+Taxon& Taxonomy::operator [] ( size_t index )
+{
+    return children_[ index ];
 }
 
 // =================================================================================================
@@ -176,9 +216,9 @@ Taxon& Taxonomy::operator [] ( std::string name )
 // =================================================================================================
 
 /**
- * @brief Add a child taxon as a copy of a given taxon and return it.
+ * @brief Add a child Taxon as a copy of a given Taxon and return it.
  *
- * If a child taxon with the same name already exists, it is recursively merged with the given taxon.
+ * If a child Taxon with the same name already exists, it is recursively merged with the given Taxon.
  */
 Taxon& Taxonomy::add_child( Taxon const& child )
 {
@@ -186,9 +226,9 @@ Taxon& Taxonomy::add_child( Taxon const& child )
 }
 
 /**
- * @brief Add a child taxon by creating a new one with the given name and return it.
+ * @brief Add a child Taxon by creating a new one with the given name and return it.
  *
- * If a child taxon with the same name already exists, nothing happens.
+ * If a child Taxon with the same name already exists, nothing happens.
  */
 Taxon& Taxonomy::add_child( std::string const& name )
 {
@@ -196,10 +236,10 @@ Taxon& Taxonomy::add_child( std::string const& name )
 }
 
 /**
- * @brief Remove a child taxon with a certain name.
+ * @brief Remove a child Taxon with a certain name.
  *
- * The taxon (and all its sub-taxa) are destroyed.
- * Throws an `std::runtime_error` if there is no taxon with the given name.
+ * The Taxon (and all its sub-taxa) are destroyed.
+ * Throws an `std::runtime_error` if there is no Taxon with the given name.
  */
 void Taxonomy::remove_child( std::string const& name )
 {
@@ -287,16 +327,16 @@ Taxonomy::const_iterator Taxonomy::cend() const
 // =================================================================================================
 
 /**
- * @brief Virtual implementation function for adding a child taxon.
+ * @brief Virtual implementation function for adding a child Taxon.
  *
  * This function is invoked by all add_child() functions in order to implement the non-virtual
  * interface pattern.
  *
- * It needs to be virtual because adding a child taxon differs for Taxonomy and Taxon.
+ * It needs to be virtual because adding a child Taxon differs for Taxonomy and Taxon.
  * In the latter case, the additional @link Taxon::parent() parent @endlink property has to be set.
  * Thus, this function is overridden by Taxon, see Taxon::add_child_().
  *
- * If a child taxon with the same name already exists, it is recursively merged with the given taxon.
+ * If a child Taxon with the same name already exists, it is recursively merged with the given Taxon.
  * The function returns the child.
  */
 Taxon& Taxonomy::add_child_( Taxon const& child )

@@ -32,6 +32,8 @@
 
 #include "sequence/sequence_set.hpp"
 #include "sequence/sequence.hpp"
+#include "sequence/printers/simple.hpp"
+
 #include "utils/core/logging.hpp"
 #include "utils/text/string.hpp"
 #include "utils/text/style.hpp"
@@ -40,11 +42,13 @@
 #include <algorithm>
 #include <array>
 #include <assert.h>
+#include <cctype>
 #include <numeric>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 
 namespace genesis {
 namespace sequence {
@@ -67,6 +71,141 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
 }
 
 // =================================================================================================
+//     Labels
+// =================================================================================================
+
+/**
+ * @brief Return true iff all labels of the Sequence%s in the SequenceSet are unique.
+ *
+ * The optional parameter `case_sensitive` controls how labels are compared. Default is `true`,
+ * that is, Sequence%s are compared case-sensitively.
+ */
+bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
+{
+    std::unordered_set< std::string > labels;
+    std::string label;
+
+    for( auto const& seq : set ) {
+        if( case_sensitive ) {
+            label = seq.label();
+        } else {
+            label = utils::to_lower( seq.label() );
+        }
+
+        if( labels.count( label ) > 0 ) {
+            return false;
+        } else {
+            labels.insert( label );
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Check whether a given string is a valid label for a Sequence.
+ *
+ * While we can work with any form of label (as long as it is a string), most file formats and
+ * consequently most programs that read them restrict the set of valid characters for labels of
+ * sequences. We thus provide this function, which uses the most common interpretation of valid
+ * labels.
+ *
+ * A label is valid if its characters have a graphical representation (i.e., isgraph() is true) and
+ * if non of these characters occurs:
+ *
+ *     :,();[]'
+ *
+ * Thus, all whitespaces, control characters, and the listed special characters are invalid.
+ * See sanitize_label() for a function that replaces all invalid characters of the label by
+ * underscores.
+ */
+bool is_valid_label( std::string const& label )
+{
+    std::string invalid_chars = ":,();[]'";
+    for( auto c : label ) {
+        if( ! isgraph(c) || invalid_chars.find( c ) != std::string::npos ) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Check whether a Sequence has a valid label.
+ *
+ * This might be important for printing the Sequence to a file that needs to be read by other
+ * applications. See is_valid_label() for details on what is considered a valid label.
+ * See sanitize_label() for a function that replaces all invalid characters of the label by
+ * underscores.
+ */
+bool has_valid_label(  Sequence const& seq )
+{
+    return is_valid_label( seq.label() );
+}
+
+/**
+ * @brief Check whether all Sequence%s in a SequenceSet have valid labels.
+ *
+ * This might be important for printing the Sequences to a file that needs to be read by other
+ * applications. See is_valid_label() for details on what is considered a valid label.
+ * See sanitize_labels() for a function that replaces all invalid characters of the labels by
+ * underscores.
+ */
+bool has_valid_labels( SequenceSet const& set )
+{
+    for( auto const& seq : set ) {
+        if( ! has_valid_label( seq )) {
+            return false;
+        }
+    }
+    return true;
+}
+
+/**
+ * @brief Sanitize a label by replacing all invalid characters with underscores.
+ *
+ * This might be important for printing the Sequences to a file that needs to be read by other
+ * applications. See is_valid_label() for details on what is considered a valid label.
+ */
+std::string sanitize_label( std::string const& label )
+{
+    std::string result;
+    std::string invalid_chars = ":,();[]'";
+    for( auto c : label ) {
+        if( ! isgraph(c) || invalid_chars.find( c ) != std::string::npos ) {
+            result += "_";
+        } else {
+            result += c;
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Sanitize a label by replacing all invalid characters with underscores.
+ *
+ * This might be important for printing the Sequences to a file that needs to be read by other
+ * applications. See is_valid_label() for details on what is considered a valid label.
+ */
+void sanitize_label( Sequence& seq )
+{
+    seq.label( sanitize_label( seq.label() ));
+}
+
+/**
+ * @brief Sanitize the labels of all Sequence%s in the SequenceSet by replacing all invalid
+ * characters with underscores.
+ *
+ * This might be important for printing the Sequences to a file that needs to be read by other
+ * applications. See is_valid_label() for details on what is considered a valid label.
+ */
+void sanitize_labels( SequenceSet& set )
+{
+    for( auto& seq : set ) {
+        sanitize_label( seq );
+    }
+}
+
+// =================================================================================================
 //     Characteristics
 // =================================================================================================
 
@@ -82,11 +221,11 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
  */
 std::map<char, size_t> site_histogram( Sequence const& seq )
 {
-    std::map<char, size_t> sh;
+    std::map<char, size_t> result;
     for( auto const& s : seq ) {
-        ++sh[s];
+        ++result[s];
     }
-    return sh;
+    return result;
 }
 
 /**
@@ -97,13 +236,13 @@ std::map<char, size_t> site_histogram( Sequence const& seq )
  */
 std::map<char, size_t> site_histogram( SequenceSet const& set )
 {
-    std::map<char, size_t> sh;
+    std::map<char, size_t> result;
     for( auto const& seq : set ) {
         for( auto const& s : seq ) {
-            ++sh[s];
+            ++result[s];
         }
     }
-    return sh;
+    return result;
 }
 
 /**
@@ -113,6 +252,9 @@ std::map<char, double> base_frequencies_accumulator(
     std::map<char, size_t> const& sitehistogram,
     std::string            const& plain_chars
 ) {
+    // Prepare result (do it here to facilitate copy elision).
+    std::map<char, double> result;
+
     // Calculate sum of raw counts of all chars given in plain_chars.
     size_t sum = 0;
     for( auto const& shp : sitehistogram ) {
@@ -122,13 +264,12 @@ std::map<char, double> base_frequencies_accumulator(
     }
 
     // Make relative.
-    std::map<char, double> bf;
     for( auto const& pc : plain_chars ) {
         if( sitehistogram.count( pc )) {
-            bf[pc] = static_cast<double>( sitehistogram.at(pc) ) / static_cast<double>( sum );
+            result[pc] = static_cast<double>( sitehistogram.at(pc) ) / static_cast<double>( sum );
         }
     }
-    return bf;
+    return result;
 }
 
 /**
@@ -195,7 +336,7 @@ size_t count_chars( SequenceSet const& set, std::string const& chars )
 }
 
 /**
- * @brief Return the "gapyness" of the sequences, i.e., the proportion of gap chars
+ * @brief Return the "gapyness" of the Sequence%s, i.e., the proportion of gap chars
  * and other completely undetermined chars to the total length of all sequences.
  *
  * This function returns a value in the interval 0.0 (no gaps and undetermined chars at all)
@@ -205,9 +346,9 @@ size_t count_chars( SequenceSet const& set, std::string const& chars )
  * The chars are treated case-insensitive.
  * In the special case that there are no sequences or sites, 0.0 is returned.
  */
-double gapyness( SequenceSet const& set, std::string const& undetermined_chars )
+double gapyness( SequenceSet const& set, std::string const& gap_chars )
 {
-    size_t gaps = count_chars( set, undetermined_chars );
+    size_t gaps = count_chars( set, gap_chars );
     size_t len  = total_length( set );
     if( len == 0 ) {
         return 0.0;
@@ -219,7 +360,72 @@ double gapyness( SequenceSet const& set, std::string const& undetermined_chars )
 }
 
 /**
- * @brief Returns true iff all sequences only consist of the given `chars`.
+ * @brief Return a @link utils::Bitvector Bitvector@endlink that is `true` where the Sequence has
+ * a gap and `false` where not.
+ *
+ * The `gap_chars` are used case-insensitively to determine what is considerted to be a gap.
+ * By default, nucleic_acid_codes_undetermined() are used, but any other set of characters
+ * is allowed.
+ */
+utils::Bitvector gap_sites( Sequence const& seq, std::string const& gap_chars )
+{
+    auto result = utils::Bitvector( seq.length() );
+
+    // Init lookup array.
+    auto lookup = utils::CharLookup<bool>( false );
+    lookup.set_selection_upper_lower( gap_chars, true );
+
+    for( size_t i = 0; i < seq.length(); ++i ) {
+        result.set( i, lookup[ seq[ i ] ] );
+    }
+    return result;
+}
+
+/**
+ * @brief Return a @link utils::Bitvector Bitvector@endlink that is `true` where all Sequence%s in
+ * the SequenceSet have a gap and `false` where not, that is, where at least on Sequence is not a
+ * gap.
+ *
+ * The `gap_chars` are used case-insensitively to determine what is considerted to be a gap.
+ * By default, nucleic_acid_codes_undetermined() are used, but any other set of characters
+ * is allowed.
+ */
+utils::Bitvector gap_sites( SequenceSet const& set, std::string const& gap_chars )
+{
+    // Edge case.
+    if( set.size() == 0 ) {
+        return utils::Bitvector();
+    }
+
+    // Init result bitvector to all true. Then, for every site that is not a gap, reset to false.
+    auto result = utils::Bitvector( set[0].length(), true );
+
+    // Init lookup array.
+    auto lookup = utils::CharLookup<bool>( false );
+    lookup.set_selection_upper_lower( gap_chars, true );
+
+    // Process all sequences in the set.
+    for( auto const& seq : set ) {
+        if( seq.length() != result.size() ) {
+            throw std::runtime_error(
+                "Cannot calculate gap_sites() if SequenceSet is not an alignment."
+            );
+        }
+
+        // Process the sites of the sequence. If it is not a gap, set it to false in the bitvector.
+        // This way, only sites that are all-gap will remain with value `true` in the end.
+        for( size_t i = 0; i < seq.length(); ++i ) {
+            if( ! lookup[ seq[ i ] ] ) {
+                result.set( i, false );
+            }
+        }
+    }
+
+    return result;
+}
+
+/**
+ * @brief Returns true iff all Sequence%s only consist of the given `chars`.
  *
  * For presettings of usable chars, see the functions `nucleic_acid_codes_...` and
  * `amino_acid_codes_...`. For example, to check whether the sequences are nucleic acids,
@@ -254,7 +460,7 @@ bool validate_chars( SequenceSet const& set, std::string const& chars )
 // -------------------------------------------------------------------------
 
 /**
- * @brief Return the total length (sum) of all sequences in the set.
+ * @brief Return the total length (sum) of all Sequence%s in the SequenceSet.
  */
 size_t total_length( SequenceSet const& set )
 {
@@ -266,7 +472,7 @@ size_t total_length( SequenceSet const& set )
 }
 
 /**
- * @brief Return true iff all sequences in the set have the same length.
+ * @brief Return true iff all Sequence%s in the SequenceSet have the same length.
  */
 bool is_alignment( SequenceSet const& set )
 {
@@ -284,244 +490,154 @@ bool is_alignment( SequenceSet const& set )
 }
 
 // =================================================================================================
-//     Print and Output
+//     Modifiers
 // =================================================================================================
 
-// -------------------------------------------------------------------------
-//     Helper Functions
-// -------------------------------------------------------------------------
-
 /**
- * @brief Local helper function for ostream and print to print one Sequence.
+ * @brief Remove all sites from a Sequence where the given @link utils::Bitvector Bitvector@endlink
+ * is `true`, and keep all others.
  *
- * See the print() functions for details about the parameters.
- */
-void print_to_ostream(
-    std::ostream&                      out,
-    Sequence const&                    seq,
-    std::map<char, std::string> const& colors,
-    bool                               print_label,
-    size_t                             length_limit,
-    bool                               background
-) {
-    // Get the max number of sites to be printed.
-    if( length_limit == 0 ) {
-        length_limit = seq.length();
-    }
-    length_limit = std::min( length_limit, seq.length() );
-
-    // Print label if needed.
-    if( print_label ) {
-        out << seq.label() << ": ";
-    }
-
-    // Print all chars of the sequence.
-    for( size_t l = 0; l < length_limit; ++l ) {
-        char s = seq[l];
-
-        // If we want color, use it. Otherwise, print just the char.
-        if( colors.size() > 0 ) {
-
-            // We use map.at() here, which throws in case of invalid keys, so we don't have to.
-            if( background ) {
-                out << utils::Style( "black", colors.at(s) )( std::string( 1, s ) );
-            } else {
-                out << utils::Style( colors.at(s) )( std::string( 1, s ) );
-            }
-
-        } else {
-
-            out << s;
-        }
-    }
-
-    // Append ellipsis if needed.
-    out << (seq.length() > length_limit ? " ...\n" : "\n");
-}
-
-/**
-* @brief Local helper function for ostream and print to print a SequenceSet.
-*
-* See the print() functions for details about the parameters.
-*/
-void print_to_ostream(
-    std::ostream&                      out,
-    SequenceSet const&                 set,
-    std::map<char, std::string> const& colors,
-    bool                               print_label,
-    size_t                             length_limit,
-    size_t                             sequence_limit,
-    bool                               background
-) {
-    // Get the max number of sequences to be printed.
-    if( sequence_limit == 0 ) {
-        sequence_limit = set.size();
-    }
-    sequence_limit = std::min( sequence_limit, set.size() );
-
-    // Get longest label length.
-    size_t label_len = 0;
-    if( print_label ) {
-        for( size_t i = 0; i < sequence_limit; ++i ) {
-            label_len = std::max( label_len, set[i].label().size() );
-        }
-    }
-
-    // Print sequences.
-    for( size_t i = 0; i < sequence_limit; ++i ) {
-        if( print_label ) {
-            out << set[i].label() << ": " << std::string( label_len - set[i].label().size(), ' ' );
-        }
-        print_to_ostream( out, set[i], colors, false, length_limit, background );
-    }
-
-    // Append ellipsis if needed.
-    if( set.size() > sequence_limit ) {
-        out << "...\n";
-    }
-
-}
-
-// -------------------------------------------------------------------------
-//     Ostream
-// -------------------------------------------------------------------------
-
-/**
- * @brief Print a Sequence to an ostream in the form "label: sites".
+ * The Bitvector needs to have the same size as the Sequence, otherwise an expection is thrown.
  *
- * As this is meant for quickly having a look at the Sequence, only the first 100 sites are printed.
- * If you need all sites, use print().
+ * This function is for example useful in combination with gap_sites().
  */
-std::ostream& operator << ( std::ostream& out, Sequence    const& seq )
+void remove_sites( Sequence& seq, utils::Bitvector sites )
 {
-    print_to_ostream( out, seq, {}, true, 100, false );
-    return out;
+    if( seq.length() != sites.size() ) {
+        throw std::runtime_error(
+            "Cannot remove sites from Sequence. "
+            "Given Bitvector has not the same size as the Sequence."
+        );
+    }
+
+    auto const num_sites = sites.size() - sites.count();
+    std::string result;
+    result.reserve( num_sites );
+
+    for( size_t i = 0; i < sites.size(); ++i ) {
+        if( ! sites[i] ) {
+            result += seq[i];
+        }
+    }
+
+    seq.sites( result );
 }
 
 /**
- * @brief Print a SequenceSet to an ostream in the form "label: sites".
+ * @brief Remove all sites from all Sequence%s in a SequenceSet where the given
+ * @link utils::Bitvector Bitvector@endlink is `true`, and keep all others.
  *
- * As this is meant for quickly having a look at the SequenceSet, only the first 10 Sequences and
- * the first 100 sites of each are printed. If you need all sequences and sites, use print().
+ * The Bitvector and all Sequences need to have the same size, otherwise an expection is thrown.
+ * This check is done before any Sequence is changed. Thus, if the function throws for this reason,
+ * the Sequences are left unchanged.
+ *
+ * This function is for example useful in combination with gap_sites().
  */
-std::ostream& operator << ( std::ostream& out, SequenceSet const& set )
+void remove_sites( SequenceSet& set, utils::Bitvector sites )
 {
-    print_to_ostream( out, set, {}, true, 100, 10, false );
-    return out;
-}
+    for( auto const& seq : set ) {
+        if( seq.length() != sites.size() ) {
+            throw std::runtime_error(
+                "Cannot remove sites from SequenceSet. "
+                "Given Bitvector has not the same size as the Sequences."
+            );
+        }
+    }
 
-// -------------------------------------------------------------------------
-//     Print
-// -------------------------------------------------------------------------
-
-/**
- * @brief Return a Sequence in textual form.
- *
- * If the optional parameter `print_label` is true, a label is printed before the sequence in the
- * form "label: sites". Default is `true`.
- *
- * The optional parameter `length_limit` limites the output lenght to that many chars.
- * If set to 0, the whole Sequence is printed. Default is 100. This is useful to avoid line
- * wrapping. If the limit is lower than the acutal number of sites, ellipsis " ..." are appended.
- */
-std::string print(
-    Sequence const&                    seq,
-    bool                               print_label,
-    size_t                             length_limit
-) {
-    std::ostringstream stream;
-    print_to_ostream( stream, seq, {}, print_label, length_limit, false );
-    return stream.str();
+    for( auto& seq : set ) {
+        remove_sites( seq, sites );
+    }
 }
 
 /**
- * @brief Return a Sequence in textual form.
+ * @brief Replace all occurences of the chars in `search` by the `replace` char, for all sites in
+ * the given Sequence.
  *
- * See the Sequence version of this function for details. If the additional parameter
- * `sequence_limit` is set to a value other than 0, only this number of sequences are printed.
- * Default is 10. If the given limit is lower than the acutal number of sequences, ellipsis " ..."
- * are appended.
+ * The function is case sensitive. Thus, you need to use both cases for the search string if you
+ * are unsure. The replace char is always used as is, independent of the case of the matching
+ * search char.
  */
-std::string print(
-    SequenceSet const&                 set,
-    bool                               print_label,
-    size_t                             length_limit,
-    size_t                             sequence_limit
-) {
-    std::ostringstream stream;
-    print_to_ostream( stream, set, {}, print_label, length_limit, sequence_limit, false );
-    return stream.str();
-}
-
-// -------------------------------------------------------------------------
-//     Print Color
-// -------------------------------------------------------------------------
-
-/**
- * @brief Return a string with the sites of the Sequence colored.
- *
- * This function returns a color view of the sites of the given Sequence, using utils::Style colors,
- * which can be displayed in a console/terminal. This is useful for visualizing the Sequence similar
- * to graphical alignment and sequence viewing tools.
- *
- * The function takes a map from sequences characters to their colors (see utils::Style for a list of
- * the available ones).
- * The presettings `nucleic_acid_text_colors()` and `amino_acid_text_colors()` for default sequence
- * types can be used as input for this parameter.
- * If the `colors` map does not contain a key for one of the chars in the sequence, the function
- * throws an `std::out_of_range` exception.
- *
- * The optional paramter `print_label` determines whether the sequence label is to be printed.
- * Default is `true`.
- *
- * The optional parameter `length_limit` limites the output lenght to that many chars.
- * If set to 0, the whole Sequence is used. Default is 100. This is useful to avoid line wrapping.
- * If the limit is lower than the acutal number of sites, ellipsis " ..." are appended.
- *
- * The parameter `background` can be used to control which part of the output is colored:
- * `true` (default) colors the text background and makes the foreground white, while `false` colors
- * the foreground of the text and leaves the background at its default.
- */
-std::string print_color(
-    Sequence const&                    seq,
-    std::map<char, std::string> const& colors,
-    bool                               print_label,
-    size_t                             length_limit,
-    bool                               background
-) {
-    std::ostringstream stream;
-    print_to_ostream( stream, seq, colors, print_label, length_limit, background );
-    return stream.str();
+void replace_characters( Sequence& seq, std::string const& search, char replacement )
+{
+    seq.sites() = utils::replace_all_chars( seq.sites(), search, replacement );
 }
 
 /**
- * @brief Return a string with the sites of a SequenceSet colored.
+ * @brief Replace all occurences of the chars in `search` by the `replace` char, for all sites in
+ * the Sequence%s in the given SequenceSet.
  *
- * See the Sequence version of this function for details.
- *
- * The additional parameter `sequence_limit` controls the number of sequences to be printed.
- * If set to 0, everything is printed. Default is 10. If this limit is lower than the actual number
- * of sequences, ellipsis " ..." are appended.
- *
- * Be aware that each character is colored separately, which results in a lot of formatted output.
- * This might slow down the terminal if too many sequences are printed at once.
+ * The function is case sensitive. Thus, you need to use both cases for the search string if you
+ * are unsure. The replace char is always used as is, independent of the case of the matching
+ * search char.
  */
-std::string print_color(
-    SequenceSet const&                 set,
-    std::map<char, std::string> const& colors,
-    bool                               print_label,
-    size_t                             length_limit,
-    size_t                             sequence_limit,
-    bool                               background
-) {
-    std::ostringstream stream;
-    print_to_ostream( stream, set, colors, print_label, length_limit, sequence_limit, background );
-    return stream.str();
+void replace_characters( SequenceSet& set, std::string const& search, char replacement )
+{
+    for( auto& sequence : set ) {
+        replace_characters( sequence, search, replacement );
+    }
 }
 
-// =============================================================================
-//     Modifiers
-// =============================================================================
+/**
+ * @brief Replace all occurrences of `U` by `T` in the sites of the Sequence.
+ *
+ * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * that is, lower case `u` is replaced by lower case `t`, and upper case `U` by upper case `T`.
+ */
+void replace_u_with_t( Sequence& seq )
+{
+    for( auto& c : seq.sites() ) {
+        if( c == 'U' ) {
+            c = 'T';
+        }
+        if( c == 'u' ) {
+            c = 't';
+        }
+    }
+}
+
+/**
+ * @brief Replace all occurrences of `U` by `T` in the sites of all Sequence%s in the SequenceSet.
+ *
+ * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * that is, lower case `u` is replaced by lower case `t`, and upper case `U` by upper case `T`.
+ */
+void replace_u_with_t( SequenceSet& set )
+{
+    for( auto& sequence : set ) {
+        replace_u_with_t( sequence );
+    }
+}
+
+/**
+ * @brief Replace all occurrences of `T` by `U` in the sites of the Sequence.
+ *
+ * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * that is, lower case `t` is replaced by lower case `u`, and upper case `T` by upper case `U`.
+ */
+void replace_t_with_u( Sequence& seq )
+{
+    for( auto& c : seq.sites() ) {
+        if( c == 'T' ) {
+            c = 'U';
+        }
+        if( c == 't' ) {
+            c = 'u';
+        }
+    }
+}
+
+/**
+ * @brief Replace all occurrences of `T` by `U` in the sites of all Sequence%s in the SequenceSet.
+ *
+ * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * that is, lower case `t` is replaced by lower case `u`, and upper case `T` by upper case `U`.
+ */
+void replace_t_with_u( SequenceSet& set )
+{
+    for( auto& sequence : set ) {
+        replace_t_with_u( sequence );
+    }
+}
 
 /*
 / **
@@ -556,72 +672,107 @@ void remove_list(SequenceSet& set, std::vector<std::string> const& labels, bool 
     sequences.erase(re, sequences.end());
 }
 
-// =============================================================================
-//     Sequence Modifiers
-// =============================================================================
-
-/ **
- * @brief Calls remove_gaps() for every Sequence.
- * /
-void SequenceSet::remove_gaps()
-{
-    for (Sequence* s : sequences) {
-        s->remove_gaps();
-    }
-}
-
-/ **
- * @brief Calls replace() for every Sequence.
- * /
-void SequenceSet::replace(char search, char replace)
-{
-    for (Sequence* s : sequences) {
-        s->replace(search, replace);
-    }
-}
-
-// =============================================================================
-//     Dump
-// =============================================================================
-
-/ **
- * @brief Gives a summary of the sequences names and their lengths for this set.
- * /
-std::string SequenceSet::dump() const
-{
-    std::ostringstream out;
-    for (Sequence* s : sequences) {
-        out << s->label() << " [" << s->length() << "]\n";
-    }
-    return out.str();
-}
-
-// =============================================================================
-//     Mutators
-// =============================================================================
-
-/ **
- * @brief Removes all occurences of `gap_char` from the sequence.
- * /
-void Sequence::remove_gaps( std::string const& gap_chars )
-{
-    sites_.erase(std::remove(sites_.begin(), sites_.end(), gap_char), sites_.end());
-}
-
-void Sequence::compress_gaps( std::string const& gap_chars )
-{
-    ...
-}
-
-/ **
- * @brief Replaces all occurences of `search` by `replace`.
- * /
-void Sequence::replace(char search, char replace)
-{
-    sites_ = utils::replace_all (sites_, std::string(1, search), std::string(1, replace));
-}
-
 */
+
+// =================================================================================================
+//     Filters
+// =================================================================================================
+
+/**
+ * @brief Remove all Sequence%s from the SequenceSet whose @link Sequence::length() length@endlink
+ * is below the given `min_length`.
+ *
+ * See also filter_max_sequence_length() and filter_min_max_sequence_length().
+ */
+void filter_min_sequence_length( SequenceSet& set, size_t min_length )
+{
+    size_t index = 0;
+    while( index < set.size() ) {
+        if( set.at(index).length() < min_length ) {
+            set.remove_at(index);
+        } else {
+            ++index;
+        }
+    }
+}
+
+/**
+ * @brief Remove all Sequence%s from the SequenceSet whose @link Sequence::length() length@endlink
+ * is above the given `max_length`.
+ *
+ * See also filter_min_sequence_length() and filter_min_max_sequence_length().
+ */
+void filter_max_sequence_length( SequenceSet& set, size_t max_length )
+{
+    size_t index = 0;
+    while( index < set.size() ) {
+        if( set.at(index).length() > max_length ) {
+            set.remove_at(index);
+        } else {
+            ++index;
+        }
+    }
+}
+
+/**
+ * @brief Remove all Sequence%s from the SequenceSet whose @link Sequence::length() length@endlink
+ * is not inbetween the `min_length` and `max_length`.
+ *
+ * This function has the same effect as calling filter_min_sequence_length() and
+ * filter_max_sequence_length(), but does it in one iteration over the SequenceSet.
+ */
+void filter_min_max_sequence_length( SequenceSet& set, size_t min_length, size_t max_length )
+{
+    size_t index = 0;
+    while( index < set.size() ) {
+        auto len = set.at(index).length();
+        if( len < min_length || len > max_length ) {
+            set.remove_at(index);
+        } else {
+            ++index;
+        }
+    }
+}
+
+// =================================================================================================
+//     Print and Output
+// =================================================================================================
+
+// -------------------------------------------------------------------------
+//     Ostream
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Print a Sequence to an ostream in the form "label: sites".
+ *
+ * As this is meant for quickly having a look at the Sequence, only the first 100 sites are printed.
+ * If you need all sites, or more settings like color, use SimplePrinter.
+ */
+std::ostream& operator << ( std::ostream& out, Sequence    const& seq )
+{
+    auto printer = PrinterSimple();
+    printer.length_limit( 100 );
+
+    printer.print( out, seq );
+    return out;
+}
+
+/**
+ * @brief Print a SequenceSet to an ostream in the form "label: sites".
+ *
+ * As this is meant for quickly having a look at the SequenceSet, only the first 10 Sequences and
+ * the first 100 sites of each are printed. If you need all sequences and sites,
+ * or more settings like color, use SimplePrinter.
+ */
+std::ostream& operator << ( std::ostream& out, SequenceSet const& set )
+{
+    auto printer = PrinterSimple();
+    printer.length_limit( 100 );
+    printer.sequence_limit( 10 );
+
+    printer.print( out, set );
+    return out;
+}
 
 } // namespace sequence
 } // namespace genesis

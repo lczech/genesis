@@ -502,7 +502,7 @@ char nucleic_acid_ambiguity_code( std::string codes )
     tmp.erase( std::unique( tmp.begin(), tmp.end() ), tmp.end() );
 
     if( nucleic_acid_ambiguity_string_map.count( tmp ) == 0 ) {
-        throw std::out_of_range( "Invalid nucleic acid codes '" + tmp + "'." );
+        throw std::out_of_range( "Invalid nucleic acid codes '" + codes + "'." );
     }
     return nucleic_acid_ambiguity_string_map.at( tmp );
 }

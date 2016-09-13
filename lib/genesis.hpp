@@ -72,6 +72,7 @@
 #include "sequence/functions/consensus.hpp"
 #include "sequence/functions/entropy.hpp"
 #include "sequence/functions/functions.hpp"
+#include "sequence/printers/simple.hpp"
 #include "sequence/sequence.hpp"
 #include "sequence/sequence_set.hpp"
 
@@ -84,6 +85,9 @@
 #include "taxonomy/functions/ranks.hpp"
 #include "taxonomy/functions/taxonomy.hpp"
 #include "taxonomy/functions/taxopath.hpp"
+#include "taxonomy/iterator/levelorder.hpp"
+#include "taxonomy/iterator/postorder.hpp"
+#include "taxonomy/iterator/preorder.hpp"
 #include "taxonomy/printers/nested.hpp"
 #include "taxonomy/taxon_data.hpp"
 #include "taxonomy/taxon.hpp"
