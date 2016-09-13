@@ -25,28 +25,14 @@
  * This is the demo "Extract Clade Placements". See the Manual for more information.
  */
 
+#include "genesis.hpp"
+
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
 #include <vector>
-
-#include "placement/function/functions.hpp"
-#include "placement/function/sample_set.hpp"
-#include "placement/formats/jplace_reader.hpp"
-#include "placement/formats/jplace_writer.hpp"
-#include "placement/sample_set.hpp"
-#include "placement/sample.hpp"
-
-#include "tree/bipartition/bipartition_set.hpp"
-#include "tree/default/functions.hpp"
-#include "tree/tree.hpp"
-
-#include "utils/core/fs.hpp"
-#include "utils/core/logging.hpp"
-#include "utils/formats/csv/reader.hpp"
-#include "utils/text/string.hpp"
 
 using namespace genesis;
 
