@@ -21,14 +21,20 @@ The following demo programs are available:
 
  *  @subpage demos_visualize_placements "Visualize Placements"
 
-    Takes one or more jplace file(s) and visualizes the distribution of
+    Takes one or more `jplace` file(s) and visualizes the distribution of
     @ref genesis::placement::Pquery "Pqueries" on the reference tree (that is, the number of
     placements per branch). For this, it uses color coding and outputs a Nexus file.
 
  *  @subpage demos_extract_clade_placements "Extract Clade Placements"
 
-    Takes a jplace file and a mapping of the taxa of its reference tree to some clade names.
-    It outputs a jplace file for each clade, where each file contains all
+    Takes a `jplace` file and a mapping of the taxa of its reference tree to some clade names.
+    It outputs a `jplace` file for each clade, where each file contains all
     @ref genesis::placement::Pquery "Pqueries" that fell into that clade.
+
+ *  @subpage demos_compare_jplace_files "Compare Jplace Files"
+
+    Takes two `jplace` files with the same reference tree and compares the placement of each
+    @ref genesis::placement::Pquery "Pquery". It outputs tables that show which and how Pqueries
+    differ in their placement on the tree.
 
 See there for more details.
