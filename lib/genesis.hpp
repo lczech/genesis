@@ -72,6 +72,7 @@
 #include "sequence/functions/consensus.hpp"
 #include "sequence/functions/entropy.hpp"
 #include "sequence/functions/functions.hpp"
+#include "sequence/printers/simple.hpp"
 #include "sequence/sequence.hpp"
 #include "sequence/sequence_set.hpp"
 
