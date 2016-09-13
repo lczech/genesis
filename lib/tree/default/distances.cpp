@@ -41,42 +41,6 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Distance Related Propoerties
-// =================================================================================================
-
-/**
- * @brief Get the length of the tree, i.e., the sum of all branch lengths.
- */
-double length(Tree const& tree)
-{
-    double len = 0.0;
-    for( auto const& edge : tree.edges() ) {
-        len += edge->data<DefaultEdgeData>().branch_length;
-    }
-    return len;
-}
-
-/**
- * @brief Get the height of the tree, i.e., the longest distance from the root to a leaf,
- * measured using the branch_length.
- */
-double height(Tree const& tree)
-{
-    auto dists = node_branch_length_distance_vector(tree);
-    return *std::max_element(dists.begin(), dists.end());
-}
-
-/**
- * @brief Get the diameter of the tree, i.e., the longest distance between any two nodes,
- * measured using the branch_length.
- */
-double diameter( Tree const& tree )
-{
-    auto dist_mat = node_branch_length_distance_matrix( tree );
-    return *std::max_element( dist_mat.begin(), dist_mat.end() );
-}
-
-// =================================================================================================
 //     Branch Distance Measures
 // =================================================================================================
 

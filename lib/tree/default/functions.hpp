@@ -89,13 +89,20 @@ TreeNode* find_node(
 //     Branch Length
 // =================================================================================================
 
-std::vector<double> branch_lengths(
-    Tree const& tree
-);
+double length(   Tree const& tree );
+double height(   Tree const& tree );
+double diameter( Tree const& tree );
+
+std::vector<double> branch_lengths( Tree const& tree );
 
 void set_all_branch_lengths(
-    Tree& tree,
+    Tree&  tree,
     double length = 1.0
+);
+
+void scale_all_branch_lengths(
+    Tree&  tree,
+    double factor = 1.0
 );
 
 } // namespace tree
