@@ -230,6 +230,8 @@ std::vector<double> branch_lengths(
 
 /**
  * @brief Set all branch lengths of a Tree to a given value.
+ *
+ * See also scale_all_branch_lengths() for a scaling function.
  */
 void set_all_branch_lengths(
     Tree& tree,
@@ -242,6 +244,9 @@ void set_all_branch_lengths(
 
 /**
  * @brief Scale all branch lengths of a Tree by a given factor.
+ *
+ * This function simply multiplies all branch lengths with the given factor.
+ * See also set_all_branch_lengths() for setting the branch lengths to a value.
  */
 void scale_all_branch_lengths(
     Tree&  tree,
