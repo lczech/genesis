@@ -25,32 +25,13 @@
  * This is the demo "Visualize Placements". See the Manual for more information.
  */
 
+#include "genesis.hpp"
+
 #include <algorithm>
 #include <cmath>
 #include <stdexcept>
 #include <string>
 #include <vector>
-
-#include "placement/formats/jplace_reader.hpp"
-#include "placement/formats/newick_writer.hpp"
-#include "placement/placement_tree.hpp"
-#include "placement/sample.hpp"
-
-#include "tree/formats/newick/color_writer_mixin.hpp"
-#include "tree/default/functions.hpp"
-
-#include "utils/core/fs.hpp"
-#include "utils/core/logging.hpp"
-
-#include "utils/formats/nexus/document.hpp"
-#include "utils/formats/nexus/taxa.hpp"
-#include "utils/formats/nexus/trees.hpp"
-#include "utils/formats/nexus/writer.hpp"
-
-#include "utils/text/string.hpp"
-#include "utils/tools/color.hpp"
-#include "utils/tools/color/gradient.hpp"
-#include "utils/tools/color/operators.hpp"
 
 using namespace genesis;
 

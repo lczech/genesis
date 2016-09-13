@@ -31,8 +31,11 @@
  * @ingroup utils
  */
 
+#include "utils/text/style.hpp"
+
 #include <iosfwd>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace genesis {
@@ -43,8 +46,6 @@ namespace utils {
 // =================================================================================================
 
 struct TableLayout;
-
-class Style;
 
 // =================================================================================================
 //     Text Table
@@ -214,9 +215,9 @@ public:
     void write_row( std::ostream& stream, size_t row ) const;
     void write_label( std::ostream& stream ) const;
 
-protected:
+private:
 
-    void write( std::ostream& stream, std::string text ) const;
+    void write( std::ostream& stream, Style style, std::string text ) const;
 
     // ---------------------------------------------------------------------
     //     Data members
@@ -228,7 +229,7 @@ private:
     Justification just_  = Justification::kLeft;
     size_t        width_ = 0;
 
-    std::vector<std::string> data_;
+    std::vector< std::pair< Style, std::string >> data_;
 
 };
 
