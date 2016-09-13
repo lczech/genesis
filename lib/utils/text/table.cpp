@@ -31,7 +31,6 @@
 #include "utils/text/table.hpp"
 
 #include "utils/text/string.hpp"
-#include "utils/text/style.hpp"
 
 #include <algorithm>
 #include <assert.h>
@@ -137,7 +136,7 @@ Table& Table::append ( std::string value )
 
 Table& Table::append ( Style const& style, std::string value )
 {
-    columns_[ current_col_ ].append( style(value) );
+    columns_[ current_col_ ].append( style, value );
 
     ++current_col_;
     if( current_col_ >= columns_.size() ) {
@@ -301,7 +300,7 @@ void Table::Column::shrink_width()
 {
     size_t mx = label_.size();
     for( auto const& v : data_ ) {
-        mx = std::max( mx, v.size() );
+        mx = std::max( mx, v.second.size() );
     }
     width_ = mx;
 }
@@ -318,7 +317,7 @@ size_t Table::Column::length() const
 std::string Table::Column::row( size_t i ) const
 {
     // Throws out of range if neccessary.
-    return data_.at( i );
+    return data_.at( i ).second;
 }
 
 // ---------------------------------------------------------------------
@@ -334,13 +333,13 @@ void Table::Column::clear_content()
 void Table::Column::append( std::string value )
 {
     width_ = std::max( width_, value.size() );
-    data_.push_back(value);
+    data_.push_back({ Style(), value });
 }
 
 void Table::Column::append( Style const& style, std::string value )
 {
     width_ = std::max( width_, value.size() );
-    data_.push_back( style(value) );
+    data_.push_back({ style, value });
 }
 
 // ---------------------------------------------------------------------
@@ -350,34 +349,31 @@ void Table::Column::append( Style const& style, std::string value )
 void Table::Column::write_row( std::ostream& stream, size_t row ) const
 {
     // Throws out_of_range if neccessary.
-    write( stream, data_.at(row) );
+    auto data = data_.at(row);
+    write( stream, data.first, data.second );
 }
 
 void Table::Column::write_label( std::ostream& stream ) const
 {
-    write( stream, label_ );
+    write( stream, Style(), label_ );
 }
 
-void Table::Column::write( std::ostream& stream, std::string text ) const
+void Table::Column::write( std::ostream& stream, Style style, std::string text ) const
 {
     assert( text.size() <= width_ );
 
-    // Use a separate stream in order to not mess with the original attributes.
-    // Not optimal in terms of speed, but for now it's good enough.
-    std::stringstream ss;
-    ss << std::fixed;
-    ss.fill(' ');
-    ss.width(width_);
-
+    if( just_ == Justification::kLeft ) {
+        text = text + std::string(width_ - text.size(), ' ');
+    }
     if( just_ == Justification::kCentered ) {
-        // Justify text by prepending spaces (and later left aligning it).
         const size_t pad = (width_ - text.size()) / 2;
-        text = std::string(pad, ' ') + text;
+        text = std::string(pad, ' ') + text + std::string(width_ - text.size() - pad, ' ');
+    }
+    if( just_ == Justification::kRight ) {
+        text = std::string(width_ - text.size(), ' ') + text;
     }
 
-    ss << ( just_ == Justification::kRight ? std::right : std::left );
-    ss << text;
-    stream << ss.str();
+    stream << style( text );
 }
 
 // =================================================================================================
