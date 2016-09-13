@@ -31,8 +31,10 @@ It provides detailed references for the symbols defined in genesis:
  *  [Classes](annotated.html)
  *  [Source Files](files.html)
 
+<!--
 As the API Reference is generated from the doc-blocks in the C++ source code, it is mainly
 oriented towards the C++ interface. It is however also suitable for the Python interface.
+-->
 
 # Support
 
