@@ -317,7 +317,7 @@ int main( int argc, const char* argv[] )
 
         // Add empty line after each pquery, unless it is the last one.
         if( j < names_of_invalid_pqueries.size() - 1 ) {
-            details_table << "" << "" << "" << "" << "" << "" << "";
+            details_table.line_break();
         }
     }
 
