@@ -105,6 +105,8 @@ public:
     Table& append ( std::string value );
     Table& append ( Style const& style, std::string value );
 
+    Table& line_break();
+
     // ---------------------------------------------------------------------
     //     Output
     // ---------------------------------------------------------------------

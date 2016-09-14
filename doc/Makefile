@@ -28,9 +28,9 @@
 # Make Doxygen documentation
 doc:
 	@cd doxygen && doxygen Doxyfile
-	@ln -fs ./doc/index.html index.html
+	@ln -fs ./html/index.html index.html
 
 # Remove all generated files
 clean:
-	-@$(RM) -r ./doc
+	-@$(RM) -r ./html
 	-@$(RM) ./index.html

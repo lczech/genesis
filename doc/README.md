@@ -15,5 +15,5 @@ and the API Reference with more details about classes and functions:
 
 In order to generate the full documentation, [doxygen](http://www.doxygen.org/) 1.8.6 and
 [graphviz](http://www.graphviz.org/) need to be installed.
-The files can then be generated into the subdirectory `doc` by calling `make` in this directory.
+The files can then be generated into the subdirectory `html` by calling `make` in this directory.
 A symlink to the index page is also created for convenience.

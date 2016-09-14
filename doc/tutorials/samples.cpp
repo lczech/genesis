@@ -21,15 +21,9 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
+#include "genesis.hpp"
+
 #include <stdexcept>
-
-#include "placement/function/functions.hpp"
-#include "placement/formats/jplace_reader.hpp"
-#include "placement/formats/jplace_writer.hpp"
-#include "placement/sample.hpp"
-
-#include "utils/core/fs.hpp"
-#include "utils/core/logging.hpp"
 
 int main()
 {

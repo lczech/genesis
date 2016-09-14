@@ -22,7 +22,7 @@
 # Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 
 ####################################################################################################
-#    This script builds and transfers the documentation in doc/doc to the web server.
+#    This script builds and transfers the documentation in doc/html to the web server.
 ####################################################################################################
 
 if [[ $1 != ""         &&
@@ -90,7 +90,7 @@ fi
 
 # Open in Browser
 if [[ $1 == "local" ]]; then
-    open_in_browser "doc/index.html"
+    open_in_browser "html/index.html"
 fi
 if [[ $1 == "remote" ]]; then
     open_in_browser "http://doc.genesis-lib.org/"
@@ -118,7 +118,7 @@ if [[ ${do_trans} == 1 ]]; then
     fi
 
     echo -e "\e[34mTransfer to server\e[0m\n"
-    cd doc/
+    cd html/
 
     remote_host="genesis-lib.org"
     remote_path="/html/"

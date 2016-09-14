@@ -146,6 +146,24 @@ Table& Table::append ( Style const& style, std::string value )
     return *this;
 }
 
+/**
+ * @brief Finish the currently line and move to the next one.
+ *
+ * This function fills the columns of the current line with empty strings, so that the next append()
+ * call will add content to the first column of the next line. If we are currently at the beginning
+ * of a line, this function results in an empty line (useful for grouping of lines).
+ */
+Table& Table::line_break()
+{
+    while( current_col_ < columns_.size() ) {
+        columns_[ current_col_ ].append("");
+        ++current_col_;
+    }
+
+    current_col_ = 0;
+    return *this;
+}
+
 // ---------------------------------------------------------------------
 //     Output
 // ---------------------------------------------------------------------
