@@ -53,6 +53,7 @@ bool        dir_exists     ( std::string const& dir );
 void        dir_create     ( std::string const& path );
 
 std::vector<std::string> dir_list_files ( std::string const& dir );
+std::vector<std::string> dir_list_files ( std::string const& dir, std::string const& regex );
 
 // =================================================================================================
 //     File Information
