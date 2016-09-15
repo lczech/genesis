@@ -86,6 +86,7 @@ HistogramAccumulator::const_iterator HistogramAccumulator::end() const
 void HistogramAccumulator::clear()
 {
     values_.clear();
+    added_values_ = 0;
 }
 
 void HistogramAccumulator::increment (double x)
@@ -96,6 +97,7 @@ void HistogramAccumulator::increment (double x)
 void HistogramAccumulator::accumulate (double x, double weight)
 {
     values_[x] += weight;
+    ++added_values_;
 }
 
 // =================================================================================================
@@ -120,6 +122,17 @@ size_t HistogramAccumulator::size() const
 bool HistogramAccumulator::empty() const
 {
     return values_.empty();
+}
+
+/**
+ * @brief Return the number of values that have been added to the Accumulator.
+ *
+ * This is simply the number of function calls to increment() and accumulate().
+ * The count is reset when calling clear().
+ */
+size_t HistogramAccumulator::added_values() const
+{
+    return added_values_;
 }
 
 // =================================================================================================
