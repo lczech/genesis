@@ -48,6 +48,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 
 namespace genesis {
@@ -445,7 +446,7 @@ void replace_characters( SequenceSet& set, std::string const& search, char repla
 /**
  * @brief Replace all occurrences of `U` by `T` in the sites of the Sequence.
  *
- * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
  * that is, lower case `u` is replaced by lower case `t`, and upper case `U` by upper case `T`.
  */
 void replace_u_with_t( Sequence& seq )
@@ -463,7 +464,7 @@ void replace_u_with_t( Sequence& seq )
 /**
  * @brief Replace all occurrences of `U` by `T` in the sites of all Sequence%s in the SequenceSet.
  *
- * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
  * that is, lower case `u` is replaced by lower case `t`, and upper case `U` by upper case `T`.
  */
 void replace_u_with_t( SequenceSet& set )
@@ -476,7 +477,7 @@ void replace_u_with_t( SequenceSet& set )
 /**
  * @brief Replace all occurrences of `T` by `U` in the sites of the Sequence.
  *
- * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
  * that is, lower case `t` is replaced by lower case `u`, and upper case `T` by upper case `U`.
  */
 void replace_t_with_u( Sequence& seq )
@@ -494,13 +495,78 @@ void replace_t_with_u( Sequence& seq )
 /**
  * @brief Replace all occurrences of `T` by `U` in the sites of all Sequence%s in the SequenceSet.
  *
- * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
  * that is, lower case `t` is replaced by lower case `u`, and upper case `T` by upper case `U`.
  */
 void replace_t_with_u( SequenceSet& set )
 {
     for( auto& sequence : set ) {
         replace_t_with_u( sequence );
+    }
+}
+
+void merge_duplicate_sequences(
+    SequenceSet& set,
+    MergeDuplicateSequencesCountPolicy count_policy,
+    std::string const& counter_prefix
+) {
+    // Helper to keep track of which sequences (at position i in the set) occured how often.
+    struct Duplicate
+    {
+        size_t index;
+        size_t count;
+    };
+
+    // Find duplicates and count their occurences.
+    std::unordered_map< std::string, Duplicate > dup_map;
+    size_t i = 0;
+    while( i < set.size() ) {
+        auto& seq = set[i];
+
+        if( dup_map.count( seq.sites() ) == 0 ) {
+
+            // If it is a new sequence, init the map entry and move to the next sequence.
+            dup_map[ seq.sites() ].index = i;
+            dup_map[ seq.sites() ].count = 1;
+            ++i;
+
+        } else {
+
+            // If we already saw that sequence, increment its counter, and remove the sequence
+            // from the set. Do not increment i - we deleted a sequence, so staying at the
+            // position automatically "moves" to the next one.
+            ++dup_map[ seq.sites() ].count;
+            set.remove_at(i);
+        }
+    }
+
+    // We do not need to relabel sequences.
+    if( count_policy == MergeDuplicateSequencesCountPolicy::kDiscard ) {
+        return;
+    }
+
+    // Relabel using the counts.
+    for( size_t i = 0; i < set.size(); ++i ) {
+        auto& seq = set[i];
+
+        // The sequence needs to be in the map, as we added it in the previous step.
+        assert( dup_map.count(seq.sites()) > 0 );
+
+        // Append the count to either the label or the metadata.
+        auto count = dup_map[ seq.sites() ].count;
+        if( count_policy == MergeDuplicateSequencesCountPolicy::kAppendToLabel ) {
+            auto new_label = seq.label() + counter_prefix + std::to_string(count);
+            seq.label( new_label );
+
+        } else if( count_policy == MergeDuplicateSequencesCountPolicy::kAppendToMetadata ) {
+            auto new_meta = seq.metadata() + counter_prefix + std::to_string(count);
+            seq.metadata( new_meta );
+
+        } else {
+
+            // We already skipped the discard case, so this here should not happen.
+            assert( false );
+        }
     }
 }
 

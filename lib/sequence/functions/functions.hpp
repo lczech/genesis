@@ -99,6 +99,49 @@ void replace_u_with_t( SequenceSet& set );
 void replace_t_with_u( Sequence&    seq );
 void replace_t_with_u( SequenceSet& set );
 
+/**
+ * @brief Provide options for chaning how merge_duplicate_sequences() handles the counts
+ * of merged Sequence%s.
+ *
+ * This allows to remove duplicate sequences while still keeping track of how many there were
+ * before merging them.
+ */
+enum class MergeDuplicateSequencesCountPolicy
+{
+    /**
+     * @brief The counts are discarded.
+     */
+    kDiscard,
+
+    /**
+     * @brief The counts are appended to the sequence label, separated by the counter_prefix.
+     */
+    kAppendToLabel,
+
+    /**
+    * @brief The counts are appended to the sequence metadata, separated by the counter_prefix.
+    */
+    kAppendToMetadata
+};
+
+/**
+ * @brief Merge all Sequence%s in a SequenceSet that have identical sites.
+ *
+ * The merging is done by removing all but the first Sequence with identical sites. That means,
+ * the resulting "representative" of a set of merged Sequences has the label and metadata of the
+ * original Sequence that was first in the SequenceSet.
+ *
+ * Using the MergeDuplicateSequencesCountPolicy, it is possible to store the counts of the
+ * Sequences (i.e., how often they appeard before merging) within either the label or metadata
+ * of the Sequence, separated by `counter_prefix`. With the default settings, the count is
+ * appended to the label, separated by an underscore.
+ */
+void merge_duplicate_sequences(
+    SequenceSet& set,
+    MergeDuplicateSequencesCountPolicy count_policy = MergeDuplicateSequencesCountPolicy::kAppendToLabel,
+    std::string const& counter_prefix = "_"
+);
+
 // =================================================================================================
 //     Filters
 // =================================================================================================
