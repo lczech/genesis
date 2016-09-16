@@ -255,7 +255,8 @@ double expected_distance_between_placement_locations( Sample const& sample, Pque
 }
 
 /**
- * @brief Shortcut alias for @link expected_distance_between_placement_locations( Pquery const& )
+ * @brief Shortcut alias for @link
+ * expected_distance_between_placement_locations( Sample const&, Pquery const& )
  * expected_distance_between_placement_locations()@endlink.
  */
 double edpl( Sample const& sample, Pquery const& pquery )
@@ -264,7 +265,8 @@ double edpl( Sample const& sample, Pquery const& pquery )
 }
 
 /**
- * @brief Calculate the @link expected_distance_between_placement_locations( Pquery const& )
+ * @brief Calculate the @link
+ * expected_distance_between_placement_locations( Sample const&, Pquery const& )
  * expected_distance_between_placement_locations()@endlink for all @link Pquery Pqueries@endlink
  * in the Sample.
  */
