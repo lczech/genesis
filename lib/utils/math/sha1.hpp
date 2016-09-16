@@ -87,6 +87,40 @@ public:
     static std::string from_string( std::string const& input );
 
     // -------------------------------------------------------------------------
+    //     Internal Functions
+    // -------------------------------------------------------------------------
+
+private:
+
+    void reset_(uint32_t digest[], std::string& buffer, uint64_t& transforms);
+    uint32_t rol_(const uint32_t value, const size_t bits);
+    uint32_t blk_(const uint32_t block[SHA1::BlockInts], const size_t i);
+
+    void R0_(
+        const uint32_t block[SHA1::BlockInts], const uint32_t v, uint32_t& w, const uint32_t x,
+        const uint32_t y, uint32_t& z, const size_t i
+    );
+    void R1_(
+        uint32_t block[SHA1::BlockInts], const uint32_t v, uint32_t& w, const uint32_t x,
+        const uint32_t y, uint32_t& z, const size_t i
+    );
+    void R2_(
+        uint32_t block[SHA1::BlockInts], const uint32_t v, uint32_t& w, const uint32_t x,
+        const uint32_t y, uint32_t& z, const size_t i
+    );
+    void R3_(
+        uint32_t block[SHA1::BlockInts], const uint32_t v, uint32_t& w, const uint32_t x,
+        const uint32_t y, uint32_t& z, const size_t i
+    );
+    void R4_(
+        uint32_t block[SHA1::BlockInts], const uint32_t v, uint32_t& w, const uint32_t x,
+        const uint32_t y, uint32_t& z, const size_t i
+    );
+
+    void transform_(uint32_t digest[], uint32_t block[SHA1::BlockInts], uint64_t& transforms);
+    void buffer_to_block_(const std::string& buffer, uint32_t block[SHA1::BlockInts]);
+
+    // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
 
