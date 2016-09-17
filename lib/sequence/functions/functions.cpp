@@ -48,6 +48,7 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <unordered_map>
 #include <unordered_set>
 
 namespace genesis {
@@ -68,141 +69,6 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
         }
     }
     return nullptr;
-}
-
-// =================================================================================================
-//     Labels
-// =================================================================================================
-
-/**
- * @brief Return true iff all labels of the Sequence%s in the SequenceSet are unique.
- *
- * The optional parameter `case_sensitive` controls how labels are compared. Default is `true`,
- * that is, Sequence%s are compared case-sensitively.
- */
-bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
-{
-    std::unordered_set< std::string > labels;
-    std::string label;
-
-    for( auto const& seq : set ) {
-        if( case_sensitive ) {
-            label = seq.label();
-        } else {
-            label = utils::to_lower( seq.label() );
-        }
-
-        if( labels.count( label ) > 0 ) {
-            return false;
-        } else {
-            labels.insert( label );
-        }
-    }
-    return true;
-}
-
-/**
- * @brief Check whether a given string is a valid label for a Sequence.
- *
- * While we can work with any form of label (as long as it is a string), most file formats and
- * consequently most programs that read them restrict the set of valid characters for labels of
- * sequences. We thus provide this function, which uses the most common interpretation of valid
- * labels.
- *
- * A label is valid if its characters have a graphical representation (i.e., isgraph() is true) and
- * if non of these characters occurs:
- *
- *     :,();[]'
- *
- * Thus, all whitespaces, control characters, and the listed special characters are invalid.
- * See sanitize_label() for a function that replaces all invalid characters of the label by
- * underscores.
- */
-bool is_valid_label( std::string const& label )
-{
-    std::string invalid_chars = ":,();[]'";
-    for( auto c : label ) {
-        if( ! isgraph(c) || invalid_chars.find( c ) != std::string::npos ) {
-            return false;
-        }
-    }
-    return true;
-}
-
-/**
- * @brief Check whether a Sequence has a valid label.
- *
- * This might be important for printing the Sequence to a file that needs to be read by other
- * applications. See is_valid_label() for details on what is considered a valid label.
- * See sanitize_label() for a function that replaces all invalid characters of the label by
- * underscores.
- */
-bool has_valid_label(  Sequence const& seq )
-{
-    return is_valid_label( seq.label() );
-}
-
-/**
- * @brief Check whether all Sequence%s in a SequenceSet have valid labels.
- *
- * This might be important for printing the Sequences to a file that needs to be read by other
- * applications. See is_valid_label() for details on what is considered a valid label.
- * See sanitize_labels() for a function that replaces all invalid characters of the labels by
- * underscores.
- */
-bool has_valid_labels( SequenceSet const& set )
-{
-    for( auto const& seq : set ) {
-        if( ! has_valid_label( seq )) {
-            return false;
-        }
-    }
-    return true;
-}
-
-/**
- * @brief Sanitize a label by replacing all invalid characters with underscores.
- *
- * This might be important for printing the Sequences to a file that needs to be read by other
- * applications. See is_valid_label() for details on what is considered a valid label.
- */
-std::string sanitize_label( std::string const& label )
-{
-    std::string result;
-    std::string invalid_chars = ":,();[]'";
-    for( auto c : label ) {
-        if( ! isgraph(c) || invalid_chars.find( c ) != std::string::npos ) {
-            result += "_";
-        } else {
-            result += c;
-        }
-    }
-    return result;
-}
-
-/**
- * @brief Sanitize a label by replacing all invalid characters with underscores.
- *
- * This might be important for printing the Sequences to a file that needs to be read by other
- * applications. See is_valid_label() for details on what is considered a valid label.
- */
-void sanitize_label( Sequence& seq )
-{
-    seq.label( sanitize_label( seq.label() ));
-}
-
-/**
- * @brief Sanitize the labels of all Sequence%s in the SequenceSet by replacing all invalid
- * characters with underscores.
- *
- * This might be important for printing the Sequences to a file that needs to be read by other
- * applications. See is_valid_label() for details on what is considered a valid label.
- */
-void sanitize_labels( SequenceSet& set )
-{
-    for( auto& seq : set ) {
-        sanitize_label( seq );
-    }
 }
 
 // =================================================================================================
@@ -580,7 +446,7 @@ void replace_characters( SequenceSet& set, std::string const& search, char repla
 /**
  * @brief Replace all occurrences of `U` by `T` in the sites of the Sequence.
  *
- * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
  * that is, lower case `u` is replaced by lower case `t`, and upper case `U` by upper case `T`.
  */
 void replace_u_with_t( Sequence& seq )
@@ -598,7 +464,7 @@ void replace_u_with_t( Sequence& seq )
 /**
  * @brief Replace all occurrences of `U` by `T` in the sites of all Sequence%s in the SequenceSet.
  *
- * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
  * that is, lower case `u` is replaced by lower case `t`, and upper case `U` by upper case `T`.
  */
 void replace_u_with_t( SequenceSet& set )
@@ -611,7 +477,7 @@ void replace_u_with_t( SequenceSet& set )
 /**
  * @brief Replace all occurrences of `T` by `U` in the sites of the Sequence.
  *
- * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
  * that is, lower case `t` is replaced by lower case `u`, and upper case `T` by upper case `U`.
  */
 void replace_t_with_u( Sequence& seq )
@@ -629,13 +495,78 @@ void replace_t_with_u( Sequence& seq )
 /**
  * @brief Replace all occurrences of `T` by `U` in the sites of all Sequence%s in the SequenceSet.
  *
- * This is a small helper function for sequences with nucleic acid codes. It is case insensitive,
+ * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
  * that is, lower case `t` is replaced by lower case `u`, and upper case `T` by upper case `U`.
  */
 void replace_t_with_u( SequenceSet& set )
 {
     for( auto& sequence : set ) {
         replace_t_with_u( sequence );
+    }
+}
+
+void merge_duplicate_sequences(
+    SequenceSet& set,
+    MergeDuplicateSequencesCountPolicy count_policy,
+    std::string const& counter_prefix
+) {
+    // Helper to keep track of which sequences (at position i in the set) occured how often.
+    struct Duplicate
+    {
+        size_t index;
+        size_t count;
+    };
+
+    // Find duplicates and count their occurences.
+    std::unordered_map< std::string, Duplicate > dup_map;
+    size_t i = 0;
+    while( i < set.size() ) {
+        auto& seq = set[i];
+
+        if( dup_map.count( seq.sites() ) == 0 ) {
+
+            // If it is a new sequence, init the map entry and move to the next sequence.
+            dup_map[ seq.sites() ].index = i;
+            dup_map[ seq.sites() ].count = 1;
+            ++i;
+
+        } else {
+
+            // If we already saw that sequence, increment its counter, and remove the sequence
+            // from the set. Do not increment i - we deleted a sequence, so staying at the
+            // position automatically "moves" to the next one.
+            ++dup_map[ seq.sites() ].count;
+            set.remove_at(i);
+        }
+    }
+
+    // We do not need to relabel sequences.
+    if( count_policy == MergeDuplicateSequencesCountPolicy::kDiscard ) {
+        return;
+    }
+
+    // Relabel using the counts.
+    for( size_t i = 0; i < set.size(); ++i ) {
+        auto& seq = set[i];
+
+        // The sequence needs to be in the map, as we added it in the previous step.
+        assert( dup_map.count(seq.sites()) > 0 );
+
+        // Append the count to either the label or the metadata.
+        auto count = dup_map[ seq.sites() ].count;
+        if( count_policy == MergeDuplicateSequencesCountPolicy::kAppendToLabel ) {
+            auto new_label = seq.label() + counter_prefix + std::to_string(count);
+            seq.label( new_label );
+
+        } else if( count_policy == MergeDuplicateSequencesCountPolicy::kAppendToMetadata ) {
+            auto new_meta = seq.metadata() + counter_prefix + std::to_string(count);
+            seq.metadata( new_meta );
+
+        } else {
+
+            // We already skipped the discard case, so this here should not happen.
+            assert( false );
+        }
     }
 }
 

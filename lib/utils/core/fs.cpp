@@ -34,6 +34,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fstream>
+#include <regex>
 #include <sstream>
 #include <stdexcept>
 #include <streambuf>
@@ -208,6 +209,25 @@ std::vector<std::string> dir_list_files( std::string const& dir )
     closedir(dp);
     //~ std::sort(list.begin(), list.end());
     return list;
+}
+
+/**
+ * @brief Get a list of all files in a directory whose name matches a regular expression.
+ *
+ * If the directory is not readable, the function throws `std::runtime_error`.
+ */
+std::vector<std::string> dir_list_files( std::string const& dir, std::string const& regex )
+{
+    std::vector<std::string> result;
+    auto all_list = dir_list_files( dir );
+    std::regex pattern( regex );
+
+    for( auto const& elem : all_list ) {
+        if( regex_match( elem, pattern ) ) {
+            result.push_back( elem );
+        }
+    }
+    return result;
 }
 
 // =================================================================================================

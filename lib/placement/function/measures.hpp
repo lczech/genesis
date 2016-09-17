@@ -56,6 +56,8 @@ namespace placement {
     class SampleSet;
     class PlacementTreeEdgeData;
     class PlacementTreeNodeData;
+    class Pquery;
+    class PqueryPlacement;
     struct PqueryPlain;
 
 }
@@ -79,6 +81,22 @@ double pquery_distance (
     const utils::Matrix<double>&  node_distances,
     bool                   with_pendant_length = false
 );
+
+double placement_distance(
+    PqueryPlacement const& place_a,
+    PqueryPlacement const& place_b,
+    utils::Matrix<double> const& node_distances
+);
+
+// ----------------------------------------------------------------------------
+//     Expected Distance between Placement Locations
+// ----------------------------------------------------------------------------
+
+double expected_distance_between_placement_locations( Sample const& sample, Pquery const& pquery );
+double edpl(                                          Sample const& sample, Pquery const& pquery );
+
+std::vector<double> expected_distance_between_placement_locations( Sample const& sample );
+std::vector<double> edpl(                                          Sample const& sample );
 
 // ----------------------------------------------------------------------------
 //     Earth Movers Distance

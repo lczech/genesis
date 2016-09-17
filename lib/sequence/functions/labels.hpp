@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_CORE_FS_H_
-#define GENESIS_UTILS_CORE_FS_H_
+#ifndef GENESIS_SEQUENCE_FUNCTIONS_LABELS_H_
+#define GENESIS_SEQUENCE_FUNCTIONS_LABELS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -25,56 +25,46 @@
 */
 
 /**
- * @brief Provides functions for accessing the file system.
+ * @brief
  *
  * @file
- * @ingroup utils
+ * @ingroup sequence
  */
 
 #include <string>
-#include <unordered_map>
-#include <vector>
 
 namespace genesis {
-namespace utils {
+namespace sequence {
 
 // =================================================================================================
-//     File Access
+//     Forwad Declarations
 // =================================================================================================
 
-bool        is_file     ( std::string const& path );
-bool        file_exists ( std::string const& filename );
-std::string file_read   ( std::string const& filename );
-void        file_write  ( std::string const& content, std::string const& filename );
-void        file_append ( std::string const& content, std::string const& filename );
-
-bool        is_dir         ( std::string const& path );
-bool        dir_exists     ( std::string const& dir );
-void        dir_create     ( std::string const& path );
-
-std::vector<std::string> dir_list_files ( std::string const& dir );
-std::vector<std::string> dir_list_files ( std::string const& dir, std::string const& regex );
+class Sequence;
+class SequenceSet;
 
 // =================================================================================================
-//     File Information
+//     Uniqueness
 // =================================================================================================
 
-std::unordered_map<std::string, std::string> file_info ( std::string const& filename );
+bool has_unique_labels( SequenceSet const& set, bool case_sensitive = true );
 
-size_t      file_size      ( std::string const& filename );
-std::string file_path      ( std::string const& filename );
-std::string file_basename  ( std::string const& filename );
-std::string file_filename  ( std::string const& filename );
-std::string file_extension ( std::string const& filename );
+void relabel_sha1( Sequence&    seq );
+void relabel_sha1( SequenceSet& set );
 
 // =================================================================================================
-//     File Names
+//     Validity
 // =================================================================================================
 
-bool        is_valid_filname( std::string const& filename );
-std::string sanitize_filname( std::string const& filename );
+bool is_valid_label(   std::string const& label );
+bool has_valid_label(  Sequence const&    seq );
+bool has_valid_labels( SequenceSet const& set );
 
-} // namespace utils
+std::string sanitize_label( std::string const& label );
+void sanitize_label( Sequence&     seq );
+void sanitize_labels( SequenceSet& set );
+
+} // namespace sequence
 } // namespace genesis
 
 #endif // include guard

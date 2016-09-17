@@ -39,6 +39,22 @@
 using namespace genesis;
 using namespace genesis::placement;
 
+TEST( SampleMeasures, EDPL )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Input files.
+    std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
+
+    Sample smpl;
+    EXPECT_NO_THROW( JplaceReader().from_file(infile, smpl) );
+
+    auto edpl_vec = edpl( smpl );
+    std::vector<double> expect = { 1.5, 0, 1.218, 0, 0, 1.2, 0 };
+    EXPECT_EQ( expect, edpl_vec );
+}
+
 TEST(SampleMeasures, EarthMoversDistance)
 {
     // Skip test if no data availabe.

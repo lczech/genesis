@@ -170,6 +170,131 @@ double pquery_distance (
     return sum;
 }
 
+double placement_distance(
+    PqueryPlacement const& place_a,
+    PqueryPlacement const& place_b,
+    utils::Matrix<double> const& node_distances
+) {
+    double pp, pd, dp, dist;
+
+    if( place_a.edge().index() == place_b.edge().index() ) {
+        // same branch case
+        dist = std::abs( place_a.proximal_length - place_b.proximal_length );
+
+    } else {
+        // proximal-proximal case
+        pp = place_a.proximal_length
+           + node_distances(
+               place_a.edge().primary_node().index(),
+               place_b.edge().primary_node().index()
+           )
+           + place_b.proximal_length;
+
+        // proximal-distal case
+        pd = place_a.proximal_length
+           + node_distances(
+               place_a.edge().primary_node().index(),
+               place_b.edge().secondary_node().index()
+           )
+           + place_b.edge().data<tree::DefaultEdgeData>().branch_length
+           - place_b.proximal_length;
+
+        // distal-proximal case
+        dp = place_a.edge().data<tree::DefaultEdgeData>().branch_length
+           - place_a.proximal_length
+           + node_distances(
+               place_a.edge().secondary_node().index(),
+               place_b.edge().primary_node().index()
+           )
+           + place_b.proximal_length;
+
+        // find min of the three cases
+        dist = std::min(pp, std::min(pd, dp));
+    }
+
+    return dist;
+}
+
+// =================================================================================================
+//     Expected Distance between Placement Locations
+// =================================================================================================
+
+/**
+ * @brief Local helper function to calculate the expected_distance_between_placement_locations().
+ */
+double expected_distance_between_placement_locations(
+    Pquery const& pquery,
+    utils::Matrix<double> const& node_distances
+) {
+    double result = 0.0;
+
+    for( size_t i = 0; i < pquery.placement_size(); ++i ) {
+        for( size_t j = i + 1; j < pquery.placement_size(); ++j ) {
+            auto const& place_i = pquery.placement_at(i);
+            auto const& place_j = pquery.placement_at(j);
+
+            auto dist = placement_distance( place_i, place_j, node_distances );
+            result += place_i.like_weight_ratio * place_j.like_weight_ratio * dist;
+        }
+    }
+    return 2 * result;
+}
+
+/**
+ * @brief Calculate the EDPL uncertainty values for a Pquery.
+ *
+ * See http://matsen.github.io/pplacer/generated_rst/guppy_edpl.html for more information.
+ *
+ * This function expects a Pquery and the Sample it belongs to. This is necessary in order to
+ * get the Tree of the Sample and calculate distances between its Nodes.
+ */
+double expected_distance_between_placement_locations( Sample const& sample, Pquery const& pquery )
+{
+    auto node_distances = node_branch_length_distance_matrix( sample.tree() );
+    return expected_distance_between_placement_locations( pquery, node_distances );
+}
+
+/**
+ * @brief Shortcut alias for @link
+ * expected_distance_between_placement_locations( Sample const&, Pquery const& )
+ * expected_distance_between_placement_locations()@endlink.
+ */
+double edpl( Sample const& sample, Pquery const& pquery )
+{
+    return expected_distance_between_placement_locations( sample, pquery );
+}
+
+/**
+ * @brief Calculate the @link
+ * expected_distance_between_placement_locations( Sample const&, Pquery const& )
+ * expected_distance_between_placement_locations()@endlink for all @link Pquery Pqueries@endlink
+ * in the Sample.
+ */
+std::vector<double> expected_distance_between_placement_locations( Sample const& sample )
+{
+    // Prepare result (facilitate copy elision).
+    std::vector<double> result;
+    result.reserve( sample.pquery_size() );
+
+    // Get pairwise dists between all nodes of the tree.
+    auto node_distances = node_branch_length_distance_matrix( sample.tree() );
+
+    // Fill result vector.
+    for( auto const& pquery : sample ) {
+        result.push_back( expected_distance_between_placement_locations( pquery, node_distances ));
+    }
+    return result;
+}
+
+/**
+ * @brief Shortcut alias for @link expected_distance_between_placement_locations( Sample const& )
+ * expected_distance_between_placement_locations()@endlink.
+ */
+std::vector<double> edpl( Sample const& sample )
+{
+    return expected_distance_between_placement_locations( sample );
+}
+
 // =================================================================================================
 //     Earth Movers Distance
 // =================================================================================================
