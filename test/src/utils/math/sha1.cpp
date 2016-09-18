@@ -44,11 +44,11 @@ TEST( Math, SHA1 )
 
     // abc
     checksum.update("abc");
-    EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", checksum.final() );
+    EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", checksum.final_hex() );
 
     // abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq
     checksum.update("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq");
-    EXPECT_EQ( "84983e441c3bd26ebaae4aa1f95129e5e54670f1", checksum.final() );
+    EXPECT_EQ( "84983e441c3bd26ebaae4aa1f95129e5e54670f1", checksum.final_hex() );
 
     // A million repetitions of 'a'.
     for (int i = 0; i < 1000000/200; ++i)
@@ -59,22 +59,22 @@ TEST( Math, SHA1 )
                         "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
                        );
     }
-    EXPECT_EQ( "34aa973cd4c4daa4f61eeb2bdbad27316534016f", checksum.final() );
+    EXPECT_EQ( "34aa973cd4c4daa4f61eeb2bdbad27316534016f", checksum.final_hex() );
 
     // No string
-    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", checksum.final());
+    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", checksum.final_hex());
 
     // Empty string
     checksum.update("");
-    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", checksum.final());
+    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", checksum.final_hex());
 
     // abcde
     checksum.update("abcde");
-    EXPECT_EQ( "03de6c570bfe24bfc328ccd7ca46b76eadaf4334", checksum.final());
+    EXPECT_EQ( "03de6c570bfe24bfc328ccd7ca46b76eadaf4334", checksum.final_hex());
 
     // Two concurrent checksum calculations
     SHA1 checksum1, checksum2;
     checksum1.update("abc");
-    EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", checksum1.final());
-    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", checksum2.final());
+    EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", checksum1.final_hex());
+    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", checksum2.final_hex());
 }
