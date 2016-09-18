@@ -92,7 +92,7 @@ std::string SHA1::final()
     uint64_t total_bits = (transforms_*SHA1::BlockBytes + buffer_.size()) * 8;
 
     /* Padding */
-    buffer_ += 0x80;
+    buffer_ += static_cast<char>( 0x80 );
     size_t orig_size = buffer_.size();
     while (buffer_.size() < SHA1::BlockBytes)
     {
