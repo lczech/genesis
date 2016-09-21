@@ -30,9 +30,10 @@
 
 #include "utils/math/sha1.hpp"
 
-#include <sstream>
-#include <iomanip>
 #include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <sstream>
 
 namespace genesis {
 namespace utils {
@@ -46,7 +47,7 @@ namespace utils {
  */
 SHA1::SHA1()
 {
-    reset_( digest_, buffer_, transforms_ );
+    reset_();
 }
 
 // ================================================================================================
@@ -54,7 +55,7 @@ SHA1::SHA1()
 // ================================================================================================
 
 /**
- * @brief Add the contents of a stirng to the hash digest.
+ * @brief Add the contents of a string to the hash digest.
  */
 void SHA1::update( std::string const& s )
 {
@@ -67,46 +68,59 @@ void SHA1::update( std::string const& s )
  */
 void SHA1::update(std::istream& is)
 {
-    while (true)
-    {
+    while (true) {
         char sbuf[SHA1::BlockBytes];
         is.read(sbuf, SHA1::BlockBytes - buffer_.size());
         buffer_.append(sbuf, is.gcount());
-        if (buffer_.size() != SHA1::BlockBytes)
-        {
+        if (buffer_.size() != SHA1::BlockBytes) {
             return;
         }
         uint32_t block[SHA1::BlockInts];
         buffer_to_block_(buffer_, block);
-        transform_(digest_, block, transforms_);
+        transform_( block );
         buffer_.clear();
     }
 }
 
 /**
- * @brief Finish the calculation, prepare the object for next use, and return the hash digest.
+ * @brief Finish the calculation, prepare the object for next use, and return the hash.
  */
-std::string SHA1::final()
+std::string SHA1::final_hex()
+{
+    // Calculate digest, also reset for next use.
+    auto digest = final_digest();
+
+    /* Hex std::string */
+    std::ostringstream result;
+    for (size_t i = 0; i < digest.size(); ++i) {
+        result << std::hex << std::setfill('0') << std::setw(8);
+        result << digest[i];
+    }
+
+    return result.str();
+}
+
+/**
+ * @brief Finish the calculation, prepare the object for next use, and return the digest.
+ */
+SHA1::DigestType SHA1::final_digest()
 {
     /* Total number of hashed bits */
     uint64_t total_bits = (transforms_*SHA1::BlockBytes + buffer_.size()) * 8;
 
     /* Padding */
-    buffer_ += 0x80;
+    buffer_ += static_cast<char>( 0x80 );
     size_t orig_size = buffer_.size();
-    while (buffer_.size() < SHA1::BlockBytes)
-    {
-        buffer_ += (char)0x00;
+    while (buffer_.size() < SHA1::BlockBytes) {
+        buffer_ += static_cast<char>( 0x00 );
     }
 
     uint32_t block[SHA1::BlockInts];
     buffer_to_block_(buffer_, block);
 
-    if (orig_size > SHA1::BlockBytes - 8)
-    {
-        transform_(digest_, block, transforms_);
-        for (size_t i = 0; i < SHA1::BlockInts - 2; i++)
-        {
+    if (orig_size > SHA1::BlockBytes - 8) {
+        transform_( block );
+        for (size_t i = 0; i < SHA1::BlockInts - 2; i++) {
             block[i] = 0;
         }
     }
@@ -114,59 +128,74 @@ std::string SHA1::final()
     /* Append total_bits, split this uint64_t into two uint32_t */
     block[SHA1::BlockInts - 1] = total_bits;
     block[SHA1::BlockInts - 2] = (total_bits >> 32);
-    transform_(digest_, block, transforms_);
+    transform_( block );
 
-    /* Hex std::string */
-    std::ostringstream result;
-    for (size_t i = 0; i < sizeof(digest_) / sizeof(digest_[0]); i++)
-    {
-        result << std::hex << std::setfill('0') << std::setw(8);
-        result << digest_[i];
-    }
+    auto result = digest_;
 
     /* Reset for next run */
-    reset_(digest_, buffer_, transforms_);
+    reset_();
 
-    return result.str();
+    return result;
 }
 
 /**
  * @brief Calculate the checksum for the content of a file, given its path.
  */
-std::string SHA1::from_file( std::string const& filename )
+std::string SHA1::from_file_hex( std::string const& filename )
 {
     std::ifstream stream( filename.c_str(), std::ios::binary );
     SHA1 checksum;
     checksum.update(stream);
-    return checksum.final();
+    return checksum.final_hex();
+}
+
+/**
+ * @brief Calculate the hash digest for the content of a file, given its path.
+ */
+SHA1::DigestType SHA1::from_file_digest( std::string const& filename )
+{
+    std::ifstream stream( filename.c_str(), std::ios::binary );
+    SHA1 checksum;
+    checksum.update(stream);
+    return checksum.final_digest();
 }
 
 /**
  * @brief Calculate the checksum for the content of a string.
  */
-std::string SHA1::from_string( std::string const& input )
+std::string SHA1::from_string_hex( std::string const& input )
 {
     SHA1 checksum;
     checksum.update( input );
-    return checksum.final();
+    return checksum.final_hex();
+}
+
+/**
+ * @brief Calculate the hash digest for the content of a string.
+ */
+SHA1::DigestType SHA1::from_string_digest( std::string const& input )
+{
+    SHA1 checksum;
+    checksum.update( input );
+    return checksum.final_digest();
 }
 
 // ================================================================================================
 //     Internal Functions
 // ================================================================================================
 
-void SHA1::reset_(uint32_t digest[], std::string& buffer, uint64_t& transforms)
+void SHA1::reset_()
 {
     /* SHA1 initialization constants */
-    digest[0] = 0x67452301;
-    digest[1] = 0xefcdab89;
-    digest[2] = 0x98badcfe;
-    digest[3] = 0x10325476;
-    digest[4] = 0xc3d2e1f0;
+    digest_[0] = 0x67452301;
+    digest_[1] = 0xefcdab89;
+    digest_[2] = 0x98badcfe;
+    digest_[3] = 0x10325476;
+    digest_[4] = 0xc3d2e1f0;
 
     /* Reset counters */
-    buffer = "";
-    transforms = 0;
+    buffer_     = "";
+    transforms_ = 0;
 }
 
 uint32_t SHA1::rol_(const uint32_t value, const size_t bits)
@@ -227,14 +256,14 @@ void SHA1::R4_(
 /**
  * @brief Hash a single 512-bit block. This is the core of the algorithm.
  */
-void SHA1::transform_(uint32_t digest[], uint32_t block[SHA1::BlockInts], uint64_t& transforms)
+void SHA1::transform_( uint32_t block[SHA1::BlockInts] )
 {
     // Copy digest[] to working vars
-    uint32_t a = digest[0];
-    uint32_t b = digest[1];
-    uint32_t c = digest[2];
-    uint32_t d = digest[3];
-    uint32_t e = digest[4];
+    uint32_t a = digest_[0];
+    uint32_t b = digest_[1];
+    uint32_t c = digest_[2];
+    uint32_t d = digest_[3];
+    uint32_t e = digest_[4];
 
     // 4 rounds of 20 operations each. Loop unrolled.
     R0_(block, a, b, c, d, e,  0);
@@ -319,14 +348,14 @@ void SHA1::transform_(uint32_t digest[], uint32_t block[SHA1::BlockInts], uint64
     R4_(block, b, c, d, e, a, 15);
 
     /* Add the working vars back into digest[] */
-    digest[0] += a;
-    digest[1] += b;
-    digest[2] += c;
-    digest[3] += d;
-    digest[4] += e;
+    digest_[0] += a;
+    digest_[1] += b;
+    digest_[2] += c;
+    digest_[3] += d;
+    digest_[4] += e;
 
     /* Count the number of transformations */
-    transforms++;
+    ++transforms_;
 }
 
 /**
@@ -334,12 +363,11 @@ void SHA1::transform_(uint32_t digest[], uint32_t block[SHA1::BlockInts], uint64
  */
 void SHA1::buffer_to_block_(const std::string& buffer, uint32_t block[SHA1::BlockInts])
 {
-    for (size_t i = 0; i < SHA1::BlockInts; i++)
-    {
-        block[i] = (buffer[4*i+3] & 0xff)
-                   | (buffer[4*i+2] & 0xff)<<8
-                   | (buffer[4*i+1] & 0xff)<<16
-                   | (buffer[4*i+0] & 0xff)<<24;
+    for (size_t i = 0; i < SHA1::BlockInts; i++) {
+        block[i] = ( buffer[4*i+3] & 0xff )
+                 | ( buffer[4*i+2] & 0xff ) << 8
+                 | ( buffer[4*i+1] & 0xff ) << 16
+                 | ( buffer[4*i+0] & 0xff ) << 24;
     }
 }
 

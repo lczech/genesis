@@ -31,8 +31,9 @@
  * @ingroup utils
  */
 
+#include <array>
 #include <cstdint>
-#include <iostream>
+#include <iosfwd>
 #include <string>
 
 namespace genesis {
@@ -62,6 +63,15 @@ public:
     static const size_t BlockInts  = 16;
     static const size_t BlockBytes = BlockInts * 4;
 
+    /**
+     * @brief Store a SHA1 digest.
+     *
+     * This type can be used for storing hashes instead of the hex representation. It only
+     * needs 20 bytes instead of 40 bytes for the hex. As it is a `std::array`, this type can
+     * be compared using normal `==`.
+     */
+    using DigestType = std::array< uint32_t, 5 >;
+
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
@@ -81,10 +91,15 @@ public:
 
     void update( std::string const& s );
     void update( std::istream& is );
-    std::string final();
 
-    static std::string from_file(   std::string const& filename );
-    static std::string from_string( std::string const& input );
+    std::string final_hex();
+    DigestType  final_digest();
+
+    static std::string from_file_hex(      std::string const& filename );
+    static DigestType  from_file_digest(   std::string const& filename );
+
+    static std::string from_string_hex(    std::string const& input );
+    static DigestType  from_string_digest( std::string const& input );
 
     // -------------------------------------------------------------------------
     //     Internal Functions
@@ -92,7 +107,8 @@ public:
 
 private:
 
-    void reset_(uint32_t digest[], std::string& buffer, uint64_t& transforms);
+    void reset_();
+
     uint32_t rol_(const uint32_t value, const size_t bits);
     uint32_t blk_(const uint32_t block[SHA1::BlockInts], const size_t i);
 
@@ -117,7 +133,7 @@ private:
         const uint32_t y, uint32_t& z, const size_t i
     );
 
-    void transform_(uint32_t digest[], uint32_t block[SHA1::BlockInts], uint64_t& transforms);
+    void transform_( uint32_t block[SHA1::BlockInts] );
     void buffer_to_block_(const std::string& buffer, uint32_t block[SHA1::BlockInts]);
 
     // -------------------------------------------------------------------------
@@ -126,9 +142,9 @@ private:
 
 private:
 
-    uint32_t    digest_[5];
+    DigestType  digest_;
     std::string buffer_;
-    uint64_t    transforms_;
+    size_t      transforms_;
 
 };
 

@@ -77,7 +77,7 @@ bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
  */
 void relabel_sha1( Sequence& seq )
 {
-    auto digest = utils::SHA1::from_string( seq.sites() );
+    auto digest = utils::SHA1::from_string_hex( seq.sites() );
     seq.label( digest );
 }
 
