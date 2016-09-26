@@ -111,10 +111,11 @@ public:
     //     Pquery Accessors and Modifiers
     // -------------------------------------------------------------------------
 
+    size_t pquery_size() const;
+    bool empty() const;
+
     Pquery& add_pquery();
     Pquery& add_pquery( Pquery const& other );
-
-    size_t pquery_size() const;
 
     Pquery      & pquery_at( size_t index );
     Pquery const& pquery_at( size_t index ) const;
