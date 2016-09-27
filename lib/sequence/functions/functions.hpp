@@ -96,7 +96,7 @@ void replace_t_with_u( Sequence&    seq );
 void replace_t_with_u( SequenceSet& set );
 
 /**
- * @brief Provide options for chaning how merge_duplicate_sequences() handles the counts
+ * @brief Provide options for changing how merge_duplicate_sequences() handles the counts
  * of merged Sequence%s.
  *
  * This allows to remove duplicate sequences while still keeping track of how many there were
