@@ -58,16 +58,6 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
 //     Characteristics
 // =================================================================================================
 
-std::map<char, size_t> site_histogram( Sequence    const& seq );
-std::map<char, size_t> site_histogram( SequenceSet const& set );
-
-std::map<char, double> base_frequencies( Sequence    const& seq, std::string const& plain_chars );
-std::map<char, double> base_frequencies( SequenceSet const& set, std::string const& plain_chars );
-
-size_t count_chars( SequenceSet const& set, std::string const& chars );
-
-double gapyness( SequenceSet const& set, std::string const& gap_chars );
-
 utils::Bitvector gap_sites(
     Sequence const& seq,
     std::string const& gap_chars = nucleic_acid_codes_undetermined()
