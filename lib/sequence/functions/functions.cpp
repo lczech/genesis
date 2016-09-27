@@ -266,6 +266,52 @@ void remove_sites( SequenceSet& set, utils::Bitvector sites )
 }
 
 /**
+ * @brief Remove all of the characters in `search` from the sites of the Sequence.
+ */
+void remove_characters( Sequence& seq, std::string const& search )
+{
+    auto is_search_char = [&] ( char c ) {
+        return search.find( c ) != std::string::npos;
+    };
+
+    auto& str = seq.sites();
+    str.erase( std::remove_if( str.begin(), str.end(), is_search_char ), str.end() );
+}
+
+/**
+ * @brief Remove all of the characters in `search` from the sites of the Sequence%s in the
+ * SequenceSet.
+ */
+void remove_characters( SequenceSet& set, std::string const& search )
+{
+    for( auto& sequence : set ) {
+        remove_characters( sequence, search );
+    }
+}
+
+/**
+ * @brief Remove all gap characters from the sites of the Sequence.
+ *
+ * This function is an alias for remove_characters(), which by default uses the gap sites of
+ * nucleic_acid_codes_undetermined().
+ */
+void remove_gaps( Sequence& seq, std::string const& gap_chars )
+{
+    remove_characters( seq, gap_chars );
+}
+
+/**
+ * @brief Remove all gap characters from the sites of the Sequence%s in the SequenceSet.
+ *
+ * This function is an alias for remove_characters(), which by default uses the gap sites of
+ * nucleic_acid_codes_undetermined().
+ */
+void remove_gaps( SequenceSet& set, std::string const& gap_chars )
+{
+    remove_characters( set, gap_chars );
+}
+
+/**
  * @brief Replace all occurences of the chars in `search` by the `replace` char, for all sites in
  * the given Sequence.
  *

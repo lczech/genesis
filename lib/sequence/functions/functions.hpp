@@ -81,6 +81,12 @@ bool is_alignment( SequenceSet const& set );
 void remove_sites( Sequence&    seq, utils::Bitvector sites );
 void remove_sites( SequenceSet& set, utils::Bitvector sites );
 
+void remove_characters( Sequence&    seq, std::string const& search );
+void remove_characters( SequenceSet& set, std::string const& search );
+
+void remove_gaps( Sequence&    seq, std::string const& gap_chars = nucleic_acid_codes_undetermined() );
+void remove_gaps( SequenceSet& set, std::string const& gap_chars = nucleic_acid_codes_undetermined() );
+
 void replace_characters( Sequence&    seq, std::string const& search, char replacement );
 void replace_characters( SequenceSet& set, std::string const& search, char replacement );
 
