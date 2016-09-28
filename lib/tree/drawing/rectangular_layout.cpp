@@ -165,9 +165,8 @@ utils::SvgDocument RectangularLayout::to_svg_document() const
 
         // If there is an edge (i.e., we are not at the root), draw lines between the nodes.
         if( edge_data_ptr ) {
-            // Copy the stroke, because we are going to change it locally.
             auto stroke = edge_data_ptr->data<RectangularEdgeData>().stroke;
-            stroke.line_cap = utils::SvgStroke::LineCap::kRound;
+            // stroke.line_cap = utils::SvgStroke::LineCap::kRound;
 
             doc << SvgLine(
                 node_data.x, node_data.y,
@@ -185,9 +184,12 @@ utils::SvgDocument RectangularLayout::to_svg_document() const
             assert( node.is_root() );
         }
 
-        auto label = SvgText( SvgPoint( node_data.x + 5, node_data.y ), node_data.name );
-        label.dy = "0.4em";
-        doc << label;
+        // If the node has a name, print it.
+        if( node_data.name != "" ) {
+            auto label = SvgText( SvgPoint( node_data.x + 5, node_data.y ), node_data.name );
+            // label.dy = "0.4em";
+            doc << label;
+        }
     }
 
     return doc;
