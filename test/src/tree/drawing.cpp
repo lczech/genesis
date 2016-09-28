@@ -48,9 +48,7 @@ TEST(Tree, Drawing)
     Tree tree;
     EXPECT_TRUE( DefaultTreeNewickReader().from_string( input, tree ));
 
-    auto layout = RectangularLayout();
-
-    layout.from_tree( tree );
+    auto layout = RectangularLayout( tree );
 
     std::vector<std::string> scheme = {
         "Crimson",

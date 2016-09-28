@@ -165,14 +165,14 @@ int main( int argc, const char* argv[] )
     // -----------------------------------------------------
 
     // Iterate all pqueries of the left sample and find the equivalent pqueries of the right sample.
-    for( auto & pqry_l : smpl_l ) {
+    for( auto& pqry_l : smpl_l ) {
         for( auto const& name_l : pqry_l.names() ) {
 
             // Check whether the right sample has a pquery with that name, and get it.
             if( name_map_r.count( name_l.name ) == 0 ) {
                 continue;
             }
-            auto pqry_r = smpl_r.pquery_at( name_map_r[ name_l.name ]);
+            auto& pqry_r = smpl_r.pquery_at( name_map_r[ name_l.name ]);
 
             /* == some straight forward evaluation: do they place on the same branches? == */
 
@@ -181,8 +181,8 @@ int main( int argc, const char* argv[] )
             sort_placements_by_weight(pqry_r);
 
             // check if top placement of both sequences are on the same branch
-            auto place_l = pqry_l.placement_at(0);
-            auto place_r = pqry_r.placement_at(0);
+            auto const& place_l = pqry_l.placement_at(0);
+            auto const& place_r = pqry_r.placement_at(0);
             bool top_correct = false;
             if (place_l.edge_num() == place_r.edge_num()) {
                 top_correct = true; // correct!
@@ -191,8 +191,8 @@ int main( int argc, const char* argv[] )
             // check if all ranks (up to min(max of ranks)) are equal in terms of placed edge
             bool all_ranks_equal = true;
             for( size_t i = 0; i < std::min(pqry_l.placement_size(), pqry_r.placement_size()); ++i ) {
-                auto place_l = pqry_l.placement_at(i);
-                auto place_r = pqry_r.placement_at(i);
+                auto const& place_l = pqry_l.placement_at(i);
+                auto const& place_r = pqry_r.placement_at(i);
                 if (place_l.edge_num() != place_r.edge_num()) {
                     all_ranks_equal = false;
                     // abort on first incorrect placement.
@@ -210,8 +210,8 @@ int main( int argc, const char* argv[] )
             std::vector<double> LH_deltas;
             auto num_ranks = std::min(pqry_l.placement_size(), pqry_r.placement_size());
             for( size_t i = 0; i < num_ranks; ++i ) {
-                auto place_l = pqry_l.placement_at(i);
-                auto place_r = pqry_r.placement_at(i);
+                auto const& place_l = pqry_l.placement_at(i);
+                auto const& place_r = pqry_r.placement_at(i);
                 LH_deltas.push_back(fabs(place_l.likelihood - place_r.likelihood));
             }
             auto avg_LH_delta = std::accumulate(LH_deltas.begin(), LH_deltas.end(), 0.0) / num_ranks;
@@ -289,13 +289,13 @@ int main( int argc, const char* argv[] )
     // Do a detailed comparison of the pqueries that were marked invalid in the overview.
     for( size_t j = 0; j < names_of_invalid_pqueries.size(); ++j ) {
         auto name   = names_of_invalid_pqueries[j];
-        auto pqry_l = smpl_l.pquery_at( name_map_l[ name ]);
-        auto pqry_r = smpl_r.pquery_at( name_map_r[ name ]);
+        auto const& pqry_l = smpl_l.pquery_at( name_map_l[ name ]);
+        auto const& pqry_r = smpl_r.pquery_at( name_map_r[ name ]);
 
         auto num_ranks = std::min(pqry_l.placement_size(), pqry_r.placement_size());
         for( size_t i = 0; i < num_ranks; ++i ) {
-            auto place_l = pqry_l.placement_at(i);
-            auto place_r = pqry_r.placement_at(i);
+            auto const& place_l = pqry_l.placement_at(i);
+            auto const& place_r = pqry_r.placement_at(i);
 
             if( i == 0 ) {
                 details_table << name;

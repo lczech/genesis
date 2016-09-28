@@ -161,6 +161,22 @@ PlacementTree const& Sample::tree() const
 // =================================================================================================
 
 /**
+ * @brief Return the number of @link Pquery Pqueries @endlink that are stored in this Sample.
+ */
+size_t Sample::pquery_size() const
+{
+    return pqueries_.size();
+}
+
+/**
+ * @brief Return whether the tree or the set of @link Pquery Pqueries@endlink is empty.
+ */
+bool Sample::empty() const
+{
+    return tree_.empty() || pqueries_.empty();
+}
+
+/**
  * @brief Create an empty Pquery, add it to the Sample and return it.
  *
  * The returned reference can then be used to add PqueryPlacement%s and PqueryName%s to the Pquery.
@@ -215,14 +231,6 @@ Pquery& Sample::add_pquery( Pquery const& other )
     }
 
     return pqueries_.back();
-}
-
-/**
- * @brief Return the number of @link Pquery Pqueries @endlink that are stored in this Sample.
- */
-size_t Sample::pquery_size() const
-{
-    return pqueries_.size();
 }
 
 /**

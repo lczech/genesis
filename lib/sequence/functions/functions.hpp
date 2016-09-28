@@ -58,16 +58,6 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
 //     Characteristics
 // =================================================================================================
 
-std::map<char, size_t> site_histogram( Sequence    const& seq );
-std::map<char, size_t> site_histogram( SequenceSet const& set );
-
-std::map<char, double> base_frequencies( Sequence    const& seq, std::string const& plain_chars );
-std::map<char, double> base_frequencies( SequenceSet const& set, std::string const& plain_chars );
-
-size_t count_chars( SequenceSet const& set, std::string const& chars );
-
-double gapyness( SequenceSet const& set, std::string const& gap_chars );
-
 utils::Bitvector gap_sites(
     Sequence const& seq,
     std::string const& gap_chars = nucleic_acid_codes_undetermined()
@@ -91,6 +81,12 @@ bool is_alignment( SequenceSet const& set );
 void remove_sites( Sequence&    seq, utils::Bitvector sites );
 void remove_sites( SequenceSet& set, utils::Bitvector sites );
 
+void remove_characters( Sequence&    seq, std::string const& search );
+void remove_characters( SequenceSet& set, std::string const& search );
+
+void remove_gaps( Sequence&    seq, std::string const& gap_chars = nucleic_acid_codes_undetermined() );
+void remove_gaps( SequenceSet& set, std::string const& gap_chars = nucleic_acid_codes_undetermined() );
+
 void replace_characters( Sequence&    seq, std::string const& search, char replacement );
 void replace_characters( SequenceSet& set, std::string const& search, char replacement );
 
@@ -100,7 +96,7 @@ void replace_t_with_u( Sequence&    seq );
 void replace_t_with_u( SequenceSet& set );
 
 /**
- * @brief Provide options for chaning how merge_duplicate_sequences() handles the counts
+ * @brief Provide options for changing how merge_duplicate_sequences() handles the counts
  * of merged Sequence%s.
  *
  * This allows to remove duplicate sequences while still keeping track of how many there were

@@ -32,6 +32,7 @@
  */
 
 #include "utils/formats/svg/svg.hpp"
+#include "tree/drawing/rectangular_tree.hpp"
 
 #include <string>
 #include <vector>
@@ -55,30 +56,12 @@ class RectangularLayout
 public:
 
     // -------------------------------------------------------------
-    //     Typedefs and Enums
-    // -------------------------------------------------------------
-
-    struct Node {
-        size_t node_index;
-        size_t edge_index;
-
-        double x = -1.0;
-        double y = -1.0;
-        int    parent = -1;
-
-        double children_min_y = -1.0;
-        double children_max_y = -1.0;
-
-        std::string name;
-
-        utils::SvgStroke edge_stroke;
-    };
-
-    // -------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
     RectangularLayout()  = default;
+    RectangularLayout( Tree const& tree );
+
     ~RectangularLayout() = default;
 
     RectangularLayout( RectangularLayout const& ) = default;
@@ -88,10 +71,14 @@ public:
     RectangularLayout& operator= ( RectangularLayout&& )      = default;
 
     // -------------------------------------------------------------
-    //     Drawing
+    //     Member Access
     // -------------------------------------------------------------
 
-    void from_tree( Tree const& tree );
+    Tree& tree();
+
+    // -------------------------------------------------------------
+    //     Drawing
+    // -------------------------------------------------------------
 
     void set_edge_strokes( std::vector< utils::SvgStroke > strokes );
 
@@ -103,8 +90,8 @@ public:
 
 private:
 
-    void set_node_x_phylogram_( Tree const& tree );
-    void set_node_x_cladogram_( Tree const& tree );
+    void set_node_x_phylogram_();
+    void set_node_x_cladogram_();
 
     // -------------------------------------------------------------
     //     Data Members
@@ -112,7 +99,9 @@ private:
 
 private:
 
-    std::vector< Node > nodes_;
+    // std::vector< Node > nodes_;
+
+    RectangularTree tree_;
 
     double scaler_x_ = 100.0;
     double scaler_y_ = 10.0;
