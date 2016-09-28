@@ -55,7 +55,8 @@ namespace tree {
 RectangularLayout::RectangularLayout( Tree const& orig_tree )
 {
     if( orig_tree.empty() ) {
-        throw std::runtime_error( "Cannot draw an empty tree." );
+        tree_ = orig_tree;
+        return;
     }
 
     // Get a copy of the tree topology.
@@ -132,6 +133,11 @@ RectangularLayout::RectangularLayout( Tree const& orig_tree )
 // -------------------------------------------------------------
 //     Drawing
 // -------------------------------------------------------------
+
+Tree& RectangularLayout::tree()
+{
+    return tree_;
+}
 
 void RectangularLayout::set_edge_strokes( std::vector< utils::SvgStroke > strokes )
 {
