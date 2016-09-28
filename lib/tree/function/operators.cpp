@@ -30,6 +30,7 @@
 
 #include "tree/function/operators.hpp"
 
+#include "tree/iterator/node_links.hpp"
 #include "tree/iterator/preorder.hpp"
 #include "utils/core/logging.hpp"
 
@@ -214,6 +215,36 @@ bool belongs_to( Tree const& tree, TreeEdge const& edge )
 bool belongs_to( Tree const& tree, TreeLink const& link )
 {
     return link.index() <= tree.link_count() && &tree.link_at( link.index() ) == &link;
+}
+
+/**
+ * @brief Return the TreeEdge between two TreeNode&s, if they are neighbours, or `nullptr` otherwise.
+ */
+TreeEdge* edge_between( TreeNode& lhs, TreeNode& rhs )
+{
+    // No need to check whether the two nodes belong to the same tree.
+    // If they don't, this loop will simply exit without success, so that a nullptr is returend.
+    for( auto it : node_links( lhs ) ) {
+        if( &it.link().outer().node() == &rhs ) {
+            return &it.link().edge();
+        }
+    }
+    return nullptr;
+}
+
+/**
+ * @brief Return the TreeEdge between two TreeNode&s, if they are neighbours, or `nullptr` otherwise.
+ */
+TreeEdge const* edge_between( TreeNode const& lhs, TreeNode const& rhs )
+{
+    // No need to check whether the two nodes belong to the same tree.
+    // If they don't, this loop will simply exit without success, so that a nullptr is returend.
+    for( auto it : node_links( lhs ) ) {
+        if( &it.link().outer().node() == &rhs ) {
+            return &it.link().edge();
+        }
+    }
+    return nullptr;
 }
 
 // =================================================================================================
