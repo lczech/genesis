@@ -185,6 +185,14 @@ void dir_create( std::string const& path )
 }
 
 /**
+ * @brief Normalize a dir name, i.e., make sure that the given path ends with exaclty one slash.
+ */
+std::string dir_normalize_path( std::string const& path )
+{
+    return utils::trim_right( path, "/") + "/";
+}
+
+/**
  * @brief Get a list of files in a directory.
  *
  * If the directory is not readable, the function throws `std::runtime_error`.
