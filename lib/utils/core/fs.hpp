@@ -52,6 +52,8 @@ bool        is_dir         ( std::string const& path );
 bool        dir_exists     ( std::string const& dir );
 void        dir_create     ( std::string const& path );
 
+std::string dir_normalize_path( std::string const& path );
+
 std::vector<std::string> dir_list_files ( std::string const& dir );
 std::vector<std::string> dir_list_files ( std::string const& dir, std::string const& regex );
 
