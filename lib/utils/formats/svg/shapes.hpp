@@ -371,7 +371,7 @@ public:
     );
 
     SvgPolygon(
-        std::vector< SvgPoint > points,
+        std::vector< SvgPoint > const& points,
         SvgStroke const& stroke = SvgStroke(),
         SvgFill   const& fill   = SvgFill()
     );
@@ -403,6 +403,67 @@ public:
     // -------------------------------------------------------------
 
     std::vector< SvgPoint > points;
+
+    SvgStroke stroke;
+    SvgFill   fill;
+
+};
+
+// =================================================================================================
+//     Svg Path
+// =================================================================================================
+
+struct SvgPath
+{
+public:
+
+    // -------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------
+
+    using self_type = SvgPath;
+
+    // -------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------
+
+    SvgPath(
+        SvgStroke const& stroke = SvgStroke(),
+        SvgFill   const& fill   = SvgFill()
+    );
+
+    SvgPath(
+        std::vector< std::string > const& elements,
+        SvgStroke const& stroke = SvgStroke(),
+        SvgFill   const& fill   = SvgFill()
+    );
+
+    ~SvgPath() = default;
+
+    SvgPath( SvgPath const& ) = default;
+    SvgPath( SvgPath&& )      = default;
+
+    SvgPath& operator= ( SvgPath const& ) = default;
+    SvgPath& operator= ( SvgPath&& )      = default;
+
+    // -------------------------------------------------------------
+    //     Drawing Function
+    // -------------------------------------------------------------
+
+    self_type& add( std::string elem );
+
+    self_type& operator <<( std::string elem );
+
+    void offset( double x, double y );
+    SvgBox bounding_box() const;
+
+    void write( std::ostream& out, size_t indent = 0 ) const;
+
+    // -------------------------------------------------------------
+    //     Properties
+    // -------------------------------------------------------------
+
+    std::vector< std::string > elements;
 
     SvgStroke stroke;
     SvgFill   fill;
