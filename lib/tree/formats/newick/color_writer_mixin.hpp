@@ -161,10 +161,15 @@ protected:
 
     void set_color( NewickBrokerElement& element, utils::Color color )
     {
-        if( color != ColorWriterMixin::ignored_color() ) {
-            // TODO do not create new element if there is already one!
-            element.comments.push_back( color_tag_prefix_ + color_to_hex(color) + color_tag_suffix_ );
+        if(
+            ColorWriterMixin::use_ignored_color() &&
+            color == ColorWriterMixin::ignored_color()
+        ) {
+            return;
         }
+
+        // TODO do not create new element if there is already one!
+        element.comments.push_back( color_tag_prefix_ + color_to_hex(color) + color_tag_suffix_ );
     }
 
     // -------------------------------------------------------------------------

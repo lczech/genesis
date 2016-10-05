@@ -140,12 +140,13 @@ public:
      * This is thus something like "magic pink", where all parts of an image are rendered
      * transparent when originially colored in pink.
      *
-     * By default, the ignored color is black (`Color(0, 0, 0)`). This way, all edges that have
-     * black color will produce no color tag.
+     * By default, we do not use an ignored color. If this option is activated, also
+     * use_ignored_color() is set to `true`.
      */
     void ignored_color( utils::Color value )
     {
         ignored_color_ = value;
+        use_ignored_color_ = true;
     }
 
     /**
@@ -154,6 +155,25 @@ public:
     utils::Color ignored_color() const
     {
         return ignored_color_;
+    }
+
+    /**
+     * @brief Set whether to use the ignored_color().
+     *
+     * If this option is set to `true`, the color that is set via ignored_color() is not written
+     * as a color attribute to the output format.
+     */
+    void use_ignored_color( bool value )
+    {
+        use_ignored_color_ = value;
+    }
+
+    /**
+     * @brier Return whether currently an ignored color is used.
+     */
+    bool use_ignored_color() const
+    {
+        return use_ignored_color_;
     }
 
     // -------------------------------------------------------------------------
@@ -165,6 +185,7 @@ private:
     std::vector<utils::Color> edge_colors_;
     bool                      enable_color_  = true;
     utils::Color              ignored_color_ = utils::Color(0, 0, 0);
+    bool                      use_ignored_color_ = false;
 
 };
 
