@@ -89,6 +89,13 @@ RectangularLayout::RectangularLayout( Tree const& orig_tree )
 
         // Set the tree edge data.
         tree_.edge_at(i).reset_data( RectangularEdgeData::create() );
+        auto& edge_data = tree_.edge_at(i).data<RectangularEdgeData>();
+
+        // If the original tree has edge branch lengths, use them.
+        auto orig_edge_data_ptr = orig_tree.edge_at(i).data_cast<DefaultEdgeData>();
+        if( orig_edge_data_ptr ) {
+            edge_data.branch_length = orig_edge_data_ptr->branch_length;
+        }
     }
 
     // Set node x-coords according to branch lengths (distance from root).
