@@ -119,7 +119,10 @@ protected:
 
     void set_color( utils::XmlElement& element, unsigned char r, unsigned char g, unsigned char b )
     {
-        if( utils::Color(r, g, b) == ColorWriterMixin::ignored_color() ) {
+        if(
+            ColorWriterMixin::use_ignored_color() &&
+            utils::Color(r, g, b) == ColorWriterMixin::ignored_color()
+        ) {
             return;
         }
 

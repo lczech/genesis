@@ -32,6 +32,7 @@
 
 #include "lib/tree/default/newick_reader.hpp"
 #include "lib/tree/drawing/rectangular_layout.hpp"
+#include "lib/tree/drawing/circular_layout.hpp"
 #include "lib/tree/tree.hpp"
 
 #include "lib/utils/formats/svg/svg.hpp"
@@ -47,8 +48,10 @@ TEST(Tree, Drawing)
 
     Tree tree;
     EXPECT_TRUE( DefaultTreeNewickReader().from_string( input, tree ));
+    EXPECT_TRUE( DefaultTreeNewickReader().from_file( "/home/lucas/best_tree.newick", tree ));
 
-    auto layout = RectangularLayout( tree );
+    // auto layout = RectangularLayout( tree );
+    auto layout = CircularLayout( tree );
 
     std::vector<std::string> scheme = {
         "Crimson",
@@ -77,9 +80,9 @@ TEST(Tree, Drawing)
     };
 
     std::vector<utils::SvgStroke> strokes;
-    for( size_t i = 0; i < 12; ++i ) {
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
         strokes.push_back( utils::SvgStroke() );
-        strokes.back().color = utils::get_named_color( scheme[i] );
+        strokes.back().color = utils::get_named_color( scheme[ i % scheme.size() ] );
     }
     layout.set_edge_strokes( strokes );
 
@@ -87,6 +90,6 @@ TEST(Tree, Drawing)
     layout.to_svg_document().write( out );
 
     // LOG_DBG << out.str();
-    // utils::file_write( out.str(), "/home/lucas/tree.svg" );
+    utils::file_write( out.str(), "/home/lucas/tree.svg" );
 
 }

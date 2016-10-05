@@ -380,7 +380,7 @@ void SvgPolyline::write( std::ostream& out, size_t indent ) const
 }
 
 // =================================================================================================
-//     Svg Polyline
+//     Svg Polygon
 // =================================================================================================
 
 // -------------------------------------------------------------
@@ -396,7 +396,7 @@ SvgPolygon::SvgPolygon(
 {}
 
 SvgPolygon::SvgPolygon(
-    std::vector< SvgPoint > points,
+    std::vector< SvgPoint > const& points,
     SvgStroke const& stroke,
     SvgFill   const& fill
 )
@@ -468,6 +468,77 @@ void SvgPolygon::write( std::ostream& out, size_t indent ) const
             out << " ";
         }
         out << points[i].x << "," << points[i].y;
+    }
+    out << "\"";
+
+    stroke.write( out );
+    fill.write( out );
+    out << " />\n";
+}
+
+// =================================================================================================
+//     Svg Path
+// =================================================================================================
+
+// -------------------------------------------------------------
+//     Constructors and Rule of Five
+// -------------------------------------------------------------
+
+SvgPath::SvgPath(
+    SvgStroke const& stroke,
+    SvgFill   const& fill
+)
+    : stroke( stroke )
+    , fill( fill )
+{}
+
+SvgPath::SvgPath(
+    std::vector< std::string > const& elements,
+    SvgStroke const& stroke,
+    SvgFill   const& fill
+)
+    : elements(elements)
+    , stroke( stroke )
+    , fill( fill )
+{}
+
+// -------------------------------------------------------------
+//     Members
+// -------------------------------------------------------------
+
+SvgPath& SvgPath::add( std::string elem )
+{
+    elements.push_back( elem );
+    return *this;
+}
+
+SvgPath& SvgPath::operator <<( std::string elem )
+{
+    return add( elem );
+}
+
+void SvgPath::offset( double x, double y )
+{
+    (void) x;
+    (void) y;
+}
+
+SvgBox SvgPath::bounding_box() const
+{
+    return {};
+}
+
+void SvgPath::write( std::ostream& out, size_t indent ) const
+{
+    out << repeat( SvgDocument::indentation_string, indent );
+    out << "<path";
+
+    out << " d=\"";
+    for( size_t i = 0; i < elements.size(); ++i ) {
+        if( i > 0 ) {
+            out << " ";
+        }
+        out << elements[i];
     }
     out << "\"";
 
