@@ -105,6 +105,8 @@
 #include "tree/default/newick_writer.hpp"
 #include "tree/default/phyloxml_writer.hpp"
 #include "tree/default/tree.hpp"
+#include "tree/drawing/circular_layout.hpp"
+#include "tree/drawing/circular_tree.hpp"
 #include "tree/drawing/layout_tree.hpp"
 #include "tree/drawing/rectangular_layout.hpp"
 #include "tree/drawing/rectangular_tree.hpp"
