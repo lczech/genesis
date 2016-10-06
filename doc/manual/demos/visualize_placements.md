@@ -27,3 +27,8 @@ does not need to end in ".jplace" in this case. In this case, simply this file i
 
 Furthermore, as second command line argument, the user needs to provide a valid filename for the
 output nexus file. That means, the path to the file needs to exist, but the file not (yet).
+
+The program prints output that shows the used color gradient and furthermore lists the positions
+on this gradient that correspond to certain placement masses. Particularly, as we use a log scale
+for coloring, the printed positions are multiples of ten, and finally the maximum mass, which
+always corresponds to the end of the color gradient, i.e., black color.

@@ -99,6 +99,29 @@ std::vector<utils::Color> counts_to_colors(
     // Find the highest value in the input vector.
     auto mass_max = *std::max_element (count_vector.begin(), count_vector.end());
 
+    // Output for building the color gradient: show the color values.
+    LOG_INFO << "In order to build a color gradient, use these color stops:\n"
+             << "    0.0 -> #81bfff (light blue, no placement mass)\n"
+             << "    0.5 -> #c040be (purple, medium placement mass)\n"
+             << "    1.0 -> #000000 (black, maximum placement mass)";
+    LOG_INFO << "The edge with the maximum placement mass has a mass of " << mass_max;
+
+    // More output for the color gradient: show the label positions.
+    std::string labels = "The following list shows position on the color gradient ";
+    labels += "with their correspinding placement mass. Use this to label your color gradient.\n";
+    size_t pow_i = 0;
+    double pow_v = 0.0;
+    do {
+        pow_v = log( pow( 10, pow_i )) / log( mass_max );
+        if( pow_v <= 1.0 ) {
+            labels += "    " + utils::to_string_precise( pow_v, 6 ) + " -> ";
+            labels += utils::to_string( pow( 10, pow_i )) + "\n";
+        }
+        ++pow_i;
+    } while( pow_v <= 1.0 );
+    labels += "    1.000000 -> " + utils::to_string( mass_max ) + "\n";
+    LOG_INFO << labels;
+
     // Calculate the resulting colors.
     for( size_t i = 0; i < count_vector.size(); ++i ) {
         if( count_vector[i] > 0.0 ) {
@@ -178,10 +201,15 @@ void write_color_tree_to_nexus(
  * files can be used here.
  *
  * If a single file is given as input, all of the above is obsolete. The filename also
- * does not need to end in ".jplace" in this case. In this case, simple this file is visualized.
+ * does not need to end in ".jplace" in this case. In this case, simply this file is visualized.
  *
  * Furthermore, as second command line argument, the user needs to provide a valid filename for the
  * output nexus file. That means, the path to the file needs to exist, but the file not (yet).
+ *
+ * The program prints output that shows the used color gradient and furthermore lists the positions
+ * on this gradient that correspond to certain placement masses. Particularly, as we use a log scale
+ * for coloring, the printed positions are multiples of ten, and finally the maximum mass, which
+ * always corresponds to the end of the color gradient, i.e., black color.
  */
 int main( int argc, char** argv )
 {
