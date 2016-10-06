@@ -48,7 +48,7 @@ TEST(Tree, Drawing)
 
     Tree tree;
     EXPECT_TRUE( DefaultTreeNewickReader().from_string( input, tree ));
-    EXPECT_TRUE( DefaultTreeNewickReader().from_file( "/home/lucas/best_tree.newick", tree ));
+    // EXPECT_TRUE( DefaultTreeNewickReader().from_file( "/home/lucas/best_tree.newick", tree ));
 
     // auto layout = RectangularLayout( tree );
     auto layout = CircularLayout( tree );
@@ -90,6 +90,6 @@ TEST(Tree, Drawing)
     layout.to_svg_document().write( out );
 
     // LOG_DBG << out.str();
-    utils::file_write( out.str(), "/home/lucas/tree.svg" );
+    // utils::file_write( out.str(), "/home/lucas/tree.svg" );
 
 }
