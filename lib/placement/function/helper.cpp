@@ -372,7 +372,9 @@ bool validate( Sample const& smp, bool check_values, bool break_on_values )
             }
             ratio_sum += p.like_weight_ratio;
         }
-        if (check_values && ratio_sum > 1.0) {
+
+        // Check the sum of LWRs, with some small tolerance.
+        if (check_values && ratio_sum > 1.000000001) {
             LOG_INFO << "Invalid pquery with sum of like_weight_ratio '" << ratio_sum
                      << "' > 1.0 at " << name << ".";
             if (break_on_values) {
