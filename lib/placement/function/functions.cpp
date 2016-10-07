@@ -33,6 +33,7 @@
 #include "placement/function/helper.hpp"
 #include "placement/function/operators.hpp"
 #include "tree/default/distances.hpp"
+#include "tree/default/functions.hpp"
 #include "tree/function/distances.hpp"
 #include "tree/function/functions.hpp"
 #include "tree/function/operators.hpp"
@@ -192,6 +193,23 @@ void sort_placements_by_weight( Sample& smp )
 {
     for( auto pqry_it = smp.begin(); pqry_it != smp.end(); ++pqry_it ) {
         sort_placements_by_weight( *pqry_it );
+    }
+}
+
+/**
+ * @brief Scale all branch lengths of the Tree and the position of the PqueryPlacement%s by
+ * a given factor.
+ *
+ * This function calls tree::scale_all_branch_lengths() for scaling the tree, and also applies
+ * the same scaling to the PqueryPlacement::proximal_length.
+ */
+void scale_all_branch_lengths( Sample& smp, double factor )
+{
+    tree::scale_all_branch_lengths( smp.tree(), factor );
+    for( auto& pqry : smp.pqueries() ) {
+        for( auto& place : pqry.placements() ) {
+            place.proximal_length *= factor;
+        }
     }
 }
 

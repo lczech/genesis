@@ -104,9 +104,10 @@ int main( int argc, const char* argv[] )
     Sample smpl_l;
     Sample smpl_r;
     std::cout << "Jplace file 1: " << jplace_filename_l << "\n";
-    std::cout << "Jplace file 2: " << jplace_filename_r << "\n\n";
     jplace_reader.from_file( jplace_filename_l, smpl_l );
+    std::cout << "Jplace file 2: " << jplace_filename_r << "\n";
     jplace_reader.from_file( jplace_filename_r, smpl_r );
+    std::cout << "\n";
 
     // Validation.
     if( ! validate( smpl_l, true, false ) || ! validate( smpl_r, true, false ) ) {
@@ -128,10 +129,10 @@ int main( int argc, const char* argv[] )
     auto tree_len_r = tree::length(smpl_r.tree());
     std::vector<std::string> names_of_invalid_pqueries;
 
-    // Prepare samples for the emd calculation by specifiying the udnerlying trees
+    // Prepare samples for the emd calculation by specifiying the underlying trees
     // here we also normalize the tree branches such that the sum total is 1 in each
-    tree::scale_all_branch_lengths(smpl_l.tree(), 1.0 / tree_len_l);
-    tree::scale_all_branch_lengths(smpl_r.tree(), 1.0 / tree_len_r);
+    scale_all_branch_lengths( smpl_l, 1.0 / tree_len_l );
+    scale_all_branch_lengths( smpl_r, 1.0 / tree_len_r );
     auto emd_smpl_l = Sample( smpl_l.tree() );
     auto emd_smpl_r = Sample( smpl_r.tree() );
 

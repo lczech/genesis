@@ -67,6 +67,8 @@ void normalize_weight_ratios( Sample& smp );
 void sort_placements_by_weight( Pquery& pquery );
 void sort_placements_by_weight( Sample& smp );
 
+void scale_all_branch_lengths( Sample& smp, double factor = 1.0 );
+
 // =================================================================================================
 //     Filtering
 // =================================================================================================
