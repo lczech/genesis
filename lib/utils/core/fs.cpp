@@ -193,7 +193,7 @@ std::string dir_normalize_path( std::string const& path )
 }
 
 /**
- * @brief Get a list of files in a directory.
+ * @brief Get a list of files and directories in a directory.
  *
  * If the directory is not readable, the function throws `std::runtime_error`.
  */
