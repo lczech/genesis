@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_CORE_GENESIS_H_
-#define GENESIS_UTILS_CORE_GENESIS_H_
+#ifndef GENESIS_UTILS_CORE_VERSION_H_
+#define GENESIS_UTILS_CORE_VERSION_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
