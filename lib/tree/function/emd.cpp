@@ -39,7 +39,7 @@
 
 #include <assert.h>
 #include <cmath>
-#include <unordered_map>
+#include <vector>
 
 namespace genesis {
 namespace tree {
@@ -93,15 +93,7 @@ double earth_movers_distance( EmdTree const& tree )
     // mass that comes from the subtree below that node. Thus, for the root node, it should be
     // the same value as sum_of_masses(). Both values should be close to zero (except for numerical
     // issues), in order for the result of this function to be meaningful.
-    std::unordered_map<size_t, double> node_masses;
-
-    // Init the mass to 0 for all leaf nodes. At leaves, we do not have any mass coming from further
-    // down the tree (obviously, because they are leaves).
-    for( auto const& node : tree.nodes() ) {
-        if( node->is_leaf() ) {
-            node_masses[ node->index() ] = 0.0;
-        }
-    }
+    auto node_masses = std::vector<double>( tree.node_count(), 0.0 );
 
     // Do a postorder traversal of the tree, starting at the root.
     // In theory, it does not matter where we start the traversal - however, the positions of the
@@ -125,9 +117,6 @@ double earth_movers_distance( EmdTree const& tree )
         // The iterator should guarantee that its edge is always the one pointing towards the root.
         // Still, better check this!
         assert( sec_node_index == tree_it.node().index() );
-
-        // Make sure that we actually processes the subtree of the current edge.
-        assert( node_masses.count( sec_node_index ) > 0 );
 
         // We now start a "normal" earth movers distance caluclation along the current edge.
         // We start at the end of the branch, with the mass that comes from the subtree below it...
