@@ -122,7 +122,9 @@ struct PcaData
  * @param data Input data matrix. Operations are performed inline, that is, the matrix is changed
  *             during execution of the function.
  */
-TridiagonalDecompositionData reduce_to_tridiagonal_matrix( Matrix<double>& data );
+TridiagonalDecompositionData reduce_to_tridiagonal_matrix(
+    Matrix<double>& data
+);
 
 /**
  * @brief Reduce a symmetric matrix to a symmetric tridiagonal matrix.
@@ -133,8 +135,19 @@ TridiagonalDecompositionData reduce_to_tridiagonal_matrix( Matrix<double>& data 
  * Both parameters are modified during the algorithm. After it is finished,
  * `tri.eigenvalues` contains the eigenvalus and `data` the associated eigenvectors of the
  * original data.
+ *
+ * @param data           Input data matrix. Operations are performed inline, that is, the matrix is
+ *                       changed during execution of the function.
+ * @param tri            Tridiagonal matrix coming from reduce_to_tridiagonal_matrix().
+ * @param max_iterations Maximum number of iterations to perform, default is 1000. If set to 0, the
+ *                       algorithm continues until convergence. As convergence is not given for all
+ *                       data, this might result in an infinite loop.
  */
-void tridiagonal_ql_algorithm( Matrix<double>& data, TridiagonalDecompositionData& tri );
+void tridiagonal_ql_algorithm(
+    Matrix<double>&               data,
+    TridiagonalDecompositionData& tri,
+    size_t                        max_iterations = 1000
+);
 
 // ================================================================================================
 //     Principal Component Analysis

@@ -147,8 +147,11 @@ TridiagonalDecompositionData reduce_to_tridiagonal_matrix( Matrix<double>& data 
 //     Tridiagonal QL Algorithm
 // ================================================================================================
 
-void tridiagonal_ql_algorithm( Matrix<double>& data, TridiagonalDecompositionData& tri )
-{
+void tridiagonal_ql_algorithm(
+    Matrix<double>&               data,
+    TridiagonalDecompositionData& tri,
+    size_t                        max_iterations
+) {
     if( data.rows() != data.cols() ) {
         throw std::runtime_error(
             "Expecting symmetrical matrix for tridiagonal_ql_algorithm()"
@@ -184,7 +187,7 @@ void tridiagonal_ql_algorithm( Matrix<double>& data, TridiagonalDecompositionDat
             }
 
             if( m != l ) {
-                if( iter++ == 30 ) {
+                if( max_iterations > 0 && iter++ == max_iterations ) {
                     throw std::runtime_error( "No convergence in tridiagonal_ql_algorithm()." );
                 }
 
