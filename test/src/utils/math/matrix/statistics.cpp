@@ -44,7 +44,7 @@ using namespace utils;
 //     Standardization
 // ================================================================================================
 
-Matrix<double> read_csv_data( std::string const& filename, size_t rows, size_t cols )
+inline Matrix<double> read_csv_data( std::string const& filename, size_t rows, size_t cols )
 {
     // Read Iris dataset.
     auto        reader = CsvReader();
@@ -62,7 +62,7 @@ Matrix<double> read_csv_data( std::string const& filename, size_t rows, size_t c
     return data;
 }
 
-void test_check_standardization_results(
+inline void test_check_standardization_results(
     Matrix<double> expected,
     Matrix<double> actual,
     std::vector<MatrixStandardizeData> stats

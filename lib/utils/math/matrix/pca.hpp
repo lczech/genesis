@@ -38,6 +38,47 @@
 namespace genesis {
 namespace utils {
 
+// ================================================================================================
+//     Settings for Functions
+// ================================================================================================
+
+/**
+ * @brief Setting for principal_component_analysis() to determine which form of standardization
+ * of the data to use prior to perfoming the PCA.
+ */
+enum class PcaStandardization
+{
+    /**
+     * @brief Standardize the mean and variance of the data before performing the PCA.
+     *
+     * Best to use when the data has widely varying scales in between the columns, i.e., if the
+     * columns present data from different domains.
+     * Also, see correlation_matrix().
+     */
+    kCorrelation,
+
+    /**
+     * @brief Standardize the mean, but not the variance of the data before performing the PCA.
+     *
+     * Best to use when the data has similar scales in between the columns, i.e., if the columns
+     * present data from the same domain.
+     * Also, see covariance_matrix().
+     */
+    kCovariance,
+
+    /**
+     * @brief Do not perform any standardization prior to performing the PCA.
+     *
+     * Not recommended.
+     * Also, see sums_of_squares_and_cross_products_matrix().
+     */
+    kSSCP
+};
+
+// ================================================================================================
+//     Structs for Storing Results
+// ================================================================================================
+
 /**
  * @brief Helper structure used for the eigenvalue decomposition in reduce_to_tridiagonal_matrix()
  * and tridiagonal_ql_algorithm(). See there for details.
@@ -47,6 +88,17 @@ struct TridiagonalDecompositionData
     std::vector<double> eigenvalues;
     std::vector<double> intermediates;
 };
+
+struct PcaData
+{
+    std::vector<double> eigenvalues;
+    Matrix<double>      eigenvectors;
+    Matrix<double>      projection;
+};
+
+// ================================================================================================
+//     Helper Functions
+// ================================================================================================
 
 /**
  * @brief Triangular decomposition of a symmetric matrix.
@@ -84,7 +136,15 @@ TridiagonalDecompositionData reduce_to_tridiagonal_matrix( Matrix<double>& data 
  */
 void tridiagonal_ql_algorithm( Matrix<double>& data, TridiagonalDecompositionData& tri );
 
-void principal_component_analysis( Matrix<double> const& data );
+// ================================================================================================
+//     Principal Component Analysis
+// ================================================================================================
+
+PcaData principal_component_analysis(
+    Matrix<double> const& data,
+    size_t                components      = 0,
+    PcaStandardization    standardization = PcaStandardization::kCorrelation
+);
 
 } // namespace utils
 } // namespace genesis

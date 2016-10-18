@@ -30,8 +30,11 @@
 
 #include "utils/math/matrix/pca.hpp"
 
+#include "utils/core/std.hpp"
+#include "utils/math/matrix/operators.hpp"
 #include "utils/math/matrix/statistics.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
@@ -233,29 +236,102 @@ void tridiagonal_ql_algorithm( Matrix<double>& data, TridiagonalDecompositionDat
 //     Principal Component Analysis
 // ================================================================================================
 
-void principal_component_analysis( Matrix<double> const& data )
-{
-    auto symmat = correlation_matrix( data );
-    auto tri    = reduce_to_tridiagonal_matrix( symmat );
+PcaData principal_component_analysis(
+    Matrix<double> const& data,
+    size_t                components,
+    PcaStandardization    standardization
+) {
+    // Prepare result struct.
+    PcaData result;
+
+    // Normalize data and get correlation/covariance matrix.
+    // We manually run the normalization step here, because we need the normalized data later.
+    // The resulting `symmat` is then then same as if after performing
+    // correlation_matrix / covariance_matrix / sums_of_squares_and_cross_products_matrix
+    // (depending on the settings for the standardization).
+    // The `symmat` is later overwritten by the tridiagonal decomposition algorithm and then
+    // contains the eigenvectors.
+    auto standardized_data = data;
+    if( standardization == PcaStandardization::kCorrelation ) {
+        standardize( standardized_data, true, true );
+    } else if( standardization == PcaStandardization::kCovariance ) {
+        standardize( standardized_data, true, false );
+    }
+    auto symmat = sums_of_squares_and_cross_products_matrix( standardized_data );
+    for( auto& elem : symmat ) {
+        elem /= static_cast<double>( standardized_data.rows() );
+    }
+
+    // As symmaat is later overwritten, we store the correlation/covariance for later.
+    // auto covar = symmat;
+
+    // Get number of desired PCA components.
+    if( components == 0 ) {
+        components = standardized_data.cols();
+    }
+    if( components > standardized_data.cols() ) {
+        throw std::runtime_error(
+            "Cannot calculate more PCA components than the original data has columns."
+        );
+    }
+
+    // Eigenvalue Decompostion.
+    auto tri = reduce_to_tridiagonal_matrix( symmat );
     tridiagonal_ql_algorithm( symmat, tri );
 
-    auto m = symmat.cols();
+    // Some checks.
+    assert( tri.eigenvalues.size()   == standardized_data.cols() );
+    assert( tri.intermediates.size() == standardized_data.cols() );
+    assert( symmat.rows()            == standardized_data.cols() );
+    assert( symmat.cols()            == standardized_data.cols() );
 
-    printf("\nEigenvalues:\n");
-	for (int j = m-1; j >= 0; j--) {
-		printf("%18.5f\n", tri.eigenvalues[j]); }
-	printf("\n(Eigenvalues should be strictly positive; limited\n");
-	printf("precision machine arithmetic may affect this.\n");
-	printf("Eigenvalues are often expressed as cumulative\n");
-	printf("percentages, representing the 'percentage variance\n");
-	printf("explained' by the associated axis or principal component.)\n");
+    // Sort Eigenvalues and Eigenvectors and store in result struct.
+    auto sorted_indices = sort_indices<double>( tri.eigenvalues, std::greater<double>() );
+    result.eigenvalues  = std::vector<double>( components );
+    result.eigenvectors = Matrix<double>( symmat.rows(), components );
+    for( size_t c = 0; c < components; ++c ) {
+        result.eigenvalues[c] = tri.eigenvalues[ sorted_indices[c] ];
 
-	printf("\nEigenvectors:\n");
-	printf("(First three; their definition in terms of original vbes.)\n");
-	for (size_t j = 0; j < m; j++) {
-		for (size_t i = 1; i <= 3; i++)  {
-			printf("%12.4f", symmat(j, m-i));  }
-		printf("\n");  }
+        for( size_t r = 0; r < symmat.rows(); ++r ) {
+            result.eigenvectors( r, c ) = symmat( r, sorted_indices[c] );
+        }
+    }
+
+    // Store projections of row-points on pricipal components into result.
+    // This is a simple matrix multiplication of the normalized data with the eigenvectors.
+    result.projection = matrix_multiplication( standardized_data, result.eigenvectors );
+
+    // Experimental: Calculate column projection.
+    // See original implememtation for code:
+    // https://github.com/davidhalter-archive/ardour/blob/master/libs/qm-dsp/maths/pca/pca.c
+    //
+    // auto col_proj = Matrix<double>( data.cols(), data.cols() );
+    // /* Form projections of col.-points on first three prin. components. */
+    // /* Store in 'covar', overwriting what was stored in this. */
+    // for( size_t j = 0; j < data.cols(); ++j ) {
+    //     for( size_t i = 0; i < 3; ++i ) {
+    //         col_proj(j,i) = 0.0;
+    //         for( size_t k2 = 0; k2 < data.cols(); ++k2 ) {
+    //             col_proj(j,i) += covar(j,k2) * result.eigenvectors( k2, data.cols()-i-1 );
+    //         }
+    //         if( result.eigenvalues[data.cols()-i-1] > 0.0005 ) {
+    //             /* Guard against zero eigenvalue */
+    //             col_proj(j,i) /= sqrt(result.eigenvalues[data.cols()-i-1]);   /* Rescale */
+    //         } else {
+    //             col_proj(j,i) = 0.0;    /* Standard kludge */
+    //         }
+    //     }
+    // }
+    //
+    // printf("\nProjections of column-points on first 3 prin. comps.:\n");
+    // for (size_t j = 0; j < data.cols(); j++) {
+    //     for ( size_t k = 0; k < 3; k++)  {
+    //         printf("%12.4f", col_proj(j,k));
+    //     }
+    //     printf("\n");
+    // }
+
+    return result;
 }
 
 } // namespace utils
