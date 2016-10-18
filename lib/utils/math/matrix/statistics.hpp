@@ -33,8 +33,35 @@
 
 #include "utils/math/matrix.hpp"
 
+#include <utility>
+#include <vector>
+
 namespace genesis {
 namespace utils {
+
+// ================================================================================================
+//     Structs for Storing Results
+// ================================================================================================
+
+/**
+ * @brief Helper structure returned from normalize( Matrix<double>& data ) that stores the min
+ * and max values for a column of the original data.
+ */
+struct MatrixNormalizeData
+{
+    double min;
+    double max;
+};
+
+/**
+ * @brief Helper structure returned from standardize( Matrix<double>& data ) that stores the
+ * mean and standard deviation for a column of the original data.
+ */
+struct MatrixStandardizeData
+{
+    double mean;
+    double stddev;
+};
 
 // =================================================================================================
 //     Matrix Statistic Functions.
@@ -45,18 +72,32 @@ namespace utils {
  *
  * The Matrix is manipulated inline. For each column, the values are calculated as
  * \f$ x_{new} = \frac{ x - x_{min} }{ x_{max} - x_{min} } \f$.
+ *
+ * The function returns a vector containing the `min` and `max` values of the columns
+ * before normalization, see MatrixNormalizeData.
+ *
+ * @param data        Input data Matrix; normalization is done inline.
  */
-void normalize( Matrix<double>& data );
+std::vector<MatrixNormalizeData> normalize( Matrix<double>& data );
 
 /**
  * @brief Standardize the columns of a Matrix by subtracting the mean and scaling to unit variance.
+ *
+ * The function returns a vector containing the mean and standard deviation of the columns
+ * before standardization, see MatrixStandardizeData. If both `scale_means` and `scale_std` are
+ * set to `false`, the original data is not manipulated, while the returned vector contains the
+ * means and standard deviations.
  *
  * @param data        Input data Matrix; standardizing is done inline.
  * @param scale_means If `true` (default), center the data by subtracting the mean per column.
  * @param scale_std   If `true` (default), scale the data to unit variance (or equivalently,
  *                    unit standard deviation) per column.
  */
-void standardize( Matrix<double>& data, bool scale_means = true, bool scale_std = true );
+std::vector<MatrixStandardizeData> standardize(
+    Matrix<double>& data,
+    bool            scale_means = true,
+    bool            scale_std = true
+);
 
 /**
  * @brief Calculate the correlation Matrix of a given `data` Matrix.

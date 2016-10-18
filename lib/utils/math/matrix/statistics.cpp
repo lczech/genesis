@@ -42,11 +42,13 @@ namespace utils {
 //     Normalize
 // ================================================================================================
 
-void normalize( Matrix<double>& data )
+std::vector<MatrixNormalizeData> normalize( Matrix<double>& data )
 {
+    auto ret = std::vector<MatrixNormalizeData>( data.cols(), { 0.0, 0.0 } );
+
     // Nothing to do.
     if( data.rows() == 0 ) {
-        return;
+        return ret;
     }
 
     // Iterate columns.
@@ -60,26 +62,34 @@ void normalize( Matrix<double>& data )
             max = std::max( max, data( r, c ) );
         }
 
+        // Set result entries.
+        ret[ c ].min = min;
+        ret[ c ].max = max;
+
         // Adjust column values.
         double diff = max - min;
         for( size_t r = 0; r < data.rows(); ++r ) {
             data( r, c ) = ( data( r, c ) - min ) / diff;
         }
     }
+
+    return ret;
 }
 
 // ================================================================================================
 //     Standardize
 // ================================================================================================
 
-void standardize( Matrix<double>& data, bool scale_means, bool scale_std )
-{
+std::vector<MatrixStandardizeData> standardize(
+    Matrix<double>& data,
+    bool            scale_means,
+    bool            scale_std
+) {
+    auto ret = std::vector<MatrixStandardizeData>( data.cols(), { 0.0, 0.0 } );
+
     // Nothing to do.
-    if( ! scale_means && ! scale_std ) {
-        return;
-    }
     if( data.rows() == 0 ) {
-        return;
+        return ret;
     }
 
     // Minimum dev that we allow (necessary for numerical reasons).
@@ -97,19 +107,21 @@ void standardize( Matrix<double>& data, bool scale_means, bool scale_std )
         mean /= static_cast<double>( data.rows() );
 
         // Calculate column std dev, if needed.
-        if( scale_std ) {
-            for( size_t r = 0; r < data.rows(); ++r ) {
-                stddev += (( data( r, c ) - mean ) * ( data( r, c ) - mean ));
-            }
-            stddev /= static_cast<double>( data.rows() );
-            stddev = sqrt(stddev);
-
-            // The following in an inelegant (but usual) way to handle near-zero values,
-            // which later would cause a division by zero.
-            if( stddev <= eps ){
-                stddev = 1.0;
-            }
+        for( size_t r = 0; r < data.rows(); ++r ) {
+            stddev += (( data( r, c ) - mean ) * ( data( r, c ) - mean ));
         }
+        stddev /= static_cast<double>( data.rows() );
+        stddev = sqrt(stddev);
+
+        // The following in an inelegant (but usual) way to handle near-zero values,
+        // which later would cause a division by zero.
+        if( stddev <= eps ){
+            stddev = 1.0;
+        }
+
+        // Set result entries.
+        ret[ c ].mean   = mean;
+        ret[ c ].stddev = stddev;
 
         // Manipulate the data.
         for( size_t r = 0; r < data.rows(); ++r ) {
@@ -130,6 +142,8 @@ void standardize( Matrix<double>& data, bool scale_means, bool scale_std )
             }
         }
     }
+
+    return ret;
 }
 
 // ================================================================================================
