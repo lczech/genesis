@@ -33,8 +33,11 @@
 
 #include <algorithm>
 #include <cmath>
+#include <functional>
 #include <memory>
+#include <numeric>
 #include <string>
+#include <vector>
 
 namespace genesis {
 namespace utils {
@@ -110,6 +113,38 @@ inline void erase_if( Container &c, UnaryPredicate p )
 template< typename T >
 T abs_diff( T const& lhs, T const& rhs ) {
     return ((lhs > rhs) ? (lhs - rhs) : (rhs - lhs));
+}
+
+/**
+ * @brief Get the indices to the sorted order of a vector.
+ *
+ * This function returns a list of indices into the given vector, so that their order gives the
+ * sorted content of `v`:
+ *
+ *     for (auto i: sort_indices(v)) {
+ *         cout << v[i] << endl;
+ *     }
+ *
+ * This is useful if the same sorting order needs to be applied to some other container.
+ *
+ * The optional parameter `comparator` can be used to specify the function for comparing two
+ * values of `v`, and defaults to `std::less`.
+ */
+template <typename T>
+std::vector<size_t> sort_indices(
+    std::vector<T> const& v,
+    std::function< bool( T const& lhs, T const& rhs )> comparator = std::less<T>()
+) {
+    // Initialize original index locations with increasing numbers.
+    std::vector<size_t> idx( v.size() );
+    std::iota( idx.begin(), idx.end(), 0 );
+
+    // Sort indexes based on comparing values in v.
+    std::sort( idx.begin(), idx.end(), [&] ( size_t i1, size_t i2 ) {
+        return comparator( v[i1], v[i2] );
+    });
+
+    return idx;
 }
 
 /**
