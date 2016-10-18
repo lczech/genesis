@@ -49,6 +49,21 @@ namespace utils {
  */
 Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b);
 
+/**
+ * @brief Transpose a Matrix.
+ */
+template <typename T>
+Matrix<T> transpose( Matrix<T> const& data )
+{
+    auto res = Matrix<T>( data.cols(), data.rows() );
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        for( size_t c = 0; c < data.cols(); ++c ) {
+            res( c, r ) = data( r, c );
+        }
+    }
+    return res;
+}
+
 template <typename T>
 std::ostream& operator<< (std::ostream& os, const Matrix<T>& matrix)
 {
