@@ -77,21 +77,26 @@ struct MatrixStandardizeData
  * before normalization, see MatrixNormalizeData.
  *
  * @param data        Input data Matrix; normalization is done inline.
+ * @return            Vector containing the min and max values for each column before normalization.
  */
 std::vector<MatrixNormalizeData> normalize( Matrix<double>& data );
 
 /**
  * @brief Standardize the columns of a Matrix by subtracting the mean and scaling to unit variance.
  *
+ * The function performs a z-transformation on the given data.
+ *
  * The function returns a vector containing the mean and standard deviation of the columns
  * before standardization, see MatrixStandardizeData. If both `scale_means` and `scale_std` are
- * set to `false`, the original data is not manipulated, while the returned vector contains the
- * means and standard deviations.
+ * set to `false`, the original data is not manipulated, while the returned vector still contains
+ * the means and standard deviations.
  *
  * @param data        Input data Matrix; standardizing is done inline.
  * @param scale_means If `true` (default), center the data by subtracting the mean per column.
  * @param scale_std   If `true` (default), scale the data to unit variance (or equivalently,
  *                    unit standard deviation) per column.
+ * @return            Vector containing the mean and standard deviation for each column before
+ *                    standardization.
  */
 std::vector<MatrixStandardizeData> standardize(
     Matrix<double>& data,

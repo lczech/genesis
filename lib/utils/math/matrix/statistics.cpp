@@ -127,18 +127,14 @@ std::vector<MatrixStandardizeData> standardize(
         for( size_t r = 0; r < data.rows(); ++r ) {
 
             // Subtract mean (i.e., center data).
-            data( r, c ) -= mean;
+            if( scale_means ) {
+                data( r, c ) -= mean;
+            }
 
             // Scale to unit variance, if needed.
             if( scale_std ) {
                 assert( stddev > 0.0 );
                 data( r, c ) /= stddev;
-                // data( r, c ) /= stddev * sqrt( static_cast<double>( data.rows() ) );
-            }
-
-            // If we do not want to center the data, move it back.
-            if( ! scale_means ) {
-                data( r, c ) += mean;
             }
         }
     }
@@ -156,8 +152,12 @@ Matrix<double> correlation_matrix( Matrix<double> const& data )
     auto stddata = data;
     standardize( stddata, true, true );
 
-    // Calculate matrix.
-    return sums_of_squares_and_cross_products_matrix( stddata );
+    // Calculate matrix. First build the sum of squares, then normalize.
+    auto sscp = sums_of_squares_and_cross_products_matrix( stddata );
+    for( auto& elem : sscp ) {
+        elem /= static_cast<double>( data.rows() );
+    }
+    return sscp;
 }
 
 // ================================================================================================
@@ -170,8 +170,12 @@ Matrix<double> covariance_matrix( Matrix<double> const& data )
     auto stddata = data;
     standardize( stddata, true, false );
 
-    // Calculate matrix.
-    return sums_of_squares_and_cross_products_matrix( stddata );
+    // Calculate matrix. First build the sum of squares, then normalize.
+    auto sscp = sums_of_squares_and_cross_products_matrix( stddata );
+    for( auto& elem : sscp ) {
+        elem /= static_cast<double>( data.rows() );
+    }
+    return sscp;
 }
 
 // ================================================================================================
