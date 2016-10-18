@@ -30,6 +30,7 @@
 
 #include "utils/math/matrix/statistics.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
@@ -38,13 +39,46 @@ namespace genesis {
 namespace utils {
 
 // ================================================================================================
-//     Standard Scale
+//     Normalize
 // ================================================================================================
 
-void standard_scale( Matrix<double>& data, bool scale_means, bool scale_std )
+void normalize( Matrix<double>& data )
+{
+    // Nothing to do.
+    if( data.rows() == 0 ) {
+        return;
+    }
+
+    // Iterate columns.
+    for( size_t c = 0; c < data.cols(); ++c ) {
+
+        // Find min and max of the column.
+        double min = data( 0, c );
+        double max = data( 0, c );
+        for( size_t r = 1; r < data.rows(); ++r ) {
+            min = std::min( min, data( r, c ) );
+            max = std::max( max, data( r, c ) );
+        }
+
+        // Adjust column values.
+        double diff = max - min;
+        for( size_t r = 0; r < data.rows(); ++r ) {
+            data( r, c ) = ( data( r, c ) - min ) / diff;
+        }
+    }
+}
+
+// ================================================================================================
+//     Standardize
+// ================================================================================================
+
+void standardize( Matrix<double>& data, bool scale_means, bool scale_std )
 {
     // Nothing to do.
     if( ! scale_means && ! scale_std ) {
+        return;
+    }
+    if( data.rows() == 0 ) {
         return;
     }
 
@@ -86,7 +120,8 @@ void standard_scale( Matrix<double>& data, bool scale_means, bool scale_std )
             // Scale to unit variance, if needed.
             if( scale_std ) {
                 assert( stddev > 0.0 );
-                data( r, c ) /= stddev * sqrt( static_cast<double>( data.rows() ) );
+                data( r, c ) /= stddev;
+                // data( r, c ) /= stddev * sqrt( static_cast<double>( data.rows() ) );
             }
 
             // If we do not want to center the data, move it back.
@@ -103,27 +138,12 @@ void standard_scale( Matrix<double>& data, bool scale_means, bool scale_std )
 
 Matrix<double> correlation_matrix( Matrix<double> const& data )
 {
-    // Init the result matrix.
-    auto cormat = Matrix<double>( data.cols(), data.cols() );
-
     // Standardize mean and variance.
     auto stddata = data;
-    standard_scale( stddata );
+    standardize( stddata, true, true );
 
-    // Calculate the correlation matrix.
-    for( size_t c1 = 0; c1 < stddata.cols(); ++c1 ) {
-        // cormat( c1, c1 ) = 1.0;
-
-        for( size_t c2 = c1; c2 < stddata.cols(); ++c2 ) {
-            cormat( c1, c2 ) = 0.0;
-            for( size_t r = 0; r < stddata.rows(); ++r ) {
-                cormat( c1, c2 ) += stddata( r, c1 ) * stddata( r, c2 );
-            }
-            cormat( c2, c1 ) = cormat( c1, c2 );
-        }
-    }
-
-    return cormat;
+    // Calculate matrix.
+    return sums_of_squares_and_cross_products_matrix( stddata );
 }
 
 // ================================================================================================
@@ -132,32 +152,19 @@ Matrix<double> correlation_matrix( Matrix<double> const& data )
 
 Matrix<double> covariance_matrix( Matrix<double> const& data )
 {
-    // Init the result matrix.
-    auto covmat = Matrix<double>( data.cols(), data.cols() );
-
     // Standardize mean, but not the variance.
     auto stddata = data;
-    standard_scale( stddata, true, false );
+    standardize( stddata, true, false );
 
-    // Calculate the covariance matrix.
-    for( size_t c1 = 0; c1 < stddata.cols(); ++c1 ) {
-        for( size_t c2 = c1; c2 < stddata.cols(); ++c2 ) {
-            covmat( c1, c2 ) = 0.0;
-            for( size_t r = 0; r < stddata.rows(); ++r ) {
-                covmat( c1, c2 ) += stddata( r, c1 ) * stddata( r, c2 );
-            }
-            covmat( c2, c1 ) = covmat( c1, c2 );
-        }
-    }
-
-    return covmat;
+    // Calculate matrix.
+    return sums_of_squares_and_cross_products_matrix( stddata );
 }
 
 // ================================================================================================
 //     Sums of Squares Cross Products Matrix
 // ================================================================================================
 
-Matrix<double> sums_of_squares_cross_products_matrix( Matrix<double> const& data )
+Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& data )
 {
     auto mat = Matrix<double>( data.cols(), data.cols() );
 

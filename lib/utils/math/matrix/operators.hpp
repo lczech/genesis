@@ -42,6 +42,13 @@ namespace utils {
 //     Matrix Operators
 // =================================================================================================
 
+/**
+ * @brief Calculate the product of two @link Matrix Matrices@endlink.
+ *
+ * The two matrices need to have fitting sized, i.e., `a[ l, m ] x b[ m, n ]`.
+ */
+Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b);
+
 template <typename T>
 std::ostream& operator<< (std::ostream& os, const Matrix<T>& matrix)
 {

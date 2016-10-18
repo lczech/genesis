@@ -41,6 +41,14 @@ namespace utils {
 // =================================================================================================
 
 /**
+ * @brief Normalize the columns of a Matrix into the range `[ 0.0, 1.0 ]`.
+ *
+ * The Matrix is manipulated inline. For each column, the values are calculated as
+ * \f$ x_{new} = \frac{ x - x_{min} }{ x_{max} - x_{min} } \f$.
+ */
+void normalize( Matrix<double>& data );
+
+/**
  * @brief Standardize the columns of a Matrix by subtracting the mean and scaling to unit variance.
  *
  * @param data        Input data Matrix; standardizing is done inline.
@@ -48,11 +56,28 @@ namespace utils {
  * @param scale_std   If `true` (default), scale the data to unit variance (or equivalently,
  *                    unit standard deviation) per column.
  */
-void standard_scale( Matrix<double>& data, bool scale_means = true, bool scale_std = true );
+void standardize( Matrix<double>& data, bool scale_means = true, bool scale_std = true );
 
+/**
+ * @brief Calculate the correlation Matrix of a given `data` Matrix.
+ *
+ * This is done by standardizing the mean and variance of the given `data` and then calculating the
+ * sums_of_squares_and_cross_products_matrix().
+ */
 Matrix<double> correlation_matrix( Matrix<double> const& data );
+
+/**
+ * @brief Calculate the covariance Matrix of a given `data` Matrix.
+ *
+ * This is done by standardizing the mean of the given `data` and then calculating the
+ * sums_of_squares_and_cross_products_matrix().
+ */
 Matrix<double> covariance_matrix( Matrix<double> const& data );
-Matrix<double> sums_of_squares_cross_products_matrix( Matrix<double> const& data );
+
+/**
+ * @brief Calculate the Sums of Squares and Cross Products Matrix (SSCP Matrix).
+ */
+Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& data );
 
 } // namespace utils
 } // namespace genesis
