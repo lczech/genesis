@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "utils/core/std.hpp"
+#include "utils/math/common.hpp"
 #include "utils/text/string.hpp"
 
 #include <algorithm>

@@ -33,7 +33,7 @@
 
 #include "utils/formats/nexus/block.hpp"
 
-#include "utils/core/std.hpp"
+#include "utils/core/algorithm.hpp"
 
 #include <algorithm>
 #include <ostream>

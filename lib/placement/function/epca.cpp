@@ -36,6 +36,7 @@
 #include "tree/iterator/postorder.hpp"
 
 #include "utils/core/std.hpp"
+#include "utils/math/common.hpp"
 #include "utils/math/matrix.hpp"
 #include "utils/math/matrix/operators.hpp"
 #include "utils/math/matrix/pca.hpp"

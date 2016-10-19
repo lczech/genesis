@@ -40,7 +40,7 @@
 #include "tree/iterator/postorder.hpp"
 
 #include "utils/core/logging.hpp"
-#include "utils/core/std.hpp"
+#include "utils/math/common.hpp"
 
 #include <algorithm>
 #include <assert.h>

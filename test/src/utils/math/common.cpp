@@ -30,7 +30,7 @@
 
 #include "common.hpp"
 
-#include "lib/utils/core/std.hpp"
+#include "lib/utils/math/common.hpp"
 
 using namespace genesis::utils;
 

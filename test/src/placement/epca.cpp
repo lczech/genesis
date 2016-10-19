@@ -62,17 +62,17 @@ TEST( SampleMeasures, EdgePCA )
     // set.add(smp_lhs);
     // set.add(smp_rhs);
 
-    // std::string indir = "/home/lucas/Projects/bacterial_vaginosis/03_epa_magny/orig_queries_jplace/";
-    // auto files = utils::dir_list_files( indir, ".*\\.jplace" );
-    //
-    // LOG_DBG << "reading " << files.size() << " files";
-    // SampleSet set;
-    // for( auto file : files ) {
-    //     // LOG_DBG << file;
-    //     Sample smp;
-    //     JplaceReader().from_file( indir + file, smp );
-    //     set.add(smp);
-    // }
+    std::string indir = "/home/lucas/Projects/bacterial_vaginosis/03_epa_magny/orig_queries_jplace/";
+    auto files = utils::dir_list_files( indir, ".*\\.jplace" );
+
+    LOG_DBG << "reading " << files.size() << " files";
+    SampleSet set;
+    for( auto file : files ) {
+        // LOG_DBG << file;
+        Sample smp;
+        JplaceReader().from_file( indir + file, smp );
+        set.add(smp);
+    }
 
     // auto vec_lhs = epca_imbalance_vector( smp_lhs );
     // auto vec_rhs = epca_imbalance_vector( smp_rhs );
@@ -88,5 +88,5 @@ TEST( SampleMeasures, EdgePCA )
 
     LOG_DBG << "Finished reading. Starting EPCA";
 
-    // epca( set );
+    epca( set );
 }

@@ -42,9 +42,9 @@ namespace utils {
 //     Normalize
 // ================================================================================================
 
-std::vector<MatrixNormalizeData> normalize( Matrix<double>& data )
+std::vector<MinMaxPair<double>> normalize( Matrix<double>& data )
 {
-    auto ret = std::vector<MatrixNormalizeData>( data.cols(), { 0.0, 0.0 } );
+    auto ret = std::vector<MinMaxPair<double>>( data.cols(), { 0.0, 0.0 } );
 
     // Nothing to do.
     if( data.rows() == 0 ) {

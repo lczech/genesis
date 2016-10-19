@@ -31,42 +31,16 @@
  * @ingroup utils
  */
 
-#include <algorithm>
-#include <cmath>
-#include <functional>
+#include <cstdint>
 #include <memory>
-#include <numeric>
 #include <string>
-#include <vector>
 
 namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Constants
-// =================================================================================================
-
-/**
- * @brief Make the world go round.
- */
-constexpr double PI = 3.141592653589793238463;
-
-// =================================================================================================
 //     Shortcomings of the C++ 11 STL...
 // =================================================================================================
-
-/**
- * @brief Returns whether a container object has a certain element.
- *
- * The usage of std::find just to check for presence of a certain item is a bit cumbersome.
- * This template simply takes any container and a value and returns true iff the value is
- * present in the container.
- */
-template<class C, class T>
-bool contains(const C& v, const T& x)
-{
-    return std::end(v) != std::find(std::begin(v), std::end(v), x);
-}
 
 /**
  * @brief Returns a std::unique_ptr for a given type.
@@ -78,124 +52,6 @@ template<typename T, typename... Args>
 std::unique_ptr<T> make_unique(Args&&... args)
 {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
-}
-
-/**
- * @brief Erases all elements from the container that satisfy a given predicate.
- * An element is erased, if the predicate evaluates to true for it.
- * The predicate needs to have a signature similar to (T const&)->bool.
- *
- * @param c The container to modify.
- * @param p The predicate to satisfy.
-*/
-template< class Container, class UnaryPredicate >
-inline void erase_if( Container &c, UnaryPredicate p )
-{
-    using std::begin;
-    using std::end;
-    using std::remove_if;
-
-    auto old_end = end( c );
-    auto new_end = remove_if( begin( c ), old_end, p );
-
-    if ( new_end != old_end ) {
-        c.erase( new_end, old_end );
-    }
-}
-
-// =================================================================================================
-//     Some other useful functions
-// =================================================================================================
-
-/**
- * @brief Calculate the absolute differenence between two values.
- *
- * This function is particularly useful for unsigned types, as subtracting them and then using
- * std::abs() does not work for them.
- */
-template< typename T > inline constexpr
-T abs_diff( T const& lhs, T const& rhs )
-{
-    return ((lhs > rhs) ? (lhs - rhs) : (rhs - lhs));
-}
-
-/**
- * @brief Implementation of signum(T x) for unsigned types. See there for details.
- */
-template <typename T> inline constexpr
-int signum(T x, std::false_type )
-{
-    // The tag type `std::false_type` is unnamed in order to avoid compiler warnings about an
-    // unused parameter. As this function is `constexpr`, we cannot shut this warning down by
-    // using `(void) param`, so making it unnamed is a reasonable solution in this case.
-    return T(0) < x;
-}
-
-/**
- * @brief Implementation of signum(T x) for signed types. See there for details.
- */
-template <typename T> inline constexpr
-int signum(T x, std::true_type )
-{
-    // The tag type `std::false_type` is unnamed in order to avoid compiler warnings about an
-    // unused parameter. As this function is `constexpr`, we cannot shut this warning down by
-    // using `(void) param`, so making it unnamed is a reasonable solution in this case.
-    return (T(0) < x) - (x < T(0));
-}
-
-/**
- * @brief Get the sign of a value, which is either -1, 0, or 1.
- *
- * Works for all numerical types. We use two tagged implementations for signed and unsigned types
- * in order to avoid compiler warnings. See
- * http://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
- * for details.
- */
-template <typename T> inline constexpr
-int signum(T x)
-{
-    return signum( x, std::is_signed<T>() );
-}
-
-/**
- * @brief Get the indices to the sorted order of a vector.
- *
- * This function returns a list of indices into the given vector, so that their order gives the
- * sorted content of `v`:
- *
- *     for (auto i: sort_indices(v)) {
- *         cout << v[i] << endl;
- *     }
- *
- * This is useful if the same sorting order needs to be applied to some other container.
- *
- * The optional parameter `comparator` can be used to specify the function for comparing two
- * values of `v`, and defaults to `std::less`.
- */
-template <typename T>
-std::vector<size_t> sort_indices(
-    std::vector<T> const& v,
-    std::function< bool( T const& lhs, T const& rhs )> comparator = std::less<T>()
-) {
-    // Initialize original index locations with increasing numbers.
-    std::vector<size_t> idx( v.size() );
-    std::iota( idx.begin(), idx.end(), 0 );
-
-    // Sort indexes based on comparing values in v.
-    std::sort( idx.begin(), idx.end(), [&] ( size_t i1, size_t i2 ) {
-        return comparator( v[i1], v[i2] );
-    });
-
-    return idx;
-}
-
-/**
- * @brief Retun the value of `x`, rounded to the decimal digit given by `accuracy_order`.
- */
-inline double round_to( double x, size_t accuracy_order )
-{
-    double factor = std::pow( 10, accuracy_order );
-    return std::round( x * factor ) / factor;
 }
 
 inline std::string ee(int r)

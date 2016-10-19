@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include "utils/math/common.hpp"
 #include "utils/math/matrix.hpp"
 
 #include <utility>
@@ -42,16 +43,6 @@ namespace utils {
 // ================================================================================================
 //     Structs for Storing Results
 // ================================================================================================
-
-/**
- * @brief Helper structure returned from normalize( Matrix<double>& data ) that stores the min
- * and max values for a column of the original data.
- */
-struct MatrixNormalizeData
-{
-    double min;
-    double max;
-};
 
 /**
  * @brief Helper structure returned from standardize( Matrix<double>& data ) that stores the
@@ -74,12 +65,12 @@ struct MatrixStandardizeData
  * \f$ x_{new} = \frac{ x - x_{min} }{ x_{max} - x_{min} } \f$.
  *
  * The function returns a vector containing the `min` and `max` values of the columns
- * before normalization, see MatrixNormalizeData.
+ * before normalization, see MinMaxPair.
  *
  * @param data        Input data Matrix; normalization is done inline.
  * @return            Vector containing the min and max values for each column before normalization.
  */
-std::vector<MatrixNormalizeData> normalize( Matrix<double>& data );
+std::vector<MinMaxPair<double>> normalize( Matrix<double>& data );
 
 /**
  * @brief Standardize the columns of a Matrix by subtracting the mean and scaling to unit variance.

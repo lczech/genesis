@@ -30,7 +30,7 @@
 
 #include "utils/math/matrix/pca.hpp"
 
-#include "utils/core/std.hpp"
+#include "utils/core/algorithm.hpp"
 #include "utils/math/matrix/operators.hpp"
 #include "utils/math/matrix/statistics.hpp"
 

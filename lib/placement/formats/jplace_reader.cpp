@@ -46,6 +46,7 @@
 #include "utils/io/scanner.hpp"
 #include "utils/text/string.hpp"
 
+#include <algorithm>
 #include <assert.h>
 #include <cctype>
 #include <functional>

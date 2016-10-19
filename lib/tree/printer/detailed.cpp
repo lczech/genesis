@@ -37,7 +37,7 @@
 
 #include "tree/function/distances.hpp"
 
-#include "utils/core/std.hpp"
+#include "utils/core/algorithm.hpp"
 #include "utils/text/style.hpp"
 
 #include <assert.h>
