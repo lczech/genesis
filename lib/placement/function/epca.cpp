@@ -40,6 +40,7 @@
 #include "utils/math/matrix.hpp"
 #include "utils/math/matrix/operators.hpp"
 #include "utils/math/matrix/pca.hpp"
+#include "utils/math/matrix/statistics.hpp"
 
 // testing
 #include "utils/core/fs.hpp"
@@ -174,6 +175,36 @@ void epca_splitify_transform( utils::Matrix<double>& imbalance_matrix, double ka
 }
 
 // =================================================================================================
+//     Filter Constant Columns
+// =================================================================================================
+
+void epca_filter_constant_columns( utils::Matrix<double>& imbalance_matrix, double epsilon )
+{
+    // Get the column-wise min and max values.
+    auto const col_minmax = utils::matrix_col_minmax( imbalance_matrix );
+
+    // Store which columns to keep, by index.
+    std::vector<size_t> keep_cols;
+    for( size_t c = 0; c < imbalance_matrix.cols(); ++c ) {
+        if (( col_minmax[c].max - col_minmax[c].min ) > epsilon ) {
+            keep_cols.push_back( c );
+        }
+    }
+    assert( keep_cols.size() <= imbalance_matrix.cols() );
+
+    // Produce new, filtered matrix.
+    auto new_mat = utils::Matrix<double>( imbalance_matrix.rows(), keep_cols.size() );
+    for( size_t r = 0; r < imbalance_matrix.rows(); ++r ) {
+        for( size_t i = 0; i < keep_cols.size(); ++i ) {
+            new_mat( r, i ) = imbalance_matrix( r, keep_cols[i] );
+        }
+    }
+
+    // Overwrite the matrix.
+    imbalance_matrix = new_mat;
+}
+
+// =================================================================================================
 //     Edge PCA
 // =================================================================================================
 
@@ -190,7 +221,7 @@ void epca( SampleSet const& samples )
         );
     }
 
-    LOG_DBG << "calculating imbalance_matrix";
+    // LOG_DBG << "calculating imbalance_matrix";
 
     assert( samples.size() > 0 );
     auto const edge_count = samples.at( 0 ).sample.tree().edge_count();
@@ -204,7 +235,7 @@ void epca( SampleSet const& samples )
         }
     }
 
-    LOG_DBG << "inner_edge_indices " << inner_edge_indices.size();
+    // LOG_DBG << "inner_edge_indices " << inner_edge_indices.size();
 
     auto imbalance_matrix = utils::Matrix<double>( samples.size(), inner_edge_indices.size() );
     for( size_t s = 0; s < samples.size(); ++s ) {
@@ -240,39 +271,39 @@ void epca( SampleSet const& samples )
     // }
 
     // auto t_imbalance_matrix = utils::transpose(imbalance_matrix);
-    utils::file_write( utils::to_string( imbalance_matrix ), "/home/lucas/tmp/bv_epca/imbalance.mat.csv" );
+    // utils::file_write( utils::to_string( imbalance_matrix ), "/home/lucas/tmp/bv_epca/imbalance.mat.csv" );
 
-    LOG_DBG << "running pca";
+    // LOG_DBG << "running pca";
 
     auto pca = utils::principal_component_analysis( imbalance_matrix, 3, utils::PcaStandardization::kCovariance );
     // auto pca = utils::principal_component_analysis( imbalance_matrix, 5 );
 
-    printf("\nEigenvalues:\n");
-    for( auto val : pca.eigenvalues ) {
-        printf("%18.5f\n", val );
-    }
+    // printf("\nEigenvalues:\n");
+    // for( auto val : pca.eigenvalues ) {
+    //     printf("%18.5f\n", val );
+    // }
+    //
+    // printf("\nEigenvectors:\n");
+    // for( size_t r = 0; r < 20; ++r ) {
+    // // for( size_t r = 0; r < pca.eigenvectors.rows(); ++r ) {
+    //     for( size_t c = 0; c < pca.eigenvectors.cols(); ++c ) {
+    //         printf("%12.4f", pca.eigenvectors(r,c));
+    //     }
+    //     printf("\n");
+    // }
+    // printf("... %u rows in total\n", static_cast<unsigned int>(pca.eigenvectors.rows()));
+    //
+    // printf("\nProjections of row-points on first 3 prin. comps.:\n");
+    // for (size_t i = 0; i < 10; i++) {
+    // // for (size_t i = 0; i < pca.projection.rows(); i++) {
+    //     for (size_t j = 0; j < pca.projection.cols(); j++)  {
+    //         printf("%12.4f", pca.projection(i,j));
+    //     }
+    //     printf("\n");
+    // }
+    // printf("... %u rows in total\n", static_cast<unsigned int>(pca.projection.rows()));
 
-    printf("\nEigenvectors:\n");
-    for( size_t r = 0; r < 20; ++r ) {
-    // for( size_t r = 0; r < pca.eigenvectors.rows(); ++r ) {
-        for( size_t c = 0; c < pca.eigenvectors.cols(); ++c ) {
-            printf("%12.4f", pca.eigenvectors(r,c));
-        }
-        printf("\n");
-    }
-    printf("... %u rows in total\n", static_cast<unsigned int>(pca.eigenvectors.rows()));
-
-    printf("\nProjections of row-points on first 3 prin. comps.:\n");
-    for (size_t i = 0; i < 10; i++) {
-    // for (size_t i = 0; i < pca.projection.rows(); i++) {
-        for (size_t j = 0; j < pca.projection.cols(); j++)  {
-            printf("%12.4f", pca.projection(i,j));
-        }
-        printf("\n");
-    }
-    printf("... %u rows in total\n", static_cast<unsigned int>(pca.projection.rows()));
-
-    utils::file_write( utils::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/my.proj" );
+    // utils::file_write( utils::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/my.proj" );
 
 }
 

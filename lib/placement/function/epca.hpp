@@ -79,7 +79,15 @@ std::vector<double> epca_imbalance_vector( Sample const& smp );
  * between ignoring abundance information (`kappa` = 0), using it linearly (`kappa` = 1), and
  * emphasizing it (`kappa` > 1).
  */
-void epca_splitify_transform( utils::Matrix<double>& imbalance_matrix, double kappa = 1.0 );
+void epca_splitify_transform(
+    utils::Matrix<double>& imbalance_matrix,
+    double                 kappa = 1.0
+);
+
+void epca_filter_constant_columns(
+    utils::Matrix<double>& imbalance_matrix,
+    double                 epsilon = 1e-5
+);
 
 void epca( SampleSet const& samples );
 
