@@ -115,9 +115,9 @@ struct PcaData
  *
  * There, the function is called `tred2()`.
  *
- * This implementation was inspired by
- * https://github.com/davidhalter-archive/ardour/blob/master/libs/qm-dsp/maths/pca/pca.c
- * published under GPL 2+.
+ * The implementation of this function is largely borrowed from
+ * http://www.classification-society.org/csna/mda-sw/pca.c
+ * published as Public Domain by Fionn Murtagh.
  *
  * @param data Input data matrix. Operations are performed inline, that is, the matrix is changed
  *             during execution of the function.
@@ -136,6 +136,10 @@ TridiagonalDecompositionData reduce_to_tridiagonal_matrix(
  * `tri.eigenvalues` contains the eigenvalus and `data` the associated eigenvectors of the
  * original data.
  *
+ * The implementation of this function is largely borrowed from
+ * http://www.classification-society.org/csna/mda-sw/pca.c
+ * published as Public Domain by Fionn Murtagh.
+ *
  * @param data           Input data matrix. Operations are performed inline, that is, the matrix is
  *                       changed during execution of the function.
  * @param tri            Tridiagonal matrix coming from reduce_to_tridiagonal_matrix().
@@ -153,6 +157,23 @@ void tridiagonal_ql_algorithm(
 //     Principal Component Analysis
 // ================================================================================================
 
+/**
+ * @brief Perfom a Principal Component Analysis on a given `data` Matrix.
+ *
+ * Principal Components Analysis or the Karhunen-Loeve expansion is a classical method for
+ * dimensionality reduction or exploratory data analysis. One reference among many is:
+ * F. Murtagh and A. Heck, Multivariate Data Analysis, Kluwer Academic, Dordrecht, 1987.
+ *
+ * @param data            Matrix with the data, samples in rows, features in columns
+ * @param components      Intended number of PCA components to calculate. If 0 (default),
+ *                        all PCA components are calculated, i.e., as many components as
+ *                        `data` has columns.
+ * @param standardization Indicate the standardization algorithm to perfom on the `data` before
+ *                        calculating the PCA components, see ::PcaStandardization.
+ * @return                A struct that contains the eigenvalues and corresponding eigenvectors
+ *                        (i.e., the PCA components), and a Matrix with the projected `data`.
+ *                        See PcaData for details.
+ */
 PcaData principal_component_analysis(
     Matrix<double> const& data,
     size_t                components      = 0,
