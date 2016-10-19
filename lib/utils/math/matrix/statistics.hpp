@@ -55,17 +55,17 @@ struct MatrixStandardizeData
 };
 
 // =================================================================================================
-//     Matrix Statistic Functions.
+//     Normalization and Standardization
 // =================================================================================================
 
 /**
- * @brief Normalize the columns of a Matrix into the range `[ 0.0, 1.0 ]`.
+ * @brief Normalize the columns of a Matrix so that all values are in the range `[ 0.0, 1.0 ]`.
  *
- * The Matrix is manipulated inline. For each column, the values are calculated as
- * \f$ x_{new} = \frac{ x - x_{min} }{ x_{max} - x_{min} } \f$.
+ * The Matrix is manipulated inline. For each column, the new values of the Matrix are calculated
+ * as \f$ x_{new} = \frac{ x - x_{min} }{ x_{max} - x_{min} } \f$.
  *
  * The function returns a vector containing the `min` and `max` values of the columns
- * before normalization, see MinMaxPair.
+ * before normalization, see matrix_col_minmax().
  *
  * @param data        Input data Matrix; normalization is done inline.
  * @return            Vector containing the min and max values for each column before normalization.
@@ -94,6 +94,28 @@ std::vector<MatrixStandardizeData> standardize(
     bool            scale_means = true,
     bool            scale_std = true
 );
+
+// =================================================================================================
+//     Min Max
+// =================================================================================================
+
+/**
+ * @brief Calculate the column-wise min and max values of a Matrix.
+ *
+ * See also matrix_row_minmax().
+ */
+std::vector<MinMaxPair<double>> matrix_col_minmax( Matrix<double> const& data );
+
+/**
+* @brief Calculate the row-wise min and max values of a Matrix.
+*
+* See also matrix_col_minmax().
+*/
+std::vector<MinMaxPair<double>> matrix_row_minmax( Matrix<double> const& data );
+
+// =================================================================================================
+//     Correlation and Covariance
+// =================================================================================================
 
 /**
  * @brief Calculate the correlation Matrix of a given `data` Matrix.

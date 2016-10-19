@@ -44,36 +44,23 @@ namespace utils {
 
 std::vector<MinMaxPair<double>> normalize( Matrix<double>& data )
 {
-    auto ret = std::vector<MinMaxPair<double>>( data.cols(), { 0.0, 0.0 } );
+    auto col_minmax = matrix_col_minmax( data );
 
     // Nothing to do.
     if( data.rows() == 0 ) {
-        return ret;
+        return col_minmax;
     }
 
-    // Iterate columns.
-    for( size_t c = 0; c < data.cols(); ++c ) {
-
-        // Find min and max of the column.
-        double min = data( 0, c );
-        double max = data( 0, c );
-        for( size_t r = 1; r < data.rows(); ++r ) {
-            min = std::min( min, data( r, c ) );
-            max = std::max( max, data( r, c ) );
-        }
-
-        // Set result entries.
-        ret[ c ].min = min;
-        ret[ c ].max = max;
-
-        // Adjust column values.
-        double diff = max - min;
-        for( size_t r = 0; r < data.rows(); ++r ) {
-            data( r, c ) = ( data( r, c ) - min ) / diff;
+    // Iterate the matrix.
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        for( size_t c = 0; c < data.cols(); ++c ) {
+            // Adjust column values.
+            double diff = col_minmax[c].max - col_minmax[c].min;
+            data( r, c ) = ( data( r, c ) - col_minmax[c].min ) / diff;
         }
     }
 
-    return ret;
+    return col_minmax;
 }
 
 // ================================================================================================
@@ -136,6 +123,63 @@ std::vector<MatrixStandardizeData> standardize(
                 assert( stddev > 0.0 );
                 data( r, c ) /= stddev;
             }
+        }
+    }
+
+    return ret;
+}
+
+// ================================================================================================
+//     Min Max
+// ================================================================================================
+
+std::vector<MinMaxPair<double>> matrix_col_minmax( Matrix<double> const& data )
+{
+    auto ret = std::vector<MinMaxPair<double>>( data.cols(), { 0.0, 0.0 } );
+
+    // Nothing to do.
+    if( data.rows() == 0 ) {
+        return ret;
+    }
+
+    // Init with the first row.
+    for( size_t c = 0; c < data.cols(); ++c ) {
+        ret[ c ].min = data( 0, c );
+        ret[ c ].max = data( 0, c );
+    }
+
+    // Now go through all other rows.
+    // Our Matrix is row-major, so this way we make best use of the cache.
+    for( size_t r = 1; r < data.rows(); ++r ) {
+        for( size_t c = 0; c < data.cols(); ++c ) {
+
+            // Find min and max of the column.
+            ret[ c ].min = std::min( ret[ c ].min, data( r, c ) );
+            ret[ c ].max = std::max( ret[ c ].max, data( r, c ) );
+        }
+    }
+
+    return ret;
+}
+
+std::vector<MinMaxPair<double>> matrix_row_minmax( Matrix<double> const& data )
+{
+    auto ret = std::vector<MinMaxPair<double>>( data.rows(), { 0.0, 0.0 } );
+
+    // Nothing to do.
+    if( data.cols() == 0 ) {
+        return ret;
+    }
+
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        // Init with the first col.
+        ret[ r ].min = data( r, 0 );
+        ret[ r ].max = data( r, 0 );
+
+        // Go through all other cols.
+        for( size_t c = 1; c < data.cols(); ++c ) {
+            ret[ r ].min = std::min( ret[ r ].min, data( r, c ) );
+            ret[ r ].max = std::max( ret[ r ].max, data( r, c ) );
         }
     }
 
