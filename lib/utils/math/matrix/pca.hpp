@@ -164,7 +164,7 @@ void tridiagonal_ql_algorithm(
  * dimensionality reduction or exploratory data analysis. One reference among many is:
  * F. Murtagh and A. Heck, Multivariate Data Analysis, Kluwer Academic, Dordrecht, 1987.
  *
- * @param data            Matrix with the data, samples in rows, features in columns
+ * @param data            Matrix with the data, samples in rows, features in columns.
  * @param components      Intended number of PCA components to calculate. If 0 (default),
  *                        all PCA components are calculated, i.e., as many components as
  *                        `data` has columns.
