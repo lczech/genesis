@@ -35,18 +35,20 @@
 
 #include "tree/iterator/postorder.hpp"
 
+#include "utils/core/std.hpp"
 #include "utils/math/matrix.hpp"
-#include "utils/math/matrix/pca.hpp"
 #include "utils/math/matrix/operators.hpp"
+#include "utils/math/matrix/pca.hpp"
 
 // testing
-#include "utils/core/logging.hpp"
 #include "utils/core/fs.hpp"
+#include "utils/core/logging.hpp"
 #include "utils/text/string.hpp"
 
 
 #include <algorithm>
 #include <cassert>
+#include <cmath>
 #include <stdexcept>
 #include <vector>
 
@@ -54,7 +56,7 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Edge PCA
+//     Edge PCA Imbalance Vector
 // =================================================================================================
 
 std::vector<double> epca_imbalance_vector( Sample const& smp )
@@ -139,6 +141,41 @@ std::vector<double> epca_imbalance_vector( Sample const& smp )
     return vec;
 }
 
+// =================================================================================================
+//     Splitify Transform with Kappa
+// =================================================================================================
+
+void epca_splitify_transform( utils::Matrix<double>& imbalance_matrix, double kappa )
+{
+    // Precondition check.
+    if( kappa < 0.0 ) {
+        throw std::runtime_error( "Argument for kappa must be non-negative." );
+    }
+
+    // Save time if the transofrmation throws away the actual value.
+    // We do not need to calculate the abs and power in this case.
+    if( kappa == 0.0 ) {
+        for( auto& elem : imbalance_matrix ) {
+            elem = static_cast<double>( utils::signum( elem ));
+        }
+        return;
+    }
+
+    // Save time if the transformation does not change anything.
+    if( kappa == 1.0 ) {
+        return;
+    }
+
+    // If neither applies, do the full transformation.
+    for( auto& elem : imbalance_matrix ) {
+        elem = static_cast<double>( utils::signum( elem )) * std::pow( std::abs( elem ), kappa );
+    }
+}
+
+// =================================================================================================
+//     Edge PCA
+// =================================================================================================
+
 void epca( SampleSet const& samples )
 {
     if( samples.size() == 0 ) {
@@ -202,7 +239,7 @@ void epca( SampleSet const& samples )
     // }
 
     // auto t_imbalance_matrix = utils::transpose(imbalance_matrix);
-    // utils::file_write( utils::to_string( imbalance_matrix ), "/home/lucas/tmp/bv_epca/imbalance.mat.csv" );
+    utils::file_write( utils::to_string( imbalance_matrix ), "/home/lucas/tmp/bv_epca/imbalance.mat.csv" );
 
     LOG_DBG << "running pca";
 
@@ -234,7 +271,7 @@ void epca( SampleSet const& samples )
     }
     printf("... %u rows in total\n", static_cast<unsigned int>(pca.projection.rows()));
 
-    // utils::file_write( utils::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/my.proj" );
+    utils::file_write( utils::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/my.proj" );
 
 }
 

@@ -32,6 +32,7 @@
  */
 
 #include "placement/placement_tree.hpp"
+#include "utils/math/matrix.hpp"
 
 namespace genesis {
 
@@ -64,6 +65,21 @@ namespace placement {
 // =================================================================================================
 
 std::vector<double> epca_imbalance_vector( Sample const& smp );
+
+/**
+ * @brief Perform a component-wise transformation of the imbalance matrix used for epca().
+ *
+ * All entries of the Matrix are transformed inplace, using
+ *
+ * \f[
+ *     \varphi_\kappa(x) = \mathrm{sgn}(x) |x|^\kappa
+ * \f]
+ *
+ * where the `kappa` (\f$\kappa\f$) parameter can be any non-negative number. This parameter scales
+ * between ignoring abundance information (`kappa` = 0), using it linearly (`kappa` = 1), and
+ * emphasizing it (`kappa` > 1).
+ */
+void epca_splitify_transform( utils::Matrix<double>& imbalance_matrix, double kappa = 1.0 );
 
 void epca( SampleSet const& samples );
 
