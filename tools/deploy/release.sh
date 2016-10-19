@@ -199,8 +199,8 @@ version="v${version}"
 echo
 
 # Replace version line in genesis header file.
-echo "Replace version in lib/utils/core/genesis.hpp"
-sed -i "s/    return \".*\"; \/\/ #GENESIS_VERSION#/    return \"${version}\"; \/\/ #GENESIS_VERSION#/g" lib/utils/core/genesis.hpp
+echo "Replace version in lib/utils/core/version.hpp"
+sed -i "s/    return \".*\"; \/\/ #GENESIS_VERSION#/    return \"${version}\"; \/\/ #GENESIS_VERSION#/g" lib/utils/core/version.hpp
 
 # Replace version line in doxygen file.
 echo "Replace version in doc/doxygen/Doxyfile"

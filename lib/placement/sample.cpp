@@ -197,6 +197,8 @@ Pquery& Sample::add_pquery()
  * Sample%s is identical, including identical @link PlacementTreeEdge::index() edge indices @endlink
  * and @link PqueryPlacement::edge_num edge_nums@endlink. For that purpose, this function
  * automatically adjusts the internal pointers of the Pquery and its PqueryPlacement%s accordingly.
+ * Furthermore, the `proximal_length` is also adjusted so that the relative position on the edge
+ * maintained.
  *
  * However, if the trees are incompatible (i.e., have a different topology, indices or edge nums),
  * the PqueryPlacement%s will either point to different edges or the function might throw an
@@ -213,21 +215,24 @@ Pquery& Sample::add_pquery( Pquery const& other )
     pqueries_.push_back( other );
 
     // Adjust the edge pointers of the placements.
-    for( auto& placement : pqueries_.back().placements() ) {
+    for( auto& place : pqueries_.back().placements() ) {
         // Get the edge index of the old edge, then set the edge to the edge of the
         // correct sample that is at that index.
-        auto edge_index   = placement.edge().index();
-        auto old_edge_num = placement.edge().data<PlacementEdgeData>().edge_num();
-        placement.reset_edge( tree().edge_at( edge_index ));
+        auto const& old_edge_data  = place.edge().data<PlacementEdgeData>();
+        auto const edge_index      = place.edge().index();
+        auto const old_edge_num    = old_edge_data.edge_num();
+        auto const rel_pos         = place.proximal_length / old_edge_data.branch_length;
+        place.reset_edge( tree().edge_at( edge_index ));
 
         // Now the placement points to the new edge. We can thus check if this one still has the
         // same edge_num as the old edge.
-        auto const& edge_data = placement.edge().data<PlacementEdgeData>();
+        auto const& edge_data = place.edge().data<PlacementEdgeData>();
         if( old_edge_num != edge_data.edge_num() ) {
             throw std::runtime_error(
                 "Trees are incompatible for copying Pqueries between Samples."
             );
         }
+        place.proximal_length = rel_pos * edge_data.branch_length;
     }
 
     return pqueries_.back();

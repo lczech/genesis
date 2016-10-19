@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_MATH_MATRIX_OPERATORS_H_
-#define GENESIS_UTILS_MATH_MATRIX_OPERATORS_H_
+#ifndef GENESIS_PLACEMENT_FUNCTION_EPCA_H_
+#define GENESIS_PLACEMENT_FUNCTION_EPCA_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -25,61 +25,49 @@
 */
 
 /**
- * @brief Matrix operators.
+ * @brief
  *
  * @file
- * @ingroup utils
+ * @ingroup placement
  */
 
-#include <ostream>
-
-#include "utils/math/matrix.hpp"
+#include "placement/placement_tree.hpp"
 
 namespace genesis {
-namespace utils {
 
 // =================================================================================================
-//     Matrix Operators
+//     Forward Declarations
 // =================================================================================================
 
-/**
- * @brief Calculate the product of two @link Matrix Matrices@endlink.
- *
- * The two matrices need to have fitting sized, i.e., `a[ l, m ] x b[ m, n ]`.
- */
-Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b);
+namespace tree {
 
-/**
- * @brief Transpose a Matrix.
- */
-template <typename T>
-Matrix<T> transpose( Matrix<T> const& data )
-{
-    auto res = Matrix<T>( data.cols(), data.rows() );
-    for( size_t r = 0; r < data.rows(); ++r ) {
-        for( size_t c = 0; c < data.cols(); ++c ) {
-            res( c, r ) = data( r, c );
-        }
-    }
-    return res;
+    class Tree;
+
+    class DefaultNodeData;
+    class DefaultEdgeData;
+
+    using DefaultTree = Tree;
 }
 
-template <typename T>
-std::ostream& operator<< (std::ostream& os, const Matrix<T>& matrix)
-{
-    for (size_t i = 0; i < matrix.rows(); ++i) {
-        for (size_t j = 0; j < matrix.cols(); ++j) {
-            os << matrix(i, j);
-            if (j < matrix.cols() - 1) {
-                os << " ";
-            }
-        }
-        os << "\n";
-    }
-    return os;
+namespace placement {
+    class PlacementEdgeData;
+    class PlacementNodeData;
+
+    class Sample;
+    class SampleSet;
 }
 
-} // namespace utils
+namespace placement {
+
+// =================================================================================================
+//     Edge PCA
+// =================================================================================================
+
+std::vector<double> epca_imbalance_vector( Sample const& smp );
+
+void epca( SampleSet const& samples );
+
+} // namespace placement
 } // namespace genesis
 
 #endif // include guard

@@ -169,7 +169,7 @@ public:
     }
 
     /**
-     * @brier Return whether currently an ignored color is used.
+     * @brief Return whether currently an ignored color is used.
      */
     bool use_ignored_color() const
     {
