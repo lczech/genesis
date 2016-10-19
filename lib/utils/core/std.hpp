@@ -113,9 +113,48 @@ inline void erase_if( Container &c, UnaryPredicate p )
  * This function is particularly useful for unsigned types, as subtracting them and then using
  * std::abs() does not work for them.
  */
-template< typename T >
-T abs_diff( T const& lhs, T const& rhs ) {
+template< typename T > inline constexpr
+T abs_diff( T const& lhs, T const& rhs )
+{
     return ((lhs > rhs) ? (lhs - rhs) : (rhs - lhs));
+}
+
+/**
+ * @brief Implementation of signum(T x) for unsigned types. See there for details.
+ */
+template <typename T> inline constexpr
+int signum(T x, std::false_type )
+{
+    // The tag type `std::false_type` is unnamed in order to avoid compiler warnings about an
+    // unused parameter. As this function is `constexpr`, we cannot shut this warning down by
+    // using `(void) param`, so making it unnamed is a reasonable solution in this case.
+    return T(0) < x;
+}
+
+/**
+ * @brief Implementation of signum(T x) for signed types. See there for details.
+ */
+template <typename T> inline constexpr
+int signum(T x, std::true_type )
+{
+    // The tag type `std::false_type` is unnamed in order to avoid compiler warnings about an
+    // unused parameter. As this function is `constexpr`, we cannot shut this warning down by
+    // using `(void) param`, so making it unnamed is a reasonable solution in this case.
+    return (T(0) < x) - (x < T(0));
+}
+
+/**
+ * @brief Get the sign of a value, which is either -1, 0, or 1.
+ *
+ * Works for all numerical types. We use two tagged implementations for signed and unsigned types
+ * in order to avoid compiler warnings. See
+ * http://stackoverflow.com/questions/1903954/is-there-a-standard-sign-function-signum-sgn-in-c-c
+ * for details.
+ */
+template <typename T> inline constexpr
+int signum(T x)
+{
+    return signum( x, std::is_signed<T>() );
 }
 
 /**
