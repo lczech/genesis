@@ -89,6 +89,9 @@ struct TridiagonalDecompositionData
     std::vector<double> intermediates;
 };
 
+/**
+ * @brief Helper stucture that collects the output of principal_component_analysis().
+ */
 struct PcaData
 {
     std::vector<double> eigenvalues;
