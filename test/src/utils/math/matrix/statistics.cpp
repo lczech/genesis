@@ -65,7 +65,7 @@ inline Matrix<double> read_csv_data( std::string const& filename, size_t rows, s
 inline void test_check_standardization_results(
     Matrix<double> expected,
     Matrix<double> actual,
-    std::vector<MatrixStandardizeData> stats
+    std::vector<MeanStddevPair> stats
 ) {
     ASSERT_EQ( 150, expected.rows() );
     ASSERT_EQ(   4, expected.cols() );
@@ -97,7 +97,7 @@ TEST( Matrix, Standardize )
     auto stddata = read_csv_data( "utils/matrix/iris.standardized.csv", 150, 4 );
 
     // Run standardization and check.
-    auto stats = standardize( data );
+    auto stats = standardize_cols( data );
     test_check_standardization_results( stddata, data, stats );
 }
 
@@ -108,7 +108,7 @@ TEST( Matrix, StandardizeMeans )
     auto data    = read_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
     auto stddata = read_csv_data( "utils/matrix/iris.standardized_means.csv", 150, 4 );
 
-    auto stats = standardize( data, true, false );
+    auto stats = standardize_cols( data, true, false );
     test_check_standardization_results( stddata, data, stats );
 }
 
@@ -119,7 +119,7 @@ TEST( Matrix, StandardizeStddevs )
     auto data    = read_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
     auto stddata = read_csv_data( "utils/matrix/iris.standardized_stddevs.csv", 150, 4 );
 
-    auto stats = standardize( data, false, true );
+    auto stats = standardize_cols( data, false, true );
     test_check_standardization_results( stddata, data, stats );
 }
 

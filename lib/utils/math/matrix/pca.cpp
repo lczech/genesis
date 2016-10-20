@@ -256,9 +256,9 @@ PcaData principal_component_analysis(
     // contains the eigenvectors.
     auto standardized_data = data;
     if( standardization == PcaStandardization::kCorrelation ) {
-        standardize( standardized_data, true, true );
+        standardize_cols( standardized_data, true, true );
     } else if( standardization == PcaStandardization::kCovariance ) {
-        standardize( standardized_data, true, false );
+        standardize_cols( standardized_data, true, false );
     }
     auto symmat = sums_of_squares_and_cross_products_matrix( standardized_data );
     for( auto& elem : symmat ) {

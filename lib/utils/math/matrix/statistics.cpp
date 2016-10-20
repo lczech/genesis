@@ -42,14 +42,10 @@ namespace utils {
 //     Normalize
 // ================================================================================================
 
-std::vector<MinMaxPair<double>> normalize( Matrix<double>& data )
+std::vector<MinMaxPair<double>> normalize_cols( Matrix<double>& data )
 {
     auto col_minmax = matrix_col_minmax( data );
-
-    // Nothing to do.
-    if( data.rows() == 0 ) {
-        return col_minmax;
-    }
+    assert( col_minmax.size() == data.cols() );
 
     // Iterate the matrix.
     for( size_t r = 0; r < data.rows(); ++r ) {
@@ -63,70 +59,81 @@ std::vector<MinMaxPair<double>> normalize( Matrix<double>& data )
     return col_minmax;
 }
 
+std::vector<MinMaxPair<double>> normalize_rows( Matrix<double>& data )
+{
+    auto row_minmax = matrix_row_minmax( data );
+    assert( row_minmax.size() == data.rows() );
+
+    // Iterate the matrix.
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        for( size_t c = 0; c < data.cols(); ++c ) {
+            // Adjust row values.
+            double diff = row_minmax[r].max - row_minmax[r].min;
+            data( r, c ) = ( data( r, c ) - row_minmax[r].min ) / diff;
+        }
+    }
+
+    return row_minmax;
+}
+
 // ================================================================================================
 //     Standardize
 // ================================================================================================
 
-std::vector<MatrixStandardizeData> standardize(
+std::vector<MeanStddevPair> standardize_cols(
     Matrix<double>& data,
     bool            scale_means,
     bool            scale_std
 ) {
-    auto ret = std::vector<MatrixStandardizeData>( data.cols(), { 0.0, 0.0 } );
+    auto col_mean_stddev = matrix_col_mean_stddev( data );
+    assert( col_mean_stddev.size() == data.cols() );
 
-    // Nothing to do.
-    if( data.rows() == 0 ) {
-        return ret;
-    }
-
-    // Minimum dev that we allow (necessary for numerical reasons).
-    double const eps = 0.0000001;
-
-    // Iterate columns.
-    for( size_t c = 0; c < data.cols(); ++c ) {
-        double mean   = 0.0;
-        double stddev = 0.0;
-
-        // Calculate column mean.
-        for( size_t r = 0; r < data.rows(); ++r ) {
-            mean += data( r, c );
-        }
-        mean /= static_cast<double>( data.rows() );
-
-        // Calculate column std dev, if needed.
-        for( size_t r = 0; r < data.rows(); ++r ) {
-            stddev += (( data( r, c ) - mean ) * ( data( r, c ) - mean ));
-        }
-        stddev /= static_cast<double>( data.rows() );
-        stddev = sqrt(stddev);
-
-        // The following in an inelegant (but usual) way to handle near-zero values,
-        // which later would cause a division by zero.
-        if( stddev <= eps ){
-            stddev = 1.0;
-        }
-
-        // Set result entries.
-        ret[ c ].mean   = mean;
-        ret[ c ].stddev = stddev;
-
-        // Manipulate the data.
-        for( size_t r = 0; r < data.rows(); ++r ) {
+    // Iterate the matrix.
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        for( size_t c = 0; c < data.cols(); ++c ) {
 
             // Subtract mean (i.e., center data).
             if( scale_means ) {
-                data( r, c ) -= mean;
+                data( r, c ) -= col_mean_stddev[c].mean;
             }
 
             // Scale to unit variance, if needed.
             if( scale_std ) {
-                assert( stddev > 0.0 );
-                data( r, c ) /= stddev;
+                assert( col_mean_stddev[c].stddev > 0.0 );
+                data( r, c ) /= col_mean_stddev[c].stddev;
             }
         }
     }
 
-    return ret;
+    return col_mean_stddev;
+}
+
+std::vector<MeanStddevPair> standardize_rows(
+    Matrix<double>& data,
+    bool            scale_means,
+    bool            scale_std
+) {
+    auto row_mean_stddev = matrix_row_mean_stddev( data );
+    assert( row_mean_stddev.size() == data.rows() );
+
+    // Iterate the matrix.
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        for( size_t c = 0; c < data.cols(); ++c ) {
+
+            // Subtract mean (i.e., center data).
+            if( scale_means ) {
+                data( r, c ) -= row_mean_stddev[r].mean;
+            }
+
+            // Scale to unit variance, if needed.
+            if( scale_std ) {
+                assert( row_mean_stddev[r].stddev > 0.0 );
+                data( r, c ) /= row_mean_stddev[r].stddev;
+            }
+        }
+    }
+
+    return row_mean_stddev;
 }
 
 // ================================================================================================
@@ -187,6 +194,98 @@ std::vector<MinMaxPair<double>> matrix_row_minmax( Matrix<double> const& data )
 }
 
 // ================================================================================================
+//     Mean and Stddev
+// ================================================================================================
+
+std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data )
+{
+    auto ret = std::vector<MeanStddevPair>( data.cols(), { 0.0, 0.0 } );
+
+    // Nothing to do. Better stop here or we risk dividing by zero.
+    if( data.rows() == 0 ) {
+        return ret;
+    }
+
+    // Minimum dev that we allow (necessary for numerical reasons).
+    double const eps = 0.0000001;
+
+    // Iterate columns.
+    for( size_t c = 0; c < data.cols(); ++c ) {
+        double mean   = 0.0;
+        double stddev = 0.0;
+
+        // Calculate column mean.
+        for( size_t r = 0; r < data.rows(); ++r ) {
+            mean += data( r, c );
+        }
+        mean /= static_cast<double>( data.rows() );
+
+        // Calculate column std dev.
+        for( size_t r = 0; r < data.rows(); ++r ) {
+            stddev += (( data( r, c ) - mean ) * ( data( r, c ) - mean ));
+        }
+        stddev /= static_cast<double>( data.rows() );
+        stddev = sqrt(stddev);
+
+        // The following in an inelegant (but usual) way to handle near-zero values,
+        // which later would cause a division by zero.
+        if( stddev <= eps ){
+            stddev = 1.0;
+        }
+
+        // Set result entries.
+        ret[ c ].mean   = mean;
+        ret[ c ].stddev = stddev;
+    }
+
+    return ret;
+}
+
+std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data )
+{
+    auto ret = std::vector<MeanStddevPair>( data.rows(), { 0.0, 0.0 } );
+
+    // Nothing to do. Better stop here or we risk dividing by zero.
+    if( data.cols() == 0 ) {
+        return ret;
+    }
+
+    // Minimum dev that we allow (necessary for numerical reasons).
+    double const eps = 0.0000001;
+
+    // Iterate columns.
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        double mean   = 0.0;
+        double stddev = 0.0;
+
+        // Calculate row mean.
+        for( size_t c = 0; c < data.cols(); ++c ) {
+            mean += data( r, c );
+        }
+        mean /= static_cast<double>( data.cols() );
+
+        // Calculate column std dev.
+        for( size_t c = 0; c < data.cols(); ++c ) {
+            stddev += (( data( r, c ) - mean ) * ( data( r, c ) - mean ));
+        }
+        stddev /= static_cast<double>( data.cols() );
+        stddev = sqrt(stddev);
+
+        // The following in an inelegant (but usual) way to handle near-zero values,
+        // which later would cause a division by zero.
+        if( stddev <= eps ){
+            stddev = 1.0;
+        }
+
+        // Set result entries.
+        ret[ r ].mean   = mean;
+        ret[ r ].stddev = stddev;
+    }
+
+    return ret;
+}
+
+// ================================================================================================
 //     Correlation Matrix
 // ================================================================================================
 
@@ -194,7 +293,7 @@ Matrix<double> correlation_matrix( Matrix<double> const& data )
 {
     // Standardize mean and variance.
     auto stddata = data;
-    standardize( stddata, true, true );
+    standardize_cols( stddata, true, true );
 
     // Calculate matrix. First build the sum of squares, then normalize.
     auto sscp = sums_of_squares_and_cross_products_matrix( stddata );
@@ -212,7 +311,7 @@ Matrix<double> covariance_matrix( Matrix<double> const& data )
 {
     // Standardize mean, but not the variance.
     auto stddata = data;
-    standardize( stddata, true, false );
+    standardize_cols( stddata, true, false );
 
     // Calculate matrix. First build the sum of squares, then normalize.
     auto sscp = sums_of_squares_and_cross_products_matrix( stddata );

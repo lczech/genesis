@@ -63,6 +63,18 @@ struct MinMaxPair
     T max;
 };
 
+/**
+ * @brief Store a mean and a standard deviation value.
+ *
+ * This notation is simply more readable than the std default of using a `pair<T, T>` for such
+ * types.
+ */
+struct MeanStddevPair
+{
+    double mean;
+    double stddev;
+};
+
 // =================================================================================================
 //     Number Handling
 // =================================================================================================

@@ -40,20 +40,6 @@
 namespace genesis {
 namespace utils {
 
-// ================================================================================================
-//     Structs for Storing Results
-// ================================================================================================
-
-/**
- * @brief Helper structure returned from standardize( Matrix<double>& data ) that stores the
- * mean and standard deviation for a column of the original data.
- */
-struct MatrixStandardizeData
-{
-    double mean;
-    double stddev;
-};
-
 // =================================================================================================
 //     Normalization and Standardization
 // =================================================================================================
@@ -70,17 +56,31 @@ struct MatrixStandardizeData
  * @param data        Input data Matrix; normalization is done inline.
  * @return            Vector containing the min and max values for each column before normalization.
  */
-std::vector<MinMaxPair<double>> normalize( Matrix<double>& data );
+std::vector<MinMaxPair<double>> normalize_cols( Matrix<double>& data );
+
+/**
+ * @brief Normalize the rows of a Matrix so that all values are in the range `[ 0.0, 1.0 ]`.
+ *
+ * The Matrix is manipulated inline. For each row, the new values of the Matrix are calculated
+ * as \f$ x_{new} = \frac{ x - x_{min} }{ x_{max} - x_{min} } \f$.
+ *
+ * The function returns a vector containing the `min` and `max` values of the rows
+ * before normalization, see matrix_row_minmax().
+ *
+ * @param data        Input data Matrix; normalization is done inline.
+ * @return            Vector containing the min and max values for each row before normalization.
+ */
+std::vector<MinMaxPair<double>> normalize_rows( Matrix<double>& data );
 
 /**
  * @brief Standardize the columns of a Matrix by subtracting the mean and scaling to unit variance.
  *
- * The function performs a z-transformation on the given data.
+ * The function performs a column-wise z-transformation on the given data.
  *
  * The function returns a vector containing the mean and standard deviation of the columns
- * before standardization, see MatrixStandardizeData. If both `scale_means` and `scale_std` are
+ * before standardization, see MeanStddevPair. If both `scale_means` and `scale_std` are
  * set to `false`, the original data is not manipulated, while the returned vector still contains
- * the means and standard deviations.
+ * the means and standard deviations. See also matrix_col_mean_stddev().
  *
  * @param data        Input data Matrix; standardizing is done inline.
  * @param scale_means If `true` (default), center the data by subtracting the mean per column.
@@ -89,7 +89,30 @@ std::vector<MinMaxPair<double>> normalize( Matrix<double>& data );
  * @return            Vector containing the mean and standard deviation for each column before
  *                    standardization.
  */
-std::vector<MatrixStandardizeData> standardize(
+std::vector<MeanStddevPair> standardize_cols(
+    Matrix<double>& data,
+    bool            scale_means = true,
+    bool            scale_std = true
+);
+
+/**
+ * @brief Standardize the rows of a Matrix by subtracting the mean and scaling to unit variance.
+ *
+ * The function performs a row-wise z-transformation on the given data.
+ *
+ * The function returns a vector containing the mean and standard deviation of the rows
+ * before standardization, see MeanStddevPair. If both `scale_means` and `scale_std` are
+ * set to `false`, the original data is not manipulated, while the returned vector still contains
+ * the means and standard deviations. See also matrix_row_mean_stddev().
+ *
+ * @param data        Input data Matrix; standardizing is done inline.
+ * @param scale_means If `true` (default), center the data by subtracting the mean per column.
+ * @param scale_std   If `true` (default), scale the data to unit variance (or equivalently,
+ *                    unit standard deviation) per column.
+ * @return            Vector containing the mean and standard deviation for each column before
+ *                    standardization.
+ */
+std::vector<MeanStddevPair> standardize_rows(
     Matrix<double>& data,
     bool            scale_means = true,
     bool            scale_std = true
@@ -112,6 +135,24 @@ std::vector<MinMaxPair<double>> matrix_col_minmax( Matrix<double> const& data );
 * See also matrix_col_minmax().
 */
 std::vector<MinMaxPair<double>> matrix_row_minmax( Matrix<double> const& data );
+
+// =================================================================================================
+//     Mean and Stddev
+// =================================================================================================
+
+/**
+ * @brief Calcualte the column-wise mean and standard deviation of a Matrix.
+ *
+ * See also matrix_row_mean_stddev().
+ */
+std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data );
+
+/**
+ * @brief Calcualte the row-wise mean and standard deviation of a Matrix.
+ *
+ * See also matrix_col_mean_stddev().
+ */
+std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data );
 
 // =================================================================================================
 //     Correlation and Covariance
