@@ -154,7 +154,7 @@ void epca_splitify_transform( utils::Matrix<double>& imbalance_matrix, double ka
         throw std::runtime_error( "Argument for kappa must be non-negative." );
     }
 
-    // Save time if the transofrmation throws away the actual value.
+    // Save time if the transformation throws away the actual value.
     // We do not need to calculate the abs and power in this case.
     if( kappa == 0.0 ) {
         for( auto& elem : imbalance_matrix ) {
@@ -261,6 +261,7 @@ void epca( SampleSet const& samples )
         }
     }
 
+    epca_filter_constant_columns( imbalance_matrix );
 
     // printf("\nimbalance_matrix:\n");
     // for( size_t r = 0; r < imbalance_matrix.rows(); ++r ) {
@@ -302,7 +303,7 @@ void epca( SampleSet const& samples )
     //     printf("\n");
     // }
     // printf("... %u rows in total\n", static_cast<unsigned int>(pca.projection.rows()));
-
+    //
     // utils::file_write( utils::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/my.proj" );
 
 }
