@@ -77,7 +77,7 @@ namespace placement {
  *
  * Using @link invalid_number_behaviour( InvalidNumberBehaviour ) invalid_number_behaviour()@endlink,
  * it is possible to change how the reader reacts to malformed jplace files.
- * See ::InvalidNumberBehaviour for the valid options.
+ * See InvalidNumberBehaviour for the valid options.
  *
  * The Jplace format is described in the following publication:
  *
@@ -90,6 +90,48 @@ namespace placement {
  */
 class JplaceReader
 {
+    // ---------------------------------------------------------------------
+    //     Internal Classes
+    // ---------------------------------------------------------------------
+
+private:
+
+    /**
+     * @brief Internal struct for intermediately storing the data for one Placement.
+     *
+     * See PqueryData for details.
+     */
+    struct PlacementData
+    {
+        std::vector<std::string> fields;
+    };
+
+    /**
+     * @brief Internal struct for intermediately storing the data for one Name.
+     *
+     * See PqueryData for details.
+     */
+    struct NameData
+    {
+        std::string name;
+        double      multiplicity = 1.0;
+    };
+
+    /**
+     * @brief Internal struct for intermediately storing the data for one Pquery.
+     *
+     * We need this intermediate format, as Json does not provide any guarantees on the order of
+     * key-value-objects. Thus, we could first find the Pqueryes and Placements, before we have the
+     * tree or field names order. In such cases, we would not need how to interpret the values
+     * for a placement. So store them first, and then, after we have all the information, we
+     * process them again and put them into their final form.
+     */
+    struct PqueryData
+    {
+        std::vector<PlacementData> placements;
+        std::vector<NameData>      names;
+    };
+
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
@@ -158,6 +200,14 @@ private:
     void parse_tree( utils::InputStream& input_stream ) const;
 
     std::vector<std::string> parse_fields( utils::InputStream& input_stream ) const;
+
+    std::vector<PqueryData> parse_pqueries( utils::InputStream& input_stream ) const;
+
+    std::vector<PlacementData> parse_placements( utils::InputStream& input_stream ) const;
+
+    std::vector<NameData> parse_names( utils::InputStream& input_stream ) const;
+
+    std::vector<NameData> parse_named_multiplicities( utils::InputStream& input_stream ) const;
 
     // ---------------------------------------------------------------------
     //     Processing
@@ -293,7 +343,7 @@ public:
      * @brief Set the InvalidNumberBehaviour.
      *
      * This setter controls the InvalidNumberBehaviour of the JplaceReader. The default value is
-     * InvalidNumberBehaviour::kIgnore. See ::InvalidNumberBehaviour for the valid options.
+     * InvalidNumberBehaviour::kIgnore. See InvalidNumberBehaviour for the valid options.
      *
      * The function returns the JplaceReader object to allow for a fluent interface.
      */

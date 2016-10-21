@@ -113,7 +113,6 @@ void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
 
     } while( it && *it == ',' );
 
-
     read_char_if( it, ',' );
 
     (void) smp;
@@ -294,7 +293,7 @@ std::vector<std::string> JplaceReader::parse_fields( utils::InputStream& input_s
     skip_while( it, isspace );
 
     // Read fields while there are.
-    bool get_more = it && *it == '\"';
+    bool get_more = ( it && *it == '\"' );
     while( get_more ) {
         get_more = false;
 
@@ -357,6 +356,124 @@ std::vector<std::string> JplaceReader::parse_fields( utils::InputStream& input_s
     }
 
     return fields;
+}
+
+// =================================================================================================
+//     Parse Pqueries
+// =================================================================================================
+
+std::vector<JplaceReader::PqueryData> JplaceReader::parse_pqueries(
+    utils::InputStream& input_stream
+) const {
+
+    // Create return vector.
+    auto ret = std::vector<PqueryData>();
+
+    using namespace utils;
+    auto& it = input_stream;
+
+    // We only want to warn about wrong fields once (if they occur at all).
+    bool warned_wrong_fields = false;
+
+    // Go into the fields field.
+    skip_while( it, isspace );
+    read_char_if( it, '[' );
+    skip_while( it, isspace );
+
+    while( it && *it == '{' ) {
+        ++it;
+        skip_while( it, isspace );
+
+        // Get key.
+        expect_char( it, '"' );
+        std::string field = utils::to_lower_ascii( parse_quoted_string( it ));
+        skip_while( it, isspace );
+        read_char_if( it, ':' );
+        skip_while( it, isspace );
+
+        if( field == "p" ) {
+            /* code */
+        } else if( field == "n" ) {
+            /* code */
+        } else if( field == "nm" ) {
+            /* code */
+        } else {
+            if( ! warned_wrong_fields ) {
+                LOG_WARN << "Unknown placement key '" << field << "' near " << it.at()
+                         << ". Ignoring this. Will not report any other wrong fields.";
+                warned_wrong_fields = true;
+            }
+        }
+
+    }
+
+    skip_while( it, isspace );
+    read_char_if( it, ']' );
+
+
+    return ret;
+}
+
+// =================================================================================================
+//     Parse Placements
+// =================================================================================================
+
+std::vector<JplaceReader::PlacementData> JplaceReader::parse_placements(
+    utils::InputStream& input_stream
+) const {
+    using namespace utils;
+
+    auto ret = std::vector<PlacementData>();
+    auto& it = input_stream;
+
+    skip_while( it, isspace );
+    read_char_if( it, '[' );
+    skip_while( it, isspace );
+
+    return ret;
+}
+
+// =================================================================================================
+//     Parse Name
+// =================================================================================================
+
+std::vector<JplaceReader::NameData> JplaceReader::parse_names(
+    utils::InputStream& input_stream
+) const {
+    using namespace utils;
+
+    auto ret = std::vector<NameData>();
+    auto& it = input_stream;
+
+    skip_while( it, isspace );
+    read_char_if( it, '[' );
+    skip_while( it, isspace );
+
+    expect_char( it, '"' );
+    // ret = parse_quoted_string( it );
+
+    skip_while( it, isspace );
+    read_char_if( it, ']' );
+    skip_while( it, isspace );
+
+    return ret;
+}
+
+// =================================================================================================
+//     Parse Named Multiplicity
+// =================================================================================================
+
+std::vector<JplaceReader::NameData> JplaceReader::parse_named_multiplicities(
+    utils::InputStream& input_stream
+) const {
+    using namespace utils;
+
+    auto ret = std::vector<NameData>();
+    auto& it = input_stream;
+
+    skip_while( it, isspace );
+
+    return ret;
 }
 
 // =================================================================================================
