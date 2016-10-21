@@ -59,49 +59,9 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Version
+//     Reading from Stream
 // =================================================================================================
 
-/**
- * @brief Returns the version number that this class is written for. Currently, this is "3".
- */
-std::string JplaceReader::version ()
-{
-    return "3";
-}
-
-/**
- * @brief Checks whether the version of the jplace format works with this parser.
- *
- * This parser is intended for `jplace` versions 2 and 3. If while reading a different version tag
- * is found, the reader will trigger a warning and try to continue anyway.
- */
-bool JplaceReader::check_version ( std::string const& version )
-{
-    auto v = utils::trim( version );
-    return v == "2" || v == "3";
-}
-
-/**
- * @brief Checks whether the version of the jplace format works with this parser.
- *
- * This parser is intended for `jplace` versions 2 and 3. If while reading a different version tag
- * is found, the reader will trigger a warning and try to continue anyway.
- */
-bool JplaceReader::check_version ( size_t version )
-{
-    return version == 2 || version == 3;
-}
-
-// =================================================================================================
-//     Reading
-// =================================================================================================
-
-/**
- * @brief Read `jplace` data from a stream into a Sample.
- *
- * This implementation is currenlty not yet fully implemented. Don't use it yet!
- */
 void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
 {
     using namespace utils;
@@ -176,9 +136,10 @@ void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
     throw std::domain_error( "Not yet fully implemented." );
 }
 
-/**
- * @brief Read a file and parse it as a Jplace document into a Sample object.
- */
+// =================================================================================================
+//     Reading from File
+// =================================================================================================
+
 void JplaceReader::from_file( std::string const& fn, Sample& smp ) const
 {
     if ( ! utils::file_exists(fn) ) {
@@ -187,9 +148,10 @@ void JplaceReader::from_file( std::string const& fn, Sample& smp ) const
     return from_string( utils::file_read(fn), smp );
 }
 
-/**
- * @brief Parse a string as a Jplace document into a Sample object.
- */
+// =================================================================================================
+//     Reading from String
+// =================================================================================================
+
 void JplaceReader::from_string( std::string const& jplace, Sample& smp ) const
 {
     utils::JsonDocument doc;
@@ -197,9 +159,10 @@ void JplaceReader::from_string( std::string const& jplace, Sample& smp ) const
     return from_document(doc, smp);
 }
 
-/**
- * @brief Take a JsonDocument object and parse it as a Jplace document into a Sample object.
- */
+// =================================================================================================
+//     Reading from Document
+// =================================================================================================
+
 void JplaceReader::from_document( utils::JsonDocument const& doc, Sample& smp ) const
 {
     process_json_version( doc );
@@ -211,9 +174,10 @@ void JplaceReader::from_document( utils::JsonDocument const& doc, Sample& smp ) 
     process_json_placements( doc, smp, fields);
 }
 
-/**
- * @brief Read a list of files and parse them as a Jplace document into a SampleSet object.
- */
+// =================================================================================================
+//     Reading from Files
+// =================================================================================================
+
 void JplaceReader::from_files (const std::vector<std::string>& fns, SampleSet& set) const
 {
     for (auto fn : fns) {
@@ -224,9 +188,10 @@ void JplaceReader::from_files (const std::vector<std::string>& fns, SampleSet& s
     }
 }
 
-/**
- * @brief Parse a list of strings as a Jplace document into a SampleSet object.
- */
+// =================================================================================================
+//     Reading from Strings
+// =================================================================================================
+
 void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet& set) const
 {
     size_t cnt = 0;
@@ -239,7 +204,7 @@ void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet&
 }
 
 // =================================================================================================
-//     Parsing
+//     Parse Version
 // =================================================================================================
 
 void JplaceReader::parse_version( utils::InputStream& input_stream ) const
@@ -251,6 +216,10 @@ void JplaceReader::parse_version( utils::InputStream& input_stream ) const
                  << "Now continuing to parse in the hope that it still works.";
     }
 }
+
+// =================================================================================================
+//     Parse Metadata
+// =================================================================================================
 
 std::unordered_map<std::string, std::string> JplaceReader::parse_metadata(
     utils::InputStream& input_stream
@@ -295,6 +264,22 @@ std::unordered_map<std::string, std::string> JplaceReader::parse_metadata(
     read_char_if( it, '}' );
     return res;
 }
+
+// =================================================================================================
+//     Parse Tree
+// =================================================================================================
+
+void JplaceReader::parse_tree( utils::InputStream& input_stream ) const
+{
+    using namespace utils;
+    auto& it = input_stream;
+
+    auto tree_string = parse_quoted_string( it );
+}
+
+// =================================================================================================
+//     Parse Fields
+// =================================================================================================
 
 std::vector<std::string> JplaceReader::parse_fields( utils::InputStream& input_stream ) const
 {
@@ -374,22 +359,10 @@ std::vector<std::string> JplaceReader::parse_fields( utils::InputStream& input_s
     return fields;
 }
 
-void JplaceReader::parse_tree( utils::InputStream& input_stream ) const
-{
-    using namespace utils;
-    auto& it = input_stream;
-
-    auto tree_string = parse_quoted_string( it );
-}
-
 // =================================================================================================
-//     Processing
+//     Processing Version
 // =================================================================================================
 
-/**
- * @brief Internal helper function that checks whether the `version` key in a JsonDocument
- * corresponds to a valid version number for the JplaceReader.
- */
 void JplaceReader::process_json_version( utils::JsonDocument const& doc ) const
 {
     // check if the version is correct
@@ -405,10 +378,10 @@ void JplaceReader::process_json_version( utils::JsonDocument const& doc ) const
     }
 }
 
-/**
- * @brief Internal helper function that processes the `metadata` key of a JsonDocument and stores
- * its value in the Sample metadata member.
- */
+// =================================================================================================
+//     Processing Metadata
+// =================================================================================================
+
 void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Sample& smp ) const
 {
     // Check if there is metadata.
@@ -421,10 +394,10 @@ void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Sample
     }
 }
 
-/**
- * @brief Internal helper function that processes the `tree` key of a JsonDocument and stores it as
- * the Tree of a Sample.
- */
+// =================================================================================================
+//     Processing Tree
+// =================================================================================================
+
 void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& smp ) const
 {
     // find and process the reference tree
@@ -443,10 +416,10 @@ void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& sm
     }
 }
 
-/**
- * @brief Internal helper function that processes the `fields` key of a JsonDocument and returns
- * its values.
- */
+// =================================================================================================
+//     Processing Fields
+// =================================================================================================
+
 std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument const& doc ) const
 {
     // get the field names and store them in array fields
@@ -503,10 +476,10 @@ std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument 
     return fields;
 }
 
-/**
- * @brief Internal helper function that processes the `placements` key of a JsonDocument and stores
- * the contained pqueries in the Sample.
- */
+// =================================================================================================
+//     Processing Placements
+// =================================================================================================
+
 void JplaceReader::process_json_placements(
     utils::JsonDocument const& doc,
     Sample&              smp,
@@ -787,25 +760,34 @@ void JplaceReader::process_json_placements(
 }
 
 // =================================================================================================
+//     Jplace Version
+// =================================================================================================
+
+std::string JplaceReader::version ()
+{
+    return "3";
+}
+
+bool JplaceReader::check_version ( std::string const& version )
+{
+    auto v = utils::trim( version );
+    return v == "2" || v == "3";
+}
+
+bool JplaceReader::check_version ( size_t version )
+{
+    return version == 2 || version == 3;
+}
+
+// =================================================================================================
 //     Properties
 // =================================================================================================
 
-/**
- * @brief Return the currenlty set InvalidNumberBehaviour.
- */
 JplaceReader::InvalidNumberBehaviour JplaceReader::invalid_number_behaviour() const
 {
     return invalid_number_behaviour_;
 }
 
-/**
- * @brief Set the InvalidNumberBehaviour.
- *
- * This setter controls the InvalidNumberBehaviour of the JplaceReader. The default value is
- * InvalidNumberBehaviour::kIgnore.
- *
- * The function returns the JplaceReader object to allow for a fluent interface.
- */
 JplaceReader& JplaceReader::invalid_number_behaviour( InvalidNumberBehaviour val )
 {
     invalid_number_behaviour_ = val;

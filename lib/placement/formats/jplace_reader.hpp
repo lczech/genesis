@@ -75,6 +75,10 @@ namespace placement {
  *         .invalid_number_behaviour( InvalidNumberBehaviour::kCorrect )
  *         .from_file( infile, map );
  *
+ * Using @link invalid_number_behaviour( InvalidNumberBehaviour ) invalid_number_behaviour()@endlink,
+ * it is possible to change how the reader reacts to malformed jplace files.
+ * See ::InvalidNumberBehaviour for the valid options.
+ *
  * The Jplace format is described in the following publication:
  *
  *     Matsen FA, Hoffman NG, Gallagher A, Stamatakis A. 2012.
@@ -107,19 +111,43 @@ public:
 
 public:
 
-    void from_files    ( std::vector<std::string> const& fns, SampleSet& set ) const;
-    void from_strings  ( std::vector<std::string> const& jps, SampleSet& set ) const;
-
+    /**
+     * @brief Read `jplace` data from a stream into a Sample.
+     *
+     * This implementation is currenlty not yet fully implemented. Don't use it yet!
+     */
     void from_stream   ( std::istream&       is,         Sample& smp ) const;
+
+    /**
+     * @brief Read a file and parse it as a Jplace document into a Sample object.
+     */
     void from_file     ( std::string const&  fn,         Sample& smp ) const;
+
+    /**
+     * @brief Parse a string as a Jplace document into a Sample object.
+     */
     void from_string   ( std::string const&  jplace,     Sample& smp ) const;
+
+    /**
+     * @brief Take a JsonDocument object and parse it as a Jplace document into a Sample object.
+     */
     void from_document ( utils::JsonDocument const& doc, Sample& smp ) const;
+
+    /**
+     * @brief Read a list of files and parse them as a Jplace document into a SampleSet object.
+     */
+    void from_files    ( std::vector<std::string> const& fns, SampleSet& set ) const;
+
+    /**
+     * @brief Parse a list of strings as a Jplace document into a SampleSet object.
+     */
+    void from_strings  ( std::vector<std::string> const& jps, SampleSet& set ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
 
-protected:
+private:
 
     void parse_version( utils::InputStream& input_stream ) const;
 
@@ -127,29 +155,74 @@ protected:
         utils::InputStream& input_stream
     ) const;
 
-    std::vector<std::string> parse_fields( utils::InputStream& input_stream ) const;
-
     void parse_tree( utils::InputStream& input_stream ) const;
+
+    std::vector<std::string> parse_fields( utils::InputStream& input_stream ) const;
 
     // ---------------------------------------------------------------------
     //     Processing
     // ---------------------------------------------------------------------
 
-protected:
+private:
 
+    /**
+     * @brief Internal helper function that checks whether the `version` key in a JsonDocument
+     * corresponds to a valid version number for the JplaceReader.
+     */
     void process_json_version(    utils::JsonDocument const& doc ) const;
 
+    /**
+     * @brief Internal helper function that processes the `metadata` key of a JsonDocument and stores
+     * its value in the Sample metadata member.
+     */
+    void process_json_metadata( utils::JsonDocument const& doc, Sample& smp ) const;
+
+    /**
+     * @brief Internal helper function that processes the `tree` key of a JsonDocument and stores it as
+     * the Tree of a Sample.
+     */
     void process_json_tree(       utils::JsonDocument const& doc, Sample& smp ) const;
 
+    /**
+     * @brief Internal helper function that processes the `fields` key of a JsonDocument and returns
+     * its values.
+     */
     std::vector<std::string> process_json_fields( utils::JsonDocument const& doc ) const;
 
+    /**
+     * @brief Internal helper function that processes the `placements` key of a JsonDocument and stores
+     * the contained pqueries in the Sample.
+     */
     void process_json_placements(
         utils::JsonDocument const& doc,
         Sample&                    smp,
         std::vector<std::string>   fields
     ) const;
 
-    void process_json_metadata( utils::JsonDocument const& doc, Sample& smp ) const;
+    // ---------------------------------------------------------------------
+    //     Jplace Version
+    // ---------------------------------------------------------------------
+
+    /**
+     * @brief Returns the version number that this class is written for. Currently, this is "3".
+     */
+    static std::string version   ();
+
+    /**
+     * @brief Checks whether the version of the jplace format works with this parser.
+     *
+     * This parser is intended for `jplace` versions 2 and 3. If while reading a different version tag
+     * is found, the reader will trigger a warning and try to continue anyway.
+     */
+    static bool        check_version ( std::string const& version );
+
+    /**
+     * @brief Checks whether the version of the jplace format works with this parser.
+     *
+     * This parser is intended for `jplace` versions 2 and 3. If while reading a different version tag
+     * is found, the reader will trigger a warning and try to continue anyway.
+     */
+    static bool        check_version ( size_t             version );
 
     // ---------------------------------------------------------------------
     //     Properties
@@ -211,12 +284,20 @@ public:
         kThrow
     };
 
+    /**
+     * @brief Return the currenlty set InvalidNumberBehaviour.
+     */
     InvalidNumberBehaviour invalid_number_behaviour() const;
-    JplaceReader&          invalid_number_behaviour( InvalidNumberBehaviour val );
 
-    static std::string version   ();
-    static bool        check_version ( std::string const& version );
-    static bool        check_version ( size_t             version );
+    /**
+     * @brief Set the InvalidNumberBehaviour.
+     *
+     * This setter controls the InvalidNumberBehaviour of the JplaceReader. The default value is
+     * InvalidNumberBehaviour::kIgnore. See ::InvalidNumberBehaviour for the valid options.
+     *
+     * The function returns the JplaceReader object to allow for a fluent interface.
+     */
+    JplaceReader&          invalid_number_behaviour( InvalidNumberBehaviour val );
 
     // ---------------------------------------------------------------------
     //     Members
