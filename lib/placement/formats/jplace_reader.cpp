@@ -82,17 +82,17 @@ void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
 
     // Find beginning of json document.
     skip_while( it, isspace );
-    read_char_if( it, '{' );
+    read_char_or_throw( it, '{' );
 
     // Read all elemetns of the document.
     do {
 
         // Get key of the json element.
         skip_while( it, isspace );
-        expect_char( it, '"' );
+        affirm_char_or_throw( it, '"' );
         std::string key = parse_quoted_string( it );
         skip_while( it, isspace );
-        read_char_if( it, ':' );
+        read_char_or_throw( it, ':' );
         skip_while( it, isspace );
 
         if( key == "version" ) {
@@ -113,7 +113,7 @@ void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
 
     } while( it && *it == ',' );
 
-    read_char_if( it, ',' );
+    read_char_or_throw( it, ',' );
 
     (void) smp;
 
@@ -230,7 +230,7 @@ std::unordered_map<std::string, std::string> JplaceReader::parse_metadata(
 
     // Go into the metadata field.
     skip_while( it, isspace );
-    read_char_if( it, '{' );
+    read_char_or_throw( it, '{' );
     skip_while( it, isspace );
 
     // Read metadata while there is.
@@ -239,14 +239,14 @@ std::unordered_map<std::string, std::string> JplaceReader::parse_metadata(
         get_more = false;
 
         // Get key of the field.
-        expect_char( it, '"' );
+        affirm_char_or_throw( it, '"' );
         std::string key = parse_quoted_string( it );
         skip_while( it, isspace );
-        read_char_if( it, ':' );
+        read_char_or_throw( it, ':' );
 
         // Get the value of the field.
         skip_while( it, isspace );
-        expect_char( it, '"' );
+        affirm_char_or_throw( it, '"' );
         std::string value = parse_quoted_string( it );
 
         // Store and go to next element.
@@ -260,7 +260,7 @@ std::unordered_map<std::string, std::string> JplaceReader::parse_metadata(
     }
 
     // Expected end of metatdata field.
-    read_char_if( it, '}' );
+    read_char_or_throw( it, '}' );
     return res;
 }
 
@@ -289,7 +289,7 @@ std::vector<std::string> JplaceReader::parse_fields( utils::InputStream& input_s
 
     // Go into the fields field.
     skip_while( it, isspace );
-    read_char_if( it, '[' );
+    read_char_or_throw( it, '[' );
     skip_while( it, isspace );
 
     // Read fields while there are.
@@ -298,7 +298,7 @@ std::vector<std::string> JplaceReader::parse_fields( utils::InputStream& input_s
         get_more = false;
 
         // Get key of the field.
-        expect_char( it, '"' );
+        affirm_char_or_throw( it, '"' );
         std::string field = parse_quoted_string( it );
         fields.push_back( field );
 
@@ -310,7 +310,7 @@ std::vector<std::string> JplaceReader::parse_fields( utils::InputStream& input_s
         }
         skip_while( it, isspace );
     }
-    read_char_if( it, ']' );
+    read_char_or_throw( it, ']' );
 
     // Check field validity.
     bool has_edge_num        = false;
@@ -377,7 +377,7 @@ std::vector<JplaceReader::PqueryData> JplaceReader::parse_pqueries(
 
     // Go into the fields field.
     skip_while( it, isspace );
-    read_char_if( it, '[' );
+    read_char_or_throw( it, '[' );
     skip_while( it, isspace );
 
     while( it && *it == '{' ) {
@@ -385,10 +385,10 @@ std::vector<JplaceReader::PqueryData> JplaceReader::parse_pqueries(
         skip_while( it, isspace );
 
         // Get key.
-        expect_char( it, '"' );
+        affirm_char_or_throw( it, '"' );
         std::string field = utils::to_lower_ascii( parse_quoted_string( it ));
         skip_while( it, isspace );
-        read_char_if( it, ':' );
+        read_char_or_throw( it, ':' );
         skip_while( it, isspace );
 
         if( field == "p" ) {
@@ -408,7 +408,7 @@ std::vector<JplaceReader::PqueryData> JplaceReader::parse_pqueries(
     }
 
     skip_while( it, isspace );
-    read_char_if( it, ']' );
+    read_char_or_throw( it, ']' );
 
 
     return ret;
@@ -427,7 +427,7 @@ std::vector<JplaceReader::PlacementData> JplaceReader::parse_placements(
     auto& it = input_stream;
 
     skip_while( it, isspace );
-    read_char_if( it, '[' );
+    read_char_or_throw( it, '[' );
     skip_while( it, isspace );
 
     return ret;
@@ -446,14 +446,14 @@ std::vector<JplaceReader::NameData> JplaceReader::parse_names(
     auto& it = input_stream;
 
     skip_while( it, isspace );
-    read_char_if( it, '[' );
+    read_char_or_throw( it, '[' );
     skip_while( it, isspace );
 
-    expect_char( it, '"' );
+    affirm_char_or_throw( it, '"' );
     // ret = parse_quoted_string( it );
 
     skip_while( it, isspace );
-    read_char_if( it, ']' );
+    read_char_or_throw( it, ']' );
     skip_while( it, isspace );
 
     return ret;

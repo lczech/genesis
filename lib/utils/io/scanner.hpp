@@ -191,10 +191,10 @@ inline std::string read_until(
  *
  * If not, the function throws `std::runtime_error`. The stream is advanced by one position and the
  * char is returned. For a similar function that checks the value of the current char but does
- * advance in the stream, see expect_char().
+ * not advance in the stream, see affirm_char_or_throw().
  */
 template< typename InputStream >
-inline char read_char_if(
+inline char read_char_or_throw(
     InputStream&            source,
     char                    criterion
 ) {
@@ -214,10 +214,10 @@ inline char read_char_if(
  *
  * If not, the function throws `std::runtime_error`. The stream is advanced by one position and the
  * char is returned. For a similar function that checks the value of the current char but does
- * advance in the stream, see expect_char().
+ * not advance in the stream, see affirm_char_or_throw().
  */
 template< typename InputStream >
-inline char read_char_if(
+inline char read_char_or_throw(
     InputStream&               source,
     std::function<bool (char)> criterion
 ) {
@@ -242,10 +242,10 @@ inline char read_char_if(
  *
  * If not, the function throws `std::runtime_error`. The stream is not advanced (i.e., it stays at
  * its current position). For a similar function that reads (i.e., also advances) the current char
- * from the stream, see read_char_if().
+ * from the stream, see read_char_or_throw().
  */
 template< typename InputStream >
-inline void expect_char(
+inline void affirm_char_or_throw(
     InputStream&            source,
     char                    criterion
 ) {
@@ -262,10 +262,10 @@ inline void expect_char(
  *
  * If not, the function throws `std::runtime_error`. The stream is not advanced (i.e., it stays at
  * its current position). For a similar function that reads (i.e., also advances) the current char
- * from the stream, see read_char_if().
+ * from the stream, see read_char_or_throw().
  */
 template< typename InputStream >
-inline void expect_char(
+inline void affirm_char_or_throw(
     InputStream&               source,
     std::function<bool (char)> criterion
 ) {
