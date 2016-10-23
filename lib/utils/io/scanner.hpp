@@ -40,6 +40,64 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Helper Classes and Enums
+// =================================================================================================
+
+/**
+ * @brief Option to determine how to treat surrounding whitespace when scanning an input stream.
+ *
+ * This helper enum is used in the input stream scanner functions read_char_or_throw() and
+ * affirm_char_or_throw() in order to indicate how they treat whitespace while looking for chars.
+ *
+ * For checking whether a partcular option is set, use the binary and operator `&`:
+ *
+ *     if( option & SkipWhitespace::kTrailing ) {
+ *         // ...
+ *     }
+ * %
+ */
+enum class SkipWhitespace : unsigned char
+{
+    /**
+     * @brief Skip no whitespace. Thus, immediately treat the current input char.
+     */
+    kNone        = 0,
+
+    /**
+     * @brief Skip all whitespace in the input stream, then treat the next non-white char.
+     */
+    kLeading     = 1,
+
+    /**
+     * @brief Treat the current char in the input stream, then skip the following whitespace.
+     */
+    kTrailing    = 2,
+
+    /**
+     * @brief Skip whitespace, treat the first non-white char, then skip all following whitespace.
+     */
+    kSurrounding = 3
+};
+
+/**
+ * @brief And-operator to check whether a SkipWhitespace is set.
+ *
+ * Typical usage:
+ *
+ *     SkipWhitespace option;
+ *     if( option & SkipWhitespace::kTrailing ) {
+ *         // Do stuff...
+ *     }
+ *
+ * See ::SkipWhitespace for more information.
+ */
+inline bool operator & ( SkipWhitespace lhs, SkipWhitespace rhs )
+{
+    using T = std::underlying_type< SkipWhitespace >::type;
+    return static_cast< T >( lhs ) & static_cast< T >( rhs );
+}
+
+// =================================================================================================
 //     Scanners
 // =================================================================================================
 
@@ -192,12 +250,22 @@ inline std::string read_until(
  * If not, the function throws `std::runtime_error`. The stream is advanced by one position and the
  * char is returned. For a similar function that checks the value of the current char but does
  * not advance in the stream, see affirm_char_or_throw().
+ *
+ * Using the parameter `skip_ws`, it is possible to skip leading and/or trailing whitespaces
+ * before/after treating the `criterion` char. See ::SkipWhitespace for more information.
  */
 template< typename InputStream >
 inline char read_char_or_throw(
-    InputStream&            source,
-    char                    criterion
+    InputStream&               source,
+    char                       criterion,
+    SkipWhitespace skip_ws = SkipWhitespace::kNone
 ) {
+    // Skip leading whitespace
+    if( skip_ws & SkipWhitespace::kLeading ) {
+        skip_while( source, isspace );
+    }
+
+    // Check char and move to next.
     if( !source || *source != criterion ) {
         throw std::runtime_error(
             std::string("Expecting '") + criterion + "' at " + source.at() + "."
@@ -205,6 +273,12 @@ inline char read_char_or_throw(
     }
     assert( source && *source == criterion );
     ++source;
+
+    // Skip trailing whitespace
+    if( skip_ws & SkipWhitespace::kTrailing ) {
+        skip_while( source, isspace );
+    }
+
     return criterion;
 }
 
@@ -215,12 +289,22 @@ inline char read_char_or_throw(
  * If not, the function throws `std::runtime_error`. The stream is advanced by one position and the
  * char is returned. For a similar function that checks the value of the current char but does
  * not advance in the stream, see affirm_char_or_throw().
+ *
+ * Using the parameter `skip_ws`, it is possible to skip leading and/or trailing whitespaces
+ * before/after treating the `criterion` char. See ::SkipWhitespace for more information.
  */
 template< typename InputStream >
 inline char read_char_or_throw(
     InputStream&               source,
-    std::function<bool (char)> criterion
+    std::function<bool (char)> criterion,
+    SkipWhitespace skip_ws = SkipWhitespace::kNone
 ) {
+    // Skip leading whitespace
+    if( skip_ws & SkipWhitespace::kLeading ) {
+        skip_while( source, isspace );
+    }
+
+    // Check char and move to next.
     if( !source || ! criterion( *source )) {
         throw std::runtime_error(
             "Unexpected char at " + source.at() + "."
@@ -229,6 +313,12 @@ inline char read_char_or_throw(
     assert( source );
     auto chr = *source;
     ++source;
+
+    // Skip trailing whitespace
+    if( skip_ws & SkipWhitespace::kTrailing ) {
+        skip_while( source, isspace );
+    }
+
     return chr;
 }
 
@@ -243,16 +333,31 @@ inline char read_char_or_throw(
  * If not, the function throws `std::runtime_error`. The stream is not advanced (i.e., it stays at
  * its current position). For a similar function that reads (i.e., also advances) the current char
  * from the stream, see read_char_or_throw().
+ *
+ * Using the parameter `skip_ws`, it is possible to skip leading and/or trailing whitespaces
+ * before/after treating the `criterion` char. See ::SkipWhitespace for more information.
  */
 template< typename InputStream >
 inline void affirm_char_or_throw(
     InputStream&            source,
-    char                    criterion
+    char                    criterion,
+    SkipWhitespace skip_ws = SkipWhitespace::kNone
 ) {
+    // Skip leading whitespace
+    if( skip_ws & SkipWhitespace::kLeading ) {
+        skip_while( source, isspace );
+    }
+
+    // Check char.
     if( !source || *source != criterion ) {
         throw std::runtime_error(
             std::string("Expecting '") + criterion + "' at " + source.at() + "."
         );
+    }
+
+    // Skip trailing whitespace
+    if( skip_ws & SkipWhitespace::kTrailing ) {
+        skip_while( source, isspace );
     }
 }
 
@@ -263,16 +368,31 @@ inline void affirm_char_or_throw(
  * If not, the function throws `std::runtime_error`. The stream is not advanced (i.e., it stays at
  * its current position). For a similar function that reads (i.e., also advances) the current char
  * from the stream, see read_char_or_throw().
+ *
+ * Using the parameter `skip_ws`, it is possible to skip leading and/or trailing whitespaces
+ * before/after treating the `criterion` char. See ::SkipWhitespace for more information.
  */
 template< typename InputStream >
 inline void affirm_char_or_throw(
     InputStream&               source,
-    std::function<bool (char)> criterion
+    std::function<bool (char)> criterion,
+    SkipWhitespace skip_ws = SkipWhitespace::kNone
 ) {
+    // Skip leading whitespace
+    if( skip_ws & SkipWhitespace::kLeading ) {
+        skip_while( source, isspace );
+    }
+
+    // Check char.
     if( !source || ! criterion( *source )) {
         throw std::runtime_error(
             "Unexpected char at " + source.at() + "."
         );
+    }
+
+    // Skip trailing whitespace
+    if( skip_ws & SkipWhitespace::kTrailing ) {
+        skip_while( source, isspace );
     }
 }
 
