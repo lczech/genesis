@@ -49,12 +49,13 @@ namespace utils {
  * This helper enum is used in the input stream scanner functions read_char_or_throw() and
  * affirm_char_or_throw() in order to indicate how they treat whitespace while looking for chars.
  *
- * For checking whether a partcular option is set, use the binary and operator `&`:
+ * For checking whether a partcular option is set, it is possible to use the binary and operator `&`:
  *
  *     if( option & SkipWhitespace::kTrailing ) {
  *         // ...
  *     }
- * %
+ *
+ * Of course, simply comparing the values also works.
  */
 enum class SkipWhitespace : unsigned char
 {
