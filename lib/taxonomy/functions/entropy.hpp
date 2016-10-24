@@ -46,34 +46,178 @@ class Taxon;
 class Taxonomy;
 
 // =================================================================================================
-//     Entropy Functions
+//     Prune Settings
 // =================================================================================================
+
+/**
+ * @brief Store settings for the Taxonomy pruning algorithm prune_by_entropy().
+ */
+struct PruneByEntropySettings
+{
+    /**
+     * @brief Minimal size of a sub-taxonomy of the pruned Taxonomy. Default is 0.
+     *
+     * If the optional parameter `min_subtaxonomy_size` is set to a value > 0, the algorithm
+     * prevents sub-taxonomies from becoming smaller than this threshold. Instead of pruning at
+     * such a small sub-taxonomy, it is fully expanded. This avoids ending up with overly many small
+     * sub-taxonomies with just a few leaf taxa inside them.
+     */
+    size_t    min_subtaxonomy_size = 0;
+
+    /**
+     * @brief Maximal size of a sub-taxonomy of the pruned Taxonomy. Default is 0.
+     *
+     * If the optional parameter `max_subtaxonomy_size` is set to a value > 0, an additional
+     * preprocessing step is executed, which ensures that in the resulting pruned Taxonomy, no Taxon
+     * has more than this size many leaf Taxa. This is useful if the pruned Taxonomy is used for
+     * some multilevel algorithms, which first take the pruned "overview" Taxonomy, and then might
+     * recurse into the smaller "sub" Taxonomies. In such cases, those sub taxonomies might need to
+     * not exceed a certain size, thus this option.
+     */
+    size_t    max_subtaxonomy_size = 0;
+
+    /**
+     * @brief Allow some approximation in order to get closer to the target pruning size.
+     *
+     * If the optional parameter `allow_approximation` (default is `false`) is set to `true`,
+     * we also allow to split up a border Taxon that has not the currently highest entropy of all
+     * border Taxa, as long as this brings us closer to the target size.
+     */
+    bool      allow_approximation  = false;
+};
 
 // =================================================================================================
 //     Prune Functions
 // =================================================================================================
 
-void prune_by_entropy_with_target_size(
-    Taxonomy& taxonomy,
-    size_t    target_taxonomy_size,
-    size_t    max_subtaxonomy_size = 0,
-    size_t    min_subtaxonomy_size = 0,
-    bool      allow_approximation  = false
+/**
+ * @brief Prune a Taxonomy so that the result (approximately) contains a desired number of "leaf"
+ * @link Taxon Taxa@endlink, using the entropy of the Taxa as indicator where to prune.
+ *
+ * The function takes a Taxonomy with data type EntropyTaxonData and a target size which indicates
+ * the desired number of "leaf" Taxa after pruning the Taxonomy. In the pruned Taxonomy, some Taxa
+ * are considered as belonging to the Taxonomy (have status EntropyTaxonData::PruneStatus::kInside
+ * or EntropyTaxonData::PruneStatus::kBorder), while others (deeper in the Taxonomy) are excluded
+ * (have status EntropyTaxonData::PruneStatus::kOutside). The number of border taxa (or "leaves")
+ * of the included Taxa then is aimed to be as close as possible to the target size.
+ *
+ * That means, this function sets the @link EntropyTaxonData::status status@endlink of the
+ * @link Taxon Taxa@endlink, but does not remove any Taxa. All Taxa with status
+ * EntropyTaxonData::PruneStatus::kOutside are then considered to be pruned from the taxonomy.
+ *
+ * Example: The Taxonomy
+ *
+ *     Tax_1
+ *         Tax_2
+ *             Tax_3
+ *             Tax_4
+ *         Tax_5
+ *             Tax_6
+ *     Tax_7
+ *         Tax_8
+ *         Tax_9
+ *
+ * contains 5 "leaf" taxa, i.e., `Tax_3`, `Tax_4`, `Tax_6`, `Tax_8` and `Tax_9`. If we want to
+ * prune it with a target size of 3, we might end up with either
+ *
+ *     Tax_1
+ *         Tax_2
+ *         Tax_5
+ *     Tax_7
+ *
+ * or
+ *
+ *     Tax_1
+ *     Tax_7
+ *         Tax_8
+ *         Tax_9
+ *
+ * as both contain 3 "leaves": `Tax_2`, `Tax_5` and `Tax_7` in the former case and `Tax_1`, `Tax_8`
+ * and `Tax_9` in the latter. Which of those two is used depends on the entropies of the Taxa.
+ *
+ * In the former case, `Tax_1` is considered inside, `Tax_2`, `Tax_5` and `Tax_7` are border, and
+ * all other taxa are outside of the pruned Taxonomy. In the latter case, `Tax_7` is inside,
+ * `Tax_1`, `Tax_8` and `Tax_9` are border, and again all others are outside.
+ *
+ * It is not always possible to prune a Taxonomy in a way the we exaclty hit the target size. The
+ * function then ends at a number of border Taxa that is closest (either below or above the target
+ * size).
+ *
+ * In order to decide which Taxa to set to inside (i.e., not include as leaves, but further resolve
+ * into their children), we use the entropies of the Taxa: We choose to split up at a current border
+ * Taxon with the highest entropy value, as long as this brings us closer to the target size.
+ *
+ * This means that the above case where we had two possible ways of splitting should be rare, as
+ * the entropies will rarely be identical with real world data sets. If this happens nonetheless,
+ * it is random which of the Taxa with equal entropy will be used.
+ *
+ * In order to control further settings, see PruneByEntropySettings.
+ */
+void prune_by_entropy(
+    Taxonomy&              taxonomy,
+    size_t                 target_taxonomy_size,
+    PruneByEntropySettings settings = {}
 );
 
+/**
+ * @brief Expand the leaves of a pruned Taxonomy if their sub-taxonomies are smaller than the
+ * given threshold.
+ *
+ * This function takes a Taxonomy with EntropyTaxonData on its @link Taxon Taxa@endlink and
+ * looks for taxa with status @link EntropyTaxonData::PruneStatus::kBorder kBorder@endlink
+ * which have fewer than the threshold many leaves. If so, this sub-taxonomy is expaneded.
+ * This is, it is turned into taxa with status
+ * @link EntropyTaxonData::PruneStatus::kInside kInside@endlink for inner taxa and
+ * @link EntropyTaxonData::PruneStatus::kBorder kBorder@endlink for leaf taxa.
+ */
 void expand_small_subtaxonomies(
     Taxonomy& taxonomy,
     size_t    min_subtaxonomy_size
 );
 
+/**
+ * @brief Return the number of @link Taxon Taxa@endlink that have a certain
+ * @link EntropyTaxonData::PruneStatus prune status@endlink.
+ */
 size_t count_taxa_with_prune_status(
     Taxonomy const&               taxonomy,
     EntropyTaxonData::PruneStatus status
 );
 
+/**
+ * @brief Remove the children of all @link Taxon Taxa@endlink that are pruned, i.e, that have
+ * @link EntropyTaxonData::PruneStatus prune status@endlink `==`
+ * @link EntropyTaxonData::PruneStatus::kOutside kOutside@endlink.
+ *
+ * The function does not validate the status before. Use validate_pruned_taxonomy() if you are
+ * unsure whether the status is correct for all Taxa.
+ */
 void remove_pruned_taxonomy_children( Taxonomy& taxonomy );
 
+/**
+ * @brief Print a Taxonomy, highlighting those @link Taxon Taxa@endlink that are the pruning border,
+ * i.e., where we cut off the sub-taxa, and print their entropies next to them.
+ */
 std::string print_pruned_taxonomy(    Taxonomy const& taxonomy );
+
+/**
+ * @brief Validate that the pruning status of a Taxonomy is valid.
+ *
+ * This function expects the @link Taxon Taxa@endlink of the Taxonomy to have data type
+ * EntropyTaxonData. It then checks whether the pruning states are all correctly set.
+ *
+ * That means:
+ *
+ *   * Taxa with status @link EntropyTaxonData::PruneStatus::kInside kInside@endlink can only have
+ *     children of the same status or of @link EntropyTaxonData::PruneStatus::kBorder kBorder@endlink.
+ *   * Taxa with status @link EntropyTaxonData::PruneStatus::kBorder kBorder@endlink can only have
+ *     children of status @link EntropyTaxonData::PruneStatus::kOutside kOutside@endlink.
+ *   * Taxa with status @link EntropyTaxonData::PruneStatus::kOutside kOutside@endlink can only have
+ *     children of the same status.
+ *
+ * If any of those conditions is not met, an information about the faulty Taxon is written to
+ * LOG_INFO, and the function returns `false`.
+ */
 bool        validate_pruned_taxonomy( Taxonomy const& taxonomy );
 
 } // namespace taxonomy
