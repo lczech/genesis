@@ -29,6 +29,8 @@
  */
 
 #include "utils/io/parser.hpp"
+#include "utils/io/scanner.hpp"
+#include "utils/text/char.hpp"
 #include "utils/text/string.hpp"
 
 #include <assert.h>
@@ -40,34 +42,43 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     General Number String
+// =================================================================================================
+
+std::string parse_number_string(
+    utils::InputStream& source
+) {
+    // Parse the format [+-][123][.456][eE[+-]789]
+    std::string result;
+    auto& it = source;
+
+    if( it && char_is_sign( *it )) {
+        result += *it;
+        ++it;
+    }
+    result += read_while( source, char_is_digit );
+    if( it && *it == '.' ) {
+        result += '.';
+        ++it;
+    }
+    result += read_while( source, char_is_digit );
+    if( it && char_match_ci( *it, 'e' ) ) {
+        result += *it;
+        ++it;
+    }
+    if( it && char_is_sign( *it )) {
+        result += *it;
+        ++it;
+    }
+    result += read_while( source, char_is_digit );
+
+    return result;
+}
+
+// =================================================================================================
 //     String
 // =================================================================================================
 
-/**
- * @brief Read a string in quotation marks from a stream and return it.
- *
- * The first char of the stream is considered to be the opening quotation mark. Everything up until
- * the closing quotation mark (the same char again, whatever it is) is then read. The stream is
- * then pointing to the char right after the closing quotation mark.
- *
- * If the string ends prematurely, i.e., without the closing quotation mark, or right after a
- * backslash if `use_escapes` is used, the function throws an `std::runtime_error`.
- *
- * @param source Stream to read from.
- *
- * @param use_escapes If this optional parameter is set to `true`, chars preceeded by
- *        a backslash `\` are considered to be "escaped". If the char following the backslash is any
- *        of `r`, `n` or `t`, it is turned into its respective white space equivalent, while all
- *        other chars are copied verbatim to the return string. Thus, by escaping it, a the string
- *        can also include the quotation mark itself. Default of this parameter is `true`.
- *
- * @param use_twin_quotes If this optional parameter is set to `true`, the quotation mark itself
- *        can be escaped using two consecutive quotation marks. This works in addition to escaping
- *        it with a backslash (when `use_escapes` is used).
- *
- * @param include_qmarks The optional parameter `include_qmarks` demtermines whether the quotation
- *        marks are included in the output or not. Default is `false`.
- */
 std::string parse_quoted_string(
     utils::InputStream& source,
     bool use_escapes,
