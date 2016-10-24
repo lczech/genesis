@@ -44,6 +44,7 @@
 #include "utils/io/input_stream.hpp"
 #include "utils/io/parser.hpp"
 #include "utils/io/scanner.hpp"
+#include "utils/text/char.hpp"
 #include "utils/text/string.hpp"
 
 #include <algorithm>
@@ -81,19 +82,15 @@ void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
     }
 
     // Find beginning of json document.
-    skip_while( it, isspace );
-    read_char_or_throw( it, '{' );
+    read_char_or_throw( it, '{', SkipWhitespace::kLeading );
 
     // Read all elemetns of the document.
     do {
 
         // Get key of the json element.
-        skip_while( it, isspace );
-        affirm_char_or_throw( it, '"' );
-        std::string key = parse_quoted_string( it );
-        skip_while( it, isspace );
-        read_char_or_throw( it, ':' );
-        skip_while( it, isspace );
+        affirm_char_or_throw( it, '"', SkipWhitespace::kLeading );
+        std::string key = utils::to_lower_ascii( parse_quoted_string( it ));
+        read_char_or_throw( it, ':', SkipWhitespace::kSurrounding );
 
         if( key == "version" ) {
             /* code */
@@ -268,12 +265,14 @@ std::unordered_map<std::string, std::string> JplaceReader::parse_metadata(
 //     Parse Tree
 // =================================================================================================
 
-void JplaceReader::parse_tree( utils::InputStream& input_stream ) const
+std::string JplaceReader::parse_tree( utils::InputStream& input_stream ) const
 {
     using namespace utils;
     auto& it = input_stream;
 
-    auto tree_string = parse_quoted_string( it );
+    skip_while( it, isspace );
+    affirm_char_or_throw( it, '"' );
+    return parse_quoted_string( it );
 }
 
 // =================================================================================================
@@ -299,7 +298,7 @@ std::vector<std::string> JplaceReader::parse_fields( utils::InputStream& input_s
 
         // Get key of the field.
         affirm_char_or_throw( it, '"' );
-        std::string field = parse_quoted_string( it );
+        std::string field = utils::to_lower_ascii( parse_quoted_string( it ));
         fields.push_back( field );
 
         // Go to next element.
@@ -336,8 +335,8 @@ std::vector<std::string> JplaceReader::parse_fields( utils::InputStream& input_s
 
         } else {
 
-            LOG_WARN << "Jplace document contains a field name '" << field << "' "
-                     << "at key 'fields', which is not used by this parser and thus ignored.";
+            LOG_WARN << "Jplace document contains unknown field name '" << field << "' "
+                     << "at key 'fields', which is not used and thus ignored.";
         }
 
         has_edge_num        |= (field == "edge_num");
@@ -375,42 +374,110 @@ std::vector<JplaceReader::PqueryData> JplaceReader::parse_pqueries(
     // We only want to warn about wrong fields once (if they occur at all).
     bool warned_wrong_fields = false;
 
-    // Go into the fields field.
-    skip_while( it, isspace );
-    read_char_or_throw( it, '[' );
-    skip_while( it, isspace );
+    // Go into the placements.
+    read_char_or_throw( it, '[', SkipWhitespace::kLeading );
 
-    while( it && *it == '{' ) {
+    while( it ) {
+        // Check whether there is another pquery. If not, leave the loop.
+        skip_while( it, isspace );
+        if( ! it || *it != '{' ) {
+            break;
+        }
         ++it;
-        skip_while( it, isspace );
 
-        // Get key.
-        affirm_char_or_throw( it, '"' );
-        std::string field = utils::to_lower_ascii( parse_quoted_string( it ));
-        skip_while( it, isspace );
-        read_char_or_throw( it, ':' );
-        skip_while( it, isspace );
+        // Create a new pquery data object.
+        auto pquery = PqueryData();
 
-        if( field == "p" ) {
-            /* code */
-        } else if( field == "n" ) {
-            /* code */
-        } else if( field == "nm" ) {
-            /* code */
-        } else {
-            if( ! warned_wrong_fields ) {
-                LOG_WARN << "Unknown placement key '" << field << "' near " << it.at()
-                         << ". Ignoring this. Will not report any other wrong fields.";
-                warned_wrong_fields = true;
+        // Flags for which pquery elements we have found.
+        bool found_p  = false;
+        bool found_n  = false;
+        bool found_nm = false;
+
+        // Get all elements of the pquery.
+        while( it ) {
+
+            // Check whether we are at the beginning of a key.
+            skip_while( it, isspace );
+            if( ! it || *it != '\"' ) {
+                break;
+            }
+
+            // Get key.
+            std::string field = utils::to_lower_ascii( parse_quoted_string( it ));
+            read_char_or_throw( it, ':', SkipWhitespace::kLeading );
+
+            // Parse the value, depending on key.
+            if( field == "p" ) {
+                if( found_p ) {
+                    throw std::runtime_error(
+                        "Found placement key 'p' twice near " + it.at() + ", which is not valid."
+                    );
+                }
+                found_p = true;
+                pquery.placements = parse_placements( it );
+
+            } else if( field == "n" ) {
+                if( found_n ) {
+                    throw std::runtime_error(
+                        "Found placement key 'n' twice near " + it.at() + ", which is not valid."
+                    );
+                }
+                found_n = true;
+                pquery.names = parse_names( it );
+
+            } else if( field == "nm" ) {
+                if( found_nm ) {
+                    throw std::runtime_error(
+                        "Found placement key 'nm' twice near " + it.at() + ", which is not valid."
+                    );
+                }
+                found_nm = true;
+                pquery.names = parse_named_multiplicities( it );
+
+            } else {
+                if( ! warned_wrong_fields ) {
+                    LOG_WARN << "Unknown placement key '" << field << "' near " << it.at()
+                             << ". Ignoring this. Will not report any other wrong fields.";
+                    warned_wrong_fields = true;
+                }
+            }
+
+            // Move to next element by reading the comma.
+            skip_while( it, isspace );
+            if( it && *it == ',' ) {
+                ++it;
             }
         }
 
+        // Sanity checks.
+        if( ! found_p ) {
+            throw std::runtime_error(
+                "Pquery does not contain key 'p' near " + it.at() + "."
+            );
+        }
+        if( ! found_n && ! found_nm ) {
+            throw std::runtime_error(
+                "Pquery does neither contain key 'n' or 'nm' near " + it.at() + "."
+            );
+        }
+        if( found_n && found_nm ) {
+            throw std::runtime_error(
+                "Pquery contains both keys 'n' and 'nm' near " + it.at() + ", which is not valid."
+            );
+        }
+
+        ret.push_back( std::move( pquery ) );
+
+        read_char_or_throw( it, '}', SkipWhitespace::kLeading );
+
+        // Move to next pquery by reading the comma.
+        skip_while( it, isspace );
+        if( it && *it == ',' ) {
+            ++it;
+        }
     }
 
-    skip_while( it, isspace );
     read_char_or_throw( it, ']' );
-
-
     return ret;
 }
 
@@ -426,10 +493,65 @@ std::vector<JplaceReader::PlacementData> JplaceReader::parse_placements(
     auto ret = std::vector<PlacementData>();
     auto& it = input_stream;
 
-    skip_while( it, isspace );
-    read_char_or_throw( it, '[' );
-    skip_while( it, isspace );
+    // Go into the placements and loop over them.
+    read_char_or_throw( it, '[', SkipWhitespace::kLeading );
+    while( it ) {
+        // Check whether we are at the beginning of a placement.
+        skip_while( it, isspace );
+        if( ! it || *it != '[' ) {
+            break;
+        }
+        ++it;
 
+        // Loop over the fields of one placement.
+        PlacementData placement;
+        while( it ) {
+            skip_while( it, isspace );
+            if( ! it ) {
+                break;
+            }
+
+            // We only allow chars that are valid json values, i.e., numbers and strings.
+            affirm_char_or_throw( it, [] ( char c ){
+                return char_is_number_part(c) || isalpha(c) || c == '\"';
+            });
+
+            // Read the field into a string. We accept everything, either a string in quotes,
+            // or anything else (which might be invalid json, but this will be decided later
+            // when parsing those fields into the actual sample). This way, we allow for unknown
+            // fields for a placement, which will simply be ignored later.
+            if( *it == '\"' ) {
+                placement.fields.push_back( parse_quoted_string( it ));
+
+            } else {
+                placement.fields.push_back( read_until( it, [] ( char c ) {
+                    return isspace(c) || c == ',';
+                }));
+            }
+
+            // Move to next placement field by reading the comma.
+            skip_while( it, isspace );
+            if( ! it ) {
+                break;
+            }
+            if( *it == ',' ) {
+                ++it;
+            } else {
+                break;
+            }
+        }
+        ret.push_back( std::move( placement ));
+
+        read_char_or_throw( it, ']', SkipWhitespace::kLeading );
+
+        // Move to next placement by reading the comma.
+        skip_while( it, isspace );
+        if( it && *it == ',' ) {
+            ++it;
+        }
+    }
+
+    read_char_or_throw( it, ']' );
     return ret;
 }
 

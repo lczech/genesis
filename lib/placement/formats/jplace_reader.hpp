@@ -197,7 +197,7 @@ private:
         utils::InputStream& input_stream
     ) const;
 
-    void parse_tree( utils::InputStream& input_stream ) const;
+    std::string parse_tree( utils::InputStream& input_stream ) const;
 
     std::vector<std::string> parse_fields( utils::InputStream& input_stream ) const;
 
