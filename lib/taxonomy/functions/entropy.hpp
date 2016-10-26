@@ -57,33 +57,49 @@ struct PruneByEntropySettings
     /**
      * @brief Minimal size of a sub-taxonomy of the pruned Taxonomy. Default is 0.
      *
-     * If the optional parameter `min_subtaxonomy_size` is set to a value > 0, the algorithm
+     * If the parameter `min_subtaxonomy_size` is set to a value > 0, the algorithm
      * prevents sub-taxonomies from becoming smaller than this threshold. Instead of pruning at
      * such a small sub-taxonomy, it is fully expanded. This avoids ending up with overly many small
      * sub-taxonomies with just a few leaf taxa inside them.
      */
-    size_t    min_subtaxonomy_size = 0;
+    size_t min_subtaxonomy_size = 0;
 
     /**
      * @brief Maximal size of a sub-taxonomy of the pruned Taxonomy. Default is 0.
      *
-     * If the optional parameter `max_subtaxonomy_size` is set to a value > 0, an additional
+     * If the parameter `max_subtaxonomy_size` is set to a value > 0, an additional
      * preprocessing step is executed, which ensures that in the resulting pruned Taxonomy, no Taxon
      * has more than this size many leaf Taxa. This is useful if the pruned Taxonomy is used for
      * some multilevel algorithms, which first take the pruned "overview" Taxonomy, and then might
      * recurse into the smaller "sub" Taxonomies. In such cases, those sub taxonomies might need to
      * not exceed a certain size, thus this option.
      */
-    size_t    max_subtaxonomy_size = 0;
+    size_t max_subtaxonomy_size = 0;
+
+    /**
+     * @brief Minimum level of the Taxa that are considered inside for pruning. Default is 0.
+     *
+     * If this paramter is set to a value > 0, all @link Taxon Taxa@endlink with a level lower than
+     * the given value are automatically considered to be inside the pruned taxonomy. In other words,
+     * any Taxon up to (and including) the given level in the Taxonomy will be included after
+     * pruning. Only Taxa with higher levels can be pruned then, i.e., receive pruning status
+     * `outside`. Taxa with exaclty the level can either be `inside` or `border`.
+     *
+     * This option is useful to ensure that the low levels (high ranks) of the Taxonomy are
+     * always included after pruning. Otherwise, it might happen that the pruning algorithm prunes
+     * away whole sub-taxonomies that somehow have a low total entropy, but still should not
+     * be simply pruned away.
+     */
+    size_t min_border_level = 0;
 
     /**
      * @brief Allow some approximation in order to get closer to the target pruning size.
      *
-     * If the optional parameter `allow_approximation` (default is `false`) is set to `true`,
+     * If the parameter `allow_approximation` (default is `false`) is set to `true`,
      * we also allow to split up a border Taxon that has not the currently highest entropy of all
      * border Taxa, as long as this brings us closer to the target size.
      */
-    bool      allow_approximation  = false;
+    bool   allow_approximation  = false;
 };
 
 // =================================================================================================

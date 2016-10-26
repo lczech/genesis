@@ -33,6 +33,7 @@
 #include "taxonomy/formats/taxopath_generator.hpp"
 #include "taxonomy/functions/taxonomy.hpp"
 #include "taxonomy/iterator/preorder.hpp"
+#include "taxonomy/iterator/levelorder.hpp"
 #include "taxonomy/taxon.hpp"
 #include "taxonomy/taxonomy.hpp"
 
@@ -149,6 +150,27 @@ void prune_by_entropy(
         }
     };
 
+    // If we want to have a certain minimum level of the taxonomy fully inside the final taxonomy,
+    // do this before we start with the actual pruning algorithm.
+    if( settings.min_border_level > 0 ) {
+        auto include_min_level_taxa = [&] ( Taxon& taxon ) {
+            if( taxon_level( taxon ) < settings.min_border_level ) {
+                taxon.data<EntropyTaxonData>().status = EntropyTaxonData::PruneStatus::kInside;
+            } else if( taxon_level( taxon ) == settings.min_border_level ) {
+                add_as_border( taxon );
+            }
+        };
+
+        levelorder_for_each( taxonomy, include_min_level_taxa );
+    }
+
+    // LOG_DBG << "after min border level. num cands " << border_candidates.size();
+    // LOG_DBG1 << "valid " << ( validate_pruned_taxonomy( taxonomy ) ? "1" : "nooooooooooooooo" );
+    // for( auto const& elem : border_candidates ) {
+    //     LOG_DBG1 << "H\t" << elem.first << "\tname\t" << TaxopathGenerator()( *elem.second ) << "\tlevel\t"
+    //              << taxon_level( *elem.second ) << "\tchildren\t" << taxa_count_lowest_levels( *elem.second  );
+    // }
+
     // If we want to avoid taxa that are too big, do this in a preprocessing step and only
     // after this start the actual entropy pruning phase.
     if( settings.max_subtaxonomy_size > 0 ) {
@@ -161,24 +183,33 @@ void prune_by_entropy(
             if(
                 taxa_count_lowest_levels( taxon ) > settings.max_subtaxonomy_size
                 || taxon.size() == 1
+                || taxon.data<EntropyTaxonData>().status == EntropyTaxonData::PruneStatus::kInside
             ) {
                 // If the taxon has too many leaves, make it an inside taxon and recurse this
                 // function on its children (until they are all small enough).
                 // Also, if it has exactly one child, do this - for the resons explained in
                 // add_children_to_border().
+                // Furthermore, if it already is an inside taxon (from the min border level init),
+                // we want to keep it this way, so we simply recurse.
 
                 taxon.data<EntropyTaxonData>().status = EntropyTaxonData::PruneStatus::kInside;
                 for( auto& child : taxon ) {
                     resolve_big_subtaxa( child );
                 }
 
-            } else {
+            } else if(
+                taxon.data<EntropyTaxonData>().status == EntropyTaxonData::PruneStatus::kOutside
+            ) {
                 // If the taxon is small enough, do not recurse.
                 // Instead, add the taxon as a border candidate.
                 // We do not want to change the state of their children then - thus, those stay
                 // outside for the moment. Later, the entropy pruning phase can then start from there.
 
                 add_as_border( taxon );
+            } else {
+                // The only case that is not treated so far is a taxon that is already border,
+                // but is smaller than the max subtax size, so we do not need to do anything, as
+                // this taxon is already properly in the list.
             }
         };
 
@@ -186,9 +217,18 @@ void prune_by_entropy(
         for( auto& taxon : taxonomy ) {
             resolve_big_subtaxa( taxon );
         }
+    }
 
-    } else {
+    // LOG_DBG << "after max subtax size. num cands " << border_candidates.size();
+    // LOG_DBG1 << "valid " << ( validate_pruned_taxonomy( taxonomy ) ? "1" : "nooooooooooooooo" );
+    // for( auto const& elem : border_candidates ) {
+    //     LOG_DBG1 << "H\t" << elem.first << "\tname\t" << TaxopathGenerator()( *elem.second ) << "\tlevel\t"
+    //              << taxon_level( *elem.second ) << "\tchildren\t" << taxa_count_lowest_levels( *elem.second  );
+    // }
 
+    // If we use neither of the min border level or max subtax size settings, we need
+    // to init the border front with just the first level of the taxonomy.
+    if( settings.min_border_level == 0 && settings.max_subtaxonomy_size == 0 ) {
         // Init with first level.
         add_children_to_border( taxonomy );
     }
@@ -245,6 +285,15 @@ void prune_by_entropy(
     //     auto cur_front = *border_candidates.rbegin();
     //     LOG_DBG << "entropy end: " << cur_front.first;
     // }
+
+    // Output the rest of the candidates, for debugging.
+    // LOG_DBG << "end of function. num candidates " << border_candidates.size();
+    // LOG_DBG1 << "valid " << ( validate_pruned_taxonomy( taxonomy ) ? "1" : "nooooooooooooooo" );
+    // for( auto const& elem : border_candidates ) {
+    //     LOG_DBG1 << "H\t" << elem.first << "\tname\t" << TaxopathGenerator()( *elem.second ) << "\tlevel\t"
+    //              << taxon_level( *elem.second ) << "\tchildren\t" << taxa_count_lowest_levels( *elem.second  );
+    // }
+    // LOG_DBG << "out";
 }
 
 // =================================================================================================
@@ -349,7 +398,7 @@ bool validate_pruned_taxonomy( Taxonomy const& taxonomy )
             return;
         }
 
-        // Store the status of the current child. We'll move up the taoxnomic hierarchy and check
+        // Store the status of the current child. We'll move up the taxonomic hierarchy and check
         // whether all parents of this child are conform with the prune status rules.
         auto child_status = taxon.data<EntropyTaxonData>().status;
 
@@ -379,7 +428,10 @@ bool validate_pruned_taxonomy( Taxonomy const& taxonomy )
                 child_status = cur_status;
             } else {
                 auto name = TaxopathGenerator()( taxon );
-                LOG_INFO << "Taxon with wrong pruning status: " << name;
+                LOG_INFO << "Taxon and child with wrong pruning status ("
+                         << EntropyTaxonData::status_abbreviation( cur_status )  << "/"
+                         << EntropyTaxonData::status_abbreviation( child_status ) << "): "
+                         << name;
 
                 correct = false;
                 return;
