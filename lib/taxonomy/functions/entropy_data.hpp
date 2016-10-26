@@ -34,6 +34,8 @@
 #include "taxonomy/taxon_data.hpp"
 #include "sequence/counts.hpp"
 
+#include <string>
+
 namespace genesis {
 namespace taxonomy {
 
@@ -62,6 +64,26 @@ public:
         kBorder,
         kOutside
     };
+
+    static std::string status_text( PruneStatus stat )
+    {
+        switch( stat ) {
+            case PruneStatus::kInside:  return "Inside";
+            case PruneStatus::kBorder:  return "Border";
+            case PruneStatus::kOutside: return "Outside";
+            default:                    return "Unknown";
+        }
+    }
+
+    static std::string status_abbreviation( PruneStatus stat )
+    {
+        switch( stat ) {
+            case PruneStatus::kInside:  return "I";
+            case PruneStatus::kBorder:  return "B";
+            case PruneStatus::kOutside: return "O";
+            default:                    return "U";
+        }
+    }
 
     // -------------------------------------------------------------------
     //     Constructor and Rule of Five
