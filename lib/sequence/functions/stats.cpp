@@ -32,6 +32,7 @@
 
 #include "sequence/functions/functions.hpp"
 #include "sequence/printers/simple.hpp"
+#include "sequence/counts.hpp"
 #include "sequence/sequence_set.hpp"
 #include "sequence/sequence.hpp"
 
@@ -60,15 +61,9 @@ namespace sequence {
 // =================================================================================================
 
 // -------------------------------------------------------------------------
-//     Site Histogram  &  Base Frequencies
+//     Site Histogram
 // -------------------------------------------------------------------------
 
-/**
- * @brief Get a histogram of the occurrences of particular sites, given a Sequence.
- *
- * This gives the raw counts of how often each site (character) appears in the Sequence.
- * See base_frequencies() for the relative version of this function.
- */
 std::map<char, size_t> site_histogram( Sequence const& seq )
 {
     std::map<char, size_t> result;
@@ -77,13 +72,6 @@ std::map<char, size_t> site_histogram( Sequence const& seq )
     }
     return result;
 }
-
-/**
- * @brief Get a histogram of the occurrences of particular sites, given a SequenceSet.
- *
- * This gives the raw counts of how often each site (character) appears in the whole set.
- * See base_frequencies() for the relative version of this function.
- */
 std::map<char, size_t> site_histogram( SequenceSet const& set )
 {
     std::map<char, size_t> result;
@@ -94,6 +82,10 @@ std::map<char, size_t> site_histogram( SequenceSet const& set )
     }
     return result;
 }
+
+// -------------------------------------------------------------------------
+//     Base Frequencies
+// -------------------------------------------------------------------------
 
 /**
  * @brief Local helper function that turns a site histogram into base frequencies.
@@ -122,27 +114,12 @@ std::map<char, double> base_frequencies_accumulator(
     return result;
 }
 
-/**
- * @brief Get the base frequencies of the sites in a Sequence given the base chars.
- *
- * This returns the relative proportions of the given `plain_chars` to each other. Typically,
- * the given chars come from either nucleic_acid_codes_plain() or amino_acid_codes_plain(),
- * depending on the dataset.
- *
- * It is necessary to select those chars on a per-dataset basis, as it is up to the user to define
- * the meaning of those chars.
- */
 std::map<char, double> base_frequencies( Sequence const& seq, std::string const& plain_chars )
 {
     auto const sh = site_histogram( seq );
     return base_frequencies_accumulator( sh, plain_chars );
 }
 
-/**
- * @brief Get the base frequencies of the sites in a SequenceSet given the base chars.
- *
- * See the Sequence implementation of this function for details.
- */
 std::map<char, double> base_frequencies( SequenceSet const& set, std::string const& plain_chars )
 {
     auto const sh = site_histogram( set );
@@ -153,16 +130,6 @@ std::map<char, double> base_frequencies( SequenceSet const& set, std::string con
 //     Char counting and validation
 // -------------------------------------------------------------------------
 
-/**
- * @brief Count the number of occurrences of the given `chars` within the sites of the SequenceSet.
- *
- * This function can be used to count e.g. gaps or ambiguous characters in sequences.
- * For presettings of usable chars, see the functions `nucleic_acid_codes_...` and
- * `amino_acid_codes_...`. The chars are treated case-insensitive.
- *
- * If `chars` contains invalid (non-standard ASCII) characters, an `std::invalid_argument`
- * exception is thrown.
- */
 size_t count_chars( SequenceSet const& set, std::string const& chars )
 {
     // Init array to false, then set all necessary chars to true.
@@ -185,17 +152,10 @@ size_t count_chars( SequenceSet const& set, std::string const& chars )
     return counter;
 }
 
-/**
- * @brief Return the "gapyness" of the Sequence%s, i.e., the proportion of gap chars
- * and other completely undetermined chars to the total length of all sequences.
- *
- * This function returns a value in the interval 0.0 (no gaps and undetermined chars at all)
- * and 1.0 (all chars are undetermined).
- * See `nucleic_acid_codes_undetermined()` and `amino_acid_codes_undetermined()` for presettings
- * of gap character that can be used here depending on the data set type.
- * The chars are treated case-insensitive.
- * In the special case that there are no sequences or sites, 0.0 is returned.
- */
+// -------------------------------------------------------------------------
+//     Gap Counting
+// -------------------------------------------------------------------------
+
 double gapyness( SequenceSet const& set, std::string const& gap_chars )
 {
     size_t gaps = count_chars( set, gap_chars );
@@ -207,6 +167,23 @@ double gapyness( SequenceSet const& set, std::string const& gap_chars )
     double ret = static_cast<double>( gaps ) / static_cast<double>( len );
     assert( 0.0 <= ret && ret <= 1.0 );
     return ret;
+}
+
+size_t gap_site_count( SequenceCounts const& counts )
+{
+    size_t res = 0;
+    for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
+        bool all_gap_site = true;
+
+        for( size_t char_idx = 0; char_idx < counts.characters().size(); ++char_idx ) {
+            all_gap_site &= ( counts.count_at( site_idx, char_idx ) == 0 );
+        }
+
+        if( all_gap_site ) {
+            ++res;
+        }
+    }
+    return res;
 }
 
 } // namespace sequence

@@ -193,12 +193,42 @@ inline bool operator & ( SiteEntropyOptions lhs, SiteEntropyOptions rhs )
     return static_cast< T >( lhs ) & static_cast< T >( rhs );
 }
 
+/**
+ * @brief Calculate the entropy at one site of a SequenceCounts object.
+ *
+ * The entropy \f$ H \f$ (uncertainty) at site \f$ i \f$ (= `site_idx`) is calculated as
+ * \f$ H_{i}=-\sum f_{{c,i}}\times \log _{2}f_{{c,i}} \f$, where
+ * \f$ f_{c,i} \f$ is the relative frequency of character \f$ c \f$ at site \f$ i \f$, summed
+ * over all characters in the SequenceCounts object.
+ *
+ * The function additionally takes optional flags to refine the calculation, see
+ * ::SiteEntropyOptions for their explanation.
+ */
 double site_entropy(
     SequenceCounts const& counts,
     size_t                site_index,
     SiteEntropyOptions    options = SiteEntropyOptions::kDefault
 );
 
+/**
+ * @brief Calculate the information content at one site of a SequenceCounts object.
+ *
+ * The information content \f$ R \f$ at site \f$ i \f$ (= `site_index`) is calculated as
+ * \f$ R_{i} = \log_{2}( s ) - (H_{i}+e_{n}) \f$.
+ *
+ * Here, \f$ s \f$ is the number of possible characters in the sequences
+ * (usually, 4 for nucleic acids and 20 for amino acids), which is taken from the
+ * @link SequenceCounts::characters() characters()@endlink used in the SequenceCounts object.
+ * Furthermore, \f$ H_{i} \f$ is the site_entropy() at the given site.
+ *
+ * The optional term \f$ e_{n} \f$ is the small-sample correction, calculated as
+ * \f$ e_{n}={\frac{1}{\ln {2}}}\times {\frac{s-1}{2n}} \f$, with \f$ n \f$ being the
+ * @link SequenceCounts::added_sequences_count() number of sequences@endlink. It is only used if
+ * `use_small_sample_correction` is set to `true` (default is `false`).
+ *
+ * The function additionally takes optional flags to refine the site entropy calculation,
+ * see ::SiteEntropyOptions for their explanation.
+ */
 double site_information(
     SequenceCounts const& counts,
     size_t                site_index,
@@ -206,11 +236,35 @@ double site_information(
     SiteEntropyOptions    options = SiteEntropyOptions::kDefault
 );
 
+/**
+ * @brief Return the sum of all site entropies.
+ *
+ * This function simply sums up up the site_entropy() for all sites of the SequenceCount object.
+ * The function additionally takes optional flags to refine the site entropy calculation,
+ * see ::SiteEntropyOptions for their explanation.
+ */
 double absolute_entropy(
     SequenceCounts const& counts,
     SiteEntropyOptions    per_site_options = SiteEntropyOptions::kDefault
 );
 
+/**
+ * @brief Return the averaged sum of all site entropies.
+ *
+ * This function sums up up the site_entropy() for all sites of the SequenceCount object and
+ * returns the average result per site.
+ *
+ * If `only_determined_sites` is `false` (default), the average is calculated using the total
+ * number of sites, that is, it simply calculates the average entropy per site.
+ *
+ * If `only_determined_sites` is `true`, the average is calculated using the number of determined
+ * sites only; that is, sites that only contain zeroes in all counts are skipped.
+ * Those sites do not contribute entropy anyway. Thus, it calcuates the average entropy per
+ * determiend site.
+ *
+ * The function additionally takes optional flags to refine the site entropy calculation,
+ * see ::SiteEntropyOptions for their explanation.
+ */
 double averaged_entropy(
     SequenceCounts const& counts,
     bool                  only_determined_sites = false,
