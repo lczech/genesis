@@ -213,9 +213,9 @@ void Tree::swap( Tree& other )
  * for reading trees from files.
  */
 void Tree::import_content (
-    LinkContainer& links,
-    NodeContainer& nodes,
-    EdgeContainer& edges
+    LinkContainerType& links,
+    NodeContainerType& nodes,
+    EdgeContainerType& edges
 ) {
     using std::swap;
 
@@ -233,9 +233,9 @@ void Tree::import_content (
  * to tree elements.
  */
 // void Tree::export_content (
-//     LinkContainer& links,
-//     NodeContainer& nodes,
-//     EdgeContainer& edges
+//     LinkContainerType& links,
+//     NodeContainerType& nodes,
+//     EdgeContainerType& edges
 // ) {
 //     links = links_;
 //     nodes = nodes_;

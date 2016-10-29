@@ -98,11 +98,22 @@ public:
      * TreeEdge%s.
      */
     template< class T >
-    using ContainerType = std::vector< std::unique_ptr< T >>;
+    using ContainerType      = std::vector< std::unique_ptr< T >>;
 
-    using LinkContainer      = ContainerType< TreeLink >;
-    using NodeContainer      = ContainerType< TreeNode >;
-    using EdgeContainer      = ContainerType< TreeEdge >;
+    /**
+     * @brief Alias for the container type that is used to store TreeLink%s.
+     */
+    using LinkContainerType  = ContainerType< TreeLink >;
+
+    /**
+     * @brief Alias for the container type that is used to store TreeNode%s.
+     */
+    using NodeContainerType  = ContainerType< TreeNode >;
+
+    /**
+     * @brief Alias for the container type that is used to store TreeEdge%s.
+     */
+    using EdgeContainerType  = ContainerType< TreeEdge >;
 
     using      IteratorLinks = typename ContainerType< TreeLink >::iterator;
     using ConstIteratorLinks = typename ContainerType< TreeLink >::const_iterator;
@@ -129,8 +140,8 @@ public:
     Tree clone_topology() const;
     void swap( Tree& other );
 
-    void import_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
-    // void export_content (LinkContainer& links, NodeContainer& nodes, EdgeContainer& edges);
+    void import_content (LinkContainerType& links, NodeContainerType& nodes, EdgeContainerType& edges);
+    // void export_content (LinkContainerType& links, NodeContainerType& nodes, EdgeContainerType& edges);
 
     void clear();
 
