@@ -198,7 +198,15 @@ bool identical_topology( Tree const& lhs, Tree const& rhs)
  */
 bool belongs_to( Tree const& tree, TreeNode const& node )
 {
-    return node.index() <= tree.node_count() && &tree.node_at( node.index() ) == &node;
+    return node.index() < tree.node_count() && &tree.node_at( node.index() ) == &node;
+}
+
+/**
+ * @brief Return whether the TreeNode belongs to the Tree, i.e., whether it is owned by the Tree.
+ */
+bool belongs_to( TreeNode const& node, Tree const& tree )
+{
+    return node.index() < tree.node_count() && &tree.node_at( node.index() ) == &node;
 }
 
 /**
@@ -206,7 +214,15 @@ bool belongs_to( Tree const& tree, TreeNode const& node )
  */
 bool belongs_to( Tree const& tree, TreeEdge const& edge )
 {
-    return edge.index() <= tree.edge_count() && &tree.edge_at( edge.index() ) == &edge;
+    return edge.index() < tree.edge_count() && &tree.edge_at( edge.index() ) == &edge;
+}
+
+/**
+ * @brief Return whether the TreeEdge belongs to the Tree, i.e., whether it is owned by the Tree.
+ */
+bool belongs_to( TreeEdge const& edge, Tree const& tree )
+{
+    return edge.index() < tree.edge_count() && &tree.edge_at( edge.index() ) == &edge;
 }
 
 /**
@@ -214,7 +230,15 @@ bool belongs_to( Tree const& tree, TreeEdge const& edge )
  */
 bool belongs_to( Tree const& tree, TreeLink const& link )
 {
-    return link.index() <= tree.link_count() && &tree.link_at( link.index() ) == &link;
+    return link.index() < tree.link_count() && &tree.link_at( link.index() ) == &link;
+}
+
+/**
+ * @brief Return whether the TreeLink belongs to the Tree, i.e., whether it is owned by the Tree.
+ */
+bool belongs_to( TreeLink const& link, Tree const& tree )
+{
+    return link.index() < tree.link_count() && &tree.link_at( link.index() ) == &link;
 }
 
 /**

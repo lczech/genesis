@@ -139,9 +139,12 @@ bool equal(
 
 bool identical_topology( Tree const& lhs, Tree const& rhs);
 
-bool belongs_to( Tree const& tree, TreeNode const& node );
-bool belongs_to( Tree const& tree, TreeEdge const& edge );
-bool belongs_to( Tree const& tree, TreeLink const& link );
+bool belongs_to( Tree     const& tree, TreeNode const& node );
+bool belongs_to( TreeNode const& node, Tree     const& tree );
+bool belongs_to( Tree     const& tree, TreeEdge const& edge );
+bool belongs_to( TreeEdge const& edge, Tree     const& tree );
+bool belongs_to( Tree     const& tree, TreeLink const& link );
+bool belongs_to( TreeLink const& link, Tree     const& tree );
 
 TreeEdge*       edge_between( TreeNode& lhs,       TreeNode& rhs );
 TreeEdge const* edge_between( TreeNode const& lhs, TreeNode const& rhs );
