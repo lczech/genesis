@@ -93,18 +93,25 @@ public:
     //     Typedefs
     // -------------------------------------------------------------------------
 
-    using LinkContainer      = std::vector<std::unique_ptr<TreeLink>>;
-    using NodeContainer      = std::vector<std::unique_ptr<TreeNode>>;
-    using EdgeContainer      = std::vector<std::unique_ptr<TreeEdge>>;
+    /**
+     * @brief Alias for the container type that is used to store TreeLink%s, TreeNode%s and
+     * TreeEdge%s.
+     */
+    template< class T >
+    using ContainerType = std::vector< std::unique_ptr< T >>;
 
-    using      IteratorLinks = typename std::vector<std::unique_ptr<TreeLink>>::iterator;
-    using ConstIteratorLinks = typename std::vector<std::unique_ptr<TreeLink>>::const_iterator;
+    using LinkContainer      = ContainerType< TreeLink >;
+    using NodeContainer      = ContainerType< TreeNode >;
+    using EdgeContainer      = ContainerType< TreeEdge >;
 
-    using      IteratorNodes = typename std::vector<std::unique_ptr<TreeNode>>::iterator;
-    using ConstIteratorNodes = typename std::vector<std::unique_ptr<TreeNode>>::const_iterator;
+    using      IteratorLinks = typename ContainerType< TreeLink >::iterator;
+    using ConstIteratorLinks = typename ContainerType< TreeLink >::const_iterator;
 
-    using      IteratorEdges = typename std::vector<std::unique_ptr<TreeEdge>>::iterator;
-    using ConstIteratorEdges = typename std::vector<std::unique_ptr<TreeEdge>>::const_iterator;
+    using      IteratorNodes = typename ContainerType< TreeNode >::iterator;
+    using ConstIteratorNodes = typename ContainerType< TreeNode >::const_iterator;
+
+    using      IteratorEdges = typename ContainerType< TreeEdge >::iterator;
+    using ConstIteratorEdges = typename ContainerType< TreeEdge >::const_iterator;
 
     // -------------------------------------------------------------------------
     //     Construction and Rule of Five
@@ -151,6 +158,12 @@ public:
     size_t link_count() const;
     size_t node_count() const;
     size_t edge_count() const;
+
+    // -------------------------------------------------------------------------
+    //     Data Accessors
+    // -------------------------------------------------------------------------
+
+
 
     // -------------------------------------------------------------------------
     //     Modifiers
@@ -223,9 +236,9 @@ private:
 
     size_t root_link_index_ = 0;
 
-    std::vector<std::unique_ptr<TreeLink>> links_;
-    std::vector<std::unique_ptr<TreeNode>> nodes_;
-    std::vector<std::unique_ptr<TreeEdge>> edges_;
+    ContainerType< TreeLink > links_;
+    ContainerType< TreeNode > nodes_;
+    ContainerType< TreeEdge > edges_;
 
 };
 
