@@ -200,49 +200,6 @@ void Tree::swap( Tree& other )
 }
 
 /**
- * @brief Imports all elements of a tree.
- *
- * This function overwrites the topology and data of this tree with a given set of links, nodes
- * and edges. Use with care! No checks are done concerning the validity of the passed input.
- *
- * Caveat: Only the pointers to the tree elements are copied, not the elements themselves. Thus,
- * this function is not intended for creating a deep copy. It merely is a fast way to pass pointers
- * to tree elements.
- *
- * Therefore, the main usage of this function is to get a tree from different Tree Reader classes
- * for reading trees from files.
- */
-void Tree::import_content (
-    LinkContainerType& links,
-    NodeContainerType& nodes,
-    EdgeContainerType& edges
-) {
-    using std::swap;
-
-    clear();
-    swap( links_, links );
-    swap( nodes_, nodes );
-    swap( edges_, edges );
-}
-
-/**
- * @brief Exports all elements of a tree.
- *
- * Caveat: Only the pointers to the tree elements are copied, not the elements themselves. Thus,
- * this function is not intended for creating a deep copy. It merely is a fast way to pass pointers
- * to tree elements.
- */
-// void Tree::export_content (
-//     LinkContainerType& links,
-//     NodeContainerType& nodes,
-//     EdgeContainerType& edges
-// ) {
-//     links = links_;
-//     nodes = nodes_;
-//     edges = edges_;
-// }
-
-/**
  * @brief Deletes all data of the tree, including all links, nodes and edges.
  *
  * This functions results in an empty tree.
@@ -401,6 +358,46 @@ size_t Tree::node_count() const
 size_t Tree::edge_count() const
 {
     return edges_.size();
+}
+
+// =================================================================================================
+//     Data Accessors
+// =================================================================================================
+
+/**
+ * @brief Get the container that stores all TreeLink%s of the Tree.
+ *
+ * This function gives direct access to the underlying container for the Links. It is meant to
+ * be used by external functions that need to manupulate the Tree, e.g., for reading or re-rooting
+ * the tree, or for adding elements to it. Use with care!
+ */
+Tree::LinkContainerType& Tree::expose_link_container()
+{
+    return links_;
+}
+
+/**
+ * @brief Get the container that stores all TreeNode%s of the Tree.
+ *
+ * This function gives direct access to the underlying container for the Links. It is meant to
+ * be used by external functions that need to manupulate the Tree, e.g., for reading or re-rooting
+ * the tree, or for adding elements to it. Use with care!
+ */
+Tree::NodeContainerType& Tree::expose_node_container()
+{
+    return nodes_;
+}
+
+/**
+ * @brief Get the container that stores all TreeEdge%s of the Tree.
+ *
+ * This function gives direct access to the underlying container for the Links. It is meant to
+ * be used by external functions that need to manupulate the Tree, e.g., for reading or re-rooting
+ * the tree, or for adding elements to it. Use with care!
+ */
+Tree::EdgeContainerType& Tree::expose_edge_container()
+{
+    return edges_;
 }
 
 // =================================================================================================

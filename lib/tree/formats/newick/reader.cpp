@@ -328,9 +328,11 @@ void NewickReader::finish_reading( NewickBroker const& broker, Tree& tree )
 void NewickReader::broker_to_tree (
     NewickBroker const& broker, Tree& tree
 ) {
-    typename Tree::LinkContainerType links;
-    typename Tree::NodeContainerType nodes;
-    typename Tree::EdgeContainerType edges;
+    tree.clear();
+
+    auto& links = tree.expose_link_container();
+    auto& nodes = tree.expose_node_container();
+    auto& edges = tree.expose_edge_container();
 
     std::vector< TreeLink* > link_stack;
 
@@ -430,7 +432,6 @@ void NewickReader::broker_to_tree (
 
     // Finish and hand over the elements to the tree.
     finish_reading(broker, tree);
-    tree.import_content(links, nodes, edges);
 }
 
 } // namespace tree

@@ -140,9 +140,6 @@ public:
     Tree clone_topology() const;
     void swap( Tree& other );
 
-    void import_content (LinkContainerType& links, NodeContainerType& nodes, EdgeContainerType& edges);
-    // void export_content (LinkContainerType& links, NodeContainerType& nodes, EdgeContainerType& edges);
-
     void clear();
 
     // -------------------------------------------------------------------------
@@ -174,7 +171,9 @@ public:
     //     Data Accessors
     // -------------------------------------------------------------------------
 
-
+    LinkContainerType& expose_link_container();
+    NodeContainerType& expose_node_container();
+    EdgeContainerType& expose_edge_container();
 
     // -------------------------------------------------------------------------
     //     Modifiers
@@ -247,9 +246,9 @@ private:
 
     size_t root_link_index_ = 0;
 
-    ContainerType< TreeLink > links_;
-    ContainerType< TreeNode > nodes_;
-    ContainerType< TreeEdge > edges_;
+    LinkContainerType links_;
+    NodeContainerType nodes_;
+    EdgeContainerType edges_;
 
 };
 
