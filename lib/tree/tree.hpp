@@ -171,18 +171,11 @@ public:
     //     Data Accessors
     // -------------------------------------------------------------------------
 
+    Tree& reset_root_link_index( size_t val );
+
     LinkContainerType& expose_link_container();
     NodeContainerType& expose_node_container();
     EdgeContainerType& expose_edge_container();
-
-    // -------------------------------------------------------------------------
-    //     Modifiers
-    // -------------------------------------------------------------------------
-
-    void reroot( TreeLink const& at_link );
-    void reroot( TreeNode const& at_node );
-
-    void reroot_at_node( size_t node_index );
 
     // -------------------------------------------------------------------------
     //     Iterators

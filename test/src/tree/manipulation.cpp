@@ -32,6 +32,8 @@
 
 #include <string>
 
+#include "lib/tree/function/manipulation.hpp"
+
 #include "lib/tree/default/functions.hpp"
 #include "lib/tree/default/newick_reader.hpp"
 #include "lib/tree/default/tree.hpp"
@@ -66,7 +68,7 @@ void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts
     }
 
     // Root the tree at the given link, validate its pointers.
-    tree.reroot( *root_link );
+    reroot( tree, *root_link );
     EXPECT_TRUE( validate_topology( tree ));
 
     // Build a string of the nodes in levelorder, starting from the new root.
