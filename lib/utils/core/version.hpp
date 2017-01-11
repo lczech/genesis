@@ -85,9 +85,9 @@ inline std::string genesis_header()
      (___/ (___  /   / (___  (__) / (__)   \n\
       __/______________________________    \n\
     (__/                                   \n\
-               2014-2016 by Lucas Czech    \n\
-               " + genesis_version() +    "\n\
-               " + genesis_url()     +    "\n";
+               2014-2017 by Lucas Czech    \n\
+               " + genesis_url()     +    "\n\
+               " + genesis_version() +    "\n";
 }
 
 /**
