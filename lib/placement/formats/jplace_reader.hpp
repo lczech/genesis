@@ -122,7 +122,7 @@ private:
      *
      * We need this intermediate format, as Json does not provide any guarantees on the order of
      * key-value-objects. Thus, we could first find the Pqueryes and Placements, before we have the
-     * tree or field names order. In such cases, we would not need how to interpret the values
+     * tree or field names order. In such cases, we would not know how to interpret the values
      * for a placement. So store them first, and then, after we have all the information, we
      * process them again and put them into their final form.
      */
