@@ -123,7 +123,7 @@ protected:
 
         if (enable_branch_lengths_) {
             auto const& edge_data = edge.data<DefaultEdgeData>();
-            auto bl = utils::to_string_precise( edge_data.branch_length, branch_length_precision );
+            auto bl = utils::to_string_rounded( edge_data.branch_length, branch_length_precision );
             element.values.insert (element.values.begin(), bl );
         }
     }
