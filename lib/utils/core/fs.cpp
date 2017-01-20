@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,6 +40,7 @@
 #include <streambuf>
 #include <sys/stat.h>
 
+#include "utils/core/algorithm.hpp"
 #include "utils/text/string.hpp"
 
 namespace genesis {
@@ -197,7 +198,7 @@ std::string dir_normalize_path( std::string const& path )
  *
  * If the directory is not readable, the function throws `std::runtime_error`.
  */
-std::vector<std::string> dir_list_files( std::string const& dir )
+std::vector<std::string> dir_list_contents( std::string const& dir )
 {
     std::vector<std::string> list;
 
@@ -220,6 +221,44 @@ std::vector<std::string> dir_list_files( std::string const& dir )
 }
 
 /**
+ * @brief Get a list of all files and directories in a directory whose name matches a regular expression.
+ *
+ * If the directory is not readable, the function throws `std::runtime_error`.
+ */
+std::vector<std::string> dir_list_contents( std::string const& dir, std::string const& regex )
+{
+    std::vector<std::string> result;
+    auto all_list = dir_list_contents( dir );
+    std::regex pattern( regex );
+
+    for( auto const& elem : all_list ) {
+        if( regex_match( elem, pattern ) ) {
+            result.push_back( elem );
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Get a list of files in a directory.
+ *
+ * If the directory is not readable, the function throws `std::runtime_error`.
+ */
+std::vector<std::string> dir_list_files( std::string const& dir )
+{
+    std::vector<std::string> result;
+    auto all_list = dir_list_contents( dir );
+    auto dir_path = dir_normalize_path( dir );
+
+    for( auto const& elem : all_list ) {
+        if( is_file( dir_path + elem ) ) {
+            result.push_back( elem );
+        }
+    }
+    return result;
+}
+
+/**
  * @brief Get a list of all files in a directory whose name matches a regular expression.
  *
  * If the directory is not readable, the function throws `std::runtime_error`.
@@ -227,11 +266,49 @@ std::vector<std::string> dir_list_files( std::string const& dir )
 std::vector<std::string> dir_list_files( std::string const& dir, std::string const& regex )
 {
     std::vector<std::string> result;
-    auto all_list = dir_list_files( dir );
-    std::regex pattern( regex );
+    auto all_list = dir_list_contents( dir, regex );
+    auto dir_path = dir_normalize_path( dir );
 
     for( auto const& elem : all_list ) {
-        if( regex_match( elem, pattern ) ) {
+        if( is_file( dir_path + elem ) ) {
+            result.push_back( elem );
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Get a list of directories in a directory.
+ *
+ * If the directory is not readable, the function throws `std::runtime_error`.
+ */
+std::vector<std::string> dir_list_directories( std::string const& dir )
+{
+    std::vector<std::string> result;
+    auto all_list = dir_list_contents( dir );
+    auto dir_path = dir_normalize_path( dir );
+
+    for( auto const& elem : all_list ) {
+        if( is_dir( dir_path + elem ) ) {
+            result.push_back( elem );
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Get a list of all directories in a directory whose name matches a regular expression.
+ *
+ * If the directory is not readable, the function throws `std::runtime_error`.
+ */
+std::vector<std::string> dir_list_directories( std::string const& dir, std::string const& regex )
+{
+    std::vector<std::string> result;
+    auto all_list = dir_list_contents( dir, regex );
+    auto dir_path = dir_normalize_path( dir );
+
+    for( auto const& elem : all_list ) {
+        if( is_dir( dir_path + elem ) ) {
             result.push_back( elem );
         }
     }
