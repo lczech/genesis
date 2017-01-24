@@ -112,12 +112,11 @@ public:
          * @brief Store metadata at the end of the header line.
          *
          * Some Phylip files contain data after the two mandatory numbers in the header line.
-         * This data can be stored here.
+         * This data can be stored here. It is currenlty not used.
          *
          * There are magic values for this metadata: If the (trimmed) remainder of the
          * header line is simply "s" or "i", this is used as a trigger to distinguish
-         * between sequential and interleaved Phylip files. This is however only used if
-         * Mode::kAutomatic is selected, see mode( Mode ) for more information.
+         * between sequential and interleaved Phylip files. This is however currently not used.
          */
         std::string remainder;
     };
