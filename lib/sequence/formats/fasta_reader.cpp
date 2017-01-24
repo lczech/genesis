@@ -51,11 +51,6 @@ namespace sequence {
 //     Constructor and Rule of Five
 // =================================================================================================
 
-/**
- * @brief Create a default FastaReader. Per default, chars are turned upper case, but not validated.
- *
- * See to_upper() and valid_chars() to change this behaviour.
- */
 FastaReader::FastaReader()
 {
     lookup_.set_all( true );
@@ -65,27 +60,18 @@ FastaReader::FastaReader()
 //     Reading
 // =================================================================================================
 
-/**
- * @brief Read all Sequences from a std::istream in Fasta format into a SequenceSet.
- */
 void FastaReader::from_stream ( std::istream& input_stream, SequenceSet& sequence_set ) const
 {
     utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
     parse_document( it, sequence_set );
 }
 
-/**
- * @brief Read all Sequences from a file in Fasta format into a SequenceSet.
- */
 void FastaReader::from_file ( std::string const& file_name, SequenceSet& sequence_set ) const
 {
     utils::InputStream it( utils::make_unique< utils::FileInputSource >( file_name ));
     parse_document( it, sequence_set );
 }
 
-/**
- * @brief Read all Sequences from a std::string in Fasta format into a SequenceSet.
- */
 void FastaReader::from_string ( std::string const& input_string, SequenceSet& sequence_set ) const
 {
     utils::InputStream it( utils::make_unique< utils::StringInputSource >( input_string ));
@@ -96,12 +82,6 @@ void FastaReader::from_string ( std::string const& input_string, SequenceSet& se
 //     Parsing
 // =================================================================================================
 
-/**
- * @brief Parse a whole fasta document into a SequenceSet.
- *
- * This function is mainly used internally by the reading functions from_...().
- * It uses the currently set parsing_method() for parsing the data.
- */
 void FastaReader::parse_document(
     utils::InputStream& input_stream,
     SequenceSet&        sequence_set
@@ -124,22 +104,6 @@ void FastaReader::parse_document(
     }
 }
 
-/**
- * @brief Parse a Sequence in Fasta format.
- *
- * This function takes an InputStream and interprets it as a Fasta formatted sequence. It extracts
- * the data and writes it into the given Sequence object. See the class description of FastaReader
- * for the expected data format.
- *
- * The function stops after parsing one such sequence. It returns true if a sequence was extracted
- * and false if the stream is empty. If the input is not in the correct format, an
- * `std::runtime_error` exception is thrown indicating the malicious position in the input stream.
- *
- * This method has a maximum line length of utils::InputStream::BlockLength and reports errors
- * only on the line where the sequence starts.  If you have files with longer lines or want error
- * reporting at the exact line and column where the error occurs, use ParsingMethod::kPedantic
- * instead. See FastaReader::ParsingMethod for details.
- */
 bool FastaReader::parse_sequence(
     utils::InputStream& input_stream,
     Sequence&           sequence
@@ -285,21 +249,6 @@ bool FastaReader::parse_sequence(
     return true;
 }
 
-/**
- * @brief Parse a Sequence in Fasta format.
- *
- * This function takes an InputStream and interprets it as a Fasta formatted sequence. It extracts
- * the data and writes it into the given Sequence object. See the class description of FastaReader
- * for the expected data format.
- *
- * The function stops after parsing one such sequence. It returns true if a sequence was extracted
- * and false if the stream is empty. If the input is not in the correct format, an
- * `std::runtime_error` exception is thrown indicating the malicious position in the input stream.
- *
- * Compared to parse_sequence(), this function allows for arbitrarily long lines and
- * reports errors at the exact line and column where they occur. It is however
- * slower. Apart from that, there are no differences. See FastaReader::ParsingMethod for details.
- */
 bool FastaReader::parse_sequence_pedantic(
     utils::InputStream& input_stream,
     Sequence&           sequence
@@ -431,66 +380,28 @@ bool FastaReader::parse_sequence_pedantic(
 //     Properties
 // =================================================================================================
 
-/**
- * @brief Set the parsing method.
- *
- * The parsing method is used for all the reader functions and parse_document().
- * See the @link FastaReader::ParsingMethod ParsingMethod enum@endlink for details.
- */
 FastaReader& FastaReader::parsing_method( FastaReader::ParsingMethod value )
 {
     parsing_method_ = value;
     return *this;
 }
 
-/**
- * @brief Return the currently set parsing method.
- *
- * See the @link FastaReader::ParsingMethod ParsingMethod enum@endlink for details.
- */
 FastaReader::ParsingMethod FastaReader::parsing_method() const
 {
     return parsing_method_;
 }
 
-/**
- * @brief Set whether Sequence sites are automatically turned into upper case.
- *
- * If set to `true` (default), all sites of the read Sequences are turned into upper case letters
- * automatically. This is demanded by the Fasta standard.
- * The function returns the FastaReader object to allow for fluent interfaces.
- */
 FastaReader& FastaReader::to_upper( bool value )
 {
     to_upper_ = value;
     return *this;
 }
 
-/**
- * @brief Return whether Sequence sites are automatically turned into upper case.
- */
 bool FastaReader::to_upper() const
 {
     return to_upper_;
 }
 
-/**
- * @brief Set the chars that are used for validating Sequence sites when reading them.
- *
- * When this function is called with a string of chars, those chars are used to validate the sites
- * when reading them. That is, only sequences consisting of the given chars are valid.
- *
- * If set to an empty string, this check is deactivated. This is also the default, meaning that no
- * checking is done.
- *
- * In case that to_upper() is set to `true`: The validation is done after making the char upper
- * case, so that only capital letters have to be provided for validation.
- * In case that to_upper() is set to `false`: All chars that are to be considered valid have to be
- * provided for validation.
- *
- * See `nucleic_acid_codes...()` and `amino_acid_codes...()` functions for presettings of chars
- * that can be used for validation here.
- */
 FastaReader& FastaReader::valid_chars( std::string const& chars )
 {
     if( chars.size() == 0 ) {
@@ -505,11 +416,6 @@ FastaReader& FastaReader::valid_chars( std::string const& chars )
     return *this;
 }
 
-/**
- * @brief Return the currently set chars used for validating Sequence sites.
- *
- * An empty string means that no validation is done.
- */
 std::string FastaReader::valid_chars() const
 {
     // We need to check the valid chars lookup here, because we don't want to return a string
@@ -521,12 +427,6 @@ std::string FastaReader::valid_chars() const
     }
 }
 
-/**
- * @brief Return the internal CharLookup that is used for validating the Sequence sites.
- *
- * This function is provided in case direct access to the lookup is needed. Usually, the
- * valid_chars() function should suffice. See there for details.
- */
 utils::CharLookup<bool>& FastaReader::valid_char_lookup()
 {
     return lookup_;
