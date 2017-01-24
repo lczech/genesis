@@ -39,15 +39,16 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
-//     Forward Declarations
-// =================================================================================================
-
-class Sequence;
-
-// =================================================================================================
 //     SequenceSet
 // =================================================================================================
 
+/**
+ * @brief Store a set of Sequence%s.
+ *
+ * A SequenceSet is a simple container that allows to add(), remove() and iterate over Sequence%s.
+ * Sequences are kept in the order in which they were added and can be accessed via an index, see
+ * at().
+ */
 class SequenceSet
 {
 public:
@@ -75,11 +76,7 @@ public:
     SequenceSet& operator= ( SequenceSet const& ) = default;
     SequenceSet& operator= ( SequenceSet&& )      = default;
 
-    void swap( SequenceSet& other )
-    {
-        using std::swap;
-        swap( sequences_, other.sequences_ );
-    }
+    friend void swap( SequenceSet& lhs, SequenceSet& rhs );
 
     // -------------------------------------------------------------------------
     //     Accessors
