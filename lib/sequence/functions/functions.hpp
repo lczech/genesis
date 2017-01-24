@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -137,6 +137,14 @@ void merge_duplicate_sequences(
     MergeDuplicateSequencesCountPolicy count_policy = MergeDuplicateSequencesCountPolicy::kAppendToLabel,
     std::string const& counter_prefix = "_"
 );
+
+// /**
+//  * @brief Remove and delete all those sequences from a SequenceSet whose labels are in the given
+//  * list.
+//  *
+//  * If `invert` is set to true, it does the same inverted: it removes all except those in the list.
+//  */
+// void remove_list( SequenceSet& set, std::vector<std::string> const& labels, bool invert = false );
 
 // =================================================================================================
 //     Filters

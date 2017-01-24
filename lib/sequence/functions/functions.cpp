@@ -433,7 +433,7 @@ void merge_duplicate_sequences(
             // from the set. Do not increment i - we deleted a sequence, so staying at the
             // position automatically "moves" to the next one.
             ++dup_map[ seq.sites() ].count;
-            set.remove_at(i);
+            set.remove(i);
         }
     }
 
@@ -469,40 +469,32 @@ void merge_duplicate_sequences(
     }
 }
 
-/*
-/ **
- * @brief Remove and delete all those sequences from a SequenceSet whose labels are in the given
- * list. If `invert` is set to true, it does the same inverted: it removes all except those in the
- * list.
- * /
-void remove_list(SequenceSet& set, std::vector<std::string> const& labels, bool invert)
-{
-    // create a set of all labels for fast lookup.
-    std::unordered_set<std::string> lmap(labels.begin(), labels.end());
-
-    // iterate and move elements from it to re
-    std::vector<Sequence*>::iterator it = sequences.begin();
-    std::vector<Sequence*>::iterator re = sequences.begin();
-
-    // this works similar to std::remove (http://www.cplusplus.com/reference/algorithm/remove/)
-    while (it != sequences.end()) {
-        // if the label is (not) in the map, move it to the re position, otherwise delete it.
-        if ( (!invert && lmap.count((*it)->label())  > 0) ||
-             ( invert && lmap.count((*it)->label()) == 0)
-        ) {
-            delete *it;
-        } else {
-            *re = std::move(*it);
-            ++re;
-        }
-        ++it;
-    }
-
-    // delete the tail of the vector.
-    sequences.erase(re, sequences.end());
-}
-
-*/
+// void remove_list( SequenceSet& set, std::vector<std::string> const& labels, bool invert )
+// {
+//     // create a set of all labels for fast lookup.
+//     std::unordered_set<std::string> lmap(labels.begin(), labels.end());
+//
+//     // iterate and move elements from it to re
+//     auto it = set.begin();
+//     auto re = set.begin();
+//
+//     // this works similar to std::remove (http://www.cplusplus.com/reference/algorithm/remove/)
+//     while (it != set.end()) {
+//         // if the label is (not) in the map, move it to the re position, otherwise delete it.
+//         if ( (!invert && lmap.count( it->label() )  > 0) ||
+//              ( invert && lmap.count( it->label() ) == 0)
+//         ) {
+//             // delete *it;
+//         } else {
+//             *re = std::move(*it);
+//             ++re;
+//         }
+//         ++it;
+//     }
+//
+//     // delete the tail of the vector.
+//     // set.erase(re, sequences.end());
+// }
 
 // =================================================================================================
 //     Filters
@@ -519,7 +511,7 @@ void filter_min_sequence_length( SequenceSet& set, size_t min_length )
     size_t index = 0;
     while( index < set.size() ) {
         if( set.at(index).length() < min_length ) {
-            set.remove_at(index);
+            set.remove(index);
         } else {
             ++index;
         }
@@ -537,7 +529,7 @@ void filter_max_sequence_length( SequenceSet& set, size_t max_length )
     size_t index = 0;
     while( index < set.size() ) {
         if( set.at(index).length() > max_length ) {
-            set.remove_at(index);
+            set.remove(index);
         } else {
             ++index;
         }
@@ -557,7 +549,7 @@ void filter_min_max_sequence_length( SequenceSet& set, size_t min_length, size_t
     while( index < set.size() ) {
         auto len = set.at(index).length();
         if( len < min_length || len > max_length ) {
-            set.remove_at(index);
+            set.remove(index);
         } else {
             ++index;
         }

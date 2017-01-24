@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -85,23 +85,61 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
+    /**
+     * Return the number of Sequence%s in the SequenceSet.
+     */
     size_t size() const;
 
-    reference       at (size_t index);
-    const_reference at (size_t index) const;
+    /**
+     * Return whether the SequenceSet is empty, i.e. whether its size() is 0.
+     */
+    bool empty() const;
 
-    reference       operator[] (size_t index);
-    const_reference operator[] (size_t index) const;
+    reference       at ( size_t index );
+    const_reference at ( size_t index ) const;
+
+    reference       operator[] ( size_t index );
+    const_reference operator[] ( size_t index ) const;
 
     // -------------------------------------------------------------------------
     //     Modifiers
     // -------------------------------------------------------------------------
 
-    void push_back( Sequence const& s );
-    void push_back( Sequence &&     s );
+    /**
+     * @brief Add a Sequence to the SequenceSet by copying it, and return a reference to it.
+     */
+    reference add( Sequence const& s );
 
-    void remove_at( size_t index );
+    /**
+    * @brief Add a Sequence to the SequenceSet by moving it, and return a reference to it.
+    */
+    reference add( Sequence &&     s );
 
+    /**
+     * @brief Remove the Sequence at a given `index` from the SequenceSet.
+     */
+    void remove( size_t index );
+
+    /**
+    * @brief Remove the Sequence%s between the `first_index` (inclusive) and the `last_index`
+    * (exclusive) from the SequenceSet.
+    */
+    void remove( size_t first_index, size_t last_index );
+
+    /**
+     * @brief Remove the Sequence at a given iterator `position` from the SequenceSet.
+     */
+    void remove( iterator position );
+
+    /**
+    * @brief Remove the Sequence%s between the `first` (inclusive) and the `last`
+    * (exclusive) iterator position from the SequenceSet.
+    */
+    void remove( iterator first, iterator last );
+
+    /**
+     * @brief Remove all Sequence%s from the SequenceSet, leaving it with a size() of 0.
+     */
     void clear();
 
     // -------------------------------------------------------------------------

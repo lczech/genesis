@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,41 +44,48 @@ size_t SequenceSet::size() const
     return sequences_.size();
 }
 
-SequenceSet::reference SequenceSet::at (size_t index)
+bool SequenceSet::empty() const
+{
+    return sequences_.empty();
+}
+
+SequenceSet::reference SequenceSet::at ( size_t index )
 {
     return sequences_.at( index );
 }
 
-SequenceSet::const_reference SequenceSet::at (size_t index) const
+SequenceSet::const_reference SequenceSet::at ( size_t index ) const
 {
     return sequences_.at( index );
 }
 
-SequenceSet::reference SequenceSet::operator[] (size_t index)
+SequenceSet::reference SequenceSet::operator[] ( size_t index )
 {
-    return sequences_[index];
+    return sequences_[ index ];
 }
 
-SequenceSet::const_reference SequenceSet::operator[] (size_t index) const
+SequenceSet::const_reference SequenceSet::operator[] ( size_t index ) const
 {
-    return sequences_[index];
+    return sequences_[ index ];
 }
 
 // =============================================================================
 //     Modifiers
 // =============================================================================
 
-void SequenceSet::push_back( Sequence const& s )
+SequenceSet::reference SequenceSet::add( Sequence const& s )
 {
-    sequences_.push_back(s);
+    sequences_.push_back( s );
+    return sequences_.back();
 }
 
-void SequenceSet::push_back( Sequence && s )
+SequenceSet::reference SequenceSet::add( Sequence && s )
 {
-    sequences_.push_back(std::move(s));
+    sequences_.push_back( std::move(s) );
+    return sequences_.back();
 }
 
-void SequenceSet::remove_at( size_t index )
+void SequenceSet::remove( size_t index )
 {
     if( index >= sequences_.size() ) {
         throw std::out_of_range( "Index out of range for removing from SequenceSet." );
@@ -87,9 +94,29 @@ void SequenceSet::remove_at( size_t index )
     sequences_.erase( sequences_.begin() + index );
 }
 
-/**
- * @brief Delete all sequences from the set.
- */
+void SequenceSet::remove( size_t first_index, size_t last_index )
+{
+    if( first_index    >= sequences_.size()
+        || last_index  >= sequences_.size()
+        || first_index >= last_index
+    ) {
+        throw std::out_of_range( "Invalid indices for removing from SequenceSet." );
+    }
+
+    sequences_.erase( sequences_.begin() + first_index, sequences_.begin() + last_index );
+}
+
+void SequenceSet::remove( iterator position )
+{
+    sequences_.erase( position );
+
+}
+
+void SequenceSet::remove( iterator first, iterator last )
+{
+    sequences_.erase( first, last );
+}
+
 void SequenceSet::clear()
 {
     sequences_.clear();
