@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -414,6 +414,7 @@ void merge_duplicate_sequences(
     };
 
     // Find duplicates and count their occurences.
+    // TODO this is a very memory intense step. find an algo that does not need to copy all sites...
     std::unordered_map< std::string, Duplicate > dup_map;
     size_t i = 0;
     while( i < set.size() ) {
@@ -446,7 +447,9 @@ void merge_duplicate_sequences(
         auto& seq = set[i];
 
         // The sequence needs to be in the map, as we added it in the previous step.
+        // It also needs to have the same index, as we never changed that.
         assert( dup_map.count(seq.sites()) > 0 );
+        assert( dup_map[ seq.sites() ].index == i );
 
         // Append the count to either the label or the metadata.
         auto count = dup_map[ seq.sites() ].count;
