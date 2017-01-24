@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,21 +36,38 @@
 #include "utils/math/sha1.hpp"
 #include "utils/text/string.hpp"
 
-#include <unordered_set>
+#include <algorithm>
 
 namespace genesis {
 namespace sequence {
 
 // =================================================================================================
+//     General
+// =================================================================================================
+
+Sequence const* find_sequence( SequenceSet const& set, std::string const& label )
+{
+    for (Sequence const& s : set) {
+        if (s.label() == label) {
+            return &s;
+        }
+    }
+    return nullptr;
+}
+
+std::unordered_set<std::string> labels( SequenceSet const& set )
+{
+    std::unordered_set<std::string> result;
+    for( auto const& seq : set ) {
+        result.insert( seq.label() );
+    }
+    return result;
+}
+
+// =================================================================================================
 //     Uniqueness
 // =================================================================================================
 
-/**
- * @brief Return true iff all labels of the Sequence%s in the SequenceSet are unique.
- *
- * The optional parameter `case_sensitive` controls how labels are compared. Default is `true`,
- * that is, Sequence%s are compared case-sensitively.
- */
 bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
 {
     std::unordered_set< std::string > labels;
@@ -72,22 +89,12 @@ bool has_unique_labels( SequenceSet const& set, bool case_sensitive )
     return true;
 }
 
-/**
- * @brief Relabel the Sequence using the SHA1 hash digest of its sites.
- */
 void relabel_sha1( Sequence& seq )
 {
     auto digest = utils::SHA1::from_string_hex( seq.sites() );
     seq.label( digest );
 }
 
-/**
- * @brief Relabel all Sequence%s in the SequenceSet using the SHA1 hash digest of the sites.
- *
- * If there are duplicate Sequence%s, this function will lead to multiple Sequences with the same
- * name, which might be an issue for downstream programs that expect unique labels.
- * See has_unique_labels() to check this.
- */
 void relabel_sha1( SequenceSet& set )
 {
     for( auto& seq : set ) {
@@ -99,23 +106,6 @@ void relabel_sha1( SequenceSet& set )
 //     Validity
 // =================================================================================================
 
-/**
- * @brief Check whether a given string is a valid label for a Sequence.
- *
- * While we can work with any form of label (as long as it is a string), most file formats and
- * consequently most programs that read them restrict the set of valid characters for labels of
- * sequences. We thus provide this function, which uses the most common interpretation of valid
- * labels.
- *
- * A label is valid if its characters have a graphical representation (i.e., isgraph() is true) and
- * if non of these characters occurs:
- *
- *     :,();[]'
- *
- * Thus, all whitespaces, control characters, and the listed special characters are invalid.
- * See sanitize_label() for a function that replaces all invalid characters of the label by
- * underscores.
- */
 bool is_valid_label( std::string const& label )
 {
     std::string invalid_chars = ":,();[]'";
@@ -127,27 +117,11 @@ bool is_valid_label( std::string const& label )
     return true;
 }
 
-/**
- * @brief Check whether a Sequence has a valid label.
- *
- * This might be important for printing the Sequence to a file that needs to be read by other
- * applications. See is_valid_label() for details on what is considered a valid label.
- * See sanitize_label() for a function that replaces all invalid characters of the label by
- * underscores.
- */
 bool has_valid_label(  Sequence const& seq )
 {
     return is_valid_label( seq.label() );
 }
 
-/**
- * @brief Check whether all Sequence%s in a SequenceSet have valid labels.
- *
- * This might be important for printing the Sequences to a file that needs to be read by other
- * applications. See is_valid_label() for details on what is considered a valid label.
- * See sanitize_labels() for a function that replaces all invalid characters of the labels by
- * underscores.
- */
 bool has_valid_labels( SequenceSet const& set )
 {
     for( auto const& seq : set ) {
@@ -158,12 +132,6 @@ bool has_valid_labels( SequenceSet const& set )
     return true;
 }
 
-/**
- * @brief Sanitize a label by replacing all invalid characters with underscores.
- *
- * This might be important for printing the Sequences to a file that needs to be read by other
- * applications. See is_valid_label() for details on what is considered a valid label.
- */
 std::string sanitize_label( std::string const& label )
 {
     std::string result;
@@ -178,29 +146,36 @@ std::string sanitize_label( std::string const& label )
     return result;
 }
 
-/**
- * @brief Sanitize a label by replacing all invalid characters with underscores.
- *
- * This might be important for printing the Sequences to a file that needs to be read by other
- * applications. See is_valid_label() for details on what is considered a valid label.
- */
 void sanitize_label( Sequence& seq )
 {
     seq.label( sanitize_label( seq.label() ));
 }
 
-/**
- * @brief Sanitize the labels of all Sequence%s in the SequenceSet by replacing all invalid
- * characters with underscores.
- *
- * This might be important for printing the Sequences to a file that needs to be read by other
- * applications. See is_valid_label() for details on what is considered a valid label.
- */
 void sanitize_labels( SequenceSet& set )
 {
     for( auto& seq : set ) {
         sanitize_label( seq );
     }
+}
+
+// =================================================================================================
+//     Modifiers
+// =================================================================================================
+
+void filter_by_label_list(
+    SequenceSet&                           set,
+    std::unordered_set<std::string> const& labels,
+    bool                                   invert
+) {
+    auto new_last = std::remove_if(
+        set.begin(),
+        set.end(),
+        [&] ( Sequence const& seq ) {
+            return ( !invert && labels.count( seq.label() )  > 0 ) ||
+                   (  invert && labels.count( seq.label() ) == 0 );
+        }
+    );
+    set.remove( new_last , set.end() );
 }
 
 } // namespace sequence

@@ -55,23 +55,6 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
-//     Accessors
-// =================================================================================================
-
-/**
- * @brief Return a pointer to a sequence with a specific label, or `nullptr` iff not found.
- */
-Sequence const* find_sequence( SequenceSet const& set, std::string const& label )
-{
-    for (Sequence const& s : set) {
-        if (s.label() == label) {
-            return &s;
-        }
-    }
-    return nullptr;
-}
-
-// =================================================================================================
 //     Characteristics
 // =================================================================================================
 
@@ -468,33 +451,6 @@ void merge_duplicate_sequences(
         }
     }
 }
-
-// void remove_list( SequenceSet& set, std::vector<std::string> const& labels, bool invert )
-// {
-//     // create a set of all labels for fast lookup.
-//     std::unordered_set<std::string> lmap(labels.begin(), labels.end());
-//
-//     // iterate and move elements from it to re
-//     auto it = set.begin();
-//     auto re = set.begin();
-//
-//     // this works similar to std::remove (http://www.cplusplus.com/reference/algorithm/remove/)
-//     while (it != set.end()) {
-//         // if the label is (not) in the map, move it to the re position, otherwise delete it.
-//         if ( (!invert && lmap.count( it->label() )  > 0) ||
-//              ( invert && lmap.count( it->label() ) == 0)
-//         ) {
-//             // delete *it;
-//         } else {
-//             *re = std::move(*it);
-//             ++re;
-//         }
-//         ++it;
-//     }
-//
-//     // delete the tail of the vector.
-//     // set.erase(re, sequences.end());
-// }
 
 // =================================================================================================
 //     Filters

@@ -49,12 +49,6 @@ class Sequence;
 class SequenceSet;
 
 // =================================================================================================
-//     Accessors
-// =================================================================================================
-
-Sequence const* find_sequence( SequenceSet const& set, std::string const& label );
-
-// =================================================================================================
 //     Characteristics
 // =================================================================================================
 
@@ -137,14 +131,6 @@ void merge_duplicate_sequences(
     MergeDuplicateSequencesCountPolicy count_policy = MergeDuplicateSequencesCountPolicy::kAppendToLabel,
     std::string const& counter_prefix = "_"
 );
-
-// /**
-//  * @brief Remove and delete all those sequences from a SequenceSet whose labels are in the given
-//  * list.
-//  *
-//  * If `invert` is set to true, it does the same inverted: it removes all except those in the list.
-//  */
-// void remove_list( SequenceSet& set, std::vector<std::string> const& labels, bool invert = false );
 
 // =================================================================================================
 //     Filters
