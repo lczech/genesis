@@ -172,6 +172,12 @@ public:
     void from_stream( std::istream& input_stream, SequenceSet& sequence_set ) const;
 
     /**
+     * @brief Read all Sequence%s from a std::istream in Fasta format and return them as a
+     * SequenceSet.
+     */
+    SequenceSet from_stream( std::istream& input_stream ) const;
+
+    /**
      * @brief Read all Sequence%s from a file in Fasta format into a SequenceSet.
      *
      * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
@@ -181,6 +187,12 @@ public:
     void from_file( std::string const& file_name, SequenceSet& sequence_set ) const;
 
     /**
+     * @brief Read all Sequence%s from a file in Fasta format and return them as a
+     * SequenceSet.
+     */
+    SequenceSet from_file( std::string const& file_name ) const;
+
+    /**
      * @brief Read all Sequence%s from a std::string in Fasta format into a SequenceSet.
      *
      * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
@@ -188,6 +200,12 @@ public:
      * into one SequenceSet.
      */
     void from_string( std::string const& input_string, SequenceSet& sequence_set ) const;
+
+    /**
+     * @brief Read all Sequence%s from a std::string in Fasta format and return them as a
+     * SequenceSet.
+     */
+    SequenceSet from_string( std::string const& input_string ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
