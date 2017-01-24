@@ -147,7 +147,13 @@ public:
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
+    /**
+     * @brief Create a default PhylipReader. Per default, chars are turned upper case, but not validated.
+     *
+     * See to_upper() and valid_chars() to change this behaviour.
+     */
     PhylipReader();
+
     ~PhylipReader() = default;
 
     PhylipReader( PhylipReader const& ) = default;
@@ -160,31 +166,76 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
+    /**
+     * @brief Read all Sequences from a std::istream in Phylip format into a SequenceSet.
+     *
+     * This function is only allowed for Mode::kSequential and Mode::kInterleaved. Automatic mode
+     * does not work, as the stream might need to be reset, which is not possible. See mode(Mode)
+     * for details.
+     */
     void from_stream ( std::istream&      input_stream, SequenceSet& sequence_set ) const;
+
+    /**
+     * @brief Read all Sequences from a file in Phylip format into a SequenceSet.
+     */
     void from_file   ( std::string const& file_name,    SequenceSet& sequence_set ) const;
+
+    /**
+     * @brief Read all Sequences from a std::string in Phylip format into a SequenceSet.
+     */
     void from_string ( std::string const& input_string, SequenceSet& sequence_set ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing
     // ---------------------------------------------------------------------
 
+    /**
+     * @brief Parse a Phylip header and return the contained sequence count and length.
+     *
+     * This helper function expects to find a Phylip header in the form `x y`, which describes the
+     * number of sequences `x` in the Phylip data and their length `y`. It leaves the stream at the
+     * beginning of the next line.
+     *
+     * Currently, the function does not support Phylip options. According to the standard, those might
+     * follow after the two integers, but will lead to exceptions here.
+     */
     Header parse_phylip_header(
         utils::InputStream& it
     ) const;
 
+    /**
+     * @brief Parse and return a Phylip label.
+     *
+     * This helper functions either takes the first `label_length` chars as a label or, if
+     * `label_length == 0` takes all chars until the first blank as label. It returns the trimmed
+     * label and leaves the stream at the next char after the label (and after subsequent blanks).
+     */
     std::string parse_phylip_label(
         utils::InputStream& it
     ) const;
 
+    /**
+     * @brief Parse one sequence line.
+     *
+     * The line (which can also start after a label) is parsed until the first '\\n' char.
+     * While parsing, the options to_upper() and valid_chars() are applied according to their
+     * settings. The stream is left at the beginning of the next line.
+     */
     std::string parse_phylip_sequence_line(
         utils::InputStream& it
     ) const;
 
+    /**
+     * @brief Parse a whole Phylip file using the sequential variant (Mode::kSequential).
+     */
     void parse_phylip_interleaved(
         utils::InputStream& it,
         SequenceSet& sset
     ) const;
 
+    /**
+     * @brief Parse a whole Phylip file using the interleaved variant (Mode::kInterleaved).
+     */
     void parse_phylip_sequential(
         utils::InputStream& it,
         SequenceSet& sset
@@ -194,18 +245,111 @@ public:
     //     Properties
     // ---------------------------------------------------------------------
 
+    /**
+     * @brief Set the mode for reading sequences.
+     *
+     * Phylip offers two variants for storing the sequences: sequential and interleaved. As there is no
+     * option or flag in the file itself, there is no chance of knowing the variant without trying to
+     * parse it. If one fails but not the other, it is proabably the latter variant. However, there are
+     * instances where both variants are valid at the same time, but yield different sequences.
+     * So, in general detecting the correct variant is undecidable, making Phylip a non-well-defined
+     * format.
+     *
+     * In order to avoid those problems, this function explicitly sets the variant being used for
+     * parsing. By default, it is set to Mode::kSequential. Use Mode::kInterleaved for the other
+     * variant.
+     *
+     * We also offer a Mode::kAutomatic. It first tries to parse in sequential mode, and, if this fails,
+     * in interleaved mode. However, as this might involve starting from the beginning of the data, this
+     * is only possible with the from_file() and from_string() readers and does not work when using the
+     * from_stream() reader. Also, be aware that using automatic mode is slower because of
+     * implementation details induced by those limitations.
+     * Try to avoid automatic mode. If possible, try to avoid Phylip at all.
+     */
     PhylipReader& mode( Mode value );
+
+    /**
+     * Return the currently set mode for parsing Phylip.
+     *
+     * See the setter mode( Mode ) for details.
+     */
     Mode          mode() const;
 
+    /**
+     * @brief Set the length of the label in front of the sequences.
+     *
+     * Phylip has the weird property that labels are written in front of sequences and do not need
+     * to have a delimiter, but instead are simply the first `n` characters of the string. This value
+     * determines after how many chars the label ends and the actual sequence begins.
+     *
+     * If set to a value greater than 0, exaclty this many characters are read as label. Thus, they
+     * can also contain spaces. Spaces at the beginning or end of a label are stripped. The length
+     * that is dictated by the Phylip standard is 10, but any other length can also be used.
+     *
+     * If set to 0 (default), a relaxed version of Phylip is used instead, where the sequence begin is
+     * automatically detected. Labels can then be of arbitrary lengths, as long as they do not contain
+     * white spaces. However, in this case, there has to be at least one space or tab character between
+     * the label and the sequence. After the whitespace(s), the rest of the line is then treated
+     * as sequence data.
+     *
+     * The function returns the PhylipReader object to allow for fluent interfaces.
+     */
     PhylipReader& label_length( size_t value );
+
+    /**
+     * @brief Return the currently set label length.
+     *
+     * See the setter label_length( size_t ) for details.
+     */
     size_t        label_length() const;
 
+    /**
+     * @brief Set whether Sequence sites are automatically turned into upper case.
+     *
+     * If set to `true` (default), all sites of the read Sequences are turned into upper case letters
+     * automatically. This is demanded by the Phylip standard.
+     *
+     * The function returns the PhylipReader object to allow for fluent interfaces.
+     */
     PhylipReader& to_upper( bool value );
+
+    /**
+     * @brief Return whether Sequence sites are automatically turned into upper case.
+     */
     bool          to_upper() const;
 
+    /**
+     * @brief Set the chars that are used for validating Sequence sites when reading them.
+     *
+     * When this function is called with a string of chars, those chars are used to validate the sites
+     * when reading them. That is, only sequences consisting of the given chars are valid.
+     *
+     * If set to an empty string, this check is deactivated. This is also the default, meaning that no
+     * checking is done.
+     *
+     * In case that to_upper() is set to `true`: The validation is done after making the char upper
+     * case, so that only capital letters have to be provided for validation.
+     * In case that to_upper() is set to `false`: All chars that are to be considered valid have to be
+     * provided for validation.
+     *
+     * See `nucleic_acid_codes...()` and `amino_acid_codes...()` functions for presettings of chars
+     * that can be used for validation here.
+     */
     PhylipReader& valid_chars( std::string const& chars );
+
+    /**
+     * @brief Return the currently set chars used for validating Sequence sites.
+     *
+     * An empty string means that no validation is done.
+     */
     std::string   valid_chars() const;
 
+    /**
+     * @brief Return the internal CharLookup that is used for validating the Sequence sites.
+     *
+     * This function is provided in case direct access to the lookup is needed. Usually, the
+     * valid_chars() function should suffice. See there for details.
+     */
     utils::CharLookup<bool>& valid_char_lookup();
 
     // ---------------------------------------------------------------------
