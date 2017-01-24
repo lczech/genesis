@@ -163,19 +163,31 @@ public:
     // ---------------------------------------------------------------------
 
     /**
-     * @brief Read all Sequences from a std::istream in Fasta format into a SequenceSet.
+     * @brief Read all Sequence%s from a std::istream in Fasta format into a SequenceSet.
+     *
+     * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
+     * repeatedly calling this or similar read functions, multiple input files can easily be read
+     * into one SequenceSet.
      */
-    void from_stream ( std::istream&      input_stream, SequenceSet& sequence_set ) const;
+    void from_stream( std::istream& input_stream, SequenceSet& sequence_set ) const;
 
     /**
-     * @brief Read all Sequences from a file in Fasta format into a SequenceSet.
+     * @brief Read all Sequence%s from a file in Fasta format into a SequenceSet.
+     *
+     * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
+     * repeatedly calling this or similar read functions, multiple input files can easily be read
+     * into one SequenceSet.
      */
-    void from_file   ( std::string const& file_name,    SequenceSet& sequence_set ) const;
+    void from_file( std::string const& file_name, SequenceSet& sequence_set ) const;
 
     /**
-     * @brief Read all Sequences from a std::string in Fasta format into a SequenceSet.
+     * @brief Read all Sequence%s from a std::string in Fasta format into a SequenceSet.
+     *
+     * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
+     * repeatedly calling this or similar read functions, multiple input files can easily be read
+     * into one SequenceSet.
      */
-    void from_string ( std::string const& input_string, SequenceSet& sequence_set ) const;
+    void from_string( std::string const& input_string, SequenceSet& sequence_set ) const;
 
     // ---------------------------------------------------------------------
     //     Parsing

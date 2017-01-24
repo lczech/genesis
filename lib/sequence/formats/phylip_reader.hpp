@@ -169,9 +169,9 @@ public:
     /**
      * @brief Read all Sequence%s from a std::istream in Phylip format into a SequenceSet.
      *
-     * The read Sequences are added to the SequenceSet, while keeping Sequences in the SequenceSet
-     * that were there before. Thus, by repeatedly calling the read functions, multiple input files
-     * can easily be read into one SequenceSet.
+     * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
+     * repeatedly calling this or similar read functions, multiple input files can easily be read
+     * into one SequenceSet.
      *
      * This function is only allowed for Mode::kSequential and Mode::kInterleaved. Automatic mode
      * does not work, as the stream might need to be reset, which is not possible. See mode(Mode)
@@ -192,9 +192,9 @@ public:
     /**
      * @brief Read all Sequence%s from a file in Phylip format into a SequenceSet.
      *
-     * The read Sequences are added to the SequenceSet, while keeping Sequences in the SequenceSet
-     * that were there before. Thus, by repeatedly calling the read functions, multiple input files
-     * can easily be read into one SequenceSet.
+     * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
+     * repeatedly calling this or similar read functions, multiple input files can easily be read
+     * into one SequenceSet.
      */
     void from_file( std::string const& file_name, SequenceSet& sequence_set ) const;
 
@@ -207,9 +207,9 @@ public:
     /**
      * @brief Read all Sequence%s from a std::string in Phylip format into a SequenceSet.
      *
-     * The read Sequences are added to the SequenceSet, while keeping Sequences in the SequenceSet
-     * that were there before. Thus, by repeatedly calling the read functions, multiple input files
-     * can easily be read into one SequenceSet.
+     * The Sequences are added to the SequenceSet, whose existing Sequences are kept. Thus, by
+     * repeatedly calling this or similar read functions, multiple input files can easily be read
+     * into one SequenceSet.
      */
     void from_string( std::string const& input_string, SequenceSet& sequence_set ) const;
 
