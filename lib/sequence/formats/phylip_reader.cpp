@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -137,7 +137,7 @@ void PhylipReader::from_file( std::string const& file_name, SequenceSet& sequenc
         // If we reach this point, one of the parses succeeded.
         // Move all sequences to the actual target.
         for( auto s : tmp ) {
-            sequence_set.push_back( std::move(s) );
+            sequence_set.add( std::move(s) );
         }
     }
 }
@@ -181,7 +181,7 @@ void PhylipReader::from_string( std::string const& input_string, SequenceSet& se
         // If we reach this point, one of the parses succeeded.
         // Move all sequences to the actual target.
         for( auto s : tmp ) {
-            sequence_set.push_back( std::move(s) );
+            sequence_set.add( std::move(s) );
         }
     }
 }
@@ -375,7 +375,7 @@ void PhylipReader::parse_phylip_sequential(  utils::InputStream& it, SequenceSet
         assert( seq.sites().length() == len_seq );
 
         // Add to set.
-        sset.push_back( seq );
+        sset.add( seq );
     }
 
     // Final checks.
@@ -423,7 +423,7 @@ void PhylipReader::parse_phylip_interleaved( utils::InputStream& it, SequenceSet
         check_seq_len( seq );
 
         // Add to set.
-        sset.push_back( seq );
+        sset.add( seq );
     }
 
     // Helper function that checks whether there are still sequences in the set that are not yet

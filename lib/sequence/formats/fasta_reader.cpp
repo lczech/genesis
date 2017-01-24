@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -110,12 +110,12 @@ void FastaReader::parse_document(
 
     if( parsing_method_ == ParsingMethod::kDefault ) {
         while( parse_sequence( input_stream, seq ) ) {
-            sequence_set.push_back( seq );
+            sequence_set.add( seq );
         }
 
     } else if( parsing_method_ == ParsingMethod::kPedantic ) {
         while( parse_sequence_pedantic( input_stream, seq ) ) {
-            sequence_set.push_back( seq );
+            sequence_set.add( seq );
         }
 
     } else {

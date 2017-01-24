@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,8 +54,12 @@ void        dir_create     ( std::string const& path );
 
 std::string dir_normalize_path( std::string const& path );
 
-std::vector<std::string> dir_list_files ( std::string const& dir );
-std::vector<std::string> dir_list_files ( std::string const& dir, std::string const& regex );
+std::vector<std::string> dir_list_contents    ( std::string const& dir );
+std::vector<std::string> dir_list_contents    ( std::string const& dir, std::string const& regex );
+std::vector<std::string> dir_list_files       ( std::string const& dir );
+std::vector<std::string> dir_list_files       ( std::string const& dir, std::string const& regex );
+std::vector<std::string> dir_list_directories ( std::string const& dir );
+std::vector<std::string> dir_list_directories ( std::string const& dir, std::string const& regex );
 
 // =================================================================================================
 //     File Information

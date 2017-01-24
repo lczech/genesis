@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -125,6 +125,7 @@
 #include "tree/function/emd.hpp"
 #include "tree/function/emd_tree.hpp"
 #include "tree/function/functions.hpp"
+#include "tree/function/manipulation.hpp"
 #include "tree/function/operators.hpp"
 #include "tree/function/tree_set.hpp"
 #include "tree/iterator/eulertour.hpp"
@@ -148,6 +149,7 @@
 
 #include "utils/containers/sorted_vector.hpp"
 #include "utils/containers/sorted_vector/operators.hpp"
+#include "utils/core/algorithm.hpp"
 #include "utils/core/fs.hpp"
 #include "utils/core/indexed_list.hpp"
 #include "utils/core/logging.hpp"
@@ -185,6 +187,7 @@
 #include "utils/io/scanner.hpp"
 #include "utils/io/serializer.hpp"
 #include "utils/math/bitvector.hpp"
+#include "utils/math/common.hpp"
 #include "utils/math/histogram/accumulator.hpp"
 #include "utils/math/histogram/distances.hpp"
 #include "utils/math/histogram.hpp"
