@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -130,7 +130,9 @@ public:
      * @brief Construct the input source from a char array.
      */
     StringInputSource( char const* str, size_t size )
-        : instr_( str )
+        : in_str_(    str  )
+        , cursor_(    str  )
+        , in_size_(   size )
         , rest_size_( size )
     {}
 
@@ -138,8 +140,10 @@ public:
     * @brief Construct the input source from a `std::string`.
     */
     StringInputSource( std::string const& str )
-        : instr_( str.c_str() )
-        , rest_size_( str.size() )
+        : in_str_(    str.c_str() )
+        , cursor_(    str.c_str() )
+        , in_size_(   str.size()  )
+        , rest_size_( str.size()  )
     {}
 
     StringInputSource( StringInputSource const& ) = default;
@@ -152,7 +156,20 @@ public:
     {}
 
     // -------------------------------------------------------------
-    //     Members
+    //     Special Members
+    // -------------------------------------------------------------
+
+    /**
+     * @brief Rewind the source to its start, so that it can be re-read.
+     */
+    void rewind()
+    {
+        cursor_    = in_str_;
+        rest_size_ = in_size_;
+    }
+
+    // -------------------------------------------------------------
+    //     Overloaded Internal Members
     // -------------------------------------------------------------
 
 private:
@@ -168,8 +185,8 @@ private:
         }
 
         // Read.
-        std::memcpy( buffer, instr_, size );
-        instr_     += size;
+        std::memcpy( buffer, cursor_, size );
+        cursor_     += size;
         rest_size_ -= size;
         return size;
     }
@@ -182,7 +199,16 @@ private:
         return "input string";
     }
 
-    char const* instr_;
+    // -------------------------------------------------------------
+    //     Member Variables
+    // -------------------------------------------------------------
+
+    // Original and current string position pointer.
+    char const* in_str_;
+    char const* cursor_;
+
+    // Original and current (remaining) string size.
+    size_t      in_size_;
     size_t      rest_size_;
 
 };
@@ -223,7 +249,7 @@ public:
     {}
 
     // -------------------------------------------------------------
-    //     Members
+    //     Overloaded Internal Members
     // -------------------------------------------------------------
 
 private:
@@ -244,6 +270,10 @@ private:
     {
         return "input stream";
     }
+
+    // -------------------------------------------------------------
+    //     Member Variables
+    // -------------------------------------------------------------
 
     std::istream& in_;
 };
@@ -313,7 +343,19 @@ public:
     }
 
     // -------------------------------------------------------------
-    //     Members
+    //     Special Members
+    // -------------------------------------------------------------
+
+    /**
+     * @brief Rewind the source to its start, so that it can be re-read.
+     */
+    void rewind()
+    {
+        std::rewind( file_ );
+    }
+
+    // -------------------------------------------------------------
+    //     Overloaded Internal Members
     // -------------------------------------------------------------
 
 private:
@@ -333,6 +375,10 @@ private:
     {
         return "input file " + file_name_;
     }
+
+    // -------------------------------------------------------------
+    //     Member Variables
+    // -------------------------------------------------------------
 
     FILE*       file_;
     std::string file_name_;
