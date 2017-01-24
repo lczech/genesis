@@ -84,6 +84,14 @@ void PhylipReader::from_stream( std::istream& input_stream, SequenceSet& sequenc
     }
 }
 
+SequenceSet PhylipReader::from_stream( std::istream& input_stream ) const
+{
+    // Create a new set and fill it.
+    SequenceSet result;
+    from_stream( input_stream, result );
+    return result;
+}
+
 void PhylipReader::from_file( std::string const& file_name, SequenceSet& sequence_set ) const
 {
     // This function is very similar to from_string, but has some differences in treating the input
@@ -135,6 +143,14 @@ void PhylipReader::from_file( std::string const& file_name, SequenceSet& sequenc
     }
 }
 
+SequenceSet PhylipReader::from_file( std::string const& file_name ) const
+{
+    // Create a new set and fill it.
+    SequenceSet result;
+    from_file( file_name, result );
+    return result;
+}
+
 void PhylipReader::from_string( std::string const& input_string, SequenceSet& sequence_set ) const
 {
     // This function is very similar to from_file. See there for some more code explanations and for
@@ -178,6 +194,14 @@ void PhylipReader::from_string( std::string const& input_string, SequenceSet& se
         // We already covered all cases above. This cannot happen.
         assert( false );
     }
+}
+
+SequenceSet PhylipReader::from_string( std::string const& input_string ) const
+{
+    // Create a new set and fill it.
+    SequenceSet result;
+    from_string( input_string, result );
+    return result;
 }
 
 // =================================================================================================
