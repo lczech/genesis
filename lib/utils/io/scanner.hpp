@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -101,6 +101,44 @@ inline bool operator & ( SkipWhitespace lhs, SkipWhitespace rhs )
 // =================================================================================================
 //     Scanners
 // =================================================================================================
+
+// -------------------------------------------------------------------------
+//     end of line
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Lexing function that advances the stream to the end of the line, i.e., to the new line
+ * char.
+ *
+ * If the stream is already at its last line, this function moves to the end of the stream.
+ */
+template< typename InputStream >
+inline void skip_to_end_of_line(
+    InputStream& source
+) {
+    while( source && *source != '\n' ) {
+        ++source;
+    }
+}
+
+/**
+ * @brief Lexing function that reads until the end of the line (i.e., to the new line char),
+ * and returns the read chars (excluding the new line char).
+ *
+ * The stream is left at the new line char.
+ * If the stream is already at its last line, this function reads to the end of the stream.
+ */
+template< typename InputStream >
+inline std::string read_to_end_of_line(
+    InputStream&            source
+) {
+    std::string target;
+    while( source && *source != '\n' ) {
+        target += *source;
+        ++source;
+    }
+    return target;
+}
 
 // -------------------------------------------------------------------------
 //     skip while

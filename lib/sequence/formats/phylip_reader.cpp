@@ -38,7 +38,7 @@
 #include "utils/io/scanner.hpp"
 #include "utils/text/string.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <cctype>
 #include <fstream>
 #include <sstream>
@@ -85,10 +85,13 @@ void PhylipReader::from_stream( std::istream& input_stream, SequenceSet& sequenc
             break;
 
         case Mode::kAutomatic:
-        default:
             throw std::runtime_error(
                 "Automatic mode of PhylipReader not possible when using from_stream()."
             );
+
+        default:
+            // We already covered all cases above. This cannot happen.
+            assert( false );
     }
 }
 
@@ -112,7 +115,7 @@ void PhylipReader::from_file( std::string const& file_name, SequenceSet& sequenc
         parse_phylip_interleaved( it, sequence_set );
 
     // If the mode is automatic, we need to do some magic.
-    } else {
+    } else if( mode_ == Mode::kAutomatic ) {
 
         // We need a temporary set, because in case of failure, we need to start from the beginning,
         // but we do not want to clear all other sequences in the set (that might be there from
@@ -139,6 +142,10 @@ void PhylipReader::from_file( std::string const& file_name, SequenceSet& sequenc
         for( auto s : tmp ) {
             sequence_set.add( std::move(s) );
         }
+
+    } else {
+        // We already covered all cases above. This cannot happen.
+        assert( false );
     }
 }
 
@@ -160,7 +167,7 @@ void PhylipReader::from_string( std::string const& input_string, SequenceSet& se
         parse_phylip_interleaved( it, sequence_set );
 
     // If the mode is automatic, we need to do some magic.
-    } else {
+    } else if( mode_ == Mode::kAutomatic ) {
 
         // Temporary set.
         SequenceSet tmp;
@@ -183,6 +190,10 @@ void PhylipReader::from_string( std::string const& input_string, SequenceSet& se
         for( auto s : tmp ) {
             sequence_set.add( std::move(s) );
         }
+
+    } else {
+        // We already covered all cases above. This cannot happen.
+        assert( false );
     }
 }
 
@@ -200,8 +211,10 @@ void PhylipReader::from_string( std::string const& input_string, SequenceSet& se
  * Currently, the function does not support Phylip options. According to the standard, those might
  * follow after the two integers, but will lead to exceptions here.
  */
-std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::InputStream& it ) const
+PhylipReader::Header PhylipReader::parse_phylip_header( utils::InputStream& it ) const
 {
+    Header result;
+
     // Read number of sequences.
     utils::skip_while( it, isblank );
     std::string num_seq_str = utils::read_while( it, isdigit );
@@ -211,7 +224,7 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::InputStream&
             + it.at() + "."
         );
     }
-    size_t num_seq = std::stoi( num_seq_str );
+    result.num_sequences = std::stoi( num_seq_str );
 
     // Read length of sequences.
     utils::skip_while( it, isblank );
@@ -222,10 +235,10 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::InputStream&
             + it.at() + "."
         );
     }
-    size_t len_seq = std::stoi( len_seq_str );
+    result.len_sequences = std::stoi( len_seq_str );
 
     // Sanity check.
-    if( num_seq == 0 || len_seq == 0 ) {
+    if( result.num_sequences == 0 || result.len_sequences == 0 ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Sequences are empty."
         );
@@ -233,6 +246,7 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::InputStream&
 
     // Process end of header line.
     utils::skip_while( it, isblank );
+    result.remainder = utils::trim_right( utils::read_to_end_of_line( it ));
     if( !it || *it != '\n' ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Expecting end of line at " + it.at() + "."
@@ -240,7 +254,7 @@ std::pair<size_t, size_t> PhylipReader::parse_phylip_header( utils::InputStream&
     }
     ++it;
 
-    return { num_seq, len_seq };
+    return result;
 }
 
 /**
@@ -341,9 +355,10 @@ std::string PhylipReader::parse_phylip_sequence_line( utils::InputStream& it ) c
  */
 void PhylipReader::parse_phylip_sequential(  utils::InputStream& it, SequenceSet& sset ) const
 {
-    auto sizes = parse_phylip_header( it );
-    size_t num_seq = sizes.first;
-    size_t len_seq = sizes.second;
+    // Parse header line.
+    auto header = parse_phylip_header( it );
+    size_t num_seq = header.num_sequences;
+    size_t len_seq = header.len_sequences;
 
     // Process the given number of sequences. If there are not enough, the inner functions will
     // throw. If there are too many, the check at the end will throw.
@@ -394,9 +409,9 @@ void PhylipReader::parse_phylip_sequential(  utils::InputStream& it, SequenceSet
 void PhylipReader::parse_phylip_interleaved( utils::InputStream& it, SequenceSet& sset ) const
 {
     // Parse header line.
-    auto sizes = parse_phylip_header( it );
-    size_t num_seq = sizes.first;
-    size_t len_seq = sizes.second;
+    auto header = parse_phylip_header( it );
+    size_t num_seq = header.num_sequences;
+    size_t len_seq = header.len_sequences;
 
     // Helper function that checks the sequence length and throws if it is too long.
     auto check_seq_len = [ &it, &len_seq ] ( Sequence const& seq ) {

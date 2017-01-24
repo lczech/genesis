@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -35,7 +35,6 @@
 
 #include <iosfwd>
 #include <string>
-#include <utility>
 
 namespace genesis {
 
@@ -95,6 +94,35 @@ public:
     // ---------------------------------------------------------------------
 
     /**
+     * @brief Helper that stores the header information of a Phylip file.
+     */
+    struct Header
+    {
+        /**
+         * @brief Number of sequences in the Phylip file.
+         */
+        size_t      num_sequences = 0;
+
+        /**
+         * @brief Length of the sequences in the Phylip file.
+         */
+        size_t      len_sequences = 0;
+
+        /**
+         * @brief Store metadata at the end of the header line.
+         *
+         * Some Phylip files contain data after the two mandatory numbers in the header line.
+         * This data can be stored here.
+         *
+         * There are magic values for this metadata: If the (trimmed) remainder of the
+         * header line is simply "s" or "i", this is used as a trigger to distinguish
+         * between sequential and interleaved Phylip files. This is however only used if
+         * Mode::kAutomatic is selected, see mode( Mode ) for more information.
+         */
+        std::string remainder;
+    };
+
+    /**
      * @brief Enum to distinguish between the different file variants of Phylip.
      * See mode( Mode value ) for more details.
      */
@@ -141,7 +169,7 @@ public:
     //     Parsing
     // ---------------------------------------------------------------------
 
-    std::pair<size_t, size_t> parse_phylip_header(
+    Header parse_phylip_header(
         utils::InputStream& it
     ) const;
 
