@@ -241,15 +241,15 @@ PhylipReader::Header PhylipReader::parse_phylip_header( utils::InputStream& it )
         );
     }
 
-    // Process end of header line.
+    // Process end of header line and proceed to first non-empty line.
     utils::skip_while( it, isblank );
-    result.remainder = utils::trim_right( utils::read_to_end_of_line( it ));
+    result.options = utils::trim_right( utils::read_to_end_of_line( it ));
     if( !it || *it != '\n' ) {
         throw std::runtime_error(
             "Malformed Phylip " + it.source_name() + ": Expecting end of line at " + it.at() + "."
         );
     }
-    ++it;
+    utils::skip_while( it, '\n' );
 
     return result;
 }

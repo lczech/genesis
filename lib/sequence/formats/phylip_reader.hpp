@@ -109,16 +109,17 @@ public:
         size_t      len_sequences = 0;
 
         /**
-         * @brief Store metadata at the end of the header line.
+         * @brief Store the options that might be at the end of the header line.
          *
-         * Some Phylip files contain data after the two mandatory numbers in the header line.
-         * This data can be stored here. It is currenlty not used.
+         * Some Phylip files contain special options after the two mandatory numbers in the header
+         * line. This data can be stored here. It is currenlty not used.
          *
-         * There are magic values for this metadata: If the (trimmed) remainder of the
+         * Some programs use magic values for those options: If the (trimmed) remainder of the
          * header line is simply "s" or "i", this is used as a trigger to distinguish
          * between sequential and interleaved Phylip files. This is however currently not used.
+         * See Mode for more information.
          */
-        std::string remainder;
+        std::string options;
     };
 
     /**
@@ -226,12 +227,12 @@ public:
     /**
      * @brief Parse a Phylip header and return the contained sequence count and length.
      *
-     * This helper function expects to find a Phylip header in the form `x y`, which describes the
-     * number of sequences `x` in the Phylip data and their length `y`. It leaves the stream at the
-     * beginning of the next line.
+     * This helper function expects to find a Phylip header line in the form `x y`, which describes
+     * the number of sequences `x` in the Phylip data and their length `y`. The remainder of the
+     * header line is interpreted as Phylip options. See Header struct for more information.
      *
-     * Currently, the function does not support Phylip options. According to the standard, those might
-     * follow after the two integers, but will lead to exceptions here.
+     * The function then advances the stream and skips potential empty lines after the header. It
+     * thus leaves the stream at the beginning of the first sequence line.
      */
     Header parse_phylip_header(
         utils::InputStream& it
