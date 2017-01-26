@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -156,15 +156,7 @@ void JplaceReader::from_string( std::string const& jplace, Sample& smp ) const
 {
     utils::JsonDocument doc;
     utils::JsonReader().from_string( jplace, doc );
-    return from_document(doc, smp);
-}
 
-// -------------------------------------------------------------------------
-//     Reading from Document
-// -------------------------------------------------------------------------
-
-void JplaceReader::from_document( utils::JsonDocument const& doc, Sample& smp ) const
-{
     process_json_version( doc );
     process_json_metadata( doc, smp );
 
@@ -173,6 +165,15 @@ void JplaceReader::from_document( utils::JsonDocument const& doc, Sample& smp ) 
     auto fields = process_json_fields( doc );
     process_json_placements( doc, smp, fields);
 }
+
+// // -------------------------------------------------------------------------
+// //     Reading from Document
+// // -------------------------------------------------------------------------
+//
+// void JplaceReader::from_document( utils::JsonDocument const& doc, Sample& smp ) const
+// {
+//
+// }
 
 // -------------------------------------------------------------------------
 //     Reading from Files
@@ -732,9 +733,9 @@ std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument 
 // -------------------------------------------------------------------------
 
 void JplaceReader::process_json_placements(
-    utils::JsonDocument const& doc,
-    Sample&              smp,
-    std::vector<std::string>   fields
+    utils::JsonDocument&      doc,
+    Sample&                   smp,
+    std::vector<std::string>  fields
 ) const {
     // create a map from edge nums to the actual edge pointers, for later use when processing
     // the pqueries. we do not use Sample::EdgeNumMap() here, because we need to do extra
@@ -1007,6 +1008,7 @@ void JplaceReader::process_json_placements(
 
         // Finally, add the pquery to the smp object.
         smp.add_pquery( pqry );
+        pqry_obj->clear();
     }
 }
 

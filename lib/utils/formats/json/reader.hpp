@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,25 +31,33 @@
  * @ingroup utils
  */
 
-#include <string>
-
 #include "utils/formats/json/lexer.hpp"
 
+#include <iosfwd>
+#include <string>
+
 namespace genesis {
-namespace utils {
 
 // =================================================================================================
 //     Forward declarations
 // =================================================================================================
 
-class JsonDocument;
-class JsonValue;
-class JsonValueArray;
-class JsonValueObject;
+namespace utils {
+    class InputStream;
+}
+
+namespace utils {
+    class JsonDocument;
+    class JsonValue;
+    class JsonValueArray;
+    class JsonValueObject;
+}
 
 // =================================================================================================
 //     Json Reader
 // =================================================================================================
+
+namespace utils {
 
 /**
  * @brief Read `Json` data.
@@ -87,6 +95,8 @@ public:
     // ---------------------------------------------------------------------
     //     Reading
     // ---------------------------------------------------------------------
+
+    JsonDocument from_stream( std::istream& input_stream ) const;
 
     void from_file   (const std::string& filename, JsonDocument& document) const;
     void from_string (const std::string& json,     JsonDocument& document) const;

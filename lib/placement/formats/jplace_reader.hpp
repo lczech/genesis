@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -170,10 +170,10 @@ public:
      */
     void from_string   ( std::string const&  jplace,     Sample& smp ) const;
 
-    /**
-     * @brief Take a JsonDocument object and parse it as a Jplace document into a Sample object.
-     */
-    void from_document ( utils::JsonDocument const& doc, Sample& smp ) const;
+    // /**
+    //  * @brief Take a JsonDocument object and parse it as a Jplace document into a Sample object.
+    //  */
+    // void from_document ( utils::JsonDocument const& doc, Sample& smp ) const;
 
     /**
      * @brief Read a list of files and parse them as a Jplace document into a SampleSet object.
@@ -244,7 +244,7 @@ private:
      * the contained pqueries in the Sample.
      */
     void process_json_placements(
-        utils::JsonDocument const& doc,
+        utils::JsonDocument&       doc,
         Sample&                    smp,
         std::vector<std::string>   fields
     ) const;
