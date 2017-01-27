@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -78,7 +78,32 @@ TEST( SampleFunctions, FilterPlacements )
     EXPECT_EQ( 8, total_placement_count(smp) );
 }
 
-TEST( SampleFunctions, FilterPqueryNames )
+TEST( SampleFunctions, FilterPqueryNameRegex )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read file.
+    std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
+    Sample smp;
+    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+
+    // Check before filtering.
+    EXPECT_EQ( 10, total_placement_count(smp) );
+
+    // Keep list.
+    filter_pqueries_keeping_names( smp, "[ac]" );
+    EXPECT_EQ( 6, total_placement_count(smp) );
+
+    // Re-read the file.
+    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+
+    // Remove list.
+    filter_pqueries_removing_names( smp, "[ac]" );
+    EXPECT_EQ( 4, total_placement_count(smp) );
+}
+
+TEST( SampleFunctions, FilterPqueryNameLists )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;

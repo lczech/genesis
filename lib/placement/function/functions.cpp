@@ -43,6 +43,7 @@
 #include <cassert>
 #include <cmath>
 #include <exception>
+#include <regex>
 #include <string>
 #include <unordered_map>
 #include <unordered_set>
@@ -243,6 +244,24 @@ void filter_min_weight_threshold( Sample& smp,    double threshold )
     }
 }
 
+void filter_pqueries_keeping_names( Sample& smp, std::string const& regex )
+{
+    std::regex pattern( regex );
+    auto new_past_the_end = std::remove_if(
+        smp.begin(),
+        smp.end(),
+        [&] ( Pquery const& pqry ) {
+            for( auto const& nm : pqry.names() ) {
+                if( regex_match( nm.name, pattern ) ) {
+                    return false;
+                }
+            }
+            return true;
+        }
+    );
+    smp.remove_pquery( new_past_the_end, smp.end() );
+}
+
 void filter_pqueries_keeping_names( Sample& smp, std::unordered_set<std::string> keep_list )
 {
     // Again, not the cleanest solution, see above functions for discussion.
@@ -264,6 +283,24 @@ void filter_pqueries_keeping_names( Sample& smp, std::unordered_set<std::string>
             ++i;
         }
     }
+}
+
+void filter_pqueries_removing_names( Sample& smp, std::string const& regex )
+{
+    std::regex pattern( regex );
+    auto new_past_the_end = std::remove_if(
+        smp.begin(),
+        smp.end(),
+        [&] ( Pquery const& pqry ) {
+            for( auto const& nm : pqry.names() ) {
+                if( regex_match( nm.name, pattern ) ) {
+                    return true;
+                }
+            }
+            return false;
+        }
+    );
+    smp.remove_pquery( new_past_the_end, smp.end() );
 }
 
 void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string> remove_list )

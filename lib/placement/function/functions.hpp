@@ -176,6 +176,15 @@ void filter_min_weight_threshold( Pquery& pquery, double threshold = 0.01 );
 void filter_min_weight_threshold( Sample& smp,    double threshold = 0.01 );
 
 /**
+ * @brief Remove all @link Pquery Pqueries@endlink which do not have at least one name that matches
+ * the given regex.
+ *
+ * If the Pquery has a PqueryName whose PqueryName::name value matches the regex, the Pquery is
+ * kept. If none of its names matches, the Pquery is removed.
+ */
+void filter_pqueries_keeping_names( Sample& smp, std::string const& regex );
+
+/**
  * @brief Remove all @link Pquery Pqueries@endlink which do not have at least one name that is in
  * the given keep list.
  *
@@ -188,11 +197,20 @@ void filter_min_weight_threshold( Sample& smp,    double threshold = 0.01 );
 void filter_pqueries_keeping_names(  Sample& smp, std::unordered_set<std::string> keep_list );
 
 /**
+ * @brief Remove all @link Pquery Pqueries@endlink which have at least one name that matches the given
+ * regex.
+ *
+ * If the Pquery has a PqueryName whose PqueryName::name value matches the reges,
+ * the Pquery is removed. If none of its names matches, the Pquery is kept.
+ */
+void filter_pqueries_removing_names( Sample& smp, std::string const& regex );
+
+/**
  * @brief Remove all @link Pquery Pqueries@endlink which have at least one name that is in
  * the given remove list.
  *
  * If the Pquery has a PqueryName whose PqueryName::name value is in the `remove_list`,
- * the Pquery is remove. If none of its names is in the `remove_list`, the Pquery is kept.
+ * the Pquery is removed. If none of its names is in the `remove_list`, the Pquery is kept.
  *
  * This is similar to filter_pqueries_keeping_names(), but not quite the opposite, as Pqueries can
  * have multiple names.
