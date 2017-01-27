@@ -336,7 +336,7 @@ void filter_min_weight_threshold( Sample& smp,    double threshold )
  * If the Pquery has a PqueryName whose PqueryName::name value is in the `keep_list`, the Pquery is
  * kept. If none of its names is in the `keep_list`, the Pquery is removed.
  *
- * This is similar to filter_pqueries_keeping_names(), but not quite the opposite, as Pqueries can
+ * This is similar to filter_pqueries_removing_names(), but not quite the opposite, as Pqueries can
  * have multiple names.
  */
 void filter_pqueries_keeping_names( Sample& smp, std::unordered_set<std::string> keep_list )
@@ -355,7 +355,7 @@ void filter_pqueries_keeping_names( Sample& smp, std::unordered_set<std::string>
 
         // If not, remove it. If so, move to the next Pquery.
         if( ! keep ) {
-            smp.remove_pquery_at(i);
+            smp.remove_pquery(i);
         } else {
             ++i;
         }
@@ -388,7 +388,7 @@ void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string
 
         // If so, remove it. If not, move to the next Pquery.
         if( remove ) {
-            smp.remove_pquery_at(i);
+            smp.remove_pquery(i);
         } else {
             ++i;
         }
@@ -636,7 +636,7 @@ void collect_duplicate_pqueries (Sample& smp)
             assert( smp.pquery_at( *it ).placement_size() == 0 );
             assert( smp.pquery_at( *it ).name_size()      == 0 );
 
-            smp.remove_pquery_at( *it );
+            smp.remove_pquery( *it );
         }
     }
 }
