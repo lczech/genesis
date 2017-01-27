@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,8 +63,8 @@ void Simulator::generate( Sample& sample, size_t n )
 
     for (size_t i = 0; i < n; ++i) {
         // Generate one Pquery.
-        Pquery& pqry = sample.add_pquery();
-        pqry.add_name( "pquery_" + std::to_string( sample.pquery_size() - 1 ));
+        Pquery& pqry = sample.add();
+        pqry.add_name( "pquery_" + std::to_string( sample.size() - 1 ));
 
         // Get a random edge.
         size_t edge_idx = edge_distribution_.generate();

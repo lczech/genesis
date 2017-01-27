@@ -1007,7 +1007,7 @@ void JplaceReader::process_json_placements(
         }
 
         // Finally, add the pquery to the smp object.
-        smp.add_pquery( pqry );
+        smp.add( pqry );
         pqry_obj->clear();
     }
 }

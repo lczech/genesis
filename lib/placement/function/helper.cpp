@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -174,11 +174,11 @@ std::vector<double> placement_weight_per_edge( Sample const& sample )
  */
 std::vector<PqueryPlain> plain_queries( Sample const & smp )
 {
-    auto pqueries = std::vector<PqueryPlain>( smp.pquery_size() );
-    for (size_t i = 0; i < smp.pquery_size(); ++i) {
+    auto pqueries = std::vector<PqueryPlain>( smp.size() );
+    for (size_t i = 0; i < smp.size(); ++i) {
         pqueries[i].index = i;
 
-        const auto& opqry = smp.pquery_at(i);
+        const auto& opqry = smp.at(i);
         pqueries[i].placements = std::vector<PqueryPlacementPlain>(opqry.placement_size());
 
         for (size_t j = 0; j < opqry.placement_size(); ++j) {

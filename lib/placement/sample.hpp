@@ -139,7 +139,7 @@ public:
     /**
      * @brief Get the PlacementTree of this Sample.
      */
-    PlacementTree      & tree();
+    PlacementTree& tree();
 
     /**
      * @brief Get the PlacementTree of this Sample.
@@ -153,7 +153,7 @@ public:
     /**
      * @brief Return the number of @link Pquery Pqueries @endlink that are stored in this Sample.
      */
-    size_t pquery_size() const;
+    size_t size() const;
 
     /**
      * @brief Return whether the tree or the set of @link Pquery Pqueries@endlink is empty.
@@ -168,7 +168,7 @@ public:
      * As this function might reallocate the memory where Pqueries are stored, all iterators
      * and pointers to the Pqueries of this Sample are invalidated.
      */
-    Pquery& add_pquery();
+    Pquery& add();
 
     /**
      * @brief Create a Pquery as a copy of the provided one, add it to the sample and return it.
@@ -190,17 +190,17 @@ public:
      * As this function might reallocate the memory where Pqueries are stored, all iterators
      * and pointers to the Pqueries of this Sample are invalidated.
      */
-    Pquery& add_pquery( Pquery const& other );
+    Pquery& add( Pquery const& other );
 
     /**
      * @brief Return the Pquery at a certain index.
      */
-    Pquery      & pquery_at( size_t index );
+    Pquery& at( size_t index );
 
     /**
      * @brief Return the Pquery at a certain index.
      */
-    Pquery const& pquery_at( size_t index ) const;
+    Pquery const& at( size_t index ) const;
 
     /**
      * @brief Remove the Pquery at a given `index` from the Sample.
@@ -208,24 +208,24 @@ public:
      * As this function might reallocate the memory where Pqueries are stored, all iterators
      * and pointer to the Pqueries of this Sample are invalidated.
      */
-    void remove_pquery( size_t index );
+    void remove( size_t index );
 
     /**
     * @brief Remove the @link Pquery Pqueries @endlink between the `first_index` (inclusive) and
     *  the `last_index` (exclusive) from the Sample.
     */
-    void remove_pquery( size_t first_index, size_t last_index );
+    void remove( size_t first_index, size_t last_index );
 
     /**
      * @brief Remove the Pquery at a given iterator `position` from the Sample.
      */
-    void remove_pquery( iterator_pqueries position );
+    void remove( iterator_pqueries position );
 
     /**
     * @brief Remove the @link Pquery Pqueries @endlink between the `first` (inclusive) and the `last`
     * (exclusive) iterator position from the Sample.
     */
-    void remove_pquery( iterator_pqueries first, iterator_pqueries last );
+    void remove( iterator_pqueries first, iterator_pqueries last );
 
     /**
      * @brief Clear all @link Pquery Pqueries @endlink of this Sample.

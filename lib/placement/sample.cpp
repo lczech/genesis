@@ -130,7 +130,7 @@ PlacementTree const& Sample::tree() const
 //     Pquery Accessors and Modifiers
 // =================================================================================================
 
-size_t Sample::pquery_size() const
+size_t Sample::size() const
 {
     return pqueries_.size();
 }
@@ -144,13 +144,13 @@ bool Sample::empty() const
 //     Add
 // -------------------------------------------------------------------------
 
-Pquery& Sample::add_pquery()
+Pquery& Sample::add()
 {
     pqueries_.push_back( Pquery() );
     return pqueries_.back();
 }
 
-Pquery& Sample::add_pquery( Pquery const& other )
+Pquery& Sample::add( Pquery const& other )
 {
     pqueries_.push_back( other );
 
@@ -182,12 +182,12 @@ Pquery& Sample::add_pquery( Pquery const& other )
 //     At
 // -------------------------------------------------------------------------
 
-Pquery& Sample::pquery_at( const size_t index )
+Pquery& Sample::at( const size_t index )
 {
     return pqueries_.at( index );
 }
 
-Pquery const& Sample::pquery_at( const size_t index ) const
+Pquery const& Sample::at( const size_t index ) const
 {
     return pqueries_.at( index );
 }
@@ -196,12 +196,12 @@ Pquery const& Sample::pquery_at( const size_t index ) const
 //     Remove
 // -------------------------------------------------------------------------
 
-void Sample::remove_pquery( size_t index )
+void Sample::remove( size_t index )
 {
     pqueries_.erase( pqueries_.begin() + index );
 }
 
-void Sample::remove_pquery( size_t first_index, size_t last_index )
+void Sample::remove( size_t first_index, size_t last_index )
 {
     if( first_index    >= pqueries_.size()
         || last_index  >= pqueries_.size()
@@ -213,12 +213,12 @@ void Sample::remove_pquery( size_t first_index, size_t last_index )
     pqueries_.erase( pqueries_.begin() + first_index, pqueries_.begin() + last_index );
 }
 
-void Sample::remove_pquery( iterator_pqueries position )
+void Sample::remove( iterator_pqueries position )
 {
     pqueries_.erase( position );
 }
 
-void Sample::remove_pquery( iterator_pqueries first, iterator_pqueries last )
+void Sample::remove( iterator_pqueries first, iterator_pqueries last )
 {
     pqueries_.erase( first, last );
 }

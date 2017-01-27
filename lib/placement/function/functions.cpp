@@ -259,18 +259,18 @@ void filter_pqueries_keeping_names( Sample& smp, std::string const& regex )
             return true;
         }
     );
-    smp.remove_pquery( new_past_the_end, smp.end() );
+    smp.remove( new_past_the_end, smp.end() );
 }
 
 void filter_pqueries_keeping_names( Sample& smp, std::unordered_set<std::string> keep_list )
 {
     // Again, not the cleanest solution, see above functions for discussion.
     size_t i = 0;
-    while( i < smp.pquery_size() ) {
+    while( i < smp.size() ) {
 
         // See if the Pquery has a name in the list.
         bool keep = false;
-        for( auto const& name : smp.pquery_at(i).names() ) {
+        for( auto const& name : smp.at(i).names() ) {
             if( keep_list.count( name.name ) > 0 ) {
                 keep = true;
             }
@@ -278,7 +278,7 @@ void filter_pqueries_keeping_names( Sample& smp, std::unordered_set<std::string>
 
         // If not, remove it. If so, move to the next Pquery.
         if( ! keep ) {
-            smp.remove_pquery(i);
+            smp.remove(i);
         } else {
             ++i;
         }
@@ -300,18 +300,18 @@ void filter_pqueries_removing_names( Sample& smp, std::string const& regex )
             return false;
         }
     );
-    smp.remove_pquery( new_past_the_end, smp.end() );
+    smp.remove( new_past_the_end, smp.end() );
 }
 
 void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string> remove_list )
 {
     // Again, not the cleanest solution, see above functions for discussion.
     size_t i = 0;
-    while( i < smp.pquery_size() ) {
+    while( i < smp.size() ) {
 
         // See if the Pquery has a name in the list.
         bool remove = false;
-        for( auto const& name : smp.pquery_at(i).names() ) {
+        for( auto const& name : smp.at(i).names() ) {
             if( remove_list.count( name.name ) > 0 ) {
                 remove = true;
             }
@@ -319,7 +319,7 @@ void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string
 
         // If so, remove it. If not, move to the next Pquery.
         if( remove ) {
-            smp.remove_pquery(i);
+            smp.remove(i);
         } else {
             ++i;
         }
@@ -396,7 +396,7 @@ void copy_pqueries( Sample const& source, Sample& target )
         for( auto name_it = opqry.begin_names(); name_it != opqry.end_names(); ++name_it ) {
             npqry.add_name( *name_it );
         }
-        target.add_pquery( npqry );
+        target.add( npqry );
     }
 }
 
@@ -436,8 +436,8 @@ void collect_duplicate_pqueries (Sample& smp)
         // list as deleting from a list while iterating it is not a good idea.
         std::vector<size_t> del;
 
-        for( size_t i = 0; i < smp.pquery_size(); ++i ) {
-            auto& pqry = smp.pquery_at(i);
+        for( size_t i = 0; i < smp.size(); ++i ) {
+            auto& pqry = smp.at(i);
 
             // Collect the Pqueries that can be merged with the current one, because they share
             // a common name.
@@ -511,10 +511,10 @@ void collect_duplicate_pqueries (Sample& smp)
         for( auto it = del.rbegin(); it != del.rend(); ++it ) {
             // Assert that this is an empty pquery. We cleared the ones that are marked for
             // deletion, so in case that it is not empty, we are about to delete the wrong one!
-            assert( smp.pquery_at( *it ).placement_size() == 0 );
-            assert( smp.pquery_at( *it ).name_size()      == 0 );
+            assert( smp.at( *it ).placement_size() == 0 );
+            assert( smp.at( *it ).name_size()      == 0 );
 
-            smp.remove_pquery( *it );
+            smp.remove( *it );
         }
     }
 }

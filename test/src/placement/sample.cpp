@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ void test_sample_stats (
 ) {
     EXPECT_TRUE (validate(smp, true, false));
 
-    EXPECT_EQ (expected_pquery_size,    smp.pquery_size());
+    EXPECT_EQ (expected_pquery_size,    smp.size());
     EXPECT_EQ (expected_placement_size, total_placement_count(smp));
 
     size_t name_count = 0;

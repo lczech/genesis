@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -92,8 +92,8 @@ void JplaceWriter::to_stream( Sample const& sample, std::ostream& os ) const
 
     // Write pqueries.
     os << in << "\"placements\": [\n";
-    for( size_t i = 0; i < sample.pquery_size(); ++i ) {
-        auto const& pquery = sample.pquery_at(i);
+    for( size_t i = 0; i < sample.size(); ++i ) {
+        auto const& pquery = sample.at(i);
         os << in << in << "{\n";
 
         // Write placements.
@@ -157,7 +157,7 @@ void JplaceWriter::to_stream( Sample const& sample, std::ostream& os ) const
 
         // Write end of placement stuff.
         os << in << in << "}";
-        if( i < sample.pquery_size() - 1 ) {
+        if( i < sample.size() - 1 ) {
             os << ",";
         }
         os << "\n";
