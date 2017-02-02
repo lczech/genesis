@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -143,6 +143,7 @@ T parse_float( utils::InputStream& source )
         return x;
     }
 
+    // Sign
     bool is_neg = false;
     if( *source == '-' ){
         is_neg = true;
@@ -151,6 +152,7 @@ T parse_float( utils::InputStream& source )
         ++source;
     }
 
+    // Integer Part
     while( source && isdigit( *source )) {
         int y = *source - '0';
         x *= 10;
@@ -158,6 +160,7 @@ T parse_float( utils::InputStream& source )
         ++source;
     }
 
+    // Decimal part
     if( source && ( *source == '.' || *source == ',' )) {
         ++source;
 
@@ -170,6 +173,7 @@ T parse_float( utils::InputStream& source )
         }
     }
 
+    // Exponential part
     if( source && tolower(*source) == 'e' ) {
         ++source;
 
@@ -196,6 +200,7 @@ T parse_float( utils::InputStream& source )
         }
     }
 
+    // Sign
     if (is_neg) {
         x = -x;
     }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,16 +52,36 @@ std::string parse_number_string(
     std::string result;
     auto& it = source;
 
+    // Mantisse.
     if( it && char_is_sign( *it )) {
         result += *it;
         ++it;
     }
-    result += read_while( source, char_is_digit );
+
+    // Read while char is digit.
+    while( source && char_is_digit( *source )) {
+        result += *source;
+        ++source;
+    }
+
     if( it && *it == '.' ) {
         result += '.';
         ++it;
     }
-    result += read_while( source, char_is_digit );
+
+    // Read while char is digit.
+    while( source && char_is_digit( *source )) {
+        result += *source;
+        ++source;
+    }
+
+    // If there was no match so far, stop here.
+    // Otherwise, a string starting with "E" will be read as a number...
+    if( result.empty() ) {
+        return result;
+    }
+
+    // Exponent.
     if( it && char_match_ci( *it, 'e' ) ) {
         result += *it;
         ++it;
@@ -70,7 +90,12 @@ std::string parse_number_string(
         result += *it;
         ++it;
     }
-    result += read_while( source, char_is_digit );
+
+    // Read while char is digit.
+    while( source && char_is_digit( *source )) {
+        result += *source;
+        ++source;
+    }
 
     return result;
 }
