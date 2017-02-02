@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,9 +33,10 @@
 
 
 #include <array>
-#include <assert.h>
+#include <cassert>
 #include <functional>
 #include <string>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
@@ -82,6 +83,29 @@ public:
         for( size_t i = 0; i < ArraySize; ++i ) {
             table_[i] = init_all;
         }
+    }
+
+    /**
+     * @brief Constructor that takes an initializer list of the template type.
+     *
+     * The given list needs to have as many entries as the lookup table itself (see ArraySize),
+     * otherwise it throws.
+     */
+    CharLookup( std::initializer_list<T> init )
+    {
+        if( init.size() != ArraySize ) {
+            throw std::domain_error(
+                "Expect initializer list of size " + std::to_string(ArraySize) +
+                " instead of size " + std::to_string( init.size() ) + "."
+            );
+        }
+
+        size_t i = 0;
+        for( auto const& e : init ) {
+            table_[i] = e;
+            ++i;
+        }
+        assert( i == ArraySize );
     }
 
     ~CharLookup() = default;
