@@ -69,11 +69,11 @@ namespace placement {
  * Exemplary usage:
  *
  *     std::string infile = "path/to/file.jplace";
- *     Sample map;
+ *     Sample smp;
  *
  *     JplaceReader()
  *         .invalid_number_behaviour( InvalidNumberBehaviour::kCorrect )
- *         .from_file( infile, map );
+ *         .from_file( infile, smp );
  *
  * Using @link invalid_number_behaviour( InvalidNumberBehaviour ) invalid_number_behaviour()@endlink,
  * it is possible to change how the reader reacts to malformed jplace files.
@@ -86,7 +86,7 @@ namespace placement {
  *     PLoS ONE 7(2): e31009. doi:10.1371/journal.pone.0031009
  *     http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009
  *
- * See Sample for the data structure used to store the Pqueries.
+ * See Sample for the data structure used to store the Pqueries and the reference Tree.
  */
 class JplaceReader
 {
@@ -261,18 +261,15 @@ private:
     /**
      * @brief Checks whether the version of the jplace format works with this parser.
      *
-     * This parser is intended for `jplace` versions 2 and 3. If while reading a different version tag
-     * is found, the reader will trigger a warning and try to continue anyway.
-     */
-    static bool        check_version ( std::string const& version );
-
-    /**
-     * @brief Checks whether the version of the jplace format works with this parser.
-     *
-     * This parser is intended for `jplace` versions 2 and 3. If while reading a different version tag
-     * is found, the reader will trigger a warning and try to continue anyway.
+     * This parser is intended for `jplace` versions 2 and 3. If while reading a different version
+     * tag is found, the reader will trigger a warning and try to continue anyway.
      */
     static bool        check_version ( size_t             version );
+
+    /**
+     * @copydoc check_version( size_t version ).
+     */
+    static bool        check_version ( std::string const& version );
 
     // ---------------------------------------------------------------------
     //     Properties

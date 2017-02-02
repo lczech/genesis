@@ -31,39 +31,22 @@
  * @ingroup utils
  */
 
-#include "utils/formats/json/lexer.hpp"
-
-#include "utils/tools/char_lookup.hpp"
-
-#include <cstdint>
-
 #include <iosfwd>
 #include <string>
 
 namespace genesis {
+namespace utils {
 
 // =================================================================================================
 //     Forward declarations
 // =================================================================================================
 
-namespace utils {
-    class InputStream;
-}
-
-namespace utils {
-    class JsonDocument;
-    class JsonValue;
-    class JsonValueArray;
-    class JsonValueObject;
-
-    class JsonBetter;
-}
+class InputStream;
+class JsonDocument;
 
 // =================================================================================================
 //     Json Reader
 // =================================================================================================
-
-namespace utils {
 
 /**
  * @brief Read `Json` data.
@@ -71,44 +54,19 @@ namespace utils {
  * This class provides functions for parsing `json` data into a JsonDocument. The parsing works
  * this way:
  *
- * Each JsonDocutment is also a JsonObject, and can contain other objects, JsonArray%s, or simple
- * value types. The parsing here is thus splitted in those three functions, being recursively called
+ * Each JsonDocument is also a Json object, and can contain other objects, arrays, or simple
+ * value types. The parsing here is thus splitted in different functions, being recursively called
  * for every level of nesting within objects and arrays.
- *
- * Those three functions (objects, arrays, simple values) take an interator to the current lexer
- * token by reference and advance it until it points to the next token after processing the current
- * object/array/value. To check for the end of the lexer, an intererator to its end is also
- * provided, as well as a pointer to the resulting JSON value, which is filled with data during the
- * execution of the functions.
  */
 class JsonReader
 {
 public:
 
     // ---------------------------------------------------------------------
-    //     Typedefs and Enums
-    // ---------------------------------------------------------------------
-
-    enum class CharTypes : uint8_t
-    {
-        kInvalid,
-        kSpace,
-        kAlpha,
-        kNumber,
-
-        kBracketOpen,
-        kBracketClose,
-        kBraceOpen,
-        kBraceClose,
-        kQuotation,
-    };
-
-    // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
-    JsonReader();
-    // JsonReader()  = default;
+    JsonReader()  = default;
     ~JsonReader() = default;
 
     JsonReader( JsonReader const& ) = default;
@@ -121,53 +79,31 @@ public:
     //     Reading
     // ---------------------------------------------------------------------
 
-    JsonDocument from_stream( std::istream& input_stream ) const;
+    /**
+     * @brief Read from a stream containing a JSON document and parse its contents into a JsonDocument.
+     */
+    JsonDocument from_stream( std::istream& input_stream  ) const;
 
-    void from_file   (const std::string& filename, JsonDocument& document) const;
-    void from_string (const std::string& json,     JsonDocument& document) const;
+    /**
+     * @brief Take a JSON document file path and parse its contents into a JsonDocument.
+     *
+     * If the file does not exists, the function throws.
+     */
+    JsonDocument from_file   (const std::string& filename ) const;
 
-    // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
-
-    JsonBetter parse( InputStream& input_stream ) const;
-
-    // JsonBetter parse_array(  InputStream& input_stream, JsonBetter& doc ) const;
-    // JsonBetter parse_object( InputStream& input_stream, JsonBetter& doc ) const;
-    JsonBetter parse_array(  InputStream& input_stream ) const;
-    JsonBetter parse_object( InputStream& input_stream ) const;
-
-    JsonBetter parse_number( InputStream& input_stream ) const;
-
-    // ---------------------------------------------------------------------
-    //     Internal Functions
-    // ---------------------------------------------------------------------
-
-private:
-
-    void parse_value (
-        JsonLexer::iterator& ct,
-        JsonLexer::iterator& end,
-        JsonValue*&          value
-    ) const;
-
-    void parse_array (
-        JsonLexer::iterator& ct,
-        JsonLexer::iterator& end,
-        JsonValueArray*      value
-    ) const;
-
-    void parse_object (
-        JsonLexer::iterator& ct,
-        JsonLexer::iterator& end,
-        JsonValueObject*     value
-    ) const;
+    /**
+     * @brief Take a string containing a JSON document and parse its contents into a JsonDocument.
+     */
+    JsonDocument from_string (const std::string& json     ) const;
 
     // ---------------------------------------------------------------------
-    //     Data Members
+    //     Parsing Functions
     // ---------------------------------------------------------------------
 
-private:
-
-    CharLookup<CharTypes> lookup_;
+    JsonDocument parse_value( InputStream& input_stream ) const;
+    JsonDocument parse_array(  InputStream& input_stream ) const;
+    JsonDocument parse_object( InputStream& input_stream ) const;
+    JsonDocument parse_number( InputStream& input_stream ) const;
 
 };
 

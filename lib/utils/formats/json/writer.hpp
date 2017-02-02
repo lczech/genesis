@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,8 +30,6 @@
  * @file
  * @ingroup utils
  */
-
-#include "utils/formats/json/lexer.hpp"
 
 #include <iosfwd>
 #include <string>
@@ -87,11 +85,11 @@ public:
     //     Printing
     // ---------------------------------------------------------------------
 
-protected:
+private:
 
-    void print_value  ( JsonValue       const* value, std::ostream& out) const;
-    void print_array  ( JsonValueArray  const* value, std::ostream& out, int indent_level) const;
-    void print_object ( JsonValueObject const* value, std::ostream& out, int indent_level) const;
+    void print_value  ( JsonDocument const& value, std::ostream& out) const;
+    void print_array  ( JsonDocument const& value, std::ostream& out, int indent_level) const;
+    void print_object ( JsonDocument const& value, std::ostream& out, int indent_level) const;
 
     // ---------------------------------------------------------------------
     //     Members

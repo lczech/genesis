@@ -40,6 +40,7 @@
 #include "utils/core/options.hpp"
 #include "utils/core/std.hpp"
 #include "utils/formats/json/document.hpp"
+#include "utils/formats/json/iterator.hpp"
 #include "utils/formats/json/reader.hpp"
 #include "utils/io/input_stream.hpp"
 #include "utils/io/parser.hpp"
@@ -154,8 +155,10 @@ void JplaceReader::from_file( std::string const& fn, Sample& smp ) const
 
 void JplaceReader::from_string( std::string const& jplace, Sample& smp ) const
 {
-    utils::JsonDocument doc;
-    utils::JsonReader().from_string( jplace, doc );
+    auto doc = utils::JsonReader().from_string( jplace );
+    if( ! doc.is_object() ) {
+        throw std::runtime_error( "Json value is not a document." );
+    }
 
     process_json_version( doc );
     process_json_metadata( doc, smp );
@@ -617,14 +620,26 @@ std::vector<JplaceReader::NameData> JplaceReader::parse_named_multiplicities(
 
 void JplaceReader::process_json_version( utils::JsonDocument const& doc ) const
 {
-    // check if the version is correct
-    utils::JsonValue* val = doc.get("version");
-    if (!val) {
+    // Check if there is a version key.
+    auto v_it = doc.find( "version" );
+    if( v_it == doc.end() || !( v_it->is_string() || v_it->is_number() ) ) {
         LOG_WARN << "Jplace document does not contain a valid version number at key 'version'. "
                  << "Now continuing to parse in the hope that it still works.";
+        return;
     }
-    if (!check_version(val->to_string())) {
-        LOG_WARN << "Jplace document has version '" << val->to_string() << "', however this parser "
+
+    // The key can be a number (3) or a string ("3"), check both.
+    std::string doc_version;
+    if( v_it->is_number() ) {
+        doc_version = std::to_string( v_it->get_number<double>() );
+    }
+    if( v_it->is_string() ) {
+        doc_version = v_it->get_string();
+    }
+
+    // Check if the version is correct.
+    if( ! check_version( doc_version )) {
+        LOG_WARN << "Jplace document has version '" << doc_version << "', however this parser "
                  << "is written for version " << version() << " of the Jplace format. "
                  << "Now continuing to parse in the hope that it still works.";
     }
@@ -637,11 +652,14 @@ void JplaceReader::process_json_version( utils::JsonDocument const& doc ) const
 void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Sample& smp ) const
 {
     // Check if there is metadata.
-    auto val = doc.get("metadata");
-    if (val && val->is_object()) {
-        utils::JsonValueObject* meta_obj = json_value_to_object(val);
-        for( utils::JsonValueObject::ObjectPair meta_pair : *meta_obj ) {
-            smp.metadata[meta_pair.first] = meta_pair.second->to_string();
+    auto meta_it = doc.find( "metadata" );
+    if( meta_it != doc.end() && meta_it->is_object() ) {
+        for( auto it = meta_it->begin(); it != meta_it->end(); ++it ) {
+
+            // Only use metadata that is a string. Everything else is ignored.
+            if( it.value().is_string() ) {
+                smp.metadata[ it.key() ] = it.value().get_string();
+            }
         }
     }
 }
@@ -653,9 +671,9 @@ void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Sample
 void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& smp ) const
 {
     // find and process the reference tree
-    auto val = doc.get("tree");
-    if (!val || !val->is_string() ||
-        !PlacementTreeNewickReader().from_string(val->to_string(), smp.tree())
+    auto tree_it = doc.find( "tree" );
+    if( tree_it == doc.end() || ! tree_it->is_string() ||
+        ! PlacementTreeNewickReader().from_string( tree_it->get_string(), smp.tree() )
     ) {
         throw std::runtime_error(
             "Jplace document does not contain a valid Newick tree at key 'tree'."
@@ -675,23 +693,23 @@ void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& sm
 std::vector<std::string> JplaceReader::process_json_fields( utils::JsonDocument const& doc ) const
 {
     // get the field names and store them in array fields
-    auto val = doc.get("fields");
-    if (!val || !val->is_array()) {
+    auto fields_it = doc.find( "fields" );
+
+    if( fields_it == doc.end() || ! fields_it->is_array() ) {
         throw std::runtime_error( "Jplace document does not contain field names at key 'fields'." );
     }
-    utils::JsonValueArray* fields_arr = json_value_to_array(val);
     std::vector<std::string> fields;
     bool has_edge_num = false;
-    for( utils::JsonValue* fields_val : *fields_arr ) {
-        if (!fields_val->is_string()) {
+    for( auto const& fields_val : *fields_it ) {
+        if( ! fields_val.is_string() ) {
             throw std::runtime_error(
-                "Jplace document contains a value of type '" + fields_val->type_to_string()
+                "Jplace document contains a value of type '" + fields_val.type_name()
                 + "' instead of a string with a field name at key 'fields'."
             );
         }
 
         // check field validity
-        std::string field = fields_val->to_string();
+        std::string const& field = fields_val.get_string();
         if (field == "edge_num"      || field == "likelihood"     || field == "like_weight_ratio" ||
             field == "distal_length" || field == "pendant_length" || field == "proximal_length"   ||
             field == "parsimony"
@@ -740,7 +758,7 @@ void JplaceReader::process_json_placements(
     // create a map from edge nums to the actual edge pointers, for later use when processing
     // the pqueries. we do not use Sample::EdgeNumMap() here, because we need to do extra
     // checking for validity first!
-    std::unordered_map<int, PlacementTreeEdge*> edge_num_map;
+    std::unordered_map<size_t, PlacementTreeEdge*> edge_num_map;
     for (
         PlacementTree::ConstIteratorEdges it = smp.tree().begin_edges();
         it != smp.tree().end_edges();
@@ -758,22 +776,21 @@ void JplaceReader::process_json_placements(
     }
 
     // Find and process the pqueries.
-    auto val = doc.get("placements");
-    if (!val || !val->is_array()) {
+    auto place_it = doc.find( "placements" );
+    if( place_it == doc.end() || ! place_it->is_array() ) {
         throw std::runtime_error(
             "Jplace document does not contain pqueries at key 'placements'."
         );
     }
-    utils::JsonValueArray* placements_arr = json_value_to_array(val);
-    for( utils::JsonValue* pqry_val : *placements_arr ) {
-        if (!pqry_val->is_object()) {
+    for( auto& pqry_obj : *place_it ) {
+        if( ! pqry_obj.is_object() ) {
             throw std::runtime_error(
-                "Jplace document contains a value of type '" + pqry_val->type_to_string()
+                "Jplace document contains a value of type '" + pqry_obj.type_name()
                 + "' instead of an object with a pquery at key 'placements'."
             );
         }
-        utils::JsonValueObject* pqry_obj = json_value_to_object(pqry_val);
-        if (!pqry_obj->has("p") || !pqry_obj->get("p")->is_array()) {
+        auto pqry_p_arr = pqry_obj.find( "p" );
+        if( pqry_p_arr == pqry_obj.end() || ! pqry_p_arr->is_array() ) {
             throw std::runtime_error(
                 "Jplace document contains a pquery at key 'placements' that does not contain an "
                 + std::string( "array of placements at sub-key 'p'." )
@@ -784,15 +801,14 @@ void JplaceReader::process_json_placements(
         auto pqry = Pquery();
 
         // Process the placements and store them in the pquery.
-        utils::JsonValueArray* pqry_p_arr = json_value_to_array(pqry_obj->get("p"));
-        for( utils::JsonValue* pqry_p_val : *pqry_p_arr ) {
-            if (!pqry_p_val->is_array()) {
+        for( auto const& pqry_fields : *pqry_p_arr ) {
+            if( ! pqry_fields.is_array() ) {
                 throw std::runtime_error(
                     "Jplace document contains a pquery with invalid placement at key 'p'."
                 );
             }
-            utils::JsonValueArray* pqry_fields = json_value_to_array(pqry_p_val);
-            if (pqry_fields->size() != fields.size()) {
+
+            if (pqry_fields.size() != fields.size()) {
                 throw std::runtime_error(
                     "Jplace document contains a placement fields array with different size "
                     + std::string( "than the fields name array." )
@@ -802,23 +818,23 @@ void JplaceReader::process_json_placements(
             // Process all fields of the placement.
             auto pqry_place = PqueryPlacement();
             double distal_length = -1.0;
-            for (size_t i = 0; i < pqry_fields->size(); ++i) {
+            for (size_t i = 0; i < pqry_fields.size(); ++i) {
                 // Up to version 3 of the jplace specification, the p-fields in a jplace document
                 // only contain numbers (float or int), so we can do this check here once for all
                 // fields, instead of repetition for every field. If in the future there are fields
                 // with non-number type, this check has to go into the single field assignments.
-                if (!pqry_fields->at(i)->is_number()) {
+                if (!pqry_fields.at(i).is_number()) {
                     throw std::runtime_error(
                         "Jplace document contains pquery where field " + fields[i]
-                        + " is of type '" + pqry_fields->at(i)->type_to_string()
+                        + " is of type '" + pqry_fields.at(i).type_name()
                         + "' instead of a number."
                     );
                 }
 
                 // Switch on the field name to set the correct value.
-                double pqry_place_val = json_value_to_number(pqry_fields->at(i))->value;
+                double pqry_place_val = pqry_fields.at(i).get_number<double>();
                 if (fields[i] == "edge_num") {
-                    int val_int = static_cast<int>( pqry_place_val );
+                    size_t val_int = pqry_fields.at(i).get_number<size_t>();
 
                     if (edge_num_map.count( val_int ) == 0) {
                         throw std::runtime_error(
@@ -926,68 +942,65 @@ void JplaceReader::process_json_placements(
         }
 
         // Check name/named multiplicity validity.
-        if (pqry_obj->has("n") && pqry_obj->has("nm")) {
+        if( pqry_obj.count("n") > 0 && pqry_obj.count("nm") > 0 ) {
             throw std::runtime_error(
                 "Jplace document contains a pquery with both an 'n' and an 'nm' key."
             );
         }
-        if (!pqry_obj->has("n") && !pqry_obj->has("nm")) {
+        if( pqry_obj.count("n") == 0 && pqry_obj.count("nm") == 0 ) {
             throw std::runtime_error(
                 "Jplace document contains a pquery with neither an 'n' nor an 'nm' key."
             );
         }
 
         // Process names.
-        if (pqry_obj->has("n")) {
-            if (!pqry_obj->get("n")->is_array()) {
+        if( pqry_obj.count("n") > 0 ) {
+            if( ! pqry_obj[ "n" ].is_array() ) {
                 throw std::runtime_error(
                     "Jplace document contains a pquery with key 'n' that is not array."
                 );
             }
 
-            utils::JsonValueArray* pqry_n_arr = json_value_to_array(pqry_obj->get("n"));
-            for( utils::JsonValue* pqry_n_val : *pqry_n_arr ) {
-                if (!pqry_n_val->is_string()) {
+            for( auto const& pqry_n_val : pqry_obj[ "n" ] ) {
+                if( ! pqry_n_val.is_string() ) {
                     throw std::runtime_error(
                         "Jplace document contains a pquery where key 'n' has a non-string field."
                     );
                 }
 
                 // Add the name with a default multiplicity.
-                pqry.add_name( pqry_n_val->to_string() );
+                pqry.add_name( pqry_n_val.get_string() );
             }
         }
 
         // Process named multiplicities.
-        if (pqry_obj->has("nm")) {
-            if (!pqry_obj->get("nm")->is_array()) {
+        if( pqry_obj.count("nm") > 0 ) {
+            if ( ! pqry_obj[ "nm" ].is_array() ) {
                 throw std::runtime_error(
                     "Jplace document contains a pquery with key 'nm' that is not array."
                 );
             }
 
-            utils::JsonValueArray* pqry_nm_arr = json_value_to_array(pqry_obj->get("nm"));
-            for( utils::JsonValue* pqry_nm_val : *pqry_nm_arr ) {
-                if (!pqry_nm_val->is_array()) {
+            for( auto const& pqry_nm_val : pqry_obj[ "nm" ] ) {
+                if( ! pqry_nm_val.is_array() ) {
                     throw std::runtime_error(
                         "Jplace document contains a pquery where key 'nm' has a non-array field."
                     );
                 }
 
-                utils::JsonValueArray * pqry_nm_val_arr = json_value_to_array(pqry_nm_val);
-                if (pqry_nm_val_arr->size() != 2) {
+                if( pqry_nm_val.size() != 2 ) {
                     throw std::runtime_error(
                         std::string( "Jplace document contains a pquery where key 'nm' has an " )
                         + "array field with size != 2 (one for the name, one for the multiplicity)."
                     );
                 }
-                if (!pqry_nm_val_arr->at(0)->is_string()) {
+                if( ! pqry_nm_val.at(0).is_string() ) {
                     throw std::runtime_error(
                         std::string( "Jplace document contains a pquery where key 'nm' has an " )
                         + "array whose first value is not a string for the name."
                     );
                 }
-                if (!pqry_nm_val_arr->at(1)->is_number()) {
+                if( ! pqry_nm_val.at(1).is_number() ) {
                     throw std::runtime_error(
                         std::string( "Jplace document contains a pquery where key 'nm' has an " )
                         + "array whose second value is not a number for the multiplicity."
@@ -995,8 +1008,8 @@ void JplaceReader::process_json_placements(
                 }
 
                 auto pqry_name = PqueryName();
-                pqry_name.name         = pqry_nm_val_arr->at(0)->to_string();
-                pqry_name.multiplicity = json_value_to_number(pqry_nm_val_arr->at(1))->value;
+                pqry_name.name         = pqry_nm_val.at(0).get_string();
+                pqry_name.multiplicity = pqry_nm_val.at(1).get_number_float();
                 if (pqry_name.multiplicity < 0.0) {
                     LOG_WARN << "Jplace document contains pquery with negative multiplicity at "
                              << "name '" << pqry_name.name << "'.";
@@ -1008,7 +1021,7 @@ void JplaceReader::process_json_placements(
 
         // Finally, add the pquery to the smp object.
         smp.add( pqry );
-        pqry_obj->clear();
+        pqry_obj.clear();
     }
 }
 
@@ -1021,15 +1034,15 @@ std::string JplaceReader::version ()
     return "3";
 }
 
+bool JplaceReader::check_version ( size_t version )
+{
+    return version == 2 || version == 3;
+}
+
 bool JplaceReader::check_version ( std::string const& version )
 {
     auto v = utils::trim( version );
     return v == "2" || v == "3";
-}
-
-bool JplaceReader::check_version ( size_t version )
-{
-    return version == 2 || version == 3;
 }
 
 // =================================================================================================

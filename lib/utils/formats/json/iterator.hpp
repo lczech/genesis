@@ -28,8 +28,8 @@
     The code in this and the following source files is a heavily altered adaption of the excellent
     "JSON for Modern C++" library by Niels Lohmann, see https://github.com/nlohmann/json
 
-     * lib/utils/formats/json/better.hpp
-     * lib/utils/formats/json/better.cpp
+     * lib/utils/formats/json/document.hpp
+     * lib/utils/formats/json/document.cpp
      * lib/utils/formats/json/iterator.hpp
 
     We adapted the original code by splitting it into different classes, using our naming convention
@@ -67,7 +67,7 @@
  * @ingroup utils
  */
 
-#include "utils/formats/json/better.hpp"
+#include "utils/formats/json/document.hpp"
 
 #include <cassert>
 #include <stdexcept>
@@ -86,14 +86,14 @@ class JsonIterator : public std::iterator<std::random_access_iterator_tag, U>
     //     Friends and Asserts
     // -------------------------------------------------------------------------
 
-    // Allow JsonBetter to access private members
-    friend class JsonBetter;
+    // Allow JsonDocument to access private members
+    friend class JsonDocument;
 
-    // make sure U is JsonBetter or const JsonBetter
+    // make sure U is JsonDocument or const JsonDocument
     static_assert(
-        std::is_same<U, JsonBetter>::value or
-        std::is_same<U, const JsonBetter>::value,
-        "JsonIterator only accepts (const) JsonBetter."
+        std::is_same<U, JsonDocument>::value or
+        std::is_same<U, const JsonDocument>::value,
+        "JsonIterator only accepts (const) JsonDocument."
     );
 
     // -------------------------------------------------------------------------
@@ -102,16 +102,16 @@ class JsonIterator : public std::iterator<std::random_access_iterator_tag, U>
 
 public:
 
-    using value_type      = typename JsonBetter::value_type;
-    using difference_type = typename JsonBetter::difference_type;
+    using value_type      = typename JsonDocument::value_type;
+    using difference_type = typename JsonDocument::difference_type;
 
     using pointer         = typename std::conditional<std::is_const<U>::value,
-        typename JsonBetter::const_pointer,
-        typename JsonBetter::pointer
+        typename JsonDocument::const_pointer,
+        typename JsonDocument::pointer
     >::type;
     using reference       = typename std::conditional<std::is_const<U>::value,
-        typename JsonBetter::const_reference,
-        typename JsonBetter::reference
+        typename JsonDocument::const_reference,
+        typename JsonDocument::reference
     >::type;
 
     using iterator_category = std::bidirectional_iterator_tag;
@@ -176,10 +176,10 @@ public:
     struct InternalIterator
     {
         // iterator for JSON objects
-        typename JsonBetter::ObjectType::iterator object_iterator;
+        typename JsonDocument::ObjectType::iterator object_iterator;
 
         // iterator for JSON arrays
-        typename JsonBetter::ArrayType::iterator array_iterator;
+        typename JsonDocument::ArrayType::iterator array_iterator;
 
         // generic iterator for all other types
         PrimitiveIterator primitive_iterator;
@@ -209,13 +209,13 @@ public:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
-                iterator_.object_iterator = typename JsonBetter::ObjectType::iterator();
+            case JsonDocument::ValueType::kObject: {
+                iterator_.object_iterator = typename JsonDocument::ObjectType::iterator();
                 break;
             }
 
-            case JsonBetter::ValueType::kArray: {
-                iterator_.array_iterator = typename JsonBetter::ArrayType::iterator();
+            case JsonDocument::ValueType::kArray: {
+                iterator_.array_iterator = typename JsonDocument::ArrayType::iterator();
                 break;
             }
 
@@ -263,15 +263,15 @@ public:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
+            case JsonDocument::ValueType::kObject: {
                 assert(iterator_.object_iterator != object_->value_.object->end());
                 return iterator_.object_iterator->second;
             }
-            case JsonBetter::ValueType::kArray: {
+            case JsonDocument::ValueType::kArray: {
                 assert(iterator_.array_iterator != object_->value_.array->end());
                 return *iterator_.array_iterator;
             }
-            case JsonBetter::ValueType::kNull: {
+            case JsonDocument::ValueType::kNull: {
                 throw std::out_of_range("Cannot get value from Json Iterator.");
             }
             default: {
@@ -293,11 +293,11 @@ public:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
+            case JsonDocument::ValueType::kObject: {
                 assert(iterator_.object_iterator != object_->value_.object->end());
                 return &(iterator_.object_iterator->second);
             }
-            case JsonBetter::ValueType::kArray: {
+            case JsonDocument::ValueType::kArray: {
                 assert(iterator_.array_iterator != object_->value_.array->end());
                 return &*iterator_.array_iterator;
             }
@@ -331,11 +331,11 @@ public:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
+            case JsonDocument::ValueType::kObject: {
                 std::advance(iterator_.object_iterator, 1);
                 break;
             }
-            case JsonBetter::ValueType::kArray: {
+            case JsonDocument::ValueType::kArray: {
                 std::advance(iterator_.array_iterator, 1);
                 break;
             }
@@ -368,11 +368,11 @@ public:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
+            case JsonDocument::ValueType::kObject: {
                 std::advance(iterator_.object_iterator, -1);
                 break;
             }
-            case JsonBetter::ValueType::kArray: {
+            case JsonDocument::ValueType::kArray: {
                 std::advance(iterator_.array_iterator, -1);
                 break;
             }
@@ -399,10 +399,10 @@ public:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
+            case JsonDocument::ValueType::kObject: {
                 return (iterator_.object_iterator == other.iterator_.object_iterator);
             }
-            case JsonBetter::ValueType::kArray: {
+            case JsonDocument::ValueType::kArray: {
                 return (iterator_.array_iterator == other.iterator_.array_iterator);
             }
             default: {
@@ -434,10 +434,10 @@ public:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
+            case JsonDocument::ValueType::kObject: {
                 throw std::domain_error("Cannot compare order of Json object iterators.");
             }
-            case JsonBetter::ValueType::kArray: {
+            case JsonDocument::ValueType::kArray: {
                 return (iterator_.array_iterator < other.iterator_.array_iterator);
             }
             default: {
@@ -482,10 +482,10 @@ public:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
+            case JsonDocument::ValueType::kObject: {
                 throw std::domain_error("Cannot use offsets with Json object iterators.");
             }
-            case JsonBetter::ValueType::kArray: {
+            case JsonDocument::ValueType::kArray: {
                 std::advance(iterator_.array_iterator, i);
                 break;
             }
@@ -538,11 +538,11 @@ public:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
+            case JsonDocument::ValueType::kObject: {
                 throw std::domain_error("Cannot use offsets with Json object iterators.");
             }
 
-            case JsonBetter::ValueType::kArray: {
+            case JsonDocument::ValueType::kArray: {
                 return iterator_.array_iterator - other.iterator_.array_iterator;
             }
 
@@ -561,15 +561,15 @@ public:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
+            case JsonDocument::ValueType::kObject: {
                 throw std::domain_error("Cannot use operator[] for Json object iterators.");
             }
 
-            case JsonBetter::ValueType::kArray: {
+            case JsonDocument::ValueType::kArray: {
                 return *std::next(iterator_.array_iterator, n);
             }
 
-            case JsonBetter::ValueType::kNull: {
+            case JsonDocument::ValueType::kNull: {
                 throw std::out_of_range("Cannot get value from Json Iterator.");
             }
 
@@ -591,7 +591,7 @@ public:
      * @brief  return the key of an object iterator
      * @pre The iterator is initialized; i.e. `object_ != nullptr`.
      */
-    typename JsonBetter::ObjectType::key_type key() const
+    typename JsonDocument::ObjectType::key_type key() const
     {
         assert(object_ != nullptr);
 
@@ -626,15 +626,15 @@ private:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
+            case JsonDocument::ValueType::kObject: {
                 iterator_.object_iterator = object_->value_.object->begin();
                 break;
             }
-            case JsonBetter::ValueType::kArray: {
+            case JsonDocument::ValueType::kArray: {
                 iterator_.array_iterator = object_->value_.array->begin();
                 break;
             }
-            case JsonBetter::ValueType::kNull: {
+            case JsonDocument::ValueType::kNull: {
                 // set to end so begin()==end() is true: null is empty
                 iterator_.primitive_iterator.set_end();
                 break;
@@ -655,11 +655,11 @@ private:
         assert(object_ != nullptr);
 
         switch( object_->type_ ) {
-            case JsonBetter::ValueType::kObject: {
+            case JsonDocument::ValueType::kObject: {
                 iterator_.object_iterator = object_->value_.object->end();
                 break;
             }
-            case JsonBetter::ValueType::kArray: {
+            case JsonDocument::ValueType::kArray: {
                 iterator_.array_iterator = object_->value_.array->end();
                 break;
             }

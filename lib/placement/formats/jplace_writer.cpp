@@ -216,41 +216,38 @@ std::string JplaceWriter::to_string( Sample const& sample ) const
  */
 void JplaceWriter::to_document( Sample const& smp, utils::JsonDocument& doc ) const
 {
-    // Simplify the code. Specifying utils::Json... is cumbersome.
     using namespace utils;
-
-    doc.clear();
+    doc = JsonDocument::object();
 
     // set tree
     auto nwp = PlacementTreeNewickWriter();
     nwp.enable_names(true);
     nwp.enable_branch_lengths(true);
     nwp.branch_length_precision = branch_length_precision;
-    doc.set("tree", new JsonValueString(nwp.to_string(smp.tree())));
+    doc[ "tree" ] = nwp.to_string( smp.tree() );
 
     // set placements
-    JsonValueArray* placements_arr = new JsonValueArray();
-    for (auto& pqry : smp.pqueries()) {
-        JsonValueObject* jpqry      = new JsonValueObject();
-        placements_arr->push_back(jpqry);
+    auto& placements_arr = doc[ "placements" ];
+    for( auto const& pqry : smp.pqueries() ) {
+        auto jpqry = JsonDocument::object();
 
         // set placements
-        JsonValueArray* pqry_p_arr  = new JsonValueArray();
+        auto pqry_p_arr = JsonDocument::array();
         for( auto const& pqry_place : pqry.placements() ) {
-            JsonValueArray* pqry_fields = new JsonValueArray();
-            pqry_fields->push_back(new JsonValueNumber(pqry_place.edge_num()));
-            pqry_fields->push_back(new JsonValueNumber(pqry_place.likelihood));
-            pqry_fields->push_back(new JsonValueNumber(pqry_place.like_weight_ratio));
+            auto pqry_fields = JsonDocument::array();
+
+            pqry_fields.push_back( pqry_place.edge_num() );
+            pqry_fields.push_back( pqry_place.likelihood );
+            pqry_fields.push_back( pqry_place.like_weight_ratio );
 
             // convert from proximal to distal length.
             auto const& edge_data = pqry_place.edge().data<PlacementEdgeData>();
-            pqry_fields->push_back(new JsonValueNumber(
-                edge_data.branch_length - pqry_place.proximal_length
-            ));
-            pqry_fields->push_back(new JsonValueNumber(pqry_place.pendant_length));
-            pqry_p_arr->push_back(pqry_fields);
+            pqry_fields.push_back( edge_data.branch_length - pqry_place.proximal_length );
+            pqry_fields.push_back( pqry_place.pendant_length );
+
+            pqry_p_arr.push_back( pqry_fields );
         }
-        jpqry->set("p", pqry_p_arr);
+        jpqry[ "p" ] = pqry_p_arr;
 
         // find out whether names have multiplicity
         bool has_nm = false;
@@ -260,41 +257,42 @@ void JplaceWriter::to_document( Sample const& smp, utils::JsonDocument& doc ) co
 
         // set named multiplicity / name
         if (has_nm) {
-            JsonValueArray* pqry_nm_arr = new JsonValueArray();
+            auto pqry_nm_arr = JsonDocument::array();
             for( auto const& pqry_name : pqry.names() ) {
-                JsonValueArray* pqry_nm_val = new JsonValueArray();
-                pqry_nm_val->push_back(new JsonValueString(pqry_name.name));
-                pqry_nm_val->push_back(new JsonValueNumber(pqry_name.multiplicity));
-                pqry_nm_arr->push_back(pqry_nm_val);
+                auto pqry_nm_val = JsonDocument::array();
+                pqry_nm_val.push_back( pqry_name.name );
+                pqry_nm_val.push_back( pqry_name.multiplicity );
+                pqry_nm_arr.push_back( pqry_nm_val );
             }
-            jpqry->set("nm", pqry_nm_arr);
+            jpqry[ "nm" ] = pqry_nm_arr;
         } else {
-            JsonValueArray* pqry_n_arr  = new JsonValueArray();
+            auto pqry_n_arr  = JsonDocument::array();
             for( auto const& pqry_name : pqry.names() ) {
-                pqry_n_arr->push_back(new JsonValueString(pqry_name.name));
+                pqry_n_arr.push_back( pqry_name.name );
             }
-            jpqry->set("n", pqry_n_arr);
+            jpqry[ "n" ] = pqry_n_arr;
         }
+
+        placements_arr.push_back( jpqry );
     }
-    doc.set("placements", placements_arr);
 
     // set fields
-    JsonValueArray* jfields = new JsonValueArray();
-    jfields->push_back(new JsonValueString("edge_num"));
-    jfields->push_back(new JsonValueString("likelihood"));
-    jfields->push_back(new JsonValueString("like_weight_ratio"));
-    jfields->push_back(new JsonValueString("distal_length"));
-    jfields->push_back(new JsonValueString("pendant_length"));
-    doc.set("fields", jfields);
+    auto jfields = JsonDocument::array();
+    jfields.push_back( "edge_num" );
+    jfields.push_back( "likelihood" );
+    jfields.push_back( "like_weight_ratio" );
+    jfields.push_back( "distal_length" );
+    jfields.push_back( "pendant_length" );
+    doc[ "fields" ] = jfields;
 
     // set version
-    doc.set("version", new JsonValueNumber(3));
+    doc[ "version" ] = 3;
 
     // set metadata
-    JsonValueObject* jmetadata = new JsonValueObject();
-    jmetadata->set("program", new JsonValueString( "genesis " + genesis_version() ));
-    jmetadata->set("invocation", new JsonValueString( utils::Options::get().command_line_string() ));
-    doc.set("metadata", jmetadata);
+    auto jmetadata = JsonDocument::object();
+    jmetadata[ "program" ] = "genesis " + genesis_version();
+    jmetadata[ "invocation" ] = utils::Options::get().command_line_string();
+    doc[ "metadata" ] = jmetadata;
 }
 
 } // namespace placement
