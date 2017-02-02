@@ -43,8 +43,35 @@
 #include "utils/io/scanner.hpp"
 #include "utils/text/string.hpp"
 
+#include "utils/formats/json/better.hpp"
+#include "utils/text/char.hpp"
+#include "utils/io/parser.hpp"
+#include "utils/io/scanner.hpp"
+
+// #include "test/src/utils/formats/json.hpp"
+
+
 namespace genesis {
 namespace utils {
+
+// =================================================================================================
+//      Constructor and Rule of Five
+// =================================================================================================
+
+JsonReader::JsonReader()
+{
+    lookup_.set_all( CharTypes::kInvalid );
+
+    lookup_.set_if( [](char c){ return isspace(c); }, CharTypes::kSpace );
+    lookup_.set_if( [](char c){ return isalpha(c); }, CharTypes::kAlpha );
+    lookup_.set_if( [](char c){ return isdigit( c ) or char_is_sign( c ) or c == '.'; }, CharTypes::kNumber );
+
+    lookup_.set_char( '[', CharTypes::kBracketOpen );
+    lookup_.set_char( ']', CharTypes::kBracketClose );
+    lookup_.set_char( '{', CharTypes::kBraceOpen );
+    lookup_.set_char( ']', CharTypes::kBraceClose );
+    lookup_.set_char( '"', CharTypes::kQuotation );
+}
 
 // =================================================================================================
 //     Reading
@@ -310,6 +337,299 @@ void JsonReader::parse_object (
         throw std::runtime_error( "JSON object ended unexpectedly." );
     }
     ++ct;
+}
+
+// =================================================================================================
+//     Parsing
+// =================================================================================================
+
+JsonBetter JsonReader::parse( InputStream& input_stream ) const
+{
+    // JsonBetter doc = nullptr;
+    auto& it = input_stream;
+
+    // Go to first non-white char.
+    skip_while( it, isspace );
+
+
+    // while( it && lookup_[ *it ] == CharTypes::kSpace ) {
+    //     ++it;
+    // }
+
+    // skip_while( it, [&]( char c ){ return lookup_[c] == CharTypes::kSpace; } );
+
+
+    // // If there is no content, return an empty Json doc. Nothing to do here.
+    // if( !it ) {
+    //     return nullptr;
+    // }
+    // switch( lookup_[ *it ] ) {
+    //     case 1: {
+    //         return parse_array( it, doc );
+    //         break;
+    //     }
+    //     case 2: {
+    //         return parse_object( it, doc );
+    //         break;
+    //     }
+    //     case 3: {
+    //         return parse_quoted_string( it );
+    //         break;
+    //     }
+    //     case 4: {
+    //         // Either null or boolean.
+    //         auto value = to_lower( read_while( it, isalpha ));
+    //         if(  value == "null" ) {
+    //             return nullptr;
+    //             // Json doc is already null. Nothing to do here.
+    //         } else if( value == "true" ) {
+    //             return true;
+    //         } else if( value == "false" ) {
+    //             return false;
+    //         } else {
+    //             throw std::runtime_error(
+    //                 "Unexpected Json input string: '" + value + "' at " + it.at() + "."
+    //             );
+    //         }
+    //         break;
+    //     }
+    //     case 5: {
+    //         auto num = parse_number_string( it );
+    //         return JsonBetter::number_float( 0.0 );
+    //         break;
+    //     }
+    //     default: {
+    //         assert( lookup_[ *it ] == 0 );
+    //         throw std::runtime_error(
+    //             "Unexpected Json input char: '" + std::string( 1, *it ) + "' at " + it.at() + "."
+    //         );
+    //     }
+    // }
+
+    if( !it ) {
+        // If there is no content, return an empty Json doc. Nothing to do here.
+        return nullptr;
+
+    } else if( *it == '[' ) {
+        // Parse an array.
+        return parse_array( it );
+
+    } else if( *it == '{' ) {
+        // Parse an object.
+        return parse_object( it );
+
+    } else if( *it == '"' ) {
+        // Parse a string.
+        return parse_quoted_string( it );
+
+    } else if( isalpha( *it ) ) {
+
+        // Either null or boolean.
+        auto value = to_lower( read_while( it, isalpha ));
+        if(  value == "null" ) {
+            // Json doc is already null. Nothing to do here.
+            return nullptr;
+
+        } else if( value == "true" ) {
+            return true;
+        } else if( value == "false" ) {
+            return false;
+        } else {
+            throw std::runtime_error(
+                "Unexpected Json input string: '" + value + "' at " + it.at() + "."
+            );
+        }
+
+    } else if( isdigit( *it ) or char_is_sign( *it ) or *it == '.' ) {
+        // // If it is a number, read it first, then convert, in order to get its type right.
+        // auto num = parse_number_string( it );
+        //
+        // // double num = parse_float<double>( it );
+        // // return JsonBetter::number_float( num );
+        //
+        // if( num.find('.') != std::string::npos ) {
+        //     return JsonBetter::number_float( std::stod( num ) );
+        //     // doc = std::stod( num );
+        // } else if( num[0] == '-' ) {
+        //     return JsonBetter::number_signed( std::stoll( num ) );
+        //     // doc = std::stoll( num );
+        // } else {
+        //     return JsonBetter::number_unsigned( std::stoull( num ) );
+        //     // doc = std::stoull( num );
+        // }
+
+        return parse_number( it );
+
+    } else {
+        throw std::runtime_error(
+            "Unexpected Json input char: '" + std::string( 1, *it ) + "' at " + it.at() + "."
+        );
+    }
+}
+
+// JsonBetter JsonReader::parse_array( InputStream& input_stream, JsonBetter& doc ) const
+JsonBetter JsonReader::parse_array( InputStream& input_stream ) const
+{
+    JsonBetter doc = JsonBetter::array();
+    auto& it = input_stream;
+
+    // Initial check whether this actually is an array.
+    read_char_or_throw( it, '[' );
+
+    while( it ) {
+        // Get the element. If the doc is not an array, the push back throws.
+        skip_while( it, isspace );
+        // doc.push_back( parse( it ));
+        doc.emplace_back( parse( it ));
+
+        // Check for end of array, leave if found.
+        skip_while( it, isspace );
+        if( ! it ) {
+            throw std::runtime_error( "Unexpected end of Json Document at " + it.at() );
+        }
+        if( *it == ']' ) {
+            break;
+        }
+
+        // We expect more. Or throw, if we unexpectedly are at the end or have an illegal char.
+        read_char_or_throw( it, ',' );
+    }
+
+    // We are at the end of the array. Move to next char.
+    assert( it && *it == ']' );
+    ++it;
+
+    return doc;
+}
+
+// JsonBetter JsonReader::parse_object( InputStream& input_stream, JsonBetter& doc ) const
+JsonBetter JsonReader::parse_object( InputStream& input_stream ) const
+{
+    JsonBetter doc = JsonBetter::object();
+    auto& it = input_stream;
+
+    // Initial check whether this actually is an object.
+    read_char_or_throw( it, '{' );
+
+    while( it ) {
+        // Get the key.
+        skip_while( it, isspace );
+        affirm_char_or_throw( it, '"' );
+        auto key = parse_quoted_string( it );
+
+        // Find the colon and skip it.
+        skip_while( it, isspace );
+        read_char_or_throw( it, ':' );
+
+        // Get the value.
+        skip_while( it, isspace );
+        // auto value = parse( it );
+
+        // Insert into object (if the doc is not an object, this throws).
+        // doc[ key ] = value;
+        doc[ key ] = parse( it );
+
+        // Check for end of object, leave if found.
+        skip_while( it, isspace );
+        if( ! it ) {
+            throw std::runtime_error( "Unexpected end of Json Document at " + it.at() );
+        }
+        if( *it == '}' ) {
+            break;
+        }
+
+        // We expect more. Or throw, if we unexpectedly are at the end or have an illegal char.
+        read_char_or_throw( it, ',' );
+    }
+
+    // We are at the end of the object. Move to next char.
+    assert( it && *it == '}' );
+    ++it;
+
+    return doc;
+}
+
+JsonBetter JsonReader::parse_number( InputStream& input_stream ) const
+{
+    auto& it = input_stream;
+    if( !it ) {
+        return 0;
+    }
+
+    // Sign
+    bool is_neg = false;
+    if( *it == '-' ){
+        is_neg = true;
+        ++it;
+    } else if( *it == '+' ) {
+        ++it;
+    }
+
+    // Integer Part
+    JsonBetter::NumberUnsignedType ix = 0;
+    while( it && isdigit( *it )) {
+        int y = *it - '0';
+        ix *= 10;
+        ix += y;
+        ++it;
+    }
+
+    // If not float
+    if( !it || !( *it == '.' || *it == ',' || tolower(*it) == 'e' ) ) {
+        if( is_neg ) {
+            return JsonBetter::number_signed( -ix );
+        } else {
+            return JsonBetter::number_unsigned( ix );
+        }
+    }
+
+    // Decimal part
+    JsonBetter::NumberFloatType dx = ix;
+    if( it && ( *it == '.' || *it == ',' )) {
+        ++it;
+
+        JsonBetter::NumberFloatType pos = 1.0;
+        while( it && isdigit( *it )) {
+            pos /= 10.0;
+            int y = *it - '0';
+            dx += y * pos;
+            ++it;
+        }
+    }
+
+    // Exponential part
+    if( it && tolower(*it) == 'e' ) {
+        ++it;
+
+        int e = parse_signed_integer<int>( it );
+        if( e != 0 ) {
+            JsonBetter::NumberFloatType base;
+            if( e < 0 ) {
+                base = 0.1;
+                e = -e;
+            } else {
+                base = 10;
+            }
+
+            while( e != 1 ) {
+                if( ( e & 1 ) == 0 ) {
+                    base = base * base;
+                    e >>= 1;
+                } else {
+                    dx *= base;
+                    --e;
+                }
+            }
+            dx *= base;
+        }
+    }
+
+    // Sign
+    if (is_neg) {
+        dx = -dx;
+    }
+
+    return JsonBetter::number_float( dx );
 }
 
 } // namespace utils

@@ -33,6 +33,10 @@
 
 #include "utils/formats/json/lexer.hpp"
 
+#include "utils/tools/char_lookup.hpp"
+
+#include <cstdint>
+
 #include <iosfwd>
 #include <string>
 
@@ -51,6 +55,8 @@ namespace utils {
     class JsonValue;
     class JsonValueArray;
     class JsonValueObject;
+
+    class JsonBetter;
 }
 
 // =================================================================================================
@@ -80,10 +86,29 @@ class JsonReader
 public:
 
     // ---------------------------------------------------------------------
+    //     Typedefs and Enums
+    // ---------------------------------------------------------------------
+
+    enum class CharTypes : uint8_t
+    {
+        kInvalid,
+        kSpace,
+        kAlpha,
+        kNumber,
+
+        kBracketOpen,
+        kBracketClose,
+        kBraceOpen,
+        kBraceClose,
+        kQuotation,
+    };
+
+    // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
-    JsonReader()  = default;
+    JsonReader();
+    // JsonReader()  = default;
     ~JsonReader() = default;
 
     JsonReader( JsonReader const& ) = default;
@@ -103,11 +128,20 @@ public:
 
     // TODO add something like ProcessPartialString that takes any json value and not just a whole doc
 
+    JsonBetter parse( InputStream& input_stream ) const;
+
+    // JsonBetter parse_array(  InputStream& input_stream, JsonBetter& doc ) const;
+    // JsonBetter parse_object( InputStream& input_stream, JsonBetter& doc ) const;
+    JsonBetter parse_array(  InputStream& input_stream ) const;
+    JsonBetter parse_object( InputStream& input_stream ) const;
+
+    JsonBetter parse_number( InputStream& input_stream ) const;
+
     // ---------------------------------------------------------------------
-    //     Parsing
+    //     Internal Functions
     // ---------------------------------------------------------------------
 
-protected:
+private:
 
     void parse_value (
         JsonLexer::iterator& ct,
@@ -126,6 +160,14 @@ protected:
         JsonLexer::iterator& end,
         JsonValueObject*     value
     ) const;
+
+    // ---------------------------------------------------------------------
+    //     Data Members
+    // ---------------------------------------------------------------------
+
+private:
+
+    CharLookup<CharTypes> lookup_;
 
 };
 
