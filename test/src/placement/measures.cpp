@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,7 +52,12 @@ TEST( SampleMeasures, EDPL )
 
     auto edpl_vec = edpl( smpl );
     std::vector<double> expect = { 1.5, 0, 1.218, 0, 0, 1.2, 0 };
-    EXPECT_EQ( expect, edpl_vec );
+    // EXPECT_EQ( expect, edpl_vec );
+
+    EXPECT_EQ( expect.size(), edpl_vec.size() );
+    for( size_t i = 0; i < expect.size(); ++i ) {
+        EXPECT_FLOAT_EQ( expect[i], edpl_vec[i] );
+    }
 }
 
 TEST(SampleMeasures, EarthMoversDistance)
