@@ -161,7 +161,8 @@ T parse_float( utils::InputStream& source )
     }
 
     // Decimal part
-    if( source && ( *source == '.' || *source == ',' )) {
+    // if( source && ( *source == '.' || *source == ',' )) {
+    if( source && *source == '.' ) {
         ++source;
 
         T pos = 1.0;

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -163,34 +163,34 @@ TEST(Parser, Float)
     test_float( "-56ab",    -56.0, 4 );
 
     test_float( "123.45",    123.45, 7 );
-    test_float( "123,45",    123.45, 7 );
+    // test_float( "123,45",    123.45, 7 );
     test_float( "-123.45",   -123.45, 8 );
-    test_float( "-123,45",   -123.45, 8 );
+    // test_float( "-123,45",   -123.45, 8 );
 
     test_float( "123.45x",    123.45, 7 );
-    test_float( "123,45x",    123.45, 7 );
+    // test_float( "123,45x",    123.45, 7 );
     test_float( "-123.45x",   -123.45, 8 );
-    test_float( "-123,45x",   -123.45, 8 );
+    // test_float( "-123,45x",   -123.45, 8 );
 
     test_float( "123.45e",    123.45, 8 );
-    test_float( "123,45E",    123.45, 8 );
+    // test_float( "123,45E",    123.45, 8 );
     test_float( "-123.45E",   -123.45, 9 );
-    test_float( "-123,45e",   -123.45, 9 );
+    // test_float( "-123,45e",   -123.45, 9 );
 
     test_float( "123.456e2",    12345.6, 10 );
-    test_float( "123,456E2",    12345.6, 10 );
+    // test_float( "123,456E2",    12345.6, 10 );
     test_float( "-123.456E2",   -12345.6, 11 );
-    test_float( "-123,456e2",   -12345.6, 11 );
+    // test_float( "-123,456e2",   -12345.6, 11 );
 
     test_float( "123.456e-2",    1.23456, 11 );
-    test_float( "123,456E-2",    1.23456, 11 );
+    // test_float( "123,456E-2",    1.23456, 11 );
     test_float( "-123.456E-2",   -1.23456, 12 );
-    test_float( "-123,456e-2",   -1.23456, 12 );
+    // test_float( "-123,456e-2",   -1.23456, 12 );
 
     test_float( "123.456e-x2",    123.456, 10 );
-    test_float( "123,456E-x2",    123.456, 10 );
+    // test_float( "123,456E-x2",    123.456, 10 );
     test_float( "-123.456E-x2",   -123.456, 11 );
-    test_float( "-123,456e-x2",   -123.456, 11 );
+    // test_float( "-123,456e-x2",   -123.456, 11 );
 
     EXPECT_THROW( test_float( "1.0e123456789101121314151617181920",  0, 0 ), std::overflow_error);
     EXPECT_THROW( test_float( "1.0e-123456789101121314151617181920", 0, 0 ), std::underflow_error);
