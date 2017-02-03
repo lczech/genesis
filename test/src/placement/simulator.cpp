@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -106,8 +106,7 @@ TEST(PlacementSimulator, Learning)
     std::string infile  = environment->data_dir + "placement/test_a.jplace";
 
     // Read the Jplace file into a Sample object.
-    Sample sample;
-    JplaceReader().from_file( infile, sample );
+    Sample sample = JplaceReader().from_file( infile );
 
     // Learn simulation parameters.
     auto sim = Simulator();
@@ -132,7 +131,7 @@ TEST(PlacementSimulator, Learning)
         placement_number_weights.end(),
         0
     );
-    EXPECT_EQ( sample.pquery_size(), sum_extra_placement_weights );
+    EXPECT_EQ( sample.size(), sum_extra_placement_weights );
 
     // Check sum of path lengths weights.
     // This check is a bit more complicatted. We accumulate the weights that denote the distribution

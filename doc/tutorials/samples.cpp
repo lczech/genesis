@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,8 +30,7 @@ int main()
     using namespace genesis::placement;
 
     // Read a jplace file into a Sample object.
-    Sample sample;
-    JplaceReader().from_file( "path/to/file.jplace", sample );
+    Sample sample = JplaceReader().from_file( "path/to/file.jplace" );
 
     // Loop over the Pqueries of a Sample.
     for( auto const& pquery : sample ) {
@@ -51,7 +50,7 @@ int main()
     }
 
     // Add a new Pquery with a name and a placement.
-    auto new_pquery = sample.add_pquery();
+    auto new_pquery = sample.add();
     new_pquery.add_name( "drosophila" );
     new_pquery.add_placement( sample.tree().edge_at( 0 ));
 

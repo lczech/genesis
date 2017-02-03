@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,13 +30,14 @@
 
 #include "utils/formats/json/writer.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <fstream>
 #include <ostream>
 #include <stdexcept>
 
 #include "utils/core/fs.hpp"
 #include "utils/formats/json/document.hpp"
+#include "utils/formats/json/iterator.hpp"
 #include "utils/text/string.hpp"
 
 namespace genesis {
@@ -46,19 +47,11 @@ namespace utils {
 //     Writing
 // =================================================================================================
 
-/**
- * @brief Write a JsonDocument to a stream.
- */
 void JsonWriter::to_stream( JsonDocument const& document, std::ostream& out ) const
 {
-    print_object( &document, out, 0 );
+    print_value( document, out );
 }
 
-/**
- * @brief Write a JsonDocument to a file.
- *
- * If the file already exists or cannot be written to, the function throws `std::runtime_error`.
- */
 void JsonWriter::to_file( JsonDocument const& document, std::string const& filename ) const
 {
     if( utils::file_exists(filename) ) {
@@ -69,24 +62,18 @@ void JsonWriter::to_file( JsonDocument const& document, std::string const& filen
     if( !fstr ) {
         throw std::runtime_error( "Cannot write Json file '" + filename + "'." );
     }
-    print_object( &document, fstr, 0 );
+    print_value( document, fstr );
 }
 
-/**
- * @brief Give the Json string representation of a JsonDocument.
- */
 void JsonWriter::to_string( JsonDocument const& document, std::string& output ) const
 {
     output = to_string(document);
 }
 
-/**
- * @brief Return the Json representation of a JsonDocument.
- */
 std::string JsonWriter::to_string( JsonDocument const& document ) const
 {
     std::stringstream sstr;
-    print_object( &document, sstr, 0 );
+    print_value( document, sstr );
     return sstr.str();
 }
 
@@ -94,118 +81,115 @@ std::string JsonWriter::to_string( JsonDocument const& document ) const
 //     Printing
 // =================================================================================================
 
-/**
- * @brief Write the Json representation of a Json Value to a stream.
- */
 void JsonWriter::print_value(
-    JsonValue const* value,
+    JsonDocument const& value,
     std::ostream& out
 ) const {
-    switch(value->type()) {
-        case JsonValue::kNull:
-        case JsonValue::kBool:
-            out << value->to_string();
+    switch(value.type()) {
+        case JsonDocument::ValueType::kNull: {
+            out << "null";
             break;
-
-        case JsonValue::kNumber:
-            // Use automatic double conversion. The old way with a fixed precision turned integers
-            // into floats, which was not intended.
-            out << json_value_to_number(value)->value;
-            // out << utils::to_string_precise(json_value_to_number(value)->value, precision);
+        }
+        case JsonDocument::ValueType::kBoolean: {
+            out << ( value.get_boolean() ? "true" : "false" );
             break;
-
-        case JsonValue::kString:
-            out << "\"" + utils::escape(json_value_to_string(value)->value) + "\"";
+        }
+        case JsonDocument::ValueType::kNumberFloat: {
+            out << to_string_precise( value.get_number_float(), precision_ );
             break;
-
-        // This function is only called from within print_array() and print_object(), and both of
-        // them handle the following two cases separately. So the assertion holds as long as this
-        // function is not called illegaly from a different context.
-        // Also, add a return to make the compiler happy ;-)
-        case JsonValue::kArray:
-        case JsonValue::kObject:
-        default:
-            assert(false);
+        }
+        case JsonDocument::ValueType::kNumberSigned: {
+            out << value.get_number_signed();
+            break;
+        }
+        case JsonDocument::ValueType::kNumberUnsigned: {
+            out << value.get_number_unsigned();
+            break;
+        }
+        case JsonDocument::ValueType::kString: {
+            out << "\"" + utils::escape( value.get_string() ) + "\"";
+            break;
+        }
+        case JsonDocument::ValueType::kArray: {
+            print_array( value, out, 0 );
+        }
+        case JsonDocument::ValueType::kObject: {
+            print_object( value, out, 0 );
+        }
+        default: {
+            assert( false );
+        }
     }
 }
 
-/**
- * @brief Write the Json representation of a Json Array to a stream.
- */
 void JsonWriter::print_array(
-    JsonValueArray const* value,
+    JsonDocument const& value,
     std::ostream& out,
     int indent_level
 ) const {
     int il = indent_level + 1;
-    std::string in (il * indent, ' ');
+    std::string in (il * indent_, ' ');
 
-    // Check if array contains non-simple values. If so, we use better bracket
-    // placement to make document look nicer.
+    // Check if array contains non-primitive values.
+    // If so, we use better bracket placement to make document look nicer.
     bool has_large = false;
-    for (JsonValueArray::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
-        JsonValue* v = *it;
-        has_large |= (v->is_array() || v->is_object());
+    for( auto const& elem : value ) {
+        has_large |= ( elem.is_array() || elem.is_object());
     }
 
     out << "[ ";
     bool first = true;
-    for (JsonValueArray::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
-        JsonValue* v = *it;
+    for( auto const& elem : value ) {
         if (!first) {
             out << ", ";
         }
         if (has_large) {
             out << "\n" << in;
         }
-        if (v->is_array()) {
-            print_array(json_value_to_array(v), out, il);
-        } else if (v->is_object()) {
-            print_object(json_value_to_object(v), out, il);
+        if (elem.is_array()) {
+            print_array( elem, out, il );
+        } else if ( elem.is_object() ) {
+            print_object( elem, out, il );
         } else {
-            print_value(v, out);
+            print_value( elem, out );
         }
         first = false;
     }
 
     if (has_large) {
-        out << "\n" << std::string(indent_level * indent, ' ');
+        out << "\n" << std::string(indent_level * indent_, ' ');
     } else {
         out << " ";
     }
     out << "]";
 }
 
-/**
- * @brief Write the Json representation of a Json Object to a stream.
- */
 void JsonWriter::print_object(
-    JsonValueObject const* value,
+    JsonDocument const& value,
     std::ostream& out,
     int indent_level
 ) const {
     int il = indent_level + 1;
-    std::string in (il * indent, ' ');
+    std::string in (il * indent_, ' ');
     out << "{";
 
     bool first = true;
-    for (JsonValueObject::const_iterator it = value->cbegin(); it != value->cend(); ++it) {
-        JsonValueObject::ObjectPair v = *it;
+    for( auto it = value.begin(); it != value.end(); ++it ) {
         if (!first) {
             out << ",";
         }
-        out << "\n" << in << "\"" << v.first << "\": ";
-        if (v.second->is_array()) {
-            print_array( json_value_to_array(v.second), out, il );
-        } else if (v.second->is_object()) {
-            print_object( json_value_to_object(v.second), out, il );
+        out << "\n" << in << "\"" << it.key() << "\": ";
+        if ( it.value().is_array() ) {
+            print_array( it.value(), out, il );
+        } else if( it.value().is_object() ) {
+            print_object( it.value(), out, il );
         } else {
-            print_value( v.second, out );
+            print_value( it.value(), out );
         }
         first = false;
     }
 
-    out << "\n" << std::string(indent_level * indent, ' ') << "}";
+    out << "\n" << std::string(indent_level * indent_, ' ') << "}";
 }
 
 } // namespace utils

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,13 +48,21 @@ namespace utils {
 /**
  * @brief Read an unsigned integer from a stream and return it.
  *
- * The function expects a sequence of digits. It stops reading at the first non-digit.
+ * The function expects a sequence of digits. The current char in the stream has to be a digit,
+ * otherwise the function throws `std::runtime_error`. It stops reading at the first non-digit.
  * In case the value range is too small, the function throws `std::overflow_error`.
  */
 template<class T>
 T parse_unsigned_integer( utils::InputStream& source )
 {
     T x = 0;
+
+    if( ! source || ! isdigit( *source ) ) {
+        throw std::runtime_error(
+            "Expecting digit in " + source.source_name() + " at " + source.at() + "."
+        );
+    }
+
     while( source && isdigit( *source )) {
         T y = *source - '0';
 
@@ -74,6 +82,7 @@ T parse_unsigned_integer( utils::InputStream& source )
  * @brief Read a signed integer from a stream and return it.
  *
  * The function expects a sequence of digits, possibly with a leading `+` or `-`.
+ * The first char after that has to be a digit, otherwise the function throws `std::runtime_error`.
  * It stops reading at the first non-digit.
  * In case the value range is too small, the function throws `std::overflow_error`,
  * or `underflow_error`, respectively.
@@ -82,11 +91,19 @@ template<class T>
 T parse_signed_integer( utils::InputStream& source )
 {
     if( !source ) {
-        return 0;
+        throw std::runtime_error(
+            "Expecting number in " + source.source_name() + " at " + source.at() + "."
+        );
     }
 
     if( *source == '-' ) {
         ++source;
+
+        if( ! source || ! isdigit( *source ) ) {
+            throw std::runtime_error(
+                "Expecting digit in " + source.source_name() + " at " + source.at() + "."
+            );
+        }
 
         T x = 0;
         while( source && isdigit( *source )) {
@@ -140,9 +157,12 @@ T parse_float( utils::InputStream& source )
     T x = 0.0;
 
     if( !source ) {
-        return x;
+        throw std::runtime_error(
+            "Expecting float number in " + source.source_name() + " at " + source.at() + "."
+        );
     }
 
+    // Sign
     bool is_neg = false;
     if( *source == '-' ){
         is_neg = true;
@@ -151,15 +171,25 @@ T parse_float( utils::InputStream& source )
         ++source;
     }
 
+    // Integer Part
+    bool found_mantisse = false;
     while( source && isdigit( *source )) {
         int y = *source - '0';
         x *= 10;
         x += y;
         ++source;
+        found_mantisse = true;
     }
 
-    if( source && ( *source == '.' || *source == ',' )) {
+    // Decimal part
+    if( source && *source == '.' ) {
         ++source;
+
+        if( ! source || ! isdigit( *source ) ) {
+            throw std::runtime_error(
+                "Invalid float number in " + source.source_name() + " at " + source.at() + "."
+            );
+        }
 
         T pos = 1.0;
         while( source && isdigit( *source )) {
@@ -167,13 +197,24 @@ T parse_float( utils::InputStream& source )
             int y = *source - '0';
             x += y * pos;
             ++source;
+            found_mantisse = true;
         }
     }
 
+    // We need to have some digits before the exponential part.
+    if( ! found_mantisse ) {
+        throw std::runtime_error(
+            "Invalid float number in " + source.source_name() + " at " + source.at() + "."
+        );
+    }
+
+    // Exponential part
     if( source && tolower(*source) == 'e' ) {
         ++source;
 
+        // Read the exp. If there are no digits, this throws.
         int e = parse_signed_integer<int>( source );
+
         if( e != 0 ) {
             T base;
             if( e < 0 ) {
@@ -196,6 +237,7 @@ T parse_float( utils::InputStream& source )
         }
     }
 
+    // Sign
     if (is_neg) {
         x = -x;
     }

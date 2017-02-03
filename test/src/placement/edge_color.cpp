@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,8 +57,7 @@ TEST( PlacementTreeEdgeColor, CountGradientPhyloxml )
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
-    Sample map;
-    EXPECT_NO_THROW (JplaceReader().from_file(infile, map));
+    Sample map = JplaceReader().from_file(infile);
 
     typedef PhyloxmlColorWriterMixin<PlacementTreePhyloxmlWriter> ColoredPlacementTreePhyloxmlWriter;
 
@@ -78,8 +77,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNewick )
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
-    Sample map;
-    EXPECT_NO_THROW (JplaceReader().from_file(infile, map));
+    Sample map = JplaceReader().from_file(infile);
 
     typedef NewickColorWriterMixin<PlacementTreeNewickWriter> ColoredPlacementTreeNewickWriter;
 
@@ -98,8 +96,7 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
-    Sample map;
-    EXPECT_NO_THROW (JplaceReader().from_file(infile, map));
+    Sample map = JplaceReader().from_file(infile);
 
     typedef NewickColorWriterMixin<PlacementTreeNewickWriter> ColoredPlacementTreeNewickWriter;
 

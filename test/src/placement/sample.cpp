@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,7 +68,7 @@ void test_sample_stats (
 ) {
     EXPECT_TRUE (validate(smp, true, false));
 
-    EXPECT_EQ (expected_pquery_size,    smp.pquery_size());
+    EXPECT_EQ (expected_pquery_size,    smp.size());
     EXPECT_EQ (expected_placement_size, total_placement_count(smp));
 
     size_t name_count = 0;
@@ -85,8 +85,7 @@ TEST(Sample, MergeDuplicatesSimple)
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_a.jplace";
-    Sample smp;
-    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+    Sample smp = JplaceReader().from_file(infile);
 
     // Check before merging.
     test_sample_stats(smp, 7, 8, 7);
@@ -105,8 +104,7 @@ TEST(Sample, MergeDuplicatesTransitive)
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
-    Sample smp;
-    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+    Sample smp = JplaceReader().from_file(infile);
 
     // Check before merging.
     test_sample_stats(smp, 7, 10, 11);

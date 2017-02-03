@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,8 +31,6 @@
  * @ingroup utils
  */
 
-#include "utils/formats/json/lexer.hpp"
-
 #include <iosfwd>
 #include <string>
 
@@ -44,16 +42,13 @@ namespace utils {
 // =================================================================================================
 
 class JsonDocument;
-class JsonValue;
-class JsonValueArray;
-class JsonValueObject;
 
 // =================================================================================================
 //     Json Writer
 // =================================================================================================
 
 /**
- * @brief Write Json data.
+ * @brief Write Json data from a JsonDocument.
  */
 class JsonWriter
 {
@@ -78,36 +73,101 @@ public:
 
 public:
 
+    /**
+     * @brief Write a JsonDocument to a stream.
+     */
     void        to_stream ( JsonDocument const& document, std::ostream& out ) const;
+
+    /**
+     * @brief Write a JsonDocument to a file.
+     *
+     * If the file already exists or cannot be written to, the function throws `std::runtime_error`.
+     */
     void        to_file   ( JsonDocument const& document, std::string const& filename) const;
+
+    /**
+     * @brief Give the Json string representation of a JsonDocument.
+     */
     void        to_string ( JsonDocument const& document, std::string& output) const;
+
+    /**
+     * @brief Return the Json representation of a JsonDocument.
+     */
     std::string to_string ( JsonDocument const& document) const;
 
     // ---------------------------------------------------------------------
     //     Printing
     // ---------------------------------------------------------------------
 
-protected:
+private:
 
-    void print_value  ( JsonValue       const* value, std::ostream& out) const;
-    void print_array  ( JsonValueArray  const* value, std::ostream& out, int indent_level) const;
-    void print_object ( JsonValueObject const* value, std::ostream& out, int indent_level) const;
+    /**
+     * @brief Write the Json representation of any Json value to a stream.
+     */
+    void print_value  ( JsonDocument const& value, std::ostream& out) const;
+
+    /**
+     * @brief Write the Json representation of a Json array to a stream.
+     */
+    void print_array  ( JsonDocument const& value, std::ostream& out, int indent_level) const;
+
+    /**
+     * @brief Write the Json representation of a Json object to a stream.
+     */
+    void print_object ( JsonDocument const& value, std::ostream& out, int indent_level) const;
 
     // ---------------------------------------------------------------------
-    //     Members
+    //     Settings
     // ---------------------------------------------------------------------
 
 public:
 
-    // /* *
-    //  * @brief Precision used for printing floating point numbers, particularly Json Value Numbers.
-    //  */
-    // int precision = 6;
+    /**
+     * @brief Get the precision used for printing floating point numbers.
+     */
+    size_t precision() const
+    {
+        return precision_;
+    }
 
     /**
-     * @brief Indent used for printing the elements of Json Arrays and Objects.
+     * @brief Set the precision used for printing floating point numbers.
+     *
+     * The function returns a reference to the JsoNWriter to allow for fluent interfaces.
      */
-    int indent = 4;
+    JsonWriter& precision( size_t value )
+    {
+        precision_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the indent used for printing the elements of Json arrays and objects.
+     */
+    size_t indent() const
+    {
+        return indent_;
+    }
+
+    /**
+     * @brief Set the indent used for printing the elements of Json arrays and objects.
+     *
+     * The function returns a reference to the JsoNWriter to allow for fluent interfaces.
+     */
+    JsonWriter& indent( size_t value )
+    {
+        indent_ = value;
+        return *this;
+    }
+
+    // ---------------------------------------------------------------------
+    //     Data Members
+    // ---------------------------------------------------------------------
+
+private:
+
+    size_t precision_ = 6;
+    size_t indent_    = 4;
 
 };
 

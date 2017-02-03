@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -229,14 +229,14 @@ placement::SampleSet extract_pqueries(
             auto& clade_sample = *sample_ptr;
 
             // Add a copy of the pquery to the sample.
-            clade_sample.add_pquery( pquery );
+            clade_sample.add( pquery );
         }
 
         // If there is no sure assignment ( < threshold ) for this pquery, we copy it into the
         // special `uncertain` sample.
         if( ! found_clade ) {
             auto& uncertain_sample = *find_sample( sample_set, "uncertain" );
-            uncertain_sample.add_pquery( pquery );
+            uncertain_sample.add( pquery );
         }
     }
 
@@ -368,8 +368,7 @@ int main( int argc, char** argv )
     LOG_INFO << "Found " << clades.size() << " clades";
 
     // Read the Jplace file into a Sample object.
-    Sample sample;
-    JplaceReader().from_file( jplace_filename, sample );
+    Sample sample = JplaceReader().from_file( jplace_filename );
 
     // Normalize the like_weight_ratios. This step makes sure that missing placement weights do not
     // lead to a pquery being placed in the uncertain clade. That means, we only use the provided

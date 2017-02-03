@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -64,16 +64,15 @@ namespace placement {
  *
  *   * from_file()
  *   * from_string()
+ *   * from_stream()
  *   * from_document()
  *
  * Exemplary usage:
  *
  *     std::string infile = "path/to/file.jplace";
- *     Sample map;
- *
- *     JplaceReader()
+ *     Sample smp = JplaceReader()
  *         .invalid_number_behaviour( InvalidNumberBehaviour::kCorrect )
- *         .from_file( infile, map );
+ *         .from_file( infile );
  *
  * Using @link invalid_number_behaviour( InvalidNumberBehaviour ) invalid_number_behaviour()@endlink,
  * it is possible to change how the reader reacts to malformed jplace files.
@@ -86,52 +85,10 @@ namespace placement {
  *     PLoS ONE 7(2): e31009. doi:10.1371/journal.pone.0031009
  *     http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0031009
  *
- * See Sample for the data structure used to store the Pqueries.
+ * See Sample for the data structure used to store the Pqueries and the reference Tree.
  */
 class JplaceReader
 {
-    // ---------------------------------------------------------------------
-    //     Internal Classes
-    // ---------------------------------------------------------------------
-
-private:
-
-    /**
-     * @brief Internal struct for intermediately storing the data for one Placement.
-     *
-     * See PqueryData for details.
-     */
-    struct PlacementData
-    {
-        std::vector<std::string> fields;
-    };
-
-    /**
-     * @brief Internal struct for intermediately storing the data for one Name.
-     *
-     * See PqueryData for details.
-     */
-    struct NameData
-    {
-        std::string name;
-        double      multiplicity = 1.0;
-    };
-
-    /**
-     * @brief Internal struct for intermediately storing the data for one Pquery.
-     *
-     * We need this intermediate format, as Json does not provide any guarantees on the order of
-     * key-value-objects. Thus, we could first find the Pqueryes and Placements, before we have the
-     * tree or field names order. In such cases, we would not know how to interpret the values
-     * for a placement. So store them first, and then, after we have all the information, we
-     * process them again and put them into their final form.
-     */
-    struct PqueryData
-    {
-        std::vector<PlacementData> placements;
-        std::vector<NameData>      names;
-    };
-
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
@@ -155,59 +112,47 @@ public:
 
     /**
      * @brief Read `jplace` data from a stream into a Sample.
+     */
+    Sample from_stream( std::istream& is ) const;
+
+    /**
+     * @brief Read a file and parse it as a Jplace document into a Sample.
+     */
+    Sample from_file( std::string const& fn ) const;
+
+    /**
+     * @brief Parse a string as a Jplace document into a Sample.
+     */
+    Sample from_string( std::string const& jplace ) const;
+
+    /**
+     * @brief Take a JsonDocument and parse it as a Jplace document into a Sample.
+     */
+    Sample from_document( utils::JsonDocument& doc ) const;
+
+    /**
+     * @brief Read a list of files and parse them as a Jplace document into a SampleSet.
+     */
+    SampleSet from_files( std::vector<std::string> const& fns ) const;
+
+    /**
+     * @brief Parse a list of strings as a Jplace document into a SampleSet.
+     */
+    SampleSet from_strings( std::vector<std::string> const& jps ) const;
+
+    /**
+     * @brief Read a list of files and parse them as a Jplace document into a SampleSet.
      *
-     * This implementation is currenlty not yet fully implemented. Don't use it yet!
-     */
-    void from_stream   ( std::istream&       is,         Sample& smp ) const;
-
-    /**
-     * @brief Read a file and parse it as a Jplace document into a Sample object.
-     */
-    void from_file     ( std::string const&  fn,         Sample& smp ) const;
-
-    /**
-     * @brief Parse a string as a Jplace document into a Sample object.
-     */
-    void from_string   ( std::string const&  jplace,     Sample& smp ) const;
-
-    /**
-     * @brief Take a JsonDocument object and parse it as a Jplace document into a Sample object.
-     */
-    void from_document ( utils::JsonDocument const& doc, Sample& smp ) const;
-
-    /**
-     * @brief Read a list of files and parse them as a Jplace document into a SampleSet object.
+     * The Sample%s are added to the SampleSet, so that existing Samples in the SampleSet are kept.
      */
     void from_files    ( std::vector<std::string> const& fns, SampleSet& set ) const;
 
     /**
-     * @brief Parse a list of strings as a Jplace document into a SampleSet object.
+     * @brief Parse a list of strings as a Jplace document into a SampleSet.
+     *
+     * The Sample%s are added to the SampleSet, so that existing Samples in the SampleSet are kept.
      */
     void from_strings  ( std::vector<std::string> const& jps, SampleSet& set ) const;
-
-    // ---------------------------------------------------------------------
-    //     Parsing
-    // ---------------------------------------------------------------------
-
-private:
-
-    void parse_version( utils::InputStream& input_stream ) const;
-
-    std::unordered_map<std::string, std::string> parse_metadata(
-        utils::InputStream& input_stream
-    ) const;
-
-    std::string parse_tree( utils::InputStream& input_stream ) const;
-
-    std::vector<std::string> parse_fields( utils::InputStream& input_stream ) const;
-
-    std::vector<PqueryData> parse_pqueries( utils::InputStream& input_stream ) const;
-
-    std::vector<PlacementData> parse_placements( utils::InputStream& input_stream ) const;
-
-    std::vector<NameData> parse_names( utils::InputStream& input_stream ) const;
-
-    std::vector<NameData> parse_named_multiplicities( utils::InputStream& input_stream ) const;
 
     // ---------------------------------------------------------------------
     //     Processing
@@ -244,7 +189,7 @@ private:
      * the contained pqueries in the Sample.
      */
     void process_json_placements(
-        utils::JsonDocument const& doc,
+        utils::JsonDocument&       doc,
         Sample&                    smp,
         std::vector<std::string>   fields
     ) const;
@@ -252,6 +197,8 @@ private:
     // ---------------------------------------------------------------------
     //     Jplace Version
     // ---------------------------------------------------------------------
+
+public:
 
     /**
      * @brief Returns the version number that this class is written for. Currently, this is "3".
@@ -261,18 +208,15 @@ private:
     /**
      * @brief Checks whether the version of the jplace format works with this parser.
      *
-     * This parser is intended for `jplace` versions 2 and 3. If while reading a different version tag
-     * is found, the reader will trigger a warning and try to continue anyway.
-     */
-    static bool        check_version ( std::string const& version );
-
-    /**
-     * @brief Checks whether the version of the jplace format works with this parser.
-     *
-     * This parser is intended for `jplace` versions 2 and 3. If while reading a different version tag
-     * is found, the reader will trigger a warning and try to continue anyway.
+     * This parser is intended for `jplace` versions 2 and 3. If while reading a different version
+     * tag is found, the reader will trigger a warning and try to continue anyway.
      */
     static bool        check_version ( size_t             version );
+
+    /**
+     * @copydoc check_version( size_t version ).
+     */
+    static bool        check_version ( std::string const& version );
 
     // ---------------------------------------------------------------------
     //     Properties

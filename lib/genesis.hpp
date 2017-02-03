@@ -159,7 +159,7 @@
 #include "utils/core/version.hpp"
 #include "utils/formats/csv/reader.hpp"
 #include "utils/formats/json/document.hpp"
-#include "utils/formats/json/lexer.hpp"
+#include "utils/formats/json/iterator.hpp"
 #include "utils/formats/json/reader.hpp"
 #include "utils/formats/json/writer.hpp"
 #include "utils/formats/nexus/block.hpp"
