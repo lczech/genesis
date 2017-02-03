@@ -79,6 +79,21 @@ namespace utils {
 //     Json Iterator
 // =================================================================================================
 
+/**
+ * @brief Template for a random access iterator for the @ref JsonDocument class.
+ *
+ * This class implements a both iterators (iterator and const_iterator) for the @ref JsonDocument
+ * class.
+ *
+ * The class satisfies the following concept requirements:
+ * [RandomAccessIterator](http://en.cppreference.com/w/cpp/concept/RandomAccessIterator).
+ * The iterator that can be moved to point (forward and backward) to any element in constant time.
+ *
+ * @note An iterator is called *initialized* when a pointer to a JSON value has been set
+ * (e.g., by a constructor or a copy assignment). If the iterator is default-constructed, it is
+ * *uninitialized* and most methods are undefined. We use assertions to detect calls on
+ * uninitialized iterators.
+ */
 template<typename U>
 class JsonIterator : public std::iterator<std::random_access_iterator_tag, U>
 {
@@ -120,6 +135,14 @@ public:
     //     Primitive Iterator
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief an iterator for primitive JSON types
+     *
+     * This class models an iterator for primitive JSON types (boolean, number, string). It's only
+     * purpose is to allow the iterator/const_iterator classes to "iterate" over primitive values.
+     * Internally, the iterator is modeled by a `difference_type` variable. Value begin_value (`0`)
+     * models the begin, end_value (`1`) models past the end.
+     */
     class PrimitiveIterator
     {
     public:
@@ -173,6 +196,12 @@ public:
     //     Internal Iterator
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief an iterator value
+     *
+     * @note This structure could easily be a union, but MSVC currently does not allow unions
+     * members with complex constructors, see https://github.com/nlohmann/json/pull/105.
+     */
     struct InternalIterator
     {
         // iterator for JSON objects
