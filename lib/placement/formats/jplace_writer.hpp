@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -98,12 +98,28 @@ public:
 
 public:
 
-    // TODO for now, this is all public. use getters and setters instead
+    /**
+     * @brief Get the precision used for printing the `branch_length` floating point numbers
+     * of the reference Tree of the Sample.
+     */
+    size_t branch_length_precision() const
+    {
+        return branch_length_precision_;
+    }
 
     /**
-     * @brief The precision used for printing the `branch_length` floating point numbers.
+     * @brief Set the precision used for printing the `branch_length` floating point numbers
+     * of the reference Tree of the Sample.
      */
-    int branch_length_precision = 6;
+    JplaceWriter& branch_length_precision( size_t value )
+    {
+        branch_length_precision_ = value;
+        return *this;
+    }
+
+private:
+
+    int branch_length_precision_ = 6;
 };
 
 } // namespace placement
