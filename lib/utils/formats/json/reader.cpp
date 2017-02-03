@@ -55,24 +55,40 @@ namespace utils {
 JsonDocument JsonReader::from_stream( std::istream& input_stream ) const
 {
     utils::InputStream is( utils::make_unique< utils::StreamInputSource >( input_stream ));
-    return parse_object( is );
+    return parse( is );
 }
 
 JsonDocument JsonReader::from_file (const std::string& filename ) const
 {
     utils::InputStream is( utils::make_unique< utils::FileInputSource >( filename ));
-    return parse_object( is );
+    return parse( is );
 }
 
 JsonDocument JsonReader::from_string (const std::string& json ) const
 {
     utils::InputStream is( utils::make_unique< utils::StringInputSource >( json ));
-    return parse_object( is );
+    return parse( is );
 }
 
 // =================================================================================================
 //     Parsing
 // =================================================================================================
+
+// -----------------------------------------------------------------------------
+//     Parse
+// -----------------------------------------------------------------------------
+
+JsonDocument JsonReader::parse( InputStream& input_stream ) const
+{
+    JsonDocument result = parse_value( input_stream );
+    skip_while( input_stream, isspace );
+    if( input_stream ) {
+        throw std::runtime_error(
+            "Expected end of input while readin Json at " + input_stream.at()
+        );
+    }
+    return result;
+}
 
 // -----------------------------------------------------------------------------
 //     Parse Value
@@ -89,31 +105,31 @@ JsonDocument JsonReader::parse_value( InputStream& input_stream ) const
     // }
     // skip_while( it, [&]( char c ){ return lookup_[c] == CharTypes::kSpace; } );
 
+    // If there is no content, return an empty Json doc.
     if( !it ) {
-        // If there is no content, return an empty Json doc.
         return nullptr;
 
+    // Parse an array.
     } else if( *it == '[' ) {
-        // Parse an array.
         return parse_array( it );
 
+    // Parse an object.
     } else if( *it == '{' ) {
-        // Parse an object.
         return parse_object( it );
 
+    // Parse a string.
     } else if( *it == '"' ) {
-        // Parse a string.
         return parse_quoted_string( it );
 
+    // Either null or boolean.
     } else if( isalpha( *it ) ) {
-
-        // Either null or boolean.
         auto value = to_lower( read_while( it, isalpha ));
+
+        // If it is a null token, return an empty Json doc.
         if(  value == "null" ) {
-            // If it is a null token, return an empty Json doc.
             return nullptr;
 
-            // Otherwise return a boolean value.
+        // Otherwise return a boolean value.
         } else if( value == "true" ) {
             return JsonDocument::boolean( true );
         } else if( value == "false" ) {
@@ -124,10 +140,11 @@ JsonDocument JsonReader::parse_value( InputStream& input_stream ) const
             );
         }
 
+    // Parse a number.
     } else if( isdigit( *it ) or char_is_sign( *it ) or *it == '.' ) {
-        // Parse a number.
         return parse_number( it );
 
+    // Parse error.
     } else {
         throw std::runtime_error(
             "Unexpected Json input char: '" + std::string( 1, *it ) + "' at " + it.at() + "."
@@ -148,25 +165,33 @@ JsonDocument JsonReader::parse_array( InputStream& input_stream ) const
     skip_while( it, isspace );
     read_char_or_throw( it, '[' );
 
+    // Check for empty array.
+    skip_while( it, isspace );
+    if( it && *it == ']' ) {
+        assert( it && *it == ']' );
+        ++it;
+        return doc;
+    }
+
     while( it ) {
         // Get the element.
-        skip_while( it, isspace );
         doc.emplace_back( parse_value( it ));
 
         // Check for end of array, leave if found.
         skip_while( it, isspace );
-        if( ! it ) {
-            throw std::runtime_error( "Unexpected end of Json Document at " + it.at() );
-        }
-        if( *it == ']' ) {
+        if( !it || *it == ']' ) {
             break;
         }
 
         // We expect more. Or throw, if we unexpectedly are at the end or have an illegal char.
         read_char_or_throw( it, ',' );
+        skip_while( it, isspace );
     }
 
     // We are at the end of the array. Move to next char.
+    if( !it || *it != ']' ) {
+        throw std::runtime_error( "Unexpected end of Json array at " + it.at() );
+    }
     assert( it && *it == ']' );
     ++it;
 
@@ -186,9 +211,16 @@ JsonDocument JsonReader::parse_object( InputStream& input_stream ) const
     skip_while( it, isspace );
     read_char_or_throw( it, '{' );
 
+    // Check for empty object.
+    skip_while( it, isspace );
+    if( it && *it == '}' ) {
+        assert( it && *it == '}' );
+        ++it;
+        return doc;
+    }
+
     while( it ) {
         // Get the key.
-        skip_while( it, isspace );
         affirm_char_or_throw( it, '"' );
         auto key = parse_quoted_string( it );
 
@@ -202,18 +234,19 @@ JsonDocument JsonReader::parse_object( InputStream& input_stream ) const
 
         // Check for end of object, leave if found.
         skip_while( it, isspace );
-        if( ! it ) {
-            throw std::runtime_error( "Unexpected end of Json Document at " + it.at() );
-        }
-        if( *it == '}' ) {
+        if( !it || *it == '}' ) {
             break;
         }
 
         // We expect more. Or throw, if we unexpectedly are at the end or have an illegal char.
         read_char_or_throw( it, ',' );
+        skip_while( it, isspace );
     }
 
     // We are at the end of the object. Move to next char.
+    if( !it || *it != '}' ) {
+        throw std::runtime_error( "Unexpected end of Json object at " + it.at() );
+    }
     assert( it && *it == '}' );
     ++it;
 
@@ -229,7 +262,9 @@ JsonDocument JsonReader::parse_number( InputStream& input_stream ) const
     auto& it = input_stream;
     skip_while( it, isspace );
     if( !it ) {
-        return 0;
+        throw std::runtime_error(
+            "Expecting number in " + it.source_name() + " at " + it.at() + "."
+        );
     }
 
     // Sign
@@ -241,21 +276,19 @@ JsonDocument JsonReader::parse_number( InputStream& input_stream ) const
         ++it;
     }
 
-    if( ! it || ! isdigit( *it ) ) {
-        throw std::runtime_error( "Invalid Json number at " + it.at() );
-    }
-
     // Integer Part
+    bool found_mantisse = false;
     JsonDocument::NumberUnsignedType ix = 0;
     while( it && isdigit( *it )) {
         int y = *it - '0';
         ix *= 10;
         ix += y;
         ++it;
+        found_mantisse = true;
     }
 
     // If not float
-    if( !it || !( *it == '.' || tolower(*it) == 'e' ) ) {
+    if( found_mantisse && !( *it == '.' || tolower(*it) == 'e' ) ) {
         if( is_neg ) {
             return JsonDocument::number_signed( -ix );
         } else {
@@ -274,13 +307,22 @@ JsonDocument JsonReader::parse_number( InputStream& input_stream ) const
             int y = *it - '0';
             dx += y * pos;
             ++it;
+            found_mantisse = true;
         }
+    }
+
+    // We need to have some digits before the exponential part.
+    if( ! found_mantisse ) {
+        throw std::runtime_error(
+            "Invalid float number in " + it.source_name() + " at " + it.at() + "."
+        );
     }
 
     // Exponential part
     if( it && tolower(*it) == 'e' ) {
         ++it;
 
+        // Read the exp. If there are no digits, this throws.
         int e = parse_signed_integer<int>( it );
         if( e != 0 ) {
             JsonDocument::NumberFloatType base;

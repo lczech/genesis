@@ -49,14 +49,12 @@ class JsonDocument;
 // =================================================================================================
 
 /**
- * @brief Read `Json` data.
+ * @brief Read `Json` data into a JsonDocument.
  *
  * This class provides functions for parsing `json` data into a JsonDocument. The parsing works
- * this way:
- *
- * Each JsonDocument is also a Json object, and can contain other objects, arrays, or simple
- * value types. The parsing here is thus splitted in different functions, being recursively called
- * for every level of nesting within objects and arrays.
+ * this way: Each JsonDocument is also a Json object, and can contain other objects, arrays, or
+ * simple value types. The parsing here is thus splitted in different functions, being recursively
+ * called for every level of nesting within objects and arrays.
  */
 class JsonReader
 {
@@ -100,6 +98,7 @@ public:
     //     Parsing Functions
     // ---------------------------------------------------------------------
 
+    JsonDocument parse( InputStream& input_stream ) const;
     JsonDocument parse_value( InputStream& input_stream ) const;
     JsonDocument parse_array(  InputStream& input_stream ) const;
     JsonDocument parse_object( InputStream& input_stream ) const;
