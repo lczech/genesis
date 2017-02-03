@@ -70,9 +70,8 @@ namespace placement {
 
 void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
 {
-    // utils::InputStream instr( utils::make_unique< utils::StreamInputSource >( is ));
     auto doc = utils::JsonReader().from_stream( is );
-    from_document( doc, smp );
+    smp = from_document( doc );
 }
 
 // -------------------------------------------------------------------------
@@ -81,10 +80,8 @@ void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
 
 void JplaceReader::from_file( std::string const& fn, Sample& smp ) const
 {
-    if ( ! utils::file_exists(fn) ) {
-        throw std::runtime_error( "Jplace file '" + fn + "' does not exist." );
-    }
-    return from_string( utils::file_read(fn), smp );
+    auto doc = utils::JsonReader().from_file( fn );
+    smp = from_document( doc );
 }
 
 // -------------------------------------------------------------------------
@@ -94,7 +91,7 @@ void JplaceReader::from_file( std::string const& fn, Sample& smp ) const
 void JplaceReader::from_string( std::string const& jplace, Sample& smp ) const
 {
     auto doc = utils::JsonReader().from_string( jplace );
-    from_document( doc, smp );
+    smp = from_document( doc );
 }
 
 // -------------------------------------------------------------------------
@@ -103,17 +100,7 @@ void JplaceReader::from_string( std::string const& jplace, Sample& smp ) const
 
 void JplaceReader::from_document( utils::JsonDocument& doc, Sample& smp ) const
 {
-    if( ! doc.is_object() ) {
-        throw std::runtime_error( "Json value is not a Json document." );
-    }
-
-    process_json_version( doc );
-    process_json_metadata( doc, smp );
-
-    smp.clear();
-    process_json_tree( doc, smp );
-    auto fields = process_json_fields( doc );
-    process_json_placements( doc, smp, fields);
+    smp = from_document( doc );
 }
 
 // -------------------------------------------------------------------------
@@ -122,12 +109,7 @@ void JplaceReader::from_document( utils::JsonDocument& doc, Sample& smp ) const
 
 void JplaceReader::from_files (const std::vector<std::string>& fns, SampleSet& set) const
 {
-    for (auto fn : fns) {
-        auto map = Sample();
-        from_file (fn, map);
-        std::string name = utils::file_filename( utils::file_basename(fn) );
-        set.add( map, name );
-    }
+    set = from_files( fns );
 }
 
 // -------------------------------------------------------------------------
@@ -136,13 +118,88 @@ void JplaceReader::from_files (const std::vector<std::string>& fns, SampleSet& s
 
 void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet& set) const
 {
+    set = from_files( jps );
+}
+
+// -------------------------------------------------------------------------
+//     Reading from Stream
+// -------------------------------------------------------------------------
+
+Sample JplaceReader::from_stream( std::istream& is ) const
+{
+    auto doc = utils::JsonReader().from_stream( is );
+    return from_document( doc );
+}
+
+// -------------------------------------------------------------------------
+//     Reading from File
+// -------------------------------------------------------------------------
+
+Sample JplaceReader::from_file( std::string const& fn ) const
+{
+    auto doc = utils::JsonReader().from_file( fn );
+    return from_document( doc );
+}
+
+// -------------------------------------------------------------------------
+//     Reading from String
+// -------------------------------------------------------------------------
+
+Sample JplaceReader::from_string( std::string const& jplace ) const
+{
+    auto doc = utils::JsonReader().from_string( jplace );
+    return from_document( doc );
+}
+
+// -------------------------------------------------------------------------
+//     Reading from Document
+// -------------------------------------------------------------------------
+
+Sample JplaceReader::from_document( utils::JsonDocument& doc ) const
+{
+    Sample smp;
+
+    if( ! doc.is_object() ) {
+        throw std::runtime_error( "Json value is not a Json document." );
+    }
+
+    process_json_version( doc );
+    process_json_metadata( doc, smp );
+
+    process_json_tree( doc, smp );
+    auto fields = process_json_fields( doc );
+    process_json_placements( doc, smp, fields);
+
+    return smp;
+}
+
+// -------------------------------------------------------------------------
+//     Reading from Files
+// -------------------------------------------------------------------------
+
+SampleSet JplaceReader::from_files (const std::vector<std::string>& fns ) const
+{
+    SampleSet set;
+    for (auto fn : fns) {
+        std::string name = utils::file_filename( utils::file_basename(fn) );
+        set.add( from_file( fn ), name );
+    }
+    return set;
+}
+
+// -------------------------------------------------------------------------
+//     Reading from Strings
+// -------------------------------------------------------------------------
+
+SampleSet JplaceReader::from_strings (const std::vector<std::string>& jps ) const
+{
+    SampleSet set;
     size_t cnt = 0;
     for (auto jplace : jps) {
-        auto map = Sample();
-        from_string (jplace, map);
-        set.add( map, std::string("jplace_") + std::to_string(cnt) );
+        set.add( from_string( jplace ), std::string("jplace_") + std::to_string(cnt) );
         ++cnt;
     }
+    return set;
 }
 
 // =================================================================================================

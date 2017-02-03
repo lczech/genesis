@@ -64,16 +64,15 @@ namespace placement {
  *
  *   * from_file()
  *   * from_string()
+ *   * from_stream()
  *   * from_document()
  *
  * Exemplary usage:
  *
  *     std::string infile = "path/to/file.jplace";
- *     Sample smp;
- *
- *     JplaceReader()
+ *     Sample smp = JplaceReader()
  *         .invalid_number_behaviour( InvalidNumberBehaviour::kCorrect )
- *         .from_file( infile, smp );
+ *         .from_file( infile );
  *
  * Using @link invalid_number_behaviour( InvalidNumberBehaviour ) invalid_number_behaviour()@endlink,
  * it is possible to change how the reader reacts to malformed jplace files.
@@ -140,6 +139,36 @@ public:
      * @brief Parse a list of strings as a Jplace document into a SampleSet object.
      */
     void from_strings  ( std::vector<std::string> const& jps, SampleSet& set ) const;
+
+    /**
+     * @brief Read `jplace` data from a stream into a Sample.
+     */
+    Sample from_stream( std::istream& is ) const;
+
+    /**
+     * @brief Read a file and parse it as a Jplace document into a Sample object.
+     */
+    Sample from_file( std::string const& fn ) const;
+
+    /**
+     * @brief Parse a string as a Jplace document into a Sample object.
+     */
+    Sample from_string( std::string const& jplace ) const;
+
+    /**
+     * @brief Take a JsonDocument object and parse it as a Jplace document into a Sample object.
+     */
+    Sample from_document( utils::JsonDocument& doc ) const;
+
+    /**
+     * @brief Read a list of files and parse them as a Jplace document into a SampleSet object.
+     */
+    SampleSet from_files( std::vector<std::string> const& fns ) const;
+
+    /**
+     * @brief Parse a list of strings as a Jplace document into a SampleSet object.
+     */
+    SampleSet from_strings( std::vector<std::string> const& jps ) const;
 
     // ---------------------------------------------------------------------
     //     Processing
