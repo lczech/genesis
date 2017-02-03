@@ -62,19 +62,21 @@ TEST(Parser, UnsignedInteger)
 {
     SCOPED_TRACE("Parser.UnsignedInteger");
 
-    test_uint( "",   0, 0 );
-    test_uint( " ",  0, 1 );
-    test_uint( "x",  0, 1 );
-    test_uint( "-",  0, 1 );
-    test_uint( "+0", 0, 1 );
+    // Valid input.
     test_uint( "0",  0, 2 );
-
     test_uint( "1",         1, 2 );
     test_uint( "12345", 12345, 6 );
-
     test_uint( "123 45", 123, 4 );
     test_uint( "56ab",    56, 3 );
 
+    // Invalid input.
+    EXPECT_ANY_THROW( test_uint( "",   0, 0 ));
+    EXPECT_ANY_THROW( test_uint( " ",  0, 1 ));
+    EXPECT_ANY_THROW( test_uint( "x",  0, 1 ));
+    EXPECT_ANY_THROW( test_uint( "-",  0, 1 ));
+    EXPECT_ANY_THROW( test_uint( "+0", 0, 1 ));
+
+    // Overflow.
     EXPECT_THROW( test_uint( "123456789101121314151617181920", 0, 0 ), std::overflow_error);
 }
 
@@ -96,14 +98,9 @@ TEST(Parser, SignedInteger)
 {
     SCOPED_TRACE("Parser.SignedInteger");
 
-    test_int( "",   0, 0 );
-    test_int( " ",  0, 1 );
-    test_int( "x",  0, 1 );
-    test_int( "-",  0, 2 );
-    test_int( "+",  0, 2 );
+    // Valid input.
     test_int( "+0", 0, 3 );
     test_int( "0",  0, 2 );
-
     test_int( "1",           1, 2 );
     test_int( "12345",   12345, 6 );
     test_int( "+1",          1, 3 );
@@ -111,6 +108,7 @@ TEST(Parser, SignedInteger)
     test_int( "-1",         -1, 3 );
     test_int( "-12345", -12345, 7 );
 
+    // Early stop.
     test_int( "123 45",   123, 4 );
     test_int( "56ab",      56, 3 );
     test_int( "+123 45",  123, 5 );
@@ -118,6 +116,14 @@ TEST(Parser, SignedInteger)
     test_int( "-123 45", -123, 5 );
     test_int( "-56ab",    -56, 4 );
 
+    // Invalid input.
+    EXPECT_ANY_THROW( test_int( "",   0, 0 ));
+    EXPECT_ANY_THROW( test_int( " ",  0, 1 ));
+    EXPECT_ANY_THROW( test_int( "x",  0, 1 ));
+    EXPECT_ANY_THROW( test_int( "-",  0, 2 ));
+    EXPECT_ANY_THROW( test_int( "+",  0, 2 ));
+
+    // Overflow.
     EXPECT_THROW( test_int( "123456789101121314151617181920",  0, 0 ), std::overflow_error);
     EXPECT_THROW( test_int( "-123456789101121314151617181920", 0, 0 ), std::underflow_error);
 }
@@ -140,21 +146,19 @@ TEST(Parser, Float)
 {
     SCOPED_TRACE("Parser.Float");
 
-    test_float( "",   0.0, 0);
-    test_float( " ",  0.0, 1);
-    test_float( "x",  0.0, 1 );
-    test_float( "-",  0.0, 2 );
-    test_float( "+",  0.0, 2 );
-    test_float( "+0", 0.0, 3 );
-    test_float( "0",  0.0, 2 );
+    // Valid input.
+    test_float( "+0",           0.0, 3 );
+    test_float( "0",            0.0, 2 );
+    test_float( "1",            1.0, 2 );
+    test_float( "12345",    12345.0, 6 );
+    test_float( "+1",           1.0, 3 );
+    test_float( "+12345",   12345.0, 7 );
+    test_float( "-1",          -1.0, 3 );
+    test_float( "-12345",  -12345.0, 7 );
+    test_float( ".12345",   0.12345, 7 );
+    test_float( "-.12345", -0.12345, 8 );
 
-    test_float( "1",           1.0, 2 );
-    test_float( "12345",   12345.0, 6 );
-    test_float( "+1",          1.0, 3 );
-    test_float( "+12345",  12345.0, 7 );
-    test_float( "-1",         -1.0, 3 );
-    test_float( "-12345", -12345.0, 7 );
-
+    // Early stop.
     test_float( "123 45",   123.0, 4 );
     test_float( "56ab",      56.0, 3 );
     test_float( "+123 45",  123.0, 5 );
@@ -162,36 +166,49 @@ TEST(Parser, Float)
     test_float( "-123 45", -123.0, 5 );
     test_float( "-56ab",    -56.0, 4 );
 
-    test_float( "123.45",    123.45, 7 );
-    // test_float( "123,45",    123.45, 7 );
-    test_float( "-123.45",   -123.45, 8 );
-    // test_float( "-123,45",   -123.45, 8 );
-
-    test_float( "123.45x",    123.45, 7 );
-    // test_float( "123,45x",    123.45, 7 );
-    test_float( "-123.45x",   -123.45, 8 );
-    // test_float( "-123,45x",   -123.45, 8 );
-
-    test_float( "123.45e",    123.45, 8 );
-    // test_float( "123,45E",    123.45, 8 );
-    test_float( "-123.45E",   -123.45, 9 );
-    // test_float( "-123,45e",   -123.45, 9 );
-
-    test_float( "123.456e2",    12345.6, 10 );
-    // test_float( "123,456E2",    12345.6, 10 );
-    test_float( "-123.456E2",   -12345.6, 11 );
-    // test_float( "-123,456e2",   -12345.6, 11 );
-
-    test_float( "123.456e-2",    1.23456, 11 );
-    // test_float( "123,456E-2",    1.23456, 11 );
+    // Full numbers.
+    test_float( "123.45",          123.45, 7 );
+    test_float( "-123.45",        -123.45, 8 );
+    test_float( "123.45x",         123.45, 7 );
+    test_float( "-123.45x",       -123.45, 8 );
+    test_float( "123.456e2",      12345.6, 10 );
+    test_float( "-123.456E2",    -12345.6, 11 );
+    test_float( "123.456e-2",     1.23456, 11 );
     test_float( "-123.456E-2",   -1.23456, 12 );
+
+    // Old comma notation.
+    // test_float( "123,45",    123.45, 7 );
+    // test_float( "-123,45",   -123.45, 8 );
+    // test_float( "123,45x",    123.45, 7 );
+    // test_float( "-123,45x",   -123.45, 8 );
+    // test_float( "123,456E2",    12345.6, 10 );
+    // test_float( "-123,456e2",   -12345.6, 11 );
+    // test_float( "123,456E-2",    1.23456, 11 );
     // test_float( "-123,456e-2",   -1.23456, 12 );
 
-    test_float( "123.456e-x2",    123.456, 10 );
-    // test_float( "123,456E-x2",    123.456, 10 );
-    test_float( "-123.456E-x2",   -123.456, 11 );
-    // test_float( "-123,456e-x2",   -123.456, 11 );
+    // Invalid input.
+    EXPECT_ANY_THROW( test_float( "",   0.0, 0));
+    EXPECT_ANY_THROW( test_float( " ",  0.0, 1));
+    EXPECT_ANY_THROW( test_float( "x",  0.0, 1 ));
+    EXPECT_ANY_THROW( test_float( "-",  0.0, 2 ));
+    EXPECT_ANY_THROW( test_float( "+",  0.0, 2 ));
+    EXPECT_ANY_THROW( test_float( ".",  0.0, 2 ));
+    EXPECT_ANY_THROW( test_float( ".x",  0.0, 2 ));
+    EXPECT_ANY_THROW( test_float( "1.",  0.0, 2 ));
 
+    EXPECT_ANY_THROW( test_float( "123.45e",          123.45, 8 ));
+    EXPECT_ANY_THROW( test_float( "-123.45E",        -123.45, 9 ));
+    EXPECT_ANY_THROW( test_float( "123.45e+",         123.45, 8 ));
+    EXPECT_ANY_THROW( test_float( "-123.45E+",       -123.45, 9 ));
+    EXPECT_ANY_THROW( test_float( "123.456e-x2",     123.456, 10 ));
+    EXPECT_ANY_THROW( test_float( "-123.456E-x2",   -123.456, 11 ));
+
+    // EXPECT_ANY_THROW( test_float( "123,45E",    123.45, 8 ));
+    // EXPECT_ANY_THROW( test_float( "-123,45e",   -123.45, 9 ));
+    // EXPECT_ANY_THROW( test_float( "123,456E-x2",    123.456, 10 ));
+    // EXPECT_ANY_THROW( test_float( "-123,456e-x2",   -123.456, 11 ));
+
+    // Overflow.
     EXPECT_THROW( test_float( "1.0e123456789101121314151617181920",  0, 0 ), std::overflow_error);
     EXPECT_THROW( test_float( "1.0e-123456789101121314151617181920", 0, 0 ), std::underflow_error);
 }
