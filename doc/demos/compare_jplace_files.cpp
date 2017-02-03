@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -101,12 +101,10 @@ int main( int argc, const char* argv[] )
     );
 
     // Read the files.
-    Sample smpl_l;
-    Sample smpl_r;
     std::cout << "Jplace file 1: " << jplace_filename_l << "\n";
-    jplace_reader.from_file( jplace_filename_l, smpl_l );
+    Sample smpl_l = jplace_reader.from_file( jplace_filename_l );
     std::cout << "Jplace file 2: " << jplace_filename_r << "\n";
-    jplace_reader.from_file( jplace_filename_r, smpl_r );
+    Sample smpl_r = jplace_reader.from_file( jplace_filename_r );
     std::cout << "\n";
 
     // Validation.
@@ -142,13 +140,13 @@ int main( int argc, const char* argv[] )
     // For speedup, create maps from names of the samples to its pquery indices.
     auto name_map_l = std::unordered_map< std::string, size_t >();
     auto name_map_r = std::unordered_map< std::string, size_t >();
-    for( size_t i = 0; i < smpl_l.pquery_size(); ++i ) {
-        for( auto const& name_l : smpl_l.pquery_at(i).names() ) {
+    for( size_t i = 0; i < smpl_l.size(); ++i ) {
+        for( auto const& name_l : smpl_l.at(i).names() ) {
             name_map_l[ name_l.name ] = i;
         }
     }
-    for( size_t i = 0; i < smpl_r.pquery_size(); ++i ) {
-        for( auto const& name_r : smpl_r.pquery_at(i).names() ) {
+    for( size_t i = 0; i < smpl_r.size(); ++i ) {
+        for( auto const& name_r : smpl_r.at(i).names() ) {
             name_map_r[ name_r.name ] = i;
         }
     }
@@ -173,7 +171,7 @@ int main( int argc, const char* argv[] )
             if( name_map_r.count( name_l.name ) == 0 ) {
                 continue;
             }
-            auto& pqry_r = smpl_r.pquery_at( name_map_r[ name_l.name ]);
+            auto& pqry_r = smpl_r.at( name_map_r[ name_l.name ]);
 
             /* == some straight forward evaluation: do they place on the same branches? == */
 
@@ -228,8 +226,8 @@ int main( int argc, const char* argv[] )
               == */
 
             // Add the pqueries to the emd samples.
-            emd_smpl_l.add_pquery( pqry_l );
-            emd_smpl_r.add_pquery( pqry_r );
+            emd_smpl_l.add( pqry_l );
+            emd_smpl_r.add( pqry_r );
 
             // Calculate the emd.
             double emd = earth_movers_distance( emd_smpl_l, emd_smpl_r );
@@ -290,8 +288,8 @@ int main( int argc, const char* argv[] )
     // Do a detailed comparison of the pqueries that were marked invalid in the overview.
     for( size_t j = 0; j < names_of_invalid_pqueries.size(); ++j ) {
         auto name   = names_of_invalid_pqueries[j];
-        auto const& pqry_l = smpl_l.pquery_at( name_map_l[ name ]);
-        auto const& pqry_r = smpl_r.pquery_at( name_map_r[ name ]);
+        auto const& pqry_l = smpl_l.at( name_map_l[ name ]);
+        auto const& pqry_r = smpl_r.at( name_map_r[ name ]);
 
         auto num_ranks = std::min(pqry_l.placement_size(), pqry_r.placement_size());
         for( size_t i = 0; i < num_ranks; ++i ) {

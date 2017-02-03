@@ -68,63 +68,6 @@ namespace placement {
 //     Reading from Stream
 // -------------------------------------------------------------------------
 
-void JplaceReader::from_stream ( std::istream& is, Sample& smp ) const
-{
-    auto doc = utils::JsonReader().from_stream( is );
-    smp = from_document( doc );
-}
-
-// -------------------------------------------------------------------------
-//     Reading from File
-// -------------------------------------------------------------------------
-
-void JplaceReader::from_file( std::string const& fn, Sample& smp ) const
-{
-    auto doc = utils::JsonReader().from_file( fn );
-    smp = from_document( doc );
-}
-
-// -------------------------------------------------------------------------
-//     Reading from String
-// -------------------------------------------------------------------------
-
-void JplaceReader::from_string( std::string const& jplace, Sample& smp ) const
-{
-    auto doc = utils::JsonReader().from_string( jplace );
-    smp = from_document( doc );
-}
-
-// -------------------------------------------------------------------------
-//     Reading from Document
-// -------------------------------------------------------------------------
-
-void JplaceReader::from_document( utils::JsonDocument& doc, Sample& smp ) const
-{
-    smp = from_document( doc );
-}
-
-// -------------------------------------------------------------------------
-//     Reading from Files
-// -------------------------------------------------------------------------
-
-void JplaceReader::from_files (const std::vector<std::string>& fns, SampleSet& set) const
-{
-    set = from_files( fns );
-}
-
-// -------------------------------------------------------------------------
-//     Reading from Strings
-// -------------------------------------------------------------------------
-
-void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet& set) const
-{
-    set = from_files( jps );
-}
-
-// -------------------------------------------------------------------------
-//     Reading from Stream
-// -------------------------------------------------------------------------
-
 Sample JplaceReader::from_stream( std::istream& is ) const
 {
     auto doc = utils::JsonReader().from_stream( is );
@@ -180,10 +123,7 @@ Sample JplaceReader::from_document( utils::JsonDocument& doc ) const
 SampleSet JplaceReader::from_files (const std::vector<std::string>& fns ) const
 {
     SampleSet set;
-    for (auto fn : fns) {
-        std::string name = utils::file_filename( utils::file_basename(fn) );
-        set.add( from_file( fn ), name );
-    }
+    from_files( fns, set );
     return set;
 }
 
@@ -194,12 +134,33 @@ SampleSet JplaceReader::from_files (const std::vector<std::string>& fns ) const
 SampleSet JplaceReader::from_strings (const std::vector<std::string>& jps ) const
 {
     SampleSet set;
-    size_t cnt = 0;
+    from_files( jps, set );
+    return set;
+}
+
+// -------------------------------------------------------------------------
+//     Reading from Files
+// -------------------------------------------------------------------------
+
+void JplaceReader::from_files (const std::vector<std::string>& fns, SampleSet& set) const
+{
+    for (auto fn : fns) {
+        std::string name = utils::file_filename( utils::file_basename(fn) );
+        set.add( from_file( fn ), name );
+    }
+}
+
+// -------------------------------------------------------------------------
+//     Reading from Strings
+// -------------------------------------------------------------------------
+
+void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet& set) const
+{
+    size_t cnt = set.size();
     for (auto jplace : jps) {
         set.add( from_string( jplace ), std::string("jplace_") + std::to_string(cnt) );
         ++cnt;
     }
-    return set;
 }
 
 // =================================================================================================

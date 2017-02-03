@@ -47,8 +47,7 @@ TEST( SampleMeasures, EDPL )
     // Input files.
     std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
 
-    Sample smpl;
-    EXPECT_NO_THROW( JplaceReader().from_file(infile, smpl) );
+    Sample smpl = JplaceReader().from_file( infile );
 
     auto edpl_vec = edpl( smpl );
     std::vector<double> expect = { 1.5, 0, 1.218, 0, 0, 1.2, 0 };
@@ -70,10 +69,8 @@ TEST(SampleMeasures, EarthMoversDistance)
     std::string infile_rhs = environment->data_dir + "placement/test_b.jplace";
 
     // Read files.
-    Sample smp_lhs;
-    Sample smp_rhs;
-    EXPECT_NO_THROW( JplaceReader().from_file(infile_lhs, smp_lhs) );
-    EXPECT_NO_THROW( JplaceReader().from_file(infile_rhs, smp_rhs) );
+    Sample smp_lhs = JplaceReader().from_file( infile_lhs );
+    Sample smp_rhs = JplaceReader().from_file( infile_rhs );
 
     // Distnaces and symmetric cases.
     EXPECT_FLOAT_EQ( 2.435, earth_movers_distance( smp_lhs, smp_rhs, false ));
@@ -98,10 +95,8 @@ TEST( SampleMeasures, NodeHistogramDistance )
     std::string infile_rhs = environment->data_dir + "placement/test_b.jplace";
 
     // Read files.
-    Sample smp_lhs;
-    Sample smp_rhs;
-    EXPECT_NO_THROW( JplaceReader().from_file(infile_lhs, smp_lhs) );
-    EXPECT_NO_THROW( JplaceReader().from_file(infile_rhs, smp_rhs) );
+    Sample smp_lhs = JplaceReader().from_file(infile_lhs);
+    Sample smp_rhs = JplaceReader().from_file(infile_rhs);
 
     // Distance and symmetric case.
     EXPECT_FLOAT_EQ( 1.3575, node_histogram_distance( smp_lhs, smp_rhs, 10 ));

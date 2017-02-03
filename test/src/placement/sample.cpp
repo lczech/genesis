@@ -85,8 +85,7 @@ TEST(Sample, MergeDuplicatesSimple)
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_a.jplace";
-    Sample smp;
-    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+    Sample smp = JplaceReader().from_file(infile);
 
     // Check before merging.
     test_sample_stats(smp, 7, 8, 7);
@@ -105,8 +104,7 @@ TEST(Sample, MergeDuplicatesTransitive)
 
     // Read file.
     std::string infile = environment->data_dir + "placement/duplicates_b.jplace";
-    Sample smp;
-    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+    Sample smp = JplaceReader().from_file(infile);
 
     // Check before merging.
     test_sample_stats(smp, 7, 10, 11);

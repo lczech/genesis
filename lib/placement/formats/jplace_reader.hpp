@@ -113,62 +113,46 @@ public:
     /**
      * @brief Read `jplace` data from a stream into a Sample.
      */
-    void from_stream   ( std::istream&       is,         Sample& smp ) const;
-
-    /**
-     * @brief Read a file and parse it as a Jplace document into a Sample object.
-     */
-    void from_file     ( std::string const&  fn,         Sample& smp ) const;
-
-    /**
-     * @brief Parse a string as a Jplace document into a Sample object.
-     */
-    void from_string   ( std::string const&  jplace,     Sample& smp ) const;
-
-    /**
-     * @brief Take a JsonDocument object and parse it as a Jplace document into a Sample object.
-     */
-    void from_document ( utils::JsonDocument& doc, Sample& smp ) const;
-
-    /**
-     * @brief Read a list of files and parse them as a Jplace document into a SampleSet object.
-     */
-    void from_files    ( std::vector<std::string> const& fns, SampleSet& set ) const;
-
-    /**
-     * @brief Parse a list of strings as a Jplace document into a SampleSet object.
-     */
-    void from_strings  ( std::vector<std::string> const& jps, SampleSet& set ) const;
-
-    /**
-     * @brief Read `jplace` data from a stream into a Sample.
-     */
     Sample from_stream( std::istream& is ) const;
 
     /**
-     * @brief Read a file and parse it as a Jplace document into a Sample object.
+     * @brief Read a file and parse it as a Jplace document into a Sample.
      */
     Sample from_file( std::string const& fn ) const;
 
     /**
-     * @brief Parse a string as a Jplace document into a Sample object.
+     * @brief Parse a string as a Jplace document into a Sample.
      */
     Sample from_string( std::string const& jplace ) const;
 
     /**
-     * @brief Take a JsonDocument object and parse it as a Jplace document into a Sample object.
+     * @brief Take a JsonDocument and parse it as a Jplace document into a Sample.
      */
     Sample from_document( utils::JsonDocument& doc ) const;
 
     /**
-     * @brief Read a list of files and parse them as a Jplace document into a SampleSet object.
+     * @brief Read a list of files and parse them as a Jplace document into a SampleSet.
      */
     SampleSet from_files( std::vector<std::string> const& fns ) const;
 
     /**
-     * @brief Parse a list of strings as a Jplace document into a SampleSet object.
+     * @brief Parse a list of strings as a Jplace document into a SampleSet.
      */
     SampleSet from_strings( std::vector<std::string> const& jps ) const;
+
+    /**
+     * @brief Read a list of files and parse them as a Jplace document into a SampleSet.
+     *
+     * The Sample%s are added to the SampleSet, so that existing Samples in the SampleSet are kept.
+     */
+    void from_files    ( std::vector<std::string> const& fns, SampleSet& set ) const;
+
+    /**
+     * @brief Parse a list of strings as a Jplace document into a SampleSet.
+     *
+     * The Sample%s are added to the SampleSet, so that existing Samples in the SampleSet are kept.
+     */
+    void from_strings  ( std::vector<std::string> const& jps, SampleSet& set ) const;
 
     // ---------------------------------------------------------------------
     //     Processing

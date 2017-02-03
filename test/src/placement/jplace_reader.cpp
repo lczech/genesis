@@ -47,8 +47,7 @@ TEST( JplaceReader, FromFile )
 
     std::string infile = environment->data_dir + "placement/test_a.jplace";
 
-    Sample smp;
-    EXPECT_NO_THROW( JplaceReader().from_file(infile, smp) );
+    Sample smp = JplaceReader().from_file( infile );
     EXPECT_EQ  ( 5, total_placement_count(smp) );
     EXPECT_TRUE( validate(smp, true, false) );
     EXPECT_TRUE( has_correct_edge_nums(smp.tree()) );

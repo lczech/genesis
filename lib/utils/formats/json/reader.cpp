@@ -84,7 +84,7 @@ JsonDocument JsonReader::parse( InputStream& input_stream ) const
     skip_while( input_stream, isspace );
     if( input_stream ) {
         throw std::runtime_error(
-            "Expected end of input while readin Json at " + input_stream.at()
+            "Expected end of input while reading Json at " + input_stream.at()
         );
     }
     return result;
