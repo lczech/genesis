@@ -184,7 +184,11 @@ void JplaceReader::process_json_version( utils::JsonDocument const& doc ) const
     // The key can be a number (3) or a string ("3"), check both.
     std::string doc_version;
     if( v_it->is_number() ) {
-        doc_version = std::to_string( v_it->get_number<double>() );
+        if( v_it->is_number_float() ) {
+            doc_version = std::to_string( v_it->get_number_float() );
+        } else {
+            doc_version = std::to_string( v_it->get_number_unsigned() );
+        }
     }
     if( v_it->is_string() ) {
         doc_version = v_it->get_string();
