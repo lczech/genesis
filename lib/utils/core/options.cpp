@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,83 +32,50 @@
 
 #include <chrono>
 
-#ifdef PTHREADS
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
+#ifdef GENESIS_PTHREADS
 #    include <thread>
 #endif
 
 namespace genesis {
 namespace utils {
 
-// =============================================================================
+// =================================================================================================
 //     Initialization
-// =============================================================================
+// =================================================================================================
 
-/**
- * @brief Constructor, which initializes the options with reasonable defaults.
- */
 Options::Options()
 {
+
+#if defined( GENESIS_OPENMP )
+
+    // Initialize threads to number of OpenMP threads, which might be set through the
+    // `OMP_NUM_THREADS` environment variable.
+    number_of_threads( omp_get_num_threads() );
+
+#elif defined( GENESIS_PTHREADS )
+
     // Initialize threads with actual number of cores.
-#   ifdef PTHREADS
-        number_of_threads_ = std::thread::hardware_concurrency();
-#   else
-        number_of_threads_ = 1;
-#   endif
+    number_of_threads( std::thread::hardware_concurrency() );
+
+#else
+
+    // Set to single threaded.
+    number_of_threads( 1 );
+
+#endif
 
     // Initialize random seed with time.
-    random_seed_ = std::chrono::system_clock::now().time_since_epoch().count();
-    random_engine_.seed(random_seed_);
+    random_seed( std::chrono::system_clock::now().time_since_epoch().count() );
 }
 
-// =============================================================================
-//     Setters for Properties
-// =============================================================================
+// =================================================================================================
+//     Command Line
+// =================================================================================================
 
-/**
- * @brief Set arguments to the program's command line options.
- *
- * If the program is run from the command line, this method has to be used to properly
- * propagate the command line options to this options class.
- */
-void Options::set_command_line (const int argc, const char* argv[])
-{
-    // Store all arguments in the array.
-    command_line_.clear();
-    for (int i = 0; i < argc; i++) {
-        command_line_.push_back(argv[i]);
-    }
-}
-
-/**
- * @brief Overwrite the system given number of threads.
- *
- * On startup, the value is initialized with the actual number of cores available in the system
- * using std::thread::hardware_concurrency(). This method overwrites this value.
- */
-void Options::set_number_of_threads (const unsigned int number)
-{
-    number_of_threads_ = number;
-}
-
-/**
- * @brief Set a specific seed for the random engine.
- *
- * On startup, the random engine is initialized using the current system time. This value can
- * be overwritten using this method.
- */
-void Options::set_random_seed(const unsigned seed)
-{
-    random_seed_ = seed;
-    random_engine_.seed(seed);
-}
-
-// =============================================================================
-//     Getters for Properties
-// =============================================================================
-
-/**
- * @brief Returns a string containing the program's command line arguments.
- */
 std::string Options::command_line_string () const
 {
     std::string ret = "";
@@ -119,15 +86,71 @@ std::string Options::command_line_string () const
     return ret;
 }
 
-/**
- * @brief Return a list of all options with their values.
- */
+void Options::command_line (const int argc, const char* argv[])
+{
+    // Store all arguments in the array.
+    command_line_.clear();
+    for (int i = 0; i < argc; i++) {
+        command_line_.push_back(argv[i]);
+    }
+}
+
+// =================================================================================================
+//     Number of Threads
+// =================================================================================================
+
+void Options::number_of_threads (const unsigned int number)
+{
+    number_of_threads_ = number;
+
+#if defined( GENESIS_OPENMP )
+
+    // If we use OpenMp, set the thread number there, too.
+    omp_set_num_threads( number );
+
+#endif
+}
+
+bool Options::using_pthreads() const
+{
+#ifdef GENESIS_PTHREADS
+    return true;
+#else
+    return false;
+#endif
+}
+
+bool Options::using_openmp() const
+{
+#ifdef GENESIS_OPENMP
+    return true;
+#else
+    return false;
+#endif
+}
+
+// =================================================================================================
+//     Random Seed & Engine
+// =================================================================================================
+
+void Options::random_seed(const unsigned seed)
+{
+    random_seed_ = seed;
+    random_engine_.seed( seed );
+}
+
+// =================================================================================================
+//     Dump & Overview
+// =================================================================================================
+
 std::string Options::dump () const
 {
     std::string res = "";
-    res += "Command line:      " + command_line_string();
-    res += "Number of threads: " + std::to_string(number_of_threads());
-    res += "Random seed:       " + std::to_string(random_seed_);
+    res += "Command line:      " + command_line_string() + "\n";
+    res += "Using Pthreads:    " + std::string( using_pthreads() ? "true" : "false" ) + "\n";
+    res += "Using OpenMP:      " + std::string( using_openmp() ? "true" : "false" ) + "\n";
+    res += "Number of threads: " + std::to_string( number_of_threads() ) + "\n";
+    res += "Random seed:       " + std::to_string( random_seed_ ) + "\n";
     return res;
 }
 

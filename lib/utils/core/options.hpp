@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,9 +38,9 @@
 namespace genesis {
 namespace utils {
 
-// =============================================================================
+// =================================================================================================
 //     Options
-// =============================================================================
+// =================================================================================================
 
 /**
  * @brief Simple Options class for application-wide configuration and settings.
@@ -49,9 +49,9 @@ class Options
 {
 public:
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Instance
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Returns a single instance of this class.
@@ -62,25 +62,34 @@ public:
             return instance;
     }
 
-    // -----------------------------------------------------
-    //     Setters for Properties
-    // -----------------------------------------------------
-
-    void set_command_line (const int argc, const char* argv[]);
-    void set_number_of_threads (const unsigned int number);
-    void set_random_seed (const unsigned seed);
-
-    // -----------------------------------------------------
-    //     Getters for Properties
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
+    //     Command Line
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Returns an array of strings containing the program's command line arguments.
      */
-    inline std::vector<std::string> command_line () const
+    inline std::vector<std::string> command_line() const
     {
         return command_line_;
     }
+
+    /**
+     * @brief Returns a string containing the program's command line arguments.
+     */
+    std::string command_line_string() const;
+
+    /**
+     * @brief Set arguments to the program's command line options.
+     *
+     * If the program is run from the command line, this method has to be used to properly
+     * propagate the command line options to this options class.
+     */
+    void command_line( const int argc, const char* argv[] );
+
+    // -------------------------------------------------------------------------
+    //     Number of Threads
+    // -------------------------------------------------------------------------
 
     /**
      * @brief Returns the number of threads.
@@ -91,6 +100,28 @@ public:
     }
 
     /**
+     * @brief Overwrite the system given number of threads.
+     *
+     * On startup, the value is initialized with the actual number of cores available in the system
+     * using std::thread::hardware_concurrency(). This method overwrites this value.
+     */
+    void number_of_threads (const unsigned int number);
+
+    /**
+     * @brief Return whether the binary was compiled using Pthreads.
+     */
+    bool using_pthreads() const;
+
+    /**
+     * @brief Return whether the binary was compiled using OpenMP.
+     */
+    bool using_openmp() const;
+
+    // -------------------------------------------------------------------------
+    //     Random Seed & Engine
+    // -------------------------------------------------------------------------
+
+    /**
      * @brief Returns the random seed that was used to initialize the engine.
      */
     inline unsigned random_seed() const
@@ -99,13 +130,21 @@ public:
     }
 
     /**
+     * @brief Set a specific seed for the random engine.
+     *
+     * On startup, the random engine is initialized using the current system time. This value can
+     * be overwritten using this method.
+     */
+    void random_seed (const unsigned seed);
+
+    /**
      * @brief Returns the default engine for random number generation.
      *
      * Caveat: This is not intended for the use in more than one thread. As the order of execution in
      * threads is not deterministic, results would not be reproducible, even when using a fixed seed.
      * Furthermore, it might be a speed bottleneck to add a mutex to this method.
      *
-     * If in the furture there is need for multi-threaded random engines, they needed to be outfitted
+     * If in the future there is need for multi-threaded random engines, they needed to be outfitted
      * with separate seeds each (otherwise they would all produce the same results). Thus, for now we
      * simply assume single-threaded use.
      */
@@ -114,12 +153,18 @@ public:
         return random_engine_;
     }
 
-    std::string command_line_string() const;
+    // -------------------------------------------------------------------------
+    //     Dump & Overview
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return a list of all options with their values.
+     */
     std::string dump() const;
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Data Members
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
 private:
 
@@ -128,14 +173,19 @@ private:
     unsigned                   random_seed_;
     std::default_random_engine random_engine_;
 
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
     //     Hidden Class Members
-    // -----------------------------------------------------
+    // -------------------------------------------------------------------------
 
 private:
 
     // Everything private, as it is a singleton.
+
+    /**
+     * @brief Constructor, which initializes the options with reasonable defaults.
+     */
     Options();
+
     Options( const Options& ) = delete;
     Options( Options&& )      = delete;
     Options& operator= ( const Options& ) = delete;

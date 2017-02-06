@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,7 +37,7 @@
 #include <string>
 #include <utility>
 
-#ifdef PTHREADS
+#ifdef GENESIS_PTHREADS
 #    include <condition_variable>
 #    include <mutex>
 #    include <thread>
@@ -50,7 +50,7 @@ namespace utils {
 //     Input Reader
 // =================================================================================================
 
-#ifdef PTHREADS
+#ifdef GENESIS_PTHREADS
 
     class AsynchronousReader;
 
@@ -59,11 +59,11 @@ namespace utils {
      * threading setting.
      *
      * This typedef is an alias for AsynchronousReader, if threading is available, that is,
-     * if the `PTHREADS` macro definition is set.
+     * if the `GENESIS_PTHREADS` macro definition is set.
      * If not, it is an alias for SynchronousReader.
      *
      * Using this typedef instead of one of the two reader classes directly thus makes it possible
-     * to ignore the `PTHREADS` setting when using them. It serves as an abstraction. For example,
+     * to ignore the `GENESIS_PTHREADS` setting when using them. It serves as an abstraction. For example,
      * InputStream uses the typedef this way.
      */
     using InputReader = AsynchronousReader;
@@ -77,11 +77,11 @@ namespace utils {
     * threading setting.
     *
     * This typedef is an alias for AsynchronousReader, if threading is available, that is,
-    * if the `PTHREADS` macro definition is set.
+    * if the `GENESIS_PTHREADS` macro definition is set.
     * If not, it is an alias for SynchronousReader.
     *
     * Using this typedef instead of one of the two reader classes directly thus makes it possible
-    * to ignore the `PTHREADS` setting when using them. It serves as an abstraction. For example,
+    * to ignore the `GENESIS_PTHREADS` setting when using them. It serves as an abstraction. For example,
     * InputStream uses the typedef this way.
     */
     using InputReader = SynchronousReader;
@@ -92,7 +92,7 @@ namespace utils {
 //     Asynchronous Reader
 // =================================================================================================
 
-#ifdef PTHREADS
+#ifdef GENESIS_PTHREADS
 
 /**
  * @brief Read bytes from an @link BaseInputSource InputSource@endlink into a `char buffer`.
@@ -101,7 +101,7 @@ namespace utils {
  * than synchronous reading (see SynchronousReader), particularly for large data blocks.
  * It is thus the preferred reader, if available.
  *
- * This class is only available if threading is available, that is, if the `PTHREADS` macro
+ * This class is only available if threading is available, that is, if the `GENESIS_PTHREADS` macro
  * definition is set. If this is the case, the @link utils::InputReader InputReader@endlink
  * typedef is an alias of this class. Otherwise, only the SynchronousReader is available and
  * @link utils::InputReader InputReader@endlink aliases this one instead.
@@ -320,7 +320,7 @@ private:
  * The reading is done synchronously, that is, reading occurs on request. This is usually slower
  * than asynchronous reading (see AsynchronousReader).
  *
- * This class is always available. If threading is not available (that is, if the `PTHREADS`
+ * This class is always available. If threading is not available (that is, if the `GENESIS_PTHREADS`
  * macro definition is not set), the @link utils::InputReader InputReader@endlink typedef is an
  * alias for this class.
  *

@@ -236,14 +236,16 @@ void JplaceWriter::to_document( Sample const& smp, utils::JsonDocument& doc ) co
         for( auto const& pqry_place : pqry.placements() ) {
             auto pqry_fields = JsonDocument::array();
 
-            pqry_fields.push_back( pqry_place.edge_num() );
-            pqry_fields.push_back( pqry_place.likelihood );
-            pqry_fields.push_back( pqry_place.like_weight_ratio );
+            pqry_fields.push_back( JsonDocument::number_unsigned( pqry_place.edge_num() ));
+            pqry_fields.push_back( JsonDocument::number_float( pqry_place.likelihood ));
+            pqry_fields.push_back( JsonDocument::number_float( pqry_place.like_weight_ratio ));
 
             // convert from proximal to distal length.
             auto const& edge_data = pqry_place.edge().data<PlacementEdgeData>();
-            pqry_fields.push_back( edge_data.branch_length - pqry_place.proximal_length );
-            pqry_fields.push_back( pqry_place.pendant_length );
+            pqry_fields.push_back( JsonDocument::number_float(
+                edge_data.branch_length - pqry_place.proximal_length
+            ));
+            pqry_fields.push_back( JsonDocument::number_float( pqry_place.pendant_length ));
 
             pqry_p_arr.push_back( pqry_fields );
         }
@@ -261,7 +263,7 @@ void JplaceWriter::to_document( Sample const& smp, utils::JsonDocument& doc ) co
             for( auto const& pqry_name : pqry.names() ) {
                 auto pqry_nm_val = JsonDocument::array();
                 pqry_nm_val.push_back( pqry_name.name );
-                pqry_nm_val.push_back( pqry_name.multiplicity );
+                pqry_nm_val.push_back( JsonDocument::number_float( pqry_name.multiplicity ));
                 pqry_nm_arr.push_back( pqry_nm_val );
             }
             jpqry[ "nm" ] = pqry_nm_arr;
