@@ -112,9 +112,11 @@ void JsonWriter::print_value(
         }
         case JsonDocument::ValueType::kArray: {
             print_array( value, out, 0 );
+            break;
         }
         case JsonDocument::ValueType::kObject: {
             print_object( value, out, 0 );
+            break;
         }
         default: {
             assert( false );
