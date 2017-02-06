@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2016 Lucas Czech
+# Copyright (C) 2014-2017 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -40,7 +40,7 @@ endif()
 #   Project Definition
 # ------------------------------------------------------------------------------
 
-project (genesis C CXX)
+project ( genesis CXX C )
 
 # set (genesis_VERSION_MAJOR 0)
 # set (genesis_VERSION_MINOR 1)
@@ -59,7 +59,7 @@ option (BUILD_TESTS         "Build test suites"    ON)
 option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" ON)
 
 option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
-option (USE_OPENMP          "Use OpenMP if available"                         OFF)
+option (USE_OPENMP          "Use OpenMP if available"                         ON)
 
 if (BUILD_APPLICATIONS OR BUILD_PYTHON_MODULE OR BUILD_TESTS)
     # The applications, the python module and the tests all use the shared lib,
@@ -113,7 +113,7 @@ ENDIF()
 
 if(THREADS_FOUND)
     message (STATUS "Using threads")
-    add_definitions( "-DPTHREADS" )
+    add_definitions( "-DGENESIS_PTHREADS" )
 endif()
 
 IF(USE_OPENMP)
@@ -122,6 +122,7 @@ ENDIF()
 
 if(OPENMP_FOUND)
     message (STATUS "Using OpenMP")
+    add_definitions( "-DGENESIS_OPENMP" )
 
     set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${OpenMP_C_FLAGS}")
     set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )

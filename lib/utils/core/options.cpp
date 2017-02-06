@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,7 +32,7 @@
 
 #include <chrono>
 
-#ifdef PTHREADS
+#ifdef GENESIS_PTHREADS
 #    include <thread>
 #endif
 
@@ -49,7 +49,7 @@ namespace utils {
 Options::Options()
 {
     // Initialize threads with actual number of cores.
-#   ifdef PTHREADS
+#   ifdef GENESIS_PTHREADS
         number_of_threads_ = std::thread::hardware_concurrency();
 #   else
         number_of_threads_ = 1;

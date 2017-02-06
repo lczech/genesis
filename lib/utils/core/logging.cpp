@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,7 +36,7 @@
 #include <stdexcept>
 #include <string>
 
-#ifdef PTHREADS
+#ifdef GENESIS_PTHREADS
 #    include <mutex>
 #endif
 
@@ -50,7 +50,7 @@ namespace utils {
 //     Settings
 // =============================================================================
 
-#ifdef PTHREADS
+#ifdef GENESIS_PTHREADS
     static std::mutex log_mutex;
 #endif
 
@@ -238,13 +238,13 @@ Logging::~Logging()
     msg = utils::trim_right(msg);
 
     // output the message to every stream, thread safe!
-#   ifdef PTHREADS
+#   ifdef GENESIS_PTHREADS
     log_mutex.lock();
 #   endif
     for (std::ostream* out : ostreams_) {
         (*out) << msg << std::endl << std::flush;
     }
-#   ifdef PTHREADS
+#   ifdef GENESIS_PTHREADS
     log_mutex.unlock();
 #   endif
 
