@@ -421,7 +421,63 @@ utils::Matrix<double> earth_movers_distance(
     SampleSet const& sample_set,
     bool             with_pendant_length
 ) {
+    // Init result matrix.
     auto result = utils::Matrix<double>( sample_set.size(), sample_set.size(), 0.0 );
+
+#ifdef PTHREADS
+
+    // Build a pool of index pairs of the matrix to compute.
+    // The result is symmetric - we only calculate the upper triangle.
+    std::vector< std::pair<size_t, size_t> > pool;
+    for( size_t i = 0; i < sample_set.size(); ++i ) {
+        for( size_t j = i + 1; j < sample_set.size(); ++j ) {
+            pool.emplace_back( i, j );
+        }
+    }
+
+    // Prepare threads.
+    int num_threads = utils::Options::get().number_of_threads();
+    std::vector<std::thread> threads;
+
+    // Start all threads. Each thread computes a fixed list of entries, which is roughly
+    // pool.size() / num_threads. Because Samples can have different size, this means that some
+    // threads might finish before others. An actual pool would thus be nicer, but this should
+    // not matter too much.
+    for (int t = 0; t < num_threads; ++t) {
+        threads.emplace_back(
+            [&]( size_t offset, size_t increment ){
+                for( size_t job = offset; job < pool.size(); job += increment ) {
+                    auto i = pool[ job ].first;
+                    auto j = pool[ job ].second;
+
+                    // LOG_INFO << "Starting job " << job << " in thread " << offset
+                    //          << " for entry (" << i << ", " << j << ")";
+
+                    auto emd = earth_movers_distance(
+                        sample_set[ i ].sample,
+                        sample_set[ j ].sample,
+                        with_pendant_length
+                    );
+
+                    // The result matrix is pre-allocated, so we can simply write to it without
+                    // thread safety issues (I hope...)
+                    result(i, j) = emd;
+                    result(j, i) = emd;
+
+                    // LOG_INFO << "Finished job " << job << " in thread " << offset
+                    //          << " for entry (" << i << ", " << j << ") with " << emd;
+                }
+            },
+            t, num_threads
+        );
+    }
+
+    // Wait for all threads to finish, collect their results.
+    for (int i = 0; i < num_threads; ++i) {
+        threads[i].join();
+    }
+
+#else
 
     for( size_t i = 0; i < sample_set.size(); ++i ) {
 
@@ -435,6 +491,9 @@ utils::Matrix<double> earth_movers_distance(
             result(j, i) = result(i, j);
         }
     }
+
+#endif
+
     return result;
 }
 
