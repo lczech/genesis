@@ -30,14 +30,6 @@
 
 #include "placement/function/measures.hpp"
 
-#include <assert.h>
-#include <algorithm>
-#include <map>
-#include <stdexcept>
-#ifdef PTHREADS
-#    include <thread>
-#endif
-
 #include "placement/function/functions.hpp"
 #include "placement/function/helper.hpp"
 #include "placement/function/operators.hpp"
@@ -64,6 +56,19 @@
 #include "utils/math/histogram/distances.hpp"
 #include "utils/math/histogram/operators.hpp"
 #include "utils/math/matrix.hpp"
+
+#include <algorithm>
+#include <cassert>
+#include <map>
+#include <stdexcept>
+
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
+#ifdef GENESIS_PTHREADS
+#    include <thread>
+#endif
 
 namespace genesis {
 namespace placement {
@@ -424,7 +429,8 @@ utils::Matrix<double> earth_movers_distance(
     // Init result matrix.
     auto result = utils::Matrix<double>( sample_set.size(), sample_set.size(), 0.0 );
 
-#ifdef PTHREADS
+    // Common code for threaded builds.
+#if defined( GENESIS_OPENMP ) || defined( GENESIS_PTHREADS )
 
     // Build a pool of index pairs of the matrix to compute.
     // The result is symmetric - we only calculate the upper triangle.
@@ -435,14 +441,43 @@ utils::Matrix<double> earth_movers_distance(
         }
     }
 
+#endif
+
+    // Prefer to use Open MP.
+#if defined( GENESIS_OPENMP )
+
+    #pragma omp parallel for schedule(dynamic)
+    for( size_t job = 0; job < pool.size(); ++job ) {
+        auto i = pool[ job ].first;
+        auto j = pool[ job ].second;
+
+        // LOG_DBG << "Starting OpenMP job " << job << " in thread " << omp_get_thread_num()
+        //          << " for entry (" << i << ", " << j << ")";
+
+        auto emd = earth_movers_distance(
+            sample_set[ i ].sample,
+            sample_set[ j ].sample,
+            with_pendant_length
+        );
+
+        result(i, j) = emd;
+        result(j, i) = emd;
+
+        // LOG_DBG << "Starting OpenMP job " << job << " in thread " << omp_get_thread_num()
+        //         << " for entry (" << i << ", " << j << ") with " << emd;
+    }
+
+    // If no Open MP, try Pthreads instead.
+#elif defined( GENESIS_PTHREADS )
+
     // Prepare threads.
     int num_threads = utils::Options::get().number_of_threads();
     std::vector<std::thread> threads;
 
     // Start all threads. Each thread computes a fixed list of entries, which is roughly
-    // pool.size() / num_threads. Because Samples can have different size, this means that some
-    // threads might finish before others. An actual pool would thus be nicer, but this should
-    // not matter too much.
+    // pool.size() / num_threads, scheduled in round-robin fashion.
+    // Because Samples can have different size, this means that some threads might finish before
+    // others. An actual pool would thus be nicer, but this should not matter too much.
     for (int t = 0; t < num_threads; ++t) {
         threads.emplace_back(
             [&]( size_t offset, size_t increment ){
@@ -450,8 +485,8 @@ utils::Matrix<double> earth_movers_distance(
                     auto i = pool[ job ].first;
                     auto j = pool[ job ].second;
 
-                    // LOG_INFO << "Starting job " << job << " in thread " << offset
-                    //          << " for entry (" << i << ", " << j << ")";
+                    // LOG_DBG << "Starting Pthreads job " << job << " in thread " << offset
+                    //         << " for entry (" << i << ", " << j << ")";
 
                     auto emd = earth_movers_distance(
                         sample_set[ i ].sample,
@@ -464,8 +499,8 @@ utils::Matrix<double> earth_movers_distance(
                     result(i, j) = emd;
                     result(j, i) = emd;
 
-                    // LOG_INFO << "Finished job " << job << " in thread " << offset
-                    //          << " for entry (" << i << ", " << j << ") with " << emd;
+                    // LOG_DBG << "Finished Pthreads job " << job << " in thread " << offset
+                    //         << " for entry (" << i << ", " << j << ") with " << emd;
                 }
             },
             t, num_threads
@@ -477,6 +512,7 @@ utils::Matrix<double> earth_movers_distance(
         threads[i].join();
     }
 
+    // If no threads are available at all, use serial version.
 #else
 
     for( size_t i = 0; i < sample_set.size(); ++i ) {
@@ -1468,7 +1504,7 @@ double variance(
     // do not need to search a path between placements every time.
     auto node_distances = node_branch_length_distance_matrix(smp.tree());
 
-#ifdef PTHREADS
+#ifdef GENESIS_PTHREADS
 
     // Prepare storage for thread data.
     int num_threads = utils::Options::get().number_of_threads();
