@@ -1354,7 +1354,7 @@ void variance_thread (
     bool                            with_pendant_length
 ) {
     // Use internal variables to avoid false sharing.
-    assert(*partial == 0.0);
+    assert( partial && *partial == 0.0 );
     double tmp_partial = 0.0;
 
     // Iterate over the pqueries, starting at offset and interleaved with incr for each thread.
