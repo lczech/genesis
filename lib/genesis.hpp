@@ -169,6 +169,7 @@
 #include "utils/formats/nexus/writer.hpp"
 #include "utils/formats/svg/attributes.hpp"
 #include "utils/formats/svg/document.hpp"
+#include "utils/formats/svg/gradient.hpp"
 #include "utils/formats/svg/helper.hpp"
 #include "utils/formats/svg/object.hpp"
 #include "utils/formats/svg/shapes.hpp"

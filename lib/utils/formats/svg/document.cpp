@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 
 #include "utils/core/options.hpp"
 #include "utils/core/version.hpp"
+#include "utils/formats/svg/helper.hpp"
 #include "utils/text/string.hpp"
 #include "utils/tools/date_time.hpp"
 
@@ -91,6 +92,15 @@ void SvgDocument::write( std::ostream& out ) const
     ) << "\n";
     if( Options::get().command_line_string() != "" ) {
         out << svg_comment( "Program invocation: " + Options::get().command_line_string() ) << "\n";
+    }
+
+    // Gradients and other definitions. Need to come before the content.
+    if( ! gradients.empty() ) {
+        out << SvgDocument::indentation_string << "<defs>\n";
+        for( auto const& grad : gradients ) {
+            grad.write( out, 2 );
+        }
+        out << SvgDocument::indentation_string << "</defs>\n";
     }
 
     // Content. Take them by copy, so that the margin offset does not affect the originals.

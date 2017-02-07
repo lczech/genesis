@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -57,6 +57,7 @@ public:
     enum class Type
     {
         kColor,
+        kGradient,
         kNone,
         kOmit
     };
@@ -83,6 +84,7 @@ public:
 
     explicit SvgStroke( Type type = Type::kColor );
     explicit SvgStroke( Color color, double width = 1.0 );
+    explicit SvgStroke( std::string gradient_id );
 
     ~SvgStroke() = default;
 
@@ -103,6 +105,8 @@ public:
     // -------------------------------------------------------------
 
     Type type;
+
+    std::string gradient_id;
 
     Color  color;
     double opacity;
@@ -136,6 +140,7 @@ public:
     enum class Type
     {
         kColor,
+        kGradient,
         kNone,
         kOmit
     };
@@ -153,6 +158,7 @@ public:
 
     explicit SvgFill( Type type = Type::kColor );
     explicit SvgFill( Color color, double opacity = 1.0 );
+    explicit SvgFill( std::string gradient_id );
 
     ~SvgFill() = default;
 
@@ -173,6 +179,8 @@ public:
     // -------------------------------------------------------------
 
     Type type;
+
+    std::string gradient_id;
 
     Color  color;
     double opacity;

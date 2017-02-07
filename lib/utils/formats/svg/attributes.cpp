@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -67,6 +67,12 @@ SvgStroke::SvgStroke( Color color_value, double width_value )
     width = width_value;
 }
 
+SvgStroke::SvgStroke( std::string gradient_id_value )
+    : SvgStroke( Type::kGradient )
+{
+    gradient_id = gradient_id_value;
+}
+
 // -------------------------------------------------------------
 //     Drawing Function
 // -------------------------------------------------------------
@@ -79,6 +85,10 @@ void SvgStroke::write( std::ostream& out ) const
     }
     if( type == Type::kNone ) {
         out << svg_attribute( "stroke", "none" );
+        return;
+    }
+    if( type == Type::kGradient ) {
+        out << svg_attribute( "stroke", "url(#" + gradient_id + ");" );
         return;
     }
 
@@ -143,6 +153,12 @@ SvgFill::SvgFill( Color color, double opacity )
     , rule( Rule::kNone )
 {}
 
+SvgFill::SvgFill( std::string gradient_id_value )
+    : SvgFill( Type::kGradient )
+{
+    gradient_id = gradient_id_value;
+}
+
 // -------------------------------------------------------------
 //     Drawing Function
 // -------------------------------------------------------------
@@ -155,6 +171,10 @@ void SvgFill::write( std::ostream& out ) const
     }
     if( type == Type::kNone ) {
         out << svg_attribute( "fill", "none" );
+        return;
+    }
+    if( type == Type::kGradient ) {
+        out << svg_attribute( "fill", "url(#" + gradient_id + ");" );
         return;
     }
 

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
 
 #include "lib/utils/core/fs.hpp"
 #include "lib/utils/formats/svg/svg.hpp"
+#include "utils/tools/color/operators.hpp"
 
 using namespace genesis::utils;
 
@@ -85,6 +86,30 @@ TEST( Svg, Basics )
     // doc << SvgLine( 20, 120, 20, 120 - 10.0/1.2 );
 
     doc.margin = SvgMargin( 10, 30 );
+
+    std::ostringstream out;
+    doc.write( out );
+
+    // LOG_DBG << out.str();
+    // file_write( out.str(), "/home/lucas/test.svg" );
+}
+
+TEST( Svg, Gradient )
+{
+    auto doc = SvgDocument();
+
+    auto grad = SvgGradientLinear( "bpb", SvgPoint( 0.0, 0.0 ), SvgPoint( 0.0, 1.0 ) );
+    grad.stops.emplace_back( 0.0, color_from_hex( "#000000" ) );
+    grad.stops.emplace_back( 0.5, color_from_hex( "#c040be" ) );
+    grad.stops.emplace_back( 1.0, color_from_hex( "#81bfff" ) );
+    doc.gradients.push_back( grad );
+
+    auto rect = SvgRect( 0, 0, 10, 100 );
+    rect.stroke.color = Color( 0, 0, 0 );
+    rect.fill = SvgFill( "bpb" );
+    doc << rect;
+
+    doc.margin = SvgMargin( 10, 10 );
 
     std::ostringstream out;
     doc.write( out );
