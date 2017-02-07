@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_MATH_TICKMARKS_H_
-#define GENESIS_UTILS_MATH_TICKMARKS_H_
+#ifndef GENESIS_UTILS_TOOLS_TICKMARKS_H_
+#define GENESIS_UTILS_TOOLS_TICKMARKS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,11 +31,7 @@
  * @ingroup utils
  */
 
-#include "utils/math/common.hpp"
-
-#include <algorithm>
-#include <cassert>
-#include <cmath>
+#include <cstddef>
 #include <limits>
 #include <vector>
 
@@ -47,11 +43,26 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Helper class to find "nice" tickmark intervals for creating scales and axis.
+ * @brief Helper class to find "nice" tickmark intervals for creating scales and axes.
  */
 struct Tickmarks
 {
 public:
+
+    // -------------------------------------------------------------------------
+    //     Helper Structs
+    // -------------------------------------------------------------------------
+
+    struct LabeledTick
+    {
+        LabeledTick( double rel_pos, double lab )
+            : relative_position( rel_pos )
+            , label( lab )
+        {}
+
+        double relative_position;
+        double label;
+    };
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -77,82 +88,41 @@ public:
      * The resulting step size is calculated to be a "nice" size, i.e. fits `[ 1 | 2 | 5 ] * 10^n`.
      * Thus, exemplary nice step sizes are 0.01, 20 and 500.
      */
-    static double step_size( double interval_size, size_t target_steps )
-    {
-        // Adapted from
-        // http://stackoverflow.com/questions/361681/algorithm-for-nice-grid-line-intervals-on-a-graph
+    static double step_size( double interval_size, size_t target_steps );
 
-        // Calculate an initial guess at step size.
-        auto step_guess = interval_size / static_cast<double>( target_steps );
+    /**
+     * @brief Calculate a set of ticks that linearily span from `min` to `max` in approximately
+     * `target_steps` many steps, where each tick sits on a "nice" number.
+     *
+     * See step_size() for what is meant by nice numbers.
+     */
+    std::vector<double> linear_ticks( double min, double max, size_t target_steps );
 
-        // Get the magnitude of the step size.
-        auto mag = std::floor( std::log10( step_guess ));
-        auto mag_pow = std::pow( 10, mag );
+    /**
+     * @brief Return a set of labels with relative positions between `min` and `max`, where the
+     * labels correspond to the linear_ticks() numbers.
+     *
+     * This function is a convenience wrapper for linear_ticks(), that turns the tick positions
+     * into relative values, while keeping the actual tick value as a label. Relative position 0.0
+     * corresponds to `min`, relative position 1.0 to `max`.
+     */
+    std::vector<LabeledTick> linear_labels( double min, double max, size_t target_steps );
 
-        // Calculate most significant digit (MSD) of the new step size.
-        auto mag_msd = static_cast<int>( step_guess / mag_pow + 0.5 );
-
-        // Promote the MSD to either 1, 2, 5 or 10.
-        if( mag_msd > 5 ) {
-            mag_msd = 10;
-        } else if( mag_msd > 2 ) {
-            mag_msd = 5;
-        } else if( mag_msd > 1 ) {
-            mag_msd = 2;
-        } else {
-            assert( mag_msd == 1 );
-        }
-
-        return static_cast<double>( mag_msd ) * mag_pow;
-    }
-
-    std::vector<double> linear_ticks( double min, double max, size_t target_steps )
-    {
-        auto res = std::vector<double>();
-
-        // Get step size.
-        auto interval_size = max - min;
-        auto step_sz = step_size( interval_size, target_steps );
-
-        // Calculate first tick position, so that it is the largest multiple of the step size
-        // that is below the min.
-        auto tick = step_sz * std::floor( min / step_sz );
-
-        // Determine whether we want to start before or after the min.
-        if( ! undershoot_at_min ) {
-            tick += step_sz;
-        }
-
-        // Add ticks to the list.
-        while( tick <= max ) {
-            res.push_back( tick );
-            tick += step_sz;
-        }
-
-        // Determine whether we want to stop before or after the max.
-        if( overshoot_at_max ) {
-            res.push_back( tick );
-        }
-
-        // Add min and max if needed.
-        if( include_min ) {
-            res.push_back( min );
-        }
-        if( include_max ) {
-            res.push_back( max );
-        }
-
-        // Cleanup duplicate entries and those that are close by. We do not need ticks that are
-        // too close to each other.
-        // It is easier to do this than to check for duplicate entries in each addition step...
-        std::sort( res.begin(), res.end() );
-        auto uniq_end = std::unique( res.begin(), res.end(), [&]( double lhs, double rhs ){
-            return almost_equal_relative( lhs, rhs, relative_epsilon );
-        });
-        res.resize( std::distance( res.begin(), uniq_end ));
-
-        return res;
-    }
+    /**
+     * @brief Return a set of labels with relative positions between `min` and `max`, where the
+     * labels correspond to logarithmic ticks.
+     *
+     * This function is the equivalent of linear_labels(), but instead uses logarithmic scaling.
+     * Also, it always starts at a minimum of 1 and inserts as many ticks as are needed to go up
+     * to `max` in powers of ten.
+     *
+     * Example: Given `max == 350`, with `overshoot_at_max == false` and `include_max == true`,
+     * the resulting vector contains entries with labels `1, 10, 100, 350`.
+     *
+     * Remark: There is no logarithmic equivalent for linear_ticks(), as those would simply be
+     * powers of 10 up to `max`.
+     */
+    std::vector<LabeledTick> logarithmic_labels( double max );
 
     // -------------------------------------------------------------------------
     //     Data Members

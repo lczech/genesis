@@ -201,7 +201,6 @@
 #include "utils/math/matrix/statistics.hpp"
 #include "utils/math/range_minimum_query.hpp"
 #include "utils/math/sha1.hpp"
-#include "utils/math/tickmarks.hpp"
 #include "utils/math/twobit_vector/functions.hpp"
 #include "utils/math/twobit_vector.hpp"
 #include "utils/math/twobit_vector/iterator_deletions.hpp"
@@ -217,5 +216,6 @@
 #include "utils/tools/color/names.hpp"
 #include "utils/tools/color/operators.hpp"
 #include "utils/tools/date_time.hpp"
+#include "utils/tools/tickmarks.hpp"
 
 #endif // include guard
