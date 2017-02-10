@@ -904,7 +904,10 @@ std::string JsonDocument::type_name() const
             return "unsigned integer";
         }
         default: {
+            // Can only happen if we misuse the type somewhere.
+            // Make gcc happy by returning something here.
             assert( false );
+            return "invalid type";
         }
     };
 }

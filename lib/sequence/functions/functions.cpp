@@ -58,14 +58,6 @@ namespace sequence {
 //     Characteristics
 // =================================================================================================
 
-/**
- * @brief Return a @link utils::Bitvector Bitvector@endlink that is `true` where the Sequence has
- * a gap and `false` where not.
- *
- * The `gap_chars` are used case-insensitively to determine what is considerted to be a gap.
- * By default, nucleic_acid_codes_undetermined() are used, but any other set of characters
- * is allowed.
- */
 utils::Bitvector gap_sites( Sequence const& seq, std::string const& gap_chars )
 {
     auto result = utils::Bitvector( seq.length() );
@@ -80,15 +72,6 @@ utils::Bitvector gap_sites( Sequence const& seq, std::string const& gap_chars )
     return result;
 }
 
-/**
- * @brief Return a @link utils::Bitvector Bitvector@endlink that is `true` where all Sequence%s in
- * the SequenceSet have a gap and `false` where not, that is, where at least on Sequence is not a
- * gap.
- *
- * The `gap_chars` are used case-insensitively to determine what is considerted to be a gap.
- * By default, nucleic_acid_codes_undetermined() are used, but any other set of characters
- * is allowed.
- */
 utils::Bitvector gap_sites( SequenceSet const& set, std::string const& gap_chars )
 {
     // Edge case.
@@ -123,16 +106,6 @@ utils::Bitvector gap_sites( SequenceSet const& set, std::string const& gap_chars
     return result;
 }
 
-/**
- * @brief Returns true iff all Sequence%s only consist of the given `chars`.
- *
- * For presettings of usable chars, see the functions `nucleic_acid_codes_...` and
- * `amino_acid_codes_...`. For example, to check whether the sequences are nucleic acids,
- * use `nucleic_acid_codes_all()`. The chars are treated case-insensitive.
- *
- * If `chars` contains invalid (non-standard ASCII) characters, an `std::invalid_argument`
- * exception is thrown.
- */
 bool validate_chars( SequenceSet const& set, std::string const& chars )
 {
     // Init array to false, then set all necessary chars to true.
@@ -158,9 +131,15 @@ bool validate_chars( SequenceSet const& set, std::string const& chars )
 //     Length and length checks
 // -------------------------------------------------------------------------
 
-/**
- * @brief Return the total length (sum) of all Sequence%s in the SequenceSet.
- */
+size_t longest_sequence_length( SequenceSet const& set )
+{
+    size_t max = 0;
+    for( auto const& seq : set ) {
+        max = std::max( max, seq.length() );
+    }
+    return max;
+}
+
 size_t total_length( SequenceSet const& set )
 {
     return std::accumulate( set.begin(), set.end(), 0,
@@ -170,9 +149,6 @@ size_t total_length( SequenceSet const& set )
     );
 }
 
-/**
- * @brief Return true iff all Sequence%s in the SequenceSet have the same length.
- */
 bool is_alignment( SequenceSet const& set )
 {
     if( set.size() == 0 ) {
@@ -192,14 +168,6 @@ bool is_alignment( SequenceSet const& set )
 //     Modifiers
 // =================================================================================================
 
-/**
- * @brief Remove all sites from a Sequence where the given @link utils::Bitvector Bitvector@endlink
- * is `true`, and keep all others.
- *
- * The Bitvector needs to have the same size as the Sequence, otherwise an expection is thrown.
- *
- * This function is for example useful in combination with gap_sites().
- */
 void remove_sites( Sequence& seq, utils::Bitvector sites )
 {
     if( seq.length() != sites.size() ) {
@@ -222,16 +190,6 @@ void remove_sites( Sequence& seq, utils::Bitvector sites )
     seq.sites( result );
 }
 
-/**
- * @brief Remove all sites from all Sequence%s in a SequenceSet where the given
- * @link utils::Bitvector Bitvector@endlink is `true`, and keep all others.
- *
- * The Bitvector and all Sequences need to have the same size, otherwise an expection is thrown.
- * This check is done before any Sequence is changed. Thus, if the function throws for this reason,
- * the Sequences are left unchanged.
- *
- * This function is for example useful in combination with gap_sites().
- */
 void remove_sites( SequenceSet& set, utils::Bitvector sites )
 {
     for( auto const& seq : set ) {
@@ -248,9 +206,6 @@ void remove_sites( SequenceSet& set, utils::Bitvector sites )
     }
 }
 
-/**
- * @brief Remove all of the characters in `search` from the sites of the Sequence.
- */
 void remove_characters( Sequence& seq, std::string const& search )
 {
     auto is_search_char = [&] ( char c ) {
@@ -261,10 +216,6 @@ void remove_characters( Sequence& seq, std::string const& search )
     str.erase( std::remove_if( str.begin(), str.end(), is_search_char ), str.end() );
 }
 
-/**
- * @brief Remove all of the characters in `search` from the sites of the Sequence%s in the
- * SequenceSet.
- */
 void remove_characters( SequenceSet& set, std::string const& search )
 {
     for( auto& sequence : set ) {
@@ -272,49 +223,21 @@ void remove_characters( SequenceSet& set, std::string const& search )
     }
 }
 
-/**
- * @brief Remove all gap characters from the sites of the Sequence.
- *
- * This function is an alias for remove_characters(), which by default uses the gap sites of
- * nucleic_acid_codes_undetermined().
- */
 void remove_gaps( Sequence& seq, std::string const& gap_chars )
 {
     remove_characters( seq, gap_chars );
 }
 
-/**
- * @brief Remove all gap characters from the sites of the Sequence%s in the SequenceSet.
- *
- * This function is an alias for remove_characters(), which by default uses the gap sites of
- * nucleic_acid_codes_undetermined().
- */
 void remove_gaps( SequenceSet& set, std::string const& gap_chars )
 {
     remove_characters( set, gap_chars );
 }
 
-/**
- * @brief Replace all occurences of the chars in `search` by the `replace` char, for all sites in
- * the given Sequence.
- *
- * The function is case sensitive. Thus, you need to use both cases for the search string if you
- * are unsure. The replace char is always used as is, independent of the case of the matching
- * search char.
- */
 void replace_characters( Sequence& seq, std::string const& search, char replacement )
 {
     seq.sites() = utils::replace_all_chars( seq.sites(), search, replacement );
 }
 
-/**
- * @brief Replace all occurences of the chars in `search` by the `replace` char, for all sites in
- * the Sequence%s in the given SequenceSet.
- *
- * The function is case sensitive. Thus, you need to use both cases for the search string if you
- * are unsure. The replace char is always used as is, independent of the case of the matching
- * search char.
- */
 void replace_characters( SequenceSet& set, std::string const& search, char replacement )
 {
     for( auto& sequence : set ) {
@@ -322,12 +245,6 @@ void replace_characters( SequenceSet& set, std::string const& search, char repla
     }
 }
 
-/**
- * @brief Replace all occurrences of `U` by `T` in the sites of the Sequence.
- *
- * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
- * that is, lower case `u` is replaced by lower case `t`, and upper case `U` by upper case `T`.
- */
 void replace_u_with_t( Sequence& seq )
 {
     for( auto& c : seq.sites() ) {
@@ -340,12 +257,6 @@ void replace_u_with_t( Sequence& seq )
     }
 }
 
-/**
- * @brief Replace all occurrences of `U` by `T` in the sites of all Sequence%s in the SequenceSet.
- *
- * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
- * that is, lower case `u` is replaced by lower case `t`, and upper case `U` by upper case `T`.
- */
 void replace_u_with_t( SequenceSet& set )
 {
     for( auto& sequence : set ) {
@@ -353,12 +264,6 @@ void replace_u_with_t( SequenceSet& set )
     }
 }
 
-/**
- * @brief Replace all occurrences of `T` by `U` in the sites of the Sequence.
- *
- * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
- * that is, lower case `t` is replaced by lower case `u`, and upper case `T` by upper case `U`.
- */
 void replace_t_with_u( Sequence& seq )
 {
     for( auto& c : seq.sites() ) {
@@ -371,12 +276,6 @@ void replace_t_with_u( Sequence& seq )
     }
 }
 
-/**
- * @brief Replace all occurrences of `T` by `U` in the sites of all Sequence%s in the SequenceSet.
- *
- * This is a small helper function for sequences with nucleic acid codes. It is case sensitive,
- * that is, lower case `t` is replaced by lower case `u`, and upper case `T` by upper case `U`.
- */
 void replace_t_with_u( SequenceSet& set )
 {
     for( auto& sequence : set ) {
@@ -456,12 +355,6 @@ void merge_duplicate_sequences(
 //     Filters
 // =================================================================================================
 
-/**
- * @brief Remove all Sequence%s from the SequenceSet whose @link Sequence::length() length@endlink
- * is below the given `min_length`.
- *
- * See also filter_max_sequence_length() and filter_min_max_sequence_length().
- */
 void filter_min_sequence_length( SequenceSet& set, size_t min_length )
 {
     size_t index = 0;
@@ -474,12 +367,6 @@ void filter_min_sequence_length( SequenceSet& set, size_t min_length )
     }
 }
 
-/**
- * @brief Remove all Sequence%s from the SequenceSet whose @link Sequence::length() length@endlink
- * is above the given `max_length`.
- *
- * See also filter_min_sequence_length() and filter_min_max_sequence_length().
- */
 void filter_max_sequence_length( SequenceSet& set, size_t max_length )
 {
     size_t index = 0;
@@ -492,13 +379,6 @@ void filter_max_sequence_length( SequenceSet& set, size_t max_length )
     }
 }
 
-/**
- * @brief Remove all Sequence%s from the SequenceSet whose @link Sequence::length() length@endlink
- * is not inbetween the `min_length` and `max_length`.
- *
- * This function has the same effect as calling filter_min_sequence_length() and
- * filter_max_sequence_length(), but does it in one iteration over the SequenceSet.
- */
 void filter_min_max_sequence_length( SequenceSet& set, size_t min_length, size_t max_length )
 {
     size_t index = 0;
@@ -520,12 +400,6 @@ void filter_min_max_sequence_length( SequenceSet& set, size_t min_length, size_t
 //     Ostream
 // -------------------------------------------------------------------------
 
-/**
- * @brief Print a Sequence to an ostream in the form "label: sites".
- *
- * As this is meant for quickly having a look at the Sequence, only the first 100 sites are printed.
- * If you need all sites, or more settings like color, use SimplePrinter.
- */
 std::ostream& operator << ( std::ostream& out, Sequence    const& seq )
 {
     auto printer = PrinterSimple();
@@ -535,13 +409,6 @@ std::ostream& operator << ( std::ostream& out, Sequence    const& seq )
     return out;
 }
 
-/**
- * @brief Print a SequenceSet to an ostream in the form "label: sites".
- *
- * As this is meant for quickly having a look at the SequenceSet, only the first 10 Sequences and
- * the first 100 sites of each are printed. If you need all sequences and sites,
- * or more settings like color, use SimplePrinter.
- */
 std::ostream& operator << ( std::ostream& out, SequenceSet const& set )
 {
     auto printer = PrinterSimple();

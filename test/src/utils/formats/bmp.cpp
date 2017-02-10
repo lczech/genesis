@@ -1,6 +1,3 @@
-#ifndef GENESIS_UTILS_FORMATS_SVG_SVG_H_
-#define GENESIS_UTILS_FORMATS_SVG_SVG_H_
-
 /*
     Genesis - A toolkit for working with phylogenetic data.
     Copyright (C) 2014-2017 Lucas Czech
@@ -28,19 +25,37 @@
  * @brief
  *
  * @file
- * @ingroup utils
+ * @ingroup test
  */
 
-// =================================================================================================
-//     Svg Headers
-// =================================================================================================
+#include "common.hpp"
 
-#include "utils/formats/svg/attributes.hpp"
-#include "utils/formats/svg/document.hpp"
-#include "utils/formats/svg/gradient.hpp"
-#include "utils/formats/svg/helper.hpp"
-#include "utils/formats/svg/object.hpp"
-#include "utils/formats/svg/shapes.hpp"
-#include "utils/formats/svg/text.hpp"
+#include "lib/utils/formats/bmp/writer.hpp"
+#include "lib/utils/math/matrix.hpp"
+#include "lib/utils/tools/color.hpp"
 
-#endif // include guard
+using namespace genesis::utils;
+
+// -------------------------------------------------------------------------
+//     BMP Writer
+// -------------------------------------------------------------------------
+
+TEST( Bmp, Writer )
+{
+    // Some weird sizes to test the padding.
+    size_t const rows = 185;
+    size_t const cols = 213;
+
+    auto bunt = Matrix<Color>( rows, cols );
+
+    for( size_t y = 0; y < rows; ++y ) {
+        for( size_t x = 0; x < cols; ++x ) {
+            bunt( y, x ) = Color( 255 * x / cols, 255 * y / rows, 0 );
+        }
+    }
+
+    std::ostringstream ost;
+    auto writer = BmpWriter();
+    // writer.to_file( bunt, "/home/lucas/bunt.bmp" );
+    writer.to_stream( bunt, ost );
+}

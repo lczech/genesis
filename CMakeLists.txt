@@ -31,19 +31,30 @@ set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 if (NOT WIN32)
     # Fun with colors!
     string(ASCII 27 Esc)
-    set(ColorRed  "${Esc}[31m")
-    set(ColorBlue "${Esc}[34m")
-    set(ColorEnd  "${Esc}[0m")
+    set(ColorRed   "${Esc}[31m")
+    set(ColorGreen "${Esc}[32m")
+    set(ColorBlue  "${Esc}[34m")
+    set(ColorEnd   "${Esc}[0m")
 endif()
 
 # ------------------------------------------------------------------------------
-#   Project Definition
+#   Project Definition and Requirements
 # ------------------------------------------------------------------------------
 
 project ( genesis CXX C )
 
 # set (genesis_VERSION_MAJOR 0)
 # set (genesis_VERSION_MINOR 1)
+
+# Pre-compilation check for endianness
+include (TestBigEndian)
+TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+if( IS_BIG_ENDIAN )
+    message(
+        FATAL_ERROR
+        "${ColorRed}Genesis currently does not support Big Endian systems!${ColorEnd}"
+    )
+endif()
 
 # ------------------------------------------------------------------------------
 #   Build Options
@@ -112,7 +123,7 @@ IF(USE_THREADS)
 ENDIF()
 
 if(THREADS_FOUND)
-    message (STATUS "Using threads")
+    message (STATUS "${ColorGreen}Using threads${ColorEnd}")
     add_definitions( "-DGENESIS_PTHREADS" )
 endif()
 
@@ -121,7 +132,7 @@ IF(USE_OPENMP)
 ENDIF()
 
 if(OPENMP_FOUND)
-    message (STATUS "Using OpenMP")
+    message (STATUS "${ColorGreen}Using OpenMP${ColorEnd}")
     add_definitions( "-DGENESIS_OPENMP" )
 
     set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${OpenMP_C_FLAGS}")

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,7 @@
  * @ingroup utils
  */
 
-#include "utils/formats/svg/helper.hpp"
+#include "utils/formats/svg/gradient.hpp"
 #include "utils/formats/svg/object.hpp"
 
 #include <iosfwd>
@@ -86,6 +86,8 @@ public:
 public:
 
     SvgMargin margin;
+
+    std::vector< SvgGradientLinear > gradients;
 
 private:
 

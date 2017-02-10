@@ -1,6 +1,3 @@
-#ifndef GENESIS_UTILS_FORMATS_SVG_SVG_H_
-#define GENESIS_UTILS_FORMATS_SVG_SVG_H_
-
 /*
     Genesis - A toolkit for working with phylogenetic data.
     Copyright (C) 2014-2017 Lucas Czech
@@ -28,19 +25,20 @@
  * @brief
  *
  * @file
- * @ingroup utils
+ * @ingroup test
  */
 
-// =================================================================================================
-//     Svg Headers
-// =================================================================================================
+#include "common.hpp"
 
-#include "utils/formats/svg/attributes.hpp"
-#include "utils/formats/svg/document.hpp"
-#include "utils/formats/svg/gradient.hpp"
-#include "utils/formats/svg/helper.hpp"
-#include "utils/formats/svg/object.hpp"
-#include "utils/formats/svg/shapes.hpp"
-#include "utils/formats/svg/text.hpp"
+#include "lib/utils/core/options.hpp"
 
-#endif // include guard
+#include <string>
+
+using namespace genesis::utils;
+
+TEST( Options, Endianness )
+{
+    std::string endian = "Genesis currently only supports Little Endian systems!";
+    ASSERT_TRUE( Options::is_little_endian() ) << endian;
+    ASSERT_FALSE( Options::is_big_endian() )   << endian;
+}

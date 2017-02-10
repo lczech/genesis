@@ -31,7 +31,6 @@
  * @ingroup utils
  */
 
-#include <stdint.h>
 #include <string>
 
 /**
@@ -123,101 +122,6 @@ inline std::string genesis_license()
     Lucas Czech <lucas.czech@h-its.org>\n\
     Exelixis Lab, Heidelberg Institute for Theoretical Studies\n\
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany\n";
-}
-
-// =================================================================================================
-//     Environment
-// =================================================================================================
-
-/**
- * @brief Return the platform under which genesis was compiled.
- *
- * This can be either "Win32", "Linux", "Apple", "Unix" or "Unknown".
- */
-inline std::string env_platform()
-{
-#ifdef _WIN32
-    return "Win32";
-#elif defined __linux__
-    return "Linux";
-#elif defined __APPLE__
-    return "Apple";
-#elif defined __unix__
-    return "Unix";
-#else
-    return "Unknown";
-#endif
-}
-
-/**
- * @brief Return the compiler family (name) that was used to compile genesis.
- *
- * See env_compiler_version() to get the version of the compiler.
- */
-inline std::string env_compiler_family()
-{
-#if defined(__clang__)
-    return "clang";
-#elif defined(__ICC) || defined(__INTEL_COMPILER)
-    return "icc";
-#elif defined(__GNUC__) || defined(__GNUG__)
-    return "gcc";
-#elif defined(__HP_cc) || defined(__HP_aCC)
-    return "hp";
-#elif defined(__IBMCPP__)
-    return "ilecpp";
-#elif defined(_MSC_VER)
-    return "msvc";
-#elif defined(__PGI)
-    return "pgcpp";
-#elif defined(__SUNPRO_CC)
-    return "sunpro";
-#else
-    return "unknown";
-#endif
-}
-
-/**
- * @brief Return the compiler version that was used to compile genesis.
- *
- * See env_compiler_family() to get the corresponding compiler name.
- */
-inline std::string env_compiler_version()
-{
-#if defined(__clang__)
-    return __clang_version__;
-#elif defined(__ICC) || defined(__INTEL_COMPILER)
-    return __INTEL_COMPILER;
-#elif defined(__GNUC__) || defined(__GNUG__)
-    return std::to_string(__GNUC__)            + "." +
-           std::to_string(__GNUC_MINOR__)      + "." +
-           std::to_string(__GNUC_PATCHLEVEL__)
-    ;
-#elif defined(__HP_cc) || defined(__HP_aCC)
-    return "";
-#elif defined(__IBMCPP__)
-    return __IBMCPP__;
-#elif defined(_MSC_VER)
-    return _MSC_VER;
-#elif defined(__PGI)
-    return __PGI;
-#elif defined(__SUNPRO_CC)
-    return __SUNPRO_CC;
-#else
-    return "unknown";
-#endif
-}
-
-/**
- * @brief Return the compiler CPP version that was used to compile genesis.
- */
-inline std::string env_compiler_cpp()
-{
-#ifdef __cplusplus
-    return std::to_string(__cplusplus);
-#else
-    return "unknown";
-#endif
 }
 
 } // namespace genesis

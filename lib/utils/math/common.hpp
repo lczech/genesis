@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
  */
 
 #include <cmath>
+#include <limits>
 #include <stdexcept>
 #include <vector>
 
@@ -127,6 +128,24 @@ template <typename T> inline constexpr
 int signum(T x)
 {
     return signum( x, std::is_signed<T>() );
+}
+
+/**
+ * @brief Check whether two doubles are almost equal, using a relative epsilon to compare them.
+ */
+inline bool almost_equal_relative(
+    double lhs,
+    double rhs,
+    double max_rel_diff = std::numeric_limits<double>::epsilon()
+) {
+    // Calculate the difference.
+    auto diff = std::abs( lhs - rhs );
+
+    // Find the larger number.
+    auto largest = std::max( std::abs( lhs ), std::abs( rhs ));
+
+    // Do the comparison.
+    return ( diff <= largest * max_rel_diff );
 }
 
 /**
