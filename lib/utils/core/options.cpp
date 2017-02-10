@@ -30,6 +30,8 @@
 
 #include "utils/core/options.hpp"
 
+#include "utils/core/version.hpp"
+
 #include <chrono>
 #include <cstdint>
 
@@ -156,16 +158,101 @@ bool Options::is_big_endian()
     return 0 == *reinterpret_cast< uint8_t const* >( &e );
 }
 
+std::string Options::platform()
+{
+#ifdef _WIN32
+    return "Win32";
+#elif defined __linux__
+    return "Linux";
+#elif defined __APPLE__
+    return "Apple";
+#elif defined __unix__
+    return "Unix";
+#else
+    return "Unknown";
+#endif
+}
+
+std::string Options::compiler_family()
+{
+#if defined(__clang__)
+    return "clang";
+#elif defined(__ICC) || defined(__INTEL_COMPILER)
+    return "icc";
+#elif defined(__GNUC__) || defined(__GNUG__)
+    return "gcc";
+#elif defined(__HP_cc) || defined(__HP_aCC)
+    return "hp";
+#elif defined(__IBMCPP__)
+    return "ilecpp";
+#elif defined(_MSC_VER)
+    return "msvc";
+#elif defined(__PGI)
+    return "pgcpp";
+#elif defined(__SUNPRO_CC)
+    return "sunpro";
+#else
+    return "unknown";
+#endif
+}
+
+std::string Options::compiler_version()
+{
+#if defined(__clang__)
+    return __clang_version__;
+#elif defined(__ICC) || defined(__INTEL_COMPILER)
+    return __INTEL_COMPILER;
+#elif defined(__GNUC__) || defined(__GNUG__)
+    return std::to_string(__GNUC__)            + "." +
+           std::to_string(__GNUC_MINOR__)      + "." +
+           std::to_string(__GNUC_PATCHLEVEL__)
+    ;
+#elif defined(__HP_cc) || defined(__HP_aCC)
+    return "";
+#elif defined(__IBMCPP__)
+    return __IBMCPP__;
+#elif defined(_MSC_VER)
+    return _MSC_VER;
+#elif defined(__PGI)
+    return __PGI;
+#elif defined(__SUNPRO_CC)
+    return __SUNPRO_CC;
+#else
+    return "unknown";
+#endif
+}
+
+std::string Options::cpp_version()
+{
+#ifdef __cplusplus
+    return std::to_string(__cplusplus);
+#else
+    return "unknown";
+#endif
+}
+
 // =================================================================================================
 //     Dump & Overview
 // =================================================================================================
 
-std::string Options::dump () const
+std::string Options::info() const
 {
-    std::string res = "";
-    res += "Command line:      " + command_line_string() + "\n";
+    std::string res = genesis_header();
+
+    res += "\n";
+    res += "Compile Time Options\n";
+    res += "=============================================\n\n";
+    res += "Platform:          " + platform() + "\n";
+    res += "Compiler:          " + compiler_family() + " " + compiler_version() + "\n";
+    res += "C++ version:       " + cpp_version() + "\n";
+    res += "Endianness:        " + std::string( is_little_endian() ? "little endian" : "big endian" ) + "\n";
     res += "Using Pthreads:    " + std::string( using_pthreads() ? "true" : "false" ) + "\n";
     res += "Using OpenMP:      " + std::string( using_openmp() ? "true" : "false" ) + "\n";
+
+    res += "\n";
+    res += "Run Time Options\n";
+    res += "=============================================\n\n";
+    res += "Command line:      " + command_line_string() + "\n";
     res += "Number of threads: " + std::to_string( number_of_threads() ) + "\n";
     res += "Random seed:       " + std::to_string( random_seed_ ) + "\n";
     return res;

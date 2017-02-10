@@ -167,14 +167,40 @@ public:
      */
     static bool is_big_endian();
 
+    /**
+     * @brief Return the platform under which genesis was compiled.
+     *
+     * This can be either "Win32", "Linux", "Apple", "Unix" or "Unknown".
+     */
+    static std::string platform();
+
+    /**
+     * @brief Return the compiler family (name) that was used to compile genesis.
+     *
+     * See compiler_version() to get the version of the compiler.
+     */
+    static std::string compiler_family();
+
+    /**
+     * @brief Return the compiler version that was used to compile genesis.
+     *
+     * See compiler_family() to get the corresponding compiler name.
+     */
+    static std::string compiler_version();
+
+    /**
+     * @brief Return the CPP version that was used to compile genesis.
+     */
+    static std::string cpp_version();
+
     // -------------------------------------------------------------------------
     //     Dump & Overview
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Return a list of all options with their values.
+     * @brief Return a list with compile time and run time options with their values.
      */
-    std::string dump() const;
+    std::string info() const;
 
     // -------------------------------------------------------------------------
     //     Data Members
