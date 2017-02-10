@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -229,33 +229,21 @@ static const std::unordered_map< std::string, char > nucleic_acid_ambiguity_stri
 //     Nucleic Acids
 // ---------------------------------------------------------------------
 
-/**
- * @brief Return all plain nucleic acid codes. Those are "ACGTU".
- */
 std::string nucleic_acid_codes_plain()
 {
     return "ACGT";
 }
 
-/**
- * @brief Return all degenerated nucleic acid codes. Those are "WSMKRYBDHV".
- */
 std::string nucleic_acid_codes_degenerated()
 {
     return "WSMKRYBDHV";
 }
 
-/**
- * @brief Return all undetermined nucleic acid codes. Those are "NOX.-?".
- */
 std::string nucleic_acid_codes_undetermined()
 {
     return "NOX.-?";
 }
 
-/**
- * @brief Return all valid nucleic acid codes. Those are "ACGTUWSMKRYBDHVNOX.-?".
- */
 std::string nucleic_acid_codes_all()
 {
     return nucleic_acid_codes_plain()
@@ -267,33 +255,21 @@ std::string nucleic_acid_codes_all()
 //     Amino Acids
 // ---------------------------------------------------------------------
 
-/**
- * @brief Return all plain amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWY".
- */
 std::string amino_acid_codes_plain()
 {
     return "ACDEFGHIKLMNOPQRSTUVWY";
 }
 
-/**
- * @brief Return all degenerated amino acid codes. Those are "BJZ".
- */
 std::string amino_acid_codes_degenerated()
 {
     return "BJZ";
 }
 
-/**
- * @brief Return all undetermined amino acid codes. Those are "X*-?".
- */
 std::string amino_acid_codes_undetermined()
 {
     return "X*-?";
 }
 
-/**
- * @brief Return all valid amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWYBJZX*-?".
- */
 std::string amino_acid_codes_all()
 {
     return amino_acid_codes_plain()
@@ -305,23 +281,11 @@ std::string amino_acid_codes_all()
 //     Color Codes
 // =================================================================================================
 
-/**
- * @brief Return a map of colors for each nucleic acid code.
- *
- * This function gives a color name usable for utils::Style for each nucleic acid code.
- * The return value of this function can for example be used in sequence::print_color() function.
- */
 std::map<char, std::string> nucleic_acid_text_colors()
 {
     return nucleic_acid_text_colors_map;
 }
 
-/**
- * @brief Return a map of colors for each amino acid code.
- *
- * This function gives a color name usable for utils::Style for each amino acid code.
- * The return value of this function can for example be used in sequence::print_color() function.
- */
 std::map<char, std::string> amino_acid_text_colors()
 {
     return amino_acid_text_colors_map;
@@ -331,36 +295,6 @@ std::map<char, std::string> amino_acid_text_colors()
 //     Translate Codes
 // =================================================================================================
 
-/**
- * @brief Get the name of a nucleic acid given its IUPAC code.
- *
- * The codes are translated as follows:
- *
- *     A Adenine
- *     C Cytosine
- *     G Guanine
- *     T Thymine
- *     U Uracil
- *     W Weak
- *     S Strong
- *     M aMino
- *     K Keto
- *     R puRine
- *     Y pYrimidine
- *     B not A
- *     D not C
- *     H not G
- *     V not T
- *     N any
- *     O omitted
- *     X masked
- *     . gap
- *     - gap
- *     ? gap
- *
- * The code char is treated case-insensitive. If the given code char is not valid, an
- * `std::out_of_range` exception is thrown.
- */
 std::string translate_nucleic_acid( char code )
 {
     auto ucode = toupper(code);
@@ -370,44 +304,6 @@ std::string translate_nucleic_acid( char code )
     return nucleic_acid_code_to_name.at( ucode );
 }
 
-/**
- * @brief Get the name of a amino acid given its IUPAC code.
- *
- * The codes are translated as follows:
- *
- *     A Alanine
- *     B Aspartic acid or Asparagine
- *     C Cysteine
- *     D Aspartic acid
- *     E Glutamic acid
- *     F Phenylalanine
- *     G Glycine
- *     H Histidine
- *     I Isoleucine
- *     J Leucine or Isoleucine
- *     K Lysine
- *     L Leucine
- *     M Methionine
- *     N Asparagine
- *     O Pyrrolysine
- *     P Proline
- *     Q Glutamine
- *     R Arginine
- *     S Serine
- *     T Threonine
- *     U Selenocysteine
- *     V Valine
- *     W Tryptophan
- *     Y Tyrosine
- *     Z Glutamic acid or Glutamine
- *     X any
- *     * translation stop
- *     - gap
- *     ? gap
- *
- * The code char is treated case-insensitive. If the given code char is not valid, an
- * `std::out_of_range` exception is thrown.
- */
 std::string translate_amino_acid( char code )
 {
     auto ucode = toupper(code);
@@ -417,43 +313,6 @@ std::string translate_amino_acid( char code )
     return amino_acid_code_to_name.at( ucode );
 }
 
-/**
- * @brief Return the possible ambiguous nucleic acid codes for a given code char.
- *
- * The codes are resolved as follows:
- *
- *     'A' ==> "A"
- *     'C' ==> "C"
- *     'G' ==> "G"
- *     'T' ==> "T"
- *     'U' ==> "T"
- *
- *     'W' ==> "AT"
- *     'S' ==> "CG"
- *     'M' ==> "AC"
- *     'K' ==> "GT"
- *     'R' ==> "AG"
- *     'Y' ==> "CT"
- *
- *     'B' ==> "CGT"
- *     'D' ==> "AGT"
- *     'H' ==> "ACT"
- *     'V' ==> "ACG"
- *
- *     'N' ==> "ACGT"
- *     'O' ==> "-"
- *     'X' ==> "-"
- *     '.' ==> "-"
- *     '-' ==> "-"
- *     '?' ==> "-"
- *
- * The code char is treated case-insensitive. If the given code char is not valid, an
- * `std::out_of_range` exception is thrown.
- *
- * See nucleic_acid_ambiguity_code() for a reverse version of this function. It is however not
- * exactly the reverse, as some degenerated codes are mapped to the gap char. Thus, this function
- * is not injective.
- */
 std::string nucleic_acid_ambiguities( char code )
 {
     auto ucode = toupper(code);
@@ -463,37 +322,6 @@ std::string nucleic_acid_ambiguities( char code )
     return nucleic_acid_ambiguity_char_map.at( ucode );
 }
 
-/**
- * @brief Return the nucleic acid code that represents all given `codes`.
- *
- * The codes are resolved as follows:
- *
- *     "A"    ==> 'A'
- *     "C"    ==> 'C'
- *     "G"    ==> 'G'
- *     "T"    ==> 'T'
- *
- *     "AT"   ==> 'W'
- *     "CG"   ==> 'S'
- *     "AC"   ==> 'M'
- *     "GT"   ==> 'K'
- *     "AG"   ==> 'R'
- *     "CT"   ==> 'Y'
- *
- *     "CGT"  ==> 'B'
- *     "AGT"  ==> 'D'
- *     "ACT"  ==> 'H'
- *     "ACG"  ==> 'V'
- *
- *     "ACGT" ==> 'N'
- *     "-"    ==> '-'
- *
- * The given codes are treated case-insensitive and order-independent. For example, given `"tCgG"`,
- * the function still returns `'B'`. However, if any of the given codes is not valid, an
- * `std::out_of_range` exception is thrown.
- *
- * See nucleic_acid_ambiguities() for the reverse of this function.
- */
 char nucleic_acid_ambiguity_code( std::string codes )
 {
     // Uppercase, sort, uniq the codes.
