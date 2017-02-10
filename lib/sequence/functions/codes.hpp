@@ -34,6 +34,18 @@
 #include <map>
 #include <string>
 
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+namespace genesis {
+namespace utils {
+
+    class Color;
+
+}
+}
+
 namespace genesis {
 namespace sequence {
 
@@ -86,7 +98,7 @@ std::string amino_acid_codes_all();
 // =================================================================================================
 
 /**
- * @brief Return a map of colors for each nucleic acid code.
+ * @brief Return a map of text colors for each nucleic acid code.
  *
  * This function gives a color name usable for utils::Style for each nucleic acid code.
  * The return value of this function can for example be used in sequence::print_color() function.
@@ -94,12 +106,26 @@ std::string amino_acid_codes_all();
 std::map<char, std::string> nucleic_acid_text_colors();
 
 /**
- * @brief Return a map of colors for each amino acid code.
+ * @brief Return a map of text colors for each amino acid code.
  *
  * This function gives a color name usable for utils::Style for each amino acid code.
  * The return value of this function can for example be used in sequence::print_color() function.
  */
 std::map<char, std::string> amino_acid_text_colors();
+
+/**
+ * @brief Return a map of Color%s for each nucleic acid code.
+ *
+ * This function gives a Color for each nucleic acid code.
+ */
+std::map<char, utils::Color> nucleic_acid_colors();
+
+/**
+ * @brief Return a map of Color%s for each amino acid code.
+ *
+ * This function gives a Color for each amino acid code.
+ */
+std::map<char, utils::Color> amino_acid_colors();
 
 // =================================================================================================
 //     Translate Codes
