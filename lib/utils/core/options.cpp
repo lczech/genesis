@@ -31,6 +31,7 @@
 #include "utils/core/options.hpp"
 
 #include <chrono>
+#include <cstdint>
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
@@ -137,6 +138,22 @@ void Options::random_seed(const unsigned seed)
 {
     random_seed_ = seed;
     random_engine_.seed( seed );
+}
+
+// =================================================================================================
+//     Compile Time Environment
+// =================================================================================================
+
+bool Options::is_little_endian()
+{
+    static const uint16_t e = 0x1000;
+    return 0 == *reinterpret_cast< uint8_t const* >( &e );
+}
+
+bool Options::is_big_endian()
+{
+    static const uint16_t e = 0x0001;
+    return 0 == *reinterpret_cast< uint8_t const* >( &e );
 }
 
 // =================================================================================================

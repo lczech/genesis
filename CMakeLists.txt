@@ -38,13 +38,23 @@ if (NOT WIN32)
 endif()
 
 # ------------------------------------------------------------------------------
-#   Project Definition
+#   Project Definition and Requirements
 # ------------------------------------------------------------------------------
 
 project ( genesis CXX C )
 
 # set (genesis_VERSION_MAJOR 0)
 # set (genesis_VERSION_MINOR 1)
+
+# Pre-compilation check for endianness
+include (TestBigEndian)
+TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+if( IS_BIG_ENDIAN )
+    message(
+        FATAL_ERROR
+        "${ColorRed}Genesis currently does not support Big Endian systems!${ColorEnd}"
+    )
+endif()
 
 # ------------------------------------------------------------------------------
 #   Build Options

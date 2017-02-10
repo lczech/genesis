@@ -154,6 +154,20 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Compile Time Environment
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return whether the system uses little endian memory.
+     */
+    static bool is_little_endian();
+
+    /**
+     * @brief Return whether the system uses big endian memory.
+     */
+    static bool is_big_endian();
+
+    // -------------------------------------------------------------------------
     //     Dump & Overview
     // -------------------------------------------------------------------------
 
@@ -190,6 +204,7 @@ private:
     Options( Options&& )      = delete;
     Options& operator= ( const Options& ) = delete;
     Options& operator= ( Options&& )      = delete;
+
 };
 
 } // namespace utils
