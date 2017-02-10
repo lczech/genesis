@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,15 +32,17 @@
 
 #include "lib/sequence/functions/codes.hpp"
 #include "lib/sequence/functions/functions.hpp"
+#include "lib/sequence/printers/bitmap.hpp"
 #include "lib/sequence/printers/simple.hpp"
 #include "lib/sequence/sequence_set.hpp"
 #include "lib/sequence/formats/fasta_reader.hpp"
+#include "lib/sequence/formats/phylip_reader.hpp"
 
 #include <string>
 
 using namespace genesis::sequence;
 
-TEST( Sequence, Print )
+TEST( Sequence, PrinterSimple )
 {
     // Skip test if no data availabe.
     NEEDS_TEST_DATA;
@@ -151,4 +153,24 @@ TEST( Sequence, Print )
     std::cout << print_color( sset, nucleic_acid_text_colors(), false, 100, 6, true ) << "\n";
     std::cout << print_color( sset, nucleic_acid_text_colors(), false, 100, 6, false ) << "\n";
     */
+}
+
+TEST( Sequence, PrinterBitmap )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+    // std::string infile = "/home/lucas/tmp/batch_aa/papara_alignment.batch_aa_0";
+    SequenceSet sset;
+    FastaReader().from_file(infile, sset);
+    // PhylipReader().from_file(infile, sset);
+
+    // Printer.
+    std::ostringstream ost;
+    auto printer = PrinterBitmap();
+    printer.color_map( nucleic_acid_colors() );
+    // printer.to_file( sset, "/home/lucas/dna.bmp" );
+    printer.to_stream( sset, ost );
 }
