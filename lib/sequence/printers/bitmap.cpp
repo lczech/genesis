@@ -120,5 +120,33 @@ std::map<char, utils::Color> const& PrinterBitmap::color_map() const
     return color_map_;
 }
 
+PrinterBitmap& PrinterBitmap::pixel_height_per_char( size_t value )
+{
+    if( value == 0 ) {
+        throw std::invalid_argument( "Pixel height has to be 1 or more." );
+    }
+    pixel_height_ = value;
+    return *this;
+}
+
+size_t PrinterBitmap::pixel_height_per_char() const
+{
+    return pixel_height_;
+}
+
+PrinterBitmap& PrinterBitmap::pixel_width_per_char( size_t value )
+{
+    if( value == 0 ) {
+        throw std::invalid_argument( "Pixel width has to be 1 or more." );
+    }
+    pixel_width_ = value;
+    return *this;
+}
+
+size_t PrinterBitmap::pixel_width_per_char() const
+{
+    return pixel_width_;
+}
+
 } // namespace sequence
 } // namespace genesis
