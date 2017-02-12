@@ -56,9 +56,11 @@ void BmpWriter::to_stream( Matrix<Color> const& image, std::ostream& outstream )
 
     // Padding needed to fill rows to a multiple of 4 bytes, and resulting data size in bytes.
     size_t const row_pad   = (4 - (( width * 3 ) % 4 )) % 4;
-    size_t const data_size = ( width * 3 + row_pad ) * height;
+    size_t const line_len = width * 3 + row_pad;
+    assert(( row_pad < 4 ) && ( line_len % 4 == 0 ));
+    size_t const data_size = line_len * height;
 
-    // Size checks!
+    // Size checks! Bitmaps can't be larger than ~4GB
     if(
         height > static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) ||
         width  > static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) ||
