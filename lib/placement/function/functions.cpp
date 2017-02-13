@@ -613,6 +613,15 @@ double total_multiplicity( Pquery const& pqry )
     return mult;
 }
 
+double total_multiplicity( Sample const& sample )
+{
+    double mult = 0.0;
+    for( auto const& pqry : sample.pqueries() ) {
+        mult += total_multiplicity( pqry );
+    }
+    return mult;
+}
+
 size_t total_placement_count( Sample const& smp )
 {
     size_t count = 0;

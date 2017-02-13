@@ -320,6 +320,12 @@ void merge_duplicate_names( Sample& smp );
 double total_multiplicity( Pquery const& pqry );
 
 /**
+ * @brief Return the sum of all @link PqueryName::multiplicity multiplicities @endlink of all the
+ * @link Pquery Pqueries@endlink of the Sample.
+ */
+double total_multiplicity( Sample const& sample );
+
+/**
  * @brief Get the total number of PqueryPlacement%s in all @link Pquery Pqueries @endlink of the
  * given Sample.
  */
