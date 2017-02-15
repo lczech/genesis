@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -158,6 +158,26 @@ namespace utils {
     genesis::utils::LoggingScopeLevel genesis_logging_scope_level_temp_object(level);
 
 /**
+ * @brief Hack function to make sure that the value arugment in #LOG_PROG is only evaluated once.
+ *
+ * Without this function, #LOG_PROG would include two appearances of its variable `value`, which
+ * means that a statement like
+ *
+ *     LOG_PROG(++i, n) << "of progress.";
+ *
+ * would lead to a double evaluation of the increment statement `++i`. That is not intended, thus
+ * we need this hack function.
+ */
+inline long logging_progress_value (long value = -1)
+{
+    static long v = -1;
+    if (value > -1) {
+        v = value;
+    }
+    return v;
+}
+
+/**
  * @brief %Logging of a progress message.
  *
  * This special logging mechanism provides an easy way to report progress while running long
@@ -201,34 +221,14 @@ namespace utils {
  *
  * There is a slight overhead of ~60ms per 1mio invocations because of the needed calculations.
  */
-#define LOG_PROG(value, quantity) \
-    if (genesis::utils::Logging::kProgress > LOG_LEVEL_MAX) ; \
-    else if (genesis::utils::Logging::kProgress > genesis::utils::Logging::max_level()) ; \
-    else if ((long) LoggingProgressValue(value) % \
+#define LOG_PROG( value, quantity ) \
+    if( genesis::utils::Logging::kProgress > LOG_LEVEL_MAX ) ; \
+    else if( genesis::utils::Logging::kProgress > genesis::utils::Logging::max_level() ) ; \
+    else if( (long) genesis::utils::logging_progress_value(value) % \
         (((long) (quantity) * genesis::utils::Logging::report_percentage() / 100) > 0 ? \
-        ((long) (quantity) * genesis::utils::Logging::report_percentage() / 100) : 1) != 0) ; \
+        ((long) (quantity) * genesis::utils::Logging::report_percentage() / 100) : 1) != 0 ) ; \
     else genesis::utils::Logging().get(__FILE__, __LINE__, GENESIS_FUNC, genesis::utils::Logging::kProgress) << \
-    (int) round(100.0 * (double) LoggingProgressValue() / ((quantity) > 0 ? (quantity) : 1)) << "% "
-
-/**
- * @brief Hack function to make sure that the value arugment in #LOG_PROG is only evaluated once.
- *
- * Without this function, #LOG_PROG would include two appearances of its variable `value`, which
- * means that a statement like
- *
- *     LOG_PROG(++i, n) << "of progress.";
- *
- * would lead to a double evaluation of the increment statement `++i`. That is not intended, thus
- * we need this hack function.
- */
-inline long LoggingProgressValue (long value = -1)
-{
-    static long v = -1;
-    if (value > -1) {
-        v = value;
-    }
-    return v;
-}
+    (int) round(100.0 * (double) genesis::utils::logging_progress_value() / ((quantity) > 0 ? (quantity) : 1)) << "% "
 
 // =============================================================================
 //     Logging Details
