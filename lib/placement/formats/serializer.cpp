@@ -58,7 +58,7 @@ unsigned char SampleSerializer::version = 1;
 /**
  * @brief Saves the Sample to a binary file that can later be read by using load().
  */
-void SampleSerializer::save (const Sample& map, const std::string& file_name)
+void SampleSerializer::save( Sample const& map, std::string const& file_name )
 {
     // Prepare.
     utils::Serializer ser (file_name);
@@ -113,15 +113,16 @@ void SampleSerializer::save (const Sample& map, const std::string& file_name)
 /**
  * @brief Loads a Sample from a binary file that was written by using save().
  */
-void SampleSerializer::load (const std::string& file_name, Sample& map)
+Sample SampleSerializer::load( std::string const& file_name )
 {
-    // Prepare, check stream status.
-    utils::Deserializer des (file_name);
-    if (!des) {
-        throw std::invalid_argument("Deserialization failed.");
-    }
+    // Create returned object.
+    Sample map;
 
-    map.clear();
+    // Prepare, check stream status.
+    utils::Deserializer des( file_name );
+    if( ! des ) {
+        throw std::invalid_argument( "Deserialization failed." );
+    }
 
     // Read and check header.
     std::string magic = des.get_raw_string(8);
@@ -170,6 +171,8 @@ void SampleSerializer::load (const std::string& file_name, Sample& map)
     if (!des.succeeded()) {
         throw std::invalid_argument("Deserialization failed.");
     }
+
+    return map;
 }
 
 } // namespace placement

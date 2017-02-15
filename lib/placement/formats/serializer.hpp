@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,8 +53,8 @@ class SampleSerializer
 {
 public:
 
-    static void save (const Sample& map, const std::string& file_name);
-    static void load (const std::string& file_name, Sample& map);
+    static void save( Sample const& map, std::string const& file_name );
+    static Sample load( std::string const& file_name );
 
     static unsigned char version;
 
