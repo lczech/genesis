@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -100,6 +100,36 @@ TEST(Matrix, Access)
         m.at(0, 2),
         std::out_of_range
     );
+}
+
+TEST( Matrix, SwapRowsCols )
+{
+    auto m = Matrix<int>(4, 4, {
+         1,  2,  3,  4,
+         5,  6,  7,  8,
+         9, 10, 11, 12,
+        13, 14, 15, 16
+    });
+
+    auto mre = Matrix<int>(4, 4, {
+         1,  2,  3,  4,
+        13, 14, 15, 16,
+         9, 10, 11, 12,
+         5,  6,  7,  8
+    });
+
+    swap_rows( m, 1, 3 );
+    EXPECT_EQ( mre, m );
+
+    auto mce = Matrix<int>(4, 4, {
+         2,  1,  3,  4,
+        14, 13, 15, 16,
+        10,  9, 11, 12,
+         6,  5,  7,  8
+    });
+
+    swap_cols( m, 1, 0 );
+    EXPECT_EQ( mce, m );
 }
 
 TEST(Matrix, Ostream)
