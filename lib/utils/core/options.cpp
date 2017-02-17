@@ -53,23 +53,23 @@ namespace utils {
 Options::Options()
 {
 
-#if defined( GENESIS_OPENMP )
+    #if defined( GENESIS_OPENMP )
 
-    // Initialize threads to number of OpenMP threads, which might be set through the
-    // `OMP_NUM_THREADS` environment variable.
-    number_of_threads( omp_get_num_threads() );
+        // Initialize threads to number of OpenMP threads, which might be set through the
+        // `OMP_NUM_THREADS` environment variable.
+        number_of_threads( omp_get_num_threads() );
 
-#elif defined( GENESIS_PTHREADS )
+    #elif defined( GENESIS_PTHREADS )
 
-    // Initialize threads with actual number of cores.
-    number_of_threads( std::thread::hardware_concurrency() );
+        // Initialize threads with actual number of cores.
+        number_of_threads( std::thread::hardware_concurrency() );
 
-#else
+    #else
 
-    // Set to single threaded.
-    number_of_threads( 1 );
+        // Set to single threaded.
+        number_of_threads( 1 );
 
-#endif
+    #endif
 
     // Initialize random seed with time.
     random_seed( std::chrono::system_clock::now().time_since_epoch().count() );
@@ -89,7 +89,7 @@ std::string Options::command_line_string () const
     return ret;
 }
 
-void Options::command_line (const int argc, const char* argv[])
+void Options::command_line( int const argc, char const* const* argv )
 {
     // Store all arguments in the array.
     command_line_.clear();
@@ -106,30 +106,30 @@ void Options::number_of_threads (const unsigned int number)
 {
     number_of_threads_ = number;
 
-#if defined( GENESIS_OPENMP )
+    #if defined( GENESIS_OPENMP )
 
-    // If we use OpenMp, set the thread number there, too.
-    omp_set_num_threads( number );
+        // If we use OpenMp, set the thread number there, too.
+        omp_set_num_threads( number );
 
-#endif
+    #endif
 }
 
 bool Options::using_pthreads() const
 {
-#ifdef GENESIS_PTHREADS
-    return true;
-#else
-    return false;
-#endif
+    #ifdef GENESIS_PTHREADS
+        return true;
+    #else
+        return false;
+    #endif
 }
 
 bool Options::using_openmp() const
 {
-#ifdef GENESIS_OPENMP
-    return true;
-#else
-    return false;
-#endif
+    #ifdef GENESIS_OPENMP
+        return true;
+    #else
+        return false;
+    #endif
 }
 
 // =================================================================================================
@@ -160,75 +160,93 @@ bool Options::is_big_endian()
 
 std::string Options::platform()
 {
-#ifdef _WIN32
-    return "Win32";
-#elif defined __linux__
-    return "Linux";
-#elif defined __APPLE__
-    return "Apple";
-#elif defined __unix__
-    return "Unix";
-#else
-    return "Unknown";
-#endif
+    #ifdef _WIN32
+        return "Win32";
+    #elif defined __linux__
+        return "Linux";
+    #elif defined __APPLE__
+        return "Apple";
+    #elif defined __unix__
+        return "Unix";
+    #else
+        return "Unknown";
+    #endif
 }
 
 std::string Options::compiler_family()
 {
-#if defined(__clang__)
-    return "clang";
-#elif defined(__ICC) || defined(__INTEL_COMPILER)
-    return "icc";
-#elif defined(__GNUC__) || defined(__GNUG__)
-    return "gcc";
-#elif defined(__HP_cc) || defined(__HP_aCC)
-    return "hp";
-#elif defined(__IBMCPP__)
-    return "ilecpp";
-#elif defined(_MSC_VER)
-    return "msvc";
-#elif defined(__PGI)
-    return "pgcpp";
-#elif defined(__SUNPRO_CC)
-    return "sunpro";
-#else
-    return "unknown";
-#endif
+    #if defined(__clang__)
+        return "clang";
+    #elif defined(__ICC) || defined(__INTEL_COMPILER)
+        return "icc";
+    #elif defined(__GNUC__) || defined(__GNUG__)
+        return "gcc";
+    #elif defined(__HP_cc) || defined(__HP_aCC)
+        return "hp";
+    #elif defined(__IBMCPP__)
+        return "ilecpp";
+    #elif defined(_MSC_VER)
+        return "msvc";
+    #elif defined(__PGI)
+        return "pgcpp";
+    #elif defined(__SUNPRO_CC)
+        return "sunpro";
+    #else
+        return "unknown";
+    #endif
 }
 
 std::string Options::compiler_version()
 {
-#if defined(__clang__)
-    return __clang_version__;
-#elif defined(__ICC) || defined(__INTEL_COMPILER)
-    return __INTEL_COMPILER;
-#elif defined(__GNUC__) || defined(__GNUG__)
-    return std::to_string(__GNUC__)            + "." +
-           std::to_string(__GNUC_MINOR__)      + "." +
-           std::to_string(__GNUC_PATCHLEVEL__)
-    ;
-#elif defined(__HP_cc) || defined(__HP_aCC)
-    return "";
-#elif defined(__IBMCPP__)
-    return __IBMCPP__;
-#elif defined(_MSC_VER)
-    return _MSC_VER;
-#elif defined(__PGI)
-    return __PGI;
-#elif defined(__SUNPRO_CC)
-    return __SUNPRO_CC;
-#else
-    return "unknown";
-#endif
+    #if defined(__clang__)
+        return __clang_version__;
+    #elif defined(__ICC) || defined(__INTEL_COMPILER)
+        return __INTEL_COMPILER;
+    #elif defined(__GNUC__) || defined(__GNUG__)
+        return std::to_string(__GNUC__)            + "." +
+               std::to_string(__GNUC_MINOR__)      + "." +
+               std::to_string(__GNUC_PATCHLEVEL__)
+        ;
+    #elif defined(__HP_cc) || defined(__HP_aCC)
+        return "";
+    #elif defined(__IBMCPP__)
+        return __IBMCPP__;
+    #elif defined(_MSC_VER)
+        return _MSC_VER;
+    #elif defined(__PGI)
+        return __PGI;
+    #elif defined(__SUNPRO_CC)
+        return __SUNPRO_CC;
+    #else
+        return "unknown";
+    #endif
 }
 
 std::string Options::cpp_version()
 {
-#ifdef __cplusplus
-    return std::to_string(__cplusplus);
-#else
-    return "unknown";
-#endif
+    #ifdef __cplusplus
+        return std::to_string(__cplusplus);
+    #else
+        return "unknown";
+    #endif
+}
+
+bool Options::is_debug()
+{
+    #ifdef DEBUG
+        return true;
+    #else
+        return false;
+    #endif
+}
+
+bool Options::is_release()
+{
+    #ifdef NDEBUG
+        return true;
+    #else
+        return false;
+    #endif
 }
 
 // =================================================================================================
@@ -245,6 +263,8 @@ std::string Options::info() const
     res += "Platform:          " + platform() + "\n";
     res += "Compiler:          " + compiler_family() + " " + compiler_version() + "\n";
     res += "C++ version:       " + cpp_version() + "\n";
+    res += "Is debug:          " + std::string( is_debug() ? "true" : "false" )  + "\n";
+    res += "Is release:        " + std::string( is_release() ? "true" : "false" )  + "\n";
     res += "Endianness:        " + std::string( is_little_endian() ? "little endian" : "big endian" ) + "\n";
     res += "Using Pthreads:    " + std::string( using_pthreads() ? "true" : "false" ) + "\n";
     res += "Using OpenMP:      " + std::string( using_openmp() ? "true" : "false" ) + "\n";

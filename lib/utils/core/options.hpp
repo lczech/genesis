@@ -85,7 +85,7 @@ public:
      * If the program is run from the command line, this method has to be used to properly
      * propagate the command line options to this options class.
      */
-    void command_line( const int argc, const char* argv[] );
+    void command_line( int const argc, char const* const* argv );
 
     // -------------------------------------------------------------------------
     //     Number of Threads
@@ -192,6 +192,16 @@ public:
      * @brief Return the CPP version that was used to compile genesis.
      */
     static std::string cpp_version();
+
+    /**
+     * @brief Return whether the binary was compiled as `debug`.
+     */
+    static bool is_debug();
+
+    /**
+     * @brief Return whether the binary was compiled as `release`.
+     */
+    static bool is_release();
 
     // -------------------------------------------------------------------------
     //     Dump & Overview
