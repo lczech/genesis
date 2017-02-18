@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -189,6 +189,16 @@ struct SvgBox
     SvgPoint top_left;
     SvgPoint bottom_right;
 
+};
+
+// =================================================================================================
+//     Svg Drawing Options
+// =================================================================================================
+
+struct SvgDrawingOptions
+{
+    double offset_x = 0.0;
+    double offset_y = 0.0;
 };
 
 // =================================================================================================

@@ -73,7 +73,6 @@ public:
     //     Members
     // -------------------------------------------------------------
 
-    void offset( double x, double y );
     void write( std::ostream& out ) const;
 
     self_type& add(          SvgObject const& object );
