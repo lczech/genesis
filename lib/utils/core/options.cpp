@@ -231,6 +231,10 @@ std::string Options::cpp_version()
     #endif
 }
 
+// =================================================================================================
+//     Build Type
+// =================================================================================================
+
 bool Options::is_debug()
 {
     #ifdef DEBUG
@@ -249,6 +253,17 @@ bool Options::is_release()
     #endif
 }
 
+std::string Options::build_type()
+{
+    #if defined( DEBUG )
+        return "debug";
+    #elif defined( NDEBUG )
+        return "release";
+    #else
+        return "unknown";
+    #endif
+}
+
 // =================================================================================================
 //     Dump & Overview
 // =================================================================================================
@@ -263,8 +278,7 @@ std::string Options::info() const
     res += "Platform:          " + platform() + "\n";
     res += "Compiler:          " + compiler_family() + " " + compiler_version() + "\n";
     res += "C++ version:       " + cpp_version() + "\n";
-    res += "Is debug:          " + std::string( is_debug() ? "true" : "false" )  + "\n";
-    res += "Is release:        " + std::string( is_release() ? "true" : "false" )  + "\n";
+    res += "Build type:        " + build_type()  + "\n";
     res += "Endianness:        " + std::string( is_little_endian() ? "little endian" : "big endian" ) + "\n";
     res += "Using Pthreads:    " + std::string( using_pthreads() ? "true" : "false" ) + "\n";
     res += "Using OpenMP:      " + std::string( using_openmp() ? "true" : "false" ) + "\n";
