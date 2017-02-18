@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 
 #include "tree/tree.hpp"
 #include "tree/default/tree.hpp"
+#include "tree/function/operators.hpp"
 
 #include <map>
 
@@ -174,6 +175,32 @@ public:
     std::map<double, double> masses;
 
 };
+
+// =============================================================================
+//     Default Converter
+// =============================================================================
+
+/**
+ * @brief Helper function that takes a DefaultTree (or any Tree with Node and Edge data derived
+ * from it) and turns its data into an EmdTree, that is, a Tree with EmdNodeData and EmdEdgeData.
+ */
+inline EmdTree convert_default_tree_to_emd_tree( DefaultTree const& source )
+{
+    return convert(
+        source,
+        [] ( tree::BaseNodeData const& node_data ) {
+            (void) node_data;
+            return tree::EmdNodeData::create();
+        },
+        [] ( tree::BaseEdgeData const& edge_data ) {
+            auto emd_edge = tree::EmdEdgeData::create();
+            auto const& orig_edge = dynamic_cast< DefaultEdgeData const& >( edge_data );
+            emd_edge->branch_length = orig_edge.branch_length;
+
+            return emd_edge;
+        }
+    );
+}
 
 } // namespace tree
 } // namespace genesis

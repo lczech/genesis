@@ -232,34 +232,28 @@ std::vector<double> edpl( Sample const& sample )
 //     Earth Movers Distance
 // =================================================================================================
 
+// -------------------------------------------------------------------------
+//     Local EMD work function
+// -------------------------------------------------------------------------
+
+/**
+ * @brief Local helper function to calculate the EMD given an EmdTree.
+ *
+ * Precondictions for calling this function:
+ *
+ *   * The tree needs to contain EmdNodeData and EmdEdgeData on its nodes and edges.
+ *   * It needs to be compatible with the trees of the two given Samples.
+ *   * The edges must not contain any masses on them already.
+ *
+ * All this is not checked but assumed to be ensured by the caller. As this function is local to
+ * this compilation unit, potential callers are limited, so this should be okay.
+ */
 double earth_movers_distance (
-    const Sample& lhs,
-    const Sample& rhs,
-    bool          with_pendant_length
+    tree::EmdTree& emd_tree,
+    Sample const&  lhs,
+    Sample const&  rhs,
+    bool           with_pendant_length
 ) {
-    // Get a tree with the average branch lengths of both provided trees.
-    // This function also throws in case the trees have different topologies.
-    tree::TreeSet tset;
-    tset.add( "lhs", lhs.tree() );
-    tset.add( "rhs", rhs.tree() );
-    auto avg_length_tree = tree::average_branch_length_tree( tset );
-
-    // Create an EMD tree from the average branch length tree.
-    auto emd_tree = tree::convert(
-        avg_length_tree,
-        [] ( tree::BaseNodeData const& node_data ) {
-            (void) node_data;
-            return std::unique_ptr< tree::EmdNodeData >();
-        },
-        [] ( tree::BaseEdgeData const& edge_data ) {
-            auto emd_edge = tree::EmdEdgeData::create();
-            emd_edge->branch_length
-                = dynamic_cast< PlacementEdgeData const& >( edge_data ).branch_length;
-
-            return emd_edge;
-        }
-    );
-
     // Helper function that copies the masses from a sample to the emd tree.
     // It furthermore returns the amount of work needed to move the masses from their pendant
     // position to the branch (this result is only used if with_pendant_length is true).
@@ -314,6 +308,31 @@ double earth_movers_distance (
     return work;
 }
 
+// -------------------------------------------------------------------------
+//     EMD between two Samples
+// -------------------------------------------------------------------------
+
+double earth_movers_distance (
+    const Sample& lhs,
+    const Sample& rhs,
+    bool          with_pendant_length
+) {
+    // Get a tree with the average branch lengths of both provided trees.
+    // This function also throws in case the trees have different topologies.
+    tree::TreeSet tset;
+    tset.add( "lhs", lhs.tree() );
+    tset.add( "rhs", rhs.tree() );
+    auto avg_length_tree = tree::average_branch_length_tree( tset );
+
+    // Create an EMD tree from the average branch length tree, then calc the EMD.
+    auto emd_tree = tree::convert_default_tree_to_emd_tree( avg_length_tree );
+    return earth_movers_distance( emd_tree, lhs, rhs, with_pendant_length );
+}
+
+// -------------------------------------------------------------------------
+//     EMD matrix for a SampleSet
+// -------------------------------------------------------------------------
+
 utils::Matrix<double> earth_movers_distance(
     SampleSet const& sample_set,
     bool             with_pendant_length
@@ -321,106 +340,136 @@ utils::Matrix<double> earth_movers_distance(
     // Init result matrix.
     auto result = utils::Matrix<double>( sample_set.size(), sample_set.size(), 0.0 );
 
-    // Common code for threaded builds.
-#if defined( GENESIS_OPENMP ) || defined( GENESIS_PTHREADS )
-
-    // Build a pool of index pairs of the matrix to compute.
-    // The result is symmetric - we only calculate the upper triangle.
-    std::vector< std::pair<size_t, size_t> > pool;
-    for( size_t i = 0; i < sample_set.size(); ++i ) {
-        for( size_t j = i + 1; j < sample_set.size(); ++j ) {
-            pool.emplace_back( i, j );
-        }
+    // Build an average branch length tree for all trees in the SampleSet.
+    // This also serves as a check whether all trees in the set are compatible with each other,
+    // as average_branch_length_tree() throws if the trees have different topologies.
+    // Also, turn the resulting tree into an Emd Tree.
+    tree::TreeSet avg_tree_set;
+    for( auto const& smp : sample_set ) {
+        avg_tree_set.add( "", smp.sample.tree() );
     }
+    auto emd_tree = tree::convert_default_tree_to_emd_tree(
+        tree::average_branch_length_tree( avg_tree_set )
+    );
+    avg_tree_set.clear();
+    // TODO if we introduce an avg tree calculation that accepts an iterator, we do not need
+    // TODO to create a copied tree set of all trees here.
 
-#endif
+    // Common code for threaded builds.
+    #if defined( GENESIS_OPENMP ) || defined( GENESIS_PTHREADS )
+
+        // Build a pool of index pairs of the matrix to compute.
+        // The result is symmetric - we only calculate the upper triangle.
+        std::vector< std::pair<size_t, size_t> > pool;
+        for( size_t i = 0; i < sample_set.size(); ++i ) {
+            for( size_t j = i + 1; j < sample_set.size(); ++j ) {
+                pool.emplace_back( i, j );
+            }
+        }
+
+    #endif
 
     // Prefer to use Open MP.
-#if defined( GENESIS_OPENMP )
+    #if defined( GENESIS_OPENMP )
 
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t job = 0; job < pool.size(); ++job ) {
-        auto i = pool[ job ].first;
-        auto j = pool[ job ].second;
+        #pragma omp parallel for schedule( dynamic )
+        for( size_t job = 0; job < pool.size(); ++job ) {
+            auto i = pool[ job ].first;
+            auto j = pool[ job ].second;
 
-        // LOG_DBG << "Starting OpenMP job " << job << " in thread " << omp_get_thread_num()
-        //          << " for entry (" << i << ", " << j << ")";
+            LOG_PROG( job, pool.size() ) << "of earth_movers_distance()";
 
-        auto emd = earth_movers_distance(
-            sample_set[ i ].sample,
-            sample_set[ j ].sample,
-            with_pendant_length
-        );
+            // Make a local copy of the tree that this thread can modify.
+            // We also tried to use the OMP caluse firstprivate() on emd_tree, but this was slower.
+            auto local_emd_tree = emd_tree;
 
-        result(i, j) = emd;
-        result(j, i) = emd;
-
-        // LOG_DBG << "Starting OpenMP job " << job << " in thread " << omp_get_thread_num()
-        //         << " for entry (" << i << ", " << j << ") with " << emd;
-    }
-
-    // If no Open MP, try Pthreads instead.
-#elif defined( GENESIS_PTHREADS )
-
-    // Prepare threads.
-    int num_threads = utils::Options::get().number_of_threads();
-    std::vector<std::thread> threads;
-
-    // Start all threads. Each thread computes a fixed list of entries, which is roughly
-    // pool.size() / num_threads, scheduled in round-robin fashion.
-    // Because Samples can have different size, this means that some threads might finish before
-    // others. An actual pool would thus be nicer, but this should not matter too much.
-    for (int t = 0; t < num_threads; ++t) {
-        threads.emplace_back(
-            [&]( size_t offset, size_t increment ){
-                for( size_t job = offset; job < pool.size(); job += increment ) {
-                    auto i = pool[ job ].first;
-                    auto j = pool[ job ].second;
-
-                    // LOG_DBG << "Starting Pthreads job " << job << " in thread " << offset
-                    //         << " for entry (" << i << ", " << j << ")";
-
-                    auto emd = earth_movers_distance(
-                        sample_set[ i ].sample,
-                        sample_set[ j ].sample,
-                        with_pendant_length
-                    );
-
-                    // The result matrix is pre-allocated, so we can simply write to it without
-                    // thread safety issues (I hope...)
-                    result(i, j) = emd;
-                    result(j, i) = emd;
-
-                    // LOG_DBG << "Finished Pthreads job " << job << " in thread " << offset
-                    //         << " for entry (" << i << ", " << j << ") with " << emd;
-                }
-            },
-            t, num_threads
-        );
-    }
-
-    // Wait for all threads to finish, collect their results.
-    for (int i = 0; i < num_threads; ++i) {
-        threads[i].join();
-    }
-
-    // If no threads are available at all, use serial version.
-#else
-
-    for( size_t i = 0; i < sample_set.size(); ++i ) {
-
-        // The result is symmetric - we only calculate the upper triangle.
-        for( size_t j = i + 1; j < sample_set.size(); ++j ) {
-            result(i, j) = earth_movers_distance(
-                sample_set[i].sample,
-                sample_set[j].sample,
+            // Call the local function for calculating the EMD.
+            auto emd = earth_movers_distance(
+                local_emd_tree,
+                sample_set[ i ].sample,
+                sample_set[ j ].sample,
                 with_pendant_length
             );
-            result(j, i) = result(i, j);
-        }
-    }
 
-#endif
+            result( i, j ) = emd;
+            result( j, i ) = emd;
+        }
+
+    // If no Open MP, try Pthreads instead.
+    #elif defined( GENESIS_PTHREADS )
+
+        // Prepare threads.
+        size_t const num_threads = utils::Options::get().number_of_threads();
+        std::vector<std::thread> threads;
+
+        // Start all threads. Each thread computes a fixed list of entries, which is roughly
+        // pool.size() / num_threads, scheduled in round-robin fashion.
+        // Because Samples can have different size, this means that some threads might finish before
+        // others. An actual pool would thus be nicer, but this should not matter too much on average.
+        for( size_t t = 0; t < num_threads; ++t ) {
+            threads.emplace_back(
+                [&]( size_t offset, size_t increment ){
+
+                    for( size_t job = offset; job < pool.size(); job += increment ) {
+                        auto i = pool[ job ].first;
+                        auto j = pool[ job ].second;
+
+                        LOG_PROG( job, pool.size() ) << "of earth_movers_distance()";
+
+                        // Make a local copy of the tree that this thread can modify.
+                        // We also tried a pool of pre-allocated copies of the tree, one per thread,
+                        // but this turned out not to give any speedup, so for simplicity, we just
+                        // use local copies in each iteration.
+                        auto local_emd_tree = emd_tree;
+
+                        auto emd = earth_movers_distance(
+                            local_emd_tree,
+                            sample_set[ i ].sample,
+                            sample_set[ j ].sample,
+                            with_pendant_length
+                        );
+
+                        // The result matrix is pre-allocated, so we can simply write to it without
+                        // thread safety issues (I hope...)
+                        result( i, j ) = emd;
+                        result( j, i ) = emd;
+                    }
+                },
+                t, num_threads
+            );
+        }
+
+        // Wait for all threads to finish, collect their results.
+        for( size_t i = 0; i < num_threads; ++i ) {
+            threads[i].join();
+        }
+
+    // If no threads are available at all, use serial version.
+    #else
+
+        for( size_t i = 0; i < sample_set.size(); ++i ) {
+
+            // The result is symmetric - we only calculate the upper triangle.
+            for( size_t j = i + 1; j < sample_set.size(); ++j ) {
+
+                // Clear the masses from the previous iteration.
+                for( auto& edge : emd_tree.edges() ) {
+                    edge->data<tree::EmdEdgeData>().masses.clear();
+                }
+
+                auto emd = earth_movers_distance(
+                    emd_tree,
+                    sample_set[i].sample,
+                    sample_set[j].sample,
+                    with_pendant_length
+                );
+
+                result( i, j ) = emd;
+                result( j, i ) = emd;
+            }
+        }
+
+    #endif
 
     return result;
 }
