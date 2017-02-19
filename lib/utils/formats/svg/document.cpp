@@ -110,23 +110,26 @@ void SvgDocument::write( std::ostream& out ) const
     out << "</svg>\n";
 }
 
-/**
- * @brief Add an SvgObject to the document.
- *
- * Returns the SvgDocument in order to allow for a fluent interface.
- */
 SvgDocument& SvgDocument::add( SvgObject const& object )
 {
     content_.push_back( object );
     return *this;
 }
 
-/**
- * @brief Shortcut operator for add(), which allows an even more fluent interface.
- */
+SvgDocument& SvgDocument::add( SvgObject&& object )
+{
+    content_.push_back( std::move( object ));
+    return *this;
+}
+
 SvgDocument& SvgDocument::operator <<( SvgObject const& object )
 {
     return add( object );
+}
+
+SvgDocument& SvgDocument::operator <<( SvgObject&& object )
+{
+    return add( std::move( object ));
 }
 
 } // namespace utils
