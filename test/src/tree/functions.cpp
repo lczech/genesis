@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -144,6 +144,18 @@ TEST( TreeFunctions, SubtreeMaxPathHeight )
     TestSubtreeMaxPathHeight( "G", 1 );
     TestSubtreeMaxPathHeight( "H", 0 );
     TestSubtreeMaxPathHeight( "I", 0 );
+}
+
+TEST( TreeFunctions, SubtreeMaxPathHeights )
+{
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+
+    Tree tree;
+    DefaultTreeNewickReader().from_string( input, tree );
+
+    auto heights     = subtree_max_path_heights( tree );
+    auto exp_heights = std::vector<size_t>({ 3, 1, 0, 0, 0, 2, 1, 0, 0, 0 });
+    EXPECT_EQ( exp_heights, heights );
 }
 
 // =================================================================================================

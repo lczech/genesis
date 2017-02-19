@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -36,7 +36,8 @@
 #include "tree/tree.hpp"
 
 #include <algorithm>
-#include <assert.h>
+#include <cassert>
+#include <functional>
 #include <unordered_set>
 #include <vector>
 
@@ -225,6 +226,13 @@ std::vector<size_t> subtree_sizes( Tree const& tree )
  */
 size_t subtree_max_path_height( Tree const& tree, TreeLink const& link )
 {
+    if( ! belongs_to( tree, link )) {
+        throw std::runtime_error(
+            "Cannot calculate subtree_max_path_height(), "
+            "as the given Link does not belong to the Tree."
+        );
+    }
+
     // TODO make more efficient. no need for full dist vector.
     auto dists = node_path_length_vector( tree, link.outer().node() );
     size_t max = 0;
@@ -237,17 +245,49 @@ size_t subtree_max_path_height( Tree const& tree, TreeLink const& link )
     return max;
 }
 
-// std::vector<size_t> subtree_max_path_heights( Tree const& tree, TreeNode const& node )
-// {
-//     (void) tree;
-//     (void) node;
-//     throw std::domain_error("Not implemented.");
-// }
-//
-// std::vector<size_t> subtree_max_path_heights( Tree const& tree )
-// {
-//     return subtree_heights( tree, tree.root_node() );
-// }
+std::vector<size_t> subtree_max_path_heights( Tree const& tree, TreeNode const& node )
+{
+    if( ! belongs_to( tree, node )) {
+        throw std::runtime_error(
+            "Cannot calculate subtree_max_path_heights(), "
+            "as the given Node does not belong to the Tree."
+        );
+    }
+
+    auto result = std::vector<size_t>( tree.node_count(), 0 );
+
+    // Recursive helper function that evaluates the wanted size for a given subtree,
+    // stores the result in the vector and returns it for recursive usage.
+    std::function< size_t( TreeLink const* )> rec_subtree_height = [&]( TreeLink const* l ) {
+        size_t link_max = 0;
+        TreeLink const* cl = &l->next();
+        while( cl != l ) {
+            link_max = std::max( link_max, 1 + rec_subtree_height( &cl->outer() ));
+            cl = &cl->next();
+        }
+
+        result[ l->node().index() ] = link_max;
+        return link_max;
+    };
+
+    // Loop all subtrees of the given node and find the highest.
+    // This loop is a bit different from the one in the recursive function, as we need to evaluate
+    // all links of the given starting node, instead of just the ones away from the start node.
+    size_t node_max = 0;
+    TreeLink const* cur_l = &node.link();
+    do {
+        node_max = std::max( node_max, 1 + rec_subtree_height( &cur_l->outer() ));
+        cur_l = &cur_l->next();
+    } while( cur_l != &node.link() );
+    result[ node.index() ] = node_max;
+
+    return result;
+}
+
+std::vector<size_t> subtree_max_path_heights( Tree const& tree )
+{
+    return subtree_max_path_heights( tree, tree.root_node() );
+}
 
 // =================================================================================================
 //     Misc
