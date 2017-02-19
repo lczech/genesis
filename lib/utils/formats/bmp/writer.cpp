@@ -45,7 +45,7 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Writing
+//     Writing Matrix of Color
 // =================================================================================================
 
 void BmpWriter::to_stream( Matrix<Color> const& image, std::ostream& outstream ) const
@@ -54,32 +54,41 @@ void BmpWriter::to_stream( Matrix<Color> const& image, std::ostream& outstream )
     auto const width  = image.cols();
     auto const height = image.rows();
 
-    // Padding needed to fill rows to a multiple of 4 bytes, and resulting data size in bytes.
-    size_t const row_pad   = (4 - (( width * 3 ) % 4 )) % 4;
-    size_t const data_size = ( width * 3 + row_pad ) * height;
+    // Padding needed to fill rows to a multiple of 4 bytes.
+    size_t const row_pad = (4 - (( width * 3 ) % 4 )) % 4;
 
-    // Size checks!
+    // Length of one line of the image, in bytes.
+    size_t const line_len = width * 3 + row_pad;
+    assert(( row_pad < 4 ) && ( line_len % 4 == 0 ));
+
+    // Total resulting data size in bytes
+    size_t const data_size = line_len * height;
+
+    // Size checks! Bitmaps can't be larger than ~4GB
     if(
         height > static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) ||
         width  > static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) ||
         14 + 40 + data_size > static_cast<size_t>( std::numeric_limits<uint32_t>::max() )
     ) {
         throw std::runtime_error(
-            "Cannot save Bitmap with more than ~" +
+            "Cannot save Bitmap larger than " +
             std::to_string( std::numeric_limits<uint32_t>::max() ) +
-            " pixels."
+            " bytes."
         );
     }
 
-    // Prepare and write bitmap header.
+    // File header.
     BitmapFileheader file_header;
-    BitmapInfoheader info_header;
-
     file_header.bfSize     = 14 + 40 + data_size;
+    file_header.bfOffBits  = 14 + 40;
+
+    // Info header.
+    BitmapInfoheader info_header;
     info_header.biWidth    = width;
     info_header.biHeight   = height;
     info_header.biBitCount = 24;
 
+    // Write headers.
     write_file_header_( file_header, outstream );
     write_info_header_( info_header, outstream );
 
@@ -116,6 +125,124 @@ void BmpWriter::to_file( Matrix<Color> const& image, std::string const& filename
     }
 
     to_stream( image, fstr );
+}
+
+// =================================================================================================
+//     Writing Matrix of unsigned char
+// =================================================================================================
+
+void BmpWriter::to_stream( Matrix<unsigned char> const& image, std::ostream& outstream ) const
+{
+    // Build a simplye grayscale palette.
+    auto palette = std::vector<Color>( 256 );
+    for( size_t i = 0; i < 256; ++i ) {
+        palette[i].r(i);
+        palette[i].g(i);
+        palette[i].b(i);
+    }
+    to_stream( image, palette, outstream );
+}
+
+void BmpWriter::to_file( Matrix<unsigned char> const& image, std::string const& filename ) const
+{
+    if( utils::file_exists(filename) ) {
+        throw std::runtime_error( "Bmp file '" + filename + "' already exist." );
+    }
+
+    std::ofstream fstr( filename, std::ofstream::binary );
+    if( !fstr ) {
+        throw std::runtime_error( "Cannot write Bmp file '" + filename + "'." );
+    }
+
+    to_stream( image, fstr );
+}
+
+// =================================================================================================
+//     Writing Matrix of unsigned char with Color palette
+// =================================================================================================
+
+void BmpWriter::to_stream(
+    Matrix<unsigned char> const& image, std::vector<Color> palette, std::ostream& outstream
+) const {
+    // Use some nicer names.
+    auto const width  = image.cols();
+    auto const height = image.rows();
+
+    // Padding needed to fill rows to a multiple of 4 bytes.
+    size_t const row_pad = (4 - ( width % 4 )) % 4;
+
+    // Length of one line of the image, in bytes.
+    size_t const line_len = width + row_pad;
+    assert(( row_pad < 4 ) && ( line_len % 4 == 0 ));
+
+    // Total resulting data size in bytes
+    size_t const data_size = line_len * height;
+
+    // Size checks! Bitmaps can't be larger than ~4GB
+    if(
+        height > static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) ||
+        width  > static_cast<size_t>( std::numeric_limits<uint32_t>::max() ) ||
+        14 + 40 + 256 * 4 + data_size > static_cast<size_t>( std::numeric_limits<uint32_t>::max() )
+    ) {
+        throw std::runtime_error(
+            "Cannot save Bitmap larger than " +
+            std::to_string( std::numeric_limits<uint32_t>::max() ) +
+            " bytes."
+        );
+    }
+
+    // File header.
+    BitmapFileheader file_header;
+    file_header.bfSize        = 14 + 40 + 256 * 4 + data_size;
+    file_header.bfOffBits     = 14 + 40 + 256 * 4;
+
+    // Info and info header.
+    BitmapInfo info;
+    info.bmiHeader.biWidth    = width;
+    info.bmiHeader.biHeight   = height;
+    info.bmiHeader.biBitCount = 8;
+
+    // Color palette.
+    info.bmiColors = std::vector<RgbQuad>( 256 );
+    for( size_t i = 0; i < 256; ++i ) {
+        info.bmiColors[i].rgbBlue  = palette[i].b();
+        info.bmiColors[i].rgbGreen = palette[i].g();
+        info.bmiColors[i].rgbRed   = palette[i].r();
+    }
+
+    // Write headers.
+    write_file_header_( file_header, outstream );
+    write_info_( info, outstream );
+
+    // Write data.
+    for( size_t yr = 0; yr < height; ++yr ) {
+        // Run row-wise backwards (demanded by bmp standard).
+        auto y = height - 1 - yr;
+
+        for( size_t x = 0; x < width; ++x ) {
+            outstream.put( image( y, x ));
+        }
+
+        // Fill row to multiple of 4 bytes.
+        for( size_t x = 0; x < row_pad; ++x ) {
+            outstream.put( 0 );
+        }
+    }
+}
+
+void BmpWriter::to_file(
+    Matrix<unsigned char> const& image, std::vector<Color> palette, std::string const& filename
+) const {
+    if( utils::file_exists(filename) ) {
+        throw std::runtime_error( "Bmp file '" + filename + "' already exist." );
+    }
+
+    std::ofstream fstr( filename, std::ofstream::binary );
+    if( !fstr ) {
+        throw std::runtime_error( "Cannot write Bmp file '" + filename + "'." );
+    }
+
+    to_stream( image, palette, fstr );
 }
 
 // =================================================================================================
@@ -174,6 +301,17 @@ void BmpWriter::write_info_header_( BitmapInfoheader const& header, std::ostream
     write_uint32_( header.biYPelsPerMeter, target );
     write_uint32_( header.biClrUsed,       target );
     write_uint32_( header.biClrImportant,  target );
+}
+
+void BmpWriter::write_info_( BitmapInfo const& info, std::ostream& target ) const
+{
+    write_info_header_( info.bmiHeader, target );
+    for( auto const& c : info.bmiColors ) {
+        target.put( c.rgbBlue );
+        target.put( c.rgbGreen );
+        target.put( c.rgbRed );
+        target.put( c.rgbReserved );
+    }
 }
 
 } // namespace utils

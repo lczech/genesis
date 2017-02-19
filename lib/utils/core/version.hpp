@@ -70,7 +70,7 @@ inline std::string genesis_version()
  */
 inline std::string genesis_url()
 {
-    return "http://genesis-lib.org/";
+    return "http://genesis-lib.org";
 }
 
 /**

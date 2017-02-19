@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -62,14 +62,6 @@ SvgLine::SvgLine( double x1, double y1, double x2, double y2, SvgStroke const& s
 //     Members
 // -------------------------------------------------------------
 
-void SvgLine::offset( double x, double y )
-{
-    point_1.x += x;
-    point_1.y += y;
-    point_2.x += x;
-    point_2.y += y;
-}
-
 SvgBox SvgLine::bounding_box() const
 {
     return {
@@ -78,15 +70,15 @@ SvgBox SvgLine::bounding_box() const
     };
 }
 
-void SvgLine::write( std::ostream& out, size_t indent ) const
+void SvgLine::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<line";
 
-    out << svg_attribute( "x1", point_1.x );
-    out << svg_attribute( "y1", point_1.y );
-    out << svg_attribute( "x2", point_2.x );
-    out << svg_attribute( "y2", point_2.y );
+    out << svg_attribute( "x1", point_1.x + options.offset_x );
+    out << svg_attribute( "y1", point_1.y + options.offset_y );
+    out << svg_attribute( "x2", point_2.x + options.offset_x );
+    out << svg_attribute( "y2", point_2.y + options.offset_y );
 
     stroke.write( out );
     out << " />\n";
@@ -127,24 +119,18 @@ SvgRect::SvgRect(
 //     Members
 // -------------------------------------------------------------
 
-void SvgRect::offset( double x, double y )
-{
-    position.x += x;
-    position.y += y;
-}
-
 SvgBox SvgRect::bounding_box() const
 {
     return { position, size.width, size.height };
 }
 
-void SvgRect::write( std::ostream& out, size_t indent ) const
+void SvgRect::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<rect";
 
-    out << svg_attribute( "x", position.x );
-    out << svg_attribute( "y", position.y );
+    out << svg_attribute( "x", position.x + options.offset_x );
+    out << svg_attribute( "y", position.y + options.offset_y );
     out << svg_attribute( "width",  size.width );
     out << svg_attribute( "height", size.height );
 
@@ -191,12 +177,6 @@ SvgCircle::SvgCircle(
 //     Members
 // -------------------------------------------------------------
 
-void SvgCircle::offset( double x, double y )
-{
-    center.x += x;
-    center.y += y;
-}
-
 SvgBox SvgCircle::bounding_box() const
 {
     return {
@@ -205,13 +185,13 @@ SvgBox SvgCircle::bounding_box() const
     };
 }
 
-void SvgCircle::write( std::ostream& out, size_t indent ) const
+void SvgCircle::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<circle";
 
-    out << svg_attribute( "cx", center.x );
-    out << svg_attribute( "cy", center.y );
+    out << svg_attribute( "cx", center.x + options.offset_x );
+    out << svg_attribute( "cy", center.y + options.offset_y );
     out << svg_attribute( "r",  radius );
 
     stroke.write( out );
@@ -253,12 +233,6 @@ SvgEllipse::SvgEllipse(
 //     Members
 // -------------------------------------------------------------
 
-void SvgEllipse::offset( double x, double y )
-{
-    center.x += x;
-    center.y += y;
-}
-
 SvgBox SvgEllipse::bounding_box() const
 {
     return {
@@ -267,13 +241,13 @@ SvgBox SvgEllipse::bounding_box() const
     };
 }
 
-void SvgEllipse::write( std::ostream& out, size_t indent ) const
+void SvgEllipse::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<ellipse";
 
-    out << svg_attribute( "cx", center.x );
-    out << svg_attribute( "cy", center.y );
+    out << svg_attribute( "cx", center.x + options.offset_x );
+    out << svg_attribute( "cy", center.y + options.offset_y );
     out << svg_attribute( "rx", rx );
     out << svg_attribute( "ry", ry );
 
@@ -328,14 +302,6 @@ SvgPolyline& SvgPolyline::operator <<( SvgPoint p )
     return add( p );
 }
 
-void SvgPolyline::offset( double x, double y )
-{
-    for( auto& point : points ) {
-        point.x += x;
-        point.y += y;
-    }
-}
-
 SvgBox SvgPolyline::bounding_box() const
 {
     if( points.size() == 0 ) {
@@ -360,7 +326,7 @@ SvgBox SvgPolyline::bounding_box() const
     };
 }
 
-void SvgPolyline::write( std::ostream& out, size_t indent ) const
+void SvgPolyline::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<polyline";
@@ -370,7 +336,8 @@ void SvgPolyline::write( std::ostream& out, size_t indent ) const
         if( i > 0 ) {
             out << " ";
         }
-        out << points[i].x << "," << points[i].y;
+        out << ( points[i].x + options.offset_x ) << ",";
+        out << ( points[i].y + options.offset_y );
     }
     out << "\"";
 
@@ -425,14 +392,6 @@ SvgPolygon& SvgPolygon::operator <<( SvgPoint p )
     return add( p );
 }
 
-void SvgPolygon::offset( double x, double y )
-{
-    for( auto& point : points ) {
-        point.x += x;
-        point.y += y;
-    }
-}
-
 SvgBox SvgPolygon::bounding_box() const
 {
     if( points.size() == 0 ) {
@@ -457,7 +416,7 @@ SvgBox SvgPolygon::bounding_box() const
     };
 }
 
-void SvgPolygon::write( std::ostream& out, size_t indent ) const
+void SvgPolygon::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<polygon";
@@ -467,7 +426,8 @@ void SvgPolygon::write( std::ostream& out, size_t indent ) const
         if( i > 0 ) {
             out << " ";
         }
-        out << points[i].x << "," << points[i].y;
+        out << ( points[i].x + options.offset_x ) << ",";
+        out << ( points[i].y + options.offset_y );
     }
     out << "\"";
 
@@ -517,19 +477,15 @@ SvgPath& SvgPath::operator <<( std::string elem )
     return add( elem );
 }
 
-void SvgPath::offset( double x, double y )
-{
-    (void) x;
-    (void) y;
-}
-
 SvgBox SvgPath::bounding_box() const
 {
     return {};
 }
 
-void SvgPath::write( std::ostream& out, size_t indent ) const
+void SvgPath::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
+    (void) options;
+
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<path";
 

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -83,19 +83,17 @@ public:
     //     Members
     // -------------------------------------------------------------
 
-    void offset( double x, double y )
-    {
-        pimpl_->offset_( x, y );
-    }
-
     SvgBox bounding_box() const
     {
         return pimpl_->bounding_box_();
     }
 
-    void write( std::ostream& out, size_t indent = 0 ) const
-    {
-        pimpl_->write_( out, indent );
+    void write(
+        std::ostream& out,
+        size_t indent = 0,
+        SvgDrawingOptions const& options = SvgDrawingOptions()
+    ) const {
+        pimpl_->write_( out, indent, options );
     }
 
     // -------------------------------------------------------------
@@ -108,9 +106,13 @@ private:
     {
         virtual ~Concept() {}
 
-        virtual void offset_( double x, double y ) = 0;
         virtual SvgBox bounding_box_() const = 0;
-        virtual void write_( std::ostream& out, size_t indent = 0 ) const = 0;
+
+        virtual void write_(
+            std::ostream& out,
+            size_t indent = 0,
+            SvgDrawingOptions const& options = SvgDrawingOptions()
+        ) const = 0;
 
         virtual std::unique_ptr< Concept > clone() const = 0;
     };
@@ -122,19 +124,17 @@ private:
             : object_( value )
         {}
 
-        void offset_( double x, double y )
-        {
-            object_.offset( x, y );
-        }
-
         SvgBox bounding_box_() const
         {
             return object_.bounding_box();
         }
 
-        void write_( std::ostream& out, size_t indent = 0 ) const
-        {
-            object_.write( out, indent );
+        void write_(
+            std::ostream& out,
+            size_t indent = 0,
+            SvgDrawingOptions const& options = SvgDrawingOptions()
+        ) const {
+            object_.write( out, indent, options );
         }
 
         std::unique_ptr< Concept > clone() const

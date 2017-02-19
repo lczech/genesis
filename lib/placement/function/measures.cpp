@@ -77,55 +77,6 @@ namespace placement {
 //     Helper Method pquery_distance
 // =================================================================================================
 
-/**
- * @brief Calculates the normalized distance between two plain pqueries. It is mainly a helper
- * method for distance calculations (e.g., pairwise distance, variance).
- *
- * For each placement in the two pqueries, a distance is calculated, and their normalized sum is
- * returned. Normalization is done using the mass of placements in both pqueries.
- *
- * The distance between two placements is calculated as the shortest path between them. This
- * includes the their position on the branches, and - if specified - the pendant_length of both.
- * There are three cases that might occur:
- *
- *   1. **Both placements are on the same branch.**
- *      In this case, their distance is caluclated as their difference in proximal_lengths (plus
- *      if specified the sum of their pendant_lengths).
- *
- *   2. **The path between the placements includes the root.**
- *      The distance of a placement from its neighbouring nodes is usually given in form of the
- *      proximal_length, which is the distance of the placement to the node (at the end of its
- *      branch) that lies in direction of the root. Thus, there is an implicit notion of a root,
- *      that we need to consider. If the path between two placements contains the root, we can
- *      directly calculate their distance as the distance between the two promixal nodes plus
- *      proximal_lengths (and possibly pendant_lengths) of both placements. We call this the
- *      promixal-promixal case.
- *
- *   3. **The root is not part of the path between the placements.**
- *      This case means that one of the two placements lies on the path between the other placement
- *      and the root -- thus, the path between the placements does not contain the root.
- *      The distance between the placements cannot be calculated using the proximal_lengths
- *      directly, but we need to get the distal_length (away from the root) of the inner placement
- *      first. This is simply the difference between branch_length and proximal_length of that
- *      placement. Of course, this case comes in two flavours, because both placements can be the
- *      inner or outer one. They are called proximal-distal case and distal-proximal case,
- *      respectively.
- *
- * The first case is easy to detect by comparing the edge nums. However, distinguishing between the
- * latter two cases is expensive, as it involves finding the path to the root for both placements.
- * To speed this up, we instead use a distance matrix that is calculated in the beginning of any
- * algorithm using this method and contains the pairwise distances between all nodes of the tree.
- * Using this, we do not need to find paths between placements, but simply go to the nodes at the
- * end of the branches of the placements and do a lookup for those nodes.
- *
- * With this technique, we can calculate the distances between the placements for all
- * three cases (promixal-promixal, proximal-distal and distal-proximal) cheaply. The wanted distance
- * is then simply the minimum of those three distances. This is correct, because the two wrong cases
- * will always produce an overestimation of the distance.
- *
- * This distance is normalized using the `like_weight_ratio` of both placements, before
- * summing it up to calculate the total distance between the pqueries.
- */
 double pquery_distance (
     const PqueryPlain&            pqry_a,
     const PqueryPlain&            pqry_b,
@@ -245,36 +196,17 @@ double expected_distance_between_placement_locations(
     return 2 * result;
 }
 
-/**
- * @brief Calculate the EDPL uncertainty values for a Pquery.
- *
- * See http://matsen.github.io/pplacer/generated_rst/guppy_edpl.html for more information.
- *
- * This function expects a Pquery and the Sample it belongs to. This is necessary in order to
- * get the Tree of the Sample and calculate distances between its Nodes.
- */
 double expected_distance_between_placement_locations( Sample const& sample, Pquery const& pquery )
 {
     auto node_distances = node_branch_length_distance_matrix( sample.tree() );
     return expected_distance_between_placement_locations( pquery, node_distances );
 }
 
-/**
- * @brief Shortcut alias for @link
- * expected_distance_between_placement_locations( Sample const&, Pquery const& )
- * expected_distance_between_placement_locations()@endlink.
- */
 double edpl( Sample const& sample, Pquery const& pquery )
 {
     return expected_distance_between_placement_locations( sample, pquery );
 }
 
-/**
- * @brief Calculate the @link
- * expected_distance_between_placement_locations( Sample const&, Pquery const& )
- * expected_distance_between_placement_locations()@endlink for all @link Pquery Pqueries@endlink
- * in the Sample.
- */
 std::vector<double> expected_distance_between_placement_locations( Sample const& sample )
 {
     // Prepare result (facilitate copy elision).
@@ -291,10 +223,6 @@ std::vector<double> expected_distance_between_placement_locations( Sample const&
     return result;
 }
 
-/**
- * @brief Shortcut alias for @link expected_distance_between_placement_locations( Sample const& )
- * expected_distance_between_placement_locations()@endlink.
- */
 std::vector<double> edpl( Sample const& sample )
 {
     return expected_distance_between_placement_locations( sample );
@@ -304,62 +232,28 @@ std::vector<double> edpl( Sample const& sample )
 //     Earth Movers Distance
 // =================================================================================================
 
+// -------------------------------------------------------------------------
+//     Local EMD work function
+// -------------------------------------------------------------------------
+
 /**
- * @brief Calculate the earth mover's distance between two Sample%s.
+ * @brief Local helper function to calculate the EMD given an EmdTree.
  *
- * This function interprets the @link PqueryPlacement::like_weight_ratio like_weight_ratios@endlink
- * of the PqueryPlacement%s as masses distributed along the branches of a tree. It then calculates
- * the earth mover's distance between those masses for the distrubitons induced by the two given
- * Sample%s.
+ * Precondictions for calling this function:
  *
- * In order to do so, first, a tree with the average branch lengths of the two PlacementTree%s is
- * calculated. This is because of numerical issues that might yield different branch lengths.
- * This necessiates that the trees have the same topology. If not, an std::runtime_error is thrown.
- * The masses are then distributed on this tree, using the same relative position on their branches
- * that they had in their original trees.
+ *   * The tree needs to contain EmdNodeData and EmdEdgeData on its nodes and edges.
+ *   * It needs to be compatible with the trees of the two given Samples.
+ *   * The edges must not contain any masses on them already.
  *
- * The calculation furthermore takes the @link PqueryName::multiplicity multiplicities@endlink of
- * the @link Pquery Pqueries@endlink into account. That means, pqueries with higher (total)
- * multiplicity have a higher influence on the calculated distance.
- *
- * As the two Sample%s might have a different total number of @link Pquery Pqueries@endlink, the
- * masses of the Samples are first normalized to 1.0, using all the
- * @link PqueryPlacement::like_weight_ratio like_weight_ratios@endlink and
- * @link PqueryName::multiplicity multiplicities@endlink of the Pqueries.
- * As a consequence, the resulting distance will not reflect the total number of Pqueries, but only
- * their relative (normalized) distrubution on the tree.
- *
- * See @link tree::earth_movers_distance( EmdTree const& ) earth_movers_distance( EmdTree const& )
- * @endlink for more information on the actual distance calculation.
+ * All this is not checked but assumed to be ensured by the caller. As this function is local to
+ * this compilation unit, potential callers are limited, so this should be okay.
  */
 double earth_movers_distance (
-    const Sample& lhs,
-    const Sample& rhs,
-    bool          with_pendant_length
+    tree::EmdTree& emd_tree,
+    Sample const&  lhs,
+    Sample const&  rhs,
+    bool           with_pendant_length
 ) {
-    // Get a tree with the average branch lengths of both provided trees.
-    // This function also throws in case the trees have different topologies.
-    tree::TreeSet tset;
-    tset.add( "lhs", lhs.tree() );
-    tset.add( "rhs", rhs.tree() );
-    auto avg_length_tree = tree::average_branch_length_tree( tset );
-
-    // Create an EMD tree from the average branch length tree.
-    auto emd_tree = tree::convert(
-        avg_length_tree,
-        [] ( tree::BaseNodeData const& node_data ) {
-            (void) node_data;
-            return std::unique_ptr< tree::EmdNodeData >();
-        },
-        [] ( tree::BaseEdgeData const& edge_data ) {
-            auto emd_edge = tree::EmdEdgeData::create();
-            emd_edge->branch_length
-                = dynamic_cast< PlacementEdgeData const& >( edge_data ).branch_length;
-
-            return emd_edge;
-        }
-    );
-
     // Helper function that copies the masses from a sample to the emd tree.
     // It furthermore returns the amount of work needed to move the masses from their pendant
     // position to the branch (this result is only used if with_pendant_length is true).
@@ -414,14 +308,31 @@ double earth_movers_distance (
     return work;
 }
 
-/**
- * @brief Calculate the pairwise Earth Movers Distance for all Sample%s in a SampleSet.
- *
- * The result is a pairwise distance @link utils::Matrix Matrix@endlink using the indices of the
- * Sample%s in the SampleSet.
- * See @link earth_movers_distance( const Sample& lhs, const Sample& rhs, bool with_pendant_length )
- * the Sample version@endlink of this function for details on this distance measure.
- */
+// -------------------------------------------------------------------------
+//     EMD between two Samples
+// -------------------------------------------------------------------------
+
+double earth_movers_distance (
+    const Sample& lhs,
+    const Sample& rhs,
+    bool          with_pendant_length
+) {
+    // Get a tree with the average branch lengths of both provided trees.
+    // This function also throws in case the trees have different topologies.
+    tree::TreeSet tset;
+    tset.add( "lhs", lhs.tree() );
+    tset.add( "rhs", rhs.tree() );
+    auto avg_length_tree = tree::average_branch_length_tree( tset );
+
+    // Create an EMD tree from the average branch length tree, then calc the EMD.
+    auto emd_tree = tree::convert_default_tree_to_emd_tree( avg_length_tree );
+    return earth_movers_distance( emd_tree, lhs, rhs, with_pendant_length );
+}
+
+// -------------------------------------------------------------------------
+//     EMD matrix for a SampleSet
+// -------------------------------------------------------------------------
+
 utils::Matrix<double> earth_movers_distance(
     SampleSet const& sample_set,
     bool             with_pendant_length
@@ -429,106 +340,136 @@ utils::Matrix<double> earth_movers_distance(
     // Init result matrix.
     auto result = utils::Matrix<double>( sample_set.size(), sample_set.size(), 0.0 );
 
-    // Common code for threaded builds.
-#if defined( GENESIS_OPENMP ) || defined( GENESIS_PTHREADS )
-
-    // Build a pool of index pairs of the matrix to compute.
-    // The result is symmetric - we only calculate the upper triangle.
-    std::vector< std::pair<size_t, size_t> > pool;
-    for( size_t i = 0; i < sample_set.size(); ++i ) {
-        for( size_t j = i + 1; j < sample_set.size(); ++j ) {
-            pool.emplace_back( i, j );
-        }
+    // Build an average branch length tree for all trees in the SampleSet.
+    // This also serves as a check whether all trees in the set are compatible with each other,
+    // as average_branch_length_tree() throws if the trees have different topologies.
+    // Also, turn the resulting tree into an Emd Tree.
+    tree::TreeSet avg_tree_set;
+    for( auto const& smp : sample_set ) {
+        avg_tree_set.add( "", smp.sample.tree() );
     }
+    auto emd_tree = tree::convert_default_tree_to_emd_tree(
+        tree::average_branch_length_tree( avg_tree_set )
+    );
+    avg_tree_set.clear();
+    // TODO if we introduce an avg tree calculation that accepts an iterator, we do not need
+    // TODO to create a copied tree set of all trees here.
 
-#endif
+    // Common code for threaded builds.
+    #if defined( GENESIS_OPENMP ) || defined( GENESIS_PTHREADS )
+
+        // Build a pool of index pairs of the matrix to compute.
+        // The result is symmetric - we only calculate the upper triangle.
+        std::vector< std::pair<size_t, size_t> > pool;
+        for( size_t i = 0; i < sample_set.size(); ++i ) {
+            for( size_t j = i + 1; j < sample_set.size(); ++j ) {
+                pool.emplace_back( i, j );
+            }
+        }
+
+    #endif
 
     // Prefer to use Open MP.
-#if defined( GENESIS_OPENMP )
+    #if defined( GENESIS_OPENMP )
 
-    #pragma omp parallel for schedule(dynamic)
-    for( size_t job = 0; job < pool.size(); ++job ) {
-        auto i = pool[ job ].first;
-        auto j = pool[ job ].second;
+        #pragma omp parallel for schedule( dynamic )
+        for( size_t job = 0; job < pool.size(); ++job ) {
+            auto i = pool[ job ].first;
+            auto j = pool[ job ].second;
 
-        // LOG_DBG << "Starting OpenMP job " << job << " in thread " << omp_get_thread_num()
-        //          << " for entry (" << i << ", " << j << ")";
+            LOG_PROG( job, pool.size() ) << "of earth_movers_distance()";
 
-        auto emd = earth_movers_distance(
-            sample_set[ i ].sample,
-            sample_set[ j ].sample,
-            with_pendant_length
-        );
+            // Make a local copy of the tree that this thread can modify.
+            // We also tried to use the OMP caluse firstprivate() on emd_tree, but this was slower.
+            auto local_emd_tree = emd_tree;
 
-        result(i, j) = emd;
-        result(j, i) = emd;
-
-        // LOG_DBG << "Starting OpenMP job " << job << " in thread " << omp_get_thread_num()
-        //         << " for entry (" << i << ", " << j << ") with " << emd;
-    }
-
-    // If no Open MP, try Pthreads instead.
-#elif defined( GENESIS_PTHREADS )
-
-    // Prepare threads.
-    int num_threads = utils::Options::get().number_of_threads();
-    std::vector<std::thread> threads;
-
-    // Start all threads. Each thread computes a fixed list of entries, which is roughly
-    // pool.size() / num_threads, scheduled in round-robin fashion.
-    // Because Samples can have different size, this means that some threads might finish before
-    // others. An actual pool would thus be nicer, but this should not matter too much.
-    for (int t = 0; t < num_threads; ++t) {
-        threads.emplace_back(
-            [&]( size_t offset, size_t increment ){
-                for( size_t job = offset; job < pool.size(); job += increment ) {
-                    auto i = pool[ job ].first;
-                    auto j = pool[ job ].second;
-
-                    // LOG_DBG << "Starting Pthreads job " << job << " in thread " << offset
-                    //         << " for entry (" << i << ", " << j << ")";
-
-                    auto emd = earth_movers_distance(
-                        sample_set[ i ].sample,
-                        sample_set[ j ].sample,
-                        with_pendant_length
-                    );
-
-                    // The result matrix is pre-allocated, so we can simply write to it without
-                    // thread safety issues (I hope...)
-                    result(i, j) = emd;
-                    result(j, i) = emd;
-
-                    // LOG_DBG << "Finished Pthreads job " << job << " in thread " << offset
-                    //         << " for entry (" << i << ", " << j << ") with " << emd;
-                }
-            },
-            t, num_threads
-        );
-    }
-
-    // Wait for all threads to finish, collect their results.
-    for (int i = 0; i < num_threads; ++i) {
-        threads[i].join();
-    }
-
-    // If no threads are available at all, use serial version.
-#else
-
-    for( size_t i = 0; i < sample_set.size(); ++i ) {
-
-        // The result is symmetric - we only calculate the upper triangle.
-        for( size_t j = i + 1; j < sample_set.size(); ++j ) {
-            result(i, j) = earth_movers_distance(
-                sample_set[i].sample,
-                sample_set[j].sample,
+            // Call the local function for calculating the EMD.
+            auto emd = earth_movers_distance(
+                local_emd_tree,
+                sample_set[ i ].sample,
+                sample_set[ j ].sample,
                 with_pendant_length
             );
-            result(j, i) = result(i, j);
-        }
-    }
 
-#endif
+            result( i, j ) = emd;
+            result( j, i ) = emd;
+        }
+
+    // If no Open MP, try Pthreads instead.
+    #elif defined( GENESIS_PTHREADS )
+
+        // Prepare threads.
+        size_t const num_threads = utils::Options::get().number_of_threads();
+        std::vector<std::thread> threads;
+
+        // Start all threads. Each thread computes a fixed list of entries, which is roughly
+        // pool.size() / num_threads, scheduled in round-robin fashion.
+        // Because Samples can have different size, this means that some threads might finish before
+        // others. An actual pool would thus be nicer, but this should not matter too much on average.
+        for( size_t t = 0; t < num_threads; ++t ) {
+            threads.emplace_back(
+                [&]( size_t offset, size_t increment ){
+
+                    for( size_t job = offset; job < pool.size(); job += increment ) {
+                        auto i = pool[ job ].first;
+                        auto j = pool[ job ].second;
+
+                        LOG_PROG( job, pool.size() ) << "of earth_movers_distance()";
+
+                        // Make a local copy of the tree that this thread can modify.
+                        // We also tried a pool of pre-allocated copies of the tree, one per thread,
+                        // but this turned out not to give any speedup, so for simplicity, we just
+                        // use local copies in each iteration.
+                        auto local_emd_tree = emd_tree;
+
+                        auto emd = earth_movers_distance(
+                            local_emd_tree,
+                            sample_set[ i ].sample,
+                            sample_set[ j ].sample,
+                            with_pendant_length
+                        );
+
+                        // The result matrix is pre-allocated, so we can simply write to it without
+                        // thread safety issues (I hope...)
+                        result( i, j ) = emd;
+                        result( j, i ) = emd;
+                    }
+                },
+                t, num_threads
+            );
+        }
+
+        // Wait for all threads to finish, collect their results.
+        for( size_t i = 0; i < num_threads; ++i ) {
+            threads[i].join();
+        }
+
+    // If no threads are available at all, use serial version.
+    #else
+
+        for( size_t i = 0; i < sample_set.size(); ++i ) {
+
+            // The result is symmetric - we only calculate the upper triangle.
+            for( size_t j = i + 1; j < sample_set.size(); ++j ) {
+
+                // Clear the masses from the previous iteration.
+                for( auto& edge : emd_tree.edges() ) {
+                    edge->data<tree::EmdEdgeData>().masses.clear();
+                }
+
+                auto emd = earth_movers_distance(
+                    emd_tree,
+                    sample_set[i].sample,
+                    sample_set[j].sample,
+                    with_pendant_length
+                );
+
+                result( i, j ) = emd;
+                result( j, i ) = emd;
+            }
+        }
+
+    #endif
 
     return result;
 }
@@ -537,29 +478,6 @@ utils::Matrix<double> earth_movers_distance(
 //     Center of Gravity
 // =================================================================================================
 
-/**
- * @brief Calculate the Center of Gravity of the placements on a tree.
- *
- * The center of gravity is the point on the tree where all masses of the placements on the one
- * side of it times their distance from the point are equal to this sum on the other side of the
- * point. In the following example, the hat `^` marks this point on a line with two placements:
- * One has mass 1 and distance 3 from the central point, and one as mass 3 and distance 1,
- * so that the product of their mass and distance to the point is the same:
- *
- *                   3
- *                   |
- *     1             |
- *     |_____________|
- *               ^
- *
- * It is thus like calculating masses and torques on a lever in order to find their physical
- * center of mass/gravity.
- *
- * This calculation is done for the whole tree, with the masses calculated from the
- * `like_weight_ratio` and distances in terms of the `branch_length` of the edges and the
- * `proximal_length` and (if specificed in the method parameter) the `pendant_length` of the
- * placements.
- */
 std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     const Sample& smp,
     bool          with_pendant_length
@@ -1033,12 +951,6 @@ std::pair<PlacementTreeEdge const*, double> center_of_gravity (
     return std::make_pair(central_edge, result_proximal_length);
 }
 
-/**
- * @brief
- *
- * \f$ Var(X) = E[ (x - \mu)^2 ] = \frac{\sum (x - \mu)^2 \cdot \omega} {\sum \omega} \f$, where
- * the weights \f$ \omega \f$ are the `like_weight_ratio`s of the placements.
- */
 double center_of_gravity_variance (
     const Sample& smp,
     bool          with_pendant_length
@@ -1102,9 +1014,6 @@ double center_of_gravity_variance (
     return variance / mass;
 }
 
-/**
- * @brief
- */
 double center_of_gravity_distance (
     const Sample& smp_a,
     const Sample& smp_b,
@@ -1180,20 +1089,6 @@ double center_of_gravity_distance (
 //     Pairwise Distance
 // =================================================================================================
 
-/**
- * @brief Calculate the normalized pairwise distance between all placements of the two Samples.
- *
- * This method calculates the distance between two Sample%s as the normalized sum of the distances
- * between all pairs of @link Pquery Pqueries @endlink in the Sample. It is similar to the
- * variance() calculation, which calculates this sum for the squared distances between all Pqueries
- * of one Sample.
- *
- * @param  smp_a               First Sample to which the distances shall be calculated to.
- * @param  smp_b               Second Sample to which the distances shall be calculated to.
- * @param  with_pendant_length Whether or not to include all pendant lengths in the calculation.
- *
- * @return                         Distance value.
- */
 double pairwise_distance (
     const Sample& smp_a,
     const Sample& smp_b,
@@ -1312,9 +1207,6 @@ std::vector< utils::Histogram > node_distance_histograms (
     return hist_vec;
 }
 
-/**
- * @brief Calculate the Node Histogram Distance of two Sample%s.
- */
 double node_histogram_distance (
     Sample const& sample_a,
     Sample const& sample_b,
@@ -1344,11 +1236,6 @@ double node_histogram_distance (
     return dist / static_cast< double >( sample_a.tree().node_count() );
 }
 
-/**
- * @brief Calculate the
- * @link node_histogram_distance( Sample const&, Sample const&, size_t ) node_histogram_distance()@endlink
- * for every pair of Sample%s in the SampleSet.
- */
 utils::Matrix<double> node_histogram_distance (
     SampleSet const& sample_set,
     size_t           histogram_bins
@@ -1464,30 +1351,6 @@ void variance_thread (
     *partial = tmp_partial;
 }
 
-/**
- * @brief Calculate the variance of the placements on a tree.
- *
- * The variance is a measure of how far a set of items is spread out in its space
- * (http://en.wikipedia.org/wiki/variance). In many cases, it can be measured using the mean of the
- * items. However, when considering placements on a tree, this does not truly measure how far they
- * are from each other. Thus, this algorithm applies a different method of calculating the variance
- * in terms of squared deviations of all items from each other:
- * \f$ Var(X) = \frac{1}{n^2} \sum_{i=1}^n \sum_{j=1}^n \frac{1}{2}(x_i - x_j)^2 \f$,
- * where \f$ (x_i - x_j) \f$ denotes the distance between two placements.
- *
- * According to the formula above, each pair of placements is evaluated twice, and subsequently
- * their distance need to be halfed when being added to the sum of distanaces. Instead of that,
- * we calculate the distance for each pair only once, thus are able skip half the calculations, and
- * of course skip the division by two.
- *
- * Furthermore, the normalizing factor \f$ \frac{1}{n^2} \f$ of the variance usually contains the
- * number of elements being processed. However, as the placements are weighted by their
- * `like_weight_ratio`, we instead calculate `n` as the sum of the `like_weight_ratio` of all
- * placements. In case that for each pquery the ratios of all its placements sum up to 1.0, this
- * number will be equal to the number of pqueries (and thus be equal to the usual case of using the
- * number of elements). However, as this is not required (placements with small ratio can be
- * dropped, so that their sum per pquery is less than 1.0), we cannout simply use the count.
- */
 double variance(
     const Sample& smp,
     bool          with_pendant_length

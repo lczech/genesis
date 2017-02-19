@@ -54,16 +54,6 @@ std::string SvgDocument::indentation_string = "    ";
 // -------------------------------------------------------------
 
 /**
- * @brief Move the whole content of the document around by a given offset.
- */
-void SvgDocument::offset( double x, double y )
-{
-    for( auto& elem : content_ ) {
-        elem.offset( x, y );
-    }
-}
-
-/**
  * @brief Write the SvgDocument to an output stream.
  */
 void SvgDocument::write( std::ostream& out ) const
@@ -103,12 +93,13 @@ void SvgDocument::write( std::ostream& out ) const
         out << SvgDocument::indentation_string << "</defs>\n";
     }
 
-    // Content. Take them by copy, so that the margin offset does not affect the originals.
-    // Slightly inefficient, maybe we can offer a temporary offset function, or introduce an
-    // offset parameter to the writing function instead.
-    for( auto elem : content_ ) {
-        elem.offset( margin.left, margin.top );
-        elem.write( out, 1 );
+    auto options = SvgDrawingOptions();
+    options.offset_x = margin.top;
+    options.offset_y = margin.top;
+
+    // Print content.
+    for( auto const& elem : content_ ) {
+        elem.write( out, 1, options );
 
         // Draw bounding boxes around all elements, for testing purposes.
         // auto bb = elem.bounding_box();
@@ -119,23 +110,26 @@ void SvgDocument::write( std::ostream& out ) const
     out << "</svg>\n";
 }
 
-/**
- * @brief Add an SvgObject to the document.
- *
- * Returns the SvgDocument in order to allow for a fluent interface.
- */
 SvgDocument& SvgDocument::add( SvgObject const& object )
 {
     content_.push_back( object );
     return *this;
 }
 
-/**
- * @brief Shortcut operator for add(), which allows an even more fluent interface.
- */
+SvgDocument& SvgDocument::add( SvgObject&& object )
+{
+    content_.push_back( std::move( object ));
+    return *this;
+}
+
 SvgDocument& SvgDocument::operator <<( SvgObject const& object )
 {
     return add( object );
+}
+
+SvgDocument& SvgDocument::operator <<( SvgObject&& object )
+{
+    return add( std::move( object ));
 }
 
 } // namespace utils

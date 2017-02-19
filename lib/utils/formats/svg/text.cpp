@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -68,12 +68,6 @@ SvgText::SvgText(
 //     Members
 // -------------------------------------------------------------
 
-void SvgText::offset( double x, double y )
-{
-    position.x += x;
-    position.y += y;
-}
-
 SvgBox SvgText::bounding_box() const
 {
     // Resuting box positions.
@@ -104,13 +98,13 @@ SvgBox SvgText::bounding_box() const
     return { SvgPoint( l, t ), SvgPoint( r, b ) };
 }
 
-void SvgText::write( std::ostream& out, size_t indent ) const
+void SvgText::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
 {
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<text";
 
-    out << svg_attribute( "x", position.x );
-    out << svg_attribute( "y", position.y );
+    out << svg_attribute( "x", position.x + options.offset_x );
+    out << svg_attribute( "y", position.y + options.offset_y );
 
     font.write( out );
     fill.write( out );

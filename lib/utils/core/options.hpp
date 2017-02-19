@@ -85,7 +85,7 @@ public:
      * If the program is run from the command line, this method has to be used to properly
      * propagate the command line options to this options class.
      */
-    void command_line( const int argc, const char* argv[] );
+    void command_line( int const argc, char const* const* argv );
 
     // -------------------------------------------------------------------------
     //     Number of Threads
@@ -194,6 +194,33 @@ public:
     static std::string cpp_version();
 
     // -------------------------------------------------------------------------
+    //     Build Type
+    // -------------------------------------------------------------------------
+
+    #if defined( DEBUG ) && defined( NDEBUG )
+        static_assert( false, "Cannot compile with both DEBUG and NDEBUG flags set." );
+    #endif
+
+    #if ! defined( DEBUG ) && ! defined( NDEBUG )
+        static_assert( false, "Cannot compile with neiher DEBUG nor NDEBUG flag set." );
+    #endif
+
+    /**
+     * @brief Return whether the binary was compiled with build type `DEBUG`.
+     */
+    static bool is_debug();
+
+    /**
+     * @brief Return whether the binary was compiled with build type `RELEASE`.
+     */
+    static bool is_release();
+
+    /**
+     * @brief Return the build type that was used to compile the binary, i.e., "debug" or "release".
+     */
+    static std::string build_type();
+
+    // -------------------------------------------------------------------------
     //     Dump & Overview
     // -------------------------------------------------------------------------
 
@@ -225,6 +252,8 @@ private:
      * @brief Constructor, which initializes the options with reasonable defaults.
      */
     Options();
+
+    ~Options() = default;
 
     Options( const Options& ) = delete;
     Options( Options&& )      = delete;

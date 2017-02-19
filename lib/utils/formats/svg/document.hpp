@@ -73,11 +73,22 @@ public:
     //     Members
     // -------------------------------------------------------------
 
-    void offset( double x, double y );
     void write( std::ostream& out ) const;
 
+    /**
+     * @brief Add an SvgObject to the document.
+     *
+     * Returns the SvgDocument in order to allow for a fluent interface.
+     */
     self_type& add(          SvgObject const& object );
+    self_type& add(          SvgObject&&      object );
+
+
+    /**
+     * @brief Shortcut operator for add(), which allows an even more fluent interface.
+     */
     self_type& operator << ( SvgObject const& object );
+    self_type& operator << ( SvgObject&&      object );
 
     // -------------------------------------------------------------
     //     Data Members

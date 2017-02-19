@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -251,9 +251,11 @@ void CircularLayout::set_node_r_cladogram_()
     // Set root r to 0.
     tree_.root_node().data<CircularNodeData>().r = 0.0;
 
+    // Get the heights of all subtrees starting from the root.
+    auto heights = subtree_max_path_heights( tree_ );
+
     // Get the height of the tree, i.e. longest path from root to any leaf.
-    auto root_path_lengths = node_path_length_vector( tree_ );
-    auto root_height       = *std::max_element( root_path_lengths.begin(), root_path_lengths.end() );
+    auto root_height = heights[ tree_.root_node().index() ];
 
     for( auto it : preorder( tree_ )) {
         // The subtree height calculation does not work for the root, so skip it.
@@ -263,7 +265,7 @@ void CircularLayout::set_node_r_cladogram_()
         }
 
         // Get the height of the subtree starting at the current node.
-        auto height = subtree_max_path_height( tree_, it.link().outer() );
+        auto height = heights[ it.node().index() ];
         assert( height <= root_height );
 
         // Set the radius.

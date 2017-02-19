@@ -61,8 +61,7 @@ TEST(SampleSerializer, SaveAndLoad)
     EXPECT_NO_THROW( SampleSerializer::save(smp_save, tmpfile) );
 
     // Load again.
-    Sample smp_load;
-    EXPECT_NO_THROW( SampleSerializer::load(tmpfile, smp_load) );
+    Sample smp_load = SampleSerializer::load( tmpfile );
 
     // Check for correctly read data.
     EXPECT_EQ   (5, total_placement_count(smp_load));

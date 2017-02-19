@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -83,10 +83,13 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    void offset( double x, double y );
     SvgBox bounding_box() const;
 
-    void write( std::ostream& out, size_t indent = 0 ) const;
+    void write(
+        std::ostream& out,
+        size_t indent = 0,
+        SvgDrawingOptions const& options = SvgDrawingOptions()
+    ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -142,10 +145,13 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    void offset( double x, double y );
     SvgBox bounding_box() const;
 
-    void write( std::ostream& out, size_t indent = 0 ) const;
+    void write(
+        std::ostream& out,
+        size_t indent = 0,
+        SvgDrawingOptions const& options = SvgDrawingOptions()
+    ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -206,10 +212,13 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    void offset( double x, double y );
     SvgBox bounding_box() const;
 
-    void write( std::ostream& out, size_t indent = 0 ) const;
+    void write(
+        std::ostream& out,
+        size_t indent = 0,
+        SvgDrawingOptions const& options = SvgDrawingOptions()
+    ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -267,10 +276,13 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    void offset( double x, double y );
     SvgBox bounding_box() const;
 
-    void write( std::ostream& out, size_t indent = 0 ) const;
+    void write(
+        std::ostream& out,
+        size_t indent = 0,
+        SvgDrawingOptions const& options = SvgDrawingOptions()
+    ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -331,10 +343,13 @@ public:
 
     self_type& operator <<( SvgPoint p );
 
-    void offset( double x, double y );
     SvgBox bounding_box() const;
 
-    void write( std::ostream& out, size_t indent = 0 ) const;
+    void write(
+        std::ostream& out,
+        size_t indent = 0,
+        SvgDrawingOptions const& options = SvgDrawingOptions()
+    ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -393,10 +408,13 @@ public:
 
     self_type& operator <<( SvgPoint p );
 
-    void offset( double x, double y );
     SvgBox bounding_box() const;
 
-    void write( std::ostream& out, size_t indent = 0 ) const;
+    void write(
+        std::ostream& out,
+        size_t indent = 0,
+        SvgDrawingOptions const& options = SvgDrawingOptions()
+    ) const;
 
     // -------------------------------------------------------------
     //     Properties
@@ -454,10 +472,13 @@ public:
 
     self_type& operator <<( std::string elem );
 
-    void offset( double x, double y );
     SvgBox bounding_box() const;
 
-    void write( std::ostream& out, size_t indent = 0 ) const;
+    void write(
+        std::ostream& out,
+        size_t indent = 0,
+        SvgDrawingOptions const& options = SvgDrawingOptions()
+    ) const;
 
     // -------------------------------------------------------------
     //     Properties

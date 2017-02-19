@@ -113,27 +113,13 @@ public:
      */
     std::map<char, utils::Color> const& color_map() const;
 
-    PrinterBitmap& pixel_height_per_char( size_t value )
-    {
-        pixel_height_ = value;
-        return *this;
-    }
+    PrinterBitmap& pixel_height_per_char( size_t value );
 
-    size_t pixel_height_per_char() const
-    {
-        return pixel_height_;
-    }
+    size_t pixel_height_per_char() const;
 
-    PrinterBitmap& pixel_width_per_char( size_t value )
-    {
-        pixel_width_ = value;
-        return *this;
-    }
+    PrinterBitmap& pixel_width_per_char( size_t value );
 
-    size_t pixel_width_per_char() const
-    {
-        return pixel_width_;
-    }
+    size_t pixel_width_per_char() const;
 
     // -------------------------------------------------------------------------
     //     Interal Helper Functions

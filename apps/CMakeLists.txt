@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2016 Lucas Czech
+# Copyright (C) 2014-2017 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,6 +25,12 @@
 
 set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin )
 
+# Need to set rpath for all targets for it to work.
+# Also, we need to set two versions of ORIGIN here (one and two dollar signs).
+# This is because on some systems it seems to be escaped, on some not...
+set( CMAKE_INSTALL_RPATH "$ORIGIN:$$ORIGIN" )
+set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
+
 # ------------------------------------------------------------------------------
 #   Sources
 # ------------------------------------------------------------------------------
@@ -49,7 +55,9 @@ if( genesis_apps_sources )
         add_executable( ${app_name} ${app_src} )
 
         target_link_libraries( ${app_name} genesis_lib_shared )
-        set_target_properties ( ${app_name} PROPERTIES INSTALL_RPATH "$$ORIGIN" )
+
+        # Set the rpath again for the target, seems to be necessary...
+        set_target_properties ( ${app_name} PROPERTIES INSTALL_RPATH "$ORIGIN:$$ORIGIN" )
     endforeach()
 
 else()

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -32,6 +32,7 @@
  */
 
 #include <ostream>
+#include <stdexcept>
 
 #include "utils/math/matrix.hpp"
 
@@ -62,6 +63,38 @@ Matrix<T> transpose( Matrix<T> const& data )
         }
     }
     return res;
+}
+
+/**
+ * @brief Swap (interchange) two rows of a Matrix, given their indices.
+ */
+template <typename T>
+void swap_rows( Matrix<T>& data, size_t row_a, size_t row_b )
+{
+    if( row_a >= data.rows() || row_b >= data.rows() ) {
+        throw std::invalid_argument( "Invalid row index for swap_rows()." );
+    }
+
+    using std::swap;
+    for( size_t c = 0; c < data.cols(); ++c ) {
+        swap( data( row_a, c ), data( row_b, c ) );
+    }
+}
+
+/**
+ * @brief Swap (interchange) two columns of a Matrix, given their indices.
+ */
+template <typename T>
+void swap_cols( Matrix<T>& data, size_t col_a, size_t col_b )
+{
+    if( col_a >= data.rows() || col_b >= data.rows() ) {
+        throw std::invalid_argument( "Invalid column index for swap_cols()." );
+    }
+
+    using std::swap;
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        swap( data( r, col_a ), data( r, col_b ) );
+    }
 }
 
 template <typename T>
