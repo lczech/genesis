@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_FORMATS_SVG_TEXT_H_
-#define GENESIS_UTILS_FORMATS_SVG_TEXT_H_
+#ifndef GENESIS_UTILS_FORMATS_SVG_DEFINITIONS_H_
+#define GENESIS_UTILS_FORMATS_SVG_DEFINITIONS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,8 +31,8 @@
  * @ingroup utils
  */
 
+#include "utils/core/std.hpp"
 #include "utils/formats/svg/helper.hpp"
-#include "utils/formats/svg/attributes.hpp"
 
 #include <iosfwd>
 #include <string>
@@ -41,10 +41,10 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Svg Text
+//     Svg Definitions
 // =================================================================================================
 
-struct SvgText
+class SvgDefinitions
 {
 public:
 
@@ -52,69 +52,86 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------
 
-    using self_type = SvgText;
-
-    enum class Anchor
-    {
-        kNone,
-        kStart,
-        kMiddle,
-        kEnd
-    };
+    using self_type = SvgDefinitions;
 
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    SvgText(
-        SvgPoint const&    position,
-        std::string const& text,
-        SvgFont const&     font   = SvgFont(),
-        SvgFill const&     fill   = SvgFill(),
-        SvgStroke const&   stroke = SvgStroke( SvgStroke::Type::kOmit )
-    );
+    template< typename T >
+    SvgDefinitions( T const& object )
+        : pimpl_( make_unique< Model<T> >( object ))
+    {}
 
-    ~SvgText() = default;
+    SvgDefinitions( SvgDefinitions const& other )
+        : pimpl_( other.pimpl_->clone() )
+    {}
 
-    SvgText( SvgText const& ) = default;
-    SvgText( SvgText&& )      = default;
+    SvgDefinitions( SvgDefinitions&& )      = default;
 
-    SvgText& operator= ( SvgText const& ) = default;
-    SvgText& operator= ( SvgText&& )      = default;
+    SvgDefinitions& operator=( SvgDefinitions other )
+    {
+        std::swap( pimpl_, other.pimpl_ );
+        return *this;
+    }
+
+    // SvgDefinitions& operator= ( SvgDefinitions const& ) = default;
+    // SvgDefinitions& operator= ( SvgDefinitions&& )      = default;
+
+    ~SvgDefinitions() = default;
 
     // -------------------------------------------------------------
-    //     Drawing Function
+    //     Members
     // -------------------------------------------------------------
-
-    SvgBox bounding_box() const;
 
     void write(
         std::ostream& out,
-        size_t indent = 0,
-        SvgDrawingOptions const& options = SvgDrawingOptions()
-    ) const;
+        size_t indent = 0
+    ) const {
+        pimpl_->write_( out, indent );
+    }
 
     // -------------------------------------------------------------
-    //     Properties
+    //     Internal Members
     // -------------------------------------------------------------
 
-    std::string id;
+private:
 
-    SvgPoint    position;
-    std::string text;
+    struct Concept
+    {
+        virtual ~Concept() {}
 
-    SvgFont     font;
-    SvgFill     fill;
-    SvgStroke   stroke;
+        virtual void write_(
+            std::ostream& out,
+            size_t indent = 0
+        ) const = 0;
 
-    Anchor      anchor = Anchor::kNone;
+        virtual std::unique_ptr< Concept > clone() const = 0;
+    };
 
-    double      kerning;
-    double      letter_spacing;
-    double      word_spacing;
+    template< typename T >
+    struct Model : Concept
+    {
+        Model( T const& value )
+            : object_( value )
+        {}
 
-    std::string dx;
-    std::string dy;
+        void write_(
+            std::ostream& out,
+            size_t indent = 0
+        ) const {
+            object_.write( out, indent );
+        }
+
+        std::unique_ptr< Concept > clone() const
+        {
+            return make_unique< Model<T> >( object_ );
+        }
+
+        T object_;
+    };
+
+    std::unique_ptr< Concept > pimpl_;
 
 };
 

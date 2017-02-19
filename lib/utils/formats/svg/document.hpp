@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include "utils/formats/svg/definitions.hpp"
 #include "utils/formats/svg/gradient.hpp"
 #include "utils/formats/svg/object.hpp"
 
@@ -98,7 +99,7 @@ public:
 
     SvgMargin margin;
 
-    std::vector< SvgGradientLinear > gradients;
+    std::vector< SvgDefinitions > defs;
 
 private:
 

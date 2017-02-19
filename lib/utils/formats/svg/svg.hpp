@@ -36,6 +36,7 @@
 // =================================================================================================
 
 #include "utils/formats/svg/attributes.hpp"
+#include "utils/formats/svg/definitions.hpp"
 #include "utils/formats/svg/document.hpp"
 #include "utils/formats/svg/gradient.hpp"
 #include "utils/formats/svg/helper.hpp"

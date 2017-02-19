@@ -85,10 +85,10 @@ void SvgDocument::write( std::ostream& out ) const
     }
 
     // Gradients and other definitions. Need to come before the content.
-    if( ! gradients.empty() ) {
+    if( ! defs.empty() ) {
         out << SvgDocument::indentation_string << "<defs>\n";
-        for( auto const& grad : gradients ) {
-            grad.write( out, 2 );
+        for( auto const& def : defs ) {
+            def.write( out, 2 );
         }
         out << SvgDocument::indentation_string << "</defs>\n";
     }

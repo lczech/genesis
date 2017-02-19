@@ -103,6 +103,10 @@ void SvgText::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<text";
 
+    if( ! id.empty() ) {
+        out << svg_attribute( "id", id );
+    }
+
     out << svg_attribute( "x", position.x + options.offset_x );
     out << svg_attribute( "y", position.y + options.offset_y );
 

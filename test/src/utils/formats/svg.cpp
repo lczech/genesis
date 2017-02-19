@@ -102,7 +102,7 @@ TEST( Svg, Gradient )
     grad.stops.emplace_back( 0.0, color_from_hex( "#000000" ) );
     grad.stops.emplace_back( 0.5, color_from_hex( "#c040be" ) );
     grad.stops.emplace_back( 1.0, color_from_hex( "#81bfff" ) );
-    doc.gradients.push_back( grad );
+    doc.defs.push_back( grad );
 
     auto rect = SvgRect( 0, 0, 10, 100 );
     rect.stroke.color = Color( 0, 0, 0 );
