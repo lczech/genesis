@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_FORMATS_SVG_DOCUMENT_H_
-#define GENESIS_UTILS_FORMATS_SVG_DOCUMENT_H_
+#ifndef GENESIS_UTILS_FORMATS_SVG_GROUP_H_
+#define GENESIS_UTILS_FORMATS_SVG_GROUP_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,21 +31,20 @@
  * @ingroup utils
  */
 
-#include "utils/formats/svg/definitions.hpp"
-#include "utils/formats/svg/gradient.hpp"
+#include "utils/formats/svg/helper.hpp"
 #include "utils/formats/svg/object.hpp"
+#include "utils/core/std.hpp"
 
 #include <iosfwd>
-#include <vector>
 
 namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Svg Document
+//     Svg Group
 // =================================================================================================
 
-class SvgDocument
+struct SvgGroup
 {
 public:
 
@@ -53,30 +52,32 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------
 
-    using self_type = SvgDocument;
-
-    static std::string indentation_string;
+    using self_type = SvgGroup;
 
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    SvgDocument()  = default;
-    ~SvgDocument() = default;
+    SvgGroup() = default;
+    ~SvgGroup() = default;
 
-    SvgDocument( SvgDocument const& ) = default;
-    SvgDocument( SvgDocument&& )      = default;
+    SvgGroup( SvgGroup const& ) = default;
+    SvgGroup( SvgGroup&& )      = default;
 
-    SvgDocument& operator= ( SvgDocument const& ) = default;
-    SvgDocument& operator= ( SvgDocument&& )      = default;
+    SvgGroup& operator= ( SvgGroup const& ) = default;
+    SvgGroup& operator= ( SvgGroup&& )      = default;
 
     // -------------------------------------------------------------
-    //     Members
+    //     Drawing Function
     // -------------------------------------------------------------
 
     SvgBox bounding_box() const;
 
-    void write( std::ostream& out ) const;
+    void write(
+        std::ostream& out,
+        size_t indent = 0,
+        SvgDrawingOptions const& options = SvgDrawingOptions()
+    ) const;
 
     /**
      * @brief Add an SvgObject to the document.
@@ -94,17 +95,10 @@ public:
     self_type& operator << ( SvgObject&&      object );
 
     // -------------------------------------------------------------
-    //     Data Members
+    //     Properties
     // -------------------------------------------------------------
 
-public:
-
-    SvgMargin margin;
-
-    std::vector< SvgDefinitions > defs;
-
-private:
-
+    std::string id;
     std::vector< SvgObject > content_;
 
 };

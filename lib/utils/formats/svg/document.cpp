@@ -53,16 +53,22 @@ std::string SvgDocument::indentation_string = "    ";
 //     Members
 // -------------------------------------------------------------
 
-/**
- * @brief Write the SvgDocument to an output stream.
- */
-void SvgDocument::write( std::ostream& out ) const
+SvgBox SvgDocument::bounding_box() const
 {
     // Get bounding box of all elements and the dimensions of the document.
     SvgBox bbox;
     for( auto const& elem : content_ ) {
         bbox = SvgBox::combine( bbox, elem.bounding_box() );
     }
+    return bbox;
+}
+
+/**
+ * @brief Write the SvgDocument to an output stream.
+ */
+void SvgDocument::write( std::ostream& out ) const
+{
+    auto bbox = bounding_box();
     double doc_width  = margin.left + bbox.top_left.x + bbox.width()  + margin.right;
     double doc_height = margin.top  + bbox.top_left.y + bbox.height() + margin.bottom;
 
