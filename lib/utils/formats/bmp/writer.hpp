@@ -68,11 +68,11 @@ public:
      *
      * start | size | name        | stdvalue | purpose
      * ------|------|-------------|-----------------------------------------------------------------
-     *     1 |    2 | bfType      |    19778 | Must be 'BM' to declare that this is a .bmp-file.
-     *     3 |    4 | bfSize      |       ?? | Size of the file in bytes, including headers, pixel data and padding.
-     *     7 |    2 | bfReserved1 |        0 | Must be set to zero.
-     *     9 |    2 | bfReserved2 |        0 | Must be set to zero.
-     *    11 |    4 | bfOffBits   |       54 | Offset from the start of the file to the pixel data.
+     *     0 |    2 | bfType      |    19778 | Must be 'BM' to declare that this is a .bmp-file.
+     *     2 |    4 | bfSize      |       ?? | Size of the file in bytes, including headers, pixel data and padding.
+     *     6 |    2 | bfReserved1 |        0 | Must be set to zero.
+     *     8 |    2 | bfReserved2 |        0 | Must be set to zero.
+     *    10 |    4 | bfOffBits   |       54 | Offset from the start of the file to the pixel data.
      */
     struct BitmapFileheader
     {
@@ -88,17 +88,17 @@ public:
      *
      * start | size | name            | stdvalue | purpose
      * ----------------------------------------------------------------------------------------------
-     *    15 |    4 | biSize          |       40 | Size of the BitmapInfoheader structure, in bytes.
-     *    19 |    4 | biWidth         |       ?? | Width of the image, in pixels.
-     *    23 |    4 | biHeight        |       ?? | Height of the image, in pixels.
-     *    27 |    2 | biPlanes        |        1 | Number of planes of the target device.
-     *    29 |    2 | biBitCount      |        8 | Number of bits per pixel.
-     *    31 |    4 | biCompression   |        0 | Compression type, usually zero (no compression).
-     *    35 |    4 | biSizeImage     |        0 | Size of the image data, in bytes. Without compression, set this member to zero.
-     *    39 |    4 | biXPelsPerMeter |        0 | Horizontal pixels per meter on the designated target device, usually set to zero.
-     *    43 |    4 | biYPelsPerMeter |        0 | Vertical pixels per meter on the designated targer device, usually set to zero.
-     *    47 |    4 | biClrUsed       |        0 | Number of colors used in the bitmap, if zero the number is calculated using biBitCount.
-     *    51 |    4 | biClrImportant  |        0 | Number of color that are 'important'. If zero, all colors are important.
+     *    14 |    4 | biSize          |       40 | Size of the BitmapInfoheader structure, in bytes.
+     *    18 |    4 | biWidth         |       ?? | Width of the image, in pixels.
+     *    22 |    4 | biHeight        |       ?? | Height of the image, in pixels.
+     *    26 |    2 | biPlanes        |        1 | Number of planes of the target device.
+     *    28 |    2 | biBitCount      |        8 | Number of bits per pixel.
+     *    30 |    4 | biCompression   |        0 | Compression type, usually zero (no compression).
+     *    34 |    4 | biSizeImage     |        0 | Size of the image data, in bytes. Without compression, set this member to zero.
+     *    38 |    4 | biXPelsPerMeter |        0 | Horizontal pixels per meter on the designated target device, usually set to zero.
+     *    42 |    4 | biYPelsPerMeter |        0 | Vertical pixels per meter on the designated targer device, usually set to zero.
+     *    46 |    4 | biClrUsed       |        0 | Number of colors used in the bitmap, if zero the number is calculated using biBitCount.
+     *    50 |    4 | biClrImportant  |        0 | Number of color that are 'important'. If zero, all colors are important.
      */
     struct BitmapInfoheader
     {
@@ -113,6 +113,27 @@ public:
         uint32_t biYPelsPerMeter = 0;
         uint32_t biClrUsed       = 0;
         uint32_t biClrImportant  = 0;
+    };
+
+    /**
+     * @brief Palette entry that describes an RGB Color.
+     */
+    struct RgbQuad
+    {
+        unsigned char rgbBlue;
+        unsigned char rgbGreen;
+        unsigned char rgbRed;
+        unsigned char rgbReserved = 0;
+    };
+
+    /**
+     * @brief Bitmap info that describes dimensions and color information.
+     *
+     * This struct is used with palettes of colors. It is not needed for full 24bit RGB colors.
+     */
+    struct BitmapInfo {
+        BitmapInfoheader     bmiHeader;
+        std::vector<RgbQuad> bmiColors;
     };
 
     // ---------------------------------------------------------------------
@@ -133,14 +154,38 @@ public:
     // ---------------------------------------------------------------------
 
     /**
-     * @brief
+     * @brief Write a full 24bit RGB Color image to a stream.
      */
     void to_stream( Matrix<Color> const& image, std::ostream& outstream ) const;
 
     /**
-     * @brief
+     * @brief Write a full 24bit RGB Color image to a file.
      */
     void to_file( Matrix<Color> const& image, std::string const& filename ) const;
+
+    /**
+     * @brief Write an 8 bit grayscale image to a stream.
+     */
+    void to_stream( Matrix<unsigned char> const& image, std::ostream& outstream ) const;
+
+    /**
+     * @brief Write an 8 bit grayscale image to a file.
+     */
+    void to_file( Matrix<unsigned char> const& image, std::string const& filename ) const;
+
+    /**
+     * @brief Write an 8 bit image with a Color palette to a stream.
+     */
+    void to_stream(
+        Matrix<unsigned char> const& image, std::vector<Color> palette, std::ostream& outstream
+    ) const;
+
+    /**
+     * @brief Write an 8 bit image with a Color palette to a file.
+     */
+    void to_file(
+        Matrix<unsigned char> const& image, std::vector<Color> palette, std::string const& filename
+    ) const;
 
     // ---------------------------------------------------------------------
     //     Internal Helpers
@@ -153,6 +198,8 @@ private:
 
     void write_file_header_( BitmapFileheader const& header, std::ostream& target ) const;
     void write_info_header_( BitmapInfoheader const& header, std::ostream& target ) const;
+
+    void write_info_( BitmapInfo const& info, std::ostream& target ) const;
 
 };
 
