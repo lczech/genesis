@@ -193,7 +193,7 @@ utils::SvgDocument RectangularLayout::to_svg_document() const
 
         // If the node has a name, print it.
         if( node_data.name != "" ) {
-            auto label = SvgText( SvgPoint( node_data.x + 5, node_data.y ), node_data.name );
+            auto label = SvgText( node_data.name, SvgPoint( node_data.x + 5, node_data.y ) );
             // label.dy = "0.4em";
             doc << label;
         }

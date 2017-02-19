@@ -48,14 +48,14 @@ namespace utils {
 // -------------------------------------------------------------
 
 SvgText::SvgText(
-    SvgPoint const&    position,
     std::string const& text,
+    SvgPoint const&    position,
     SvgFont const&     font,
     SvgFill const&     fill,
     SvgStroke const&   stroke
 )
-    : position(position)
-    , text(text)
+    : text(text)
+    , position(position)
     , font(font)
     , fill(fill)
     , stroke(stroke)

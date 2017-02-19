@@ -67,11 +67,11 @@ public:
     // -------------------------------------------------------------
 
     SvgText(
-        SvgPoint const&    position,
         std::string const& text,
-        SvgFont const&     font   = SvgFont(),
-        SvgFill const&     fill   = SvgFill(),
-        SvgStroke const&   stroke = SvgStroke( SvgStroke::Type::kOmit )
+        SvgPoint const&    position = SvgPoint(),
+        SvgFont const&     font     = SvgFont(),
+        SvgFill const&     fill     = SvgFill(),
+        SvgStroke const&   stroke   = SvgStroke( SvgStroke::Type::kOmit )
     );
 
     ~SvgText() = default;
@@ -100,8 +100,8 @@ public:
 
     std::string id;
 
-    SvgPoint    position;
     std::string text;
+    SvgPoint    position;
 
     SvgFont     font;
     SvgFill     fill;

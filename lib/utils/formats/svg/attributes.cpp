@@ -294,6 +294,16 @@ void SvgTransform::Matrix::write( std::ostream &out ) const
 //     SvgTransform Main Class
 // -------------------------------------------------------------------------
 
+void SvgTransform::append( Transformation&& t )
+{
+    transformations.push_back( std::move( t ));
+}
+
+void SvgTransform::append( Transformation const& t )
+{
+    transformations.push_back( t );
+}
+
 void SvgTransform::write( std::ostream& out ) const
 {
     if( ! transformations.empty() ) {

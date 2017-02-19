@@ -77,7 +77,7 @@ TEST( Svg, Basics )
     poly << SvgPoint( 00, 40 ) << SvgPoint( 20, 30 ) << SvgPoint( 10, 10 ) << SvgPoint( 30, 20 );
     doc << poly;
 
-    auto text = SvgText( SvgPoint( 20, 120 ), "Hello World! ygp", SvgFont( 15 ) );
+    auto text = SvgText( "Hello World! ygp", SvgPoint( 20, 120 ), SvgFont( 15 ) );
     auto bb = text.bounding_box();
     doc << SvgRect( bb.top_left, bb.size(), SvgStroke( Color( 255, 128, 128 ) ), SvgFill( Color(), 0.0 ));
     doc << text;

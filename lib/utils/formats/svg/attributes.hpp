@@ -594,6 +594,9 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------------------
 
+    void append( Transformation&& t );
+    void append( Transformation const& t );
+
     void write( std::ostream& out ) const;
 
     // -------------------------------------------------------------------------
