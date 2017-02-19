@@ -101,8 +101,8 @@ CircularLayout::CircularLayout( Tree const& orig_tree )
     }
 
     // Set node x-coords according to branch lengths (distance from root).
-    set_node_r_phylogram_();
-    // set_node_r_cladogram_();
+    // set_node_r_phylogram_();
+    set_node_r_cladogram_();
 
     auto num_leaves = static_cast<double>( leaf_node_count( orig_tree ));
 
@@ -187,6 +187,8 @@ utils::SvgDocument CircularLayout::to_svg_document() const
 {
     using namespace utils;
     SvgDocument doc;
+    SvgGroup    tree_lines;
+    SvgGroup    taxa_names;
 
     for( auto const& node_it : tree_.nodes() ) {
         auto const& node = *node_it;
@@ -208,13 +210,13 @@ utils::SvgDocument CircularLayout::to_svg_document() const
                 std::swap( start_a, end_a );
             }
 
-            doc << SvgPath(
+            tree_lines << SvgPath(
                 { svg_arc( 0, 0, parent_data.r, start_a, end_a ) },
                 stroke,
                 SvgFill( SvgFill::Type::kNone )
             );
 
-            doc << SvgLine(
+            tree_lines << SvgLine(
                 parent_data.r * cos( node_data.a ), parent_data.r * sin( node_data.a ),
                 node_data.r * cos( node_data.a ), node_data.r * sin( node_data.a ),
                 stroke
@@ -227,13 +229,26 @@ utils::SvgDocument CircularLayout::to_svg_document() const
         }
 
         // If the node has a name, print it.
-        // if( node_data.name != "" ) {
-        //     auto label = SvgText( SvgPoint( node_data.x + 5, node_data.y ), node_data.name );
-        //     // label.dy = "0.4em";
-        //     doc << label;
-        // }
+        if( node_data.name != "" ) {
+            // auto label = SvgText( node_data.name, SvgPoint( node_data.x + 5, node_data.y ) );
+            // label.dy = "0.4em";
+
+            auto label = SvgText( node_data.name );
+            label.transform.append( SvgTransform::Translate(
+                ( node_data.r + 10 ) * cos( node_data.a ),
+                ( node_data.r + 10 ) * sin( node_data.a )
+            ));
+            label.transform.append( SvgTransform::Rotate(
+                360 * node_data.a / ( 2.0 * utils::PI )
+            ));
+            label.font.size /= 2;
+            taxa_names << label;
+        }
     }
 
+    // We are sure that we won't use the groups again, so let's move them!
+    doc << std::move( tree_lines );
+    doc << std::move( taxa_names );
     return doc;
 }
 
