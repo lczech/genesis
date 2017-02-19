@@ -95,10 +95,11 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
-    std::string id;
-    SvgPoint    point_1;
-    SvgPoint    point_2;
-    SvgStroke   stroke;
+    std::string  id;
+    SvgPoint     point_1;
+    SvgPoint     point_2;
+    SvgStroke    stroke;
+    SvgTransform transform;
 
 };
 
@@ -169,6 +170,8 @@ public:
     double rx;
     double ry;
 
+    SvgTransform transform;
+
 };
 
 // =================================================================================================
@@ -234,6 +237,8 @@ public:
 
     SvgStroke stroke;
     SvgFill   fill;
+
+    SvgTransform transform;
 
 };
 
@@ -302,6 +307,8 @@ public:
     SvgStroke stroke;
     SvgFill   fill;
 
+    SvgTransform transform;
+
 };
 
 // =================================================================================================
@@ -368,6 +375,8 @@ public:
 
     SvgStroke stroke;
     SvgFill   fill;
+
+    SvgTransform transform;
 
 };
 
@@ -436,6 +445,8 @@ public:
     SvgStroke stroke;
     SvgFill   fill;
 
+    SvgTransform transform;
+
 };
 
 // =================================================================================================
@@ -502,6 +513,8 @@ public:
     SvgStroke stroke;
     SvgFill   fill;
 
+    SvgTransform transform;
+
 };
 
 // =================================================================================================
@@ -563,8 +576,9 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
-    std::string referenced_id;
-    SvgPoint    offset;
+    std::string  referenced_id;
+    SvgPoint     offset;
+    SvgTransform transform;
 
 };
 

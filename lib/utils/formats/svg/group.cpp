@@ -64,6 +64,7 @@ void SvgGroup::write( std::ostream& out, size_t indent, SvgDrawingOptions const&
     if( ! id.empty() ) {
         out << svg_attribute( "id", id );
     }
+    transform.write( out );
 
     out << ">\n";
 

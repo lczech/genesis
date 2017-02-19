@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include "utils/formats/svg/attributes.hpp"
 #include "utils/formats/svg/helper.hpp"
 #include "utils/formats/svg/object.hpp"
 #include "utils/core/std.hpp"
@@ -98,8 +99,9 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
-    std::string id;
+    std::string              id;
     std::vector< SvgObject > content_;
+    SvgTransform             transform;
 
 };
 

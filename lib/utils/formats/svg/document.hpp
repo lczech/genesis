@@ -86,7 +86,6 @@ public:
     self_type& add(          SvgObject const& object );
     self_type& add(          SvgObject&&      object );
 
-
     /**
      * @brief Shortcut operator for add(), which allows an even more fluent interface.
      */

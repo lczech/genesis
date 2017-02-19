@@ -216,5 +216,97 @@ void SvgFont::write( std::ostream& out ) const
     out << svg_attribute( "font-family", family );
 }
 
+// =================================================================================================
+//     Svg Transformation
+// =================================================================================================
+
+// -------------------------------------------------------------------------
+//     Subclass Translate
+// -------------------------------------------------------------------------
+
+void SvgTransform::Translate::write( std::ostream &out ) const
+{
+    if( tx != 0.0 || ty != 0.0 ) {
+        out << "translate( " << tx << ", " << ty << " )";
+    }
+}
+
+// -------------------------------------------------------------------------
+//     Subclass Rotate
+// -------------------------------------------------------------------------
+
+void SvgTransform::Rotate::write( std::ostream &out ) const
+{
+    if( a != 0.0 ) {
+        if( cx != 0.0 || cy != 0.0 ) {
+            out << "rotate( " << a << ", " << cx << ", " << cy << " )";
+        } else {
+            out << "rotate( " << a << " )";
+        }
+    }
+}
+
+// -------------------------------------------------------------------------
+//     Subclass Scale
+// -------------------------------------------------------------------------
+
+void SvgTransform::Scale::write( std::ostream &out ) const
+{
+    if( sx != 1.0 || sy != 1.0 ) {
+        if( sx == sy ) {
+            out << "scale( " << sx << " )";
+        } else {
+            out << "scale( " << sx << ", " << sy << " )";
+        }
+    }
+}
+
+// -------------------------------------------------------------------------
+//     Subclass Skew
+// -------------------------------------------------------------------------
+
+void SvgTransform::Skew::write( std::ostream &out ) const
+{
+    if( ax != 0.0 ) {
+        out << "skewX( " << ax << " )";
+    }
+    if( ax != 0.0 && ay != 0.0 ) {
+        out << " ";
+    }
+    if( ay != 0.0 ) {
+        out << "skewY( " << ay << " )";
+    }
+}
+
+// -------------------------------------------------------------------------
+//     Subclass Matrix
+// -------------------------------------------------------------------------
+
+void SvgTransform::Matrix::write( std::ostream &out ) const
+{
+    if( a != 1.0 || b != 0.0 || c != 0.0 || d != 1.0 || e != 0.0 || f != 0.0 ) {
+        out << "matrix( " << a << ", " << b << ", " << c << ", ";
+        out               << d << ", " << e << ", " << f << " )";
+    }
+}
+
+// -------------------------------------------------------------------------
+//     SvgTransform Main Class
+// -------------------------------------------------------------------------
+
+void SvgTransform::write( std::ostream& out ) const
+{
+    if( ! transformations.empty() ) {
+        out << " transform=\"";
+        for( auto const& t : transformations ) {
+            if( &t != &transformations[0] ) {
+                out << " ";
+            }
+            t.write( out );
+        }
+        out << "\"";
+    }
+}
+
 } // namespace utils
 } // namespace genesis

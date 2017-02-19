@@ -85,6 +85,7 @@ void SvgLine::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
     out << svg_attribute( "y2", point_2.y + options.offset_y );
 
     stroke.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -149,6 +150,7 @@ void SvgRect::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -208,6 +210,7 @@ void SvgCircle::write( std::ostream& out, size_t indent, SvgDrawingOptions const
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -269,6 +272,7 @@ void SvgEllipse::write( std::ostream& out, size_t indent, SvgDrawingOptions cons
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -363,6 +367,7 @@ void SvgPolyline::write( std::ostream& out, size_t indent, SvgDrawingOptions con
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -457,6 +462,7 @@ void SvgPolygon::write( std::ostream& out, size_t indent, SvgDrawingOptions cons
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -529,6 +535,7 @@ void SvgPath::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -549,6 +556,7 @@ void SvgUse::write( std::ostream& out, size_t indent, SvgDrawingOptions const& o
     out << svg_attribute( "xlink:href", "#" + referenced_id );
     out << svg_attribute( "x", offset.x + options.offset_x );
     out << svg_attribute( "y", offset.y + options.offset_y );
+    transform.write( out );
     out << " />\n";
 }
 

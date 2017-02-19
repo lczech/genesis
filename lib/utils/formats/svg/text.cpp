@@ -144,6 +144,7 @@ void SvgText::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
     if( dy != "" ) {
         out << svg_attribute( "dy", dy );
     }
+    transform.write( out );
 
     out << ">";
     out << xml_escape( text );

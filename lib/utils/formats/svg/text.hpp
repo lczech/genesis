@@ -116,6 +116,8 @@ public:
     std::string dx;
     std::string dy;
 
+    SvgTransform transform;
+
 };
 
 } // namespace utils
