@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,9 +31,14 @@
 #include "tree/function/manipulation.hpp"
 
 #include "tree/tree.hpp"
+#include "tree/function/functions.hpp"
 #include "tree/function/operators.hpp"
+#include "tree/iterator/node_links.hpp"
+
+#include "utils/core/algorithm.hpp"
 
 #include <cassert>
+#include <vector>
 
 namespace genesis {
 namespace tree {
@@ -104,6 +109,80 @@ void reroot_at_node( Tree& tree, size_t node_index )
         throw std::runtime_error( "Cannot reroot Tree on a Node that is not part of the Tree." );
     }
     reroot( tree, tree.node_at( node_index ));
+}
+
+// =================================================================================================
+//     Ladderize
+// =================================================================================================
+
+void ladderize( Tree& tree, LadderizeOrder order )
+{
+    // For each node, get how many nodes its subtree (away from the root) has.
+    // We use this quantity to sort each node's links.
+    auto sub_sizes = subtree_sizes( tree );
+
+    // Ladderize all nodes
+    for( auto& node_it : tree.nodes() ) {
+
+        // No need to ladderize a leaf. It would still work, but we can use this as a speedup.
+        if( node_it->is_leaf() ) {
+            continue;
+        }
+
+        // Get the sizes of the children/subtrees of this node.
+        std::vector<size_t>    child_sizes;
+        std::vector<TreeLink*> child_links;
+        for( auto const& link_it : node_links( *node_it ) ) {
+
+            // Don't treat the link towards the root; we only want to sort the subtree.
+            // Assert that the first iteration is actually this link towards the root.
+            if( link_it.is_first_iteration() ) {
+                assert( &link_it.link() == &node_it->primary_link() );
+                continue;
+            }
+
+            child_sizes.push_back( sub_sizes[ link_it.link().outer().node().index() ] );
+            child_links.push_back( &link_it.link() );
+        }
+
+        // Sort the sizes. We use stable sort in order to not change the order of equal sized subtrees.
+        auto child_order = ( order == LadderizeOrder::kSmallFirst
+            ? utils::stable_sort_indices( child_sizes.begin(), child_sizes.end(), std::less<size_t>() )
+            : utils::stable_sort_indices( child_sizes.begin(), child_sizes.end(), std::greater<size_t>() )
+        );
+
+        // The number of indices needs to be the rank of the node (number of immediate children).
+        assert( child_order.size() == child_sizes.size() );
+        assert( child_order.size() == child_links.size() );
+        assert( child_order.size() == node_it->rank() );
+
+        // Change all next links of the node so that they reflect the subtree size order.
+        auto cur_link = &node_it->primary_link();
+        for( auto child_order_i : child_order ) {
+
+            // We use this assertion to ensure that each link is only processed once.
+            // At the end of this loop, we set it to nullptr, so a second encounter would fail.
+            assert( child_links[ child_order_i ] );
+
+            // Set the link's next link and move on.
+            cur_link->reset_next( child_links[ child_order_i ] );
+            cur_link = child_links[ child_order_i ];
+
+            // Set the link in the vector to null, so that the above assert can check that we
+            // never process it again.
+            child_links[ child_order_i ] = nullptr;
+        }
+
+        // We now need to set the next pointer of the last link of the node so that it points
+        // back to the original starting node (the one towards the root).
+        cur_link->reset_next( &node_it->primary_link() );
+
+        // Finally, assert that we processed all links. If so, all of them are null by now.
+        for( auto const& cl : child_links ) {
+            (void) cl;
+            assert( !cl );
+        }
+    }
 }
 
 } // namespace tree
