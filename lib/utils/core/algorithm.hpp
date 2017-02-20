@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -25,13 +25,14 @@
 */
 
 /**
- * @brief Provides some valuable additions to STD.
+ * @brief Provides some valuable algorithms that are not part of the C++ 11 STL.
  *
  * @file
  * @ingroup utils
  */
 
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <functional>
 #include <numeric>
@@ -52,7 +53,7 @@ namespace utils {
  * present in the container.
  */
 template<class C, class T>
-bool contains(const C& v, const T& x)
+inline bool contains(const C& v, const T& x)
 {
     return std::end(v) != std::find(std::begin(v), std::end(v), x);
 }
@@ -80,36 +81,122 @@ inline void erase_if( Container &c, UnaryPredicate p )
     }
 }
 
+// =================================================================================================
+//     Sorting
+// =================================================================================================
+
 /**
- * @brief Get the indices to the sorted order of a vector.
- *
- * This function returns a list of indices into the given vector, so that their order gives the
- * sorted content of `v`:
- *
- *     for (auto i: sort_indices(v)) {
- *         cout << v[i] << endl;
- *     }
- *
- * This is useful if the same sorting order needs to be applied to some other container.
- *
- * The optional parameter `comparator` can be used to specify the function for comparing two
- * values of `v`, and defaults to `std::less`.
+ * @copydoc sort_indices( RandomAccessIterator, RandomAccessIterator )
  */
-template <typename T>
-std::vector<size_t> sort_indices(
-    std::vector<T> const& v,
-    std::function< bool( T const& lhs, T const& rhs )> comparator = std::less<T>()
+template <typename RandomAccessIterator, typename Comparator>
+inline std::vector<size_t> sort_indices(
+    RandomAccessIterator first,
+    RandomAccessIterator last,
+    Comparator           comparator
 ) {
     // Initialize original index locations with increasing numbers.
-    std::vector<size_t> idx( v.size() );
+    size_t size = std::distance( first, last );
+    std::vector<size_t> idx( size );
     std::iota( idx.begin(), idx.end(), 0 );
 
-    // Sort indexes based on comparing values in v.
+    // Sort indexes based on comparing values of the iterator range.
     std::sort( idx.begin(), idx.end(), [&] ( size_t i1, size_t i2 ) {
-        return comparator( v[i1], v[i2] );
+        assert( first + i1 < last );
+        assert( first + i2 < last );
+        return comparator( *(first + i1), *(first + i2) );
     });
 
     return idx;
+}
+
+/**
+ * @brief Get the indices to the sorted order of the given range.
+ *
+ * This function returns a list of indices into the given range, so that their order gives the
+ * sorted content of the elements in `[ first, last )`, using `std::less` for comparisons.
+ *
+ * For example,
+ *
+ *     for( auto i: sort_indices(v) ) {
+ *         cout << *( first + i ) << endl;
+ *     }
+ *
+ * outputs the elements in the range in sorted order, without actually moving any elements
+ * in the range.
+ * This is useful if the same sorting order needs to be applied to some other container.
+ *
+ * There is also an overload of this function that takes an additional parameter `comparator`.
+ * It can be used to specify the function for comparing two values of the range.
+ *
+ * Furthermore, there are variants that use `std::stable_sort` instead, see stable_sort_indices().
+ */
+template <typename RandomAccessIterator>
+inline std::vector<size_t> sort_indices(
+    RandomAccessIterator first,
+    RandomAccessIterator last
+) {
+    return sort_indices(
+        first,
+        last,
+        std::less< typename std::iterator_traits<RandomAccessIterator>::value_type >()
+    );
+}
+
+/**
+ * @copydoc stable_sort_indices( RandomAccessIterator, RandomAccessIterator )
+ */
+template <typename RandomAccessIterator, typename Comparator>
+inline std::vector<size_t> stable_sort_indices(
+    RandomAccessIterator first,
+    RandomAccessIterator last,
+    Comparator           comparator
+) {
+    // Initialize original index locations with increasing numbers.
+    size_t size = std::distance( first, last );
+    std::vector<size_t> idx( size );
+    std::iota( idx.begin(), idx.end(), 0 );
+
+    // Sort indexes based on comparing values of the iterator range.
+    std::stable_sort( idx.begin(), idx.end(), [&] ( size_t i1, size_t i2 ) {
+        assert( first + i1 < last );
+        assert( first + i2 < last );
+        return comparator( *(first + i1), *(first + i2) );
+    });
+
+    return idx;
+}
+
+/**
+ * @brief Get the indices to the stable sorted order of the given range.
+ *
+ * This function returns a list of indices into the given range, so that their order gives the
+ * stable sorted content of the elements in `[ first, last )`, using `std::less` for comparisons.
+ *
+ * For example,
+ *
+ *     for( auto i: stable_sort_indices(v) ) {
+ *         cout << *( first + i ) << endl;
+ *     }
+ *
+ * outputs the elements in the range in stable sorted order, without actually moving any elements
+ * in the range.
+ * This is useful if the same sorting order needs to be applied to some other container.
+ *
+ * There is also an overload of this function that takes an additional parameter `comparator`.
+ * It can be used to specify the function for comparing two values of the range.
+ *
+ * Furthermore, there are variants that use normal `std::sort` instead, see sort_indices().
+ */
+template <typename RandomAccessIterator>
+inline std::vector<size_t> stable_sort_indices(
+    RandomAccessIterator first,
+    RandomAccessIterator last
+) {
+    return stable_sort_indices(
+        first,
+        last,
+        std::less< typename std::iterator_traits<RandomAccessIterator>::value_type >()
+    );
 }
 
 } // namespace utils
