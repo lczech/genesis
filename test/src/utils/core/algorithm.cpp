@@ -1,6 +1,3 @@
-#ifndef GENESIS_UTILS_FORMATS_SVG_SVG_H_
-#define GENESIS_UTILS_FORMATS_SVG_SVG_H_
-
 /*
     Genesis - A toolkit for working with phylogenetic data.
     Copyright (C) 2014-2017 Lucas Czech
@@ -28,21 +25,34 @@
  * @brief
  *
  * @file
- * @ingroup utils
+ * @ingroup test
  */
 
-// =================================================================================================
-//     Svg Headers
-// =================================================================================================
+#include "common.hpp"
 
-#include "utils/formats/svg/attributes.hpp"
-#include "utils/formats/svg/definitions.hpp"
-#include "utils/formats/svg/document.hpp"
-#include "utils/formats/svg/gradient.hpp"
-#include "utils/formats/svg/group.hpp"
-#include "utils/formats/svg/helper.hpp"
-#include "utils/formats/svg/object.hpp"
-#include "utils/formats/svg/shapes.hpp"
-#include "utils/formats/svg/text.hpp"
+#include "lib/utils/core/algorithm.hpp"
 
-#endif // include guard
+#include <vector>
+
+using namespace genesis::utils;
+
+TEST( Algorithm, SortIndices )
+{
+    auto const list = std::vector<int>({ 3, 100, -1, 0, 13, 42, -32 });
+
+    auto exp_less_order = list;
+    std::sort( exp_less_order.begin(), exp_less_order.end() );
+    auto act_less_order = sort_indices( list.begin(), list.end() );
+
+    for( size_t i = 0; i < act_less_order.size(); ++i ) {
+        EXPECT_EQ( exp_less_order[i], list[ act_less_order[i] ] );
+    }
+
+    auto exp_greater_order = list;
+    std::sort( exp_greater_order.begin(), exp_greater_order.end(), std::greater<int>() );
+    auto act_greater_order = sort_indices( list.begin(), list.end(), std::greater<int>() );
+
+    for( size_t i = 0; i < act_greater_order.size(); ++i ) {
+        EXPECT_EQ( exp_greater_order[i], list[ act_greater_order[i] ] );
+    }
+}

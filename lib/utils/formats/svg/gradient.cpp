@@ -115,6 +115,7 @@ void SvgGradientLinear::write( std::ostream& out, size_t indent ) const
             assert( false );
         }
     }
+    transform.write( out );
 
     out << " >\n";
 

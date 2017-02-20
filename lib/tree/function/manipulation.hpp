@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -96,6 +96,18 @@ void reroot( Tree& tree, TreeNode& at_node );
  * The node index needs to be valid for the tree, otherwise an exception is thrown.
  */
 void reroot_at_node( Tree& tree, size_t node_index );
+
+// =================================================================================================
+//     Ladderize
+// =================================================================================================
+
+enum class LadderizeOrder
+{
+    kSmallFirst,
+    kLargeFirst
+};
+
+void ladderize( Tree& tree, LadderizeOrder order = LadderizeOrder::kSmallFirst );
 
 } // namespace tree
 } // namespace genesis

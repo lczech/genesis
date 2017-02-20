@@ -202,6 +202,11 @@ void BmpWriter::to_stream(
     info.bmiHeader.biHeight   = height;
     info.bmiHeader.biBitCount = 8;
 
+    // Palette size check.
+    if( palette.size() != 256 ) {
+        throw std::invalid_argument( "Bitmap color palette does not have 256 entries." );
+    }
+
     // Color palette.
     info.bmiColors = std::vector<RgbQuad>( 256 );
     for( size_t i = 0; i < 256; ++i ) {

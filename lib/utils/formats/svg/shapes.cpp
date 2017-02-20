@@ -75,12 +75,17 @@ void SvgLine::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<line";
 
+    if( ! id.empty() ) {
+        out << svg_attribute( "id", id );
+    }
+
     out << svg_attribute( "x1", point_1.x + options.offset_x );
     out << svg_attribute( "y1", point_1.y + options.offset_y );
     out << svg_attribute( "x2", point_2.x + options.offset_x );
     out << svg_attribute( "y2", point_2.y + options.offset_y );
 
     stroke.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -129,6 +134,10 @@ void SvgRect::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<rect";
 
+    if( ! id.empty() ) {
+        out << svg_attribute( "id", id );
+    }
+
     out << svg_attribute( "x", position.x + options.offset_x );
     out << svg_attribute( "y", position.y + options.offset_y );
     out << svg_attribute( "width",  size.width );
@@ -141,6 +150,7 @@ void SvgRect::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -190,12 +200,17 @@ void SvgCircle::write( std::ostream& out, size_t indent, SvgDrawingOptions const
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<circle";
 
+    if( ! id.empty() ) {
+        out << svg_attribute( "id", id );
+    }
+
     out << svg_attribute( "cx", center.x + options.offset_x );
     out << svg_attribute( "cy", center.y + options.offset_y );
     out << svg_attribute( "r",  radius );
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -246,6 +261,10 @@ void SvgEllipse::write( std::ostream& out, size_t indent, SvgDrawingOptions cons
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<ellipse";
 
+    if( ! id.empty() ) {
+        out << svg_attribute( "id", id );
+    }
+
     out << svg_attribute( "cx", center.x + options.offset_x );
     out << svg_attribute( "cy", center.y + options.offset_y );
     out << svg_attribute( "rx", rx );
@@ -253,6 +272,7 @@ void SvgEllipse::write( std::ostream& out, size_t indent, SvgDrawingOptions cons
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -331,6 +351,10 @@ void SvgPolyline::write( std::ostream& out, size_t indent, SvgDrawingOptions con
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<polyline";
 
+    if( ! id.empty() ) {
+        out << svg_attribute( "id", id );
+    }
+
     out << " points=\"";
     for( size_t i = 0; i < points.size(); ++i ) {
         if( i > 0 ) {
@@ -343,6 +367,7 @@ void SvgPolyline::write( std::ostream& out, size_t indent, SvgDrawingOptions con
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -421,6 +446,10 @@ void SvgPolygon::write( std::ostream& out, size_t indent, SvgDrawingOptions cons
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<polygon";
 
+    if( ! id.empty() ) {
+        out << svg_attribute( "id", id );
+    }
+
     out << " points=\"";
     for( size_t i = 0; i < points.size(); ++i ) {
         if( i > 0 ) {
@@ -433,6 +462,7 @@ void SvgPolygon::write( std::ostream& out, size_t indent, SvgDrawingOptions cons
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
     out << " />\n";
 }
 
@@ -479,6 +509,7 @@ SvgPath& SvgPath::operator <<( std::string elem )
 
 SvgBox SvgPath::bounding_box() const
 {
+    // TODO
     return {};
 }
 
@@ -488,6 +519,10 @@ void SvgPath::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
 
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<path";
+
+    if( ! id.empty() ) {
+        out << svg_attribute( "id", id );
+    }
 
     out << " d=\"";
     for( size_t i = 0; i < elements.size(); ++i ) {
@@ -500,6 +535,28 @@ void SvgPath::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
 
     stroke.write( out );
     fill.write( out );
+    transform.write( out );
+    out << " />\n";
+}
+
+// =================================================================================================
+//     Svg Use
+// =================================================================================================
+
+SvgBox SvgUse::bounding_box() const
+{
+    // TODO
+    return {};
+}
+
+void SvgUse::write( std::ostream& out, size_t indent, SvgDrawingOptions const& options ) const
+{
+    out << repeat( SvgDocument::indentation_string, indent );
+    out << "<use";
+    out << svg_attribute( "xlink:href", "#" + referenced_id );
+    out << svg_attribute( "x", offset.x + options.offset_x );
+    out << svg_attribute( "y", offset.y + options.offset_y );
+    transform.write( out );
     out << " />\n";
 }
 

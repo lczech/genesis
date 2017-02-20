@@ -31,6 +31,7 @@
  * @ingroup utils
  */
 
+#include "utils/formats/svg/attributes.hpp"
 #include "utils/formats/svg/helper.hpp"
 #include "utils/tools/color.hpp"
 
@@ -170,6 +171,7 @@ public:
     SpreadMethod spread_method = SpreadMethod::kPad;
 
     std::vector< SvgGradientStop > stops;
+    SvgTransform                   transform;
 
 };
 

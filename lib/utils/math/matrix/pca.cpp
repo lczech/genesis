@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -289,7 +289,11 @@ PcaData principal_component_analysis(
     assert( symmat.cols()            == standardized_data.cols() );
 
     // Sort Eigenvalues and Eigenvectors and store in result struct.
-    auto sorted_indices = sort_indices<double>( tri.eigenvalues, std::greater<double>() );
+    auto sorted_indices = sort_indices(
+        tri.eigenvalues.begin(),
+        tri.eigenvalues.end(),
+        std::greater<double>()
+    );
     result.eigenvalues  = std::vector<double>( components );
     result.eigenvectors = Matrix<double>( symmat.rows(), components );
     for( size_t c = 0; c < components; ++c ) {

@@ -77,7 +77,7 @@ TEST( Svg, Basics )
     poly << SvgPoint( 00, 40 ) << SvgPoint( 20, 30 ) << SvgPoint( 10, 10 ) << SvgPoint( 30, 20 );
     doc << poly;
 
-    auto text = SvgText( SvgPoint( 20, 120 ), "Hello World! ygp", SvgFont( 15 ) );
+    auto text = SvgText( "Hello World! ygp", SvgPoint( 20, 120 ), SvgFont( 15 ) );
     auto bb = text.bounding_box();
     doc << SvgRect( bb.top_left, bb.size(), SvgStroke( Color( 255, 128, 128 ) ), SvgFill( Color(), 0.0 ));
     doc << text;
@@ -102,7 +102,7 @@ TEST( Svg, Gradient )
     grad.stops.emplace_back( 0.0, color_from_hex( "#000000" ) );
     grad.stops.emplace_back( 0.5, color_from_hex( "#c040be" ) );
     grad.stops.emplace_back( 1.0, color_from_hex( "#81bfff" ) );
-    doc.gradients.push_back( grad );
+    doc.defs.push_back( grad );
 
     auto rect = SvgRect( 0, 0, 10, 100 );
     rect.stroke.color = Color( 0, 0, 0 );

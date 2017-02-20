@@ -160,6 +160,8 @@ utils::SvgDocument RectangularLayout::to_svg_document() const
 {
     using namespace utils;
     SvgDocument doc;
+    SvgGroup    tree_lines;
+    SvgGroup    taxa_names;
 
     for( auto const& node_it : tree_.nodes() ) {
         auto const& node = *node_it;
@@ -175,12 +177,12 @@ utils::SvgDocument RectangularLayout::to_svg_document() const
             auto stroke = edge_data_ptr->data<RectangularEdgeData>().stroke;
             // stroke.line_cap = utils::SvgStroke::LineCap::kRound;
 
-            doc << SvgLine(
+            tree_lines << SvgLine(
                 node_data.x, node_data.y,
                 parent_data.x, node_data.y,
                 stroke
             );
-            doc << SvgLine(
+            tree_lines << SvgLine(
                 parent_data.x, node_data.y,
                 parent_data.x, parent_data.y,
                 stroke
@@ -193,12 +195,15 @@ utils::SvgDocument RectangularLayout::to_svg_document() const
 
         // If the node has a name, print it.
         if( node_data.name != "" ) {
-            auto label = SvgText( SvgPoint( node_data.x + 5, node_data.y ), node_data.name );
+            auto label = SvgText( node_data.name, SvgPoint( node_data.x + 5, node_data.y ) );
             // label.dy = "0.4em";
-            doc << label;
+            taxa_names << label;
         }
     }
 
+    // We are sure that we won't use the groups again, so let's move them!
+    doc << std::move( tree_lines );
+    doc << std::move( taxa_names );
     return doc;
 }
 

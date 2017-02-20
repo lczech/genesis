@@ -95,9 +95,11 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
-    SvgPoint  point_1;
-    SvgPoint  point_2;
-    SvgStroke stroke;
+    std::string  id;
+    SvgPoint     point_1;
+    SvgPoint     point_2;
+    SvgStroke    stroke;
+    SvgTransform transform;
 
 };
 
@@ -157,6 +159,8 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
+    std::string id;
+
     SvgPoint  position;
     SvgSize   size;
 
@@ -165,6 +169,8 @@ public:
 
     double rx;
     double ry;
+
+    SvgTransform transform;
 
 };
 
@@ -224,11 +230,15 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
+    std::string id;
+
     SvgPoint  center;
     double    radius;
 
     SvgStroke stroke;
     SvgFill   fill;
+
+    SvgTransform transform;
 
 };
 
@@ -288,12 +298,16 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
+    std::string id;
+
     SvgPoint  center;
     double    rx;
     double    ry;
 
     SvgStroke stroke;
     SvgFill   fill;
+
+    SvgTransform transform;
 
 };
 
@@ -355,10 +369,14 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
+    std::string id;
+
     std::vector< SvgPoint > points;
 
     SvgStroke stroke;
     SvgFill   fill;
+
+    SvgTransform transform;
 
 };
 
@@ -420,10 +438,14 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
+    std::string id;
+
     std::vector< SvgPoint > points;
 
     SvgStroke stroke;
     SvgFill   fill;
+
+    SvgTransform transform;
 
 };
 
@@ -484,10 +506,79 @@ public:
     //     Properties
     // -------------------------------------------------------------
 
+    std::string id;
+
     std::vector< std::string > elements;
 
     SvgStroke stroke;
     SvgFill   fill;
+
+    SvgTransform transform;
+
+};
+
+// =================================================================================================
+//     Svg Use
+// =================================================================================================
+
+struct SvgUse
+{
+public:
+
+    // -------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------
+
+    using self_type = SvgUse;
+
+    // -------------------------------------------------------------
+    //     Constructors and Rule of Five
+    // -------------------------------------------------------------
+
+    SvgUse(
+        std::string const& id,
+        SvgPoint const& offset
+    )
+        : referenced_id( id )
+        , offset( offset )
+    {}
+
+    SvgUse(
+        std::string const& id,
+        double offset_x,
+        double offset_y
+    )
+        : referenced_id( id )
+        , offset( offset_x, offset_y )
+    {}
+
+    ~SvgUse() = default;
+
+    SvgUse( SvgUse const& ) = default;
+    SvgUse( SvgUse&& )      = default;
+
+    SvgUse& operator= ( SvgUse const& ) = default;
+    SvgUse& operator= ( SvgUse&& )      = default;
+
+    // -------------------------------------------------------------
+    //     Drawing Function
+    // -------------------------------------------------------------
+
+    SvgBox bounding_box() const;
+
+    void write(
+        std::ostream& out,
+        size_t indent = 0,
+        SvgDrawingOptions const& options = SvgDrawingOptions()
+    ) const;
+
+    // -------------------------------------------------------------
+    //     Properties
+    // -------------------------------------------------------------
+
+    std::string  referenced_id;
+    SvgPoint     offset;
+    SvgTransform transform;
 
 };
 

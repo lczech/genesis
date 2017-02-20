@@ -48,14 +48,14 @@ namespace utils {
 // -------------------------------------------------------------
 
 SvgText::SvgText(
-    SvgPoint const&    position,
     std::string const& text,
+    SvgPoint const&    position,
     SvgFont const&     font,
     SvgFill const&     fill,
     SvgStroke const&   stroke
 )
-    : position(position)
-    , text(text)
+    : text(text)
+    , position(position)
     , font(font)
     , fill(fill)
     , stroke(stroke)
@@ -103,6 +103,10 @@ void SvgText::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
     out << repeat( SvgDocument::indentation_string, indent );
     out << "<text";
 
+    if( ! id.empty() ) {
+        out << svg_attribute( "id", id );
+    }
+
     out << svg_attribute( "x", position.x + options.offset_x );
     out << svg_attribute( "y", position.y + options.offset_y );
 
@@ -140,6 +144,7 @@ void SvgText::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
     if( dy != "" ) {
         out << svg_attribute( "dy", dy );
     }
+    transform.write( out );
 
     out << ">";
     out << xml_escape( text );
