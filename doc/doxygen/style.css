@@ -26,6 +26,12 @@ body, table, div, p, dl {
 
 h1 {
 	font-size: 150%;
+    margin-top: 30px;
+    margin-bottom: 25px;
+    background-color: #E2E5F2;
+    width: 100%;
+    padding: 10px 10px 10px 20px;
+    color: #29325E;
 }
 
 h1.groupheader {
@@ -63,9 +69,9 @@ h1, h2, h3, h4, h5, h6 {
 	margin-right: 15px;
 }
 
-/*h1.glow, h2.glow, h3.glow, h4.glow, h5.glow, h6.glow {
-	text-shadow: 0 0 15px cyan;
-}*/
+h1.glow, h2.glow, h3.glow, h4.glow, h5.glow, h6.glow {
+	text-shadow: 0 0 15px #FFC824;
+}
 
 dt {
 	font-weight: bold;
@@ -231,8 +237,8 @@ div.line {
 }
 
 div.line.glow {
-	background-color: cyan;
-	box-shadow: 0 0 10px cyan;
+	background-color: #FFC824;
+	box-shadow: 0 0 10px #FFC824;
 }
 
 
@@ -475,8 +481,8 @@ table.memberdecls {
 }
 
 .memberdecls td.glow, .fieldtable tr.glow {
-	background-color: cyan;
-	box-shadow: 0 0 15px cyan;
+	background-color: #FFC824;
+	box-shadow: 0 0 15px #FFC824;
 }
 
 .mdescLeft, .mdescRight,
@@ -554,7 +560,7 @@ table.memberdecls {
 }
 
 .memitem.glow {
-         box-shadow: 0 0 15px cyan;
+         box-shadow: 0 0 15px #FFC824;
 }
 
 .memname {
