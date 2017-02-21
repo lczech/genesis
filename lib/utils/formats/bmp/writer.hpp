@@ -66,13 +66,21 @@ public:
     /**
      * @brief Bitmap File Header.
      *
+     * This POD structure holds information about a Bitmap file.
+     * Usually, it is followed by a BitmapInfoheader.
+     *
+     * The data is stored in the following order:
+     *
      * start | size | name        | stdvalue | purpose
-     * ------|------|-------------|-----------------------------------------------------------------
+     * -----:|-----:|:------------|---------:|:-----------------------------------------------------
      *     0 |    2 | bfType      |    19778 | Must be 'BM' to declare that this is a .bmp-file.
      *     2 |    4 | bfSize      |       ?? | Size of the file in bytes, including headers, pixel data and padding.
      *     6 |    2 | bfReserved1 |        0 | Must be set to zero.
      *     8 |    2 | bfReserved2 |        0 | Must be set to zero.
      *    10 |    4 | bfOffBits   |       54 | Offset from the start of the file to the pixel data.
+     *
+     * @see BmpWriter
+     * @see BitmapInfoheader
      */
     struct BitmapFileheader
     {
@@ -86,8 +94,17 @@ public:
     /**
      * @brief Bitmap Info Header.
      *
+     * This POD structure holds information about a Bitmap image. In the Bitmap file format, it
+     * immediately follows the BitmapFileheader, thus the start of the data is at byte 14.
+     *
+     * Furthermore, for Bitmaps that do not use full 24 (or more) bit colors, a color palette is
+     * necessary. The BitmapInfo structure is able to hold this additional information, see there
+     * for details.
+     *
+     * The data in this struct is stored in the following order:
+     *
      * start | size | name            | stdvalue | purpose
-     * ----------------------------------------------------------------------------------------------
+     * -----:|-----:|:----------------|---------:|:--------------------------------------------------
      *    14 |    4 | biSize          |       40 | Size of the BitmapInfoheader structure, in bytes.
      *    18 |    4 | biWidth         |       ?? | Width of the image, in pixels.
      *    22 |    4 | biHeight        |       ?? | Height of the image, in pixels.
@@ -99,6 +116,10 @@ public:
      *    42 |    4 | biYPelsPerMeter |        0 | Vertical pixels per meter on the designated targer device, usually set to zero.
      *    46 |    4 | biClrUsed       |        0 | Number of colors used in the bitmap, if zero the number is calculated using biBitCount.
      *    50 |    4 | biClrImportant  |        0 | Number of color that are 'important'. If zero, all colors are important.
+     *
+     * @see BmpWriter
+     * @see BitmapFileheader
+     * @see BitmapInfo
      */
     struct BitmapInfoheader
     {
@@ -117,6 +138,11 @@ public:
 
     /**
      * @brief Palette entry that describes an RGB Color.
+     *
+     * This POD struct stores an RGB Color plus padding in the byte order needed for Bitmap files.
+     *
+     * @see BmpWriter
+     * @see BitmapInfo
      */
     struct RgbQuad
     {
@@ -129,7 +155,13 @@ public:
     /**
      * @brief Bitmap info that describes dimensions and color information.
      *
-     * This struct is used with palettes of colors. It is not needed for full 24bit RGB colors.
+     * This struct is an extension of the BitmapInfoheader struct. It is used to additionally store
+     * a palette of colors in form of a `vector` of RgbQuad. This is needed if the Bitmap uses
+     * fewer than 24 bits per pixel, that is, if the Bitmap is not a full RGB Color image.
+     *
+     * @see BmpWriter
+     * @see BitmapInfoheader
+     * @see RgbQuad
      */
     struct BitmapInfo {
         BitmapInfoheader     bmiHeader;
@@ -140,13 +172,22 @@ public:
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
 
+    /// @brief Default constructor.
     BmpWriter()  = default;
+
+    /// @brief Default destructor.
     ~BmpWriter() = default;
 
+    /// @brief Default copy constructor.
     BmpWriter( BmpWriter const& ) = default;
+
+    /// @brief Default move constructor.
     BmpWriter( BmpWriter&& )      = default;
 
+    /// @brief Default copy assignemnt.
     BmpWriter& operator= ( BmpWriter const& ) = default;
+
+    /// @brief Default move assignemnt.
     BmpWriter& operator= ( BmpWriter&& )      = default;
 
     // ---------------------------------------------------------------------
@@ -165,16 +206,26 @@ public:
 
     /**
      * @brief Write an 8 bit grayscale image to a stream.
+     *
+     * The entries of the given Matrix are simply translated into a grayscale image, where
+     * `0` gives black and `255` gives white pixels.
      */
     void to_stream( Matrix<unsigned char> const& image, std::ostream& outstream ) const;
 
     /**
      * @brief Write an 8 bit grayscale image to a file.
+     *
+     * The entries of the given Matrix are simply translated into a grayscale image, where
+     * `0` gives black and `255` gives white pixels.
      */
     void to_file( Matrix<unsigned char> const& image, std::string const& filename ) const;
 
     /**
      * @brief Write an 8 bit image with a Color palette to a stream.
+     *
+     * The given `palette` needs to contain exaclty 256 Color entries. The values of the given
+     * `image` Matrix are then mapped to the palette entries, e.g., the value at `image( 2, 3 ) == 5`
+     * maps to the Color `palette[ 5 ]`.
      */
     void to_stream(
         Matrix<unsigned char> const& image, std::vector<Color> palette, std::ostream& outstream
@@ -182,6 +233,10 @@ public:
 
     /**
      * @brief Write an 8 bit image with a Color palette to a file.
+     *
+     * The given `palette` needs to contain exaclty 256 Color entries. The values of the given
+     * `image` Matrix are then mapped to the palette entries, e.g., the value at `image( 2, 3 ) == 5`
+     * maps to the Color `palette[ 5 ]`.
      */
     void to_file(
         Matrix<unsigned char> const& image, std::vector<Color> palette, std::string const& filename
