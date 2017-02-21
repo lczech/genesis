@@ -182,24 +182,24 @@ dl.el {
 }
 
 pre.fragment {
-        border: 1px solid #C4CFE5;
+        border: 1px solid #C4CAE5;
         background-color: #FBFBFD;
-        padding: 4px 6px;
-        margin: 4px 8px 4px 2px;
+        padding: 10px 12px;
+        margin: 20px 0px 20px 0px;
         overflow: auto;
         word-wrap: break-word;
         font-size:  9pt;
-        line-height: 125%;
+        line-height: 130%;
         font-family: monospace, fixed;
         font-size: 105%;
 }
 
 div.fragment {
         padding: 10px 12px;
-        margin: 4px 8px 4px 2px;
-	background-color: #FBFBFD;
-	border: 1px solid #C4CAE5;
-        line-height: 125%;
+        margin: 20px 0px 20px 0px;
+        background-color: #FBFBFD;
+        border: 1px solid #C4CAE5;
+        line-height: 130%;
 }
 
 div.line {
@@ -207,7 +207,7 @@ div.line {
         font-size: 13px;
 	min-height: 13px;
 	/*line-height: 1.0;*/
-	line-height: 125%;
+	line-height: 130%;
 	text-wrap: unrestricted;
 	white-space: -moz-pre-wrap; /* Moz */
 	white-space: -pre-wrap;     /* Opera 4-6 */
@@ -288,8 +288,9 @@ body {
 
 div.contents {
 	margin-top: 10px;
-	margin-left: 30px;
-	margin-right: 30px;
+	margin-left: 50px;
+	margin-right: 50px;
+    max-width: 1000px;
 }
 
 td.indexkey {
@@ -1090,6 +1091,10 @@ dl.section dd {
 .image
 {
         text-align: center;
+        margin: 20px 0px 20px 0px;
+        padding: 20px 0px 0px 0px;
+        border: 1px solid #C4CAE5;
+        /*width: 100%;*/
 }
 
 .dotgraph
@@ -1110,6 +1115,10 @@ dl.section dd {
 .caption
 {
 	font-weight: bold;
+    margin-top: 20px;
+    width: 100%;
+    background-color: #FBFBFD;
+    padding: 5px 0 5px 0;
 }
 
 div.zoom
