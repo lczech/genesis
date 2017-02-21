@@ -183,7 +183,7 @@ dl.el {
 
 pre.fragment {
         border: 1px solid #C4CFE5;
-        background-color: #FBFCFD;
+        background-color: #FBFBFD;
         padding: 4px 6px;
         margin: 4px 8px 4px 2px;
         overflow: auto;
@@ -195,17 +195,19 @@ pre.fragment {
 }
 
 div.fragment {
-        padding: 4px 6px;
+        padding: 10px 12px;
         margin: 4px 8px 4px 2px;
 	background-color: #FBFBFD;
 	border: 1px solid #C4CAE5;
+        line-height: 125%;
 }
 
 div.line {
 	font-family: monospace, fixed;
         font-size: 13px;
 	min-height: 13px;
-	line-height: 1.0;
+	/*line-height: 1.0;*/
+	line-height: 125%;
 	text-wrap: unrestricted;
 	white-space: -moz-pre-wrap; /* Moz */
 	white-space: -pre-wrap;     /* Opera 4-6 */
@@ -345,6 +347,14 @@ img.footer {
 }
 
 /* @group Code Colorization */
+
+code {
+/*	background-color: #FBFBFD; */
+	background-color: #F5F5F5;
+	padding: 4px;
+	border-radius: 4px;
+	font-family: monospace, fixed;
+}
 
 span.keyword {
 	color: #008000
