@@ -128,6 +128,8 @@ ENDIF()
 if(THREADS_FOUND)
     message (STATUS "${ColorGreen}Using threads${ColorEnd}")
     add_definitions( "-DGENESIS_PTHREADS" )
+elseif(USE_THREADS)
+    message (STATUS "Threads not found")
 endif()
 
 IF(USE_OPENMP)
@@ -167,8 +169,10 @@ elseif(
        OR ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL 3.8
     )
 )
-    message (STATUS "${ColorRed}You are trying to compile with Clang and OpenMp. "
+    message (WARNING "${ColorRed}You are trying to compile with Clang and OpenMp. "
     "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
+elseif(USE_OPENMP)
+    message (STATUS "OpenMP not found")
 endif()
 
 # --------------------------------------------------------------------------------------------------
