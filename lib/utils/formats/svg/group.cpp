@@ -73,6 +73,7 @@ void SvgGroup::write( std::ostream& out, size_t indent, SvgDrawingOptions const&
         elem.write( out, indent + 1, options );
     }
 
+    out << repeat( SvgDocument::indentation_string, indent );
     out << "</g>\n";
 }
 

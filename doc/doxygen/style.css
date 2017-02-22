@@ -26,6 +26,12 @@ body, table, div, p, dl {
 
 h1 {
 	font-size: 150%;
+    margin-top: 30px;
+    margin-bottom: 25px;
+    background-color: #E2E5F2;
+    width: 100%;
+    padding: 10px 10px 10px 20px;
+    color: #29325E;
 }
 
 h1.groupheader {
@@ -64,7 +70,7 @@ h1, h2, h3, h4, h5, h6 {
 }
 
 h1.glow, h2.glow, h3.glow, h4.glow, h5.glow, h6.glow {
-	text-shadow: 0 0 15px cyan;
+	text-shadow: 0 0 15px #FFC824;
 }
 
 dt {
@@ -182,30 +188,32 @@ dl.el {
 }
 
 pre.fragment {
-        border: 1px solid #C4CFE5;
-        background-color: #FBFCFD;
-        padding: 4px 6px;
-        margin: 4px 8px 4px 2px;
+        border: 1px solid #C4CAE5;
+        background-color: #FBFBFD;
+        padding: 10px 12px;
+        margin: 20px 0px 20px 0px;
         overflow: auto;
         word-wrap: break-word;
         font-size:  9pt;
-        line-height: 125%;
+        line-height: 130%;
         font-family: monospace, fixed;
         font-size: 105%;
 }
 
 div.fragment {
-        padding: 4px 6px;
-        margin: 4px 8px 4px 2px;
-	background-color: #FBFBFD;
-	border: 1px solid #C4CAE5;
+        padding: 10px 12px;
+        margin: 20px 0px 20px 0px;
+        background-color: #FBFBFD;
+        border: 1px solid #C4CAE5;
+        line-height: 130%;
 }
 
 div.line {
 	font-family: monospace, fixed;
         font-size: 13px;
 	min-height: 13px;
-	line-height: 1.0;
+	/*line-height: 1.0;*/
+	line-height: 130%;
 	text-wrap: unrestricted;
 	white-space: -moz-pre-wrap; /* Moz */
 	white-space: -pre-wrap;     /* Opera 4-6 */
@@ -229,8 +237,8 @@ div.line {
 }
 
 div.line.glow {
-	background-color: cyan;
-	box-shadow: 0 0 10px cyan;
+	background-color: #FFC824;
+	box-shadow: 0 0 10px #FFC824;
 }
 
 
@@ -286,8 +294,9 @@ body {
 
 div.contents {
 	margin-top: 10px;
-	margin-left: 30px;
-	margin-right: 30px;
+	margin-left: 50px;
+	margin-right: 50px;
+    max-width: 1000px;
 }
 
 td.indexkey {
@@ -345,6 +354,14 @@ img.footer {
 }
 
 /* @group Code Colorization */
+
+code {
+/*	background-color: #FBFBFD; */
+	background-color: #F5F5F5;
+	padding: 4px;
+	border-radius: 4px;
+	font-family: monospace, fixed;
+}
 
 span.keyword {
 	color: #008000
@@ -464,8 +481,8 @@ table.memberdecls {
 }
 
 .memberdecls td.glow, .fieldtable tr.glow {
-	background-color: cyan;
-	box-shadow: 0 0 15px cyan;
+	background-color: #FFC824;
+	box-shadow: 0 0 15px #FFC824;
 }
 
 .mdescLeft, .mdescRight,
@@ -543,7 +560,7 @@ table.memberdecls {
 }
 
 .memitem.glow {
-         box-shadow: 0 0 15px cyan;
+         box-shadow: 0 0 15px #FFC824;
 }
 
 .memname {
@@ -562,7 +579,8 @@ table.memberdecls {
         padding: 6px 0px 6px 0px;
         color: #252D55;
         font-weight: bold;
-        text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.9);
+        /*text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.9);*/
+        text-shadow: none;
 		background-image:none;
         background-repeat:repeat-x;
         background-color: #E2E5F2;
@@ -586,6 +604,7 @@ table.memberdecls {
         border-left: 1px solid #A8B0D9;
         border-right: 1px solid #A8B0D9;
         padding: 6px 10px 2px 10px;
+        margin-bottom: 20px;
         background-color: #FBFBFD;
         border-top-width: 0;
 		background-image:none;
@@ -623,7 +642,8 @@ dl.reflist dd {
 }
 
 .paramname {
-	color: #602020;
+	/*color: #602020;*/
+	color: #727FC1;
 	white-space: nowrap;
 }
 .paramname em {
@@ -631,6 +651,7 @@ dl.reflist dd {
 }
 .paramname code {
         line-height: 14px;
+        background: none;
 }
 
 .params, .retval, .exception, .tparams {
@@ -674,14 +695,15 @@ span.mlabels {
 
 span.mlabel {
         background-color: #727FC1;
-        border-top:1px solid #5363B4;
+        border: 1px solid #5363B4;
+        /*border-top:1px solid #5363B4;
         border-left:1px solid #5363B4;
         border-right:1px solid #C4CAE5;
-        border-bottom:1px solid #C4CAE5;
+        border-bottom:1px solid #C4CAE5;*/
 	text-shadow: none;
 	color: white;
 	margin-right: 4px;
-	padding: 2px 3px;
+	padding: 3px 8px;
 	border-radius: 0px;
 	font-size: 8pt;
 	white-space: nowrap;
@@ -899,7 +921,7 @@ table.fieldtable {
 	outline: none;
 	color: #28315D;
 	font-family: 'Lucida Grande',Geneva,Helvetica,Arial,sans-serif;
-	text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.9);
+	/*text-shadow: 0px 1px 1px rgba(255, 255, 255, 0.9);*/
 	text-decoration: none;
 }
 
@@ -1080,6 +1102,10 @@ dl.section dd {
 .image
 {
         text-align: center;
+        margin: 20px 0px 20px 0px;
+        padding: 20px 0px 0px 0px;
+        border: 1px solid #C4CAE5;
+        /*width: 100%;*/
 }
 
 .dotgraph
@@ -1100,6 +1126,10 @@ dl.section dd {
 .caption
 {
 	font-weight: bold;
+    margin-top: 20px;
+    width: 100%;
+    background-color: #FBFBFD;
+    padding: 5px 0 5px 0;
 }
 
 div.zoom

@@ -137,12 +137,15 @@ reads:
 > **Performance, accuracy, and web server for evolutionary placement of short sequence reads
 > under maximum likelihood**,
 > *Syst. Biol., vol. 60, no. 3, pp. 291–302, 2011*.
+> [DOI: 10.1093/sysbio/syr010](http://dx.doi.org/10.1093/sysbio/syr010)
 
 > <a name="placement_references_2">`[2]`</a> F. A. Matsen, R. B. Kodner, and E. V. Armbrust,
 > **pplacer: linear time maximum-likelihood and Bayesian phylogenetic placement of sequences
 > onto a fixed reference tree**,
 > *BMC Bioinformatics, vol. 11, no. 1, p. 538, 2010*.
+> [DOI: 10.1186/1471-2105-11-538](http://dx.doi.org/10.1186/1471-2105-11-538)
 
 > <a name="placement_references_3">`[3]`</a> F. A. Matsen, N. G. Hoffman, A. Gallagher, and A. Stamatakis,
 > **A format for phylogenetic placements**,
 > *PLoS One, vol. 7, no. 2, pp. 1–4, Jan. 2012*.
+> [DOI: 10.1371/journal.pone.0031009](http://dx.doi.org/10.1371/journal.pone.0031009)
