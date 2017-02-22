@@ -20,7 +20,7 @@
 # Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 
 # ------------------------------------------------------------------------------
-#   Cmake Init
+#   CMake Init
 # ------------------------------------------------------------------------------
 
 cmake_minimum_required (VERSION 2.8.12.2 FATAL_ERROR)
@@ -129,16 +129,44 @@ if(THREADS_FOUND)
 endif()
 
 IF(USE_OPENMP)
-    find_package( OpenMP )
+
+    # CMake versions before 3.5 do not properly support Clang OpenMP flags.
+    # And even with more recent CMake versions, it is not fully working.
+    # In order to still enable OpenMP, we use our own patch of the find module.
+    # See ./tools/cmake/FindOpenMP.cmake for the modifications we made to support Clang.
+    if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
+        set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/tools/cmake" )
+        find_package( OpenMP_patch )
+
+        # If our patch does not work, try the standard one, just in case.
+        if( NOT OPENMP_FOUND )
+            find_package( OpenMP )
+        endif()
+
+    else()
+        # In all other cases, use the normal find module.
+        find_package( OpenMP )
+    endif()
 ENDIF()
 
 if(OPENMP_FOUND)
+
     message (STATUS "${ColorGreen}Using OpenMP${ColorEnd}")
     add_definitions( "-DGENESIS_OPENMP" )
 
     set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${OpenMP_C_FLAGS}")
     set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
     set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+
+elseif(
+    USE_OPENMP
+    AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
+    AND ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 3.8
+       OR ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL 3.8
+    )
+)
+    message (STATUS "${ColorRed}You are trying to compile with Clang and OpenMp. "
+    "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
 endif()
 
 # ------------------------------------------------------------------------------
