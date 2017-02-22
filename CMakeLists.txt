@@ -51,8 +51,9 @@ include (TestBigEndian)
 TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
 if( IS_BIG_ENDIAN )
     message(
-        FATAL_ERROR
-        "${ColorRed}Genesis currently does not support Big Endian systems!${ColorEnd}"
+        STATUS
+        "${ColorRed}Your system uses big endian memory, which is rare. Genesis is not tested "
+        "with such systems. There might be bugs because of this!${ColorEnd}"
     )
 endif()
 
