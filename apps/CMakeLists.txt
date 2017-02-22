@@ -25,12 +25,6 @@
 
 set( EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin )
 
-# Need to set rpath for all targets for it to work.
-# Also, we need to set two versions of ORIGIN here (one and two dollar signs).
-# This is because on some systems it seems to be escaped, on some not...
-set( CMAKE_INSTALL_RPATH "$ORIGIN:$$ORIGIN" )
-set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
-
 # ------------------------------------------------------------------------------
 #   Sources
 # ------------------------------------------------------------------------------
