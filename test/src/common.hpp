@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,7 +31,22 @@
  * @ingroup test
  */
 
+// Disable warnings for GCC, also works in Clang, see http://stackoverflow.com/a/13492589/4184258
+// Furthermore, while we are at it, also disable the warning produced by the pragma
+// for disabling warnings in MSVC...
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wsign-compare"
+#pragma GCC diagnostic ignored "-Wunknown-pragmas"
+
+// Disable warnings for MSVC, see http://stackoverflow.com/a/2106590/4184258
+#pragma warning (push, 0)
+
+// Include the GTest header, which produces ugly warnings with our compile flags.
 #include <gtest/gtest.h>
+
+// Re-enable warnings
+#pragma warning (pop)
+#pragma GCC diagnostic pop
 
 #include "utils/core/logging.hpp"
 

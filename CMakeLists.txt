@@ -26,6 +26,7 @@
 # Require the minimum version of any system that we test on - which is the version used by Travis.
 # Thus, we can be sure that this works (as long as they don't change it...).
 cmake_minimum_required (VERSION 2.8.7 FATAL_ERROR)
+message (STATUS "CMake version ${CMAKE_VERSION}")
 
 set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
@@ -68,9 +69,7 @@ option (BUILD_STATIC_LIB    "Build static library" OFF)
 
 option (BUILD_APPLICATIONS  "Build applications"   ON)
 option (BUILD_PYTHON_MODULE "Build python module"  OFF)
-option (BUILD_TESTS         "Build test suites"    ON)
-
-option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" ON)
+option (BUILD_TESTS         "Build test suites"    OFF)
 
 option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
 option (USE_OPENMP          "Use OpenMP if available"                         ON)
@@ -89,9 +88,13 @@ set (CMAKE_BUILD_TYPE RELEASE)
 
 # Using the environment variable `GENESIS_DEBUG`, it is possible to change from
 # release mode (default) to debug mode. This is useful for developers.
+# It also activates test building automatically.
 if( $ENV{GENESIS_DEBUG} )
+
     set (CMAKE_BUILD_TYPE DEBUG)
     # set (CMAKE_VERBOSE_MAKEFILE ON)
+    SET( BUILD_TESTS ON )
+
 endif()
 
 message (STATUS "${ColorBlue}Building ${CMAKE_BUILD_TYPE}${ColorEnd}")
@@ -100,7 +103,9 @@ message (STATUS "${ColorBlue}Building ${CMAKE_BUILD_TYPE}${ColorEnd}")
 #   Compiler and Linker Options
 # --------------------------------------------------------------------------------------------------
 
-set (WARN_FLAGS              "-Wall -Wextra -pedantic -pedantic-errors")
+# Set the warn flags to a very high level - except unknown pragmas, as this causes needless
+# warnings with OpenMP and other pragma-based techniques.
+set (WARN_FLAGS              "-Wall -Wextra -Wno-unknown-pragmas -pedantic -pedantic-errors")
 set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
 
 set (CMAKE_CXX_FLAGS_DEBUG   "-O2 -g -ggdb3 -DDEBUG -D_GLIBCXX_DEBUG")
@@ -120,6 +125,7 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O2       -DNDEBUG")
 # so that all binaries are compiled with the same settings.
 
 IF(USE_THREADS)
+    message (STATUS "Looking for Threads")
     set (CMAKE_THREAD_PREFER_PTHREAD ON)
     set (THREADS_PREFER_PTHREAD_FLAG ON)
     find_package (Threads)
@@ -128,9 +134,12 @@ ENDIF()
 if(THREADS_FOUND)
     message (STATUS "${ColorGreen}Using threads${ColorEnd}")
     add_definitions( "-DGENESIS_PTHREADS" )
+elseif(USE_THREADS)
+    message (STATUS "Threads not found")
 endif()
 
 IF(USE_OPENMP)
+    message (STATUS "Looking for OpenMP")
 
     # CMake versions before 3.5 do not properly support Clang OpenMP flags.
     # And even with more recent CMake versions, it is not fully working.
@@ -163,12 +172,14 @@ if(OPENMP_FOUND)
 elseif(
     USE_OPENMP
     AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
-    AND ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 3.8
-       OR ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL 3.8
-    )
+    AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.8
 )
-    message (STATUS "${ColorRed}You are trying to compile with Clang and OpenMp. "
+    # Special warning for users that have a Clang version that supports OpenMP, but where
+    # the find module still did not succeed.
+    message (WARNING "${ColorRed}You are trying to compile with Clang and OpenMp. "
     "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
+elseif(USE_OPENMP)
+    message (STATUS "OpenMP not found")
 endif()
 
 # --------------------------------------------------------------------------------------------------
@@ -187,12 +198,12 @@ if (BUILD_APPLICATIONS)
 endif()
 
 if (BUILD_PYTHON_MODULE)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/python/src)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/python)
 endif()
 
 if (BUILD_TESTS)
     # Need to enable testing here, otherwise `./build/make test` will not work.
     enable_testing()
 
-    add_subdirectory(${PROJECT_SOURCE_DIR}/test/src)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 endif()
