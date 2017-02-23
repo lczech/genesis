@@ -126,6 +126,7 @@ set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
 # so that all binaries are compiled with the same settings.
 
 IF(USE_THREADS)
+    message (STATUS "Looking for Threads")
     set (CMAKE_THREAD_PREFER_PTHREAD ON)
     set (THREADS_PREFER_PTHREAD_FLAG ON)
     find_package (Threads)
@@ -139,6 +140,7 @@ elseif(USE_THREADS)
 endif()
 
 IF(USE_OPENMP)
+    message (STATUS "Looking for OpenMP")
 
     # CMake versions before 3.5 do not properly support Clang OpenMP flags.
     # And even with more recent CMake versions, it is not fully working.
