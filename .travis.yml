@@ -48,7 +48,9 @@ before_install:
   - sudo apt-get update -qq
 
 script:
+  - export GENESIS_DEBUG=1
   - mkdir build
   - cd build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
   - make
+  - ../test/run.sh
