@@ -26,6 +26,7 @@
 # Require the minimum version of any system that we test on - which is the version used by Travis.
 # Thus, we can be sure that this works (as long as they don't change it...).
 cmake_minimum_required (VERSION 2.8.7 FATAL_ERROR)
+message (STATUS "CMake version ${CMAKE_VERSION}")
 
 set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
 set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
