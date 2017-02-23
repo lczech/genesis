@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2016 Lucas Czech
+# Copyright (C) 2014-2017 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -23,16 +23,49 @@
 #   Setup
 # ------------------------------------------------------------------------------
 
+# https://github.com/muflihun/easyloggingpp/blob/master/.travis.yml
+#
+# 1.8 with tests
+#
+# mkdir build
+# cd build
+# cmake -Dgtest_build_samples=ON -Dgtest_build_tests=ON ..
+# make
+# make test
+# make install
+#
+# 1.8 without
+#
+# mkdir build
+# cd build
+# cmake -DCMAKE_INSTALL_PREFIX=/home/lucas/Dropbox/HITS/genesis/test/googletest ..
+# make
+# make install
+#
+# 1.7
+#
+# cmake -DBUILD_SHARED_LIBS=ON .
+# make
+# cp -a include/gtest/ ../googletest/include
+# cp -a libgtest_main.so libgtest.so ../googletest/lib
+
+SET( GTEST_ROOT ${PROJECT_SOURCE_DIR}/test/googletest )
+
+message (STATUS "Looking for GTest")
 find_package (GTest)
 
 if(NOT GTEST_FOUND)
-    message (STATUS "Gtest not found")
-    message (WARNING "${ColorRed}Cannot build tests.${ColorEnd}")
+    message (STATUS "GTest not found")
+    message (WARNING "${ColorRed}Cannot build tests${ColorEnd}")
     return()
 endif()
 
-message (STATUS "Found Gtest")
+message (STATUS "Found GTest: ${GTEST_LIBRARIES}")
 message (STATUS "${ColorBlue}Building tests${ColorEnd}")
+
+# We include the GTest dirs as SYSTEM, as they are currently producing ugly
+# warnings that spam our build output unnecessarily.
+include_directories( SYSTEM ${GTEST_INCLUDE_DIRS} )
 
 # ------------------------------------------------------------------------------
 #   Build Options
@@ -55,8 +88,6 @@ include_directories (${PROJECT_SOURCE_DIR}/test/src)
 # ------------------------------------------------------------------------------
 #   Build Tests
 # ------------------------------------------------------------------------------
-
-include_directories   (${GTEST_INCLUDE_DIRS})
 
 add_executable        (genesis_tests ${genesis_test_sources})
 set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME test_suite)

@@ -68,9 +68,7 @@ option (BUILD_STATIC_LIB    "Build static library" OFF)
 
 option (BUILD_APPLICATIONS  "Build applications"   ON)
 option (BUILD_PYTHON_MODULE "Build python module"  OFF)
-option (BUILD_TESTS         "Build test suites"    ON)
-
-option (USE_SHARED_BOOST    "Link against shared boost lib instead of static" ON)
+option (BUILD_TESTS         "Build test suites"    OFF)
 
 option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
 option (USE_OPENMP          "Use OpenMP if available"                         ON)
@@ -89,9 +87,13 @@ set (CMAKE_BUILD_TYPE RELEASE)
 
 # Using the environment variable `GENESIS_DEBUG`, it is possible to change from
 # release mode (default) to debug mode. This is useful for developers.
+# It also activates test building automatically.
 if( $ENV{GENESIS_DEBUG} )
+
     set (CMAKE_BUILD_TYPE DEBUG)
     # set (CMAKE_VERBOSE_MAKEFILE ON)
+    SET( BUILD_TESTS ON )
+
 endif()
 
 message (STATUS "${ColorBlue}Building ${CMAKE_BUILD_TYPE}${ColorEnd}")
@@ -111,12 +113,6 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O2       -DNDEBUG")
 # MPICC   = mpic++
 # mpi: CCFLAGS += -DUSE_MPI
 # LDFLAGS = -lm $(THREADS)
-
-# Need to set rpath for all targets for it to work.
-# Also, we need to set two versions of ORIGIN here (one and two dollar signs).
-# This is because on some systems it seems to be escaped, on some not...
-set( CMAKE_INSTALL_RPATH "$ORIGIN:$$ORIGIN" )
-set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
 
 # --------------------------------------------------------------------------------------------------
 #   Threads and OpenMP
