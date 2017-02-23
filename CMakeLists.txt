@@ -198,7 +198,7 @@ if (BUILD_APPLICATIONS)
 endif()
 
 if (BUILD_PYTHON_MODULE)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/python/src)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/python)
 endif()
 
 if (BUILD_TESTS)
