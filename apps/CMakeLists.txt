@@ -50,6 +50,10 @@ if( genesis_apps_sources )
 
         target_link_libraries( ${app_name} genesis_lib_shared )
 
+        if(THREADS_FOUND)
+            target_link_libraries ( ${app_name} ${CMAKE_THREAD_LIBS_INIT})
+        endif()
+
         # Set the rpath again for the target, seems to be necessary...
         set_target_properties ( ${app_name} PROPERTIES INSTALL_RPATH "$ORIGIN:$$ORIGIN" )
     endforeach()
