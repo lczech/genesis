@@ -171,10 +171,10 @@ if(OPENMP_FOUND)
 elseif(
     USE_OPENMP
     AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
-    AND ( ${CMAKE_CXX_COMPILER_VERSION} VERSION_GREATER 3.8
-       OR ${CMAKE_CXX_COMPILER_VERSION} VERSION_EQUAL 3.8
-    )
+    AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.8
 )
+    # Special warning for users that have a Clang version that supports OpenMP, but where
+    # the find module still did not succeed.
     message (WARNING "${ColorRed}You are trying to compile with Clang and OpenMp. "
     "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
 elseif(USE_OPENMP)
