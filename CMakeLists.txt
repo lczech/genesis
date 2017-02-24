@@ -71,6 +71,8 @@ option (BUILD_APPLICATIONS  "Build applications"   ON)
 option (BUILD_PYTHON_MODULE "Build python module"  OFF)
 option (BUILD_TESTS         "Build test suites"    OFF)
 
+option (MONOLITH_BUILD      "Build modules monolithically - trading memory for speed." ON)
+
 option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
 option (USE_OPENMP          "Use OpenMP if available"                         ON)
 
@@ -92,12 +94,15 @@ set (CMAKE_BUILD_TYPE RELEASE)
 if( $ENV{GENESIS_DEBUG} )
 
     set (CMAKE_BUILD_TYPE DEBUG)
+
     # set (CMAKE_VERBOSE_MAKEFILE ON)
-    SET( BUILD_TESTS ON )
+    SET( BUILD_TESTS    ON )
+    SET( MONOLITH_BUILD OFF )
 
 endif()
 
 message (STATUS "${ColorBlue}Building ${CMAKE_BUILD_TYPE}${ColorEnd}")
+message (STATUS "Monolithic build: ${MONOLITH_BUILD}")
 
 # --------------------------------------------------------------------------------------------------
 #   Compiler and Linker Options
@@ -181,6 +186,103 @@ elseif(
 elseif(USE_OPENMP)
     message (STATUS "OpenMP not found")
 endif()
+
+# --------------------------------------------------------------------------------------------------
+#   Monolith Build
+# --------------------------------------------------------------------------------------------------
+
+# Helper that builds monolithic source files by concatenating the original sources.
+#
+# It takes four parameters:
+#
+# input_directory: Where to look for source files (currently hardcoded to *.cpp)
+# use_modules: Either "ALL" or "MODULES". The function offers two modes for monolithic building.
+#     In "ALL" mode, all sources of the given input_directory are combined into one.
+#     In "MODULES" mode, each immediate subdirectory of input_directory is treated separately,
+#     resulting in one monolithic compilation unit per subdirectory. Files that are directly in
+#     input_directory (not in its subdirectories) are simply used as normal single compilation units.
+# name: Is used to distinguish between multiple monolithic parts during build (one for the lib,
+#     one for test etc). The name needs to be uniq for each call of this function.
+# resulting_source_files: Is used to store the resulting sources files. The value of this variable
+#     can then ben used as source argument for add_library() and the like.
+function( ASSEMBLE_MONOLITH input_directory use_modules name resulting_source_files  )
+
+    # Helper: Return a list of all directories within a given directory, non-recursive.
+    function( SUBDIRLIST result indir )
+        file( GLOB children RELATIVE ${indir} ${indir}/* )
+        set( dirlist "" )
+        foreach(child ${children})
+            if( IS_DIRECTORY ${indir}/${child} )
+                LIST( APPEND dirlist ${child} )
+            endif()
+        endforeach()
+        set( ${result} ${dirlist} PARENT_SCOPE )
+    endfunction()
+
+    # Helper: Append the contents of a file to another file.
+    function( APPEND_TO_FILE IN_FILE OUT_FILE )
+        file( READ ${IN_FILE} CONTENTS )
+        file( APPEND ${OUT_FILE} "${CONTENTS}" )
+    endfunction()
+
+    # Clean previously assembled monolith files.
+    file( REMOVE_RECURSE ${CMAKE_BINARY_DIR}/monolith_assemble/${name} )
+
+    IF( "${use_modules}" STREQUAL "MODULES" )
+
+        # Process all modules (i.e., subdirs of the input dir).
+        SUBDIRLIST( SUBDIRS ${input_directory} )
+        foreach( SUBDIR ${SUBDIRS} )
+
+            # Target files for this module.
+            SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/monolith_assemble/${name}/${SUBDIR}.cpp )
+            SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/monolith_sources/${name}/${SUBDIR}.cpp )
+
+            # Find all sources of the module and concat them into a tmp assembly file.
+            file (GLOB_RECURSE subdir_sources ${input_directory}/${SUBDIR}/*.cpp)
+            file( WRITE ${ASSEMBLY_FILE} "" )
+            foreach( subdir_source ${subdir_sources} )
+                APPEND_TO_FILE( ${subdir_source} ${ASSEMBLY_FILE} )
+            endforeach()
+
+            # Copy the assemlby file to its destination. Using configure_file here ensures that we
+            # only copy if the file changes, so that incremental builds are faster.
+            configure_file( ${ASSEMBLY_FILE} ${MONOLITH_FILE} COPYONLY )
+        endforeach()
+
+        # Find all resulting source files. We need to treat top-level files in the lib dir
+        # extra, as they are not a part of any module.
+        file (GLOB top_level_sources ${input_directory}/*.cpp)
+        file (GLOB monolith_sources  ${CMAKE_BINARY_DIR}/monolith_sources/${name}/*.cpp)
+        set ( ${resulting_source_files} ${top_level_sources} ${monolith_sources} PARENT_SCOPE )
+
+    ELSEIF( "${use_modules}" STREQUAL "ALL" )
+
+        # Target files.
+        SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/monolith_assemble/${name}/all.cpp )
+        SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/monolith_sources/${name}/all.cpp )
+
+        # Find all sources and concat them into a tmp assembly file.
+        file (GLOB_RECURSE all_sources ${input_directory}/*.cpp)
+        file( WRITE ${ASSEMBLY_FILE} "" )
+        foreach( subdir_source ${all_sources} )
+            APPEND_TO_FILE( ${subdir_source} ${ASSEMBLY_FILE} )
+        endforeach()
+
+        # Copy the assemlby file to its destination. Using configure_file here ensures that we
+        # only copy if the file changes, so that incremental builds are faster.
+        configure_file( ${ASSEMBLY_FILE} ${MONOLITH_FILE} COPYONLY )
+
+        # Return the assembled file.
+        set ( ${resulting_source_files} ${MONOLITH_FILE} PARENT_SCOPE )
+
+    ELSE()
+        # Can only happen if some CMake file misuses this function.
+        message( FATAL_ERROR
+            "${ColorRed}ASSEMBLE_MONOLITH called with wrong arg: ${use_modules}${ColorEnd}"
+        )
+    ENDIF()
+endfunction()
 
 # --------------------------------------------------------------------------------------------------
 #   Sub-Scripts

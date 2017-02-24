@@ -152,7 +152,7 @@ bool dir_exists( std::string const& dir )
     if (stat (dir.c_str(), &info) != 0) {
         return false;
     }
-    return info.st_mode & S_IFDIR;
+    return static_cast<bool>( info.st_mode & S_IFDIR );
 
     // alternative implementation:
     // DIR* dp = opendir(dir);

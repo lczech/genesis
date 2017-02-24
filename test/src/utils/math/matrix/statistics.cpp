@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -44,7 +44,7 @@ using namespace utils;
 //     Standardization
 // ================================================================================================
 
-inline Matrix<double> read_csv_data( std::string const& filename, size_t rows, size_t cols )
+inline Matrix<double> read_stats_csv_data( std::string const& filename, size_t rows, size_t cols )
 {
     // Read Iris dataset.
     auto        reader = CsvReader();
@@ -93,8 +93,8 @@ TEST( Matrix, Standardize )
 {
     // Read Iris dataset and expected standardized data.
     NEEDS_TEST_DATA;
-    auto data    = read_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
-    auto stddata = read_csv_data( "utils/matrix/iris.standardized.csv", 150, 4 );
+    auto data    = read_stats_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
+    auto stddata = read_stats_csv_data( "utils/matrix/iris.standardized.csv", 150, 4 );
 
     // Run standardization and check.
     auto stats = standardize_cols( data );
@@ -105,8 +105,8 @@ TEST( Matrix, StandardizeMeans )
 {
     // Read Iris dataset and expected standardized data.
     NEEDS_TEST_DATA;
-    auto data    = read_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
-    auto stddata = read_csv_data( "utils/matrix/iris.standardized_means.csv", 150, 4 );
+    auto data    = read_stats_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
+    auto stddata = read_stats_csv_data( "utils/matrix/iris.standardized_means.csv", 150, 4 );
 
     auto stats = standardize_cols( data, true, false );
     test_check_standardization_results( stddata, data, stats );
@@ -116,8 +116,8 @@ TEST( Matrix, StandardizeStddevs )
 {
     // Read Iris dataset and expected standardized data.
     NEEDS_TEST_DATA;
-    auto data    = read_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
-    auto stddata = read_csv_data( "utils/matrix/iris.standardized_stddevs.csv", 150, 4 );
+    auto data    = read_stats_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
+    auto stddata = read_stats_csv_data( "utils/matrix/iris.standardized_stddevs.csv", 150, 4 );
 
     auto stats = standardize_cols( data, false, true );
     test_check_standardization_results( stddata, data, stats );
@@ -131,7 +131,7 @@ TEST( Matrix, Correlation )
 {
     // Read Iris dataset and expected standardized data.
     NEEDS_TEST_DATA;
-    auto data = read_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
+    auto data = read_stats_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
 
     auto actual = correlation_matrix( data );
 
@@ -157,7 +157,7 @@ TEST( Matrix, Covariance )
 {
     // Read Iris dataset and expected standardized data.
     NEEDS_TEST_DATA;
-    auto data = read_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
+    auto data = read_stats_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
 
     auto actual = covariance_matrix( data );
 

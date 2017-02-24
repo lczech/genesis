@@ -101,9 +101,12 @@ set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/test/bin)
 #   Sources
 # ------------------------------------------------------------------------------
 
-# Find all source files. The CMake documentation does not recommend this,
-# but for our purposes, this is good enough for now.
-file (GLOB_RECURSE genesis_test_sources ${PROJECT_SOURCE_DIR}/test/src/*.cpp)
+IF( ${MONOLITH_BUILD} )
+    # See main CMake file for the monolith macro.
+    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/test/src "ALL" "test" genesis_test_sources )
+ELSE()
+    file (GLOB_RECURSE genesis_test_sources ${PROJECT_SOURCE_DIR}/test/src/*.cpp)
+ENDIF()
 
 include_directories (${PROJECT_SOURCE_DIR}/lib)
 include_directories (${PROJECT_SOURCE_DIR})

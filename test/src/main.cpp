@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,21 +40,6 @@
 GenesisTestEnvironment* environment;
 
 /**
- * @brief Return true iff the directory exists.
- *
- * This is copied from the genesis library `./lib/utils/utils.hpp`
- * because we do not want to rely on something that we are about to test...
- */
-bool dir_exists (const std::string& dir)
-{
-    struct stat info;
-    if (stat (dir.c_str(), &info) != 0) {
-        return false;
-    }
-    return info.st_mode & S_IFDIR;
-}
-
-/**
  * @brief Initializes and starts the test run.
  *
  * The main sets the environment for testing and then runs the tests.
@@ -81,6 +66,18 @@ int main(int argc, char **argv)
             environment->data_dir = argument.substr(data_dir_prefix.size());
         }
     }
+
+    // Return true iff the directory exists.
+    // This is copied from the genesis library `./lib/utils/core/fs.hpp`
+    // because we do not want to rely on something that we are about to test...
+    auto dir_exists = [] (const std::string& dir )
+    {
+        struct stat info;
+        if (stat (dir.c_str(), &info) != 0) {
+            return false;
+        }
+        return static_cast<bool>( info.st_mode & S_IFDIR );
+    };
 
     // Actually, use the data dir only if it exists.
     if (!dir_exists(environment->data_dir)) {

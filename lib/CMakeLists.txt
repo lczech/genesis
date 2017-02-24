@@ -1,5 +1,5 @@
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2016 Lucas Czech
+# Copyright (C) 2014-2017 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,17 +25,27 @@
 
 set (LIBRARY_OUTPUT_PATH    ${PROJECT_SOURCE_DIR}/bin)
 
+include_directories (${PROJECT_SOURCE_DIR}/lib)
+
 # ------------------------------------------------------------------------------
 #   Sources
 # ------------------------------------------------------------------------------
 
-# Find all source files. The CMake documentation does not recommend this,
-# but for our purposes, this is good enough for now.
-file (GLOB_RECURSE genesis_lib_sources   ${PROJECT_SOURCE_DIR}/lib/*.cpp)
-# file (GLOB_RECURSE genesis_lib_headers   ${PROJECT_SOURCE_DIR}/lib/*.hpp)
-# file (GLOB_RECURSE genesis_lib_templates ${PROJECT_SOURCE_DIR}/lib/*.tpp)
+IF( ${MONOLITH_BUILD} )
 
-include_directories (${PROJECT_SOURCE_DIR}/lib)
+    # See main CMake file for the monolith macro.
+    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/lib "ALL" "lib" genesis_lib_sources )
+
+ELSE()
+
+    # Find all source files. The CMake documentation does not recommend this,
+    # but for our purposes, this is good enough for now. Futhremore, we use a make file
+    # that offers an update target to get around this limitation.
+    file (GLOB_RECURSE genesis_lib_sources   ${PROJECT_SOURCE_DIR}/lib/*.cpp)
+    # file (GLOB_RECURSE genesis_lib_headers   ${PROJECT_SOURCE_DIR}/lib/*.hpp)
+    # file (GLOB_RECURSE genesis_lib_templates ${PROJECT_SOURCE_DIR}/lib/*.tpp)
+
+ENDIF()
 
 # ------------------------------------------------------------------------------
 #   Build Libraries
