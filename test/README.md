@@ -61,7 +61,7 @@ For convenience, the `run.sh` script also contains some additional modes:
 
 When building Genesis, we try a couple of ways to link the test binary with GTest:
 
- * First, we check whether it is locally installed in `./googletest`.
+ * First, we check whether it is locally installed in `googletest/` in the genesis `test` directory.
    This enables us to use GTest on systems that do not allow to install it globally.
  * If it is not found there, we check for a global installation.
  * If this fails too, we try to download it and build it from scratch.
