@@ -176,7 +176,7 @@ elseif(
 )
     # Special warning for users that have a Clang version that supports OpenMP, but where
     # the find module still did not succeed.
-    message (WARNING "${ColorRed}You are trying to compile with Clang and OpenMp. "
+    message (STATUS "${ColorRed}You are trying to compile with Clang and OpenMp. "
     "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
 elseif(USE_OPENMP)
     message (STATUS "OpenMP not found")

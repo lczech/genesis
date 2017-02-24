@@ -49,7 +49,7 @@ if(NOT GTEST_FOUND)
 
     if(result)
         message (STATUS "Cannot configure GTest: ${result}")
-        message (WARNING "${ColorRed}Cannot build tests${ColorEnd}")
+        message (STATUS "${ColorRed}Cannot build tests${ColorEnd}")
         return()
     endif()
 
@@ -60,7 +60,7 @@ if(NOT GTEST_FOUND)
 
     if(result)
         message (STATUS "Cannot build GTest: ${result}")
-        message (WARNING "${ColorRed}Cannot build tests${ColorEnd}")
+        message (STATUS "${ColorRed}Cannot build tests${ColorEnd}")
         return()
     endif()
 
@@ -72,7 +72,7 @@ if(NOT GTEST_FOUND)
 
     # The gtest/gtest_main targets carry header search path dependencies automatically when using
     # CMake 2.8.11 or later. Otherwise we have to add them here ourselves.
-    if (CMAKE_VERSION VERSION_LESS 2.8.11)
+    if (${CMAKE_VERSION} VERSION_LESS 2.8.11)
         include_directories( SYSTEM "${gtest_SOURCE_DIR}/include")
     endif()
 

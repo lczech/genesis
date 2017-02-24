@@ -23,14 +23,12 @@
 #   Setup Python
 # ------------------------------------------------------------------------------
 
-cmake_minimum_required(VERSION 2.8.12)
-
 message (STATUS "Looking for PythonLibs")
 find_package (PythonLibs 2.7)
 
 if( NOT PYTHONLIBS_FOUND )
     message (STATUS "PythonLibs not found")
-    message (WARNING "${ColorRed}Cannot build Python module${ColorEnd}")
+    message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
     return()
 endif()
 
@@ -39,6 +37,13 @@ message (STATUS "Found PythonLibs")
 # ------------------------------------------------------------------------------
 #   Setup Pybind11
 # ------------------------------------------------------------------------------
+
+# CMake version check first.
+if( ${CMAKE_VERSION} VERSION_LESS 2.8.12 )
+    message (STATUS "Pybind11 requires at least CMake version 2.8.12")
+    message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
+    return()
+endif()
 
 # As Pybind11 is a header-only library, we simply check for its existence.
 message (STATUS "Looking for Pybind11")
@@ -63,7 +68,7 @@ IF( NOT EXISTS ${PROJECT_SOURCE_DIR}/python/pybind11/include/pybind11/pybind11.h
 
     if(result)
         message (STATUS "Cannot configure Pybind11: ${result}")
-        message (WARNING "${ColorRed}Cannot build Python module${ColorEnd}")
+        message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
         return()
     endif()
 
@@ -74,14 +79,14 @@ IF( NOT EXISTS ${PROJECT_SOURCE_DIR}/python/pybind11/include/pybind11/pybind11.h
 
     if(result)
         message (STATUS "Cannot build Pybind11: ${result}")
-        message (WARNING "${ColorRed}Cannot build Python module${ColorEnd}")
+        message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
         return()
     endif()
 
     # If the header still does not exists, something went wrong.
     IF( NOT EXISTS ${PROJECT_SOURCE_DIR}/python/pybind11/include/pybind11/pybind11.h )
         message (STATUS "Pybind11 not found")
-        message (WARNING "${ColorRed}Cannot build Python module${ColorEnd}")
+        message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
         return()
     ENDIF()
 
