@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,11 +33,7 @@
 #include "placement/function/functions.hpp"
 #include "placement/function/helper.hpp"
 
-#include "placement/simulator/edge_distribution.hpp"
-#include "placement/simulator/extra_placement_distribution.hpp"
-#include "placement/simulator/like_weight_ratio_distribution.hpp"
-#include "placement/simulator/pendant_length_distribution.hpp"
-#include "placement/simulator/proximal_length_distribution.hpp"
+#include "placement/simulator/distributions.hpp"
 
 #include "tree/function/distances.hpp"
 

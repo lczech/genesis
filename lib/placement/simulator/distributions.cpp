@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
  * @ingroup placement
  */
 
-#include "placement/simulator/extra_placement_distribution.hpp"
+#include "placement/simulator/distributions.hpp"
 
 #include "tree/function/distances.hpp"
 #include "utils/core/options.hpp"
@@ -214,6 +214,40 @@ std::vector<size_t> SimulatorExtraPlacementDistribution::edge_proximity_maxima()
     }
 
     return result;
+}
+
+// =================================================================================================
+//     Like Weight Ratio Distribution
+// =================================================================================================
+
+void SimulatorLikeWeightRatioDistribution::prepare( Sample const& sample )
+{
+    (void) sample;
+
+    // Check condition.
+    if( intervals.size() != weights.size() ) {
+        throw std::logic_error(
+            "The number of intervals and weights has to identical for "
+            "SimulatorLikeWeightRatioDistribution."
+        );
+    }
+    if( ! std::is_sorted( intervals.begin(), intervals.end() )) {
+        throw std::logic_error(
+            "Intervals need to be sorted in SimulatorLikeWeightRatioDistribution."
+        );
+    }
+    if( std::any_of( weights.begin(), weights.end(), [] ( double v ) { return v < 0.0; } )) {
+        throw std::logic_error(
+            "Weights need to be non-negative in SimulatorLikeWeightRatioDistribution."
+        );
+    }
+
+    // Set distribution.
+    distrib_ = std::piecewise_linear_distribution<double>(
+        intervals.begin(),
+        intervals.end(),
+        weights.begin()
+    );
 }
 
 } // namespace placement
