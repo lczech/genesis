@@ -30,6 +30,8 @@
 #   GTest Download
 # ------------------------------------------------------------------------------
 
+# This min requirement is less than what we expect in the main CMakeList file,
+# so we should be good. We state it here for re-use of this script.
 cmake_minimum_required( VERSION 2.8.2 )
 
 project( googletest-download NONE )

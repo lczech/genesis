@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2016 Lucas Czech
+# Copyright (C) 2014-2017 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -31,6 +31,18 @@
 cd `git rev-parse --show-toplevel`
 cd lib/
 
+# Helper function to check whether an array contains a value.
+contains_element () {
+    local e
+    for e in "${@:2}"; do
+        [[ "$e" == "$1" ]] && return 0
+    done
+    return 1
+}
+
+# Keep a list of processed header names, so we can check uniqueness.
+declare -a unique_guards
+
 for header in `find . -name "*.hpp"`; do
     # Extract wanted guard name from file name.
     guard="${header/.\//genesis_}"
@@ -45,15 +57,22 @@ for header in `find . -name "*.hpp"`; do
     # Check first line (ifndef).
     # We skip the (all-including) genesis header, because it is special.
     if [[ ${line_ifn} != ${guard} && ${header} != "./genesis.hpp" ]]; then
-        echo "In ${header}:"
+        echo "Wrong guard in ${header}:"
         echo "   Actual: ${line_ifn}"
         echo "   Wanted: ${guard}"
     fi
 
     # Check second line (define)
     if [[ ${line_ifn} != ${line_def} ]]; then
-        echo "In ${header}:"
+        echo "Wrong guard in ${header}:"
         echo "   Condition:  ${line_ifn}"
         echo "   Definition: ${line_def}"
     fi
+
+    contains_element "${guard}" "${unique_guards[@]}"
+    result=$?
+    if [[ ${result} == 0 ]]; then
+        echo "Header guard '${guard}' is not unique!"
+    fi
+    unique_guards+=("${guard}")
 done

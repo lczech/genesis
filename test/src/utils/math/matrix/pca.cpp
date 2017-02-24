@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -39,7 +39,7 @@
 using namespace genesis;
 using namespace utils;
 
-inline Matrix<double> read_csv_data( std::string const& filename, size_t rows, size_t cols )
+inline Matrix<double> read_pca_csv_data( std::string const& filename, size_t rows, size_t cols )
 {
     // Read Iris dataset.
     auto        reader = CsvReader();
@@ -66,7 +66,7 @@ TEST( Matrix, PCA )
     // http://sebastianraschka.com/Articles/2015_pca_in_3_steps.html
 
     // Read Iris dataset.
-    auto data = read_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
+    auto data = read_pca_csv_data( "utils/matrix/iris.data.csv", 150, 4 );
 
     // Run PCA.
     auto pca = principal_component_analysis( data, 2 );
@@ -100,7 +100,7 @@ TEST( Matrix, PCA )
     }
 
     // Check projection.
-    auto expected_projection = read_csv_data( "utils/matrix/iris.pca_projection.csv", 150, 2 );
+    auto expected_projection = read_pca_csv_data( "utils/matrix/iris.pca_projection.csv", 150, 2 );
 
     ASSERT_EQ( expected_projection.rows(), pca.projection.rows() );
     ASSERT_EQ( expected_projection.cols(), pca.projection.cols() );

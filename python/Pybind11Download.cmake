@@ -30,6 +30,8 @@
 #   Pybind11 Download
 # ------------------------------------------------------------------------------
 
+# This min requirement is less than what we expect in the main CMakeList file,
+# so we should be good. We state it here for re-use of this script.
 cmake_minimum_required( VERSION 2.8.2 )
 
 project( pybind11-download NONE )
@@ -53,3 +55,17 @@ ExternalProject_Add( pybind11
     INSTALL_COMMAND   ""
     TEST_COMMAND      ""
 )
+
+# Alternative version that needs Git to be installed (thus, we do not use it by default).
+# We use Pybind11 release 2.0.1, which points to the commit 07de0d8627101be53986e841cd4e21ee38c2498a
+
+# ExternalProject_Add( pybind11
+#   GIT_REPOSITORY    https://github.com/pybind/pybind11.git
+#   GIT_TAG           07de0d8627101be53986e841cd4e21ee38c2498a
+#   SOURCE_DIR        "${PROJECT_SOURCE_DIR}/python/pybind11"
+#   BINARY_DIR        "${PROJECT_SOURCE_DIR}/python/pybind11"
+#   CONFIGURE_COMMAND ""
+#   BUILD_COMMAND     ""
+#   INSTALL_COMMAND   ""
+#   TEST_COMMAND      ""
+# )

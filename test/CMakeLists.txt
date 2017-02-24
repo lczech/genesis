@@ -49,7 +49,7 @@ if(NOT GTEST_FOUND)
 
     if(result)
         message (STATUS "Cannot configure GTest: ${result}")
-        message (WARNING "${ColorRed}Cannot build tests${ColorEnd}")
+        message (STATUS "${ColorRed}Cannot build tests${ColorEnd}")
         return()
     endif()
 
@@ -60,7 +60,7 @@ if(NOT GTEST_FOUND)
 
     if(result)
         message (STATUS "Cannot build GTest: ${result}")
-        message (WARNING "${ColorRed}Cannot build tests${ColorEnd}")
+        message (STATUS "${ColorRed}Cannot build tests${ColorEnd}")
         return()
     endif()
 
@@ -72,7 +72,7 @@ if(NOT GTEST_FOUND)
 
     # The gtest/gtest_main targets carry header search path dependencies automatically when using
     # CMake 2.8.11 or later. Otherwise we have to add them here ourselves.
-    if (CMAKE_VERSION VERSION_LESS 2.8.11)
+    if (${CMAKE_VERSION} VERSION_LESS 2.8.11)
         include_directories( SYSTEM "${gtest_SOURCE_DIR}/include")
     endif()
 
@@ -101,9 +101,12 @@ set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/test/bin)
 #   Sources
 # ------------------------------------------------------------------------------
 
-# Find all source files. The CMake documentation does not recommend this,
-# but for our purposes, this is good enough for now.
-file (GLOB_RECURSE genesis_test_sources ${PROJECT_SOURCE_DIR}/test/src/*.cpp)
+IF( ${MONOLITH_BUILD} )
+    # See main CMake file for the monolith macro.
+    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/test/src "ALL" "test" genesis_test_sources )
+ELSE()
+    file (GLOB_RECURSE genesis_test_sources ${PROJECT_SOURCE_DIR}/test/src/*.cpp)
+ENDIF()
 
 include_directories (${PROJECT_SOURCE_DIR}/lib)
 include_directories (${PROJECT_SOURCE_DIR})
