@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -85,7 +85,7 @@ TEST( SampleMeasures, EdgePCA )
 
         LOG_DBG1 << file;
         Sample smp;
-        JplaceReader().from_file( indir + file, smp );
+        smp = JplaceReader().from_file( indir + file );
         set.add(smp);
 
         // if( imbalance_matrix.rows() == 0 ) {
@@ -216,4 +216,4 @@ TEST( SampleMeasures, GuppyPCA )
     utils::file_write( utils::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/myguppy.proj" );
 }
 
-*/
+//*/

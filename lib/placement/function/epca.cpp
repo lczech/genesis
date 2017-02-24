@@ -42,12 +42,6 @@
 #include "utils/math/matrix/pca.hpp"
 #include "utils/math/matrix/statistics.hpp"
 
-// testing
-#include "utils/core/fs.hpp"
-#include "utils/core/logging.hpp"
-#include "utils/text/string.hpp"
-
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -145,6 +139,56 @@ std::vector<double> epca_imbalance_vector( Sample const& smp )
 }
 
 // =================================================================================================
+//     Edge PCA Imbalance Matrix
+// =================================================================================================
+
+utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples )
+{
+    if( samples.size() == 0 ) {
+        throw std::runtime_error(
+            "Cannot calculate Edge PCA on an empty SampleSet."
+        );
+    }
+    if( ! all_identical_trees( samples )) {
+        throw std::runtime_error(
+            "Cannot calculate Edge PCA on trees that have a different topology."
+        );
+    }
+
+    assert( samples.size() > 0 );
+    auto const edge_count = samples.at( 0 ).sample.tree().edge_count();
+    (void) edge_count;
+
+    // Get the indices of all edges that do not lead to a tip.
+    std::vector<size_t> inner_edge_indices;
+    for( auto const& edge_it : samples.at( 0 ).sample.tree().edges() ) {
+        if( edge_it->secondary_node().is_inner() ) {
+            inner_edge_indices.push_back( edge_it->index() );
+        }
+    }
+
+    auto imbalance_matrix = utils::Matrix<double>( samples.size(), inner_edge_indices.size() );
+    for( size_t s = 0; s < samples.size(); ++s ) {
+        auto const& smp = samples[s].sample;
+        auto imbalance_vec = epca_imbalance_vector( smp );
+
+        // We need to have the right number of imbalance values, which also needs to be
+        // smaller than the number of inner edges (there can be no tree with just inner
+        // edges, thus the total number of edges has to be bigger).
+        assert( imbalance_vec.size() == edge_count );
+        assert( imbalance_vec.size() >  inner_edge_indices.size() );
+
+        // Copy those imbalance values to the matrix that belong to inner edges.
+        for( size_t i = 0; i < inner_edge_indices.size(); ++i ) {
+            auto idx = inner_edge_indices[i];
+            imbalance_matrix( s, i ) = imbalance_vec[ idx ];
+        }
+    }
+
+    return imbalance_matrix;
+}
+
+// =================================================================================================
 //     Splitify Transform with Kappa
 // =================================================================================================
 
@@ -209,104 +253,22 @@ void epca_filter_constant_columns( utils::Matrix<double>& imbalance_matrix, doub
 //     Edge PCA
 // =================================================================================================
 
-void epca( SampleSet const& samples )
+utils::PcaData epca( SampleSet const& samples, double kappa, double epsilon, size_t components )
 {
-    if( samples.size() == 0 ) {
-        throw std::runtime_error(
-            "Cannot calculate Edge PCA on an empty SampleSet."
-        );
-    }
-    if( ! all_identical_trees( samples )) {
-        throw std::runtime_error(
-            "Cannot calculate Edge PCA on trees that have a different topology."
-        );
-    }
+    // Calculate, filter and transform the imbalance matrix.
+    auto imbalance_matrix = epca_imbalance_matrix( samples );
+    epca_filter_constant_columns( imbalance_matrix, epsilon );
+    epca_splitify_transform( imbalance_matrix, kappa );
 
-    // LOG_DBG << "calculating imbalance_matrix";
-
-    assert( samples.size() > 0 );
-    auto const edge_count = samples.at( 0 ).sample.tree().edge_count();
-    (void) edge_count;
-
-    // Get the indices of all edges that do not lead to a tip.
-    std::vector<size_t> inner_edge_indices;
-    for( auto const& edge_it : samples.at( 0 ).sample.tree().edges() ) {
-        if( edge_it->secondary_node().is_inner() ) {
-            inner_edge_indices.push_back( edge_it->index() );
-        }
+    // Get correct number of pca components.
+    if( components == 0 || components > imbalance_matrix.cols() ) {
+        components = imbalance_matrix.cols();
     }
 
-    // LOG_DBG << "inner_edge_indices " << inner_edge_indices.size();
-
-    auto imbalance_matrix = utils::Matrix<double>( samples.size(), inner_edge_indices.size() );
-    for( size_t s = 0; s < samples.size(); ++s ) {
-        auto const& smp = samples[s].sample;
-        auto imbalance_vec = epca_imbalance_vector( smp );
-
-        // Copy the imbalance vector.
-        // TODO optimize.
-        // for( size_t e = 0; e < edge_count; ++e ) {
-        //     imbalance_matrix( s, e ) = imbalance_vec[ e ];
-        // }
-
-        // We need to have the right number of imbalance values, which also needs to be
-        // smaller than the number of inner edges (there can be no tree with just inner
-        // edges, thus the total number of edges has to be bigger).
-        assert( imbalance_vec.size() == edge_count );
-        assert( imbalance_vec.size() >  inner_edge_indices.size() );
-
-        // Copy those imbalance values to the matrix that belong to inner edges.
-        for( size_t i = 0; i < inner_edge_indices.size(); ++i ) {
-            auto idx = inner_edge_indices[i];
-            imbalance_matrix( s, i ) = imbalance_vec[ idx ];
-        }
-    }
-
-    epca_filter_constant_columns( imbalance_matrix );
-
-    // printf("\nimbalance_matrix:\n");
-    // for( size_t r = 0; r < imbalance_matrix.rows(); ++r ) {
-    //     for( size_t c = 0; c < imbalance_matrix.cols(); ++c ) {
-    //         printf("%12.4f", imbalance_matrix(r,c));
-    //     }
-    //     printf("\n");
-    // }
-
-    // auto t_imbalance_matrix = utils::transpose(imbalance_matrix);
-    // utils::file_write( utils::to_string( imbalance_matrix ), "/home/lucas/tmp/bv_epca/imbalance.mat.csv" );
-
-    // LOG_DBG << "running pca";
-
-    auto pca = utils::principal_component_analysis( imbalance_matrix, 3, utils::PcaStandardization::kCovariance );
-    // auto pca = utils::principal_component_analysis( imbalance_matrix, 5 );
-
-    // printf("\nEigenvalues:\n");
-    // for( auto val : pca.eigenvalues ) {
-    //     printf("%18.5f\n", val );
-    // }
-    //
-    // printf("\nEigenvectors:\n");
-    // for( size_t r = 0; r < 20; ++r ) {
-    // // for( size_t r = 0; r < pca.eigenvectors.rows(); ++r ) {
-    //     for( size_t c = 0; c < pca.eigenvectors.cols(); ++c ) {
-    //         printf("%12.4f", pca.eigenvectors(r,c));
-    //     }
-    //     printf("\n");
-    // }
-    // printf("... %u rows in total\n", static_cast<unsigned int>(pca.eigenvectors.rows()));
-    //
-    // printf("\nProjections of row-points on first 3 prin. comps.:\n");
-    // for (size_t i = 0; i < 10; i++) {
-    // // for (size_t i = 0; i < pca.projection.rows(); i++) {
-    //     for (size_t j = 0; j < pca.projection.cols(); j++)  {
-    //         printf("%12.4f", pca.projection(i,j));
-    //     }
-    //     printf("\n");
-    // }
-    // printf("... %u rows in total\n", static_cast<unsigned int>(pca.projection.rows()));
-    //
-    // utils::file_write( utils::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/my.proj" );
-
+    // Run and return PCA.
+    return utils::principal_component_analysis(
+        imbalance_matrix, components, utils::PcaStandardization::kCovariance
+    );
 }
 
 } // namespace placement

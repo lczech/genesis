@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,6 +33,7 @@
 
 #include "placement/placement_tree.hpp"
 #include "utils/math/matrix.hpp"
+#include "utils/math/matrix/pca.hpp"
 
 namespace genesis {
 
@@ -66,18 +67,23 @@ namespace placement {
 
 std::vector<double> epca_imbalance_vector( Sample const& smp );
 
+utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples );
+
 /**
  * @brief Perform a component-wise transformation of the imbalance matrix used for epca().
  *
  * All entries of the Matrix are transformed inplace, using
  *
  * \f[
- *     \varphi_\kappa(x) = \mathrm{sgn}(x) |x|^\kappa
+ *     \varphi_\kappa(x) = \mathrm{sgn}(x) \cdot |x|^\kappa
  * \f]
  *
  * where the `kappa` (\f$\kappa\f$) parameter can be any non-negative number. This parameter scales
  * between ignoring abundance information (`kappa` = 0), using it linearly (`kappa` = 1), and
  * emphasizing it (`kappa` > 1).
+ *
+ * @param[in,out] imbalance_matrix Matrix to transform inplace.
+ * @param[in]     kappa            Scaling value for abundance information. Has to be > 0.
  */
 void epca_splitify_transform(
     utils::Matrix<double>& imbalance_matrix,
@@ -89,7 +95,12 @@ void epca_filter_constant_columns(
     double                 epsilon = 1e-5
 );
 
-void epca( SampleSet const& samples );
+utils::PcaData epca(
+    SampleSet const& samples,
+    double kappa      = 1.0,
+    double epsilon    = 1e-5,
+    size_t components = 0
+);
 
 } // namespace placement
 } // namespace genesis
