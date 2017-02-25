@@ -137,7 +137,8 @@ IF(USE_THREADS)
 ENDIF()
 
 if(THREADS_FOUND)
-    message (STATUS "${ColorGreen}Using threads${ColorEnd}")
+    message( STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}" )
+    message (STATUS "${ColorGreen}Using Threads${ColorEnd}")
     add_definitions( "-DGENESIS_PTHREADS" )
 elseif(USE_THREADS)
     message (STATUS "Threads not found")
@@ -167,6 +168,7 @@ ENDIF()
 
 if(OPENMP_FOUND)
 
+    message( STATUS "Found OpenMP: ${OpenMP_CXX_FLAGS}" )
     message (STATUS "${ColorGreen}Using OpenMP${ColorEnd}")
     add_definitions( "-DGENESIS_OPENMP" )
 
