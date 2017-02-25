@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,25 +28,25 @@
  * @ingroup python
  */
 
-#include <python/src/common.hpp>
+// #include <python/src/common.hpp>
+#include <pybind11/pybind11.h>
 
 // #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 // =================================================================================================
-//     Boost Python Module
+//     Pybind11 Python Module
 // =================================================================================================
 
-BOOST_PYTHON_MODULE(genesis)
-{
-    namespace bp = boost::python;
+int add(int i, int j) {
+    return i + j;
+}
 
-    // Show genesis docstrings, python signature, but not c++ signature.
-    bp::docstring_options doc_options(true, true, false);
+namespace py = pybind11;
 
-    // Specify that this module is actually a package.
-    bp::object package = bp::scope();
-    package.attr("__path__") = MODULE_NAME;
+PYBIND11_PLUGIN(genesis) {
+    py::module m("genesis", "pybind11 example plugin");
 
-    // Call all export functions.
-    PythonExportHandler::instance().init_python();
+    m.def("add", &add, "A function which adds two numbers");
+
+    return m.ptr();
 }

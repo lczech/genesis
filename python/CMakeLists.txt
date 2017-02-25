@@ -108,8 +108,8 @@ set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/python/module)
 # Need to set rpath for all targets for it to work.
 # Also, we need to set two versions of ORIGIN here (one and two dollar signs).
 # This is because on some systems it seems to be escaped, on some not...
-set( CMAKE_INSTALL_RPATH "$ORIGIN:$$ORIGIN" )
-set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
+# set( CMAKE_INSTALL_RPATH "$ORIGIN:$$ORIGIN" )
+# set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
 
 # ------------------------------------------------------------------------------
 #   Sources
@@ -119,28 +119,39 @@ set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
 # but for our purposes, this is good enough for now.
 file (GLOB_RECURSE genesis_python_sources ${PROJECT_SOURCE_DIR}/python/src/*.cpp)
 
-include_directories (${PROJECT_SOURCE_DIR}/lib)
-include_directories (${PROJECT_SOURCE_DIR})
+# include_directories (${PROJECT_SOURCE_DIR}/python/pybind11/include)
+# include_directories (${PROJECT_SOURCE_DIR}/lib)
+# include_directories (${PROJECT_SOURCE_DIR})
+
+message (STATUS "Py sources: ${genesis_python_sources}")
 
 # ------------------------------------------------------------------------------
 #   Build Python Module
 # ------------------------------------------------------------------------------
 
-pybind11_add_module( genesis_python_module ${genesis_python_sources} )
-
 # include_directories   (${PYTHON_INCLUDE_DIRS})
 # link_directories      (${PYTHON_LIBRARIES})
-#
+
+message (STATUS "PYTHON_INCLUDE_DIRS: ${PYTHON_INCLUDE_DIRS}")
+message (STATUS "PYTHON_LIBRARIES: ${PYTHON_LIBRARIES}")
+
+
+
+# pybind11_add_module( example ${genesis_python_sources} )
+
+pybind11_add_module( genesis_python_module MODULE ${genesis_python_sources} )
 # add_library           (genesis_python_module MODULE ${genesis_python_sources})
-#
+
+
+
 # add_dependencies( genesis_python_module pybind11 )
 
-target_link_libraries (genesis_python_module genesis_lib_shared)
+# target_link_libraries (genesis_python_module genesis_lib_shared)
 # target_link_libraries (genesis_python_module ${PYTHON_LIBRARIES})
 
 set_target_properties (genesis_python_module PROPERTIES OUTPUT_NAME genesis)
 set_target_properties (genesis_python_module PROPERTIES PREFIX "")
-set_target_properties (genesis_python_module PROPERTIES INSTALL_RPATH "$ORIGIN:$$ORIGIN")
+# set_target_properties (genesis_python_module PROPERTIES INSTALL_RPATH "$ORIGIN:$$ORIGIN")
 
 # set_target_properties (genesis_python_module PROPERTIES
 #     LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/module
@@ -150,6 +161,6 @@ set_target_properties (genesis_python_module PROPERTIES INSTALL_RPATH "$ORIGIN:$
 #     touch ${PROJECT_SOURCE_DIR}/module/__init__.py
 # )
 
-if(THREADS_FOUND)
-    target_link_libraries (genesis_python_module ${CMAKE_THREAD_LIBS_INIT})
-endif()
+# if(THREADS_FOUND)
+#     target_link_libraries (genesis_python_module ${CMAKE_THREAD_LIBS_INIT})
+# endif()
