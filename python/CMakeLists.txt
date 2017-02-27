@@ -23,16 +23,18 @@
 #   Setup Python
 # ------------------------------------------------------------------------------
 
-message (STATUS "Looking for PythonLibs")
-find_package (PythonLibs 2.7)
+# All this is done by Pybind11 already. We keep it here for reference, it case it is needed later.
 
-if( NOT PYTHONLIBS_FOUND )
-    message (STATUS "PythonLibs not found")
-    message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
-    return()
-endif()
-
-message (STATUS "Found PythonLibs")
+# message (STATUS "Looking for PythonLibs")
+# find_package (PythonLibs 2.7)
+#
+# if( NOT PYTHONLIBS_FOUND )
+#     message (STATUS "PythonLibs not found")
+#     message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
+#     return()
+# endif()
+#
+# message (STATUS "Found PythonLibs: ${PYTHONLIBS_VERSION_STRING}")
 
 # ------------------------------------------------------------------------------
 #   Setup Pybind11
@@ -96,61 +98,64 @@ ENDIF()
 # Include Pybind11, as recommended in http://pybind11.readthedocs.io/en/master/compiling.html#building-with-cmake
 add_subdirectory(pybind11)
 
-message (STATUS "Found Pybind11")
+# Combine a Pybind version, which is currently not exported directly...
+SET(PYBIND11_VERSION ${PYBIND11_VERSION_MAJOR}.${PYBIND11_VERSION_MINOR}.${PYBIND11_VERSION_PATCH})
+
+message (STATUS "Found Pybind11: ${PYBIND11_VERSION}")
 message (STATUS "${ColorBlue}Building Python module${ColorEnd}")
 
 # ------------------------------------------------------------------------------
 #   Build Options
 # ------------------------------------------------------------------------------
 
+# Path to store the Python module.
 set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/python/module)
 
-# Need to set rpath for all targets for it to work.
+# Set rpath for all targets for it to work.
 # Also, we need to set two versions of ORIGIN here (one and two dollar signs).
 # This is because on some systems it seems to be escaped, on some not...
 # set( CMAKE_INSTALL_RPATH "$ORIGIN:$$ORIGIN" )
 # set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
+
+# No need to link to Python - this is done by Pybind. We keep it here for reference.
+# include_directories   (${PYTHON_INCLUDE_DIRS})
+# link_directories      (${PYTHON_LIBRARIES})
 
 # ------------------------------------------------------------------------------
 #   Sources
 # ------------------------------------------------------------------------------
 
 # Find all source files. The CMake documentation does not recommend this,
-# but for our purposes, this is good enough for now.
+# but for our purposes, this is good enough for now. Futhermore, we use a make file
+# that offers an update target to get around this limitation.
 file (GLOB_RECURSE genesis_python_sources ${PROJECT_SOURCE_DIR}/python/src/*.cpp)
 
 # include_directories (${PROJECT_SOURCE_DIR}/python/pybind11/include)
+# include_directories (${PROJECT_SOURCE_DIR}/python/src)
 # include_directories (${PROJECT_SOURCE_DIR}/lib)
 # include_directories (${PROJECT_SOURCE_DIR})
-
-message (STATUS "Py sources: ${genesis_python_sources}")
 
 # ------------------------------------------------------------------------------
 #   Build Python Module
 # ------------------------------------------------------------------------------
 
-# include_directories   (${PYTHON_INCLUDE_DIRS})
-# link_directories      (${PYTHON_LIBRARIES})
+# Add the Pybind module, which is the equivalent of add_library(...).
+# We use 'SHARED', as it creates a shared object with the correct file extentsion,
+# while 'MODULE' lacks the extension. Shouldn't make much of a difference for the user.
+pybind11_add_module( genesis_python_module SHARED ${genesis_python_sources} )
 
-message (STATUS "PYTHON_INCLUDE_DIRS: ${PYTHON_INCLUDE_DIRS}")
-message (STATUS "PYTHON_LIBRARIES: ${PYTHON_LIBRARIES}")
-
-
-
-# pybind11_add_module( example ${genesis_python_sources} )
-
-pybind11_add_module( genesis_python_module MODULE ${genesis_python_sources} )
-# add_library           (genesis_python_module MODULE ${genesis_python_sources})
-
-
-
-# add_dependencies( genesis_python_module pybind11 )
+# Make sure that all Pybind things are processed before.
+add_dependencies( genesis_python_module pybind11 )
 
 # target_link_libraries (genesis_python_module genesis_lib_shared)
 # target_link_libraries (genesis_python_module ${PYTHON_LIBRARIES})
 
+# Make sure that the module file is named according to Python standards
+# (that is, no leading "lib", but don't change automatic suffix for shared libraries, e.g., ".so").
 set_target_properties (genesis_python_module PROPERTIES OUTPUT_NAME genesis)
 set_target_properties (genesis_python_module PROPERTIES PREFIX "")
+# set_target_properties (genesis_python_module PROPERTIES SUFFIX "${PYTHON_MODULE_EXTENSION}")
+
 # set_target_properties (genesis_python_module PROPERTIES INSTALL_RPATH "$ORIGIN:$$ORIGIN")
 
 # set_target_properties (genesis_python_module PROPERTIES
