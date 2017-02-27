@@ -61,16 +61,16 @@ For convenience, the `run.sh` script also contains some additional modes:
 
 When building Genesis, we try a couple of ways to link the test binary with GTest:
 
- * First, we check whether it is locally installed in `googletest/` in the genesis `test` directory.
+ * First, we check whether it is locally installed in `genesis/tools/googletest/`.
    This enables us to use GTest on systems that do not allow to install it globally.
  * If it is not found there, we check for a global installation.
  * If this fails too, we try to download it and build it from scratch.
    This is particularly useful for running the tests in continuous integration.
    It has the big advantage that it compiles GTest with the same flags used for Genesis.
 
-See `./CMakeLists.txt` for details of this process.
+See `genesis/test/CMakeLists.txt` for details of this process.
 
-In order to install it locally for Genesis, follow these steps:
+In order to install GTest locally for testing Genesis, follow these steps:
 
  * Get GTest from [https://github.com/google/googletest](https://github.com/google/googletest)
  * Extract it somewhere and `cd` to there
@@ -78,7 +78,7 @@ In order to install it locally for Genesis, follow these steps:
    ~~~{.sh}
    mkdir build
    cd build
-   cmake -DCMAKE_INSTALL_PREFIX=path/to/Genesis/test/googletest ..
+   cmake -DCMAKE_INSTALL_PREFIX=path/to/genesis/tools/googletest ..
    make
    make install
    ~~~
@@ -86,6 +86,6 @@ In order to install it locally for Genesis, follow these steps:
    ~~~{.sh}
    cmake -DBUILD_SHARED_LIBS=ON .
    make
-   cp -a include/gtest/ path/to/Genesis/test/googletest/include
-   cp -a libgtest_main.so libgtest.so path/to/Genesis/test/googletest/lib
+   cp -a include/gtest/ path/to/genesis/tools/googletest/include
+   cp -a libgtest_main.so libgtest.so path/to/genesis/tools/googletest/lib
    ~~~

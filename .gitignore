@@ -4,7 +4,7 @@
 
 bin/
 build/
-test/googletest/
+tools/googletest/
 python/module/
 python/pybind11/
 

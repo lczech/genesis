@@ -24,7 +24,7 @@
 # ------------------------------------------------------------------------------
 
 # Prefer to use our local installation of GTest, if there is one.
-SET( GTEST_ROOT ${PROJECT_SOURCE_DIR}/test/googletest )
+SET( GTEST_ROOT ${PROJECT_SOURCE_DIR}/tools/googletest )
 
 # Find GTest!
 message (STATUS "Looking for GTest")
@@ -38,7 +38,7 @@ if(NOT GTEST_FOUND)
     # https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
 
     configure_file(
-        ${PROJECT_SOURCE_DIR}/test/GTestDownload.cmake
+        ${PROJECT_SOURCE_DIR}/tools/cmake/GTestDownload.cmake
         ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt
     )
 
