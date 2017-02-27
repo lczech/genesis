@@ -28,7 +28,7 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include "genesis/utils/formats/bmp/writer.hpp"
 #include "genesis/utils/math/matrix.hpp"

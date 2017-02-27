@@ -28,7 +28,7 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include "genesis/tree/default/newick_reader.hpp"
 #include "genesis/tree/drawing/rectangular_layout.hpp"

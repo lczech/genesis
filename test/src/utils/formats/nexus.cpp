@@ -28,7 +28,7 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include "genesis/utils/formats/nexus/document.hpp"
 #include "genesis/utils/formats/nexus/taxa.hpp"

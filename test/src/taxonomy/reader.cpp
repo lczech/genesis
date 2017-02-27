@@ -28,7 +28,7 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include "genesis/taxonomy/formats/taxonomy_reader.hpp"
 #include "genesis/taxonomy/taxon.hpp"

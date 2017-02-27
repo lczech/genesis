@@ -28,7 +28,7 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include "genesis/sequence/functions/functions.hpp"
 #include "genesis/sequence/functions/labels.hpp"

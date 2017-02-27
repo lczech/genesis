@@ -28,7 +28,7 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include "genesis/utils/containers/sorted_vector.hpp"
 #include "genesis/utils/containers/sorted_vector/operators.hpp"

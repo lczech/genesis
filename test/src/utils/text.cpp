@@ -28,7 +28,7 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/text/style.hpp"

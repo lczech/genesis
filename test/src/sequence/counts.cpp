@@ -28,7 +28,7 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include "genesis/sequence/counts.hpp"
 #include "genesis/sequence/formats/phylip_reader.hpp"

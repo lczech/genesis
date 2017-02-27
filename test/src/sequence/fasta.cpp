@@ -28,7 +28,7 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include "genesis/sequence/formats/fasta_input_iterator.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
