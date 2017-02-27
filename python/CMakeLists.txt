@@ -50,7 +50,7 @@ endif()
 # As Pybind11 is a header-only library, we simply check for its existence.
 message (STATUS "Looking for Pybind11")
 
-IF( NOT EXISTS ${PROJECT_SOURCE_DIR}/python/pybind11/include/pybind11/pybind11.h )
+IF( NOT EXISTS ${PROJECT_SOURCE_DIR}/tools/pybind11/include/pybind11/pybind11.h )
     message (STATUS "Pybind11 not found")
     message (STATUS "Will now download Pybind11")
 
@@ -59,7 +59,7 @@ IF( NOT EXISTS ${PROJECT_SOURCE_DIR}/python/pybind11/include/pybind11/pybind11.h
     # See also the CMakeLists.txt file for the tests - there we use this technique for GTest.
 
     configure_file(
-        ${PROJECT_SOURCE_DIR}/python/Pybind11Download.cmake
+        ${PROJECT_SOURCE_DIR}/tools/cmake/Pybind11Download.cmake
         ${CMAKE_BINARY_DIR}/pybind11-download/CMakeLists.txt
     )
 
@@ -86,7 +86,7 @@ IF( NOT EXISTS ${PROJECT_SOURCE_DIR}/python/pybind11/include/pybind11/pybind11.h
     endif()
 
     # If the header still does not exists, something went wrong.
-    IF( NOT EXISTS ${PROJECT_SOURCE_DIR}/python/pybind11/include/pybind11/pybind11.h )
+    IF( NOT EXISTS ${PROJECT_SOURCE_DIR}/tools/pybind11/include/pybind11/pybind11.h )
         message (STATUS "Pybind11 not found")
         message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
         return()
@@ -95,8 +95,9 @@ IF( NOT EXISTS ${PROJECT_SOURCE_DIR}/python/pybind11/include/pybind11/pybind11.h
     message (STATUS "Finished downloading Pybind11")
 ENDIF()
 
-# Include Pybind11, as recommended in http://pybind11.readthedocs.io/en/master/compiling.html#building-with-cmake
-add_subdirectory(pybind11)
+# Include Pybind11, as documented in http://pybind11.readthedocs.io/en/master/compiling.html#building-with-cmake
+# We use the two-args version of add_subdirectory here, because it is not an actual subdirectory.
+add_subdirectory( ${PROJECT_SOURCE_DIR}/tools/pybind11 ${CMAKE_CURRENT_BINARY_DIR}/pybind11 )
 
 # Combine a Pybind version, which is currently not exported directly...
 SET(PYBIND11_VERSION ${PYBIND11_VERSION_MAJOR}.${PYBIND11_VERSION_MINOR}.${PYBIND11_VERSION_PATCH})
@@ -130,7 +131,7 @@ set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/python/module)
 # that offers an update target to get around this limitation.
 file (GLOB_RECURSE genesis_python_sources ${PROJECT_SOURCE_DIR}/python/src/*.cpp)
 
-# include_directories (${PROJECT_SOURCE_DIR}/python/pybind11/include)
+# include_directories (${PROJECT_SOURCE_DIR}/tools/pybind11/include)
 # include_directories (${PROJECT_SOURCE_DIR}/python/src)
 # include_directories (${PROJECT_SOURCE_DIR}/lib)
 # include_directories (${PROJECT_SOURCE_DIR})

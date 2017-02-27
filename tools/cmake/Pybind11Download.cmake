@@ -48,8 +48,8 @@ ENDIF()
 ExternalProject_Add( pybind11
     URL https://github.com/pybind/pybind11/archive/v2.0.1.zip
     ${CMAKE_DOWNLOAD_PROGRESS}
-    SOURCE_DIR        "${PROJECT_SOURCE_DIR}/python/pybind11"
-    BINARY_DIR        "${PROJECT_SOURCE_DIR}/python/pybind11"
+    SOURCE_DIR        "${PROJECT_SOURCE_DIR}/tools/pybind11"
+    BINARY_DIR        "${PROJECT_SOURCE_DIR}/tools/pybind11"
     CONFIGURE_COMMAND ""
     BUILD_COMMAND     ""
     INSTALL_COMMAND   ""
@@ -62,8 +62,8 @@ ExternalProject_Add( pybind11
 # ExternalProject_Add( pybind11
 #   GIT_REPOSITORY    https://github.com/pybind/pybind11.git
 #   GIT_TAG           07de0d8627101be53986e841cd4e21ee38c2498a
-#   SOURCE_DIR        "${PROJECT_SOURCE_DIR}/python/pybind11"
-#   BINARY_DIR        "${PROJECT_SOURCE_DIR}/python/pybind11"
+#   SOURCE_DIR        "${PROJECT_SOURCE_DIR}/tools/pybind11"
+#   BINARY_DIR        "${PROJECT_SOURCE_DIR}/tools/pybind11"
 #   CONFIGURE_COMMAND ""
 #   BUILD_COMMAND     ""
 #   INSTALL_COMMAND   ""

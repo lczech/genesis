@@ -4,9 +4,9 @@
 
 bin/
 build/
-tools/googletest/
 python/module/
-python/pybind11/
+tools/googletest/
+tools/pybind11/
 
 # --------------------------------------------------------------------
 #   C++ Compiled Object files
