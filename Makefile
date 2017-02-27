@@ -61,5 +61,4 @@ clean:
 	@echo "Running clean..."
 	@rm -rf bin
 	@rm -rf build
-	@rm -rf python/module
 .PHONY: clean

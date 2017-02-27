@@ -95,7 +95,7 @@ Build output:
     flag `BUILD_STATIC_LIB` of the main cmake script.
  *  `./bin/apps/*`: App executables are stored here. See section @ref setup_apps.
 <!--
- *  `./python/module/genesis.so`: Python module file. See section @ref setup_python.
+ *  `genesis/bin/python/genesis.so`: Python module file. See section @ref setup_python.
 -->
  *  `./bin/test/genesis_tests`: Test executable. See `./test/README.md` for more information.
  *  `./build`: Intermediate build files. No need to worry about them too much.
@@ -167,20 +167,20 @@ For users who are more comfortable to develop in Python, we also offer a Python 
 The module file is created using [Boost Python](www.boost.org/doc/libs/release/libs/python/),
 see @ref setup_build for details.
 
-After building, the module file is located at `./python/module/genesis.so`. According to
+After building, the module file is located at `genesis/bin/python/genesis.so`. According to
 [the Python documentation](https://docs.python.org/2/tutorial/modules.html#the-module-search-path),
 there are several ways to make the module available:
 
  *  Copy or create a link to the module into the directory that contains the scripts you want to run.
     For example, call
 
-        ln -s path/to/genesis/python/module/genesis.so .
+        ln -s path/to/genesis/bin/python/genesis.so .
 
     in that directory. Mind the dot at the end of that line.
  *  Extend the environment variable `PYTHONPATH`. For example, in your terminal configuration,
     add the line
 
-        export PYTHONPATH+="path/to/genesis/python/module"
+        export PYTHONPATH+="path/to/genesis/bin/python/"
 
     On Ubuntu systems, this configuration file is usually located at `/home/user/.bashrc`.
 

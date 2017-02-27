@@ -110,7 +110,7 @@ message (STATUS "${ColorBlue}Building Python module${ColorEnd}")
 # ------------------------------------------------------------------------------
 
 # Path to store the Python module.
-set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/python/module)
+set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/python)
 
 # Set rpath for all targets for it to work.
 # Also, we need to set two versions of ORIGIN here (one and two dollar signs).
@@ -160,11 +160,11 @@ set_target_properties (genesis_python_module PROPERTIES PREFIX "")
 # set_target_properties (genesis_python_module PROPERTIES INSTALL_RPATH "$ORIGIN:$$ORIGIN")
 
 # set_target_properties (genesis_python_module PROPERTIES
-#     LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/module
+#     LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/python
 # )
 
 # add_custom_command (OUTPUT python_init COMMAND
-#     touch ${PROJECT_SOURCE_DIR}/module/__init__.py
+#     touch ${PROJECT_SOURCE_DIR}/bin/python/__init__.py
 # )
 
 # if(THREADS_FOUND)
