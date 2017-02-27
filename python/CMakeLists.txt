@@ -130,10 +130,12 @@ set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
 #   Sources
 # ------------------------------------------------------------------------------
 
-# Find all source files. The CMake documentation does not recommend this,
-# but for our purposes, this is good enough for now. Futhermore, we use a make file
-# that offers an update target to get around this limitation.
-file (GLOB_RECURSE genesis_python_sources ${PROJECT_SOURCE_DIR}/python/src/*.cpp)
+IF( MONOLITH_BUILD )
+    # See main CMake file for the monolith macro.
+    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/python/src "${MONOLITH_BUILD}" "python" genesis_python_sources )
+ELSE()
+    file (GLOB_RECURSE genesis_python_sources ${PROJECT_SOURCE_DIR}/python/src/*.cpp)
+ENDIF()
 
 include_directories (${PROJECT_SOURCE_DIR}/python)
 include_directories (${PROJECT_SOURCE_DIR}/lib)
