@@ -71,10 +71,12 @@ option (BUILD_APPLICATIONS  "Build applications"   ON)
 option (BUILD_PYTHON_MODULE "Build python module"  OFF)
 option (BUILD_TESTS         "Build test suites"    OFF)
 
-option (MONOLITH_BUILD      "Build modules monolithically - trading memory for speed." ON)
-
 option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
 option (USE_OPENMP          "Use OpenMP if available"                         ON)
+
+# Define monolith option with list of valid values.
+set( MONOLITH_BUILD FULL CACHE STRING "Build modules monolithically - trading memory for speed." )
+set_property( CACHE MONOLITH_BUILD PROPERTY STRINGS FULL MODULES OFF )
 
 if (BUILD_APPLICATIONS OR BUILD_PYTHON_MODULE OR BUILD_TESTS)
     # The applications, the python module and the tests all use the shared lib,
@@ -198,8 +200,8 @@ endif()
 # It takes four parameters:
 #
 # input_directory: Where to look for source files (currently hardcoded to *.cpp)
-# use_modules: Either "ALL" or "MODULES". The function offers two modes for monolithic building.
-#     In "ALL" mode, all sources of the given input_directory are combined into one.
+# use_modules: Either "FULL" or "MODULES". The function offers two modes for monolithic building.
+#     In "FULL" mode, all sources of the given input_directory are combined into one.
 #     In "MODULES" mode, each immediate subdirectory of input_directory is treated separately,
 #     resulting in one monolithic compilation unit per subdirectory. Files that are directly in
 #     input_directory (not in its subdirectories) are simply used as normal single compilation units.
@@ -258,7 +260,7 @@ function( ASSEMBLE_MONOLITH input_directory use_modules name resulting_source_fi
         file (GLOB monolith_sources  ${CMAKE_BINARY_DIR}/monolith_sources/${name}/*.cpp)
         set ( ${resulting_source_files} ${top_level_sources} ${monolith_sources} PARENT_SCOPE )
 
-    ELSEIF( "${use_modules}" STREQUAL "ALL" )
+    ELSEIF( "${use_modules}" STREQUAL "FULL" )
 
         # Target files.
         SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/monolith_assemble/${name}/all.cpp )

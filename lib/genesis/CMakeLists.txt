@@ -31,10 +31,10 @@ include_directories (${PROJECT_SOURCE_DIR}/lib)
 #   Sources
 # ------------------------------------------------------------------------------
 
-IF( ${MONOLITH_BUILD} )
+IF( MONOLITH_BUILD )
 
     # See main CMake file for the monolith macro.
-    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/lib/genesis "ALL" "lib" genesis_lib_sources )
+    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/lib/genesis "${MONOLITH_BUILD}" "lib" genesis_lib_sources )
 
 ELSE()
 

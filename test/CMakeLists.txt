@@ -101,9 +101,9 @@ set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/test)
 #   Sources
 # ------------------------------------------------------------------------------
 
-IF( ${MONOLITH_BUILD} )
+IF( MONOLITH_BUILD )
     # See main CMake file for the monolith macro.
-    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/test/src "ALL" "test" genesis_test_sources )
+    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/test/src "${MONOLITH_BUILD}" "test" genesis_test_sources )
 ELSE()
     file (GLOB_RECURSE genesis_test_sources ${PROJECT_SOURCE_DIR}/test/src/*.cpp)
 ENDIF()
