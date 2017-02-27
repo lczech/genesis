@@ -30,7 +30,7 @@
 
 #include "common.hpp"
 
-#include "lib/utils/core/options.hpp"
+#include "genesis/utils/core/options.hpp"
 
 #include <string>
 

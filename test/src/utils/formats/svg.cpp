@@ -30,9 +30,9 @@
 
 #include "common.hpp"
 
-#include "lib/utils/core/fs.hpp"
-#include "lib/utils/formats/svg/svg.hpp"
-#include "utils/tools/color/operators.hpp"
+#include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/formats/svg/svg.hpp"
+#include "genesis/utils/tools/color/operators.hpp"
 
 using namespace genesis::utils;
 

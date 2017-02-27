@@ -32,22 +32,21 @@
 
 #include <memory>
 
-#include "lib/placement/formats/jplace_reader.hpp"
-#include "lib/placement/function/epca.hpp"
-#include "lib/placement/function/measures.hpp"
-#include "lib/placement/sample.hpp"
-#include "lib/placement/sample_set.hpp"
+#include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/function/epca.hpp"
+#include "genesis/placement/function/measures.hpp"
+#include "genesis/placement/sample.hpp"
+#include "genesis/placement/sample_set.hpp"
 
-#include "utils/math/matrix/pca.hpp"
-
-#include "lib/tree/function/functions.hpp"
-#include "lib/utils/core/fs.hpp"
-#include "lib/utils/formats/csv/reader.hpp"
-#include "lib/utils/math/matrix.hpp"
-#include "lib/utils/math/matrix/operators.hpp"
-#include "lib/utils/math/matrix/operators.hpp"
-#include "lib/utils/math/matrix/statistics.hpp"
-#include "lib/utils/text/string.hpp"
+#include "genesis/tree/function/functions.hpp"
+#include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/math/matrix.hpp"
+#include "genesis/utils/math/matrix/operators.hpp"
+#include "genesis/utils/math/matrix/operators.hpp"
+#include "genesis/utils/math/matrix/pca.hpp"
+#include "genesis/utils/math/matrix/statistics.hpp"
+#include "genesis/utils/text/string.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;

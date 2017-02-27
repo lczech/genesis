@@ -30,8 +30,8 @@
 
 #include "common.hpp"
 
-#include "lib/utils/formats/csv/reader.hpp"
-#include "lib/utils/math/matrix/pca.hpp"
+#include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/math/matrix/pca.hpp"
 
 #include <string>
 #include <iostream>

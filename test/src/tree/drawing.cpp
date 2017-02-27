@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,14 +30,14 @@
 
 #include "common.hpp"
 
-#include "lib/tree/default/newick_reader.hpp"
-#include "lib/tree/drawing/rectangular_layout.hpp"
-#include "lib/tree/drawing/circular_layout.hpp"
-#include "lib/tree/tree.hpp"
+#include "genesis/tree/default/newick_reader.hpp"
+#include "genesis/tree/drawing/rectangular_layout.hpp"
+#include "genesis/tree/drawing/circular_layout.hpp"
+#include "genesis/tree/tree.hpp"
 
-#include "lib/utils/formats/svg/svg.hpp"
-#include "lib/utils/core/fs.hpp"
-#include "lib/utils/tools/color/names.hpp"
+#include "genesis/utils/formats/svg/svg.hpp"
+#include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/tools/color/names.hpp"
 
 using namespace genesis;
 using namespace tree;

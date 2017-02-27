@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,16 +30,16 @@
 
 #include "common.hpp"
 
-#include "lib/taxonomy/formats/taxonomy_reader.hpp"
-#include "lib/taxonomy/formats/taxopath_generator.hpp"
-#include "lib/taxonomy/formats/taxopath_parser.hpp"
-#include "lib/taxonomy/functions/taxonomy.hpp"
-#include "lib/taxonomy/functions/taxopath.hpp"
-#include "lib/taxonomy/taxon.hpp"
-#include "lib/taxonomy/taxonomy.hpp"
-#include "lib/taxonomy/taxopath.hpp"
+#include "genesis/taxonomy/formats/taxonomy_reader.hpp"
+#include "genesis/taxonomy/formats/taxopath_generator.hpp"
+#include "genesis/taxonomy/formats/taxopath_parser.hpp"
+#include "genesis/taxonomy/functions/taxonomy.hpp"
+#include "genesis/taxonomy/functions/taxopath.hpp"
+#include "genesis/taxonomy/taxon.hpp"
+#include "genesis/taxonomy/taxonomy.hpp"
+#include "genesis/taxonomy/taxopath.hpp"
 
-#include "lib/taxonomy/printers/nested.hpp"
+#include "genesis/taxonomy/printers/nested.hpp"
 
 using namespace genesis::taxonomy;
 

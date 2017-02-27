@@ -33,11 +33,11 @@
 #include <string>
 #include <utility>
 
-#include "lib/tree/default/functions.hpp"
-#include "lib/tree/default/newick_reader.hpp"
-#include "lib/tree/formats/newick/reader.hpp"
-#include "lib/tree/iterator/preorder.hpp"
-#include "lib/tree/tree.hpp"
+#include "genesis/tree/default/functions.hpp"
+#include "genesis/tree/default/newick_reader.hpp"
+#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/iterator/preorder.hpp"
+#include "genesis/tree/tree.hpp"
 
 using namespace genesis;
 using namespace tree;

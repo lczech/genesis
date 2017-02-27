@@ -294,7 +294,7 @@ endfunction()
 # that the user wants to compile.
 
 if (BUILD_SHARED_LIB OR BUILD_STATIC_LIB)
-    add_subdirectory(${PROJECT_SOURCE_DIR}/lib)
+    add_subdirectory(${PROJECT_SOURCE_DIR}/lib/genesis)
 endif()
 
 if (BUILD_APPLICATIONS)

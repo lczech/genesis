@@ -32,10 +32,10 @@
 
 #include <sstream>
 
-#include "lib/utils/formats/csv/reader.hpp"
-#include "lib/utils/math/matrix.hpp"
-#include "lib/utils/math/matrix/operators.hpp"
-#include "lib/utils/math/matrix/statistics.hpp"
+#include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/math/matrix.hpp"
+#include "genesis/utils/math/matrix/operators.hpp"
+#include "genesis/utils/math/matrix/statistics.hpp"
 
 using namespace genesis;
 using namespace utils;

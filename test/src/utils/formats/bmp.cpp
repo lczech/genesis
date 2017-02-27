@@ -30,9 +30,9 @@
 
 #include "common.hpp"
 
-#include "lib/utils/formats/bmp/writer.hpp"
-#include "lib/utils/math/matrix.hpp"
-#include "lib/utils/tools/color.hpp"
+#include "genesis/utils/formats/bmp/writer.hpp"
+#include "genesis/utils/math/matrix.hpp"
+#include "genesis/utils/tools/color.hpp"
 
 using namespace genesis::utils;
 

@@ -30,10 +30,10 @@
 
 #include "common.hpp"
 
-#include "lib/utils/tools/color.hpp"
-#include "lib/utils/tools/color/gradient.hpp"
-#include "lib/utils/tools/color/names.hpp"
-#include "lib/utils/tools/color/operators.hpp"
+#include "genesis/utils/tools/color.hpp"
+#include "genesis/utils/tools/color/gradient.hpp"
+#include "genesis/utils/tools/color/names.hpp"
+#include "genesis/utils/tools/color/operators.hpp"
 
 #include <stdexcept>
 

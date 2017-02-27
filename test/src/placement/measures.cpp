@@ -32,9 +32,9 @@
 
 #include <memory>
 
-#include "lib/placement/formats/jplace_reader.hpp"
-#include "lib/placement/function/measures.hpp"
-#include "lib/placement/sample.hpp"
+#include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/function/measures.hpp"
+#include "genesis/placement/sample.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;
