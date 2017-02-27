@@ -109,7 +109,7 @@ ELSE()
 ENDIF()
 
 include_directories (${PROJECT_SOURCE_DIR}/lib)
-include_directories (${PROJECT_SOURCE_DIR}/test/src)
+include_directories (${PROJECT_SOURCE_DIR}/test)
 
 # ------------------------------------------------------------------------------
 #   Build Tests
