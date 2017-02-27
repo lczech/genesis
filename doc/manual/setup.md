@@ -65,7 +65,7 @@ in the main directory. This builds all parts of genesis for which the dependenci
 
 Requirements:
 
- *  [make](https://www.gnu.org/software/make/) and [cmake](https://cmake.org/) 2.6 or higher.
+ *  [make](https://www.gnu.org/software/make/) and [cmake](https://cmake.org/) 2.8.7 or higher.
  *  A fairly up-to-date C++11 compiler. We currently test with [clang++](http://clang.llvm.org/)
     3.6 and 3.7, as well as [g++](https://gcc.gnu.org/) 4.9 and 5.0.
 
@@ -80,6 +80,8 @@ Optional:
  *  The Python module requires [Boost Python](www.boost.org/doc/libs/release/libs/python/)
     1.41 or higher. Frankly, this is a huge requirement, but currently this is the way it is.
     You might need to compile Boost Python with the `-fPIC` flag to work properly.
+
+    To build the Python module, you need CMake 2.8.12 or higher.
 -->
  *  If you also want to build the tests, you need [Google Test](https://github.com/google/googletest).
     We internally run the tests before every release, so you don't need to. Have a look at the
