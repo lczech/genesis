@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2016 Lucas Czech
+# Copyright (C) 2014-2017 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -25,8 +25,8 @@
 #    Settings
 ####################################################################################################
 
-# Name of the test executable:
-test_exe="./bin/test_suite"
+# Name of the test executable, relative to this file:
+test_exe="../bin/test/genesis_tests"
 
 # Mode to use when no other provided:
 default_mode="validation"

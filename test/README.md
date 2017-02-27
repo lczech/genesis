@@ -3,12 +3,12 @@ Genesis test suite
 
 Genesis uses [GTest](https://github.com/google/googletest) for testing its components.
 The test suite is build using the standard build process of Genesis in the main directory.
+See the Development documentation for details.
 
 ## Structure
 
 This directory contains everything needed for testing Genesis:
 
- * `./bin` contains the test binary `test_suite`, which uses GTest and can be called directly.
  * `./data` contains data that the tests can use for input/output verification.
  * `./out` is created to examine failed tests when the  `run.sh` script is used.
  * `./src` contains the sources files for defining tests. New tests are added here.
@@ -56,36 +56,3 @@ For convenience, the `run.sh` script also contains some additional modes:
  * `./run.sh list` lists all available test cases.
  * `./run.sh gtest [filter]...` calls GTest directly, using the filtering as described above.
  * `./run.sh clean` removes the `out` directory.
-
-## Installing and finding GTest
-
-When building Genesis, we try a couple of ways to link the test binary with GTest:
-
- * First, we check whether it is locally installed in `genesis/tools/googletest/`.
-   This enables us to use GTest on systems that do not allow to install it globally.
- * If it is not found there, we check for a global installation.
- * If this fails too, we try to download it and build it from scratch.
-   This is particularly useful for running the tests in continuous integration.
-   It has the big advantage that it compiles GTest with the same flags used for Genesis.
-
-See `genesis/test/CMakeLists.txt` for details of this process.
-
-In order to install GTest locally for testing Genesis, follow these steps:
-
- * Get GTest from [https://github.com/google/googletest](https://github.com/google/googletest)
- * Extract it somewhere and `cd` to there
- * GTest < 1.8:
-   ~~~{.sh}
-   mkdir build
-   cd build
-   cmake -DCMAKE_INSTALL_PREFIX=path/to/genesis/tools/googletest ..
-   make
-   make install
-   ~~~
- * GTest >= 1.8:
-   ~~~{.sh}
-   cmake -DBUILD_SHARED_LIBS=ON .
-   make
-   cp -a include/gtest/ path/to/genesis/tools/googletest/include
-   cp -a libgtest_main.so libgtest.so path/to/genesis/tools/googletest/lib
-   ~~~

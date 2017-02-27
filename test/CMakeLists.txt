@@ -95,7 +95,7 @@ include_directories( SYSTEM ${GTEST_INCLUDE_DIRS} )
 #   Build Options
 # ------------------------------------------------------------------------------
 
-set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/test/bin)
+set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/test)
 
 # ------------------------------------------------------------------------------
 #   Sources
@@ -116,7 +116,7 @@ include_directories (${PROJECT_SOURCE_DIR}/test/src)
 # ------------------------------------------------------------------------------
 
 add_executable        (genesis_tests ${genesis_test_sources})
-set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME test_suite)
+set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME genesis_tests)
 
 target_link_libraries (genesis_tests genesis_lib_shared)
 target_link_libraries (genesis_tests ${GTEST_BOTH_LIBRARIES})
@@ -127,4 +127,4 @@ endif()
 
 # Need to specify the whole path here. For some reason, cmake does not
 # extract it from the executable name here...
-add_test (test_suite ${PROJECT_SOURCE_DIR}/test/bin/test_suite)
+add_test (genesis_tests ${PROJECT_SOURCE_DIR}/bin/test/genesis_tests)

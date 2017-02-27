@@ -62,5 +62,4 @@ clean:
 	@rm -rf bin
 	@rm -rf build
 	@rm -rf python/module
-	@rm -rf test/bin
 .PHONY: clean
