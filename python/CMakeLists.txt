@@ -99,7 +99,7 @@ ENDIF()
 # We use the two-args version of add_subdirectory here, because it is not an actual subdirectory.
 add_subdirectory( ${PROJECT_SOURCE_DIR}/tools/pybind11 ${CMAKE_CURRENT_BINARY_DIR}/pybind11 )
 
-# Combine a Pybind version, which is currently not exported directly...
+# Get the Pybind version, which is currently not exported directly...
 SET(PYBIND11_VERSION ${PYBIND11_VERSION_MAJOR}.${PYBIND11_VERSION_MINOR}.${PYBIND11_VERSION_PATCH})
 
 message (STATUS "Found Pybind11: ${PYBIND11_VERSION}")
@@ -112,11 +112,15 @@ message (STATUS "${ColorBlue}Building Python module${ColorEnd}")
 # Path to store the Python module.
 set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/python)
 
-# Set rpath for all targets for it to work.
+# Set rpath for all targets, so that they work out of the box (libgenesis.so in parent directory),
+# as well as when relocating with the lib being in the same directory.
 # Also, we need to set two versions of ORIGIN here (one and two dollar signs).
 # This is because on some systems it seems to be escaped, on some not...
-# set( CMAKE_INSTALL_RPATH "$ORIGIN:$$ORIGIN" )
-# set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
+# See https://cmake.org/pipermail/cmake/2008-January/019290.html
+# and https://cmake.org/Wiki/CMake_RPATH_handling for details.
+# Tipp: Use `ldd binary` and `readelf -d binary` to check RPATH settings.
+set( CMAKE_INSTALL_RPATH "$ORIGIN/..:$$ORIGIN/..:$ORIGIN:$$ORIGIN" )
+set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
 
 # No need to link to Python - this is done by Pybind. We keep it here for reference.
 # include_directories   (${PYTHON_INCLUDE_DIRS})
@@ -131,10 +135,8 @@ set (LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/python)
 # that offers an update target to get around this limitation.
 file (GLOB_RECURSE genesis_python_sources ${PROJECT_SOURCE_DIR}/python/src/*.cpp)
 
-# include_directories (${PROJECT_SOURCE_DIR}/tools/pybind11/include)
-# include_directories (${PROJECT_SOURCE_DIR}/python/src)
-# include_directories (${PROJECT_SOURCE_DIR}/lib)
-# include_directories (${PROJECT_SOURCE_DIR})
+include_directories (${PROJECT_SOURCE_DIR}/python)
+include_directories (${PROJECT_SOURCE_DIR}/lib)
 
 # ------------------------------------------------------------------------------
 #   Build Python Module
@@ -148,7 +150,10 @@ pybind11_add_module( genesis_python_module SHARED ${genesis_python_sources} )
 # Make sure that all Pybind things are processed before.
 add_dependencies( genesis_python_module pybind11 )
 
-# target_link_libraries (genesis_python_module genesis_lib_shared)
+# Link against our library.
+target_link_libraries (genesis_python_module genesis_lib_shared)
+
+# No need to do this manually, Pybind takes care of this. Keep it for reference.
 # target_link_libraries (genesis_python_module ${PYTHON_LIBRARIES})
 
 # Make sure that the module file is named according to Python standards
@@ -157,16 +162,10 @@ set_target_properties (genesis_python_module PROPERTIES OUTPUT_NAME genesis)
 set_target_properties (genesis_python_module PROPERTIES PREFIX "")
 # set_target_properties (genesis_python_module PROPERTIES SUFFIX "${PYTHON_MODULE_EXTENSION}")
 
-# set_target_properties (genesis_python_module PROPERTIES INSTALL_RPATH "$ORIGIN:$$ORIGIN")
-
-# set_target_properties (genesis_python_module PROPERTIES
-#     LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin/python
-# )
-
 # add_custom_command (OUTPUT python_init COMMAND
 #     touch ${PROJECT_SOURCE_DIR}/bin/python/__init__.py
 # )
 
-# if(THREADS_FOUND)
-#     target_link_libraries (genesis_python_module ${CMAKE_THREAD_LIBS_INIT})
-# endif()
+if(THREADS_FOUND)
+    target_link_libraries (genesis_python_module ${CMAKE_THREAD_LIBS_INIT})
+endif()

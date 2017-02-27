@@ -28,25 +28,66 @@
  * @ingroup python
  */
 
-// #include <python/src/common.hpp>
-#include <pybind11/pybind11.h>
+#include <src/common.hpp>
+// #include <pybind11/pybind11.h>
 
 // #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
+
+#include <map>
+#include <memory>
+#include <stdexcept>
+#include <functional>
 
 // =================================================================================================
 //     Pybind11 Python Module
 // =================================================================================================
 
-int add(int i, int j) {
-    return i + j;
-}
 
-namespace py = pybind11;
+typedef std::function< pybind11::module & (std::string const &) > ModuleGetter;
+
+void bind_genesis_tree_tree(std::function< pybind11::module &(std::string const &namespace_) > &M);
+
+
+
+// int add(int i, int j) {
+//     return i + j;
+// }
+//
+// namespace py = pybind11;
+//
+// PYBIND11_PLUGIN(genesis) {
+//     py::module m("genesis", "pybind11 example plugin");
+//
+//     m.def("add", &add, "A function which adds two numbers");
+//
+//     return m.ptr();
+// }
+
 
 PYBIND11_PLUGIN(genesis) {
-    py::module m("genesis", "pybind11 example plugin");
+	std::map <std::string, std::shared_ptr<pybind11::module> > modules;
+	ModuleGetter M = [&](std::string const &namespace_) -> pybind11::module & {
+		auto it = modules.find(namespace_);
+		if( it == modules.end() ) throw std::runtime_error("Attempt to access pybind11::module for namespace " + namespace_ + " before it was created!!!");
+		return * it->second;
+	};
 
-    m.def("add", &add, "A function which adds two numbers");
+	modules[""] = std::make_shared<pybind11::module>("genesis", "genesis module");
 
-    return m.ptr();
+	std::vector< std::pair<std::string, std::string> > sub_modules {
+		{"", "genesis"},
+		{"genesis", "placement"},
+		{"genesis", "sequence"},
+		{"genesis", "taxonomy"},
+		{"genesis", "tree"},
+		{"genesis", "utils"},
+		{"genesis::utils", "(anonymou"},
+		{"", "std"},
+		{"std", "__detail"},
+	};
+	for(auto &p : sub_modules ) modules[p.first.size() ? p.first+"::"+p.second : p.second] = std::make_shared<pybind11::module>( modules[p.first]->def_submodule(p.second.c_str(), ("Bindings for " + p.first + "::" + p.second + " namespace").c_str() ) );
+
+    bind_genesis_tree_tree(M);
+
+	return modules[""]->ptr();
 }
