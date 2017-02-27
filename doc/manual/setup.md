@@ -93,11 +93,11 @@ Build output:
     need to link against when using genesis as a library for your own C++ projects.
     By default, only the shared lib (`.so`) is build. If you need the static lib, use the option
     flag `BUILD_STATIC_LIB` of the main cmake script.
- *  `./bin/*`: App executables are also stored in the bin directory. See section @ref setup_apps.
+ *  `./bin/apps/*`: App executables are stored here. See section @ref setup_apps.
 <!--
  *  `./python/module/genesis.so`: Python module file. See section @ref setup_python.
 -->
- *  `./test/bin/test_suite`: Test executable. See `./test/README.md` for more information.
+ *  `./bin/test/genesis_tests`: Test executable. See `./test/README.md` for more information.
  *  `./build`: Intermediate build files. No need to worry about them too much.
 
 If you just pulled new commits from the repository, or added new files to be compiled
@@ -144,7 +144,7 @@ version of genesis by calling
 
     make update
 
-in the main directory. The resulting executable is placed in `./bin` and named after the `*.cpp`
+in the main directory. The resulting executable is placed in `./bin/apps` and named after the `*.cpp`
 file (without the ending).
 
 Apart from that, there are no further requirements. Simply include the needed genesis headers (or
