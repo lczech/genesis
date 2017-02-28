@@ -38,6 +38,14 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Histogram;
+bool equal_ranges( Histogram const& lhs, Histogram const& rhs );
+void swap( Histogram& lhs, Histogram& rhs ) noexcept;
+
+// =================================================================================================
 //     Histogram
 // =================================================================================================
 
@@ -100,7 +108,7 @@ public:
     Histogram& operator= (Histogram const&) = default;
     Histogram& operator= (Histogram&&)      = default;
 
-    void swap (Histogram& other) noexcept;
+    friend void swap( Histogram& lhs, Histogram& rhs ) noexcept;
 
     // -------------------------------------------------------------------------
     //     General Methods
@@ -195,15 +203,6 @@ private:
 
     OutOfRangeBehaviour out_of_range_behaviour_;
 };
-
-// =================================================================================================
-//     Basic Operators
-// =================================================================================================
-
-inline void swap( Histogram& lhs, Histogram& rhs ) noexcept
-{
-    lhs.swap(rhs);
-}
 
 } // namespace utils
 } // namespace genesis

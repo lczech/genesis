@@ -87,6 +87,19 @@ namespace utils {
 template<typename U>
 class JsonIterator;
 
+class JsonDocument;
+
+bool operator==(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
+bool operator==(JsonDocument const& v, std::nullptr_t) noexcept;
+bool operator==(std::nullptr_t, JsonDocument const& v) noexcept;
+bool operator!=(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
+bool operator!=(JsonDocument const& v, std::nullptr_t) noexcept;
+bool operator!=(std::nullptr_t, JsonDocument const& v) noexcept;
+bool operator<(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
+bool operator<=(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
+bool operator>(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
+bool operator>=(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
+
 // =================================================================================================
 //     JsonValue
 // =================================================================================================

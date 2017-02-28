@@ -39,9 +39,21 @@
 namespace genesis {
 namespace utils {
 
-// =============================================================================
+// =================================================================================================
+//     Forward Declarations
+// =================================================================================================
+
+class Bitvector;
+
+Bitvector operator & (Bitvector const& lhs, Bitvector const& rhs);
+Bitvector operator | (Bitvector const& lhs, Bitvector const& rhs);
+Bitvector operator ^ (Bitvector const& lhs, Bitvector const& rhs);
+Bitvector operator - (Bitvector const& lhs, Bitvector const& rhs);
+std::ostream& operator << (std::ostream& out, Bitvector const& rhs);
+
+// =================================================================================================
 //     Bitvector
-// =============================================================================
+// =================================================================================================
 
 class Bitvector
 {

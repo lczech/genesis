@@ -41,6 +41,23 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Friends
+// =================================================================================================
+
+void swap( Histogram& lhs, Histogram& rhs ) noexcept
+{
+    using std::swap;
+    swap( lhs.bins_, rhs.bins_);
+    swap( lhs.ranges_, rhs.ranges_);
+    swap( lhs.out_of_range_behaviour_, rhs.out_of_range_behaviour_);
+}
+
+bool equal_ranges( Histogram const& lhs, Histogram const& rhs )
+{
+    return lhs.ranges_ == rhs.ranges_;
+}
+
+// =================================================================================================
 //     Constructors and Rule of Five
 // =================================================================================================
 
@@ -81,14 +98,6 @@ Histogram::Histogram(
     if (!std::is_sorted(ranges.begin(), ranges.end())) {
         throw std::invalid_argument("__FUNCTION__: invalid_argument");
     }
-}
-
-void Histogram::swap( Histogram& other ) noexcept
-{
-    using std::swap;
-    swap(bins_, other.bins_);
-    swap(ranges_, other.ranges_);
-    swap(out_of_range_behaviour_, other.out_of_range_behaviour_);
 }
 
 // =================================================================================================
@@ -162,11 +171,6 @@ void Histogram::out_of_range_behaviour( OutOfRangeBehaviour v )
 bool Histogram::operator== ( Histogram const& rhs )
 {
     return bins_ == rhs.bins_ && ranges_ == rhs.ranges_;
-}
-
-bool equal_ranges (Histogram const& lhs, Histogram const& rhs)
-{
-    return lhs.ranges_ == rhs.ranges_;
 }
 
 // =================================================================================================
