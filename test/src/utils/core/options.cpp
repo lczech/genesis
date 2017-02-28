@@ -28,9 +28,9 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
-#include "lib/utils/core/options.hpp"
+#include "genesis/utils/core/options.hpp"
 
 #include <string>
 

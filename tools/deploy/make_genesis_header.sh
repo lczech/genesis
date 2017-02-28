@@ -28,7 +28,7 @@
 # Change to top level of git repo and then to /lib
 # This ensures that the script can be called from any directory.
 cd `git rev-parse --show-toplevel`
-cd lib/
+cd lib/genesis/
 rm -f genesis.hpp
 
 echo "#ifndef GENESIS_H_" >> genesis.hpp
@@ -71,7 +71,7 @@ for d in `ls -v -d */`
 do
     for f in `find ${d} -name "*.hpp" | sort`
     do
-        echo "#include \"${f}\"" >> genesis.hpp
+        echo "#include \"genesis/${f}\"" >> genesis.hpp
     done
     echo "" >> genesis.hpp
 done

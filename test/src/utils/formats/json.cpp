@@ -28,16 +28,16 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
-#include "lib/utils/core/fs.hpp"
-#include "lib/utils/core/std.hpp"
-#include "lib/utils/formats/json/document.hpp"
-#include "lib/utils/formats/json/iterator.hpp"
-#include "lib/utils/formats/json/reader.hpp"
-#include "lib/utils/formats/json/writer.hpp"
-#include "lib/utils/io/input_stream.hpp"
-#include "lib/utils/text/string.hpp"
+#include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/core/std.hpp"
+#include "genesis/utils/formats/json/document.hpp"
+#include "genesis/utils/formats/json/iterator.hpp"
+#include "genesis/utils/formats/json/reader.hpp"
+#include "genesis/utils/formats/json/writer.hpp"
+#include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <fstream>
 #include <string>

@@ -35,7 +35,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 GenesisTestEnvironment* environment;
 

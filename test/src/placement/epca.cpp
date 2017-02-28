@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,26 +28,25 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include <memory>
 
-#include "lib/placement/formats/jplace_reader.hpp"
-#include "lib/placement/function/epca.hpp"
-#include "lib/placement/function/measures.hpp"
-#include "lib/placement/sample.hpp"
-#include "lib/placement/sample_set.hpp"
+#include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/function/epca.hpp"
+#include "genesis/placement/function/measures.hpp"
+#include "genesis/placement/sample.hpp"
+#include "genesis/placement/sample_set.hpp"
 
-#include "utils/math/matrix/pca.hpp"
-
-#include "lib/tree/function/functions.hpp"
-#include "lib/utils/core/fs.hpp"
-#include "lib/utils/formats/csv/reader.hpp"
-#include "lib/utils/math/matrix.hpp"
-#include "lib/utils/math/matrix/operators.hpp"
-#include "lib/utils/math/matrix/operators.hpp"
-#include "lib/utils/math/matrix/statistics.hpp"
-#include "lib/utils/text/string.hpp"
+#include "genesis/tree/function/functions.hpp"
+#include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/formats/csv/reader.hpp"
+#include "genesis/utils/math/matrix.hpp"
+#include "genesis/utils/math/matrix/operators.hpp"
+#include "genesis/utils/math/matrix/operators.hpp"
+#include "genesis/utils/math/matrix/pca.hpp"
+#include "genesis/utils/math/matrix/statistics.hpp"
+#include "genesis/utils/text/string.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;
@@ -85,7 +84,7 @@ TEST( SampleMeasures, EdgePCA )
 
         LOG_DBG1 << file;
         Sample smp;
-        JplaceReader().from_file( indir + file, smp );
+        smp = JplaceReader().from_file( indir + file );
         set.add(smp);
 
         // if( imbalance_matrix.rows() == 0 ) {
@@ -216,4 +215,4 @@ TEST( SampleMeasures, GuppyPCA )
     utils::file_write( utils::to_string( pca.projection ), "/home/lucas/tmp/bv_epca/myguppy.proj" );
 }
 
-*/
+//*/

@@ -28,15 +28,15 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
-#include "lib/sequence/functions/codes.hpp"
-#include "lib/sequence/functions/functions.hpp"
-#include "lib/sequence/printers/bitmap.hpp"
-#include "lib/sequence/printers/simple.hpp"
-#include "lib/sequence/sequence_set.hpp"
-#include "lib/sequence/formats/fasta_reader.hpp"
-#include "lib/sequence/formats/phylip_reader.hpp"
+#include "genesis/sequence/functions/codes.hpp"
+#include "genesis/sequence/functions/functions.hpp"
+#include "genesis/sequence/printers/bitmap.hpp"
+#include "genesis/sequence/printers/simple.hpp"
+#include "genesis/sequence/sequence_set.hpp"
+#include "genesis/sequence/formats/fasta_reader.hpp"
+#include "genesis/sequence/formats/phylip_reader.hpp"
 
 #include <string>
 

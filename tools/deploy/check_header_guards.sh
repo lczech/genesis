@@ -29,7 +29,7 @@
 # Change to top level of git repo and then to /lib
 # This ensures that the script can be called from any directory.
 cd `git rev-parse --show-toplevel`
-cd lib/
+cd lib/genesis/
 
 # Helper function to check whether an array contains a value.
 contains_element () {

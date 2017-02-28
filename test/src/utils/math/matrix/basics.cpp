@@ -28,12 +28,12 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include <sstream>
 
-#include "lib/utils/math/matrix.hpp"
-#include "lib/utils/math/matrix/operators.hpp"
+#include "genesis/utils/math/matrix.hpp"
+#include "genesis/utils/math/matrix/operators.hpp"
 
 using namespace genesis;
 using namespace utils;

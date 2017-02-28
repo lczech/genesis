@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,20 +28,20 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include <string>
 
-#include "lib/tree/default/distances.hpp"
-#include "lib/tree/default/edge_color.hpp"
-#include "lib/tree/default/functions.hpp"
-#include "lib/tree/default/newick_reader.hpp"
-#include "lib/tree/function/functions.hpp"
-#include "lib/tree/formats/newick/reader.hpp"
-#include "lib/tree/tree.hpp"
+#include "genesis/tree/default/distances.hpp"
+#include "genesis/tree/default/edge_color.hpp"
+#include "genesis/tree/default/functions.hpp"
+#include "genesis/tree/default/newick_reader.hpp"
+#include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/tree.hpp"
 
-#include "lib/utils/tools/color.hpp"
-#include "lib/utils/tools/color/operators.hpp"
+#include "genesis/utils/tools/color.hpp"
+#include "genesis/utils/tools/color/operators.hpp"
 
 #include <algorithm>
 

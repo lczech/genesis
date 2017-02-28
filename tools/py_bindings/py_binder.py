@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2016 Lucas Czech
+# Copyright (C) 2014-2017 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -27,9 +27,10 @@ import sys
 
 import xml.etree.ElementTree
 
-from py_binder.boost_writer import *
+# from py_binder.boost_writer import *
 from py_binder.cpp_entities import *
 from py_binder.doxygen_reader import *
+from py_binder.pybind11_writer import *
 
 # Naming ideas for this tool:
 # cpp over doxygen to boost python binding generator
@@ -74,5 +75,5 @@ if __name__ == "__main__":
 
     # Generate boost files
     # print BoostPythonWriter.generate (ns_global)
-    BoostPythonWriter.generate_files (ns_global, src_dir, "genesis")
+    Pybind11Writer.generate_files (ns_global, src_dir, "genesis")
     print "Finished."

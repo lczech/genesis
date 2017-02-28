@@ -24,7 +24,7 @@
 # ------------------------------------------------------------------------------
 
 # Prefer to use our local installation of GTest, if there is one.
-SET( GTEST_ROOT ${PROJECT_SOURCE_DIR}/test/googletest )
+SET( GTEST_ROOT ${PROJECT_SOURCE_DIR}/tools/googletest )
 
 # Find GTest!
 message (STATUS "Looking for GTest")
@@ -38,7 +38,7 @@ if(NOT GTEST_FOUND)
     # https://github.com/google/googletest/tree/master/googletest#incorporating-into-an-existing-cmake-project
 
     configure_file(
-        ${PROJECT_SOURCE_DIR}/test/GTestDownload.cmake
+        ${PROJECT_SOURCE_DIR}/tools/cmake/GTestDownload.cmake
         ${CMAKE_BINARY_DIR}/googletest-download/CMakeLists.txt
     )
 
@@ -95,29 +95,28 @@ include_directories( SYSTEM ${GTEST_INCLUDE_DIRS} )
 #   Build Options
 # ------------------------------------------------------------------------------
 
-set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/test/bin)
+set (EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin/test)
 
 # ------------------------------------------------------------------------------
 #   Sources
 # ------------------------------------------------------------------------------
 
-IF( ${MONOLITH_BUILD} )
+IF( MONOLITH_BUILD )
     # See main CMake file for the monolith macro.
-    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/test/src "ALL" "test" genesis_test_sources )
+    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/test/src "${MONOLITH_BUILD}" "test" genesis_test_sources )
 ELSE()
     file (GLOB_RECURSE genesis_test_sources ${PROJECT_SOURCE_DIR}/test/src/*.cpp)
 ENDIF()
 
 include_directories (${PROJECT_SOURCE_DIR}/lib)
-include_directories (${PROJECT_SOURCE_DIR})
-include_directories (${PROJECT_SOURCE_DIR}/test/src)
+include_directories (${PROJECT_SOURCE_DIR}/test)
 
 # ------------------------------------------------------------------------------
 #   Build Tests
 # ------------------------------------------------------------------------------
 
 add_executable        (genesis_tests ${genesis_test_sources})
-set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME test_suite)
+set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME genesis_tests)
 
 target_link_libraries (genesis_tests genesis_lib_shared)
 target_link_libraries (genesis_tests ${GTEST_BOTH_LIBRARIES})
@@ -128,4 +127,4 @@ endif()
 
 # Need to specify the whole path here. For some reason, cmake does not
 # extract it from the executable name here...
-add_test (test_suite ${PROJECT_SOURCE_DIR}/test/bin/test_suite)
+add_test (genesis_tests ${PROJECT_SOURCE_DIR}/bin/test/genesis_tests)

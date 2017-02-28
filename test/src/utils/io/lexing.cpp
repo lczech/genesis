@@ -28,12 +28,12 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
-#include "lib/utils/core/std.hpp"
-#include "lib/utils/io/parser.hpp"
-#include "lib/utils/io/scanner.hpp"
-#include "lib/utils/io/input_stream.hpp"
+#include "genesis/utils/core/std.hpp"
+#include "genesis/utils/io/parser.hpp"
+#include "genesis/utils/io/scanner.hpp"
+#include "genesis/utils/io/input_stream.hpp"
 
 #include <algorithm>
 #include <iterator>

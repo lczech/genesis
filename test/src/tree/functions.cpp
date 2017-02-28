@@ -28,18 +28,18 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include <string>
 #include <vector>
 
-#include "lib/tree/default/functions.hpp"
-#include "lib/tree/default/newick_reader.hpp"
-#include "lib/tree/default/tree.hpp"
-#include "lib/tree/formats/newick/reader.hpp"
-#include "lib/tree/function/functions.hpp"
-#include "lib/tree/tree.hpp"
-#include "lib/utils/text/string.hpp"
+#include "genesis/tree/default/functions.hpp"
+#include "genesis/tree/default/newick_reader.hpp"
+#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/formats/newick/reader.hpp"
+#include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/tree.hpp"
+#include "genesis/utils/text/string.hpp"
 
 using namespace genesis;
 using namespace tree;

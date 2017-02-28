@@ -49,7 +49,7 @@ build: build/CMakeCache.txt
 # This ensures that all new files are compiled, even when doing incremental builds.
 update:
 	@echo "Running make with new files..."
-	@touch lib/CMakeLists.txt
+	@touch lib/genesis/CMakeLists.txt
 	@touch apps/CMakeLists.txt
 	@touch python/CMakeLists.txt
 	@touch test/CMakeLists.txt
@@ -61,6 +61,4 @@ clean:
 	@echo "Running clean..."
 	@rm -rf bin
 	@rm -rf build
-	@rm -rf python/module
-	@rm -rf test/bin
 .PHONY: clean

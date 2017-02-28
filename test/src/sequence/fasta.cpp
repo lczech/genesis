@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2016 Lucas Czech
+    Copyright (C) 2014-2017 Lucas Czech
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,16 +28,16 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
-#include "lib/sequence/formats/fasta_input_iterator.hpp"
-#include "lib/sequence/formats/fasta_reader.hpp"
-#include "lib/sequence/functions/codes.hpp"
-#include "lib/sequence/functions/functions.hpp"
-#include "lib/sequence/sequence_set.hpp"
+#include "genesis/sequence/formats/fasta_input_iterator.hpp"
+#include "genesis/sequence/formats/fasta_reader.hpp"
+#include "genesis/sequence/functions/codes.hpp"
+#include "genesis/sequence/functions/functions.hpp"
+#include "genesis/sequence/sequence_set.hpp"
 
-#include "lib/utils/core/std.hpp"
-#include "lib/utils/io/input_stream.hpp"
+#include "genesis/utils/core/std.hpp"
+#include "genesis/utils/io/input_stream.hpp"
 
 #include <fstream>
 #include <string>

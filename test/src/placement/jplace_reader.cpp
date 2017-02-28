@@ -28,14 +28,14 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include <string>
 
-#include "lib/placement/formats/jplace_reader.hpp"
-#include "lib/placement/function/helper.hpp"
-#include "lib/placement/function/functions.hpp"
-#include "lib/placement/sample.hpp"
+#include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/functions.hpp"
+#include "genesis/placement/sample.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;

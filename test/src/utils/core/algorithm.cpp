@@ -28,9 +28,9 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
-#include "lib/utils/core/algorithm.hpp"
+#include "genesis/utils/core/algorithm.hpp"
 
 #include <vector>
 

@@ -28,22 +28,22 @@
  * @ingroup test
  */
 
-#include "common.hpp"
+#include "src/common.hpp"
 
 #include <algorithm>
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "lib/placement/formats/jplace_reader.hpp"
-#include "lib/placement/formats/newick_reader.hpp"
-#include "lib/placement/function/functions.hpp"
-#include "lib/placement/function/helper.hpp"
-#include "lib/placement/function/operators.hpp"
-#include "lib/placement/sample.hpp"
-#include "lib/placement/simulator/functions.hpp"
-#include "lib/placement/simulator/simulator.hpp"
-#include "lib/tree/formats/newick/reader.hpp"
+#include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/formats/newick_reader.hpp"
+#include "genesis/placement/function/functions.hpp"
+#include "genesis/placement/function/helper.hpp"
+#include "genesis/placement/function/operators.hpp"
+#include "genesis/placement/sample.hpp"
+#include "genesis/placement/simulator/functions.hpp"
+#include "genesis/placement/simulator/simulator.hpp"
+#include "genesis/tree/formats/newick/reader.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;

@@ -65,7 +65,7 @@ in the main directory. This builds all parts of genesis for which the dependenci
 
 Requirements:
 
- *  [make](https://www.gnu.org/software/make/) and [cmake](https://cmake.org/) 2.6 or higher.
+ *  [make](https://www.gnu.org/software/make/) and [cmake](https://cmake.org/) 2.8.7 or higher.
  *  A fairly up-to-date C++11 compiler. We currently test with [clang++](http://clang.llvm.org/)
     3.6 and 3.7, as well as [g++](https://gcc.gnu.org/) 4.9 and 5.0.
 
@@ -80,6 +80,8 @@ Optional:
  *  The Python module requires [Boost Python](www.boost.org/doc/libs/release/libs/python/)
     1.41 or higher. Frankly, this is a huge requirement, but currently this is the way it is.
     You might need to compile Boost Python with the `-fPIC` flag to work properly.
+
+    To build the Python module, you need CMake 2.8.12 or higher.
 -->
  *  If you also want to build the tests, you need [Google Test](https://github.com/google/googletest).
     We internally run the tests before every release, so you don't need to. Have a look at the
@@ -91,11 +93,11 @@ Build output:
     need to link against when using genesis as a library for your own C++ projects.
     By default, only the shared lib (`.so`) is build. If you need the static lib, use the option
     flag `BUILD_STATIC_LIB` of the main cmake script.
- *  `./bin/*`: App executables are also stored in the bin directory. See section @ref setup_apps.
+ *  `./bin/apps/*`: App executables are stored here. See section @ref setup_apps.
 <!--
- *  `./python/module/genesis.so`: Python module file. See section @ref setup_python.
+ *  `genesis/bin/python/genesis.so`: Python module file. See section @ref setup_python.
 -->
- *  `./test/bin/test_suite`: Test executable. See `./test/README.md` for more information.
+ *  `./bin/test/genesis_tests`: Test executable. See `./test/README.md` for more information.
  *  `./build`: Intermediate build files. No need to worry about them too much.
 
 If you just pulled new commits from the repository, or added new files to be compiled
@@ -142,7 +144,7 @@ version of genesis by calling
 
     make update
 
-in the main directory. The resulting executable is placed in `./bin` and named after the `*.cpp`
+in the main directory. The resulting executable is placed in `./bin/apps` and named after the `*.cpp`
 file (without the ending).
 
 Apart from that, there are no further requirements. Simply include the needed genesis headers (or
@@ -165,20 +167,20 @@ For users who are more comfortable to develop in Python, we also offer a Python 
 The module file is created using [Boost Python](www.boost.org/doc/libs/release/libs/python/),
 see @ref setup_build for details.
 
-After building, the module file is located at `./python/module/genesis.so`. According to
+After building, the module file is located at `genesis/bin/python/genesis.so`. According to
 [the Python documentation](https://docs.python.org/2/tutorial/modules.html#the-module-search-path),
 there are several ways to make the module available:
 
  *  Copy or create a link to the module into the directory that contains the scripts you want to run.
     For example, call
 
-        ln -s path/to/genesis/python/module/genesis.so .
+        ln -s path/to/genesis/bin/python/genesis.so .
 
     in that directory. Mind the dot at the end of that line.
  *  Extend the environment variable `PYTHONPATH`. For example, in your terminal configuration,
     add the line
 
-        export PYTHONPATH+="path/to/genesis/python/module"
+        export PYTHONPATH+="path/to/genesis/bin/python/"
 
     On Ubuntu systems, this configuration file is usually located at `/home/user/.bashrc`.
 
