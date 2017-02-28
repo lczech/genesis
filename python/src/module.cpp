@@ -29,7 +29,7 @@
  */
 
 #include <src/common.hpp>
-// #include <pybind11/pybind11.h>
+#include <pybind11/pybind11.h>
 
 // #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 

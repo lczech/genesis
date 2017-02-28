@@ -33,4 +33,6 @@
 
 #include <pybind11/pybind11.h>
 
+const char* get_docstring (const std::string& signature);
+
 #endif // include guard
