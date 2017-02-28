@@ -236,7 +236,7 @@ private:
 //     Range Wrapper
 // =================================================================================================
 
-utils::Range< IteratorSubstitutions > iterate_substitutions( TwobitVector const& vector )
+inline utils::Range< IteratorSubstitutions > iterate_substitutions( TwobitVector const& vector )
 {
     return {
         IteratorSubstitutions( vector ),

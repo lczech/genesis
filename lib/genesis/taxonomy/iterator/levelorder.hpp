@@ -55,7 +55,7 @@ namespace taxonomy {
  *
  * This is the non-const version of the function.
  */
-void levelorder_for_each(
+inline void levelorder_for_each(
     Taxonomy& tax,
     std::function< void( Taxon& )> fn,
     bool include_inner_taxa = true
@@ -89,7 +89,7 @@ void levelorder_for_each(
  *
  * This is the const version of the function.
  */
-void levelorder_for_each(
+inline void levelorder_for_each(
     Taxonomy const& tax,
     std::function< void( Taxon const& )> fn,
     bool include_inner_taxa = true

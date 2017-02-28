@@ -57,7 +57,7 @@ namespace taxonomy {
  *
  * This is the non-const version of the function.
  */
-void preorder_for_each(
+inline void preorder_for_each(
     Taxonomy& tax,
     std::function< void( Taxon& )> fn,
     bool include_inner_taxa = true
@@ -81,7 +81,7 @@ void preorder_for_each(
  *
  * This is the const version of the function.
  */
-void preorder_for_each(
+inline void preorder_for_each(
     Taxonomy const& tax,
     std::function< void( Taxon const& )> fn,
     bool include_inner_taxa = true
@@ -203,7 +203,7 @@ private:
 
 template<typename TaxonomyType>
 utils::Range< IteratorPreorder< Taxonomy const, Taxon const >>
-preorder( TaxonomyType const& taxonomy )
+inline preorder( TaxonomyType const& taxonomy )
 {
     return {
         IteratorPreorder< Taxonomy const, Taxon const >( taxonomy ),
@@ -213,7 +213,7 @@ preorder( TaxonomyType const& taxonomy )
 
 template<typename TaxonomyType>
 utils::Range< IteratorPreorder< Taxonomy, Taxon >>
-preorder( TaxonomyType& taxonomy )
+inline preorder( TaxonomyType& taxonomy )
 {
     return {
         IteratorPreorder< Taxonomy, Taxon >( taxonomy ),

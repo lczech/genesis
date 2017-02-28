@@ -246,7 +246,7 @@ private:
 //     Range Wrapper
 // =================================================================================================
 
-utils::Range< IteratorInsertions > iterate_insertions( TwobitVector const& vector )
+inline utils::Range< IteratorInsertions > iterate_insertions( TwobitVector const& vector )
 {
     return {
         IteratorInsertions( vector ),

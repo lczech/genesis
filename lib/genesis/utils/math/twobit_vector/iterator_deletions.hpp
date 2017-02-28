@@ -217,7 +217,7 @@ private:
 //     Range Wrapper
 // =================================================================================================
 
-utils::Range< IteratorDeletions > iterate_deletions( TwobitVector const& vector )
+inline utils::Range< IteratorDeletions > iterate_deletions( TwobitVector const& vector )
 {
     return {
         IteratorDeletions( vector ),
