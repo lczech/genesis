@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2016 Lucas Czech
+# Copyright (C) 2014-2017 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -83,6 +83,8 @@ class DoxygenReader:
                 param.name = p.find("declname").text
             if p.find("defval") is not None:
                 param.value = p.find("defval").text
+            if param.value is None:
+                param.value = ""
             func.params.append(param)
 
         func.briefdescription    = ''.join(member.find("briefdescription").itertext()).strip()
