@@ -145,9 +145,7 @@ include_directories (${PROJECT_SOURCE_DIR}/lib)
 # ------------------------------------------------------------------------------
 
 # Add the Pybind module, which is the equivalent of add_library(...).
-# We use 'SHARED', as it creates a shared object with the correct file extentsion,
-# while 'MODULE' lacks the extension. Shouldn't make much of a difference for the user.
-pybind11_add_module( genesis_python_module SHARED ${genesis_python_sources} )
+pybind11_add_module( genesis_python_module MODULE ${genesis_python_sources} )
 
 # Make sure that all Pybind things are processed before.
 add_dependencies( genesis_python_module pybind11 )
@@ -162,7 +160,7 @@ target_link_libraries (genesis_python_module genesis_lib_shared)
 # (that is, no leading "lib", but don't change automatic suffix for shared libraries, e.g., ".so").
 set_target_properties (genesis_python_module PROPERTIES OUTPUT_NAME genesis)
 set_target_properties (genesis_python_module PROPERTIES PREFIX "")
-# set_target_properties (genesis_python_module PROPERTIES SUFFIX "${PYTHON_MODULE_EXTENSION}")
+set_target_properties (genesis_python_module PROPERTIES SUFFIX "${PYTHON_MODULE_EXTENSION}")
 
 # add_custom_command (OUTPUT python_init COMMAND
 #     touch ${PROJECT_SOURCE_DIR}/bin/python/__init__.py
