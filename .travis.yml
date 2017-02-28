@@ -53,4 +53,6 @@ script:
   - cd build
   - cmake -DCMAKE_CXX_COMPILER=$COMPILER ..
   - make
+  - cd ..
   - ./bin/test/genesis_tests
+  - cat /home/travis/build.sh
