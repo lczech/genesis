@@ -32,12 +32,18 @@
  */
 
 #include <pybind11/pybind11.h>
+#include <pybind11/cast.h>
+#include <pybind11/operators.h>
+#include <pybind11/stl.h>
 
+#include <cassert>
 #include <map>
 #include <memory>
 #include <string>
 #include <utility>
 #include <vector>
+
+#include <iostream>
 
 // =================================================================================================
 //     Module "genesis" Definitions
@@ -62,53 +68,43 @@ const char* get_docstring (const std::string& signature);
 //     Export Macros
 // =================================================================================================
 
+// Helper to concat __LINE__ with other stuff
+#define CONCAT( a, b ) a ## b
+#define TOKENIZE( a, b ) CONCAT( a, b )
+
 /**
- * @brief Scoped class export macro.
+ * @brief Class export macro.
  *
- * The class registration is performed by calling PythonExport::registerClassInitializer. In order
- * to call this when the program is started, we initiate a static object of type
- * RegisterPythonExportClass<classname> with name PythonClassExporterInstance##Classname; the
+ * The class registration is performed by calling RegisterPythonExportClass::register_class_initializer.
+ * In order to call this when the program is started, we initiate a static object of type
+ * RegisterPythonExportClass<classname> with name PythonClassExporterInstance##FULL_NAME; the
  * constructor calls (with an intermediate step) the function PythonExportWrapper<T>().
  * The body of the PYTHON_EXPORT_CLASS(classname) { .. } macro is the body of
  * PythonExportWrapper<classname>.
  */
-#define PYTHON_EXPORT_SCOPED_CLASS(Classname, Scope, ...)                                   \
+#define PYTHON_EXPORT_CLASS( FULL_NAME, OUT_SCOPE )                                   \
     namespace {                                                                             \
-        RegisterPythonExportClass<Classname> PythonClassExporterInstance##Classname(Scope); \
+        RegisterPythonExportClass<FULL_NAME> TOKENIZE( PythonClassExporterInstance, __LINE__ )( #FULL_NAME ); \
     }                                                                                       \
-    template<> inline void PythonExportWrapper<Classname>( pybind11::module& scope )
-
-/**
- * @brief Macro that takes a Classname and optionally a namespace to which this class shall be
- * exported.
- *
- * If no namespace is provided, the default (global) namespace is used. The zero in the end is a
- * dummy argument to give always at least this as a variadic parameter to the macro call.
- */
-#define PYTHON_EXPORT_CLASS(...) PYTHON_EXPORT_SCOPED_CLASS(__VA_ARGS__, "", 0)
+    template<> inline void PythonExportWrapper<FULL_NAME>( pybind11::module& OUT_SCOPE )
 
 /**
 * @brief Call this macro inside the initialization function to tell the system that
 * another class must be initialized previously (particularly, a base class)
 */
-#define PYTHON_REQUIRES_CLASS(Classname) \
-    RegisterPythonExportClass<Classname>::PythonExportWrapperDelegator( pybind11::module& scope );
-
-/**
- * @brief Scoped function export macro. Works the same as the scoped class export macro.
- */
-#define PYTHON_EXPORT_SCOPED_FUNCTIONS(Identifier, Scope, ...)                       \
-    class PythonFuncWrapperClass##Identifier;                                        \
-    namespace {                                                                      \
-        RegisterPythonExportFunction<PythonFuncWrapperClass##Identifier>             \
-            PythonFuncExporterInstance##Identifier(Scope);                           \
-    }                                                                                \
-    template<> inline void PythonExportWrapper<PythonFuncWrapperClass##Identifier>( pybind11::module& scope )
+#define PYTHON_REQUIRES_CLASS(FULL_NAME, OUT_SCOPE) \
+    RegisterPythonExportClass<FULL_NAME>::PythonExportWrapperDelegator( pybind11::module& OUT_SCOPE );
 
 /**
  * @brief Function export macro. Works the same as the class export macro.
  */
-#define PYTHON_EXPORT_FUNCTIONS(...) PYTHON_EXPORT_SCOPED_FUNCTIONS(__VA_ARGS__, "", 0)
+#define PYTHON_EXPORT_FUNCTIONS( IDENTIFIER, SCOPE, OUT_SCOPE )                       \
+    class PythonFuncWrapperClass##IDENTIFIER;                                        \
+    namespace {                                                                      \
+        RegisterPythonExportFunction<PythonFuncWrapperClass##IDENTIFIER>             \
+            PythonFuncExporterInstance##IDENTIFIER( #SCOPE );                           \
+    }                                                                                \
+    template<> inline void PythonExportWrapper<PythonFuncWrapperClass##IDENTIFIER>( pybind11::module& OUT_SCOPE )
 
 /**
  * @brief Template for export definition function.
@@ -148,14 +144,15 @@ public:
      * This function is called by the PYTHON_EXPORT_CLASS macro expansion.
      */
     void register_class_initializer(const std::string& ns, void (*func)( pybind11::module& )) {
-        class_initializers.push_back(std::make_pair(ns, func));
+        auto parent_scope = split_last_scope_name(ns).first;
+        class_initializers.push_back(std::make_pair( parent_scope, func ));
     }
 
     /**
      * @brief Register a Python free function initialization function.
      */
     void register_func_initializer(const std::string& ns, void (*func)( pybind11::module& )) {
-        func_initializers.push_back(std::make_pair(ns, func));
+        func_initializers.push_back(std::make_pair( ns, func ));
     }
 
     /**
@@ -168,7 +165,7 @@ public:
         for (auto it = class_initializers.begin(); it != class_initializers.end(); ++it) {
             // Set the current scope to the new sub-module. As long as this variable lives (which is
             // for the body of this loop only), all new exports go into that scope.
-            auto& current_scope = get_scope(MODULE_NAME + "." + (*it).first);
+            auto& current_scope = get_scope( (*it).first );
 
             // Export into the namespace.
             (*it).second( current_scope );
@@ -177,11 +174,11 @@ public:
         // Export all functions. Comes after the classes, to make sure that all necessary types
         // are known to the functions.
         for (auto it = func_initializers.begin(); it != func_initializers.end(); ++it) {
-            auto& current_scope = get_scope(MODULE_NAME + "." + (*it).first);
+            auto& current_scope = get_scope( (*it).first );
             (*it).second( current_scope );
         }
 
-        return get_scope( MODULE_NAME );
+        return get_scope( "::" + MODULE_NAME );
     }
 
 private:
@@ -189,9 +186,33 @@ private:
      * @brief Private constructor, inits the scopes with the module namespace.
      */
     PythonExportHandler() {
-        scopes[MODULE_NAME] = std::make_shared<pybind11::module>(
+        scopes[ "::" + MODULE_NAME ] = std::make_shared<pybind11::module>(
             MODULE_NAME.c_str(), ("Bindings for " + MODULE_NAME + " namespace").c_str()
         );
+    }
+
+    std::pair<std::string, std::string> split_last_scope_name( std::string ns )
+    {
+        // Check some border cases.
+        if( ns == "" || ns == MODULE_NAME ) {
+            ns = "::" + MODULE_NAME;
+        }
+        assert( ! ns.empty() );
+
+        // Always use fully-qualified namespaces, starting with ::
+        if( ns[0] != ':' ) {
+            ns = "::" + ns;
+        }
+
+        // Split away the last sub-scope, so that we can add it to its parent scope.
+        auto pos = ns.find_last_of( ":" );
+        if( pos == std::string::npos || pos == ns.length() - 1 || pos == 0 || ns[pos-1] != ':' ) {
+            throw std::runtime_error( "Invalid scope: '" + ns + "'." );
+        }
+        std::string parent_ns = ns.substr(0, pos-1);
+        std::string child_ns  = ns.substr(pos+1, ns.length());
+
+        return { parent_ns, child_ns };
     }
 
     /**
@@ -203,36 +224,22 @@ private:
      */
     pybind11::module& get_scope( std::string ns )
     {
-        // Check some border cases.
-        if( ns == "" || ns == MODULE_NAME || ns == MODULE_NAME + ".") {
-            ns = MODULE_NAME;
-        }
-
         // If we already constructed the scope object, return it.
         if( scopes.count(ns) > 0 ) {
             return *scopes[ns];
         }
 
-        // Split away the last sub-scope, so that we can add it to its parent scope.
-        size_t pos = ns.find_last_of(".");
-        std::string parent_ns = ns.substr(0, pos);
-        std::string child_ns  = ns.substr(pos+1, ns.length());
+        // Get the partent and chile scope.
+        auto pc_scopes = split_last_scope_name(ns);
 
         // Get the parent scope (recursively, might also create it if neccessary) and set it as the
         // current scope. The child scope that we are about to create will thus be added to it.
-        pybind11::module& parent_scope = get_scope(parent_ns);
-
-        // Create the sub scope into its parent.
-        // The following two lines will make both ways for importing work:
-        //     * "from genesis.ns import <whatever>"
-        //     * "from genesis import ns"
-        // pybind11::object py_module (pybind11::handle<>(pybind11::borrowed(PyImport_AddModule(ns.c_str()))));
-        // parent_scope.attr(child_ns.c_str()) = py_module;
+        pybind11::module& parent_scope = get_scope(pc_scopes.first);
 
         // Add the new scope to the map and return it.
         scopes[ns] = std::make_shared<pybind11::module>(
             parent_scope.def_submodule(
-                child_ns.c_str(), ("Bindings for " + ns + " namespace").c_str()
+                pc_scopes.second.c_str(), ("Bindings for " + ns + " namespace").c_str()
             )
         );
         return *scopes[ns];
@@ -260,6 +267,10 @@ private:
     std::map< std::string, std::shared_ptr<pybind11::module> > scopes;
 };
 
+// =================================================================================================
+//     Python Export Registry Classes
+// =================================================================================================
+
 /**
  * @brief Helper class which is instantiated in order to register a Python class export function.
  *
@@ -267,7 +278,7 @@ private:
  *
  * Rules (for experts only):
  * Call RegisterPythonExportClass<Classname>() to register class Classname for export.
- * The export specification is given in the global function PythonExportWrapper<Setname>.
+ * The export specification is given in the global function PythonExportWrapper<T>.
  * That function is free to also export subclasses etc.
  */
 template<typename T>

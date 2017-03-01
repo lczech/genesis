@@ -31,15 +31,18 @@
 #include <src/common.hpp>
 #include <pybind11/pybind11.h>
 
+#include <functional>
 #include <map>
 #include <memory>
 #include <stdexcept>
-#include <functional>
+#include <string>
 
 // =================================================================================================
 //     Pybind11 Python Module
 // =================================================================================================
 
+//*
+#if 0
 
 typedef std::function< pybind11::module & (std::string const &) > ModuleGetter;
 
@@ -59,10 +62,9 @@ void bind_genesis_tree_tree(std::function< pybind11::module &(std::string const 
 //     return m.ptr();
 // }
 
-//*
-#if 0
 PYBIND11_PLUGIN(genesis) {
     std::map <std::string, std::shared_ptr<pybind11::module> > modules;
+
     ModuleGetter M = [&](std::string const &namespace_) -> pybind11::module & {
         auto it = modules.find(namespace_);
         if( it == modules.end() ) throw std::runtime_error("Attempt to access pybind11::module for namespace " + namespace_ + " before it was created!!!");
@@ -99,6 +101,18 @@ PYBIND11_PLUGIN(genesis) {
 
 PYBIND11_PLUGIN(genesis)
 {
+    // std::map <std::string, std::shared_ptr<pybind11::module> > modules;
+    //
+    // get_module module_getter = [&]( std::string const& scope ){
+    //     auto it = modules.find( scope );
+    //     if( it == modules.end() ) {
+    //         throw std::runtime_error(
+    //             "Cannot access pybind11::module for namespace " + scope + " before it was created."
+    //         );
+    //     }
+    //     return *it->second;
+    // };
+
     // Show genesis docstrings, python signature, but not c++ signature.
     // bp::docstring_options doc_options(true, true, false);
 
@@ -106,6 +120,6 @@ PYBIND11_PLUGIN(genesis)
     // bp::object package = bp::scope();
     // package.attr("__path__") = MODULE_NAME;
 
-    // Call all export functions.
+    // Call all export functions and return the module.
     return PythonExportHandler::instance().init_python().ptr();
 }
