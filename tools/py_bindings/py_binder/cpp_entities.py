@@ -1,7 +1,7 @@
 #!/usr/bin/python
 
 # Genesis - A toolkit for working with phylogenetic data.
-# Copyright (C) 2014-2016 Lucas Czech
+# Copyright (C) 2014-2017 Lucas Czech
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -313,6 +313,39 @@ class CppNamespace:
             self.classes[clss].extract_iterators(named)
         for ns in self.namespaces:
             self.namespaces[ns].extract_iterators(named)
+
+    def extract_ostream_operators( self ):
+        func_names = [func for func in self.functions]
+        for funcn in func_names:
+            func = self.functions[funcn]
+
+            # only extract operator <<
+            if not func.name.startswith("operator"):
+                continue
+            symbol = func.name[len("operator"):].strip()
+            if not symbol == "<<":
+                continue
+            if not len( func.params ) == 2 or "ostream" not in func.params[0].type:
+                continue
+
+            # remove const & from class name
+            clsname = func.params[1].type
+            clsname = ' '.join([
+                word for word in clsname.split() if word.lower() not in ['const','&']
+            ]).strip()
+
+            # add the operator to the class
+            for clss in self.classes:
+                if not self.classes[clss].name.strip() == clsname:
+                    continue
+                self.classes[clss].add_function(func)
+
+            # delete the function from the namespace
+            # self.functions[:] = [ f for f in self.functions if self.functions[f].name is not func.name ]
+            del self.functions[funcn]
+
+        for ns in self.namespaces:
+            self.namespaces[ns].extract_ostream_operators()
 
     def get_file_locations (self):
         locations = []

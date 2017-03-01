@@ -68,7 +68,7 @@ option (BUILD_SHARED_LIB    "Build shared library" ON)
 option (BUILD_STATIC_LIB    "Build static library" OFF)
 
 option (BUILD_APPLICATIONS  "Build applications"   ON)
-option (BUILD_PYTHON_MODULE "Build python module"  OFF)
+option (BUILD_PYTHON_MODULE "Build python module"  ON)
 option (BUILD_TESTS         "Build test suites"    OFF)
 
 option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)

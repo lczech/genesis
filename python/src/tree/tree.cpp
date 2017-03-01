@@ -1,73 +1,55 @@
-#include <utility>
-#include <genesis/tree/function/operators.hpp>
-#include <genesis/tree/tree.hpp>
-#include <genesis/tree/tree/edge.hpp>
-#include <genesis/tree/tree/edge_data.hpp>
-#include <genesis/tree/tree/link.hpp>
-#include <genesis/tree/tree/node.hpp>
-#include <genesis/tree/tree/node_data.hpp>
-#include <genesis/utils/core/range.hpp>
-#include <initializer_list>
-#include <ios>
-#include <iterator>
-#include <locale>
-#include <memory>
-#include <ostream>
-#include <sstream> // __str__
-#include <streambuf>
-#include <string>
-#include <vector>
+/**
+ * @brief
+ *
+ * @file
+ * @ingroup python
+ */
 
 #include <src/common.hpp>
 
-// #include <pybind11/pybind11.h>
-//
-// #ifndef BINDER_PYBIND11_TYPE_CASTER
-// 	#define BINDER_PYBIND11_TYPE_CASTER
-// 	PYBIND11_DECLARE_HOLDER_TYPE(T, std::shared_ptr<T>);
-// 	PYBIND11_DECLARE_HOLDER_TYPE(T, T*);
-// #endif
+#include "genesis/genesis.hpp"
 
-void bind_genesis_tree_tree(std::function< pybind11::module &(std::string const &namespace_) > &M)
+using namespace ::genesis::tree;
+
+PYTHON_EXPORT_CLASS( ::genesis::tree::Tree, scope )
 {
-	{ // genesis::tree::Tree file:genesis/tree/tree.hpp line:88
-        using namespace ::genesis::tree;
-        using namespace ::genesis;
 
-		pybind11::class_<genesis::tree::Tree, std::shared_ptr<genesis::tree::Tree>> cl(M("genesis::tree"), "Tree", "Class for representing phylogenetic trees.");
+    // -------------------------------------------------------------------
+    //     Class Tree
+    // -------------------------------------------------------------------
 
-        cl
-        // .def( pybind11::init< Tree const & >(( pybind11::arg("other") )) )
-        .def(pybind11::init<>())
+    pybind11::class_< ::genesis::tree::Tree, std::shared_ptr<::genesis::tree::Tree> > ( scope, "Tree" )
+        .def(
+            pybind11::init<  >()
+        )
+        .def(
+            pybind11::init< Tree const & >(),
+            pybind11::arg("other")
+        )
 
         // Public Member Functions
 
         .def(
             "clear",
-            ( void ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::clear ),
-            get_docstring("void ::genesis::tree::Tree::clear ()")
+            ( void ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::clear )
         )
         .def(
             "clone_topology",
-            ( Tree ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::clone_topology ),
-            get_docstring("Tree ::genesis::tree::Tree::clone_topology () const")
+            ( Tree ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::clone_topology )
         )
         .def(
             "edge_at",
             ( TreeEdge & ( ::genesis::tree::Tree::* )( size_t ))( &::genesis::tree::Tree::edge_at ),
-            ( pybind11::arg("index") ),
-            get_docstring("TreeEdge & ::genesis::tree::Tree::edge_at (size_t index)")
+            pybind11::arg("index")
         )
         .def(
             "edge_at",
             ( TreeEdge const & ( ::genesis::tree::Tree::* )( size_t ) const )( &::genesis::tree::Tree::edge_at ),
-            ( pybind11::arg("index") ),
-            get_docstring("TreeEdge const & ::genesis::tree::Tree::edge_at (size_t index) const")
+            pybind11::arg("index")
         )
         .def(
             "edge_count",
-            ( size_t ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::edge_count ),
-            get_docstring("size_t ::genesis::tree::Tree::edge_count () const")
+            ( size_t ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::edge_count )
         )
         // .def(
         //     "edges",
@@ -79,10 +61,118 @@ void bind_genesis_tree_tree(std::function< pybind11::module &(std::string const 
         // )
         .def(
             "empty",
-            ( bool ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::empty ),
-            get_docstring("bool ::genesis::tree::Tree::empty () const")
-        );
+            ( bool ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::empty )
+        )
+        // .def(
+        //     "expose_edge_container",
+        //     ( EdgeContainerType & ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::expose_edge_container )
+        // )
+        // .def(
+        //     "expose_link_container",
+        //     ( LinkContainerType & ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::expose_link_container )
+        // )
+        // .def(
+        //     "expose_node_container",
+        //     ( NodeContainerType & ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::expose_node_container )
+        // )
+        .def(
+            "link_at",
+            ( TreeLink & ( ::genesis::tree::Tree::* )( size_t ))( &::genesis::tree::Tree::link_at ),
+            pybind11::arg("index")
+        )
+        .def(
+            "link_at",
+            ( TreeLink const & ( ::genesis::tree::Tree::* )( size_t ) const )( &::genesis::tree::Tree::link_at ),
+            pybind11::arg("index")
+        )
+        .def(
+            "link_count",
+            ( size_t ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::link_count )
+        )
+        // .def(
+        //     "links",
+        //     ( utils::Range< ConstIteratorLinks > ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::links )
+        // )
+        // .def(
+        //     "links",
+        //     ( utils::Range< IteratorLinks > ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::links )
+        // )
+        .def(
+            "node_at",
+            ( TreeNode & ( ::genesis::tree::Tree::* )( size_t ))( &::genesis::tree::Tree::node_at ),
+            pybind11::arg("index")
+        )
+        .def(
+            "node_at",
+            ( TreeNode const & ( ::genesis::tree::Tree::* )( size_t ) const )( &::genesis::tree::Tree::node_at ),
+            pybind11::arg("index")
+        )
+        .def(
+            "node_count",
+            ( size_t ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::node_count )
+        )
+        // .def(
+        //     "nodes",
+        //     ( utils::Range< ConstIteratorNodes > ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::nodes )
+        // )
+        // .def(
+        //     "nodes",
+        //     ( utils::Range< IteratorNodes > ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::nodes )
+        // )
+        .def(
+            "reset_root_link_index",
+            ( Tree & ( ::genesis::tree::Tree::* )( size_t ))( &::genesis::tree::Tree::reset_root_link_index ),
+            pybind11::arg("val")
+        )
+        .def(
+            "root_link",
+            ( TreeLink & ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::root_link )
+        )
+        .def(
+            "root_link",
+            ( TreeLink const & ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::root_link )
+        )
+        .def(
+            "root_node",
+            ( TreeNode & ( ::genesis::tree::Tree::* )(  ))( &::genesis::tree::Tree::root_node )
+        )
+        .def(
+            "root_node",
+            ( TreeNode const & ( ::genesis::tree::Tree::* )(  ) const )( &::genesis::tree::Tree::root_node )
+        )
+        .def(
+            "swap",
+            ( void ( ::genesis::tree::Tree::* )( Tree & ))( &::genesis::tree::Tree::swap ),
+            pybind11::arg("other")
+        )
 
-		cl.def("__str__", [](genesis::tree::Tree const &o) -> std::string { std::ostringstream s; s << o; return s.str(); } );
-	}
+        // Operators
+
+        .def(
+            "__str__",
+            []( ::genesis::tree::Tree const& obj ) -> std::string {
+                std::ostringstream s;
+                s << obj;
+                return s.str();
+            }
+        )
+
+        // Iterators
+
+        // .def(
+        //     "edges",
+        //     []( ::genesis::tree::Tree& obj ){
+        //         return pybind11::make_iterator( obj.begin_edges(), obj.end_edges() );            }
+        // )
+        // .def(
+        //     "links",
+        //     []( ::genesis::tree::Tree& obj ){
+        //         return pybind11::make_iterator( obj.begin_links(), obj.end_links() );            }
+        // )
+        // .def(
+        //     "nodes",
+        //     []( ::genesis::tree::Tree& obj ){
+        //         return pybind11::make_iterator( obj.begin_nodes(), obj.end_nodes() );            }
+        // )
+    ;
 }
