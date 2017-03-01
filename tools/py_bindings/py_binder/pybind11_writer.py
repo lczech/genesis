@@ -78,7 +78,7 @@ class Pybind11Writer:
 
     @staticmethod
     def generate_function_body (func, py_name = ""):
-        val  = "    m.def(\n"
+        val  = "    scope.def(\n"
         val += "        \"" + (func.name if py_name == "" else py_name) + "\",\n"
         val += "        ( " + func.type + " ( * )( "
         val += ", ".join(
@@ -88,20 +88,19 @@ class Pybind11Writer:
         )
         val += " )"
         val += ")( &" + func.cpp_full_name() + " )"
+
         if len(func.params) > 0:
-            val += ",\n        ( " + ", ".join (
-                (
-                    "pybind11::arg(\"" + param.name + "\")" + (
-                        "" if param.value == "" else
-                        "=(" + param.type + ")(" + param.value + ")"
-                    )
-                ) for param in func.params
-            ) + " )"
+            for param in func.params:
+                val += ",\n            "
+                val += "pybind11::arg(\"" + param.name + "\")" + (
+                    "" if param.value == "" else
+                    "=(" + param.type + ")(" + param.value + ")"
+                )
+
         # if func.type.strip().endswith("*") or func.type.strip().endswith("&"):
         #     val += ",\n        boost::python::return_value_policy<boost::python::reference_existing_object>()"
         if func.briefdescription != "":
-            # val += ",\n            \"" + func.briefdescription + "\"\n"
-            val += ",\n        get_docstring(\"" + func.cpp_signature() + "\")\n"
+            val += ",\n        get_docstring(\"" + CppEscapeString( func.cpp_signature() ) + "\")\n"
         else:
             val += "\n"
         val += "    );\n"
@@ -112,35 +111,7 @@ class Pybind11Writer:
     # ----------------------------------------------------------------
 
     @staticmethod
-    def generate_class_constructor (ctor):
-        val  = "pybind11::init< "
-        val += ", ".join (
-                (
-                    param.type if param.value == "" else
-                    "pybind11::optional< " + param.type + " >"
-                ) for param in ctor.params
-            )
-        val += " >("
-        val += "( " if len(ctor.params) > 0 else " "
-        val += ", ".join (
-            (
-                "pybind11::arg(\"" + param.name + "\")" + (
-                    "" if param.value == None or param.value == "" else
-                    "=(" + param.type + ")(" + param.value + ")"
-                )
-            ) for param in ctor.params
-        )
-        val += " )"
-        val += ")" if len(ctor.params) > 0 else ""
-        return val
-
-    @staticmethod
     def generate_class_header (clss):
-        if len(clss.ctors) > 0:
-            ctor_val  = ", " + Pybind11Writer.generate_class_constructor(clss.ctors[0])
-        else:
-            ctor_val  = ""
-
         if clss.template_params is None:
             ctype = clss.cpp_full_name()
             name  = "\"" + clss.name + "\""
@@ -148,17 +119,30 @@ class Pybind11Writer:
             ctype = clss.name + "Type"
             name  = "name.c_str()"
 
-        val  = "    pybind11::class_< " + ctype + " > "
-        val += "( " + name + ctor_val + " )\n"
-        if len(clss.ctors) > 1:
-            for i in range(1, len(clss.ctors)):
+        val  = "    pybind11::class_< " + ctype + ", std::shared_ptr<" + ctype + "> > "
+        val += "( scope, " + name + " )\n"
+
+        if len(clss.ctors) > 0:
+            for ctor in clss.ctors:
                 # Skip move constructor
-                if len(clss.ctors[i].params) == 1 and clss.ctors[i].params[0].type == clss.name + " &&":
+                if len(ctor.params) == 1 and ctor.params[0].type == clss.name + " &&":
                     continue
 
-                val += "        .def( "
-                val += Pybind11Writer.generate_class_constructor(clss.ctors[i])
-                val += " )\n"
+                val += "        .def(\n"
+                val += "            pybind11::init< "
+                val += ", ".join ( param.type for param in ctor.params )
+                val += " >()"
+                for param in ctor.params:
+                    val += ",\n            "
+                    val += "pybind11::arg(\"" + ( param.name if param.name != "" else "arg" ) + "\")" + (
+                        "" if param.value == "" else
+                        "=(" + param.type + ")(" + param.value + ")"
+                    )
+                if ctor.briefdescription != "":
+                    val += ",\n            get_docstring(\"" + CppEscapeString( ctor.cpp_signature() ) + "\")\n"
+                else:
+                    val += "\n"
+                val += "        )\n"
         return val
 
     # ----------------------------------------------------------------
@@ -172,7 +156,7 @@ class Pybind11Writer:
         if ctype is None:
             ctype = func.parent.cpp_full_name()
 
-        val  = "        .def(\n"
+        val  = "        .def" + ( "_static" if func.static else "" ) + "(\n"
         val += "            \"" + (func.name if py_name == None else py_name) + "\",\n"
         val += "            ( " + func.type + " ( "
         val += "*" if func.static else ctype + "::*"
@@ -186,29 +170,21 @@ class Pybind11Writer:
         val += " const " if func.const else ""
         val += ")( &" + ctype + "::" + func.name + " )"
         if len(func.params) > 0:
-            val += ",\n            ( " + ", ".join (
-                (
-                    "pybind11::arg(\"" + param.name + "\")" + (
-                        "" if param.value == "" else
-                        "=(" + param.type + ")(" + param.value + ")"
-                    )
-                ) for param in func.params
-            ) + " )"
+            for param in func.params:
+                val += ",\n            "
+                val += "pybind11::arg(\"" + param.name + "\")" + (
+                    "" if param.value == "" else
+                    "=(" + param.type + ")(" + param.value + ")"
+                )
+
         # if func.type.strip().endswith("*") or func.type.strip().endswith("&"):
         #     val += ",\n            boost::python::return_value_policy<boost::python::reference_existing_object>()"
         if func.briefdescription != "":
             # val += ",\n            \"" + func.briefdescription + "\"\n"
-            val += ",\n            get_docstring(\"" + func.cpp_signature() + "\")\n"
+            val += ",\n            get_docstring(\"" + CppEscapeString( func.cpp_signature() ) + "\")\n"
         else:
             val += "\n"
         val += "        )\n"
-
-        # TODO if there are overloaded static functions, the static delcarations needs to come
-        # after all of them! so maybe, add this to the end of the class definition instead.
-        if func.static:
-            val += "        .staticmethod(\""
-            val += func.name if py_name == None else py_name
-            val += "\")\n"
         return val
 
     @staticmethod
@@ -294,10 +270,10 @@ class Pybind11Writer:
                 pass
 
             elif op_class[1] in [ "inplace", "comparison" ]:
-                val += "        .def( boost::python::self " + op_class[0] + " boost::python::self )\n"
+                val += "        .def( pybind11::self " + op_class[0] + " pybind11::self )\n"
 
             elif op_class[1] == "unary":
-                val += "        .def( " + op_class[0] + "boost::python::self )\n"
+                val += "        .def( " + op_class[0] + "pybind11::self )\n"
 
             elif op_class[1] == "array":
                 val += Pybind11Writer.generate_class_function_body (operator, ctype=ctype, py_name="__getitem__")
@@ -306,7 +282,14 @@ class Pybind11Writer:
                 pass
 
             elif op_class[1] == "ostream":
-                val += "        .def( boost::python::self_ns::str( boost::python::self ) )\n"
+                val += "        .def(\n"
+                val += "            \"__str__\",\n"
+                val += "            []( " + clss.cpp_full_name() + " const& obj ) -> std::string {\n"
+                val += "                std::ostringstream s;\n"
+                val += "                s << obj;\n"
+                val += "                return s.str();\n"
+                val += "            }\n"
+                val += "        )\n"
 
             elif op_class[1] in [ "dereference", "crement", "assignment", "conversion" ]:
                 pass
@@ -338,14 +321,18 @@ class Pybind11Writer:
         # TODO add iterators with parameters
         val = "\n        // Iterators\n\n"
         for it in clss.iterators:
-            if it.name == "__iter__":
-                val += "        .def"
-            else:
-                val += "        .add_property"
-            val += "(\n            \"" + it.name + "\",\n            boost::python::range ( &"
-            val += ctype + "::" + it.begin + ", &"
-            val += ctype + "::" + it.end
-            val += " )\n        )\n"
+            val += "        .def(\n"
+            # if it.name == "__iter__":
+            #     val += "        .def(\n"
+            # else:
+            #     val += "        .add_property(\n"
+
+            val += "            \"" + it.name + "\",\n"
+            val += "            []( " + clss.cpp_full_name() + "& obj ){\n"
+            val += "                return pybind11::make_iterator( "
+            val += "obj." + it.begin + "(), obj." + it.end + "() );\n"
+            val += "            }\n"
+            val += "        )\n"
 
         return val
 
@@ -420,7 +407,7 @@ class Pybind11Writer:
                 else:
                     written_signatures.append( func.cpp_signature() )
 
-                f.write("    {\"" + func.cpp_signature() + "\", \"")
+                f.write("    {\"" + CppEscapeString( func.cpp_signature() ) + "\", \"")
                 if func.briefdescription != "":
                     f.write(CppEscapeString(func.briefdescription))
                 if func.briefdescription != "" and func.detaileddescription != "":
@@ -523,7 +510,7 @@ class Pybind11Writer:
             # Write free functions.
             if len(exp.function_strings) > 0:
                 identifier = os.path.splitext(filename)[0].replace("/", "_").replace(".", "_") + "_export"
-                f.write("\nPYTHON_EXPORT_FUNCTIONS(" + identifier + ", \"" + exp.scope + "\")\n{\n")
+                f.write("\nPYTHON_EXPORT_FUNCTIONS( " + identifier + ", " + exp.using + ", scope )\n{\n")
                 for func_str in exp.function_strings:
                     f.write ("\n")
                     # f.write ("void Pybind11Export_" + clss_name + "()\n{")
@@ -588,12 +575,12 @@ class Pybind11Writer:
                 export_files[clss_file].using = clss.parent.cpp_full_name()
 
                 # clss_str  = "using namespace " + clss.parent.cpp_full_name() + ";\n\n"
-                clss_str  = "PYTHON_EXPORT_CLASS (" + clss.name + ", \"" + scope + "\")\n{\n"
+                clss_str  = "PYTHON_EXPORT_CLASS( " + clss.cpp_full_name() + ", scope )\n{\n"
                 clss_str += Pybind11Writer.generate_class(clss)
                 clss_str += "}\n"
             else:
                 clss_str  = "template <" + ", ".join(clss.template_params) + ">\n"
-                clss_str += "void PythonExportClass_" + clss.name + "(std::string name)\n{\n"
+                clss_str += "void PythonExportClass_" + clss.cpp_full_name() + "(std::string name)\n{\n"
                 clss_str += Pybind11Writer.generate_class(clss)
                 clss_str += "}\n"
 

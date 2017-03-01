@@ -68,6 +68,7 @@ if __name__ == "__main__":
 
     # Modify according to needs
     ns_global.extract_iterators(True)
+    ns_global.extract_ostream_operators()
     ns_global.shorten_location_prefix()
 
     # Debug output
