@@ -55,4 +55,3 @@ script:
   - make
   - cd ..
   - ./bin/test/genesis_tests
-  - cat /home/travis/build.sh
