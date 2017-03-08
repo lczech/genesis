@@ -23,18 +23,19 @@
 #   Setup Python
 # ------------------------------------------------------------------------------
 
-# All this is done by Pybind11 already. We keep it here for reference, it case it is needed later.
+# Check for Python libs. Pybind does not check for the python dev packages, so we need to do this.
+message (STATUS "Looking for PythonLibs")
+find_package (PythonLibs 2.7)
 
-# message (STATUS "Looking for PythonLibs")
-# find_package (PythonLibs 2.7)
-#
-# if( NOT PYTHONLIBS_FOUND )
-#     message (STATUS "PythonLibs not found")
-#     message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
-#     return()
-# endif()
-#
-# message (STATUS "Found PythonLibs: ${PYTHONLIBS_VERSION_STRING}")
+if( NOT PYTHONLIBS_FOUND )
+    message (STATUS "PythonLibs not found")
+    message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
+    message (STATUS "${ColorYellow}Try installing the 'python-dev' or 'python2.7-dev' packages "
+    "first.${ColorEnd}")
+    return()
+endif()
+
+message (STATUS "Found PythonLibs: ${PYTHONLIBS_VERSION_STRING}")
 
 # ------------------------------------------------------------------------------
 #   Setup Pybind11

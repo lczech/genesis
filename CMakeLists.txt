@@ -34,10 +34,12 @@ set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
 if (NOT WIN32)
     # Fun with colors!
     string(ASCII 27 Esc)
-    set(ColorRed   "${Esc}[31m")
-    set(ColorGreen "${Esc}[32m")
-    set(ColorBlue  "${Esc}[34m")
-    set(ColorEnd   "${Esc}[0m")
+
+    set(ColorBlue   "${Esc}[34m") # Build information.
+    set(ColorGreen  "${Esc}[32m") # Optional additions.
+    set(ColorYellow "${Esc}[33m") # Tipps for the user.
+    set(ColorRed    "${Esc}[31m") # Warnings and Errors.
+    set(ColorEnd    "${Esc}[0m")
 endif()
 
 # --------------------------------------------------------------------------------------------------
@@ -55,7 +57,7 @@ TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
 if( IS_BIG_ENDIAN )
     message(
         STATUS
-        "${ColorRed}Your system uses big endian memory, which is rare. Genesis is not tested "
+        "${ColorYellow}Your system uses big endian memory, which is rare. Genesis is not tested "
         "with such systems. There might be bugs because of this!${ColorEnd}"
     )
 endif()
@@ -185,7 +187,8 @@ elseif(
 )
     # Special warning for users that have a Clang version that supports OpenMP, but where
     # the find module still did not succeed.
-    message (STATUS "${ColorRed}You are trying to compile with Clang and OpenMp. "
+    message (STATUS "OpenMP not found")
+    message (STATUS "${ColorYellow}You are trying to compile with Clang and OpenMp. "
     "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
 elseif(USE_OPENMP)
     message (STATUS "OpenMP not found")
