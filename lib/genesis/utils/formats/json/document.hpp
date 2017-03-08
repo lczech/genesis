@@ -762,12 +762,12 @@ public:
      * Finds an element in a JSON object with key equivalent to @a key. If the element is not found
      * or the JSON value is not an object, end() is returned.
      */
-    iterator find( typename ObjectType::key_type key );
+    iterator find( typename JsonDocument::ObjectType::key_type key );
 
     /**
-     * @copydoc find(typename ObjectType::key_type)
+     * @copydoc find(typename JsonDocument::ObjectType::key_type)
      */
-    const_iterator find(typename ObjectType::key_type key) const;
+    const_iterator find(typename JsonDocument::ObjectType::key_type key) const;
 
     /**
      * @brief Return the number of occurrences of a key in a JSON object.
@@ -960,7 +960,7 @@ public:
      *    operator.
      *  * Integer and floating-point numbers are automatically converted before comparison
      *  * In case @a lhs and @a rhs have different types, the values are ignored and the order of
-     *    the types is considered, see @ref operator<(const ValueType, const ValueType).
+     *    the types is considered, see @ref operator<(const JsonDocument::ValueType, const JsonDocument::ValueType).
      * %
      */
     friend bool operator<(const_reference lhs, const_reference rhs) noexcept;

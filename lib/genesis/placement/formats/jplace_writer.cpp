@@ -174,7 +174,7 @@ void JplaceWriter::to_stream( Sample const& sample, std::ostream& os ) const
  *
  * If the file cannot be written to, the function throws an exception. Also, by default, if the file
  * already exists, an exception is thrown.
- * See @link Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
+ * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
  * change this behaviour.
  */
 void JplaceWriter::to_file( Sample const& sample, std::string const& filename ) const
