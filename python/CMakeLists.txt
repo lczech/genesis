@@ -151,7 +151,7 @@ pybind11_add_module( genesis_python_module MODULE ${genesis_python_sources} )
 add_dependencies( genesis_python_module pybind11 )
 
 # Link against our library.
-target_link_libraries (genesis_python_module genesis_lib_shared)
+target_link_libraries (genesis_python_module PRIVATE genesis_lib_shared)
 
 # No need to do this manually, Pybind takes care of this. Keep it for reference.
 # target_link_libraries (genesis_python_module ${PYTHON_LIBRARIES})
@@ -167,5 +167,5 @@ set_target_properties (genesis_python_module PROPERTIES SUFFIX "${PYTHON_MODULE_
 # )
 
 if(THREADS_FOUND)
-    target_link_libraries (genesis_python_module ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries (genesis_python_module PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 endif()
