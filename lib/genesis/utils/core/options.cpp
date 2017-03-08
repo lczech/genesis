@@ -34,6 +34,13 @@
 
 #include <chrono>
 #include <cstdint>
+#include <cstdio>
+
+#if defined( _WIN32 ) || defined(  _WIN64  )
+#   include <io.h>
+#else
+#   include <unistd.h>
+#endif
 
 #ifdef GENESIS_OPENMP
 #   include <omp.h>
@@ -140,6 +147,38 @@ void Options::random_seed(const unsigned seed)
 {
     random_seed_ = seed;
     random_engine_.seed( seed );
+}
+
+// =================================================================================================
+//     Run Time Environment
+// =================================================================================================
+
+bool Options::stdin_is_terminal() const
+{
+    // Using http://stackoverflow.com/a/1312957/4184258
+    #if defined( _WIN32 ) || defined(  _WIN64  )
+        return _isatty( _fileno( stdin ));
+    #else
+        return isatty( fileno( stdin ));
+    #endif
+}
+
+bool Options::stdout_is_terminal() const
+{
+    #if defined( _WIN32 ) || defined(  _WIN64  )
+        return _isatty( _fileno( stdout ));
+    #else
+        return isatty( fileno( stdout ));
+    #endif
+}
+
+bool Options::stderr_is_terminal() const
+{
+    #if defined( _WIN32 ) || defined(  _WIN64  )
+        return _isatty( _fileno( stderr ));
+    #else
+        return isatty( fileno( stderr ));
+    #endif
 }
 
 // =================================================================================================

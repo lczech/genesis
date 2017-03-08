@@ -154,6 +154,28 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Run Time Environment
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return true iff the standard input stream is a terminal, and false if not, i.e., if
+     * it is a file or a pipe.
+     */
+    bool stdin_is_terminal() const;
+
+    /**
+     * @brief Return true iff the standard output stream is a terminal, and false if not, i.e., if
+     * it is a file or a pipe.
+     */
+    bool stdout_is_terminal() const;
+
+    /**
+     * @brief Return true iff the standard error stream is a terminal, and false if not, i.e., if
+     * it is a file or a pipe.
+     */
+    bool stderr_is_terminal() const;
+
+    // -------------------------------------------------------------------------
     //     Compile Time Environment
     // -------------------------------------------------------------------------
 
