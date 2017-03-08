@@ -39,6 +39,7 @@
 #include "genesis/utils/formats/json/document.hpp"
 #include "genesis/utils/formats/json/iterator.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/io/output_stream.hpp"
 
 namespace genesis {
 namespace utils {
@@ -54,15 +55,9 @@ void JsonWriter::to_stream( JsonDocument const& document, std::ostream& out ) co
 
 void JsonWriter::to_file( JsonDocument const& document, std::string const& filename ) const
 {
-    if( utils::file_exists(filename) ) {
-        throw std::runtime_error( "Json file '" + filename + "' already exist." );
-    }
-
-    std::ofstream fstr( filename );
-    if( !fstr ) {
-        throw std::runtime_error( "Cannot write Json file '" + filename + "'." );
-    }
-    print_value( document, fstr );
+    std::ofstream ofs;
+    utils::file_output_stream( filename, ofs );
+    print_value( document, ofs );
 }
 
 void JsonWriter::to_string( JsonDocument const& document, std::string& output ) const

@@ -40,6 +40,7 @@
 #    include <mutex>
 #endif
 
+#include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/tools/date_time.hpp"
 
@@ -150,17 +151,15 @@ void Logging::log_to_stream (std::ostream& os)
  *
  * This creates a stream to the file.
  */
-void Logging::log_to_file (const std::string& fn)
+void Logging::log_to_file( std::string const& filename )
 {
     // TODO the log file stream is never deleted. this is not a big leak,
     // as commonly only one file is used for logging, but still is a smell.
-    std::ofstream* file = new std::ofstream();
-    file->open (fn, std::ios::out | std::ios::app);
-    if (file->is_open()) {
-        ostreams_.push_back (file);
-    } else {
-        throw std::runtime_error( "Cannot open logging file " + fn );
-    }
+    // use uniqute stored statically in the log class instead!
+
+    std::ofstream* file_stream = new std::ofstream();
+    utils::file_output_stream( filename, *file_stream );
+    ostreams_.push_back( file_stream );
 }
 
 // =============================================================================

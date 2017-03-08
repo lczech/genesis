@@ -32,6 +32,7 @@
 
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/formats/nexus/document.hpp"
+#include "genesis/utils/io/output_stream.hpp"
 
 #include <stdexcept>
 #include <fstream>
@@ -58,16 +59,9 @@ void NexusWriter::to_stream( NexusDocument const& doc, std::ostream& out ) const
 
 void NexusWriter::to_file( NexusDocument const& doc, std::string const& filename) const
 {
-    if( utils::file_exists(filename) ) {
-        throw std::runtime_error( "Nexus file '" + filename + "' already exists." );
-    }
-
-    std::ofstream fstr( filename );
-    if( !fstr ) {
-        throw std::runtime_error( "Cannot write Nexus file '" + filename + "'." );
-    }
-    to_stream( doc, fstr );
-    fstr.close();
+    std::ofstream ofs;
+    utils::file_output_stream( filename, ofs );
+    to_stream( doc, ofs );
 }
 
 void NexusWriter::to_string( NexusDocument const& doc, std::string& output) const

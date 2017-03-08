@@ -31,6 +31,8 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/io/output_stream.hpp"
+
 #include <algorithm>
 #include <cstring>
 #include <fstream>
@@ -56,13 +58,10 @@ public:
     //     Constructor and Destructor
     // -------------------------------------------------------------------------
 
-    Serializer (const std::string& file_name) :
-        outfile   (file_name, std::ofstream::out | std::ofstream::binary),
+    Serializer (const std::string& filename) :
         outstream (outfile)
     {
-        if (!outfile) {
-            throw std::runtime_error("Cannot create Serializer.");
-        }
+        utils::file_output_stream( filename, outfile, std::ofstream::out | std::ofstream::binary );
     };
 
     Serializer (std::ostream& outstream) :

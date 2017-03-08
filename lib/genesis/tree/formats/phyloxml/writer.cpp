@@ -40,6 +40,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/formats/xml/document.hpp"
 #include "genesis/utils/formats/xml/writer.hpp"
+#include "genesis/utils/io/output_stream.hpp"
 
 #include <assert.h>
 #include <stdexcept>
@@ -77,14 +78,13 @@ namespace tree {
 /**
  * @brief Writes the tree to a file in Phyloxml format.
  *
- * If the file already exists, the function throws `std::runtime_error`.
- * The function uses utils::file_write. See there for other exceptions that can be thrown.
+ * If the file cannot be written to, the function throws an exception. Also, by default, if the file
+ * already exists, an exception is thrown.
+ * See @link Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
+ * change this behaviour.
  */
 void PhyloxmlWriter::to_file (const Tree& tree, const std::string filename)
 {
-    if( utils::file_exists(filename) ) {
-        throw std::runtime_error( "Phyloxml file '" + filename + "' already exist." );
-    }
     std::string ts;
     to_string(tree, ts);
     utils::file_write(ts, filename);

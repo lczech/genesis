@@ -34,6 +34,7 @@
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/formats/xml/document.hpp"
 #include "genesis/utils/formats/xml/helper.hpp"
+#include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <assert.h>
@@ -49,14 +50,13 @@ namespace utils {
 /**
  * @brief Write an XML file from an XmlDocument. Return true iff successful.
  *
- * If the file already exists, the function throws `std::runtime_error`.
- * The function uses utils::file_write. See there for other exceptions that can be thrown.
+ * If the file cannot be written to, the function throws an exception. Also, by default, if the file
+ * already exists, an exception is thrown.
+ * See @link Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
+ * change this behaviour.
  */
 void XmlWriter::to_file( const XmlDocument& document, const std::string& filename )
 {
-    if( utils::file_exists(filename) ) {
-        throw std::runtime_error( "Xml file '" + filename + "' already exist." );
-    }
     std::string xml;
     to_string( document, xml );
     utils::file_write(xml, filename);
