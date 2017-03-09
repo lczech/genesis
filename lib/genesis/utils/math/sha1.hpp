@@ -49,7 +49,8 @@ namespace utils {
  * from_file(), which are static shortcuts for the above.
  *
  * The implementation is based on [https://github.com/vog/sha1](https://github.com/vog/sha1),
- * which is 100% Public Domain.
+ * which is 100% Public Domain, see also
+ * @link supplement_acknowledgements Acknowledgements@endlink.
  */
 class SHA1
 {

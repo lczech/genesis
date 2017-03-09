@@ -106,7 +106,7 @@ If you just pulled new commits from the repository, or added new files to be com
     make update
 
 to include those files without need for recompiling everything (a so-called incremental build).
-See @ref dev for more information on incremental builds.
+See @ref supplement_development for more information on incremental builds.
 
 # Apps {#setup_apps}
 

@@ -107,8 +107,9 @@ bool operator>=(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
 /**
  * @brief Store a Json value of any kind.
  *
- * This class is a heavily altered adaption of the excellent "JSON for Modern C++" library
- * by Niels Lohmann, see https://github.com/nlohmann/json
+ * This class is a heavily altered adaption of the excellent
+ * [JSON for Modern C++](https://github.com/nlohmann/json) library by Niels Lohmann, see also
+ * @link supplement_acknowledgements Acknowledgements@endlink.
  */
 class JsonDocument
 {

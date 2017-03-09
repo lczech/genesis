@@ -1,17 +1,17 @@
-Development {#dev}
+Development {#supplement_development}
 ===========
 
 This page contains information for developers of genesis and those who want to contribute to
 its code base.
 
-## Build Process
+# Build Process
 
 We use CMake as build system. The `CMakeLists.txt` in the main directory contains basic
 information about the whole project. It further calls the following sub-build-scripts:
 
- *  `lib/CMakeLists.txt`: main build script for the library.
+ *  `lib/genesis/CMakeLists.txt`: main build script for the library.
  *  `apps/CMakeLists.txt`: compiles small applications using genesis.
- *  `python/src/CMakeLists.txt`: if
+ *  `python/CMakeLists.txt`: if
     [Boost Python](http://www.boost.org/doc/libs/1_60_0/libs/python/doc/html/index.html)
     is available, this script compiles the genesis python module.
  *  `test/CMakeLists.txt`: if [Google Test](https://github.com/google/googletest) is available,
@@ -40,7 +40,7 @@ make clean
 
 This combines both the CMake configure and build phase and is intended for quick development.
 
-## Release vs Debug version
+# Release vs Debug version
 
 By default, genesis is compiled in release mode. The main `CMakeLists.txt` however checks the value
 of the environment variable `GENESIS_DEBUG` and, if set, compiles in debug mode.
@@ -52,7 +52,7 @@ So, for development, adding the line
 to the terminal startup script (e.g., `.bash_rc` in the users home directory) will compile genesis
 in debug mode.
 
-## Testing Genesis with GTest
+# Testing Genesis with GTest
 
 When building Genesis in debug mode, testing is automatically activated. In release mode, the CMake
 option `BUILD_TESTS` has to be set to `ON` manually. See `genesis/CMakeLists.txt` for details.
@@ -64,7 +64,7 @@ We also offer an extended interface to GTest by using `genesis/test/run.sh`. Thi
 encapsulates GTest and offers several extra options like speed testing and memory testing with
 [Valgrind](http://valgrind.org/). See `genesis/test/README.md` for details.
 
-## Installing and finding GTest
+# Installing and finding GTest
 
 When building Genesis tests, we try a couple of ways to find GTest:
 
