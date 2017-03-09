@@ -108,7 +108,9 @@ PYTHON_EXPORT_CLASS( ::genesis::utils::HistogramAccumulator, scope )
         .def(
             "__iter__",
             []( ::genesis::utils::HistogramAccumulator& obj ){
-                return pybind11::make_iterator( obj.begin(), obj.end() );            }
+                return pybind11::make_iterator( obj.begin(), obj.end() );
+            },
+            pybind11::keep_alive<0, 1>()
         )
     ;
 }

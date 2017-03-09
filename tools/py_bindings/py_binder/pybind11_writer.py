@@ -331,7 +331,8 @@ class Pybind11Writer:
             val += "            []( " + clss.cpp_full_name() + "& obj ){\n"
             val += "                return pybind11::make_iterator( "
             val += "obj." + it.begin + "(), obj." + it.end + "() );\n"
-            val += "            }\n"
+            val += "            },\n"
+            val += "            py::keep_alive<0, 1>()\n"
             val += "        )\n"
 
         return val
