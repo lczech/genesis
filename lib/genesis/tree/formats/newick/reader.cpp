@@ -113,7 +113,7 @@ bool NewickReader::from_string (
     }
 
     // build the tree from the broker
-    broker_to_tree(broker, tree);
+    broker_to_tree_(broker, tree);
     return true;
 }
 
@@ -233,7 +233,7 @@ bool NewickReader::from_string (
         }
 
         auto tree = Tree();
-        broker_to_tree(broker, tree);
+        broker_to_tree_(broker, tree);
 
         if (name.empty()) {
             name = default_name + std::to_string(unnamed_ctr++);
@@ -287,45 +287,13 @@ bool NewickReader::from_strings (
 }
 
 // -------------------------------------------------------------------------
-//     Virtual Parsing Helpers
-// -------------------------------------------------------------------------
-
-void NewickReader::prepare_reading( NewickBroker const& broker, Tree& tree )
-{
-    // Silence unused parameter warnings.
-    (void) broker;
-    (void) tree;
-}
-
-void NewickReader::element_to_node( NewickBrokerElement const& element, TreeNode& node )
-{
-    // Silence unused parameter warnings.
-    (void) element;
-    (void) node;
-}
-
-void NewickReader::element_to_edge( NewickBrokerElement const& element, TreeEdge& edge )
-{
-    // Silence unused parameter warnings.
-    (void) element;
-    (void) edge;
-}
-
-void NewickReader::finish_reading( NewickBroker const& broker, Tree& tree )
-{
-    // Silence unused parameter warnings.
-    (void) broker;
-    (void) tree;
-}
-
-// -------------------------------------------------------------------------
 //     Internal Helper Methods
 // -------------------------------------------------------------------------
 
 /**
  * @brief Build a Tree from a NewickBroker.
  */
-void NewickReader::broker_to_tree (
+void NewickReader::broker_to_tree_ (
     NewickBroker const& broker, Tree& tree
 ) {
     tree.clear();
@@ -338,7 +306,11 @@ void NewickReader::broker_to_tree (
 
     // we need the ranks (number of immediate children) of all nodes
     broker.assign_ranks();
-    prepare_reading(broker, tree);
+
+    // Call all prepare plugins
+    for( auto const& prepare_plugin : prepare_reading_plugins ) {
+        prepare_plugin( broker, tree );
+    }
 
     // iterate over all nodes of the tree broker
     for (auto b_itr = broker.cbegin(); b_itr != broker.cend(); ++b_itr) {
@@ -348,7 +320,14 @@ void NewickReader::broker_to_tree (
         auto cur_node_u  = utils::make_unique< TreeNode >();
         auto cur_node    = cur_node_u.get();
         cur_node->reset_index( nodes.size() );
-        element_to_node( broker_node, *cur_node );
+        create_node_data_plugin( *cur_node );
+
+        // Call all node plugins.
+        for( auto const& node_plugin : element_to_node_plugins ) {
+            node_plugin( broker_node, *cur_node );
+        }
+
+        // Add the node.
         nodes.push_back(std::move(cur_node_u));
 
         // create the link that points towards the root.
@@ -381,7 +360,14 @@ void NewickReader::broker_to_tree (
 
             up_link->reset_edge( up_edge.get() );
             link_stack.back()->reset_edge( up_edge.get() );
-            element_to_edge( broker_node, *up_edge );
+            create_edge_data_plugin( *up_edge );
+
+            // Call all edge plugins.
+            for( auto const& edge_plugin : element_to_edge_plugins ) {
+                edge_plugin( broker_node, *up_edge );
+            }
+
+            // Add the edge.
             edges.push_back(std::move(up_edge));
 
             // we can now delete the head of the stack, because we just estiablished its "downlink"
@@ -430,8 +416,10 @@ void NewickReader::broker_to_tree (
     }
     next->node().reset_primary_link( &next->next() );
 
-    // Finish and hand over the elements to the tree.
-    finish_reading(broker, tree);
+    // Call all finish plugins.
+    for( auto const& finish_plugin : finish_reading_plugins ) {
+        finish_plugin( broker, tree );
+    }
 }
 
 } // namespace tree
