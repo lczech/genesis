@@ -51,16 +51,8 @@ project ( genesis CXX C )
 # set (genesis_VERSION_MAJOR 0)
 # set (genesis_VERSION_MINOR 1)
 
-# Pre-compilation check for endianness
-include (TestBigEndian)
-TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
-if( IS_BIG_ENDIAN )
-    message(
-        STATUS
-        "${ColorYellow}Your system uses big endian memory, which is rare. Genesis is not tested "
-        "with such systems. There might be bugs because of this!${ColorEnd}"
-    )
-endif()
+message (STATUS "C++ compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} at ${CMAKE_CXX_COMPILER}")
+message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION} at ${CMAKE_C_COMPILER}")
 
 # --------------------------------------------------------------------------------------------------
 #   Build Options
@@ -125,6 +117,17 @@ set (CMAKE_CXX_FLAGS_RELEASE "-O2       -DNDEBUG")
 # MPICC   = mpic++
 # mpi: CCFLAGS += -DUSE_MPI
 # LDFLAGS = -lm $(THREADS)
+
+# Pre-compilation check for endianness
+include (TestBigEndian)
+TEST_BIG_ENDIAN(IS_BIG_ENDIAN)
+if( IS_BIG_ENDIAN )
+    message(
+        STATUS
+        "${ColorYellow}Your system uses big endian memory, which is rare. Genesis is not tested "
+        "with such systems. There might be bugs because of this!${ColorEnd}"
+    )
+endif()
 
 # --------------------------------------------------------------------------------------------------
 #   Threads and OpenMP
