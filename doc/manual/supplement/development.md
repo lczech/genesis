@@ -52,6 +52,11 @@ So, for development, adding the line
 to the terminal startup script (e.g., `.bash_rc` in the users home directory) will compile genesis
 in debug mode.
 
+# Compilers
+
+Genesis uses c++11, thus we need a compiler that supports all features.
+The first GCC version to do so is 4.8.1, see [here](https://gcc.gnu.org/projects/cxx-status.html#cxx11).
+
 # Testing Genesis with GTest
 
 When building Genesis in debug mode, testing is automatically activated. In release mode, the CMake
