@@ -54,10 +54,6 @@ bool parse_newick_tree (
     NewickBroker&                broker
 );
 
-std::string generate_newick_tree (
-    NewickBroker const& broker
-);
-
 } // namespace tree
 } // namespace genesis
 

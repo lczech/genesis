@@ -76,7 +76,7 @@ std::string NewickWriter::to_string (Tree const& tree) const
     NewickBroker broker;
     tree_to_broker_(tree, broker);
     broker.assign_ranks();
-    return generate_newick_tree(broker);
+    return to_string_rec_(broker, 0) + ";";
 }
 
 void NewickWriter::tree_to_broker_ (
@@ -114,6 +114,55 @@ void NewickWriter::tree_to_broker_ (
     for( auto const& finish_plugin : finish_writing_plugins ) {
         finish_plugin( tree, broker );
     }
+}
+
+std::string NewickWriter::element_to_string_( NewickBrokerElement const& bn ) const
+{
+    std::string res = bn.name;
+    for (std::string v : bn.values) {
+        res += ":" + v;
+    }
+    for (std::string c : bn.comments) {
+        res += "[" + c + "]";
+    }
+    for (std::string t : bn.tags) {
+        res += "{" + t + "}";
+    }
+    return res;
+}
+
+std::string NewickWriter::to_string_rec_( NewickBroker const& broker, size_t pos ) const
+{
+    // check if it is a leaf, stop recursion if so.
+    if (broker[pos].rank() == 0) {
+        return element_to_string_(broker[pos]);
+    }
+
+    // recurse over all children of the current node. while doing so, build a stack of the resulting
+    // substrings in reverse order. this is because newick stores the nodes kind of "backwards",
+    // by starting at a leaf node instead of the root.
+    std::deque<std::string> children;
+    for (size_t i = pos + 1; i < broker.size() && broker[i].depth > broker[pos].depth; ++i) {
+        // skip if not immediate children (those will be called in later recursion steps)
+        if (broker[i].depth > broker[pos].depth + 1) {
+            continue;
+        }
+
+        // do the recursion step for this child, add the result to a stack
+        children.push_front(to_string_rec_(broker, i));
+    }
+
+    // build the string by iterating the stack
+    std::ostringstream out;
+    out << "(";
+    for (size_t i = 0; i < children.size(); ++i) {
+        if (i>0) {
+            out << ",";
+        }
+        out << children[i];
+    }
+    out << ")" << element_to_string_(broker[pos]);
+    return out.str();
 }
 
 } // namespace tree
