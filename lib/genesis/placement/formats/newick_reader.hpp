@@ -106,6 +106,33 @@ public:
         }
     }
 
+    void register_with( tree::NewickReader& reader )
+    {
+        // Set node data creation function.
+        reader.create_node_data_plugin = []( tree::TreeNode& node ){
+            node.reset_data( PlacementNodeData::create() );
+        };
+
+        // Set edge data creation function.
+        reader.create_edge_data_plugin = []( tree::TreeEdge& edge ){
+            edge.reset_data( PlacementEdgeData::create() );
+        };
+
+        // Add edge manipulation functions.
+        reader.element_to_edge_plugins.push_back(
+            [&]( tree::NewickBrokerElement const& element, tree::TreeEdge& edge ) {
+                element_to_edge( element, edge );
+            }
+        );
+
+        // Add finish reading plugin.
+        reader.finish_reading_plugins.push_back(
+            [&]( tree::NewickBroker const& broker, tree::Tree& tree ) {
+                finish_reading( broker, tree );
+            }
+        );
+    }
+
 };
 
 // =================================================================================================
@@ -114,6 +141,8 @@ public:
 
 class PlacementTreeNewickReader
     : public tree::NewickReader
+    , public tree::DefaultTreeNewickReaderPlugin
+    , public PlacementTreeNewickReaderPlugin
 {
 public:
 
@@ -123,44 +152,11 @@ public:
 
     PlacementTreeNewickReader()
     {
-        // Set node data creation function.
-        NewickReader::create_node_data_plugin = []( tree::TreeNode& node ){
-            node.reset_data( PlacementNodeData::create() );
-        };
-
-        // Set edge data creation function.
-        NewickReader::create_edge_data_plugin = []( tree::TreeEdge& edge ){
-            edge.reset_data( PlacementEdgeData::create() );
-        };
-
-        // Set node manipulation functions.
-        NewickReader::element_to_node_plugins.push_back(
-            [&]( tree::NewickBrokerElement const& element, tree::TreeNode& node ) {
-                default_plugin_.element_to_node( element, node );
-            }
-        );
-
-        // Set edge manipulation functions.
-        NewickReader::element_to_edge_plugins.push_back(
-            [&]( tree::NewickBrokerElement const& element, tree::TreeEdge& edge ) {
-                default_plugin_.element_to_edge( element, edge );
-            }
-        );
-        NewickReader::element_to_edge_plugins.push_back(
-            [&]( tree::NewickBrokerElement const& element, tree::TreeEdge& edge ) {
-                placement_plugin_.element_to_edge( element, edge );
-            }
-        );
+        // We first register the default reader, then the placement reader, because the latter
+        // overwrites the data creation functions.
+        DefaultTreeNewickReaderPlugin::register_with( *this );
+        PlacementTreeNewickReaderPlugin::register_with( *this );
     }
-
-    // -------------------------------------------------------------------------
-    //     Data Members
-    // -------------------------------------------------------------------------
-
-private:
-
-    tree::DefaultTreeNewickReaderPlugin default_plugin_;
-    PlacementTreeNewickReaderPlugin     placement_plugin_;
 };
 
 } // namespace placement

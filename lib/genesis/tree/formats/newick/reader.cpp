@@ -320,7 +320,12 @@ void NewickReader::broker_to_tree_ (
         auto cur_node_u  = utils::make_unique< TreeNode >();
         auto cur_node    = cur_node_u.get();
         cur_node->reset_index( nodes.size() );
-        create_node_data_plugin( *cur_node );
+
+        // Create data pointer, if there is a suitable function. Otherwise, data is
+        // simply a nullptr, i.e., there is no data.
+        if( create_node_data_plugin ) {
+            create_node_data_plugin( *cur_node );
+        }
 
         // Call all node plugins.
         for( auto const& node_plugin : element_to_node_plugins ) {
@@ -360,7 +365,12 @@ void NewickReader::broker_to_tree_ (
 
             up_link->reset_edge( up_edge.get() );
             link_stack.back()->reset_edge( up_edge.get() );
-            create_edge_data_plugin( *up_edge );
+
+            // Create data pointer, if there is a suitable function. Otherwise, data is
+            // simply a nullptr, i.e., there is no data.
+            if( create_edge_data_plugin ) {
+                create_edge_data_plugin( *up_edge );
+            }
 
             // Call all edge plugins.
             for( auto const& edge_plugin : element_to_edge_plugins ) {

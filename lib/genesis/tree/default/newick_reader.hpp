@@ -103,6 +103,43 @@ public:
         }
     }
 
+    void register_with( NewickReader& reader )
+    {
+        // Set node data creation function.
+        reader.create_node_data_plugin = []( TreeNode& node ){
+            node.reset_data( DefaultNodeData::create() );
+        };
+
+        // Set edge data creation function.
+        reader.create_edge_data_plugin = []( TreeEdge& edge ){
+            edge.reset_data( DefaultEdgeData::create() );
+        };
+
+        // Add node manipulation functions.
+        reader.element_to_node_plugins.push_back(
+            [&]( NewickBrokerElement const& element, TreeNode& node ) {
+                element_to_node( element, node );
+            }
+        );
+
+        // Add edge manipulation functions.
+        reader.element_to_edge_plugins.push_back(
+            [&]( NewickBrokerElement const& element, TreeEdge& edge ) {
+                element_to_edge( element, edge );
+            }
+        );
+
+        // Alternative version using bind.
+        // reader.element_to_edge_plugins.push_back(
+        //     std::bind(
+        //         &DefaultTreeNewickReaderPlugin::element_to_edge,
+        //         this,
+        //         std::placeholders::_1,
+        //         std::placeholders::_2
+        //     )
+        // );
+    }
+
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
@@ -132,8 +169,23 @@ public:
 //     Default Tree Newick Reader
 // =================================================================================================
 
+/**
+ * @brief Read default Newick trees, i.e., trees with names and branch lengths.
+ *
+ * This class is a convenience wrapper that combines a NewickReader with a
+ * DefaultTreeNewickReaderPlugin. It is intended to be used for standard use cases, and produces a
+ * Tree with DefaultNodeData and DefaultEdgeData at its nodes and edges.
+ *
+ * It is also possible to register additional plugins on top of this class.
+ *
+ * Behind the curtain, this class derives from both NewickReader and DefaultTreeNewickReaderPlugin.
+ * This is a bit ugly, but we use it for simplicity. This allows to use an instance as if it was
+ * a reader (i.e., call `from_...` functions), but also change the plugin settings in a natural
+ * way.
+ */
 class DefaultTreeNewickReader
     : public NewickReader
+    , public DefaultTreeNewickReaderPlugin
 {
 public:
 
@@ -143,48 +195,12 @@ public:
 
     DefaultTreeNewickReader()
     {
-        // Set node data creation function.
-        NewickReader::create_node_data_plugin = []( TreeNode& node ){
-            node.reset_data( DefaultNodeData::create() );
-        };
-
-        // Set edge data creation function.
-        NewickReader::create_edge_data_plugin = []( TreeEdge& edge ){
-            edge.reset_data( DefaultEdgeData::create() );
-        };
-
-        // Set node manipulation functions.
-        NewickReader::element_to_node_plugins.push_back(
-            [&]( NewickBrokerElement const& element, TreeNode& node ) {
-                default_plugin_.element_to_node( element, node );
-            }
-        );
-
-        // Set edge manipulation functions.
-        NewickReader::element_to_edge_plugins.push_back(
-            [&]( NewickBrokerElement const& element, TreeEdge& edge ) {
-                default_plugin_.element_to_edge( element, edge );
-            }
-        );
-
-        // Alternative version using bind.
-        // NewickReader::element_to_edge_plugins.push_back(
-        //     std::bind(
-        //         &DefaultTreeNewickReaderPlugin::element_to_edge,
-        //         this,
-        //         std::placeholders::_1,
-        //         std::placeholders::_2
-        //     )
-        // );
+        // This is mindfuck. We derive from two classes - the function register_with() calls
+        // the plugin function of DefaultTreeNewickReaderPlugin, and uses our own inherited
+        // NewickReader instance as argument. Thus, it registeres its own plugin part with its own
+        // reader part.
+        register_with( *this );
     }
-
-    // -------------------------------------------------------------------------
-    //     Data Members
-    // -------------------------------------------------------------------------
-
-private:
-
-    DefaultTreeNewickReaderPlugin default_plugin_;
 };
 
 } // namespace tree
