@@ -31,7 +31,9 @@
  * @ingroup tree
  */
 
+#include <functional>
 #include <string>
+#include <vector>
 
 namespace genesis {
 namespace tree {
@@ -57,13 +59,31 @@ class NewickWriter
 public:
 
     // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    using prepare_writing_function = std::function< void(
+        Tree const& tree, NewickBroker& broker
+    ) >;
+
+    using finish_writing_function = std::function< void(
+        Tree const& tree, NewickBroker& broker
+    ) >;
+
+    using node_to_element_function = std::function< void(
+        TreeNode const& node, NewickBrokerElement& element
+    ) >;
+
+    using edge_to_element_function = std::function< void(
+        TreeEdge const& edge, NewickBrokerElement& element
+    ) >;
+
+    // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-public:
-
     NewickWriter() = default;
-    virtual ~NewickWriter() {}
+    virtual ~NewickWriter() = default;
 
     NewickWriter(NewickWriter const&) = default;
     NewickWriter(NewickWriter&&)      = default;
@@ -75,22 +95,19 @@ public:
     //     Writing
     // -------------------------------------------------------------------------
 
-public:
-
     void        to_file   (const Tree& tree, const std::string filename);
     void        to_string (const Tree& tree, std::string& ts);
     std::string to_string (const Tree& tree);
 
     // -------------------------------------------------------------------------
-    //     Virtual Printing Helpers
+    //     Plugin Functions
     // -------------------------------------------------------------------------
 
-protected:
+    std::vector<prepare_writing_function> prepare_writing_plugins;
+    std::vector<finish_writing_function>  finish_writing_plugins;
 
-    virtual void prepare_writing( Tree const& tree, NewickBroker& broker );
-    virtual void node_to_element( TreeNode const& node, NewickBrokerElement& element );
-    virtual void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element );
-    virtual void finish_writing( Tree const& tree, NewickBroker& broker );
+    std::vector<node_to_element_function> node_to_element_plugins;
+    std::vector<edge_to_element_function> edge_to_element_plugins;
 
     // -------------------------------------------------------------------------
     //     Internal Member Functions
@@ -98,7 +115,7 @@ protected:
 
 private:
 
-    void tree_to_broker (const Tree& tree, NewickBroker& broker);
+    void tree_to_broker_ (const Tree& tree, NewickBroker& broker);
 
 };
 

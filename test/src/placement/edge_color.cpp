@@ -38,7 +38,7 @@
 #include "genesis/placement/formats/phyloxml_writer.hpp"
 #include "genesis/placement/sample.hpp"
 #include "genesis/tree/default/functions.hpp"
-#include "genesis/tree/formats/newick/color_writer_mixin.hpp"
+#include "genesis/tree/formats/newick/color_writer_plugin.hpp"
 #include "genesis/tree/formats/phyloxml/color_writer_mixin.hpp"
 #include "genesis/utils/formats/nexus/document.hpp"
 #include "genesis/utils/formats/nexus/taxa.hpp"
@@ -79,11 +79,13 @@ TEST( PlacementTreeEdgeColor, CountGradientNewick )
 
     Sample map = JplaceReader().from_file(infile);
 
-    typedef NewickColorWriterMixin<PlacementTreeNewickWriter> ColoredPlacementTreeNewickWriter;
+    // Create a writer and add a color plugin.
+    auto writer = PlacementTreeNewickWriter();
+    auto color_plugin = NewickColorWriterPlugin();
+    color_plugin.register_with( writer );
 
-    auto proc = ColoredPlacementTreeNewickWriter();
-    proc.edge_colors( placement_color_count_gradient( map ));
-    std::string out = proc.to_string(map.tree());
+    color_plugin.edge_colors( placement_color_count_gradient( map ));
+    std::string out = writer.to_string(map.tree());
 
     // At least one element in the output should have the color for the edge with most placements.
     EXPECT_TRUE( out.find("color=#ff0000") != std::string::npos );
@@ -98,12 +100,14 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
 
     Sample map = JplaceReader().from_file(infile);
 
-    typedef NewickColorWriterMixin<PlacementTreeNewickWriter> ColoredPlacementTreeNewickWriter;
+    // Create a writer and add a color plugin.
+    auto writer = PlacementTreeNewickWriter();
+    auto color_plugin = NewickColorWriterPlugin();
+    color_plugin.register_with( writer );
 
-    auto proc = ColoredPlacementTreeNewickWriter();
-    proc.edge_colors( placement_color_count_gradient( map ));
-    proc.enable_edge_nums(false);
-    std::string tree_out = proc.to_string(map.tree());
+    color_plugin.edge_colors( placement_color_count_gradient( map ));
+    writer.enable_edge_nums(false);
+    std::string tree_out = writer.to_string(map.tree());
 
     auto doc = NexusDocument();
 
@@ -120,8 +124,8 @@ TEST( PlacementTreeEdgeColor, CountGradientNexus )
 
     std::ostringstream buffer;
 
-    auto writer = NexusWriter();
-    writer.to_stream( doc, buffer );
+    auto nexus_writer = NexusWriter();
+    nexus_writer.to_stream( doc, buffer );
     auto nexus_out = buffer.str();
 
     EXPECT_TRUE( nexus_out.find("color=#ff0000") != std::string::npos );

@@ -46,26 +46,32 @@ namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Placement Tree Newick Writer Mixin
+//     Placement Tree Newick Writer Plugin
 // =================================================================================================
 
 /**
  * @brief
  */
-template <typename Base>
-class PlacementTreeNewickWriterMixin : public Base
+class PlacementTreeNewickWriterPlugin
 {
+public:
+
     // -------------------------------------------------------------------------
-    //     Member Types
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-public:
+    PlacementTreeNewickWriterPlugin() = default;
+    virtual ~PlacementTreeNewickWriterPlugin() = default;
+
+    PlacementTreeNewickWriterPlugin(PlacementTreeNewickWriterPlugin const&) = default;
+    PlacementTreeNewickWriterPlugin(PlacementTreeNewickWriterPlugin&&)      = default;
+
+    PlacementTreeNewickWriterPlugin& operator= (PlacementTreeNewickWriterPlugin const&) = default;
+    PlacementTreeNewickWriterPlugin& operator= (PlacementTreeNewickWriterPlugin&&)      = default;
 
     // -------------------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------------------
-
-public:
 
     bool enable_edge_nums() const
     {
@@ -98,15 +104,11 @@ public:
     }
 
     // -------------------------------------------------------------------------
-    //     Overridden Member Functions
+    //     Plugin Functions
     // -------------------------------------------------------------------------
 
-protected:
-
-    virtual void edge_to_element( tree::TreeEdge const& edge, tree::NewickBrokerElement& element ) override
+    void edge_to_element( tree::TreeEdge const& edge, tree::NewickBrokerElement& element )
     {
-        Base::edge_to_element(edge, element);
-
         if (enable_edge_nums_) {
             element.tags.push_back( std::to_string(
                 edge.data<PlacementEdgeData>().edge_num()
@@ -115,6 +117,16 @@ protected:
         if (enable_placement_counts_) {
             element.comments.push_back(std::to_string( placement_counts_[ edge.index() ]));
         }
+    }
+
+    void register_with( tree::NewickWriter& writer )
+    {
+        // Set edge functions.
+        writer.edge_to_element_plugins.push_back(
+            [&]( tree::TreeEdge const& edge, tree::NewickBrokerElement& element ) {
+                PlacementTreeNewickWriterPlugin::edge_to_element( edge, element );
+            }
+        );
     }
 
     // -------------------------------------------------------------------------
@@ -133,10 +145,23 @@ private:
 //     Placement Tree Newick Writer
 // =================================================================================================
 
-typedef PlacementTreeNewickWriterMixin<
-        tree::DefaultTreeNewickWriterMixin< tree::NewickWriter >
-    >
-    PlacementTreeNewickWriter;
+class PlacementTreeNewickWriter
+    : public tree::NewickWriter
+    , public tree::DefaultTreeNewickWriterPlugin
+    , public PlacementTreeNewickWriterPlugin
+{
+public:
+
+    // -------------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------------
+
+    PlacementTreeNewickWriter()
+    {
+        DefaultTreeNewickWriterPlugin::register_with( *this );
+        PlacementTreeNewickWriterPlugin::register_with( *this );
+    }
+};
 
 } // namespace placement
 } // namespace genesis
