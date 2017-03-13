@@ -64,7 +64,7 @@ namespace tree {
  */
 bool NewickReader::from_file (
     const std::string& fn, Tree& tree
-) {
+) const {
     if (!utils::file_exists(fn)) {
         throw std::runtime_error( "Newick file '" + fn + "' does not exist." );
     }
@@ -78,7 +78,7 @@ bool NewickReader::from_file (
  */
 bool NewickReader::from_string (
     const std::string& ts, Tree& tree
-) {
+) const {
     // run the lexer
     NewickLexer lexer;
     if (!lexer.from_string(ts)) {
@@ -128,7 +128,7 @@ bool NewickReader::from_string (
  */
 bool NewickReader::from_file (
     const std::string& fn, TreeSet& tset
-) {
+) const {
     if (!utils::file_exists(fn)) {
         throw std::runtime_error( "Tree file '" + fn + "' does not exist." );
     }
@@ -163,7 +163,7 @@ bool NewickReader::from_string (
     const std::string& ts,
     TreeSet& tset,
     const std::string& default_name
-) {
+) const {
     // Run the Lexer.
     NewickLexer lexer;
     if (!lexer.from_string(ts)) {
@@ -259,7 +259,7 @@ bool NewickReader::from_string (
  */
 bool NewickReader::from_files (
     const std::vector<std::string>& fns, TreeSet& set
-) {
+) const {
     for (auto fn : fns) {
         if (!from_file (fn, set)) {
             return false;
@@ -277,7 +277,7 @@ bool NewickReader::from_strings (
     const std::vector<std::string>& tss,
     TreeSet& set,
     const std::string& default_name
-) {
+) const {
     for (auto ts : tss) {
         if (!from_string (ts, set, default_name)) {
             return false;
@@ -295,7 +295,7 @@ bool NewickReader::from_strings (
  */
 void NewickReader::broker_to_tree_ (
     NewickBroker const& broker, Tree& tree
-) {
+) const {
     tree.clear();
 
     auto& links = tree.expose_link_container();

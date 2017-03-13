@@ -98,10 +98,10 @@ public:
     //     Writing
     // ---------------------------------------------------------------------
 
-    void        to_file     (const Tree& tree, const std::string filename);
-    void        to_string   (const Tree& tree, std::string& ts);
-    std::string to_string   (const Tree& tree);
-    void        to_document (const Tree& tree, utils::XmlDocument& xml);
+    void        to_file     (const Tree& tree, const std::string filename) const;
+    void        to_string   (const Tree& tree, std::string& ts) const;
+    std::string to_string   (const Tree& tree) const;
+    void        to_document (const Tree& tree, utils::XmlDocument& xml) const;
 
     // -------------------------------------------------------------------------
     //     Plugin Functions

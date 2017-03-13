@@ -99,29 +99,30 @@ public:
     //     Reading
     // -------------------------------------------------------------------------
 
-    bool from_file    (const std::string& filename,    Tree& tree);
-    bool from_string  (const std::string& tree_string, Tree& tree);
+    bool from_file    (const std::string& filename,    Tree& tree) const;
+    bool from_string  (const std::string& tree_string, Tree& tree) const;
 
     bool from_file    (
         const std::string& filename,
         TreeSet& tree_set
-    );
+    ) const;
+
     bool from_string  (
         const std::string& tree_string,
         TreeSet& tree_set,
         const std::string& default_name = ""
-    );
+    ) const;
 
     bool from_files   (
         const std::vector<std::string>& filenames,
         TreeSet& tree_set
-    );
+    ) const;
 
     bool from_strings (
         const std::vector<std::string>& tree_strings,
         TreeSet& tree_set,
         const std::string& default_name = ""
-    );
+    ) const;
 
     // -------------------------------------------------------------------------
     //     Plugin Functions
@@ -142,7 +143,7 @@ public:
 
 private:
 
-    void broker_to_tree_ (NewickBroker const& broker, Tree& tree);
+    void broker_to_tree_ (NewickBroker const& broker, Tree& tree) const;
 
 };
 

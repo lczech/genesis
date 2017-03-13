@@ -68,7 +68,7 @@ public:
     //     Plugin Functions
     // -------------------------------------------------------------------------
 
-    void element_to_node( NewickBrokerElement const& element, TreeNode& node )
+    void element_to_node( NewickBrokerElement const& element, TreeNode& node ) const
     {
         std::string name = element.name;
 
@@ -91,7 +91,7 @@ public:
         node.data<DefaultNodeData>().name = name;
     }
 
-    void element_to_edge( NewickBrokerElement const& element, TreeEdge& edge )
+    void element_to_edge( NewickBrokerElement const& element, TreeEdge& edge ) const
     {
         // We assume that the branch length is always the first (or only) value.
         // If there is an interpretation where this is not the case, it is best to introduce
@@ -103,7 +103,7 @@ public:
         }
     }
 
-    void register_with( NewickReader& reader )
+    void register_with( NewickReader& reader ) const
     {
         // Set node data creation function.
         reader.create_node_data_plugin = []( TreeNode& node ){

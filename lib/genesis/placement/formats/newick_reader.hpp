@@ -73,7 +73,7 @@ public:
     //     Plugin Functions
     // -------------------------------------------------------------------------
 
-    void element_to_edge( tree::NewickBrokerElement const& element, tree::TreeEdge& edge )
+    void element_to_edge( tree::NewickBrokerElement const& element, tree::TreeEdge& edge ) const
     {
         auto& edge_data = edge.data<PlacementEdgeData>();
 
@@ -95,7 +95,7 @@ public:
         edge_data.reset_edge_num( std::stoi( element.tags[0] ));
     }
 
-    void finish_reading( tree::NewickBroker const& broker, tree::Tree& tree )
+    void finish_reading( tree::NewickBroker const& broker, tree::Tree& tree ) const
     {
         (void) broker;
         if( ! has_correct_edge_nums( tree )) {
@@ -106,7 +106,7 @@ public:
         }
     }
 
-    void register_with( tree::NewickReader& reader )
+    void register_with( tree::NewickReader& reader ) const
     {
         // Set node data creation function.
         reader.create_node_data_plugin = []( tree::TreeNode& node ){

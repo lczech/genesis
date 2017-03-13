@@ -107,7 +107,7 @@ public:
     //     Plugin Functions
     // -------------------------------------------------------------------------
 
-    void edge_to_element( tree::TreeEdge const& edge, tree::NewickBrokerElement& element )
+    void edge_to_element( tree::TreeEdge const& edge, tree::NewickBrokerElement& element ) const
     {
         if (enable_edge_nums_) {
             element.tags.push_back( std::to_string(
@@ -119,7 +119,7 @@ public:
         }
     }
 
-    void register_with( tree::NewickWriter& writer )
+    void register_with( tree::NewickWriter& writer ) const
     {
         // Set edge functions.
         writer.edge_to_element_plugins.push_back(

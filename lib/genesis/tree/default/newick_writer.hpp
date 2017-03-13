@@ -45,7 +45,7 @@ namespace tree {
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Provide a set of plugin functions for NewickWriter to write a #DefaultTree.
  */
 class DefaultTreeNewickWriterPlugin
 {
@@ -73,7 +73,7 @@ public:
         enable_names_ = value;
     }
 
-    bool enable_names ()
+    bool enable_names() const
     {
         return enable_names_;
     }
@@ -83,7 +83,7 @@ public:
         enable_branch_lengths_ = value;
     }
 
-    bool enable_branch_lengths()
+    bool enable_branch_lengths() const
     {
         return enable_branch_lengths_;
     }
@@ -92,7 +92,7 @@ public:
     //     Plugin Functions
     // -------------------------------------------------------------------------
 
-    void node_to_element( TreeNode const& node, NewickBrokerElement& element )
+    void node_to_element( TreeNode const& node, NewickBrokerElement& element ) const
     {
         if (enable_names_) {
             std::string name = node.data<DefaultNodeData>().name;
@@ -119,7 +119,7 @@ public:
         }
     }
 
-    void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element )
+    void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element ) const
     {
         if (enable_branch_lengths_) {
             auto const& edge_data = edge.data<DefaultEdgeData>();
@@ -128,7 +128,7 @@ public:
         }
     }
 
-    void register_with( NewickWriter& writer )
+    void register_with( NewickWriter& writer ) const
     {
         // Add node functions.
         writer.node_to_element_plugins.push_back(

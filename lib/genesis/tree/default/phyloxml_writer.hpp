@@ -66,17 +66,17 @@ public:
     //     Plugin Functions
     // -------------------------------------------------------------------------
 
-    void node_to_element( TreeNode const& node, utils::XmlElement& element )
+    void node_to_element( TreeNode const& node, utils::XmlElement& element ) const
     {
         set_name_(element, node.data<DefaultNodeData>().name);
     }
 
-    void edge_to_element( TreeEdge const& edge, utils::XmlElement& element )
+    void edge_to_element( TreeEdge const& edge, utils::XmlElement& element ) const
     {
         set_branch_length_(element, edge.data<DefaultEdgeData>().branch_length);
     }
 
-    void register_with( PhyloxmlWriter& writer )
+    void register_with( PhyloxmlWriter& writer ) const
     {
         writer.node_to_element_plugins.push_back(
             [&]( TreeNode const& node, utils::XmlElement& element ) {
@@ -96,7 +96,7 @@ public:
 
 private:
 
-    void set_name_( utils::XmlElement& element, const std::string& name )
+    void set_name_( utils::XmlElement& element, const std::string& name ) const
     {
         // TODO do not create new element if there is already one!
         auto name_e = utils::make_unique< utils::XmlElement >( "name" );
@@ -104,7 +104,7 @@ private:
         element.content.push_back(std::move(name_e));
     }
 
-    void set_branch_length_( utils::XmlElement& element, double length )
+    void set_branch_length_( utils::XmlElement& element, double length ) const
     {
         // TODO do not create new element if there is already one!
         auto bl_e = utils::make_unique< utils::XmlElement >( "branch_length" );

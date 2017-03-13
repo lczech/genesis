@@ -61,7 +61,7 @@ namespace tree {
  * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink
  * to change this behaviour.
  */
-void PhyloxmlWriter::to_file (const Tree& tree, const std::string filename)
+void PhyloxmlWriter::to_file (const Tree& tree, const std::string filename) const
 {
     std::string ts;
     to_string(tree, ts);
@@ -74,7 +74,7 @@ void PhyloxmlWriter::to_file (const Tree& tree, const std::string filename)
  * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
-void PhyloxmlWriter::to_string (const Tree& tree, std::string& ts)
+void PhyloxmlWriter::to_string (const Tree& tree, std::string& ts) const
 {
     ts = to_string(tree);
 }
@@ -85,7 +85,7 @@ void PhyloxmlWriter::to_string (const Tree& tree, std::string& ts)
  * In case the tree was read from a Phyloxml file, this function should produce the same
  * representation.
  */
-std::string PhyloxmlWriter::to_string (const Tree& tree)
+std::string PhyloxmlWriter::to_string (const Tree& tree) const
 {
     utils::XmlDocument xml;
     to_document(tree, xml);
@@ -95,7 +95,7 @@ std::string PhyloxmlWriter::to_string (const Tree& tree)
 /**
  * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
  */
-void PhyloxmlWriter::to_document (const Tree& tree, utils::XmlDocument& xml)
+void PhyloxmlWriter::to_document (const Tree& tree, utils::XmlDocument& xml) const
 {
     xml.clear();
 

@@ -84,7 +84,7 @@ public:
     //      Plugin Functions
     // -------------------------------------------------------------------------
 
-    void prepare_writing( Tree const& tree, utils::XmlDocument& xml )
+    void prepare_writing( Tree const& tree, utils::XmlDocument& xml ) const
     {
         (void) xml;
 
@@ -103,7 +103,7 @@ public:
         }
     }
 
-    void edge_to_element( TreeEdge const& edge, utils::XmlElement& element )
+    void edge_to_element( TreeEdge const& edge, utils::XmlElement& element ) const
     {
         if (!ColorWriterPlugin::enable_color()) {
             return;
@@ -116,7 +116,7 @@ public:
         }
     }
 
-    void register_with( PhyloxmlWriter& writer )
+    void register_with( PhyloxmlWriter& writer ) const
     {
         writer.prepare_writing_plugins.push_back(
             [&]( Tree const& tree, utils::XmlDocument& xml ) {
@@ -136,7 +136,7 @@ public:
 
 private:
 
-    void set_color_( utils::XmlElement& element, unsigned char r, unsigned char g, unsigned char b )
+    void set_color_( utils::XmlElement& element, unsigned char r, unsigned char g, unsigned char b ) const
     {
         if(
             ColorWriterPlugin::use_ignored_color() &&
@@ -163,7 +163,7 @@ private:
         element.content.push_back(std::move(color));
     }
 
-    void set_color_( utils::XmlElement& element, utils::Color color )
+    void set_color_( utils::XmlElement& element, utils::Color color ) const
     {
         set_color_( element, color.r(), color.g(), color.b() );
     }

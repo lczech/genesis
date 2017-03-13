@@ -170,7 +170,7 @@ public:
      * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
      * change this behaviour.
      */
-    void        to_file   (const Tree& tree, const std::string filename);
+    void        to_file   (const Tree& tree, const std::string filename) const;
 
     /**
      * @brief Gives a Newick string representation of the tree.
@@ -178,7 +178,7 @@ public:
      * In case the tree was read from a Newick file, this function should produce the same
      * representation.
      */
-    void        to_string (const Tree& tree, std::string& ts);
+    void        to_string (const Tree& tree, std::string& ts) const;
 
     /**
      * @brief Returns a Newick string representation of the tree.
@@ -186,7 +186,7 @@ public:
      * In case the tree was read from a Newick file, this function should produce the same
      * representation.
      */
-    std::string to_string (const Tree& tree);
+    std::string to_string (const Tree& tree) const;
 
     // -------------------------------------------------------------------------
     //     Plugin Functions
@@ -223,7 +223,7 @@ private:
     /**
      * @brief Stores the information of the tree into a NewickBroker object.
      */
-    void tree_to_broker_ (const Tree& tree, NewickBroker& broker);
+    void tree_to_broker_ (const Tree& tree, NewickBroker& broker) const;
 
 };
 

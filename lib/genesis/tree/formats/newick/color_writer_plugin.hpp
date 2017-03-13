@@ -91,7 +91,7 @@ public:
     /**
      * @brief Get the currently set prefix string. See the setter for more information.
      */
-    std::string color_tag_prefix()
+    std::string color_tag_prefix() const
     {
         return color_tag_prefix_;
     }
@@ -110,7 +110,7 @@ public:
     /**
      * @brief Get the currently set suffix string. See the setter for more information.
      */
-    std::string color_tag_suffix()
+    std::string color_tag_suffix() const
     {
         return color_tag_suffix_;
     }
@@ -119,7 +119,7 @@ public:
     //     Plugin Functions
     // -------------------------------------------------------------------------
 
-    void prepare_writing( Tree const& tree, NewickBroker& broker )
+    void prepare_writing( Tree const& tree, NewickBroker& broker ) const
     {
         (void) broker;
 
@@ -138,7 +138,7 @@ public:
         }
     }
 
-    void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element )
+    void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element ) const
     {
         if (!ColorWriterPlugin::enable_color()) {
             return;
@@ -151,7 +151,7 @@ public:
         }
     }
 
-    void register_with( NewickWriter& writer )
+    void register_with( NewickWriter& writer ) const
     {
         writer.prepare_writing_plugins.push_back(
             [&]( Tree const& tree, NewickBroker& broker ) {
@@ -171,12 +171,12 @@ public:
 
 private:
 
-    void set_color_( NewickBrokerElement& element, unsigned char r, unsigned char g, unsigned char b )
+    void set_color_( NewickBrokerElement& element, unsigned char r, unsigned char g, unsigned char b ) const
     {
         set_color_( element, utils::Color(r, g, b) );
     }
 
-    void set_color_( NewickBrokerElement& element, utils::Color color )
+    void set_color_( NewickBrokerElement& element, utils::Color color ) const
     {
         if(
             ColorWriterPlugin::use_ignored_color() &&
