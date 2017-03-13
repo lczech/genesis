@@ -66,7 +66,7 @@ class TreeLink;
  *   * Also, the (internal) root_link_index is changed to the new root link. This is used for
  *     the functions Tree::root_node() and Tree::root_link().
  *
- * The difference between this function and @link reroot( TreeNode const& ) its node version@endlink
+ * The difference between this function and reroot( Tree& tree, TreeNode const& )
  * is that when specifying a specific link, this link is used as the (primary) link of the new root
  * node. This way, algorithms and iterators (e.g., IteratorLevelorder) will start traversing the
  * tree in the direction of this link by default.
@@ -82,7 +82,7 @@ void reroot( Tree& tree, TreeLink& at_link );
 /**
  * @brief Reroot the Tree at the given TreeNode.
  *
- * See @link reroot( TreeLink const& ) this version of the function@endlink for details.
+ * See reroot( Tree&, TreeLink& ) for details.
  *
  * The node needs to be part of the tree, otherwise an exception is thrown.
  */
@@ -91,7 +91,7 @@ void reroot( Tree& tree, TreeNode& at_node );
 /**
  * @brief Reroot the Tree at the TreeNode with the given index.
  *
- * See @link reroot( TreeLink const& ) reroot(...)@endlink for details.
+ * See reroot( Tree&, TreeLink& ) for details.
  *
  * The node index needs to be valid for the tree, otherwise an exception is thrown.
  */

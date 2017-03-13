@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_FORMATS_PHYLOXML_COLOR_WRITER_MIXIN_H_
-#define GENESIS_TREE_FORMATS_PHYLOXML_COLOR_WRITER_MIXIN_H_
+#ifndef GENESIS_TREE_FORMATS_PHYLOXML_COLOR_WRITER_PLUGIN_H_
+#define GENESIS_TREE_FORMATS_PHYLOXML_COLOR_WRITER_PLUGIN_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,8 +31,9 @@
  * @ingroup tree
  */
 
+#include "genesis/tree/formats/color_writer_plugin.hpp"
+#include "genesis/tree/formats/phyloxml/writer.hpp"
 #include "genesis/tree/tree.hpp"
-#include "genesis/tree/formats/color_writer_mixin.hpp"
 #include "genesis/utils/formats/xml/document.hpp"
 
 #include <assert.h>
@@ -42,11 +43,11 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Phyloxml Color Writer Mixin
+//     Phyloxml Color Writer Plugin
 // =================================================================================================
 
 /**
- * @brief Mixin class for PhyloXML output that allows coloring of edges.
+ * @brief Plugin class for PhyloXML output that allows coloring of edges.
  *
  * The effect of this class on the PhyloXML output is that (if enabled) a color tag will be added
  * to each clade like this:
@@ -60,35 +61,41 @@ namespace tree {
  *         </color>
  *     </clade>
  *
- * For more information, see ColorWriterMixin class.
+ * For more information, see ColorWriterPlugin class.
  */
-template <typename Base>
-class PhyloxmlColorWriterMixin : public Base, public ColorWriterMixin
+class PhyloxmlColorWriterPlugin : public ColorWriterPlugin
 {
-    // -------------------------------------------------------------------------
-    //     Member Types
-    // -------------------------------------------------------------------------
-
 public:
 
     // -------------------------------------------------------------------------
-    //     Overridden Virtual Functions
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-protected:
+    PhyloxmlColorWriterPlugin() = default;
+    virtual ~PhyloxmlColorWriterPlugin() = default;
 
-    virtual void prepare_writing( Tree const& tree, utils::XmlDocument& xml ) override
+    PhyloxmlColorWriterPlugin(PhyloxmlColorWriterPlugin const&) = default;
+    PhyloxmlColorWriterPlugin(PhyloxmlColorWriterPlugin&&)      = default;
+
+    PhyloxmlColorWriterPlugin& operator= (PhyloxmlColorWriterPlugin const&) = default;
+    PhyloxmlColorWriterPlugin& operator= (PhyloxmlColorWriterPlugin&&)      = default;
+
+    // -------------------------------------------------------------------------
+    //      Plugin Functions
+    // -------------------------------------------------------------------------
+
+    void prepare_writing( Tree const& tree, utils::XmlDocument& xml ) const
     {
-        Base::prepare_writing(tree, xml);
+        (void) xml;
 
-        if (!ColorWriterMixin::enable_color()) {
+        if (!ColorWriterPlugin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, it needs to match the tree's edge count.
         if (
-            ColorWriterMixin::edge_colors().size() > 0 &&
-            ColorWriterMixin::edge_colors().size() != tree.edge_count()
+            ColorWriterPlugin::edge_colors().size() > 0 &&
+            ColorWriterPlugin::edge_colors().size() != tree.edge_count()
         ) {
             throw std::length_error(
                 "Color vector does not have as many elements as the tree has edges."
@@ -96,32 +103,44 @@ protected:
         }
     }
 
-    virtual void edge_to_element( TreeEdge const& edge, utils::XmlElement& element ) override
+    void edge_to_element( TreeEdge const& edge, utils::XmlElement& element ) const
     {
-        Base::edge_to_element(edge, element);
-
-        if (!ColorWriterMixin::enable_color()) {
+        if (!ColorWriterPlugin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, use it.
-        if (ColorWriterMixin::edge_colors().size() > 0) {
-            assert( edge.index() <= ColorWriterMixin::edge_colors().size() );
-            set_color(element, ColorWriterMixin::edge_colors()[edge.index()]);
+        if (ColorWriterPlugin::edge_colors().size() > 0) {
+            assert( edge.index() <= ColorWriterPlugin::edge_colors().size() );
+            set_color_(element, ColorWriterPlugin::edge_colors()[edge.index()]);
         }
     }
 
+    void register_with( PhyloxmlWriter& writer ) const
+    {
+        writer.prepare_writing_plugins.push_back(
+            [&]( Tree const& tree, utils::XmlDocument& xml ) {
+                prepare_writing( tree, xml );
+            }
+        );
+        writer.edge_to_element_plugins.push_back(
+            [&]( TreeEdge const& edge, utils::XmlElement& element ) {
+                edge_to_element( edge, element );
+            }
+        );
+    }
+
     // -------------------------------------------------------------------------
-    //     Mixin Functions
+    //     Member Functions
     // -------------------------------------------------------------------------
 
-protected:
+private:
 
-    void set_color( utils::XmlElement& element, unsigned char r, unsigned char g, unsigned char b )
+    void set_color_( utils::XmlElement& element, unsigned char r, unsigned char g, unsigned char b ) const
     {
         if(
-            ColorWriterMixin::use_ignored_color() &&
-            utils::Color(r, g, b) == ColorWriterMixin::ignored_color()
+            ColorWriterPlugin::use_ignored_color() &&
+            utils::Color(r, g, b) == ColorWriterPlugin::ignored_color()
         ) {
             return;
         }
@@ -144,9 +163,9 @@ protected:
         element.content.push_back(std::move(color));
     }
 
-    void set_color( utils::XmlElement& element, utils::Color color )
+    void set_color_( utils::XmlElement& element, utils::Color color ) const
     {
-        set_color( element, color.r(), color.g(), color.b() );
+        set_color_( element, color.r(), color.g(), color.b() );
     }
 
 };

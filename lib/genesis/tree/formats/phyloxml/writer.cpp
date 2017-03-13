@@ -40,6 +40,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/formats/xml/document.hpp"
 #include "genesis/utils/formats/xml/writer.hpp"
+#include "genesis/utils/io/output_stream.hpp"
 
 #include <assert.h>
 #include <stdexcept>
@@ -49,78 +50,36 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Parsing
-// =================================================================================================
-
-// -------------------------------------------------------------------------
-//     Virtual Methods
-// -------------------------------------------------------------------------
-
-// // void PhyloxmlWriter::element_to_node( XmlElement const& element, NodeType& node )
-// {
-//     // Silence unused parameter warnings.
-//     (void) element;
-//     (void) noe;
-// }
-//
-// // void PhyloxmlWriter::element_to_edge( XmlElement const& element, EdgeType& edge )
-// {
-//     // Silence unused parameter warnings.
-//     (void) element;
-//     (void) edge;
-// }
-
-// =================================================================================================
 //     Printing
 // =================================================================================================
 
-/**
- * @brief Writes the tree to a file in Phyloxml format.
- *
- * If the file already exists, the function throws `std::runtime_error`.
- * The function uses utils::file_write. See there for other exceptions that can be thrown.
- */
-void PhyloxmlWriter::to_file (const Tree& tree, const std::string filename)
+void PhyloxmlWriter::to_file (const Tree& tree, const std::string filename) const
 {
-    if( utils::file_exists(filename) ) {
-        throw std::runtime_error( "Phyloxml file '" + filename + "' already exist." );
-    }
     std::string ts;
     to_string(tree, ts);
     utils::file_write(ts, filename);
 }
 
-/**
- * @brief Gives a Phyloxml string representation of the tree.
- *
- * In case the tree was read from a Phyloxml file, this function should produce the same
- * representation.
- */
-void PhyloxmlWriter::to_string (const Tree& tree, std::string& ts)
+void PhyloxmlWriter::to_string (const Tree& tree, std::string& ts) const
 {
     ts = to_string(tree);
 }
 
-/**
- * @brief Returns a Phyloxml string representation of the tree.
- *
- * In case the tree was read from a Phyloxml file, this function should produce the same
- * representation.
- */
-std::string PhyloxmlWriter::to_string (const Tree& tree)
+std::string PhyloxmlWriter::to_string (const Tree& tree) const
 {
     utils::XmlDocument xml;
     to_document(tree, xml);
     return utils::XmlWriter().to_string(xml);
 }
 
-/**
- * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
- */
-void PhyloxmlWriter::to_document (const Tree& tree, utils::XmlDocument& xml)
+void PhyloxmlWriter::to_document (const Tree& tree, utils::XmlDocument& xml) const
 {
     xml.clear();
-    prepare_writing(tree, xml);
+
+    // Call all preparatory plugins.
+    for( auto const& prepare_plugin : prepare_writing_plugins ) {
+        prepare_plugin( tree, xml );
+    }
 
     // Set XML declaration.
     // xml.xml_tag = "xml";
@@ -171,8 +130,13 @@ void PhyloxmlWriter::to_document (const Tree& tree, utils::XmlDocument& xml)
         auto clade = utils::make_unique< utils::XmlElement >();
         clade->tag = "clade";
 
-        node_to_element( it.node(), *clade.get() );
-        edge_to_element( it.edge(), *clade.get() );
+        // Call all plugins to translate node and edge data to xml.
+        for( auto const& node_plugin : node_to_element_plugins ) {
+            node_plugin( it.node(), *clade.get() );
+        }
+        for( auto const& edge_plugin : edge_to_element_plugins ) {
+            edge_plugin( it.edge(), *clade.get() );
+        }
 
         // Append the clade to the current parent (end of the stack), then use it as the new parent
         // for the next iteration of the loop.
@@ -181,39 +145,10 @@ void PhyloxmlWriter::to_document (const Tree& tree, utils::XmlDocument& xml)
         stack.push_back(clade_ptr);
     }
 
-    finish_writing(tree, xml);
-}
-
-// -------------------------------------------------------------------------
-//     Virtual Methods
-// -------------------------------------------------------------------------
-
-void PhyloxmlWriter::prepare_writing( Tree const& tree, utils::XmlDocument& xml )
-{
-    // Silence unused parameter warnings.
-    (void) tree;
-    (void) xml;
-}
-
-void PhyloxmlWriter::node_to_element( TreeNode const& node, utils::XmlElement& element )
-{
-    // Silence unused parameter warnings.
-    (void) element;
-    (void) node;
-}
-
-void PhyloxmlWriter::edge_to_element( TreeEdge const& edge, utils::XmlElement& element )
-{
-    // Silence unused parameter warnings.
-    (void) element;
-    (void) edge;
-}
-
-void PhyloxmlWriter::finish_writing( Tree const& tree, utils::XmlDocument& xml )
-{
-    // Silence unused parameter warnings.
-    (void) tree;
-    (void) xml;
+    // Call all finalizing plugins.
+    for( auto const& finish_plugin : finish_writing_plugins ) {
+        finish_plugin( tree, xml );
+    }
 }
 
 } // namespace tree

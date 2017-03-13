@@ -51,6 +51,7 @@
 #include "genesis/utils/core/version.hpp"
 #include "genesis/utils/formats/json/document.hpp"
 #include "genesis/utils/formats/json/writer.hpp"
+#include "genesis/utils/io/output_stream.hpp"
 
 namespace genesis {
 namespace placement {
@@ -171,19 +172,15 @@ void JplaceWriter::to_stream( Sample const& sample, std::ostream& os ) const
 /**
  * @brief Write the data of a Sample to a file in `Jplace` format.
  *
- * If the file already exists or cannot be written to, the function throws `std::runtime_error`.
+ * If the file cannot be written to, the function throws an exception. Also, by default, if the file
+ * already exists, an exception is thrown.
+ * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
+ * change this behaviour.
  */
 void JplaceWriter::to_file( Sample const& sample, std::string const& filename ) const
 {
-    if( utils::file_exists( filename )) {
-        throw std::runtime_error( "Jplace file '" + filename + "' already exist." );
-    }
-
-    std::ofstream ofs( filename );
-    if( ofs.fail() ) {
-        throw std::runtime_error( "Cannot write to file '" + filename + "'." );
-    }
-
+    std::ofstream ofs;
+    utils::file_output_stream( filename, ofs );
     to_stream( sample, ofs );
 }
 

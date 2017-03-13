@@ -33,6 +33,7 @@
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/io/output_stream.hpp"
 
 #include <fstream>
 #include <sstream>
@@ -83,18 +84,16 @@ void FastaWriter::to_stream( SequenceSet const& sset, std::ostream& os ) const
 
 /**
  * @brief Write Sequences of a SequenceSet to a file in Fasta format.
+ *
+ * If the file cannot be written to, the function throws an exception. Also, by default, if the file
+ * already exists, an exception is thrown.
+ * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
+ * change this behaviour.
  */
-void FastaWriter::to_file( SequenceSet const& sset, std::string const& fn ) const
+void FastaWriter::to_file( SequenceSet const& sset, std::string const& filename ) const
 {
-    if( utils::file_exists( fn ) ) {
-        throw std::runtime_error( "File '" + fn + "' already exists." );
-    }
-
-    std::ofstream ofs( fn );
-    if( ofs.fail() ) {
-        throw std::runtime_error( "Cannot write to file '" + fn + "'." );
-    }
-
+    std::ofstream ofs;
+    utils::file_output_stream( filename, ofs );
     to_stream( sset, ofs );
 }
 

@@ -81,7 +81,10 @@ public:
     /**
      * @brief Write a JsonDocument to a file.
      *
-     * If the file already exists or cannot be written to, the function throws `std::runtime_error`.
+     * If the file cannot be written to, the function throws an exception. Also, by default, if the
+     * file already exists, an exception is thrown.
+     * See @link Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink
+     * to change this behaviour.
      */
     void        to_file   ( JsonDocument const& document, std::string const& filename) const;
 

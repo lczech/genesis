@@ -35,49 +35,47 @@
 #include <stdexcept>
 
 #include "genesis/placement/placement_tree.hpp"
+#include "genesis/placement/function/helper.hpp"
+
 #include "genesis/tree/default/newick_reader.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
+
+#include "genesis/utils/core/logging.hpp"
 
 namespace genesis {
 namespace placement {
 
 // =================================================================================================
-//     Placement Tree Newick Reader Mixin
+//     Placement Tree Newick Reader Plugin
 // =================================================================================================
 
 /**
  * @brief
  */
-template <typename Base>
-class PlacementTreeNewickReaderMixin : public Base
+class PlacementTreeNewickReaderPlugin
 {
-    // -------------------------------------------------------------------------
-    //     Member Types
-    // -------------------------------------------------------------------------
-
 public:
 
     // -------------------------------------------------------------------------
-    //     Overridden Member Functions
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-protected:
+    PlacementTreeNewickReaderPlugin() = default;
+    virtual ~PlacementTreeNewickReaderPlugin() = default;
 
-    virtual void element_to_node( tree::NewickBrokerElement const& element, tree::TreeNode& node ) override
-    {
-        Base::element_to_node( element, node );
-        std::string name = node.data<tree::DefaultNodeData>().name;
-        node.reset_data( PlacementNodeData::create() );
-        node.data<PlacementNodeData>().name = name;
-    }
+    PlacementTreeNewickReaderPlugin(PlacementTreeNewickReaderPlugin const&) = default;
+    PlacementTreeNewickReaderPlugin(PlacementTreeNewickReaderPlugin&&)      = default;
 
-    virtual void element_to_edge( tree::NewickBrokerElement const& element, tree::TreeEdge& edge ) override
+    PlacementTreeNewickReaderPlugin& operator= (PlacementTreeNewickReaderPlugin const&) = default;
+    PlacementTreeNewickReaderPlugin& operator= (PlacementTreeNewickReaderPlugin&&)      = default;
+
+    // -------------------------------------------------------------------------
+    //     Plugin Functions
+    // -------------------------------------------------------------------------
+
+    void element_to_edge( tree::NewickBrokerElement const& element, tree::TreeEdge& edge ) const
     {
-        Base::element_to_edge(element, edge);
-        double branch_length = edge.data<tree::DefaultEdgeData>().branch_length;
-        edge.reset_data( PlacementEdgeData::create() );
         auto& edge_data = edge.data<PlacementEdgeData>();
-        edge_data.branch_length = branch_length;
 
         // Process the edge num.
         edge_data.reset_edge_num(-1);
@@ -97,16 +95,69 @@ protected:
         edge_data.reset_edge_num( std::stoi( element.tags[0] ));
     }
 
+    void finish_reading( tree::NewickBroker const& broker, tree::Tree& tree ) const
+    {
+        (void) broker;
+        if( ! has_correct_edge_nums( tree )) {
+            LOG_INFO << "Placement Tree does not have edge_nums that are increasing with a "
+                     << "post-order traversal of the tree, as is demanded by the jplace standard. "
+                     << "Genesis can still work with this tree, but it might indicate an issue "
+                     << "with the data.";
+        }
+    }
+
+    void register_with( tree::NewickReader& reader ) const
+    {
+        // Set node data creation function.
+        reader.create_node_data_plugin = []( tree::TreeNode& node ){
+            node.reset_data( PlacementNodeData::create() );
+        };
+
+        // Set edge data creation function.
+        reader.create_edge_data_plugin = []( tree::TreeEdge& edge ){
+            edge.reset_data( PlacementEdgeData::create() );
+        };
+
+        // Add edge manipulation functions.
+        reader.element_to_edge_plugins.push_back(
+            [&]( tree::NewickBrokerElement const& element, tree::TreeEdge& edge ) {
+                element_to_edge( element, edge );
+            }
+        );
+
+        // Add finish reading plugin.
+        reader.finish_reading_plugins.push_back(
+            [&]( tree::NewickBroker const& broker, tree::Tree& tree ) {
+                finish_reading( broker, tree );
+            }
+        );
+    }
+
 };
 
 // =================================================================================================
 //     Placement Tree Newick Reader
 // =================================================================================================
 
-typedef PlacementTreeNewickReaderMixin<
-        tree::DefaultTreeNewickReaderMixin< tree::NewickReader >
-    >
-    PlacementTreeNewickReader;
+class PlacementTreeNewickReader
+    : public tree::NewickReader
+    , public tree::DefaultTreeNewickReaderPlugin
+    , public PlacementTreeNewickReaderPlugin
+{
+public:
+
+    // -------------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------------
+
+    PlacementTreeNewickReader()
+    {
+        // We first register the default reader, then the placement reader, because the latter
+        // overwrites the data creation functions.
+        DefaultTreeNewickReaderPlugin::register_with( *this );
+        PlacementTreeNewickReaderPlugin::register_with( *this );
+    }
+};
 
 } // namespace placement
 } // namespace genesis

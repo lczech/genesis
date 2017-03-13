@@ -78,8 +78,8 @@ public:
     SortedVector()  = default;
     ~SortedVector() = default;
 
-    SortedVector( SortedVector const& x ) = default;
-    SortedVector (SortedVector&& x)       = default;
+    SortedVector( SortedVector const& ) = default;
+    SortedVector ( SortedVector&& )      = default;
 
     SortedVector( std::initializer_list<value_type> il )
     {
@@ -89,8 +89,8 @@ public:
         }
     }
 
-    SortedVector& operator= ( SortedVector const& x ) = default;
-    SortedVector& operator= ( SortedVector&& x )      = default;
+    SortedVector& operator= ( SortedVector const& ) = default;
+    SortedVector& operator= ( SortedVector&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Iterators

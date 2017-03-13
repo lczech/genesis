@@ -70,7 +70,8 @@ namespace utils {
  * dereference operator.
  *
  * Implementation details inspired by
- * [fast-cpp-csv-parser](https://github.com/ben-strasser/fast-cpp-csv-parser) by Ben Strasser.
+ * [fast-cpp-csv-parser](https://github.com/ben-strasser/fast-cpp-csv-parser) by Ben Strasser,
+ * see also @link supplement_acknowledgements Acknowledgements@endlink.
  */
 class InputStream
 {

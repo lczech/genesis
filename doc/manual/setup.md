@@ -67,7 +67,7 @@ Requirements:
 
  *  [make](https://www.gnu.org/software/make/) and [cmake](https://cmake.org/) 2.8.7 or higher.
  *  A fairly up-to-date C++11 compiler. We currently test with [clang++](http://clang.llvm.org/)
-    3.6 and 3.7, as well as [g++](https://gcc.gnu.org/) 4.9 and 5.0.
+    3.6 and 3.7, as well as [GCC](https://gcc.gnu.org/) 4.8.1, 4.9 and 5.0.
 
 Make sure that your `libstdc++` is also up to date. This is the standard library for C++, which is
 heavily used in genesis. It is usually installed with `g++`. However, `clang++` uses the `g++`
@@ -106,7 +106,7 @@ If you just pulled new commits from the repository, or added new files to be com
     make update
 
 to include those files without need for recompiling everything (a so-called incremental build).
-See @ref dev for more information on incremental builds.
+See @ref supplement_development for more information on incremental builds.
 
 # Apps {#setup_apps}
 

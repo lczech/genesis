@@ -48,7 +48,7 @@ class ExportFile:
         self.func_templates   = {}
 
 # ==================================================================================================
-#     Class: Boost Python Writer
+#     Class: Pybind11 Writer
 # ==================================================================================================
 
 class Pybind11Writer:
@@ -211,7 +211,7 @@ class Pybind11Writer:
     #     Generate Class Operators
     # ----------------------------------------------------------------
 
-   # TODO add friend (non-member) operators: http://www.boost.org/doc/libs/1_35_0/libs/python/doc/v2/operators.html
+   # TODO add friend (non-member) operators
 
     @staticmethod
     def classify_operator (op):
@@ -331,7 +331,8 @@ class Pybind11Writer:
             val += "            []( " + clss.cpp_full_name() + "& obj ){\n"
             val += "                return pybind11::make_iterator( "
             val += "obj." + it.begin + "(), obj." + it.end + "() );\n"
-            val += "            }\n"
+            val += "            },\n"
+            val += "            py::keep_alive<0, 1>()\n"
             val += "        )\n"
 
         return val
@@ -449,14 +450,14 @@ class Pybind11Writer:
 
         fn = os.path.join(directory, "bindings.cpp")
         f = open(fn, 'w')
-        f.write ("#include <boost/python.hpp>\n")
+        f.write ("#include <pybind11/pybind11.h>\n")
         f.write (Pybind11Writer.make_section_header_major("Forward declarations of all exported classes"))
         for fn, exp in export_files.iteritems():
              for clss_name, clss_str in exp.class_strings.iteritems():
                  f.write ("void Pybind11Export_" + clss_name + "();\n")
 
-        f.write (Pybind11Writer.make_section_header_major("Boost Python Module"))
-        f.write ("BOOST_PYTHON_MODULE(" + module_name + ")\n{\n")
+        f.write (Pybind11Writer.make_section_header_major("Pybind11 Python Module"))
+        f.write ("PYBIND11_PLUGIN(" + module_name + ")\n{\n")
         for fn, exp in export_files.iteritems():
              for clss_name, clss_str in exp.class_strings.iteritems():
                  f.write ("    Pybind11Export_" + clss_name + "();\n")

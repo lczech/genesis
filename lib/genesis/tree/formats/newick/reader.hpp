@@ -31,6 +31,7 @@
  * @ingroup tree
  */
 
+#include <functional>
 #include <string>
 #include <vector>
 
@@ -58,13 +59,35 @@ class NewickReader
 public:
 
     // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    using prepare_reading_function = std::function< void(
+        NewickBroker const& broker, Tree& tree
+    ) >;
+
+    using finish_reading_function = std::function< void(
+        NewickBroker const& broker, Tree& tree
+    ) >;
+
+    using create_node_data_function = std::function< void( TreeNode& node ) >;
+
+    using create_edge_data_function = std::function< void( TreeEdge& edge ) >;
+
+    using element_to_node_function = std::function< void(
+        NewickBrokerElement const& element, TreeNode& node
+    ) >;
+
+    using element_to_edge_function = std::function< void(
+        NewickBrokerElement const& element, TreeEdge& edge
+    ) >;
+
+    // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-public:
-
     NewickReader() = default;
-    virtual ~NewickReader() {}
+    virtual ~NewickReader() = default;
 
     NewickReader(NewickReader const&) = default;
     NewickReader(NewickReader&&)      = default;
@@ -76,42 +99,43 @@ public:
     //     Reading
     // -------------------------------------------------------------------------
 
-public:
-
-    bool from_file    (const std::string& filename,    Tree& tree);
-    bool from_string  (const std::string& tree_string, Tree& tree);
+    bool from_file    (const std::string& filename,    Tree& tree) const;
+    bool from_string  (const std::string& tree_string, Tree& tree) const;
 
     bool from_file    (
         const std::string& filename,
         TreeSet& tree_set
-    );
+    ) const;
+
     bool from_string  (
         const std::string& tree_string,
         TreeSet& tree_set,
         const std::string& default_name = ""
-    );
+    ) const;
 
     bool from_files   (
         const std::vector<std::string>& filenames,
         TreeSet& tree_set
-    );
+    ) const;
 
     bool from_strings (
         const std::vector<std::string>& tree_strings,
         TreeSet& tree_set,
         const std::string& default_name = ""
-    );
+    ) const;
 
     // -------------------------------------------------------------------------
-    //     Virtual Parsing Helpers
+    //     Plugin Functions
     // -------------------------------------------------------------------------
 
-protected:
+    std::vector<prepare_reading_function> prepare_reading_plugins;
+    std::vector<finish_reading_function>  finish_reading_plugins;
 
-    virtual void prepare_reading( NewickBroker const& broker, Tree& tree );
-    virtual void element_to_node( NewickBrokerElement const& element, TreeNode& node );
-    virtual void element_to_edge( NewickBrokerElement const& element, TreeEdge& edge );
-    virtual void finish_reading( NewickBroker const& broker, Tree& tree );
+    create_node_data_function create_node_data_plugin;
+    create_edge_data_function create_edge_data_plugin;
+
+    std::vector<element_to_node_function> element_to_node_plugins;
+    std::vector<element_to_edge_function> element_to_edge_plugins;
 
     // -------------------------------------------------------------------------
     //     Internal Member Functions
@@ -119,7 +143,7 @@ protected:
 
 private:
 
-    void broker_to_tree (NewickBroker const& broker, Tree& tree);
+    void broker_to_tree_ (NewickBroker const& broker, Tree& tree) const;
 
 };
 

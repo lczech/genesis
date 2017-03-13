@@ -154,6 +154,58 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Misc Options
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Get whether Genesis is allowed to overwrite files when outputting data.
+     *
+     * See allow_file_overwriting( bool ) for details.
+     */
+    inline bool allow_file_overwriting() const
+    {
+        return allow_file_overwriting_;
+    }
+
+    /**
+     * @brief Set whether Genesis is allowed to overwrite files when outputting data.
+     *
+     * The option is `false` by default, which causes Genesis to throw an execption when it attempts
+     * to write to a file that is already existing.
+     *
+     * By setting this option to `true`, files are silently overwritten in case they already
+     * exist. This has to be activated explicitly in order to avoid losing files by accident.
+     *
+     * @see @link utils::file_output_stream() file_output_stream()@endlink
+     */
+    inline void allow_file_overwriting( bool value )
+    {
+        allow_file_overwriting_ = value;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Run Time Environment
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Return true iff the standard input stream is a terminal, and false if not, i.e., if
+     * it is a file or a pipe.
+     */
+    bool stdin_is_terminal() const;
+
+    /**
+     * @brief Return true iff the standard output stream is a terminal, and false if not, i.e., if
+     * it is a file or a pipe.
+     */
+    bool stdout_is_terminal() const;
+
+    /**
+     * @brief Return true iff the standard error stream is a terminal, and false if not, i.e., if
+     * it is a file or a pipe.
+     */
+    bool stderr_is_terminal() const;
+
+    // -------------------------------------------------------------------------
     //     Compile Time Environment
     // -------------------------------------------------------------------------
 
@@ -237,8 +289,11 @@ private:
 
     std::vector<std::string>   command_line_;
     unsigned int               number_of_threads_;
+
     unsigned                   random_seed_;
     std::default_random_engine random_engine_;
+
+    bool                       allow_file_overwriting_ = false;
 
     // -------------------------------------------------------------------------
     //     Hidden Class Members

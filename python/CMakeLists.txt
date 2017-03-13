@@ -23,18 +23,19 @@
 #   Setup Python
 # ------------------------------------------------------------------------------
 
-# All this is done by Pybind11 already. We keep it here for reference, it case it is needed later.
+# Check for Python libs. Pybind does not check for the python dev packages, so we need to do this.
+message (STATUS "Looking for PythonLibs")
+find_package (PythonLibs 2.7)
 
-# message (STATUS "Looking for PythonLibs")
-# find_package (PythonLibs 2.7)
-#
-# if( NOT PYTHONLIBS_FOUND )
-#     message (STATUS "PythonLibs not found")
-#     message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
-#     return()
-# endif()
-#
-# message (STATUS "Found PythonLibs: ${PYTHONLIBS_VERSION_STRING}")
+if( NOT PYTHONLIBS_FOUND )
+    message (STATUS "PythonLibs not found")
+    message (STATUS "${ColorRed}Cannot build Python module${ColorEnd}")
+    message (STATUS "${ColorYellow}Try installing the 'python-dev' or 'python2.7-dev' packages "
+    "first.${ColorEnd}")
+    return()
+endif()
+
+message (STATUS "Found PythonLibs: ${PYTHONLIBS_VERSION_STRING}")
 
 # ------------------------------------------------------------------------------
 #   Setup Pybind11
@@ -151,7 +152,7 @@ pybind11_add_module( genesis_python_module MODULE ${genesis_python_sources} )
 add_dependencies( genesis_python_module pybind11 )
 
 # Link against our library.
-target_link_libraries (genesis_python_module genesis_lib_shared)
+target_link_libraries (genesis_python_module PRIVATE genesis_lib_shared)
 
 # No need to do this manually, Pybind takes care of this. Keep it for reference.
 # target_link_libraries (genesis_python_module ${PYTHON_LIBRARIES})
@@ -167,5 +168,5 @@ set_target_properties (genesis_python_module PROPERTIES SUFFIX "${PYTHON_MODULE_
 # )
 
 if(THREADS_FOUND)
-    target_link_libraries (genesis_python_module ${CMAKE_THREAD_LIBS_INIT})
+    target_link_libraries (genesis_python_module PRIVATE ${CMAKE_THREAD_LIBS_INIT})
 endif()

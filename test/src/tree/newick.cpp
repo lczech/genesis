@@ -36,7 +36,7 @@
 #include "genesis/tree/default/newick_writer.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/formats/newick/color_writer_mixin.hpp"
+#include "genesis/tree/formats/newick/color_writer_plugin.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 #include "genesis/tree/tree.hpp"
@@ -49,9 +49,14 @@ TEST(Newick, FromAndToString)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
+    // Wead
     Tree tree;
     EXPECT_TRUE(DefaultTreeNewickReader().from_string(input, tree));
-    std::string output = DefaultTreeNewickWriter().to_string(tree);
+
+    // Write
+    auto writer = DefaultTreeNewickWriter();
+    writer.enable_branch_lengths( false );
+    std::string output = writer.to_string( tree );
 
     EXPECT_EQ(input, output);
 }
@@ -124,14 +129,18 @@ TEST(Newick, NewickVariants)
     EXPECT_TRUE( validate_topology(tree) );
 }
 
-TEST(Newick, ColorMixin)
+TEST(Newick, ColorPlugin)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
     Tree tree;
-    typedef DefaultTreeNewickWriterMixin<NewickColorWriterMixin<NewickWriter>> ColorTreeNewickWriter;
 
-    // Make sure that the mixin does not interfere with other Newick functionality. If it does, the
+    // Prepare a Newick writer with color plugin functions.
+    auto writer = DefaultTreeNewickWriter();
+    auto color_plugin = NewickColorWriterPlugin();
+    color_plugin.register_with( writer );
+
+    // Make sure that the plugin does not interfere with other Newick functionality. If it does, the
     // following line would hopefully crash.
     EXPECT_TRUE( DefaultTreeNewickReader().from_string(input, tree) );
 
@@ -146,10 +155,9 @@ TEST(Newick, ColorMixin)
     // Use the color vector to produce a newick string with color tags.
     // We set ignored color to fuchsia ("magic pink") in order to also print out the black colored
     // inner edges.
-    auto proc = ColorTreeNewickWriter();
-    proc.edge_colors(color_vector);
-    proc.ignored_color(utils::Color(255, 0, 255));
-    std::string output = proc.to_string(tree);
+    color_plugin.edge_colors(color_vector);
+    color_plugin.ignored_color(utils::Color(255, 0, 255));
+    std::string output = writer.to_string(tree);
 
     // Check if we actually got the right number of red color tag comments.
     auto count_red = utils::count_substring_occurrences( output, "[&!color=#ff0000]" );

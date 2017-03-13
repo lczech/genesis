@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_FORMATS_NEWICK_COLOR_WRITER_MIXIN_H_
-#define GENESIS_TREE_FORMATS_NEWICK_COLOR_WRITER_MIXIN_H_
+#ifndef GENESIS_TREE_FORMATS_NEWICK_COLOR_WRITER_PLUGIN_H_
+#define GENESIS_TREE_FORMATS_NEWICK_COLOR_WRITER_PLUGIN_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -32,8 +32,9 @@
  */
 
 #include "genesis/tree/tree.hpp"
-#include "genesis/tree/formats/color_writer_mixin.hpp"
+#include "genesis/tree/formats/color_writer_plugin.hpp"
 #include "genesis/tree/formats/newick/element.hpp"
+#include "genesis/tree/formats/newick/writer.hpp"
 
 #include <assert.h>
 #include <stdexcept>
@@ -43,31 +44,37 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Newick Color Mixin
+//     Newick Color Writer Plugin
 // =================================================================================================
 
 /**
- * @brief Mixin class for Newick output that allows coloring of edges.
+ * @brief Plugin class for Newick output that allows coloring of edges.
  *
  * The effect of this class on the Newick output is that (if enabled) a color tag comment will be
  * added to each Newick element like this: `[&!color=#%c0ffee]`.
  *
- * For more information, see ColorWriterMixin class.
+ * For more information, see ColorWriterPlugin class.
  */
-template <typename Base>
-class NewickColorWriterMixin : public Base, public ColorWriterMixin
+class NewickColorWriterPlugin : public ColorWriterPlugin
 {
+public:
+
     // -------------------------------------------------------------------------
-    //     Member Types
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-public:
+    NewickColorWriterPlugin() = default;
+    virtual ~NewickColorWriterPlugin() = default;
+
+    NewickColorWriterPlugin(NewickColorWriterPlugin const&) = default;
+    NewickColorWriterPlugin(NewickColorWriterPlugin&&)      = default;
+
+    NewickColorWriterPlugin& operator= (NewickColorWriterPlugin const&) = default;
+    NewickColorWriterPlugin& operator= (NewickColorWriterPlugin&&)      = default;
 
     // -------------------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------------------
-
-public:
 
     /**
      * @brief Set the prefix string that is used within the Newick comment before the actual
@@ -84,7 +91,7 @@ public:
     /**
      * @brief Get the currently set prefix string. See the setter for more information.
      */
-    std::string color_tag_prefix()
+    std::string color_tag_prefix() const
     {
         return color_tag_prefix_;
     }
@@ -103,29 +110,27 @@ public:
     /**
      * @brief Get the currently set suffix string. See the setter for more information.
      */
-    std::string color_tag_suffix()
+    std::string color_tag_suffix() const
     {
         return color_tag_suffix_;
     }
 
     // -------------------------------------------------------------------------
-    //     Overridden Member Functions
+    //     Plugin Functions
     // -------------------------------------------------------------------------
 
-protected:
-
-    virtual void prepare_writing( Tree const& tree, NewickBroker& broker ) override
+    void prepare_writing( Tree const& tree, NewickBroker& broker ) const
     {
-        Base::prepare_writing(tree, broker);
+        (void) broker;
 
-        if (!ColorWriterMixin::enable_color()) {
+        if (!ColorWriterPlugin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, it needs to match the tree's edge count.
         if (
-            ColorWriterMixin::edge_colors().size() > 0 &&
-            ColorWriterMixin::edge_colors().size() != tree.edge_count()
+            ColorWriterPlugin::edge_colors().size() > 0 &&
+            ColorWriterPlugin::edge_colors().size() != tree.edge_count()
         ) {
             throw std::length_error(
                 "Color vector does not have as many elements as the tree has edges."
@@ -133,37 +138,49 @@ protected:
         }
     }
 
-    virtual void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element ) override
+    void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element ) const
     {
-        Base::edge_to_element(edge, element);
-
-        if (!ColorWriterMixin::enable_color()) {
+        if (!ColorWriterPlugin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, use it.
-        if (ColorWriterMixin::edge_colors().size() > 0) {
-            assert( edge.index() <= ColorWriterMixin::edge_colors().size() );
-            set_color(element, ColorWriterMixin::edge_colors()[edge.index()]);
+        if (ColorWriterPlugin::edge_colors().size() > 0) {
+            assert( edge.index() <= ColorWriterPlugin::edge_colors().size() );
+            set_color_(element, ColorWriterPlugin::edge_colors()[edge.index()]);
         }
     }
 
-    // -------------------------------------------------------------------------
-    //     Mixin Functions
-    // -------------------------------------------------------------------------
-
-protected:
-
-    void set_color( NewickBrokerElement& element, unsigned char r, unsigned char g, unsigned char b )
+    void register_with( NewickWriter& writer ) const
     {
-        set_color( element, utils::Color(r, g, b) );
+        writer.prepare_writing_plugins.push_back(
+            [&]( Tree const& tree, NewickBroker& broker ) {
+                prepare_writing( tree, broker );
+            }
+        );
+        writer.edge_to_element_plugins.push_back(
+            [&]( TreeEdge const& edge, NewickBrokerElement& element ) {
+                edge_to_element( edge, element );
+            }
+        );
     }
 
-    void set_color( NewickBrokerElement& element, utils::Color color )
+    // -------------------------------------------------------------------------
+    //     Member Functions
+    // -------------------------------------------------------------------------
+
+private:
+
+    void set_color_( NewickBrokerElement& element, unsigned char r, unsigned char g, unsigned char b ) const
+    {
+        set_color_( element, utils::Color(r, g, b) );
+    }
+
+    void set_color_( NewickBrokerElement& element, utils::Color color ) const
     {
         if(
-            ColorWriterMixin::use_ignored_color() &&
-            color == ColorWriterMixin::ignored_color()
+            ColorWriterPlugin::use_ignored_color() &&
+            color == ColorWriterPlugin::ignored_color()
         ) {
             return;
         }

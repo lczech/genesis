@@ -148,7 +148,9 @@ PYTHON_EXPORT_CLASS( ::genesis::placement::Sample, scope )
         .def(
             "__iter__",
             []( ::genesis::placement::Sample& obj ){
-                return pybind11::make_iterator( obj.begin(), obj.end() );            }
+                return pybind11::make_iterator( obj.begin(), obj.end() );
+            },
+            pybind11::keep_alive<0, 1>()
         )
     ;
 }

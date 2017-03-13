@@ -125,7 +125,9 @@ PYTHON_EXPORT_CLASS( ::genesis::sequence::SequenceSet, scope )
         .def(
             "__iter__",
             []( ::genesis::sequence::SequenceSet& obj ){
-                return pybind11::make_iterator( obj.begin(), obj.end() );            }
+                return pybind11::make_iterator( obj.begin(), obj.end() );
+            },
+            pybind11::keep_alive<0, 1>()
         )
     ;
 }

@@ -31,7 +31,9 @@
  * @ingroup tree
  */
 
+#include <functional>
 #include <string>
+#include <vector>
 
 namespace genesis {
 
@@ -55,46 +57,165 @@ class  TreeSet;
 //     Phyloxml Writer
 // =================================================================================================
 
+/**
+ * @brief Write a Tree to Phyloxml format.
+ *
+ * This class supports to write a Tree into a Phyloxml format representation, using
+ *
+ *   * to_file()
+ *   * to_string()
+ *   * to_document()
+ *
+ * It understands the Phyloxml format, but is agnostic of the actual data representation of
+ * TreeNode and TreeEdge data. This approach allows to store data in any wanted format.
+ *
+ * In order to translate data from the Tree into a Phyloxml format representation, a set of plugin
+ * functions is used, that need to be set before writing a Tree. Those functions are a form of
+ * intermediaries, which take tree data and turn them into the wanted Phyloxml representation.
+ * It is possible to use lambdas for this, or any other function that can be stored in a
+ * `std::function`.
+ *
+ * The following plugin points are provided:
+ *
+ *   * #prepare_writing_plugins
+ *   * #node_to_element_plugins
+ *   * #edge_to_element_plugins
+ *   * #finish_writing_plugins
+ *
+ * For example, the DefaultTreePhyloxmlWriterPlugin is a convenience class that provides such plugin
+ * functions. It translates from a #DefaultTree with TreeNode%s that contain names and TreeEdge%s
+ * that contain branch lengths into the standard Phyloxml format. Using plugin classes like this
+ * additionally allows to use state for the plugin functions - that is, to use some settings for
+ * how to write data.
+ *
+ * Furthermore, as we use vectors of plugin functions, it is possible (and often necessary) to
+ * register multiple such functions, which are then called one after another. This allows to e.g.,
+ * first translate a branch length for an edge in one plugin function, and then translating
+ * a bootstrap value or edge color in another plugin function.
+ *
+ * This whole approach is a bit tedious, but unfortunately the price for the flexibility of this
+ * class. In order to keep the standard use cases simple, we also provide classes like
+ * DefaultTreePhyloxmlWriter, which hides the whole plugin system and allows simple writing
+ * of default trees to standard Phyloxml.
+ */
 class PhyloxmlWriter
 {
 public:
 
     // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Function type that allows to do some preparatory work with the Tree and
+     * @link utils::XmlDocument XmlDocument@endlink before the actual tree writing begins.
+     *
+     * This is for example useful if a certain kind of value for the nodes depends on other
+     * nodes. Using this function, such data can be collected and then used when writing the nodes.
+     */
+    using prepare_writing_function = std::function< void(
+        Tree const& tree, utils::XmlDocument& xml
+    ) >;
+
+    /**
+     * @brief Function type that allows to do some finalizing work with the Tree and
+     * @link utils::XmlDocument XmlDocument@endlink after the actual tree writing finished.
+     *
+     * This can for example be used for some cleanup.
+     */
+    using finish_writing_function = std::function< void(
+        Tree const& tree, utils::XmlDocument& xml
+    ) >;
+
+    /**
+     * @brief Function type that translates from a TreeNode to an
+     * @link utils::XmlElement XmlElement@endlink.
+     *
+     * This is called for each TreeNode while writing the Tree to Phyloxml and is used to
+     * transfer data from the node into a suitable representation in the Phyloxml format.
+     */
+    using node_to_element_function = std::function< void(
+        TreeNode const& node, utils::XmlElement&  element
+    ) >;
+
+    /**
+     * @brief Function type that translates from a TreeEdge to an
+     * @link utils::XmlElement XmlElement@endlink.
+     *
+     * This is called for each TreeEdge while writing the Tree to Phyloxml and is used to
+     * transfer data from the edge into a suitable representation in the Phyloxml format.
+     */
+    using edge_to_element_function = std::function< void(
+        TreeEdge const& edge, utils::XmlElement&  element
+    ) >;
+
+    // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-public:
+    PhyloxmlWriter() = default;
+    virtual ~PhyloxmlWriter() = default;
 
-    virtual ~PhyloxmlWriter() {}
+    PhyloxmlWriter(PhyloxmlWriter const&) = default;
+    PhyloxmlWriter(PhyloxmlWriter&&)      = default;
 
-    // ---------------------------------------------------------------------
-    //     Reading
-    // ---------------------------------------------------------------------
-
-protected:
-
-    // virtual void prepare_reading( XmlDocument const& xml, Tree& tree );
-    // virtual void element_to_node( XmlElement const& element, NodeType& edge );
-    // virtual void element_to_edge( XmlElement const& element, EdgeType& node );
-    // virtual void finish_reading( XmlDocument const& xml, Tree& tree );
+    PhyloxmlWriter& operator= (PhyloxmlWriter const&) = default;
+    PhyloxmlWriter& operator= (PhyloxmlWriter&&)      = default;
 
     // ---------------------------------------------------------------------
     //     Writing
     // ---------------------------------------------------------------------
 
-public:
+    /**
+     * @brief Writes the tree to a file in Phyloxml format.
+     *
+     * If the file cannot be written to, the function throws an exception. Also, by default, if the file
+     * already exists, an exception is thrown.
+     * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink
+     * to change this behaviour.
+     */
+    void        to_file     (const Tree& tree, const std::string filename) const;
 
-    void        to_file     (const Tree& tree, const std::string filename);
-    void        to_string   (const Tree& tree, std::string& ts);
-    std::string to_string   (const Tree& tree);
-    void        to_document (const Tree& tree, utils::XmlDocument& xml);
+    /**
+     * @brief Gives a Phyloxml string representation of the tree.
+     */
+    void        to_string   (const Tree& tree, std::string& ts) const;
 
-protected:
+    /**
+     * @brief Return a Phyloxml string representation of the tree.
+     */
+    std::string to_string   (const Tree& tree) const;
 
-    virtual void prepare_writing( Tree const& tree, utils::XmlDocument& xml );
-    virtual void node_to_element( TreeNode const& node, utils::XmlElement&  element );
-    virtual void edge_to_element( TreeEdge const& edge, utils::XmlElement&  element );
-    virtual void finish_writing(  Tree const& tree, utils::XmlDocument& xml );
+    /**
+     * @brief Store the information of the tree into an Phyloxml-formatted XmlDocument.
+     */
+    void        to_document (const Tree& tree, utils::XmlDocument& xml) const;
+
+    // -------------------------------------------------------------------------
+    //     Plugin Functions
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Collect all functions to be called before starting the actual tree writing.
+     */
+    std::vector<prepare_writing_function> prepare_writing_plugins;
+
+    /**
+     * @brief Collect all functions to be called after finishing the actual tree writing.
+     */
+    std::vector<finish_writing_function>  finish_writing_plugins;
+
+    /**
+    * @brief Collect all functions to be called for each TreeNode in order to translate it to
+    * a Phyloxml representation.
+    */
+    std::vector<node_to_element_function> node_to_element_plugins;
+
+    /**
+     * @brief Collect all functions to be called for each TreeEdge in order to translate it to
+     * a Phyloxml representation.
+     */
+    std::vector<edge_to_element_function> edge_to_element_plugins;
 
 };
 

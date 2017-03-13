@@ -30,8 +30,9 @@
 
 #include "genesis/utils/formats/bmp/writer.hpp"
 
-#include "genesis/utils/core/options.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/core/options.hpp"
+#include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/tools/color.hpp"
 
@@ -115,16 +116,9 @@ void BmpWriter::to_stream( Matrix<Color> const& image, std::ostream& outstream )
 
 void BmpWriter::to_file( Matrix<Color> const& image, std::string const& filename ) const
 {
-    if( utils::file_exists(filename) ) {
-        throw std::runtime_error( "Bmp file '" + filename + "' already exist." );
-    }
-
-    std::ofstream fstr( filename, std::ofstream::binary );
-    if( !fstr ) {
-        throw std::runtime_error( "Cannot write Bmp file '" + filename + "'." );
-    }
-
-    to_stream( image, fstr );
+    std::ofstream ofs;
+    utils::file_output_stream( filename, ofs );
+    to_stream( image, ofs );
 }
 
 // =================================================================================================
@@ -133,7 +127,7 @@ void BmpWriter::to_file( Matrix<Color> const& image, std::string const& filename
 
 void BmpWriter::to_stream( Matrix<unsigned char> const& image, std::ostream& outstream ) const
 {
-    // Build a simplye grayscale palette.
+    // Build a simple grayscale palette.
     auto palette = std::vector<Color>( 256 );
     for( size_t i = 0; i < 256; ++i ) {
         palette[i].r(i);
@@ -145,16 +139,9 @@ void BmpWriter::to_stream( Matrix<unsigned char> const& image, std::ostream& out
 
 void BmpWriter::to_file( Matrix<unsigned char> const& image, std::string const& filename ) const
 {
-    if( utils::file_exists(filename) ) {
-        throw std::runtime_error( "Bmp file '" + filename + "' already exist." );
-    }
-
-    std::ofstream fstr( filename, std::ofstream::binary );
-    if( !fstr ) {
-        throw std::runtime_error( "Cannot write Bmp file '" + filename + "'." );
-    }
-
-    to_stream( image, fstr );
+    std::ofstream ofs;
+    utils::file_output_stream( filename, ofs );
+    to_stream( image, ofs );
 }
 
 // =================================================================================================
@@ -238,16 +225,9 @@ void BmpWriter::to_stream(
 void BmpWriter::to_file(
     Matrix<unsigned char> const& image, std::vector<Color> palette, std::string const& filename
 ) const {
-    if( utils::file_exists(filename) ) {
-        throw std::runtime_error( "Bmp file '" + filename + "' already exist." );
-    }
-
-    std::ofstream fstr( filename, std::ofstream::binary );
-    if( !fstr ) {
-        throw std::runtime_error( "Cannot write Bmp file '" + filename + "'." );
-    }
-
-    to_stream( image, palette, fstr );
+    std::ofstream ofs;
+    utils::file_output_stream( filename, ofs );
+    to_stream( image, palette, ofs );
 }
 
 // =================================================================================================

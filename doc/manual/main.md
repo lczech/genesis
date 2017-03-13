@@ -18,8 +18,7 @@ applications, and for getting started with genesis.
  *  @subpage tutorials
  *  @subpage demos
 
-Furthermore, there is an information page for the @subpage dev of genesis for those who want
-to contribute to the code base.
+Furthermore, see the @subpage supplement for additional information.
 
 # API Reference
 
@@ -57,7 +56,8 @@ This work is financially supported by the
 [Klaus Tschira Foundation](http://www.klaus-tschira-stiftung.de/) and the
 [HITS gGmbH - Heidelberg Institute for Theoretical Studies](http://www.h-its.org).
 
-See the webpage of the [Exelixis Lab](http://exelixis-lab.org/) for our other projects.
+See @ref supplement_acknowledgements for the full list of acknowledgements, particularly for
+dependencies. See the webpage of the [Exelixis Lab](http://exelixis-lab.org/) for our other projects.
 
 # License
 

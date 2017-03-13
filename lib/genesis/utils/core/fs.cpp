@@ -41,6 +41,7 @@
 #include <sys/stat.h>
 
 #include "genesis/utils/core/algorithm.hpp"
+#include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 
 namespace genesis {
@@ -96,18 +97,18 @@ std::string file_read( std::string const& filename )
 /**
  * @brief Write the content of a string to a file.
  *
- * If the file is not writable, the function throws `std::runtime_error`.
+ * If the file cannot be written to, the function throws an exception. Also, by default, if the file
+ * already exists, an exception is thrown.
+ * See @link Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
+ * change this behaviour.
  */
 void file_write( std::string const& content, std::string const& filename )
 {
     // TODO check if path exists, create if not (make a function for that)
-    // TODO check if file exists, trigger warning?, check if writable
 
-    std::ofstream outfile(filename);
-    if (!outfile.good()) {
-        throw std::runtime_error( "Cannot write to file '" + filename + "'." );
-    }
-    outfile << content;
+    std::ofstream ofs;
+    utils::file_output_stream( filename, ofs );
+    ofs << content;
 }
 
 /**
@@ -118,14 +119,13 @@ void file_write( std::string const& content, std::string const& filename )
 void file_append( std::string const& content, std::string const& filename )
 {
     // TODO check if path exists, create if not (make a function for that)
-    // TODO check if file exists, trigger warning?, check if writable
     // TODO maybe merge with file_write and use mode as optional parameter.
 
-    std::ofstream outfile(filename, std::ofstream::app);
-    if (!outfile.good()) {
-        throw std::runtime_error( "Cannot write to file '" + filename + "'." );
+    std::ofstream out_stream( filename, std::ofstream::app );
+    if( out_stream.fail() ) {
+        throw std::runtime_error( "Cannot append to file '" + filename + "'." );
     }
-    outfile << content;
+    out_stream << content;
 }
 
 // =================================================================================================

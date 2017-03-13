@@ -41,35 +41,35 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Default Tree Newick Reader Mixin
+//     Default Tree Newick Reader Plugin
 // =================================================================================================
 
 /**
  * @brief
  */
-template <typename Base>
-class DefaultTreeNewickReaderMixin : public Base
+class DefaultTreeNewickReaderPlugin
 {
-    // -------------------------------------------------------------------------
-    //     Member Types
-    // -------------------------------------------------------------------------
-
 public:
 
     // -------------------------------------------------------------------------
-    //     Properties
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
+    DefaultTreeNewickReaderPlugin() = default;
+    virtual ~DefaultTreeNewickReaderPlugin() = default;
+
+    DefaultTreeNewickReaderPlugin(DefaultTreeNewickReaderPlugin const&) = default;
+    DefaultTreeNewickReaderPlugin(DefaultTreeNewickReaderPlugin&&)      = default;
+
+    DefaultTreeNewickReaderPlugin& operator= (DefaultTreeNewickReaderPlugin const&) = default;
+    DefaultTreeNewickReaderPlugin& operator= (DefaultTreeNewickReaderPlugin&&)      = default;
+
     // -------------------------------------------------------------------------
-    //     Overridden Member Functions
+    //     Plugin Functions
     // -------------------------------------------------------------------------
 
-protected:
-
-    virtual void element_to_node( NewickBrokerElement const& element, TreeNode& node ) override
+    void element_to_node( NewickBrokerElement const& element, TreeNode& node ) const
     {
-        Base::element_to_node(element, node);
-
         std::string name = element.name;
 
         // Insert default names if needed.
@@ -88,15 +88,11 @@ protected:
             name = utils::replace_all(name, "_", " ");
         }
 
-        node.reset_data( DefaultNodeData::create() );
         node.data<DefaultNodeData>().name = name;
     }
 
-    virtual void element_to_edge( NewickBrokerElement const& element, TreeEdge& edge ) override
+    void element_to_edge( NewickBrokerElement const& element, TreeEdge& edge ) const
     {
-        Base::element_to_edge(element, edge);
-        edge.reset_data( DefaultEdgeData::create() );
-
         // We assume that the branch length is always the first (or only) value.
         // If there is an interpretation where this is not the case, it is best to introduce
         // an array index for this as a paramter of this class.
@@ -107,6 +103,43 @@ protected:
         }
     }
 
+    void register_with( NewickReader& reader ) const
+    {
+        // Set node data creation function.
+        reader.create_node_data_plugin = []( TreeNode& node ){
+            node.reset_data( DefaultNodeData::create() );
+        };
+
+        // Set edge data creation function.
+        reader.create_edge_data_plugin = []( TreeEdge& edge ){
+            edge.reset_data( DefaultEdgeData::create() );
+        };
+
+        // Add node manipulation functions.
+        reader.element_to_node_plugins.push_back(
+            [&]( NewickBrokerElement const& element, TreeNode& node ) {
+                element_to_node( element, node );
+            }
+        );
+
+        // Add edge manipulation functions.
+        reader.element_to_edge_plugins.push_back(
+            [&]( NewickBrokerElement const& element, TreeEdge& edge ) {
+                element_to_edge( element, edge );
+            }
+        );
+
+        // Alternative version using bind.
+        // reader.element_to_edge_plugins.push_back(
+        //     std::bind(
+        //         &DefaultTreeNewickReaderPlugin::element_to_edge,
+        //         this,
+        //         std::placeholders::_1,
+        //         std::placeholders::_2
+        //     )
+        // );
+    }
+
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
@@ -114,7 +147,7 @@ protected:
 public:
 
     // TODO for now, this is all public. use getters and setters instead, and outsource those
-    // properties that belong to the (yet to create) superclass DefaultNewickMixinBase or so.
+    // properties that belong to the (yet to create) superclass DefaultNewickPluginBase or so.
 
     std::string default_leaf_name     = "Leaf_Node";
     std::string default_internal_name = "Internal_Node";
@@ -136,7 +169,39 @@ public:
 //     Default Tree Newick Reader
 // =================================================================================================
 
-typedef DefaultTreeNewickReaderMixin<NewickReader> DefaultTreeNewickReader;
+/**
+ * @brief Read default Newick trees, i.e., trees with names and branch lengths.
+ *
+ * This class is a convenience wrapper that combines a NewickReader with a
+ * DefaultTreeNewickReaderPlugin. It is intended to be used for standard use cases, and produces a
+ * Tree with DefaultNodeData and DefaultEdgeData at its nodes and edges.
+ *
+ * It is also possible to register additional plugins on top of this class.
+ *
+ * Behind the curtain, this class derives from both NewickReader and DefaultTreeNewickReaderPlugin.
+ * This is a bit ugly, but we use it for simplicity. This allows to use an instance as if it was
+ * a reader (i.e., call `from_...` functions), but also change the plugin settings in a natural
+ * way.
+ */
+class DefaultTreeNewickReader
+    : public NewickReader
+    , public DefaultTreeNewickReaderPlugin
+{
+public:
+
+    // -------------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------------
+
+    DefaultTreeNewickReader()
+    {
+        // This is mindfuck. We derive from two classes - the function register_with() calls
+        // the plugin function of DefaultTreeNewickReaderPlugin, and uses our own inherited
+        // NewickReader instance as argument. Thus, it registeres its own plugin part with its own
+        // reader part.
+        register_with( *this );
+    }
+};
 
 } // namespace tree
 } // namespace genesis

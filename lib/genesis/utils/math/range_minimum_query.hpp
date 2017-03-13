@@ -46,8 +46,10 @@ namespace utils {
  * of an array of integer values.
  *
  * The implementation is based on the Succinct RMQ implementation
- * (https://www.bio.ifi.lmu.de/forschung/succinct/#software) by Johanens Fischer, with the author's
- * explicit permission to use this code here. Most of the implementation is used as-is.
+ * (https://www.bio.ifi.lmu.de/forschung/succinct/#software) by Johannes Fischer, with the author's
+ * explicit permission to use this code here. See also
+ * @link supplement_acknowledgements Acknowledgements@endlink. Most of the implementation is used
+ * as-is.
  *
  * We added some convenience by introducing the ability to use data with only a few elements.
  * The original code expected input data with > 100 elements.
