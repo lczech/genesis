@@ -140,7 +140,7 @@ TEST(Newick, ColorPlugin)
     auto color_plugin = NewickColorWriterPlugin();
     color_plugin.register_with( writer );
 
-    // Make sure that the mixin does not interfere with other Newick functionality. If it does, the
+    // Make sure that the plugin does not interfere with other Newick functionality. If it does, the
     // following line would hopefully crash.
     EXPECT_TRUE( DefaultTreeNewickReader().from_string(input, tree) );
 

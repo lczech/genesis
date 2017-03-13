@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_FORMATS_COLOR_WRITER_MIXIN_H_
-#define GENESIS_TREE_FORMATS_COLOR_WRITER_MIXIN_H_
+#ifndef GENESIS_TREE_FORMATS_COLOR_WRITER_PLUGIN_H_
+#define GENESIS_TREE_FORMATS_COLOR_WRITER_PLUGIN_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -40,16 +40,16 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Color Writer Mixin Base
+//     Color Writer Plugin Base
 // =================================================================================================
 
 /**
- * @brief Base class for creating mixin classes that allow coloring of Tree edges.
+ * @brief Base class for creating plugin classes that allow coloring of Tree edges.
  *
  * The effect of this class on the Tree output is that (if enabled) a color tag will be added to
  * each edge.
  *
- * There are two ways this mixin can be used:
+ * There are two ways this plugin can be used:
  *
  *   1. Use `edge_color_vector()` to set a vector of colors for each edge before calling the
  *      actual writing function. This can be done by client code that needs a particular coloring
@@ -57,7 +57,7 @@ namespace tree {
  *   2. Use `set_color()` in the superclass to set the color of individual edges. This is helpful
  *      within the `edge_to_element()` function of the superclass. This function is however not
  *      implemented in this base class, as it needs knowledge of the actual type of Tree output to
- *      work. Thus, this is a function that the mixin classes should provide.
+ *      work. Thus, this is a function that the plugin classes should provide.
  *
  * If neither of this is done, no color tags will be written. Color tags can also be deactivated
  * by client code using the `enable_color()` option.
@@ -76,9 +76,9 @@ namespace tree {
  *     Caveat: It is possible to give different colors to those edges. What that means is up to
  *     the user.
  *
- * This class is intended to be used as base for mixin classes that do actual tree output.
+ * This class is intended to be used as base for plugin classes that do actual tree output.
  */
-class ColorWriterMixin
+class ColorWriterPlugin
 {
     // -------------------------------------------------------------------------
     //     Base Class
@@ -86,7 +86,7 @@ class ColorWriterMixin
 
 public:
 
-    virtual ~ColorWriterMixin() {}
+    virtual ~ColorWriterPlugin() {}
 
     // -------------------------------------------------------------------------
     //     Properties
@@ -112,7 +112,7 @@ public:
     /**
      * @brief Return the edge colors that are currently set.
      */
-    std::vector<utils::Color> edge_colors()
+    std::vector<utils::Color> const& edge_colors() const
     {
         return edge_colors_;
     }

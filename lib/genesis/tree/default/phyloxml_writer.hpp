@@ -39,46 +39,64 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Default Tree Phyloxml Writer Mixin
+//     Default Tree Phyloxml Writer Plugin
 // =================================================================================================
 
 /**
  * @brief
  */
-template <typename Base>
-class DefaultTreePhyloxmlWriterMixin : public Base
+class DefaultTreePhyloxmlWriterPlugin
 {
-    // -------------------------------------------------------------------------
-    //     Member Types
-    // -------------------------------------------------------------------------
-
 public:
 
     // -------------------------------------------------------------------------
-    //     Overridden Member Functions
+    //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-protected:
+    DefaultTreePhyloxmlWriterPlugin() = default;
+    virtual ~DefaultTreePhyloxmlWriterPlugin() = default;
 
-    virtual void node_to_element( TreeNode const& node, utils::XmlElement& element ) override
+    DefaultTreePhyloxmlWriterPlugin(DefaultTreePhyloxmlWriterPlugin const&) = default;
+    DefaultTreePhyloxmlWriterPlugin(DefaultTreePhyloxmlWriterPlugin&&)      = default;
+
+    DefaultTreePhyloxmlWriterPlugin& operator= (DefaultTreePhyloxmlWriterPlugin const&) = default;
+    DefaultTreePhyloxmlWriterPlugin& operator= (DefaultTreePhyloxmlWriterPlugin&&)      = default;
+
+    // -------------------------------------------------------------------------
+    //     Plugin Functions
+    // -------------------------------------------------------------------------
+
+    void node_to_element( TreeNode const& node, utils::XmlElement& element )
     {
-        Base::node_to_element(node, element);
-        set_name(element, node.data<DefaultNodeData>().name);
+        set_name_(element, node.data<DefaultNodeData>().name);
     }
 
-    virtual void edge_to_element( TreeEdge const& edge, utils::XmlElement& element ) override
+    void edge_to_element( TreeEdge const& edge, utils::XmlElement& element )
     {
-        Base::edge_to_element(edge, element);
-        set_branch_length(element, edge.data<DefaultEdgeData>().branch_length);
+        set_branch_length_(element, edge.data<DefaultEdgeData>().branch_length);
+    }
+
+    void register_with( PhyloxmlWriter& writer )
+    {
+        writer.node_to_element_plugins.push_back(
+            [&]( TreeNode const& node, utils::XmlElement& element ) {
+                node_to_element( node, element );
+            }
+        );
+        writer.edge_to_element_plugins.push_back(
+            [&]( TreeEdge const& edge, utils::XmlElement& element ) {
+                edge_to_element( edge, element );
+            }
+        );
     }
 
     // -------------------------------------------------------------------------
-    //     Mixin Functions
+    //     Member Functions
     // -------------------------------------------------------------------------
 
-protected:
+private:
 
-    void set_name( utils::XmlElement& element, const std::string& name )
+    void set_name_( utils::XmlElement& element, const std::string& name )
     {
         // TODO do not create new element if there is already one!
         auto name_e = utils::make_unique< utils::XmlElement >( "name" );
@@ -86,7 +104,7 @@ protected:
         element.content.push_back(std::move(name_e));
     }
 
-    void set_branch_length( utils::XmlElement& element, double length )
+    void set_branch_length_( utils::XmlElement& element, double length )
     {
         // TODO do not create new element if there is already one!
         auto bl_e = utils::make_unique< utils::XmlElement >( "branch_length" );
@@ -94,35 +112,27 @@ protected:
         element.content.push_back(std::move(bl_e));
     }
 
-    // TODO make a base class for processing, that takes care of issues like default names etc
-    //
-    // void from_tree(typename TreeType::ConstIteratorPreorder& it, XmlElement* clade)
-    // {
-        //~ it.node()->to_newick_broker_element(bn);
-        // only write edge data to the broker element if it is not the last iteration.
-        // the last iteration is the root, which usually does not have edge information in newick.
-        // caveat: for the root node, the edge will point to an arbitrary edge away from the root.
-        //~ if (!it.is_last_iteration()) {
-            //~ it.edge()->to_newick_broker_element(bn);
-        //~ }
-
-        // filter out default names if needed
-        //~ if (!use_default_names && bn->name != "" && (
-            //~ bn->name == default_leaf_name ||
-            //~ bn->name == default_internal_name ||
-            //~ bn->name == default_root_name
-        //~ )) {
-            //~ bn->name = "";
-        //~ }
-    // }
-
 };
 
 // =================================================================================================
 //     Default Tree Phyloxml Writer
 // =================================================================================================
 
-typedef DefaultTreePhyloxmlWriterMixin<PhyloxmlWriter> DefaultTreePhyloxmlWriter;
+class DefaultTreePhyloxmlWriter
+    : public PhyloxmlWriter
+    , public DefaultTreePhyloxmlWriterPlugin
+{
+public:
+
+    // -------------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------------
+
+    DefaultTreePhyloxmlWriter()
+    {
+        register_with( *this );
+    }
+};
 
 } // namespace tree
 } // namespace genesis

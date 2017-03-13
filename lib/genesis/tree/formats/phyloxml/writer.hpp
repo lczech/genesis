@@ -31,7 +31,9 @@
  * @ingroup tree
  */
 
+#include <functional>
 #include <string>
+#include <vector>
 
 namespace genesis {
 
@@ -60,41 +62,56 @@ class PhyloxmlWriter
 public:
 
     // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    using prepare_writing_function = std::function< void(
+        Tree const& tree, utils::XmlDocument& xml
+    ) >;
+
+    using finish_writing_function = std::function< void(
+        Tree const& tree, utils::XmlDocument& xml
+    ) >;
+
+    using node_to_element_function = std::function< void(
+        TreeNode const& node, utils::XmlElement&  element
+    ) >;
+
+    using edge_to_element_function = std::function< void(
+        TreeEdge const& edge, utils::XmlElement&  element
+    ) >;
+
+    // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
-public:
+    PhyloxmlWriter() = default;
+    virtual ~PhyloxmlWriter() = default;
 
-    virtual ~PhyloxmlWriter() {}
+    PhyloxmlWriter(PhyloxmlWriter const&) = default;
+    PhyloxmlWriter(PhyloxmlWriter&&)      = default;
 
-    // ---------------------------------------------------------------------
-    //     Reading
-    // ---------------------------------------------------------------------
-
-protected:
-
-    // virtual void prepare_reading( XmlDocument const& xml, Tree& tree );
-    // virtual void element_to_node( XmlElement const& element, NodeType& edge );
-    // virtual void element_to_edge( XmlElement const& element, EdgeType& node );
-    // virtual void finish_reading( XmlDocument const& xml, Tree& tree );
+    PhyloxmlWriter& operator= (PhyloxmlWriter const&) = default;
+    PhyloxmlWriter& operator= (PhyloxmlWriter&&)      = default;
 
     // ---------------------------------------------------------------------
     //     Writing
     // ---------------------------------------------------------------------
-
-public:
 
     void        to_file     (const Tree& tree, const std::string filename);
     void        to_string   (const Tree& tree, std::string& ts);
     std::string to_string   (const Tree& tree);
     void        to_document (const Tree& tree, utils::XmlDocument& xml);
 
-protected:
+    // -------------------------------------------------------------------------
+    //     Plugin Functions
+    // -------------------------------------------------------------------------
 
-    virtual void prepare_writing( Tree const& tree, utils::XmlDocument& xml );
-    virtual void node_to_element( TreeNode const& node, utils::XmlElement&  element );
-    virtual void edge_to_element( TreeEdge const& edge, utils::XmlElement&  element );
-    virtual void finish_writing(  Tree const& tree, utils::XmlDocument& xml );
+    std::vector<prepare_writing_function> prepare_writing_plugins;
+    std::vector<finish_writing_function>  finish_writing_plugins;
+
+    std::vector<node_to_element_function> node_to_element_plugins;
+    std::vector<edge_to_element_function> edge_to_element_plugins;
 
 };
 

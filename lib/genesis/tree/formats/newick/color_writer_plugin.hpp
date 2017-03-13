@@ -32,7 +32,7 @@
  */
 
 #include "genesis/tree/tree.hpp"
-#include "genesis/tree/formats/color_writer_mixin.hpp"
+#include "genesis/tree/formats/color_writer_plugin.hpp"
 #include "genesis/tree/formats/newick/element.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 
@@ -44,7 +44,7 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Newick Color Plugin
+//     Newick Color Writer Plugin
 // =================================================================================================
 
 /**
@@ -53,9 +53,9 @@ namespace tree {
  * The effect of this class on the Newick output is that (if enabled) a color tag comment will be
  * added to each Newick element like this: `[&!color=#%c0ffee]`.
  *
- * For more information, see ColorWriterMixin class.
+ * For more information, see ColorWriterPlugin class.
  */
-class NewickColorWriterPlugin : public ColorWriterMixin
+class NewickColorWriterPlugin : public ColorWriterPlugin
 {
 public:
 
@@ -123,14 +123,14 @@ public:
     {
         (void) broker;
 
-        if (!ColorWriterMixin::enable_color()) {
+        if (!ColorWriterPlugin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, it needs to match the tree's edge count.
         if (
-            ColorWriterMixin::edge_colors().size() > 0 &&
-            ColorWriterMixin::edge_colors().size() != tree.edge_count()
+            ColorWriterPlugin::edge_colors().size() > 0 &&
+            ColorWriterPlugin::edge_colors().size() != tree.edge_count()
         ) {
             throw std::length_error(
                 "Color vector does not have as many elements as the tree has edges."
@@ -140,14 +140,14 @@ public:
 
     void edge_to_element( TreeEdge const& edge, NewickBrokerElement& element )
     {
-        if (!ColorWriterMixin::enable_color()) {
+        if (!ColorWriterPlugin::enable_color()) {
             return;
         }
 
         // If an edge color vector was set, use it.
-        if (ColorWriterMixin::edge_colors().size() > 0) {
-            assert( edge.index() <= ColorWriterMixin::edge_colors().size() );
-            set_color_(element, ColorWriterMixin::edge_colors()[edge.index()]);
+        if (ColorWriterPlugin::edge_colors().size() > 0) {
+            assert( edge.index() <= ColorWriterPlugin::edge_colors().size() );
+            set_color_(element, ColorWriterPlugin::edge_colors()[edge.index()]);
         }
     }
 
@@ -179,8 +179,8 @@ private:
     void set_color_( NewickBrokerElement& element, utils::Color color )
     {
         if(
-            ColorWriterMixin::use_ignored_color() &&
-            color == ColorWriterMixin::ignored_color()
+            ColorWriterPlugin::use_ignored_color() &&
+            color == ColorWriterPlugin::ignored_color()
         ) {
             return;
         }
