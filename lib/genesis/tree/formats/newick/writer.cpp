@@ -57,14 +57,6 @@ namespace tree {
 //     Printing
 // =================================================================================================
 
-/**
- * @brief Writes the tree to a file in Newick format.
- *
- * If the file cannot be written to, the function throws an exception. Also, by default, if the file
- * already exists, an exception is thrown.
- * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
- * change this behaviour.
- */
 void NewickWriter::to_file (
     Tree const& tree, const std::string filename
 ) {
@@ -73,24 +65,12 @@ void NewickWriter::to_file (
     utils::file_write(ts, filename);
 }
 
-/**
- * @brief Gives a Newick string representation of the tree.
- *
- * In case the tree was read from a Newick file, this function should produce the same
- * representation.
- */
 void NewickWriter::to_string (
     Tree const& tree, std::string& ts
 ) {
     ts = to_string(tree);
 }
 
-/**
- * @brief Returns a Newick string representation of the tree.
- *
- * In case the tree was read from a Newick file, this function should produce the same
- * representation.
- */
 std::string NewickWriter::to_string (Tree const& tree)
 {
     NewickBroker broker;
@@ -99,9 +79,6 @@ std::string NewickWriter::to_string (Tree const& tree)
     return generate_newick_tree(broker);
 }
 
-/**
- * @brief Stores the information of the tree into a NewickBroker object.
- */
 void NewickWriter::tree_to_broker_ (
     Tree const& tree, NewickBroker& broker
 ) {
