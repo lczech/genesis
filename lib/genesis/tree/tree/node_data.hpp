@@ -75,7 +75,7 @@ public:
      * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
      * to allow polymorphism in the first place), so we can simply move the pointer instead.
      */
-    BaseNodeData( BaseNodeData&& other ) = delete;
+    BaseNodeData( BaseNodeData&& ) = delete;
 
     /**
      * @brief Deleted move assignment.
@@ -83,7 +83,7 @@ public:
      * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
      * to allow polymorphism in the first place), so we can simply move the pointer instead.
      */
-    BaseNodeData& operator= ( BaseNodeData&& other ) = delete;
+    BaseNodeData& operator= ( BaseNodeData&& ) = delete;
 
 protected:
 
@@ -95,12 +95,12 @@ protected:
     /**
      * @brief Protected copy constructor. Called from the clone() function.
      */
-    BaseNodeData( BaseNodeData const& other ) = default;
+    BaseNodeData( BaseNodeData const& ) = default;
 
     /**
     * @brief Protected copy assignment. Not used right now.
     */
-    BaseNodeData& operator= ( BaseNodeData const& other ) = default;
+    BaseNodeData& operator= ( BaseNodeData const& ) = default;
 
 public:
 

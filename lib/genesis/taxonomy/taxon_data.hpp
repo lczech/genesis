@@ -72,7 +72,7 @@ public:
      * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
      * to allow polymorphism in the first place), so we can simply move the pointer instead.
      */
-    BaseTaxonData( BaseTaxonData&& other ) = delete;
+    BaseTaxonData( BaseTaxonData&& ) = delete;
 
     /**
      * @brief Deleted move assignment.
@@ -80,7 +80,7 @@ public:
      * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
      * to allow polymorphism in the first place), so we can simply move the pointer instead.
      */
-    BaseTaxonData& operator= ( BaseTaxonData&& other ) = delete;
+    BaseTaxonData& operator= ( BaseTaxonData&& ) = delete;
 
 protected:
 
@@ -92,12 +92,12 @@ protected:
     /**
      * @brief Protected copy constructor. Called from the clone() function.
      */
-    BaseTaxonData( BaseTaxonData const& other ) = default;
+    BaseTaxonData( BaseTaxonData const& ) = default;
 
     /**
     * @brief Protected copy assignment. Not used right now.
     */
-    BaseTaxonData& operator= ( BaseTaxonData const& other ) = default;
+    BaseTaxonData& operator= ( BaseTaxonData const& ) = default;
 
 public:
 

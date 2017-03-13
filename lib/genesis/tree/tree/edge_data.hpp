@@ -75,7 +75,7 @@ public:
      * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
      * to allow polymorphism in the first place), so we can simply move the pointer instead.
      */
-    BaseEdgeData( BaseEdgeData&& other ) = delete;
+    BaseEdgeData( BaseEdgeData&& ) = delete;
 
     /**
      * @brief Deleted move assignment.
@@ -83,7 +83,7 @@ public:
      * Not viable with polymorphism. Also, we don't need it. The data is held by pointer (in order
      * to allow polymorphism in the first place), so we can simply move the pointer instead.
      */
-    BaseEdgeData& operator= ( BaseEdgeData&& other ) = delete;
+    BaseEdgeData& operator= ( BaseEdgeData&& ) = delete;
 
 protected:
 
@@ -95,12 +95,12 @@ protected:
     /**
      * @brief Protected copy constructor. Called from the clone() function.
      */
-    BaseEdgeData( BaseEdgeData const& other ) = default;
+    BaseEdgeData( BaseEdgeData const& ) = default;
 
     /**
     * @brief Protected copy assignment. Not used right now.
     */
-    BaseEdgeData& operator= ( BaseEdgeData const& other ) = default;
+    BaseEdgeData& operator= ( BaseEdgeData const& ) = default;
 
 public:
 

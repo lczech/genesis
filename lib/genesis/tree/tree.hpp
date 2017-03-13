@@ -139,10 +139,10 @@ public:
     ~Tree() = default;
 
     Tree( Tree const& other );
-    Tree( Tree&& other ) = default;
+    Tree( Tree&& ) = default;
 
     Tree& operator= ( Tree const& other );
-    Tree& operator= ( Tree&& other ) = default;
+    Tree& operator= ( Tree&& ) = default;
 
     Tree clone_topology() const;
     void swap( Tree& other );
