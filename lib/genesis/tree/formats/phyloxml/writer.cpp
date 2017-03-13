@@ -53,14 +53,6 @@ namespace tree {
 //     Printing
 // =================================================================================================
 
-/**
- * @brief Writes the tree to a file in Phyloxml format.
- *
- * If the file cannot be written to, the function throws an exception. Also, by default, if the file
- * already exists, an exception is thrown.
- * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink
- * to change this behaviour.
- */
 void PhyloxmlWriter::to_file (const Tree& tree, const std::string filename) const
 {
     std::string ts;
@@ -68,23 +60,11 @@ void PhyloxmlWriter::to_file (const Tree& tree, const std::string filename) cons
     utils::file_write(ts, filename);
 }
 
-/**
- * @brief Gives a Phyloxml string representation of the tree.
- *
- * In case the tree was read from a Phyloxml file, this function should produce the same
- * representation.
- */
 void PhyloxmlWriter::to_string (const Tree& tree, std::string& ts) const
 {
     ts = to_string(tree);
 }
 
-/**
- * @brief Returns a Phyloxml string representation of the tree.
- *
- * In case the tree was read from a Phyloxml file, this function should produce the same
- * representation.
- */
 std::string PhyloxmlWriter::to_string (const Tree& tree) const
 {
     utils::XmlDocument xml;
@@ -92,9 +72,6 @@ std::string PhyloxmlWriter::to_string (const Tree& tree) const
     return utils::XmlWriter().to_string(xml);
 }
 
-/**
- * @brief Stores the information of the tree into an Phyloxml-formatted XmlDocument.
- */
 void PhyloxmlWriter::to_document (const Tree& tree, utils::XmlDocument& xml) const
 {
     xml.clear();

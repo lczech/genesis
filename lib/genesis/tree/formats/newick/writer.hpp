@@ -128,7 +128,7 @@ public:
     /**
      * @brief Function type that translates from a TreeNode to a NewickBrokerElement.
      *
-     * This is called for each TreeNode while writing the Tree to Newick and is supposed to
+     * This is called for each TreeNode while writing the Tree to Newick and is used to
      * transfer data from the node into a suitable representation in the Newick format.
      */
     using node_to_element_function = std::function< void(
@@ -138,7 +138,7 @@ public:
     /**
      * @brief Function type that translates from a TreeEdge to a NewickBrokerElement.
      *
-     * This is called for each TreeEdge while writing the Tree to Newick and is supposed to
+     * This is called for each TreeEdge while writing the Tree to Newick and is used to
      * transfer data from the edge into a suitable representation in the Newick format.
      */
     using edge_to_element_function = std::function< void(
@@ -174,17 +174,11 @@ public:
 
     /**
      * @brief Gives a Newick string representation of the tree.
-     *
-     * In case the tree was read from a Newick file, this function should produce the same
-     * representation.
      */
     void        to_string (const Tree& tree, std::string& ts) const;
 
     /**
      * @brief Returns a Newick string representation of the tree.
-     *
-     * In case the tree was read from a Newick file, this function should produce the same
-     * representation.
      */
     std::string to_string (const Tree& tree) const;
 
@@ -198,20 +192,20 @@ public:
     std::vector<prepare_writing_function> prepare_writing_plugins;
 
     /**
-    * @brief Collect all functions to be called after finishing the actual tree writing.
-    */
+     * @brief Collect all functions to be called after finishing the actual tree writing.
+     */
     std::vector<finish_writing_function>  finish_writing_plugins;
 
     /**
-    * @brief Collect all functions to be called for each TreeNode in order to translate it to
-    * a Newick representation.
-    */
+     * @brief Collect all functions to be called for each TreeNode in order to translate it to
+     * a Newick representation.
+     */
     std::vector<node_to_element_function> node_to_element_plugins;
 
     /**
-    * @brief Collect all functions to be called for each TreeEdge in order to translate it to
-    * a Newick representation.
-    */
+     * @brief Collect all functions to be called for each TreeEdge in order to translate it to
+     * a Newick representation.
+     */
     std::vector<edge_to_element_function> edge_to_element_plugins;
 
     // -------------------------------------------------------------------------

@@ -137,8 +137,8 @@ public:
      * @brief Set a color that is used as marker for partially disabling the output of color tags.
      *
      * All edges that have set a color equal to the ignored color will produce no color tag output.
-     * This is thus something like "magic pink", where all parts of an image are rendered
-     * transparent when originially colored in pink.
+     * This is thus something like [magic pink](https://en.wikipedia.org/wiki/Magic_Pink), where
+     * all parts of an image are rendered transparent when originially colored in pink.
      *
      * By default, we do not use an ignored color. If this option is activated, also
      * use_ignored_color() is set to `true`.
