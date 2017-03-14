@@ -73,10 +73,10 @@ public:
         std::string name = element.name;
 
         // Insert default names if needed.
-        if (name.empty() && use_default_names) {
-            if (element.is_leaf) {
+        if( name.empty() && use_default_names ) {
+            if( element.rank() == 0 ) {
                 name = default_leaf_name;
-            } else if(element.depth == 0) {
+            } else if( element.depth == 0 ) {
                 name = default_root_name;
             } else {
                 name = default_internal_name;
@@ -84,7 +84,7 @@ public:
         }
 
         // Handle underscores/spaces.
-        if (replace_name_underscores) {
+        if( replace_name_underscores ) {
             name = utils::replace_all(name, "_", " ");
         }
 
@@ -96,8 +96,8 @@ public:
         // We assume that the branch length is always the first (or only) value.
         // If there is an interpretation where this is not the case, it is best to introduce
         // an array index for this as a paramter of this class.
-        if (element.values.size() > 0) {
-            edge.data<DefaultEdgeData>().branch_length = std::stod(element.values[0]);
+        if( element.values.size() > 0 ) {
+            edge.data<DefaultEdgeData>().branch_length = std::stod( element.values[0] );
         } else {
             edge.data<DefaultEdgeData>().branch_length = 1.0;
         }

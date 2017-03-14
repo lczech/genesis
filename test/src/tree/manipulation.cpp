@@ -54,8 +54,7 @@ void TestReroot( std::string root_node_name, std::string out_nodes, size_t nexts
     std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
     std::string nodes = "";
 
-    Tree tree;
-    DefaultTreeNewickReader().from_string( input, tree );
+    Tree tree = DefaultTreeNewickReader().from_string( input );
 
     auto root_node = find_node( tree, root_node_name );
     ASSERT_NE( nullptr, root_node );

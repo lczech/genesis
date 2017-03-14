@@ -46,8 +46,7 @@ TEST(Tree, Drawing)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    Tree tree;
-    EXPECT_TRUE( DefaultTreeNewickReader().from_string( input, tree ));
+    Tree tree = DefaultTreeNewickReader().from_string( input );
     // EXPECT_TRUE( DefaultTreeNewickReader().from_file( "/home/lucas/best_tree.newick", tree ));
 
     // auto layout = RectangularLayout( tree );

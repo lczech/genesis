@@ -163,9 +163,8 @@ TEST( SampleFunctions, ConvertFromDefaultTree )
     NEEDS_TEST_DATA;
 
     // Read and process a normal newick tree.
-    tree::DefaultTree def_tree;
     std::string infile = environment->data_dir + "tree/distances.newick";
-    tree::DefaultTreeNewickReader().from_file(infile, def_tree);
+    auto def_tree = tree::DefaultTreeNewickReader().from_file( infile );
 
     // Convert it to a tree that is usable for samples.
     auto place_tree = convert_to_placement_tree( def_tree );

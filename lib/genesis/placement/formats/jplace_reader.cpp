@@ -227,15 +227,15 @@ void JplaceReader::process_json_metadata( utils::JsonDocument const& doc, Sample
 
 void JplaceReader::process_json_tree( utils::JsonDocument const& doc, Sample& smp ) const
 {
-    // find and process the reference tree
+    // Find and process the reference tree.
     auto tree_it = doc.find( "tree" );
-    if( tree_it == doc.end() || ! tree_it->is_string() ||
-        ! PlacementTreeNewickReader().from_string( tree_it->get_string(), smp.tree() )
+    if( tree_it == doc.end() || ! tree_it->is_string()
     ) {
         throw std::runtime_error(
             "Jplace document does not contain a valid Newick tree at key 'tree'."
         );
     }
+    smp.tree() = PlacementTreeNewickReader().from_string( tree_it->get_string() );
     if( ! has_correct_edge_nums( smp.tree() )) {
         LOG_WARN << "Jplace document has a Newick tree where the edge_num tags are non standard. "
                  << "They are expected to be assigned in ascending order via postorder traversal. "

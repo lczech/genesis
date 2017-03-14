@@ -152,6 +152,9 @@ public:
 
     PlacementTreeNewickReader()
     {
+        // Jplace files use tags. Activate them!
+        enable_tags( true );
+
         // We first register the default reader, then the placement reader, because the latter
         // overwrites the data creation functions.
         DefaultTreeNewickReaderPlugin::register_with( *this );
