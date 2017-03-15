@@ -79,12 +79,22 @@ Tree NewickReader::from_string( std::string const& tree_string ) const
 //     Reading into a TreeSet
 // =================================================================================================
 
+void NewickReader::from_stream(
+    std::istream& input_stream,
+    TreeSet&           tree_set,
+    std::string const& default_name
+) const {
+    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
+    parse_multiple_trees_( it, tree_set, default_name );
+}
+
 void NewickReader::from_file (
     std::string const& filename,
-    TreeSet&           tree_set
+    TreeSet&           tree_set,
+    std::string const& default_name
 ) const {
     utils::InputStream it( utils::make_unique< utils::FileInputSource >( filename ));
-    parse_multiple_trees_( it, tree_set, "" );
+    parse_multiple_trees_( it, tree_set, default_name );
 }
 
 void NewickReader::from_string (

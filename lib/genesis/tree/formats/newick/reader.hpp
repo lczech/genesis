@@ -180,15 +180,18 @@ public:
     //     Reading a single Tree
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Read a Tree from an input stream containing a Newick tree.
+     */
     Tree from_stream( std::istream& input_stream ) const;
 
     /**
-     * @brief Create a Tree from a file containing a Newick tree.
+     * @brief Read a Tree from a file containing a Newick tree.
      */
     Tree from_file( std::string const& filename ) const;
 
     /**
-     * @brief Create a Tree from a string containing a Newick tree.
+     * @brief Read a Tree from a string containing a Newick tree.
      */
     Tree from_string( std::string const& tree_string ) const;
 
@@ -197,20 +200,33 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief Fill a TreeSet from a file containing a list of Newick trees.
+     * @brief Add Tree%s to a TreeSet from an input stream containing a list of Newick trees.
      *
-     * See @link from_string( std::string const&, TreeSet&, std::string const& ) const from_string()@endlink
-     * for information on the syntax of this file.
-     * The tree names are taken from the content if availabe. Unnamed trees will be prefixed by the
-     * file name.
+     * See
+     * @link from_string( std::string const&, TreeSet&, std::string const& ) const from_string()@endlink
+     * for more information.
      */
-    void from_file(
-        std::string const& filename,
-        TreeSet&           tree_set
+    void from_stream(
+        std::istream& input_stream,
+        TreeSet&           tree_set,
+        std::string const& default_name = ""
     ) const;
 
     /**
-     * @brief Fill a TreeSet from a string containing a list of Newick trees.
+     * @brief Add Tree%s to a TreeSet from a file containing a list of Newick trees.
+     *
+     * See
+     * @link from_string( std::string const&, TreeSet&, std::string const& ) const from_string()@endlink
+     * for more information.
+     */
+    void from_file(
+        std::string const& filename,
+        TreeSet&           tree_set,
+        std::string const& default_name = ""
+    ) const;
+
+    /**
+     * @brief Add Tree%s to a TreeSet from a string containing a list of Newick trees.
      *
      * These trees can either be named or unnamed, using this syntax:
      *
@@ -223,8 +239,12 @@ public:
      * stripped anyway. However, they are required to end with a semicolon `;`.
      *
      * In case of unnamed trees, a `default_name` can be provided, which will be appended by a counter
-     * that counts up all unnamed trees. If no default name is given, the trees will simply be named
+     * that counts up all unnamed trees. For example, `default_name == "tree_"` results in trees
+     * named "tree_0", "tree_1" etc. If no default name is given, the trees will simply be named
      * using the counter itself.
+     *
+     * The Trees are simply added to the TreeSet. That means, Trees that already exist in the
+     * TreeSet are kept. Thus, this function can be used to add additional Trees to the set.
      */
     void from_string(
         std::string const& tree_string,
