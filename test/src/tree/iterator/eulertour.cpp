@@ -54,8 +54,7 @@ TEST (TreeIterator, EulertourNew)
     std::string expected_nodes = "RABACDCECARFRGHGIG";
 
     // Prepare Tree.
-    Tree tree;
-    DefaultTreeNewickReader().from_string(input, tree);
+    Tree tree = DefaultTreeNewickReader().from_string( input );
 
     // Find the Node for this test run.
     auto const& ttr = tree;
@@ -193,8 +192,7 @@ void TestEulertour(const std::string node_name, const std::string expected_nodes
     // std::string resulting_nodes = "";
 
     // Prepare Tree.
-    Tree tree;
-    DefaultTreeNewickReader().from_string(input, tree);
+    Tree tree = DefaultTreeNewickReader().from_string( input );
 
     do_test(node_name, expected_nodes, tree);
 

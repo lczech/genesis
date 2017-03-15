@@ -54,9 +54,8 @@ TEST(DefaultTree, EdgeColorBranchLengthGradient)
     NEEDS_TEST_DATA;
 
     // Read and process tree.
-    Tree tree;
     std::string infile = environment->data_dir + "tree/distances.newick";
-    DefaultTreeNewickReader().from_file(infile, tree);
+    Tree tree = DefaultTreeNewickReader().from_file( infile );
 
     // Colorize the branches according to their length.
     auto colors = edge_color_branch_length_gradient(tree);
@@ -72,7 +71,7 @@ TEST(DefaultTree, NodeNames)
 
     // Using a tree with all names set to some value.
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
-    EXPECT_TRUE(DefaultTreeNewickReader().from_string(input, tree));
+    tree = DefaultTreeNewickReader().from_string( input );
 
     EXPECT_EQ( 13, tree.node_count() );
     EXPECT_EQ(  7, leaf_node_count(tree) );
@@ -85,7 +84,7 @@ TEST(DefaultTree, NodeNames)
 
     // Using a tree where some names are empty.
     input = "((A,(B,))E,((,(G,H))J,)L);";
-    EXPECT_TRUE(DefaultTreeNewickReader().from_string(input, tree));
+    tree = DefaultTreeNewickReader().from_string( input );
 
     EXPECT_EQ( 13, tree.node_count() );
     EXPECT_EQ(  7, leaf_node_count(tree) );

@@ -50,48 +50,57 @@ std::string parse_number_string(
 ) {
     // Parse the format [+-][123][.456][eE[+-]789]
     std::string result;
-    auto& it = source;
 
-    // Mantisse.
-    if( it && char_is_sign( *it )) {
-        result += *it;
-        ++it;
-    }
+    // Need to keep track whether we found a number.
+    bool found_digits = false;
 
-    // Read while char is digit.
-    while( source && char_is_digit( *source )) {
+    // Sign.
+    if( source && char_is_sign( *source )) {
         result += *source;
         ++source;
     }
 
-    if( it && *it == '.' ) {
+    // Integer part. Read while char is digit.
+    while( source && char_is_digit( *source )) {
+        result += *source;
+        ++source;
+        found_digits = true;
+    }
+
+    // Decimal dot?
+    if( source && *source == '.' ) {
         result += '.';
-        ++it;
+        ++source;
     }
 
-    // Read while char is digit.
+    // Decimal part. Read while char is digit.
     while( source && char_is_digit( *source )) {
         result += *source;
         ++source;
+        found_digits = true;
     }
 
     // If there was no match so far, stop here.
     // Otherwise, a string starting with "E" will be read as a number...
-    if( result.empty() ) {
+    if( ! found_digits ) {
         return result;
     }
 
-    // Exponent.
-    if( it && char_match_ci( *it, 'e' ) ) {
-        result += *it;
-        ++it;
-    }
-    if( it && char_is_sign( *it )) {
-        result += *it;
-        ++it;
+    // Is there an exponent? If not, we are done.
+    if( source && char_match_ci( *source, 'e' ) ) {
+        result += *source;
+        ++source;
+    } else {
+        return result;
     }
 
-    // Read while char is digit.
+    // Sign.
+    if( source && char_is_sign( *source )) {
+        result += *source;
+        ++source;
+    }
+
+    // Exponent. Read while char is digit.
     while( source && char_is_digit( *source )) {
         result += *source;
         ++source;
@@ -110,16 +119,19 @@ std::string parse_quoted_string(
     bool use_twin_quotes,
     bool include_qmarks
 ) {
+    // Prepare the return value.
+    std::string value = "";
+
+    // Nothing to do.
     if( !source ) {
-        return "";
+        return value;
     }
 
     // Read the introductory quotation mark. We will read until it appears again.
     char qmark = *source;
     ++source;
 
-    // Prepare the return value.
-    std::string value;
+    // Include the quotation mark if needed.
     if( include_qmarks ) {
         value += qmark;
     }

@@ -22,7 +22,7 @@
 */
 
 /**
- * @brief Implementation of Tree Stack functions.
+ * @brief Implementation of NewickBroker class.
  *
  * @file
  * @ingroup tree
@@ -31,6 +31,7 @@
 #include "genesis/tree/formats/newick/broker.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <string>
 
 #include "genesis/utils/core/logging.hpp"
@@ -42,9 +43,6 @@ namespace tree {
 //     Modifiers
 // =================================================================================================
 
-/**
- * @brief Deletes all nodes from the broker.
- */
 void NewickBroker::clear()
 {
     stack_.clear();
@@ -84,13 +82,6 @@ void NewickBroker::pop_bottom()
 //     State Functions
 // =================================================================================================
 
-/**
- * @brief Iterate over the tree and assign ranks (= number of immediate children) to all nodes.
- *
- * This function is for example needed to check whether it is a bifurcating/binary tree, or to check
- * how many leaves and inner nodes the tree has. Thus, it is usually called after the broker is
- * filled with data.
- */
 void NewickBroker::assign_ranks() const
 {
     // we use a stack containing the parents of each subtree. whenever we enter a new subtree,
@@ -100,6 +91,10 @@ void NewickBroker::assign_ranks() const
 
     // iterate over all nodes, starting at the root, and assign ranks to them
     for (auto n_itr = stack_.cbegin(); n_itr != stack_.cend(); ++n_itr) {
+
+        // Negative depths indicates wrong initialization during reading.
+        assert( n_itr->depth >= 0 );
+
         // prepare the current node
         n_itr->rank_ = 0;
 
@@ -124,9 +119,6 @@ void NewickBroker::assign_ranks() const
     }
 }
 
-/**
- * @brief Returns the number of leaf nodes in the tree. assign_ranks() has to be called first.
- */
 int NewickBroker::leaf_count() const
 {
     int sum = 0;
@@ -146,17 +138,11 @@ int NewickBroker::inner_count() const
     return node_count() - leaf_count();
 }
 
-/**
- * @brief Alias for size().
- */
 int NewickBroker::node_count() const
 {
     return stack_.size();
 }
 
-/**
- * @brief Returns the highest rank of the nodes in the tree. assign_ranks() has to be called first.
- */
 int NewickBroker::max_rank() const
 {
     int max = -1;
@@ -178,120 +164,14 @@ bool NewickBroker::is_bifurcating() const
 }
 
 // =================================================================================================
-//     Iterators
-// =================================================================================================
-
-/**
- * @brief Returns an iterator to the top of the stack.
- */
-NewickBroker::iterator NewickBroker::begin()
-{
-    return stack_.begin();
-}
-
-/**
- * @brief Returns an iterator to the top of the stack for const objects.
- */
-NewickBroker::const_iterator NewickBroker::begin() const
-{
-    return stack_.begin();
-}
-
-/**
- * @brief Returns an iterator to the end of the token list.
- */
-NewickBroker::iterator NewickBroker::end()
-{
-    return stack_.end();
-}
-
-/**
- * @brief Returns an iterator to the end of the token list for const objects.
- */
-NewickBroker::const_iterator NewickBroker::end() const
-{
-    return stack_.end();
-}
-
-/**
- * @brief Const version of begin().
- */
-NewickBroker::const_iterator NewickBroker::cbegin() const
-{
-    return stack_.cbegin();
-}
-
-/**
- * @brief Const version of end().
- */
-NewickBroker::const_iterator NewickBroker::cend() const
-{
-    return stack_.cend();
-}
-
-/**
- * @brief Returns a reverse iterator to the nodes on the stack.
- */
-NewickBroker::reverse_iterator NewickBroker::rbegin()
-{
-    return stack_.rbegin();
-}
-
-/**
- * @brief Returns a reverse iterator to the nodes on the stack for const objects.
- */
-NewickBroker::const_reverse_iterator NewickBroker::rbegin() const
-{
-    return stack_.rbegin();
-}
-
-/**
- * @brief Reverse version of end().
- */
-NewickBroker::reverse_iterator NewickBroker::rend()
-{
-    return stack_.rend();
-}
-
-/**
- * @brief Reverse version of end() for const objects.
- */
-NewickBroker::const_reverse_iterator NewickBroker::rend() const
-{
-    return stack_.rend();
-}
-
-/**
- * @brief Const version of rbegin().
- */
-NewickBroker::const_reverse_iterator NewickBroker::crbegin()
-{
-    return stack_.crbegin();
-}
-
-/**
- * @brief Const version of rend().
- */
-NewickBroker::const_reverse_iterator NewickBroker::crend()
-{
-    return stack_.crend();
-}
-
-// =================================================================================================
 //     Properties
 // =================================================================================================
 
-/**
- * @brief Returns whether the stack is empty.
- */
 bool NewickBroker::empty() const
 {
     return stack_.empty();
 }
 
-/**
- * @brief Returns the size of the stack, i.e. the number of nodes stored in the broker.
- */
 size_t NewickBroker::size() const
 {
     return stack_.size();
@@ -301,20 +181,6 @@ size_t NewickBroker::size() const
 //     Element Access
 // =================================================================================================
 
-/**
- * @brief Provides index based array access to the nodes.
- *
- * This also allows to iterate over them using:
- *
- *     NewickBroker tb;
- *     for (size_t i = 0; i < tb.size(); ++i) {
- *        NewickBrokerElement* tn = tb[i];
- *        std::cout << tn.name << std::endl;
- *     }
- *
- * Caveat: this operator does no boundary check. If you need this check,
- * use at() instead.
- */
 NewickBrokerElement& NewickBroker::operator [] (std::size_t index)
 {
     return stack_[index];
@@ -325,11 +191,6 @@ NewickBrokerElement const& NewickBroker::operator [] (std::size_t index) const
     return stack_[index];
 }
 
-/**
- * @brief Provides index based array access to the nodes, doing a boundary check first.
- *
- * In out of bounds cases, a `nullptr` is returned.
- */
 NewickBrokerElement& NewickBroker::at(std::size_t index)
 {
     if (index >= stack_.size()) {
@@ -346,15 +207,6 @@ NewickBrokerElement const& NewickBroker::at(std::size_t index) const
     return stack_[index];
 }
 
-/**
- * @brief Returns a reference to the top node of the tree stack.
- *
- * Usually, the top element is the root of the tree (i.e., it has depth zero). Only when called
- * during the broker is being filled with nodes (for example, while parsing a Newick tree),
- * the top element is not the root.
- *
- * Calling this function on an empty() broker causes undefined behavior.
- */
 NewickBrokerElement& NewickBroker::top()
 {
     return stack_.front();
@@ -365,11 +217,6 @@ NewickBrokerElement const& NewickBroker::top() const
     return stack_.front();
 }
 
-/**
- * @brief Returns a reference to the bottom node of the tree stack.
- *
- * Calling this function on an empty() broker causes undefined behavior.
- */
 NewickBrokerElement& NewickBroker::bottom()
 {
     return stack_.back();
@@ -381,41 +228,88 @@ NewickBrokerElement const& NewickBroker::bottom() const
 }
 
 // =================================================================================================
+//     Iterators
+// =================================================================================================
+
+NewickBroker::iterator NewickBroker::begin()
+{
+    return stack_.begin();
+}
+
+NewickBroker::const_iterator NewickBroker::begin() const
+{
+    return stack_.begin();
+}
+
+NewickBroker::iterator NewickBroker::end()
+{
+    return stack_.end();
+}
+
+NewickBroker::const_iterator NewickBroker::end() const
+{
+    return stack_.end();
+}
+
+NewickBroker::const_iterator NewickBroker::cbegin() const
+{
+    return stack_.cbegin();
+}
+
+NewickBroker::const_iterator NewickBroker::cend() const
+{
+    return stack_.cend();
+}
+
+NewickBroker::reverse_iterator NewickBroker::rbegin()
+{
+    return stack_.rbegin();
+}
+
+NewickBroker::const_reverse_iterator NewickBroker::rbegin() const
+{
+    return stack_.rbegin();
+}
+
+NewickBroker::reverse_iterator NewickBroker::rend()
+{
+    return stack_.rend();
+}
+
+NewickBroker::const_reverse_iterator NewickBroker::rend() const
+{
+    return stack_.rend();
+}
+
+NewickBroker::const_reverse_iterator NewickBroker::crbegin()
+{
+    return stack_.crbegin();
+}
+
+NewickBroker::const_reverse_iterator NewickBroker::crend()
+{
+    return stack_.crend();
+}
+
+// =================================================================================================
 //     Dump and Debug
 // =================================================================================================
 
 // TODO see PLL newick.c for more stuff than can be validated in a tree!
-/**
- * @brief Returns true iff the tree is valid. assign_ranks() has to be called first.
- *
- * A valid tree in a NewickBroker has to fullfill those criteria:
- *
- *  *  It's rank has to match the property is_leaf: Leaves have rank 0; a node with a higher rank
- *     cannot be a leaf.
- *  *  Furthermore, rank 1 is not valid, as this represents a node that is not furcating in any way.
- *  *  The depth (nesting level) of the nodes cannot increase more than one level between nodes,
- *     as this would imply a non-existing node with a depth in between. However, it can arbitrarily
- *     decrease, as this simply means the end of a subtree.
- * %
- */
 bool NewickBroker::validate() const
 {
     int cur_depth = 0;
     for (auto const& node : stack_) {
+        if (node.depth == -1) {
+            LOG_INFO << "Node with depth -1 was found.";
+            return false;
+        }
         if (node.rank_ == -1) {
             LOG_INFO << "NewickBroker::assign_ranks() was not called before.";
             return false;
         }
-        if (node.rank_ == 0 && !(node.is_leaf)) {
-            LOG_INFO << "Leaf node found with rank == 0, but is_leaf == false.";
-            return false;
-        }
         if (node.rank_ == 1) {
             LOG_INFO << "Node with rank 1 found.";
-            return false;
-        }
-        if (node.rank_ > 1 && node.is_leaf) {
-            LOG_INFO << "Inner node found with rank > 1, but is_leaf == true.";
             return false;
         }
         if (node.depth > cur_depth + 1) {
@@ -427,9 +321,6 @@ bool NewickBroker::validate() const
     return true;
 }
 
-/**
- * @brief Return a readable string representation of the elements of the NewickBroker.
- */
 std::string NewickBroker::dump() const
 {
     std::string out;
@@ -437,6 +328,7 @@ std::string NewickBroker::dump() const
         + std::to_string(leaf_count()) + " leaves)" + (stack_.empty() ? "." : ":") + "\n";
     for (auto const& node : stack_) {
         // indent
+        assert( node.depth != -1 );
         for (int i = 0; i < node.depth; ++i) {
             out += "    ";
         }
@@ -460,8 +352,7 @@ std::string NewickBroker::dump() const
         }
 
         // additional information
-        out += (node.rank_ > 0 ? " Rank(" + std::to_string(node.rank_) + ")" : "")
-            +  (node.is_leaf ? " (Leaf)\n" : "\n");
+        out += (node.rank_ > 0 ? " Rank(" + std::to_string(node.rank_) + ")" : "");
     }
     return out;
 }

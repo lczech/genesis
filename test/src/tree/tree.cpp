@@ -44,8 +44,7 @@ TEST(Tree, Basics)
 {
     std::string input = "((A,(B,C)D)E,((F,(G,H)I)J,K)L)R;";
 
-    Tree tree;
-    DefaultTreeNewickReader().from_string(input, tree);
+    Tree tree = DefaultTreeNewickReader().from_string(input);
 
     EXPECT_EQ(7, leaf_node_count( tree ));
     EXPECT_EQ(6, inner_node_count( tree ));

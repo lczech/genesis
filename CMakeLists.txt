@@ -51,6 +51,7 @@ project ( genesis CXX C )
 # set (genesis_VERSION_MAJOR 0)
 # set (genesis_VERSION_MINOR 1)
 
+# Helpful output. Version information is unfortunately only available for CMake >= 2.8.9
 message (STATUS "C++ compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} at ${CMAKE_CXX_COMPILER}")
 message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION} at ${CMAKE_C_COMPILER}")
 
@@ -62,7 +63,7 @@ option (BUILD_SHARED_LIB    "Build shared library" ON)
 option (BUILD_STATIC_LIB    "Build static library" OFF)
 
 option (BUILD_APPLICATIONS  "Build applications"   ON)
-option (BUILD_PYTHON_MODULE "Build python module"  ON)
+option (BUILD_PYTHON_MODULE "Build python module"  OFF)
 option (BUILD_TESTS         "Build test suites"    OFF)
 
 option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)

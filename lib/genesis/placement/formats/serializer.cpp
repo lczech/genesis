@@ -136,9 +136,7 @@ Sample SampleSerializer::load( std::string const& file_name )
 
     // Read and check tree.
     auto tree_string = des.get_string();
-    if (!PlacementTreeNewickReader().from_string(tree_string, map.tree())) {
-        throw std::invalid_argument("Invalid Tree.");
-    }
+    map.tree() = PlacementTreeNewickReader().from_string( tree_string );
 
     // Read pqueries.
     size_t num_pqueries = des.get_int<size_t>();

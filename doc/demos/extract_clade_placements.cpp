@@ -25,7 +25,7 @@
  * This is the demo "Extract Clade Placements". See the Manual for more information.
  */
 
-#include "genesis.hpp"
+#include "genesis/genesis.hpp"
 
 #include <stdexcept>
 #include <string>

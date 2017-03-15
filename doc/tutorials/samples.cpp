@@ -21,7 +21,7 @@
     Schloss-Wolfsbrunnenweg 35, D-69118 Heidelberg, Germany
 */
 
-#include "genesis.hpp"
+#include "genesis/genesis.hpp"
 
 #include <stdexcept>
 

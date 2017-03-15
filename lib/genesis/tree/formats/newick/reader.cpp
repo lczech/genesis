@@ -30,19 +30,23 @@
 
 #include "genesis/tree/formats/newick/reader.hpp"
 
-#include "genesis/tree/tree.hpp"
-
 #include "genesis/tree/formats/newick/broker.hpp"
-#include "genesis/tree/formats/newick/parser.hpp"
 #include "genesis/tree/tree_set.hpp"
+#include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/core/std.hpp"
 
-#include <assert.h>
+#include "genesis/utils/io/input_stream.hpp"
+#include "genesis/utils/io/parser.hpp"
+#include "genesis/utils/io/scanner.hpp"
+#include "genesis/utils/text/string.hpp"
+
+#include <cassert>
 #include <deque>
 #include <memory>
+#include <iostream>
 #include <sstream>
 #include <stdexcept>
 
@@ -50,253 +54,571 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Reading
+//     Reading a single Tree
 // =================================================================================================
 
-// -------------------------------------------------------------------------
-//     Public Methods
-// -------------------------------------------------------------------------
-
-/**
- * @brief Create a Tree from a file containing a Newick tree.
- *
- * Returns true iff successful.
- */
-bool NewickReader::from_file (
-    const std::string& fn, Tree& tree
-) const {
-    if (!utils::file_exists(fn)) {
-        throw std::runtime_error( "Newick file '" + fn + "' does not exist." );
-    }
-    return from_string( utils::file_read(fn), tree );
+Tree NewickReader::from_stream( std::istream& input_stream ) const
+{
+    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
+    return parse_single_tree( it );
 }
 
-/**
- * @brief Create a Tree from a string containing a Newick tree.
- *
- * Returns true iff successful.
- */
-bool NewickReader::from_string (
-    const std::string& ts, Tree& tree
-) const {
-    // run the lexer
-    NewickLexer lexer;
-    if (!lexer.from_string(ts)) {
-        return false;
-    }
-
-    // check for lexing errors
-    if (lexer.empty()) {
-        LOG_INFO << "Tree is empty. Nothing done.";
-        return false;
-    }
-    if (lexer.has_error()) {
-        throw std::runtime_error(
-            "Lexing error at " + lexer.back().at() + " with message: " + lexer.back().value()
-        );
-    }
-
-    // parse the tree from lexer into a tree broker
-    auto ct  = lexer.begin();
-    NewickBroker broker;
-    if (!parse_newick_tree(ct, lexer.end(), broker)) {
-        return false;
-    }
-
-    // see if there is anything other than a comment left
-    while (ct != lexer.end()) {
-        if (!ct->is_comment()) {
-            LOG_WARN << "Tree contains more data after the semicolon.";
-            return false;
-        }
-        ++ct;
-    }
-
-    // build the tree from the broker
-    broker_to_tree_(broker, tree);
-    return true;
+Tree NewickReader::from_file( std::string const& filename ) const
+{
+    utils::InputStream it( utils::make_unique< utils::FileInputSource >( filename ));
+    return parse_single_tree( it );
 }
 
-/**
- * @brief Fill a TreeSet from a file containing a list of Newick trees.
- *
- * See from_string() for information on the syntax of this file.
- * The tree names are taken from the content if availabe. Unnamed trees will be prefixed by the
- * file name.
- *
- * Returns true iff successful.
- */
-bool NewickReader::from_file (
-    const std::string& fn, TreeSet& tset
-) const {
-    if (!utils::file_exists(fn)) {
-        throw std::runtime_error( "Tree file '" + fn + "' does not exist." );
-    }
-
-    return from_string(
-        utils::file_read(fn),
-        tset,
-        utils::file_filename( utils::file_basename(fn) ) + "_"
-    );
+Tree NewickReader::from_string( std::string const& tree_string ) const
+{
+    utils::InputStream it( utils::make_unique< utils::StringInputSource >( tree_string ));
+    return parse_single_tree( it );
 }
 
-/**
- * @brief Fill a TreeSet from a string containing a list of Newick trees.
- *
- * These trees can either be named or unnamed, using this syntax:
- *
- *     Tree_A = (...);
- *     'Tree B'=(...);
- *     (...);
- *
- * where the first two lines are named trees and the third line is an unnamed tree.
- * The trees do not have to be on distinct lines of the input, as whitespaces are completely
- * stripped during the lexing phase. However, they are required to end with a semicolon `;`.
- *
- * In case of unnamed trees, a `default_name` can be provided, which will be appended by a counter
- * that counts up all unnamed trees. If no default name is given, the trees will simpye be named
- * using the counter itself.
- *
- * Returns true iff successful.
- */
-bool NewickReader::from_string (
-    const std::string& ts,
-    TreeSet& tset,
-    const std::string& default_name
+// =================================================================================================
+//     Reading into a TreeSet
+// =================================================================================================
+
+void NewickReader::from_stream(
+    std::istream& input_stream,
+    TreeSet&           tree_set,
+    std::string const& default_name
 ) const {
-    // Run the Lexer.
-    NewickLexer lexer;
-    if (!lexer.from_string(ts)) {
-        return false;
+    utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
+    parse_multiple_trees_( it, tree_set, default_name );
+}
+
+void NewickReader::from_file (
+    std::string const& filename,
+    TreeSet&           tree_set,
+    std::string const& default_name
+) const {
+    utils::InputStream it( utils::make_unique< utils::FileInputSource >( filename ));
+    parse_multiple_trees_( it, tree_set, default_name );
+}
+
+void NewickReader::from_string (
+    std::string const& tree_string,
+    TreeSet&           tree_set,
+    std::string const& default_name
+) const {
+    utils::InputStream it( utils::make_unique< utils::StringInputSource >( tree_string ));
+    parse_multiple_trees_( it, tree_set, default_name );
+}
+
+// =================================================================================================
+//     Reading multiple input sources
+// =================================================================================================
+
+void NewickReader::from_files (
+    std::vector<std::string> const& filenames,
+    TreeSet&                        tree_set
+) const {
+    for( auto const& fn : filenames ) {
+        from_file( fn, tree_set );
+    }
+}
+
+void NewickReader::from_strings (
+    std::vector<std::string> const& tree_strings,
+    TreeSet&                        tree_set,
+    std::string const&              default_name
+) const {
+    for( auto const& ts : tree_strings ) {
+        from_string (ts, tree_set, default_name);
+    }
+}
+
+// =================================================================================================
+//     Parse Single Tree
+// =================================================================================================
+
+Tree NewickReader::parse_single_tree( utils::InputStream& input_stream ) const
+{
+    // Parse tree into broker.
+    auto broker = parse_tree_to_broker_( input_stream );
+
+    // If we just read this tree, continue until end of stream.
+    if( ! stop_at_semicolon_ ) {
+        parse_trailing_input_( input_stream );
     }
 
-    // check for lexing errors
-    if (lexer.empty()) {
-        LOG_INFO << "Tree is empty. Nothing done.";
-        return false;
-    }
-    if (lexer.has_error()) {
-        throw std::runtime_error(
-            "Lexing error at " + lexer.back().at() + " with message: " + lexer.back().value()
-        );
-    }
+    // Turn the parsed broker data into a tree.
+    return broker_to_tree_( broker );
+}
 
-    // Store error message. Also serves as flag whether an error occured.
-    std::string error = "";
+// =================================================================================================
+//     Parse Multiple Trees
+// =================================================================================================
 
+void NewickReader::parse_multiple_trees_(
+    utils::InputStream& input_stream,
+    TreeSet&            tree_set,
+    std::string const&  default_name
+) const {
     // Count how many unnamed trees we have seen.
     size_t unnamed_ctr = 0;
 
-    auto ct = lexer.begin();
-    while (ct != lexer.end()) {
-        if (ct->is_unknown()) {
-            error = "Invalid characters at " + ct->at() + ": '" + ct->value() + "'.";
+    while( input_stream ) {
+        auto ct = get_next_token_( input_stream );
+
+        // Treat some special error cases.
+        if( ct.type == TokenType::kUnknown ) {
+            throw std::runtime_error(
+                "Invalid characters at " + ct.at() + ": '" + ct.text + "'."
+            );
+        }
+        if( ct.type == TokenType::kEnd ) {
             break;
         }
 
-        if (ct->is_comment()) {
+        // Skip comments in between trees.
+        if( ct.type == TokenType::kComment ) {
             continue;
         }
 
-        // Store the name of the current tree; if there is none, use empty string.
+        // Get the name of the current tree.
         std::string name = "";
-        if (ct->is_symbol() || ct->is_string()) {
-            name = ct->value();
-            ++ct;
+        if( ct.type == TokenType::kString ) {
+            name = ct.text;
+            ct = get_next_token_( input_stream );
 
-            if (ct == lexer.end()) {
-                error = "Unexpected end at " + ct->at() + ".";
-                break;
+            // After a name, there has to be something.
+            if( ct.type == TokenType::kEnd ) {
+                throw std::runtime_error( "Unexpected end at " + ct.at() + "." );
             }
 
-            if (!ct->is_operator("=")) {
-                error = "Invalid character '" + ct->value() + "' at " + ct->at() + ".";
-                break;
+            // After a name, we expect an equals sign.
+            if( ct.type != TokenType::kEquals ) {
+                throw std::runtime_error( "Invalid character '" + ct.text + "' at " + ct.at() + "." );
             }
-            ++ct;
+            ct = get_next_token_( input_stream );
 
-            if (ct == lexer.end()) {
-                error = "Unexpected end of tree at " + ct->at() + ".";
-                break;
+            // After a name, there has to be something.
+            if( ct.type == TokenType::kEnd ) {
+                throw std::runtime_error( "Unexpected end of tree at " + ct.at() + "." );
             }
         }
 
-        if (!ct->is_bracket("(")) {
-            error = "Invalid character at " + ct->at() + ".";
+        // Now we expect the start of a tree.
+        if( ct.type != TokenType::kOpeningParenthesis ) {
+            throw std::runtime_error( "Invalid character at " + ct.at() + "." );
+        }
+
+        // Parse the tree and store it in the TreeSet, without any copy steps.
+        if (name.empty()) {
+            name = default_name + std::to_string( unnamed_ctr );
+            ++unnamed_ctr;
+        }
+        tree_set.add( name, broker_to_tree_( parse_tree_to_broker_( input_stream )));
+    }
+}
+
+// =================================================================================================
+//     Parse Trailing Input
+// =================================================================================================
+
+void NewickReader::parse_trailing_input_( utils::InputStream& input_stream ) const
+{
+    // Check for more data after the semicolon. We cannot do this check in the parsing function,
+    // as there are cases where we read a Newick tree as part of another file (e.g, Nexus or Jplace),
+    // where it is natural that there is more data after the tree finished.
+    Token ct;
+    ct.type = TokenType::kUnknown;
+    while( input_stream && ct.type != TokenType::kEnd ) {
+        ct = get_next_token_( input_stream );
+        if( ct.type != TokenType::kEnd && ct.type != TokenType::kComment ) {
+            throw std::runtime_error( "Tree contains more data after the semicolon at " + ct.at() );
+        }
+    }
+}
+
+// =================================================================================================
+//     Token Lexing
+// =================================================================================================
+
+NewickReader::Token NewickReader::get_next_token_( utils::InputStream& input_stream ) const
+{
+    // Prepare result token.
+    Token result;
+
+    // Shorthand.
+    auto& is = input_stream;
+
+    // Helper function to distinguish valid chars in a Newick name string.
+    // According to http://evolution.genetics.washington.edu/phylip/newicktree.html :
+    // "A name can be any string of printable characters except blanks, colons, semicolons,
+    // parentheses, and square brackets." Well, they forgot to mention commas here.
+    // But we knew before that Newick is not a good format anyway...
+    // Also, if enable_tags_ is true, we do not allow {}, as those are used for tags.
+    auto is_valid_name_char = [&]( char c ){
+        return   isprint(c)
+            && ! isspace(c)
+            && c != ':'
+            && c != ';'
+            && c != '('
+            && c != ')'
+            && c != '['
+            && c != ']'
+            && c != ','
+            && ( ! enable_tags_ || ( c != '{' && c != '}' ));
+    };
+
+    // Skip initial whitespace, then set the current position in the stream.
+    // This is where the token begins.
+    utils::skip_while( is, isspace );
+    result.line = is.line();
+    result.column = is.column();
+
+    // Find token type and text from the stream.
+    if( !is ) {
+        result.type = TokenType::kEnd;
+
+    } else  if( *is == '(' ) {
+        result.type = TokenType::kOpeningParenthesis;
+        ++is;
+
+    } else if( *is == ')' ) {
+        result.type = TokenType::kClosingParenthesis;
+        ++is;
+
+    } else if( *is == ',' ) {
+        result.type = TokenType::kComma;
+        ++is;
+
+    } else if( *is == ';' ) {
+        result.type = TokenType::kSemicolon;
+        ++is;
+
+    } else if( *is == '=' ) {
+        result.type = TokenType::kEquals;
+        ++is;
+
+    } else if( *is == '[' ) {
+        result.type = TokenType::kComment;
+        ++is;
+        result.text = utils::read_until( is, ']' );
+
+        if( !is ) {
+            throw std::runtime_error( "Reached unexpected end of Newick tree at " + is.at() );
+        }
+        assert( *is == ']' );
+        ++is;
+
+    } else if( *is == ':' ) {
+        result.type = TokenType::kValue;
+        ++is;
+        result.text = utils::parse_number_string( is );
+
+    } else if( *is == '{' && enable_tags_ ) {
+        result.type = TokenType::kTag;
+        ++is;
+        result.text = utils::read_until( is, '}' );
+
+        if( !is ) {
+            throw std::runtime_error( "Reached unexpected end of Newick tree at " + is.at() );
+        }
+        assert( *is == '}' );
+        ++is;
+
+    } else if( *is == '"' || *is == '\''  ) {
+        result.type = TokenType::kString;
+        result.text = utils::parse_quoted_string( is, false, true, false );
+
+    } else if( is_valid_name_char( *is )) {
+        result.type = TokenType::kString;
+        result.text = utils::read_while( is, is_valid_name_char );
+
+    } else {
+        result.type = TokenType::kUnknown;
+    }
+
+    return result;
+}
+
+// =================================================================================================
+//     Parse Tree into Broker
+// =================================================================================================
+
+NewickBroker NewickReader::parse_tree_to_broker_( utils::InputStream& input_stream ) const
+{
+    // Create result broker.
+    NewickBroker broker;
+
+    // Create a node that is currently being populated with data.
+    // This is copied into the broker whenever we finish a tree node.
+    NewickBrokerElement node;
+
+    // How deep is the current token nested in the tree?
+    int depth = 0;
+
+    // Was it closed at some point? We want to avoid a tree like "()();" to be parsed!
+    bool closed = false;
+
+    // Store current token, start with an invalid value to indicate problems.
+    Token ct;
+    ct.type = TokenType::kEnd;
+
+    // Store previous token.
+    // In the beginning of the loop, we set pt to ct, so that in the first iteration we have
+    // pt == TokenType::kEnd. This is used as indicator that we are in the first iteration.
+    Token pt;
+
+    // --------------------------------------------------------------
+    //     Loop over lexer tokens and check if it...
+    // --------------------------------------------------------------
+
+    while( input_stream ) {
+        // Init the previous token to what the current token (of the previous iteration) was.
+        // In the first iteration, this inits to the kEnd token.
+        // Then, get the next token.
+        pt = ct;
+        ct = get_next_token_( input_stream );
+
+        // Treat some special error cases.
+        if( ct.type == TokenType::kUnknown ) {
+            throw std::runtime_error(
+                "Invalid characters at " + ct.at() + ": '" + ct.text + "'."
+            );
+        }
+        if( ct.type == TokenType::kEnd ) {
             break;
         }
 
-        // Parse the tree from Lexer into a TreeBroker.
-        NewickBroker broker;
-        if (!parse_newick_tree(ct, lexer.end(), broker)) {
-            return false;
+        // ------------------------------------------------------
+        //     is bracket '('  ==>  begin of subtree
+        // ------------------------------------------------------
+
+        if( ct.type == TokenType::kOpeningParenthesis ) {
+            if( pt.type != TokenType::kEnd                && !(
+                pt.type == TokenType::kOpeningParenthesis ||
+                pt.type == TokenType::kComma              ||
+                pt.type == TokenType::kComment
+            )) {
+                throw std::runtime_error(
+                    "Invalid characters at " + ct.at() + ": '" + ct.text + "'."
+                );
+            }
+
+            if (closed) {
+                throw std::runtime_error(
+                    "Tree was already closed. Cannot reopen it with '(' at " + ct.at() + "."
+                );
+            }
+
+            ++depth;
+            continue;
         }
 
-        auto tree = Tree();
-        broker_to_tree_(broker, tree);
+        // ------------------------------------------------------
+        //     Prepare for all other tokens.
+        // ------------------------------------------------------
 
-        if (name.empty()) {
-            name = default_name + std::to_string(unnamed_ctr++);
+        // if we reach this, the previous condition is not fullfilled (otherwise, the
+        // `continue` statement just above would
+        // have been called). so we have a token other than '(', which means we should already
+        // be somewhere in the tree (or a comment). check, if that is true.
+        if( pt.type == TokenType::kEnd ) {
+
+            // If it is a comment before the start of the tree, we cannot attach it to any node,
+            // so just skip it and reset the current token to end, so that the next iteration
+            // starts fresh.
+            if( ct.type == TokenType::kComment ) {
+                ct.type = TokenType::kEnd;
+                continue;
+            }
+
+            throw std::runtime_error( "Tree does not start with '(' at " + ct.at() + "." );
         }
-        tset.add(name, tree);
 
-        // Let's clean up all tokens used so far. We don't need them anymore.
-        // TODO FIXME Hm. Somehow this may cause a segfault. Need to investigate. Or rewrite!
-        // ct.consume_head();
+        // if we reached this point in code, this means that ct != begin, so it is not the first
+        // iteration in this loop. this means that pt was already set in the loop header (at least
+        // once), which means it now points to a valid token.
+        assert( pt.type != TokenType::kEnd );
+
+        // set up the node that will be filled with data now.
+        // We use depth == -1 as an indicator whether it is already initialized.
+        // If it is already initialized, this means we are adding more information to it, e.g.
+        // a branch length or a tag. so we do not need to create it.
+        // however, if this node is not initialized, this means we saw a token before that finished
+        // a node and pushed it to the stack (either closing bracket or comma), so we need to init
+        // it here.
+        if( node.depth == -1 ) {
+            node.depth = depth;
+        }
+
+        // ------------------------------------------------------
+        //     is symbol or string  ==>  label
+        // ------------------------------------------------------
+
+        if( ct.type == TokenType::kString ) {
+            if (!(
+                pt.type == TokenType::kOpeningParenthesis ||
+                pt.type == TokenType::kClosingParenthesis ||
+                pt.type == TokenType::kComma              ||
+                pt.type == TokenType::kComment
+            )) {
+                throw std::runtime_error(
+                    "Invalid characters at " + ct.at() + ": '" + ct.text + "'."
+                );
+            }
+
+            // populate the node
+            node.name = ct.text;
+            continue;
+        }
+
+        // ------------------------------------------------------
+        //     is number  ==>  branch length
+        // ------------------------------------------------------
+
+        if( ct.type == TokenType::kValue ) {
+            if (!(
+                pt.type == TokenType::kOpeningParenthesis ||
+                pt.type == TokenType::kClosingParenthesis ||
+                pt.type == TokenType::kString             ||
+                pt.type == TokenType::kComma              ||
+                pt.type == TokenType::kComment
+            )) {
+                throw std::runtime_error(
+                    "Invalid characters at " + ct.at() + ": '" + ct.text + "'."
+                );
+            }
+
+            // populate the node
+            node.values.push_back( ct.text );
+            continue;
+        }
+
+        // ------------------------------------------------------
+        //     is tag {}  ==>  tag
+        // ------------------------------------------------------
+
+        if( ct.type == TokenType::kTag ) {
+            // in some newick extensions, a tag has a semantic meaning that belongs to the
+            // current node/edge, thus we need to store it
+
+            // populate the node
+            node.tags.push_back(ct.text);
+            continue;
+        }
+
+        // ------------------------------------------------------
+        //     is comment []  ==>  comment
+        // ------------------------------------------------------
+
+        if( ct.type == TokenType::kComment ) {
+            // in some newick extensions, a comment has a semantic meaning that belongs to the
+            // current node/edge, thus we need to store it
+
+            // populate the node
+            node.comments.push_back(ct.text);
+            continue;
+        }
+
+        // ------------------------------------------------------
+        //     is comma ','  ==>  next subtree
+        // ------------------------------------------------------
+
+        if( ct.type == TokenType::kComma ) {
+            if (!(
+                pt.type == TokenType::kOpeningParenthesis ||
+                pt.type == TokenType::kClosingParenthesis ||
+                pt.type == TokenType::kString             ||
+                pt.type == TokenType::kComma              ||
+                pt.type == TokenType::kValue              ||
+                pt.type == TokenType::kTag                ||
+                pt.type == TokenType::kComment
+            )) {
+                throw std::runtime_error( "Invalid ',' at " + ct.at() + "." );
+            }
+
+            // Store and finish the current node. Then, make a new, uninitialized one.
+            broker.push_top( node );
+            node = NewickBrokerElement();
+            continue;
+        }
+
+        // ------------------------------------------------------
+        //     is bracket ')'  ==>  end of subtree
+        // ------------------------------------------------------
+
+        if( ct.type == TokenType::kClosingParenthesis ) {
+            if (depth == 0) {
+                throw std::runtime_error( "Too many ')' at " + ct.at() + "." );
+            }
+            if (!(
+                pt.type == TokenType::kClosingParenthesis ||
+                pt.type == TokenType::kString             ||
+                pt.type == TokenType::kComma              ||
+                pt.type == TokenType::kValue              ||
+                pt.type == TokenType::kTag                ||
+                pt.type == TokenType::kComment
+            )) {
+                throw std::runtime_error( "Invalid ')' at " + ct.at() + ": '" + ct.text + "'." );
+            }
+
+            // Store and finish the current node. Then, make a new, uninitialized one.
+            broker.push_top( node );
+            node = NewickBrokerElement();
+
+            // decrease depth and check if this was the parenthesis that closed the tree
+            --depth;
+            if (depth == 0) {
+                closed = true;
+            }
+            continue;
+        }
+
+        // ------------------------------------------------------
+        //     is semicolon ';'  ==>  end of tree
+        // ------------------------------------------------------
+
+        if( ct.type == TokenType::kSemicolon ) {
+            if (depth != 0) {
+                throw std::runtime_error(
+                    "Not enough ')' in tree before closing it with ';' at " + ct.at() + "."
+                );
+            }
+            if (!(
+                pt.type == TokenType::kClosingParenthesis ||
+                pt.type == TokenType::kString             ||
+                pt.type == TokenType::kValue              ||
+                pt.type == TokenType::kTag                ||
+                pt.type == TokenType::kComment
+            )) {
+                throw std::runtime_error( "Invalid ';' at " + ct.at() + ": '" + ct.text + "'." );
+            }
+
+            // Store and finish the current node. Then, make a new, uninitialized one.
+            broker.push_top( node );
+            node = NewickBrokerElement();
+            break;
+        }
+
+        // If we reach this part of the code, all checkings for token types are done.
+        // as we check for every type that NewickLexer yields, and we use a continue or break
+        // in each of them, we should never reach this point, unless we forgot a type!
+        assert(false);
     }
 
-    if (!error.empty()) {
-        throw std::runtime_error( error );
+    // Tree has to finish with semicolon. Particularly ct.type == TokenType::kEnd is not allowed
+    // to happen here!
+    if( ct.type != TokenType::kSemicolon ) {
+        throw std::runtime_error( "Tree does not finish with a semicolon." );
     }
 
-    return true;
+    return broker;
 }
 
-/**
- * @brief Fill a TreeSet from a list of files containing Newick trees.
- *
- * Returns true iff successful.
- */
-bool NewickReader::from_files (
-    const std::vector<std::string>& fns, TreeSet& set
-) const {
-    for (auto fn : fns) {
-        if (!from_file (fn, set)) {
-            return false;
-        }
-    }
-    return true;
-}
+// =================================================================================================
+//     Broker to Tree
+// =================================================================================================
 
-/**
- * @brief Fill a TreeSet from a list of strings containing Newick trees.
- *
- * Returns true iff successful.
- */
-bool NewickReader::from_strings (
-    const std::vector<std::string>& tss,
-    TreeSet& set,
-    const std::string& default_name
+Tree NewickReader::broker_to_tree_ (
+    NewickBroker const& broker
 ) const {
-    for (auto ts : tss) {
-        if (!from_string (ts, set, default_name)) {
-            return false;
-        }
-    }
-    return true;
-}
-
-// -------------------------------------------------------------------------
-//     Internal Helper Methods
-// -------------------------------------------------------------------------
-
-/**
- * @brief Build a Tree from a NewickBroker.
- */
-void NewickReader::broker_to_tree_ (
-    NewickBroker const& broker, Tree& tree
-) const {
-    tree.clear();
+    Tree tree;
 
     auto& links = tree.expose_link_container();
     auto& nodes = tree.expose_node_container();
@@ -430,6 +752,34 @@ void NewickReader::broker_to_tree_ (
     for( auto const& finish_plugin : finish_reading_plugins ) {
         finish_plugin( broker, tree );
     }
+
+    return tree;
+}
+
+// =================================================================================================
+//     Settings
+// =================================================================================================
+
+NewickReader& NewickReader::enable_tags( bool value )
+{
+    enable_tags_ = value;
+    return *this;
+}
+
+bool NewickReader::enable_tags() const
+{
+    return enable_tags_;
+}
+
+NewickReader& NewickReader::stop_at_semicolon( bool value )
+{
+    stop_at_semicolon_ = value;
+    return *this;
+}
+
+bool NewickReader::stop_at_semicolon() const
+{
+    return stop_at_semicolon_;
 }
 
 } // namespace tree

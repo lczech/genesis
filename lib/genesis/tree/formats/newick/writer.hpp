@@ -215,9 +215,19 @@ public:
 private:
 
     /**
-     * @brief Stores the information of the tree into a NewickBroker object.
+     * @brief Transform the information of the tree into a NewickBroker object.
      */
     void tree_to_broker_ (const Tree& tree, NewickBroker& broker) const;
+
+    /**
+     * @brief Return the Newick text string representation of a NewickBrokerElement.
+     */
+    std::string element_to_string_( NewickBrokerElement const& bn ) const;
+
+    /**
+     * @brief Recursive function that returns the string representation of a clade of a tree.
+     */
+    std::string to_string_rec_( NewickBroker const& broker, size_t pos ) const;
 
 };
 

@@ -49,9 +49,8 @@ TEST(DefaultTree, Distances)
     NEEDS_TEST_DATA;
 
     // Read and process tree.
-    Tree tree;
     std::string infile = environment->data_dir + "tree/distances.newick";
-    DefaultTreeNewickReader().from_file(infile, tree);
+    Tree tree =  DefaultTreeNewickReader().from_file( infile );
 
     // Basic checks.
     EXPECT_EQ(7, leaf_node_count(tree));

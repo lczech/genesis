@@ -70,9 +70,8 @@ public:
      * @brief Constructor, initializes the item values.
      */
     NewickBrokerElement()
-        : depth(0)
-        , is_leaf(false)
-        , rank_(-1)
+        : depth( -1 )
+        , rank_( -1 )
     {}
 
     ~NewickBrokerElement() = default;
@@ -118,19 +117,6 @@ public:
      * @brief Depth of the node in the tree, i.e. its distance from the root.
      */
     int         depth;
-
-    /**
-     * @brief True if the node is a leaf/tip, false otherwise.
-     *
-     * This value can be set for example while parsing a Newick tree, and is used by
-     * NewickBroker::validate() as a check for correctness. However, it is (so far) not used further,
-     * because it is not reliable (it can be changed arbitrarily without checking whether this is
-     * conform with the tree topology).
-     *
-     * Therefore, use rank() to check whether a node is a leaf (in order to use rank, first
-     * NewickBroker::assign_ranks() has to be called).
-     */
-    bool        is_leaf;
 
     // -------------------------------------------------------------------------
     //     Additional Members

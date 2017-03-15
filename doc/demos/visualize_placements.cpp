@@ -25,7 +25,7 @@
  * This is the demo "Visualize Placements". See the Manual for more information.
  */
 
-#include "genesis.hpp"
+#include "genesis/genesis.hpp"
 
 #include <algorithm>
 #include <cmath>
@@ -152,13 +152,14 @@ void write_color_tree_to_nexus(
 ) {
     // We use a normal Newick writer for PlacementTrees, but also wrap it in a Color Mixin
     // in order to allow for color annotated branches.
-    using ColorWriter = tree::NewickColorWriterMixin<placement::PlacementTreeNewickWriter>;
+    auto writer = placement::PlacementTreeNewickWriter();
+    auto color_plugin = tree::NewickColorWriterPlugin();
+    color_plugin.register_with( writer );
 
     // Get the Newick representation of the tree, with color annotated branches.
-    auto tree_writer = ColorWriter();
-    tree_writer.enable_edge_nums(false);
-    tree_writer.edge_colors(colors_per_branch);
-    std::string newick_tree = tree_writer.to_string(tree);
+    writer.enable_edge_nums(false);
+    color_plugin.edge_colors(colors_per_branch);
+    std::string newick_tree = writer.to_string(tree);
 
     // Create an (empty) Nexus document.
     auto nexus_doc = utils::NexusDocument();
