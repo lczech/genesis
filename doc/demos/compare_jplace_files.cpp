@@ -25,7 +25,7 @@
  * This is the demo "Compare Jplace Files". See the Manual for more information.
  */
 
-#include "genesis.hpp"
+#include "genesis/genesis.hpp"
 
 #include <string>
 #include <unordered_map>
