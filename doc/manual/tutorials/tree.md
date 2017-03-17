@@ -22,7 +22,7 @@ any given node in the same manner - that is, without the need to distinguish bet
 The main elements of a @ref genesis::tree::Tree "Tree" are @ref genesis::tree::TreeLink "Links",
 @ref genesis::tree::TreeNode "Nodes", and @ref genesis::tree::TreeEdge "Edges".
 
-![Tree structure.](tree_structure.png)
+![Tree structure.](tree/structure.png)
 
 <!-- The yellow, blue and black things makes up the tree. -->
 
