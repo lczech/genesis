@@ -64,7 +64,9 @@ class TreeLink;
  * ![The Tree before and after adding the new Node.](tree/add_new_node_node.png)
  *
  * The new Node is added at the "end" of the given Node. That is, when traversing the Tree or the
- * given Node, the new Node will be visited last.
+ * given Node, the new Node will be visited last. In the example, the tree is bifurcating before
+ * the new node is added. This is just an example - the function also works with Nodes that are
+ * already multifurcating.
  *
  * The data pointers of the new Node and Edge are initialized to default-constructed objects:
  *
@@ -81,7 +83,31 @@ class TreeLink;
  */
 TreeEdge& add_new_node( Tree& tree, TreeNode& target_node );
 
-// TreeEdge& add_new_node( Tree& tree, TreeEdge& target_edge );
+/**
+ * @brief Add a new @link TreeNode Node@endlink as a leaf to an existing @link TreeEdge Edge@endlink,
+ * by also adding a new Node in the middle of that Edge.
+ *
+ * This function is an extension of add_new_node( Tree&, TreeNode& ). Before adding the new leaf
+ * node, it first adds another Node that splits the given `target_edge` into two edges, and then
+ * adds the leaf to it.
+ *
+ * Thus, the procedure is as shown:
+ * ![The Tree before and after adding the new Node.](tree/add_new_node_edge.png)
+ *
+ * After the function, the `target_edge` with all its data ends up on the to-root side of the
+ * new inner node.
+ *
+ * For details of how the data pointers are handled, see add_new_node( Tree&, TreeNode& ). This
+ * function behaves in a similar way. The data objects of the new nodes and edges are
+ * default-constructed objects of the same type as the `target_edge` and its primary node.
+ *
+ * Be aware that the data of `target_edge` is not changed. Thus, in trees with DefaultEdgeData,
+ * the branch lengths of all three affected edges might have to be changed to the desired values
+ * after calling this function.
+ *
+ * @return The function returns the newly created TreeEdge that leads to the new leaf node.
+ */
+TreeEdge& add_new_node( Tree& tree, TreeEdge& target_edge );
 
 // =================================================================================================
 //     Rerooting

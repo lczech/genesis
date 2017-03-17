@@ -34,3 +34,15 @@ the same time. Unfortunately, this comes at the cost of code complexity. -->
 <!-- ## Nodes
 
 Each node... -->
+
+<!--
+# Tree Manipulation
+
+## High Level
+
+add_new_node()
+
+## Low Level
+
+reset_outer() etc
+-->

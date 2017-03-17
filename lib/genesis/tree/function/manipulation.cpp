@@ -57,7 +57,7 @@ TreeEdge& add_new_node( Tree& tree, TreeNode& target_node )
         );
     }
 
-    // Get container access.
+    // Get container access shortcuts.
     auto& links = tree.expose_link_container();
     auto& nodes = tree.expose_node_container();
     auto& edges = tree.expose_edge_container();
@@ -127,22 +127,76 @@ TreeEdge& add_new_node( Tree& tree, TreeNode& target_node )
     return *con_edge;
 }
 
-// TreeEdge& add_new_node( Tree& tree, TreeEdge& target_edge )
-// {
-//     // Basic check.
-//     if( ! belongs_to( to_edge, tree ) ) {
-//         throw std::runtime_error(
-//             "Cannot create Node at Tree on an Edge that is not part of the Tree."
-//         );
-//     }
-//
-//     // Get container access.
-//     auto& links = tree.expose_link_container();
-//     auto& nodes = tree.expose_node_container();
-//     auto& edges = tree.expose_edge_container();
-//
-//
-// }
+TreeEdge& add_new_node( Tree& tree, TreeEdge& target_edge )
+{
+    // Basic check.
+    if( ! belongs_to( target_edge, tree ) ) {
+        throw std::runtime_error(
+            "Cannot create Node at Tree on an Edge that is not part of the Tree."
+        );
+    }
+
+    // Get container access shortcuts.
+    auto& links = tree.expose_link_container();
+    auto& nodes = tree.expose_node_container();
+    auto& edges = tree.expose_edge_container();
+
+    // This function works in two steps: First, we create a new node with all necessary other
+    // elements in the middle of the target edge. Then, we add the new leaf node to this node
+    // by calling the node version of add_new_node() on the new mid-edge node.
+
+    // Create all new elements for the first step:
+    //  * Two links that build a new node in the middle of the target edge.
+    //  * The new node in the middle of the target edge.
+    //  * A new edge that connects to the secondary end of the target edge.
+    auto pri_link_u = utils::make_unique< TreeLink >();
+    auto sec_link_u = utils::make_unique< TreeLink >();
+    auto mid_node_u = utils::make_unique< TreeNode >();
+    auto sec_edge_u = utils::make_unique< TreeEdge >();
+
+    // Get the pointers, for ease of use.
+    auto const pri_link = pri_link_u.get();
+    auto const sec_link = sec_link_u.get();
+    auto const mid_node = mid_node_u.get();
+    auto const sec_edge = sec_edge_u.get();
+
+    // Populate the link towards the primary end of the target edge and add it to the tree.
+    pri_link->reset_index( links.size() );
+    pri_link->reset_next( sec_link );
+    pri_link->reset_outer( &target_edge.primary_link() );
+    pri_link->reset_node( mid_node );
+    pri_link->reset_edge( &target_edge );
+    links.push_back( std::move( pri_link_u ));
+
+    // Populate the link towards the secondary end of the target edge and add it to the tree.
+    sec_link->reset_index( links.size() );
+    sec_link->reset_next( pri_link );
+    sec_link->reset_outer( &target_edge.secondary_link() );
+    sec_link->reset_node( mid_node );
+    sec_link->reset_edge( sec_edge );
+    links.push_back( std::move( sec_link_u ));
+
+    // Populate the new node in the middle of the target edge and add it to the tree.
+    mid_node->reset_index( nodes.size() );
+    mid_node->reset_primary_link( pri_link );
+    mid_node->reset_data( target_edge.primary_node().data_ptr()->recreate() );
+    nodes.push_back( std::move( mid_node_u ));
+
+    // Populate the edge at the secondary end of the target edge and add it to the tree.
+    sec_edge->reset_index( edges.size() );
+    sec_edge->reset_primary_link( sec_link );
+    sec_edge->reset_secondary_link( &target_edge.secondary_link() );
+    sec_edge->reset_data( target_edge.data_ptr()->recreate() );
+    edges.push_back( std::move( sec_edge_u ));
+
+    // Finally adjust the existing tree elements.
+    target_edge.primary_link().reset_outer( pri_link );
+    target_edge.secondary_link().reset_outer( sec_link );
+    target_edge.secondary_link().reset_edge( sec_edge );
+    target_edge.reset_secondary_link( pri_link );
+
+    return add_new_node( tree, *mid_node );
+}
 
 // =================================================================================================
 //     Rerooting
