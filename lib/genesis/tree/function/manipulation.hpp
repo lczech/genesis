@@ -46,6 +46,44 @@ class TreeEdge;
 class TreeLink;
 
 // =================================================================================================
+//     Add single Nodes
+// =================================================================================================
+
+/**
+ * @brief Add a new @link TreeNode Node@endlink as a leaf to an existing Node.
+ *
+ * The function adds a new leaf to the Tree by appending it to an existing TreeNode.
+ * For this, four new elements are created and added to the tree:
+ *
+ *  1. A TreeLink that gets added to the given node and connects it to the new node.
+ *  2. A TreeLink for the new TreeNode.
+ *  3. The new TreeNode itself.
+ *  4. A TreeEdge that connects the new and the given TreeNode with each other.
+ *
+ * Thus, the procedure is as shown:
+ * ![The Tree before and after adding the new Node.](tree/add_new_node_node.png)
+ *
+ * The new Node is added at the "end" of the given Node. That is, when traversing the Tree or the
+ * given Node, the new Node will be visited last.
+ *
+ * The data pointers of the new Node and Edge are initialized to default-constructed objects:
+ *
+ *  * The new node data type is the same as the one of the given `target_node`.
+ *  * The new edge data type is the same as the one of the edge towards the root of the
+ *    `target_node`.
+ *
+ * This means that in case of a Tree where every Node and Edge has the same node and edge data type
+ * (standard case), the newly created ones will also have these data types.
+ *
+ * @return The function returns the newly create TreeEdge. This way, all other new elements can
+ * be accessed, using TreeEdge::primary_link(), TreeEdge::secondary_link() and
+ * TreeEdge::secondary_node().
+ */
+TreeEdge& add_new_node( Tree& tree, TreeNode& target_node );
+
+// TreeEdge& add_new_node( Tree& tree, TreeEdge& target_edge );
+
+// =================================================================================================
 //     Rerooting
 // =================================================================================================
 

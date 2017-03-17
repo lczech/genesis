@@ -105,3 +105,59 @@ TEST( TreeManipulation, Reroot )
     TestReroot( "G", "0G 1H 1I 1R 2A 2F 3B 3C 4D 4E", 1 );
     TestReroot( "G", "0G 1I 1R 1H 2A 2F 3B 3C 4D 4E", 2 );
 }
+
+TEST( TreeManipulation, AddNodeNodeA )
+{
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree tree = DefaultTreeNewickReader().from_string( input );
+
+    // Find an inner node.
+    auto node = find_node( tree, "A" );
+    ASSERT_NE( nullptr, node );
+
+    // Add a node.
+    auto& edge = add_new_node( tree, *node );
+
+    // Check all indices and validate tree.
+    EXPECT_EQ( 9, edge.index() );
+    EXPECT_EQ( 5, edge.primary_node().index() );
+    EXPECT_EQ( 18, edge.primary_link().index() );
+    EXPECT_EQ( 9, edge.primary_link().next().index() );
+    EXPECT_EQ( 10, edge.secondary_node().index() );
+    EXPECT_EQ( 19, edge.secondary_link().index() );
+    EXPECT_TRUE( validate_topology( tree ));
+
+    // Check whether the data pointers were set correctly.
+    ASSERT_NO_THROW( edge.secondary_node().data<DefaultNodeData>() );
+    EXPECT_EQ( "", edge.secondary_node().data<DefaultNodeData>().name );
+    ASSERT_NO_THROW( edge.data<DefaultEdgeData>() );
+    EXPECT_EQ( 1.0, edge.data<DefaultEdgeData>().branch_length );
+}
+
+TEST( TreeManipulation, AddNodeNodeB )
+{
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree tree = DefaultTreeNewickReader().from_string( input );
+
+    // Find a leaf node.
+    auto node = find_node( tree, "B" );
+    ASSERT_NE( nullptr, node );
+
+    // Add a node.
+    auto& edge = add_new_node( tree, *node );
+
+    // Check all indices and validate tree.
+    EXPECT_EQ( 9, edge.index() );
+    EXPECT_EQ( 9, edge.primary_node().index() );
+    EXPECT_EQ( 18, edge.primary_link().index() );
+    EXPECT_EQ( 17, edge.primary_link().next().index() );
+    EXPECT_EQ( 10, edge.secondary_node().index() );
+    EXPECT_EQ( 19, edge.secondary_link().index() );
+    EXPECT_TRUE( validate_topology( tree ));
+
+    // Check whether the data pointers were set correctly.
+    ASSERT_NO_THROW( edge.secondary_node().data<DefaultNodeData>() );
+    EXPECT_EQ( "", edge.secondary_node().data<DefaultNodeData>().name );
+    ASSERT_NO_THROW( edge.data<DefaultEdgeData>() );
+    EXPECT_EQ( 1.0, edge.data<DefaultEdgeData>().branch_length );
+}
