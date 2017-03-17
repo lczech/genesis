@@ -209,6 +209,141 @@ public:
     std::vector<edge_to_element_function> edge_to_element_plugins;
 
     // -------------------------------------------------------------------------
+    //     Settings
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Set the type of quotation marks used for node names that contain special characters.
+     *
+     * According to [http://evolution.genetics.washington.edu/phylip/newicktree.html]
+     * (http://evolution.genetics.washington.edu/phylip/newicktree.html),
+     *
+     *  > "A name can be any string of printable characters except blanks, colons, semicolons,
+     *  > parentheses, and square brackets."
+     *
+     * They forgot to mention commas in that list. One more reason not to like the Newick format.
+     * Anyway, whenever one of these characters (including commas) occurs in the name of a node
+     * (see NewickBrokerElement::name), the writer wraps the whole name in quotation markes.
+     * This is not officially in the standard, but common practice.
+     *
+     * This function sets the kind of quotation marks used for wrapping such names. Default are
+     * double quotation marks ('"'), which seem to be understood by many other programs that work
+     * with Newick trees.
+     *
+     * We currently do not support a function to deactivate quotation marks - they are used whenever
+     * necessary, for safety reasons. Otherwise, we'd end up with invalid trees anyway. Thus, in
+     * order to get a Newick tree without any quotation marks, make sure that your node names do not
+     * contain any of the listed characters.
+     *
+     * Lastly, if write_tags() is `true`, names with curly braces in them ('{}') are also wrapped
+     * in quotation marks, as those are used for tags.
+     */
+    NewickWriter& quotation_marks( char value )
+    {
+        quotation_marks_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the currently set type of quotation marks used for node names.
+     *
+     * See quotation_marks( char ) for details.
+     */
+    char quotation_marks() const
+    {
+        return quotation_marks_;
+    }
+
+    /**
+     * @brief Set whether to write Newick node names.
+     *
+     * Default is `true`. This setting can be used to override any names that might be set by a
+     * plugin.
+     */
+    NewickWriter& write_names( bool value )
+    {
+        write_names_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get whether Newick node names are written.
+     *
+     * @see write_names( bool )
+     */
+    bool write_names() const
+    {
+        return write_names_;
+    }
+
+    /**
+     * @brief Set whether to write Newick values (e.g., branch lengths).
+     *
+     * Default is `true`. This setting can be used to override any values that might be set by a
+     * plugin.
+     */
+    NewickWriter& write_values( bool value )
+    {
+        write_values_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get whether Newick values (e.g., branch lengths) are written.
+     *
+     * @see write_values( bool )
+     */
+    bool write_values() const
+    {
+        return write_values_;
+    }
+
+    /**
+     * @brief Set whether to write Newick comments (e.g., some forms of bootstrap values).
+     *
+     * Default is `true`. This setting can be used to override any comments that might be set by a
+     * plugin.
+     */
+    NewickWriter& write_comments( bool value )
+    {
+        write_comments_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get whether Newick comments (e.g., some forms of bootstrap values) are written.
+     *
+     * @see write_comments( bool )
+     */
+    bool write_comments() const
+    {
+        return write_comments_;
+    }
+
+    /**
+     * @brief Set whether to write Newick tags (e.g., for `jplace` files).
+     *
+     * Default is `true`. This setting can be used to override any tags that might be set by a
+     * plugin. See NewickReader::enable_tags( bool ) for details on the inofficial Newick tags
+     * extension.
+     */
+    NewickWriter& write_tags( bool value )
+    {
+        write_tags_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get whether Newick tags (e.g., for `jplace` files) are written.
+     *
+     * @see write_tags( bool )
+     */
+    bool write_tags() const
+    {
+        return write_tags_;
+    }
+
+    // -------------------------------------------------------------------------
     //     Internal Member Functions
     // -------------------------------------------------------------------------
 
@@ -228,6 +363,17 @@ private:
      * @brief Recursive function that returns the string representation of a clade of a tree.
      */
     std::string to_string_rec_( NewickBroker const& broker, size_t pos ) const;
+
+    // -------------------------------------------------------------------------
+    //     Member Data
+    // -------------------------------------------------------------------------
+
+    char quotation_marks_ = '\"';
+
+    bool write_names_    = true;
+    bool write_values_   = true;
+    bool write_comments_ = true;
+    bool write_tags_     = true;
 
 };
 

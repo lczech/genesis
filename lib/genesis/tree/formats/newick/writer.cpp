@@ -116,16 +116,49 @@ void NewickWriter::tree_to_broker_ (
 
 std::string NewickWriter::element_to_string_( NewickBrokerElement const& bn ) const
 {
-    std::string res = bn.name;
-    for (std::string v : bn.values) {
-        res += ":" + v;
+    // Prepare result
+    std::string res;
+
+    // Write name.
+    if( write_names_ ) {
+        // Find out whether we need to put this name in quotation marks.
+        // According to http://evolution.genetics.washington.edu/phylip/newicktree.html :
+        // "A name can be any string of printable characters except blanks, colons, semicolons,
+        // parentheses, and square brackets." Well, they forgot to mention commas here.
+        // But we knew before that Newick is not a good format anyway...
+        // Also, if write_tags_ is true, we also quote {}, as those are used for tags.
+        bool need_qmarks = false;
+        need_qmarks |= ( std::string::npos != bn.name.find_first_of( " :;()[]," ));
+        need_qmarks |= ( write_tags_ && std::string::npos != bn.name.find_first_of( "{}" ));
+
+        if( need_qmarks ) {
+            res += quotation_marks_ + bn.name + quotation_marks_;
+        } else {
+            res += bn.name;
+        }
     }
-    for (std::string c : bn.comments) {
-        res += "[" + c + "]";
+
+    // Write values (":...")
+    if( write_values_ ) {
+        for( std::string const& v : bn.values ) {
+            res += ":" + v;
+        }
     }
-    for (std::string t : bn.tags) {
-        res += "{" + t + "}";
+
+    // Write comments ("[...]")
+    if( write_comments_ ) {
+        for( std::string const& c : bn.comments ) {
+            res += "[" + c + "]";
+        }
     }
+
+    // Write tags ("{...}")
+    if( write_tags_ ) {
+        for( std::string const& t : bn.tags ) {
+            res += "{" + t + "}";
+        }
+    }
+
     return res;
 }
 
