@@ -43,13 +43,20 @@ namespace tree {
 /**
  * @brief Base class for storing data on @link TreeNode Nodes@endlink of a Tree.
  *
- * This class merely provides the start point for the class hierarchy of node data classes.
- * In order to correctly achieve polymorphic behaviour, and with its use case in a Tree in mind,
- * this class and its derived classes are only usable via unique pointers to their instances.
+ * This class provides the start point for the class hierarchy of node data classes. In order to
+ * correctly achieve polymorphic behaviour, and with its use case in a Tree in mind, this class and
+ * its derived classes are supposed to be used via unique pointers to their instances. Although
+ * this yields automatic memory management, it unfortunately disallows covariant return types.
  *
- * It thus provides a create() function instead of a default constructor.
- * Stack copies of this class are useless; we always want a pointer to the class.
- * For the same reason, instead of a copy constructor, it provides a clone() function.
+ * The class thus provides a static create() function instead of a default constructor. This needs
+ * to be reimplemented in derived classes in order to allow creation of objects of the exact derived
+ * type. For similar reasons, instead of a copy constructor, it provides a clone() function.
+ *
+ * Furthermore, the class provides a virtual recreate() function that default-constructs an object
+ * of the same derived type as it was called on. This is allows to create new data instances for a
+ * Tree without the need to know the exact derived type. For example, this can be used when adding
+ * new Nodes to a Tree, in order to fill them with default-constructed data of the same type of
+ * some other Nodes of the Tree.
  *
  * It is recommended that derived classes follow the same access rules for its constructors.
  * See DefaultNodeData for an example.
@@ -108,6 +115,15 @@ public:
      * @brief Create a new instance of this class. Use instead of default constructor.
      */
     static std::unique_ptr< BaseNodeData > create()
+    {
+        return std::unique_ptr< BaseNodeData >( new BaseNodeData() );
+    };
+
+    /**
+     * @brief Polymorphically create a default-constructed instance of this class with the same
+     * derived type as it was called on.
+     */
+    virtual std::unique_ptr< BaseNodeData > recreate() const
     {
         return std::unique_ptr< BaseNodeData >( new BaseNodeData() );
     };

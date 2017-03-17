@@ -98,6 +98,11 @@ public:
         return std::unique_ptr< RectangularNodeData >( new RectangularNodeData() );
     }
 
+    virtual std::unique_ptr< BaseNodeData > recreate() const override
+    {
+        return std::unique_ptr< RectangularNodeData >( new RectangularNodeData() );
+    }
+
     virtual std::unique_ptr< BaseNodeData > clone() const override
     {
         return std::unique_ptr< RectangularNodeData >( new RectangularNodeData( *this ));
@@ -148,6 +153,11 @@ protected:
 public:
 
     static std::unique_ptr< RectangularEdgeData > create()
+    {
+        return std::unique_ptr< RectangularEdgeData >( new RectangularEdgeData() );
+    }
+
+    virtual std::unique_ptr< BaseEdgeData > recreate() const override
     {
         return std::unique_ptr< RectangularEdgeData >( new RectangularEdgeData() );
     }

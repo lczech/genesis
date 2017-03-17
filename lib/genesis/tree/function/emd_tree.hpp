@@ -109,6 +109,11 @@ public:
         return std::unique_ptr< EmdNodeData >( new EmdNodeData() );
     }
 
+    virtual std::unique_ptr< BaseNodeData > recreate() const override
+    {
+        return std::unique_ptr< EmdNodeData >( new EmdNodeData() );
+    }
+
     virtual std::unique_ptr< BaseNodeData > clone() const override
     {
         return std::unique_ptr< EmdNodeData >( new EmdNodeData( *this ));
@@ -151,6 +156,11 @@ protected:
 public:
 
     static std::unique_ptr< EmdEdgeData > create()
+    {
+        return std::unique_ptr< EmdEdgeData >( new EmdEdgeData() );
+    }
+
+    virtual std::unique_ptr< BaseEdgeData > recreate() const override
     {
         return std::unique_ptr< EmdEdgeData >( new EmdEdgeData() );
     }

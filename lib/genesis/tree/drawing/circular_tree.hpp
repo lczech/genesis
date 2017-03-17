@@ -98,6 +98,11 @@ public:
         return std::unique_ptr< CircularNodeData >( new CircularNodeData() );
     }
 
+    virtual std::unique_ptr< BaseNodeData > recreate() const override
+    {
+        return std::unique_ptr< CircularNodeData >( new CircularNodeData() );
+    }
+
     virtual std::unique_ptr< BaseNodeData > clone() const override
     {
         return std::unique_ptr< CircularNodeData >( new CircularNodeData( *this ));
@@ -151,6 +156,11 @@ protected:
 public:
 
     static std::unique_ptr< CircularEdgeData > create()
+    {
+        return std::unique_ptr< CircularEdgeData >( new CircularEdgeData() );
+    }
+
+    virtual std::unique_ptr< BaseEdgeData > recreate() const override
     {
         return std::unique_ptr< CircularEdgeData >( new CircularEdgeData() );
     }

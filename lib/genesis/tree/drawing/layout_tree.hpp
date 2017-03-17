@@ -103,6 +103,11 @@ public:
         return std::unique_ptr< LayoutNodeData >( new LayoutNodeData() );
     }
 
+    virtual std::unique_ptr< BaseNodeData > recreate() const override
+    {
+        return std::unique_ptr< LayoutNodeData >( new LayoutNodeData() );
+    }
+
     virtual std::unique_ptr< BaseNodeData > clone() const override
     {
         return std::unique_ptr< LayoutNodeData >( new LayoutNodeData( *this ));
@@ -151,6 +156,11 @@ protected:
 public:
 
     static std::unique_ptr< LayoutEdgeData > create()
+    {
+        return std::unique_ptr< LayoutEdgeData >( new LayoutEdgeData() );
+    }
+
+    virtual std::unique_ptr< BaseEdgeData > recreate() const override
     {
         return std::unique_ptr< LayoutEdgeData >( new LayoutEdgeData() );
     }

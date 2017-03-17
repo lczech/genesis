@@ -105,6 +105,11 @@ public:
         return std::unique_ptr< DefaultNodeData >( new DefaultNodeData() );
     }
 
+    virtual std::unique_ptr< BaseNodeData > recreate() const override
+    {
+        return std::unique_ptr< DefaultNodeData >( new DefaultNodeData() );
+    }
+
     virtual std::unique_ptr< BaseNodeData > clone() const override
     {
         return std::unique_ptr< DefaultNodeData >( new DefaultNodeData( *this ));
@@ -164,6 +169,11 @@ public:
     {
         return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData() );
     };
+
+    virtual std::unique_ptr< BaseEdgeData > recreate() const override
+    {
+        return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData() );
+    }
 
     virtual std::unique_ptr< BaseEdgeData > clone() const override
     {
