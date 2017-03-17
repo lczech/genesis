@@ -132,7 +132,7 @@ TEST( TreeManipulation, AddNewNodeNodeA )
     ASSERT_NO_THROW( edge.secondary_node().data<DefaultNodeData>() );
     EXPECT_EQ( "", edge.secondary_node().data<DefaultNodeData>().name );
     ASSERT_NO_THROW( edge.data<DefaultEdgeData>() );
-    EXPECT_EQ( 1.0, edge.data<DefaultEdgeData>().branch_length );
+    EXPECT_EQ( 0.0, edge.data<DefaultEdgeData>().branch_length );
 }
 
 TEST( TreeManipulation, AddNewNodeNodeB )
@@ -161,7 +161,7 @@ TEST( TreeManipulation, AddNewNodeNodeB )
     ASSERT_NO_THROW( edge.secondary_node().data<DefaultNodeData>() );
     EXPECT_EQ( "", edge.secondary_node().data<DefaultNodeData>().name );
     ASSERT_NO_THROW( edge.data<DefaultEdgeData>() );
-    EXPECT_EQ( 1.0, edge.data<DefaultEdgeData>().branch_length );
+    EXPECT_EQ( 0.0, edge.data<DefaultEdgeData>().branch_length );
 }
 
 TEST( TreeManipulation, AddNewNodeEdge )
@@ -190,11 +190,11 @@ TEST( TreeManipulation, AddNewNodeEdge )
     ASSERT_NO_THROW( edge.secondary_node().data<DefaultNodeData>() );
     EXPECT_EQ( "", edge.secondary_node().data<DefaultNodeData>().name );
     ASSERT_NO_THROW( edge.data<DefaultEdgeData>() );
-    EXPECT_EQ( 1.0, edge.data<DefaultEdgeData>().branch_length );
+    EXPECT_EQ( 0.0, edge.data<DefaultEdgeData>().branch_length );
 
     // Check whether the data pointers were set correctly: New secondary edge.
     ASSERT_NO_THROW( edge.primary_link().next().next().node().data<DefaultNodeData>() );
     EXPECT_EQ( "", edge.primary_link().next().next().node().data<DefaultNodeData>().name );
     ASSERT_NO_THROW( edge.primary_link().next().next().edge().data<DefaultEdgeData>() );
-    EXPECT_EQ( 1.0, edge.primary_link().next().next().edge().data<DefaultEdgeData>().branch_length );
+    EXPECT_EQ( 0.0, edge.primary_link().next().next().edge().data<DefaultEdgeData>().branch_length );
 }
