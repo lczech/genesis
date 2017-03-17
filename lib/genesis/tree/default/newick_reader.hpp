@@ -222,9 +222,9 @@ public:
 
         // Insert default names if needed.
         if( name.empty() && use_default_names_ ) {
-            if( element.rank() == 0 ) {
+            if( element.is_leaf() ) {
                 name = default_leaf_name_;
-            } else if( element.depth == 0 ) {
+            } else if( element.is_root() ) {
                 name = default_root_name_;
             } else {
                 name = default_inner_name_;
