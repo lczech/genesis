@@ -98,8 +98,8 @@ public:
         auto place_map = placements_per_edge( smp );
         placement_counts_.resize( place_map.size(), 0 );
 
-        for( auto const p : place_map ) {
-            placement_counts_[ p.first ] = p.second.size();
+        for( size_t edge_i = 0; edge_i < place_map.size(); ++edge_i ) {
+            placement_counts_[ edge_i ] = place_map[ edge_i ].size();
         }
     }
 
