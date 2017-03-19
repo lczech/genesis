@@ -97,7 +97,6 @@ if( $ENV{GENESIS_DEBUG} )
     SET( UNITY_BUILD OFF )
 
 endif()
-SET( UNITY_BUILD FULL )
 
 message (STATUS "${ColorBlue}Building ${CMAKE_BUILD_TYPE}${ColorEnd}")
 message (STATUS "Unity build: ${UNITY_BUILD}")
