@@ -199,7 +199,9 @@ bool Options::is_big_endian()
 
 std::string Options::platform()
 {
-    #ifdef _WIN32
+    #if defined _WIN64
+        return "Win64";
+    #elif defined _WIN32
         return "Win32";
     #elif defined __linux__
         return "Linux";
