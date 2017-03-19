@@ -56,7 +56,7 @@ namespace tree {
 // =================================================================================================
 
 void NewickWriter::to_file (
-    Tree const& tree, const std::string filename
+    Tree const& tree, std::string const& filename
 ) const {
     std::string ts;
     to_string(tree, ts);
@@ -69,7 +69,7 @@ void NewickWriter::to_string (
     ts = to_string(tree);
 }
 
-std::string NewickWriter::to_string (Tree const& tree) const
+std::string NewickWriter::to_string( Tree const& tree ) const
 {
     NewickBroker broker;
     tree_to_broker_(tree, broker);

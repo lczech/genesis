@@ -148,7 +148,7 @@ public:
     * convenient for most purposes. In order to obtain the `distal_length`, use
     *
     *     PqueryPlacement p;
-    *     double distal_length = p.edge().data.branch_length - p.proximal_length;
+    *     double distal_length = p.edge().data<PlacementEdgeData>().branch_length - p.proximal_length;
     *
     * This is also the formula that is internally used to convert between the two.
     */

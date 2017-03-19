@@ -170,17 +170,17 @@ public:
      * See @link utils::Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
      * change this behaviour.
      */
-    void        to_file   (const Tree& tree, const std::string filename) const;
+    void to_file( Tree const& tree, std::string const& filename) const;
 
     /**
      * @brief Gives a Newick string representation of the tree.
      */
-    void        to_string (const Tree& tree, std::string& ts) const;
+    void to_string( Tree const& tree, std::string& ts ) const;
 
     /**
      * @brief Returns a Newick string representation of the tree.
      */
-    std::string to_string (const Tree& tree) const;
+    std::string to_string( Tree const& tree ) const;
 
     // -------------------------------------------------------------------------
     //     Plugin Functions
@@ -221,10 +221,16 @@ public:
      *  > "A name can be any string of printable characters except blanks, colons, semicolons,
      *  > parentheses, and square brackets."
      *
-     * They forgot to mention commas in that list. One more reason not to like the Newick format.
+     * They forgot to mention commas in that list. One more reason to be suspicious of the Newick
+     * format.
      * Anyway, whenever one of these characters (including commas) occurs in the name of a node
      * (see NewickBrokerElement::name), the writer wraps the whole name in quotation markes.
      * This is not officially in the standard, but common practice.
+     *
+     * Remark: When using a DefaultTreeNewickWriterPlugin (or a DefaultTreeNewickWriter, as it
+     * internally uses the plugin), you can use its setting
+     * @link DefaultTreeNewickWriterPlugin::replace_name_spaces( bool ) replace_name_spaces()@endlink
+     * in order to replace any spaces in node nams into underscores.
      *
      * This function sets the kind of quotation marks used for wrapping such names. Default are
      * double quotation marks ('"'), which seem to be understood by many other programs that work
