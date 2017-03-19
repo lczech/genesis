@@ -34,11 +34,13 @@
 #include "genesis/tree/default/operators.hpp"
 #include "genesis/tree/default/tree.hpp"
 #include "genesis/tree/function/manipulation.hpp"
+#include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/tree.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <numeric>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -54,12 +56,37 @@ tree::Tree labelled_tree(
     bool const         fully_resolve,
     std::string const& name_prefix
 ) {
+    // Get a copy of the original tree that contains only default data.
+    return labelled_tree(
+        sample,
+        tree::convert_to_default_tree( sample.tree() ),
+        fully_resolve,
+        name_prefix
+    );
+}
+
+tree::Tree labelled_tree(
+    Sample const&      sample,
+    tree::Tree const&  tree,
+    bool               fully_resolve,
+    std::string const& name_prefix
+) {
     // -----------------------------------------------------
     //     Preparation
     // -----------------------------------------------------
 
-    // Get a copy of the original tree that contains only default data.
-    auto result = tree::convert_to_default_tree( sample.tree() );
+    // Get a copy of the original tree that we can add edges to.
+    auto result = tree;
+
+    // Check whether the tree is compatible with the sample tree.
+    // This is a bit wasteful for cases when this function is called directly from its sample
+    // version above (then, we can be sure that it is compatible), but necessary otherwise.
+    if( ! tree::identical_topology( result, sample.tree() )) {
+        throw std::runtime_error(
+            "Tree provided for labelled_tree() is not compatible "
+            "with the Tree of the provided Sample."
+        );
+    }
 
     // Get a list of the edge pointers so that we can iterate and add to the tree at the same time.
     std::vector< tree::TreeEdge* > edge_list;

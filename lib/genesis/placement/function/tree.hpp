@@ -52,8 +52,8 @@ class Sample;
 // =================================================================================================
 
 /**
- * @brief Produce a @link tree::Tree Tree@endlink where each PqueryPlacement is turned into an
- * @link tree::TreeEdge Edge@endlink.
+ * @brief Produce a @link tree::Tree Tree@endlink where each PqueryPlacement of Sample is turned
+ * into an @link tree::TreeEdge Edge@endlink.
  *
  * The function takes the original @link PlacementTree Tree@endlink of the Sample, and for each
  * PqueryPlacement of the Sample, it attaches a new leaf @link tree::TreeNode Node@endlink to it,
@@ -140,6 +140,26 @@ class Sample;
  */
 tree::Tree labelled_tree(
     Sample const&      sample,
+    bool               fully_resolve = false,
+    std::string const& name_prefix   = ""
+);
+
+/**
+ * @brief Produce a @link tree::Tree Tree@endlink where each PqueryPlacement of Sample is turned
+ * into an @link tree::TreeEdge Edge@endlink.
+ *
+ * This function is an extension of labelled_tree( Sample const&, bool, std::string const& ) that
+ * takes a custom Tree instead of using the one of the Sample. This allows to produce a labelled
+ * Tree that can contain other data at its Nodes and Edges. The only condition is that the data
+ * of the provided Tree is derived from @link tree::DefaultNodeData DefaultNodeData@endlink and
+ * @link tree::DefaultEdgeData DefaultEdgeData@endlink.
+ *
+ * This data is then copied to the resulting Tree. The edge data of edges where new placement edges
+ * are added is kept that the topmost edge, i.e., the one that is closest to the root.
+ */
+tree::Tree labelled_tree(
+    Sample const&      sample,
+    tree::Tree const&  tree,
     bool               fully_resolve = false,
     std::string const& name_prefix   = ""
 );
