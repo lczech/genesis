@@ -55,7 +55,10 @@ int main(int argc, char **argv)
     std::string call = argv[0];
     std::size_t found = call.find_last_of("/\\");
     if (found != std::string::npos) {
-        environment->data_dir = call.substr(0,found) + "/../data/";
+
+        // Ugly hardcoded path depending on the build structe of the program.
+        // For now, this is good enoguh, but maybe we should find a more portable solution.
+        environment->data_dir = call.substr(0,found) + "/../../test/data/";
     }
 
     // If user provided one via command line, overwrite data dir.
@@ -83,6 +86,9 @@ int main(int argc, char **argv)
     if (!dir_exists(environment->data_dir)) {
         environment->data_dir = "";
     }
+
+    // We want to fail if we didn't find the test data.
+    environment->fail_on_missing_data_dir = true;
 
     // We want to see Logging information while testing.
     genesis::utils::Logging::log_to_stdout();
