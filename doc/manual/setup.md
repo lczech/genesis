@@ -69,10 +69,7 @@ Requirements:
  *  A fairly up-to-date C++11 compiler. We currently test with [clang++](http://clang.llvm.org/)
     3.6 and 3.7, as well as [GCC](https://gcc.gnu.org/) 4.9 and 5.0.
 
-Make sure that your `libstdc++` is also up to date. This is the standard library for C++, which is
-heavily used in genesis. It is usually installed with `g++`. However, `clang++` uses the `g++`
-version of `libstdc++`, so if you have a new `clang++`, but old `g++` version, this might cause
-trouble. Best to update both of them.
+For details, see the @ref supplement_build_process "Build Process" page.
 
 Optional:
 
@@ -85,20 +82,20 @@ Optional:
 -->
  *  If you also want to build the tests, you need [Google Test](https://github.com/google/googletest).
     We internally run the tests before every release, so you don't need to. Have a look at the
-    `./test` directory for more information.
+    `genesis/test` directory for more information.
 
 Build output:
 
- *  `./bin/libgenesis.[so|a]`: Shared and static binaries of the library. Those are the files you
+ *  `genesis/bin/libgenesis.[so|a]`: Shared and static binaries of the library. Those are the files you
     need to link against when using genesis as a library for your own C++ projects.
     By default, only the shared lib (`.so`) is build. If you need the static lib, use the option
     flag `BUILD_STATIC_LIB` of the main cmake script.
- *  `./bin/apps/*`: App executables are stored here. See section @ref setup_apps.
+ *  `genesis/bin/apps/*`: App executables are stored here. See section @ref setup_apps.
 <!--
  *  `genesis/bin/python/genesis.so`: Python module file. See section @ref setup_python.
 -->
- *  `./bin/test/genesis_tests`: Test executable. See `./test/README.md` for more information.
- *  `./build`: Intermediate build files. No need to worry about them too much.
+ *  `genesis/bin/test/genesis_tests`: Test executable. See `genesis/test/README.md` for more information.
+ *  `genesis/build`: Intermediate build files. No need to worry about them too much.
 
 If you just pulled new commits from the repository, or added new files to be compiled
 (either an app, some lib function, <!--Python bindings,--> or tests), you can call
@@ -106,11 +103,11 @@ If you just pulled new commits from the repository, or added new files to be com
     make update
 
 to include those files without need for recompiling everything (a so-called incremental build).
-See @ref supplement_development for more information on incremental builds.
+See @ref supplement_build_process for more information on incremental builds.
 
 # Apps {#setup_apps}
 
-The `./apps` directory is provided for conveniently and quickly developing small C++ applications
+The `genesis/apps` directory is provided for conveniently and quickly developing small C++ applications
 which use genesis as their main library. This is a way of using C++ similar to a scripting language.
 Thus, it is useful if you want to try out the @ref tutorials and @ref demos or if you quickly want
 to test an idea or get some experience with genesis.
@@ -125,30 +122,37 @@ Reasons to use this method (instead of the genesis Python bindings) include:
  *  If you simply feel more comfortable developing in C++ than in Python.
 -->
 
-To create a new application, create a `*.cpp` file in the `./apps` directory and provide it with
-a main function:
+To create a new application, create a `*.cpp` file in the `genesis/apps` directory and provide it
+with a main function:
 
 ~~~{.cpp}
+#include "genesis/genesis.hpp"
+
 int main( int argc, const char* argv[] )
 {
 	// [Your code here.]
 }
 ~~~
 
-Include all needed headers and write the desired functionality.
-Of course, you can use other local functions in addition to the main function in order to structure
-your code.
+Include all needed headers (or, for simplicity, the `genesis.hpp` header like above, which includes
+all of Genesis) and write the desired functionality. Of course, you can use other local functions
+in addition to the main function in order to structure your code.
 
 The app is automatically compiled by the main build process and linked against the shared library
 version of genesis by calling
 
     make update
 
-in the main directory. The resulting executable is placed in `./bin/apps` and named after the `*.cpp`
-file (without the ending).
+in the main directory. The resulting executable is placed in `genesis/bin/apps` and named after the
+`*.cpp` file (without the ending).
 
 Apart from that, there are no further requirements. Simply include the needed genesis headers (or
 any other headers you might need) and compile. Happy coding!
+
+The only limitation of using Apps is that everything has to be in a single compilation unit.
+Thus, additional headers work, but linking against the build output of other `.cpp` files does not
+work. For this, you'd have to start a normal project that links against Genesis, instead of using
+the Apps.
 
 # Library {#setup_lib}
 

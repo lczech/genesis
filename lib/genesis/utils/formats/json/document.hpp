@@ -109,7 +109,7 @@ bool operator>=(JsonDocument const& lhs, JsonDocument const& rhs) noexcept;
  *
  * This class is a heavily altered adaption of the excellent
  * [JSON for Modern C++](https://github.com/nlohmann/json) library by Niels Lohmann, see also
- * @link supplement_acknowledgements Acknowledgements@endlink.
+ * @link supplement_acknowledgements_code_reuse_json_document Acknowledgements@endlink.
  */
 class JsonDocument
 {

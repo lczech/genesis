@@ -93,6 +93,10 @@ namespace utils {
  * (e.g., by a constructor or a copy assignment). If the iterator is default-constructed, it is
  * *uninitialized* and most methods are undefined. We use assertions to detect calls on
  * uninitialized iterators.
+ *
+ * This class is a heavily altered adaption of the excellent
+ * [JSON for Modern C++](https://github.com/nlohmann/json) library by Niels Lohmann, see also
+ * @link supplement_acknowledgements_code_reuse_json_document Acknowledgements@endlink.
  */
 template<typename U>
 class JsonIterator : public std::iterator<std::random_access_iterator_tag, U>

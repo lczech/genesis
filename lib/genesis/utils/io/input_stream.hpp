@@ -71,7 +71,7 @@ namespace utils {
  *
  * Implementation details inspired by
  * [fast-cpp-csv-parser](https://github.com/ben-strasser/fast-cpp-csv-parser) by Ben Strasser,
- * see also @link supplement_acknowledgements Acknowledgements@endlink.
+ * see also @link supplement_acknowledgements_code_reuse_input_stream Acknowledgements@endlink.
  */
 class InputStream
 {
