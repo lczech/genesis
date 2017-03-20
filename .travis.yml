@@ -8,14 +8,15 @@ branches:
 
 matrix:
   include:
-    - compiler: gcc
-      addons:
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - g++-4.8
-      env: COMPILER=g++-4.8
+    # Cannot use gcc 4.8 because of missing regex implementation.
+    # - compiler: gcc
+    #   addons:
+    #     apt:
+    #       sources:
+    #         - ubuntu-toolchain-r-test
+    #       packages:
+    #         - g++-4.8
+    #   env: COMPILER=g++-4.8
     - compiler: gcc
       addons:
         apt:
@@ -32,6 +33,7 @@ matrix:
           packages:
             - g++-5
       env: COMPILER=g++-5
+    # Cannot use clang in travis right now because of stupid apt-get shutdown.
     # - compiler: clang
     #   addons:
     #     apt:

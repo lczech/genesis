@@ -65,9 +65,9 @@ in the main directory. This builds all parts of genesis for which the dependenci
 
 Requirements:
 
- *  [make](https://www.gnu.org/software/make/) and [cmake](https://cmake.org/) 2.8.7 or higher.
+ *  [Make](https://www.gnu.org/software/make/) and [CMake](https://cmake.org/) 2.8.7 or higher.
  *  A fairly up-to-date C++11 compiler. We currently test with [clang++](http://clang.llvm.org/)
-    3.6 and 3.7, as well as [GCC](https://gcc.gnu.org/) 4.8.4, 4.9 and 5.0.
+    3.6 and 3.7, as well as [GCC](https://gcc.gnu.org/) 4.9 and 5.0.
 
 Make sure that your `libstdc++` is also up to date. This is the standard library for C++, which is
 heavily used in genesis. It is usually installed with `g++`. However, `clang++` uses the `g++`

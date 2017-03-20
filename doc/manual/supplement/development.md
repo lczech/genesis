@@ -56,10 +56,11 @@ in debug mode.
 
 Genesis uses C++11, thus we need a compiler that supports all its features.
 
-The first GCC version to do so is 4.8.1, see [here](https://gcc.gnu.org/projects/cxx-status.html#cxx11).
-Last time we tested it, Genesis compiled perfectly with this version.
-However, [Travis](https://travis-ci.org/lczech/genesis) is an annoying pain, so we unfortunately
-test Genesis on Travis with GCC 4.8.4 instead.
+The first GCC version with all necessary features (including `std::regex`) is 4.9, see
+[here](https://gcc.gnu.org/projects/cxx-status.html#cxx11) and
+[here](https://gcc.gnu.org/ml/gcc/2014-04/msg00195.html). Compiling with GCC 4.8 should work,
+and most features of Genesis can be used, too. However, this throws an exception when trying to call
+any function that uses `std::regex`.
 
 # Testing Genesis with GTest
 
