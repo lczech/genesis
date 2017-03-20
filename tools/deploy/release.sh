@@ -199,15 +199,15 @@ version="v${version}"
 echo
 
 # Replace version line in genesis header file.
-echo "Replace version in lib/geneis/utils/core/version.hpp"
-sed -i "s/    return \".*\"; \/\/ #GENESIS_VERSION#/    return \"${version}\"; \/\/ #GENESIS_VERSION#/g" lib/geneis/utils/core/version.hpp
+echo "Replace version in lib/genesis/utils/core/version.hpp"
+sed -i "s/    return \".*\"; \/\/ #GENESIS_VERSION#/    return \"${version}\"; \/\/ #GENESIS_VERSION#/g" lib/genesis/utils/core/version.hpp
 
 # Replace version line in doxygen file.
 echo "Replace version in doc/doxygen/Doxyfile"
 sed -i "s/PROJECT_NUMBER *=.*/PROJECT_NUMBER         = \"${version}\"/g" doc/doxygen/Doxyfile
 
 # Update genesis header
-echo "Update genesis header lib/geneis/genesis.hpp"
+echo "Update genesis header lib/genesis/genesis.hpp"
 ./tools/deploy/make_genesis_header.sh
 
 ####################################################################################################
