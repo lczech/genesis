@@ -37,4 +37,11 @@ The following demo programs are available:
     @ref genesis::placement::Pquery "Pquery". It outputs tables that show which and how Pqueries
     differ in their placement on the tree.
 
+ *  @subpage demos_labelled_tree "Labelled Tree"
+
+    Takes a `jplace` file and optionally a `Newick` tree (for example, with additional bootstrap
+    support values) and produces a `Newick` tree where each
+    @ref genesis::placement::PqueryPlacement "Placement" is turned intoan individual branch on the
+    original tree.
+
 See there for more details.
