@@ -91,8 +91,8 @@ class Sample;
  * Furthermore, the placements are sorted by their `pendant_length`.
  *
  * Using this method, the new nodes of the resulting tree are easier to distinguish and collapse,
- * as they collect all placements under one base edge. However, this comes at the cost of losing the
- * detailled information of the `proximal_length` of the placements. If you want to keep this
+ * as all placements are collected under the base edge. However, this comes at the cost of losing
+ * the detailled information of the `proximal_length` of the placements. If you want to keep this
  * information, use `fully_resolve == true` instead.
  *
  * <b>Parameter `fully_resolve == true`</b>
@@ -111,7 +111,7 @@ class Sample;
  *
  * Using this method gives maximum information, but results in a more crowded tree. The new
  * placement edges are "sorted" along the original edge by their `proximal_length`. For this reason
- * in the example image above, "Query 2" is closer to "Node A" then "Query 1", because it has a
+ * in the example image above, "Query 2" is closer to "Node A" then "Query 1": it has a
  * higher `proximal_length`. This information was lost in the multifurcating tree from above.
  *
  * <b>Further Details</b>
@@ -120,7 +120,7 @@ class Sample;
  * same. In this case, the placement is simply attached using its `proximal_length` and
  * `pendant_length`.
  *
- * @link Pquery Pqueries@endlink with multiple Pqueryname%s are treated as if each name is a
+ * @link Pquery Pqueries@endlink with multiple PqueryName%s are treated as if each name is a
  * separate placement, i.e., for each of them, a new (identical) edge is added to the Tree.
  * If using `fully_resolve ==  true`, this results in a `branch_length` of 0.0 between the
  * nodes of those placements.
