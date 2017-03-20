@@ -52,7 +52,7 @@ class Sample;
 // =================================================================================================
 
 /**
- * @brief Produce a @link tree::Tree Tree@endlink where each PqueryPlacement of Sample is turned
+ * @brief Produce a @link tree::Tree Tree@endlink where each PqueryPlacement of a Sample is turned
  * into an @link tree::TreeEdge Edge@endlink.
  *
  * The function takes the original @link PlacementTree Tree@endlink of the Sample, and for each
@@ -145,17 +145,19 @@ tree::Tree labelled_tree(
 );
 
 /**
- * @brief Produce a @link tree::Tree Tree@endlink where each PqueryPlacement of Sample is turned
+ * @brief Produce a @link tree::Tree Tree@endlink where each PqueryPlacement of a Sample is turned
  * into an @link tree::TreeEdge Edge@endlink.
  *
  * This function is an extension of labelled_tree( Sample const&, bool, std::string const& ) that
  * takes a custom Tree instead of using the one of the Sample. This allows to produce a labelled
- * Tree that can contain other data at its Nodes and Edges. The only condition is that the data
- * of the provided Tree is derived from @link tree::DefaultNodeData DefaultNodeData@endlink and
- * @link tree::DefaultEdgeData DefaultEdgeData@endlink.
+ * Tree that can contain other data at its Nodes and Edges. This Tree has to be topologically
+ * identical to the @link Sample::tree() Sample Tree@endlink.
  *
- * This data is then copied to the resulting Tree. The edge data of edges where new placement edges
- * are added is kept that the topmost edge, i.e., the one that is closest to the root.
+ * Furthermore, the data of the provided Tree needs to derived from
+ * @link tree::DefaultNodeData DefaultNodeData@endlink and
+ * @link tree::DefaultEdgeData DefaultEdgeData@endlink. This data is then copied to the resulting
+ * Tree. The edge data of edges where new placement edges are added is kept that the topmost edge,
+ * i.e., the one that is closest to the root.
  */
 tree::Tree labelled_tree(
     Sample const&      sample,
