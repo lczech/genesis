@@ -69,9 +69,9 @@ option (BUILD_TESTS         "Build test suites"    OFF)
 option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
 option (USE_OPENMP          "Use OpenMP if available"                         ON)
 
-# Define monolith option with list of valid values.
-set( MONOLITH_BUILD FULL CACHE STRING "Build modules monolithically - trading memory for speed." )
-set_property( CACHE MONOLITH_BUILD PROPERTY STRINGS FULL MODULES OFF )
+# Define unity build option with list of valid values.
+set( UNITY_BUILD FULL CACHE STRING "Build modules monolithically - trading memory for speed." )
+set_property( CACHE UNITY_BUILD PROPERTY STRINGS FULL MODULES OFF )
 
 if (BUILD_APPLICATIONS OR BUILD_PYTHON_MODULE OR BUILD_TESTS)
     # The applications, the python module and the tests all use the shared lib,
@@ -94,12 +94,12 @@ if( $ENV{GENESIS_DEBUG} )
 
     # set (CMAKE_VERBOSE_MAKEFILE ON)
     SET( BUILD_TESTS    ON )
-    SET( MONOLITH_BUILD OFF )
+    SET( UNITY_BUILD OFF )
 
 endif()
 
 message (STATUS "${ColorBlue}Building ${CMAKE_BUILD_TYPE}${ColorEnd}")
-message (STATUS "Monolithic build: ${MONOLITH_BUILD}")
+message (STATUS "Unity build: ${UNITY_BUILD}")
 
 # --------------------------------------------------------------------------------------------------
 #   Compiler and Linker Options
@@ -199,7 +199,7 @@ elseif(USE_OPENMP)
 endif()
 
 # --------------------------------------------------------------------------------------------------
-#   Monolith Build
+#   Unity Build
 # --------------------------------------------------------------------------------------------------
 
 # Helper that builds monolithic source files by concatenating the original sources.
@@ -237,7 +237,7 @@ function( ASSEMBLE_MONOLITH input_directory use_modules name resulting_source_fi
     endfunction()
 
     # Clean previously assembled monolith files.
-    file( REMOVE_RECURSE ${CMAKE_BINARY_DIR}/monolith_assemble/${name} )
+    file( REMOVE_RECURSE ${CMAKE_BINARY_DIR}/unity_assemble/${name} )
 
     IF( "${use_modules}" STREQUAL "MODULES" )
 
@@ -246,8 +246,8 @@ function( ASSEMBLE_MONOLITH input_directory use_modules name resulting_source_fi
         foreach( SUBDIR ${SUBDIRS} )
 
             # Target files for this module.
-            SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/monolith_assemble/${name}/${SUBDIR}.cpp )
-            SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/monolith_sources/${name}/${SUBDIR}.cpp )
+            SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/unity_assemble/${name}/${SUBDIR}.cpp )
+            SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/unity_sources/${name}/${SUBDIR}.cpp )
 
             # Find all sources of the module and concat them into a tmp assembly file.
             file (GLOB_RECURSE subdir_sources ${input_directory}/${SUBDIR}/*.cpp)
@@ -264,14 +264,14 @@ function( ASSEMBLE_MONOLITH input_directory use_modules name resulting_source_fi
         # Find all resulting source files. We need to treat top-level files in the lib dir
         # extra, as they are not a part of any module.
         file (GLOB top_level_sources ${input_directory}/*.cpp)
-        file (GLOB monolith_sources  ${CMAKE_BINARY_DIR}/monolith_sources/${name}/*.cpp)
-        set ( ${resulting_source_files} ${top_level_sources} ${monolith_sources} PARENT_SCOPE )
+        file (GLOB unity_sources     ${CMAKE_BINARY_DIR}/unity_sources/${name}/*.cpp)
+        set ( ${resulting_source_files} ${top_level_sources} ${unity_sources} PARENT_SCOPE )
 
     ELSEIF( "${use_modules}" STREQUAL "FULL" )
 
         # Target files.
-        SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/monolith_assemble/${name}/all.cpp )
-        SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/monolith_sources/${name}/all.cpp )
+        SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/unity_assemble/${name}/all.cpp )
+        SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/unity_sources/${name}/all.cpp )
 
         # Find all sources and concat them into a tmp assembly file.
         file (GLOB_RECURSE all_sources ${input_directory}/*.cpp)

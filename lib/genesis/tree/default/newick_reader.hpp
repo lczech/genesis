@@ -45,11 +45,17 @@ namespace tree {
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Provide a set of plugin functions for NewickReader to read a #DefaultTree.
  */
 class DefaultTreeNewickReaderPlugin
 {
 public:
+
+    // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    using self_type = DefaultTreeNewickReaderPlugin;
 
     // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
@@ -65,6 +71,148 @@ public:
     DefaultTreeNewickReaderPlugin& operator= (DefaultTreeNewickReaderPlugin&&)      = default;
 
     // -------------------------------------------------------------------------
+    //     Settings
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Get the default branch length used when there is none given for an edge.
+     */
+    double default_branch_length() const
+    {
+        return default_branch_length_;
+    }
+
+    /**
+     * @brief Set the default branch length used when there is none given for an edge.
+     *
+     * By default, this is `1.0`.
+     */
+    self_type& default_branch_length( double value )
+    {
+        default_branch_length_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the default named used when there is none given for a leaf node.
+     */
+    std::string const& default_leaf_name() const
+    {
+        return default_leaf_name_;
+    }
+
+    /**
+     * @brief Set the default named used when there is none given for a leaf node.
+     */
+    self_type& default_leaf_name( std::string const& value )
+    {
+        default_leaf_name_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the default named used when there is none given for an inner node.
+     */
+    std::string const& default_inner_name() const
+    {
+        return default_inner_name_;
+    }
+
+    /**
+     * @brief Set the default named used when there is none given for an inner node.
+     */
+    self_type& default_inner_name( std::string const& value )
+    {
+        default_inner_name_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the default named used when there is none given for the root node.
+     */
+    std::string const& default_root_name() const
+    {
+        return default_root_name_;
+    }
+
+    /**
+     * @brief Set the default named used when there is none given for the root node.
+     */
+    self_type& default_root_name( std::string const& value )
+    {
+        default_root_name_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Shorthand to set the default names for leaf, inner and root node at once, to one
+     * value.
+     */
+    self_type& set_default_names( std::string const& value )
+    {
+        default_leaf_name_ = value;
+        default_inner_name_ = value;
+        default_root_name_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Return whether currently default names are activated in this plugin.
+     *
+     * See the setter use_default_names( bool ) for details.
+     */
+    bool use_default_names() const
+    {
+        return use_default_names_;
+    }
+
+    /**
+     * @brief Set whether to replace unnamed nodes with a default name.
+     *
+     * Default is `false`. In this case, nodes without names in the Newick tree are simply unnamed,
+     * i.e., their name is the emptry string.
+     *
+     * If set to `true`, unnamed nodes are named using one of the default names:
+     *
+     *  * Leaf nodes are named using default_leaf_name().
+     *  * Inner nodes are named using default_inner_name().
+     *  * The root node is named using default_root_name().
+     *
+     * These default names can be changed by using default_leaf_name( std::string const& ),
+     * default_inner_name( std::string const& ) and default_root_name( std::string const& ),
+     * or by using set_default_names( std::string const& ) to set all three at once.
+     */
+    self_type& use_default_names( bool value )
+    {
+        use_default_names_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Return whether currently this plugin replaces underscores with spaces.
+     *
+     * See the setter replace_name_underscores( bool ) for details.
+     */
+    bool replace_name_underscores() const
+    {
+        return replace_name_underscores_;
+    }
+
+    /**
+     * @brief Set whether to replace all underscores ('_') in names with spaces (' ').
+     *
+     * This is demanded by the original definition of the Newick format, see
+     * http://evolution.genetics.washington.edu/phylip/newicktree.html
+     * However, because under most common circumstances, it is more confusing than helpful, we
+     * decided to deactivate this by default. Thus, the default for this setting is `false`.
+     */
+    self_type& replace_name_underscores( bool value )
+    {
+        replace_name_underscores_ = value;
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
     //     Plugin Functions
     // -------------------------------------------------------------------------
 
@@ -73,18 +221,18 @@ public:
         std::string name = element.name;
 
         // Insert default names if needed.
-        if( name.empty() && use_default_names ) {
-            if( element.rank() == 0 ) {
-                name = default_leaf_name;
-            } else if( element.depth == 0 ) {
-                name = default_root_name;
+        if( name.empty() && use_default_names_ ) {
+            if( element.is_leaf() ) {
+                name = default_leaf_name_;
+            } else if( element.is_root() ) {
+                name = default_root_name_;
             } else {
-                name = default_internal_name;
+                name = default_inner_name_;
             }
         }
 
         // Handle underscores/spaces.
-        if( replace_name_underscores ) {
+        if( replace_name_underscores_ ) {
             name = utils::replace_all(name, "_", " ");
         }
 
@@ -99,7 +247,7 @@ public:
         if( element.values.size() > 0 ) {
             edge.data<DefaultEdgeData>().branch_length = std::stod( element.values[0] );
         } else {
-            edge.data<DefaultEdgeData>().branch_length = 1.0;
+            edge.data<DefaultEdgeData>().branch_length = default_branch_length_;
         }
     }
 
@@ -144,24 +292,16 @@ public:
     //     Data Members
     // -------------------------------------------------------------------------
 
-public:
+private:
 
-    // TODO for now, this is all public. use getters and setters instead, and outsource those
-    // properties that belong to the (yet to create) superclass DefaultNewickPluginBase or so.
+    double default_branch_length_ = 1.0;
 
-    std::string default_leaf_name     = "Leaf_Node";
-    std::string default_internal_name = "Internal_Node";
-    std::string default_root_name     = "Root_Node";
+    std::string default_leaf_name_  = "Leaf_Node";
+    std::string default_inner_name_ = "Inner_Node";
+    std::string default_root_name_  = "Root_Node";
 
-    /**
-     * @brief If set to true, unnamed nodes are named using one of the default names.
-     *
-     * The default names can be set using #default_leaf_name, #default_internal_name and
-     * #default_root_name.
-     */
-    bool        use_default_names = false;
-
-    bool        replace_name_underscores = false;
+    bool        use_default_names_        = false;
+    bool        replace_name_underscores_ = false;
 
 };
 

@@ -36,12 +36,12 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::PhyloxmlWriter, scope )
         )
         .def(
             "to_string",
-            ( std::string ( ::genesis::tree::PhyloxmlWriter::* )( const Tree & ))( &::genesis::tree::PhyloxmlWriter::to_string ),
+            ( std::string ( ::genesis::tree::PhyloxmlWriter::* )( const Tree & ) const )( &::genesis::tree::PhyloxmlWriter::to_string ),
             pybind11::arg("tree")
         )
         .def(
             "to_string",
-            ( void ( ::genesis::tree::PhyloxmlWriter::* )( const Tree &, std::string & ))( &::genesis::tree::PhyloxmlWriter::to_string ),
+            ( void ( ::genesis::tree::PhyloxmlWriter::* )( const Tree &, std::string & ) const )( &::genesis::tree::PhyloxmlWriter::to_string ),
             pybind11::arg("tree"),
             pybind11::arg("ts")
         )

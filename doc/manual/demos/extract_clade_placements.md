@@ -1,9 +1,17 @@
 Extract Clade Placements {#demos_extract_clade_placements}
 ===========
 
+@section Summary
+
+Takes a `jplace` file and a mapping of the taxa of its reference tree to some clade names.
+It outputs a `jplace` file for each clade, where each file contains all
+@ref genesis::placement::Pquery "Pqueries" that fell into that clade.
+
 This demo is located at
 
-    ./doc/demos/extract_clade_placements.cpp
+    genesis/doc/demos/extract_clade_placements.cpp
+
+@section Details
 
 The program takes three input arguments in the following order:
 
@@ -67,11 +75,11 @@ the pqueries of one clade, using a refined reference tree for that clade with a 
 (more reference taxa). This two-step placement approach allows for finely grained
 placement positions while keeping the computational load relatively small.
 
-## Example
+@section Example
 
 Example files to test the demo are located at
 
-    ./doc/demos/extract_clade_placements/
+    genesis/doc/demos/extract_clade_placements/
 
 This directory contains an `example.jplace` file, a `clades.tsv` file listing the taxa of the
 reference tree of the `jplace` file and assigning each of them to either `clade_a` or `clade_b`,
@@ -79,7 +87,7 @@ and an empty `output` directory.
 
 After compiling the demo program (using `make update`), you can run the example like this
 
-    cd ./doc/demos/extract_clade_placements/
+    cd genesis/doc/demos/extract_clade_placements/
     ../../../bin/extract_clade_placements example.jplace clades.tsv output/
 
 The expected output of the program is

@@ -33,8 +33,9 @@
 #include "genesis/placement/pquery/plain.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
-
 #include "genesis/utils/core/logging.hpp"
+
+#include <limits>
 
 namespace genesis {
 namespace placement {
@@ -43,11 +44,6 @@ namespace placement {
 //     Helper Functions
 // =================================================================================================
 
-/**
- * @brief Return a mapping of edge_num integers to the corresponding PlacementTreeEdge object.
- *
- * This function depends on the tree only and does not involve any pqueries.
- */
 std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( PlacementTree const& tree )
 {
     auto en_map = std::unordered_map<int, PlacementTreeEdge*>();
@@ -64,45 +60,46 @@ std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( PlacementTree 
     return en_map;
 }
 
-/**
- * @brief Return a mapping of edge_num integers to the corresponding PlacementTreeEdge object.
- *
- * This function depends on the tree only and does not involve any pqueries.
- */
-std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( Sample const & smp )
+std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( Sample const& smp )
 {
     return edge_num_to_edge_map( smp.tree() );
 }
 
-/**
- * @brief Return a mapping from PlacementTreeEdge indices to a vector of all PqueryPlacement%s that
- * are placed on that edge, for all edges of the Sample.
- *
- * This map is invalidated after calling Pquery::add_placement().
- */
-std::unordered_map< size_t, std::vector< PqueryPlacement const* >> placements_per_edge(
-    Sample const& smp
+std::vector< std::vector< PqueryPlacement const* >> placements_per_edge(
+    Sample const& smp,
+    bool only_max_lwr_placements
 ) {
-    std::unordered_map< size_t, std::vector< PqueryPlacement const* >> result;
+    std::vector< std::vector< PqueryPlacement const* >> result;
+    result.resize( smp.tree().edge_count() );
 
     for( auto const& pqry : smp.pqueries() ) {
-        for( auto const& place : pqry.placements() ) {
-            result[ place.edge().index() ].push_back( &place );
+        if( only_max_lwr_placements ) {
+
+            // If we are only interested in the most probably placement, find it first.
+            PqueryPlacement const* max_p = nullptr;
+            double max_v = std::numeric_limits<double>::lowest();
+            for( auto const& place : pqry.placements() ) {
+                if( place.like_weight_ratio > max_v ) {
+                    max_v = place.like_weight_ratio;
+                    max_p = &place;
+                }
+            }
+            // If there is one, add it to the list for its edge.
+            if( max_p ) {
+                result[ max_p->edge().index() ].push_back( max_p );
+            }
+
+        } else {
+            // If we instead want all placement, simply add them.
+            for( auto const& place : pqry.placements() ) {
+                result[ place.edge().index() ].push_back( &place );
+            }
         }
     }
 
     return result;
 }
 
-/**
- * @brief Return a vector of all PqueryPlacement%s that are placed on the given PlacementTreeEdge.
- *
- * This functions iterates over all placements and collects those that are placed on the given
- * edge. In case that this is needed for multiple edges, it will be faster to use
- * placements_per_edge( Sample ) instead.
- *
- * This map is invalidated after calling Pquery::add_placement().
- */
 std::vector<PqueryPlacement const*> placements_per_edge(
     Sample            const& smp,
     PlacementTreeEdge const& edge
@@ -120,12 +117,6 @@ std::vector<PqueryPlacement const*> placements_per_edge(
     return result;
 }
 
-/**
- * @brief Return a vector that contains the number of PqueryPlacement%s per
- * @link ::PlacementTreeEdge edge@endlink of the @link ::PlacementTree tree@endlink of the Sample.
- *
- * The vector is indexed using the @link PlacementTreeEdge::index() index@endlink of the edges.
- */
 std::vector<size_t> placement_count_per_edge( Sample const& sample )
 {
     auto result = std::vector<size_t>( sample.tree().edge_count(), 0 );
@@ -139,13 +130,6 @@ std::vector<size_t> placement_count_per_edge( Sample const& sample )
     return result;
 }
 
-/**
- * @brief Return a vector that contains the sum of the weights of the PqueryPlacement%s per
- * @link ::PlacementTreeEdge edge@endlink of the @link ::PlacementTree tree@endlink of the Sample.
- *
- * The weight is measured in @link PqueryPlacement::like_weight_ratio `like_weight_ratio`@endlink.
- * The vector is indexed using the @link PlacementTreeEdge::index() index@endlink of the edges.
- */
 std::vector<double> placement_weight_per_edge( Sample const& sample )
 {
     auto result = std::vector<double>( sample.tree().edge_count(), 0.0 );
@@ -159,19 +143,6 @@ std::vector<double> placement_weight_per_edge( Sample const& sample )
     return result;
 }
 
-/**
- * @brief Return a plain representation of all pqueries of this map.
- *
- * This method produces a whole copy of all pqueries and their placements (though, not their names)
- * in a plain POD format. This format is meant for speeding up computations that need access to
- * the data a lot - which would require several pointer indirections in the normal representation
- * of the data.
- *
- * This comes of course at the cost of reduced flexibility, as all indices are fixed in the
- * plain data structre: changing a value here will not have any effect on the original data or
- * even on the values of the pqueries. Thus, most probably this will lead to corruption. Therefore,
- * this data structure is meant for reading only.
- */
 std::vector<PqueryPlain> plain_queries( Sample const & smp )
 {
     auto pqueries = std::vector<PqueryPlain>( smp.size() );
@@ -203,16 +174,6 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
 //     Verification
 // =================================================================================================
 
-/**
- * @brief Reset all edge nums of a ::PlacementTree.
- *
- * The `edge_num` property of the PlacementTreeEdge%s is defined by the `jplace` standard.
- * The values have to be assigned increasingly with a postorder traversal of the tree.
- * This function resets them so that this is established.
- *
- * See has_correct_edge_nums() to check whether the edge nums are already correct. This should
- * be the case for any valid `jplace` file.
- */
 void reset_edge_nums( PlacementTree& tree )
 {
     // Edge numbers need to be in ascending order via postorder traversal.
@@ -228,13 +189,6 @@ void reset_edge_nums( PlacementTree& tree )
     }
 }
 
-/**
- * @brief Verify that the tree has correctly set edge nums.
- *
- * The `edge_num` property of the PlacementTreeEdge%s is defined by the `jplace` standard.
- * The values have to be assigned increasingly with a postorder traversal of the tree.
- * This function checks whether this is the case.
- */
 bool has_correct_edge_nums( PlacementTree const& tree )
 {
     int current = 0;
@@ -255,17 +209,6 @@ bool has_correct_edge_nums( PlacementTree const& tree )
     return true;
 }
 
-/**
- * @brief Validate the integrity of the pointers, references and data in a Sample object.
- *
- * Returns true iff everything is set up correctly. In case of inconsistencies, the function stops
- * and returns false on the first encountered error.
- *
- * If `check_values` is set to true, also a check on the validity of numerical values is done, for
- * example that the proximal_length is smaller than the corresponding branch_length.
- * If additionally `break_on_values` is set, validate() will stop on the first encountered invalid
- * value. Otherwise it will report all invalid values to the log stream.
- */
 bool validate( Sample const& smp, bool check_values, bool break_on_values )
 {
     // check tree

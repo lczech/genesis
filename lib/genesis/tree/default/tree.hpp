@@ -105,6 +105,11 @@ public:
         return std::unique_ptr< DefaultNodeData >( new DefaultNodeData() );
     }
 
+    virtual std::unique_ptr< BaseNodeData > recreate() const override
+    {
+        return std::unique_ptr< DefaultNodeData >( new DefaultNodeData() );
+    }
+
     virtual std::unique_ptr< BaseNodeData > clone() const override
     {
         return std::unique_ptr< DefaultNodeData >( new DefaultNodeData( *this ));
@@ -165,6 +170,11 @@ public:
         return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData() );
     };
 
+    virtual std::unique_ptr< BaseEdgeData > recreate() const override
+    {
+        return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData() );
+    }
+
     virtual std::unique_ptr< BaseEdgeData > clone() const override
     {
         return std::unique_ptr< DefaultEdgeData >( new DefaultEdgeData( *this ));
@@ -177,9 +187,10 @@ public:
     /**
      * @brief Branch length of the edge.
      *
-     * Defaults to 1.0.
+     * Defaults to 0.0. This allows to add default-created edges to the Tree without changing any
+     * metrics related to the branch length.
      */
-    double branch_length = 1.0;
+    double branch_length = 0.0;
 
 };
 

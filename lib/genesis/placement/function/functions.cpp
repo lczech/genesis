@@ -667,10 +667,10 @@ std::pair<PlacementTreeEdge const*, size_t> placement_count_max_edge( Sample con
 
     auto place_map = placements_per_edge( smp );
 
-    for( auto const& it : place_map ) {
-        if( it.second.size() > max ) {
-            edge = &smp.tree().edge_at( it.first );
-            max  = it.second.size();
+    for( size_t edge_i = 0; edge_i < place_map.size(); ++edge_i ) {
+        if( place_map[ edge_i ].size() > max ) {
+            edge = &smp.tree().edge_at( edge_i );
+            max  = place_map[ edge_i ].size();
         }
     }
 
@@ -684,17 +684,16 @@ std::pair<PlacementTreeEdge const*, double> placement_mass_max_edge( Sample cons
 
     auto place_map = placements_per_edge( smp );
 
-    for( auto const& it : place_map ) {
+    for( size_t edge_i = 0; edge_i < place_map.size(); ++edge_i ) {
         double sum = 0.0;
-        for( auto const& place : it.second ) {
+        for( auto const& place : place_map[ edge_i ]) {
             sum += place->like_weight_ratio;
         }
         if (sum > max) {
-            edge = &smp.tree().edge_at( it.first );
+            edge = &smp.tree().edge_at( edge_i );
             max  = sum;
         }
     }
-
     return std::make_pair(edge, max);
 }
 

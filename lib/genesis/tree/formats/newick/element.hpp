@@ -136,6 +136,36 @@ public:
         return rank_;
     }
 
+    /**
+     * @brief Return whether this is the root node of the tree.
+     */
+    bool is_root() const
+    {
+        return depth == 0;
+    }
+
+    /**
+     * @brief Return whether this is a leaf node.
+     */
+    bool is_leaf() const
+    {
+        if (rank_ < 0) {
+            throw std::logic_error("NewickBroker::is_leaf() was not called before.");
+        }
+        return rank_ == 0;
+    }
+
+        /**
+         * @brief Return whether this is an inner node, i.e., not a leaf node.
+         */
+    bool is_inner() const
+    {
+        if (rank_ < 0) {
+            throw std::logic_error("NewickBroker::is_leaf() was not called before.");
+        }
+        return rank_ != 0;
+    }
+
 private:
 
     /**

@@ -342,8 +342,9 @@ int main( int argc, char** argv )
     // in order to assign a pquery to it.
     const double threshold = 0.95;
 
-    // Activate logging.
+    // Activate logging, print genesis header.
     utils::Logging::log_to_stdout();
+    LOG_BOLD << genesis_header();
 
     // Check if the command line contains the right number of arguments and store them.
     if (argc != 4) {

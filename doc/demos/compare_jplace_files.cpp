@@ -71,8 +71,9 @@ int main( int argc, const char* argv[] )
 
     using namespace ::genesis::placement;
 
-    // Activate logging.
+    // Activate logging, print genesis header.
     utils::Logging::log_to_stdout();
+    LOG_BOLD << genesis_header();
 
     // Chars to be used in the output tables. Configure to your wishes.
     std::string valid_char   = "X";

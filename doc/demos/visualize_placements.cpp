@@ -216,8 +216,9 @@ int main( int argc, char** argv )
 {
     using namespace ::genesis::placement;
 
-    // Activate logging.
+    // Activate logging, print genesis header.
     utils::Logging::log_to_stdout();
+    LOG_BOLD << genesis_header();
 
     // Check if the command line contains the right number of arguments.
     if (argc != 3) {

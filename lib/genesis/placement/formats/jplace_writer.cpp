@@ -84,7 +84,7 @@ void JplaceWriter::to_stream( Sample const& sample, std::ostream& os ) const
     auto newick_writer = PlacementTreeNewickWriter();
     newick_writer.enable_names(true);
     newick_writer.enable_branch_lengths(true);
-    newick_writer.branch_length_precision = branch_length_precision_;
+    newick_writer.branch_length_precision( branch_length_precision_ );
     os << in << "\"tree\": \"" << newick_writer.to_string( sample.tree() ) << "\",\n";
 
     // Write field names.
@@ -220,7 +220,7 @@ void JplaceWriter::to_document( Sample const& smp, utils::JsonDocument& doc ) co
     auto nwp = PlacementTreeNewickWriter();
     nwp.enable_names(true);
     nwp.enable_branch_lengths(true);
-    nwp.branch_length_precision = branch_length_precision_;
+    nwp.branch_length_precision( branch_length_precision_ );
     doc[ "tree" ] = nwp.to_string( smp.tree() );
 
     // set placements

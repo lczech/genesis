@@ -1,0 +1,194 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="233.09961"
+   height="110.28711"
+   id="svg3124"
+   version="1.1"
+   inkscape:version="0.48.4 r9939"
+   sodipodi:docname="labelled_tree_fully_resolved.svg"
+   inkscape:export-filename="/home/lucas/Dropbox/HITS/genesis/doc/img/placement/labelled_tree_fully_resolved.png"
+   inkscape:export-xdpi="115.83"
+   inkscape:export-ydpi="115.83">
+  <defs
+     id="defs3126" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="3.959798"
+     inkscape:cx="80.988852"
+     inkscape:cy="51.792346"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-paths="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:window-width="1869"
+     inkscape:window-height="1056"
+     inkscape:window-x="51"
+     inkscape:window-y="37"
+     inkscape:window-maximized="1"
+     inkscape:snap-global="true"
+     inkscape:snap-grids="true"
+     inkscape:object-paths="true"
+     inkscape:snap-intersection-paths="true"
+     inkscape:object-nodes="true"
+     inkscape:snap-smooth-nodes="true"
+     fit-margin-left="0.5"
+     fit-margin-top="0.5"
+     fit-margin-right="0.5"
+     fit-margin-bottom="0.5">
+    <inkscape:grid
+       type="xygrid"
+       id="grid3900"
+       empspacing="5"
+       visible="true"
+       enabled="true"
+       snapvisiblegridlinesonly="true"
+       originx="-99px"
+       originy="-714.85644px" />
+  </sodipodi:namedview>
+  <metadata
+     id="metadata3129">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-99,-227.21863)">
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 185,252.36218 60,0"
+       id="path3916"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3922"
+       style="line-height:125%;letter-spacing:0px;word-spacing:0px;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       transform="translate(132.38477,156.09358)"><flowRegion
+         id="flowRegion3924"><rect
+           id="rect3926"
+           width="182.14285"
+           height="38.57143"
+           x="151.42857"
+           y="68.790756" /></flowRegion><flowPara
+         id="flowPara3928">Node A</flowPara></flowRoot>    <flowRoot
+       transform="translate(52.888672,194.82502)"
+       style="line-height:125%;letter-spacing:0px;word-spacing:0px;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="flowRoot3930"
+       xml:space="preserve"><flowRegion
+         id="flowRegion3932"><rect
+           y="68.790756"
+           x="151.42857"
+           height="38.57143"
+           width="182.14285"
+           id="rect3934" /></flowRegion><flowPara
+         id="flowPara3936">Query 1</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3938"
+       style="line-height:125%;letter-spacing:0px;word-spacing:0px;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       transform="translate(97.888672,174.82502)"><flowRegion
+         id="flowRegion3940"><rect
+           id="rect3942"
+           width="182.14285"
+           height="38.57143"
+           x="151.42857"
+           y="68.790756" /></flowRegion><flowPara
+         id="flowPara3944">Query 2</flowPara></flowRoot>    <flowRoot
+       transform="translate(97.888672,234.82502)"
+       style="line-height:125%;letter-spacing:0px;word-spacing:0px;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="flowRoot3946"
+       xml:space="preserve"><flowRegion
+         id="flowRegion3948"><rect
+           y="68.790756"
+           x="151.42857"
+           height="38.57143"
+           width="182.14285"
+           id="rect3950" /></flowRegion><flowPara
+         id="flowPara3952">Query 3</flowPara></flowRoot>    <flowRoot
+       xml:space="preserve"
+       id="flowRoot3954"
+       style="line-height:125%;letter-spacing:0px;word-spacing:0px;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       transform="translate(122.88867,214.82502)"><flowRegion
+         id="flowRegion3956"><rect
+           id="rect3958"
+           width="182.14285"
+           height="38.57143"
+           x="151.42857"
+           y="68.790756" /></flowRegion><flowPara
+         id="flowPara3960">Query 4</flowPara></flowRoot>    <flowRoot
+       transform="translate(92.384766,256.09358)"
+       style="line-height:125%;letter-spacing:0px;word-spacing:0px;color:#000000;fill:#000000;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1px;marker:none;visibility:visible;display:inline;overflow:visible;enable-background:accumulate"
+       id="flowRoot3962"
+       xml:space="preserve"><flowRegion
+         id="flowRegion3964"><rect
+           y="68.790756"
+           x="151.42857"
+           height="38.57143"
+           width="182.14285"
+           id="rect3966" /></flowRegion><flowPara
+         id="flowPara3968">Node B</flowPara></flowRoot>    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 86,25.143549 0,-19.9999996 95,0"
+       id="path3037"
+       inkscape:connector-curvature="0"
+       transform="translate(99,227.21863)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 86,15.143549 -25,0 0,30 40,0"
+       id="path3039"
+       inkscape:connector-curvature="0"
+       transform="translate(99,227.21863)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 61,30.143549 -10,0 0,35 120,0"
+       id="path3041"
+       inkscape:connector-curvature="0"
+       transform="translate(99,227.21863)" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 51,47.654256 -5,0 0,37.489293 100,0"
+       id="path3043"
+       inkscape:connector-curvature="0"
+       transform="translate(99,227.21863)"
+       sodipodi:nodetypes="cccc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 46,66.702717 -5,0 0,38.440833 100,0"
+       id="path3045"
+       inkscape:connector-curvature="0"
+       transform="translate(99,227.21863)"
+       sodipodi:nodetypes="cccc" />
+    <path
+       style="fill:none;stroke:#000000;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 139.75,313.68004 -39.75,0"
+       id="path3047"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cc" />
+  </g>
+</svg>

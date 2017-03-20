@@ -1,9 +1,17 @@
 Compare Jplace Files {#demos_compare_jplace_files}
 ===========
 
+@section Summary
+
+Takes two `jplace` files with the same reference tree and compares the placement of each
+@ref genesis::placement::Pquery "Pquery". It outputs tables that show which and how Pqueries
+differ in their placement on the tree.
+
 This demo is located at
 
-    ./doc/demos/compare_jplace_files.cpp
+    genesis/doc/demos/compare_jplace_files.cpp
+
+@section Details
 
 This program is useful to compare two `jplace` files that were computed with different settings
 or even different programs (EPA or pplacer). It is not meant for evaluating differences in the
@@ -31,17 +39,17 @@ to compensate for differences in branch lengths, both Trees are normalized in th
 that their length (sum of branch lengths) is 1.0. This also means that the Earth Movers Distance
 yields comparable values in the range `[ 0.0, 1.0 ]`.
 
-## Example
+@section  Example
 
 Example files to test the demo are located at
 
-    ./doc/demos/compare_jplace_files/
+    genesis/doc/demos/compare_jplace_files/
 
 This directory contains two `jplace` files `jplace_a.jplace` and `jplace_b.jplace`.
 
 After compiling the demo program (using `make update`), you can run the example like this
 
-    cd ./doc/demos/compare_jplace_files/
+    cd genesis/doc/demos/compare_jplace_files/
     ../../../bin/compare_jplace_files jplace_a.jplace jplace_b.jplace
 
 The expected output are two tables with information about the Pqueries in those two files.

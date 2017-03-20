@@ -31,20 +31,23 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::NewickWriter, scope )
 
         .def(
             "to_file",
-            ( void ( ::genesis::tree::NewickWriter::* )( const Tree &, const std::string ))( &::genesis::tree::NewickWriter::to_file ),
+            ( void ( ::genesis::tree::NewickWriter::* )( const Tree &, const std::string ) const )( &::genesis::tree::NewickWriter::to_file ),
             pybind11::arg("tree"),
-            pybind11::arg("filename")
+            pybind11::arg("filename"),
+            get_docstring("void ::genesis::tree::NewickWriter::to_file (const Tree & tree, const std::string filename) const")
         )
         .def(
             "to_string",
-            ( std::string ( ::genesis::tree::NewickWriter::* )( const Tree & ))( &::genesis::tree::NewickWriter::to_string ),
-            pybind11::arg("tree")
+            ( std::string ( ::genesis::tree::NewickWriter::* )( const Tree & ) const )( &::genesis::tree::NewickWriter::to_string ),
+            pybind11::arg("tree"),
+            get_docstring("std::string ::genesis::tree::NewickWriter::to_string (const Tree & tree) const")
         )
         .def(
             "to_string",
-            ( void ( ::genesis::tree::NewickWriter::* )( const Tree &, std::string & ))( &::genesis::tree::NewickWriter::to_string ),
+            ( void ( ::genesis::tree::NewickWriter::* )( const Tree &, std::string & ) const )( &::genesis::tree::NewickWriter::to_string ),
             pybind11::arg("tree"),
-            pybind11::arg("ts")
+            pybind11::arg("ts"),
+            get_docstring("void ::genesis::tree::NewickWriter::to_string (const Tree & tree, std::string & ts) const")
         )
     ;
 }

@@ -131,9 +131,9 @@ set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
 #   Sources
 # ------------------------------------------------------------------------------
 
-IF( MONOLITH_BUILD )
+IF( UNITY_BUILD )
     # See main CMake file for the monolith macro.
-    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/python/src "${MONOLITH_BUILD}" "python" genesis_python_sources )
+    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/python/src "${UNITY_BUILD}" "python" genesis_python_sources )
 ELSE()
     file (GLOB_RECURSE genesis_python_sources ${PROJECT_SOURCE_DIR}/python/src/*.cpp)
 ENDIF()

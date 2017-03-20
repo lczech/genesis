@@ -11,6 +11,7 @@
 
 using namespace ::genesis::tree;
 
+/*
 PYTHON_EXPORT_CLASS( ::genesis::tree::ColorWriterMixin, scope )
 {
 
@@ -68,3 +69,4 @@ PYTHON_EXPORT_CLASS( ::genesis::tree::ColorWriterMixin, scope )
         )
     ;
 }
+*/

@@ -23,7 +23,7 @@ The EPA takes as input:
  *  A species *tree* (usually inferred from the reference sequences).
  *  Aligned *query sequences* (e.g., Illumina reads).
 
-![EPA input data.](epa_input.png)
+![EPA input data.](placement/epa_input.png)
 
 The algorithm finds the most likely (via maximum likelihood) insertion positions for every query
 sequence on the reference tree. The resulting assignment of a query sequence to a branch is
@@ -34,7 +34,7 @@ The likelihoods of placement positions are usually transformed into the *likelih
 For a given query sequence, those values sum up to 1.0 for all branches of the tree.
 They can thus be seen as a probability distribution of possible placement positions on the tree.
 
-![Placement positions for one query sequence.](epa_placement.png)
+![Placement positions for one query sequence.](placement/epa_placement.png)
 
 The set of placements for a query sequence is called a *Pquery*. It contains a name (usually, that
 is the name of the original query sequence) and the placements with their features (e.g., an ID of

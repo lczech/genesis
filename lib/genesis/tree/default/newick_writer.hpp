@@ -52,6 +52,12 @@ class DefaultTreeNewickWriterPlugin
 public:
 
     // -------------------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------------------
+
+    using self_type = DefaultTreeNewickWriterPlugin;
+
+    // -------------------------------------------------------------------------
     //     Constructor and Rule of Five
     // -------------------------------------------------------------------------
 
@@ -68,24 +74,187 @@ public:
     //     Properties
     // -------------------------------------------------------------------------
 
-    void enable_names( bool value )
+    /**
+     * @brief Get the named used to filter out a leaf node name.
+     */
+    std::string const& default_leaf_name() const
     {
-        enable_names_ = value;
+        return default_leaf_name_;
     }
 
+    /**
+     * @brief Set the named used to filter out a leaf node name.
+     */
+    self_type& default_leaf_name( std::string const& value )
+    {
+        default_leaf_name_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the named used to filter out an inner node name.
+     */
+    std::string const& default_inner_name() const
+    {
+        return default_inner_name_;
+    }
+
+    /**
+     * @brief Set the named used to filter out an inner node name.
+     */
+    self_type& default_inner_name( std::string const& value )
+    {
+        default_inner_name_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get the named used to filter out the root node name.
+     */
+    std::string const& default_root_name() const
+    {
+        return default_root_name_;
+    }
+
+    /**
+     * @brief Set the named used to filter out the root node name.
+     */
+    self_type& default_root_name( std::string const& value )
+    {
+        default_root_name_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Shorthand to set the default names for leaf, inner and root node at once, to one
+     * value.
+     */
+    self_type& set_default_names( std::string const& value )
+    {
+        default_leaf_name_ = value;
+        default_inner_name_ = value;
+        default_root_name_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Return whether currently default names are activated in this plugin.
+     *
+     * See the setter use_default_names( bool ) for details.
+     */
+    bool use_default_names() const
+    {
+        return use_default_names_;
+    }
+
+    /**
+     * @brief Set whether to replace default named nodes with an empty string.
+     *
+     * This setting activates the "reverse" operation of
+     * DefaultTreeNewickReaderPlugin::use_default_names( bool ).
+     * Thus, when the default names are set to the same values as in the reader plugin, reading a
+     * Newick tree and then writing it again should yield the same names in the Newick tree again.
+     *
+     * Default is `false`. In this case, all node names are written to the Newick tree, indepentenly
+     * of whether they match the default names.
+     *
+     * If set to `true`, a node that has one of the default names will result in an empty node
+     * name in the Newick tree:
+     *
+     *  * Leaf nodes with a name equal to default_leaf_name().
+     *  * Inner nodes with a name equal to default_inner_name().
+     *  * The root node with a name equal to default_root_name().
+     *
+     * These default names can be changed by using default_leaf_name( std::string const& ),
+     * default_inner_name( std::string const& ) and default_root_name( std::string const& ),
+     * or by using set_default_names( std::string const& ) to set all three at once.
+     */
+    self_type& use_default_names( bool value )
+    {
+        use_default_names_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Return whether currently this plugin replaces spaces with underscores.
+     *
+     * See the setter replace_name_spaces( bool ) for details.
+     */
+    bool replace_name_spaces() const
+    {
+        return replace_name_spaces_;
+    }
+
+    /**
+     * @brief Set whether to replace all spaces (' ') in names with underscores ('_').
+     *
+     * This is the reverse of DefaultTreeNewickReaderPlugin::replace_name_underscores().
+     * It is activated by default, as it does no harm on already existing underscores.
+     * However, as spaces cannot be part of names in Newick, if it is deactivated (set to `false`),
+     * all names that contain spaces are instead wrapped in quotation marks by the NewickWriter,
+     * see NewickWriter::quotation_marks( std::string const& ) for details.
+     */
+    self_type& replace_name_spaces( bool value )
+    {
+        replace_name_spaces_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Set whether to write node names at all.
+     *
+     * If disabled, no names are written for any node.
+     */
+    self_type& enable_names( bool value )
+    {
+        enable_names_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get whether currently any node names are written at all.
+     */
     bool enable_names() const
     {
         return enable_names_;
     }
 
-    void enable_branch_lengths( bool value )
+    /**
+     * @brief Set whether to write branch lengths.
+     */
+    self_type& enable_branch_lengths( bool value )
     {
         enable_branch_lengths_ = value;
+        return *this;
     }
 
+    /**
+     * @brief Get whether currently any branch lengths are written.
+     */
     bool enable_branch_lengths() const
     {
         return enable_branch_lengths_;
+    }
+
+    /**
+     * @brief Get the currently set maximum precision (in number of digits) used for printing the
+     * `branch_length` floating point numbers.
+     */
+    int branch_length_precision() const
+    {
+        return branch_length_precision_;
+    }
+
+    /**
+     * @brief Set the maximum precision (in number of digits) used for printing the `branch_length`
+     * floating point numbers.
+     *
+     * Default is 6.
+     */
+    self_type& branch_length_precision( int value )
+    {
+        branch_length_precision_ = value;
+        return *this;
     }
 
     // -------------------------------------------------------------------------
@@ -98,19 +267,15 @@ public:
             std::string name = node.data<DefaultNodeData>().name;
 
             // Handle spaces/underscores.
-            if (replace_name_underscores) {
+            if( replace_name_spaces_ ) {
                 name = utils::replace_all(name, " ", "_");
-            } else {
-                if (std::string::npos != name.find(" ")) {
-                    name = "\"" + name + "\"";
-                }
             }
 
             // Filter out default names if needed.
-            if (use_default_names             && (
-                name == default_leaf_name     ||
-                name == default_internal_name ||
-                name == default_root_name
+            if( use_default_names_ && (
+                ( node.is_leaf()  && name == default_leaf_name_  ) ||
+                ( node.is_inner() && name == default_inner_name_ ) ||
+                ( node.is_root()  && name == default_root_name_  )
             )) {
                 name = "";
             }
@@ -123,7 +288,7 @@ public:
     {
         if (enable_branch_lengths_) {
             auto const& edge_data = edge.data<DefaultEdgeData>();
-            auto bl = utils::to_string_rounded( edge_data.branch_length, branch_length_precision );
+            auto bl = utils::to_string_rounded( edge_data.branch_length, branch_length_precision_ );
             element.values.insert (element.values.begin(), bl );
         }
     }
@@ -149,42 +314,20 @@ public:
     //     Data Members
     // -------------------------------------------------------------------------
 
-public:
-
-    // TODO for now, this is all public. use getters and setters instead, and outsource those
-    // properties that belong to the (yet to create) superclass DefaultNewickPluginBase or so.
-
-    /**
-     * @brief The precision used for printing the `branch_length` floating point numbers.
-     */
-    int branch_length_precision = 6;
-
-    std::string default_leaf_name     = "Leaf_Node";
-    std::string default_internal_name = "Internal_Node";
-    std::string default_root_name     = "Root_Node";
-
-    /**
-     * @brief If set to true, nodes that are named using one of the default names are written
-     * without names.
-     *
-     * This option effictively reverses the effect of the same option in the
-     * DefaultTreeNewickReaderPlugin. Thus, when both are set to the same value, the resulting
-     * Newick file contains the same names.
-     *
-     * The default names can be set using #default_leaf_name, #default_internal_name and
-     * #default_root_name. They are used both when parsing and printing a Newick file.
-     */
-    bool        use_default_names = false;
-
-    bool        replace_name_underscores = true;
-
 private:
+
+    int branch_length_precision_ = 6;
+
+    std::string default_leaf_name_  = "Leaf_Node";
+    std::string default_inner_name_ = "Inner_Node";
+    std::string default_root_name_  = "Root_Node";
+
+    bool        use_default_names_   = false;
+    bool        replace_name_spaces_ = true;
 
     bool enable_names_          = true;
     bool enable_branch_lengths_ = true;
 
-    // bool print_comments       = false;
-    // bool print_tags           = false;
 };
 
 // =================================================================================================

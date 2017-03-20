@@ -46,6 +46,70 @@ class TreeEdge;
 class TreeLink;
 
 // =================================================================================================
+//     Add single Nodes
+// =================================================================================================
+
+/**
+ * @brief Add a new @link TreeNode Node@endlink as a leaf to an existing Node.
+ *
+ * The function adds a new leaf to the Tree by appending it to an existing TreeNode.
+ * For this, four new elements are created and added to the tree:
+ *
+ *  1. A TreeLink that gets added to the given node and connects it to the new node.
+ *  2. A TreeLink for the new TreeNode.
+ *  3. The new TreeNode itself.
+ *  4. A TreeEdge that connects the new and the given TreeNode with each other.
+ *
+ * Thus, the procedure is as shown:
+ * ![The Tree before and after adding the new Node.](tree/add_new_node_node.png)
+ *
+ * The new Node is added at the "end" of the given Node. That is, when traversing the Tree or the
+ * given Node, the new Node will be visited last. In the example, the tree is bifurcating before
+ * the new node is added. This is just an example - the function also works with Nodes that are
+ * already multifurcating.
+ *
+ * The data pointers of the new Node and Edge are initialized to default-constructed objects:
+ *
+ *  * The new node data type is the same as the one of the given `target_node`.
+ *  * The new edge data type is the same as the one of the edge towards the root of the
+ *    `target_node`.
+ *
+ * This means that in case of a Tree where every Node and Edge has the same node and edge data type
+ * (standard case), the newly created ones will also have these data types.
+ *
+ * @return The function returns the newly create TreeEdge. This way, all other new elements can
+ * be accessed, using TreeEdge::primary_link(), TreeEdge::secondary_link() and
+ * TreeEdge::secondary_node().
+ */
+TreeEdge& add_new_node( Tree& tree, TreeNode& target_node );
+
+/**
+ * @brief Add a new @link TreeNode Node@endlink as a leaf to an existing @link TreeEdge Edge@endlink,
+ * by also adding a new Node in the middle of that Edge.
+ *
+ * This function is an extension of add_new_node( Tree&, TreeNode& ). Before adding the new leaf
+ * node, it first adds another Node that splits the given `target_edge` into two edges, and then
+ * adds the leaf to it.
+ *
+ * Thus, the procedure is as shown:
+ * ![The Tree before and after adding the new Node.](tree/add_new_node_edge.png)
+ *
+ * After the function, the `target_edge` with all its data ends up on the to-root side of the
+ * new inner node.
+ *
+ * For details of how the data pointers are handled, see add_new_node( Tree&, TreeNode& ). This
+ * function behaves in a similar way. The data objects of the new nodes and edges are
+ * default-constructed objects of the same type as the `target_edge` and its primary node.
+ *
+ * Be aware that the data of `target_edge` is not changed. Thus, in trees with DefaultEdgeData,
+ * the branch lengths of all three affected edges might have to be changed to the desired values
+ * after calling this function.
+ *
+ * @return The function returns the newly created TreeEdge that leads to the new leaf node.
+ */
+TreeEdge& add_new_node( Tree& tree, TreeEdge& target_edge );
+
+// =================================================================================================
 //     Rerooting
 // =================================================================================================
 

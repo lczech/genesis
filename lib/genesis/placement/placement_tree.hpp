@@ -113,6 +113,11 @@ public:
         return std::unique_ptr< PlacementNodeData >( new PlacementNodeData() );
     }
 
+    virtual std::unique_ptr< BaseNodeData > recreate() const override
+    {
+        return std::unique_ptr< PlacementNodeData >( new PlacementNodeData() );
+    }
+
     virtual std::unique_ptr< BaseNodeData > clone() const override
     {
         return std::unique_ptr< PlacementNodeData >( new PlacementNodeData( *this ));
@@ -156,6 +161,11 @@ protected:
 public:
 
     static std::unique_ptr< PlacementEdgeData > create()
+    {
+        return std::unique_ptr< PlacementEdgeData >( new PlacementEdgeData() );
+    }
+
+    virtual std::unique_ptr< BaseEdgeData > recreate() const override
     {
         return std::unique_ptr< PlacementEdgeData >( new PlacementEdgeData() );
     }
