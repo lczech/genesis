@@ -1,7 +1,7 @@
-Placement {#placement}
+Placement {#tutorials_placement}
 ===========
 
-# Evolutionary Placement {#placement_epa}
+# Evolutionary Placement {#tutorials_placement_epa}
 
 Metagenomic studies often need to biologically classify millions of DNA sequences, for example
 so-called *short reads*. The assignment of those reads to known reference sequences helps to assess
@@ -41,12 +41,12 @@ is the name of the original query sequence) and the placements with their featur
 the edge where the placement is located, its likelihood, etc.).
 See [[3]](#placement_references_3) for details.
 
-# Samples {#placement_samples}
+# Samples {#tutorials_placement_samples}
 
 Genesis has classes and functions to work with all relevant data of evolutionary placement.
 This tutorial focuses on the actual placement data, that is, Pqueries with their placement
 positions.
-See the tutorial pages @ref tree and @ref sequence for details on those related topics.
+See the tutorial pages @ref tutorials_tree and @ref tutorials_sequence for details on those related topics.
 
 The most important class for evolutionary placement is the @ref genesis::placement::Sample "Sample".
 A sample is a representation of a whole `jplace` file: It stores the
@@ -128,7 +128,7 @@ You can find the whole code listing of this tutorial at
 
 See the API reference for details and for more functions and classes related to this topic.
 
-# References {#placement_references}
+# References {#tutorials_placement_references}
 
 Please refer to the following articles for more information on phylogenetic placement of short
 reads:

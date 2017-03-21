@@ -1,7 +1,7 @@
-Tree {#tree}
+Tree {#tutorials_tree}
 ===========
 
-# Phylogenetic Trees {#phylogenetic_trees}
+# Phylogenetic Trees {#tutorials_tree_phylogenetic_trees}
 
 Phylogenetic trees are a representation of the evolutionary history of species. The leaf nodes
 usually represent extant species (which have a species name assigned), while the inner nodes are
@@ -14,7 +14,7 @@ symbolizes the "origin" of the tree, that is, the common ancestor of all other n
 As the "origin" of evolution might not be clear in some cases, there are also unrooted trees,
 which do not have a top level root node.
 
-# Tree Structure {#tree_representation}
+# Tree Structure {#tutorials_tree_tree_structure}
 
 In genesis, both cases are stored in a @ref genesis::tree::Tree "Tree" data structure,
 which represents an inherently unrooted tree. This data structure makes it possible to inspect the
