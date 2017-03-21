@@ -73,40 +73,23 @@ SequenceCounts::SequenceCounts( std::string const& characters, size_t length )
 //     Accesors
 // ================================================================================================
 
-/**
- * @brief Return the number of sites used for counting.
- *
- * This has to match the Sequence::length() property of the Sequence%s to be added for counting.
- */
 size_t SequenceCounts::length() const
 {
     return counts_.rows();
 }
 
-/**
- * @brief Return the character set that is used for counting.
- */
 std::string SequenceCounts::characters() const
 {
     assert( counts_.cols() == characters_.size() );
     return characters_;
 }
 
-/**
- * @brief Return the number of processed Sequence%s.
- */
 SequenceCounts::CountsIntType SequenceCounts::added_sequences_count() const
 {
     return num_seqs_;
 }
 
-/**
- * @brief Return the count for a specific character at a given site.
- *
- * If the charater is not part of the set of used characters, the function throws an exception.
- * See characters() to retrieve that set.
- */
-SequenceCounts::CountsIntType SequenceCounts::count_at( size_t site_index, char character ) const
+SequenceCounts::CountsIntType SequenceCounts::count_of( size_t site_index, char character ) const
 {
     if( site_index >= length() ) {
         throw std::runtime_error(
@@ -124,9 +107,6 @@ SequenceCounts::CountsIntType SequenceCounts::count_at( size_t site_index, char 
     return counts_( site_index, char_idx );
 }
 
-/**
- * @brief Return the count for a character and a site, given their indices.
- */
 SequenceCounts::CountsIntType SequenceCounts::count_at(
     size_t site_index,
     size_t character_index
@@ -191,15 +171,6 @@ void SequenceCounts::add_sequences( SequenceSet const& sequences )
     }
 }
 
-/**
- * @brief Clear the object, that is, delete everything.
- *
- * This function sets the object status to the same that the
- * @link SequenceCounts() default constructor@endlink gives. Thus, it is not usable any more.
- * It is mainly intended to save memory when many objects are needed.
- *
- * For an alternative function that simply resets the counts to zero, see clear_counts().
- */
 void SequenceCounts::clear()
 {
     characters_ = "";
@@ -208,9 +179,6 @@ void SequenceCounts::clear()
     num_seqs_ = 0;
 }
 
-/**
- * @brief Reset all counts to 0.
- */
 void SequenceCounts::clear_counts()
 {
     for( auto& e : counts_ ) {

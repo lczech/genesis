@@ -58,7 +58,7 @@ namespace sequence {
 namespace sequence {
 
 /**
- * @brief Read Fasta data.
+ * @brief Read Fasta sequence data.
  *
  * This class provides simple facilities for reading Fasta data. It supports to read
  *
@@ -299,16 +299,16 @@ public:
     /**
      * @brief Set the chars that are used for validating Sequence sites when reading them.
      *
-     * When this function is called with a string of chars, those chars are used to validate the sites
-     * when reading them. That is, only sequences consisting of the given chars are valid.
+     * When this function is called with a string of chars, those chars are used to validate the
+     * sites when reading them. That is, only sequences consisting of the given chars are valid.
      *
-     * If set to an empty string, this check is deactivated. This is also the default, meaning that no
-     * checking is done.
+     * If set to an empty string, this check is deactivated. This is also the default, meaning that
+     * no checking is done.
      *
      * In case that to_upper() is set to `true`: The validation is done after making the char upper
      * case, so that only capital letters have to be provided for validation.
-     * In case that to_upper() is set to `false`: All chars that are to be considered valid have to be
-     * provided for validation.
+     * In case that to_upper() is set to `false`: All chars that are to be considered valid have to
+     * be provided for validation.
      *
      * See `nucleic_acid_codes...()` and `amino_acid_codes...()` functions for presettings of chars
      * that can be used for validation here.

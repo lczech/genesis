@@ -71,12 +71,13 @@ std::unordered_set<std::string> labels( SequenceSet const& set );
 bool has_unique_labels( SequenceSet const& set, bool case_sensitive = true );
 
 /**
- * @brief Relabel the Sequence using the SHA1 hash digest of its sites.
+ * @brief Relabel the Sequence using the @link utils::SHA1 SHA1@endlink  hash digest of its sites.
  */
 void relabel_sha1( Sequence&    seq );
 
 /**
- * @brief Relabel all Sequence%s in the SequenceSet using the SHA1 hash digest of the sites.
+ * @brief Relabel all Sequence%s in the SequenceSet using the @link utils::SHA1 SHA1@endlink hash
+ * digest of the sites.
  *
  * If there are duplicate Sequence%s, this function will lead to multiple Sequences with the same
  * name, which might be an issue for downstream programs that expect unique labels.

@@ -46,19 +46,13 @@ namespace sequence {
 //     Print
 // =================================================================================================
 
-/**
- * @brief Print a single Sequence to a stream.
- */
 void PrinterSimple::print(
     std::ostream&   out,
     Sequence const& seq
 ) const {
-    print_sequence( out, seq );
+    print_sequence_( out, seq );
 }
 
-/**
- * @brief Print a SequenceSet to a stream.
- */
 void PrinterSimple::print(
     std::ostream&   out,
     SequenceSet const& set
@@ -79,7 +73,7 @@ void PrinterSimple::print(
 
     // Print sequences.
     for( size_t i = 0; i < sequence_limit; ++i ) {
-        print_sequence( out, set[i], label_len );
+        print_sequence_( out, set[i], label_len );
     }
 
     // Append ellipsis if needed.
@@ -88,9 +82,6 @@ void PrinterSimple::print(
     }
 }
 
-/**
- * @brief Return a string representing the print of a single Sequence.
- */
 std::string PrinterSimple::print(
     Sequence const& seq
 ) const {
@@ -99,9 +90,6 @@ std::string PrinterSimple::print(
     return res.str();
 }
 
-/**
- * @brief Return a string representing the print of a SequenceSet.
- */
 std::string PrinterSimple::print(
     SequenceSet const& set
 ) const {
@@ -110,22 +98,12 @@ std::string PrinterSimple::print(
     return res.str();
 }
 
-/**
- * @brief Return a string representing the print of a single Sequence.
- *
- * This is simply an alias for print();
- */
 std::string PrinterSimple::operator() (
     Sequence const& seq
 ) const {
     return print(seq);
 }
 
-/**
- * @brief Return a string representing the print of a SequenceSet.
- *
- * This is simply an alias for print();
- */
 std::string PrinterSimple::operator() (
     SequenceSet const& set
 ) const {
@@ -133,10 +111,80 @@ std::string PrinterSimple::operator() (
 }
 
 // =================================================================================================
+//     Properties
+// =================================================================================================
+
+PrinterSimple& PrinterSimple::sequence_limit( size_t value )
+{
+    sequence_limit_ = value;
+    return *this;
+}
+
+size_t PrinterSimple::sequence_limit() const
+{
+    return sequence_limit_;
+}
+
+PrinterSimple& PrinterSimple::line_length( size_t value )
+{
+    line_length_ = value;
+    return *this;
+}
+
+size_t PrinterSimple::line_length() const
+{
+    return line_length_;
+}
+
+PrinterSimple& PrinterSimple::length_limit( size_t value )
+{
+    length_limit_ = value;
+    return *this;
+}
+
+size_t PrinterSimple::length_limit() const
+{
+    return length_limit_;
+}
+
+PrinterSimple& PrinterSimple::color_map( std::map<char, std::string> const& value )
+{
+    color_map_ = value;
+    return *this;
+}
+
+std::map<char, std::string> const& PrinterSimple::color_map() const
+{
+    return color_map_;
+}
+
+PrinterSimple& PrinterSimple::color_mode( PrinterSimple::ColorMode value )
+{
+    color_mode_ = value;
+    return *this;
+}
+
+PrinterSimple::ColorMode PrinterSimple::color_mode() const
+{
+    return color_mode_;
+}
+
+PrinterSimple& PrinterSimple::label_mode( PrinterSimple::LabelMode value )
+{
+    label_mode_ = value;
+    return *this;
+}
+
+PrinterSimple::LabelMode PrinterSimple::label_mode() const
+{
+    return label_mode_;
+}
+
+// =================================================================================================
 //     Internal Functions
 // =================================================================================================
 
-void PrinterSimple::print_character(
+void PrinterSimple::print_character_(
     std::ostream&   out,
     char            site
 ) const {
@@ -163,7 +211,7 @@ void PrinterSimple::print_character(
     }
 }
 
-void PrinterSimple::print_sites(
+void PrinterSimple::print_sites_(
     std::ostream&   out,
     Sequence const& seq
 ) const {
@@ -180,14 +228,14 @@ void PrinterSimple::print_sites(
             out << "\n";
         }
 
-        print_character( out, seq[l] );
+        print_character_( out, seq[l] );
     }
 
     // Append ellipsis if needed.
     out << ( seq.length() > length_limit ? " ...\n" : "\n" );
 }
 
-void PrinterSimple::print_sequence(
+void PrinterSimple::print_sequence_(
     std::ostream&   out,
     Sequence const& seq,
     size_t          label_len
@@ -203,150 +251,7 @@ void PrinterSimple::print_sequence(
         }
     }
 
-    print_sites( out, seq );
-}
-
-// =================================================================================================
-//     Properties
-// =================================================================================================
-
-/**
- * @brief Set the limit for how many Sequence%s to print.
- *
- * If this parameter is set to a value other than 0, only this number of Sequence%s are printed.
- * Default is 0, thus, all Sequences are printed. If the given limit is lower than the acutal number
- * of Sequences in the SequenceSet, ellipsis " ..." are appended.
- */
-PrinterSimple& PrinterSimple::sequence_limit( size_t value )
-{
-    sequence_limit_ = value;
-    return *this;
-}
-
-/**
- * @brief Get the currently set limit for how many Sequence%s to print.
- *
- * See @link sequence_limit( size_t value ) the setter@endlink for details.
- */
-size_t PrinterSimple::sequence_limit() const
-{
-    return sequence_limit_;
-}
-
-/**
- * @brief Set the length of each link, i.e., when to wrap.
- *
- * If this parameter is set to a value other than 0, the Sequence is wrapped at this line length.
- * This also works in combination with length_limit().
- */
-PrinterSimple& PrinterSimple::line_length( size_t value )
-{
-    line_length_ = value;
-    return *this;
-}
-
-/**
- * @brief Get the currently set line length, i.e., when to wrap.
- *
- * See @link line_length( size_t value ) the setter@endlink for details.
- */
-size_t PrinterSimple::line_length() const
-{
-    return line_length_;
-}
-
-/**
- * @brief Set the length limit for printing Sequence%s.
- *
- * This parameter limits the output length to the give number of chars. If set to 0, the whole
- * Sequence is printed (default). If the limit is lower than the acutal number of sites in the
- * Sequence, ellipsis " ..." are appended.
- */
-PrinterSimple& PrinterSimple::length_limit( size_t value )
-{
-    length_limit_ = value;
-    return *this;
-}
-
-/**
- * @brief Get the currently set length limit.
- *
- * See @link length_limit( size_t value ) the setter@endlink for details.
- */
-size_t PrinterSimple::length_limit() const
-{
-    return length_limit_;
-}
-
-/**
- * @brief Set the list of colors to use for the Sequence charaters.
- *
- * The provided map sets the color name for each Sequence character.
- * The presettings `nucleic_acid_text_colors()` and `amino_acid_text_colors()` for default sequence
- * types can be used as input for this parameter.
- * If the `colors` map does not contain a key for one of the chars in the sequence, the char is
- * printed without color.
- *
- * See @link color_mode( PrinterSimple::ColorMode value ) color_mode()@endlink for more details.
- * See utils::Style for details and for a list of the available color names.
- */
-PrinterSimple& PrinterSimple::color_map( std::map<char, std::string> value )
-{
-    color_map_ = value;
-    return *this;
-}
-
-/**
- * @brief Get the currently set list of colors for each Sequence character.
- *
- * See @link color_map( std::map<char, std::string> value ) the setter@endlink for details.
- */
-std::map<char, std::string> PrinterSimple::color_map() const
-{
-    return color_map_;
-}
-
-/**
- * @brief Set whether to use color in the background, foreground, or not at all.
- *
- * See @link PrinterSimple::ColorMode ColorMode@endlink for details.
- */
-PrinterSimple& PrinterSimple::color_mode( PrinterSimple::ColorMode value )
-{
-    color_mode_ = value;
-    return *this;
-}
-
-/**
- * @brief Get the currently set color mode.
- *
- * See @link color_mode( PrinterSimple::ColorMode value ) the setter@endlink for details.
- */
-PrinterSimple::ColorMode PrinterSimple::color_mode() const
-{
-    return color_mode_;
-}
-
-/**
- * @brief Set the currently set @link PrinterSimple::LabelMode LabelMode@endlink.
- *
- * See @link PrinterSimple::LabelMode LabelMode@endlink for more information.
- */
-PrinterSimple& PrinterSimple::label_mode( PrinterSimple::LabelMode value )
-{
-    label_mode_ = value;
-    return *this;
-}
-
-/**
- * @brief Get the currently set @link PrinterSimple::LabelMode LabelMode@endlink.
- *
- * See @link label_mode( PrinterSimple::LabelMode value ) the setter@endlink and
- * @link PrinterSimple::LabelMode LabelMode@endlink for more information.
- */
-PrinterSimple::LabelMode PrinterSimple::label_mode() const
-{
-    return label_mode_;
+    print_sites_( out, seq );
 }
 
 } // namespace sequence

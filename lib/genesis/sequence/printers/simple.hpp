@@ -53,6 +53,10 @@ class SequenceSet;
  * @brief Simple printer class for Sequence%s and SequenceSet%s.
  *
  * It provides to print() Sequence%s to strings and ostreams.
+ *
+ * By default, no colors are set, thus, Sequence%s are printed without color. You have to set the
+ * @link color_map( std::map<char, std::string> const& ) color_map()@endlink first, for example using
+ * the colors defined in nucleic_acid_text_colors() or amino_acid_text_colors().
  */
 class PrinterSimple
 {
@@ -126,28 +130,50 @@ public:
     //     Print
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Print a single Sequence to a stream.
+     */
     void print(
         std::ostream&   out,
         Sequence const& seq
     ) const;
 
+    /**
+     * @brief Print a SequenceSet to a stream.
+     */
     void print(
         std::ostream&   out,
         SequenceSet const& set
     ) const;
 
+    /**
+     * @brief Return a string representing the print of a single Sequence.
+     */
     std::string print(
         Sequence const& seq
     ) const;
 
+    /**
+     * @brief Return a string representing the print of a SequenceSet.
+     */
     std::string print(
         SequenceSet const& set
     ) const;
 
+    /**
+     * @brief Return a string representing the print of a single Sequence.
+     *
+     * This is simply an alias for print();
+     */
     std::string operator() (
         Sequence const& seq
     ) const;
 
+    /**
+     * @brief Return a string representing the print of a SequenceSet.
+     *
+     * This is simply an alias for print();
+     */
     std::string operator() (
         SequenceSet const& set
     ) const;
@@ -156,22 +182,101 @@ public:
     //     Properties
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Set the limit for how many Sequence%s to print.
+     *
+     * If this parameter is set to a value other than 0, only this number of Sequence%s are printed.
+     * Default is 0, thus, all Sequences are printed. If the given limit is lower than the acutal number
+     * of Sequences in the SequenceSet, ellipsis " ..." are appended.
+     */
     PrinterSimple& sequence_limit( size_t value );
+
+    /**
+     * @brief Get the currently set limit for how many Sequence%s to print.
+     *
+     * See @link sequence_limit( size_t value ) the setter@endlink for details.
+     */
     size_t         sequence_limit() const;
 
+    /**
+     * @brief Set the length of each link, i.e., when to wrap.
+     *
+     * If this parameter is set to a value other than 0, the Sequence is wrapped at this line length.
+     * This also works in combination with length_limit().
+     */
     PrinterSimple& line_length( size_t value );
+
+    /**
+     * @brief Get the currently set line length, i.e., when to wrap.
+     *
+     * See @link line_length( size_t value ) the setter@endlink for details.
+     */
     size_t         line_length() const;
 
+    /**
+     * @brief Set the length limit for printing Sequence%s.
+     *
+     * This parameter limits the output length to the give number of chars. If set to 0, the whole
+     * Sequence is printed (default). If the limit is lower than the acutal number of sites in the
+     * Sequence, ellipsis " ..." are appended.
+     */
     PrinterSimple& length_limit( size_t value );
+
+    /**
+     * @brief Get the currently set length limit.
+     *
+     * See @link length_limit( size_t value ) the setter@endlink for details.
+     */
     size_t         length_limit() const;
 
-    PrinterSimple& color_map( std::map<char, std::string> value );
-    std::map<char, std::string> color_map() const;
+    /**
+     * @brief Set the list of colors to use for the Sequence charaters.
+     *
+     * The provided map sets the color name for each Sequence character.
+     * The presettings `nucleic_acid_text_colors()` and `amino_acid_text_colors()` for default sequence
+     * types can be used as input for this parameter.
+     * If the `colors` map does not contain a key for one of the chars in the sequence, the char is
+     * printed without color.
+     *
+     * See @link color_mode( PrinterSimple::ColorMode value ) color_mode()@endlink for more details.
+     * See utils::Style for details and for a list of the available color names.
+     */
+    PrinterSimple& color_map( std::map<char, std::string> const& value );
 
+    /**
+     * @brief Get the currently set list of colors for each Sequence character.
+     *
+     * See @link color_map( std::map<char, std::string> const& ) the setter@endlink for details.
+     */
+    std::map<char, std::string> const& color_map() const;
+
+    /**
+     * @brief Set whether to use color in the background, foreground, or not at all.
+     *
+     * See @link PrinterSimple::ColorMode ColorMode@endlink for details.
+     */
     PrinterSimple& color_mode( ColorMode value );
+
+    /**
+     * @brief Get the currently set color mode.
+     *
+     * See @link color_mode( PrinterSimple::ColorMode value ) the setter@endlink for details.
+     */
     ColorMode      color_mode() const;
 
+    /**
+     * @brief Set the currently set @link PrinterSimple::LabelMode LabelMode@endlink.
+     *
+     * See @link PrinterSimple::LabelMode LabelMode@endlink for more information.
+     */
     PrinterSimple& label_mode( LabelMode value );
+
+    /**
+     * @brief Get the currently set @link PrinterSimple::LabelMode LabelMode@endlink.
+     *
+     * See @link label_mode( PrinterSimple::LabelMode value ) the setter@endlink and
+     * @link PrinterSimple::LabelMode LabelMode@endlink for more information.
+     */
     LabelMode      label_mode() const;
 
     // -------------------------------------------------------------------------
@@ -180,17 +285,17 @@ public:
 
 private:
 
-    void print_character(
+    void print_character_(
         std::ostream&   out,
         char            site
     ) const;
 
-    void print_sites(
+    void print_sites_(
         std::ostream&   out,
         Sequence const& seq
     ) const;
 
-    void print_sequence(
+    void print_sequence_(
         std::ostream&   out,
         Sequence const& seq,
         size_t          label_len = 0
