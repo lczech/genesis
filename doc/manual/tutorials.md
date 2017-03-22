@@ -32,3 +32,14 @@ The functionality of genesis is divided into different modules:
 See there for more details.
 
 For more code examples, see the @ref demos page.
+
+<!--
+# What Next?
+
+  * inspect the [Namespaces](namespaces.html) list and [Classes](annotated.html) list.
+  * look at code, write your own apps and programs.
+  * ask at support.
+  * contribute code.
+  * Do science!
+  * Save the world!
+-->

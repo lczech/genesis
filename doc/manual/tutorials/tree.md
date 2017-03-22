@@ -36,6 +36,19 @@ the same time. Unfortunately, this comes at the cost of code complexity. -->
 Each node... -->
 
 <!--
+# iterating / traversing
+
+explain iterators etc
+
+# data model
+
+base node and edge data, default data, etc
+
+# reading and writing revisited
+
+now that we know about the data model, let's see how to fill this with data from files
+details about plug-in functionality etc
+
 # Tree Manipulation
 
 ## High Level

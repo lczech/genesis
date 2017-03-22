@@ -61,13 +61,13 @@ class SequenceSet;
  * For example, after adding several Sequences, the matrix might look like this (site indices in
  * columns, characters in rows):
  *
- * site |  0 |  1 |  2 |  3 |  4
- * -    | -: | -: | -: | -: | -:
- * A    |  3 |  0 |  1 |  3 |  0
- * C    |  1 |  2 |  1 |  1 |  4
- * G    |  0 |  1 |  1 |  0 |  1
- * T    |  2 |  1 |  3 |  3 |  1
- * -    |  2 |  4 |  2 |  1 |  2
+ * site |  0 |  1 |  2 |  3 |  4 |  5
+ * ---- | -: | -: | -: | -: | -: | -:
+ * A    |  3 |  0 |  1 |  3 |  0 |  0
+ * C    |  1 |  2 |  1 |  1 |  4 |  1
+ * G    |  0 |  1 |  1 |  0 |  1 |  1
+ * T    |  2 |  1 |  3 |  3 |  1 |  3
+ * -    |  2 |  4 |  2 |  1 |  2 |  2
  *
  * The class has to be constructed with the desired set of characters and sequences length.
  * All not-included characters are simply ignored when adding Sequences.
@@ -88,7 +88,7 @@ public:
      *
      * We use this alias here, because in the future, we might need to adjust this value:
      * Either to save memory if many different objects of type SequenceCounts are needed, so that
-     * they need to be small; or on the contrary, to allow for more Sequence&s being counted by
+     * they need to be small; or on the contrary, to allow for more Sequence%s being counted by
      * using a broader type here.
      */
     using CountsIntType = uint32_t;

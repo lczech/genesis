@@ -199,7 +199,7 @@ public:
     size_t         sequence_limit() const;
 
     /**
-     * @brief Set the length of each link, i.e., when to wrap.
+     * @brief Set the length of each line, i.e., when to wrap.
      *
      * If this parameter is set to a value other than 0, the Sequence is wrapped at this line length.
      * This also works in combination with length_limit().
