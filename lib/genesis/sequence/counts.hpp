@@ -58,8 +58,13 @@ class SequenceSet;
  * sequences and  the like. It stores a @link utils::Matrix Matrix@endlink of counts, for a
  * set of characters and a given sequence length.
  *
- * For example, after adding several Sequences, the matrix might look like this (site indices in
- * columns, characters in rows):
+ * For example, we create an instance like this:
+ *
+ *     auto sequence_counts = SequenceCounts( "ACGT-", 6 );
+ *
+ * which counts the occurences of the nucleodite characters and the gap character for Sequence%s
+ * of length 6. Then, after adding several Sequences, the matrix might look like this (site
+ * indices in columns, characters in rows):
  *
  * site |  0 |  1 |  2 |  3 |  4 |  5
  * ---- | -: | -: | -: | -: | -: | -:
@@ -70,10 +75,11 @@ class SequenceSet;
  * -    |  2 |  4 |  2 |  1 |  2 |  2
  *
  * The class has to be constructed with the desired set of characters and sequences length.
+ * Characters are automatically used in both upper and lower case for counting.
  * All not-included characters are simply ignored when adding Sequences.
  *
- * Use add_sequence() and add_sequences() to add counts. Use count_of() and count_at() to get the
- * counter values for specific positions in the matrix.
+ * Use add_sequence() and add_sequences() to accumulate counts. Use count_of() and count_at() to
+ * get the counter values for specific positions in the matrix.
  */
 class SequenceCounts
 {
@@ -112,12 +118,29 @@ public:
      */
     SequenceCounts( std::string const& characters, size_t length );
 
+    /**
+     * @brief Default destructor.
+     */
     ~SequenceCounts() = default;
 
+    /**
+    * @brief Default copy constructor.
+    */
     SequenceCounts( SequenceCounts const& ) = default;
+
+    /**
+    * @brief Default move constructor.
+    */
     SequenceCounts( SequenceCounts&& )      = default;
 
+    /**
+    * @brief Default copy assignment.
+    */
     SequenceCounts& operator= ( SequenceCounts const& ) = default;
+
+    /**
+    * @brief Default move assignment.
+    */
     SequenceCounts& operator= ( SequenceCounts&& )      = default;
 
     // -------------------------------------------------------------------------
@@ -133,11 +156,15 @@ public:
 
     /**
      * @brief Return the character set that is used for counting.
+     *
+     * This function returns the upper case letters of the internal list of characters that is used
+     * for counting, in the order that is also used by the count_at() function.
      */
     std::string   characters() const;
 
     /**
-     * @brief Return the number of processed Sequence%s.
+     * @brief Return the number of processed Sequence%s, i.e., how many Sequences were added in
+     * total.
      */
     CountsIntType added_sequences_count() const;
 
@@ -145,14 +172,17 @@ public:
      * @brief Return the count of a specific character at a given site.
      *
      * If the charater is not part of the set of used characters, the function throws an exception.
-     * See characters() to retrieve that set.
+     * This function is case-independent. See characters() to retrieve the set of characters.
      */
-    CountsIntType count_of( size_t site_index, char   character ) const;
+    CountsIntType count_of( char character, size_t site_index ) const;
 
     /**
      * @brief Return the count for a character and a site, given their indices.
+     *
+     * The characters are indexed in the order given by characters(). This function is thus
+     * mainly for speedup reasons when iterating the whole @link utils::Matrix Matrix@endlink.
      */
-    CountsIntType count_at( size_t site_index, size_t character_index ) const;
+    CountsIntType count_at( size_t character_index, size_t site_index ) const;
 
     // std::vector< CountsIntType> counts_at( size_t site_index ) const;
 
@@ -192,7 +222,8 @@ public:
      * @brief Reset all counts to 0.
      *
      * This clears the counts so that the object is as if newly created, while keeping the
-     * counted characters and length of the count matrix.
+     * counted characters and length of the count matrix. It also clears the count for
+     * added_sequences_count().
      */
     void clear_counts();
 

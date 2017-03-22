@@ -176,7 +176,7 @@ size_t gap_site_count( SequenceCounts const& counts )
         bool all_gap_site = true;
 
         for( size_t char_idx = 0; char_idx < counts.characters().size(); ++char_idx ) {
-            all_gap_site &= ( counts.count_at( site_idx, char_idx ) == 0 );
+            all_gap_site &= ( counts.count_at( char_idx, site_idx ) == 0 );
         }
 
         if( all_gap_site ) {

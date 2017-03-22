@@ -69,7 +69,7 @@ std::string consensus_sequence_with_majorities(
         SequenceCounts::CountsIntType counts_sum = 0;
 
         for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
-            auto const char_count = counts.count_at( site_idx, char_idx );
+            auto const char_count = counts.count_at( char_idx, site_idx );
             counts_sum += char_count;
 
             // We use a strict greater here, as this ensures to use the first character in cases
@@ -194,7 +194,7 @@ std::string consensus_sequence_with_ambiguities(
 
         // Add all chars with their counts to the map.
         for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
-            auto const char_count = counts.count_at( site_idx, char_idx );
+            auto const char_count = counts.count_at( char_idx, site_idx );
             counts_sum += char_count;
             counts_map.push_back({ char_count, chars[ char_idx ] });
         }
@@ -382,7 +382,7 @@ std::string consensus_sequence_with_threshold(
 
         // Add all chars with their counts to the map.
         for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
-            auto const char_count = counts.count_at( site_idx, char_idx );
+            auto const char_count = counts.count_at( char_idx, site_idx );
             counts_sum += char_count;
             counts_map.push_back({ char_count, chars[ char_idx ] });
         }

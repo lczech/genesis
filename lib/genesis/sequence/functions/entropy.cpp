@@ -68,7 +68,7 @@ double site_entropy(
 
     // Accumulate entropy and total counts for the site.
     for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
-        auto char_count = counts.count_at( site_idx, char_idx );
+        auto char_count = counts.count_at( char_idx, site_idx );
         counts_sum += char_count;
 
         double char_prob = static_cast<double>( char_count ) / num_seqs;
@@ -170,7 +170,7 @@ double averaged_entropy(
         if( only_determined_sites ) {
             bool det = false;
             for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
-                det |= ( counts.count_at( site_idx, char_idx ) > 0 );
+                det |= ( counts.count_at( char_idx, site_idx ) > 0 );
             }
             if( det ) {
                 ++determined_sites;

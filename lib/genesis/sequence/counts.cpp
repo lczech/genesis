@@ -89,7 +89,7 @@ SequenceCounts::CountsIntType SequenceCounts::added_sequences_count() const
     return num_seqs_;
 }
 
-SequenceCounts::CountsIntType SequenceCounts::count_of( size_t site_index, char character ) const
+SequenceCounts::CountsIntType SequenceCounts::count_of( char character, size_t site_index ) const
 {
     if( site_index >= length() ) {
         throw std::runtime_error(
@@ -108,8 +108,8 @@ SequenceCounts::CountsIntType SequenceCounts::count_of( size_t site_index, char 
 }
 
 SequenceCounts::CountsIntType SequenceCounts::count_at(
-    size_t site_index,
-    size_t character_index
+    size_t character_index,
+    size_t site_index
 ) const {
     if( site_index >= counts_.rows() ) {
         throw std::runtime_error(
