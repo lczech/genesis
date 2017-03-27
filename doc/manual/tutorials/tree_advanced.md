@@ -28,15 +28,16 @@ Each node... -->
 
 base node and edge data, default data, etc
 
-casting via .data<>() - recommend to store such pointers locally if needed more than once per
+casting via `.data<>()` - recommend to store such pointers locally if needed more than once per
 operation/loop body/traversal
 
-is tedious, but typesafe.
+this is a bit tedious, but type-safe.
 
-remark: we had templated trees over data types before. this solved the casting issue, but
+Remark: we used templated trees over data types before. this solved the casting issue, but
 introduces many others like code bloating, lots of different independent tree data structures
 (casting does not work that way, but we need double templtated converter funciotns for both
-lhs and rhd data types, etc)
+lhs and rhd data types, etc), no on-line conversion (trees needed to be deeply copied in order to
+change the data types).
 
 # Reading and Writing Revisited {#tutorials_tree_advanced_reading_writing_revisited}
 

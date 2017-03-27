@@ -122,6 +122,13 @@ Furthermore, for inspecting the Tree data structure in more detail, we offer
 read the @ref tutorials_tree_advanced "Tree Advanced" tutorial.
 
 <!--
+
+# node and edge iterators
+
+for( auto& node : tree.nodes() ) {
+
+}
+
 # iterating / traversing
 
 explain iterators etc
