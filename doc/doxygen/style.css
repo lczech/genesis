@@ -32,6 +32,7 @@ h1 {
     width: 100%;
     padding: 10px 10px 10px 20px;
     color: #29325E;
+    box-sizing: border-box;
 }
 
 h1.groupheader {
@@ -191,29 +192,29 @@ pre.fragment {
         border: 1px solid #C4CAE5;
         background-color: #FBFBFD;
         padding: 10px 12px;
-        margin: 20px 0px 20px 0px;
+        margin: 20px 20px 20px 20px;
         overflow: auto;
         word-wrap: break-word;
-        font-size:  9pt;
-        line-height: 130%;
+        line-height: 150%;
         font-family: monospace, fixed;
-        font-size: 105%;
+        font-size: 10.5pt;
 }
 
 div.fragment {
         padding: 10px 12px;
-        margin: 20px 0px 20px 0px;
+        margin: 20px 20px 20px 20px;
         background-color: #FBFBFD;
         border: 1px solid #C4CAE5;
-        line-height: 130%;
+        line-height: 150%;
+        font-size: 10.5pt;
 }
 
 div.line {
 	font-family: monospace, fixed;
-        font-size: 13px;
+    font-size: 10.5pt;
 	min-height: 13px;
 	/*line-height: 1.0;*/
-	line-height: 130%;
+	line-height: 150%;
 	text-wrap: unrestricted;
 	white-space: -moz-pre-wrap; /* Moz */
 	white-space: -pre-wrap;     /* Opera 4-6 */
@@ -1102,7 +1103,7 @@ dl.section dd {
 .image
 {
         text-align: center;
-        margin: 20px 0px 20px 0px;
+        margin: 20px 20px 20px 20px;
         padding: 20px 0px 0px 0px;
         border: 1px solid #C4CAE5;
         /*width: 100%;*/
