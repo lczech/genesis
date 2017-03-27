@@ -156,7 +156,8 @@ public:
     );
 
     /**
-     * @brief Print a compact representation of a Tree to a `std::string`, for DefaultTree%s.
+     * @brief Print a compact representation of a Tree to a `std::string`, for
+     * @link tree::DefaultTree DefaultTrees@endlink.
      *
      * The function casts the node and edge data to DefaultNodeData and DefaultEdgeData, and, if
      * successfull, prints the @ref genesis::tree::DefaultNodeData::name "node name" and
