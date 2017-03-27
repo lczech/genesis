@@ -43,7 +43,7 @@ int main()
     // Write data from a SequenceSet object to a phylip file.
     PhylipWriter().to_file( sequences_a, "path/to/file_f.phylip" );
 
-    // Instanciate objects and change some exemplary settings.
+    // Instantiate objects and change some exemplary settings.
     auto fasta_reader = FastaReader();
     fasta_reader.valid_chars( "ACGT-" );
     auto phylip_writer = PhylipWriter();

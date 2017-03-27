@@ -56,7 +56,7 @@ All the readers and writers can also be normally stored in a variable, for examp
 in order to change their settings and then use them multiple times:
 
 ~~~{.cpp}
-// Instanciate objects and change some exemplary settings.
+// Instantiate objects and change some exemplary settings.
 auto fasta_reader = FastaReader();
 fasta_reader.valid_chars( "ACGT-" );
 auto phylip_writer = PhylipWriter();

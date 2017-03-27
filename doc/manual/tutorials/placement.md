@@ -46,7 +46,8 @@ See [[3]](#placement_references_3) for details.
 Genesis has classes and functions to work with all relevant data of evolutionary placement.
 This tutorial focuses on the actual placement data, that is, Pqueries with their placement
 positions.
-See the tutorial pages @ref tutorials_tree and @ref tutorials_sequence for details on those related topics.
+See the tutorial pages @ref tutorials_tree_basics and @ref tutorials_sequence for details on those
+related topics.
 
 The most important class for evolutionary placement is the @ref genesis::placement::Sample "Sample".
 A sample is a representation of a whole `jplace` file: It stores the
