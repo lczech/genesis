@@ -30,12 +30,10 @@
 
 #include "genesis/tree/printer/compact.hpp"
 
-#include "genesis/tree/tree.hpp"
-
-// TODO used for conversion - ensure typesafety!
 #include "genesis/tree/default/tree.hpp"
-
 #include "genesis/tree/iterator/preorder.hpp"
+#include "genesis/tree/tree.hpp"
+#include "genesis/utils/text/string.hpp"
 
 #include <assert.h>
 #include <sstream>
@@ -48,11 +46,6 @@ namespace tree {
 //     Print Compact
 // =================================================================================================
 
-/**
- * @brief
- *
- * TODO this method assumes that the tree node has a name. not good.
- */
 void PrinterCompact::print (
     std::ostream&   out,
     Tree const& tree,
@@ -62,7 +55,7 @@ void PrinterCompact::print (
     )> const print_line
 ) {
     // Stores a count of how many child nodes each node has left for viewing.
-    auto ranks   = std::vector<size_t>(tree.node_count(), 0);
+    auto ranks   = std::vector<size_t>( tree.node_count(), 0 );
 
     // Store the current stack of parents while traversing.
     auto parents = std::vector<size_t>();
@@ -83,17 +76,16 @@ void PrinterCompact::print (
         // parent. Also, we do not draw any lines or indention for the root.
         if (it.is_first_iteration()) {
             ++ranks[cur_idx];
-            // this should also use the print_line function. current users of this method then need to make sure that they check for the first iteration themselves in case they want to display is specially.
-            // out << it.node()->data.name << "\n";
-            // done:
             out << print_line( it.node(), it.edge() ) << "\n";
             continue;
         }
 
         // This point in code is reached for all nodes but the root. Thus, we already have at least
         // the root and the current node added to the parents stack. Also, the second but last
-        // element will be the parent of the current node (and the last one the node itself).
-        assert(parents.size() > 1 && parents[parents.size() - 2] == par_idx);
+        // element will be the parent of the current node, and the last one the node itself.
+        assert( parents.size() >= 2 );
+        assert( parents[ parents.size() - 2 ] == par_idx );
+        assert( parents[ parents.size() - 1 ] == cur_idx );
 
         // Draw indention lines for all non-immediate parents of the current node. If their rank
         // is zero, there will no other children follow, so do not draw a line then.
@@ -137,19 +129,25 @@ std::string PrinterCompact::print (
     return res.str();
 }
 
-/**
- * @brief
- *
- * TODO this method assumes that the tree node has a name. not good.
- */
 std::string PrinterCompact::print( Tree const& tree )
 {
-    // TODO this should move to default tree, as it uses the name data member
     auto print_line = [] ( TreeNode const& node, TreeEdge const& edge )
     {
-        (void) edge;
-        // TODO typesafety!
-        return node.data<DefaultNodeData>().name;
+        std::string result;
+
+        auto node_data = node.data_cast<DefaultNodeData>();
+        auto edge_data = edge.data_cast<DefaultEdgeData>();
+
+        if( node_data ) {
+            result += node_data->name;
+        }
+        if( node_data && edge_data ) {
+            result += ": ";
+        }
+        if( edge_data ) {
+            result += utils::to_string( edge_data->branch_length );
+        }
+        return result;
     };
     return print(tree, print_line);
 }

@@ -1,17 +1,19 @@
 Acknowledgements {#supplement_acknowledgements}
 ================
 
+# Acknowledgements @anchor supplement_acknowledgements_acknowledgements
+
 This work is financially supported by the
 [Klaus Tschira Foundation](http://www.klaus-tschira-stiftung.de/) and the
 [HITS gGmbH - Heidelberg Institute for Theoretical Studies](http://www.h-its.org).
 
 See the webpage of the [Exelixis Lab](http://exelixis-lab.org/) for our other projects.
 
-# Dependencies
+# Dependencies @anchor supplement_acknowledgements_dependencies
 
 In the following, we list all direct dependencies of Genesis and their licenses.
 
-## GTest
+## GTest @anchor supplement_acknowledgements_dependencies_gtest
 
 If tests are enabled, Genesis automatically tries to download and compile
 [Google Test](https://github.com/google/googletest) (GTest) in order to
@@ -52,7 +54,7 @@ The license information above was copied from
 https://github.com/google/googletest/blob/master/googletest/LICENSE
 on 2017-03-09.
 
-## Pybind11
+## Pybind11 @anchor supplement_acknowledgements_dependencies_pybind
 
 If Python bindings are enabled, Genesis automatically tries to download
 [Pybind11](https://github.com/pybind/pybind11) to create those bindings.
@@ -99,12 +101,12 @@ derivative works thereof, in binary and source code form.
 The license information above was copied from https://github.com/pybind/pybind11/blob/master/LICENSE
 on 2017-03-09.
 
-# Code Reuse
+# Code Reuse @anchor supplement_acknowledgements_code_reuse
 
 In the following, we list all sources that were adapted and incorporated in Genesis in modified
 form.
 
-## Input Stream
+## Input Stream @anchor supplement_acknowledgements_code_reuse_input_stream
 
 Genesis contains a set of classes that deal with input streams, i.e.,
 @link genesis::utils::InputStream InputStream@endlink,
@@ -153,7 +155,7 @@ The license information above was copied from
 https://github.com/ben-strasser/fast-cpp-csv-parser/blob/master/LICENSE
 on 2017-03-09.
 
-## Json Document
+## Json Document @anchor supplement_acknowledgements_code_reuse_json_document
 
 Our @link genesis::utils::JsonDocument JsonDocument@endlink data structure as well as the accompanying @link genesis::utils::JsonIterator JsonIterator@endlink are based on the excellent
 [JSON for Modern C++](https://github.com/nlohmann/json) library by Niels Lohmann.
@@ -186,7 +188,7 @@ The license information above was copied from
 https://github.com/nlohmann/json/blob/develop/LICENSE.MIT
 on 2017-03-09.
 
-## Succinct Range Minimum Query
+## Succinct Range Minimum Query @anchor supplement_acknowledgements_code_reuse_succinct_rmq
 
 The implementation of our @link genesis::utils::RangeMinimumQuery RangeMinimumQuery@endlink data
 structure is based on the
@@ -194,7 +196,7 @@ structure is based on the
 Fischer, with his
 explicit permission to use his code in Genesis.
 
-## SHA1
+## SHA1 @anchor supplement_acknowledgements_code_reuse_sha
 
 Our implementation of the @link genesis::utils::SHA1 SHA1 hashing function@endlink is based on
 [https://github.com/vog/sha1](https://github.com/vog/sha1), which is 100% Public Domain.

@@ -58,7 +58,7 @@ class Sequence;
 // =================================================================================================
 
 /**
- * @brief Read Phylip data.
+ * @brief Read Phylip sequence data.
  *
  * This class provides simple facilities for reading Phylip data. It supports to read
  *

@@ -50,7 +50,7 @@ namespace utils {
  *
  * The implementation is based on [https://github.com/vog/sha1](https://github.com/vog/sha1),
  * which is 100% Public Domain, see also
- * @link supplement_acknowledgements Acknowledgements@endlink.
+ * @link supplement_acknowledgements_code_reuse_sha Acknowledgements@endlink.
  */
 class SHA1
 {

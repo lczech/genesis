@@ -109,7 +109,7 @@ utils::Matrix<utils::Color> PrinterBitmap::make_image_( SequenceSet const& set )
 //     Properties
 // =================================================================================================
 
-PrinterBitmap& PrinterBitmap::color_map( std::map<char, utils::Color> value )
+PrinterBitmap& PrinterBitmap::color_map( std::map<char, utils::Color> const& value )
 {
     color_map_ = value;
     return *this;

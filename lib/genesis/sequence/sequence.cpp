@@ -104,17 +104,11 @@ void Sequence::clear()
 //     Accessors
 // ================================================================================================
 
-/**
-* @brief Return the length (number of sites) of this sequence.
-*/
 size_t Sequence::length() const
 {
     return sites_.size();
 }
 
-/**
- * @brief Alias for length().
- */
 size_t Sequence::size() const
 {
     return sites_.size();

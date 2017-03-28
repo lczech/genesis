@@ -102,7 +102,14 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
+    /**
+    * @brief Return the length (number of sites) of this sequence.
+    */
     size_t length() const;
+
+    /**
+     * @brief Alias for length().
+     */
     size_t size() const;
 
     char site_at( size_t index ) const;

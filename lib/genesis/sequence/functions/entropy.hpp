@@ -93,10 +93,10 @@ enum class SiteEntropyOptions : unsigned char
      * character are ignored in the counts. The total number of those characters is then:
      *
      *     auto gap_count = counts.added_sequences_count()
-     *                    - counts.count_at( site_idx, 'A' )
-     *                    - counts.count_at( site_idx, 'C' )
-     *                    - counts.count_at( site_idx, 'G' )
-     *                    - counts.count_at( site_idx, 'T' );
+     *                    - counts.count_of( 'A', site_idx )
+     *                    - counts.count_of( 'C', site_idx )
+     *                    - counts.count_of( 'G', site_idx )
+     *                    - counts.count_of( 'T', site_idx );
      *
      * This number is then used as an additional summand for the entropy:
      * \f$ H_{i} \f$ `+=` \f$ -f_{{-,i}}\times \log _{2}f_{{-,i}} \f$, with
