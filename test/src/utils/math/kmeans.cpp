@@ -54,6 +54,8 @@ TEST( Math, Kmeans )
 
     LOG_DBG << "Prepare data";
 
+    size_t factor = 100;
+
     auto& e = Options::get().random_engine();
 
     std::normal_distribution<double> c1_d0( 5.0, 0.7 );
@@ -65,17 +67,16 @@ TEST( Math, Kmeans )
     std::normal_distribution<double> c3_d0( 3.0, 1.5 );
     std::normal_distribution<double> c3_d1( -4.0, 1.8 );
 
-
     auto data = std::vector<Point>();
-    for( size_t i = 0; i < 1000; ++i ) {
+    for( size_t i = 0; i < 10 * factor; ++i ) {
         auto p = Point({ c1_d0(e), c1_d1(e) });
         data.emplace_back( p );
     }
-    for( size_t i = 0; i < 500; ++i ) {
+    for( size_t i = 0; i < 5 * factor; ++i ) {
         auto p = Point({ c2_d0(e), c2_d1(e) });
         data.emplace_back( p );
     }
-    for( size_t i = 0; i < 2000; ++i ) {
+    for( size_t i = 0; i < 20 * factor; ++i ) {
         auto p = Point({ c3_d0(e), c3_d1(e) });
         data.emplace_back( p );
     }
@@ -84,7 +85,7 @@ TEST( Math, Kmeans )
     //     Run Kmeans
     // -------------------------------------------------------------------------
 
-    LOG_DBG << "Run Kmeans";
+    LOG_DBG << "Run Kmeans with " << data.size() << " points";
 
     auto kmeans = EuclideanKmeans( 2 );
     kmeans.run( data, 3 );

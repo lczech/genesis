@@ -526,7 +526,7 @@ std::string to_string_precise( double value, const int precision )
 std::string to_string_rounded( double value, const int precision )
 {
     std::ostringstream s;
-    s << std::setprecision( precision ) << utils::round_to( value, precision);
+    s << utils::round_to( value, precision);
     return s.str();
 }
 
