@@ -104,6 +104,11 @@ public:
             // Start a new iteration.
             LOG_INFO << "Iteration " << iteration;
             changed_assigment = lloyd_step( data, assignments_, centroids_ );
+
+            // Check some invariants, just the be sure that the lloyd step didn't mess around.
+            assert( assignments_.size() == data.size() );
+            assert( centroids_.size() == k );
+
             ++iteration;
         } while( changed_assigment && iteration < max_iterations_ );
 
@@ -393,6 +398,12 @@ public:
 private:
 
     virtual bool data_validation( std::vector<Point> const& data ) const override;
+
+    virtual bool lloyd_step(
+        std::vector<Point>  const& data,
+        std::vector<size_t>&       assignments,
+        std::vector<Point>&        centroids
+    ) override;
 
     virtual void update_centroids(
         std::vector<Point>  const& data,

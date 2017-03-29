@@ -66,6 +66,83 @@ bool EuclideanKmeans::data_validation( std::vector<Point> const& data ) const
     return true;
 }
 
+bool EuclideanKmeans::lloyd_step(
+    std::vector<Point>  const& data,
+    std::vector<size_t>&       assignments,
+    std::vector<Point>&        centroids
+) {
+    // Store whether anything changed.
+    bool changed_assigment = false;
+
+    // We want to store some thread-local data. This struct bundles this data.
+    struct CentroidAccu
+    {
+        std::vector<Point>  centroids;
+        std::vector<size_t> counts;
+    };
+
+    // Init the result as well as counts for calculating the mean.
+    auto const k = centroids.size();
+
+    // Make as many thread-local data as we have threads.
+    auto new_centroids = std::vector<CentroidAccu>( Options::get().number_of_threads() );
+    for( size_t o = 0; o < Options::get().number_of_threads(); ++o ) {
+        new_centroids[ o ].centroids = std::vector<Point>( k, Point( dimensions_, 0.0 ) );
+        new_centroids[ o ].counts    = std::vector<size_t>( k, 0 );
+    }
+
+    // Assign each Point to its nearest centroid, and accumulate new centroids.
+    #pragma omp parallel for
+    for( size_t i = 0; i < data.size(); ++i ) {
+
+        #ifdef GENESIS_OPENMP
+            size_t thread_num = omp_get_thread_num();
+        #else
+            size_t thread_num = 0;
+        #endif
+        assert( thread_num < Options::get().number_of_threads() );
+
+        auto const& datum  = data[ i ];
+        auto& assignment   = assignments[i];
+        auto const new_idx = nearest_cluster_index( centroids, datum );
+
+        if( new_idx != assignment ) {
+            // Update the assignment. No need for locking, as each thread works on its own i.
+            assignment = new_idx;
+
+            // If we have a new assigment for this datum, we need to do another loop iteration.
+            // Do this atomically, as all threads use this variable.
+            #pragma omp atomic write
+            changed_assigment = true;
+        }
+
+        // Accumulate centroid.
+        auto& new_centroid = new_centroids[ thread_num ].centroids[ assignment ];
+        for( size_t d = 0; d < dimensions_; ++d ) {
+            #pragma omp atomic
+            new_centroid[ d ] += datum[ d ];
+        }
+
+        #pragma omp atomic
+        ++new_centroids[ thread_num ].counts[ assignment ];
+    }
+
+    // Build the mean.
+    centroids = std::vector<Point>( k, Point( dimensions_, 0.0 ) );
+    for( size_t i = 0; i < k; ++i ) {
+        for( size_t o = 0; o < Options::get().number_of_threads(); ++o ) {
+            auto const& cent_o = new_centroids[ o ];
+            if( cent_o.counts[ i ] > 0 ) {
+                for( size_t d = 0; d < dimensions_; ++d ) {
+                    centroids[ i ][ d ] += cent_o.centroids[ i ][ d ] / cent_o.counts[ i ];
+                }
+            }
+        }
+    }
+
+    return changed_assigment;
+}
+
 void EuclideanKmeans::update_centroids(
     std::vector<Point>  const& data,
     std::vector<size_t> const& assignments,
