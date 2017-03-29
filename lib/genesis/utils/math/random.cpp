@@ -32,6 +32,8 @@
 
 #include "genesis/utils/core/options.hpp"
 
+#include <random>
+
 namespace genesis {
 namespace utils {
 
