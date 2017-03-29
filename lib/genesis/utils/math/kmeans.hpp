@@ -43,6 +43,10 @@
 #include <string>
 #include <vector>
 
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
 namespace genesis {
 namespace utils {
 
@@ -63,21 +67,6 @@ public:
     // -------------------------------------------------------------------------
 
     using value_type = Point;
-
-    using data_validation_function = std::function< bool(
-        std::vector<Point> const& data
-    ) >;
-
-    using calculate_centroids_function = std::function< std::vector<Point>(
-        std::vector<Point>  const& data,
-        std::vector<size_t> const& assignments,
-        size_t                     k
-    ) >;
-
-    using distance_metric_function = std::function< double(
-        Point const& lhs,
-        Point const& rhs
-    ) >;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -114,17 +103,53 @@ public:
         do {
             // Start a new iteration.
             LOG_INFO << "Iteration " << iteration;
-
-            // Calculate new assignments and check whether they changed.
-            changed_assigment = update_assignments_( data );
-
-            // Recalculate the centroids.
-            centroids_ = calculate_centroids( data, assignments_, k );
-
+            changed_assigment = lloyd_step( data, assignments_, centroids_ );
             ++iteration;
         } while( changed_assigment && iteration < max_iterations_ );
 
         return iteration;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Static Init Procedures
+    // -------------------------------------------------------------------------
+
+    static std::vector<size_t> random_initial_assignments(
+        std::vector<Point> const& data,
+        size_t const              k
+    ) {
+        // Prepare a vector of the desired size.
+        auto assignments = std::vector<size_t>( data.size(), 0 );
+
+        // Prepare a random distribution in range [0,k).
+        auto& engine = Options::get().random_engine();
+        std::uniform_int_distribution<size_t> distribution( 0, k - 1 );
+
+        // Assign random cluster indices for each data point.
+        for( size_t i = 0; i < data.size(); ++i ) {
+            assignments[ i ] = distribution( engine );
+        }
+
+        return assignments;
+    }
+
+    static std::vector<Point> random_initial_centroids(
+        std::vector<Point> const& data,
+        size_t const              k
+    ) {
+        // Prepare centroids vector. Empty, because we don't want to assume any default
+        // constructor for the Points.
+        auto centroids = std::vector<Point>();
+
+        // Select k unique numbers out of the interval [ 0, data.size() ),
+        // and copy those data points to the centroids.
+        auto idxs = select_without_replacement( k, data.size() );
+        for( auto const idx : idxs ) {
+            centroids.push_back( data[idx] );
+        }
+
+        assert( centroids.size() == k );
+        return centroids;
     }
 
     // -------------------------------------------------------------------------
@@ -160,6 +185,9 @@ public:
 
     Kmeans& max_iterations( size_t value )
     {
+        if( value == 0 ) {
+            throw std::runtime_error( "Cannot use 0 as max_iterations for Kmeans." );
+        }
         max_iterations_ = value;
         return *this;
     }
@@ -171,6 +199,88 @@ public:
     }
 
     // -------------------------------------------------------------------------
+    //     Virtual Functions
+    // -------------------------------------------------------------------------
+
+protected:
+
+    virtual bool data_validation( std::vector<Point> const& data ) const
+    {
+        (void) data;
+        return true;
+    }
+
+    virtual bool lloyd_step(
+        std::vector<Point>  const& data,
+        std::vector<size_t>&       assignments,
+        std::vector<Point>&        centroids
+    ) {
+        // Calculate new assignments and check whether they changed.
+        auto changed_assigment = assign_to_centroids( data, centroids, assignments );
+
+        // Recalculate the centroids.
+        update_centroids( data, assignments, centroids );
+
+        return changed_assigment;
+    }
+
+    virtual bool assign_to_centroids(
+        std::vector<Point> const& data,
+        std::vector<Point> const& centroids,
+        std::vector<size_t>&      assignments
+    ) {
+        // Store whether anything changed.
+        bool changed_assigment = false;
+
+        // Assign each Point to its nearest centroid.
+        #pragma omp parallel for
+        for( size_t i = 0; i < data.size(); ++i ) {
+            auto const new_idx = nearest_cluster_index( centroids, data[i] );
+
+            if( new_idx != assignments[i] ) {
+                // Update the assignment. No need for locking, as each thread works on its own i.
+                assignments[i] = new_idx;
+
+                // If we have a new assigment for this datum, we need to do another loop iteration.
+                // Do this atomically, as all threads use this variable.
+                #pragma omp atomic write
+                changed_assigment = true;
+            }
+        }
+
+        return changed_assigment;
+    }
+
+    virtual size_t nearest_cluster_index(
+        std::vector<Point> const& centroids,
+        Point const&              datum
+    ) const {
+        double min_d = std::numeric_limits<double>::max();
+        size_t min_i;
+
+        for( size_t i = 0; i < centroids.size(); ++i ) {
+            auto dist = distance( datum, centroids[i] );
+            if( dist < min_d ) {
+                min_d = dist;
+                min_i = i;
+            }
+        }
+
+        return min_i;
+    }
+
+    virtual double distance(
+        Point const& lhs,
+        Point const& rhs
+    ) const = 0;
+
+    virtual void update_centroids(
+        std::vector<Point>  const& data,
+        std::vector<size_t> const& assignments,
+        std::vector<Point>&        centroids
+    ) = 0;
+
+    // -------------------------------------------------------------------------
     //     Internal Functions
     // -------------------------------------------------------------------------
 
@@ -178,14 +288,6 @@ private:
 
     void runtime_checks_( std::vector<Point> const& data, size_t const k ) const
     {
-        // Check if necessary functions are set.
-        if( ! calculate_centroids ) {
-            throw std::runtime_error( "No calculate_centroids() function set." );
-        }
-        if( ! distance_metric ) {
-            throw std::runtime_error( "No distance_metric() function set." );
-        }
-
         // Basic checks.
         if( k > data.size() ) {
             LOG_WARN << "Running Kmeans with more clusters (k == " << k << ") than data points ("
@@ -209,9 +311,9 @@ private:
             );
         }
 
-        // If set, validate the data. The function might also throw on its own, in order
+        // Validate the data. The function might also throw on its own, in order
         // to provide a more helpful message about what is actually invalid about the data.
-        if( data_validation && ! data_validation( data ) ) {
+        if( ! data_validation( data ) ) {
             throw std::runtime_error( "Invalid data." );
         }
     }
@@ -221,7 +323,7 @@ private:
         // Different init stragegies.
         if( assignments_.size() == 0 && centroids_.size() == 0 ) {
             // Nothing given: Sample random centroids from the data.
-            random_initial_centroids_( data, k );
+            centroids_ = random_initial_centroids( data, k );
 
         } else if( assignments_.size() == 0 && centroids_.size() > 0 ) {
             // Centroids given, but no assigments: Nothing to do for now.
@@ -229,7 +331,7 @@ private:
 
         } else if( assignments_.size() > 0 && centroids_.size() == 0 ) {
             // Assignments given, but not centroids: Caculate the latter.
-            centroids_ = calculate_centroids( data, assignments_, k );
+            update_centroids( data, assignments_, centroids_ );
 
         } else {
             // Both given: Nothing to do.
@@ -243,66 +345,6 @@ private:
         }
     }
 
-    void random_initial_assignments_( size_t const data_size, size_t const k )
-    {
-        // Prepare a vector of the desired size.
-        assignments_ = std::vector<size_t>( data_size, 0 );
-
-        // Prepare a random distribution in range [0,k).
-        auto& engine = Options::get().random_engine();
-        std::uniform_int_distribution<size_t> distribution( 0, k - 1 );
-
-        // Assign random cluster indices for each data point.
-        for( size_t i = 0; i < data_size; ++i ) {
-            assignments_[ i ] = distribution( engine );
-        }
-    }
-
-    void random_initial_centroids_( std::vector<Point> const& data, size_t const k )
-    {
-        auto idxs = select_without_replacement( k, data.size() );
-        centroids_ = std::vector<Point>();
-        for( auto const& idx : idxs ) {
-            centroids_.push_back( data[idx] );
-        }
-        assert( centroids_.size() == k );
-    }
-
-    bool update_assignments_( std::vector<Point> const& data )
-    {
-        // Store whether anything changed.
-        bool changed_assigment = false;
-
-        // Assign each Point to its nearest centroid.
-        for( size_t i = 0; i < data.size(); ++i ) {
-            auto new_idx = nearest_cluster_index_( data[i] );
-
-            // If we have a new assigment for this datum, we need to do another loop iteration.
-            if( new_idx != assignments_[i] ) {
-                assignments_[i]   = new_idx;
-                changed_assigment = true;
-            }
-        }
-
-        return changed_assigment;
-    }
-
-    size_t nearest_cluster_index_( Point const& datum ) const
-    {
-        double min_d = std::numeric_limits<double>::max();
-        size_t min_i;
-
-        for( size_t i = 0; i < centroids_.size(); ++i ) {
-            auto dist = distance_metric( datum, centroids_[i] );
-            if( dist < min_d ) {
-                min_d = dist;
-                min_i = i;
-            }
-        }
-
-        return min_i;
-    }
-
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
@@ -313,14 +355,6 @@ private:
     std::vector<Point>  centroids_;
 
     size_t max_iterations_ = 100;
-
-public:
-
-    data_validation_function     data_validation;
-
-    calculate_centroids_function calculate_centroids;
-
-    distance_metric_function     distance_metric;
 
 };
 
@@ -344,7 +378,6 @@ public:
     // -------------------------------------------------------------------------
 
     EuclideanKmeans( size_t dimensions );
-
     virtual ~EuclideanKmeans() = default;
 
     EuclideanKmeans( EuclideanKmeans const& ) = default;
@@ -359,15 +392,15 @@ public:
 
 private:
 
-    bool data_dimension_validation_( std::vector<Point> const& data ) const;
+    virtual bool data_validation( std::vector<Point> const& data ) const override;
 
-    std::vector<Point> calculate_mean_centroids_(
+    virtual void update_centroids(
         std::vector<Point>  const& data,
         std::vector<size_t> const& assignments,
-        size_t                     k
-    ) const;
+        std::vector<Point>&        centroids
+    ) override;
 
-    double euclidean_distance_( Point const& lhs, Point const& rhs ) const;
+    virtual double distance( Point const& lhs, Point const& rhs ) const override;
 
     // -------------------------------------------------------------------------
     //     Data Members

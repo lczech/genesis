@@ -48,13 +48,20 @@ TEST( Math, Kmeans )
 {
     using Point = std::vector<double>;
 
+    utils::Logging::details.time = true;
+
+    utils::Options::get().number_of_threads( 4 );
+    utils::Options::get().random_seed( 174333141 );
+    LOG_BOLD << utils::Options::get().info();
+    LOG_BOLD;
+
     // -------------------------------------------------------------------------
     //     Prepare data
     // -------------------------------------------------------------------------
 
     LOG_DBG << "Prepare data";
 
-    size_t factor = 100;
+    size_t factor = 1000000;
 
     auto& e = Options::get().random_engine();
 
@@ -96,6 +103,8 @@ TEST( Math, Kmeans )
 
     LOG_DBG << "Show result";
 
+    return;
+
     auto doc = SvgDocument();
     auto const stroke = SvgStroke( SvgStroke::Type::kNone );
 
@@ -126,7 +135,7 @@ TEST( Math, Kmeans )
         );
     }
 
-    // std::ostringstream out;
-    // doc.write( out );
-    // file_write( out.str(), "/home/lucas/test.svg" );
+    std::ostringstream out;
+    doc.write( out );
+    file_write( out.str(), "/home/lucas/test.svg" );
 }

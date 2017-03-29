@@ -30,6 +30,7 @@
 
 #include "genesis/utils/math/kmeans.hpp"
 
+#include <algorithm>
 #include <cmath>
 
 namespace genesis {
@@ -45,28 +46,13 @@ namespace utils {
 
 EuclideanKmeans::EuclideanKmeans( size_t dimensions )
     : dimensions_( dimensions )
-{
-    data_validation = std::bind(
-        &EuclideanKmeans::data_dimension_validation_, *this,
-        std::placeholders::_1
-    );
-
-    calculate_centroids = std::bind(
-        &EuclideanKmeans::calculate_mean_centroids_, *this,
-        std::placeholders::_1, std::placeholders::_2, std::placeholders::_3
-    );
-
-    distance_metric = std::bind(
-        &EuclideanKmeans::euclidean_distance_, *this,
-        std::placeholders::_1, std::placeholders::_2
-    );
-}
+{}
 
 // -------------------------------------------------------------------------
 //     Default K-Means Functions
 // -------------------------------------------------------------------------
 
-bool EuclideanKmeans::data_dimension_validation_( std::vector<Point> const& data ) const
+bool EuclideanKmeans::data_validation( std::vector<Point> const& data ) const
 {
     for( size_t i = 0; i < data.size(); ++i ) {
         auto const& datum = data[i];
@@ -80,53 +66,99 @@ bool EuclideanKmeans::data_dimension_validation_( std::vector<Point> const& data
     return true;
 }
 
-std::vector<EuclideanKmeans::Point> EuclideanKmeans::calculate_mean_centroids_(
+void EuclideanKmeans::update_centroids(
     std::vector<Point>  const& data,
     std::vector<size_t> const& assignments,
-    size_t                     k
-) const {
-    // Init the result as well as counts for calculating the mean.
-    auto centroids = std::vector<Point>( k, Point( dimensions_, 0.0 ) );
-    auto counts = std::vector<size_t>( k, 0 );
-
+    std::vector<Point>&        centroids
+) {
     // This function is only called from within the run() function, which already
     // checks this condition. So, simply assert it here, instead of throwing.
     assert( data.size() == assignments.size() );
 
-    // Work through the data and assigments and accumulate.
-    for( size_t i = 0; i < data.size(); ++i ) {
+    auto const k = centroids.size();
 
-        // Shorthands.
-        auto const& datum    = data[ i ];
-        auto&       centroid = centroids[ assignments[i] ];
+    #ifdef GENESIS_OPENMP
 
-        // Accumulate centroid.
-        for( size_t d = 0; d < dimensions_; ++d ) {
-            centroid[ d ] += datum[ d ];
+        // Parallelize over centroids
+        #pragma omp parallel for
+        for( size_t i = 0; i < k; ++i ) {
+
+            // Thread-local Point
+            auto centroid = Point( dimensions_, 0.0 );
+            size_t count = 0;
+
+            // Work through the data...
+            for( size_t j = 0; j < data.size(); ++j ) {
+
+                // ... but only the relevant parts.
+                if( assignments[j] != i ) {
+                    continue;
+                }
+
+                // Accumulate centroid.
+                auto const& datum = data[ j ];
+                for( size_t d = 0; d < dimensions_; ++d ) {
+                    centroid[ d ] += datum[ d ];
+                }
+                ++count;
+            }
+
+            // Build the mean.
+            if( count > 0 ) {
+                for( size_t d = 0; d < dimensions_; ++d ) {
+                    centroid[ d ] /= count;
+                }
+            }
+
+            // Set the centroid. No need for locking, as we only access our i.
+            centroids[ i ] = std::move( centroid );
         }
 
-        ++counts[ assignments[i] ];
-    }
+    #else
 
-    // Build the mean.
-    for( size_t i = 0; i < k; ++i ) {
-        if( counts[ i ] > 0 ) {
-            auto& centroid = centroids[ i ];
+        // In the serial case, we only want to traverse the data once.
+
+        // Init the result as well as counts for calculating the mean.
+        centroids = std::vector<Point>( k, Point( dimensions_, 0.0 ) );
+        auto counts = std::vector<size_t>( k, 0 );
+
+        // This function is only called from within the run() function, which already
+        // checks this condition. So, simply assert it here, instead of throwing.
+        assert( data.size() == assignments.size() );
+
+        // Work through the data and assigments and accumulate.
+        for( size_t i = 0; i < data.size(); ++i ) {
+
+            // Shorthands.
+            auto const& datum    = data[ i ];
+            auto&       centroid = centroids[ assignments[i] ];
+
+            // Accumulate centroid.
             for( size_t d = 0; d < dimensions_; ++d ) {
-                centroid[ d ] /= counts[ i ];
+                centroid[ d ] += datum[ d ];
+            }
+
+            ++counts[ assignments[i] ];
+        }
+
+        // Build the mean.
+        for( size_t i = 0; i < k; ++i ) {
+            if( counts[ i ] > 0 ) {
+                auto& centroid = centroids[ i ];
+                for( size_t d = 0; d < dimensions_; ++d ) {
+                    centroid[ d ] /= counts[ i ];
+                }
             }
         }
-    }
 
-    // Return the new centroids.
-    return centroids;
+    #endif
 }
 
-double EuclideanKmeans::euclidean_distance_( Point const& lhs, Point const& rhs ) const
+double EuclideanKmeans::distance( Point const& lhs, Point const& rhs ) const
 {
     double sum = 0.0;
     for( size_t d = 0; d < dimensions_; ++d ) {
-        auto diff = lhs[d] - rhs[d];
+        auto const diff = lhs[d] - rhs[d];
         sum += diff * diff;
     }
     return std::sqrt( sum );
