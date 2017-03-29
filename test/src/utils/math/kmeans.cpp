@@ -48,20 +48,20 @@ TEST( Math, Kmeans )
 {
     using Point = std::vector<double>;
 
-    utils::Logging::details.time = true;
-
-    utils::Options::get().number_of_threads( 4 );
-    utils::Options::get().random_seed( 174333141 );
-    LOG_BOLD << utils::Options::get().info();
-    LOG_BOLD;
+    // utils::Logging::details.time = true;
+    // utils::Options::get().number_of_threads( 4 );
+    // utils::Options::get().random_seed( 174333141 );
+    // LOG_BOLD << utils::Options::get().info();
+    // LOG_BOLD;
 
     // -------------------------------------------------------------------------
     //     Prepare data
     // -------------------------------------------------------------------------
 
-    LOG_DBG << "Prepare data";
+    // LOG_DBG << "Prepare data";
 
-    size_t factor = 1000000;
+    size_t factor = 100;
+    // size_t factor = 1000000;
 
     auto& e = Options::get().random_engine();
 
@@ -92,16 +92,17 @@ TEST( Math, Kmeans )
     //     Run Kmeans
     // -------------------------------------------------------------------------
 
-    LOG_DBG << "Run Kmeans with " << data.size() << " points";
+    // LOG_DBG << "Run Kmeans with " << data.size() << " points";
 
     auto kmeans = EuclideanKmeans( 2 );
+    kmeans.initialization_strategy( EuclideanKmeans::InitializationStrategy::kCentroidsPlusPlus );
     kmeans.run( data, 3 );
 
     // -------------------------------------------------------------------------
     //     Show result
     // -------------------------------------------------------------------------
 
-    LOG_DBG << "Show result";
+    // LOG_DBG << "Show result";
 
     return;
 

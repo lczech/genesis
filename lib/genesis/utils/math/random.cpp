@@ -33,6 +33,8 @@
 #include "genesis/utils/core/options.hpp"
 
 #include <random>
+#include <stdexcept>
+#include <string>
 
 namespace genesis {
 namespace utils {
@@ -47,6 +49,13 @@ std::vector<size_t> select_without_replacement( size_t const k, size_t const n )
     // Knuth's variable names: n=N, k=n
 
     std::vector<size_t> result;
+
+    if( k > n ) {
+        throw std::invalid_argument(
+            "Cannot select more unique elements than there are elements: k == "  +
+            std::to_string(k) + " > n == " + std::to_string(n) + "."
+        );
+    }
 
     auto& engine = Options::get().random_engine();
     std::uniform_real_distribution<double> distribution( 0.0, 1.0 );
