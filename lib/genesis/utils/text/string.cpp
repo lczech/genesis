@@ -44,9 +44,6 @@ namespace utils {
 //     Compare
 // =================================================================================================
 
-/**
- * @brief Compare two strings case insensitive.
- */
 bool equals_ci( std::string const& lhs, std::string const& rhs)
 {
     const size_t sz = lhs.size();
@@ -61,9 +58,6 @@ bool equals_ci( std::string const& lhs, std::string const& rhs)
     return true;
 }
 
-/**
- * @brief Return whether a string starts with another string.
- */
 bool starts_with( std::string const & text, std::string const & start )
 {
     if (start.size() > text.size()) {
@@ -72,9 +66,6 @@ bool starts_with( std::string const & text, std::string const & start )
     return std::equal( start.begin(), start.end(), text.begin() );
 }
 
-/**
- * @brief Return whether a string ends with another string.
- */
 bool ends_with( std::string const & text, std::string const & ending )
 {
     if (ending.size() > text.size()) {
@@ -87,9 +78,6 @@ bool ends_with( std::string const & text, std::string const & ending )
 //     Substrings
 // =================================================================================================
 
-/**
- * @brief Return the first lines of the text.
- */
 std::string head( std::string const& text, size_t lines )
 {
     // Not totally efficient, but works for now.
@@ -99,9 +87,6 @@ std::string head( std::string const& text, size_t lines )
     return join( vec, "\n" );
 }
 
-/**
- * @brief Return the last lines of the text.
- */
 std::string tail( std::string const& text, size_t lines )
 {
     // Not totally efficient, but works for now.
@@ -115,9 +100,6 @@ std::string tail( std::string const& text, size_t lines )
 //     Find and Count
 // =================================================================================================
 
-/**
- * @brief Return the number of non-overlapping occurrences of a substring in a string.
- */
 size_t count_substring_occurrences( std::string const& str, std::string const& sub )
 {
     if (sub.length() == 0) {
@@ -136,13 +118,6 @@ size_t count_substring_occurrences( std::string const& str, std::string const& s
     return count;
 }
 
-/**
- * @brief Spilt a string int parts, given a set of delimiter chars.
- *
- * The string `str` is split using any of the chars in `delimiters` and returned as a vector
- * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiter chars are
- * excluded from the output.
- */
 std::vector<std::string> split (
     std::string const& str,
     std::string const& delimiters,
@@ -180,13 +155,6 @@ std::vector<std::string> split (
 //     Manipulate
 // =================================================================================================
 
-/**
- * @brief Indent each line of `text` with `indentation` and return the result.
- *
- * By default, four spaces are used to indent. Whether the text ends with a new line or not is not
- * changed. Any trailing indentation chars are trimmed, in order to not have trailing whitespaces
- * in the result (except for the new line, if the text ends in one).
- */
 std::string indent(
     std::string const& text,
     std::string const& indentation
@@ -195,10 +163,6 @@ std::string indent(
     return trim_right( ret, indentation );
 }
 
-/**
- * @brief Return a copy of a string, where all occurrences of a search string
- * are replaced by a replace string.
- */
 std::string replace_all (
     std::string const& text, std::string const& search, std::string const& replace
 ) {
@@ -232,9 +196,6 @@ void replace_all(
 }
 */
 
-/**
- * @brief Replace all occurrences of the `search_chars` in `text` by the `replace` char.
- */
 std::string replace_all_chars (
     std::string const& text,
     std::string const& search_chars,
@@ -249,9 +210,6 @@ std::string replace_all_chars (
     return result;
 }
 
-/**
- * @brief Return a copy of the input string, with left trimmed white spaces.
- */
 std::string trim_right (
     std::string const& s,
     std::string const& delimiters
@@ -264,9 +222,6 @@ std::string trim_right (
     }
 }
 
-/**
- * @brief Return a copy of the input string, with right trimmed white spaces.
- */
 std::string trim_left (
     std::string const& s,
     std::string const& delimiters
@@ -279,9 +234,6 @@ std::string trim_left (
     }
 }
 
-/**
- * @brief Return a copy of the input string, with trimmed white spaces.
- */
 std::string trim (
     std::string const& s,
     std::string const& delimiters
@@ -293,9 +245,6 @@ std::string trim (
 //     Normalize
 // =================================================================================================
 
-/**
- * @brief Return an all-lowercase copy of the given string, locale-aware.
- */
 std::string to_lower( std::string const& str )
 {
     auto res = str;
@@ -305,9 +254,6 @@ std::string to_lower( std::string const& str )
     return res;
 }
 
-/**
- * @brief Turn the given string to all-lowercase, locale-aware.
- */
 void to_lower_inplace( std::string& str )
 {
     for( auto& c : str ){
@@ -315,9 +261,6 @@ void to_lower_inplace( std::string& str )
     }
 }
 
-/**
- * @brief Return an all-uppercase copy of the given string, locale-aware.
- */
 std::string to_upper( std::string const& str )
 {
     auto res = str;
@@ -327,9 +270,6 @@ std::string to_upper( std::string const& str )
     return res;
 }
 
-/**
- * @brief Turn the given string to all-uppercase, locale-aware.
- */
 void to_upper_inplace( std::string& str )
 {
     for( auto& c : str ){
@@ -337,25 +277,16 @@ void to_upper_inplace( std::string& str )
     }
 }
 
-/**
- * @brief Return the lower case of a given char, ascii-only.
- */
 char to_lower_ascii( char c )
 {
     return ( 'A' <= c && c <= 'Z' ) ? c + 0x20 : c;
 }
 
-/**
- * @brief Return the upper case of a given char, ascii-only.
- */
 char to_upper_ascii( char c )
 {
     return ( 'a' <= c && c <= 'z' ) ? c - 0x20 : c;
 }
 
-/**
- * @brief Return an all-lowercase copy of the given string, ascii-only.
- */
 std::string to_lower_ascii( std::string const& str )
 {
     auto res = str;
@@ -365,9 +296,6 @@ std::string to_lower_ascii( std::string const& str )
     return res;
 }
 
-/**
- * @brief Turn the given string to all-lowercase, ascii-only.
- */
 void to_lower_ascii_inplace( std::string& str )
 {
     for( auto& c : str ){
@@ -375,9 +303,6 @@ void to_lower_ascii_inplace( std::string& str )
     }
 }
 
-/**
- * @brief Return an all-uppercase copy of the given string, ascii-only.
- */
 std::string to_upper_ascii( std::string const& str )
 {
     auto res = str;
@@ -387,9 +312,6 @@ std::string to_upper_ascii( std::string const& str )
     return res;
 }
 
-/**
- * @brief Turn the given string to all-uppercase, ascii-only.
- */
 void to_upper_ascii_inplace( std::string& str )
 {
     for( auto& c : str ){
@@ -397,13 +319,6 @@ void to_upper_ascii_inplace( std::string& str )
     }
 }
 
-/**
- * @brief Return a string where special chars are replaces by their escape sequence.
- *
- * All new lines are transformed into either \\r or \\n, tabs into \\t.
- * Double quotation marks are preceeded by a backslash, also the backslash itself will be escaped,
- * so that `"` becomes `\"` and `\` becomes `\\`.
- */
 std::string escape( std::string const& text )
 {
     // This is slow-ish, because the string is iterated multiple times. Could be done faster.
@@ -416,17 +331,6 @@ std::string escape( std::string const& text )
     return tmp;
 }
 
-/**
- * @brief Return a string where backslash-escaped characters are transformed into
- * their respective string form.
- *
- * All occurrences of `backslash + char` in the string are de-escaped. That is, all `\n`, `\t` and
- * `\r` are turned into their respective control sequences, while all other chars folloing a
- * backslash are translated into the char itself (so that e.g., quotation marks or backslashes
- * themself can be escaped).
- *
- * Also see deescape( char c ).
- */
 std::string deescape( std::string const& text )
 {
     // Prepare a string that might be a bit too big, but saves reallocation.
@@ -449,14 +353,6 @@ std::string deescape( std::string const& text )
     return tmp;
 }
 
-/**
- * @brief Return the de-escaped char for a backslash-escaped char.
- *
- * The function takes the char that follows a backslash in an escaped string and returns its
- * de-escaped char. That is, `n` is turned into a new line (`\n`), `t` is turned into a tab (`\t`)
- * and `r` is turned into a carrier return (`\r`). All other chars (e.g., quotation marks or
- * the backslash itself) are simply returned as-is.
- */
 char deescape( char c )
 {
     switch( c ) {
@@ -478,9 +374,6 @@ char deescape( char c )
 //     Output
 // =================================================================================================
 
-/**
- * @brief Take a string and repeat it a given number of times.
- */
 std::string repeat( std::string const& word, size_t times )
 {
     // Init and avoid repeated reallocation.
@@ -494,40 +387,30 @@ std::string repeat( std::string const& word, size_t times )
     return result;
 }
 
-/**
- * @brief Return a precise string representation of the input value, using the provided precision
- * value (determining its decimal places).
- *
- * This function rounds the value to the given precision, and then returns its string representation
- * with possible trailing zeros. Thus, it uses fixed precision. This is useful for e.g., output
- * in a table format.
- *
- * For a version of this function that truncates trailing zeros, see to_string_rounded().
- * Also, use to_string() if you do not want to round the value at all.
- */
-std::string to_string_precise( double value, const int precision )
+std::string to_string_precise( double const value, int const precision )
 {
-    std::ostringstream out;
-    out << std::fixed << std::setprecision(precision) << value;
-    return out.str();
+    // Simple and straight forward.
+    std::ostringstream s;
+    s << std::fixed << std::setprecision( precision ) << value;
+    return s.str();
 }
 
-/**
- * @brief Return a string representation of the input value, using the provided precision value
- * (determining its decimal places) to round, and truncate trailing zeros.
- *
- * This function rounds the value to the given precision, and then returns its string representation
- * without trailing zeros. This is useful for output that keeps a certain amount of significant
- * decimal digits, while making the output as short as possible.
- *
- * If you want to round, but also keep trailing zeros, see to_string_precise().
- * Also, use to_string() if you do not want to round the value at all.
- */
-std::string to_string_rounded( double value, const int precision )
+std::string to_string_rounded( double const value, int const precision )
 {
+    // Get fixed precision string.
     std::ostringstream s;
-    s << utils::round_to( value, precision);
-    return s.str();
+    s << std::fixed << std::setprecision( precision ) << value;
+    auto str = s.str();
+
+    // Truncate trailing zeros, unless there are only zeros after the decimal point. Then, also
+    // delete the decimal point.
+    size_t offset = 1;
+    size_t const last_nonzero = str.find_last_not_of('0');
+    if( str[ last_nonzero ] == '.' ) {
+        offset = 0;
+    }
+    str.erase( last_nonzero + offset, std::string::npos );
+    return str;
 }
 
 } // namespace utils
