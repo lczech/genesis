@@ -201,7 +201,7 @@ std::vector<double> edpl(                                          Sample const&
  * As a consequence, the resulting distance will not reflect the total number of Pqueries, but only
  * their relative (normalized) distrubution on the tree.
  *
- * See @link tree::earth_movers_distance( EmdTree const& ) earth_movers_distance( EmdTree const& )
+ * See @link tree::earth_movers_distance( MassTree const& ) earth_movers_distance( MassTree const& )
  * @endlink for more information on the actual distance calculation.
  */
 double earth_movers_distance (

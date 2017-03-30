@@ -40,12 +40,12 @@
 
 #include "genesis/tree/default/distances.hpp"
 #include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/function/emd_tree.hpp"
-#include "genesis/tree/function/emd.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/function/tree_set.hpp"
 #include "genesis/tree/iterator/node_links.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
+#include "genesis/tree/mass_tree/functions.hpp"
+#include "genesis/tree/mass_tree/tree.hpp"
 #include "genesis/tree/tree_set.hpp"
 #include "genesis/tree/tree.hpp"
 
@@ -237,11 +237,11 @@ std::vector<double> edpl( Sample const& sample )
 // -------------------------------------------------------------------------
 
 /**
- * @brief Local helper function to calculate the EMD given an EmdTree.
+ * @brief Local helper function to calculate the EMD given an MassTree.
  *
  * Precondictions for calling this function:
  *
- *   * The tree needs to contain EmdNodeData and EmdEdgeData on its nodes and edges.
+ *   * The tree needs to contain MassTreeNodeData and MassTreeEdgeData on its nodes and edges.
  *   * It needs to be compatible with the trees of the two given Samples.
  *   * The edges must not contain any masses on them already.
  *
@@ -249,7 +249,7 @@ std::vector<double> edpl( Sample const& sample )
  * this compilation unit, potential callers are limited, so this should be okay.
  */
 double earth_movers_distance (
-    tree::EmdTree& emd_tree,
+    tree::MassTree& mass_tree,
     Sample const&  lhs,
     Sample const&  rhs,
     bool           with_pendant_length
@@ -259,24 +259,24 @@ double earth_movers_distance (
     // position to the branch (this result is only used if with_pendant_length is true).
     // Yep, this function does quite a lot of different things. But it's faster this way and it is
     // only a local function. Don't judge me.
-    auto move_masses = [ &emd_tree ] ( Sample const& smp, double sign, double sum ) {
+    auto move_masses = [ &mass_tree ] ( Sample const& smp, double sign, double sum ) {
         double pendant_work = 0.0;
 
         for( auto const& pqry : smp.pqueries() ) {
             double multiplicity = total_multiplicity( pqry );
 
             for( auto const& place : pqry.placements() ) {
-                auto& edge = emd_tree.edge_at( place.edge().index() );
+                auto& edge = mass_tree.edge_at( place.edge().index() );
 
                 // Use the relative position of the mass on its original branch to put it to the
                 // same position relative to its new branch.
                 double position
                     = place.proximal_length
                     / place.edge().data<PlacementEdgeData>().branch_length
-                    * edge.data<tree::EmdEdgeData>().branch_length;
+                    * edge.data<tree::MassTreeEdgeData>().branch_length;
 
                 // Add the mass at that position, normalized and using the sign.
-                edge.data<tree::EmdEdgeData>().masses[ position ]
+                edge.data<tree::MassTreeEdgeData>().masses[ position ]
                     += sign * place.like_weight_ratio * multiplicity / sum;
 
                 // Accumulate the work we need to do to move the masses from their pendant
@@ -297,7 +297,7 @@ double earth_movers_distance (
     double pendant_work_r = move_masses( rhs, -1.0, totalmass_r );
 
     // Calculate EMD.
-    double work = tree::earth_movers_distance( emd_tree );
+    double work = tree::earth_movers_distance( mass_tree );
 
     // If we also want the amount of work that was needed to move the placement masses from their
     // pendant position to the branch, we need to add those values.
@@ -325,8 +325,8 @@ double earth_movers_distance (
     auto avg_length_tree = tree::average_branch_length_tree( tset );
 
     // Create an EMD tree from the average branch length tree, then calc the EMD.
-    auto emd_tree = tree::convert_default_tree_to_emd_tree( avg_length_tree );
-    return earth_movers_distance( emd_tree, lhs, rhs, with_pendant_length );
+    auto mass_tree = tree::convert_default_tree_to_mass_tree( avg_length_tree );
+    return earth_movers_distance( mass_tree, lhs, rhs, with_pendant_length );
 }
 
 // -------------------------------------------------------------------------
@@ -343,12 +343,12 @@ utils::Matrix<double> earth_movers_distance(
     // Build an average branch length tree for all trees in the SampleSet.
     // This also serves as a check whether all trees in the set are compatible with each other,
     // as average_branch_length_tree() throws if the trees have different topologies.
-    // Also, turn the resulting tree into an Emd Tree.
+    // Also, turn the resulting tree into an MassTree Tree.
     tree::TreeSet avg_tree_set;
     for( auto const& smp : sample_set ) {
         avg_tree_set.add( "", smp.sample.tree() );
     }
-    auto emd_tree = tree::convert_default_tree_to_emd_tree(
+    auto mass_tree = tree::convert_default_tree_to_mass_tree(
         tree::average_branch_length_tree( avg_tree_set )
     );
     avg_tree_set.clear();
@@ -380,12 +380,12 @@ utils::Matrix<double> earth_movers_distance(
             LOG_PROG( job, pool.size() ) << "of earth_movers_distance()";
 
             // Make a local copy of the tree that this thread can modify.
-            // We also tried to use the OMP caluse firstprivate() on emd_tree, but this was slower.
-            auto local_emd_tree = emd_tree;
+            // We also tried to use the OMP caluse firstprivate() on mass_tree, but this was slower.
+            auto local_mass_tree = mass_tree;
 
             // Call the local function for calculating the EMD.
             auto emd = earth_movers_distance(
-                local_emd_tree,
+                local_mass_tree,
                 sample_set[ i ].sample,
                 sample_set[ j ].sample,
                 with_pendant_length
@@ -420,10 +420,10 @@ utils::Matrix<double> earth_movers_distance(
                         // We also tried a pool of pre-allocated copies of the tree, one per thread,
                         // but this turned out not to give any speedup, so for simplicity, we just
                         // use local copies in each iteration.
-                        auto local_emd_tree = emd_tree;
+                        auto local_mass_tree = mass_tree;
 
                         auto emd = earth_movers_distance(
-                            local_emd_tree,
+                            local_mass_tree,
                             sample_set[ i ].sample,
                             sample_set[ j ].sample,
                             with_pendant_length
@@ -453,12 +453,12 @@ utils::Matrix<double> earth_movers_distance(
             for( size_t j = i + 1; j < sample_set.size(); ++j ) {
 
                 // Clear the masses from the previous iteration.
-                for( auto& edge : emd_tree.edges() ) {
-                    edge->data<tree::EmdEdgeData>().masses.clear();
+                for( auto& edge : mass_tree.edges() ) {
+                    edge->data<tree::MassTreeEdgeData>().masses.clear();
                 }
 
                 auto emd = earth_movers_distance(
-                    emd_tree,
+                    mass_tree,
                     sample_set[i].sample,
                     sample_set[j].sample,
                     with_pendant_length

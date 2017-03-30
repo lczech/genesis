@@ -25,65 +25,31 @@
  * @brief
  *
  * @file
- * @ingroup placement
+ * @ingroup tree
  */
 
-#include "genesis/tree/function/emd.hpp"
+#include "genesis/tree/mass_tree/functions.hpp"
 
-#include "genesis/tree/function/emd_tree.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
+#include "genesis/tree/mass_tree/tree.hpp"
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/core/logging.hpp"
 
-#include <assert.h>
+#include <cassert>
 #include <cmath>
+#include <stdexcept>
 #include <vector>
 
 namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     EMD Functions
+//     Earth Movers Distance
 // =================================================================================================
 
-/**
- * @brief Calculate the earth mover's distance of two distributions of masses on a given tree.
- *
- * The earth mover's distance is typically a distance measure between two distributions.
- * See https://en.wikipedia.org/wiki/Earth_mover's_distance for an introduction.
- *
- * In our case, we use distibutions of masses along the branches of a tree. Each branch can have
- * multiple masses at different positions within [0.0, branch_length].
- *
- * The distance is calculated as the amount of work needed to move the masses of one distribution
- * so that they end up in the positions of the masses of the other distribution.
- * Work is here defined as mass times dislocation. Thus, the work ( = total distance ) is higher
- * if either more mass has to be moved, or mass has to be moved further.
- *
- * The resulting distance is independed of the rooting of the tree and commutative with respect
- * to the two mass distributions.
- *
- * In order to keep the calculations simple, we use the following convention for the two
- * distributions: The masses of one distribution are stored using a positive sign, the masses of the
- * other distribution use a negative sign. This way, only one storage for the masses can be used
- * and the algorithm is simplyfied.
- *
- * The earth mover's distance is only meaningful if both mass distributions contain the same amount
- * of total mass. Thus, as they use opposite signs, the sum of all masses on the tree should ideally
- * be zero (apart from numerical derivations).
- * See @link sum_of_masses( EmdTree const& tree ) sum_of_masses() @endlink and
- * @link validate_emd_tree( EmdTree const& tree, double valid_total_mass_difference )
- * validate_emd_tree() @endlink for functions to verify this.
- *
- * See @link placement::earth_movers_distance( const Sample& lhs, const Sample& rhs, bool with_pendant_length )
- * earth_movers_distance( Sample const&, ... ) @endlink for an exemplary
- * usage of this function, which applies the earth mover's distance to the placement weights
- * (@link placement::PqueryPlacement::like_weight_ratio like_weight_ratio@endlink) of a
- * PlacementTree.
- */
-double earth_movers_distance( EmdTree const& tree )
+double earth_movers_distance( MassTree const& tree )
 {
     // Keep track of the total resulting work (the distance we moved the masses).
     // This is the result returned in the end.
@@ -120,12 +86,12 @@ double earth_movers_distance( EmdTree const& tree )
 
         // We now start a "normal" earth movers distance caluclation along the current edge.
         // We start at the end of the branch, with the mass that comes from the subtree below it...
-        double current_pos  = tree_it.edge().data<EmdEdgeData>().branch_length;
+        double current_pos  = tree_it.edge().data<MassTreeEdgeData>().branch_length;
         double current_mass = node_masses[ sec_node_index ];
 
         // ... and move the mass along the branch, balancing it with the masses found on the branch.
         // We use a reverse iterator in order to traverse the branch from end to start.
-        auto const& edge_masses = tree_it.edge().data<EmdEdgeData>().masses;
+        auto const& edge_masses = tree_it.edge().data<MassTreeEdgeData>().masses;
         for(
             auto mass_rit = edge_masses.crbegin();
             mass_rit != edge_masses.crend();
@@ -150,14 +116,52 @@ double earth_movers_distance( EmdTree const& tree )
     return work;
 }
 
-/**
- * @brief Set all branch lengths of the Tree to 1.0, while keeping the relative position of all
- * masses on the branches.
- */
-void transform_to_unit_branch_lengths( EmdTree& tree )
+// =================================================================================================
+//     Manipulate Masses
+// =================================================================================================
+
+MassTree mass_tree_merge_trees( MassTree const& lhs, MassTree const& rhs )
+{
+    auto copy = lhs;
+    mass_tree_merge_trees_inplace( copy, rhs );
+    return copy;
+}
+
+void mass_tree_merge_trees_inplace( MassTree& lhs, MassTree const& rhs )
+{
+    // Do at least a basic check.
+    if( lhs.edge_count() != rhs.edge_count() ) {
+        throw std::runtime_error( "Incompatible MassTrees for merging." );
+    }
+
+    for( size_t i = 0; i < lhs.edge_count(); ++i ) {
+        auto& lhs_masses = lhs.edge_at( i ).data<MassTreeEdgeData>().masses;
+        for( auto& rhs_mass : rhs.edge_at( i ).data<MassTreeEdgeData>().masses ) {
+            lhs_masses[ rhs_mass.first ] += rhs_mass.second;
+        }
+    }
+}
+
+void mass_tree_clear_masses( MassTree& tree )
 {
     for( auto& edge : tree.edges() ) {
-        auto& edge_data = edge->data<EmdEdgeData>();
+        edge->data<MassTreeEdgeData>().masses.clear();
+    }
+}
+
+void mass_tree_reverse_signs( MassTree& tree )
+{
+    for( auto& edge : tree.edges() ) {
+        for( auto& mass : edge->data<MassTreeEdgeData>().masses ) {
+            mass.second = -mass.second;
+        }
+    }
+}
+
+void mass_tree_transform_to_unit_branch_lengths( MassTree& tree )
+{
+    for( auto& edge : tree.edges() ) {
+        auto& edge_data = edge->data<MassTreeEdgeData>();
         std::map<double, double> relative;
 
         for( auto mass : edge_data.masses ) {
@@ -169,15 +173,11 @@ void transform_to_unit_branch_lengths( EmdTree& tree )
     }
 }
 
-/**
- * @brief Accumulate all masses of the Tree on the centers of their edges. Return the work
- * (mass times distance) that was needed to move the masses to the centers.
- */
-double center_masses_on_branches( EmdTree& tree )
+double mass_tree_center_masses_on_branches( MassTree& tree )
 {
     double work = 0.0;
     for( auto& edge : tree.edges() ) {
-        auto& edge_data = edge->data<EmdEdgeData>();
+        auto& edge_data = edge->data<MassTreeEdgeData>();
 
         double branch_center = edge_data.branch_length / 2;
         double central_mass  = 0.0;
@@ -193,62 +193,39 @@ double center_masses_on_branches( EmdTree& tree )
     return work;
 }
 
-/**
- * @brief Return the total sum of all masses on the Tree.
- *
- * In order for the earth_movers_distance() algorithm to work properly (and give meaningful
- * results), the total mass on the tree should ideally be 0.0. This function can be used to check
- * this.
- *
- * Because of numerical issues however, be aware that the result might be slighly off zero. This
- * is okay, as it usually is in the last digits of the double.
- */
-double sum_of_masses( EmdTree const& tree )
+// =================================================================================================
+//     Others
+// =================================================================================================
+
+double mass_tree_sum_of_masses( MassTree const& tree )
 {
     double total_mass = 0.0;
     for( auto& edge : tree.edges() ) {
-        for( auto mass : edge->data<EmdEdgeData>().masses ) {
+        for( auto mass : edge->data<MassTreeEdgeData>().masses ) {
             total_mass += mass.second;
         }
     }
     return total_mass;
 }
 
-/**
- * @brief Validate the data on an Tree.
- *
- * This function returns true iff the data on the Tree is valid:
- *
- *  *  The node and edge data types have to be EmdNodeData and EmdEdgeData, respectively.
- *  *  The positions of the masses are in [0.0, branch_length] on their respective branches.
- *  *  The sum of all masses is close to 0.0, using the optional arument
- *     `valid_total_mass_difference` as a measure of closeness.
- *
- * The function stops at the first encountered invalid condition and outputs a description message
- * of the invalid value to LOG_INFO.
- *
- * @param tree                        Tree to be validated.
- * @param valid_total_mass_difference (= 0.00001 by default) allowed difference from zero for the
- *                                    total sum of all masses on the tree.
- */
-bool validate_emd_tree( EmdTree const& tree, double valid_total_mass_difference )
+bool mass_tree_validate( MassTree const& tree, double valid_total_mass_difference )
 {
     // Check tree.
     if( ! validate_topology( tree ) ) {
-        LOG_INFO << "Invalid EMD tree topology.";
+        LOG_INFO << "Invalid Tree topology.";
         return false;
     }
-    if( ! tree_data_is< EmdNodeData, EmdEdgeData >( tree )) {
-        LOG_INFO << "Tree does not only contain EMD Node and Edge data types.";
+    if( ! tree_data_is< MassTreeNodeData, MassTreeEdgeData >( tree )) {
+        LOG_INFO << "Tree does not only contain Mass Node and Edge data types.";
         return false;
     }
 
     // Check masses.
     double mass_sum = 0.0;
     for( auto const& edge : tree.edges() ) {
-        auto const edge_data = dynamic_cast< EmdEdgeData const* >( edge->data_ptr() );
+        auto const edge_data = dynamic_cast< MassTreeEdgeData const* >( edge->data_ptr() );
         if( edge_data == nullptr ) {
-            LOG_INFO << "Edge data type is not 'EmdEdgeData'.";
+            LOG_INFO << "Edge data type is not 'MassTreeEdgeData'.";
             return false;
         }
 
