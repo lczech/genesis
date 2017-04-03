@@ -88,10 +88,45 @@ public:
     //     Modifiers
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Add a Sample to the SampleSet.
+     *
+     * The Sample is copied. The name is set to empty string.
+     */
     void add( Sample const& smp );
+
+    /**
+     * @brief Add a Sample with a name to the SampleSet.
+     *
+     * The Sample is copied.
+     */
     void add( Sample const& smp, std::string const& name );
 
+    /**
+     * @brief Add a Sample to the SampleSet.
+     *
+     * The Sample is moved. The name is set to empty string.
+     */
+    void add( Sample&& smp );
+
+    /**
+     * @brief Add a Sample with a name to the SampleSet.
+     *
+     * The Sample is moved.
+     */
+    void add( Sample&& smp, std::string const& name );
+
+    /**
+     * @brief Remove the Sample at a certain index position.
+     *
+     * As this function moves Sample%s in the container around, all iterators and pointers to
+     * the elements of this SampleSet are considered to be invalidated.
+     */
     void remove_at( size_t index );
+
+    /**
+     * @brief Delete all Sample%s in this SampleSet.
+     */
     void clear();
 
     // -------------------------------------------------------------------------
@@ -104,13 +139,35 @@ public:
     iterator       end();
     const_iterator end() const;
 
-          NamedSample& at ( size_t index );
+    /**
+     * @brief Get the NamedSample at a certain index position.
+     */
+    NamedSample& at ( size_t index );
+
+    /**
+     * @brief Get the NamedSample at a certain index position.
+     */
     const NamedSample& at ( size_t index ) const;
 
-          NamedSample& operator [] ( size_t index );
+
+    /**
+     * @brief Get the NamedSample at a certain index position.
+     */
+    NamedSample& operator [] ( size_t index );
+
+    /**
+     * @brief Get the NamedSample at a certain index position.
+     */
     const NamedSample& operator [] ( size_t index ) const;
 
+    /**
+     * @brief Return whether the SampleSet is empty.
+     */
     bool  empty() const;
+
+    /**
+     * @brief Return the size of the SampleSet, i.e., the number of Sample%s.
+     */
     size_t size() const;
 
     // -------------------------------------------------------------------------

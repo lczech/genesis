@@ -53,40 +53,31 @@ void SampleSet::swap( SampleSet& other )
 //     Modifiers
 // =================================================================================================
 
-/**
- * @brief Add a Sample to the SampleSet.
- *
- * The Sample is copied. The name is set to empty string.
- */
 void SampleSet::add( Sample const& smp )
 {
     smps_.push_back( { "", smp } );
 }
 
-/**
- * @brief Add a Sample with a name to the SampleSet.
- *
- * The Sample is copied.
- */
 void SampleSet::add( Sample const& smp, std::string const& name )
 {
     smps_.push_back( { name, smp } );
 }
 
-/**
- * @brief Remove the Sample at a certain index position.
- *
- * As this function moves Sample%s in the container around, all iterators and pointers to
- * the elements of this SampleSet are considered to be invalidated.
- */
+void SampleSet::add( Sample&& smp )
+{
+    smps_.push_back( { "", std::move(smp) } );
+}
+
+void SampleSet::add( Sample&& smp, std::string const& name )
+{
+    smps_.push_back( { name, std::move(smp) } );
+}
+
 void SampleSet::remove_at( size_t index )
 {
     smps_.erase( smps_.begin() + index );
 }
 
-/**
- * @brief Delete all Sample%s in this SampleSet.
- */
 void SampleSet::clear ()
 {
     smps_.clear();
@@ -116,49 +107,31 @@ SampleSet::const_iterator SampleSet::end() const
     return smps_.cend();
 }
 
-/**
- * @brief Get the NamedSample at a certain index position.
- */
 SampleSet::NamedSample& SampleSet::at ( size_t index )
 {
     return smps_.at(index);
 }
-
-/**
-* @brief Get the NamedSample at a certain index position.
-*/
 SampleSet::NamedSample const& SampleSet::at ( size_t index ) const
 {
     return smps_.at(index);
 }
 
-/**
-* @brief Get the NamedSample at a certain index position.
-*/
 SampleSet::NamedSample& SampleSet::operator [] ( size_t index )
 {
     return smps_[index];
 }
 
-/**
-* @brief Get the NamedSample at a certain index position.
-*/
 SampleSet::NamedSample const& SampleSet::operator [] ( size_t index ) const
 {
     return smps_[index];
 }
 
-/**
- * @brief Return whether the SampleSet is empty.
- */
+
 bool SampleSet::empty() const
 {
     return smps_.empty();
 }
 
-/**
- * @brief Return the size of the SampleSet, i.e., the number of Sample%s.
- */
 size_t SampleSet::size() const
 {
     return smps_.size();
