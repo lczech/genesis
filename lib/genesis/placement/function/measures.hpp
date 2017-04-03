@@ -216,7 +216,10 @@ double earth_movers_distance (
  * The result is a pairwise distance @link utils::Matrix Matrix@endlink using the indices of the
  * Sample%s in the SampleSet.
  * See @link earth_movers_distance( const Sample& lhs, const Sample& rhs, bool with_pendant_length )
- * the Sample version@endlink of this function for details on this distance measure.
+ * earth_movers_distance( const Sample&, const Sample&, ... )@endlink for details on this distance
+ * measure on Sample%s, and see
+ * @link tree::earth_movers_distance( MassTree const& ) earth_movers_distance( MassTree const& )
+ * @endlink for more information on the actual distance calculation.
  */
 utils::Matrix<double> earth_movers_distance(
     SampleSet const& sample_set,

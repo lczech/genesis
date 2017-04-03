@@ -233,79 +233,50 @@ std::vector<double> edpl( Sample const& sample )
 // =================================================================================================
 
 // -------------------------------------------------------------------------
-//     Local EMD work function
+//     Local EMD converter function
 // -------------------------------------------------------------------------
 
 /**
- * @brief Local helper function to calculate the EMD given an MassTree.
+ * @brief Local helper function to copy masses from a Sample to a
+ * @link tree::MassTree MassTree@endlink.
  *
- * Precondictions for calling this function:
+ * Helper function that copies the masses from a Sample to a MassTree.
+ * It furthermore returns the amount of work needed to move the masses from their pendant
+ * position to the branch (this result is only used if `with_pendant_length` is `true` in the
+ * calculation functions).
  *
- *   * The tree needs to contain MassTreeNodeData and MassTreeEdgeData on its nodes and edges.
- *   * It needs to be compatible with the trees of the two given Samples.
- *   * The edges must not contain any masses on them already.
- *
- * All this is not checked but assumed to be ensured by the caller. As this function is local to
- * this compilation unit, potential callers are limited, so this should be okay.
+ * Yep, this function does quite a lot of different things. But it's faster this way and it is
+ * only a local function. Don't judge me.
  */
-double earth_movers_distance (
-    tree::MassTree& mass_tree,
-    Sample const&  lhs,
-    Sample const&  rhs,
-    bool           with_pendant_length
+double add_sample_to_mass_tree(
+    Sample const& smp, double sign, double scaler, tree::MassTree& target
 ) {
-    // Helper function that copies the masses from a sample to the emd tree.
-    // It furthermore returns the amount of work needed to move the masses from their pendant
-    // position to the branch (this result is only used if with_pendant_length is true).
-    // Yep, this function does quite a lot of different things. But it's faster this way and it is
-    // only a local function. Don't judge me.
-    auto move_masses = [ &mass_tree ] ( Sample const& smp, double sign, double sum ) {
-        double pendant_work = 0.0;
+    double pendant_work = 0.0;
 
-        for( auto const& pqry : smp.pqueries() ) {
-            double multiplicity = total_multiplicity( pqry );
+    for( auto const& pqry : smp.pqueries() ) {
+        double multiplicity = total_multiplicity( pqry );
 
-            for( auto const& place : pqry.placements() ) {
-                auto& edge = mass_tree.edge_at( place.edge().index() );
+        for( auto const& place : pqry.placements() ) {
+            auto& edge = target.edge_at( place.edge().index() );
 
-                // Use the relative position of the mass on its original branch to put it to the
-                // same position relative to its new branch.
-                double position
-                    = place.proximal_length
-                    / place.edge().data<PlacementEdgeData>().branch_length
-                    * edge.data<tree::MassTreeEdgeData>().branch_length;
+            // Use the relative position of the mass on its original branch to put it to the
+            // same position relative to its new branch.
+            double position
+                = place.proximal_length
+                / place.edge().data<PlacementEdgeData>().branch_length
+                * edge.data<tree::MassTreeEdgeData>().branch_length;
 
-                // Add the mass at that position, normalized and using the sign.
-                edge.data<tree::MassTreeEdgeData>().masses[ position ]
-                    += sign * place.like_weight_ratio * multiplicity / sum;
+            // Add the mass at that position, normalized and using the sign.
+            edge.data<tree::MassTreeEdgeData>().masses[ position ]
+                += sign * place.like_weight_ratio * multiplicity / scaler;
 
-                // Accumulate the work we need to do to move the masses from their pendant
-                // positions to the branches.
-                pendant_work += place.like_weight_ratio * multiplicity * place.pendant_length / sum;
-            }
+            // Accumulate the work we need to do to move the masses from their pendant
+            // positions to the branches.
+            pendant_work += place.like_weight_ratio * multiplicity * place.pendant_length / scaler;
         }
-
-        return pendant_work;
-    };
-
-    // Use the sum of masses as normalization factor for the masses.
-    double totalmass_l = total_placement_mass_with_multiplicities( lhs );
-    double totalmass_r = total_placement_mass_with_multiplicities( rhs );
-
-    // Copy masses of both samples to the EMD tree, with different signs.
-    double pendant_work_l = move_masses( lhs, +1.0, totalmass_l );
-    double pendant_work_r = move_masses( rhs, -1.0, totalmass_r );
-
-    // Calculate EMD.
-    double work = tree::earth_movers_distance( mass_tree );
-
-    // If we also want the amount of work that was needed to move the placement masses from their
-    // pendant position to the branch, we need to add those values.
-    if( with_pendant_length ) {
-        work += pendant_work_l + pendant_work_r;
     }
 
-    return work;
+    return pendant_work;
 }
 
 // -------------------------------------------------------------------------
@@ -326,7 +297,25 @@ double earth_movers_distance (
 
     // Create an EMD tree from the average branch length tree, then calc the EMD.
     auto mass_tree = tree::convert_default_tree_to_mass_tree( avg_length_tree );
-    return earth_movers_distance( mass_tree, lhs, rhs, with_pendant_length );
+
+    // Use the sum of masses as normalization factor for the masses.
+    double totalmass_l = total_placement_mass_with_multiplicities( lhs );
+    double totalmass_r = total_placement_mass_with_multiplicities( rhs );
+
+    // Copy masses of both samples to the EMD tree, with different signs.
+    double pendant_work_l = add_sample_to_mass_tree( lhs, +1.0, totalmass_l, mass_tree );
+    double pendant_work_r = add_sample_to_mass_tree( rhs, -1.0, totalmass_r, mass_tree );
+
+    // Calculate EMD.
+    double work = tree::earth_movers_distance( mass_tree ).first;
+
+    // If we also want the amount of work that was needed to move the placement masses from their
+    // pendant position to the branch, we need to add those values.
+    if( with_pendant_length ) {
+        work += pendant_work_l + pendant_work_r;
+    }
+
+    return work;
 }
 
 // -------------------------------------------------------------------------
@@ -343,7 +332,7 @@ utils::Matrix<double> earth_movers_distance(
     // Build an average branch length tree for all trees in the SampleSet.
     // This also serves as a check whether all trees in the set are compatible with each other,
     // as average_branch_length_tree() throws if the trees have different topologies.
-    // Also, turn the resulting tree into an MassTree Tree.
+    // Also, turn the resulting tree into a MassTree.
     tree::TreeSet avg_tree_set;
     for( auto const& smp : sample_set ) {
         avg_tree_set.add( "", smp.sample.tree() );
@@ -355,121 +344,46 @@ utils::Matrix<double> earth_movers_distance(
     // TODO if we introduce an avg tree calculation that accepts an iterator, we do not need
     // TODO to create a copied tree set of all trees here.
 
-    // Common code for threaded builds.
-    #if defined( GENESIS_OPENMP ) || defined( GENESIS_PTHREADS )
+    // Prepare mass trees for all Samples, by copying the average mass tree.
+    // This massively speeds up the calculations (at the cost of extra storage for all the trees).
+    auto mass_trees = std::vector<tree::MassTree>( sample_set.size(), mass_tree );
 
-        // Build a pool of index pairs of the matrix to compute.
-        // The result is symmetric - we only calculate the upper triangle.
-        std::vector< std::pair<size_t, size_t> > pool;
+    // Also, if we use pend length, prepare a vector to store all of them.
+    auto pend_works = with_pendant_length
+        ? std::vector<double>( sample_set.size(), 0.0 )
+        : std::vector<double>()
+    ;
+
+    // Add the placement mass of each Sample to its MassTree.
+    #pragma omp parallel for schedule( dynamic )
+    for( size_t i = 0; i < sample_set.size(); ++i ) {
+        // Get the total sum of placement masses for the sample...
+        double total_mass = total_placement_mass_with_multiplicities( sample_set[i].sample );
+
+        // ... and use it as scaler to add the mass to the mass tree for this sample.
+        double pend_work = add_sample_to_mass_tree(
+            sample_set[i].sample, +1.0, total_mass, mass_trees[i]
+        );
+
+        // Also, store the pend work, if needed.
+        if( with_pendant_length ) {
+            assert( i < pend_works.size() );
+            pend_works[ i ] = pend_work;
+        }
+    }
+
+    // Calculate the pairwise distance matrix.
+    result = tree::earth_movers_distance( mass_trees );
+
+    // If needed, add the pend work for each matrix position.
+    if( with_pendant_length ) {
+        assert( pend_works.size() == sample_set.size() );
         for( size_t i = 0; i < sample_set.size(); ++i ) {
-            for( size_t j = i + 1; j < sample_set.size(); ++j ) {
-                pool.emplace_back( i, j );
+            for( size_t j = 0; j < sample_set.size(); ++j ) {
+                result( i, j ) += pend_works[ i ] + pend_works[ j ];
             }
         }
-
-    #endif
-
-    // Prefer to use Open MP.
-    #if defined( GENESIS_OPENMP )
-
-        #pragma omp parallel for schedule( dynamic )
-        for( size_t job = 0; job < pool.size(); ++job ) {
-            auto i = pool[ job ].first;
-            auto j = pool[ job ].second;
-
-            LOG_PROG( job, pool.size() ) << "of earth_movers_distance()";
-
-            // Make a local copy of the tree that this thread can modify.
-            // We also tried to use the OMP caluse firstprivate() on mass_tree, but this was slower.
-            auto local_mass_tree = mass_tree;
-
-            // Call the local function for calculating the EMD.
-            auto emd = earth_movers_distance(
-                local_mass_tree,
-                sample_set[ i ].sample,
-                sample_set[ j ].sample,
-                with_pendant_length
-            );
-
-            result( i, j ) = emd;
-            result( j, i ) = emd;
-        }
-
-    // If no Open MP, try Pthreads instead.
-    #elif defined( GENESIS_PTHREADS )
-
-        // Prepare threads.
-        size_t const num_threads = utils::Options::get().number_of_threads();
-        std::vector<std::thread> threads;
-
-        // Start all threads. Each thread computes a fixed list of entries, which is roughly
-        // pool.size() / num_threads, scheduled in round-robin fashion.
-        // Because Samples can have different size, this means that some threads might finish before
-        // others. An actual pool would thus be nicer, but this should not matter too much on average.
-        for( size_t t = 0; t < num_threads; ++t ) {
-            threads.emplace_back(
-                [&]( size_t offset, size_t increment ){
-
-                    for( size_t job = offset; job < pool.size(); job += increment ) {
-                        auto i = pool[ job ].first;
-                        auto j = pool[ job ].second;
-
-                        LOG_PROG( job, pool.size() ) << "of earth_movers_distance()";
-
-                        // Make a local copy of the tree that this thread can modify.
-                        // We also tried a pool of pre-allocated copies of the tree, one per thread,
-                        // but this turned out not to give any speedup, so for simplicity, we just
-                        // use local copies in each iteration.
-                        auto local_mass_tree = mass_tree;
-
-                        auto emd = earth_movers_distance(
-                            local_mass_tree,
-                            sample_set[ i ].sample,
-                            sample_set[ j ].sample,
-                            with_pendant_length
-                        );
-
-                        // The result matrix is pre-allocated, so we can simply write to it without
-                        // thread safety issues (I hope...)
-                        result( i, j ) = emd;
-                        result( j, i ) = emd;
-                    }
-                },
-                t, num_threads
-            );
-        }
-
-        // Wait for all threads to finish, collect their results.
-        for( size_t i = 0; i < num_threads; ++i ) {
-            threads[i].join();
-        }
-
-    // If no threads are available at all, use serial version.
-    #else
-
-        for( size_t i = 0; i < sample_set.size(); ++i ) {
-
-            // The result is symmetric - we only calculate the upper triangle.
-            for( size_t j = i + 1; j < sample_set.size(); ++j ) {
-
-                // Clear the masses from the previous iteration.
-                for( auto& edge : mass_tree.edges() ) {
-                    edge->data<tree::MassTreeEdgeData>().masses.clear();
-                }
-
-                auto emd = earth_movers_distance(
-                    mass_tree,
-                    sample_set[i].sample,
-                    sample_set[j].sample,
-                    with_pendant_length
-                );
-
-                result( i, j ) = emd;
-                result( j, i ) = emd;
-            }
-        }
-
-    #endif
+    }
 
     return result;
 }

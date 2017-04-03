@@ -36,11 +36,16 @@
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/math/matrix.hpp"
 
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
 #include <vector>
+
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
 
 namespace genesis {
 namespace tree {
@@ -49,7 +54,67 @@ namespace tree {
 //     Earth Movers Distance
 // =================================================================================================
 
-double earth_movers_distance( MassTree const& tree )
+double earth_movers_distance( MassTree const& lhs, MassTree const& rhs )
+{
+    // We make an extra copy, which is super expensive. In our our code, thus better do not
+    // use this function, but the one-tree version directly!
+    auto copy = lhs;
+    mass_tree_reverse_signs( copy );
+    mass_tree_merge_trees_inplace( copy, rhs );
+    return earth_movers_distance( copy ).first;
+}
+
+utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees )
+{
+    // Init result matrix.
+    auto result = utils::Matrix<double>( trees.size(), trees.size(), 0.0 );
+
+    // Parallel specialized code.
+    #ifdef GENESIS_OPENMP
+
+        // Build a pool of index pairs of the matrix to compute.
+        // The result is symmetric - we only calculate the upper triangle.
+        // We do this because OpenMP cannot dynamically parallelize over two nested loops,
+        // so by using index pairs, we can turn this into one loop.
+        std::vector< std::pair<size_t, size_t> > pool;
+        for( size_t i = 0; i < trees.size(); ++i ) {
+            for( size_t j = i + 1; j < trees.size(); ++j ) {
+                pool.emplace_back( i, j );
+            }
+        }
+
+        // Use dynamic parallelization, as trees might be of different size (in terms of number
+        // of mass points).
+        #pragma omp parallel for schedule( dynamic )
+        for( size_t job = 0; job < pool.size(); ++job ) {
+            auto i = pool[ job ].first;
+            auto j = pool[ job ].second;
+
+            auto emd = earth_movers_distance( trees[i], trees[j] );
+            result( i, j ) = emd;
+            result( j, i ) = emd;
+        }
+
+    // If no threads are available at all, use serial version.
+    #else
+
+        for( size_t i = 0; i < trees.size(); ++i ) {
+
+            // The result is symmetric - we only calculate the upper triangle.
+            for( size_t j = i + 1; j < trees.size(); ++j ) {
+
+                auto emd = earth_movers_distance( trees[i], trees[j] );
+                result( i, j ) = emd;
+                result( j, i ) = emd;
+            }
+        }
+
+    #endif
+
+    return result;
+}
+
+std::pair<double, double> earth_movers_distance( MassTree const& tree )
 {
     // Keep track of the total resulting work (the distance we moved the masses).
     // This is the result returned in the end.
@@ -113,7 +178,7 @@ double earth_movers_distance( MassTree const& tree )
         node_masses[ pri_node_index ] += current_mass;
     }
 
-    return work;
+    return { work, node_masses[ tree.root_node().index() ] };
 }
 
 // =================================================================================================
@@ -136,7 +201,7 @@ void mass_tree_merge_trees_inplace( MassTree& lhs, MassTree const& rhs )
 
     for( size_t i = 0; i < lhs.edge_count(); ++i ) {
         auto& lhs_masses = lhs.edge_at( i ).data<MassTreeEdgeData>().masses;
-        for( auto& rhs_mass : rhs.edge_at( i ).data<MassTreeEdgeData>().masses ) {
+        for( auto const& rhs_mass : rhs.edge_at( i ).data<MassTreeEdgeData>().masses ) {
             lhs_masses[ rhs_mass.first ] += rhs_mass.second;
         }
     }
@@ -158,13 +223,23 @@ void mass_tree_reverse_signs( MassTree& tree )
     }
 }
 
+void mass_tree_normalize_masses( MassTree& tree )
+{
+    double const total_mass = mass_tree_sum_of_masses( tree );
+    for( auto& edge : tree.edges() ) {
+        for( auto& mass : edge->data<MassTreeEdgeData>().masses ) {
+            mass.second /= total_mass;
+        }
+    }
+}
+
 void mass_tree_transform_to_unit_branch_lengths( MassTree& tree )
 {
     for( auto& edge : tree.edges() ) {
         auto& edge_data = edge->data<MassTreeEdgeData>();
         std::map<double, double> relative;
 
-        for( auto mass : edge_data.masses ) {
+        for( auto& mass : edge_data.masses ) {
             relative[ mass.first / edge_data.branch_length ] += mass.second;
         }
 
@@ -179,10 +254,10 @@ double mass_tree_center_masses_on_branches( MassTree& tree )
     for( auto& edge : tree.edges() ) {
         auto& edge_data = edge->data<MassTreeEdgeData>();
 
-        double branch_center = edge_data.branch_length / 2;
-        double central_mass  = 0.0;
+        double const branch_center = edge_data.branch_length / 2;
+        double central_mass = 0.0;
 
-        for( auto mass : edge_data.masses ) {
+        for( auto const& mass : edge_data.masses ) {
             work         += mass.second * std::abs( branch_center - mass.first );
             central_mass += mass.second;
         }
@@ -200,8 +275,8 @@ double mass_tree_center_masses_on_branches( MassTree& tree )
 double mass_tree_sum_of_masses( MassTree const& tree )
 {
     double total_mass = 0.0;
-    for( auto& edge : tree.edges() ) {
-        for( auto mass : edge->data<MassTreeEdgeData>().masses ) {
+    for( auto const& edge : tree.edges() ) {
+        for( auto const& mass : edge->data<MassTreeEdgeData>().masses ) {
             total_mass += mass.second;
         }
     }
@@ -243,7 +318,7 @@ bool mass_tree_validate( MassTree const& tree, double valid_total_mass_differenc
         }
     }
 
-    if( std::abs(mass_sum) > valid_total_mass_difference ) {
+    if( valid_total_mass_difference >= 0.0 && std::abs(mass_sum) > valid_total_mass_difference ) {
         LOG_INFO << "Total mass difference " << mass_sum
                  << " is higher than " << valid_total_mass_difference;
         return false;
