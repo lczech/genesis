@@ -72,7 +72,7 @@ double MassTreeKmeans::distance( Point const& lhs, Point const& rhs ) const
     auto copy = lhs;
     mass_tree_reverse_signs( copy );
     mass_tree_merge_trees_inplace( copy, rhs );
-    return earth_movers_distance( copy );
+    return earth_movers_distance( copy ).first;
 }
 
 } // namespace tree

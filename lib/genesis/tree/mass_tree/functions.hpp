@@ -31,6 +31,8 @@
  * @ingroup tree
  */
 
+#include <utility>
+
 namespace genesis {
 namespace tree {
 
@@ -49,33 +51,29 @@ using MassTree = Tree;
 // =================================================================================================
 
 /**
- * @brief Calculate the earth mover's distance of two distributions of masses on a given tree.
+ * @brief Calculate the earth mover's distance of two distributions of masses on a given Tree.
  *
  * The earth mover's distance is typically a distance measure between two distributions.
- * See https://en.wikipedia.org/wiki/Earth_mover's_distance for an introduction.
+ * See [Earth mover's distance](https://en.wikipedia.org/wiki/Earth_mover's_distance) for an
+ * introduction.
  *
  * In our case, we use distibutions of masses along the branches of a tree. Each branch can have
  * multiple masses at different positions within [0.0, branch_length].
  *
  * The distance is calculated as the amount of work needed to move the masses of one distribution
  * so that they end up in the positions of the masses of the other distribution.
- * Work is here defined as mass times dislocation. Thus, the work ( = total distance ) is higher
- * if either more mass has to be moved, or mass has to be moved further.
+ * Work is here defined as mass times dislocation. Thus, the work is higher if either more mass has
+ * to be moved, or if mass has to be moved further.
  *
  * The resulting distance is independed of the rooting of the tree and commutative with respect
  * to the two mass distributions.
  *
- * In order to keep the calculations simple, we use the following convention for the two
- * distributions: The masses of one distribution are stored using a positive sign, the masses of the
- * other distribution use a negative sign. This way, only one storage for the masses can be used
- * and the algorithm is simplyfied.
- *
  * The earth mover's distance is only meaningful if both mass distributions contain the same amount
- * of total mass. Thus, as they use opposite signs, the sum of all masses on the tree should ideally
- * be zero (apart from numerical derivations).
- * See @link mass_tree_sum_of_masses( MassTree const& tree ) mass_tree_sum_of_masses() @endlink and
- * @link mass_tree_validate( MassTree const& tree, double valid_total_mass_difference )
- * mass_tree_validate() @endlink for functions to verify this.
+ * of total mass.
+ * See @link mass_tree_sum_of_masses( MassTree const& tree ) mass_tree_sum_of_masses() @endlink
+ * to check this. Also, in order to give comparable results over different tree topologies, the
+ * mass can be normalized using mass_tree_normalize_masses(). Then, the result of the earth mover's
+ * distance is always in the range `[ 0.0, 1.0 ]`.
  *
  * See @link placement::earth_movers_distance( const Sample& lhs, const Sample& rhs, bool with_pendant_length )
  * earth_movers_distance( Sample const&, ... ) @endlink for an exemplary
@@ -83,34 +81,72 @@ using MassTree = Tree;
  * (@link placement::PqueryPlacement::like_weight_ratio like_weight_ratio@endlink) of a
  * PlacementTree.
  */
-double earth_movers_distance( MassTree const& tree );
+double earth_movers_distance( MassTree const& lhs, MassTree const& rhs );
+
+/**
+ * @brief Calculate the earth mover's distance of masses on a given Tree.
+ *
+ * This function is mainly used as a speed-up for calculating
+ * @link earth_movers_distance( MassTree const& lhs, MassTree const& rhs )
+ * earth_movers_distance( MassTree const& , MassTree const& )@endlink.
+ *
+ * It uses the following convention for the two distributions: The masses of one distribution are
+ * stored using a positive sign, the masses of the other distribution use a negative sign.
+ * This way, only one Tree needs to be stored, and the algorithm is significantly simplyfied.
+ *
+ * Thus, as the earth mover's distance is only meaningful if both distributions have the same sum,
+ * and we use opposite signs to store the masses, the sum of all masses on the tree should ideally
+ * be zero (apart from numerical derivations).
+ * See @link mass_tree_sum_of_masses( MassTree const& tree ) mass_tree_sum_of_masses() @endlink and
+ * @link mass_tree_validate( MassTree const& tree, double valid_total_mass_difference )
+ * mass_tree_validate() @endlink for functions to verify this.
+ *
+ * The function returns two doubles: The first one is the actual distance, the second one gives
+ * the remaining mass at the root node. This should also be close to `0.0`, as there, all masses
+ * from the subtrees should ideally cancel each other out. Use this value to check whether this
+ * actually worked out. Too big numbers indicate that something is wrong with the sums of the signed
+ * masses.
+ */
+std::pair<double, double> earth_movers_distance( MassTree const& tree );
 
 // =================================================================================================
 //     Manipulate Masses
 // =================================================================================================
 
+/**
+ * @brief Merge all masses of two @link MassTree MassTrees@endlink into one and return it.
+ */
 MassTree mass_tree_merge_trees( MassTree const& lhs, MassTree const& rhs );
 
+/**
+ * @brief Merge all masses of two @link MassTree MassTrees@endlink by adding them to the first
+ * MassTree.
+ */
 void mass_tree_merge_trees_inplace( MassTree& lhs, MassTree const& rhs );
 
 /**
- * @brief Clear all masses of an MassTree, while keeping its topology.
+ * @brief Clear all masses of a ::MassTree, while keeping its topology.
  */
 void mass_tree_clear_masses( MassTree& tree );
 
 /**
- * @brief Reverse the sign of each mass point on an MassTree.
+ * @brief Reverse the sign of each mass point on a ::MassTree.
  */
 void mass_tree_reverse_signs( MassTree& tree );
 
 /**
- * @brief Set all branch lengths of the Tree to 1.0, while keeping the relative position of all
+ * @brief Scale all masses of a ::MassTree so that they sum up to `1.0`.
+ */
+void mass_tree_normalize_masses( MassTree& tree );
+
+/**
+ * @brief Set all branch lengths of a ::MassTree to `1.0`, while keeping the relative position of all
  * masses on the branches.
  */
 void mass_tree_transform_to_unit_branch_lengths( MassTree& tree );
 
 /**
- * @brief Accumulate all masses of the Tree on the centers of their edges. Return the work
+ * @brief Accumulate all masses of a ::MassTree on the centers of their edges. Return the work
  * (mass times distance) that was needed to move the masses to the centers.
  */
 double mass_tree_center_masses_on_branches( MassTree& tree );
@@ -120,36 +156,39 @@ double mass_tree_center_masses_on_branches( MassTree& tree );
 // =================================================================================================
 
 /**
- * @brief Return the total sum of all masses on the Tree.
+ * @brief Return the total sum of all masses on the ::MassTree.
  *
  * In order for the earth_movers_distance() algorithm to work properly (and give meaningful
- * results), the total mass on the tree should ideally be 0.0. This function can be used to check
- * this.
+ * results), the total mass on the @link MassTree MassTrees@endlink should ideally be the same.
+ * This function can be used to check this.
  *
- * Because of numerical issues however, be aware that the result might be slighly off zero. This
+ * Because of numerical issues however, be aware that the result might be slighly off. This
  * is okay, as it usually is in the last digits of the double.
  */
 double mass_tree_sum_of_masses( MassTree const& tree );
 
 /**
- * @brief Validate the data on an Tree.
+ * @brief Validate the data on a ::MassTree.
  *
  * This function returns true iff the data on the Tree is valid:
  *
  *  *  The node and edge data types have to be @link MassTreeNodeData MassTreeNodeData@endlink
  *     and @link MassTreeEdgeData MassTreeEdgeData@endlink, respectively.
- *  *  The positions of the masses are in [0.0, branch_length] on their respective branches.
- *  *  The sum of all masses is close to 0.0, using the optional arument
- *     `valid_total_mass_difference` as a measure of closeness.
+ *  *  The positions of the masses are in `[ 0.0, branch_length ]` on their respective branches.
+ *  *  If the optional arugment @p valid_total_mass_difference is not negative, the sum of all
+ *     masses is also checked. It has to be close to 0.0, using the argument as the absolute allowed
+ *     difference. This is useful to check whether the masses for calculating the one-argument
+ *     version of the earth_movers_distance( MassTree const& ) are correct.
  *
  * The function stops at the first encountered invalid condition and outputs a description message
  * of the invalid value to LOG_INFO.
  *
- * @param tree                        Tree to be validated.
- * @param valid_total_mass_difference (= 0.00001 by default) allowed difference from zero for the
- *                                    total sum of all masses on the tree.
+ * @param tree                        ::MassTree to be validated.
+ * @param valid_total_mass_difference If set to a non-negative value, it is used as the absolute
+ *                                    allowed difference from zero for the total sum of all masses
+ *                                    on the tree.
  */
-bool mass_tree_validate( MassTree const& tree, double valid_total_mass_difference = 0.00001 );
+bool mass_tree_validate( MassTree const& tree, double valid_total_mass_difference = -1.0);
 
 } // namespace tree
 } // namespace genesis

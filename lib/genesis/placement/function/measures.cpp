@@ -237,7 +237,7 @@ std::vector<double> edpl( Sample const& sample )
 // -------------------------------------------------------------------------
 
 /**
- * @brief Local helper function to calculate the EMD given an MassTree.
+ * @brief Local helper function to calculate the EMD given a MassTree.
  *
  * Precondictions for calling this function:
  *
@@ -297,7 +297,7 @@ double earth_movers_distance (
     double pendant_work_r = move_masses( rhs, -1.0, totalmass_r );
 
     // Calculate EMD.
-    double work = tree::earth_movers_distance( mass_tree );
+    double work = tree::earth_movers_distance( mass_tree ).first;
 
     // If we also want the amount of work that was needed to move the placement masses from their
     // pendant position to the branch, we need to add those values.
@@ -343,7 +343,7 @@ utils::Matrix<double> earth_movers_distance(
     // Build an average branch length tree for all trees in the SampleSet.
     // This also serves as a check whether all trees in the set are compatible with each other,
     // as average_branch_length_tree() throws if the trees have different topologies.
-    // Also, turn the resulting tree into an MassTree Tree.
+    // Also, turn the resulting tree into a MassTree.
     tree::TreeSet avg_tree_set;
     for( auto const& smp : sample_set ) {
         avg_tree_set.add( "", smp.sample.tree() );
@@ -360,6 +360,8 @@ utils::Matrix<double> earth_movers_distance(
 
         // Build a pool of index pairs of the matrix to compute.
         // The result is symmetric - we only calculate the upper triangle.
+        // We do this because OpenMP cannot dynamically parallelize over two nested loops,
+        // so by using index pairs, we can turn this into one loop.
         std::vector< std::pair<size_t, size_t> > pool;
         for( size_t i = 0; i < sample_set.size(); ++i ) {
             for( size_t j = i + 1; j < sample_set.size(); ++j ) {
@@ -372,6 +374,8 @@ utils::Matrix<double> earth_movers_distance(
     // Prefer to use Open MP.
     #if defined( GENESIS_OPENMP )
 
+        // Use dynamic parallelization, as Samples might be of different size (in terms of number
+        // of placements).
         #pragma omp parallel for schedule( dynamic )
         for( size_t job = 0; job < pool.size(); ++job ) {
             auto i = pool[ job ].first;
@@ -381,6 +385,10 @@ utils::Matrix<double> earth_movers_distance(
 
             // Make a local copy of the tree that this thread can modify.
             // We also tried to use the OMP caluse firstprivate() on mass_tree, but this was slower.
+            // It is a bit inefficient, as we need to copy on each iteration, but this was not a
+            // bottleneck in our tests. Quite the opposite: We tried to use a pool of pre-allocated
+            // copies of the tree, one per thread, but this turned out not to give any speedup,
+            // so for simplicity, we just use local copies in each iteration.
             auto local_mass_tree = mass_tree;
 
             // Call the local function for calculating the EMD.
@@ -422,6 +430,7 @@ utils::Matrix<double> earth_movers_distance(
                         // use local copies in each iteration.
                         auto local_mass_tree = mass_tree;
 
+                        // Call the local function for calculating the EMD.
                         auto emd = earth_movers_distance(
                             local_mass_tree,
                             sample_set[ i ].sample,
@@ -453,10 +462,9 @@ utils::Matrix<double> earth_movers_distance(
             for( size_t j = i + 1; j < sample_set.size(); ++j ) {
 
                 // Clear the masses from the previous iteration.
-                for( auto& edge : mass_tree.edges() ) {
-                    edge->data<tree::MassTreeEdgeData>().masses.clear();
-                }
+                mass_tree_clear_masses( mass_tree );
 
+                // Call the local function for calculating the EMD.
                 auto emd = earth_movers_distance(
                     mass_tree,
                     sample_set[i].sample,

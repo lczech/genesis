@@ -35,6 +35,8 @@
 #include "genesis/placement/formats/jplace_reader.hpp"
 #include "genesis/placement/function/measures.hpp"
 #include "genesis/placement/sample.hpp"
+#include "genesis/placement/sample_set.hpp"
+#include "genesis/utils/math/matrix.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;
@@ -72,7 +74,7 @@ TEST(SampleMeasures, EarthMoversDistance)
     Sample smp_lhs = JplaceReader().from_file( infile_lhs );
     Sample smp_rhs = JplaceReader().from_file( infile_rhs );
 
-    // Distnaces and symmetric cases.
+    // Distances and symmetric cases.
     EXPECT_FLOAT_EQ( 2.435, earth_movers_distance( smp_lhs, smp_rhs, false ));
     EXPECT_FLOAT_EQ( 2.435, earth_movers_distance( smp_rhs, smp_lhs, false ));
     EXPECT_FLOAT_EQ( 3.185, earth_movers_distance( smp_lhs, smp_rhs, true  ));
@@ -83,6 +85,24 @@ TEST(SampleMeasures, EarthMoversDistance)
     EXPECT_FLOAT_EQ( 0.0, earth_movers_distance( smp_rhs, smp_rhs, false ));
     EXPECT_FLOAT_EQ( 0.6, earth_movers_distance( smp_lhs, smp_lhs, true ));
     EXPECT_FLOAT_EQ( 0.9, earth_movers_distance( smp_rhs, smp_rhs, true ));
+
+    // Set-version of the EMD.
+    SampleSet set;
+    set.add( smp_lhs );
+    set.add( smp_rhs );
+
+    auto set_emd_o =  earth_movers_distance( set, false );
+    auto set_emd_p =  earth_movers_distance( set, true );
+
+    EXPECT_FLOAT_EQ( 0.0,   set_emd_o( 0, 0 ) );
+    EXPECT_FLOAT_EQ( 2.435, set_emd_o( 0, 1 ) );
+    EXPECT_FLOAT_EQ( 2.435, set_emd_o( 1, 0 ) );
+    EXPECT_FLOAT_EQ( 0.0,   set_emd_o( 1, 1 ) );
+
+    EXPECT_FLOAT_EQ( 0.0,   set_emd_p( 0, 0 ) );
+    EXPECT_FLOAT_EQ( 3.185, set_emd_p( 0, 1 ) );
+    EXPECT_FLOAT_EQ( 3.185, set_emd_p( 1, 0 ) );
+    EXPECT_FLOAT_EQ( 0.0,   set_emd_p( 1, 1 ) );
 }
 
 TEST( SampleMeasures, NodeHistogramDistance )
