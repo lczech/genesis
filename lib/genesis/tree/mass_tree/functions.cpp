@@ -36,11 +36,16 @@
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/core/logging.hpp"
+#include "genesis/utils/math/matrix.hpp"
 
 #include <cassert>
 #include <cmath>
 #include <stdexcept>
 #include <vector>
+
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
 
 namespace genesis {
 namespace tree {
@@ -57,6 +62,56 @@ double earth_movers_distance( MassTree const& lhs, MassTree const& rhs )
     mass_tree_reverse_signs( copy );
     mass_tree_merge_trees_inplace( copy, rhs );
     return earth_movers_distance( copy ).first;
+}
+
+utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees )
+{
+    // Init result matrix.
+    auto result = utils::Matrix<double>( trees.size(), trees.size(), 0.0 );
+
+    // Parallel specialized code.
+    #ifdef GENESIS_OPENMP
+
+        // Build a pool of index pairs of the matrix to compute.
+        // The result is symmetric - we only calculate the upper triangle.
+        // We do this because OpenMP cannot dynamically parallelize over two nested loops,
+        // so by using index pairs, we can turn this into one loop.
+        std::vector< std::pair<size_t, size_t> > pool;
+        for( size_t i = 0; i < trees.size(); ++i ) {
+            for( size_t j = i + 1; j < trees.size(); ++j ) {
+                pool.emplace_back( i, j );
+            }
+        }
+
+        // Use dynamic parallelization, as trees might be of different size (in terms of number
+        // of mass points).
+        #pragma omp parallel for schedule( dynamic )
+        for( size_t job = 0; job < pool.size(); ++job ) {
+            auto i = pool[ job ].first;
+            auto j = pool[ job ].second;
+
+            auto emd = earth_movers_distance( trees[i], trees[j] );
+            result( i, j ) = emd;
+            result( j, i ) = emd;
+        }
+
+    // If no threads are available at all, use serial version.
+    #else
+
+        for( size_t i = 0; i < trees.size(); ++i ) {
+
+            // The result is symmetric - we only calculate the upper triangle.
+            for( size_t j = i + 1; j < trees.size(); ++j ) {
+
+                auto emd = earth_movers_distance( trees[i], trees[j] );
+                result( i, j ) = emd;
+                result( j, i ) = emd;
+            }
+        }
+
+    #endif
+
+    return result;
 }
 
 std::pair<double, double> earth_movers_distance( MassTree const& tree )

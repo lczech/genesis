@@ -99,10 +99,10 @@ TEST(SampleMeasures, EarthMoversDistance)
     EXPECT_FLOAT_EQ( 2.435, set_emd_o( 1, 0 ) );
     EXPECT_FLOAT_EQ( 0.0,   set_emd_o( 1, 1 ) );
 
-    EXPECT_FLOAT_EQ( 0.0,   set_emd_p( 0, 0 ) );
+    EXPECT_FLOAT_EQ( 0.6,   set_emd_p( 0, 0 ) );
     EXPECT_FLOAT_EQ( 3.185, set_emd_p( 0, 1 ) );
     EXPECT_FLOAT_EQ( 3.185, set_emd_p( 1, 0 ) );
-    EXPECT_FLOAT_EQ( 0.0,   set_emd_p( 1, 1 ) );
+    EXPECT_FLOAT_EQ( 0.9,   set_emd_p( 1, 1 ) );
 }
 
 TEST( SampleMeasures, NodeHistogramDistance )

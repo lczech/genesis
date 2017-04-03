@@ -32,23 +32,36 @@
  */
 
 #include <utility>
+#include <vector>
 
 namespace genesis {
-namespace tree {
 
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
 
-class Tree;
-class TreeNode;
-class TreeEdge;
+namespace utils {
 
-using MassTree = Tree;
+    template<typename T>
+    class Matrix;
+
+}
+
+namespace tree {
+
+    class Tree;
+    class TreeNode;
+    class TreeEdge;
+
+    using MassTree = Tree;
+
+}
 
 // =================================================================================================
 //     Earth Movers Distance
 // =================================================================================================
+
+namespace tree {
 
 /**
  * @brief Calculate the earth mover's distance of two distributions of masses on a given Tree.
@@ -82,6 +95,15 @@ using MassTree = Tree;
  * PlacementTree.
  */
 double earth_movers_distance( MassTree const& lhs, MassTree const& rhs );
+
+/**
+ * @brief Calculate the pairwise earth mover's distance for all @link MassTree MassTrees@endlink.
+ *
+ * The result is a pairwise distance @link utils::Matrix Matrix@endlink using the indices of the
+ * given `vector`. See earth_movers_distance( MassTree const&, MassTree const& ) for details
+ * on the calculation.
+ */
+utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees );
 
 /**
  * @brief Calculate the earth mover's distance of masses on a given Tree.
