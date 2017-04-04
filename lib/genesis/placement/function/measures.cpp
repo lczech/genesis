@@ -337,7 +337,7 @@ utils::Matrix<double> earth_movers_distance(
     for( auto const& smp : sample_set ) {
         avg_tree_set.add( "", smp.sample.tree() );
     }
-    auto mass_tree = tree::convert_default_tree_to_mass_tree(
+    auto const mass_tree = tree::convert_default_tree_to_mass_tree(
         tree::average_branch_length_tree( avg_tree_set )
     );
     avg_tree_set.clear();
@@ -358,10 +358,10 @@ utils::Matrix<double> earth_movers_distance(
     #pragma omp parallel for schedule( dynamic )
     for( size_t i = 0; i < sample_set.size(); ++i ) {
         // Get the total sum of placement masses for the sample...
-        double total_mass = total_placement_mass_with_multiplicities( sample_set[i].sample );
+        double const total_mass = total_placement_mass_with_multiplicities( sample_set[i].sample );
 
         // ... and use it as scaler to add the mass to the mass tree for this sample.
-        double pend_work = add_sample_to_mass_tree(
+        double const pend_work = add_sample_to_mass_tree(
             sample_set[i].sample, +1.0, total_mass, mass_trees[i]
         );
 

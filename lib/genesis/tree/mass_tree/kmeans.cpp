@@ -32,8 +32,10 @@
 
 #include "genesis/tree/mass_tree/tree.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
+#include "genesis/tree/function/operators.hpp"
 
 #include <cassert>
+#include <stdexcept>
 
 namespace genesis {
 namespace tree {
@@ -41,6 +43,26 @@ namespace tree {
 // =================================================================================================
 //     Mass Tree Kmeans
 // =================================================================================================
+
+bool MassTreeKmeans::data_validation( std::vector<Point> const& data ) const
+{
+    // Check if all Trees have the correct data types.
+    for( auto const& tree : data ) {
+        if( ! tree_data_is< MassTreeNodeData, MassTreeEdgeData >( tree ) ) {
+            throw std::invalid_argument( "Trees for Kmeans do not have MassTree data types." );
+        }
+    }
+
+    // Check if all Trees have the same topology. Important to caluclate EMD.
+    // adapted from all_identical_topology()
+    for (size_t i = 1; i < data.size(); i++) {
+        if( ! identical_topology( data[i-1], data[i] )) {
+            throw std::invalid_argument( "Trees for Kmeans do not have identical topologies." );
+        }
+    }
+
+    return true;
+}
 
 void MassTreeKmeans::update_centroids(
     std::vector<Point>  const& data,
