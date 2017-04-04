@@ -33,9 +33,11 @@
 #include "genesis/tree/mass_tree/tree.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
+#include "genesis/utils/math/common.hpp"
 
 #include <cassert>
 #include <stdexcept>
+#include <vector>
 
 namespace genesis {
 namespace tree {
@@ -69,6 +71,7 @@ void MassTreeKmeans::update_centroids(
     std::vector<size_t> const& assignments,
     std::vector<Point>&        centroids
 ) {
+    // Clear all centroid masses from previous iteration.
     for( auto& centroid : centroids ) {
         mass_tree_clear_masses( centroid );
     }
@@ -77,8 +80,14 @@ void MassTreeKmeans::update_centroids(
     // checks this condition. So, simply assert it here, instead of throwing.
     assert( data.size() == assignments.size() );
 
+    // Count how many mass trees are accumulated per centroid.
+    auto counts = std::vector<size_t>( centroids.size(), 0 );
+
     // Work through the data and assigments and accumulate.
     for( size_t i = 0; i < data.size(); ++i ) {
+
+        // Check correct assignments.
+        assert( assignments[i] < centroids.size() );
 
         // Shorthands.
         auto const& datum    = data[ i ];
@@ -86,15 +95,25 @@ void MassTreeKmeans::update_centroids(
 
         // Accumulate centroid.
         mass_tree_merge_trees_inplace( centroid, datum );
+        ++counts[ assignments[i] ];
+    }
+
+    // Normalize the centroids.
+    for( size_t i = 0; i < centroids.size(); ++i ) {
+
+        // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
+        // of the double equality check, but we have to live with it.
+        assert( utils::almost_equal_relative(
+            counts[i], mass_tree_sum_of_masses( centroids[i] ), 0.00001
+        ));
+
+        mass_tree_normalize_masses( centroids[i] );
     }
 }
 
 double MassTreeKmeans::distance( Point const& lhs, Point const& rhs ) const
 {
-    auto copy = lhs;
-    mass_tree_reverse_signs( copy );
-    mass_tree_merge_trees_inplace( copy, rhs );
-    return earth_movers_distance( copy ).first;
+    return earth_movers_distance( lhs, rhs );
 }
 
 } // namespace tree

@@ -64,7 +64,7 @@ namespace utils {
  *
  * Because the calculation involves solving
  * [triangular numbers](https://en.wikipedia.org/wiki/Triangular_number), the function internally
- * operates on `double` values. This is a bit smelly, thus we tested it up to `n == 100,000`.
+ * operates on `double` values. This is a bit smelly, but seems to work (tested with `n == 100,000`).
  *
  * See also triangular_index() for the opposite function, and triangular_size() to calculate the
  * maximal @p k that will occur in a trian Matrix of a given size @p n.
