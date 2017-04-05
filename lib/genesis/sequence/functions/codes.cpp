@@ -366,7 +366,7 @@ std::map<char, utils::Color> amino_acid_colors()
 //     Translate Codes
 // =================================================================================================
 
-std::string translate_nucleic_acid( char code )
+std::string nucleic_acid_name( char code )
 {
     auto ucode = toupper(code);
     if( nucleic_acid_code_to_name.count( ucode ) == 0 ) {
@@ -375,7 +375,7 @@ std::string translate_nucleic_acid( char code )
     return nucleic_acid_code_to_name.at( ucode );
 }
 
-std::string translate_amino_acid( char code )
+std::string amino_acid_name( char code )
 {
     auto ucode = toupper(code);
     if( amino_acid_code_to_name.count( ucode ) == 0 ) {

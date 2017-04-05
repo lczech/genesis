@@ -161,7 +161,7 @@ std::map<char, utils::Color> amino_acid_colors();
  * The code char is treated case-insensitive. If the given code char is not valid, an
  * `std::out_of_range` exception is thrown.
  */
-std::string translate_nucleic_acid( char code );
+std::string nucleic_acid_name( char code );
 
 /**
  * @brief Get the name of a amino acid given its IUPAC code.
@@ -201,7 +201,7 @@ std::string translate_nucleic_acid( char code );
  * The code char is treated case-insensitive. If the given code char is not valid, an
  * `std::out_of_range` exception is thrown.
  */
-std::string translate_amino_acid( char code );
+std::string amino_acid_name( char code );
 
 /**
  * @brief Return the possible ambiguous nucleic acid codes for a given code char.
