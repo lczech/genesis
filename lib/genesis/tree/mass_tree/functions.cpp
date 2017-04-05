@@ -373,6 +373,20 @@ double mass_tree_center_masses_on_branches( MassTree& tree )
 //     Others
 // =================================================================================================
 
+std::vector<double> mass_tree_mass_per_edge( MassTree const& tree )
+{
+    auto result = std::vector<double>( tree.edge_count(), 0.0 );
+
+    for( auto const& edge : tree.edges() ) {
+        auto const& idx = edge->index();
+        for( auto const& mass : edge->data<MassTreeEdgeData>().masses ) {
+            result[ idx ] += mass.second;
+        }
+    }
+
+    return result;
+}
+
 double mass_tree_sum_of_masses( MassTree const& tree )
 {
     double total_mass = 0.0;

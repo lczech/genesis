@@ -178,6 +178,14 @@ double mass_tree_center_masses_on_branches( MassTree& tree );
 // =================================================================================================
 
 /**
+ * @brief Return a `std::vector` that contains the total @link MassTreeEdgeData::masses Mass@endlink
+ * for each @link ::MassTreeEdge edge@endlink of the given @link ::MassTree MassTree@endlink.
+ *
+ * The vector is indexed using the @link MassTreeEdge::index() index@endlink of the edges.
+ */
+std::vector<double> mass_tree_mass_per_edge( MassTree const& tree );
+
+/**
  * @brief Return the total sum of all masses on the ::MassTree.
  *
  * In order for the earth_movers_distance() algorithm to work properly (and give meaningful
