@@ -157,6 +157,11 @@ void mass_tree_clear_masses( MassTree& tree );
 void mass_tree_reverse_signs( MassTree& tree );
 
 /**
+ * @brief Scale all masses of a ::MassTree with the multiplicative factor @p factor.
+ */
+void mass_tree_scale_masses( MassTree& tree, double factor );
+
+/**
  * @brief Scale all masses of a ::MassTree so that they sum up to `1.0`.
  */
 void mass_tree_normalize_masses( MassTree& tree );

@@ -325,6 +325,15 @@ void mass_tree_reverse_signs( MassTree& tree )
     }
 }
 
+void mass_tree_scale_masses( MassTree& tree, double factor )
+{
+    for( auto& edge : tree.edges() ) {
+        for( auto& mass : edge->data<MassTreeEdgeData>().masses ) {
+            mass.second *= factor;
+        }
+    }
+}
+
 void mass_tree_normalize_masses( MassTree& tree )
 {
     double const total_mass = mass_tree_sum_of_masses( tree );
