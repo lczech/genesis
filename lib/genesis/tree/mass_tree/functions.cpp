@@ -300,6 +300,7 @@ void mass_tree_merge_trees_inplace( MassTree& lhs, MassTree const& rhs )
         throw std::runtime_error( "Incompatible MassTrees for merging." );
     }
 
+    #pragma omp parallel for
     for( size_t i = 0; i < lhs.edge_count(); ++i ) {
         auto& lhs_masses = lhs.edge_at( i ).data<MassTreeEdgeData>().masses;
         for( auto const& rhs_mass : rhs.edge_at( i ).data<MassTreeEdgeData>().masses ) {
@@ -327,6 +328,11 @@ void mass_tree_reverse_signs( MassTree& tree )
 void mass_tree_normalize_masses( MassTree& tree )
 {
     double const total_mass = mass_tree_sum_of_masses( tree );
+
+    if( total_mass == 0.0 ) {
+        return;
+    }
+
     for( auto& edge : tree.edges() ) {
         for( auto& mass : edge->data<MassTreeEdgeData>().masses ) {
             mass.second /= total_mass;

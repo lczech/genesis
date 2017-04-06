@@ -39,6 +39,10 @@
 #include <stdexcept>
 #include <vector>
 
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
 namespace genesis {
 namespace tree {
 
@@ -71,44 +75,85 @@ void MassTreeKmeans::update_centroids(
     std::vector<size_t> const& assignments,
     std::vector<Point>&        centroids
 ) {
+    // Shorthand.
+    auto const k = centroids.size();
+
     // Clear all centroid masses from previous iteration.
-    for( auto& centroid : centroids ) {
-        mass_tree_clear_masses( centroid );
+    #pragma omp parallel for
+    for( size_t c = 0; c < k; ++c ) {
+        mass_tree_clear_masses( centroids[ c ] );
     }
 
     // This function is only called from within the run() function, which already
     // checks this condition. So, simply assert it here, instead of throwing.
     assert( data.size() == assignments.size() );
 
-    // Count how many mass trees are accumulated per centroid.
-    auto counts = std::vector<size_t>( centroids.size(), 0 );
+    #ifdef GENESIS_OPENMP
 
-    // Work through the data and assigments and accumulate.
-    for( size_t i = 0; i < data.size(); ++i ) {
+        // Parallelize over centroids
+        #pragma omp parallel for
+        for( size_t c = 0; c < k; ++c ) {
 
-        // Check correct assignments.
-        assert( assignments[i] < centroids.size() );
+            // Thread-local data.
+            auto& centroid = centroids[ c ];
+            size_t count = 0;
 
-        // Shorthands.
-        auto const& datum    = data[ i ];
-        auto&       centroid = centroids[ assignments[i] ];
+            // Work through the data and assigments and accumulate...
+            for( size_t d = 0; d < data.size(); ++d ) {
 
-        // Accumulate centroid.
-        mass_tree_merge_trees_inplace( centroid, datum );
-        ++counts[ assignments[i] ];
-    }
+                // ( Check correct assignments. )
+                assert( assignments[ d ] < k );
 
-    // Normalize the centroids.
-    for( size_t i = 0; i < centroids.size(); ++i ) {
+                // ... but only the relevant parts.
+                if( assignments[ d ] != c ) {
+                    continue;
+                }
 
-        // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
-        // of the double equality check, but we have to live with it.
-        assert( utils::almost_equal_relative(
-            counts[i], mass_tree_sum_of_masses( centroids[i] ), 0.00001
-        ));
+                // Accumulate centroid.
+                mass_tree_merge_trees_inplace( centroid, data[ d ] );
+                ++count;
+            }
 
-        mass_tree_normalize_masses( centroids[i] );
-    }
+            // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
+            // of the double equality check, but we have to live with it.
+            assert( utils::almost_equal_relative(
+                count, mass_tree_sum_of_masses( centroid ), 0.00001
+            ));
+
+            mass_tree_normalize_masses( centroid );
+        }
+
+    #else
+
+        // In the serial case, we only want to traverse the data once.
+
+        // Count how many mass trees are accumulated per centroid.
+        auto counts = std::vector<size_t>( k, 0 );
+
+        // Work through the data and assigments and accumulate.
+        for( size_t d = 0; d < data.size(); ++d ) {
+
+            // Check correct assignments.
+            assert( assignments[ d ] < k );
+
+            // Accumulate centroid.
+            mass_tree_merge_trees_inplace( centroids[ assignments[ d ] ], data[ d ] );
+            ++counts[ assignments[ d ] ];
+        }
+
+        // Normalize the centroids.
+        for( size_t c = 0; c < k; ++c ) {
+
+            // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
+            // of the double equality check, but we have to live with it.
+            assert( utils::almost_equal_relative(
+                counts[ c ], mass_tree_sum_of_masses( centroids[ c ] ), 0.00001
+            ));
+
+            mass_tree_normalize_masses( centroids[ c ] );
+        }
+
+    #endif
 }
 
 double MassTreeKmeans::distance( Point const& lhs, Point const& rhs ) const
