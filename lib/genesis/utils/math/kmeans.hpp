@@ -148,7 +148,7 @@ public:
 
     std::vector<Point> const& centroids() const
     {
-        return assignments_;
+        return centroids_;
     }
 
     Kmeans& centroids( std::vector<Point> const& value )

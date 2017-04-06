@@ -42,6 +42,8 @@
 #include "genesis/utils/math/matrix/pca.hpp"
 #include "genesis/utils/math/matrix/statistics.hpp"
 
+#include "genesis/utils/core/logging.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -124,11 +126,16 @@ std::vector<double> epca_imbalance_vector( Sample const& smp )
                 round_link = &round_link->next();
             }
 
-            link_masses[ cur_idx ] = round_sum;
+            // The sum should always be >0, but for numerical reaons, we better make sure it is.
+            link_masses[ cur_idx ] = std::max( 0.0, round_sum );
         }
 
-        // Calculate the mass at the other side of the edge.
-        link_masses[out_idx] = mass_sum - link_masses[cur_idx] - masses[tree_it.edge().index()];
+        // Calculate the mass at the other side of the edge. We need to correct negative values,
+        // which can occur for numerical reasons (in the order of e-12).
+        link_masses[out_idx] = std::max(
+            0.0,
+            mass_sum - link_masses[ cur_idx ] - masses[ tree_it.edge().index() ]
+        );
 
         // Finally, calculate the imbalance of the current edge,
         // normalized by the total mass on the tree.
