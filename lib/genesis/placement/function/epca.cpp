@@ -58,20 +58,20 @@ namespace placement {
 //     Edge PCA Imbalance Vector
 // =================================================================================================
 
-std::vector<double> epca_imbalance_vector( Sample const& smp )
+std::vector<double> epca_imbalance_vector( Sample const& sample )
 {
     // Result vector: imbalance of masses at each edge of the tree.
-    auto vec = std::vector<double>( smp.tree().edge_count(), 0.0 );
+    auto vec = std::vector<double>( sample.tree().edge_count(), 0.0 );
 
     // We need the masses per edge, and their sum, for later.
-    auto const masses   = placement_weight_per_edge( smp );
+    auto const masses   = placement_weight_per_edge( sample );
     auto const mass_sum = std::accumulate( masses.begin(), masses.end(), 0.0 );
 
     // Collect the placement masses at each link of the tree.
     // Use init to -1 as indicator for assertions.
-    auto link_masses = std::vector<double>( smp.tree().link_count(), -1.0 );
+    auto link_masses = std::vector<double>( sample.tree().link_count(), -1.0 );
 
-    for( auto tree_it : postorder( smp.tree() )) {
+    for( auto tree_it : postorder( sample.tree() )) {
 
         // Skip the last iteration. We are interested in edges, not in nodes.
         if( tree_it.is_last_iteration() ) {
@@ -92,10 +92,10 @@ std::vector<double> epca_imbalance_vector( Sample const& smp )
         // This is the case if the primary link of its node is the link itself,
         // because the node uses this link to point towards the root - thus, the link itself
         // is away from the root, while the out_idx link lies towards it.
-        assert( smp.tree().link_at( cur_idx ).node().primary_link().index() == cur_idx );
+        assert( sample.tree().link_at( cur_idx ).node().primary_link().index() == cur_idx );
 
         // Some more ways to do the same assertion, just to be sure.
-        assert( tree_it.edge().index() == smp.tree().link_at( cur_idx ).edge().index() );
+        assert( tree_it.edge().index() == sample.tree().link_at( cur_idx ).edge().index() );
         assert( tree_it.edge().primary_link().index() == out_idx );
         assert( tree_it.edge().secondary_link().index() == cur_idx );
 
@@ -151,11 +151,12 @@ std::vector<double> epca_imbalance_vector( Sample const& smp )
 
 utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples )
 {
+    // If there are no samples, return empty matrix.
     if( samples.size() == 0 ) {
-        throw std::runtime_error(
-            "Cannot calculate Edge PCA on an empty SampleSet."
-        );
+        return utils::Matrix<double>();
     }
+
+    // Check if all trees have the same tpology and edge nums.
     if( ! all_identical_trees( samples )) {
         throw std::runtime_error(
             "Cannot calculate Edge PCA on trees that have a different topology."
@@ -230,7 +231,7 @@ void epca_splitify_transform( utils::Matrix<double>& imbalance_matrix, double ka
 //     Filter Constant Columns
 // =================================================================================================
 
-void epca_filter_constant_columns( utils::Matrix<double>& imbalance_matrix, double epsilon )
+std::vector<size_t> epca_filter_constant_columns( utils::Matrix<double>& imbalance_matrix, double epsilon )
 {
     // Get the column-wise min and max values.
     auto const col_minmax = utils::matrix_col_minmax( imbalance_matrix );
@@ -238,6 +239,7 @@ void epca_filter_constant_columns( utils::Matrix<double>& imbalance_matrix, doub
     // Store which columns to keep, by index.
     std::vector<size_t> keep_cols;
     for( size_t c = 0; c < imbalance_matrix.cols(); ++c ) {
+        assert( col_minmax[c].min <= col_minmax[c].max );
         if (( col_minmax[c].max - col_minmax[c].min ) > epsilon ) {
             keep_cols.push_back( c );
         }
@@ -254,6 +256,7 @@ void epca_filter_constant_columns( utils::Matrix<double>& imbalance_matrix, doub
 
     // Overwrite the matrix.
     imbalance_matrix = new_mat;
+    return keep_cols;
 }
 
 // =================================================================================================

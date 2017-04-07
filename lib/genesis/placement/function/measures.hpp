@@ -148,10 +148,8 @@ double placement_distance(
 
 std::pair< tree::MassTree, double > convert_to_mass_tree( Sample const& sample );
 
-std::pair<
-    std::vector<tree::MassTree>,
-    std::vector<double>
-> convert_to_mass_trees( SampleSet const& sample_set );
+std::pair< std::vector<tree::MassTree>, std::vector<double> >
+convert_to_mass_trees( SampleSet const& sample_set );
 
 // -------------------------------------------------------------------------------------------------
 //     Expected Distance between Placement Locations

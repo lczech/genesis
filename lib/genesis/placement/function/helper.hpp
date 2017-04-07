@@ -148,11 +148,32 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp );
 void reset_edge_nums( PlacementTree& tree );
 
 /**
+ * @brief Verify that the ::PlacementTree has no duplicate
+ * @link PlacementEdgeData::edge_num() edge_nums@endlink and that they form consecutive
+ * numbers starting from `0`.
+ *
+ * This function is very similar to has_correct_edge_nums(). However, instead of checking whether
+ * the `edge_nums` are correctly assigned following a postorder traversal of the tree, as demanded
+ * by the Jplace standard, this function simply checks whehter they are all unique, start at `0`
+ * and continue consecutively without gaps.
+ *
+ * This is imporant for using the `edge_nums` as indices, for example.
+ *
+ * We offer this function, because Genesis can work with improperly assigned `edge_nums`, but
+ * for some functions we need to ensure those properties. Generally, you should however prefer correct
+ * `edge_nums` according to the standard, and use has_correct_edge_nums() to verify them.
+ */
+bool has_consecutive_edge_nums( PlacementTree const& tree );
+
+/**
  * @brief Verify that the tree has correctly set edge nums.
  *
  * The `edge_num` property of the PlacementTreeEdge%s is defined by the `jplace` standard.
  * The values have to be assigned increasingly with a postorder traversal of the tree.
  * This function checks whether this is the case.
+ *
+ * See also has_consecutive_edge_nums() for a relaxed version of this function, which might also
+ * be useful in some cases where the strict correct order according to the standard is not needed.
  */
 bool has_correct_edge_nums( PlacementTree const& tree );
 
