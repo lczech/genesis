@@ -77,26 +77,28 @@ namespace placement {
  * This is different from how how [guppy](https://matsen.github.io/pplacer/generated_rst/guppy.html)
  * indexes the edges, namely by using their @link PlacementEdgeData::edge_num() edge_nums@endlink.
  * See https://matsen.github.io/pplacer/generated_rst/guppy_splitify.html for details on the guppy
- * edge imbalance matrix.
+ * edge imbalance matrix. We chose to use our internal edge index instead, as it is consistent and
+ * needs no checking for correctly labeled edge nums.
  *
  * @see epca_imbalance_matrix() for the @link utils::Matrix Matrix@endlink of imbalances for a whole
  * SampleSet.
  */
 std::vector<double> epca_imbalance_vector( Sample const& sample );
 
-
 /**
  * @brief Calculate the imbalance matrix of placment mass for all Sample%s in a SampleSet.
  *
  * The first step to perform @link epca() Edge PCA@endlink is to make a
  * @link utils::Matrix Matrix@endlink with rows indexed by the Sample%s, and columns by the
- * @link PlacementTreeEdge Edges@endlink of the Tree. The `( s, e )` entry of this matrix is the
- * difference between the distribution of mass on either side of edge `e` for the sample `s`.
- * Specifically, it is the amount of mass on the distal (non-root) side of edge `e` minus the amount
+ * @link PlacementTreeEdge Edges@endlink of the Tree. Each entry of this matrix is the
+ * difference between the distribution of mass on either side of an edge for a Sample.
+ * Specifically, it is the amount of mass on the distal (non-root) side of the edge minus the amount
  * of mass on the proximal side.
  *
- * The matrix is indexed using the @link PlacementTreeEdge::index() index()@endlink of the edges.
- * See epca_imbalance_vector() for details.
+ * The matrix is row-indexed according to the Sample%s in the SampleSet, and column-indexed so that
+ * each inner edge of the Tree has one column in the Matrix. Edges leading to a leaf node do not
+ * have a column in the Matrix, as their mass difference is not needed for calculating the Edge PCA.
+ * See epca_imbalance_vector() for more details.
  */
 utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples );
 

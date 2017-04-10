@@ -33,6 +33,7 @@
 #include "genesis/placement/function/helper.hpp"
 #include "genesis/placement/function/sample_set.hpp"
 
+#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
 
 #include "genesis/utils/core/std.hpp"
@@ -265,8 +266,18 @@ std::vector<size_t> epca_filter_constant_columns( utils::Matrix<double>& imbalan
 
 utils::PcaData epca( SampleSet const& samples, double kappa, double epsilon, size_t components )
 {
-    // Calculate, filter and transform the imbalance matrix.
+    // If there are no samples, return empty result.
+    if( samples.size() == 0 ) {
+        return utils::PcaData();
+    }
+
+    // Calculate the imbalance_matrix.
     auto imbalance_matrix = epca_imbalance_matrix( samples );
+    assert( samples.size() > 0 );
+    assert( imbalance_matrix.rows() == samples.size() );
+    assert( imbalance_matrix.cols() == tree::inner_edge_count( samples[0].sample.tree() ) );
+
+    // Filter and transform the imbalance matrix.
     epca_filter_constant_columns( imbalance_matrix, epsilon );
     epca_splitify_transform( imbalance_matrix, kappa );
 
