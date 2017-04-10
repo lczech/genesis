@@ -110,7 +110,7 @@ size_t count_substring_occurrences( std::string const& str, std::string const& s
     for(
         size_t offset = str.find(sub);
         offset != std::string::npos;
-        offset = str.find( sub, offset + sub.length() )
+        offset = str.find( sub, offset + 1 )
     ) {
         ++count;
     }

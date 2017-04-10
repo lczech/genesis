@@ -157,6 +157,41 @@ inline double round_to( double x, size_t accuracy_order )
     return std::round( x * factor ) / factor;
 }
 
+/**
+ * @brief Calculate the power `base^exp` for positive integer values.
+ *
+ * Remark: This overflows quite easily. The function does not check whether the desired power
+ * actually fits within `size_t`. Use is_valid_int_pow() to check for this first.
+ *
+ * Rationale for this function: One could argue that int powers are not really useful, particularly
+ * because of the fast overflow. However, using doubles leads to rounding errors, at least for
+ * bigger numbers. So, within the valid range, this function is more accurate. Also, it is faster.
+ */
+inline size_t int_pow( size_t base, size_t exp )
+{
+    // Using Exponentiation by squaring, see
+    // http://stackoverflow.com/a/101613/4184258
+    size_t result = 1;
+    while( exp )  {
+        if( exp & 1 ) {
+            result *= base;
+        }
+        exp >>= 1;
+        base *= base;
+    }
+    return result;
+}
+
+/**
+ * @brief Return whether the given power can be stored within a `size_t`.
+ *
+ * Use int_pow() to calculate the actual value of the power.
+ */
+inline bool is_valid_int_pow( size_t base, size_t exp )
+{
+    return std::pow( base, exp ) < std::numeric_limits<size_t>::max();
+}
+
 } // namespace utils
 } // namespace genesis
 

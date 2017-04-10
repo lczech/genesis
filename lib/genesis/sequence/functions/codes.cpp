@@ -338,6 +338,19 @@ std::string amino_acid_codes_all()
          + amino_acid_codes_undetermined();
 }
 
+// ---------------------------------------------------------------------
+//     Misc
+// ---------------------------------------------------------------------
+
+std::string normalize_codes( std::string const& alphabet )
+{
+    // Uppercase, sort, uniq the alphabet.
+    auto normalized = utils::to_upper_ascii( alphabet );
+    std::sort( normalized.begin(), normalized.end() );
+    normalized.erase( std::unique( normalized.begin(), normalized.end() ), normalized.end() );
+    return normalized;
+}
+
 // =================================================================================================
 //     Color Codes
 // =================================================================================================

@@ -77,7 +77,7 @@ std::string tail( std::string const& text, size_t lines = 10 );
 // =================================================================================================
 
 /**
- * @brief Return the number of non-overlapping occurrences of a substring in a string.
+ * @brief Return the number of (possibly overlapping) occurrences of a substring in a string.
  */
 size_t count_substring_occurrences( std::string const& str, std::string const& sub );
 

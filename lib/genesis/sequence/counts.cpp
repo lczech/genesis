@@ -30,6 +30,7 @@
 
 #include "genesis/sequence/counts.hpp"
 
+#include "genesis/sequence/functions/codes.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -50,9 +51,7 @@ SequenceCounts::SequenceCounts( std::string const& characters, size_t length )
     : num_seqs_( 0 )
 {
     // Uppercase, sort, uniq the characters.
-    characters_ = utils::to_upper_ascii( characters );
-    std::sort( characters_.begin(), characters_.end() );
-    characters_.erase( std::unique( characters_.begin(), characters_.end() ), characters_.end() );
+    characters_ = normalize_codes( characters );
 
     // Add characters to lookup table, set all other to a max value indicating that this char
     // is not part of the table.

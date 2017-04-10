@@ -43,3 +43,13 @@ TEST(Std, RoundTo)
     EXPECT_FLOAT_EQ( 3.1416  , round_to( 3.1415926535, 4 ) );
     EXPECT_FLOAT_EQ( 3.14159 , round_to( 3.1415926535, 5 ) );
 }
+
+TEST( Math, IntPow )
+{
+    EXPECT_EQ( std::pow( 0, 0 ), int_pow( 0, 0 ) );
+    EXPECT_EQ( std::pow( 2, 5 ), int_pow( 2, 5 ) );
+
+    // Different results!
+    // LOG_DBG << int_pow( 3, 40 );
+    // LOG_DBG << static_cast<size_t>( std::pow( 3, 40 ));
+}

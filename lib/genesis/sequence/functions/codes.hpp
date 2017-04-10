@@ -53,6 +53,10 @@ namespace sequence {
 //     Codes
 // =================================================================================================
 
+// ---------------------------------------------------------------------
+//     Nucleic Acids
+// ---------------------------------------------------------------------
+
 /**
  * @brief Return all plain nucleic acid codes. Those are "ACGTU".
  */
@@ -73,6 +77,10 @@ std::string nucleic_acid_codes_undetermined();
  */
 std::string nucleic_acid_codes_all();
 
+// ---------------------------------------------------------------------
+//     Amino Acids
+// ---------------------------------------------------------------------
+
 /**
  * @brief Return all plain amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWY".
  */
@@ -92,6 +100,19 @@ std::string amino_acid_codes_undetermined();
  * @brief Return all valid amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWYBJZX*-?".
  */
 std::string amino_acid_codes_all();
+
+// ---------------------------------------------------------------------
+//     Misc
+// ---------------------------------------------------------------------
+
+/**
+ * @brief Normalize a set of Sequence codes, i.e., make them upper case, sort them, and remove
+ * duplicates.
+ *
+ * For example, when given a set of nucleic acid codes like "aGtc", the function returns "ACGT".
+ * This is useful to get consistent codes in functions that accept a user defined code alphabet.
+ */
+std::string normalize_codes( std::string const& alphabet );
 
 // =================================================================================================
 //     Color Codes
@@ -128,7 +149,7 @@ std::map<char, utils::Color> nucleic_acid_colors();
 std::map<char, utils::Color> amino_acid_colors();
 
 // =================================================================================================
-//     Translate Codes
+//     Code Names
 // =================================================================================================
 
 /**
