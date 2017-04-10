@@ -48,34 +48,20 @@ namespace tree {
 //     Node Count Properties
 // =================================================================================================
 
-/**
- * @brief Return the highest rank of the nodes of the Tree.
- */
-int max_rank( Tree const& tree )
+size_t max_rank( Tree const& tree )
 {
-    int max = -1;
-    for (size_t i = 0; i < tree.node_count(); ++i) {
-        int rank = tree.node_at(i).rank();
-        // if (rank == 1) {
-        //     LOG_WARN << "Node with rank 1 found. This is a node without furcation, and usually "
-        //              << "indicates an error.";
-        // }
-        max = std::max(rank, max);
+    size_t max = 0;
+    for( size_t i = 0; i < tree.node_count(); ++i ) {
+        max = std::max( max, tree.node_at(i).rank() );
     }
     return max;
 }
 
-/**
- * @brief Return whether the Tree is bifurcating.
- */
 bool is_bifurcating( Tree const& tree )
 {
     return max_rank( tree ) == 2;
 }
 
-/**
- * @brief Count the number of leaf nodes of a Tree.
- */
 size_t leaf_node_count( Tree const& tree )
 {
     size_t sum = 0;
@@ -88,21 +74,37 @@ size_t leaf_node_count( Tree const& tree )
     return sum;
 }
 
-/**
- * @brief Count the number of inner nodes.
- */
 size_t inner_node_count( Tree const& tree )
 {
     return tree.node_count() - leaf_node_count( tree );
+}
+
+size_t leaf_edge_count(  Tree const& tree )
+{
+    size_t sum = 0;
+    for( auto const& edge : tree.edges() ) {
+        if( edge->primary_node().is_leaf() || edge->secondary_node().is_leaf() ) {
+            ++sum;
+        }
+    }
+    return sum;
+}
+
+size_t inner_edge_count( Tree const& tree )
+{
+    size_t sum = 0;
+    for( auto const& edge : tree.edges() ) {
+        if( edge->primary_node().is_inner() && edge->secondary_node().is_inner() ) {
+            ++sum;
+        }
+    }
+    return sum;
 }
 
 // =================================================================================================
 //     Subtrees
 // =================================================================================================
 
-/**
- * @brief Return the size of the subtree defined by the given TreeLink, measured in number of nodes.
- */
 size_t subtree_size( Tree const& tree, TreeLink const& link )
 {
     if( ! belongs_to( tree, link )) {
@@ -125,22 +127,6 @@ size_t subtree_size( Tree const& tree, TreeLink const& link )
     return visited_nodes.size();
 }
 
-/**
- * @brief Calculate the sizes of all subtrees as seen from the given TreeNode.
- *
- * The function returns a vector with as many elements as the Tree has nodes. The vector is indexed
- * using the TreeNode::index() values.
- *
- * Each value in the vector tells the size (in number of nodes) of the subtree of the correnspinding
- * node, as seen from the given starting node, and excluding that starting node.
- *
- * In methaphorical words, the given starting node is used as a hook where the tree is suspended
- * from, so that it hangs down. A subtree is then the part of the tree that "hangs down" from a
- * certain node. We then count the number of nodes in each of those subtrees (that is,
- * we examine the subtree starting at each node of the tree).
- * For the starting node, the count is always the number of nodes of the tree minus one (because the
- * node is not counted itself).
- */
 std::vector<size_t> subtree_sizes( Tree const& tree, TreeNode const& node )
 {
     if( ! belongs_to( tree, node )) {
@@ -209,21 +195,11 @@ std::vector<size_t> subtree_sizes( Tree const& tree, TreeNode const& node )
     return result;
 }
 
-/**
- * @brief Calculate the sizes of all subtrees as seen from the root of the tree.
- *
- * See @link subtree_sizes( Tree const& tree, TreeNode const& node ) subtree_sizes(...)@endlink
- * for details.
- */
 std::vector<size_t> subtree_sizes( Tree const& tree )
 {
     return subtree_sizes( tree, tree.root_node() );
 }
 
-/**
- * @brief Calculate the height of a subtree, that is, the maximum path length to a leaf of that
- * subtree, measured in edges between the link and the leaf.
- */
 size_t subtree_max_path_height( Tree const& tree, TreeLink const& link )
 {
     if( ! belongs_to( tree, link )) {
@@ -293,14 +269,6 @@ std::vector<size_t> subtree_max_path_heights( Tree const& tree )
 //     Misc
 // =================================================================================================
 
-/**
- * @brief Helper function that finds all TreeLink%s between a given TreeNode and the root of the
- * Tree.
- *
- * Both the @link TreeNode::primary_link() primary_link()@endlink of the Node and the
- * @link Tree::root_link() root_link()@endlink of the Tree are included in the list.
- * The order of the list starts at the provided node and ends at the root.
- */
 std::vector< TreeLink const* > path_to_root( TreeNode const& node )
 {
     std::vector< TreeLink const* > path;
@@ -334,9 +302,6 @@ std::vector< TreeLink const* > path_to_root( TreeNode const& node )
     return path;
 }
 
-/**
- * @brief Return the lowest common ancestor of two TreeNode%s.
- */
 TreeNode const& lowest_common_ancestor( TreeNode const& node_a, TreeNode const& node_b )
 {
     // Speedup and simplification.
@@ -373,9 +338,6 @@ TreeNode const& lowest_common_ancestor( TreeNode const& node_a, TreeNode const& 
     return path_a.back()->node();
 }
 
-/**
- * @brief Return the lowest common ancestor of two TreeNode%s.
- */
 TreeNode&       lowest_common_ancestor( TreeNode& node_a,       TreeNode& node_b )
 {
     auto const& c_node_a = static_cast< TreeNode const& >( node_a );
