@@ -80,7 +80,7 @@ public:
 
 private:
 
-    // virtual bool data_validation( std::vector<Point> const& data ) const override;
+    virtual bool data_validation( std::vector<Point> const& data ) const override;
 
     virtual void update_centroids(
         std::vector<Point>  const& data,

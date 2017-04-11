@@ -30,13 +30,39 @@
 
 #include "genesis/utils/math/matrix/operators.hpp"
 
+#include <cmath>
 #include <stdexcept>
 
 namespace genesis {
 namespace utils {
 
 // ================================================================================================
-//     Standard Scale
+//     Helpful Functions
+// ================================================================================================
+
+std::pair<size_t, size_t> triangular_indices( size_t k, size_t n )
+{
+    // Using equations from http://stackoverflow.com/a/27088560/4184258
+    // See also https://en.wikipedia.org/wiki/Triangular_number
+
+    size_t const i = n - 2 - std::floor( std::sqrt( 4 * n * ( n - 1 ) - 7 - ( 8 * k )) / 2.0 - 0.5 );
+    size_t const j = k + i + 1 - n * ( n - 1 ) / 2 + ( n - i ) * (( n - i ) - 1 ) / 2;
+    return { i, j };
+}
+
+size_t triangular_index( size_t i, size_t j, size_t n )
+{
+    size_t const k = ( n * ( n - 1 ) / 2 ) - ( n -  i ) * (( n - i ) - 1 ) / 2 + j - i - 1;
+    return k;
+}
+
+size_t triangular_size( size_t n )
+{
+    return ( n * n - n ) / 2;
+}
+
+// ================================================================================================
+//     Matrix Operators
 // ================================================================================================
 
 Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b)
@@ -45,6 +71,9 @@ Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> co
         throw std::runtime_error( "Cannot multiply matrices if a.cols() != b.rows()." );
     }
 
+    // Simple and naive. Fast enough for the few occasions were we need this.
+    // If Genesis at some point starts to need more elaborate matrix operations, it might be
+    // worth including some proper library for this.
     auto result = Matrix<double>( a.rows(), b.cols() );
     for( size_t r = 0; r < a.rows(); ++r ) {
         for( size_t c = 0; c < b.cols(); ++c ) {

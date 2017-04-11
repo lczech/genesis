@@ -39,7 +39,38 @@ make clean
 
 This combines both the CMake configure and build phase and is intended for quick development.
 
-# Release vs Debug version @anchor supplement_build_process_release_vs_debug
+You can also run the CMake process manually like this:
+
+~~~{.sh}
+# In genesis main directory.
+
+# Create build scripts.
+mkdir build
+cd build/
+cmake .. [options]
+
+# Run the build process.
+make
+~~~
+
+This is for example necessary when you want to customize the CMake options.
+
+# Build Output @anchor supplement_build_process_build_output
+
+The following binaries are created:
+
+ *  `genesis/bin/libgenesis.[so|a]`: Shared and static binaries of the library. Those are the files
+    you need to link against when using Genesis as a library for your own C++ projects.
+    By default, only the shared lib (`.so`) is build. If you need the static lib, use the option
+    flag `BUILD_STATIC_LIB` of the main CMake script.
+ *  `genesis/bin/apps/*`: App executables are stored here. See @ref setup_apps for details.
+<!--
+ *  `genesis/bin/python/genesis.so`: Python module file. See section @ref setup_python.
+-->
+ *  `genesis/bin/test/genesis_tests`: Test executable. See `genesis/test/README.md` for more information.
+ *  `genesis/build`: Intermediate build files. No need to worry about them too much.
+
+# Release vs Debug Version @anchor supplement_build_process_release_vs_debug
 
 By default, Genesis is compiled in release mode. The main `CMakeLists.txt` however checks the value
 of the environment variable `GENESIS_DEBUG` and, if set, compiles in debug mode.
@@ -50,6 +81,37 @@ So, for development, adding the line
 
 to the terminal startup script (e.g., `.bash_rc` in the users home directory) will compile Genesis
 in debug mode.
+
+# Unity Build @anchor supplement_build_unity_build
+
+By default, in release mode, Genesis builds as a so called unity build. That means, all source
+files are combined into one big file that is then compiled in one go. See for example
+https://en.wikipedia.org/wiki/Single_Compilation_Unit for more details.
+
+The purpose of this is twofold: Faster total compilation time, and better program optimization.
+The downside is that this needs more memory when compiling. Thus, we also offer ways to disable
+this and instead build smaller units, using less memory.
+
+There are three modes:
+
+  1. `FULL`: Default, compile everything in one unit.
+  2. `MODULES`: Divide the code into modules (corresponding to the main Genesis
+     [Namespaces](namespaces.html)). This is a somewhat in-between solution, if your computer does
+     not have enough memory for the full build, but you still want to try to get best program
+     optimization.
+  3. `OFF`: Every `cpp` file is compiled on its own. This takes longest for a fresh build but needs
+     the least memory. It is also used for the debug build, because when working on files, it is
+     still faster to just compile them, instead of fully compiling everything.
+
+You can change those modes via the CMake option `UNITY_BUILD`.
+See the @ref supplement_build_process_overview "Overview" for how to explicitly build Genesis using
+Cmake, and replace the `cmake ..` line by
+
+~~~{.sh}
+cmake .. -DUNITY_BUILD=MODULE
+~~~
+
+where, instead of `MODULE`, you can also use `OFF`.
 
 # Supported Compilers @anchor supplement_build_process_supported_compilers
 

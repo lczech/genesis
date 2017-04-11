@@ -53,6 +53,10 @@ namespace sequence {
 //     Codes
 // =================================================================================================
 
+// ---------------------------------------------------------------------
+//     Nucleic Acids
+// ---------------------------------------------------------------------
+
 /**
  * @brief Return all plain nucleic acid codes. Those are "ACGTU".
  */
@@ -73,6 +77,10 @@ std::string nucleic_acid_codes_undetermined();
  */
 std::string nucleic_acid_codes_all();
 
+// ---------------------------------------------------------------------
+//     Amino Acids
+// ---------------------------------------------------------------------
+
 /**
  * @brief Return all plain amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWY".
  */
@@ -92,6 +100,19 @@ std::string amino_acid_codes_undetermined();
  * @brief Return all valid amino acid codes. Those are "ACDEFGHIKLMNOPQRSTUVWYBJZX*-?".
  */
 std::string amino_acid_codes_all();
+
+// ---------------------------------------------------------------------
+//     Misc
+// ---------------------------------------------------------------------
+
+/**
+ * @brief Normalize a set of Sequence codes, i.e., make them upper case, sort them, and remove
+ * duplicates.
+ *
+ * For example, when given a set of nucleic acid codes like "aGtc", the function returns "ACGT".
+ * This is useful to get consistent codes in functions that accept a user defined code alphabet.
+ */
+std::string normalize_codes( std::string const& alphabet );
 
 // =================================================================================================
 //     Color Codes
@@ -128,7 +149,7 @@ std::map<char, utils::Color> nucleic_acid_colors();
 std::map<char, utils::Color> amino_acid_colors();
 
 // =================================================================================================
-//     Translate Codes
+//     Code Names
 // =================================================================================================
 
 /**
@@ -161,7 +182,7 @@ std::map<char, utils::Color> amino_acid_colors();
  * The code char is treated case-insensitive. If the given code char is not valid, an
  * `std::out_of_range` exception is thrown.
  */
-std::string translate_nucleic_acid( char code );
+std::string nucleic_acid_name( char code );
 
 /**
  * @brief Get the name of a amino acid given its IUPAC code.
@@ -201,7 +222,7 @@ std::string translate_nucleic_acid( char code );
  * The code char is treated case-insensitive. If the given code char is not valid, an
  * `std::out_of_range` exception is thrown.
  */
-std::string translate_amino_acid( char code );
+std::string amino_acid_name( char code );
 
 /**
  * @brief Return the possible ambiguous nucleic acid codes for a given code char.

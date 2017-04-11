@@ -47,6 +47,9 @@ namespace tree {
 
     class TreeNode;
     class TreeEdge;
+    class Tree;
+
+    using MassTree = Tree;
 
 }
 
@@ -63,10 +66,12 @@ namespace placement {
 }
 
 namespace utils {
+
     template<typename T>
     class Matrix;
 
     class Histogram;
+
 }
 
 // =================================================================================================
@@ -136,6 +141,15 @@ double placement_distance(
     PqueryPlacement const& place_b,
     utils::Matrix<double> const& node_distances
 );
+
+// -------------------------------------------------------------------------------------------------
+//     Mass Tree Conversion
+// -------------------------------------------------------------------------------------------------
+
+std::pair< tree::MassTree, double > convert_to_mass_tree( Sample const& sample );
+
+std::pair< std::vector<tree::MassTree>, std::vector<double> >
+convert_to_mass_trees( SampleSet const& sample_set );
 
 // -------------------------------------------------------------------------------------------------
 //     Expected Distance between Placement Locations

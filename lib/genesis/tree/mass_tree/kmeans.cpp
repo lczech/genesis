@@ -32,8 +32,16 @@
 
 #include "genesis/tree/mass_tree/tree.hpp"
 #include "genesis/tree/mass_tree/functions.hpp"
+#include "genesis/tree/function/operators.hpp"
+#include "genesis/utils/math/common.hpp"
 
 #include <cassert>
+#include <stdexcept>
+#include <vector>
+
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
 
 namespace genesis {
 namespace tree {
@@ -42,37 +50,115 @@ namespace tree {
 //     Mass Tree Kmeans
 // =================================================================================================
 
+bool MassTreeKmeans::data_validation( std::vector<Point> const& data ) const
+{
+    // Check if all Trees have the correct data types.
+    for( auto const& tree : data ) {
+        if( ! tree_data_is< MassTreeNodeData, MassTreeEdgeData >( tree ) ) {
+            throw std::invalid_argument( "Trees for Kmeans do not have MassTree data types." );
+        }
+    }
+
+    // Check if all Trees have the same topology. Important to caluclate EMD.
+    // adapted from all_identical_topology()
+    for (size_t i = 1; i < data.size(); i++) {
+        if( ! identical_topology( data[i-1], data[i] )) {
+            throw std::invalid_argument( "Trees for Kmeans do not have identical topologies." );
+        }
+    }
+
+    return true;
+}
+
 void MassTreeKmeans::update_centroids(
     std::vector<Point>  const& data,
     std::vector<size_t> const& assignments,
     std::vector<Point>&        centroids
 ) {
-    for( auto& centroid : centroids ) {
-        mass_tree_clear_masses( centroid );
+    // Shorthand.
+    auto const k = centroids.size();
+
+    // Clear all centroid masses from previous iteration.
+    #pragma omp parallel for
+    for( size_t c = 0; c < k; ++c ) {
+        mass_tree_clear_masses( centroids[ c ] );
     }
 
     // This function is only called from within the run() function, which already
     // checks this condition. So, simply assert it here, instead of throwing.
     assert( data.size() == assignments.size() );
 
-    // Work through the data and assigments and accumulate.
-    for( size_t i = 0; i < data.size(); ++i ) {
+    #ifdef GENESIS_OPENMP
 
-        // Shorthands.
-        auto const& datum    = data[ i ];
-        auto&       centroid = centroids[ assignments[i] ];
+        // Parallelize over centroids
+        #pragma omp parallel for
+        for( size_t c = 0; c < k; ++c ) {
 
-        // Accumulate centroid.
-        mass_tree_merge_trees_inplace( centroid, datum );
-    }
+            // Thread-local data.
+            auto& centroid = centroids[ c ];
+            size_t count = 0;
+
+            // Work through the data and assigments and accumulate...
+            for( size_t d = 0; d < data.size(); ++d ) {
+
+                // ( Check correct assignments. )
+                assert( assignments[ d ] < k );
+
+                // ... but only the relevant parts.
+                if( assignments[ d ] != c ) {
+                    continue;
+                }
+
+                // Accumulate centroid.
+                mass_tree_merge_trees_inplace( centroid, data[ d ] );
+                ++count;
+            }
+
+            // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
+            // of the double equality check, but we have to live with it.
+            assert( utils::almost_equal_relative(
+                count, mass_tree_sum_of_masses( centroid ), 0.00001
+            ));
+
+            mass_tree_normalize_masses( centroid );
+        }
+
+    #else
+
+        // In the serial case, we only want to traverse the data once.
+
+        // Count how many mass trees are accumulated per centroid.
+        auto counts = std::vector<size_t>( k, 0 );
+
+        // Work through the data and assigments and accumulate.
+        for( size_t d = 0; d < data.size(); ++d ) {
+
+            // Check correct assignments.
+            assert( assignments[ d ] < k );
+
+            // Accumulate centroid.
+            mass_tree_merge_trees_inplace( centroids[ assignments[ d ] ], data[ d ] );
+            ++counts[ assignments[ d ] ];
+        }
+
+        // Normalize the centroids.
+        for( size_t c = 0; c < k; ++c ) {
+
+            // Make sure that the sum of masses is okay. This is a bit wibbly wobbly because
+            // of the double equality check, but we have to live with it.
+            assert( utils::almost_equal_relative(
+                counts[ c ], mass_tree_sum_of_masses( centroids[ c ] ), 0.00001
+            ));
+
+            mass_tree_normalize_masses( centroids[ c ] );
+        }
+
+    #endif
 }
 
 double MassTreeKmeans::distance( Point const& lhs, Point const& rhs ) const
 {
-    auto copy = lhs;
-    mass_tree_reverse_signs( copy );
-    mass_tree_merge_trees_inplace( copy, rhs );
-    return earth_movers_distance( copy ).first;
+    return earth_movers_distance( lhs, rhs );
 }
 
 } // namespace tree

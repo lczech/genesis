@@ -40,6 +40,76 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Helpful Functions
+// =================================================================================================
+
+/**
+ * @brief Given a linear index in a upper triangular Matrix, find the corresponding Matrix indices.
+ *
+ * Given an upper triangle Matrix of size `n == 5`
+ *
+ *     0  k0  k1  k2  k3
+ *     0   0  k4  k5  k6
+ *     0   0   0  k7  k8
+ *     0   0   0   0  k9
+ *     0   0   0   0   0
+ *
+ * and given a @p k (like above), find the corresponding indices `i` and `j` for this @p k,
+ * e.g.,
+ *
+ *     k == 0 --> i == 0, j == 1
+ *     k == 5 --> i == 1, j == 3
+ *     k == 9 --> i == 3, j == 4
+ *     ...
+ *
+ * Because the calculation involves solving
+ * [triangular numbers](https://en.wikipedia.org/wiki/Triangular_number), the function internally
+ * operates on `double` values. This is a bit smelly, but seems to work (tested with `n == 100,000`).
+ *
+ * See also triangular_index() for the opposite function, and triangular_size() to calculate the
+ * maximal @p k that will occur in a trian Matrix of a given size @p n.
+ *
+ * @param k Linear index in the upper triangle of a quadratic Matrix.
+ * @param n Size of the quadratic Matrix, i.e., the row/column length.
+ * @return  Pair `( i, j )` of the indices for the given `k`.
+ */
+std::pair<size_t, size_t> triangular_indices( size_t k, size_t n );
+
+/**
+ * @brief Given indices @p i and @p j in a quadratic Matrix, find the corresponding linear index.
+ *
+ * See triangular_indices() for the opposite function, which also explains the details, and
+ * triangular_size() to calculate the
+ * maximal @p k that will occur in a trian Matrix of a given size @p n.
+ *
+ * @param i, j Indices of the Matrix for which to calculate the linear index `k`.
+ * @param n    Size of the quadratic Matrix, i.e., the row/column length.
+ * @return     Linear index `k` for the given @p i and @p j.
+ */
+size_t triangular_index( size_t i, size_t j, size_t n );
+
+/**
+ * @brief Calculate the number of linear indices needed for a triangular Matrix of size @p n.
+ *
+ * Given an upper triangle Matrix of size `n == 5`
+ *
+ *     0  k0  k1  k2  k3
+ *     0   0  k4  k5  k6
+ *     0   0   0  k7  k8
+ *     0   0   0   0  k9
+ *     0   0   0   0   0
+ *
+ * we need `10` indices `k == 0..9` to linearly describe the positions in the triangle.
+ * This function returns this number of indices for a given @p n.
+ *
+ * See also triangular_indices() for calculating the Matrix indices `i` and `j` for a given `k`.
+ *
+ * @param n Size of the quadratic Matrix, i.e., the row/column length.
+ * @return  Number of needed linear indices `k` to describe a triangle of the Matrix.
+ */
+size_t triangular_size( size_t n );
+
+// =================================================================================================
 //     Matrix Operators
 // =================================================================================================
 

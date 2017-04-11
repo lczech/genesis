@@ -37,6 +37,7 @@
 #include <iosfwd>
 #include <map>
 #include <string>
+#include <vector>
 
 namespace genesis {
 namespace sequence {
@@ -114,6 +115,38 @@ size_t count_chars( SequenceSet const& set, std::string const& chars );
 double gapyness( SequenceSet    const& set, std::string const& gap_chars );
 
 size_t gap_site_count( SequenceCounts const& counts );
+
+// =================================================================================================
+//     K-mers
+// =================================================================================================
+
+/**
+ * @brief Count the occurences of k-mers of size @p k, for nucleic acids "ACGT".
+ *
+ * The function is similar to kmer_counts( Sequence const&, size_t k, std::string const& alphabet ),
+ * but slighly faster, and only accpets Sequence%s that solely consists of "ACGT" characters.
+ * Otherwise it throws.
+ */
+std::vector<size_t> kmer_counts( Sequence const& seq, size_t k );
+
+/**
+ * @brief Count the occurences of k-mers of size @p k, for a given @p alphabet.
+ *
+ * The function returns a vector that contains the count for each k-mer that can be build from
+ * the characters in the given @p alphabet. The alphabet is normalized prior to processing, using
+ * normalize_codes(). Characters in the Sequence that are not in the alphabet are ignored.
+ *
+ * The resulting vector is indexed using the same order of k-mers as produced by kmer_list().
+ */
+std::vector<size_t> kmer_counts( Sequence const& seq, size_t k, std::string const& alphabet );
+
+/**
+ * @brief Return the list of all possible k-mers for a given @p k and @p alphabet.
+ *
+ * The order in this vector is the same as used in
+ * @link kmer_counts( Sequence const&, size_t k, std::string const& alphabet ) kmer_counts()@endlink.
+ */
+std::vector<std::string> kmer_list( size_t k, std::string const& alphabet );
 
 } // namespace sequence
 } // namespace genesis

@@ -77,12 +77,12 @@ std::string tail( std::string const& text, size_t lines = 10 );
 // =================================================================================================
 
 /**
- * @brief Return the number of non-overlapping occurrences of a substring in a string.
+ * @brief Return the number of (possibly overlapping) occurrences of a substring in a string.
  */
 size_t count_substring_occurrences( std::string const& str, std::string const& sub );
 
 /**
- * @brief Spilt a string int parts, given a set of delimiter chars.
+ * @brief Spilt a string into parts, given a set of delimiter chars.
  *
  * The string `str` is split using any of the chars in `delimiters` and returned as a vector
  * of strings. If `trim_empty` is set, empty strings resulting from adjacent delimiter chars are

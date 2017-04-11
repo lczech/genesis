@@ -148,7 +148,7 @@ public:
 
     std::vector<Point> const& centroids() const
     {
-        return assignments_;
+        return centroids_;
     }
 
     Kmeans& centroids( std::vector<Point> const& value )
@@ -304,11 +304,12 @@ protected:
         std::vector<Point> const& centroids,
         Point const&              datum
     ) const {
-        size_t min_i;
+        size_t min_i = std::numeric_limits<size_t>::max();
         double min_d = std::numeric_limits<double>::max();
 
+        assert( centroids.size() > 0 );
         for( size_t i = 0; i < centroids.size(); ++i ) {
-            auto dist = distance( datum, centroids[i] );
+            auto const dist = distance( datum, centroids[i] );
             if( dist < min_d ) {
                 min_i = i;
                 min_d = dist;

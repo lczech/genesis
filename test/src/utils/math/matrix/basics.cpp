@@ -139,3 +139,24 @@ TEST(Matrix, Ostream)
     s << m;
     EXPECT_EQ("1 2\n3 4\n", s.str());
 }
+
+TEST( Matrix, TriangularIndices )
+{
+    size_t const n = 1000;
+    size_t k = 0;
+
+    for( size_t i = 0; i < n; ++i ) {
+        for( size_t j = i+1; j < n; ++j ) {
+            auto p = triangular_indices( k, n );
+            auto k2 = triangular_index( i, j, n );
+
+            ASSERT_EQ( i, p.first );
+            ASSERT_EQ( j, p.second );
+            ASSERT_EQ( k, k2 );
+
+            ++k;
+        }
+    }
+
+    ASSERT_EQ( triangular_size( n ), k );
+}

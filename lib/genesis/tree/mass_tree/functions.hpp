@@ -157,6 +157,11 @@ void mass_tree_clear_masses( MassTree& tree );
 void mass_tree_reverse_signs( MassTree& tree );
 
 /**
+ * @brief Scale all masses of a ::MassTree with the multiplicative factor @p factor.
+ */
+void mass_tree_scale_masses( MassTree& tree, double factor );
+
+/**
  * @brief Scale all masses of a ::MassTree so that they sum up to `1.0`.
  */
 void mass_tree_normalize_masses( MassTree& tree );
@@ -176,6 +181,14 @@ double mass_tree_center_masses_on_branches( MassTree& tree );
 // =================================================================================================
 //     Others
 // =================================================================================================
+
+/**
+ * @brief Return a `std::vector` that contains the total @link MassTreeEdgeData::masses Mass@endlink
+ * for each @link ::MassTreeEdge edge@endlink of the given @link ::MassTree MassTree@endlink.
+ *
+ * The vector is indexed using the @link MassTreeEdge::index() index@endlink of the edges.
+ */
+std::vector<double> mass_tree_mass_per_edge( MassTree const& tree );
 
 /**
  * @brief Return the total sum of all masses on the ::MassTree.

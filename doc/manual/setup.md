@@ -16,17 +16,17 @@ The code is written as a C++11 library. It can thus be used in custom projects b
 the necessary headers and linking against the binary (either shared or static, see section
 @ref setup_build).
 
-A common use case of genesis are small programs for a certain limited purpose, e.g., project related
+A common use case of Genesis are small programs for a certain limited purpose, e.g., project related
 analyses. Usually, scripts are used for such purposes. However, C++ is not a scripting language.
 In order to still provide a quick and easy way for multiple small script-like programs in C++,
-we provide the so-called genesis apps. See section @ref setup_apps.
+we provide the so-called Genesis apps. See section @ref setup_apps.
 
 <!--
-In addition to C++, the classes and functions are (mostly) exported to Python. The genesis module
+In addition to C++, the classes and functions are (mostly) exported to Python. The Genesis module
 can be imported and used as any other Python module. See section @ref setup_python.
 -->
 
-Currently, we only test and use genesis on Linux systems. It is tested with Ubuntu 12.04 and 14.04,
+Currently, we only test and use Genesis on Linux systems. It is tested with Ubuntu 12.04 and 14.04,
 as well as CentOS 6.3. If you are using a different operating system, you can either try yourself,
 or use a virtual machine. In the future, we hope to support more systems out of the box.
 Please report any issues, questions or solutions to our
@@ -48,7 +48,7 @@ commits are pushed to the GitHub repository, you can call
 
     git pull
 
-from within the `genesis` directory to get them. Don't forget to build genesis again after pulling
+from within the `genesis` directory to get them. Don't forget to build Genesis again after pulling
 (see next section for details).
 We recommend this method, as this is the easiest way to get new features, bug fixes etc.
 
@@ -57,11 +57,11 @@ Furthermore, if you want to contribute code of your own, you can also
 
 # Build {#setup_build}
 
-To build all of genesis, call
+To build all of Genesis, call
 
     make
 
-in the main directory. This builds all parts of genesis for which the dependencies are fulfilled.
+in the main directory. This builds all parts of Genesis for which the dependencies are fulfilled.
 
 Requirements:
 
@@ -84,19 +84,6 @@ Optional:
     We internally run the tests before every release, so you don't need to. Have a look at the
     `genesis/test` directory for more information.
 
-Build output:
-
- *  `genesis/bin/libgenesis.[so|a]`: Shared and static binaries of the library. Those are the files you
-    need to link against when using genesis as a library for your own C++ projects.
-    By default, only the shared lib (`.so`) is build. If you need the static lib, use the option
-    flag `BUILD_STATIC_LIB` of the main cmake script.
- *  `genesis/bin/apps/*`: App executables are stored here. See section @ref setup_apps.
-<!--
- *  `genesis/bin/python/genesis.so`: Python module file. See section @ref setup_python.
--->
- *  `genesis/bin/test/genesis_tests`: Test executable. See `genesis/test/README.md` for more information.
- *  `genesis/build`: Intermediate build files. No need to worry about them too much.
-
 If you just pulled new commits from the repository, or added new files to be compiled
 (either an app, some lib function, <!--Python bindings,--> or tests), you can call
 
@@ -110,7 +97,7 @@ See @ref supplement_build_process for more information on incremental builds.
 The `genesis/apps` directory is provided for conveniently and quickly developing small C++ applications
 which use genesis as their main library. This is a way of using C++ similar to a scripting language.
 Thus, it is useful if you want to try out the @ref tutorials and @ref demos or if you quickly want
-to test an idea or get some experience with genesis.
+to test an idea or get some experience with Genesis.
 
 <!--
 Reasons to use this method (instead of the genesis Python bindings) include:
@@ -139,7 +126,7 @@ all of Genesis) and write the desired functionality. Of course, you can use othe
 in addition to the main function in order to structure your code.
 
 The app is automatically compiled by the main build process and linked against the shared library
-version of genesis by calling
+version of Genesis by calling
 
     make update
 
@@ -159,8 +146,8 @@ the Apps.
 The apps are only a convenience for users. Genesis can of course also be used like any
 other C++ library by including its headers and linking against its binaries.
 
-If you include genesis in bigger projects which are separately compiled, you need to make sure to
-use compatible options for compiling the genesis binaries. For example, if you want to link against
+If you include Genesis in bigger projects which are separately compiled, you need to make sure to
+use compatible options for compiling the Genesis binaries. For example, if you want to link against
 the shared library, the settings for threads (e.g., Pthreads) need to be the same for every
 compilation unit. See the main Cmake script for the available compiler options.
 
@@ -196,15 +183,15 @@ print genesis.utils.genesis_header()
 ~~~
 
 We recommend to use an interactive Python shell like [IPython](https://ipython.org/) or
-[bpython](http://bpython-interpreter.org/) in order to discover the functionality of genesis.
+[bpython](http://bpython-interpreter.org/) in order to discover the functionality of Genesis.
 
-**Important remark:** At the moment, most, but not all functionality of genesis is exported to
+**Important remark:** At the moment, most, but not all functionality of Genesis is exported to
 Python. This is mainly due to the fact that the library is developed by a C++ advocate. Well, also
 because there are some limits for the interoperability between Python and C++, e.g., regarding C++
 concepts like streams, const correctness and templates. This make exporting certain functions
 more difficult than others.
 
-If you find yourself in need of a function of genesis that is not yet available via the Python
+If you find yourself in need of a function of Genesis that is not yet available via the Python
 interface, please
 [open an issue on our GitHub page](https://github.com/lczech/genesis/issues). This helps us in
 prioritizing the most needed aspects.

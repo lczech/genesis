@@ -122,10 +122,6 @@ void EuclideanKmeans::update_centroids(
         centroids = std::vector<Point>( k, Point( dimensions_, 0.0 ) );
         auto counts = std::vector<size_t>( k, 0 );
 
-        // This function is only called from within the run() function, which already
-        // checks this condition. So, simply assert it here, instead of throwing.
-        assert( data.size() == assignments.size() );
-
         // Work through the data and assigments and accumulate.
         for( size_t i = 0; i < data.size(); ++i ) {
 

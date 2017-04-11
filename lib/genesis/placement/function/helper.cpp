@@ -35,6 +35,8 @@
 #include "genesis/tree/iterator/postorder.hpp"
 #include "genesis/utils/core/logging.hpp"
 
+#include <algorithm>
+#include <cassert>
 #include <limits>
 
 namespace genesis {
@@ -186,6 +188,29 @@ void reset_edge_nums( PlacementTree& tree )
 
         it.edge().data<PlacementEdgeData>().reset_edge_num( current );
         ++current;
+    }
+}
+
+bool has_consecutive_edge_nums( PlacementTree const& tree )
+{
+    // List all edge nums.
+    auto order = std::vector<int>();
+    for( auto const& edge : tree.edges() ) {
+        order.push_back( edge->data<PlacementEdgeData>().edge_num() );
+    }
+
+    // Sort them and use unique to see wether there are duplicates.
+    std::sort( order.begin(), order.end() );
+    if( std::unique( order.begin(), order.end() ) != order.end() ) {
+        return false;
+    }
+
+    // Now check whether they are consecutive and start at 0.
+    if( order.empty() ) {
+        return true;
+    } else {
+        assert( order.size() >= 1 );
+        return order.front() == 0 && order.back() == static_cast<int>( order.size() - 1 );
     }
 }
 
