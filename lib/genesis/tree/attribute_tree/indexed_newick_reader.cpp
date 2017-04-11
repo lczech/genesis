@@ -61,7 +61,7 @@ IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::
     return *this;
 }
 
-IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::add_catch_all_attribute(
+IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::add_catch_all(
     Source             source,
     Target             target,
     std::string const& target_key_prefix
@@ -70,12 +70,12 @@ IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::
     return *this;
 }
 
-IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::add_catch_all_attributes(
+IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::add_catch_all(
     Target target
 ) {
-    add_catch_all_attribute( Source::kComment, target, "comment_" );
-    add_catch_all_attribute( Source::kTag,     target, "tag_" );
-    add_catch_all_attribute( Source::kValue,   target, "value_" );
+    add_catch_all( Source::kComment, target, "comment_" );
+    add_catch_all( Source::kTag,     target, "tag_" );
+    add_catch_all( Source::kValue,   target, "value_" );
     return *this;
 }
 

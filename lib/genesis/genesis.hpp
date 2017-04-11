@@ -94,6 +94,9 @@
 #include "genesis/taxonomy/taxonomy.hpp"
 #include "genesis/taxonomy/taxopath.hpp"
 
+#include "genesis/tree/attribute_tree/indexed_newick_reader.hpp"
+#include "genesis/tree/attribute_tree/keyed_newick_reader.hpp"
+#include "genesis/tree/attribute_tree/tree.hpp"
 #include "genesis/tree/bipartition/bipartition.hpp"
 #include "genesis/tree/bipartition/bipartition_set.hpp"
 #include "genesis/tree/default/distances.hpp"

@@ -35,8 +35,6 @@
 #include "genesis/tree/default/newick_reader.hpp"
 #include "genesis/tree/formats/newick/element.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
-#include "genesis/utils/core/std.hpp"
-#include "genesis/utils/text/string.hpp"
 
 #include <functional>
 #include <map>
@@ -73,7 +71,7 @@ namespace tree {
  * The class offers two ways to process and store these data:
  *
  *   * add_indexed_attribute()
- *   * add_catch_all_attribute() and add_catch_all_attributes()
+ *   * add_catch_all()
  *
  * See there for details.
  *
@@ -255,7 +253,7 @@ public:
      * we can store all comments at the tree Nodes using
      *
      *     IndexedAttributeTreeNewickReader reader;
-     *     reader.add_catch_all_attribute(
+     *     reader.add_catch_all(
      *         IndexedAttributeTreeNewickReader::Source::kComment,
      *         IndexedAttributeTreeNewickReader::Target::kNode,    "comment_"
      *     );
@@ -266,6 +264,7 @@ public:
      *
      * Remark: This will store all data at either the Nodes or Edges of the Tree. This can lead
      * to problems if some of the data actually belongs to the other element (Edges or Nodes).
+     * In these cases, better set the capturing explicitly, using add_indexed_attribute().
      *
      * @param source            Input Newick element to take the data from. One of `kComment`,
      *                          `kValue` or `kTag`.
@@ -273,7 +272,7 @@ public:
      * @param target_key_prefix Prefix for the target key, to which a sequential number according
      *                          to the index of the data is appended.
      */
-    self_type& add_catch_all_attribute(
+    self_type& add_catch_all(
         Source             source,
         Target             target,
         std::string const& target_key_prefix
@@ -282,7 +281,7 @@ public:
     /**
      * @brief Store all Newick data in an #AttributeTreeMap.
      *
-     * This is a simplification of add_catch_all_attribute(), which adds three catch-alls for
+     * This is a simplification of add_catch_all(), which adds three catch-alls for
      * the Newick comments, values and tags at once. It uses `comment_`, `value_` and `tag_` as
      * key prefix, respectively. The function is meant for the most general use case, where we want
      * to capture all Newick data and store it in an #AttributeTree.
@@ -290,7 +289,7 @@ public:
      * @param target Optional parameter that can be used to specify where to store the data; default
      *               is to store it at the Tree Nodes.
      */
-    self_type& add_catch_all_attributes( Target target = Target::kNode );
+    self_type& add_catch_all( Target target = Target::kNode );
 
     // -------------------------------------------------------------------------
     //     Plugin Functions

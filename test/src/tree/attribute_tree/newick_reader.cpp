@@ -32,16 +32,55 @@
 
 #include "genesis/tree/attribute_tree/tree.hpp"
 #include "genesis/tree/attribute_tree/indexed_newick_reader.hpp"
-// #include "genesis/tree/attribute_tree/keyed_newick_reader.hpp"
+#include "genesis/tree/attribute_tree/keyed_newick_reader.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/tree.hpp"
 
 #include <algorithm>
 #include <string>
+#include <utility>
 
 using namespace genesis;
 using namespace tree;
+
+std::pair<size_t, size_t> count_attribute_tree_data( AttributeTree const& tree )
+{
+    size_t node_attr_cnt = 0;
+    for( auto const& node : tree.nodes() ) {
+        auto const& data = node->data<AttributeTreeNodeData>();
+        node_attr_cnt += data.attributes.size();
+    }
+
+    size_t edge_attr_cnt = 0;
+    for( auto const& edge : tree.edges() ) {
+        auto const& data = edge->data<AttributeTreeEdgeData>();
+        edge_attr_cnt += data.attributes.size();
+    }
+
+    return { node_attr_cnt, edge_attr_cnt };
+}
+
+void print_attribute_tree_data( AttributeTree const& tree )
+{
+    LOG_DBG << "Nodes";
+    for( auto const& node : tree.nodes() ) {
+        auto const& data = node->data<AttributeTreeNodeData>();
+        LOG_DBG1 << "node " << data.name;
+        for( auto const& m : data.attributes ) {
+            LOG_DBG2 << m.first << " --> " << m.second;
+        }
+    }
+
+    LOG_DBG << "Edges";
+    for( auto const& edge : tree.edges() ) {
+        auto const& data = edge->data<AttributeTreeEdgeData>();
+        LOG_DBG1 << "edge";
+        for( auto const& m : data.attributes ) {
+            LOG_DBG2 << m.first << " --> " << m.second;
+        }
+    }
+}
 
 TEST( AttributeTree, IndexedNewickReaderIndex )
 {
@@ -59,37 +98,11 @@ TEST( AttributeTree, IndexedNewickReaderIndex )
 
     auto tree = reader.from_file( infile );
 
-    size_t node_attr_cnt = 0;
-    for( auto const& node : tree.nodes() ) {
-        auto const& data = node->data<AttributeTreeNodeData>();
-        node_attr_cnt += data.attributes.size();
-    }
+    auto counts = count_attribute_tree_data( tree );
+    EXPECT_EQ( 0, counts.first );
+    EXPECT_EQ( 3, counts.second );
 
-    size_t edge_attr_cnt = 0;
-    for( auto const& edge : tree.edges() ) {
-        auto const& data = edge->data<AttributeTreeEdgeData>();
-        edge_attr_cnt += data.attributes.size();
-    }
-
-    EXPECT_EQ( 0, node_attr_cnt );
-    EXPECT_EQ( 3, edge_attr_cnt );
-
-    // LOG_DBG << "Nodes";
-    // for( auto const& node : tree.nodes() ) {
-    //     auto const& data = node->data<AttributeTreeNodeData>();
-    //     LOG_DBG1 << "node " << data.name;
-    //     for( auto const& m : data.attributes ) {
-    //         LOG_DBG1 << m.first << " --> " << m.second;
-    //     }
-    // }
-    //
-    // LOG_DBG << "Edges";
-    // for( auto const& edge : tree.edges() ) {
-    //     auto const& data = edge->data<AttributeTreeEdgeData>();
-    //     for( auto const& m : data.attributes ) {
-    //         LOG_DBG1 << m.first << " --> " << m.second;
-    //     }
-    // }
+    // print_attribute_tree_data( tree );
 }
 
 TEST( AttributeTree, IndexedNewickReaderCatchAll )
@@ -101,7 +114,7 @@ TEST( AttributeTree, IndexedNewickReaderCatchAll )
     std::string infile = environment->data_dir + "tree/indexed_attributes_1.newick";
 
     IndexedAttributeTreeNewickReader reader;
-    reader.add_catch_all_attribute(
+    reader.add_catch_all(
         IndexedAttributeTreeNewickReader::Source::kComment,
         IndexedAttributeTreeNewickReader::Target::kEdge,    "comment_"
     );
@@ -120,6 +133,67 @@ TEST( AttributeTree, IndexedNewickReaderCatchAll )
         edge_attr_cnt += data.attributes.size();
     }
 
-    EXPECT_EQ(  0, node_attr_cnt );
-    EXPECT_EQ( 12, edge_attr_cnt );
+    auto counts = count_attribute_tree_data( tree );
+    EXPECT_EQ(  0, counts.first );
+    EXPECT_EQ( 12, counts.second );
+}
+
+TEST( AttributeTree, KeyedNewickReaderKeys )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read and process tree.
+    std::string infile = environment->data_dir + "tree/keyed_attributes_0.newick";
+
+    KeyedAttributeTreeNewickReader reader;
+    reader.add_keyed_attribute( "bs", KeyedAttributeTreeNewickReader::Target::kEdge );
+    reader.add_keyed_attribute( "!color", KeyedAttributeTreeNewickReader::Target::kEdge, "color" );
+
+    auto tree = reader.from_file( infile );
+
+    auto counts = count_attribute_tree_data( tree );
+    EXPECT_EQ( 0, counts.first );
+    EXPECT_EQ( 4, counts.second );
+}
+
+TEST( AttributeTree, KeyedNewickReaderCatchAll )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read and process tree.
+    std::string infile = environment->data_dir + "tree/keyed_attributes_0.newick";
+
+    KeyedAttributeTreeNewickReader reader;
+    reader.add_catch_all( KeyedAttributeTreeNewickReader::Target::kEdge );
+
+    auto tree = reader.from_file( infile );
+
+    auto counts = count_attribute_tree_data( tree );
+    EXPECT_EQ( 0, counts.first );
+    EXPECT_EQ( 4, counts.second );
+
+    // print_attribute_tree_data( tree );
+}
+
+TEST( AttributeTree, KeyedNewickReaderNHX )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Read and process tree.
+    std::string infile = environment->data_dir + "tree/keyed_attributes_1.newick";
+
+    KeyedAttributeTreeNewickReader reader;
+    reader.add_nhx_attributes();
+    // reader.add_catch_all( KeyedAttributeTreeNewickReader::Target::kNode );
+
+    auto tree = reader.from_file( infile );
+
+    auto counts = count_attribute_tree_data( tree );
+    EXPECT_EQ( 25, counts.first );
+    EXPECT_EQ(  1, counts.second );
+
+    // print_attribute_tree_data( tree );
 }
