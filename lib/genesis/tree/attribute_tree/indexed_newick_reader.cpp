@@ -40,7 +40,7 @@ namespace tree {
 //     Settings
 // =================================================================================================
 
-IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::add_indexed_attribute(
+IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::add_attribute(
     Source             source,
     size_t             index,
     Target             target,
@@ -50,7 +50,7 @@ IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::
     return *this;
 }
 
-IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::add_indexed_attribute(
+IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::add_attribute(
     Source             source,
     size_t             index,
     Target             target,
@@ -77,6 +77,12 @@ IndexedAttributeTreeNewickReaderPlugin& IndexedAttributeTreeNewickReaderPlugin::
     add_catch_all( Source::kTag,     target, "tag_" );
     add_catch_all( Source::kValue,   target, "value_" );
     return *this;
+}
+
+void IndexedAttributeTreeNewickReaderPlugin::clear()
+{
+    indexed_attributes_.clear();
+    catch_all_attributes_.clear();
 }
 
 // =================================================================================================

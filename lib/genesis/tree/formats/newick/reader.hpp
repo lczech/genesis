@@ -276,19 +276,6 @@ public:
     ) const;
 
     // -------------------------------------------------------------------------
-    //     Plugin Functions
-    // -------------------------------------------------------------------------
-
-    std::vector<prepare_reading_function> prepare_reading_plugins;
-    std::vector<finish_reading_function>  finish_reading_plugins;
-
-    create_node_data_function create_node_data_plugin;
-    create_edge_data_function create_edge_data_plugin;
-
-    std::vector<element_to_node_function> element_to_node_plugins;
-    std::vector<element_to_edge_function> element_to_edge_plugins;
-
-    // -------------------------------------------------------------------------
     //     Settings
     // -------------------------------------------------------------------------
 
@@ -347,6 +334,19 @@ public:
     bool stop_at_semicolon() const;
 
     // -------------------------------------------------------------------------
+    //     Plugin Functions
+    // -------------------------------------------------------------------------
+
+    std::vector<prepare_reading_function> prepare_reading_plugins;
+    std::vector<finish_reading_function>  finish_reading_plugins;
+
+    create_node_data_function create_node_data_plugin;
+    create_edge_data_function create_edge_data_plugin;
+
+    std::vector<element_to_node_function> element_to_node_plugins;
+    std::vector<element_to_edge_function> element_to_edge_plugins;
+
+    // -------------------------------------------------------------------------
     //     Internal Member Functions
     // -------------------------------------------------------------------------
 
@@ -356,7 +356,7 @@ private:
      * @brief Parse a single tree. Depending on stop_at_semicolon(), stop after the semicolon
      * or continue until the end of the input, checking if there are only comments.
      */
-    Tree parse_single_tree( utils::InputStream& input_stream ) const;
+    Tree parse_single_tree_( utils::InputStream& input_stream ) const;
 
     /**
      * @brief Parse until the end of the stream and add all Tree%s to the TreeSet.

@@ -52,6 +52,9 @@ namespace tree {
  * @brief Provide a set of plugin functions for NewickReader to read key-value-pair data attributes
  * into an #AttributeTree.
  *
+ * This class is a plugin that adds functionality to a NewickReader. The easiest way to use it is to
+ * instanciate a KeyedAttributeTreeNewickReader, which combines a NewickReader with this plugin.
+ *
  * The class can be used to read Newick trees that contain additional data in Newick comments, if
  * this data is structured into key-value-pairs, e.g.,
  *
@@ -62,7 +65,7 @@ namespace tree {
  *
  * The class offers two ways to process and store these data:
  *
- *   * add_keyed_attribute()
+ *   * add_attribute()
  *   * add_catch_all()
  *
  * Furthermore, it offers simple support for the New Hampshire eXtended (NHX) format, see
@@ -123,27 +126,30 @@ public:
     /**
      * @brief Store values of a @p key at a @p target (i.e., Node or Edge).
      *
-     * This is a simple form which uses the same key for the source (Newick comment) and target
-     * (Node or Edge), and does not use a default value, i.e., if the key is not found, no value
-     * is added to the target.
-     *
      * For example, using the Newick tree
      *
      *     ((C,D)[&!color=#009966],(A,(B,X)[&bs=82,!color=#137693])[&bs=70],E);
      *
-     * we can read the bootstrap support values (`bs`) like this:
+     * we can read the bootstrap support values (`bs`) and store them at the Edges like this:
      *
-     *     KeyedAttributeTreeNewickReader reader;
-     *     reader.add_keyed_attribute( "bs", KeyedAttributeTreeNewickReader::Target::kEdge );
+     * ~~~{.cpp}
+     * KeyedAttributeTreeNewickReader reader;
+     * reader.add_attribute( "bs", KeyedAttributeTreeNewickReader::Target::kEdge );
+     * auto tree = reader.from_file( "path/to/tree.newick" );
+     * ~~~
      *
-     * See add_keyed_attribute( std::string const&, Target, std::string const&, std::string const& )
-     * for details.
+     * This is a simple form which uses the same key for the source (Newick comment) and target
+     * (Node or Edge), and does not use a default value, i.e., if the key is not found, no value
+     * is added to the target.
+     *
+     * See @link add_attribute( std::string const&, Target, std::string const&, std::string const& )
+     * add_attribute( source_key, target, target_key )@endlink for more details.
      *
      * @param key    Key of a key-value-pair. If found in the source Newick comment, the value is
      *               added to the target Node or Edge, using the same key.
      * @param target Target Tree element to store the data at. Either `kNode` or `kEdge`.
      */
-    self_type& add_keyed_attribute(
+    self_type& add_attribute(
         std::string const& key,
         Target             target
     );
@@ -158,8 +164,11 @@ public:
      *
      * we can read the color values (`!color`) like this:
      *
-     *     KeyedAttributeTreeNewickReader reader;
-     *     reader.add_keyed_attribute( "!color", KeyedAttributeTreeNewickReader::Target::kEdge, "color" );
+     *  ~~~{.cpp}
+     * KeyedAttributeTreeNewickReader reader;
+     * reader.add_attribute( "!color", KeyedAttributeTreeNewickReader::Target::kEdge, "color" );
+     * auto tree = reader.from_file( "path/to/tree.newick" );
+     * ~~~
      *
      * which stores the values under the key `color` (without the leading exclamation mark).
      *
@@ -167,8 +176,8 @@ public:
      * no value is added to the target.
      *
      * Also, see
-     * add_keyed_attribute( std::string const&, Target, std::string const&, std::string const& )
-     * for details.
+     * @link add_attribute( std::string const&, Target, std::string const&, std::string const& )
+     * add_attribute( source_key, target, target_key, default_value )@endlink for details.
      *
      * @param source_key Source key of a key-value-pair. If found in the source Newick comment, the
      *                   value is added to the target Node or Edge, using the @p target_key.
@@ -176,7 +185,7 @@ public:
      * @param target_key Target key, used to store a value, if the @p source_key is found in the
      *                   Newick comment.
      */
-    self_type& add_keyed_attribute(
+    self_type& add_attribute(
         std::string const& source_key,
         Target             target,
         std::string const& target_key
@@ -187,7 +196,8 @@ public:
      * @p target_key, and a @p default_value, if the key is not found in the source.
      *
      * This is the most flexible form of this function. It is similar to
-     * add_keyed_attribute( std::string const&, Target, std::string const& ), but additionally
+     * @link add_attribute( std::string const&, Target, std::string const& )
+     * add_attribute( source_key, target, target_key )@endlink, but additionally
      * used a default value, if the key is not found in the source Newick comment.
      *
      * @param source_key Source key of a key-value-pair. If found in the source Newick comment, the
@@ -197,7 +207,7 @@ public:
      * @param default_value Default value to be used if the source Newick comment does not contain
      *                      the @p source_key.
      */
-    self_type& add_keyed_attribute(
+    self_type& add_attribute(
         std::string const& source_key,
         Target             target,
         std::string const& target_key,
@@ -216,12 +226,15 @@ public:
      *
      * we can store all data at the tree Edges using
      *
-     *     KeyedAttributeTreeNewickReader reader;
-     *     reader.add_catch_all( KeyedAttributeTreeNewickReader::Target::kEdge );
+     *  ~~~{.cpp}
+     * KeyedAttributeTreeNewickReader reader;
+     * reader.add_catch_all( KeyedAttributeTreeNewickReader::Target::kEdge );
+     * auto tree = reader.from_file( "path/to/tree.newick" );
+     * ~~~
      *
      * Remark: This will store all data at either the Nodes or Edges of the Tree. This can lead
      * to problems if some of the data actually belongs to the other element (Edges or Nodes).
-     * In these cases, better explicitly set the captureing explicitly, using add_keyed_attribute().
+     * In these cases, better set the captureing explicitly, using add_attribute().
      */
     self_type& add_catch_all( Target target = Target::kNode );
 
@@ -252,7 +265,7 @@ public:
      *
      * If you need other NHX keys, want to use different keys for the target, or want to use default
      * values for keys that are not present in the Newick data, please use the normal
-     * add_keyed_attribute() functions or add_catch_all() instead.
+     * add_attribute() functions or add_catch_all() instead.
      * This is only meant to be a very basic simplification for supporting NHX.
      */
     self_type& add_nhx_attributes();
@@ -323,6 +336,7 @@ public:
     {
         return separator_;
     }
+
     /**
      * @brief Set the assign symbol between a key and its value.
      *
@@ -341,6 +355,30 @@ public:
     {
         return assigner_;
     }
+
+    /**
+     * @brief Set whether to trim keys and values before storing them in the Tree.
+     *
+     * Default is `true`.
+     */
+    self_type& trim( bool value )
+    {
+        trim_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Get whether to trim keys and values before storing them in the Tree.
+     */
+    bool trim() const
+    {
+        return trim_;
+    }
+
+    /**
+     * @brief Reset all settings to the default and delete all attribute settings.
+     */
+    void clear();
 
     // -------------------------------------------------------------------------
     //     Plugin Functions
@@ -361,6 +399,18 @@ private:
     using KeyValuePair = std::pair<std::string, std::string>;
     using PairList     = std::vector<KeyValuePair>;
 
+    /**
+     * @brief Helper function that returns whether the given target is currently used.
+     *
+     * The function checks whether any of `keyed_attributes_` and `catch_all_attributes_` has a
+     * target equal to the given @p target. That is, it checks whether we want to place any
+     * data on the Nodes or Edges of the tree at all. Used for speedup.
+     */
+    bool has_attributes_for_target_( Target target ) const;
+
+    /**
+     * @brief Helper function that splits the data of a NewickBrokerElement into keys and values.
+     */
     PairList get_data_( NewickBrokerElement const& element ) const;
 
     void process_keyed_attributes_(
@@ -393,6 +443,8 @@ private:
     std::string prefix_    = "&";
     std::string separator_ = ",";
     std::string assigner_  = "=";
+
+    bool trim_ = true;
 
     std::vector<AttributeDescriptor> keyed_attributes_;
     std::vector<AttributeDescriptor> catch_all_attributes_;

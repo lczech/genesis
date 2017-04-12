@@ -60,19 +60,19 @@ namespace tree {
 Tree NewickReader::from_stream( std::istream& input_stream ) const
 {
     utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
-    return parse_single_tree( it );
+    return parse_single_tree_( it );
 }
 
 Tree NewickReader::from_file( std::string const& filename ) const
 {
     utils::InputStream it( utils::make_unique< utils::FileInputSource >( filename ));
-    return parse_single_tree( it );
+    return parse_single_tree_( it );
 }
 
 Tree NewickReader::from_string( std::string const& tree_string ) const
 {
     utils::InputStream it( utils::make_unique< utils::StringInputSource >( tree_string ));
-    return parse_single_tree( it );
+    return parse_single_tree_( it );
 }
 
 // =================================================================================================
@@ -133,7 +133,7 @@ void NewickReader::from_strings (
 //     Parse Single Tree
 // =================================================================================================
 
-Tree NewickReader::parse_single_tree( utils::InputStream& input_stream ) const
+Tree NewickReader::parse_single_tree_( utils::InputStream& input_stream ) const
 {
     // Parse tree into broker.
     auto broker = parse_tree_to_broker_( input_stream );

@@ -52,6 +52,9 @@ namespace tree {
  * @brief Provide a set of plugin functions for NewickReader to read ordered attributes of the
  * Nodes and Edges into an #AttributeTree.
  *
+ * This class is a plugin that adds functionality to a NewickReader. The easiest way to use it is to
+ * instanciate a IndexedAttributeTreeNewickReader, which combines a NewickReader with this plugin.
+ *
  * The class is useful for Newick trees that contain a fixed, ordered set of additional data stored
  * for the nodes and edges of the tree, e.g.,
  *
@@ -70,7 +73,7 @@ namespace tree {
  *
  * The class offers two ways to process and store these data:
  *
- *   * add_indexed_attribute()
+ *   * add_attribute()
  *   * add_catch_all()
  *
  * See there for details.
@@ -117,7 +120,7 @@ public:
         kComment,
 
         /**
-         * @brief Take data from Newick tags, i.e., `{42`.}
+         * @brief Take data from Newick tags, i.e., `{42}`.
          */
         kTag
     };
@@ -170,12 +173,14 @@ public:
      * To store these values in the @link AttributeTreeEdgeData::attributes attributes@endlink map
      * of the corresponding AttributeTreeEdgeData, we can use:
      *
-     *     IndexedAttributeTreeNewickReader reader;
-     *     reader.add_indexed_attribute(
-     *         IndexedAttributeTreeNewickReader::Source::kComment, 0,
-     *         IndexedAttributeTreeNewickReader::Target::kEdge,    "bootstrap"
-     *     );
-     *     auto tree = reader.from_file( "path/to/tree.newick" );
+     *  ~~~{.cpp}
+     * IndexedAttributeTreeNewickReader reader;
+     * reader.add_attribute(
+     *     IndexedAttributeTreeNewickReader::Source::kComment, 0,
+     *     IndexedAttributeTreeNewickReader::Target::kEdge,    "bootstrap"
+     * );
+     * auto tree = reader.from_file( "path/to/tree.newick" );
+     * ~~~
      *
      * This stores the Newick comment (such as "[0.1]" in the example) with index `0` (the first
      * one) at the corresponding Edge, using the key "bootstrap".
@@ -188,7 +193,7 @@ public:
      * nodes. That means, the @link NewickBrokerElement::comments comments@endlink of the
      * NewickBrokerElement is empty, so there is no index `0` in them.
      * If you want to use a default value in such cases, use
-     * add_indexed_attribute( Source, size_t, Target, std::string const&, std::string const& )
+     * add_attribute( Source, size_t, Target, std::string const&, std::string const& )
      * instead.
      *
      * @param source     Input Newick element to take the data from. One of `kComment`, `kValue` or
@@ -198,7 +203,7 @@ public:
      * @param target_key Target key to use for storing the data in the #AttributeTreeMap of
      *                   the Node or Edge, e.g., "bootstrap".
      */
-    self_type& add_indexed_attribute(
+    self_type& add_attribute(
         Source             source,
         size_t             index,
         Target             target,
@@ -210,7 +215,7 @@ public:
      * value if there is no data at that index.
      *
      * The function behaves the same as
-     * add_indexed_attribute( Source, size_t, Target, std::string const& ) in cases where the given
+     * add_attribute( Source, size_t, Target, std::string const& ) in cases where the given
      * index is found at a Newick element.
      *
      * However, in cases where there is no corresponding index in the Newick element data, this
@@ -232,7 +237,7 @@ public:
      *                      the Node or Edge, e.g., "bootstrap".
      * @param default_value Default value for Newick elements where there is no corresponding index.
      */
-    self_type& add_indexed_attribute(
+    self_type& add_attribute(
         Source             source,
         size_t             index,
         Target             target,
@@ -252,19 +257,21 @@ public:
      *
      * we can store all comments at the tree Nodes using
      *
-     *     IndexedAttributeTreeNewickReader reader;
-     *     reader.add_catch_all(
-     *         IndexedAttributeTreeNewickReader::Source::kComment,
-     *         IndexedAttributeTreeNewickReader::Target::kNode,    "comment_"
-     *     );
-     *     auto tree = reader.from_file( "path/to/tree.newick" );
+     * ~~~{.cpp}
+     * IndexedAttributeTreeNewickReader reader;
+     * reader.add_catch_all(
+     *     IndexedAttributeTreeNewickReader::Source::kComment,
+     *     IndexedAttributeTreeNewickReader::Target::kNode,    "comment_"
+     * );
+     * auto tree = reader.from_file( "path/to/tree.newick" );
+     * ~~~
      *
      * The resulting tree has attributes at the inner nodes, with the key `comment_0` and the values
      * `inner_A`, `inner_B` and `inner_C`, respectively.
      *
      * Remark: This will store all data at either the Nodes or Edges of the Tree. This can lead
      * to problems if some of the data actually belongs to the other element (Edges or Nodes).
-     * In these cases, better set the capturing explicitly, using add_indexed_attribute().
+     * In these cases, better set the capturing explicitly, using add_attribute().
      *
      * @param source            Input Newick element to take the data from. One of `kComment`,
      *                          `kValue` or `kTag`.
@@ -290,6 +297,11 @@ public:
      *               is to store it at the Tree Nodes.
      */
     self_type& add_catch_all( Target target = Target::kNode );
+
+    /**
+     * @brief Reset all settings to the default, i.e., delete all attribute settings.
+     */
+    void clear();
 
     // -------------------------------------------------------------------------
     //     Plugin Functions

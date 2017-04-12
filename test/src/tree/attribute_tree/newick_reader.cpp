@@ -91,7 +91,7 @@ TEST( AttributeTree, IndexedNewickReaderIndex )
     std::string infile = environment->data_dir + "tree/indexed_attributes_0.newick";
 
     IndexedAttributeTreeNewickReader reader;
-    reader.add_indexed_attribute(
+    reader.add_attribute(
         IndexedAttributeTreeNewickReader::Source::kComment, 0,
         IndexedAttributeTreeNewickReader::Target::kEdge,    "bootstrap"
     );
@@ -147,8 +147,8 @@ TEST( AttributeTree, KeyedNewickReaderKeys )
     std::string infile = environment->data_dir + "tree/keyed_attributes_0.newick";
 
     KeyedAttributeTreeNewickReader reader;
-    reader.add_keyed_attribute( "bs", KeyedAttributeTreeNewickReader::Target::kEdge );
-    reader.add_keyed_attribute( "!color", KeyedAttributeTreeNewickReader::Target::kEdge, "color" );
+    reader.add_attribute( "bs",     KeyedAttributeTreeNewickReader::Target::kEdge );
+    reader.add_attribute( "!color", KeyedAttributeTreeNewickReader::Target::kEdge, "color" );
 
     auto tree = reader.from_file( infile );
 
