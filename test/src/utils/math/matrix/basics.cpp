@@ -159,4 +159,184 @@ TEST( Matrix, TriangularIndices )
     }
 
     ASSERT_EQ( triangular_size( n ), k );
+
+    // I totally mistrusted those weird double conversions done in the triangular index functions.
+    // They are dealing with integer numbers, and are meant for indices. Using doubles just feels
+    // so wrong (but necessary, because of the math involved).
+    //
+    // Anyway, to gain some trust in them, I ran experiements. I can now confirm that they work
+    // for ALL matrix sizes < 65,000 (i.e., 65k rows times 65k columns), and for matrices of
+    // the sizes 1,000,000, 2,000,000 and 4,000,000. This seems to be enough.
+    //
+    // Below are the programs used for those tests.
 }
+
+// =================================================================================================
+//     Test Triangular Indices For All Matrix Sizes.
+// =================================================================================================
+
+/*
+#include "genesis/genesis.hpp"
+
+#include <fstream>
+#include <string>
+#include <unordered_map>
+
+using namespace genesis;
+using namespace genesis::utils;
+
+int main( int argc, char** argv )
+{
+    // Activate logging.
+    utils::Logging::log_to_stdout();
+    utils::Logging::log_to_file( "triangular.log" );
+    utils::Logging::details.time = true;
+
+    size_t const num_threads = 4;
+
+    utils::Options::get().command_line( argc, argv );
+    utils::Options::get().number_of_threads( num_threads );
+    LOG_BOLD << utils::Options::get().info();
+    LOG_BOLD;
+
+    LOG_INFO << "Started";
+
+    size_t m = 0;
+    size_t err = 0;
+
+    while( true ) {
+        if( m % 1000 == 0 ) {
+            LOG_INFO << "At m " << m;
+        }
+
+        #pragma omp parallel for
+        for( size_t t = 0; t < num_threads; ++t ) {
+            size_t const n = m + t;
+            size_t k = 0;
+
+            for( size_t i = 0; i < n; ++i ) {
+                for( size_t j = i+1; j < n; ++j ) {
+                    auto p = triangular_indices( k, n );
+
+                    if( i != p.first ) {
+                        #pragma omp critical(log_error)
+                        {
+                            LOG_WARN << "Error at n=" << n << ", i=" << i << ", j=" << j << ": i!=p.first=" << p.first;
+                            ++err;
+                        }
+                    }
+                    if( j != p.second ) {
+                        #pragma omp critical(log_error)
+                        {
+                            LOG_WARN << "Error at n=" << n << ", i=" << i << ", j=" << j << ": j!=p.second=" << p.second;
+                            ++err;
+                        }
+                    }
+                    if( k != triangular_index( i, j, n ) ) {
+                        #pragma omp critical(log_error)
+                        {
+                            LOG_WARN << "Error at n=" << n << ", i=" << i << ", j=" << j << ": k="
+                                     << k << "!=triangular_index( i, j, n )=" << triangular_index( i, j, n );
+                            ++err;
+                        }
+                    }
+
+                    ++k;
+                }
+            }
+
+            if( triangular_size( n ) !=  k ){
+                #pragma omp critical(log_error)
+                {
+                    LOG_WARN << "Error at n=" << n << ": k=" << k << "!=triangular_size( n )=" << triangular_size( n );
+                    ++err;
+                }
+            }
+        }
+
+        if( err > 100 ) {
+            break;
+        }
+
+        m += 4;
+    }
+
+    LOG_INFO << "Finished";
+    return 0;
+}
+*/
+
+// =================================================================================================
+//     Test Triangular Indices For Some Really Big Matrix Sizes.
+// =================================================================================================
+
+/*
+#include "genesis/genesis.hpp"
+
+#include <fstream>
+#include <string>
+#include <unordered_map>
+
+using namespace genesis;
+using namespace genesis::utils;
+
+int main( int argc, char** argv )
+{
+    // Activate logging.
+    utils::Logging::log_to_stdout();
+    utils::Logging::log_to_file( "triangular2.log" );
+    utils::Logging::details.time = true;
+
+
+    utils::Options::get().command_line( argc, argv );
+    LOG_BOLD << utils::Options::get().info();
+    LOG_BOLD;
+
+    LOG_INFO << "Started";
+
+    size_t n = 1000000;
+    size_t err = 0;
+
+    while( true ) {
+        LOG_INFO << "At n " << n;
+
+        size_t k = 0;
+
+        for( size_t i = 0; i < n; ++i ) {
+            for( size_t j = i+1; j < n; ++j ) {
+                auto p = triangular_indices( k, n );
+
+                if( i != p.first ) {
+                    LOG_WARN << "Error at n=" << n << ", i=" << i << ", j=" << j << ": i!=p.first=" << p.first;
+                    ++err;
+                }
+                if( j != p.second ) {
+                    LOG_WARN << "Error at n=" << n << ", i=" << i << ", j=" << j << ": j!=p.second=" << p.second;
+                    ++err;
+                }
+                if( k != triangular_index( i, j, n ) ) {
+                    LOG_WARN << "Error at n=" << n << ", i=" << i << ", j=" << j << ": k="
+                             << k << "!=triangular_index( i, j, n )=" << triangular_index( i, j, n );
+                    ++err;
+                }
+
+                ++k;
+            }
+        }
+
+        if( triangular_size( n ) !=  k ){
+            LOG_WARN << "Error at n=" << n << ": k=" << k << "!=triangular_size( n )=" << triangular_size( n );
+            ++err;
+        }
+
+        if( err > 100 ) {
+            break;
+        }
+
+        n *= 2;
+    }
+
+    LOG_INFO << "Finished";
+    return 0;
+}
+*/
