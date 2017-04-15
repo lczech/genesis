@@ -95,7 +95,7 @@ TEST( Math, Kmeans )
     // LOG_DBG << "Run Kmeans with " << data.size() << " points";
 
     auto kmeans = EuclideanKmeans( 2 );
-    kmeans.initialization_strategy( EuclideanKmeans::InitializationStrategy::kCentroidsPlusPlus );
+    kmeans.initialization_strategy( EuclideanKmeans::InitializationStrategy::kKmeansPlusPlus );
     kmeans.run( data, 3 );
 
     // -------------------------------------------------------------------------

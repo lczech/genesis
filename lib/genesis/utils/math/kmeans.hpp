@@ -35,6 +35,7 @@
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/math/random.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <cstddef>
 #include <functional>
@@ -42,6 +43,7 @@
 #include <random>
 #include <stdexcept>
 #include <string>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -74,15 +76,26 @@ public:
     {
         kRandomAssignments,
         kRandomCentroids,
-        kCentroidsPlusPlus,
+        kKmeansPlusPlus,
         kNone
+    };
+
+    /**
+     * @brief Helper POD that stores the variances and number of data points of each centroid,
+     * as well as the distances from all data points to their assigned centroids.
+     */
+    struct ClusteringInfo
+    {
+        std::vector<double> variances;
+        std::vector<size_t> counts;
+        std::vector<double> distances;
     };
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
-    Kmeans()  = default;
+    Kmeans() = default;
     virtual ~Kmeans() = default;
 
     Kmeans( Kmeans const& ) = default;
@@ -121,6 +134,15 @@ public:
 
             // Check again.
             runtime_checks_( data, k );
+
+            // Check if there are empty centroids, and if so, treat them.
+            auto const empty_centroids = get_empty_centroids_();
+            if( ! empty_centroids.empty() ) {
+                LOG_INFO << "Empty centroid occurred: " << empty_centroids.size();
+                changed_assigment |= treat_empty_centroids(
+                    data, assignments_, centroids_, empty_centroids
+                );
+            }
 
             ++iteration;
         } while( changed_assigment && iteration < max_iterations_ );
@@ -210,8 +232,8 @@ protected:
                 init_with_random_centroids_( data, k );
                 break;
             }
-            case InitializationStrategy::kCentroidsPlusPlus: {
-                init_with_centroids_plus_plus_( data, k );
+            case InitializationStrategy::kKmeansPlusPlus: {
+                init_with_kmeans_plus_plus_( data, k );
                 break;
             }
             default: {}
@@ -319,6 +341,129 @@ protected:
         return { min_i, min_d };
     }
 
+    virtual ClusteringInfo cluster_info(
+        std::vector<Point>  const& data,
+        std::vector<size_t> const& assignments,
+        std::vector<Point>  const& centroids
+    ) const {
+        auto const k = centroids.size();
+
+        auto result = ClusteringInfo();
+        result.variances = std::vector<double>( k, 0.0 );
+        result.counts    = std::vector<size_t>( k, 0 );
+        result.distances = std::vector<double>( data.size(), 0.0 );
+
+        // Work through the data and assigments and accumulate.
+        #pragma omp parallel for
+        for( size_t i = 0; i < data.size(); ++i ) {
+
+            // Shorthands.
+            auto const a = assignments[ i ];
+            assert( a < k );
+            auto const& centroid = centroids[ a ];
+
+            // Get dist from datum to centroid.
+            auto const dist = distance( centroid, data[ i ] );
+            result.distances[ i ] = dist;
+
+            // Update centroid accumulators.
+            #pragma omp atomic update
+            result.variances[ a ] += dist * dist;
+            #pragma omp atomic update
+            ++result.counts[ a ];
+        }
+
+        // Build the mean dist to get the variance for each centroid.
+        for( size_t i = 0; i < k; ++i ) {
+            if( result.counts[ i ] > 0 ) {
+                result.variances[ i ] /= result.counts[ i ];
+            }
+        }
+
+        return result;
+    }
+
+    virtual bool treat_empty_centroids(
+        std::vector<Point>  const&        data,
+        std::vector<size_t>&              assignments,
+        std::vector<Point>&               centroids,
+        std::unordered_set<size_t> const& empty_centroids
+    ) {
+        // If there are not empty centroids, we have nothing to do, and did not change anything,
+        // so return false.
+        if( empty_centroids.empty() ) {
+            return false;
+        }
+
+        // Process all empty centroid indices.
+        for( auto const& ec_idx : empty_centroids ) {
+            // Get variances and counts of clusters and distances from data to them.
+            auto clus_info = cluster_info( data, assignments, centroids );
+            assert( clus_info.variances.size() == centroids.size() );
+            assert( clus_info.distances.size() == data.size() );
+            assert( data.size() == assignments.size() );
+
+            // Get index of centroid with max variance.
+            auto const max_var_idx = static_cast<size_t>( std::distance(
+                clus_info.variances.begin(),
+                std::max_element( clus_info.variances.begin(), clus_info.variances.end() )
+            ));
+
+            // If the max variance is 0, we cannot do anything. All points are the same.
+            if( clus_info.variances[ max_var_idx ] == 0.0 ) {
+                return false;
+            }
+
+            // The empty centroid cannot be the same as the one we want to take a point from,
+            // because empty clusters have a variance of 0. If this assertion fails, we probably
+            // ran an analysis with k >> data.size() or so.
+            assert( ec_idx != max_var_idx );
+
+            // The current empty cluster should actually be empty.
+            assert( clus_info.counts[ ec_idx ] == 0 );
+            assert( clus_info.variances[ ec_idx ] == 0.0 );
+
+            // Find the point in the max var cluster that is furthest away from the centroid.
+            size_t furth_idx  = std::numeric_limits<size_t>::max();
+            double furth_dist = std::numeric_limits<double>::lowest();
+            for( size_t i = 0; i < data.size(); ++i ) {
+                if( assignments[i] != max_var_idx ) {
+                    continue;
+                }
+                if( clus_info.distances[ i ] > furth_dist ) {
+                    furth_idx  = i;
+                    furth_dist = clus_info.distances[ i ];
+                }
+            }
+
+            // The point needs to be part of the max var cluster, otherwise something went wrong.
+            assert( assignments[ furth_idx ] == max_var_idx );
+
+            // Add the point to the empty cluster.
+            assignments[ furth_idx ] = ec_idx;
+
+            // The following is some test code that could be used to avoid calculating the cluster
+            // info for each empty cluster. However, as we probably almost never run into this
+            // function anyway, we better keep it simple and calculate the info fresh every time.
+
+            // // Adjust variance and count of the max var cluster.
+            // auto const dsqrt = clus_info.distances[ furth_idx ] * clus_info.distances[ furth_idx ];
+            // clus_info.variances[ max_var_idx ] *= clus_info.counts[ max_var_idx ];
+            // clus_info.variances[ max_var_idx ] -= dsqrt;
+            // --clus_info.counts[ max_var_idx ];
+            // clus_info.variances[ max_var_idx ] /= clus_info.counts[ max_var_idx ];
+            //
+            // // Adjust count of the (now not any longer) empty cluster.
+            // ++clus_info.counts[ ec_idx ];
+
+            // Finally, we need to update the centroids in order to reflect the changes.
+            update_centroids( data, assignments, centroids );
+        }
+
+        // Now we return true, because we changed some assignments.
+        return true;
+    }
+
     virtual double distance(
         Point const& lhs,
         Point const& rhs
@@ -346,11 +491,13 @@ protected:
 
 private:
 
-    void argument_checks_( std::vector<Point> const& data, size_t const k ) const
-    {
+    void argument_checks_(
+        std::vector<Point> const& data,
+         size_t const             k
+    ) const {
         // Basic checks.
         if( k > data.size() ) {
-            LOG_WARN << "Running Kmeans with more clusters (k == " << k << ") than data points ("
+            LOG_WARN << "Cannot run Kmeans with more clusters (k == " << k << ") than data points ("
                      << data.size() << ")";
         }
         if( k == 0 ) {
@@ -366,13 +513,23 @@ private:
         }
     }
 
-    void runtime_checks_( std::vector<Point> const& data, size_t const k ) const
-    {
+    void runtime_checks_(
+        std::vector<Point> const& data,
+         size_t const             k
+    ) const {
         if( assignments_.size() != data.size() ) {
             throw std::runtime_error(
                 "Assignments has size " + std::to_string( assignments_.size() ) +
                 " but data has size " + std::to_string( data.size() ) + "."
             );
+        }
+        for( auto const& assign : assignments_ ) {
+            if( assign >= k ) {
+                throw std::runtime_error(
+                    "Invalid assignment " + std::to_string( assign ) +
+                    " >= k = " + std::to_string( k ) + "."
+                );
+            }
         }
         if( centroids_.size() != k ) {
             throw std::runtime_error(
@@ -417,7 +574,7 @@ private:
         assert( centroids_.size() == k );
     }
 
-    void init_with_centroids_plus_plus_(
+    void init_with_kmeans_plus_plus_(
         std::vector<Point> const& data,
         size_t const              k
     ) {
@@ -462,6 +619,32 @@ private:
         assert( centroids_.size() == k );
     }
 
+    std::unordered_set<size_t> get_empty_centroids_() {
+        auto const k = centroids_.size();
+
+        // Fill a list with all numbers up to k...
+        auto empties = std::unordered_set<size_t>();
+        for( size_t i = 0; i < k; ++i ) {
+            empties.insert( i );
+        }
+
+        // ... then remove all assigned ones again.
+        for( size_t i = 0; i < assignments_.size(); ++i ) {
+            assert( assignments_[i] < k );
+            empties.erase( assignments_[i] );
+
+            // Prematurely exit if there is nothing else to remove.
+            // We don't want to go to all assignments if not necessary.
+            if( empties.empty() ) {
+                return empties;
+            }
+        }
+
+        // If we are here, there are empty centroids, otherwise we'd have prematurely exited.
+        assert( ! empties.empty() );
+        return empties;
+    }
+
     // -------------------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------------------
@@ -472,7 +655,7 @@ private:
     std::vector<Point>  centroids_;
 
     size_t max_iterations_ = 100;
-    InitializationStrategy init_strategy_ = InitializationStrategy::kCentroidsPlusPlus;
+    InitializationStrategy init_strategy_ = InitializationStrategy::kKmeansPlusPlus;
 
 };
 
