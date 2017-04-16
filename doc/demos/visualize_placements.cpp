@@ -36,6 +36,53 @@
 using namespace genesis;
 
 // =================================================================================================
+//      Get Jplace Files From Input Path
+// =================================================================================================
+
+/**
+ * @brief Helper function that returns the path to all jplace files in a directory,
+ * or, if the input is a single file, returns only this file.
+ *
+ * This allows to call the program with either one or multiple files.
+ */
+std::vector<std::string> get_jplace_files( std::string const& input_path )
+{
+    // Prepare a vector for all jplace files we want to process.
+    std::vector<std::string> jplace_files;
+
+    if( utils::is_dir( input_path ) ) {
+
+        // If the provided path is a directory, find all jplace files in it.
+        auto all_files = utils::dir_list_files( input_path );
+        utils::erase_if( all_files, [](std::string const& file) {
+            return ! utils::ends_with( utils::to_lower( file ), ".jplace" );
+        });
+        std::sort( all_files.begin(), all_files.end() );
+
+        LOG_INFO << "Using " << all_files.size() << " jplace files:";
+        for( auto filename : all_files ) {
+            LOG_INFO << "- " << filename;
+
+            // Add all found jplace files with the correct path to the vector.
+            auto jplace_filename = utils::trim_right( input_path, "/") + "/" + filename;
+            jplace_files.push_back( jplace_filename );
+        }
+
+    } else if( utils::is_file( input_path )) {
+
+        // If the provided path is a file, use this (no check if it ends in .jplace,
+        // because it might be storted with a differnet file name).
+        jplace_files.push_back( input_path );
+        LOG_INFO << "Using jplace file " << input_path << ".";
+
+    } else {
+        throw std::runtime_error( "Invalid path: " + input_path );
+    }
+
+    return jplace_files;
+}
+
+// =================================================================================================
 //      Count Placement Mass Per Edge
 // =================================================================================================
 
@@ -232,35 +279,7 @@ int main( int argc, char** argv )
     auto nexus_file = std::string( argv[2] );
 
     // Prepare a vector for all jplace files we want to process.
-    std::vector<std::string> jplace_files;
-
-    if( utils::is_dir( input_path ) ) {
-
-        // If the provided path is a directory, find all jplace files in it.
-        auto all_files = utils::dir_list_files( input_path );
-        utils::erase_if( all_files, [](std::string const& file) {
-            return ! utils::ends_with( utils::to_lower( file ), ".jplace" );
-        });
-
-        LOG_INFO << "Using " << all_files.size() << " jplace files:";
-        for( auto filename : all_files ) {
-            LOG_INFO << "- " << filename;
-
-            // Add all found jplace files with the correct path to the vector.
-            auto jplace_filename = utils::trim_right( input_path, "/") + "/" + filename;
-            jplace_files.push_back( jplace_filename );
-        }
-
-    } else if( utils::is_file( input_path )) {
-
-        // If the provided path is a file, use this (no check if it ends in .jplace,
-        // because it might be storted with a differnet file name).
-        jplace_files.push_back( input_path );
-        LOG_INFO << "Using jplace file " << input_path << ".";
-
-    } else {
-        throw std::runtime_error( "Invalid path: " + input_path );
-    }
+    auto jplace_files = get_jplace_files( input_path );
 
     // Prepare a vector that will contain the masses per edge, summed over all samples that we
     // want to process.

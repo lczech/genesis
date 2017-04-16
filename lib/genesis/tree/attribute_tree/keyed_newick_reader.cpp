@@ -65,7 +65,7 @@ KeyedAttributeTreeNewickReaderPlugin::nhx_attributes_ ={
 //     Settings
 // =================================================================================================
 
-KeyedAttributeTreeNewickReaderPlugin& KeyedAttributeTreeNewickReaderPlugin::add_keyed_attribute(
+KeyedAttributeTreeNewickReaderPlugin& KeyedAttributeTreeNewickReaderPlugin::add_attribute(
     std::string const& key,
     Target             target
 ) {
@@ -73,7 +73,7 @@ KeyedAttributeTreeNewickReaderPlugin& KeyedAttributeTreeNewickReaderPlugin::add_
     return *this;
 }
 
-KeyedAttributeTreeNewickReaderPlugin& KeyedAttributeTreeNewickReaderPlugin::add_keyed_attribute(
+KeyedAttributeTreeNewickReaderPlugin& KeyedAttributeTreeNewickReaderPlugin::add_attribute(
     std::string const& source_key,
     Target             target,
     std::string const& target_key
@@ -82,7 +82,7 @@ KeyedAttributeTreeNewickReaderPlugin& KeyedAttributeTreeNewickReaderPlugin::add_
     return *this;
 }
 
-KeyedAttributeTreeNewickReaderPlugin& KeyedAttributeTreeNewickReaderPlugin::add_keyed_attribute(
+KeyedAttributeTreeNewickReaderPlugin& KeyedAttributeTreeNewickReaderPlugin::add_attribute(
     std::string const& source_key,
     Target             target,
     std::string const& target_key,
@@ -116,24 +116,49 @@ KeyedAttributeTreeNewickReaderPlugin& KeyedAttributeTreeNewickReaderPlugin::add_
     return *this;
 }
 
+void KeyedAttributeTreeNewickReaderPlugin::clear()
+{
+    prefix_    = "&";
+    separator_ = ",";
+    assigner_  = "=";
+    trim_      = true;
+
+    keyed_attributes_.clear();
+    catch_all_attributes_.clear();
+}
+
 // =================================================================================================
 //     Plugin Functions
 // =================================================================================================
 
 void KeyedAttributeTreeNewickReaderPlugin::element_to_node( NewickBrokerElement const& element, TreeNode& node ) const
 {
+    // Speedup.
+    if( ! has_attributes_for_target_( Target::kNode ) ) {
+        return;
+    }
+
+    // Prepare data.
     auto data = get_data_( element );
     auto& attributes = node.data<AttributeTreeNodeData>().attributes;
 
+    // Process all attributes.
     process_keyed_attributes_(     data, attributes, Target::kNode );
     process_catch_all_attributes_( data, attributes, Target::kNode );
 }
 
 void KeyedAttributeTreeNewickReaderPlugin::element_to_edge( NewickBrokerElement const& element, TreeEdge& edge ) const
 {
+    // Speedup.
+    if( ! has_attributes_for_target_( Target::kEdge ) ) {
+        return;
+    }
+
+    // Prepare data.
     auto data = get_data_( element );
     auto& attributes = edge.data<AttributeTreeEdgeData>().attributes;
 
+    // Process all attributes.
     process_keyed_attributes_(     data, attributes, Target::kEdge );
     process_catch_all_attributes_( data, attributes, Target::kEdge );
 }
@@ -169,6 +194,34 @@ void KeyedAttributeTreeNewickReaderPlugin::register_with( NewickReader& reader )
 //     Internal Functions
 // =================================================================================================
 
+bool KeyedAttributeTreeNewickReaderPlugin::has_attributes_for_target_( Target target ) const
+{
+    // This function is used by the element processing functions in order to check whether they
+    // have any work to do. If there is no attribute that targets the Nodes or Edges, then
+    // we do not need to process the data at all for that target.
+    // Another way, that would give even more speedup, would be to process the data only once
+    // (call get_data_ once) instead of twice (for nodes and for edges separately), but this would
+    // meant that we need to introduce more involved plugin functions to the newick reader.
+    // Either we'd need an element_to_node_and_edge function, or some for of element preprocessing,
+    // that would store some state (the data in our case) while it is processed, and that can then
+    // be used by the element_to_... functions, instead of processing the data twice. This is
+    // however more complex, and involves a fragile state that is only valid during the processing
+    // of one element. So, for now, we live with the slight performance issue that we sometimes
+    // need to split the comment data twice...
+
+    for( auto const& attrs : keyed_attributes_ ) {
+        if( attrs.target == target ) {
+            return true;
+        }
+    }
+    for( auto const& attrs : catch_all_attributes_ ) {
+        if( attrs.target == target ) {
+            return true;
+        }
+    }
+    return false;
+}
+
 KeyedAttributeTreeNewickReaderPlugin::PairList KeyedAttributeTreeNewickReaderPlugin::get_data_(
     NewickBrokerElement const& element
 ) const {
@@ -196,24 +249,35 @@ KeyedAttributeTreeNewickReaderPlugin::PairList KeyedAttributeTreeNewickReaderPlu
             // We found a key value pair.
             if( pos != last_pos ) {
                 // Get the pair. This is a copy. Could be avoided, but I am lazy today.
-                assert( pos >= last_pos );
+                assert( pos > last_pos );
                 auto entry = std::string( comment.data() + last_pos, pos - last_pos );
 
                 // Split it according to the assign string.
                 auto ass_pos = entry.find( assigner_ );
 
                 // If there is an assign sign, use it to split.
+                // This also avoids to add empty data. For example, NHX starts with a separator
+                // after the prefix, so there is an empty field in the beginning. As this does not
+                // contain the assigner, it is skipped here.
                 if( ass_pos != std::string::npos ) {
-                    result.emplace_back(
-                        utils::trim( entry.substr( 0, ass_pos )),
-                        utils::trim( entry.substr( ass_pos + 1 ))
-                    );
+                    if( trim_ ) {
+                        result.emplace_back(
+                            utils::trim( entry.substr( 0, ass_pos )),
+                            utils::trim( entry.substr( ass_pos + 1 ))
+                        );
+                    } else {
+                        result.emplace_back(
+                            entry.substr( 0, ass_pos ),
+                            entry.substr( ass_pos + 1 )
+                        );
+                    }
                 }
             }
 
             last_pos = pos + 1;
         }
     }
+
     return result;
 }
 
