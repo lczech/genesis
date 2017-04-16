@@ -40,6 +40,7 @@
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
+#include <numeric>
 #include <string>
 
 using namespace genesis::sequence;

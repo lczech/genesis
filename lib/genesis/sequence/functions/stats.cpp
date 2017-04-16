@@ -363,7 +363,7 @@ std::vector<std::string> kmer_list( size_t k, std::string const& alphabet )
 
         // Fill the kmer from right to left, using conversion of c to base w.size().
         for( size_t j = 0; j < k; ++j ) {
-            assert((  0 <= k - 1 - j ) && ( k - 1 - j < kmer.size() ));
+            assert(( 1 + j <= k ) && ( k - 1 - j < kmer.size() ));
 
             kmer[ k - 1 - j ] = w[ c % w.size() ];
             c /= w.size();
