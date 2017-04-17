@@ -44,4 +44,11 @@ The following demo programs are available:
     @ref genesis::placement::PqueryPlacement "Placement" is turned intoan individual branch on the
     original tree.
 
+ * @subpage demos_placement_histograms "Placement Histograms"
+
+    Takes a path to either a `jplace` file, or a directory containing `jplace` files,
+    and builds histograms of the the placement mass (according to the
+    `like_weight_ratio`, LWR) of each placement and of the Expected Distance between Placement
+    Locations (EDPL).
+
 See there for more details.
