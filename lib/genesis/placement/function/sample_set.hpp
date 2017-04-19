@@ -45,14 +45,42 @@ namespace placement {
 //     Sample Set Functions
 // =================================================================================================
 
+/**
+ * @brief Get the first Sample in a SampleSet that has a given name, or `nullptr` if not found.
+ */
 Sample      * find_sample( SampleSet      & sset, std::string const& name );
+
+/**
+ * @brief Get the first Sample in a SampleSet that has a given name, or `nullptr` if not found.
+ */
 Sample const* find_sample( SampleSet const& sset, std::string const& name );
 
+/**
+ * @brief Returns true iff all Trees of the Samples in the set are identical.
+ *
+ * This is the case if they have the same topology, node names and edge_nums. However, branch
+ * lengths are not checked, because usually those differ slightly.
+ */
 bool all_identical_trees( SampleSet const& sset );
 
+/**
+ * @brief Return a TreeSet containing all the trees of the SampleSet.
+ */
 tree::TreeSet tree_set( SampleSet const& sset );
 
+/**
+ * @brief Returns a Sample where all maps of this set have been merged into.
+ *
+ * For this method to succeed, all Samples need to have the same topology, including identical
+ * edge_nums and node names. The Tree of the returned Sample has the average branch lenghts
+ * from the input trees, using TreeSet::average_branch_length_tree().
+ */
 Sample merge_all( SampleSet const& sset );
+
+/**
+ * @brief Return the total number of @link Pquery Pqueries@endlink in the Sample%s of the SampleSet.
+ */
+size_t total_pquery_count( SampleSet const& sset );
 
 // =================================================================================================
 //     Output

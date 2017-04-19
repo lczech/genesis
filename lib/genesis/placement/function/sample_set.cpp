@@ -44,9 +44,6 @@ namespace placement {
 //     Sample Set Functions
 // =================================================================================================
 
-/**
-* @brief Get the first Sample in a SampleSet that has a given name, or `nullptr` if not found.
-*/
 Sample* find_sample( SampleSet& sset, std::string const& name )
 {
     for (auto& nsmp : sset) {
@@ -57,9 +54,6 @@ Sample* find_sample( SampleSet& sset, std::string const& name )
     return nullptr;
 }
 
-/**
-* @brief Get the first Sample in a SampleSet that has a given name, or `nullptr` if not found.
-*/
 Sample const* find_sample( SampleSet const& sset, std::string const& name )
 {
     for (auto& nsmp : sset) {
@@ -70,12 +64,6 @@ Sample const* find_sample( SampleSet const& sset, std::string const& name )
     return nullptr;
 }
 
-/**
- * @brief Returns true iff all Trees of the Samples in the set are identical.
- *
- * This is the case if they have the same topology, node names and edge_nums. However, branch
- * lengths are not checked, because usually those differ slightly.
- */
 bool all_identical_trees( SampleSet const& sset )
 {
     auto node_comparator = [] (
@@ -108,9 +96,6 @@ bool all_identical_trees( SampleSet const& sset )
     return all_equal( tree_set( sset ), node_comparator, edge_comparator );
 }
 
-/**
- * @brief Return a TreeSet containing all the trees of the SampleSet.
- */
 tree::TreeSet tree_set( SampleSet const& sset )
 {
     tree::TreeSet tset;
@@ -120,13 +105,6 @@ tree::TreeSet tree_set( SampleSet const& sset )
     return tset;
 }
 
-/**
- * @brief Returns a Sample where all maps of this set have been merged into.
- *
- * For this method to succeed, all Samples need to have the same topology, including identical
- * edge_nums and node names. The Tree of the returned Sample has the average branch lenghts
- * from the input trees, using TreeSet::average_branch_length_tree().
- */
 Sample merge_all( SampleSet const& sset )
 {
     // The following operations do a lot of traversals on all trees: first some for the
@@ -164,6 +142,15 @@ Sample merge_all( SampleSet const& sset )
     }
 
     return res;
+}
+
+size_t total_pquery_count( SampleSet const& sset )
+{
+    size_t s = 0;
+    for( auto const& sample : sset ) {
+        s += sample.sample.size();
+    }
+    return s;
 }
 
 // =================================================================================================
