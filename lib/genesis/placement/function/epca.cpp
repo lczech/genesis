@@ -139,8 +139,10 @@ std::vector<double> epca_imbalance_vector( Sample const& sample )
         );
 
         // Finally, calculate the imbalance of the current edge,
-        // normalized by the total mass on the tree.
-        vec[ tree_it.edge().index() ] = ( link_masses[out_idx] - link_masses[cur_idx] ) / mass_sum;
+        // normalized by the total mass on the tree (expect for the mass of the current edge).
+        auto const imbalance = link_masses[cur_idx] - link_masses[out_idx];
+        auto const normalize = mass_sum - masses[ tree_it.edge().index() ];
+        vec[ tree_it.edge().index() ] = imbalance / normalize;
     }
 
     return vec;
@@ -150,7 +152,7 @@ std::vector<double> epca_imbalance_vector( Sample const& sample )
 //     Edge PCA Imbalance Matrix
 // =================================================================================================
 
-utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples )
+utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool include_leaves )
 {
     // If there are no samples, return empty matrix.
     if( samples.size() == 0 ) {
@@ -166,35 +168,56 @@ utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples )
 
     assert( samples.size() > 0 );
     auto const edge_count = samples.at( 0 ).sample.tree().edge_count();
-    (void) edge_count;
 
-    // Get the indices of all edges that do not lead to a tip.
-    std::vector<size_t> inner_edge_indices;
-    for( auto const& edge_it : samples.at( 0 ).sample.tree().edges() ) {
-        if( edge_it->secondary_node().is_inner() ) {
-            inner_edge_indices.push_back( edge_it->index() );
+    if( include_leaves ) {
+
+        auto imbalance_matrix = utils::Matrix<double>( samples.size(), edge_count );
+
+        for( size_t s = 0; s < samples.size(); ++s ) {
+            auto const& smp = samples[s].sample;
+            auto const imbalance_vec = epca_imbalance_vector( smp );
+
+            // We need to have the right number of imbalance values.
+            assert( imbalance_vec.size() == edge_count );
+
+            // Copy those imbalance values to the matrix that belong to inner edges.
+            for( size_t i = 0; i < edge_count; ++i ) {
+                imbalance_matrix( s, i ) = imbalance_vec[ i ];
+            }
         }
-    }
 
-    auto imbalance_matrix = utils::Matrix<double>( samples.size(), inner_edge_indices.size() );
-    for( size_t s = 0; s < samples.size(); ++s ) {
-        auto const& smp = samples[s].sample;
-        auto imbalance_vec = epca_imbalance_vector( smp );
+        return imbalance_matrix;
 
-        // We need to have the right number of imbalance values, which also needs to be
-        // smaller than the number of inner edges (there can be no tree with just inner
-        // edges, thus the total number of edges has to be bigger).
-        assert( imbalance_vec.size() == edge_count );
-        assert( imbalance_vec.size() >  inner_edge_indices.size() );
+    } else {
 
-        // Copy those imbalance values to the matrix that belong to inner edges.
-        for( size_t i = 0; i < inner_edge_indices.size(); ++i ) {
-            auto idx = inner_edge_indices[i];
-            imbalance_matrix( s, i ) = imbalance_vec[ idx ];
+        // Get the indices of all edges that do not lead to a tip.
+        std::vector<size_t> inner_edge_indices;
+        for( auto const& edge_it : samples.at( 0 ).sample.tree().edges() ) {
+            if( edge_it->secondary_node().is_inner() ) {
+                inner_edge_indices.push_back( edge_it->index() );
+            }
         }
-    }
 
-    return imbalance_matrix;
+        auto imbalance_matrix = utils::Matrix<double>( samples.size(), inner_edge_indices.size() );
+        for( size_t s = 0; s < samples.size(); ++s ) {
+            auto const& smp = samples[s].sample;
+            auto const imbalance_vec = epca_imbalance_vector( smp );
+
+            // We need to have the right number of imbalance values, which also needs to be
+            // smaller than the number of inner edges (there can be no tree with just inner
+            // edges, thus the total number of edges has to be bigger).
+            assert( imbalance_vec.size() == edge_count );
+            assert( imbalance_vec.size() >  inner_edge_indices.size() );
+
+            // Copy those imbalance values to the matrix that belong to inner edges.
+            for( size_t i = 0; i < inner_edge_indices.size(); ++i ) {
+                auto idx = inner_edge_indices[i];
+                imbalance_matrix( s, i ) = imbalance_vec[ idx ];
+            }
+        }
+
+        return imbalance_matrix;
+    }
 }
 
 // =================================================================================================

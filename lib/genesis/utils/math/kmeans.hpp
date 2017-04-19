@@ -179,6 +179,19 @@ public:
         return *this;
     }
 
+    std::vector<size_t> cluster_sizes() const
+    {
+        if( assignments_.empty() || centroids_.empty() ) {
+            throw std::runtime_error( "No assignments or centroids set yet." );
+        }
+        auto result = std::vector<size_t>( centroids_.size(), 0 );
+        for( auto ass : assignments_ ) {
+            assert( ass <= result.size() );
+            ++result[ ass ];
+        }
+        return result;
+    }
+
     void clear()
     {
         assignments_.clear();
