@@ -84,7 +84,7 @@ namespace tree {
  * Be aware that the latter is an important distinction, as the semantics of the data are not given
  * by Newick. For example, storing bootstrap support values at Nodes insteda of Edges can lead to
  * unexpected and wrong results. You are supposed to know what kind of data the Newick file you are
- * processing contains. See also http://biorxiv.org/content/early/2017/01/13/035360
+ * processing contains. See also https://academic.oup.com/mbe/article-lookup/doi/10.1093/molbev/msx055
  *
  * This class is limited to the simple case where the Newick data is always stored in a certain
  * order, i.e., the bootstrap values are always the first comment for a Newick node.
