@@ -384,6 +384,37 @@ double mass_tree_center_masses_on_branches( MassTree& tree )
     return work;
 }
 
+double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
+{
+    double work = 0.0;
+    for( auto& edge : tree.edges() ) {
+        auto& edge_data = edge->data<MassTreeEdgeData>();
+
+        double mass_center = 0.0;
+        double mass_sum    = 0.0;
+
+        // Accumulate the mass center by adding the weighted positions,
+        // and accumulate the total sum of weights.
+        for( auto const& mass : edge_data.masses ) {
+            mass_center += mass.first * mass.second;
+            mass_sum    += mass.second;
+        }
+
+        // Find average mass center by dividing by weight sum.
+        mass_center /= mass_sum;
+
+        // Calculate work.
+        for( auto const& mass : edge_data.masses ) {
+            work += mass.second * std::abs( mass_center - mass.first );
+        }
+
+        // Set the new mass at the mass center.
+        edge_data.masses.clear();
+        edge_data.masses[ mass_center ] = mass_sum;
+    }
+    return work;
+}
+
 double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins )
 {
     if( number_of_bins == 0 ) {

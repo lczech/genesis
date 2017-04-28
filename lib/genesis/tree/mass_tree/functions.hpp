@@ -184,6 +184,17 @@ void mass_tree_transform_to_unit_branch_lengths( MassTree& tree );
 double mass_tree_center_masses_on_branches( MassTree& tree );
 
 /**
+ * @brief Accumulate all masses of a ::MassTree at the average mass position per edge.
+ *
+ * This function is similar to mass_tree_center_masses_on_branches(), but instead of
+ * accumulating the masses at the branch center, they are accumulated at their average position
+ * on the branch.
+ *
+ * Return the work (mass times distance) that was needed to move the masses to the centers.
+ */
+double mass_tree_center_masses_on_branches_averaged( MassTree& tree );
+
+/**
  * @brief Accumulate all masses of a ::MassTree into bins on each branch.
  *
  * Each branch is divided into intervals of equal size, where @p number_of_bins is the number of
