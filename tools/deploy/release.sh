@@ -198,13 +198,19 @@ version="v${version}"
 # echo ${version}
 echo
 
+# Replace version line in doxygen file.
+echo "Replace version in doc/doxygen/Doxyfile"
+sed -i "s/PROJECT_NUMBER *=.*/PROJECT_NUMBER         = \"${version}\"/g" doc/doxygen/Doxyfile
+
 # Replace version line in genesis header file.
 echo "Replace version in lib/genesis/utils/core/version.hpp"
 sed -i "s/    return \".*\"; \/\/ #GENESIS_VERSION#/    return \"${version}\"; \/\/ #GENESIS_VERSION#/g" lib/genesis/utils/core/version.hpp
 
-# Replace version line in doxygen file.
-echo "Replace version in doc/doxygen/Doxyfile"
-sed -i "s/PROJECT_NUMBER *=.*/PROJECT_NUMBER         = \"${version}\"/g" doc/doxygen/Doxyfile
+# Replace version name line in genesis header file.
+echo "Replace version name in lib/genesis/utils/core/version.hpp"
+version_name=`./tools/deploy/xkcd.py`
+echo "New version name: \"${version_name}\""
+sed -i "s/    return \".*\"; \/\/ #GENESIS_VERSION_NAME#/    return \"${version_name}\"; \/\/ #GENESIS_VERSION_NAME#/g" lib/genesis/utils/core/version.hpp
 
 # Update genesis header
 echo "Update genesis header lib/genesis/genesis.hpp"

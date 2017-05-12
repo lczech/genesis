@@ -66,6 +66,17 @@ inline std::string genesis_version()
 }
 
 /**
+ * @brief Return the current genenis version name.
+ *
+ * Just for fun.
+ */
+inline std::string genesis_version_name()
+{
+    // The following line is automatically replaced by the deploy scripts. Do not change manually.
+    return "Okeanos"; // #GENESIS_VERSION_NAME#
+}
+
+/**
  * @brief Return the URL of the genesis home page.
  */
 inline std::string genesis_url()
