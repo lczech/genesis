@@ -200,3 +200,12 @@ explicit permission to use his code in Genesis.
 
 Our implementation of the @link genesis::utils::SHA1 SHA1 hashing function@endlink is based on
 [https://github.com/vog/sha1](https://github.com/vog/sha1), which is 100% Public Domain.
+
+## Matplotlib Color Maps @anchor supplement_acknowledgements_code_reuse_matplotlib_color_maps
+
+The color codes for the color maps @link genesis::utils::magma magma@endlink,
+@link genesis::utils::inferno inferno@endlink, @link genesis::utils::plasma plasma@endlink and
+@link genesis::utils::viridis viridis@endlink are taken from https://github.com/BIDS/colormap.
+They were created by Nathaniel J. Smith, Stefan van der Walt, and (in the case of viridis)
+Eric Firing. These colormaps are released under the CC0 license / public domain dedication.
+See https://creativecommons.org/publicdomain/zero/1.0/ for the license.
