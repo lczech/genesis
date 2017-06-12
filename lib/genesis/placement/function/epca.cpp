@@ -52,6 +52,10 @@
 #include <stdexcept>
 #include <vector>
 
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
 namespace genesis {
 namespace placement {
 
@@ -173,6 +177,7 @@ utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool incl
 
         auto imbalance_matrix = utils::Matrix<double>( samples.size(), edge_count );
 
+        #pragma omp parallel for
         for( size_t s = 0; s < samples.size(); ++s ) {
             auto const& smp = samples[s].sample;
             auto const imbalance_vec = epca_imbalance_vector( smp );
@@ -199,6 +204,8 @@ utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool incl
         }
 
         auto imbalance_matrix = utils::Matrix<double>( samples.size(), inner_edge_indices.size() );
+
+        #pragma omp parallel for
         for( size_t s = 0; s < samples.size(); ++s ) {
             auto const& smp = samples[s].sample;
             auto const imbalance_vec = epca_imbalance_vector( smp );
@@ -272,6 +279,8 @@ std::vector<size_t> epca_filter_constant_columns( utils::Matrix<double>& imbalan
 
     // Produce new, filtered matrix.
     auto new_mat = utils::Matrix<double>( imbalance_matrix.rows(), keep_cols.size() );
+
+    #pragma omp parallel for
     for( size_t r = 0; r < imbalance_matrix.rows(); ++r ) {
         for( size_t i = 0; i < keep_cols.size(); ++i ) {
             new_mat( r, i ) = imbalance_matrix( r, keep_cols[i] );
