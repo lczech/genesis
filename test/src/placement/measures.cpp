@@ -119,8 +119,8 @@ TEST( SampleMeasures, NodeHistogramDistance )
     Sample smp_rhs = JplaceReader().from_file(infile_rhs);
 
     // Distance and symmetric case.
-    EXPECT_FLOAT_EQ( 1.3575, node_histogram_distance( smp_lhs, smp_rhs, 10 ));
-    EXPECT_FLOAT_EQ( 1.3575, node_histogram_distance( smp_rhs, smp_lhs, 10 ));
+    EXPECT_FLOAT_EQ( 1.324, node_histogram_distance( smp_lhs, smp_rhs, 10 ));
+    EXPECT_FLOAT_EQ( 1.324, node_histogram_distance( smp_rhs, smp_lhs, 10 ));
 
     // Self-distances.
     EXPECT_FLOAT_EQ( 0.0, node_histogram_distance( smp_lhs, smp_lhs ));

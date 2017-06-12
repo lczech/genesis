@@ -43,10 +43,26 @@ namespace tree {
 //     Branch Distance Measures
 // =================================================================================================
 
+/**
+ * @brief Return a distance matrix containing pairwise distances between all Nodes, using the
+ * branch_length of the Edges as distance measurement.
+ *
+ * The elements of the matrix are indexed using node().index().
+ */
 utils::Matrix<double> node_branch_length_distance_matrix(
     Tree const& tree
 );
 
+/**
+ * @brief Return a vector containing the distance of all nodes with respect to the given start node,
+ * where distance is measured in the sum of branch lengths between the nodes.
+ *
+ * The vector is indexed using the node().index() for every node. Its elements give the distance of
+ * each node with respect to the given start node. The distance is the sum of branch lengths of the
+ * edges visited on the path between the two nodes.
+ *
+ * If no Node pointer is provided, the root is taken as node.
+ */
 std::vector<double> node_branch_length_distance_vector(
     Tree const& tree,
     TreeNode const* node = nullptr
@@ -65,10 +81,41 @@ std::vector<double> edge_branch_length_distance_vector(
 //     Complex Distance Methods
 // =================================================================================================
 
+/**
+ * @brief Return the longest distance from any point in the tree (on the edges) to any leaf.
+ */
 double deepest_distance( Tree const& tree );
 
+/**
+ * @brief Return a vector containing the closest leaf node for each node, using the branch_length
+ * as distance measure.
+ *
+ * The vector is indexed using the node().index() for every node. Its value contains an std::pair,
+ * where the first element is a TreeNode* to the closest leaf node of the node at the index,
+ * measured using the branch_length; the second element of the pair is the distance value itself.
+ * Thus, leaf nodes will have a pointer to themselves and a distance value of 0.
+ *
+ * See also furthest_leaf_distance_vector().
+ */
 std::vector<std::pair< TreeNode const*, double>> closest_leaf_distance_vector(
     Tree const& tree
+);
+
+std::vector<std::pair< TreeNode const*, double>> closest_leaf_distance_vector(
+    Tree const& tree,
+    utils::Matrix<double> const& node_branch_length_distance_mat
+);
+
+/**
+ * @brief Opposite of closest_leaf_distance_vector().
+ */
+std::vector<std::pair< TreeNode const*, double>> furthest_leaf_distance_vector(
+    Tree const& tree
+);
+
+std::vector<std::pair< TreeNode const*, double>> furthest_leaf_distance_vector(
+    Tree const& tree,
+    utils::Matrix<double> const& node_branch_length_distance_mat
 );
 
 } // namespace tree

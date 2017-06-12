@@ -1072,7 +1072,7 @@ utils::Histogram node_distance_histogram (
     // Fill an accumulator with the distances from all placments to the node.
     auto hist_acc = utils::HistogramAccumulator();
     for( auto const& pquery : sample ) {
-        double mult = total_multiplicity( pquery );
+        double const mult = total_multiplicity( pquery );
 
         // Get the distance from the placement to the given node, and accumulate it.
         for( auto const& placement : pquery.placements() ) {
@@ -1111,12 +1111,10 @@ std::vector< utils::Histogram > node_distance_histograms (
     hist_vec.reserve( sample.tree().node_count() );
 
     // Calculate the pairwise distance between all pairs of nodes.
-    auto node_dists = node_branch_length_distance_matrix( sample.tree() );
+    auto const node_dists = node_branch_length_distance_matrix( sample.tree() );
 
-    // Calculate the diameter of the tree, i.e., the longest distance between any two nodes.
-    // This is used as upper bound for the histogram. Its calculation is the same as in
-    // tree::diameter().
-    double const diameter = *std::max_element( node_dists.begin(), node_dists.end() );
+    // Calculate the longest distance from any node. This is used as upper bound for the histograms.
+    auto const diameters = furthest_leaf_distance_vector( sample.tree(), node_dists );
 
     // Prepare a counter for asserting that the node order follows the indices.
     size_t cnt = 0;
@@ -1124,10 +1122,11 @@ std::vector< utils::Histogram > node_distance_histograms (
 
     // Calculate the histogram for all nodes of the tree, and store it in the vector.
     for( auto it = sample.tree().begin_nodes(); it != sample.tree().end_nodes(); ++it ) {
-        assert( it->get()->index() == cnt++ );
+        auto const node_index = it->get()->index();
+        assert( node_index == cnt++ );
 
         hist_vec.push_back( node_distance_histogram(
-            sample, it->get()->index(), node_dists, diameter, histogram_bins
+            sample, node_index, node_dists, diameters[ node_index ].second, histogram_bins
         ));
     }
     assert( cnt == sample.tree().node_count() );
