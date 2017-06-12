@@ -39,6 +39,10 @@
 #include <cassert>
 #include <limits>
 
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
 namespace genesis {
 namespace placement {
 
@@ -132,6 +136,30 @@ std::vector<size_t> placement_count_per_edge( Sample const& sample )
     return result;
 }
 
+utils::Matrix<size_t> placement_count_per_edge( SampleSet const& sample_set )
+{
+    // Basics.
+    auto const set_size = sample_set.size();
+    if( set_size == 0 ) {
+        return {};
+    }
+
+    // Init matrix.
+    auto result = utils::Matrix<size_t>( set_size, sample_set[ 0 ].sample.tree().edge_count(), 0 );
+
+    // Fill matrix.
+    #pragma omp parallel for
+    for( size_t i = 0; i < set_size; ++i ) {
+        for( auto const& pqry : sample_set[ i ].sample.pqueries() ) {
+            for( auto const& place : pqry.placements() ) {
+                ++result( i, place.edge().index() );
+            }
+        }
+    }
+
+    return result;
+}
+
 std::vector<double> placement_weight_per_edge( Sample const& sample )
 {
     auto result = std::vector<double>( sample.tree().edge_count(), 0.0 );
@@ -145,9 +173,35 @@ std::vector<double> placement_weight_per_edge( Sample const& sample )
     return result;
 }
 
+utils::Matrix<double> placement_weight_per_edge( SampleSet const& sample_set )
+{
+    // Basics.
+    auto const set_size = sample_set.size();
+    if( set_size == 0 ) {
+        return {};
+    }
+
+    // Init matrix.
+    auto result = utils::Matrix<double>( set_size, sample_set[ 0 ].sample.tree().edge_count(), 0.0 );
+
+    // Fill matrix.
+    #pragma omp parallel for
+    for( size_t i = 0; i < set_size; ++i ) {
+        for( auto const& pqry : sample_set[ i ].sample.pqueries() ) {
+            for( auto const& place : pqry.placements() ) {
+                result( i, place.edge().index() ) += place.like_weight_ratio;
+            }
+        }
+    }
+
+    return result;
+}
+
 std::vector<PqueryPlain> plain_queries( Sample const & smp )
 {
     auto pqueries = std::vector<PqueryPlain>( smp.size() );
+
+    #pragma omp parallel for
     for (size_t i = 0; i < smp.size(); ++i) {
         pqueries[i].index = i;
 
