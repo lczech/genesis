@@ -57,6 +57,11 @@ void TreeSet::add( std::string const& name, Tree const& tree )
     trees_.push_back( { name, tree } );
 }
 
+void TreeSet::add( std::string&& name, Tree&& tree )
+{
+    trees_.push_back( { std::move( name ), std::move( tree ) } );
+}
+
 /**
  * @brief Remove the Tree at a certain index position.
  *
