@@ -29,7 +29,7 @@ the `jplace` file. It has to be topologically identical to the `jplace` tree, bu
 additional values like bootstrap support values. Currently, we only support such values that are
 stored as inner node names. This is for example given if a bootstrap tree of RAxML is used.
 When working with trees containing such values at inner nodes, also be aware of issues that might
-arise with other programs. See http://biorxiv.org/content/early/2017/01/13/035360 for details.
+arise with other programs. See https://academic.oup.com/mbe/article-lookup/doi/10.1093/molbev/msx055 for details.
 
 In the beginning of the main function of the program, there are two settings `fully_resolve` and
 `name_prefix`, according to the two optional arguments of

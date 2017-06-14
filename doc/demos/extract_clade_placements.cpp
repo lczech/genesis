@@ -351,7 +351,7 @@ int main( int argc, char** argv )
         throw std::runtime_error(
             "Need to provide three command line arguments:\n"
             "  * An input jplace file path.\n"
-            "  * A directory with clade files.\n"
+            "  * A clade file.\n"
             "  * An output directory path."
         );
     }

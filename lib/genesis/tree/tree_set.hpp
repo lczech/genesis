@@ -84,6 +84,7 @@ public:
     // -------------------------------------------------------------------------
 
     void add( std::string const& name, Tree const& tree );
+    void add( std::string&&      name, Tree&&      tree );
 
     void remove_at( size_t index );
     void clear();

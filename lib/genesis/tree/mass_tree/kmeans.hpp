@@ -75,10 +75,23 @@ public:
     MassTreeKmeans& operator= ( MassTreeKmeans&& )      = default;
 
     // -------------------------------------------------------------------------
+    //     Settings
+    // -------------------------------------------------------------------------
+
+    size_t accumulate_centroid_masses() const;
+    void accumulate_centroid_masses( size_t value );
+
+    // -------------------------------------------------------------------------
     //     Default K-Means Functions
     // -------------------------------------------------------------------------
 
 private:
+
+    virtual void pre_loop_hook(
+        std::vector<Point>  const& data,
+        std::vector<size_t>&       assignments,
+        std::vector<Point>&        centroids
+    ) override;
 
     virtual bool data_validation( std::vector<Point> const& data ) const override;
 
@@ -89,6 +102,12 @@ private:
     ) override;
 
     virtual double distance( Point const& lhs, Point const& rhs ) const override;
+
+    // -------------------------------------------------------------------------
+    //     Data
+    // -------------------------------------------------------------------------
+
+    size_t accumulate_centroid_masses_ = 1;
 
 };
 

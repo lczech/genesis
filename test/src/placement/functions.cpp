@@ -170,7 +170,7 @@ TEST( SampleFunctions, ConvertFromDefaultTree )
     auto const def_tree = tree::DefaultTreeNewickReader().from_file( infile );
 
     // Convert it to a tree that is usable for samples.
-    auto const place_tree = convert_to_placement_tree( def_tree );
+    auto const place_tree = convert_default_tree_to_placement_tree( def_tree );
 
     // Check if the tree is correct.
     EXPECT_EQ( 13, place_tree.node_count() );

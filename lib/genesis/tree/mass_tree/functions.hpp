@@ -31,6 +31,7 @@
  * @ingroup tree
  */
 
+#include <cstddef>
 #include <utility>
 #include <vector>
 
@@ -173,10 +174,49 @@ void mass_tree_normalize_masses( MassTree& tree );
 void mass_tree_transform_to_unit_branch_lengths( MassTree& tree );
 
 /**
- * @brief Accumulate all masses of a ::MassTree on the centers of their edges. Return the work
- * (mass times distance) that was needed to move the masses to the centers.
+ * @brief Accumulate all masses of a ::MassTree on the centers of their edges.
+ *
+ * This function can be used to minimize the data load of a ::MassTree. It is equal to
+ * mass_tree_binify_masses() when using `number_of_bins == 1`.
+ *
+ * Return the work (mass times distance) that was needed to move the masses to the centers.
  */
 double mass_tree_center_masses_on_branches( MassTree& tree );
+
+/**
+ * @brief Accumulate all masses of a ::MassTree at the average mass position per edge.
+ *
+ * This function is similar to mass_tree_center_masses_on_branches(), but instead of
+ * accumulating the masses at the branch center, they are accumulated at their average position
+ * on the branch.
+ *
+ * Return the work (mass times distance) that was needed to move the masses to the centers.
+ */
+double mass_tree_center_masses_on_branches_averaged( MassTree& tree );
+
+/**
+ * @brief Accumulate all masses of a ::MassTree into bins on each branch.
+ *
+ * Each branch is divided into intervals of equal size, where @p number_of_bins is the number of
+ * those intervals. The mid points of these intervals are then used as bins, to which the masses
+ * on the branch are moved. Each mass point is moved to its closest bin, so that all mass is
+ * accumulated at the bins.
+ *
+ * This function is useful to reduce the data load of big ::MassTree%s, without affecting the
+ * accuracy of downstream analyses too much. Using the interval mid points as bins means that masses
+ * are moved as little as possible.
+ *
+ * Example: Given `number_of_bins == 6`, for a branch of length `3.6`, the bins look like this:
+ *
+ *     Intervals   0.0   0.6   1.2   1.8   2.4   3.0   3.6
+ *                 |     |     |     |     |     |     |
+ *                    ^     ^     ^     ^     ^     ^
+ *     Bins           0.3   0.9   1.5   2.1   2.7   3.3
+ *
+ * The function returns the work (mass times distance) that was needed to move the masses to the
+ * bins.
+ */
+double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins );
 
 // =================================================================================================
 //     Others

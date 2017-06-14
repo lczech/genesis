@@ -60,19 +60,19 @@ namespace tree {
 Tree NewickReader::from_stream( std::istream& input_stream ) const
 {
     utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
-    return parse_single_tree_( it );
+    return parse_single_tree( it );
 }
 
 Tree NewickReader::from_file( std::string const& filename ) const
 {
     utils::InputStream it( utils::make_unique< utils::FileInputSource >( filename ));
-    return parse_single_tree_( it );
+    return parse_single_tree( it );
 }
 
 Tree NewickReader::from_string( std::string const& tree_string ) const
 {
     utils::InputStream it( utils::make_unique< utils::StringInputSource >( tree_string ));
-    return parse_single_tree_( it );
+    return parse_single_tree( it );
 }
 
 // =================================================================================================
@@ -85,7 +85,7 @@ void NewickReader::from_stream(
     std::string const& default_name
 ) const {
     utils::InputStream it( utils::make_unique< utils::StreamInputSource >( input_stream ));
-    parse_multiple_trees_( it, tree_set, default_name );
+    parse_multiple_trees( it, tree_set, default_name );
 }
 
 void NewickReader::from_file (
@@ -94,7 +94,7 @@ void NewickReader::from_file (
     std::string const& default_name
 ) const {
     utils::InputStream it( utils::make_unique< utils::FileInputSource >( filename ));
-    parse_multiple_trees_( it, tree_set, default_name );
+    parse_multiple_trees( it, tree_set, default_name );
 }
 
 void NewickReader::from_string (
@@ -103,7 +103,7 @@ void NewickReader::from_string (
     std::string const& default_name
 ) const {
     utils::InputStream it( utils::make_unique< utils::StringInputSource >( tree_string ));
-    parse_multiple_trees_( it, tree_set, default_name );
+    parse_multiple_trees( it, tree_set, default_name );
 }
 
 // =================================================================================================
@@ -133,25 +133,25 @@ void NewickReader::from_strings (
 //     Parse Single Tree
 // =================================================================================================
 
-Tree NewickReader::parse_single_tree_( utils::InputStream& input_stream ) const
+Tree NewickReader::parse_single_tree( utils::InputStream& input_stream ) const
 {
-    // Parse tree into broker.
-    auto broker = parse_tree_to_broker_( input_stream );
+    // Get name and tree, only use tree.
+    auto tree = parse_named_tree( input_stream ).second;
 
     // If we just read this tree, continue until end of stream.
     if( ! stop_at_semicolon_ ) {
         parse_trailing_input_( input_stream );
     }
 
-    // Turn the parsed broker data into a tree.
-    return broker_to_tree_( broker );
+    // Return resulting tree.
+    return tree;
 }
 
 // =================================================================================================
 //     Parse Multiple Trees
 // =================================================================================================
 
-void NewickReader::parse_multiple_trees_(
+void NewickReader::parse_multiple_trees(
     utils::InputStream& input_stream,
     TreeSet&            tree_set,
     std::string const&  default_name
@@ -160,58 +160,111 @@ void NewickReader::parse_multiple_trees_(
     size_t unnamed_ctr = 0;
 
     while( input_stream ) {
-        auto ct = get_next_token_( input_stream );
 
-        // Treat some special error cases.
-        if( ct.type == TokenType::kUnknown ) {
-            throw std::runtime_error(
-                "Invalid characters at " + ct.at() + ": '" + ct.text + "'."
-            );
-        }
-        if( ct.type == TokenType::kEnd ) {
-            break;
+        // Get name and tree.
+        auto named_tree = parse_named_tree( input_stream );
+
+        // If there are no trees left, we are done.
+        if( named_tree.first.empty() && named_tree.second.empty() ) {
+            return;
         }
 
-        // Skip comments in between trees.
-        if( ct.type == TokenType::kComment ) {
+        // Fill in default name if needed.
+        if( named_tree.first.empty() ) {
+            named_tree.first = default_name + std::to_string( unnamed_ctr );
+            ++unnamed_ctr;
+        }
+
+        // Store it in the TreeSet, without any copy steps.
+        tree_set.add( std::move( named_tree.first ), std::move( named_tree.second ));
+    }
+}
+
+// =================================================================================================
+//     Parse Named Tree
+// =================================================================================================
+
+std::pair< std::string, Tree > NewickReader::parse_named_tree( utils::InputStream& input_stream ) const
+{
+    // Helper function for valid tree name chars.
+    auto is_valid_tree_name_char = [&]( char c ){
+        return   isprint(c)
+            && ! isspace(c)
+            && c != ';'
+            && c != '('
+            && c != ')'
+            && c != '='
+        ;
+    };
+
+    // Skip leading stuff.
+    while( input_stream ) {
+
+        // Whitespaces.
+        utils::skip_while( input_stream, isspace );
+
+        // No input, return empty tree.
+        // We can never read an empty tree from an input, so this is useful to distungish
+        // whether we were able to read a tree from the input.
+        if( ! input_stream ) {
+            return {};
+        }
+
+        // Skip comments.
+        if( *input_stream == '[' ) {
+            ++input_stream;
+            utils::read_until( input_stream, ']' );
+
+            if( !input_stream ) {
+                throw std::runtime_error(
+                    "Reached unexpected end of Newick tree at " + input_stream.at()
+                );
+            }
+            assert( *input_stream == ']' );
+            ++input_stream;
+
             continue;
         }
 
-        // Get the name of the current tree.
-        std::string name = "";
-        if( ct.type == TokenType::kString ) {
-            name = ct.text;
-            ct = get_next_token_( input_stream );
-
-            // After a name, there has to be something.
-            if( ct.type == TokenType::kEnd ) {
-                throw std::runtime_error( "Unexpected end at " + ct.at() + "." );
-            }
-
-            // After a name, we expect an equals sign.
-            if( ct.type != TokenType::kEquals ) {
-                throw std::runtime_error( "Invalid character '" + ct.text + "' at " + ct.at() + "." );
-            }
-            ct = get_next_token_( input_stream );
-
-            // After a name, there has to be something.
-            if( ct.type == TokenType::kEnd ) {
-                throw std::runtime_error( "Unexpected end of tree at " + ct.at() + "." );
-            }
-        }
-
-        // Now we expect the start of a tree.
-        if( ct.type != TokenType::kOpeningParenthesis ) {
-            throw std::runtime_error( "Invalid character at " + ct.at() + "." );
-        }
-
-        // Parse the tree and store it in the TreeSet, without any copy steps.
-        if (name.empty()) {
-            name = default_name + std::to_string( unnamed_ctr );
-            ++unnamed_ctr;
-        }
-        tree_set.add( name, broker_to_tree_( parse_tree_to_broker_( input_stream )));
+        // If neither applies, we are done here.
+        break;
     }
+    assert( input_stream );
+
+    // Get the name of the current tree, if there is one.
+    std::string name = "";
+    if( *input_stream != '(' ) {
+
+        // Distinguish between names in quotes, and those without.
+        // Names without quotes cannot contain certain chars, see is_valid_tree_name_char().
+        if( *input_stream == '"' || *input_stream == '\'' ) {
+            name = utils::parse_quoted_string( input_stream, false, true, false );
+        } else {
+            name =  utils::read_while( input_stream, is_valid_tree_name_char );
+        }
+
+        // Always allow white spaces...
+        utils::skip_while( input_stream, isspace );
+
+        // After a name, we expect an equals sign.
+        if( *input_stream != '=' ) {
+            throw std::runtime_error(
+                "Invalid character '" + std::string( 1, *input_stream ) + "' at "
+                + input_stream.at() + ". Expecting '='."
+            );
+        }
+
+        assert( *input_stream == '=' );
+        ++input_stream;
+
+        // After a name, there has to be something.
+        if( ! input_stream ) {
+            throw std::runtime_error( "Unexpected end of tree at " + input_stream.at() + "." );
+        }
+    }
+
+    // Parse the tree and return it.
+    return { name, broker_to_tree_( parse_tree_to_broker_( input_stream )) };
 }
 
 // =================================================================================================
@@ -261,7 +314,8 @@ NewickReader::Token NewickReader::get_next_token_( utils::InputStream& input_str
             && c != '['
             && c != ']'
             && c != ','
-            && ( ! enable_tags_ || ( c != '{' && c != '}' ));
+            && ( ! enable_tags_ || ( c != '{' && c != '}' ))
+        ;
     };
 
     // Skip initial whitespace, then set the current position in the stream.
@@ -548,6 +602,7 @@ NewickBroker NewickReader::parse_tree_to_broker_( utils::InputStream& input_stre
                 throw std::runtime_error( "Too many ')' at " + ct.at() + "." );
             }
             if (!(
+                pt.type == TokenType::kOpeningParenthesis ||
                 pt.type == TokenType::kClosingParenthesis ||
                 pt.type == TokenType::kString             ||
                 pt.type == TokenType::kComma              ||

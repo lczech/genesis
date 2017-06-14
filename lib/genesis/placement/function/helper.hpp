@@ -32,6 +32,8 @@
  */
 
 #include "genesis/placement/sample.hpp"
+#include "genesis/placement/sample_set.hpp"
+#include "genesis/utils/math/matrix.hpp"
 
 #include <unordered_map>
 #include <vector>
@@ -107,6 +109,8 @@ std::vector<PqueryPlacement const*> placements_per_edge(
  */
 std::vector<size_t> placement_count_per_edge( Sample const& sample );
 
+utils::Matrix<size_t> placement_count_per_edge( SampleSet const& sample_set );
+
 /**
  * @brief Return a vector that contains the sum of the weights of the PqueryPlacement%s per
  * @link ::PlacementTreeEdge edge@endlink of the @link ::PlacementTree tree@endlink of the Sample.
@@ -115,6 +119,8 @@ std::vector<size_t> placement_count_per_edge( Sample const& sample );
  * The vector is indexed using the @link PlacementTreeEdge::index() index@endlink of the edges.
  */
 std::vector<double> placement_weight_per_edge( Sample const& sample );
+
+utils::Matrix<double> placement_weight_per_edge( SampleSet const& sample_set );
 
 /**
  * @brief Return a plain representation of all pqueries of this map.

@@ -54,8 +54,10 @@
 #include "genesis/utils/math/histogram.hpp"
 #include "genesis/utils/math/histogram/accumulator.hpp"
 #include "genesis/utils/math/histogram/distances.hpp"
+#include "genesis/utils/math/histogram/operations.hpp"
 #include "genesis/utils/math/histogram/operators.hpp"
 #include "genesis/utils/math/matrix.hpp"
+#include "genesis/utils/math/matrix/operators.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -1059,10 +1061,10 @@ double pairwise_distance (
  */
 utils::Histogram node_distance_histogram (
     Sample const&                sample,
-    size_t                       node_index,
+    size_t const                 node_index,
     utils::Matrix<double> const& node_dists,
-    double                       diameter,
-    size_t                       histogram_bins
+    double const                 diameter,
+    size_t const                 histogram_bins
 ) {
     // Prepare proximal and distal distances of each placement to the node.
     double p_dist, d_dist, dist;
@@ -1070,7 +1072,7 @@ utils::Histogram node_distance_histogram (
     // Fill an accumulator with the distances from all placments to the node.
     auto hist_acc = utils::HistogramAccumulator();
     for( auto const& pquery : sample ) {
-        double mult = total_multiplicity( pquery );
+        double const mult = total_multiplicity( pquery );
 
         // Get the distance from the placement to the given node, and accumulate it.
         for( auto const& placement : pquery.placements() ) {
@@ -1102,19 +1104,17 @@ utils::Histogram node_distance_histogram (
  */
 std::vector< utils::Histogram > node_distance_histograms (
     Sample const& sample,
-    size_t        histogram_bins
+    size_t const  histogram_bins
 ) {
     // Prepare a vector of histograms for each node of the tree.
     auto hist_vec = std::vector< utils::Histogram >();
     hist_vec.reserve( sample.tree().node_count() );
 
     // Calculate the pairwise distance between all pairs of nodes.
-    auto node_dists = node_branch_length_distance_matrix( sample.tree() );
+    auto const node_dists = node_branch_length_distance_matrix( sample.tree() );
 
-    // Calculate the diameter of the tree, i.e., the longest distance between any two nodes.
-    // This is used as upper bound for the histogram. Its calculation is the same as in
-    // tree::diameter().
-    double const diameter = *std::max_element( node_dists.begin(), node_dists.end() );
+    // Calculate the longest distance from any node. This is used as upper bound for the histograms.
+    auto const diameters = furthest_leaf_distance_vector( sample.tree(), node_dists );
 
     // Prepare a counter for asserting that the node order follows the indices.
     size_t cnt = 0;
@@ -1122,13 +1122,19 @@ std::vector< utils::Histogram > node_distance_histograms (
 
     // Calculate the histogram for all nodes of the tree, and store it in the vector.
     for( auto it = sample.tree().begin_nodes(); it != sample.tree().end_nodes(); ++it ) {
-        assert( it->get()->index() == cnt++ );
+        auto const node_index = it->get()->index();
+        assert( node_index == cnt++ );
 
         hist_vec.push_back( node_distance_histogram(
-            sample, it->get()->index(), node_dists, diameter, histogram_bins
+            sample, node_index, node_dists, diameters[ node_index ].second, histogram_bins
         ));
     }
     assert( cnt == sample.tree().node_count() );
+
+    // Normalize.
+    for( auto& hist : hist_vec ) {
+        normalize( hist );
+    }
 
     return hist_vec;
 }
@@ -1154,7 +1160,7 @@ double node_histogram_distance (
 
     double dist = 0.0;
     for( size_t i = 0; i < hist_vec_a.size(); ++i ) {
-        dist += earth_movers_distance( hist_vec_a[i], hist_vec_b[i], true );
+        dist += earth_movers_distance( hist_vec_a[i], hist_vec_b[i], false );
     }
     assert( dist >= 0.0 );
 
@@ -1168,8 +1174,11 @@ utils::Matrix<double> node_histogram_distance (
 ) {
     auto const set_size = sample_set.size();
 
-    // Get the histograms for all samples.
+    // Prepare histograms for all samples.
     auto hist_vecs = std::vector< std::vector< utils::Histogram >>( set_size );
+
+    // Calculate the histograms for all samples.
+    #pragma omp parallel for schedule(dynamic)
     for( size_t i = 0; i < set_size; ++i ) {
 
         // Check compatibility.
@@ -1187,28 +1196,70 @@ utils::Matrix<double> node_histogram_distance (
         assert( hist_vecs[ i ].size() == sample_set[ i ].sample.tree().node_count() );
     }
 
-    // Calculate distance matrix for every pair of samples.
+    // Init distance matrix.
     auto result = utils::Matrix<double>( set_size, set_size, 0.0 );
-    for( size_t i = 0; i < set_size; ++i ) {
 
-        // The result is symmetric - we only calculate the upper triangle.
-        for( size_t j = i + 1; j < set_size; ++j ) {
+    // Local helper function to calculate the sum of histogram emds between two sets of histograms.
+    auto histogram_emd = [] (
+        std::vector< utils::Histogram > const& lhs,
+        std::vector< utils::Histogram > const& rhs,
+        size_t const                           node_count
+    ) {
+        // Sum up the emd distances of the histograms for each node of the tree in the
+        // two samples.
+        double dist = 0.0;
+        assert( lhs.size() == rhs.size() );
+        for( size_t k = 0; k < lhs.size(); ++k ) {
+            dist += earth_movers_distance( lhs[ k ], rhs[ k ], false );
+        }
+        assert( dist >= 0.0 );
 
-            // Sum up the emd distances of the histograms for each node of the tree in the
-            // two samples.
-            double dist = 0.0;
-            assert( hist_vecs[ i ].size() == hist_vecs[ j ].size() );
-            for( size_t k = 0; k < hist_vecs[ i ].size(); ++k ) {
-                dist += earth_movers_distance( hist_vecs[ i ][ k ], hist_vecs[ j ][ k ], true );
-            }
-            assert( dist >= 0.0 );
+        // Return normalized distance.
+        dist /= static_cast< double >( node_count );
+        return dist;
+    };
 
-            // Store normalized distance.
-            dist /= static_cast< double >( sample_set[ i ].sample.tree().node_count() );
+    // Parallel specialized code.
+    #ifdef GENESIS_OPENMP
+
+        // We only need to calculate the upper triangle. Get the number of indices needed
+        // to describe this triangle.
+        size_t const max_k = utils::triangular_size( set_size );
+
+        // Calculate distance matrix for every pair of samples.
+        #pragma omp parallel for
+        for( size_t k = 0; k < max_k; ++k ) {
+
+            // For the given linear index, get the actual position in the Matrix.
+            auto const ij = utils::triangular_indices( k, set_size );
+            auto const i = ij.first;
+            auto const j = ij.second;
+
+            // Calculate and store distance.
+            auto const node_count = sample_set[ i ].sample.tree().node_count();
+            auto const dist = histogram_emd( hist_vecs[ i ], hist_vecs[ j ], node_count );
             result(i, j) = dist;
             result(j, i) = dist;
         }
-    }
+
+    // If no threads are available at all, use serial version.
+    #else
+
+        // Calculate distance matrix for every pair of samples.
+        for( size_t i = 0; i < set_size; ++i ) {
+
+            // The result is symmetric - we only calculate the upper triangle.
+            for( size_t j = i + 1; j < set_size; ++j ) {
+
+                // Calculate and store distance.
+                auto const node_count = sample_set[ i ].sample.tree().node_count();
+                auto const dist = histogram_emd( hist_vecs[ i ], hist_vecs[ j ], node_count );
+                result(i, j) = dist;
+                result(j, i) = dist;
+            }
+        }
+
+    #endif
 
     return result;
 }

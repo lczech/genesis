@@ -384,6 +384,80 @@ double mass_tree_center_masses_on_branches( MassTree& tree )
     return work;
 }
 
+double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
+{
+    double work = 0.0;
+    for( auto& edge : tree.edges() ) {
+        auto& edge_data = edge->data<MassTreeEdgeData>();
+
+        double mass_center = 0.0;
+        double mass_sum    = 0.0;
+
+        // Accumulate the mass center by adding the weighted positions,
+        // and accumulate the total sum of weights.
+        for( auto const& mass : edge_data.masses ) {
+            mass_center += mass.first * mass.second;
+            mass_sum    += mass.second;
+        }
+
+        // Find average mass center by dividing by weight sum.
+        mass_center /= mass_sum;
+
+        // Calculate work.
+        for( auto const& mass : edge_data.masses ) {
+            work += mass.second * std::abs( mass_center - mass.first );
+        }
+
+        // Set the new mass at the mass center.
+        edge_data.masses.clear();
+        edge_data.masses[ mass_center ] = mass_sum;
+    }
+    return work;
+}
+
+double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins )
+{
+    if( number_of_bins == 0 ) {
+        throw std::invalid_argument( "Cannot use number_of_bins == 0." );
+    }
+
+    // Take a number and return the closest bin position. The bins are found as the mid points
+    // of equally sized intervals distributed over the branch length, with number_of_bins being
+    // the number of those intervals/bins.
+    auto get_bin_pos = [ number_of_bins ]( double pos, double bl )
+    {
+        auto const nb = static_cast<double>( number_of_bins );
+
+        // Trim and scale pos to be in interval [ 0.0, nb )
+        auto const pn = std::min( std::max( 0.0, pos / bl * nb ), std::nextafter( nb, 0.0 ));
+
+        // Floor it to get to the interval start, then scale back, and add half the interval size,
+        // so that we end up at the mid point of the interval.
+        return ( std::floor( pn ) * bl / nb ) + ( bl / nb / 2.0 );
+    };
+
+    double work = 0.0;
+    for( auto& edge : tree.edges() ) {
+
+        // Shorthands.
+        auto& edge_data = edge->data<MassTreeEdgeData>();
+        auto new_masses = std::map<double, double>();
+
+        // Accumulate masses at the closest bins, and accumulate the work needed to do so.
+        for( auto const& mass : edge_data.masses ) {
+            auto const bin = get_bin_pos( mass.first, edge_data.branch_length );
+
+            work              += mass.second * std::abs( bin - mass.first );
+            new_masses[ bin ] += mass.second;
+        }
+
+        // Replace masses by new accumuated ones.
+        edge_data.masses = new_masses;
+    }
+
+    return work;
+}
+
 // =================================================================================================
 //     Others
 // =================================================================================================

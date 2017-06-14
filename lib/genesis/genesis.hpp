@@ -218,6 +218,7 @@
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/names.hpp"
 #include "genesis/utils/tools/color/operators.hpp"
+#include "genesis/utils/tools/color/palettes.hpp"
 #include "genesis/utils/tools/date_time.hpp"
 #include "genesis/utils/tools/tickmarks.hpp"
 

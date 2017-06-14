@@ -44,12 +44,6 @@ namespace tree {
 //     Branch Distance Measures
 // =================================================================================================
 
-/**
- * @brief Return a distance matrix containing pairwise distances between all Nodes, using the
- * branch_length of the Edges as distance measurement.
- *
- * The elements of the matrix are indexed using node().index().
- */
 utils::Matrix<double> node_branch_length_distance_matrix(
     Tree const& tree
 ) {
@@ -89,16 +83,6 @@ utils::Matrix<double> node_branch_length_distance_matrix(
     return mat;
 }
 
-/**
- * @brief Return a vector containing the distance of all nodes with respect to the given start node,
- * where distance is measured in the sum of branch lengths between the nodes.
- *
- * The vector is indexed using the node().index() for every node. Its elements give the distance of
- * each node with respect to the given start node. The distance is the sum of branch lengths of the
- * edges visited on the path between the two nodes.
- *
- * If no Node pointer is provided, the root is taken as node.
- */
 std::vector<double> node_branch_length_distance_vector(
     Tree const& tree,
     TreeNode const* node
@@ -252,9 +236,6 @@ std::vector<double> edge_branch_length_distance_vector(
 //     Complex Distance Methods
 // =================================================================================================
 
-/**
- * @brief Return the longest distance from any point in the tree (on the edges) to any leaf.
- */
 double deepest_distance(Tree const& tree)
 {
     double max = 0.0;
@@ -276,23 +257,22 @@ double deepest_distance(Tree const& tree)
 }
 
 /**
- * @brief Return a vector containing the closest leaf node for each node, using the branch_length
- * as distance measure.
- *
- * The vector is indexed using the node().index() for every node. Its value contains an std::pair,
- * where the first element is a NodeType* to the closest leaf node of the node at the index,
- * measured using the branch_length; the second element of the pair is the distance value itself.
- * Thus, leaf nodes will have a pointer to themselves and a distance value of 0.
+ * @brief Local helper function to calculate either closest_leaf_distance_vector() or
+ * furthest_leaf_distance_vector().
  */
-std::vector<std::pair< TreeNode const*, double >> closest_leaf_distance_vector(
-    Tree const& tree
+template< class Comparator >
+std::vector<std::pair< TreeNode const*, double >> leaf_distance_vector(
+    Tree const& tree,
+    utils::Matrix<double> const& node_distances,
+    Comparator  comp
 ) {
     // prepare a result vector with the size of number of nodes.
     std::vector<std::pair< TreeNode const*, double>> vec;
     vec.resize(tree.node_count(), {nullptr, 0.0});
 
-    // we need the pairwise distances between all nodes, so we can do quick lookups.
-    auto node_distances = node_branch_length_distance_matrix(tree);
+    if( node_distances.rows() != tree.node_count() || node_distances.cols() != tree.node_count() ) {
+        throw std::runtime_error( "Invalid node_branch_length_distance_matrix." );
+    }
 
     // fill the vector for every node.
     // there is probably a faster way of doing this: preorder traversal with pruning. but for now,
@@ -303,8 +283,8 @@ std::vector<std::pair< TreeNode const*, double >> closest_leaf_distance_vector(
         // we have not visited this node. assertion holds as long as the indices are correct.
         assert(vec[node->index()].first == nullptr);
 
-        TreeNode const* min_node = nullptr;
-        double min_dist = 0.0;
+        TreeNode const* res_node = nullptr;
+        double res_dist = 0.0;
 
         // try out all other nodes, and find the closest leaf.
         for (auto other_it = tree.begin_nodes(); other_it != tree.end_nodes(); ++other_it) {
@@ -315,17 +295,49 @@ std::vector<std::pair< TreeNode const*, double >> closest_leaf_distance_vector(
             }
 
             double dist = node_distances(node->index(), other->index());
-            if (min_node == nullptr || dist < min_dist) {
-                min_node = other;
-                min_dist = dist;
+            if (res_node == nullptr || comp( dist, res_dist )) {
+                res_node = other;
+                res_dist = dist;
             }
         }
 
-        vec[node->index()].first  = min_node;
-        vec[node->index()].second = min_dist;
+        vec[ node->index() ].first  = res_node;
+        vec[ node->index() ].second = res_dist;
     }
 
     return vec;
+}
+
+std::vector<std::pair< TreeNode const*, double >> closest_leaf_distance_vector(
+    Tree const& tree
+) {
+    // we need the pairwise distances between all nodes, so we can do quick lookups.
+    auto node_distances = node_branch_length_distance_matrix(tree);
+
+    return leaf_distance_vector( tree, node_distances, std::less<double>() );
+}
+
+std::vector<std::pair< TreeNode const*, double>> closest_leaf_distance_vector(
+    Tree const& tree,
+    utils::Matrix<double> const& node_distances
+) {
+    return leaf_distance_vector( tree, node_distances, std::less<double>() );
+}
+
+std::vector<std::pair< TreeNode const*, double>> furthest_leaf_distance_vector(
+    Tree const& tree
+) {
+    // we need the pairwise distances between all nodes, so we can do quick lookups.
+    auto node_distances = node_branch_length_distance_matrix(tree);
+
+    return leaf_distance_vector( tree, node_distances, std::greater<double>() );
+}
+
+std::vector<std::pair< TreeNode const*, double>> furthest_leaf_distance_vector(
+    Tree const& tree,
+    utils::Matrix<double> const& node_distances
+) {
+    return leaf_distance_vector( tree, node_distances, std::greater<double>() );
 }
 
 } // namespace tree

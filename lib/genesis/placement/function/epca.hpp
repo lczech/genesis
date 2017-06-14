@@ -95,12 +95,20 @@ std::vector<double> epca_imbalance_vector( Sample const& sample );
  * Specifically, it is the amount of mass on the distal (non-root) side of the edge minus the amount
  * of mass on the proximal side.
  *
- * The matrix is row-indexed according to the Sample%s in the SampleSet, and column-indexed so that
- * each inner edge of the Tree has one column in the Matrix. Edges leading to a leaf node do not
- * have a column in the Matrix, as their mass difference is not needed for calculating the Edge PCA.
- * See epca_imbalance_vector() for more details.
+ * The matrix is row-indexed according to the Sample%s in the SampleSet.
+ *
+ * If @p include_leaves is set to `false` (default), the columns for edges belonging to leaves of
+ * the tree are left out. Their value is `-1.0` anyway, as there is no mass on the distal side of
+ * those edges. Hence, they are constant for all Samples and have no effect on the Edge PCA result.
+ * In this case, the matrix is column-indexed so that each inner edge of the Tree has one column
+ * in the Matrix. See epca_imbalance_vector() for more details.
+ *
+ * If @p include_leaves is set to `true`, the constant values for leaf edges are also included.
+ * In this case, the matrix is column-indexed according to the edge indices of the Tree.
+ * This is for example useful if the indexing is needed later. The columns can then also be filtered
+ * out using epca_filter_constant_columns().
  */
-utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples );
+utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool include_leaves = false );
 
 /**
  * @brief Perform a component-wise transformation of the imbalance matrix used for epca().
