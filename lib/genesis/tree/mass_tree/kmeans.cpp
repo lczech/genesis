@@ -72,9 +72,13 @@ void MassTreeKmeans::pre_loop_hook(
     (void) data;
     (void) assignments;
 
-    if( accumulate_centroid_masses_ ) {
-        for( auto& mt : centroids ) {
-            mass_tree_center_masses_on_branches_averaged( mt );
+    if( accumulate_centroid_masses_ == 1 ) {
+        for( auto& centroid : centroids ) {
+            mass_tree_center_masses_on_branches_averaged( centroid );
+        }
+    } else if( accumulate_centroid_masses_ > 1 ) {
+        for( auto& centroid : centroids ) {
+            mass_tree_binify_masses( centroid, accumulate_centroid_masses_ );
         }
     }
 }
@@ -149,12 +153,13 @@ void MassTreeKmeans::update_centroids(
                 count, mass_tree_sum_of_masses( centroid ), 0.00001
             ));
 
-            mass_tree_normalize_masses( centroid );
+            // Put in bins for speedup, and normalize.
             if( accumulate_centroid_masses_ == 1 ) {
                 mass_tree_center_masses_on_branches_averaged( centroid );
             } else if( accumulate_centroid_masses_ > 1 ) {
                 mass_tree_binify_masses( centroid, accumulate_centroid_masses_ );
             }
+            mass_tree_normalize_masses( centroid );
         }
 
     #else
@@ -184,12 +189,13 @@ void MassTreeKmeans::update_centroids(
                 counts[ c ], mass_tree_sum_of_masses( centroids[ c ] ), 0.00001
             ));
 
-            mass_tree_normalize_masses( centroids[ c ] );
+            // Put in bins for speedup, and normalize.
             if( accumulate_centroid_masses_ == 1 ) {
                 mass_tree_center_masses_on_branches_averaged( centroids[ c ] );
             } else if( accumulate_centroid_masses_ > 1 ) {
                 mass_tree_binify_masses( centroids[ c ], accumulate_centroid_masses_ );
             }
+            mass_tree_normalize_masses( centroids[ c ] );
         }
 
     #endif
