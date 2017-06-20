@@ -1056,48 +1056,6 @@ double pairwise_distance (
 // =================================================================================================
 
 /**
- * @brief Local helper function to calculate a histogram of distances from each PqueryPlacement
- * in a Sample to a given @link tree::TreeNode Node@endlink of the @link PlacementTree Tree@endlink.
- */
-utils::Histogram node_distance_histogram (
-    Sample const&                sample,
-    size_t const                 node_index,
-    utils::Matrix<double> const& node_dists,
-    double const                 diameter,
-    size_t const                 histogram_bins
-) {
-    // Prepare proximal and distal distances of each placement to the node.
-    double p_dist, d_dist, dist;
-
-    // Fill an accumulator with the distances from all placments to the node.
-    auto hist_acc = utils::HistogramAccumulator();
-    for( auto const& pquery : sample ) {
-        double const mult = total_multiplicity( pquery );
-
-        // Get the distance from the placement to the given node, and accumulate it.
-        for( auto const& placement : pquery.placements() ) {
-
-            p_dist = placement.proximal_length
-                   + node_dists( node_index, placement.edge().primary_node().index() );
-
-            d_dist = placement.edge().data<PlacementEdgeData>().branch_length
-                   - placement.proximal_length
-                   + node_dists( node_index, placement.edge().secondary_node().index() );
-
-            dist = std::min( p_dist, d_dist );
-            assert( dist >= 0.0 && dist <= diameter );
-
-            // Accumulate at the distance, using the lwr and multiplicity as weight, so that the
-            // total weight of a pquery sums up to the multiplicity.
-            hist_acc.accumulate( dist, placement.like_weight_ratio * mult );
-        }
-    }
-
-    // Use the accumulator to build the histogram.
-    return hist_acc.build_uniform_ranges_histogram( histogram_bins, 0.0, diameter );
-}
-
-/**
  * @brief Local helper function to calculate the histograms of distances from all
  * @link tree::TreeNode Nodes@endlink of the @link PlacementTree Tree@endlink of a Sample to all
  * its PqueryPlacement%s.
@@ -1116,20 +1074,36 @@ std::vector< utils::Histogram > node_distance_histograms (
     // Calculate the longest distance from any node. This is used as upper bound for the histograms.
     auto const diameters = furthest_leaf_distance_vector( sample.tree(), node_dists );
 
-    // Prepare a counter for asserting that the node order follows the indices.
-    size_t cnt = 0;
-    (void) cnt;
-
-    // Calculate the histogram for all nodes of the tree, and store it in the vector.
-    for( auto it = sample.tree().begin_nodes(); it != sample.tree().end_nodes(); ++it ) {
-        auto const node_index = it->get()->index();
-        assert( node_index == cnt++ );
-
-        hist_vec.push_back( node_distance_histogram(
-            sample, node_index, node_dists, diameters[ node_index ].second, histogram_bins
-        ));
+    // Init the histograms, using the diameter at each node as max values.
+    for( size_t node_index = 0; node_index < sample.tree().node_count(); ++node_index ) {
+        hist_vec.push_back( utils::Histogram( histogram_bins, 0.0, diameters[ node_index ].second ));
     }
-    assert( cnt == sample.tree().node_count() );
+
+    // We use this order of loops, as it should be faster to touch each pquery once, and
+    // instead update the histograms multiple times, instead of calculating a histogram for each
+    // node spearately, which would require multiple iterations of the pqueries.
+    for( auto const& pquery : sample ) {
+        double const mult = total_multiplicity( pquery );
+
+        for( auto const& placement : pquery.placements() ) {
+            for( size_t node_index = 0; node_index < sample.tree().node_count(); ++node_index ) {
+
+                double const p_dist = placement.proximal_length
+                + node_dists( node_index, placement.edge().primary_node().index() );
+
+                double const d_dist = placement.edge().data<PlacementEdgeData>().branch_length
+                - placement.proximal_length
+                + node_dists( node_index, placement.edge().secondary_node().index() );
+
+                double const dist = std::min( p_dist, d_dist );
+                assert( dist >= 0.0 && dist <= diameters[ node_index ].second );
+
+                // Accumulate at the distance, using the lwr and multiplicity as weight, so that the
+                // total weight of a pquery sums up to the multiplicity.
+                hist_vec[ node_index ].accumulate( dist, placement.like_weight_ratio * mult );
+            }
+        }
+    }
 
     // Normalize.
     for( auto& hist : hist_vec ) {
