@@ -31,6 +31,10 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/std.hpp"
+#include "genesis/utils/io/input_buffer.hpp"
+#include "genesis/utils/io/input_reader.hpp"
+#include "genesis/utils/io/input_source.hpp"
 #include "genesis/utils/io/output_stream.hpp"
 
 #include <algorithm>
@@ -219,22 +223,20 @@ public:
     //     Constructor and Destructor
     // -------------------------------------------------------------------------
 
-    Deserializer (const std::string& file_name) :
-        infile   (file_name, std::ifstream::in | std::ifstream::binary),
-        instream (infile)
+    Deserializer( std::string const& file_name )
+        : buffer_( utils::make_unique< FileInputSource >( file_name ) )
     {
-        if (!infile) {
-            throw std::runtime_error("Cannot create Deserializer.");
+        if( ! buffer_ ) {
+            throw std::runtime_error("Creating Deserializer from file failed.");
         }
-    };
+    }
 
-    Deserializer (std::istream& instream) :
-        instream(instream)
-    {};
-
-    ~Deserializer()
+    Deserializer( std::istream& instream )
+        : buffer_( utils::make_unique< StreamInputSource >( instream ) )
     {
-        infile.close();
+        if( ! buffer_ ) {
+            throw std::runtime_error("Creating Deserializer from stream failed.");
+        }
     }
 
     // -------------------------------------------------------------------------
@@ -243,51 +245,72 @@ public:
 
     inline operator bool() const
     {
-        return !instream.fail();
+        return buffer_;
     }
 
-    inline bool good() const
-    {
-        return instream.good();
-    }
+    // inline bool good() const
+    // {
+    //     return instream.good();
+    // }
+    //
+    // inline bool eof() const
+    // {
+    //     return instream.eof();
+    // }
+    //
+    // inline bool fail() const
+    // {
+    //     return instream.fail();
+    // }
+    //
+    // inline bool bad() const
+    // {
+    //     return instream.bad();
+    // }
+    //
+    // inline bool succeeded() const
+    // {
+    //     return !instream.eof() && instream.peek() == EOF;
+    // }
 
-    inline bool eof() const
+    inline bool finished() const
     {
-        return instream.eof();
-    }
-
-    inline bool fail() const
-    {
-        return instream.fail();
-    }
-
-    inline bool bad() const
-    {
-        return instream.bad();
-    }
-
-    inline bool succeeded() const
-    {
-        return !instream.eof() && instream.peek() == EOF;
+        return ! buffer_;
     }
 
     // -------------------------------------------------------------------------
     //     File Status
     // -------------------------------------------------------------------------
 
-    inline bool is_open() const
-    {
-        return infile.is_open();
-    }
-
-    inline void close()
-    {
-        infile.close();
-    }
+    // inline bool is_open() const
+    // {
+    //     return infile.is_open();
+    // }
+    //
+    // inline void close()
+    // {
+    //     infile.close();
+    // }
 
     // -------------------------------------------------------------------------
     //     Deserialization
     // -------------------------------------------------------------------------
+
+    /**
+    * @brief Read `n` bytes from the stream and store them in the buffer.
+    *
+    * The buffer needs to be big enough to hold `n` bytes.
+    */
+    void get_raw(char* buffer, size_t n)
+    {
+        size_t const got = buffer_.read(buffer, n);
+        if( got != n ) {
+            throw std::runtime_error(
+                "Could only read " + std::to_string(got)  + " bytes instead of n=" +
+                std::to_string( n ) + " bytes from Deserializer input."
+            );
+        }
+    }
 
     /**
      * @brief Reads `n` bytes from the stream and returns whether all of them are `\0` bytes.
@@ -295,7 +318,7 @@ public:
     bool get_null (size_t n)
     {
         char* buffer = new char[n];
-        instream.read(buffer, n);
+        get_raw( buffer, n );
 
         bool ret = true;
         for (size_t i = 0; i < n; ++i) {
@@ -307,22 +330,12 @@ public:
     }
 
     /**
-     * @brief Read `n` bytes from the stream and store them in the buffer.
-     *
-     * The buffer needs to be big enough to hold `n` bytes.
-     */
-    void get_raw(char* buffer, size_t n)
-    {
-        instream.read(buffer, n);
-    }
-
-    /**
      * @brief Read `n` bytes from the stream and return them as a string.
      */
     std::string get_raw_string(size_t n)
     {
         char* buffer = new char[n];
-        instream.read(buffer, n);
+        get_raw( buffer, n );
 
         std::string str (buffer, n);
         delete[] buffer;
@@ -348,7 +361,7 @@ public:
     T get_plain ()
     {
         T res;
-        instream.read((char*)(&res), sizeof(T));
+        get_raw( (char*)(&res), sizeof(T) );
         return res;
     }
 
@@ -359,7 +372,7 @@ public:
     template<typename T>
     void get_plain (T& res)
     {
-        instream.read((char*)(&res), sizeof(T));
+        get_raw( (char*)(&res), sizeof(T) );
     }
 
     /**
@@ -402,9 +415,10 @@ public:
     //     Data Members
     // -------------------------------------------------------------------------
 
-protected:
-    std::ifstream infile;
-    std::istream& instream;
+private:
+
+    InputBuffer buffer_;
+
 };
 
 } // namespace utils
