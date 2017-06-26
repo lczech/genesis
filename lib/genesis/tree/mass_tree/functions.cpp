@@ -390,6 +390,13 @@ double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
     for( auto& edge : tree.edges() ) {
         auto& edge_data = edge->data<MassTreeEdgeData>();
 
+        // No masses on the edge. We need to skip the rest, otherwise we end up having a nan values
+        // as mass centers, which leads to nan earth mover distance values, which leads to invalid
+        // kmeans cluster centroid assigments, which leads to crashes. What a stupid bug that was.
+        if( edge_data.masses.empty() ) {
+            continue;
+        }
+
         double mass_center = 0.0;
         double mass_sum    = 0.0;
 
