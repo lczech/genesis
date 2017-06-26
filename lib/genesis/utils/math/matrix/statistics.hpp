@@ -230,16 +230,34 @@ std::vector<MeanStddevPair> standardize_rows(
 /**
  * @brief Calcualte the column-wise mean and standard deviation of a Matrix.
  *
+ * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
+ * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
+ * which for some use cases would cause problems like a division by zero later on.
+ * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
+ * be below `0.0`.
+ *
  * See also matrix_row_mean_stddev().
  */
-std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data );
+std::vector<MeanStddevPair> matrix_col_mean_stddev(
+    Matrix<double> const& data,
+    double epsilon = -1.0
+);
 
 /**
  * @brief Calcualte the row-wise mean and standard deviation of a Matrix.
  *
+ * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
+ * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
+ * which for some use cases would cause problems like a division by zero later on.
+ * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
+ * be below `0.0`.
+ *
  * See also matrix_col_mean_stddev().
  */
-std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data );
+std::vector<MeanStddevPair> matrix_row_mean_stddev(
+    Matrix<double> const& data,
+    double epsilon = -1.0
+);
 
 // =================================================================================================
 //     Correlation and Covariance

@@ -85,7 +85,7 @@ std::vector<MeanStddevPair> standardize_cols(
     bool            scale_means,
     bool            scale_std
 ) {
-    auto col_mean_stddev = matrix_col_mean_stddev( data );
+    auto col_mean_stddev = matrix_col_mean_stddev( data, 0.0000001 );
     assert( col_mean_stddev.size() == data.cols() );
 
     // Iterate the matrix.
@@ -113,7 +113,7 @@ std::vector<MeanStddevPair> standardize_rows(
     bool            scale_means,
     bool            scale_std
 ) {
-    auto row_mean_stddev = matrix_row_mean_stddev( data );
+    auto row_mean_stddev = matrix_row_mean_stddev( data, 0.0000001 );
     assert( row_mean_stddev.size() == data.rows() );
 
     // Iterate the matrix.
@@ -140,7 +140,7 @@ std::vector<MeanStddevPair> standardize_rows(
 //     Mean and Stddev
 // ================================================================================================
 
-std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data )
+std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data, double epsilon )
 {
     auto ret = std::vector<MeanStddevPair>( data.cols(), { 0.0, 0.0 } );
 
@@ -148,9 +148,6 @@ std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data )
     if( data.rows() == 0 ) {
         return ret;
     }
-
-    // Minimum dev that we allow (necessary for numerical reasons).
-    double const eps = 0.0000001;
 
     // Iterate columns.
     for( size_t c = 0; c < data.cols(); ++c ) {
@@ -172,7 +169,8 @@ std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data )
 
         // The following in an inelegant (but usual) way to handle near-zero values,
         // which later would cause a division by zero.
-        if( stddev <= eps ){
+        assert( stddev >= 0.0 );
+        if( stddev <= epsilon ){
             stddev = 1.0;
         }
 
@@ -184,7 +182,7 @@ std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data )
     return ret;
 }
 
-std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data )
+std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data, double epsilon )
 {
     auto ret = std::vector<MeanStddevPair>( data.rows(), { 0.0, 0.0 } );
 
@@ -192,9 +190,6 @@ std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data )
     if( data.cols() == 0 ) {
         return ret;
     }
-
-    // Minimum dev that we allow (necessary for numerical reasons).
-    double const eps = 0.0000001;
 
     // Iterate columns.
     for( size_t r = 0; r < data.rows(); ++r ) {
@@ -216,7 +211,8 @@ std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data )
 
         // The following in an inelegant (but usual) way to handle near-zero values,
         // which later would cause a division by zero.
-        if( stddev <= eps ){
+        assert( stddev >= 0.0 );
+        if( stddev <= epsilon ){
             stddev = 1.0;
         }
 
