@@ -62,7 +62,7 @@ size_t triangular_size( size_t n )
 }
 
 // ================================================================================================
-//     Matrix Operators
+//     Double Matrix Operators
 // ================================================================================================
 
 Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b)

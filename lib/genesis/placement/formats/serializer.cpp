@@ -121,7 +121,7 @@ Sample SampleSerializer::load( std::string const& file_name )
     // Prepare, check stream status.
     utils::Deserializer des( file_name );
     if( ! des ) {
-        throw std::invalid_argument( "Deserialization failed." );
+        throw std::invalid_argument( "Deserialization failed: Cannot open file." );
     }
 
     // Read and check header.
@@ -166,8 +166,8 @@ Sample SampleSerializer::load( std::string const& file_name )
         }
     }
 
-    if (!des.succeeded()) {
-        throw std::invalid_argument("Deserialization failed.");
+    if (!des.finished()) {
+        throw std::invalid_argument("Deserialization failed: File longer than expected.");
     }
 
     return map;

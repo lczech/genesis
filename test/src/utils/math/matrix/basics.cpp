@@ -118,7 +118,7 @@ TEST( Matrix, SwapRowsCols )
          5,  6,  7,  8
     });
 
-    swap_rows( m, 1, 3 );
+    matrix_swap_rows( m, 1, 3 );
     EXPECT_EQ( mre, m );
 
     auto mce = Matrix<int>(4, 4, {
@@ -128,7 +128,7 @@ TEST( Matrix, SwapRowsCols )
          6,  5,  7,  8
     });
 
-    swap_cols( m, 1, 0 );
+    matrix_swap_cols( m, 1, 0 );
     EXPECT_EQ( mce, m );
 }
 

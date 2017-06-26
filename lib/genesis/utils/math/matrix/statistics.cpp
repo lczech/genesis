@@ -137,63 +137,6 @@ std::vector<MeanStddevPair> standardize_rows(
 }
 
 // ================================================================================================
-//     Min Max
-// ================================================================================================
-
-std::vector<MinMaxPair<double>> matrix_col_minmax( Matrix<double> const& data )
-{
-    auto ret = std::vector<MinMaxPair<double>>( data.cols(), { 0.0, 0.0 } );
-
-    // Nothing to do.
-    if( data.rows() == 0 ) {
-        return ret;
-    }
-
-    // Init with the first row.
-    for( size_t c = 0; c < data.cols(); ++c ) {
-        ret[ c ].min = data( 0, c );
-        ret[ c ].max = data( 0, c );
-    }
-
-    // Now go through all other rows.
-    // Our Matrix is row-major, so this way we make best use of the cache.
-    for( size_t r = 1; r < data.rows(); ++r ) {
-        for( size_t c = 0; c < data.cols(); ++c ) {
-
-            // Find min and max of the column.
-            ret[ c ].min = std::min( ret[ c ].min, data( r, c ) );
-            ret[ c ].max = std::max( ret[ c ].max, data( r, c ) );
-        }
-    }
-
-    return ret;
-}
-
-std::vector<MinMaxPair<double>> matrix_row_minmax( Matrix<double> const& data )
-{
-    auto ret = std::vector<MinMaxPair<double>>( data.rows(), { 0.0, 0.0 } );
-
-    // Nothing to do.
-    if( data.cols() == 0 ) {
-        return ret;
-    }
-
-    for( size_t r = 0; r < data.rows(); ++r ) {
-        // Init with the first col.
-        ret[ r ].min = data( r, 0 );
-        ret[ r ].max = data( r, 0 );
-
-        // Go through all other cols.
-        for( size_t c = 1; c < data.cols(); ++c ) {
-            ret[ r ].min = std::min( ret[ r ].min, data( r, c ) );
-            ret[ r ].max = std::max( ret[ r ].max, data( r, c ) );
-        }
-    }
-
-    return ret;
-}
-
-// ================================================================================================
 //     Mean and Stddev
 // ================================================================================================
 
