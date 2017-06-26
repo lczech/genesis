@@ -37,9 +37,11 @@
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/formats/newick/color_writer_plugin.hpp"
+#include "genesis/tree/formats/newick/input_iterator.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 #include "genesis/tree/tree.hpp"
+#include "genesis/utils/io/input_stream.hpp"
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis;
@@ -63,6 +65,16 @@ TEST(Newick, FromAndToString)
 TEST(Newick, NewickVariants)
 {
     Tree tree;
+
+    EXPECT_TRUE( tree.empty() );
+
+    // Stupid tree.
+    tree = DefaultTreeNewickReader().from_string(
+        "();"
+    );
+    EXPECT_TRUE( validate_topology(tree) );
+    EXPECT_EQ( 2, tree.node_count() );
+    EXPECT_FALSE( tree.empty() );
 
     // No nodes are named.
     tree = DefaultTreeNewickReader().from_string(
@@ -159,4 +171,40 @@ TEST(Newick, ColorPlugin)
     // This is one fewer than the number of nodes, as no color tag is written for the root.
     auto count_black = utils::count_substring_occurrences( output, "[&!color=#000000]" );
     EXPECT_EQ( inner_node_count(tree) - 1, count_black );
+}
+
+TEST( Newick, MultipleTrees )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Open a file stream.
+    std::string infile = environment->data_dir + "tree/multiple.newick";
+    utils::InputStream instream( utils::make_unique< utils::FileInputSource >( infile ));
+
+    // Get the iterator and start reading.
+    auto tree_iter = NewickInputIterator( instream );
+
+    while( tree_iter ) {
+        EXPECT_EQ( 6, tree_iter->node_count() );
+        ++tree_iter;
+    }
+}
+
+TEST( Newick, MultipleNamedTrees )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Open a file stream.
+    std::string infile = environment->data_dir + "tree/multiple_named.newick";
+    utils::InputStream instream( utils::make_unique< utils::FileInputSource >( infile ));
+
+    // Get the iterator and start reading.
+    auto tree_iter = NewickInputIterator( instream );
+
+    while( tree_iter ) {
+        EXPECT_EQ( 6, tree_iter->node_count() );
+        ++tree_iter;
+    }
 }

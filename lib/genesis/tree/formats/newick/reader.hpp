@@ -34,6 +34,7 @@
 #include <iosfwd>
 #include <functional>
 #include <string>
+#include <utility>
 #include <vector>
 
 namespace genesis {
@@ -150,7 +151,7 @@ private:
 
     struct Token
     {
-        TokenType   type;
+        TokenType   type = TokenType::kEnd;
         std::string text;
         size_t      line;
         size_t      column;
@@ -347,25 +348,35 @@ public:
     std::vector<element_to_edge_function> element_to_edge_plugins;
 
     // -------------------------------------------------------------------------
-    //     Internal Member Functions
+    //     Parsing Functions
     // -------------------------------------------------------------------------
-
-private:
 
     /**
      * @brief Parse a single tree. Depending on stop_at_semicolon(), stop after the semicolon
      * or continue until the end of the input, checking if there are only comments.
      */
-    Tree parse_single_tree_( utils::InputStream& input_stream ) const;
+    Tree parse_single_tree( utils::InputStream& input_stream ) const;
 
     /**
      * @brief Parse until the end of the stream and add all Tree%s to the TreeSet.
      */
-    void parse_multiple_trees_(
+    void parse_multiple_trees(
         utils::InputStream& input_stream,
         TreeSet&            tree_set,
         std::string const&  default_name
     ) const;
+
+    /**
+     * @brief Parse one named tree, i.e., a tree as described
+     * @link from_string( std::string const&, TreeSet&, std::string const& ) here@endlink.
+     */
+    std::pair< std::string, Tree > parse_named_tree( utils::InputStream& input_stream ) const;
+
+    // -------------------------------------------------------------------------
+    //     Internal Member Functions
+    // -------------------------------------------------------------------------
+
+private:
 
     /**
      * @brief Check for input after a semicolon and throw if it is not a comment.

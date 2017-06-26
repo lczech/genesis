@@ -116,6 +116,7 @@
 #include "genesis/tree/formats/newick/broker.hpp"
 #include "genesis/tree/formats/newick/color_writer_plugin.hpp"
 #include "genesis/tree/formats/newick/element.hpp"
+#include "genesis/tree/formats/newick/input_iterator.hpp"
 #include "genesis/tree/formats/newick/reader.hpp"
 #include "genesis/tree/formats/newick/writer.hpp"
 #include "genesis/tree/formats/phyloxml/color_writer_plugin.hpp"

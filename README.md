@@ -61,7 +61,7 @@ The following figure summarized the placement position of 7.5 mio short reads on
 reference tree with 190 taxa. The colour code indicates the number of reads placed
 on each branch.
 
-![Phylogenetic tree with coloured branches.](/doc/img/visualize_placements.png?raw=true "Phylogenetic tree with coloured branches.")
+![Phylogenetic tree with coloured branches.](/doc/img/placement/visualize_placements.png?raw=true "Phylogenetic tree with coloured branches.")
 
 The color coding in form of a tree in Nexus format was produced with genesis by reading `jplace`
 files of the placements, and visualized using [FigTree](http://tree.bio.ed.ac.uk/software/figtree/)
