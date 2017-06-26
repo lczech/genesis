@@ -41,6 +41,111 @@ namespace genesis {
 namespace utils {
 
 // =================================================================================================
+//     Min Max
+// =================================================================================================
+
+/**
+ * @brief Calculate the column-wise min and max values of a Matrix.
+ *
+ * See also matrix_row_minmax().
+ */
+template< typename T >
+std::vector<MinMaxPair<T>> matrix_col_minmax( Matrix<T> const& data )
+{
+    auto ret = std::vector<MinMaxPair<T>>( data.cols(), { 0.0, 0.0 } );
+
+    // Nothing to do.
+    if( data.rows() == 0 ) {
+        return ret;
+    }
+
+    // Init with the first row.
+    for( size_t c = 0; c < data.cols(); ++c ) {
+        ret[ c ].min = data( 0, c );
+        ret[ c ].max = data( 0, c );
+    }
+
+    // Now go through all other rows.
+    // Our Matrix is row-major, so this way we make best use of the cache.
+    for( size_t r = 1; r < data.rows(); ++r ) {
+        for( size_t c = 0; c < data.cols(); ++c ) {
+
+            // Find min and max of the column.
+            ret[ c ].min = std::min( ret[ c ].min, data( r, c ) );
+            ret[ c ].max = std::max( ret[ c ].max, data( r, c ) );
+        }
+    }
+
+    return ret;
+}
+
+/**
+* @brief Calculate the row-wise min and max values of a Matrix.
+*
+* See also matrix_col_minmax().
+*/
+template< typename T >
+std::vector<MinMaxPair<T>> matrix_row_minmax( Matrix<T> const& data )
+{
+    auto ret = std::vector<MinMaxPair<T>>( data.rows(), { 0.0, 0.0 } );
+
+    // Nothing to do.
+    if( data.cols() == 0 ) {
+        return ret;
+    }
+
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        // Init with the first col.
+        ret[ r ].min = data( r, 0 );
+        ret[ r ].max = data( r, 0 );
+
+        // Go through all other cols.
+        for( size_t c = 1; c < data.cols(); ++c ) {
+            ret[ r ].min = std::min( ret[ r ].min, data( r, c ) );
+            ret[ r ].max = std::max( ret[ r ].max, data( r, c ) );
+        }
+    }
+
+    return ret;
+}
+
+/**
+ * @brief Calculate the sum of each row and return the result as a vector.
+ *
+ * See also matrix_col_sums().
+ */
+template< typename T >
+std::vector<T> matrix_row_sums( Matrix<T> const& data )
+{
+    // Get row sums.
+    auto row_sums = std::vector<T>( data.rows(), T{} );
+    for( size_t i = 0; i < data.rows(); ++i ) {
+        for( size_t j = 0; j < data.cols(); ++j ) {
+            row_sums[ i ] += data( i, j );
+        }
+    }
+    return row_sums;
+}
+
+/**
+ * @brief Calculate the sum of each column and return the result as a vector.
+ *
+ * See also matrix_row_sums().
+ */
+template< typename T >
+std::vector<T> matrix_col_sums( Matrix<T> const& data )
+{
+    // Get col sums.
+    auto col_sums = std::vector<T>( data.cols(), T{} );
+    for( size_t i = 0; i < data.rows(); ++i ) {
+        for( size_t j = 0; j < data.cols(); ++j ) {
+            col_sums[ j ] += data( i, j );
+        }
+    }
+    return col_sums;
+}
+
+// =================================================================================================
 //     Normalization and Standardization
 // =================================================================================================
 
@@ -117,24 +222,6 @@ std::vector<MeanStddevPair> standardize_rows(
     bool            scale_means = true,
     bool            scale_std = true
 );
-
-// =================================================================================================
-//     Min Max
-// =================================================================================================
-
-/**
- * @brief Calculate the column-wise min and max values of a Matrix.
- *
- * See also matrix_row_minmax().
- */
-std::vector<MinMaxPair<double>> matrix_col_minmax( Matrix<double> const& data );
-
-/**
-* @brief Calculate the row-wise min and max values of a Matrix.
-*
-* See also matrix_col_minmax().
-*/
-std::vector<MinMaxPair<double>> matrix_row_minmax( Matrix<double> const& data );
 
 // =================================================================================================
 //     Mean and Stddev

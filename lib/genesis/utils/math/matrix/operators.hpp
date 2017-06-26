@@ -35,6 +35,8 @@
 #include <stdexcept>
 
 #include "genesis/utils/math/matrix.hpp"
+#include "genesis/utils/math/matrix/statistics.hpp"
+#include "genesis/utils/core/algorithm.hpp"
 
 namespace genesis {
 namespace utils {
@@ -110,21 +112,14 @@ size_t triangular_index( size_t i, size_t j, size_t n );
 size_t triangular_size( size_t n );
 
 // =================================================================================================
-//     Matrix Operators
+//     General Matrix Operators
 // =================================================================================================
-
-/**
- * @brief Calculate the product of two @link Matrix Matrices@endlink.
- *
- * The two matrices need to have fitting sized, i.e., `a[ l, m ] x b[ m, n ]`.
- */
-Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b);
 
 /**
  * @brief Transpose a Matrix.
  */
 template <typename T>
-Matrix<T> transpose( Matrix<T> const& data )
+Matrix<T> matrix_transpose( Matrix<T> const& data )
 {
     auto res = Matrix<T>( data.cols(), data.rows() );
     for( size_t r = 0; r < data.rows(); ++r ) {
@@ -136,35 +131,27 @@ Matrix<T> transpose( Matrix<T> const& data )
 }
 
 /**
- * @brief Swap (interchange) two rows of a Matrix, given their indices.
+ * @brief Return whether a Matrix is symmetric, i.e., whether it is square and
+ * `m[ i, j ] == m[ j, i ]` holds for all entries.
  */
 template <typename T>
-void swap_rows( Matrix<T>& data, size_t row_a, size_t row_b )
+bool matrix_is_symmetric( Matrix<T> const& data )
 {
-    if( row_a >= data.rows() || row_b >= data.rows() ) {
-        throw std::invalid_argument( "Invalid row index for swap_rows()." );
+    if( data.rows() != data.cols() ) {
+        return false;
     }
 
-    using std::swap;
-    for( size_t c = 0; c < data.cols(); ++c ) {
-        swap( data( row_a, c ), data( row_b, c ) );
-    }
-}
-
-/**
- * @brief Swap (interchange) two columns of a Matrix, given their indices.
- */
-template <typename T>
-void swap_cols( Matrix<T>& data, size_t col_a, size_t col_b )
-{
-    if( col_a >= data.rows() || col_b >= data.rows() ) {
-        throw std::invalid_argument( "Invalid column index for swap_cols()." );
+    // We only need to check the upper triangle, and compare it to the lower triangle.
+    // Also, we use early stopping. Of course we do. Who wouldn't.
+    for( size_t i = 0; i < data.rows(); ++i ) {
+        for( size_t j = i + 1; j < data.cols(); ++j ) {
+            if( data( i, j ) != data( j, i ) ) {
+                return false;
+            }
+        }
     }
 
-    using std::swap;
-    for( size_t r = 0; r < data.rows(); ++r ) {
-        swap( data( r, col_a ), data( r, col_b ) );
-    }
+    return true;
 }
 
 template <typename T>
@@ -181,6 +168,115 @@ std::ostream& operator<< (std::ostream& os, const Matrix<T>& matrix)
     }
     return os;
 }
+
+// =================================================================================================
+//     Swapping and Sorting
+// =================================================================================================
+
+/**
+ * @brief Swap (interchange) two rows of a Matrix, given their indices.
+ */
+template <typename T>
+void matrix_swap_rows( Matrix<T>& data, size_t row_a, size_t row_b )
+{
+    if( row_a >= data.rows() || row_b >= data.rows() ) {
+        throw std::invalid_argument( "Invalid row index for swap_rows()." );
+    }
+
+    using std::swap;
+    for( size_t c = 0; c < data.cols(); ++c ) {
+        swap( data( row_a, c ), data( row_b, c ) );
+    }
+}
+
+/**
+ * @brief Swap (interchange) two columns of a Matrix, given their indices.
+ */
+template <typename T>
+void matrix_swap_cols( Matrix<T>& data, size_t col_a, size_t col_b )
+{
+    if( col_a >= data.rows() || col_b >= data.rows() ) {
+        throw std::invalid_argument( "Invalid column index for swap_cols()." );
+    }
+
+    using std::swap;
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        swap( data( r, col_a ), data( r, col_b ) );
+    }
+}
+
+/**
+ * @brief Sort rows and columns of a Matrix by the sum or the rows.
+ *
+ * This is an operation for square matrices: It takes the row sum as sorting criterion, and
+ * sorts the rows and the columns according to that order. This is mostly useful for symmetric
+ * matrices, where `m[ i, j ] == m[ j, i ]`. In those cases, the sorting is stable with respect
+ * to the symmetry.
+ *
+ * See also matrix_sort_by_col_sum_symmetric(). In case of symmetric matrices, it should yield
+ * the same Matrix.
+ */
+template< typename T >
+Matrix<T> matrix_sort_by_row_sum_symmetric( Matrix<T> const& data )
+{
+    if( data.rows() != data.cols() ) {
+        throw std::runtime_error( "Symmetric sort only works on square matrices." );
+    }
+
+    auto result = Matrix<T>( data.rows(), data.cols() );
+    auto row_sums = matrix_row_sums( data );
+    auto si = sort_indices( row_sums.begin(), row_sums.end() );
+
+    for( size_t i = 0; i < data.rows(); ++i ) {
+        for( size_t j = 0; j < data.cols(); ++j ) {
+            result( i, j ) = data( si[i], si[j] );
+        }
+    }
+
+    return result;
+}
+
+/**
+ * @brief Sort rows and columns of a Matrix by the sum or the columns.
+ *
+ * This is an operation for square matrices: It takes the row sum as sorting criterion, and
+ * sorts the rows and the columns according to that order. This is mostly useful for symmetric
+ * matrices, where `m[ i, j ] == m[ j, i ]`. In those cases, the sorting is stable with respect
+ * to the symmetry.
+ *
+ * See also matrix_sort_by_col_sum_symmetric(). In case of symmetric matrices, it should yield
+ * the same Matrix.
+ */
+template< typename T >
+Matrix<T> matrix_sort_by_col_sum_symmetric( Matrix<T> const& data )
+{
+    if( data.rows() != data.cols() ) {
+        throw std::runtime_error( "Symmetric sort only works on square matrices." );
+    }
+
+    auto result = Matrix<T>( data.rows(), data.cols() );
+    auto col_sums = matrix_col_sums( data );
+    auto si = sort_indices( col_sums.begin(), col_sums.end() );
+
+    for( size_t i = 0; i < data.rows(); ++i ) {
+        for( size_t j = 0; j < data.cols(); ++j ) {
+            result( i, j ) = data( si[i], si[j] );
+        }
+    }
+
+    return result;
+}
+
+// =================================================================================================
+//     Double Matrix Operators
+// =================================================================================================
+
+/**
+ * @brief Calculate the product of two @link Matrix Matrices@endlink.
+ *
+ * The two matrices need to have fitting sized, i.e., `a[ l, m ] x b[ m, n ]`.
+ */
+Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b);
 
 } // namespace utils
 } // namespace genesis
