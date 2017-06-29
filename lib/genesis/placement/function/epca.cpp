@@ -187,6 +187,14 @@ utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool incl
 
             // Copy those imbalance values to the matrix that belong to inner edges.
             for( size_t i = 0; i < edge_count; ++i ) {
+
+                // Either the edge is an inner edge, or (if not, i.e., it leads to a leaf),
+                // it's imbalance is zero.
+                assert(
+                    ! samples[s].sample.tree().edge_at(i).secondary_node().is_leaf() ||
+                    imbalance_vec[ i ] == 0.0
+                );
+
                 imbalance_matrix( s, i ) = imbalance_vec[ i ];
             }
         }
