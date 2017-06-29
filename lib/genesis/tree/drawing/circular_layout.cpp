@@ -233,7 +233,8 @@ utils::SvgDocument CircularLayout::to_svg_document() const
             // auto label = SvgText( node_data.name, SvgPoint( node_data.x + 5, node_data.y ) );
             // label.dy = "0.4em";
 
-            auto label = SvgText( node_data.name );
+            auto label = text_;
+            label.text = node_data.name;
             label.transform.append( SvgTransform::Translate(
                 ( node_data.r + 10 ) * cos( node_data.a ),
                 ( node_data.r + 10 ) * sin( node_data.a )
@@ -241,7 +242,6 @@ utils::SvgDocument CircularLayout::to_svg_document() const
             label.transform.append( SvgTransform::Rotate(
                 360 * node_data.a / ( 2.0 * utils::PI )
             ));
-            label.font.size /= 2;
             taxa_names << label;
         }
     }
