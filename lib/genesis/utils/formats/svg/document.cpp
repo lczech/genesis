@@ -68,9 +68,10 @@ SvgBox SvgDocument::bounding_box() const
  */
 void SvgDocument::write( std::ostream& out ) const
 {
+    // Get a box around all elements, and use it to measure doc dimensions and shifting.
     auto bbox = bounding_box();
-    double doc_width  = margin.left + bbox.top_left.x + bbox.width()  + margin.right;
-    double doc_height = margin.top  + bbox.top_left.y + bbox.height() + margin.bottom;
+    double doc_width  = margin.left + bbox.width()  + margin.right;
+    double doc_height = margin.top  + bbox.height() + margin.bottom;
 
     // SVG header.
     out << "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
@@ -99,18 +100,39 @@ void SvgDocument::write( std::ostream& out ) const
         out << SvgDocument::indentation_string << "</defs>\n";
     }
 
+    // Options to hand over to all elements. Currently not needed, because we do the shifting
+    // for the margin by using a group (see immediately below).
     auto options = SvgDrawingOptions();
-    options.offset_x = margin.top;
-    options.offset_y = margin.top;
+    // options.offset_x = margin.top;
+    // options.offset_y = margin.top;
+    // options.offset_x = margin.left - bbox.top_left.x;
+    // options.offset_y = margin.top  - bbox.top_left.y;
+
+    // Main group for all elements. We use this to make the handling of the margin
+    // easier.
+    out << SvgDocument::indentation_string << "<g transform=\"translate( ";
+    out << margin.left - bbox.top_left.x << ", " << margin.top - bbox.top_left.y;
+    out << ")\" >\n";
+
+    // Different approach, use inner svg element instead of group.
+    // Didn't work well with some viewers.
+    // out << SvgDocument::indentation_string << "<svg";
+    // out << svg_attribute( "x", margin.left - bbox.top_left.x );
+    // out << svg_attribute( "y", margin.top  - bbox.top_left.y );
+    // out << ">\n";
 
     // Print content.
     for( auto const& elem : content_ ) {
-        elem.write( out, 1, options );
+        elem.write( out, 2, options );
 
         // Draw bounding boxes around all elements, for testing purposes.
         // auto bb = elem.bounding_box();
         // SvgRect( bb.top_left, bb.size(), SvgStroke(), SvgFill( Color(), 0.0 ) ).write( out, 1 );
     }
+
+    // Close main grouping.
+    // out << SvgDocument::indentation_string << "</svg>\n";
+    out << SvgDocument::indentation_string << "</g>\n";
 
     // Finish.
     out << "</svg>\n";
