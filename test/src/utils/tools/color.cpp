@@ -84,24 +84,6 @@ TEST(Color, Gradient)
     compare_color(Color( 255, 128, 128 ), gradient( ranges_long, 0.75 ));
     compare_color(Color( 255,  51, 204 ), gradient( ranges_long, 0.9  ));
     compare_color(Color( 255,   0, 255 ), gradient( ranges_long, 1.0  ));
-
-
-    // Invalid ranges.
-    auto ranges_inv1 = std::map<double, Color>();
-    auto ranges_inv2 = std::map<double, Color>();
-    auto ranges_inv3 = std::map<double, Color>();
-    auto ranges_inv4 = std::map<double, Color>();
-
-    ranges_inv2[0.0] = Color(   0, 255, 0 );
-    ranges_inv2[0.5] = Color( 255, 255, 0 );
-    ranges_inv3[0.5] = Color( 255, 255, 0 );
-    ranges_inv3[1.0] = Color( 255,   0, 0 );
-    ranges_inv4[0.5] = Color( 255, 255, 0 );
-
-    EXPECT_THROW( gradient(ranges_inv1, 0.0), std::invalid_argument );
-    EXPECT_THROW( gradient(ranges_inv2, 0.0), std::invalid_argument );
-    EXPECT_THROW( gradient(ranges_inv3, 0.0), std::invalid_argument );
-    EXPECT_THROW( gradient(ranges_inv4, 0.0), std::invalid_argument );
 }
 
 TEST(Color, HeatGradient)
