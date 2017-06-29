@@ -35,6 +35,10 @@
 #include <cmath>
 #include <stdexcept>
 
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
 namespace genesis {
 namespace utils {
 
@@ -48,9 +52,11 @@ std::vector<MinMaxPair<double>> normalize_cols( Matrix<double>& data )
     assert( col_minmax.size() == data.cols() );
 
     // Iterate the matrix.
+    #pragma omp parallel for
     for( size_t r = 0; r < data.rows(); ++r ) {
         for( size_t c = 0; c < data.cols(); ++c ) {
             // Adjust column values.
+            assert( col_minmax[c].max >= col_minmax[c].min );
             double diff = col_minmax[c].max - col_minmax[c].min;
             data( r, c ) = ( data( r, c ) - col_minmax[c].min ) / diff;
         }
@@ -65,9 +71,11 @@ std::vector<MinMaxPair<double>> normalize_rows( Matrix<double>& data )
     assert( row_minmax.size() == data.rows() );
 
     // Iterate the matrix.
+    #pragma omp parallel for
     for( size_t r = 0; r < data.rows(); ++r ) {
         for( size_t c = 0; c < data.cols(); ++c ) {
             // Adjust row values.
+            assert( row_minmax[r].max >= row_minmax[r].min );
             double diff = row_minmax[r].max - row_minmax[r].min;
             data( r, c ) = ( data( r, c ) - row_minmax[r].min ) / diff;
         }
@@ -89,6 +97,7 @@ std::vector<MeanStddevPair> standardize_cols(
     assert( col_mean_stddev.size() == data.cols() );
 
     // Iterate the matrix.
+    #pragma omp parallel for
     for( size_t r = 0; r < data.rows(); ++r ) {
         for( size_t c = 0; c < data.cols(); ++c ) {
 
@@ -117,6 +126,7 @@ std::vector<MeanStddevPair> standardize_rows(
     assert( row_mean_stddev.size() == data.rows() );
 
     // Iterate the matrix.
+    #pragma omp parallel for
     for( size_t r = 0; r < data.rows(); ++r ) {
         for( size_t c = 0; c < data.cols(); ++c ) {
 
@@ -150,6 +160,7 @@ std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data, 
     }
 
     // Iterate columns.
+    #pragma omp parallel for
     for( size_t c = 0; c < data.cols(); ++c ) {
         double mean   = 0.0;
         double stddev = 0.0;
@@ -192,6 +203,7 @@ std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data, 
     }
 
     // Iterate columns.
+    #pragma omp parallel for
     for( size_t r = 0; r < data.rows(); ++r ) {
         double mean   = 0.0;
         double stddev = 0.0;
