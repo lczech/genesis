@@ -284,6 +284,22 @@ Matrix<double> covariance_matrix( Matrix<double> const& data );
  */
 Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& data );
 
+// =================================================================================================
+//     Correlation Coefficient
+// =================================================================================================
+
+/**
+ * @brief Calculate the Pearson Correlation Coefficient between two columns of two
+ * @link Matrix Matrices@endlink.
+ *
+ * Both Matrices need to have the same number of rows. Then, the function calculates the PCC
+ * between column @p col1 of Matrix @p mat1 and column @p col2 of Matrix @p mat2.
+ */
+double matrix_col_pearson_correlation_coefficient(
+    Matrix<double> const& mat1, size_t col1,
+    Matrix<double> const& mat2, size_t col2
+);
+
 } // namespace utils
 } // namespace genesis
 

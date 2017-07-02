@@ -30,6 +30,8 @@
 
 #include "genesis/utils/math/matrix/statistics.hpp"
 
+#include "genesis/utils/core/logging.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -176,7 +178,7 @@ std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data, 
             stddev += (( data( r, c ) - mean ) * ( data( r, c ) - mean ));
         }
         stddev /= static_cast<double>( data.rows() );
-        stddev = sqrt(stddev);
+        stddev = std::sqrt(stddev);
 
         // The following in an inelegant (but usual) way to handle near-zero values,
         // which later would cause a division by zero.
@@ -292,6 +294,50 @@ Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& 
     }
 
     return mat;
+}
+
+// =================================================================================================
+//     Pearson Correlation Coefficient
+// =================================================================================================
+
+double matrix_col_pearson_correlation_coefficient(
+    Matrix<double> const& mat1, size_t col1,
+    Matrix<double> const& mat2, size_t col2
+) {
+    if( mat1.rows() != mat2.rows() ) {
+        throw std::runtime_error( "Matrices need to have same number of rows." );
+    }
+    if( col1 >= mat1.cols() || col2 >= mat2.cols() ) {
+        throw std::runtime_error( "Column indices cannot be bigger then number of columns." );
+    }
+
+    // Calculate column means.
+    double mean1 = 0.0;
+    double mean2 = 0.0;
+    for( size_t r = 0; r < mat1.rows(); ++r ) {
+        mean1 += mat1( r, col1 );
+        mean2 += mat2( r, col2 );
+    }
+    mean1 /= static_cast<double>( mat1.rows() );
+    mean2 /= static_cast<double>( mat2.rows() );
+
+    // Calculate PCC parts.
+    double numerator = 0.0;
+    double stddev1   = 0.0;
+    double stddev2   = 0.0;
+    for( size_t r = 0; r < mat1.rows(); ++r ) {
+        double const d1 = mat1( r, col1 ) - mean1;
+        double const d2 = mat2( r, col2 ) - mean2;
+        numerator += d1 * d2;
+        stddev1   += d1 * d1;
+        stddev2   += d2 * d2;
+    }
+
+    // Calcualte PCC, and assert that it is in the correct range
+    // (or not a number, which can happen if the std dev is 0.0, e.g. in all-zero columns).
+    auto const pcc = numerator / ( std::sqrt( stddev1 ) * std::sqrt( stddev2 ) );
+    assert(( -1.0 <= pcc && pcc <= 1.0 ) || ( ! std::isfinite( pcc ) ));
+    return pcc;
 }
 
 } // namespace utils
