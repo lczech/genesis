@@ -143,3 +143,16 @@ TEST( Math, RankingUnsorted )
         ranking_fractional({ 3.0, 4.0, 5.0, 1.0, 2.0, 3.0, 5.0, 5.0, 1.0 })
     );
 }
+
+TEST( Math, SpearmansRankCorrelationCoeffcient )
+{
+    // Example from https://en.wikipedia.org/wiki/Spearman%27s_rank_correlation_coefficient
+    auto iq = std::vector<double>({
+        106, 86, 100, 101, 99, 103, 97, 113, 112, 110
+    });
+    auto tv = std::vector<double>({
+        7, 0, 27, 50, 28, 29, 20, 12, 6, 17
+    });
+
+    EXPECT_FLOAT_EQ( -0.175757575, spearmans_rank_correlation_coefficient( iq, tv ) );
+}

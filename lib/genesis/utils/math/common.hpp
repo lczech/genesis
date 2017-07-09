@@ -114,6 +114,28 @@ double median( std::vector<double> const& vec );
  */
 Quartiles quartiles( std::vector<double> const& vec );
 
+/**
+ * @brief Calculate the Pearson Correlation Coefficient between the entries of two vectors.
+ *
+ * Both vectors need to have the same size. Then, the function calculates the PCC
+ * between the pairs of entries of both vectors.
+ */
+double pearson_correlation_coefficient(
+    std::vector<double> const& vec_a,
+    std::vector<double> const& vec_b
+);
+
+/**
+ * @brief Calculate Spearman's Rank Correlation Coefficient between the entries of two vectors.
+ *
+ * Both vectors need to have the same size. Then, the function calculates Spearmans's Rho
+ * between the pairs of entries of both vectors.
+ */
+double spearmans_rank_correlation_coefficient(
+    std::vector<double> const& vec_a,
+    std::vector<double> const& vec_b
+);
+
 // =================================================================================================
 //     Ranking
 // =================================================================================================

@@ -30,8 +30,6 @@
 
 #include "genesis/utils/math/matrix/statistics.hpp"
 
-#include "genesis/utils/core/logging.hpp"
-
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -246,12 +244,8 @@ Quartiles matrix_row_quartiles(
     Matrix<double> const& data,
     size_t                row
 ) {
-    // Fill a vector with the values of the row.
-    std::vector<double> tmp;
-    tmp.reserve( data.cols() );
-    for( size_t c = 0; c < data.cols(); ++c ) {
-        tmp.push_back( data( row, c ) );
-    }
+    // Fill a vector with the values of the row, and sort it.
+    auto tmp = data.row( row );
     std::sort( tmp.begin(), tmp.end() );
 
     return quartiles( tmp );
@@ -274,12 +268,8 @@ Quartiles matrix_col_quartiles(
     Matrix<double> const& data,
     size_t                col
 ) {
-    // Fill a vector with the values of the column.
-    std::vector<double> tmp;
-    tmp.reserve( data.rows() );
-    for( size_t r = 0; r < data.rows(); ++r ) {
-        tmp.push_back( data( r, col ) );
-    }
+    // Fill a vector with the values of the column, and sort it.
+    auto tmp = data.col( col );
     std::sort( tmp.begin(), tmp.end() );
 
     return quartiles( tmp );
@@ -364,6 +354,7 @@ double matrix_col_pearson_correlation_coefficient(
     Matrix<double> const& mat1, size_t col1,
     Matrix<double> const& mat2, size_t col2
 ) {
+    // Checks.
     if( mat1.rows() != mat2.rows() ) {
         throw std::runtime_error( "Matrices need to have same number of rows." );
     }
@@ -371,39 +362,18 @@ double matrix_col_pearson_correlation_coefficient(
         throw std::runtime_error( "Column indices cannot be bigger then number of columns." );
     }
 
-    // Calculate column means.
-    double mean1 = 0.0;
-    double mean2 = 0.0;
-    for( size_t r = 0; r < mat1.rows(); ++r ) {
-        mean1 += mat1( r, col1 );
-        mean2 += mat2( r, col2 );
-    }
-    mean1 /= static_cast<double>( mat1.rows() );
-    mean2 /= static_cast<double>( mat2.rows() );
+    // Make copies. Not the best strategy, but works for now.
+    auto c1 = mat1.col( col1 );
+    auto c2 = mat2.col( col2 );
 
-    // Calculate PCC parts.
-    double numerator = 0.0;
-    double stddev1   = 0.0;
-    double stddev2   = 0.0;
-    for( size_t r = 0; r < mat1.rows(); ++r ) {
-        double const d1 = mat1( r, col1 ) - mean1;
-        double const d2 = mat2( r, col2 ) - mean2;
-        numerator += d1 * d2;
-        stddev1   += d1 * d1;
-        stddev2   += d2 * d2;
-    }
-
-    // Calcualte PCC, and assert that it is in the correct range
-    // (or not a number, which can happen if the std dev is 0.0, e.g. in all-zero columns).
-    auto const pcc = numerator / ( std::sqrt( stddev1 ) * std::sqrt( stddev2 ) );
-    assert(( -1.0 <= pcc && pcc <= 1.0 ) || ( ! std::isfinite( pcc ) ));
-    return pcc;
+    return pearson_correlation_coefficient( c1, c2 );
 }
 
 double matrix_row_pearson_correlation_coefficient(
     Matrix<double> const& mat1, size_t row1,
     Matrix<double> const& mat2, size_t row2
 ) {
+    // Checks.
     if( mat1.cols() != mat2.cols() ) {
         throw std::runtime_error( "Matrices need to have same number of columns." );
     }
@@ -411,33 +381,48 @@ double matrix_row_pearson_correlation_coefficient(
         throw std::runtime_error( "Row indices cannot be bigger then number of rows." );
     }
 
-    // Calculate row means.
-    double mean1 = 0.0;
-    double mean2 = 0.0;
-    for( size_t c = 0; c < mat1.cols(); ++c ) {
-        mean1 += mat1( row1, c );
-        mean2 += mat2( row2, c );
-    }
-    mean1 /= static_cast<double>( mat1.cols() );
-    mean2 /= static_cast<double>( mat2.cols() );
+    // Make copies. Not the best strategy, but works for now.
+    auto r1 = mat1.row( row1 );
+    auto r2 = mat2.row( row2 );
 
-    // Calculate PCC parts.
-    double numerator = 0.0;
-    double stddev1   = 0.0;
-    double stddev2   = 0.0;
-    for( size_t c = 0; c < mat1.cols(); ++c ) {
-        double const d1 = mat1( row1, c ) - mean1;
-        double const d2 = mat2( row1, c ) - mean2;
-        numerator += d1 * d2;
-        stddev1   += d1 * d1;
-        stddev2   += d2 * d2;
+    return pearson_correlation_coefficient( r1, r2 );
+}
+
+double matrix_col_spearmans_rank_correlation_coefficient(
+    Matrix<double> const& mat1, size_t col1,
+    Matrix<double> const& mat2, size_t col2
+) {
+    if( mat1.rows() != mat2.rows() ) {
+        throw std::runtime_error( "Matrices need to have same number of rows." );
+    }
+    if( col1 >= mat1.cols() || col2 >= mat2.cols() ) {
+        throw std::runtime_error( "Column indices cannot be bigger then number of columns." );
     }
 
-    // Calcualte PCC, and assert that it is in the correct range
-    // (or not a number, which can happen if the std dev is 0.0, e.g. in all-zero columns).
-    auto const pcc = numerator / ( std::sqrt( stddev1 ) * std::sqrt( stddev2 ) );
-    assert(( -1.0 <= pcc && pcc <= 1.0 ) || ( ! std::isfinite( pcc ) ));
-    return pcc;
+    // Make copies. Not the best strategy, but works for now.
+    auto c1 = mat1.col( col1 );
+    auto c2 = mat2.col( col2 );
+
+    return spearmans_rank_correlation_coefficient( c1, c2 );
+}
+
+double matrix_row_spearmans_rank_correlation_coefficient(
+    Matrix<double> const& mat1, size_t row1,
+    Matrix<double> const& mat2, size_t row2
+) {
+    // Checks.
+    if( mat1.cols() != mat2.cols() ) {
+        throw std::runtime_error( "Matrices need to have same number of columns." );
+    }
+    if( row1 >= mat1.rows() || row2 >= mat2.rows() ) {
+        throw std::runtime_error( "Row indices cannot be bigger then number of rows." );
+    }
+
+    // Make copies. Not the best strategy, but works for now.
+    auto r1 = mat1.row( row1 );
+    auto r2 = mat2.row( row2 );
+
+    return spearmans_rank_correlation_coefficient( r1, r2 );
 }
 
 } // namespace utils

@@ -159,6 +159,54 @@ Quartiles quartiles( std::vector<double> const& vec )
     return result;
 }
 
+double pearson_correlation_coefficient(
+    std::vector<double> const& vec_a,
+    std::vector<double> const& vec_b
+) {
+    if( vec_a.size() != vec_b.size() ) {
+        throw std::runtime_error( "Vectors need to have same size." );
+    }
+
+    // Calculate column means.
+    double mean1 = 0.0;
+    double mean2 = 0.0;
+    for( size_t i = 0; i < vec_a.size(); ++i ) {
+        mean1 += vec_a[ i ];
+        mean2 += vec_b[ i ];
+    }
+    mean1 /= static_cast<double>( vec_a.size() );
+    mean2 /= static_cast<double>( vec_b.size() );
+
+    // Calculate PCC parts.
+    double numerator = 0.0;
+    double stddev1   = 0.0;
+    double stddev2   = 0.0;
+    for( size_t i = 0; i < vec_a.size(); ++i ) {
+        double const d1 = vec_a[ i ] - mean1;
+        double const d2 = vec_b[ i ] - mean2;
+        numerator += d1 * d2;
+        stddev1   += d1 * d1;
+        stddev2   += d2 * d2;
+    }
+
+    // Calcualte PCC, and assert that it is in the correct range
+    // (or not a number, which can happen if the std dev is 0.0, e.g. in all-zero vectors).
+    auto const pcc = numerator / ( std::sqrt( stddev1 ) * std::sqrt( stddev2 ) );
+    assert(( -1.0 <= pcc && pcc <= 1.0 ) || ( ! std::isfinite( pcc ) ));
+    return pcc;
+}
+
+double spearmans_rank_correlation_coefficient(
+    std::vector<double> const& vec_a,
+    std::vector<double> const& vec_b
+) {
+    // Get the ranking of both vectors.
+    auto ranks_a = ranking_fractional( vec_a );
+    auto ranks_b = ranking_fractional( vec_b );
+
+    return pearson_correlation_coefficient( ranks_a, ranks_b );
+}
+
 // =================================================================================================
 //     Ranking
 // =================================================================================================
