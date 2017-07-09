@@ -115,6 +115,63 @@ double median( std::vector<double> const& vec );
 Quartiles quartiles( std::vector<double> const& vec );
 
 // =================================================================================================
+//     Ranking
+// =================================================================================================
+
+/**
+ * @brief Return the ranking of the given values, using Standard competition ranking
+ * ("1224" ranking).
+ *
+ * See https://en.wikipedia.org/wiki/Ranking for details.
+ *
+ * @see ranking_modified(), ranking_dense(), ranking_ordinal(), ranking_fractional() for other
+ * ranking methods.
+ */
+std::vector<size_t> ranking_standard( std::vector<double> const& vec );
+
+/**
+ * @brief Return the ranking of the given values, using Modified competition ranking
+ * ("1334" ranking).
+ *
+ * See https://en.wikipedia.org/wiki/Ranking for details.
+ *
+ * @see ranking_standard(), ranking_dense(), ranking_ordinal(), ranking_fractional() for other
+ * ranking methods.
+ */
+std::vector<size_t> ranking_modified( std::vector<double> const& vec );
+
+/**
+ * @brief Return the ranking of the given values, using Dense ranking ("1223" ranking).
+ *
+ * See https://en.wikipedia.org/wiki/Ranking for details.
+ *
+ * @see ranking_standard(), ranking_modified(), ranking_ordinal(), ranking_fractional() for other
+ * ranking methods.
+ */
+std::vector<size_t> ranking_dense( std::vector<double> const& vec );
+
+/**
+ * @brief Return the ranking of the given values, using Ordinal ranking ("1234" ranking).
+ *
+ * See https://en.wikipedia.org/wiki/Ranking for details.
+ *
+ * @see ranking_standard(), ranking_modified(), ranking_dense(), ranking_fractional() for other
+ * ranking methods.
+ */
+std::vector<size_t> ranking_ordinal( std::vector<double> const& vec );
+
+/**
+ * @brief Return the ranking of the given values, using Fractional ranking ("1 2.5 2.5 4" ranking).
+ *
+ * See https://en.wikipedia.org/wiki/Ranking for details. This is the only raking method that
+ * returns float values instead of integer values.
+ *
+ * @see ranking_standard(), ranking_modified(), ranking_dense(), ranking_ordinal() for other
+ * ranking methods.
+ */
+std::vector<double> ranking_fractional( std::vector<double> const& vec );
+
+// =================================================================================================
 //     Number Handling
 // =================================================================================================
 

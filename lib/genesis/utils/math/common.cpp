@@ -28,7 +28,10 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/common.hpp"
+
+#include "genesis/utils/core/logging.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -151,6 +154,173 @@ Quartiles quartiles( std::vector<double> const& vec )
         // Odd: Do not include the median value itself.
         result.q1 = median( vec, 0, vec.size() / 2 - 1 );
         result.q3 = median( vec, vec.size() / 2 + 1, vec.size() - 1 );
+    }
+
+    return result;
+}
+
+// =================================================================================================
+//     Ranking
+// =================================================================================================
+
+std::vector<size_t> ranking_standard( std::vector<double> const& vec )
+{
+    // Prepare result, and get the sorting order of the vector.
+    auto result = std::vector<size_t>( vec.size(), 1 );
+    auto order  = stable_sort_indices( vec.begin(), vec.end() );
+
+    // Shortcuts for better readability.
+    auto ordered_value = [&]( size_t i ){
+        return vec[ order[i] ];
+    };
+    auto ordered_result = [&]( size_t i ) -> size_t& {
+        return result[ order[i] ];
+    };
+
+    // Calculate ranks.
+    for( size_t i = 1; i < vec.size(); ++i ) {
+
+        // Same values get the same rank. The next bigger one continues at the current i.
+        if( ordered_value( i ) == ordered_value( i - 1 ) ) {
+            ordered_result( i ) = ordered_result( i - 1 );
+        } else {
+            ordered_result( i ) = i + 1;
+        }
+    }
+
+    return result;
+}
+
+std::vector<size_t> ranking_modified( std::vector<double> const& vec )
+{
+    // Prepare result, and get the sorting order of the vector.
+    auto result = std::vector<size_t>( vec.size(), 1 );
+    auto order  = stable_sort_indices( vec.begin(), vec.end() );
+
+    // Shortcuts for better readability.
+    auto ordered_value = [&]( size_t i ){
+        return vec[ order[i] ];
+    };
+    auto ordered_result = [&]( size_t i ) -> size_t& {
+        return result[ order[i] ];
+    };
+
+    // Calculate ranks. The loop variable is incremented at the end.
+    for( size_t i = 0; i < vec.size(); ) {
+
+        // Look ahead: How often does the value occur?
+        size_t j = 1;
+        while( i+j < vec.size() && ordered_value(i+j) == ordered_value(i) ) {
+            ++j;
+        }
+
+        // Set the j-next entries.
+        for( size_t k = 0; k < j; ++k ) {
+            ordered_result( i + k ) = i + j;
+        }
+
+        // We can skip the j-next loop iterations, as we just set their values
+        i += j;
+    }
+
+    return result;
+}
+
+std::vector<size_t> ranking_dense( std::vector<double> const& vec )
+{
+    // Prepare result, and get the sorting order of the vector.
+    auto result = std::vector<size_t>( vec.size(), 1 );
+    auto order  = stable_sort_indices( vec.begin(), vec.end() );
+
+    // Shortcuts for better readability.
+    auto ordered_value = [&]( size_t i ){
+        return vec[ order[i] ];
+    };
+    auto ordered_result = [&]( size_t i ) -> size_t& {
+        return result[ order[i] ];
+    };
+
+    // Calculate ranks.
+    for( size_t i = 1; i < vec.size(); ++i ) {
+
+        // Same values get the same rank. The next bigger one continues by incrementing.
+        if( ordered_value( i ) == ordered_value( i - 1 ) ) {
+            ordered_result( i ) = ordered_result( i - 1 );
+        } else {
+            ordered_result( i ) = ordered_result( i - 1 ) + 1;
+        }
+    }
+
+    return result;
+}
+
+std::vector<size_t> ranking_ordinal( std::vector<double> const& vec )
+{
+    // Prepare result, and get the sorting order of the vector.
+    auto result = std::vector<size_t>( vec.size(), 1 );
+    auto order  = stable_sort_indices( vec.begin(), vec.end() );
+
+    // Shortcuts for better readability.
+    auto ordered_result = [&]( size_t i ) -> size_t& {
+        return result[ order[i] ];
+    };
+
+    // Calculate ranks. This is simply the order plus 1 (as ranks are 1-based).
+    for( size_t i = 0; i < vec.size(); ++i ) {
+        ordered_result( i ) = i + 1;
+    }
+
+    return result;
+}
+
+std::vector<double> ranking_fractional( std::vector<double> const& vec )
+{
+    // Prepare result, and get the sorting order of the vector.
+    auto result = std::vector<double>( vec.size(), 1 );
+    auto order  = stable_sort_indices( vec.begin(), vec.end() );
+
+    // Shortcuts for better readability.
+    auto ordered_value = [&]( size_t i ){
+        return vec[ order[i] ];
+    };
+    auto ordered_result = [&]( size_t i ) -> double& {
+        return result[ order[i] ];
+    };
+
+    // Calculate the average of the sum of numbers in the given inclusive range.
+    auto sum_avg = []( size_t l, size_t r )
+    {
+        assert( l <= r );
+
+        // Example:  l == 7, r == 9
+        // We want:  (7 + 8 + 9) / 3 = 8.0
+        // Upper:    1+2+3+4+5+6+7+8+9 = 45
+        // Lower:    1+2+3+4+5+6       = 21
+        // Diff:     45 - 21 = 24
+        // Count:    9 - 7 + 1 = 3
+        // Result:   24 / 3 = 8
+        auto upper = r * ( r + 1 ) / 2;
+        auto lower = ( l - 1 ) * l / 2;
+        return static_cast<double>( upper - lower ) / static_cast<double>( r - l + 1 );
+    };
+
+    // Calculate ranks. The loop variable is incremented at the end.
+    for( size_t i = 0; i < vec.size(); ) {
+
+        // Look ahead: How often does the value occur?
+        size_t j = 1;
+        while( i+j < vec.size() && ordered_value(i+j) == ordered_value(i) ) {
+            ++j;
+        }
+
+        // Set the j-next entries.
+        auto entry = sum_avg( i + 1, i + j );
+        for( size_t k = 0; k < j; ++k ) {
+            ordered_result( i + k ) = entry;
+        }
+
+        // We can skip the j-next loop iterations, as we just set their values
+        i += j;
     }
 
     return result;

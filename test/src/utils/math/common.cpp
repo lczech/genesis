@@ -30,6 +30,7 @@
 
 #include "src/common.hpp"
 
+#include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/common.hpp"
 
 using namespace genesis::utils;
@@ -101,4 +102,44 @@ TEST( Math, Quartiles )
     EXPECT_EQ(  9.0, q_even.q2 );
     EXPECT_EQ( 21.0, q_even.q3 );
     EXPECT_EQ( 28.0, q_even.q4 );
+}
+
+TEST( Math, RankingSorted )
+{
+    // Example from https://rosettacode.org/wiki/Ranking_methods
+    auto numbers = std::vector<double>({ 39, 41, 41, 41, 42, 42, 44 });
+    EXPECT_EQ( std::vector<size_t>({ 1, 2, 2, 2, 5, 5, 7 }), ranking_standard( numbers ));
+    EXPECT_EQ( std::vector<size_t>({ 1, 4, 4, 4, 6, 6, 7 }), ranking_modified( numbers ));
+    EXPECT_EQ( std::vector<size_t>({ 1, 2, 2, 2, 3, 3, 4 }), ranking_dense( numbers ));
+    EXPECT_EQ( std::vector<size_t>({ 1, 2, 3, 4, 5, 6, 7 }), ranking_ordinal( numbers ));
+    EXPECT_EQ(
+        std::vector<double>({ 1.0, 3.0, 3.0, 3.0, 5.5, 5.5, 7.0 }),
+        ranking_fractional( numbers )
+    );
+
+    // Example from https://en.wikipedia.org/wiki/Ranking
+    EXPECT_EQ(
+        std::vector<double>({ 1.5, 1.5, 3.0, 4.5, 4.5, 6.0, 8.0, 8.0, 8.0 }),
+        ranking_fractional({ 1.0, 1.0, 2.0, 3.0, 3.0, 4.0, 5.0, 5.0, 5.0 })
+    );
+}
+
+TEST( Math, RankingUnsorted )
+{
+    // Example from https://rosettacode.org/wiki/Ranking_methods
+    auto numbers = std::vector<double>({ 41, 39, 42, 41, 44, 42, 41 });
+    EXPECT_EQ( std::vector<size_t>({ 2, 1, 5, 2, 7, 5, 2 }), ranking_standard( numbers ));
+    EXPECT_EQ( std::vector<size_t>({ 4, 1, 6, 4, 7, 6, 4 }), ranking_modified( numbers ));
+    EXPECT_EQ( std::vector<size_t>({ 2, 1, 3, 2, 4, 3, 2 }), ranking_dense( numbers ));
+    EXPECT_EQ( std::vector<size_t>({ 2, 1, 5, 3, 7, 6, 4 }), ranking_ordinal( numbers ));
+    EXPECT_EQ(
+        std::vector<double>({ 3.0, 1.0, 5.5, 3.0, 7.0, 5.5, 3.0 }),
+        ranking_fractional( numbers )
+    );
+
+    // Example from https://en.wikipedia.org/wiki/Ranking
+    EXPECT_EQ(
+        std::vector<double>({ 4.5, 6.0, 8.0, 1.5, 3.0, 4.5, 8.0, 8.0, 1.5 }),
+        ranking_fractional({ 3.0, 4.0, 5.0, 1.0, 2.0, 3.0, 5.0, 5.0, 1.0 })
+    );
 }
