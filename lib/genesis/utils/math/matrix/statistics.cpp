@@ -35,6 +35,10 @@
 #include <cmath>
 #include <stdexcept>
 
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
 namespace genesis {
 namespace utils {
 
@@ -48,9 +52,11 @@ std::vector<MinMaxPair<double>> normalize_cols( Matrix<double>& data )
     assert( col_minmax.size() == data.cols() );
 
     // Iterate the matrix.
+    #pragma omp parallel for
     for( size_t r = 0; r < data.rows(); ++r ) {
         for( size_t c = 0; c < data.cols(); ++c ) {
             // Adjust column values.
+            assert( col_minmax[c].max >= col_minmax[c].min );
             double diff = col_minmax[c].max - col_minmax[c].min;
             data( r, c ) = ( data( r, c ) - col_minmax[c].min ) / diff;
         }
@@ -65,9 +71,11 @@ std::vector<MinMaxPair<double>> normalize_rows( Matrix<double>& data )
     assert( row_minmax.size() == data.rows() );
 
     // Iterate the matrix.
+    #pragma omp parallel for
     for( size_t r = 0; r < data.rows(); ++r ) {
         for( size_t c = 0; c < data.cols(); ++c ) {
             // Adjust row values.
+            assert( row_minmax[r].max >= row_minmax[r].min );
             double diff = row_minmax[r].max - row_minmax[r].min;
             data( r, c ) = ( data( r, c ) - row_minmax[r].min ) / diff;
         }
@@ -85,10 +93,11 @@ std::vector<MeanStddevPair> standardize_cols(
     bool            scale_means,
     bool            scale_std
 ) {
-    auto col_mean_stddev = matrix_col_mean_stddev( data );
+    auto col_mean_stddev = matrix_col_mean_stddev( data, 0.0000001 );
     assert( col_mean_stddev.size() == data.cols() );
 
     // Iterate the matrix.
+    #pragma omp parallel for
     for( size_t r = 0; r < data.rows(); ++r ) {
         for( size_t c = 0; c < data.cols(); ++c ) {
 
@@ -113,10 +122,11 @@ std::vector<MeanStddevPair> standardize_rows(
     bool            scale_means,
     bool            scale_std
 ) {
-    auto row_mean_stddev = matrix_row_mean_stddev( data );
+    auto row_mean_stddev = matrix_row_mean_stddev( data, 0.0000001 );
     assert( row_mean_stddev.size() == data.rows() );
 
     // Iterate the matrix.
+    #pragma omp parallel for
     for( size_t r = 0; r < data.rows(); ++r ) {
         for( size_t c = 0; c < data.cols(); ++c ) {
 
@@ -140,7 +150,7 @@ std::vector<MeanStddevPair> standardize_rows(
 //     Mean and Stddev
 // ================================================================================================
 
-std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data )
+std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data, double epsilon )
 {
     auto ret = std::vector<MeanStddevPair>( data.cols(), { 0.0, 0.0 } );
 
@@ -149,10 +159,8 @@ std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data )
         return ret;
     }
 
-    // Minimum dev that we allow (necessary for numerical reasons).
-    double const eps = 0.0000001;
-
     // Iterate columns.
+    #pragma omp parallel for
     for( size_t c = 0; c < data.cols(); ++c ) {
         double mean   = 0.0;
         double stddev = 0.0;
@@ -168,11 +176,12 @@ std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data )
             stddev += (( data( r, c ) - mean ) * ( data( r, c ) - mean ));
         }
         stddev /= static_cast<double>( data.rows() );
-        stddev = sqrt(stddev);
+        stddev = std::sqrt(stddev);
 
         // The following in an inelegant (but usual) way to handle near-zero values,
         // which later would cause a division by zero.
-        if( stddev <= eps ){
+        assert( stddev >= 0.0 );
+        if( stddev <= epsilon ){
             stddev = 1.0;
         }
 
@@ -184,7 +193,7 @@ std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data )
     return ret;
 }
 
-std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data )
+std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data, double epsilon )
 {
     auto ret = std::vector<MeanStddevPair>( data.rows(), { 0.0, 0.0 } );
 
@@ -193,10 +202,8 @@ std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data )
         return ret;
     }
 
-    // Minimum dev that we allow (necessary for numerical reasons).
-    double const eps = 0.0000001;
-
     // Iterate columns.
+    #pragma omp parallel for
     for( size_t r = 0; r < data.rows(); ++r ) {
         double mean   = 0.0;
         double stddev = 0.0;
@@ -212,11 +219,12 @@ std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data )
             stddev += (( data( r, c ) - mean ) * ( data( r, c ) - mean ));
         }
         stddev /= static_cast<double>( data.cols() );
-        stddev = sqrt(stddev);
+        stddev = std::sqrt(stddev);
 
         // The following in an inelegant (but usual) way to handle near-zero values,
         // which later would cause a division by zero.
-        if( stddev <= eps ){
+        assert( stddev >= 0.0 );
+        if( stddev <= epsilon ){
             stddev = 1.0;
         }
 
@@ -226,6 +234,58 @@ std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data )
     }
 
     return ret;
+}
+
+// =================================================================================================
+//     Quartiles
+// =================================================================================================
+
+Quartiles matrix_row_quartiles(
+    Matrix<double> const& data,
+    size_t                row
+) {
+    // Fill a vector with the values of the row, and sort it.
+    auto tmp = data.row( row );
+    std::sort( tmp.begin(), tmp.end() );
+
+    return quartiles( tmp );
+}
+
+std::vector<Quartiles> matrix_row_quartiles(
+    Matrix<double> const& data
+) {
+    auto result = std::vector<Quartiles>( data.rows(), Quartiles() );
+
+    #pragma omp parallel for
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        result[r] = matrix_row_quartiles( data, r );
+    }
+
+    return result;
+}
+
+Quartiles matrix_col_quartiles(
+    Matrix<double> const& data,
+    size_t                col
+) {
+    // Fill a vector with the values of the column, and sort it.
+    auto tmp = data.col( col );
+    std::sort( tmp.begin(), tmp.end() );
+
+    return quartiles( tmp );
+}
+
+std::vector<Quartiles> matrix_col_quartiles(
+    Matrix<double> const& data
+) {
+    auto result = std::vector<Quartiles>( data.cols(), Quartiles() );
+
+    #pragma omp parallel for
+    for( size_t c = 0; c < data.cols(); ++c ) {
+        result[c] = matrix_col_quartiles( data, c );
+    }
+
+    return result;
 }
 
 // ================================================================================================
@@ -284,6 +344,85 @@ Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& 
     }
 
     return mat;
+}
+
+// =================================================================================================
+//     Pearson Correlation Coefficient
+// =================================================================================================
+
+double matrix_col_pearson_correlation_coefficient(
+    Matrix<double> const& mat1, size_t col1,
+    Matrix<double> const& mat2, size_t col2
+) {
+    // Checks.
+    if( mat1.rows() != mat2.rows() ) {
+        throw std::runtime_error( "Matrices need to have same number of rows." );
+    }
+    if( col1 >= mat1.cols() || col2 >= mat2.cols() ) {
+        throw std::runtime_error( "Column indices cannot be bigger then number of columns." );
+    }
+
+    // Make copies. Not the best strategy, but works for now.
+    auto c1 = mat1.col( col1 );
+    auto c2 = mat2.col( col2 );
+
+    return pearson_correlation_coefficient( c1, c2 );
+}
+
+double matrix_row_pearson_correlation_coefficient(
+    Matrix<double> const& mat1, size_t row1,
+    Matrix<double> const& mat2, size_t row2
+) {
+    // Checks.
+    if( mat1.cols() != mat2.cols() ) {
+        throw std::runtime_error( "Matrices need to have same number of columns." );
+    }
+    if( row1 >= mat1.rows() || row2 >= mat2.rows() ) {
+        throw std::runtime_error( "Row indices cannot be bigger then number of rows." );
+    }
+
+    // Make copies. Not the best strategy, but works for now.
+    auto r1 = mat1.row( row1 );
+    auto r2 = mat2.row( row2 );
+
+    return pearson_correlation_coefficient( r1, r2 );
+}
+
+double matrix_col_spearmans_rank_correlation_coefficient(
+    Matrix<double> const& mat1, size_t col1,
+    Matrix<double> const& mat2, size_t col2
+) {
+    if( mat1.rows() != mat2.rows() ) {
+        throw std::runtime_error( "Matrices need to have same number of rows." );
+    }
+    if( col1 >= mat1.cols() || col2 >= mat2.cols() ) {
+        throw std::runtime_error( "Column indices cannot be bigger then number of columns." );
+    }
+
+    // Make copies. Not the best strategy, but works for now.
+    auto c1 = mat1.col( col1 );
+    auto c2 = mat2.col( col2 );
+
+    return spearmans_rank_correlation_coefficient( c1, c2 );
+}
+
+double matrix_row_spearmans_rank_correlation_coefficient(
+    Matrix<double> const& mat1, size_t row1,
+    Matrix<double> const& mat2, size_t row2
+) {
+    // Checks.
+    if( mat1.cols() != mat2.cols() ) {
+        throw std::runtime_error( "Matrices need to have same number of columns." );
+    }
+    if( row1 >= mat1.rows() || row2 >= mat2.rows() ) {
+        throw std::runtime_error( "Row indices cannot be bigger then number of rows." );
+    }
+
+    // Make copies. Not the best strategy, but works for now.
+    auto r1 = mat1.row( row1 );
+    auto r2 = mat2.row( row2 );
+
+    return spearmans_rank_correlation_coefficient( r1, r2 );
 }
 
 } // namespace utils

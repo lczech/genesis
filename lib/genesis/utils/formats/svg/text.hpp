@@ -67,7 +67,7 @@ public:
     // -------------------------------------------------------------
 
     SvgText(
-        std::string const& text,
+        std::string const& text     = "",
         SvgPoint const&    position = SvgPoint(),
         SvgFont const&     font     = SvgFont(),
         SvgFill const&     fill     = SvgFill(),

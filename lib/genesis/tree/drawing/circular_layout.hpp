@@ -85,6 +85,32 @@ public:
     utils::SvgDocument to_svg_document() const;
 
     // -------------------------------------------------------------
+    //     Options
+    // -------------------------------------------------------------
+
+    CircularLayout& radius_scaler( double value )
+    {
+        scaler_r_ = value;
+        return *this;
+    }
+
+    double radius_scaler() const
+    {
+        return scaler_r_;
+    }
+
+    CircularLayout& text( utils::SvgText const& tt )
+    {
+        text_ = tt;
+        return *this;
+    }
+
+    utils::SvgText& text()
+    {
+        return text_;
+    }
+
+    // -------------------------------------------------------------
     //     Internal Functions
     // -------------------------------------------------------------
 
@@ -104,6 +130,7 @@ private:
     CircularTree tree_;
 
     double scaler_r_ = 10.0;
+    utils::SvgText text_ = utils::SvgText();
 
 };
 

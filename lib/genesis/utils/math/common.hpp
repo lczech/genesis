@@ -76,6 +76,123 @@ struct MeanStddevPair
     double stddev;
 };
 
+/**
+ * @brief Store the values of quartiles: `q0 == min`, `q1 == 25%`, `q2 == 50%`, `q3 == 75%`,
+ * `q4 == max`.
+ */
+struct Quartiles
+{
+    double q0 = 0.0;
+    double q1 = 0.0;
+    double q2 = 0.0;
+    double q3 = 0.0;
+    double q4 = 0.0;
+};
+
+// =================================================================================================
+//     Statistics
+// =================================================================================================
+
+/**
+ * @brief Calcualte the mean and standard deviation of a `vector` of `double`.
+ *
+ * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
+ * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
+ * which for some use cases would cause problems like a division by zero later on.
+ * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
+ * be below `0.0`.
+ */
+MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilon = -1.0 );
+
+/**
+ * @brief Calculate the median value of a `vector` of `double`.
+ */
+double median( std::vector<double> const& vec );
+
+/**
+ * @brief Calculate the Quartiles of a `vector` of `double`.
+ */
+Quartiles quartiles( std::vector<double> const& vec );
+
+/**
+ * @brief Calculate the Pearson Correlation Coefficient between the entries of two vectors.
+ *
+ * Both vectors need to have the same size. Then, the function calculates the PCC
+ * between the pairs of entries of both vectors.
+ */
+double pearson_correlation_coefficient(
+    std::vector<double> const& vec_a,
+    std::vector<double> const& vec_b
+);
+
+/**
+ * @brief Calculate Spearman's Rank Correlation Coefficient between the entries of two vectors.
+ *
+ * Both vectors need to have the same size. Then, the function calculates Spearmans's Rho
+ * between the pairs of entries of both vectors.
+ */
+double spearmans_rank_correlation_coefficient(
+    std::vector<double> const& vec_a,
+    std::vector<double> const& vec_b
+);
+
+// =================================================================================================
+//     Ranking
+// =================================================================================================
+
+/**
+ * @brief Return the ranking of the given values, using Standard competition ranking
+ * ("1224" ranking).
+ *
+ * See https://en.wikipedia.org/wiki/Ranking for details.
+ *
+ * @see ranking_modified(), ranking_dense(), ranking_ordinal(), ranking_fractional() for other
+ * ranking methods.
+ */
+std::vector<size_t> ranking_standard( std::vector<double> const& vec );
+
+/**
+ * @brief Return the ranking of the given values, using Modified competition ranking
+ * ("1334" ranking).
+ *
+ * See https://en.wikipedia.org/wiki/Ranking for details.
+ *
+ * @see ranking_standard(), ranking_dense(), ranking_ordinal(), ranking_fractional() for other
+ * ranking methods.
+ */
+std::vector<size_t> ranking_modified( std::vector<double> const& vec );
+
+/**
+ * @brief Return the ranking of the given values, using Dense ranking ("1223" ranking).
+ *
+ * See https://en.wikipedia.org/wiki/Ranking for details.
+ *
+ * @see ranking_standard(), ranking_modified(), ranking_ordinal(), ranking_fractional() for other
+ * ranking methods.
+ */
+std::vector<size_t> ranking_dense( std::vector<double> const& vec );
+
+/**
+ * @brief Return the ranking of the given values, using Ordinal ranking ("1234" ranking).
+ *
+ * See https://en.wikipedia.org/wiki/Ranking for details.
+ *
+ * @see ranking_standard(), ranking_modified(), ranking_dense(), ranking_fractional() for other
+ * ranking methods.
+ */
+std::vector<size_t> ranking_ordinal( std::vector<double> const& vec );
+
+/**
+ * @brief Return the ranking of the given values, using Fractional ranking ("1 2.5 2.5 4" ranking).
+ *
+ * See https://en.wikipedia.org/wiki/Ranking for details. This is the only raking method that
+ * returns float values instead of integer values.
+ *
+ * @see ranking_standard(), ranking_modified(), ranking_dense(), ranking_ordinal() for other
+ * ranking methods.
+ */
+std::vector<double> ranking_fractional( std::vector<double> const& vec );
+
 // =================================================================================================
 //     Number Handling
 // =================================================================================================
