@@ -53,3 +53,52 @@ TEST( Math, IntPow )
     // LOG_DBG << int_pow( 3, 40 );
     // LOG_DBG << static_cast<size_t>( std::pow( 3, 40 ));
 }
+
+TEST( Math, Median )
+{
+    // Empty.
+    EXPECT_EQ( 0.0,  median({ }) );
+
+    // One value.
+    EXPECT_EQ(  0.0,  median({ 0.0 }) );
+    EXPECT_EQ(  1.0,  median({ 1.0 }) );
+    EXPECT_EQ( -1.0,  median({ -1.0 }) );
+
+    // Two values.
+    EXPECT_EQ( 0.0,  median({ 0.0, 0.0 }) );
+    EXPECT_EQ( 0.5,  median({ 0.0, 1.0 }) );
+    EXPECT_EQ( 2.0,  median({ 1.0, 3.0 }) );
+    EXPECT_EQ( 2.5,  median({ 1.0, 4.0 }) );
+
+    EXPECT_EQ( -0.5,  median({ -1.0, 0.0 }) );
+    EXPECT_EQ(  0.0,  median({ -1.0, 1.0 }) );
+
+    // Three values.
+    EXPECT_EQ( 1.0,  median({ 0.0, 1.0, 2.0 }) );
+
+    // Four values.
+    EXPECT_EQ( 1.5,  median({ 0.0, 1.0, 2.0, 3.0 }) );
+}
+
+TEST( Math, Quartiles )
+{
+    // Odd number of elements.
+    std::vector<double> v_odd = { 0, 3, 4, 7, 9, 12, 15 };
+    auto q_odd = quartiles( v_odd );
+
+    EXPECT_EQ(  0.0, q_odd.q0 );
+    EXPECT_EQ(  3.0, q_odd.q1 );
+    EXPECT_EQ(  7.0, q_odd.q2 );
+    EXPECT_EQ( 12.0, q_odd.q3 );
+    EXPECT_EQ( 15.0, q_odd.q4 );
+
+    // Even number of elements.
+    std::vector<double> v_even = { 1, 3, 5, 6, 12, 19, 23, 28 };
+    auto q_even = quartiles( v_even );
+
+    EXPECT_EQ(  1.0, q_even.q0 );
+    EXPECT_EQ(  4.0, q_even.q1 );
+    EXPECT_EQ(  9.0, q_even.q2 );
+    EXPECT_EQ( 21.0, q_even.q3 );
+    EXPECT_EQ( 28.0, q_even.q4 );
+}

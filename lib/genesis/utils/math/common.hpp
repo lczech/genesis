@@ -76,6 +76,44 @@ struct MeanStddevPair
     double stddev;
 };
 
+/**
+ * @brief Store the values of quartiles: `q0 == min`, `q1 == 25%`, `q2 == 50%`, `q3 == 75%`,
+ * `q4 == max`.
+ */
+struct Quartiles
+{
+    double q0 = 0.0;
+    double q1 = 0.0;
+    double q2 = 0.0;
+    double q3 = 0.0;
+    double q4 = 0.0;
+};
+
+// =================================================================================================
+//     Statistics
+// =================================================================================================
+
+/**
+ * @brief Calcualte the mean and standard deviation of a `vector` of `double`.
+ *
+ * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
+ * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
+ * which for some use cases would cause problems like a division by zero later on.
+ * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
+ * be below `0.0`.
+ */
+MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilon = -1.0 );
+
+/**
+ * @brief Calculate the median value of a `vector` of `double`.
+ */
+double median( std::vector<double> const& vec );
+
+/**
+ * @brief Calculate the Quartiles of a `vector` of `double`.
+ */
+Quartiles quartiles( std::vector<double> const& vec );
+
 // =================================================================================================
 //     Number Handling
 // =================================================================================================

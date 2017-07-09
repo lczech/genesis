@@ -221,7 +221,7 @@ std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data, 
             stddev += (( data( r, c ) - mean ) * ( data( r, c ) - mean ));
         }
         stddev /= static_cast<double>( data.cols() );
-        stddev = sqrt(stddev);
+        stddev = std::sqrt(stddev);
 
         // The following in an inelegant (but usual) way to handle near-zero values,
         // which later would cause a division by zero.
@@ -236,6 +236,66 @@ std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data, 
     }
 
     return ret;
+}
+
+// =================================================================================================
+//     Quartiles
+// =================================================================================================
+
+Quartiles matrix_row_quartiles(
+    Matrix<double> const& data,
+    size_t                row
+) {
+    // Fill a vector with the values of the row.
+    std::vector<double> tmp;
+    tmp.reserve( data.cols() );
+    for( size_t c = 0; c < data.cols(); ++c ) {
+        tmp.push_back( data( row, c ) );
+    }
+    std::sort( tmp.begin(), tmp.end() );
+
+    return quartiles( tmp );
+}
+
+std::vector<Quartiles> matrix_row_quartiles(
+    Matrix<double> const& data
+) {
+    auto result = std::vector<Quartiles>( data.rows(), Quartiles() );
+
+    #pragma omp parallel for
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        result[r] = matrix_row_quartiles( data, r );
+    }
+
+    return result;
+}
+
+Quartiles matrix_col_quartiles(
+    Matrix<double> const& data,
+    size_t                col
+) {
+    // Fill a vector with the values of the column.
+    std::vector<double> tmp;
+    tmp.reserve( data.rows() );
+    for( size_t r = 0; r < data.rows(); ++r ) {
+        tmp.push_back( data( r, col ) );
+    }
+    std::sort( tmp.begin(), tmp.end() );
+
+    return quartiles( tmp );
+}
+
+std::vector<Quartiles> matrix_col_quartiles(
+    Matrix<double> const& data
+) {
+    auto result = std::vector<Quartiles>( data.cols(), Quartiles() );
+
+    #pragma omp parallel for
+    for( size_t c = 0; c < data.cols(); ++c ) {
+        result[c] = matrix_col_quartiles( data, c );
+    }
+
+    return result;
 }
 
 // ================================================================================================
@@ -328,6 +388,46 @@ double matrix_col_pearson_correlation_coefficient(
     for( size_t r = 0; r < mat1.rows(); ++r ) {
         double const d1 = mat1( r, col1 ) - mean1;
         double const d2 = mat2( r, col2 ) - mean2;
+        numerator += d1 * d2;
+        stddev1   += d1 * d1;
+        stddev2   += d2 * d2;
+    }
+
+    // Calcualte PCC, and assert that it is in the correct range
+    // (or not a number, which can happen if the std dev is 0.0, e.g. in all-zero columns).
+    auto const pcc = numerator / ( std::sqrt( stddev1 ) * std::sqrt( stddev2 ) );
+    assert(( -1.0 <= pcc && pcc <= 1.0 ) || ( ! std::isfinite( pcc ) ));
+    return pcc;
+}
+
+double matrix_row_pearson_correlation_coefficient(
+    Matrix<double> const& mat1, size_t row1,
+    Matrix<double> const& mat2, size_t row2
+) {
+    if( mat1.cols() != mat2.cols() ) {
+        throw std::runtime_error( "Matrices need to have same number of columns." );
+    }
+    if( row1 >= mat1.rows() || row2 >= mat2.rows() ) {
+        throw std::runtime_error( "Row indices cannot be bigger then number of rows." );
+    }
+
+    // Calculate row means.
+    double mean1 = 0.0;
+    double mean2 = 0.0;
+    for( size_t c = 0; c < mat1.cols(); ++c ) {
+        mean1 += mat1( row1, c );
+        mean2 += mat2( row2, c );
+    }
+    mean1 /= static_cast<double>( mat1.cols() );
+    mean2 /= static_cast<double>( mat2.cols() );
+
+    // Calculate PCC parts.
+    double numerator = 0.0;
+    double stddev1   = 0.0;
+    double stddev2   = 0.0;
+    for( size_t c = 0; c < mat1.cols(); ++c ) {
+        double const d1 = mat1( row1, c ) - mean1;
+        double const d2 = mat2( row1, c ) - mean2;
         numerator += d1 * d2;
         stddev1   += d1 * d1;
         stddev2   += d2 * d2;

@@ -260,6 +260,28 @@ std::vector<MeanStddevPair> matrix_row_mean_stddev(
 );
 
 // =================================================================================================
+//     Quartiles
+// =================================================================================================
+
+Quartiles matrix_row_quartiles(
+    Matrix<double> const& data,
+    size_t                row
+);
+
+std::vector<Quartiles> matrix_row_quartiles(
+    Matrix<double> const& data
+);
+
+Quartiles matrix_col_quartiles(
+    Matrix<double> const& data,
+    size_t                col
+);
+
+std::vector<Quartiles> matrix_col_quartiles(
+    Matrix<double> const& data
+);
+
+// =================================================================================================
 //     Correlation and Covariance
 // =================================================================================================
 
@@ -298,6 +320,18 @@ Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& 
 double matrix_col_pearson_correlation_coefficient(
     Matrix<double> const& mat1, size_t col1,
     Matrix<double> const& mat2, size_t col2
+);
+
+/**
+ * @brief Calculate the Pearson Correlation Coefficient between two row of two
+ * @link Matrix Matrices@endlink.
+ *
+ * Both Matrices need to have the same number of columns. Then, the function calculates the PCC
+ * between row @p row1 of Matrix @p mat1 and row @p row2 of Matrix @p mat2.
+ */
+double matrix_row_pearson_correlation_coefficient(
+    Matrix<double> const& mat1, size_t row1,
+    Matrix<double> const& mat2, size_t row2
 );
 
 } // namespace utils
