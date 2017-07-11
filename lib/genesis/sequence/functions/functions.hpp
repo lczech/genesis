@@ -133,6 +133,11 @@ void remove_sites( Sequence&    seq, utils::Bitvector sites );
 void remove_sites( SequenceSet& set, utils::Bitvector sites );
 
 /**
+ * @brief Remove all sites that only contain gap characters from the SequenceSet.
+ */
+void remove_gap_sites( SequenceSet& set, std::string const& gap_chars = nucleic_acid_codes_undetermined() );
+
+/**
  * @brief Remove all of the characters in `search` from the sites of the Sequence.
  */
 void remove_characters( Sequence&    seq, std::string const& search );
@@ -149,7 +154,7 @@ void remove_characters( SequenceSet& set, std::string const& search );
  * This function is an alias for remove_characters(), which by default uses the gap sites of
  * nucleic_acid_codes_undetermined().
  */
-void remove_gaps( Sequence&    seq, std::string const& gap_chars = nucleic_acid_codes_undetermined() );
+void remove_all_gaps( Sequence&    seq, std::string const& gap_chars = nucleic_acid_codes_undetermined() );
 
 /**
  * @brief Remove all gap characters from the sites of the Sequence%s in the SequenceSet.
@@ -157,7 +162,7 @@ void remove_gaps( Sequence&    seq, std::string const& gap_chars = nucleic_acid_
  * This function is an alias for remove_characters(), which by default uses the gap sites of
  * nucleic_acid_codes_undetermined().
  */
-void remove_gaps( SequenceSet& set, std::string const& gap_chars = nucleic_acid_codes_undetermined() );
+void remove_all_gaps( SequenceSet& set, std::string const& gap_chars = nucleic_acid_codes_undetermined() );
 
 /**
  * @brief Replace all occurences of the chars in `search` by the `replace` char, for all sites in
@@ -250,7 +255,7 @@ enum class MergeDuplicateSequencesCountPolicy
  */
 void merge_duplicate_sequences(
     SequenceSet& set,
-    MergeDuplicateSequencesCountPolicy count_policy = MergeDuplicateSequencesCountPolicy::kAppendToLabel,
+    MergeDuplicateSequencesCountPolicy count_policy = MergeDuplicateSequencesCountPolicy::kDiscard,
     std::string const& counter_prefix = "_"
 );
 

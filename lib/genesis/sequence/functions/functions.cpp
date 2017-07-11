@@ -206,6 +206,12 @@ void remove_sites( SequenceSet& set, utils::Bitvector sites )
     }
 }
 
+void remove_gap_sites( SequenceSet& set, std::string const& gap_chars )
+{
+    auto sites = gap_sites( set, gap_chars );
+    remove_sites( set, sites );
+}
+
 void remove_characters( Sequence& seq, std::string const& search )
 {
     auto is_search_char = [&] ( char c ) {
@@ -223,12 +229,12 @@ void remove_characters( SequenceSet& set, std::string const& search )
     }
 }
 
-void remove_gaps( Sequence& seq, std::string const& gap_chars )
+void remove_all_gaps( Sequence& seq, std::string const& gap_chars )
 {
     remove_characters( seq, gap_chars );
 }
 
-void remove_gaps( SequenceSet& set, std::string const& gap_chars )
+void remove_all_gaps( SequenceSet& set, std::string const& gap_chars )
 {
     remove_characters( set, gap_chars );
 }

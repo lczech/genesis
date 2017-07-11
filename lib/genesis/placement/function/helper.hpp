@@ -68,6 +68,18 @@ std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( PlacementTree 
 std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( Sample const& smp );
 
 /**
+ * @brief Return a mapping from each edge to the Pqueries on that edge.
+ *
+ * If @p only_max_lwr_placements is `false` (default), each PqueryPlacement of the
+ * @link Pquery Pqueries@endlink is counted. If `true`, only the most probable one is added to the
+ * map.
+ */
+std::vector<std::vector< Pquery const* >> pqueries_per_edge(
+    Sample const& sample,
+    bool only_max_lwr_placements = false
+);
+
+/**
  * @brief Return a mapping from each PlacementTreeEdge%s to the PqueryPlacement%s that
  * are placed on that edge.
  *

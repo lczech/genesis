@@ -71,6 +71,41 @@ std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( Sample const& 
     return edge_num_to_edge_map( smp.tree() );
 }
 
+std::vector<std::vector< Pquery const* >> pqueries_per_edge(
+    Sample const& sample,
+    bool only_max_lwr_placements
+) {
+    auto result = std::vector<std::vector< Pquery const* >>();
+    result.resize( sample.tree().edge_count() );
+
+    for( auto const& pqry : sample.pqueries() ) {
+        if( only_max_lwr_placements ) {
+
+            // If we are only interested in the most probably placement, find it first.
+            PqueryPlacement const* max_p = nullptr;
+            double max_v = std::numeric_limits<double>::lowest();
+            for( auto const& place : pqry.placements() ) {
+                if( max_p == nullptr || place.like_weight_ratio > max_v ) {
+                    max_v = place.like_weight_ratio;
+                    max_p = &place;
+                }
+            }
+            // If there is one, add it to the list for its edge.
+            if( max_p ) {
+                result[ max_p->edge().index() ].push_back( &pqry );
+            }
+
+        } else {
+            // If we instead want all placement, simply add them.
+            for( auto const& place : pqry.placements() ) {
+                result[ place.edge().index() ].push_back( &pqry );
+            }
+        }
+    }
+
+    return result;
+}
+
 std::vector< std::vector< PqueryPlacement const* >> placements_per_edge(
     Sample const& smp,
     bool only_max_lwr_placements
@@ -85,7 +120,7 @@ std::vector< std::vector< PqueryPlacement const* >> placements_per_edge(
             PqueryPlacement const* max_p = nullptr;
             double max_v = std::numeric_limits<double>::lowest();
             for( auto const& place : pqry.placements() ) {
-                if( place.like_weight_ratio > max_v ) {
+                if( max_p == nullptr || place.like_weight_ratio > max_v ) {
                     max_v = place.like_weight_ratio;
                     max_p = &place;
                 }
