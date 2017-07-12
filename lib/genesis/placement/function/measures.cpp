@@ -341,8 +341,9 @@ std::vector<double> edpl( Sample const& sample )
 // -------------------------------------------------------------------------
 
 double earth_movers_distance (
-    const Sample& lhs,
-    const Sample& rhs,
+    Sample const& lhs,
+    Sample const& rhs,
+    double        p,
     bool          with_pendant_length
 ) {
     // Get a tree with the average branch lengths of both provided trees.
@@ -364,7 +365,7 @@ double earth_movers_distance (
     double pendant_work_r = add_sample_to_mass_tree( rhs, -1.0, totalmass_r, mass_tree );
 
     // Calculate EMD.
-    double work = tree::earth_movers_distance( mass_tree ).first;
+    double work = tree::earth_movers_distance( mass_tree, p ).first;
 
     // If we also want the amount of work that was needed to move the placement masses from their
     // pendant position to the branch, we need to add those values.
@@ -381,13 +382,14 @@ double earth_movers_distance (
 
 utils::Matrix<double> earth_movers_distance(
     SampleSet const& sample_set,
+    double           p,
     bool             with_pendant_length
 ) {
     // Get mass tress and the pendant work that was needed to create them.
     auto mass_trees = convert_to_mass_trees( sample_set );
 
     // Calculate the pairwise distance matrix.
-    auto result = tree::earth_movers_distance( mass_trees.first );
+    auto result = tree::earth_movers_distance( mass_trees.first, p );
 
     // If needed, add the pend work for each matrix position.
     if( with_pendant_length ) {

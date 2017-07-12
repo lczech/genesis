@@ -215,12 +215,19 @@ std::vector<double> edpl(                                          Sample const&
  * As a consequence, the resulting distance will not reflect the total number of Pqueries, but only
  * their relative (normalized) distrubution on the tree.
  *
- * See @link tree::earth_movers_distance( MassTree const& ) earth_movers_distance( MassTree const& )
- * @endlink for more information on the actual distance calculation.
+ * Furthermore, the parameter @p p is used to control the influence of mass and distance, with
+ * `0.0 < p < inf`, and default `p == 1.0`, which is the neutral case.
+ * A larger @p p increases the impact of distance traveled, while a smaller @p p emphasizes
+ * differences of mass.
+ *
+ * See @link tree::earth_movers_distance( MassTree const& lhs, MassTree const& rhs, double )
+ * earth_movers_distance( MassTree const&, MassTree const& )@endlink for more information on the actual distance
+ * calculation and details on the parameter @p p.
  */
 double earth_movers_distance (
-    const Sample& lhs,
-    const Sample& rhs,
+    Sample const& lhs,
+    Sample const& rhs,
+    double        p = 1.0,
     bool          with_pendant_length = false
 );
 
@@ -229,14 +236,16 @@ double earth_movers_distance (
  *
  * The result is a pairwise distance @link utils::Matrix Matrix@endlink using the indices of the
  * Sample%s in the SampleSet.
- * See @link earth_movers_distance( const Sample& lhs, const Sample& rhs, bool with_pendant_length )
- * earth_movers_distance( const Sample&, const Sample&, ... )@endlink for details on this distance
+ * See @link earth_movers_distance( const Sample&, const Sample&, double, bool )
+ * earth_movers_distance( Sample const&, Sample const&, ... )@endlink for details on this distance
  * measure on Sample%s, and see
- * @link tree::earth_movers_distance( MassTree const& ) earth_movers_distance( MassTree const& )
- * @endlink for more information on the actual distance calculation.
+ * @link tree::earth_movers_distance( MassTree const& lhs, MassTree const& rhs, double )
+ * earth_movers_distance( MassTree const&, MassTree const& )@endlink for more information on the actual distance
+ * calculation, and the parameter @p p.
  */
 utils::Matrix<double> earth_movers_distance(
     SampleSet const& sample_set,
+    double           p = 1.0,
     bool             with_pendant_length = false
 );
 

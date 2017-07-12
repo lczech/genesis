@@ -50,8 +50,8 @@ namespace tree {
  * It is for example used to calculate the earth movers distance between to sets of masses
  * distributed on a Tree.
  *
- * See earth_movers_distance( MassTree const& tree ) for more details on the purpose of this tree
- * type and on the earth movers distance in general.
+ * See earth_movers_distance( MassTree const& tree, double ) for more details on the purpose of this
+ * tree type and on the earth movers distance in general.
  *
  * The branches of an MassTree hold a list of @link MassTreeEdgeData::masses masses@endlink, sorted
  * along their position on the branch.

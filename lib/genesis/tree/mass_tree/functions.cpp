@@ -57,14 +57,21 @@ namespace tree {
 //     Earth Movers Distance
 // =================================================================================================
 
-double earth_movers_distance( MassTree const& lhs, MassTree const& rhs )
+double earth_movers_distance( MassTree const& lhs, MassTree const& rhs, double const p )
 {
+    // Check.
+    if( p <= 0.0 ) {
+        throw std::runtime_error(
+            "Invalid exponent value p for earth mover's distance calculation. Has to be > 0.0."
+        );
+    }
+
     // We make an extra copy, which is super expensive. In our our code, thus better do not
     // use this function, but the one-tree version directly!
     // auto copy = lhs;
     // mass_tree_reverse_signs( copy );
     // mass_tree_merge_trees_inplace( copy, rhs );
-    // return earth_movers_distance( copy ).first;
+    // return earth_movers_distance( copy, p ).first;
 
     // We don't do a full check for compatile topologies, but at least this check is cheap.
     if( lhs.edge_count() != rhs.edge_count() ) {
@@ -146,7 +153,7 @@ double earth_movers_distance( MassTree const& lhs, MassTree const& rhs )
         ) {
             // The work is accumulated: The mass that we are currently moving times the distances
             // that we move it.
-            work += std::abs( current_mass ) * ( current_pos - mass_rit->first );
+            work += std::pow( std::abs( current_mass ), p ) * ( current_pos - mass_rit->first );
 
             // Update the current position and mass.
             current_pos   = mass_rit->first;
@@ -156,7 +163,7 @@ double earth_movers_distance( MassTree const& lhs, MassTree const& rhs )
         // After we finished moving along the branch, we need extra work to move the remaining mass
         // to the node at the top end of the branch. Also, add the remaining mass to this node, so
         // that it is available for when we process the upper part of that node (towards the root).
-        work                          += std::abs( current_mass ) * current_pos;
+        work += std::pow( std::abs( current_mass ), p ) * current_pos;
         node_masses[ pri_node_index ] += current_mass;
     }
 
@@ -165,11 +172,23 @@ double earth_movers_distance( MassTree const& lhs, MassTree const& rhs )
         throw std::invalid_argument( "Incompatible MassTrees." );
     }
 
+    // Apply the outer exponent.
+    if( p > 1.0 ) {
+        work = std::pow( work, 1.0 / p );
+    }
+
     return work;
 }
 
-utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees )
+utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double const p )
 {
+    // Check.
+    if( p <= 0.0 ) {
+        throw std::runtime_error(
+            "Invalid exponent value p for earth mover's distance calculation. Has to be > 0.0."
+        );
+    }
+
     // Init result matrix.
     auto result = utils::Matrix<double>( trees.size(), trees.size(), 0.0 );
 
@@ -191,7 +210,7 @@ utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees 
             auto const j = ij.second;
 
             // Calculate EMD and fill symmetric Matrix.
-            auto const emd = earth_movers_distance( trees[i], trees[j] );
+            auto const emd = earth_movers_distance( trees[i], trees[j], p );
             result( i, j ) = emd;
             result( j, i ) = emd;
         }
@@ -204,7 +223,7 @@ utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees 
             // The result is symmetric - we only calculate the upper triangle.
             for( size_t j = i + 1; j < trees.size(); ++j ) {
 
-                auto const emd = earth_movers_distance( trees[i], trees[j] );
+                auto const emd = earth_movers_distance( trees[i], trees[j], p );
                 result( i, j ) = emd;
                 result( j, i ) = emd;
             }
@@ -215,8 +234,15 @@ utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees 
     return result;
 }
 
-std::pair<double, double> earth_movers_distance( MassTree const& tree )
+std::pair<double, double> earth_movers_distance( MassTree const& tree, double const p )
 {
+    // Check.
+    if( p <= 0.0 ) {
+        throw std::runtime_error(
+            "Invalid exponent value p for earth mover's distance calculation. Has to be > 0.0."
+        );
+    }
+
     // Keep track of the total resulting work (the distance we moved the masses).
     // This is the result returned in the end.
     double work = 0.0;
@@ -264,8 +290,8 @@ std::pair<double, double> earth_movers_distance( MassTree const& tree )
             ++mass_rit
         ) {
             // The work is accumulated: The mass that we are currently moving times the distances
-            // that we move it.
-            work += std::abs( current_mass ) * ( current_pos - mass_rit->first );
+            // that we move it, taking the exponent into account.
+            work += std::pow( std::abs( current_mass ), p ) * ( current_pos - mass_rit->first );
 
             // Update the current position and mass.
             current_pos   = mass_rit->first;
@@ -275,10 +301,17 @@ std::pair<double, double> earth_movers_distance( MassTree const& tree )
         // After we finished moving along the branch, we need extra work to move the remaining mass
         // to the node at the top end of the branch. Also, add the remaining mass to this node, so
         // that it is available for when we process the upper part of that node (towards the root).
-        work                          += std::abs( current_mass ) * current_pos;
+        // Here again we need to take the exponent into account.
+        work += std::pow( std::abs( current_mass ), p ) * current_pos;
         node_masses[ pri_node_index ] += current_mass;
     }
 
+    // Apply the outer exponent.
+    if( p > 1.0 ) {
+        work = std::pow( work, 1.0 / p );
+    }
+
+    // Finally, return the needed work, and the mass at the root, as a way of correctness checking.
     return { work, node_masses[ tree.root_node().index() ] };
 }
 

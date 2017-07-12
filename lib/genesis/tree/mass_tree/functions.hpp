@@ -79,6 +79,11 @@ namespace tree {
  * Work is here defined as mass times dislocation. Thus, the work is higher if either more mass has
  * to be moved, or if mass has to be moved further.
  *
+ * Here, the parameter @p p is used to control the influence of mass and distance, with
+ * `0.0 < p < inf`, and default `p == 1.0`, which is the neutral case.
+ * A larger @p p increases the impact of distance traveled, while a smaller @p p emphasizes
+ * differences of mass. For details, see the references cited below.
+ *
  * The resulting distance is independed of the rooting of the tree and commutative with respect
  * to the two mass distributions.
  *
@@ -89,29 +94,41 @@ namespace tree {
  * mass can be normalized using mass_tree_normalize_masses(). Then, the result of the earth mover's
  * distance is always in the range `[ 0.0, 1.0 ]`.
  *
- * See @link placement::earth_movers_distance( const Sample& lhs, const Sample& rhs, bool with_pendant_length )
+ * See @link placement::earth_movers_distance( const Sample&, const Sample&, double, bool )
  * earth_movers_distance( Sample const&, ... ) @endlink for an exemplary
  * usage of this function, which applies the earth mover's distance to the placement weights
  * (@link placement::PqueryPlacement::like_weight_ratio like_weight_ratio@endlink) of a
  * PlacementTree.
+ *
+ * References:
+ *
+ * > [1] Guppy Documentation: http://matsen.github.io/pplacer/generated_rst/guppy_kr.html#guppy-kr
+ *
+ * > [2] F. A. Matsen and S. N. Evans, <b>“Edge principal components and squash clustering: using the
+ * > special structure of phylogenetic placement data for sample comparison.”</b>, *PLoS One, 2011*.
+ * > [DOI: 10.1371/journal.pone.0056859](http://dx.doi.org/10.1371/journal.pone.0056859)
+ *
+ * > [3] S. N. Evans and F. A. Matsen, <b>“The phylogenetic Kantorovich-Rubinstein metric for
+ * > environmental sequence samples.”</b>, *Statistical Methodology, 2012*.
+ * > [DOI: 10.1111/j.1467-9868.2011.01018.x](http://dx.doi.org/10.1111/j.1467-9868.2011.01018.x)
  */
-double earth_movers_distance( MassTree const& lhs, MassTree const& rhs );
+double earth_movers_distance( MassTree const& lhs, MassTree const& rhs, double p = 1.0 );
 
 /**
  * @brief Calculate the pairwise earth mover's distance for all @link MassTree MassTrees@endlink.
  *
  * The result is a pairwise distance @link utils::Matrix Matrix@endlink using the indices of the
- * given `vector`. See earth_movers_distance( MassTree const&, MassTree const& ) for details
+ * given `vector`. See earth_movers_distance( MassTree const&, MassTree const&, double ) for details
  * on the calculation.
  */
-utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees );
+utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees, double p = 1.0 );
 
 /**
  * @brief Calculate the earth mover's distance of masses on a given Tree.
  *
  * This function is mainly used as a speed-up for calculating
- * @link earth_movers_distance( MassTree const& lhs, MassTree const& rhs )
- * earth_movers_distance( MassTree const& , MassTree const& )@endlink.
+ * @link earth_movers_distance( MassTree const& lhs, MassTree const& rhs, double )
+ * earth_movers_distance( MassTree const&, MassTree const& )@endlink. See there for more details.
  *
  * It uses the following convention for the two distributions: The masses of one distribution are
  * stored using a positive sign, the masses of the other distribution use a negative sign.
@@ -130,7 +147,7 @@ utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees 
  * actually worked out. Too big numbers indicate that something is wrong with the sums of the signed
  * masses.
  */
-std::pair<double, double> earth_movers_distance( MassTree const& tree );
+std::pair<double, double> earth_movers_distance( MassTree const& tree, double p = 1.0 );
 
 // =================================================================================================
 //     Manipulate Masses
