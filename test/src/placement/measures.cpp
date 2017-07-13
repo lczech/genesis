@@ -33,7 +33,10 @@
 #include <memory>
 
 #include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/function/cog.hpp"
+#include "genesis/placement/function/emd.hpp"
 #include "genesis/placement/function/measures.hpp"
+#include "genesis/placement/function/nhd.hpp"
 #include "genesis/placement/sample.hpp"
 #include "genesis/placement/sample_set.hpp"
 #include "genesis/utils/math/matrix.hpp"
