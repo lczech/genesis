@@ -31,11 +31,21 @@
  * @ingroup placement
  */
 
+#include <utility>
+#include <vector>
+
 namespace genesis {
 
 // =================================================================================================
 //     Forward Declarations
 // =================================================================================================
+
+namespace tree {
+
+    class Tree;
+    using MassTree = Tree;
+
+}
 
 namespace placement {
 
@@ -52,6 +62,15 @@ namespace utils {
 }
 
 namespace placement {
+
+// =================================================================================================
+//     Mass Tree Conversion
+// =================================================================================================
+
+std::pair< tree::MassTree, double > convert_to_mass_tree( Sample const& sample );
+
+std::pair< std::vector<tree::MassTree>, std::vector<double> >
+convert_to_mass_trees( SampleSet const& sample_set );
 
 // =================================================================================================
 //     Earth Movers Distance

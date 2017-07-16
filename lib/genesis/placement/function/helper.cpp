@@ -30,6 +30,7 @@
 
 #include "genesis/placement/function/helper.hpp"
 
+#include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/pquery/plain.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
@@ -264,6 +265,62 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
 // =================================================================================================
 //     Verification
 // =================================================================================================
+
+void rectify_values( Sample& sample )
+{
+    for( auto& pqry : sample.pqueries() ) {
+
+        // Rectify placement values
+        double lwr_sum = 0.0;
+        for( auto& p : pqry.placements() ) {
+
+            // LWR
+            if( p.like_weight_ratio < 0.0 ) {
+                p.like_weight_ratio = 0.0;
+            }
+            if( p.like_weight_ratio > 1.0) {
+                p.like_weight_ratio = 1.0;
+            }
+            lwr_sum += p.like_weight_ratio;
+
+            // Pendant length
+            if( p.pendant_length < 0.0 ) {
+                p.pendant_length = 0.0;
+            }
+
+            // Proximal length
+            if( p.proximal_length < 0.0 ) {
+                p.proximal_length = 0.0;
+            }
+            if( p.proximal_length > p.edge().data<PlacementEdgeData>().branch_length ) {
+                p.proximal_length = p.edge().data<PlacementEdgeData>().branch_length;
+            }
+        }
+
+        // If the total sum of LWRs is too big, rectify it.
+        if( lwr_sum > 1.0 ) {
+            normalize_weight_ratios( pqry );
+        }
+
+        // Rectify name values
+        for( auto& n : pqry.names() ) {
+            // Negative multiplcities are invalid. As we don't know the actual value,
+            // better play it save and set it so 0, so that it is ignored,
+            // rather than setting it to 1, which would mean to fully use this name.
+            if( n.multiplicity < 0.0 ) {
+                n.multiplicity = 0.0;
+            }
+        }
+    }
+}
+
+void rectify_values( SampleSet& sset )
+{
+    for( auto& smp : sset ) {
+        rectify_values( smp.sample );
+    }
+}
+
 
 void reset_edge_nums( PlacementTree& tree )
 {
