@@ -57,25 +57,38 @@ namespace tree {
 //     Manipulate Masses
 // =================================================================================================
 
-MassTree mass_tree_merge_trees( MassTree const& lhs, MassTree const& rhs )
-{
+MassTree mass_tree_merge_trees(
+    MassTree const& lhs,
+    MassTree const& rhs,
+    double const scaler_lhs,
+    double const scaler_rhs
+) {
     auto copy = lhs;
-    mass_tree_merge_trees_inplace( copy, rhs );
+    mass_tree_merge_trees_inplace( copy, rhs, scaler_lhs, scaler_rhs );
     return copy;
 }
 
-void mass_tree_merge_trees_inplace( MassTree& lhs, MassTree const& rhs )
-{
+void mass_tree_merge_trees_inplace(
+    MassTree& lhs,
+    MassTree const& rhs,
+    double const scaler_lhs,
+    double const scaler_rhs
+) {
     // Do at least a basic check.
     if( lhs.edge_count() != rhs.edge_count() ) {
         throw std::runtime_error( "Incompatible MassTrees for merging." );
+    }
+
+    // Only do the work if needed.
+    if( scaler_lhs != 1.0 ) {
+        mass_tree_scale_masses( lhs, scaler_lhs );
     }
 
     #pragma omp parallel for
     for( size_t i = 0; i < lhs.edge_count(); ++i ) {
         auto& lhs_masses = lhs.edge_at( i ).data<MassTreeEdgeData>().masses;
         for( auto const& rhs_mass : rhs.edge_at( i ).data<MassTreeEdgeData>().masses ) {
-            lhs_masses[ rhs_mass.first ] += rhs_mass.second;
+            lhs_masses[ rhs_mass.first ] += scaler_rhs * rhs_mass.second;
         }
     }
 }
@@ -89,8 +102,10 @@ void mass_tree_clear_masses( MassTree& tree )
 
 void mass_tree_reverse_signs( MassTree& tree )
 {
-    for( auto& edge : tree.edges() ) {
-        for( auto& mass : edge->data<MassTreeEdgeData>().masses ) {
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        auto& masses = tree.edge_at( i ).data<MassTreeEdgeData>().masses;
+        for( auto& mass : masses ) {
             mass.second = -mass.second;
         }
     }
@@ -98,8 +113,10 @@ void mass_tree_reverse_signs( MassTree& tree )
 
 void mass_tree_scale_masses( MassTree& tree, double factor )
 {
-    for( auto& edge : tree.edges() ) {
-        for( auto& mass : edge->data<MassTreeEdgeData>().masses ) {
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        auto& masses = tree.edge_at( i ).data<MassTreeEdgeData>().masses;
+        for( auto& mass : masses ) {
             mass.second *= factor;
         }
     }

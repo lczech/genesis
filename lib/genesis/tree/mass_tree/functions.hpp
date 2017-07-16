@@ -66,14 +66,36 @@ namespace tree {
 
 /**
  * @brief Merge all masses of two @link MassTree MassTrees@endlink into one and return it.
+ *
+ * The two `scalers` can be used to weight the masses differently, if needed.
+ *
+ * The resulting tree will have a mass of `scaler_lhs * mass(lhs) + scaler_rhs * mass(rhs)`,
+ * which usually is not unit mass any more. Thus, if needed, call mass_tree_normalize_masses()
+ * to rescale the masses back to unit mass.
  */
-MassTree mass_tree_merge_trees( MassTree const& lhs, MassTree const& rhs );
+MassTree mass_tree_merge_trees(
+    MassTree const& lhs,
+    MassTree const& rhs,
+    double const scaler_lhs = 1.0,
+    double const scaler_rhs = 1.0
+);
 
 /**
  * @brief Merge all masses of two @link MassTree MassTrees@endlink by adding them to the first
  * MassTree.
+ *
+ * The two `scalers` can be used to weight the masses differently, if needed.
+ *
+ * The resulting tree will have a mass of `scaler_lhs * mass(lhs) + scaler_rhs * mass(rhs)`,
+ * which usually is not unit mass any more. Thus, if needed, call mass_tree_normalize_masses()
+ * to rescale the masses back to unit mass.
  */
-void mass_tree_merge_trees_inplace( MassTree& lhs, MassTree const& rhs );
+void mass_tree_merge_trees_inplace(
+    MassTree& lhs,
+    MassTree const& rhs,
+    double const scaler_lhs = 1.0,
+    double const scaler_rhs = 1.0
+);
 
 /**
  * @brief Clear all masses of a ::MassTree, while keeping its topology.
