@@ -33,7 +33,10 @@
 #include <memory>
 
 #include "genesis/placement/formats/jplace_reader.hpp"
+#include "genesis/placement/function/cog.hpp"
+#include "genesis/placement/function/emd.hpp"
 #include "genesis/placement/function/measures.hpp"
+#include "genesis/placement/function/nhd.hpp"
 #include "genesis/placement/sample.hpp"
 #include "genesis/placement/sample_set.hpp"
 #include "genesis/utils/math/matrix.hpp"
@@ -75,24 +78,24 @@ TEST(SampleMeasures, EarthMoversDistance)
     Sample smp_rhs = JplaceReader().from_file( infile_rhs );
 
     // Distances and symmetric cases.
-    EXPECT_FLOAT_EQ( 2.435, earth_movers_distance( smp_lhs, smp_rhs, false ));
-    EXPECT_FLOAT_EQ( 2.435, earth_movers_distance( smp_rhs, smp_lhs, false ));
-    EXPECT_FLOAT_EQ( 3.185, earth_movers_distance( smp_lhs, smp_rhs, true  ));
-    EXPECT_FLOAT_EQ( 3.185, earth_movers_distance( smp_rhs, smp_lhs, true  ));
+    EXPECT_FLOAT_EQ( 2.435, earth_movers_distance( smp_lhs, smp_rhs, 1.0, false ));
+    EXPECT_FLOAT_EQ( 2.435, earth_movers_distance( smp_rhs, smp_lhs, 1.0, false ));
+    EXPECT_FLOAT_EQ( 3.185, earth_movers_distance( smp_lhs, smp_rhs, 1.0, true  ));
+    EXPECT_FLOAT_EQ( 3.185, earth_movers_distance( smp_rhs, smp_lhs, 1.0, true  ));
 
     // Self-distances.
-    EXPECT_FLOAT_EQ( 0.0, earth_movers_distance( smp_lhs, smp_lhs, false ));
-    EXPECT_FLOAT_EQ( 0.0, earth_movers_distance( smp_rhs, smp_rhs, false ));
-    EXPECT_FLOAT_EQ( 0.6, earth_movers_distance( smp_lhs, smp_lhs, true ));
-    EXPECT_FLOAT_EQ( 0.9, earth_movers_distance( smp_rhs, smp_rhs, true ));
+    EXPECT_FLOAT_EQ( 0.0, earth_movers_distance( smp_lhs, smp_lhs, 1.0, false ));
+    EXPECT_FLOAT_EQ( 0.0, earth_movers_distance( smp_rhs, smp_rhs, 1.0, false ));
+    EXPECT_FLOAT_EQ( 0.6, earth_movers_distance( smp_lhs, smp_lhs, 1.0, true ));
+    EXPECT_FLOAT_EQ( 0.9, earth_movers_distance( smp_rhs, smp_rhs, 1.0, true ));
 
     // Set-version of the EMD.
     SampleSet set;
     set.add( smp_lhs );
     set.add( smp_rhs );
 
-    auto set_emd_o =  earth_movers_distance( set, false );
-    auto set_emd_p =  earth_movers_distance( set, true );
+    auto set_emd_o =  earth_movers_distance( set, 1.0, false );
+    auto set_emd_p =  earth_movers_distance( set, 1.0, true );
 
     EXPECT_FLOAT_EQ( 0.0,   set_emd_o( 0, 0 ) );
     EXPECT_FLOAT_EQ( 2.435, set_emd_o( 0, 1 ) );

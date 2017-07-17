@@ -238,6 +238,16 @@ void filter_pqueries_intersecting_names( Sample& sample_1, Sample& sample_2 );
  */
 void filter_pqueries_differing_names(    Sample& sample_1, Sample& sample_2 );
 
+/**
+ * @brief Remove all @link Pquery Pqueries@endlink from the Sample that have no PqueryPlacement%s.
+ *
+ * This is useful for example after filtering, as this can result in removing all PqueryPlacement%s
+ * from a Pquery.
+ *
+ * The function returns the number of removed Pqueries.
+ */
+size_t remove_empty_pqueries( Sample& sample );
+
 // =================================================================================================
 //     Joining and Merging
 // =================================================================================================

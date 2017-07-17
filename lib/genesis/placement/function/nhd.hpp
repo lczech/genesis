@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_FORMATS_SVG_SVG_H_
-#define GENESIS_UTILS_FORMATS_SVG_SVG_H_
+#ifndef GENESIS_PLACEMENT_FUNCTION_NHD_H_
+#define GENESIS_PLACEMENT_FUNCTION_NHD_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -28,22 +28,57 @@
  * @brief
  *
  * @file
- * @ingroup utils
+ * @ingroup placement
  */
 
+#include <cstddef>
+
+namespace genesis {
+
 // =================================================================================================
-//     Svg Headers
+//     Forward Declarations
 // =================================================================================================
 
-#include "genesis/utils/formats/svg/attributes.hpp"
-#include "genesis/utils/formats/svg/definitions.hpp"
-#include "genesis/utils/formats/svg/document.hpp"
-#include "genesis/utils/formats/svg/gradient.hpp"
-#include "genesis/utils/formats/svg/group.hpp"
-#include "genesis/utils/formats/svg/helper.hpp"
-#include "genesis/utils/formats/svg/image.hpp"
-#include "genesis/utils/formats/svg/object.hpp"
-#include "genesis/utils/formats/svg/shapes.hpp"
-#include "genesis/utils/formats/svg/text.hpp"
+namespace placement {
+
+    class Sample;
+    class SampleSet;
+
+}
+
+namespace utils {
+
+    template<typename T>
+    class Matrix;
+
+}
+
+namespace placement {
+
+// =================================================================================================
+//     Node Histogram Distance
+// =================================================================================================
+
+/**
+ * @brief Calculate the Node Histogram Distance of two Sample%s.
+ */
+double node_histogram_distance (
+    Sample const& sample_a,
+    Sample const& sample_b,
+    size_t const  histogram_bins = 25
+);
+
+/**
+ * @brief Calculate the
+ * @link node_histogram_distance( Sample const&, Sample const&, size_t ) node_histogram_distance()@endlink
+ * for every pair of Sample%s in the SampleSet.
+ */
+utils::Matrix<double> node_histogram_distance (
+    SampleSet const& sample_set,
+    size_t const     histogram_bins = 25
+);
+
+} // namespace placement
+} // namespace genesis
 
 #endif // include guard

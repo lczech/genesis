@@ -114,13 +114,13 @@ public:
 
 public:
 
+    double r = -1.0;
+    double a = -1.0;
+
     int parent_index = -1;
 
     double children_min_a = -1.0;
     double children_max_a = -1.0;
-
-    double r = -1.0;
-    double a = -1.0;
 
 };
 

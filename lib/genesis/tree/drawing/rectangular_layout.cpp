@@ -49,128 +49,85 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Rectangular Layout
+//     Constructors
 // =================================================================================================
 
-RectangularLayout::RectangularLayout( Tree const& orig_tree )
+RectangularLayout::RectangularLayout( Tree const& orig_tree, Type const drawing_type )
 {
-    if( orig_tree.empty() ) {
-        tree_ = orig_tree;
+    // Need to set drawing type first, so that init_tree_() can use it.
+    type( drawing_type );
+    tree( orig_tree );
+}
+
+// =================================================================================================
+//     Options
+// =================================================================================================
+
+RectangularLayout& RectangularLayout::scaler_x( double const sx )
+{
+    scaler_x_ = sx;
+    return *this;
+}
+
+double RectangularLayout::scaler_x() const
+{
+    return scaler_x_;
+}
+
+RectangularLayout& RectangularLayout::scaler_y( double const sy )
+{
+    scaler_y_ = sy;
+    return *this;
+}
+
+double RectangularLayout::scaler_y() const
+{
+    return scaler_y_;
+}
+
+// =================================================================================================
+//     Virtual Functions
+// =================================================================================================
+
+void RectangularLayout::init_tree_( Tree const& orig_tree )
+{
+    if( tree().empty() ) {
         return;
     }
 
-    // Get a copy of the tree topology.
-    tree_ = orig_tree.clone_topology();
-
-    // Init nodes.
-    for( size_t i = 0; i < orig_tree.node_count(); ++i ) {
-        // Safety: correct indices.
-        assert( tree_.node_at(i).index() == i && orig_tree.node_at(i).index() == i );
-
-        // Set the tree node data.
-        tree_.node_at(i).reset_data( RectangularNodeData::create() );
-        auto& node_data = tree_.node_at(i).data<RectangularNodeData>();
-
-        // Set defaults needed to later distinguish whether those values have already been set.
-        node_data.x = -1.0;
-        node_data.y = -1.0;
-
-        // If the original tree has node names, use them.
-        auto orig_node_data_ptr = orig_tree.node_at(i).data_cast<DefaultNodeData>();
-        if( orig_node_data_ptr ) {
-            node_data.name = orig_node_data_ptr->name;
-        }
-    }
-
-    // Init edges.
-    for( size_t i = 0; i < orig_tree.edge_count(); ++i ) {
-        // Safety: correct indices.
-        assert( tree_.edge_at(i).index() == i && orig_tree.edge_at(i).index() == i );
-
-        // Set the tree edge data.
-        tree_.edge_at(i).reset_data( RectangularEdgeData::create() );
-        auto& edge_data = tree_.edge_at(i).data<RectangularEdgeData>();
-
-        // If the original tree has edge branch lengths, use them.
-        auto orig_edge_data_ptr = orig_tree.edge_at(i).data_cast<DefaultEdgeData>();
-        if( orig_edge_data_ptr ) {
-            edge_data.branch_length = orig_edge_data_ptr->branch_length;
-        }
-    }
+    // Init with proper data types.
+    init_nodes_( orig_tree );
+    init_edges_( orig_tree );
 
     // Set node x-coords according to branch lengths (distance from root).
-    // set_node_x_phylogram_();
-    set_node_x_cladogram_();
-
-    // Set node parents and y-coord of leaves.
-    size_t leaf_count = 0;
-    size_t parent = 0;
-    for( auto it : eulertour( orig_tree )) {
-        auto& node_data = tree_.node_at( it.node().index() ).data<RectangularNodeData>();
-
-        if( node_data.parent_index == -1 ) {
-            node_data.parent_index = parent;
-        }
-        if( it.node().is_leaf() ) {
-            node_data.y = scaler_y_ * leaf_count++;
-        }
-
-        parent = it.node().index();
+    if( type() == Type::kCladogram ) {
+        set_node_x_cladogram_();
+    } else if( type() == Type::kPhylogram ) {
+        set_node_x_phylogram_();
+    } else {
+        assert( false );
     }
 
-    // Set remaining y-coords of inner nodes to mid-points of their children.
-    for( auto it : postorder( orig_tree )) {
-        auto& node_data   = tree_.node_at( it.node().index()      ).data<RectangularNodeData>();
-        auto& parent_data = tree_.node_at( node_data.parent_index ).data<RectangularNodeData>();
-
-        if( node_data.y < 0.0 ) {
-            auto min_max_diff = node_data.children_max_y - node_data.children_min_y;
-            node_data.y = node_data.children_min_y + min_max_diff / 2.0;
-        }
-
-        if( parent_data.children_min_y < 0.0 || parent_data.children_min_y > node_data.y ) {
-            parent_data.children_min_y = node_data.y;
-        }
-        if( parent_data.children_max_y < 0.0 || parent_data.children_max_y < node_data.y ) {
-            parent_data.children_max_y = node_data.y;
-        }
-    }
+    // Set node y-coords.
+    set_node_y_();
 }
 
-// -------------------------------------------------------------
-//     Drawing
-// -------------------------------------------------------------
-
-Tree& RectangularLayout::tree()
-{
-    return tree_;
-}
-
-void RectangularLayout::set_edge_strokes( std::vector< utils::SvgStroke > strokes )
-{
-    if( strokes.size() != tree_.edge_count() ) {
-        throw std::runtime_error( "Edge stroke vector has wrong size." );
-    }
-    for( size_t i = 0; i < tree_.edge_count(); ++i ) {
-        tree_.edge_at(i).data<RectangularEdgeData>().stroke = strokes[ i ];
-    }
-}
-
-utils::SvgDocument RectangularLayout::to_svg_document() const
+utils::SvgDocument RectangularLayout::to_svg_document_() const
 {
     using namespace utils;
     SvgDocument doc;
     SvgGroup    tree_lines;
     SvgGroup    taxa_names;
+    SvgGroup    node_shapes;
 
-    for( auto const& node_it : tree_.nodes() ) {
+    for( auto const& node_it : tree().nodes() ) {
         auto const& node = *node_it;
 
         auto const& node_data   = node.data<RectangularNodeData>();
-        auto const& parent_data = tree_.node_at( node_data.parent_index ).data<RectangularNodeData>();
+        auto const& parent_data = tree().node_at( node_data.parent_index ).data<RectangularNodeData>();
 
         // Get the edge between the node and its parent.
-        auto edge_data_ptr = edge_between( node, tree_.node_at( node_data.parent_index ) );
+        auto edge_data_ptr = edge_between( node, tree().node_at( node_data.parent_index ) );
 
         // If there is an edge (i.e., we are not at the root), draw lines between the nodes.
         if( edge_data_ptr ) {
@@ -195,39 +152,141 @@ utils::SvgDocument RectangularLayout::to_svg_document() const
 
         // If the node has a name, print it.
         if( node_data.name != "" ) {
-            auto label = SvgText( node_data.name, SvgPoint( node_data.x + 5, node_data.y ) );
+            // auto label = SvgText( node_data.name, SvgPoint( node_data.x + 5, node_data.y ) );
             // label.dy = "0.4em";
-            taxa_names << label;
+
+            auto label = text_template();
+            label.text = node_data.name;
+            label.transform.append( SvgTransform::Translate(
+                node_data.x + 5,
+                node_data.y
+            ));
+            taxa_names << std::move( label );
+        }
+
+        // If there is a node shape, draw it.
+        if( ! node_data.shape.empty() ) {
+            auto ns = node_data.shape;
+            ns.transform.append( SvgTransform::Translate( node_data.x, node_data.y ));
+            node_shapes << std::move( ns );
         }
     }
 
     // We are sure that we won't use the groups again, so let's move them!
     doc << std::move( tree_lines );
-    doc << std::move( taxa_names );
+    if( ! taxa_names.empty() ) {
+        doc << std::move( taxa_names );
+    }
+    if( ! node_shapes.empty() ) {
+        doc << std::move( node_shapes );
+    }
     return doc;
+}
+
+// =================================================================================================
+//     Internal Functions
+// =================================================================================================
+
+void RectangularLayout::init_nodes_( Tree const& orig_tree )
+{
+    // Init nodes.
+    for( size_t i = 0; i < tree().node_count(); ++i ) {
+        // Safety: correct indices.
+        assert( tree().node_at(i).index() == i && orig_tree.node_at(i).index() == i );
+
+        // Set the tree node data.
+        tree().node_at(i).reset_data( RectangularNodeData::create() );
+        auto& node_data = tree().node_at(i).data<RectangularNodeData>();
+
+        // Set defaults needed to later distinguish whether those values have already been set.
+        node_data.x = -1.0;
+        node_data.y = -1.0;
+
+        // If the original tree has node names, use them.
+        auto orig_node_data_ptr = orig_tree.node_at(i).data_cast<DefaultNodeData>();
+        if( orig_node_data_ptr ) {
+            node_data.name = orig_node_data_ptr->name;
+        }
+    }
+}
+
+void RectangularLayout::init_edges_( Tree const& orig_tree )
+{
+    // Init edges.
+    for( size_t i = 0; i < tree().edge_count(); ++i ) {
+        // Safety: correct indices.
+        assert( tree().edge_at(i).index() == i && orig_tree.edge_at(i).index() == i );
+
+        // Set the tree edge data.
+        tree().edge_at(i).reset_data( RectangularEdgeData::create() );
+        auto& edge_data = tree().edge_at(i).data<RectangularEdgeData>();
+
+        // If the original tree has edge branch lengths, use them.
+        auto orig_edge_data_ptr = orig_tree.edge_at(i).data_cast<DefaultEdgeData>();
+        if( orig_edge_data_ptr ) {
+            edge_data.branch_length = orig_edge_data_ptr->branch_length;
+        }
+    }
+}
+
+void RectangularLayout::set_node_y_()
+{
+    // Set node parents and y-coord of leaves.
+    size_t leaf_count = 0;
+    size_t parent = 0;
+    for( auto it : eulertour( tree() )) {
+        auto& node_data = tree().node_at( it.node().index() ).data<RectangularNodeData>();
+
+        if( node_data.parent_index == -1 ) {
+            node_data.parent_index = parent;
+        }
+        if( it.node().is_leaf() ) {
+            node_data.y = scaler_y_ * leaf_count++;
+        }
+
+        parent = it.node().index();
+    }
+
+    // Set remaining y-coords of inner nodes to mid-points of their children.
+    for( auto it : postorder( tree() )) {
+        auto& node_data   = tree().node_at( it.node().index()      ).data<RectangularNodeData>();
+        auto& parent_data = tree().node_at( node_data.parent_index ).data<RectangularNodeData>();
+
+        if( node_data.y < 0.0 ) {
+            auto min_max_diff = node_data.children_max_y - node_data.children_min_y;
+            node_data.y = node_data.children_min_y + min_max_diff / 2.0;
+        }
+
+        if( parent_data.children_min_y < 0.0 || parent_data.children_min_y > node_data.y ) {
+            parent_data.children_min_y = node_data.y;
+        }
+        if( parent_data.children_max_y < 0.0 || parent_data.children_max_y < node_data.y ) {
+            parent_data.children_max_y = node_data.y;
+        }
+    }
 }
 
 void RectangularLayout::set_node_x_phylogram_()
 {
-    auto node_dists = node_branch_length_distance_vector( tree_ );
+    auto node_dists = node_branch_length_distance_vector( tree() );
 
     for( size_t i = 0; i < node_dists.size(); ++i ) {
-        tree_.node_at(i).data<RectangularNodeData>().x = node_dists[i] * scaler_x_;
+        tree().node_at(i).data<RectangularNodeData>().x = node_dists[i] * scaler_x_;
     }
 }
 
 void RectangularLayout::set_node_x_cladogram_()
 {
     // Set root x to 0.
-    tree_.root_node().data<RectangularNodeData>().x = 0.0;
+    tree().root_node().data<RectangularNodeData>().x = 0.0;
 
     // Get the heights of all subtrees starting from the root.
-    auto heights = subtree_max_path_heights( tree_ );
+    auto heights = subtree_max_path_heights( tree() );
 
     // Get the height of the tree, i.e. longest path from root to any leaf.
-    auto root_height = heights[ tree_.root_node().index() ];
+    auto root_height = heights[ tree().root_node().index() ];
 
-    for( auto it : preorder( tree_ )) {
+    for( auto it : preorder( tree() )) {
         // The subtree height calculation does not work for the root, so skip it.
         // Also, we already set the leaf.
         if( it.is_first_iteration() ) {
@@ -240,10 +299,9 @@ void RectangularLayout::set_node_x_cladogram_()
 
         // Set the x position.
         auto x = ( root_height - height ) * scaler_x_;
-        tree_.node_at( it.node().index() ).data<RectangularNodeData>().x = x;
+        tree().node_at( it.node().index() ).data<RectangularNodeData>().x = x;
     }
 }
-
 
 } // namespace tree
 } // namespace genesis

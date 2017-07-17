@@ -58,79 +58,7 @@ namespace tree {
 
 }
 
-// =================================================================================================
-//     Earth Movers Distance
-// =================================================================================================
-
 namespace tree {
-
-/**
- * @brief Calculate the earth mover's distance of two distributions of masses on a given Tree.
- *
- * The earth mover's distance is typically a distance measure between two distributions.
- * See [Earth mover's distance](https://en.wikipedia.org/wiki/Earth_mover's_distance) for an
- * introduction.
- *
- * In our case, we use distibutions of masses along the branches of a tree. Each branch can have
- * multiple masses at different positions within [0.0, branch_length].
- *
- * The distance is calculated as the amount of work needed to move the masses of one distribution
- * so that they end up in the positions of the masses of the other distribution.
- * Work is here defined as mass times dislocation. Thus, the work is higher if either more mass has
- * to be moved, or if mass has to be moved further.
- *
- * The resulting distance is independed of the rooting of the tree and commutative with respect
- * to the two mass distributions.
- *
- * The earth mover's distance is only meaningful if both mass distributions contain the same amount
- * of total mass.
- * See @link mass_tree_sum_of_masses( MassTree const& tree ) mass_tree_sum_of_masses() @endlink
- * to check this. Also, in order to give comparable results over different tree topologies, the
- * mass can be normalized using mass_tree_normalize_masses(). Then, the result of the earth mover's
- * distance is always in the range `[ 0.0, 1.0 ]`.
- *
- * See @link placement::earth_movers_distance( const Sample& lhs, const Sample& rhs, bool with_pendant_length )
- * earth_movers_distance( Sample const&, ... ) @endlink for an exemplary
- * usage of this function, which applies the earth mover's distance to the placement weights
- * (@link placement::PqueryPlacement::like_weight_ratio like_weight_ratio@endlink) of a
- * PlacementTree.
- */
-double earth_movers_distance( MassTree const& lhs, MassTree const& rhs );
-
-/**
- * @brief Calculate the pairwise earth mover's distance for all @link MassTree MassTrees@endlink.
- *
- * The result is a pairwise distance @link utils::Matrix Matrix@endlink using the indices of the
- * given `vector`. See earth_movers_distance( MassTree const&, MassTree const& ) for details
- * on the calculation.
- */
-utils::Matrix<double> earth_movers_distance( std::vector<MassTree> const& trees );
-
-/**
- * @brief Calculate the earth mover's distance of masses on a given Tree.
- *
- * This function is mainly used as a speed-up for calculating
- * @link earth_movers_distance( MassTree const& lhs, MassTree const& rhs )
- * earth_movers_distance( MassTree const& , MassTree const& )@endlink.
- *
- * It uses the following convention for the two distributions: The masses of one distribution are
- * stored using a positive sign, the masses of the other distribution use a negative sign.
- * This way, only one Tree needs to be stored, and the algorithm is significantly simplyfied.
- *
- * Thus, as the earth mover's distance is only meaningful if both distributions have the same sum,
- * and we use opposite signs to store the masses, the sum of all masses on the tree should ideally
- * be zero (apart from numerical derivations).
- * See @link mass_tree_sum_of_masses( MassTree const& tree ) mass_tree_sum_of_masses() @endlink and
- * @link mass_tree_validate( MassTree const& tree, double valid_total_mass_difference )
- * mass_tree_validate() @endlink for functions to verify this.
- *
- * The function returns two doubles: The first one is the actual distance, the second one gives
- * the remaining mass at the root node. This should also be close to `0.0`, as there, all masses
- * from the subtrees should ideally cancel each other out. Use this value to check whether this
- * actually worked out. Too big numbers indicate that something is wrong with the sums of the signed
- * masses.
- */
-std::pair<double, double> earth_movers_distance( MassTree const& tree );
 
 // =================================================================================================
 //     Manipulate Masses
@@ -138,14 +66,36 @@ std::pair<double, double> earth_movers_distance( MassTree const& tree );
 
 /**
  * @brief Merge all masses of two @link MassTree MassTrees@endlink into one and return it.
+ *
+ * The two `scalers` can be used to weight the masses differently, if needed.
+ *
+ * The resulting tree will have a mass of `scaler_lhs * mass(lhs) + scaler_rhs * mass(rhs)`,
+ * which usually is not unit mass any more. Thus, if needed, call mass_tree_normalize_masses()
+ * to rescale the masses back to unit mass.
  */
-MassTree mass_tree_merge_trees( MassTree const& lhs, MassTree const& rhs );
+MassTree mass_tree_merge_trees(
+    MassTree const& lhs,
+    MassTree const& rhs,
+    double const scaler_lhs = 1.0,
+    double const scaler_rhs = 1.0
+);
 
 /**
  * @brief Merge all masses of two @link MassTree MassTrees@endlink by adding them to the first
  * MassTree.
+ *
+ * The two `scalers` can be used to weight the masses differently, if needed.
+ *
+ * The resulting tree will have a mass of `scaler_lhs * mass(lhs) + scaler_rhs * mass(rhs)`,
+ * which usually is not unit mass any more. Thus, if needed, call mass_tree_normalize_masses()
+ * to rescale the masses back to unit mass.
  */
-void mass_tree_merge_trees_inplace( MassTree& lhs, MassTree const& rhs );
+void mass_tree_merge_trees_inplace(
+    MassTree& lhs,
+    MassTree const& rhs,
+    double const scaler_lhs = 1.0,
+    double const scaler_rhs = 1.0
+);
 
 /**
  * @brief Clear all masses of a ::MassTree, while keeping its topology.

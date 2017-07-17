@@ -592,7 +592,7 @@ void JplaceReader::process_json_placements(
 
                 auto pqry_name = PqueryName();
                 pqry_name.name         = pqry_nm_val.at(0).get_string();
-                pqry_name.multiplicity = pqry_nm_val.at(1).get_number_float();
+                pqry_name.multiplicity = pqry_nm_val.at(1).get_number<double>();
                 if (pqry_name.multiplicity < 0.0) {
                     LOG_WARN << "Jplace document contains pquery with negative multiplicity at "
                              << "name '" << pqry_name.name << "'.";

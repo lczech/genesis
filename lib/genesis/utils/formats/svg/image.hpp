@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_DRAWING_CIRCULAR_LAYOUT_H_
-#define GENESIS_TREE_DRAWING_CIRCULAR_LAYOUT_H_
+#ifndef GENESIS_UTILS_FORMATS_SVG_IMAGE_H_
+#define GENESIS_UTILS_FORMATS_SVG_IMAGE_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -28,83 +28,93 @@
  * @brief
  *
  * @file
- * @ingroup tree
+ * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/svg.hpp"
-#include "genesis/tree/drawing/layout_base.hpp"
-#include "genesis/tree/drawing/circular_tree.hpp"
+#include "genesis/utils/formats/svg/helper.hpp"
+#include "genesis/utils/formats/svg/attributes.hpp"
 
+#include <iosfwd>
 #include <string>
-#include <vector>
 
 namespace genesis {
-namespace tree {
+namespace utils {
 
 // =================================================================================================
-//     Circular Layout
+//     Svg Image
 // =================================================================================================
 
-class CircularLayout : public LayoutBase
+struct SvgImage
 {
 public:
+
+    // -------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------
+
+    using self_type = SvgImage;
 
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    CircularLayout()  = default;
-    CircularLayout( Tree const& orig_tree, Type const drawing_type = Type::kPhylogram );
+    SvgImage(
+        std::string const& href
+    );
 
-    virtual ~CircularLayout() = default;
+    SvgImage(
+        std::string const& href,
+        SvgPoint const&    position
+    );
 
-    CircularLayout( CircularLayout const& ) = default;
-    CircularLayout( CircularLayout&& )      = default;
+    SvgImage(
+        std::string const& href,
+        SvgPoint const&    position,
+        SvgSize const&     size
+    );
 
-    CircularLayout& operator= ( CircularLayout const& ) = default;
-    CircularLayout& operator= ( CircularLayout&& )      = default;
+    SvgImage(
+        std::string const& href,
+        double x, double y,
+        double w, double h
+    );
 
-    // -------------------------------------------------------------
-    //     Options
-    // -------------------------------------------------------------
+    ~SvgImage() = default;
 
-    CircularLayout& radius_scaler( double const value );
-    double radius_scaler() const;
+    SvgImage( SvgImage const& ) = default;
+    SvgImage( SvgImage&& )      = default;
 
-    // -------------------------------------------------------------
-    //     Virtual Functions
-    // -------------------------------------------------------------
-
-private:
-
-    void init_tree_( Tree const& orig_tree ) override;
-
-    utils::SvgDocument to_svg_document_() const override;
-
-    // -------------------------------------------------------------
-    //     Internal Functions
-    // -------------------------------------------------------------
-
-private:
-
-    void init_nodes_( Tree const& orig_tree );
-    void init_edges_( Tree const& orig_tree );
-
-    void set_node_a_();
-    void set_node_r_phylogram_();
-    void set_node_r_cladogram_();
+    SvgImage& operator= ( SvgImage const& ) = default;
+    SvgImage& operator= ( SvgImage&& )      = default;
 
     // -------------------------------------------------------------
-    //     Data Members
+    //     Drawing Function
     // -------------------------------------------------------------
 
-private:
+    SvgBox bounding_box() const;
 
-    double scaler_r_ = 10.0;
+    void write(
+        std::ostream& out,
+        size_t indent = 0,
+        SvgDrawingOptions const& options = SvgDrawingOptions()
+    ) const;
+
+    // -------------------------------------------------------------
+    //     Properties
+    // -------------------------------------------------------------
+
+    std::string  id;
+
+    std::string  href;
+
+    SvgPoint     position;
+    SvgSize      size;
+
+    SvgTransform transform;
 
 };
 
-} // namespace tree
+} // namespace utils
 } // namespace genesis
 
 #endif // include guard

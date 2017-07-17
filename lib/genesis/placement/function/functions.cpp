@@ -366,6 +366,21 @@ void filter_pqueries_differing_names( Sample& sample_1, Sample& sample_2 )
     filter_pqueries_removing_names( sample_2, symdiff );
 }
 
+size_t remove_empty_pqueries( Sample& sample )
+{
+    size_t i = 0;
+    size_t r = 0;
+    while( i < sample.size() ) {
+        if( sample.at(i).placement_size() == 0 ) {
+            sample.remove( i );
+            ++r;
+        } else {
+            ++i;
+        }
+    }
+    return r;
+}
+
 // =================================================================================================
 //     Joining and Merging
 // =================================================================================================

@@ -95,6 +95,11 @@ public:
     self_type& operator << ( SvgObject const& object );
     self_type& operator << ( SvgObject&&      object );
 
+    bool empty() const
+    {
+        return content_.empty();
+    }
+
     // -------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------

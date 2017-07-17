@@ -30,9 +30,10 @@
 
 #include "genesis/tree/mass_tree/kmeans.hpp"
 
-#include "genesis/tree/mass_tree/tree.hpp"
-#include "genesis/tree/mass_tree/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
+#include "genesis/tree/mass_tree/emd.hpp"
+#include "genesis/tree/mass_tree/functions.hpp"
+#include "genesis/tree/mass_tree/tree.hpp"
 #include "genesis/utils/math/common.hpp"
 
 #include <cassert>

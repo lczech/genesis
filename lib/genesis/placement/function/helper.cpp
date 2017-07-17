@@ -30,6 +30,7 @@
 
 #include "genesis/placement/function/helper.hpp"
 
+#include "genesis/placement/function/functions.hpp"
 #include "genesis/placement/pquery/plain.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
@@ -71,6 +72,41 @@ std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( Sample const& 
     return edge_num_to_edge_map( smp.tree() );
 }
 
+std::vector<std::vector< Pquery const* >> pqueries_per_edge(
+    Sample const& sample,
+    bool only_max_lwr_placements
+) {
+    auto result = std::vector<std::vector< Pquery const* >>();
+    result.resize( sample.tree().edge_count() );
+
+    for( auto const& pqry : sample.pqueries() ) {
+        if( only_max_lwr_placements ) {
+
+            // If we are only interested in the most probably placement, find it first.
+            PqueryPlacement const* max_p = nullptr;
+            double max_v = std::numeric_limits<double>::lowest();
+            for( auto const& place : pqry.placements() ) {
+                if( max_p == nullptr || place.like_weight_ratio > max_v ) {
+                    max_v = place.like_weight_ratio;
+                    max_p = &place;
+                }
+            }
+            // If there is one, add it to the list for its edge.
+            if( max_p ) {
+                result[ max_p->edge().index() ].push_back( &pqry );
+            }
+
+        } else {
+            // If we instead want all placement, simply add them.
+            for( auto const& place : pqry.placements() ) {
+                result[ place.edge().index() ].push_back( &pqry );
+            }
+        }
+    }
+
+    return result;
+}
+
 std::vector< std::vector< PqueryPlacement const* >> placements_per_edge(
     Sample const& smp,
     bool only_max_lwr_placements
@@ -85,7 +121,7 @@ std::vector< std::vector< PqueryPlacement const* >> placements_per_edge(
             PqueryPlacement const* max_p = nullptr;
             double max_v = std::numeric_limits<double>::lowest();
             for( auto const& place : pqry.placements() ) {
-                if( place.like_weight_ratio > max_v ) {
+                if( max_p == nullptr || place.like_weight_ratio > max_v ) {
                     max_v = place.like_weight_ratio;
                     max_p = &place;
                 }
@@ -229,6 +265,62 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp )
 // =================================================================================================
 //     Verification
 // =================================================================================================
+
+void rectify_values( Sample& sample )
+{
+    for( auto& pqry : sample.pqueries() ) {
+
+        // Rectify placement values
+        double lwr_sum = 0.0;
+        for( auto& p : pqry.placements() ) {
+
+            // LWR
+            if( p.like_weight_ratio < 0.0 ) {
+                p.like_weight_ratio = 0.0;
+            }
+            if( p.like_weight_ratio > 1.0) {
+                p.like_weight_ratio = 1.0;
+            }
+            lwr_sum += p.like_weight_ratio;
+
+            // Pendant length
+            if( p.pendant_length < 0.0 ) {
+                p.pendant_length = 0.0;
+            }
+
+            // Proximal length
+            if( p.proximal_length < 0.0 ) {
+                p.proximal_length = 0.0;
+            }
+            if( p.proximal_length > p.edge().data<PlacementEdgeData>().branch_length ) {
+                p.proximal_length = p.edge().data<PlacementEdgeData>().branch_length;
+            }
+        }
+
+        // If the total sum of LWRs is too big, rectify it.
+        if( lwr_sum > 1.0 ) {
+            normalize_weight_ratios( pqry );
+        }
+
+        // Rectify name values
+        for( auto& n : pqry.names() ) {
+            // Negative multiplcities are invalid. As we don't know the actual value,
+            // better play it save and set it so 0, so that it is ignored,
+            // rather than setting it to 1, which would mean to fully use this name.
+            if( n.multiplicity < 0.0 ) {
+                n.multiplicity = 0.0;
+            }
+        }
+    }
+}
+
+void rectify_values( SampleSet& sset )
+{
+    for( auto& smp : sset ) {
+        rectify_values( smp.sample );
+    }
+}
+
 
 void reset_edge_nums( PlacementTree& tree )
 {

@@ -68,6 +68,18 @@ std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( PlacementTree 
 std::unordered_map<int, PlacementTreeEdge*> edge_num_to_edge_map( Sample const& smp );
 
 /**
+ * @brief Return a mapping from each edge to the Pqueries on that edge.
+ *
+ * If @p only_max_lwr_placements is `false` (default), each PqueryPlacement of the
+ * @link Pquery Pqueries@endlink is counted. If `true`, only the most probable one is added to the
+ * map.
+ */
+std::vector<std::vector< Pquery const* >> pqueries_per_edge(
+    Sample const& sample,
+    bool only_max_lwr_placements = false
+);
+
+/**
  * @brief Return a mapping from each PlacementTreeEdge%s to the PqueryPlacement%s that
  * are placed on that edge.
  *
@@ -140,6 +152,34 @@ std::vector<PqueryPlain> plain_queries( Sample const & smp );
 // =================================================================================================
 //     Verification
 // =================================================================================================
+
+/**
+ * @brief Correct invalid values of the PqueryPlacement%s and PqueryName%s as good as possible.
+ *
+ * Some values can be slightly outside their valid boundaries, either for numerical reasons, or
+ * because something went wrong. Often, those can be rectified without too much loss of information.
+ *
+ * This function
+ *
+ *   * sets negative `like_weight_ratio` to `0.0`
+ *   * sets `like_weight_ratio > 1.0` to `1.0`
+ *   * normalizes the `like_weight_ratio` if their sum is `> 1.0`
+ *   * sets negative `pendant_length` to `0.0`
+ *   * sets negative `proximal_length` to `0.0`
+ *   * sets `proximal_length > branch_length` to `branch_length` for its edge.
+ *   * sets negative `multiplicity` to `0.0` for the name
+ *
+ * See rectify_values( SampleSet& ) for a version of this function that works on whole SampleSet%s.
+ */
+void rectify_values( Sample& sample );
+
+/**
+ * @brief Correct invalid values of the PqueryPlacement%s and PqueryName%s as good as possible.
+ *
+ * This function calls rectify_values( Sample& ) for all Sample%s in the SampleSet. See there
+ * for details.
+ */
+void rectify_values( SampleSet& sset );
 
 /**
  * @brief Reset all edge nums of a ::PlacementTree.

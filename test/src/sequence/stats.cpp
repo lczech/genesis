@@ -68,7 +68,7 @@ TEST( Sequence, KmerCounts )
     SequenceSet sset;
     FastaReader().from_file(infile, sset);
 
-    remove_gaps( sset );
+    remove_all_gaps( sset );
     EXPECT_TRUE( validate_chars( sset, nucleic_acid_codes_plain() ));
 
     auto const alphabet = std::string( "ACGT" );
