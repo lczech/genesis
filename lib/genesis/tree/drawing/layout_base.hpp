@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_DRAWING_CIRCULAR_LAYOUT_H_
-#define GENESIS_TREE_DRAWING_CIRCULAR_LAYOUT_H_
+#ifndef GENESIS_TREE_DRAWING_LAYOUT_BASE_H_
+#define GENESIS_TREE_DRAWING_LAYOUT_BASE_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,9 +31,8 @@
  * @ingroup tree
  */
 
+#include "genesis/tree/drawing/layout_tree.hpp"
 #include "genesis/utils/formats/svg/svg.hpp"
-#include "genesis/tree/drawing/layout_base.hpp"
-#include "genesis/tree/drawing/circular_tree.hpp"
 
 #include <string>
 #include <vector>
@@ -42,57 +41,87 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Circular Layout
+//     Layout Base
 // =================================================================================================
 
-class CircularLayout : public LayoutBase
+class LayoutBase
 {
 public:
+
+    // -------------------------------------------------------------
+    //     Typedefs and Enums
+    // -------------------------------------------------------------
+
+    enum class Type
+    {
+        kPhylogram,
+        kCladogram
+    };
 
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    CircularLayout()  = default;
-    CircularLayout( Tree const& orig_tree, Type const drawing_type = Type::kPhylogram );
+    LayoutBase()  = default;
+    explicit LayoutBase( Type const drawing_type )
+        : type_( drawing_type )
+    {}
 
-    virtual ~CircularLayout() = default;
+    virtual ~LayoutBase() = default;
 
-    CircularLayout( CircularLayout const& ) = default;
-    CircularLayout( CircularLayout&& )      = default;
+    LayoutBase( LayoutBase const& ) = default;
+    LayoutBase( LayoutBase&& )      = default;
 
-    CircularLayout& operator= ( CircularLayout const& ) = default;
-    CircularLayout& operator= ( CircularLayout&& )      = default;
+    LayoutBase& operator= ( LayoutBase const& ) = default;
+    LayoutBase& operator= ( LayoutBase&& )      = default;
+
+    // -------------------------------------------------------------
+    //     Tree
+    // -------------------------------------------------------------
+
+    void tree( Tree const& orig_tree );
+    Tree const& tree() const;
+
+    void set_edge_strokes( std::vector< utils::SvgStroke > const& strokes );
+    void set_node_shapes( std::vector< utils::SvgGroup> const& shapes );
+
+    // -------------------------------------------------------------
+    //     Drawing
+    // -------------------------------------------------------------
+
+    utils::SvgDocument to_svg_document() const
+    {
+        return to_svg_document_();
+    }
 
     // -------------------------------------------------------------
     //     Options
     // -------------------------------------------------------------
 
-    CircularLayout& radius_scaler( double const value );
-    double radius_scaler() const;
+    void text_template( utils::SvgText const& tt );
+    utils::SvgText& text_template();
+    utils::SvgText const& text_template() const;
+
+    void type( Type const drawing_type );
+    Type type() const;
+
+    // -------------------------------------------------------------
+    //     Protected Functions
+    // -------------------------------------------------------------
+
+protected:
+
+    Tree& tree();
 
     // -------------------------------------------------------------
     //     Virtual Functions
     // -------------------------------------------------------------
 
-private:
+protected:
 
-    void init_tree_( Tree const& orig_tree ) override;
+    virtual void init_tree_( Tree const& orig_tree ) = 0;
 
-    utils::SvgDocument to_svg_document_() const override;
-
-    // -------------------------------------------------------------
-    //     Internal Functions
-    // -------------------------------------------------------------
-
-private:
-
-    void init_nodes_( Tree const& orig_tree );
-    void init_edges_( Tree const& orig_tree );
-
-    void set_node_a_();
-    void set_node_r_phylogram_();
-    void set_node_r_cladogram_();
+    virtual utils::SvgDocument to_svg_document_() const = 0;
 
     // -------------------------------------------------------------
     //     Data Members
@@ -100,7 +129,11 @@ private:
 
 private:
 
-    double scaler_r_ = 10.0;
+    LayoutTree tree_;
+
+    Type type_ = Type::kPhylogram;
+
+    utils::SvgText text_template_ = utils::SvgText();
 
 };
 

@@ -32,26 +32,20 @@
  */
 
 #include "genesis/utils/formats/svg/svg.hpp"
+#include "genesis/tree/drawing/layout_base.hpp"
 #include "genesis/tree/drawing/rectangular_tree.hpp"
 
 #include <string>
 #include <vector>
 
 namespace genesis {
-
-// =================================================================================================
-//     Forward Declarations
-// =================================================================================================
-
 namespace tree {
-
-    class Tree;
 
 // =================================================================================================
 //     Rectangular Layout
 // =================================================================================================
 
-class RectangularLayout
+class RectangularLayout : public LayoutBase
 {
 public:
 
@@ -60,9 +54,9 @@ public:
     // -------------------------------------------------------------
 
     RectangularLayout()  = default;
-    RectangularLayout( Tree const& tree );
+    RectangularLayout( Tree const& orig_tree, Type const drawing_type = Type::kPhylogram );
 
-    ~RectangularLayout() = default;
+    virtual ~RectangularLayout() = default;
 
     RectangularLayout( RectangularLayout const& ) = default;
     RectangularLayout( RectangularLayout&& )      = default;
@@ -71,18 +65,24 @@ public:
     RectangularLayout& operator= ( RectangularLayout&& )      = default;
 
     // -------------------------------------------------------------
-    //     Member Access
+    //     Options
     // -------------------------------------------------------------
 
-    Tree& tree();
+    RectangularLayout& scaler_x( double const sx );
+    double scaler_x() const;
+
+    RectangularLayout& scaler_y( double const sy );
+    double scaler_y() const;
 
     // -------------------------------------------------------------
-    //     Drawing
+    //     Virtual Functions
     // -------------------------------------------------------------
 
-    void set_edge_strokes( std::vector< utils::SvgStroke > strokes );
+private:
 
-    utils::SvgDocument to_svg_document() const;
+    void init_tree_( Tree const& orig_tree ) override;
+
+    utils::SvgDocument to_svg_document_() const override;
 
     // -------------------------------------------------------------
     //     Internal Functions
@@ -90,6 +90,10 @@ public:
 
 private:
 
+    void init_nodes_( Tree const& orig_tree );
+    void init_edges_( Tree const& orig_tree );
+
+    void set_node_y_();
     void set_node_x_phylogram_();
     void set_node_x_cladogram_();
 
@@ -98,10 +102,6 @@ private:
     // -------------------------------------------------------------
 
 private:
-
-    // std::vector< Node > nodes_;
-
-    RectangularTree tree_;
 
     double scaler_x_ = 100.0;
     double scaler_y_ = 10.0;
