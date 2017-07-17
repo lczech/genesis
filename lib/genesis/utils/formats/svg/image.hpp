@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_FORMATS_SVG_GROUP_H_
-#define GENESIS_UTILS_FORMATS_SVG_GROUP_H_
+#ifndef GENESIS_UTILS_FORMATS_SVG_IMAGE_H_
+#define GENESIS_UTILS_FORMATS_SVG_IMAGE_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,21 +31,20 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/attributes.hpp"
 #include "genesis/utils/formats/svg/helper.hpp"
-#include "genesis/utils/formats/svg/object.hpp"
-#include "genesis/utils/core/std.hpp"
+#include "genesis/utils/formats/svg/attributes.hpp"
 
 #include <iosfwd>
+#include <string>
 
 namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Svg Group
+//     Svg Image
 // =================================================================================================
 
-struct SvgGroup
+struct SvgImage
 {
 public:
 
@@ -53,20 +52,40 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------
 
-    using self_type = SvgGroup;
+    using self_type = SvgImage;
 
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    SvgGroup() = default;
-    ~SvgGroup() = default;
+    SvgImage(
+        std::string const& href
+    );
 
-    SvgGroup( SvgGroup const& ) = default;
-    SvgGroup( SvgGroup&& )      = default;
+    SvgImage(
+        std::string const& href,
+        SvgPoint const&    position
+    );
 
-    SvgGroup& operator= ( SvgGroup const& ) = default;
-    SvgGroup& operator= ( SvgGroup&& )      = default;
+    SvgImage(
+        std::string const& href,
+        SvgPoint const&    position,
+        SvgSize const&     size
+    );
+
+    SvgImage(
+        std::string const& href,
+        double x, double y,
+        double w, double h
+    );
+
+    ~SvgImage() = default;
+
+    SvgImage( SvgImage const& ) = default;
+    SvgImage( SvgImage&& )      = default;
+
+    SvgImage& operator= ( SvgImage const& ) = default;
+    SvgImage& operator= ( SvgImage&& )      = default;
 
     // -------------------------------------------------------------
     //     Drawing Function
@@ -80,33 +99,18 @@ public:
         SvgDrawingOptions const& options = SvgDrawingOptions()
     ) const;
 
-    /**
-     * @brief Add an SvgObject to the document.
-     *
-     * Returns the SvgDocument in order to allow for a fluent interface.
-     */
-    self_type& add(          SvgObject const& object );
-    self_type& add(          SvgObject&&      object );
-
-
-    /**
-     * @brief Shortcut operator for add(), which allows an even more fluent interface.
-     */
-    self_type& operator << ( SvgObject const& object );
-    self_type& operator << ( SvgObject&&      object );
-
-    bool empty() const
-    {
-        return content_.empty();
-    }
-
     // -------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------
 
-    std::string              id;
-    std::vector< SvgObject > content_;
-    SvgTransform             transform;
+    std::string  id;
+
+    std::string  href;
+
+    SvgPoint     position;
+    SvgSize      size;
+
+    SvgTransform transform;
 
 };
 
