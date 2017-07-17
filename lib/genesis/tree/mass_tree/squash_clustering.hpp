@@ -45,6 +45,9 @@ namespace tree {
 //     Squash Clustering
 // =================================================================================================
 
+/**
+ * @brief Result structure for Squash Clustering.
+ */
 struct SquashClustering
 {
 public:
@@ -120,8 +123,24 @@ public:
     std::vector<Merger>  mergers;
 };
 
-SquashClustering squash_clustering( std::vector<MassTree>&& trees );
+/**
+ * @brief Perfom Squash Clustering.
+ *
+ * See [the guppy documentation](http://matsen.github.io/pplacer/generated_rst/guppy_squash.html#guppy-squash)
+ * and [the corresponding paper](http://arxiv.org/abs/1107.5095) for details on this algorithm.
+ *
+ * The funciton takes MassTree%s as input, which are consumed. The optional parameter @p p is used
+ * as exponent to calculate the earth_movers_distance(). See there for details.
+ */
+SquashClustering squash_clustering( std::vector<MassTree>&& trees, double const p = 1.0 );
 
+/**
+ * @brief Build a Newick-format tree for visualizing the result of a squash_clustering().
+ *
+ * The resulting Tree is a tree of samples, i.e., each leaf node represents one MassTree that was
+ * used as input for the Squash Clustering. The @p labels vector needs to contain the labels for
+ * those tips, in the order of elements that was used for running squash_clustering().
+ */
 std::string squash_cluster_tree( SquashClustering const& sc, std::vector<std::string> const& labels );
 
 } // namespace tree

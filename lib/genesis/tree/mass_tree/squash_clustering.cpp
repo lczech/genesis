@@ -53,7 +53,7 @@ namespace tree {
 //     Squash Clustering
 // =================================================================================================
 
-SquashClustering squash_clustering_init( std::vector<MassTree>&& trees )
+SquashClustering squash_clustering_init( std::vector<MassTree>&& trees, double const p  )
 {
     // Create empty result object. Both its clusters and mergeres are empty.
     SquashClustering sc;
@@ -80,7 +80,7 @@ SquashClustering squash_clustering_init( std::vector<MassTree>&& trees )
         // Calculate the distances.
         #pragma omp parallel for
         for( size_t k = 0; k < i; ++k ) {
-            auto const dist = earth_movers_distance( sc.clusters[i].tree, sc.clusters[k].tree );
+            auto const dist = earth_movers_distance( sc.clusters[i].tree, sc.clusters[k].tree, p );
             sc.clusters[i].distances[k] = dist;
         }
     }
@@ -129,7 +129,7 @@ std::pair<size_t, size_t> squash_clustering_min_entry( SquashClustering const& s
     return { min_j, min_i };
 }
 
-void squash_clustering_merge_clusters( SquashClustering& sc, size_t i, size_t j )
+void squash_clustering_merge_clusters( SquashClustering& sc, size_t i, size_t j, double const p  )
 {
     assert( i < j );
     assert( i < sc.clusters.size() && j < sc.clusters.size() );
@@ -173,13 +173,13 @@ void squash_clustering_merge_clusters( SquashClustering& sc, size_t i, size_t j 
             continue;
         }
 
-        auto const dist = earth_movers_distance( new_cluster.tree, sc.clusters[k].tree );
+        auto const dist = earth_movers_distance( new_cluster.tree, sc.clusters[k].tree, p );
         new_cluster.distances[k] = dist;
     }
 
     // Get the distance between the two clusters that we want to merge.
-    auto const dist_i = earth_movers_distance( sc.clusters[i].tree, new_cluster.tree );
-    auto const dist_j = earth_movers_distance( sc.clusters[j].tree, new_cluster.tree );
+    auto const dist_i = earth_movers_distance( sc.clusters[i].tree, new_cluster.tree, p );
+    auto const dist_j = earth_movers_distance( sc.clusters[j].tree, new_cluster.tree, p );
     sc.mergers.push_back({ i, dist_i, j, dist_j });
 
     // Test. How much does the avg dist differ from proper emd dist?
@@ -197,10 +197,10 @@ void squash_clustering_merge_clusters( SquashClustering& sc, size_t i, size_t j 
     sc.clusters[j].tree.clear();
 }
 
-SquashClustering squash_clustering( std::vector<MassTree>&& trees )
+SquashClustering squash_clustering( std::vector<MassTree>&& trees, double const p  )
 {
     LOG_INFO << "Squash Clustering: Initialize";
-    SquashClustering sc = squash_clustering_init( std::move( trees ));
+    SquashClustering sc = squash_clustering_init( std::move( trees ), p );
 
     // Do a full clustering, until only one is left.
     for( size_t i = 0; i < trees.size() - 1; ++i ) {
@@ -209,7 +209,7 @@ SquashClustering squash_clustering( std::vector<MassTree>&& trees )
         auto const min_pair = squash_clustering_min_entry( sc );
         assert( min_pair.first < min_pair.second );
 
-        squash_clustering_merge_clusters( sc, min_pair.first, min_pair.second );
+        squash_clustering_merge_clusters( sc, min_pair.first, min_pair.second, p );
     }
 
     // At the end, we only have one big cluster node.
