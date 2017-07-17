@@ -73,6 +73,9 @@ using LayoutTreeLink = tree::TreeLink;
 
 /**
  * @brief Data class for ::LayoutTreeNode%s.
+ *
+ * It is derived from tree::DefaultNodeData, so that it already contains a
+ * @link tree::DefaultNodeData::name name@endlink field.
  */
 class LayoutNodeData : public tree::DefaultNodeData
 {
@@ -119,9 +122,6 @@ public:
 
 public:
 
-    double x;
-    double y;
-
     utils::SvgGroup shape;
 
 };
@@ -132,6 +132,9 @@ public:
 
 /**
  * @brief Data class for LayoutTreeEdge%s.
+ *
+ * It is derived from tree::DefaultEdgeData, so that it already contains a
+ * @link tree::DefaultEdgeData::branch_length branch_length@endlink field.
  */
 class LayoutEdgeData : public tree::DefaultEdgeData
 {

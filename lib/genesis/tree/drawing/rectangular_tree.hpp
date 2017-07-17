@@ -114,6 +114,9 @@ public:
 
 public:
 
+    double x;
+    double y;
+
     int parent_index = -1;
 
     double children_min_y = -1.0;

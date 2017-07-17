@@ -118,6 +118,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
     SvgDocument doc;
     SvgGroup    tree_lines;
     SvgGroup    taxa_names;
+    SvgGroup    node_shapes;
 
     for( auto const& node_it : tree().nodes() ) {
         auto const& node = *node_it;
@@ -160,13 +161,25 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
                 node_data.x + 5,
                 node_data.y
             ));
-            taxa_names << label;
+            taxa_names << std::move( label );
+        }
+
+        // If there is a node shape, draw it.
+        if( ! node_data.shape.empty() ) {
+            auto ns = node_data.shape;
+            ns.transform.append( SvgTransform::Translate( node_data.x, node_data.y ));
+            node_shapes << std::move( ns );
         }
     }
 
     // We are sure that we won't use the groups again, so let's move them!
     doc << std::move( tree_lines );
-    doc << std::move( taxa_names );
+    if( ! taxa_names.empty() ) {
+        doc << std::move( taxa_names );
+    }
+    if( ! node_shapes.empty() ) {
+        doc << std::move( node_shapes );
+    }
     return doc;
 }
 

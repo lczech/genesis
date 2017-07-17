@@ -127,12 +127,16 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
     SvgDocument doc;
     SvgGroup    tree_lines;
     SvgGroup    taxa_names;
+    SvgGroup    node_shapes;
 
     for( auto const& node_it : tree().nodes() ) {
         auto const& node = *node_it;
 
         auto const& node_data   = node.data<CircularNodeData>();
         auto const& parent_data = tree().node_at( node_data.parent_index ).data<CircularNodeData>();
+
+        auto const node_x = node_data.r * cos( node_data.a );
+        auto const node_y = node_data.r * sin( node_data.a );
 
         // Get the edge between the node and its parent.
         auto edge_data_ptr = edge_between( node, tree().node_at( node_data.parent_index ) );
@@ -156,7 +160,7 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
 
             tree_lines << SvgLine(
                 parent_data.r * cos( node_data.a ), parent_data.r * sin( node_data.a ),
-                node_data.r * cos( node_data.a ), node_data.r * sin( node_data.a ),
+                node_x, node_y,
                 stroke
             );
 
@@ -180,13 +184,25 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
             label.transform.append( SvgTransform::Rotate(
                 360 * node_data.a / ( 2.0 * utils::PI )
             ));
-            taxa_names << label;
+            taxa_names << std::move( label );
+        }
+
+        // If there is a node shape, draw it.
+        if( ! node_data.shape.empty() ) {
+            auto ns = node_data.shape;
+            ns.transform.append( SvgTransform::Translate( node_x, node_y ));
+            node_shapes << std::move( ns );
         }
     }
 
     // We are sure that we won't use the groups again, so let's move them!
     doc << std::move( tree_lines );
-    doc << std::move( taxa_names );
+    if( ! taxa_names.empty() ) {
+        doc << std::move( taxa_names );
+    }
+    if( ! node_shapes.empty() ) {
+        doc << std::move( node_shapes );
+    }
     return doc;
 }
 
@@ -204,10 +220,6 @@ void CircularLayout::init_nodes_( Tree const& orig_tree )
         // Set the tree node data.
         tree().node_at(i).reset_data( CircularNodeData::create() );
         auto& node_data = tree().node_at(i).data<CircularNodeData>();
-
-        // Set defaults needed to later distinguish whether those values have already been set.
-        node_data.x = -1.0;
-        node_data.y = -1.0;
 
         // If the original tree has node names, use them.
         auto orig_node_data_ptr = orig_tree.node_at(i).data_cast<DefaultNodeData>();

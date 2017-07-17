@@ -35,8 +35,8 @@
 #include "genesis/tree/drawing/circular_layout.hpp"
 #include "genesis/tree/tree.hpp"
 
-#include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/utils/tools/color/names.hpp"
 
 using namespace genesis;
@@ -78,6 +78,7 @@ TEST(Tree, Drawing)
         "YellowGreen"
     };
 
+    // Set colourful edges.
     std::vector<utils::SvgStroke> strokes;
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         strokes.push_back( utils::SvgStroke() );
@@ -85,6 +86,25 @@ TEST(Tree, Drawing)
     }
     layout.set_edge_strokes( strokes );
 
+    // Set colourful node shapes.
+    std::vector<utils::SvgGroup> node_shapes;
+    node_shapes.resize( tree.node_count() );
+    for( size_t i = 0; i < tree.node_count(); ++i ) {
+        node_shapes[i].add( utils::SvgCircle(
+            utils::SvgPoint( 0, 0 ),
+            10,
+            utils::SvgStroke(),
+            utils::SvgFill( utils::Color() )
+        ));
+        // node_shapes[i].add( utils::SvgImage(
+        //     "http://files.gamebanana.com/img/ico/sprays/516c32f08e03d.png",
+        //     utils::SvgPoint( -60, -60 ),
+        //     utils::SvgSize( 120, 120 )
+        // ));
+    }
+    layout.set_node_shapes( node_shapes );
+
+    // Do the drawing.
     std::ostringstream out;
     layout.to_svg_document().write( out );
 
