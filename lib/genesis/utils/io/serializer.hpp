@@ -143,7 +143,7 @@ public:
     /**
      * @brief Write raw data, provided as a char array of length `n`, to the stream.
      */
-    void put_raw (char* data, size_t n)
+    void put_raw( char const* data, size_t n )
     {
         outstream.write (data, n);
     }
