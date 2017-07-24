@@ -162,11 +162,9 @@ void squash_clustering_merge_clusters( SquashClustering& sc, size_t i, size_t j,
     new_cluster.active = true;
     new_cluster.distances.resize( sc.clusters.size() - 1, 0.0 );
 
-    // Deactive. Those two clusters are now merged. This way, they will be skipped in the loop.
-    sc.clusters[i].active = false;
-    sc.clusters[j].active = false;
-
-    // Calculate distances to still active clusters.
+    // Calculate distances to still active clusters, which also includes the two clusters that
+    // we are about to merge. We will deactivate them after the loop. This way, we also compute
+    // their distances in parallel, maximizing OpenMP throughput!
     #pragma omp parallel for schedule(dynamic)
     for( size_t k = 0; k < sc.clusters.size() - 1; ++k ) {
         if( ! sc.clusters[k].active ) {
@@ -177,10 +175,9 @@ void squash_clustering_merge_clusters( SquashClustering& sc, size_t i, size_t j,
         new_cluster.distances[k] = dist;
     }
 
-    // Get the distance between the two clusters that we want to merge.
-    auto const dist_i = earth_movers_distance( sc.clusters[i].tree, new_cluster.tree, p );
-    auto const dist_j = earth_movers_distance( sc.clusters[j].tree, new_cluster.tree, p );
-    sc.mergers.push_back({ i, dist_i, j, dist_j });
+    // Get the distance between the two clusters that we want to merge,
+    // and make a new cluster merger.
+    sc.mergers.push_back({ i, new_cluster.distances[i], j, new_cluster.distances[j] });
 
     // Test. How much does the avg dist differ from proper emd dist?
     // We need to access the distance in reverse j i order, because of the lower triangle.
@@ -188,13 +185,17 @@ void squash_clustering_merge_clusters( SquashClustering& sc, size_t i, size_t j,
     // auto const avg_dist_i = inner_dist / static_cast<double>( sc.clusters[i].count );
     // auto const avg_dist_j = inner_dist / static_cast<double>( sc.clusters[j].count );
 
+    // Deactive. Those two clusters are now merged.
+    sc.clusters[i].active = false;
+    sc.clusters[j].active = false;
+
     // We don't need the distances any more. Save mem.
     sc.clusters[i].distances.clear();
     sc.clusters[j].distances.clear();
 
     // We can also destroy those trees. For now. Maybe later, we want to write them first.
-    sc.clusters[i].tree.clear();
-    sc.clusters[j].tree.clear();
+    // sc.clusters[i].tree.clear();
+    // sc.clusters[j].tree.clear();
 }
 
 SquashClustering squash_clustering( std::vector<MassTree>&& trees, double const p  )
@@ -238,7 +239,7 @@ std::string squash_cluster_tree( SquashClustering const& sc, std::vector<std::st
         list[ cm.index_a ].clear();
         list[ cm.index_b ].clear();
 
-        list.push_back( "(" + node_a + "," + node_b + ")" );
+        list.push_back( "(" + node_a + "," + node_b + ")" + std::to_string( i + labels.size() ) );
     }
 
     return list.back() + ";";
