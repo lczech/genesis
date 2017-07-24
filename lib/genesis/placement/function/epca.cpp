@@ -63,7 +63,7 @@ namespace placement {
 //     Edge PCA Imbalance Vector
 // =================================================================================================
 
-std::vector<double> epca_imbalance_vector( Sample const& sample )
+std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize )
 {
     // Result vector: imbalance of masses at each edge of the tree.
     auto vec = std::vector<double>( sample.tree().edge_count(), 0.0 );
@@ -145,8 +145,12 @@ std::vector<double> epca_imbalance_vector( Sample const& sample )
         // Finally, calculate the imbalance of the current edge,
         // normalized by the total mass on the tree (expect for the mass of the current edge).
         auto const imbalance = link_masses[cur_idx] - link_masses[out_idx];
-        auto const normalize = mass_sum - masses[ tree_it.edge().index() ];
-        vec[ tree_it.edge().index() ] = imbalance / normalize;
+        if( normalize ) {
+            auto const normalize = mass_sum - masses[ tree_it.edge().index() ];
+            vec[ tree_it.edge().index() ] = imbalance / normalize;
+        } else {
+            vec[ tree_it.edge().index() ] = imbalance;
+        }
     }
 
     return vec;

@@ -71,7 +71,11 @@ namespace placement {
  *
  * The entries of the vector are the difference between the distribution of mass on either side of
  * the edge for the given Sample. Specifically, it is the amount of mass on the distal (non-root)
- * side of the edge minus the amount of mass on the proximal side.
+ * side of the edge minus the amount of mass on the proximal (root) side.
+ *
+ * If @p normalize is `true` (default), the imbalance values are normalized by the total amount of
+ * mass on the tree (expect for the mass of the respective edge, as this one also does not count for
+ * its own imbalance).
  *
  * The vector is indexed using the @link PlacementTreeEdge::index() index()@endlink of the edges.
  * This is different from how how [guppy](https://matsen.github.io/pplacer/generated_rst/guppy.html)
@@ -83,7 +87,7 @@ namespace placement {
  * @see epca_imbalance_matrix() for the @link utils::Matrix Matrix@endlink of imbalances for a whole
  * SampleSet.
  */
-std::vector<double> epca_imbalance_vector( Sample const& sample );
+std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize = true );
 
 /**
  * @brief Calculate the imbalance matrix of placment mass for all Sample%s in a SampleSet.
