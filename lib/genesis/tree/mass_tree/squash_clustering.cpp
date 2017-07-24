@@ -194,8 +194,8 @@ void squash_clustering_merge_clusters( SquashClustering& sc, size_t i, size_t j,
     sc.clusters[j].distances.clear();
 
     // We can also destroy those trees. For now. Maybe later, we want to write them first.
-    sc.clusters[i].tree.clear();
-    sc.clusters[j].tree.clear();
+    // sc.clusters[i].tree.clear();
+    // sc.clusters[j].tree.clear();
 }
 
 SquashClustering squash_clustering( std::vector<MassTree>&& trees, double const p  )
