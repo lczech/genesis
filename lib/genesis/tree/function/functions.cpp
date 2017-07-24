@@ -102,6 +102,37 @@ size_t inner_edge_count( Tree const& tree )
 }
 
 // =================================================================================================
+//     Tree Sides
+// =================================================================================================
+
+utils::Matrix<signed char> edge_sides( Tree const& tree )
+{
+    // Get a quadratic matrix: for each edge, it gives a value whether each other edge is
+    // proximal (1) or distal (-1) relative to itself (0).
+    auto result = utils::Matrix<signed char>( tree.edge_count(), tree.edge_count(), 0 );
+
+    // Helper function that traverses the subtree starting at a link,
+    // and for each edge in the subtree, sets its entry in the matrix to the given sign.
+    auto traverse = [&]( TreeLink const& start_link, size_t i, signed char sign ){
+        auto link = &( start_link.next() );
+        while( link != &start_link ) {
+            result( i, link->edge().index() ) = sign;
+            link = &( link->outer().next() );
+        }
+    };
+
+    // For each edge, do the traversal in both directions and set the signs.
+    // This can probably be done more efficiently with only one smart traversal of the whole tree,
+    // but this function is not needed often enough right now.
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        traverse( tree.edge_at(i).primary_link(), i,   -1 );
+        traverse( tree.edge_at(i).secondary_link(), i,  1 );
+    }
+
+    return result;
+}
+
+// =================================================================================================
 //     Subtrees
 // =================================================================================================
 

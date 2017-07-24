@@ -40,9 +40,59 @@
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/math/matrix/operators.hpp"
 
 using namespace genesis;
 using namespace tree;
+
+// =================================================================================================
+//     Tree Sides
+// =================================================================================================
+
+TEST( TreeFunctions, EdgeSides )
+{
+    std::string const input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree const tree = DefaultTreeNewickReader().from_string( input );
+
+    auto const edge_side_mat = edge_sides( tree );
+
+    auto const exp = utils::Matrix<signed char>( 9, 9, {
+        0,  1,  1, -1, -1, -1, -1, -1, -1,
+       -1,  0, -1, -1, -1, -1, -1, -1, -1,
+       -1, -1,  0, -1, -1, -1, -1, -1, -1,
+       -1, -1, -1,  0, -1, -1, -1, -1, -1,
+       -1, -1, -1, -1,  0,  1,  1,  1,  1,
+       -1, -1, -1, -1, -1,  0,  1,  1, -1,
+       -1, -1, -1, -1, -1, -1,  0, -1, -1,
+       -1, -1, -1, -1, -1, -1, -1,  0, -1,
+       -1, -1, -1, -1, -1, -1, -1, -1,  0
+    });
+
+    EXPECT_EQ( exp, edge_side_mat );
+
+    // LOG_DBG << edge_side_mat;
+    // std::stringstream os;
+    // for (size_t i = 0; i < edge_side_mat.rows(); ++i) {
+    //     for (size_t j = 0; j < edge_side_mat.cols(); ++j) {
+    //         // os << edge_side_mat(i, j);
+    //         if( edge_side_mat(i, j) == 0 ) {
+    //             os << " 0";
+    //         } else if( edge_side_mat(i, j) == 1 ) {
+    //             os << " 1";
+    //         } else if( edge_side_mat(i, j) == -1 ) {
+    //             os << "-1";
+    //         } else {
+    //             os << " x";
+    //         }
+    //
+    //         if (j < edge_side_mat.cols() - 1) {
+    //             os << " ";
+    //         }
+    //     }
+    //     os << "\n";
+    // }
+    // LOG_DBG << os.str();
+}
 
 // =================================================================================================
 //     Subtree Size
