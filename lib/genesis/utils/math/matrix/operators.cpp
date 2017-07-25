@@ -61,31 +61,5 @@ size_t triangular_size( size_t n )
     return ( n * n - n ) / 2;
 }
 
-// ================================================================================================
-//     Double Matrix Operators
-// ================================================================================================
-
-Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b)
-{
-    if( a.cols() != b.rows() ) {
-        throw std::runtime_error( "Cannot multiply matrices if a.cols() != b.rows()." );
-    }
-
-    // Simple and naive. Fast enough for the few occasions were we need this.
-    // If Genesis at some point starts to need more elaborate matrix operations, it might be
-    // worth including some proper library for this.
-    auto result = Matrix<double>( a.rows(), b.cols() );
-    for( size_t r = 0; r < a.rows(); ++r ) {
-        for( size_t c = 0; c < b.cols(); ++c ) {
-            result( r, c ) = 0.0;
-            for( size_t j = 0; j < a.cols(); ++j ) {
-                result( r, c ) += a( r, j ) * b( j, c );
-            }
-        }
-    }
-
-    return result;
-}
-
 } // namespace utils
 } // namespace genesis

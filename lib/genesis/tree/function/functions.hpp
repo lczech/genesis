@@ -31,6 +31,8 @@
  * @ingroup tree
  */
 
+#include "genesis/utils/math/matrix.hpp"
+
 #include <cstddef> // size_t
 #include <vector>
 
@@ -83,6 +85,29 @@ size_t leaf_edge_count(  Tree const& tree );
 * @brief Return the number of Edges of a Tree that do not lead to a leaf Node.
 */
 size_t inner_edge_count( Tree const& tree );
+
+// =================================================================================================
+//     Tree Sides
+// =================================================================================================
+
+/**
+ * @brief Create a @link utils::Matrix Matrix@endlink that indiciaces the relative position of the
+ * @link TreeEdge Edges@endlink of a Tree, i.e., whether they are on the root side or non-root side.
+ *
+ * For a Tree with `e` many Edges, the resulting square Matrix has dimensions `( e, e )`. The row
+ * at index `i` corresponds to edge `i`, which can be accessed via Tree::edge_at(). The entries of
+ * that row indicate whether the other edges (as indexed by the columns) are on the root side of the
+ * edge `i`, in which case the entry is `-1`, or on the non-root side, in which case the entry is
+ * `1`. The entry for the edge `i` itself (which is the diagonale) is `0`.
+ *
+ * In other words, all edges on the proximal side of a given edge are denoted by a `-1`, while
+ * all edges on the distal side of the given edge are denoted by a `1`.
+ *
+ * As a consequence, the rows of edges that lead to a leaf are full of `1`s (with the exception of
+ * the diagonal entry, which still is `0`). This is because for leaf edges, all other edges are on
+ * the root side of the tree.
+ */
+utils::Matrix<signed char> edge_sides( Tree const& tree );
 
 // =================================================================================================
 //     Subtrees
@@ -151,6 +176,18 @@ TreeNode const& lowest_common_ancestor( TreeNode const& node_a, TreeNode const& 
  * @brief Return the lowest common ancestor of two TreeNode%s.
  */
 TreeNode&       lowest_common_ancestor( TreeNode& node_a,       TreeNode& node_b );
+
+/**
+ * @brief Return the lowest common ancestor of each pair of TreeNode%s for a given tree,
+ * in form of a @link utils::Matrix Matrix@endlink of their indices.
+ *
+ * The entries in the resulting Matrix are the Node indices of the lowest common ancestor (LCA) of a
+ * given pair of Nodes. For example, for the result Matrix `r`, the entry `r[ 3, 5 ] == 7` means
+ * that the LCA of Nodes `3` and `5` is Node `7`.
+ *
+ * These Nodes can for example be accesses via Tree::node_at().
+ */
+utils::Matrix<size_t> lowest_common_ancestors( Tree const& tree );
 
 } // namespace tree
 } // namespace genesis

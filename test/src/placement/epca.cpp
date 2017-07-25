@@ -34,6 +34,7 @@
 
 #include "genesis/placement/formats/jplace_reader.hpp"
 #include "genesis/placement/function/epca.hpp"
+#include "genesis/placement/function/helper.hpp"
 #include "genesis/placement/function/measures.hpp"
 #include "genesis/placement/sample.hpp"
 #include "genesis/placement/sample_set.hpp"
@@ -43,13 +44,46 @@
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/math/matrix/operators.hpp"
-#include "genesis/utils/math/matrix/operators.hpp"
 #include "genesis/utils/math/matrix/pca.hpp"
 #include "genesis/utils/math/matrix/statistics.hpp"
 #include "genesis/utils/text/string.hpp"
 
 using namespace genesis;
 using namespace genesis::placement;
+
+TEST( SampleMeasures, ImbalanceVector )
+{
+    // Read sample
+    std::string const infile = environment->data_dir + "placement/test_a.jplace";
+    auto const smp = JplaceReader().from_file( infile );
+
+    // Get imbalance and weights per edge.
+    auto const imbalance_vec   = epca_imbalance_vector( smp, false );
+    auto const edge_weight_vec = placement_weight_per_edge( smp );
+    ASSERT_EQ( imbalance_vec.size(), edge_weight_vec.size() );
+
+    // LOG_DBG << "imb " << utils::join( imbalance_vec, " " );
+    // LOG_DBG << "wgt " << utils::join( edge_weight_vec, " " );
+
+    // Get indicator which edge is on which side.
+    auto const edge_side_mat = edge_sides( smp.tree() );
+
+    // Combine weights to get imbalance.
+    auto const sz = edge_weight_vec.size();
+    auto combined = std::vector<double>( edge_weight_vec.size(), 0.0 );
+    for( size_t r = 0; r < sz; ++r ) {
+        for( size_t c = 0; c < sz; ++c ) {
+            combined[ r ] += edge_side_mat( r, c ) * edge_weight_vec[ c ];
+        }
+    }
+
+    auto const combined2 = utils::matrix_multiplication( edge_side_mat, edge_weight_vec );
+
+    EXPECT_EQ( imbalance_vec, combined );
+    EXPECT_EQ( combined2, combined );
+
+    // LOG_DBG << "comb " << utils::join( combined, " " );
+}
 
 /*
 

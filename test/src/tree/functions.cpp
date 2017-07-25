@@ -40,9 +40,59 @@
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/tree.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/math/matrix/operators.hpp"
 
 using namespace genesis;
 using namespace tree;
+
+// =================================================================================================
+//     Tree Sides
+// =================================================================================================
+
+TEST( TreeFunctions, EdgeSides )
+{
+    std::string const input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree const tree = DefaultTreeNewickReader().from_string( input );
+
+    auto const edge_side_mat = edge_sides( tree );
+
+    auto const exp = utils::Matrix<signed char>( 9, 9, {
+        0,  1,  1, -1, -1, -1, -1, -1, -1,
+       -1,  0, -1, -1, -1, -1, -1, -1, -1,
+       -1, -1,  0, -1, -1, -1, -1, -1, -1,
+       -1, -1, -1,  0, -1, -1, -1, -1, -1,
+       -1, -1, -1, -1,  0,  1,  1,  1,  1,
+       -1, -1, -1, -1, -1,  0,  1,  1, -1,
+       -1, -1, -1, -1, -1, -1,  0, -1, -1,
+       -1, -1, -1, -1, -1, -1, -1,  0, -1,
+       -1, -1, -1, -1, -1, -1, -1, -1,  0
+    });
+
+    EXPECT_EQ( exp, edge_side_mat );
+
+    // LOG_DBG << edge_side_mat;
+    // std::stringstream os;
+    // for (size_t i = 0; i < edge_side_mat.rows(); ++i) {
+    //     for (size_t j = 0; j < edge_side_mat.cols(); ++j) {
+    //         // os << edge_side_mat(i, j);
+    //         if( edge_side_mat(i, j) == 0 ) {
+    //             os << " 0";
+    //         } else if( edge_side_mat(i, j) == 1 ) {
+    //             os << " 1";
+    //         } else if( edge_side_mat(i, j) == -1 ) {
+    //             os << "-1";
+    //         } else {
+    //             os << " x";
+    //         }
+    //
+    //         if (j < edge_side_mat.cols() - 1) {
+    //             os << " ";
+    //         }
+    //     }
+    //     os << "\n";
+    // }
+    // LOG_DBG << os.str();
+}
 
 // =================================================================================================
 //     Subtree Size
@@ -182,4 +232,26 @@ TEST( TreeFunctions, LCA )
     TestTreeLCA( "E", "C", "C" );
     TestTreeLCA( "E", "H", "R" );
     TestTreeLCA( "H", "I", "G" );
+}
+
+TEST( TreeFunctions, LCAs )
+{
+    std::string input = "((B,(D,E)C)A,F,(H,I)G)R;";
+    Tree const tree = DefaultTreeNewickReader().from_string( input );
+
+    auto const lcas = lowest_common_ancestors( tree );
+    auto const exp = utils::Matrix<size_t>( 10, 10, {
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 1, 1, 1, 0, 0, 0, 0, 0, 0,
+        0, 1, 2, 1, 0, 0, 0, 0, 0, 0,
+        0, 1, 1, 3, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 4, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 5, 5, 5, 5, 5,
+        0, 0, 0, 0, 0, 5, 6, 6, 6, 5,
+        0, 0, 0, 0, 0, 5, 6, 7, 6, 5,
+        0, 0, 0, 0, 0, 5, 6, 6, 8, 5,
+        0, 0, 0, 0, 0, 5, 5, 5, 5, 9
+    });
+
+    EXPECT_EQ( exp, lcas );
 }
