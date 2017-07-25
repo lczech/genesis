@@ -269,7 +269,7 @@ Matrix<T> matrix_sort_by_col_sum_symmetric( Matrix<T> const& data )
 }
 
 // =================================================================================================
-//     Double Matrix Operators
+//     Matrix Multiplication
 // =================================================================================================
 
 /**
@@ -278,25 +278,76 @@ Matrix<T> matrix_sort_by_col_sum_symmetric( Matrix<T> const& data )
  * The two matrices need to have fitting dimensions, i.e., `a[ l, m ] x b[ m, n ]`, which results
  * in a Matrix of dimensions `r[ l, n ]`.
  */
-Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b );
+template< typename T = double, typename A = double, typename B = double >
+Matrix<T> matrix_multiplication( Matrix<A> const& a, Matrix<B> const& b )
+{
+    if( a.cols() != b.rows() ) {
+        throw std::runtime_error( "Cannot multiply matrices if a.cols() != b.rows()." );
+    }
+
+    // Simple and naive. Fast enough for the few occasions were we need this.
+    // If Genesis at some point starts to need more elaborate matrix operations, it might be
+    // worth including some proper library for this.
+    auto result = Matrix<T>( a.rows(), b.cols() );
+    for( size_t r = 0; r < a.rows(); ++r ) {
+        for( size_t c = 0; c < b.cols(); ++c ) {
+            result( r, c ) = 0.0;
+            for( size_t j = 0; j < a.cols(); ++j ) {
+                result( r, c ) += a( r, j ) * b( j, c );
+            }
+        }
+    }
+
+    return result;
+}
 
 /**
  * @brief Calculate the product of a `vector` @p a with a @link Matrix Matrices@endlink @p b,
  * as if the vector was a Matrix with only one row.
  *
- * Thus, the two arguments need to have fitting sized, i.e., `a[ m ] x b[ m, n ]`. The resulting
- * vector has size `n`, which represent the columns of the result Matrix.
+ * Thus, the two arguments need to have fitting dimensions, i.e., `a[ m ] x b[ m, n ]`. The
+ * resulting vector has size `n`, which represent the columns of the result Matrix.
  */
-std::vector<double> matrix_multiplication( std::vector<double> const& a, Matrix<double> const& b );
+template< typename T = double, typename A = double, typename B = double >
+std::vector<T> matrix_multiplication( std::vector<A> const& a, Matrix<B> const& b )
+{
+    if( a.size() != b.rows() ) {
+        throw std::runtime_error( "Cannot multiply vector with matrix if a.size() != b.rows()." );
+    }
+
+    auto result = std::vector<T>( b.cols(), 0.0 );
+    for( size_t c = 0; c < b.cols(); ++c ) {
+        for( size_t j = 0; j < a.size(); ++j ) {
+            result[ c ] += a[ j ] * b( j, c );
+        }
+    }
+
+    return result;
+}
 
 /**
  * @brief Calculate the product of a @link Matrix Matrices@endlink @p a with a `vector` @p b,
  * as if the vector was a Matrix with only one column.
  *
- * Thus, the two arguments need to have fitting sized, i.e., `a[ l, m ] x b[ m ]`. The resulting
- * vector has size `l`, which represent the rows of the result Matrix.
+ * Thus, the two arguments need to have fitting dimensions, i.e., `a[ l, m ] x b[ m ]`. The
+ * resulting vector has size `l`, which represent the rows of the result Matrix.
  */
-std::vector<double> matrix_multiplication( Matrix<double> const& a, std::vector<double> const& b );
+template< typename T = double, typename A = double, typename B = double >
+std::vector<T> matrix_multiplication( Matrix<A> const& a, std::vector<B> const& b )
+{
+    if( a.cols() != b.size() ) {
+        throw std::runtime_error( "Cannot multiply matrix with vector if a.cols() != b.size()." );
+    }
+
+    auto result = std::vector<T>( a.rows(), 0.0 );
+    for( size_t r = 0; r < a.rows(); ++r ) {
+        for( size_t j = 0; j < a.cols(); ++j ) {
+            result[ r ] += a( r, j ) * b[ j ];
+        }
+    }
+
+    return result;
+}
 
 } // namespace utils
 } // namespace genesis
