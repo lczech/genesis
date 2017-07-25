@@ -65,7 +65,7 @@ size_t triangular_size( size_t n )
 //     Double Matrix Operators
 // ================================================================================================
 
-Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b)
+Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b )
 {
     if( a.cols() != b.rows() ) {
         throw std::runtime_error( "Cannot multiply matrices if a.cols() != b.rows()." );
@@ -81,6 +81,38 @@ Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> co
             for( size_t j = 0; j < a.cols(); ++j ) {
                 result( r, c ) += a( r, j ) * b( j, c );
             }
+        }
+    }
+
+    return result;
+}
+
+std::vector<double> matrix_multiplication( std::vector<double> const& a, Matrix<double> const& b )
+{
+    if( a.size() != b.rows() ) {
+        throw std::runtime_error( "Cannot multiply vector with matrix if a.size() != b.rows()." );
+    }
+
+    auto result = std::vector<double>( b.cols(), 0.0 );
+    for( size_t c = 0; c < b.cols(); ++c ) {
+        for( size_t j = 0; j < a.size(); ++j ) {
+            result[ c ] += a[ j ] * b( j, c );
+        }
+    }
+
+    return result;
+}
+
+std::vector<double> matrix_multiplication( Matrix<double> const& a, std::vector<double> const& b )
+{
+    if( a.cols() != b.size() ) {
+        throw std::runtime_error( "Cannot multiply matrix with vector if a.cols() != b.size()." );
+    }
+
+    auto result = std::vector<double>( a.rows(), 0.0 );
+    for( size_t r = 0; r < a.rows(); ++r ) {
+        for( size_t j = 0; j < a.cols(); ++j ) {
+            result[ r ] += a( r, j ) * b[ j ];
         }
     }
 
