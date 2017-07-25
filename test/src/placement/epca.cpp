@@ -77,15 +77,7 @@ TEST( SampleMeasures, ImbalanceVector )
         }
     }
 
-    // Try matrix mult as an alternative. Need to convert first. Ugly. Maybe we can templetize
-    // the matrix mult in the future.
-    auto edge_side_mat2 = utils::Matrix<double>( edge_side_mat.rows(), edge_side_mat.cols() );
-    for( size_t r = 0; r < edge_side_mat.rows(); ++r ) {
-        for( size_t c = 0; c < edge_side_mat.cols(); ++c ) {
-            edge_side_mat2( r, c ) = static_cast<double>( edge_side_mat( r, c ));
-        }
-    }
-    auto const combined2 = utils::matrix_multiplication( edge_side_mat2, edge_weight_vec );
+    auto const combined2 = utils::matrix_multiplication( edge_side_mat, edge_weight_vec );
 
     EXPECT_EQ( imbalance_vec, combined );
     EXPECT_EQ( combined2, combined );
