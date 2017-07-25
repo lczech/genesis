@@ -33,6 +33,7 @@
 
 #include <ostream>
 #include <stdexcept>
+#include <vector>
 
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/math/matrix/statistics.hpp"
@@ -274,9 +275,28 @@ Matrix<T> matrix_sort_by_col_sum_symmetric( Matrix<T> const& data )
 /**
  * @brief Calculate the product of two @link Matrix Matrices@endlink.
  *
- * The two matrices need to have fitting sized, i.e., `a[ l, m ] x b[ m, n ]`.
+ * The two matrices need to have fitting dimensions, i.e., `a[ l, m ] x b[ m, n ]`, which results
+ * in a Matrix of dimensions `r[ l, n ]`.
  */
-Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b);
+Matrix<double> matrix_multiplication( Matrix<double> const& a, Matrix<double> const& b );
+
+/**
+ * @brief Calculate the product of a `vector` @p a with a @link Matrix Matrices@endlink @p b,
+ * as if the vector was a Matrix with only one row.
+ *
+ * Thus, the two arguments need to have fitting sized, i.e., `a[ m ] x b[ m, n ]`. The resulting
+ * vector has size `n`, which represent the columns of the result Matrix.
+ */
+std::vector<double> matrix_multiplication( std::vector<double> const& a, Matrix<double> const& b );
+
+/**
+ * @brief Calculate the product of a @link Matrix Matrices@endlink @p a with a `vector` @p b,
+ * as if the vector was a Matrix with only one column.
+ *
+ * Thus, the two arguments need to have fitting sized, i.e., `a[ l, m ] x b[ m ]`. The resulting
+ * vector has size `l`, which represent the rows of the result Matrix.
+ */
+std::vector<double> matrix_multiplication( Matrix<double> const& a, std::vector<double> const& b );
 
 } // namespace utils
 } // namespace genesis
