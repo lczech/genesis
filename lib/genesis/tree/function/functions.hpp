@@ -177,6 +177,18 @@ TreeNode const& lowest_common_ancestor( TreeNode const& node_a, TreeNode const& 
  */
 TreeNode&       lowest_common_ancestor( TreeNode& node_a,       TreeNode& node_b );
 
+/**
+ * @brief Return the lowest common ancestor of each pair of TreeNode%s for a given tree,
+ * in form of a @link utils::Matrix Matrix@endlink of their indices.
+ *
+ * The entries in the resulting Matrix are the Node indices of the lowest common ancestor (LCA) of a
+ * given pair of Nodes. For example, for the result Matrix `r`, the entry `r[ 3, 5 ] == 7` means
+ * that the LCA of Nodes `3` and `5` is Node `7`.
+ *
+ * These Nodes can for example be accesses via Tree::node_at().
+ */
+utils::Matrix<size_t> lowest_common_ancestors( Tree const& tree );
+
 } // namespace tree
 } // namespace genesis
 

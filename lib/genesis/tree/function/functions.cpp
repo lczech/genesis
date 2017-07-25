@@ -35,11 +35,17 @@
 #include "genesis/tree/iterator/eulertour.hpp"
 #include "genesis/tree/tree.hpp"
 
+#include "genesis/utils/math/matrix/operators.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <functional>
 #include <unordered_set>
 #include <vector>
+
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
 
 namespace genesis {
 namespace tree {
@@ -374,6 +380,64 @@ TreeNode&       lowest_common_ancestor( TreeNode& node_a,       TreeNode& node_b
     auto const& c_node_a = static_cast< TreeNode const& >( node_a );
     auto const& c_node_b = static_cast< TreeNode const& >( node_b );
     return const_cast< TreeNode& >( lowest_common_ancestor( c_node_a, c_node_b ));
+}
+
+utils::Matrix<size_t> lowest_common_ancestors( Tree const& tree )
+{
+    auto res = utils::Matrix<size_t>( tree.node_count(), tree.node_count() );
+
+    // This is not the best way to calculate all pairwise LCAs.
+    // In the Quartet Scores code, we use range minimum queries and eulertours to achive the
+    // same result in less time. But for now, this code is good enough.
+
+    // Parallel specialized code.
+    #ifdef GENESIS_OPENMP
+
+        // We only need to calculate the upper triangle. Get the number of indices needed
+        // to describe this triangle.
+        size_t const max_k = utils::triangular_size( tree.node_count() );
+
+        #pragma omp parallel for
+        for( size_t k = 0; k < max_k; ++k ) {
+
+            // For the given linear index, get the actual position in the Matrix.
+            auto const rc = utils::triangular_indices( k, tree.node_count() );
+            auto const r = rc.first;
+            auto const c = rc.second;
+
+            auto const& lca = lowest_common_ancestor( tree.node_at(r), tree.node_at(c) );
+            res( r, c ) = lca.index();
+            res( c, r ) = lca.index();
+        }
+
+        // Lastly, because the trinangular indices exluce the diagonale, we need to fill this
+        // by hand. Luckily, those are always the indices themselves, as the LCA of a node
+        // and itself is again itself.
+        #pragma omp parallel for
+        for( size_t d = 0; d < tree.node_count(); ++d ) {
+            res( d, d ) = d;
+        }
+
+    // If no threads are available at all, use serial version.
+    #else
+
+        for( size_t r = 0; r < tree.node_count(); ++r ) {
+
+            // The result is symmetric - we only calculate the upper triangle.
+            for( size_t c = r; c < tree.node_count(); ++c ) {
+
+                auto const& lca = lowest_common_ancestor( tree.node_at(r), tree.node_at(c) );
+                res( r, c ) = lca.index();
+                res( c, r ) = lca.index();
+            }
+
+            // See above: the diagonale contains its indices.
+            assert( res( r, r ) == r );
+        }
+
+    #endif
+
+    return res;
 }
 
 } // namespace tree
