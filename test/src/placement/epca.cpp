@@ -44,7 +44,6 @@
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/math/matrix/operators.hpp"
-#include "genesis/utils/math/matrix/operators.hpp"
 #include "genesis/utils/math/matrix/pca.hpp"
 #include "genesis/utils/math/matrix/statistics.hpp"
 #include "genesis/utils/text/string.hpp"
@@ -74,12 +73,22 @@ TEST( SampleMeasures, ImbalanceVector )
     auto combined = std::vector<double>( edge_weight_vec.size(), 0.0 );
     for( size_t r = 0; r < sz; ++r ) {
         for( size_t c = 0; c < sz; ++c ) {
-
             combined[ r ] += edge_side_mat( r, c ) * edge_weight_vec[ c ];
         }
     }
 
+    // Try matrix mult as an alternative. Need to convert first. Ugly. Maybe we can templetize
+    // the matrix mult in the future.
+    auto edge_side_mat2 = utils::Matrix<double>( edge_side_mat.rows(), edge_side_mat.cols() );
+    for( size_t r = 0; r < edge_side_mat.rows(); ++r ) {
+        for( size_t c = 0; c < edge_side_mat.cols(); ++c ) {
+            edge_side_mat2( r, c ) = static_cast<double>( edge_side_mat( r, c ));
+        }
+    }
+    auto const combined2 = utils::matrix_multiplication( edge_side_mat2, edge_weight_vec );
+
     EXPECT_EQ( imbalance_vec, combined );
+    EXPECT_EQ( combined2, combined );
 
     // LOG_DBG << "comb " << utils::join( combined, " " );
 }
