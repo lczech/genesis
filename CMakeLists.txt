@@ -59,24 +59,26 @@ message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION
 #   Build Options
 # --------------------------------------------------------------------------------------------------
 
-option (BUILD_SHARED_LIB    "Build shared library" ON)
-option (BUILD_STATIC_LIB    "Build static library" OFF)
+option (GENESIS_BUILD_SHARED_LIB    "Build Genesis as a shared library." ON)
+option (GENESIS_BUILD_STATIC_LIB    "Build Genesis as a static library." OFF)
 
-option (BUILD_APPLICATIONS  "Build applications"   ON)
-option (BUILD_PYTHON_MODULE "Build python module"  OFF)
-option (BUILD_TESTS         "Build test suites"    OFF)
+option (GENESIS_BUILD_APPLICATIONS  "Build Genesis applications."        ON)
+option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."   OFF)
+option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."     OFF)
 
-option (USE_THREADS         "Use a threading library (mainly, pthreads)"      ON)
-option (USE_OPENMP          "Use OpenMP if available"                         ON)
+option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads)."  ON)
+option (GENESIS_USE_OPENMP          "Use OpenMP, if available."                    ON)
 
 # Define unity build option with list of valid values.
-set( UNITY_BUILD FULL CACHE STRING "Build modules monolithically - trading memory for speed." )
-set_property( CACHE UNITY_BUILD PROPERTY STRINGS FULL MODULES OFF )
+set( GENESIS_UNITY_BUILD FULL CACHE STRING
+    "Build modules monolithically - trading memory for speed. This also enables poor-mans LTO."
+)
+set_property( CACHE GENESIS_UNITY_BUILD PROPERTY STRINGS FULL MODULES OFF )
 
-if (BUILD_APPLICATIONS OR BUILD_PYTHON_MODULE OR BUILD_TESTS)
+if (GENESIS_BUILD_APPLICATIONS OR GENESIS_BUILD_PYTHON_MODULE OR GENESIS_BUILD_TESTS)
     # The applications, the python module and the tests all use the shared lib,
     # so we need to build it if one of those is activated.
-    set (BUILD_SHARED_LIB ON)
+    set (GENESIS_BUILD_SHARED_LIB ON)
 endif()
 
 # --------------------------------------------------------------------------------------------------
@@ -86,20 +88,21 @@ endif()
 set (CMAKE_BUILD_TYPE RELEASE)
 
 # Using the environment variable `GENESIS_DEBUG`, it is possible to change from
-# release mode (default) to debug mode. This is useful for developers.
+# release mode (default) to debug mode. This is useful for developers, and can be activated for
+# example in bash via `export GENESIS_DEBUG=1` prior to calling CMake.
 # It also activates test building automatically.
 if( $ENV{GENESIS_DEBUG} )
 
     set (CMAKE_BUILD_TYPE DEBUG)
 
     # set (CMAKE_VERBOSE_MAKEFILE ON)
-    SET( BUILD_TESTS    ON )
-    SET( UNITY_BUILD OFF )
+    SET( GENESIS_BUILD_TESTS ON )
+    SET( GENESIS_UNITY_BUILD OFF )
 
 endif()
 
 message (STATUS "${ColorBlue}Building ${CMAKE_BUILD_TYPE}${ColorEnd}")
-message (STATUS "Unity build: ${UNITY_BUILD}")
+message (STATUS "Unity build: ${GENESIS_UNITY_BUILD}")
 
 # --------------------------------------------------------------------------------------------------
 #   Compiler and Linker Options
@@ -111,7 +114,7 @@ set (WARN_FLAGS              "-Wall -Wextra -Wno-unknown-pragmas -pedantic -peda
 set (CMAKE_CXX_FLAGS         "${CMAKE_CXX_FLAGS} -std=c++11 ${WARN_FLAGS}")
 
 set (CMAKE_CXX_FLAGS_DEBUG   "-O2 -g -ggdb3 -DDEBUG -D_GLIBCXX_DEBUG")
-set (CMAKE_CXX_FLAGS_RELEASE "-O2       -DNDEBUG")
+set (CMAKE_CXX_FLAGS_RELEASE "-O2           -DNDEBUG")
 
 # Misc options
 # STDCC   = clang++
@@ -137,7 +140,7 @@ endif()
 # We check whether to use threads and OpenMP here,
 # so that all binaries are compiled with the same settings.
 
-IF(USE_THREADS)
+IF(GENESIS_USE_THREADS)
     message (STATUS "Looking for Threads")
     set (CMAKE_THREAD_PREFER_PTHREAD ON)
     set (THREADS_PREFER_PTHREAD_FLAG ON)
@@ -148,17 +151,17 @@ if(THREADS_FOUND)
     message( STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}" )
     message (STATUS "${ColorGreen}Using Threads${ColorEnd}")
     add_definitions( "-DGENESIS_PTHREADS" )
-elseif(USE_THREADS)
+elseif(GENESIS_USE_THREADS)
     message (STATUS "Threads not found")
 endif()
 
-IF(USE_OPENMP)
+IF(GENESIS_USE_OPENMP)
     message (STATUS "Looking for OpenMP")
 
     # CMake versions before 3.5 do not properly support Clang OpenMP flags.
     # And even with more recent CMake versions, it is not fully working.
     # In order to still enable OpenMP, we use our own patch of the find module.
-    # See ./tools/cmake/FindOpenMP.cmake for the modifications we made to support Clang.
+    # See ./tools/cmake/FindOpenMP_patch.cmake for the modifications we made to support Clang.
     if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
         set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/tools/cmake" )
         find_package( OpenMP_patch )
@@ -185,7 +188,7 @@ if(OPENMP_FOUND)
     set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
 
 elseif(
-    USE_OPENMP
+    GENESIS_USE_OPENMP
     AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
     AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.8
 )
@@ -194,7 +197,7 @@ elseif(
     message (STATUS "OpenMP not found")
     message (STATUS "${ColorYellow}You are trying to compile with Clang and OpenMp. "
     "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
-elseif(USE_OPENMP)
+elseif(GENESIS_USE_OPENMP)
     message (STATUS "OpenMP not found")
 endif()
 
@@ -302,19 +305,19 @@ endfunction()
 # Using the build options from above, include the cmake sub-scripts
 # that the user wants to compile.
 
-if (BUILD_SHARED_LIB OR BUILD_STATIC_LIB)
+if (GENESIS_BUILD_SHARED_LIB OR GENESIS_BUILD_STATIC_LIB)
     add_subdirectory(${PROJECT_SOURCE_DIR}/lib/genesis)
 endif()
 
-if (BUILD_APPLICATIONS)
+if (GENESIS_BUILD_APPLICATIONS)
     add_subdirectory(${PROJECT_SOURCE_DIR}/apps)
 endif()
 
-if (BUILD_PYTHON_MODULE)
+if (GENESIS_BUILD_PYTHON_MODULE)
     add_subdirectory(${PROJECT_SOURCE_DIR}/python)
 endif()
 
-if (BUILD_TESTS)
+if (GENESIS_BUILD_TESTS)
     # Need to enable testing here, otherwise `./build/make test` will not work.
     enable_testing()
 

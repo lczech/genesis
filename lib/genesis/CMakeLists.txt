@@ -31,10 +31,10 @@ include_directories (${PROJECT_SOURCE_DIR}/lib)
 #   Sources
 # ------------------------------------------------------------------------------
 
-IF( UNITY_BUILD )
+IF( GENESIS_UNITY_BUILD )
 
     # See main CMake file for the monolith macro.
-    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/lib/genesis "${UNITY_BUILD}" "lib" genesis_lib_sources )
+    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/lib/genesis "${GENESIS_UNITY_BUILD}" "lib" genesis_lib_sources )
 
 ELSE()
 
@@ -51,7 +51,7 @@ ENDIF()
 #   Build Libraries
 # ------------------------------------------------------------------------------
 
-if (BUILD_SHARED_LIB)
+if (GENESIS_BUILD_SHARED_LIB)
     message (STATUS "${ColorBlue}Building shared lib${ColorEnd}")
     add_library           (genesis_lib_shared SHARED ${genesis_lib_sources})
     set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
@@ -61,7 +61,7 @@ if (BUILD_SHARED_LIB)
     endif()
 endif()
 
-if (BUILD_STATIC_LIB)
+if (GENESIS_BUILD_STATIC_LIB)
     message (STATUS "${ColorBlue}Building static lib${ColorEnd}")
     add_library           (genesis_lib_static STATIC ${genesis_lib_sources})
     set_target_properties (genesis_lib_static PROPERTIES OUTPUT_NAME genesis)
