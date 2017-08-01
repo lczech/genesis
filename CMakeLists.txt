@@ -69,6 +69,12 @@ option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."     OFF)
 option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads)."  ON)
 option (GENESIS_USE_OPENMP          "Use OpenMP, if available."                    ON)
 
+# Define build type option with list of valid values.
+set( GENESIS_BUILD_TYPE RELEASE CACHE STRING
+    "Build type. Either RELEASE or DEBUG."
+)
+set_property( CACHE GENESIS_BUILD_TYPE PROPERTY STRINGS RELEASE DEBUG )
+
 # Define unity build option with list of valid values.
 set( GENESIS_UNITY_BUILD FULL CACHE STRING
     "Build modules monolithically - trading memory for speed. This also enables poor-mans LTO."
@@ -85,12 +91,13 @@ endif()
 #   Build Type
 # --------------------------------------------------------------------------------------------------
 
-set (CMAKE_BUILD_TYPE RELEASE)
+# Use our build type option as default for the CMake build type.
+set (CMAKE_BUILD_TYPE ${GENESIS_BUILD_TYPE} )
 
-# Using the environment variable `GENESIS_DEBUG`, it is possible to change from
-# release mode (default) to debug mode. This is useful for developers, and can be activated for
-# example in bash via `export GENESIS_DEBUG=1` prior to calling CMake.
-# It also activates test building automatically.
+# Using the environment variable `GENESIS_DEBUG`, it is possible to change from release mode
+# (default) to debug mode, even without changing the option GENESIS_BUILD_TYPE.  This is useful for
+# developers, and can be activated for example in bash  via `export GENESIS_DEBUG=1` prior to
+# calling CMake. It also activates test building automatically.
 if( $ENV{GENESIS_DEBUG} )
 
     set (CMAKE_BUILD_TYPE DEBUG)
@@ -101,7 +108,7 @@ if( $ENV{GENESIS_DEBUG} )
 
 endif()
 
-message (STATUS "${ColorBlue}Building ${CMAKE_BUILD_TYPE}${ColorEnd}")
+message (STATUS "${ColorBlue}Build type: ${CMAKE_BUILD_TYPE}${ColorEnd}")
 message (STATUS "Unity build: ${GENESIS_UNITY_BUILD}")
 
 # --------------------------------------------------------------------------------------------------
