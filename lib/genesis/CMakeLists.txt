@@ -31,10 +31,10 @@ include_directories (${PROJECT_SOURCE_DIR}/lib)
 #   Sources
 # ------------------------------------------------------------------------------
 
-IF( UNITY_BUILD )
+IF( GENESIS_UNITY_BUILD )
 
     # See main CMake file for the monolith macro.
-    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/lib/genesis "${UNITY_BUILD}" "lib" genesis_lib_sources )
+    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/lib/genesis "${GENESIS_UNITY_BUILD}" "lib" genesis_lib_sources )
 
 ELSE()
 
@@ -51,22 +51,27 @@ ENDIF()
 #   Build Libraries
 # ------------------------------------------------------------------------------
 
-if (BUILD_SHARED_LIB)
+if (GENESIS_BUILD_SHARED_LIB)
     message (STATUS "${ColorBlue}Building shared lib${ColorEnd}")
     add_library           (genesis_lib_shared SHARED ${genesis_lib_sources})
     set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
 
-    if(THREADS_FOUND)
-        target_link_libraries (genesis_lib_shared ${CMAKE_THREAD_LIBS_INIT})
-    endif()
+    # Link against any external libraries, e.g. Pthreads.
+    target_link_libraries (genesis_lib_shared ${GENESIS_LINK_LIBRARIES})
+
+    # Add this shared library to our exported libraries, which can then be used by the parent scope.
+    set( GENESIS_LIBRARIES ${GENESIS_LIBRARIES} genesis_lib_shared PARENT_SCOPE )
+
 endif()
 
-if (BUILD_STATIC_LIB)
+if (GENESIS_BUILD_STATIC_LIB)
     message (STATUS "${ColorBlue}Building static lib${ColorEnd}")
     add_library           (genesis_lib_static STATIC ${genesis_lib_sources})
     set_target_properties (genesis_lib_static PROPERTIES OUTPUT_NAME genesis)
 
-    if(THREADS_FOUND)
-        target_link_libraries (genesis_lib_static ${CMAKE_THREAD_LIBS_INIT})
-    endif()
+    # Link against any external libraries, e.g. Pthreads.
+    target_link_libraries (genesis_lib_static ${GENESIS_LINK_LIBRARIES})
+
+    # Add this static library to our exported libraries, which can then be used by the parent scope.
+    set( GENESIS_LIBRARIES ${GENESIS_LIBRARIES} genesis_lib_static PARENT_SCOPE )
 endif()

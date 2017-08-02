@@ -131,9 +131,9 @@ set( CMAKE_BUILD_WITH_INSTALL_RPATH TRUE )
 #   Sources
 # ------------------------------------------------------------------------------
 
-IF( UNITY_BUILD )
+IF( GENESIS_UNITY_BUILD )
     # See main CMake file for the monolith macro.
-    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/python/src "${UNITY_BUILD}" "python" genesis_python_sources )
+    ASSEMBLE_MONOLITH( ${PROJECT_SOURCE_DIR}/python/src "${GENESIS_UNITY_BUILD}" "python" genesis_python_sources )
 ELSE()
     file (GLOB_RECURSE genesis_python_sources ${PROJECT_SOURCE_DIR}/python/src/*.cpp)
 ENDIF()
@@ -167,6 +167,5 @@ set_target_properties (genesis_python_module PROPERTIES SUFFIX "${PYTHON_MODULE_
 #     touch ${PROJECT_SOURCE_DIR}/bin/python/__init__.py
 # )
 
-if(THREADS_FOUND)
-    target_link_libraries (genesis_python_module PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-endif()
+# Link against any external libraries, e.g. Pthreads.
+target_link_libraries (genesis_python_module PRIVATE ${GENESIS_LINK_LIBRARIES})

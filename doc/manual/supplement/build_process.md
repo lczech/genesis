@@ -103,12 +103,12 @@ There are three modes:
      the least memory. It is also used for the debug build, because when working on files, it is
      still faster to just compile them, instead of fully compiling everything.
 
-You can change those modes via the CMake option `UNITY_BUILD`.
+You can change those modes via the CMake option `GENESIS_UNITY_BUILD`.
 See the @ref supplement_build_process_overview "Overview" for how to explicitly build Genesis using
 Cmake, and replace the `cmake ..` line by
 
 ~~~{.sh}
-cmake .. -DUNITY_BUILD=MODULE
+cmake .. -DGENESIS_UNITY_BUILD=MODULE
 ~~~
 
 where, instead of `MODULE`, you can also use `OFF`.

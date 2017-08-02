@@ -264,25 +264,19 @@ void filter_pqueries_keeping_names( Sample& smp, std::string const& regex )
 
 void filter_pqueries_keeping_names( Sample& smp, std::unordered_set<std::string> keep_list )
 {
-    // Again, not the cleanest solution, see above functions for discussion.
-    size_t i = 0;
-    while( i < smp.size() ) {
-
-        // See if the Pquery has a name in the list.
-        bool keep = false;
-        for( auto const& name : smp.at(i).names() ) {
-            if( keep_list.count( name.name ) > 0 ) {
-                keep = true;
+    auto new_past_the_end = std::remove_if(
+        smp.begin(),
+        smp.end(),
+        [&] ( Pquery const& pqry ) {
+            for( auto const& nm : pqry.names() ) {
+                if( keep_list.count( nm.name ) > 0 ) {
+                    return false;
+                }
             }
+            return true;
         }
-
-        // If not, remove it. If so, move to the next Pquery.
-        if( ! keep ) {
-            smp.remove(i);
-        } else {
-            ++i;
-        }
-    }
+    );
+    smp.remove( new_past_the_end, smp.end() );
 }
 
 void filter_pqueries_removing_names( Sample& smp, std::string const& regex )
@@ -305,25 +299,19 @@ void filter_pqueries_removing_names( Sample& smp, std::string const& regex )
 
 void filter_pqueries_removing_names( Sample& smp, std::unordered_set<std::string> remove_list )
 {
-    // Again, not the cleanest solution, see above functions for discussion.
-    size_t i = 0;
-    while( i < smp.size() ) {
-
-        // See if the Pquery has a name in the list.
-        bool remove = false;
-        for( auto const& name : smp.at(i).names() ) {
-            if( remove_list.count( name.name ) > 0 ) {
-                remove = true;
+    auto new_past_the_end = std::remove_if(
+        smp.begin(),
+        smp.end(),
+        [&] ( Pquery const& pqry ) {
+            for( auto const& nm : pqry.names() ) {
+                if( remove_list.count( nm.name ) > 0 ) {
+                    return true;
+                }
             }
+            return false;
         }
-
-        // If so, remove it. If not, move to the next Pquery.
-        if( remove ) {
-            smp.remove(i);
-        } else {
-            ++i;
-        }
-    }
+    );
+    smp.remove( new_past_the_end, smp.end() );
 }
 
 void filter_pqueries_intersecting_names( Sample& sample_1, Sample& sample_2 )
