@@ -43,17 +43,36 @@ if (NOT WIN32)
 endif()
 
 # --------------------------------------------------------------------------------------------------
-#   Project Definition and Requirements
+#   Project Definitions and Variables
 # --------------------------------------------------------------------------------------------------
 
 project ( genesis CXX C )
 
-# set (genesis_VERSION_MAJOR 0)
-# set (genesis_VERSION_MINOR 1)
+# Set the file that needs to be used for `include_directories()`. Will be exportet later.
+set( GENESIS_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/lib" )
 
-# Helpful output. Version information is unfortunately only available for CMake >= 2.8.9
-message (STATUS "C++ compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} at ${CMAKE_CXX_COMPILER}")
-message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION} at ${CMAKE_C_COMPILER}")
+# Extract Genesis version from version source file.
+file(
+    STRINGS "${CMAKE_CURRENT_LIST_DIR}/lib/genesis/utils/core/version.hpp" GENESIS_VERSION_LINE
+    REGEX "^.*#GENESIS_VERSION#.*$"
+)
+if( ${GENESIS_VERSION_LINE} MATCHES ".*\"(v.*)\".*" )
+    set( GENESIS_VERSION "${CMAKE_MATCH_1}")
+endif()
+message (STATUS "${ColorBlue}Genesis version: ${GENESIS_VERSION}${ColorEnd}")
+
+# Figure out whether Genesis is compiled stand-alone or as a library/dependency.
+set( GENESIS_MASTER_PROJECT OFF )
+get_directory_property( GENESIS_HAS_PARENT_DIR PARENT_DIRECTORY )
+if( NOT GENESIS_HAS_PARENT_DIR )
+    set( GENESIS_MASTER_PROJECT ON )
+endif()
+
+# Prepare an empty string for the list of definitions that Genesis exports to the CMake parent
+# scope. Those can then be used when building programs that use Genesis. The definitions can be
+# added in the parent CMake scope via `add_definitions( ${GENESIS_DEFINITIONS} )`, and are
+# accessed in the Genesis source code via `#ifdef` macros.
+set( GENESIS_DEFINITIONS "" )
 
 # --------------------------------------------------------------------------------------------------
 #   Build Options
@@ -108,8 +127,13 @@ if( $ENV{GENESIS_DEBUG} )
 
 endif()
 
+# Print build type. Useful for debugging user issues.
 message (STATUS "${ColorBlue}Build type: ${CMAKE_BUILD_TYPE}${ColorEnd}")
 message (STATUS "Unity build: ${GENESIS_UNITY_BUILD}")
+
+# Helpful output. Compiler version information is unfortunately only available for CMake >= 2.8.9
+message (STATUS "C++ compiler: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION} at ${CMAKE_CXX_COMPILER}")
+message (STATUS "C compiler  : ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION} at ${CMAKE_C_COMPILER}")
 
 # --------------------------------------------------------------------------------------------------
 #   Compiler and Linker Options
@@ -157,7 +181,9 @@ ENDIF()
 if(THREADS_FOUND)
     message( STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}" )
     message (STATUS "${ColorGreen}Using Threads${ColorEnd}")
+
     add_definitions( "-DGENESIS_PTHREADS" )
+    set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_PTHREADS" )
 elseif(GENESIS_USE_THREADS)
     message (STATUS "Threads not found")
 endif()
@@ -188,7 +214,9 @@ if(OPENMP_FOUND)
 
     message( STATUS "Found OpenMP: ${OpenMP_CXX_FLAGS}" )
     message (STATUS "${ColorGreen}Using OpenMP${ColorEnd}")
+
     add_definitions( "-DGENESIS_OPENMP" )
+    set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_OPENMP" )
 
     set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${OpenMP_C_FLAGS}")
     set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
@@ -247,7 +275,7 @@ function( ASSEMBLE_MONOLITH input_directory use_modules name resulting_source_fi
     endfunction()
 
     # Clean previously assembled monolith files.
-    file( REMOVE_RECURSE ${CMAKE_BINARY_DIR}/unity_assemble/${name} )
+    file( REMOVE_RECURSE ${CMAKE_BINARY_DIR}/genesis_unity_assemble/${name} )
 
     IF( "${use_modules}" STREQUAL "MODULES" )
 
@@ -256,8 +284,8 @@ function( ASSEMBLE_MONOLITH input_directory use_modules name resulting_source_fi
         foreach( SUBDIR ${SUBDIRS} )
 
             # Target files for this module.
-            SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/unity_assemble/${name}/${SUBDIR}.cpp )
-            SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/unity_sources/${name}/${SUBDIR}.cpp )
+            SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/genesis_unity_assemble/${name}/${SUBDIR}.cpp )
+            SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/genesis_unity_sources/${name}/${SUBDIR}.cpp )
 
             # Find all sources of the module and concat them into a tmp assembly file.
             file (GLOB_RECURSE subdir_sources ${input_directory}/${SUBDIR}/*.cpp)
@@ -274,14 +302,14 @@ function( ASSEMBLE_MONOLITH input_directory use_modules name resulting_source_fi
         # Find all resulting source files. We need to treat top-level files in the lib dir
         # extra, as they are not a part of any module.
         file (GLOB top_level_sources ${input_directory}/*.cpp)
-        file (GLOB unity_sources     ${CMAKE_BINARY_DIR}/unity_sources/${name}/*.cpp)
-        set ( ${resulting_source_files} ${top_level_sources} ${unity_sources} PARENT_SCOPE )
+        file (GLOB genesis_unity_sources     ${CMAKE_BINARY_DIR}/genesis_unity_sources/${name}/*.cpp)
+        set ( ${resulting_source_files} ${top_level_sources} ${genesis_unity_sources} PARENT_SCOPE )
 
     ELSEIF( "${use_modules}" STREQUAL "FULL" )
 
         # Target files.
-        SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/unity_assemble/${name}/all.cpp )
-        SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/unity_sources/${name}/all.cpp )
+        SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/genesis_unity_assemble/${name}/all.cpp )
+        SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/genesis_unity_sources/${name}/all.cpp )
 
         # Find all sources and concat them into a tmp assembly file.
         file (GLOB_RECURSE all_sources ${input_directory}/*.cpp)
@@ -330,3 +358,21 @@ if (GENESIS_BUILD_TESTS)
 
     add_subdirectory(${PROJECT_SOURCE_DIR}/test)
 endif()
+
+# --------------------------------------------------------------------------------------------------
+#   Export to parent scope
+# --------------------------------------------------------------------------------------------------
+
+# If Genesis is used as a dependency, we need to export definitions and stuff to the parent scope.
+IF( GENESIS_HAS_PARENT_DIR )
+
+    # Set the Genesis version. Can be used for compatibility checks.
+    set( GENESIS_VERSION     ${GENESIS_VERSION}     PARENT_SCOPE )
+
+    # Set the path to be used for `include_directories()` in the parent scope.
+    set( GENESIS_INCLUDE_DIR ${GENESIS_INCLUDE_DIR} PARENT_SCOPE )
+
+    # Set the definitions to be used for `add_definitions` in the parent scope.
+    set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} PARENT_SCOPE )
+
+ENDIF()
