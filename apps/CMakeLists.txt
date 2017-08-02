@@ -60,9 +60,8 @@ if( genesis_apps_sources )
 
         target_link_libraries( ${app_name} genesis_lib_shared )
 
-        if(THREADS_FOUND)
-            target_link_libraries ( ${app_name} ${CMAKE_THREAD_LIBS_INIT})
-        endif()
+        # Link against any external libraries, e.g. Pthreads.
+        target_link_libraries (${app_name} ${GENESIS_LINK_LIBRARIES})
 
     endforeach()
 

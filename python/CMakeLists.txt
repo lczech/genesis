@@ -167,6 +167,5 @@ set_target_properties (genesis_python_module PROPERTIES SUFFIX "${PYTHON_MODULE_
 #     touch ${PROJECT_SOURCE_DIR}/bin/python/__init__.py
 # )
 
-if(THREADS_FOUND)
-    target_link_libraries (genesis_python_module PRIVATE ${CMAKE_THREAD_LIBS_INIT})
-endif()
+# Link against any external libraries, e.g. Pthreads.
+target_link_libraries (genesis_python_module PRIVATE ${GENESIS_LINK_LIBRARIES})

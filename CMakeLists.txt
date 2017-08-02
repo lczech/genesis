@@ -48,8 +48,29 @@ endif()
 
 project ( genesis CXX C )
 
-# Set the file that needs to be used for `include_directories()`. Will be exportet later.
+# Set the file that needs to be used for `include_directories()`.
 set( GENESIS_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/lib" )
+
+# Prepare an empty string for the list of definitions that Genesis exports to the CMake parent
+# scope. Those can then be used when building programs that use Genesis. The definitions can be
+# added in the parent CMake scope via `add_definitions( ${GENESIS_DEFINITIONS} )`, and are
+# accessed in the Genesis source code via `#ifdef` macros.
+set( GENESIS_DEFINITIONS "" )
+
+# Prepare variable that collects the genesis libraries that can be linked against.
+# These are our shared and static libraries.
+set( GENESIS_LIBRARIES "" )
+
+# Prepare variable that collects libraries that need to be linked against, e.g. Pthreads.
+# This is used internally. A variable of the same name is also exported to the parent scope, but with
+# the addition of ${GENESIS_LIBRARIES}, so that in parent scope, only one target has to be linked
+# against.
+set( GENESIS_LINK_LIBRARIES "" )
+
+# Prepare variables that collect compiler and linker flags, e.g. for OpenMP.
+set( GENESIS_C_FLAGS "" )
+set( GENESIS_CXX_FLAGS "" )
+set( GENESIS_EXE_LINKER_FLAGS "" )
 
 # Extract Genesis version from version source file.
 file(
@@ -67,12 +88,6 @@ get_directory_property( GENESIS_HAS_PARENT_DIR PARENT_DIRECTORY )
 if( NOT GENESIS_HAS_PARENT_DIR )
     set( GENESIS_MASTER_PROJECT ON )
 endif()
-
-# Prepare an empty string for the list of definitions that Genesis exports to the CMake parent
-# scope. Those can then be used when building programs that use Genesis. The definitions can be
-# added in the parent CMake scope via `add_definitions( ${GENESIS_DEFINITIONS} )`, and are
-# accessed in the Genesis source code via `#ifdef` macros.
-set( GENESIS_DEFINITIONS "" )
 
 # --------------------------------------------------------------------------------------------------
 #   Build Options
@@ -100,9 +115,10 @@ set( GENESIS_UNITY_BUILD FULL CACHE STRING
 )
 set_property( CACHE GENESIS_UNITY_BUILD PROPERTY STRINGS FULL MODULES OFF )
 
-if (GENESIS_BUILD_APPLICATIONS OR GENESIS_BUILD_PYTHON_MODULE OR GENESIS_BUILD_TESTS)
+if( GENESIS_HAS_PARENT_DIR OR GENESIS_BUILD_APPLICATIONS OR GENESIS_BUILD_PYTHON_MODULE OR GENESIS_BUILD_TESTS )
     # The applications, the python module and the tests all use the shared lib,
     # so we need to build it if one of those is activated.
+    # Also, if Genesis is being used as a dependency/libary, we want to build the shared lib.
     set (GENESIS_BUILD_SHARED_LIB ON)
 endif()
 
@@ -182,8 +198,11 @@ if(THREADS_FOUND)
     message( STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}" )
     message (STATUS "${ColorGreen}Using Threads${ColorEnd}")
 
+    # Set needed definition and linker flags for Genesis and for the parent scope.
     add_definitions( "-DGENESIS_PTHREADS" )
     set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_PTHREADS" )
+    set( GENESIS_LINK_LIBRARIES ${GENESIS_LINK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+
 elseif(GENESIS_USE_THREADS)
     message (STATUS "Threads not found")
 endif()
@@ -215,12 +234,20 @@ if(OPENMP_FOUND)
     message( STATUS "Found OpenMP: ${OpenMP_CXX_FLAGS}" )
     message (STATUS "${ColorGreen}Using OpenMP${ColorEnd}")
 
+    # Set needed definition for Genesis and for the parent scope.
     add_definitions( "-DGENESIS_OPENMP" )
     set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_OPENMP" )
 
-    set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${OpenMP_C_FLAGS}")
-    set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
-    set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+    # Set the flags needed for compiling Genesis.
+    set( CMAKE_C_FLAGS            "${CMAKE_C_FLAGS}            ${OpenMP_C_FLAGS}")
+    set( CMAKE_CXX_FLAGS          "${CMAKE_CXX_FLAGS}          ${OpenMP_CXX_FLAGS}" )
+    set( CMAKE_EXE_LINKER_FLAGS   "${CMAKE_EXE_LINKER_FLAGS}   ${OpenMP_EXE_LINKER_FLAGS}" )
+
+    # Set the flags that are exported to parent scope so that the parent can also compile using
+    # the those flags.
+    set( GENESIS_C_FLAGS          "${GENESIS_C_FLAGS}          ${OpenMP_C_FLAGS}" )
+    set( GENESIS_CXX_FLAGS        "${GENESIS_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
+    set( GENESIS_EXE_LINKER_FLAGS "${GENESIS_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
 
 elseif(
     GENESIS_USE_OPENMP
@@ -372,7 +399,19 @@ IF( GENESIS_HAS_PARENT_DIR )
     # Set the path to be used for `include_directories()` in the parent scope.
     set( GENESIS_INCLUDE_DIR ${GENESIS_INCLUDE_DIR} PARENT_SCOPE )
 
-    # Set the definitions to be used for `add_definitions` in the parent scope.
+    # Set the definitions to be used for `add_definitions()` in the parent scope.
     set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} PARENT_SCOPE )
+
+    # Set the libraries to be used for `target_link_libraries()` in the parent scope.
+    # This is a combination of our own internal libraries (shared and static lib), as well as
+    # any needed other external libraries, e.g., Pthreads. Well, maybe this is confusing, but at
+    # least it makes sure that the parent scope only needs to add one link target.
+    set( GENESIS_LINK_LIBRARIES   ${GENESIS_LINK_LIBRARIES} ${GENESIS_LIBRARIES} PARENT_SCOPE )
+
+    # Set the compiler and linker flags to be added to the respective `CMAKE_` variables
+    # in parent scope.
+    set( GENESIS_C_FLAGS          ${GENESIS_C_FLAGS}          PARENT_SCOPE )
+    set( GENESIS_CXX_FLAGS        ${GENESIS_CXX_FLAGS}        PARENT_SCOPE )
+    set( GENESIS_EXE_LINKER_FLAGS ${GENESIS_EXE_LINKER_FLAGS} PARENT_SCOPE )
 
 ENDIF()

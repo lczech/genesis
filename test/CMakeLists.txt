@@ -121,9 +121,8 @@ set_target_properties (genesis_tests PROPERTIES OUTPUT_NAME genesis_tests)
 target_link_libraries (genesis_tests genesis_lib_shared)
 target_link_libraries (genesis_tests ${GTEST_BOTH_LIBRARIES})
 
-if(THREADS_FOUND)
-    target_link_libraries (genesis_tests ${CMAKE_THREAD_LIBS_INIT})
-endif()
+# Link against any external libraries, e.g. Pthreads.
+target_link_libraries (genesis_tests ${GENESIS_LINK_LIBRARIES})
 
 # Need to specify the whole path here. For some reason, cmake does not
 # extract it from the executable name here...

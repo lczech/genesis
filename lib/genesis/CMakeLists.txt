@@ -56,9 +56,12 @@ if (GENESIS_BUILD_SHARED_LIB)
     add_library           (genesis_lib_shared SHARED ${genesis_lib_sources})
     set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
 
-    if(THREADS_FOUND)
-        target_link_libraries (genesis_lib_shared ${CMAKE_THREAD_LIBS_INIT})
-    endif()
+    # Link against any external libraries, e.g. Pthreads.
+    target_link_libraries (genesis_lib_shared ${GENESIS_LINK_LIBRARIES})
+
+    # Add this shared library to our exported libraries, which can then be used by the parent scope.
+    set( GENESIS_LIBRARIES ${GENESIS_LIBRARIES} genesis_lib_shared PARENT_SCOPE )
+
 endif()
 
 if (GENESIS_BUILD_STATIC_LIB)
@@ -66,7 +69,9 @@ if (GENESIS_BUILD_STATIC_LIB)
     add_library           (genesis_lib_static STATIC ${genesis_lib_sources})
     set_target_properties (genesis_lib_static PROPERTIES OUTPUT_NAME genesis)
 
-    if(THREADS_FOUND)
-        target_link_libraries (genesis_lib_static ${CMAKE_THREAD_LIBS_INIT})
-    endif()
+    # Link against any external libraries, e.g. Pthreads.
+    target_link_libraries (genesis_lib_static ${GENESIS_LINK_LIBRARIES})
+
+    # Add this static library to our exported libraries, which can then be used by the parent scope.
+    set( GENESIS_LIBRARIES ${GENESIS_LIBRARIES} genesis_lib_static PARENT_SCOPE )
 endif()
