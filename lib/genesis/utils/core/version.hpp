@@ -62,7 +62,7 @@ namespace genesis {
 inline std::string genesis_version()
 {
     // The following line is automatically replaced by the deploy scripts. Do not change manually.
-    return "v0.15.0"; // #GENESIS_VERSION#
+    return "v0.16.0"; // #GENESIS_VERSION#
 }
 
 /**
@@ -73,7 +73,7 @@ inline std::string genesis_version()
 inline std::string genesis_version_name()
 {
     // The following line is automatically replaced by the deploy scripts. Do not change manually.
-    return "Air Force Museum"; // #GENESIS_VERSION_NAME#
+    return "Bun Alert"; // #GENESIS_VERSION_NAME#
 }
 
 /**
