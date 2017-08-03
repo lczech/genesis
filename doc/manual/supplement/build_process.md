@@ -61,14 +61,59 @@ The following binaries are created:
 
  *  `genesis/bin/libgenesis.[so|a]`: Shared and static binaries of the library. Those are the files
     you need to link against when using Genesis as a library for your own C++ projects.
-    By default, only the shared lib (`.so`) is build. If you need the static lib, use the option
-    flag `BUILD_STATIC_LIB` of the main CMake script.
+    See @ref supplement_build_process_shared_vs_static "Shared vs Static Library" for details.
  *  `genesis/bin/apps/*`: App executables are stored here. See @ref setup_apps for details.
 <!--
  *  `genesis/bin/python/genesis.so`: Python module file. See section @ref setup_python.
 -->
  *  `genesis/bin/test/genesis_tests`: Test executable. See `genesis/test/README.md` for more information.
  *  `genesis/build`: Intermediate build files. No need to worry about them too much.
+
+# Shared vs Static Library @anchor supplement_build_process_shared_vs_static
+
+For the general setup of Genesis as a library, see @ref setup_lib.
+If Genesis is used stand-alone, only the shared lib (`.so`) is build by default.
+If it is used as a library (i.e., if it is used via CMake's `add_subdirectory`),
+we build the static lib (`.a`) by default.
+
+The reasoning behind this is as follows: As stand-alone, Genesis is most likely to be used with
+its @ref setup_apps setup, where the apps are probably staying in one place, so linking against a
+shared object makes sense to share resources. However, as a dependency/library, Genesis is just one
+among many tools that the master program wants to use, and in order to make it possible to move the
+final binary around, it makes sense to link statically.
+
+In order to explicitly change those defaults, use the CMake options `GENESIS_BUILD_SHARED_LIB` and
+`GENESIS_BUILD_STATIC_LIB`. For example, in your `CMakeLists.txt`, you can force these options via:
+
+~~~{.cmake}
+SET( GENESIS_BUILD_SHARED_LIB OFF CACHE BOOL "Build the shared library version of Genesis." )
+SET( GENESIS_BUILD_STATIC_LIB ON  CACHE BOOL "Build the static library version of Genesis." )
+~~~
+
+This is unfortunately a bit cumbersome, but it's CMake's way of changing options from a parent
+scope...
+
+Linking against those libraries can still be done in CMake via:
+
+~~~{.cmake}
+target_link_libraries ( YourTarget ${GENESIS_LINK_LIBRARIES} )
+~~~
+
+which is set to either the shared or static library, depending on which is being build, and
+on whether Genesis is build stand-alone or as a dependency/library (see above).
+
+Alternatively, if you build both library versions and need to explicitly decide which one to link
+against, you can use:
+
+~~~{.cmake}
+# Either use this...
+target_link_libraries ( YourTarget ${GENESIS_LINK_SHARED_LIBRARIES} )
+
+# ... or this.
+target_link_libraries ( YourTarget ${GENESIS_LINK_STATIC_LIBRARIES} )
+~~~
+
+This should however rarely be necessary.
 
 # Release vs Debug Version @anchor supplement_build_process_release_vs_debug
 

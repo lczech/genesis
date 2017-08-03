@@ -61,7 +61,7 @@ if( genesis_apps_sources )
         target_link_libraries( ${app_name} genesis_lib_shared )
 
         # Link against any external libraries, e.g. Pthreads.
-        target_link_libraries (${app_name} ${GENESIS_LINK_LIBRARIES})
+        target_link_libraries (${app_name} ${GENESIS_INTERNAL_LINK_LIBRARIES})
 
     endforeach()
 

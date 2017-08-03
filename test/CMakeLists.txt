@@ -122,7 +122,7 @@ target_link_libraries (genesis_tests genesis_lib_shared)
 target_link_libraries (genesis_tests ${GTEST_BOTH_LIBRARIES})
 
 # Link against any external libraries, e.g. Pthreads.
-target_link_libraries (genesis_tests ${GENESIS_LINK_LIBRARIES})
+target_link_libraries (genesis_tests ${GENESIS_INTERNAL_LINK_LIBRARIES})
 
 # Need to specify the whole path here. For some reason, cmake does not
 # extract it from the executable name here...
