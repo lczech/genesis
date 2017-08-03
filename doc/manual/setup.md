@@ -12,14 +12,17 @@ The functionality of genesis can be used in two ways:
  *  As a Python module.
 -->
 
-The code is written as a C++11 library. It can thus be used in custom projects by including
-the necessary headers and linking against the binary (either shared or static, see section
-@ref setup_build).
+Genesis is a C++11 library, which can be used in other C++ projects. It is however also possible
+to use its stand-alone features, e.g. for running @ref demos and @ref setup_apps.
 
-A common use case of Genesis are small programs for a certain limited purpose, e.g., project related
-analyses. Usually, scripts are used for such purposes. However, C++ is not a scripting language.
-In order to still provide a quick and easy way for multiple small script-like programs in C++,
-we provide the so-called Genesis apps. See section @ref setup_apps.
+ *  For the first use case (library), you need to include the necessary headers and link against the
+    binary (either shared or static). See section @ref setup_lib for details.
+
+ *  For the second use case (stand-alone), we first need a little motivation:
+    A common utilization of Genesis are small programs for a certain limited purpose, e.g., project
+    related analyses. Usually, scripts are used for such purposes. However, C++ is not a scripting
+    language. In order to still provide a quick and easy way for multiple small script-like programs
+    in C++, we provide the so-called Genesis apps. See section @ref setup_apps for details.
 
 <!--
 In addition to C++, the classes and functions are (mostly) exported to Python. The Genesis module
@@ -57,7 +60,7 @@ Furthermore, if you want to contribute code of your own, you can also
 
 # Build {#setup_build}
 
-To build all of Genesis, call
+In the stand-alone variant, to build all of Genesis, call
 
     make
 
@@ -69,6 +72,7 @@ Requirements:
  *  A fairly up-to-date C++11 compiler. We currently test with [clang++](http://clang.llvm.org/)
     3.6 and 3.7, as well as [GCC](https://gcc.gnu.org/) 4.9 and 5.0.
 
+<!-- The requirements are of course also needed when using Genesis as a library. -->
 For details, see the @ref supplement_build_process "Build Process" page.
 
 Optional:
@@ -95,9 +99,10 @@ See @ref supplement_build_process for more information on incremental builds.
 # Apps {#setup_apps}
 
 The `genesis/apps` directory is provided for conveniently and quickly developing small C++ applications
-which use genesis as their main library. This is a way of using C++ similar to a scripting language.
+which use Genesis as their main library. This is a way of using C++ similar to a scripting language.
 Thus, it is useful if you want to try out the @ref tutorials and @ref demos or if you quickly want
-to test an idea or get some experience with Genesis.
+to test an idea or get some experience with Genesis. Using those apps is the main purpose
+of the stand-alone variant of Genesis.
 
 <!--
 Reasons to use this method (instead of the genesis Python bindings) include:
@@ -150,6 +155,40 @@ If you include Genesis in bigger projects which are separately compiled, you nee
 use compatible options for compiling the Genesis binaries. For example, if you want to link against
 the shared library, the settings for threads (e.g., Pthreads) need to be the same for every
 compilation unit. See the main Cmake script for the available compiler options.
+
+The easiest way to use Genesis as a library is via the CMake `add_subdirectory` command. In your
+main `CMakeLists.txt`, use:
+
+~~~{.cmake}
+# Add Genesis as dependency. You need to adapt the path to Genesis as needed.
+add_subdirectory(${PROJECT_SOURCE_DIR}/genesis)
+include_directories( ${GENESIS_INCLUDE_DIR} )
+~~~
+
+Genesis internally uses some specialties that might lead to trouble if not taken care of,
+e.g. Pthreads and OpenMP (if they are available). Thus, it is best to also offer the needed flags to
+your binary, too. In case that Pthreads or OpenMP are not used/found, those variables are empty.
+In case they are used by Genesis, but not your program, nothing bad happens.
+So better make them available to the compiler:
+
+~~~{.cmake}
+# Use all flags, linker options etc that Genesis exports.
+add_definitions( ${GENESIS_DEFINITIONS} )
+set( CMAKE_C_FLAGS          "${CMAKE_C_FLAGS}          ${GENESIS_C_FLAGS}")
+set( CMAKE_CXX_FLAGS        "${CMAKE_CXX_FLAGS}        ${GENESIS_CXX_FLAGS}" )
+set( CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} ${GENESIS_EXE_LINKER_FLAGS}" )
+~~~
+
+After this setup, you can add your executables/libraries in CMake as usual (e.g, via
+`add_executable` and `add_library`). Then, for each target that uses Genesis:
+
+~~~{.cmake}
+target_link_libraries ( YourTarget ${GENESIS_LINK_LIBRARIES} )
+~~~
+
+This links against the static version of Genesis, which should be the most common use case when
+using Genesis as a dependency/library.
+See @ref supplement_build_process_shared_vs_static "Shared vs Static Library" for details.
 
 <!--
 # Python {#setup_python}

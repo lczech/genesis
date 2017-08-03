@@ -57,10 +57,11 @@ if (GENESIS_BUILD_SHARED_LIB)
     set_target_properties (genesis_lib_shared PROPERTIES OUTPUT_NAME genesis)
 
     # Link against any external libraries, e.g. Pthreads.
-    target_link_libraries (genesis_lib_shared ${GENESIS_LINK_LIBRARIES})
+    target_link_libraries (genesis_lib_shared ${GENESIS_INTERNAL_LINK_LIBRARIES})
 
     # Add this shared library to our exported libraries, which can then be used by the parent scope.
-    set( GENESIS_LIBRARIES ${GENESIS_LIBRARIES} genesis_lib_shared PARENT_SCOPE )
+    set( GENESIS_SHARED_LIBRARY genesis_lib_shared PARENT_SCOPE )
+    set( GENESIS_LIBRARY genesis_lib_shared PARENT_SCOPE )
 
 endif()
 
@@ -70,8 +71,16 @@ if (GENESIS_BUILD_STATIC_LIB)
     set_target_properties (genesis_lib_static PROPERTIES OUTPUT_NAME genesis)
 
     # Link against any external libraries, e.g. Pthreads.
-    target_link_libraries (genesis_lib_static ${GENESIS_LINK_LIBRARIES})
+    target_link_libraries (genesis_lib_static ${GENESIS_INTERNAL_LINK_LIBRARIES})
 
     # Add this static library to our exported libraries, which can then be used by the parent scope.
-    set( GENESIS_LIBRARIES ${GENESIS_LIBRARIES} genesis_lib_static PARENT_SCOPE )
+    # In case that we also build the shared lib, GENESIS_LIBRARY is overwritten, which is on
+    # purpose. This way, if both libraries are available, we prefer to use the static one.
+    # This is more useful for external projects that use Genesis as a dependency: They probably
+    # do not want to run into dynamic linker issues when the shared library is not found after
+    # moving around their binary. So better link statically.
+    # Also, as the static library has to be actively activated (by setting GENESIS_BUILD_STATIC_LIB),
+    # there already was a user action once we are here, so the user actually wants the static one.
+    set( GENESIS_STATIC_LIBRARY genesis_lib_static PARENT_SCOPE )
+    set( GENESIS_LIBRARY genesis_lib_static PARENT_SCOPE )
 endif()

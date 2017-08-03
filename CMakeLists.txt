@@ -57,15 +57,22 @@ set( GENESIS_INCLUDE_DIR "${CMAKE_CURRENT_LIST_DIR}/lib" )
 # accessed in the Genesis source code via `#ifdef` macros.
 set( GENESIS_DEFINITIONS "" )
 
-# Prepare variable that collects the genesis libraries that can be linked against.
-# These are our shared and static libraries.
-set( GENESIS_LIBRARIES "" )
+# Prepare a variable that holds the default Genesis library to linked against.
+# This is either the shared and static library.
+set( GENESIS_LIBRARY "" )
 
-# Prepare variable that collects libraries that need to be linked against, e.g. Pthreads.
-# This is used internally. A variable of the same name is also exported to the parent scope, but with
-# the addition of ${GENESIS_LIBRARIES}, so that in parent scope, only one target has to be linked
-# against.
-set( GENESIS_LINK_LIBRARIES "" )
+# Prepare a variable that can be used to explicitly link against the Genesis shared library.
+# This is exported to the parent scope, but only usable if GENESIS_BUILD_SHARED_LIB is ON.
+set( GENESIS_SHARED_LIBRARY "" )
+
+# Prepare a variable that can be used to explicitly link against the Genesis static library.
+# This is exported to the parent scope, but only usable if GENESIS_BUILD_STATIC_LIB is ON.
+set( GENESIS_STATIC_LIBRARY "" )
+
+# Prepare variable that collects libraries that Genesis needs to be linked against, e.g. Pthreads.
+# This is used internally, and also added to the Genesis library exports, so that in parent scope,
+# only one target needs to be linked against.
+set( GENESIS_INTERNAL_LINK_LIBRARIES "" )
 
 # Prepare variables that collect compiler and linker flags, e.g. for OpenMP.
 set( GENESIS_C_FLAGS "" )
@@ -83,42 +90,55 @@ endif()
 message (STATUS "${ColorBlue}Genesis version: ${GENESIS_VERSION}${ColorEnd}")
 
 # Figure out whether Genesis is compiled stand-alone or as a library/dependency.
-set( GENESIS_MASTER_PROJECT OFF )
+# We use two complementary variable, because we want to use them as default for options
+# (see later on), which do not accept a `NOT`...
+# Also, we need to re-set GENESIS_HAS_PARENT_DIR to an actual bool value.
 get_directory_property( GENESIS_HAS_PARENT_DIR PARENT_DIRECTORY )
-if( NOT GENESIS_HAS_PARENT_DIR )
+if( GENESIS_HAS_PARENT_DIR )
+    set( GENESIS_HAS_PARENT_DIR ON )
+    set( GENESIS_MASTER_PROJECT OFF )
+    message (STATUS "Scope: library")
+else()
+    set( GENESIS_HAS_PARENT_DIR OFF )
     set( GENESIS_MASTER_PROJECT ON )
+    message (STATUS "Scope: stand-alone")
 endif()
 
 # --------------------------------------------------------------------------------------------------
 #   Build Options
 # --------------------------------------------------------------------------------------------------
 
-option (GENESIS_BUILD_SHARED_LIB    "Build Genesis as a shared library." ON)
-option (GENESIS_BUILD_STATIC_LIB    "Build Genesis as a static library." OFF)
+# Options for which library version to build. Default: Build shared for stand-alone version,
+# and build static when being used as a library.
+option (GENESIS_BUILD_SHARED_LIB    "Build the shared library version of Genesis." ${GENESIS_MASTER_PROJECT})
+option (GENESIS_BUILD_STATIC_LIB    "Build the static library version of Genesis." ${GENESIS_HAS_PARENT_DIR})
 
-option (GENESIS_BUILD_APPLICATIONS  "Build Genesis applications."        ON)
+# If we are the master project, we want to build the apps by default.
+option (GENESIS_BUILD_APPLICATIONS  "Build Genesis applications."        ${GENESIS_MASTER_PROJECT})
+
+# Currently, the Python module and tests are deactivated by default.
 option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."   OFF)
 option (GENESIS_BUILD_TESTS         "Build the Genesis test suites."     OFF)
 
+# We default to using threads (if available, which will be checked later).
 option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads)."  ON)
 option (GENESIS_USE_OPENMP          "Use OpenMP, if available."                    ON)
 
-# Define build type option with list of valid values.
+# Define build type option with list of valid values. Default is RELEASE.
 set( GENESIS_BUILD_TYPE RELEASE CACHE STRING
     "Build type. Either RELEASE or DEBUG."
 )
 set_property( CACHE GENESIS_BUILD_TYPE PROPERTY STRINGS RELEASE DEBUG )
 
-# Define unity build option with list of valid values.
+# Define unity build option with list of valid values. Default is full unity build.
 set( GENESIS_UNITY_BUILD FULL CACHE STRING
     "Build modules monolithically - trading memory for speed. This also enables poor-mans LTO."
 )
 set_property( CACHE GENESIS_UNITY_BUILD PROPERTY STRINGS FULL MODULES OFF )
 
-if( GENESIS_HAS_PARENT_DIR OR GENESIS_BUILD_APPLICATIONS OR GENESIS_BUILD_PYTHON_MODULE OR GENESIS_BUILD_TESTS )
-    # The applications, the python module and the tests all use the shared lib,
-    # so we need to build it if one of those is activated.
-    # Also, if Genesis is being used as a dependency/libary, we want to build the shared lib.
+# The applications, the python module and the tests all prefer the shared lib,
+# so we need to build it if one of those is activated.
+if( GENESIS_BUILD_APPLICATIONS OR GENESIS_BUILD_PYTHON_MODULE OR GENESIS_BUILD_TESTS )
     set (GENESIS_BUILD_SHARED_LIB ON)
 endif()
 
@@ -201,7 +221,7 @@ if(THREADS_FOUND)
     # Set needed definition and linker flags for Genesis and for the parent scope.
     add_definitions( "-DGENESIS_PTHREADS" )
     set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_PTHREADS" )
-    set( GENESIS_LINK_LIBRARIES ${GENESIS_LINK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+    set( GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
 
 elseif(GENESIS_USE_THREADS)
     message (STATUS "Threads not found")
@@ -402,16 +422,20 @@ IF( GENESIS_HAS_PARENT_DIR )
     # Set the definitions to be used for `add_definitions()` in the parent scope.
     set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} PARENT_SCOPE )
 
-    # Set the libraries to be used for `target_link_libraries()` in the parent scope.
-    # This is a combination of our own internal libraries (shared and static lib), as well as
-    # any needed other external libraries, e.g., Pthreads. Well, maybe this is confusing, but at
-    # least it makes sure that the parent scope only needs to add one link target.
-    set( GENESIS_LINK_LIBRARIES   ${GENESIS_LINK_LIBRARIES} ${GENESIS_LIBRARIES} PARENT_SCOPE )
-
     # Set the compiler and linker flags to be added to the respective `CMAKE_` variables
     # in parent scope.
     set( GENESIS_C_FLAGS          ${GENESIS_C_FLAGS}          PARENT_SCOPE )
     set( GENESIS_CXX_FLAGS        ${GENESIS_CXX_FLAGS}        PARENT_SCOPE )
     set( GENESIS_EXE_LINKER_FLAGS ${GENESIS_EXE_LINKER_FLAGS} PARENT_SCOPE )
+
+    # Set the libraries to be used for `target_link_libraries()` in the parent scope.
+    # This is a combination of our own internal libraries (shared and static lib), as well as
+    # any needed other external libraries, e.g., Pthreads.
+    set( GENESIS_LINK_LIBRARIES        ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_LIBRARY} PARENT_SCOPE )
+
+    # We also offer explicit targets for the shared and static library, in case both were build.
+    # They also include our internal dependencies (Pthreads etc), just to be sure.
+    set( GENESIS_LINK_SHARED_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_SHARED_LIBRARY} PARENT_SCOPE )
+    set( GENESIS_LINK_STATIC_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_STATIC_LIBRARY} PARENT_SCOPE )
 
 ENDIF()
