@@ -26,13 +26,9 @@
 # Require the minimum version of any system that we test on - which is the version used by Travis.
 # Thus, we can be sure that this works (as long as they don't change it...).
 cmake_minimum_required (VERSION 2.8.7 FATAL_ERROR)
-message (STATUS "CMake version ${CMAKE_VERSION}")
 
-set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
-set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
-
+# Fun with colors!
 if (NOT WIN32)
-    # Fun with colors!
     string(ASCII 27 Esc)
 
     set(ColorBlue   "${Esc}[34m") # Build information.
@@ -42,10 +38,24 @@ if (NOT WIN32)
     set(ColorEnd    "${Esc}[0m")
 endif()
 
+# Some very first output, so that CMake projects which use us as a dependency cleary see where
+# the Genesis configuration starts.
+message (STATUS "${ColorBlue}Configuring Genesis${ColorEnd}")
+message (STATUS "CMake version ${CMAKE_VERSION}")
+
+# Important settings.
+set (CMAKE_DISABLE_IN_SOURCE_BUILD ON)
+set (CMAKE_DISABLE_SOURCE_CHANGES  ON)
+
+# Add our own extra CMake functionality.
+set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_LIST_DIR}/tools/cmake" )
+include( "${CMAKE_CURRENT_LIST_DIR}/tools/cmake/AssembleMonolith.cmake" )
+
 # --------------------------------------------------------------------------------------------------
 #   Project Definitions and Variables
 # --------------------------------------------------------------------------------------------------
 
+# Set the project. We currently need "C" only because of the endianness test below...
 project ( genesis CXX C )
 
 # Set the file that needs to be used for `include_directories()`.
@@ -90,18 +100,18 @@ endif()
 message (STATUS "${ColorBlue}Genesis version: ${GENESIS_VERSION}${ColorEnd}")
 
 # Figure out whether Genesis is compiled stand-alone or as a library/dependency.
-# We use two complementary variable, because we want to use them as default for options
+# We use two complementary variables, because we want to use them as default for options
 # (see later on), which do not accept a `NOT`...
 # Also, we need to re-set GENESIS_HAS_PARENT_DIR to an actual bool value.
 get_directory_property( GENESIS_HAS_PARENT_DIR PARENT_DIRECTORY )
 if( GENESIS_HAS_PARENT_DIR )
     set( GENESIS_HAS_PARENT_DIR ON )
     set( GENESIS_MASTER_PROJECT OFF )
-    message (STATUS "Scope: library")
+    message (STATUS "Building Genesis as a dependency")
 else()
     set( GENESIS_HAS_PARENT_DIR OFF )
     set( GENESIS_MASTER_PROJECT ON )
-    message (STATUS "Scope: stand-alone")
+    message (STATUS "Building Genesis stand-alone")
 endif()
 
 # --------------------------------------------------------------------------------------------------
@@ -125,9 +135,7 @@ option (GENESIS_USE_THREADS         "Use a threading library (mainly, pthreads).
 option (GENESIS_USE_OPENMP          "Use OpenMP, if available."                    ON)
 
 # Define build type option with list of valid values. Default is RELEASE.
-set( GENESIS_BUILD_TYPE RELEASE CACHE STRING
-    "Build type. Either RELEASE or DEBUG."
-)
+set( GENESIS_BUILD_TYPE RELEASE CACHE STRING "Build type. Either RELEASE or DEBUG." )
 set_property( CACHE GENESIS_BUILD_TYPE PROPERTY STRINGS RELEASE DEBUG )
 
 # Define unity build option with list of valid values. Default is full unity build.
@@ -212,20 +220,22 @@ IF(GENESIS_USE_THREADS)
     set (CMAKE_THREAD_PREFER_PTHREAD ON)
     set (THREADS_PREFER_PTHREAD_FLAG ON)
     find_package (Threads)
+
+    # If found, set all needed compiler flags and also add those flags to the Genesis exported flags.
+    if(THREADS_FOUND)
+        message( STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}" )
+        message (STATUS "${ColorGreen}Using Threads${ColorEnd}")
+
+        # Set needed definition and linker flags for Genesis and for the parent scope.
+        add_definitions( "-DGENESIS_PTHREADS" )
+        set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_PTHREADS" )
+        set( GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
+
+    elseif(GENESIS_USE_THREADS)
+        message (STATUS "Threads not found")
+    endif()
+
 ENDIF()
-
-if(THREADS_FOUND)
-    message( STATUS "Found Threads: ${CMAKE_THREAD_LIBS_INIT}" )
-    message (STATUS "${ColorGreen}Using Threads${ColorEnd}")
-
-    # Set needed definition and linker flags for Genesis and for the parent scope.
-    add_definitions( "-DGENESIS_PTHREADS" )
-    set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_PTHREADS" )
-    set( GENESIS_INTERNAL_LINK_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT} )
-
-elseif(GENESIS_USE_THREADS)
-    message (STATUS "Threads not found")
-endif()
 
 IF(GENESIS_USE_OPENMP)
     message (STATUS "Looking for OpenMP")
@@ -235,7 +245,6 @@ IF(GENESIS_USE_OPENMP)
     # In order to still enable OpenMP, we use our own patch of the find module.
     # See ./tools/cmake/FindOpenMP_patch.cmake for the modifications we made to support Clang.
     if( "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang" )
-        set( CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${PROJECT_SOURCE_DIR}/tools/cmake" )
         find_package( OpenMP_patch )
 
         # If our patch does not work, try the standard one, just in case.
@@ -247,138 +256,43 @@ IF(GENESIS_USE_OPENMP)
         # In all other cases, use the normal find module.
         find_package( OpenMP )
     endif()
+
+    # If found, set all needed compiler flags and also add those flags to the Genesis exported flags.
+    if(OPENMP_FOUND)
+
+        message( STATUS "Found OpenMP: ${OpenMP_CXX_FLAGS}" )
+        message (STATUS "${ColorGreen}Using OpenMP${ColorEnd}")
+
+        # Set needed definition for Genesis and for the parent scope.
+        add_definitions( "-DGENESIS_OPENMP" )
+        set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_OPENMP" )
+
+        # Set the flags needed for compiling Genesis.
+        set( CMAKE_C_FLAGS            "${CMAKE_C_FLAGS}            ${OpenMP_C_FLAGS}")
+        set( CMAKE_CXX_FLAGS          "${CMAKE_CXX_FLAGS}          ${OpenMP_CXX_FLAGS}" )
+        set( CMAKE_EXE_LINKER_FLAGS   "${CMAKE_EXE_LINKER_FLAGS}   ${OpenMP_EXE_LINKER_FLAGS}" )
+
+        # Set the flags that are exported to parent scope so that the parent can also compile using
+        # the those flags.
+        set( GENESIS_C_FLAGS          "${GENESIS_C_FLAGS}          ${OpenMP_C_FLAGS}" )
+        set( GENESIS_CXX_FLAGS        "${GENESIS_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
+        set( GENESIS_EXE_LINKER_FLAGS "${GENESIS_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
+
+    elseif(
+        GENESIS_USE_OPENMP
+        AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
+        AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.8
+    )
+        # Special warning for users that have a Clang version that supports OpenMP, but where
+        # the find module still did not succeed.
+        message (STATUS "OpenMP not found")
+        message (STATUS "${ColorYellow}You are trying to compile with Clang and OpenMp. "
+        "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
+    elseif(GENESIS_USE_OPENMP)
+        message (STATUS "OpenMP not found")
+    endif()
+
 ENDIF()
-
-if(OPENMP_FOUND)
-
-    message( STATUS "Found OpenMP: ${OpenMP_CXX_FLAGS}" )
-    message (STATUS "${ColorGreen}Using OpenMP${ColorEnd}")
-
-    # Set needed definition for Genesis and for the parent scope.
-    add_definitions( "-DGENESIS_OPENMP" )
-    set( GENESIS_DEFINITIONS ${GENESIS_DEFINITIONS} " -DGENESIS_OPENMP" )
-
-    # Set the flags needed for compiling Genesis.
-    set( CMAKE_C_FLAGS            "${CMAKE_C_FLAGS}            ${OpenMP_C_FLAGS}")
-    set( CMAKE_CXX_FLAGS          "${CMAKE_CXX_FLAGS}          ${OpenMP_CXX_FLAGS}" )
-    set( CMAKE_EXE_LINKER_FLAGS   "${CMAKE_EXE_LINKER_FLAGS}   ${OpenMP_EXE_LINKER_FLAGS}" )
-
-    # Set the flags that are exported to parent scope so that the parent can also compile using
-    # the those flags.
-    set( GENESIS_C_FLAGS          "${GENESIS_C_FLAGS}          ${OpenMP_C_FLAGS}" )
-    set( GENESIS_CXX_FLAGS        "${GENESIS_CXX_FLAGS}        ${OpenMP_CXX_FLAGS}" )
-    set( GENESIS_EXE_LINKER_FLAGS "${GENESIS_EXE_LINKER_FLAGS} ${OpenMP_EXE_LINKER_FLAGS}" )
-
-elseif(
-    GENESIS_USE_OPENMP
-    AND "${CMAKE_CXX_COMPILER_ID}" MATCHES "Clang"
-    AND NOT ${CMAKE_CXX_COMPILER_VERSION} VERSION_LESS 3.8
-)
-    # Special warning for users that have a Clang version that supports OpenMP, but where
-    # the find module still did not succeed.
-    message (STATUS "OpenMP not found")
-    message (STATUS "${ColorYellow}You are trying to compile with Clang and OpenMp. "
-    "This does not seem to work right now. Try installing 'libiomp-dev' first.${ColorEnd}")
-elseif(GENESIS_USE_OPENMP)
-    message (STATUS "OpenMP not found")
-endif()
-
-# --------------------------------------------------------------------------------------------------
-#   Unity Build
-# --------------------------------------------------------------------------------------------------
-
-# Helper that builds monolithic source files by concatenating the original sources.
-#
-# It takes four parameters:
-#
-# input_directory: Where to look for source files (currently hardcoded to *.cpp)
-# use_modules: Either "FULL" or "MODULES". The function offers two modes for monolithic building.
-#     In "FULL" mode, all sources of the given input_directory are combined into one.
-#     In "MODULES" mode, each immediate subdirectory of input_directory is treated separately,
-#     resulting in one monolithic compilation unit per subdirectory. Files that are directly in
-#     input_directory (not in its subdirectories) are simply used as normal single compilation units.
-# name: Is used to distinguish between multiple monolithic parts during build (one for the lib,
-#     one for test etc). The name needs to be uniq for each call of this function.
-# resulting_source_files: Is used to store the resulting sources files. The value of this variable
-#     can then ben used as source argument for add_library() and the like.
-function( ASSEMBLE_MONOLITH input_directory use_modules name resulting_source_files  )
-
-    # Helper: Return a list of all directories within a given directory, non-recursive.
-    function( SUBDIRLIST result indir )
-        file( GLOB children RELATIVE ${indir} ${indir}/* )
-        set( dirlist "" )
-        foreach(child ${children})
-            if( IS_DIRECTORY ${indir}/${child} )
-                LIST( APPEND dirlist ${child} )
-            endif()
-        endforeach()
-        set( ${result} ${dirlist} PARENT_SCOPE )
-    endfunction()
-
-    # Helper: Append the contents of a file to another file.
-    function( APPEND_TO_FILE IN_FILE OUT_FILE )
-        file( READ ${IN_FILE} CONTENTS )
-        file( APPEND ${OUT_FILE} "${CONTENTS}" )
-    endfunction()
-
-    # Clean previously assembled monolith files.
-    file( REMOVE_RECURSE ${CMAKE_BINARY_DIR}/genesis_unity_assemble/${name} )
-
-    IF( "${use_modules}" STREQUAL "MODULES" )
-
-        # Process all modules (i.e., subdirs of the input dir).
-        SUBDIRLIST( SUBDIRS ${input_directory} )
-        foreach( SUBDIR ${SUBDIRS} )
-
-            # Target files for this module.
-            SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/genesis_unity_assemble/${name}/${SUBDIR}.cpp )
-            SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/genesis_unity_sources/${name}/${SUBDIR}.cpp )
-
-            # Find all sources of the module and concat them into a tmp assembly file.
-            file (GLOB_RECURSE subdir_sources ${input_directory}/${SUBDIR}/*.cpp)
-            file( WRITE ${ASSEMBLY_FILE} "" )
-            foreach( subdir_source ${subdir_sources} )
-                APPEND_TO_FILE( ${subdir_source} ${ASSEMBLY_FILE} )
-            endforeach()
-
-            # Copy the assemlby file to its destination. Using configure_file here ensures that we
-            # only copy if the file changes, so that incremental builds are faster.
-            configure_file( ${ASSEMBLY_FILE} ${MONOLITH_FILE} COPYONLY )
-        endforeach()
-
-        # Find all resulting source files. We need to treat top-level files in the lib dir
-        # extra, as they are not a part of any module.
-        file (GLOB top_level_sources ${input_directory}/*.cpp)
-        file (GLOB genesis_unity_sources     ${CMAKE_BINARY_DIR}/genesis_unity_sources/${name}/*.cpp)
-        set ( ${resulting_source_files} ${top_level_sources} ${genesis_unity_sources} PARENT_SCOPE )
-
-    ELSEIF( "${use_modules}" STREQUAL "FULL" )
-
-        # Target files.
-        SET( ASSEMBLY_FILE ${CMAKE_BINARY_DIR}/genesis_unity_assemble/${name}/all.cpp )
-        SET( MONOLITH_FILE ${CMAKE_BINARY_DIR}/genesis_unity_sources/${name}/all.cpp )
-
-        # Find all sources and concat them into a tmp assembly file.
-        file (GLOB_RECURSE all_sources ${input_directory}/*.cpp)
-        file( WRITE ${ASSEMBLY_FILE} "" )
-        foreach( subdir_source ${all_sources} )
-            APPEND_TO_FILE( ${subdir_source} ${ASSEMBLY_FILE} )
-        endforeach()
-
-        # Copy the assemlby file to its destination. Using configure_file here ensures that we
-        # only copy if the file changes, so that incremental builds are faster.
-        configure_file( ${ASSEMBLY_FILE} ${MONOLITH_FILE} COPYONLY )
-
-        # Return the assembled file.
-        set ( ${resulting_source_files} ${MONOLITH_FILE} PARENT_SCOPE )
-
-    ELSE()
-        # Can only happen if some CMake file misuses this function.
-        message( FATAL_ERROR
-            "${ColorRed}ASSEMBLE_MONOLITH called with wrong arg: ${use_modules}${ColorEnd}"
-        )
-    ENDIF()
-endfunction()
 
 # --------------------------------------------------------------------------------------------------
 #   Sub-Scripts
@@ -439,3 +353,7 @@ IF( GENESIS_HAS_PARENT_DIR )
     set( GENESIS_LINK_STATIC_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_STATIC_LIBRARY} PARENT_SCOPE )
 
 ENDIF()
+
+# Some very last output, so that CMake projects which use us as a dependency cleary see where
+# the Genesis configuration ends.
+message (STATUS "${ColorBlue}Finished configuring Genesis${ColorEnd}")
