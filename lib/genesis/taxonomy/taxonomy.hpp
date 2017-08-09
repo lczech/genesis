@@ -139,6 +139,8 @@ public:
     Taxon const& operator [] ( size_t index ) const;
     Taxon&       operator [] ( size_t index );
 
+    size_t index_of( std::string const& name ) const;
+
     // -------------------------------------------------------------------------
     //     Modifiers
     // -------------------------------------------------------------------------

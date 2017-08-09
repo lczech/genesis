@@ -211,6 +211,16 @@ Taxon& Taxonomy::operator [] ( size_t index )
     return children_[ index ];
 }
 
+size_t Taxonomy::index_of( std::string const& name ) const
+{
+    for( size_t i = 0; i < children_.size(); ++i ) {
+        if( children_[i].name() == name ) {
+            return i;
+        }
+    }
+    throw std::runtime_error( "Taxon has no child named '" + name + "'." );
+}
+
 // =================================================================================================
 //     Modifiers
 // =================================================================================================
