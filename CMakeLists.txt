@@ -352,6 +352,15 @@ IF( GENESIS_HAS_PARENT_DIR )
     set( GENESIS_LINK_SHARED_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_SHARED_LIBRARY} PARENT_SCOPE )
     set( GENESIS_LINK_STATIC_LIBRARIES ${GENESIS_INTERNAL_LINK_LIBRARIES} ${GENESIS_STATIC_LIBRARY} PARENT_SCOPE )
 
+    # We also export the additional library settings to the parent scope,
+    # so that it can easily check whether those are available (and used by Genesis).
+    if(THREADS_FOUND)
+        set( THREADS_FOUND ${THREADS_FOUND} PARENT_SCOPE )
+    endif()
+    if(OPENMP_FOUND)
+        set( OPENMP_FOUND ${OPENMP_FOUND} PARENT_SCOPE )
+    endif()
+
 ENDIF()
 
 # Some very last output, so that CMake projects which use us as a dependency cleary see where
