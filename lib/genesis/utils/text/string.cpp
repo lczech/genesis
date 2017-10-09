@@ -387,6 +387,13 @@ std::string repeat( std::string const& word, size_t times )
     return result;
 }
 
+std::string to_string_leading_zeros( size_t value, size_t length )
+{
+    std::stringstream ss;
+    ss << std::setw( length ) << std::setfill( '0' ) << value;
+    return ss.str();
+}
+
 std::string to_string_precise( double const value, int const precision )
 {
     // Simple and straight forward.

@@ -135,7 +135,9 @@ bool has_valid_labels( SequenceSet const& set )
 std::string sanitize_label( std::string const& label )
 {
     std::string result;
-    std::string invalid_chars = ":,();[]'";
+    result.reserve( label.size() );
+
+    std::string const invalid_chars = ":,();[]'";
     for( auto c : label ) {
         if( ! isgraph(c) || invalid_chars.find( c ) != std::string::npos ) {
             result += "_";
