@@ -74,8 +74,8 @@ class Histogram
 public:
 
     enum class OutOfRangeBehaviour {
-        kIgnore,
         kSqueeze,
+        kIgnore,
         kThrow
     };
 
