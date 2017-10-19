@@ -328,7 +328,7 @@ std::string consensus_sequence_with_threshold(
     // The characters in the counts object are sorted, so we can directly compare then like this.
     if( counts.characters() != "ACGT" ) {
         throw std::runtime_error(
-            "Computation of consensus_sequence_with_ambiguities() only possible "
+            "Computation of consensus_sequence_with_threshold() only possible "
             "for nucleic acid codes (ACGT)."
         );
     }
