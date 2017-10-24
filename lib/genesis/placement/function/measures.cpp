@@ -172,9 +172,6 @@ double placement_distance(
 //     Expected Distance between Placement Locations
 // =================================================================================================
 
-/**
- * @brief Local helper function to calculate the expected_distance_between_placement_locations().
- */
 double expected_distance_between_placement_locations(
     Pquery const& pquery,
     utils::Matrix<double> const& node_distances
@@ -186,7 +183,7 @@ double expected_distance_between_placement_locations(
             auto const& place_i = pquery.placement_at(i);
             auto const& place_j = pquery.placement_at(j);
 
-            auto dist = placement_distance( place_i, place_j, node_distances );
+            auto const dist = placement_distance( place_i, place_j, node_distances );
             result += place_i.like_weight_ratio * place_j.like_weight_ratio * dist;
         }
     }
@@ -211,7 +208,7 @@ std::vector<double> expected_distance_between_placement_locations( Sample const&
     result.reserve( sample.size() );
 
     // Get pairwise dists between all nodes of the tree.
-    auto node_distances = node_branch_length_distance_matrix( sample.tree() );
+    auto const node_distances = node_branch_length_distance_matrix( sample.tree() );
 
     // Fill result vector.
     for( auto const& pquery : sample ) {
@@ -244,8 +241,8 @@ double pairwise_distance (
     // Create PqueryPlain objects for every placement and copy all interesting data into it.
     // This way, we won't have to do all the pointer dereferencing during the actual calculations,
     // and furthermore, the data is close in memory. this gives a tremendous speedup!
-    std::vector<PqueryPlain> pqueries_a = plain_queries( smp_a );
-    std::vector<PqueryPlain> pqueries_b = plain_queries( smp_b );
+    std::vector<PqueryPlain> const pqueries_a = plain_queries( smp_a );
+    std::vector<PqueryPlain> const pqueries_b = plain_queries( smp_b );
 
     // Calculate a matrix containing the pairwise distance between all nodes. This way, we
     // do not need to search a path between placements every time. We use the tree of the first smp
@@ -288,7 +285,7 @@ double variance_partial (
         if (pqry_a.index >= pqry_b.index) {
             continue;
         }
-        double dist = pquery_distance(pqry_a, pqry_b, node_distances, with_pendant_length);
+        double const dist = pquery_distance(pqry_a, pqry_b, node_distances, with_pendant_length);
         partial += dist * dist;
     }
 
@@ -319,7 +316,7 @@ void variance_thread (
     for (size_t i = offset; i < pqrys->size(); i += incr) {
         // LOG_PROG(i, pqrys->size()) << "of Variance() finished (Thread " << offset << ").";
 
-        const PqueryPlain& pqry_a = (*pqrys)[i];
+        PqueryPlain const& pqry_a = (*pqrys)[i];
         tmp_partial += variance_partial(pqry_a, *pqrys, *node_distances, with_pendant_length);
     }
 

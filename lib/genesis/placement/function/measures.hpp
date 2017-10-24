@@ -139,6 +139,19 @@ double placement_distance(
 /**
  * @brief Calculate the EDPL uncertainty values for a Pquery.
  *
+ * This is the function that does the actual computation. It is used by the other `edpl`
+ * functions, which first calculate the @p node_distances matrix before calling this function.
+ * It is useful to separate these steps in order to avoid duplicate work when calculating the
+ * edpl for many @link Pquery Pqueries@endlink at a time.
+ */
+double expected_distance_between_placement_locations(
+    Pquery const& pquery,
+    utils::Matrix<double> const& node_distances
+);
+
+/**
+ * @brief Calculate the EDPL uncertainty values for a Pquery.
+ *
  * See http://matsen.github.io/pplacer/generated_rst/guppy_edpl.html for more information.
  *
  * This function expects a Pquery and the Sample it belongs to. This is necessary in order to

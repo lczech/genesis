@@ -249,6 +249,14 @@ char        deescape( char c );
 std::string repeat( std::string const& word, size_t times );
 
 /**
+ * @brief Return a string representation of a `size_t` @p value with a fixed length, that is,
+ * by adding leading zeros.
+ *
+ * If @p value is already longer than @p length, the result will also be longer.
+ */
+std::string to_string_leading_zeros( size_t value, size_t length = 6 );
+
+/**
  * @brief Return a precise string representation of the input value, using the provided precision
  * value (determining its decimal places).
  *
