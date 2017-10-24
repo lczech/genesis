@@ -76,7 +76,7 @@ Histogram::Histogram(
 )
     : bins_                   (num_bins)
     , ranges_                 (num_bins + 1)
-    , out_of_range_behaviour_ (OutOfRangeBehaviour::kIgnore)
+    , out_of_range_behaviour_ (OutOfRangeBehaviour::kSqueeze)
 {
     if (num_bins == 0) {
         throw std::domain_error("__FUNCTION__: domain_error");
@@ -90,7 +90,7 @@ Histogram::Histogram(
 )
     : bins_                   (ranges.size() - 1, 0.0)
     , ranges_                 (ranges)
-    , out_of_range_behaviour_ (OutOfRangeBehaviour::kIgnore)
+    , out_of_range_behaviour_ (OutOfRangeBehaviour::kSqueeze)
 {
     if (ranges.size() < 2) {
         throw std::domain_error("__FUNCTION__: domain_error");

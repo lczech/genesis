@@ -201,8 +201,8 @@ double spearmans_rank_correlation_coefficient(
     std::vector<double> const& vec_b
 ) {
     // Get the ranking of both vectors.
-    auto ranks_a = ranking_fractional( vec_a );
-    auto ranks_b = ranking_fractional( vec_b );
+    auto const ranks_a = ranking_fractional( vec_a );
+    auto const ranks_b = ranking_fractional( vec_b );
 
     return pearson_correlation_coefficient( ranks_a, ranks_b );
 }
@@ -215,7 +215,7 @@ std::vector<size_t> ranking_standard( std::vector<double> const& vec )
 {
     // Prepare result, and get the sorting order of the vector.
     auto result = std::vector<size_t>( vec.size(), 1 );
-    auto order  = stable_sort_indices( vec.begin(), vec.end() );
+    auto const order = stable_sort_indices( vec.begin(), vec.end() );
 
     // Shortcuts for better readability.
     auto ordered_value = [&]( size_t i ){
@@ -243,7 +243,7 @@ std::vector<size_t> ranking_modified( std::vector<double> const& vec )
 {
     // Prepare result, and get the sorting order of the vector.
     auto result = std::vector<size_t>( vec.size(), 1 );
-    auto order  = stable_sort_indices( vec.begin(), vec.end() );
+    auto const order = stable_sort_indices( vec.begin(), vec.end() );
 
     // Shortcuts for better readability.
     auto ordered_value = [&]( size_t i ){
@@ -278,7 +278,7 @@ std::vector<size_t> ranking_dense( std::vector<double> const& vec )
 {
     // Prepare result, and get the sorting order of the vector.
     auto result = std::vector<size_t>( vec.size(), 1 );
-    auto order  = stable_sort_indices( vec.begin(), vec.end() );
+    auto const order = stable_sort_indices( vec.begin(), vec.end() );
 
     // Shortcuts for better readability.
     auto ordered_value = [&]( size_t i ){
@@ -306,7 +306,7 @@ std::vector<size_t> ranking_ordinal( std::vector<double> const& vec )
 {
     // Prepare result, and get the sorting order of the vector.
     auto result = std::vector<size_t>( vec.size(), 1 );
-    auto order  = stable_sort_indices( vec.begin(), vec.end() );
+    auto const order = stable_sort_indices( vec.begin(), vec.end() );
 
     // Shortcuts for better readability.
     auto ordered_result = [&]( size_t i ) -> size_t& {
@@ -325,7 +325,7 @@ std::vector<double> ranking_fractional( std::vector<double> const& vec )
 {
     // Prepare result, and get the sorting order of the vector.
     auto result = std::vector<double>( vec.size(), 1 );
-    auto order  = stable_sort_indices( vec.begin(), vec.end() );
+    auto const order = stable_sort_indices( vec.begin(), vec.end() );
 
     // Shortcuts for better readability.
     auto ordered_value = [&]( size_t i ){
@@ -347,8 +347,8 @@ std::vector<double> ranking_fractional( std::vector<double> const& vec )
         // Diff:     45 - 21 = 24
         // Count:    9 - 7 + 1 = 3
         // Result:   24 / 3 = 8
-        auto upper = r * ( r + 1 ) / 2;
-        auto lower = ( l - 1 ) * l / 2;
+        auto const upper = r * ( r + 1 ) / 2;
+        auto const lower = ( l - 1 ) * l / 2;
         return static_cast<double>( upper - lower ) / static_cast<double>( r - l + 1 );
     };
 
