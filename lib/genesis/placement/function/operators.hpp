@@ -50,6 +50,7 @@ namespace tree {
     class DefaultEdgeData;
 
     using DefaultTree = Tree;
+    using MassTree = Tree;
 }
 
 namespace placement {
@@ -57,6 +58,7 @@ namespace placement {
     class PlacementNodeData;
 
     class Sample;
+    class SampleSet;
 }
 
 namespace placement {
@@ -101,6 +103,33 @@ bool compatible_trees( Sample        const& lhs, Sample        const& rhs );
  * established, as it is not part of the DefaultTree data.
  */
 PlacementTree convert_default_tree_to_placement_tree( tree::DefaultTree const& source_tree );
+
+/**
+* @brief Helper function to copy masses from a Sample to a
+* @link tree::MassTree MassTree@endlink.
+*
+* The function copies the masses from a Sample to a MassTree.
+* It returns the amount of work needed to move the masses from their pendant
+* position to the branch (this result is only used if `with_pendant_length` is `true` in the
+* calculation functions).
+*/
+double add_sample_to_mass_tree(
+    Sample const& smp, double const sign, double const scaler, tree::MassTree& target
+);
+
+/**
+ * @brief Convert a Sample to a tree::MassTree.
+ *
+ * The function takes all PqueryPlacement%s of the Sample and adds their masses in form of the
+ * `like_weight_ratio` as mass points on a tree::MassTree.
+ */
+std::pair< tree::MassTree, double > convert_sample_to_mass_tree( Sample const& sample );
+
+/**
+ * @brief Convert all Sample%s in a SampleSet to tree::MassTree%s.
+ */
+std::pair< std::vector<tree::MassTree>, std::vector<double> >
+convert_sample_set_to_mass_trees( SampleSet const& sample_set );
 
 // =================================================================================================
 //     Output
