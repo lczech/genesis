@@ -37,6 +37,10 @@
 #include <assert.h>
 #include <stdexcept>
 
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
 namespace genesis {
 namespace tree {
 
@@ -47,21 +51,22 @@ namespace tree {
 utils::Matrix<double> node_branch_length_distance_matrix(
     Tree const& tree
 ) {
-    utils::Matrix<double> mat (tree.node_count(), tree.node_count(), -1.0);
+    utils::Matrix<double> mat( tree.node_count(), tree.node_count(), -1.0 );
 
     // fill every row of the matrix
-    for (auto row_it = tree.begin_nodes(); row_it != tree.end_nodes(); ++row_it) {
-        const auto row_node = row_it->get();
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.node_count(); ++i ) {
+        auto const& row_node = tree.node_at(i);
 
         // set the diagonal element of the matrix.
-        mat(row_node->index(), row_node->index()) = 0.0;
+        mat(row_node.index(), row_node.index()) = 0.0;
 
         // the columns are filled using a levelorder traversal. this makes sure that for every node
         // we know how to calculate the distance to the current row node.
         // unfortunately, this prevents us from simply calculating the upper triangle of the matrix
         // and copying it (distance is symmetric), because we do not really know which nodes are in
         // which half during a levelorder traversal...
-        for( auto it : levelorder( row_node->link() )) {
+        for( auto it : levelorder( row_node.link() )) {
             // skip the diagonal of the matrix.
             if (it.is_first_iteration()) {
                 continue;
@@ -69,14 +74,15 @@ utils::Matrix<double> node_branch_length_distance_matrix(
 
             // make sure we don't have touched the current position, but have calculated
             // the needed dependency already.
-            assert(mat(row_node->index(), it.node().index()) == -1.0);
-            assert(mat(row_node->index(), it.link().outer().node().index()) > -1.0);
+            assert(mat(row_node.index(), it.node().index()) == -1.0);
+            assert(mat(row_node.index(), it.link().outer().node().index()) > -1.0);
 
             // the distance to the current row node is: the length of the current branch plus
             // the distance from the other end of that branch to the row node.
-            mat(row_node->index(), it.node().index())
+            mat(row_node.index(), it.node().index())
                 = it.edge().data<DefaultEdgeData>().branch_length
-                + mat(row_node->index(), it.link().outer().node().index());
+                + mat(row_node.index(), it.link().outer().node().index())
+            ;
         }
     }
 
@@ -131,8 +137,9 @@ utils::Matrix<double> edge_branch_length_distance_matrix(
     // For now, this version should be fast enough.
     auto node_dist_mat = node_branch_length_distance_matrix(tree);
 
-    for (auto row_it = tree.begin_edges(); row_it != tree.end_edges(); ++row_it) {
-        auto const& row_edge = *row_it->get();
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        auto const& row_edge = tree.edge_at(i);
 
         for (auto col_it = tree.begin_edges(); col_it != tree.end_edges(); ++col_it) {
             auto const& col_edge = *col_it->get();
@@ -199,8 +206,9 @@ std::vector<double> edge_branch_length_distance_vector(
     auto p_node_dist = node_branch_length_distance_vector(tree, &edge->primary_node());
     auto s_node_dist = node_branch_length_distance_vector(tree, &edge->secondary_node());
 
-    for (auto col_it = tree.begin_edges(); col_it != tree.end_edges(); ++col_it) {
-        auto const& col_edge = *col_it->get();
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        auto const& col_edge = tree.edge_at(i);
 
         if (edge->index() == col_edge.index()) {
             vec[ edge->index() ] = 0.0;
