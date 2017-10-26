@@ -118,6 +118,20 @@ void sort_placements_by_weight( Sample& smp );
  */
 void scale_all_branch_lengths( Sample& smp, double factor = 1.0 );
 
+/**
+ * @brief Take the branch lengths of the @p source @link tree::Tree Tree@endlink
+ * and use them as the new branch lengths of the @p sample.
+ *
+ * The @link PqueryPlacement::proximal_length proximal_lengths@endlink of the PqueryPlacement%s
+ * are adjusted accordingly, so that their relative position on the branch stays the same.
+ *
+ * The @p source Tree is expected to have edges with data type tree::DefaultEdgeData.
+ *
+ * The topology of the @p source and the @link Sample::tree() tree@endlink of the Sample have to
+ * be identical. This is however not checked, so the user has to provide a fitting tree.
+ */
+void adjust_branch_lengths( Sample& sample, tree::Tree const& source );
+
 // =================================================================================================
 //     Filtering
 // =================================================================================================

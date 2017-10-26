@@ -122,10 +122,35 @@ TEST( SampleMeasures, NodeHistogramDistance )
     Sample smp_rhs = JplaceReader().from_file(infile_rhs);
 
     // Distance and symmetric case.
-    EXPECT_FLOAT_EQ( 1.324, node_histogram_distance( smp_lhs, smp_rhs, 10 ));
-    EXPECT_FLOAT_EQ( 1.324, node_histogram_distance( smp_rhs, smp_lhs, 10 ));
+    EXPECT_FLOAT_EQ( 1.4185, node_histogram_distance( smp_lhs, smp_rhs, 10, true ));
+    EXPECT_FLOAT_EQ( 1.4185, node_histogram_distance( smp_rhs, smp_lhs, 10, true ));
+    EXPECT_FLOAT_EQ( 1.324,  node_histogram_distance( smp_lhs, smp_rhs, 10, false ));
+    EXPECT_FLOAT_EQ( 1.324,  node_histogram_distance( smp_rhs, smp_lhs, 10, false ));
 
     // Self-distances.
     EXPECT_FLOAT_EQ( 0.0, node_histogram_distance( smp_lhs, smp_lhs ));
     EXPECT_FLOAT_EQ( 0.0, node_histogram_distance( smp_rhs, smp_rhs ));
+
+    // Use SampleSet functions.
+    SampleSet set;
+    set.add( smp_lhs );
+    set.add( smp_rhs );
+
+    auto const mat_neg = node_histogram_distance( set, 10, true );
+    auto const mat_pos = node_histogram_distance( set, 10, false );
+
+    EXPECT_EQ( 4, mat_neg.size() );
+    EXPECT_EQ( 4, mat_pos.size() );
+
+    // Check matrix with negative histogram axis.
+    EXPECT_FLOAT_EQ( 0.0,    mat_neg( 0, 0 ));
+    EXPECT_FLOAT_EQ( 1.4185, mat_neg( 1, 0 ));
+    EXPECT_FLOAT_EQ( 1.4185, mat_neg( 0, 1 ));
+    EXPECT_FLOAT_EQ( 0.0,    mat_neg( 1, 1 ));
+
+    // Check matrix with only positive histogram axis.
+    EXPECT_FLOAT_EQ( 0.0,    mat_pos( 0, 0 ));
+    EXPECT_FLOAT_EQ( 1.324,  mat_pos( 1, 0 ));
+    EXPECT_FLOAT_EQ( 1.324,  mat_pos( 0, 1 ));
+    EXPECT_FLOAT_EQ( 0.0,    mat_pos( 1, 1 ));
 }

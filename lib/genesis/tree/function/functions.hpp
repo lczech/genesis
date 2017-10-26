@@ -109,6 +109,18 @@ size_t inner_edge_count( Tree const& tree );
  */
 utils::Matrix<signed char> edge_sides( Tree const& tree );
 
+/**
+ * @brief Calculate a Matrix that indicates the nodes on the root side of a given node.
+ *
+ * The row and column indices of the Matrix represent TreeNode indices.
+ * Each element of the Matrix indicates whether the column node is in the subtree of the row node
+ * that contains the root (value `1`), or in a subtree that does not contain the root (value `-1`),
+ * while the diagonale contains `0`.
+ */
+utils::Matrix<signed char> node_root_direction_matrix( Tree const& tree );
+
+// TODO the naming convention of the above two functions is really off!
+
 // =================================================================================================
 //     Subtrees
 // =================================================================================================
