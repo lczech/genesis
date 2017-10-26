@@ -59,23 +59,26 @@ namespace placement {
 //     Node Histogram Distance
 // =================================================================================================
 
+
 /**
- * @brief Calculate the Node Histogram Distance of two Sample%s.
- */
+* @brief Calculate the Node Histogram Distance of two Sample%s.
+*/
 double node_histogram_distance (
     Sample const& sample_a,
     Sample const& sample_b,
-    size_t const  histogram_bins = 25
+    size_t const  histogram_bins = 25,
+    bool use_negative_axis = true
 );
 
 /**
- * @brief Calculate the
- * @link node_histogram_distance( Sample const&, Sample const&, size_t ) node_histogram_distance()@endlink
- * for every pair of Sample%s in the SampleSet.
- */
+* @brief Calculate the
+* @link node_histogram_distance( Sample const&, Sample const&, size_t ) node_histogram_distance()@endlink
+* for every pair of Sample%s in the SampleSet.
+*/
 utils::Matrix<double> node_histogram_distance (
     SampleSet const& sample_set,
-    size_t const     histogram_bins = 25
+    size_t const     histogram_bins = 25,
+    bool use_negative_axis = true
 );
 
 } // namespace placement
