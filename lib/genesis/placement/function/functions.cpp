@@ -49,6 +49,10 @@
 #include <unordered_set>
 #include <vector>
 
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
 namespace genesis {
 namespace placement {
 
@@ -167,6 +171,36 @@ void scale_all_branch_lengths( Sample& smp, double factor )
         for( auto& place : pqry.placements() ) {
             place.proximal_length *= factor;
         }
+    }
+}
+
+void adjust_branch_lengths( Sample& sample, tree::Tree const& source )
+{
+    // Basic error check.
+    if( sample.tree().edge_count() != source.edge_count() ) {
+        throw std::runtime_error( "Sizes of the Sample::tree() and source tree differ." );
+    }
+
+    // First, adjust the placement positions,
+    // because we need the old branch lengths of the sample for correct scaling.
+    #pragma omp parallel for
+    for( size_t i = 0; i < sample.size(); ++i ) {
+        auto& pquery = sample.at(i);
+
+        for( auto& placement : pquery.placements() ) {
+            auto const edge_idx = placement.edge().index();
+            auto const old_bl = placement.edge().data<PlacementEdgeData>().branch_length;
+            auto const new_bl = source.edge_at(edge_idx).data<tree::DefaultEdgeData>().branch_length;
+
+            placement.proximal_length *= new_bl / old_bl;
+        }
+    }
+
+    // Now adjust the reference tree branch lengths.
+    #pragma omp parallel for
+    for( size_t edge_idx = 0; edge_idx < source.edge_count(); ++edge_idx ) {
+        auto const new_bl = source.edge_at(edge_idx).data<tree::DefaultEdgeData>().branch_length;
+        sample.tree().edge_at(edge_idx).data<PlacementEdgeData>().branch_length = new_bl;
     }
 }
 
