@@ -138,6 +138,55 @@ utils::Matrix<signed char> edge_sides( Tree const& tree )
     return result;
 }
 
+utils::Matrix<signed char> node_root_direction_matrix( Tree const& tree )
+{
+    auto mat = utils::Matrix<signed char>( tree.node_count(), tree.node_count(), 0 );
+
+    // Fill every row of the matrix.
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.node_count(); ++i ) {
+        auto const& row_node     = tree.node_at(i);
+        auto const  row_index    = row_node.index();
+        auto const  primary_link = &row_node.primary_link();
+
+        // Fill root side subtree with 1s.
+        // We do set the value of inner nodes multiple times, but that's no problem.
+        // Also, we need to do an extra check for the root here, in order to set all
+        // subtrees of the root to -1.
+        signed char const value = row_node.is_root() ? -1 : 1;
+        auto current_link = &( primary_link->outer() );
+        while( current_link != primary_link ) {
+            mat( row_index, current_link->node().index() ) = value;
+            current_link = &( current_link->next().outer() );
+        }
+
+        // Fill all non-root side subtrees with -1s.
+        // We explicitly go through all non-root links of the node, in order to be really clear
+        // about our intentions. It would also work to simply follow the link chain until
+        // we reach the primary link again. However, this would also set -1 to our row node,
+        // thus we'd have to reset it, making the algorithm a bit messy.
+        // So, to be clear and clean, we avoid this.
+        auto sub_link = &( primary_link->next() );
+        while( sub_link != primary_link ) {
+
+            // Now, for a given non-root subtree, set everything to -1.
+            current_link = &( sub_link->outer() );
+            while( current_link != sub_link ) {
+                mat( row_index, current_link->node().index() ) = -1;
+                current_link = &( current_link->next().outer() );
+            }
+
+            // Go to next subtree.
+            sub_link = &( sub_link->next() );
+        }
+
+        // Check that the diagonal element is untouched.
+        assert( mat( row_index, row_index ) == 0 );
+    }
+
+    return mat;
+}
+
 // =================================================================================================
 //     Subtrees
 // =================================================================================================
