@@ -132,8 +132,8 @@ class Sample;
  * @param name_prefix   Specify a prefix to be added to all new leaf @link tree::TreeNode Nodes@endlink
  *                      (the ones that represent Placements). This is useful if a PqueryName also
  *                      occurs as a @link tree::DefaultNodeData::name name@endlink in the original
- *                      tree. By defalult, empty. In order to get the same naming as labelled trees
- *                      produces by RAxML, use `QUERY___`.
+ *                      tree. By default, empty. In order to get the same naming as labelled trees
+ *                      as produced by RAxML, use `QUERY___`.
  *
  * @return A @link tree::DefaultTree DefaultTree@endlink, i.e., a tree with node names and branch
  * lengths.
