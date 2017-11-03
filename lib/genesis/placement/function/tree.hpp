@@ -85,7 +85,7 @@ class Sample;
  *
  * The @link PqueryPlacement::pendant_length pendant_length@endlink of the placements is used
  * to calculate the @link tree::DefaultEdgeData::branch_length branch_length@endlink of the new
- * placement edges. This calculation subtracts the shortest `pendant_length` of the placemetns on
+ * placement edges. This calculation subtracts the shortest `pendant_length` of the placements on
  * the edge, so that the base edge is maximally "moved" towards the placement edges. This also
  * implies that at least one of the placement edges has `branch_length == 0.0`.
  * Furthermore, the placements are sorted by their `pendant_length`.
