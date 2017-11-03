@@ -200,12 +200,16 @@ void squash_clustering_merge_clusters( SquashClustering& sc, size_t i, size_t j,
 
 SquashClustering squash_clustering( std::vector<MassTree>&& trees, double const p  )
 {
+    // Number of trees we are going to cluster.
+    auto const tree_count = trees.size();
+
+    // Init the result object.
     LOG_INFO << "Squash Clustering: Initialize";
     SquashClustering sc = squash_clustering_init( std::move( trees ), p );
 
     // Do a full clustering, until only one is left.
-    for( size_t i = 0; i < trees.size() - 1; ++i ) {
-        LOG_INFO << "Squash Clustering: Step " << (i+1) << " of " << trees.size() - 1;
+    for( size_t i = 0; i < tree_count - 1; ++i ) {
+        LOG_INFO << "Squash Clustering: Step " << (i+1) << " of " << tree_count - 1;
 
         auto const min_pair = squash_clustering_min_entry( sc );
         assert( min_pair.first < min_pair.second );
@@ -224,11 +228,20 @@ SquashClustering squash_clustering( std::vector<MassTree>&& trees, double const 
         return count_active;
     }() );
 
+    // Furthermore, make sure we have created the right number of mergers and clusters.
+    assert( tree_count + sc.mergers.size() == sc.clusters.size() );
+
     return sc;
 }
 
 std::string squash_cluster_tree( SquashClustering const& sc, std::vector<std::string> const& labels )
 {
+    if( labels.size() != sc.clusters.size() - sc.mergers.size() ) {
+        throw std::runtime_error(
+            "List of labels does not have the correct size for the number of squash cluster elements."
+        );
+    }
+
     auto list = labels;
     for( size_t i = 0; i < sc.mergers.size(); ++i ) {
         auto const& cm = sc.mergers[i];
