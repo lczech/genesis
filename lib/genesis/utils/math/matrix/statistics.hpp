@@ -45,9 +45,27 @@ namespace utils {
 // =================================================================================================
 
 /**
+ * @brief Calculate the min and max values of a Matrix.
+ *
+ * See also matrix_col_minmax() and matrix_row_minmax().
+ */
+template< typename T >
+MinMaxPair<T> matrix_minmax( Matrix<T> const& data )
+{
+    auto ret = MinMaxPair<T>{ 0.0, 0.0 };
+
+    for( auto const& e : data ) {
+        ret.min = std::min( ret.min, e );
+        ret.max = std::max( ret.max, e );
+    }
+
+    return ret;
+}
+
+/**
  * @brief Calculate the column-wise min and max values of a Matrix.
  *
- * See also matrix_row_minmax().
+ * See also matrix_row_minmax() and matrix_minmax().
  */
 template< typename T >
 std::vector<MinMaxPair<T>> matrix_col_minmax( Matrix<T> const& data )
@@ -82,7 +100,7 @@ std::vector<MinMaxPair<T>> matrix_col_minmax( Matrix<T> const& data )
 /**
 * @brief Calculate the row-wise min and max values of a Matrix.
 *
-* See also matrix_col_minmax().
+* See also matrix_col_minmax() and matrix_minmax().
 */
 template< typename T >
 std::vector<MinMaxPair<T>> matrix_row_minmax( Matrix<T> const& data )
@@ -110,9 +128,25 @@ std::vector<MinMaxPair<T>> matrix_row_minmax( Matrix<T> const& data )
 }
 
 /**
+ * @brief Calculate the sum of all elements in a Matrix.
+ *
+ * See also matrix_col_sums() and matrix_row_sums().
+ */
+template< typename T >
+T matrix_sum( Matrix<T> const& data )
+{
+    // Get row sums.
+    auto sum = T{};
+    for( auto const& e : data ) {
+        sum += e;
+    }
+    return sum;
+}
+
+/**
  * @brief Calculate the sum of each row and return the result as a vector.
  *
- * See also matrix_col_sums().
+ * See also matrix_col_sums() and matrix_sum().
  */
 template< typename T >
 std::vector<T> matrix_row_sums( Matrix<T> const& data )
@@ -130,7 +164,7 @@ std::vector<T> matrix_row_sums( Matrix<T> const& data )
 /**
  * @brief Calculate the sum of each column and return the result as a vector.
  *
- * See also matrix_row_sums().
+ * See also matrix_row_sums() and matrix_sum().
  */
 template< typename T >
 std::vector<T> matrix_col_sums( Matrix<T> const& data )
@@ -228,6 +262,22 @@ std::vector<MeanStddevPair> standardize_rows(
 // =================================================================================================
 
 /**
+ * @brief Calcualte the mean and standard deviation of all elements in a Matrix.
+ *
+ * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
+ * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
+ * which for some use cases would cause problems like a division by zero later on.
+ * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
+ * be below `0.0`.
+ *
+ * See also matrix_row_mean_stddev() and matrix_col_mean_stddev().
+ */
+MeanStddevPair matrix_mean_stddev(
+    Matrix<double> const& data,
+    double epsilon = -1.0
+);
+
+/**
  * @brief Calcualte the column-wise mean and standard deviation of a Matrix.
  *
  * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
@@ -236,7 +286,7 @@ std::vector<MeanStddevPair> standardize_rows(
  * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
  * be below `0.0`.
  *
- * See also matrix_row_mean_stddev().
+ * See also matrix_row_mean_stddev() and matrix_mean_stddev().
  */
 std::vector<MeanStddevPair> matrix_col_mean_stddev(
     Matrix<double> const& data,
@@ -252,7 +302,7 @@ std::vector<MeanStddevPair> matrix_col_mean_stddev(
  * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
  * be below `0.0`.
  *
- * See also matrix_col_mean_stddev().
+ * See also matrix_col_mean_stddev() and matrix_mean_stddev().
  */
 std::vector<MeanStddevPair> matrix_row_mean_stddev(
     Matrix<double> const& data,
@@ -262,6 +312,13 @@ std::vector<MeanStddevPair> matrix_row_mean_stddev(
 // =================================================================================================
 //     Quartiles
 // =================================================================================================
+
+/**
+ * @brief Calculate the Quartiles of the elmements in Matrix of `double`.
+ */
+Quartiles matrix_quartiles(
+    Matrix<double> const& data
+);
 
 Quartiles matrix_row_quartiles(
     Matrix<double> const& data,

@@ -73,7 +73,7 @@ double earth_movers_distance (
     tree::TreeSet tset;
     tset.add( "lhs", lhs.tree() );
     tset.add( "rhs", rhs.tree() );
-    auto avg_length_tree = tree::average_branch_length_tree( tset );
+    auto const avg_length_tree = tree::average_branch_length_tree( tset );
 
     // Create an EMD tree from the average branch length tree, then calc the EMD.
     auto mass_tree = tree::convert_default_tree_to_mass_tree( avg_length_tree );
@@ -83,8 +83,8 @@ double earth_movers_distance (
     double totalmass_r = total_placement_mass_with_multiplicities( rhs );
 
     // Copy masses of both samples to the EMD tree, with different signs.
-    double pendant_work_l = add_sample_to_mass_tree( lhs, +1.0, totalmass_l, mass_tree );
-    double pendant_work_r = add_sample_to_mass_tree( rhs, -1.0, totalmass_r, mass_tree );
+    double const pendant_work_l = add_sample_to_mass_tree( lhs, +1.0, totalmass_l, mass_tree );
+    double const pendant_work_r = add_sample_to_mass_tree( rhs, -1.0, totalmass_r, mass_tree );
 
     // Calculate EMD.
     double work = tree::earth_movers_distance( mass_tree, p ).first;
@@ -108,7 +108,7 @@ utils::Matrix<double> earth_movers_distance(
     bool const       with_pendant_length
 ) {
     // Get mass tress and the pendant work that was needed to create them.
-    auto mass_trees = convert_sample_set_to_mass_trees( sample_set );
+    auto const mass_trees = convert_sample_set_to_mass_trees( sample_set );
 
     // Calculate the pairwise distance matrix.
     auto result = tree::earth_movers_distance( mass_trees.first, p );

@@ -106,11 +106,15 @@ MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilon = -1.
 
 /**
  * @brief Calculate the median value of a `vector` of `double`.
+ *
+ * The vector has to be sorted.
  */
 double median( std::vector<double> const& vec );
 
 /**
  * @brief Calculate the Quartiles of a `vector` of `double`.
+ *
+ * The vector has to be sorted.
  */
 Quartiles quartiles( std::vector<double> const& vec );
 
