@@ -269,6 +269,67 @@ Matrix<T> matrix_sort_by_col_sum_symmetric( Matrix<T> const& data )
 }
 
 // =================================================================================================
+//     Matrix Addition
+// =================================================================================================
+
+/**
+ * @brief Calculate the element-wise sum of two @link Matrix Matrices@endlink.
+ *
+ * The two matrices need to have the same dimensions.
+ */
+template< typename T = double, typename A = double, typename B = double >
+Matrix<T> matrix_addition( Matrix<A> const& a, Matrix<B> const& b )
+{
+    if( a.rows() != b.rows() || a.cols() != b.cols() ) {
+        throw std::runtime_error( "Cannot add matrices with different dimensions." );
+    }
+
+    auto result = Matrix<T>( a.rows(), a.cols() );
+    for( size_t r = 0; r < a.rows(); ++r ) {
+        for( size_t c = 0; c < a.cols(); ++c ) {
+            result( r, c ) = a( r, c ) + b( r, c );
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Calculate the element-wise sum of a Matrix and a scalar.
+ */
+template< typename T = double, typename A = double, typename B = double >
+Matrix<T> matrix_addition( Matrix<A> const& matrix, B const& scalar )
+{
+    auto result = Matrix<T>( matrix.rows(), matrix.cols() );
+    for( size_t r = 0; r < matrix.rows(); ++r ) {
+        for( size_t c = 0; c < matrix.cols(); ++c ) {
+            result( r, c ) = matrix( r, c ) + scalar;
+        }
+    }
+    return result;
+}
+
+/**
+ * @brief Calculate the element-wise difference of two @link Matrix Matrices@endlink.
+ *
+ * The two matrices need to have the same dimensions.
+ */
+template< typename T = double, typename A = double, typename B = double >
+Matrix<T> matrix_subtraction( Matrix<A> const& a, Matrix<B> const& b )
+{
+    if( a.rows() != b.rows() || a.cols() != b.cols() ) {
+        throw std::runtime_error( "Cannot add matrices with different dimensions." );
+    }
+
+    auto result = Matrix<T>( a.rows(), a.cols() );
+    for( size_t r = 0; r < a.rows(); ++r ) {
+        for( size_t c = 0; c < a.cols(); ++c ) {
+            result( r, c ) = a( r, c ) - b( r, c );
+        }
+    }
+    return result;
+}
+
+// =================================================================================================
 //     Matrix Multiplication
 // =================================================================================================
 
@@ -346,6 +407,21 @@ std::vector<T> matrix_multiplication( Matrix<A> const& a, std::vector<B> const& 
         }
     }
 
+    return result;
+}
+
+/**
+ * @brief Calculate the element-wise multiplication of a Matrix and a scalar.
+ */
+template< typename T = double, typename A = double, typename B = double >
+Matrix<T> matrix_multiplication( Matrix<A> const& matrix, B const& scalar )
+{
+    auto result = Matrix<T>( matrix.rows(), matrix.cols() );
+    for( size_t r = 0; r < matrix.rows(); ++r ) {
+        for( size_t c = 0; c < matrix.cols(); ++c ) {
+            result( r, c ) = matrix( r, c ) * scalar;
+        }
+    }
     return result;
 }
 

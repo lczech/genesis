@@ -30,6 +30,8 @@
 
 #include "genesis/utils/math/matrix/statistics.hpp"
 
+#include "genesis/utils/math/common.hpp"
+
 #include <algorithm>
 #include <cassert>
 #include <cmath>
@@ -150,6 +152,11 @@ std::vector<MeanStddevPair> standardize_rows(
 //     Mean and Stddev
 // ================================================================================================
 
+MeanStddevPair matrix_mean_stddev( Matrix<double> const& data, double epsilon)
+{
+    return mean_stddev( data.data(), epsilon );
+}
+
 std::vector<MeanStddevPair> matrix_col_mean_stddev( Matrix<double> const& data, double epsilon )
 {
     auto ret = std::vector<MeanStddevPair>( data.cols(), { 0.0, 0.0 } );
@@ -239,6 +246,15 @@ std::vector<MeanStddevPair> matrix_row_mean_stddev( Matrix<double> const& data, 
 // =================================================================================================
 //     Quartiles
 // =================================================================================================
+
+Quartiles matrix_quartiles(
+    Matrix<double> const& data
+) {
+    // We make an expensive copy... Not nice, but works for now.
+    auto cpy = data.data();
+    std::sort( cpy.begin(), cpy.end() );
+    return quartiles( cpy );
+}
 
 Quartiles matrix_row_quartiles(
     Matrix<double> const& data,
