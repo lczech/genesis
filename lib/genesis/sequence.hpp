@@ -1,5 +1,5 @@
-#ifndef GENESIS_H_
-#define GENESIS_H_
+#ifndef GENESIS_SEQUENCE_H_
+#define GENESIS_SEQUENCE_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -25,7 +25,7 @@
 */
 
 /**
- * @brief This header includes all other genesis headers (*.hpp).
+ * @brief This header includes all headers in 'sequence'.
  * This makes it easy to integrate the code as a library, as all
  * symbols of these headers are available after including this header.
  *
@@ -33,10 +33,22 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
-#include "genesis/placement.hpp"
-#include "genesis/sequence.hpp"
-#include "genesis/taxonomy.hpp"
-#include "genesis/tree.hpp"
-#include "genesis/utils.hpp"
+#include "genesis/sequence/counts.hpp"
+#include "genesis/sequence/formats/fasta_input_iterator.hpp"
+#include "genesis/sequence/formats/fasta_output_iterator.hpp"
+#include "genesis/sequence/formats/fasta_reader.hpp"
+#include "genesis/sequence/formats/fasta_writer.hpp"
+#include "genesis/sequence/formats/phylip_reader.hpp"
+#include "genesis/sequence/formats/phylip_writer.hpp"
+#include "genesis/sequence/functions/codes.hpp"
+#include "genesis/sequence/functions/consensus.hpp"
+#include "genesis/sequence/functions/entropy.hpp"
+#include "genesis/sequence/functions/functions.hpp"
+#include "genesis/sequence/functions/labels.hpp"
+#include "genesis/sequence/functions/stats.hpp"
+#include "genesis/sequence/printers/bitmap.hpp"
+#include "genesis/sequence/printers/simple.hpp"
+#include "genesis/sequence/sequence.hpp"
+#include "genesis/sequence/sequence_set.hpp"
 
 #endif // include guard
