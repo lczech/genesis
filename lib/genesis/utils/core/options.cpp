@@ -327,7 +327,8 @@ std::string Options::info() const
     res += "\n";
     res += "Run Time Options\n";
     res += "=============================================\n\n";
-    res += "Command line:      " + command_line_string() + "\n";
+    auto const cli_str = command_line_string();
+    res += "Command line:      " + ( cli_str.size() > 0 ? cli_str : "(not available)" ) + "\n";
     res += "Number of threads: " + std::to_string( number_of_threads() ) + "\n";
     res += "Random seed:       " + std::to_string( random_seed_ ) + "\n";
     return res;
