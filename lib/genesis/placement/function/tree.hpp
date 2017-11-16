@@ -52,15 +52,17 @@ class Sample;
 // =================================================================================================
 
 /**
- * @brief Produce a @link tree::Tree Tree@endlink where each PqueryPlacement of a Sample is turned
- * into an @link tree::TreeEdge Edge@endlink.
+ * @brief Produce a @link tree::Tree Tree@endlink where the most probable PqueryPlacement of each
+ * Pquery in a Sample is turned into an @link tree::TreeEdge Edge@endlink.
  *
  * The function takes the original @link PlacementTree Tree@endlink of the Sample, and for each
- * PqueryPlacement of the Sample, it attaches a new leaf @link tree::TreeNode Node@endlink to it,
- * positioned according to its @link PqueryPlacement::proximal_length proximal_length@endlink and
- * @link PqueryPlacement::pendant_length pendant_length@endlink. The resulting Tree is useful to
- * get an overview of the distribution of placements. It is mainly intended to view a few placements.
- * For large Samples, it might be a bit cluttered.
+ * Pquery of the Sample, it attaches a new leaf @link tree::TreeNode Node@endlink to it.
+ * The new leaf represents the most probable PqueryPlacement of the Pquery, measured using
+ * the @link PqueryPlacement::like_weight_ratio like_weight_ratio@endlink. The leaf is positioned
+ * according to the @link PqueryPlacement::proximal_length proximal_length@endlink and
+ * @link PqueryPlacement::pendant_length pendant_length@endlink of the PqueryPlacement.
+ * The resulting Tree is useful to get an overview of the distribution of placements. It is mainly
+ * intended to view a few placements. For large Samples, it might be a bit cluttered.
  *
  * Similar trees are produced by
  * [RAxML EPA](http://sco.h-its.org/exelixis/web/software/epa/index.html), where the file is called
