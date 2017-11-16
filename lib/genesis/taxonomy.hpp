@@ -1,5 +1,5 @@
-#ifndef GENESIS_H_
-#define GENESIS_H_
+#ifndef GENESIS_TAXONOMY_H_
+#define GENESIS_TAXONOMY_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -25,7 +25,7 @@
 */
 
 /**
- * @brief This header includes all other genesis headers (*.hpp).
+ * @brief This header includes all headers in 'taxonomy'.
  * This makes it easy to integrate the code as a library, as all
  * symbols of these headers are available after including this header.
  *
@@ -33,10 +33,22 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
-#include "genesis/placement.hpp"
-#include "genesis/sequence.hpp"
-#include "genesis/taxonomy.hpp"
-#include "genesis/tree.hpp"
-#include "genesis/utils.hpp"
+#include "genesis/taxonomy/formats/taxonomy_reader.hpp"
+#include "genesis/taxonomy/formats/taxopath_generator.hpp"
+#include "genesis/taxonomy/formats/taxopath_parser.hpp"
+#include "genesis/taxonomy/functions/entropy_data.hpp"
+#include "genesis/taxonomy/functions/entropy.hpp"
+#include "genesis/taxonomy/functions/operators.hpp"
+#include "genesis/taxonomy/functions/ranks.hpp"
+#include "genesis/taxonomy/functions/taxonomy.hpp"
+#include "genesis/taxonomy/functions/taxopath.hpp"
+#include "genesis/taxonomy/iterator/levelorder.hpp"
+#include "genesis/taxonomy/iterator/postorder.hpp"
+#include "genesis/taxonomy/iterator/preorder.hpp"
+#include "genesis/taxonomy/printers/nested.hpp"
+#include "genesis/taxonomy/taxon_data.hpp"
+#include "genesis/taxonomy/taxon.hpp"
+#include "genesis/taxonomy/taxonomy.hpp"
+#include "genesis/taxonomy/taxopath.hpp"
 
 #endif // include guard
