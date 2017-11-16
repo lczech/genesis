@@ -72,7 +72,7 @@ double node_histogram_distance (
 
 /**
 * @brief Calculate the
-* @link node_histogram_distance( Sample const&, Sample const&, size_t ) node_histogram_distance()@endlink
+* @link node_histogram_distance( Sample const&, Sample const&, size_t const, bool ) node_histogram_distance()@endlink
 * for every pair of Sample%s in the SampleSet.
 */
 utils::Matrix<double> node_histogram_distance (
