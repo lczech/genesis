@@ -81,6 +81,7 @@ public:
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
+    RangeMinimumQuery() = default;
     RangeMinimumQuery( std::vector<IntType> const& array );
     RangeMinimumQuery( std::vector<IntType>&&      array );
 
