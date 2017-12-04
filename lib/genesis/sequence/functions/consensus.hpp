@@ -138,7 +138,7 @@ std::string consensus_sequence_with_majorities(
  *
  * For example, with `similarity_factor == 1.0`, only exact matches are used, that is, if two
  * counts are exactly the same. Let <code>count('A') == 42</code> and <code>count('T') == 42</code>,
- * and both other counts be `0`, this results in the code `W` at that site. If however
+ * and both other counts (`C` and `G`) be `0`, this results in the code `W` at that site. If however
  * <code>count('T') == 41</code>, only `A` is used for the site.
  * Thus, with `similarity_factor == 1.0`, this function behaves very similar to
  * consensus_sequence_with_majorities(), except in cases were two counts are exaclty the same.
@@ -207,10 +207,10 @@ std::string consensus_sequence_with_ambiguities(
  * If `use_ambiguities` is set to `true` (default), the sorted frequencies of the characters are
  * added until the threshold is reached, and the ambiguity code for those characters is used.
  * For example, let `frequency_threshold == 0.9`, <code>count('A') == 42</code> and
- * <code>count('T') == 42</code>, and both other counts be 0. Then, neither `A` nor `T` have counts
- * above the threshold, but combined they do, so the result is code `W == AT` at that site.
- * If however `use_ambiguities` is `false`, the mask character `X` is used for sites that are below
- * the threshold.
+ * <code>count('T') == 42</code>, and both other counts (`C` and `G`) be 0.
+ * Then, neither `A` nor `T` have counts above the threshold, but combined they do, so the result is
+ * code `W == AT` at that site. If however `use_ambiguities` is `false`, the mask character `X` is
+ * used for sites that are below the threshold.
  *
  * Furthermore, if `allow_gaps` is set to `true` (default), gaps are counted when determining the
  * threshold and checking whether the frequency is above it. That is, gaps are then treated as just
@@ -267,6 +267,35 @@ std::string consensus_sequence_with_threshold(
     bool                  allow_gaps          = true,
     bool                  use_ambiguities     = true
 );
+
+// ------------------------------------------------------
+//     Cavener
+// ------------------------------------------------------
+
+/**
+ * @brief Calculate a consensus sequence using the method by Cavener
+ * for nucleic acid codes `ACGT` and their ambiguities.
+ *
+ * [1] D. R. Cavener, “Comparison of the consensus sequence flanking translational start sites in
+ * Drosophila and vertebrates,” Nucleic Acids Res., vol. 15, no. 4, 1987.
+ */
+std::string consensus_sequence_cavener(
+    SequenceCounts const& counts,
+    bool                  allow_gaps        = true
+);
+
+/**
+ * @brief Calculate a consensus sequence using the method by Cavener
+ * for nucleic acid codes `ACGT` and their ambiguities.
+ *
+ * [1] D. R. Cavener, “Comparison of the consensus sequence flanking translational start sites in
+ * Drosophila and vertebrates,” Nucleic Acids Res., vol. 15, no. 4, 1987.
+ */
+std::string consensus_sequence_cavener(
+    SequenceSet const&    sequences,
+    bool                  allow_gaps        = true
+);
+
 
 } // namespace sequence
 } // namespace genesis
