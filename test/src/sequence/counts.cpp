@@ -118,11 +118,11 @@ TEST( Sequence, ConsensusAmbiguity )
         consensus_sequence_with_ambiguities( counts, 0.75 )
     );
     EXPECT_EQ(
-        "AAVCCYTKGCMGTTMMGSKTRARCCNTGGCCGKDMMGSKTAW",
+        "AAVCC-TKGCMGTTMMGSKTRARCCNTGGCCGKDMMGSKTAW",
         consensus_sequence_with_ambiguities( counts, 0.5 )
     );
     EXPECT_EQ(
-        "AMVSBYKKGCMKKKMMGSKTRMRSSNDKGCMRKDMMVSKYAW",
+        "AMVSB-KKGCMKKKMMGSKTRMRSSNDKGCMRKDMMVSKYAW",
         consensus_sequence_with_ambiguities( counts, 0.0 )
     );
 
@@ -144,7 +144,7 @@ TEST( Sequence, ConsensusAmbiguity )
     counts_2.add_sequence( "-ACCT" );
     counts_2.add_sequence( "ACCT-" );
     EXPECT_EQ( "-ACBT", consensus_sequence_with_ambiguities( counts_2, 1.0, true ));
-    EXPECT_EQ( "AMCBT", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
+    EXPECT_EQ( "-MCB-", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
     EXPECT_EQ( "AACBT", consensus_sequence_with_ambiguities( counts_2, 1.0, false ));
     EXPECT_EQ( "AMCBT", consensus_sequence_with_ambiguities( counts_2, 0.0, false ));
 }
@@ -167,7 +167,7 @@ TEST( Sequence, ConsensusThreshold )
 
     // Manually calculated correct sequences.
     EXPECT_EQ(
-        "AMVSBYKKGCMKKKMMGSKTRMRSSNDKGCMRKDMMVSKYAW",
+        "AMVSB-KKGCMKKKMMGSKTRMRSSNDKGCMRKDMMVSKYAW",
         consensus_sequence_with_threshold( counts, 1.0 )
     );
     EXPECT_EQ(
@@ -200,7 +200,7 @@ TEST( Sequence, ConsensusThreshold )
     // More.
     counts_2.add_sequence( "-ACCT" );
     counts_2.add_sequence( "ACCT-" );
-    EXPECT_EQ( "AMCBT", consensus_sequence_with_threshold( counts_2, 1.0, true ));
+    EXPECT_EQ( "-MCB-", consensus_sequence_with_threshold( counts_2, 1.0, true ));
     EXPECT_EQ( "-ACCT", consensus_sequence_with_threshold( counts_2, 0.0, true ));
     EXPECT_EQ( "AMCBT", consensus_sequence_with_threshold( counts_2, 1.0, false ));
     EXPECT_EQ( "AACCT", consensus_sequence_with_threshold( counts_2, 0.0, false ));

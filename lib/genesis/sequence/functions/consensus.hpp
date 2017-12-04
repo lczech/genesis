@@ -155,9 +155,8 @@ std::string consensus_sequence_with_majorities(
  *
  * The optional parameter `allow_gaps` (default is `true`) behaves similar to its counterpart in
  * consensus_sequence_with_majorities(). If set to `true`, the count of the gap character is also
- * considered. If then the count of no character is within the similarity range of the gap count,
- * the result contains a gap at that site. If however there are codes within the range (i.e., above
- * `similarity_factor * max_count`), those are used instead, even if gaps are more frequent.
+ * considered. As the ambiguity for a gap combined with any other character is still a gap,
+ * sites where gap is the most frequent charater or is within the deviation get a gap as result.
  *
  * If `allow_gaps` is set to `false` instead, gaps are not considered. That means, the ambiguities
  * are calculated as if there were no gaps. So even if a site contains mostly gaps, but only a few
@@ -214,8 +213,8 @@ std::string consensus_sequence_with_ambiguities(
  *
  * Furthermore, if `allow_gaps` is set to `true` (default), gaps are counted when determining the
  * threshold and checking whether the frequency is above it. That is, gaps are then treated as just
- * another character at the site. For sites that mostly contain gaps and the gap frequency reaches
- * the threshold, a gap is used as consensus.
+ * another character at the site. For sites where the gap frequency is needed to reach the
+ * threshold, a gap is used as consensus.
  * If `allow_gaps` is `false`, however, gaps are not counted for determining the frequency of the
  * other characters. This is similar to the counterpart in consensus_sequence_with_majorities().
  * Solely sites that are gaps-only result in a gap char for the consensus then.
