@@ -275,8 +275,33 @@ std::string consensus_sequence_with_threshold(
  * @brief Calculate a consensus sequence using the method by Cavener
  * for nucleic acid codes `ACGT` and their ambiguities.
  *
- * [1] D. R. Cavener, “Comparison of the consensus sequence flanking translational start sites in
- * Drosophila and vertebrates,” Nucleic Acids Res., vol. 15, no. 4, 1987.
+ * For every site, the nucleotides are sorted by frequency. Then, the following checks are performed:
+ *
+ *  1. A single nucleotide is used if its frequency is at least 50% and more than twice as high
+ *     as the second most frequent nucleotide.
+ *  2. If two nucleotides occur in at leat 75% of the sequences, and rule 1 does not apply,
+ *     their ambiguity code is used (double-degenerate code).
+ *  3. If none of the above applies, but one of the nucleotides has a count of zero,
+ *     the (triple-degenerate) code of the other three nucleotides is used.
+ *  4. In all other cases, the code 'N' is used.
+ *
+ * The method is meant for finding a consensus sequence in sets of sequences without gaps.
+ * This implementation however also allows gaps, which are just treated as a normal character
+ * if @p allow_gaps is `true` (default). In this case, if any of rules 1-3 applies to a gap
+ * character, the result is simply reduced to a gap. That is, whenever a gap is used to form
+ * a degenerate code according to the rules, the whole code is reduced to a gap.
+ *
+ * If however @p allow_gaps is `false`, gap characters are completely ignored from the counting.
+ *
+ * The method was described in:
+ *
+ * > D. R. Cavener, "Comparison of the consensus sequence flanking translational start sites in
+ * > Drosophila and vertebrates", Nucleic Acids Res., vol. 15, no. 4, 1987.
+ *
+ * The method is also used by the Transfac Project:
+ *
+ * > V. Matys et al., "TRANSFAC: Transcriptional regulation, from patterns to profiles",
+ * > Nucleic Acids Res., vol. 31, no. 1, pp. 374–378, 2003.
  */
 std::string consensus_sequence_cavener(
     SequenceCounts const& counts,
@@ -287,8 +312,9 @@ std::string consensus_sequence_cavener(
  * @brief Calculate a consensus sequence using the method by Cavener
  * for nucleic acid codes `ACGT` and their ambiguities.
  *
- * [1] D. R. Cavener, “Comparison of the consensus sequence flanking translational start sites in
- * Drosophila and vertebrates,” Nucleic Acids Res., vol. 15, no. 4, 1987.
+ * See @link consensus_sequence_cavener( SequenceCounts const&, bool )
+ * consensus_sequence_cavener(...)@endlink for details.
+ * This is merely a wrapper function that takes a SequenceSet instead of a SequenceCounts object.
  */
 std::string consensus_sequence_cavener(
     SequenceSet const&    sequences,

@@ -132,6 +132,8 @@ Genesis offers a couple of different algorithms:
   * @ref genesis::sequence::consensus_sequence_with_ambiguities( SequenceSet const&, double, bool ) "consensus_sequence_with_ambiguities()",
     also for nucleotide sequences (`ACGT`), that uses a `similarity_factor` to calculate consensus with
     ambiguity characters.
+  * @ref genesis::sequence::consensus_sequence_cavener( SequenceSet const&, bool ) "consensus_sequence_cavener()",
+    again for nucleotide sequences (`ACGT`), which uses the method by Cavener, 1987.
   * @ref genesis::sequence::consensus_sequence_with_majorities( SequenceSet const&, std::string const&, bool, char ) "consensus_sequence_with_majorities()",
     for all kinds of site characters, that uses a majority rule to find the consensus at each site.
 
