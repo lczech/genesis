@@ -33,6 +33,7 @@
 
 #include "genesis/utils/tools/color.hpp"
 
+#include <string>
 #include <vector>
 
 namespace genesis {
@@ -51,6 +52,23 @@ std::vector<Color> magma_palette();
 std::vector<Color> inferno_palette();
 std::vector<Color> plasma_palette();
 std::vector<Color> viridis_palette();
+
+enum class SequentialColorPalettes
+{
+    kMagma,
+    kInferno,
+    kPlasma,
+    kViridis
+};
+
+// =================================================================================================
+//     Convenience Functions
+// =================================================================================================
+
+Color color_palette( SequentialColorPalettes      palette, double at, double max );
+Color color_palette( std::string const& palette, double at, double max );
+
+Color spectral( double at );
 
 } // namespace utils
 } // namespace genesis

@@ -34,6 +34,7 @@
 #include "genesis/utils/tools/color/gradient.hpp"
 #include "genesis/utils/tools/color/names.hpp"
 #include "genesis/utils/tools/color/operators.hpp"
+#include "genesis/utils/tools/color/palettes.hpp"
 
 #include <stdexcept>
 
@@ -152,4 +153,18 @@ TEST( Color, Names )
     // Get invalid color.
     EXPECT_THROW( get_named_color(""), std::invalid_argument );
     EXPECT_THROW( get_named_color("boot polish"), std::invalid_argument );
+}
+
+TEST( Color, Spectral )
+{
+    EXPECT_EQ( Color( 158,   1,  66 ), spectral( -1.0 ) );
+    EXPECT_EQ( Color( 248, 141,  81 ), spectral( -0.5 ) );
+    EXPECT_EQ( Color( 253, 174,  97 ), spectral( -0.4 ) );
+    EXPECT_EQ( Color( 255, 255, 191 ), spectral(  0.0 ) );
+    EXPECT_EQ( Color( 171, 221, 164 ), spectral(  0.4 ) );
+    EXPECT_EQ( Color( 136, 207, 164 ), spectral(  0.5 ) );
+    EXPECT_EQ( Color(  94,  79, 162 ), spectral(  1.0 ) );
+
+    EXPECT_THROW( spectral( -2.0 ), std::invalid_argument );
+    EXPECT_THROW( spectral(  2.0 ), std::invalid_argument );
 }
