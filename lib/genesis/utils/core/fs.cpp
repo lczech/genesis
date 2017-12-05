@@ -198,9 +198,10 @@ std::string dir_normalize_path( std::string const& path )
  *
  * If the directory is not readable, the function throws `std::runtime_error`.
  */
-std::vector<std::string> dir_list_contents( std::string const& dir )
+std::vector<std::string> dir_list_contents( std::string const& dir, bool full_path )
 {
     std::vector<std::string> list;
+    auto const dir_path = dir_normalize_path( dir );
 
     DIR*           dp;
     struct dirent* dirp;
@@ -213,7 +214,12 @@ std::vector<std::string> dir_list_contents( std::string const& dir )
         if (fn == "." || fn == "..") {
             continue;
         }
-        list.push_back(fn);
+
+        if( full_path ) {
+            list.push_back( dir_path + fn );
+        } else {
+            list.push_back( fn );
+        }
     }
     closedir(dp);
     //~ std::sort(list.begin(), list.end());
@@ -225,15 +231,20 @@ std::vector<std::string> dir_list_contents( std::string const& dir )
  *
  * If the directory is not readable, the function throws `std::runtime_error`.
  */
-std::vector<std::string> dir_list_contents( std::string const& dir, std::string const& regex )
+std::vector<std::string> dir_list_contents( std::string const& dir, std::string const& regex, bool full_path )
 {
     std::vector<std::string> result;
-    auto all_list = dir_list_contents( dir );
+    auto const all_list = dir_list_contents( dir, false );
     std::regex pattern( regex );
+    auto const dir_path = dir_normalize_path( dir );
 
     for( auto const& elem : all_list ) {
         if( regex_match( elem, pattern ) ) {
-            result.push_back( elem );
+            if( full_path ) {
+                result.push_back( dir_path + elem );
+            } else {
+                result.push_back( elem );
+            }
         }
     }
     return result;
@@ -244,15 +255,19 @@ std::vector<std::string> dir_list_contents( std::string const& dir, std::string 
  *
  * If the directory is not readable, the function throws `std::runtime_error`.
  */
-std::vector<std::string> dir_list_files( std::string const& dir )
+std::vector<std::string> dir_list_files( std::string const& dir, bool full_path )
 {
     std::vector<std::string> result;
-    auto all_list = dir_list_contents( dir );
-    auto dir_path = dir_normalize_path( dir );
+    auto const all_list = dir_list_contents( dir, false );
+    auto const dir_path = dir_normalize_path( dir );
 
     for( auto const& elem : all_list ) {
         if( is_file( dir_path + elem ) ) {
-            result.push_back( elem );
+            if( full_path ) {
+                result.push_back( dir_path + elem );
+            } else {
+                result.push_back( elem );
+            }
         }
     }
     return result;
@@ -263,15 +278,19 @@ std::vector<std::string> dir_list_files( std::string const& dir )
  *
  * If the directory is not readable, the function throws `std::runtime_error`.
  */
-std::vector<std::string> dir_list_files( std::string const& dir, std::string const& regex )
+std::vector<std::string> dir_list_files( std::string const& dir, std::string const& regex, bool full_path )
 {
     std::vector<std::string> result;
-    auto all_list = dir_list_contents( dir, regex );
-    auto dir_path = dir_normalize_path( dir );
+    auto const all_list = dir_list_contents( dir, regex, false );
+    auto const dir_path = dir_normalize_path( dir );
 
     for( auto const& elem : all_list ) {
         if( is_file( dir_path + elem ) ) {
-            result.push_back( elem );
+            if( full_path ) {
+                result.push_back( dir_path + elem );
+            } else {
+                result.push_back( elem );
+            }
         }
     }
     return result;
@@ -282,15 +301,19 @@ std::vector<std::string> dir_list_files( std::string const& dir, std::string con
  *
  * If the directory is not readable, the function throws `std::runtime_error`.
  */
-std::vector<std::string> dir_list_directories( std::string const& dir )
+std::vector<std::string> dir_list_directories( std::string const& dir, bool full_path )
 {
     std::vector<std::string> result;
-    auto all_list = dir_list_contents( dir );
-    auto dir_path = dir_normalize_path( dir );
+    auto const all_list = dir_list_contents( dir, false );
+    auto const dir_path = dir_normalize_path( dir );
 
     for( auto const& elem : all_list ) {
         if( is_dir( dir_path + elem ) ) {
-            result.push_back( elem );
+            if( full_path ) {
+                result.push_back( dir_path + elem );
+            } else {
+                result.push_back( elem );
+            }
         }
     }
     return result;
@@ -301,15 +324,19 @@ std::vector<std::string> dir_list_directories( std::string const& dir )
  *
  * If the directory is not readable, the function throws `std::runtime_error`.
  */
-std::vector<std::string> dir_list_directories( std::string const& dir, std::string const& regex )
+std::vector<std::string> dir_list_directories( std::string const& dir, std::string const& regex, bool full_path )
 {
     std::vector<std::string> result;
-    auto all_list = dir_list_contents( dir, regex );
-    auto dir_path = dir_normalize_path( dir );
+    auto const all_list = dir_list_contents( dir, regex, false );
+    auto const dir_path = dir_normalize_path( dir );
 
     for( auto const& elem : all_list ) {
         if( is_dir( dir_path + elem ) ) {
-            result.push_back( elem );
+            if( full_path ) {
+                result.push_back( dir_path + elem );
+            } else {
+                result.push_back( elem );
+            }
         }
     }
     return result;

@@ -54,12 +54,12 @@ void        dir_create     ( std::string const& path );
 
 std::string dir_normalize_path( std::string const& path );
 
-std::vector<std::string> dir_list_contents    ( std::string const& dir );
-std::vector<std::string> dir_list_contents    ( std::string const& dir, std::string const& regex );
-std::vector<std::string> dir_list_files       ( std::string const& dir );
-std::vector<std::string> dir_list_files       ( std::string const& dir, std::string const& regex );
-std::vector<std::string> dir_list_directories ( std::string const& dir );
-std::vector<std::string> dir_list_directories ( std::string const& dir, std::string const& regex );
+std::vector<std::string> dir_list_contents    ( std::string const& dir, bool full_path = false );
+std::vector<std::string> dir_list_contents    ( std::string const& dir, std::string const& regex, bool full_path = false );
+std::vector<std::string> dir_list_files       ( std::string const& dir, bool full_path = false );
+std::vector<std::string> dir_list_files       ( std::string const& dir, std::string const& regex, bool full_path = false );
+std::vector<std::string> dir_list_directories ( std::string const& dir, bool full_path = false );
+std::vector<std::string> dir_list_directories ( std::string const& dir, std::string const& regex, bool full_path = false );
 
 // =================================================================================================
 //     File Information
