@@ -58,9 +58,9 @@
 #include <utility>
 #include <vector>
 
-// #ifdef GENESIS_OPENMP
-// #   include <omp.h>
-// #endif
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
 
 namespace genesis {
 namespace placement {
@@ -147,46 +147,71 @@ SampleSet JplaceReader::from_strings (const std::vector<std::string>& jps ) cons
 //     Reading from Files
 // -------------------------------------------------------------------------
 
-void JplaceReader::from_files (const std::vector<std::string>& fns, SampleSet& set) const
+void JplaceReader::from_files( std::vector<std::string> const& fns, SampleSet& set ) const
 {
-    // #if defined( GENESIS_OPENMP )
-    //
-    //     // Make a vector of default-constructored Samples of the needed size.
-    //     auto tmp = std::vector<Sample>( fns.size() );
-    //
-    //     // Parallel parsing.
-    //     #pragma omp parallel for
-    //     for( size_t i = 0; i < fns.size(); ++i ) {
-    //         tmp[ i ] = from_file( fns[i] );
-    //     }
-    //
-    //     // Move to target SampleSet.
-    //     for( size_t i = 0; i < fns.size(); ++i ) {
-    //         std::string name = utils::file_filename( utils::file_basename( fns[i] ) );
-    //         set.add( std::move( tmp[i] ), name );
-    //     }
-    //
-    // #else
+    #if defined( GENESIS_OPENMP )
 
-        for (auto fn : fns) {
-            std::string name = utils::file_filename( utils::file_basename(fn) );
+        // Make a vector of default-constructed Samples of the needed size.
+        // We do this so that the order of input jplace files is kept.
+        auto tmp = std::vector<Sample>( fns.size() );
+
+        // Parallel parsing.
+        #pragma omp parallel for
+        for( size_t i = 0; i < fns.size(); ++i ) {
+            tmp[ i ] = from_file( fns[i] );
+        }
+
+        // Move to target SampleSet.
+        for( size_t i = 0; i < fns.size(); ++i ) {
+            auto const name = utils::file_filename( utils::file_basename( fns[i] ) );
+            set.add( std::move( tmp[i] ), name );
+        }
+
+    #else
+
+        for( auto const& fn : fns ) {
+            auto const name = utils::file_filename( utils::file_basename(fn) );
             set.add( from_file( fn ), name );
         }
 
-    // #endif
+    #endif
 }
 
 // -------------------------------------------------------------------------
 //     Reading from Strings
 // -------------------------------------------------------------------------
 
-void JplaceReader::from_strings (const std::vector<std::string>& jps, SampleSet& set) const
+void JplaceReader::from_strings( std::vector<std::string> const& jps, SampleSet& set ) const
 {
-    size_t cnt = set.size();
-    for (auto jplace : jps) {
-        set.add( from_string( jplace ), std::string("jplace_") + std::to_string(cnt) );
-        ++cnt;
-    }
+    #if defined( GENESIS_OPENMP )
+
+        // Make a vector of default-constructed Samples of the needed size.
+        // We do this so that the order of input jplace files is kept.
+        auto tmp = std::vector<Sample>( jps.size() );
+
+        // Parallel parsing.
+        #pragma omp parallel for
+        for( size_t i = 0; i < jps.size(); ++i ) {
+            tmp[ i ] = from_string( jps[i] );
+        }
+
+        // Move to target SampleSet.
+        size_t cnt = set.size();
+        for( size_t i = 0; i < jps.size(); ++i ) {
+            auto const name = std::string("jplace_") + std::to_string(cnt);
+            set.add( std::move( tmp[i] ), name );
+            ++cnt;
+        }
+
+    #else
+
+        size_t cnt = set.size();
+        for( auto const& jplace : jps ) {
+            set.add( from_string( jplace ), std::string("jplace_") + std::to_string(cnt) );
+            ++cnt;
+        }
+
+    #endif
 }
 
 // =================================================================================================
