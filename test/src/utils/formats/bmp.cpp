@@ -50,7 +50,7 @@ TEST( Bmp, Writer )
 
     for( size_t y = 0; y < rows; ++y ) {
         for( size_t x = 0; x < cols; ++x ) {
-            bunt( y, x ) = Color( 255 * x / cols, 255 * y / rows, 0 );
+            bunt( y, x ) = Color( x / cols, y / rows, 0 );
         }
     }
 

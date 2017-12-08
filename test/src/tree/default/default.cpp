@@ -41,7 +41,7 @@
 #include "genesis/tree/tree.hpp"
 
 #include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/operators.hpp"
+#include "genesis/utils/tools/color/functions.hpp"
 
 #include <algorithm>
 
@@ -61,8 +61,8 @@ TEST(DefaultTree, EdgeColorBranchLengthGradient)
     auto colors = edge_color_branch_length_gradient(tree);
 
     // We expect at least one branch to have max color (red) and one to have min color (green).
-    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), utils::Color(255, 0, 0)) );
-    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), utils::Color(0, 255, 0)) );
+    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), utils::Color(1, 0, 0)) );
+    EXPECT_LE( 1, std::count(colors.begin(), colors.end(), utils::Color(0, 1, 0)) );
 }
 
 TEST(DefaultTree, NodeNames)

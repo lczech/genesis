@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_TOOLS_COLOR_OPERATORS_H_
-#define GENESIS_UTILS_TOOLS_COLOR_OPERATORS_H_
+#ifndef GENESIS_UTILS_TOOLS_COLOR_LISTS_H_
+#define GENESIS_UTILS_TOOLS_COLOR_LISTS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -25,39 +25,45 @@
 */
 
 /**
- * @brief Color operators.
+ * @brief
  *
  * @file
  * @ingroup utils
  */
 
-#include <iosfwd>
+#include "genesis/utils/tools/color.hpp"
+
 #include <string>
+#include <vector>
 
 namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Forward Declarations
+//     Color Lists
 // =================================================================================================
 
-class Color;
+std::vector<Color> const& color_list_magma();
+std::vector<Color> const& color_list_inferno();
+std::vector<Color> const& color_list_plasma();
+std::vector<Color> const& color_list_viridis();
+std::vector<Color> const& color_list_spectral();
 
 // =================================================================================================
-//     Color Conversion
+//     Convenience Functions
 // =================================================================================================
 
-Color color_from_doubles (double r, double g, double b);
+enum class ColorList
+{
+    kMagma,
+    kInferno,
+    kPlasma,
+    kViridis,
+    kSpectral
+};
 
-Color color_from_hex( std::string h, std::string prefix = "#" );
-
-std::string color_to_hex( const Color& c, std::string prefix = "#", bool uppercase = false );
-
-// =================================================================================================
-//     Color Operators
-// =================================================================================================
-
-std::ostream& operator<< (std::ostream& os, const Color& h);
+std::vector<Color> const& color_list( ColorList          palette );
+std::vector<Color> const& color_list( std::string const& palette );
 
 } // namespace utils
 } // namespace genesis

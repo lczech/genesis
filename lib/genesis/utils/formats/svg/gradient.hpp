@@ -65,12 +65,10 @@ public:
 
     SvgGradientStop(
         double       offset,
-        Color const& stop_color = Color(),
-        double       stop_opacity = 1.0
+        Color const& stop_color = Color()
     )
         : offset( offset )
         , stop_color( stop_color )
-        , stop_opacity( stop_opacity )
     {
         validate();
     }
@@ -96,7 +94,6 @@ public:
 
     double offset;
     Color  stop_color;
-    double stop_opacity;
 
 };
 

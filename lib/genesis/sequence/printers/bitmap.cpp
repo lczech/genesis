@@ -74,7 +74,7 @@ utils::Matrix<utils::Color> PrinterBitmap::make_image_( SequenceSet const& set )
     auto image = utils::Matrix<utils::Color>(
         set.size() * pixel_height_,
         max_line   * pixel_width_,
-        utils::Color( 0, 0 , 0 )
+        utils::Color( 0.0, 0.0, 0.0 )
     );
 
     // Iterate the sequences in the set.
@@ -85,7 +85,7 @@ utils::Matrix<utils::Color> PrinterBitmap::make_image_( SequenceSet const& set )
         for( size_t c = 0; c < seq.length(); ++c ) {
 
             // Find the color for the current char, or use black if no color available.
-            auto pixel = utils::Color( 0, 0, 0 );
+            auto pixel = utils::Color( 0.0, 0.0, 0.0 );
             auto color_it = color_map_.find( seq[c] );
             if( color_it != color_map_.end() ) {
                 pixel = color_it->second;

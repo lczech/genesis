@@ -186,6 +186,7 @@ private:
         }
 
         // TODO do not create new element if there is already one!
+        // TODO add functor for converting color to string. maybe not all want hex format...
         element.comments.push_back( color_tag_prefix_ + color_to_hex(color) + color_tag_suffix_ );
     }
 

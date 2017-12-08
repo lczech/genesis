@@ -32,7 +32,7 @@
  */
 
 #include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/operators.hpp"
+#include "genesis/utils/tools/color/functions.hpp"
 
 #include <vector>
 
@@ -140,8 +140,8 @@ public:
      * This is thus something like [magic pink](https://en.wikipedia.org/wiki/Magic_Pink), where
      * all parts of an image are rendered transparent when originially colored in pink.
      *
-     * By default, we do not use an ignored color. If this option is activated, also
-     * use_ignored_color() is set to `true`.
+     * By default, we do not use an ignored color. If this function is called (which sets a color),
+     * also use_ignored_color() is set to `true`, so that the color is actually used.
      */
     void ignored_color( utils::Color value )
     {

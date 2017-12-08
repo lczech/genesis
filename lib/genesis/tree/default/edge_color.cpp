@@ -32,7 +32,7 @@
 
 #include "genesis/tree/default/tree.hpp"
 #include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/gradient.hpp"
+#include "genesis/utils/tools/color/functions.hpp"
 
 #include <assert.h>
 #include <algorithm>

@@ -111,7 +111,6 @@ public:
     std::string gradient_id;
 
     Color  color;
-    double opacity;
 
     double      width;
     std::string width_unit;
@@ -185,7 +184,6 @@ public:
     std::string gradient_id;
 
     Color  color;
-    double opacity;
     Rule   rule;
 
 };

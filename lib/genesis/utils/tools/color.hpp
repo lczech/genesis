@@ -31,7 +31,8 @@
  * @ingroup utils
  */
 
-#include <utility>
+#include <string>
+#include <utility> // swap
 
 namespace genesis {
 namespace utils {
@@ -48,18 +49,27 @@ class Color
 public:
 
     // -------------------------------------------------------------------------
-    //     Constructors
+    //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
     /**
      * @brief Default constructor. Sets the color to black.
      */
-    Color () : r_(0), g_(0), b_(0) {}
+    Color()
+        : r_( 0.0 ), g_( 0.0 ), b_( 0.0 ), a_( 1.0 )
+    {}
 
     /**
      * @brief Constructor for setting the RGB value.
      */
-    Color (unsigned char r, unsigned char g, unsigned char b) : r_(r), g_(g), b_(b) {}
+    Color( double r, double g, double b )
+        : Color( r, g, b, 1.0 )
+    {}
+
+    /**
+     * @brief Constructor for setting the RGB value including alpha.
+     */
+    Color( double r, double g, double b, double a );
 
     ~Color() = default;
 
@@ -75,41 +85,101 @@ public:
         swap(r_, other.r_);
         swap(g_, other.g_);
         swap(b_, other.b_);
+        swap(a_, other.a_);
     }
 
     // -------------------------------------------------------------------------
-    //     Accessors and Modificators
+    //     Factories
     // -------------------------------------------------------------------------
 
-    unsigned char r() const
+    static Color from_bytes( unsigned char r, unsigned char g, unsigned char b, unsigned char a = 255 );
+
+    static Color from_hex( std::string const& hex_color, std::string const& prefix = "#" );
+
+    // -------------------------------------------------------------------------
+    //     Accessors
+    // -------------------------------------------------------------------------
+
+    double r() const
     {
         return r_;
     }
 
-    unsigned char g() const
+    double g() const
     {
         return g_;
     }
 
-    unsigned char b() const
+    double b() const
     {
         return b_;
     }
 
-    void r (unsigned char value)
+    double a() const
     {
-        r_ = value;
+        return a_;
     }
 
-    void g (unsigned char value)
+    unsigned char r_byte() const
     {
-        g_ = value;
+        return to_byte_( r_ );
     }
 
-    void b (unsigned char value)
+    unsigned char g_byte() const
     {
-        b_ = value;
+        return to_byte_( g_ );
     }
+
+    unsigned char b_byte() const
+    {
+        return to_byte_( b_ );
+    }
+
+    unsigned char a_byte() const
+    {
+        return to_byte_( a_ );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Modificators
+    // -------------------------------------------------------------------------
+
+    void r (double value);
+
+    void g (double value);
+
+    void b (double value);
+
+    void a (double value);
+
+    void r_byte (unsigned char value)
+    {
+        r_ = from_byte_( value );
+    }
+
+    void g_byte (unsigned char value)
+    {
+        g_ = from_byte_( value );
+    }
+
+    void b_byte (unsigned char value)
+    {
+        b_ = from_byte_( value );
+    }
+
+    void a_byte (unsigned char value)
+    {
+        a_ = from_byte_( value );
+    }
+
+    // -------------------------------------------------------------------------
+    //     Internal Functions
+    // -------------------------------------------------------------------------
+
+private:
+
+    static unsigned char to_byte_( double v );
+    static double from_byte_( unsigned char v );
 
     // -------------------------------------------------------------------------
     //     Data Members
@@ -117,9 +187,10 @@ public:
 
 private:
 
-    unsigned char r_;
-    unsigned char g_;
-    unsigned char b_;
+    double r_;
+    double g_;
+    double b_;
+    double a_;
 
 };
 
@@ -134,7 +205,7 @@ inline void swap (Color& lhs, Color& rhs) noexcept
 
 inline bool operator == (Color const& lhs, Color const& rhs)
 {
-    return lhs.r() == rhs.r() && lhs.g() == rhs.g() && lhs.b() == rhs.b();
+    return lhs.r() == rhs.r() && lhs.g() == rhs.g() && lhs.b() == rhs.b() && lhs.a() == rhs.a();
 }
 
 inline bool operator != (Color const& lhs, Color const& rhs)

@@ -31,7 +31,7 @@
 #include "genesis/utils/formats/svg/attributes.hpp"
 
 #include "genesis/utils/formats/svg/helper.hpp"
-#include "genesis/utils/tools/color/operators.hpp"
+#include "genesis/utils/tools/color/functions.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <ostream>
@@ -50,7 +50,6 @@ namespace utils {
 SvgStroke::SvgStroke( SvgStroke::Type type )
     : type( type )
     , color()
-    , opacity( 1.0 )
     , width( 1.0 )
     , width_unit()
     , line_cap( LineCap::kOmit )
@@ -93,7 +92,7 @@ void SvgStroke::write( std::ostream& out ) const
     }
 
     out << svg_attribute( "stroke", color_to_hex( color ) );
-    out << svg_attribute( "stroke-opacity", opacity );
+    out << svg_attribute( "stroke-opacity", color.a() );
     out << svg_attribute( "stroke-width", width, width_unit );
 
     switch( line_cap ) {
@@ -142,16 +141,16 @@ void SvgStroke::write( std::ostream& out ) const
 SvgFill::SvgFill( SvgFill::Type type )
     : type( type )
     , color()
-    , opacity( 1.0 )
     , rule( Rule::kNone )
 {}
 
 SvgFill::SvgFill( Color color, double opacity )
     : type( SvgFill::Type::kColor )
     , color( color )
-    , opacity( opacity )
     , rule( Rule::kNone )
-{}
+{
+    color.a( opacity );
+}
 
 SvgFill::SvgFill( std::string gradient_id_value )
     : SvgFill( Type::kGradient )
@@ -179,7 +178,7 @@ void SvgFill::write( std::ostream& out ) const
     }
 
     out << svg_attribute( "fill", color_to_hex( color ) );
-    out << svg_attribute( "fill-opacity", opacity );
+    out << svg_attribute( "fill-opacity", color.a() );
 
     switch( rule ) {
         case Rule::kNone:
