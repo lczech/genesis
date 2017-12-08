@@ -142,11 +142,16 @@ std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize 
             mass_sum - link_masses[ cur_idx ] - masses[ tree_it.edge().index() ]
         );
 
+        // Make sure we have processed all masses that we are going to use.
+        assert( link_masses[cur_idx] > -1.0 );
+        assert( link_masses[out_idx] > -1.0 );
+
         // Finally, calculate the imbalance of the current edge,
         // normalized by the total mass on the tree (expect for the mass of the current edge).
         auto const imbalance = link_masses[cur_idx] - link_masses[out_idx];
         if( normalize ) {
             auto const normalize = mass_sum - masses[ tree_it.edge().index() ];
+            assert( normalize > 0.0 );
             vec[ tree_it.edge().index() ] = imbalance / normalize;
         } else {
             vec[ tree_it.edge().index() ] = imbalance;
@@ -184,19 +189,19 @@ utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool incl
         #pragma omp parallel for
         for( size_t s = 0; s < samples.size(); ++s ) {
             auto const& smp = samples[s].sample;
-            auto const imbalance_vec = epca_imbalance_vector( smp );
+            auto const imbalance_vec = epca_imbalance_vector( smp, true );
 
             // We need to have the right number of imbalance values.
             assert( imbalance_vec.size() == edge_count );
 
-            // Copy those imbalance values to the matrix that belong to inner edges.
+            // Copy imbalance values to the matrix.
             for( size_t i = 0; i < edge_count; ++i ) {
 
                 // Either the edge is an inner edge, or (if not, i.e., it leads to a leaf),
-                // it's imbalance is zero.
+                // it's imbalance is minus 1, as all its mass is on the root side.
                 assert(
                     ! samples[s].sample.tree().edge_at(i).secondary_node().is_leaf() ||
-                    imbalance_vec[ i ] == 0.0
+                    utils::almost_equal_relative( imbalance_vec[ i ], -1.0 )
                 );
 
                 imbalance_matrix( s, i ) = imbalance_vec[ i ];
@@ -220,7 +225,7 @@ utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool incl
         #pragma omp parallel for
         for( size_t s = 0; s < samples.size(); ++s ) {
             auto const& smp = samples[s].sample;
-            auto const imbalance_vec = epca_imbalance_vector( smp );
+            auto const imbalance_vec = epca_imbalance_vector( smp, true );
 
             // We need to have the right number of imbalance values, which also needs to be
             // smaller than the number of inner edges (there can be no tree with just inner
@@ -316,7 +321,7 @@ utils::PcaData epca( SampleSet const& samples, double kappa, double epsilon, siz
     }
 
     // Calculate the imbalance_matrix.
-    auto imbalance_matrix = epca_imbalance_matrix( samples );
+    auto imbalance_matrix = epca_imbalance_matrix( samples, false );
     assert( samples.size() > 0 );
     assert( imbalance_matrix.rows() == samples.size() );
     assert( imbalance_matrix.cols() == tree::inner_edge_count( samples[0].sample.tree() ) );

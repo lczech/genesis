@@ -107,7 +107,7 @@ TEST( SampleMeasures, EdgePCA )
     // set.add(smp_rhs);
 
     std::string indir = "/home/lucas/Projects/bacterial_vaginosis/03_epa_magny/orig_queries_jplace/";
-    auto files = utils::dir_list_files( indir, ".*\\.jplace" );
+    auto files = utils::dir_list_files( indir, false, ".*\\.jplace" );
 
     // auto imbalance_matrix = utils::Matrix<double>();
 
