@@ -118,11 +118,11 @@ TEST( Sequence, ConsensusAmbiguity )
         consensus_sequence_with_ambiguities( counts, 0.75 )
     );
     EXPECT_EQ(
-        "AAVCCYTKGCMGTTMMGSKTRARCCNTGGCCGKDMMGSKTAW",
+        "AAVCC-TKGCMGTTMMGSKTRARCCNTGGCCGKDMMGSKTAW",
         consensus_sequence_with_ambiguities( counts, 0.5 )
     );
     EXPECT_EQ(
-        "AMVSBYKKGCMKKKMMGSKTRMRSSNDKGCMRKDMMVSKYAW",
+        "AMVSB-KKGCMKKKMMGSKTRMRSSNDKGCMRKDMMVSKYAW",
         consensus_sequence_with_ambiguities( counts, 0.0 )
     );
 
@@ -144,7 +144,7 @@ TEST( Sequence, ConsensusAmbiguity )
     counts_2.add_sequence( "-ACCT" );
     counts_2.add_sequence( "ACCT-" );
     EXPECT_EQ( "-ACBT", consensus_sequence_with_ambiguities( counts_2, 1.0, true ));
-    EXPECT_EQ( "AMCBT", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
+    EXPECT_EQ( "-MCB-", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
     EXPECT_EQ( "AACBT", consensus_sequence_with_ambiguities( counts_2, 1.0, false ));
     EXPECT_EQ( "AMCBT", consensus_sequence_with_ambiguities( counts_2, 0.0, false ));
 }
@@ -167,7 +167,7 @@ TEST( Sequence, ConsensusThreshold )
 
     // Manually calculated correct sequences.
     EXPECT_EQ(
-        "AMVSBYKKGCMKKKMMGSKTRMRSSNDKGCMRKDMMVSKYAW",
+        "AMVSB-KKGCMKKKMMGSKTRMRSSNDKGCMRKDMMVSKYAW",
         consensus_sequence_with_threshold( counts, 1.0 )
     );
     EXPECT_EQ(
@@ -200,8 +200,51 @@ TEST( Sequence, ConsensusThreshold )
     // More.
     counts_2.add_sequence( "-ACCT" );
     counts_2.add_sequence( "ACCT-" );
-    EXPECT_EQ( "AMCBT", consensus_sequence_with_threshold( counts_2, 1.0, true ));
+    EXPECT_EQ( "-MCB-", consensus_sequence_with_threshold( counts_2, 1.0, true ));
     EXPECT_EQ( "-ACCT", consensus_sequence_with_threshold( counts_2, 0.0, true ));
     EXPECT_EQ( "AMCBT", consensus_sequence_with_threshold( counts_2, 1.0, false ));
     EXPECT_EQ( "AACCT", consensus_sequence_with_threshold( counts_2, 0.0, false ));
+}
+
+TEST( Sequence, ConsensusCavener )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    // Load sequence file.
+    std::string infile = environment->data_dir + "sequence/dna_5_42_s.phylip";
+    SequenceSet sset;
+    PhylipReader()
+        .label_length( 10 )
+        .from_file(infile, sset);
+
+    // Create counts object.
+    auto counts = SequenceCounts( "ACGT", 42 );
+    counts.add_sequences( sset );
+
+    // Manually calculated correct sequences.
+    EXPECT_EQ(
+        "AARCCYTKGCMGTTMMGSKTRARCCNTGGCCGKKMMGSKTAW",
+        consensus_sequence_cavener( counts, true )
+    );
+    EXPECT_EQ(
+        "AARCCYTKGCMGTTMMGSKTRARCCNTGGCCGKKMMGSKTAW",
+        consensus_sequence_cavener( counts, false )
+    );
+
+    // Some edge cases: zero sequences.
+    auto counts_2 = SequenceCounts( "ACGT", 5 );
+    EXPECT_EQ( "-----", consensus_sequence_cavener( counts_2, true ));
+    EXPECT_EQ( "-----", consensus_sequence_cavener( counts_2, false ));
+
+    // One sequence.
+    counts_2.add_sequence( "-ACGT" );
+    EXPECT_EQ( "-ACGT", consensus_sequence_cavener( counts_2, true ));
+    EXPECT_EQ( "-ACGT", consensus_sequence_cavener( counts_2, false ));
+
+    // More.
+    counts_2.add_sequence( "-ACCT" );
+    counts_2.add_sequence( "ACCT-" );
+    EXPECT_EQ( "-MCB-", consensus_sequence_cavener( counts_2, true ));
+    EXPECT_EQ( "AMCBT", consensus_sequence_cavener( counts_2, false ));
 }

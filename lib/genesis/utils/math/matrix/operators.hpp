@@ -32,7 +32,9 @@
  */
 
 #include <ostream>
+#include <sstream>
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 #include "genesis/utils/math/matrix.hpp"
@@ -168,6 +170,55 @@ std::ostream& operator<< (std::ostream& os, const Matrix<T>& matrix)
         os << "\n";
     }
     return os;
+}
+
+/**
+ * @brief Print a Matrix to an out stream.
+ * See print( Matrix<T> const&, size_t, size_t ) for details.
+ */
+template <typename T>
+void print( std::ostream& out, Matrix<T> const& matrix, size_t rows = 10, size_t cols = 10 )
+{
+    // If the user does not want limits, or uses wrong ones, just use everything!
+    if( rows == 0 || rows >= matrix.rows() ) {
+        rows = matrix.rows();
+    }
+    if( cols == 0 || cols >= matrix.cols() ) {
+        cols = matrix.cols();
+    }
+
+    // Print as many rows and cols as wanted.
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
+            out << matrix(i, j);
+            if (j < matrix.cols() - 1) {
+                out << " ";
+            }
+        }
+        if( cols < matrix.cols() ) {
+            out << " ...";
+        }
+        out << "\n";
+    }
+    if( rows < matrix.rows() ) {
+        out << "...\n";
+    }
+}
+
+/**
+ * @brief Print a Matrix to a `std::string`.
+ *
+ * If @p rows == 0, all rows are printed. Otherwise, only the given number of rows is printed,
+ * followed by an ellipsis (`...`). The same applies to the columns, using @p cols.
+ *
+ * See also print( std::ostream&, Matrix<T> const&, size_t, size_t ).
+ */
+template <typename T>
+std::string print( Matrix<T> const& matrix, size_t rows = 10, size_t cols = 10 )
+{
+    std::ostringstream out;
+    print( out, matrix, rows, cols );
+    return out.str();
 }
 
 // =================================================================================================

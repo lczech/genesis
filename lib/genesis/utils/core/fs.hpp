@@ -54,12 +54,44 @@ void        dir_create     ( std::string const& path );
 
 std::string dir_normalize_path( std::string const& path );
 
-std::vector<std::string> dir_list_contents    ( std::string const& dir );
-std::vector<std::string> dir_list_contents    ( std::string const& dir, std::string const& regex );
-std::vector<std::string> dir_list_files       ( std::string const& dir );
-std::vector<std::string> dir_list_files       ( std::string const& dir, std::string const& regex );
-std::vector<std::string> dir_list_directories ( std::string const& dir );
-std::vector<std::string> dir_list_directories ( std::string const& dir, std::string const& regex );
+
+/**
+ * @brief Get a list of files and directories in a directory.
+ *
+ * If @p full_path is set to `true`, the path of the provided @p dir is prepended to the resulting
+ * list. If a non-empy @p regex is provided, file names are filtered by this regular expression.
+ *
+ * If the directory is not readable, the function throws `std::runtime_error`.
+ */
+std::vector<std::string> dir_list_contents(
+    std::string const& dir,
+    bool full_path = false,
+    std::string const& regex = ""
+);
+
+/**
+ * @brief Get a list of files in a directory.
+ *
+ * Behaves the same as dir_list_contents(), except tat only files are listed (i.e., no directories).
+ * See there for an explanation of the arguments.
+ */
+std::vector<std::string> dir_list_files(
+    std::string const& dir,
+    bool full_path = false,
+    std::string const& regex = ""
+);
+
+/**
+ * @brief Get a list of directories in a directory.
+ *
+ * Behaves the same as dir_list_contents(), except tat only directories are listed (i.e., no files).
+ * See there for an explanation of the arguments.
+ */
+std::vector<std::string> dir_list_directories(
+    std::string const& dir,
+    bool full_path = false,
+    std::string const& regex = ""
+);
 
 // =================================================================================================
 //     File Information

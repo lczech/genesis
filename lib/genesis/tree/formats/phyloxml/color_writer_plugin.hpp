@@ -165,7 +165,7 @@ private:
 
     void set_color_( utils::XmlElement& element, utils::Color color ) const
     {
-        set_color_( element, color.r(), color.g(), color.b() );
+        set_color_( element, color.r_byte(), color.g_byte(), color.b_byte() );
     }
 
 };

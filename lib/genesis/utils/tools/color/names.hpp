@@ -33,9 +33,9 @@
 
 #include "genesis/utils/tools/color.hpp"
 
-#include <array>
 #include <utility>
 #include <string>
+#include <vector>
 
 namespace genesis {
 namespace utils {
@@ -45,23 +45,44 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Struct that stores a static const map of named colors.
+ * @brief Return true iff the given name is a named web color.
  *
- * The map stores all 140 color names of the HTML web colors. It is mainly used as a simple way to
- * create a color scheme in form of a vector of colors.
- *
- * The data of this struct is used by is_named_color() and get_named_color().
+ * Names are filtered so that spaces, underscores and the letter case are ignored.
  */
-struct ColorNames
-{
-    static const std::array<std::pair<std::string, Color>, 140> map;
-};
+bool is_web_color_name( std::string const& name );
 
-bool is_named_color( std::string const& name );
-Color get_named_color( std::string const& name );
+/**
+ * @brief Return true iff the given name is a named xkcd color.
+ *
+ * Names are filtered so that spaces, underscores and the letter case are ignored.
+ * See color_from_name_xkcd() for details on this color list.
+ */
+bool is_xkcd_color_name( std::string const& name );
 
-size_t get_named_color_index( std::string const& name );
-Color get_named_color_at( size_t at );
+/**
+ * @brief Retrieve a named web color by name.
+ *
+ * Names are filtered so that spaces, underscores and the letter case are ignored.
+ * If the color name does not exist, an `std::invalid_argument` exception is thrown.
+ */
+Color color_from_name_web( std::string const& name );
+
+/**
+ * @brief Retrieve a named xkcd color by name.
+ *
+ * Names are filtered so that spaces, underscores and the letter case are ignored.
+ * If the color name does not exist, an `std::invalid_argument` exception is thrown.
+ *
+ * The colors are taken from an [https://xkcd.com/](xkcd) color survey.
+ * They were published under Public Domain, http://creativecommons.org/publicdomain/zero/1.0/.
+ * See https://xkcd.com/color/rgb/ and https://blog.xkcd.com/2010/05/03/color-survey-results/
+ * for details. See also our
+ * @link supplement_acknowledgements_code_reuse_xkcd_color_names Acknowledgements@endlink.
+ */
+Color color_from_name_xkcd( std::string const& name );
+
+std::vector<Color> color_palette_web();
+std::vector<Color> color_palette_xkcd();
 
 } // namespace utils
 } // namespace genesis

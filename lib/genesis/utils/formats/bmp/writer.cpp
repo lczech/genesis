@@ -35,6 +35,7 @@
 #include "genesis/utils/io/output_stream.hpp"
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/tools/color.hpp"
+#include "genesis/utils/tools/color/functions.hpp"
 
 #include <cassert>
 #include <fstream>
@@ -100,11 +101,11 @@ void BmpWriter::to_stream( Matrix<Color> const& image, std::ostream& outstream )
 
         for( size_t x = 0; x < width; ++x ) {
 
-            // Store colour in BGR order (demanded by bmp standard).
+            // Store color in BGR order (demanded by bmp standard).
             auto const& color = image( y, x );
-            outstream.put( color.b() );
-            outstream.put( color.g() );
-            outstream.put( color.r() );
+            outstream.put( color.b_byte() );
+            outstream.put( color.g_byte() );
+            outstream.put( color.r_byte() );
         }
 
         // Fill row to multiple of 4 bytes.
@@ -130,9 +131,9 @@ void BmpWriter::to_stream( Matrix<unsigned char> const& image, std::ostream& out
     // Build a simple grayscale palette.
     auto palette = std::vector<Color>( 256 );
     for( size_t i = 0; i < 256; ++i ) {
-        palette[i].r(i);
-        palette[i].g(i);
-        palette[i].b(i);
+        palette[i].r_byte( i );
+        palette[i].g_byte( i );
+        palette[i].b_byte( i );
     }
     to_stream( image, palette, outstream );
 }
@@ -191,15 +192,15 @@ void BmpWriter::to_stream(
 
     // Palette size check.
     if( palette.size() != 256 ) {
-        throw std::invalid_argument( "Bitmap color palette does not have 256 entries." );
+        throw std::invalid_argument( "Bitmap color palette needs to have 256 entries." );
     }
 
     // Color palette.
     info.bmiColors = std::vector<RgbQuad>( 256 );
     for( size_t i = 0; i < 256; ++i ) {
-        info.bmiColors[i].rgbBlue  = palette[i].b();
-        info.bmiColors[i].rgbGreen = palette[i].g();
-        info.bmiColors[i].rgbRed   = palette[i].r();
+        info.bmiColors[i].rgbBlue  = palette[i].b_byte();
+        info.bmiColors[i].rgbGreen = palette[i].g_byte();
+        info.bmiColors[i].rgbRed   = palette[i].r_byte();
     }
 
     // Write headers.

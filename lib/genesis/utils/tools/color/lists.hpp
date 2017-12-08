@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_TOOLS_COLOR_PALETTES_H_
-#define GENESIS_UTILS_TOOLS_COLOR_PALETTES_H_
+#ifndef GENESIS_UTILS_TOOLS_COLOR_LISTS_H_
+#define GENESIS_UTILS_TOOLS_COLOR_LISTS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -33,24 +33,37 @@
 
 #include "genesis/utils/tools/color.hpp"
 
+#include <string>
 #include <vector>
 
 namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Color Palettes
+//     Color Lists
 // =================================================================================================
 
-Color magma(   unsigned char index );
-Color inferno( unsigned char index );
-Color plasma(  unsigned char index );
-Color viridis( unsigned char index );
+std::vector<Color> const& color_list_magma();
+std::vector<Color> const& color_list_inferno();
+std::vector<Color> const& color_list_plasma();
+std::vector<Color> const& color_list_viridis();
+std::vector<Color> const& color_list_spectral();
 
-std::vector<Color> magma_palette();
-std::vector<Color> inferno_palette();
-std::vector<Color> plasma_palette();
-std::vector<Color> viridis_palette();
+// =================================================================================================
+//     Convenience Functions
+// =================================================================================================
+
+enum class ColorList
+{
+    kMagma,
+    kInferno,
+    kPlasma,
+    kViridis,
+    kSpectral
+};
+
+std::vector<Color> const& color_list( ColorList          palette );
+std::vector<Color> const& color_list( std::string const& palette );
 
 } // namespace utils
 } // namespace genesis

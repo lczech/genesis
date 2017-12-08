@@ -34,6 +34,7 @@
 #include <dirent.h>
 #include <errno.h>
 #include <fstream>
+#include <functional>
 #include <regex>
 #include <sstream>
 #include <stdexcept>
@@ -193,14 +194,15 @@ std::string dir_normalize_path( std::string const& path )
     return utils::trim_right( path, "/") + "/";
 }
 
-/**
- * @brief Get a list of files and directories in a directory.
- *
- * If the directory is not readable, the function throws `std::runtime_error`.
- */
-std::vector<std::string> dir_list_contents( std::string const& dir )
-{
+std::vector<std::string> dir_list_contents_(
+    std::string const& dir,
+    bool full_path,
+    std::string const& regex,
+    std::function<bool( std::string const& )> condition
+) {
     std::vector<std::string> list;
+    auto const dir_path = dir_normalize_path( dir );
+    std::regex pattern( regex );
 
     DIR*           dp;
     struct dirent* dirp;
@@ -209,110 +211,59 @@ std::vector<std::string> dir_list_contents( std::string const& dir )
         throw std::runtime_error( "Cannot open directory '" + dir + "'." );
     }
     while ((dirp = readdir(dp)) != nullptr) {
-        std::string fn = std::string(dirp->d_name);
+        auto const fn = std::string( dirp->d_name );
+
         if (fn == "." || fn == "..") {
             continue;
         }
-        list.push_back(fn);
+        if( ! regex.empty() && ! regex_match( fn, pattern ) ) {
+            continue;
+        }
+        if( ! condition( dir_path + fn ) ) {
+            continue;
+        }
+
+        if( full_path ) {
+            list.push_back( dir_path + fn );
+        } else {
+            list.push_back( fn );
+        }
     }
     closedir(dp);
+
     //~ std::sort(list.begin(), list.end());
     return list;
 }
 
-/**
- * @brief Get a list of all files and directories in a directory whose name matches a regular expression.
- *
- * If the directory is not readable, the function throws `std::runtime_error`.
- */
-std::vector<std::string> dir_list_contents( std::string const& dir, std::string const& regex )
-{
-    std::vector<std::string> result;
-    auto all_list = dir_list_contents( dir );
-    std::regex pattern( regex );
-
-    for( auto const& elem : all_list ) {
-        if( regex_match( elem, pattern ) ) {
-            result.push_back( elem );
-        }
-    }
-    return result;
+std::vector<std::string> dir_list_contents(
+    std::string const& dir,
+    bool full_path,
+    std::string const& regex
+) {
+    return dir_list_contents_(
+        dir, full_path, regex,
+        []( std::string const& ){ return true; }
+    );
 }
 
-/**
- * @brief Get a list of files in a directory.
- *
- * If the directory is not readable, the function throws `std::runtime_error`.
- */
-std::vector<std::string> dir_list_files( std::string const& dir )
-{
-    std::vector<std::string> result;
-    auto all_list = dir_list_contents( dir );
-    auto dir_path = dir_normalize_path( dir );
-
-    for( auto const& elem : all_list ) {
-        if( is_file( dir_path + elem ) ) {
-            result.push_back( elem );
-        }
-    }
-    return result;
+std::vector<std::string> dir_list_files(
+    std::string const& dir,
+    bool full_path,
+    std::string const& regex
+) {
+    return dir_list_contents_(
+        dir, full_path, regex, is_file
+    );
 }
 
-/**
- * @brief Get a list of all files in a directory whose name matches a regular expression.
- *
- * If the directory is not readable, the function throws `std::runtime_error`.
- */
-std::vector<std::string> dir_list_files( std::string const& dir, std::string const& regex )
-{
-    std::vector<std::string> result;
-    auto all_list = dir_list_contents( dir, regex );
-    auto dir_path = dir_normalize_path( dir );
-
-    for( auto const& elem : all_list ) {
-        if( is_file( dir_path + elem ) ) {
-            result.push_back( elem );
-        }
-    }
-    return result;
-}
-
-/**
- * @brief Get a list of directories in a directory.
- *
- * If the directory is not readable, the function throws `std::runtime_error`.
- */
-std::vector<std::string> dir_list_directories( std::string const& dir )
-{
-    std::vector<std::string> result;
-    auto all_list = dir_list_contents( dir );
-    auto dir_path = dir_normalize_path( dir );
-
-    for( auto const& elem : all_list ) {
-        if( is_dir( dir_path + elem ) ) {
-            result.push_back( elem );
-        }
-    }
-    return result;
-}
-
-/**
- * @brief Get a list of all directories in a directory whose name matches a regular expression.
- *
- * If the directory is not readable, the function throws `std::runtime_error`.
- */
-std::vector<std::string> dir_list_directories( std::string const& dir, std::string const& regex )
-{
-    std::vector<std::string> result;
-    auto all_list = dir_list_contents( dir, regex );
-    auto dir_path = dir_normalize_path( dir );
-
-    for( auto const& elem : all_list ) {
-        if( is_dir( dir_path + elem ) ) {
-            result.push_back( elem );
-        }
-    }
-    return result;
+std::vector<std::string> dir_list_directories(
+    std::string const& dir,
+    bool full_path,
+    std::string const& regex
+) {
+    return dir_list_contents_(
+        dir, full_path, regex, is_dir
+    );
 }
 
 // =================================================================================================

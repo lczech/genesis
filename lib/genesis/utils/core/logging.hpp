@@ -34,6 +34,8 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/core/std.hpp"
+
 #include <cmath>
 #include <sstream>
 #include <string>
@@ -69,17 +71,6 @@ namespace utils {
 // override this setting when debugging is turned on (eg by makefile)
 #ifdef DEBUG
 #    define LOG_LEVEL_MAX genesis::utils::Logging::kDebug4
-#endif
-
-// try to find a macro that expands to the current function name
-#ifdef __cplusplus
-#    define GENESIS_FUNC __PRETTY_FUNCTION__
-#else
-#    if defined __STDC_VERSION__
-#        define GENESIS_FUNC __func__
-#    else
-#        define GENESIS_FUNC ((const char *) 0)
-#    endif
 #endif
 
 // define the actual log macro, so that the compiler can prune calls

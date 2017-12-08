@@ -32,7 +32,7 @@
 
 #include "genesis/utils/formats/svg/document.hpp"
 #include "genesis/utils/text/string.hpp"
-#include "genesis/utils/tools/color/operators.hpp"
+#include "genesis/utils/tools/color/functions.hpp"
 
 namespace genesis {
 namespace utils {
@@ -50,12 +50,6 @@ void SvgGradientStop::validate() const
             std::to_string( offset ) + "."
         );
     }
-    if( stop_opacity < 0.0 || stop_opacity > 1.0 ) {
-        throw std::invalid_argument(
-            "Invalid Svg Gradient Stop stop_opacity. Has to be in range [ 0.0, 1.0 ], but is " +
-            std::to_string( stop_opacity ) + "."
-        );
-    }
 }
 
 void SvgGradientStop::write( std::ostream& out ) const
@@ -64,7 +58,7 @@ void SvgGradientStop::write( std::ostream& out ) const
     out << "<stop";
     out << svg_attribute( "offset",       100 * offset, "%" );
     out << svg_attribute( "stop-color",   color_to_hex( stop_color ) );
-    out << svg_attribute( "stop-opacity", stop_opacity );
+    out << svg_attribute( "stop-opacity", stop_color.a() );
     out << " />\n";
 }
 

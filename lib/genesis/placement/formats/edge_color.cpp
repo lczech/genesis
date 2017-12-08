@@ -35,7 +35,7 @@
 #include "genesis/placement/placement_tree.hpp"
 #include "genesis/placement/sample.hpp"
 #include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/gradient.hpp"
+#include "genesis/utils/tools/color/functions.hpp"
 
 #include <cmath>
 
@@ -53,7 +53,7 @@ namespace placement {
  * The vector is indexed using the edge.index(). Each edge gets assigned a Color value with these
  * properties:
  *
- *   * Edges with no placements on them are grey (RGB 128, 128, 128).
+ *   * Edges with no placements on them are grey (RGB 0.5, 0.5, 0.5).
  *   * Edges with placements get a color according to the relative number of placements compared to
  *     the other edges. The edge with most placements is pure red (RGB 255, 0, 0), while lower
  *     numbers of placements smoothly transition towards yellow and green edges.
@@ -71,7 +71,7 @@ namespace placement {
 std::vector<utils::Color> placement_color_count_gradient( Sample const& smp, bool linear )
 {
     // Init the result vector with grey color for each edge.
-    auto ret = std::vector<utils::Color>( smp.tree().edge_count(), utils::Color(128,128,128) );
+    auto ret = std::vector<utils::Color>( smp.tree().edge_count(), utils::Color(0.5,0.5,0.5) );
 
     // Get the highest number of placements on any edge.
     // If this is zero, there are no placements, so we can immediately return.

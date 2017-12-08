@@ -82,7 +82,7 @@ TEST(Tree, Drawing)
     std::vector<utils::SvgStroke> strokes;
     for( size_t i = 0; i < tree.edge_count(); ++i ) {
         strokes.push_back( utils::SvgStroke() );
-        strokes.back().color = utils::get_named_color( scheme[ i % scheme.size() ] );
+        strokes.back().color = utils::color_from_name_web( scheme[ i % scheme.size() ] );
     }
     layout.set_edge_strokes( strokes );
 

@@ -152,7 +152,7 @@ TEST(Newick, ColorPlugin)
     auto color_vector = std::vector<utils::Color>( tree.edge_count() );
     for( auto it = tree.begin_edges(); it != tree.end_edges(); ++it ) {
         if( (*it)->primary_node().is_leaf() || (*it)->secondary_node().is_leaf() ) {
-            color_vector[(*it)->index()] = utils::Color(255, 0, 0);
+            color_vector[(*it)->index()] = utils::Color(1, 0, 0);
         }
     }
 
@@ -160,7 +160,7 @@ TEST(Newick, ColorPlugin)
     // We set ignored color to fuchsia ("magic pink") in order to also print out the black colored
     // inner edges.
     color_plugin.edge_colors(color_vector);
-    color_plugin.ignored_color(utils::Color(255, 0, 255));
+    color_plugin.ignored_color(utils::Color(1, 0, 1));
     std::string output = writer.to_string(tree);
 
     // Check if we actually got the right number of red color tag comments.

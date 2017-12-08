@@ -104,7 +104,7 @@ CsvReader::table CsvReader::parse_document(
 }
 
 /**
- * @brief Parse one field (i.e., one column) of the CSV data and return it.
+ * @brief Parse one field (i.e., one cell) of the CSV data and return it.
  *
  * This function reads from a given input stream until the column separator or the end of the line
  * or the end of the stream is found. It furthermore trims the necessary chars from the beginning

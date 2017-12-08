@@ -31,9 +31,10 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/gradient.hpp"
+#include "genesis/utils/tools/color/functions.hpp"
+#include "genesis/utils/tools/color/lists.hpp"
 #include "genesis/utils/tools/color/names.hpp"
-#include "genesis/utils/tools/color/operators.hpp"
+#include "genesis/utils/tools/color/palette.hpp"
 
 #include <stdexcept>
 
@@ -42,89 +43,94 @@ using namespace utils;
 
 void compare_color(const Color& expected, const Color& actual)
 {
-    EXPECT_EQ (expected.r(), actual.r());
-    EXPECT_EQ (expected.g(), actual.g());
-    EXPECT_EQ (expected.b(), actual.b());
+    // Doubles are hard to compare. Just use the approximation here.
+    EXPECT_EQ (expected.r_byte(), actual.r_byte());
+    EXPECT_EQ (expected.g_byte(), actual.g_byte());
+    EXPECT_EQ (expected.b_byte(), actual.b_byte());
+
+    // EXPECT_FLOAT_EQ (expected.r(), actual.r());
+    // EXPECT_FLOAT_EQ (expected.g(), actual.g());
+    // EXPECT_FLOAT_EQ (expected.b(), actual.b());
 }
 
 TEST(Color, Gradient)
 {
     // Set up colors for standard heat gradient.
     auto ranges_heat = std::map<double, Color>();
-    ranges_heat[ 0.0 ] = Color(   0, 255, 0 );
-    ranges_heat[ 0.5 ] = Color( 255, 255, 0 );
-    ranges_heat[ 1.0 ] = Color( 255,   0, 0 );
+    ranges_heat[ 0.0 ] = color_from_bytes(   0, 255, 0 );
+    ranges_heat[ 0.5 ] = color_from_bytes( 255, 255, 0 );
+    ranges_heat[ 1.0 ] = color_from_bytes( 255,   0, 0 );
 
     // Proper value tests.
-    compare_color(Color(   0, 255, 0 ), gradient( ranges_heat, 0.0  ));
-    compare_color(Color( 128, 255, 0 ), gradient( ranges_heat, 0.25 ));
-    compare_color(Color( 255, 255, 0 ), gradient( ranges_heat, 0.5  ));
-    compare_color(Color( 255, 128, 0 ), gradient( ranges_heat, 0.75 ));
-    compare_color(Color( 255,   0, 0 ), gradient( ranges_heat, 1.0  ));
+    compare_color(color_from_bytes(   0, 255, 0 ), gradient( ranges_heat, 0.0  ));
+    compare_color(color_from_bytes( 128, 255, 0 ), gradient( ranges_heat, 0.25 ));
+    compare_color(color_from_bytes( 255, 255, 0 ), gradient( ranges_heat, 0.5  ));
+    compare_color(color_from_bytes( 255, 128, 0 ), gradient( ranges_heat, 0.75 ));
+    compare_color(color_from_bytes( 255,   0, 0 ), gradient( ranges_heat, 1.0  ));
 
     // Off-range values.
-    compare_color(Color(   0, 255, 0 ), gradient( ranges_heat, -1.0 ));
-    compare_color(Color( 255,   0, 0 ), gradient( ranges_heat,  2.0 ));
+    compare_color(color_from_bytes(   0, 255, 0 ), gradient( ranges_heat, -1.0 ));
+    compare_color(color_from_bytes( 255,   0, 0 ), gradient( ranges_heat,  2.0 ));
 
 
     // Set up colors for some more complex gradient.
     auto ranges_long = std::map<double, Color>();
-    ranges_long[ 0.0  ] = Color(   0,   0,   0 );
-    ranges_long[ 0.25 ] = Color(   0, 255,   0 );
-    ranges_long[ 0.5  ] = Color( 255, 255,   0 );
-    ranges_long[ 1.0  ] = Color( 255,   0, 255 );
+    ranges_long[ 0.0  ] = color_from_bytes(   0,   0,   0 );
+    ranges_long[ 0.25 ] = color_from_bytes(   0, 255,   0 );
+    ranges_long[ 0.5  ] = color_from_bytes( 255, 255,   0 );
+    ranges_long[ 1.0  ] = color_from_bytes( 255,   0, 255 );
 
     // Test the complex gradient.
-    compare_color(Color(   0,   0,   0 ), gradient( ranges_long, 0.0  ));
-    compare_color(Color(   0, 102,   0 ), gradient( ranges_long, 0.1  ));
-    compare_color(Color(   0, 255,   0 ), gradient( ranges_long, 0.25 ));
-    compare_color(Color(  51, 255,   0 ), gradient( ranges_long, 0.3  ));
-    compare_color(Color( 255, 255,   0 ), gradient( ranges_long, 0.5  ));
-    compare_color(Color( 255, 204,  51 ), gradient( ranges_long, 0.6  ));
-    compare_color(Color( 255, 128, 128 ), gradient( ranges_long, 0.75 ));
-    compare_color(Color( 255,  51, 204 ), gradient( ranges_long, 0.9  ));
-    compare_color(Color( 255,   0, 255 ), gradient( ranges_long, 1.0  ));
+    compare_color(color_from_bytes(   0,   0,   0 ), gradient( ranges_long, 0.0  ));
+    compare_color(color_from_bytes(   0, 102,   0 ), gradient( ranges_long, 0.1  ));
+    compare_color(color_from_bytes(   0, 255,   0 ), gradient( ranges_long, 0.25 ));
+    compare_color(color_from_bytes(  51, 255,   0 ), gradient( ranges_long, 0.3  ));
+    compare_color(color_from_bytes( 255, 255,   0 ), gradient( ranges_long, 0.5  ));
+    compare_color(color_from_bytes( 255, 204,  51 ), gradient( ranges_long, 0.6  ));
+    compare_color(color_from_bytes( 255, 128, 128 ), gradient( ranges_long, 0.75 ));
+    compare_color(color_from_bytes( 255,  51, 204 ), gradient( ranges_long, 0.9  ));
+    compare_color(color_from_bytes( 255,   0, 255 ), gradient( ranges_long, 1.0  ));
 }
 
 TEST(Color, HeatGradient)
 {
     // Proper value tests.
-    compare_color(Color(   0, 255, 0 ), heat_gradient( 0.0  ));
-    compare_color(Color( 128, 255, 0 ), heat_gradient( 0.25 ));
-    compare_color(Color( 255, 255, 0 ), heat_gradient( 0.5  ));
-    compare_color(Color( 255, 128, 0 ), heat_gradient( 0.75 ));
-    compare_color(Color( 255,   0, 0 ), heat_gradient( 1.0  ));
+    compare_color(color_from_bytes(   0, 255, 0 ), heat_gradient( 0.0  ));
+    compare_color(color_from_bytes( 128, 255, 0 ), heat_gradient( 0.25 ));
+    compare_color(color_from_bytes( 255, 255, 0 ), heat_gradient( 0.5  ));
+    compare_color(color_from_bytes( 255, 128, 0 ), heat_gradient( 0.75 ));
+    compare_color(color_from_bytes( 255,   0, 0 ), heat_gradient( 1.0  ));
 
     // Off-range values.
-    compare_color(Color(   0, 255, 0 ), heat_gradient( -1.0 ));
-    compare_color(Color( 255,   0, 0 ), heat_gradient(  2.0 ));
+    compare_color(color_from_bytes(   0, 255, 0 ), heat_gradient( -1.0 ));
+    compare_color(color_from_bytes( 255,   0, 0 ), heat_gradient(  2.0 ));
 }
 
-TEST(Color, FromDoubles)
-{
-    // Proper value tests.
-    compare_color(Color( 255,   0,   0 ), color_from_doubles( 1.0, 0.0, 0.0 ));
-    compare_color(Color(   0, 255,   0 ), color_from_doubles( 0.0, 1.0, 0.0 ));
-    compare_color(Color(   0,   0, 255 ), color_from_doubles( 0.0, 0.0, 1.0 ));
-    compare_color(Color( 128, 128, 128 ), color_from_doubles( 0.5, 0.5, 0.5 ));
-
-    // Off-range values.
-    compare_color(Color(   0,   0, 255 ), color_from_doubles( -1.0, 0.0, 10.0 ));
-}
+// TEST(Color, FromDoubles)
+// {
+//     // Proper value tests.
+//     compare_color(Color( 255,   0,   0 ), color_from_doubles( 1.0, 0.0, 0.0 ));
+//     compare_color(Color(   0, 255,   0 ), color_from_doubles( 0.0, 1.0, 0.0 ));
+//     compare_color(Color(   0,   0, 255 ), color_from_doubles( 0.0, 0.0, 1.0 ));
+//     compare_color(Color( 128, 128, 128 ), color_from_doubles( 0.5, 0.5, 0.5 ));
+//
+//     // Off-range values.
+//     compare_color(Color(   0,   0, 255 ), color_from_doubles( -1.0, 0.0, 10.0 ));
+// }
 
 TEST(Color, ToAndFromHex)
 {
     // Produce hex color strings.
-    EXPECT_EQ(  "#0033ff", color_to_hex(Color(   0,  51, 255)) );
-    EXPECT_EQ(  "#4201fe", color_to_hex(Color(  66,   1, 254)) );
-    EXPECT_EQ(   "000000", color_to_hex(Color(   0,   0,   0), "") );
-    EXPECT_EQ( "0XC0FFEE", color_to_hex(Color( 192, 255, 238), "0X", true) );
+    EXPECT_EQ(  "#0033ff", color_to_hex(color_from_bytes(   0,  51, 255)) );
+    EXPECT_EQ(  "#4201fe", color_to_hex(color_from_bytes(  66,   1, 254)) );
+    EXPECT_EQ(   "000000", color_to_hex(color_from_bytes(   0,   0,   0), "") );
+    EXPECT_EQ( "0XC0FFEE", color_to_hex(color_from_bytes( 192, 255, 238), "0X", true) );
 
     // Parse some valid hex color strings.
-    compare_color( Color(   0,   0,   0 ), color_from_hex("#000000") );
-    compare_color( Color( 171, 205, 239 ), color_from_hex("#abcdef") );
-    compare_color( Color( 255, 255, 255 ), color_from_hex("#fFFFff") );
-    compare_color( Color( 192, 255, 238 ), color_from_hex("c0ffee", "") );
+    compare_color( color_from_bytes(   0,   0,   0 ), color_from_hex("#000000") );
+    compare_color( color_from_bytes( 171, 205, 239 ), color_from_hex("#abcdef") );
+    compare_color( color_from_bytes( 255, 255, 255 ), color_from_hex("#fFFFff") );
+    compare_color( color_from_bytes( 192, 255, 238 ), color_from_hex("c0ffee", "") );
 
     // Try to parse some malformed hex color strings.
     EXPECT_THROW(color_from_hex(""),         std::invalid_argument);
@@ -136,20 +142,37 @@ TEST(Color, ToAndFromHex)
 TEST( Color, Names )
 {
     // Find some valid color names.
-    EXPECT_TRUE( is_named_color("Dark Sea Green") );
-    EXPECT_TRUE( is_named_color("ForestGreen") );
-    EXPECT_TRUE( is_named_color("lawn_green") );
-    EXPECT_TRUE( is_named_color("lime green") );
+    EXPECT_TRUE( is_web_color_name("Dark Sea Green") );
+    EXPECT_TRUE( is_web_color_name("ForestGreen") );
+    EXPECT_TRUE( is_web_color_name("lawn_green") );
+    EXPECT_TRUE( is_web_color_name("lime green") );
 
     // And invalid.
-    EXPECT_FALSE( is_named_color("heavy metal") );
-    EXPECT_FALSE( is_named_color("applepie") );
+    EXPECT_FALSE( is_web_color_name("heavy metal") );
+    EXPECT_FALSE( is_web_color_name("applepie") );
 
     // Compare some color values.
-    compare_color( Color(199, 21, 133), get_named_color("MediumVioletRed") );
-    compare_color( Color(205, 92, 92), get_named_color("indian red") );
+    compare_color( color_from_bytes(199, 21, 133), color_from_name_web("MediumVioletRed") );
+    compare_color( color_from_bytes(205, 92, 92), color_from_name_web("indian red") );
 
     // Get invalid color.
-    EXPECT_THROW( get_named_color(""), std::invalid_argument );
-    EXPECT_THROW( get_named_color("boot polish"), std::invalid_argument );
+    EXPECT_THROW( color_from_name_web(""), std::invalid_argument );
+    EXPECT_THROW( color_from_name_web("boot polish"), std::invalid_argument );
+}
+
+TEST( Color, PaletteSpectral )
+{
+    auto pal = ColorPalette( color_list_spectral() );
+    pal.range( -1.0, 0.0, 1.0 );
+
+    compare_color( color_from_bytes( 158,   1,  66 ), pal.diverging_color( -1.0 ) );
+    compare_color( color_from_bytes( 249, 142,  82 ), pal.diverging_color( -0.5 ) );
+    compare_color( color_from_bytes( 253, 174,  97 ), pal.diverging_color( -0.4 ) );
+    compare_color( color_from_bytes( 255, 255, 191 ), pal.diverging_color(  0.0 ) );
+    compare_color( color_from_bytes( 171, 221, 164 ), pal.diverging_color(  0.4 ) );
+    compare_color( color_from_bytes( 137, 208, 165 ), pal.diverging_color(  0.5 ) );
+    compare_color( color_from_bytes(  94,  79, 162 ), pal.diverging_color(  1.0 ) );
+
+    // EXPECT_THROW( pal( -2.0 ), std::invalid_argument );
+    // EXPECT_THROW( pal(  2.0 ), std::invalid_argument );
 }

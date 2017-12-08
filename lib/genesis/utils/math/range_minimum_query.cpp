@@ -162,8 +162,8 @@ RangeMinimumQuery::RangeMinimumQuery( std::vector<RangeMinimumQuery::IntType>&& 
  */
 size_t RangeMinimumQuery::query( size_t i, size_t j ) const
 {
-    // Range check.
-    if( j < i ) {
+    // Safety checks.
+    if( i >= array_.size() || j >= array_.size() || j < i ) {
         throw std::invalid_argument(
             "Invalid range minimum query with indices i==" +
             std::to_string(i) + " and j==" + std::to_string(j) + "."

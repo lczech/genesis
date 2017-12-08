@@ -119,12 +119,12 @@ TEST( Json, ParsingFails )
 
     auto reader = JsonReader();
     std::string data_dir = environment->data_dir + "utils/json/";
-    auto fail_files = dir_list_files( data_dir, "fail.*.jtest" );
+    auto fail_files = dir_list_files( data_dir, true, "fail.*.jtest" );
     ASSERT_EQ( 24, fail_files.size() );
 
     for( auto const& fail_file : fail_files ) {
         // LOG_DBG << fail_file;
-        EXPECT_ANY_THROW( reader.from_file( data_dir + fail_file ));
+        EXPECT_ANY_THROW( reader.from_file( fail_file ));
     }
 }
 
@@ -134,13 +134,18 @@ TEST( Json, ParsingPasses )
 
     auto reader = JsonReader();
     std::string data_dir = environment->data_dir + "utils/json/";
-    auto pass_files = dir_list_files( data_dir, "pass.*.jtest" );
+    auto pass_files = dir_list_files( data_dir, true, "pass.*.jtest" );
+
+    for( auto c : pass_files ) {
+        std::cout << c << "\n";
+    }
+
     ASSERT_EQ( 3, pass_files.size() );
 
     for( auto const& pass_file : pass_files ) {
         // LOG_DBG << pass_file;
-        EXPECT_NO_THROW( reader.from_file( data_dir + pass_file ));
-        // reader.from_file( data_dir + pass_file );
+        EXPECT_NO_THROW( reader.from_file( pass_file ));
+        // reader.from_file( pass_file );
     }
 }
 
