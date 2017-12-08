@@ -63,6 +63,7 @@
 #include "genesis/tree/formats/phyloxml/writer.hpp"
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/function/lca_lookup.hpp"
 #include "genesis/tree/function/manipulation.hpp"
 #include "genesis/tree/function/operators.hpp"
 #include "genesis/tree/function/tree_set.hpp"
