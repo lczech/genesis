@@ -32,6 +32,7 @@
  */
 
 #include <stdexcept>
+#include <string>
 #include <vector>
 
 namespace genesis {
@@ -65,16 +66,46 @@ public:
     {}
 
     Matrix (size_t rows, size_t cols)
-        : rows_(rows)
-        , cols_(cols)
-        , data_(rows * cols)
+        : rows_( rows )
+        , cols_( cols )
+        , data_( rows * cols )
     {}
 
     Matrix (size_t rows, size_t cols, T init)
-        : rows_(rows)
-        , cols_(cols)
-        , data_(rows * cols, init)
+        : rows_( rows )
+        , cols_( cols )
+        , data_( rows * cols, init )
     {}
+
+    Matrix( size_t rows, size_t cols, std::vector<T> const& data )
+        : rows_( rows )
+        , cols_( cols )
+        , data_( data )
+    {
+        if( rows * cols != data_.size() ) {
+            throw std::length_error(
+                std::string(__PRETTY_FUNCTION__) + ": length_error. Expecting " +
+                std::to_string( rows ) + " * " + std::to_string( cols ) + " = " +
+                std::to_string( rows * cols ) + " elements, but provided data contains " +
+                std::to_string( data_.size() ) + " elements."
+            );
+        }
+    }
+
+    Matrix( size_t rows, size_t cols, std::vector<T>&& data )
+        : rows_( rows )
+        , cols_( cols )
+        , data_( std::move( data ))
+    {
+        if( rows * cols != data_.size() ) {
+            throw std::length_error(
+                std::string(__PRETTY_FUNCTION__) + ": length_error. Expecting " +
+                std::to_string( rows ) + " * " + std::to_string( cols ) + " = " +
+                std::to_string( rows * cols ) + " elements, but provided data contains " +
+                std::to_string( data_.size() ) + " elements."
+            );
+        }
+    }
 
     Matrix (size_t rows, size_t cols, std::initializer_list<T> const& init_list)
         : rows_(rows)
@@ -82,7 +113,12 @@ public:
         , data_(rows * cols)
     {
         if (init_list.size() != size()) {
-            throw std::length_error("__FUNCTION__: length_error");
+            throw std::length_error(
+                std::string(__PRETTY_FUNCTION__) + ": length_error. Expecting " +
+                std::to_string( rows ) + " * " + std::to_string( cols ) + " = " +
+                std::to_string( rows * cols ) + " elements, but provided data contains " +
+                std::to_string( init_list.size() ) + " elements."
+            );
         }
 
         size_t i = 0;
