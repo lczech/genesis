@@ -170,8 +170,9 @@ std::string replace_all (
     for (size_t pos = 0; ; pos += replace.length()) {
         pos = tmp.find(search, pos);
 
-        if (pos == std::string::npos)
+        if (pos == std::string::npos){
             break;
+        }
 
         tmp.erase(pos, search.length());
         tmp.insert(pos, replace);
