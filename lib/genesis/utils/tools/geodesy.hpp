@@ -31,82 +31,95 @@
  * @ingroup utils
  */
 
-#include <string>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Coordinate System
+//     Coordinate System Definitions
 // =================================================================================================
 
-struct GeoCoordinate
+/**
+ * @brief Geographical coordinates in degrees.
+ */
+class GeoCoordinate
 {
-    double latitude;
-    double longitude;
+public:
+
+    // -------------------------------------------------------------------------
+    //     Constructor and Rule of Five
+    // -------------------------------------------------------------------------
+
+    GeoCoordinate()  = default;
+
+    GeoCoordinate( double lat, double lon )
+    {
+        latitude( lat );
+        longitude( lon );
+    }
+
+    ~GeoCoordinate() = default;
+
+    GeoCoordinate( GeoCoordinate const& ) = default;
+    GeoCoordinate( GeoCoordinate&& )      = default;
+
+    GeoCoordinate& operator= ( GeoCoordinate const& ) = default;
+    GeoCoordinate& operator= ( GeoCoordinate&& )      = default;
+
+    // -------------------------------------------------------------------------
+    //     Getters and Setters
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Latitude, in range `[ -90.0, 90.0 ]`.
+     */
+    double latitude() const
+    {
+        return latitude_;
+    }
+
+    /**
+     * @brief Longitude, in range `[ -180.0, 180.0 ]`.
+     */
+    double longitude() const
+    {
+        return longitude_;
+    }
+
+    /**
+     * @brief Latitude, in range `[ -90.0, 90.0 ]`.
+     */
+    GeoCoordinate& latitude( double value )
+    {
+        if( value < -90.0 || value > 90.0 ) {
+            throw std::invalid_argument( "Latitude has to be in range [ -90.0, 90.0 ]." );
+        }
+        latitude_ = value;
+        return *this;
+    }
+
+    /**
+     * @brief Longitude, in range `[ -180.0, 180.0 ]`.
+     */
+    GeoCoordinate& longitude( double value )
+    {
+        if( value < -180.0 || value > 180.0 ) {
+            throw std::invalid_argument( "Longitude has to be in range [ -180.0, 180.0 ]." );
+        }
+        longitude_ = value;
+        return *this;
+    }
+
+    // -------------------------------------------------------------------------
+    //     Private Members
+    // -------------------------------------------------------------------------
+
+private:
+
+    double latitude_;
+    double longitude_;
 };
-
-// =================================================================================================
-//     Coordinate Conversion
-// =================================================================================================
-
-/**
- * @brief Replace non-ascii symbols used in geographic coordinates by their ascii equivalents.
- *
- * The function replaces symbols such as degrees, primes, double primes by simple letters ('dms')
- * that serve the same function.
- *
- * Furthermore, if @p two_components is `true` (default), the function assumes that the given
- * coordinate contains two components (North/South and East/West). In that case, if there is exaclty
- * one comma in the input, it is replaced by a slash. This is meant to avoid ambiguity in parsing
- * of a coordinate that uses commas as decimal separator.
- * Hence, when sanitizing a coordinate with only one component, @p two_components needs to be set
- * to `false` in order to avoid replacing a single decimal separator comma by a slash.
- */
-std::string sanitize_geo_coordinates( std::string const& coordinates, bool two_components = true );
-
-/**
- * @brief Parse strings of geographic coordinates.
- *
- * This is the same as convert_geo_coordinate( std::string const& ), with the only different being
- * that the two components (NW and EW) are given separately. See there for details.
- */
-GeoCoordinate convert_geo_coordinate( std::string const& latitude, std::string const& longitude );
-
-/**
- * @brief Parse a string of geographic coordinates.
- *
- * The function accepts many different formats for geographical coordinates.
- * Some exemplary valid cases:
- *
- *   * `50d4m17.698N 14d24m2.826E`
- *   * `40:26:46N,79:56:55W`
- *   * `40:26:46.302N 179:56:55.903W`
- *   * `49°59'56.948"N, 15°48'22.989"E`
- *   * `50d4m17.698N 14d24m2.826E`
- *   * `49.9991522N, 150.8063858E`
- *   * `40°26′47″N 79°58′36″W`
- *   * `40d 26′ 47″ N 79d 58′ 36″ W`
- *   * `40.446195N 79.948862W`
- *   * `40,446195° 79,948862°`
- *   * `40° 26.7717 / -79° 56.93172`
- *   * `40.446195, -79.948862`
- *   * <code>N 49° 59.94913', E 15° 48.38315'</code>
- *
- * The hemispheres can be given as `[NS]` for the first component and `[EW]` for the second,
- * and can either preceed or follow the numeric values.
- * Degrees, Minutes and Seconds can be separated by the letters `[dms]`, by degree (`°`),
- * prime (` ′ `), single quotation mark (`'`), double prime (`″`), double quoation mark (`"`),
- * or by colons (`:`), respectively.
- * The two components (NS and EW) can be separated by comma (`,`) or slash (`/`).
- *
- * There are some caveats: The hemisphere strings (`NESW`) have to be in capitial letters,
- * while the letters used for degrees, minute and seconds (`dms`) have to be lower case.
- * This constraint avoids ambiguity between seconds (`s`) and south (`S`).
- * Also, either the decimal separator can be a comma, or the separator between components,
- * but not both. This again avoids ambiguity while parsing.
- */
-GeoCoordinate convert_geo_coordinate( std::string const& coordinate );
 
 } // namespace utils
 } // namespace genesis

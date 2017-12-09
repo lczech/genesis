@@ -31,6 +31,7 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/tools/geodesy.hpp"
+#include "genesis/utils/tools/geodesy/functions.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <string>
@@ -68,8 +69,8 @@ TEST( Geodesy, ConvertPass )
         // std::cout << test.str << "\n";
         auto const res = convert_geo_coordinate( test.str );
 
-        EXPECT_FLOAT_EQ( test.lat, res.latitude  ) << test.str;
-        EXPECT_FLOAT_EQ( test.lon, res.longitude ) << test.str;
+        EXPECT_FLOAT_EQ( test.lat, res.latitude()  ) << test.str;
+        EXPECT_FLOAT_EQ( test.lon, res.longitude() ) << test.str;
 
         // std::cout << "        { \"" << test.str << "\", " << to_string_precise( res.latitude, 8 );
         // std::cout << ", " << to_string_precise( res.longitude, 8 ) << " },\n";
@@ -97,5 +98,31 @@ TEST( Geodesy, ConvertFail )
 
     for( auto const& test : cases ) {
         EXPECT_THROW( convert_geo_coordinate( test ), std::invalid_argument);
+    }
+}
+
+TEST( Geodesy, Distances )
+{
+    struct CoordPair
+    {
+        GeoCoordinate c1;
+        GeoCoordinate c2;
+        double dist;
+    };
+
+    // Estimated using https://www.movable-type.co.uk/scripts/latlong.html
+    // Slight deviations due to different earth radius etc. But generally, fits.
+    std::vector<CoordPair> cases = {
+        { {  40.7486, -73.9864 }, { 42.5466, -49.9546 },  2000.0211 },
+        { { -85.299,  178.4355 }, { 17.454, -159.345  }, 11463.562  },
+        { {  65.34,    132.565 }, { 64.23,   131.546  },   132.5256 },
+        { {  90.0,     142.56  }, { 90.0,    -17.45   }, 7.6838096e-13 }
+    };
+
+    for( auto const& test : cases ) {
+        auto const dist_a = geo_distance( test.c1, test.c2 );
+        auto const dist_b = geo_distance( test.c2, test.c1 );
+        EXPECT_FLOAT_EQ( test.dist, dist_a ) << test.c1 << " " << test.c2;
+        EXPECT_FLOAT_EQ( test.dist, dist_b ) << test.c1 << " " << test.c2;
     }
 }

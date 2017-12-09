@@ -28,8 +28,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/tools/geodesy.hpp"
+#include "genesis/utils/tools/geodesy/functions.hpp"
 
+#include "genesis/utils/math/common.hpp"
 #include "genesis/utils/text/string.hpp"
 
 #include <algorithm>
@@ -38,6 +39,7 @@
 #include <cctype>
 #include <cmath>
 #include <iostream>
+#include <ostream>
 #include <regex>
 #include <stdexcept>
 #include <utility>
@@ -104,9 +106,15 @@ double convert_single_geo_coordinate(
         if( tolower( h[0] ) == neg_h ) {
             sgn = -1;
         } else if( tolower( h[0] ) != pos_h ) {
-            throw std::invalid_argument(
-                "Invalid coordinate: Hemisphere directive not in [NESW]."
-            );
+            if( component == GeoCoordinateComponent::kLatitude ) {
+                throw std::invalid_argument(
+                    "Invalid coordinate: Latitude hemisphere directive not in [NS]."
+                );
+            } else {
+                throw std::invalid_argument(
+                    "Invalid coordinate: Longitude hemisphere directive not in [EW]."
+                );
+            }
         }
     }
 
@@ -187,10 +195,10 @@ double convert_single_geo_coordinate(
     return v;
 }
 
-std::string sanitize_geo_coordinates( std::string const& coordinates, bool two_components )
+std::string sanitize_geo_coordinate( std::string const& coordinates, bool two_components )
 {
     // So far, this is the only use case of multi byte characters that we have.
-    // Would be way to much effort to introduce proper encoding here,
+    // Would be way too much effort to introduce proper encoding here,
     // so instead we simply treat each multi byte char as just that,
     // a series of bytes, and replace them by single byte ascii characters as needed.
 
@@ -276,7 +284,7 @@ GeoCoordinate convert_geo_coordinate( std::string const& coordinate )
 
     // Run the expression.
     std::smatch matches;
-    if( ! std::regex_search( sanitize_geo_coordinates( coordinate ), matches, pattern )) {
+    if( ! std::regex_search( sanitize_geo_coordinate( coordinate ), matches, pattern )) {
         throw std::invalid_argument( "Invalid coordinate format." );
     }
 
@@ -294,12 +302,48 @@ GeoCoordinate convert_geo_coordinate( std::string const& coordinate )
         matches[6].str(), matches[7].str(), matches[8].str(), matches[9].str(), matches[10].str(),
         GeoCoordinateComponent::kLongitude
     );
+    assert( - 90.0 <= lat && lat <=  90.0  );
+    assert( -180.0 <= lon && lon <= 180.0  );
 
     // Make and return result.
-    GeoCoordinate g;
-    g.latitude  = lat;
-    g.longitude = lon;
-    return g;
+    return { lat, lon };
+}
+
+// =================================================================================================
+//     Distance
+// =================================================================================================
+
+double geo_distance( GeoCoordinate const& c1, GeoCoordinate const& c2 )
+{
+    // Function adapted from https://rosettacode.org/wiki/Haversine_formula#C
+
+    // Convert to rad, for trigonometry.
+    auto to_rad = []( double d ){
+        return PI * d / 180.0;
+    };
+
+    // Get proper angles.
+    auto const th1 = to_rad( c1.latitude() );
+    auto const ph1 = to_rad( c1.longitude() );
+    auto const th2 = to_rad( c2.latitude() );
+    auto const ph2 = to_rad( c2.longitude() );
+
+    // Get parts of the formula.
+    auto const dx = cos( ph1 - ph2 ) * cos( th1 ) - cos( th2 );
+    auto const dy = sin( ph1 - ph2 ) * cos( th1 );
+    auto const dz = sin( th1 ) - sin( th2 );
+
+    return asin( sqrt( dx * dx + dy * dy + dz * dz ) / 2.0 ) * 2.0 * EARTH_MEAN_RADIUS;
+}
+
+// =================================================================================================
+//     Printing
+// =================================================================================================
+
+std::ostream& operator<< ( std::ostream& os, GeoCoordinate const& coord )
+{
+    os << "( " << coord.latitude() << ", " << coord.longitude() << " )";
+    return os;
 }
 
 } // namespace utils
