@@ -37,6 +37,7 @@
 #include "genesis/utils/tools/char_lookup.hpp"
 
 #include <algorithm>
+#include <numeric>
 #include <unordered_map>
 
 namespace genesis {
