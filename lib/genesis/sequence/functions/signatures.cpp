@@ -314,7 +314,7 @@ size_t kmer_reverse_complement_size( size_t k )
     // Calcualtions according to: https://stackoverflow.com/a/40953130
 
     // Number of palindromic k-mers. For odd k, there are none, for even k, there are 4^(k/2) = 2^k
-    auto const p = ( k % 2 == 0 ? 0 : utils::int_pow( 2, k ));
+    auto const p = ( k % 2 == 1 ? 0 : utils::int_pow( 2, k ));
 
     // Number of entries needed to store rev comp kmers.
     return p + ( utils::int_pow( 4, k ) - p ) / 2;
