@@ -62,7 +62,7 @@ namespace genesis {
 inline std::string genesis_version()
 {
     // The following line is automatically replaced by the deploy scripts. Do not change manually.
-    return "v0.18.0"; // #GENESIS_VERSION#
+    return "v0.18.1"; // #GENESIS_VERSION#
 }
 
 /**
