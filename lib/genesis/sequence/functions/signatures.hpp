@@ -80,6 +80,22 @@ std::vector<std::string> kmer_list( size_t k, std::string const& alphabet );
 //     Signatures
 // =================================================================================================
 
+/**
+ * @brief Get the reverse complement of a sequences of `ACGT` characters.
+ */
+std::string reverse_complement( std::string const& sequence );
+
+/**
+ * @brief Get the size needed to store reverse complement kmers.
+ */
+size_t kmer_reverse_complement_size( size_t k );
+
+/**
+ * @brief Get a map from indices of kmer_list() and kmer_counts() vectors to a smaller list
+ * of size kmer_reverse_complement_size() which combines reverse complementary kmers.
+ */
+std::vector<size_t> kmer_reverse_complement_indices( size_t k );
+
 std::vector<double> signature_frequencies( Sequence const& seq, size_t k );
 
 } // namespace sequence

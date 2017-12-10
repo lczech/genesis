@@ -121,3 +121,37 @@ TEST( Sequence, SignatureFrequencies )
         }
     }
 }
+
+TEST( Sequence, KmerReverseComplements )
+{
+    // Test up to kmer size of 6
+    for( size_t k = 1; k < 6; ++k ) {
+        auto const list = kmer_list( k, "ACGT" );
+        auto const revs = kmer_reverse_complement_indices( k );
+        ASSERT_EQ( list.size(), revs.size() );
+
+        // Get the length needed to store rev comp entries,
+        auto const revcom_size = kmer_reverse_complement_size( k );
+
+        for( size_t i = 0; i < list.size(); ++i ) {
+            // LOG_DBG << list[i] << " <-- " << revs[i];
+
+            auto const rev = reverse_complement( list[i] );
+
+            // rev comp applied twice gives identical sequence.
+            EXPECT_EQ( list[i], reverse_complement( rev ) );
+
+            // Check that a seq and its rev map to the same index.
+            auto const pos = std::distance(
+                list.begin(), std::find( list.begin(), list.end(), rev )
+            );
+            EXPECT_LT( pos, list.size() );
+            EXPECT_EQ( revs[i], revs[pos] );
+
+            // Make sure that the indices are in range [0, revcom_size).
+            EXPECT_LT( revs[i], revcom_size );
+
+            // LOG_DBG1 << i << " " << pos << " -> " << revs[i];
+        }
+    }
+}

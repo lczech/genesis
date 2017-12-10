@@ -37,6 +37,7 @@
 #include "genesis/utils/tools/char_lookup.hpp"
 
 #include <algorithm>
+#include <unordered_map>
 
 namespace genesis {
 namespace sequence {
@@ -233,6 +234,91 @@ std::vector<std::string> kmer_list( size_t k, std::string const& alphabet )
 // =================================================================================================
 //     Signatures
 // =================================================================================================
+
+std::string reverse_complement( std::string const& sequence )
+{
+    auto result = sequence;
+
+    auto rev_comp = []( char c ){
+        switch( c ) {
+            case 'a':
+            case 'A':
+                return 'T';
+
+            case 'c':
+            case 'C':
+                return 'G';
+
+            case 'g':
+            case 'G':
+                return 'C';
+
+            case 't':
+            case 'T':
+                return 'A';
+
+            default:
+                throw std::runtime_error( "Sequence contains other chars than 'ACGT'." );
+        }
+    };
+
+    // Stupid and simple.
+    for( size_t i = 0; i < sequence.size(); ++i ) {
+        result[ sequence.size() - i - 1 ] = rev_comp( sequence[i] );
+    }
+    return result;
+}
+
+std::vector<size_t> kmer_reverse_complement_indices( size_t k )
+{
+    // Calculate a vector that maps from a kmer index according to kmer_list
+    // to a position in [ 0 , s ), so that rev comp indices map to the same position.
+    auto indices = std::vector<size_t>( utils::int_pow( 4, k ), 0 );
+
+    // Store a list of kmers and their indices. it only stores one direction - that is,
+    // if we see that the rev comp of a kmer is already in this map, we do not add anything.
+    std::unordered_map<std::string, size_t> done;
+
+    // Get all kmers as strings.
+    auto const list = kmer_list( k, "ACGT" );
+    assert( indices.size() == list.size() );
+
+    // This uses string maps and is terribly slow.
+    // But I am really lazy today and the function will not be called often.
+    for( size_t i = 0; i < list.size(); ++i ) {
+        auto const& seq = list[i];
+
+        // We always encounter the alphabetically first entry fist.
+        // So, we cannot have added its complement before.
+        assert( done.count( seq ) == 0 );
+
+        // If we have seen the rev comp of the current kmer before, reuse its index.
+        // If not, make a new index, which is one higher than the currently highest index
+        // (by using done.size() to get the number of current entries).
+        auto const rev = reverse_complement( seq );
+        if( done.count( rev ) == 0 ) {
+            auto const ni = done.size();
+            indices[ i ] = ni;
+            done[ seq ]  = ni;
+        } else {
+            // We have seen the rev comp before, so we do not update the done list.
+            indices[ i ] = done[ rev ];
+        }
+    }
+
+    return indices;
+}
+
+size_t kmer_reverse_complement_size( size_t k )
+{
+    // Calcualtions according to: https://stackoverflow.com/a/40953130
+
+    // Number of palindromic k-mers. For odd k, there are none, for even k, there are 4^(k/2) = 2^k
+    auto const p = ( k % 2 == 0 ? 0 : utils::int_pow( 2, k ));
+
+    // Number of entries needed to store rev comp kmers.
+    return p + ( utils::int_pow( 4, k ) - p ) / 2;
+}
 
 std::vector<double> signature_frequencies( Sequence const& seq, size_t k )
 {
