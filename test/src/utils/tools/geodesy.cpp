@@ -116,13 +116,22 @@ TEST( Geodesy, Distances )
         { {  40.7486, -73.9864 }, { 42.5466, -49.9546 },  2000.0211 },
         { { -85.299,  178.4355 }, { 17.454, -159.345  }, 11463.562  },
         { {  65.34,    132.565 }, { 64.23,   131.546  },   132.5256 },
-        { {  90.0,     142.56  }, { 90.0,    -17.45   }, 7.6838096e-13 }
+        { {  90.0,     142.56  }, { 90.0,    -17.45   },     0.0    }
     };
 
     for( auto const& test : cases ) {
         auto const dist_a = geo_distance( test.c1, test.c2 );
         auto const dist_b = geo_distance( test.c2, test.c1 );
-        EXPECT_FLOAT_EQ( test.dist, dist_a ) << test.c1 << " " << test.c2;
-        EXPECT_FLOAT_EQ( test.dist, dist_b ) << test.c1 << " " << test.c2;
+
+        // Due to differences in compilers and implementations, numercial issues and whatver,
+        // the last test case does not yield exactly zero. It is close enough, but this means
+        // we have to treat this little snowflake special here.
+        if( test.dist == 0.0 ) {
+            EXPECT_LT( dist_a, 0.0000000001 ) << test.c1 << " " << test.c2;
+            EXPECT_LT( dist_b, 0.0000000001 ) << test.c1 << " " << test.c2;
+        } else {
+            EXPECT_FLOAT_EQ( test.dist, dist_a ) << test.c1 << " " << test.c2;
+            EXPECT_FLOAT_EQ( test.dist, dist_b ) << test.c1 << " " << test.c2;
+        }
     }
 }
