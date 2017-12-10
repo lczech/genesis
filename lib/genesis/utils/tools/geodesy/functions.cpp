@@ -284,7 +284,8 @@ GeoCoordinate convert_geo_coordinate( std::string const& coordinate )
 
     // Run the expression.
     std::smatch matches;
-    if( ! std::regex_search( sanitize_geo_coordinate( coordinate ), matches, pattern )) {
+    auto const sanitized = sanitize_geo_coordinate( coordinate );
+    if( ! std::regex_search( sanitized, matches, pattern )) {
         throw std::invalid_argument( "Invalid coordinate format." );
     }
 
