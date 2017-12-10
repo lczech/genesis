@@ -207,6 +207,30 @@ double spearmans_rank_correlation_coefficient(
     return pearson_correlation_coefficient( ranks_a, ranks_b );
 }
 
+double fisher_transformation( double correlation_coefficient )
+{
+    auto const r = correlation_coefficient;
+    if( r < -1.0 || r > 1.0 ) {
+        throw std::invalid_argument(
+            "Cannot apply fisher transformation to value " + std::to_string( r ) +
+            " outside of [ -1.0, 1.0 ]."
+        );
+    }
+
+    // LOG_DBG << "formula " << 0.5 * log( ( 1.0 + r ) / ( 1.0 - r ) );
+    // LOG_DBG << "simple  " << std::atanh( r );
+    return std::atanh( r );
+}
+
+std::vector<double> fisher_transformation( std::vector<double> const& correlation_coefficients )
+{
+    auto res = correlation_coefficients;
+    for( auto& elem : res ) {
+        elem = fisher_transformation( elem );
+    }
+    return res;
+}
+
 // =================================================================================================
 //     Ranking
 // =================================================================================================

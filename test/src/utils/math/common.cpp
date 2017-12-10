@@ -33,6 +33,8 @@
 #include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/math/common.hpp"
 
+#include<limits>
+
 using namespace genesis::utils;
 
 TEST(Std, RoundTo)
@@ -155,4 +157,17 @@ TEST( Math, SpearmansRankCorrelationCoeffcient )
     });
 
     EXPECT_FLOAT_EQ( -0.175757575, spearmans_rank_correlation_coefficient( iq, tv ) );
+}
+
+TEST( Math, FisherTransformation )
+{
+    double const inf = std::numeric_limits<double>::infinity();
+
+    EXPECT_FLOAT_EQ( -inf,      fisher_transformation( -1 ));
+    EXPECT_FLOAT_EQ( -1.47222,  fisher_transformation( -0.9 ));
+    EXPECT_FLOAT_EQ( -0.549306, fisher_transformation( -0.5 ));
+    EXPECT_FLOAT_EQ( 0.0,       fisher_transformation( 0 ));
+    EXPECT_FLOAT_EQ( 0.549306,  fisher_transformation( 0.5 ));
+    EXPECT_FLOAT_EQ( 1.47222,   fisher_transformation( 0.9 ));
+    EXPECT_FLOAT_EQ( inf,       fisher_transformation( 1 ));
 }

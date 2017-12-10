@@ -109,6 +109,8 @@
 #include "genesis/utils/tools/color/names.hpp"
 #include "genesis/utils/tools/color/palette.hpp"
 #include "genesis/utils/tools/date_time.hpp"
+#include "genesis/utils/tools/geodesy/functions.hpp"
+#include "genesis/utils/tools/geodesy.hpp"
 #include "genesis/utils/tools/tickmarks.hpp"
 
 #endif // include guard

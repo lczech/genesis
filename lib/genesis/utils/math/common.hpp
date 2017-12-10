@@ -140,6 +140,26 @@ double spearmans_rank_correlation_coefficient(
     std::vector<double> const& vec_b
 );
 
+/**
+ * @brief Apply Fisher z-transformation to a correlation coefficient.
+ *
+ * The coefficient can be calculated with pearson_correlation_coefficient() or
+ * spearmans_rank_correlation_coefficient() and has to be in range `[ -1.0, 1.0 ]`.
+ *
+ * There is also a version of this function for a vector of coefficients.
+ * See also matrix_col_pearson_correlation_coefficient(),
+ * matrix_row_pearson_correlation_coefficient(), matrix_col_spearmans_rank_correlation_coefficient()
+ * and matrix_row_spearmans_rank_correlation_coefficient() for matrix versions.
+ */
+double fisher_transformation( double correlation_coefficient );
+
+/**
+ * @brief Apply Fisher z-transformation to a vector of correlation coefficients.
+ *
+ * See the single value version for details.
+ */
+std::vector<double> fisher_transformation( std::vector<double> const& correlation_coefficients );
+
 // =================================================================================================
 //     Ranking
 // =================================================================================================
