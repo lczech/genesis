@@ -106,11 +106,11 @@ message (STATUS "${ColorBlue}Genesis version: ${GENESIS_VERSION}${ColorEnd}")
 get_directory_property( GENESIS_HAS_PARENT_DIR PARENT_DIRECTORY )
 if( GENESIS_HAS_PARENT_DIR )
     set( GENESIS_HAS_PARENT_DIR ON )
-    set( GENESIS_MASTER_PROJECT OFF )
+    set( GENESIS_IS_MASTER_PROJECT OFF )
     message (STATUS "Building Genesis as a dependency")
 else()
     set( GENESIS_HAS_PARENT_DIR OFF )
-    set( GENESIS_MASTER_PROJECT ON )
+    set( GENESIS_IS_MASTER_PROJECT ON )
     message (STATUS "Building Genesis stand-alone")
 endif()
 
@@ -120,11 +120,11 @@ endif()
 
 # Options for which library version to build. Default: Build shared for stand-alone version,
 # and build static when being used as a library.
-option (GENESIS_BUILD_SHARED_LIB    "Build the shared library version of Genesis." ${GENESIS_MASTER_PROJECT})
+option (GENESIS_BUILD_SHARED_LIB    "Build the shared library version of Genesis." ${GENESIS_IS_MASTER_PROJECT})
 option (GENESIS_BUILD_STATIC_LIB    "Build the static library version of Genesis." ${GENESIS_HAS_PARENT_DIR})
 
 # If we are the master project, we want to build the apps by default.
-option (GENESIS_BUILD_APPLICATIONS  "Build Genesis applications."        ${GENESIS_MASTER_PROJECT})
+option (GENESIS_BUILD_APPLICATIONS  "Build Genesis applications."        ${GENESIS_IS_MASTER_PROJECT})
 
 # Currently, the Python module and tests are deactivated by default.
 option (GENESIS_BUILD_PYTHON_MODULE "Build the Genesis python module."   OFF)
@@ -143,12 +143,6 @@ set( GENESIS_UNITY_BUILD FULL CACHE STRING
     "Build modules monolithically - trading memory for speed. This also enables poor-mans LTO."
 )
 set_property( CACHE GENESIS_UNITY_BUILD PROPERTY STRINGS FULL MODULES OFF )
-
-# The applications, the python module and the tests all prefer the shared lib,
-# so we need to build it if one of those is activated.
-if( GENESIS_BUILD_APPLICATIONS OR GENESIS_BUILD_PYTHON_MODULE OR GENESIS_BUILD_TESTS )
-    set (GENESIS_BUILD_SHARED_LIB ON)
-endif()
 
 # --------------------------------------------------------------------------------------------------
 #   Build Type
@@ -297,6 +291,12 @@ ENDIF()
 # --------------------------------------------------------------------------------------------------
 #   Sub-Scripts
 # --------------------------------------------------------------------------------------------------
+
+# The applications, the python module and the tests all prefer the shared lib,
+# so we need to build it if one of those is activated.
+if( GENESIS_BUILD_APPLICATIONS OR GENESIS_BUILD_PYTHON_MODULE OR GENESIS_BUILD_TESTS )
+    set (GENESIS_BUILD_SHARED_LIB ON)
+endif()
 
 # Using the build options from above, include the cmake sub-scripts
 # that the user wants to compile.
