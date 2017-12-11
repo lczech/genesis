@@ -150,9 +150,9 @@ std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize 
         // normalized by the total mass on the tree (expect for the mass of the current edge).
         auto const imbalance = link_masses[cur_idx] - link_masses[out_idx];
         if( normalize ) {
-            auto const normalize = mass_sum - masses[ tree_it.edge().index() ];
-            assert( normalize > 0.0 );
-            vec[ tree_it.edge().index() ] = imbalance / normalize;
+            auto const normalizer = mass_sum - masses[ tree_it.edge().index() ];
+            assert( normalizer > 0.0 );
+            vec[ tree_it.edge().index() ] = imbalance / normalizer;
         } else {
             vec[ tree_it.edge().index() ] = imbalance;
         }
@@ -213,13 +213,9 @@ utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool incl
     } else {
 
         // Get the indices of all edges that do not lead to a tip.
-        std::vector<size_t> inner_edge_indices;
-        for( auto const& edge_it : samples.at( 0 ).sample.tree().edges() ) {
-            if( edge_it->secondary_node().is_inner() ) {
-                inner_edge_indices.push_back( edge_it->index() );
-            }
-        }
+        auto const inner_edge_indices = tree::inner_edge_indices( samples.at( 0 ).sample.tree() );
 
+        // Prepare result
         auto imbalance_matrix = utils::Matrix<double>( samples.size(), inner_edge_indices.size() );
 
         #pragma omp parallel for
@@ -313,11 +309,11 @@ std::vector<size_t> epca_filter_constant_columns( utils::Matrix<double>& imbalan
 //     Edge PCA
 // =================================================================================================
 
-utils::PcaData epca( SampleSet const& samples, double kappa, double epsilon, size_t components )
+EpcaData epca( SampleSet const& samples, double kappa, double epsilon, size_t components )
 {
     // If there are no samples, return empty result.
     if( samples.size() == 0 ) {
-        return utils::PcaData();
+        return EpcaData();
     }
 
     // Calculate the imbalance_matrix.
@@ -326,9 +322,21 @@ utils::PcaData epca( SampleSet const& samples, double kappa, double epsilon, siz
     assert( imbalance_matrix.rows() == samples.size() );
     assert( imbalance_matrix.cols() == tree::inner_edge_count( samples[0].sample.tree() ) );
 
+    // Get the indices of the inner edges.
+    auto const inner_edge_indices = tree::inner_edge_indices( samples.at( 0 ).sample.tree() );
+    assert( imbalance_matrix.cols() == inner_edge_indices.size() );
+
     // Filter and transform the imbalance matrix.
-    epca_filter_constant_columns( imbalance_matrix, epsilon );
+    auto const not_filtered_indices = epca_filter_constant_columns( imbalance_matrix, epsilon );
     epca_splitify_transform( imbalance_matrix, kappa );
+
+    // We now use the list of not filtered indices to selected from the list of inner edge indices.
+    // The result is just the indices of the edges that are still in the matrix.
+    std::vector<size_t> edge_indices;
+    for( auto const& not_filt : not_filtered_indices ) {
+        edge_indices.push_back( inner_edge_indices[ not_filt ] );
+    }
+    assert( edge_indices.size() == imbalance_matrix.cols() );
 
     // Get correct number of pca components.
     if( components == 0 || components > imbalance_matrix.cols() ) {
@@ -336,9 +344,22 @@ utils::PcaData epca( SampleSet const& samples, double kappa, double epsilon, siz
     }
 
     // Run and return PCA.
-    return utils::principal_component_analysis(
+    auto pca = utils::principal_component_analysis(
         imbalance_matrix, components, utils::PcaStandardization::kCovariance
     );
+    assert( pca.eigenvalues.size()  == components );
+    assert( pca.eigenvectors.rows() == edge_indices.size() );
+    assert( pca.eigenvectors.cols() == components );
+    assert( pca.projection.rows()   == samples.size() );
+    assert( pca.projection.cols()   == components );
+
+    // Move data.
+    EpcaData result;
+    result.eigenvalues  = std::move( pca.eigenvalues );
+    result.eigenvectors = std::move( pca.eigenvectors );
+    result.projection   = std::move( pca.projection );
+    result.edge_indices = std::move( edge_indices );
+    return result;
 }
 
 } // namespace placement

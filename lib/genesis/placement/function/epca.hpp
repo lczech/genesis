@@ -35,6 +35,8 @@
 #include "genesis/utils/math/matrix.hpp"
 #include "genesis/utils/math/matrix/pca.hpp"
 
+#include <vector>
+
 namespace genesis {
 
 // =================================================================================================
@@ -64,6 +66,20 @@ namespace placement {
 // =================================================================================================
 //     Edge PCA
 // =================================================================================================
+/**
+ * @brief Helper stucture that collects the output of epca().
+ *
+ * It contains the same elements as utils::PcaData, but extends it by a vector of the
+ * @link tree::TreeEdge::index() edge indices@endlink that the rows of the eigenvectors Matrix
+ * correspond to. This is necessary for back-mapping the eigenvectors onto the edges of the tree.
+ */
+struct EpcaData
+{
+    std::vector<double>   eigenvalues;
+    utils::Matrix<double> eigenvectors;
+    utils::Matrix<double> projection;
+    std::vector<size_t>   edge_indices;
+};
 
 /**
  * @brief Calculate the imbalance of placement mass for each @link PlacementTreeEdge Edge@endlink
@@ -154,7 +170,18 @@ std::vector<size_t> epca_filter_constant_columns(
     double                 epsilon = 1e-5
 );
 
-utils::PcaData epca(
+/**
+ * @brief Perform EdgePCA on a SampleSet.
+ *
+ * The parameters @p kappa and @p epsilon are as described in epca_splitify_transform() and
+ * epca_filter_constant_columns(), respectively.
+ *
+ * The result is returned as a `struct` similar to the one used by utils::pca(),
+ * but containing an additional vector of the @link tree::TreeEdge::index() edge indices@endlink
+ * that the rows of the eigenvectors Matrix correspond to.
+ * This is necessary for back-mapping the eigenvectors onto the edges of the tree.
+ */
+EpcaData epca(
     SampleSet const& samples,
     double kappa      = 1.0,
     double epsilon    = 1e-5,
