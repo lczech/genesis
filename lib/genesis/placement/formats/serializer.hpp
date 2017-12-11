@@ -32,6 +32,7 @@
  */
 
 #include <string>
+#include <vector>
 
 namespace genesis {
 namespace placement {
@@ -41,6 +42,7 @@ namespace placement {
 // =================================================================================================
 
 class Sample;
+class SampleSet;
 
 // =================================================================================================
 //     SampleSerializer
@@ -54,7 +56,10 @@ class SampleSerializer
 public:
 
     static void save( Sample const& map, std::string const& file_name );
-    static Sample load( std::string const& file_name );
+
+    static Sample    load( std::string const& file_name );
+    static SampleSet load( std::vector<std::string> const& file_names );
+    static void      load( std::vector<std::string> const& file_names, SampleSet& sample_set );
 
     static unsigned char version;
 
