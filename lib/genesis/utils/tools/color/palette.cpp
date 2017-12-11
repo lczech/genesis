@@ -60,6 +60,11 @@ ColorPalette& ColorPalette::range( double min, double mid, double max )
     return *this;
 }
 
+ColorPalette& ColorPalette::range( std::vector<double> const& values, bool centered_around_zero )
+{
+    return range( values.begin(), values.end(), centered_around_zero );
+}
+
 // =================================================================================================
 //     Palette
 // =================================================================================================

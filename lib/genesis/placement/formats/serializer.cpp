@@ -33,10 +33,14 @@
 #include "genesis/placement/formats/newick_reader.hpp"
 #include "genesis/placement/formats/newick_writer.hpp"
 #include "genesis/placement/sample.hpp"
-#include "genesis/utils/core/logging.hpp"
+#include "genesis/placement/sample_set.hpp"
 #include "genesis/utils/io/serializer.hpp"
 
 #include <stdexcept>
+
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
 
 namespace genesis {
 namespace placement {
@@ -171,6 +175,43 @@ Sample SampleSerializer::load( std::string const& file_name )
     }
 
     return map;
+}
+
+SampleSet SampleSerializer::load( std::vector<std::string> const& file_names )
+{
+    SampleSet sample_set;
+    load( file_names, sample_set );
+    return sample_set;
+}
+
+void SampleSerializer::load( std::vector<std::string> const& file_names, SampleSet& sample_set )
+{
+    #if defined( GENESIS_OPENMP )
+
+        // Make a vector of default-constructed Samples of the needed size.
+        // We do this so that the order of input jplace files is kept.
+        auto tmp = std::vector<Sample>( file_names.size() );
+
+        // Parallel loading.
+        #pragma omp parallel for
+        for( size_t i = 0; i < file_names.size(); ++i ) {
+            tmp[ i ] = load( file_names[i] );
+        }
+
+        // Move to target SampleSet.
+        for( size_t i = 0; i < file_names.size(); ++i ) {
+            auto const name = utils::file_filename( utils::file_basename( file_names[i] ) );
+            sample_set.add( std::move( tmp[i] ), name );
+        }
+
+    #else
+
+        for( auto const& fn : file_names ) {
+            auto const name = utils::file_filename( utils::file_basename(fn) );
+            sample_set.add( load( fn ), name );
+        }
+
+    #endif
 }
 
 } // namespace placement

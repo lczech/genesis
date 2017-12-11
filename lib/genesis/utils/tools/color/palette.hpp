@@ -165,16 +165,31 @@ public:
     ColorPalette& range( double min, double mid, double max );
 
     /**
-     * @brief Set the min and max of the Palette to the min and max valid values
+     * @brief
+     */
+    ColorPalette& range( std::vector<double> const& values, bool centered_around_zero = false );
+
+    /**
+     * @brief Set the min and max of the Palette so that they reflect the min and max valid values
      * that are found in the range `[ first, last )`.
      *
-     * Furthermore, mid is set to the average of the values.
+     * If @p centered_around_zero is `false` (default), min and max are set to the min and max
+     * values found in the range, and, mid is set to the average of the values.
+     * For example, if the range contains `{ -2.0, 3.0, 2.0 }`, the results is `min == -2.0`,
+     * `max == 3.0` and `mid == ( -2.0 + 3.0 + 2.0 ) / 3 == 1.0`.
+     *
+     * If @p centered_around_zero is `true`, the values in the range are assumed to come from a
+     * distribution around zero. In that case, the min and max are set symmetrically around zero,
+     * that is, according to the value maximally far from zero. For the above example, this gives
+     * `min == -3.0`, `max == 3.0`. Lastly, mid is set to zero. This is mostly useful for
+     * usage with diverging color palettes.
      *
      * The provided iterator range needs to contain values that are convertible and comparable
      * to `double`. Any non-finite values or values that are equal to the mask_value() are skipped.
+     * If then no value is found at all, the min and max are not changed.
      */
     template <class ForwardIterator>
-    void range( ForwardIterator first, ForwardIterator last )
+    ColorPalette& range( ForwardIterator first, ForwardIterator last, bool centered_around_zero = false )
     {
         // New values, so that we first do not override the current ones.
         auto min = std::numeric_limits<double>::max();
@@ -201,13 +216,29 @@ public:
         }
 
         // Only update if we found values.
-        if( cnt > 0 ) {
+        if( cnt == 0 ) {
+            return *this;
+        }
+
+        if( centered_around_zero ) {
+
+            // Set the min and max so that they are symmetric.
+            auto const symm = std::max( std::fabs(min), std::fabs(max) );
+            min_ = -symm;
+            max_ = symm;
+            mid_ = 0.0;
+
+        } else {
+
+            // Set the values simply to what we found.
             min_ = min;
             max_ = max;
 
             // mid_ = ( min + max ) / 2.0;
             mid_ = sum / static_cast<double>( cnt );
         }
+
+        return *this;
     }
 
     ColorPalette& min( double value )
