@@ -77,6 +77,11 @@ size_t leaf_node_count(  Tree const& tree );
 size_t inner_node_count( Tree const& tree );
 
 /**
+ * @brief Return the number of Nodes of a Tree. Same as Tree::node_count().
+ */
+size_t node_count( Tree const& tree );
+
+/**
 * @brief Return the number of Edges of a Tree that lead to a leaf Node.
 */
 size_t leaf_edge_count(  Tree const& tree );
@@ -85,6 +90,35 @@ size_t leaf_edge_count(  Tree const& tree );
 * @brief Return the number of Edges of a Tree that do not lead to a leaf Node.
 */
 size_t inner_edge_count( Tree const& tree );
+
+/**
+* @brief Return the number of Edges of a Tree. Same as Tree::edge_count().
+*/
+size_t edge_count( Tree const& tree );
+
+/**
+ * @brief Get a list of the @link tree::TreeEdge::index() edge indices@endlink of all inner edges,
+ * that is, all TreeEdge%s that do not lead to a leaf TreeNode.
+ */
+std::vector<size_t> inner_edge_indices( Tree const& tree );
+
+/**
+ * @brief Get a list of the @link tree::TreeEdge::index() edge indices@endlink of all leaf edges,
+ * that is, all TreeEdge%s that lead to a leaf TreeNode.
+ */
+std::vector<size_t> leaf_edge_indices( Tree const& tree );
+
+/**
+ * @brief Get a list of the @link tree::TreeNode::index() node indices@endlink
+ * of all inner TreeNode%s.
+ */
+std::vector<size_t> inner_node_indices( Tree const& tree );
+
+/**
+ * @brief Get a list of the @link tree::TreeNode::index() node indices@endlink
+ * of all leaf TreeNode%s.
+ */
+std::vector<size_t> leaf_node_indices( Tree const& tree );
 
 // =================================================================================================
 //     Tree Sides

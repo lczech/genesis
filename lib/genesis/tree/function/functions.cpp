@@ -85,6 +85,11 @@ size_t inner_node_count( Tree const& tree )
     return tree.node_count() - leaf_node_count( tree );
 }
 
+size_t node_count( Tree const& tree )
+{
+    return tree.node_count();
+}
+
 size_t leaf_edge_count(  Tree const& tree )
 {
     size_t sum = 0;
@@ -105,6 +110,55 @@ size_t inner_edge_count( Tree const& tree )
         }
     }
     return sum;
+}
+
+size_t edge_count( Tree const& tree )
+{
+    return tree.edge_count();
+}
+
+std::vector<size_t> inner_edge_indices( Tree const& tree )
+{
+    std::vector<size_t> result;
+    for( auto const& edge_it : tree.edges() ) {
+        if( edge_it->secondary_node().is_inner() ) {
+            result.push_back( edge_it->index() );
+        }
+    }
+    return result;
+}
+
+std::vector<size_t> leaf_edge_indices( Tree const& tree )
+{
+    std::vector<size_t> result;
+    for( auto const& edge_it : tree.edges() ) {
+        if( edge_it->secondary_node().is_leaf() ) {
+            result.push_back( edge_it->index() );
+        }
+    }
+    return result;
+}
+
+std::vector<size_t> inner_node_indices( Tree const& tree )
+{
+    std::vector<size_t> result;
+    for( auto const& node_it : tree.nodes() ) {
+        if( node_it->is_inner() ) {
+            result.push_back( node_it->index() );
+        }
+    }
+    return result;
+}
+
+std::vector<size_t> leaf_node_indices( Tree const& tree )
+{
+    std::vector<size_t> result;
+    for( auto const& node_it : tree.nodes() ) {
+        if( node_it->is_leaf() ) {
+            result.push_back( node_it->index() );
+        }
+    }
+    return result;
 }
 
 // =================================================================================================
