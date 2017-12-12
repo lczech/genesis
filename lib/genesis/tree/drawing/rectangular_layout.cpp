@@ -172,6 +172,10 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
         }
     }
 
+    // Make sure that the drawing is done from outside to inside,
+    // so that the overlapping parts look nice.
+    tree_lines.reverse();
+
     // We are sure that we won't use the groups again, so let's move them!
     doc << std::move( tree_lines );
     if( ! taxa_names.empty() ) {
