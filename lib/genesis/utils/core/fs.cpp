@@ -65,8 +65,14 @@ bool is_file( std::string const& path )
 
 bool file_exists( std::string const& filename )
 {
+    // There are plenty of discussions on stackoverflow on how to do this correctly,
+    // e.g., https://stackoverflow.com/a/12774387
+    // None of them worked for me, meaning that they also returned true for directories.
+    // Thus, we use a simple approach that does a basic check, and then also tests for dir...
+
     std::ifstream infile(filename);
-    return infile.good();
+    infile.seekg( 0, std::ios::end) ;
+    return infile.good() && ! is_dir( filename );
 }
 
 std::string file_read( std::string const& filename )
