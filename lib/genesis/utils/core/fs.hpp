@@ -42,18 +42,74 @@ namespace utils {
 //     File Access
 // =================================================================================================
 
+/**
+ * @brief Return whether a path exists, i.e., is a file or directory.
+ */
+bool path_exists( std::string const& path );
+
+/**
+ * @brief Return true iff the provided path is a file.
+ *
+ * Internally, this function simply return the value of file_exists(), as this already does the
+ * needed check. Thus, it is an alias.
+ */
 bool        is_file     ( std::string const& path );
+
+/**
+ * @brief Return true iff the file exists.
+ */
 bool        file_exists ( std::string const& filename );
+
+/**
+ * @brief Return the contents of a file as a string.
+ *
+ * If the file is not readable, the function throws `std::runtime_error`.
+ */
 std::string file_read   ( std::string const& filename );
+
+/**
+ * @brief Write the content of a string to a file.
+ *
+ * If the file cannot be written to, the function throws an exception. Also, by default, if the file
+ * already exists, an exception is thrown.
+ * See @link Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
+ * change this behaviour.
+ */
 void        file_write  ( std::string const& content, std::string const& filename );
+
+/**
+ * @brief Append the content of a string to a file.
+ *
+ * If the file is not writable, the function throws `std::runtime_error`.
+ */
 void        file_append ( std::string const& content, std::string const& filename );
 
+/**
+ * @brief Return true iff the provided path is a directory.
+ *
+ * Internally, this function simply return the value of dir_exists(), as this already does the
+ * needed check. Thus, it is an alias.
+ */
 bool        is_dir         ( std::string const& path );
+
+/**
+ * @brief Return true iff the directory exists.
+ */
 bool        dir_exists     ( std::string const& dir );
+
+/**
+ * @brief Create a directory.
+ *
+ * If the directory already exists, nothing happens.
+ * If the path exists, but is not a directory, a `std::runtime_error` is thrown.
+ * If the creation fails for some other reason, also a `std::runtime_error` is thrown.
+ */
 void        dir_create     ( std::string const& path );
 
+/**
+ * @brief Normalize a dir name, i.e., make sure that the given path ends with exaclty one slash.
+ */
 std::string dir_normalize_path( std::string const& path );
-
 
 /**
  * @brief Get a list of files and directories in a directory.
@@ -97,19 +153,90 @@ std::vector<std::string> dir_list_directories(
 //     File Information
 // =================================================================================================
 
+/**
+ * @brief Return information about a file.
+ */
 std::unordered_map<std::string, std::string> file_info ( std::string const& filename );
 
+/**
+ * @brief Return the size of a file.
+ */
 size_t      file_size      ( std::string const& filename );
+
+/**
+ * @brief Return the path leading to a file.
+ *
+ * Does not resolve the path. Simply splits at the last directory separator.
+ */
 std::string file_path      ( std::string const& filename );
+
+/**
+ * @brief Remove directory name from file name if present.
+ */
 std::string file_basename  ( std::string const& filename );
+
+/**
+ * @brief Remove extension if present.
+ *
+ * Caveat: Does not remove the path. So, if the filename itself does not contain an extension
+ * separator ".", but the path does, this will yield an unwanted result. Call file_basename() first.
+ */
 std::string file_filename  ( std::string const& filename );
+
+/**
+ * @brief Return the extension name of a file.
+ *
+ * Also see file_filename().
+ */
 std::string file_extension ( std::string const& filename );
 
 // =================================================================================================
 //     File Names
 // =================================================================================================
 
+/**
+ * @brief Check whether a file name is valid.
+ *
+ * Validating filenames depends on the operating system and file system of the disk. Thus, this is
+ * usually not an easy task. This function only checks some basics and is meant to catch the most
+ * common problems.
+ *
+ * The function is meant to be called on the file name itself, without the directory path leading
+ * to it. File extensions are allowed. Thus, you might need to call file_basename() before in order
+ * to get the file name without the path.
+ *
+ * Invalid filenames are:
+ *
+ *   * Those with spaces at the beginning or end, or only consisting of spaces (or empty).
+ *   * Those which contain any of the chars `< > : " \ / | ? *`.
+ *   * Those which contain any non-printable character, as determined via isprint().
+ *
+ * This might be too converative for some system, or allow too much for others. It however should
+ * return true for filenames that work on most systems.
+ */
 bool        is_valid_filname( std::string const& filename );
+
+/**
+ * @brief Remove or replace all invalid parts of a filename.
+ *
+ * Similar to is_valid_filname(), this function is not meant to be an ultimate solution to valid
+ * filenames. See there for details.
+ *
+ * The function is meant to be called on the file name itself, without the directory path leading
+ * to it. File extensions are allowed. Thus, you might need to call file_basename() before in order
+ * to get the file name without the path.
+ *
+ * This function does the following:
+ *
+ *   * All non-printable characters are removed.
+ *   * Spaces at the beginning and end are removed.
+ *   * All invalid chars are replaced by an underscore. See is_valid_filname() for a list of those
+ *     chars.
+ *
+ * If after this procedure the filename is empty, an exception is thrown. This is meant to save the
+ * user from checking this, or from running into trouble when trying to write to this "file" -
+ * because an empty filename will point to a directory name.
+ */
 std::string sanitize_filname( std::string const& filename );
 
 } // namespace utils

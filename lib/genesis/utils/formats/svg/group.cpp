@@ -33,6 +33,7 @@
 #include "genesis/utils/formats/svg/document.hpp"
 #include "genesis/utils/text/string.hpp"
 
+#include <algorithm>
 #include <ostream>
 
 namespace genesis {
@@ -86,6 +87,12 @@ SvgGroup& SvgGroup::add( SvgObject const& object )
 SvgGroup& SvgGroup::add( SvgObject&& object )
 {
     content_.push_back( std::move( object ));
+    return *this;
+}
+
+SvgGroup& SvgGroup::reverse()
+{
+    std::reverse( content_.begin(), content_.end() );
     return *this;
 }
 
