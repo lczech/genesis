@@ -33,6 +33,8 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
+#include "genesis/utils/tools/color/lists.hpp"
+#include "genesis/utils/tools/color/palette.hpp"
 
 using namespace genesis::utils;
 
@@ -110,6 +112,25 @@ TEST( Svg, Gradient )
     doc << rect;
 
     doc.margin = SvgMargin( 10, 10 );
+
+    std::ostringstream out;
+    doc.write( out );
+
+    // LOG_DBG << out.str();
+    // file_write( out.str(), "/home/lucas/test.svg" );
+}
+
+TEST( Svg, Palette )
+{
+    auto doc = SvgDocument();
+    auto pal = SvgPalette();
+
+    pal.palette = ColorPalette( color_list_spectral() );
+    // pal.direction = SvgPalette::Direction::kLeftToRight;
+
+    auto const pal_doc = pal.make();
+    doc.defs.push_back( pal_doc.first );
+    doc << pal_doc.second;
 
     std::ostringstream out;
     doc.write( out );
