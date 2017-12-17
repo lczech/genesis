@@ -80,6 +80,9 @@ void SvgDocument::write( std::ostream& out ) const
     out << svg_attribute( "xmlns:xlink", "http://www.w3.org/1999/xlink" );
     out << svg_attribute( "width",  doc_width );
     out << svg_attribute( "height", doc_height );
+    if( overflow != Overflow::kNone ) {
+        out << overflow_to_string( overflow );
+    }
     out << ">\n";
 
     // Some metadata.
@@ -158,6 +161,46 @@ SvgDocument& SvgDocument::operator <<( SvgObject const& object )
 SvgDocument& SvgDocument::operator <<( SvgObject&& object )
 {
     return add( std::move( object ));
+}
+
+std::string SvgDocument::overflow_to_string( SvgDocument::Overflow value )
+{
+    // switch( value ) {
+    //     case Overflow::kNone:
+    //         return std::string();
+    //     case Overflow::kVisible:
+    //         return svg_attribute( "style", "overflow: visible" );
+    //     case Overflow::kHidden:
+    //         return svg_attribute( "style", "overflow: hidden" );
+    //     case Overflow::kScroll:
+    //         return svg_attribute( "style", "overflow: scroll" );
+    //     case Overflow::kAuto:
+    //         return svg_attribute( "style", "overflow: auto" );
+    //     case Overflow::kInherit:
+    //         return svg_attribute( "style", "overflow: inherit" );
+    //     default:
+    //         throw std::invalid_argument(
+    //             "Invalid Svg attribute Overflow for Svg Document."
+    //         );
+    // }
+    switch( value ) {
+        case Overflow::kNone:
+            return std::string();
+        case Overflow::kVisible:
+            return svg_attribute( "overflow", "visible" );
+        case Overflow::kHidden:
+            return svg_attribute( "overflow", "hidden" );
+        case Overflow::kScroll:
+            return svg_attribute( "overflow", "scroll" );
+        case Overflow::kAuto:
+            return svg_attribute( "overflow", "auto" );
+        case Overflow::kInherit:
+            return svg_attribute( "overflow", "inherit" );
+        default:
+            throw std::invalid_argument(
+                "Invalid Svg attribute Overflow for Svg Document."
+            );
+    }
 }
 
 } // namespace utils

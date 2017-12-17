@@ -57,6 +57,16 @@ public:
 
     static std::string indentation_string;
 
+    enum class Overflow
+    {
+        kNone,
+        kVisible,
+        kHidden,
+        kScroll,
+        kAuto,
+        kInherit
+    };
+
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
@@ -93,12 +103,21 @@ public:
     self_type& operator << ( SvgObject&&      object );
 
     // -------------------------------------------------------------
+    //     Helper Functions
+    // -------------------------------------------------------------
+
+private:
+
+    static std::string overflow_to_string( Overflow value );
+
+    // -------------------------------------------------------------
     //     Data Members
     // -------------------------------------------------------------
 
 public:
 
     SvgMargin margin;
+    Overflow overflow = Overflow::kNone;
 
     std::vector< SvgDefinitions > defs;
 
