@@ -92,8 +92,14 @@ public:
     ColorPalette palette;
     Direction direction = Direction::kBottomToTop;
 
-    double width  = 15;
-    double height = 100;
+    double width  = 20;
+    double height = 200;
+
+    bool with_tickmarks    = true;
+    bool with_labels       = true;
+    bool diverging_palette = false;
+
+    size_t num_ticks = 5;
 
 };
 
