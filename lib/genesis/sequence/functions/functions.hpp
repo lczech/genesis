@@ -33,6 +33,7 @@
 
 #include "genesis/sequence/functions/codes.hpp"
 #include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/tools/char_lookup.hpp"
 
 #include <iosfwd>
 #include <map>
@@ -51,6 +52,30 @@ class SequenceSet;
 // =================================================================================================
 //     Characteristics
 // =================================================================================================
+
+/**
+ * @brief Find sites by character and mark them in a @link utils::Bitvector Bitvector@endlink.
+ *
+ * The function iterates the sites of a Sequence and checkes whether the char at a site is in the
+ * provided set of @p chars (case insensitive).
+ * If so, the resulting Bitvector is set to `true` at that position.
+ */
+utils::Bitvector find_sites(
+    Sequence const& seq,
+    std::string const& chars
+);
+
+/**
+ * @brief Find sites by character and mark them in a @link utils::Bitvector Bitvector@endlink.
+ *
+ * The function iterates the sites of a Sequence and checkes whether the char at a site is set to
+ * true in the provided lookup of @p chars. If so, the resulting Bitvector is set to `true` at
+ * that position.
+ */
+utils::Bitvector find_sites(
+    Sequence const& seq,
+    utils::CharLookup<bool> const& chars
+);
 
 /**
  * @brief Return a @link utils::Bitvector Bitvector@endlink that is `true` where the Sequence has
