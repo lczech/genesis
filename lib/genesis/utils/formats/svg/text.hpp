@@ -62,6 +62,42 @@ public:
         kEnd
     };
 
+    enum class DominantBaseline
+    {
+        kNone,
+        kAuto,
+        kUseScript,
+        kNoChange,
+        kResetSize,
+        kIdeographic,
+        kAlphabetic,
+        kHanging,
+        kMathematical,
+        kCentral,
+        kMiddle,
+        kTextAfterEdge,
+        kTextBeforeEdge,
+        kInherit
+    };
+
+    enum class AlignmentBaseline
+    {
+        kNone,
+        kAuto,
+        kBaseline,
+        kBeforeEdge,
+        kTextBeforeEdge,
+        kMiddle,
+        kCentral,
+        kAfterEdge,
+        kTextAfterEdge,
+        kIdeographic,
+        kAlphabetic,
+        kHanging,
+        kMathematical,
+        kInherit
+    };
+
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
@@ -95,6 +131,14 @@ public:
     ) const;
 
     // -------------------------------------------------------------
+    //     Helper Functions
+    // -------------------------------------------------------------
+
+    static std::string anchor_to_string( Anchor value );
+    static std::string dominant_baseline_to_string( DominantBaseline value );
+    static std::string alignment_baseline_to_string( AlignmentBaseline value );
+
+    // -------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------
 
@@ -107,7 +151,9 @@ public:
     SvgFill     fill;
     SvgStroke   stroke;
 
-    Anchor      anchor = Anchor::kNone;
+    Anchor            anchor             = Anchor::kNone;
+    DominantBaseline  dominant_baseline  = DominantBaseline::kNone;
+    AlignmentBaseline alignment_baseline = AlignmentBaseline::kNone;
 
     double      kerning;
     double      letter_spacing;

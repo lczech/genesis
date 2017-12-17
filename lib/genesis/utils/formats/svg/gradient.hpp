@@ -85,6 +85,8 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
+    bool operator< ( self_type const& rhs ) const;
+
     void validate() const;
     void write( std::ostream& out ) const;
 
@@ -135,9 +137,7 @@ public:
         : id( id )
         , point_1( point_1 )
         , point_2( point_2 )
-    {
-        validate();
-    }
+    {}
 
     ~SvgGradientLinear() = default;
 
@@ -155,6 +155,7 @@ public:
     void write( std::ostream& out, size_t indent = 0 ) const;
 
     SvgGradientLinear& set_stops( std::map<double, Color> const& ranges );
+    SvgGradientLinear& add_stop( SvgGradientStop const& stop );
 
     // -------------------------------------------------------------
     //     Properties

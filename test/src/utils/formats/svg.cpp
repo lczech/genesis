@@ -33,6 +33,8 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
+#include "genesis/utils/tools/color/lists.hpp"
+#include "genesis/utils/tools/color/palette.hpp"
 
 using namespace genesis::utils;
 
@@ -116,4 +118,39 @@ TEST( Svg, Gradient )
 
     // LOG_DBG << out.str();
     // file_write( out.str(), "/home/lucas/test.svg" );
+}
+
+TEST( Svg, Palette )
+{
+    auto doc = SvgDocument();
+    doc.overflow = SvgDocument::Overflow::kVisible;
+    auto pal = SvgPalette();
+
+    // Nice palette.
+    pal.palette = ColorPalette( color_list_spectral() );
+
+    // Even number of colors.
+    // pal.palette = ColorPalette({ {0,0,0}, {1,0,0}, {0,0,1}, {0,0,0} });
+    // pal.palette = ColorPalette({ {1,0,0}, {0,0,1} });
+
+    // Uneven number of colors.
+    // pal.palette = ColorPalette({ {0,0,0}, {1,0,0}, {0,0,1}, {0,1,0}, {0,0,0} });
+    // pal.palette = ColorPalette({ {0,0,0}, {0,1,0}, {0,0,0} });
+
+    pal.palette.min(  5.0 );
+    pal.palette.mid( 15.0 );
+    pal.palette.max( 20.0 );
+
+    // pal.direction = SvgPalette::Direction::kLeftToRight;
+    pal.diverging_palette = true;
+
+    auto const pal_pair = pal.make();
+    doc.defs.push_back( pal_pair.first );
+    doc << pal_pair.second;
+
+    std::ostringstream out;
+    doc.write( out );
+
+    // LOG_DBG << out.str();
+    file_write( out.str(), "/home/lucas/test.svg" );
 }

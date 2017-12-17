@@ -1,5 +1,5 @@
-#ifndef GENESIS_UTILS_FORMATS_SVG_DOCUMENT_H_
-#define GENESIS_UTILS_FORMATS_SVG_DOCUMENT_H_
+#ifndef GENESIS_UTILS_FORMATS_SVG_PALETTE_H_
+#define GENESIS_UTILS_FORMATS_SVG_PALETTE_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -31,21 +31,24 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/formats/svg/definitions.hpp"
 #include "genesis/utils/formats/svg/gradient.hpp"
-#include "genesis/utils/formats/svg/object.hpp"
+#include "genesis/utils/formats/svg/group.hpp"
 
-#include <iosfwd>
+#include "genesis/utils/tools/color.hpp"
+#include "genesis/utils/tools/color/palette.hpp"
+
+#include <string>
+#include <utility>
 #include <vector>
 
 namespace genesis {
 namespace utils {
 
 // =================================================================================================
-//     Svg Document
+//     Svg Color Palette
 // =================================================================================================
 
-class SvgDocument
+struct SvgPalette
 {
 public:
 
@@ -53,77 +56,50 @@ public:
     //     Typedefs and Enums
     // -------------------------------------------------------------
 
-    using self_type = SvgDocument;
+    using self_type = SvgPalette;
 
-    static std::string indentation_string;
-
-    enum class Overflow
+    enum class Direction
     {
-        kNone,
-        kVisible,
-        kHidden,
-        kScroll,
-        kAuto,
-        kInherit
+        kTopToBottom,
+        kBottomToTop,
+        kLeftToRight,
+        kRightToLeft
     };
 
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
-    SvgDocument()  = default;
-    ~SvgDocument() = default;
+    SvgPalette() = default;
+    ~SvgPalette() = default;
 
-    SvgDocument( SvgDocument const& ) = default;
-    SvgDocument( SvgDocument&& )      = default;
+    SvgPalette( SvgPalette const& ) = default;
+    SvgPalette( SvgPalette&& )      = default;
 
-    SvgDocument& operator= ( SvgDocument const& ) = default;
-    SvgDocument& operator= ( SvgDocument&& )      = default;
-
-    // -------------------------------------------------------------
-    //     Members
-    // -------------------------------------------------------------
-
-    SvgBox bounding_box() const;
-
-    void write( std::ostream& out ) const;
-
-    /**
-     * @brief Add an SvgObject to the document.
-     *
-     * Returns the SvgDocument in order to allow for a fluent interface.
-     */
-    self_type& add(          SvgObject const& object );
-    self_type& add(          SvgObject&&      object );
-
-    /**
-     * @brief Shortcut operator for add(), which allows an even more fluent interface.
-     */
-    self_type& operator << ( SvgObject const& object );
-    self_type& operator << ( SvgObject&&      object );
+    SvgPalette& operator= ( SvgPalette const& ) = default;
+    SvgPalette& operator= ( SvgPalette&& )      = default;
 
     // -------------------------------------------------------------
-    //     Helper Functions
+    //     Drawing Function
     // -------------------------------------------------------------
 
-private:
-
-    static std::string overflow_to_string( Overflow value );
+    std::pair<SvgGradientLinear, SvgGroup> make() const;
 
     // -------------------------------------------------------------
-    //     Data Members
+    //     Properties
     // -------------------------------------------------------------
 
-public:
+    ColorPalette palette;
+    Direction direction = Direction::kBottomToTop;
 
-    SvgMargin margin;
-    Overflow overflow = Overflow::kNone;
+    double width  = 20;
+    double height = 200;
 
-    std::vector< SvgDefinitions > defs;
+    bool with_tickmarks    = true;
+    bool with_labels       = true;
+    bool diverging_palette = false;
 
-private:
-
-    std::vector< SvgObject > content_;
+    size_t num_ticks = 5;
 
 };
 

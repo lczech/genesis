@@ -87,7 +87,7 @@ void SvgStroke::write( std::ostream& out ) const
         return;
     }
     if( type == Type::kGradient ) {
-        out << svg_attribute( "stroke", "url(#" + gradient_id + ");" );
+        out << svg_attribute( "stroke", "url(#" + gradient_id + ")" );
         return;
     }
 
@@ -173,7 +173,7 @@ void SvgFill::write( std::ostream& out ) const
         return;
     }
     if( type == Type::kGradient ) {
-        out << svg_attribute( "fill", "url(#" + gradient_id + ");" );
+        out << svg_attribute( "fill", "url(#" + gradient_id + ")" );
         return;
     }
 

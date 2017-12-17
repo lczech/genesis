@@ -35,6 +35,7 @@
 #include "genesis/utils/text/string.hpp"
 
 #include <ostream>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
@@ -114,18 +115,14 @@ void SvgText::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
     fill.write( out );
     stroke.write( out );
 
-    switch( anchor ) {
-        case Anchor::kNone:
-            break;
-        case Anchor::kStart:
-            out << svg_attribute( "text-anchor", "start" );
-            break;
-        case Anchor::kMiddle:
-            out << svg_attribute( "text-anchor", "middle" );
-            break;
-        case Anchor::kEnd:
-            out << svg_attribute( "text-anchor", "end" );
-            break;
+    if( anchor != Anchor::kNone ) {
+        out << anchor_to_string( anchor );
+    }
+    if( dominant_baseline != DominantBaseline::kNone ) {
+        out << dominant_baseline_to_string( dominant_baseline );
+    }
+    if( alignment_baseline != AlignmentBaseline::kNone ) {
+        out << alignment_baseline_to_string( alignment_baseline );
     }
 
     if( kerning != 0.0 ) {
@@ -147,8 +144,114 @@ void SvgText::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
     transform.write( out );
 
     out << ">";
-    out << xml_escape( text );
+
+    if( alignment_baseline == AlignmentBaseline::kNone ) {
+        out << xml_escape( text );
+    } else {
+        out << "<tspan";
+        out << alignment_baseline_to_string( alignment_baseline );
+        out << ">";
+        out << xml_escape( text );
+        out << "</tspan>";
+    }
+
     out << "</text>\n";
+}
+
+// -------------------------------------------------------------
+//     Helper Functions
+// -------------------------------------------------------------
+
+std::string SvgText::anchor_to_string( SvgText::Anchor value )
+{
+    switch( value ) {
+        case Anchor::kNone:
+            return std::string();
+        case Anchor::kStart:
+            return svg_attribute( "text-anchor", "start" );
+        case Anchor::kMiddle:
+            return svg_attribute( "text-anchor", "middle" );
+        case Anchor::kEnd:
+            return svg_attribute( "text-anchor", "end" );
+        default:
+            throw std::invalid_argument( "Invalid Svg attribute Anchor for Svg Text Element." );
+    }
+}
+
+std::string SvgText::dominant_baseline_to_string( SvgText::DominantBaseline value )
+{
+    switch( value ) {
+        case DominantBaseline::kNone:
+            return std::string();
+        case DominantBaseline::kAuto:
+            return svg_attribute( "dominant-baseline", "auto" );
+        case DominantBaseline::kUseScript:
+            return svg_attribute( "dominant-baseline", "use-script" );
+        case DominantBaseline::kNoChange:
+            return svg_attribute( "dominant-baseline", "no-change" );
+        case DominantBaseline::kResetSize:
+            return svg_attribute( "dominant-baseline", "reset-size" );
+        case DominantBaseline::kIdeographic:
+            return svg_attribute( "dominant-baseline", "ideographic" );
+        case DominantBaseline::kAlphabetic:
+            return svg_attribute( "dominant-baseline", "alphabetic" );
+        case DominantBaseline::kHanging:
+            return svg_attribute( "dominant-baseline", "hanging" );
+        case DominantBaseline::kMathematical:
+            return svg_attribute( "dominant-baseline", "mathematical" );
+        case DominantBaseline::kCentral:
+            return svg_attribute( "dominant-baseline", "central" );
+        case DominantBaseline::kMiddle:
+            return svg_attribute( "dominant-baseline", "middle" );
+        case DominantBaseline::kTextAfterEdge:
+            return svg_attribute( "dominant-baseline", "text-after-edge" );
+        case DominantBaseline::kTextBeforeEdge:
+            return svg_attribute( "dominant-baseline", "text-before-edge" );
+        case DominantBaseline::kInherit:
+            return svg_attribute( "dominant-baseline", "inherit" );
+        default:
+            throw std::invalid_argument(
+                "Invalid Svg attribute Dominant Baseline for Svg Text Element."
+            );
+    }
+}
+
+std::string SvgText::alignment_baseline_to_string( SvgText::AlignmentBaseline value )
+{
+    switch( value ) {
+        case AlignmentBaseline::kNone:
+            return std::string();
+        case AlignmentBaseline::kAuto:
+            return svg_attribute( "alignment-baseline", "auto" );
+        case AlignmentBaseline::kBaseline:
+            return svg_attribute( "alignment-baseline", "baseline" );
+        case AlignmentBaseline::kBeforeEdge:
+            return svg_attribute( "alignment-baseline", "before-edge" );
+        case AlignmentBaseline::kTextBeforeEdge:
+            return svg_attribute( "alignment-baseline", "text-before-edge" );
+        case AlignmentBaseline::kMiddle:
+            return svg_attribute( "alignment-baseline", "middle" );
+        case AlignmentBaseline::kCentral:
+            return svg_attribute( "alignment-baseline", "central" );
+        case AlignmentBaseline::kAfterEdge:
+            return svg_attribute( "alignment-baseline", "after-edge" );
+        case AlignmentBaseline::kTextAfterEdge:
+            return svg_attribute( "alignment-baseline", "text-after-edge" );
+        case AlignmentBaseline::kIdeographic:
+            return svg_attribute( "alignment-baseline", "ideographic" );
+        case AlignmentBaseline::kAlphabetic:
+            return svg_attribute( "alignment-baseline", "alphabetic" );
+        case AlignmentBaseline::kHanging:
+            return svg_attribute( "alignment-baseline", "hanging" );
+        case AlignmentBaseline::kMathematical:
+            return svg_attribute( "alignment-baseline", "mathematical" );
+        case AlignmentBaseline::kInherit:
+            return svg_attribute( "alignment-baseline", "inherit" );
+        default:
+            throw std::invalid_argument(
+                "Invalid Svg attribute Alignment Baseline for Svg Text Element."
+            );
+    }
 }
 
 } // namespace utils
