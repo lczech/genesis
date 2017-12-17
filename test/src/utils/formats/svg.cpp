@@ -152,5 +152,5 @@ TEST( Svg, Palette )
     doc.write( out );
 
     // LOG_DBG << out.str();
-    file_write( out.str(), "/home/lucas/test.svg" );
+    // file_write( out.str(), "/home/lucas/test.svg" );
 }
