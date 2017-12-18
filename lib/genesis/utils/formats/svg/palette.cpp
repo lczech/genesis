@@ -58,6 +58,11 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make() const
             "Cannot make SvgPalette with a ColorPalette of less than two colors."
         );
     }
+    if( ! palette.range_check() ) {
+        throw std::runtime_error(
+            "Invaid ColorPalette min/mid/max settings."
+        );
+    }
 
     // Use a gradient ID with randomness so that we get a different one for each palette.
     std::string const gradient_id = "PaletteGradient_" + std::to_string( std::rand() );
@@ -255,6 +260,15 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make() const
                     frac_lower * tm_label.relative_position,
                     utils::to_string( tm_label.label )
                 );
+            }
+
+            // In cases where the mid value is a nice tickmark number (0 for example),
+            // it will be included in the tickmarks, although it is the upper limit for
+            // the lower half (that is, equal to the max for the half).
+            // Thus, we already have a tickmark for the mid value, and now do not need it again
+            // when making the upper half ticks. So, exclude the min for the upper half in this case.
+            if( tm_labels_l.size() > 0 && tm_labels_l.back().relative_position == 1.0 ) {
+                tm.include_min =  false;
             }
 
             // Upper half.

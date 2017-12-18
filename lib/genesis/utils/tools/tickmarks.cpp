@@ -35,6 +35,7 @@
 #include <algorithm>
 #include <cassert>
 #include <cmath>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
@@ -48,12 +49,16 @@ double Tickmarks::step_size( double interval_size, size_t target_steps )
     // Adapted from
     // http://stackoverflow.com/questions/361681/algorithm-for-nice-grid-line-intervals-on-a-graph
 
+    if( target_steps == 0 ) {
+        throw std::invalid_argument( "Cannot calculate tickmark step size for 0 steps." );
+    }
+
     // Calculate an initial guess at step size.
-    auto step_guess = interval_size / static_cast<double>( target_steps );
+    auto const step_guess = interval_size / static_cast<double>( target_steps );
 
     // Get the magnitude of the step size.
-    auto mag = std::floor( std::log10( step_guess ));
-    auto mag_pow = std::pow( 10, mag );
+    auto const mag = std::floor( std::log10( step_guess ));
+    auto const mag_pow = std::pow( 10, mag );
 
     // Calculate most significant digit (MSD) of the new step size.
     auto mag_msd = static_cast<int>( step_guess / mag_pow + 0.5 );
@@ -74,30 +79,35 @@ double Tickmarks::step_size( double interval_size, size_t target_steps )
 
 std::vector<double> Tickmarks::linear_ticks( double min, double max, size_t target_steps )
 {
+    // Prepare result.
     auto res = std::vector<double>();
 
-    // Get step size.
-    auto interval_size = max - min;
-    auto step_sz = step_size( interval_size, target_steps );
+    // The case of 0 target steps can happen for example in SvgPalette.
+    // In that case, we only output min and max if needed, but not any inner tickmarks.
+    if( target_steps > 0 ) {
+        // Get step size.
+        auto interval_size = max - min;
+        auto step_sz = step_size( interval_size, target_steps );
 
-    // Calculate first tick position, so that it is the largest multiple of the step size
-    // that is below the min.
-    auto tick = step_sz * std::floor( min / step_sz );
+        // Calculate first tick position, so that it is the largest multiple of the step size
+        // that is below the min.
+        auto tick = step_sz * std::floor( min / step_sz );
 
-    // Determine whether we want to start before or after the min.
-    if( ! undershoot_at_min ) {
-        tick += step_sz;
-    }
+        // Determine whether we want to start before or after the min.
+        if( ! undershoot_at_min ) {
+            tick += step_sz;
+        }
 
-    // Add ticks to the list.
-    while( tick <= max ) {
-        res.push_back( tick );
-        tick += step_sz;
-    }
+        // Add ticks to the list.
+        while( tick <= max ) {
+            res.push_back( tick );
+            tick += step_sz;
+        }
 
-    // Determine whether we want to stop before or after the max.
-    if( overshoot_at_max ) {
-        res.push_back( tick );
+        // Determine whether we want to stop before or after the max.
+        if( overshoot_at_max ) {
+            res.push_back( tick );
+        }
     }
 
     // Add min and max if needed.
