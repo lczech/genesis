@@ -144,16 +144,17 @@ void SvgText::write( std::ostream& out, size_t indent, SvgDrawingOptions const& 
     transform.write( out );
 
     out << ">";
+    out << xml_escape( text );
 
-    if( alignment_baseline == AlignmentBaseline::kNone ) {
-        out << xml_escape( text );
-    } else {
-        out << "<tspan";
-        out << alignment_baseline_to_string( alignment_baseline );
-        out << ">";
-        out << xml_escape( text );
-        out << "</tspan>";
-    }
+    // if( alignment_baseline == AlignmentBaseline::kNone ) {
+        // out << xml_escape( text );
+    // } else {
+    //     out << "<tspan";
+    //     out << alignment_baseline_to_string( alignment_baseline );
+    //     out << ">";
+    //     out << xml_escape( text );
+    //     out << "</tspan>";
+    // }
 
     out << "</text>\n";
 }

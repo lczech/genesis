@@ -44,6 +44,11 @@ namespace utils {
 //     Modificators
 // =================================================================================================
 
+bool ColorPalette::range_check() const
+{
+    return min_ <= mid_ && mid_ <= max_;
+}
+
 ColorPalette& ColorPalette::range( double min, double max )
 {
     min_ = min;
