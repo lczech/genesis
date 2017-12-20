@@ -230,8 +230,9 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make() const
         }
         if( with_labels ) {
             auto text_s = SvgText( label, text_p );
-            text_s.dominant_baseline = SvgText::DominantBaseline::kMiddle;
-            text_s.alignment_baseline = SvgText::AlignmentBaseline::kMiddle;
+            // text_s.dominant_baseline = SvgText::DominantBaseline::kMiddle;
+            // text_s.alignment_baseline = SvgText::AlignmentBaseline::kMiddle;
+            text_s.dy = "0.33em";
             group << text_s;
         }
     };

@@ -342,13 +342,144 @@ std::string amino_acid_codes_all()
 //     Misc
 // ---------------------------------------------------------------------
 
-std::string normalize_codes( std::string const& alphabet )
+std::string normalize_code_alphabet( std::string const& alphabet )
 {
     // Uppercase, sort, uniq the alphabet.
     auto normalized = utils::to_upper_ascii( alphabet );
     std::sort( normalized.begin(), normalized.end() );
     normalized.erase( std::unique( normalized.begin(), normalized.end() ), normalized.end() );
     return normalized;
+}
+
+char normalize_nucleic_acid_code( char code, bool accept_degenerated )
+{
+    switch( code ) {
+        case 'u':
+        case 'U':
+        case 't':
+        case 'T':
+            return 'T';
+        case 'a':
+        case 'A':
+            return 'A';
+        case 'c':
+        case 'C':
+            return 'C';
+        case 'g':
+        case 'G':
+            return 'G';
+        case 'w':
+        case 'W':
+        case 's':
+        case 'S':
+        case 'm':
+        case 'M':
+        case 'k':
+        case 'K':
+        case 'r':
+        case 'R':
+        case 'y':
+        case 'Y':
+        case 'b':
+        case 'B':
+        case 'd':
+        case 'D':
+        case 'h':
+        case 'H':
+        case 'v':
+        case 'V':
+            if( accept_degenerated ) {
+                return utils::to_upper_ascii( code );
+            } else {
+                throw std::invalid_argument(
+                    "Degenerated nucleic acid code not accepted: " + std::string( 1, code )
+                );
+            }
+        case 'n':
+        case 'N':
+        case 'o':
+        case 'O':
+        case 'x':
+        case 'X':
+        case '.':
+        case '-':
+        case '?':
+            return '-';
+        default:
+            throw std::invalid_argument( "Not a nucleic acid code: " + std::string( 1, code ) );
+    }
+}
+
+char normalize_amino_acid_code( char code, bool accept_degenerated )
+{
+    switch( code ) {
+        case 'A':
+        case 'C':
+        case 'D':
+        case 'E':
+        case 'F':
+        case 'G':
+        case 'H':
+        case 'I':
+        case 'K':
+        case 'L':
+        case 'M':
+        case 'N':
+        case 'O':
+        case 'P':
+        case 'Q':
+        case 'R':
+        case 'S':
+        case 'T':
+        case 'U':
+        case 'V':
+        case 'W':
+        case 'Y':
+        case 'a':
+        case 'c':
+        case 'd':
+        case 'e':
+        case 'f':
+        case 'g':
+        case 'h':
+        case 'i':
+        case 'k':
+        case 'l':
+        case 'm':
+        case 'n':
+        case 'o':
+        case 'p':
+        case 'q':
+        case 'r':
+        case 's':
+        case 't':
+        case 'u':
+        case 'v':
+        case 'w':
+        case 'y':
+            return utils::to_upper_ascii( code );
+        case 'B':
+        case 'J':
+        case 'Z':
+        case 'b':
+        case 'j':
+        case 'z':
+            if( accept_degenerated ) {
+                return utils::to_upper_ascii( code );
+            } else {
+                throw std::invalid_argument(
+                    "Degenerated amino acid code not accepted: " + std::string( 1, code )
+                );
+            }
+        case 'X':
+        case 'x':
+        case '*':
+        case '-':
+        case '?':
+            return '-';
+        default:
+            throw std::invalid_argument( "Not an amino acid code: " + std::string( 1, code ) );
+    }
 }
 
 // =================================================================================================

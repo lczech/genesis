@@ -106,13 +106,43 @@ std::string amino_acid_codes_all();
 // ---------------------------------------------------------------------
 
 /**
- * @brief Normalize a set of Sequence codes, i.e., make them upper case, sort them, and remove
- * duplicates.
+ * @brief Normalize an alphabet set of Sequence codes, i.e., make them upper case, sort them,
+ * and remove duplicates.
  *
  * For example, when given a set of nucleic acid codes like "aGtc", the function returns "ACGT".
  * This is useful to get consistent codes in functions that accept a user defined code alphabet.
  */
-std::string normalize_codes( std::string const& alphabet );
+std::string normalize_code_alphabet( std::string const& alphabet );
+
+/**
+ * @brief Normalize a nucleic acide code.
+ *
+ * That is, make it upper case, replace `U` by `T`, replace all undetermined chars by `-`.
+ * See nucleic_acid_codes_undetermined() for a list of the latter.
+ *
+ * If @p accept_degenerated is set to `true` (default), degenerated chars are just put to
+ * upper case, but otherwise left as they are. If set to `false`, an exception is thrown
+ * if a degenerated char is encountered. See nucleic_acid_codes_degenerated() for their list.
+ *
+ * Lastly, an exception is also thrown for non nucleic acid codes,
+ * that is all chars that are not part of nucleic_acid_codes_all().
+ */
+char normalize_nucleic_acid_code( char code, bool accept_degenerated = true );
+
+/**
+ * @brief Normalize an amino acid code.
+ *
+ * That is, make it upper case and replace all undetermined chars by `-`.
+ * See amino_acid_codes_undetermined() for a list of the latter.
+ *
+ * If @p accept_degenerated is set to `true` (default), degenerated chars are just put to
+ * upper case, but otherwise left as they are. If set to `false`, an exception is thrown
+ * if a degenerated char is encountered. See amino_acid_codes_degenerated() for their list.
+ *
+ * Lastly, an exception is also thrown for non amino acid codes,
+ * that is all chars that are not part of amino_acid_codes_all().
+ */
+char normalize_amino_acid_code( char code, bool accept_degenerated = true );
 
 // =================================================================================================
 //     Color Codes

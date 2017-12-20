@@ -114,9 +114,19 @@ size_t Sequence::size() const
     return sites_.size();
 }
 
+char& Sequence::site_at( size_t index )
+{
+    return sites_.at(index);
+}
+
 char Sequence::site_at( size_t index ) const
 {
     return sites_.at(index);
+}
+
+char& Sequence::operator [] (size_t index)
+{
+    return sites_[index];
 }
 
 char Sequence::operator [] (size_t index) const

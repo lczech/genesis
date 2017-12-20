@@ -370,6 +370,38 @@ void merge_duplicate_sequences(
 }
 
 // =================================================================================================
+//     Normalization
+// =================================================================================================
+
+void normalize_nucleic_acid_codes( Sequence& sequence, bool accept_degenerated )
+{
+    for( auto& c : sequence.sites() ) {
+        c = normalize_nucleic_acid_code( c, accept_degenerated );
+    }
+}
+
+void normalize_nucleic_acid_codes( SequenceSet& sequence_set, bool accept_degenerated )
+{
+    for( auto& sequence : sequence_set ) {
+        normalize_nucleic_acid_codes( sequence, accept_degenerated );
+    }
+}
+
+void normalize_amino_acid_codes( Sequence& sequence, bool accept_degenerated )
+{
+    for( auto& c : sequence.sites() ) {
+        c = normalize_amino_acid_code( c, accept_degenerated );
+    }
+}
+
+void normalize_amino_acid_codes( SequenceSet& sequence_set, bool accept_degenerated )
+{
+    for( auto& sequence : sequence_set ) {
+        normalize_amino_acid_codes( sequence, accept_degenerated );
+    }
+}
+
+// =================================================================================================
 //     Filters
 // =================================================================================================
 
