@@ -263,7 +263,7 @@ public:
     /**
      * @brief Parse a whole Phylip file using the sequential variant (Mode::kSequential).
      */
-    void parse_phylip_interleaved(
+    void parse_phylip_sequential(
         utils::InputStream& it,
         SequenceSet& sset
     ) const;
@@ -271,7 +271,7 @@ public:
     /**
      * @brief Parse a whole Phylip file using the interleaved variant (Mode::kInterleaved).
      */
-    void parse_phylip_sequential(
+    void parse_phylip_interleaved(
         utils::InputStream& it,
         SequenceSet& sset
     ) const;
