@@ -285,6 +285,38 @@ void merge_duplicate_sequences(
 );
 
 // =================================================================================================
+//     Normalization
+// =================================================================================================
+
+/**
+ * @brief Call normalize_nucleic_acid_code() for each site of the Sequence.
+ *
+ * See there for details.
+ */
+void normalize_nucleic_acid_codes( Sequence& sequence, bool accept_degenerated = true );
+
+/**
+ * @brief Call normalize_nucleic_acid_code() for each site of all Sequence%s in the SequenceSet.
+ *
+ * See there for details.
+ */
+void normalize_nucleic_acid_codes( SequenceSet& sequence_set, bool accept_degenerated = true );
+
+/**
+ * @brief Call normalize_amino_acid_code() for each site of the Sequence.
+ *
+ * See there for details.
+ */
+void normalize_amino_acid_codes( Sequence& sequence, bool accept_degenerated = true );
+
+/**
+ * @brief Call normalize_amino_acid_code() for each site of all Sequence%s in the SequenceSet.
+ *
+ * See there for details.
+ */
+void normalize_amino_acid_codes( SequenceSet& sequence_set, bool accept_degenerated = true );
+
+// =================================================================================================
 //     Filters
 // =================================================================================================
 
