@@ -51,7 +51,7 @@ SequenceCounts::SequenceCounts( std::string const& characters, size_t length )
     : num_seqs_( 0 )
 {
     // Uppercase, sort, uniq the characters.
-    characters_ = normalize_codes( characters );
+    characters_ = normalize_code_alphabet( characters );
 
     // Add characters to lookup table, set all other to a max value indicating that this char
     // is not part of the table.

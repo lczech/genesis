@@ -129,7 +129,7 @@ std::vector<size_t> kmer_counts( Sequence const& seq, size_t k )
 std::vector<size_t> kmer_counts( Sequence const& seq, size_t k, std::string const& alphabet )
 {
     // Normalize alphabet.
-    auto const w = normalize_codes( alphabet );
+    auto const w = normalize_code_alphabet( alphabet );
 
     // Size check.
     if( w.size() == 0 ) {
@@ -190,7 +190,7 @@ std::vector<size_t> kmer_counts( Sequence const& seq, size_t k, std::string cons
 std::vector<std::string> kmer_list( size_t k, std::string const& alphabet )
 {
     // Normalize alphabet.
-    auto const w = normalize_codes( alphabet );
+    auto const w = normalize_code_alphabet( alphabet );
 
     // Size check.
     if( w.size() == 0 ) {
