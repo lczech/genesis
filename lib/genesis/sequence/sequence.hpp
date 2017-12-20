@@ -112,9 +112,11 @@ public:
      */
     size_t size() const;
 
-    char site_at( size_t index ) const;
+    char& site_at( size_t index );
+    char  site_at( size_t index ) const;
 
-    char operator [] (size_t index) const;
+    char& operator [] (size_t index);
+    char  operator [] (size_t index) const;
 
     // -------------------------------------------------------------------------
     //     Iterators
