@@ -31,10 +31,12 @@
  * @ingroup utils
  */
 
+#include <cassert>
 #include <ostream>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "genesis/utils/math/matrix.hpp"
@@ -296,7 +298,7 @@ Matrix<T> matrix_sort_by_row_sum_symmetric( Matrix<T> const& data )
  * matrices, where `m[ i, j ] == m[ j, i ]`. In those cases, the sorting is stable with respect
  * to the symmetry.
  *
- * See also matrix_sort_by_col_sum_symmetric(). In case of symmetric matrices, it should yield
+ * See also matrix_sort_by_row_sum_symmetric(). In case of symmetric matrices, it should yield
  * the same Matrix.
  */
 template< typename T >
@@ -317,6 +319,48 @@ Matrix<T> matrix_sort_by_col_sum_symmetric( Matrix<T> const& data )
     }
 
     return result;
+}
+
+/**
+ * @brief Sort a Matrix so that the highest entries are on the diagonal.
+ *
+ * The Matrix is sorted by moving the row and col with the highest entry to `[ 0, 0 ]`,
+ * and then applying this operation to the rest of the matrix (that is, excluding the first row
+ * and col) iteratievly.
+ * The Matrix does not have to be symmetrical, but sorting keeps rows and columns intact.
+ */
+template< typename T >
+Matrix<T> matrix_sort_diagonal_symmetric( Matrix<T> const& data )
+{
+    if( data.rows() != data.cols() ) {
+        throw std::runtime_error( "Symmetric sort only works on square matrices." );
+    }
+
+    // Find the row and col that contains the max element in the rest of the matrix,
+    // that is, excluding the first rows and cols according to start.
+    auto find_max = []( Matrix<T> const& mat, size_t start ){
+        size_t max_r = start;
+        size_t max_c = start;
+        for( size_t r = start; r < mat.rows(); ++r ) {
+            for( size_t c = start; c < mat.cols(); ++c ) {
+                if( mat(r, c) > mat( max_r, max_c ) ) {
+                    max_r = r;
+                    max_c = c;
+                }
+            }
+        }
+        return std::make_pair( max_r, max_c );
+    };
+
+    // Sort by swapping rows and cols.
+    auto mat = data;
+    assert( mat.rows() == mat.cols() );
+    for( size_t i = 0; i < mat.rows(); ++i ) {
+        auto const max_pair = find_max( mat, i );
+        matrix_swap_rows( mat, i, max_pair.first );
+        matrix_swap_cols( mat, i, max_pair.second );
+    }
+    return mat;
 }
 
 // =================================================================================================
