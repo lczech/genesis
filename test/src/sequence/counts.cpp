@@ -47,7 +47,7 @@ TEST( Sequence, Entropy )
     Sequence s_2 = { "", "", "AACG" };
     Sequence s_3 = { "", "", "ACGT" };
 
-    auto counts = SequenceCounts( "ACGT", 4 );
+    auto counts = SiteCounts( "ACGT", 4 );
 
     counts.add_sequence( s_0 );
     counts.add_sequence( s_1 );
@@ -82,7 +82,7 @@ TEST( Sequence, ConsensusMajority )
         .from_file(infile, sset);
 
     // Create counts object.
-    auto counts = SequenceCounts( "ACGT", 42 );
+    auto counts = SiteCounts( "ACGT", 42 );
     counts.add_sequences( sset );
 
     // Correct sequence calculated with Seaview.
@@ -105,7 +105,7 @@ TEST( Sequence, ConsensusAmbiguity )
         .from_file(infile, sset);
 
     // Create counts object.
-    auto counts = SequenceCounts( "ACGT", 42 );
+    auto counts = SiteCounts( "ACGT", 42 );
     counts.add_sequences( sset );
 
     // Manually calculated correct sequences.
@@ -127,7 +127,7 @@ TEST( Sequence, ConsensusAmbiguity )
     );
 
     // Some edge cases: zero sequences.
-    auto counts_2 = SequenceCounts( "ACGT", 5 );
+    auto counts_2 = SiteCounts( "ACGT", 5 );
     EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 1.0, true ));
     EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 0.0, true ));
     EXPECT_EQ( "-----", consensus_sequence_with_ambiguities( counts_2, 1.0, false ));
@@ -162,7 +162,7 @@ TEST( Sequence, ConsensusThreshold )
         .from_file(infile, sset);
 
     // Create counts object.
-    auto counts = SequenceCounts( "ACGT", 42 );
+    auto counts = SiteCounts( "ACGT", 42 );
     counts.add_sequences( sset );
 
     // Manually calculated correct sequences.
@@ -184,7 +184,7 @@ TEST( Sequence, ConsensusThreshold )
     );
 
     // Some edge cases: zero sequences.
-    auto counts_2 = SequenceCounts( "ACGT", 5 );
+    auto counts_2 = SiteCounts( "ACGT", 5 );
     EXPECT_EQ( "-----", consensus_sequence_with_threshold( counts_2, 1.0, true ));
     EXPECT_EQ( "-----", consensus_sequence_with_threshold( counts_2, 0.0, true ));
     EXPECT_EQ( "-----", consensus_sequence_with_threshold( counts_2, 1.0, false ));
@@ -219,7 +219,7 @@ TEST( Sequence, ConsensusCavener )
         .from_file(infile, sset);
 
     // Create counts object.
-    auto counts = SequenceCounts( "ACGT", 42 );
+    auto counts = SiteCounts( "ACGT", 42 );
     counts.add_sequences( sset );
 
     // Manually calculated correct sequences.
@@ -233,7 +233,7 @@ TEST( Sequence, ConsensusCavener )
     );
 
     // Some edge cases: zero sequences.
-    auto counts_2 = SequenceCounts( "ACGT", 5 );
+    auto counts_2 = SiteCounts( "ACGT", 5 );
     EXPECT_EQ( "-----", consensus_sequence_cavener( counts_2, true ));
     EXPECT_EQ( "-----", consensus_sequence_cavener( counts_2, false ));
 

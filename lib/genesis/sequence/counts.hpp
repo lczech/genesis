@@ -52,15 +52,16 @@ class SequenceSet;
 // =================================================================================================
 
 /**
- * @brief Store counts of the occurence for certain characters of Sequence%s.
+ * @brief Store counts of the occurence for certain characters at the sites of Sequence%s.
  *
  * This class is a helper for statistical analyses of Sequences, and for calculating consensus
- * sequences and  the like. It stores a @link utils::Matrix Matrix@endlink of counts, for a
- * set of characters and a given sequence length.
+ * sequences and the like. It stores a @link utils::Matrix Matrix@endlink of counts, for a
+ * set of characters and a given sequence length. That is, it expected aligned (same length)
+ * sequences.
  *
  * For example, we create an instance like this:
  *
- *     auto sequence_counts = SequenceCounts( "ACGT-", 6 );
+ *     auto sequence_counts = SiteCounts( "ACGT-", 6 );
  *
  * which counts the occurences of the nucleodite characters and the gap character for Sequence%s
  * of length 6. Then, after adding several Sequences, the matrix might look like this (site
@@ -81,7 +82,7 @@ class SequenceSet;
  * Use add_sequence() and add_sequences() to accumulate counts. Use count_of() and count_at() to
  * get the counter values for specific positions in the matrix.
  */
-class SequenceCounts
+class SiteCounts
 {
 public:
 
@@ -93,7 +94,7 @@ public:
      * @brief Type of uint used for internally counting the freuqencies of Sequence sites.
      *
      * We use this alias here, because in the future, we might need to adjust this value:
-     * Either to save memory if many different objects of type SequenceCounts are needed, so that
+     * Either to save memory if many different objects of type SiteCounts are needed, so that
      * they need to be small; or on the contrary, to allow for more Sequence%s being counted by
      * using a broader type here.
      */
@@ -110,38 +111,38 @@ public:
      * empty and cannot be used for any further analyses. It is provided here becase offering
      * a default constructor might be good in some cases.
      */
-    SequenceCounts() = default;
+    SiteCounts() = default;
 
     /**
      * @brief Construct an object that counts the occurences of the given @p characters for
      * Sequence%s of lenght @p length.
      */
-    SequenceCounts( std::string const& characters, size_t length );
+    SiteCounts( std::string const& characters, size_t length );
 
     /**
      * @brief Default destructor.
      */
-    ~SequenceCounts() = default;
+    ~SiteCounts() = default;
 
     /**
     * @brief Default copy constructor.
     */
-    SequenceCounts( SequenceCounts const& ) = default;
+    SiteCounts( SiteCounts const& ) = default;
 
     /**
     * @brief Default move constructor.
     */
-    SequenceCounts( SequenceCounts&& )      = default;
+    SiteCounts( SiteCounts&& )      = default;
 
     /**
     * @brief Default copy assignment.
     */
-    SequenceCounts& operator= ( SequenceCounts const& ) = default;
+    SiteCounts& operator= ( SiteCounts const& ) = default;
 
     /**
     * @brief Default move assignment.
     */
-    SequenceCounts& operator= ( SequenceCounts&& )      = default;
+    SiteCounts& operator= ( SiteCounts&& )      = default;
 
     // -------------------------------------------------------------------------
     //     Accessors
@@ -210,7 +211,7 @@ public:
      * @brief Clear the object, that is, delete everything.
      *
      * This function sets the object status to the same that the
-     * @link SequenceCounts() default constructor@endlink gives. Thus, it is not usable any more.
+     * @link SiteCounts() default constructor@endlink gives. Thus, it is not usable any more.
      * It is mainly intended to save memory when many objects are used and then no longer needed.
      *
      * For an alternative function that simply resets the counts to zero but keeps the dimentions

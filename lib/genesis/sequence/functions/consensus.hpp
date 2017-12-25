@@ -41,7 +41,7 @@ namespace sequence {
 // =================================================================================================
 
 class Sequence;
-class SequenceCounts;
+class SiteCounts;
 class SequenceSet;
 
 // =================================================================================================
@@ -74,7 +74,7 @@ class SequenceSet;
  * mostly gaps.
  *
  * Furthermore, if two or more characters have the same frequency, the first one is used. That is,
- * the one that appears first in SequenceCounts::characters().
+ * the one that appears first in SiteCounts::characters().
  *
  * For an alternative version of this function that takes those ambiguities into account, see
  * consensus_sequence_with_ambiguities(). Also, for a version of this function that takes a
@@ -82,7 +82,7 @@ class SequenceSet;
  * However, both of them currently only work for nucleic acid codes (`ACGT`).
  */
 std::string consensus_sequence_with_majorities(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     bool                  allow_gaps = true,
     char                  gap_char   = '-'
 );
@@ -91,10 +91,10 @@ std::string consensus_sequence_with_majorities(
  * @brief Calculate the majority rule consensus sequence by using the most frequent character at
  * each site.
  *
- * See @link consensus_sequence_with_majorities( SequenceCounts const&, bool, char )
+ * See @link consensus_sequence_with_majorities( SiteCounts const&, bool, char )
  * consensus_sequence_with_majorities(...)@endlink for details.
  *
- * This function is merely a wrapper that instead of a SequenceCount objects, takes a SequenceSet
+ * This function is merely a wrapper that instead of a SiteCounts objects, takes a SequenceSet
  * object and the set of characters to be used for counting character frequencies in the Sequence%s.
  * That means, only the provided characters are counted and used for the consensus sequence.
  * This is useful in order to get rid of errors and noise in the Sequence%s. For example, if you
@@ -112,10 +112,10 @@ std::string consensus_sequence_with_majorities(
  * @brief Calculate the majority rule consensus sequence by using the most frequent character at
  * each site for nucleic acid codes `ACGT`.
  *
- * See @link consensus_sequence_with_majorities( SequenceCounts const&, bool, char )
+ * See @link consensus_sequence_with_majorities( SiteCounts const&, bool, char )
  * consensus_sequence_with_majorities(...)@endlink for details.
  *
- * This function is merely a wrapper that instead of a SequenceCount objects, takes a SequenceSet
+ * This function is merely a wrapper that instead of a SiteCounts objects, takes a SequenceSet
  * object consisting of Sequence%s with nucleic acid codes `ACGT` and uses '-' for gaps.
  */
 std::string consensus_sequence_with_majorities(
@@ -166,11 +166,11 @@ std::string consensus_sequence_with_majorities(
  * The ambiguity codes are converted using nucleic_acid_ambiguity_code(). See there for more
  * information on the used codes.
  *
- * If the provided SequenceCounts object does not use nucleic acid codes, or if the
+ * If the provided SiteCounts object does not use nucleic acid codes, or if the
  * `similarity_factor` is not within the range `[ 0.0, 1.0 ]`, an exception is thrown.
  */
 std::string consensus_sequence_with_ambiguities(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     double                similarity_factor = 0.9,
     bool                  allow_gaps        = true
 );
@@ -179,9 +179,9 @@ std::string consensus_sequence_with_ambiguities(
  * @brief Calculate a consensus sequence by using the most frequent characters at each site,
  * for nucleic acid codes `ACGT` and their ambiguities.
  *
- * See @link consensus_sequence_with_ambiguities( SequenceCounts const&, double, bool )
+ * See @link consensus_sequence_with_ambiguities( SiteCounts const&, double, bool )
  * consensus_sequence_with_ambiguities(...)@endlink for details.
- * This is merely a wrapper function that takes a SequenceSet instead of a SequenceCounts object.
+ * This is merely a wrapper function that takes a SequenceSet instead of a SiteCounts object.
  */
 std::string consensus_sequence_with_ambiguities(
     SequenceSet const&    sequences,
@@ -242,11 +242,11 @@ std::string consensus_sequence_with_ambiguities(
  * The ambiguity codes are converted using nucleic_acid_ambiguity_code(). See there for more
  * information on the used codes.
  *
- * If the provided SequenceCounts object does not use nucleic acid codes, or if the
+ * If the provided SiteCounts object does not use nucleic acid codes, or if the
  * `frequency_threshold` is not within the range `[ 0.0, 1.0 ]`, an exception is thrown.
  */
 std::string consensus_sequence_with_threshold(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     double                frequency_threshold = 0.6,
     bool                  allow_gaps          = true,
     bool                  use_ambiguities     = true
@@ -256,9 +256,9 @@ std::string consensus_sequence_with_threshold(
  * @brief Calculate a consensus sequence where the character frequency needs to be above a given
  * threshold, for nucleic acid codes `ACGT`.
  *
- * See @link consensus_sequence_with_threshold( SequenceCounts const&, double, bool, bool )
+ * See @link consensus_sequence_with_threshold( SiteCounts const&, double, bool, bool )
  * consensus_sequence_with_ambiguities(...)@endlink for details.
- * This is merely a wrapper function that takes a SequenceSet instead of a SequenceCounts object.
+ * This is merely a wrapper function that takes a SequenceSet instead of a SiteCounts object.
  */
 std::string consensus_sequence_with_threshold(
     SequenceSet const&    sequences,
@@ -304,7 +304,7 @@ std::string consensus_sequence_with_threshold(
  * > Nucleic Acids Res., vol. 31, no. 1, pp. 374–378, 2003.
  */
 std::string consensus_sequence_cavener(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     bool                  allow_gaps        = true
 );
 
@@ -312,9 +312,9 @@ std::string consensus_sequence_cavener(
  * @brief Calculate a consensus sequence using the method by Cavener
  * for nucleic acid codes `ACGT` and their ambiguities.
  *
- * See @link consensus_sequence_cavener( SequenceCounts const&, bool )
+ * See @link consensus_sequence_cavener( SiteCounts const&, bool )
  * consensus_sequence_cavener(...)@endlink for details.
- * This is merely a wrapper function that takes a SequenceSet instead of a SequenceCounts object.
+ * This is merely a wrapper function that takes a SequenceSet instead of a SiteCounts object.
  */
 std::string consensus_sequence_cavener(
     SequenceSet const&    sequences,

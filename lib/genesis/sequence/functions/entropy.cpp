@@ -47,7 +47,7 @@ namespace sequence {
 // =================================================================================================
 
 double site_entropy(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     size_t                site_idx,
     SiteEntropyOptions    options
 ) {
@@ -64,7 +64,7 @@ double site_entropy(
 
     // Results: we add up the entropy and the number of counts that we have seen in total.
     double entropy = 0.0;
-    SequenceCounts::CountsIntType counts_sum = 0;
+    SiteCounts::CountsIntType counts_sum = 0;
 
     // Accumulate entropy and total counts for the site.
     for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
@@ -111,7 +111,7 @@ double site_entropy(
 // =================================================================================================
 
 double site_information(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     size_t                site_index,
     bool                  use_small_sample_correction,
     SiteEntropyOptions    options
@@ -137,7 +137,7 @@ double site_information(
 // =================================================================================================
 
 double absolute_entropy(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     SiteEntropyOptions    per_site_options
 ) {
     double sum = 0.0;
@@ -152,7 +152,7 @@ double absolute_entropy(
 // =================================================================================================
 
 double averaged_entropy(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     bool                  only_determined_sites,
     SiteEntropyOptions    per_site_options
 ) {
