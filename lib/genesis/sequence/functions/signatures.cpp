@@ -236,40 +236,6 @@ std::vector<std::string> kmer_list( size_t k, std::string const& alphabet )
 //     Signatures
 // =================================================================================================
 
-std::string reverse_complement( std::string const& sequence )
-{
-    auto result = sequence;
-
-    auto rev_comp = []( char c ){
-        switch( c ) {
-            case 'a':
-            case 'A':
-                return 'T';
-
-            case 'c':
-            case 'C':
-                return 'G';
-
-            case 'g':
-            case 'G':
-                return 'C';
-
-            case 't':
-            case 'T':
-                return 'A';
-
-            default:
-                throw std::runtime_error( "Sequence contains other chars than 'ACGT'." );
-        }
-    };
-
-    // Stupid and simple.
-    for( size_t i = 0; i < sequence.size(); ++i ) {
-        result[ sequence.size() - i - 1 ] = rev_comp( sequence[i] );
-    }
-    return result;
-}
-
 std::vector<size_t> kmer_reverse_complement_indices( size_t k )
 {
     // Calculate a vector that maps from a kmer index according to kmer_list

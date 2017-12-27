@@ -81,11 +81,6 @@ std::vector<std::string> kmer_list( size_t k, std::string const& alphabet );
 // =================================================================================================
 
 /**
- * @brief Get the reverse complement of a sequences of `ACGT` characters.
- */
-std::string reverse_complement( std::string const& sequence );
-
-/**
  * @brief Get the size needed to store reverse complement kmers.
  */
 size_t kmer_reverse_complement_size( size_t k );

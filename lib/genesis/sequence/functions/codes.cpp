@@ -34,6 +34,7 @@
 #include "genesis/utils/tools/color.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <cctype>
 #include <stdexcept>
 #include <unordered_map>
@@ -435,6 +436,7 @@ char normalize_amino_acid_code( char code, bool accept_degenerated )
         case 'V':
         case 'W':
         case 'Y':
+            return code;
         case 'a':
         case 'c':
         case 'd':
@@ -480,6 +482,77 @@ char normalize_amino_acid_code( char code, bool accept_degenerated )
         default:
             throw std::invalid_argument( "Not an amino acid code: " + std::string( 1, code ) );
     }
+}
+
+std::string reverse_complement( std::string const& sequence, bool accept_degenerated )
+{
+    // Dummy result string.
+    auto result = std::string( sequence.size(), '-' );
+
+    // Get rev comp char. We only need to check upper case as we normalized before.
+    auto rev_comp = []( char c ){
+        switch( c ) {
+            case 'A':
+                return 'T';
+            case 'C':
+                return 'G';
+            case 'G':
+                return 'C';
+            case 'T':
+                return 'A';
+
+            case 'W':
+                return 'W';
+            case 'S':
+                return 'S';
+            case 'M':
+                return 'K';
+            case 'K':
+                return 'M';
+            case 'R':
+                return 'Y';
+            case 'Y':
+                return 'R';
+
+            case 'B':
+                return 'V';
+            case 'D':
+                return 'H';
+            case 'H':
+                return 'D';
+            case 'V':
+                return 'B';
+
+            default:
+                // We already checked for invalid chars in the normalize function.
+                // Just do this to be safe.
+                assert( false );
+                throw std::invalid_argument( "Not a nucleic acid code: " + std::string( 1, c ) );
+        }
+    };
+
+    // Stupid and simple.
+    for( size_t i = 0; i < sequence.size(); ++i ) {
+        char c = sequence[i];
+
+        // Slighly hacky: the normalize function turns 'N' into '-'.
+        // We don't want that here, so we have to treat that special case.
+        if( c == 'n' || c == 'N' ) {
+            if( accept_degenerated ) {
+                result[ sequence.size() - i - 1 ] = 'N';
+                continue;
+            } else {
+                throw std::invalid_argument(
+                    "Degenerated nucleic acid code not accepted: " + std::string( 1, c )
+                );
+            }
+        }
+
+        // First normalize, then reverse. Slighly inefficition, but saves code duplication.
+        c = normalize_nucleic_acid_code( c, accept_degenerated );
+        result[ sequence.size() - i - 1 ] = rev_comp( c );
+    }
+    return result;
 }
 
 // =================================================================================================
