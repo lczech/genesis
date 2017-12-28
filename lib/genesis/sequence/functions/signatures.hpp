@@ -31,8 +31,8 @@
  * @ingroup sequence
  */
 
-#include<string>
-#include<vector>
+#include <string>
+#include <vector>
 
 namespace genesis {
 namespace sequence {
@@ -46,45 +46,19 @@ class Sequence;
 class SequenceSet;
 
 // =================================================================================================
-//     K-mers
-// =================================================================================================
-
-/**
- * @brief Count the occurences of k-mers in the @p sequence according to the lookup @p settings.
- *
- * The function returns a vector that contains the count for each k-mer that can be build from
- * the characters in the alphabet.
- *
- * The resulting vector is indexed using the same order of k-mers as produced by kmer_list().
- */
-std::vector<size_t> kmer_counts( Sequence const& sequence, SignatureSpecifications const& settings );
-
-/**
- * @brief Return the list of all possible k-mers for the `k` and `alphabet` of a SignatureSpecifications.
- *
- * The order in this vector is the same as used in kmer_counts().
- */
-std::vector<std::string> kmer_list( SignatureSpecifications const& settings );
-
-// =================================================================================================
-//     Helpers
-// =================================================================================================
-
-/**
- * @brief Get the size needed to store reverse complement kmers for nucleic acid sequences.
- */
-size_t kmer_reverse_complement_size( SignatureSpecifications const& settings );
-
-/**
- * @brief Get a map from indices of kmer_list() and kmer_counts() vectors to a smaller list
- * of size kmer_reverse_complement_size() which combines reverse complementary kmers
- * for nucleic acid sequences.
- */
-std::vector<size_t> kmer_reverse_complement_indices( SignatureSpecifications const& settings );
-
-// =================================================================================================
 //     Signatures
 // =================================================================================================
+
+/**
+ * @brief Count the occurences of k-mers in the @p sequence according to the @p settings.
+ *
+ * The function returns a vector that contains the count for each k-mer that can be build from
+ * the characters in the alphabet, in the order given by SignatureSpecifications::kmer_list().
+ */
+std::vector<size_t> signature_counts(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+);
 
 std::vector<double> signature_frequencies(
     Sequence const& seq,

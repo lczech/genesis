@@ -34,6 +34,7 @@
 #include "genesis/utils/math/common.hpp"
 
 #include <algorithm>
+#include <cassert>
 #include <numeric>
 #include <stdexcept>
 #include <unordered_map>
@@ -72,12 +73,153 @@ SignatureSpecifications::SignatureSpecifications( std::string const& alphabet, s
 }
 
 // ================================================================================================
-//     Accessors
+//     Derived Properties
 // ================================================================================================
+
+std::vector<std::string> const& SignatureSpecifications::kmer_list() const
+{
+    // Lazy loading.
+    if( kmer_list_.size() > 0 ) {
+        return kmer_list_;
+    }
+
+    // Get some settings.
+    auto const& w = alphabet();
+    size_t const p = kmer_list_size();
+
+    // Result vector. List all kmers.
+    kmer_list_ = std::vector<std::string>( p );
+    for( size_t i = 0; i < p; ++i ) {
+
+        // Start with a dummy kmer of the correct size and the current index.
+        auto kmer = std::string( k_, '#' );
+        assert( kmer.size() == k_ );
+        size_t c = i;
+
+        // Fill the kmer from right to left, using conversion of c to base w.size().
+        for( size_t j = 0; j < k_; ++j ) {
+            assert(( 1 + j <= k_ ) && ( k_ - 1 - j < kmer.size() ));
+
+            kmer[ k_ - 1 - j ] = w[ c % w.size() ];
+            c /= w.size();
+        }
+
+        // In the last loop iteration, we processed all bits of c, so there should be nothing left.
+        assert( c == 0 );
+
+        kmer_list_[ i ] = kmer;
+    }
+
+    return kmer_list_;
+}
 
 size_t SignatureSpecifications::kmer_list_size() const
 {
     return utils::int_pow( alphabet_.size(), k_ );
+}
+
+std::vector<size_t> const& SignatureSpecifications::kmer_reverse_complement_indices() const
+{
+    if( ! is_nucleic_acids() ) {
+        throw std::runtime_error( "Reverse complement kmers only valid for nucleic acid codes." );
+    }
+
+    // Lazy loading.
+    if( rev_comp_indices_.size() > 0 ) {
+        return rev_comp_indices_;
+    }
+
+    // Calculate a vector that maps from a kmer index according to kmer_list
+    // to a position in [ 0 , s ), so that rev comp indices map to the same position.
+    rev_comp_indices_ = std::vector<size_t>( utils::int_pow( 4, k_ ), 0 );
+
+    // Store a list of kmers and their indices. it only stores one direction - that is,
+    // if we see that the rev comp of a kmer is already in this map, we do not add anything.
+    std::unordered_map<std::string, size_t> done;
+
+    // Get all kmers as strings.
+    auto const& list = kmer_list();
+    assert( rev_comp_indices_.size() == list.size() );
+
+    // This uses string maps and is terribly slow.
+    // But I am really lazy today and the function will not be called often.
+    for( size_t i = 0; i < list.size(); ++i ) {
+        auto const& seq = list[i];
+
+        // We always encounter the alphabetically first entry fist.
+        // So, we cannot have added its complement before.
+        assert( done.count( seq ) == 0 );
+
+        // If we have seen the rev comp of the current kmer before, reuse its index.
+        // If not, make a new index, which is one higher than the currently highest index
+        // (by using done.size() to get the number of current entries).
+        auto const rev = reverse_complement( seq );
+        if( done.count( rev ) == 0 ) {
+            auto const ni = done.size();
+            rev_comp_indices_[ i ] = ni;
+            done[ seq ] = ni;
+        } else {
+            // We have seen the rev comp before, so we do not update the done list.
+            rev_comp_indices_[ i ] = done[ rev ];
+        }
+    }
+
+    // In the end, we have as many entries in done as we have rev comp kmers.
+    assert( done.size() == kmer_reverse_complement_list_size() );
+
+    return rev_comp_indices_;
+}
+
+std::vector<std::string> const& SignatureSpecifications::kmer_reverse_complement_list() const
+{
+    if( ! is_nucleic_acids() ) {
+        throw std::runtime_error( "Reverse complement kmers only valid for nucleic acid codes." );
+    }
+
+    // Lazy loading.
+    if( rev_comp_list_.size() > 0 ) {
+        return rev_comp_list_;
+    }
+
+    // Some properties.
+    auto const& kl  = kmer_list();
+    auto const& rci = kmer_reverse_complement_indices();
+    auto const rcls = kmer_reverse_complement_list_size();
+    assert( kl.size() == rci.size() );
+    assert( rcls <= kl.size() );
+
+    // Init result with empty strings.
+    rev_comp_list_ = std::vector<std::string>( rcls, "" );
+
+    // Fill the list by iterating all normal kmers.
+    for( size_t i = 0; i < kl.size(); ++i ) {
+
+        // Get index in rev comp list for the current kmer.
+        auto const idx = rci[i];
+        assert( idx < rev_comp_list_.size() );
+
+        // If there is not yet an entry, set it.
+        if( rev_comp_list_[ idx ].empty() ) {
+            rev_comp_list_[ idx ] = kl[ i ];
+        }
+    }
+
+    return rev_comp_list_;
+}
+
+size_t SignatureSpecifications::kmer_reverse_complement_list_size() const
+{
+    if( ! is_nucleic_acids() ) {
+        throw std::runtime_error( "Reverse complement kmers only valid for nucleic acid codes." );
+    }
+
+    // Calcualtions according to: https://stackoverflow.com/a/40953130
+
+    // Number of palindromic k-mers. For odd k, there are none, for even k, there are 4^(k/2) = 2^k
+    auto const p = ( k_ % 2 == 1 ? 0 : utils::int_pow( 2, k_ ));
+
+    // Number of entries needed to store rev comp kmers.
+    return p + ( utils::int_pow( 4, k_ ) - p ) / 2;
 }
 
 } // namespace sequence

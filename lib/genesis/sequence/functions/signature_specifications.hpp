@@ -33,9 +33,9 @@
 
 #include "genesis/utils/tools/char_lookup.hpp"
 
-#include<limits>
-#include<string>
-#include<vector>
+#include <limits>
+#include <string>
+#include <vector>
 
 namespace genesis {
 namespace sequence {
@@ -63,8 +63,8 @@ public:
     // -------------------------------------------------------------------------
 
     /**
-     * @brief What to do when a char that is not part of the alphabet is encountered while
-     * counting kmers.
+     * @brief List of policies to decide what to do when a char that is not part of the alphabet
+     * occurs while counting kmers.
      */
     enum class UnknownCharBehavior
     {
@@ -135,6 +135,13 @@ public:
         return unknown_char_behavior_;
     }
 
+    // -------------------------------------------------------------------------
+    //     Derived Properties
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Speedup and shortcut to test whether the alphabet() is `"ACGT"`.
+     */
     bool is_nucleic_acids() const
     {
         return is_nucleic_acids_;
@@ -151,7 +158,22 @@ public:
         return index_lookup_[c];
     }
 
+    /**
+     * @brief Return the list of all possible k-mers for the given `k` and `alphabet`.
+     */
+    std::vector<std::string> const& kmer_list() const;
+
     size_t kmer_list_size() const;
+
+    /**
+     * @brief Get a map from indices of kmer_list() and kmer_counts() vectors to a smaller list
+     * which combines reverse complementary kmers for nucleic acid sequences.
+     */
+    std::vector<size_t> const& kmer_reverse_complement_indices() const;
+
+    std::vector<std::string> const& kmer_reverse_complement_list() const;
+
+    size_t kmer_reverse_complement_list_size() const;
 
     // -------------------------------------------------------------------------
     //     Modifiers
@@ -177,6 +199,10 @@ private:
     // Induced Settings and Helpers
     bool        is_nucleic_acids_ = false;
     utils::CharLookup<size_t> index_lookup_;
+
+    mutable std::vector<std::string> kmer_list_;
+    mutable std::vector<std::string> rev_comp_list_;
+    mutable std::vector<size_t> rev_comp_indices_;
 };
 
 } // namespace sequence

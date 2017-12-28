@@ -51,7 +51,7 @@ TEST( Sequence, KmerList )
 {
     // Test up to kmer size of 6
     for( size_t k = 1; k < 6; ++k ) {
-        auto list = kmer_list( SignatureSpecifications( "ACGT", k ) );
+        auto list = SignatureSpecifications( "ACGT", k ).kmer_list();
         EXPECT_EQ( genesis::utils::int_pow( 4, k ), list.size() );
         EXPECT_EQ( std::string( k, 'A' ), list.front() );
         EXPECT_EQ( std::string( k, 'T' ), list.back() );
@@ -80,12 +80,12 @@ TEST( Sequence, KmerCounts )
     // Test up to kmer size of 6
     for( size_t k = 1; k < 6; ++k ) {
         auto const sig_settings = SignatureSpecifications( alphabet, k );
-        auto const list = kmer_list( sig_settings );
+        auto const list = sig_settings.kmer_list();
 
         for( auto const& seq : sset ) {
             // LOG_DBG << "seq " << seq.sites();
 
-            auto kmers = kmer_counts( seq, sig_settings );
+            auto kmers = signature_counts( seq, sig_settings );
             ASSERT_EQ( list.size(), kmers.size() );
 
             for( size_t i = 0; i < kmers.size(); ++i ) {
@@ -129,12 +129,12 @@ TEST( Sequence, KmerReverseComplements )
     // Test up to kmer size of 6
     for( size_t k = 1; k < 6; ++k ) {
         auto const sig_settings = SignatureSpecifications( "ACGT", k );
-        auto const list = kmer_list( sig_settings );
-        auto const revs = kmer_reverse_complement_indices( sig_settings );
+        auto const list = sig_settings.kmer_list();
+        auto const revs = sig_settings.kmer_reverse_complement_indices();
         ASSERT_EQ( list.size(), revs.size() );
 
         // Get the length needed to store rev comp entries,
-        auto const revcom_size = kmer_reverse_complement_size( sig_settings );
+        auto const revcom_size = sig_settings.kmer_reverse_complement_list_size();
 
         for( size_t i = 0; i < list.size(); ++i ) {
             // LOG_DBG << list[i] << " <-- " << revs[i];
@@ -155,6 +155,24 @@ TEST( Sequence, KmerReverseComplements )
             EXPECT_LT( revs[i], revcom_size );
 
             // LOG_DBG1 << i << " " << pos << " -> " << revs[i];
+        }
+
+        // Get list of rev comp kmers.
+        auto const& revcom_list = sig_settings.kmer_reverse_complement_list();
+        // LOG_DBG << "k " << k << " with rev comp list size " << revcom_size;
+        // for( auto e : revcom_list ) {
+        //     LOG_DBG1 << e;
+        // }
+
+        // Test whether the rev comp of each entry is either itself, or
+        // not part of the list.
+        for( size_t i = 0; i < revcom_list.size(); ++i ) {
+            auto const rev = reverse_complement( revcom_list[i] );
+            if( rev == revcom_list[i] ) {
+                continue;
+            }
+            auto match = std::find( revcom_list.begin(), revcom_list.end(), rev );
+            EXPECT_EQ( match, revcom_list.end() );
         }
     }
 }
