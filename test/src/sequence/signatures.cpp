@@ -33,6 +33,7 @@
 #include "genesis/sequence/formats/fasta_reader.hpp"
 #include "genesis/sequence/functions/functions.hpp"
 #include "genesis/sequence/functions/signatures.hpp"
+#include "genesis/sequence/functions/signature_specifications.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/sequence/sequence.hpp"
 
@@ -50,7 +51,7 @@ TEST( Sequence, KmerList )
 {
     // Test up to kmer size of 6
     for( size_t k = 1; k < 6; ++k ) {
-        auto list = kmer_list( k, "ACGT" );
+        auto list = kmer_list( SignatureSpecifications( "ACGT", k ) );
         EXPECT_EQ( genesis::utils::int_pow( 4, k ), list.size() );
         EXPECT_EQ( std::string( k, 'A' ), list.front() );
         EXPECT_EQ( std::string( k, 'T' ), list.back() );
@@ -78,12 +79,13 @@ TEST( Sequence, KmerCounts )
 
     // Test up to kmer size of 6
     for( size_t k = 1; k < 6; ++k ) {
-        auto const list = kmer_list( k, alphabet );
+        auto const sig_settings = SignatureSpecifications( alphabet, k );
+        auto const list = kmer_list( sig_settings );
 
         for( auto const& seq : sset ) {
             // LOG_DBG << "seq " << seq.sites();
 
-            auto kmers = kmer_counts( seq, k );
+            auto kmers = kmer_counts( seq, sig_settings );
             ASSERT_EQ( list.size(), kmers.size() );
 
             for( size_t i = 0; i < kmers.size(); ++i ) {
@@ -114,9 +116,9 @@ TEST( Sequence, SignatureFrequencies )
 
     for( size_t k = 1; k < 6; ++k ) {
         for( auto const& seq : sset ) {
-            auto const freqs = signature_frequencies( seq, k );
-            auto const sum = std::accumulate( freqs.begin(), freqs.end(), 0.0 );
+            auto const freqs = signature_frequencies( seq, SignatureSpecifications( "ACGT", k ));
 
+            auto const sum = std::accumulate( freqs.begin(), freqs.end(), 0.0 );
             EXPECT_FLOAT_EQ( 1.0, sum );
         }
     }
@@ -126,12 +128,13 @@ TEST( Sequence, KmerReverseComplements )
 {
     // Test up to kmer size of 6
     for( size_t k = 1; k < 6; ++k ) {
-        auto const list = kmer_list( k, "ACGT" );
-        auto const revs = kmer_reverse_complement_indices( k );
+        auto const sig_settings = SignatureSpecifications( "ACGT", k );
+        auto const list = kmer_list( sig_settings );
+        auto const revs = kmer_reverse_complement_indices( sig_settings );
         ASSERT_EQ( list.size(), revs.size() );
 
         // Get the length needed to store rev comp entries,
-        auto const revcom_size = kmer_reverse_complement_size( k );
+        auto const revcom_size = kmer_reverse_complement_size( sig_settings );
 
         for( size_t i = 0; i < list.size(); ++i ) {
             // LOG_DBG << list[i] << " <-- " << revs[i];

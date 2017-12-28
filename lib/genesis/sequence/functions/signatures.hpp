@@ -41,6 +41,7 @@ namespace sequence {
 //     Forwad Declarations
 // =================================================================================================
 
+class SignatureSpecifications;
 class Sequence;
 class SequenceSet;
 
@@ -49,49 +50,46 @@ class SequenceSet;
 // =================================================================================================
 
 /**
- * @brief Count the occurences of k-mers of size @p k, for nucleic acids "ACGT".
- *
- * The function is similar to kmer_counts( Sequence const&, size_t k, std::string const& alphabet ),
- * but slighly faster, and only accpets Sequence%s that solely consists of "ACGT" characters.
- * Otherwise it throws.
- */
-std::vector<size_t> kmer_counts( Sequence const& seq, size_t k );
-
-/**
- * @brief Count the occurences of k-mers of size @p k, for a given @p alphabet.
+ * @brief Count the occurences of k-mers in the @p sequence according to the lookup @p settings.
  *
  * The function returns a vector that contains the count for each k-mer that can be build from
- * the characters in the given @p alphabet. The alphabet is normalized prior to processing, using
- * normalize_codes(). Characters in the Sequence that are not in the alphabet are ignored.
+ * the characters in the alphabet.
  *
  * The resulting vector is indexed using the same order of k-mers as produced by kmer_list().
  */
-std::vector<size_t> kmer_counts( Sequence const& seq, size_t k, std::string const& alphabet );
+std::vector<size_t> kmer_counts( Sequence const& sequence, SignatureSpecifications const& settings );
 
 /**
- * @brief Return the list of all possible k-mers for a given @p k and @p alphabet.
+ * @brief Return the list of all possible k-mers for the `k` and `alphabet` of a SignatureSpecifications.
  *
- * The order in this vector is the same as used in
- * @link kmer_counts( Sequence const&, size_t k, std::string const& alphabet ) kmer_counts()@endlink.
+ * The order in this vector is the same as used in kmer_counts().
  */
-std::vector<std::string> kmer_list( size_t k, std::string const& alphabet );
+std::vector<std::string> kmer_list( SignatureSpecifications const& settings );
+
+// =================================================================================================
+//     Helpers
+// =================================================================================================
+
+/**
+ * @brief Get the size needed to store reverse complement kmers for nucleic acid sequences.
+ */
+size_t kmer_reverse_complement_size( SignatureSpecifications const& settings );
+
+/**
+ * @brief Get a map from indices of kmer_list() and kmer_counts() vectors to a smaller list
+ * of size kmer_reverse_complement_size() which combines reverse complementary kmers
+ * for nucleic acid sequences.
+ */
+std::vector<size_t> kmer_reverse_complement_indices( SignatureSpecifications const& settings );
 
 // =================================================================================================
 //     Signatures
 // =================================================================================================
 
-/**
- * @brief Get the size needed to store reverse complement kmers.
- */
-size_t kmer_reverse_complement_size( size_t k );
-
-/**
- * @brief Get a map from indices of kmer_list() and kmer_counts() vectors to a smaller list
- * of size kmer_reverse_complement_size() which combines reverse complementary kmers.
- */
-std::vector<size_t> kmer_reverse_complement_indices( size_t k );
-
-std::vector<double> signature_frequencies( Sequence const& seq, size_t k );
+std::vector<double> signature_frequencies(
+    Sequence const& seq,
+    SignatureSpecifications const& settings
+);
 
 } // namespace sequence
 } // namespace genesis
