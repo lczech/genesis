@@ -121,9 +121,9 @@ public:
     //     Data Members
     // -----------------------------------------------------
 
-    sequence::SequenceCounts counts;
-    double                   entropy = 0.0;
-    PruneStatus              status  = PruneStatus::kInside;
+    sequence::SiteCounts counts;
+    double               entropy = 0.0;
+    PruneStatus          status  = PruneStatus::kInside;
 
 };
 

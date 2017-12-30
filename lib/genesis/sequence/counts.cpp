@@ -47,7 +47,7 @@ namespace sequence {
 //     Constructors and Rule of Five
 // ================================================================================================
 
-SequenceCounts::SequenceCounts( std::string const& characters, size_t length )
+SiteCounts::SiteCounts( std::string const& characters, size_t length )
     : num_seqs_( 0 )
 {
     // Uppercase, sort, uniq the characters.
@@ -72,23 +72,23 @@ SequenceCounts::SequenceCounts( std::string const& characters, size_t length )
 //     Accesors
 // ================================================================================================
 
-size_t SequenceCounts::length() const
+size_t SiteCounts::length() const
 {
     return counts_.rows();
 }
 
-std::string SequenceCounts::characters() const
+std::string SiteCounts::characters() const
 {
     assert( counts_.cols() == characters_.size() );
     return characters_;
 }
 
-SequenceCounts::CountsIntType SequenceCounts::added_sequences_count() const
+SiteCounts::CountsIntType SiteCounts::added_sequences_count() const
 {
     return num_seqs_;
 }
 
-SequenceCounts::CountsIntType SequenceCounts::count_of( char character, size_t site_index ) const
+SiteCounts::CountsIntType SiteCounts::count_of( char character, size_t site_index ) const
 {
     if( site_index >= length() ) {
         throw std::runtime_error(
@@ -106,7 +106,7 @@ SequenceCounts::CountsIntType SequenceCounts::count_of( char character, size_t s
     return counts_( site_index, char_idx );
 }
 
-SequenceCounts::CountsIntType SequenceCounts::count_at(
+SiteCounts::CountsIntType SiteCounts::count_at(
     size_t character_index,
     size_t site_index
 ) const {
@@ -128,21 +128,21 @@ SequenceCounts::CountsIntType SequenceCounts::count_at(
 //     Modifiers
 // ================================================================================================
 
-void SequenceCounts::add_sequence( Sequence const& sequence )
+void SiteCounts::add_sequence( Sequence const& sequence )
 {
     add_sequence( sequence.sites() );
 }
 
-void SequenceCounts::add_sequence( std::string const& sites )
+void SiteCounts::add_sequence( std::string const& sites )
 {
     if( num_seqs_ == std::numeric_limits< CountsIntType >::max() ) {
         throw std::runtime_error(
-            "Cannot add Sequence to SequenceCounts as it might lead to an overflow in the counts."
+            "Cannot add Sequence to SiteCounts as it might lead to an overflow in the counts."
         );
     }
     if( sites.size() != counts_.rows() ) {
         throw std::runtime_error(
-            "Cannot add Sequence to SequenceCounts if it has different number of sites: Expected "
+            "Cannot add Sequence to SiteCounts if it has different number of sites: Expected "
             + std::to_string( counts_.rows() ) + " sites, but sequence has"
             + std::to_string( sites.size() ) + " sites."
         );
@@ -163,14 +163,14 @@ void SequenceCounts::add_sequence( std::string const& sites )
     ++num_seqs_;
 }
 
-void SequenceCounts::add_sequences( SequenceSet const& sequences )
+void SiteCounts::add_sequences( SequenceSet const& sequences )
 {
     for( auto const& seq : sequences ) {
         add_sequence( seq );
     }
 }
 
-void SequenceCounts::clear()
+void SiteCounts::clear()
 {
     characters_ = "";
     lookup_.set_all( 0 );
@@ -178,7 +178,7 @@ void SequenceCounts::clear()
     num_seqs_ = 0;
 }
 
-void SequenceCounts::clear_counts()
+void SiteCounts::clear_counts()
 {
     for( auto& e : counts_ ) {
         e = 0;

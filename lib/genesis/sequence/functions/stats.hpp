@@ -43,7 +43,7 @@ namespace sequence {
 // =================================================================================================
 
 class Sequence;
-class SequenceCounts;
+class SiteCounts;
 class SequenceSet;
 
 // =================================================================================================
@@ -110,7 +110,7 @@ size_t count_chars( SequenceSet const& set, std::string const& chars );
  */
 double gapyness( SequenceSet    const& set, std::string const& gap_chars );
 
-size_t gap_site_count( SequenceCounts const& counts );
+size_t gap_site_count( SiteCounts const& counts );
 
 } // namespace sequence
 } // namespace genesis

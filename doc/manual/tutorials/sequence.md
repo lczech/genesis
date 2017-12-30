@@ -151,7 +151,7 @@ as well as the single-site functions @ref genesis::sequence::site_entropy() "sit
 and @ref genesis::sequence::site_information() "site_information()".
 
 Instead of a @ref genesis::sequence::SequenceSet "SequenceSet", they take a
-@ref genesis::sequence::SequenceCounts "SequenceCounts" object as input, which is a summarization
+@ref genesis::sequence::SiteCounts "SiteCounts" object as input, which is a summarization
 of the occurence frequency of the sites in a SequenceSet. See there for details.
 
 # Further Functions {#tutorials_sequence_further_functions}

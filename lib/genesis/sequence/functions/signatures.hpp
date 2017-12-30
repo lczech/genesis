@@ -31,8 +31,9 @@
  * @ingroup sequence
  */
 
-#include<string>
-#include<vector>
+#include <iosfwd>
+#include <string>
+#include <vector>
 
 namespace genesis {
 namespace sequence {
@@ -41,62 +42,282 @@ namespace sequence {
 //     Forwad Declarations
 // =================================================================================================
 
+class SignatureSpecifications;
 class Sequence;
 class SequenceSet;
 
 // =================================================================================================
-//     K-mers
+//     Signature Counts and Frequencies
 // =================================================================================================
 
 /**
- * @brief Count the occurences of k-mers of size @p k, for nucleic acids "ACGT".
- *
- * The function is similar to kmer_counts( Sequence const&, size_t k, std::string const& alphabet ),
- * but slighly faster, and only accpets Sequence%s that solely consists of "ACGT" characters.
- * Otherwise it throws.
- */
-std::vector<size_t> kmer_counts( Sequence const& seq, size_t k );
-
-/**
- * @brief Count the occurences of k-mers of size @p k, for a given @p alphabet.
+ * @brief Count the occurences of k-mers in the @p sequence according to the @p settings.
  *
  * The function returns a vector that contains the count for each k-mer that can be build from
- * the characters in the given @p alphabet. The alphabet is normalized prior to processing, using
- * normalize_codes(). Characters in the Sequence that are not in the alphabet are ignored.
- *
- * The resulting vector is indexed using the same order of k-mers as produced by kmer_list().
+ * the characters in the alphabet, in the order given by SignatureSpecifications::kmer_list().
  */
-std::vector<size_t> kmer_counts( Sequence const& seq, size_t k, std::string const& alphabet );
+std::vector<size_t> signature_counts(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
 
 /**
- * @brief Return the list of all possible k-mers for a given @p k and @p alphabet.
+ * @brief Calculate the frequencies of occurences of k-mers in the @p sequence according to the
+ * @p settings.
  *
- * The order in this vector is the same as used in
- * @link kmer_counts( Sequence const&, size_t k, std::string const& alphabet ) kmer_counts()@endlink.
+ * The function simply calculates the frequencies as the normalized values of signature_counts().
  */
-std::vector<std::string> kmer_list( size_t k, std::string const& alphabet );
+std::vector<double> signature_frequencies(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+);
 
 // =================================================================================================
-//     Signatures
+//     Signature Symmetrized
 // =================================================================================================
 
 /**
- * @brief Get the reverse complement of a sequences of `ACGT` characters.
+ * @brief Calcuate the symmetrized counts of the @p sequence according to the @p settings.
+ *
+ * The function uses signature_counts(), and sums up the counts of k-mers that are reverse
+ * complements of each other.
  */
-std::string reverse_complement( std::string const& sequence );
+std::vector<size_t> signature_symmetrized_counts(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
 
 /**
- * @brief Get the size needed to store reverse complement kmers.
+ * @brief Calcuate the symmetrized counts of the @p sequence according to the @p settings.
+ *
+ * The function uses signature_frequencies(), and sums up the counts of k-mers that are reverse
+ * complements of each other.
  */
-size_t kmer_reverse_complement_size( size_t k );
+std::vector<double> signature_symmetrized_frequencies(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+// =================================================================================================
+//     Signature Ranks
+// =================================================================================================
 
 /**
- * @brief Get a map from indices of kmer_list() and kmer_counts() vectors to a smaller list
- * of size kmer_reverse_complement_size() which combines reverse complementary kmers.
+ * @brief Calcuate the rank signature of a @p sequence according to the @p settings.
+ *
+ * That is, @link utils::ranking_standard() standard ranking@endlink is applied to the
+ * k-mer counts of the Sequence.
  */
-std::vector<size_t> kmer_reverse_complement_indices( size_t k );
+std::vector<size_t> signature_ranks(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
 
-std::vector<double> signature_frequencies( Sequence const& seq, size_t k );
+/**
+ * @brief Calcuate the symmetrized rank signature of a @p sequence according to the @p settings.
+ *
+ * That is, @link utils::ranking_standard() standard ranking@endlink is applied to the
+ * symmetrized (combined reverse complement) k-mer counts of the Sequence.
+ */
+std::vector<size_t> signature_symmetrized_ranks(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+// =================================================================================================
+//     Signature Min Max Reverse Complements
+// =================================================================================================
+
+/**
+ * @brief Calculate the signature of a @p sequence that uses the minimum frequency of reverse
+ * complement k-mers.
+ *
+ * The function is calculated according to
+ *
+ * > F. Gori, D. Mavroedis, M. S. M. Jetten, and E. Marchiori,
+ * > “Genomic signatures for metagenomic data analysis:
+ * > Exploiting the reverse complementarity of tetranucleotides,”
+ * > 2011 IEEE Int. Conf. Syst. Biol. ISB 2011, pp. 149–154, 2011.
+ *
+ * It excludes palindromic k-mers where the reverse complement is the k-mer itself.
+ */
+std::vector<double> signature_minimal_complementarity_frequencies(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+/**
+ * @brief Calculate the signature of a @p sequence that uses the maximum frequency of reverse
+ * complement k-mers.
+ *
+ * The function is calculated according to
+ *
+ * > F. Gori, D. Mavroedis, M. S. M. Jetten, and E. Marchiori,
+ * > “Genomic signatures for metagenomic data analysis:
+ * > Exploiting the reverse complementarity of tetranucleotides,”
+ * > 2011 IEEE Int. Conf. Syst. Biol. ISB 2011, pp. 149–154, 2011.
+ *
+ * It excludes palindromic k-mers where the reverse complement is the k-mer itself.
+ */
+std::vector<double> signature_maximal_complementarity_frequencies(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+/**
+ * @brief Calculate the signature of a @p sequence that uses only the frequencies of k-mers
+ * whose reverse complement is the k-mer itself.
+ *
+ * The function is calculated according to
+ *
+ * > F. Gori, D. Mavroedis, M. S. M. Jetten, and E. Marchiori,
+ * > “Genomic signatures for metagenomic data analysis:
+ * > Exploiting the reverse complementarity of tetranucleotides,”
+ * > 2011 IEEE Int. Conf. Syst. Biol. ISB 2011, pp. 149–154, 2011.
+ *
+ * It excludes k-mers where the reverse complement is a different k-mer.
+ */
+std::vector<double> signature_reverse_identity_frequencies(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+// =================================================================================================
+//     Signature Misc
+// =================================================================================================
+
+/**
+ * @brief Calculate the ratio 1 signature of a @p sequence.
+ *
+ * The function is calculated according to
+ *
+ * > F. Gori, D. Mavroedis, M. S. M. Jetten, and E. Marchiori,
+ * > “Genomic signatures for metagenomic data analysis:
+ * > Exploiting the reverse complementarity of tetranucleotides,”
+ * > 2011 IEEE Int. Conf. Syst. Biol. ISB 2011, pp. 149–154, 2011.
+ *
+ * It excludes palindromic k-mers where the reverse complement is the k-mer itself.
+ */
+std::vector<double> signature_frequency_ratios_1(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+/**
+ * @brief Calculate the ratio 2 signature of a @p sequence.
+ *
+ * The function is calculated according to
+ *
+ * > F. Gori, D. Mavroedis, M. S. M. Jetten, and E. Marchiori,
+ * > “Genomic signatures for metagenomic data analysis:
+ * > Exploiting the reverse complementarity of tetranucleotides,”
+ * > 2011 IEEE Int. Conf. Syst. Biol. ISB 2011, pp. 149–154, 2011.
+ *
+ * It excludes palindromic k-mers where the reverse complement is the k-mer itself.
+ */
+std::vector<double> signature_frequency_ratios_2(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+/**
+ * @brief Calculate the Jensen-Shannon (JS) signature of a @p sequence.
+ *
+ * The function is calculated according to
+ *
+ * > F. Gori, D. Mavroedis, M. S. M. Jetten, and E. Marchiori,
+ * > “Genomic signatures for metagenomic data analysis:
+ * > Exploiting the reverse complementarity of tetranucleotides,”
+ * > 2011 IEEE Int. Conf. Syst. Biol. ISB 2011, pp. 149–154, 2011.
+ *
+ * using details of
+ *
+ * > J. Lin, “Divergence Measures Based on the Shannon Entropy,”
+ * > IEEE Trans. Inf. Theory, vol. 37, no. 1, pp. 145–151, 1991.
+ *
+ * It excludes palindromic k-mers where the reverse complement is the k-mer itself.
+ */
+std::vector<double> signature_jensen_shannon(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+// =================================================================================================
+//     Kmer Strings
+// =================================================================================================
+
+/**
+ * @brief Return the @p sequence spitted into overlapping k-mers.
+ *
+ * The function takes the @p sequence and splits it into k-mers according to @p settings,
+ * using a space char as delimiter between k-mers, with overlap.
+ *
+ * For example, the sequence `ACGTACGT` with `k == 3` becomes
+ *
+ *     ACG CGT GTA TAC ACG CGT
+ *
+ * The naming of the function follows
+ *
+ * > D. Kimothi, A. Soni, P. Biyani, and J. M. Hogan,
+ * > “Distributed Representations for Biological Sequence Analysis,” CoRR, vol. abs/1608.0, 2016.
+ *
+ * See there for details.
+ */
+std::string kmer_string_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+/**
+ * @brief Print the @p sequence spitted into overlapping k-mers.
+ *
+ * This is identical to kmer_string_overlapping( Sequence const&, SignatureSpecifications const& ),
+ * but prints directly to a stream, which is better for processing large files.
+ * After the k-mer sequence, a new line character is printed.
+ */
+void kmer_string_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings,
+    std::ostream&                  out
+);
+
+/**
+ * @brief Return the @p sequence spitted into a set of non-overlapping k-mers.
+ *
+ * The function takes the @p sequence and splits it into k-mers according to @p settings,
+ * using a space char as delimiter between k-mers, without overlap.
+ *
+ * For example, the sequence `ACGTACGTACGT` with `k == 3` becomes
+ *
+ *     ACG TAC GTA CGT
+ *     CGT ACG TAC
+ *     GTA CGT ACG
+ *
+ * The naming of the function follows
+ *
+ * > D. Kimothi, A. Soni, P. Biyani, and J. M. Hogan,
+ * > “Distributed Representations for Biological Sequence Analysis,” CoRR, vol. abs/1608.0, 2016.
+ *
+ * See there for details.
+ */
+std::vector<std::string> kmer_strings_non_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+/**
+ * @brief Print the @p sequence spitted into non-overlapping k-mers.
+ *
+ * This is identical to
+ * kmer_strings_non_overlapping( Sequence const&, SignatureSpecifications const& ),
+ * but prints directly to a stream, which is better for processing large files.
+ * After each k-mer sequence, a new line character is printed.
+ */
+void kmer_strings_non_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings,
+    std::ostream&                  out
+);
 
 } // namespace sequence
 } // namespace genesis

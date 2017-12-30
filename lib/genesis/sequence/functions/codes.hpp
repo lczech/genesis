@@ -144,6 +144,18 @@ char normalize_nucleic_acid_code( char code, bool accept_degenerated = true );
  */
 char normalize_amino_acid_code( char code, bool accept_degenerated = true );
 
+/**
+ * @brief Get the reverse complement of a nucleic acid sequence.
+ *
+ * That is, reverse the string and flip `A` with `T` and `C` with `G`.
+ * Gap characters are normalized to `-`, and an exception is thrown for invalid characters.
+ *
+ * If furthermore @p accept_degenerated is `true` (default), degenerated codes are also flipped.
+ * For example `M == AC` becomes `K == TG`, `W == AT` stays the same, and `B == CGT` becomes
+ * `V = GCA`. If set to `false`, an exception is thrown when degenerated chars are found.
+ */
+std::string reverse_complement( std::string const& sequence, bool accept_degenerated = true );
+
 // =================================================================================================
 //     Color Codes
 // =================================================================================================

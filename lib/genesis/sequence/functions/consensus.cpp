@@ -71,7 +71,7 @@ bool CountPairComparator ( CountPair const& lhs, CountPair const& rhs )
  */
 template< typename CharSelector >
 std::string consensus_sequence_template(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     bool const            allow_gaps,
     CharSelector const&   char_selector
 ) {
@@ -160,7 +160,7 @@ std::string consensus_sequence_template(
 // =================================================================================================
 
 std::string consensus_sequence_with_majorities(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     bool                  allow_gaps,
     char                  gap_char
 ) {
@@ -175,8 +175,8 @@ std::string consensus_sequence_with_majorities(
     for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
 
         size_t                        max_pos    = 0;
-        SequenceCounts::CountsIntType max_val    = 0;
-        SequenceCounts::CountsIntType counts_sum = 0;
+        SiteCounts::CountsIntType max_val    = 0;
+        SiteCounts::CountsIntType counts_sum = 0;
 
         for( size_t char_idx = 0; char_idx < num_chars; ++char_idx ) {
             auto const char_count = counts.count_at( char_idx, site_idx );
@@ -227,7 +227,7 @@ std::string consensus_sequence_with_majorities(
     }
 
     // Build counts object.
-    auto counts = SequenceCounts( characters, sequences[0].size() );
+    auto counts = SiteCounts( characters, sequences[0].size() );
     counts.add_sequences( sequences );
 
     // Return consensus sequence.
@@ -251,7 +251,7 @@ std::string consensus_sequence_with_majorities(
 // =================================================================================================
 
 std::string consensus_sequence_with_ambiguities(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     double                similarity_factor,
     bool                  allow_gaps
 ) {
@@ -338,7 +338,7 @@ std::string consensus_sequence_with_ambiguities(
     }
 
     // Build counts object.
-    auto counts = SequenceCounts( nucleic_acid_codes_plain(), sequences[0].size() );
+    auto counts = SiteCounts( nucleic_acid_codes_plain(), sequences[0].size() );
     counts.add_sequences( sequences );
 
     // Return consensus sequence.
@@ -350,7 +350,7 @@ std::string consensus_sequence_with_ambiguities(
 // =================================================================================================
 
 std::string consensus_sequence_with_threshold(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     double                frequency_threshold,
     bool                  allow_gaps,
     bool                  use_ambiguities
@@ -447,7 +447,7 @@ std::string consensus_sequence_with_threshold(
     }
 
     // Build counts object.
-    auto counts = SequenceCounts( nucleic_acid_codes_plain(), sequences[0].size() );
+    auto counts = SiteCounts( nucleic_acid_codes_plain(), sequences[0].size() );
     counts.add_sequences( sequences );
 
     // Return consensus sequence.
@@ -464,7 +464,7 @@ std::string consensus_sequence_with_threshold(
 // =================================================================================================
 
 std::string consensus_sequence_cavener(
-    SequenceCounts const& counts,
+    SiteCounts const&     counts,
     bool                  allow_gaps
 ) {
     // Functor that selects the chars according to the consensus specification.
@@ -541,7 +541,7 @@ std::string consensus_sequence_cavener(
     }
 
     // Build counts object.
-    auto counts = SequenceCounts( nucleic_acid_codes_plain(), sequences[0].size() );
+    auto counts = SiteCounts( nucleic_acid_codes_plain(), sequences[0].size() );
     counts.add_sequences( sequences );
 
     // Return consensus sequence.

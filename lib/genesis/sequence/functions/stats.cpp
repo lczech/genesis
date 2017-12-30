@@ -154,7 +154,7 @@ double gapyness( SequenceSet const& set, std::string const& gap_chars )
     return ret;
 }
 
-size_t gap_site_count( SequenceCounts const& counts )
+size_t gap_site_count( SiteCounts const& counts )
 {
     size_t res = 0;
     for( size_t site_idx = 0; site_idx < counts.length(); ++site_idx ) {
