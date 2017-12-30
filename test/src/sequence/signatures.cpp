@@ -201,3 +201,98 @@ TEST( Sequence, KmerReverseComplements )
         }
     }
 }
+
+TEST( Sequence, KmerStringOverlapping )
+{
+    // // Skip test if no data availabe.
+    // NEEDS_TEST_DATA;
+    //
+    // // Load sequence file.
+    // std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+    // SequenceSet sset;
+    // FastaReader().from_file(infile, sset);
+    //
+    // remove_all_gaps( sset );
+    // EXPECT_TRUE( validate_chars( sset, nucleic_acid_codes_plain() ));
+    //
+    // for( size_t k = 1; k < 6; ++k ) {
+    //     auto const settings = SignatureSpecifications( "ACGT", k );
+    //
+    //     for( auto const& seq : sset ) {
+    //         std::cout << seq.sites() << " with k " << k << "\n";
+    //         kmer_string_overlapping( seq, settings, std::cout );
+    //         std::cout << "\n";
+    //         break;
+    //     }
+    // }
+
+    auto const seq = Sequence( "label", "AAAACCCCGGGGTTTT" );
+    std::vector<std::string> expected = {
+        "A A A A C C C C G G G G T T T T",
+        "AA AA AA AC CC CC CC CG GG GG GG GT TT TT TT",
+        "AAA AAA AAC ACC CCC CCC CCG CGG GGG GGG GGT GTT TTT TTT",
+        "AAAA AAAC AACC ACCC CCCC CCCG CCGG CGGG GGGG GGGT GGTT GTTT TTTT",
+        "AAAAC AAACC AACCC ACCCC CCCCG CCCGG CCGGG CGGGG GGGGT GGGTT GGTTT GTTTT"
+    };
+
+    for( size_t k = 1; k < 6; ++k ) {
+        auto const settings = SignatureSpecifications( "ACGT", k );
+        auto const kmerstr  = kmer_string_overlapping( seq, settings );
+        EXPECT_EQ( kmerstr, expected[k-1] );
+
+        // std::cout << seq.sites() << " with k " << k << "\n";
+        // kmer_string_overlapping( seq, settings, std::cout );
+        // std::cout << "\n";
+    }
+
+    // Test edge case.
+    auto const short_seq = Sequence( "label", "ACGT" );
+    auto const short_set = SignatureSpecifications( "ACGT", 5 );
+    auto const short_str  = kmer_string_overlapping( short_seq, short_set );
+    EXPECT_EQ( short_str, "" );
+}
+
+TEST( Sequence, KmerStringNonOverlapping )
+{
+    auto const seq = Sequence( "label", "AAAACCCCGGGGTTTT" );
+    std::vector<std::vector<std::string>> expected = {
+        {
+            "A A A A C C C C G G G G T T T T"
+        }, {
+            "AA AA CC CC GG GG TT TT",
+            "AA AC CC CG GG GT TT"
+        }, {
+            "AAA ACC CCG GGG TTT",
+            "AAA CCC CGG GGT TTT",
+            "AAC CCC GGG GTT"
+        }, {
+            "AAAA CCCC GGGG TTTT",
+            "AAAC CCCG GGGT",
+            "AACC CCGG GGTT",
+            "ACCC CGGG GTTT"
+        }, {
+            "AAAAC CCCGG GGTTT",
+            "AAACC CCGGG GTTTT",
+            "AACCC CGGGG",
+            "ACCCC GGGGT",
+            "CCCCG GGGTT"
+        }
+    };
+
+    for( size_t k = 1; k < 6; ++k ) {
+        auto const settings = SignatureSpecifications( "ACGT", k );
+        auto const kmervec  = kmer_strings_non_overlapping( seq, settings );
+        EXPECT_EQ( kmervec, expected[k-1] );
+
+        // std::cout << seq.sites() << " with k " << k << "\n";
+        // kmer_strings_non_overlapping( seq, settings, std::cout );
+        // std::cout << "\n";
+    }
+
+    // Test edge case.
+    auto const short_seq = Sequence( "label", "ACGT" );
+    auto const short_set = SignatureSpecifications( "ACGT", 5 );
+    // kmer_strings_non_overlapping( short_seq, short_set, std::cout );
+    auto const short_str  = kmer_strings_non_overlapping( short_seq, short_set );
+    EXPECT_EQ( short_str, std::vector<std::string>() );
+}

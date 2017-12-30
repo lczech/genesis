@@ -212,6 +212,7 @@ private:
     bool        is_nucleic_acids_ = false;
     utils::CharLookup<size_t> index_lookup_;
 
+    // Cached lookup lists
     mutable std::vector<std::string> kmer_list_;
     mutable std::vector<std::string> rev_comp_list_;
     mutable std::vector<size_t> rev_comp_map_;

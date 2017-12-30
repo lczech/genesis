@@ -31,6 +31,7 @@
  * @ingroup sequence
  */
 
+#include <iosfwd>
 #include <string>
 #include <vector>
 
@@ -239,6 +240,83 @@ std::vector<double> signature_frequency_ratios_2(
 std::vector<double> signature_jensen_shannon(
     Sequence const&                sequence,
     SignatureSpecifications const& settings
+);
+
+// =================================================================================================
+//     Kmer Strings
+// =================================================================================================
+
+/**
+ * @brief Return the @p sequence spitted into overlapping k-mers.
+ *
+ * The function takes the @p sequence and splits it into k-mers according to @p settings,
+ * using a space char as delimiter between k-mers, with overlap.
+ *
+ * For example, the sequence `ACGTACGT` with `k == 3` becomes
+ *
+ *     ACG CGT GTA TAC ACG CGT
+ *
+ * The naming of the function follows
+ *
+ * > D. Kimothi, A. Soni, P. Biyani, and J. M. Hogan,
+ * > “Distributed Representations for Biological Sequence Analysis,” CoRR, vol. abs/1608.0, 2016.
+ *
+ * See there for details.
+ */
+std::string kmer_string_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+/**
+ * @brief Print the @p sequence spitted into overlapping k-mers.
+ *
+ * This is identical to kmer_string_overlapping( Sequence const&, SignatureSpecifications const& ),
+ * but prints directly to a stream, which is better for processing large files.
+ * After the k-mer sequence, a new line character is printed.
+ */
+void kmer_string_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings,
+    std::ostream&                  out
+);
+
+/**
+ * @brief Return the @p sequence spitted into a set of non-overlapping k-mers.
+ *
+ * The function takes the @p sequence and splits it into k-mers according to @p settings,
+ * using a space char as delimiter between k-mers, without overlap.
+ *
+ * For example, the sequence `ACGTACGTACGT` with `k == 3` becomes
+ *
+ *     ACG TAC GTA CGT
+ *     CGT ACG TAC
+ *     GTA CGT ACG
+ *
+ * The naming of the function follows
+ *
+ * > D. Kimothi, A. Soni, P. Biyani, and J. M. Hogan,
+ * > “Distributed Representations for Biological Sequence Analysis,” CoRR, vol. abs/1608.0, 2016.
+ *
+ * See there for details.
+ */
+std::vector<std::string> kmer_strings_non_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+);
+
+/**
+ * @brief Print the @p sequence spitted into non-overlapping k-mers.
+ *
+ * This is identical to
+ * kmer_strings_non_overlapping( Sequence const&, SignatureSpecifications const& ),
+ * but prints directly to a stream, which is better for processing large files.
+ * After each k-mer sequence, a new line character is printed.
+ */
+void kmer_strings_non_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings,
+    std::ostream&                  out
 );
 
 } // namespace sequence

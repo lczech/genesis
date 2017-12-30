@@ -28,10 +28,11 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/functions/stats.hpp"
+#include "genesis/sequence/functions/signatures.hpp"
 
 #include "genesis/sequence/functions/codes.hpp"
 #include "genesis/sequence/functions/signature_specifications.hpp"
+#include "genesis/sequence/functions/stats.hpp"
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/sequence/sequence.hpp"
 #include "genesis/utils/math/common.hpp"
@@ -41,6 +42,8 @@
 #include <cassert>
 #include <limits>
 #include <numeric>
+#include <ostream>
+#include <sstream>
 #include <stdexcept>
 #include <unordered_map>
 
@@ -86,7 +89,8 @@ std::vector<size_t> signature_counts(
                     continue;
                 case SignatureSpecifications::UnknownCharBehavior::kThrow:
                     throw std::runtime_error(
-                        "Unknown Sequence char for kmer counting: " + std::string( 1, cur )
+                        "Unknown Sequence char for kmer counting: '" +
+                        std::string( 1, sequence[pos] ) + "'"
                     );
                 default:
                     assert( false );
@@ -341,6 +345,142 @@ std::vector<double> signature_jensen_shannon(
             return s1 + s2;
         }
     );
+}
+
+// =================================================================================================
+//     Kmer Strings
+// =================================================================================================
+
+/**
+ * @brief Local helper function that writes one kmer string to a stream.
+ */
+void kmer_string_single_kmer(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings,
+    size_t                         start,
+    std::ostream&                  out
+) {
+    for( size_t i = start; i < start + settings.k(); ++i ) {
+
+        // Check if the char is valid in the alphabet
+        if( settings.char_index( sequence[ i ] ) == settings.InvalidCharIndex ) {
+            switch( settings.unknown_char_behavior() ) {
+                case SignatureSpecifications::UnknownCharBehavior::kSkip:
+                    continue;
+                case SignatureSpecifications::UnknownCharBehavior::kThrow:
+                    throw std::runtime_error(
+                        "Unknown Sequence char for kmer string: '" +
+                        std::string( 1, sequence[ i ] ) + "'"
+                    );
+                default:
+                    assert( false );
+            }
+        }
+
+        out << sequence[ i ];
+    }
+}
+
+/**
+ * @brief Local helper function that writes an overlapping kmer string to a stream.
+ */
+void kmer_string_overlapping_line(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings,
+    std::ostream&                  out
+) {
+    auto const k = settings.k();
+
+    // Not even one k-mer: Do nothing.
+    // We need this check, otherwise the subtraction of sizes later on gives an overflow.
+    if( sequence.size() < k ) {
+        return;
+    }
+
+    for( size_t i = 0; i < sequence.size() - k + 1; ++i ) {
+        if( i > 0 ) {
+            out << " ";
+        }
+        kmer_string_single_kmer( sequence, settings, i, out );
+    }
+}
+
+/**
+ * @brief Local helper function that does one line of a non overlapping kmer string.
+ */
+void kmer_strings_non_overlapping_line(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings,
+    std::ostream&                  out,
+    size_t                         offset
+) {
+    auto const k = settings.k();
+    for( size_t i = offset; i + k - 1 < sequence.size(); i += k ) {
+        if( i > offset ) {
+            out << " ";
+        }
+        kmer_string_single_kmer( sequence, settings, i, out );
+    }
+}
+
+std::string kmer_string_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+) {
+    std::ostringstream out;
+    kmer_string_overlapping_line( sequence, settings, out );
+    return out.str();
+}
+
+void kmer_string_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings,
+    std::ostream&                  out
+) {
+    if( sequence.size() < settings.k() ) {
+        return;
+    }
+
+    kmer_string_overlapping_line( sequence, settings, out );
+    out << "\n";
+}
+
+std::vector<std::string> kmer_strings_non_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings
+) {
+    std::vector<std::string> result;
+    for( size_t offset = 0; offset < settings.k(); ++offset ) {
+
+        // Stop if we do not have enough sequence length left for this offset.
+        // This only occurs if the sequence is short.
+        if( offset + settings.k() > sequence.size() ) {
+            break;
+        }
+
+        std::ostringstream out;
+        kmer_strings_non_overlapping_line( sequence, settings, out, offset );
+        result.push_back( out.str() );
+    }
+    return result;
+}
+
+void kmer_strings_non_overlapping(
+    Sequence const&                sequence,
+    SignatureSpecifications const& settings,
+    std::ostream&                  out
+) {
+    for( size_t offset = 0; offset < settings.k(); ++offset ) {
+
+        // Stop if we do not have enough sequence length left for this offset.
+        // This only occurs if the sequence is short.
+        if( offset + settings.k() > sequence.size() ) {
+            break;
+        }
+
+        kmer_strings_non_overlapping_line( sequence, settings, out, offset );
+        out << "\n";
+    }
 }
 
 } // namespace sequence
