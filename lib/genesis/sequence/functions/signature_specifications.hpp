@@ -33,7 +33,6 @@
 
 #include "genesis/utils/tools/char_lookup.hpp"
 
-#include <limits>
 #include <string>
 #include <vector>
 
@@ -52,7 +51,15 @@ class SequenceSet;
 // =================================================================================================
 
 /**
- * @brief
+ * @brief Specifications for calculating signatures (like k-mer counts) from Sequence%s.
+ *
+ * This class stores settings needed for signature functions like signature_counts(),
+ * signature_frequencies(), signature_symmetrized_frequencies() etc.
+ * It mainly stores the alphabet() and k() to use for these calculations.
+ *
+ * It also serves as storage and lookup for index tables that are needed by those functions.
+ * Thus, the indices are only created once per instance of this class, that is, once per alphabet
+ * and k. This saves costs when calculating signatures for many Sequence%s.
  */
 class SignatureSpecifications
 {
@@ -153,7 +160,7 @@ public:
      * For chars that are not in the alphabet, InvalidCharIndex is returned as
      * an indicator value.
      */
-    size_t index_of( char c ) const
+    size_t char_index( char c ) const
     {
         return index_lookup_[c];
     }
@@ -166,14 +173,19 @@ public:
     size_t kmer_list_size() const;
 
     /**
-     * @brief Get a map from indices of kmer_list() and kmer_counts() vectors to a smaller list
+     * @brief Get a map from indices of kmer_list() and signature_counts() vectors to a smaller list
      * which combines reverse complementary kmers for nucleic acid sequences.
+     */
+    std::vector<size_t> const& kmer_combined_reverse_complement_map() const;
+
+    /**
+     * @brief Get the indices for each kmer in kmer_list() to its reverse complement in the list.
      */
     std::vector<size_t> const& kmer_reverse_complement_indices() const;
 
     std::vector<std::string> const& kmer_reverse_complement_list() const;
 
-    size_t kmer_reverse_complement_list_size() const;
+    size_t kmer_reverse_complement_list_size( bool with_palindromes = true ) const;
 
     // -------------------------------------------------------------------------
     //     Modifiers
@@ -202,6 +214,7 @@ private:
 
     mutable std::vector<std::string> kmer_list_;
     mutable std::vector<std::string> rev_comp_list_;
+    mutable std::vector<size_t> rev_comp_map_;
     mutable std::vector<size_t> rev_comp_indices_;
 };
 

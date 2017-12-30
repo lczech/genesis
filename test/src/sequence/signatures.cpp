@@ -79,13 +79,13 @@ TEST( Sequence, KmerCounts )
 
     // Test up to kmer size of 6
     for( size_t k = 1; k < 6; ++k ) {
-        auto const sig_settings = SignatureSpecifications( alphabet, k );
-        auto const list = sig_settings.kmer_list();
+        auto const settings = SignatureSpecifications( alphabet, k );
+        auto const list = settings.kmer_list();
 
         for( auto const& seq : sset ) {
             // LOG_DBG << "seq " << seq.sites();
 
-            auto kmers = signature_counts( seq, sig_settings );
+            auto const kmers = signature_counts( seq, settings );
             ASSERT_EQ( list.size(), kmers.size() );
 
             for( size_t i = 0; i < kmers.size(); ++i ) {
@@ -95,7 +95,13 @@ TEST( Sequence, KmerCounts )
                 EXPECT_EQ( count, kmers[i] );
             }
 
+            // Check that the sum of counts fits to the sequence length.
             auto sum = std::accumulate( std::begin( kmers ), std::end( kmers ), 0 );
+            EXPECT_EQ( seq.size() - k + 1, sum );
+
+            // Check the same for symmetrized counts.
+            auto const sym_kmers = signature_symmetrized_counts( seq, settings );
+            sum = std::accumulate( std::begin( kmers ), std::end( kmers ), 0 );
             EXPECT_EQ( seq.size() - k + 1, sum );
         }
     }
@@ -115,11 +121,16 @@ TEST( Sequence, SignatureFrequencies )
     EXPECT_TRUE( validate_chars( sset, nucleic_acid_codes_plain() ));
 
     for( size_t k = 1; k < 6; ++k ) {
-        for( auto const& seq : sset ) {
-            auto const freqs = signature_frequencies( seq, SignatureSpecifications( "ACGT", k ));
+        auto const settings = SignatureSpecifications( "ACGT", k );
 
+        for( auto const& seq : sset ) {
+            auto const freqs = signature_frequencies( seq, settings );
             auto const sum = std::accumulate( freqs.begin(), freqs.end(), 0.0 );
             EXPECT_FLOAT_EQ( 1.0, sum );
+
+            auto const sym_freqs = signature_symmetrized_frequencies( seq, settings );
+            auto const sym_sum = std::accumulate( sym_freqs.begin(), sym_freqs.end(), 0.0 );
+            EXPECT_FLOAT_EQ( 1.0, sym_sum );
         }
     }
 }
@@ -128,16 +139,16 @@ TEST( Sequence, KmerReverseComplements )
 {
     // Test up to kmer size of 6
     for( size_t k = 1; k < 6; ++k ) {
-        auto const sig_settings = SignatureSpecifications( "ACGT", k );
-        auto const list = sig_settings.kmer_list();
-        auto const revs = sig_settings.kmer_reverse_complement_indices();
-        ASSERT_EQ( list.size(), revs.size() );
+        auto const settings = SignatureSpecifications( "ACGT", k );
+        auto const list = settings.kmer_list();
+        auto const rc_map = settings.kmer_combined_reverse_complement_map();
+        ASSERT_EQ( list.size(), rc_map.size() );
 
         // Get the length needed to store rev comp entries,
-        auto const revcom_size = sig_settings.kmer_reverse_complement_list_size();
+        auto const revcom_size = settings.kmer_reverse_complement_list_size();
 
         for( size_t i = 0; i < list.size(); ++i ) {
-            // LOG_DBG << list[i] << " <-- " << revs[i];
+            // LOG_DBG << list[i] << " <-- " << rc_map[i];
 
             auto const rev = reverse_complement( list[i] );
 
@@ -149,30 +160,44 @@ TEST( Sequence, KmerReverseComplements )
                 list.begin(), std::find( list.begin(), list.end(), rev )
             );
             EXPECT_LT( pos, list.size() );
-            EXPECT_EQ( revs[i], revs[pos] );
+            EXPECT_EQ( rc_map[i], rc_map[pos] );
 
             // Make sure that the indices are in range [0, revcom_size).
-            EXPECT_LT( revs[i], revcom_size );
+            EXPECT_LT( rc_map[i], revcom_size );
 
-            // LOG_DBG1 << i << " " << pos << " -> " << revs[i];
+            // LOG_DBG1 << i << " " << pos << " -> " << rc_map[i];
         }
 
         // Get list of rev comp kmers.
-        auto const& revcom_list = sig_settings.kmer_reverse_complement_list();
+        auto const& rc_list = settings.kmer_reverse_complement_list();
         // LOG_DBG << "k " << k << " with rev comp list size " << revcom_size;
-        // for( auto e : revcom_list ) {
+        // for( auto e : rc_list ) {
         //     LOG_DBG1 << e;
         // }
 
         // Test whether the rev comp of each entry is either itself, or
         // not part of the list.
-        for( size_t i = 0; i < revcom_list.size(); ++i ) {
-            auto const rev = reverse_complement( revcom_list[i] );
-            if( rev == revcom_list[i] ) {
+        for( size_t i = 0; i < rc_list.size(); ++i ) {
+            auto const rev = reverse_complement( rc_list[i] );
+            if( rev == rc_list[i] ) {
                 continue;
             }
-            auto match = std::find( revcom_list.begin(), revcom_list.end(), rev );
-            EXPECT_EQ( match, revcom_list.end() );
+            auto match = std::find( rc_list.begin(), rc_list.end(), rev );
+            EXPECT_EQ( match, rc_list.end() );
+        }
+
+        // Test whether the indicies are pointing to each other and are correct.
+        auto const& rc_ids = settings.kmer_reverse_complement_indices();
+        ASSERT_EQ( rc_ids.size(), list.size() );
+        for( size_t i = 0; i < list.size(); ++i ) {
+
+            // If we follow the index twice, we need to get back to the start.
+            // This is also true for palindromes.
+            EXPECT_EQ( i, rc_ids[ rc_ids[i] ] );
+
+            // Test the actual index list.
+            auto const rev = reverse_complement( list[i] );
+            EXPECT_EQ( rev, list[ rc_ids[i] ] );
         }
     }
 }

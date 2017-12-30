@@ -39,6 +39,7 @@
 
 #include <algorithm>
 #include <cassert>
+#include <limits>
 #include <numeric>
 #include <stdexcept>
 #include <unordered_map>
@@ -47,7 +48,7 @@ namespace genesis {
 namespace sequence {
 
 // =================================================================================================
-//     Signatures
+//     Signature Counts and Frequencies
 // =================================================================================================
 
 std::vector<size_t> signature_counts(
@@ -76,7 +77,7 @@ std::vector<size_t> signature_counts(
 
     // Process the sequence.
     for( size_t pos = 0; pos < sequence.size(); ++pos ) {
-        auto const cur = settings.index_of( sequence[pos] );
+        auto const cur = settings.char_index( sequence[pos] );
 
         // Check if the char is valid in the alphabet
         if( cur == settings.InvalidCharIndex ) {
@@ -110,12 +111,12 @@ std::vector<size_t> signature_counts(
 }
 
 std::vector<double> signature_frequencies(
-    Sequence const& seq,
+    Sequence const& sequence,
     SignatureSpecifications const& settings
 ) {
     // Get kmer counts. We need to do a full accumulation instead of using the sequence length,
     // because unknown chars might have been skipped while counting.
-    auto const kmers = signature_counts( seq, settings );
+    auto const kmers = signature_counts( sequence, settings );
     auto const sum = static_cast<double>( std::accumulate( kmers.begin(), kmers.end(), 0 ));
 
     // Caluclate the frequencies.
@@ -124,6 +125,222 @@ std::vector<double> signature_frequencies(
         freqs[i] = static_cast<double>( kmers[i] ) / sum;
     }
     return freqs;
+}
+
+// =================================================================================================
+//     Signature Symmetrized
+// =================================================================================================
+
+/**
+ * @brief Local helper function that adds up the values for reverse complement k-mers.
+ */
+template<class T>
+std::vector<T> signature_symmetrized_helper(
+    std::vector<T> const& kmers,
+    SignatureSpecifications const& settings
+) {
+    auto const& map = settings.kmer_combined_reverse_complement_map();
+    assert( kmers.size() == map.size() );
+
+    auto const size  = settings.kmer_reverse_complement_list_size();
+    auto result = std::vector<T>( size, {} );
+
+    for( size_t i = 0; i < kmers.size(); ++i ) {
+        assert( map[i] < result.size() );
+        result[ map[i] ] += kmers[i];
+    }
+    return result;
+}
+
+std::vector<size_t> signature_symmetrized_counts(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+) {
+    return signature_symmetrized_helper(
+        signature_counts( sequence, settings ),
+        settings
+    );
+}
+
+std::vector<double> signature_symmetrized_frequencies(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+) {
+    return signature_symmetrized_helper(
+        signature_frequencies( sequence, settings ),
+        settings
+    );
+}
+
+// =================================================================================================
+//     Signature Ranks
+// =================================================================================================
+
+std::vector<size_t> signature_ranks(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+) {
+    // We use frequencies, because the ranking expects a vec of double,
+    // and not a vec of size_t as returned by the counts signature...
+    return utils::ranking_standard( signature_frequencies( sequence, settings ) );
+}
+
+std::vector<size_t> signature_symmetrized_ranks(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+) {
+    // We use frequencies, because the ranking expects a vec of double,
+    // and not a vec of size_t as returned by the counts signature...
+    return utils::ranking_standard( signature_symmetrized_frequencies( sequence, settings ) );
+}
+
+// =================================================================================================
+//     Signature Min Max Reverse Complements
+// =================================================================================================
+
+/**
+ * @brief Local helper function that returns a vector where the frequencies of the non-palindromic
+ * kmers are combined using a functor.
+ */
+template<class Combinator>
+std::vector<double> signature_complementarity_frequencies_helper(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings,
+    Combinator combinator
+) {
+    // Get indices first, so that the function fails early if we do not have nucleic acids.
+    // Also, get size of the resulting list, and init the list.
+    auto const& indices = settings.kmer_reverse_complement_indices();
+    // auto const  size = settings.kmer_reverse_complement_list_size( false );
+    // auto result = std::vector<double>( size, init );
+    auto result = std::vector<double>();
+
+    // Calculate freqs.
+    auto const& freqs = signature_frequencies( sequence, settings );
+    assert( freqs.size() == indices.size() );
+    for( size_t i = 0; i < freqs.size(); ++i ) {
+
+        // Skip palindromes.
+        if( indices[i] == i ) {
+            continue;
+        }
+
+        // Skip the second kmer. We do the comparison for the first one already.
+        if( indices[i] < i ) {
+            continue;
+        }
+
+        // Find the min or max of the two complementary kmers and store it.
+        auto const combined = combinator( freqs[i], freqs[ indices[i] ] );
+        result.push_back( combined );
+    }
+    return result;
+}
+
+std::vector<double> signature_minimal_complementarity_frequencies(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+) {
+    return signature_complementarity_frequencies_helper(
+        sequence,
+        settings,
+        []( double ff, double fc ){
+            return std::min( ff, fc );
+        }
+    );
+}
+
+std::vector<double> signature_maximal_complementarity_frequencies(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+) {
+    return signature_complementarity_frequencies_helper(
+        sequence,
+        settings,
+        []( double ff, double fc ){
+            return std::max( ff, fc );
+        }
+    );
+}
+
+std::vector<double> signature_reverse_identity_frequencies(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+){
+    // Get indices first, so that the function fails early if we do not have nucleic acids.
+    auto const& indices = settings.kmer_reverse_complement_indices();
+    auto result = std::vector<double>();
+
+    // Calculate freqs.
+    auto const& freqs = signature_frequencies( sequence, settings );
+    assert( freqs.size() == indices.size() );
+    for( size_t i = 0; i < freqs.size(); ++i ) {
+
+        // Only use palindromes, i.e., the ones where the reverse complement is the identity.
+        if( indices[i] != i ) {
+            continue;
+        }
+        result.push_back( freqs[i] );
+    }
+    return result;
+}
+
+// =================================================================================================
+//     Signature Misc
+// =================================================================================================
+
+std::vector<double> signature_frequency_ratios_1(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+) {
+    return signature_complementarity_frequencies_helper(
+        sequence,
+        settings,
+        []( double ff, double fc ){
+            assert( ff >= 0.0 && fc >= 0.0 );
+            if( ff == 0.0 && fc == 0.0 ) {
+                return 1.0;
+            } else if( ff == 0.0 || fc == 0.0 ) {
+                return 0.0;
+            } else {
+                return std::min( ff / fc, fc / ff );
+            }
+        }
+    );
+}
+
+std::vector<double> signature_frequency_ratios_2(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+) {
+    return signature_complementarity_frequencies_helper(
+        sequence,
+        settings,
+        []( double ff, double fc ){
+            assert( ff >= 0.0 && fc >= 0.0 );
+            if( ff == 0.0 && fc == 0.0 ) {
+                return 0.5;
+            } else {
+                return std::min( ff, fc ) / ( ff + fc );
+            }
+        }
+    );
+}
+
+std::vector<double> signature_jensen_shannon(
+    Sequence const& sequence,
+    SignatureSpecifications const& settings
+) {
+    return signature_complementarity_frequencies_helper(
+        sequence,
+        settings,
+        []( double ff, double fc ){
+            assert( ff >= 0.0 && fc >= 0.0 );
+            auto const s1 = ff * log( ( 2 * ff ) / ( ff + fc ) );
+            auto const s2 = fc * log( ( 2 * fc ) / ( ff + fc ) );
+            return s1 + s2;
+        }
+    );
 }
 
 } // namespace sequence
