@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_MATH_SHA1_H_
-#define GENESIS_UTILS_MATH_SHA1_H_
+#ifndef GENESIS_UTILS_TOOLS_SHA1_H_
+#define GENESIS_UTILS_TOOLS_SHA1_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -43,7 +43,8 @@ namespace utils {
  * @brief Calculate SHA1 hashes for strings and files.
  *
  * After creating an object of this type, call update() with your input data as argument, as often
- * as needed. Then, call final() to obtain the hash and reset the object for reuse.
+ * as needed. Then, call final_hex() or final_digest() to obtain the hash and reset the object
+ * for reuse.
  *
  * If you simply need the hash for a string or content of a file, use from_string() or
  * from_file(), which are static shortcuts for the above.

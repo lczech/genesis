@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,8 +33,9 @@
 #include "genesis/sequence/sequence_set.hpp"
 #include "genesis/sequence/sequence.hpp"
 
-#include "genesis/utils/math/sha1.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/tools/md5.hpp"
+#include "genesis/utils/tools/sha1.hpp"
 
 #include <algorithm>
 
@@ -96,6 +97,19 @@ void relabel_sha1( Sequence& seq )
 }
 
 void relabel_sha1( SequenceSet& set )
+{
+    for( auto& seq : set ) {
+        relabel_sha1( seq );
+    }
+}
+
+void relabel_md5( Sequence& seq )
+{
+    auto digest = utils::MD5::from_string_hex( seq.sites() );
+    seq.label( digest );
+}
+
+void relabel_md5( SequenceSet& set )
 {
     for( auto& seq : set ) {
         relabel_sha1( seq );
