@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -93,7 +93,6 @@
 #include "genesis/utils/math/matrix/statistics.hpp"
 #include "genesis/utils/math/random.hpp"
 #include "genesis/utils/math/range_minimum_query.hpp"
-#include "genesis/utils/math/sha1.hpp"
 #include "genesis/utils/math/twobit_vector/functions.hpp"
 #include "genesis/utils/math/twobit_vector.hpp"
 #include "genesis/utils/math/twobit_vector/iterator_deletions.hpp"
@@ -112,6 +111,8 @@
 #include "genesis/utils/tools/date_time.hpp"
 #include "genesis/utils/tools/geodesy/functions.hpp"
 #include "genesis/utils/tools/geodesy.hpp"
+#include "genesis/utils/tools/md5.hpp"
+#include "genesis/utils/tools/sha1.hpp"
 #include "genesis/utils/tools/tickmarks.hpp"
 
 #endif // include guard
