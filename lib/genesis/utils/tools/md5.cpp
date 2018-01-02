@@ -30,7 +30,7 @@
 
 /*
     =================================================================
-        MD5
+        MD5 License
     =================================================================
 
     The implementation is based on http://www.zedwood.com/article/cpp-md5-function,
@@ -128,16 +128,7 @@ void MD5::update( char const* input, MD5::size_type length )
 std::string MD5::final_hex()
 {
     // Calculate digest, also reset for next use.
-    auto digest = final_digest();
-
-    /* Hex std::string */
-    std::ostringstream result;
-    for (size_t i = 0; i < digest.size(); ++i) {
-        result << std::hex << std::setfill('0') << std::setw(2);
-        result << static_cast<int>( digest[i] );
-    }
-
-    return result.str();
+    return digest_to_hex( final_digest() );
 }
 
 /**
@@ -214,6 +205,18 @@ MD5::DigestType MD5::from_string_digest( std::string const& input )
     MD5 checksum;
     checksum.update( input );
     return checksum.final_digest();
+}
+
+std::string MD5::digest_to_hex( MD5::DigestType const& digest )
+{
+    /* Hex std::string */
+    std::ostringstream result;
+    for (size_t i = 0; i < digest.size(); ++i) {
+        result << std::hex << std::setfill('0') << std::setw(2);
+        result << static_cast<int>( digest[i] );
+    }
+
+    return result.str();
 }
 
 // ================================================================================================

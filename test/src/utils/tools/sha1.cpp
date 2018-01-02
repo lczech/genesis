@@ -38,7 +38,7 @@
 using namespace genesis;
 using namespace utils;
 
-TEST( Math, SHA1 )
+TEST( Utils, SHA1 )
 {
     SHA1 checksum;
 
@@ -78,4 +78,17 @@ TEST( Math, SHA1 )
     checksum1.update("abc");
     EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", checksum1.final_hex());
     EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", checksum2.final_hex());
+}
+
+TEST( Utils, SHA1Files )
+{
+    // Skip test if no data directory availabe.
+    NEEDS_TEST_DATA;
+
+    std::string empty_file = environment->data_dir + "utils/hash/empty.txt";
+    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", SHA1::from_file_hex( empty_file ));
+
+    std::string abc_file = environment->data_dir + "utils/hash/abc.txt";
+    EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", SHA1::from_file_hex( abc_file ));
+
 }

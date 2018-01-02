@@ -36,6 +36,7 @@
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/tools/md5.hpp"
 #include "genesis/utils/tools/sha1.hpp"
+#include "genesis/utils/tools/sha256.hpp"
 
 #include <algorithm>
 
@@ -100,6 +101,19 @@ void relabel_sha1( SequenceSet& set )
 {
     for( auto& seq : set ) {
         relabel_sha1( seq );
+    }
+}
+
+void relabel_sha256( Sequence& seq )
+{
+    auto digest = utils::SHA256::from_string_hex( seq.sites() );
+    seq.label( digest );
+}
+
+void relabel_sha256( SequenceSet& set )
+{
+    for( auto& seq : set ) {
+        relabel_sha256( seq );
     }
 }
 

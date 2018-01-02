@@ -113,6 +113,7 @@
 #include "genesis/utils/tools/geodesy.hpp"
 #include "genesis/utils/tools/md5.hpp"
 #include "genesis/utils/tools/sha1.hpp"
+#include "genesis/utils/tools/sha256.hpp"
 #include "genesis/utils/tools/tickmarks.hpp"
 
 #endif // include guard

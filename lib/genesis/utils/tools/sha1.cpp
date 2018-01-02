@@ -88,16 +88,7 @@ void SHA1::update(std::istream& is)
 std::string SHA1::final_hex()
 {
     // Calculate digest, also reset for next use.
-    auto digest = final_digest();
-
-    /* Hex std::string */
-    std::ostringstream result;
-    for (size_t i = 0; i < digest.size(); ++i) {
-        result << std::hex << std::setfill('0') << std::setw(8);
-        result << digest[i];
-    }
-
-    return result.str();
+    return digest_to_hex( final_digest() );
 }
 
 /**
@@ -178,6 +169,18 @@ SHA1::DigestType SHA1::from_string_digest( std::string const& input )
     SHA1 checksum;
     checksum.update( input );
     return checksum.final_digest();
+}
+
+std::string SHA1::digest_to_hex( SHA1::DigestType const& digest )
+{
+    /* Hex std::string */
+    std::ostringstream result;
+    for (size_t i = 0; i < digest.size(); ++i) {
+        result << std::hex << std::setfill('0') << std::setw(8);
+        result << digest[i];
+    }
+
+    return result.str();
 }
 
 // ================================================================================================

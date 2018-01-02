@@ -126,6 +126,8 @@ public:
     static std::string from_string_hex(    std::string const& input );
     static DigestType  from_string_digest( std::string const& input );
 
+    static std::string digest_to_hex( DigestType const& digest );
+
     // -------------------------------------------------------------------------
     //     Internal Functions
     // -------------------------------------------------------------------------

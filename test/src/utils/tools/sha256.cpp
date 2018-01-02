@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/tools/md5.hpp"
+#include "genesis/utils/tools/sha256.hpp"
 
 #include <string>
 #include <iostream>
@@ -38,17 +38,17 @@
 using namespace genesis;
 using namespace utils;
 
-TEST( Utils, MD5 )
+TEST( Utils, SHA256 )
 {
-    MD5 checksum;
+    SHA256 checksum;
 
     // abc
     checksum.update("abc");
-    EXPECT_EQ( "900150983cd24fb0d6963f7d28e17f72", checksum.final_hex() );
+    EXPECT_EQ( "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", checksum.final_hex() );
 
     // abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq
     checksum.update("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq");
-    EXPECT_EQ( "8215ef0796a20bcaaae116d3876c664a", checksum.final_hex() );
+    EXPECT_EQ( "248d6a61d20638b8e5c026930c3e6039a33ce45964ff2167f6ecedd419db06c1", checksum.final_hex() );
 
     // A million repetitions of 'a'.
     for (int i = 0; i < 1000000/200; ++i)
@@ -60,31 +60,35 @@ TEST( Utils, MD5 )
             "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         );
     }
-    EXPECT_EQ( "7707d6ae4e027c70eea2a935c2296f21", checksum.final_hex() );
+    EXPECT_EQ( "cdc76e5c9914fb9281a1c7e284d73e67f1809a48a497200e046d39ccc7112cd0", checksum.final_hex() );
 
     // No string
-    EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", checksum.final_hex());
+    EXPECT_EQ( "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", checksum.final_hex());
 
     // Empty string
     checksum.update("");
-    EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", checksum.final_hex());
+    EXPECT_EQ( "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", checksum.final_hex());
+
+    // abcde
+    checksum.update("abcde");
+    EXPECT_EQ( "36bbe50ed96841d10443bcb670d6554f0a34b761be67ec9c4a8ad2c0c44ca42c", checksum.final_hex());
 
     // Two concurrent checksum calculations
-    MD5 checksum1, checksum2;
+    SHA256 checksum1, checksum2;
     checksum1.update("abc");
-    EXPECT_EQ( "900150983cd24fb0d6963f7d28e17f72", checksum1.final_hex());
-    EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", checksum2.final_hex());
+    EXPECT_EQ( "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", checksum1.final_hex());
+    EXPECT_EQ( "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", checksum2.final_hex());
 }
 
-TEST( Utils, MD5Files )
+TEST( Utils, SHA256Files )
 {
     // Skip test if no data directory availabe.
     NEEDS_TEST_DATA;
 
     std::string empty_file = environment->data_dir + "utils/hash/empty.txt";
-    EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", MD5::from_file_hex( empty_file ));
+    EXPECT_EQ( "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", SHA256::from_file_hex( empty_file ));
 
     std::string abc_file = environment->data_dir + "utils/hash/abc.txt";
-    EXPECT_EQ( "900150983cd24fb0d6963f7d28e17f72", MD5::from_file_hex( abc_file ));
+    EXPECT_EQ( "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", SHA256::from_file_hex( abc_file ));
 
 }
