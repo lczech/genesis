@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,7 +30,7 @@
 
 #include "src/common.hpp"
 
-#include "genesis/utils/math/sha1.hpp"
+#include "genesis/utils/tools/md5.hpp"
 
 #include <string>
 #include <iostream>
@@ -38,43 +38,53 @@
 using namespace genesis;
 using namespace utils;
 
-TEST( Math, SHA1 )
+TEST( Utils, MD5 )
 {
-    SHA1 checksum;
+    MD5 checksum;
 
     // abc
     checksum.update("abc");
-    EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", checksum.final_hex() );
+    EXPECT_EQ( "900150983cd24fb0d6963f7d28e17f72", checksum.final_hex() );
 
     // abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq
     checksum.update("abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq");
-    EXPECT_EQ( "84983e441c3bd26ebaae4aa1f95129e5e54670f1", checksum.final_hex() );
+    EXPECT_EQ( "8215ef0796a20bcaaae116d3876c664a", checksum.final_hex() );
 
     // A million repetitions of 'a'.
     for (int i = 0; i < 1000000/200; ++i)
     {
-        checksum.update("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                        "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-                       );
+        checksum.update(
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        );
     }
-    EXPECT_EQ( "34aa973cd4c4daa4f61eeb2bdbad27316534016f", checksum.final_hex() );
+    EXPECT_EQ( "7707d6ae4e027c70eea2a935c2296f21", checksum.final_hex() );
 
     // No string
-    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", checksum.final_hex());
+    EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", checksum.final_hex());
 
     // Empty string
     checksum.update("");
-    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", checksum.final_hex());
-
-    // abcde
-    checksum.update("abcde");
-    EXPECT_EQ( "03de6c570bfe24bfc328ccd7ca46b76eadaf4334", checksum.final_hex());
+    EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", checksum.final_hex());
 
     // Two concurrent checksum calculations
-    SHA1 checksum1, checksum2;
+    MD5 checksum1, checksum2;
     checksum1.update("abc");
-    EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", checksum1.final_hex());
-    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", checksum2.final_hex());
+    EXPECT_EQ( "900150983cd24fb0d6963f7d28e17f72", checksum1.final_hex());
+    EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", checksum2.final_hex());
+}
+
+TEST( Utils, MD5Files )
+{
+    // Skip test if no data directory availabe.
+    NEEDS_TEST_DATA;
+
+    std::string empty_file = environment->data_dir + "utils/hash/empty.txt";
+    EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", MD5::from_file_hex( empty_file ));
+
+    std::string abc_file = environment->data_dir + "utils/hash/abc.txt";
+    EXPECT_EQ( "900150983cd24fb0d6963f7d28e17f72", MD5::from_file_hex( abc_file ));
+
 }

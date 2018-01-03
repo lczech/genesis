@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ std::unordered_set<std::string> labels( SequenceSet const& set );
 bool has_unique_labels( SequenceSet const& set, bool case_sensitive = true );
 
 /**
- * @brief Relabel the Sequence using the @link utils::SHA1 SHA1@endlink  hash digest of its sites.
+ * @brief Relabel the Sequence using the @link utils::SHA1 SHA1@endlink hash digest of its sites.
  */
 void relabel_sha1( Sequence&    seq );
 
@@ -84,6 +84,36 @@ void relabel_sha1( Sequence&    seq );
  * See has_unique_labels() to check this.
  */
 void relabel_sha1( SequenceSet& set );
+
+/**
+ * @brief Relabel the Sequence using the @link utils::SHA256 SHA256@endlink hash digest of its sites.
+ */
+void relabel_sha256( Sequence&    seq );
+
+/**
+ * @brief Relabel all Sequence%s in the SequenceSet using the @link utils::SHA256 SHA256@endlink hash
+ * digest of the sites.
+ *
+ * If there are duplicate Sequence%s, this function will lead to multiple Sequences with the same
+ * name, which might be an issue for downstream programs that expect unique labels.
+ * See has_unique_labels() to check this.
+ */
+void relabel_sha256( SequenceSet& set );
+
+/**
+ * @brief Relabel the Sequence using the @link utils::MD5 MD5@endlink hash digest of its sites.
+ */
+void relabel_md5( Sequence&    seq );
+
+/**
+ * @brief Relabel all Sequence%s in the SequenceSet using the @link utils::MD5 MD5@endlink hash
+ * digest of the sites.
+ *
+ * If there are duplicate Sequence%s, this function will lead to multiple Sequences with the same
+ * name, which might be an issue for downstream programs that expect unique labels.
+ * See has_unique_labels() to check this.
+ */
+void relabel_md5( SequenceSet& set );
 
 // =================================================================================================
 //     Validity
