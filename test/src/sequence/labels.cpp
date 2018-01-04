@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -84,16 +84,16 @@ TEST( SequenceSet, FilterByLabelList )
 
 TEST( Sequence, GuessAbundances )
 {
-    EXPECT_EQ( 123, guess_sequence_abundance( "abc_123" ) );
-    EXPECT_EQ( 123, guess_sequence_abundance( "abc;size=123;" ) );
-    EXPECT_EQ( 123, guess_sequence_abundance( "abc_size=123_" ) );
-    EXPECT_EQ( 123, guess_sequence_abundance( "abc;size=123" ) );
-    EXPECT_EQ( 123, guess_sequence_abundance( "abcsize=123" ) );
-    EXPECT_EQ( 123, guess_sequence_abundance( "abc;size=123x" ) );
+    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abc_123", "" )));
+    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abc;size=123;", "" )));
+    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abc_size=123_", "" )));
+    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abc;size=123", "" )));
+    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abcsize=123", "" )));
+    EXPECT_EQ( 123, guess_sequence_abundance( Sequence( "abc;size=123x", "" )));
 
-    EXPECT_EQ( 1, guess_sequence_abundance( "abc_" ) );
-    EXPECT_EQ( 1, guess_sequence_abundance( "abc;size=" ) );
-    EXPECT_EQ( 1, guess_sequence_abundance( "abc_123x" ) );
-    EXPECT_EQ( 1, guess_sequence_abundance( "abc_x" ) );
-    EXPECT_EQ( 1, guess_sequence_abundance( "abc;size=x" ) );
+    EXPECT_EQ( 1, guess_sequence_abundance( Sequence( "abc_", "" )));
+    EXPECT_EQ( 1, guess_sequence_abundance( Sequence( "abc;size=", "" )));
+    EXPECT_EQ( 1, guess_sequence_abundance( Sequence( "abc_123x", "" )));
+    EXPECT_EQ( 1, guess_sequence_abundance( Sequence( "abc_x", "" )));
+    EXPECT_EQ( 1, guess_sequence_abundance( Sequence( "abc;size=x", "" )));
 }
