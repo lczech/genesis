@@ -39,6 +39,10 @@
 namespace genesis {
 namespace utils {
 
+// ================================================================================================
+//     SHA1
+// ================================================================================================
+
 /**
  * @brief Calculate SHA1 hashes for strings and files.
  *
@@ -154,5 +158,33 @@ private:
 
 } // namespace utils
 } // namespace genesis
+
+// ================================================================================================
+//     Standard Hash Function
+// ================================================================================================
+
+namespace std
+{
+    /**
+     * @brief Hash function for SHA1 digestes.
+     *
+     * Basically, we re-hash from 160 bit to 64 bit. This is ugly, but currently faster to implement
+     * than a custom container that uses the full hash width. Might work on this in the future.
+     */
+    template<>
+    struct hash<genesis::utils::SHA1::DigestType>
+    {
+        using argument_type = genesis::utils::SHA1::DigestType;
+        using result_type   = std::size_t;
+
+        result_type operator()( argument_type const& s ) const {
+            result_type hash = 0;
+            hash ^= s[0] ^ ( static_cast<result_type>( s[1] ) << 32 );
+            hash ^= s[2] ^ ( static_cast<result_type>( s[3] ) << 32 );
+            hash ^= s[4];
+            return hash;
+        }
+    };
+}
 
 #endif // include guard

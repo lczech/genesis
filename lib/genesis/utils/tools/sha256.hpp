@@ -39,6 +39,10 @@
 namespace genesis {
 namespace utils {
 
+// ================================================================================================
+//     SHA256
+// ================================================================================================
+
 /**
  * @brief Calculate SHA256 hashes for strings and files.
  *
@@ -98,7 +102,7 @@ public:
     // -------------------------------------------------------------------------
 
     static const size_t BlockSize = ( 512 / 8 );
-    // static const size_t DigestSize = ( 256 / 8);
+    static const size_t DigestSize = ( 256 / 8);
 
     /**
      * @brief Store a SHA256 digest.
@@ -235,5 +239,34 @@ private:
 
 } // namespace utils
 } // namespace genesis
+
+// ================================================================================================
+//     Standard Hash Function
+// ================================================================================================
+
+namespace std
+{
+    /**
+     * @brief Hash function for SHA256 digestes.
+     *
+     * Basically, we re-hash from 256 bit to 64 bit. This is ugly, but currently faster to implement
+     * than a custom container that uses the full hash width. Might work on this in the future.
+     */
+    template<>
+    struct hash<genesis::utils::SHA256::DigestType>
+    {
+        using argument_type = genesis::utils::SHA256::DigestType;
+        using result_type   = std::size_t;
+
+        result_type operator()( argument_type const& s ) const {
+            result_type hash = 0;
+            hash ^= s[0] ^ ( static_cast<result_type>( s[1] ) << 32 );
+            hash ^= s[2] ^ ( static_cast<result_type>( s[3] ) << 32 );
+            hash ^= s[4] ^ ( static_cast<result_type>( s[5] ) << 32 );
+            hash ^= s[6] ^ ( static_cast<result_type>( s[7] ) << 32 );
+            return hash;
+        }
+    };
+}
 
 #endif // include guard

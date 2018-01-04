@@ -39,6 +39,10 @@
 namespace genesis {
 namespace utils {
 
+// ================================================================================================
+//     MD5
+// ================================================================================================
+
 /**
  * @brief Calculate MD5 hashes for strings and files.
  *
@@ -189,5 +193,48 @@ private:
 
 } // namespace utils
 } // namespace genesis
+
+// ================================================================================================
+//     Standard Hash Function
+// ================================================================================================
+
+namespace std
+{
+    /**
+     * @brief Hash function for MD5 digestes.
+     *
+     * Basically, we re-hash from 128 bit to 64 bit. This is ugly, but currently faster to implement
+     * than a custom container that uses the full hash width. Might work on this in the future.
+     */
+    template<>
+    struct hash<genesis::utils::MD5::DigestType>
+    {
+        using argument_type = genesis::utils::MD5::DigestType;
+        using result_type   = std::size_t;
+
+        // We use two intermediate hashes to allow better optimization.
+        result_type operator()( argument_type const& s ) const {
+            result_type hash1 = 0;
+            result_type hash2 = 0;
+            hash1 ^= ( static_cast<result_type>( s[0]  ) <<  0 );
+            hash1 ^= ( static_cast<result_type>( s[1]  ) <<  8 );
+            hash1 ^= ( static_cast<result_type>( s[2]  ) << 16 );
+            hash1 ^= ( static_cast<result_type>( s[3]  ) << 24 );
+            hash1 ^= ( static_cast<result_type>( s[4]  ) << 32 );
+            hash1 ^= ( static_cast<result_type>( s[5]  ) << 40 );
+            hash1 ^= ( static_cast<result_type>( s[6]  ) << 48 );
+            hash1 ^= ( static_cast<result_type>( s[7]  ) << 56 );
+            hash2 ^= ( static_cast<result_type>( s[8]  ) <<  0 );
+            hash2 ^= ( static_cast<result_type>( s[9]  ) <<  8 );
+            hash2 ^= ( static_cast<result_type>( s[10] ) << 16 );
+            hash2 ^= ( static_cast<result_type>( s[11] ) << 24 );
+            hash2 ^= ( static_cast<result_type>( s[12] ) << 32 );
+            hash2 ^= ( static_cast<result_type>( s[13] ) << 40 );
+            hash2 ^= ( static_cast<result_type>( s[14] ) << 48 );
+            hash2 ^= ( static_cast<result_type>( s[15] ) << 56 );
+            return hash1 ^ hash2;
+        }
+    };
+}
 
 #endif // include guard

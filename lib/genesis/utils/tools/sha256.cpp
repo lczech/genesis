@@ -229,14 +229,21 @@ SHA256::DigestType SHA256::from_string_digest( std::string const& input )
 
 std::string SHA256::digest_to_hex( SHA256::DigestType const& digest )
 {
-    /* Hex std::string */
+    // Simple version. Equally as fast as the printf one below.
     std::ostringstream result;
     for (size_t i = 0; i < digest.size(); ++i) {
         result << std::hex << std::setfill('0') << std::setw(8);
         result << static_cast<int>( digest[i] );
     }
-
     return result.str();
+
+    // Print bytes to string.
+    // char buf[ 2 * DigestSize + 1 ];
+    // buf[ 2 * DigestSize ] = '\0';
+    // for( size_t i = 0; i < 8; i++ ) {
+    //     sprintf( buf + i * 8, "%08x", digest[i] );
+    // }
+    // return std::string(buf);
 }
 
 // ================================================================================================
