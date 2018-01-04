@@ -39,6 +39,8 @@
 #include "genesis/utils/tools/sha256.hpp"
 
 #include <algorithm>
+#include <cctype>
+// #include <regex>
 
 namespace genesis {
 namespace sequence {
@@ -64,6 +66,52 @@ std::unordered_set<std::string> labels( SequenceSet const& set )
         result.insert( seq.label() );
     }
     return result;
+}
+
+size_t guess_sequence_abundance( Sequence const& sequence )
+{
+    auto const& label = sequence.label();
+
+    // Try to find "size=123"
+    auto const spos = label.find( "size=" );
+    if( spos != std::string::npos && spos + 5 < label.size() && isdigit( label[ spos + 5 ]) ) {
+        size_t ull = std::stoull( label.substr( spos + 5 ));
+        if( ull == 0 ) {
+            ull = 1;
+        }
+        return ull;
+    }
+
+    // Try to find "_123" at the end
+    auto const upos = label.find_last_of( "_" );
+    if( upos != std::string::npos && upos + 1 < label.size() && isdigit( label[ upos + 1 ]) ) {
+        std::string::size_type sz = 0;
+        size_t ull = std::stoull( label.substr( upos + 1 ), &sz );
+        if( ull == 0 || sz + upos + 1 != label.size() ) {
+            ull = 1;
+        }
+        return ull;
+    }
+
+    // If nothing works, the sequence has no abundance information.
+    return 1;
+
+    // Slow regex version
+    // Prepare static regex (no need to re-compile it on every function call).
+    // Matches either ";size=123;" or "_123"
+    // static const std::string expr = "(?:[;]?size=([0-9]+)[;]?)|(?:_([0-9]+)$)";
+    // static std::regex pattern( expr );
+    //
+    // // Run the expression.
+    // std::smatch matches;
+    // if( std::regex_search( label, matches, pattern )) {
+    //     size_t res;
+    //     std::string const num = ( matches[1].str().empty() ? matches[2].str() : matches[1].str() );
+    //     sscanf( num.c_str(), "%zu", &res );
+    //     return res;
+    // } else {
+    //     return 1;
+    // }
 }
 
 // =================================================================================================

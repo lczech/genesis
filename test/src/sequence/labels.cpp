@@ -81,3 +81,19 @@ TEST( SequenceSet, FilterByLabelList )
     EXPECT_EQ( 0, sset.size() );
     EXPECT_TRUE( sset.empty() );
 }
+
+TEST( Sequence, GuessAbundances )
+{
+    EXPECT_EQ( 123, guess_sequence_abundance( "abc_123" ) );
+    EXPECT_EQ( 123, guess_sequence_abundance( "abc;size=123;" ) );
+    EXPECT_EQ( 123, guess_sequence_abundance( "abc_size=123_" ) );
+    EXPECT_EQ( 123, guess_sequence_abundance( "abc;size=123" ) );
+    EXPECT_EQ( 123, guess_sequence_abundance( "abcsize=123" ) );
+    EXPECT_EQ( 123, guess_sequence_abundance( "abc;size=123x" ) );
+
+    EXPECT_EQ( 1, guess_sequence_abundance( "abc_" ) );
+    EXPECT_EQ( 1, guess_sequence_abundance( "abc;size=" ) );
+    EXPECT_EQ( 1, guess_sequence_abundance( "abc_123x" ) );
+    EXPECT_EQ( 1, guess_sequence_abundance( "abc_x" ) );
+    EXPECT_EQ( 1, guess_sequence_abundance( "abc;size=x" ) );
+}

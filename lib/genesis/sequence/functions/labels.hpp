@@ -58,6 +58,20 @@ Sequence const* find_sequence( SequenceSet const& set, std::string const& label 
  */
 std::unordered_set<std::string> labels( SequenceSet const& set );
 
+/**
+ * @brief Guess the abundance of a Sequence, using it's label.
+ *
+ * The function accepts two patterns of reporting abundances via the
+ * @link Sequence::label() label()@endlink of a Sequence:
+ *
+ *  * Appended via underscore: `name_123`. In this case, the number has to be the last in
+ *    the label, that is, no other text may follow.
+ *  * Using the format `[;]size=123[;]`. The semicoli are optional.
+ *
+ * If neither of them is found, a default abundance of 1 is returned.
+ */
+size_t guess_sequence_abundance( Sequence const& sequence );
+
 // =================================================================================================
 //     Uniqueness
 // =================================================================================================
