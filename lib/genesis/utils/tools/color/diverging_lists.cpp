@@ -53,6 +53,110 @@ namespace utils {
  * See also our @link supplement_acknowledgements_code_reuse_colorbrewer Acknowledgements@endlink.
  */
 
+const std::vector<Color> color_list_brbg_ = {{
+    { 0.329412, 0.188235, 0.019608 },
+    { 0.549020, 0.317647, 0.039216 }, // dark brown
+    { 0.749020, 0.505882, 0.176471 }, // medium brown
+    { 0.874510, 0.760784, 0.490196 },
+    { 0.964706, 0.909804, 0.764706 }, // pale brown
+    { 0.780392, 0.917647, 0.898039 }, // pale blue-green
+    { 0.501961, 0.803922, 0.756863 },
+    { 0.207843, 0.592157, 0.560784 }, // medium blue-green
+    { 0.003922, 0.400000, 0.368627 }, // dark blue-green
+    { 0.000000, 0.235294, 0.188235 }
+}};
+
+const std::vector<Color> color_list_piyg_ = {{
+    { 0.556863, 0.003922, 0.321569 },
+    { 0.772549, 0.105882, 0.490196 }, // dark pink
+    { 0.870588, 0.466667, 0.682353 }, // medium pink
+    { 0.945098, 0.713725, 0.854902 },
+    { 0.992157, 0.878431, 0.937255 }, // pale pink
+    { 0.901961, 0.960784, 0.815686 }, // pale yellow-green
+    { 0.721569, 0.882353, 0.525490 },
+    { 0.498039, 0.737255, 0.254902 }, // medium yellow-green
+    { 0.301961, 0.572549, 0.129412 }, // dark yellow-green
+    { 0.152941, 0.392157, 0.098039 }
+}};
+
+const std::vector<Color> color_list_prgn_ = {{
+    { 0.250980, 0.000000, 0.294118 },
+    { 0.462745, 0.164706, 0.513725 }, // dark purple
+    { 0.600000, 0.439216, 0.670588 }, // medium purple
+    { 0.760784, 0.647059, 0.811765 },
+    { 0.905882, 0.831373, 0.909804 }, // pale purple
+    { 0.850980, 0.941176, 0.827451 }, // pale green
+    { 0.650980, 0.858824, 0.627451 },
+    { 0.352941, 0.682353, 0.380392 }, // medium green
+    { 0.105882, 0.470588, 0.215686 }, // dark green
+    { 0.000000, 0.266667, 0.105882 }
+}};
+
+const std::vector<Color> color_list_puor_ = {{
+    { 0.498039, 0.231373, 0.031373 },
+    { 0.701961, 0.345098, 0.023529 }, // dark orange
+    { 0.878431, 0.509804, 0.078431 }, // medium orange
+    { 0.992157, 0.721569, 0.388235 },
+    { 0.996078, 0.878431, 0.713725 }, // pale orange
+    { 0.847059, 0.854902, 0.921569 }, // pale purple
+    { 0.698039, 0.670588, 0.823529 },
+    { 0.501961, 0.450980, 0.674510 }, // medium purple
+    { 0.329412, 0.152941, 0.533333 }, // dark purple
+    { 0.176471, 0.000000, 0.294118 }
+}};
+
+const std::vector<Color> color_list_rdbu_ = {{
+    { 0.403922, 0.000000, 0.121569 },
+    { 0.698039, 0.094118, 0.168627 }, // red
+    { 0.839216, 0.376471, 0.301961 }, // red-orange
+    { 0.956863, 0.647059, 0.509804 },
+    { 0.992157, 0.858824, 0.780392 }, // pale orange
+    { 0.819608, 0.898039, 0.941176 }, // pale blue
+    { 0.572549, 0.772549, 0.870588 },
+    { 0.262745, 0.576471, 0.764706 }, // medium blue
+    { 0.129412, 0.400000, 0.674510 }, // dark blue
+    { 0.019608, 0.188235, 0.380392 }
+}};
+
+const std::vector<Color> color_list_rdgy_ = {{
+    { 0.403922, 0.000000, 0.121569 },
+    { 0.698039, 0.094118, 0.168627 }, // red
+    { 0.839216, 0.376471, 0.301961 }, // red-orange
+    { 0.956863, 0.647059, 0.509804 },
+    { 0.992157, 0.858824, 0.780392 }, // pale orange
+    { 0.878431, 0.878431, 0.878431 }, // pale grey
+    { 0.729412, 0.729412, 0.729412 },
+    { 0.529412, 0.529412, 0.529412 }, // medium grey
+    { 0.301961, 0.301961, 0.301961 }, // dark grey
+    { 0.101961, 0.101961, 0.101961 }
+}};
+
+const std::vector<Color> color_list_rdylbu_ = {{
+    { 0.647059, 0.000000, 0.149020 },
+    { 0.843137, 0.188235, 0.152941 }, // red
+    { 0.956863, 0.427451, 0.262745 }, // orange
+    { 0.992157, 0.682353, 0.380392 },
+    { 0.996078, 0.878431, 0.564706 }, // pale orange
+    { 0.878431, 0.952941, 0.972549 }, // pale blue
+    { 0.670588, 0.850980, 0.913725 },
+    { 0.454902, 0.678431, 0.819608 }, // medium blue
+    { 0.270588, 0.458824, 0.705882 }, // blue
+    { 0.192157, 0.211765, 0.584314 }
+}};
+
+const std::vector<Color> color_list_rdylgn_ = {{
+    { 0.647059, 0.000000, 0.149020 },
+    { 0.843137, 0.188235, 0.152941 }, // red
+    { 0.956863, 0.427451, 0.262745 }, // orange
+    { 0.992157, 0.682353, 0.380392 }, // pale orange
+    { 0.996078, 0.878431, 0.545098 }, // pale yellow-orange
+    { 0.850980, 0.937255, 0.545098 }, // pale yellow-green
+    { 0.650980, 0.850980, 0.415686 }, // pale green
+    { 0.400000, 0.741176, 0.388235 }, // medium green
+    { 0.101961, 0.596078, 0.313725 }, // green
+    { 0.000000, 0.407843, 0.215686 }
+}};
+
 const std::vector<Color> color_list_spectral_ = {{
     { 0.61960784313725492, 0.003921568627450980, 0.25882352941176473 },
     { 0.83529411764705885, 0.24313725490196078 , 0.30980392156862746 },
@@ -81,9 +185,61 @@ const std::vector<Color> color_list_spectral_ = {{
 //     {  1.0, { 0.36862745098039218, 0.30980392156862746 , 0.63529411764705879 }}
 // }};
 
+// Lacks the top and bottom entry:
+// const std::vector<Color> color_list_spectral_ = {{
+//     { 0.835294, 0.243137, 0.309804 }, // red
+//     { 0.956863, 0.427451, 0.262745 }, // orange
+//     { 0.992157, 0.682353, 0.380392 }, // pale orange
+//     { 0.996078, 0.878431, 0.545098 }, // pale yellow-orange
+//     { 0.901961, 0.960784, 0.596078 }, // pale yellow-green
+//     { 0.670588, 0.866667, 0.643137 }, // pale green
+//     { 0.400000, 0.760784, 0.647059 }, // green
+//     { 0.196078, 0.533333, 0.741176 }, // blue
+// }};
+
 // =================================================================================================
 //     Color Lists Functions
 // =================================================================================================
+
+std::vector<Color> const& color_list_brbg()
+{
+    return color_list_brbg_;
+}
+
+std::vector<Color> const& color_list_piyg()
+{
+    return color_list_piyg_;
+}
+
+std::vector<Color> const& color_list_prgn()
+{
+    return color_list_prgn_;
+}
+
+std::vector<Color> const& color_list_puor()
+{
+    return color_list_puor_;
+}
+
+std::vector<Color> const& color_list_rdbu()
+{
+    return color_list_rdbu_;
+}
+
+std::vector<Color> const& color_list_rdgy()
+{
+    return color_list_rdgy_;
+}
+
+std::vector<Color> const& color_list_rdylbu()
+{
+    return color_list_rdylbu_;
+}
+
+std::vector<Color> const& color_list_rdylgn()
+{
+    return color_list_rdylgn_;
+}
 
 std::vector<Color> const& color_list_spectral()
 {
@@ -96,6 +252,30 @@ std::vector<Color> const& color_list_spectral()
 
 std::vector<Color> const& diverging_color_list( DivergingColorList palette )
 {
+    if( palette == DivergingColorList::kBrbg ) {
+        return color_list_brbg_;
+    }
+    if( palette == DivergingColorList::kPiyg ) {
+        return color_list_piyg_;
+    }
+    if( palette == DivergingColorList::kPrgn ) {
+        return color_list_prgn_;
+    }
+    if( palette == DivergingColorList::kPuor ) {
+        return color_list_puor_;
+    }
+    if( palette == DivergingColorList::kRdbu ) {
+        return color_list_rdbu_;
+    }
+    if( palette == DivergingColorList::kRdgy ) {
+        return color_list_rdgy_;
+    }
+    if( palette == DivergingColorList::kRdylbu ) {
+        return color_list_rdylbu_;
+    }
+    if( palette == DivergingColorList::kRdylgn ) {
+        return color_list_rdylgn_;
+    }
     if( palette == DivergingColorList::kSpectral ) {
         return color_list_spectral_;
     }
@@ -107,6 +287,30 @@ std::vector<Color> const& diverging_color_list( std::string const& palette )
 {
     auto const p = to_lower_ascii( palette );
 
+    if( p == "brbg" ) {
+        return color_list_brbg_;
+    }
+    if( p == "piyg" ) {
+        return color_list_piyg_;
+    }
+    if( p == "prgn" ) {
+        return color_list_prgn_;
+    }
+    if( p == "puor" ) {
+        return color_list_puor_;
+    }
+    if( p == "rdbu" ) {
+        return color_list_rdbu_;
+    }
+    if( p == "rdgy" ) {
+        return color_list_rdgy_;
+    }
+    if( p == "rdylbu" ) {
+        return color_list_rdylbu_;
+    }
+    if( p == "rdylgn" ) {
+        return color_list_rdylgn_;
+    }
     if( p == "spectral" ) {
         return color_list_spectral_;
     }

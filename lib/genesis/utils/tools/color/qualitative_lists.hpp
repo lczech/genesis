@@ -44,39 +44,80 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Set1 color palette.
+ * @brief Color palette `accent`.
  *
- * This ColorBrewer color palette is adapted from https://github.com/axismaps/colorbrewer and
- * https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB `double` values.
- * The original ColorBrewer color specifications and designs were developed by Cynthia Brewer
- * (http://colorbrewer.org/), while their gnuplot equivalets are authored by Anna Schneider,
- * and published under the [Apache-2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
- * See also our @link supplement_acknowledgements_code_reuse_colorbrewer Acknowledgements@endlink.
+ * Provides a color palette with 8 colors, 4 pale and 4 saturated,
+ * for use with qualitative/categorical data.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_accent();
+
+/**
+ * @brief Color palette `dark2`.
+ *
+ * Provides a color palette with 8 dark colors based on color_list_set2()
+ * for use with qualitative/categorical data.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_dark2();
+
+/**
+ * @brief Color palette `paired`.
+ *
+ * Provides a color palette with 12 colors in 6 pairs for use with qualitative/categorical data.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_paired();
+
+/**
+ * @brief Color palette `pastel1`.
+ *
+ * Provides a color palette with 9 colors based on color_list_set1()
+ * for use with qualitative/categorical data.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_pastel1();
+
+/**
+ * @brief Color palette `pastel2`.
+ *
+ * Provides a color palette with 9 colors based on color_list_set2()
+ * for use with qualitative/categorical data.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_pastel2();
+
+/**
+ * @brief Color palette `set1`.
+ *
+ * Provides a color palette with 9 easy-to-name colors for use with qualitative/categorical data.
+ *
+ * @copydetails color_list_spectral()
  */
 std::vector<Color> const& color_list_set1();
 
 /**
-* @brief Set2 color palette.
-*
-* This ColorBrewer color palette is adapted from https://github.com/axismaps/colorbrewer and
-* https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB `double` values.
-* The original ColorBrewer color specifications and designs were developed by Cynthia Brewer
-* (http://colorbrewer.org/), while their gnuplot equivalets are authored by Anna Schneider,
-* and published under the [Apache-2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
-* See also our @link supplement_acknowledgements_code_reuse_colorbrewer Acknowledgements@endlink.
-*/
+ * @brief Color palette `set2`.
+ *
+ * Provides a color palette with 8 hard-to-name colors for use with qualitative/categorical data.
+ *
+ * @copydetails color_list_spectral()
+ */
 std::vector<Color> const& color_list_set2();
 
 /**
-* @brief Set3 color palette.
-*
-* This ColorBrewer color palette is adapted from https://github.com/axismaps/colorbrewer and
-* https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB `double` values.
-* The original ColorBrewer color specifications and designs were developed by Cynthia Brewer
-* (http://colorbrewer.org/), while their gnuplot equivalets are authored by Anna Schneider,
-* and published under the [Apache-2.0 license](http://www.apache.org/licenses/LICENSE-2.0).
-* See also our @link supplement_acknowledgements_code_reuse_colorbrewer Acknowledgements@endlink.
-*/
+ * @brief Color palette `set3`.
+ *
+ * Provides a color palette with 12 colors for use with qualitative/categorical data.
+ * The colors are more saturated than the Pastels but less so than set2().
+ *
+ * @copydetails color_list_spectral()
+ */
 std::vector<Color> const& color_list_set3();
 
 // =================================================================================================
@@ -85,6 +126,11 @@ std::vector<Color> const& color_list_set3();
 
 enum class QualitativeColorList
 {
+    kAccent,
+    kDark2,
+    kPaired,
+    kPastel1,
+    kPastel2,
     kSet1,
     kSet2,
     kSet3

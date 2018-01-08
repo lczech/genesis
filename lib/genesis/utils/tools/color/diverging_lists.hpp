@@ -44,7 +44,81 @@ namespace utils {
 // =================================================================================================
 
 /**
-* @brief Spectral color palette.
+ * @brief Color palette `brbg`.
+ *
+ * Provides a diverging color palette with brown low, white middle, and blue-green high.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_brbg();
+
+/**
+ * @brief Color palette `piyg`.
+ *
+ * Provides a diverging color palette with pink low, white middle, and yellow-green high.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_piyg();
+
+/**
+ * @brief Color palette `prgn`.
+ *
+ * Provides a diverging color palette with purple low, white middle, and green high.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_prgn();
+
+/**
+ * @brief Color palette `puor`.
+ *
+ * Provides a diverging color palette with orange low, white middle, and purple high.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_puor();
+
+/**
+ * @brief Color palette `rdbu`.
+ *
+ * Provides a diverging color palette with red low, white middle, and blue high.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_rdbu();
+
+/**
+ * @brief Color palette `rdgy`.
+ *
+ * Provides a diverging color palette with red low, white middle, and grey high.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_rdgy();
+
+/**
+ * @brief Color palette `rdylbu`.
+ *
+ * Provides a diverging color palette with red low, pale yellow middle, and blue high.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_rdylbu();
+
+/**
+ * @brief Color palette `rdylgn`.
+ *
+ * Provides a diverging color palette with red low, pale yellow middle, and green high.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_rdylgn();
+
+/**
+* @brief Color palette `spectral`.
+*
+* Provides a diverging rainbow color palette with red low, pale yellow middle, and blue high.
 *
 * This ColorBrewer color palette is adapted from https://github.com/axismaps/colorbrewer and
 * https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB `double` values.
@@ -61,6 +135,14 @@ std::vector<Color> const& color_list_spectral();
 
 enum class DivergingColorList
 {
+    kBrbg,
+    kPiyg,
+    kPrgn,
+    kPuor,
+    kRdbu,
+    kRdgy,
+    kRdylbu,
+    kRdylgn,
     kSpectral
 };
 

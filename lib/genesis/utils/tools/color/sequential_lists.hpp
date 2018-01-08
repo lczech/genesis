@@ -44,40 +44,190 @@ namespace utils {
 // =================================================================================================
 
 /**
- * @brief Magma color palette.
+ * @brief Color palette `blues`.
  *
- * This Matplotlib color palette is adapted from https://github.com/BIDS/colormap.
- * New matplotlib colormaps by Nathaniel J. Smith, Stefan van der Walt.
- * The colormaps are released under the CC0 license / public domain dedication.
- * See https://creativecommons.org/publicdomain/zero/1.0/ for the license. See also our
- * @link supplement_acknowledgements_code_reuse_matplotlib_color_maps Acknowledgements@endlink.
+ * Provides a sequential blue color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_blues();
+
+/**
+ * @brief Color palette `bugn`.
+ *
+ * Provides a sequential blue-green color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_bugn();
+
+/**
+ * @brief Color palette `bupu`.
+ *
+ * Provides a sequential blue-purple color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_bupu();
+
+/**
+ * @brief Color palette `gnbu`.
+ *
+ * Provides a sequential green-blue color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_gnbu();
+
+/**
+ * @brief Color palette `greens`.
+ *
+ * Provides a sequential green color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_greens();
+
+/**
+ * @brief Color palette `greys`.
+ *
+ * Provides a sequential grey color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_greys();
+
+/**
+ * @brief Color palette `oranges`.
+ *
+ * Provides a sequential orange color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_oranges();
+
+/**
+ * @brief Color palette `orrd`.
+ *
+ * Provides a sequential orange-red color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_orrd();
+
+/**
+ * @brief Color palette `pubu`.
+ *
+ * Provides a sequential purple-blue color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_pubu();
+
+/**
+ * @brief Color palette `pubugn`.
+ *
+ * Provides a sequential purple-blue-green color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_pubugn();
+
+/**
+ * @brief Color palette `purd`.
+ *
+ * Provides a sequential purple-red color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_purd();
+
+/**
+ * @brief Color palette `purples`.
+ *
+ * Provides a sequential purple color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_purples();
+
+/**
+ * @brief Color palette `rdpu`.
+ *
+ * Provides a sequential red-purple color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_rdpu();
+
+/**
+ * @brief Color palette `reds`.
+ *
+ * Provides a sequential red color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_reds();
+
+/**
+ * @brief Color palette `ylgn`.
+ *
+ * Provides a sequential yellow-green color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_ylgn();
+
+/**
+ * @brief Color palette `ylgnbu`.
+ *
+ * Provides a sequential yellow-green-blue color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_ylgnbu();
+
+/**
+ * @brief Color palette `ylorbr`.
+ *
+ * Provides a sequential yellow-orange-brown color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_ylorbr();
+
+/**
+ * @brief Color palette `ylorrd`.
+ *
+ * Provides a sequential yellow-orange-red color palette of increasing saturation.
+ *
+ * @copydetails color_list_spectral()
+ */
+std::vector<Color> const& color_list_ylorrd();
+
+/**
+ * @brief Color palette `magma`.
+ *
+ * @copydetails color_list_viridis()
  */
 std::vector<Color> const& color_list_magma();
 
 /**
-* @brief Inferno color palette.
+* @brief Color palette `inferno`.
 *
-* This Matplotlib color palette is adapted from https://github.com/BIDS/colormap.
-* New matplotlib colormaps by Nathaniel J. Smith, Stefan van der Walt.
-* The colormaps are released under the CC0 license / public domain dedication.
-* See https://creativecommons.org/publicdomain/zero/1.0/ for the license. See also our
-* @link supplement_acknowledgements_code_reuse_matplotlib_color_maps Acknowledgements@endlink.
+* @copydetails color_list_viridis()
 */
 std::vector<Color> const& color_list_inferno();
 
 /**
-* @brief Plasma color palette.
+* @brief Color palette `plasma`.
 *
-* This Matplotlib color palette is adapted from https://github.com/BIDS/colormap.
-* New matplotlib colormaps by Nathaniel J. Smith, Stefan van der Walt.
-* The colormaps are released under the CC0 license / public domain dedication.
-* See https://creativecommons.org/publicdomain/zero/1.0/ for the license. See also our
-* @link supplement_acknowledgements_code_reuse_matplotlib_color_maps Acknowledgements@endlink.
+* @copydetails color_list_viridis()
 */
 std::vector<Color> const& color_list_plasma();
 
 /**
-* @brief Viridis color palette.
+* @brief Color palette `viridis`.
 *
 * This Matplotlib color palette is adapted from https://github.com/BIDS/colormap.
 * New matplotlib colormaps by Nathaniel J. Smith, Stefan van der Walt, and Eric Firing.
@@ -93,6 +243,24 @@ std::vector<Color> const& color_list_viridis();
 
 enum class SequentialColorList
 {
+    kBlues,
+    kBugn,
+    kBupu,
+    kGnbu,
+    kGreens,
+    kGreys,
+    kOranges,
+    kOrrd,
+    kPubu,
+    kPubugn,
+    kPurd,
+    kPurples,
+    kRdpu,
+    kReds,
+    kYlgn,
+    kYlgnbu,
+    kYlorbr,
+    kYlorrd,
     kMagma,
     kInferno,
     kPlasma,
