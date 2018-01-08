@@ -264,14 +264,14 @@ std::vector<Color> const& qualitative_color_list( std::string const& palette )
 std::vector<std::string> qualitative_color_list_names()
 {
     return {
-        "accent",
-        "dark2",
-        "paired",
-        "pastel1",
-        "pastel2",
-        "set1",
-        "set2",
-        "set3"
+        "Accent",
+        "Dark2",
+        "Paired",
+        "Pastel1",
+        "Pastel2",
+        "Set1",
+        "Set2",
+        "Set3"
     };
 }
 

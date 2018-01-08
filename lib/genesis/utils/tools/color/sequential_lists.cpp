@@ -61,7 +61,8 @@ const std::vector<Color> color_list_blues_ = {{
     { 0.419608, 0.682353, 0.839216 },
     { 0.258824, 0.572549, 0.776471 }, // medium blue
     { 0.129412, 0.443137, 0.709804 },
-    { 0.031373, 0.270588, 0.580392 }, // dark blue
+    { 0.031373, 0.317647, 0.611765 },
+    { 0.031373, 0.188235, 0.419608 }  // dark blue
 }};
 
 const std::vector<Color> color_list_bugn_ = {{
@@ -72,7 +73,8 @@ const std::vector<Color> color_list_bugn_ = {{
     { 0.400000, 0.760784, 0.643137 },
     { 0.254902, 0.682353, 0.462745 }, // medium blue-green
     { 0.137255, 0.545098, 0.270588 },
-    { 0.000000, 0.345098, 0.141176 }, // dark blue-green
+    { 0.000000, 0.427451, 0.172549 },
+    { 0.000000, 0.266667, 0.105882 }  // dark blue-green
 }};
 
 const std::vector<Color> color_list_bupu_ = {{
@@ -83,7 +85,8 @@ const std::vector<Color> color_list_bupu_ = {{
     { 0.549020, 0.588235, 0.776471 },
     { 0.549020, 0.419608, 0.694118 }, // medium blue-purple
     { 0.533333, 0.254902, 0.615686 },
-    { 0.431373, 0.003922, 0.419608 }, // dark blue-purple
+    { 0.505882, 0.058824, 0.486275 },
+    { 0.301961, 0.000000, 0.294118 }  // dark blue-purple
 }};
 
 const std::vector<Color> color_list_gnbu_ = {{
@@ -94,7 +97,8 @@ const std::vector<Color> color_list_gnbu_ = {{
     { 0.482353, 0.800000, 0.768627 },
     { 0.305882, 0.701961, 0.827451 }, // medium green-blue
     { 0.168627, 0.549020, 0.745098 },
-    { 0.031373, 0.345098, 0.619608 }, // dark green-blue
+    { 0.031373, 0.407843, 0.674510 },
+    { 0.031373, 0.250980, 0.505882 }  // dark green-blue
 }};
 
 const std::vector<Color> color_list_greens_ = {{
@@ -105,7 +109,8 @@ const std::vector<Color> color_list_greens_ = {{
     { 0.454902, 0.768627, 0.462745 },
     { 0.254902, 0.670588, 0.364706 }, // medium green
     { 0.137255, 0.545098, 0.270588 },
-    { 0.000000, 0.352941, 0.196078 }, // dark green
+    { 0.000000, 0.427451, 0.172549 },
+    { 0.000000, 0.266667, 0.105882 }  // dark green
 }};
 
 const std::vector<Color> color_list_greys_ = {{
@@ -116,7 +121,8 @@ const std::vector<Color> color_list_greys_ = {{
     { 0.588235, 0.588235, 0.588235 },
     { 0.450980, 0.450980, 0.450980 }, // medium grey
     { 0.321569, 0.321569, 0.321569 },
-    { 0.145098, 0.145098, 0.145098 }, // dark grey
+    { 0.145098, 0.145098, 0.145098 },
+    { 0.000000, 0.000000, 0.000000 }  // dark grey
 }};
 
 const std::vector<Color> color_list_oranges_ = {{
@@ -127,7 +133,8 @@ const std::vector<Color> color_list_oranges_ = {{
     { 0.992157, 0.552941, 0.235294 },
     { 0.945098, 0.411765, 0.074510 }, // medium orange
     { 0.850980, 0.282353, 0.003922 },
-    { 0.549020, 0.176471, 0.015686 }, // dark orange
+    { 0.650980, 0.211765, 0.011765 },
+    { 0.498039, 0.152941, 0.015686 }  // dark orange
 }};
 
 const std::vector<Color> color_list_orrd_ = {{
@@ -138,7 +145,8 @@ const std::vector<Color> color_list_orrd_ = {{
     { 0.988235, 0.552941, 0.349020 },
     { 0.937255, 0.396078, 0.282353 }, // medium orange-red
     { 0.843137, 0.188235, 0.121569 },
-    { 0.600000, 0.000000, 0.000000 }, // dark orange-red
+    { 0.701961, 0.000000, 0.000000 },
+    { 0.498039, 0.000000, 0.000000 }  // dark orange-red
 }};
 
 const std::vector<Color> color_list_pubu_ = {{
@@ -149,7 +157,8 @@ const std::vector<Color> color_list_pubu_ = {{
     { 0.454902, 0.662745, 0.811765 },
     { 0.211765, 0.564706, 0.752941 }, // medium purple-blue
     { 0.019608, 0.439216, 0.690196 },
-    { 0.011765, 0.305882, 0.482353 }, // dark purple-blue
+    { 0.015686, 0.352941, 0.552941 },
+    { 0.007843, 0.219608, 0.345098 }  // dark purple-blue
 }};
 
 const std::vector<Color> color_list_pubugn_ = {{
@@ -160,7 +169,8 @@ const std::vector<Color> color_list_pubugn_ = {{
     { 0.403922, 0.662745, 0.811765 },
     { 0.211765, 0.564706, 0.752941 }, // medium purple-blue-green
     { 0.007843, 0.505882, 0.541176 },
-    { 0.003922, 0.396078, 0.250980 }, // dark purple-blue-green
+    { 0.003922, 0.423529, 0.349020 },
+    { 0.003922, 0.274510, 0.211765 }  // dark purple-blue-green
 }};
 
 const std::vector<Color> color_list_purd_ = {{
@@ -171,7 +181,8 @@ const std::vector<Color> color_list_purd_ = {{
     { 0.874510, 0.396078, 0.690196 },
     { 0.905882, 0.160784, 0.541176 }, // medium purple-red
     { 0.807843, 0.070588, 0.337255 },
-    { 0.568627, 0.000000, 0.247059 }, // dark purple-red
+    { 0.596078, 0.000000, 0.262745 },
+    { 0.403922, 0.000000, 0.121569 }  // dark purple-red
 }};
 
 const std::vector<Color> color_list_purples_ = {{
@@ -182,7 +193,8 @@ const std::vector<Color> color_list_purples_ = {{
     { 0.619608, 0.603922, 0.784314 },
     { 0.501961, 0.490196, 0.729412 }, // medium purple
     { 0.415686, 0.317647, 0.639216 },
-    { 0.290196, 0.078431, 0.525490 }, // dark purple
+    { 0.329412, 0.152941, 0.560784 },
+    { 0.247059, 0.000000, 0.490196 }  // dark purple
 }};
 
 const std::vector<Color> color_list_rdpu_ = {{
@@ -193,7 +205,8 @@ const std::vector<Color> color_list_rdpu_ = {{
     { 0.968627, 0.407843, 0.631373 },
     { 0.866667, 0.203922, 0.592157 }, // medium red-purple
     { 0.682353, 0.003922, 0.494118 },
-    { 0.478431, 0.003922, 0.466667 }, // dark red-purple
+    { 0.478431, 0.003922, 0.466667 },
+    { 0.286275, 0.000000, 0.415686 }  // dark red-purple
 }};
 
 const std::vector<Color> color_list_reds_ = {{
@@ -204,7 +217,8 @@ const std::vector<Color> color_list_reds_ = {{
     { 0.984314, 0.415686, 0.290196 },
     { 0.937255, 0.231373, 0.172549 }, // medium red
     { 0.796078, 0.094118, 0.113725 },
-    { 0.600000, 0.000000, 0.050980 }, // dark red
+    { 0.647059, 0.058824, 0.082353 },
+    { 0.403922, 0.000000, 0.050980 }  // dark red
 }};
 
 const std::vector<Color> color_list_ylgn_ = {{
@@ -215,7 +229,8 @@ const std::vector<Color> color_list_ylgn_ = {{
     { 0.470588, 0.776471, 0.474510 },
     { 0.254902, 0.670588, 0.364706 }, // medium yellow-green
     { 0.137255, 0.517647, 0.262745 },
-    { 0.000000, 0.352941, 0.196078 }, // dark yellow-green
+    { 0.000000, 0.407843, 0.215686 },
+    { 0.000000, 0.270588, 0.160784 }  // dark yellow-green
 }};
 
 const std::vector<Color> color_list_ylgnbu_ = {{
@@ -226,7 +241,8 @@ const std::vector<Color> color_list_ylgnbu_ = {{
     { 0.254902, 0.713725, 0.768627 },
     { 0.113725, 0.568627, 0.752941 }, // medium yellow-green-blue
     { 0.133333, 0.368627, 0.658824 },
-    { 0.047059, 0.172549, 0.517647 }, // dark yellow-green-blue
+    { 0.145098, 0.203922, 0.580392 },
+    { 0.031373, 0.113725, 0.345098 }  // dark yellow-green-blue
 }};
 
 const std::vector<Color> color_list_ylorbr_ = {{
@@ -237,9 +253,9 @@ const std::vector<Color> color_list_ylorbr_ = {{
     { 0.996078, 0.600000, 0.160784 },
     { 0.925490, 0.439216, 0.078431 }, // medium yellow-orange-brown
     { 0.800000, 0.298039, 0.007843 },
-    { 0.800000, 0.298039, 0.007843 }, // dark yellow-orange-brown
+    { 0.600000, 0.203922, 0.015686 },
+    { 0.400000, 0.145098, 0.023529 }  // dark yellow-orange-brown
 }};
-
 
 const std::vector<Color> color_list_ylorrd_ = {{
     { 1.000000, 1.000000, 0.800000 }, // very light yellow-orange-red
@@ -1616,28 +1632,28 @@ std::vector<Color> const& sequential_color_list( std::string const& palette )
 std::vector<std::string> sequential_color_list_names()
 {
     return {
-        "blues",
-        "bugn",
-        "bupu",
-        "gnbu",
-        "greens",
-        "greys",
-        "oranges",
-        "orrd",
-        "pubu",
-        "pubugn",
-        "purd",
-        "purples",
-        "rdpu",
-        "reds",
-        "ylgn",
-        "ylgnbu",
-        "ylorbr",
-        "ylorrd",
-        "magma",
-        "inferno",
-        "plasma",
-        "viridis"
+        "Blues",
+        "BuGn",
+        "BuPu",
+        "GnBu",
+        "Greens",
+        "Greys",
+        "Oranges",
+        "OrRd",
+        "PuBu",
+        "PuBuGn",
+        "PuRd",
+        "Purples",
+        "RdPu",
+        "Reds",
+        "YlGn",
+        "YlGnBu",
+        "YlOrBr",
+        "YlOrRd",
+        "Magma",
+        "Inferno",
+        "Plasma",
+        "Viridis"
     };
 }
 
