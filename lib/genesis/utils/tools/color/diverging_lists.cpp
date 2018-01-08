@@ -318,5 +318,20 @@ std::vector<Color> const& diverging_color_list( std::string const& palette )
     throw std::invalid_argument( "Invalid DivergingColorList name: '" + palette + "'." );
 }
 
+std::vector<std::string> diverging_color_list_names()
+{
+    return {
+        "brbg",
+        "piyg",
+        "prgn",
+        "puor",
+        "rdbu",
+        "rdgy",
+        "rdylbu",
+        "rdylgn",
+        "spectral"
+    };
+}
+
 } // namespace utils
 } // namespace genesis

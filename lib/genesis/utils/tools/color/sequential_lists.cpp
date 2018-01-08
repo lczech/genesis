@@ -1613,5 +1613,33 @@ std::vector<Color> const& sequential_color_list( std::string const& palette )
     throw std::invalid_argument( "Invalid SequentialColorList name: '" + palette + "'." );
 }
 
+std::vector<std::string> sequential_color_list_names()
+{
+    return {
+        "blues",
+        "bugn",
+        "bupu",
+        "gnbu",
+        "greens",
+        "greys",
+        "oranges",
+        "orrd",
+        "pubu",
+        "pubugn",
+        "purd",
+        "purples",
+        "rdpu",
+        "reds",
+        "ylgn",
+        "ylgnbu",
+        "ylorbr",
+        "ylorrd",
+        "magma",
+        "inferno",
+        "plasma",
+        "viridis"
+    };
+}
+
 } // namespace utils
 } // namespace genesis

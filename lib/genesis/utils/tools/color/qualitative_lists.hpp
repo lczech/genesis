@@ -139,6 +139,8 @@ enum class QualitativeColorList
 std::vector<Color> const& qualitative_color_list( QualitativeColorList palette );
 std::vector<Color> const& qualitative_color_list( std::string const& palette );
 
+std::vector<std::string> qualitative_color_list_names();
+
 } // namespace utils
 } // namespace genesis
 

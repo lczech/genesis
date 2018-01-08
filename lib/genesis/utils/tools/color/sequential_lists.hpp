@@ -270,6 +270,8 @@ enum class SequentialColorList
 std::vector<Color> const& sequential_color_list( SequentialColorList palette );
 std::vector<Color> const& sequential_color_list( std::string const&  palette );
 
+std::vector<std::string> sequential_color_list_names();
+
 } // namespace utils
 } // namespace genesis
 
