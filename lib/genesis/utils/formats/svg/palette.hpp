@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,6 +71,11 @@ public:
     // -------------------------------------------------------------
 
     SvgPalette() = default;
+    SvgPalette( ColorPalette const& palette, std::string const& id = "" )
+        : palette( palette )
+        , id( id )
+    {}
+
     ~SvgPalette() = default;
 
     SvgPalette( SvgPalette const& ) = default;
@@ -91,6 +96,7 @@ public:
 
     ColorPalette palette;
     Direction direction = Direction::kBottomToTop;
+    std::string id;
 
     double width  = 20;
     double height = 200;

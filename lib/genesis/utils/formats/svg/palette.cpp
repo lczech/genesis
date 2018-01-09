@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,7 +65,10 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make() const
     }
 
     // Use a gradient ID with randomness so that we get a different one for each palette.
-    std::string const gradient_id = "PaletteGradient_" + std::to_string( std::rand() );
+    std::string const gradient_id = ( id.empty()
+        ? "PaletteGradient_" + std::to_string( std::rand() )
+        : id
+    );
 
     // Depending on the orientation, set gradient points.
     SvgPoint point_1;
