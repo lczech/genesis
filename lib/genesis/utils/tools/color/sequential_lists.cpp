@@ -1486,58 +1486,58 @@ std::vector<Color> const& color_list_viridis()
 std::vector<Color> const& sequential_color_list( SequentialColorList palette )
 {
     if( palette == SequentialColorList::kBlues ) {
-        return color_list_magma_;
+        return color_list_blues_;
     }
     if( palette == SequentialColorList::kBugn ) {
-        return color_list_magma_;
+        return color_list_bugn_;
     }
     if( palette == SequentialColorList::kBupu ) {
-        return color_list_magma_;
+        return color_list_bupu_;
     }
     if( palette == SequentialColorList::kGnbu ) {
-        return color_list_magma_;
+        return color_list_gnbu_;
     }
     if( palette == SequentialColorList::kGreens ) {
-        return color_list_magma_;
+        return color_list_greens_;
     }
     if( palette == SequentialColorList::kGreys ) {
-        return color_list_magma_;
+        return color_list_greys_;
     }
     if( palette == SequentialColorList::kOranges ) {
-        return color_list_magma_;
+        return color_list_oranges_;
     }
     if( palette == SequentialColorList::kOrrd ) {
-        return color_list_magma_;
+        return color_list_orrd_;
     }
     if( palette == SequentialColorList::kPubu ) {
-        return color_list_magma_;
+        return color_list_pubu_;
     }
     if( palette == SequentialColorList::kPubugn ) {
-        return color_list_magma_;
+        return color_list_pubugn_;
     }
     if( palette == SequentialColorList::kPurd ) {
-        return color_list_magma_;
+        return color_list_purd_;
     }
     if( palette == SequentialColorList::kPurples ) {
-        return color_list_magma_;
+        return color_list_purples_;
     }
     if( palette == SequentialColorList::kRdpu ) {
-        return color_list_magma_;
+        return color_list_rdpu_;
     }
     if( palette == SequentialColorList::kReds ) {
-        return color_list_magma_;
+        return color_list_reds_;
     }
     if( palette == SequentialColorList::kYlgn ) {
-        return color_list_magma_;
+        return color_list_ylgn_;
     }
     if( palette == SequentialColorList::kYlgnbu ) {
-        return color_list_magma_;
+        return color_list_ylgnbu_;
     }
     if( palette == SequentialColorList::kYlorbr ) {
-        return color_list_magma_;
+        return color_list_ylorbr_;
     }
     if( palette == SequentialColorList::kYlorrd ) {
-        return color_list_magma_;
+        return color_list_ylorrd_;
     }
     if( palette == SequentialColorList::kMagma ) {
         return color_list_magma_;
@@ -1560,58 +1560,58 @@ std::vector<Color> const& sequential_color_list( std::string const& palette )
     auto const p = to_lower_ascii( palette );
 
     if( p == "blues" ) {
-        return color_list_magma_;
+        return color_list_blues_;
     }
     if( p == "bugn" ) {
-        return color_list_magma_;
+        return color_list_bugn_;
     }
     if( p == "bupu" ) {
-        return color_list_magma_;
+        return color_list_bupu_;
     }
     if( p == "gnbu" ) {
-        return color_list_magma_;
+        return color_list_gnbu_;
     }
     if( p == "greens" ) {
-        return color_list_magma_;
+        return color_list_greens_;
     }
     if( p == "greys" ) {
-        return color_list_magma_;
+        return color_list_greys_;
     }
     if( p == "oranges" ) {
-        return color_list_magma_;
+        return color_list_oranges_;
     }
     if( p == "orrd" ) {
-        return color_list_magma_;
+        return color_list_orrd_;
     }
     if( p == "pubu" ) {
-        return color_list_magma_;
+        return color_list_pubu_;
     }
     if( p == "pubugn" ) {
-        return color_list_magma_;
+        return color_list_pubugn_;
     }
     if( p == "purd" ) {
-        return color_list_magma_;
+        return color_list_purd_;
     }
     if( p == "purples" ) {
-        return color_list_magma_;
+        return color_list_purples_;
     }
     if( p == "rdpu" ) {
-        return color_list_magma_;
+        return color_list_rdpu_;
     }
     if( p == "reds" ) {
-        return color_list_magma_;
+        return color_list_reds_;
     }
     if( p == "ylgn" ) {
-        return color_list_magma_;
+        return color_list_ylgn_;
     }
     if( p == "ylgnbu" ) {
-        return color_list_magma_;
+        return color_list_ylgnbu_;
     }
     if( p == "ylorbr" ) {
-        return color_list_magma_;
+        return color_list_ylorbr_;
     }
     if( p == "ylorrd" ) {
-        return color_list_magma_;
+        return color_list_ylorrd_;
     }
     if( p == "magma" ) {
         return color_list_magma_;
