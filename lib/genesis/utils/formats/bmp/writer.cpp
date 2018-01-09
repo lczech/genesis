@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -150,7 +150,7 @@ void BmpWriter::to_file( Matrix<unsigned char> const& image, std::string const& 
 // =================================================================================================
 
 void BmpWriter::to_stream(
-    Matrix<unsigned char> const& image, std::vector<Color> palette, std::ostream& outstream
+    Matrix<unsigned char> const& image, std::vector<Color> const& palette, std::ostream& outstream
 ) const {
     // Use some nicer names.
     auto const width  = image.cols();
@@ -224,7 +224,7 @@ void BmpWriter::to_stream(
 }
 
 void BmpWriter::to_file(
-    Matrix<unsigned char> const& image, std::vector<Color> palette, std::string const& filename
+    Matrix<unsigned char> const& image, std::vector<Color> const& palette, std::string const& filename
 ) const {
     std::ofstream ofs;
     utils::file_output_stream( filename, ofs );

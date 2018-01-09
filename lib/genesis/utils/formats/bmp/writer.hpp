@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -228,7 +228,7 @@ public:
      * maps to the Color `palette[ 5 ]`.
      */
     void to_stream(
-        Matrix<unsigned char> const& image, std::vector<Color> palette, std::ostream& outstream
+        Matrix<unsigned char> const& image, std::vector<Color> const& palette, std::ostream& outstream
     ) const;
 
     /**
@@ -239,7 +239,7 @@ public:
      * maps to the Color `palette[ 5 ]`.
      */
     void to_file(
-        Matrix<unsigned char> const& image, std::vector<Color> palette, std::string const& filename
+        Matrix<unsigned char> const& image, std::vector<Color> const& palette, std::string const& filename
     ) const;
 
     // ---------------------------------------------------------------------
