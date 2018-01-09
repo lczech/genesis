@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -73,6 +73,26 @@ ColorPalette& ColorPalette::range( std::vector<double> const& values, bool cente
 // =================================================================================================
 //     Palette
 // =================================================================================================
+
+std::vector<Color> ColorPalette::color_list( size_t n ) const
+{
+    // Result.
+    std::vector<Color> result;
+    result.reserve( n );
+
+    // Boundary checks.
+    if( n < 2 ) {
+        throw std::runtime_error(
+            "Cannot create color list with palette that has less than two entries."
+        );
+    }
+
+    for( size_t i = 0; i < n; ++i ) {
+        auto const pos = static_cast<double>( i ) / static_cast<double>( n - 1 );
+        result.push_back( get_interpolated_color_( pos ));
+    }
+    return result;
+}
 
 Color ColorPalette::qualitative_color( size_t index ) const
 {
