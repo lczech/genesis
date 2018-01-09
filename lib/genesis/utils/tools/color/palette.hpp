@@ -318,7 +318,7 @@ public:
      * distance across the palette.
      *
      * This is for example useful for creating a palette to write a bitmap file, see
-     * @link BmpWriter::to_file( Matrix<unsigned char> const&, std::vector<Color>, std::string const& ) BmpWriter::to_file()endlink.
+     * @link BmpWriter::to_file( Matrix<unsigned char> const&, std::vector<Color> const&, std::string const& ) const BmpWriter::to_file()@endlink.
      */
     std::vector<Color> color_list( size_t n = 256 ) const;
 
