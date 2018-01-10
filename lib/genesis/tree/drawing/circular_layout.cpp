@@ -30,16 +30,8 @@
 
 #include "genesis/tree/drawing/circular_layout.hpp"
 
-#include "genesis/tree/default/distances.hpp"
-#include "genesis/tree/default/tree.hpp"
-#include "genesis/tree/function/distances.hpp"
-#include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
-#include "genesis/tree/iterator/eulertour.hpp"
-#include "genesis/tree/iterator/preorder.hpp"
-#include "genesis/tree/iterator/postorder.hpp"
 
-#include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/math/common.hpp"
 
 #include <algorithm>
@@ -51,7 +43,7 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Options
+//     Settings
 // =================================================================================================
 
 CircularLayout& CircularLayout::radius( double const value )
@@ -68,37 +60,6 @@ double CircularLayout::radius() const
 // =================================================================================================
 //     Virtual Functions
 // =================================================================================================
-
-void CircularLayout::init_node_( TreeNode& node, TreeNode const& orig_node )
-{
-    (void) orig_node;
-    node.reset_data( CircularNodeData::create() );
-}
-
-void CircularLayout::init_edge_( TreeEdge& edge, TreeEdge const& orig_edge )
-{
-    (void) orig_edge;
-    edge.reset_data( CircularEdgeData::create() );
-}
-
-void CircularLayout::init_layout_()
-{
-    if( tree().empty() ) {
-        return;
-    }
-
-    // Set radiuses of nodes.
-    if( type() == Type::kCladogram ) {
-        set_node_r_cladogram_();
-    } else if( type() == Type::kPhylogram ) {
-        set_node_r_phylogram_();
-    } else {
-        assert( false );
-    }
-
-    // Set angles of nodes.
-    set_node_a_();
-}
 
 utils::SvgDocument CircularLayout::to_svg_document_() const
 {
@@ -118,35 +79,38 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
     for( auto const& node_it : tree().nodes() ) {
         auto const& node = *node_it;
 
-        auto const& node_data = node.data<CircularNodeData>();
-        auto const& prnt_data = tree().node_at( node_data.parent_index ).data<CircularNodeData>();
+        auto const& node_data = node.data<LayoutNodeData>();
+        auto const& prnt_data = tree().node_at( node_data.parent_index ).data<LayoutNodeData>();
 
-        auto const node_x = node_data.r * radius * cos( node_data.a );
-        auto const node_y = node_data.r * radius * sin( node_data.a );
+        auto const node_spreading = 2.0 * utils::PI * node_data.spreading;
+        auto const prnt_spreading = 2.0 * utils::PI * prnt_data.spreading;
+
+        auto const node_x = node_data.distance * radius * cos( node_spreading );
+        auto const node_y = node_data.distance * radius * sin( node_spreading );
 
         // Get the edge between the node and its parent.
         auto edge_data_ptr = edge_between( node, tree().node_at( node_data.parent_index ) );
 
         // If there is an edge (i.e., we are not at the root), draw lines between the nodes.
         if( edge_data_ptr ) {
-            auto stroke = edge_data_ptr->data<CircularEdgeData>().stroke;
+            auto stroke = edge_data_ptr->data<LayoutEdgeData>().stroke;
             stroke.line_cap = utils::SvgStroke::LineCap::kRound;
 
-            auto start_a = prnt_data.a;
-            auto end_a   = node_data.a;
-            if( prnt_data.a > node_data.a ) {
+            auto start_a = prnt_spreading;
+            auto end_a   = node_spreading;
+            if( prnt_spreading > node_spreading ) {
                 std::swap( start_a, end_a );
             }
 
             tree_lines << SvgPath(
-                { svg_arc( 0, 0, prnt_data.r * radius, start_a, end_a ) },
+                { svg_arc( 0, 0, prnt_data.distance * radius, start_a, end_a ) },
                 stroke,
                 SvgFill( SvgFill::Type::kNone )
             );
 
             tree_lines << SvgLine(
-                prnt_data.r * radius * cos( node_data.a ),
-                prnt_data.r * radius * sin( node_data.a ),
+                prnt_data.distance * radius * cos( node_spreading ),
+                prnt_data.distance * radius * sin( node_spreading ),
                 node_x, node_y,
                 stroke
             );
@@ -165,12 +129,12 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
             auto label = text_template();
             label.text = node_data.name;
             label.transform.append( SvgTransform::Translate(
-                ( node_data.r * radius + 10 ) * cos( node_data.a ),
-                ( node_data.r * radius + 10 ) * sin( node_data.a )
+                ( node_data.distance * radius + 10 ) * cos( node_spreading ),
+                ( node_data.distance * radius + 10 ) * sin( node_spreading )
             ));
-            label.transform.append( SvgTransform::Rotate(
-                360 * node_data.a / ( 2.0 * utils::PI )
-            ));
+
+            // Rotate the label, using the spreading [0, 1] value directly.
+            label.transform.append( SvgTransform::Rotate( 360 * node_data.spreading ));
             taxa_names << std::move( label );
         }
 
@@ -195,101 +159,6 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
         doc << std::move( node_shapes );
     }
     return doc;
-}
-
-// =================================================================================================
-//     Internal Functions
-// =================================================================================================
-
-void CircularLayout::set_node_a_()
-{
-    auto const num_leaves = static_cast<double>( leaf_node_count( tree() ));
-
-    // Set node parents and angles of leaves.
-    size_t leaf_count = 0;
-    size_t parent = 0;
-    for( auto it : eulertour( tree() )) {
-        auto& node_data = tree().node_at( it.node().index() ).data<CircularNodeData>();
-
-        if( node_data.parent_index == -1 ) {
-            node_data.parent_index = parent;
-        }
-        if( it.node().is_leaf() ) {
-            node_data.a = 2.0 * utils::PI * static_cast<double>(leaf_count) / num_leaves;
-            ++leaf_count;
-        }
-
-        parent = it.node().index();
-    }
-    assert( leaf_count == num_leaves );
-
-    auto children_min_a = std::vector<double>( tree().node_count(), -1.0 );
-    auto children_max_a = std::vector<double>( tree().node_count(), -1.0 );
-
-    // Set remaining angles of inner nodes to mid-points of their children.
-    for( auto it : postorder( tree() )) {
-        auto const node_index = it.node().index();
-        auto& node_data = tree().node_at( node_index ).data<CircularNodeData>();
-        auto const prnt_index = node_data.parent_index;
-
-        if( node_data.a < 0.0 ) {
-            // We already have done those nodes because of the postorder.
-            assert( children_min_a[ node_index ] > -1.0 );
-            assert( children_max_a[ node_index ] > -1.0 );
-
-            auto min_max_diff = children_max_a[ node_index ] - children_min_a[ node_index ];
-            node_data.a = children_min_a[ node_index ] + min_max_diff / 2.0;
-        }
-
-        if( children_min_a[ prnt_index ] < 0.0 || children_min_a[ prnt_index ] > node_data.a ) {
-            children_min_a[ prnt_index ] = node_data.a;
-        }
-        if( children_max_a[ prnt_index ] < 0.0 || children_max_a[ prnt_index ] < node_data.a ) {
-            children_max_a[ prnt_index ] = node_data.a;
-        }
-    }
-}
-
-void CircularLayout::set_node_r_phylogram_()
-{
-    // Get distnace from root to every node.
-    auto const node_dists = node_branch_length_distance_vector( tree() );
-
-    // We already check the size in init_layout_()
-    assert( ! node_dists.empty() );
-    auto const max_r = *std::max_element( node_dists.begin(), node_dists.end() );
-
-    for( size_t i = 0; i < node_dists.size(); ++i ) {
-        tree().node_at(i).data<CircularNodeData>().r = node_dists[i] / max_r;
-    }
-}
-
-void CircularLayout::set_node_r_cladogram_()
-{
-    // Set root r to 0.
-    tree().root_node().data<CircularNodeData>().r = 0.0;
-
-    // Get the heights of all subtrees starting from the root.
-    auto const heights = subtree_max_path_heights( tree() );
-
-    // Get the height of the tree, i.e. longest path from root to any leaf.
-    auto const root_height = static_cast<double>( heights[ tree().root_node().index() ] );
-
-    for( auto it : preorder( tree() )) {
-        // The subtree height calculation does not work for the root, so skip it.
-        // Also, we already set the leaf.
-        if( it.is_first_iteration() ) {
-            continue;
-        }
-
-        // Get the height of the subtree starting at the current node.
-        auto const height = static_cast<double>( heights[ it.node().index() ]);
-        assert( height <= root_height );
-
-        // Set the radius.
-        auto const r = ( root_height - height ) / root_height;
-        tree().node_at( it.node().index() ).data<CircularNodeData>().r = r;
-    }
 }
 
 } // namespace tree

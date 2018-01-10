@@ -63,6 +63,13 @@ public:
     // -------------------------------------------------------------
 
     LayoutBase()  = default;
+
+    LayoutBase( Tree const& orig_tree, Type const drawing_type = Type::kCladogram )
+    {
+        type( drawing_type );
+        tree( orig_tree );
+    }
+
     virtual ~LayoutBase() = default;
 
     LayoutBase( LayoutBase const& ) = default;
@@ -115,10 +122,6 @@ protected:
 
 protected:
 
-    virtual void init_node_( TreeNode& node, TreeNode const& orig_node ) = 0;
-    virtual void init_edge_( TreeEdge& edge, TreeEdge const& orig_edge ) = 0;
-    virtual void init_layout_() = 0;
-
     virtual utils::SvgDocument to_svg_document_() const = 0;
 
     // -------------------------------------------------------------
@@ -128,6 +131,11 @@ protected:
 private:
 
     void init_tree_( Tree const& orig_tree );
+    void init_layout_();
+
+    void set_node_spreadings_();
+    void set_node_distances_phylogram_();
+    void set_node_distances_cladogram_();
 
     // -------------------------------------------------------------
     //     Data Members
@@ -137,7 +145,7 @@ private:
 
     LayoutTree tree_;
 
-    Type type_ = Type::kPhylogram;
+    Type type_ = Type::kCladogram;
 
     utils::SvgText text_template_ = utils::SvgText();
 

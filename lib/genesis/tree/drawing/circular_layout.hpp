@@ -33,7 +33,6 @@
 
 #include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/tree/drawing/layout_base.hpp"
-#include "genesis/tree/drawing/circular_tree.hpp"
 
 #include <string>
 #include <vector>
@@ -54,11 +53,9 @@ public:
     // -------------------------------------------------------------
 
     CircularLayout()  = default;
-    CircularLayout( Tree const& orig_tree, Type const drawing_type = Type::kPhylogram )
-    {
-        type( drawing_type );
-        tree(orig_tree);
-    }
+    CircularLayout( Tree const& orig_tree, Type const drawing_type = Type::kCladogram )
+        : LayoutBase( orig_tree, drawing_type )
+    {}
 
     virtual ~CircularLayout() = default;
 
@@ -69,7 +66,7 @@ public:
     CircularLayout& operator= ( CircularLayout&& )      = default;
 
     // -------------------------------------------------------------
-    //     Options
+    //     Settings
     // -------------------------------------------------------------
 
     CircularLayout& radius( double const value );
@@ -81,21 +78,7 @@ public:
 
 private:
 
-    void init_node_( TreeNode& node, TreeNode const& orig_node ) override;
-    void init_edge_( TreeEdge& edge, TreeEdge const& orig_edge ) override;
-    void init_layout_() override;
-
     utils::SvgDocument to_svg_document_() const override;
-
-    // -------------------------------------------------------------
-    //     Internal Functions
-    // -------------------------------------------------------------
-
-private:
-
-    void set_node_a_();
-    void set_node_r_phylogram_();
-    void set_node_r_cladogram_();
 
     // -------------------------------------------------------------
     //     Data Members

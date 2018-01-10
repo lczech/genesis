@@ -122,31 +122,28 @@ public:
 
 public:
 
-    // TODO if we stay at only using circular and rectangular trees,
-    // we might want to drop the code duplication and use this instead:
+    /**
+     * @brief Distance of the node to the root.
+     *
+     * For rectangular trees, this is the x coordinate,
+     * while for circular trees, this is the radius.
+     * This is normalized so that the node furthest away from the root has a distance of 1.
+     */
+    double distance = -1.0;
 
-    // /**
-    //  * @brief Distance of the node to the root.
-    //  *
-    //  * For rectangular trees, this is the x coordinate,
-    //  * while for circular trees, this is the radius.
-    //  * This is normalized so that the node furthest away from the root has a distance of 1.
-    //  */
-    // double distance = -1.0;
-    //
-    // /**
-    //  * @brief Position of the node along the second axis.
-    //  *
-    //  * As phylogenies usually only need to display branch length, the second dimension
-    //  * is only necessary so that the lines of the branches are actually distinguishable
-    //  * from each other.
-    //  * This value is used for that purpose. That is, for rectangular trees, this is the y coordiante,
-    //  * while for circular trees, this is the angle.
-    //  * It is normalized so that the largest spreading (for the last node of the tree) is 1.
-    //  */
-    // double spreading = -1.0;
-    //
-    // int parent_index = -1;
+    /**
+     * @brief Position of the node along the second axis.
+     *
+     * As phylogenies usually only need to display branch length, the second dimension
+     * is only necessary so that the lines of the branches are actually distinguishable
+     * from each other.
+     * This value is used for that purpose. That is, for rectangular trees, this is the y coordiante,
+     * while for circular trees, this is the angle.
+     * It is normalized so that the largest spreading (for the last node of the tree) is 1.
+     */
+    double spreading = -1.0;
+
+    int parent_index = -1;
 
     utils::SvgGroup shape;
 

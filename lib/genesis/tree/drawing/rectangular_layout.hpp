@@ -33,7 +33,6 @@
 
 #include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/tree/drawing/layout_base.hpp"
-#include "genesis/tree/drawing/rectangular_tree.hpp"
 
 #include <string>
 #include <vector>
@@ -54,11 +53,9 @@ public:
     // -------------------------------------------------------------
 
     RectangularLayout()  = default;
-    RectangularLayout( Tree const& orig_tree, Type const drawing_type = Type::kPhylogram )
-    {
-        type( drawing_type );
-        tree(orig_tree);
-    }
+    RectangularLayout( Tree const& orig_tree, Type const drawing_type = Type::kCladogram )
+        : LayoutBase( orig_tree, drawing_type )
+    {}
 
     virtual ~RectangularLayout() = default;
 
@@ -69,7 +66,7 @@ public:
     RectangularLayout& operator= ( RectangularLayout&& )      = default;
 
     // -------------------------------------------------------------
-    //     Options
+    //     Settings
     // -------------------------------------------------------------
 
     RectangularLayout& width( double const value );
@@ -84,21 +81,7 @@ public:
 
 private:
 
-    void init_node_( TreeNode& node, TreeNode const& orig_node ) override;
-    void init_edge_( TreeEdge& edge, TreeEdge const& orig_edge ) override;
-    void init_layout_() override;
-
     utils::SvgDocument to_svg_document_() const override;
-
-    // -------------------------------------------------------------
-    //     Internal Functions
-    // -------------------------------------------------------------
-
-private:
-
-    void set_node_y_();
-    void set_node_x_phylogram_();
-    void set_node_x_cladogram_();
 
     // -------------------------------------------------------------
     //     Data Members
