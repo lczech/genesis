@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -151,6 +151,9 @@ public:
         return reverse_;
     }
 
+    /**
+     * @brief Get the color list currently in use.
+     */
     std::vector<Color> const& palette() const
     {
         return palette_;
@@ -309,6 +312,15 @@ public:
     // -------------------------------------------------------------------------
     //     Palette
     // -------------------------------------------------------------------------
+
+    /**
+     * @brief Get a color list based on the palette, containing @p n colors sampled at equal
+     * distance across the palette.
+     *
+     * This is for example useful for creating a palette to write a bitmap file, see
+     * @link BmpWriter::to_file( Matrix<unsigned char> const&, std::vector<Color> const&, std::string const& ) const BmpWriter::to_file()@endlink.
+     */
+    std::vector<Color> color_list( size_t n = 256 ) const;
 
     Color qualitative_color( size_t index ) const;
 

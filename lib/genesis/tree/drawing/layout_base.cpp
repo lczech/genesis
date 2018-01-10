@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -29,6 +29,17 @@
  */
 
 #include "genesis/tree/drawing/layout_base.hpp"
+
+#include "genesis/tree/default/distances.hpp"
+#include "genesis/tree/default/tree.hpp"
+#include "genesis/tree/function/distances.hpp"
+#include "genesis/tree/function/functions.hpp"
+#include "genesis/tree/function/operators.hpp"
+#include "genesis/tree/iterator/eulertour.hpp"
+#include "genesis/tree/iterator/preorder.hpp"
+#include "genesis/tree/iterator/postorder.hpp"
+
+#include <cassert>
 
 namespace genesis {
 namespace tree {
@@ -74,6 +85,164 @@ void LayoutBase::set_node_shapes( std::vector< utils::SvgGroup> const& shapes )
 }
 
 // =================================================================================================
+//     Init
+// =================================================================================================
+
+void LayoutBase::init_tree_( Tree const& orig_tree )
+{
+    // Init nodes.
+    for( size_t i = 0; i < tree().node_count(); ++i ) {
+        auto& node = tree().node_at(i);
+        auto const& orig_node = orig_tree.node_at(i);
+
+        // Safety: correct indices.
+        assert( node.index() == i && orig_node.index() == i );
+
+        // Set the tree node data.
+        node.reset_data( LayoutNodeData::create() );
+
+        // If the original tree has node names, use them.
+        auto orig_node_data_ptr = orig_node.data_cast<DefaultNodeData>();
+        if( orig_node_data_ptr ) {
+            node.data<DefaultNodeData>().name = orig_node_data_ptr->name;
+        }
+    }
+
+    // Init edges.
+    for( size_t i = 0; i < tree().edge_count(); ++i ) {
+        auto& edge = tree().edge_at(i);
+        auto const& orig_edge = orig_tree.edge_at(i);
+
+        // Safety: correct indices.
+        assert( edge.index() == i && orig_edge.index() == i );
+
+        // Set the tree edge data.
+        edge.reset_data( LayoutEdgeData::create() );
+
+        // If the original tree has edge branch lengths, use them.
+        auto orig_edge_data_ptr = orig_edge.data_cast<DefaultEdgeData>();
+        if( orig_edge_data_ptr ) {
+            edge.data<DefaultEdgeData>().branch_length = orig_edge_data_ptr->branch_length;
+        }
+    }
+
+    // Layout
+    init_layout_();
+}
+
+void LayoutBase::init_layout_()
+{
+    if( tree().empty() ) {
+        return;
+    }
+
+    // Set distances of nodes.
+    if( type() == Type::kCladogram ) {
+        set_node_distances_cladogram_();
+    } else if( type() == Type::kPhylogram ) {
+        set_node_distances_phylogram_();
+    } else {
+        assert( false );
+    }
+
+    // Set spreadings of nodes.
+    set_node_spreadings_();
+}
+
+void LayoutBase::set_node_spreadings_()
+{
+    auto const num_leaves = static_cast<double>( leaf_node_count( tree() ));
+
+    // Set node parents and spreading of leaves.
+    size_t leaf_count = 0;
+    size_t parent = 0;
+    for( auto it : eulertour( tree() )) {
+        auto& node_data = tree().node_at( it.node().index() ).data<LayoutNodeData>();
+
+        if( node_data.parent_index == -1 ) {
+            node_data.parent_index = parent;
+        }
+        if( it.node().is_leaf() ) {
+            node_data.spreading = static_cast<double>(leaf_count) / num_leaves;
+            leaf_count++;
+        }
+
+        parent = it.node().index();
+    }
+    assert( leaf_count == num_leaves );
+
+    // Min and max spreading of the children of each node.
+    // Init to -1.0 so that we can check which ones are done already.
+    auto chrn_min_s = std::vector<double>( tree().node_count(), -1.0 );
+    auto chrn_max_s = std::vector<double>( tree().node_count(), -1.0 );
+
+    // Set remaining spreading of inner nodes to mid-points of their children.
+    for( auto it : postorder( tree() )) {
+        auto const node_index = it.node().index();
+        auto& node_data   = tree().node_at( node_index ).data<LayoutNodeData>();
+        auto const prnt_index = node_data.parent_index;
+
+        if( node_data.spreading < 0.0 ) {
+            // We already have done those nodes because of the postorder.
+            assert( chrn_min_s[ node_index ] > -1.0 );
+            assert( chrn_max_s[ node_index ] > -1.0 );
+
+            auto min_max_diff = chrn_max_s[ node_index ] - chrn_min_s[ node_index ];
+            node_data.spreading = chrn_min_s[ node_index ] + min_max_diff / 2.0;
+        }
+
+        if( chrn_min_s[ prnt_index ] < 0.0 || chrn_min_s[ prnt_index ] > node_data.spreading ) {
+            chrn_min_s[ prnt_index ] = node_data.spreading;
+        }
+        if( chrn_max_s[ prnt_index ] < 0.0 || chrn_max_s[ prnt_index ] < node_data.spreading ) {
+            chrn_max_s[ prnt_index ] = node_data.spreading;
+        }
+    }
+}
+
+void LayoutBase::set_node_distances_phylogram_()
+{
+    // Get distnace from root to every node.
+    auto node_dists = node_branch_length_distance_vector( tree() );
+
+    // We already check the size in init_layout_()
+    assert( ! node_dists.empty() );
+    auto const max_d = *std::max_element( node_dists.begin(), node_dists.end() );
+
+    for( size_t i = 0; i < node_dists.size(); ++i ) {
+        tree().node_at(i).data<LayoutNodeData>().distance = node_dists[i] / max_d;
+    }
+}
+
+void LayoutBase::set_node_distances_cladogram_()
+{
+    // Set root distance to 0.
+    tree().root_node().data<LayoutNodeData>().distance = 0.0;
+
+    // Get the heights of all subtrees starting from the root.
+    auto const heights = subtree_max_path_heights( tree() );
+
+    // Get the height of the tree, i.e. longest path from root to any leaf.
+    auto const root_height = static_cast<double>( heights[ tree().root_node().index() ] );
+
+    for( auto it : preorder( tree() )) {
+        // The subtree height calculation does not work for the root, so skip it.
+        // Also, we already set the leaf.
+        if( it.is_first_iteration() ) {
+            continue;
+        }
+
+        // Get the height of the subtree starting at the current node.
+        auto const height = static_cast<double>( heights[ it.node().index() ]);
+        assert( height <= root_height );
+
+        // Set the distance.
+        auto const distance = ( root_height - height ) / root_height;
+        tree().node_at( it.node().index() ).data<LayoutNodeData>().distance = distance;
+    }
+}
+
+// =================================================================================================
 //     Options
 // =================================================================================================
 
@@ -95,6 +264,9 @@ utils::SvgText const& LayoutBase::text_template() const
 void LayoutBase::type( Type const drawing_type )
 {
     type_ = drawing_type;
+    if( ! tree_.empty() ) {
+        init_layout_();
+    }
 }
 
 LayoutBase::Type LayoutBase::type() const

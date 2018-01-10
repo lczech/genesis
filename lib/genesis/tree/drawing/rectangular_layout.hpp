@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@
 
 #include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/tree/drawing/layout_base.hpp"
-#include "genesis/tree/drawing/rectangular_tree.hpp"
 
 #include <string>
 #include <vector>
@@ -54,7 +53,9 @@ public:
     // -------------------------------------------------------------
 
     RectangularLayout()  = default;
-    RectangularLayout( Tree const& orig_tree, Type const drawing_type = Type::kPhylogram );
+    RectangularLayout( Tree const& orig_tree, Type const drawing_type = Type::kCladogram )
+        : LayoutBase( orig_tree, drawing_type )
+    {}
 
     virtual ~RectangularLayout() = default;
 
@@ -65,14 +66,14 @@ public:
     RectangularLayout& operator= ( RectangularLayout&& )      = default;
 
     // -------------------------------------------------------------
-    //     Options
+    //     Settings
     // -------------------------------------------------------------
 
-    RectangularLayout& scaler_x( double const sx );
-    double scaler_x() const;
+    RectangularLayout& width( double const value );
+    double width() const;
 
-    RectangularLayout& scaler_y( double const sy );
-    double scaler_y() const;
+    RectangularLayout& height( double const value );
+    double height() const;
 
     // -------------------------------------------------------------
     //     Virtual Functions
@@ -80,22 +81,7 @@ public:
 
 private:
 
-    void init_tree_( Tree const& orig_tree ) override;
-
     utils::SvgDocument to_svg_document_() const override;
-
-    // -------------------------------------------------------------
-    //     Internal Functions
-    // -------------------------------------------------------------
-
-private:
-
-    void init_nodes_( Tree const& orig_tree );
-    void init_edges_( Tree const& orig_tree );
-
-    void set_node_y_();
-    void set_node_x_phylogram_();
-    void set_node_x_cladogram_();
 
     // -------------------------------------------------------------
     //     Data Members
@@ -103,8 +89,8 @@ private:
 
 private:
 
-    double scaler_x_ = 100.0;
-    double scaler_y_ = 10.0;
+    double width_ = 0.0;
+    double height_ = 0.0;
 
 };
 

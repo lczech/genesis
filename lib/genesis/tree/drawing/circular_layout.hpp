@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,7 +33,6 @@
 
 #include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/tree/drawing/layout_base.hpp"
-#include "genesis/tree/drawing/circular_tree.hpp"
 
 #include <string>
 #include <vector>
@@ -54,7 +53,9 @@ public:
     // -------------------------------------------------------------
 
     CircularLayout()  = default;
-    CircularLayout( Tree const& orig_tree, Type const drawing_type = Type::kPhylogram );
+    CircularLayout( Tree const& orig_tree, Type const drawing_type = Type::kCladogram )
+        : LayoutBase( orig_tree, drawing_type )
+    {}
 
     virtual ~CircularLayout() = default;
 
@@ -65,11 +66,11 @@ public:
     CircularLayout& operator= ( CircularLayout&& )      = default;
 
     // -------------------------------------------------------------
-    //     Options
+    //     Settings
     // -------------------------------------------------------------
 
-    CircularLayout& radius_scaler( double const value );
-    double radius_scaler() const;
+    CircularLayout& radius( double const value );
+    double radius() const;
 
     // -------------------------------------------------------------
     //     Virtual Functions
@@ -77,22 +78,7 @@ public:
 
 private:
 
-    void init_tree_( Tree const& orig_tree ) override;
-
     utils::SvgDocument to_svg_document_() const override;
-
-    // -------------------------------------------------------------
-    //     Internal Functions
-    // -------------------------------------------------------------
-
-private:
-
-    void init_nodes_( Tree const& orig_tree );
-    void init_edges_( Tree const& orig_tree );
-
-    void set_node_a_();
-    void set_node_r_phylogram_();
-    void set_node_r_cladogram_();
 
     // -------------------------------------------------------------
     //     Data Members
@@ -100,7 +86,7 @@ private:
 
 private:
 
-    double scaler_r_ = 10.0;
+    double radius_ = 0.0;
 
 };
 

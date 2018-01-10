@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,17 +53,17 @@ namespace tree {
 //     Squash Clustering
 // =================================================================================================
 
-SquashClustering squash_clustering_init( std::vector<MassTree>&& trees, double const p  )
+void SquashClustering::init_( std::vector<MassTree>&& trees )
 {
-    // Create empty result object. Both its clusters and mergeres are empty.
-    SquashClustering sc;
+    // Clear. Both its clusters and mergeres are empty.
+    clear();
 
     // Move all trees as single data points to the cluster list, and make them active.
-    sc.clusters.resize( trees.size() );
+    clusters_.resize( trees.size() );
     for( size_t i = 0; i < trees.size(); ++i ) {
-        sc.clusters[i].tree   = std::move( trees[i] );
-        sc.clusters[i].count  = 1;
-        sc.clusters[i].active = true;
+        clusters_[i].tree   = std::move( trees[i] );
+        clusters_[i].count  = 1;
+        clusters_[i].active = true;
     }
 
     // Fill the "lower triangle" of distances, i.e., all distances to elements with lower indices
@@ -71,24 +71,22 @@ SquashClustering squash_clustering_init( std::vector<MassTree>&& trees, double c
     // for each cluster instead, as this makes it trivial to keep track of the data when merging
     // clusters. No need to keep track of which row belongs to which cluster etc.
     // We do this in a second loop, so that all trees haven been moved and OpenMP can access them.
-    for( size_t i = 0; i < sc.clusters.size(); ++i ) {
+    for( size_t i = 0; i < clusters_.size(); ++i ) {
 
         // The cluster need i many distance entries, i.e., cluster 0 needs 0 entries,
         // cluster 1 needs 1 entry (to compare it to cluster 0), and so forth.
-        sc.clusters[i].distances.resize( i );
+        clusters_[i].distances.resize( i );
 
         // Calculate the distances.
         #pragma omp parallel for
         for( size_t k = 0; k < i; ++k ) {
-            auto const dist = earth_movers_distance( sc.clusters[i].tree, sc.clusters[k].tree, p );
-            sc.clusters[i].distances[k] = dist;
+            auto const dist = earth_movers_distance( clusters_[i].tree, clusters_[k].tree, p_ );
+            clusters_[i].distances[k] = dist;
         }
     }
-
-    return sc;
 }
 
-std::pair<size_t, size_t> squash_clustering_min_entry( SquashClustering const& sc )
+std::pair<size_t, size_t> SquashClustering::min_entry_() const
 {
     // Init.
     size_t min_i = 0;
@@ -97,27 +95,27 @@ std::pair<size_t, size_t> squash_clustering_min_entry( SquashClustering const& s
 
     // Find min cell.
     #pragma omp parallel for schedule(dynamic)
-    for( size_t i = 0; i < sc.clusters.size(); ++i ) {
-        if( ! sc.clusters[i].active ) {
+    for( size_t i = 0; i < clusters_.size(); ++i ) {
+        if( ! clusters_[i].active ) {
             continue;
         }
 
         // We only need to check the "lower triangle".
-        assert( sc.clusters[i].distances.size() == i );
+        assert( clusters_[i].distances.size() == i );
         for( size_t j = 0; j < i; ++j ) {
-            if( ! sc.clusters[j].active ) {
+            if( ! clusters_[j].active ) {
                 continue;
             }
 
             // Comparison.
             #pragma omp flush( min_d )
-            if( sc.clusters[i].distances[j] < min_d ) {
+            if( clusters_[i].distances[j] < min_d ) {
                 #pragma omp critical( GENESIS_TREE_MASS_TREE_SQUASH_CLUSTERING_MIN_ENTRY_UPDATE )
                 {
-                    if( sc.clusters[i].distances[j] < min_d ) {
+                    if( clusters_[i].distances[j] < min_d ) {
                         min_i = i;
                         min_j = j;
-                        min_d = sc.clusters[i].distances[j];
+                        min_d = clusters_[i].distances[j];
                     }
                 }
             }
@@ -129,98 +127,104 @@ std::pair<size_t, size_t> squash_clustering_min_entry( SquashClustering const& s
     return { min_j, min_i };
 }
 
-void squash_clustering_merge_clusters( SquashClustering& sc, size_t i, size_t j, double const p  )
+void SquashClustering::merge_clusters_( size_t i, size_t j )
 {
     assert( i < j );
-    assert( i < sc.clusters.size() && j < sc.clusters.size() );
-    assert( i < sc.clusters[j].distances.size() );
+    assert( i < clusters_.size() && j < clusters_.size() );
+    assert( i < clusters_[j].distances.size() );
 
     // Make new cluster.
-    sc.clusters.emplace_back();
-    auto& new_cluster = sc.clusters.back();
+    clusters_.emplace_back();
+    auto& new_cluster = clusters_.back();
 
     // Make a new cluster tree as the weighted average of both given trees.
-    auto const weight_i = static_cast<double>( sc.clusters[i].count );
-    auto const weight_j = static_cast<double>( sc.clusters[j].count );
+    auto const weight_i = static_cast<double>( clusters_[i].count );
+    auto const weight_j = static_cast<double>( clusters_[j].count );
     new_cluster.tree = mass_tree_merge_trees(
-        sc.clusters[i].tree, sc.clusters[j].tree, weight_i, weight_j
+        clusters_[i].tree, clusters_[j].tree, weight_i, weight_j
     );
     mass_tree_normalize_masses( new_cluster.tree );
 
     // Old way: Scale masses, merge them, scale back.
     // Scale both trees according to their weight (= count).
-    // mass_tree_scale_masses( sc.clusters[i].tree, static_cast<double>( sc.clusters[i].count ));
-    // mass_tree_scale_masses( sc.clusters[j].tree, static_cast<double>( sc.clusters[j].count ));
-    // new_cluster.tree = mass_tree_merge_trees( sc.clusters[i].tree, sc.clusters[j].tree );
+    // mass_tree_scale_masses( clusters_[i].tree, static_cast<double>( clusters_[i].count ));
+    // mass_tree_scale_masses( clusters_[j].tree, static_cast<double>( clusters_[j].count ));
+    // new_cluster.tree = mass_tree_merge_trees( clusters_[i].tree, clusters_[j].tree );
     //
     // mass_tree_normalize_masses( new_cluster.tree );
-    // mass_tree_scale_masses( sc.clusters[i].tree, 1.0 / static_cast<double>( sc.clusters[i].count ));
-    // mass_tree_scale_masses( sc.clusters[j].tree, 1.0 / static_cast<double>( sc.clusters[j].count ));
+    // mass_tree_scale_masses( clusters_[i].tree, 1.0 / static_cast<double>( clusters_[i].count ));
+    // mass_tree_scale_masses( clusters_[j].tree, 1.0 / static_cast<double>( clusters_[j].count ));
 
     // Set other properties of the new cluster.
-    new_cluster.count  = sc.clusters[i].count + sc.clusters[j].count;
+    new_cluster.count  = clusters_[i].count + clusters_[j].count;
     new_cluster.active = true;
-    new_cluster.distances.resize( sc.clusters.size() - 1, 0.0 );
+    new_cluster.distances.resize( clusters_.size() - 1, 0.0 );
 
     // Calculate distances to still active clusters, which also includes the two clusters that
     // we are about to merge. We will deactivate them after the loop. This way, we also compute
     // their distances in parallel, maximizing OpenMP throughput!
     #pragma omp parallel for schedule(dynamic)
-    for( size_t k = 0; k < sc.clusters.size() - 1; ++k ) {
-        if( ! sc.clusters[k].active ) {
+    for( size_t k = 0; k < clusters_.size() - 1; ++k ) {
+        if( ! clusters_[k].active ) {
             continue;
         }
 
-        auto const dist = earth_movers_distance( new_cluster.tree, sc.clusters[k].tree, p );
+        auto const dist = earth_movers_distance( new_cluster.tree, clusters_[k].tree, p_ );
         new_cluster.distances[k] = dist;
     }
 
     // Get the distance between the two clusters that we want to merge,
     // and make a new cluster merger.
-    sc.mergers.push_back({ i, new_cluster.distances[i], j, new_cluster.distances[j] });
+    mergers_.push_back({ i, new_cluster.distances[i], j, new_cluster.distances[j] });
 
     // Test. How much does the avg dist differ from proper emd dist?
     // We need to access the distance in reverse j i order, because of the lower triangle.
-    // auto const inner_dist = sc.clusters[j].distances[i];
-    // auto const avg_dist_i = inner_dist / static_cast<double>( sc.clusters[i].count );
-    // auto const avg_dist_j = inner_dist / static_cast<double>( sc.clusters[j].count );
+    // auto const inner_dist = clusters_[j].distances[i];
+    // auto const avg_dist_i = inner_dist / static_cast<double>( clusters_[i].count );
+    // auto const avg_dist_j = inner_dist / static_cast<double>( clusters_[j].count );
 
     // Deactive. Those two clusters are now merged.
-    sc.clusters[i].active = false;
-    sc.clusters[j].active = false;
+    clusters_[i].active = false;
+    clusters_[j].active = false;
 
     // We don't need the distances any more. Save mem.
-    sc.clusters[i].distances.clear();
-    sc.clusters[j].distances.clear();
+    clusters_[i].distances.clear();
+    clusters_[j].distances.clear();
 
     // We can also destroy those trees. For now. Maybe later, we want to write them first.
-    // sc.clusters[i].tree.clear();
-    // sc.clusters[j].tree.clear();
+    // clusters_[i].tree.clear();
+    // clusters_[j].tree.clear();
 }
 
-SquashClustering squash_clustering( std::vector<MassTree>&& trees, double const p  )
+void SquashClustering::run( std::vector<MassTree>&& trees )
 {
     // Number of trees we are going to cluster.
     auto const tree_count = trees.size();
 
     // Init the result object.
-    LOG_INFO << "Squash Clustering: Initialize";
-    SquashClustering sc = squash_clustering_init( std::move( trees ), p );
+    // LOG_INFO << "Squash Clustering: Initialize";
+    if( report_initialization ) {
+        report_initialization();
+    }
+    init_( std::move( trees ) );
 
     // Do a full clustering, until only one is left.
     for( size_t i = 0; i < tree_count - 1; ++i ) {
-        LOG_INFO << "Squash Clustering: Step " << (i+1) << " of " << tree_count - 1;
+        // LOG_INFO << "Squash Clustering: Step " << (i+1) << " of " << tree_count - 1;
+        if( report_step ) {
+            report_step( i + 1, tree_count - 1 );
+        }
 
-        auto const min_pair = squash_clustering_min_entry( sc );
+        auto const min_pair = min_entry_();
         assert( min_pair.first < min_pair.second );
 
-        squash_clustering_merge_clusters( sc, min_pair.first, min_pair.second, p );
+        merge_clusters_( min_pair.first, min_pair.second );
     }
 
     // At the end, we only have one big cluster node.
     assert( 1 == [&](){
         size_t count_active = 0;
-        for( auto const& c : sc.clusters ) {
+        for( auto const& c : clusters_ ) {
             if( c.active ) {
                 ++count_active;
             }
@@ -229,22 +233,20 @@ SquashClustering squash_clustering( std::vector<MassTree>&& trees, double const 
     }() );
 
     // Furthermore, make sure we have created the right number of mergers and clusters.
-    assert( tree_count + sc.mergers.size() == sc.clusters.size() );
-
-    return sc;
+    assert( tree_count + mergers_.size() == clusters_.size() );
 }
 
-std::string squash_cluster_tree( SquashClustering const& sc, std::vector<std::string> const& labels )
+std::string SquashClustering::tree_string( std::vector<std::string> const& labels ) const
 {
-    if( labels.size() != sc.clusters.size() - sc.mergers.size() ) {
+    if( labels.size() != clusters_.size() - mergers_.size() ) {
         throw std::runtime_error(
             "List of labels does not have the correct size for the number of squash cluster elements."
         );
     }
 
     auto list = labels;
-    for( size_t i = 0; i < sc.mergers.size(); ++i ) {
-        auto const& cm = sc.mergers[i];
+    for( size_t i = 0; i < mergers_.size(); ++i ) {
+        auto const& cm = mergers_[i];
 
         auto node_a = list[ cm.index_a ] + ":" + std::to_string( cm.distance_a );
         auto node_b = list[ cm.index_b ] + ":" + std::to_string( cm.distance_b );
@@ -256,6 +258,13 @@ std::string squash_cluster_tree( SquashClustering const& sc, std::vector<std::st
     }
 
     return list.back() + ";";
+}
+
+void SquashClustering::clear()
+{
+    // p_ = 1.0;
+    clusters_.clear();
+    mergers_.clear();
 }
 
 } // namespace tree
