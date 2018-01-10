@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -118,9 +118,6 @@ public:
     double a = -1.0;
 
     int parent_index = -1;
-
-    double children_min_a = -1.0;
-    double children_max_a = -1.0;
 
 };
 

@@ -72,8 +72,8 @@ public:
     //     Options
     // -------------------------------------------------------------
 
-    CircularLayout& radius_scaler( double const value );
-    double radius_scaler() const;
+    CircularLayout& radius( double const value );
+    double radius() const;
 
     // -------------------------------------------------------------
     //     Virtual Functions
@@ -103,7 +103,7 @@ private:
 
 private:
 
-    double scaler_r_ = 10.0;
+    double radius_ = 0.0;
 
 };
 

@@ -52,26 +52,26 @@ namespace tree {
 //     Options
 // =================================================================================================
 
-RectangularLayout& RectangularLayout::scaler_x( double const sx )
+RectangularLayout& RectangularLayout::width( double const value )
 {
-    scaler_x_ = sx;
+    width_ = value;
     return *this;
 }
 
-double RectangularLayout::scaler_x() const
+double RectangularLayout::width() const
 {
-    return scaler_x_;
+    return width_;
 }
 
-RectangularLayout& RectangularLayout::scaler_y( double const sy )
+RectangularLayout& RectangularLayout::height( double const value )
 {
-    scaler_y_ = sy;
+    height_ = value;
     return *this;
 }
 
-double RectangularLayout::scaler_y() const
+double RectangularLayout::height() const
 {
-    return scaler_y_;
+    return height_;
 }
 
 // =================================================================================================
@@ -82,11 +82,6 @@ void RectangularLayout::init_node_( TreeNode& node, TreeNode const& orig_node )
 {
     (void) orig_node;
     node.reset_data( RectangularNodeData::create() );
-    auto& node_data = node.data<RectangularNodeData>();
-
-    // Set defaults needed to later distinguish whether those values have already been set.
-    node_data.x = -1.0;
-    node_data.y = -1.0;
 }
 
 void RectangularLayout::init_edge_( TreeEdge& edge, TreeEdge const& orig_edge )
@@ -122,11 +117,29 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
     SvgGroup    taxa_names;
     SvgGroup    node_shapes;
 
+    // If no width and/or height is set, use automatic ones:
+    // The height is at least 100, or depends on the node count, so that it scales well.
+    // The factor of six is chosen based on the default svg font on our test system.
+    // Might need to look into this for other systems.
+    // Also, circular trees use node count without a factor as the default radius.
+    // Because circumference is 2*pi*r, our factor of 6 is close to 2*pi,
+    // which makes the font spacing similar for circular and rectangular trees ;-)
+    // Furthermore, width is chosen to be half the height,
+    // which usually is a good aspect ratio for tree figures.
+    auto width = width_;
+    auto height = height_;
+    if( height <= 0.0 ) {
+        height = std::max( 100.0, 6.0 * static_cast<double>( tree().node_count() ));
+    }
+    if( width <= 0.0 ) {
+        width = height / 2.0;
+    }
+
     for( auto const& node_it : tree().nodes() ) {
         auto const& node = *node_it;
 
-        auto const& node_data   = node.data<RectangularNodeData>();
-        auto const& parent_data = tree().node_at( node_data.parent_index ).data<RectangularNodeData>();
+        auto const& node_data = node.data<RectangularNodeData>();
+        auto const& prnt_data = tree().node_at( node_data.parent_index ).data<RectangularNodeData>();
 
         // Get the edge between the node and its parent.
         auto edge_data_ptr = edge_between( node, tree().node_at( node_data.parent_index ) );
@@ -137,13 +150,13 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
             // stroke.line_cap = utils::SvgStroke::LineCap::kRound;
 
             tree_lines << SvgLine(
-                node_data.x * scaler_x_, node_data.y * scaler_y_,
-                parent_data.x * scaler_x_, node_data.y * scaler_y_,
+                node_data.x * width, node_data.y * height,
+                prnt_data.x * width, node_data.y * height,
                 stroke
             );
             tree_lines << SvgLine(
-                parent_data.x * scaler_x_, node_data.y * scaler_y_,
-                parent_data.x * scaler_x_, parent_data.y * scaler_y_,
+                prnt_data.x * width, node_data.y * height,
+                prnt_data.x * width, prnt_data.y * height,
                 stroke
             );
         } else {
@@ -156,15 +169,15 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
         if( node_data.name != "" ) {
             // auto label = SvgText(
             //     node_data.name,
-            //     SvgPoint( node_data.x * scaler_x_ + 5, node_data.y * scaler_y_ )
+            //     SvgPoint( node_data.x * width + 5, node_data.y * height )
             // );
             // label.dy = "0.4em";
 
             auto label = text_template();
             label.text = node_data.name;
             label.transform.append( SvgTransform::Translate(
-                node_data.x * scaler_x_ + 5,
-                node_data.y * scaler_y_
+                node_data.x * width + 5,
+                node_data.y * height
             ));
             taxa_names << std::move( label );
         }
@@ -173,7 +186,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
         if( ! node_data.shape.empty() ) {
             auto ns = node_data.shape;
             ns.transform.append(
-                SvgTransform::Translate( node_data.x * scaler_x_, node_data.y * scaler_y_ )
+                SvgTransform::Translate( node_data.x * width, node_data.y * height )
             );
             node_shapes << std::move( ns );
         }
@@ -200,6 +213,8 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
 
 void RectangularLayout::set_node_y_()
 {
+    auto const num_leaves = static_cast<double>( leaf_node_count( tree() ));
+
     // Set node parents and y-coord of leaves.
     size_t leaf_count = 0;
     size_t parent = 0;
@@ -210,38 +225,52 @@ void RectangularLayout::set_node_y_()
             node_data.parent_index = parent;
         }
         if( it.node().is_leaf() ) {
-            node_data.y = leaf_count;
+            node_data.y = static_cast<double>(leaf_count) / num_leaves;
             leaf_count++;
         }
 
         parent = it.node().index();
     }
+    assert( leaf_count == num_leaves );
+
+    auto children_min_y = std::vector<double>( tree().node_count(), -1.0 );
+    auto children_max_y = std::vector<double>( tree().node_count(), -1.0 );
 
     // Set remaining y-coords of inner nodes to mid-points of their children.
     for( auto it : postorder( tree() )) {
-        auto& node_data   = tree().node_at( it.node().index()      ).data<RectangularNodeData>();
-        auto& parent_data = tree().node_at( node_data.parent_index ).data<RectangularNodeData>();
+        auto const node_index = it.node().index();
+        auto& node_data   = tree().node_at( node_index ).data<RectangularNodeData>();
+        auto const prnt_index = node_data.parent_index;
 
         if( node_data.y < 0.0 ) {
-            auto min_max_diff = node_data.children_max_y - node_data.children_min_y;
-            node_data.y = node_data.children_min_y + min_max_diff / 2.0;
+            // We already have done those nodes because of the postorder.
+            assert( children_min_y[ node_index ] > -1.0 );
+            assert( children_max_y[ node_index ] > -1.0 );
+
+            auto min_max_diff = children_max_y[ node_index ] - children_min_y[ node_index ];
+            node_data.y = children_min_y[ node_index ] + min_max_diff / 2.0;
         }
 
-        if( parent_data.children_min_y < 0.0 || parent_data.children_min_y > node_data.y ) {
-            parent_data.children_min_y = node_data.y;
+        if( children_min_y[ prnt_index ] < 0.0 || children_min_y[ prnt_index ] > node_data.y ) {
+            children_min_y[ prnt_index ] = node_data.y;
         }
-        if( parent_data.children_max_y < 0.0 || parent_data.children_max_y < node_data.y ) {
-            parent_data.children_max_y = node_data.y;
+        if( children_max_y[ prnt_index ] < 0.0 || children_max_y[ prnt_index ] < node_data.y ) {
+            children_max_y[ prnt_index ] = node_data.y;
         }
     }
 }
 
 void RectangularLayout::set_node_x_phylogram_()
 {
+    // Get distnace from root to every node.
     auto node_dists = node_branch_length_distance_vector( tree() );
 
+    // We already check the size in init_layout_()
+    assert( ! node_dists.empty() );
+    auto const max_d = *std::max_element( node_dists.begin(), node_dists.end() );
+
     for( size_t i = 0; i < node_dists.size(); ++i ) {
-        tree().node_at(i).data<RectangularNodeData>().x = node_dists[i];
+        tree().node_at(i).data<RectangularNodeData>().x = node_dists[i] / max_d;
     }
 }
 
@@ -251,10 +280,10 @@ void RectangularLayout::set_node_x_cladogram_()
     tree().root_node().data<RectangularNodeData>().x = 0.0;
 
     // Get the heights of all subtrees starting from the root.
-    auto heights = subtree_max_path_heights( tree() );
+    auto const heights = subtree_max_path_heights( tree() );
 
     // Get the height of the tree, i.e. longest path from root to any leaf.
-    auto root_height = heights[ tree().root_node().index() ];
+    auto const root_height = static_cast<double>( heights[ tree().root_node().index() ] );
 
     for( auto it : preorder( tree() )) {
         // The subtree height calculation does not work for the root, so skip it.
@@ -264,11 +293,11 @@ void RectangularLayout::set_node_x_cladogram_()
         }
 
         // Get the height of the subtree starting at the current node.
-        auto height = heights[ it.node().index() ];
+        auto const height = static_cast<double>( heights[ it.node().index() ]);
         assert( height <= root_height );
 
         // Set the x position.
-        auto x = ( root_height - height );
+        auto const x = ( root_height - height ) / root_height;
         tree().node_at( it.node().index() ).data<RectangularNodeData>().x = x;
     }
 }

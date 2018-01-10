@@ -72,11 +72,11 @@ public:
     //     Options
     // -------------------------------------------------------------
 
-    RectangularLayout& scaler_x( double const sx );
-    double scaler_x() const;
+    RectangularLayout& width( double const value );
+    double width() const;
 
-    RectangularLayout& scaler_y( double const sy );
-    double scaler_y() const;
+    RectangularLayout& height( double const value );
+    double height() const;
 
     // -------------------------------------------------------------
     //     Virtual Functions
@@ -106,8 +106,8 @@ private:
 
 private:
 
-    double scaler_x_ = 100.0;
-    double scaler_y_ = 10.0;
+    double width_ = 0.0;
+    double height_ = 0.0;
 
 };
 
