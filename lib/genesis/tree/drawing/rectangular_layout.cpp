@@ -95,6 +95,8 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
         width = height / 2.0;
     }
 
+    size_t max_text_len = 0;
+
     for( auto const& node_it : tree().nodes() ) {
         auto const& node = *node_it;
 
@@ -135,11 +137,15 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
 
             auto label = text_template();
             label.text = node_data.name;
+            label.alignment_baseline = SvgText::AlignmentBaseline::kMiddle;
+
+            // Move label to tip node.
             label.transform.append( SvgTransform::Translate(
                 node_data.distance * width + 5,
                 node_data.spreading * height
             ));
             taxa_names << std::move( label );
+            max_text_len = std::max( max_text_len, node_data.name.size() );
         }
 
         // If there is a node shape, draw it.
@@ -155,6 +161,11 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
     // Make sure that the drawing is done from outside to inside,
     // so that the overlapping parts look nice.
     tree_lines.reverse();
+
+    // Set the margins according to longest label.
+    auto const marg_a = std::max( 20.0, text_template().font.size );
+    auto const marg_r = std::max( 25.0, max_text_len * text_template().font.size );
+    doc.margin = SvgMargin( marg_a, marg_r, marg_a, marg_a );
 
     // We are sure that we won't use the groups again, so let's move them!
     doc << std::move( tree_lines );

@@ -76,6 +76,8 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
         radius = std::max( 50.0, static_cast<double>( tree().node_count() ));
     }
 
+    size_t max_text_len = 0;
+
     for( auto const& node_it : tree().nodes() ) {
         auto const& node = *node_it;
 
@@ -128,14 +130,27 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
 
             auto label = text_template();
             label.text = node_data.name;
+            label.alignment_baseline = SvgText::AlignmentBaseline::kMiddle;
+
+            // Move label to tip node.
             label.transform.append( SvgTransform::Translate(
                 ( node_data.distance * radius + 10 ) * cos( node_spreading ),
                 ( node_data.distance * radius + 10 ) * sin( node_spreading )
             ));
 
-            // Rotate the label, using the spreading [0, 1] value directly.
-            label.transform.append( SvgTransform::Rotate( 360 * node_data.spreading ));
+            // Rotate label so that its orientation is correct.
+            // Caveat: here, we use the spreading [0, 1] value directly.
+            if( node_data.spreading > 0.25 && node_data.spreading <= 0.75 ) {
+                // Left hemisphere.
+                label.anchor = SvgText::Anchor::kEnd;
+                label.transform.append( SvgTransform::Rotate( 360 * node_data.spreading + 180 ));
+            } else {
+                // Right hemisphere.
+                label.transform.append( SvgTransform::Rotate( 360 * node_data.spreading ));
+            }
+
             taxa_names << std::move( label );
+            max_text_len = std::max( max_text_len, node_data.name.size() );
         }
 
         // If there is a node shape, draw it.
@@ -149,6 +164,10 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
     // Make sure that the drawing is done from outside to inside,
     // so that the overlapping parts look nice.
     tree_lines.reverse();
+
+    // Set the margins according to longest label.
+    auto const marg = std::max( 30.0, max_text_len * text_template().font.size );
+    doc.margin = SvgMargin( marg );
 
     // We are sure that we won't use the groups again, so let's move them!
     doc << std::move( tree_lines );
