@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,17 +49,6 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Constructors
-// =================================================================================================
-
-RectangularLayout::RectangularLayout( Tree const& orig_tree, Type const drawing_type )
-{
-    // Need to set drawing type first, so that init_tree_() can use it.
-    type( drawing_type );
-    tree( orig_tree );
-}
-
-// =================================================================================================
 //     Options
 // =================================================================================================
 
@@ -89,15 +78,28 @@ double RectangularLayout::scaler_y() const
 //     Virtual Functions
 // =================================================================================================
 
-void RectangularLayout::init_tree_( Tree const& orig_tree )
+void RectangularLayout::init_node_( TreeNode& node, TreeNode const& orig_node )
+{
+    (void) orig_node;
+    node.reset_data( RectangularNodeData::create() );
+    auto& node_data = node.data<RectangularNodeData>();
+
+    // Set defaults needed to later distinguish whether those values have already been set.
+    node_data.x = -1.0;
+    node_data.y = -1.0;
+}
+
+void RectangularLayout::init_edge_( TreeEdge& edge, TreeEdge const& orig_edge )
+{
+    (void) orig_edge;
+    edge.reset_data( RectangularEdgeData::create() );
+}
+
+void RectangularLayout::init_layout_()
 {
     if( tree().empty() ) {
         return;
     }
-
-    // Init with proper data types.
-    init_nodes_( orig_tree );
-    init_edges_( orig_tree );
 
     // Set node x-coords according to branch lengths (distance from root).
     if( type() == Type::kCladogram ) {
@@ -135,13 +137,13 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
             // stroke.line_cap = utils::SvgStroke::LineCap::kRound;
 
             tree_lines << SvgLine(
-                node_data.x, node_data.y,
-                parent_data.x, node_data.y,
+                node_data.x * scaler_x_, node_data.y * scaler_y_,
+                parent_data.x * scaler_x_, node_data.y * scaler_y_,
                 stroke
             );
             tree_lines << SvgLine(
-                parent_data.x, node_data.y,
-                parent_data.x, parent_data.y,
+                parent_data.x * scaler_x_, node_data.y * scaler_y_,
+                parent_data.x * scaler_x_, parent_data.y * scaler_y_,
                 stroke
             );
         } else {
@@ -152,14 +154,17 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
 
         // If the node has a name, print it.
         if( node_data.name != "" ) {
-            // auto label = SvgText( node_data.name, SvgPoint( node_data.x + 5, node_data.y ) );
+            // auto label = SvgText(
+            //     node_data.name,
+            //     SvgPoint( node_data.x * scaler_x_ + 5, node_data.y * scaler_y_ )
+            // );
             // label.dy = "0.4em";
 
             auto label = text_template();
             label.text = node_data.name;
             label.transform.append( SvgTransform::Translate(
-                node_data.x + 5,
-                node_data.y
+                node_data.x * scaler_x_ + 5,
+                node_data.y * scaler_y_
             ));
             taxa_names << std::move( label );
         }
@@ -167,7 +172,9 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
         // If there is a node shape, draw it.
         if( ! node_data.shape.empty() ) {
             auto ns = node_data.shape;
-            ns.transform.append( SvgTransform::Translate( node_data.x, node_data.y ));
+            ns.transform.append(
+                SvgTransform::Translate( node_data.x * scaler_x_, node_data.y * scaler_y_ )
+            );
             node_shapes << std::move( ns );
         }
     }
@@ -191,48 +198,6 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
 //     Internal Functions
 // =================================================================================================
 
-void RectangularLayout::init_nodes_( Tree const& orig_tree )
-{
-    // Init nodes.
-    for( size_t i = 0; i < tree().node_count(); ++i ) {
-        // Safety: correct indices.
-        assert( tree().node_at(i).index() == i && orig_tree.node_at(i).index() == i );
-
-        // Set the tree node data.
-        tree().node_at(i).reset_data( RectangularNodeData::create() );
-        auto& node_data = tree().node_at(i).data<RectangularNodeData>();
-
-        // Set defaults needed to later distinguish whether those values have already been set.
-        node_data.x = -1.0;
-        node_data.y = -1.0;
-
-        // If the original tree has node names, use them.
-        auto orig_node_data_ptr = orig_tree.node_at(i).data_cast<DefaultNodeData>();
-        if( orig_node_data_ptr ) {
-            node_data.name = orig_node_data_ptr->name;
-        }
-    }
-}
-
-void RectangularLayout::init_edges_( Tree const& orig_tree )
-{
-    // Init edges.
-    for( size_t i = 0; i < tree().edge_count(); ++i ) {
-        // Safety: correct indices.
-        assert( tree().edge_at(i).index() == i && orig_tree.edge_at(i).index() == i );
-
-        // Set the tree edge data.
-        tree().edge_at(i).reset_data( RectangularEdgeData::create() );
-        auto& edge_data = tree().edge_at(i).data<RectangularEdgeData>();
-
-        // If the original tree has edge branch lengths, use them.
-        auto orig_edge_data_ptr = orig_tree.edge_at(i).data_cast<DefaultEdgeData>();
-        if( orig_edge_data_ptr ) {
-            edge_data.branch_length = orig_edge_data_ptr->branch_length;
-        }
-    }
-}
-
 void RectangularLayout::set_node_y_()
 {
     // Set node parents and y-coord of leaves.
@@ -245,7 +210,8 @@ void RectangularLayout::set_node_y_()
             node_data.parent_index = parent;
         }
         if( it.node().is_leaf() ) {
-            node_data.y = scaler_y_ * leaf_count++;
+            node_data.y = leaf_count;
+            leaf_count++;
         }
 
         parent = it.node().index();
@@ -275,7 +241,7 @@ void RectangularLayout::set_node_x_phylogram_()
     auto node_dists = node_branch_length_distance_vector( tree() );
 
     for( size_t i = 0; i < node_dists.size(); ++i ) {
-        tree().node_at(i).data<RectangularNodeData>().x = node_dists[i] * scaler_x_;
+        tree().node_at(i).data<RectangularNodeData>().x = node_dists[i];
     }
 }
 
@@ -302,7 +268,7 @@ void RectangularLayout::set_node_x_cladogram_()
         assert( height <= root_height );
 
         // Set the x position.
-        auto x = ( root_height - height ) * scaler_x_;
+        auto x = ( root_height - height );
         tree().node_at( it.node().index() ).data<RectangularNodeData>().x = x;
     }
 }

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -51,17 +51,6 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
-//     Constructors
-// =================================================================================================
-
-CircularLayout::CircularLayout( Tree const& orig_tree, Type const drawing_type )
-{
-    // Need to set drawing type first, so that init_tree_() can use it.
-    type( drawing_type );
-    tree( orig_tree );
-}
-
-// =================================================================================================
 //     Options
 // =================================================================================================
 
@@ -80,11 +69,23 @@ double CircularLayout::radius_scaler() const
 //     Virtual Functions
 // =================================================================================================
 
-void CircularLayout::init_tree_( Tree const& orig_tree )
+void CircularLayout::init_node_( TreeNode& node, TreeNode const& orig_node )
 {
-    // Init with proper data types.
-    init_nodes_( orig_tree );
-    init_edges_( orig_tree );
+    (void) orig_node;
+    node.reset_data( CircularNodeData::create() );
+}
+
+void CircularLayout::init_edge_( TreeEdge& edge, TreeEdge const& orig_edge )
+{
+    (void) orig_edge;
+    edge.reset_data( CircularEdgeData::create() );
+}
+
+void CircularLayout::init_layout_()
+{
+    if( tree().empty() ) {
+        return;
+    }
 
     // Set radiuses of nodes.
     if( type() == Type::kCladogram ) {
@@ -97,28 +98,6 @@ void CircularLayout::init_tree_( Tree const& orig_tree )
 
     // Set angles of nodes.
     set_node_a_();
-}
-
-std::string svg_arc(
-    double center_x, double center_y, double radius, double start_angle, double end_angle
-) {
-    std::string large_arc;
-    if( start_angle > end_angle ) {
-        large_arc = ( end_angle - start_angle <= utils::PI ? "1" : "0" );
-    } else {
-        large_arc = ( end_angle - start_angle <= utils::PI ? "0" : "1" );
-    }
-
-    double start_x = center_x + ( radius * cos( end_angle ));
-    double start_y = center_y + ( radius * sin( end_angle ));
-    double end_x   = center_x + ( radius * cos( start_angle ));
-    double end_y   = center_y + ( radius * sin( start_angle ));
-
-    std::ostringstream os;
-    os << "M " << start_x << " " << start_y << " ";
-    os << "A " << radius << " " << radius << " " << 0 << " " << large_arc << " " << 0 << " ";
-    os << end_x << " " << end_y;
-    return os.str();
 }
 
 utils::SvgDocument CircularLayout::to_svg_document_() const
@@ -135,8 +114,8 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
         auto const& node_data   = node.data<CircularNodeData>();
         auto const& parent_data = tree().node_at( node_data.parent_index ).data<CircularNodeData>();
 
-        auto const node_x = node_data.r * cos( node_data.a );
-        auto const node_y = node_data.r * sin( node_data.a );
+        auto const node_x = node_data.r * scaler_r_ * cos( node_data.a );
+        auto const node_y = node_data.r * scaler_r_ * sin( node_data.a );
 
         // Get the edge between the node and its parent.
         auto edge_data_ptr = edge_between( node, tree().node_at( node_data.parent_index ) );
@@ -153,13 +132,14 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
             }
 
             tree_lines << SvgPath(
-                { svg_arc( 0, 0, parent_data.r, start_a, end_a ) },
+                { svg_arc( 0, 0, parent_data.r * scaler_r_, start_a, end_a ) },
                 stroke,
                 SvgFill( SvgFill::Type::kNone )
             );
 
             tree_lines << SvgLine(
-                parent_data.r * cos( node_data.a ), parent_data.r * sin( node_data.a ),
+                parent_data.r * scaler_r_ * cos( node_data.a ),
+                parent_data.r * scaler_r_ * sin( node_data.a ),
                 node_x, node_y,
                 stroke
             );
@@ -178,8 +158,8 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
             auto label = text_template();
             label.text = node_data.name;
             label.transform.append( SvgTransform::Translate(
-                ( node_data.r + 10 ) * cos( node_data.a ),
-                ( node_data.r + 10 ) * sin( node_data.a )
+                ( node_data.r * scaler_r_ + 10 ) * cos( node_data.a ),
+                ( node_data.r * scaler_r_ + 10 ) * sin( node_data.a )
             ));
             label.transform.append( SvgTransform::Rotate(
                 360 * node_data.a / ( 2.0 * utils::PI )
@@ -213,44 +193,6 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
 // =================================================================================================
 //     Internal Functions
 // =================================================================================================
-
-void CircularLayout::init_nodes_( Tree const& orig_tree )
-{
-    // Init nodes.
-    for( size_t i = 0; i < tree().node_count(); ++i ) {
-        // Safety: correct indices.
-        assert( tree().node_at(i).index() == i && orig_tree.node_at(i).index() == i );
-
-        // Set the tree node data.
-        tree().node_at(i).reset_data( CircularNodeData::create() );
-        auto& node_data = tree().node_at(i).data<CircularNodeData>();
-
-        // If the original tree has node names, use them.
-        auto orig_node_data_ptr = orig_tree.node_at(i).data_cast<DefaultNodeData>();
-        if( orig_node_data_ptr ) {
-            node_data.name = orig_node_data_ptr->name;
-        }
-    }
-}
-
-void CircularLayout::init_edges_( Tree const& orig_tree )
-{
-    // Init edges.
-    for( size_t i = 0; i < tree().edge_count(); ++i ) {
-        // Safety: correct indices.
-        assert( tree().edge_at(i).index() == i && orig_tree.edge_at(i).index() == i );
-
-        // Set the tree edge data.
-        tree().edge_at(i).reset_data( CircularEdgeData::create() );
-        auto& edge_data = tree().edge_at(i).data<CircularEdgeData>();
-
-        // If the original tree has edge branch lengths, use them.
-        auto orig_edge_data_ptr = orig_tree.edge_at(i).data_cast<DefaultEdgeData>();
-        if( orig_edge_data_ptr ) {
-            edge_data.branch_length = orig_edge_data_ptr->branch_length;
-        }
-    }
-}
 
 void CircularLayout::set_node_a_()
 {
@@ -297,7 +239,7 @@ void CircularLayout::set_node_r_phylogram_()
     auto node_dists = node_branch_length_distance_vector( tree() );
 
     for( size_t i = 0; i < node_dists.size(); ++i ) {
-        tree().node_at(i).data<CircularNodeData>().r = node_dists[i] * scaler_r_ * 20.0;
+        tree().node_at(i).data<CircularNodeData>().r = node_dists[i] * 20.0;
     }
 }
 
@@ -324,7 +266,7 @@ void CircularLayout::set_node_r_cladogram_()
         assert( height <= root_height );
 
         // Set the radius.
-        auto r = ( root_height - height ) * scaler_r_;
+        auto r = ( root_height - height );
         tree().node_at( it.node().index() ).data<CircularNodeData>().r = r;
     }
 }

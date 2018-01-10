@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
  * @file
  * @ingroup utils
  */
+
+#include "genesis/utils/math/common.hpp"
 
 #include <algorithm>
 #include <ostream>
@@ -219,6 +221,40 @@ std::string svg_attribute(
     std::stringstream ss;
     ss << " " << name << "=\"" << value << unit << "\"";
     return ss.str();
+}
+
+/**
+ * @brief Create an arc to use in an SvgPath.
+ *
+ * Example:
+ *
+ *     SvgPath(
+ *         { svg_arc( 0, 0, 10, start_a, end_a ) },
+ *         stroke
+ *     );
+ *
+ * The angles are measured in radians.
+ */
+inline std::string svg_arc(
+    double center_x, double center_y, double radius, double start_angle, double end_angle
+) {
+    std::string large_arc;
+    if( start_angle > end_angle ) {
+        large_arc = ( end_angle - start_angle <= utils::PI ? "1" : "0" );
+    } else {
+        large_arc = ( end_angle - start_angle <= utils::PI ? "0" : "1" );
+    }
+
+    double start_x = center_x + ( radius * cos( end_angle ));
+    double start_y = center_y + ( radius * sin( end_angle ));
+    double end_x   = center_x + ( radius * cos( start_angle ));
+    double end_y   = center_y + ( radius * sin( start_angle ));
+
+    std::ostringstream os;
+    os << "M " << start_x << " " << start_y << " ";
+    os << "A " << radius << " " << radius << " " << 0 << " " << large_arc << " " << 0 << " ";
+    os << end_x << " " << end_y;
+    return os.str();
 }
 
 // template< typename T >

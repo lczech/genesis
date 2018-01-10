@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -54,7 +54,11 @@ public:
     // -------------------------------------------------------------
 
     RectangularLayout()  = default;
-    RectangularLayout( Tree const& orig_tree, Type const drawing_type = Type::kPhylogram );
+    RectangularLayout( Tree const& orig_tree, Type const drawing_type = Type::kPhylogram )
+    {
+        type( drawing_type );
+        tree(orig_tree);
+    }
 
     virtual ~RectangularLayout() = default;
 
@@ -80,7 +84,9 @@ public:
 
 private:
 
-    void init_tree_( Tree const& orig_tree ) override;
+    void init_node_( TreeNode& node, TreeNode const& orig_node ) override;
+    void init_edge_( TreeEdge& edge, TreeEdge const& orig_edge ) override;
+    void init_layout_() override;
 
     utils::SvgDocument to_svg_document_() const override;
 
@@ -89,9 +95,6 @@ private:
     // -------------------------------------------------------------
 
 private:
-
-    void init_nodes_( Tree const& orig_tree );
-    void init_edges_( Tree const& orig_tree );
 
     void set_node_y_();
     void set_node_x_phylogram_();

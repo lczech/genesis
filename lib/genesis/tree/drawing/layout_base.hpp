@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -63,10 +63,6 @@ public:
     // -------------------------------------------------------------
 
     LayoutBase()  = default;
-    explicit LayoutBase( Type const drawing_type )
-        : type_( drawing_type )
-    {}
-
     virtual ~LayoutBase() = default;
 
     LayoutBase( LayoutBase const& ) = default;
@@ -119,9 +115,19 @@ protected:
 
 protected:
 
-    virtual void init_tree_( Tree const& orig_tree ) = 0;
+    virtual void init_node_( TreeNode& node, TreeNode const& orig_node ) = 0;
+    virtual void init_edge_( TreeEdge& edge, TreeEdge const& orig_edge ) = 0;
+    virtual void init_layout_() = 0;
 
     virtual utils::SvgDocument to_svg_document_() const = 0;
+
+    // -------------------------------------------------------------
+    //     Private Members
+    // -------------------------------------------------------------
+
+private:
+
+    void init_tree_( Tree const& orig_tree );
 
     // -------------------------------------------------------------
     //     Data Members
