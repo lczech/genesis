@@ -33,6 +33,7 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
+#include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/containers/sorted_vector.hpp"
 #include "genesis/utils/containers/sorted_vector/operators.hpp"
 #include "genesis/utils/core/algorithm.hpp"
