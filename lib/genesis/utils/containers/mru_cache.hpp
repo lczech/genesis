@@ -48,9 +48,10 @@ namespace utils {
 /**
  * @brief Most Recently Used Cache.
  *
- * The class offers a cache that maps from a `KeyType` to a `ValueType`, automatically loading
- * elements as needed using the @link MruCache::load_function load_function@endlink.
- * The cache only keeps a certain number of elements, that is, the elements that
+ * The class offers a cache that maps from unique keys of type `Key` to values of type `T`,
+ * automatically loading elements as needed using the
+ * @link MruCache::load_function load_function@endlink.
+ * The cache only keeps a certain number of elements. That is, the elements that
  * were least recently used are removed to avoid exceeding the capacity().
  *
  * The main function is fetch(), which retrieves an element from the cache, potentially loading
@@ -65,25 +66,37 @@ namespace utils {
  *
  * Example:
  *
- *     // Path to some data.
- *     std::string dir = "/path/to/data";
+ * ~~~cpp
+ * // Path to some data.
+ * std::string dir = "/path/to/data";
  *
- *     // Create a cache from file names to file contents, with a capacity of 5.
- *     MruCache<std::string, std::string> cache{ 5 };
+ * // Create a cache from file names to file contents, with a capacity of 5.
+ * MruCache<std::string, std::string> cache{ 5 };
  *
- *     // Our load function is to read the file.
- *     cache.load_function = [ &dir ]( std::string const& file ){
- *         return file_read( dir + "/" + file );
- *     };
+ * // Our load function is to read the file.
+ * cache.load_function = [ &dir ]( std::string const& file ){
+ *     return file_read( dir + "/" + file );
+ * };
  *
- *     // Access an element, that is, load a file.
- *     auto const& content = cache.fetch( "test.txt" );
+ * // Access an element, that is, load a file into the cache.
+ * auto const& content = cache.fetch( "test.txt" );
+ * ~~~
  *
  * Lastly, a second functor @link MruCache::release_function release_function@endlink can be used
  * to specify a function that is exectued before an element is removed from the cache due to being
  * too old. If this functor is not set, the element is simply removed without any prior call.
+ *
+ * Thread safety: The class does not guarantee any thread safety. As each fetch() changes the
+ * data structure, concurrent access is not possible. Thus, when this class is intended to be used
+ * in multi-threaded environments, its access needs to be guareded.
+ *
+ * Furthermore, as fetch() returns an element by reference, only one element should be fetched and
+ * stored in a reference at a time. For cases were one element is accessed at a time, e.g.,
+ * in a loop over keys, this is not an issue. In the example above, `content` however becomes a
+ * dangling reference after a few more calls to fetch(). In such cases, the return value of fetch()
+ * needs to be stored by copy instead.
  */
-template< typename KeyType, typename ValueType >
+template< typename Key, typename T >
 class MruCache
 {
 public:
@@ -92,8 +105,8 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using key_type        = KeyType;
-    using mapped_type     = ValueType;
+    using key_type        = Key;
+    using mapped_type     = T;
     using value_type      = std::pair<const key_type, mapped_type>;
 
     using       iterator  = typename std::list< value_type >::iterator;
@@ -111,7 +124,7 @@ public:
      * A capacity of 0 means limitless, that is, no elements are ever removed.
      * @see capacity( size_t value )
      */
-    MruCache()  = default;
+    MruCache() = default;
 
     /**
      * @brief Construct a cache with a given @p capacity.
@@ -126,7 +139,7 @@ public:
     ~MruCache() = default;
 
     MruCache( MruCache const& ) = default;
-    MruCache ( MruCache&& )      = default;
+    MruCache( MruCache&& )      = default;
 
     MruCache& operator= ( MruCache const& ) = default;
     MruCache& operator= ( MruCache&& )      = default;
@@ -224,10 +237,14 @@ public:
     /**
      * @brief Get an element.
      *
-     * This is the main function of this class. It gets an element given its key, either by
+     * This is the main function of the class. It gets an element given its @p key, either by
      * retrieving it from the cache, or loading it into the cache first, if needed.
-     * When an element is loaded so that the capacity of the cache is exceeded,
-     * the least recently used element is removed.
+     *
+     * If loading an element leads to the capacity of the cache begin exceeded,
+     * the least recently used element is removed. The removal is done after loading the new
+     * element. This means that the memory usage can be one more element than the capacity() allows.
+     * This is done to make sure that an exception thrown when loading the new file does not lead
+     * to the cache being altered.
      */
     mapped_type& fetch( key_type const& key )
     {
@@ -333,7 +350,7 @@ public:
 private:
 
     /**
-     * @brief If there are more elements than capacity, emove elements from the back of the cache.
+     * @brief If there are more elements than capacity, remove elements from the back of the cache.
      */
     void shrink_()
     {
