@@ -1,9 +1,9 @@
-#ifndef GENESIS_UTILS_MATH_MATRIX_READER_H_
-#define GENESIS_UTILS_MATH_MATRIX_READER_H_
+#ifndef GENESIS_UTILS_CONTAINERS_MATRIX_READER_H_
+#define GENESIS_UTILS_CONTAINERS_MATRIX_READER_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -34,7 +34,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/io/input_stream.hpp"
-#include "genesis/utils/math/matrix.hpp"
+#include "genesis/utils/containers/matrix.hpp"
 
 #include <functional>
 #include <stdexcept>

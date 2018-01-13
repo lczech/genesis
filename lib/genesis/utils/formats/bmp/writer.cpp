@@ -33,7 +33,7 @@
 #include "genesis/utils/core/fs.hpp"
 #include "genesis/utils/core/options.hpp"
 #include "genesis/utils/io/output_stream.hpp"
-#include "genesis/utils/math/matrix.hpp"
+#include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/tools/color.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
 

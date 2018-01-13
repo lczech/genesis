@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/matrix/statistics.hpp"
+#include "genesis/utils/math/matrix.hpp"
 
 #include "genesis/utils/math/common.hpp"
 
@@ -363,7 +363,7 @@ Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& 
 }
 
 // =================================================================================================
-//     Pearson Correlation Coefficient
+//     Correlation Coefficients
 // =================================================================================================
 
 double matrix_col_pearson_correlation_coefficient(
