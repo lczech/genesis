@@ -31,6 +31,9 @@
  * @ingroup utils
  */
 
+#include "genesis/utils/containers/matrix/col.hpp"
+#include "genesis/utils/containers/matrix/row.hpp"
+
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -51,9 +54,12 @@ public:
     //     Typedefs
     // -------------------------------------------------------------
 
-    typedef T                                       value_type;
-    typedef typename std::vector<T>::iterator       iterator;
-    typedef typename std::vector<T>::const_iterator const_iterator;
+    using self_type      = Matrix<T>;
+    using value_type     = T;
+
+    using container_type = std::vector<T>;
+    using iterator       = typename container_type::iterator;
+    using const_iterator = typename container_type::const_iterator;
 
     // -------------------------------------------------------------
     //     Constructors and Rule of Five
@@ -144,6 +150,11 @@ public:
         swap(data_, other.data_);
     }
 
+    friend void swap( Matrix& lhs, Matrix& rhs )
+    {
+        lhs.swap( rhs );
+    }
+
     // -------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------
@@ -163,7 +174,7 @@ public:
         return rows_ * cols_;
     }
 
-    std::vector<T> const& data() const
+    container_type const& data() const
     {
         return data_;
     }
@@ -175,15 +186,15 @@ public:
     T& at (const size_t row, const size_t col)
     {
         if (row >= rows_ || col >= cols_) {
-            throw std::out_of_range("__FUNCTION__: out_of_range");
+            throw std::out_of_range( "Matrix index out of range." );
         }
         return data_[row * cols_ + col];
     }
 
-    const T at (const size_t row, const size_t col) const
+    T const& at (const size_t row, const size_t col) const
     {
         if (row >= rows_ || col >= cols_) {
-            throw std::out_of_range("__FUNCTION__: out_of_range");
+            throw std::out_of_range( "Matrix index out of range." );
         }
         return data_[row * cols_ + col];
     }
@@ -193,7 +204,7 @@ public:
         return data_[row * cols_ + col];
     }
 
-    const T operator () (const size_t row, const size_t col) const
+    T const& operator () (const size_t row, const size_t col) const
     {
         return data_[row * cols_ + col];
     }
@@ -202,30 +213,40 @@ public:
     //     Slicing
     // -------------------------------------------------------------
 
-    std::vector<T> row( size_t index ) const
+    MatrixRow<self_type, value_type> row( size_t row )
     {
-        if( index >= rows_ ) {
-            throw std::out_of_range("__FUNCTION__: out_of_range");
+        if( row >= rows_ ) {
+            throw std::out_of_range( "Matrix row index out of range." );
         }
 
-        auto result = std::vector<T>( cols() );
-        for( size_t i = 0; i < cols(); ++i ) {
-            result[i] = operator()( index, i );
-        }
-        return result;
+        return MatrixRow<self_type, value_type>( *this, row );
     }
 
-    std::vector<T> col( size_t index ) const
+    MatrixRow<const self_type, const value_type> row( size_t row ) const
     {
-        if( index >= cols_ ) {
-            throw std::out_of_range("__FUNCTION__: out_of_range");
+        if( row >= rows_ ) {
+            throw std::out_of_range( "Matrix row index out of range." );
         }
 
-        auto result = std::vector<T>( rows() );
-        for( size_t i = 0; i < rows(); ++i ) {
-            result[i] = operator()( i, index );
+        return MatrixRow<const self_type, const value_type>( *this, row );
+    }
+
+    MatrixCol<self_type, value_type> col( size_t col )
+    {
+        if( col >= cols_ ) {
+            throw std::out_of_range( "Matrix column index out of range." );
         }
-        return result;
+
+        return MatrixCol<self_type, value_type>( *this, col );
+    }
+
+    MatrixCol<const self_type, const value_type> col( size_t col ) const
+    {
+        if( col >= cols_ ) {
+            throw std::out_of_range( "Matrix column index out of range." );
+        }
+
+        return MatrixCol<const self_type, const value_type>( *this, col );
     }
 
     // -------------------------------------------------------------
@@ -266,16 +287,16 @@ public:
     //     Operators
     // -------------------------------------------------------------
 
-    bool operator == (const Matrix<T>& rhs) const
+    bool operator == ( Matrix<T> const& other ) const
     {
-        return rows_ == rhs.rows_
-            && cols_ == rhs.cols_
-            && data_ == rhs.data_;
+        return rows_ == other.rows_
+            && cols_ == other.cols_
+            && data_ == other.data_;
     }
 
-    bool operator != (const Matrix<T>& rhs) const
+    bool operator != ( Matrix<T> const& other ) const
     {
-        return !(*this == rhs);
+        return !(*this == other);
     }
 
     // -------------------------------------------------------------
@@ -286,26 +307,10 @@ private:
 
     size_t         rows_;
     size_t         cols_;
-    std::vector<T> data_;
+    container_type data_;
 };
 
 } // namespace utils
 } // namespace genesis
-
-// =================================================================================================
-//     Namespace std Extension
-// =================================================================================================
-
-/*
-namespace std {
-
-template<typename T>
-inline void swap (genesis::utils::Matrix<T>& lhs, genesis::utils::Matrix<T>& rhs) noexcept
-{
-    lhs.swap(rhs);
-}
-
-} // namespace std
-*/
 
 #endif // include guard

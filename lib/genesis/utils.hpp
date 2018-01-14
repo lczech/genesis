@@ -33,9 +33,11 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
+#include "genesis/utils/containers/matrix/col.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/containers/matrix/reader.hpp"
+#include "genesis/utils/containers/matrix/row.hpp"
 #include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/containers/sorted_vector.hpp"
 #include "genesis/utils/containers/sorted_vector/operators.hpp"
