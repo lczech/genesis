@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,10 +31,10 @@
  * @ingroup utils
  */
 
+#include <algorithm>
 #include <cmath>
 #include <limits>
-#include <stdexcept>
-#include <vector>
+#include <type_traits>
 
 namespace genesis {
 namespace utils {
@@ -47,175 +47,6 @@ namespace utils {
  * @brief Make the world go round.
  */
 constexpr double PI = 3.141592653589793238463;
-
-// =================================================================================================
-//     Structures and Classes
-// =================================================================================================
-
-/**
- * @brief Store a pair of min and max values.
- *
- * This notation is simply more readable than the std default of using a `pair<T, T>`.
- */
-template< typename T >
-struct MinMaxPair
-{
-    T min;
-    T max;
-};
-
-/**
- * @brief Store a mean and a standard deviation value.
- *
- * This notation is simply more readable than the std default of using a `pair<T, T>` for such
- * types.
- */
-struct MeanStddevPair
-{
-    double mean;
-    double stddev;
-};
-
-/**
- * @brief Store the values of quartiles: `q0 == min`, `q1 == 25%`, `q2 == 50%`, `q3 == 75%`,
- * `q4 == max`.
- */
-struct Quartiles
-{
-    double q0 = 0.0;
-    double q1 = 0.0;
-    double q2 = 0.0;
-    double q3 = 0.0;
-    double q4 = 0.0;
-};
-
-// =================================================================================================
-//     Statistics
-// =================================================================================================
-
-/**
- * @brief Calcualte the mean and standard deviation of a `vector` of `double`.
- *
- * If the resulting standard deviation is below the given @p epsilon (e.g, `0.0000001`), it is
- * "corrected" to be `1.0` instead. This is an inelegant (but usual) way to handle near-zero values,
- * which for some use cases would cause problems like a division by zero later on.
- * By default, @p epsilon is `-1.0`, which deactivates this check - a standard deviation can never
- * be below `0.0`.
- */
-MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilon = -1.0 );
-
-/**
- * @brief Calculate the median value of a `vector` of `double`.
- *
- * The vector has to be sorted.
- */
-double median( std::vector<double> const& vec );
-
-/**
- * @brief Calculate the Quartiles of a `vector` of `double`.
- *
- * The vector has to be sorted.
- */
-Quartiles quartiles( std::vector<double> const& vec );
-
-/**
- * @brief Calculate the Pearson Correlation Coefficient between the entries of two vectors.
- *
- * Both vectors need to have the same size. Then, the function calculates the PCC
- * between the pairs of entries of both vectors.
- */
-double pearson_correlation_coefficient(
-    std::vector<double> const& vec_a,
-    std::vector<double> const& vec_b
-);
-
-/**
- * @brief Calculate Spearman's Rank Correlation Coefficient between the entries of two vectors.
- *
- * Both vectors need to have the same size. Then, the function calculates Spearmans's Rho
- * between the pairs of entries of both vectors.
- */
-double spearmans_rank_correlation_coefficient(
-    std::vector<double> const& vec_a,
-    std::vector<double> const& vec_b
-);
-
-/**
- * @brief Apply Fisher z-transformation to a correlation coefficient.
- *
- * The coefficient can be calculated with pearson_correlation_coefficient() or
- * spearmans_rank_correlation_coefficient() and has to be in range `[ -1.0, 1.0 ]`.
- *
- * There is also a version of this function for a vector of coefficients.
- * See also matrix_col_pearson_correlation_coefficient(),
- * matrix_row_pearson_correlation_coefficient(), matrix_col_spearmans_rank_correlation_coefficient()
- * and matrix_row_spearmans_rank_correlation_coefficient() for matrix versions.
- */
-double fisher_transformation( double correlation_coefficient );
-
-/**
- * @brief Apply Fisher z-transformation to a vector of correlation coefficients.
- *
- * See the single value version for details.
- */
-std::vector<double> fisher_transformation( std::vector<double> const& correlation_coefficients );
-
-// =================================================================================================
-//     Ranking
-// =================================================================================================
-
-/**
- * @brief Return the ranking of the given values, using Standard competition ranking
- * ("1224" ranking).
- *
- * See https://en.wikipedia.org/wiki/Ranking for details.
- *
- * @see ranking_modified(), ranking_dense(), ranking_ordinal(), ranking_fractional() for other
- * ranking methods.
- */
-std::vector<size_t> ranking_standard( std::vector<double> const& vec );
-
-/**
- * @brief Return the ranking of the given values, using Modified competition ranking
- * ("1334" ranking).
- *
- * See https://en.wikipedia.org/wiki/Ranking for details.
- *
- * @see ranking_standard(), ranking_dense(), ranking_ordinal(), ranking_fractional() for other
- * ranking methods.
- */
-std::vector<size_t> ranking_modified( std::vector<double> const& vec );
-
-/**
- * @brief Return the ranking of the given values, using Dense ranking ("1223" ranking).
- *
- * See https://en.wikipedia.org/wiki/Ranking for details.
- *
- * @see ranking_standard(), ranking_modified(), ranking_ordinal(), ranking_fractional() for other
- * ranking methods.
- */
-std::vector<size_t> ranking_dense( std::vector<double> const& vec );
-
-/**
- * @brief Return the ranking of the given values, using Ordinal ranking ("1234" ranking).
- *
- * See https://en.wikipedia.org/wiki/Ranking for details.
- *
- * @see ranking_standard(), ranking_modified(), ranking_dense(), ranking_fractional() for other
- * ranking methods.
- */
-std::vector<size_t> ranking_ordinal( std::vector<double> const& vec );
-
-/**
- * @brief Return the ranking of the given values, using Fractional ranking ("1 2.5 2.5 4" ranking).
- *
- * See https://en.wikipedia.org/wiki/Ranking for details. This is the only raking method that
- * returns float values instead of integer values.
- *
- * @see ranking_standard(), ranking_modified(), ranking_dense(), ranking_ordinal() for other
- * ranking methods.
- */
-std::vector<double> ranking_fractional( std::vector<double> const& vec );
 
 // =================================================================================================
 //     Number Handling

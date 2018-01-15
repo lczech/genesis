@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/matrix/statistics.hpp"
+#include "genesis/utils/math/matrix.hpp"
 
 #include "genesis/utils/math/common.hpp"
 
@@ -260,8 +260,7 @@ Quartiles matrix_row_quartiles(
     Matrix<double> const& data,
     size_t                row
 ) {
-    // Fill a vector with the values of the row, and sort it.
-    auto tmp = data.row( row );
+    auto tmp = data.row( row ).to_vector();
     std::sort( tmp.begin(), tmp.end() );
 
     return quartiles( tmp );
@@ -284,8 +283,7 @@ Quartiles matrix_col_quartiles(
     Matrix<double> const& data,
     size_t                col
 ) {
-    // Fill a vector with the values of the column, and sort it.
-    auto tmp = data.col( col );
+    auto tmp = data.col( col ).to_vector();
     std::sort( tmp.begin(), tmp.end() );
 
     return quartiles( tmp );
@@ -363,7 +361,7 @@ Matrix<double> sums_of_squares_and_cross_products_matrix( Matrix<double> const& 
 }
 
 // =================================================================================================
-//     Pearson Correlation Coefficient
+//     Correlation Coefficients
 // =================================================================================================
 
 double matrix_col_pearson_correlation_coefficient(
@@ -378,11 +376,9 @@ double matrix_col_pearson_correlation_coefficient(
         throw std::runtime_error( "Column indices cannot be bigger then number of columns." );
     }
 
-    // Make copies. Not the best strategy, but works for now.
     auto c1 = mat1.col( col1 );
     auto c2 = mat2.col( col2 );
-
-    return pearson_correlation_coefficient( c1, c2 );
+    return pearson_correlation_coefficient( c1.begin(), c1.end(), c2.begin(), c2.end() );
 }
 
 double matrix_row_pearson_correlation_coefficient(
@@ -397,11 +393,9 @@ double matrix_row_pearson_correlation_coefficient(
         throw std::runtime_error( "Row indices cannot be bigger then number of rows." );
     }
 
-    // Make copies. Not the best strategy, but works for now.
     auto r1 = mat1.row( row1 );
     auto r2 = mat2.row( row2 );
-
-    return pearson_correlation_coefficient( r1, r2 );
+    return pearson_correlation_coefficient( r1.begin(), r1.end(), r2.begin(), r2.end() );
 }
 
 double matrix_col_spearmans_rank_correlation_coefficient(
@@ -415,11 +409,9 @@ double matrix_col_spearmans_rank_correlation_coefficient(
         throw std::runtime_error( "Column indices cannot be bigger then number of columns." );
     }
 
-    // Make copies. Not the best strategy, but works for now.
     auto c1 = mat1.col( col1 );
     auto c2 = mat2.col( col2 );
-
-    return spearmans_rank_correlation_coefficient( c1, c2 );
+    return spearmans_rank_correlation_coefficient( c1.begin(), c1.end(), c2.begin(), c2.end() );
 }
 
 double matrix_row_spearmans_rank_correlation_coefficient(
@@ -434,11 +426,9 @@ double matrix_row_spearmans_rank_correlation_coefficient(
         throw std::runtime_error( "Row indices cannot be bigger then number of rows." );
     }
 
-    // Make copies. Not the best strategy, but works for now.
     auto r1 = mat1.row( row1 );
     auto r2 = mat2.row( row2 );
-
-    return spearmans_rank_correlation_coefficient( r1, r2 );
+    return spearmans_rank_correlation_coefficient( r1.begin(), r1.end(), r2.begin(), r2.end() );
 }
 
 } // namespace utils

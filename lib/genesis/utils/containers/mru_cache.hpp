@@ -34,6 +34,7 @@
 #include <cassert>
 #include <functional>
 #include <list>
+#include <mutex>
 #include <stdexcept>
 #include <unordered_map>
 #include <utility>
@@ -48,42 +49,50 @@ namespace utils {
 /**
  * @brief Most Recently Used Cache.
  *
- * The class offers a cache that maps from a `KeyType` to a `ValueType`, automatically loading
- * elements as needed using the @link MruCache::load_function load_function@endlink.
- * The cache only keeps a certain number of elements, that is, the elements that
+ * The class offers a cache that maps from unique keys of type `Key` to values of type `T`,
+ * automatically loading elements as needed using the
+ * @link MruCache::load_function load_function@endlink.
+ * The cache only keeps a certain number of elements. That is, the elements that
  * were least recently used are removed to avoid exceeding the capacity().
  *
- * The main function is fetch(), which retrieves an element from the cache, potentially loading
- * it first, and potentially removing old elements. During a fetch, it is possible that one
- * more element is kept in memory than the capacity allows, before removing the oldest one.
- * This is done in order to recover from a load that failed (with an exception) without altering
- * the state of the cache.
+ * The main functions are fetch() and fetch_copy(), which retrieve an element from the cache,
+ * potentially loading it first, and potentially removing old elements.
+ * During a fetch, it is possible that one more element is kept in memory than the capacity allows,
+ * before removing the oldest one. This is done in order to recover from a load that failed
+ * (with an exception) without altering the state of the cache.
  *
  * In order to use this class, the functor @link MruCache::load_function load_function@endlink
- * has to be set before calling fetch() or touch(). The functor needs to take a const reference to
- * the key type and return a value type by value.
+ * has to be set before calling fetch(), fetch_copy() or touch(). The functor needs to take a const
+ * reference to the key type `Key` and return a mapped type `T` by value.
  *
  * Example:
  *
- *     // Path to some data.
- *     std::string dir = "/path/to/data";
+ * ~~~cpp
+ * // Path to some data.
+ * std::string dir = "/path/to/data";
  *
- *     // Create a cache from file names to file contents, with a capacity of 5.
- *     MruCache<std::string, std::string> cache{ 5 };
+ * // Create a cache from file names to file contents, with a capacity of 5.
+ * MruCache<std::string, std::string> cache{ 5 };
  *
- *     // Our load function is to read the file.
- *     cache.load_function = [ &dir ]( std::string const& file ){
- *         return file_read( dir + "/" + file );
- *     };
+ * // Our load function is to read the file.
+ * cache.load_function = [ &dir ]( std::string const& file ){
+ *     return file_read( dir + "/" + file );
+ * };
  *
- *     // Access an element, that is, load a file.
- *     auto const& content = cache.fetch( "test.txt" );
+ * // Access an element, that is, load a file into the cache.
+ * auto const& content = cache.fetch( "test.txt" );
+ * ~~~
  *
  * Lastly, a second functor @link MruCache::release_function release_function@endlink can be used
- * to specify a function that is exectued before an element is removed from the cache due to being
- * too old. If this functor is not set, the element is simply removed without any prior call.
+ * to specify a function that is exectued before an element is removed from the cache.
+ * If this functor is not set, the element is simply removed without any prior call.
+ *
+ * Thread safety: As fetch() returns by reference, it is not thread safe. A fetched element can be
+ * removed at any time when other threads invoke fetch() again, leaving to a dangling reference.
+ * Thus, for multi-threaded use, fetch_copy() can be used, which is guarded and returns a copy of
+ * the elment instead. See there for details.
  */
-template< typename KeyType, typename ValueType >
+template< typename Key, typename T >
 class MruCache
 {
 public:
@@ -92,8 +101,8 @@ public:
     //     Member Types
     // -------------------------------------------------------------------------
 
-    using key_type        = KeyType;
-    using mapped_type     = ValueType;
+    using key_type        = Key;
+    using mapped_type     = T;
     using value_type      = std::pair<const key_type, mapped_type>;
 
     using       iterator  = typename std::list< value_type >::iterator;
@@ -108,25 +117,29 @@ public:
     /**
      * @brief Default constructor. Uses a capacity() of 0, that is, limitless.
      *
-     * A capacity of 0 means limitless, that is, no elements are ever removed.
+     * A capacity of 0 means limitless, meaning that no elements are ever removed.
      * @see capacity( size_t value )
      */
-    MruCache()  = default;
+    MruCache() = default;
 
     /**
      * @brief Construct a cache with a given @p capacity.
      *
-     * A capacity of 0 means limitless, that is, no elements are ever removed.
+     * A capacity of 0 means limitless, meaning that no elements are ever removed.
      * @see capacity( size_t value )
      */
     MruCache( size_t capacity )
         : capacity_( capacity )
     {}
 
-    ~MruCache() = default;
+    ~MruCache()
+    {
+        // Need to call the release_function. Make it easy, just call clear.
+        clear();
+    }
 
     MruCache( MruCache const& ) = default;
-    MruCache ( MruCache&& )      = default;
+    MruCache( MruCache&& )      = default;
 
     MruCache& operator= ( MruCache const& ) = default;
     MruCache& operator= ( MruCache&& )      = default;
@@ -224,10 +237,24 @@ public:
     /**
      * @brief Get an element.
      *
-     * This is the main function of this class. It gets an element given its key, either by
+     * This is the main function of the class. It gets an element given its @p key, either by
      * retrieving it from the cache, or loading it into the cache first, if needed.
-     * When an element is loaded so that the capacity of the cache is exceeded,
-     * the least recently used element is removed.
+     *
+     * If loading an element leads to the capacity of the cache begin exceeded,
+     * the least recently used element is removed. The removal is done after loading the new
+     * element. This means that the memory usage can be one more element than the capacity() allows.
+     * This is done to make sure that an exception thrown when loading the new element does not lead
+     * to the cache being altered.
+     *
+     * Thread safety: Not thread safe, because it does not use a guard, and because it returns a
+     * reference, which can become dangling if other threads fetch new elements, leading to the
+     * referenced one being removed. For multi-threaded use, see fetch_copy().
+     *
+     * Caveat: Even in single-thread use, a variable storing a reference obtained from fetch()
+     * can become dangling, if more new elements are fetched or touched than the capacity allows.
+     * Thus, the variable needs to go out of scope before this happens. For example, a loop
+     * over keys, fetching an element in the beginning of the loop body and keeping the reference
+     * only within the loop body without calling fetch() again, is fine.
      */
     mapped_type& fetch( key_type const& key )
     {
@@ -242,6 +269,9 @@ public:
             if( lit->second != cache_.begin() ) {
                 cache_.splice( cache_.begin(), cache_, lit->second );
             }
+
+            // Lit is an iterator to an entry pair in lookup_. Its second part is an iterator
+            // into the list. This is a pair again, so the actual value is its second part.
             return lit->second->second;
         }
 
@@ -262,26 +292,50 @@ public:
     }
 
     /**
-     * @brief Get an element if it is already in the cache, without moving it to the front.
+     * @brief Get an element by copy.
      *
-     * The element is returned, but its position in the cache not altered.
-     * The element has to be in the cache, otherwise an execption is thrown.
+     * This works exactly the same as fetch(), but is thread safe and returns a copy.
+     * See fetch() for details.
+     *
+     * If the cache is used in a multi-threaded environment and holds large elements,
+     * making actual copies might be too expensive. In that case, a neat trick is to store
+     * shared pointers to the elements instead:
+     *
+     * ~~~cpp
+     * // Path to some data.
+     * std::string dir = "/path/to/data";
+     *
+     * // Create a cache from file names to shared pointers of file contents.
+     * MruCache<std::string, std::shared_ptr<std::string>> cache{ 5 };
+     *
+     * // Load elements from file.
+     * cache.load_function = [ &dir ]( std::string const& file ){
+     *     return std::make_shared<std::string>( file_read( dir + "/" + file ));
+     * };
+     *
+     * // Fetch an element, that is, load a file into the cache.
+     * // Store it by copy, which just copies the shared pointer.
+     * auto content = cache.fetch_copy( "fail2.jtest" );
+     * ~~~
+     *
+     * As the control block of `std::shared_ptr` is thread safe, these shared pointer copies can
+     * stay alive in a thread that still needs the element, even if the element was removed from
+     * the cache by other threads in the meantime.
      */
-    mapped_type& peek( key_type const& key )
+    mapped_type fetch_copy( key_type const& key )
     {
-        auto const lit = lookup_.find( key );
-        if( lit == lookup_.end() ) {
-            throw std::invalid_argument(
-                "Trying to peek at an element in MruCache that is not there."
-            );
-        }
-        return lit->second->second;
+        // Lock access to everything.
+        std::lock_guard<std::mutex> lock( mutex_ );
+
+        return fetch( key );
     }
 
     /**
      * @brief Return whether an element is currently in the cache.
+     *
+     * Thread safety: Safe. But the element might be removed by other threads soon.
      */
-    bool check( key_type const& key )
+    bool contains( key_type const& key )
     {
         return lookup_.count( key ) > 0;
     }
@@ -289,10 +343,19 @@ public:
     /**
      * @brief Bring an element to the front, and load it if needed.
      *
-     * This is just fetch() without returning the element ;-)
+     * The function behaves just like fetch(), but without returning the element,
+     * and with thread safety. Useful to pre-load the cache.
+     *
+     * Be aware however that having touched an element in multi threaded used does not guarantee
+     * that it stays in the cache for long. Other threads might have fetched other elements,
+     * leading to the removal of the touched one. In that case, it has to be loaded again when
+     * fetched later.
      */
     void touch( key_type const& key )
     {
+        // Lock access to everything.
+        std::lock_guard<std::mutex> lock( mutex_ );
+
         (void) fetch( key );
     }
 
@@ -307,6 +370,11 @@ public:
      */
     void capacity( size_t value )
     {
+        // Lock access to everything. It would be a weird use case where this function is called
+        // while also fetching copies of elements in a different thread, but still,
+        // we need do protect this.
+        std::lock_guard<std::mutex> lock( mutex_ );
+
         capacity_ = value;
         shrink_();
         assert( capacity_ == 0 || size() <= capacity_ );
@@ -317,6 +385,9 @@ public:
      */
     void clear()
     {
+        // Lock access to everything.
+        std::lock_guard<std::mutex> lock( mutex_ );
+
         if( release_function ) {
             for( auto& elem : cache_ ) {
                 release_function( elem.first, elem.second );
@@ -333,7 +404,7 @@ public:
 private:
 
     /**
-     * @brief If there are more elements than capacity, emove elements from the back of the cache.
+     * @brief If there are more elements than capacity, remove elements from the back of the cache.
      */
     void shrink_()
     {
@@ -348,8 +419,8 @@ private:
             // This needs to be maintained.
             assert( lookup_.size() == cache_.size() );
 
-            // If we are here, size >= capacity_ > 0
-            assert( cache_.size() > 0 );
+            // If we are here, size > capacity_ > 0
+            assert( cache_.size() > 1 );
 
             auto& last = cache_.back();
             if( release_function ) {
@@ -373,25 +444,27 @@ public:
     /**
      * @brief Function to load an element into the cache if it is being fetched but not there yet.
      *
-     * Has to be set before calling fetch() or touch(), otherwise an exception is thrown.
+     * Has to be set before calling fetch(), fetch_copy() or touch(),
+     * otherwise an exception is thrown.
      */
     std::function< mapped_type( key_type const& )> load_function;
 
     /**
-     * @brief Function to be called when an element is erased from the cache due to being
-     * the least recently used one.
+     * @brief Function to be called when an element is removed from the cache.
      *
-     * Can be empty. In that case, nothing is called.
+     * This function is called whenever elements are removed from the cache, e.g., due to being
+     * the least recently used one, due to a call to clear(), or when the destructor is called.
      *
-     * The function is not called when the destructor of the cache is called.
+     * Can be empty. In that case, nothing is called when elements are removed.
      */
     std::function< void( key_type const&, mapped_type& )> release_function;
 
 private:
 
     /**
-     * @brief Target capacity. Cache size never exceeds this value.
+     * @brief Target capacity of the cache.
      *
+     * Cache size never exceeds this value, except by one when fetching a new element.
      * Special case: Capacity == 0 means limitless. No elements are ever removed.
      */
     size_type capacity_ = 0;
@@ -410,6 +483,12 @@ private:
      * to an element in the list quickly.
      */
     std::unordered_map< key_type, iterator > lookup_;
+
+    /**
+     * @brief Protect concurrent access.
+     */
+    std::mutex mutex_;
+
 };
 
 } // namespace utils

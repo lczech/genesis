@@ -33,6 +33,7 @@
 #include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/core/fs.hpp"
 
+#include <memory>
 #include <string>
 
 using namespace genesis::utils;
@@ -48,8 +49,7 @@ TEST( Containers, MruCacheBasics )
     EXPECT_EQ( 0, cache.size() );
     EXPECT_TRUE( cache.empty() );
     EXPECT_EQ( 5, cache.capacity() );
-    EXPECT_THROW( cache.peek( "nope" ), std::invalid_argument );
-    EXPECT_FALSE( cache.check( "nope" ));
+    EXPECT_FALSE( cache.contains( "nope" ));
 
     // Fetch some elements.
     cache.fetch( "0" );
@@ -70,13 +70,13 @@ TEST( Containers, MruCacheBasics )
     EXPECT_EQ( 6, cache.fetch( "6" ));
 
     // Check all elements.
-    EXPECT_FALSE( cache.check( "0" ));
-    EXPECT_FALSE( cache.check( "1" ));
-    EXPECT_TRUE(  cache.check( "2" ));
-    EXPECT_TRUE(  cache.check( "3" ));
-    EXPECT_TRUE(  cache.check( "4" ));
-    EXPECT_TRUE(  cache.check( "5" ));
-    EXPECT_TRUE(  cache.check( "6" ));
+    EXPECT_FALSE( cache.contains( "0" ));
+    EXPECT_FALSE( cache.contains( "1" ));
+    EXPECT_TRUE(  cache.contains( "2" ));
+    EXPECT_TRUE(  cache.contains( "3" ));
+    EXPECT_TRUE(  cache.contains( "4" ));
+    EXPECT_TRUE(  cache.contains( "5" ));
+    EXPECT_TRUE(  cache.contains( "6" ));
 
     // Bring an existing one to the front. Add more.
     cache.touch( "3" );
@@ -84,18 +84,17 @@ TEST( Containers, MruCacheBasics )
     cache.touch( "8" );
 
     // Elements 2 and four were the oldest ones and should be gone now.
-    EXPECT_FALSE( cache.check( "2" ));
-    EXPECT_FALSE( cache.check( "4" ));
+    EXPECT_FALSE( cache.contains( "2" ));
+    EXPECT_FALSE( cache.contains( "4" ));
 
     // Shrink. This removes all except the three that we recently touched.
     cache.capacity( 3 );
     EXPECT_EQ( 3, cache.size() );
     EXPECT_LE( cache.size(), cache.capacity() );
-    EXPECT_TRUE(  cache.check( "3" ));
-    EXPECT_TRUE(  cache.check( "7" ));
-    EXPECT_TRUE(  cache.check( "8" ));
+    EXPECT_TRUE(  cache.contains( "3" ));
+    EXPECT_TRUE(  cache.contains( "7" ));
+    EXPECT_TRUE(  cache.contains( "8" ));
     EXPECT_EQ( 8, cache.fetch( "8" ));
-    EXPECT_NO_THROW( cache.peek( "3" ));
 
     // Change to limitless.
     cache.capacity( 0 );
@@ -150,8 +149,8 @@ TEST( Containers, MruCacheFailLoading )
     EXPECT_ANY_THROW( cache.fetch( "xyz" ));
 
     // Those elements should not be there.
-    EXPECT_FALSE( cache.check( "abc" ));
-    EXPECT_FALSE( cache.check( "xyz" ));
+    EXPECT_FALSE( cache.contains( "abc" ));
+    EXPECT_FALSE( cache.contains( "xyz" ));
 
     // Everything needs to be okay still.
     EXPECT_EQ( 0, cache.size() );
@@ -166,9 +165,9 @@ TEST( Containers, MruCacheFailLoading )
     cache.fetch( "3" );
     cache.fetch( "4" );
     EXPECT_EQ( 3, cache.size() );
-    EXPECT_TRUE( cache.check( "2" ));
-    EXPECT_TRUE( cache.check( "3" ));
-    EXPECT_TRUE( cache.check( "4" ));
+    EXPECT_TRUE( cache.contains( "2" ));
+    EXPECT_TRUE( cache.contains( "3" ));
+    EXPECT_TRUE( cache.contains( "4" ));
 
     // And again some corrupt ones.
     EXPECT_ANY_THROW( cache.fetch( "l" ));
@@ -176,14 +175,15 @@ TEST( Containers, MruCacheFailLoading )
 
     // Nothing should have changed.
     EXPECT_EQ( 3, cache.size() );
-    EXPECT_TRUE( cache.check( "2" ));
-    EXPECT_TRUE( cache.check( "3" ));
-    EXPECT_TRUE( cache.check( "4" ));
+    EXPECT_TRUE( cache.contains( "2" ));
+    EXPECT_TRUE( cache.contains( "3" ));
+    EXPECT_TRUE( cache.contains( "4" ));
 }
 
 TEST( Containers, MruCacheFiles )
 {
     // This is the example from the class description. Make sure it actually works.
+
     NEEDS_TEST_DATA;
 
     // Path to our data.
@@ -205,18 +205,71 @@ TEST( Containers, MruCacheFiles )
 
     // Only the last three ones are in the cache now.
     EXPECT_EQ( 3, cache.size() );
-    EXPECT_FALSE( cache.check( "fail2.jtest" ));
-    EXPECT_TRUE(  cache.check( "fail3.jtest" ));
-    EXPECT_TRUE(  cache.check( "fail4.jtest" ));
-    EXPECT_TRUE(  cache.check( "fail5.jtest" ));
+    EXPECT_FALSE( cache.contains( "fail2.jtest" ));
+    EXPECT_TRUE(  cache.contains( "fail3.jtest" ));
+    EXPECT_TRUE(  cache.contains( "fail4.jtest" ));
+    EXPECT_TRUE(  cache.contains( "fail5.jtest" ));
 
     // Load a file that does not exist. Check for exception (coming from the load function).
     EXPECT_ANY_THROW( cache.fetch( "not_there" ));
 
     // Nothing should have changed.
     EXPECT_EQ( 3, cache.size() );
-    EXPECT_TRUE(  cache.check( "fail3.jtest" ));
-    EXPECT_TRUE(  cache.check( "fail4.jtest" ));
-    EXPECT_TRUE(  cache.check( "fail5.jtest" ));
+    EXPECT_TRUE(  cache.contains( "fail3.jtest" ));
+    EXPECT_TRUE(  cache.contains( "fail4.jtest" ));
+    EXPECT_TRUE(  cache.contains( "fail5.jtest" ));
 
 }
+
+TEST( Containers, MruCacheSharedPtr )
+{
+    // This is the example from the fetch_copy() description. Make sure it actually works.
+
+    NEEDS_TEST_DATA;
+
+    // Path to some data.
+    std::string dir = environment->data_dir + "utils/json";
+
+    // Create a cache from file names to shared pointers of file contents.
+    MruCache<std::string, std::shared_ptr<std::string>> cache{ 3 };
+
+    // Load elements from file.
+    cache.load_function = [ &dir ]( std::string const& file ){
+        return std::make_shared<std::string>( file_read( dir + "/" + file ));
+    };
+
+    // Access an element, that is, load a file into the cache.
+    // Store it by copy, which just copies the shared pointer.
+    auto content = cache.fetch_copy( "fail2.jtest" );
+
+    // Access some files.
+    cache.fetch_copy( "fail2.jtest" );
+    cache.fetch_copy( "fail3.jtest" );
+    cache.fetch_copy( "fail4.jtest" );
+    cache.fetch_copy( "fail5.jtest" );
+
+    // Only the last three ones are in the cache now.
+    EXPECT_EQ( 3, cache.size() );
+    EXPECT_FALSE( cache.contains( "fail2.jtest" ));
+    EXPECT_TRUE(  cache.contains( "fail3.jtest" ));
+    EXPECT_TRUE(  cache.contains( "fail4.jtest" ));
+    EXPECT_TRUE(  cache.contains( "fail5.jtest" ));
+
+    // Load a file that does not exist. Check for exception (coming from the load function).
+    EXPECT_ANY_THROW( cache.fetch_copy( "not_there" ));
+
+    // Nothing should have changed.
+    EXPECT_EQ( 3, cache.size() );
+    EXPECT_TRUE(  cache.contains( "fail3.jtest" ));
+    EXPECT_TRUE(  cache.contains( "fail4.jtest" ));
+    EXPECT_TRUE(  cache.contains( "fail5.jtest" ));
+}
+
+// TEST( Containers, MruCacheLock )
+// {
+//     MruCache<std::string, size_t> cache{ 3 };
+//     cache.load_function = []( std::string const& s ){
+//         return stoi( s );
+//     };
+//     cache.fetch("13");
+// }

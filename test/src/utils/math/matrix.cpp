@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,14 +31,65 @@
 #include "src/common.hpp"
 
 #include <sstream>
+#include <vector>
 
+#include "genesis/utils/containers/matrix.hpp"
+#include "genesis/utils/containers/matrix/operators.hpp"
 #include "genesis/utils/formats/csv/reader.hpp"
 #include "genesis/utils/math/matrix.hpp"
-#include "genesis/utils/math/matrix/operators.hpp"
-#include "genesis/utils/math/matrix/statistics.hpp"
 
 using namespace genesis;
 using namespace utils;
+
+// ================================================================================================
+//     Multiplication
+// ================================================================================================
+
+TEST(Matrix, MultiplicationMM)
+{
+    auto a = Matrix<double>( 2, 3, {
+        3, 2, 1,
+        1, 0, 2
+    });
+    auto b = Matrix<double>( 3, 2, {
+        1, 2,
+        0, 1,
+        4, 0
+    });
+    auto r = Matrix<double>( 2, 2, {
+        7, 8,
+        9, 2
+    });
+
+    EXPECT_EQ( r, matrix_multiplication( a, b ));
+}
+
+TEST(Matrix, MultiplicationVM)
+{
+    auto a = std::vector<double>({ 1, 2, 3 });
+    auto b = Matrix<double>( 3, 3, {
+        2, 1, 3,
+        3, 3, 2,
+        4, 1, 2
+    });
+    auto r = std::vector<double>({ 20, 10, 13 });
+
+    EXPECT_EQ( r, matrix_multiplication( a, b ));
+}
+
+TEST(Matrix, MultiplicationMV)
+{
+    auto a = Matrix<double>( 3, 3, {
+        1, 2, 3,
+        4, 5, 6,
+        7, 8, 9
+    });
+    auto b = std::vector<double>({ 2, 1, 3 });
+    auto r = std::vector<double>({ 13, 31, 49 });
+
+    EXPECT_EQ( r, matrix_multiplication( a, b ));
+}
+
 
 // ================================================================================================
 //     Standardization

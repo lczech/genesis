@@ -71,30 +71,39 @@ std::unordered_set<std::string> labels( SequenceSet const& set )
 size_t guess_sequence_abundance( Sequence const& sequence )
 {
     auto const& label = sequence.label();
+    size_t result = 1;
+
+    // We only look for a simple number, no sign oder decimal points etc
+    auto is_digits = []( std::string const& s )
+    {
+        return s.find_first_not_of( "0123456789" ) == std::string::npos;
+    };
 
     // Try to find "size=123"
     auto const spos = label.find( "size=" );
     if( spos != std::string::npos && spos + 5 < label.size() && isdigit( label[ spos + 5 ]) ) {
-        size_t ull = std::stoull( label.substr( spos + 5 ));
-        if( ull == 0 ) {
-            ull = 1;
+
+        // Parse the substring as far as possible, that is, get all digits.
+        auto const sub = label.substr( spos + 5 );
+        try{
+            result = std::stoull( sub );
+        } catch( ... ){
+            result = 1;
         }
-        return ull;
     }
 
     // Try to find "_123" at the end
     auto const upos = label.find_last_of( "_" );
     if( upos != std::string::npos && upos + 1 < label.size() && isdigit( label[ upos + 1 ]) ) {
-        std::string::size_type sz = 0;
-        size_t ull = std::stoull( label.substr( upos + 1 ), &sz );
-        if( ull == 0 || sz + upos + 1 != label.size() ) {
-            ull = 1;
+
+        // The rest of the label needs to be a number.
+        auto const sub = label.substr( upos + 1 );
+        if( is_digits( sub ) ) {
+            result = std::stoull( sub );
         }
-        return ull;
     }
 
-    // If nothing works, the sequence has no abundance information.
-    return 1;
+    return result;
 
     // Slow regex version
     // Prepare static regex (no need to re-compile it on every function call).
