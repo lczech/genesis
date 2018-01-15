@@ -183,6 +183,7 @@ double median( RandomAccessIterator first, RandomAccessIterator last, size_t l, 
 {
     auto const size = static_cast<size_t>( std::distance( first, last ));
     assert( l < size && r < size && l <= r );
+    (void) size;
 
     // Size of the interval.
     size_t const sz = r - l + 1;
