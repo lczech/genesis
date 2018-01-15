@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -69,6 +69,29 @@ std::unique_ptr<T> make_unique(Args&&... args)
 {
     return std::unique_ptr<T>(new T(std::forward<Args>(args)...));
 }
+
+/**
+ * @brief Proxy class to hold an element accessible via arrow operator.
+ *
+ * This is useful for implementing an iterator whose arrow operator would return an r-value.
+ * Inspired by https://stackoverflow.com/a/26496041/4184258
+ */
+template <typename T>
+class ArrowOperatorProxy {
+public:
+
+    ArrowOperatorProxy( T const& t )
+        : t(t)
+    {}
+
+    T* operator ->() const {
+        return &t;
+    }
+
+private:
+
+    T t;
+};
 
 } // namespace utils
 } // namespace genesis
