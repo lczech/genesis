@@ -95,8 +95,9 @@ void mass_tree_merge_trees_inplace(
 
 void mass_tree_clear_masses( MassTree& tree )
 {
-    for( auto& edge : tree.edges() ) {
-        edge->data<MassTreeEdgeData>().masses.clear();
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        tree.edge_at(i).data<MassTreeEdgeData>().masses.clear();
     }
 }
 
@@ -130,8 +131,9 @@ void mass_tree_normalize_masses( MassTree& tree )
         return;
     }
 
-    for( auto& edge : tree.edges() ) {
-        for( auto& mass : edge->data<MassTreeEdgeData>().masses ) {
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        for( auto& mass : tree.edge_at(i).data<MassTreeEdgeData>().masses ) {
             mass.second /= total_mass;
         }
     }
@@ -139,8 +141,9 @@ void mass_tree_normalize_masses( MassTree& tree )
 
 void mass_tree_transform_to_unit_branch_lengths( MassTree& tree )
 {
-    for( auto& edge : tree.edges() ) {
-        auto& edge_data = edge->data<MassTreeEdgeData>();
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
         std::map<double, double> relative;
 
         for( auto& mass : edge_data.masses ) {
@@ -155,13 +158,16 @@ void mass_tree_transform_to_unit_branch_lengths( MassTree& tree )
 double mass_tree_center_masses_on_branches( MassTree& tree )
 {
     double work = 0.0;
-    for( auto& edge : tree.edges() ) {
-        auto& edge_data = edge->data<MassTreeEdgeData>();
+
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
 
         double const branch_center = edge_data.branch_length / 2;
         double central_mass = 0.0;
 
         for( auto const& mass : edge_data.masses ) {
+            #pragma omp atomic
             work         += mass.second * std::abs( branch_center - mass.first );
             central_mass += mass.second;
         }
@@ -175,8 +181,10 @@ double mass_tree_center_masses_on_branches( MassTree& tree )
 double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
 {
     double work = 0.0;
-    for( auto& edge : tree.edges() ) {
-        auto& edge_data = edge->data<MassTreeEdgeData>();
+
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
 
         // No masses on the edge. We need to skip the rest, otherwise we end up having a nan values
         // as mass centers, which leads to nan earth mover distance values, which leads to invalid
@@ -200,6 +208,7 @@ double mass_tree_center_masses_on_branches_averaged( MassTree& tree )
 
         // Calculate work.
         for( auto const& mass : edge_data.masses ) {
+            #pragma omp atomic
             work += mass.second * std::abs( mass_center - mass.first );
         }
 
@@ -232,10 +241,12 @@ double mass_tree_binify_masses( MassTree& tree, size_t number_of_bins )
     };
 
     double work = 0.0;
-    for( auto& edge : tree.edges() ) {
+
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
 
         // Shorthands.
-        auto& edge_data = edge->data<MassTreeEdgeData>();
+        auto& edge_data = tree.edge_at(i).data<MassTreeEdgeData>();
         auto new_masses = std::map<double, double>();
 
         // Accumulate masses at the closest bins, and accumulate the work needed to do so.
@@ -261,9 +272,11 @@ std::vector<double> mass_tree_mass_per_edge( MassTree const& tree )
 {
     auto result = std::vector<double>( tree.edge_count(), 0.0 );
 
-    for( auto const& edge : tree.edges() ) {
-        auto const& idx = edge->index();
-        for( auto const& mass : edge->data<MassTreeEdgeData>().masses ) {
+    #pragma omp parallel for
+    for( size_t i = 0; i < tree.edge_count(); ++i ) {
+        auto const& edge = tree.edge_at(i);
+        auto const& idx = edge.index();
+        for( auto const& mass : edge.data<MassTreeEdgeData>().masses ) {
             result[ idx ] += mass.second;
         }
     }
