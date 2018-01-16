@@ -44,6 +44,15 @@ namespace utils {
 // =================================================================================================
 
 /**
+ * @brief Color Palette `bupubk`.
+ *
+ * Provides a sequential blue color palette of light blue, purple and black.
+ * Particularly useful for visualizing trees, as the light blue is still visible when
+ * used to color branches.
+ */
+std::vector<Color> const& color_list_pupubk();
+
+/**
  * @brief Color palette `blues`.
  *
  * Provides a sequential blue color palette of increasing saturation.
@@ -243,6 +252,7 @@ std::vector<Color> const& color_list_viridis();
 
 enum class SequentialColorList
 {
+    kPupubk,
     kBlues,
     kBugn,
     kBupu,
