@@ -96,7 +96,16 @@ bool is_subset( Bitvector const& sub, Bitvector const& super );
  */
 bool is_superset( Bitvector const& super, Bitvector const& sub );
 
-std::ostream& operator << (std::ostream& out, Bitvector const& bv);
+/**
+ * @brief Insertion operator that outputs a Bitvector as a string of '0's and '1's.
+ */
+std::ostream& operator << ( std::ostream& out, Bitvector const& bv );
+
+/**
+* @brief Extraction operator that inputs a Bitvector from a string of '0's and '1's,
+* and stops at the first char that is not '0' or '1'.
+*/
+std::istream& operator >> ( std::istream& in, Bitvector& bv );
 
 } // namespace utils
 } // namespace genesis
