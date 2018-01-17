@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -70,6 +70,22 @@ inline bool char_is_number_part( char const c )
 inline bool char_match_ci(const char c1, const char c2)
 {
     return std::tolower(c1) == std::tolower(c2);
+}
+
+/**
+ * @brief Return the lower case of a given char, ascii-only.
+ */
+inline char to_lower_ascii( char c )
+{
+    return ( 'A' <= c && c <= 'Z' ) ? c + 0x20 : c;
+}
+
+/**
+ * @brief Return the upper case of a given char, ascii-only.
+ */
+inline char to_upper_ascii( char c )
+{
+    return ( 'a' <= c && c <= 'z' ) ? c - 0x20 : c;
 }
 
 } // namespace utils

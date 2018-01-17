@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
  * @file
  * @ingroup utils
  */
+
+#include "genesis/utils/text/char.hpp"
 
 #include <iostream>
 #include <sstream>
@@ -160,52 +162,90 @@ std::string trim (
 /**
  * @brief Return an all-lowercase copy of the given string, locale-aware.
  */
-std::string to_lower(         std::string const& str );
+inline std::string to_lower( std::string const& str )
+{
+    auto res = str;
+    for( auto& c : res ){
+        c = tolower(c);
+    }
+    return res;
+}
 
 /**
  * @brief Turn the given string to all-lowercase, locale-aware.
  */
-void        to_lower_inplace( std::string&       str );
+inline void to_lower_inplace( std::string& str )
+{
+    for( auto& c : str ){
+        c = tolower(c);
+    }
+}
 
 /**
  * @brief Return an all-uppercase copy of the given string, locale-aware.
  */
-std::string to_upper(         std::string const& str );
+inline std::string to_upper( std::string const& str )
+{
+    auto res = str;
+    for( auto& c : res ){
+        c = toupper(c);
+    }
+    return res;
+}
 
 /**
  * @brief Turn the given string to all-uppercase, locale-aware.
  */
-void        to_upper_inplace( std::string&       str );
-
-/**
- * @brief Return the lower case of a given char, ascii-only.
- */
-char        to_lower_ascii( char c );
-
-/**
- * @brief Return the upper case of a given char, ascii-only.
- */
-char        to_upper_ascii( char c );
+inline void to_upper_inplace( std::string& str )
+{
+    for( auto& c : str ){
+        c = toupper(c);
+    }
+}
 
 /**
  * @brief Return an all-lowercase copy of the given string, ascii-only.
  */
-std::string to_lower_ascii(         std::string const& str );
+inline std::string to_lower_ascii( std::string const& str )
+{
+    auto res = str;
+    for( auto& c : res ){
+        c = to_lower_ascii(c);
+    }
+    return res;
+}
 
 /**
  * @brief Turn the given string to all-lowercase, ascii-only.
  */
-void        to_lower_ascii_inplace( std::string&       str );
+inline void to_lower_ascii_inplace( std::string& str )
+{
+    for( auto& c : str ){
+        c = to_lower_ascii(c);
+    }
+}
 
 /**
  * @brief Return an all-uppercase copy of the given string, ascii-only.
  */
-std::string to_upper_ascii(         std::string const& str );
+inline std::string to_upper_ascii( std::string const& str )
+{
+    auto res = str;
+    for( auto& c : res ){
+        c = to_upper_ascii(c);
+    }
+    return res;
+}
 
 /**
  * @brief Turn the given string to all-uppercase, ascii-only.
  */
-void        to_upper_ascii_inplace( std::string&       str );
+inline void to_upper_ascii_inplace( std::string&       str )
+{
+    for( auto& c : str ){
+        c = to_upper_ascii(c);
+    }
+}
 
 /**
  * @brief Return a string where special chars are replaces by their escape sequence.
@@ -214,7 +254,7 @@ void        to_upper_ascii_inplace( std::string&       str );
  * Double quotation marks are preceeded by a backslash, also the backslash itself will be escaped,
  * so that `"` becomes `\"` and `\` becomes `\\`.
  */
-std::string escape  ( std::string const& text );
+std::string escape( std::string const& text );
 
 /**
  * @brief Return a string where backslash-escaped characters are transformed into
@@ -237,7 +277,7 @@ std::string deescape( std::string const& text );
  * and `r` is turned into a carrier return (`\r`). All other chars (e.g., quotation marks or
  * the backslash itself) are simply returned as-is.
  */
-char        deescape( char c );
+char deescape( char c );
 
 // =================================================================================================
 //     Output

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -28,8 +28,9 @@
  * @ingroup utils
  */
 
-#include "genesis/utils/math/common.hpp"
 #include "genesis/utils/text/string.hpp"
+
+#include "genesis/utils/math/common.hpp"
 
 #include <algorithm>
 #include <cctype>
@@ -245,80 +246,6 @@ std::string trim (
 // =================================================================================================
 //     Normalize
 // =================================================================================================
-
-std::string to_lower( std::string const& str )
-{
-    auto res = str;
-    for( auto& c : res ){
-        c = tolower(c);
-    }
-    return res;
-}
-
-void to_lower_inplace( std::string& str )
-{
-    for( auto& c : str ){
-        c = tolower(c);
-    }
-}
-
-std::string to_upper( std::string const& str )
-{
-    auto res = str;
-    for( auto& c : res ){
-        c = toupper(c);
-    }
-    return res;
-}
-
-void to_upper_inplace( std::string& str )
-{
-    for( auto& c : str ){
-        c = toupper(c);
-    }
-}
-
-char to_lower_ascii( char c )
-{
-    return ( 'A' <= c && c <= 'Z' ) ? c + 0x20 : c;
-}
-
-char to_upper_ascii( char c )
-{
-    return ( 'a' <= c && c <= 'z' ) ? c - 0x20 : c;
-}
-
-std::string to_lower_ascii( std::string const& str )
-{
-    auto res = str;
-    for( auto& c : res ){
-        c = to_lower_ascii(c);
-    }
-    return res;
-}
-
-void to_lower_ascii_inplace( std::string& str )
-{
-    for( auto& c : str ){
-        c = to_lower_ascii(c);
-    }
-}
-
-std::string to_upper_ascii( std::string const& str )
-{
-    auto res = str;
-    for( auto& c : res ){
-        c = to_upper_ascii(c);
-    }
-    return res;
-}
-
-void to_upper_ascii_inplace( std::string& str )
-{
-    for( auto& c : str ){
-        c = to_upper_ascii(c);
-    }
-}
 
 std::string escape( std::string const& text )
 {

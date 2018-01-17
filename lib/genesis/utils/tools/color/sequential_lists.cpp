@@ -44,6 +44,15 @@ namespace utils {
 //     ColorBrewer Diverging Color Lists
 // =================================================================================================
 
+/**
+ * @brief Our own color list used for visualizing trees.
+ */
+const std::vector<Color> color_list_pupubk_ = {{
+    { 0.505882353, 0.749019608, 1.0 },         // light blue #81bfff
+    { 0.752941176, 0.250980392, 0.745098039 }, // purple     #c040be
+    { 0.0, 0.0, 0.0 }                          // black      #000000
+}};
+
 /*
  * These ColorBrewer color palettes are adapted from https://github.com/axismaps/colorbrewer and
  * https://github.com/Gnuplotting/gnuplot-palettes by converting the colors to RGB `double` values.
@@ -1369,6 +1378,11 @@ const std::vector<Color> color_list_viridis_ = {{
 //     Color Lists Functions
 // =================================================================================================
 
+std::vector<Color> const& color_list_pupubk()
+{
+    return color_list_pupubk_;
+}
+
 std::vector<Color> const& color_list_blues()
 {
     return color_list_blues_;
@@ -1485,6 +1499,9 @@ std::vector<Color> const& color_list_viridis()
 
 std::vector<Color> const& sequential_color_list( SequentialColorList palette )
 {
+    if( palette == SequentialColorList::kPupubk ) {
+        return color_list_pupubk_;
+    }
     if( palette == SequentialColorList::kBlues ) {
         return color_list_blues_;
     }
@@ -1559,6 +1576,9 @@ std::vector<Color> const& sequential_color_list( std::string const& palette )
 {
     auto const p = to_lower_ascii( palette );
 
+    if( p == "pupubk" ) {
+        return color_list_pupubk_;
+    }
     if( p == "blues" ) {
         return color_list_blues_;
     }
@@ -1632,6 +1652,7 @@ std::vector<Color> const& sequential_color_list( std::string const& palette )
 std::vector<std::string> sequential_color_list_names()
 {
     return {
+        "PuPuBk",
         "Blues",
         "BuGn",
         "BuPu",

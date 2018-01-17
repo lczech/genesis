@@ -1,7 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="284.444" height="1330">
-<!-- Created with genesis v0.18.1 (http://genesis-lib.org) on 2018-01-09 at 14:17:15 -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="284.444" height="1360">
+<!-- Created with genesis v0.18.1 (http://genesis-lib.org) on 2018-01-16 at 16:24:17 -->
     <defs>
+        <linearGradient id="PuPuBk" x1="0%" y1="0%" x2="100%" y2="0%" spreadMethod="pad" >
+            <stop offset="0%" stop-color="#81bfff" stop-opacity="1" />
+            <stop offset="50%" stop-color="#c040be" stop-opacity="1" />
+            <stop offset="100%" stop-color="#000000" stop-opacity="1" />
+        </linearGradient>
         <linearGradient id="Blues" x1="0%" y1="0%" x2="100%" y2="0%" spreadMethod="pad" >
             <stop offset="0%" stop-color="#f7fbff" stop-opacity="1" />
             <stop offset="12.5%" stop-color="#deebf7" stop-opacity="1" />
@@ -1352,220 +1357,224 @@
     <g transform="translate( 10, 10)" >
         <text x="10" y="15" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Sequential</text>
         <g transform="translate( 0, 30 )">
+            <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#PuPuBk)" />
+        </g>
+        <text x="220" y="45" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PuPuBk</text>
+        <g transform="translate( 0, 60 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#Blues)" />
         </g>
-        <text x="220" y="45" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Blues</text>
-        <g transform="translate( 0, 60 )">
+        <text x="220" y="75" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Blues</text>
+        <g transform="translate( 0, 90 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#BuGn)" />
         </g>
-        <text x="220" y="75" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">BuGn</text>
-        <g transform="translate( 0, 90 )">
+        <text x="220" y="105" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">BuGn</text>
+        <g transform="translate( 0, 120 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#BuPu)" />
         </g>
-        <text x="220" y="105" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">BuPu</text>
-        <g transform="translate( 0, 120 )">
+        <text x="220" y="135" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">BuPu</text>
+        <g transform="translate( 0, 150 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#GnBu)" />
         </g>
-        <text x="220" y="135" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">GnBu</text>
-        <g transform="translate( 0, 150 )">
+        <text x="220" y="165" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">GnBu</text>
+        <g transform="translate( 0, 180 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#Greens)" />
         </g>
-        <text x="220" y="165" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Greens</text>
-        <g transform="translate( 0, 180 )">
+        <text x="220" y="195" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Greens</text>
+        <g transform="translate( 0, 210 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#Greys)" />
         </g>
-        <text x="220" y="195" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Greys</text>
-        <g transform="translate( 0, 210 )">
+        <text x="220" y="225" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Greys</text>
+        <g transform="translate( 0, 240 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#Oranges)" />
         </g>
-        <text x="220" y="225" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Oranges</text>
-        <g transform="translate( 0, 240 )">
+        <text x="220" y="255" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Oranges</text>
+        <g transform="translate( 0, 270 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#OrRd)" />
         </g>
-        <text x="220" y="255" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">OrRd</text>
-        <g transform="translate( 0, 270 )">
+        <text x="220" y="285" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">OrRd</text>
+        <g transform="translate( 0, 300 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#PuBu)" />
         </g>
-        <text x="220" y="285" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PuBu</text>
-        <g transform="translate( 0, 300 )">
+        <text x="220" y="315" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PuBu</text>
+        <g transform="translate( 0, 330 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#PuBuGn)" />
         </g>
-        <text x="220" y="315" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PuBuGn</text>
-        <g transform="translate( 0, 330 )">
+        <text x="220" y="345" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PuBuGn</text>
+        <g transform="translate( 0, 360 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#PuRd)" />
         </g>
-        <text x="220" y="345" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PuRd</text>
-        <g transform="translate( 0, 360 )">
+        <text x="220" y="375" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PuRd</text>
+        <g transform="translate( 0, 390 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#Purples)" />
         </g>
-        <text x="220" y="375" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Purples</text>
-        <g transform="translate( 0, 390 )">
+        <text x="220" y="405" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Purples</text>
+        <g transform="translate( 0, 420 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#RdPu)" />
         </g>
-        <text x="220" y="405" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">RdPu</text>
-        <g transform="translate( 0, 420 )">
+        <text x="220" y="435" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">RdPu</text>
+        <g transform="translate( 0, 450 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#Reds)" />
         </g>
-        <text x="220" y="435" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Reds</text>
-        <g transform="translate( 0, 450 )">
+        <text x="220" y="465" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Reds</text>
+        <g transform="translate( 0, 480 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#YlGn)" />
         </g>
-        <text x="220" y="465" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">YlGn</text>
-        <g transform="translate( 0, 480 )">
+        <text x="220" y="495" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">YlGn</text>
+        <g transform="translate( 0, 510 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#YlGnBu)" />
         </g>
-        <text x="220" y="495" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">YlGnBu</text>
-        <g transform="translate( 0, 510 )">
+        <text x="220" y="525" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">YlGnBu</text>
+        <g transform="translate( 0, 540 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#YlOrBr)" />
         </g>
-        <text x="220" y="525" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">YlOrBr</text>
-        <g transform="translate( 0, 540 )">
+        <text x="220" y="555" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">YlOrBr</text>
+        <g transform="translate( 0, 570 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#YlOrRd)" />
         </g>
-        <text x="220" y="555" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">YlOrRd</text>
-        <g transform="translate( 0, 570 )">
+        <text x="220" y="585" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">YlOrRd</text>
+        <g transform="translate( 0, 600 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#Magma)" />
         </g>
-        <text x="220" y="585" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Magma</text>
-        <g transform="translate( 0, 600 )">
+        <text x="220" y="615" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Magma</text>
+        <g transform="translate( 0, 630 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#Inferno)" />
         </g>
-        <text x="220" y="615" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Inferno</text>
-        <g transform="translate( 0, 630 )">
+        <text x="220" y="645" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Inferno</text>
+        <g transform="translate( 0, 660 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#Plasma)" />
         </g>
-        <text x="220" y="645" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Plasma</text>
-        <g transform="translate( 0, 660 )">
+        <text x="220" y="675" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Plasma</text>
+        <g transform="translate( 0, 690 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#Viridis)" />
         </g>
-        <text x="220" y="675" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Viridis</text>
-        <text x="10" y="735" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Diverging</text>
-        <g transform="translate( 0, 750 )">
+        <text x="220" y="705" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Viridis</text>
+        <text x="10" y="765" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Diverging</text>
+        <g transform="translate( 0, 780 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#BrBg)" />
         </g>
-        <text x="220" y="765" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">BrBg</text>
-        <g transform="translate( 0, 780 )">
+        <text x="220" y="795" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">BrBg</text>
+        <g transform="translate( 0, 810 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#PiYg)" />
         </g>
-        <text x="220" y="795" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PiYg</text>
-        <g transform="translate( 0, 810 )">
+        <text x="220" y="825" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PiYg</text>
+        <g transform="translate( 0, 840 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#PrGn)" />
         </g>
-        <text x="220" y="825" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PrGn</text>
-        <g transform="translate( 0, 840 )">
+        <text x="220" y="855" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PrGn</text>
+        <g transform="translate( 0, 870 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#PuOr)" />
         </g>
-        <text x="220" y="855" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PuOr</text>
-        <g transform="translate( 0, 870 )">
+        <text x="220" y="885" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">PuOr</text>
+        <g transform="translate( 0, 900 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#RdBu)" />
         </g>
-        <text x="220" y="885" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">RdBu</text>
-        <g transform="translate( 0, 900 )">
+        <text x="220" y="915" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">RdBu</text>
+        <g transform="translate( 0, 930 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#RdGy)" />
         </g>
-        <text x="220" y="915" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">RdGy</text>
-        <g transform="translate( 0, 930 )">
+        <text x="220" y="945" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">RdGy</text>
+        <g transform="translate( 0, 960 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#RdYlBu)" />
         </g>
-        <text x="220" y="945" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">RdYlBu</text>
-        <g transform="translate( 0, 960 )">
+        <text x="220" y="975" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">RdYlBu</text>
+        <g transform="translate( 0, 990 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#RdYlGn)" />
         </g>
-        <text x="220" y="975" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">RdYlGn</text>
-        <g transform="translate( 0, 990 )">
+        <text x="220" y="1005" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">RdYlGn</text>
+        <g transform="translate( 0, 1020 )">
             <rect x="0" y="0" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="url(#Spectral)" />
         </g>
-        <text x="220" y="1005" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Spectral</text>
-        <text x="10" y="1065" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Qualitative</text>
-        <rect x="0" y="1080" width="25" height="20" stroke="none" fill="#7fc97f" fill-opacity="1" />
-        <rect x="25" y="1080" width="25" height="20" stroke="none" fill="#beaed4" fill-opacity="1" />
-        <rect x="50" y="1080" width="25" height="20" stroke="none" fill="#fdc086" fill-opacity="1" />
-        <rect x="75" y="1080" width="25" height="20" stroke="none" fill="#ffff99" fill-opacity="1" />
-        <rect x="100" y="1080" width="25" height="20" stroke="none" fill="#386cb0" fill-opacity="1" />
-        <rect x="125" y="1080" width="25" height="20" stroke="none" fill="#f0027f" fill-opacity="1" />
-        <rect x="150" y="1080" width="25" height="20" stroke="none" fill="#bf5b17" fill-opacity="1" />
-        <rect x="175" y="1080" width="25" height="20" stroke="none" fill="#666666" fill-opacity="1" />
-        <rect x="0" y="1080" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="none" />
-        <text x="220" y="1095" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Accent</text>
-        <rect x="0" y="1110" width="25" height="20" stroke="none" fill="#1b9e77" fill-opacity="1" />
-        <rect x="25" y="1110" width="25" height="20" stroke="none" fill="#d95f02" fill-opacity="1" />
-        <rect x="50" y="1110" width="25" height="20" stroke="none" fill="#7570b3" fill-opacity="1" />
-        <rect x="75" y="1110" width="25" height="20" stroke="none" fill="#e7298a" fill-opacity="1" />
-        <rect x="100" y="1110" width="25" height="20" stroke="none" fill="#66a61e" fill-opacity="1" />
-        <rect x="125" y="1110" width="25" height="20" stroke="none" fill="#e6ab02" fill-opacity="1" />
-        <rect x="150" y="1110" width="25" height="20" stroke="none" fill="#a6761d" fill-opacity="1" />
+        <text x="220" y="1035" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Spectral</text>
+        <text x="10" y="1095" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Qualitative</text>
+        <rect x="0" y="1110" width="25" height="20" stroke="none" fill="#7fc97f" fill-opacity="1" />
+        <rect x="25" y="1110" width="25" height="20" stroke="none" fill="#beaed4" fill-opacity="1" />
+        <rect x="50" y="1110" width="25" height="20" stroke="none" fill="#fdc086" fill-opacity="1" />
+        <rect x="75" y="1110" width="25" height="20" stroke="none" fill="#ffff99" fill-opacity="1" />
+        <rect x="100" y="1110" width="25" height="20" stroke="none" fill="#386cb0" fill-opacity="1" />
+        <rect x="125" y="1110" width="25" height="20" stroke="none" fill="#f0027f" fill-opacity="1" />
+        <rect x="150" y="1110" width="25" height="20" stroke="none" fill="#bf5b17" fill-opacity="1" />
         <rect x="175" y="1110" width="25" height="20" stroke="none" fill="#666666" fill-opacity="1" />
         <rect x="0" y="1110" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="none" />
-        <text x="220" y="1125" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Dark2</text>
-        <rect x="0" y="1140" width="16.6667" height="20" stroke="none" fill="#a6cee3" fill-opacity="1" />
-        <rect x="16.6667" y="1140" width="16.6667" height="20" stroke="none" fill="#1f78b4" fill-opacity="1" />
-        <rect x="33.3333" y="1140" width="16.6667" height="20" stroke="none" fill="#b2df8a" fill-opacity="1" />
-        <rect x="50" y="1140" width="16.6667" height="20" stroke="none" fill="#33a02c" fill-opacity="1" />
-        <rect x="66.6667" y="1140" width="16.6667" height="20" stroke="none" fill="#fb9a99" fill-opacity="1" />
-        <rect x="83.3333" y="1140" width="16.6667" height="20" stroke="none" fill="#e31a1c" fill-opacity="1" />
-        <rect x="100" y="1140" width="16.6667" height="20" stroke="none" fill="#fdbf6f" fill-opacity="1" />
-        <rect x="116.667" y="1140" width="16.6667" height="20" stroke="none" fill="#ff7f00" fill-opacity="1" />
-        <rect x="133.333" y="1140" width="16.6667" height="20" stroke="none" fill="#cab2d6" fill-opacity="1" />
-        <rect x="150" y="1140" width="16.6667" height="20" stroke="none" fill="#6a3d9a" fill-opacity="1" />
-        <rect x="166.667" y="1140" width="16.6667" height="20" stroke="none" fill="#ffff99" fill-opacity="1" />
-        <rect x="183.333" y="1140" width="16.6667" height="20" stroke="none" fill="#b15928" fill-opacity="1" />
+        <text x="220" y="1125" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Accent</text>
+        <rect x="0" y="1140" width="25" height="20" stroke="none" fill="#1b9e77" fill-opacity="1" />
+        <rect x="25" y="1140" width="25" height="20" stroke="none" fill="#d95f02" fill-opacity="1" />
+        <rect x="50" y="1140" width="25" height="20" stroke="none" fill="#7570b3" fill-opacity="1" />
+        <rect x="75" y="1140" width="25" height="20" stroke="none" fill="#e7298a" fill-opacity="1" />
+        <rect x="100" y="1140" width="25" height="20" stroke="none" fill="#66a61e" fill-opacity="1" />
+        <rect x="125" y="1140" width="25" height="20" stroke="none" fill="#e6ab02" fill-opacity="1" />
+        <rect x="150" y="1140" width="25" height="20" stroke="none" fill="#a6761d" fill-opacity="1" />
+        <rect x="175" y="1140" width="25" height="20" stroke="none" fill="#666666" fill-opacity="1" />
         <rect x="0" y="1140" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="none" />
-        <text x="220" y="1155" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Paired</text>
-        <rect x="0" y="1170" width="22.2222" height="20" stroke="none" fill="#fbb4ae" fill-opacity="1" />
-        <rect x="22.2222" y="1170" width="22.2222" height="20" stroke="none" fill="#b3cde3" fill-opacity="1" />
-        <rect x="44.4444" y="1170" width="22.2222" height="20" stroke="none" fill="#ccebc5" fill-opacity="1" />
-        <rect x="66.6667" y="1170" width="22.2222" height="20" stroke="none" fill="#decbe4" fill-opacity="1" />
-        <rect x="88.8889" y="1170" width="22.2222" height="20" stroke="none" fill="#fed9a6" fill-opacity="1" />
-        <rect x="111.111" y="1170" width="22.2222" height="20" stroke="none" fill="#ffffcc" fill-opacity="1" />
-        <rect x="133.333" y="1170" width="22.2222" height="20" stroke="none" fill="#e5d8bd" fill-opacity="1" />
-        <rect x="155.556" y="1170" width="22.2222" height="20" stroke="none" fill="#fddaec" fill-opacity="1" />
-        <rect x="177.778" y="1170" width="22.2222" height="20" stroke="none" fill="#f2f2f2" fill-opacity="1" />
+        <text x="220" y="1155" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Dark2</text>
+        <rect x="0" y="1170" width="16.6667" height="20" stroke="none" fill="#a6cee3" fill-opacity="1" />
+        <rect x="16.6667" y="1170" width="16.6667" height="20" stroke="none" fill="#1f78b4" fill-opacity="1" />
+        <rect x="33.3333" y="1170" width="16.6667" height="20" stroke="none" fill="#b2df8a" fill-opacity="1" />
+        <rect x="50" y="1170" width="16.6667" height="20" stroke="none" fill="#33a02c" fill-opacity="1" />
+        <rect x="66.6667" y="1170" width="16.6667" height="20" stroke="none" fill="#fb9a99" fill-opacity="1" />
+        <rect x="83.3333" y="1170" width="16.6667" height="20" stroke="none" fill="#e31a1c" fill-opacity="1" />
+        <rect x="100" y="1170" width="16.6667" height="20" stroke="none" fill="#fdbf6f" fill-opacity="1" />
+        <rect x="116.667" y="1170" width="16.6667" height="20" stroke="none" fill="#ff7f00" fill-opacity="1" />
+        <rect x="133.333" y="1170" width="16.6667" height="20" stroke="none" fill="#cab2d6" fill-opacity="1" />
+        <rect x="150" y="1170" width="16.6667" height="20" stroke="none" fill="#6a3d9a" fill-opacity="1" />
+        <rect x="166.667" y="1170" width="16.6667" height="20" stroke="none" fill="#ffff99" fill-opacity="1" />
+        <rect x="183.333" y="1170" width="16.6667" height="20" stroke="none" fill="#b15928" fill-opacity="1" />
         <rect x="0" y="1170" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="none" />
-        <text x="220" y="1185" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Pastel1</text>
-        <rect x="0" y="1200" width="25" height="20" stroke="none" fill="#b3e2cd" fill-opacity="1" />
-        <rect x="25" y="1200" width="25" height="20" stroke="none" fill="#fdcdac" fill-opacity="1" />
-        <rect x="50" y="1200" width="25" height="20" stroke="none" fill="#cdb5e8" fill-opacity="1" />
-        <rect x="75" y="1200" width="25" height="20" stroke="none" fill="#f4cae4" fill-opacity="1" />
-        <rect x="100" y="1200" width="25" height="20" stroke="none" fill="#d6f5c9" fill-opacity="1" />
-        <rect x="125" y="1200" width="25" height="20" stroke="none" fill="#fff2ae" fill-opacity="1" />
-        <rect x="150" y="1200" width="25" height="20" stroke="none" fill="#f1e2cc" fill-opacity="1" />
-        <rect x="175" y="1200" width="25" height="20" stroke="none" fill="#cccccc" fill-opacity="1" />
+        <text x="220" y="1185" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Paired</text>
+        <rect x="0" y="1200" width="22.2222" height="20" stroke="none" fill="#fbb4ae" fill-opacity="1" />
+        <rect x="22.2222" y="1200" width="22.2222" height="20" stroke="none" fill="#b3cde3" fill-opacity="1" />
+        <rect x="44.4444" y="1200" width="22.2222" height="20" stroke="none" fill="#ccebc5" fill-opacity="1" />
+        <rect x="66.6667" y="1200" width="22.2222" height="20" stroke="none" fill="#decbe4" fill-opacity="1" />
+        <rect x="88.8889" y="1200" width="22.2222" height="20" stroke="none" fill="#fed9a6" fill-opacity="1" />
+        <rect x="111.111" y="1200" width="22.2222" height="20" stroke="none" fill="#ffffcc" fill-opacity="1" />
+        <rect x="133.333" y="1200" width="22.2222" height="20" stroke="none" fill="#e5d8bd" fill-opacity="1" />
+        <rect x="155.556" y="1200" width="22.2222" height="20" stroke="none" fill="#fddaec" fill-opacity="1" />
+        <rect x="177.778" y="1200" width="22.2222" height="20" stroke="none" fill="#f2f2f2" fill-opacity="1" />
         <rect x="0" y="1200" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="none" />
-        <text x="220" y="1215" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Pastel2</text>
-        <rect x="0" y="1230" width="22.2222" height="20" stroke="none" fill="#e41a1c" fill-opacity="1" />
-        <rect x="22.2222" y="1230" width="22.2222" height="20" stroke="none" fill="#377eb8" fill-opacity="1" />
-        <rect x="44.4444" y="1230" width="22.2222" height="20" stroke="none" fill="#4daf4a" fill-opacity="1" />
-        <rect x="66.6667" y="1230" width="22.2222" height="20" stroke="none" fill="#984ea3" fill-opacity="1" />
-        <rect x="88.8889" y="1230" width="22.2222" height="20" stroke="none" fill="#ff7f00" fill-opacity="1" />
-        <rect x="111.111" y="1230" width="22.2222" height="20" stroke="none" fill="#ffff33" fill-opacity="1" />
-        <rect x="133.333" y="1230" width="22.2222" height="20" stroke="none" fill="#a65628" fill-opacity="1" />
-        <rect x="155.556" y="1230" width="22.2222" height="20" stroke="none" fill="#f781bf" fill-opacity="1" />
-        <rect x="177.778" y="1230" width="22.2222" height="20" stroke="none" fill="#999999" fill-opacity="1" />
+        <text x="220" y="1215" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Pastel1</text>
+        <rect x="0" y="1230" width="25" height="20" stroke="none" fill="#b3e2cd" fill-opacity="1" />
+        <rect x="25" y="1230" width="25" height="20" stroke="none" fill="#fdcdac" fill-opacity="1" />
+        <rect x="50" y="1230" width="25" height="20" stroke="none" fill="#cdb5e8" fill-opacity="1" />
+        <rect x="75" y="1230" width="25" height="20" stroke="none" fill="#f4cae4" fill-opacity="1" />
+        <rect x="100" y="1230" width="25" height="20" stroke="none" fill="#d6f5c9" fill-opacity="1" />
+        <rect x="125" y="1230" width="25" height="20" stroke="none" fill="#fff2ae" fill-opacity="1" />
+        <rect x="150" y="1230" width="25" height="20" stroke="none" fill="#f1e2cc" fill-opacity="1" />
+        <rect x="175" y="1230" width="25" height="20" stroke="none" fill="#cccccc" fill-opacity="1" />
         <rect x="0" y="1230" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="none" />
-        <text x="220" y="1245" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Set1</text>
-        <rect x="0" y="1260" width="25" height="20" stroke="none" fill="#66c2a5" fill-opacity="1" />
-        <rect x="25" y="1260" width="25" height="20" stroke="none" fill="#fc8d62" fill-opacity="1" />
-        <rect x="50" y="1260" width="25" height="20" stroke="none" fill="#8da0cb" fill-opacity="1" />
-        <rect x="75" y="1260" width="25" height="20" stroke="none" fill="#e78ac3" fill-opacity="1" />
-        <rect x="100" y="1260" width="25" height="20" stroke="none" fill="#a6d854" fill-opacity="1" />
-        <rect x="125" y="1260" width="25" height="20" stroke="none" fill="#ffd92f" fill-opacity="1" />
-        <rect x="150" y="1260" width="25" height="20" stroke="none" fill="#e5c494" fill-opacity="1" />
-        <rect x="175" y="1260" width="25" height="20" stroke="none" fill="#b3b3b3" fill-opacity="1" />
+        <text x="220" y="1245" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Pastel2</text>
+        <rect x="0" y="1260" width="22.2222" height="20" stroke="none" fill="#e41a1c" fill-opacity="1" />
+        <rect x="22.2222" y="1260" width="22.2222" height="20" stroke="none" fill="#377eb8" fill-opacity="1" />
+        <rect x="44.4444" y="1260" width="22.2222" height="20" stroke="none" fill="#4daf4a" fill-opacity="1" />
+        <rect x="66.6667" y="1260" width="22.2222" height="20" stroke="none" fill="#984ea3" fill-opacity="1" />
+        <rect x="88.8889" y="1260" width="22.2222" height="20" stroke="none" fill="#ff7f00" fill-opacity="1" />
+        <rect x="111.111" y="1260" width="22.2222" height="20" stroke="none" fill="#ffff33" fill-opacity="1" />
+        <rect x="133.333" y="1260" width="22.2222" height="20" stroke="none" fill="#a65628" fill-opacity="1" />
+        <rect x="155.556" y="1260" width="22.2222" height="20" stroke="none" fill="#f781bf" fill-opacity="1" />
+        <rect x="177.778" y="1260" width="22.2222" height="20" stroke="none" fill="#999999" fill-opacity="1" />
         <rect x="0" y="1260" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="none" />
-        <text x="220" y="1275" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Set2</text>
-        <rect x="0" y="1290" width="16.6667" height="20" stroke="none" fill="#8dd3c7" fill-opacity="1" />
-        <rect x="16.6667" y="1290" width="16.6667" height="20" stroke="none" fill="#ffffb3" fill-opacity="1" />
-        <rect x="33.3333" y="1290" width="16.6667" height="20" stroke="none" fill="#bebada" fill-opacity="1" />
-        <rect x="50" y="1290" width="16.6667" height="20" stroke="none" fill="#fb8072" fill-opacity="1" />
-        <rect x="66.6667" y="1290" width="16.6667" height="20" stroke="none" fill="#80b1d3" fill-opacity="1" />
-        <rect x="83.3333" y="1290" width="16.6667" height="20" stroke="none" fill="#fdb462" fill-opacity="1" />
-        <rect x="100" y="1290" width="16.6667" height="20" stroke="none" fill="#b3de69" fill-opacity="1" />
-        <rect x="116.667" y="1290" width="16.6667" height="20" stroke="none" fill="#fccde5" fill-opacity="1" />
-        <rect x="133.333" y="1290" width="16.6667" height="20" stroke="none" fill="#d9d9d9" fill-opacity="1" />
-        <rect x="150" y="1290" width="16.6667" height="20" stroke="none" fill="#bc80bd" fill-opacity="1" />
-        <rect x="166.667" y="1290" width="16.6667" height="20" stroke="none" fill="#ccebc5" fill-opacity="1" />
-        <rect x="183.333" y="1290" width="16.6667" height="20" stroke="none" fill="#ffed6f" fill-opacity="1" />
+        <text x="220" y="1275" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Set1</text>
+        <rect x="0" y="1290" width="25" height="20" stroke="none" fill="#66c2a5" fill-opacity="1" />
+        <rect x="25" y="1290" width="25" height="20" stroke="none" fill="#fc8d62" fill-opacity="1" />
+        <rect x="50" y="1290" width="25" height="20" stroke="none" fill="#8da0cb" fill-opacity="1" />
+        <rect x="75" y="1290" width="25" height="20" stroke="none" fill="#e78ac3" fill-opacity="1" />
+        <rect x="100" y="1290" width="25" height="20" stroke="none" fill="#a6d854" fill-opacity="1" />
+        <rect x="125" y="1290" width="25" height="20" stroke="none" fill="#ffd92f" fill-opacity="1" />
+        <rect x="150" y="1290" width="25" height="20" stroke="none" fill="#e5c494" fill-opacity="1" />
+        <rect x="175" y="1290" width="25" height="20" stroke="none" fill="#b3b3b3" fill-opacity="1" />
         <rect x="0" y="1290" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="none" />
-        <text x="220" y="1305" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Set3</text>
+        <text x="220" y="1305" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Set2</text>
+        <rect x="0" y="1320" width="16.6667" height="20" stroke="none" fill="#8dd3c7" fill-opacity="1" />
+        <rect x="16.6667" y="1320" width="16.6667" height="20" stroke="none" fill="#ffffb3" fill-opacity="1" />
+        <rect x="33.3333" y="1320" width="16.6667" height="20" stroke="none" fill="#bebada" fill-opacity="1" />
+        <rect x="50" y="1320" width="16.6667" height="20" stroke="none" fill="#fb8072" fill-opacity="1" />
+        <rect x="66.6667" y="1320" width="16.6667" height="20" stroke="none" fill="#80b1d3" fill-opacity="1" />
+        <rect x="83.3333" y="1320" width="16.6667" height="20" stroke="none" fill="#fdb462" fill-opacity="1" />
+        <rect x="100" y="1320" width="16.6667" height="20" stroke="none" fill="#b3de69" fill-opacity="1" />
+        <rect x="116.667" y="1320" width="16.6667" height="20" stroke="none" fill="#fccde5" fill-opacity="1" />
+        <rect x="133.333" y="1320" width="16.6667" height="20" stroke="none" fill="#d9d9d9" fill-opacity="1" />
+        <rect x="150" y="1320" width="16.6667" height="20" stroke="none" fill="#bc80bd" fill-opacity="1" />
+        <rect x="166.667" y="1320" width="16.6667" height="20" stroke="none" fill="#ccebc5" fill-opacity="1" />
+        <rect x="183.333" y="1320" width="16.6667" height="20" stroke="none" fill="#ffed6f" fill-opacity="1" />
+        <rect x="0" y="1320" width="200" height="20" stroke="#000000" stroke-opacity="1" stroke-width="1" fill="none" />
+        <text x="220" y="1335" font-size="10" font-family="Verdana" fill="#000000" fill-opacity="1">Set3</text>
     </g>
 </svg>
