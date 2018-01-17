@@ -145,7 +145,7 @@ Bitvector& Bitvector::operator ^= (Bitvector const& rhs)
 Bitvector Bitvector::operator ~ () const
 {
     Bitvector cpy = Bitvector(*this);
-    cpy.invert();
+    cpy.negate();
     return cpy;
 }
 
@@ -221,7 +221,7 @@ Bitvector::IntType Bitvector::x_hash() const
     return res;
 }
 
-void Bitvector::invert()
+void Bitvector::negate()
 {
     // flip all bits.
     for (size_t i = 0; i < data_.size(); ++i) {
@@ -235,7 +235,7 @@ void Bitvector::invert()
 void Bitvector::normalize()
 {
     if (size_ > 0 && get(0)) {
-        invert();
+        negate();
     }
 }
 

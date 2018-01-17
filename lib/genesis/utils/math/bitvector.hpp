@@ -87,7 +87,7 @@ public:
     }
 
     /**
-     * @brief Creates a Bitvector by copying the first @p bits of another Bitvector.
+     * @brief Create a Bitvector by copying the first @p bits of another Bitvector.
      *
      * If `bits > other.size()`, all bits are used.
      */
@@ -116,14 +116,14 @@ public:
     // ---------------------------------------------------------
 
     /**
-     * @brief Returns the value of a single bit, without boundary check.
+     * @brief Return the value of a single bit, without boundary check.
      */
     inline bool operator [] (size_t index) const {
         return static_cast<bool> (data_[index / IntSize] & bit_mask_[index % IntSize]);
     }
 
     /**
-     * @brief Returns the value of a single bit, with boundary check.
+     * @brief Return the value of a single bit, with boundary check.
      */
     inline bool get (size_t index) const
     {
@@ -134,7 +134,7 @@ public:
     }
 
     /**
-     * @brief Sets the value of a single bit to true, with boundary check.
+     * @brief Set the value of a single bit to true, with boundary check.
      */
     inline void set (size_t index)
     {
@@ -145,7 +145,7 @@ public:
     }
 
     /**
-     * @brief Sets the value of a single bit to false, with boundary check.
+     * @brief Set the value of a single bit to false, with boundary check.
      */
     inline void unset (size_t index)
     {
@@ -156,7 +156,7 @@ public:
     }
 
     /**
-     * @brief Sets the value of a single bit to a given bool value, with boundary check.
+     * @brief Set the value of a single bit to a given bool value, with boundary check.
      */
     inline void set (size_t index, bool value)
     {
@@ -168,7 +168,7 @@ public:
     }
 
     /**
-     * @brief Flips (inverts) the value of a single bit, with boundary check.
+     * @brief Flip (negate) the value of a single bit, with boundary check.
      */
     inline void flip (size_t index)
     {
@@ -195,7 +195,7 @@ public:
     // ---------------------------------------------------------
 
     /**
-     * @brief Returns the size (number of total bits) of this Bitvector.
+     * @brief Return the size (number of bits) of this Bitvector.
      */
     inline size_t size() const
     {
@@ -203,17 +203,17 @@ public:
     }
 
     /**
-     * @brief Counts the number of set bits in the Bitvector.
+     * @brief Count the number of set bits in the Bitvector, that is, its Hamming weight.
      */
     size_t  count() const;
 
     /**
-     * @brief Returns an std::hash value for the Bitvector.
+     * @brief Return an std::hash value for the Bitvector.
      */
     size_t  hash()  const;
 
     /**
-     * @brief Returns a hash value of type IntType that is quicker to calculate than hash().
+     * @brief Return a hash value of type IntType that is quicker to calculate than hash().
      *
      * This can be used for obtaining a simple hash using xor of the words.
      * The avalanche effect is of course not present, but for many applications, this hash is
@@ -224,20 +224,20 @@ public:
     /**
      * @brief Flip all bits.
      */
-    void    invert();
+    void negate();
 
     /**
-     * @brief Brings the Bitvector in a normalized form, where the first bit is always zero.
+     * @brief Bring the Bitvector in a normalized form, where the first bit is always zero.
      *
      * If the first bit is zero, nothing happens. However, if is is one, the whole Bitvector is flipped
-     * using invert().
+     * using negate().
      */
-    void    normalize();
+    void normalize();
 
     /**
      * @brief Reset all the bits to false. If provided with parameter `true`, sets all bits to true.
      */
-    void    reset(const bool value = false);
+    void reset(const bool value = false);
 
     std::string dump() const;
     std::string dump_int(IntType x) const;
