@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -71,8 +71,8 @@ TEST( FastaInputIterator, ReadingLoop )
     NEEDS_TEST_DATA;
 
     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-    utils::InputStream instr( utils::make_unique< utils::FileInputSource >( infile ));
-    auto it = FastaInputIterator( instr );
+    auto it = FastaInputIterator();
+    it.from_file( infile );
 
     size_t len = 0;
     size_t cnt = 0;
@@ -81,12 +81,16 @@ TEST( FastaInputIterator, ReadingLoop )
         if( cnt == 0 ) {
             EXPECT_EQ( "Di106BGTue", it->label() );
         }
+        if( cnt == 9 ) {
+            EXPECT_EQ( "GTCGTTCT", it->sites().substr(387, 8 ));
+        }
 
         len = std::max( len, it->length() );
         ++cnt;
         ++it;
     }
 
+    EXPECT_FALSE( it );
     EXPECT_EQ( 460, len );
     EXPECT_EQ( 10, cnt );
 }
@@ -97,27 +101,30 @@ TEST( FastaInputIterator, ReadingLoop )
 //     NEEDS_TEST_DATA;
 //
 //     std::string infile = environment->data_dir + "sequence/dna_10.fasta";
-//     std::ifstream ifs (infile);
-//
-//     auto it = FastaInputIterator( ifs );
+//     auto it = FastaInputIterator();
+//     it.from_file( infile );
 //     Sequence seq;
 //
 //     size_t len = 0;
 //     size_t cnt = 0;
 //
-//     while( it >> seq ) {
+//     while( it ) {
+//         seq = *it;
+//
 //         // Check first sequence.
 //         if( cnt == 0 ) {
 //             EXPECT_EQ( "Di106BGTue", seq.label() );
 //         }
 //
-//         len = std::max( len, seq.length() );
+//         len = std::max( len, it->length() );
 //         ++cnt;
 //
 //         if( cnt == 353 ) {
 //             std::cout << seq.label() << "\n";
 //             std::cout << ( it ? "si" : "no" ) << "\n";
 //         }
+//
+//         ++it;
 //     }
 //
 //     std::cout << ( it ? "si" : "no" ) << "\n";

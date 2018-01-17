@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,11 +31,14 @@
  * @ingroup sequence
  */
 
-#include "genesis/sequence/sequence.hpp"
 #include "genesis/sequence/formats/fasta_reader.hpp"
+#include "genesis/sequence/sequence.hpp"
+#include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
 #include <iterator>
+#include <memory>
+#include <sstream>
 
 namespace genesis {
 namespace sequence {
@@ -45,15 +48,16 @@ namespace sequence {
 // =================================================================================================
 
 /**
- * @brief Iterate an input stream and parse it as fasta sequences.
+ * @brief Iterate an input stream and parse it as Fasta sequences.
  *
- * This class allows to iterate over an input stream, iterpreting it as fasta sequences, and
+ * This class allows to iterate over an input stream, iterpreting it as Fasta sequences, and
  * yielding one such sequence per iteration step. This is useful for processing large files without
  * having to keep them fully in memory.
  *
  * Example:
  *
- *     auto it = FastaInputIterator( some_istream );
+ *     auto it = FastaInputIterator();
+ *     it.from_file( "/path/to/large_file.fasta" );
  *     while( it ) {
  *         std::cout << it->length() << "\n";
  *         ++it;
@@ -62,6 +66,14 @@ namespace sequence {
  * See FastaReader for a description of the expected format. In order to change the reading
  * behaviour, use the reader() function to access the internal FastaReaser and change its
  * properties.
+ *
+ * The copy constructur copies a pointer the the underlying stream.
+ * Thus, when advancing the copy to the next Sequence, the original "skips" this Sequence,
+ * as the stream then is at the next one.
+ *
+ * Thread safety: No thread safety. The common use case for this iterator is to loop over a file.
+ * Thus, guarding induces unnecessary overhead. If multiple threads read from this iterator, both
+ * dereferencing and incrementing need to be guarded.
  */
 class FastaInputIterator
 {
@@ -72,43 +84,85 @@ public:
     // -------------------------------------------------------------------------
 
     using self_type         = FastaInputIterator;
+    using value_type        = Sequence;
     using iterator_category = std::input_iterator_tag;
 
     // -------------------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Create a default instance, using a default FastaReader.
+     */
     FastaInputIterator()
         : reader_()
-        , input_stream_( nullptr )
         , sequence_()
     {}
 
-    FastaInputIterator( utils::InputStream& in )
-        : reader_()
-        , input_stream_( &in )
-        , sequence_()
-    {
-        // Read first sequence.
-        increment();
-    }
-
-    FastaInputIterator( utils::InputStream& in, FastaReader const& reader )
+    /**
+     * @brief Create an instance that copies the settings of a given FastaReader.
+     */
+    FastaInputIterator( FastaReader const& reader )
         : reader_( reader )
-        , input_stream_( &in )
         , sequence_()
-    {
-        // Read first sequence.
-        increment();
-    }
+    {}
 
     ~FastaInputIterator() = default;
 
-    FastaInputIterator( self_type const& ) = delete;
+    FastaInputIterator( self_type const& ) = default;
     FastaInputIterator( self_type&& )      = default;
 
-    self_type& operator= ( self_type const& ) = delete;
+    self_type& operator= ( self_type const& ) = default;
     self_type& operator= ( self_type&& )      = default;
+
+    // -------------------------------------------------------------------------
+    //     Reading
+    // -------------------------------------------------------------------------
+
+    /**
+     * @brief Start reading from an input stream.
+     *
+     * This reads the first Sequence so that it is available for dereferencing.
+     */
+    self_type& from_stream( std::istream& input_stream )
+    {
+        // Create input stream and read first sequence.
+        input_stream_ = std::make_shared<utils::InputStream>(
+            utils::make_unique< utils::StreamInputSource >( input_stream )
+        );
+        increment();
+        return *this;
+    }
+
+    /**
+     * @brief Start reading from an input string.
+     *
+     * @copydetails from_stream()
+     */
+    self_type& from_file( std::string const& file_name )
+    {
+        // Create input stream and read first sequence.
+        input_stream_ = std::make_shared<utils::InputStream>(
+            utils::make_unique< utils::FileInputSource >( file_name )
+        );
+        increment();
+        return *this;
+    }
+
+    /**
+     * @brief Start reading from an input file.
+     *
+     * @copydetails from_stream()
+     */
+    self_type& from_string( std::string const& input_string )
+    {
+        // Create input stream and read first sequence.
+        input_stream_ = std::make_shared<utils::InputStream>(
+            utils::make_unique< utils::StringInputSource >( input_string )
+        );
+        increment();
+        return *this;
+    }
 
     // -------------------------------------------------------------------------
     //     Comparators
@@ -136,17 +190,17 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
-    Sequence const& operator * () const
+    value_type const& operator * () const
     {
-        return dereference();
+        return sequence_;
     }
 
-    Sequence const* operator -> () const
+    value_type const* operator -> () const
     {
-        return &dereference();
+        return &sequence_;
     }
 
-    Sequence const& dereference() const
+    value_type const& dereference() const
     {
         return sequence_;
     }
@@ -189,10 +243,11 @@ public:
 
 private:
 
-    FastaReader         reader_;
-    utils::InputStream* input_stream_;
-    Sequence            sequence_;
-    bool                good_ = true;
+    std::shared_ptr<utils::InputStream> input_stream_;
+    bool good_ = true;
+
+    FastaReader reader_;
+    Sequence    sequence_;
 };
 
 } // namespace sequence
