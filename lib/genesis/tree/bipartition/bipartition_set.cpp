@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -38,6 +38,7 @@
 
 #include "genesis/utils/core/logging.hpp"
 #include "genesis/utils/text/string.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
 
 #include <assert.h>
 #include <stdexcept>
@@ -137,13 +138,13 @@ Bipartition* BipartitionSet::find_smallest_subtree (
             continue;
         }
 
-        if (comp <= bp.leaf_nodes_) {
+        if( utils::subset( comp, bp.leaf_nodes_ )) {
             if (min_count == 0 || bp.leaf_nodes_.count() < min_count) {
                 best_bp   = &bp;
                 min_count = bp.leaf_nodes_.count();
             }
         }
-        if (comp <= ~(bp.leaf_nodes_)) {
+        if( utils::subset( comp, ~(bp.leaf_nodes_)) ) {
             if (min_count == 0 || (~bp.leaf_nodes_).count() < min_count)  {
                 // TODO the invert messes with the data consistency of the bipartition. better make a copy!
                 // TODO also, if there is a class subtree at some better, better return this instead of a bipartition.

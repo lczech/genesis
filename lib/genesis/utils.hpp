@@ -84,6 +84,7 @@
 #include "genesis/utils/io/scanner.hpp"
 #include "genesis/utils/io/serializer.hpp"
 #include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
 #include "genesis/utils/math/common.hpp"
 #include "genesis/utils/math/histogram/accumulator.hpp"
 #include "genesis/utils/math/histogram/distances.hpp"

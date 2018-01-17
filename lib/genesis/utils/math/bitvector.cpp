@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -31,18 +31,18 @@
 #include "genesis/utils/math/bitvector.hpp"
 
 #include <algorithm>
-#include <assert.h>
 #include <functional>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
 
 // =============================================================================
-//     Declarations and Class Functions
+//     Constants
 // =============================================================================
 
 const Bitvector::IntType Bitvector::all_0_ = 0ul;
-const Bitvector::IntType Bitvector::all_1_ = (((1ul << 32) - 1) << 32)  +  ((1ul << 32) - 1);
+    const Bitvector::IntType Bitvector::all_1_ = (((1ul << 32) - 1) << 32)  +  ((1ul << 32) - 1);
 
 /**
  * @brief Contains a single bit at each of the 64 positions.
@@ -69,7 +69,7 @@ const Bitvector::IntType Bitvector::bit_mask_[Bitvector::IntSize] =
  *     ones_mask_[2] --> 2 ones: 0000...0011
  *     ...
  *
- * This mask is used for unsetting the padding bits in unset_padding().
+ * This mask is used for unsetting the padding bits in unset_padding_().
  */
 const Bitvector::IntType Bitvector::ones_mask_[Bitvector::IntSize] =
 {
@@ -102,65 +102,17 @@ const Bitvector::IntType Bitvector::count_mask_[4] =
     0x0101010101010101   //the sum of 256 to the power of 0,1,2,3...
 };
 
-Bitvector operator & (Bitvector const& lhs, Bitvector const& rhs)
-{
-    // make a copy.
-    Bitvector result = Bitvector(lhs);
-
-    // check for self-and.
-    if (&lhs == &rhs) {
-        return result;
-    }
-
-    // if not, return and with right hand side.
-    result &= rhs;
-    return result;
-}
-
-Bitvector operator | (Bitvector const& lhs, Bitvector const& rhs)
-{
-    // make a copy.
-    Bitvector result = Bitvector(lhs);
-
-    // check for self-or.
-    if (&lhs == &rhs) {
-        return result;
-    }
-
-    // if not, return or with right hand side.
-    result |= rhs;
-    return result;
-}
-
-Bitvector operator ^ (Bitvector const& lhs, Bitvector const& rhs)
-{
-    // check for self-xor. if so, return zero vector of same size.
-    if (&lhs == &rhs) {
-        return Bitvector(lhs.size(), false);
-    }
-
-    // otherwise, make a copy and xor it.
-    Bitvector result = Bitvector(lhs);
-    result ^= rhs;
-    return result;
-}
-
-/**
- * @brief Set-minus of two Bitvectors.
- */
-Bitvector operator - (Bitvector const& lhs, Bitvector const& rhs)
-{
-    return lhs & (~rhs);
-}
-
 // =============================================================================
 //     Operators
 // =============================================================================
 
 Bitvector& Bitvector::operator &= (Bitvector const& rhs)
 {
-    size_t min_s = std::min(data_.size(), rhs.data_.size());
-    for (size_t i = 0; i < min_s; ++i) {
+    if( size_ != rhs.size_ ) {
+        throw std::runtime_error( "Cannot use operator on Bitvectors of different size." );
+    }
+
+    for (size_t i = 0; i < data_.size(); ++i) {
         data_[i] &= rhs.data_[i];
     }
     return *this;
@@ -168,21 +120,25 @@ Bitvector& Bitvector::operator &= (Bitvector const& rhs)
 
 Bitvector& Bitvector::operator |= (Bitvector const& rhs)
 {
-    size_t min_s = std::min(data_.size(), rhs.data_.size());
-    for (size_t i = 0; i < min_s; ++i) {
+    if( size_ != rhs.size_ ) {
+        throw std::runtime_error( "Cannot use operator on Bitvectors of different size." );
+    }
+
+    for (size_t i = 0; i < data_.size(); ++i) {
         data_[i] |= rhs.data_[i];
     }
-    unset_padding();
     return *this;
 }
 
 Bitvector& Bitvector::operator ^= (Bitvector const& rhs)
 {
-    size_t min_s = std::min(data_.size(), rhs.data_.size());
-    for (size_t i = 0; i < min_s; ++i) {
+    if( size_ != rhs.size_ ) {
+        throw std::runtime_error( "Cannot use operator on Bitvectors of different size." );
+    }
+
+    for (size_t i = 0; i < data_.size(); ++i) {
         data_[i] ^= rhs.data_[i];
     }
-    unset_padding();
     return *this;
 }
 
@@ -206,23 +162,15 @@ bool Bitvector::operator == (const Bitvector &other) const
     return true;
 }
 
+bool Bitvector::operator != (const Bitvector &other) const
+{
+    return !(*this == other);
+}
+
 // =============================================================================
 //     Other Functions
 // =============================================================================
 
-Bitvector Bitvector::symmetric_difference (Bitvector const& rhs) const
-{
-    return symmetric_difference(*this, rhs);
-}
-
-Bitvector Bitvector::symmetric_difference (Bitvector const& lhs, Bitvector const& rhs)
-{
-    return (lhs | rhs) & ~(lhs & rhs);
-}
-
-/**
- * @brief Counts the number of set bits in the Bitvector.
- */
 size_t Bitvector::count() const
 {
     size_t res = 0;
@@ -252,9 +200,6 @@ size_t Bitvector::count() const
     return res;
 }
 
-/**
- * @brief Returns an std::hash value for the Bitvector.
- */
 size_t Bitvector::hash() const
 {
     // TODO this might be a poor hash function. check what kind of value a hash fct needs to return and decide whether xhash is a good choice instead!
@@ -267,10 +212,6 @@ size_t Bitvector::hash() const
     return res;
 }
 
-/**
- * @brief Returns a hash value of type IntType, that is quicker to calculate than hash(), and thus
- * can be used where the std::hash is not needed.
- */
 Bitvector::IntType Bitvector::x_hash() const
 {
     IntType res = 0;
@@ -280,9 +221,6 @@ Bitvector::IntType Bitvector::x_hash() const
     return res;
 }
 
-/**
- * @brief Flip all bits.
- */
 void Bitvector::invert()
 {
     // flip all bits.
@@ -291,15 +229,9 @@ void Bitvector::invert()
     }
 
     // reset the surplus bits at the end of the vector.
-    unset_padding();
+    unset_padding_();
 }
 
-/**
- * @brief Brings the Bitvector in a normalized form, where the first bit is always zero.
- *
- * If the first bit is zero, nothing happens. However, if is is one, the whole Bitvector is flipped
- * using invert().
- */
 void Bitvector::normalize()
 {
     if (size_ > 0 && get(0)) {
@@ -307,9 +239,6 @@ void Bitvector::normalize()
     }
 }
 
-/**
- * @brief Reset all the bits to false. If provided with parameter `true`, sets all bits to true.
- */
 void Bitvector::reset(const bool value)
 {
     // set according to flag.
@@ -320,18 +249,11 @@ void Bitvector::reset(const bool value)
 
     // if we initialized with true, we need to unset the surplus bits at the end!
     if (value) {
-        unset_padding();
+        unset_padding_();
     }
 }
 
-/**
- * @brief Internal function that sets all bits to zero that are not actively used.
- *
- * The data_ buffer always contains a multiple of IntSize many bits, thus there might be surplus
- * bits at its end for padding. In case we do operations with Bitvectors of different size, these
- * might be affected, so we need to reset them to zero sometimes.
- */
-void Bitvector::unset_padding()
+void Bitvector::unset_padding_()
 {
     if (size_ % IntSize == 0) {
         return;
@@ -350,14 +272,6 @@ void Bitvector::unset_padding()
 // =============================================================================
 //     Dump and Debug
 // =============================================================================
-
-std::ostream& operator << (std::ostream& s, Bitvector const& rhs)
-{
-    for(size_t i = 0; i < rhs.size() ; ++i) {
-        s << (rhs.get(i) ? "1" : "0");
-    }
-    return s;
-}
 
 std::string Bitvector::dump() const
 {
