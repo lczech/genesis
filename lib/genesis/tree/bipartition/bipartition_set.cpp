@@ -138,13 +138,13 @@ Bipartition* BipartitionSet::find_smallest_subtree (
             continue;
         }
 
-        if( utils::subset( comp, bp.leaf_nodes_ )) {
+        if( utils::is_subset( comp, bp.leaf_nodes_ )) {
             if (min_count == 0 || bp.leaf_nodes_.count() < min_count) {
                 best_bp   = &bp;
                 min_count = bp.leaf_nodes_.count();
             }
         }
-        if( utils::subset( comp, ~(bp.leaf_nodes_)) ) {
+        if( utils::is_subset( comp, ~(bp.leaf_nodes_)) ) {
             if (min_count == 0 || (~bp.leaf_nodes_).count() < min_count)  {
                 // TODO the invert messes with the data consistency of the bipartition. better make a copy!
                 // TODO also, if there is a class subtree at some better, better return this instead of a bipartition.

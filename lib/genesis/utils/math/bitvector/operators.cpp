@@ -131,24 +131,24 @@ Bitvector symmetric_difference (Bitvector const& lhs, Bitvector const& rhs)
     return (lhs | rhs) & ~(lhs & rhs);
 }
 
-bool strict_subset( Bitvector const& sub, Bitvector const& super )
+bool is_strict_subset( Bitvector const& sub, Bitvector const& super )
 {
     return ((sub & super) == sub) && (sub.count() < super.count());
 }
 
-bool strict_superset( Bitvector const& super, Bitvector const& sub )
+bool is_strict_superset( Bitvector const& super, Bitvector const& sub )
 {
-    return strict_subset( sub, super );
+    return is_strict_subset( sub, super );
 }
 
-bool subset( Bitvector const& sub, Bitvector const& super )
+bool is_subset( Bitvector const& sub, Bitvector const& super )
 {
-    return (sub == super) || strict_subset(sub, super);
+    return (sub == super) || is_strict_subset(sub, super);
 }
 
-bool superset( Bitvector const& super, Bitvector const& sub )
+bool is_superset( Bitvector const& super, Bitvector const& sub )
 {
-    return (super == sub) || strict_superset(super, sub);
+    return (super == sub) || is_strict_superset(super, sub);
 }
 
 std::ostream& operator << (std::ostream& s, Bitvector const& bv)
