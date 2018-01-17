@@ -31,6 +31,7 @@
 #include "genesis/utils/math/bitvector/operators.hpp"
 
 #include <iostream>
+#include <string>
 
 namespace genesis {
 namespace utils {
@@ -157,6 +158,28 @@ std::ostream& operator << (std::ostream& s, Bitvector const& bv)
         s << (bv.get(i) ? "1" : "0");
     }
     return s;
+}
+
+std::istream& operator >> ( std::istream& in, Bitvector& bv )
+{
+    // We need two steps, as we have to construct the bitvector with a known size.
+    // First, bring the bits into string form...
+    std::string str;
+    auto c = in.peek();
+    while( c == '0' || c == '1' ) {
+        str += c;
+        (void) in.get();
+        c = in.peek();
+    }
+
+    // ... then, create the bitvector.
+    bv = Bitvector( str.size() );
+    for( size_t i = 0; i < str.size(); ++i ) {
+        if( str[i] == '1' ) {
+            bv.set(i);
+        }
+    }
+    return in;
 }
 
 } // namespace utils

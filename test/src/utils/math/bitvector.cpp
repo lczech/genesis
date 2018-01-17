@@ -31,10 +31,15 @@
 #include "src/common.hpp"
 
 #include "genesis/utils/math/bitvector.hpp"
+#include "genesis/utils/math/bitvector/operators.hpp"
+
+#include <cstdlib>
+#include <ctime>
+#include <iostream>
 
 using namespace genesis::utils;
 
-TEST(Bitvector, CopyRange)
+TEST( Bitvector, CopyRange )
 {
     auto const bv_20 = Bitvector( 20 );
     auto const bv_10 = Bitvector( bv_20, 10 );
@@ -42,4 +47,32 @@ TEST(Bitvector, CopyRange)
 
     auto const bv_cp = Bitvector( bv_20, 20 );
     EXPECT_EQ( 20, bv_cp.size() );
+}
+
+TEST( Bitvector, Streams )
+{
+    std::srand(std::time(nullptr));
+
+    // Create a random bitvector.
+    size_t const size = 50;
+    auto bv = Bitvector( size );
+    for( size_t i = 0; i < size; ++i ) {
+        auto const p = ( std::rand() % size );
+        bv.flip( p );
+    }
+
+    // Stream it back and forth
+    std::ostringstream ostr;
+    ostr << bv;
+    std::istringstream istr( ostr.str() );
+    Bitvector cp;
+    istr >> cp;
+    EXPECT_EQ( bv, cp );
+
+    // Add more stuff to ostr. Shoudl still work.
+    ostr << "hello world";
+    istr.str( ostr.str() );
+    istr.clear();
+    istr >> cp;
+    EXPECT_EQ( bv, cp );
 }
