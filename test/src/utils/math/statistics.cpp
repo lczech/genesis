@@ -135,8 +135,16 @@ TEST( Math, SpearmansRankCorrelationCoeffcient )
     auto tv = std::vector<double>({
         7, 0, 27, 50, 28, 29, 20, 12, 6, 17
     });
-
     EXPECT_FLOAT_EQ( -0.175757575, spearmans_rank_correlation_coefficient( iq, tv ) );
+
+    // Add some nan values to it. Nothing should change.
+    auto iq2 = std::vector<double>({
+        106, 86, (1.0/0.0), 100, 101, 99, 103, 97, 113, 112, 110, (1.0/0.0)
+    });
+    auto tv2 = std::vector<double>({
+        7, 0, 0, 27, 50, 28, 29, 20, 12, 6, 17, 100
+    });
+    EXPECT_FLOAT_EQ( -0.175757575, spearmans_rank_correlation_coefficient( iq2, tv2 ) );
 }
 
 TEST( Math, FisherTransformation )

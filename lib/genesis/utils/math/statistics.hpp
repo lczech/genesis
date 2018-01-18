@@ -39,6 +39,7 @@
 #include <cstddef>
 #include <limits>
 #include <stdexcept>
+#include <utility>
 #include <vector>
 
 namespace genesis {
@@ -49,8 +50,7 @@ namespace utils {
 // =================================================================================================
 
 // Needed for spearmans_rank_correlation_coefficient()
-template <class RandomAccessIterator>
-std::vector<double> ranking_fractional( RandomAccessIterator first, RandomAccessIterator last );
+std::vector<double> ranking_fractional( std::vector<double> const& vec );
 
 // =================================================================================================
 //     Structures and Classes
@@ -173,7 +173,8 @@ inline MeanStddevPair mean_stddev( std::vector<double> const& vec, double epsilo
 //     Median
 // =================================================================================================
 
-// TODO this weird range plus inidces implementation comes from before the whole functionw as a template. now, using just the range should be enough, so no need for the helper function!
+// TODO this weird range plus inidces implementation comes from before the whole functionw as a template.
+// now, using just the range should be enough, so no need for the helper function!
 
 /**
  * @brief Helper function to get the median in between a range. Both l and r are inclusive.
@@ -296,6 +297,41 @@ inline Quartiles quartiles( std::vector<double> const& vec )
 // =================================================================================================
 
 /**
+ * @brief Helper function that cleans two ranges of `double` of the same length from non-finite values.
+ *
+ * This function is used for cleaning data input. It iterates both same-length ranges in parallel
+ * and copies pairs elements to the two result vectors (one for each range), if both values are
+ * finite. The result vectors thus have equal size.
+ */
+template <class ForwardIteratorA, class ForwardIteratorB>
+std::pair<std::vector<double>, std::vector<double>> finite_pairs(
+    ForwardIteratorA first_a, ForwardIteratorA last_a,
+    ForwardIteratorB first_b, ForwardIteratorB last_b
+) {
+    // Prepare result.
+    std::vector<double> vec_a;
+    std::vector<double> vec_b;
+
+    // Iterate in parallel.
+    while( first_a != last_a && first_b != last_b ) {
+        if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
+            vec_a.push_back( *first_a );
+            vec_b.push_back( *first_b );
+        }
+        ++first_a;
+        ++first_b;
+    }
+    if( first_a != last_a || first_b != last_b ) {
+        throw std::runtime_error(
+            "Ranges need to have same length."
+        );
+    }
+
+    assert( vec_a.size() == vec_b.size() );
+    return { vec_a, vec_b };
+}
+
+/**
  * @brief Calculate the Pearson Correlation Coefficient between two ranges of `double`.
  *
  * Both ranges need to have the same length. Then, the function calculates the PCC
@@ -322,13 +358,15 @@ double pearson_correlation_coefficient(
         if( std::isfinite( *it_a ) && std::isfinite( *it_b ) ) {
             mean_a += *it_a;
             mean_b += *it_b;
-            ++it_a;
-            ++it_b;
             ++count;
         }
+        ++it_a;
+        ++it_b;
     }
     if( it_a != last_a || it_b != last_b ) {
-        throw std::runtime_error( "Ranges need to have same length." );
+        throw std::runtime_error(
+            "Ranges need to have same length to calculate their Pearson Correlation Coefficient."
+        );
     }
     if( count == 0 ) {
         return std::numeric_limits<double>::quiet_NaN();
@@ -350,9 +388,9 @@ double pearson_correlation_coefficient(
             numerator += d1 * d2;
             stddev_a  += d1 * d1;
             stddev_b  += d2 * d2;
-            ++it_a;
-            ++it_b;
         }
+        ++it_a;
+        ++it_b;
     }
     assert( it_a == last_a && it_b == last_b );
 
@@ -366,7 +404,7 @@ double pearson_correlation_coefficient(
 /**
  * @brief Calculate the Pearson Correlation Coefficient between the entries of two vectors.
  *
- * See pearson_correlation_coefficient( ForwardIteratorA first_a, ForwardIteratorA last_a, ForwardIteratorB first_b, ForwardIteratorB last_b ) for details.
+ * @copydetails pearson_correlation_coefficient( ForwardIteratorA first_a, ForwardIteratorA last_a, ForwardIteratorB first_b, ForwardIteratorB last_b ).
  */
 inline double pearson_correlation_coefficient(
     std::vector<double> const& vec_a,
@@ -381,19 +419,55 @@ inline double pearson_correlation_coefficient(
  * @brief Calculate Spearman's Rank Correlation Coefficient between two ranges of `double`.
  *
  * Both ranges need to have the same length. Then, the function calculates Spearmans's Rho
- * between the pairs of entries of both vectors.
- *
- * Pairs of entries with contain non-finite values are skipped, see
- * pearson_correlation_coefficient( ForwardIteratorA first_a, ForwardIteratorA last_a, ForwardIteratorB first_b, ForwardIteratorB last_b ) for details.
+ * between the pairs of entries of both vectors. Ranking is done via
+ * @link ranking_fractional() fractional ranking@endlink.
+ * Pairs of entries which contain non-finite values are skipped.
  */
 template <class RandomAccessIteratorA, class RandomAccessIteratorB>
 double spearmans_rank_correlation_coefficient(
     RandomAccessIteratorA first_a, RandomAccessIteratorA last_a,
     RandomAccessIteratorB first_b, RandomAccessIteratorB last_b
 ) {
+    // Get cleaned results.
+    auto const cleaned = finite_pairs( first_a, last_a, first_b, last_b );
+
     // Get the ranking of both vectors.
-    auto const ranks_a = ranking_fractional( first_a, last_a );
-    auto const ranks_b = ranking_fractional( first_b, last_b );
+    auto ranks_a = ranking_fractional( cleaned.first );
+    auto ranks_b = ranking_fractional( cleaned.second );
+    assert( ranks_a.size() == ranks_b.size() );
+
+    // Nice try. But removing them later does not work, as the ranges would be calculated
+    // differently... So we have to live with making copies of the data :-(
+    //
+    // if( ranks_a.size() != ranks_b.size() ) {
+    //     throw std::runtime_error(
+    //         "Ranges need to have same length to calculate their "
+    //         "Spearman's Rank Correlation Coefficient."
+    //     );
+    // }
+    //
+    // // Remove non finite values.
+    // size_t ins = 0;
+    // size_t pos = 0;
+    // while( first_a != last_a && first_b != last_b ) {
+    //     if( std::isfinite( *first_a ) && std::isfinite( *first_b ) ) {
+    //         ranks_a[ ins ] = ranks_a[ pos ];
+    //         ranks_b[ ins ] = ranks_b[ pos ];
+    //         ++ins;
+    //     }
+    //     ++first_a;
+    //     ++first_b;
+    //     ++pos;
+    // }
+    //
+    // // We already checked that the ranks have the same length. Assert this.
+    // assert( first_a == last_a && first_b == last_b );
+    // assert( pos == ranks_a.size() && pos == ranks_b.size() );
+    //
+    // // Erase the removed elements.
+    // assert( ins <= ranks_a.size() && ins <= ranks_b.size() );
+    // ranks_a.resize( ins );
+    // ranks_b.resize( ins );
 
     return pearson_correlation_coefficient( ranks_a, ranks_b );
 }
@@ -401,8 +475,7 @@ double spearmans_rank_correlation_coefficient(
 /**
  * @brief Calculate Spearman's Rank Correlation Coefficient between the entries of two vectors.
  *
- * Both vectors need to have the same size. Then, the function calculates Spearmans's Rho
- * between the pairs of entries of both vectors.
+ * @copydetails spearmans_rank_correlation_coefficient( RandomAccessIteratorA first_a, RandomAccessIteratorA last_a, RandomAccessIteratorB first_b, RandomAccessIteratorB last_b )
  */
 inline double spearmans_rank_correlation_coefficient(
     std::vector<double> const& vec_a,
