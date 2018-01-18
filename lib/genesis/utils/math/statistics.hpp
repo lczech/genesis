@@ -293,6 +293,85 @@ inline Quartiles quartiles( std::vector<double> const& vec )
 }
 
 // =================================================================================================
+//     Dispersion
+// =================================================================================================
+
+/**
+ * @brief Calculate the index of dispersion.
+ *
+ * The coefficient of variation (CV), also known as the relative standard deviation (RSD),
+ * is defined as the ratio of the standard deviation to the mean.
+ * See mean_stddev() to calcualte those values.
+ * See https://en.wikipedia.org/wiki/Coefficient_of_variation for details.
+ */
+inline double coefficient_of_variation( MeanStddevPair const& ms )
+{
+    return ms.stddev / ms.mean;
+}
+
+/**
+ * @copy coefficient_of_variation( MeanStddevPair const& ms )
+ */
+inline std::vector<double> coefficient_of_variation( std::vector<MeanStddevPair> const& ms )
+{
+    auto res = std::vector<double>( ms.size() );
+    for( size_t i = 0; i < ms.size(); ++i ) {
+        res[ i ] = coefficient_of_variation( ms[i] );
+    }
+    return res;
+}
+
+/**
+ * @brief Calculate the index of dispersion.
+ *
+ * The index of dispersion, also known as the dispersion index, coefficient of dispersion,
+ * relative variance, variance-to-mean ratio (VMR) or Fano factor, is defined as the ratio of the
+ * variance to the mean. Variance is the square of the standard deviation.
+ * See mean_stddev() to calcualte those values.
+ * See https://en.wikipedia.org/wiki/Index_of_dispersion for details.
+ */
+inline double index_of_dispersion( MeanStddevPair const& ms )
+{
+    return ms.stddev * ms.stddev / ms.mean;
+}
+
+/**
+ * @copy index_of_dispersion( MeanStddevPair const& ms )
+ */
+inline std::vector<double> index_of_dispersion( std::vector<MeanStddevPair> const& ms )
+{
+    auto res = std::vector<double>( ms.size() );
+    for( size_t i = 0; i < ms.size(); ++i ) {
+        res[ i ] = index_of_dispersion( ms[i] );
+    }
+    return res;
+}
+
+/**
+ * @brief Calculate the quartile_coefficient_of_dispersion.
+ *
+ * The quartile coefficient of dispersion is defined as `( Q3 - Q1 ) / ( Q3 + Q1 )`.
+ * See quartiles() to caculate those values.
+ * See https://en.wikipedia.org/wiki/Quartile_coefficient_of_dispersion for details.
+ */
+inline double quartile_coefficient_of_dispersion( Quartiles const& q )
+{
+    return ( q.q3 - q.q1 ) / ( q.q3 + q.q1 );
+}
+
+/**
+ * @copy quartile_coefficient_of_dispersion( Quartiles const& ms )
+ */
+inline std::vector<double> quartile_coefficient_of_dispersion( std::vector<Quartiles> const& q )
+{
+    auto res = std::vector<double>( q.size() );
+    for( size_t i = 0; i < q.size(); ++i ) {
+        res[ i ] = quartile_coefficient_of_dispersion( q[i] );
+    }
+    return res;
+}
+
+// =================================================================================================
 //     Correlation Coefficients
 // =================================================================================================
 

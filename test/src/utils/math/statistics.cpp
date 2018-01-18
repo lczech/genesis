@@ -40,27 +40,27 @@ using namespace genesis::utils;
 TEST( Math, Median )
 {
     // Empty.
-    EXPECT_EQ( 0.0,  median({ }) );
+    EXPECT_DOUBLE_EQ( 0.0,  median({ }) );
 
     // One value.
-    EXPECT_EQ(  0.0,  median({ 0.0 }) );
-    EXPECT_EQ(  1.0,  median({ 1.0 }) );
-    EXPECT_EQ( -1.0,  median({ -1.0 }) );
+    EXPECT_DOUBLE_EQ(  0.0,  median({ 0.0 }) );
+    EXPECT_DOUBLE_EQ(  1.0,  median({ 1.0 }) );
+    EXPECT_DOUBLE_EQ( -1.0,  median({ -1.0 }) );
 
     // Two values.
-    EXPECT_EQ( 0.0,  median({ 0.0, 0.0 }) );
-    EXPECT_EQ( 0.5,  median({ 0.0, 1.0 }) );
-    EXPECT_EQ( 2.0,  median({ 1.0, 3.0 }) );
-    EXPECT_EQ( 2.5,  median({ 1.0, 4.0 }) );
+    EXPECT_DOUBLE_EQ( 0.0,  median({ 0.0, 0.0 }) );
+    EXPECT_DOUBLE_EQ( 0.5,  median({ 0.0, 1.0 }) );
+    EXPECT_DOUBLE_EQ( 2.0,  median({ 1.0, 3.0 }) );
+    EXPECT_DOUBLE_EQ( 2.5,  median({ 1.0, 4.0 }) );
 
-    EXPECT_EQ( -0.5,  median({ -1.0, 0.0 }) );
-    EXPECT_EQ(  0.0,  median({ -1.0, 1.0 }) );
+    EXPECT_DOUBLE_EQ( -0.5,  median({ -1.0, 0.0 }) );
+    EXPECT_DOUBLE_EQ(  0.0,  median({ -1.0, 1.0 }) );
 
     // Three values.
-    EXPECT_EQ( 1.0,  median({ 0.0, 1.0, 2.0 }) );
+    EXPECT_DOUBLE_EQ( 1.0,  median({ 0.0, 1.0, 2.0 }) );
 
     // Four values.
-    EXPECT_EQ( 1.5,  median({ 0.0, 1.0, 2.0, 3.0 }) );
+    EXPECT_DOUBLE_EQ( 1.5,  median({ 0.0, 1.0, 2.0, 3.0 }) );
 }
 
 TEST( Math, Quartiles )
@@ -69,21 +69,21 @@ TEST( Math, Quartiles )
     std::vector<double> v_odd = { 0, 3, 4, 7, 9, 12, 15 };
     auto q_odd = quartiles( v_odd );
 
-    EXPECT_EQ(  0.0, q_odd.q0 );
-    EXPECT_EQ(  3.0, q_odd.q1 );
-    EXPECT_EQ(  7.0, q_odd.q2 );
-    EXPECT_EQ( 12.0, q_odd.q3 );
-    EXPECT_EQ( 15.0, q_odd.q4 );
+    EXPECT_DOUBLE_EQ(  0.0, q_odd.q0 );
+    EXPECT_DOUBLE_EQ(  3.0, q_odd.q1 );
+    EXPECT_DOUBLE_EQ(  7.0, q_odd.q2 );
+    EXPECT_DOUBLE_EQ( 12.0, q_odd.q3 );
+    EXPECT_DOUBLE_EQ( 15.0, q_odd.q4 );
 
     // Even number of elements.
     std::vector<double> v_even = { 1, 3, 5, 6, 12, 19, 23, 28 };
     auto q_even = quartiles( v_even );
 
-    EXPECT_EQ(  1.0, q_even.q0 );
-    EXPECT_EQ(  4.0, q_even.q1 );
-    EXPECT_EQ(  9.0, q_even.q2 );
-    EXPECT_EQ( 21.0, q_even.q3 );
-    EXPECT_EQ( 28.0, q_even.q4 );
+    EXPECT_DOUBLE_EQ(  1.0, q_even.q0 );
+    EXPECT_DOUBLE_EQ(  4.0, q_even.q1 );
+    EXPECT_DOUBLE_EQ(  9.0, q_even.q2 );
+    EXPECT_DOUBLE_EQ( 21.0, q_even.q3 );
+    EXPECT_DOUBLE_EQ( 28.0, q_even.q4 );
 }
 
 TEST( Math, RankingSorted )
@@ -135,7 +135,7 @@ TEST( Math, SpearmansRankCorrelationCoeffcient )
     auto tv = std::vector<double>({
         7, 0, 27, 50, 28, 29, 20, 12, 6, 17
     });
-    EXPECT_FLOAT_EQ( -0.175757575, spearmans_rank_correlation_coefficient( iq, tv ) );
+    EXPECT_DOUBLE_EQ( -0.17575757575757575, spearmans_rank_correlation_coefficient( iq, tv ) );
 
     // Add some nan values to it. Nothing should change.
     auto iq2 = std::vector<double>({
@@ -144,7 +144,7 @@ TEST( Math, SpearmansRankCorrelationCoeffcient )
     auto tv2 = std::vector<double>({
         7, 0, 0, 27, 50, 28, 29, 20, 12, 6, 17, 100
     });
-    EXPECT_FLOAT_EQ( -0.175757575, spearmans_rank_correlation_coefficient( iq2, tv2 ) );
+    EXPECT_DOUBLE_EQ( -0.17575757575757575, spearmans_rank_correlation_coefficient( iq2, tv2 ) );
 }
 
 TEST( Math, FisherTransformation )
@@ -158,4 +158,31 @@ TEST( Math, FisherTransformation )
     EXPECT_FLOAT_EQ( 0.549306,  fisher_transformation( 0.5 ));
     EXPECT_FLOAT_EQ( 1.47222,   fisher_transformation( 0.9 ));
     EXPECT_FLOAT_EQ( inf,       fisher_transformation( 1 ));
+}
+
+TEST( Math, QuartileCoefficientOfDispersion )
+{
+    // Examples from https://en.wikipedia.org/wiki/Quartile_coefficient_of_dispersion
+    auto a = std::vector<double>({ 2, 4, 6, 8, 10, 12, 14 });
+    auto b = std::vector<double>({1.8, 2, 2.1, 2.4, 2.6, 2.9, 3});
+
+    auto const ms_a = mean_stddev( a );
+    auto const ms_b = mean_stddev( b );
+    auto const q_a = quartiles( a );
+    auto const q_b = quartiles( b );
+
+    // n = 7, range = 12, mean = 8, median = 8, Q1 = 4, Q3 = 12, coefficient of dispersion = 0.5
+    // n = 7, range = 1.2, mean = 2.4, median = 2.4, Q1 = 2, Q3 = 2.9, coefficient of dispersion = 0.18
+
+    EXPECT_DOUBLE_EQ(  8.0, ms_a.mean );
+    EXPECT_DOUBLE_EQ(  2.4, ms_b.mean );
+    EXPECT_DOUBLE_EQ(  4.0, q_a.q1 );
+    EXPECT_DOUBLE_EQ(  8.0, q_a.q2 );
+    EXPECT_DOUBLE_EQ( 12.0, q_a.q3 );
+    EXPECT_DOUBLE_EQ(  2.0, q_b.q1 );
+    EXPECT_DOUBLE_EQ(  2.4, q_b.q2 );
+    EXPECT_DOUBLE_EQ(  2.9, q_b.q3 );
+
+    EXPECT_DOUBLE_EQ( 0.5, quartile_coefficient_of_dispersion( q_a ));
+    EXPECT_DOUBLE_EQ( 0.18367346938775508, quartile_coefficient_of_dispersion( q_b ));
 }
