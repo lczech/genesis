@@ -47,7 +47,7 @@ namespace utils {
 /**
  * @brief Our own color list used for visualizing trees.
  */
-const std::vector<Color> color_list_pupubk_ = {{
+const std::vector<Color> color_list_bupubk_ = {{
     { 0.505882353, 0.749019608, 1.0 },         // light blue #81bfff
     { 0.752941176, 0.250980392, 0.745098039 }, // purple     #c040be
     { 0.0, 0.0, 0.0 }                          // black      #000000
@@ -1378,9 +1378,9 @@ const std::vector<Color> color_list_viridis_ = {{
 //     Color Lists Functions
 // =================================================================================================
 
-std::vector<Color> const& color_list_pupubk()
+std::vector<Color> const& color_list_bupubk()
 {
-    return color_list_pupubk_;
+    return color_list_bupubk_;
 }
 
 std::vector<Color> const& color_list_blues()
@@ -1499,8 +1499,8 @@ std::vector<Color> const& color_list_viridis()
 
 std::vector<Color> const& sequential_color_list( SequentialColorList palette )
 {
-    if( palette == SequentialColorList::kPupubk ) {
-        return color_list_pupubk_;
+    if( palette == SequentialColorList::kBupubk ) {
+        return color_list_bupubk_;
     }
     if( palette == SequentialColorList::kBlues ) {
         return color_list_blues_;
@@ -1576,8 +1576,8 @@ std::vector<Color> const& sequential_color_list( std::string const& palette )
 {
     auto const p = to_lower_ascii( palette );
 
-    if( p == "pupubk" ) {
-        return color_list_pupubk_;
+    if( p == "bupubk" ) {
+        return color_list_bupubk_;
     }
     if( p == "blues" ) {
         return color_list_blues_;
@@ -1652,7 +1652,7 @@ std::vector<Color> const& sequential_color_list( std::string const& palette )
 std::vector<std::string> sequential_color_list_names()
 {
     return {
-        "PuPuBk",
+        "BuPuBk",
         "Blues",
         "BuGn",
         "BuPu",
