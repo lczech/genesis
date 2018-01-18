@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -102,10 +102,13 @@ public:
     /**
      * @brief Overwrite the system given number of threads.
      *
-     * On startup, the value is initialized with the actual number of cores available in the system
-     * using std::thread::hardware_concurrency(). This method overwrites this value.
+     * When the Options class is first instanciated, the value is initialized with the actual
+     * number of cores available in the system using std::thread::hardware_concurrency().
+     * This method overwrites this value.
+     *
+     * If @p number is 0, the number of threads is set again to hardware concurrency.
      */
-    void number_of_threads (const unsigned int number);
+    void number_of_threads( unsigned int number );
 
     /**
      * @brief Return whether the binary was compiled using Pthreads.
