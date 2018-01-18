@@ -95,6 +95,32 @@ TEST( FastaInputIterator, ReadingLoop )
     EXPECT_EQ( 10, cnt );
 }
 
+TEST( FastaInputIterator, Advance )
+{
+    // Skip test if no data availabe.
+    NEEDS_TEST_DATA;
+
+    std::string infile = environment->data_dir + "sequence/dna_10.fasta";
+    auto it = FastaInputIterator();
+    it.from_file( infile );
+
+    std::advance( it, 3 );
+
+    size_t cnt = 0;
+    while( it ) {
+        std::advance( it, 2 );
+        ++cnt;
+        ++it;
+    }
+
+    EXPECT_FALSE( it );
+    EXPECT_EQ( 3, cnt );
+
+    // Fails assertion, as expected for an input iterator.
+    // The test is problematic because of the threaded reading routines. so we leave it out for now.
+    // EXPECT_DEATH_IF_SUPPORTED( std::advance( it, -2 ), ".*" );
+}
+
 // TEST( FastaInputIterator, ReadingInput )
 // {
 //     // Skip test if no data availabe.
