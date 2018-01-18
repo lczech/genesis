@@ -36,6 +36,7 @@
 #include "genesis/utils/core/std.hpp"
 #include "genesis/utils/io/input_stream.hpp"
 
+#include <cstddef>
 #include <iterator>
 #include <memory>
 #include <sstream>
@@ -85,6 +86,9 @@ public:
 
     using self_type         = FastaInputIterator;
     using value_type        = Sequence;
+    using pointer           = value_type&;
+    using reference         = value_type*;
+    using difference_type   = std::ptrdiff_t;
     using iterator_category = std::input_iterator_tag;
 
     // -------------------------------------------------------------------------
