@@ -165,8 +165,11 @@ std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize 
 //     Edge PCA Imbalance Matrix
 // =================================================================================================
 
-utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool include_leaves )
-{
+utils::Matrix<double> epca_imbalance_matrix(
+    SampleSet const& samples,
+    bool include_leaves,
+    bool normalize
+) {
     // If there are no samples, return empty matrix.
     if( samples.size() == 0 ) {
         return utils::Matrix<double>();
@@ -189,7 +192,7 @@ utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool incl
         #pragma omp parallel for
         for( size_t s = 0; s < samples.size(); ++s ) {
             auto const& smp = samples[s].sample;
-            auto const imbalance_vec = epca_imbalance_vector( smp, true );
+            auto const imbalance_vec = epca_imbalance_vector( smp, normalize );
 
             // We need to have the right number of imbalance values.
             assert( imbalance_vec.size() == edge_count );
@@ -221,7 +224,7 @@ utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool incl
         #pragma omp parallel for
         for( size_t s = 0; s < samples.size(); ++s ) {
             auto const& smp = samples[s].sample;
-            auto const imbalance_vec = epca_imbalance_vector( smp, true );
+            auto const imbalance_vec = epca_imbalance_vector( smp, normalize );
 
             // We need to have the right number of imbalance values, which also needs to be
             // smaller than the number of inner edges (there can be no tree with just inner

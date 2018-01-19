@@ -126,8 +126,14 @@ std::vector<double> epca_imbalance_vector( Sample const& sample, bool normalize 
  * In this case, the matrix is column-indexed according to the edge indices of the Tree.
  * This is for example useful if the indexing is needed later. The columns can then also be filtered
  * out using epca_filter_constant_columns().
+ *
+ * Lastly @p normalize is used as in epca_imbalance_vector(). See there for details.
  */
-utils::Matrix<double> epca_imbalance_matrix( SampleSet const& samples, bool include_leaves = false );
+utils::Matrix<double> epca_imbalance_matrix(
+    SampleSet const& samples,
+    bool include_leaves = false,
+    bool normalize = true
+);
 
 /**
  * @brief Perform a component-wise transformation of the imbalance matrix used for epca().
