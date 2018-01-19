@@ -310,7 +310,7 @@ inline double coefficient_of_variation( MeanStddevPair const& ms )
 }
 
 /**
- * @copy coefficient_of_variation( MeanStddevPair const& ms )
+ * @copydoc coefficient_of_variation( MeanStddevPair const& ms )
  */
 inline std::vector<double> coefficient_of_variation( std::vector<MeanStddevPair> const& ms )
 {
@@ -336,7 +336,7 @@ inline double index_of_dispersion( MeanStddevPair const& ms )
 }
 
 /**
- * @copy index_of_dispersion( MeanStddevPair const& ms )
+ * @copydoc index_of_dispersion( MeanStddevPair const& ms )
  */
 inline std::vector<double> index_of_dispersion( std::vector<MeanStddevPair> const& ms )
 {
@@ -360,7 +360,7 @@ inline double quartile_coefficient_of_dispersion( Quartiles const& q )
 }
 
 /**
- * @copy quartile_coefficient_of_dispersion( Quartiles const& ms )
+ * @copydoc quartile_coefficient_of_dispersion( Quartiles const& ms )
  */
 inline std::vector<double> quartile_coefficient_of_dispersion( std::vector<Quartiles> const& q )
 {
