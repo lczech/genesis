@@ -74,16 +74,27 @@ public:
     //     Accessors
     // -------------------------------------------------------------------------
 
+    /**
+     * @brief Minimum value, that is, where to begin the color scale.
+     */
     double min() const
     {
         return min_;
     }
 
+    /**
+     * @brief Mid-point value, that is, where the middle value of a diverging_color() is.
+     *
+     * Not used for sequential_color() or qualitative_color().
+     */
     double mid() const
     {
         return mid_;
     }
 
+    /**
+     * @brief Minimum value, that is, where to end the color scale.
+     */
     double max() const
     {
         return max_;
@@ -105,7 +116,7 @@ public:
     }
 
     /**
-     * @brief Color that indicates values equal to mask_value().
+     * @brief Color that indicates values equal to mask_value() or non-finite values.
      */
     Color mask_color() const
     {
@@ -115,7 +126,7 @@ public:
     /**
      * @brief Color that indicates values greater than max().
      *
-     * Only used if `clip() == false`.
+     * Only used if `clip_over() == false`.
      */
     Color over_color() const
     {
@@ -125,7 +136,7 @@ public:
     /**
      * @brief Color that indicates values less than min().
      *
-     * Only used if `clip() == false`.
+     * Only used if `clip_under() == false`.
      */
     Color under_color() const
     {
@@ -133,14 +144,23 @@ public:
     }
 
     /**
-     * @brief Clip values to be inside `[ min max ]`.
+     * @brief Clip (clamp) values less than min() to be inside `[ min max ]`.
      *
-     * If set to `true`, over_color() and under_color() are not used to indicate values out of
-     * range.
+     * If set to `true`, under_color() is not used to indicate values out of range.
      */
-    bool clip() const
+    bool clip_under() const
     {
-        return clip_;
+        return clip_under_;
+    }
+
+    /**
+     * @brief Clip (clamp) values greater than max() to be inside `[ min max ]`.
+     *
+     * If set to `true`, over_color() is not used to indicate values out of range.
+     */
+    bool clip_over() const
+    {
+        return clip_over_;
     }
 
     /**
@@ -163,6 +183,11 @@ public:
      * @brief Return whether `min <= mid <= max`.
      */
     bool range_check() const;
+
+    /**
+     * @brief Return whether the Palette is empty, that is, no colors were set.
+     */
+    bool empty() const;
 
     // -------------------------------------------------------------------------
     //     Modificators
@@ -249,51 +274,94 @@ public:
         return *this;
     }
 
+    /**
+     * @copydoc min()
+     */
     ColorPalette& min( double value )
     {
         min_ = value;
         return *this;
     }
 
+    /**
+     * @copydoc mid()
+     */
     ColorPalette& mid( double value )
     {
         mid_ = value;
         return *this;
     }
 
+    /**
+     * @copydoc max()
+     */
     ColorPalette& max( double value )
     {
         max_ = value;
         return *this;
     }
 
+    /**
+     * @copydoc mask_value()
+     */
     ColorPalette& mask_value( double value )
     {
         mask_value_ = value;
         return *this;
     }
 
+    /**
+     * @copydoc mask_color()
+     */
     ColorPalette& mask_color( Color value )
     {
         mask_color_ = value;
         return *this;
     }
 
+    /**
+     * @copydoc over_color()
+     */
     ColorPalette& over_color( Color value )
     {
         over_color_ = value;
         return *this;
     }
 
+    /**
+     * @copydoc under_color()
+     */
     ColorPalette& under_color( Color value )
     {
         under_color_ = value;
         return *this;
     }
 
+    /**
+     * Set both clip_under( bool ) and clip_over( bool ).
+     */
     ColorPalette& clip( bool value )
     {
-        clip_ = value;
+        clip_under_ = value;
+        clip_over_  = value;
+        return *this;
+    }
+
+    /**
+     * @copydoc clip_under()
+     */
+    ColorPalette& clip_under( bool value )
+    {
+        clip_under_ = value;
+        return *this;
+    }
+
+    /**
+     * @copydoc clip_over()
+     */
+    ColorPalette& clip_over( bool value )
+    {
+        clip_over_ = value;
         return *this;
     }
 
@@ -345,8 +413,8 @@ public:
      *     min      mid  max
      *
      * Values outside of the allowed range `[ min, max ]`, as well as non-finite values, are
-     * treated according to the settings clip(), mask_value(), mask_color(), under_color(),
-     * over_color().
+     * treated according to the settings clip_under(), clip_over(), mask_value(), mask_color(),
+     * under_color(), over_color().
      */
     Color diverging_color( double value ) const;
 
@@ -376,7 +444,7 @@ private:
     /**
      * @brief Internal helper function that does the range checks.
      *
-     * If clip() is `true`, the function can modify @p value.
+     * If clip_under() or clip_over() is `true`, the function can modify @p value.
      * It throws if invalid conditions are found.
      * It returns a pair, where the bool indicates whether a check failed,
      * using the Color as an indicator of what failed.
@@ -405,8 +473,9 @@ private:
     Color over_color_   = { 0.0, 1.0, 1.0 };
     Color under_color_  = { 1.0, 0.0, 1.0 };
 
-    bool clip_    = false;
-    bool reverse_ = false;
+    bool clip_under_ = false;
+    bool clip_over_  = false;
+    bool reverse_    = false;
 
     std::vector<Color> palette_;
 

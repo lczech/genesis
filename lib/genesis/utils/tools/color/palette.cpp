@@ -49,6 +49,11 @@ bool ColorPalette::range_check() const
     return min_ <= mid_ && mid_ <= max_;
 }
 
+bool ColorPalette::empty() const
+{
+    return palette_.empty();
+}
+
 ColorPalette& ColorPalette::range( double min, double max )
 {
     min_ = min;
@@ -194,8 +199,11 @@ std::pair<Color, bool> ColorPalette::boundary_checks_( double& value ) const
     if( ! std::isfinite( value ) || value == mask_value_ ) {
         return { mask_color_, true };
     }
-    if( clip_ ) {
-        value = std::min( std::max( min_, value ), max_ );
+    if( clip_under_ ) {
+        value = std::max( min_, value );
+    }
+    if( clip_over_ ) {
+        value = std::min( value, max_ );
     }
     if( value < min_ ) {
         return { under_color_, true };
