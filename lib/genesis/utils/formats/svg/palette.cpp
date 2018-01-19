@@ -164,7 +164,7 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make() const
 
     // Helpfer function to make a tick mark with line and text
     // at a relative position [ 0.0 - 1.0 ] along the rect.
-    auto make_tick = [&]( double rel_pos, std::string const& label ){
+    auto make_tick = [&]( double rel_pos, std::string label ){
         assert( 0.0 <= rel_pos && rel_pos <= 1.0 );
 
         // Get positions for needed elements.
@@ -232,10 +232,16 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make() const
             group << SvgLine( line2_p1, line2_p2 );
         }
         if( with_labels ) {
+            if( rel_pos == 1.0 && palette.clip_over() ) {
+                label = "≥ " + label;
+            }
+            if( rel_pos == 0.0 && palette.clip_under() ) {
+                label = "≤ " + label;
+            }
             auto text_s = SvgText( label, text_p );
             // text_s.dominant_baseline = SvgText::DominantBaseline::kMiddle;
             // text_s.alignment_baseline = SvgText::AlignmentBaseline::kMiddle;
-            text_s.dy = "0.33em";
+            // text_s.dy = "0.33em";
             group << text_s;
         }
     };
