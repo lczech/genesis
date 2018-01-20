@@ -44,9 +44,13 @@ namespace utils {
 //     Modificators
 // =================================================================================================
 
-bool ColorPalette::range_check() const
+bool ColorPalette::range_check( bool diverging ) const
 {
-    return min_ <= mid_ && mid_ <= max_;
+    if( diverging ) {
+        return min_ <= mid_ && mid_ <= max_;
+    } else {
+        return min_ <= max_;
+    }
 }
 
 bool ColorPalette::empty() const
@@ -130,6 +134,14 @@ Color ColorPalette::diverging_color( double value ) const
         return checks.first;
     }
 
+    // Extra checks for diverging palette.
+    if( min_ >= mid_ ) {
+        throw std::invalid_argument( "Invalid ColorPalette with min >= mid." );
+    }
+    if( mid_ >= max_ ) {
+        throw std::invalid_argument( "Invalid ColorPalette with mid >= max." );
+    }
+
     // Bring value into the range [ 0.0, 1.0 ].
     double pos = 0.0;
     if( value < mid_ ) {
@@ -187,12 +199,6 @@ std::pair<Color, bool> ColorPalette::boundary_checks_( double& value ) const
     }
     if( min_ >= max_ ) {
         throw std::invalid_argument( "Invalid ColorPalette with min >= max." );
-    }
-    if( min_ >= mid_ ) {
-        throw std::invalid_argument( "Invalid ColorPalette with min >= mid." );
-    }
-    if( mid_ >= max_ ) {
-        throw std::invalid_argument( "Invalid ColorPalette with mid >= max." );
     }
 
     // Boundary checks.

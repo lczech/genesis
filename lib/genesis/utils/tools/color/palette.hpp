@@ -180,9 +180,12 @@ public:
     }
 
     /**
-     * @brief Return whether `min <= mid <= max`.
+     * @brief Return whether the ranges are correct.
+     *
+     * That is, for sequential, `min <= max`, and for diverging `min <= mid <= max`.
+     * Use @p diverging to switch between the two checks.
      */
-    bool range_check() const;
+    bool range_check( bool diverging = false ) const;
 
     /**
      * @brief Return whether the Palette is empty, that is, no colors were set.

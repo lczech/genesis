@@ -58,7 +58,7 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make() const
             "Cannot make SvgPalette with a ColorPalette of less than two colors."
         );
     }
-    if( ! palette.range_check() ) {
+    if( ! palette.range_check( diverging_palette ) ) {
         throw std::runtime_error(
             "Invaid ColorPalette min/mid/max settings."
         );
