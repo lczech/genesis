@@ -115,6 +115,7 @@
 #include "genesis/utils/tools/color/names.hpp"
 #include "genesis/utils/tools/color/normalization.hpp"
 #include "genesis/utils/tools/color/norm_diverging.hpp"
+#include "genesis/utils/tools/color/norm_logarithmic.hpp"
 #include "genesis/utils/tools/color/qualitative_lists.hpp"
 #include "genesis/utils/tools/color/sequential_lists.hpp"
 #include "genesis/utils/tools/date_time.hpp"

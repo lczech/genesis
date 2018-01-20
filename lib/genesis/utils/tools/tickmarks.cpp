@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -52,6 +52,9 @@ double Tickmarks::step_size( double interval_size, size_t target_steps )
     if( target_steps == 0 ) {
         throw std::invalid_argument( "Cannot calculate tickmark step size for 0 steps." );
     }
+    if( interval_size <= 0.0 ) {
+        throw std::invalid_argument( "Cannot calculate tickmark step size for negative intervals." );
+    }
 
     // Calculate an initial guess at step size.
     auto const step_guess = interval_size / static_cast<double>( target_steps );
@@ -81,6 +84,10 @@ std::vector<double> Tickmarks::linear_ticks( double min, double max, size_t targ
 {
     // Prepare result.
     auto res = std::vector<double>();
+
+    if( max < min ) {
+        throw std::runtime_error( "Cannot calcualte scale with max < min." );
+    }
 
     // The case of 0 target steps can happen for example in SvgPalette.
     // In that case, we only output min and max if needed, but not any inner tickmarks.
@@ -125,7 +132,7 @@ std::vector<double> Tickmarks::linear_ticks( double min, double max, size_t targ
     auto uniq_end = std::unique( res.begin(), res.end(), [&]( double lhs, double rhs ){
         return almost_equal_relative( lhs, rhs, relative_epsilon );
     });
-    res.resize( std::distance( res.begin(), uniq_end ));
+    res.erase( uniq_end, res.end() );
 
     return res;
 }
@@ -145,32 +152,67 @@ std::vector<Tickmarks::LabeledTick> Tickmarks::linear_labels(
     return res;
 }
 
-std::vector<Tickmarks::LabeledTick> Tickmarks::logarithmic_labels( double max )
+std::vector<Tickmarks::LabeledTick> Tickmarks::logarithmic_labels( double min, double max, double base )
 {
     auto res = std::vector<LabeledTick>();
 
-    size_t pow_i = 0;
-    double pow_v = 0.0;
-    do {
-        // Get the order of magnitude corresponding to the current pow_i.
-        pow_v = std::log10( std::pow( 10, pow_i )) / std::log10( max );
+    if( min <= 0.0 ) {
+        throw std::runtime_error( "Cannot calculate logarithmic scale for negative values." );
+    }
+    if( max < min ) {
+        throw std::runtime_error( "Cannot calcualte scale with max < min." );
+    }
+    if( base < 0.0 ) {
+        throw std::runtime_error( "Cannot calcualte logarithmic scale with negative base." );
+    }
 
-        // If this is in the range (or one above, if we want to overshoot), add it to the result.
-        if( pow_v <= 1.0 || overshoot_at_max ) {
-            res.emplace_back( pow_v, std::pow( 10, pow_i ) );
-        }
+    // Start at a power below min.
+    double exp_i = std::floor( std::log( min ) / std::log( base ) );
+
+    // Determine whether we want to start before or after the min.
+    if( ! undershoot_at_min ) {
+        exp_i += 1.0;
+    }
+
+    // Constants.
+    auto const lg_min = std::log( min ) / std::log( base );
+    auto const lg_max = std::log( max ) / std::log( base );
+
+    // Either stop at max or do one more loop if we want to overshoot.
+    auto const lim = lg_max + ( overshoot_at_max ? 1.0 : 0.0 );
+
+    while( exp_i <= lim ) {
+        auto const rel_pos = ( exp_i - lg_min ) / ( lg_max - lg_min );
+        res.emplace_back( rel_pos, std::pow( base, exp_i ) );
 
         // Next order of magnitude.
-        ++pow_i;
-    } while( pow_v <= 1.0 );
-
-    // Possibly include max. If so, we need to sort, as we might have added the overshoot before.
-    if( include_max ) {
-        res.emplace_back( 1, max );
-        std::sort( res.begin(), res.end(), []( LabeledTick lhs, LabeledTick rhs ){
-            return lhs.relative_position < rhs.relative_position;
-        });
+        exp_i += 1.0;
     }
+
+    // Add min and max if needed.
+    if( include_min ) {
+        res.emplace_back( 0.0, min );
+    }
+    if( include_max ) {
+        res.emplace_back( 1.0, max );
+    }
+
+    // Cleanup duplicate entries and those that are close by. We do not need ticks that are
+    // too close to each other.
+    // It is easier to do this than to check for duplicate entries in each addition step...
+    std::sort( res.begin(), res.end(), []( LabeledTick const& lhs, LabeledTick const& rhs ){
+        return lhs.relative_position < rhs.relative_position;
+    });
+    auto uniq_end = std::unique( res.begin(), res.end(),
+        [&]( LabeledTick const& lhs, LabeledTick const& rhs ){
+            return almost_equal_relative(
+                lhs.relative_position,
+                rhs.relative_position,
+                relative_epsilon
+            );
+        }
+    );
+    res.erase( uniq_end, res.end() );
 
     return res;
 }
