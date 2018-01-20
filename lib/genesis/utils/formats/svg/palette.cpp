@@ -51,16 +51,20 @@ namespace utils {
 //     Svg Color Palette
 // =================================================================================================
 
-std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make() const
-{
-    if( palette.palette().size() < 2 ) {
+std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make(
+    ColorMap const& map,
+    ColorNormalization const& norm,
+    std::string const& id
+) const {
+
+    if( map.palette().size() < 2 ) {
         throw std::runtime_error(
-            "Cannot make SvgPalette with a ColorPalette of less than two colors."
+            "Cannot make SvgPalette with a ColorMap of less than two colors."
         );
     }
-    if( ! palette.range_check( diverging_palette ) ) {
+    if( ! norm.range_check() ) {
         throw std::runtime_error(
-            "Invaid ColorPalette min/mid/max settings."
+            "Invaid ColorNormalization settings."
         );
     }
 
@@ -99,58 +103,13 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make() const
         }
     }
 
-    // Get color palette.
-    auto colors = palette.palette();
-    if( palette.reverse() ) {
-        std::reverse( colors.begin(), colors.end() );
-    }
-
-    // Get the fractions of the lower and upper half,
-    // which are needed to scale the colors in a diverging palette correctly.
-    // For example, a palette with 5, 15, 20 for min, mid and max gets
-    // fractions 2/3 and 1/3 here.
-    auto const frac_lower = ( palette.mid() - palette.min()) / ( palette.max() - palette.min());
-    auto const frac_upper = ( palette.max() - palette.mid()) / ( palette.max() - palette.min());
-
     // Fill gradient with the colors, add it to a group as a colored rect.
-    // Diverging palette scales the lower half up to the mid color
-    // differently thatn the upper half up the max.
     auto grad = SvgGradientLinear( gradient_id, point_1, point_2 );
-    if( diverging_palette ) {
-
-        // Divide the palette in two, so that the mixed mid color counts as half a step
-        // in palettes with even number of colors.
-        auto const scale = 2.0 / static_cast<double>( colors.size() - 1 );
-
-        // Lower half.
-        for( size_t i = 0; i < colors.size() / 2; ++i ) {
-            auto const offset = scale * frac_lower * static_cast<double>( i );
-            grad.add_stop({ offset, colors[i] });
+    for( auto const& g : norm.gradient( map ) ) {
+        if( g.first < 0.0 || g.first > 1.0 ) {
+            throw std::runtime_error( "Color Normalization gradient out of [ 0.0, 1.0 ]" );
         }
-
-        // For an even number of colors, we need to add a mixed middle color.
-        if( colors.size() % 2 == 0 ) {
-            auto const mid_idx = colors.size() / 2;
-            auto const mid_color = interpolate( colors[mid_idx - 1], colors[mid_idx], 0.5 );
-            grad.add_stop({ frac_lower, mid_color });
-        }
-
-        // Upper half, including mid if uneven number of colors.
-        for( size_t i = colors.size() / 2; i < colors.size(); ++i ) {
-
-            // Step away from end: We go backwards.
-            auto const step = static_cast<double>( colors.size() - i - 1 );
-
-            // Offset, as before, just going backwards again, so that we end up in right order.
-            auto const offset = 1.0 - ( scale * frac_upper * step );
-            grad.add_stop({ offset, colors[i] });
-        }
-
-    } else {
-        for( size_t i = 0; i < colors.size(); ++i ) {
-            auto const offset = static_cast<double>( i ) / static_cast<double>( colors.size() - 1 );
-            grad.add_stop({ offset, colors[i] });
-        }
+        grad.add_stop({ g.first, g.second });
     }
 
     // Make group
@@ -232,10 +191,10 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make() const
             group << SvgLine( line2_p1, line2_p2 );
         }
         if( with_labels ) {
-            if( rel_pos == 1.0 && palette.clip_over() ) {
+            if( rel_pos == 1.0 && map.clip_over() ) {
                 label = "≥ " + label;
             }
-            if( rel_pos == 0.0 && palette.clip_under() ) {
+            if( rel_pos == 0.0 && map.clip_under() ) {
                 label = "≤ " + label;
             }
             auto text_s = SvgText( label, text_p );
@@ -248,57 +207,11 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make() const
 
     // Make tickmarks and labels.
     if( with_tickmarks ) {
-        // make_tick( 0.0, utils::to_string( palette.min() ));
-        // make_tick( 1.0, utils::to_string( palette.max() ));
-
-        auto tm = Tickmarks();
-
-        // If we want to make labels for a diverging palette, i.e., with the middle color,
-        // we need to take care of correact scaling.
-        // Otherwise, just make some labels along the scale.
-        if( diverging_palette ) {
-
-            // make_tick( 0.5, utils::to_string( palette.mid() ));
-
-            // Lower half.
-            tm.include_max = false;
-            auto const tm_labels_l = tm.linear_labels(
-                palette.min(), palette.mid(), frac_lower * num_ticks
-            );
-            for( auto const& tm_label : tm_labels_l ) {
-                make_tick(
-                    frac_lower * tm_label.relative_position,
-                    utils::to_string( tm_label.label )
-                );
+        for( auto const& tick : norm.tickmarks( num_ticks ) ) {
+            if( tick.first < 0.0 || tick.first > 1.0 ) {
+                throw std::runtime_error( "Color Normalization tickmark out of [ 0.0, 1.0 ]" );
             }
-
-            // In cases where the mid value is a nice tickmark number (0 for example),
-            // it will be included in the tickmarks, although it is the upper limit for
-            // the lower half (that is, equal to the max for the half).
-            // Thus, we already have a tickmark for the mid value, and now do not need it again
-            // when making the upper half ticks. So, exclude the min for the upper half in this case.
-            if( tm_labels_l.size() > 0 && tm_labels_l.back().relative_position == 1.0 ) {
-                tm.include_min =  false;
-            }
-
-            // Upper half.
-            tm.include_max = true;
-            auto const tm_labels_u = tm.linear_labels(
-                palette.mid(), palette.max(), frac_upper * num_ticks
-            );
-            for( auto const& tm_label : tm_labels_u ) {
-                make_tick(
-                    frac_lower + frac_upper * tm_label.relative_position,
-                    utils::to_string( tm_label.label )
-                );
-            }
-
-        } else {
-
-            auto const tm_labels = tm.linear_labels( palette.min(), palette.max(), num_ticks );
-            for( auto const& tm_label : tm_labels ) {
-                make_tick( tm_label.relative_position, utils::to_string( tm_label.label ));
-            }
+            make_tick( tick.first, tick.second );
         }
     }
 

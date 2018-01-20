@@ -35,7 +35,8 @@
 #include "genesis/utils/formats/svg/group.hpp"
 
 #include "genesis/utils/tools/color.hpp"
-#include "genesis/utils/tools/color/palette.hpp"
+#include "genesis/utils/tools/color/map.hpp"
+#include "genesis/utils/tools/color/normalization.hpp"
 
 #include <string>
 #include <utility>
@@ -71,11 +72,6 @@ public:
     // -------------------------------------------------------------
 
     SvgPalette() = default;
-    SvgPalette( ColorPalette const& palette, std::string const& id = "" )
-        : palette( palette )
-        , id( id )
-    {}
-
     ~SvgPalette() = default;
 
     SvgPalette( SvgPalette const& ) = default;
@@ -88,22 +84,23 @@ public:
     //     Drawing Function
     // -------------------------------------------------------------
 
-    std::pair<SvgGradientLinear, SvgGroup> make() const;
+    std::pair<SvgGradientLinear, SvgGroup> make(
+        ColorMap const& map,
+        ColorNormalization const& norm,
+        std::string const& id = ""
+    ) const;
 
     // -------------------------------------------------------------
     //     Properties
     // -------------------------------------------------------------
 
-    ColorPalette palette;
     Direction direction = Direction::kBottomToTop;
-    std::string id;
 
     double width  = 20;
     double height = 200;
 
     bool with_tickmarks    = true;
     bool with_labels       = true;
-    bool diverging_palette = false;
 
     size_t num_ticks = 5;
 

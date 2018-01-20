@@ -34,7 +34,8 @@
 #include "genesis/utils/formats/svg/svg.hpp"
 #include "genesis/utils/tools/color/functions.hpp"
 #include "genesis/utils/tools/color/diverging_lists.hpp"
-#include "genesis/utils/tools/color/palette.hpp"
+#include "genesis/utils/tools/color/map.hpp"
+#include "genesis/utils/tools/color/norm_diverging.hpp"
 
 using namespace genesis::utils;
 
@@ -127,7 +128,9 @@ TEST( Svg, Palette )
     auto pal = SvgPalette();
 
     // Nice palette.
-    pal.palette = ColorPalette( color_list_spectral() );
+    // pal.palette = ColorPalette( color_list_spectral() );
+    auto map = ColorMap( color_list_spectral() );
+    auto norm = ColorNormalizationDiverging();
 
     // Even number of colors.
     // pal.palette = ColorPalette({ {0,0,0}, {1,0,0}, {0,0,1}, {0,0,0} });
@@ -137,14 +140,14 @@ TEST( Svg, Palette )
     // pal.palette = ColorPalette({ {0,0,0}, {1,0,0}, {0,0,1}, {0,1,0}, {0,0,0} });
     // pal.palette = ColorPalette({ {0,0,0}, {0,1,0}, {0,0,0} });
 
-    pal.palette.min(  5.0 );
-    pal.palette.mid( 15.0 );
-    pal.palette.max( 20.0 );
+    norm.min(  5.0 );
+    norm.mid( 15.0 );
+    norm.max( 20.0 );
 
     // pal.direction = SvgPalette::Direction::kLeftToRight;
-    pal.diverging_palette = true;
+    // pal.diverging_palette = true;
 
-    auto const pal_pair = pal.make();
+    auto const pal_pair = pal.make( map, norm );
     doc.defs.push_back( pal_pair.first );
     doc << pal_pair.second;
 
