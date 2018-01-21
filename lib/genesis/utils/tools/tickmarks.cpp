@@ -159,8 +159,8 @@ std::vector<Tickmarks::LabeledTick> Tickmarks::logarithmic_labels( double min, d
     if( min <= 0.0 ) {
         throw std::runtime_error( "Cannot calculate logarithmic scale for negative values." );
     }
-    if( max < min ) {
-        throw std::runtime_error( "Cannot calcualte scale with max < min." );
+    if( min >= max ) {
+        throw std::runtime_error( "Cannot calcualte scale with min >= max." );
     }
     if( base < 0.0 ) {
         throw std::runtime_error( "Cannot calcualte logarithmic scale with negative base." );

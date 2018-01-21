@@ -121,8 +121,8 @@ std::pair<SvgGradientLinear, SvgGroup> SvgPalette::make(
         SvgFill( gradient_id )
     );
 
-    // Helpfer function to make a tick mark with line and text
-    // at a relative position [ 0.0 - 1.0 ] along the rect.
+    // Helper function to make a tick mark with line and text
+    // at a relative position [ 0.0, 1.0 ] along the rect.
     auto make_tick = [&]( double rel_pos, std::string label ){
         assert( 0.0 <= rel_pos && rel_pos <= 1.0 );
 
