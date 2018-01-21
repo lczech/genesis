@@ -41,6 +41,22 @@ namespace genesis {
 namespace tree {
 
 // =================================================================================================
+//     Layout Shape and Type
+// =================================================================================================
+
+enum class LayoutShape
+{
+    kCircular,
+    kRectangular
+};
+
+enum class LayoutType
+{
+    kPhylogram,
+    kCladogram
+};
+
+// =================================================================================================
 //     Layout Base
 // =================================================================================================
 
@@ -49,25 +65,18 @@ class LayoutBase
 public:
 
     // -------------------------------------------------------------
-    //     Typedefs and Enums
-    // -------------------------------------------------------------
-
-    enum class Type
-    {
-        kPhylogram,
-        kCladogram
-    };
-
-    // -------------------------------------------------------------
     //     Constructors and Rule of Five
     // -------------------------------------------------------------
 
     LayoutBase()  = default;
 
-    LayoutBase( Tree const& orig_tree, Type const drawing_type = Type::kCladogram )
-    {
+    LayoutBase(
+        Tree const& orig_tree,
+        LayoutType const drawing_type = LayoutType::kCladogram,
+        bool ladderize = true
+    ) {
         type( drawing_type );
-        tree( orig_tree );
+        tree( orig_tree, ladderize );
     }
 
     virtual ~LayoutBase() = default;
@@ -82,10 +91,13 @@ public:
     //     Tree
     // -------------------------------------------------------------
 
-    void tree( Tree const& orig_tree );
+    void tree( Tree const& orig_tree, bool ladderize = true );
     Tree const& tree() const;
 
+    void set_edge_strokes( utils::SvgStroke const& stroke );
     void set_edge_strokes( std::vector< utils::SvgStroke > const& strokes );
+
+    void set_node_shapes( utils::SvgGroup const& shape );
     void set_node_shapes( std::vector< utils::SvgGroup> const& shapes );
 
     // -------------------------------------------------------------
@@ -105,8 +117,8 @@ public:
     utils::SvgText& text_template();
     utils::SvgText const& text_template() const;
 
-    void type( Type const drawing_type );
-    Type type() const;
+    void type( LayoutType const drawing_type );
+    LayoutType type() const;
 
     // -------------------------------------------------------------
     //     Protected Functions
@@ -145,7 +157,7 @@ private:
 
     LayoutTree tree_;
 
-    Type type_ = Type::kCladogram;
+    LayoutType type_ = LayoutType::kCladogram;
 
     utils::SvgText text_template_ = utils::SvgText();
 
