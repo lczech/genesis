@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -113,16 +113,16 @@ public:
      * labels correspond to logarithmic ticks.
      *
      * This function is the equivalent of linear_labels(), but instead uses logarithmic scaling.
-     * Also, it always starts at a minimum of 1 and inserts as many ticks as are needed to go up
-     * to `max` in powers of ten.
+     * Also, it inserts as many ticks as are needed to go up to @p max in powers of @p base,
+     * and thus has no target steps.
      *
-     * Example: Given `max == 350`, with `overshoot_at_max == false` and `include_max == true`,
-     * the resulting vector contains entries with labels `1, 10, 100, 350`.
+     * Example: Given `min == 1.0`, `max == 350`, with `overshoot_at_max == false` and
+     * `include_max == true`, the resulting vector contains entries with labels `1, 10, 100, 350`.
      *
      * Remark: There is no logarithmic equivalent for linear_ticks(), as those would simply be
-     * powers of 10 up to `max`.
+     * powers of @p base up to `max`.
      */
-    std::vector<LabeledTick> logarithmic_labels( double max );
+    std::vector<LabeledTick> logarithmic_labels( double min, double max, double base = 10.0 );
 
     // -------------------------------------------------------------------------
     //     Data Members

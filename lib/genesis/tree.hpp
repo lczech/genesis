@@ -47,6 +47,7 @@
 #include "genesis/tree/default/phyloxml_writer.hpp"
 #include "genesis/tree/default/tree.hpp"
 #include "genesis/tree/drawing/circular_layout.hpp"
+#include "genesis/tree/drawing/functions.hpp"
 #include "genesis/tree/drawing/layout_base.hpp"
 #include "genesis/tree/drawing/layout_tree.hpp"
 #include "genesis/tree/drawing/rectangular_layout.hpp"

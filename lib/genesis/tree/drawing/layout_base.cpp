@@ -38,6 +38,7 @@
 #include "genesis/tree/iterator/eulertour.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
+#include "genesis/tree/function/manipulation.hpp"
 
 #include <cassert>
 
@@ -48,9 +49,15 @@ namespace tree {
 //     Tree
 // =================================================================================================
 
-void LayoutBase::tree( Tree const& orig_tree )
+void LayoutBase::tree( Tree const& orig_tree, bool ladderize_tree )
 {
+    // We first copy the tree, then ladderize it before init, so that all positions
+    // are initialized correlty. This is possible because ladderize() only changes link pointers
+    // of the tree, but not and indices or node array positions.
     tree_ = orig_tree.clone_topology();
+    if( ladderize_tree ) {
+        ladderize( tree_ );
+    }
     init_tree_( orig_tree );
 }
 
@@ -64,8 +71,22 @@ Tree const& LayoutBase::tree() const
      return tree_;
 }
 
+void LayoutBase::set_edge_strokes( utils::SvgStroke const& stroke )
+{
+    for( size_t i = 0; i < tree_.edge_count(); ++i ) {
+        tree_.edge_at(i).data<LayoutEdgeData>().stroke = stroke;
+    }
+}
+
 void LayoutBase::set_edge_strokes( std::vector< utils::SvgStroke > const& strokes )
 {
+    // Empty: Reset to default.
+    if( strokes.empty() ) {
+        set_edge_strokes( utils::SvgStroke() );
+        return;
+    }
+
+    // Non-empty case.
     if( strokes.size() != tree_.edge_count() ) {
         throw std::runtime_error( "Edge stroke vector has wrong size." );
     }
@@ -74,8 +95,22 @@ void LayoutBase::set_edge_strokes( std::vector< utils::SvgStroke > const& stroke
     }
 }
 
+void LayoutBase::set_node_shapes( utils::SvgGroup const& shape )
+{
+    for( size_t i = 0; i < tree_.node_count(); ++i ) {
+        tree_.node_at(i).data<LayoutNodeData>().shape = shape;
+    }
+}
+
 void LayoutBase::set_node_shapes( std::vector< utils::SvgGroup> const& shapes )
 {
+    // Empty: Reset to default.
+    if( shapes.empty() ) {
+        set_node_shapes( utils::SvgGroup() );
+        return;
+    }
+
+    // Non-empty case.
     if( shapes.size() != tree_.node_count() ) {
         throw std::runtime_error( "Node shape vector has wrong size." );
     }
@@ -137,9 +172,9 @@ void LayoutBase::init_layout_()
     }
 
     // Set distances of nodes.
-    if( type() == Type::kCladogram ) {
+    if( type() == LayoutType::kCladogram ) {
         set_node_distances_cladogram_();
-    } else if( type() == Type::kPhylogram ) {
+    } else if( type() == LayoutType::kPhylogram ) {
         set_node_distances_phylogram_();
     } else {
         assert( false );
@@ -169,7 +204,7 @@ void LayoutBase::set_node_spreadings_()
 
         parent = it.node().index();
     }
-    assert( leaf_count == num_leaves );
+    assert( leaf_count == static_cast<size_t>( num_leaves ));
 
     // Min and max spreading of the children of each node.
     // Init to -1.0 so that we can check which ones are done already.
@@ -261,7 +296,7 @@ utils::SvgText const& LayoutBase::text_template() const
     return text_template_;
 }
 
-void LayoutBase::type( Type const drawing_type )
+void LayoutBase::type( LayoutType const drawing_type )
 {
     type_ = drawing_type;
     if( ! tree_.empty() ) {
@@ -269,7 +304,7 @@ void LayoutBase::type( Type const drawing_type )
     }
 }
 
-LayoutBase::Type LayoutBase::type() const
+LayoutType LayoutBase::type() const
 {
     return type_;
 }

@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -72,7 +72,7 @@ namespace sequence {
  *     SequenceSet sequence_set;
  *
  *     FastaReader()
- *         .to_upper()
+ *         .site_casing( SiteCasing::kUnchanged )
  *         .valid_chars( nucleic_acid_codes_all() )
  *         .from_file( infile, sequence_set );
  *
@@ -89,7 +89,7 @@ namespace sequence {
  *    * http://blast.ncbi.nlm.nih.gov/blastcgihelp.shtml
  *    * http://zhanglab.ccmb.med.umich.edu/FASTA/
  *
- * Using to_upper(bool), the sequences can automatically be turned into upper case letter.
+ * Using site_casing(), the sequences can automatically be turned into upper or lower case letter.
  * Also, see valid_chars( std::string const& chars ) for a way of checking correct input sequences.
  */
 class FastaReader
@@ -140,6 +140,27 @@ public:
         kPedantic
     };
 
+    /**
+     * @brief Enumeration of casing methods to apply to each site of a Sequence.
+     */
+    enum class SiteCasing
+    {
+        /**
+         * @brief Do not change the case of the sites.
+         */
+        kUnchanged,
+
+        /**
+         * @brief Make all sites upper case.
+         */
+        kToUpper,
+
+        /**
+         * @brief Make all sites lower case.
+         */
+        kToLower
+    };
+
     // ---------------------------------------------------------------------
     //     Constructor and Rule of Five
     // ---------------------------------------------------------------------
@@ -147,7 +168,7 @@ public:
     /**
      * @brief Create a default FastaReader. Per default, chars are turned upper case, but not validated.
      *
-     * See to_upper() and valid_chars() to change this behaviour.
+     * See site_casing() and valid_chars() to change this behaviour.
      */
     FastaReader();
     ~FastaReader() = default;
@@ -283,18 +304,18 @@ public:
     ParsingMethod parsing_method() const;
 
     /**
-     * @brief Set whether Sequence sites are automatically turned into upper case.
+     * @brief Set whether Sequence sites are automatically turned into upper or lower case.
      *
-     * If set to `true` (default), all sites of the read Sequences are turned into upper case letters
-     * automatically. This is demanded by the Fasta standard.
+     * Default is SiteCasing::kToUpper, that is, all sites of the read Sequences are turned into
+     * upper case letters automatically. This is demanded by the Fasta standard.
      * The function returns the FastaReader object to allow for fluent interfaces.
      */
-    FastaReader& to_upper( bool value );
+    FastaReader& site_casing( SiteCasing value );
 
     /**
-     * @brief Return whether Sequence sites are automatically turned into upper case.
+     * @brief Return whether Sequence sites are automatically turned into upper or lower case.
      */
-    bool         to_upper() const;
+    SiteCasing site_casing() const;
 
     /**
      * @brief Set the chars that are used for validating Sequence sites when reading them.
@@ -305,10 +326,10 @@ public:
      * If set to an empty string, this check is deactivated. This is also the default, meaning that
      * no checking is done.
      *
-     * In case that to_upper() is set to `true`: The validation is done after making the char upper
-     * case, so that only capital letters have to be provided for validation.
-     * In case that to_upper() is set to `false`: All chars that are to be considered valid have to
-     * be provided for validation.
+     * In case that site_casing() is set to a value other than `SiteCasing::kUnchanged`:
+     * The validation is done after changing the casing, so that only lower or capital letters have
+     * to be provided for validation. In case that site_casing() is set to `SiteCasing::kUnchanged`:
+     * All chars that are to be considered valid have to be provided for validation.
      *
      * See `nucleic_acid_codes...()` and `amino_acid_codes...()` functions for presettings of chars
      * that can be used for validation here.
@@ -338,7 +359,7 @@ private:
 
     ParsingMethod           parsing_method_ = ParsingMethod::kDefault;
 
-    bool                    to_upper_       = true;
+    SiteCasing              site_casing_    = SiteCasing::kToUpper;
     bool                    use_validation_ = false;
     utils::CharLookup<bool> lookup_;
 

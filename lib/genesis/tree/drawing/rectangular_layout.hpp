@@ -53,8 +53,12 @@ public:
     // -------------------------------------------------------------
 
     RectangularLayout()  = default;
-    RectangularLayout( Tree const& orig_tree, Type const drawing_type = Type::kCladogram )
-        : LayoutBase( orig_tree, drawing_type )
+    RectangularLayout(
+        Tree const& orig_tree,
+        LayoutType const drawing_type = LayoutType::kCladogram,
+        bool ladderize = true
+    )
+        : LayoutBase( orig_tree, drawing_type, ladderize )
     {}
 
     virtual ~RectangularLayout() = default;

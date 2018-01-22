@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -40,29 +40,29 @@ using namespace utils;
 TEST( Tools, Tickmarks )
 {
     Tickmarks t;
-    // t.overshoot_at_max = true;
     t.undershoot_at_min = true;
+    t.overshoot_at_max = true;
+    // t.include_min = false;
     // t.include_max = false;
 
     auto mins = std::vector<double>({ 0.0, 1, 5.2, 13.9 });
     auto maxs = std::vector<double>({ 1.0, 3.9, 7.5, 17.2 });
 
-    for( auto min : mins ) {
-        for( auto max : maxs ) {
-            if( min >= max ) {
-                continue;
-            }
-
-            auto list = t.linear_ticks( min, max, 8 );
-
-            std::string ticks;
-            for( auto l : list ) {
-                ticks += "\t" + to_string_rounded( l );
-            }
-            LOG_DBG << "min " << min << ", \tmax " << max << ",  \tticks " << ticks;
-        }
-    }
-    LOG_DBG;
+    // for( auto min : mins ) {
+    //     for( auto max : maxs ) {
+    //         if( min >= max ) {
+    //             continue;
+    //         }
+    //
+    //         auto list = t.linear_ticks( min, max, 8 );
+    //
+    //         LOG_DBG << "min " << min << ", \tmax " << max;
+    //         for( auto l : list ) {
+    //             LOG_DBG1 << to_string_rounded( l );
+    //         }
+    //     }
+    // }
+    // LOG_DBG;
 
     for( auto min : mins ) {
         for( auto max : maxs ) {
@@ -72,24 +72,29 @@ TEST( Tools, Tickmarks )
 
             auto list = t.linear_labels( min, max, 8 );
 
-            std::string ticks;
+            LOG_DBG << "min " << min << ", \tmax " << max;
             for( auto l : list ) {
-                ticks += "\t" + to_string_rounded( l.relative_position ) + " --> " + to_string_rounded( l.label );
+                LOG_DBG1 << to_string_rounded( l.relative_position ) + " --> " + to_string_rounded( l.label );
             }
-            LOG_DBG << "min " << min << ", \tmax " << max << ",  \tticks " << ticks;
         }
     }
     LOG_DBG;
 
-    auto logs = std::vector<double>({ 1, 5.2, 13.9, 350, 44234 });
-    for( auto ll : logs ) {
-        auto list = t.logarithmic_labels( ll );
+    auto log_mins = std::vector<double>({ 0.001, 0.03, 1.0, 70.0, 340.0 });
+    auto log_maxs = std::vector<double>({ 1, 5.2, 13.9, 10.0, 350, 44234 });
+    for( auto min : log_mins ) {
+        for( auto max : log_maxs ) {
+            if( min >= max ) {
+                continue;
+            }
 
-        std::string ticks;
-        for( auto l : list ) {
-            ticks += "\t" + to_string_rounded( l.relative_position ) + " --> " + to_string_rounded( l.label );
+            auto list = t.logarithmic_labels( min, max , 2.0 );
+
+            LOG_DBG << "min " << min << ", max " << max;
+            for( auto l : list ) {
+                LOG_DBG1 << to_string_rounded( l.relative_position ) + " --> " + to_string_rounded( l.label );
+            }
         }
-        LOG_DBG << "max " << ll << ",\tticks " << ticks;
     }
 }
 */

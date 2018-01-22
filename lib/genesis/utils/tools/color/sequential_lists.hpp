@@ -50,7 +50,7 @@ namespace utils {
  * Particularly useful for visualizing trees, as the light blue is still visible when
  * used to color branches.
  */
-std::vector<Color> const& color_list_pupubk();
+std::vector<Color> const& color_list_bupubk();
 
 /**
  * @brief Color palette `blues`.
@@ -252,7 +252,7 @@ std::vector<Color> const& color_list_viridis();
 
 enum class SequentialColorList
 {
-    kPupubk,
+    kBupubk,
     kBlues,
     kBugn,
     kBupu,

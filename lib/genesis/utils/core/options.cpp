@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -109,8 +109,15 @@ void Options::command_line( int const argc, char const* const* argv )
 //     Number of Threads
 // =================================================================================================
 
-void Options::number_of_threads (const unsigned int number)
+void Options::number_of_threads ( unsigned int number )
 {
+    if( number == 0 ) {
+        #ifdef GENESIS_PTHREADS
+            number = std::thread::hardware_concurrency();
+        #else
+            number = 1;
+        #endif
+    }
     number_of_threads_ = number;
 
     #if defined( GENESIS_OPENMP )
