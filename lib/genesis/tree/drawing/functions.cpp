@@ -118,28 +118,28 @@ void write_color_tree_to_nexus_file(
 //     SVG Functions
 // =================================================================================================
 
-void write_tree_to_nexus_file(
+void write_tree_to_svg_file(
     DefaultTree const&      tree,
     LayoutParameters const& params,
     std::string const&      svg_filename
 ) {
-    write_color_tree_to_nexus_file(
+    write_color_tree_to_svg_file(
         tree, params, std::vector<utils::Color>{}, {}, {}, svg_filename
     );
 }
 
-void write_color_tree_to_nexus_file(
+void write_color_tree_to_svg_file(
     DefaultTree const&               tree,
     LayoutParameters const&          params,
     std::vector<utils::Color> const& color_per_branch,
     std::string const&               svg_filename
 ) {
-    write_color_tree_to_nexus_file(
+    write_color_tree_to_svg_file(
         tree, params, color_per_branch, {}, {}, svg_filename
     );
 }
 
-void write_color_tree_to_nexus_file(
+void write_color_tree_to_svg_file(
     DefaultTree const&               tree,
     LayoutParameters const&          params,
     std::vector<double> const&       value_per_branch,
@@ -147,12 +147,12 @@ void write_color_tree_to_nexus_file(
     utils::ColorNormalization const& color_norm,
     std::string const&               svg_filename
 ) {
-    write_color_tree_to_nexus_file(
+    write_color_tree_to_svg_file(
         tree, params, color_map( color_norm, value_per_branch ), color_map, color_norm, svg_filename
     );
 }
 
-void write_color_tree_to_nexus_file(
+void write_color_tree_to_svg_file(
     DefaultTree const&               tree,
     LayoutParameters const&          params,
     std::vector<utils::Color> const& color_per_branch,
@@ -187,7 +187,7 @@ void write_color_tree_to_nexus_file(
     // Prepare svg doc.
     auto svg_doc = layout->to_svg_document();
 
-    // Add palette.
+    // Add scale.
     if( ! color_map.empty() ) {
         // Make the scale.
         auto svg_pal = utils::SvgPalette();
