@@ -72,7 +72,7 @@ public:
     {
         // reserve enough bits, and init them.
         data_.resize( (size / IntSize) + (size % IntSize == 0 ? 0 : 1) );
-        reset(initial_value);
+        set_all(initial_value);
     }
 
     /**
@@ -235,9 +235,9 @@ public:
     void normalize();
 
     /**
-     * @brief Reset all the bits to false. If provided with parameter `true`, sets all bits to true.
+     * @brief Set all the bits to a specified @p value.
      */
-    void reset(const bool value = false);
+    void set_all(const bool value = false);
 
     std::string dump() const;
     std::string dump_int(IntType x) const;

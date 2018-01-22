@@ -239,7 +239,7 @@ void Bitvector::normalize()
     }
 }
 
-void Bitvector::reset(const bool value)
+void Bitvector::set_all( const bool value )
 {
     // set according to flag.
     const auto v = value ? all_1_ : all_0_;
@@ -255,10 +255,12 @@ void Bitvector::reset(const bool value)
 
 void Bitvector::unset_padding_()
 {
-    if (size_ % IntSize == 0) {
+    // Only apply if there are actual padding bits.
+    if(( size_ % IntSize ) == 0 ) {
         return;
     }
-    data_.back() &= ones_mask_[size_ % IntSize];
+
+    data_.back() &= ones_mask_[ size_ % IntSize ];
 
     // other versions that might be helpful if i messed up with this little/big endian stuff...
     // first one is slow but definitely works, second one is fast, but might have the same
