@@ -33,6 +33,7 @@
 
 #include "genesis/tree/tree.hpp"
 #include "genesis/tree/bipartition/bipartition.hpp"
+#include "genesis/utils/math/bitvector.hpp"
 
 #include <string>
 #include <vector>
@@ -44,21 +45,41 @@ namespace tree {
 //     Bipartition Functions
 // =================================================================================================
 
+std::vector<Bipartition> bipartition_set( Tree const& tree );
+
 std::vector<size_t> node_to_leaf_map( Tree const& tree );
 
-std::vector<Bipartition> bipartition_set( Tree const& tree );
+/**
+ * @brief Return a Bitvector that has as many entries as the @p tree has leaf nodes,
+ * and is `true` where the given @p leaf_nodes are.
+ */
+utils::Bitvector leaf_node_bitvector( Tree const& tree, std::vector<TreeNode const*> leaf_nodes );
 
 std::vector<size_t> get_subtree_edges( TreeLink const& subtree );
 
 /**
- * @brief Finds the smallest subtree (measured in number of nodes) that contains all given nodes.
+ * @brief Find clades of the tree that are monophyletic with respect to the given list of nodes,
+ * that is, clades that only contain nodes from that list. Retun all edge indices of those clades.
+ */
+std::vector<size_t> find_monophyletic_subtree_edges(
+    Tree const& tree,
+    std::vector<Bipartition> const& bipartitions,
+    std::vector<TreeNode const*> nodes
+);
+
+/**
+ * @brief Find the smallest subtree (measured in number of nodes) that contains all given nodes.
  *
  * A subtree is defined by one of the two parts of a tree that are splitted by one edge. Thus, this
  * function tries all subtrees by leaving out each edge once.
  *
  * If no fitting subtree exists, the function returns an empty Bipartition.
  */
-Bipartition find_smallest_subtree( Tree const& tree, std::vector<Bipartition> const& bips, std::vector<TreeNode const*> nodes );
+Bipartition find_smallest_subtree(
+    Tree const& tree,
+    std::vector<Bipartition> const& bipartitions,
+    std::vector<TreeNode const*> nodes
+);
 
 std::vector<size_t> get_clade_edges( Tree const& tree, std::vector< tree::TreeNode const* > const& nodes );
 

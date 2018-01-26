@@ -50,25 +50,6 @@ namespace tree {
 //     Bipartition Functions
 // =================================================================================================
 
-std::vector<size_t> node_to_leaf_map( Tree const& tree )
-{
-    // Make an lookup of consecutive leaf nodes.
-    std::vector<size_t> node_to_leaf_map;
-    node_to_leaf_map.resize( tree.node_count() );
-
-    size_t leaf_idx = 0;
-    for( auto const& node_it : tree.nodes() ) {
-        if( node_it->is_leaf() ) {
-            node_to_leaf_map[ node_it->index() ] = leaf_idx;
-            ++leaf_idx;
-        } else {
-            node_to_leaf_map[ node_it->index() ] = std::numeric_limits<std::size_t>::max();
-        }
-    }
-
-    return node_to_leaf_map;
-}
-
 std::vector<Bipartition> bipartition_set( Tree const& tree )
 {
     // Result
@@ -88,7 +69,7 @@ std::vector<Bipartition> bipartition_set( Tree const& tree )
         // If the iterator is at a leaf, just set one bit in the bitvector.
         if( it.node().is_leaf() ) {
             auto const leaf_idx = node_to_leafs[ it.node().index() ];
-            assert( leaf_idx > std::numeric_limits<std::size_t>::max() );
+            assert( leaf_idx != std::numeric_limits<std::size_t>::max() );
             bp.bitvector().set(leaf_idx);
 
         // For inner iterator positions, consider the whole subtree below it.
@@ -107,6 +88,41 @@ std::vector<Bipartition> bipartition_set( Tree const& tree )
     }
 
     return bipartitions;
+}
+
+std::vector<size_t> node_to_leaf_map( Tree const& tree )
+{
+    // Make an lookup of consecutive leaf nodes.
+    std::vector<size_t> nodes_to_leafs;
+    nodes_to_leafs.resize( tree.node_count() );
+
+    size_t leaf_idx = 0;
+    for( auto const& node_it : tree.nodes() ) {
+        if( node_it->is_leaf() ) {
+            nodes_to_leafs[ node_it->index() ] = leaf_idx;
+            ++leaf_idx;
+        } else {
+            nodes_to_leafs[ node_it->index() ] = std::numeric_limits<std::size_t>::max();
+        }
+    }
+
+    return nodes_to_leafs;
+}
+
+utils::Bitvector leaf_node_bitvector( Tree const& tree, std::vector<TreeNode const*> leaf_nodes )
+{
+    auto const node_to_leafs = node_to_leaf_map( tree );
+    utils::Bitvector result( leaf_node_count( tree ));
+    for( auto n : leaf_nodes ) {
+        auto const leaf_idx = node_to_leafs[ n->index() ];
+        if( leaf_idx == std::numeric_limits<std::size_t>::max() ) {
+            throw std::runtime_error(
+                "Node at index " + utils::to_string( n->index() ) + " is not a leaf."
+            );
+        }
+        result.set( leaf_idx );
+    }
+    return result;
 }
 
 std::vector<size_t> get_subtree_edges( TreeLink const& subtree )
@@ -132,57 +148,113 @@ std::vector<size_t> get_subtree_edges( TreeLink const& subtree )
     return ret;
 }
 
-Bipartition find_smallest_subtree( Tree const& tree, std::vector<Bipartition> const& bips, std::vector<TreeNode const*> nodes )
-{
-    auto const node_to_leafs = node_to_leaf_map( tree );
-    utils::Bitvector comp( leaf_node_count( tree ));
+std::vector<size_t> find_monophyletic_subtree_edges(
+    Tree const& tree,
+    std::vector<Bipartition> const& bips,
+    std::vector<TreeNode const*> nodes
+) {
+    // Result. We use a bitvec of the edges that we want, to save space.
+    auto result_edges = utils::Bitvector( tree.edge_count() );
 
-    // make bitvector containing all wanted nodes.
-    for( auto n : nodes ) {
-        auto const leaf_idx = node_to_leafs[n->index()];
-        if( leaf_idx == std::numeric_limits<std::size_t>::max() ) {
-            throw std::runtime_error(
-                "Node at index " + utils::to_string( n->index() ) + " is not a leaf."
-            );
+    // Helper funciton to set result edges of a bipartition.
+    auto set_result_edges = [ &result_edges ]( Bipartition const& bip ){
+
+        // Add all subtree edges via custom traversal
+        using Preorder = IteratorPreorder< TreeLink const, TreeNode const, TreeEdge const >;
+        for(
+            auto it = Preorder( bip.link().next() );
+            it != Preorder() && &it.link() != &bip.link().outer();
+            ++it
+        ) {
+            if (it.is_first_iteration()) {
+                continue;
+            }
+            result_edges.set( it.edge().index() );
         }
-        comp.set(leaf_idx);
-    }
 
-    Bipartition best_bp;
-    size_t      min_count = 0;
+        // Also add the edge of the split itself. This is necessary for leaves,
+        // but also we want to consider inner branches to be part of the clade.
+        result_edges.set( bip.link().edge().index() );
+    };
 
-    // loop over all bipartitions and compare their bitvectors to the given one, to find one that
-    // is a superset. try both ways (normal and inverted) for each bipartition.
-    for( Bipartition const& bp : bips ) {
-        if( bp.empty() ) {
+    // Get the bitvec that represets the leaf nodes we are looking for.
+    auto const leaves = leaf_node_bitvector( tree, nodes );
+
+    // For each bip, check if one of its splits contains only nodes we are looking for.
+    // If so, add all edges of that split to the result.
+    for( auto const& bip : bips ) {
+        if( bip.empty() ) {
             continue;
         }
 
-        if( utils::is_subset( comp, bp.leaf_nodes() )) {
-            if( min_count == 0 || bp.leaf_nodes().count() < min_count ) {
-                best_bp   = bp;
-                min_count = bp.leaf_nodes().count();
+        // If all tips of the bip are in our node list, we found a monophyletic clade.
+        if( ( bip.leaf_nodes() & leaves ) == bip.leaf_nodes() ) {
+            set_result_edges( bip );
+        }
+
+        // Same for inverted case.
+        auto inverted = bip;
+        inverted.invert();
+        if( ( inverted.leaf_nodes() & leaves ) == inverted.leaf_nodes() ) {
+            set_result_edges( inverted );
+        }
+    }
+
+    // Turn bitvec into edges by adding all indices where the bitvec is set.
+    std::vector<size_t> edges;
+    for( size_t i = 0; i < result_edges.size(); ++i ) {
+        if( result_edges.get( i ) ) {
+            edges.push_back( i );
+        }
+    }
+    return edges;
+}
+
+Bipartition find_smallest_subtree(
+    Tree const& tree,
+    std::vector<Bipartition> const& bipartitions,
+    std::vector<TreeNode const*> nodes
+) {
+    // Get the bitvector to compare against
+    auto const comp = leaf_node_bitvector( tree, nodes );
+
+    // Store best results.
+    Bipartition best_bip;
+    size_t      min_count = 0;
+
+    // Loop over all bipartitions and compare their bitvectors to the given one, to find one that
+    // is a superset. Try both ways (normal and inverted) for each bipartition.
+    for( Bipartition const& bip : bipartitions ) {
+        if( bip.empty() ) {
+            continue;
+        }
+
+        auto const inverted = ~(bip.leaf_nodes());
+        if( utils::is_subset( comp, bip.leaf_nodes() )) {
+            if( min_count == 0 || bip.leaf_nodes().count() < min_count ) {
+                best_bip   = bip;
+                min_count = bip.leaf_nodes().count();
             }
         }
-        if( utils::is_subset( comp, ~(bp.leaf_nodes())) ) {
-            if (min_count == 0 || (~bp.leaf_nodes()).count() < min_count)  {
-                best_bp   = bp;
-                best_bp.invert();
-                min_count = bp.leaf_nodes().count();
+        if( utils::is_subset( comp, inverted ) ) {
+            if (min_count == 0 || inverted.count() < min_count)  {
+                best_bip   = bip;
+                best_bip.invert();
+                min_count = bip.leaf_nodes().count();
             }
         }
     }
 
-    return best_bp;
+    return best_bip;
 }
 
 std::vector<size_t> get_clade_edges( Tree const& tree, std::vector< tree::TreeNode const* > const& nodes )
 {
     // Find the edges that are part of the subtree of this clade.
     // This part is a bit messy and might be cleaned up in the future.
-    auto bipartitions = bipartition_set( tree );
-    auto smallest     = find_smallest_subtree( tree, bipartitions, nodes );
-    auto subedges     = get_subtree_edges( smallest.link() );
+    auto const bipartitions = bipartition_set( tree );
+    auto const smallest     = find_smallest_subtree( tree, bipartitions, nodes );
+    auto const subedges     = get_subtree_edges( smallest.link() );
     return subedges;
 }
 

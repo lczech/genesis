@@ -68,7 +68,7 @@ public:
     //     Member Functions
     // -------------------------------------------------------------
 
-    TreeLink const& link()
+    TreeLink const& link() const
     {
         return *link_;
     }
