@@ -82,7 +82,7 @@ TEST( Svg, Basics )
 
     auto text = SvgText( "Hello World! ygp", SvgPoint( 20, 120 ), SvgFont( 15 ) );
     auto bb = text.bounding_box();
-    doc << SvgRect( bb.top_left, bb.size(), SvgStroke( color_from_bytes( 255, 128, 128 ) ), SvgFill( Color(), 0.0 ));
+    doc << SvgRect( bb.top_left, bb.size(), SvgStroke( color_from_bytes( 255, 128, 128 ) ), SvgFill( Color() ));
     doc << text;
 
     // doc << SvgLine( 20, 120, 20 + 12.0*10.0/2.0, 120 );

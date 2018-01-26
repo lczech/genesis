@@ -84,20 +84,20 @@ struct LayoutParameters
     utils::SvgStroke stroke;
 };
 
-void write_tree_to_nexus_file(
+void write_tree_to_svg_file(
     DefaultTree const&      tree,
     LayoutParameters const& params,
     std::string const&      svg_filename
 );
 
-void write_color_tree_to_nexus_file(
+void write_color_tree_to_svg_file(
     DefaultTree const&               tree,
     LayoutParameters const&          params,
     std::vector<utils::Color> const& color_per_branch,
     std::string const&               svg_filename
 );
 
-void write_color_tree_to_nexus_file(
+void write_color_tree_to_svg_file(
     DefaultTree const&               tree,
     LayoutParameters const&          params,
     std::vector<double> const&       value_per_branch,
@@ -106,7 +106,7 @@ void write_color_tree_to_nexus_file(
     std::string const&               svg_filename
 );
 
-void write_color_tree_to_nexus_file(
+void write_color_tree_to_svg_file(
     DefaultTree const&               tree,
     LayoutParameters const&          params,
     std::vector<utils::Color> const& color_per_branch,

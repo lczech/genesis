@@ -73,16 +73,28 @@ Tree const& LayoutBase::tree() const
 
 void LayoutBase::set_edge_strokes( utils::SvgStroke const& stroke )
 {
-    for( size_t i = 0; i < tree_.edge_count(); ++i ) {
-        tree_.edge_at(i).data<LayoutEdgeData>().stroke = stroke;
-    }
+    set_edge_spreading_strokes( stroke );
+    set_edge_distance_strokes( stroke );
 }
 
 void LayoutBase::set_edge_strokes( std::vector< utils::SvgStroke > const& strokes )
 {
+    set_edge_spreading_strokes( strokes );
+    set_edge_distance_strokes( strokes );
+}
+
+void LayoutBase::set_edge_spreading_strokes( utils::SvgStroke const& stroke )
+{
+    for( size_t i = 0; i < tree_.edge_count(); ++i ) {
+        tree_.edge_at(i).data<LayoutEdgeData>().spreading_stroke = stroke;
+    }
+}
+
+void LayoutBase::set_edge_spreading_strokes( std::vector< utils::SvgStroke > const& strokes )
+{
     // Empty: Reset to default.
     if( strokes.empty() ) {
-        set_edge_strokes( utils::SvgStroke() );
+        set_edge_spreading_strokes( utils::SvgStroke() );
         return;
     }
 
@@ -91,7 +103,55 @@ void LayoutBase::set_edge_strokes( std::vector< utils::SvgStroke > const& stroke
         throw std::runtime_error( "Edge stroke vector has wrong size." );
     }
     for( size_t i = 0; i < tree_.edge_count(); ++i ) {
-        tree_.edge_at(i).data<LayoutEdgeData>().stroke = strokes[ i ];
+        tree_.edge_at(i).data<LayoutEdgeData>().spreading_stroke = strokes[ i ];
+    }
+}
+
+void LayoutBase::set_edge_distance_strokes( utils::SvgStroke const& stroke )
+{
+    for( size_t i = 0; i < tree_.edge_count(); ++i ) {
+        tree_.edge_at(i).data<LayoutEdgeData>().distance_stroke = stroke;
+    }
+}
+
+void LayoutBase::set_edge_distance_strokes( std::vector< utils::SvgStroke > const& strokes )
+{
+    // Empty: Reset to default.
+    if( strokes.empty() ) {
+        set_edge_distance_strokes( utils::SvgStroke() );
+        return;
+    }
+
+    // Non-empty case.
+    if( strokes.size() != tree_.edge_count() ) {
+        throw std::runtime_error( "Edge stroke vector has wrong size." );
+    }
+    for( size_t i = 0; i < tree_.edge_count(); ++i ) {
+        tree_.edge_at(i).data<LayoutEdgeData>().distance_stroke = strokes[ i ];
+    }
+}
+
+void LayoutBase::set_edge_shapes( utils::SvgGroup const& shape )
+{
+    for( size_t i = 0; i < tree_.edge_count(); ++i ) {
+        tree_.edge_at(i).data<LayoutEdgeData>().shape = shape;
+    }
+}
+
+void LayoutBase::set_edge_shapes( std::vector< utils::SvgGroup> const& shapes )
+{
+    // Empty: Reset to default.
+    if( shapes.empty() ) {
+        set_edge_shapes( utils::SvgGroup() );
+        return;
+    }
+
+    // Non-empty case.
+    if( shapes.size() != tree_.edge_count() ) {
+        throw std::runtime_error( "Edge shape vector has wrong size." );
+    }
+    for( size_t i = 0; i < tree_.edge_count(); ++i ) {
+        tree_.edge_at(i).data<LayoutEdgeData>().shape = shapes[ i ];
     }
 }
 

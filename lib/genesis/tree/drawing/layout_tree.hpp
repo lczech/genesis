@@ -204,7 +204,11 @@ public:
 
 public:
 
-    utils::SvgStroke stroke;
+    utils::SvgStroke spreading_stroke;
+    utils::SvgStroke distance_stroke;
+
+    utils::SvgGroup shape;
+
 };
 
 } // namespace tree

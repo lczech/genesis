@@ -97,6 +97,15 @@ public:
     void set_edge_strokes( utils::SvgStroke const& stroke );
     void set_edge_strokes( std::vector< utils::SvgStroke > const& strokes );
 
+    void set_edge_spreading_strokes( utils::SvgStroke const& stroke );
+    void set_edge_spreading_strokes( std::vector< utils::SvgStroke > const& strokes );
+
+    void set_edge_distance_strokes( utils::SvgStroke const& stroke );
+    void set_edge_distance_strokes( std::vector< utils::SvgStroke > const& strokes );
+
+    void set_edge_shapes( utils::SvgGroup const& shape );
+    void set_edge_shapes( std::vector< utils::SvgGroup> const& shapes );
+
     void set_node_shapes( utils::SvgGroup const& shape );
     void set_node_shapes( std::vector< utils::SvgGroup> const& shapes );
 

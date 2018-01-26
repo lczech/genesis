@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -115,15 +115,15 @@ TEST( Math, Kmeans )
         Color c;
         switch( a ) {
             case 0: {
-                c = Color( 255, 0, 0 );
+                c = Color( 1, 0, 0, 0.5 );
                 break;
             }
             case 1: {
-                c = Color( 0, 255, 0 );
+                c = Color( 0, 1, 0, 0.5 );
                 break;
             }
             case 2: {
-                c = Color( 0, 0, 255 );
+                c = Color( 0, 0, 1, 0.5 );
                 break;
             }
             default: {
@@ -132,7 +132,7 @@ TEST( Math, Kmeans )
         }
 
         doc << SvgCircle(
-            data[i][0], data[i][1], 0.1, stroke, SvgFill( c, 0.5 )
+            data[i][0], data[i][1], 0.1, stroke, SvgFill( c )
         );
     }
 

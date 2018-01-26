@@ -38,12 +38,6 @@ namespace genesis {
 namespace tree {
 
 // =============================================================================
-//     Forward Declarations
-// =============================================================================
-
-class BipartitionSet;
-
-// =============================================================================
 //     Bipartition
 // =============================================================================
 
@@ -55,20 +49,38 @@ public:
     //     Declarations and Constructor
     // -------------------------------------------------------------
 
-    friend  BipartitionSet;
+    Bipartition() = default;
 
-    Bipartition (size_t num_leaves)
-        : leaf_nodes_( utils::Bitvector(num_leaves) )
-        , link_(nullptr)
+    Bipartition( TreeLink const& link, utils::Bitvector const& leaf_nodes )
+        : link_( &link )
+        , leaf_nodes_( leaf_nodes )
     {}
+
+    ~Bipartition() = default;
+
+    Bipartition( Bipartition const& ) = default;
+    Bipartition( Bipartition&& )      = default;
+
+    Bipartition& operator= ( Bipartition const& ) = default;
+    Bipartition& operator= ( Bipartition&& )      = default;
 
     // -------------------------------------------------------------
     //     Member Functions
     // -------------------------------------------------------------
 
-    TreeLink* link()
+    TreeLink const& link() const
     {
-        return link_;
+        return *link_;
+    }
+
+    utils::Bitvector& bitvector()
+    {
+        return leaf_nodes_;
+    }
+
+    utils::Bitvector const& leaf_nodes() const
+    {
+        return leaf_nodes_;
     }
 
     void invert()
@@ -77,14 +89,19 @@ public:
         link_ = &link_->outer();
     }
 
+    bool empty() const
+    {
+        return link_ == nullptr;
+    }
+
     // -------------------------------------------------------------
     //     Member Variables
     // -------------------------------------------------------------
 
 protected:
 
+    TreeLink const*  link_;
     utils::Bitvector leaf_nodes_;
-    TreeLink*        link_;
 
 };
 

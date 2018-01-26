@@ -75,6 +75,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
     SvgDocument doc;
     SvgGroup    tree_lines;
     SvgGroup    taxa_names;
+    SvgGroup    edge_shapes;
     SvgGroup    node_shapes;
 
     // If no width and/or height is set, use automatic ones:
@@ -103,24 +104,48 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
         auto const& node_data = node.data<LayoutNodeData>();
         auto const& prnt_data = tree().node_at( node_data.parent_index ).data<LayoutNodeData>();
 
+        auto const node_x = node_data.distance * width;
+        auto const node_y = node_data.spreading * height;
+
         // Get the edge between the node and its parent.
-        auto edge_data_ptr = edge_between( node, tree().node_at( node_data.parent_index ) );
+        auto edge_ptr = edge_between( node, tree().node_at( node_data.parent_index ) );
 
         // If there is an edge (i.e., we are not at the root), draw lines between the nodes.
-        if( edge_data_ptr ) {
-            auto stroke = edge_data_ptr->data<LayoutEdgeData>().stroke;
-            // stroke.line_cap = utils::SvgStroke::LineCap::kRound;
+        if( edge_ptr ) {
+            auto const& edge_data = edge_ptr->data<LayoutEdgeData>();
 
+            // Get line strokes
+            auto spreading_stroke = edge_data.spreading_stroke;
+            auto distance_stroke = edge_data.distance_stroke;
+            spreading_stroke.line_cap = utils::SvgStroke::LineCap::kSquare;
+            distance_stroke.line_cap = utils::SvgStroke::LineCap::kButt;
+
+            // Calculate linear distance
+            auto const dist_start_x = prnt_data.distance * width;
+            auto const dist_start_y = node_y;
+
+            // Draw lines
             tree_lines << SvgLine(
-                node_data.distance * width, node_data.spreading * height,
-                prnt_data.distance * width, node_data.spreading * height,
-                stroke
-            );
-            tree_lines << SvgLine(
-                prnt_data.distance * width, node_data.spreading * height,
                 prnt_data.distance * width, prnt_data.spreading * height,
-                stroke
+                dist_start_x, dist_start_y,
+                spreading_stroke
             );
+            tree_lines << SvgLine(
+                dist_start_x, dist_start_y,
+                node_x, node_y,
+                distance_stroke
+            );
+
+            // If there is an edge shape, draw it to the middle of the edge
+            if( ! edge_data.shape.empty() ) {
+                auto const shape_x = ( dist_start_x + node_x ) / 2.0;
+                auto const shape_y = ( dist_start_y + node_y ) / 2.0;
+
+                auto es = edge_data.shape;
+                es.transform.append( SvgTransform::Translate( shape_x, shape_y ));
+                edge_shapes << std::move( es );
+            }
+
         } else {
 
             // If there is no edge, it must be the root.
@@ -131,7 +156,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
         if( node_data.name != "" ) {
             // auto label = SvgText(
             //     node_data.name,
-            //     SvgPoint( node_data.distance * width + 5, node_data.spreading * height )
+            //     SvgPoint( node_x + 5, node_y )
             // );
             // label.dy = "0.4em";
 
@@ -140,10 +165,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
             label.alignment_baseline = SvgText::AlignmentBaseline::kMiddle;
 
             // Move label to tip node.
-            label.transform.append( SvgTransform::Translate(
-                node_data.distance * width + 5,
-                node_data.spreading * height
-            ));
+            label.transform.append( SvgTransform::Translate( node_x + 5, node_y ));
             taxa_names << std::move( label );
             max_text_len = std::max( max_text_len, node_data.name.size() );
         }
@@ -151,9 +173,7 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
         // If there is a node shape, draw it.
         if( ! node_data.shape.empty() ) {
             auto ns = node_data.shape;
-            ns.transform.append(
-                SvgTransform::Translate( node_data.distance * width, node_data.spreading * height )
-            );
+            ns.transform.append( SvgTransform::Translate( node_x, node_y ));
             node_shapes << std::move( ns );
         }
     }
@@ -171,6 +191,9 @@ utils::SvgDocument RectangularLayout::to_svg_document_() const
     doc << std::move( tree_lines );
     if( ! taxa_names.empty() ) {
         doc << std::move( taxa_names );
+    }
+    if( ! edge_shapes.empty() ) {
+        doc << std::move( edge_shapes );
     }
     if( ! node_shapes.empty() ) {
         doc << std::move( node_shapes );
