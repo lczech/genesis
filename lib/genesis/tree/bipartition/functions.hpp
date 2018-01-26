@@ -1,5 +1,5 @@
-#ifndef GENESIS_TREE_BIPARTITION_BIPARTITION_FUNCTIONS_H_
-#define GENESIS_TREE_BIPARTITION_BIPARTITION_FUNCTIONS_H_
+#ifndef GENESIS_TREE_BIPARTITION_FUNCTIONS_H_
+#define GENESIS_TREE_BIPARTITION_FUNCTIONS_H_
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
@@ -32,9 +32,9 @@
  */
 
 #include "genesis/tree/tree.hpp"
+#include "genesis/tree/bipartition/bipartition.hpp"
 
 #include <string>
-#include <unordered_set>
 #include <vector>
 
 namespace genesis {
@@ -44,9 +44,25 @@ namespace tree {
 //     Bipartition Functions
 // =================================================================================================
 
-std::unordered_set<size_t> get_clade_edges( Tree const& tree, std::vector< tree::TreeNode const* > const& nodes );
+std::vector<size_t> node_to_leaf_map( Tree const& tree );
 
-std::unordered_set<size_t> get_clade_edges( Tree const& tree, std::vector< std::string > const& node_names );
+std::vector<Bipartition> bipartition_set( Tree const& tree );
+
+std::vector<size_t> get_subtree_edges( TreeLink const& subtree );
+
+/**
+ * @brief Finds the smallest subtree (measured in number of nodes) that contains all given nodes.
+ *
+ * A subtree is defined by one of the two parts of a tree that are splitted by one edge. Thus, this
+ * function tries all subtrees by leaving out each edge once.
+ *
+ * If no fitting subtree exists, the function returns an empty Bipartition.
+ */
+Bipartition find_smallest_subtree( Tree const& tree, std::vector<Bipartition> const& bips, std::vector<TreeNode const*> nodes );
+
+std::vector<size_t> get_clade_edges( Tree const& tree, std::vector< tree::TreeNode const* > const& nodes );
+
+std::vector<size_t> get_clade_edges( Tree const& tree, std::vector< std::string > const& node_names );
 
 } // namespace tree
 } // namespace genesis

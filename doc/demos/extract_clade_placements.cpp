@@ -125,13 +125,19 @@ CladeEdgeList get_clade_edges( CladeTaxaList const& clades, TreeType& tree )
     for( auto const& clade : clades ) {
 
         // Find the edges that are part of the subtree of this clade.
-        auto subedges = get_clade_edges( tree, clade.second );
+        auto const subedges = get_clade_edges( tree, clade.second );
+
+        // TODO for now, we convert to an unordered map here by hand.
+        // this can be clean up!
+        auto const subedge_map = std::unordered_set<size_t>(
+            subedges.begin(), subedges.end()
+        );
 
         // Add them to the clade edges list.
-        clade_edges.push_back( std::make_pair( clade.first, subedges ));
+        clade_edges.push_back( std::make_pair( clade.first, subedge_map ));
 
         // Remove the edge indices of this clade from the basal branches (non-clade) edges list.
-        for( auto edge : subedges ) {
+        for( auto const edge : subedges ) {
             basal_branches.erase( edge );
         }
     }
