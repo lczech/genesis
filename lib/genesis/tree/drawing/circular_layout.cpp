@@ -67,6 +67,7 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
     SvgDocument doc;
     SvgGroup    tree_lines;
     SvgGroup    taxa_names;
+    SvgGroup    edge_shapes;
     SvgGroup    node_shapes;
 
     // If the radius was not set, use automatic:
@@ -91,31 +92,50 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
         auto const node_y = node_data.distance * radius * sin( node_spreading );
 
         // Get the edge between the node and its parent.
-        auto edge_data_ptr = edge_between( node, tree().node_at( node_data.parent_index ) );
+        auto edge_ptr = edge_between( node, tree().node_at( node_data.parent_index ) );
 
         // If there is an edge (i.e., we are not at the root), draw lines between the nodes.
-        if( edge_data_ptr ) {
-            auto stroke = edge_data_ptr->data<LayoutEdgeData>().stroke;
-            stroke.line_cap = utils::SvgStroke::LineCap::kRound;
+        if( edge_ptr ) {
+            auto const& edge_data = edge_ptr->data<LayoutEdgeData>();
 
+            // Get line strokes
+            auto spreading_stroke = edge_data.spreading_stroke;
+            auto distance_stroke = edge_data.distance_stroke;
+            spreading_stroke.line_cap = utils::SvgStroke::LineCap::kRound;
+            distance_stroke.line_cap = utils::SvgStroke::LineCap::kRound;
+
+            // Calculate circular spreading
             auto start_a = prnt_spreading;
             auto end_a   = node_spreading;
             if( prnt_spreading > node_spreading ) {
                 std::swap( start_a, end_a );
             }
 
+            // Calculate linear distance
+            auto const dist_start_x = prnt_data.distance * radius * cos( node_spreading );
+            auto const dist_start_y = prnt_data.distance * radius * sin( node_spreading );
+
+            // Draw lines
             tree_lines << SvgPath(
                 { svg_arc( 0, 0, prnt_data.distance * radius, start_a, end_a ) },
-                stroke,
+                spreading_stroke,
                 SvgFill( SvgFill::Type::kNone )
             );
-
             tree_lines << SvgLine(
-                prnt_data.distance * radius * cos( node_spreading ),
-                prnt_data.distance * radius * sin( node_spreading ),
-                node_x, node_y,
-                stroke
+                dist_start_x, dist_start_y,
+                node_x,  node_y,
+                distance_stroke
             );
+
+            // If there is an edge shape, draw it to the middle of the edge
+            if( ! edge_data.shape.empty() ) {
+                auto const shape_x = ( dist_start_x + node_x ) / 2.0;
+                auto const shape_y = ( dist_start_y + node_y ) / 2.0;
+
+                auto es = edge_data.shape;
+                es.transform.append( SvgTransform::Translate( shape_x, shape_y ));
+                edge_shapes << std::move( es );
+            }
 
         } else {
 
@@ -173,6 +193,9 @@ utils::SvgDocument CircularLayout::to_svg_document_() const
     doc << std::move( tree_lines );
     if( ! taxa_names.empty() ) {
         doc << std::move( taxa_names );
+    }
+    if( ! edge_shapes.empty() ) {
+        doc << std::move( edge_shapes );
     }
     if( ! node_shapes.empty() ) {
         doc << std::move( node_shapes );

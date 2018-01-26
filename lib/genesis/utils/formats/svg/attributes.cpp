@@ -144,13 +144,11 @@ SvgFill::SvgFill( SvgFill::Type type )
     , rule( Rule::kNone )
 {}
 
-SvgFill::SvgFill( Color color_value, double opacity )
+SvgFill::SvgFill( Color color )
     : type( SvgFill::Type::kColor )
-    , color( color_value )
+    , color( color )
     , rule( Rule::kNone )
-{
-    color.a( opacity );
-}
+{}
 
 SvgFill::SvgFill( std::string gradient_id_value )
     : SvgFill( Type::kGradient )

@@ -158,7 +158,7 @@ public:
     // -------------------------------------------------------------------------
 
     explicit SvgFill( Type type = Type::kColor );
-    explicit SvgFill( Color color, double opacity = 1.0 );
+    explicit SvgFill( Color color );
     explicit SvgFill( std::string gradient_id );
 
     ~SvgFill() = default;
