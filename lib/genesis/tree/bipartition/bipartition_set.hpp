@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -48,7 +48,7 @@ public:
     //     Declarations and Constructor
     // -------------------------------------------------------------
 
-    BipartitionSet (Tree& tree) : tree_(tree) {};
+    BipartitionSet( Tree const& tree ) : tree_( tree ) {};
 
     // -------------------------------------------------------------
     //     Member Functions
@@ -57,8 +57,8 @@ public:
     void make();
     void make_index();
 
-    Bipartition* find_smallest_subtree ( std::vector<TreeNode*> nodes );
-    std::unordered_set<size_t> get_subtree_edges( TreeLink* subtree );
+    Bipartition* find_smallest_subtree ( std::vector<TreeNode const*> nodes );
+    std::unordered_set<size_t> get_subtree_edges( TreeLink const* subtree );
 
     bool        validate();
     std::string dump();
@@ -69,10 +69,10 @@ public:
 
 protected:
 
-    Tree&              tree_;
+    Tree const&              tree_;
 
-    std::vector<int>             node_to_leaf_map_;
-    std::vector<size_t>          leaf_to_node_map_;
+    std::vector<int>         node_to_leaf_map_;
+    std::vector<size_t>      leaf_to_node_map_;
 
     std::vector<Bipartition> bipartitions_;
 

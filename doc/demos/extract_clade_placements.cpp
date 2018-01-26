@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -124,22 +124,8 @@ CladeEdgeList get_clade_edges( CladeTaxaList const& clades, TreeType& tree )
     // Process all clades.
     for( auto const& clade : clades ) {
 
-        // Find the nodes that belong to the taxa of this clade.
-        std::vector< tree::TreeNode* > node_list;
-        for( auto const& taxon : clade.second ) {
-            tree::TreeNode* node = find_node( tree, taxon );
-            if( node == nullptr ) {
-                LOG_WARN << "Cannot find taxon " << taxon;
-                continue;
-            }
-            node_list.push_back( node );
-        }
-
         // Find the edges that are part of the subtree of this clade.
-        // This part is a bit messy and might be cleaned up in the future.
-        auto bipartitions = tree::BipartitionSet( tree );
-        auto smallest     = bipartitions.find_smallest_subtree( node_list );
-        auto subedges     = bipartitions.get_subtree_edges( smallest->link() );
+        auto subedges = get_clade_edges( tree, clade.second );
 
         // Add them to the clade edges list.
         clade_edges.push_back( std::make_pair( clade.first, subedges ));

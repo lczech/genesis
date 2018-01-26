@@ -66,7 +66,7 @@ public:
     //     Member Functions
     // -------------------------------------------------------------
 
-    TreeLink* link()
+    TreeLink const* link()
     {
         return link_;
     }
@@ -84,7 +84,7 @@ public:
 protected:
 
     utils::Bitvector leaf_nodes_;
-    TreeLink*        link_;
+    TreeLink const*        link_;
 
 };
 

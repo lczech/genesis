@@ -70,7 +70,7 @@ void BipartitionSet::make()
             assert(leaf_idx > -1);
             bp.leaf_nodes_.set(leaf_idx);
         } else {
-            TreeLink* l = &it.link().next();
+            TreeLink const* l = &it.link().next();
             while( l != &it.link() ) {
                 bp.leaf_nodes_ |= bipartitions_[l->outer().node().index()].leaf_nodes_;
                 l = &l->next();
@@ -112,13 +112,13 @@ void BipartitionSet::make_index()
  * If no fitting subtree exists, the function returns a `nullptr`.
  */
 Bipartition* BipartitionSet::find_smallest_subtree (
-    std::vector<TreeNode*> nodes
+    std::vector<TreeNode const*> nodes
 ) {
     make();
     utils::Bitvector comp( leaf_node_count(tree_) );
 
     // make bitvector containing all wanted nodes.
-    for (TreeNode* n : nodes) {
+    for( auto n : nodes ) {
         int leaf_idx = node_to_leaf_map_[n->index()];
         if (leaf_idx == -1) {
             throw std::runtime_error(
@@ -159,7 +159,7 @@ Bipartition* BipartitionSet::find_smallest_subtree (
 }
 
 std::unordered_set<size_t> BipartitionSet::get_subtree_edges (
-    TreeLink* subtree
+    TreeLink const* subtree
 ) {
     // std::vector<std::string> leaf_names;
     std::unordered_set<size_t> ret;
@@ -167,10 +167,10 @@ std::unordered_set<size_t> BipartitionSet::get_subtree_edges (
     // We don't want to use the standard iterator wrapper function here, as we are going
     // to end the iteration after the end of the subtree, instead of iterating the whole tree.
     // So we need to use the iterator class directly.
-    using Preorder = IteratorPreorder< TreeLink, TreeNode, TreeEdge >;
+    using Preorder = IteratorPreorder< TreeLink const, TreeNode const, TreeEdge const >;
 
     for(
-        auto it = Preorder(subtree->next());
+        auto it = Preorder( subtree->next() );
         it != Preorder() && &it.link() != &subtree->outer();
         ++it
     ) {
