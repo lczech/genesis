@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -53,19 +53,19 @@ bool path_exists( std::string const& path );
  * Internally, this function simply return the value of file_exists(), as this already does the
  * needed check. Thus, it is an alias.
  */
-bool        is_file     ( std::string const& path );
+bool is_file( std::string const& path );
 
 /**
  * @brief Return true iff the file exists.
  */
-bool        file_exists ( std::string const& filename );
+bool file_exists( std::string const& filename );
 
 /**
  * @brief Return the contents of a file as a string.
  *
  * If the file is not readable, the function throws `std::runtime_error`.
  */
-std::string file_read   ( std::string const& filename );
+std::string file_read( std::string const& filename );
 
 /**
  * @brief Write the content of a string to a file.
@@ -75,14 +75,14 @@ std::string file_read   ( std::string const& filename );
  * See @link Options::allow_file_overwriting( bool ) Options::allow_file_overwriting()@endlink to
  * change this behaviour.
  */
-void        file_write  ( std::string const& content, std::string const& filename );
+void file_write( std::string const& content, std::string const& filename );
 
 /**
  * @brief Append the content of a string to a file.
  *
  * If the file is not writable, the function throws `std::runtime_error`.
  */
-void        file_append ( std::string const& content, std::string const& filename );
+void file_append( std::string const& content, std::string const& filename );
 
 /**
  * @brief Return true iff the provided path is a directory.
@@ -90,12 +90,12 @@ void        file_append ( std::string const& content, std::string const& filenam
  * Internally, this function simply return the value of dir_exists(), as this already does the
  * needed check. Thus, it is an alias.
  */
-bool        is_dir         ( std::string const& path );
+bool is_dir( std::string const& path );
 
 /**
  * @brief Return true iff the directory exists.
  */
-bool        dir_exists     ( std::string const& dir );
+bool dir_exists( std::string const& dir );
 
 /**
  * @brief Create a directory.
@@ -104,7 +104,7 @@ bool        dir_exists     ( std::string const& dir );
  * If the path exists, but is not a directory, a `std::runtime_error` is thrown.
  * If the creation fails for some other reason, also a `std::runtime_error` is thrown.
  */
-void        dir_create     ( std::string const& path );
+void dir_create( std::string const& path, bool with_parents = true );
 
 /**
  * @brief Normalize a dir name, i.e., make sure that the given path ends with exaclty one slash.
