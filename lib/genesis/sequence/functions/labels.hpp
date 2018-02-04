@@ -72,6 +72,14 @@ std::unordered_set<std::string> labels( SequenceSet const& set );
  */
 size_t guess_sequence_abundance( Sequence const& sequence );
 
+/**
+ * @brief Guess the abundance of a Sequence, given it's label.
+ *
+ * This is the same as guess_sequence_abundance( Sequence const& ), but takes just the label
+ * instead of the Sequence object.
+ */
+size_t guess_sequence_abundance( std::string const& label );
+
 // =================================================================================================
 //     Uniqueness
 // =================================================================================================

@@ -67,10 +67,13 @@ std::unordered_set<std::string> labels( SequenceSet const& set )
     }
     return result;
 }
-
 size_t guess_sequence_abundance( Sequence const& sequence )
 {
-    auto const& label = sequence.label();
+    return guess_sequence_abundance( sequence.label() );
+}
+
+size_t guess_sequence_abundance( std::string const& label )
+{
     size_t result = 1;
 
     // We only look for a simple number, no sign oder decimal points etc
