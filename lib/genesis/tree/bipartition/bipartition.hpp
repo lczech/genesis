@@ -100,7 +100,7 @@ public:
 
 protected:
 
-    TreeLink const*  link_;
+    TreeLink const*  link_ = nullptr;
     utils::Bitvector leaf_nodes_;
 
 };

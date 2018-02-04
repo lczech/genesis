@@ -32,10 +32,12 @@
 
 #include "genesis/tree/bipartition/bipartition.hpp"
 #include "genesis/tree/default/functions.hpp"
+#include "genesis/tree/default/tree.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/iterator/postorder.hpp"
 #include "genesis/tree/iterator/preorder.hpp"
 #include "genesis/tree/tree.hpp"
+#include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/text/string.hpp"
 #include "genesis/utils/math/bitvector/operators.hpp"
 
@@ -54,7 +56,7 @@ std::vector<Bipartition> bipartition_set( Tree const& tree )
 {
     // Result
     const size_t num_leaves = leaf_node_count( tree );
-    auto bipartitions = std::vector<Bipartition>( tree.node_count() );
+    auto bipartitions = std::vector<Bipartition>( tree.edge_count() );
 
     auto const node_to_leafs = node_to_leaf_map( tree );
 
@@ -87,19 +89,78 @@ std::vector<Bipartition> bipartition_set( Tree const& tree )
         bipartitions[ it.edge().index() ] = bp;
     }
 
+    // Make sure all bips are filled.
+    assert(
+        [ &bipartitions ](){
+            for( auto const& bip : bipartitions ) {
+                if( bip.empty() ) {
+                    return false;
+                }
+            }
+            return true;
+        }()
+    );
+
     return bipartitions;
 }
 
 std::vector<size_t> node_to_leaf_map( Tree const& tree )
 {
+    // Currently, we fix this so that leaves are always ordered.
+    // This is a bit slower, but better when working with multiple trees.
+    // In the future, this whole interface could be refined...
+    bool const sort_leaves = true;
+
     // Make an lookup of consecutive leaf nodes.
     std::vector<size_t> nodes_to_leafs;
     nodes_to_leafs.resize( tree.node_count() );
 
+    // Find node string order if needed.
+    std::vector<size_t> name_order;
+    if( sort_leaves ) {
+
+        // Make a sorted list of leave node names.
+        std::vector<std::string> node_names;
+        for( auto const& node_it : tree.nodes() ) {
+            if( node_it->is_leaf() ) {
+                node_names.push_back( node_it->data<DefaultNodeData>().name );
+            }
+        }
+
+        // Get an order mapping list, that gives us the n-th index according to order.
+        // That is, it maps order to indices.
+        auto const ordered = utils::sort_indices( node_names.begin(), node_names.end() );
+
+        // Check for duplicate names.
+        for( size_t i = 1; i < ordered.size(); ++i ) {
+            if( node_names[ ordered[ i ]] == node_names[ ordered[ i - 1 ]] ) {
+                throw std::runtime_error(
+                    "Cannot build bipartitions for Tree that has duplicate node names."
+                );
+            }
+        }
+
+        // Reverse the mapping, so that we get a lookup from index to order.
+        name_order.resize( ordered.size() );
+        for( size_t i = 0; i < ordered.size(); ++i ) {
+            name_order[ ordered[i] ] = i;
+        }
+    }
+
+    // Assign indices to each node.
     size_t leaf_idx = 0;
     for( auto const& node_it : tree.nodes() ) {
         if( node_it->is_leaf() ) {
-            nodes_to_leafs[ node_it->index() ] = leaf_idx;
+            if( sort_leaves ) {
+
+                // Use the index to order map to get the ordered leaf index.
+                assert( leaf_idx < name_order.size() );
+                nodes_to_leafs[ node_it->index() ] = name_order[ leaf_idx ];
+            } else {
+
+                // Unsorted case: just count upwards.
+                nodes_to_leafs[ node_it->index() ] = leaf_idx;
+            }
             ++leaf_idx;
         } else {
             nodes_to_leafs[ node_it->index() ] = std::numeric_limits<std::size_t>::max();
