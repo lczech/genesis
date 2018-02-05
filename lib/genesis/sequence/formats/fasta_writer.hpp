@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -137,23 +137,6 @@ public:
      */
     size_t       line_length() const;
 
-    /**
-     * @brief Set whether metadata is written.
-     *
-     * If set to `true` (default), the metadata of the Sequence%s is written after the label,
-     * separated by a space. This is also the format that FastaReader can read.
-     *
-     * The functions returns the FastaWriter object to allow fluent interfaces.
-     */
-    FastaWriter& enable_metadata( bool value );
-
-    /**
-     * @brief Return whether currently the FastaWriter is set to write metadata.
-     *
-     * See the setter enable_metadata( bool ) for details.
-     */
-    bool         enable_metadata();
-
     // ---------------------------------------------------------------------
     //     Members
     // ---------------------------------------------------------------------
@@ -161,7 +144,6 @@ public:
 private:
 
     size_t line_length_     = 80;
-    bool   enable_metadata_ = true;
 
 };
 

@@ -146,11 +146,11 @@ bool FastaReader::parse_sequence(
         return false;
     }
 
-    // Scope to ensure that the label and metadata line is only used
+    // Scope to ensure that the label line is only used
     // while we actually are in that line.
     {
 
-    // Get the label and metadata line.
+    // Get the label line.
     auto  line_pair = it.get_line();
     char* line = line_pair.first;
 
@@ -165,7 +165,7 @@ bool FastaReader::parse_sequence(
     ++line;
 
     // Parse label.
-    std::string label = utils::read_while( line, isgraph );
+    std::string label = utils::read_while( line, isprint );
     if( label == "" ) {
         throw std::runtime_error(
             "Malformed Fasta " + it.source_name()
@@ -175,7 +175,7 @@ bool FastaReader::parse_sequence(
     sequence.label( label );
 
     // Check for unexpected end of stream.
-    if( *line != '\0' && *line != ' ' ) {
+    if( *line != '\0' ) {
         throw std::runtime_error(
             "Malformed Fasta " + it.source_name()
             + ": Expecting a sequence after the label line in sequence at line "
@@ -183,14 +183,6 @@ bool FastaReader::parse_sequence(
         );
     }
     assert( *line == '\0' || *line == ' ' );
-
-    // Parse metadata.
-    std::string metadata;
-    if( *line == ' ' ) {
-        ++line;
-        metadata = utils::read_while( line, isprint );
-    }
-    sequence.metadata( metadata );
 
     // Check for unexpected end of file.
     if( *line != '\0' ) {
@@ -202,7 +194,7 @@ bool FastaReader::parse_sequence(
     }
     assert( *line == '\0' );
 
-    } // End of line scope. We are done with the label and metadata line.
+    } // End of line scope. We are done with the label line.
 
     // Skip comments.
     while( it && *it == ';' ) {
@@ -297,7 +289,7 @@ bool FastaReader::parse_sequence_pedantic(
     ++it;
 
     // Parse label.
-    std::string label = utils::read_while( it, isgraph );
+    std::string label = utils::read_while( it, isprint );
     if( label == "" ) {
         throw std::runtime_error(
             "Malformed Fasta " + it.source_name()
@@ -307,21 +299,13 @@ bool FastaReader::parse_sequence_pedantic(
     sequence.label( label );
 
     // Check for unexpected end of stream.
-    if( !it || ( *it != '\n' && *it != ' ' )) {
+    if( !it || ( *it != '\n' )) {
         throw std::runtime_error(
             "Malformed Fasta " + it.source_name()
             + ": Expecting a sequence after the label line at " + it.at() + "."
         );
     }
-    assert( it && (*it == '\n' || *it == ' ') );
-
-    // Parse metadata.
-    std::string metadata;
-    if( *it == ' ' ) {
-        ++it;
-        metadata = utils::read_while( it, isprint );
-    }
-    sequence.metadata( metadata );
+    assert( it && (*it == '\n' ));
 
     // Check for unexpected end of file.
     if( !it || *it != '\n' ) {

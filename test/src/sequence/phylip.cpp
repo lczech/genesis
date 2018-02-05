@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -65,7 +65,6 @@ TEST( Sequence, PhylipReaderAaInterleaved )
     EXPECT_EQ( 3, sset.size() );
     EXPECT_EQ( 384,          sset[0].length() );
     EXPECT_EQ( "CATH_HUMAN", sset[2].label() );
-    EXPECT_EQ( "",           sset[0].metadata() );
     EXPECT_EQ( "G-AVTPVKNQ", sset[0].sites().substr( 160, 10 ) );
 }
 
@@ -87,7 +86,6 @@ TEST( Sequence, PhylipReaderDnaInterleaved )
     EXPECT_EQ( 5, sset.size() );
     EXPECT_EQ( 42,           sset[0].length() );
     EXPECT_EQ( "Turkey",     sset[0].label() );
-    EXPECT_EQ( "",           sset[0].metadata() );
     EXPECT_EQ( "AAGCTNGGGC", sset[0].sites().substr( 0, 10 ) );
 }
 
@@ -112,7 +110,6 @@ TEST( Sequence, PhylipReaderAaSequential )
     EXPECT_EQ( 3, sset.size() );
     EXPECT_EQ( 384,          sset[0].length() );
     EXPECT_EQ( "CATH_HUMAN", sset[2].label() );
-    EXPECT_EQ( "",           sset[0].metadata() );
     EXPECT_EQ( "G-AVTPVKNQ", sset[0].sites().substr( 160, 10 ) );
 }
 
@@ -133,7 +130,6 @@ TEST( Sequence, PhylipReaderDnaSequential )
     EXPECT_EQ( 5, sset.size() );
     EXPECT_EQ( 42,           sset[0].length() );
     EXPECT_EQ( "Salmo gair", sset[1].label() );
-    EXPECT_EQ( "",           sset[0].metadata() );
     EXPECT_EQ( "CGGGCACGGT", sset[1].sites().substr( 30, 10 ) );
 }
 
@@ -159,7 +155,6 @@ TEST( Sequence, PhylipReaderAaInterleavedAuto )
     EXPECT_EQ( 3, sset.size() );
     EXPECT_EQ( 384,          sset[0].length() );
     EXPECT_EQ( "CATH_HUMAN", sset[2].label() );
-    EXPECT_EQ( "",           sset[0].metadata() );
     EXPECT_EQ( "G-AVTPVKNQ", sset[0].sites().substr( 160, 10 ) );
 }
 
@@ -181,7 +176,6 @@ TEST( Sequence, PhylipReaderDnaInterleavedAuto )
     EXPECT_EQ( 5, sset.size() );
     EXPECT_EQ( 42,           sset[0].length() );
     EXPECT_EQ( "Turkey",     sset[0].label() );
-    EXPECT_EQ( "",           sset[0].metadata() );
     EXPECT_EQ( "AAGCTNGGGC", sset[0].sites().substr( 0, 10 ) );
 }
 
@@ -207,7 +201,6 @@ TEST( Sequence, PhylipReaderAaSequentialAuto )
     EXPECT_EQ( 3, sset.size() );
     EXPECT_EQ( 384,          sset[0].length() );
     EXPECT_EQ( "CATH_HUMAN", sset[2].label() );
-    EXPECT_EQ( "",           sset[0].metadata() );
     EXPECT_EQ( "G-AVTPVKNQ", sset[0].sites().substr( 160, 10 ) );
 }
 
@@ -229,6 +222,5 @@ TEST( Sequence, PhylipReaderDnaSequentialAuto )
     EXPECT_EQ( 5, sset.size() );
     EXPECT_EQ( 42,           sset[0].length() );
     EXPECT_EQ( "Salmo gair", sset[1].label() );
-    EXPECT_EQ( "",           sset[0].metadata() );
     EXPECT_EQ( "CGGGCACGGT", sset[1].sites().substr( 30, 10 ) );
 }

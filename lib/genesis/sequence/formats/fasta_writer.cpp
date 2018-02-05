@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -49,13 +49,7 @@ namespace sequence {
 void FastaWriter::write_sequence( Sequence const& seq, std::ostream& os ) const
 {
     // Write label.
-    os << ">" << seq.label();
-
-    // Write metadata if available.
-    if( enable_metadata_ && seq.metadata().size() > 0 ) {
-        os << " " << seq.metadata();
-    }
-    os << "\n";
+    os << ">" << seq.label() << "\n";
 
     // Write sequence. If needed, add new line at every line_length_ position.
     if (line_length_ > 0) {
@@ -103,17 +97,6 @@ FastaWriter& FastaWriter::line_length( size_t value )
 size_t FastaWriter::line_length() const
 {
     return line_length_;
-}
-
-FastaWriter& FastaWriter::enable_metadata( bool value )
-{
-    enable_metadata_ = value;
-    return *this;
-}
-
-bool FastaWriter::enable_metadata()
-{
-    return enable_metadata_;
 }
 
 } // namespace sequence

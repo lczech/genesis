@@ -61,7 +61,6 @@ TEST( Sequence, FastaReaderValidating )
     EXPECT_EQ( 10, sset.size() );
     EXPECT_EQ( 460,                    sset[0].length() );
     EXPECT_EQ( "Di106BGTue",           sset[0].label() );
-    EXPECT_EQ( "",                     sset[0].metadata() );
     EXPECT_EQ( "TCGAAACCTGC------CTA", sset[0].sites().substr( 0, 20 ) );
 }
 
