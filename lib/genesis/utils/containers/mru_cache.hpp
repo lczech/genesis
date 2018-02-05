@@ -263,16 +263,7 @@ public:
 
         // Found it! Move it to the front and return its mapped element.
         if( lit != lookup_.end() ) {
-            assert( cache_.size() > 0 );
-
-            // Only move if it is not already at the front.
-            if( lit->second != cache_.begin() ) {
-                cache_.splice( cache_.begin(), cache_, lit->second );
-            }
-
-            // Lit is an iterator to an entry pair in lookup_. Its second part is an iterator
-            // into the list. This is a pair again, so the actual value is its second part.
-            return lit->second->second;
+            return promote_and_get_( lit->second );
         }
 
         // If we are here, the element was not found.
@@ -296,6 +287,13 @@ public:
      *
      * This works exactly the same as fetch(), but is thread safe and returns a copy.
      * See fetch() for details.
+     *
+     * Because the loading is not part of the mutex that makes this function thread safe,
+     * it is possible to parallely load elements in different threads.
+     * However, when two threads need to load an element at the same time, the loading
+     * may happen twice. Then, only the first thread that finishes loading stores the element
+     * in the cache, while the other one is discarded. This is done in order to allow
+     * parallel loading without the hassle of per-element locks.
      *
      * If the cache is used in a multi-threaded environment and holds large elements,
      * making actual copies might be too expensive. In that case, a neat trick is to store
@@ -324,10 +322,57 @@ public:
      */
     mapped_type fetch_copy( key_type const& key )
     {
-        // Lock access to everything.
-        std::lock_guard<std::mutex> lock( mutex_ );
+        // First, check if the elemt is there. If so, simply return it.
+        {
+            // Lock access to everything.
+            std::lock_guard<std::mutex> lock( mutex_ );
 
-        return fetch( key );
+            // Use the lookup map to check whether the element is in the cache.
+            auto const lit = lookup_.find( key );
+
+            // Found it! Move it to the front and return its mapped element.
+            if( lit != lookup_.end() ) {
+                // LOG_DBG << "Found.";
+                return promote_and_get_( lit->second );
+            }
+        }
+
+        // If we are here, the element is not in the cache. Load it into a dummy list,
+        // without locking, so that loading can happen in parallel.
+        std::list< value_type > tmp_list;
+        tmp_list.push_front({ key, load_function( key ) });
+
+        // Now, store it if needed.
+        {
+            // Lock access to everything.
+            std::lock_guard<std::mutex> lock( mutex_ );
+
+            // Check whether the element was put into the cache in the meantime (by another thread).
+            auto const lit = lookup_.find( key );
+
+            // Found it! Move it to the front and return its mapped element.
+            // In that case, we do not use tmp_list, but discard the element in there.
+            if( lit != lookup_.end() ) {
+                // LOG_DBG << "Wasted.";
+                return promote_and_get_( lit->second );
+            }
+            // LOG_DBG << "Loaded.";
+
+            // If we are here, the element was not found.
+            // Add the element to the cache and lookup.
+            assert( lookup_.count( key ) == 0 );
+            assert( tmp_list.size() == 1 );
+            cache_.splice( cache_.begin(), tmp_list, tmp_list.begin() );
+            lookup_[ key ] = cache_.begin();
+            assert( cache_.size() == lookup_.size() );
+
+            // Make sure that we stay within capacity.
+            shrink_();
+
+            // Finally, return the element.
+            assert( cache_.size() > 0 );
+            return cache_.begin()->second;
+        }
     }
 
     /**
@@ -343,8 +388,8 @@ public:
     /**
      * @brief Bring an element to the front, and load it if needed.
      *
-     * The function behaves just like fetch(), but without returning the element,
-     * and with thread safety. Useful to pre-load the cache.
+     * The function behaves just like fetch_copy(), but without returning the element.
+     * Useful to pre-load the cache.
      *
      * Be aware however that having touched an element in multi threaded used does not guarantee
      * that it stays in the cache for long. Other threads might have fetched other elements,
@@ -353,10 +398,7 @@ public:
      */
     void touch( key_type const& key )
     {
-        // Lock access to everything.
-        std::lock_guard<std::mutex> lock( mutex_ );
-
-        (void) fetch( key );
+        (void) fetch_copy( key );
     }
 
     // -------------------------------------------------------------------------
@@ -433,6 +475,23 @@ private:
         // Check invariant and result.
         assert( lookup_.size() == cache_.size() );
         assert( lookup_.size() <= capacity() );
+    }
+
+    /**
+     * @brief Helper function that moves an element which is being cached to the front
+     * if needed and returns it.
+     */
+    mapped_type& promote_and_get_( iterator const& cache_it )
+    {
+        assert( cache_.size() > 0 );
+
+        // Only move if it is not already at the front.
+        if( cache_it != cache_.begin() ) {
+            cache_.splice( cache_.begin(), cache_, cache_it );
+        }
+
+        // Return the element.
+        return cache_it->second;
     }
 
     // -------------------------------------------------------------------------
