@@ -78,8 +78,7 @@ namespace sequence {
  *
  * The expected data format:
  *
- *   1. Has to start with a '>' character, followed by a label and possibly metadata, ended by a
- *      '\\n'. All text after the first space is considered to be metadata.
+ *   1. Has to start with a '>' character, followed by a label, ended by a '\\n'.
  *   2. An arbitrary number of comment lines, starting with ';', can follow, but are ignored.
  *   3. After that, a sequence has to follow, over one or more lines.
  *

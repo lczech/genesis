@@ -32,9 +32,18 @@
 
 #include "genesis/utils/containers/mru_cache.hpp"
 #include "genesis/utils/core/fs.hpp"
+#include "genesis/utils/core/options.hpp"
 
+#include <cstdlib>
 #include <memory>
 #include <string>
+
+#ifdef GENESIS_OPENMP
+#   include <omp.h>
+#endif
+
+#include <thread>         // std::this_thread::sleep_for
+#include <chrono>         // std::chrono::seconds
 
 using namespace genesis::utils;
 
@@ -197,7 +206,8 @@ TEST( Containers, MruCacheFiles )
         return file_read( dir + "/" + file );
     };
 
-    // Access some files.
+    // Access some files. These are called "fail", because they are not valie json files.
+    // But here, we just use them as simple text files.
     cache.fetch( "fail2.jtest" );
     cache.fetch( "fail3.jtest" );
     cache.fetch( "fail4.jtest" );
@@ -263,6 +273,37 @@ TEST( Containers, MruCacheSharedPtr )
     EXPECT_TRUE(  cache.contains( "fail3.jtest" ));
     EXPECT_TRUE(  cache.contains( "fail4.jtest" ));
     EXPECT_TRUE(  cache.contains( "fail5.jtest" ));
+}
+
+TEST( Containers, MruCacheThreading )
+{
+    NEEDS_TEST_DATA;
+
+    // Path to some data.
+    std::string dir = environment->data_dir + "utils/json";
+
+    // Create a cache from file names to shared pointers of file contents.
+    MruCache<std::string, std::shared_ptr<std::string>> cache{ 3 };
+
+    // Load elements from file. Wait random time, so that we actualy get wasted loadings.
+    cache.load_function = [ &dir ]( std::string const& file ){
+        auto wait = std::rand() % 10;
+        std::this_thread::sleep_for( std::chrono::milliseconds( wait ));
+        return std::make_shared<std::string>( file_read( dir + "/" + file ));
+    };
+
+    // Use all threads on the system.
+    genesis::utils::Options::get().number_of_threads( 0 );
+
+    #pragma omp parallel for schedule(static)
+    for( size_t i = 0; i < 100; ++i ) {
+
+        // Get a number between 2-12, for valid file names that are acutally in our test data.
+        // This is dirty, but works.
+        size_t num = 2 + ( std::rand() % 11 );
+
+        cache.fetch_copy( "fail" + std::to_string( num ) + ".jtest" );
+    }
 }
 
 // TEST( Containers, MruCacheLock )

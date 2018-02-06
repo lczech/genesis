@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -260,22 +260,18 @@ enum class MergeDuplicateSequencesCountPolicy
      */
     kAppendToLabel,
 
-    /**
-    * @brief The counts are appended to the sequence metadata, separated by the counter_prefix.
-    */
-    kAppendToMetadata
 };
 
 /**
  * @brief Merge all Sequence%s in a SequenceSet that have identical sites.
  *
  * The merging is done by removing all but the first Sequence with identical sites. That means,
- * the resulting "representative" of a set of merged Sequences has the label and metadata of the
+ * the resulting "representative" of a set of merged Sequences has the label of the
  * original Sequence that was first in the SequenceSet.
  *
  * Using the MergeDuplicateSequencesCountPolicy, it is possible to store the counts of the
- * Sequences (i.e., how often they appeard before merging) within either the label or metadata
- * of the Sequence, separated by `counter_prefix`. With the default settings, the count is
+ * Sequences (i.e., how often they appeard before merging) within the label of the Sequence,
+ * separated by `counter_prefix`. With the default settings, the count is
  * appended to the label, separated by an underscore.
  */
 void merge_duplicate_sequences(

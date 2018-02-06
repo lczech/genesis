@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -55,13 +55,6 @@ public:
 
     Sequence( std::string const& label, std::string const& sites )
         : label_(label)
-        , metadata_()
-        , sites_(sites)
-    {}
-
-    Sequence( std::string const& label, std::string const& metadata, std::string const& sites )
-        : label_(label)
-        , metadata_(metadata)
         , sites_(sites)
     {}
 
@@ -77,7 +70,6 @@ public:
     {
         using std::swap;
         swap( label_,    other.label_ );
-        swap( metadata_, other.metadata_ );
         swap( sites_,    other.sites_ );
     }
 
@@ -87,9 +79,6 @@ public:
 
     std::string const& label() const;
     void               label( std::string const& value );
-
-    std::string const& metadata() const;
-    void               metadata( std::string const& value );
 
     std::string const& sites() const;
     void               sites( std::string const& value );
@@ -138,7 +127,6 @@ public:
 private:
 
     std::string label_;
-    std::string metadata_;
     std::string sites_;
 };
 

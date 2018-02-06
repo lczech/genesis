@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2014-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -351,15 +351,11 @@ void merge_duplicate_sequences(
         assert( dup_map.count(seq.sites()) > 0 );
         assert( dup_map[ seq.sites() ].index == i );
 
-        // Append the count to either the label or the metadata.
+        // Append the count to the label.
         auto count = dup_map[ seq.sites() ].count;
         if( count_policy == MergeDuplicateSequencesCountPolicy::kAppendToLabel ) {
             auto new_label = seq.label() + counter_prefix + std::to_string(count);
             seq.label( new_label );
-
-        } else if( count_policy == MergeDuplicateSequencesCountPolicy::kAppendToMetadata ) {
-            auto new_meta = seq.metadata() + counter_prefix + std::to_string(count);
-            seq.metadata( new_meta );
 
         } else {
 
