@@ -46,6 +46,11 @@ namespace utils {
 // =================================================================================================
 
 /**
+ * @brief Return whether a vector of strings contains a given string, case insensitive.
+ */
+bool contains_ci( std::vector<std::string> const& haystack, std::string const& needle );
+
+/**
  * @brief Compare two strings case insensitive.
  */
 bool equals_ci( std::string const& lhs, std::string const& rhs );

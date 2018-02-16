@@ -45,6 +45,17 @@ namespace utils {
 //     Compare
 // =================================================================================================
 
+bool contains_ci( std::vector<std::string> const& haystack, std::string const& needle )
+{
+    auto const l_needle = to_lower( needle );
+    for( auto const& val : haystack ) {
+        if( to_lower( val ) == l_needle ) {
+            return true;
+        }
+    }
+    return false;
+}
+
 bool equals_ci( std::string const& lhs, std::string const& rhs)
 {
     const size_t sz = lhs.size();
