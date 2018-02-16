@@ -82,7 +82,7 @@ public:
      */
     ColorNormalizationDiverging()
         : ColorNormalization( -1.0, 1.0 )
-        , mid_( 0.0 )
+        , mid_value_( 0.0 )
     {}
 
     /**
@@ -98,7 +98,7 @@ public:
      */
     ColorNormalizationDiverging( double min, double mid, double max )
         : ColorNormalization( min, max )
-        , mid_( mid )
+        , mid_value_( mid )
     {
         range_check_throw_();
     }
@@ -137,9 +137,9 @@ public:
     /**
      * @brief Mid-point value, that is, where the middle value of a diverging_color() is.
      */
-    double mid() const
+    double mid_value() const
     {
-        return mid_;
+        return mid_value_;
     }
 
     // -------------------------------------------------------------------------
@@ -155,10 +155,13 @@ public:
     ColorNormalizationDiverging& make_centric( double center = 0.0 )
     {
         // Set the min and max so that they are symmetric around center.
-        auto const dist = std::max( std::fabs( center - min() ), std::fabs( center - max() ));
-        min( center - dist );
-        max( center + dist );
-        mid_ = center;
+        auto const dist = std::max(
+            std::fabs( center - min_value() ),
+            std::fabs( center - max_value() )
+        );
+        min_value( center - dist );
+        max_value( center + dist );
+        mid_value_ = center;
 
         return *this;
     }
@@ -166,9 +169,9 @@ public:
     /**
      * @copydoc mid()
      */
-    ColorNormalizationDiverging& mid( double value )
+    ColorNormalizationDiverging& mid_value( double value )
     {
-        mid_ = value;
+        mid_value_ = value;
         return *this;
     }
 
@@ -184,8 +187,8 @@ public:
         // which are needed to scale the colors in a diverging palette correctly.
         // For example, a palette with 5, 15, 20 for min, mid and max gets
         // fractions 2/3 and 1/3 here.
-        auto const frac_lower = ( mid() - min() ) / ( max() - min() );
-        auto const frac_upper = ( max() - mid() ) / ( max() - min() );
+        auto const frac_lower = ( mid_value() - min_value() ) / ( max_value() - min_value() );
+        auto const frac_upper = ( max_value() - mid_value() ) / ( max_value() - min_value() );
 
         // Divide the palette in two, so that the mixed mid color counts as half a step
         // in palettes with even number of colors.
@@ -229,13 +232,13 @@ public:
         // which are needed to scale the colors in a diverging palette correctly.
         // For example, a palette with 5, 15, 20 for min, mid and max gets
         // fractions 2/3 and 1/3 here.
-        auto const frac_lower = ( mid() - min() ) / ( max() - min() );
-        auto const frac_upper = ( max() - mid() ) / ( max() - min() );
+        auto const frac_lower = ( mid_value() - min_value() ) / ( max_value() - min_value() );
+        auto const frac_upper = ( max_value() - mid_value() ) / ( max_value() - min_value() );
 
         // Lower half.
         tm.include_max = false;
         auto const tm_labels_l = tm.linear_labels(
-            min(), mid(), frac_lower * num_ticks
+            min_value(), mid_value(), frac_lower * num_ticks
         );
         for( auto const& tm_label : tm_labels_l ) {
             auto const pos =  frac_lower * tm_label.relative_position;
@@ -254,7 +257,7 @@ public:
         // Upper half.
         tm.include_max = true;
         auto const tm_labels_u = tm.linear_labels(
-            mid(), max(), frac_upper * num_ticks
+            mid_value(), max_value(), frac_upper * num_ticks
         );
         for( auto const& tm_label : tm_labels_u ) {
             auto const pos =  frac_lower + frac_upper * tm_label.relative_position;
@@ -269,7 +272,7 @@ public:
      */
     virtual bool range_check() const override
     {
-        return min() < mid_ && mid_ < max();
+        return min_value() < mid_value_ && mid_value_ < max_value();
     }
 
 protected:
@@ -279,13 +282,13 @@ protected:
      */
     virtual void range_check_throw_() const override
     {
-        if( min() >= max() ) {
+        if( min_value() >= max_value() ) {
             throw std::runtime_error( "Invalid Color Normalization with min >= max." );
         }
-        if( min() >= mid() ) {
+        if( min_value() >= mid_value() ) {
             throw std::runtime_error( "Invalid Color Normalization with min >= mid." );
         }
-        if( mid() >= max() ) {
+        if( mid_value() >= max_value() ) {
             throw std::runtime_error( "Invalid Color Normalization with mid >= max." );
         }
     }
@@ -293,16 +296,16 @@ protected:
     virtual double normalize_( double value ) const override
     {
         // Already checked by base class.
-        assert( min() <= value && value <= max() );
+        assert( min_value() <= value && value <= max_value() );
         assert( range_check() );
 
         // Bring value into the range [ 0.0, 1.0 ].
         double pos = 0.0;
-        if( value < mid_ ) {
-            pos = ( value - min() ) / ( mid_ - min() );
+        if( value < mid_value_ ) {
+            pos = ( value - min_value() ) / ( mid_value_ - min_value() );
             pos /= 2.0;
         } else {
-            pos = ( value - mid_ ) / ( max() - mid_ );
+            pos = ( value - mid_value_ ) / ( max_value() - mid_value_ );
             pos /= 2.0;
             pos += 0.5;
         }
@@ -311,7 +314,7 @@ protected:
 
     virtual void update_hook_( double min, double max ) override
     {
-        mid_ = ( min + max ) / 2.0;
+        mid_value_ = ( min + max ) / 2.0;
     }
 
     // -------------------------------------------------------------------------
@@ -320,7 +323,7 @@ protected:
 
 private:
 
-    double mid_ = 0.0;
+    double mid_value_ = 0.0;
 
 };
 

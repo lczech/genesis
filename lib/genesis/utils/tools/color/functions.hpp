@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -87,6 +87,14 @@ std::string color_to_hex(
  * @brief Write a textual representation of the Color the a stream, in the format "(r, g, b, a)".
  */
 std::ostream& operator<< ( std::ostream& os, Color const& h );
+
+/**
+ * @brief Resolve a string representing a color.
+ *
+ * The string can either be a hex color as accepted by color_to_hex(), e.g., "#003366[ff]",
+ * or one of the named colors, see is_color_name() and color_from_name().
+ */
+Color resolve_color_string( std::string const& color_str );
 
 // =================================================================================================
 //     Color Gradients

@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -1223,7 +1223,34 @@ std::vector<Color> convert_to_palette_( NamedColorList const & list )
 }
 
 // =================================================================================================
-//     Color Name Functions
+//     Color Names
+// =================================================================================================
+
+bool is_color_name( std::string const& name )
+{
+    if( is_web_color_name( name ) ) {
+        return true;
+    }
+    if( is_xkcd_color_name( name ) ) {
+        return true;
+    }
+    return false;
+}
+
+Color color_from_name( std::string const& name )
+{
+    // Lazy...
+    if( is_web_color_name( name ) ) {
+        return color_from_name_web( name );
+    }
+    if( is_xkcd_color_name( name ) ) {
+        return color_from_name_xkcd( name );
+    }
+    throw std::invalid_argument( "No color named '" + name + "'." );
+}
+
+// =================================================================================================
+//     Color Names Web
 // =================================================================================================
 
 bool is_web_color_name( std::string const& name )
@@ -1231,20 +1258,29 @@ bool is_web_color_name( std::string const& name )
     return get_color_list_iterator_( color_list_web_, name ) != color_list_web_.end();
 }
 
-bool is_xkcd_color_name( std::string const& name )
-{
-    return get_color_list_iterator_( color_list_xkcd_, name ) != color_list_xkcd_.end();
-}
-
 Color color_from_name_web( std::string const& name )
 {
     auto it = get_color_list_iterator_( color_list_web_, name );
     if( it == color_list_web_.end() ) {
-        throw std::invalid_argument( "No color named " + name + "in web colors." );
+        throw std::invalid_argument( "No color named " + name + " in web colors." );
     }
 
     auto const c = it->second;
     return color_from_bytes( c.r, c.g, c.b );
+}
+
+std::vector<Color> color_palette_web()
+{
+    return convert_to_palette_( color_list_web_ );
+}
+
+// =================================================================================================
+//     Color Name xkcd
+// =================================================================================================
+
+bool is_xkcd_color_name( std::string const& name )
+{
+    return get_color_list_iterator_( color_list_xkcd_, name ) != color_list_xkcd_.end();
 }
 
 Color color_from_name_xkcd( std::string const& name )
@@ -1256,11 +1292,6 @@ Color color_from_name_xkcd( std::string const& name )
 
     auto const c = it->second;
     return color_from_bytes( c.r, c.g, c.b );
-}
-
-std::vector<Color> color_palette_web()
-{
-    return convert_to_palette_( color_list_web_ );
 }
 
 std::vector<Color> color_palette_xkcd()
