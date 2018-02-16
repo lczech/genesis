@@ -184,6 +184,7 @@ public:
 
         while( first != last ) {
             if( ! std::isfinite( *first ) || *first == mask_value_ ) {
+                ++first;
                 continue;
             }
             if( *first < min ) {
