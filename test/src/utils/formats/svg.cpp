@@ -140,9 +140,9 @@ TEST( Svg, Palette )
     // pal.palette = ColorPalette({ {0,0,0}, {1,0,0}, {0,0,1}, {0,1,0}, {0,0,0} });
     // pal.palette = ColorPalette({ {0,0,0}, {0,1,0}, {0,0,0} });
 
-    norm.min(  5.0 );
-    norm.mid( 15.0 );
-    norm.max( 20.0 );
+    norm.min_value(  5.0 );
+    norm.mid_value( 15.0 );
+    norm.max_value( 20.0 );
 
     // pal.direction = SvgPalette::Direction::kLeftToRight;
     // pal.diverging_palette = true;

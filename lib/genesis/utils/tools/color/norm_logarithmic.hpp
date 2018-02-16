@@ -137,7 +137,7 @@ public:
         (void) num_ticks;
 
         auto tm = Tickmarks();
-        auto const tm_labels_u = tm.logarithmic_labels( min(), max(), base_ );
+        auto const tm_labels_u = tm.logarithmic_labels( min_value(), max_value(), base_ );
         for( auto const& tm_label : tm_labels_u ) {
             auto label = ( exp_labels_
                 ? utils::to_string( base_ ) + "^" + utils::to_string(
@@ -156,7 +156,7 @@ public:
      */
     virtual bool range_check() const override
     {
-        return 0.0 < min() && min() < max();
+        return 0.0 < min_value() && min_value() < max_value();
     }
 
 protected:
@@ -166,10 +166,10 @@ protected:
      */
     virtual void range_check_throw_() const override
     {
-        if( min() >= max() ) {
+        if( min_value() >= max_value() ) {
             throw std::runtime_error( "Invalid Color Normalization with min >= max" );
         }
-        if( min() <= 0.0 ) {
+        if( min_value() <= 0.0 ) {
             throw std::runtime_error( "Invalid Color Normalization with min <= 0.0" );
         }
     }
@@ -177,15 +177,15 @@ protected:
     virtual double normalize_( double value ) const override
     {
         // Already checked by base class.
-        assert( min() <= value && value <= max() );
+        assert( min_value() <= value && value <= max_value() );
         assert( range_check() );
 
         // As we have 0 < min <= value, this must hold. Otherwise, log won't work.
         assert( 0.0 < value );
 
         // Bring value into the range [ 0.0, 1.0 ].
-        auto const lg_min = std::log( min() ) / std::log( base_ );
-        auto const lg_max = std::log( max() ) / std::log( base_ );
+        auto const lg_min = std::log( min_value() ) / std::log( base_ );
+        auto const lg_max = std::log( max_value() ) / std::log( base_ );
         auto const lg_val = std::log( value ) / std::log( base_ );
         return ( lg_val - lg_min ) / ( lg_max - lg_min );
     }

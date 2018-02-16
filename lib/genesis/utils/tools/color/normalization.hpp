@@ -72,8 +72,8 @@ public:
      * @brief Constructor that sets min() and max() to the provided values.
      */
     ColorNormalization( double min, double max )
-        : min_( min )
-        , max_( max )
+        : min_value_( min )
+        , max_value_( max )
     {
         range_check_throw_();
     }
@@ -110,17 +110,17 @@ public:
     /**
      * @brief Minimum value, that is, where to begin the color scale.
      */
-    double min() const
+    double min_value() const
     {
-        return min_;
+        return min_value_;
     }
 
     /**
      * @brief Minimum value, that is, where to end the color scale.
      */
-    double max() const
+    double max_value() const
     {
-        return max_;
+        return max_value_;
     }
 
     /**
@@ -147,8 +147,8 @@ public:
      */
     ColorNormalization& scale( double min, double max )
     {
-        min_ = min;
-        max_ = max;
+        min_value_ = min;
+        max_value_ = max;
         update_hook_( min, max );
         return *this;
     }
@@ -205,8 +205,8 @@ public:
         }
 
         // Set the values simply to what we found.
-        min_ = min;
-        max_ = max;
+        min_value_ = min;
+        max_value_ = max;
         update_hook_( min, max );
 
         return *this;
@@ -215,20 +215,20 @@ public:
     /**
      * @copydoc min()
      */
-    ColorNormalization& min( double value )
+    ColorNormalization& min_value( double value )
     {
-        min_ = value;
-        update_hook_( min_, max_ );
+        min_value_ = value;
+        update_hook_( min_value_, max_value_ );
         return *this;
     }
 
     /**
      * @copydoc max()
      */
-    ColorNormalization& max( double value )
+    ColorNormalization& max_value( double value )
     {
-        max_ = value;
-        update_hook_( min_, max_ );
+        max_value_ = value;
+        update_hook_( min_value_, max_value_ );
         return *this;
     }
 
@@ -261,13 +261,13 @@ public:
         if( ! std::isfinite( value ) || value == mask_value_ ) {
             return std::numeric_limits<double>::quiet_NaN();
         }
-        if( value < min_ ) {
+        if( value < min_value_ ) {
             return -1.0;
         }
-        if( value > max_ ) {
+        if( value > max_value_ ) {
             return 2.0;
         }
-        assert( min_ <= value && value <= max_ );
+        assert( min_value_ <= value && value <= max_value_ );
         auto const r = normalize_( value );
         assert( 0.0 <= r && r <= 1.0 );
         return r;
@@ -318,7 +318,7 @@ public:
     {
         std::map<double, std::string> result;
         auto tm = Tickmarks();
-        auto const tm_labels = tm.linear_labels( min(), max(), num_ticks );
+        auto const tm_labels = tm.linear_labels( min_value(), max_value(), num_ticks );
         for( auto const& tm_label : tm_labels ) {
             result[ tm_label.relative_position ] = utils::to_string( tm_label.label );
         }
@@ -330,7 +330,7 @@ public:
      */
     virtual bool range_check() const
     {
-        return min_ < max_;
+        return min_value_ < max_value_;
     }
 
 protected:
@@ -340,7 +340,7 @@ protected:
      */
     virtual void range_check_throw_() const
     {
-        if( min_ >= max_ ) {
+        if( min_value_ >= max_value_ ) {
             throw std::runtime_error( "Invalid Color Normalization with min >= max." );
         }
     }
@@ -354,11 +354,11 @@ protected:
     virtual double normalize_( double value ) const
     {
         // Already checked by operator().
-        assert( min() <= value && value <= max() );
+        assert( min_value() <= value && value <= max_value() );
         assert( range_check() );
 
         // Bring value into the range [ 0.0, 1.0 ].
-        auto const pos = ( value - min_ ) / ( max_ - min_ );
+        auto const pos = ( value - min_value_ ) / ( max_value_ - min_value_ );
         return pos;
     }
 
@@ -379,9 +379,8 @@ protected:
 
 private:
 
-    double min_ = 0.0;
-    double max_ = 1.0;
-
+    double min_value_  = 0.0;
+    double max_value_  = 1.0;
     double mask_value_ = std::numeric_limits<double>::quiet_NaN();
 
 };
