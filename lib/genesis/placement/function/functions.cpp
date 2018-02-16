@@ -1,6 +1,6 @@
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -37,6 +37,7 @@
 #include "genesis/tree/function/distances.hpp"
 #include "genesis/tree/function/functions.hpp"
 #include "genesis/tree/function/operators.hpp"
+#include "genesis/utils/core/algorithm.hpp"
 #include "genesis/utils/core/std.hpp"
 
 #include <algorithm>
@@ -220,11 +221,19 @@ void filter_min_accumulated_weight( Pquery& pquery, double threshold )
         weight_sum += pquery.placement_at(i).like_weight_ratio;
         ++i;
     } while( weight_sum < threshold && i < pquery.placement_size() );
+    assert( i > 0 );
 
     // Remove the rest.
-    while( pquery.placement_size() > i ) {
-        pquery.remove_placement_at( pquery.placement_size() - 1 );
+    if( i < pquery.placement_size() ) {
+        auto& placements = pquery.expose_placements();
+        placements.erase( placements.begin() + i, placements.end() );
     }
+    assert( pquery.placement_size() == i );
+
+    // Slow old version.
+    // while( pquery.placement_size() > i ) {
+    //     pquery.remove_placement_at( pquery.placement_size() - 1 );
+    // }
 }
 
 void filter_min_accumulated_weight( Sample& smp, double threshold )
@@ -241,12 +250,19 @@ void filter_n_max_weight_placements( Pquery& pquery, size_t n )
         return;
     }
 
-    // Sort and remove elements from the back until n are left
-    // (this is not the cleanest solution, but works for now).
+    // Sort.
     sort_placements_by_weight( pquery );
-    while( pquery.placement_size() > n ) {
-        pquery.remove_placement_at( pquery.placement_size() - 1 );
-    }
+
+    // Remove the rest.
+    assert( pquery.placement_size() > n );
+    auto& placements = pquery.expose_placements();
+    placements.erase( placements.begin() + n, placements.end() );
+    assert( pquery.placement_size() == n );
+
+    // Slow old version.
+    // while( pquery.placement_size() > n ) {
+    //     pquery.remove_placement_at( pquery.placement_size() - 1 );
+    // }
 }
 
 void filter_n_max_weight_placements( Sample& smp, size_t n )
@@ -258,17 +274,23 @@ void filter_n_max_weight_placements( Sample& smp, size_t n )
 
 void filter_min_weight_threshold( Pquery& pquery, double threshold )
 {
+    auto& placements = pquery.expose_placements();
+    utils::erase_if( placements, [&]( PqueryPlacement const& placement ){
+        return placement.like_weight_ratio < threshold;
+    });
+
+    // Slow old version.
     // This is certainly not the cleanest solution, as it might cause quite some relocations.
     // However, we'd need full write access to the placement vector, which is currently not
     // supported for reasons of encapsulation...
-    size_t i = 0;
-    while( i < pquery.placement_size() ) {
-        if( pquery.placement_at(i).like_weight_ratio < threshold ) {
-            pquery.remove_placement_at(i);
-        } else {
-            ++i;
-        }
-    }
+    // size_t i = 0;
+    // while( i < pquery.placement_size() ) {
+    //     if( pquery.placement_at(i).like_weight_ratio < threshold ) {
+    //         pquery.remove_placement_at(i);
+    //     } else {
+    //         ++i;
+    //     }
+    // }
 }
 
 void filter_min_weight_threshold( Sample& smp,    double threshold )
