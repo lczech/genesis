@@ -3,7 +3,7 @@
 
 /*
     Genesis - A toolkit for working with phylogenetic data.
-    Copyright (C) 2014-2017 Lucas Czech
+    Copyright (C) 2017-2018 Lucas Czech and HITS gGmbH
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -45,19 +45,29 @@ namespace utils {
 // =================================================================================================
 
 /**
+ * @brief Return `true` if the name represents one of the named colors offered by genesis,
+ * which is (currently) a shortcut for is_web_color_name() and is_xkcd_color_name().
+ */
+bool is_color_name( std::string const& name );
+
+/**
+ * @brief Return the color represented by the given name,
+ * which is (currently) a shortcut for color_from_name_web() and color_from_name_xkcd().
+ */
+Color color_from_name( std::string const& name );
+
+// =================================================================================================
+//     Color Names Web
+// =================================================================================================
+
+std::vector<Color> color_palette_web();
+
+/**
  * @brief Return true iff the given name is a named web color.
  *
  * Names are filtered so that spaces, underscores and the letter case are ignored.
  */
 bool is_web_color_name( std::string const& name );
-
-/**
- * @brief Return true iff the given name is a named xkcd color.
- *
- * Names are filtered so that spaces, underscores and the letter case are ignored.
- * See color_from_name_xkcd() for details on this color list.
- */
-bool is_xkcd_color_name( std::string const& name );
 
 /**
  * @brief Retrieve a named web color by name.
@@ -66,6 +76,20 @@ bool is_xkcd_color_name( std::string const& name );
  * If the color name does not exist, an `std::invalid_argument` exception is thrown.
  */
 Color color_from_name_web( std::string const& name );
+
+// =================================================================================================
+//     Color Names xkcd
+// =================================================================================================
+
+std::vector<Color> color_palette_xkcd();
+
+/**
+ * @brief Return true iff the given name is a named xkcd color.
+ *
+ * Names are filtered so that spaces, underscores and the letter case are ignored.
+ * See color_from_name_xkcd() for details on this color list.
+ */
+bool is_xkcd_color_name( std::string const& name );
 
 /**
  * @brief Retrieve a named xkcd color by name.
@@ -80,9 +104,6 @@ Color color_from_name_web( std::string const& name );
  * @link supplement_acknowledgements_code_reuse_xkcd_color_names Acknowledgements@endlink.
  */
 Color color_from_name_xkcd( std::string const& name );
-
-std::vector<Color> color_palette_web();
-std::vector<Color> color_palette_xkcd();
 
 } // namespace utils
 } // namespace genesis
