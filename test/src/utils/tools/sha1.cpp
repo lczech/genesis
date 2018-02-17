@@ -92,3 +92,20 @@ TEST( Utils, SHA1Files )
     EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", SHA1::from_file_hex( abc_file ));
 
 }
+
+TEST( Utils, SHA1Convert )
+{
+    // empty string
+    auto const empty_d = SHA1::from_string_digest( "" );
+    auto const empty_h = SHA1::from_string_hex( "" );
+    EXPECT_EQ( "da39a3ee5e6b4b0d3255bfef95601890afd80709", empty_h );
+    EXPECT_EQ( empty_d, SHA1::hex_to_digest( empty_h ));
+    EXPECT_EQ( empty_h, SHA1::digest_to_hex( empty_d ));
+
+    // abc
+    auto const abc_d = SHA1::from_string_digest( "abc" );
+    auto const abc_h = SHA1::from_string_hex( "abc" );
+    EXPECT_EQ( "a9993e364706816aba3e25717850c26c9cd0d89d", abc_h );
+    EXPECT_EQ( abc_d, SHA1::hex_to_digest( abc_h ));
+    EXPECT_EQ( abc_h, SHA1::digest_to_hex( abc_d ));
+}

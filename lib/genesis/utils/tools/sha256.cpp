@@ -71,12 +71,15 @@
 
 #include "genesis/utils/tools/sha256.hpp"
 
+#include <algorithm>
+#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
@@ -244,6 +247,40 @@ std::string SHA256::digest_to_hex( SHA256::DigestType const& digest )
     //     sprintf( buf + i * 8, "%08x", digest[i] );
     // }
     // return std::string(buf);
+}
+
+SHA256::DigestType SHA256::hex_to_digest( std::string const& hex )
+{
+    // Safety first!
+    bool const all_hex = std::all_of( hex.begin(), hex.end(), []( char c ){
+        return std::isxdigit( c );
+    });
+    if( hex.size() != 64 || ! all_hex ) {
+        throw std::runtime_error( "Invalid SHA256 hex string." );
+    }
+
+    // The following test was introduced to check the scanf format "%8x",
+    // which just is an "unsigned int", which is not a fixed size.
+    // We now use the SCNxN typedefs that offer fixed with replacements, see
+    // http://pubs.opengroup.org/onlinepubs/009604599/basedefs/inttypes.h.html
+
+    // Make sure that the scan works! Need to have 32 bit type.
+    // static_assert(
+    //     sizeof( unsigned int ) == 4,
+    //     "Cannot compile SHA256::hex_to_digest() with sizeof( unsigned int ) != 4"
+    // );
+
+    // Convert.
+    SHA256::DigestType result;
+    for (size_t i = 0; i < result.size(); ++i) {
+        // auto const n = sscanf( &hex[ 8 * i ], "%8x", &(result[i]) );
+        auto const n = sscanf( &hex[ 8 * i ], "%8" SCNx32, &(result[i]) );
+        if( n != 1 ) {
+            throw std::runtime_error( "Invalid SHA256 hex string." );
+        }
+    }
+
+    return result;
 }
 
 // ================================================================================================
