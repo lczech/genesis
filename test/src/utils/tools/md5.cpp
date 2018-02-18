@@ -88,3 +88,20 @@ TEST( Utils, MD5Files )
     EXPECT_EQ( "900150983cd24fb0d6963f7d28e17f72", MD5::from_file_hex( abc_file ));
 
 }
+
+TEST( Utils, MD5Convert )
+{
+    // empty string
+    auto const empty_d = MD5::from_string_digest( "" );
+    auto const empty_h = MD5::from_string_hex( "" );
+    EXPECT_EQ( "d41d8cd98f00b204e9800998ecf8427e", empty_h );
+    EXPECT_EQ( empty_d, MD5::hex_to_digest( empty_h ));
+    EXPECT_EQ( empty_h, MD5::digest_to_hex( empty_d ));
+
+    // abc
+    auto const abc_d = MD5::from_string_digest( "abc" );
+    auto const abc_h = MD5::from_string_hex( "abc" );
+    EXPECT_EQ( "900150983cd24fb0d6963f7d28e17f72", abc_h );
+    EXPECT_EQ( abc_d, MD5::hex_to_digest( abc_h ));
+    EXPECT_EQ( abc_h, MD5::digest_to_hex( abc_d ));
+}

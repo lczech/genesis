@@ -92,3 +92,20 @@ TEST( Utils, SHA256Files )
     EXPECT_EQ( "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", SHA256::from_file_hex( abc_file ));
 
 }
+
+TEST( Utils, SHA256Convert )
+{
+    // empty string
+    auto const empty_d = SHA256::from_string_digest( "" );
+    auto const empty_h = SHA256::from_string_hex( "" );
+    EXPECT_EQ( "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", empty_h );
+    EXPECT_EQ( empty_d, SHA256::hex_to_digest( empty_h ));
+    EXPECT_EQ( empty_h, SHA256::digest_to_hex( empty_d ));
+
+    // abc
+    auto const abc_d = SHA256::from_string_digest( "abc" );
+    auto const abc_h = SHA256::from_string_hex( "abc" );
+    EXPECT_EQ( "ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad", abc_h );
+    EXPECT_EQ( abc_d, SHA256::hex_to_digest( abc_h ));
+    EXPECT_EQ( abc_h, SHA256::digest_to_hex( abc_d ));
+}

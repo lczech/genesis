@@ -64,12 +64,15 @@
 
 #include "genesis/utils/tools/md5.hpp"
 
+#include <algorithm>
+#include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <fstream>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 
 namespace genesis {
 namespace utils {
@@ -217,6 +220,40 @@ std::string MD5::digest_to_hex( MD5::DigestType const& digest )
     }
 
     return result.str();
+}
+
+MD5::DigestType MD5::hex_to_digest( std::string const& hex )
+{
+    // Safety first!
+    bool const all_hex = std::all_of( hex.begin(), hex.end(), []( char c ){
+        return std::isxdigit( c );
+    });
+    if( hex.size() != 32 || ! all_hex ) {
+        throw std::runtime_error( "Invalid MD5 hex string." );
+    }
+
+    // The following test was introduced to check the scanf format "%2hhx",
+    // which just is an "unsigned char", which is not a fixed size.
+    // We now use the SCNxN typedefs that offer fixed with replacements, see
+    // http://pubs.opengroup.org/onlinepubs/009604599/basedefs/inttypes.h.html
+
+    // Make sure that the scan works!
+    // static_assert(
+    //     sizeof( unsigned char ) == 1,
+    //     "Cannot compile MD5::hex_to_digest() with sizeof( unsigned char ) != 1"
+    // );
+
+    // Convert.
+    MD5::DigestType result;
+    for (size_t i = 0; i < result.size(); ++i) {
+        // auto const n = sscanf( &hex[ 2 * i ], "%2hhx", &(result[i]) );
+        auto const n = sscanf( &hex[ 2 * i ], "%2" SCNx8, &(result[i]) );
+        if( n != 1 ) {
+            throw std::runtime_error( "Invalid MD5 hex string." );
+        }
+    }
+
+    return result;
 }
 
 // ================================================================================================
