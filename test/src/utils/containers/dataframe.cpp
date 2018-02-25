@@ -35,7 +35,7 @@
 
 using namespace genesis::utils;
 
-TEST( Containers, Dataframe )
+TEST( Containers, DataframeMatrix )
 {
     NEEDS_TEST_DATA;
 
@@ -70,4 +70,25 @@ TEST( Containers, Dataframe )
     //
     //     std::cout << "\n";
     // }
+}
+
+TEST( Containers, DataframeCsv )
+{
+    NEEDS_TEST_DATA;
+
+    auto const infile = environment->data_dir + "utils/csv/table.csv";
+
+    auto reader = DataframeReader<double>();
+    auto df = reader.from_file( infile );
+
+    EXPECT_EQ(  3, df.cols() );
+    EXPECT_EQ( 10, df.rows() );
+
+    // Index access
+    EXPECT_EQ( 4.5, df( 0, 2 ));
+    EXPECT_EQ( 1.0, df( 8, 0 ));
+
+    // Name acces
+    EXPECT_EQ( 4.7, df( "gamma", "Third" ));
+    EXPECT_EQ( 0.0, df( "kappa", "First" ));
 }

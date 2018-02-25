@@ -33,6 +33,8 @@
  * make_genesis_header.sh in ./tools/deploy to update this file.
  */
 
+#include "genesis/utils/containers/dataframe.hpp"
+#include "genesis/utils/containers/dataframe/reader.hpp"
 #include "genesis/utils/containers/matrix/col.hpp"
 #include "genesis/utils/containers/matrix.hpp"
 #include "genesis/utils/containers/matrix/operators.hpp"
