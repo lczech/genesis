@@ -292,8 +292,7 @@ double node_histogram_distance (
 
 double node_histogram_distance (
     NodeDistanceHistogramSet const& lhs,
-    NodeDistanceHistogramSet const& rhs,
-    size_t const                    node_count
+    NodeDistanceHistogramSet const& rhs
 ) {
     if( lhs.histograms.size() != rhs.histograms.size() ){
         throw std::runtime_error(
@@ -310,7 +309,7 @@ double node_histogram_distance (
     assert( dist >= 0.0 );
 
     // Return normalized distance.
-    dist /= static_cast< double >( node_count );
+    dist /= static_cast< double >( lhs.histograms.size() );
     return dist;
 }
 
@@ -359,7 +358,7 @@ double node_histogram_distance (
     assert( hist_vec_b.histograms.size() == sample_b.tree().node_count() );
     assert( hist_vec_a.histograms.size() == hist_vec_b.histograms.size() );
 
-    return node_histogram_distance( hist_vec_a, hist_vec_b, sample_a.tree().node_count() );
+    return node_histogram_distance( hist_vec_a, hist_vec_b );
 }
 
 // -------------------------------------------------------------------------------------------------
@@ -442,8 +441,7 @@ utils::Matrix<double> node_histogram_distance (
             auto const j = ij.second;
 
             // Calculate and store distance.
-            auto const node_count = sample_set[ i ].sample.tree().node_count();
-            auto const dist = node_histogram_distance( hist_vecs[ i ], hist_vecs[ j ], node_count );
+            auto const dist = node_histogram_distance( hist_vecs[ i ], hist_vecs[ j ] );
             result(i, j) = dist;
             result(j, i) = dist;
         }
@@ -458,8 +456,7 @@ utils::Matrix<double> node_histogram_distance (
             for( size_t j = i + 1; j < set_size; ++j ) {
 
                 // Calculate and store distance.
-                auto const node_count = sample_set[ i ].sample.tree().node_count();
-                auto const dist = node_histogram_distance( hist_vecs[ i ], hist_vecs[ j ], node_count );
+                auto const dist = node_histogram_distance( hist_vecs[ i ], hist_vecs[ j ] );
                 result(i, j) = dist;
                 result(j, i) = dist;
             }
