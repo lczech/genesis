@@ -100,8 +100,7 @@ NodeDistanceHistogramSet node_distance_histogram_set(
 
 double node_histogram_distance(
     NodeDistanceHistogramSet const& lhs,
-    NodeDistanceHistogramSet const& rhs,
-    size_t const                    node_count
+    NodeDistanceHistogramSet const& rhs
 );
 
 // =================================================================================================
